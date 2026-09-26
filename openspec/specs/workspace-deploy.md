@@ -663,12 +663,12 @@ absent (the four core keys remain mandatory).
 ### Requirement: Website-Dockerfile setzt Node.js-Heap-Limit im Build-Stage
 
 The system SHALL set `NODE_OPTIONS` with `--max-old-space-size` of at least 2048 MB in the
-build stage of `website/Dockerfile` (before the runtime `FROM` line), preventing OOM
+build stage of `components/website/Dockerfile` (before the runtime `FROM` line), preventing OOM
 crashes and SIGSEGV during the memory-hungry Astro + pixi.js build on constrained hosts.
 
 #### Scenario: Heap-Limit vorhanden und ausreichend
 
-- **GIVEN** `website/Dockerfile` enthält einen Build-Stage-Block und einen Runtime-Stage-Block
+- **GIVEN** `components/website/Dockerfile` enthält einen Build-Stage-Block und einen Runtime-Stage-Block
 - **WHEN** das Dockerfile nach `NODE_OPTIONS.*max-old-space-size` durchsucht wird
 - **THEN** ist das Flag vorhanden und der numerische Wert ist >= 2048 (MB)
 - **AND** die `NODE_OPTIONS`-Zeile liegt im Build-Stage (Zeilennummer kleiner als die
@@ -688,14 +688,14 @@ task" error, and natural-language inputs SHALL NOT trigger the fast-path.
 #### Scenario: Strukturierter Input mit ENV wird direkt ausgeführt
 
 - **GIVEN** die `task`-Binäry ist verfügbar und kennt `workspace:deploy`
-- **WHEN** `bash scripts/task-oracle.sh "workspace:deploy ENV=mentolder"` ausgeführt wird
+- **WHEN** der Task-Oracle mit `"workspace:deploy ENV=mentolder"` ausgeführt wird
 - **THEN** wird `task workspace:deploy ENV=mentolder` aufgerufen (Exit 0)
 - **AND** stderr enthält `[fast-path]`
 
 #### Scenario: ENV=both mit all-prods-Sibling und ohne
 
 - **GIVEN** `feature:website:all-prods` existiert als Task
-- **WHEN** `bash scripts/task-oracle.sh "feature:website ENV=both"` ausgeführt wird
+- **WHEN** der Task-Oracle mit `"feature:website ENV=both"` ausgeführt wird
 - **THEN** wird `feature:website:all-prods` aufgerufen (nicht zweimal sequenziell)
 - **AND** für `workspace:deploy ENV=both` (kein `all-prods`-Sibling) werden nacheinander
   `workspace:deploy ENV=mentolder` und `workspace:deploy ENV=korczewski` aufgerufen
@@ -1740,13 +1740,13 @@ The system SHALL NOT trigger the fast-path for inputs that consist only of a nam
 
 #### Scenario: Nur Namespace-Eingabe triggert nicht den Fast-Path *(BATS)*
 - **GIVEN** `task-oracle.sh` ist verfügbar
-- **WHEN** `bash scripts/task-oracle.sh "workspace"` ausgeführt wird (kein Doppelpunkt-Action)
+- **WHEN** der Task-Oracle mit `"workspace"` ausgeführt wird (kein Doppelpunkt-Action)
 - **THEN** schlägt das Skript mit Exit 1 fehl
 - **AND** stderr enthält `Neither Hermes nor OpenClaw`
 
 #### Scenario: Strukturierter Input ohne ENV wird direkt ausgeführt *(BATS)*
 - **GIVEN** `task workspace:deploy` ist als Task registriert
-- **WHEN** `bash scripts/task-oracle.sh "workspace:deploy"` ohne ENV-Angabe ausgeführt wird
+- **WHEN** der Task-Oracle mit `"workspace:deploy"` ohne ENV-Angabe ausgeführt wird
 - **THEN** wird `task workspace:deploy` aufgerufen (ohne ENV-Override)
 - **AND** die Ausgabe enthält `TASK_CALLED: workspace:deploy` ohne nachfolgendes `ENV=`
 

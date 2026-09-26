@@ -2330,7 +2330,7 @@ starting a process. It SHALL offer no write action in either case.
 
 ## Architektur-Entscheidungen
 
-Siehe `openspec/changes/sdlc-cockpit-design/design.md`, Abschnitt „Getroffene Entscheidungen" (E1–E22).
+Siehe `openspec/changes/archive/2026-08-03-sdlc-cockpit-design/design.md`, Abschnitt „Getroffene Entscheidungen" (E1–E22).
 
 <!-- merged from change delta sdlc-cockpit.md (1254cd25f840) -->
 

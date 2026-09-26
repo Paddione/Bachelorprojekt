@@ -228,7 +228,7 @@
   harness: both
   summary_de: "Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy."
   what_for_de: "Wenn ein gut umrissenes Feature von einem Multi-Agent-Lauf gebaut werden soll — entweder selbst geplant oder aus einem übergebenen Menschen-Plan (Plan-Reuse)."
-  how_to_start_de: "Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.js starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy."
+  how_to_start_de: "Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.mjs starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy."
   what_could_go_wrong_de: "Sie implementiert und deployt selbstständig (🟠). Ohne Dry-Run kann ein fehlerhafter Stand live gehen — darum erst den Probelauf, dann bewusst scharf schalten."
   danger: assisted
   theme: fabrik

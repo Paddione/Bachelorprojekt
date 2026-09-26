@@ -25,7 +25,7 @@ Typsichere Entwicklung im Astro-Website-Projekt durch kontinuierliche statische 
 **ID:** REQ-ASTRO-TC-002
 **Status:** Required
 
-Eine zentrale Fixture-Factory `components/website/src/lib/tickets/__tests__/fixtures.ts` stellt typsichere Default-Objekte für `RollupMetrics`, `FeatureNode`, `ProductNode` und `PortfolioPayload` bereit.
+Eine zentrale Fixture-Factory `components/website/src/lib/sdlc/tickets/__tests__/fixtures.ts` stellt typsichere Default-Objekte für `RollupMetrics`, `FeatureNode`, `ProductNode` und `PortfolioPayload` bereit.
 
 #### Scenario: Fixture factory provides typed defaults with overrides
 
@@ -39,7 +39,7 @@ Eine zentrale Fixture-Factory `components/website/src/lib/tickets/__tests__/fixt
 **ID:** REQ-ASTRO-TC-003
 **Status:** Required
 
-`website/package.json` enthält ein `"astro:check": "astro check"` Script für lokale Entwickler.
+`components/website/package.json` enthält ein `"astro:check": "astro check"` Script für lokale Entwickler.
 
 #### Scenario: Local check script runs astro check
 

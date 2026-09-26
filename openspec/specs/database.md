@@ -730,14 +730,14 @@ Spalte auf ihre aktive Provider-Konfiguration verweisen.
 ### Requirement: Orphaned category Migration Removed
 
 Das System SHALL keine verwaiste, nie angewendete Migration im Repository behalten. Die
-Datei `scripts/migration/005-add-category-to-tickets.sql` (im Singular-Verzeichnis
-`scripts/migration/`) SHALL gelöscht werden, weil die Spalte `tickets.tickets.category`
+verwaiste Category-Migration (im Singular-Verzeichnis `migration/`) SHALL
+gelöscht werden, weil die Spalte `tickets.tickets.category`
 nicht in der Datenbank existiert, das zugehörige Feature nie live ging und kein
 Laufzeit-Code die Spalte referenziert.
 
 #### Scenario: Verwaiste Migrationsdatei ist entfernt
 
-- **GIVEN** `scripts/migration/005-add-category-to-tickets.sql` wurde nie angewendet und `tickets.tickets.category` existiert in keiner Brand-DB
+- **GIVEN** die verwaiste Category-Migration wurde nie angewendet und `tickets.tickets.category` existiert in keiner Brand-DB
 - **WHEN** das Repository nach der Bereinigung geprüft wird
 - **THEN** existiert die Datei nicht mehr und keine `.ts`/`.js`-Laufzeitdatei referenziert eine `tickets.category`-Spalte
 
@@ -952,13 +952,13 @@ The system SHALL provide a `graph.ts` API endpoint, an `architektur.astro` page,
 #### Scenario: API-Endpunkt-Datei existiert *(BATS)*
 
 - **GIVEN** das Website-Repository ist ausgecheckt
-- **WHEN** der Pfad `components/website/src/pages/api/admin/cluster/graph.ts` geprüft wird
+- **WHEN** der Pfad `components/website/src/pages/sdlc/api/cluster/graph.ts` geprüft wird
 - **THEN** existiert die Datei
 
 #### Scenario: Astro-Seite und Svelte-Komponente existieren *(BATS)*
 
 - **GIVEN** das Website-Repository ist ausgecheckt
-- **WHEN** die Pfade `components/website/src/pages/admin/architektur.astro` und `components/website/src/components/admin/ArchitekturGraph.svelte` geprüft werden
+- **WHEN** die Pfade `components/website/src/pages/sdlc/architektur.astro` und `components/website/src/components/admin/ArchitekturGraph.svelte` geprüft werden
 - **THEN** existieren beide Dateien
 
 #### Scenario: AdminLayout enthält Architektur-Sidebar-Eintrag *(BATS)*

@@ -9,7 +9,7 @@ Soll-Zustand im Repo:
 - `devmesh/tailnet-policy.hujson` — ACL-Soll (Guard: `tests/spec/local-dev-mesh/tailnet-policy.bats`)
 - `scripts/devmesh/tailnet-check.sh` — Prüfung, Aufruf `task devmesh:tailnet:check`
 
-Entscheidungen: ADR-008 (Nachtrag 2026-09-11), `openspec/changes/devmesh-tailnet/design.md`.
+Entscheidungen: ADR-008 (Nachtrag 2026-09-11), `openspec/changes/archive/2026-09-11-devmesh-tailnet/design.md`.
 
 ## Rollen
 

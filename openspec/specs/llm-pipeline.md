@@ -291,7 +291,7 @@ the `file_dependencies` table for dependency-graph traversal.
 
 ### Requirement: SCS-Such-API mit Admin-Auth und Query-Validierung
 
-The system SHALL expose a code-search API endpoint (`components/website/src/pages/api/codesearch.ts`)
+The system SHALL expose a code-search API endpoint (`components/website/src/pages/sdlc/api/codesearch.ts`)
 that requires admin authentication (`isAdmin` check) and SHALL validate the query parameter
 `q` before executing any database search.
 
@@ -348,7 +348,7 @@ matched files and includes those neighbor files in the result with a fixed score
 ### Requirement: SCS-Factory-Pipeline-Integration mit Graceful Degradation
 
 The system SHALL query the code search API during the Scout phase of the factory pipeline
-(`scripts/factory/pipeline.js`) and SHALL degrade gracefully (via try/catch) when the
+(`scripts/factory/pipeline.mjs`) and SHALL degrade gracefully (via try/catch) when the
 SCS is unavailable, so that ticket processing continues without suggested files.
 
 #### Scenario: SCS-Abfrage im Scout-Phase erfolgreich
@@ -1689,9 +1689,9 @@ chunk_index)` constraint, SHA-256 file hashing, `--file` flag, bge-m3 model refe
 ### Requirement: SCS-Such-API und Augmented-Search (Implementierung)
 <!-- bats: scs-search.bats -->
 
-The system SHALL implement `components/website/src/pages/api/codesearch.ts` with admin auth, query
+The system SHALL implement `components/website/src/pages/sdlc/api/codesearch.ts` with admin auth, query
 validation, 503 handling for unavailable embedding service, and augmented query support;
-and SHALL implement `components/website/src/lib/codesearch-db.ts` with `searchCode` (pgvector cosine
+and SHALL implement `components/website/src/lib/sdlc/codesearch-db.ts` with `searchCode` (pgvector cosine
 distance) and `searchCodeAugmented` (1-hop neighbor expansion with score 0.7); the factory
 pipeline SHALL integrate SCS with graceful degradation; `DetailPanel.svelte` SHALL display
 `suggested_files` with color-coded scores; and the git post-commit hook and Taskfile tasks
@@ -1699,46 +1699,46 @@ SHALL be present.
 
 #### Scenario: `/api/codesearch.ts` existiert *(BATS)*
 - **GIVEN** das Repository ist ausgecheckt
-- **WHEN** `components/website/src/pages/api/codesearch.ts` auf Existenz geprüft wird
+- **WHEN** `components/website/src/pages/sdlc/api/codesearch.ts` auf Existenz geprüft wird
 - **THEN** existiert die Datei
 
 #### Scenario: API erfordert Admin-Auth (mind. 1 `isAdmin`-Referenz) *(BATS)*
-- **GIVEN** `components/website/src/pages/api/codesearch.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/sdlc/api/codesearch.ts` ist vorhanden
 - **WHEN** der Quelltext auf `isAdmin` gezählt wird
 - **THEN** ist `isAdmin` mindestens 1 Mal referenziert
 
 #### Scenario: API validiert den Query-Parameter `q` *(BATS)*
-- **GIVEN** `components/website/src/pages/api/codesearch.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/sdlc/api/codesearch.ts` ist vorhanden
 - **WHEN** der Quelltext auf `searchParams.get('q')` gezählt wird
 - **THEN** ist der Aufruf mindestens 1 Mal vorhanden
 
 #### Scenario: API gibt 503 zurück wenn Embedding-Service nicht erreichbar *(BATS)*
-- **GIVEN** `components/website/src/pages/api/codesearch.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/sdlc/api/codesearch.ts` ist vorhanden
 - **WHEN** der Quelltext auf `embedding service unavailable` gezählt wird
 - **THEN** ist die Meldung mindestens 1 Mal vorhanden
 
 #### Scenario: API unterstützt `augmented`-Query-Parameter *(BATS)*
-- **GIVEN** `components/website/src/pages/api/codesearch.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/sdlc/api/codesearch.ts` ist vorhanden
 - **WHEN** der Quelltext auf `augmented` gezählt wird
 - **THEN** ist der Parameter mindestens 2 Mal referenziert
 
 #### Scenario: `codesearch-db.ts` mit `searchCode` und pgvector-Operator *(BATS)*
-- **GIVEN** `components/website/src/lib/codesearch-db.ts` ist vorhanden
+- **GIVEN** `components/website/src/lib/sdlc/codesearch-db.ts` ist vorhanden
 - **WHEN** der Quelltext auf `export async function searchCode` und `<=>` geprüft wird
 - **THEN** existieren beide jeweils mindestens 1 Mal
 
 #### Scenario: `searchCodeAugmented` mit 1-Hop-Nachbarn (score 0.7) *(BATS)*
-- **GIVEN** `components/website/src/lib/codesearch-db.ts` ist vorhanden
+- **GIVEN** `components/website/src/lib/sdlc/codesearch-db.ts` ist vorhanden
 - **WHEN** der Quelltext auf `searchCodeAugmented`, `file_dependencies` und `score: 0.7` geprüft wird
 - **THEN** existieren alle drei Begriffe mindestens 1 Mal
 
 #### Scenario: `DetailPanel.svelte` zeigt `suggested_files` mit `scoreColor` *(BATS)*
-- **GIVEN** `components/website/src/components/factory/DetailPanel.svelte` und `components/website/src/lib/factory-floor.ts` sind vorhanden
+- **GIVEN** `components/website/src/components/sdlc/factory/DetailPanel.svelte` und `components/website/src/lib/sdlc/factory-floor.ts` sind vorhanden
 - **WHEN** der Quelltext auf `suggested_files` und `scoreColor` gezählt wird
 - **THEN** erscheint `suggested_files` in `DetailPanel.svelte` mindestens 2 Mal, in `factory-floor.ts` mindestens 2 Mal, und `scoreColor` in `DetailPanel.svelte` mindestens 1 Mal
 
 #### Scenario: Factory-Pipeline mit SCS und graceful degradation *(BATS)*
-- **GIVEN** `scripts/factory/pipeline.js` ist vorhanden
+- **GIVEN** `scripts/factory/pipeline.mjs` ist vorhanden
 - **WHEN** der Quelltext auf `codesearch` und `graceful degradation` gezählt wird
 - **THEN** erscheinen beide jeweils mindestens 1 Mal
 
@@ -1777,7 +1777,7 @@ and SHALL require `X-Cron-Secret` / `CRON_SECRET` authentication in `/api/admin/
 - **THEN** erscheint der Templates-Delete vor dem `questionnaire_assignments`-Delete
 
 #### Scenario: `purge.ts` erfordert `X-Cron-Secret`-Auth (Gap 3) *(BATS)*
-- **GIVEN** `components/website/src/pages/api/admin/testdata/purge.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/sdlc/api/testdata/purge.ts` ist vorhanden
 - **WHEN** der Quelltext auf `X-Cron-Secret` und `CRON_SECRET` geprüft wird
 - **THEN** sind beide Referenzen vorhanden (spiegelt das Pattern aus `purge-all-test-data.ts`)
 

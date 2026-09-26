@@ -63,8 +63,7 @@ alive the command SHALL refuse and change nothing, reporting the slot, the statu
 age of the last progress; `--force` SHALL override. The implementation SHALL live in
 `scripts/ticket-reclaim.sh`, dispatched from `ticket.sh`.
 
-The existing session-coordination guard in `scripts/factory/factory-prep-runner.sh` and
-`scripts/factory/factory-prep-bridge.sh` (T000510) SHALL remain unchanged — it is correct;
+The existing session-coordination guard (T000510) SHALL remain unchanged — it is correct;
 it was asking a lock that reported the wrong answer.
 
 #### Scenario: Reclaiming a ticket with no active worker

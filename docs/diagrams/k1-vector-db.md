@@ -31,11 +31,12 @@ alle Vektoren sind 1024-dimensional.
 │                                                                     │
 │  scripts/openspec-embed.mjs ───bge-m3/voyage──► knowledge.chunks   │
 │  scripts/knowledge/lib-knowledge-pg.mjs ───voyage──►   (18.405)    │
-│  website/src/lib/ingest-json-core.ts ───router──►                   │
-│  website/src/lib/knowledge-db.ts ───router──►                       │
+│  components/website/src/lib/ingest-json-core.ts ───router──►        │
+│  components/website/src/lib/knowledge-db.ts ───router──►            │
 │  scripts/knowledge/ingest-web.mjs ───router──►                      │
 │                                                                     │
-│  website/src/lib/tickets-embed.ts ───bge-m3──► ticket_embeddings    │
+│  components/website/src/lib/tickets-embed.ts                        │
+│  ───bge-m3──► ticket_embeddings                                     │
 │  (⚠ NOCH NIE AUFGERUFEN — 0 rows)                    🔴 LEER       │
 └─────────────────────────────────────────────────────────────────────┘
                               │
@@ -43,19 +44,21 @@ alle Vektoren sind 1024-dimensional.
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         LESER (Reader)                              │
 │                                                                     │
-│  website/src/lib/codesearch-db.ts ◄── code_embeddings              │
+│  components/website/src/lib/sdlc/codesearch-db.ts                   │
+│  ◄── code_embeddings                                                │
 │  → /api/codesearch                                                   │
 │                                                                     │
-│  website/src/lib/knowledge-db.ts ◄── knowledge.chunks               │
+│  components/website/src/lib/knowledge-db.ts ◄── knowledge.chunks    │
 │  → /api/openspec/search, queryNearest()                             │
 │                                                                     │
-│  website/src/lib/coaching-db.ts ◄── knowledge.chunks               │
+│  components/website/src/lib/coaching-db.ts ◄── knowledge.chunks     │
 │  → Coaching Semantic Search                                          │
 │                                                                     │
 │  scripts/knowledge/search-similar.mjs ◄── knowledge.chunks         │
 │  → CLI Knowledge Search                                              │
 │                                                                     │
-│  website/src/lib/tickets-embed.ts ◄── ticket_embeddings             │
+│  components/website/src/lib/tickets-embed.ts                        │
+│  ◄── ticket_embeddings                                              │
 │  → searchSimilarTickets() — 🔴 Tabelle leer, kein Aufrufer          │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -70,7 +73,7 @@ alle Vektoren sind 1024-dimensional.
 
 ## Mixed-Embedding-Model-Check
 
-**Guard:** `website/src/lib/knowledge-db.ts` — `MixedEmbeddingModelError`
+**Guard:** `components/website/src/lib/knowledge-db.ts` — `MixedEmbeddingModelError`
 
 ```typescript
 // queryNearest() prüft vor der Suche:
@@ -94,14 +97,14 @@ throw new MixedEmbeddingModelError(models)
 |---|---|---|
 | `scripts/index-repo.ts` | ✅ Ja | 18.549 Zeilen in `code_embeddings`; läuft als post-commit-Hook |
 | `scripts/openspec-embed.mjs` | ✅ Ja | Hat `knowledge.chunks`-Einträge erzeugt |
-| `website/src/lib/knowledge-db.ts` (ingest) | ✅ Ja | Collections mit `source=custom` haben Chunks |
+| `components/website/src/lib/knowledge-db.ts` (ingest) | ✅ Ja | Collections mit `source=custom` haben Chunks |
 | `scripts/knowledge/ingest-web.mjs` | ✅ Ja | Collections mit `source=web_crawl` haben Chunks |
 | `scripts/knowledge/lib-knowledge-pg.mjs` | ✅ Ja | CLI-Ingest-Pfad |
-| `website/src/lib/tickets-embed.ts` | ❌ Nein | `ticket_embeddings` hat 0 Zeilen — toter Code |
+| `components/website/src/lib/tickets-embed.ts` | ❌ Nein | `ticket_embeddings` hat 0 Zeilen — toter Code |
 
 ## Modell-Routing
 
-Der zentrale Embedding-Router (`website/src/lib/embeddings.ts`) lenkt alle Aufrufe:
+Der zentrale Embedding-Router (`components/website/src/lib/embeddings.ts`) lenkt alle Aufrufe:
 
 ```
 embedQuery/embedBatch(model, purpose)

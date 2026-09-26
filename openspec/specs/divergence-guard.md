@@ -131,7 +131,7 @@ contains none of the glob metacharacters `*`, `?` or `[`. And it does not carry 
 `# runtime`.
 
 The `# runtime` marker exists because a path may be both glob-free and legitimately absent from a
-fresh checkout: `website/dist`, `mentolder-web/node_modules` and `tests/e2e/test-results` are
+fresh checkout: `components/website/dist`, `mentolder-web/node_modules` and `tests/e2e/test-results` are
 produced by a build, an install and a test run respectively. Marking them in the file itself keeps
 the justification next to the entry rather than in a separate allowlist that drifts from it. The
 marker SHALL name the producing step, so that a future reader can tell an artefact from a
@@ -161,7 +161,7 @@ vacuously.
 
 #### Scenario: A marked runtime artefact is not treated as a missing path
 
-- **GIVEN** `.dockerignore` contains `website/dist  # runtime: astro build` and that directory does
+- **GIVEN** `.dockerignore` contains `components/website/dist  # runtime: astro build` and that directory does
   not exist in a fresh checkout
 - **WHEN** the test suite runs
 - **THEN** the check passes, because the entry carries the `# runtime` marker

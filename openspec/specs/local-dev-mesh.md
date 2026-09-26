@@ -231,9 +231,7 @@ loaded, NFSv4 client (`nfs-common`), `cryptsetup` with `dm_crypt`,
 
 Longhorn 1.11.2 (per `environments/versions.yaml` SSOT) SHALL be installed on
 context `devmesh`, `local-path` SHALL lose its default flag, and every node's
-disks SHALL be registered in the Longhorn node configuration. The legacy
-installer `k3d/dev-cluster/longhorn-install.sh` (v1.7.2, context `devc`) SHALL
-be replaced.
+disks SHALL be registered in the Longhorn node configuration. The legacy installer (v1.7.2, context `devc`) SHALL be replaced.
 
 #### Scenario: Only Longhorn carries the default flag
 

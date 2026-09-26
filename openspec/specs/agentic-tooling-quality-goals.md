@@ -130,13 +130,13 @@ one of `CLAUDE.md`, `AGENTS.md`, `OVERVIEW.md`, or another skill's `SKILL.md`.
 
 ### Requirement: G-AGENTIC08 No Dead Script/Task References In Skills Gate
 
-The count of non-existent `scripts/…` paths quoted in the Markdown of **project-owned** skills
+The count of non-existent `scripts/<name>` paths quoted in the Markdown of **project-owned** skills
 SHALL be measured as a fail-closed Gate with target 0. The scope covers every `.md` file of those
 skills plus `.claude/skills/references/`, not only files named `SKILL.md`.
 
 The previous formulation matched `--include=SKILL.md` only. Relocating procedure text into a
 reference file therefore removed its script paths from the gate's scope — the very move that
-progressive disclosure encourages. Vendor skills are excluded because their `scripts/…` mentions
+progressive disclosure encourages. Vendor skills are excluded because their `scripts/<name>` mentions
 are relative to the skill directory and resolve correctly there, while the repo-relative check
 would report them as dead.
 
@@ -322,7 +322,7 @@ reference sources.
 ### Requirement: Indexierung läuft single-flight über alle Instanzen
 
 Skriptgesteuerte codebase-memory-Indexierungen SHALL über einen
-flock-basierten Single-Flight-Wrapper (`scripts/mcp/cbm-single-flight.sh`)
+flock-basierten Single-Flight-Wrapper
 serialisiert werden, sodass pro Repo-Pfad zu jedem Zeitpunkt höchstens ein
 Index-Job läuft; konkurrierende Aufrufer warten auf die Sperre, statt
 parallele Volljobs zu starten.
@@ -344,7 +344,7 @@ parallele Volljobs zu starten.
 
 ### Requirement: Stampede-Runbook dokumentiert Akut-Mitigation und Prävention
 
-Das Repository SHALL ein Runbook `docs/runbooks/cbm-index-stampede.md`
+Das Repository SHALL ein Runbook
 führen, das die beobachtete Index-Stampede (Load-Spitze 54.5 bei nproc=4)
 mit akuten Gegenmaßnahmen und Präventionsregeln beschreibt — insbesondere:
 vor manuellem Reindex zuerst `index_status`/`detect_changes` prüfen, nur

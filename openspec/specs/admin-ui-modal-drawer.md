@@ -8,7 +8,7 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu admin-ui-modal-drawer er
 
 ### Requirement: Native dialog-based AdminModal primitive
 
-The system SHALL provide a reusable `components/admin/ui/AdminModal.svelte` primitive built on the
+The system SHALL provide a reusable `components/website/src/components/admin/ui/AdminModal.svelte` primitive built on the
 native `<dialog>` element so that focus trapping, the `::backdrop`, `inert` background, and Escape
 handling are delivered by the browser platform rather than by bespoke JavaScript.
 
@@ -51,7 +51,7 @@ in the admin surface.
 
 ### Requirement: Side-anchored AdminDrawer variant
 
-The system SHALL provide `components/admin/ui/AdminDrawer.svelte` as a thin variant of the same
+The system SHALL provide `components/website/src/components/admin/ui/AdminDrawer.svelte` as a thin variant of the same
 native-`<dialog>` pattern, anchored to the side of the viewport instead of centered, sharing the
 identical accessibility base (focus trap, Escape, `onclose` propagation, stable `data-testid`).
 
@@ -82,7 +82,7 @@ two scenarios below for why), tracked as follow-up candidates rather than blocki
 - **THEN** they are incompatible without editing `TicketCreateModal.test.ts`, which this change does
   not do
 - **AND** `TicketCreateModal` therefore remains on its original `{#if open}`-based implementation,
-  keeping `data-testid="create-modal"` and the `tests/e2e/fa-29-cockpit.spec.ts` flow working exactly
+  keeping `data-testid="create-modal"` and the cockpit e2e flow working exactly
   as before
 
 #### Scenario: Every migrated dialog carries a stable data-testid
@@ -90,7 +90,7 @@ two scenarios below for why), tracked as follow-up candidates rather than blocki
 - **GIVEN** a modal or drawer previously located via an overlay-specific selector
 - **WHEN** it is migrated onto the native `<dialog>` primitive
 - **THEN** the `<dialog>` exposes a stable `data-testid` recorded in the migration notes
-  (`openspec/changes/admin-ui-modal-drawer/notes.md`)
+  (`openspec/changes/archive/2026-07-11-admin-ui-modal-drawer/notes.md`)
 
 #### Scenario: Non-overlay components are not forced onto the dialog primitive
 

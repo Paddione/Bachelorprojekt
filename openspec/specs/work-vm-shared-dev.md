@@ -9,7 +9,7 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu work-vm-shared-dev ergä
 ### Requirement: Dedicated work VM on the Proxmox dev host
 
 The provisioning tooling SHALL create a dedicated Debian 12 cloud-init VM on the
-Proxmox host `dev` (`scripts/provision-dev-vm.sh`, env-overridable VMID/IP/WireGuard
+Proxmox host `dev` (env-overridable VMID/IP/WireGuard
 values), with a fresh VMID/IP as the default (VMID 9003, LAN 10.0.0.27 — the old
 k3d-era VMID 9002/10.0.0.26 was rejected: stale k3d purpose, unknown state). The VM
 SHALL enroll users `patrick` and `gekko` with their existing SSH pubkeys, harden
@@ -20,7 +20,7 @@ and SHALL NOT run a k3d cluster.
 
 #### Scenario: Provision a fresh work VM
 
-- **GIVEN** the Proxmox host `dev` is reachable and `scripts/provision-dev-vm.sh` runs with default parameters
+- **GIVEN** the Proxmox host `dev` is reachable and the provisioning script runs with default parameters
 - **WHEN** the script completes
 - **THEN** a VM with VMID 9003, static IP 10.0.0.27 and hostname `mentolder-dev` exists and boots
 - **AND** both users `patrick` and `gekko` can log in via SSH with their existing keys
@@ -78,7 +78,7 @@ convention). The script SHALL remain runnable for the gekko-hetzner-2 k3d path
 
 ### Requirement: Script facts guarded by BATS
 
-Tests under `tests/spec/work-vm-shared-dev/` SHALL assert the script facts without
+Tests SHALL assert the script facts without
 provisioning a real VM (repo guard pattern, T002416): cloud-init enrolls both pubkey
 fingerprints, install-dev-tools.sh contains gh/git-crypt and the DEV_USERS switch, ufw section does
 not expose k3d/Postgres ports, and the shared-repo setup creates the group, ACLs and
@@ -86,7 +86,7 @@ ff-only timer.
 
 #### Scenario: Guard detects regressed cloud-init
 
-- **GIVEN** a regression re-introduces the 18080/18443 ufw rules into `prod/cloud-init-dev-vm.yaml`
+- **GIVEN** a regression re-introduces the 18080/18443 ufw rules into the dev-vm cloud-init
 - **WHEN** the BATS guard runs in CI
 - **THEN** it fails with a message naming the offending firewall rule
 

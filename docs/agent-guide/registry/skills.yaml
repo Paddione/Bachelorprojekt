@@ -5,6 +5,8 @@
 # Authoritative four-harness skill inventory. This file records the target
 # portable-core architecture; p2 reconciles the current symlinked/copied corpus.
 # The projection engine is scripts/agent-skills/project.mjs.
+# Upstream-Herkunft der `provenance: vendor`-Einträge (Repo, Pfad, gelockter Commit):
+# docs/agent-guide/registry/vendor-lock.json — gepflegt von scripts/vendor-sync.py.
 schema_version: 1
 
 harnesses:

@@ -2,7 +2,7 @@
 title: "software-factory-decommission — Implementation Plan"
 ticket_id: T900399
 domains: [infra-ops, database-specialist, scripts, repo-hygiene, toolset-curate, website-specialist, testing]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

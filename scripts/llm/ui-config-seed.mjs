@@ -38,11 +38,14 @@ export function buildSystemMessage(clients, servers) {
     lines.push(`- ${s.name}: ${purpose}`);
   }
 
+  lines.push('', 'Regeln:');
+  if (servers.some((server) => server.name === 'codebase-memory-mcp')) {
+    lines.push(
+      '- Code suchen: erst codebase-memory-mcp (Graph), dann grep_search. Der Graph kennt',
+      '  Aufrufbeziehungen, die eine Textsuche nicht findet.',
+    );
+  }
   lines.push(
-    '',
-    'Regeln:',
-    '- Code suchen: erst codebase-memory-mcp (Graph), dann grep_search. Der Graph kennt',
-    '  Aufrufbeziehungen, die eine Textsuche nicht findet.',
     '- Tickets ausschliesslich ueber ticket-mcp lesen und schreiben. mcp-postgres ist an die',
     '  mentolder-Datenbank gebunden und liefert bei korczewski-IDs still die falsche Zeile.',
     '- Vor dem Aendern einer Datei diese lesen. edit_file setzt den exakten Bestand voraus.',

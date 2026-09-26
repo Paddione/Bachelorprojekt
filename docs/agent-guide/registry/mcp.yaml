@@ -199,37 +199,6 @@ clients:
   # Pfad (portabel — beide Harnesses starten aus dem Repo-Root; G-AGENTIC14
   # vergleicht genau diese beiden). top-level/agy/llamacpp behalten den
   # absoluten Linux-Pfad: agy/llamacpp laufen nur auf dem Linux-Host.
-  brain-mcp-node:
-    transport: stdio
-    command: node
-    args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
-    env:
-      BRAIN_WIKI_DIR: ~/brain/wiki
-    harness:
-      claude_code:
-        command: node
-        args: [scripts/brain-mcp-node/server.mjs]
-        env:
-          BRAIN_WIKI_DIR: ~/brain/wiki
-      agy:
-        command: node
-        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
-        env:
-          BRAIN_WIKI_DIR: ~/brain/wiki
-      opencode:
-        # opencode laeuft seit 2026-09-11 in WSL (nicht mehr nativ auf
-        # Windows/pk-desktop). Der Server ist stdio und laeuft dort, wo der
-        # Harness laeuft — Pfad bleibt relativ/portabel.
-        type: local
-        # Kein Brain-Wiki-Checkout unter ~/brain/wiki — weder auf dem
-        # Windows-Host noch in WSL (2026-09-11 verifiziert, siehe brain-ingest):
-        # der Server ist nicht startbar, bis das Brain-Repo ausgecheckt ist.
-        # Disabled statt toter Pfad; Pfad ist trotzdem portabel.
-        command: [node, scripts/brain-mcp-node/server.mjs]
-        environment:
-          BRAIN_WIKI_DIR: ~/brain/wiki
-        enabled: false
-
   ticket-mcp-node:
     transport: stdio
     command: node
@@ -430,7 +399,6 @@ cluster:
       servers:
         - { name: github, port: 3002, forwarded_port: 13002 }
         - { name: ticket-mcp, port: 3003 }
-        - { name: brain-mcp, port: 3004 }
         - { name: task-runner, port: 3005 }
         - { name: codebase-memory, port: 3006 }
     - name: mcp-kubernetes

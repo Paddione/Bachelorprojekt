@@ -308,23 +308,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Wenn bge-embed im Cluster nicht Ready ist — dann schlägt der Aufruf fehl.
   - _Rollen:_ `orchestrator`
 
-## Fähigkeit: `wissens-wiki`
-
-- **`skill:brain-ingest`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Brain-Wiki kompilieren und ins externe Paddione/brain-Repo veröffentlichen.
-  - _Nicht:_ Zum Lesen des Wikis — dieser Skill schreibt es.
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/brain-ingest/SKILL.md`
-
-## Fähigkeit: `wiki-nachschlagen`
-
-- **`mcp:brain-mcp-node`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Im Brain-Wiki nachschlagen: BM25-Suche und Seiten lesen (brain_search, brain_read).
-  - _Nicht:_ Wiki kompilieren/veröffentlichen — dafür wissens-wiki/brain-ingest.
-  - _Fallback:_ `grep -r <begriff> ~/brain/wiki`
-  - _Rollen:_ `all`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
-
 ## Fähigkeit: `dokumentations-lookup`
 
 - **`plugin:context7@claude-plugins-official`** — Status `canonical` · Tier `safe`

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.371.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.0...website-v1.371.1) (2026-09-26)
+
+
+### Code Refactoring
+
+* **mcp:** K4-Surgery spiegel entfernen und mcp retirieren [T900451] ([#5956](https://github.com/Paddione/Bachelorprojekt/issues/5956)) ([6a31a17](https://github.com/Paddione/Bachelorprojekt/commit/6a31a177320d53e06e1cf61c04a15aafbdd91e2b))
+
 ## [1.371.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.370.0...website-v1.371.0) (2026-09-26)
 
 

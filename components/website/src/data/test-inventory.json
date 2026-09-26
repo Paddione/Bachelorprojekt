@@ -2268,32 +2268,8 @@
     "kind": "shell"
   },
   {
-    "id": "brain-foundation/from-scratch-rebuild",
-    "file": "tests/spec/brain-foundation/from-scratch-rebuild.bats",
-    "category": "brain-foundation",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-foundation/ingest-llm-endpoint",
-    "file": "tests/spec/brain-foundation/ingest-llm-endpoint.bats",
-    "category": "brain-foundation",
-    "kind": "shell"
-  },
-  {
     "id": "brain-foundation/k1-vector-db-doc",
     "file": "tests/spec/brain-foundation/k1-vector-db-doc.bats",
-    "category": "brain-foundation",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-foundation/knowledge-lifecycle",
-    "file": "tests/spec/brain-foundation/knowledge-lifecycle.bats",
-    "category": "brain-foundation",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-foundation/state-file-type-repair",
-    "file": "tests/spec/brain-foundation/state-file-type-repair.bats",
     "category": "brain-foundation",
     "kind": "shell"
   },
@@ -2304,68 +2280,8 @@
     "kind": "shell"
   },
   {
-    "id": "brain-ingest",
-    "file": "tests/spec/brain-ingest.bats",
-    "category": "brain-ingest",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-ingest-task-defaults",
-    "file": "tests/spec/brain-ingest-task-defaults.bats",
-    "category": "brain-ingest-task-defaults",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-ingest/delivery-rebase-before-push",
-    "file": "tests/spec/brain-ingest/delivery-rebase-before-push.bats",
-    "category": "brain-ingest",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-initial-ingest",
-    "file": "tests/spec/brain-initial-ingest.bats",
-    "category": "brain-initial-ingest",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-k4-brain-wiki/brain-mcp-server",
-    "file": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats",
-    "category": "brain-k4-brain-wiki",
-    "kind": "shell"
-  },
-  {
     "id": "brain-k4-brain-wiki/chunking",
     "file": "tests/spec/brain-k4-brain-wiki/chunking.bats",
-    "category": "brain-k4-brain-wiki",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-k4-brain-wiki/coverage-gate",
-    "file": "tests/spec/brain-k4-brain-wiki/coverage-gate.bats",
-    "category": "brain-k4-brain-wiki",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-k4-brain-wiki/delivery-branch-staleness",
-    "file": "tests/spec/brain-k4-brain-wiki/delivery-branch-staleness.bats",
-    "category": "brain-k4-brain-wiki",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-k4-brain-wiki/max-source-chars-guard",
-    "file": "tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats",
-    "category": "brain-k4-brain-wiki",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-k4-brain-wiki/mcp-registry",
-    "file": "tests/spec/brain-k4-brain-wiki/mcp-registry.bats",
-    "category": "brain-k4-brain-wiki",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-k4-brain-wiki/node-parity",
-    "file": "tests/spec/brain-k4-brain-wiki/node-parity.bats",
     "category": "brain-k4-brain-wiki",
     "kind": "shell"
   },
@@ -2382,21 +2298,9 @@
     "kind": "shell"
   },
   {
-    "id": "brain-merge-hook",
-    "file": "tests/spec/brain-merge-hook.bats",
-    "category": "brain-merge-hook",
-    "kind": "shell"
-  },
-  {
     "id": "brain-quality-goals",
     "file": "tests/spec/brain-quality-goals.bats",
     "category": "brain-quality-goals",
-    "kind": "shell"
-  },
-  {
-    "id": "brain-quartz-deploy",
-    "file": "tests/spec/brain-quartz-deploy.bats",
-    "category": "brain-quartz-deploy",
     "kind": "shell"
   },
   {
@@ -3750,6 +3654,12 @@
     "kind": "shell"
   },
   {
+    "id": "k4-surgery-guard",
+    "file": "tests/spec/k4-surgery-guard.bats",
+    "category": "k4-surgery-guard",
+    "kind": "shell"
+  },
+  {
     "id": "k8-headed-tests/headed-verify-not-in-ci-path",
     "file": "tests/spec/k8-headed-tests/headed-verify-not-in-ci-path.bats",
     "category": "k8-headed-tests",
@@ -4028,12 +3938,6 @@
   {
     "id": "local-llm-proxy/brain-ingest-port",
     "file": "tests/spec/local-llm-proxy/brain-ingest-port.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/brain-ingest-swap",
-    "file": "tests/spec/local-llm-proxy/brain-ingest-swap.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -5072,18 +4976,6 @@
   {
     "id": "sdlc-cockpit/api-inventory-drift",
     "file": "tests/spec/sdlc-cockpit/api-inventory-drift.bats",
-    "category": "sdlc-cockpit",
-    "kind": "shell"
-  },
-  {
-    "id": "sdlc-cockpit/brain-ingress-policy",
-    "file": "tests/spec/sdlc-cockpit/brain-ingress-policy.bats",
-    "category": "sdlc-cockpit",
-    "kind": "shell"
-  },
-  {
-    "id": "sdlc-cockpit/brain-link-derivation",
-    "file": "tests/spec/sdlc-cockpit/brain-link-derivation.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

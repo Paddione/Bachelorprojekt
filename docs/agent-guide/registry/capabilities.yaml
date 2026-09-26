@@ -371,25 +371,6 @@ capabilities:
       roles: [orchestrator]
       tier: safe
 
-  wissens-wiki:
-    skill:brain-ingest:
-      state: canonical
-      use_when: "Brain-Wiki kompilieren und ins externe Paddione/brain-Repo veröffentlichen."
-      avoid_when: "Zum Lesen des Wikis — dieser Skill schreibt es."
-      roles: [orchestrator]
-      tier: caution
-      deep_ref: ".claude/skills/brain-ingest/SKILL.md"
-
-  wiki-nachschlagen:
-    mcp:brain-mcp-node:
-      state: canonical
-      use_when: "Im Brain-Wiki nachschlagen: BM25-Suche und Seiten lesen (brain_search, brain_read)."
-      avoid_when: "Wiki kompilieren/veröffentlichen — dafür wissens-wiki/brain-ingest."
-      fallback: "grep -r <begriff> ~/brain/wiki"
-      roles: [all]
-      tier: safe
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
-
   dokumentations-lookup:
     plugin:context7@claude-plugins-official:
       state: canonical

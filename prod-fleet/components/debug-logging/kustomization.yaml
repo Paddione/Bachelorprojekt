@@ -100,20 +100,6 @@ patches:
   #     Erkennbar an SERVER_ROOT/SERVER_PORT im Container-Env.
   #     mediaviewer-widget und mentolder-web sind bewusst NICHT dabei: sie
   #     fuehren keine SERVER_*-Variablen und sind damit kein SWS.
-  - target: { kind: Deployment, name: brain }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: { name: brain }
-      spec:
-        template:
-          spec:
-            containers:
-              - name: brain
-                env:
-                  - name: SERVER_LOG_LEVEL
-                    value: "debug"
-
   - target: { kind: Deployment, name: docs }
     patch: |-
       apiVersion: apps/v1
@@ -254,25 +240,6 @@ patches:
   #     und wuerde die interessanten Zeilen im Log begraben.
   #     Gepatcht wird nur der Container `oauth2-proxy`; der busybox-initContainer
   #     jedes Deployments bleibt unberuehrt.
-  - target: { kind: Deployment, name: oauth2-proxy-brain }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: { name: oauth2-proxy-brain }
-      spec:
-        template:
-          spec:
-            containers:
-              - name: oauth2-proxy
-                env:
-                  - name: OAUTH2_PROXY_STANDARD_LOGGING
-                    value: "true"
-                  - name: OAUTH2_PROXY_AUTH_LOGGING
-                    value: "true"
-                  - name: OAUTH2_PROXY_REQUEST_LOGGING
-                    value: "true"
-                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
-                    value: "true"
   - target: { kind: Deployment, name: oauth2-proxy-brett }
     patch: |-
       apiVersion: apps/v1

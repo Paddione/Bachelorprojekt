@@ -20,7 +20,6 @@ data:
   WHITEBOARD_DOMAIN: "board.${PROD_DOMAIN}"
   TRAEFIK_DOMAIN: "traefik.${PROD_DOMAIN}"
   BRETT_DOMAIN: "brett.${PROD_DOMAIN}"
-  BRAIN_DOMAIN: "brain.${PROD_DOMAIN}"
   # Mediaviewer host (mediaviewer.<domain>). MUST be set here for the same reason
   # as RECOVER_DOMAIN below: this file is a strategic-merge patch over base
   # k3d/configmap-domains.yaml, so without it the live domain-config keeps the dev

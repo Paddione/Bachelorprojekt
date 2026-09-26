@@ -16,7 +16,7 @@
 # unter /tmp.
 #
 # [T900191] MCP_NODE_SERVICES waehlt die Dienste (kommagetrennt):
-#   llm-proxy, postgres, github, ticket-mcp, brain-mcp, task-runner,
+#   llm-proxy, postgres, github, ticket-mcp, task-runner,
 #   codebase-memory, bge-mcp
 # Leer oder ungesetzt = alle. Secret-/Token-Pruefungen gelten zusaetzlich:
 # ein ausgewaehlter Dienst ohne Pflichtwert startet trotzdem nicht.
@@ -66,7 +66,7 @@ shutdown() {
 trap shutdown TERM INT
 
 SERVICES="$(printf '%s' "${MCP_NODE_SERVICES:-}" | tr -d ' ')"
-KNOWN="llm-proxy postgres github ticket-mcp brain-mcp task-runner codebase-memory bge-mcp"
+KNOWN="llm-proxy postgres github ticket-mcp task-runner codebase-memory bge-mcp"
 for s in $(printf '%s' "$SERVICES" | tr ',' ' '); do
   case " $KNOWN " in
     *" $s "*) ;;
@@ -127,7 +127,6 @@ fi
 
 # ── Repo-eigene Server ───────────────────────────────────────────────
 enabled ticket-mcp      && gateway ticket-mcp    3003 "node $REPO/scripts/ticket-mcp-node/server.mjs"
-enabled brain-mcp       && gateway brain-mcp     3004 "node $REPO/scripts/brain-mcp-node/server.mjs"
 enabled task-runner     && gateway task-runner   3005 "node $REPO/scripts/mcp-task-runner/server.mjs --taskfile $REPO/Taskfile.yml"
 enabled codebase-memory && gateway codebase-memory 3006 "codebase-memory-mcp"
 

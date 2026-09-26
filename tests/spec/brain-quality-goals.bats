@@ -3,7 +3,6 @@
 # SSOT: openspec/specs/brain-foundation.md (Delta: openspec/changes/brain-quality-goals, T001608)
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-  BOOTSTRAP="$REPO_ROOT/scripts/brain-bootstrap.sh"
   LINT_WL="$REPO_ROOT/templates/brain/scripts/lint-wikilinks.sh"
   LINT_FM="$REPO_ROOT/templates/brain/scripts/lint-frontmatter.sh"
   TPL="$REPO_ROOT/templates/brain"
@@ -143,8 +142,3 @@ teardown() { rm -rf "$WORK"; }
   grep -qi 'openspec' "$TPL/wiki/llm-workflows.md"
 }
 
-@test "self-conformity: full seed passes both repaired linters" {
-  run bash "$BOOTSTRAP" "$WORK/brain"; [ "$status" -eq 0 ]
-  run bash "$LINT_FM" "$WORK/brain"; [ "$status" -eq 0 ]
-  run bash "$LINT_WL" "$WORK/brain"; [ "$status" -eq 0 ]
-}

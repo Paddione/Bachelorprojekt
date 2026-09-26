@@ -25,7 +25,6 @@ const data = (() => {
     'factory-control':  { path: '/sdlc/api/factory-control', website: true },
     'ticket-status':    { path: '/sdlc/api/cockpit/ticket-status', website: true },
     'audit':            { path: '/sdlc/api/cockpit/audit', website: true },
-    'brain':            { path: '/sdlc/api/cockpit/brain', website: true },
     // T003277 — Dispatch-Mitschnitt. 'dispatches' liefert NUR Kopfdaten; die
     // Bodies kommen ueber 'dispatch-detail' mit angehaengter id, damit ein
     // Listenaufruf nicht zweistellige MB zieht.
@@ -544,21 +543,6 @@ const data = (() => {
     return fetchEndpoint('styles');
   }
 
-  /**
-   * K6 Brain-Verweise (T002465) — Wiki-Seiten zu den Quellpfaden eines Panels.
-   *
-   * Einmalabruf statt Poll: die Verweise aendern sich nur bei einem Ingest-Lauf.
-   *
-   * @param {string[]} paths repo-relative Quellpfade
-   * @returns {Promise<{links?: Array, uncovered?: string[], missing?: string[], error?: string, fetchedAt: string}>}
-   */
-  async function brainLinks(paths) {
-    if (!paths || paths.length === 0) {
-      return { links: [], uncovered: [], missing: [], fetchedAt: new Date().toISOString() };
-    }
-    return fetchEndpoint('brain', { query: `paths=${encodeURIComponent(paths.join(','))}` });
-  }
-
   /** @param {function} onEvent */
   function agentStream(onEvent) {
     return createStream('agents-stream')(onEvent);
@@ -644,7 +628,6 @@ const data = (() => {
     dispatches,
     dispatchDetail,
     dispatchStream,
-    brainLinks,
     agentStream,
     factoryStream,
     ticketAction,

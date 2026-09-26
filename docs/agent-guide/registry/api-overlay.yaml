@@ -16,8 +16,6 @@ mcpServers:
     description: "Cluster-Status/-Aktionen fuer den Leitstand (Claude-Code-only SSE, Port 18080)."
     tier: "core"
     deprecated: null
-mcpTools:
-  factory_status:
-    description: "Queue-Tiefe und laufender Tick fuer das Statusband."
-    tier: "core"
-    deprecated: null
+# T900399: die mcpTools:-Kuratur fuer factory_status mit entfernt -- der
+# factory-mcp-Server ist ausgebaut, ein Overlay-Eintrag darauf waere ein
+# Orphan und laesst die Generierung fehlschlagen.

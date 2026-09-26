@@ -2,6 +2,41 @@
 
 <!-- baseline SSOT — generiert aus Codebase-Analyse am 2026-06-20 -->
 
+## Status: DECOMMISSIONED (T900399, 2026-09-26)
+
+> **Die Software Factory ist abgeschaltet.** Dieses Dokument ist historische
+> SSOT-Referenz, kein gültiger Soll-Zustand mehr. Die Requirements unten beschreiben
+> den Betrieb bis zum Rückbau; die abgeschalteten Anforderungen werden beim Archivieren
+> von `openspec/changes/software-factory-decommission/` per Delta-Merge entfernt
+> (`## REMOVED Requirements` in `specs/software-factory.md` des Changes).
+>
+> **Abgeschaltet und aus dem Repo entfernt:**
+> - `factory.timer` / `factory.service` / `factory-mcp.service` (systemd user units)
+> - `k3d/dev-stack/factory-runner*.yaml` inkl. NetPol + Secrets-Patch, `factory-otel.json`-Dashboard
+> - `scripts/factory/` komplett: `wakeup.sh`, `dispatcher.js`, `pipeline.mjs`, `watchdog.sh`,
+>   `guards.sh`, `mcp-go/` (MCP-Server `factory-mcp-node` auf :13003), `Taskfile.factory.yml`
+> - Registry-Einträge: `mcp:factory-mcp-node`, Capability `factory-steuerung`,
+>   Tools `factory` / `factory-dispatch`, Goals `factory-feature-bauen` / `factory-autopilot`,
+>   `agents.yaml:factory_roles`, Netz `docker-factory-sandbox-egress`
+> - `ticket.sh unfactory` / `factory-control` / `dryrun-mark` / `dryrun-check`
+> - Fast alle Specs in `tests/spec/software-factory/` (nur `decommission-guard.bats` bleibt)
+>
+> **Bewusst erhalten (nicht Factory):** `tickets.factory_phase_events` (auch vom dev-flow
+> beschrieben, `driver`-Spalte `factory|devflow`), `tickets.ticket_injections`,
+> `task factory:migrate` (Alias) und `task db:migrate` (kanonisch) — beide rufen jetzt
+> `scripts/migrate-db.mjs` auf. Die Tabellen `tickets.factory_control`,
+> `factory_run_budget`, `factory_model_slots` und die View `v_factory_metrics` sind
+> via `scripts/migrations/2026-09-26-factory-decommission.sql` gedroppt; die DDL in
+> `components/website/src/lib/tickets/tables/factory-control.ts` erzeugt `factory_control`
+> nicht mehr neu.
+>
+> **Cockpit:** `GET /sdlc/api/factory-control` liefert einen neutralen Zustand,
+> `PATCH` sowie `POST /sdlc/api/factory/force-tick` antworten mit **410 Gone**
+> (`error: factory_decommissioned`). `GET /sdlc/api/factory/parallel-status` liest
+> keine DB mehr, sondern speist eine statische Leerzeile in `deriveParallelStatus`.
+>
+> **Regressionsschutz:** `tests/spec/software-factory/decommission-guard.bats` (20 Checks).
+
 ## Purpose
 
 Die Software Factory ist ein autonomes, mehrstufiges Pipeline-System, das Feature-Tickets

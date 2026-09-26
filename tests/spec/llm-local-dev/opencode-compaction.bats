@@ -94,14 +94,18 @@ setup() {
   [ "$output" = "52429 91750 true" ]
 }
 
-@test "reviewer role: edit and bash denied in factory_roles mirror" {
-  run grep -qF 'factory_roles:' "$REPO/docs/agent-guide/registry/agents.yaml"
+@test "reviewer role: edit and bash denied in the runtimes mirror" {
+  # T900399: der zuvor gespiegelte factory_roles-Block entfällt mit dem
+  # Factory-Subsystem; reviewer lebt jetzt nur noch unter runtimes:. Der
+  # Read-only-Zuspruch wird dort ueber write_capable: false + Notiz belegt.
+  run grep -qF 'runtimes:' "$REPO/docs/agent-guide/registry/agents.yaml"
   [ "$status" -eq 0 ]
-  reviewer_block="$(sed -n '/factory_roles:/,$p' "$REPO/docs/agent-guide/registry/agents.yaml")"
-  reviewer_block="$(printf '%s\n' "$reviewer_block" | sed -n '/reviewer:/,$p')"
-  printf '%s\n' "$reviewer_block" | grep -qF 'edit'
-  printf '%s\n' "$reviewer_block" | grep -qF 'bash'
-  printf '%s\n' "$reviewer_block" | grep -qF 'deny'
+  run grep -qF 'factory_roles:' "$REPO/docs/agent-guide/registry/agents.yaml"
+  [ "$status" -ne 0 ]
+  reviewer_block="$(sed -n '/^runtimes:/,$p' "$REPO/docs/agent-guide/registry/agents.yaml")"
+  reviewer_block="$(printf '%s\n' "$reviewer_block" | sed -n '/^  reviewer:/,$p')"
+  printf '%s\n' "$reviewer_block" | grep -qF 'write_capable: false'
+  printf '%s\n' "$reviewer_block" | grep -qiE 'no edit/write/bash/task dispatch'
 }
 
 @test "reviewer role: no per-agent write allow (skip-guarded)" {

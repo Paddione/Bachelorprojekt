@@ -52,11 +52,6 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -eq 0 ]
 }
 
-@test "factory-mcp registers openspec_find_similar (Go-SSOT, T014936)" {
-  run grep -q "openspec_find_similar" "$REPO/scripts/factory/mcp-go/main.go"
-  [ "$status" -eq 0 ]
-}
-
 @test "backfill task exists and dry-run runs without DB writes" {
   run bash -c "cd '$REPO' && task openspec:embed:backfill -- --dry-run 2>&1 | head -20"
   [ "$status" -eq 0 ]

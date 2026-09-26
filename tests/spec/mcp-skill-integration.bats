@@ -77,13 +77,6 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
-@test "T002383: bundling is driven periodically from the factory tick" {
-  # Ohne periodischen Schnitt waechst der Buffer bei niedriger Aktivitaet
-  # unbegrenzt alt — die angehobene Schwelle allein wuerde ihn nie leeren.
-  run grep -q 'flush-stale-mishaps' "$REPO/scripts/factory/wakeup.sh"
-  [ "$status" -eq 0 ]
-}
-
 @test "T002383: the mishap buffer path resolves the shared git dir" {
   # In einem git-Worktree ist .git eine DATEI — filepath.Join(root, ".git", …)
   # laeuft dort in ENOTDIR und writeBuffer verwarf den Fehler still.

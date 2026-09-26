@@ -39,7 +39,7 @@ Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencod
 ### Verfügbarkeits-Check (Portforward-Guard — vor MCP-Nutzung prüfen)
 
 Das MCP-Tool ist direkt verfügbar, wenn der Server läuft. Schneller Health-Check (Beispiel
-`mcp-postgres` auf `:13001`, `factory-mcp` auf `:13003` mit `/health`):
+`mcp-postgres` auf `:13001`):
 
 ```bash
 # Generischer JSON-RPC-Probe (mcp-postgres/-kubernetes):
@@ -48,9 +48,6 @@ curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"hc","version":"1"}}}' \
   http://localhost:13001/mcp
 # 200 → MCP erreichbar; alles andere → Skript-/kubectl-Fallback nutzen.
-
-# factory-mcp hat einen dedizierten Health-Endpoint:
-curl -sf --max-time 2 http://127.0.0.1:13003/health && echo " → factory-mcp up"
 ```
 
 Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **Fallback** (der jeweilige
@@ -217,13 +214,14 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 
 ## `factory-mcp` / `factory-mcp-node` — Software-Factory (HTTP, Daemon erforderlich)
 
-- **Endpoint:** `http://localhost:13003/mcp` (StreamableHTTP, `factory-mcp-node`), Health: `GET http://127.0.0.1:13003/health`.
-- **Tools:** `factory_status`, `factory_queue`, `factory_enqueue`, `factory_trigger`, `factory_recent`,
-  `openspec_find_similar`.
-- **Wann bevorzugen:** Factory-Queue-Status, Backlog-Übersicht, manuelles Anstoßen eines Ticks,
-  OpenSpec-Ähnlichkeitssuche. **Voraussetzung:** der Daemon `:13003` läuft (Health-Guard zuerst).
-- **Fallback (Daemon down):** Status/Queue → `mcp-postgres_query`/`psql` auf
-  `tickets.tickets WHERE status IN ('backlog','plan_staged')`; Tick → `bash scripts/factory/wakeup.sh`.
+> **ENTFALLEN mit T900399.** Der Daemon `factory-mcp-node` (`:13003`) ist mit der
+> Software-Factory abgeschaltet; die Registry `docs/agent-guide/registry/mcp.yaml`
+> fuehrt ihn nicht mehr, `task mcp:check` bestaetigt das fuer alle Harness-Konfigurationen.
+> **Offene-Ähnlichkeitssuche** hat jetzt `openspec_find_similar` (siehe unten);
+> **Backlog-/Queue-Status** laeuft ueber `mcp-postgres_query` bzw. `psql` gegen
+> `tickets.tickets WHERE status IN ('backlog','plan_staged')`. Es gibt keinen
+> Tick-Mechanismus mehr — ein Ticket startet ueber `task factory:enqueue` nicht mehr,
+> sondern manuell per `node-factory`-freiem dev-flow (siehe `dev-flow-plan`).
 
 ## `mcp-task-runner` — go-task-Ausführung + OTel
 

@@ -7,6 +7,9 @@
 #   1. Machine-Parsing-Flows pollen über `gh`, nicht über `gh-axi`
 #      (gh-axi liefert TOON-Text und ignoriert `--json` still mit Exit 0 —
 #      Mishap-Rollup T003533, Eintrag 2026-08-11 08:04 #6; Fix T004612).
+#      T900399: der einzige geprüfte gh-Stelle-Halter war der gh-Resolver des
+#      mit dem Factory-Baum entfallenen pr-babysit-ticket.sh. Die Regel selbst
+#      lebt als Positiv-Anker (devflow-ci-watch.sh) im Doku-Guard am Ende weiter.
 #   2. Fix-PR-Merges tragen kein `--delete-branch` — die OpenSpec-Archivierung
 #      (dev-flow Schritt 7) läuft NACH dem Merge und braucht den Branch noch;
 #      gelöscht wird erst in Schritt 7.5. Einzige Ausnahme: der Archiv-PR-Merge
@@ -17,15 +20,6 @@
 
 setup() {
   REPO="$(git rev-parse --show-toplevel)"
-}
-
-@test "pr-babysit-ticket.sh pollt maschinell ueber gh statt gh-axi (T004612)" {
-  # Positiv-Anker zuerst: der Resolver ist fest auf gh gesetzt
-  run grep -n '^GH="gh"$' "$REPO/scripts/factory/pr-babysit-ticket.sh"
-  [ "$status" -eq 0 ]
-  # Negativ-Aussage: kein gh-axi-Fallback mehr im Resolver
-  run grep -n 'command -v gh-axi' "$REPO/scripts/factory/pr-babysit-ticket.sh"
-  [ "$status" -ne 0 ]
 }
 
 @test "Fix-PR-Merges ohne --delete-branch — einzige Ausnahme ist der Archiv-PR (T004612)" {

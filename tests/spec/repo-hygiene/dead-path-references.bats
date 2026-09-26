@@ -50,19 +50,13 @@ setup() {
   [ "$missing" -eq 0 ] || { echo "FEHLT: .dockerignore verweist auf: $offenders"; return 1; }
 }
 
-@test "T002688: Registry-Schluessel zeigen auf existierende Manifeste" {
-  local keys missing=0 offenders=""
-  keys="$(grep -oE '\[k3d/[^]]+\]=' "$REPO_ROOT/scripts/factory/service-registry.sh" | tr -d '[]=')"
-
-  # Positiv-Anker: mindestens ein Schlüssel wurde extrahiert
-  [ -n "$keys" ] || { echo "FATAL: keine Registry-Schluessel in service-registry.sh gefunden"; return 1; }
-
-  while IFS= read -r p; do
-    [ -e "$REPO_ROOT/$p" ] || { missing=1; offenders="$offenders$p "; }
-  done <<< "$keys"
-
-  [ "$missing" -eq 0 ] || { echo "FEHLT: Registry-Schluessel ohne Manifest: $offenders"; return 1; }
-}
+# T900399: entfernt. Der Test las die `[k3d/…]=`-Schluessel aus
+# `scripts/factory/service-registry.sh` — mit dem Factory-Teardown existiert
+# diese Shell-Registry nicht mehr, und die verbleibenden SSOT-Registries
+# (`docs/agent-guide/registry/*.yaml`) fuehren keine Pfad-zu-Datei-Tabelle
+# dieses Formats mehr. Der Container-Registry-Key ist inzwischen
+# `k3d/configmap-domains.yaml`; ein Ersatztest gehoert in eine eigene Datei
+# unter `tests/spec/k3d/`, sobald der Pfadverweis-Vertrag dort festgeschrieben ist.
 
 # Helper: normalize relative path segments (e.g. "a/b/../c" -> "a/c", "./a" -> "a")
 _normalize_repo_relpath() {

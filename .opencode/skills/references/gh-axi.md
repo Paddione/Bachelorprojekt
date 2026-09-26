@@ -29,8 +29,8 @@ gh-axi setup hooks               # Optionale Agent-Session-Hooks installieren
   Reproduktion: Mishap-Rollup T003533, Eintrag 2026-08-11 08:04 #6
   (`gh-axi pr list --state merged --limit 1 --json number` → TOON-Text, exit=0).
 - **Polling-Loops und Mutationen → `gh`:** `pr checks`, Merge-Wait-Loops, CI-Watch,
-  `pr create`, `pr merge`, `gh api`. Vorbilder: `scripts/devflow-ci-watch.sh` und
-  `scripts/factory/pr-babysit-ticket.sh` nutzen durchgehend `gh`.
+  `pr create`, `pr merge`, `gh api`. Vorbild: `scripts/devflow-ci-watch.sh` nutzt
+  durchgehend `gh`.
 - Operationen ohne `gh-axi`-Pendant ohnehin via `gh` — die SessionStart-Hook-Ausgabe zeigt den
   verfügbaren Befehlssatz.
 

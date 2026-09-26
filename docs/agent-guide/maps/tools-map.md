@@ -22,8 +22,6 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt.
 
 | Id | Name | Art | Harness | Tier | Wofür | Guardrails | Init |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| factory | Software Factory (Auto-Bau) | task | both | 🟠 Nur mit Hilfe | Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy. | G-FACTORY-DRYRUN, G-PR-NOT-MAIN, G-VALIDATE-FIRST | Übergib das an die Software Factory: <gut umrissenes Feature> — und mach zuerst einen Dry-Run. |
-| factory-dispatch | Factory-Dispatcher (Warteschlange) | task | both | 🟠 Nur mit Hilfe | Holt wartende Tickets aus der Warteschlange, prüft Konflikte und startet die Factory-Pipeline. | G-FACTORY-DRYRUN, G-PR-NOT-MAIN | Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run). |
 | task-oracle | Task-Orakel (task-oracle) | task | both | 🟢 Sicher | Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch. | — | — |
 
 ## Agenten

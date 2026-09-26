@@ -13,20 +13,20 @@ teardown() {
 }
 
 @test "migrations runner script exists and is executable" {
-  [ -f "scripts/migrate-factory.mjs" ]
+  [ -f "scripts/migrate-db.mjs" ]
 }
 
 @test "migrations runner dry run or help mode executes cleanly" {
-  run node scripts/migrate-factory.mjs --help
+  run node scripts/migrate-db.mjs --help
   [ "$status" -eq 0 ]
   [[ "$output" =~ "Usage:" ]]
 }
 
 @test "migrations runner handles missing directory gracefully when called via module" {
   run node -e "
-    import { runFactoryMigrations } from './scripts/migrate-factory.mjs';
+    import { runMigrations } from './scripts/migrate-db.mjs';
     const fakePool = { connect: async () => ({ query: async () => ({ rows: [] }), release: () => {} }) };
-    runFactoryMigrations(fakePool, '${TEST_DIR}/nonexistent').then(() => console.log('OK'));
+    runMigrations(fakePool, '${TEST_DIR}/nonexistent').then(() => console.log('OK'));
   "
   [ "$status" -eq 0 ]
   [[ "$output" =~ "OK" ]]
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.test_table (id id_seq PRIMARY KEY);
 EOF
 
   run node -e "
-    import { runFactoryMigrations } from './scripts/migrate-factory.mjs';
+    import { runMigrations } from './scripts/migrate-db.mjs';
     const queries = [];
     const fakeClient = {
       query: async (q, params) => {
@@ -51,7 +51,7 @@ EOF
       release: () => {}
     };
     const fakePool = { connect: async () => fakeClient };
-    runFactoryMigrations(fakePool, '${MIGRATIONS_DIR}').then(() => {
+    runMigrations(fakePool, '${MIGRATIONS_DIR}').then(() => {
       console.log('QUERY_COUNT:' + queries.length);
       const applied = queries.some(item => item.params && item.params[0] === '20260801-test-migration.sql');
       console.log('APPLIED:' + applied);

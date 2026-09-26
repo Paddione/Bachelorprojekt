@@ -40,7 +40,6 @@ goals_data_refs() {
   grep -ohE 'components/website/src/[A-Za-z0-9_/.-]*goals-data[A-Za-z0-9_.-]*\.json' \
     scripts/health-goals-update.sh \
     scripts/health-goals-llm-fill.sh \
-    scripts/factory/auto-close-merged.sh \
     scripts/gen-goals-data.mjs \
     2>/dev/null
 }
@@ -55,8 +54,10 @@ goals_data_refs() {
   # Positiv-Anker [T002356-M1]: ohne ihn bestuende der Test vakuos, sobald eine
   # der Quelldateien umbenannt wird oder die Pfade in Variablen wandern — "0 tote
   # Pfade in 0 Referenzen" waere trivial gruen.
-  [ "$count" -ge 4 ] || {
-    echo "FAIL: nur ${count} goals-data-Referenzen gefunden (erwartet >= 4)."
+  # T900399: scripts/factory/auto-close-merged.sh ist entfallen — drei
+  # Quellstellen tragen den Pfad weiterhin, also ist der Anker >= 3.
+  [ "$count" -ge 3 ] || {
+    echo "FAIL: nur ${count} goals-data-Referenzen gefunden (erwartet >= 3)."
     echo "      Die Extraktion greift daneben — der Guard waere ab hier blind."
     echo "$output"
     return 1

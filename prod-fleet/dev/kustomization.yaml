@@ -4,10 +4,9 @@ namespace: workspace-dev
 
 resources:
   - ../../k3d/dev-stack
-  # T016422 / ADR-007 A.4: Fleet-native Factory bekommt Repo-Key,
-  # Dispatcher-Konfiguration und Provider-Credentials ausschließlich als
-  # clustergebundenes SealedSecret; kein Klartext landet im OCI-Artefakt.
-  - ../../environments/sealed-secrets/workspace-dev-factory-runner.yaml
+# T900399: die Fleet-native-Factory-SealedSecret (T016422 / ADR-007 A.4)
+# entfaellt mit dem factory-runner — sie enthielt ausschliesslich dessen
+# Repo-Key, Dispatcher-Konfiguration und Provider-Credentials.
 
 patches:
   - target:

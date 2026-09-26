@@ -490,22 +490,11 @@ TYPE_VOCAB_TS="components/website/src/lib/tickets/migrate-type-vocabulary.ts"
   [ "$output" -ge 1 ] || { echo "die Fehlermeldung erwaehnt --hold nicht"; false; }
 }
 
-# ── [T002382-M1] reconcile-ticket-status: done→awaiting_deploy darf resolution nicht leeren ──
-
-@test "T002382-M1: reconcile-ticket-status.sh guardt done→awaiting_deploy mit resolution-preserve" {
-  run bash -c "grep -q 'resolution preserved' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
-  [ "$status" -eq 0 ] || { echo "MISSING resolution-preserve guard in reconcile-ticket-status.sh"; false; }
-}
-
-@test "T002382-M1: reconcile-ticket-status.sh liest existing_resolution vor dem Revert" {
-  run bash -c "grep -q 'existing_resolution' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
-  [ "$status" -eq 0 ] || { echo "MISSING existing_resolution query in reconcile-ticket-status.sh"; false; }
-}
-
-@test "T002382-M1: reconcile-ticket-status.sh guardt done→awaiting_deploy (current_status == done && fix_status == awaiting_deploy)" {
-  run bash -c "grep -qE 'current_status.*done.*fix_status.*awaiting_deploy' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
-  [ "$status" -eq 0 ] || { echo "MISSING done→awaiting_deploy guard condition in reconcile-ticket-status.sh"; false; }
-}
+# ── [T002382-M1] T900399: reconcile-ticket-status.sh (Factory-Baum) entfernt ──
+# Der done→awaiting_deploy-resolution-preserve-Guard ist mit dem Skript
+# entfallen. Der Lebenszyklus- und Resolution-Schutz wird heute zentral von
+# scripts/vda/ticket/update-status.sh getragen — getestet in [T002382-M2] und
+# [T003072] weiter unten.
 
 # ── [T002382-M2] update-status.sh guard: done → non-terminal verboten ─────────#
 
@@ -597,30 +586,11 @@ TYPE_VOCAB_TS="components/website/src/lib/tickets/migrate-type-vocabulary.ts"
   [ "$output" != "0" ]
 }
 
-# ── [T002407-M2] queue.sh schliesst incident aus ─────────────────────────────#
-# Lane 48: OR (type NOT IN ('project','incident') AND status='plan_staged' ...)
-# Ein gestagtes incident-Ticket darf in der Queue NICHT auftauchen.
-# RED-Bedingung (vor Task 1.4): type NOT IN enthält 'incident' nicht.
-
-@test "T002407-M2a: queue.sh filtert incident in type NOT IN" {
-  # Negativtest: incident ist in der Ausschlussliste
-  run grep -Fq "NOT IN ('project','incident')" scripts/factory/queue.sh
-  [ "$status" -eq 0 ]
-}
-
-@test "T002407-M2b: queue.sh filtert incident nicht nur im Kommentar" {
-  # Der Filter muss im SQL stehen, nicht nur im Kommentar darüber.
-  # Ein `grep -A5 'NOT IN'` auf die SQL-Zeile muss 'incident' enthalten.
-  run bash -c "grep -A5 \"type NOT IN\" scripts/factory/queue.sh 2>/dev/null | grep -c \"'incident'\""
-  [ "$output" != "0" ]
-}
-
-@test "T002407-M2c: queue.sh liefert gestagtes chore weiterhin (Positivtest)" {
-  # 'chore' darf NICHT in der NOT-IN-Liste stehen — sonst wären chore-Tickets
-  # unsichtbar. Der Test stellt sicher, dass der Ausschluss incident-spezifisch ist.
-  run bash -c "grep -A5 \"type NOT IN\" scripts/factory/queue.sh 2>/dev/null | grep -c \"'chore'\""
-  [ "$output" = "0" ]
-}
+# ── [T002407-M2] T900399: queue.sh (Factory-Baum) entfernt ───────────────────
+# Der Lane-Ausschluss fuer gestagte incident-Tickets war an die Factory-Queue
+# gebunden. Ohne Dispatcher gibt es keine automatische Aufnahme; die
+# attention_mode-Invariante fuer incident bleibt in [T002407-M3] abgesichert,
+# die Typ-Registrierung in [T002407-M1].
 
 # ── [T002407-M3] incident-Tickets haben attention_mode=needs_human ────────────#
 # incident ist per Konvention needs_human, damit der Dispatcher sie nicht
@@ -642,17 +612,7 @@ TYPE_VOCAB_TS="components/website/src/lib/tickets/migrate-type-vocabulary.ts"
   [ "$status" -eq 0 ]
 }
 
-# ── [T002874] reconcile-ticket-status: Pattern 4 matches any whitespace after FACTORY-PLAN-REF ──
-
-@test "T002874: reconcile-ticket-status.sh Pattern 4 matches FACTORY-PLAN-REF via LIKE" {
-  run grep -Fq "c.body LIKE 'FACTORY-PLAN-REF %'" scripts/factory/reconcile-ticket-status.sh
-  [ "$status" -eq 0 ] || { echo "MISSING LIKE 'FACTORY-PLAN-REF %' in Pattern 4 of reconcile-ticket-status.sh"; false; }
-}
-
-@test "T002874: reconcile-ticket-status.sh Pattern 4b matches FACTORY-PLAN-REF branch via LIKE" {
-  run grep -Fq "c.body LIKE 'FACTORY-PLAN-REF % branch=%'" scripts/factory/reconcile-ticket-status.sh
-  [ "$status" -eq 0 ] || { echo "MISSING LIKE 'FACTORY-PLAN-REF % branch=%' in Pattern 4b of reconcile-ticket-status.sh"; false; }
-}
+# ── [T002874] T900399: reconcile-ticket-status.sh (Factory-Baum) entfernt ────
 
 
 # ── [T003072] Terminal-Guard-Reparatur: ungültiges done ist ausnehmbar ────────#

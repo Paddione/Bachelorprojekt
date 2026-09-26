@@ -144,15 +144,6 @@ capabilities:
       tier: assisted
       deep_ref: ".claude/skills/ticket-dispatch/SKILL.md"
 
-  factory-steuerung:
-    mcp:factory-mcp-node:
-      state: canonical
-      use_when: "Factory-Queue, Status, Enqueue, Trigger, ähnliche OpenSpec-Changes finden."
-      avoid_when: "type=task-Tickets — der Dispatcher scheduled ausschliesslich type=feature."
-      roles: [bachelorprojekt-test, orchestrator]
-      tier: assisted
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
-
   repo-task-ausfuehrung:
     mcp:mcp-task-runner:
       state: canonical

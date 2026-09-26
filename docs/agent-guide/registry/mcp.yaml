@@ -230,53 +230,6 @@ clients:
           BRAIN_WIKI_DIR: ~/brain/wiki
         enabled: false
 
-  factory-mcp-node:
-    transport: http
-    endpoint: http://localhost:13003/mcp
-    # Kein Top-Level-placeholder-Header: factory-mcp-node MUSS laut dem
-    # T002779-Guard (tests/spec/mcp-tooling.bats) in .mcp.json registriert
-    # bleiben — ein ${VAR}-Header wuerde ihn dort per T004272 entfernen.
-    # Der Auth-Header wird stattdessen pro-Harness gegeben (harness.*.headers):
-    # opencode loest {env:VAR} selbst auf, agy/qwen/Claude-User bekommen den
-    # Token zur Sync-Zeit aufgeloest (mcp-sync.sh, T002704/T004272-Prinzip).
-    # .mcp.json bleibt dadurch header-frei, die Harness-Configs tragen Auth.
-    auth_note: >-
-      Bind auf 127.0.0.1 plus Bearer-Token (FACTORY_MCP_TOKEN). Ohne gesetzten
-      Token startet der Server nicht (Shared Guard: mcp-http-security.mjs).
-      Token-Quelle: ~/.config/factory-mcp-node/server.env (per EnvironmentFile
-      in der systemd-Unit oder start-windows.ps1 geladen).
-    windows_start: >-
-      Windows (pk-desktop): Server starten mit
-      FACTORY_REPO=C:/Users/PatrickKorczewski/Bachelorprojekt FACTORY_CTX=fleet
-      node scripts/factory-mcp-node/server.mjs (kubectl fleet-Kontext noetig;
-      getestet 2026-08-30, factory_status liefert echte Daten).
-    harness:
-      claude_code:
-        type: http
-        url: http://localhost:13003/mcp
-        # Nur fuer das User-Scope-Target (~/.claude/settings.json, aufgeloest):
-        # render_claude_json (.mcp.json) liest AUSSCHLIESSLICH Top-Level-headers,
-        # damit factory dort header-frei registriert bleibt (T002779-Guard).
-        headers:
-          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
-      agy:
-        serverUrl: http://localhost:13003/mcp
-        headers:
-          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
-      qwen_code:
-        httpUrl: http://localhost:13003/mcp
-        headers:
-          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
-      opencode:
-        type: remote
-        url: http://localhost:13003/mcp
-        enabled: true
-        # [T900052] Auth-Header NUR fuer opencode ({env:VAR}-Notation loest es
-        # selbst auf). factory-mcp-node bleibt damit im getrackten .mcp.json
-        # registriert (T002779-Guard), nur opencode traegt den Token.
-        headers:
-          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
-
   ticket-mcp-node:
     transport: stdio
     command: node

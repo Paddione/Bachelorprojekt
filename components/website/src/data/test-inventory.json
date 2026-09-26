@@ -5772,6 +5772,12 @@
     "kind": "shell"
   },
   {
+    "id": "unsloth-training-env/train-config",
+    "file": "tests/spec/unsloth-training-env/train-config.bats",
+    "category": "unsloth-training-env",
+    "kind": "shell"
+  },
+  {
     "id": "vaultwarden-integration",
     "file": "tests/spec/vaultwarden-integration.bats",
     "category": "vaultwarden-integration",

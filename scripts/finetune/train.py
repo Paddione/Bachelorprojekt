@@ -18,8 +18,8 @@ Verbindliche Eigenschaften (siehe openspec/changes/unsloth-training-env/tasks.md
   - Der Anteil des Lernsignals wird vor dem ersten Trainingsschritt ausgegeben.
   - Das Hub-Template wird vor dem Speichern zurueckgeschrieben, damit der Adapter nicht das
     Trainings-Template ausliefert.
-  - LoRA-Vorgaben nach Unsloth-Primaerdokumentation: Rang 16 oder 32, lora_alpha gleich Rang
-    oder doppelter Rang, die sieben Standardmodule, lora_dropout 0, rsLoRA aus.
+  - Qwen3.5 uses 16-bit LoRA by default; other supported models use 4-bit QLoRA.
+    Model splitting across GPUs is opt-in and does not combine physical VRAM.
 
 Schwere Abhaengigkeiten (unsloth, trl, torch, transformers) werden erst beim tatsaechlichen
 Trainingsstart importiert — `--dry-run` validiert Vorbedingungen und die aufgeloeste
@@ -30,6 +30,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -85,32 +87,66 @@ def check_template_guard(hub_template: str, patched_template: str, corpus: str) 
         raise SystemExit("FEHLER: Vorbedingung 'Template-Guard' nicht erfuellt.")
 
 
-def validate_lora_config(r: int, alpha: int, dropout: float, use_rslora: bool) -> None:
-    if r not in (16, 32):
-        raise SystemExit(f"FEHLER: --lora-r muss 16 oder 32 sein, war {r}.")
-    if alpha not in (r, 2 * r):
-        raise SystemExit(f"FEHLER: --lora-alpha muss {r} oder {2 * r} sein (Rang oder doppelter Rang), war {alpha}.")
-    if dropout != 0:
-        raise SystemExit(f"FEHLER: --lora-dropout muss 0 sein (Unsloth-Vorgabe), war {dropout}.")
-    if use_rslora:
-        raise SystemExit("FEHLER: rsLoRA muss aus sein (Unsloth-Vorgabe).")
+def check_training_inputs(config: dict) -> None:
+    check_measure_report(config["measure_report"])
+    report = json.loads(Path(config["measure_report"]).read_text(encoding="utf-8"))
+    if report.get("tokenizer_source") != "transformers":
+        raise SystemExit("FEHLER: Trainingslauf braucht einen Messbericht mit echtem Modell-Tokenizer; Heuristik ist nur fuer Vorpruefung.")
+    if not config.get("max_seq_length"):
+        raise SystemExit("FEHLER: --max-seq-length aus dem Messbericht explizit waehlen; kein geratenes 2048-Default.")
+    if not Path(config["corpus"]).is_file():
+        raise SystemExit(f"FEHLER: Korpus fehlt: {config['corpus']}")
+    if config.get("patched_template") and not config.get("hub_template"):
+        raise SystemExit("FEHLER: --patched-template braucht --hub-template fuer den Template-Guard.")
+    if config.get("hub_template") and config.get("patched_template"):
+        check_template_guard(config["hub_template"], config["patched_template"], config["corpus"])
+
+
+def validate_lora_config(r: int, alpha: int, dropout: float) -> None:
+    if r <= 0 or alpha <= 0:
+        raise SystemExit("FEHLER: LoRA-Rang und Alpha muessen positiv sein.")
+    if not 0 <= dropout < 1:
+        raise SystemExit("FEHLER: --lora-dropout muss im Bereich [0, 1) liegen.")
+
+
+def resolve_training_mode(config: dict) -> dict:
+    """Resolve model-specific precision before loading heavyweight GPU libraries."""
+    model = config["model"].lower()
+    qwen35 = "qwen3.5" in model or "qwen3_5" in model
+    bnb = "bnb-4bit" in model or "bnb_4bit" in model
+    precision = config.get("precision") or "auto"
+    if precision == "auto":
+        precision = "16bit" if qwen35 else "4bit"
+    if qwen35 and precision == "4bit" and not config.get("allow_qwen35_4bit"):
+        raise SystemExit("FEHLER: Qwen3.5 QLoRA wird von Unsloth nicht empfohlen; 16bit-LoRA waehlen oder --allow-qwen35-4bit bewusst setzen.")
+    if bnb and precision == "16bit":
+        raise SystemExit("FEHLER: ein bnb-4bit-Repo ist kein 16bit-Basismodell; unquantisierte HF-ID waehlen.")
+    if config.get("gpu_mode") == "balanced" and os.environ.get("WORLD_SIZE", "1") != "1":
+        raise SystemExit("FEHLER: balanced Model-Splitting nicht mit DDP/torchrun kombinieren.")
+    return {"precision": precision, "qwen35": qwen35, "gpu_mode": config.get("gpu_mode") or "single"}
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--corpus", help="JSONL-Korpus ({'messages': [...]})")
     parser.add_argument("--model", help="Basismodell (HF-ID, z.B. unsloth/gemma-2-9b-bnb-4bit)")
+    parser.add_argument("--precision", choices=("auto", "4bit", "16bit"), help="auto: Qwen3.5=16bit, sonst 4bit")
+    parser.add_argument("--allow-qwen35-4bit", action="store_true", default=None, help="Qwen3.5 QLoRA trotz Upstream-Warnung erlauben")
+    parser.add_argument("--gpu-mode", choices=("single", "balanced"), help="balanced: Modell ueber mehrere GPUs verteilen (experimentell)")
     parser.add_argument("--measure-report", help="Pfad zum Messbericht aus measure_corpus.py")
     parser.add_argument("--hub-template", help="Lokale Datei mit dem HUB-Chat-Template")
     parser.add_argument("--patched-template", help="Lokale Datei mit dem tatsaechlich zu verwendenden Template")
     parser.add_argument("--max-seq-length", type=int, help="Aus dem Messbericht gewaehlte Sequenzlaenge")
-    parser.add_argument("--output-dir", default="outputs/train", help="Zielverzeichnis fuer Checkpoints und Adapter")
-    parser.add_argument("--lora-r", type=int, default=16, help="LoRA-Rang: 16 oder 32")
+    parser.add_argument("--eval-corpus", help="Separater JSONL-Korpus fuer Validierungsverlust")
+    parser.add_argument("--hub-model-id", help="Adapter nach HF Hub pushen (bei ephemeral Jobs erforderlich)")
+    parser.add_argument("--report-to", choices=("none", "trackio"), help="Trainer-Monitoring")
+    parser.add_argument("--output-dir", help="Zielverzeichnis fuer Checkpoints und Adapter")
+    parser.add_argument("--lora-r", type=int, help="LoRA-Rang (Default 16)")
     parser.add_argument("--lora-alpha", type=int, help="Default: gleich --lora-r")
-    parser.add_argument("--lora-dropout", type=float, default=0.0)
-    parser.add_argument("--use-rslora", action="store_true", help="MUSS aus bleiben (Default False) — Flag existiert nur fuer die Validierung, nicht zum Aktivieren")
-    parser.add_argument("--learning-rate", type=float, default=2e-4)
-    parser.add_argument("--max-steps", type=int, default=60)
+    parser.add_argument("--lora-dropout", type=float)
+    parser.add_argument("--use-rslora", action="store_true", default=None, help="rank-stabilized LoRA (nur mit geeignetem Rang verwenden)")
+    parser.add_argument("--learning-rate", type=float)
+    parser.add_argument("--max-steps", type=int)
     parser.add_argument("--config", help="Optionale JSON-Konfigdatei; CLI-Flags ueberschreiben sie")
     parser.add_argument("--dry-run", action="store_true", help="Nur Vorbedingungen + Konfiguration pruefen, kein Import von unsloth/trl/torch")
     return parser
@@ -126,7 +162,15 @@ def resolve_config(argv=None) -> dict:
         if not merged.get(required):
             raise SystemExit(f"FEHLER: --{required.replace('_', '-')} ist erforderlich (CLI oder --config).")
 
+    merged.setdefault("lora_r", 16)
     merged.setdefault("lora_alpha", merged["lora_r"])
+    merged.setdefault("lora_dropout", 0.0)
+    merged.setdefault("learning_rate", 2e-4)
+    merged.setdefault("max_steps", 60)
+    merged.setdefault("output_dir", "outputs/train")
+    merged.update(resolve_training_mode(merged))
+    if merged.get("max_seq_length") is not None and merged["max_seq_length"] <= 0:
+        raise SystemExit("FEHLER: --max-seq-length muss positiv sein.")
     return merged
 
 
@@ -160,19 +204,28 @@ def run_training(config: dict) -> int:
     from unsloth import FastLanguageModel
     from trl import SFTConfig, SFTTrainer
 
-    check_measure_report(config["measure_report"])
-    if config.get("hub_template") and config.get("patched_template"):
-        check_template_guard(config["hub_template"], config["patched_template"], config["corpus"])
+    validate_lora_config(config["lora_r"], config["lora_alpha"], config["lora_dropout"])
 
-    validate_lora_config(config["lora_r"], config["lora_alpha"], config["lora_dropout"], config.get("use_rslora", False))
+    max_seq_length = config["max_seq_length"]
+    if not torch.cuda.is_available():
+        raise SystemExit("FEHLER: keine CUDA-GPU sichtbar. CUDA_VISIBLE_DEVICES und PyTorch pruefen.")
+    if config["gpu_mode"] == "balanced" and torch.cuda.device_count() < 2:
+        raise SystemExit("FEHLER: balanced braucht mindestens zwei sichtbare CUDA-GPUs.")
+    for index in range(torch.cuda.device_count()):
+        props = torch.cuda.get_device_properties(index)
+        print(f"CUDA {index}: {props.name}, {props.total_memory / 2**30:.1f} GiB")
 
-    max_seq_length = config.get("max_seq_length") or 2048
+    load_kwargs = {"load_in_4bit": config["precision"] == "4bit"}
+    if config["precision"] == "16bit":
+        load_kwargs["load_in_16bit"] = True
+    if config["gpu_mode"] == "balanced":
+        load_kwargs["device_map"] = "balanced"
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=config["model"],
         max_seq_length=max_seq_length,
         dtype=None,
-        load_in_4bit=True,
+        **load_kwargs,
     )
 
     if config.get("hub_template"):
@@ -181,6 +234,8 @@ def run_training(config: dict) -> int:
         train_template = Path(config["patched_template"]).read_text(encoding="utf-8")
     else:
         train_template = tokenizer.chat_template
+    if not train_template or not re.search(r"{%[-\s]*generation\b", train_template):
+        raise SystemExit("FEHLER: Chat-Template ohne {% generation %}-Marker kann keine Assistant-Maske liefern. --patched-template bereitstellen und Template-Guard ausfuehren.")
     tokenizer.chat_template = train_template
 
     model = FastLanguageModel.get_peft_model(
@@ -192,7 +247,7 @@ def run_training(config: dict) -> int:
         bias="none",
         use_gradient_checkpointing="unsloth",
         random_state=3407,
-        use_rslora=False,
+        use_rslora=config.get("use_rslora", False),
         loftq_config=None,
     )
 
@@ -203,14 +258,7 @@ def run_training(config: dict) -> int:
             if line:
                 rows.append(json.loads(line))
 
-    tokenized = []
-    dropped = 0
-    for row in rows:
-        item = tokenize_row_with_assistant_mask(tokenizer, row["messages"], max_seq_length)
-        if item is None:
-            dropped += 1
-        else:
-            tokenized.append(item)
+    tokenized, dropped = tokenize_corpus(tokenizer, rows, max_seq_length)
 
     if not tokenized:
         raise SystemExit("FEHLER: kein Korpuszeile mit Lernsignal nach Kuerzung uebrig.")
@@ -223,13 +271,23 @@ def run_training(config: dict) -> int:
 
     from datasets import Dataset
     dataset = Dataset.from_list(tokenized)
+    eval_dataset = None
+    if config.get("eval_corpus"):
+        with open(config["eval_corpus"], "r", encoding="utf-8") as fh:
+            eval_rows = [json.loads(line) for line in fh if line.strip()]
+        eval_tokenized, eval_dropped = tokenize_corpus(tokenizer, eval_rows, max_seq_length)
+        if not eval_tokenized:
+            raise SystemExit("FEHLER: Validierungskorpus hat nach Kuerzung kein Assistant-Lernsignal.")
+        print(f"Validierungszeilen ohne Lernsignal: {eval_dropped}/{len(eval_rows)}")
+        eval_dataset = Dataset.from_list(eval_tokenized)
 
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=dataset,
-        max_seq_length=max_seq_length,
+        eval_dataset=eval_dataset,
         args=SFTConfig(
+            max_length=max_seq_length,
             per_device_train_batch_size=1,
             gradient_accumulation_steps=8,
             warmup_steps=5,
@@ -238,12 +296,16 @@ def run_training(config: dict) -> int:
             fp16=not torch.cuda.is_bf16_supported(),
             bf16=torch.cuda.is_bf16_supported(),
             logging_steps=1,
+            eval_strategy="steps" if eval_dataset is not None else "no",
+            eval_steps=10 if eval_dataset is not None else None,
             optim="adamw_8bit",
             weight_decay=0.01,
             lr_scheduler_type="linear",
             seed=3407,
             output_dir=config["output_dir"],
-            report_to="none",
+            report_to=config.get("report_to") or "none",
+            push_to_hub=bool(config.get("hub_model_id")),
+            hub_model_id=config.get("hub_model_id"),
         ),
     )
 
@@ -260,16 +322,29 @@ def run_training(config: dict) -> int:
     model.save_pretrained(str(out_dir))
     tokenizer.save_pretrained(str(out_dir))
     print(f"Adapter gespeichert: {out_dir}")
+    if config.get("hub_model_id"):
+        model.push_to_hub(config["hub_model_id"])
+        tokenizer.push_to_hub(config["hub_model_id"])
+        print(f"Adapter im Hub gespeichert: {config['hub_model_id']}")
     return 0
+
+
+def tokenize_corpus(tokenizer, rows: list[dict], max_seq_length: int) -> tuple[list[dict], int]:
+    tokenized = []
+    dropped = 0
+    for row in rows:
+        item = tokenize_row_with_assistant_mask(tokenizer, row["messages"], max_seq_length)
+        if item is None:
+            dropped += 1
+        else:
+            tokenized.append(item)
+    return tokenized, dropped
 
 
 def main(argv=None) -> int:
     config = resolve_config(argv)
-
-    check_measure_report(config["measure_report"])
-    if config.get("hub_template") and config.get("patched_template"):
-        check_template_guard(config["hub_template"], config["patched_template"], config["corpus"])
-    validate_lora_config(config["lora_r"], config["lora_alpha"], config["lora_dropout"], config.get("use_rslora", False))
+    check_training_inputs(config)
+    validate_lora_config(config["lora_r"], config["lora_alpha"], config["lora_dropout"])
 
     if config.get("dry_run"):
         print("OK (dry-run): Vorbedingungen erfuellt, Konfiguration gueltig.")

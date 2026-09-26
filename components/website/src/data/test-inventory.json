@@ -3018,6 +3018,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-lint-resourcing",
+    "file": "tests/spec/dev-flow-plan/plan-lint-resourcing.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-lint-rules",
     "file": "tests/spec/dev-flow-plan/plan-lint-rules.bats",
     "category": "dev-flow-plan",

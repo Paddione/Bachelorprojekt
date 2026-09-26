@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.371.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.1...website-v1.371.2) (2026-09-26)
+
+
+### Code Refactoring
+
+* **infra:** retire the auto-docs service and its generator [T900452] ([#5961](https://github.com/Paddione/Bachelorprojekt/issues/5961)) ([f1e3614](https://github.com/Paddione/Bachelorprojekt/commit/f1e36148dd2fc27be8ce68603c6dd49cbc9953d7))
+
 ## [1.371.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.0...website-v1.371.1) (2026-09-26)
 
 

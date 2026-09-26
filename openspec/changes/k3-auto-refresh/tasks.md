@@ -14,6 +14,7 @@ status: active
 - `Taskfile.yml` (p1, nur codebase:index/refresh-Targets)
 - `scripts/cbm-refresh-cron.sh` (p2, neu)
 - `docs/brain/k3-code-graph.md` (p2, Fakten-Update)
+- `tests/spec/cbm-stampede-guard.bats` (p-tests, neu)
 
 ## Partials
 
@@ -21,6 +22,7 @@ status: active
 |----|------|------|--------------|------------|
 | p1 | tasks.d/p1-singleflight.md | impl | scripts/mcp/cbm-single-flight.sh, docs/runbooks/cbm-index-stampede.md, Taskfile.yml | |
 | p2 | tasks.d/p2-cronjob.md | impl | scripts/cbm-refresh-cron.sh, docs/brain/k3-code-graph.md | p1 |
+| p-tests | tasks.d/p-tests.md | tests | tests/spec/cbm-stampede-guard.bats | p1,p2 |
 
 ## Verify (final, wächst mit den Partials)
 

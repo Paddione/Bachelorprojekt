@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.370.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.369.0...website-v1.370.0) (2026-09-26)
+
+
+### Features
+
+* **ci:** implement k1 ci embeds merge-getrieben [T900449] ([#5948](https://github.com/Paddione/Bachelorprojekt/issues/5948)) ([d70fe0a](https://github.com/Paddione/Bachelorprojekt/commit/d70fe0a9d7192911d30b0d97d4ac673e26391a32))
+
 ## [1.369.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.368.0...website-v1.369.0) (2026-09-26)
 
 

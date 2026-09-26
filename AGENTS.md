@@ -1,12 +1,14 @@
-# AGENTS.md — Quick-Start for Orchestrator Sessions
+# AGENTS.md — Leading Agent Reference & Architecture SSOT
 
-> **Goal:** Keep this file under 160 lines of must-know content. Reference details live in CLAUDE.md and the linked sections below — read them on-demand, not upfront.
+> **SSOT:** This file is the primary repository guidance, architecture SSOT, and operational reference for all agent sessions (Claude Code, OpenCode, Antigravity). Tool-specific guidance and mirrors (such as `CLAUDE.md` and `GEMINI.md`) reference this document as the leading authority.
 
-Auto-loaded by opencode from the repo root; referenced by `.opencode/prompts/orchestrator.md`.
+Auto-loaded by opencode from the repo root; referenced by `.opencode/prompts/orchestrator.md` and `CLAUDE.md`.
 
 ## Agent Routing
 
-SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/*.md`.
+SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/*.md` (`.agents/agents` symlink).
+
+### OpenCode / Orchestrator Runtimes
 
 | Agent | Model | Use case |
 |-------|-------|----------|
@@ -28,34 +30,135 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `explore` / `general` | built-in | Read-only exploration / research |
 
 Dispatch: `task local` für lokale Implementation + deepseek-Rails (Go zuerst). Lokale: `write=deny` → Orchestrator erzeugt. SSOT `.opencode/agent-models.jsonc`; Historie `docs/agent-guide/registry/retired.md`.
-## Core Commands
+
+### Domain Agents & MCP Mappings (Claude Code & Shared)
+
+| Signals | Agent | MCP-Primär (Claude Code) |
+|---------|-------|--------------------------|
+| `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
+| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
+| `fleet/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
+| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `ticket-mcp` (Go-Adapter) — Ticket-Reads/Lifecycle; `mcp-postgres` (:13001, devmesh seit T900191, nur mentolder) für Nicht-Ticket-Tabellen |
+| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) — Ticket-Reads → `ticket-mcp` mit `brand` |
+| SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
+
+> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `.opencode/opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `codebase-memory-mcp`, `context7`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `ticket-mcp-node`, `warden`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
+> **gh-axi (T004612):** Bevorzugt für Anzeige. Für maschinelles Parsen (`--json`, `-q`, `--jq`), Polling (`pr checks`) und Mutationen (`pr merge`, `gh api`) immer `gh` direkt verwenden. Siehe [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
+
+**Before dispatching any domain agent, inject active plan context & curated toolset:**
+```bash
+context=$(bash scripts/plan-context.sh <full-role-name> --with-openspec)
+[ -n "$context" ] && prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
+
+tools=$(bash scripts/toolset-context.sh <full-role-name>)
+[ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
+```
+`<role>` muss ein voller Rollenname sein (`bachelorprojekt-*` / `orchestrator`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
+
+### Session Model & Delegation (T002153)
+
+The main loop runs on the user's default model (or Opus in Claude Code). Model tiering:
+- **Domain agents**: `bachelorprojekt-ops/-db/-test/-website` → `sonnet` (mechanical recon, queries, tests, UI); `bachelorprojekt-infra`/`-security` → `opus` (cross-system, risky, irreversible).
+- **Ad-hoc subagents**: explicit model per dispatch. See [`subagent-provisioning.md`](.claude/skills/references/subagent-provisioning.md).
+- **Context Budget**: 1M context is a budget, not a license. Bulk reads (CI logs, research sweeps, multi-file recon) belong in a condensing subagent. When compacted, preserve: objective, active plan/ticket, changed files, test results, decisions, blockers, error signatures, next concrete action. Discard stale reconnaissance and raw tool outputs.
+
+## Core Commands & Task Oracle
+
+Never look up or hardcode task commands. Use the task oracle instead:
+```bash
+bash scripts/vda.sh oracle '<goal in plain English>'
+```
+
+**Flags for automation/scripts:**
+- `--dry-run` / `-n` — resolve and print task command without executing.
+- `--json` — outputs `{"task":"...","env":"...","cmd":"..."}`.
+- `--quiet` / `-q` — suppress diagnostic stderr lines.
+
+Routes: local Ollama (`localhost:11434`) → Opencode `task-runner` fallback → `task --list` error hint.
 
 ```bash
 bash scripts/vda.sh oracle '<goal>'              # Task oracle — primary CLI
-task workspace:deploy ENV=mentolder              # Prod deploy (or korczewski)
+task workspace:deploy ENV=mentolder              # Prod deploy (mentolder live; korczewski frozen per T002479)
 task test:changed                                # Smart test selection (pre-commit gate)
 task workspace:validate                          # Kustomize dry-run
 ```
 
 ## Workflow Rules
 
-- Branches `feature/*`, `fix/*`, `chore/*`, `docs/*`; PRs → squash-merge, nie direkt auf `main` (`preflight-pr-scope.sh` erzwingt Worktrees).
-- dev flow: `dev-flow-plan` → `dev-flow-execute` (Chores: `dev-flow-chore`); Planner enqueuen Partials einzeln, Factory arbeitet parallel (Pipeline-Prinzip).
-- CI gate vor PR: `task test:changed` + `task freshness:check` + `task workspace:validate`. **Merge = closure** (T001092); Prod-Deploy entkoppelt.
+- **Branching & PRs**: Branches `feature/*`, `fix/*`, `chore/*`, `docs/*` (Factory batch: `feat/batch-*`); PRs → squash-merge, never push directly to `main` (`preflight-pr-scope.sh` enforces worktrees).
+- **dev-flow**: `dev-flow-plan` → `dev-flow-execute` (Chores: `dev-flow-chore`); Planner enqueues partials individually, Factory executes in parallel.
+- **CI Gate vor PR**: `task test:changed` + `task freshness:check` + `task workspace:validate`.
+- **Merge = Abschluss (T001092)**: Ticket closes on green auto-merge to `main` (`done · resolution=shipped`). Prod deploy is decoupled push-based and does NOT change ticket status.
+- **Deliverable-Check vor manuellem done/shipped (M10, T002506)**: Bei manuellen Closures (Epics über mehrere PRs) vor dem Setzen auf done/shipped prüfen, dass alle Deliverable-Dateien auf `origin/main` existieren (`git ls-tree -r --name-only origin/main | grep -qxF <pfad>`).
+- **Bug-Triage-Konvention (CFR-Gate G-DORA03)**: Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst (`bash scripts/ticket.sh create --type bug --title "..." --description "..."`) — kein stiller `fix()`-Commit ohne Ticket-Referenz. CFR wird gemessen via `bash scripts/vda.sh cfr` (Ziel ≤ 15 % über 8 Wochen).
+- **Mess-Konvention (T002717)**: Wer eine Messung als Entscheidungsgrundlage in ein Ticket schreibt, notiert den ausführbaren Befehl mit Suchmuster und Commit-Stand (`PRE=<sha>`) im Code-Block. Redaktioneller Hinweis.
+- **PowerShell-Skripte (.ps1, T002495-M7)**: ASCII-Pflicht (kein BOM), Parser-Check vor Commit, `-Encoding ASCII` für generierte `.conf`-Dateien. Siehe [`scripts/llm/CLAUDE.md`](scripts/llm/CLAUDE.md).
 
-## Architecture (30-second view)
+## Project Overview
 
-- Fleet (single k3s): mentolder → ns `workspace`, korczewski → ns `workspace-korczewski` (ctx `fleet`); Pull-Deploy via FluxCD-OCI-Artefakt (`render-fleet-artifact.yml`, `flux/clusters/fleet/`); `workspace:deploy` nur Break-Glass.
-- k3d/ = Base-Kustomize; Overlays `prod-fleet/mentolder|korczewski`; Domains zentral in `k3d/configmap-domains.yaml` (nie hardcoden).
+**Workspace MVP** — Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates:
+- Traefik: Built-in k3s ingress.
+- Pocket ID: SSO & OIDC provider (`k3d/pocket-id.yaml`) for ~20 clients via `pocket-id-client-seed` Job.
+- Nextcloud + Talk: Files, groupware, and video calls with Talk-HPB + coturn + Janus.
+- Collabora: Office suite.
+- Vaultwarden: Password management.
+- Whiteboard: Collaborative whiteboard server (`k3d/whiteboard/`).
+- Brett: Node.js 3D systemic-constellation board (`k3d/brett.yaml`).
+- Mailpit: Local SMTP/email inbox.
+- DocuSeal: Document signing.
+- Tracking & Timeline: DB-backed analytics in shared DB.
+- Website: Astro/Svelte platform frontend (`website` namespace).
+- Database: Shared PostgreSQL 16 (`shared-db`) in `workspace` namespace. (LiveKit and auto-docs removed).
+
+Prerequisites: Docker, kubectl, `task` (go-task). `k3d` binary is no longer needed/used (T900120).
+
+## Architecture & Cluster Topology (Fleet Stage 3)
+
+- **mentolder (BRAND)**: Live production brand. DNS for `mentolder.de` routes to the **`fleet`** cluster. Use `ENV=mentolder` (or alias `fleet-mentolder`), context `fleet`, namespace `workspace`.
+- **korczewski (BRAND — FROZEN per T002479)**: Standalone cluster torn down; hosts joined `fleet`. DNS routes to fleet. **Brand is FROZEN since 2026-07-23:** `flux/clusters/fleet/ks-korczewski.yaml` is `suspend: true`, deployments in `workspace-korczewski` and `website-korczewski` scaled to 0 replicas. Do not accidentally deploy or scale up.
+- **`fleet` Cluster**: Unified production k3s cluster — 3 control-plane nodes (`pk-hetzner-4/6/8`) plus worker nodes from the `gekko-hetzner-*` pool.
+- **Kubeconfig Contexts**: Exactly two active contexts exist:
+  - `fleet`: Production cluster.
+  - `devmesh`: Local development mesh (ADR-008).
+  - Dead contexts: `mentolder`, `korczewski`, `k3s-1`, `hetzner`, and `k3d-*` point to decommissioned hardware.
+
+### Key Components & Manifests
+
+- **`k3d/`**: Base Kubernetes manifests (Kustomize). Applied by pull-based FluxCD pipeline and break-glass deploy.
+- **`prod/`**: Shared production patches (TLS, replicas, resource limits).
+- **`prod-fleet/mentolder/`, `prod-fleet/korczewski/`**: Overlays applied in prod, referenced by `ENV_OVERLAY` in `environments/<brand>.yaml`. Wraps base overlay with `fleet-common` and node affinity.
+- **`prod-fleet/mentolder-jobs/`, `prod-fleet/korczewski-jobs/` (T002207)**: Isolated bootstrap/seed Job overlays (`flux-<brand>-jobs` Kustomizations in `flux/clusters/fleet/ks-jobs-*.yaml`) with `dependsOn`, `force: true`, `wait: false`.
+- **`prod-fleet/staging/`, `prod-fleet/website-staging/` (T015004)**: Staging stack wired into Flux (`workspace-staging`, `website-staging`). Env profile: `environments/staging.yaml`. CronJobs target `${WEBSITE_NAMESPACE}`.
+- **Flux GitOps Pipeline**: Pull-based deployment. `.github/workflows/render-fleet-artifact.yml` renders the OCI artifact `ghcr.io/paddione/fleet-manifests` on `main` push, reconciled by Flux (`flux/clusters/fleet/`). `task workspace:deploy` is break-glass fallback.
+- **`environments/` Config & Secrets Registry**:
+  - `environments/<env>.yaml`: Per-environment configuration, read by `scripts/env-resolve.sh`.
+  - `environments/.secrets/<env>.yaml`: Plaintext secrets (git-crypt-encrypted at-rest, tracked in git; input to `env:seal`).
+  - `environments/sealed-secrets/<env>.yaml`: Committed SealedSecret resources applied before manifests.
+  - `environments/schema.yaml`: Authoritative environment variable schema; validated by `env:validate`.
+  - `environments/certs/`: Cluster public sealing certificates (`env:fetch-cert`).
+
+## CI/CD, Testing Standards & Image Exclusions
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on PRs:
+- **Test- und BATS-Konventionen (T002448-M4)**: Tests verify **command output** and semantics (`output verification`), not static implementation source code. Runner: `tests/unit/lib/bats-core/bin/bats`.
+- **Test Inventory Check**: Re-runs `task test:inventory` and asserts `components/website/src/data/test-inventory.json` matches committed state.
+- **Release Notes**: Generate with `bash scripts/vda.sh release-notes generate` or `task release:notes`; publish with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.
+- **Image Exclusions (`:latest` permitted)**:
+  Exempt from digest pinning: Website, Brett, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`), Factory-Runner (`factory-runner`), MCP-Node (`mcp-node`), Repo-Sync (`repo-sync`), Dev-Shell (`dev-shell`). (Auto-docs retired in T900452).
 
 ## Critical Footguns (must-know)
 
-- `scripts/env-resolve.sh` sourcen (nie executen); `task-oracle.sh` DEPRECATED → `bash scripts/vda.sh oracle`; nie `SELECT *` aus `tickets.ticket_plans`.
-- OpenSpec-Archiv nur im Worktree; Images `:latest` ok (keine Digests "fixen"); Pre-commit blockt Main-Checkout bei fremdem Lock → Worktrees.
-- `components/website/` pnpm-only (nie `npm install` dort); Root + `components/brett/` npm.
-- git-crypt ohne Keyfile: `git-crypt unlock` nutzt `gpg.program`; unter WSL auf Windows-`gpg.exe` zeigen. Wege je Umgebung: `docs/runbooks/git-crypt-key-distribution.md` → „Unlock ohne Keyfile".
+- Full reference: [`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
+- `scripts/env-resolve.sh` must be sourced, never executed directly.
+- `task-oracle.sh` is DEPRECATED → use `bash scripts/vda.sh oracle`.
+- Never run `SELECT *` from `tickets.ticket_plans` (large content bloats memory).
+- OpenSpec changes must be staged in a worktree, never directly in the main checkout.
+- Pre-commit hooks block main checkout when another agent holds a lock → use worktrees.
+- `components/website/` is strictly `pnpm` (never `npm install` there); Root and `components/brett/` use `npm`.
+- `git-crypt` unlock without keyfile uses `gpg.program`; under WSL point to Windows `gpg.exe`. See `docs/runbooks/git-crypt-key-distribution.md`.
+- After modifying manifests, run `./tests/runner.sh local <TEST-ID>`.
 
-## Agent Coordination
+## Agent Coordination & Locks
 
 ```bash
 bash scripts/agent-lock.sh reap                  # Clean stale locks (start of session)
@@ -63,10 +166,9 @@ bash scripts/agent-lock.sh claim ticket <id> --branch <b> --worktree <wt> --labe
 bash scripts/agent-lock.sh release ticket <id>
 bash scripts/agent-lock.sh list
 bash scripts/agent-msg.sh read --unread          # Session messaging
-bash scripts/worktree-list.sh [--json] [--all]   # Welche Worktrees existieren gerade (--all: + factory-runner-Pod)
+bash scripts/worktree-list.sh [--json] [--all]   # Active worktrees (including factory-runner pod)
 ```
-
-Worktree-*Ort* Konvention (`.worktrees/<slug>`), reale Liste via `git worktree list` — `worktree-list.sh` ist die gemeinsame Abfrage.
+Worktree convention: `.worktrees/<slug>`; query active worktrees via `bash scripts/worktree-list.sh`.
 
 ## Escalation (when subagent is stuck)
 
@@ -76,17 +178,18 @@ bash scripts/agent-escalate.sh --agent "bachelorprojekt-<role>" --reason "<what>
 
 ## Code Discovery
 
-Route recall by query type ([recall-routing](docs/brain/recall-routing.md)): known symbol → K3 graph first (`search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `get_architecture`, `search_code`); semantic question → K1 embeddings first; doctrine/process → authored `docs/` first. Fallback order K1→K3→K4; grep/glob only for string literals and config values.
+Route recall by query type ([recall-routing](docs/brain/recall-routing.md)):
+- **Known symbol**: K3 graph first (`search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `get_architecture`, `search_code`).
+- **Semantic question**: K1 embeddings first.
+- **Doctrine / process**: Authored `docs/` first.
+- Fallback order: K1 → K3 → K4. Grep/glob only for string literals, error messages, and config values.
 
-## OpenSpec conventions
+## OpenSpec Conventions & Dev Experience
 
-- Proposals/specs under `openspec/`. Lifecycle: `/opsx:propose <slug>` → `/opsx:apply <slug>` → `/opsx:archive <slug>`.
-- Language: Purpose in German; Requirements/Scenarios in English (GIVEN/WHEN/THEN).
-- Delta files in `openspec/changes/<slug>/specs/` are named after the **parent SSOT slug**, not the change slug (`openspec.sh propose <change-slug> --ticket T… --target-spec <parent-slug>`). A genuinely new component needs `archive --create-new`.
-
-## Dev experience
-
-OpenSpec CLI completion: `openspec completion install`.
+- Specifications reside under `openspec/`. Lifecycle: `/opsx:propose <slug>` → `/opsx:apply <slug>` → `/opsx:archive <slug>`.
+- Language: Purpose in German; Requirements/Scenarios in English (`GIVEN` / `WHEN` / `THEN`).
+- Delta files in `openspec/changes/<slug>/specs/` are named after the **parent SSOT slug**, not the change slug (`openspec.sh propose <change-slug> --ticket T… --target-spec <parent-slug>`). New components use `archive --create-new`.
+- Shell completion: `openspec completion install`.
 
 ## Interaction Contract
 
@@ -117,24 +220,7 @@ RUNNING: <background work or "none">
 BLOCKED: <blockers or "none">
 ```
 
-## Reference Sections (read on-demand, do not frontload)
-
-The following sections contain detailed reference material. **Do not load them into context at session start.** Read them only when the current task requires it.
-
-<details>
-<summary>Domain Agents (read when dispatching)</summary>
-
-| Signals | Agent |
-|---------|-------|
-| `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", llm:, GPU, Ollama, model | `bachelorprojekt-ops` |
-| fleet/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy, workspace:setup | `bachelorprojekt-infra` |
-| test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, "test failing", "test case", "write a test", factory:, autopilot, FA-SF | `bachelorprojekt-test` |
-| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, bachelorprojekt.features, v_timeline | `bachelorprojekt-db` |
-| SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
-
-Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → `<active-plans>`, `bash scripts/toolset-context.sh <role>` → `<toolset>` (fail-closed auf unbekannte Rolle, T002322). Curation: `toolset-curate`; Gate: `task agents:toolset:check`. Registry: `mcp.yaml` = reachability, `capabilities.yaml` = selection/usage.
-</details>
+## Reference Sections
 
 <details>
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
@@ -151,9 +237,9 @@ Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → `<active-pla
 </details>
 
 <details>
-<summary>Other References (read when needed — all in CLAUDE.md)</summary>
+<summary>Other References</summary>
 
-- `CLAUDE.md` — authoritative comprehensive reference (task lists, topology, all footguns, package managers, health baseline updates, etc.)
+- `CLAUDE.md` — Claude Code environment harness guidance
 - `components/website/CLAUDE.md` — Astro/Svelte quick-start
 - `docs/agent-guide/README.md` — agent operating guide
 </details>

@@ -45,5 +45,9 @@
     "vitest": "^4.1.9",
     "yaml": "^2.9.0",
     "yaml-language-server": "^1.24.0"
+  },
+  "allowScripts": {
+    "puppeteer@25.12.0": true,
+    "esbuild@0.28.2": true
   }
 }

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2447 · Scenarios: 5429
+Specs: 130 · Requirements: 2448 · Scenarios: 5431
 
 ## factory-pipeline
 
@@ -338,15 +338,13 @@ Last touches:
   - Ist/Soll-Unterscheidung (REQ-k2-02) | T002432 | 2026-08-02 | ADDED
 
 ### brain-k3-code-graph
-Reqs: 4 · Scenarios: 4 · Lines: 41
+Reqs: 5 · Scenarios: 6 · Lines: 68
 Last touches:
+  - Index-Erhebung (REQ-k3-02) | T900450 | 2026-09-26 | MODIFIED
+  - Periodischer Graph-Refresh (REQ-k3-05) | T900450 | 2026-09-26 | ADDED
   - Diagramm mit beschrifteten Kanten (REQ-k3-01) | T002433 | 2026-08-02 | ADDED
-  - Index-Erhebung (REQ-k3-02) | T002433 | 2026-08-02 | ADDED
   - Transport und Harness-Integration (REQ-k3-03) | T002433 | 2026-08-02 | ADDED
   - K1/K3-Verhältnis (Defekt D8) (REQ-k3-04) | T002433 | 2026-08-02 | ADDED
-In-flight:
-  - Index-Erhebung (REQ-k3-02) | T900450 | active | MODIFIED
-  - Periodischer Graph-Refresh (REQ-k3-05) | T900450 | active | ADDED
 
 ### brain-k4-brain-wiki
 Reqs: 13 · Scenarios: 25 · Lines: 239

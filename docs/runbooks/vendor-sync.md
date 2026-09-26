@@ -10,6 +10,7 @@
 | Werkzeug (`status` / `update` / `check`) | `scripts/vendor-sync.py` — Tasks `agents:vendor:status\|update\|check` |
 | Inventar (welche Skills `provenance: vendor` sind) | `docs/agent-guide/registry/skills.yaml` |
 | Guards | `tests/spec/agent-skills/vendor-sync.bats` |
+| Nächtlicher Runner (WSL Cron) | `scripts/nightly-update.sh` |
 
 ## Was abgedeckt ist
 

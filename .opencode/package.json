@@ -1,12 +1,12 @@
 {
   "dependencies": {
     "@opencode-ai/plugin": "1.18.30",
-    "@tarquinen/opencode-dcp": "^3.1.15",
+    "@tarquinen/opencode-dcp": "^3.2.0",
     "envsitter-guard": "^0.0.4",
     "jsonc-parser": "^3.3.1",
-    "oh-my-opencode-slim": "^2.2.19",
-    "opencode-agent-memory": "^0.2.0",
-    "superpowers": "git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+    "oh-my-opencode-slim": "^2.2.25",
+    "opencode-agent-memory": "^0.3.0",
+    "superpowers": "git+https://github.com/obra/superpowers.git#8ca22dba9a94f28898bbce59f2537ff4d87c747d",
     "unique-names-generator": "^4.7.1"
   }
 }

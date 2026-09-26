@@ -129,6 +129,13 @@ lesen diese Datei statt einer Kopie im Skill-Prompt):
   (Stichwörter: `split`, `extract`, `verkleiner`, `shrink`, `aufteil`), gibt der Linter eine
   Warnung aus — kosmetisches Zusammenziehen reicht bei Budget≈0 nicht (siehe Schritt 3.7/4
   im Skill).
+- **R1 min_tier (nur Partial-Modus):** Jede `## Partials`-Manifest-Zeile trägt `min_tier`
+  exakt aus {`4b-local`, `27b-local`, `cloud`} (kleingeschrieben, keine Varianten) — die
+  billigste Stufe, die das Partial noch schafft. Stufen-Rubrik:
+  [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md) §3.7(b).
+- **R2 ctx_tokens (nur Partial-Modus):** Jede Manifest-Zeile trägt `ctx_tokens` als positive
+  Ganzzahl ≤ 1000000; auf den lokalen Stufen (`4b-local`, `27b-local`) zusätzlich ≤ 131072
+  (served KV-Fenster) — darüber `cloud` wählen oder das Partial aufteilen.
 
 ### Gate-Messung & Ad-hoc-Skripte (Positiv-Anker-Pflicht) [T002495-M10]
 

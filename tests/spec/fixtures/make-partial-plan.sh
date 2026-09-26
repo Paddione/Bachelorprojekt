@@ -43,10 +43,10 @@ a.test.bats   tests
 
 ## Partials
 
-| id | file | role | target_files |
-|----|------|------|--------------|
-| p1 | tasks.d/p1-impl.md | impl | ${P1_ROW} |
-| p2 | tasks.d/p2-tests.md | tests | ${P2_ROW} |
+| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
+|----|------|------|--------------|------------|----------|------------|
+| p1 | tasks.d/p1-impl.md | impl | ${P1_ROW} | | 27b-local | 32000 |
+| p2 | tasks.d/p2-tests.md | tests | ${P2_ROW} | p1 | 4b-local | 32000 |
 
 ### Task: Verify
 

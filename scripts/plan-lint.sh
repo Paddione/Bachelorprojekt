@@ -109,6 +109,9 @@ P2_TICKET_SCOPE_RE='^T[0-9]{6}$'
 P2_HEALTH_SCOPE_RE='^G-[A-Z][A-Z0-9]+$'
 B1B_SPLIT_RE='split|extract|verkleiner|shrink|aufteil'
 PARTIAL_TOKEN_LIMIT=7000
+R1_TIERS="4b-local 27b-local cloud"
+R2_LOCAL_MAX=131072
+R2_ABS_MAX=1000000
 
 _print_rules() {
   cat <<_RULES_EOF
@@ -121,6 +124,8 @@ STRUCT3: the last task lists verbatim: $(for c in $STRUCT3_CMDS; do printf 'task
 STRUCT-PARTIAL: if tasks.d/ exists next to tasks.md, tasks.md needs a '## Partials' manifest table; every referenced partial file must exist; the last row's role is 'tests'.
 D1: no file may appear in the target_files of two partials (disjoint split).
 D2: depends_on may only reference existing partial ids and must be acyclic.
+R1: every manifest row carries min_tier from {$(echo "${R1_TIERS// /, }")} (exact, lowercase) — the cheapest tier that can still do the partial.
+R2: every manifest row carries ctx_tokens as a positive integer <= ${R2_ABS_MAX}; on local tiers (4b-local, 27b-local) additionally <= ${R2_LOCAL_MAX} (served KV window) — above that pick 'cloud' or split the partial.
 I1: intel.json must exist in the change dir, be valid JSON with meta/impact_files/symbols, and cover every target_file.
 P1: no open placeholders in prose outside code fences/inline code (regex: ${P1_RE}).
 P2: commit-scope prescriptions ('type(scope):') must use valid named scopes from validate-commit-msg.sh scopes, ticket scopes (${P2_TICKET_SCOPE_RE}), or health-goal scopes (${P2_HEALTH_SCOPE_RE}).
@@ -291,11 +296,11 @@ grep -qiE '^#+ +File Structure' "$PLAN" || hard "STRUCT1: missing 'File Structur
 PLAN_DIR="$(cd "$(dirname "$PLAN")" && pwd)"
 PARTIAL_MODE=0
 STRUCT2_FILE="$PLAN"   # single mode: the plan itself carries the failing-test step
-declare -a PARTIAL_FILES=() PARTIAL_ROLES=() ALL_PARTIAL_TARGETS=()
+declare -a PARTIAL_FILES=() PARTIAL_ROLES=() ALL_PARTIAL_TARGETS=() PARTIAL_TIERS=() PARTIAL_CTX=()
 if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
   PARTIAL_MODE=1
   # Parse the `## Partials` manifest table rows:
-  #   | <id> | tasks.d/pX-<name>.md | impl|tests | <target_files, comma-sep> |
+  #   | <id> | tasks.d/pX-<name>.md | impl|tests | <target_files, comma-sep> | <depends_on, optional> | min_tier | ctx_tokens |
   #   target_files-Zellen muessen pfadrein sein (T008015-3): Annotations-Praefixe
   #   ("Löschungen:") und Brace-Globs werden NICHT als Pfade aufgeloest; der
   #   Loesch-Status gehoert in die File-Structure-Spalte.
@@ -303,11 +308,15 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
   while IFS= read -r row; do
     [[ "$row" == *tasks.d/* ]] || continue
     row_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row")"
-    IFS='|' read -r c_id c_file c_role c_targets c_deps <<<"$row_stripped"
+    IFS='|' read -r c_id c_file c_role c_targets c_deps c_tier c_ctx <<<"$row_stripped"
     c_file="$(printf '%s' "$c_file" | tr -d ' `')"
     c_role="$(printf '%s' "$c_role" | tr -d ' ')"
+    c_tier="$(printf '%s' "$c_tier" | tr -d ' `')"
+    c_ctx="$(printf '%s' "$c_ctx" | tr -d ' `')"
     PARTIAL_FILES+=("$c_file")
     PARTIAL_ROLES+=("$c_role")
+    PARTIAL_TIERS+=("$c_tier")
+    PARTIAL_CTX+=("$c_ctx")
     # [T900024] Dieselbe Zellen-Filterung wie `partial_targets` -- ueber
     # denselben Helfer, nicht ueber eine zweite Kopie der Regel.
     while IFS= read -r _t; do
@@ -337,7 +346,10 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     for idx in "${!PARTIAL_FILES[@]}"; do
       row_line=$(sed -n "$((idx+1))p" <<<"$manifest_data_rows")
       rl_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row_line")"
-      IFS='|' read -r _rid _rfile _rrole _rtargets _rdeps <<<"$rl_stripped"
+      # 7 Felder lesen (R1/R2-Spalten hinten): ohne _rtier/_rctx wuerde das
+      # letzte read-Feld (_rdeps) den Rest "… | min_tier | ctx_tokens" schlucken
+      # und D2 auf Phantom-IDs fehlschlagen.
+      IFS='|' read -r _rid _rfile _rrole _rtargets _rdeps _rtier _rctx <<<"$rl_stripped"
       _rid="$(printf '%s' "$_rid" | tr -d ' `')"
       _rdeps="$(printf '%s' "$_rdeps" | tr -d ' `')"
       PARTIAL_IDS["$_rid"]=1
@@ -394,6 +406,25 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
       done
       hard "D2: dependency cycle: $_remaining"
     fi
+    # R1/R2 (NEU, Hard): Resourcing — jede Manifest-Zeile ist die Dispatch-Vorgabe
+    # des Orchestrators ("cheapest that does the trick"). Index-parallel zu
+    # PARTIAL_FILES gelesen (Haupt-Loop oben); Reihenfolge ist identisch.
+    for idx in "${!PARTIAL_FILES[@]}"; do
+      _pid="${PARTIAL_FILES[$idx]}"
+      _tier="${PARTIAL_TIERS[$idx]}"
+      _ctx="${PARTIAL_CTX[$idx]}"
+      case "$_tier" in
+        4b-local|27b-local|cloud) ;;
+        *) hard "R1: ${_pid}: min_tier '${_tier}' ungueltig — erlaubt (6. Manifest-Spalte, exakt): ${R1_TIERS// /, }" ;;
+      esac
+      if ! [[ "$_ctx" =~ ^[0-9]+$ ]]; then
+        hard "R2: ${_pid}: ctx_tokens '${_ctx}' ist keine positive Ganzzahl (7. Manifest-Spalte)"
+      elif [[ $((10#$_ctx)) -gt $R2_ABS_MAX ]]; then
+        hard "R2: ${_pid}: ctx_tokens ${_ctx} > ${R2_ABS_MAX} — ausserhalb jedes Modell-Fensters"
+      elif [[ "$_tier" == "4b-local" || "$_tier" == "27b-local" ]] && [[ $((10#$_ctx)) -gt $R2_LOCAL_MAX ]]; then
+        hard "R2: ${_pid}: ctx_tokens ${_ctx} passt nicht ins lokale ${R2_LOCAL_MAX}-Fenster — min_tier 'cloud' oder Partial aufteilen"
+      fi
+    done
   fi
   # I1 (NEU, Hard): Vollständigkeit des Intel-Bundles.
   # Nur im Partial-Modus aktiv: prüft ob intel.json existiert, valide ist,

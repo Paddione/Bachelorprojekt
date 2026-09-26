@@ -35,8 +35,8 @@ CHANGE_DIR="$REPO_ROOT/openspec/changes/$SLUG"
 _resolve_target_files() {
   local tasks_md="$CHANGE_DIR/tasks.md"
   [[ -f "$tasks_md" ]] || { echo "tasks.md not found: $tasks_md" >&2; return 1; }
-  # Table columns: | id | file | role | target_files | depends_on |
-  # Leading | creates empty field 0. So read order: _0 _1(id) _2(file) _3(role) _4(targets) _5(deps)
+  # Table columns: | id | file | role | target_files | depends_on | min_tier | ctx_tokens |
+  # Leading | creates empty field 0. So read order: _0 _1(id) _2(file) _3(role) _4(targets) _5(rest incl. deps/tier/ctx)
   # [T008015-3] Annotierte Zellen tolerieren: Nur Pfad-Tokens (ein Wort ohne
   # Whitespace, mit '/', '.' oder '{') gelten als Pfade — Annotations-Praefixe
   # ("Löschungen:") fallen raus, Backticks werden im Pipeline-Schritt entfernt.

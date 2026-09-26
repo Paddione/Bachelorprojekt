@@ -50,12 +50,12 @@ Jede netto hinzugefügte Zeile reißt es. P3 **verkleinert** die Datei deshalb: 
 
 ## Partials
 
-| id | file | role | target_files | depends_on |
-|----|------|------|---------------|------------|
-| p1 | tasks.d/p1-generator.md | impl | scripts/plan-intel.sh | |
-| p2 | tasks.d/p2-assembler.md | impl | scripts/task-context.sh | p1 |
-| p3 | tasks.d/p3-gate-wiring.md | impl | scripts/plan-lint.sh, scripts/factory/pipeline.mjs, .claude/skills/dev-flow-execute/SKILL.md, .claude/skills/references/dev-flow-plan-phases.md | p1, p2 |
-| p4 | tasks.d/p4-tests.md | tests | tests/spec/dev-flow-plan/task-context.bats | p1, p2, p3 |
+| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
+|----|------|------|--------------|------------|----------|------------|
+| p1 | tasks.d/p1-generator.md | impl | scripts/plan-intel.sh | | 27b-local | 32000 |
+| p2 | tasks.d/p2-assembler.md | impl | scripts/task-context.sh | p1 | 27b-local | 32000 |
+| p3 | tasks.d/p3-gate-wiring.md | impl | scripts/plan-lint.sh, scripts/factory/pipeline.mjs, .claude/skills/dev-flow-execute/SKILL.md, .claude/skills/references/dev-flow-plan-phases.md | p1, p2 | 27b-local | 80000 |
+| p4 | tasks.d/p4-tests.md | tests | tests/spec/dev-flow-plan/task-context.bats | p1, p2, p3 | 4b-local | 32000 |
 
 ## Task: Rot-Grün-Anker
 

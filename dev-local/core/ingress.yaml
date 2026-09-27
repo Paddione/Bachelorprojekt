@@ -17,7 +17,6 @@ spec:
         - "site.${DEVMESH_DOMAIN}"
         - "brett.${DEVMESH_DOMAIN}"
         - "mail.${DEVMESH_DOMAIN}"
-        - "langfuse.${DEVMESH_DOMAIN}"
   rules:
     - host: "web.${DEVMESH_DOMAIN}"
       http:
@@ -39,8 +38,3 @@ spec:
       http:
         paths:
           - {path: /, pathType: Prefix, backend: {service: {name: mailpit, port: {number: 8025}}}}
-    - host: "langfuse.${DEVMESH_DOMAIN}"
-      http:
-        paths:
-          - {path: /api/public/otel, pathType: Prefix, backend: {service: {name: langfuse-otel-redact, port: {number: 4318}}}}
-          - {path: /, pathType: Prefix, backend: {service: {name: langfuse-web, port: {number: 3000}}}}

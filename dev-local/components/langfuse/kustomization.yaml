@@ -10,3 +10,4 @@ resources:
   - minio.yaml
   - langfuse.yaml
   - otel-redact.yaml
+  - ingress-public.yaml

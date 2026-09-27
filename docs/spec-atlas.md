@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 132 · Requirements: 2465 · Scenarios: 5466
+Specs: 133 · Requirements: 2469 · Scenarios: 5473
 
 ## factory-pipeline
 
@@ -693,6 +693,14 @@ Last touches:
   - Mandatory Alert Set | T016124 | 2026-09-17 | MODIFIED
   - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | 2026-09-17 | ADDED
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | 2026-09-17 | ADDED
+
+### neovim-dashboard
+Reqs: 4 · Scenarios: 7 · Lines: 67
+Last touches:
+  - Repo-tracked Neovim foundation config | T900655 | 2026-09-27 | ADDED
+  - Buffer-based Git-root function | T900655 | 2026-09-27 | ADDED
+  - Dashboard shell with fixed chapter order | T900655 | 2026-09-27 | ADDED
+  - Runbook template, master index, and coverage | T900655 | 2026-09-27 | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

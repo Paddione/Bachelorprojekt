@@ -5,7 +5,7 @@ Skills for managing the OpenCode development workflow from brainstorming through
 ## Available Skills
 
 ### Core Workflow
-- **dev-flow-plan** — Generate design specs and implementation plans via `/opsx:propose` or `openspec propose`
+- **dev-flow-plan** — Generate design specs and implementation plans via `/opsx:propose` or `scripts/openspec.sh propose`
 - **dev-flow-execute** — Implement plans commit-by-commit, PR-by-PR (SSOT: [verification-block](.claude/skills/references/verification-block.md))
 
 ### Superpowers

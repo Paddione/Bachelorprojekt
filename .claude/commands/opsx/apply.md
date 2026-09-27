@@ -16,49 +16,35 @@ Implement tasks from an OpenSpec change.
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
-   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
+   - If ambiguous, list the active changes directly (the raw `openspec` CLI is not
+     installed in this repo — use `ls openspec/changes/`) and use the
+     **AskUserQuestion tool** to let the user select
 
    Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
 
-2. **Check status to understand the schema**
-   ```bash
-   openspec status --change "<name>" --json
-   ```
-   Parse the JSON to understand:
-   - `schemaName`: The workflow being used (e.g., "spec-driven")
-   - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
+2. **Read the change directory**
 
-3. **Get apply instructions**
+   Read `openspec/changes/<name>/` directly: `proposal.md`, `specs/`, `design.md`,
+   `tasks.md`. The task list always lives in `tasks.md` (`- [ ]` pending,
+   `- [x]` complete).
 
-   ```bash
-   openspec instructions apply --change "<name>" --json
-   ```
+3. **Determine the state**
 
-   This returns:
-   - `contextFiles`: artifact ID -> array of concrete file paths (varies by schema)
-   - Progress (total, complete, remaining)
-   - Task list with status
-   - Dynamic instruction based on current state
-
-   **Handle states:**
-   - If `state: "blocked"` (missing artifacts): show message, resolve missing artifacts (check proposal/specs/design/tasks), then re-run `/opsx:apply`
-   - If `state: "all_done"`: congratulate, suggest archive
+   - If `tasks.md` is missing: the change is not implementable yet — resolve the
+     missing artifacts first (re-run `/opsx:propose`), then re-run `/opsx:apply`
+   - If every task is `- [x]`: congratulate, suggest archive (`/opsx:archive`)
    - Otherwise: proceed to implementation
 
 4. **Read context files**
 
-   Read every file path listed under `contextFiles` from the apply instructions output.
-   The files depend on the schema being used:
-   - **spec-driven**: proposal, specs, design, tasks
-   - Other schemas: follow the contextFiles from CLI output
+   Read `proposal.md`, the `specs/` delta, `design.md`, and `tasks.md` before
+   starting — those four are the full context, no CLI output needed.
 
 5. **Show current progress**
 
    Display:
-   - Schema being used
-   - Progress: "N/M tasks complete"
+   - Progress: "N/M tasks complete" (count `- [x]` vs `- [ ]` in tasks.md)
    - Remaining tasks overview
-   - Dynamic instruction from CLI
 
 6. **Implement tasks (loop until done or blocked)**
 
@@ -86,7 +72,7 @@ Implement tasks from an OpenSpec change.
 **Output During Implementation**
 
 ```
-## Implementing: <change-name> (schema: <schema-name>)
+## Implementing: <change-name>
 
 Working on task 3/7: <task description>
 [...implementation happening...]
@@ -103,7 +89,6 @@ Working on task 4/7: <task description>
 ## Implementation Complete
 
 **Change:** <change-name>
-**Schema:** <schema-name>
 **Progress:** 7/7 tasks complete ✓
 
 ### Completed This Session
@@ -120,7 +105,6 @@ All tasks complete! You can archive this change with `/opsx:archive`.
 ## Implementation Paused
 
 **Change:** <change-name>
-**Schema:** <schema-name>
 **Progress:** 4/7 tasks complete
 
 ### Issue Encountered
@@ -136,13 +120,12 @@ What would you like to do?
 
 **Guardrails**
 - Keep going through tasks until done or blocked
-- Always read context files before starting (from the apply instructions output)
+- Always read proposal/specs/design/tasks before starting
 - If task is ambiguous, pause and ask before implementing
 - If implementation reveals issues, pause and suggest artifact updates
 - Keep code changes minimal and scoped to each task
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements - don't guess
-- Use contextFiles from CLI output, don't assume specific file names
 
 **Fluid Workflow Integration**
 

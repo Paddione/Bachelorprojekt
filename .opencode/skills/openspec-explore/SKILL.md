@@ -1,7 +1,7 @@
 ---
 name: openspec-explore
 description: 'Use as a thinking partner BEFORE committing to an approach — explore an idea, investigate a problem, compare options, or get unstuck mid-change. Triggers on /opsx:explore, "let me think through", "explore this", "what are the options", "I am stuck on", "should we use X or Y", "this is a mess". Produces no artifact and reaches no required conclusion; for the decision-and-write-it-down step use dev-flow-plan brainstorming instead.'
-compatibility: Requires openspec CLI.
+compatibility: No CLI required — reads `openspec/changes/` directly (the raw `openspec` CLI is NOT installed in this repo).
 # FORK — nicht upstream-synchron. Stammt aus dem OpenSpec-Upstream
 # (https://github.com/Fission-AI/OpenSpec), installiert mit T001263 / PR #2188, und wurde
 # seitdem hier weiterentwickelt (u.a. Framework-Mapping-Tabelle, PR #2702) ohne je gegen
@@ -84,13 +84,12 @@ You have full context of the OpenSpec system. Use it naturally, don't force it.
 
 At the start, quickly check what exists:
 ```bash
-openspec list --json
+ls openspec/changes/
 ```
 
 This tells you:
-- If there are active changes
-- Their names, schemas, and status
-- What the user might be working on
+- If there are active changes (any directory besides `archive/`)
+- Their names — read `proposal.md` for what the user might be working on
 
 ### When no change exists
 

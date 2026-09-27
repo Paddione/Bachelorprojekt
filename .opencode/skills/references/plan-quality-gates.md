@@ -111,7 +111,7 @@ lesen diese Datei statt einer Kopie im Skill-Prompt):
   mit der wortwörtlichen Phrase `expected: FAIL` (regex tolerant: `expected:? *fail`) —
   UND einen echten Testrunner-Aufruf (`bats`, `vitest`, `pytest`, `jest`, `mocha`, `go test`
   oder `playwright test`). Die Phrase allein reicht NICHT: sie ist billig zu faken und wird
-  bereits vom `openspec propose`-Skeleton vorgeseedet. Der finale `task test:*`-Verify-Task
+  bereits vom `openspec.sh propose`-Skeleton vorgeseedet. Der finale `task test:*`-Verify-Task
   (STRUCT3) zählt NICHT als dieser Failing-Test-Step — es muss ein eigener, expliziter
   Testrunner-Befehl im selben oder einem anderen Task stehen (T001791 #2).
 - **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory Verify-Commands:

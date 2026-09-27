@@ -352,8 +352,8 @@ task: Available tasks for this project:
 * test:e2e:visual-sweep:all-prods:              Visual sweep across mentolder + korczewski × desktop + mobile, then one combined contact-sheet.
 * test:e2e:visual-sweep:vision:                 Headed Route-Sweep beider Brands mit Vision-Urteil je Screenshot (gemma12-vision, 3 Slots). Report-only, kein CI-Gate. MAX_ROUTES=N begrenzt die Zahl beurteilter Routen je Project.
 * test:e2e:website:                             Run Playwright website project against WEBSITE_URL (default localhost:4321)
-* test:evals:                                   Run human-owned agent evals (tests/evals/, offline). Agents may run, never edit — see tests/evals/README.md.
-* test:evals:update:                            Regenerate tests/evals/golden/task-list-all.txt (human-only, needs [evals-override] in PR).
+* test:evals:                                   Run agent evals (tests/evals/, offline). See tests/evals/README.md.
+* test:evals:update:                            Regenerate tests/evals/golden/task-list-all.txt (state the reason in the PR).
 * test:factory:                                 Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe.
 * test:inventory:                               Regenerate components/website/src/data/test-inventory.json (requirement → test mapping)
 * test:llm-proxy:                               Run the llm-proxy routing + readiness unit tests (node:test + vitest)

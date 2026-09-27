@@ -1,32 +1,24 @@
-# tests/evals/ — Human-Owned Agent Evaluations
+# tests/evals/ — Agent Evaluations
 
 Stability probes that verify the repository keeps working **for agents**:
-CLI surface, hook integrity, routing docs. Agents **run** these evals
-(`task test:evals`) but never edit them.
+CLI surface, hook integrity, routing docs. Anyone (human or agent) may run
+and maintain them — a red eval means: fix the code under test first, and
+touch the eval itself only with a stated reason in the PR.
 
-## Ownership
+## Run
 
-- **Human-owned.** Every change under `tests/evals/` must come from a human
-  session with an explicit reason.
-- **Agents:** read + execute only. Do not create, modify, rename, or delete
-  anything here — including "helpful" golden refreshes. If an eval is red,
-  fix the code under test, never the eval.
+```bash
+task test:evals          # run all evals
+```
 
-## Enforcement
-
-- **Local:** `.githooks/pre-commit` refuses staged `tests/evals/**` changes
-  unless `EVALS_OVERRIDE=1` is set (human-only escape hatch).
-- **CI:** the `test-evals` job fails a PR that touches `tests/evals/` unless
-  the PR title or body contains `[evals-override]` (human-only token).
-
-## Updating goldens (humans only)
+## Updating goldens
 
 ```bash
 task test:evals:update   # regenerates golden/task-list-all.txt
 task test:evals          # verify
 ```
 
-State the reason in the PR body together with the `[evals-override]` token.
+State the reason in the PR body when a golden changes.
 
 ## Inventory note
 

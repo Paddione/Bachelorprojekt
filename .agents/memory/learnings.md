@@ -59,8 +59,10 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
 - 27.09.26 [T900560] Volle Spec-Suite nie gegen eine fremde Suite fahren
   (CPU/gpg-Konkurrenz hängt) — bei gehaltener Suite: Change-Surface per
   Konsumenten-Sweep abdecken, Rest der CI-Matrix überlassen. — Beleg: C1b
-- 27.09.26 [T900560] `pkill -f` matcht die eigene Shell bei Pfad im
-  Pattern — nie mit Worktree-Pfad als Pattern killen. — Beleg: C1b
+- 27.09.26 [T900560] `pkill -f` matcht immer die eigene Cmdline —
+  nur mit Bracket-Trick (`pkill -f '[b]ats-exec'`) killen; `ps` nur mit
+  `comm`-Spalte oder Zählung, JSON nur keys/counts (volle Args/Arrays
+  fluten MBs). — Beleg: C1b/C5b
 - 27.09.26 [T900560] `/usr/bin/sg` ist set-group, NICHT ast-grep; npm-Paket
   `@ast-grep/cli` hat zwei Bins — nur `npx -p <pkg> ast-grep` geht
   (`sg`-Bin ist deprecated). — Beleg: C9
@@ -70,3 +72,6 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
 - 27.09.26 [T900560] Golden-Eval fing echten Drift (#6040: 5 pi-Tasks ohne
   Regen) — non-required Job heißt: Fund verhallt; Drift-Evidenz gehört in
   den nächsten PR-Body. — Beleg: C9
+- 27.09.26 [T900560] Human-only-Evals-Policy auf Owner-Dekret entfernt (C5b):
+  Hook-Block + CI-Token-Check raus, Job-ID `test-evals` behalten (GitLab-
+  Mapping keyed by ID), Golden-Descs nachziehen. — Beleg: C5b

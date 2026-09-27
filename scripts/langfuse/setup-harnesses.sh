@@ -31,13 +31,21 @@ for harness in claude opencode pi codex; do
       config="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/opencode-langfuse.json"; mkdir -p "$(dirname "$config")"; umask 077
       jq -n --arg p "$LANGFUSE_PUBLIC_KEY" --arg s "$LANGFUSE_SECRET_KEY" --arg b "$LANGFUSE_BASE_URL" --arg u "$user_id" '{publicKey:$p,secretKey:$s,baseUrl:$b,environment:"development",userId:$u}' > "$config"; chmod 600 "$config" ;;
     pi)
-      pi install npm:@langfuse/pi-observability-plugin@0.1.2 >/dev/null
+      pi install npm:@langfuse/pi-observability-plugin@0.1.2
+      pi list 2>/dev/null | grep -q '@langfuse/pi-observability-plugin' \
+        || { echo "pi: @langfuse/pi-observability-plugin missing after pi install" >&2; exit 1; }
       config="$HOME/.pi/agent/langfuse.json"; mkdir -p "$(dirname "$config")"; umask 077
       jq -n --arg p "$LANGFUSE_PUBLIC_KEY" --arg s "$LANGFUSE_SECRET_KEY" --arg b "$LANGFUSE_BASE_URL" --arg u "$user_id" '{publicKey:$p,secretKey:$s,baseUrl:$b,userId:$u}' > "$config"; chmod 600 "$config" ;;
     codex)
       codex plugin marketplace add langfuse/codex-observability-plugin --ref v0.4.0 >/dev/null
       config="$HOME/.codex/config.toml"; mkdir -p "$(dirname "$config")"; touch "$config"
-      grep -q '^\[features\]' "$config" || printf '\n[features]\nhooks = true\n' >> "$config"
+      if ! grep -q '^\[features\]' "$config"; then
+        printf '\n[features]\nhooks = true\n' >> "$config"
+      else
+        # Existing [features]: put hooks = true directly under the header, drop any other hooks line.
+        awk '/^\[/ { sec = ($0 == "[features]"); print; if (sec) print "hooks = true"; next }
+             sec && /^hooks[[:space:]]*=/ { next } { print }' "$config" > "$config.tmp"; mv "$config.tmp" "$config"
+      fi
       grep -q '^\[plugins."tracing@codex-observability-plugin"\]' "$config" || printf '\n[plugins."tracing@codex-observability-plugin"]\nenabled = true\n' >> "$config"
       config="$HOME/.codex/langfuse.json"; umask 077
       jq -n --arg p "$LANGFUSE_PUBLIC_KEY" --arg s "$LANGFUSE_SECRET_KEY" --arg b "$LANGFUSE_BASE_URL" --arg u "$user_id" '{enabled:true,public_key:$p,secret_key:$s,base_url:$b,userId:$u}' > "$config"; chmod 600 "$config" ;;

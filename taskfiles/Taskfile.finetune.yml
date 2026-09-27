@@ -135,7 +135,7 @@ tasks:
         # Stage exactly the input bundle; never sync the repo (which contains secrets).
         STAGE=$(mktemp -d)
         trap 'rm -rf "$STAGE"' EXIT
-        cp scripts/finetune/{train.py,measure_corpus.py,template_guard.py} "$STAGE/"
+        cp scripts/finetune/{train.py,measure_corpus.py,template_guard.py,langfuse_tracking.py} "$STAGE/"
         cp -- "{{.CORPUS}}" "$STAGE/corpus.jsonl"
         cp -- "{{.MEASURE_REPORT}}" "$STAGE/report.json"
         {{if .CONFIG}}cp -- "{{.CONFIG}}" "$STAGE/config.json"{{end}}
@@ -155,8 +155,18 @@ tasks:
         {{if .PATCHED_TEMPLATE}}set -- "$@" --patched-template /data/patched.jinja{{end}}
         JOB_DRY_RUN=""
         {{if .DRY_RUN}}JOB_DRY_RUN="--dry-run"{{end}}
+        TRACKING_ARGS=()
+        if [ -n "${LANGFUSE_PUBLIC_KEY:-}${LANGFUSE_SECRET_KEY:-}" ]; then
+          [ -n "${LANGFUSE_PUBLIC_KEY:-}" ] && [ -n "${LANGFUSE_SECRET_KEY:-}" ] || {
+            echo "Both Langfuse keys are required" >&2; exit 2;
+          }
+          TRACKING_ARGS+=(--secrets LANGFUSE_PUBLIC_KEY --secrets LANGFUSE_SECRET_KEY --with 'langfuse>=4.7,<5')
+          if [ -n "${LANGFUSE_BASE_URL:-}" ]; then
+            TRACKING_ARGS+=(--env "LANGFUSE_BASE_URL=${LANGFUSE_BASE_URL}")
+          fi
+        fi
         uvx --from "huggingface_hub" hf jobs uv run \
-          --flavor "$FLAVOR" --timeout 2h --detach $JOB_DRY_RUN --secrets HF_TOKEN \
+          --flavor "$FLAVOR" --timeout 2h --detach $JOB_DRY_RUN --secrets HF_TOKEN "${TRACKING_ARGS[@]}" \
           --with unsloth --with trl --with datasets --with trackio --with torchvision \
           "$STAGE/train.py" "$@"
 

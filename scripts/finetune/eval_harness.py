@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from eval_scoring import score_case, validate_testset, load_testset  # noqa: E402
+from langfuse_tracking import publish_evaluation  # noqa: E402
 
 PARTITIONS = ("action", "no_action", "clarify")
 LANGUAGES = ("en", "de")
@@ -276,6 +277,12 @@ def run(args: argparse.Namespace) -> int:
         Path(args.output).write_text(output_json, encoding="utf-8")
     if not args.quiet:
         print(output_json)
+
+    if not using_fixtures:
+        publish_evaluation(
+            report=report, testset=args.testset, model=base_model_id,
+            adapter=args.adapter,
+        )
 
     regressions = report["regressions"]
     if regressions:

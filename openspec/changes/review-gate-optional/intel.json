@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "slug": "review-gate-optional",
+    "ticket_id": "T900687",
+    "generated_from": "main@b4327324a",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".opencode/skills/OVERVIEW.md",
+      "language": "markdown",
+      "loc": 276,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/dev-flow-execute/SKILL.md",
+      "language": "markdown",
+      "loc": 265,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/dev-flow-execute/references/implementer-handoff.md",
+      "language": "markdown",
+      "loc": 46,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/references/dev-flow-lifecycle.md",
+      "language": "markdown",
+      "loc": 41,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6026,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/agent-skills/automerge-preflight-check.bats",
+      "language": "bash",
+      "loc": 89,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats",
+      "language": "bash",
+      "loc": 44,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/agent-skills/review-gate-before-auto-merge.bats",
+      "language": "bash",
+      "loc": 56,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/agent-skills/automerge-preflight-check.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/automerge-preflight-check.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/automerge-preflight-check.bats:23:_stub_gh() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/automerge-preflight-check.bats",
+      "signature": "23:_stub_gh() {(...)",
+      "type_text": "23:_stub_gh() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats:3:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats",
+      "signature": "3:setup() {(...)",
+      "type_text": "3:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/review-gate-before-auto-merge.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/review-gate-before-auto-merge.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

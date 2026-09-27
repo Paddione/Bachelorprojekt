@@ -20,11 +20,12 @@
 // sourct) opencode gestartet wird.
 //
 // WICHTIG: Diese Datei muss in einem Verzeichnis liegen, das opencode
-// automatisch laedt — `.opencode/plugins/` (Projekt) oder
-// `~/.config/opencode/plugins/` (global). Das singulaere `plugin/`
-// (Repo-Konvention, Ziel von scripts/opencode-sync-agents.sh) wird von
-// opencode NICHT geladen; der Sync verteilt die Dateien deshalb zusaetzlich
-// nach `~/.config/opencode/plugins/` (T0141xx).
+// automatisch laedt. opencode laedt Plugins aus SINGULAR und PLURAL (siehe
+// customize-opencode / https://opencode.ai/docs/plugins/) — `.opencode/plugin/`
+// (Repo-Quelle) und `~/.config/opencode/plugins/` (Sync-Ziel von
+// scripts/opencode-sync-agents.sh) sind beide aktiv. Sie darf deshalb nur in
+// EINEM der beiden liegen: die fruehere Annahme "nur Plural wird geladen"
+// liess den Sync nach `plugin/` UND `plugins/` kopieren und lud jede Datei 3x.
 //
 // Fail-silent: fehlt die Datei oder ist BGE_MCP_TOKEN leer, bleibt die
 // Variable ungesetzt und opencode zeigt bge-mcp wie bisher als "failed"

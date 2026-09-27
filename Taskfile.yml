@@ -3922,10 +3922,10 @@ tasks:
         echo "  Written to docs/db-schema-diagram.md"
     silent: false
 
-  gemini:sync:
-    desc: "Mirror .claude/agents and .claude/skills into .gemini/ (per-worktree; .gemini/* is gitignored)"
+  agy:sync:
+    desc: "Mirror .claude/agents and .claude/skills into .gemini/ for the agy CLI / Antigravity IDE (per-worktree; .gemini/* is gitignored)"
     cmds:
-      - bash scripts/gemini-sync.sh
+      - bash scripts/agy-sync.sh
 
   # ─────────────────────────────────────────────
   # Website (Astro + Svelte)

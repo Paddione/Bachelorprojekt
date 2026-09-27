@@ -1,0 +1,23 @@
+{
+  "skill_name": "bachelorprojekt-vim",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want a fresh Neovim setup for this repository. First scout the project and propose a small dashboard/plugin design; do not modify files yet.",
+      "expected_output": "Identifies the actual Neovim environment and checkout, reads applicable repo instructions and the scouting runbook, cites current repository evidence, separates uncertain choices, and proposes a small, reversible design without editing or installing plugins.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Add a safe command to my existing Neovim config to run the website unit tests from a nested file in a worktree whose path contains spaces.",
+      "expected_output": "Inspects the live Neovim config and current worktree, reads package-manager guidance, preserves existing mappings/settings, resolves the buffer Git root, quotes paths safely, uses pnpm for the website, and validates the command without running project tests.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Rebuild my Neovim config on Windows, but the repository scripts run in WSL. Keep my current mappings and make deployments available from the dashboard.",
+      "expected_output": "Determines whether Neovim is native Windows or WSL, backs up and reviews the complete live config before any rewrite, uses the Windows/WSL reference for command boundaries, preserves mappings, and exposes deploy only through an explicit guarded action; identifies any material decisions before implementation.",
+      "files": []
+    }
+  ]
+}

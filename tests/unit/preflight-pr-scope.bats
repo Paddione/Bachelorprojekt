@@ -53,7 +53,17 @@ teardown() { rm -rf "$TMP"; }
   # Bindestrich. Der Testzweck ist damit entfallen; was bleibt, ist die
   # Erkennung eines regulaeren Domaenen-Scopes.
   run bash "$HELPER" "fix(ops): restart pod"
-  [ "$status" -eq 0 ]
+  # Diagnose bei Fehlschlag (Muster wie im Nachbartest): das Skript schluckt
+  # node-Fehler beim Allowlist-Laden (2>/dev/null) — ohne den Output ist ein
+  # CI-einmaliger Fehlschlag (z. B. transienter node-Spawn unter Parallellast)
+  # nicht von einem echten Scope-Defekt zu unterscheiden.
+  [ "$status" -eq 0 ] || {
+    echo "--- unerwarteter Exit $status ---"
+    echo "$output"
+    echo "--- Allowlist, die das Skript sieht: ---"
+    bash "${BATS_TEST_DIRNAME}/../../scripts/validate-commit-msg.sh" scopes || echo "(scopes-Aufruf schlug fehl)"
+    return 1
+  }
 }
 
 @test "preflight: scope with breaking change marker exits 0 for valid scope" {

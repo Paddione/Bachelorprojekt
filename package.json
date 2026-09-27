@@ -11,7 +11,8 @@
     "test:migrate-factory": "node --test scripts/migrate-factory.test.mjs"
   },
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.13.0",
+    "npm": "10.x"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -45,5 +46,9 @@
     "vitest": "^4.1.9",
     "yaml": "^2.9.0",
     "yaml-language-server": "^1.24.0"
+  },
+  "allowScripts": {
+    "puppeteer@25.12.0": true,
+    "esbuild@0.28.2": true
   }
 }

@@ -54,7 +54,7 @@ bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
 > **Arbeitsteilung (T002365):** Implementer bis PR-Erstellung → **ENDE**, Bericht zurück, OHNE
-> Auto-Merge-Anforderung. Orchestrator: Review-Gate (3.8), CI-Watch (5.5); Exit 3/4 per
+> Auto-Merge-Anforderung. Orchestrator: Merge-Gate (3.8), CI-Watch (5.5); Exit 3/4 per
 > `SendMessage` an den Implementer zurück, nicht neu spawnen [T001969].
 
 Live-Floor-Telemetrie (best-effort): [phase-events](references/phase-events.md), Abschnitt "Implementierung gestartet".
@@ -99,10 +99,12 @@ Falls neue Admin-Seiten hinzugefügt wurden:
 bash scripts/admin-menu-gate.sh
 ```
 
-## Schritt 3.8: Code-Review-Gate (Orchestrator, PFLICHT vor Auto-Merge)
+## Schritt 3.8: Merge-Gate, Code-Review optional (Orchestrator)
 
-**Orchestrator-Schritt, nicht Implementer** — Self-Attestation ist kein Review (T005307). Ohne
-bestandenes Gate kein Auto-Merge: fail-closed im Prozess.
+**Orchestrator-Schritt, nicht Implementer** — Self-Attestation ist kein Review (T005307).
+
+Merge-Kriterium: grüne Required Checks plus bestandener fail-closed Phase-Chain-Assert. Ein
+Code-Review ist **keine** Merge-Voraussetzung (D1).
 
 1. Auto-Merge-Zustand des PRs prüfen (T006282). **Den Branch immer explizit übergeben** [T900040]:
    ohne `--branch` leitet `gh` den PR aus dem ausgecheckten Branch ab und meldet im Haupt-Checkout
@@ -111,14 +113,19 @@ bestandenes Gate kein Auto-Merge: fail-closed im Prozess.
    bash scripts/check-pr-automerge.sh --branch "$BRANCH"
    ```
    Semantik:
-   - `rc=1`: Gate bricht fail-closed ab — die Meldung nennt die PR-Nummer; es wird KEIN
-     Review-Ergebnis erteilt und KEIN Auto-Merge deaktiviert (Design D2: der Operator entscheidet).
-   - `rc=2`: Abbruch als Umgebungsfehler.
-2. Rufe das Skill **`requesting-code-review`** auf (opencode: `pr-review-toolkit:review-pr` oder
-   ein Review-Subagent via `delegate()`).
-3. Findings per `SendMessage` an den **bereits gespawnten** Implementer (Muster Exit 3/4 aus
-   T002365 — kein neuer Spawn, Doppel-Push-Risiko aus T001408); nach dessen Push erneut reviewen.
-4. Erst nach "Approved" fail-closed die Phase-Chain prüfen, dann Auto-Merge anfordern:
+   - `rc=0`: Auto-Merge noch nicht aktiv — weiter.
+   - `rc=1`: Auto-Merge ist bereits aktiv (z. B. gesetzt durch den CI-Workflow „Enable Auto-Merge")
+     — weder abbrechen noch deaktivieren; der Merge läuft bei grünen Required Checks.
+   - `rc=2`: Abbruch als Umgebungsfehler (D3).
+2. Optionales Review: nur wenn der Operator in der laufenden Session ausdrücklich ein Review
+   verlangt (D2). Dann rufe das Skill **`requesting-code-review`** auf (opencode:
+   `pr-review-toolkit:review-pr` oder ein Review-Subagent via `delegate()`). Findings vor dem
+   Merge gehen per `SendMessage` an den **bereits gespawnten** Implementer (Muster Exit 3/4 aus
+   T002365 — kein neuer Spawn, Doppel-Push-Risiko aus T001408); nach dessen Push erneut
+   reviewen. Findings, die erst nach dem Merge eintreffen, werden zum Folge-Ticket
+   (`type=bug` bei Defekten) mit eigenem Folge-PR (D4). Ohne ausdrücklichen Zuruf wird
+   kein Review-Subagent gestartet.
+3. Fail-closed die Phase-Chain prüfen, dann Auto-Merge anfordern:
 
 ```bash
 ./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
@@ -127,6 +134,7 @@ bestandenes Gate kein Auto-Merge: fail-closed im Prozess.
 ```bash
 # GitHub merged selbstständig, sobald Required Checks grün sind.
 # KEIN --delete-branch (T004612): die Archivierung braucht den Branch noch (Löschung in 7.5).
+# Die Anforderung ist idempotent, wenn Auto-Merge bereits aktiv ist.
 (cd "$MAIN_REPO" && gh pr merge --auto --squash)
 ```
 
@@ -172,7 +180,7 @@ Rufe `commit-commands:commit-push-pr` auf oder führe `gh pr create` manuell aus
 
 > **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren —
 > Proposal-Commits könnten das Ticket sonst vorzeitig schließen. Der Auto-Merge folgt erst im
-> Code-Review-Gate (3.8).
+> Merge-Gate (3.8).
 
 ## Schritt 5.5: CI/CD-Fix-Schleife (Orchestrator-Zuständigkeit, T002365)
 

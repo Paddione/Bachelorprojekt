@@ -14,6 +14,9 @@ Last touches:
   - WIP-Uebersicht | T900481 | 2026-09-26 | ADDED
   - Fail-closed WIP-Finisher | T900481 | 2026-09-26 | ADDED
   - 4B-Rail nur als Triagierer | T900481 | 2026-09-26 | ADDED
+In-flight:
+  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900687 | active | MODIFIED
+  - dev-flow-execute delegiert die Post-Merge-Finalisierung an einen frischen Finalizer-Subagenten | T900687 | active | MODIFIED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

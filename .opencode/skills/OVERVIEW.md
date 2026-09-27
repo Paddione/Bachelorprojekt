@@ -91,7 +91,7 @@ und `task plugins:sync` behebt ihn — kein stilles Wegfallen.
 | `dev-flow-plan` Schritt 3.7 (Subagent) | writing-plans | Superpowers-Plugin |
 | `dev-flow-execute` Schritt 2 (Implementer) | executing-plans + test-driven-development | Superpowers-Plugin |
 | `dev-flow-execute` Schritt 3 | verification-before-completion | Claude Code — built-in |
-| `dev-flow-execute` Schritt 3.8 | requesting-code-review (Code Review) | Claude Code — built-in |
+| `dev-flow-execute` Schritt 3.8 | requesting-code-review (optional, nur auf Zuruf) | Claude Code — built-in |
 
 > **Worktrees:** `scripts/worktree-create.sh` (git-crypt-safe) übernimmt Worktree-Isolation im dev-flow-Pfad. Hintergrund: [dev-flow-gotchas#T001974](.opencode/skills/references/dev-flow-gotchas.md#t001974) (Detached-HEAD-Falle, git-crypt exit 128).
 
@@ -101,11 +101,12 @@ Verifikation passiert bewusst auf zwei Ebenen mit **unterschiedlichem Zweck** �
 
 1. **Implementer-Subagent:** test-driven-development (Rot-Grün) → stoppt erst bei grünen Tests. *Selbst-Check.*
 2. **Eltern (execute):** verification-before-completion → **unabhängige** Re-Verifikation der Subagent-Behauptung (Evidence vor Assertion).
-3. **Eltern (execute):** requesting-code-review → fremde Augen auf Korrektheit/Stil **vor** Merge.
+3. **Eltern (execute):** requesting-code-review, optional — nur auf ausdrücklichen Zuruf des Operators, keine Merge-Voraussetzung.
 4. **Eltern (execute):** CI-Fix-Loop → die Wahrheit der CI nach dem Push.
 
 Stufe 2 wiederholt Stufe 1 *nicht* aus Misstrauen, sondern weil delegierte Selbstauskunft kein
-unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualität, CI-Realität).
+unabhängiger Beweis ist. Stufe 3 ist optional und läuft nur auf ausdrücklichen Zuruf des Operators;
+Stufe 4 prüft die CI-Realität.
 
 ---
 

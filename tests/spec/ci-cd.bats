@@ -43,14 +43,14 @@ setup() {
   [[ "$output" == *"always()"* ]]
 }
 
-@test "T002272-M2: dev-flow-execute review gate requests auto-merge before the CI-watch loop" {
+@test "T002272-M2: dev-flow-execute merge gate requests auto-merge before the CI-watch loop" {
   EXEC_SKILL="$REPO_ROOT/.claude/skills/dev-flow-execute/SKILL.md"
   # [T003796] Suche auf den Bereich Schritt 3.8..5.5 eingeschraenkt: der einzige
-  # `gh pr merge --auto`-Aufruf liegt im Code-Review-Gate-Abschnitt (Schritt 3.8),
+  # `gh pr merge --auto`-Aufruf liegt im Merge-Gate-Abschnitt (Schritt 3.8),
   # `devflow-ci-watch.sh`-Aufrufe folgen in Schritt 5.5. Ohne den Anker pickte
   # dokumentweites head -1 frueher den Arbeitsteilungs-Kommentar (T003104).
   local gate watch_line merge_line
-  gate="$(grep -n '^## Schritt 3.8: Code-Review-Gate' "$EXEC_SKILL" | head -1 | cut -d: -f1)"
+  gate="$(grep -n '^## Schritt 3.8: Merge-Gate' "$EXEC_SKILL" | head -1 | cut -d: -f1)"
   [ -n "$gate" ]
   merge_line=$(awk -v s="$gate" 'NR > s && /gh pr merge --auto/ { print NR; exit }' "$EXEC_SKILL")
   watch_line=$(awk -v s="$gate" 'NR > s && /devflow-ci-watch\.sh/ { print NR; exit }' "$EXEC_SKILL")

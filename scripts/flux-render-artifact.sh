@@ -210,11 +210,6 @@ cd "$PROJECT_DIR"
   render_component prod-fleet/platform "${OUT_DIR}/platform/platform.yaml"
 )
 
-# 1c. GitLab-Runner-Stack (T012177) — kein ${VAR}-Platzhalter in
-# k3d/gitlab-runner-stack, deshalb kein vorheriges env-resolve.sh noetig.
-mkdir -p "${OUT_DIR}/gitlab-runner"
-render_component k3d/gitlab-runner-stack "${OUT_DIR}/gitlab-runner/gitlab-runner.yaml"
-
 # 1b. Dev (workspace-dev namespace)
 #
 # T002174: environments/schema.yaml:474 spezifiziert für DEV_DOMAIN
@@ -265,7 +260,6 @@ EOF
 # davon unabhaengig — er traegt keine Domain und keinen Ingress.
 #
 # Kein vorheriges env-resolve.sh: das Overlay enthaelt keinen ${VAR}-Platzhalter,
-# gleiche Lage wie beim gitlab-runner-stack oben.
 mkdir -p "${OUT_DIR}/dev-pod"
 render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
 
@@ -382,7 +376,7 @@ find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clus
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/gitlab-runner" "${OUT_DIR}/dev-pod"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

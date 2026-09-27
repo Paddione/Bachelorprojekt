@@ -81,9 +81,7 @@ MAPPING = {
     "vitest-website":         "vitest-website",
     "commit-lint":            "commit-lint",
     "lighthouse":             "lighthouse",
-    # Nur die Eval-Suite (task test:evals): der Integritaetsschritt wertet PR-Titel
-    # und -Body auf [evals-override] aus — eine gespiegelte Branch-Pipeline hat keinen
-    # von beiden (dieselbe Luecke wie bei commit-lint). [T900642]
+    # Eval-Suite (task test:evals) auf GitLab gespiegelt. [T900642]
     "test-evals":             "evals",
 }
 

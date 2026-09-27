@@ -356,10 +356,7 @@ factory-openspec:
     - npm run test:openspec
 
 evals:
-  # Gegenstueck zu test-evals, aber nur die Eval-Suite (task test:evals). Der
-  # Integritaetsschritt dort wertet PR-Titel/-Body auf [evals-override] aus — eine
-  # gespiegelte Branch-Pipeline hat keinen von beiden (dieselbe Luecke wie bei
-  # commit-lint), er bleibt GitHub-only. [T900642]
+  # Gegenstueck zu test-evals: die Eval-Suite (task test:evals). [T900642]
   stage: test
   <<: *gl_defaults
   # ci-node22 bringt das task-Binary mit; task-list-golden.bats vergleicht

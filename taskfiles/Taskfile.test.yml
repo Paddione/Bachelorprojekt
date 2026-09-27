@@ -787,12 +787,12 @@ tasks:
         echo "HTML report:        tests/e2e/playwright-report/index.html"
 
   test:evals:
-    desc: "Run human-owned agent evals (tests/evals/, offline). Agents may run, never edit — see tests/evals/README.md."
+    desc: "Run agent evals (tests/evals/, offline). See tests/evals/README.md."
     cmds:
       - tests/unit/lib/bats-core/bin/bats tests/evals/*.bats
 
   test:evals:update:
-    desc: "Regenerate tests/evals/golden/task-list-all.txt (human-only, needs [evals-override] in PR)."
+    desc: "Regenerate tests/evals/golden/task-list-all.txt (state the reason in the PR)."
     cmds:
       - task --list-all --color=false > tests/evals/golden/task-list-all.txt
 

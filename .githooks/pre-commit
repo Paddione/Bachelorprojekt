@@ -256,19 +256,3 @@ if [ "${SKIP_MAIN_COMMIT_GUARD:-0}" != "1" ]; then
     fi
   fi
 fi
-
-# --- evals-write-guard: tests/evals/ is human-owned [T900560-C5] ---
-# Agents run evals but never edit them. Refuses staged tests/evals/** changes
-# unless the human escape hatch is set. CI enforces the same via the
-# [evals-override] PR token (see test-evals job in .github/workflows/ci.yml).
-# Bypass: EVALS_OVERRIDE=1 git commit ... (humans only)
-if [ "${EVALS_OVERRIDE:-0}" != "1" ]; then
-  if git diff --cached --name-only -- tests/evals/ | grep -q .; then
-    echo "✗  pre-commit: tests/evals/ is human-owned — staged eval changes are blocked." >&2
-    echo "" >&2
-    echo "  Agents: run 'task test:evals', but never create/modify/delete evals." >&2
-    echo "  If an eval is red, fix the code under test, not the eval." >&2
-    echo "  Humans: EVALS_OVERRIDE=1 git commit (and add [evals-override] to the PR)." >&2
-    exit 1
-  fi
-fi

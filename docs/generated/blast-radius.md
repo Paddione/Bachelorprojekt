@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-09-26T10:00:17.915Z
-> Nodes: 92 | Edges: 1849 | Isolated: 7
+> Generated: 2026-09-27T21:26:43.072Z
+> Nodes: 93 | Edges: 1850 | Isolated: 7
 
 ## Ranking (transitive Abhängige)
 
@@ -74,17 +74,18 @@
 | 66 | ${WEBSITE_PRIMARY_SERVICE} | 1 | 52 | 1 |
 | 67 | old-webspace | 1 | 52 | 1 |
 | 68 | bachelorprojekt | 1 | 52 | 1 |
-| 69 | keycloak | 1 | 52 | 1 |
-| 70 | tracking | 1 | 52 | 1 |
-| 71 | docuseal | 1 | 52 | 1 |
-| 72 | sealed-secrets-controller | 2 | 2 | 2 |
-| 73 | downloads | 1 | 1 | 1 |
-| 74 | einvoice-sidecar | 1 | 1 | 1 |
-| 75 | registry-cache | 1 | 1 | 1 |
-| 76 | mediaviewer-widget | 1 | 1 | 1 |
-| 77 | blackbox-exporter | 1 | 1 | 1 |
-| 78 | nextcloud-redis | 1 | 1 | 1 |
-| 79 | whisper | 1 | 1 | 1 |
+| 69 | langfuse-dev-proxy | 1 | 52 | 1 |
+| 70 | keycloak | 1 | 52 | 1 |
+| 71 | tracking | 1 | 52 | 1 |
+| 72 | docuseal | 1 | 52 | 1 |
+| 73 | sealed-secrets-controller | 2 | 2 | 2 |
+| 74 | downloads | 1 | 1 | 1 |
+| 75 | einvoice-sidecar | 1 | 1 | 1 |
+| 76 | registry-cache | 1 | 1 | 1 |
+| 77 | mediaviewer-widget | 1 | 1 | 1 |
+| 78 | blackbox-exporter | 1 | 1 | 1 |
+| 79 | nextcloud-redis | 1 | 1 | 1 |
+| 80 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -424,6 +425,11 @@
 **Upstream (In-Degree):** 1
 
 ### bachelorprojekt
+**Direkte Abhängige:** 1 — traefik
+**Transitive Abhängige:** 52 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
+**Upstream (In-Degree):** 1
+
+### langfuse-dev-proxy
 **Direkte Abhängige:** 1 — traefik
 **Transitive Abhängige:** 52 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 1

@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1849 Abhängigkeitskanten · 297 API-Endpoints
+93 Services · 1850 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -98,6 +98,7 @@ flowchart LR
   WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]:::default
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
+  langfuse_dev_proxy["langfuse-dev-proxy"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
   sealed_secrets["sealed-secrets"]:::default
   keycloak["keycloak"]:::auth
@@ -211,6 +212,7 @@ flowchart LR
   traefik -->|"ingress"| WEBSITE_PRIMARY_SERVICE
   traefik -->|"ingress"| old_webspace
   traefik -->|"ingress"| bachelorprojekt
+  traefik -->|"ingress"| langfuse_dev_proxy
   traefik -->|"ingress"| sessions_server
   coturn -->|"selector"| coturn
   janus -->|"selector"| janus
@@ -1960,6 +1962,7 @@ flowchart TB
     WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
+    langfuse_dev_proxy["langfuse-dev-proxy"]
     shared_db_dev_lb["shared-db-dev-lb"]
     sealed_secrets["sealed-secrets"]
     keycloak["keycloak"]

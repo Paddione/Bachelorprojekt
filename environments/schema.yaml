@@ -554,6 +554,12 @@ env_vars:
     validate: "^[a-z0-9.-]*$"
     description: "Base domain of the devmesh development instance, set in environments/dev.yaml. Hosts are <service>.${DEVMESH_DOMAIN}; the public A records point to tailnet addresses only."
 
+  - name: LANGFUSE_PUBLIC_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Public host of the devmesh Langfuse (T900691). fleet terminates TLS with the prod wildcard and proxies over Tailscale to the devmesh Traefik web entrypoint."
+
   - name: DEVMESH_PROFILE
     required: false
     default_dev: "core"

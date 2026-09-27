@@ -34,7 +34,7 @@ spec:
             - name: LANGFUSE_DB_PASSWORD
               valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_DB_PASSWORD}}
             - {name: DATABASE_URL, value: "postgresql://langfuse:$(LANGFUSE_DB_PASSWORD)@shared-db:5432/langfuse"}
-            - {name: NEXTAUTH_URL, value: "https://langfuse.${DEVMESH_DOMAIN}"}
+            - {name: NEXTAUTH_URL, value: "https://${LANGFUSE_PUBLIC_HOST}"}
             - name: NEXTAUTH_SECRET
               valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_NEXTAUTH_SECRET}}
             - name: SALT
@@ -128,7 +128,7 @@ spec:
             - name: LANGFUSE_DB_PASSWORD
               valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_DB_PASSWORD}}
             - {name: DATABASE_URL, value: "postgresql://langfuse:$(LANGFUSE_DB_PASSWORD)@shared-db:5432/langfuse"}
-            - {name: NEXTAUTH_URL, value: "https://langfuse.${DEVMESH_DOMAIN}"}
+            - {name: NEXTAUTH_URL, value: "https://${LANGFUSE_PUBLIC_HOST}"}
             - name: NEXTAUTH_SECRET
               valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_NEXTAUTH_SECRET}}
             - name: SALT

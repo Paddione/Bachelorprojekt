@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T09:59:28.593Z",
+  "generatedAt": "2026-09-27T21:22:17.804Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -522,6 +522,12 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "bachelorprojekt"
+    },
+    {
+      "id": "langfuse-dev-proxy",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "langfuse-dev-proxy"
     },
     {
       "id": "shared-db-dev-lb",
@@ -1314,6 +1320,12 @@
     {
       "from": "traefik",
       "to": "bachelorprojekt",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "langfuse-dev-proxy",
       "via": "ingress",
       "kind": "ingress"
     },

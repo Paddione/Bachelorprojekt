@@ -155,3 +155,29 @@ PY
   [ "$status" -eq 0 ] || { echo "$output"; return 1; }
   echo "$output" | grep -qF 'sauber'
 }
+
+@test "Repo: lavish ist allein vendor-sync-owned, nicht skills-CLI-verwaltet [T900520]" {
+  # Die skills-CLI (`npx skills update`, nightly-update.sh Schritt 7) schreibt
+  # Upstream-Bytes stumpf ueber die Datei und verwirft dabei lokale Patches
+  # still (belegt 2026-09-27: Reload-Safety-Abschnitt weg nach v0.1.79).
+  # vendor-sync.py dagegen mergt 3-wege und erhaelt sie. Deshalb darf lavish
+  # nicht in skills-lock.json stehen (Source wuerde sonst remote statt local
+  # und naechtlich ueberschrieben) — vendor-lock.json bleibt Single-Owner.
+  run python3 -c "
+import json
+d = json.load(open('$REPO/skills-lock.json'))
+assert 'lavish' not in d.get('skills', {}), 'lavish steht in skills-lock.json (skills-CLI wuerde lokale Patches verwerfen)'
+print('lavish nicht in skills-lock.json')
+"
+  [ "$status" -eq 0 ] || { echo "$output"; return 1; }
+  echo "$output" | grep -qF 'nicht in skills-lock.json'
+  # Gegenprobe: vendor-lock fuehrt lavish weiter (Single-Owner, kein Niemandsland)
+  run python3 -c "
+import json
+d = json.load(open('$REPO/docs/agent-guide/registry/vendor-lock.json'))
+assert 'lavish' in d.get('skills', {}), 'lavish fehlt in vendor-lock.json'
+print('lavish in vendor-lock.json')
+"
+  [ "$status" -eq 0 ] || { echo "$output"; return 1; }
+  echo "$output" | grep -qF 'in vendor-lock.json'
+}

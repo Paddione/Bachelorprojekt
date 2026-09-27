@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# tests/spec/main-commit-guard.bats
+# tests/evals/main-commit-guard.bats (moved from tests/spec/ — human-owned eval [T900560-C5])
 # SSOT: openspec/changes/main-commit-guard/specs/main-commit-guard.md
 # T002631: pre-commit hook blocks commits on main branch.
 

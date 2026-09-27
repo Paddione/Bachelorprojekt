@@ -44,3 +44,6 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
 - 27.09.26 [T900560] Volle Test-Suiten können generierte Dateien dirty machen
   (openspec-status.json wurde trunkiert) — nach Suiten immer `git status` +
   Diff-Stat prüfen, nie blanket-stagen. — Beleg: C4
+- 27.09.26 [T900560] `build-test-inventory.sh` discovert per `git ls-files` —
+  nach Moves erst stagen, dann regenerieren, sonst reproduziert der Builder
+  stale Pfade. — Beleg: C5

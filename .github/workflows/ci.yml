@@ -226,6 +226,52 @@ jobs:
           # script itself broke and MUST fail CI — so NO continue-on-error here.
           bash scripts/openspec-drift-check.sh
 
+  test-evals:
+    # Human-owned agent evals (tests/evals/) + write-protect integrity check.
+    # A PR touching tests/evals/ fails unless title/body carries the human-only
+    # [evals-override] token. [T900560-C5]
+    name: Agent Evals + Integrity
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          fetch-tags: false
+
+      - name: Fetch origin/main for diffing (shallow)
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
+
+      - name: Evals write-protect integrity check
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if git diff --name-only origin/main...HEAD -- tests/evals/ | grep -q .; then
+            if [[ "$PR_TITLE $PR_BODY" == *"[evals-override]"* ]]; then
+              echo "tests/evals/ touched with [evals-override] token — allowed."
+            else
+              echo "::error::tests/evals/ is human-owned. Agents must not modify evals — add [evals-override] to the PR title/body (humans only) or revert the eval changes."
+              exit 1
+            fi
+          else
+            echo "tests/evals/ untouched — ok."
+          fi
+
+      - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v5.0.0
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run agent evals
+        run: task test:evals
+
   test-manifests:
     # kustomize manifest validation — the ONLY job that needs kubectl.
     # Very fast setup (~1 min) + ~5s test execution. [T001860]

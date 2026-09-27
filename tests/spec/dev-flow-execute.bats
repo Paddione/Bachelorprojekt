@@ -71,7 +71,7 @@ setup() {
 # ── Mishap 3: freshness:check must distinguish "not staged" from "stale" ───
 
 @test "T002352-M3: freshness:check diff-check loop uses 'regenerated but not staged' not 'is stale'" {
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE="$REPO_ROOT/taskfiles/Taskfile.quality.yml"
   # Extract only the for-loop body (from 'for f in' to 'if [ $ERRORS')
   FOR_LOOP=$(awk '/^        for f in \$FILES; do$/{flag=1} flag{print} flag && /^        if \[ \$ERRORS -gt 0 \]; then$/{flag=0}' "$TASKFILE" 2>/dev/null || echo "")
   run grep -c 'is stale' <<<"$FOR_LOOP"
@@ -79,19 +79,19 @@ setup() {
 }
 
 @test "T002352-M3: freshness:check has 'regenerated but not staged' message" {
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE="$REPO_ROOT/taskfiles/Taskfile.quality.yml"
   run grep -c "regenerated but not staged" "$TASKFILE"
   [ "$output" -ge 1 ]
 }
 
 @test "T002352-M3: freshness:check has 'staged but not committed' message" {
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE="$REPO_ROOT/taskfiles/Taskfile.quality.yml"
   run grep -c "staged but not committed" "$TASKFILE"
   [ "$output" -ge 1 ]
 }
 
 @test "T002352-M3: freshness:check message says to add+commit not re-regenerate" {
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE="$REPO_ROOT/taskfiles/Taskfile.quality.yml"
   run grep -c "run 'git add" "$TASKFILE"
   [ "$output" -ge 1 ]
 }

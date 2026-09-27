@@ -124,7 +124,7 @@ STATE
 }
 
 @test "Taskfile declares fleet:dns:cutover and fleet:dns:rollback" {
-  run grep -E '^[[:space:]]+fleet:dns:(cutover|rollback):' "$REPO_ROOT/Taskfile.yml"
+  run grep -E '^[[:space:]]+fleet:dns:(cutover|rollback):' "$REPO_ROOT/taskfiles/Taskfile.platform.yml"
   assert_success
   assert_output --partial 'fleet:dns:cutover:'
   assert_output --partial 'fleet:dns:rollback:'
@@ -132,7 +132,7 @@ STATE
 
 @test "fleet:shared-services uses office.* hosts not collabora.* for Collabora" {
   # Collabora ingress host must be office.<domain> so Nextcloud public_wopi_url resolves.
-  run grep -A 25 'fleet:shared-services:' "$REPO_ROOT/Taskfile.yml"
+  run grep -A 25 'fleet:shared-services:' "$REPO_ROOT/taskfiles/Taskfile.platform.yml"
   assert_success
   assert_output --partial 'COLLABORA_HOST="office.'
   refute_output --partial 'COLLABORA_HOST="collabora.'
@@ -140,7 +140,7 @@ STATE
 
 @test "fleet:shared-services aliasgroup references files.* not cloud.*" {
   # WOPI aliasgroup must match the Nextcloud host (files.<domain>), not cloud.*.
-  run grep -A 25 'fleet:shared-services:' "$REPO_ROOT/Taskfile.yml"
+  run grep -A 25 'fleet:shared-services:' "$REPO_ROOT/taskfiles/Taskfile.platform.yml"
   assert_success
   # Taskfile uses double-backslash (YAML literal block → envsubst escaping)
   assert_output --partial 'ALIASGROUP1="https://files\\'

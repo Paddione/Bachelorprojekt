@@ -65,7 +65,7 @@ setup() {
 # ── G-AGENTIC04: test:changed triggers agent-library ──────────────────
 
 @test "G-AGENTIC04: test:changed bucket for .claude/agents/ includes agent-library.bats" {
-  run grep -q 'agent-library' "$REPO/Taskfile.yml"
+  run grep -q 'agent-library' "$REPO/taskfiles/Taskfile.test.yml"
   [ "$status" -eq 0 ]
 }
 

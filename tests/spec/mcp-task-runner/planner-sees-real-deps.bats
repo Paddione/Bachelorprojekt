@@ -6,7 +6,7 @@
 # das go-task 3.52.0 nicht mehr liefert → plan_tasks baut einen kantenlosen
 # Graphen und liefert immer genau eine Gruppe. Dieser Test läuft GEGEN DEN
 # ECHTEN Taskfile-Graphen (kein fake task-Binary): workspace:transcriber-push
-# deklariert deps: [workspace:transcriber-build] (Taskfile.yml) — plan_tasks
+# deklariert deps: [workspace:transcriber-build] (Taskfile-Suite) — plan_tasks
 # muss zwei Gruppen liefern, build vor push.
 
 setup() {
@@ -30,7 +30,7 @@ _mcp_plan() {
 
   # Positiv-Anker (T002356-M1): die deps-Kante steht wirklich in der YAML-Quelle —
   # der Test prüft das Verhalten gegen diese deklarierte Kante.
-  grep -qF -- 'deps: [workspace:transcriber-build]' "${REPO_ROOT}/Taskfile.yml"
+  grep -rqF -- 'deps: [workspace:transcriber-build]' "${REPO_ROOT}/Taskfile.yml" "${REPO_ROOT}/taskfiles/"
 
   [ "$(echo "$groups" | jq 'length')" -eq 2 ]
   echo "$groups" | jq -e '.[0].tasks[0].task == "workspace:transcriber-build"' >/dev/null

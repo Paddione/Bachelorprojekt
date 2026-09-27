@@ -9,7 +9,8 @@
 
 load 'test_helper'
 
-TASKFILE="${PROJECT_DIR}/Taskfile.yml"
+TASKFILE_WS="${PROJECT_DIR}/taskfiles/Taskfile.workspace.yml"
+TASKFILE_WEB="${PROJECT_DIR}/taskfiles/Taskfile.web.yml"
 POCKET_ID_MANIFEST="${PROJECT_DIR}/k3d/pocket-id.yaml"
 
 # Extracts the workspace:deploy task body (from its header to the next
@@ -17,40 +18,40 @@ POCKET_ID_MANIFEST="${PROJECT_DIR}/k3d/pocket-id.yaml"
 # belonging to this task, not e.g. the dev-branch literal envsubst call
 # (which already lists $SMTP_USER correctly) or unrelated tasks.
 _workspace_deploy_block() {
-  sed -n '/^  workspace:deploy:$/,/^  workspace:partial-deploy:$/p' "$TASKFILE"
+  sed -n '/^  workspace:deploy:$/,/^  workspace:partial-deploy:$/p' "$TASKFILE_WS"
 }
 
 _workspace_partial_deploy_block() {
-  sed -n '/^  workspace:partial-deploy:$/,/^  workspace:fix-tickets-grants:$/p' "$TASKFILE"
+  sed -n '/^  workspace:partial-deploy:$/,/^  workspace:fix-tickets-grants:$/p' "$TASKFILE_WS"
 }
 
 @test "workspace:deploy prod ENVSUBST_VARS includes \$SMTP_USER" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_USER'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_USER'"
   [ "$status" -eq 0 ]
 }
 
 @test "workspace:deploy prod ENVSUBST_VARS includes \$POCKET_ID_SMTP_TLS" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$POCKET_ID_SMTP_TLS'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$POCKET_ID_SMTP_TLS'"
   [ "$status" -eq 0 ]
 }
 
 @test "workspace:deploy prod ENVSUBST_VARS includes \$SMTP_PORT" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_PORT'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_PORT'"
   [ "$status" -eq 0 ]
 }
 
 @test "workspace:partial-deploy ENVSUBST_VARS includes \$SMTP_USER" {
-  run bash -c "_block() { sed -n '/^  workspace:partial-deploy:\$/,/^  workspace:fix-tickets-grants:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_USER'"
+  run bash -c "_block() { sed -n '/^  workspace:partial-deploy:\$/,/^  workspace:fix-tickets-grants:\$/p' '$TASKFILE_WS'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_USER'"
   [ "$status" -eq 0 ]
 }
 
 @test "workspace:partial-deploy ENVSUBST_VARS includes \$SMTP_PORT" {
-  run bash -c "_block() { sed -n '/^  workspace:partial-deploy:\$/,/^  workspace:fix-tickets-grants:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_PORT'"
+  run bash -c "_block() { sed -n '/^  workspace:partial-deploy:\$/,/^  workspace:fix-tickets-grants:\$/p' '$TASKFILE_WS'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$SMTP_PORT'"
   [ "$status" -eq 0 ]
 }
 
 @test "workspace:partial-deploy ENVSUBST_VARS includes \$POCKET_ID_SMTP_TLS" {
-  run bash -c "_block() { sed -n '/^  workspace:partial-deploy:\$/,/^  workspace:fix-tickets-grants:\$/p' '$TASKFILE'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$POCKET_ID_SMTP_TLS'"
+  run bash -c "_block() { sed -n '/^  workspace:partial-deploy:\$/,/^  workspace:fix-tickets-grants:\$/p' '$TASKFILE_WS'; }; _block | grep '^\s*ENVSUBST_VARS=' | grep -F '\$POCKET_ID_SMTP_TLS'"
   [ "$status" -eq 0 ]
 }
 
@@ -61,7 +62,7 @@ _workspace_partial_deploy_block() {
 }
 
 @test "workspace:deploy dev branch envsubsts \$STUDIO_IMAGE (T001799)" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p' | grep -F '\$STUDIO_IMAGE'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p' | grep -F '\$STUDIO_IMAGE'"
   [ "$status" -eq 0 ]
 }
 
@@ -70,7 +71,7 @@ _workspace_partial_deploy_block() {
   # may wrap across multiple piped lines (T001411 added a re-quoting sed stage
   # between kustomize build and envsubst), so match across the whole pipe
   # range rather than requiring both tokens on a single physical line.
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p' | grep -F '\$SMTP_USER'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p' | grep -F '\$SMTP_USER'"
   [ "$status" -eq 0 ]
 }
 
@@ -84,13 +85,13 @@ _workspace_partial_deploy_block() {
 # `kustomize build` and `envsubst` that re-quotes any `: ${VAR}` placeholder
 # before substitution happens, so the quotes survive.
 @test "workspace:deploy dev branch re-quotes kustomize-stripped \${VAR} placeholders before envsubst (T001411)" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | sed -n '/kustomize build k3d\//,/kubectl apply/p'"
   [ "$status" -eq 0 ]
   [[ "$output" == *'s/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g'* ]]
 }
 
 @test "workspace:deploy prod branch re-quotes kustomize-stripped \${VAR} placeholders before envsubst (T001411)" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/kustomize build \"\$overlay\/\"/,/kubectl --context/p'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | sed -n '/kustomize build \"\$overlay\/\"/,/kubectl --context/p'"
   [ "$status" -eq 0 ]
   [[ "$output" == *'s/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g'* ]]
 }
@@ -133,7 +134,7 @@ _workspace_partial_deploy_block() {
 # website:deploy, so every deploy path applies pending migrations first.
 
 @test "website:migrate task exists in Taskfile.yml" {
-  run grep -c '^  website:migrate:$' "$TASKFILE"
+  run grep -c '^  website:migrate:$' "$TASKFILE_WEB"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }
@@ -144,19 +145,19 @@ _workspace_partial_deploy_block() {
 }
 
 @test "workspace:deploy dev branch runs website:migrate before the shared-db-dependent kustomize apply" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/if \[ \"{{.ENV}}\" = \"dev\" \]; then/,/kustomize build k3d\//p'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | sed -n '/if \[ \"{{.ENV}}\" = \"dev\" \]; then/,/kustomize build k3d\//p'"
   [ "$status" -eq 0 ]
   [[ "$output" == *'task website:migrate ENV='* ]]
 }
 
 @test "workspace:deploy prod branch runs website:migrate before the overlay apply" {
-  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE'; }; _block | sed -n '/rollout status deployment\/shared-db -n \"\${_ws_ns}\"/,/overlay=\"\${ENV_OVERLAY/p'"
+  run bash -c "_block() { sed -n '/^  workspace:deploy:\$/,/^  workspace:partial-deploy:\$/p' '$TASKFILE_WS'; }; _block | sed -n '/rollout status deployment\/shared-db -n \"\${_ws_ns}\"/,/overlay=\"\${ENV_OVERLAY/p'"
   [ "$status" -eq 0 ]
   [[ "$output" == *'task website:migrate ENV='* ]]
 }
 
 @test "website:deploy runs website:migrate before website:build" {
-  run bash -c "_block() { sed -n '/^  website:deploy:\$/,/^cmds:\$/p' '$TASKFILE'; }; sed -n '/^  website:deploy:\$/,/^  [a-z]/p' '$TASKFILE' | grep -n 'task website:migrate\|task website:build'"
+  run bash -c "_block() { sed -n '/^  website:deploy:\$/,/^cmds:\$/p' '$TASKFILE_WEB'; }; sed -n '/^  website:deploy:\$/,/^  [a-z]/p' '$TASKFILE_WEB' | grep -n 'task website:migrate\|task website:build'"
   [ "$status" -eq 0 ]
   migrate_line=$(echo "$output" | grep 'task website:migrate' | head -1 | cut -d: -f1)
   build_line=$(echo "$output" | grep 'task website:build' | head -1 | cut -d: -f1)
@@ -166,8 +167,7 @@ _workspace_partial_deploy_block() {
 }
 
 @test "every kustomize build | envsubst pipeline in Taskfile.yml re-quotes stripped \${VAR} placeholders (T001411)" {
-  run bash -c '
-    awk '\''
+  run awk '
       /kustomize build/ { pending=1; sed_seen=0; next }
       pending && /^[[:space:]]*\|/ {
         if (index($0, "s/: \\$\\{([a-zA-Z0-9_]+)\\}[[:space:]]*$/: \"${\\1}\"/g")) sed_seen=1
@@ -176,8 +176,7 @@ _workspace_partial_deploy_block() {
       }
       pending { pending=0 }
       END { print bad+0 }
-    '\'' "'"$TASKFILE"'"
-  '
+    ' "$TASKFILE_WS" "$TASKFILE_WEB"
   [ "$status" -eq 0 ]
   [ "$output" -eq 0 ]
 }
@@ -189,7 +188,7 @@ _workspace_partial_deploy_block() {
 # Bootstrap und stabile k3d-API-Ports.
 
 _website_deploy_block() {
-  sed -n '/^  website:deploy:$/,/^  website:dev:$/p' "$TASKFILE"
+  sed -n '/^  website:deploy:$/,/^  website:dev:$/p' "$TASKFILE_WEB"
 }
 
 # Liefert nicht auskommentierte Treffer auf Prod-Host-Affinitaeten in <dir>/*.yaml.
@@ -275,7 +274,7 @@ _affinity_violations() {
 }
 
 @test "T001853: website:deploy dev branch targets current context (no ENV_CONTEXT kubectl)" {
-  run bash -c '_wd() { sed -n "/^  website:deploy:\$/,/^  website:dev:\$/p" "'"$TASKFILE"'"; }; _wd | grep -E "!= \"dev\" \] && CTX_ARG="'
+  run bash -c '_wd() { sed -n "/^  website:deploy:\$/,/^  website:dev:\$/p" "'"$TASKFILE_WEB"'"; }; _wd | grep -E "!= \"dev\" \] && CTX_ARG="'
   [ "$status" -eq 0 ]
 }
 
@@ -556,7 +555,7 @@ WEBSITE_MANIFEST="${PROJECT_DIR}/k3d/website.yaml"
       *'$WEBSITE_IMAGE_TAG'*) ;;
       *) echo "MISSING WEBSITE_IMAGE_TAG in: ${line:0:110}"; missing=1 ;;
     esac
-  done < <(grep -h 'WEBSITE_IMAGE' "${PROJECT_DIR}/Taskfile.yml" | grep -E 'ENVSUBST_VARS|envsubst')
+  done < <(grep -rh 'WEBSITE_IMAGE' "${PROJECT_DIR}/Taskfile.yml" "${PROJECT_DIR}/taskfiles/" | grep -E 'ENVSUBST_VARS|envsubst')
   [ "$missing" -eq 0 ]
 }
 

@@ -16,20 +16,26 @@
 
 setup() {
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE_PLATFORM="$REPO_ROOT/taskfiles/Taskfile.platform.yml"
+  TASKFILE_WORKSPACE="$REPO_ROOT/taskfiles/Taskfile.workspace.yml"
+}
+
+# Total matching lines across the whole Taskfile suite (root + taskfiles/).
+suite_count() {
+  grep -rhE "$1" "$REPO_ROOT/Taskfile.yml" "$REPO_ROOT/taskfiles/" 2>/dev/null | wc -l | tr -d ' '
 }
 
 @test "T000478: fleet:shared-services sets COLLABORA_HOST_2 to a non-empty value" {
   # The fleet deploy must set a second host so the Ingress serves both brands.
-  run bash -c "grep -A100 '^  fleet:shared-services:' $TASKFILE | grep 'COLLABORA_HOST_2='"
+  run bash -c "grep -A100 '^  fleet:shared-services:' $TASKFILE_PLATFORM | grep 'COLLABORA_HOST_2='"
   [ "$status" -eq 0 ]
   # Must NOT be empty
   [[ "$output" != *'COLLABORA_HOST_2=""'* ]] || false
 }
 
 @test "T000478: COLLABORA_SERVER_NAME stays empty in ALL deploy paths" {
-  total=$(grep -cE 'export[[:space:]]+COLLABORA_SERVER_NAME=' "$TASKFILE" || true)
-  empty=$(grep -cE 'export[[:space:]]+COLLABORA_SERVER_NAME=""' "$TASKFILE" || true)
+  total=$(suite_count 'export[[:space:]]+COLLABORA_SERVER_NAME=')
+  empty=$(suite_count 'export[[:space:]]+COLLABORA_SERVER_NAME=""')
   [ "$total" -ge 1 ]
   [ "$total" -eq "$empty" ]
 }
@@ -41,7 +47,7 @@ setup() {
   #   b) warn that fleet:deploy:shared-services should be used instead
   # Note: run cmd | pipe doesn't work in bats (run captures stdout internally);
   # use run bash -c "pipeline" to capture the whole pipeline's exit code.
-  run bash -c "grep -A100 'workspace:office:deploy:' '$TASKFILE' | grep -iE 'fleet|prod|shared|ENV.*dev|only.*dev|block'"
+  run bash -c "grep -A100 'workspace:office:deploy:' '$TASKFILE_WORKSPACE' | grep -iE 'fleet|prod|shared|ENV.*dev|only.*dev|block'"
   [ "$status" -eq 0 ] || {
     echo "FAIL: workspace:office:deploy has no prod guard." >&2
     echo "      On fleet, use fleet:deploy:shared-services instead." >&2

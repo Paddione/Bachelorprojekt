@@ -17,7 +17,7 @@
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   BOOTSTRAP_DIR="${REPO_ROOT}/flux/clusters/fleet/bootstrap"
-  TASKFILE="${REPO_ROOT}/Taskfile.yml"
+  TASKFILE="${REPO_ROOT}/taskfiles/Taskfile.platform.yml"
 }
 
 # Alle distinct ${VAR}-Namen aus den Bootstrap-Manifesten.

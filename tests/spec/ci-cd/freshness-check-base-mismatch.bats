@@ -31,7 +31,7 @@
 
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd)"
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE="$REPO_ROOT/taskfiles/Taskfile.quality.yml"
 }
 
 # Extract just the `freshness:check:` task body (stops at the next

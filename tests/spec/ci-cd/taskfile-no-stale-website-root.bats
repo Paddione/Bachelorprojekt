@@ -17,19 +17,19 @@ setup() {
 @test "Taskfiles: kein cd auf totes website/-Root-Verzeichnis (T008454)" {
   # Positiv-Anker [T002356-M1]: der korrekte Pfad muss vorkommen — sonst wäre
   # die Negativ-Aussage vakuos (z.B. nach einer weiteren Verschiebung).
-  grep -qE 'cd components/website' Taskfile.yml
+  grep -rqE 'cd components/website' Taskfile.yml taskfiles/
 
   # Negativ-Aussage: `cd website` (ohne components/-Präfix) darf nicht mehr
   # vorkommen — das Verzeichnis existiert seit T006999 nicht mehr im Repo-Root.
-  run bash -c "grep -nE '\bcd website\b' Taskfile.yml taskfiles/*.yml 2>/dev/null"
+  run bash -c "grep -rnE '\bcd website\b' Taskfile.yml taskfiles/ 2>/dev/null"
   echo "Gefundene stale Pfade: $output"
   [ "$status" -ne 0 ]
 }
 
 @test "test:changed: Website-Zweig enthaelt das ESLint-Gate (T008454)" {
   # Positiv-Anker: der RUN_WEBSITE-Zweig existiert.
-  grep -q 'RUN_WEBSITE' Taskfile.yml
+  grep -q 'RUN_WEBSITE' taskfiles/Taskfile.test.yml
   # Das lokale Gegenstück zum fail-closed CI-Gate (eslint . --max-warnings 0)
   # muss im Taskfile verdrahtet sein.
-  grep -qE 'cd components/website && pnpm lint' Taskfile.yml
+  grep -qE 'cd components/website && pnpm lint' taskfiles/Taskfile.test.yml
 }

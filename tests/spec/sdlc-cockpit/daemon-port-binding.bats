@@ -161,7 +161,7 @@ setup() {
   # Der Taskfile-Task startet denselben Daemon und darf nicht auf einen anderen
   # Port zeigen als der Default in server.ts.
   local task_port
-  task_port=$(sed -n '/^  cockpit:daemon:/,/^  [a-z]/p' Taskfile.yml \
+  task_port=$(sed -n '/^  cockpit:daemon:/,/^  [a-z]/p' taskfiles/Taskfile.web.yml \
     | grep -oE 'default "[0-9]+"' | grep -oE '[0-9]+' | head -1)
   [ -n "$task_port" ]
   [ "$task_port" -lt 49152 ]

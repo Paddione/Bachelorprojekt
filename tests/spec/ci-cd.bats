@@ -244,7 +244,7 @@ PY
 @test "G-COMMIT-VS-DIFF: secrets:install-hooks chmod's the commit-msg hook" {
   # Grab the full secrets:install-hooks task block (until next blank line / new task)
   awk '/^  secrets:install-hooks:/{flag=1; next} flag && /^  [a-z]/{flag=0} flag' \
-    "$REPO_ROOT/Taskfile.yml" | grep -q 'chmod +x .githooks/commit-msg'
+    "$REPO_ROOT/taskfiles/Taskfile.platform.yml" | grep -q 'chmod +x .githooks/commit-msg'
 }
 
 @test "G-COMMIT-VS-DIFF: dev-flow-plan SKILL.md uses chore(plans): for stage commit (NOT fix(<scope>):)" {
@@ -440,7 +440,7 @@ _taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)
     $0 == task {in_task=1; next}
     in_task && /^  [a-zA-Z0-9:_-]+:$/ {exit}
     in_task && /ENVSUBST_VARS=/ {print}
-  ' "$REPO_ROOT/Taskfile.yml" | grep -oE '\\\$[A-Z0-9_]+' | tr -d '\\$' | sort -u
+  ' "$REPO_ROOT/taskfiles/Taskfile.workspace.yml" | grep -oE '\\\$[A-Z0-9_]+' | tr -d '\\$' | sort -u
 }
 
 # Inline-envsubst-Allowlist des website:deploy-Tasks — Union ueber ALLE
@@ -455,7 +455,7 @@ _website_deploy_list() {
     $0 == "  website:deploy:" {in_task=1; next}
     in_task && /^  [a-zA-Z0-9:_-]+:$/ {exit}
     in_task && /envsubst "/ {print}
-  ' "$REPO_ROOT/Taskfile.yml" | grep -oE '\\\$[A-Z0-9_]+' | tr -d '\\$' | sort -u
+  ' "$REPO_ROOT/taskfiles/Taskfile.web.yml" | grep -oE '\\\$[A-Z0-9_]+' | tr -d '\\$' | sort -u
 }
 
 _render_placeholders() { # $1 = overlay dir
@@ -644,7 +644,10 @@ sys.exit(0 if p.get('packages')=='write' else 1)
 import glob, os, re, sys, yaml
 
 root = sys.argv[1]
-taskfile = open(os.path.join(root, "Taskfile.yml"), encoding="utf-8").read()
+_suite = [os.path.join(root, "Taskfile.yml")]
+_suite += sorted(glob.glob(os.path.join(root, "taskfiles/Taskfile.*.yml")))
+_suite += sorted(glob.glob(os.path.join(root, "taskfiles/Taskfile.*.yaml")))
+taskfile = "\n".join(open(f, encoding="utf-8").read() for f in _suite)
 
 # Fixpunkt: welche Tasks ziehen (transitiv) website:migrate nach sich?
 needs_pnpm = {"website:migrate"}
@@ -1417,7 +1420,7 @@ MOCKEOF
   # cmds-Block von freshness:check bis zum naechsten Top-Level-Task extrahieren
   local block
   block=$(awk '/^  freshness:check:/{f=1} f&&/^  [a-z][a-z0-9:-]*:$/&&!/^  freshness:check:/{exit} f' \
-    "$REPO_ROOT/Taskfile.yml")
+    "$REPO_ROOT/taskfiles/Taskfile.quality.yml")
 
   # Der Regenerate-Schritt muss existieren ...
   [[ "$block" =~ task:[[:space:]]*freshness:regenerate ]]
@@ -1939,19 +1942,19 @@ MOCKEOF
   # Positiv-Anker: der Aufruf existiert ueberhaupt noch — ohne ihn pruefte der
   # Negativteil nichts. Bewusst NICHT entfernt: wer einen Dev-Stack laufen hat, soll
   # die Gruppe weiterhin bekommen. Der Fehler war die Bedingungslosigkeit.
-  run grep -c 'task test:e2e:services' "$REPO_ROOT/Taskfile.yml"
+  run grep -c 'task test:e2e:services' "$REPO_ROOT/taskfiles/Taskfile.test.yml"
   [ "$output" -ge 1 ] || { echo "der e2e:services-Aufruf ist ganz verschwunden"; false; }
 
   # Der Reachability-Check muss im selben Block stehen.
-  run bash -c "awk '/RUN_E2E_SERVICES.*=.*true.*npx/,/^        fi\$/' '$REPO_ROOT/Taskfile.yml' | grep -c '4321'"
+  run bash -c "awk '/RUN_E2E_SERVICES.*=.*true.*npx/,/^        fi\$/' '$REPO_ROOT/taskfiles/Taskfile.test.yml' | grep -c '4321'"
   [ "$output" -ge 1 ] || { echo "kein Erreichbarkeits-Check auf 4321 vor test:e2e:services"; false; }
 }
 
 @test "T002375-p4: der Skip nennt sich sichtbar und als Nicht-Blocker" {
   # Ein stiller Skip verschiebt die Frage nur eine Ebene weiter.
-  run bash -c "grep -c 'e2e services uebersprungen' '$REPO_ROOT/Taskfile.yml'"
+  run bash -c "grep -c 'e2e services uebersprungen' '$REPO_ROOT/taskfiles/Taskfile.test.yml'"
   [ "$output" = "1" ] || { echo "keine sichtbare Skip-Meldung"; false; }
-  run bash -c "grep 'e2e services uebersprungen' '$REPO_ROOT/Taskfile.yml' | grep -c 'Kein PR-Blocker'"
+  run bash -c "grep 'e2e services uebersprungen' '$REPO_ROOT/taskfiles/Taskfile.test.yml' | grep -c 'Kein PR-Blocker'"
   [ "$output" = "1" ] || { echo "die Skip-Meldung sagt nicht, dass es kein PR-Blocker ist"; false; }
 }
 
@@ -1960,12 +1963,12 @@ MOCKEOF
   # Konstruktion aktuell. 'is stale' war deshalb strukturell die falsche Diagnose und
   # las sich wie ein fehlgeschlagenes regenerate; T002352-M3 beschreibt die Schleife,
   # in die man daraufhin laeuft.
-  run bash -c "grep -c 'regenerated but not staged' '$REPO_ROOT/Taskfile.yml'"
+  run bash -c "grep -c 'regenerated but not staged' '$REPO_ROOT/taskfiles/Taskfile.quality.yml'"
   [ "$output" = "1" ] || { echo "die 'nicht gestaged'-Meldung fehlt"; false; }
-  run bash -c "grep -c 'staged but not committed' '$REPO_ROOT/Taskfile.yml'"
+  run bash -c "grep -c 'staged but not committed' '$REPO_ROOT/taskfiles/Taskfile.quality.yml'"
   [ "$output" = "1" ] || { echo "die 'nicht committet'-Meldung fehlt"; false; }
   # Die alte, irrefuehrende Formulierung darf nicht zurueckkommen.
-  run bash -c "grep -c \"is stale — run 'task freshness:regenerate' locally and commit\" '$REPO_ROOT/Taskfile.yml'"
+  run bash -c "grep -c \"is stale — run 'task freshness:regenerate' locally and commit\" '$REPO_ROOT/taskfiles/Taskfile.quality.yml'"
   [ "$output" = "0" ] || { echo "die alte 'is stale'-Meldung steht noch da"; false; }
 }
 

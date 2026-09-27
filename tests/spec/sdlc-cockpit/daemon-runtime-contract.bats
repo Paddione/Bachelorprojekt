@@ -206,9 +206,9 @@ setup() {
 
 @test "T002508 task cockpit:daemon ist definiert" {
   # POSITIV-ANKER: das Taskfile ist parsebar und der bekannte Nachbar-Task da.
-  run grep -c "^  cockpit:dev:" Taskfile.yml
+  run grep -c "^  cockpit:dev:" taskfiles/Taskfile.web.yml
   [ "$output" -eq 1 ]
 
-  run grep -c "^  cockpit:daemon:" Taskfile.yml
+  run grep -c "^  cockpit:daemon:" taskfiles/Taskfile.web.yml
   [ "$output" -eq 1 ]
 }

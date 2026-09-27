@@ -16,7 +16,7 @@
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
-  TASKFILE="${REPO_ROOT}/Taskfile.yml"
+  TASKFILE="${REPO_ROOT}/taskfiles/Taskfile.test.yml"
   CI="${REPO_ROOT}/.github/workflows/ci.yml"
 }
 

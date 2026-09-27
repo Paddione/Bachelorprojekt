@@ -31,3 +31,16 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
   sind `npm` — nie mischen. — Beleg: AGENTS.md Footguns
 - 27.09.26 [T900560] PR-Titel ↔ Branch müssen dieselbe Ticket-ID tragen
   (`preflight-pr-scope.sh`), sonst PR-Fehlschlag. — Beleg: T001913
+- 27.09.26 [T900560] go-task `flatten: true`-Includes laden Split-Taskfiles ohne
+  Namespace-Präfix — öffentliche Task-Namen bleiben byte-identisch (Diff von
+  `task --list-all` vorher/nachher muss leer sein). — Beleg: C4, task 3.52.0
+- 27.09.26 [T900560] Nach Datei-Moves immer die VOLLEN Suiten fahren, nicht nur
+  `test:changed` — die Diff-Selektion übersieht latente Pfad-Greps; Negations-Checks
+  werden sonst still vakuos. — Beleg: C4 (43 Spec-Fails erst im Voll-Lauf)
+- 27.09.26 [T900560] `grep -c` über mehrere Dateien bricht Zähl-Semantik (pro-Datei-
+  Ausgabe) — für Suite-Totals `grep -rh … | wc -l | tr -d ' '` verwenden. — Beleg: C4
+- 27.09.26 [T900560] Verschachteltes `bash -c`/`awk`-Quoting in BATS nicht per
+  Edit erweitern, sondern flach neu schreiben (`run awk '…' file…`). — Beleg: C4 T001411
+- 27.09.26 [T900560] Volle Test-Suiten können generierte Dateien dirty machen
+  (openspec-status.json wurde trunkiert) — nach Suiten immer `git status` +
+  Diff-Stat prüfen, nie blanket-stagen. — Beleg: C4

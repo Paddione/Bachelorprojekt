@@ -173,7 +173,7 @@ setup() {
 
 @test "T002301: ticket-mcp:build installs onto the PATH like mcp-task-runner" {
   # Ohne Install-Schritt bleibt das Binary im Repo liegen und der PATH-Name greift ins Leere.
-  run grep -A12 '^  ticket-mcp:build:' "$REPO/Taskfile.yml"
+  run grep -A12 '^  ticket-mcp:build:' "$REPO/taskfiles/Taskfile.tooling.yml"
   [ "$status" -eq 0 ]
   [[ "$output" == *"/usr/local/bin"* ]] \
     || { echo "ticket-mcp:build installiert nicht auf den PATH:"; echo "$output"; return 1; }

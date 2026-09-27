@@ -92,8 +92,8 @@ PY
 @test "push-path unwrap in Taskfile.yml handles command substitution" {
   # Die Unwrap-Regel des workspace:deploy-Pfads extrahieren (die sed-Zeile,
   # deren Argument $$ enthält) und auf einen Beispielfall anwenden.
-  unwrap="$(sed -n -E "s/.*sed -E '([^']*)'.*/\1/p" "$REPO/Taskfile.yml" | grep -m1 -F '\$\$' || true)"
-  [ -n "$unwrap" ] || skip "no sed unwrap rule found in Taskfile.yml"
+  unwrap="$(sed -n -E "s/.*sed -E '([^']*)'.*/\1/p" "$REPO/taskfiles/Taskfile.workspace.yml" | grep -m1 -F '\$\$' || true)"
+  [ -n "$unwrap" ] || skip "no sed unwrap rule found in Taskfile suite"
 
   result="$(printf 'X=$$(date +%%s)\n' | sed -E "$unwrap")"
   [ "$result" = 'X=$(date +%s)' ]

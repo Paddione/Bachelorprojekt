@@ -1,0 +1,997 @@
+version: "3"
+
+tasks:
+
+  # ─────────────────────────────────────────────
+  # Testing (no cluster required)
+  # ─────────────────────────────────────────────
+  test:unit:
+    desc: Run BATS unit tests (assertion lib, scripts, configs) in parallel
+    cmds:
+      - |
+        JOBS=$(nproc 2>/dev/null || echo 2)
+        ALL_FILES=$(find tests/unit -maxdepth 1 -name "*.bats" | sort)
+        TEST_FILES=""
+        for f in $ALL_FILES; do
+          base=$(basename "$f" .bats)
+          if ! grep -q "^$base$" tests/unit/.coverage-allowlist; then
+            TEST_FILES="$TEST_FILES $f"
+          fi
+        done
+        TEST_FILES="$TEST_FILES tests/spec/mcp-tooling.bats"
+        bash tests/bats -j $JOBS --no-parallelize-within-files $TEST_FILES
+      - bash tests/figure-pack-assets.test.sh
+      - task: test:unit:coverage-guard
+
+  test:unit:agent-push:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/agent-push.bats
+
+  test:unit:sessions-purge:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/sessions-purge.bats
+
+  test:unit:build-graph:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/build-graph.bats
+
+  test:unit:freshness-graph:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/freshness-graph.bats
+
+  test:unit:ticket-graph:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/ticket-graph.bats
+
+  test:unit:T000668-graph-api:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/T000668-graph-api.bats
+
+  test:unit:factory-blocked:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/factory-blocked.bats
+
+  test:unit:factory-readiness:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/factory-readiness.bats
+
+  test:unit:factory-scout-quality:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/factory-scout-quality.bats
+
+  test:unit:factory-scout-drift:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/factory-scout-drift.bats
+
+  test:unit:readiness-webhook:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/readiness-webhook.bats
+
+  test:unit:api-auth-gate:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/api-auth-gate.bats
+
+  test:unit:changed-manifests:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/changed-manifests.bats
+
+  test:unit:collabora-wopi-discovery:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/collabora-wopi-discovery.bats
+
+  test:unit:collabora-wopi-single-brand-guard:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/collabora-wopi-single-brand-guard.bats
+
+  test:unit:ticket-triage:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/ticket-triage.bats
+
+  test:unit:website-ci-deploy:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/website-ci-deploy.bats
+
+  test:unit:assert:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/assert_lib.bats
+
+  test:unit:scripts:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/scripts.bats
+      - bash tests/bats tests/unit/session-hub.bats
+
+  test:unit:secret-task-guards:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/secret-task-guards.bats
+
+  test:unit:agents:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/agent-ops-output-trust.bats
+
+  test:unit:figure-pack:
+    internal: true
+    cmds:
+      - bash tests/figure-pack-assets.test.sh
+
+  test:unit:discover-versions:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/discover-versions.bats
+
+  test:unit:render-cloud-init:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/render-cloud-init.bats
+
+  test:unit:flux-render-runtime-vars:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/flux-render-runtime-vars.bats
+
+  test:unit:flux-healthchecks:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/flux-healthchecks.bats
+
+  test:unit:fleet-phase2b:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/fleet-phase2b.bats
+
+  test:unit:shared-db-initdb-selfheal:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/shared-db-initdb-selfheal.bats
+
+  test:unit:wg-mesh-fullmesh:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/wg-mesh-fullmesh.bats
+
+  test:unit:recovery-domain-durability:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/recovery-domain-durability.bats
+
+  test:unit:mediaviewer-host-durability:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/mediaviewer-host-durability.bats
+
+  test:unit:agent-collision:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/agent-collision.bats
+
+  test:unit:agent-msg:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/agent-msg.bats
+
+  test:unit:website-domain-config-overlay:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/website-domain-config-overlay.bats
+
+  test:unit:ticket-external-id:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/ticket-external-id-sequence.bats
+
+  test:unit:vda-frontmatter:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/vda-frontmatter.bats
+
+  test:unit:check-commit-vs-diff:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/check-commit-vs-diff.bats
+
+  test:unit:plan-lint:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/plan-lint.bats
+
+  test:unit:mishap-tracker:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/mishap-tracker.bats
+
+  test:unit:ticket-add-pr-link:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/ticket-add-pr-link.bats
+
+  test:unit:ticket-create:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/ticket-create.bats
+
+  test:unit:ticket-grill:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/ticket-grill.bats
+
+  test:unit:ticket-lastenheft:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/ticket-lastenheft.bats
+
+  test:unit:worktree-create:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/worktree-create.bats
+
+  test:unit:preflight-pr-scope:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/preflight-pr-scope.bats
+
+  test:unit:test-tasks-node-deps:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/test-tasks-node-deps.bats
+
+  test:unit:quality-loop:
+    cmds:
+      - bash tests/bats tests/unit/quality-loop.bats
+
+  test:unit:vda-core:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/vda-core.bats
+
+  test:unit:oracle-task-vars:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/oracle-task-vars.bats
+
+  test:unit:vda-ticket-smoke:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/vda-ticket-smoke.bats
+
+  test:unit:vda-release-notes-smoke:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/vda-release-notes-smoke.bats
+
+  test:unit:offline-batch:
+    internal: true
+    # Offline-safe unit bats wired in by the 2026-06-06 coverage audit (single bats call).
+    cmds:
+      - >-
+        bash tests/bats
+        tests/unit/admin-nav.bats
+        tests/unit/brainstorm-extract-choice.bats
+        tests/unit/git-crypt-guard.bats
+        tests/unit/openclaw-taskfile.bats
+        tests/unit/purge-fn-gaps.bats
+        tests/unit/skill-orchestrator.bats
+        tests/unit/superpowers-collab-patch.bats
+        tests/unit/superpowers-submit-patch.bats
+        tests/unit/helper-collab-headless.bats
+        tests/unit/tickets-plan-staged-migration.bats
+        tests/unit/env-resolve.bats
+        tests/unit/env-validate.bats
+        tests/unit/planning-office.bats
+        tests/unit/planungsbuero-stats.bats
+        tests/unit/ticket-triage.bats
+        tests/unit/T000617-alert-rules.bats
+        tests/unit/vendored-bats.bats
+
+  test:unit:bats-runner-path:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/bats-runner-path.bats
+
+  test:unit:verification-block-order:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/verification-block-order.bats
+
+  test:unit:coverage-guard:
+    internal: true
+    # Fail if any tests/unit/*.bats is neither run by a task nor allowlisted.
+    cmds:
+      - bash scripts/tests/unit-coverage-guard.sh
+
+  test:unit:scs-index:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/scs-index.bats
+
+  test:unit:scs-search:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/scs-search.bats
+
+  test:art-library:
+    desc: "Validate every assets/art-library/sets/* manifest"
+    cmds:
+      - cd assets/art-library/_tooling && npm install --silent
+      - bash tests/bats tests/unit/test_art_library_manifest.bats
+
+  test:manifests:
+    desc: Validate kustomize output structure (no cluster needed)
+    cmds:
+      - bash tests/bats tests/unit/manifests.bats
+
+  test:menu-gate:
+    desc: Enforce admin-menu rules (R1, R2, R4, R5, R7)
+    cmds:
+      - bash scripts/admin-menu-gate.sh
+
+  test:branch-protection:
+    desc: Prüft Branch Protection auf main (enforce_admins + PR-Pflicht) [T002889]
+    cmds:
+      - bash scripts/check-branch-protection.sh
+
+  test:dry-run:
+    desc: Dry-run key tasks to catch Taskfile syntax errors
+    cmds:
+      - |
+        TASKS="workspace:deploy workspace:status workspace:teardown workspace:validate \
+               workspace:post-setup config:show"
+        FAIL=0
+        for t in $TASKS; do
+          (
+            if task --dry "$t" > /dev/null 2>&1; then
+              echo "  ✓ $t"
+            else
+              echo "  ✗ $t (dry-run failed)"
+              touch .dry-run-fail
+            fi
+          ) &
+        done
+        wait
+        if [[ -f .dry-run-fail ]]; then
+          rm .dry-run-fail
+          exit 1
+        fi
+        echo "Dry-run: All tasks parsed successfully"
+
+  test:agent-guide:
+    desc: "Validate the AI-agent guide registry (unit tests + real registry + generated JSON freshness)"
+    cmds:
+      # The scripts below `import ... from 'yaml'` (root node_modules). A fresh
+      # worktree has none, so install lazily first. No-op in CI / installed. [T000427]
+      - '[ -d node_modules ] || npm ci'
+      - node --test scripts/agent-guide/*.test.mjs
+      - node scripts/agent-guide/validate.mjs
+      - node scripts/gen-platform-descriptions.mjs
+      - |
+        git diff --exit-code components/website/src/lib/platform-descriptions.generated.json \
+          || (echo "ERROR: platform-descriptions.generated.json is stale — run node scripts/gen-platform-descriptions.mjs and commit"; exit 1)
+      - node scripts/agent-guide/emit-webapp.mjs
+      - |
+        git diff --exit-code components/website/src/lib/agent-guide.generated.json \
+          || (echo "ERROR: agent-guide.generated.json is stale — run 'task agent-guide:emit' and commit"; exit 1)
+
+  test:code-quality:
+    desc: "Run the code-quality gate + registry unit tests (node:test)"
+    cmds:
+      # These tests import the bare `yaml` specifier (via load.mjs) and invoke
+      # node_modules/.bin/madge. A fresh worktree (scripts/worktree-create.sh)
+      # ships no root node_modules, and go-task runs test:all deps concurrently,
+      # so install lazily first. No-op in CI / installed trees. [T000427]
+      - '[ -d node_modules ] || npm ci'
+      - node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
+
+  test:llm-proxy:
+    desc: "Run the llm-proxy routing + readiness unit tests (node:test + vitest)"
+    cmds:
+      # T002336: diese Suite existierte seit T002102, lief aber in KEINEM Target
+      # und in KEINEM CI-Job - sie war nie ein Regressionsschutz, nur eine Datei.
+      # Aufgefallen erst, als /health bei totem Backend drei Stunden 200 meldete.
+      # T002638: dasselbe Muster ein zweites Mal — exclusive-conflict, fixups und
+      # strip-markers (zusammen 19 Tests) liefen ebenfalls in keinem Target. Diese
+      # Liste ist handgepflegt und damit strukturell unvollstaendig; der Guard
+      # tests/spec/local-llm-proxy/proxy-tests-registered.bats haelt sie ab jetzt
+      # gegen die tatsaechlich vorhandenen Dateien.
+      # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
+      - npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs
+      - node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/factory-pin.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/listeners.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
+
+  test:factory:
+    desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    cmds:
+      # [T002427] Zeigte bis hierher auf tests/local/FA-SF-*.bats. Diese 41 Dateien waren
+      # Duplikate der Sammeldatei tests/spec/software-factory.bats, in die sie konsolidiert
+      # worden waren, ohne die Originale zu entfernen. Der doppelte Testname verdeckte
+      # T002421: ein gefilterter Lauf auf tests/spec/ sah gruen aus, waehrend test:factory
+      # ueber die veraltete Kopie rot lief.
+      #
+      # [T002503] Die Sammeldatei ist jetzt in tests/spec/software-factory/ aufgeteilt und
+      # ENTFERNT — dieselbe Lehre, diesmal beim Aufteilen statt beim Zusammenfuehren
+      # beachtet. `-r` auf das Verzeichnis, damit kuenftige Dateien ohne Aenderung hier
+      # mitlaufen; ein Glob wuerde sie stillschweigend auslassen.
+      - bash -c "tests/bats -r tests/spec/software-factory/ tests/local/FA-AR-*.bats"
+
+  test:spec:build-mcp-runner:
+    cmds:
+      - |
+        # tests/spec/mcp-task-runner.bats invokes /usr/local/bin/mcp-task-runner.
+        # Install/update the Node.js runner wrapper script. [T006664]
+        bash scripts/mcp-task-runner/install.sh
+
+  test:spec:
+    desc: "Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS laeuft nur die eigene Partition (siehe scripts/spec-shard.sh)."
+    cmds:
+      - task: test:spec:build-mcp-runner
+      - |
+        # `find` statt `bats -r tests/spec/` [T002500]: die Shard-Aufteilung braucht eine
+        # explizite Dateiliste. Der rekursive Fang bleibt identisch zu `-r` — und damit
+        # auch die Eigenschaft aus T002416, dass Tests unter tests/spec/<spec-slug>/
+        # miterfasst werden. Ein flacher Glob wuerde sie stillschweigend auslassen, was
+        # schlimmer waere als ein roter Test.
+        FILES=$(find tests/spec -name '*.bats' -type f | LC_ALL=C sort)
+        if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
+          # [T004024] Seed aus HEAD-SHA: alle Matrix-Legs desselben Commits
+          # partitionieren identisch, aber die schwerste Datei rotiert je nach
+          # Commit ueber die Shards (statt immer auf Shard 1 zu landen).
+          SPEC_SHARD_SEED="$(git rev-parse HEAD 2>/dev/null | cut -c1-12 || true)"
+          FILES=$(printf '%s\n' "$FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS" --seed "${SPEC_SHARD_SEED:-}")
+          echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$FILES" | grep -c .) Dateien"
+        fi
+        # Leere Auswahl ist ein Fehler, kein No-op. Ein still gruener Leerlauf saehe
+        # aus wie eine bestandene Suite, obwohl nichts lief — genau die Klasse von
+        # Fehler, die das Sharding einfuehren kann und die niemand bemerkt.
+        if [ "$(printf '%s' "$FILES" | grep -c .)" -eq 0 ]; then
+          echo "test:spec: FEHLER — keine Spec-Dateien ausgewaehlt" >&2
+          exit 1
+        fi
+        # [T002779] spec-tracked-file-guard: Snapshot vor bats nehmen,
+        # nicht am Task-Anfang — test:spec:build-mcp-runner laeuft vorher
+        # und erzeugt legitime Ausgabe.
+        GUARD_SNAP="$(mktemp)"
+        bash scripts/spec-tracked-file-guard.sh snapshot "$GUARD_SNAP"
+
+        # [T003025] BATS_JUNIT_DIR schaltet den junit-Report an (CI laedt ihn als
+        # Artifakt hoch, scripts/spec-junit-weights.sh macht daraus die
+        # Laufzeit-Gewichte fuer spec-shard.sh). Ohne die Variable: exakt wie vorher.
+        BATS_EXTRA_ARGS=()
+        if [ -n "${BATS_JUNIT_DIR:-}" ]; then
+          mkdir -p "$BATS_JUNIT_DIR"
+          BATS_EXTRA_ARGS+=(--report-formatter junit -o "$BATS_JUNIT_DIR")
+        fi
+
+        set +e
+        bash scripts/lib/run-bats.sh -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $FILES
+        BATS_STATUS=$?
+        bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
+        GUARD_STATUS=$?
+        set -e
+
+        rm -f "$GUARD_SNAP"
+        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
+        # [T002779] Guard ist bei der initialen Ausrollung nicht-fatal:
+        # bestehende Spec-Tests (z.B. agent-roster P4.5: task agent-guide:maps)
+        # regenerieren getrackte Dateien; ihre Behebung ist ein eigener Vorgang.
+        # Sobald alle Fundstellen behoben sind, wird exit "$GUARD_STATUS" aktiv.
+        if [ "$GUARD_STATUS" -ne 0 ]; then
+          echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
+        fi
+        exit 0
+
+  test:spec:timing:
+    desc: "Run the full offline-safe spec suite and write tests/spec/.spec-runtime.tsv (measured seconds per file) — the runtime weights for spec-shard.sh. [T003025] Am besten auf einem CI-gleichen Host (kein Live-Cluster/keine DB), damit die Gewichte die CI-Realitaet abbilden. CI-Alternative: junit-Artifakte aus ci.yml herunterladen und scripts/spec-junit-weights.sh darauf laufen lassen."
+    cmds:
+      - task: test:spec:build-mcp-runner
+      - |
+        FILES=$(find tests/spec -name '*.bats' -type f | LC_ALL=C sort)
+        if [ "$(printf '%s' "$FILES" | grep -c .)" -eq 0 ]; then
+          echo "test:spec:timing: FEHLER — keine Spec-Dateien gefunden" >&2
+          exit 1
+        fi
+        REPORT_DIR="$(mktemp -d)"
+        echo "→ Full spec suite mit junit-Report ($(printf '%s' "$FILES" | grep -c .) Dateien) — kann >10 min dauern"
+        set +e
+        bash tests/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files --report-formatter junit -o "$REPORT_DIR" $FILES
+        BATS_STATUS=$?
+        set -e
+        bash scripts/spec-junit-weights.sh "$REPORT_DIR"/report.xml --to tests/spec/.spec-runtime.tsv
+        rm -rf "$REPORT_DIR"
+        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
+        echo "→ tests/spec/.spec-runtime.tsv geschrieben — Balance pruefen:"
+        find tests/spec -name '*.bats' -type f | bash scripts/spec-shard.sh --verify --of 4 | tail -8
+        exit 0
+
+  test:spec:changed:
+    desc: "Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]"
+    cmds:
+      - task: test:spec:build-mcp-runner
+      - |
+        CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
+        # [T003056] Ab hier ist die Variable verbraucht: sie steuert AUSSCHLIESSLICH
+        # die Auswahl oben. Bliebe sie in der Umgebung, erbte sie jeder von bats
+        # gestartete Test — und Tests, die find-changed-tests.sh in einem eigenen
+        # tmp-Repo gegen dessen Default-Diff pruefen, bekaemen stattdessen den
+        # override-Zweig mit den Dateien des aeusseren Repos. Genau das machte auf
+        # main sechs Guards rot (T002245/T002345/T002377), waehrend sie lokal und
+        # auf PRs gruen blieben: nur auf main setzt ci.yml die Variable.
+        unset FIND_CHANGED_TESTS_FILES
+        if [ -z "$CHANGED_FILES" ]; then
+          echo "→ No matching spec tests for this diff"
+          exit 0
+        fi
+        # [T002377] Anzahl nennen und den Vollauf benennen. Ohne das las sich der
+        # stille RUN_ALL-Fallback wie eine gezielte Auswahl; der Lauf dauert dann
+        # aber ueber zehn Minuten, und ein Timeout darauf sieht aus wie ein
+        # Testfehler ("exit 1, obwohl alle Untertests gruen").
+        SELECTED=$(echo "$CHANGED_FILES" | wc -l)
+        # find statt ls-Glob [T002416]: der Glob zaehlt nur die oberste Ebene. Zu kleines
+        # TOTAL laesst SELECTED >= TOTAL werden und meldet faelschlich "FULL spec suite".
+        TOTAL=$(find tests/spec -name '*.bats' -type f 2>/dev/null | wc -l)
+        if [ "$SELECTED" -ge "$TOTAL" ]; then
+          echo "→ FULL spec suite ($SELECTED files) — diff-scoped selection fell back to run-all; expect >10 min"
+        else
+          echo "→ Running changed spec tests ($SELECTED of $TOTAL):"
+        fi
+        echo "$CHANGED_FILES"
+        # [T002500] Sharding auch hier, denn der teure Fall laeuft ueber DIESEN Pfad:
+        # aendert ein PR ci.yml/Taskfile.yml oder ein geteiltes Harness, faellt
+        # find-changed-tests.sh fail-closed auf die volle Suite zurueck (~400s).
+        if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
+          # [T004024] Seed wie in test:spec — gleicher Commit, gleiche Partition;
+          # die schwerste geaenderte Datei rotiert ueber die Shards.
+          SPEC_SHARD_SEED="$(git rev-parse HEAD 2>/dev/null | cut -c1-12 || true)"
+          CHANGED_FILES=$(printf '%s\n' "$CHANGED_FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS" --seed "${SPEC_SHARD_SEED:-}")
+          # Anders als bei test:spec ist ein leerer Shard hier legitim: eine
+          # diff-gescopte Auswahl kann weniger Dateien haben als es Shards gibt.
+          if [ "$(printf '%s' "$CHANGED_FILES" | grep -c .)" -eq 0 ]; then
+            echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: keine Dateien in dieser Partition"
+            exit 0
+          fi
+          echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$CHANGED_FILES" | grep -c .) Dateien"
+        fi
+        # [T002779] spec-tracked-file-guard: Snapshot vor bats nehmen.
+        GUARD_SNAP="$(mktemp)"
+        bash scripts/spec-tracked-file-guard.sh snapshot "$GUARD_SNAP"
+
+        # [T003025] junit-Report wie in test:spec (siehe dort).
+        BATS_EXTRA_ARGS=()
+        if [ -n "${BATS_JUNIT_DIR:-}" ]; then
+          mkdir -p "$BATS_JUNIT_DIR"
+          BATS_EXTRA_ARGS+=(--report-formatter junit -o "$BATS_JUNIT_DIR")
+        fi
+
+        set +e
+        bash tests/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $CHANGED_FILES
+        BATS_STATUS=$?
+        bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
+        GUARD_STATUS=$?
+        set -e
+
+        rm -f "$GUARD_SNAP"
+        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
+        # [T002779] Guard nicht-fatal waehrend der initialen Ausrollung (siehe test:spec).
+        if [ "$GUARD_STATUS" -ne 0 ]; then
+          echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
+        fi
+        exit 0
+
+  test:mcp-tooling:
+    desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
+    cmds:
+      - bash tests/bats tests/spec/mcp-tooling.bats
+
+  test:agent-library:
+    desc: "Guardrail: .claude/agents/*.md <-> AGENTS.md routing-table library assertions"
+    cmds:
+      - bash tests/bats tests/spec/agent-library.bats
+
+  test:openspec:
+    desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate, TypeScript/Vitest)."
+    cmds:
+      # [T002428] Halb archivierte Changes zuerst — `archive` ist nicht atomar und sein
+      # Ergebnis kann teilweise committet werden. Sieben Slugs lagen so seit dem 3. Juli
+      # gleichzeitig offen und archiviert, mit 16 Requirements, die in keiner SSOT-Spec
+      # standen. Der Zustand war bis dahin nirgends pruefbar.
+      - bash scripts/openspec-half-archive-check.sh
+      - '[ -d node_modules ] || npm ci'
+      - npm run test:openspec
+
+  test:unit:openspec:
+    internal: true
+    cmds:
+      - bash tests/bats tests/unit/openspec.bats
+
+  test:agent-lock:
+    desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
+    cmds:
+      - bash -c "tests/bats tests/local/AGENT-LOCK-*.bats"
+
+  test:all:
+    desc: "Run tests for changed files only (smart selection) — delegates to test:changed"
+    cmds:
+      - task: test:changed
+
+  test:changed:
+    desc: "Run only tests relevant to changed files (smart selection: vitest --changed + domain BATS + quality)"
+    cmds:
+      - |
+        set -e
+        # Generierte Artefakte (linguist-generated in .gitattributes) vor der Selektion
+        # entfernen: sie liegen im Diff JEDES Changes mit OpenSpec-Artefakt und wuerden
+        # sonst Playwright fuer Changes ohne Website-Bezug starten (T002255).
+        # freshness:check filtert bewusst NICHT — dort sind diese Pfade der Pruefgegenstand.
+        CHANGED=$( (git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null; git diff --name-only HEAD) | sort -u | bash scripts/filter-generated.sh || true)
+        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false; RUN_WORKFLOWS=false
+        echo "$CHANGED" | grep -qE "^components/website/" && RUN_WEBSITE=true || true
+        echo "$CHANGED" | grep -qE "^components/mentolder-web/" && RUN_MENTOLDER_WEB=true || true
+        echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
+        echo "$CHANGED" | grep -qE "^scripts/" && RUN_SCRIPTS=true || true
+        echo "$CHANGED" | grep -qE "^(tests/local/FA-)" && RUN_FACTORY=true || true
+        # scripts/*-Aenderungen muessen die spec-Suite erreichen koennen: der
+        # spec-Finder prueft per Pfad-Probe, welche spec-bats einen geaenderten
+        # Pfad referenziert. Ohne diesen Zweig wrde eine reine scripts/*-Aenderung
+        # nur RUN_SCRIPTS setzen und find-changed-tests.sh unit aufrufen. [T002345]
+        echo "$CHANGED" | grep -qE "^(tests/spec/|scripts/)" && RUN_SPEC=true || true
+        echo "$CHANGED" | grep -qE "^(tests/unit/|\.bats)" && RUN_UNIT=true || true
+        echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
+        echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
+        echo "$CHANGED" | grep -qE "^openspec/" && RUN_OPENSPEC=true || true
+        echo "$CHANGED" | grep -qE "^\.github/workflows/" && RUN_WORKFLOWS=true || true
+        echo "$CHANGED" | grep -qE "^components/website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true
+        echo "$CHANGED" | grep -qE "^components/brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
+        echo "$CHANGED" | grep -qE "^(k3d/|environments/|components/VideoVault/)" && RUN_E2E_SERVICES=true || true
+        echo "$CHANGED" | grep -qE "(korczewski)" && RUN_E2E_KORCZEWSKI=true || true
+        if [ "$RUN_WEBSITE" = "true" ]; then
+          if command -v pnpm >/dev/null 2>&1 && (cd components/website && pnpm vitest --version </dev/null >/dev/null 2>&1); then
+            echo "→ website changes: pnpm vitest run --changed"
+            (cd components/website && pnpm vitest run --changed --reporter verbose)
+            # Spiegelt das fail-closed ESLint-Gate des CI-Jobs "Vitest (website)"
+            # (eslint . --max-warnings 0) — sonst erreichen Lint-Fehler erst CI [T008454].
+            echo "→ website changes: pnpm lint (eslint --max-warnings 0)"
+            (cd components/website && pnpm lint)
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping website JS tests + lint"
+          fi
+        fi
+        if [ "$RUN_MENTOLDER_WEB" = "true" ]; then
+          if command -v pnpm >/dev/null 2>&1 && (cd components/website && pnpm vitest --version </dev/null >/dev/null 2>&1); then
+            echo "→ mentolder-web changes: pnpm --filter mentolder-web test"
+            pnpm --filter mentolder-web test
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping mentolder-web JS tests"
+          fi
+        fi
+        if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
+
+        # Laufzeit-Drift-Guard (T003825): meldet DB-Funktionen/MCP-Binaries, die
+        # nicht dem Repo-Stand entsprechen — lokal exit 1 faerbt den Testlauf hart
+        # rot, ohne Cluster skippt das Skript selbst (exit 0, CI-safe). [T003285]
+        echo "→ runtime drift check (skips without cluster)"
+        bash scripts/runtime-drift-check.sh
+
+        JOBS=$(nproc 2>/dev/null || echo 2)
+        if [ "$RUN_SCRIPTS" = "true" ] || [ "$RUN_UNIT" = "true" ]; then
+          echo "→ running changed unit tests in parallel"
+          CHANGED_FILES=$(bash scripts/find-changed-tests.sh unit)
+          if [ -n "$CHANGED_FILES" ]; then
+            bash tests/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
+          else
+            echo "No matching unit tests found for changes."
+          fi
+          if echo "$CHANGED" | grep -qE "^(tests/figure-pack-assets|assets/)"; then
+            bash tests/figure-pack-assets.test.sh
+          fi
+          bash scripts/tests/unit-coverage-guard.sh
+        fi
+        
+        if [ "$RUN_SPEC" = "true" ]; then
+          echo "→ spec changes: running changed spec tests in parallel"
+          task test:spec:build-mcp-runner
+          CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
+          if [ -n "$CHANGED_FILES" ]; then
+            bash tests/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
+          else
+            echo "No matching spec tests found for changes."
+          fi
+        fi
+
+        if [ "$RUN_FACTORY" = "true" ]; then echo "→ factory changes: task test:factory"; task test:factory; fi
+        if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_UNIT" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
+        if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
+        if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
+        if [ "$RUN_WORKFLOWS" = "true" ]; then echo "→ workflow changes: task lint:workflows"; task lint:workflows; fi
+
+        if [ "$RUN_E2E_WEBSITE" = "true" ] && command -v npx >/dev/null 2>&1; then
+          if (exec 3<>/dev/tcp/127.0.0.1/4321) 2>/dev/null; then
+            echo "→ e2e website changes: task test:e2e:website"; task test:e2e:website
+          else
+            echo "→ e2e website uebersprungen: localhost:4321 antwortet nicht. Kein PR-Blocker — CI fuehrt diese Gruppe fuer PRs ohnehin nicht aus."
+          fi
+        fi
+        # [T002375-p4] Erreichbarkeit pruefen, bevor die E2E-Gruppe laeuft. Bei jeder
+        # k3d/-Aenderung lief sie bisher bedingungslos und schlug ohne Dev-Stack mit 13
+        # ERR_CONNECTION_REFUSED fehl. Entscheidend: CI fuehrt fuer PRs nur
+        # test:spec:changed plus manifests.bats/changed-manifests.bats aus, NICHT das
+        # volle test:changed — der lokale Lauf war also strenger als das Gate, das er
+        # simuliert. Ein Agent, der die Pflicht-Verifikation woertlich befolgt, stand vor
+        # der Wahl: falsche Regression melden, blind weitermachen, oder Zeit an einem
+        # Umgebungsproblem verbrennen. Der Skip ist SICHTBAR, nicht still — sonst hat der
+        # naechste Agent dieselbe Frage eine Ebene spaeter.
+        if [ "$RUN_E2E_SERVICES" = "true" ] && command -v npx >/dev/null 2>&1; then
+          if (exec 3<>/dev/tcp/127.0.0.1/4321) 2>/dev/null; then
+            echo "→ e2e services changes: task test:e2e:services"; task test:e2e:services
+          else
+            echo "→ e2e services uebersprungen: localhost:4321 antwortet nicht. Kein PR-Blocker — CI fuehrt diese Gruppe fuer PRs ohnehin nicht aus."
+          fi
+        fi
+        if [ "$RUN_E2E_BRETT" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e brett changes: task test:e2e:brett"; task test:e2e:brett; fi
+        if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
+
+        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ] && [ "$RUN_WORKFLOWS" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
+          if command -v pnpm >/dev/null 2>&1 && (cd components/website && pnpm vitest --version </dev/null >/dev/null 2>&1); then
+            echo "→ no domain-specific changes: vitest --changed"
+            (cd components/website && pnpm vitest run --changed --reporter verbose)
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping JS fallback tests"
+          fi
+        fi
+        echo "→ quality gate (always)"; task test:code-quality
+        # [T012645] Immer, nicht diff-gesteuert: eine Adress-Kollision entsteht durch
+        # das ZUSAMMENSPIEL zweier Bereiche. Wer einen davon aendert, aendert die
+        # Datei des anderen nicht mit — eine Diff-Auswahl wuerde den Guard genau in
+        # dem Fall ueberspringen, fuer den es ihn gibt. Der Lauf kostet Millisekunden.
+        echo "→ network address plan (always)"; task networks:check
+
+  test:api-auth:
+    desc: "API auth coverage gate — every endpoint must be classified; public endpoints need an allowlist entry"
+    cmds:
+      - node scripts/api-auth-check.mjs
+
+  test:api-auth:regression:
+    desc: "API auth regression check against origin/main"
+    cmds:
+      - git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json
+      - node scripts/api-auth-check.mjs --regression --main-map /tmp/api-map-main.json
+
+  test:e2e:agent-guide:film:
+    desc: "Filmable Agent-Anleitung walkthrough — headed, slowMo, video recorded (no auth required)"
+    dir: tests/e2e
+    vars:
+      WEBSITE_URL: '{{.WEBSITE_URL | default "http://localhost:4321"}}'
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        AG_FILM=1 WEBSITE_URL={{.WEBSITE_URL}} \
+          ./node_modules/.bin/playwright test --config playwright.film.config.ts {{.CLI_ARGS}}
+        echo ""
+        echo "Video recorded in: tests/e2e/test-results/**/video.webm"
+        echo "HTML report:        tests/e2e/playwright-report/index.html"
+
+  test:inventory:
+    desc: Regenerate components/website/src/data/test-inventory.json (requirement → test mapping)
+    cmds:
+      - bash scripts/build-test-inventory.sh
+
+  test:ci:
+    desc: "CI-friendly test suite (non-zero exit on failure)"
+    cmds:
+      - bash tests/bats --formatter tap tests/unit/
+
+  test:e2e:
+    desc: "Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)"
+    dir: tests/e2e
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "test:e2e requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+      - sh: '[ -n "${CRON_SECRET:-}" ]'
+        msg: "test:e2e requires CRON_SECRET in the env (used by the test-data purge bracket)"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  WEBSITE_URL=https://web.mentolder.de  PROD_DOMAIN=mentolder.de ;;
+          korczewski) WEBSITE_URL=https://web.korczewski.de PROD_DOMAIN=korczewski.de ;;
+        esac
+        export WEBSITE_URL PROD_DOMAIN
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium webkit >/dev/null 2>&1 || true
+        # Defense-in-depth purge: BEFORE Playwright runs, hard-purge all
+        # is_test_data=true rows on the prod website DB. Playwright's
+        # globalSetup also calls this; the curl here covers the case where
+        # Playwright crashes before reaching globalSetup, AND it surfaces
+        # auth/network failures with a clear log line. We hard-fail on a
+        # pre-run purge failure (no `|| true`) — broken cleanup is a real
+        # blocker, we want to know.
+        echo "[test:e2e] Pre-run test-data purge against $WEBSITE_URL"
+        curl -fsS -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
+          "$WEBSITE_URL/sdlc/api/systemtest/purge-all-test-data"
+        echo
+        # Capture playwright's exit code so a post-run purge failure can't
+        # mask a real test failure.
+        set +e
+        ./node_modules/.bin/playwright test {{.CLI_ARGS}}
+        pw_rc=$?
+        set -e
+        # Post-run purge: best-effort. `|| true` so a transient failure here
+        # (e.g. site momentarily down after the suite) doesn't override the
+        # actual playwright result.
+        echo "[test:e2e] Post-run test-data purge against $WEBSITE_URL"
+        curl -fsS -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
+          "$WEBSITE_URL/sdlc/api/systemtest/purge-all-test-data" || true
+        echo
+        exit $pw_rc
+
+  test:e2e:all-prods:
+    desc: "Run Playwright e2e suite against mentolder + korczewski"
+    cmds:
+      - task: test:e2e
+        vars: { ENV: "mentolder" }
+      - task: test:e2e
+        vars: { ENV: "korczewski" }
+
+  test:e2e:visual-sweep:
+    desc: "Read-only full-route visual sweep (screenshots + nav/link-health) against ENV=mentolder|korczewski, VIEWPORT=desktop|mobile. NO prod-DB purge. VIDEO=1 records a per-tier webm; PUBLIC_ONLY=1 limits to anonymous public routes."
+    dir: tests/e2e
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+      VIEWPORT: '{{.VIEWPORT | default "desktop"}}'
+      VIDEO: '{{.VIDEO | default ""}}'
+      PUBLIC_ONLY: '{{.PUBLIC_ONLY | default ""}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "test:e2e:visual-sweep requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+      - sh: '[ "{{.VIEWPORT}}" = "desktop" ] || [ "{{.VIEWPORT}}" = "mobile" ]'
+        msg: "test:e2e:visual-sweep requires VIEWPORT=desktop or VIEWPORT=mobile, got VIEWPORT={{.VIEWPORT}}"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  WEBSITE_URL=https://web.mentolder.de  PROD_DOMAIN=mentolder.de ;;
+          korczewski) WEBSITE_URL=https://web.korczewski.de PROD_DOMAIN=korczewski.de ;;
+        esac
+        export WEBSITE_URL PROD_DOMAIN
+        [ -n "{{.VIDEO}}" ] && export VISUAL_SWEEP_VIDEO=1
+        [ -n "{{.PUBLIC_ONLY}}" ] && export VISUAL_SWEEP_PUBLIC_ONLY=1
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        # Read-only sweep: the visual-sweep config sets globalSetup/globalTeardown
+        # to undefined and installReadOnlyGuard aborts all non-GET/HEAD requests,
+        # so there is NO test-data purge and CRON_SECRET is NOT required here.
+        ./node_modules/.bin/playwright test \
+          --config playwright.visual-sweep.config.ts \
+          --project=visual-sweep-{{.ENV}}-{{.VIEWPORT}} {{.CLI_ARGS}}
+        echo ""
+        node lib/build-gallery.mjs
+
+  test:e2e:visual-sweep:vision:
+    desc: "Headed Route-Sweep beider Brands mit Vision-Urteil je Screenshot (gemma12-vision, 3 Slots). Report-only, kein CI-Gate. MAX_ROUTES=N begrenzt die Zahl beurteilter Routen je Project."
+    dir: tests/e2e
+    vars:
+      MAX_ROUTES: '{{.MAX_ROUTES | default ""}}'
+    cmds:
+      - |
+        # Guards bewusst INLINE statt als `preconditions:` [T012781]. `task --dry`
+        # wertet preconditions aus (gemessen an systemtest:all:headed -> Exit 201);
+        # als precondition formuliert waere die Verdrahtung dieses Ziels in CI nicht
+        # ueber die Kommandoausgabe pruefbar. Der Guard wirkt zur Laufzeit identisch.
+        if [ -z "${DISPLAY:-}" ]; then
+          echo "FEHLER: DISPLAY ist nicht gesetzt — ein headed-Lauf braucht eine Anzeige." >&2
+          echo "        Unter WSL liefert WSLg eine; in einer reinen Konsole ist dieses Ziel nicht lauffaehig." >&2
+          exit 1
+        fi
+        # Wer dieses Ziel aufruft, will ausdruecklich ein Vision-Urteil. Ein stiller
+        # Lauf ganz ohne Urteil waere die schlechtere Antwort, deshalb hier hart.
+        if ! curl -sf -m 5 http://127.0.0.1:18235/v1/models | grep -q gemma12-vision; then
+          echo "FEHLER: der Modellalias gemma12-vision wird vom llm-proxy nicht gefuehrt." >&2
+          echo "        Zwei getrennte Ursachen mit zwei getrennten Abhilfen:" >&2
+          echo "        1) llm-proxy antwortet nicht auf 127.0.0.1:18235 -> Proxy starten." >&2
+          echo "        2) Proxy antwortet, Alias fehlt -> Backend-Zeile anlegen:" >&2
+          echo "           scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql" >&2
+          echo "        Nicht direkt auf 8089 pruefen: der llama.cpp-Server laeuft auf dem" >&2
+          echo "        Windows-GPU-Host und ist aus WSL nicht erreichbar." >&2
+          exit 1
+        fi
+        # Beide Brands in EINEM Aufruf. Die Projects loesen ihre baseURL selbst
+        # ueber BRAND_URLS in playwright.visual-sweep.config.ts auf; WEBSITE_URL
+        # bedient mentolder, KORCZEWSKI_URL bedient korczewski — dieselbe
+        # Aufteilung, die die *-auth-setup-Specs bereits verwenden.
+        export WEBSITE_URL="${WEBSITE_URL:-https://web.mentolder.de}"
+        export KORCZEWSKI_URL="${KORCZEWSKI_URL:-https://web.korczewski.de}"
+        export PROD_DOMAIN="${PROD_DOMAIN:-mentolder.de}"
+        export VISUAL_SWEEP_VISION=1
+        [ -n "{{.MAX_ROUTES}}" ] && export VISION_MAX_ROUTES="{{.MAX_ROUTES}}"
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        # Read-only: die Sweep-Konfiguration setzt globalSetup/globalTeardown auf
+        # undefined und installReadOnlyGuard bricht alle Nicht-GET/HEAD-Anfragen der
+        # Seite ab. Kein Test-Data-Purge, kein CRON_SECRET noetig.
+        #
+        # --workers=3 ist der clientseitige Deckel auf drei gleichzeitige
+        # Vision-Anfragen (die Konfiguration setzt denselben Wert; das Flag macht
+        # ihn an der Aufrufstelle sichtbar). Serverseitig deckelt der Proxy mit
+        # max_inflight=3 dieselbe Zahl ein zweites Mal ab.
+        ./node_modules/.bin/playwright test \
+          --config playwright.visual-sweep.config.ts \
+          --headed --workers=3 \
+          --project=visual-sweep-mentolder-desktop \
+          --project=visual-sweep-mentolder-mobile \
+          --project=visual-sweep-korczewski-desktop \
+          --project=visual-sweep-korczewski-mobile {{.CLI_ARGS}}
+        echo ""
+        node lib/build-gallery.mjs
+
+  test:e2e:visual-sweep:all-prods:
+    desc: "Visual sweep across mentolder + korczewski × desktop + mobile, then one combined contact-sheet."
+    cmds:
+      - task: test:e2e:visual-sweep
+        vars: { ENV: "mentolder", VIEWPORT: "desktop" }
+      - task: test:e2e:visual-sweep
+        vars: { ENV: "mentolder", VIEWPORT: "mobile" }
+      - task: test:e2e:visual-sweep
+        vars: { ENV: "korczewski", VIEWPORT: "desktop" }
+      - task: test:e2e:visual-sweep
+        vars: { ENV: "korczewski", VIEWPORT: "mobile" }
+      - dir: tests/e2e
+        cmd: node lib/build-gallery.mjs
+
+  # ── Per-project e2e subset targets ─────────────────────────────
+  # Run a specific Playwright project. By default targets localhost:4321.
+  # For prod: set WEBSITE_URL + CRON_SECRET in the env.
+  # For korczewski: set KORCZEWSKI_URL (or it defaults to https://web.korczewski.de).
+
+  test:e2e:website:
+    desc: "Run Playwright website project against WEBSITE_URL (default localhost:4321)"
+    dir: tests/e2e
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright test --project=website {{.CLI_ARGS}}
+
+  test:e2e:services:
+    desc: "Run Playwright services project (infrastructure) against WEBSITE_URL"
+    dir: tests/e2e
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright test --project=services {{.CLI_ARGS}}
+
+  test:e2e:brett:
+    desc: "Run Playwright brett-mentolder project against WEBSITE_URL"
+    dir: tests/e2e
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright test --project=brett-mentolder {{.CLI_ARGS}}
+
+  test:e2e:korczewski:
+    desc: "Run Playwright korczewski project against KORCZEWSKI_URL (default https://web.korczewski.de)"
+    dir: tests/e2e
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        KORCZEWSKI_URL="${KORCZEWSKI_URL:-https://web.korczewski.de}" \
+          ./node_modules/.bin/playwright test --project=korczewski {{.CLI_ARGS}}
+

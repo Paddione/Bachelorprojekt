@@ -1,0 +1,289 @@
+version: "3"
+
+tasks:
+
+  # Common workflows — start here
+  # ════════════════════════════════════════════════════════════════════
+  # These fan out across BOTH prod clusters (mentolder + korczewski) so
+  # every-day work is one command. Pass ENV=mentolder or ENV=korczewski to
+  # target a single environment with the underlying `workspace:*` /
+  # `website:*` / `brett:*` tasks.
+
+  feature:deploy:
+    desc: "Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)"
+    cmds:
+      - task: workspace:deploy:all-prods
+      - task: workspace:post-setup:all-prods
+      - task: workspace:verify:all-prods
+
+  feature:website:
+    desc: "Rebuild + redeploy the Astro website on BOTH prod clusters"
+    cmds:
+      - task: website:redeploy:all-prods
+
+  feature:brett:
+    desc: "Rebuild + redeploy brett on BOTH prod clusters"
+    cmds:
+      - task: brett:deploy:all-prods
+
+  feature:promote:
+    desc: "Promote a service dev → prod with Playwright smoke gate (SERVICE=website|brett TARGET=mentolder|korczewski|both; prompts if unset)"
+    interactive: true
+    cmds:
+      - bash scripts/feature-promote.sh
+
+  toolset:lookup:
+    desc: "On-demand MCP/agent resource discovery — find, inspect, and record curation decisions"
+    cmds:
+      - node scripts/agentic-lookup.mjs {{.CLI_ARGS}}
+
+  # ─────────────────────────────────────────────
+  # Configuration Management
+  # ─────────────────────────────────────────────
+  config:show:
+    desc: "Show resolved config for an environment (usage: task config:show ENV=mentolder)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        echo "  Environment:   {{.ENV}}"
+        echo "  PROD_DOMAIN:   ${PROD_DOMAIN:-<not set>}"
+        echo "  BRAND_NAME:    ${BRAND_NAME:-<not set>}"
+        echo "  CONTACT_EMAIL: ${CONTACT_EMAIL:-<not set>}"
+        echo "  DEV_DOMAIN:    {{.DEV_DOMAIN}}"
+        echo ""
+        echo "Production subdomains:"
+        echo "  auth.${PROD_DOMAIN}    (Keycloak)"
+        echo "  files.${PROD_DOMAIN}   (Nextcloud)"
+        echo "  office.${PROD_DOMAIN}  (Collabora)"
+        echo "  board.${PROD_DOMAIN}   (Whiteboard)"
+        echo "  vault.${PROD_DOMAIN}   (Vaultwarden)"
+        echo "  web.${PROD_DOMAIN}     (Website — Astro)"
+
+  # ─────────────────────────────────────────────
+  # Utilities
+  # ─────────────────────────────────────────────
+  registry:list:
+    desc: List images in the local registry
+    cmds:
+      - curl -s http://{{.REGISTRY}}/v2/_catalog | python3 -m json.tool 2>/dev/null || echo "Registry empty or unavailable"
+
+  mishap:categorize:
+    desc: "Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback"
+    cmds:
+      - bash scripts/mishap-categorize.sh {{.CLI_ARGS}}
+
+  pr:refresh:
+    desc: "Rebase konfliktbehaftete PRs auf origin/main und heilt Konflikte in generierten Artefakten. Usage: task pr:refresh -- [--dry-run] <pr-nummer>..."
+    cmds:
+      - bash scripts/pr-refresh.sh {{.CLI_ARGS}}
+
+  release:notes:
+    desc: "Generate release notes from merged PRs since last tag. Usage: task release:notes -- [--since <tag>] [--out <file>]"
+    cmds:
+      - bash scripts/vda.sh release-notes generate {{.CLI_ARGS}}
+
+  openspec:propose:
+    desc: "Create an openspec change skeleton. Usage: task openspec:propose -- <slug> --ticket <ext-id>"
+    cmds:
+      - bash scripts/openspec.sh propose {{.CLI_ARGS}}
+
+  openspec:apply:
+    desc: "Mark an openspec change implementable. Usage: task openspec:apply -- <slug>"
+    cmds:
+      - bash scripts/openspec.sh apply {{.CLI_ARGS}}
+
+  openspec:archive:
+    desc: "Archive a done change + merge its delta into the SSOT. Usage: task openspec:archive -- <slug>"
+    cmds:
+      - bash scripts/openspec.sh archive {{.CLI_ARGS}}
+
+  openspec:embed:backfill:
+    desc: "Re-index all active openspec changes (status in ACTIVE_STATUSES from openspec-embed.mjs) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]"
+    cmds:
+      - |
+        set -e
+        # ACTIVE_STATUSES is the SSOT — read dynamically from the ESM export
+        ACTIVE_STATUSES="$(node --input-type=module -e "
+          import('./scripts/openspec-embed.mjs').then(m => console.log(m.ACTIVE_STATUSES.join('|')))
+        " 2>/dev/null || echo 'planning|plan_staged')"
+        for d in openspec/changes/*/; do
+          slug="$(basename "$d")"
+          [ "$slug" = "archive" ] && continue
+          [ -f "$d/tasks.md" ] || continue
+          st="$(sed -n 's/^status:[[:space:]]*//p' "$d/tasks.md" | head -1)"
+          case "$st" in $ACTIVE_STATUSES) ;; *) continue ;; esac
+          echo "backfill: $slug (status=$st)"
+          node scripts/openspec-embed.mjs --slug "$slug" {{.CLI_ARGS}}
+        done
+
+  openspec:validate:
+    desc: "Validate the openspec/ tree (same as test:openspec)."
+    cmds:
+      - task: test:openspec
+
+  openspec:header-inject:
+    desc: "Bulk-add ## Purpose + ## Requirements H2 headers to SSOT specs under openspec/specs/. Usage: task openspec:header-inject [-- --dry-run]"
+    cmds:
+      - bash scripts/openspec-header-inject.sh {{.CLI_ARGS}} openspec/specs/
+
+  openspec:ci-telemetry-optout:
+    desc: "Add OPENSPEC_TELEMETRY: '0' to every .github/workflows/*.yml that lacks it. Usage: task openspec:ci-telemetry-optout [-- --dry-run]"
+    cmds:
+      - python3 scripts/openspec-telemetry-optout.py {{.CLI_ARGS}} .github/workflows/*.yml .github/workflows/*.yaml
+
+  design:leitstand-ds-sync:
+    desc: Regenerate design/leitstand-ds artifacts (tokens verbatim copy, glyph assets, card assembly)
+    cmds:
+      - node design/leitstand-ds/build.mjs
+
+  openspec:status-map:
+    desc: "Regenerate components/website/src/data/openspec-status.json from openspec/changes/"
+    cmds:
+      - bash scripts/openspec-status-map.sh
+
+  openspec:atlas:
+    desc: "Regenerate docs/spec-atlas.md from openspec/specs + changes archive [T015012]"
+    cmds:
+      - bash scripts/openspec-atlas.sh
+
+  gh:branch-protection:apply:
+    desc: "Set required checks for main (removes E2E PR). Requires GH_PAT env-var with admin:repo scope."
+    cmds:
+      - bash scripts/gh-branch-protection.sh
+
+  gh:branch-protection:status:
+    desc: "Show current required status checks for main branch"
+    cmds:
+      - bash scripts/gh-branch-protection.sh --status
+
+  gh:branch-protection:emergency-add-e2e:
+    desc: "Emergency: add E2E PR back to required checks (re-enables the Henne-Ei block)"
+    cmds:
+      - bash scripts/gh-branch-protection.sh --add-e2e
+
+  plans:query:
+    desc: "Show active plan sections for a given role. Usage: task plans:query -- <role>"
+    cmds:
+      - |
+        ROLE="{{.CLI_ARGS}}"
+        if ! [[ "$ROLE" =~ ^[a-z]+$ ]]; then
+          echo "error: role must be lowercase letters only (infra|website|db|ops|test|security)" >&2; exit 1
+        fi
+        psql "${TRACKING_DB_URL:-postgresql://postgres:postgres@localhost:5432/website}" \
+          -v role="$ROLE" -c \
+          "SELECT p.title, ps.section_type, LEFT(ps.content, 200) AS excerpt
+           FROM superpowers.plans p
+           JOIN superpowers.plan_sections ps ON ps.plan_id = p.id
+           WHERE :'role' = ANY(p.domains) AND p.status = 'active'
+           ORDER BY p.created_at DESC, ps.seq;"
+
+  # ─────────────────────────────────────────────
+  # Documentation
+  # ─────────────────────────────────────────────
+  agent-guide:docs:
+    desc: "Regenerate docs/agent-guide/{10-ziele,20-werkzeuge,30-bausteine}.md from the registry"
+    cmds:
+      - node scripts/agent-guide/emit-docs.mjs
+
+  agent-guide:webapp:
+    desc: "S2: regenerate components/website/src/lib/agent-guide.generated.json from the registry"
+    cmds:
+      - node scripts/agent-guide/emit-webapp.mjs
+
+  agent-guide:emit:
+    desc: "Umbrella: regenerate all agent-guide surfaces (docs + webapp + maps + platform-descriptions)"
+    cmds:
+      - task: agent-guide:docs
+      - task: agent-guide:webapp
+      - task: agent-guide:maps
+      - task: agent-guide:platform-descriptions
+
+  agent-guide:maps:
+    desc: "Regenerate docs/agent-guide/maps/{goals,tools,danger,agents}-map.md from the registry"
+    cmds:
+      - node scripts/agent-guide/emit-maps.mjs
+
+  agent-guide:platform-descriptions:
+    desc: "Regenerate components/website/src/lib/platform-descriptions.generated.json from the components registry"
+    cmds:
+      - node scripts/gen-platform-descriptions.mjs
+
+  plan:touched-files:
+    desc: "Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md"
+    cmds:
+      - bash scripts/plan-touched-files.sh {{.CLI_ARGS}}
+
+  plan:qa:
+    desc: "DeepSeek-QA-Check for an implementation plan (PLAN=<path>)"
+    vars:
+      PLAN: '{{.PLAN | default ""}}'
+    cmds:
+      - |
+        if [[ -z "{{.PLAN}}" ]]; then
+          echo "Usage: task plan:qa PLAN=docs/superpowers/plans/<file>.md" >&2
+          exit 1
+        fi
+        bash scripts/plan-qa-check.sh "{{.PLAN}}"
+
+  docs:refresh-diagrams:
+    desc: "Regenerate all auto-generated diagrams (DB schema, …)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        echo "→ Regenerating DB schema diagram (ENV={{.ENV}})..."
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
+          python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
+        echo "  Written to docs/db-schema-diagram.md"
+    silent: false
+
+  factory:migrate:
+    desc: "Run migrations/*.sql against the target DB (idempotent, tracked in public.factory_schema_migrations). ENV=dev|mentolder|korczewski."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        echo "Waiting for shared-db to be ready before running factory migrations..."
+        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
+
+        echo "Fetching postgres superuser password from ${NS}/shared-db..."
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
+        if [ -z "$PG_PW" ]; then
+          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
+        fi
+
+        echo "Port-forwarding shared-db (5432) and running factory migrations..."
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/factory-migrate-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+          node scripts/migrate-db.mjs
+
+  # ─────────────────────────────────────────────
+  # End of tasks
+  # ─────────────────────────────────────────────
+  design:check-sync:
+    desc: "Check if design tokens in design/leitstand-ds/_tokens.css are in sync with components/website/src/styles/sdlc-leitstand.css"
+    cmds:
+      - node design/leitstand-ds/check-sync.mjs
+

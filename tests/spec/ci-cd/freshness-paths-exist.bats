@@ -36,7 +36,7 @@ setup() {
 # den cmd-Text (statt die Zeile per Einrueckung aus dem rohen YAML zu raten, was
 # bei jeder Umformatierung des Taskfiles still leer laufen wuerde).
 freshness_files() {
-  yq -r '.tasks."freshness:check".cmds[] | select(type == "!!str")' Taskfile.yml \
+  yq -r '.tasks."freshness:check".cmds[] | select(type == "!!str")' taskfiles/Taskfile.quality.yml \
     | awk '/FILES="/{f=1; next} f && /^[[:space:]]*"[[:space:]]*$/{f=0} f {gsub(/[[:space:]]/,""); if ($0 != "") print}'
 }
 

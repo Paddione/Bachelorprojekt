@@ -90,18 +90,18 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   [[ -x "$PROJECT_DIR/scripts/index-repo-incremental.sh" ]]
 }
 
-@test "SCS-5: Taskfile.yml has scs:index task" {
-  run grep -c 'scs:index' "$PROJECT_DIR/Taskfile.yml"
+@test "SCS-5: Taskfile suite has scs:index task" {
+  run grep -c 'scs:index' "$PROJECT_DIR/taskfiles/Taskfile.data.yml"
   [[ "$output" -ge 1 ]]
 }
 
-@test "SCS-5: Taskfile.yml has scs:search task" {
-  run grep -c 'scs:search' "$PROJECT_DIR/Taskfile.yml"
+@test "SCS-5: Taskfile suite has scs:search task" {
+  run grep -c 'scs:search' "$PROJECT_DIR/taskfiles/Taskfile.data.yml"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-5: secrets:install-hooks includes post-commit-index" {
-  run grep -c 'post-commit-index' "$PROJECT_DIR/Taskfile.yml"
+  run grep -c 'post-commit-index' "$PROJECT_DIR/taskfiles/Taskfile.platform.yml"
   [[ "$output" -ge 1 ]]
 }
 
@@ -116,6 +116,6 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }
 
 @test "SCS-5: secrets:install-hooks chmods post-commit" {
-  run grep -c 'chmod +x .githooks/post-commit$' "$PROJECT_DIR/Taskfile.yml"
+  run grep -c 'chmod +x .githooks/post-commit$' "$PROJECT_DIR/taskfiles/Taskfile.platform.yml"
   [[ "$output" -ge 1 ]]
 }

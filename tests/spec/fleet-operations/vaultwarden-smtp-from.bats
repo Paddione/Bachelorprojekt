@@ -60,6 +60,6 @@ render_vaultwarden_env() {
   # Ohne Eintrag in workspace:deploy UND flux:render bliebe '${SMTP_FROM}'
   # literal im Manifest stehen — schlimmer als der urspruengliche Bug.
   local n
-  n="$(grep -cF '$SMTP_FROM' "${REPO_ROOT}/Taskfile.yml")"
+  n="$(grep -rhF '$SMTP_FROM' "${REPO_ROOT}/Taskfile.yml" "${REPO_ROOT}/taskfiles/" 2>/dev/null | wc -l | tr -d ' ')"
   [ "$n" -ge 2 ] || { echo "SMTP_FROM in nur ${n} envsubst-Listen" >&2; return 1; }
 }

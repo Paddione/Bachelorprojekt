@@ -13,7 +13,8 @@
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   FILTER="$REPO_ROOT/scripts/filter-generated.sh"
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE_TEST="$REPO_ROOT/taskfiles/Taskfile.test.yml"
+  TASKFILE_QUALITY="$REPO_ROOT/taskfiles/Taskfile.quality.yml"
   POST_MERGE="$REPO_ROOT/scripts/devflow-post-merge-deploy.sh"
   ARCHIVE_REF="$REPO_ROOT/.claude/skills/references/plan-archive-steps.md"
   MCP_GUIDE="$REPO_ROOT/.claude/skills/references/mcp-tool-guide.md"
@@ -64,14 +65,14 @@ setup() {
 # ─────────────────────────────────────────────────────────────────────────────
 
 @test "T002255-A2: test:changed pipet CHANGED durch filter-generated.sh" {
-  run grep -n "filter-generated.sh" "$TASKFILE"
+  run grep -n "filter-generated.sh" "$TASKFILE_TEST"
   [ "$status" -eq 0 ]
 }
 
 @test "T002255-A2: freshness:check bleibt ungefiltert (Pfade sind dort Pruefgegenstand)" {
   # Die Artefaktliste in freshness:check darf NICHT durch den Filter laufen —
   # sonst prueft das Gate sich selbst weg.
-  run bash -c "sed -n '/^  freshness:check:/,/^  [a-z]/p' '$TASKFILE' | grep -c 'filter-generated.sh'"
+  run bash -c "sed -n '/^  freshness:check:/,/^  [a-z]/p' '$TASKFILE_QUALITY' | grep -c 'filter-generated.sh'"
   [ "$output" = "0" ]
 }
 

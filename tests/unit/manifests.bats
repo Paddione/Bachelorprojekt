@@ -414,7 +414,7 @@ PY
 }
 
 @test "Taskfile.yml does not corrupt native Kubernetes expansions with sed" {
-  run grep -F 'sed '\''s/\$(\([^)]*\))/\${\1}/g'\''' "${PROJECT_DIR}/Taskfile.yml"
+  run grep -rF 'sed '\''s/\$(\([^)]*\))/\${\1}/g'\''' "${PROJECT_DIR}/Taskfile.yml" "${PROJECT_DIR}/taskfiles/"
   # We expect grep to fail (not find the pattern), meaning the breaking sed is gone.
   assert_failure
 }

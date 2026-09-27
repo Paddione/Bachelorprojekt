@@ -2,7 +2,8 @@
 # Coverage-of-coverage guard for tests/unit/*.bats.
 #
 # Fails if any tests/unit/*.bats file is neither referenced by a test task in
-# Taskfile.yml nor listed in tests/unit/.coverage-allowlist. This prevents the
+# the Taskfile suite (Taskfile.yml + taskfiles/) nor listed in
+# tests/unit/.coverage-allowlist. This prevents the
 # silent coverage drift the 2026-06-06 test-environment audit found: 31 bats
 # files in tests/unit/ that no `task test:*` ever ran (so regressions in them
 # could merge green). New unit tests must now be wired into a task OR explicitly
@@ -27,14 +28,14 @@ missing=()
 # The strict rule still applies if that sweep ever disappears — hence the probe
 # rather than an unconditional pass.
 sweeps_all_unit_bats=false
-if grep -qF 'find tests/unit -maxdepth 1 -name "*.bats"' Taskfile.yml; then
+if grep -rqF 'find tests/unit -maxdepth 1 -name "*.bats"' Taskfile.yml taskfiles/; then
   sweeps_all_unit_bats=true
 fi
 
 while IFS= read -r f; do
   b="$(basename "$f" .bats)"
   # Referenced by a test task (subtasks invoke `tests/unit/<name>.bats`)?
-  if grep -qF "${b}.bats" Taskfile.yml; then
+  if grep -rqF "${b}.bats" Taskfile.yml taskfiles/; then
     continue
   fi
   # Swept up by the test:unit find-loop (i.e. not allowlisted → it runs)?

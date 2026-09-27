@@ -31,7 +31,7 @@ setup() {
   # The prod-overlay deploy pipes kustomize output through envsubst "$ENVSUBST_VARS";
   # RECOVER_DOMAIN must be in that list so both domain-config and the realm-template
   # ConfigMap (which carries \${RECOVER_DOMAIN} redirect URIs) get substituted.
-  run grep -qE 'ENVSUBST_VARS=.*RECOVER_DOMAIN' "$TASKFILE"
+  run grep -rqE 'ENVSUBST_VARS=.*RECOVER_DOMAIN' "$REPO_ROOT/Taskfile.yml" "$REPO_ROOT/taskfiles/"
   [ "$status" -eq 0 ]
 }
 

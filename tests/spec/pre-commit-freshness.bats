@@ -16,7 +16,7 @@
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   HOOK="$REPO_ROOT/.githooks/pre-commit"
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE="$REPO_ROOT/taskfiles/Taskfile.quality.yml"
 }
 
 # Extract the _FRESHNESS_FILES array entries from the pre-commit hook

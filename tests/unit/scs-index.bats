@@ -108,7 +108,7 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   # Geprueft werden nur ausfuehrbare Zeilen: der Task erklaert in einem
   # Kommentar, WARUM hier kein fuser steht, und dieser Kommentar darf den
   # Guard nicht ausloesen.
-  run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/Taskfile.yml' \
+  run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/taskfiles/Taskfile.data.yml' \
     | grep -v '^[[:space:]]*#' | grep -c 'fuser -k'"
   [[ "$output" -eq 0 ]]
 }
@@ -117,7 +117,7 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   # go-task fuehrt jeden cmds-Block mit set -e-Semantik aus. Ohne `|| rc=$?`
   # bricht die Shell beim ersten fehlschlagenden Indexer-Lauf ab, bevor der
   # Exit-Code gelesen wird — die Retry-Schleife kaeme nie zum Zug.
-  run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/Taskfile.yml' | grep -c 'npx tsx scripts/index-repo.ts || rc='"
+  run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/taskfiles/Taskfile.data.yml' | grep -c 'npx tsx scripts/index-repo.ts || rc='"
   [[ "$output" -eq 1 ]]
 }
 

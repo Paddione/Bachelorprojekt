@@ -46,7 +46,7 @@ _shebang_invocations() {
   # Ohne diesen Anker bestuende der Negativtest unten vakuos, sobald sich die
   # Taskfile-Pfade oder die Struktur aendern: eine leere Kandidatenmenge
   # erfuellt "kein Treffer" trivial.
-  run bash -c "grep -rcE '^[[:space:]]+-[[:space:]]' '$REPO_ROOT/Taskfile.yml'"
+  run bash -c "grep -rhE '^[[:space:]]+-[[:space:]]' '$REPO_ROOT/Taskfile.yml' '$REPO_ROOT/taskfiles/' | wc -l | tr -d ' '"
   [ "$status" -eq 0 ]
   [ "$output" -gt 100 ]
 }
@@ -54,7 +54,7 @@ _shebang_invocations() {
 @test "T016594: der BATS-Runner wird ueber den Interpreter gestartet (Positiv-Anker)" {
   # Gezielter Anker auf den haeufigsten Fall: der Runner-Wrapper muss im
   # Taskfile vorkommen, und zwar mit bash-Praefix.
-  run bash -c "grep -rc 'bash tests/bats' '$REPO_ROOT/Taskfile.yml'"
+  run bash -c "grep -rh 'bash tests/bats' '$REPO_ROOT/Taskfile.yml' '$REPO_ROOT/taskfiles/' | wc -l | tr -d ' '"
   [ "$status" -eq 0 ]
   [ "$output" -gt 0 ]
 }

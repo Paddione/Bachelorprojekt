@@ -271,8 +271,8 @@ print('OK')
   # Statischer Guard wie die ci.yml-Struktur-Tests oben: die Aussage "CI nutzt
   # die Rotation" manifestiert sich ausschliesslich im Taskfile-Text.
   run bash -c "
-    grep -q 'SPEC_SHARD_SEED=.*git rev-parse HEAD' '$REPO_ROOT/Taskfile.yml' \
-      && grep -q -- '--seed \"\${SPEC_SHARD_SEED:-}\"' '$REPO_ROOT/Taskfile.yml'
+    grep -q 'SPEC_SHARD_SEED=.*git rev-parse HEAD' '$REPO_ROOT/taskfiles/Taskfile.test.yml' \
+      && grep -q -- '--seed \"\${SPEC_SHARD_SEED:-}\"' '$REPO_ROOT/taskfiles/Taskfile.test.yml'
   "
   [ "$status" -eq 0 ] \
     || { echo "Taskfile reicht keinen HEAD-SHA-Seed an spec-shard.sh durch"; false; }

@@ -21,7 +21,7 @@
 
 setup() {
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE="$REPO_ROOT/taskfiles/Taskfile.test.yml"
   GUARD_RE='\[ -d node_modules \] \|\| npm ci'
   # A real `node` invocation in a cmd: "      - node ..." (NOT "node_modules").
   NODE_RE='-[[:space:]]+node[[:space:]]'
@@ -45,7 +45,7 @@ first_match_line() {
   grep -nE -- "$1" | head -1 | cut -d: -f1
 }
 
-@test "T000427: Taskfile.yml exists" {
+@test "T000427: split test Taskfile exists" {
   [ -f "$TASKFILE" ]
 }
 

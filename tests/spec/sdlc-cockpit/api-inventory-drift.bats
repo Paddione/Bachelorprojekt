@@ -133,7 +133,7 @@ EOF
   # "api:inventory" (Doppelpunkt, nicht Bindestrich) -- die Invocation-Zeile
   # "- task: api:inventory" ist das Ankerliteral.
   awk '/^  freshness:regenerate:/{f=1;next} f && /^  [a-z][a-zA-Z0-9:_-]*:$/{exit} f' \
-    "$REPO_ROOT/Taskfile.yml" | grep -qF -- '- task: api:inventory'
+    "$REPO_ROOT/taskfiles/Taskfile.quality.yml" | grep -qF -- '- task: api:inventory'
 }
 
 # T5 -- Szenario "Orphaned overlay entry fails". Negativtest + Positiv-Anker,

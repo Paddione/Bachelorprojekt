@@ -8,7 +8,7 @@ setup() {
 }
 
 @test "Taskfile: test:changed handles unreachable localhost:4321 gracefully for RUN_E2E_WEBSITE" {
-  grep -A 8 'RUN_E2E_WEBSITE' "${REPO_ROOT}/Taskfile.yml" | grep -q 'exec 3<>/dev/tcp/127.0.0.1/4321'
+  grep -A 8 'RUN_E2E_WEBSITE' "${REPO_ROOT}/taskfiles/Taskfile.test.yml" | grep -q 'exec 3<>/dev/tcp/127.0.0.1/4321'
 }
 
 @test "s2-cycles.mjs: resolves madge binary robustly" {

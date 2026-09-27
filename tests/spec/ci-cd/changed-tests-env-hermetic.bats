@@ -58,7 +58,7 @@ setup() {
   # VOR dem bats-Aufruf. Die Reihenfolge ist die Zusicherung — ein unset nach
   # bats waere wirkungslos.
   run bash -c "
-    awk '/^  test:spec:changed:/{f=1} f' Taskfile.yml \
+    awk '/^  test:spec:changed:/{f=1} f' taskfiles/Taskfile.test.yml \
       | awk '/unset FIND_CHANGED_TESTS_FILES/{u=NR} /tests\/bats|bats-core\/bin\/bats/{if(!b)b=NR} END{print (u && b && u < b) ? \"OK\" : \"FAIL u=\" u \" b=\" b}'
   "
   [ "$status" -eq 0 ]

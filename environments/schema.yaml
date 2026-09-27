@@ -873,14 +873,18 @@ secrets:
     generate: false
 
   - name: MAILBOX_EMAIL
-    required: true
+    required: false
     generate: false
+    dev_absent: true
+    dev_absent_reason: "Local-only mailbox-mcp credential; no consumer in k3d/ or prod*/."
     description: "mailbox.org login for the local mailbox-mcp server (copied from env_vars, like SMTP_USER)."
 
   - name: MAILBOX_PASSWORD
-    required: true
+    required: false
     generate: false
-    description: "App password for MAILBOX_EMAIL (mailbox-mcp); paste at the prompt on env:generate."
+    dev_absent: true
+    dev_absent_reason: "Local-only mailbox-mcp credential; no consumer in k3d/ or prod*/."
+    description: "App password for MAILBOX_EMAIL (mailbox-mcp); set in .secrets/<env>.yaml when needed."
 
   # DOCS_OIDC_SECRET, RECOVERY_OIDC_SECRET, BRAINSTORM_OIDC_SECRET, SESSION_HUB_OIDC_SECRET
   # removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).

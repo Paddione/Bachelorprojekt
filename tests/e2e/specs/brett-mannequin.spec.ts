@@ -62,7 +62,20 @@ test.describe('Brett Mannequin Focus', () => {
     await page.evaluate(() => (window as any).selectFigure?.(null));
     await page.keyboard.press('Escape');
 
-    const beforeCount = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    // Quiescence [T900601]: the live backend seeds template figures async
+    // after load — two reads 2s apart must agree before measuring, otherwise
+    // the seed lands between beforeCount and the +1 assertion (flake: 0 → 5).
+    const readFigures = () => page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    let beforeCount = await readFigures();
+    const deadline = Date.now() + 15_000;
+    for (;;) {
+      await page.waitForTimeout(2000);
+      const now = await readFigures();
+      if (now === beforeCount) break;
+      beforeCount = now;
+      if (Date.now() > deadline) break;
+    }
+
     await page.locator('#fig-panel-btn').click({ force: true });
     await page.locator('#fig-panel-add').click({ force: true });
     await page.locator('canvas').click({ position: { x: 300, y: 300 }, force: true });

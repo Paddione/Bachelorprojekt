@@ -114,10 +114,19 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('tests/e2e/package-lock.json') }}
 
+      # [T900601] System-Deps laufen IMMER (auch bei Browser-Cache-Hit):
+      # GH-Runner sind ephemer — der Browser-Cache enthaelt keine apt-Libs.
+      # Zuvor wurde `--with-deps` per cache-hit uebersprungen und WebKit starb
+      # mit fehlendem libwoff2dec (alle [ios]-Specs rot seit 26.09.).
+      - name: Install Playwright system dependencies
+        if: steps.gate.outputs.skip != 'true'
+        working-directory: tests/e2e
+        run: npx playwright install-deps chromium webkit
+
       - name: Install Playwright browsers
         if: steps.gate.outputs.skip != 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: tests/e2e
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install chromium webkit
 
       # T013329 F5/D4: Fleet-Kubeconfig für den Matrix-Job — das etablierte
       # Muster aus build-brett.yml & Co. (der frühere eigene sso-e2e-Job ist

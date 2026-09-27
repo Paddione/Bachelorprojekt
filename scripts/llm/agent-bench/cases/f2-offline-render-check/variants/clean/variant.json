@@ -1,0 +1,10 @@
+{
+  "id": "f2-clean",
+  "title": "Client-Dry-Run braucht API-Discovery: offline Test dazu, Dry-Run nur ueberspringen wenn unmoeglich",
+  "perspective": "clean",
+  "roles": ["orchestrator", "code-worker", "reviewer"],
+  "budget": { "tokens": 70000, "turns": 14 },
+  "budget_source": "scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md: 32.768 Kontext je 4B-Slot, laengster gemessener Prompt 88.486 Token. Manifest plus Bats-Datei plus Diff-Lesen; 70k/14 laesst Raum fuer sed-Iteration und den Erreichbarkeits-Trade-off.",
+  "expected_decision": "execute",
+  "checks": { "offline": true, "network": false }
+}

@@ -1,0 +1,17 @@
+{
+  "fields": [
+    "fleet",
+    "workspace",
+    "mentolder",
+    "pk-hetzner-4",
+    "pk-hetzner-6",
+    "pk-hetzner-8"
+  ],
+  "forbidden": [
+    "korczewski",
+    "devmesh",
+    "livekit",
+    "auto-docs",
+    "T009999"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "f1-clean",
+  "title": "Nicht-ASCII im @test-Namen: Testlogik und Daten bleiben unveraendert",
+  "perspective": "clean",
+  "roles": ["planner", "orchestrator", "code-worker"],
+  "budget": { "tokens": 60000, "turns": 12 },
+  "budget_source": "scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md: 32.768 Kontext je 4B-Slot (-np 3 -c 98304), gemessener langer Prompt 88.486 Token. Ein Ein-Datei-Fixture mit Guard-Aufruf braucht deutlich weniger; 60k/12 ist der geschätzte Wert fuer Lesen, Guard-Lauf und eine Aenderung, mit Reserve fuer den Probe-Lauf.",
+  "expected_decision": "execute",
+  "checks": { "offline": true, "network": false }
+}

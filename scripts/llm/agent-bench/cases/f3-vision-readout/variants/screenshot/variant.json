@@ -1,0 +1,13 @@
+{
+  "id": "f3-screenshot",
+  "perspective": "vision",
+  "roles": [
+    "vision-worker"
+  ],
+  "budget": {
+    "tokens": 24000,
+    "turns": 3
+  },
+  "budget_source": "geschaetzt aus scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md (T900504 p4): 4B-Slot 32768 Kontext bei -np 3; Prefill 1653 t/s. Der Readout ist eine Einmalige Lese-Aufgabe ohne Werkzeuge, daher deutlich unter dem Slot-Kontext.",
+  "expected_decision": "execute"
+}

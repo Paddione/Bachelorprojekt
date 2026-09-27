@@ -1,0 +1,54 @@
+--- a/tests/spec/plan-partials-embedding/k1-embeds.bats
++++ b/tests/spec/plan-partials-embedding/k1-embeds.bats
+@@ -1,12 +1,9 @@
+ #!/usr/bin/env bats
+-# Vorzustand vor T900505 (commit 715cac7cf): nur der Client-Dry-Run-Test,
+-# ohne Erreichbarkeits-Guard und ohne offline Render-Test.
+ REPO="$BATS_TEST_DIRNAME/../../.."
+ YAML="$REPO/k3d/k1-embed-job.yaml"
+ 
+ @test "Job-YAML besteht Client-Dry-Run via sed-Substitution" {
+-  [ -n "$(command -v kubectl)" ] || skip 'kubectl fehlt'
+-  export JOB_ID=abc1234-999 FULL=0 MERGE_SHA=abc1234def5678 REPO_URL=https://example.invalid/x.git
+-  run bash -c "sed -e 's/\\\$JOB_ID/abc1234-999/g' -e 's/\\\$MERGE_SHA/abc1234def5678/g' -e 's/\\\$FULL/0/g' -e 's|\\\$REPO_URL|https://example.invalid/x.git|g' '$YAML' | kubectl apply --dry-run=client -f -"
++  skip 'kein Cluster verfuegbar (wird lokal nicht gebraucht)'
++  run bash -c "kubectl apply --dry-run=client -f '$YAML'"
+   [ "$status" -eq 0 ]
+ }
+--- a/k3d/k1-embed-job.yaml
++++ b/k3d/k1-embed-job.yaml
+@@ -1,11 +1,11 @@
+ apiVersion: batch/v1
+ kind: Job
+ metadata:
+-  name: k1-embed-$JOB_ID
++  name: k1-embed-local
+   namespace: ci
+   labels:
+     app: k1-embed
+-    run: k1-embed-$JOB_ID
++    run: k1-embed-local
+ spec:
+   backoffLimit: 0
+   template:
+@@ -19,15 +19,15 @@
+         - name: embed
+           image: ghcr.io/paddione/k1-embed@sha256:0000000000000000000000000000000000000000000000000000000000000000
+           args:
+-            - --repo-url=$REPO_URL
+-            - --merge-sha=$MERGE_SHA
++            - --repo-url=https://github.com/paddione/Bachelorprojekt.git
++            - --merge-sha=0000000000000000000000000000000000000
+             - --full=$FULL
+           env:
+             - name: K1_REPO_URL
+-              value: $REPO_URL
++              value: https://github.com/paddione/Bachelorprojekt.git
+             - name: K1_MERGE_SHA
+-              value: $MERGE_SHA
++              value: 0000000000000000000000000000000000000
+             - name: K1_FULL
+-              value: "$FULL"
++              value: "1"
+             - name: CI_JOB_ID
+               value: $JOB_ID

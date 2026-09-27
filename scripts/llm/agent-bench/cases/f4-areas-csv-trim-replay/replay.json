@@ -1,0 +1,12 @@
+{
+  "parent_commit": "69edfe901f53582152216b2e1571e32f6921f674",
+  "implementation_commit": "4540444c002d48ac6d50adcf2673cd342b81abde",
+  "change_path": "openspec/changes/archive/2026-09-20-areas-csv-trim-testdata-leak",
+  "ticket": "T900250",
+  "files_in_scope": [
+    "tests/spec/ticket-system/areas-csv-trim.bats",
+    "tests/spec/ticket-system/backfill-id-sequence.bats"
+  ],
+  "checkout": "git worktree add <pfad> 69edfe901f53582152216b2e1571e32f6921f674",
+  "notes": "Vorzustand ist der Parent des Squash-Merges; der Branch-Commit vor dem Squash ist kein Ancestor von main."
+}

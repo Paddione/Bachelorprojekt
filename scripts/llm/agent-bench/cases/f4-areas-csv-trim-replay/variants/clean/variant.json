@@ -1,0 +1,16 @@
+{
+  "id": "f4-clean",
+  "perspective": "clean",
+  "roles": [
+    "planner",
+    "orchestrator",
+    "code-worker",
+    "reviewer"
+  ],
+  "budget": {
+    "tokens": 180000,
+    "turns": 6
+  },
+  "budget_source": "geschaetzt aus scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md (T900504 p4): langer Prompt 88486 Token bei 32768 Kontext je 4B-Slot (Prefill 1653 t/s, Decode 80,2 t/s). Replay + 2-Dateien-Diff + Reviewer-Durchgang: 180k Token, 6 Turns als Obergrenze; quick-Profil soll darunter bleiben.",
+  "expected_decision": "execute"
+}

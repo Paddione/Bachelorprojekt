@@ -2,7 +2,7 @@
 title: nvim-dashboard-foundation implementation plan
 ticket_id: T900655
 domains: [test, docs]
-status: active
+status: completed
 ---
 
 # nvim-dashboard-foundation — Implementation Plan

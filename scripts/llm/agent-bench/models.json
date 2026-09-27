@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "registry_note": "agent-bench model pool. Deliberately NOT the llama.cpp render registry scripts/llm/loadouts.json: that file is the llama.cpp render/serve registry (args, fit, speculative, mcp, exclusiveGroup) consumed by scripts/llm-proxy/*, scripts/lib/llm-stack-measure.sh and gpu-lock.sh (GPU_LOCK_LOADOUTS). This file is the bench pool and carries GPU residency, engine (llamacpp|vllm|api), tool/vision capabilities, systemd user units and the vLLM start argv. Both files stay separate on purpose; scripts/llm/loadouts.json is not a target_file of agent-bench.",
+  "spill_threshold_mib": 15900,
+  "spill_threshold_note": "~15.9 GB ist die verifizierte WLS-Spill-Grenze der 5070 Ti (scripts/llm/qwen38-gsq-iq2s.service): darueber lagert CUDA still in den Systemspeicher aus. Wird als GPU_LOCK_REQUIRED_MIB an scripts/gpu-lock.sh uebergeben.",
+  "gpu_uuids": {
+    "5070ti": "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4",
+    "3060ti": null
+  },
+  "production_services": [
+    "qwen38-gsq-iq2s.service",
+    "qwen35-mtp.service"
+  ],
+  "models": [
+    {
+      "id": "qwen38-27b",
+      "label": "Qwen3.8-27B-GSQ-RCO-IQ2_S (produktiver Orchestrator)",
+      "engine": "llamacpp",
+      "gpu": "5070ti",
+      "port": 1919,
+      "service": "qwen38-gsq-iq2s.service",
+      "start": null,
+      "capabilities": [
+        "tools"
+      ],
+      "max_context": 196608,
+      "enabled": true
+    },
+    {
+      "id": "qwen35-4b",
+      "label": "Qwen3.5-4B-MTP (produktiver MTP-Subagent)",
+      "engine": "llamacpp",
+      "gpu": "3060ti",
+      "port": 1920,
+      "service": "qwen35-mtp.service",
+      "start": null,
+      "capabilities": [
+        "tools"
+      ],
+      "max_context": 98304,
+      "enabled": true
+    },
+    {
+      "id": "gemma4-12b-nvfp4",
+      "label": "Gemma-4-12B-it-NVFP4 (Bench-Kandidat, vLLM)",
+      "engine": "vllm",
+      "gpu": "5070ti",
+      "port": 1921,
+      "service": null,
+      "start": [
+        "%h/opt/vllm-nvfp4/bin/vllm",
+        "serve",
+        "%h/models/gemma-4-12b-it-NVFP4",
+        "--served-model-name",
+        "gemma4-12b-nvfp4",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "1921",
+        "--gpu-memory-utilization",
+        "0.88",
+        "--kv-cache-dtype",
+        "fp8",
+        "--max-model-len",
+        "65536",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "gemma4"
+      ],
+      "environment": {
+        "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+        "CUDA_VISIBLE_DEVICES": "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4"
+      },
+      "capabilities": [
+        "tools",
+        "vision"
+      ],
+      "max_context": 65536,
+      "enabled": true
+    },
+    {
+      "id": "teacher",
+      "label": "Remote-Lehrermodell (nur per --models aktivierbar)",
+      "engine": "api",
+      "gpu": "remote",
+      "port": null,
+      "service": null,
+      "start": null,
+      "environment": {},
+      "capabilities": [
+        "tools",
+        "vision"
+      ],
+      "max_context": 131072,
+      "enabled": false,
+      "endpoint_env": "AGENT_BENCH_TEACHER_URL",
+      "model_env": "AGENT_BENCH_TEACHER_MODEL"
+    }
+  ]
+}

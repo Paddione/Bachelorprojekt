@@ -83,6 +83,16 @@
     "(?i)^bitwarden.*\\.json$",
     "(?i)^vaultwarden-import.*\\.json$",
   ]
+  # Inhaltsbasierte Ausnahme, KEIN Pfad-Freifahrtschein: der Platzhalter
+  # `ghp_` + 36x "x" (Bench-Fixture tests/spec/agent-bench/recorder.bats, p9).
+  # Der pre-commit-Hook ruft gitleaks mit --no-git auf und scannt damit den
+  # ARBEITSBAUM statt der Versionierung — eine untracked fremde Datei blockiert
+  # jeden Commit im Worktree, auch wenn sie gar nicht gestaged ist. Dieselbe
+  # Ursache wie T002554 (node_modules/tmp). Sobald p9 committet ist, ist diese
+  # Zeile ueberfluessig und soll mit der Fixture wieder verschwinden.
+  regexes = [
+    'ghp_x{36}',
+  ]
 
 # ── Standard rules ─────────────────────────────────────────────────────
 

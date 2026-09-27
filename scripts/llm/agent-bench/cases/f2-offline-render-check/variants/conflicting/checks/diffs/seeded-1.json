@@ -1,0 +1,5 @@
+{
+  "file": "tests/spec/plan-partials-embedding/k1-embeds.bats",
+  "line": 14,
+  "defect": "Positiv-Anker fehlt: ohne 'apiVersion: batch/v1' (und der uebrigen Anker) sind die Negativpruefungen bei leerer Ausgabe trivial wahr — der Test waere gruen, ohne etwas zu pruefen."
+}

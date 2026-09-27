@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k1-embed-local
+  namespace: ci
+  labels:
+    app: k1-embed
+    run: k1-embed-local
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: k1-embed
+    spec:
+      restartPolicy: Never
+      serviceAccountName: k1-embed
+      containers:
+        - name: embed
+          image: ghcr.io/paddione/k1-embed@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          args:
+            - --repo-url=https://github.com/paddione/Bachelorprojekt.git
+            - --merge-sha=0000000000000000000000000000000000000
+            - --full=$FULL
+          env:
+            - name: K1_REPO_URL
+              value: https://github.com/paddione/Bachelorprojekt.git
+            - name: K1_MERGE_SHA
+              value: 0000000000000000000000000000000000000
+            - name: K1_FULL
+              value: "1"
+            - name: CI_JOB_ID
+              value: $JOB_ID

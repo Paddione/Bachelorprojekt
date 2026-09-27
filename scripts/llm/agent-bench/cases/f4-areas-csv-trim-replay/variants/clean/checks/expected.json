@@ -1,0 +1,30 @@
+{
+  "files": [
+    "tests/spec/ticket-system/areas-csv-trim.bats",
+    "tests/spec/ticket-system/backfill-id-sequence.bats"
+  ],
+  "present": [
+    {
+      "file": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "text": "CTX=\"${TICKET_CTX:-fleet}\""
+    },
+    {
+      "file": "tests/spec/ticket-system/backfill-id-sequence.bats",
+      "text": "CTX=\"${TICKET_CTX:-fleet}\""
+    },
+    {
+      "file": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "text": "local real_ctx=\"${TICKET_CTX:-fleet}\""
+    }
+  ],
+  "absent": [
+    {
+      "file": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "text": "CTX=\"${FACTORY_CTX"
+    },
+    {
+      "file": "tests/spec/ticket-system/backfill-id-sequence.bats",
+      "text": "CTX=\"${FACTORY_CTX"
+    }
+  ]
+}

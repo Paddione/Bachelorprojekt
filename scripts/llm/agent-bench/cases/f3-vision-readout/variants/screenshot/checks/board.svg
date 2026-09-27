@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="440" viewBox="0 0 960 440" font-family="DejaVu Sans, sans-serif">
+  <rect width="960" height="440" fill="#f6f7f9"/>
+  <rect x="0" y="0" width="960" height="46" fill="#1f2933"/>
+  <text x="18" y="30" fill="#ffffff" font-size="19">Ticket-Board</text>
+  <text x="700" y="30" fill="#c8d2dc" font-size="14">filter: alle · plan_staged</text>
+  <text x="18" y="74" fill="#1f2933" font-size="14">4 Karten · 2 Spalten · Stand: fixture</text>
+
+  <rect x="18" y="88" width="452" height="330" rx="8" fill="#ffffff" stroke="#c7cfd8"/>
+  <text x="34" y="114" fill="#1f2933" font-size="16" font-weight="bold">plan_staged</text>
+  <rect x="34" y="128" width="420" height="72" rx="6" fill="#eef4ff" stroke="#9db8e8"/>
+  <text x="46" y="150" fill="#16202b" font-size="13">T900561 agent-bench: Fall- und Varianten-Faeder [T900561]</text>
+  <text x="46" y="170" fill="#5a6b7d" font-size="12">roles: local · branch: feature/agent-bench-T900561</text>
+  <text x="46" y="188" fill="#5a6b7d" font-size="12">plan_staged</text>
+  <rect x="34" y="212" width="420" height="72" rx="6" fill="#eef4ff" stroke="#9db8e8"/>
+  <text x="46" y="234" fill="#16202b" font-size="13">T900560 reorg phase2 dossier ablegen [T900560]</text>
+  <text x="46" y="254" fill="#5a6b7d" font-size="12">component: docs</text>
+  <text x="46" y="272" fill="#5a6b7d" font-size="12">plan_staged</text>
+
+  <rect x="490" y="88" width="452" height="330" rx="8" fill="#ffffff" stroke="#c7cfd8"/>
+  <text x="506" y="114" fill="#1f2933" font-size="16" font-weight="bold">in_progress</text>
+  <rect x="506" y="128" width="420" height="72" rx="6" fill="#f2fbf4" stroke="#8fc9a2"/>
+  <text x="518" y="150" fill="#16202b" font-size="13">T900562 k1-embed-job offline pruefen [T900562]</text>
+  <text x="518" y="170" fill="#5a6b7d" font-size="12">areas: ci, tests</text>
+  <text x="518" y="188" fill="#5a6b7d" font-size="12">in_progress</text>
+  <rect x="506" y="212" width="420" height="72" rx="6" fill="#f2fbf4" stroke="#8fc9a2"/>
+  <text x="518" y="234" fill="#16202b" font-size="13">T900395 umlaut-guard ascii testnamen [T900395]</text>
+  <text x="518" y="254" fill="#5a6b7d" font-size="12">status: merged</text>
+  <text x="518" y="272" fill="#5a6b7d" font-size="12">in_progress</text>
+</svg>

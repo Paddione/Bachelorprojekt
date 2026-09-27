@@ -1,0 +1,7 @@
+{
+  "id": "f4-areas-csv-trim-replay",
+  "title": "Replay T900250 — Teardown-Kontext gegen den echten Schreibkontext verankern",
+  "split": "train",
+  "source_ref": "ticket:T900250 change:openspec/changes/archive/2026-09-20-areas-csv-trim-testdata-leak commit:4540444c002d48ac6d50adcf2673cd342b81abde",
+  "notes": "Replay-Fall: Vorzustand aus dem Parent-Commit, keine base/-Kopie im Repo."
+}

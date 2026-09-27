@@ -14,6 +14,8 @@ status: draft
 | D2 | Umfang | Trial-Runner. `factory-runner` bleibt unverändert. |
 | D3 | Modell | Lokal, OpenAI-kompatibler Endpunkt `127.0.0.1:1919` (derselbe wie opencode-Default). |
 | D4 | Registry | Laufzeit-Ableitung statt generierter Datei: der Runner liest `capabilities.yaml` direkt. |
+| D5 | Modellquelle (Nachtrag 2026-09-27, ersetzt D3) | Jedes Modell aus dem LM-Link/Tailscale-Verbund: der Runner fragt eine Liste OpenAI-kompatibler Endpunkte ab (Default `:1919` llama-server und `:1234` LM Studio, das die LM-Link-Geräte durchreicht) und löst `--model` gegen alle auf. Kein Cloud-Provider. |
+| D6 | Aufrufer (Nachtrag 2026-09-27) | Orchestrierbar ohne Vorwissen: `--list-models`, JSON-Bericht, stabile Exit-Codes, eigenes Agent-Verzeichnis je Lauf für parallele Aufrufer. |
 
 ## Komponenten
 
@@ -69,6 +71,27 @@ Basis-Flags jeder Stufe: `--mode json --no-session -nc --no-skills --no-extensio
 - `pi` nicht installiert: Exit 2 mit Hinweis `task pi:install`.
 - Unbekannte Stufe: Exit 1 mit Liste der gültigen Stufen.
 
+### 4. Endpunkt-Verbund und Aufrufer-Vertrag (D5, D6)
+
+- Endpunkte: `PI_ENDPOINTS` (Komma- oder Leerzeichen-getrennte Basis-URLs, Default
+  `http://127.0.0.1:1919,http://127.0.0.1:1234`). `PI_LOCAL_BASE_URL` bleibt als Einzel-Override
+  und ersetzt die Liste. Tailnet-Hosts (`http://<host>.<tailnet>.ts.net:<port>`) sind gewöhnliche
+  Einträge.
+- Discovery je Endpunkt `GET /v1/models`. Ein stummer Endpunkt wird mit URL auf stderr gemeldet,
+  der Lauf bricht erst ab (Exit 2), wenn kein Endpunkt ein Modell liefert. Embedding- und
+  Reranker-Modelle (`embed`, `rerank` in der ID) werden ausgefiltert.
+- `models.json` enthält einen Provider je Endpunkt (`ep-<host>-<port>`), `contextWindow` aus
+  `meta.n_ctx`, falls der Server es meldet.
+- `--model <id>`: exakte ID, erster Endpunkt in Listenreihenfolge gewinnt; `--provider` wird
+  daraus abgeleitet. Unbekannte ID: Exit 2 mit Liste der verfügbaren Modelle, Pi startet nicht.
+- `--list-models`: `modell<TAB>endpunkt` je Zeile (mit `--json` ein JSON-Array), Exit 0 bzw. 2.
+- `--json`: Bericht als ein JSON-Objekt auf stdout (`level, plan, endpoint, provider, model,
+  pi_exit, changed_files, test_exit, log`).
+- `--skip-tests`: `task test:changed` entfällt, `test_exit` ist `null`. Für Aufrufer, die selbst
+  verifizieren.
+- Agent-Verzeichnis je Lauf unter `.../pi-harness/agent/runs/<id>`, nach dem Lauf entfernt.
+  Parallele Läufe überschreiben sich damit nicht gegenseitig `models.json`.
+
 ## Tests
 
 - `tests/spec/pi-harness.bats`: Flag-Aufbau je Stufe über `--dry-run` (Output-Prüfung), Exit 2
@@ -80,6 +103,8 @@ Basis-Flags jeder Stufe: `--mode json --no-session -nc --no-skills --no-extensio
 
 - R1: Unsere `SKILL.md` referenzieren teils Claude-only-Tools. Deshalb startet die Freigabe
   leer; jede Aufnahme in `pi` ist eine bewusste Einzelentscheidung.
-- R2: `:1919` läuft Windows-seitig und ist nicht immer online. Der Runner bricht dann laut ab.
+- R2: `:1919` läuft Windows-seitig und ist nicht immer online, der LM-Studio-Server `:1234` ist
+  unabhängig von geladenen Modellen oft aus. Stumme Endpunkte werden gemeldet, erst ein leerer
+  Verbund bricht ab.
 - R3: `sync.mjs` rendert Pi nicht. Das ist gewollt (D4); `toolset-registry` bekommt dafür eine
   eigene Requirement, damit die Ausnahme dokumentiert ist.

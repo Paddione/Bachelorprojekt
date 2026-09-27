@@ -25,7 +25,7 @@ scripts/toolset-context.sh                              (geaendert, Task 2)
 scripts/toolset/check.mjs                               (geaendert, Task 2)
 taskfiles/Taskfile.pi.yml                               (neu, Task 3)
 Taskfile.yml                                            (geaendert, Task 3)
-scripts/pi-run.sh                                       (neu, Task 4)
+scripts/pi-run.sh                                       (neu, Task 4, erweitert Task 4b)
 .pi/context.md                                          (neu, Task 4)
 .gitignore                                              (geaendert, Task 4)
 components/website/src/data/test-inventory.json         (regeneriert, Task 5)
@@ -199,13 +199,28 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
   shellcheck scripts/pi-run.sh
   ```
 
+## Task 4b: Endpunkt-Verbund und Aufrufer-Vertrag (Nachtrag 2026-09-27, Design D5/D6)
+
+- [x] **4b.1** RED: `tests/spec/pi-harness.bats` um Fälle mit zwei Stub-Endpunkten
+  (`python3 -m http.server`, statische `v1/models`) erweitern: `--list-models` über zwei
+  erreichbare und einen stummen Endpunkt; `--model` wird zum zweiten Endpunkt geroutet (Stub-`pi`
+  protokolliert Argumente und `models.json`); unbekanntes Modell → Exit 2 ohne Pi-Start;
+  `--json --skip-tests` liefert ein JSON-Objekt mit `test_exit: null`; das Agent-Verzeichnis des
+  Laufs existiert danach nicht mehr.
+- [x] **4b.2** GREEN: `scripts/pi-run.sh` um `PI_ENDPOINTS`, `--list-models`, `--json`,
+  `--skip-tests` und das Agent-Verzeichnis je Lauf erweitern. `.pi/context.md` nennt den
+  Endpunkt-Verbund statt nur `PI_LOCAL_BASE_URL`.
+- [x] **4b.3** `taskfiles/Taskfile.pi.yml`: `models`-Task (`--list-models`), `status` fragt den
+  ganzen Verbund ab, `run` reicht `ENDPOINTS` als `PI_ENDPOINTS` durch.
+- [x] **4b.4** Grün prüfen: `bats tests/spec/pi-harness.bats`, `shellcheck scripts/pi-run.sh`.
+
 ## Task 5: Installation und Smoke-Lauf
 
-- [ ] **5.1** `task pi:install`, dann `task pi:status`. Ist `:1919` erreichbar, einen Smoke-Lauf mit
+- [x] **5.1** `task pi:install`, dann `task pi:status`. Ist `:1919` erreichbar, einen Smoke-Lauf mit
   einem Wegwerf-Plan in `$TMPDIR` (eine Aufgabe: Datei `hello.txt` mit Inhalt `ok` anlegen) auf L0
   starten. Den Bericht in die PR-Beschreibung übernehmen. Ist `:1919` offline, das im PR notieren.
   Das ist kein Blocker, weil die BATS-Tests ohne Endpunkt laufen.
-- [ ] **5.2** `task test:inventory` für den neuen BATS-Test.
+- [x] **5.2** `task test:inventory` für den neuen BATS-Test.
 
 ## Task 6: Finale Verifikation
 

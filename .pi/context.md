@@ -29,6 +29,6 @@ Kurz halten: Pi liest ihn bei jedem Lauf, jeder Token kostet Kontext.
 ## Tabu
 
 - Keine Secrets lesen: `environments/.secrets/`, `.env`-Dateien, Vault-Items.
-- Kein Netzwerkzugriff auf fremde Hosts. Nur der lokale Endpunkt aus
-  `PI_LOCAL_BASE_URL`.
+- Kein Netzwerkzugriff auf fremde Hosts. Modelle kommen ausschliesslich aus dem
+  Endpunkt-Verbund des Runners (`PI_ENDPOINTS`).
 - Kein Deploy, kein `kubectl apply`, kein Secret-Rotieren.

@@ -2,7 +2,7 @@
 
 > **SSOT:** This file is the primary repository guidance, architecture SSOT, and operational reference for all agent sessions (Claude Code, OpenCode, Antigravity). Tool-specific guidance and mirrors (such as `CLAUDE.md` and `GEMINI.md`) reference this document as the leading authority.
 
-Auto-loaded by opencode from the repo root; referenced by `.opencode/prompts/orchestrator.md` and `CLAUDE.md`.
+Auto-loaded by opencode from the repo root; referenced by `.opencode/prompts/orchestrator.md` and `CLAUDE.md`. Maschinenlesbarer Einstiegsindex: [`llms.txt`](llms.txt).
 
 ## Agent Routing
 
@@ -79,7 +79,6 @@ bash scripts/vda.sh oracle '<goal in plain English>'
 Routes: local Ollama (`localhost:11434`) → Opencode `task-runner` fallback → `task --list` error hint.
 
 ```bash
-bash scripts/vda.sh oracle '<goal>'              # Task oracle — primary CLI
 task workspace:deploy ENV=mentolder              # Prod deploy (mentolder live; korczewski frozen per T002479)
 task test:changed                                # Smart test selection (pre-commit gate)
 task workspace:validate                          # Kustomize dry-run
@@ -236,21 +235,6 @@ analyze the four values immediately after writing them:
 The following sections contain detailed reference material. **Do not load them into context at session start.** Read them only when the current task requires it.
 
 <details>
-<summary>Domain Agents (read when dispatching)</summary>
-
-| Signals | Agent |
-|---------|-------|
-| `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", llm:, GPU, Ollama, model | `bachelorprojekt-ops` |
-| fleet/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy, workspace:setup | `bachelorprojekt-infra` |
-| test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, "test failing", "test case", "write a test" | `bachelorprojekt-test` |
-| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, bachelorprojekt.features, v_timeline | `bachelorprojekt-db` |
-| SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
-
-Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → `<active-plans>`, `bash scripts/toolset-context.sh <role>` → `<toolset>` (fail-closed auf unbekannte Rolle, T002322). Curation: `toolset-curate`; Gate: `task agents:toolset:check`. Registry: `mcp.yaml` = reachability, `capabilities.yaml` = selection/usage.
-</details>
-
-<details>
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
 
 - Claude Code: Skill mit `agent:` → `background-agents.ts` (`delegate` read-only, `task` write-capable); ohne `agent:` inline. Map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`/`web-audit`→website.
@@ -268,6 +252,8 @@ Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → `<active-pla
 <summary>Other References</summary>
 
 - `CLAUDE.md` — Claude Code environment harness guidance
+- `llms.txt` — machine-readable entry index
+- `.agents/docs/reorg-phase2/` — repo reorg plan dossier (T900560)
 - `components/website/CLAUDE.md` — Astro/Svelte quick-start
 - `docs/agent-guide/README.md` — agent operating guide
 </details>

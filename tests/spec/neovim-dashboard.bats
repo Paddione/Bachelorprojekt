@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -495,4 +495,115 @@ LUA
   [ -n "$CURSOR_ROW" ]
   [ -n "$ACTION_ROW" ]
   [ "$CURSOR_ROW" = "$ACTION_ROW" ]
+}
+
+# ── T900656 p2: editor capabilities — capability load (a) ───────────────────
+write_editor_capability_probe() {
+  cat > "$PROBE_DIR/editor-capability.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.editor-capabilities')
+if not ok then
+  io.stderr:write('LOAD FAILED config.editor-capabilities: ' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+print('M.setup type: ' .. type(m.setup))
+if type(m.setup) ~= 'function' then
+  io.stderr:write('M.setup is not a function\n')
+  os.exit(1)
+end
+print('editor-capabilities loaded, M.setup is function')
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: T900656 editor capability module loads and exposes M.setup" {
+  write_editor_capability_probe
+  run nvim -l "$PROBE_DIR/editor-capability.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"editor-capabilities loaded, M.setup is function"* ]]
+}
+
+# ── T900656 p2: no format-on-save (b) — zero BufWritePre autocmds ───────────
+write_editor_noformat_probe() {
+  cat > "$PROBE_DIR/editor-noformat.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.editor-capabilities')
+if not ok then
+  io.stderr:write('LOAD FAILED config.editor-capabilities: ' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+local setup_ok, setup_err = pcall(m.setup)
+print('setup_ok=' .. tostring(setup_ok))
+if setup_err then
+  io.stderr:write('setup error: ' .. tostring(setup_err) .. '\n')
+end
+local au = vim.api.nvim_get_autocmds({ event = 'BufWritePre' })
+print('bufwritepre_count=' .. #au)
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: T900656 no format-on-save — zero BufWritePre autocmds after M.setup" {
+  write_editor_noformat_probe
+  run nvim -l "$PROBE_DIR/editor-noformat.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"setup_ok=true"* ]]
+  [[ "$output" == *"bufwritepre_count=0"* ]]
+}
+
+# ── T900656 p2: parser list (c) — astro + svelte among ensure_installed ─────
+write_editor_parsers_probe() {
+  cat > "$PROBE_DIR/editor-parsers.lua" <<'LUA'
+local stage, out_file = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local captured
+-- Network-free recorder: stub nvim-treesitter.configs and observe what
+-- M.setup_treesitter() passes as ensure_installed (runtime capture, not
+-- source reading). Lua 5.1: package.preload entries must be functions,
+-- not tables — the function returns the fake configs table.
+package.preload['nvim-treesitter.configs'] = function()
+  return {
+    setup = function(opts)
+      captured = (opts and opts.ensure_installed) or {}
+    end,
+  }
+end
+local ok, m = pcall(require, 'config.editor-capabilities')
+if not ok then
+  io.stderr:write('LOAD FAILED config.editor-capabilities: ' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+pcall(m.setup_treesitter)
+local out = io.open(out_file, 'w')
+for _, p in ipairs(captured) do
+  out:write('parser=' .. p .. '\n')
+end
+out:close()
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: T900656 treesitter parser list contains astro and svelte" {
+  write_editor_parsers_probe
+  OUT="$BATS_TEST_TMPDIR/editor-parsers-out.txt"
+  run nvim -l "$PROBE_DIR/editor-parsers.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  [ -s "$OUT" ] || fail "parser probe produced no output"
+  grep -qx 'parser=astro' "$OUT" || fail "parser=astro missing from ensure_installed"
+  grep -qx 'parser=svelte' "$OUT" || fail "parser=svelte missing from ensure_installed"
+}
+
+# ── T900656 p2: runbook step order (d) ──────────────────────────────────────
+@test "neovim-dashboard: T900656 editor runbook lists the four capability steps in order" {
+  RUNBOOK="$STAGE/runbooks/editor.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/editor.md missing in staged config"
+
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  EXPECT="$(printf '%s\n' status parsers-install lsp-install completion-check)"
+
+  if [ "$STEPS" != "$EXPECT" ]; then
+    fail "runbook step order mismatch"
+  fi
 }

@@ -12,8 +12,8 @@ The system SHALL declare all lifecycle tasks (`backup`, `install`, `configure`, 
 
 #### Scenario: Das Taskfile verwaltet kein opencode *(BATS)*
 - **GIVEN** `Taskfile.openclaw.yml` ist im Repository vorhanden
-- **WHEN** die Datei nach dem Wort `opencode` durchsucht wird
-- **THEN** es gibt keinen Treffer
+- **WHEN** die Datei nach `npm install -g opencode`, `npm uninstall -g opencode`, `command -v opencode` und `.config/opencode` durchsucht wird
+- **THEN** es gibt keinen Treffer (das Lesen des Go-Keys aus `~/.local/share/opencode/auth.json` ist erlaubt)
 
 ## REMOVED Requirements
 

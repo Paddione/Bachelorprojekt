@@ -17,7 +17,7 @@ Beispiel-Config zeigt auf einen toten Ollama-Endpunkt.
   Node `v24.21.0`. Das System-Node bleibt unverändert.
 - Modellkette: primär lokal `:1919`, Fallback `opencode-go/muse-spark-1.3-contributor` mit
   Reasoning `low`.
-- Agent `ops`: Heartbeat alle 30 min nach `openclaw/workspace/HEARTBEAT.md`, meldet nur Befunde
+- Agent `ops`: Heartbeat alle 30 min nach der Checkliste `openclaw/heartbeat-scratch.md` (Monitor-Scratch), meldet nur Befunde
   per Telegram, führt ausschließlich Read-only-Befehle aus und empfiehlt Fixes, statt sie
   auszuführen.
 - Agent `task-runner`: Broker, erreichbar über `scripts/openclaw-ask.sh` (synchron,

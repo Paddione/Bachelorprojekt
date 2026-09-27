@@ -5,22 +5,23 @@
 `task openclaw:install` SHALL install OpenClaw at the version pinned in
 `taskfiles/Taskfile.openclaw.yml` using a Node 24 tarball whose SHA-256 is pinned in the same
 file, extracted to `$HOME/.local/opt/node24`. A checksum mismatch SHALL abort the installation
-before extraction. The Taskfile SHALL NOT install or reference opencode and SHALL NOT use `sudo`.
+before extraction. The Taskfile SHALL NOT install, uninstall or detect opencode and SHALL NOT use `sudo`; reading the
+OpenCode Go key from `~/.local/share/opencode/auth.json` in `configure` is permitted.
 
 #### Scenario: Taskfile pins Node by checksum and no longer installs opencode
 
 - **GIVEN** the repository is checked out
 - **WHEN** `taskfiles/Taskfile.openclaw.yml` is parsed as YAML
 - **THEN** `NODE24_SHA256` is a 64-character hexadecimal string
-- **AND** the file contains neither `opencode` nor `sudo`
+- **AND** the file contains no `sudo`, no `npm install -g opencode` and no `command -v opencode`
 
 ### Requirement: The gateway is loopback-only and carries no secret in tracked files
 
 The tracked configuration template `openclaw/openclaw.json5` SHALL bind the gateway to loopback
 on port 18789 with token authentication, and SHALL reference every secret through an environment
 variable. `openclaw/.env.example` SHALL list `OPENCLAW_GATEWAY_TOKEN`, `TELEGRAM_BOT_TOKEN`,
-`OPENCLAW_LOCAL_BASE_URL`, `OPENCODE_GO_API_KEY`, `OPENCLAW_GO_SESSION` and `OPENCLAW_LOG_LEVEL`,
-with empty values for the four secrets and session variables.
+`TELEGRAM_CHAT_ID`, `OPENCLAW_LOCAL_BASE_URL`, `OPENCODE_GO_API_KEY`, `OPENCLAW_GO_SESSION` and
+`OPENCLAW_LOG_LEVEL`, with empty values for the five secret, chat and session variables.
 
 #### Scenario: Template binds loopback and uses env references
 
@@ -34,9 +35,10 @@ with empty values for the four secrets and session variables.
 The template SHALL define the agents `ops` (default, heartbeat every 30 minutes, delivery target
 `telegram`) and `task-runner`. Both SHALL deny the tools `write`, `edit` and `apply_patch`, and
 command execution SHALL run in allowlist mode restricted to read-only command patterns.
-`openclaw/workspace/HEARTBEAT.md` SHALL list each check with its exact command and the condition
-that counts as a finding, and SHALL instruct the agent to reply `HEARTBEAT_OK` when there is no
-finding.
+`openclaw/heartbeat-scratch.md` SHALL list each check with its exact command and the condition
+that counts as a finding, and SHALL instruct the agent to reply `NO_REPLY` when there is no
+finding. It SHALL be applied as the monitor scratch of the `ops` heartbeat job by
+`task openclaw:start`, and no `HEARTBEAT.md` SHALL be placed in the OpenClaw workspace.
 
 #### Scenario: Write tools are denied for both agents
 

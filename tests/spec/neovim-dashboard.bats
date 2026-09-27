@@ -68,13 +68,38 @@ LUA
   fi
   [ -f "$STAGE/init.lua" ] || fail "staged init.lua missing"
 
-  RESULT="$BATS_TEST_TMPDIR/startup.out"
+  # Priming run: bootstraps lazy.nvim + the 13 plugins. Its own log is a
+  # separate file and is never the asserted run below (F6).
+  SYNC_LOG="$BATS_TEST_TMPDIR/sync.log"
+  nvim --headless -u "$STAGE/init.lua" -i NONE +"Lazy! sync" +qa \
+    >"$BATS_TEST_TMPDIR/sync.out" 2>"$SYNC_LOG" || true
+
+  # The actual asserted run: its own exit status and its own log.
   LOG="$BATS_TEST_TMPDIR/startup.log"
-  nvim --headless -u "$STAGE/init.lua" -i NONE +"Lazy! sync" +qa >"$RESULT" 2>"$LOG" || true
-  run nvim --headless -u "$STAGE/init.lua" -i NONE +qa
-  [ "$status" -eq 0 ]
+  nvim --headless -u "$STAGE/init.lua" -i NONE +qa >/dev/null 2>"$LOG"
+  STARTUP_STATUS=$?
+  [ "$STARTUP_STATUS" -eq 0 ]
   run bash -c "grep -qi error '$LOG'"
   [ "$status" -ne 0 ]
+}
+
+@test "neovim-dashboard: full startup registers :Dashboard and <leader>h (F1)" {
+  if ! timeout 5 git ls-remote https://github.com/folke/lazy.nvim.git HEAD >/dev/null 2>&1; then
+    skip "plugin host (github.com) unreachable — cannot bootstrap lazy.nvim offline"
+  fi
+  [ -f "$STAGE/init.lua" ] || fail "staged init.lua missing"
+
+  nvim --headless -u "$STAGE/init.lua" -i NONE +"Lazy! sync" +qa \
+    >"$BATS_TEST_TMPDIR/sync2.out" 2>"$BATS_TEST_TMPDIR/sync2.log" || true
+
+  DASH_OUT="$BATS_TEST_TMPDIR/dashboard-check.out"
+  nvim --headless -u "$STAGE/init.lua" -i NONE \
+    +"lua local f = io.open('$DASH_OUT', 'w'); f:write('exists=' .. vim.fn.exists(':Dashboard') .. '\n'); f:write('mapped=' .. tostring(vim.fn.maparg('<leader>h', 'n') ~= '') .. '\n'); f:close()" \
+    +qa
+  run cat "$DASH_OUT"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"exists=2"* ]]
+  [[ "$output" == *"mapped=true"* ]]
 }
 
 # ── Helper: write the git-root probe ─────────────────────────────────────
@@ -104,13 +129,23 @@ LUA
 
 @test "neovim-dashboard: gitroot resolves a linked-worktree file to that worktree root, not the main checkout" {
   write_gitroot_probe
-  WORKTREE="/home/patrick/Bachelorprojekt/.worktrees/nvim-dashboard-foundation"
-  if [ ! -d "$WORKTREE" ]; then
-    skip "linked worktree $WORKTREE not present on this host"
-  fi
+  # A real linked worktree, created fresh under BATS_TEST_TMPDIR (F6) so
+  # this case runs the same way in CI as it does locally, instead of
+  # depending on a host-specific path that CI would always skip.
+  WORKTREE="$BATS_TEST_TMPDIR/linked-worktree"
+  # --no-checkout + a single-path checkout avoids populating git-crypt
+  # -encrypted paths (environments/.secrets/...), which fail the smudge
+  # filter in a fresh worktree that hasn't been git-crypt-unlocked.
+  run git -C "$REPO" worktree add --detach --no-checkout "$WORKTREE" HEAD
+  [ "$status" -eq 0 ]
+  run git -C "$WORKTREE" checkout HEAD -- CLAUDE.md
+  [ "$status" -eq 0 ]
+
   OUT="$BATS_TEST_TMPDIR/gitroot-worktree.out"
-  nvim -l "$PROBE_DIR/gitroot.lua" "$STAGE" "$WORKTREE/dotfiles/nvim/init.lua" "$OUT"
+  nvim -l "$PROBE_DIR/gitroot.lua" "$STAGE" "$WORKTREE/CLAUDE.md" "$OUT"
   [ "$(cat "$OUT")" = "$WORKTREE" ]
+
+  git -C "$REPO" worktree remove --force "$WORKTREE" >/dev/null 2>&1 || true
 }
 
 @test "neovim-dashboard: gitroot reports no-project for an unnamed buffer" {
@@ -203,9 +238,10 @@ EOF
   [ "$STUB_COUNT" -eq 10 ]
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
-    if [ "$base" != "README.md" ] && [ "$base" != "_template.md" ] && [ "$base" != "home.md" ]; then
-      fail "unexpected chapter runbook file already present: $base"
-    fi
+    case "$base" in
+      README.md|_template.md|home.md|infrastructure-status.md) ;;
+      *) fail "unexpected chapter runbook file already present: $base" ;;
+    esac
   done
 }
 
@@ -223,6 +259,80 @@ EOF
 
   run grep -q '^status: complete' "$STAGE/runbooks/home.md"
   [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: every dashboard page (not just Home's ten) has a runbook or a stub entry (F5)" {
+  cat > "$PROBE_DIR/all-pages.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+if type(dashboard.pages) ~= 'table' then
+  io.stderr:write('config.dashboard does not export M.pages\n')
+  os.exit(1)
+end
+local f = io.open(outfile, 'w')
+for id, spec in pairs(dashboard.pages) do
+  local ok, rows = pcall(spec.rows)
+  local actions = {}
+  if ok then
+    for _, row in ipairs(rows) do
+      if type(row) == 'table' and row.name then
+        -- A real executable action (visible-action-model row).
+        actions[#actions + 1] = row.name
+      elseif type(row) == 'table' and row.key and type(row.action) == 'function' and row.desc then
+        -- A navigation link row (e.g. Home's chapter links): the
+        -- runbook actions[] convention documents these too, stripped of
+        -- the trailing "  >" marker.
+        actions[#actions + 1] = (row.desc:gsub('%s*>$', ''))
+      end
+    end
+  end
+  f:write(id .. '\t' .. spec.title .. '\t' .. table.concat(actions, '|') .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  ALL_OUT="$BATS_TEST_TMPDIR/all-pages.out"
+  run nvim -l "$PROBE_DIR/all-pages.lua" "$STAGE" "$ALL_OUT"
+  [ "$status" -eq 0 ]
+  [ -s "$ALL_OUT" ] || fail "no pages dumped — config.dashboard.pages export missing or empty"
+
+  MISSING=""
+  while IFS=$'\t' read -r page_id title actions_joined; do
+    [ -n "$page_id" ] || continue
+    RUNBOOK="$STAGE/runbooks/${page_id}.md"
+    if [ -f "$RUNBOOK" ]; then
+      # A real per-page runbook: status must be complete and actions[]
+      # must match this page's actions, in order.
+      run grep -q '^status: complete' "$RUNBOOK"
+      if [ "$status" -ne 0 ]; then
+        MISSING="${MISSING}${page_id} (runbook exists but not status: complete); "
+        continue
+      fi
+      EXPECTED_ACTIONS="$BATS_TEST_TMPDIR/${page_id}-expected-actions.txt"
+      if [ -n "$actions_joined" ]; then
+        printf '%s\n' "$actions_joined" | tr '|' '\n' > "$EXPECTED_ACTIONS"
+      else
+        : > "$EXPECTED_ACTIONS"
+      fi
+      GOT_ACTIONS="$BATS_TEST_TMPDIR/${page_id}-got-actions.txt"
+      awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next} f && !/^  - /{exit}' \
+        "$RUNBOOK" > "$GOT_ACTIONS"
+      run diff "$EXPECTED_ACTIONS" "$GOT_ACTIONS"
+      if [ "$status" -ne 0 ]; then
+        MISSING="${MISSING}${page_id} (actions[] mismatch); "
+      fi
+    else
+      # No per-page runbook: the master index must at least stub-mark
+      # this page by its title.
+      run bash -c "grep -F -- '**${title}**' '$STAGE/runbooks/README.md' | grep -q 'status: stub'"
+      if [ "$status" -ne 0 ]; then
+        MISSING="${MISSING}${page_id} (no runbook file and no stub entry in README.md); "
+      fi
+    fi
+  done < "$ALL_OUT"
+
+  [ -z "$MISSING" ] || fail "pages without runbook coverage: $MISSING"
 }
 
 # ── Helper: write the action-shape / focus-before-execute probe ──────────
@@ -314,4 +424,75 @@ LUA
   run grep '^phase2_marker_exists=' "$OUT"
   [[ "$output" == *"phase2_marker_exists=true"* ]]
   [ -s "$MARKER" ]
+}
+
+@test "neovim-dashboard: selecting a search hit focuses the right page and action, runs nothing (F4)" {
+  if ! timeout 5 git ls-remote https://github.com/folke/snacks.nvim.git HEAD >/dev/null 2>&1; then
+    skip "plugin host (github.com) unreachable — cannot install the real snacks.nvim offline"
+  fi
+  [ -f "$STAGE/init.lua" ] || fail "staged init.lua missing"
+
+  nvim --headless -u "$STAGE/init.lua" -i NONE +"Lazy! sync" +qa \
+    >"$BATS_TEST_TMPDIR/f4-sync.out" 2>"$BATS_TEST_TMPDIR/f4-sync.log" || true
+  SNACKS_DIR="$XDG_DATA_HOME/nvim/lazy/snacks.nvim"
+  [ -d "$SNACKS_DIR" ] || fail "snacks.nvim not installed after sync — $SNACKS_DIR missing"
+
+  cat > "$PROBE_DIR/f4-search-focus.lua" <<'LUA'
+local stage, snacks_path, marker_file, out_file, repo_file = arg[1], arg[2], arg[3], arg[4], arg[5]
+package.path = stage .. '/lua/?.lua;' .. snacks_path .. '/lua/?.lua;' .. snacks_path .. '/lua/?/init.lua;' .. package.path
+
+-- Test-only marker: any vim.notify call means something actually ran.
+vim.notify = function(msg)
+  local f = io.open(marker_file, 'a')
+  f:write(tostring(msg) .. '\n')
+  f:close()
+end
+
+require('snacks') -- sets the real _G.Snacks (dashboard + picker, lazily required)
+local dashboard = require('config.dashboard')
+
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+
+-- Drive the same focus path M.search's real confirm callback uses,
+-- against the real Snacks.dashboard, without needing the interactive
+-- picker UI itself.
+local d = dashboard.focus({
+  text = 'Show current buffer git root',
+  page = 'infrastructure-status',
+  key = 'g',
+})
+
+local out = io.open(out_file, 'w')
+out:write('page=' .. tostring(d and d.page) .. '\n')
+if d and d.win then
+  local cursor = vim.api.nvim_win_get_cursor(d.win)
+  out:write('cursor_row=' .. cursor[1] .. '\n')
+  for _, row in ipairs(d.items or {}) do
+    if row.key == 'g' and row._ then
+      out:write('action_row=' .. row._.row .. '\n')
+    end
+  end
+else
+  out:write('no_win\n')
+end
+local mf = io.open(marker_file, 'r')
+out:write('marker_exists=' .. tostring(mf ~= nil) .. '\n')
+if mf then mf:close() end
+out:close()
+LUA
+
+  MARKER="$BATS_TEST_TMPDIR/f4-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/f4-out.txt"
+  run nvim -l "$PROBE_DIR/f4-search-focus.lua" "$STAGE" "$SNACKS_DIR" "$MARKER" "$OUT" "$REPO/CLAUDE.md"
+  [ "$status" -eq 0 ]
+
+  run cat "$OUT"
+  [[ "$output" == *"page=infrastructure-status"* ]]
+  [[ "$output" == *"marker_exists=false"* ]]
+
+  CURSOR_ROW="$(grep '^cursor_row=' "$OUT" | cut -d= -f2)"
+  ACTION_ROW="$(grep '^action_row=' "$OUT" | cut -d= -f2)"
+  [ -n "$CURSOR_ROW" ]
+  [ -n "$ACTION_ROW" ]
+  [ "$CURSOR_ROW" = "$ACTION_ROW" ]
 }

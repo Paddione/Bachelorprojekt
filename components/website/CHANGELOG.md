@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.380.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.379.0...website-v1.380.0) (2026-09-27)
+
+
+### Features
+
+* **scripts:** agent-bench harness, case set and docs [T900561] ([#6030](https://github.com/Paddione/Bachelorprojekt/issues/6030)) ([f19265e](https://github.com/Paddione/Bachelorprojekt/commit/f19265e382587a9df5fbd73be6161af49afa2c7b))
+
 ## [1.379.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.378.0...website-v1.379.0) (2026-09-27)
 
 

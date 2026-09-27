@@ -269,6 +269,20 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install generator dependencies
+        run: npm ci
+
+      - name: Verify generated skill views
+        run: |
+          node scripts/toolset/emit-map.mjs
+          node scripts/agent-guide/emit-webapp.mjs
+          git diff --exit-code -- docs/agent-guide/maps/toolset-map.md components/website/src/lib/agent-guide.generated.json
+
       - name: Run agent evals
         run: task test:evals
 

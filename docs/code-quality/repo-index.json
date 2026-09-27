@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1310,
+      "file_count": 1311,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -518,6 +518,7 @@
         "tests/spec/application-pipeline/theme-validation.bats",
         "tests/spec/archive.bats",
         "tests/spec/art-library-webapp.bats",
+        "tests/spec/ast-toolchain.bats",
         "tests/spec/astro-type-check.bats",
         "tests/spec/auth-sso.bats",
         "tests/spec/autodocs-removal-guard.bats",

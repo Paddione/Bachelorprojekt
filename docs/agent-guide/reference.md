@@ -48,3 +48,4 @@ Moved from `AGENTS.md` (C1b diet, T900560) — read on-demand, do not frontload.
 - `.agents/docs/reorg-phase2/` — repo reorg plan dossier (T900560)
 - `components/website/CLAUDE.md` — Astro/Svelte quick-start
 - `docs/agent-guide/README.md` — agent operating guide
+- `docs/agent-guide/ast-toolchain.md` — ast-grep rules, scan task, wiring decisions (C9)

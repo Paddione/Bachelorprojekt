@@ -2238,6 +2238,12 @@
     "kind": "shell"
   },
   {
+    "id": "ast-toolchain",
+    "file": "tests/spec/ast-toolchain.bats",
+    "category": "ast-toolchain",
+    "kind": "shell"
+  },
+  {
     "id": "auth-sso",
     "file": "tests/spec/auth-sso.bats",
     "category": "auth-sso",

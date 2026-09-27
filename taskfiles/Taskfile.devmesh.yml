@@ -108,6 +108,15 @@ tasks:
         echo "devmesh:deploy ok (Profil $PROFILE)"
       - task: registry:migrate
 
+  langfuse:setup:
+    desc: "devmesh: Langfuse-Credentials holen und Agent-Harnesses fuer Tracing verdrahten [T900688]"
+    preconditions:
+      - sh: kubectl config get-contexts -o name | grep -qx devmesh
+        msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
+    cmds:
+      - bash scripts/langfuse/client-env.sh
+      - bash scripts/langfuse/setup-harnesses.sh
+
   migrate:
     desc: "pocket_id + website aus devmesh nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]"
     cmds:

@@ -32,6 +32,8 @@ resources:
 # CPU-gebundene LLM- und DB-Dienste (T900191, design.md D4).
 components:
   - ../components/llm-services
+  # Self-hosted Langfuse fuer Agent-Tracing [T900688].
+  - ../components/langfuse
 
 configMapGenerator:
   - name: shared-db-backup-script

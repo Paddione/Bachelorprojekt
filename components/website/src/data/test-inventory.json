@@ -3780,6 +3780,12 @@
     "kind": "shell"
   },
   {
+    "id": "langfuse-agent-tracing",
+    "file": "tests/spec/langfuse-agent-tracing.bats",
+    "category": "langfuse-agent-tracing",
+    "kind": "shell"
+  },
+  {
     "id": "lavish",
     "file": "tests/spec/lavish.bats",
     "category": "lavish",

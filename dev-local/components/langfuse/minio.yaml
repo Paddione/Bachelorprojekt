@@ -1,0 +1,59 @@
+# MinIO als S3 fuer Langfuse-Events und -Media [T900688] — Muster offizielles docker-compose.yml.
+apiVersion: v1
+kind: Service
+metadata:
+  name: langfuse-minio
+  labels: {app: langfuse-minio}
+spec:
+  selector: {app: langfuse-minio}
+  ports:
+    - {name: s3, port: 9000, targetPort: 9000}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: langfuse-minio
+  labels: {app: langfuse-minio}
+spec:
+  serviceName: langfuse-minio
+  replicas: 1
+  selector:
+    matchLabels: {app: langfuse-minio}
+  template:
+    metadata:
+      labels: {app: langfuse-minio}
+    spec:
+      nodeSelector: {storage: "true"}
+      securityContext: {fsGroup: 65532}
+      initContainers:
+        - name: bucket
+          image: busybox:1.37
+          command: ["sh", "-c", "mkdir -p /data/langfuse"]
+          volumeMounts:
+            - {name: data, mountPath: /data}
+          securityContext: {runAsUser: 65532, runAsGroup: 65532}
+      containers:
+        - name: minio
+          image: cgr.dev/chainguard/minio
+          args: ["server", "/data", "--address", ":9000", "--console-address", ":9001"]
+          env:
+            - {name: MINIO_ROOT_USER, value: langfuse}
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_S3_SECRET}}
+          ports:
+            - {containerPort: 9000, name: s3}
+          readinessProbe:
+            httpGet: {path: /minio/health/live, port: 9000}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {memory: 1Gi}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: {storage: 10Gi}

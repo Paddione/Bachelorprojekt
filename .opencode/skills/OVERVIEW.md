@@ -191,6 +191,7 @@ alle Skills als projekteigen — das Gate wird dann strenger, nicht schwächer.
 | `superpowers:using-git-worktrees` | Superpowers-Plugin | Hintergrund zur Worktree-Isolation (Detached-HEAD, git-crypt). Im dev-flow-Pfad ersetzt durch `scripts/worktree-create.sh`. |
 | `vitest` | Anthony Fu (antfu/skills) | Vitest-Referenz — Mocking, Coverage-Konfiguration, Test-Filtering, Fixtures. |
 | `llama-cpp` | Orchestra-Research/AI-research-SKILLs | llama.cpp-Inferenz auf CPU/Edge-GPUs (opencode-only). |
+| `langfuse` | Langfuse (`langfuse/skills`) | Langfuse-Observability, Tracing, Evaluations und API-Dokumentation für alle Harnesses. |
 | `hf-mem` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Hugging-Face-Modell-Speicherabschaetzung (CLI). |
 | `huggingface-best` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Modell-Empfehlungen und -Vergleiche. |
 | `huggingface-community-evals` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Community-Evals auf lokaler Hardware. |

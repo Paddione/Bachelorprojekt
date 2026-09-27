@@ -1,0 +1,57 @@
+# Langfuse-DB in shared-db anlegen [T900688] — Muster k3d/pocket-id-db-init-sql.yaml (T002187):
+# SQL per Volume, Passwort per psql-Variable :'pw', nie im YAML.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: langfuse-db-init-sql
+  labels: {app: langfuse}
+data:
+  init.sql: |
+    SELECT 'CREATE DATABASE langfuse'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'langfuse')\gexec
+    DO $$
+    BEGIN
+      CREATE ROLE langfuse;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$;
+    ALTER ROLE langfuse WITH LOGIN PASSWORD :'pw';
+    ALTER DATABASE langfuse OWNER TO langfuse;
+    GRANT ALL PRIVILEGES ON DATABASE langfuse TO langfuse;
+    \c langfuse
+    GRANT ALL ON SCHEMA public TO langfuse;
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: langfuse-db-init
+  labels: {app: langfuse}
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels: {app: langfuse, component: db-init}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: db-init
+          image: postgres:18-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+          env:
+            - name: PGPASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: SHARED_DB_PASSWORD}}
+            - name: LANGFUSE_DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_DB_PASSWORD}}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              until pg_isready -h shared-db -p 5432 -U postgres -q; do echo "waiting for shared-db..."; sleep 2; done
+              psql -v ON_ERROR_STOP=1 -v pw="$LANGFUSE_DB_PASSWORD" --username postgres --host shared-db -f /sql/init.sql
+              echo "langfuse DB init complete"
+          volumeMounts:
+            - {name: sql, mountPath: /sql, readOnly: true}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {memory: 128Mi}
+      volumes:
+        - name: sql
+          configMap: {name: langfuse-db-init-sql}

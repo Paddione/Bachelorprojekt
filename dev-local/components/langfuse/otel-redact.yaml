@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: langfuse-otel-redact-config
+data:
+  config.yaml: |
+    extensions:
+      headers_setter/langfuse:
+        headers:
+          - action: upsert
+            key: Authorization
+            from_context: authorization
+    receivers:
+      otlp:
+        protocols:
+          http:
+            endpoint: 0.0.0.0:4318
+            traces_url_path: /api/public/otel/v1/traces
+            include_metadata: true
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 256
+      transform/redact:
+        error_mode: ignore
+        trace_statements:
+          - context: span
+            statements:
+              - replace_all_patterns(span.attributes, "value", "(pk|sk)-lf-[A-Za-z0-9-]{8,}", "[REDACTED:langfuse]")
+              - replace_all_patterns(span.attributes, "value", "sk-(ant-)?[A-Za-z0-9_-]{20,}", "[REDACTED:anthropic-openai]")
+              - replace_all_patterns(span.attributes, "value", "(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}", "[REDACTED:github]")
+              - replace_all_patterns(span.attributes, "value", "glpat-[A-Za-z0-9_-]{20,}", "[REDACTED:gitlab]")
+              - replace_all_patterns(span.attributes, "value", "AKIA[0-9A-Z]{16}", "[REDACTED:aws]")
+              - replace_all_patterns(span.attributes, "value", "-----BEGIN [A-Z ]*PRIVATE KEY-----[\\s\\S]*?-----END [A-Z ]*PRIVATE KEY-----", "[REDACTED:private-key]")
+              - replace_all_patterns(span.attributes, "value", "(?i)bearer\\s+[A-Za-z0-9._~+/=-]{16,}", "[REDACTED:bearer]")
+              - replace_all_patterns(span.attributes, "value", "(?i)(password|passwd|secret|token|api[_-]?key)([\\\"']?\\s*[:=]\\s*[\\\"']?)[^\\s\\\"',}]{6,}", "$$1$$2[REDACTED:kv-secret]")
+          - context: resource
+            statements:
+              - replace_all_patterns(resource.attributes, "value", "(pk|sk)-lf-[A-Za-z0-9-]{8,}", "[REDACTED:langfuse]")
+              - replace_all_patterns(resource.attributes, "value", "sk-(ant-)?[A-Za-z0-9_-]{20,}", "[REDACTED:anthropic-openai]")
+              - replace_all_patterns(resource.attributes, "value", "(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}", "[REDACTED:github]")
+              - replace_all_patterns(resource.attributes, "value", "glpat-[A-Za-z0-9_-]{20,}", "[REDACTED:gitlab]")
+              - replace_all_patterns(resource.attributes, "value", "AKIA[0-9A-Z]{16}", "[REDACTED:aws]")
+              - replace_all_patterns(resource.attributes, "value", "-----BEGIN [A-Z ]*PRIVATE KEY-----[\\s\\S]*?-----END [A-Z ]*PRIVATE KEY-----", "[REDACTED:private-key]")
+              - replace_all_patterns(resource.attributes, "value", "(?i)bearer\\s+[A-Za-z0-9._~+/=-]{16,}", "[REDACTED:bearer]")
+              - replace_all_patterns(resource.attributes, "value", "(?i)(password|passwd|secret|token|api[_-]?key)([\\\"']?\\s*[:=]\\s*[\\\"']?)[^\\s\\\"',}]{6,}", "$$1$$2[REDACTED:kv-secret]")
+          - context: spanevent
+            statements:
+              - replace_all_patterns(spanevent.attributes, "value", "(pk|sk)-lf-[A-Za-z0-9-]{8,}", "[REDACTED:langfuse]")
+              - replace_all_patterns(spanevent.attributes, "value", "sk-(ant-)?[A-Za-z0-9_-]{20,}", "[REDACTED:anthropic-openai]")
+              - replace_all_patterns(spanevent.attributes, "value", "(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}", "[REDACTED:github]")
+              - replace_all_patterns(spanevent.attributes, "value", "glpat-[A-Za-z0-9_-]{20,}", "[REDACTED:gitlab]")
+              - replace_all_patterns(spanevent.attributes, "value", "AKIA[0-9A-Z]{16}", "[REDACTED:aws]")
+              - replace_all_patterns(spanevent.attributes, "value", "-----BEGIN [A-Z ]*PRIVATE KEY-----[\\s\\S]*?-----END [A-Z ]*PRIVATE KEY-----", "[REDACTED:private-key]")
+              - replace_all_patterns(spanevent.attributes, "value", "(?i)bearer\\s+[A-Za-z0-9._~+/=-]{16,}", "[REDACTED:bearer]")
+              - replace_all_patterns(spanevent.attributes, "value", "(?i)(password|passwd|secret|token|api[_-]?key)([\\\"']?\\s*[:=]\\s*[\\\"']?)[^\\s\\\"',}]{6,}", "$$1$$2[REDACTED:kv-secret]")
+      batch: {}
+    exporters:
+      otlphttp/langfuse:
+        traces_endpoint: http://langfuse-web:3000/api/public/otel/v1/traces
+        auth:
+          authenticator: headers_setter/langfuse
+    service:
+      extensions: [headers_setter/langfuse]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, transform/redact, batch]
+          exporters: [otlphttp/langfuse]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langfuse-otel-redact
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: langfuse-otel-redact}
+  template:
+    metadata:
+      labels: {app: langfuse-otel-redact}
+    spec:
+      containers:
+        - name: collector
+          image: otel/opentelemetry-collector-contrib:0.137.0
+          args: ["--config=/etc/otel/config.yaml"]
+          ports:
+            - {name: otlp-http, containerPort: 4318}
+          volumeMounts:
+            - {name: config, mountPath: /etc/otel}
+          readinessProbe:
+            tcpSocket: {port: 4318}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {memory: 384Mi}
+      volumes:
+        - name: config
+          configMap: {name: langfuse-otel-redact-config}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: langfuse-otel-redact
+spec:
+  selector: {app: langfuse-otel-redact}
+  ports:
+    - {name: otlp-http, port: 4318, targetPort: 4318}

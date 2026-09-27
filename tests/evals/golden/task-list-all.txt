@@ -115,6 +115,7 @@ task: Available tasks for this project:
 * devmesh:install:                              devmesh: k3s auf HOST in seiner Inventar-Rolle installieren (DRY_RUN=1 zeigt nur den Befehl)
 * devmesh:k3d:teardown:                         Operator-only: decommission the former k3d development cluster [T900145]
 * devmesh:kubeconfig:                           devmesh: Admin-Kubeconfig als Context devmesh mergen (SERVER=<name>, Default: server-init)
+* devmesh:langfuse:setup:                       devmesh: Langfuse-Credentials holen und Agent-Harnesses fuer Tracing verdrahten [T900688]
 * devmesh:migrate:                              pocket_id + website aus devmesh nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]
 * devmesh:preflight:                            devmesh: Host vor der k3s-Installation pruefen (HOST=<name aus devmesh/inventory.yaml>; Exit 1 = Befund, 2 = Vorbedingung)
 * devmesh:registry:migrate:                     devmesh: llm-proxy-Registry seeden und mcp_readonly-Passwort setzen [T900191]

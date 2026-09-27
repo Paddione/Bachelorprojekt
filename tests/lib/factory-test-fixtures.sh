@@ -30,6 +30,42 @@
 _FIXTURE_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 export FACTORY_CTX="${FACTORY_CTX:-devmesh}"   # [T900145] Tests never write to fleet
 
+# [T900537] shared-db-Pod des Testkontexts (leer, wenn keiner laeuft).
+_shared_db_pod() {
+  kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
+    -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
+    -o name 2>/dev/null | head -1
+}
+
+# [T900537] ticket_table_exists <table> — 0, wenn tickets.<table> in der lokalen
+# shared-db existiert, sonst 1.
+#
+# Warum ein eigener Probe statt _skip_if_no_db: EIN LAUFENDER POD BEWEIST NICHT,
+# dass das tickets-Schema vollstaendig ist. Gemessen am 2026-09-27 (T900537,
+# devmesh) hat die lokale shared-db genau EINE Tabelle im Schema `tickets` und
+# kein `factory_phase_events`. Der Pod-Only-Probe meldete daraufhin "DB da", der
+# Test lief in `relation "tickets.tickets" does not exist` und `test:changed`
+# wurde rot, obwohl der Defekt an der Umgebung und nicht am Produkt lag. Der
+# Probe muss die Tabelle benennen, auf die die Assertion sich stuetzt.
+ticket_table_exists() {
+  local table="$1" pod out
+  pod="$(_shared_db_pod)"
+  [[ -n "$pod" ]] || return 1
+  out="$(kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
+    -c postgres -- psql -U website -d website -qtA -c \
+    "SELECT count(*) FROM information_schema.tables WHERE table_schema='tickets' AND table_name='${table}';" 2>/dev/null | tr -d '[:blank:]')"
+  [[ "$out" == "1" ]]
+}
+
+# [T900537] require_ticket_table <table> — Skip-Guard fuer DB-gestuetzte Tests.
+# Aufruf NACH _skip_if_no_db: "kein Pod" und "Pod ohne Schema" sind zwei
+# verschiedene Umgebungsbefunde und sollen unterschiedlich benannt sein.
+require_ticket_table() {
+  local table="$1"
+  ticket_table_exists "$table" \
+    || skip "lokale shared-db hat keine tickets.${table}-Tabelle — tickets-Schema unvollstaendig (Umgebung, kein Produktfehler; T900537)"
+}
+
 # _fixture_marker_comment <brand> <ctx> <ext_id> — setzt den Isolations-Marker
 # (ticket_comments.author_label='factory-test'), an dem watchdog.sh::_stale_query
 # Test-Seeds beidseitig erkennt [T015983]: Betrieb schließt markierte Rows aus,

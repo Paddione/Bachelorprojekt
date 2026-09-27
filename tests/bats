@@ -54,4 +54,49 @@ if [ -z "${LC_ALL:-}" ] && locale -a 2>/dev/null | grep -qiE '^C\.utf-?8$'; then
   export LC_ALL=C.UTF-8
 fi
 
-exec "$_here/unit/lib/bats-core/bin/bats" "$@"
+# [T900537] SKIP-ZAEHLER IM LAUF. BATS gibt keinen Zusammenfassungs-Satz aus:
+# "0 Fehler, 12 skips" war im Terminal nicht von "12 Fehler" unterscheidbar, und
+# wer das wissen wollte, musste die Logdatei parsen (genau der Rueckfall, den
+# T900537 dokumentiert). Der Zaehler aendert den Exit-Code NICHT — ein Lauf mit
+# Skips bleibt gruen, wenn alle Assertions halten. Genau das ist der Punkt: ein
+# Skip ist eine Umgebensaussage, kein Fehler, soll aber sichtbar bleiben statt
+# im Detail-TAP zu verschwinden.
+#
+# tee statt exec haelt das Streaming fuer menschliche Aufrufer, PIPESTATUS
+# haelt den echten bats-Exit-Code (bei -j schreibt bats den Exit ueber die
+# Tap-Ausgabe, nicht als Wrapper-Code).
+_bats_summary_log="$(mktemp)"
+# shellcheck disable=SC2064  # Wert jetzt einsetzen, nicht spaeter (Variable existiert dann nicht mehr)
+trap "rm -f '${_bats_summary_log}'" EXIT
+
+set +e
+"$_here/unit/lib/bats-core/bin/bats" "$@" 2>&1 | tee "$_bats_summary_log"
+_bats_status="${PIPESTATUS[0]}"
+set -e
+
+# "Executed 0 instead of expected N" (fehlendes GNU parallel, siehe
+# tests/CLAUDE.md) darf hier NICHT als "0 tests, 0 Fehler" erscheinen — genau
+# dieser Fehler sieht sonst aus wie ein gruener Lauf.
+_bats_pass="$(grep -c '^ok ' "$_bats_summary_log" || true)"
+_bats_fail="$(grep -c '^not ok' "$_bats_summary_log" || true)"
+_bats_skip="$(grep -c '^ok .*# skip' "$_bats_summary_log" || true)"
+_bats_ran=$(( _bats_pass + _bats_fail ))
+
+# Nur melden, wenn ueberhaupt Tests gelaufen sind. Aufrufe wie --version oder
+# --count liefern kein TAP und sollen still bleiben — sonst landet die Zeile im
+# $output eines Aufrufers, der seinen echten Output prueft (T900065).
+# Auf stderr, nicht auf stdout: `run` in BATS schluckt beides, aber Pipes
+# (`bats ... | grep '^tests/spec/.*bats$'`) duerfen keine Diagnose einmisechen.
+#
+# Bewusst KEINE eigene Warnung fuer "Executed 0 instead of expected N": BATS
+# gibt diese Zeile selbst aus, und eine zweite, selbst formulierte Diagnose
+# muesste denselben Fall erkennen, den schon der Runner erkennt.
+if [ "$_bats_ran" -gt 0 ]; then
+  if [ "$_bats_fail" -gt 0 ]; then
+    echo "bats summary: ${_bats_ran} Tests — ${_bats_pass} ok, ${_bats_fail} FAILED, ${_bats_skip} skipped" >&2
+  else
+    echo "bats summary: ${_bats_ran} Tests — 0 failed, ${_bats_skip} skipped (Umgebungs-Assertions, siehe T900537)" >&2
+  fi
+fi
+
+exit "$_bats_status"

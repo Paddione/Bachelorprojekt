@@ -9,35 +9,59 @@ setup() {
   SCRIPT="$REPO_ROOT/scripts/health-goals-check.sh"
 }
 
-# Extract the exact grep -vE filter expression used for G-SEC05 so the test
-# fails (red) against the pre-fix single-variant pattern and passes (green)
-# once both bot-email variants are excluded.
-g_sec05_filter() {
-  grep -oE "grep -vE? '[^']*github-actions[^']*'" "$SCRIPT" | head -1
+# G-SEC05 wird verhaltensgeprueft (T002448-M4): sec05_unsigned() laeuft gegen
+# ein Fixture-Repo mit bekannten Commits. Der fruehere Quell-Extraktions-Ansatz
+# (grep -vE-Ausdruck aus check.sh kopieren) brach beim T900652-Move der Messung
+# in die Lib — er pruefte die Implementierung, nicht das Verhalten.
+_sec05_fixture() { # $@ = "email|signed?" Zeilen; gibt Repo-Pfad aus
+  local repo="$BATS_TMPDIR/sec05-fixture-$$"
+  rm -rf "$repo" && mkdir -p "$repo"
+  git -C "$repo" init -qb main >/dev/null 2>&1
+  git -C "$repo" config user.email "test@example.com"
+  git -C "$repo" config user.name "Test"
+  git -C "$repo" config commit.gpgsign false
+  local line email signed parent tree=4b825dc642cb6eb9a060e54bf8d69288fbee4904 sha
+  for line in "$@"; do
+    email="${line%%|*}"; signed="${line##*|}"
+    if [ "$signed" = "signed" ]; then
+      parent="$(git -C "$repo" rev-parse HEAD 2>/dev/null || true)"
+      sha="$(printf 'tree %s\n%sauthor %s 1700000000 +0000\ncommitter %s 1700000000 +0000\ngpgsig -----BEGIN PGP SIGNATURE-----\n fake\n -----END PGP SIGNATURE-----\n\nsigned\n' \
+        "$tree" "${parent:+parent $parent
+}" "$email" "$email" | git -C "$repo" hash-object -t commit --stdin -w)"
+      git -C "$repo" update-ref refs/heads/main "$sha"
+    else
+      git -C "$repo" -c commit.gpgsign=false commit -q --allow-empty --author "$email" -m x
+    fi
+  done
+  echo "$repo"
+}
+
+_sec05_count() { # $1 = Repo-Pfad; gibt sec05_unsigned-Wert aus
+  (cd "$1" && source "$REPO_ROOT/scripts/lib/health-goals-measure.sh" && sec05_unsigned)
 }
 
 @test "G-SEC05: filters the numeric-prefixed bot email variant" {
-  filter_cmd=$(g_sec05_filter)
-  [ -n "$filter_cmd" ]
-  run bash -c "printf '%s\n' 'N 41898282+github-actions[bot]@users.noreply.github.com' | $filter_cmd"
-  [ "$status" -eq 1 ]
-  [ -z "$output" ]
+  local repo
+  repo="$(_sec05_fixture "Human <h@example.com>|unsigned" "bot <41898282+github-actions[bot]@users.noreply.github.com>|unsigned")"
+  run _sec05_count "$repo"
+  [ "$status" -eq 0 ]
+  [ "$output" = "1" ]
 }
 
 @test "G-SEC05: filters the non-prefixed bot email variant" {
-  filter_cmd=$(g_sec05_filter)
-  [ -n "$filter_cmd" ]
-  run bash -c "printf '%s\n' 'N github-actions[bot]@users.noreply.github.com' | $filter_cmd"
-  [ "$status" -eq 1 ]
-  [ -z "$output" ]
+  local repo
+  repo="$(_sec05_fixture "Human <h@example.com>|unsigned" "bot <github-actions[bot]@users.noreply.github.com>|unsigned")"
+  run _sec05_count "$repo"
+  [ "$status" -eq 0 ]
+  [ "$output" = "1" ]
 }
 
-@test "G-SEC05: does not filter unrelated unsigned commit authors" {
-  filter_cmd=$(g_sec05_filter)
-  [ -n "$filter_cmd" ]
-  run bash -c "printf '%s\n' 'N somebody@example.com' | $filter_cmd"
+@test "G-SEC05: counts unsigned humans, excludes signed commits" {
+  local repo
+  repo="$(_sec05_fixture "Signed <s@example.com>|signed" "A <a@example.com>|unsigned" "B <b@example.com>|unsigned")"
+  run _sec05_count "$repo"
   [ "$status" -eq 0 ]
-  [ "$output" = "N somebody@example.com" ]
+  [ "$output" = "2" ]
 }
 
 # --- T001953: unbounded network calls (G-SEC06 / G-FE05) must be timeout-wrapped ---

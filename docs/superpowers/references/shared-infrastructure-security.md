@@ -2,7 +2,7 @@
 description: Security analysis of shared infrastructure between mentolder and korczewski brands — LLM GPU host, backup encryption, Filen, and SMTP
 domain: security
 related_tickets: [T000481]
-source: docs/audits/2026-06-07-dataflow-dataleak.md (Prio 5+7)
+source: docs/archive/audits/2026-06-07-dataflow-dataleak.md (Prio 5+7)
 ---
 
 # Shared Infrastructure Security — Cross-Brand Analysis

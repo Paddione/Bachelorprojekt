@@ -84,17 +84,10 @@ fi
 # der Repo-Stand in ~/.config/opencode nie ankommen und jeder Neustart verloere
 # die MCP-Auth (bge-mcp-env, mcp-client-tokens-env) bzw. den Worktree-Guard.
 #
-# opencode laedt Plugins aus SINGULAR *und* PLURAL (agent/agents,
-# skill/skills, command/commands, plugin/plugins) — siehe
-# https://opencode.ai/docs/plugins/ und den customize-opencode-Skill. Empirisch
-# bestaetigt: vor diesem Fix meldete der Plugin-Loader jede Datei 3x, weil sie in
-# `.opencode/plugin/` (Repo-Quelle), `~/.config/opencode/plugin/` und
-# `~/.config/opencode/plugins/` lag. Deshalb wird ausschliesslich nach `plugins/`
-# gesynchronisiert; die veraltete globale `plugin/`-Kopie wurde entfernt.
-# Kostet war CPU/Latenz, nicht Kontext (3 Guard-Spawns + 3 message-merges pro
-# Edit bzw. Turn). Die Kopie traegt keine Secrets (nur Laderlogik, Tokens
-# bleiben in ~/.config/*/server.env).
-PLUGINS_SRC="$REPO_DIR/.opencode/plugin"
+# OpenCode V2 discovers both .opencode/plugin and .opencode/plugins. Keep the
+# source outside those directories and install only one global copy, otherwise
+# every hook runs twice. The files contain loader logic, never token values.
+PLUGINS_SRC="$REPO_DIR/scripts/opencode-plugins"
 PLUGINS_TGT="$(dirname "$TARGET_FILE")/plugins"
 if [[ -d "$PLUGINS_SRC" ]]; then
   mkdir -p "$PLUGINS_TGT"

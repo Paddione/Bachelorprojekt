@@ -126,3 +126,23 @@ export const SystemMessageMerge = async () => {
     },
   }
 }
+
+export default {
+  id: "system-message-merge",
+  async setup(ctx: { session: { hook: (name: string, callback: (event: { model: { providerID: string }; request: Request }) => Promise<void>) => Promise<unknown> } }) {
+    await ctx.session.hook("http.request", async (event) => {
+      if (event.model.providerID !== "llamacpp-local") return
+      let body: ChatRequestBody
+      try { body = await event.request.clone().json() } catch { return }
+      if (!Array.isArray(body?.messages)) return
+      const messages = mergeSystemMessages(body.messages)
+      if (messages === body.messages) return
+      const headers = new Headers(event.request.headers)
+      headers.delete("content-length")
+      event.request = new Request(event.request, {
+        headers,
+        body: JSON.stringify({ ...body, messages }),
+      })
+    })
+  },
+}

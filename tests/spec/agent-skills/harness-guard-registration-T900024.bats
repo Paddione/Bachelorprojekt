@@ -54,12 +54,12 @@ PY
   [[ "$output" == *"Edit"* ]]
 }
 
-@test "opencode: Plugin ruft den Guard ueber tool.execute.before auf" {
-  local plugin="$REPO_ROOT/.opencode/plugin/worktree-write-guard.ts"
+@test "opencode v2: Plugin registriert den Guard ueber ctx.tool.hook" {
+  local plugin="$REPO_ROOT/scripts/opencode-plugins/worktree-write-guard.ts"
   run test -f "$plugin"
   [ "$status" -eq 0 ]
 
-  run grep -c "tool.execute.before" "$plugin"
+  run grep -c 'ctx.tool.hook("execute.before"' "$plugin"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 

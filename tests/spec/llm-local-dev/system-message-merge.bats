@@ -5,7 +5,7 @@
 # role=system-Nachricht ab ("could not encode request: System message must be
 # at the beginning."). opencode 1.18.31 schickt fuer glimmer-primary und den
 # Titel-Agenten system,system,user. Das Plugin
-# .opencode/plugin/system-message-merge.ts fuehrt fuer den Provider
+# scripts/opencode-plugins/system-message-merge.ts fuehrt fuer den Provider
 # llamacpp-local alle system-Nachrichten zu einer an Position 0 zusammen.
 #
 # Der Test laedt das Plugin wie opencode (Modul-Export -> config-Hook), setzt
@@ -13,7 +13,7 @@
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
-  PLUGIN="${REPO_ROOT}/.opencode/plugin/system-message-merge.ts"
+  PLUGIN="${REPO_ROOT}/scripts/opencode-plugins/system-message-merge.ts"
   command -v node >/dev/null 2>&1 || skip "node binary not installed"
 }
 

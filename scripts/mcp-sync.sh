@@ -287,7 +287,8 @@ render_opencode_jsonc() {
       const fields = [];
       fields.push(c + J('type') + ': ' + J(cl.transport === 'http' ? 'remote' : 'local'));
       if (cl.transport === 'http') {
-        fields.push(c + J('url') + ': ' + J(cl.endpoint));
+        fields.push(c + J('url') + ': ' + J(h.url || cl.endpoint));
+        if (h.oauth === false) fields.push(c + J('oauth') + ': false');
         // T002488: opencode expandiert \${VAR} NICHT — es kennt nur die eigene
         // Notation {env:VAR}. Empirisch belegt mit \`opencode mcp list\` gegen den
         // Shim auf :13005: mit \${BGE_MCP_TOKEN} meldet opencode 'failed', mit

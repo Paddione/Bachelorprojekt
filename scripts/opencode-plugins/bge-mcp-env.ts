@@ -21,7 +21,7 @@
 //
 // WICHTIG: Diese Datei muss in einem Verzeichnis liegen, das opencode
 // automatisch laedt. opencode laedt Plugins aus SINGULAR und PLURAL (siehe
-// customize-opencode / https://opencode.ai/docs/plugins/) — `.opencode/plugin/`
+// customize-opencode / https://opencode.ai/docs/plugins/) — `scripts/opencode-plugins/`
 // (Repo-Quelle) und `~/.config/opencode/plugins/` (Sync-Ziel von
 // scripts/opencode-sync-agents.sh) sind beide aktiv. Sie darf deshalb nur in
 // EINEM der beiden liegen: die fruehere Annahme "nur Plural wird geladen"
@@ -64,4 +64,17 @@ loadServerEnv()
 
 export const BgeMcpEnv = async () => {
   return {}
+}
+
+// OpenCode v2 requires a default definition, even for import-time setup.
+export default {
+  id: "bge-mcp-env",
+  async setup(ctx: { mcp: { transform: (callback: (editor: { update: (name: string, callback: (config: { type: string; headers?: Record<string, string> }) => void) => void }) => void) => Promise<unknown> } }) {
+    loadServerEnv()
+    const token = process.env.BGE_MCP_TOKEN
+    if (!token) return
+    await ctx.mcp.transform((editor) => editor.update("bge-mcp", (config) => {
+      if (config.type === "remote") config.headers = { ...config.headers, Authorization: `Bearer ${token}` }
+    }))
+  },
 }

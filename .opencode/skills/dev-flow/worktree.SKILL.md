@@ -1,5 +1,9 @@
 # worktree plugin
 
+> OpenCode V2: this V1 plugin entrypoint is currently inactive. Create repo
+> worktrees through `scripts/worktree-create.sh` until its tool and session
+> lifecycle are ported to the V2 plugin API.
+
 Worktree management for OpenCode git isolation and temporary workspace creation. Enables feature branching via native git worktrees with automatic cleanup.
 
 ## Canonical path

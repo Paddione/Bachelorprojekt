@@ -23,7 +23,7 @@
 //
 // WICHTIG: Diese Datei muss in einem Verzeichnis liegen, das opencode
 // automatisch laedt. opencode laedt Plugins aus SINGULAR und PLURAL (siehe
-// customize-opencode / https://opencode.ai/docs/plugins/) — `.opencode/plugin/`
+// customize-opencode / https://opencode.ai/docs/plugins/) — `scripts/opencode-plugins/`
 // (Repo-Quelle) und `~/.config/opencode/plugins/` (Sync-Ziel von
 // scripts/opencode-sync-agents.sh) sind beide aktiv. Sie darf deshalb nur in
 // EINEM der beiden liegen: die fruehere Annahme "nur Plural wird geladen"
@@ -76,4 +76,17 @@ for (const { file, key } of SOURCES) {
 
 export const McpClientTokensEnv = async () => {
   return {}
+}
+
+export default {
+  id: "mcp-client-tokens-env",
+  async setup(ctx: { mcp: { transform: (callback: (editor: { update: (name: string, callback: (config: { type: string; headers?: Record<string, string> }) => void) => void }) => void) => Promise<unknown>; reload: () => Promise<void> } }) {
+    for (const { file, key } of SOURCES) loadServerEnv(file, key)
+    const token = process.env.MCP_POSTGRES_TOKEN
+    if (!token) return
+    await ctx.mcp.transform((editor) => editor.update("mcp-postgres", (config) => {
+      if (config.type === "remote") config.headers = { ...config.headers, Authorization: `Bearer ${token}` }
+    }))
+    await ctx.mcp.reload()
+  },
 }

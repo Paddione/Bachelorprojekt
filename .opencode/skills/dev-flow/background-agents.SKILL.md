@@ -1,5 +1,9 @@
 # background-agents plugin
 
+> OpenCode V2: the V1 `background-agents.ts` entrypoint is currently inactive.
+> Use OpenCode's native `task` tool for subagents. The source remains here for
+> a future migration of delegation persistence and notifications.
+
 Unified delegation system for OpenCode. Replaces native `task` tool with persistent, async-first agent delegation. All agent outputs are persisted to storage; orchestrator receives only key references.
 
 ## Purpose

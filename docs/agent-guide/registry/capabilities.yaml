@@ -943,3 +943,11 @@ capabilities:
     skill:trl-training:
       state: unreviewed
       reason: "Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed."
+
+  neovim-konfiguration:
+    skill:bachelorprojekt-vim:
+      state: canonical
+      use_when: "Neue oder bestehende Neovim-Konfiguration fuer dieses Repository planen, erstellen oder warten."
+      roles: [all]
+      tier: caution
+      deep_ref: ".agents/skills/bachelorprojekt-vim/SKILL.md"

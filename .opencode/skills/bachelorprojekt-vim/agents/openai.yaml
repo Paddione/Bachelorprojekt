@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bachelorprojekt Neovim"
+  short_description: "Design and maintain repo-aware Neovim"
+  default_prompt: "Use $bachelorprojekt-vim for a new or existing Bachelorprojekt Neovim setup; preserve personal configuration and keep Vim/gVim separate."

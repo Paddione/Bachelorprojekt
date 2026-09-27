@@ -1146,3 +1146,24 @@ skills:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
+  - id: bachelorprojekt-vim
+    provenance: project
+    exposure: portable
+    source: .agents/skills/bachelorprojekt-vim
+    harnesses:
+      codex:
+        path: .agents/skills/bachelorprojekt-vim
+        sync: identical
+      agy:
+        path: .agents/skills/bachelorprojekt-vim
+        sync: identical
+      opencode:
+        path: .opencode/skills/bachelorprojekt-vim
+        sync: identical
+      claude_code:
+        path: .claude/skills/bachelorprojekt-vim
+        sync: identical
+      muse:
+        path: .agents/skills/bachelorprojekt-vim
+        sync: identical
+    exclusions: {}

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# scripts/gemini-sync.sh — Mirror .claude/{agents,skills} into .gemini/ and register Antigravity skills
-# Invoked by: task gemini:sync
+# scripts/agy-sync.sh — Mirror .claude/{agents,skills} into .gemini/ and register Antigravity skills
+# Invoked by: task agy:sync
+# Note: "agy" is the Antigravity CLI (home = ~/.gemini/, shared with the Antigravity IDE).
+#       No gemini-cli is involved; the old name gemini-sync.sh was misleading.
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

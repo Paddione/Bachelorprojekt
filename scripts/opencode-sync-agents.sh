@@ -80,27 +80,24 @@ if [[ -d "$PROMPTS_SRC" ]]; then
   echo "Successfully synced prompt files to $PROMPTS_TGT"
 fi
 
-# T014105: Plugins analog zu den Prompts verteilen — die Global-Config
-# referenziert das Plugin per Pfad relativ zum globalen Config-Verzeichnis,
-# ohne Verteilung wuerde der Repo-Stand dort nie ankommen.
+# T014105: Plugins analog zu den Prompts verteilen — ohne Verteilung wuerde
+# der Repo-Stand in ~/.config/opencode nie ankommen und jeder Neustart verloere
+# die MCP-Auth (bge-mcp-env, mcp-client-tokens-env) bzw. den Worktree-Guard.
+#
+# opencode laedt Plugins aus SINGULAR *und* PLURAL (agent/agents,
+# skill/skills, command/commands, plugin/plugins) — siehe
+# https://opencode.ai/docs/plugins/ und den customize-opencode-Skill. Empirisch
+# bestaetigt: vor diesem Fix meldete der Plugin-Loader jede Datei 3x, weil sie in
+# `.opencode/plugin/` (Repo-Quelle), `~/.config/opencode/plugin/` und
+# `~/.config/opencode/plugins/` lag. Deshalb wird ausschliesslich nach `plugins/`
+# gesynchronisiert; die veraltete globale `plugin/`-Kopie wurde entfernt.
+# Kostet war CPU/Latenz, nicht Kontext (3 Guard-Spawns + 3 message-merges pro
+# Edit bzw. Turn). Die Kopie traegt keine Secrets (nur Laderlogik, Tokens
+# bleiben in ~/.config/*/server.env).
 PLUGINS_SRC="$REPO_DIR/.opencode/plugin"
-PLUGINS_TGT="$(dirname "$TARGET_FILE")/plugin"
+PLUGINS_TGT="$(dirname "$TARGET_FILE")/plugins"
 if [[ -d "$PLUGINS_SRC" ]]; then
   mkdir -p "$PLUGINS_TGT"
   cp -f "$PLUGINS_SRC"/*.ts "$PLUGINS_TGT"/ 2>/dev/null || true
-  echo "Successfully synced plugin files to $PLUGINS_TGT"
-fi
-
-# T0141xx: opencode laedt NUR die Plural-Verzeichnisse automatisch
-# (`.opencode/plugins/` Projekt, `~/.config/opencode/plugins/` global —
-# siehe https://opencode.ai/docs/plugins/). Das singulaere `plugin/` oben ist
-# die Repo-Konvention und wird von opencode ignoriert; ohne diese Kopie liefen
-# die Token-Plugins (bge-mcp-env, mcp-client-tokens-env) und der
-# Worktree-Guard nie — jeder Neustart verlor die MCP-Auth. Die Kopie traegt
-# keine Secrets (nur Laderlogik, Tokens bleiben in ~/.config/*/server.env).
-PLUGINS_AUTO="$(dirname "$TARGET_FILE")/plugins"
-if [[ -d "$PLUGINS_SRC" ]]; then
-  mkdir -p "$PLUGINS_AUTO"
-  cp -f "$PLUGINS_SRC"/*.ts "$PLUGINS_AUTO"/ 2>/dev/null || true
-  echo "Successfully synced plugin files to $PLUGINS_AUTO (opencode auto-load)"
+  echo "Successfully synced plugin files to $PLUGINS_TGT (opencode auto-load)"
 fi

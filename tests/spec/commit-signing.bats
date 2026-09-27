@@ -40,5 +40,18 @@ BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
 @test "G-SEC05: health-goals-check.sh verwendet adjusted metric (kein raw grep -c N)" {
   run grep "G-SEC05" "$PROJECT_DIR/scripts/health-goals-check.sh"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"github-actions"* ]] || [[ "$output" == *"%ae"* ]]
+  [[ "$output" == *"github-actions"* ]] || [[ "$output" == *"%ae"* ]] || [[ "$output" == *"sec05_unsigned"* ]]
+}
+
+@test "T900652: G-SEC05-Messung terminiert bei defektem gpg (kein %G?-Hang)" {
+  # %G? ruft pro Commit gpg auf — mit defektem gpg (Pinentry ohne TTY)
+  # hing die Messung ewig und vergiftete per Eager-Eval jeden --only-Lauf.
+  # Die Messung muss gpg-frei sein (gpgsig-Header via cat-file, Prior Art
+  # T001575 in diesem File): mit haengendem gpg-Stub trotzdem terminieren.
+  local stub="$BATS_TMPDIR/gpg-hang-stub"
+  printf '#!/bin/sh\nsleep 300\n' > "$stub" && chmod +x "$stub"
+  run timeout 90 env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=gpg.program GIT_CONFIG_VALUE_0="$stub" \
+    bash "$PROJECT_DIR/scripts/health-goals-check.sh" --only=G-SEC05
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"G-SEC05"* ]]
 }

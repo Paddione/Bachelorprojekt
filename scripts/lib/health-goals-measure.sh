@@ -266,3 +266,19 @@ pnpm_measure() {
   [ -n "$out" ] || { echo '-'; return; }
   python3 "$helper" <<<"$out" || echo 99
 }
+# sec05_unsigned — unsignierte Commits der letzten 50 auf main, ohne
+# freshness-Bot (G-SEC05, adjusted metric).
+# "Unsigned" heisst: kein gpgsig-Header im Commit-Objekt (git cat-file).
+# Bewusst KEIN %G?: das ruft pro Commit gpg auf — mit defektem gpg (Pinentry
+# ohne TTY) hing die Messung ewig und vergiftete per Eager-Eval jeden
+# --only-Lauf (T900652). cat-file ist deterministisch, keyring-unabhaengig
+# und terminiert (Prior Art: T001575, tests/spec/commit-signing.bats).
+sec05_unsigned() {
+  local sha ae unsigned=0
+  while read -r sha ae; do
+    [ -n "$sha" ] || continue
+    case "$ae" in *github-actions\[bot\]@users.noreply.github.com*) continue ;; esac
+    git cat-file commit "$sha" 2>/dev/null | grep -q '^gpgsig' || unsigned=$((unsigned + 1))
+  done < <(git log -50 --pretty='%H %ae' main 2>/dev/null)
+  echo "$unsigned"
+}

@@ -1,6 +1,6 @@
 ---
 name: system-audit
-description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manifeste, Live-Flux-Cluster, Brand-Seiten, Repo-Zustand/Factory-Queue, Tool-Registry, Security & Secrets, Datenbank, LLM-Pipeline, Brain-Wiki. Critical/Warning-Befunde enden als Ticket mit OpenSpec-Proposal in der Factory-Backlog. Triggers on system-audit, Systemaudit, Full-Audit, 'audit all systems', 'audit the cluster/repo/website/security/database/llm pipeline/toolset', 'audit report with tickets'."
+description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manifeste, Live-Flux-Cluster, Brand-Seiten, Repo-Zustand, Tool-Registry, Security & Secrets, Datenbank, LLM-Pipeline, Brain-Wiki. Critical/Warning-Befunde enden als Ticket mit OpenSpec-Proposal im Backlog. Triggers on system-audit, Systemaudit, Full-Audit, 'audit all systems', 'audit the cluster/repo/website/security/database/llm pipeline/toolset', 'audit report with tickets'."
 ---
 
 # system-audit
@@ -21,7 +21,7 @@ angehängten Proposals.
 | `gitops-repo` | Flux-Manifeste dieses Repos (`fleet/`, `prod-fleet/`, `flux/`) | Skill `gitops-repo-audit` | delegiert |
 | `flux-cluster` | Live-Fleet-Cluster (ns `workspace`, `workspace-korczewski`) | Checkliste [§1](references/checklists.md#1-flux-cluster-live-sweep) | eigen |
 | `website` | Brand-Seiten mentolder + korczewski | Skill `web-audit` | delegiert |
-| `repo` | Repo-Zustand, PRs, Factory-Queue | Skill `repo-hygiene` §0–§7 inkl. Runtime-Drift | delegiert |
+| `repo` | Repo-Zustand, PRs | Skill `repo-hygiene` §0–§7 inkl. Runtime-Drift | delegiert |
 | `toolset` | Tool-Registry (`capabilities.yaml`) | Skill `toolset-curate` Schritt 1–2 | delegiert |
 | `security` | SealedSecrets, OIDC, DSGVO, Secret-Alter | Checkliste [§2](references/checklists.md#2-security-sealedsecrets-oidc-dsgvo) (+ infra-ops `references/runbooks-operations.md` §6) | eigen |
 | `database` | PostgreSQL (Backups, Schema, Wachstum) | Checkliste [§3](references/checklists.md#3-datenbank-postgresql) (+ infra-ops `references/runbooks-operations.md` §7) | eigen |

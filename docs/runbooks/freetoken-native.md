@@ -1,7 +1,6 @@
 # Runbook: FreeToken-native Betrieb (lokales LLM-Backend)
 
-Seit T014028 ist FreeToken das lokale Standard-Backend für Subagenten und
-Factory-Routing. Die llama.cpp-Loadouts `gemma26-throughput` (:8092) und
+Seit T014028 ist FreeToken das lokale Standard-Backend für Subagenten. Die llama.cpp-Loadouts `gemma26-throughput` (:8092) und
 `qwen38-220k` (:8094) sind stillgelegt (`enabled: false` in
 `scripts/llm/loadouts.json`).
 
@@ -268,8 +267,6 @@ ueber `freetoken-local/active` text-only.
 
 - opencode-Provider: `freetoken-local/Qwen3.6-35B-A3B-NVFP4`
   (`.opencode/agent-models.jsonc`).
-- Factory-Fallback/PIN-Pfad: `provider=freetoken`,
-  `baseUrl=http://127.0.0.1:1919/v1` (`scripts/factory/route-provider.sh`).
 - DB-Seite (Deployment): `tickets.provider_config` muss eine FreeToken-Zeile
   bekommen; llama-Zeilen demoten.
 

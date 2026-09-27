@@ -2,7 +2,7 @@
   "$schema": "https://registry.kdco.dev/schemas/worktree.json",
 
   // Canonical worktree location — matches scripts/worktree-create.sh convention.
-  // All harnesses (Claude Code, opencode, agy, factory) use .worktrees/<slug>.
+  // All harnesses (Claude Code, opencode, agy) use .worktrees/<slug>.
   "worktreePath": ".worktrees",
 
   "sync": {

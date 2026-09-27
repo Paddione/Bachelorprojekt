@@ -146,7 +146,7 @@
   // ── Tool-Output-Caps (T900182) ─────────────────────────────────────────────
   // Einheitliche Kappung fuer ALLE Tool-Outputs (200 Zeilen / 8 KB) — der
   // groesste staendige Kontextposten neben den MCP-Schemas. Bewusst global
-  // und nicht pro-Session: Automations-Workloads (Factory, sdlc-autopilot)
+  // und nicht pro-Session: Automations-Workloads (sdlc-autopilot)
   // profitieren genauso. In Verbindung mit .opencode/dcp.jsonc haelt der
   // aktive Kontext länger unter den 120k der V2-Compaction (T900350).
   "tool_output": { "max_lines": 200, "max_bytes": 8192 },

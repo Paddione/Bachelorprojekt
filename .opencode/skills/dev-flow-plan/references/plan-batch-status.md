@@ -44,28 +44,20 @@ PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres 
 
 🚀 Ausführungsoptionen:
 
-1. **Einzel-Ausführung (Manuell):**
+1. **Einzel-Ausführung:**
    dev-flow-execute auf <feature|fix>/<slug> aufrufen
    → Implementiert nur diesen einen Plan
 
-2. **Einzel-Ausführung (Factory):**
-   bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
-     --branch "<feature|fix>/<slug>" --plan "openspec/changes/<slug>/tasks.md"
-   → Factory-Dispatcher arbeitet den Plan automatisch ab
+2. **Lokal mit dem Plan-Runner:**
+   node scripts/llm/plan-runner.mjs openspec/changes/<slug> --worktree <pfad>
+   → Führt die Partials mit den lokalen Modellen aus (Runbook: docs/runbooks/plan-runner.md)
 
-3. **Batch-Ausführung (alle staged plans):**
-   Wenn mehrere Pläne bereit sind, können sie parallel via Factory implementiert werden:
-   - UI: In /dev-status alle staged plans auswählen → "→ Factory (Batch)"
-   - CLI: Für jeden staged plan:
-     bash scripts/ticket.sh enqueue --id <ext_id> --branch <branch> --plan <plan>
-   → Factory-Dispatcher verarbeitet alle Pläne parallel (Plan-Reuse, kein Neu-Planen)
-
-4. **Batch-Ausführung (mit dev-flow-batch):**
+3. **Batch-Planung (mit dev-flow-batch):**
    Wenn weitere planning-Tickets existieren und du erst alle planen willst:
    dev-flow-batch aufrufen → plant alle status=planning Tickets parallel
-   → Danach alle fertigen Pläne via Option 3 an Factory übergeben
+   → Danach jeden fertigen Plan per Option 1 oder 2 ausführen
 ```
 
-**Empfehlung:** Wenn nur dieser eine Plan fertig ist → Option 2 (Factory einzeln). Wenn mehrere Pläne fertig sind → Option 3 (Batch via Factory). Wenn noch planning-Tickets warten → Option 4 (erst dev-flow-batch, dann Factory).
+**Empfehlung:** Ein fertiger Plan → Option 1. Lokal ohne Cloud-Budget → Option 2. Wenn noch planning-Tickets warten → Option 3.
 
 STOPP danach.

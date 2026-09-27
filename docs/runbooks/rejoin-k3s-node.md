@@ -6,7 +6,7 @@ READY=False, Prometheus-PVC (~38 GB) robustness=degraded.
 **Ticket:** T016442 · Epic T016422
 
 > ⚠ **Ausführungsgrenze:** Schritte mit **MANUELL — Operator** dürfen nicht
-> vom autonomen Factory-Tick ausgeführt werden. Alles andere ist lesend.
+> automatisiert ausgeführt werden. Alles andere ist lesend.
 
 ## Ursache prüfen
 
@@ -75,7 +75,7 @@ Erwartung: Prometheus-PVC wieder `robustness=healthy`, kein `degraded` mehr.
 Abschließende, rein lesende Gesamtprüfung:
 
 ```bash
-bash scripts/factory/verify-rejoin.sh gekko-hetzner-2   # Exit 0 = sauber regejoint
+# Das Skript scripts/factory/verify-rejoin.sh entfiel mit T900399; bis zum Ersatz die Prüfschritte oben wiederholen.
 ```
 
 Erwartung: Exit 0 — Node anwesend + `Ready`, Longhorn `READY=True` +

@@ -6,18 +6,13 @@ Validierung (DNS-Rebinding), exakte Browser-Origin-Allowlist, konstante-Zeit-
 Bearer-Token pro Server. Quelle der gemeinsamen Logik:
 `scripts/lib/mcp-http-security.mjs` (kein npm-Abhaengigkeitspaket).
 
-> **WARNUNG:** Der Live-Server `factory-mcp-node` auf `:13003` laeuft aktuell
-> **unauthentifiziert** und wird von opencode remote **ohne Authorization**
-> konsumiert. Wird die Server-Integration eingecheckt, ohne dass Token in
-> Client-Config + Prozess-Start-Env verdrahtet sind, faellt die laufende
-> Factory-Toolchain beim naechsten Neustart aus. **Cutover-Schritte 1–3
-> zuerst, vor der Aktivierung der Server-Pruefung (Schritt 4).**
+> **Hinweis T900399:** `factory-mcp-node` (`:13003`) ist mit der Software-Factory abgeschaltet;
+> die Schritte 1–3 betrafen nur diesen Server und entfallen.
 
 ## Betroffene Server und ihre Tokens
 
 | Server | Port | Token-Env | Browser-Origins |
 |---|---|---|---|
-| factory-mcp-node | 13003 | `FACTORY_MCP_TOKEN` | `MCP_BROWSER_ORIGINS` |
 | mcp-postgres-local | 13001 | `MCP_POSTGRES_TOKEN` | `MCP_BROWSER_ORIGINS` |
 | bge-mcp | 13005 | `BGE_MCP_TOKEN` | `MCP_BROWSER_ORIGINS` |
 | mcp-cors-proxy (Kubernetes-Monolith) | 18082 | `MCP_KUBERNETES_TOKEN` | `MCP_BROWSER_ORIGINS` |
@@ -42,60 +37,15 @@ Token in eine **owner-lesbare, untracked** Umgebungsdatei legen, die nur beim
 Start geladen wird (nicht in git). Beispiel `~/.config/mcp-local-tokens.env`:
 
 ```bash
-export FACTORY_MCP_TOKEN=<hex>
 export MCP_POSTGRES_TOKEN=<hex>
 export MCP_KUBERNETES_TOKEN=<hex>
 export BGE_MCP_TOKEN=<hex>          # existiert bereits teilweise
 export MCP_BROWSER_ORIGINS=https://app.example.com,http://localhost:3000
 ```
 
-## Schritt 1 — Server-Prozess-Env vorbereiten
+## Schritte 1–3 — entfallen (T900399)
 
-Betroffener Server: `factory-mcp-node` (`docs/agent-guide/registry/mcp.yaml`,
-`windows_start`). Startkommando des Live-Prozesses auf pk-desktop:
-
-```bash
-FACTORY_REPO=C:/Users/PatrickKorczewski/Bachelorprojekt FACTORY_CTX=fleet \
-  node scripts/factory-mcp-node/server.mjs
-```
-
-Verdrahtung: die Token-Umgebungsdatei beim Start sourcen, damit
-`requireToken('FACTORY_MCP_TOKEN')` beim naechsten Start erfolgreich ist:
-
-```bash
-set -a; source ~/.config/mcp-local-tokens.env; set +a
-FACTORY_REPO=C:/Users/PatrickKorczewski/Bachelorprojekt FACTORY_CTX=fleet \
-  node scripts/factory-mcp-node/server.mjs
-```
-
-## Schritt 2 — Client-Configs vorbereiten (sendet Token)
-
-**opencode** (`.opencode/opencode.jsonc`, `factory-mcp-node` remote) — den
-`Authorization`-Header anhaengen; solche Header unterstuetzt das BGE-Vorbild
-bereits (`scripts/llm/ui-config.template.json` nutzt `Bearer ${BGE_MCP_TOKEN}`):
-
-```jsonc
-"factory-mcp-node": {
-  "type": "remote",
-  "url": "http://localhost:13003/mcp",
-  "headers": { "Authorization": "Bearer ${FACTORY_MCP_TOKEN}" },
-  "enabled": true
-}
-```
-
-**llama Web-UI** (`scripts/llm/ui-config.template.json`): dem `factory-mcp`
-Eintrag dieselben `headers` geben.
-
-> **Hinweis:** solange der Server die Pruefung (Schritt 4) nicht aktiviert hat,
-> akzeptiert er jeden Header — das Senden des vorbereiteten Headers ist also
-> primaer-sicher und bricht nichts.
-
-## Schritt 3 — Server-Code-Integration aktivieren
-
-In `scripts/factory-mcp-node/server.mjs` die Guard-Integration eintragen
-(imports + `guardRequest` vor Body-Lesen + `/health` auf minimale Liveness
-reduzieren). Diese Integration ist **bewusst zurueckgestellt** und nur zusammen
-mit den Schritten 1–2 + Neustart (Schritt 5) freizugeben.
+Sie verdrahteten Token und Guard für `factory-mcp-node`, der abgeschaltet ist.
 
 ## Schritt 4 — Client-Authorization-Check (vor Aktivierung)
 
@@ -107,7 +57,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <token>' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
-  http://127.0.0.1:13003/mcp     # erwartet 200
+  http://127.0.0.1:<port>/mcp     # erwartet 200
 ```
 
 ## Schritt 5 — Kontrollierter Neustart
@@ -118,16 +68,6 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST \
    (T900052, Cutover-Probe):
 
    ```bash
-   # factory-mcp-node (temporaerer Port 19910) — 401 ohne Token, 200 mit Token
-   FACTORY_MCP_TOKEN=cutover-token-abc FACTORY_MCP_PORT=19910 \
-     node scripts/factory-mcp-node/server.mjs &
-   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:19910/mcp \
-     -H 'content-type: application/json' \
-     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'          # -> 401
-   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:19910/mcp \
-     -H 'content-type: application/json' \
-     -H 'Authorization: Bearer cutover-token-abc' \
-     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'          # -> 200
 
    # mcp-postgres-local (temporaerer Port 19911) — 401 ohne Token, 200 mit Token
    MCP_POSTGRES_TOKEN=pg-token-xyz PORT=19911 \
@@ -165,7 +105,7 @@ Token-Anforderung und die Browser-Origin-Policy vermerken, sowie
 ## Fails im Betrieb
 
 - **401 bei erlaubtem CLI ohne Origin:** Token fehlt/falsch im Client-Header —
-  Client-Env (`FACTORY_MCP_TOKEN`) pruefen.
+  Client-Env (Token-Variable laut Tabelle) pruefen.
 - **403 bei erlaubtem Browser:** Origin nicht exakt gelistet — in
   `MCP_BROWSER_ORIGINS` aufnehmen (exakter Schema://host[:port]-Vergleich).
 - **403 auch ohne Origin:** Host-Header ist kein Loopback (DNS-Rebinding) —

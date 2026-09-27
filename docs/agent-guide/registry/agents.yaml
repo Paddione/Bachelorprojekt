@@ -64,7 +64,7 @@ runtimes:
     mode: subagent
     model: llamacpp-local/Muse-Glimmer-30B
     write_capable: false
-    note: "Factory reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
+    note: "Reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle

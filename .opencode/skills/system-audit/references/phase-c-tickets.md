@@ -23,7 +23,7 @@ llm-pipeline→`llm`, brain-wiki→`docs`.
 
 ### C3 — DoR-Felder setzen („properly planned")
 
-Ein Ticket ohne Planungs-Metadaten ist nicht factory-reif:
+Ein Ticket ohne Planungs-Metadaten ist nicht ausführungsreif:
 
 ```bash
 scripts/ticket.sh plan-meta --id <T-ID> --value-prop "<Nutzen aus dem Evidence>" \
@@ -61,7 +61,7 @@ Befunde mit derselben Wurzel (Regel 5) teilen sich ein Ticket **und** ein Propos
 scripts/ticket.sh enqueue --id <T-ID>
 ```
 
-Damit greift die Factory nach dem Pipeline-Prinzip zu. Abschluss je Befund:
+Abschluss je Befund:
 Kommentar mit Evidence-Block, Report-Pfad und Proposal-Slug aufs Ticket; Report-Zeile
 `(Phase-C: Ticket <T-ID>, Proposal <slug>)` nachtragen.
 

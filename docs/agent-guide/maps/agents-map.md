@@ -13,7 +13,7 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | bachelorprojekt-infra | Kubernetes, Kustomize, Deploy | opus | 🚫 unsupported | — | — |
 | bachelorprojekt-ops | Cluster-Operationen, LLM-Pipeline | sonnet | 🚫 unsupported | — | — |
 | bachelorprojekt-security | SealedSecrets, Pocket ID, OIDC | opus | 🚫 unsupported | — | — |
-| bachelorprojekt-test | Tests, Factory, Autopilot | sonnet | 🚫 unsupported | — | — |
+| bachelorprojekt-test | Tests | sonnet | 🚫 unsupported | — | — |
 | bachelorprojekt-website | Astro/Svelte, UI, Frontend | sonnet | 🚫 unsupported | — | — |
 
 ## Runtimes (opencode Agenten)
@@ -36,4 +36,4 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | plan-worker-4b | primary | llamacpp-qwen35/Qwen3.5-4B-MTP | ja | plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one OpenSpec partial; started by scripts/llm/plan-runner.mjs, not for interactive use [T900504]. |
 | plan-worker-self | primary | llamacpp-local/Muse-Glimmer-30B | ja | plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one OpenSpec partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs [T900504]. |
 | qwen35-mtp | subagent | llamacpp-qwen35/Qwen3.5-4B-MTP | nein | Text-only Qwen3.5-4B MTP Q4_K_XL via llama.cpp :1920 on RTX 3060 Ti; 131072 served KV with Q4 target/draft KV, single slot. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model. |
-| reviewer | subagent | llamacpp-local/Muse-Glimmer-30B | nein | Factory reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074] |
+| reviewer | subagent | llamacpp-local/Muse-Glimmer-30B | nein | Reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074] |

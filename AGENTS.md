@@ -40,7 +40,7 @@ Dispatch: `task local` für lokale Implementation + deepseek-Rails (Go zuerst). 
 | `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
 | `fleet/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
-| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `ticket-mcp` (Go-Adapter) — Ticket-Reads/Lifecycle; `mcp-postgres` (:13001, devmesh seit T900191, nur mentolder) für Nicht-Ticket-Tabellen |
+| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test" | `bachelorprojekt-test` | `ticket-mcp` (Go-Adapter) — Ticket-Reads/Lifecycle; `mcp-postgres` (:13001, devmesh seit T900191, nur mentolder) für Nicht-Ticket-Tabellen |
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) — Ticket-Reads → `ticket-mcp` mit `brand` |
 | SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
@@ -87,8 +87,8 @@ task workspace:validate                          # Kustomize dry-run
 
 ## Workflow Rules
 
-- **Branching & PRs**: Branches `feature/*`, `fix/*`, `chore/*`, `docs/*` (Factory batch: `feat/batch-*`); PRs → squash-merge, never push directly to `main` (`preflight-pr-scope.sh` enforces worktrees).
-- **dev-flow**: `dev-flow-plan` → `dev-flow-execute` (Chores: `dev-flow-chore`); Planner enqueues partials individually, Factory executes in parallel.
+- **Branching & PRs**: Branches `feature/*`, `fix/*`, `chore/*`, `docs/*`; PRs → squash-merge, never push directly to `main` (`preflight-pr-scope.sh` enforces worktrees).
+- **dev-flow**: `dev-flow-plan` → `dev-flow-execute` (Chores: `dev-flow-chore`); a staged plan is executed by `dev-flow-execute` (locally optional: `scripts/llm/plan-runner.mjs`).
 - **CI Gate vor PR**: `task test:changed` + `task freshness:check` + `task workspace:validate`.
 - **Merge = Abschluss (T001092)**: Ticket closes on green auto-merge to `main` (`done · resolution=shipped`). Prod deploy is decoupled push-based and does NOT change ticket status.
 - **Deliverable-Check vor manuellem done/shipped (M10, T002506)**: Bei manuellen Closures (Epics über mehrere PRs) vor dem Setzen auf done/shipped prüfen, dass alle Deliverable-Dateien auf `origin/main` existieren (`git ls-tree -r --name-only origin/main | grep -qxF <pfad>`).
@@ -243,7 +243,7 @@ The following sections contain detailed reference material. **Do not load them i
 | `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", llm:, GPU, Ollama, model | `bachelorprojekt-ops` |
 | fleet/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy, workspace:setup | `bachelorprojekt-infra` |
-| test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, "test failing", "test case", "write a test", factory:, autopilot, FA-SF | `bachelorprojekt-test` |
+| test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, "test failing", "test case", "write a test" | `bachelorprojekt-test` |
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, bachelorprojekt.features, v_timeline | `bachelorprojekt-db` |
 | SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
 
@@ -254,13 +254,13 @@ Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → `<active-pla
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
 
 - Claude Code: Skill mit `agent:` → `background-agents.ts` (`delegate` read-only, `task` write-capable); ohne `agent:` inline. Map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`/`web-audit`→website.
-- opencode: `dev-flow-*` = Shared Sources wie Claude Code (T014086, ex-T013724-Dualnamen); Domain-Skills via Agent-Routing (`deny` in `opencode.jsonc`); `sdlc-autopilot` (opencode-only): ticket-triage → dev-flow-plan → Factory. `ticket-ops` bleibt der kompatible Router; agy folgt dem opencode-Pfad.
+- opencode: `dev-flow-*` = Shared Sources wie Claude Code (T014086, ex-T013724-Dualnamen); Domain-Skills via Agent-Routing (`deny` in `opencode.jsonc`); `sdlc-autopilot` (opencode-only): ticket-triage → dev-flow-plan → dev-flow-execute. `ticket-ops` bleibt der kompatible Router; agy folgt dem opencode-Pfad.
 </details>
 
 <details>
 <summary>Quality Gates (read when verifying before merge)</summary>
 
-- `task test:changed` (smart selection, vitest-Fallback) · `task freshness:check` (Artefakte committet) · `task test:code-quality` (file-size/import-cycle/hostname) · `task factory:eval:replay` (agent-setup, CI advisory).
+- `task test:changed` (smart selection, vitest-Fallback) · `task freshness:check` (Artefakte committet) · `task test:code-quality` (file-size/import-cycle/hostname).
 - Brett: `npm run typecheck && npm test && npm run build --prefix components/brett` · Website: `pnpm test:unit` in `components/website` (vitest) · PR-Titel: Conventional Commits + `[T000XXX]` (advisory).
 </details>
 

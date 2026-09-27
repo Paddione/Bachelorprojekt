@@ -10,7 +10,7 @@ nicht unterdrückt) zusätzlich als lesbarer Timeline-Kommentar.
 - **Klärung statt Raten:** Wenn eine offene Frage nur der Mensch beantworten kann (Scope,
   Akzeptanzkriterien, Design-Präferenz), grillen statt annehmen.
 - **Persistenz statt flüchtig:** Antworten gehören ans Ticket, nicht nur in den Chat —
-  so sind sie für Factory/dev-flow-execute/Panel wieder abrufbar.
+  so sind sie für dev-flow-execute/Panel wieder abrufbar.
 
 ### Aufruf
 

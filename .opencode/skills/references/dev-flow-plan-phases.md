@@ -99,12 +99,10 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 Der Implementierungsplan wird **ausschließlich** in `openspec/changes/<slug>/tasks.md` geschrieben.
 #### Schritt A.6: Playwright-Projekt-Gate (optional)
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
-### Phase B: Worktree anlegen + Branch pushen (Pipeline-Start)
+### Phase B: Worktree anlegen + Branch pushen
 
-🚨 **Pipeline-Prinzip:** Der Branch und Worktree werden JETZT angelegt und gepusht,
-damit Partial-Pläne sofort in die Factory enqueued werden können, während der Planner
-weiterarbeitet. Die Factory beginnt mit der Ausführung eines Partials, sobald es
-enqueued ist — parallel zum Schreiben des nächsten Partials.
+Der Branch und Worktree werden JETZT angelegt und gepusht, damit jeder Partial-Plan sofort
+committet und gesichert werden kann.
 
 > **Ticket-vor-Branch-Check (T001917, T002050):** Prüfe vor der Worktree-Anlage, ob bereits ein Ticket existiert oder in Schritt 4.5 ein neues angelegt wird. Ist `TICKET_EXT_ID` bekannt, benenne den Branch **immer** mit Ticket-ID-Suffix (z.B. `feature/<slug>-T002050` statt `feature/<slug>`). Falls noch kein Ticket existiert, erstelle das Ticket VOR der Worktree-Anlage (siehe Schritt 4.5), um dessen `TICKET_EXT_ID` direkt in den Branch-Namen aufzunehmen. Sonst schlägt `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss nachträglich umbenannt werden.
 
@@ -162,7 +160,7 @@ cd "${WT}"
 > nicht, gehört die verbliebene Änderung entweder in den Worktree oder verworfen — sie darf
 > nicht auf `main` liegen bleiben.
 
-#### Schritt B.3: Scaffold-Commit + Push (Branch ist live für Factory)
+#### Schritt B.3: Scaffold-Commit + Push
 
 ```bash
 # [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT absolut, s. B.2)
@@ -172,81 +170,45 @@ git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
 
-### Phase C: Im Worktree — Pipeline-Plan-Phase (Partial-Dispatch)
+### Phase C: Im Worktree — Partial-Pläne schreiben
 
 #### Schritt C.1: Decompose — Partial-Manifest erstellen
 Erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest** — Partials mit disjunkten
-`target_files`-Listen; jede Zeile trägt zusätzlich `min_tier` + `ctx_tokens` (Dispatch-Vorgabe
-für den Orchestrator, R1/R2 — Rubrik in Schritt 3.7); das **letzte Partial ist IMMER die
-Tests-Rolle** (`tests`) und trägt den STRUCT2-Failing-Test-Step. Keine Datei in zwei Partials
-(D1). Obergrenze 9 (`--partials`-Cap).
+`target_files`-Listen; jede Zeile trägt zusätzlich `min_tier` + `ctx_tokens` (R1/R2 — Rubrik in
+Schritt 3.7); das **letzte Partial ist IMMER die Tests-Rolle** (`tests`) und trägt den
+STRUCT2-Failing-Test-Step. Keine Datei in zwei Partials (D1). Obergrenze 9 (`--partials`-Cap).
 
-#### Schritt C.2: Pipeline-Loop — Pro Partial: Plan → Stage → Enqueue → Factory
-
-Führe für **jedes Partial in Reihenfolge** aus (außer Tests-Partial, das erst am Ende):
+#### Schritt C.2: Pro Partial — Plan schreiben, committen, pushen
 
 ```
-FOR each partial pX (p1, p2, ...):
-  │
-  ├─► Schritt C.2a: Partial-Plan schreiben
-  │     Spawne Plan-Subagenten (Task-Tool) — Kontext: proposal.md, intel.json-Subset.
-  │     Schreibt `tasks.d/pX-<name>.md`.
-  │
-  ├─► Schritt C.2b: tasks.md-Index aktualisieren
-  │     Orchestrator schreibt/updated tasks.md mit Partial-Manifest + File Structure.
-  │
-  ├─► Schritt C.2c: Commit + Push
-  │     # [T006367] cwd-Guard — nie auf implizites cwd vertrauen
-  │     cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
-  │     git add openspec/changes/<slug>/
-  │     git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
-  │     git push origin feature/<slug>-T<id>
-  │
-  ├─► Schritt C.2d: Plan stagen (slot_count setzen)
-  │     # --no-hold: Pipeline-Dispatch — das Partial soll SOFORT von der Factory
-  │     # verarbeitet werden. stage-plan verlangt seit T003267 eine explizite
-  │     # Hold-Entscheidung (--hold XOR --no-hold, sonst Exit 1).
-  │     bash scripts/ticket.sh stage-plan \
-  │       --id "$TICKET_EXT_ID" --branch "feature/<slug>-T<id>" \
-  │       --plan "openspec/changes/<slug>/tasks.md" --partials N --no-hold
-  │
-  ├─► Schritt C.2e: Readiness-Flags setzen
-  │     ticket-mcp: set_readiness_flag({id, flag:"spec_skizziert", value:true})
-  │     ticket-mcp: set_readiness_flag({id, flag:"abhaengigkeiten_klar", value:true})
-  │     ticket-mcp: set_readiness_flag({id, flag:"offene_fragen_geklaert", value:true})
-  │     ticket-mcp: set_readiness_flag({id, flag:"aufwand_geschaetzt", value:true})
-  │
-  ├─► Schritt C.2f: In Factory enqueuen ⚡
-  │     ticket-mcp: enqueue_ticket({ id: "$TICKET_EXT_ID" })
-  │     # Factory startet SOFORT mit pX — Planner fährt parallel mit p(X+1) fort
-  │
-  └─► Nächstes Partial (oder STOPP wenn alle geschrieben)
-
-NACH dem letzten Partial (Tests):
-  ├─► Schritt C.3: Plan-Qualitäts-Gate  
-  │     bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
-  │     bash scripts/openspec.sh validate
-  │
-  ├─► Schritt C.4: Pgvector-Index
-  │     bash scripts/openspec-embed-local.sh <slug> "$(pwd)"
-  │
-  └─► Schritt C.5: Finaler Commit + Push
-        # [T006367] cwd-Guard — nie auf implizites cwd vertrauen
+FOR each partial pX (p1, p2, ..., zuletzt Tests):
+  ├─► C.2a: Partial-Plan `tasks.d/pX-<name>.md` schreiben
+  ├─► C.2b: `tasks.md`-Index (Partial-Manifest + File Structure) aktualisieren
+  └─► C.2c: Commit + Push
         cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
         git add openspec/changes/<slug>/
-        git commit -m "chore(plans): finalize <slug> plan [$TICKET_EXT_ID]"
-        git push origin $(git branch --show-current)
+        git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
+        git push origin "$(git branch --show-current)"
 ```
 
-### Pipeline-Fluss (visuell)
-```
-Zeit │
-     │ Planner: [p1] → [p2] → [p3(Tests)] → fertig
-     │ Factory:  ╰─► p1 ╰─► p2 ╰─► p3
-     │           (parallel zum Planner!)
-     ▼
+#### Schritt C.3: Plan-Qualitäts-Gate
+```bash
+bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
+bash scripts/openspec.sh validate
 ```
 
+#### Schritt C.4: Stagen mit Hold
+```bash
+bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "$(git branch --show-current)" \
+  --plan "openspec/changes/<slug>/tasks.md" --partials <N> --hold
+```
+Ausgeführt wird der Plan danach von `dev-flow-execute` (gibt den Hold frei) oder lokal per
+`node scripts/llm/plan-runner.mjs openspec/changes/<slug>`.
+
+#### Schritt C.5: Pgvector-Index
+```bash
+bash scripts/openspec-embed-local.sh <slug> "$(pwd)"
+```
 
 ---
 

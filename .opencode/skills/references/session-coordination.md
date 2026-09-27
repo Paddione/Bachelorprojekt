@@ -146,36 +146,10 @@ ins `.reap.log` geschrieben (im Lock-Verzeichnis).
 > noch aktiv nutzt. Nach jedem Reap-Fenster die eigenen Claims verifizieren:
 > `bash scripts/agent-lock.sh list` — fehlt ein Claim, neu setzten.
 
-## Factory vs Interactive Race — Pre-Flight Claim-Pattern [T002038]
+## Pre-Flight Claim-Pattern [T002038]
 
-### Die Race
-
-Eine interaktive `dev-flow-execute`-Session kann mit der Factory-Pipeline um
-dasselbe Ticket `plan_staged` konkurrieren:
-
-```
-Zeit │ Factory PREP                    │ Interaktive Session
-─────┼──────────────────────────────────┼────────────────────────
-  t1 │ check agent-lock → "free"       │
-  t2 │ launcht claude-Session          │
-  t3 │ (Session startet)               │
-  t4 │                                 │ dev-flow-execute startet
-  t5 │ (lädt Plan, erzeugt Worktree)   │ Schritt -1: Reap + Sync
-  t6 │                                 │ Schritt 0: Worktree
-  t7 │                                 │ Schritt 1: Plan laden
-  t8 │ claim ticket → "held by other"  │
-  t9 │ ❌ STOP (Doppelarbeit erkannt)   │ Schritt 1.4: claim → OK
-     │                                 │ ... aber Factory hat bis t8
-     │                                 │ bereits implementiert + gemergt!
-```
-
-**Problem:** Der Claim kam zu spät (Schritt 1.4). Die Factory hatte den
-gesamten Workflow (implement→PR→merge→close) abgeschlossen, während die
-interaktive Session noch in der Startup-Phase war.
-
-### Die Lösung: Pre-Flight Claim in Schritt −1
-
-Seit [T002038] wird der Ticket-Claim + Status-Check **vor** jeder
+Ein Claim, der erst spät im Ablauf kommt, lässt eine parallele Session dasselbe Ticket
+bearbeiten. Seit [T002038] wird der Ticket-Claim + Status-Check **vor** jeder
 Git-Operation in einem dedizierten Pre-Flight-Schritt (−1) platziert:
 
 1. **Ticket-Status prüfen** — `vda.sh ticket get --id $TICKET_ID` → wenn

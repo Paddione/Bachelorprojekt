@@ -50,8 +50,6 @@ GUI-App unter WSLg. `start-windows.ps1` deckt keine von ihnen ab. Jede traegt se
 
 | Unit | Warum sie hier steht |
 |---|---|
-| `scripts/factory/mcp-go/factory-mcp.service` | `/home/patrick/...` als WorkingDirectory und ExecStart |
-| `scripts/factory/sdlc-github-poller.service` / `.timer` | dito; GitHub-Rueckkanal des Dev-Hosts |
 | `scripts/mcp-cors-proxy/mcp-cors-proxy.service` | systemd-USER-Unit, kein Windows-Aequivalent |
 | `scripts/mcp-gateway/mcp-gateway-watchdog.service` / `.timer` | bewacht `mcp-gateway.service`, die selbst tot ist |
 | `scripts/sdlc/sdlc-backup.service` / `.timer` | `/home/patrick/...`; taegliche SDLC-Sicherung |
@@ -64,4 +62,3 @@ als Referenz fuer einen Linux-Host im Repo, statt geloescht zu werden.
 
 - `scripts/semantic-code-search/pgvector-forward.service` — Pendant-Lücke dokumentiert in Kopfzeile
 - `docs/runbooks/decommission-k3s-node.md` — Node-Decommissionierung (anderes Thema)
-- `scripts/factory/verify-decommission.sh` — Verifikation (anderes Thema)

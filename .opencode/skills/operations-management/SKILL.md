@@ -1,6 +1,6 @@
 ---
 name: operations-management
-description: 'Routing hub for operational work — decides between incident-response (a service is down or degraded, time-critical), ticket-triage/ticket-dispatch (ticket content) and repo-hygiene (repository state: branches, worktrees, PRs, factory queue). Use this first when the operational request is ambiguous; it holds no runbook of its own and only delegates. Requests naming a ticket ID (T…) skip this hub and start at ticket-triage. If you already know which skill you need, invoke it directly.'
+description: 'Routing hub for operational work — decides between incident-response (a service is down or degraded, time-critical), ticket-triage/ticket-dispatch (ticket content) and repo-hygiene (repository state: branches, worktrees, PRs). Use this first when the operational request is ambiguous; it holds no runbook of its own and only delegates. Requests naming a ticket ID (T…) skip this hub and start at ticket-triage. If you already know which skill you need, invoke it directly.'
 ---
 
 # operations-management
@@ -21,7 +21,7 @@ Is a core service DOWN or DEGRADED right now?
 │   └── dependency waves, approved dispatch → Use ticket-dispatch
 │        (legacy alias ticket-ops still routes to both; prefer the direct skills)
 │
-└── NO, repository STATE (branches, worktrees, PRs, factory queue)
+└── NO, repository STATE (branches, worktrees, PRs)
          → Use repo-hygiene
 ```
 
@@ -37,13 +37,6 @@ Is a core service DOWN or DEGRADED right now?
 
 ---
 
-## Software-Factory operations (MCP-first)
-
-Factory-Queue-Status und manuelles Anstoßen: MCP-first via `factory-mcp` — Health-Guard, Tools und
-Fallbacks sind SSOT im [`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md) §factory-mcp.
-
----
-
 ## Mishap Tracking
 
 All sub-skills carry the mishap tracking preamble. After completing either, invoke `mishap-tracker` if any mishaps were accumulated.
@@ -56,7 +49,7 @@ All sub-skills carry the mishap tracking preamble. After completing either, invo
 | `ticket-triage` | Ticket content: completeness, DoR, clarification (dispatcht nie) |
 | `ticket-dispatch` | Ticket waves & approved dispatch |
 | `ticket-ops` | Legacy alias routing to ticket-triage/ticket-dispatch |
-| `repo-hygiene` | Repository state: branches, worktrees, PRs, factory queue |
+| `repo-hygiene` | Repository state: branches, worktrees, PRs |
 | `mishap-tracker` | Converts execution mishaps to tickets |
 
 

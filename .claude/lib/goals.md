@@ -306,7 +306,7 @@ bash scripts/lib/llm-stack-measure.sh server-availability
 ## G-LLM02 — llm-proxy-Bereitschaft (ready + tote Provider): n/a → 0
 
 **Was:** Prüft den llm-proxy (:18235) auf `ready: true` und zählt degradierte Backends. Der Proxy
-ist der alleinige LLM-Gateway; meldet er `degraded`, ist die gesamte Factory ohne Inferenz-Fähigkeit.
+ist der alleinige LLM-Gateway; meldet er `degraded`, sind alle lokalen Agenten ohne Inferenz-Fähigkeit.
 Der `/health`-Endpunkt des Proxys liefert `ready`, `checked` und `degraded` — **nicht** `providers`.
 Genau diese falsche Feld-Annahme (`data.get('providers', [])`) machte das Ziel strukturell grün,
 während 2 von 3 Backends tot waren; `proxy-readiness` liest jetzt `degraded` und zählt bei
@@ -491,7 +491,7 @@ bash scripts/lib/manifest-drift-check.sh sealed
 **Was:** Prüft, ob der Hauptcheckout (`~/Bachelorprojekt`) auf Branch `main` steht und keine
 uncommitteten Changes trägt. Die Regel existiert seit T001880, wurde aber mehrfach verletzt —
 zuletzt am 2026-07-28 mit 15 uncommitteten Dateien auf `chore/mishap-T002422`. Eine Verletzung
-gefährdet Factory-Dispatcher und Worktree-Erstellung (`scripts/worktree-create.sh` warnt, blockiert
+gefährdet die Worktree-Erstellung (`scripts/worktree-create.sh` warnt, blockiert
 aber nicht). Binäres Ziel: 0 = ok, 1 = Verletzung.
 
 **Positiv-Anker:** Lässt sich der Hauptcheckout nicht als Git-Repo auflösen oder schlägt
@@ -588,7 +588,7 @@ bash scripts/lib/wt-hygiene-measure.sh unsafe-worktrees
 **Was:** Zählt Commits in `main..origin/main`. Ein zurückgefallener lokaler `main` ist die Ursache
 mehrerer Klassen von Folgefehlern: `scripts/worktree-create.sh` erzeugt Worktrees von einem alten
 Stand, `freshness:check` misst gegen einen anderen Base als CI (T002561), und lokale
-Factory-Queue-Abfragen laufen gegen den falschen Branch.
+Backlog-Abfragen laufen gegen den falschen Branch.
 
 **Positiv-Anker:** Fehlt `refs/heads/main` oder `refs/remotes/origin/main`, ist die Ausgabe `n/a`.
 Zusätzlich gilt ein **veralteter Fetch** als fehlende Messgrundlage: ist `FETCH_HEAD` älter als

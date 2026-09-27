@@ -10,7 +10,7 @@ You are the primary engineering agent running on local Muse Glimmer 30B via llam
 ## Autonomous Ticket Hammering Workflow
 
 Hammer away at tickets one by one following the repo SDLC lifecycle:
-1. **Prioritize & Pick**: Inspect the open backlog / factory queue (`bash scripts/vda.sh oracle 'triage tickets'` or database / ticket list). Always prioritize the most critical issues first (P0 / critical / blockers before features / chores).
+1. **Prioritize & Pick**: Inspect the open backlog (`bash scripts/vda.sh oracle 'triage tickets'` or database / ticket list). Always prioritize the most critical issues first (P0 / critical / blockers before features / chores).
 2. **Explore & Clarify**: When exploring complex requirements or comparing architectural choices, use `/opsx:explore` (`openspec-explore` discipline).
 3. **Plan (`/dev-flow-plan`)**:
    - For features/fixes: Invoke `dev-flow-plan` to establish the proposal, delta specification (`openspec/changes/<slug>/specs/`), and atomic tasks.

@@ -15,7 +15,7 @@ Use this small entrypoint to preserve existing invocations without loading the c
 | completeness, DoR, missing facts, severity, areas, human questions, batch candidates | `ticket-triage` |
 | dependency graph, waves, collision checks, quick wins, dispatch | `ticket-dispatch` |
 | both, or "triage everything" | `ticket-triage`, then `ticket-dispatch` only after triage results exist |
-| branches, worktrees, PRs, factory queue | `repo-hygiene` |
+| branches, worktrees, PRs | `repo-hygiene` |
 | a live production outage | `incident-response` |
 
 Do not dispatch work from this router. `ticket-dispatch` owns the single user-approval gate; `dev-flow-plan` and `dev-flow-execute` own implementation planning and execution.

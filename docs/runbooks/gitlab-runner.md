@@ -229,7 +229,7 @@ Etappe 1 betrieb ausschliesslich den lokalen Docker-Executor auf einem
 einzelnen self-hosted Host. Ein Kubernetes-Executor auf `fleet` als zweiter
 self-hosted Runner war fuer Etappe 2 vorgesehen — **umgesetzt, siehe Abschnitt
 8**. Diese Etappe migriert weder das Merge-Gate noch weitere GitHub-Workflows
-(Build, E2E, Release, Factory) — siehe design.md, "Non-Goals".
+(Build, E2E, Release) — siehe design.md, "Non-Goals".
 
 ## 8. Zwei-Runner-Betrieb (Etappe 2, T012177)
 
@@ -423,7 +423,7 @@ Geloeschte Branches werden mitgeloescht (Push mit leerem Quell-Ref auf dem
 `delete`-Event). Bleibt auf GitLab ein Branch stehen, den GitHub nicht mehr hat, ist
 das ein Hinweis auf einen fehlgeschlagenen Mirror-Lauf — nicht auf Aufraeumbedarf.
 
-Bot-Branches (`renovate/`, `release-please--`) und Factory-Batch-Branches werden
+Bot-Branches (`renovate/`, `release-please--`) werden
 bewusst **nicht** gespiegelt.
 
 ## 12. Diagnose: Diff-Basis (Etappe 3, T012405)

@@ -268,7 +268,7 @@ export function renderAgentsMap(reg) {
       infra: 'Kubernetes, Kustomize, Deploy',
       ops: 'Cluster-Operationen, LLM-Pipeline',
       security: 'SealedSecrets, Pocket ID, OIDC',
-      test: 'Tests, Factory, Autopilot',
+      test: 'Tests',
       website: 'Astro/Svelte, UI, Frontend',
     },
   };

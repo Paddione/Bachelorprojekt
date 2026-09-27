@@ -13,7 +13,7 @@ Triage is a bounded preparation phase. It may persist ticket bookkeeping and ask
 
 - `tickets.tickets` is the SSOT. Use only valid enum values; see `ticket-ops-procedures.md` §Ticket-Modell.
 - Read complete descriptions before deciding. Before intake, dedupe against an open normalized title; reuse the ticket and add a re-trigger comment instead of a near-duplicate.
-- DoR (`dorScore = 4`) is not the Factory gate. For a feature moved to `backlog`, populate `requirements_list` and set `lastenheft_locked` in the same pass.
+- DoR (`dorScore = 4`) is not the execution gate. For a feature moved to `backlog`, populate `requirements_list` and set `lastenheft_locked` in the same pass.
 - A live ticket or branch claim means ongoing work: leave it `in_progress` and do not re-triage it.
 - Reads are MCP-first. If mcp-postgres is unavailable, use the documented `ticket.sh` fallback.
 - Batch candidates are advisory until `ticket-dispatch` validates dependencies and file conflicts.

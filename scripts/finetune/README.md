@@ -19,8 +19,10 @@ die Unsloth/TRL-Upstream-Referenz — im Harness ueber `context7` (`resolve-libr
 ```
 
 `collect_factory_traces.py` ist ein optionaler Korpus-Beschaffungsschritt vor Schritt 1: er
-rendert erfolgreiche Ticket-Laeufe aus `tickets.factory_phase_events` ins gleiche
-Korpusformat wie ein extern beschaffter Korpus.
+rendert historische Ticket-Laeufe aus `tickets.factory_phase_events` ins gleiche
+Korpusformat wie ein extern beschaffter Korpus. Die Software-Factory ist seit T900399
+stillgelegt, neue Zeilen entstehen dort nicht mehr; neue Trajektorien liefert der
+`agent-bench` (`export-corpus`, T900561).
 
 ## Aktueller 4B-Trainingsmodus (September 2026)
 
@@ -110,7 +112,7 @@ mehr erfordern.
 Der Korpus soll **beobachtete, erfolgreiche Handlungen** lehren: Dispatch-Paket
 lesen, passende Tools waehlen, echte Tool-Ergebnisse verarbeiten, kleine Edits
 verifizieren und ein knappes Status-/Dateien-/Befund-Ergebnis liefern.
-`collect_factory_traces.py` liefert abgeschlossene Factory-Laeufe;
+`collect_factory_traces.py` liefert historische Laeufe (bis T900399);
 `collect_teacher_traces.py` kann bewusst konstruierte Grenzfaelle erzeugen.
 Jede Zeile muss zum *tatsaechlichen* Tool-Schema und Prompt des Ziel-Slots passen.
 Bei Tool-Use-Beispielen gehoeren auch Faelle **ohne** Tool-Aufruf, fehlgeschlagene
@@ -196,9 +198,11 @@ ausgegeben.
 `export_gguf.py` benennt die GGUF-Datei nach `--slot-name` (`<output-dir>/<slot-name>.gguf`),
 damit `llm-proxy` sie als benannten Slot aufnehmen kann. Die Registrierung selbst ist ein
 manueller Schritt (llm-proxy-Konfiguration aktualisieren) — der automatische Austausch eines
-laufenden Factory-Slots gehoert nicht in einen Trainingslauf.
+laufenden Slots gehoert nicht in einen Trainingslauf.
 
-## Factory-Traces als Korpus
+## Historische Factory-Traces als Korpus
+
+> Nur Altbestand: die Factory ist seit T900399 stillgelegt.
 
 `collect_factory_traces.py` baut selbst keine DB-Verbindung auf. Zeilen kommen aus einem
 vorgeschalteten `mcp__mcp-postgres__query`-Aufruf gegen `tickets.factory_phase_events`

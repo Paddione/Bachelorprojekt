@@ -4014,7 +4014,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 849,
+      "file_count": 850,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4460,6 +4460,7 @@
         "scripts/llm/agent-bench/cases/f2-link-guard/base/links/file.txt",
         "scripts/llm/agent-bench/cases/f2-link-guard/base/links/good",
         "scripts/llm/agent-bench/cases/f2-link-guard/base/links/manifest.txt",
+        "scripts/llm/agent-bench/cases/f2-link-guard/base/links/target/.gitkeep",
         "scripts/llm/agent-bench/cases/f2-link-guard/case.json",
         "scripts/llm/agent-bench/cases/f2-link-guard/source.md",
         "scripts/llm/agent-bench/cases/f2-link-guard/variants/v-clean/brief.md",

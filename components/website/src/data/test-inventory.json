@@ -5490,6 +5490,12 @@
     "kind": "shell"
   },
   {
+    "id": "selection-integrity/dead-selections",
+    "file": "tests/spec/selection-integrity/dead-selections.bats",
+    "category": "selection-integrity",
+    "kind": "shell"
+  },
+  {
     "id": "sessions-server",
     "file": "tests/spec/sessions-server.bats",
     "category": "sessions-server",

@@ -333,6 +333,11 @@ tasks:
     cmds:
       - node scripts/code-quality/check.mjs
 
+  quality:ast:
+    desc: "Advisory AST scan with project rules (sgconfig.yml). No gate — BATS stays authoritative. See docs/agent-guide/ast-toolchain.md."
+    cmds:
+      - npx --yes -p @ast-grep/cli@0.45.3 ast-grep scan
+
   quality:pod-phase-filter:
     desc: "Prüft, dass jede shared-db-Pod-Selektion auf status.phase=Running filtert (T002439). Wurzeln nach --, z.B. task quality:pod-phase-filter -- scripts"
     cmds:

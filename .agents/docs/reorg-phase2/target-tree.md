@@ -50,6 +50,13 @@ BACHELORPROJEKT/
    ADR-010 (OpenSpec ad acta) liegt diesem Branch bei.
 6. **Taskfile statt Makefile.** Go-task ist Repo-Standard (15 Teil-Taskfiles, CI, Skills).
    Eine zweite Fassade wäre Drift; stattdessen Root-Taskfile-Diät (C4).
+7. **Kein Tach.** Python-Fläche sind 96 verstreute Skill-Skripte ohne Paketstruktur —
+   Boundaries würden Architektur erfinden. (C9)
+8. **Kein RepoMapper-MCP.** Existiert nicht (npm 404, Registry-Lookup leer);
+   Struktur-Suche bleibt bei den kuratierten ast-grep-Tools. (C9)
+9. **Kein dependency-cruiser (deferred).** Braucht Config im Website-Package +
+   pnpm-Skript (Root-Run sieht kein TS, Package-Run mag keinen externen Pfad) —
+   Website-Package-Change, kein Root-Chore. (C9)
 
 ## Offene Verifikationen (jeweils vor der Charge)
 

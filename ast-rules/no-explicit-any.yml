@@ -1,0 +1,13 @@
+# Mirrors G-CQ02 (tests/spec/g-cq02-any-types.bats): explicit `any` in
+# components/website/src is budgeted (≤200). Advisory for agents — the BATS
+# gate stays authoritative. Kind-based: catches `: any` annotations, `as any`
+# and `<any>` casts uniformly (verified: 5/5 probe cases).
+id: no-explicit-any
+language: TypeScript
+severity: warning
+message: "Explicit `any` — G-CQ02 budget (≤200 in components/website/src)."
+files:
+  - 'components/website/src/**/*.ts'
+rule:
+  kind: predefined_type
+  regex: '^any$'

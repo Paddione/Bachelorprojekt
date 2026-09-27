@@ -1,0 +1,5 @@
+# ast-grep project config (C9, T900560).
+# Scan: task quality:ast  (npx -y @ast-grep/cli scan)
+# Rules mirror EXISTING conventions — no new policy. Authoritative gates stay BATS.
+ruleDirs:
+  - ast-rules

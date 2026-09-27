@@ -261,6 +261,7 @@ task: Available tasks for this project:
 * plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md
 * plans:query:                                  Show active plan sections for a given role. Usage: task plans:query -- <role>
 * pr:refresh:                                   Rebase konfliktbehaftete PRs auf origin/main und heilt Konflikte in generierten Artefakten. Usage: task pr:refresh -- [--dry-run] <pr-nummer>...
+* quality:ast:                                  Advisory AST scan with project rules (sgconfig.yml). No gate — BATS stays authoritative. See docs/agent-guide/ast-toolchain.md.
 * quality:baseline:freeze:                      One-time: freeze the current code-quality violations into docs/code-quality/baseline.json
 * quality:baseline:refresh:                     Remove FIXED entries and lower improved metrics in docs/code-quality/baseline.json
 * quality:check:                                Run all code-quality gates (S1-S4) with the baseline ratchet (fails only on new/worsened)

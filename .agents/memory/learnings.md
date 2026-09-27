@@ -61,3 +61,12 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
   Konsumenten-Sweep abdecken, Rest der CI-Matrix überlassen. — Beleg: C1b
 - 27.09.26 [T900560] `pkill -f` matcht die eigene Shell bei Pfad im
   Pattern — nie mit Worktree-Pfad als Pattern killen. — Beleg: C1b
+- 27.09.26 [T900560] `/usr/bin/sg` ist set-group, NICHT ast-grep; npm-Paket
+  `@ast-grep/cli` hat zwei Bins — nur `npx -p <pkg> ast-grep` geht
+  (`sg`-Bin ist deprecated). — Beleg: C9
+- 27.09.26 [T900560] ast-grep-Regeln kind-basiert bauen (`kind:` + `regex`),
+  nicht Patterns pro Syntax-Kontext aufzählen (brichig: 2/5 vs 5/5). —
+  Beleg: C9 no-explicit-any
+- 27.09.26 [T900560] Golden-Eval fing echten Drift (#6040: 5 pi-Tasks ohne
+  Regen) — non-required Job heißt: Fund verhallt; Drift-Evidenz gehört in
+  den nächsten PR-Body. — Beleg: C9

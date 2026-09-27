@@ -253,6 +253,8 @@ The following sections contain detailed reference material. **Do not load them i
 
 - `CLAUDE.md` — Claude Code environment harness guidance
 - `llms.txt` — machine-readable entry index
+- `.agents/docs/` — agent working dossiers (convention + index in `README.md`)
+- `.agents/memory/learnings.md` — session learning loop (read at start, append after tasks)
 - `.agents/docs/reorg-phase2/` — repo reorg plan dossier (T900560)
 - `components/website/CLAUDE.md` — Astro/Svelte quick-start
 - `docs/agent-guide/README.md` — agent operating guide

@@ -86,13 +86,12 @@ You have full context of the OpenSpec system. Use it naturally, don't force it.
 
 At the start, quickly check what exists:
 ```bash
-openspec list --json
+ls openspec/changes/
 ```
 
 This tells you:
-- If there are active changes
-- Their names, schemas, and status
-- What the user might be working on
+- If there are active changes (any directory besides `archive/`)
+- Their names — read `proposal.md` for what the user might be working on
 
 If the user mentioned a specific change name, read its artifacts for context.
 

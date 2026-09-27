@@ -1,7 +1,7 @@
 ---
 name: openspec-propose
 description: 'Use to create a new OpenSpec change proposal with design, delta specs and tasks in one step. Triggers on /opsx:propose, openspec propose, "new change proposal", openspec/changes/, task openspec:propose, scripts/openspec.sh propose, --target-spec, delta spec skeleton. Within this repo dev-flow-plan calls this as part of its Phase A — invoke it directly only for a standalone proposal.'
-compatibility: Requires openspec CLI.
+compatibility: Uses the repo wrapper `scripts/openspec.sh` — the raw `openspec` CLI is NOT installed in this repo.
 # FORK — nicht upstream-synchron. Stammt aus dem OpenSpec-Upstream
 # (https://github.com/Fission-AI/OpenSpec), installiert mit T001263 / PR #2188, und wurde
 # seitdem hier weiterentwickelt (u.a. Framework-Mapping-Tabelle, PR #2702) ohne je gegen
@@ -36,24 +36,19 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
 
 2. **Create the change directory**
    ```bash
-   openspec new change "<name>"
+   bash scripts/openspec.sh propose "<name>" --ticket "<TICKET_ID>"
    ```
-   This creates a scaffolded change at `openspec/changes/<name>/` with `.openspec.yaml`.
+   This scaffolds `openspec/changes/<name>/` (proposal.md + tasks.md skeleton, `.ticket`
+   file so the CI guard can verify that every change is tracked, T002836).
 
-   **Write the `.ticket` file.** After creating the directory, persist the Ticket-ID so the
-   CI guard can verify that every change is tracked (T002836). Use the same Ticket-ID that
-   was passed to the proposal:
+3. **Check which artifacts exist**
    ```bash
-   echo "$TICKET_ID" > "openspec/changes/<name>/.ticket"
+   ls openspec/changes/<name>/
    ```
-
-3. **Get the artifact build order**
-   ```bash
-   openspec status --change "<name>" --json
-   ```
-   Parse the JSON to get:
-   - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
-   - `artifacts`: list of all artifacts with their status and dependencies
+   Read the directory directly (there is no `status --json` — the raw `openspec` CLI
+   is not installed in this repo). The apply-ready set is:
+   - `proposal.md`, `design.md`, `tasks.md`
+   - plus a `specs/` delta when the change touches an SSOT spec
 
 4. **Create artifacts in sequence until apply-ready**
 
@@ -61,27 +56,19 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
 
    Loop through artifacts in dependency order (artifacts with no pending dependencies first):
 
-   a. **For each artifact that is `ready` (dependencies satisfied)**:
-      - Get instructions:
-        ```bash
-        openspec instructions <artifact-id> --change "<name>" --json
-        ```
-      - The instructions JSON includes:
-        - `context`: Project background (constraints for you - do NOT include in output)
-        - `rules`: Artifact-specific rules (constraints for you - do NOT include in output)
-        - `template`: The structure to use for your output file
-        - `instruction`: Schema-specific guidance for this artifact type
-        - `outputPath`: Where to write the artifact
-        - `dependencies`: Completed artifacts to read for context
-      - Read any completed dependency files for context
+   a. **For each missing artifact, write it directly** (order: proposal → design →
+      specs delta → tasks), reading the already completed artifacts for context.
+      There are no CLI-provided templates — follow the repo conventions (see the
+      Spec-Directory Pflicht-Inhalt box below and CLAUDE.md "Delta-Spec-Konvention
+      (T001304)").
 - **For the `specs` artifact specifically**: before writing the file, check whether
   this change is a sub-feature of an existing capability (consult
   `openspec/component-map.yaml` for a matching file-path prefix, or ask the user if
   ambiguous). If it is a sub-feature of an existing capability with SSOT spec
   `openspec/specs/<parent-slug>.md`, write the Delta-Spec to
-  `openspec/changes/<name>/specs/<parent-slug>.md` (Parent-SSOT-Slug) instead of the
-  `outputPath` filename returned by `openspec instructions`. If this is a genuinely
-  new capability with no existing SSOT spec, use the `outputPath` filename unchanged.
+  `openspec/changes/<name>/specs/<parent-slug>.md` (Parent-SSOT-Slug). If this is a
+  genuinely new capability with no existing SSOT spec, use
+  `openspec/changes/<name>/specs/<name>.md` and archive later with `--create-new`.
   See CLAUDE.md "Delta-Spec-Konvention (T001304)".
 
 > **Spec-Directory Pflicht-Inhalt (T001974 Mishap 3 + T002772).** Jeder Change-Ordner
@@ -95,15 +82,15 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
 > Löschungen (`## REMOVED Requirements`) ohne Hinzufügungen enthält. Löschen
 > einer ungültigen Spec-Datei ohne Ersatz erzeugt einen leeren `specs/`-Ordner
 > — das schlägt ebenfalls fehl. Vor dem Commit:
-> `bash scripts/openspec.sh validate` (oder `openspec validate <slug>`) ausführen.
-      - Create the artifact file using `template` as the structure
-      - Apply `context` and `rules` as constraints - but do NOT copy them into the file
+> `bash scripts/openspec.sh validate` (oder `task openspec:validate`) ausführen.
+      - Create the artifact file, keeping it focused on its own concern
+        (proposal: what & why; design: how; tasks: implementation steps)
       - Show brief progress: "Created <artifact-id>"
 
-   b. **Continue until all `applyRequires` artifacts are complete**
-      - After creating each artifact, re-run `openspec status --change "<name>" --json`
-      - Check if every artifact ID in `applyRequires` has `status: "done"` in the artifacts array
-      - Stop when all `applyRequires` artifacts are done
+   b. **Continue until the apply-ready set is complete**
+      - After creating each artifact, re-check the change directory
+        (`ls openspec/changes/<name>/`, read the new file back)
+      - Stop when proposal.md, design.md, tasks.md (and the specs delta, if any) exist
 
    c. **If an artifact requires user input** (unclear context):
       - Ask the user to clarify
@@ -111,7 +98,7 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
 
 5. **Show final status**
    ```bash
-   openspec status --change "<name>"
+   ls openspec/changes/<name>/ openspec/changes/<name>/specs/
    ```
 
 **Output**
@@ -124,16 +111,13 @@ After completing all artifacts, summarize:
 
 **Artifact Creation Guidelines**
 
-- Follow the `instruction` field from `openspec instructions` for each artifact type
-- The schema defines what each artifact should contain - follow it
-- Read dependency artifacts for context before creating new ones
-- Use `template` as the structure for your output file - fill in its sections
-- **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
-  - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
-  - These guide what you write, but should never appear in the output
+- Each artifact has one concern: proposal (what & why), design (how), tasks (steps)
+- Read the already completed artifacts for context before creating new ones
+- Keep the repo delta-spec format (ADDED/MODIFIED/REMOVED/RENAMED Requirements +
+  GIVEN/WHEN/THEN scenarios) for everything under `specs/`
 
 **Guardrails**
-- Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
+- Create ALL artifacts of the apply-ready set (proposal, design, tasks + specs delta)
 - Always read dependency artifacts before creating a new one
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one

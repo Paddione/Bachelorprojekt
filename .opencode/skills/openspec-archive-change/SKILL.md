@@ -88,7 +88,6 @@ Archive a completed change in the experimental workflow.
 
    Show archive completion summary including:
    - Change name
-   - Schema that was used
    - Archive location
    - Whether specs were synced (if applicable)
    - Note about any warnings (incomplete artifacts/tasks)
@@ -99,7 +98,6 @@ Archive a completed change in the experimental workflow.
 ## Archive Complete
 
 **Change:** <change-name>
-**Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
 **Specs:** ✓ Synced to main specs (or "No delta specs" or "Sync skipped")
 

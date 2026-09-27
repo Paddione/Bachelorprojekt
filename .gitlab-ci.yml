@@ -355,6 +355,30 @@ factory-openspec:
   script:
     - npm run test:openspec
 
+evals:
+  # Gegenstueck zu test-evals, aber nur die Eval-Suite (task test:evals). Der
+  # Integritaetsschritt dort wertet PR-Titel/-Body auf [evals-override] aus — eine
+  # gespiegelte Branch-Pipeline hat keinen von beiden (dieselbe Luecke wie bei
+  # commit-lint), er bleibt GitHub-only. [T900642]
+  stage: test
+  <<: *gl_defaults
+  # ci-node22 bringt das task-Binary mit; task-list-golden.bats vergleicht
+  # `task --list-all` gegen den Golden und scheitert ohne es.
+  image: registry.gitlab.com/p.korczewski/bachelorprojekt/ci/ci-node22:latest
+  rules: *scoped_rules
+  script:
+    - |
+      set -euo pipefail
+      task --version
+      ./tests/unit/lib/bats-core/bin/bats tests/evals/*.bats --formatter tap | tee /tmp/evals-tap.log
+      total="$(grep -m1 -oE '^1\.\.[0-9]+' /tmp/evals-tap.log | grep -oE '[0-9]+$' || echo 0)"
+      # Leerer Lauf gilt als Fehlschlag (design.md D4), wie in bats-unit.
+      if [ "${total:-0}" -eq 0 ]; then
+        echo "ERROR: 0 Evals ausgefuehrt — leerer Lauf gilt als Fehlschlag"
+        exit 1
+      fi
+      echo "Ausgefuehrte Evals: ${total}"
+
 factory-shard:
   # Gegenstueck zu test-factory-shard. GitLabs parallel: 4 setzt CI_NODE_INDEX
   # (1-basiert) und CI_NODE_TOTAL; beide werden auf die Namen abgebildet, die

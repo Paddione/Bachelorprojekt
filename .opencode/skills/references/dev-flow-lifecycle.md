@@ -22,13 +22,12 @@ claims only after archive/cleanup ordering is satisfied.
 ## Execute swimlane and exception loop
 
 The Implementer applies the staged plan, runs RED→GREEN verification, commits, pushes and
-creates the PR, then reports and stops. The Orchestrator independently reviews the PR and
-performs the fail-closed phase-chain assertion before requesting `gh pr merge --auto --squash`.
+creates the PR, then reports and stops. The Orchestrator reviews the PR only when the operator asks for it, and always
+performs the fail-closed phase-chain assertion before requesting `gh pr merge --auto --squash`; auto-merge that is already active is left on.
 It then retains the CI/conflict exception loop until state is confirmed `MERGED`; a later red
 check, replacement run after a corrective Implementer push, or `DIRTY`/`CONFLICTING` after
-`main` advances is sent to the same Implementer. Every new commit re-enters review,
-`assert-phase-chain`, and invalidated CI gates before merge-ready is considered again; this is
-the required re-review and phase-chain re-entry.
+`main` advances is sent to the same Implementer. Every new commit re-enters `assert-phase-chain` and the invalidated CI gates,
+plus a review only when one was requested; this is the required phase-chain re-entry.
 
 After the merge request, a fresh Finalizer waits using `ci-fix-loop` and must not close a
 ticket on timeout, an open/closed PR, late CI failure or conflict. Only after `MERGED` does it

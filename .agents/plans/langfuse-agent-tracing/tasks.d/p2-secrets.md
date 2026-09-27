@@ -5,8 +5,8 @@ Target files: `environments/schema.yaml`, `environments/sealed-secrets/dev.yaml`
 ### Task 1: Schema-Einträge
 
 In `environments/schema.yaml` einen Block `# Langfuse agent tracing (devmesh only, T900688)` nach
-dem `FACTORY_OTLP_TOKEN`-Eintrag. Alle Einträge `required: false` (nur ENV=dev nutzt sie, fleet
-bleibt unberührt), landen in `workspace-secrets`:
+dem `FACTORY_OTLP_TOKEN`-Eintrag. Alle Einträge `required: false` und `dev_absent: true` (nur
+devmesh nutzt sie; kein k3d-Secret), landen beim Sealing in `workspace-secrets`:
 
 | Name | Erzeugung |
 |---|---|

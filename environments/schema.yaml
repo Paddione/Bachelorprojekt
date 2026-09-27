@@ -1097,48 +1097,72 @@ secrets:
   # Langfuse agent tracing (devmesh only, T900688)
   - name: LANGFUSE_DB_PASSWORD
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: true
     length: 32
   - name: LANGFUSE_NEXTAUTH_SECRET
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: true
     length: 32
   - name: LANGFUSE_SALT
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: true
     length: 32
   - name: LANGFUSE_ENCRYPTION_KEY
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: false
     description: "64 hex chars from openssl rand -hex 32"
   - name: LANGFUSE_CLICKHOUSE_PASSWORD
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: true
     length: 32
   - name: LANGFUSE_REDIS_AUTH
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: true
     length: 32
   - name: LANGFUSE_S3_SECRET
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: true
     length: 32
   - name: LANGFUSE_INIT_PROJECT_PUBLIC_KEY
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: false
     description: "Langfuse public API key pk-lf-<uuid>"
   - name: LANGFUSE_INIT_PROJECT_SECRET_KEY
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: false
     description: "Langfuse secret API key sk-lf-<uuid>"
   - name: LANGFUSE_INIT_USER_EMAIL
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: false
   - name: LANGFUSE_INIT_USER_NAME
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: false
   - name: LANGFUSE_INIT_USER_PASSWORD
     required: false
+    dev_absent: true
+    dev_absent_reason: "Langfuse läuft ausschließlich auf devmesh; kein k3d-Secret."
     generate: true
     length: 24
 

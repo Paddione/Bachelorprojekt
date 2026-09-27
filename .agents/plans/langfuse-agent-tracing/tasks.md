@@ -37,7 +37,11 @@ _Ticket: T900688_
 | `scripts/langfuse/setup-harnesses.sh` | 0 (neu) | n/a (neue Datei, Limit 800) |
 | `taskfiles/Taskfile.devmesh.yml` | 142 | n/a (S1-ungated) |
 | `skills-lock.json` | 11 | n/a (S1-ungated) |
-| `.agents/skills/langfuse/` | 0 (neu, vendored) | n/a (S1-ungated) |
+| `.opencode/skills/langfuse/` | 0 (neu, vendored) | n/a (S1-ungated) |
+| `.claude/skills/langfuse` | 0 (neu, Symlink) | n/a (S1-ungated) |
+| `docs/agent-guide/registry/skills.yaml` | existing | n/a (S1-ungated) |
+| `docs/agent-guide/registry/vendor-lock.json` | existing | n/a (S1-ungated) |
+| `.opencode/skills/OVERVIEW.md` | existing | n/a (S1-ungated) |
 | `tests/spec/langfuse-agent-tracing.bats` | 0 (neu) | n/a (S1-ungated) |
 
 Budgets geprüft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_budget <pfad>`

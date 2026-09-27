@@ -17,7 +17,7 @@ for harness in claude opencode pi codex; do
   if $dry; then echo "$harness: configure Langfuse observability"; continue; fi
   case "$harness" in
     claude)
-      claude plugin marketplace add langfuse/claude-observability-plugin >/dev/null
+      claude plugin marketplace add langfuse/claude-observability-plugin@v1.2.0 >/dev/null
       claude plugin install langfuse-observability@langfuse-observability \
         --config "LANGFUSE_PUBLIC_KEY=$LANGFUSE_PUBLIC_KEY" \
         --config "LANGFUSE_SECRET_KEY=$LANGFUSE_SECRET_KEY" \
@@ -35,7 +35,7 @@ for harness in claude opencode pi codex; do
       config="$HOME/.pi/agent/langfuse.json"; mkdir -p "$(dirname "$config")"; umask 077
       jq -n --arg p "$LANGFUSE_PUBLIC_KEY" --arg s "$LANGFUSE_SECRET_KEY" --arg b "$LANGFUSE_BASE_URL" --arg u "$user_id" '{publicKey:$p,secretKey:$s,baseUrl:$b,userId:$u}' > "$config"; chmod 600 "$config" ;;
     codex)
-      codex plugin marketplace add langfuse/codex-observability-plugin >/dev/null
+      codex plugin marketplace add langfuse/codex-observability-plugin --ref v0.4.0 >/dev/null
       config="$HOME/.codex/config.toml"; mkdir -p "$(dirname "$config")"; touch "$config"
       grep -q '^\[features\]' "$config" || printf '\n[features]\nhooks = true\n' >> "$config"
       grep -q '^\[plugins."tracing@codex-observability-plugin"\]' "$config" || printf '\n[plugins."tracing@codex-observability-plugin"]\nenabled = true\n' >> "$config"

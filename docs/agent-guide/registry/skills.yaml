@@ -1041,6 +1041,27 @@ skills:
       agy: "OpenCode-only vendor skill for llama.cpp inference."
       claude_code: "OpenCode-only vendor skill for llama.cpp inference."
       muse: "OpenCode-only vendor skill for llama.cpp inference."
+  - id: langfuse
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/langfuse
+    harnesses:
+      codex:
+        path: .agents/skills/langfuse
+        sync: identical
+      agy:
+        path: .agents/skills/langfuse
+        sync: identical
+      opencode:
+        path: .opencode/skills/langfuse
+        sync: identical
+      claude_code:
+        path: .claude/skills/langfuse
+        sync: identical
+      muse:
+        path: .agents/skills/langfuse
+        sync: identical
+    exclusions: {}
   - id: opencode-git-workflow
     provenance: project
     exposure: native

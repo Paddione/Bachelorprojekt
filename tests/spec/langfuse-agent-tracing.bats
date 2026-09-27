@@ -39,6 +39,8 @@ _objects() {
   run yq ea -r 'select(.kind == "ConfigMap" and .metadata.name == "langfuse-otel-redact-config") | .data."config.yaml"' "$RENDERED"
   [ "$status" -eq 0 ]
   [[ "$output" == *"traces_url_path: /api/public/otel/v1/traces"* ]]
+  [[ "$output" == *"context: spanevent"* ]]
+  [[ "$output" == *'$$1$$2[REDACTED:kv-secret]'* ]]
   for typ in langfuse anthropic-openai github gitlab aws private-key bearer kv-secret; do
     [[ "$output" == *"[REDACTED:$typ]"* ]] || { echo "fehlt: $typ"; return 1; }
   done

@@ -38,14 +38,15 @@ cmd_pre_commit() {
     || fail "HEAD ist 'main' — plan-stage Commits auf main sind verboten; Abhilfe: bash scripts/worktree-create.sh <slug> und dort committen."
   # Staged-Set-Pflicht [T005114]: geprueft wird das Staged-Set — das, was der
   # plan-stage Commit tatsaechlich enthaelt — nicht der gesamte Working-Tree.
-  # Erlaubt: Pfade unter tests/ und openspec/changes/ sowie exakt
+  # Erlaubt: Pfade unter tests/ und .agents/plans/ (kanonisch seit C7a) sowie
+  # openspec/changes/ (Legacy-Transition bis zum OpenSpec-Abriss C7b) und exakt
   # components/website/src/data/openspec-status.json und components/website/src/data/test-inventory.json.
   # Unstaged/untracked ist fuer den Commit irrelevant und wird nicht geprueft.
   local staged foreign
   staged="$(git diff --cached --name-only)"
-  foreign="$(printf '%s\n' "$staged" | grep -v -E '^(tests/|openspec/changes/|components/website/src/data/openspec-status\.json$|components/website/src/data/test-inventory\.json$)' || true)"
+  foreign="$(printf '%s\n' "$staged" | grep -v -E '^(\.agents/plans/|tests/|openspec/changes/|components/website/src/data/openspec-status\.json$|components/website/src/data/test-inventory\.json$)' || true)"
   [ -z "$foreign" ] \
-    || fail "Fremd-Datei im Staged-Set: $(printf '%s' "$foreign" | tr '\n' ' ') — Abhilfe: 'git restore --staged <pfad>' und nur Plan-Artefakte stagen (tests/, openspec/changes/, components/website/src/data/openspec-status.json, components/website/src/data/test-inventory.json). Hinweis: docs/code-quality/repo-index.json ist ein regeneriertes Nicht-Freshness-Artefakt, kein Guard-Defekt — Abhilfe: 'git restore docs/code-quality/repo-index.json'."
+    || fail "Fremd-Datei im Staged-Set: $(printf '%s' "$foreign" | tr '\n' ' ') — Abhilfe: 'git restore --staged <pfad>' und nur Plan-Artefakte stagen (.agents/plans/, tests/, openspec/changes/ [legacy], components/website/src/data/openspec-status.json, components/website/src/data/test-inventory.json). Hinweis: docs/code-quality/repo-index.json ist ein regeneriertes Nicht-Freshness-Artefakt, kein Guard-Defekt — Abhilfe: 'git restore docs/code-quality/repo-index.json'."
 
   command -v jq >/dev/null 2>&1 \
     || envfail "jq fehlt (wird fuer das .branch-Feld der Lock-Datei gebraucht) — Abhilfe: sudo apt-get install -y jq."

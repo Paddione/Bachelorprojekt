@@ -49,10 +49,11 @@ setup() {
   # Absoluter Fixture-Pfad (T002368-Guard): ein relatives Plan-Verzeichnis im
   # Fixture liest der Guard als Anlage im echten openspec/ — obwohl hier nach
   # `cd "$TEST_DIR"` (mktemp) nur relativ zum Fixture angelegt wird.
-  mkdir -p "$TEST_DIR/openspec/changes/xyz" tests/spec/xyz
+  mkdir -p "$TEST_DIR/openspec/changes/xyz" tests/spec/xyz "$TEST_DIR/.agents/plans/xyz"
   echo "plan" > openspec/changes/xyz/tasks.md
   echo "test" > tests/spec/xyz/example.bats
-  git add openspec/changes/xyz/tasks.md tests/spec/xyz/example.bats
+  echo "plan" > .agents/plans/xyz/tasks.md
+  git add openspec/changes/xyz/tasks.md tests/spec/xyz/example.bats .agents/plans/xyz/tasks.md
 
   run bash "$SCRIPT" pre-commit --ticket T009999
   [ "$status" -eq 0 ]

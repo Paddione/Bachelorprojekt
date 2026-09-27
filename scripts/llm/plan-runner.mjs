@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// plan-runner.mjs — fuehrt die Partials eines OpenSpec-Changes mit lokalen Modellen aus (T900504).
+// plan-runner.mjs — fuehrt die Partials eines gestagten Plans mit lokalen Modellen aus (T900504).
 //
 // Der Orchestrator (llama-server :1919, Qwen3.8-27B) steuert per Tool-Loop; Partials laufen als
 // `opencode run --agent plan-worker-4b` (4B-Worker, :1920) oder, wenn alle 4B-Slots belegt sind, als
 // Selbstaufruf `opencode run --agent plan-worker-self`. Waehrend des Selbstaufrufs vergibt der Scheduler freie
 // 4B-Slots selbst und meldet die Ergebnisse nach der Rueckkehr. Fortschritt:
-// openspec/changes/<slug>/.plan-runner/state.json (atomar, Resume nach Abbruch).
+// <plan-dir>/.plan-runner/state.json (atomar, Resume nach Abbruch; Plan-Heimat seit C7a:
+// .agents/plans/<slug>/, davor openspec/changes/<slug>/).
 //
 // Aufruf:
 //   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N] [--max-turns N] [--timeout-min N]

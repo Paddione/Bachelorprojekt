@@ -1,0 +1,175 @@
+# Langfuse v4 Web + Worker [T900688] — Env nach dem offiziellen docker-compose.yml
+# (github.com/langfuse/langfuse, Stand v4.46.0). Env bewusst je Deployment ausgeschrieben:
+# YAML-Anker loest kustomize nicht auf. Headless-Init (LANGFUSE_INIT_*) nur im Web-Pod.
+# DATABASE_URL setzt das Passwort per $(VAR)-Expansion aus LANGFUSE_DB_PASSWORD zusammen.
+apiVersion: v1
+kind: Service
+metadata:
+  name: langfuse-web
+  labels: {app: langfuse-web}
+spec:
+  selector: {app: langfuse-web}
+  ports:
+    - {name: http, port: 3000, targetPort: 3000}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langfuse-web
+  labels: {app: langfuse-web}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: langfuse-web}
+  template:
+    metadata:
+      labels: {app: langfuse-web}
+    spec:
+      containers:
+        - name: web
+          image: docker.langfuse.com/langfuse/langfuse:4.46.0
+          ports:
+            - {containerPort: 3000, name: http}
+          env:
+            - name: LANGFUSE_DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_DB_PASSWORD}}
+            - {name: DATABASE_URL, value: "postgresql://langfuse:$(LANGFUSE_DB_PASSWORD)@shared-db:5432/langfuse"}
+            - {name: NEXTAUTH_URL, value: "https://langfuse.${DEVMESH_DOMAIN}"}
+            - name: NEXTAUTH_SECRET
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_NEXTAUTH_SECRET}}
+            - name: SALT
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_SALT}}
+            - name: ENCRYPTION_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_ENCRYPTION_KEY}}
+            - {name: CLICKHOUSE_URL, value: "http://langfuse-clickhouse:8123"}
+            - {name: CLICKHOUSE_MIGRATION_URL, value: "clickhouse://langfuse-clickhouse:9000"}
+            - {name: CLICKHOUSE_USER, value: "clickhouse"}
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_CLICKHOUSE_PASSWORD}}
+            - {name: CLICKHOUSE_CLUSTER_ENABLED, value: "false"}
+            - {name: REDIS_HOST, value: "langfuse-valkey"}
+            - {name: REDIS_PORT, value: "6379"}
+            - name: REDIS_AUTH
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_REDIS_AUTH}}
+            - {name: TELEMETRY_ENABLED, value: "false"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_BUCKET, value: "langfuse"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_REGION, value: "auto"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID, value: "langfuse"}
+            - name: LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_S3_SECRET}}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT, value: "http://langfuse-minio:9000"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE, value: "true"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_PREFIX, value: "events/"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_BUCKET, value: "langfuse"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_REGION, value: "auto"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID, value: "langfuse"}
+            - name: LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_S3_SECRET}}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT, value: "http://langfuse-minio:9000"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE, value: "true"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_PREFIX, value: "media/"}
+            - {name: HOSTNAME, value: "0.0.0.0"}
+            - {name: AUTH_DISABLE_SIGNUP, value: "true"}
+            - {name: LANGFUSE_INIT_ORG_ID, value: "bachelorprojekt"}
+            - {name: LANGFUSE_INIT_ORG_NAME, value: "Bachelorprojekt"}
+            - {name: LANGFUSE_INIT_PROJECT_ID, value: "agent-tracing"}
+            - {name: LANGFUSE_INIT_PROJECT_NAME, value: "agent-tracing"}
+            - name: LANGFUSE_INIT_PROJECT_PUBLIC_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_INIT_PROJECT_PUBLIC_KEY}}
+            - name: LANGFUSE_INIT_PROJECT_SECRET_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_INIT_PROJECT_SECRET_KEY}}
+            - name: LANGFUSE_INIT_USER_EMAIL
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_INIT_USER_EMAIL}}
+            - name: LANGFUSE_INIT_USER_NAME
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_INIT_USER_NAME}}
+            - name: LANGFUSE_INIT_USER_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_INIT_USER_PASSWORD}}
+          readinessProbe:
+            httpGet: {path: /api/public/health, port: 3000}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /api/public/health, port: 3000}
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          resources:
+            requests: {cpu: 250m, memory: 1Gi}
+            limits: {memory: 2Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: langfuse-worker
+  labels: {app: langfuse-worker}
+spec:
+  selector: {app: langfuse-worker}
+  ports:
+    - {name: http, port: 3030, targetPort: 3030}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langfuse-worker
+  labels: {app: langfuse-worker}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: langfuse-worker}
+  template:
+    metadata:
+      labels: {app: langfuse-worker}
+    spec:
+      containers:
+        - name: worker
+          image: docker.langfuse.com/langfuse/langfuse-worker:4.46.0
+          ports:
+            - {containerPort: 3030, name: http}
+          env:
+            - name: LANGFUSE_DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_DB_PASSWORD}}
+            - {name: DATABASE_URL, value: "postgresql://langfuse:$(LANGFUSE_DB_PASSWORD)@shared-db:5432/langfuse"}
+            - {name: NEXTAUTH_URL, value: "https://langfuse.${DEVMESH_DOMAIN}"}
+            - name: NEXTAUTH_SECRET
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_NEXTAUTH_SECRET}}
+            - name: SALT
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_SALT}}
+            - name: ENCRYPTION_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_ENCRYPTION_KEY}}
+            - {name: CLICKHOUSE_URL, value: "http://langfuse-clickhouse:8123"}
+            - {name: CLICKHOUSE_MIGRATION_URL, value: "clickhouse://langfuse-clickhouse:9000"}
+            - {name: CLICKHOUSE_USER, value: "clickhouse"}
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_CLICKHOUSE_PASSWORD}}
+            - {name: CLICKHOUSE_CLUSTER_ENABLED, value: "false"}
+            - {name: REDIS_HOST, value: "langfuse-valkey"}
+            - {name: REDIS_PORT, value: "6379"}
+            - name: REDIS_AUTH
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_REDIS_AUTH}}
+            - {name: TELEMETRY_ENABLED, value: "false"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_BUCKET, value: "langfuse"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_REGION, value: "auto"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID, value: "langfuse"}
+            - name: LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_S3_SECRET}}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT, value: "http://langfuse-minio:9000"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE, value: "true"}
+            - {name: LANGFUSE_S3_EVENT_UPLOAD_PREFIX, value: "events/"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_BUCKET, value: "langfuse"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_REGION, value: "auto"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID, value: "langfuse"}
+            - name: LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_S3_SECRET}}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT, value: "http://langfuse-minio:9000"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE, value: "true"}
+            - {name: LANGFUSE_S3_MEDIA_UPLOAD_PREFIX, value: "media/"}
+          readinessProbe:
+            httpGet: {path: /api/health, port: 3030}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /api/health, port: 3030}
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          resources:
+            requests: {cpu: 250m, memory: 1Gi}
+            limits: {memory: 2Gi}

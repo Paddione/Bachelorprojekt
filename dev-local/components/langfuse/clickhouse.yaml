@@ -1,0 +1,59 @@
+# ClickHouse fuer Langfuse-Traces [T900688] — Single-Node, Version wie im offiziellen
+# docker-compose.yml (Langfuse v4 verlangt >= 25.x).
+apiVersion: v1
+kind: Service
+metadata:
+  name: langfuse-clickhouse
+  labels: {app: langfuse-clickhouse}
+spec:
+  selector: {app: langfuse-clickhouse}
+  ports:
+    - {name: http, port: 8123, targetPort: 8123}
+    - {name: native, port: 9000, targetPort: 9000}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: langfuse-clickhouse
+  labels: {app: langfuse-clickhouse}
+spec:
+  serviceName: langfuse-clickhouse
+  replicas: 1
+  selector:
+    matchLabels: {app: langfuse-clickhouse}
+  template:
+    metadata:
+      labels: {app: langfuse-clickhouse}
+    spec:
+      nodeSelector: {storage: "true"}
+      securityContext: {fsGroup: 101}
+      containers:
+        - name: clickhouse
+          image: clickhouse/clickhouse-server:25.12
+          env:
+            - {name: CLICKHOUSE_DB, value: default}
+            - {name: CLICKHOUSE_USER, value: clickhouse}
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_CLICKHOUSE_PASSWORD}}
+          ports:
+            - {containerPort: 8123, name: http}
+            - {containerPort: 9000, name: native}
+          readinessProbe:
+            httpGet: {path: /ping, port: 8123}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 500m, memory: 2Gi}
+            limits: {memory: 4Gi}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/clickhouse}
+            - {name: logs, mountPath: /var/log/clickhouse-server}
+      volumes:
+        - name: logs
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: {storage: 20Gi}

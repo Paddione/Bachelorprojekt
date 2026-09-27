@@ -1,0 +1,41 @@
+# Valkey (Redis-kompatibel) als Langfuse-Queue/Cache [T900688]. noeviction: BullMQ-Queues
+# duerfen nicht verdraengt werden.
+apiVersion: v1
+kind: Service
+metadata:
+  name: langfuse-valkey
+  labels: {app: langfuse-valkey}
+spec:
+  selector: {app: langfuse-valkey}
+  ports:
+    - {name: redis, port: 6379, targetPort: 6379}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langfuse-valkey
+  labels: {app: langfuse-valkey}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: langfuse-valkey}
+  template:
+    metadata:
+      labels: {app: langfuse-valkey}
+    spec:
+      nodeSelector: {storage: "true"}
+      containers:
+        - name: valkey
+          image: valkey/valkey:8
+          env:
+            - name: LANGFUSE_REDIS_AUTH
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LANGFUSE_REDIS_AUTH}}
+          args: ["--requirepass", "$(LANGFUSE_REDIS_AUTH)", "--maxmemory-policy", "noeviction"]
+          ports:
+            - {containerPort: 6379, name: redis}
+          readinessProbe:
+            tcpSocket: {port: 6379}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 512Mi}

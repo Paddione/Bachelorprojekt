@@ -1,0 +1,12 @@
+# dev-local/components/langfuse — self-hosted Langfuse v4 fuer Agent-Tracing auf devmesh
+# [T900688] (.agents/plans/langfuse-agent-tracing/design.md D1/D2). Eingehaengt in dev-local/core.
+# Postgres = shared-db (DB langfuse), Secrets aus workspace-secrets (LANGFUSE_*).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - db-init.yaml
+  - clickhouse.yaml
+  - valkey.yaml
+  - minio.yaml
+  - langfuse.yaml
+  - otel-redact.yaml

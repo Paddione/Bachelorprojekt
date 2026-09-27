@@ -35,6 +35,7 @@ Vermessung siehe [inventory.md](inventory.md).
 | C2 | Mini-Moves | `claude-code/` → `dotfiles/claude-code/`, `openclaw/.env.example` → `dotfiles/openclaw/` (+ Taskfile-Refs), `.openclaw/workspace-state.json` untracken + ignorieren | klein |
 | C3 | Brand-Assets | `environments/{korczewski,mentolder}`-Assets → `assets/brands/`, `renovate.json5`-Ignores + Indexe nachziehen | klein |
 | C6 | Agent-Gedächtnis | `.agents/memory/learnings.md` seeden, `.agents/docs/`-Konvention festschreiben | trivial |
+| C1b | AGENTS-Tiefendiät | Richtung Advisory-Ziel ≤160 (derzeit 259): nur mit Guard-Umbau möglich (Interaction-Contract-, Runtime-Tabellen-, Routing-Pins); läuft nach C6, vor C7 | mittel |
 | C4 | Taskfile-Diät | Root-`Taskfile.yml` (5.428 Zeilen) auf Includes + Aliase (< 300 Zeilen), Bodies → `taskfiles/` | mittel |
 | C5 | Eval-Harness | `tests/evals/` anlegen, Golden-Guards umhängen, `.githooks/`- + CI-Schutz vor Agent-Writes | mittel |
 | C8 | docs-Innenreorg | `archive/`, `generated/`, `legacy-html/`, `drift-reports/`, `audits/` konsolidieren; `.docx`-Verbleib entscheiden | mittel |

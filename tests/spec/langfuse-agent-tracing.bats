@@ -165,3 +165,10 @@ _render_fleet_proxy() {
   [ "$status" -eq 0 ]
   [[ "$output" == *"name: langfuse-dev-proxy"* ]]
 }
+
+@test "T900692: Collector-Batch behaelt den Authorization-Kontext fuer headers_setter" {
+  run yq ea -r 'select(.kind == "ConfigMap" and .metadata.name == "langfuse-otel-redact-config") | .data."config.yaml"' "$RENDERED"
+  [ "$status" -eq 0 ]
+  run yq -r '.processors.batch.metadata_keys[]' <<<"$output"
+  [ "$output" = "authorization" ]
+}

@@ -137,6 +137,10 @@ test-results/
 tests/e2e/results/outcomes/
 .worktrees/
 memory
+# T900560/C6: only the curated learning loop is versioned; other .agents/memory/ scratch stays ignored
+!.agents/memory/
+.agents/memory/*
+!.agents/memory/learnings.md
 whisper
 environments/Assets
 # .claude/settings.json is now git-crypt encrypted and tracked

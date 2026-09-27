@@ -35,7 +35,7 @@ setup() {
   git -C "$TMP_ROOT" config user.email "t002614-test@example.invalid"
   git -C "$TMP_ROOT" config user.name "T002614 Test"
 
-  CHANGES_DIR="$TMP_ROOT/openspec/changes"
+  CHANGES_DIR="$TMP_ROOT/.agents/plans"
 
   _make_fixture() {
     local slug="$1" domains="$2"

@@ -26,7 +26,7 @@ Liegt auf dem Branch bereits Arbeit, wird sie **fortgesetzt**, nicht wiederholt.
   auswertet, baut Drift ein — zwei Quellen, die irgendwann widersprechen, ohne Regel,
   welche gewinnt.
 - **Der Worktree entsteht, bevor das Partial-Manifest gelesen wird.** Ohne diese
-  Reihenfolge liegt `openspec/changes/<slug>/tasks.d/` zum Lesezeitpunkt noch nicht auf
+  Reihenfolge liegt `.agents/plans/<slug>/tasks.d/` zum Lesezeitpunkt noch nicht auf
   der Platte, `readPartials` liefert nichts, und der Lauf fällt auf den LLM-Decompose
   zurück. Der kennt keine erledigten Partials und erzeugt die volle Taskliste — die
   Implementierungsschleife wiederholt dann bereits geleistete Arbeit.

@@ -1,6 +1,6 @@
 # Plan Intel Bundle (PIB)
 
-Typed, schema-validated intel artifact at `openspec/changes/<slug>/intel.json`. Filled once in the
+Typed, schema-validated intel artifact at `.agents/plans/<slug>/intel.json`. Filled once in the
 plan phase (`dev-flow-plan` Schritt A.1.5) and consumed as mandatory context by both `dev-flow-plan`
 (Schritt 3.7) and `dev-flow-execute` (Schritt 2). Pläne referenzieren so reale Signaturen, DB-Spalten
 und API-Contracts statt erfundener Typen.
@@ -38,7 +38,7 @@ For each `impact_files[]` entry, pre-compute the S1 ratchet so the plan-subagent
 
 ```bash
 jq . .agents/skills/references/schemas/plan-intel-bundle.schema.json    # schema parses
-jq . openspec/changes/<slug>/intel.json                                 # bundle parses
+jq . .agents/plans/<slug>/intel.json                                 # bundle parses
 ```
 
 The BATS gate `tests/spec/dev-flow-plan.bats` asserts the schema is valid, the fixture conforms,

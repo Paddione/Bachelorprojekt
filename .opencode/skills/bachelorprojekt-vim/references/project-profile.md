@@ -6,7 +6,7 @@
 - Primary instructions: `AGENTS.md`; deeper reference: `CLAUDE.md`
 - Change verification: `task test:changed`, `task freshness:check`, `task workspace:validate`
 - Task discovery: `task --list`
-- OpenSpec work: `openspec/changes/` and `openspec/specs/`
+- Staged plans: `.agents/plans/`
 - Branches use `feature/*`, `fix/*`, `chore/*`, or `docs/*`; feature and fix work normally uses worktrees.
 
 ## Languages and filetypes

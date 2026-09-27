@@ -1,6 +1,6 @@
 ---
 name: dev-flow-execute
-description: 'Use when on a feature/* or fix/* branch that has a staged plan in openspec/changes/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.'
+description: 'Use when on a feature/* or fix/* branch that has a staged plan in .agents/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.'
 ---
 
 # dev-flow-execute — Plan-Ausführung & PR

@@ -77,11 +77,11 @@ Diese Skill plant nur (Feature/Fix) und stoppt vor der Umsetzung; die übernimmt
 Bevor dem User eine **Architekturfrage** gestellt wird („gemeinsame Quelle oder duplizieren?",
 „Bibliothek oder Inline?", „Hook oder Helper?"), MUSS geprüft sein, ob dieselbe Frage im Repo
 schon einmal entschieden wurde. Gilt für **beide** Pfade, **vor** dem Brainstorming. Die Suche geht
-über die Requirements, nicht nur über den Code — eine verworfene Lösungsrichtung hinterlässt im
+über ADRs und Guards, nicht nur über den Code — eine verworfene Lösungsrichtung hinterlässt im
 Code keine Spur:
 ```bash
-grep -rn -e '<pfad/der/betroffenen/datei>' -e '<zweiter-pfad>' openspec/specs/   # Requirements
-grep -rln '<pfad/der/betroffenen/datei>' tests/spec/                            # absichernde Guards
+grep -rn -e '<pfad/der/betroffenen/datei>' -e '<zweiter-pfad>' docs/adr/   # Architekturentscheidungen
+grep -rln '<pfad/der/betroffenen/datei>' tests/spec/                      # absichernde Guards
 ```
 Treffer werden zitiert (Datei + Zeilen); die Frage lautet dann „bestehende Entscheidung behalten
 oder ersetzen?". Ersetzen geht über ein `RENAMED`/`MODIFIED`-Delta auf den SSOT-Spec. Begründung
@@ -128,10 +128,10 @@ Testrunner-Aufruf (STRUCT2), der finale Verify-Task mit `task test:changed` /
 Führe ZUERST den fail-closed Linter auf den vom Subagenten zurückgegebenen Plan-Pfad aus — das ist
 das **harte Gate**:
 ```bash
-bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
+bash scripts/plan-lint.sh .agents/plans/<slug>/tasks.md
 ```
 - **PASS (Exit 0):** optional die advisory LLM-QA (bricht nie):
-  `bash scripts/plan-qa-check.sh openspec/changes/<slug>/tasks.md || true` — dann Schritt 4.
+  `bash scripts/plan-qa-check.sh .agents/plans/<slug>/tasks.md || true` — dann Schritt 4.
 - **FAIL (Exit 1):** der Linter listet die Hard-Fails (F1/F2/STRUCT/P1/B1a). Erneut an einen
   Plan-Subagenten delegieren (Schritt 3.7) mit den Hard-Fails als Korrektur-Hinweis, bis PASS.
   KEIN Weitergehen mit rotem Linter.
@@ -166,7 +166,7 @@ Vertrag, den der Operator nachvollziehen können muss (Umsetzung: Skript +
 1. **Nicht auf main committen:** Plan-stage Commits auf `main` sind verboten, nur ein
    Worktree-Branch ist zulässig.
 2. **Staged-Set-Pflicht [T005114]:** geprüft wird `git diff --cached --name-only`; erlaubt sind
-   Pfade unter `tests/` und `openspec/changes/` sowie exakt
+   Pfade unter `tests/` und `.agents/plans/` sowie exakt
    `components/website/src/data/openspec-status.json` und
    `components/website/src/data/test-inventory.json`. Andere gestagte Dateien brechen den Guard ab
    (Abhilfe: `git restore --staged <pfad>`). Unstaged/untracked wird nicht geprüft.
@@ -179,7 +179,7 @@ Vertrag, den der Operator nachvollziehen können muss (Umsetzung: Skript +
 bash scripts/plan-preflight.sh pre-commit --ticket "$TICKET_EXT_ID"
 # rc=0 alle Checks grün · rc=1 Guard verletzt · rc=2 Umgebungsfehler
 
-git -C "$WT" add openspec/changes/<slug>/
+git -C "$WT" add .agents/plans/<slug>/
 git -C "$WT" commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git -C "$WT" push -u origin "$(git -C "$WT" branch --show-current)"
 
@@ -188,13 +188,13 @@ git -C "$WT" push -u origin "$(git -C "$WT" branch --show-current)"
 bash scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "$(git -C "$WT" branch --show-current)" \
-  --plan "openspec/changes/<slug>/tasks.md" \
+  --plan ".agents/plans/<slug>/tasks.md" \
   --partials <N> --hold
 ```
 
 ### Schritt 6: Optionaler Plan-Review (interaktiv)
 Der Plan lässt sich annotierbar rendern und im Browser reviewen
-(`bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md`). Details:
+(`bash scripts/plan-review/plan-review.sh render .agents/plans/<slug>/tasks.md`). Details:
 [plan-review-ui](.agents/skills/references/plan-review-ui.md).
 
 **STOPP.** Branch, Spec und Plan sind committed und gepusht. Ticket ist per
@@ -204,8 +204,9 @@ Der Plan lässt sich annotierbar rendern und im Browser reviewen
 ## Fix-Pfad
 
 Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird. Der Test gehört
-nach `tests/spec/<spec-slug>.bats` (die Spec aus `openspec/specs/`), nicht in eine neue
-ticket-nummerierte Datei. Setzt er ein externes Binary oder einen externen Dienst voraus, gehört
+nach `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name — kein Spec-Verzeichnis
+mehr seit C7a), nicht in eine neue ticket-nummerierte Datei. Setzt er ein externes Binary oder
+einen externen Dienst voraus, gehört
 der Verfügbarkeits-Guard (`command -v <binary> >/dev/null 2>&1 || skip "<binary> binary not installed"`)
 schon in die **Rotphase**. Vorher prüfen: `grep -rn '<binary>' .github/workflows/`; **0 Treffer
 heißt: in CI nicht vorhanden**. Begründung: T002820 in
@@ -222,7 +223,7 @@ Root-Cause-Fokus, failing Test, Plan, `stage-plan`, Commit):
 [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md) §Fix-Pfad. Der abschließende Stage-Commit:
 
 ```bash
-git -C "$WT" add tests/ openspec/changes/<slug>/tasks.md
+git -C "$WT" add tests/ .agents/plans/<slug>/tasks.md
 (cd "$WT" && git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]")
 git -C "$WT" push -u origin "$(git -C "$WT" branch --show-current)"
 ```
@@ -236,7 +237,7 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 ## Übergabe an dev-flow-execute
 **Zustand bei STOPP:**
 - Branch `feature/<slug>` oder `fix/<slug>` auf Remote gepusht
-- Plan `openspec/changes/<slug>/tasks.md` committed
+- Plan `.agents/plans/<slug>/tasks.md` committed
 - Ticket status = `plan_staged`
 - Branch-Lock aktiv (andere Sessions sehen diesen Branch als belegt)
 - **Kein PR** — der Plan-Stand ist ein gepushter Branch, nichts weiter. Wird aus anderem Grund

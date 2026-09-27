@@ -170,18 +170,15 @@ fi
 
 echo "✅ Plan geladen: $PLAN_FILE (Branch: $BRANCH)"
 
-# Validate OpenSpec delta artifacts exist (required by task test:openspec)
+# Validate plan directory exists (sibling artifacts of tasks.md live here)
 SLUG=$(basename "$PLAN_FILE" .md)
-CHANGE_DIR="openspec/changes/$SLUG"
-if [[ -d "$CHANGE_DIR" ]]; then
-  if [[ ! -d "$CHANGE_DIR/specs" ]]; then
-    echo "⚠️  $CHANGE_DIR/specs/ fehlt — Delta-Specs werden von test:openspec erwartet."
-  fi
-  if [[ ! -f "$CHANGE_DIR/.ticket" ]]; then
-    echo "⚠️  $CHANGE_DIR/.ticket fehlt — Ticket-Reference wird von test:openspec erwartet."
+PLAN_DIR=".agents/plans/$SLUG"
+if [[ -d "$PLAN_DIR" ]]; then
+  if [[ ! -f "$PLAN_DIR/.ticket" ]]; then
+    echo "⚠️  $PLAN_DIR/.ticket fehlt — Ticket-Referenz sollte von dev-flow-plan gesetzt sein."
   fi
 else
-  echo "⚠️  $CHANGE_DIR/ fehlt — OpenSpec-Change-Verzeichnis wurde nicht von dev-flow-plan angelegt."
+  echo "⚠️  $PLAN_DIR/ fehlt — Plan-Verzeichnis wurde nicht von dev-flow-plan angelegt."
 fi
 ```
 
@@ -235,10 +232,6 @@ bash scripts/check-pr-automerge.sh --branch "$BRANCH"
 
 ## Schritt 1.5 / 1.7 — Ticket auf in_progress, touched_files, Assets
 
-> **Optional:** Wenn der Plan via `dev-flow-plan` auf `plan_staged` steht, kannst du vor diesem
-> Schritt `/opsx:apply <slug>` aufrufen — das ist die upstream-Variante von `task openspec:apply`,
-> die den OpenSpec-Change in den Apply-Modus überführt. Fallback wenn die upstream-CLI nicht
-> installiert ist: `task openspec:apply -- <slug>`.
 Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — **MCP-first** (`ticket-mcp`):
 > `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "in_progress" })`
 > `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
@@ -366,16 +359,15 @@ git push origin --delete "<branch>"   # remote: der Merge löscht nicht mehr (T0
 
 ---
 
-## BATS — ein File pro OpenSpec-Spec
+## BATS — ein File pro Feature
 
-  Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` (die Spec zum Feature/Fix aus `openspec/specs/`).
+  Neue `@test`-Einträge gehören in `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name).
   Reihenfolge:
-  1. **Spec-Slug ermitteln:** Welche OpenSpec-Spec (`openspec/specs/*.md`) deckt das zu testende Verhalten ab?
-  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<spec-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/software-factory/`).
-  3. **Fallback:** Für übergreifende Tests ohne Spec-Zuordnung → passende Datei in `tests/unit/` erweitern.
+  1. **Feature-Slug ermitteln:** Welcher Slug beschreibt das zu testende Verhalten? (Ticket-Titel, kein Spec-Verzeichnis mehr seit C7a.)
+  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<feature-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/software-factory/`).
+  3. **Fallback:** Für übergreifende Tests ohne Feature-Zuordnung → passende Datei in `tests/unit/` erweitern.
   ```bash
-  # Spec-Slug herausfinden:
-  ls openspec/specs/          # alle SSOT-Specs
+  # Bestehende Slugs prüfen:
   ls tests/spec/              # bereits konsolidierte Spec-Dateien
   # @test in tests/spec/<slug>.bats einfügen, nicht neue tests/local/FA-XY-*.bats Datei
   ```

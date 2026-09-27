@@ -26,20 +26,20 @@ Nach der Exploration (A.1) Generator laufen lassen — deterministisch, kein LLM
 ```bash
 bash scripts/plan-intel.sh <slug>
 ```
-Das Skript befüllt `openspec/changes/<slug>/intel.json` aus der Plan-Datei (target_files),
+Das Skript befüllt `.agents/plans/<slug>/intel.json` aus der Plan-Datei (target_files),
 berechnet S1-Budgets via `scripts/plan-lint.sh`-Hooks und extrahiert Symbole per `grep`.
 Schema + Quellen-Mapping: [plan-intel-bundle](.agents/skills/references/plan-intel-bundle.md).
 `api_contracts` und `external_types` bleiben beim Planner — der Generator überschreibt nicht,
 was der Planner von Hand ergänzt hat. Fehlt eine Quelle, entsteht ein `risks[]`-Eintrag.
 Das Bundle informiert bereits das Brainstorming (A.4).
 Liegt vor `/opsx:propose` noch kein Change-Ordner vor, das Bundle erstellen und nach **B.2**
-verschieben: `mkdir -p openspec/changes/<slug> && bash scripts/plan-intel.sh <slug>`.
+verschieben: `mkdir -p .agents/plans/<slug> && bash scripts/plan-intel.sh <slug>`.
 #### Schritt A.2: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
 Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), lege die Assets
 **jetzt im main-Checkout** an — sie werden in Schritt B.2 in den Worktree verschoben:
 ```bash
 SLUG="<slug>"
-DESIGN_DIR="openspec/changes/${SLUG}/assets"
+DESIGN_DIR=".agents/plans/${SLUG}/assets"
 mkdir -p "${DESIGN_DIR}/new"
 
 # Design-Assets extrahieren (Bundle-ID vom User erfragen)
@@ -71,11 +71,10 @@ Rufe `superpowers:brainstorming` auf (Superpowers-Plugin; opencode: das Äquival
 direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; lies die Spec und
 arbeite die Schritte A.3→A.5 ohne Skill-Load durch).
 Nutze das `lavish`-Board (aus Schritt A.3) für visuelle Dokumentation und strukturiertes Feedback.
-Ergebnis: Design-Spec **im Change-Ordner** unter `openspec/changes/<slug>/design.md`
-(SSOT-Konvention T002074 — `mkdir -p openspec/changes/<slug>` falls `/opsx:propose`
-in A.5 den Ordner noch nicht angelegt hat; kein Doppel mehr im alten Spec-Verzeichnis).
+Ergebnis: Design-Spec **im Plan-Ordner** unter `.agents/plans/<slug>/design.md`
+(`mkdir -p .agents/plans/<slug>` vorab — kein Scaffolder nötig).
 Nach dem Schreiben der Spec das Frontmatter setzen:
-`bash scripts/vda.sh frontmatter --spec openspec/changes/<slug>/design.md`
+`bash scripts/vda.sh frontmatter --spec .agents/plans/<slug>/design.md`
 und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 
 > **Commit-Scope ist `plans`, nicht `specs` [T002425-M2].** Der naheliegende `docs(specs):`
@@ -91,12 +90,10 @@ Delta-Skeleton, setzt Ticket-Status auf `planning`). Merke den Repo-Root für Sc
 # Repo-Root für späteres Verschieben der Artefakte festhalten
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-/opsx:propose <slug>     # upstream OpenSpec command (preferred)
-# Fallback (older harness without upstream CLI):
-# bash scripts/openspec.sh propose "<slug>" --ticket "<TICKET_EXT_ID>"
+mkdir -p .agents/plans/<slug>   # Plan-Heimat seit C7a (kein Scaffolder nötig)
 ```
-Übertrage den Brainstorming-Output (WARUM + WAS) nach `openspec/changes/<slug>/proposal.md`.
-Der Implementierungsplan wird **ausschließlich** in `openspec/changes/<slug>/tasks.md` geschrieben.
+Übertrage den Brainstorming-Output (WARUM + WAS) nach `.agents/plans/<slug>/proposal.md`.
+Der Implementierungsplan wird **ausschließlich** in `.agents/plans/<slug>/tasks.md` geschrieben.
 #### Schritt A.6: Playwright-Projekt-Gate (optional)
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
 ### Phase B: Worktree anlegen + Branch pushen
@@ -139,19 +136,15 @@ bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
 
 ```bash
 WT="${REPO_ROOT}/.worktrees/<slug>"   # absolut [T006367] — cd+Guard / git -C funktionieren von jedem cwd
-mkdir -p "${WT}/openspec/changes/"
-mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
-[ -f "${REPO_ROOT}/intel.json" ] && mv "${REPO_ROOT}/intel.json" "${WT}/openspec/changes/<slug>/intel.json"
+mkdir -p "${WT}/.agents/plans/"
+mv "${REPO_ROOT}/.agents/plans/<slug>" "${WT}/.agents/plans/<slug>"
+[ -f "${REPO_ROOT}/intel.json" ] && mv "${REPO_ROOT}/intel.json" "${WT}/.agents/plans/<slug>/intel.json"
 [ -f "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" ] && mv "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" "${WT}/.lavish/" 2>/dev/null || true
 
-# [T002523-M10] Phase A laeuft bewusst im Hauptcheckout — `openspec.sh propose` ruft dort
-# `openspec-status-map.sh` auf und schreibt components/website/src/data/openspec-status.json neu. Das ist
-# die einzige Mutation, die nach dem Umzug im Hauptcheckout zurueckbleibt, und sie widerspricht
-# der Regel "mutierende Tasks nie im Hauptcheckout" (CLAUDE.local.md). Sie ist leicht zu
-# uebersehen, weil sie erst nach dem Worktree-Wechsel sichtbar wird — wenn die Aufmerksamkeit
-# schon im Worktree liegt. Genau aus solchen liegengebliebenen Mutationen entstand T001880.
-# Die Datei wird im Worktree ohnehin von `task freshness:regenerate` neu erzeugt.
-git -C "${REPO_ROOT}" checkout -- components/website/src/data/openspec-status.json 2>/dev/null || true
+# [T002523-M10] Phase A laeuft bewusst im Hauptcheckout: Brainstorm-Artefakte
+# (intel.json, lavish-Board) entstehen dort und ziehen in B.2 in den Worktree um.
+# (Der fruehere openspec.sh-propose-Seiteneffekt auf openspec-status.json ist mit
+# C7a entfallen — kein Checkout-Restore mehr noetig.)
 
 cd "${WT}"
 ```
@@ -165,7 +158,7 @@ cd "${WT}"
 ```bash
 # [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT absolut, s. B.2)
 cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
-git add openspec/changes/<slug>/
+git add .agents/plans/<slug>/
 git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
@@ -186,24 +179,23 @@ FOR each partial pX (p1, p2, ..., zuletzt Tests):
   ├─► C.2b: `tasks.md`-Index (Partial-Manifest + File Structure) aktualisieren
   └─► C.2c: Commit + Push
         cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
-        git add openspec/changes/<slug>/
+        git add .agents/plans/<slug>/
         git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
         git push origin "$(git branch --show-current)"
 ```
 
 #### Schritt C.3: Plan-Qualitäts-Gate
 ```bash
-bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
-bash scripts/openspec.sh validate
+bash scripts/plan-lint.sh .agents/plans/<slug>/tasks.md
 ```
 
 #### Schritt C.4: Stagen mit Hold
 ```bash
 bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "$(git branch --show-current)" \
-  --plan "openspec/changes/<slug>/tasks.md" --partials <N> --hold
+  --plan ".agents/plans/<slug>/tasks.md" --partials <N> --hold
 ```
 Ausgeführt wird der Plan danach von `dev-flow-execute` (gibt den Hold frei) oder lokal per
-`node scripts/llm/plan-runner.mjs openspec/changes/<slug>`.
+`node scripts/llm/plan-runner.mjs .agents/plans/<slug>`.
 
 #### Schritt C.5: Pgvector-Index
 ```bash
@@ -232,12 +224,12 @@ sie sagen dem Orchestrator, mit welcher billigsten Stufe und welchem
 Kontextbudget er das Partial dispatchen soll.
 
 **(b) Fan-out** — N parallele Plan-Subagenten (Claude Code: `Task`-Tool; opencode:
-`delegate(...)`). Kontext pro Subagent NUR: `openspec/changes/<slug>/proposal.md`,
+`delegate(...)`). Kontext pro Subagent NUR: `.agents/plans/<slug>/proposal.md`,
 sein Manifest-Eintrag, die Ausgabe von
 `bash scripts/plan-intel-filter.sh <slug> <target_files...>` (deterministisch
 gefilterte `intel.json` für genau seine Dateien) und die
 [plan-quality-gates](.agents/skills/references/plan-quality-gates.md)-Referenz.
-Jeder schreibt SEINE `openspec/changes/<slug>/tasks.d/pX-<name>.md`; der Orchestrator
+Jeder schreibt SEINE `.agents/plans/<slug>/tasks.d/pX-<name>.md`; der Orchestrator
 schreibt den `tasks.md`-**Index** mit der `## Partials`-Manifest-Tabelle
 (`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> | min_tier | ctx_tokens |`),
 der `## File Structure` (Union aller Partials) und dem finalen Verify-Task (STRUCT3).
@@ -272,15 +264,15 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
    - **Claude Code:** Über das `Agent`/`Task`-Tool (`subagent_type: general-purpose`) — Plan-Schreiben ist reasoning-lastige Meta-Arbeit: Modell-Default `opus` (triviale chore-artige Pläne: `sonnet`), Effort high; bei großen multi-subsystem-Specs die ultra-Stufe (`Workflow`-Fan-out).
    - **opencode:** Über `delegate(prompt, agent="researcher")` für read-only oder native write-capable Delegation. Effort-Formulierungen, Worktree-`cd`-Pflicht und Eskalations-Rubrik stehen in der Reference (SSOT, nicht hier wiederholen).
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
-     - Spec-Pfad: `openspec/changes/<slug>/design.md`
-     - **Design-Bundle** (falls Schritt A.2 lief): `openspec/changes/<slug>/assets/` —
+     - Spec-Pfad: `.agents/plans/<slug>/design.md`
+     - **Design-Bundle** (falls Schritt A.2 lief): `.agents/plans/<slug>/assets/` —
        der Plan MUSS `intent.md` als Design-Quelle referenzieren, die finalen Asset-Zielpfade
        (z. B. unter `components/website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
        Guardrails (currentColor statt `<img>`, keine Stray-Hex, Export-Vollständigkeit) als
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
       - **CI-/Quality-Gates:** [plan-quality-gates](.agents/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
-     - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` — der Plan-Subagent MUSS
+     - **Plan Intel Bundle (PFLICHT):** `.agents/plans/<slug>/intel.json` — der Plan-Subagent MUSS
        ausschließlich reale Signaturen/Typen aus `intel.json` referenzieren (keine erfundenen Typen),
        die vorberechneten `s1_budget`-Werte aus `impact_files` für die S1-Notation pro Datei nutzen und
        DB-Spalten/API-Contracts aus den `db_tables`/`api_contracts`-Sektionen zitieren. Format/Quellen:
@@ -340,26 +332,26 @@ erzwingen** — Begründung siehe Schritt A.3 [T002523-M3]. Ohne Zustimmung läu
 ### Schritt 2.8: Brainstorming ⚡ IMMER — kein Überspringen
 Rufe `superpowers:brainstorming` auf. Nutze das `lavish`-Board für visuelle Root-Cause-Dokumentation.
 Fokus: Root-Cause-Analyse, Fix-Ansatz, betroffene Subsysteme, Edge-Cases.
-Ergebnis: Spec-Datei in `openspec/changes/<slug>/design.md`.
+Ergebnis: Spec-Datei in `.agents/plans/<slug>/design.md`.
 Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch den Plan (Schritt 4) —
 kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
-**Wo:** In `tests/spec/<spec-slug>.bats` (Spec zu diesem Fix aus `openspec/specs/`), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<spec-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/software-factory/`).
+**Wo:** In `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<feature-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/software-factory/`).
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf (Superpowers-Plugin; opencode: das Äquivalent ist als inlinede Steps in diesem Skill) oder führe die Plan-Schreib-Schritte
 direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; schreibe den Plan nach
-`openspec/changes/<slug>/tasks.md` gemäß den plan-lint Hard Rules in Schritt 3.7).
+`.agents/plans/<slug>/tasks.md` gemäß den plan-lint Hard Rules in Schritt 3.7).
 Wende das Frontmatter an und trage die Ticket-ID ein. **Erst committen und pushen, DANN stagen [T002673]:** `stage-plan` liest den Plan per `git cat-file -p "${branch}:${plan}"` aus dem Branch-Commit; vor dem Commit steht dort das propose-Skeleton, `touched_files` bliebe leer — seit T003267 bricht `stage-plan` dann mit Exit 1 ab (Override: `--allow-empty-touched`).
 ### Schritt 4.5: Plan stagen (Fix 6)
 **MCP-first** (`ticket-mcp`):
-> `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
+> `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: ".agents/plans/<slug>/tasks.md", hold: true })`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "fix/<slug>" \
-  --plan "openspec/changes/<slug>/tasks.md" \
+  --plan ".agents/plans/<slug>/tasks.md" \
   --hold
 ```
 Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flow-execute` bereit.
@@ -368,7 +360,7 @@ Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch
 ```bash
 # [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT aus Fix-Schritt 2)
 cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
-git add tests/ openspec/changes/<slug>/tasks.md
+git add tests/ .agents/plans/<slug>/tasks.md
 git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
@@ -376,7 +368,7 @@ git push -u origin $(git branch --show-current)
 >
 > Falls der Plan zusätzlich Production-Code-Aufgaben enthält, die der Planer bereits anwendet (z.B. vom Fix unabhängiger Boilerplate): trotzdem `chore(plans):` verwenden und die Production-Code-Änderung in einem **separaten Commit** mit `fix(<scope>):` ablegen, damit die `commit-vs-diff`-Guard (`.githooks/commit-msg`) den Stage-Commit passieren lässt.
 >
-> Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` (siehe `openspec/specs/ci-cd.md`) blockiert jeden Commit mit Implementation-Type, dessen Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen Präfixe. Bypass: `SKIP_COMMIT_VS_DIFF=1 git commit ...` (Notfall).
+> Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` blockiert jeden Commit mit Implementation-Type, dessen Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen Präfixe. Bypass: `SKIP_COMMIT_VS_DIFF=1 git commit ...` (Notfall).
 **STOPP.** Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
 
 ## Preflight — Check merged ticket (T002279)

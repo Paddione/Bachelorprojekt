@@ -11,16 +11,16 @@
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
 Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
 **MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen (Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp).
-> `ticket-mcp-node_create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: openspec/changes/<slug>/design.md\n<grilling-ref>" })`
+> `ticket-mcp-node_create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: .agents/plans/<slug>/tasks.md\nSpec: .agents/plans/<slug>/design.md\n<grilling-ref>" })`
 Bei vorhandenem Ticket stattdessen die UUID lesen: `ticket-mcp-node_get_ticket({ id: "$TICKET_EXT_ID" })` → `.id` ist die UUID.
 Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execute) — **MCP-first**:
-> `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
+> `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: ".agents/plans/<slug>/tasks.md", hold: true })`
 `hold` ist **PFLICHT** (T003267): ohne das Feld defaultet der Go-Adapter auf `false` und
 ruft `--no-hold` auf — das Ticket gilt dann sofort als freigegeben, statt auf `dev-flow-execute` zu warten.
 
 **Partial-Anzahl mitgeben (T002074):** Bei einem Multi-Partial-Plan die Slot-Zahl
 für das Gang-Gating durchreichen — MCP-seitig via `set_plan_meta`, sonst per Fallback
-`bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "feature/<slug>" --plan "openspec/changes/<slug>/tasks.md" --partials N`
+`bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "feature/<slug>" --plan ".agents/plans/<slug>/tasks.md" --partials N`
 (N = Anzahl der Partials aus dem `## Partials`-Manifest, 1..9; Default 1). `--partials`
 lebt in `scripts/vda/ticket/stage-plan.sh` — `scripts/ticket.sh` bleibt unberührt.
 
@@ -54,7 +54,7 @@ Commit/Push, den Change nach pgvector indizieren, damit die Execute-Phase
 ihn per Ähnlichkeitssuche (`openspec_find_similar`) abrufen kann — über den **fail-visible
 Wrapper** (NICHT das nackte `openspec-embed.mjs`, das skippt bei fehlender Env still):
 `bash scripts/openspec-embed-local.sh <slug> "$(pwd)"`
-(2. Argument = Worktree-Root, in dem `openspec/changes/<slug>/` liegt. Der Wrapper
+(2. Argument = Worktree-Root, in dem `.agents/plans/<slug>/` liegt. Der Wrapper
 löst SESSIONS_DATABASE_URL selbst per kubectl/port-forward auf, probt das
 TEI-Backend vorab und bricht mit Remediation-Hinweis ab statt still zu skippen.
 Exit ≠ 0 ⇒ Embedding fehlt — beheben, nicht ignorieren; Erfolgskriterium ist die
@@ -75,7 +75,7 @@ if [[ -z "${TICKET_EXT_ID:-}" ]]; then
     --brand mentolder \
     --title "Plan: <slug>" \
     --priority mittel \
-    --description "Branch: feature/<slug>"$'\n'"Plan: openspec/changes/<slug>/tasks.md"$'\n'"Spec: openspec/changes/<slug>/design.md"$GRILLING_REF)
+    --description "Branch: feature/<slug>"$'\n'"Plan: .agents/plans/<slug>/tasks.md"$'\n'"Spec: .agents/plans/<slug>/design.md"$GRILLING_REF)
 
   TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
   TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
@@ -90,7 +90,7 @@ fi
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" \
-  --plan "openspec/changes/<slug>/tasks.md" \
+  --plan ".agents/plans/<slug>/tasks.md" \
   --hold
 ```
 **`--hold`-Flag Pflicht seit T003267:** `stage-plan` verlangt entweder `--hold` oder `--no-hold`. `--hold` setzt `readiness.execution_released=false` — das Ticket wird zurückgehalten, bis `dev-flow-execute` per `ticket.sh release-hold` freigibt. Verwende `--hold` in allen interaktiven dev-flow-plan Calls, damit der Operator die Kontrolle behält. `--no-hold` gibt sofort frei und ist nur für headless Pfade gedacht.
@@ -115,7 +115,7 @@ Der Aufruf in dev-flow-plan Schritt 5 lautet vollständig:
 bash scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "$(git -C "$WT" branch --show-current)" \
-  --plan "openspec/changes/<slug>/tasks.md" \
+  --plan ".agents/plans/<slug>/tasks.md" \
   --partials <N> --hold
 ```
 

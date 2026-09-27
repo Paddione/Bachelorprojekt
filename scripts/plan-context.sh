@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Emit active OpenSpec change proposals as plan context, filtered by the
-# supplied <role>, plus OpenSpec SSOT specs for files touched vs main
-# (when --with-openspec is passed).
+# Emit active staged-plan proposals (.agents/plans/, legacy: openspec/changes/)
+# as plan context, filtered by the supplied <role>, plus OpenSpec SSOT specs
+# for files touched vs main (when --with-openspec is passed; spec side dies in C7b).
 # Usage:
 #   scripts/plan-context.sh <role>
 #   scripts/plan-context.sh <role> --with-openspec [<file>...]
@@ -85,7 +85,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-CHANGES_DIR="$REPO_ROOT/openspec/changes"
+# Canonical plan home since C7a; openspec/changes/ stays readable until the C7b teardown.
+PLANS_DIR="$REPO_ROOT/.agents/plans"
+CHANGES_DIR="$PLANS_DIR"
+if [[ ! -d "$CHANGES_DIR" && -d "$REPO_ROOT/openspec/changes" ]]; then
+  CHANGES_DIR="$REPO_ROOT/openspec/changes"
+fi
 
 # Parse the YAML frontmatter `domains:` field from a proposal (or its
 # adjacent tasks.md as a fallback). Returns space-separated domain

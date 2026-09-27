@@ -1230,13 +1230,13 @@
       "init_prompt_de": "Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>."
     },
     {
-      "id": "git-workflow",
-      "name_de": "Git-Workflow",
+      "id": "opencode-git-workflow",
+      "name_de": "OpenCode-Git-Workflow",
       "kind": "skill",
       "kind_de": "Fertigkeit",
-      "summary_de": "Git-Lebenszyklus: Pull-First, Branch-Regeln, Worktree-Setup, Commit-Format, PR-Erstellung.",
-      "what_for_de": "Standardisiert alle Git-Operationen – vom Branch-Wechsel bis zum Merge.",
-      "how_to_start_de": "Wird von dev-flow-plan/execute/chore automatisch geladen. Manuell: lade die Skill git-workflow.",
+      "summary_de": "Git-Lebenszyklus für OpenCode: Pull-First, Branch-Regeln, Worktree-Setup, Commit-Format, PR-Erstellung.",
+      "what_for_de": "Standardisiert alle Git-Operationen in OpenCode-Sessions – vom Branch-Wechsel bis zum Merge.",
+      "how_to_start_de": "Wird von dev-flow-plan/execute/chore automatisch geladen. Manuell: lade die Skill opencode-git-workflow.",
       "what_could_go_wrong_de": "Git-crypt-verschlüsselte Dateien können in Worktrees fehlen – darum nutzen die Skills scripts/worktree-create.sh.",
       "danger": "safe",
       "guardrails": [
@@ -1269,12 +1269,12 @@
       ],
       "common": false,
       "order": 999,
-      "harness": "both",
+      "harness": "opencode",
       "stages": [
         "code",
         "pr-ci"
       ],
-      "init_prompt_de": "Lade git-workflow – ich brauche Git-Operationen (Commit, Push, PR)."
+      "init_prompt_de": "Lade opencode-git-workflow – ich brauche Git-Operationen in einer OpenCode-Session."
     }
   ],
   "components": {
@@ -1685,7 +1685,7 @@
         "toolIds": [
           "dev-flow-chore",
           "dev-flow-execute",
-          "git-workflow"
+          "opencode-git-workflow"
         ]
       },
       {
@@ -1703,7 +1703,7 @@
         "toolIds": [
           "dev-flow-chore",
           "dev-flow-execute",
-          "git-workflow"
+          "opencode-git-workflow"
         ]
       },
       {

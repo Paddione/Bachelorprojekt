@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.382.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.381.0...website-v1.382.0) (2026-09-27)
+
+
+### Features
+
+* nvim dashboard foundation T900655 ([#6062](https://github.com/Paddione/Bachelorprojekt/issues/6062)) ([41e2ef4](https://github.com/Paddione/Bachelorprojekt/commit/41e2ef4f1831b30ef3e5ed5311a1cc707b4ea335))
+
 ## [1.381.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.380.0...website-v1.381.0) (2026-09-27)
 
 

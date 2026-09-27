@@ -19,17 +19,17 @@ setup() {
 }
 
 @test ".env.example points at the local Ollama URL" {
-  grep -qE '^OPENAI_BASE_URL=http://10\.10\.0\.3:11434/v1$' openclaw/.env.example
+  grep -qE '^OPENAI_BASE_URL=http://10\.10\.0\.3:11434/v1$' dotfiles/openclaw/.env.example
 }
 
 @test ".env.example sets a chat model" {
-  grep -qE '^OPENAI_MODEL=qwen2\.5:' openclaw/.env.example
+  grep -qE '^OPENAI_MODEL=qwen2\.5:' dotfiles/openclaw/.env.example
 }
 
 @test "Root Taskfile.yml includes openclaw" {
   grep -qE 'Taskfile\.openclaw\.yml' Taskfile.yml
 }
 
-@test ".gitignore excludes openclaw/.env" {
-  grep -qE '^openclaw/\.env$' .gitignore
+@test ".gitignore excludes dotfiles/openclaw/.env" {
+  grep -qE '^dotfiles/openclaw/\.env$' .gitignore
 }

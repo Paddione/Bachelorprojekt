@@ -275,7 +275,7 @@ Damit kein Teil des Projekts und des Repositories unbeleuchtet bleibt, ordnet di
 | **`art-library/`** | Brand-spezifische Bild-Assets für das 3D-Systembrett | [Systembrett-Doku](systembrett.html) |
 | **`brett/`** | Node.js Service für das kollaborative 3D-Aufstellungsboard | [Systembrett-Doku](systembrett.html) |
 | **`arena-server/`** | Multiplayer-WebSocket-Spielserver für die Marke Korczewski | [Arena-Dokumentation](arena.html) |
-| **`claude-code/`** | MCP Monolith Konfigurationen für den Claude Code Agenten | [Claude-Code Integration](claude-code.html) |
+| **`dotfiles/claude-code/`** | MCP Monolith Konfigurationen für den Claude Code Agenten | [Claude-Code Integration](claude-code.html) |
 | **`prod-fleet/`** | Kustomize-Overlays für das konsolidierte Fleet-Cluster | [[fleet-stage2-cutover-runbook]] |
 | **`prod-mentolder/`** | Legacy standalone-Overlay für die Marke Mentolder | [[fleet-2026-05-31-what-changed]] |
 | **`prod-korczewski/`**| Legacy standalone-Overlay für die Marke Korczewski | [[fleet-2026-05-31-what-changed]] |

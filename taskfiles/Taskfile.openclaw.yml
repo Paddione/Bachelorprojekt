@@ -8,7 +8,7 @@ vars:
   OPENCODE_HOME: '{{.OPENCODE_HOME | default "/home/patrick/.config/opencode"}}'
   ACTIVE_HOME: '{{if eq .OPCODE_CMD "opencode"}}{{.OPENCODE_HOME}}{{else}}{{.OPENCLAW_HOME}}{{end}}'
   BACKUP_DIR: '{{.ACTIVE_HOME}}.bak.20260514'
-  ENV_TEMPLATE: openclaw/.env.example
+  ENV_TEMPLATE: dotfiles/openclaw/.env.example
 
 tasks:
   backup:

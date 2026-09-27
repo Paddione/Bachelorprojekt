@@ -64,7 +64,7 @@ includes:
     dir: .
 
   # OpenClaw — personal AI assistant gateway on the WSL host.
-  # See Taskfile.openclaw.yml + openclaw/README.md.
+  # See Taskfile.openclaw.yml + dotfiles/openclaw/.env.example.
   openclaw:
     taskfile: ./taskfiles/Taskfile.openclaw.yml
     dir: .

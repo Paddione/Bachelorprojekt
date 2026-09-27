@@ -7,7 +7,7 @@
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   TASKFILE="$REPO/taskfiles/Taskfile.openclaw.yml"
-  ENV_EXAMPLE="$REPO/openclaw/.env.example"
+  ENV_EXAMPLE="$REPO/dotfiles/openclaw/.env.example"
 }
 
 # ── Taskfile existence and validity ───────────────────────────────────
@@ -65,16 +65,16 @@ setup() {
 
 # ── Env example config ────────────────────────────────────────────────
 
-@test "openclaw/.env.example exists" {
+@test "dotfiles/openclaw/.env.example exists" {
   [ -f "$ENV_EXAMPLE" ]
 }
 
-@test "openclaw/.env.example sets OPENAI_BASE_URL to local Ollama endpoint" {
+@test "dotfiles/openclaw/.env.example sets OPENAI_BASE_URL to local Ollama endpoint" {
   run grep -qE '^OPENAI_BASE_URL=http://10\.10\.0\.3:11434/v1$' "$ENV_EXAMPLE"
   [ "$status" -eq 0 ]
 }
 
-@test "openclaw/.env.example sets OPENAI_MODEL to qwen2.5 series" {
+@test "dotfiles/openclaw/.env.example sets OPENAI_MODEL to qwen2.5 series" {
   run grep -qE '^OPENAI_MODEL=qwen2\.5:' "$ENV_EXAMPLE"
   [ "$status" -eq 0 ]
 }

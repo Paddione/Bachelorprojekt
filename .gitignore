@@ -37,7 +37,8 @@ unsloth_compiled_cache
 # k3d/secrets.yaml committed intentionally — dev-only placeholder values, not real credentials
 deploy/mcp/openclaw-secrets.yaml
 # OpenClaw — runtime config has secrets; only template is committed
-openclaw/.env
+dotfiles/openclaw/.env
+.openclaw/
 .openclaw/workspace/
 # deploy/mcp/claude-code-secrets.yaml — now TRACKED, git-crypt-encrypted (see .gitattributes)
 .mcp.json

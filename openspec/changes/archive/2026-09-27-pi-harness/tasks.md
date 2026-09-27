@@ -2,7 +2,7 @@
 title: "pi-harness — Implementation Plan"
 ticket_id: T900529
 domains: [agent-tooling, llm-local-dev]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

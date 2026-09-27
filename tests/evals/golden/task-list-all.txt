@@ -243,15 +243,12 @@ task: Available tasks for this project:
 * opencode:monitor:                             Observe opencode serve: sessions, status, SSE events, session details, todos
 * opencode:serve:                               Lifecycle management for opencode HTTP server (start/stop/restart/status/health)
 * opencode:sync-agents:                         Merge .opencode/agent-models.jsonc config into ~/.config/opencode/opencode.jsonc
-* openspec:apply:                               Mark an openspec change implementable. Usage: task openspec:apply -- <slug>
-* openspec:archive:                             Archive a done change + merge its delta into the SSOT. Usage: task openspec:archive -- <slug>
 * openspec:atlas:                               Regenerate docs/spec-atlas.md from openspec/specs + changes archive [T015012]
 * openspec:ci-telemetry-optout:                 Add OPENSPEC_TELEMETRY: '0' to every .github/workflows/*.yml that lacks it. Usage: task openspec:ci-telemetry-optout [-- --dry-run]
 * openspec:embed:backfill:                      Re-index all active openspec changes (status in ACTIVE_STATUSES from openspec-embed.mjs) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]
 * openspec:header-inject:                       Bulk-add ## Purpose + ## Requirements H2 headers to SSOT specs under openspec/specs/. Usage: task openspec:header-inject [-- --dry-run]
-* openspec:propose:                             Create an openspec change skeleton. Usage: task openspec:propose -- <slug> --ticket <ext-id>
 * openspec:status-map:                          Regenerate components/website/src/data/openspec-status.json from openspec/changes/
-* openspec:validate:                            Validate the openspec/ tree (same as test:openspec).
+* openspec:validate:                            Check the openspec/ tree for half-archived slugs (fail-closed).
 * pi:install:                                   Pi global installieren (gepinnte Version, Node >= 20.6)
 * pi:models:                                    Chat-Modelle des Endpunkt-Verbunds auflisten (ENDPOINTS=<url,...> JSON=1)
 * pi:run:                                       Gestagten Plan mit Pi abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3 MODEL=<id> ENDPOINTS=<url,...> JSON=1)
@@ -360,7 +357,6 @@ task: Available tasks for this project:
 * test:manifests:                               Validate kustomize output structure (no cluster needed)
 * test:mcp-tooling:                             Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)
 * test:menu-gate:                               Enforce admin-menu rules (R1, R2, R4, R5, R7)
-* test:openspec:                                Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate, TypeScript/Vitest).
 * test:spec:                                    Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS laeuft nur die eigene Partition (siehe scripts/spec-shard.sh).
 * test:spec:build-mcp-runner:                   
 * test:spec:changed:                            Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]

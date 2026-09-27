@@ -603,21 +603,9 @@ tasks:
     cmds:
       - bash tests/bats tests/spec/agent-library.bats
 
-  test:openspec:
-    desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate, TypeScript/Vitest)."
-    cmds:
-      # [T002428] Halb archivierte Changes zuerst — `archive` ist nicht atomar und sein
-      # Ergebnis kann teilweise committet werden. Sieben Slugs lagen so seit dem 3. Juli
-      # gleichzeitig offen und archiviert, mit 16 Requirements, die in keiner SSOT-Spec
-      # standen. Der Zustand war bis dahin nirgends pruefbar.
-      - bash scripts/openspec-half-archive-check.sh
-      - '[ -d node_modules ] || npm ci'
-      - npm run test:openspec
-
-  test:unit:openspec:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/openspec.bats
+  # C7a-B1 (T900560): test:openspec + test:unit:openspec retired — kein
+  # OpenSpec-Format-Gate mehr; der Pre-Commit-Hook prueft Halb-Archivierung
+  # weiterhin direkt (scripts/openspec-half-archive-check.sh) bis C7b.
 
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
@@ -639,7 +627,7 @@ tasks:
         # sonst Playwright fuer Changes ohne Website-Bezug starten (T002255).
         # freshness:check filtert bewusst NICHT — dort sind diese Pfade der Pruefgegenstand.
         CHANGED=$( (git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null; git diff --name-only HEAD) | sort -u | bash scripts/filter-generated.sh || true)
-        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false; RUN_WORKFLOWS=false
+        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_AGENTS=false; RUN_WORKFLOWS=false
         echo "$CHANGED" | grep -qE "^components/website/" && RUN_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^components/mentolder-web/" && RUN_MENTOLDER_WEB=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
@@ -653,7 +641,7 @@ tasks:
         echo "$CHANGED" | grep -qE "^(tests/unit/|tests/lib/|\.bats)" && RUN_UNIT=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
-        echo "$CHANGED" | grep -qE "^openspec/" && RUN_OPENSPEC=true || true
+        # C7a-B1 (T900560): kein openspec/-Dispatch mehr (test:openspec retired).
         echo "$CHANGED" | grep -qE "^\.github/workflows/" && RUN_WORKFLOWS=true || true
         echo "$CHANGED" | grep -qE "^components/website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^components/brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
@@ -716,7 +704,6 @@ tasks:
         if [ "$RUN_FACTORY" = "true" ]; then echo "→ factory changes: task test:factory"; task test:factory; fi
         if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_UNIT" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
-        if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
         if [ "$RUN_WORKFLOWS" = "true" ]; then echo "→ workflow changes: task lint:workflows"; task lint:workflows; fi
 
         if [ "$RUN_E2E_WEBSITE" = "true" ] && command -v npx >/dev/null 2>&1; then
@@ -745,7 +732,7 @@ tasks:
         if [ "$RUN_E2E_BRETT" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e brett changes: task test:e2e:brett"; task test:e2e:brett; fi
         if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
 
-        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ] && [ "$RUN_WORKFLOWS" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
+        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_WORKFLOWS" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1 && (cd components/website && pnpm vitest --version </dev/null >/dev/null 2>&1); then
             echo "→ no domain-specific changes: vitest --changed"
             (cd components/website && pnpm vitest run --changed --reporter verbose)

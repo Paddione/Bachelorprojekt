@@ -343,17 +343,7 @@ gitleaks:
   esac
   export DIFF_BASE
 
-factory-openspec:
-  # Gegenstueck zu test-factory-openspec: die billigen, hochsignalhaften Gates.
-  stage: test
-  <<: *gl_defaults
-  image: registry.gitlab.com/p.korczewski/bachelorprojekt/ci/ci-node22:latest
-  rules: *scoped_rules
-  before_script:
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git jq ca-certificates >/dev/null
-    - npm ci
-  script:
-    - npm run test:openspec
+# C7a-B1 (T900560): factory-openspec retired mit test:openspec (C7a).
 
 evals:
   # Gegenstueck zu test-evals: die Eval-Suite (task test:evals). [T900642]

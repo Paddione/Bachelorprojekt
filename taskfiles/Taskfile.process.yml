@@ -84,20 +84,9 @@ tasks:
     cmds:
       - bash scripts/vda.sh release-notes generate {{.CLI_ARGS}}
 
-  openspec:propose:
-    desc: "Create an openspec change skeleton. Usage: task openspec:propose -- <slug> --ticket <ext-id>"
-    cmds:
-      - bash scripts/openspec.sh propose {{.CLI_ARGS}}
-
-  openspec:apply:
-    desc: "Mark an openspec change implementable. Usage: task openspec:apply -- <slug>"
-    cmds:
-      - bash scripts/openspec.sh apply {{.CLI_ARGS}}
-
-  openspec:archive:
-    desc: "Archive a done change + merge its delta into the SSOT. Usage: task openspec:archive -- <slug>"
-    cmds:
-      - bash scripts/openspec.sh archive {{.CLI_ARGS}}
+  # C7a-B1 (T900560): openspec:propose/apply/archive retired — Plaene leben in
+  # .agents/plans/, das Archiv ist Postgres (plan-archive-steps.md Delete-Flow).
+  # openspec:embed:backfill bleibt bis B4 (Embed-Pipeline-Retirement).
 
   openspec:embed:backfill:
     desc: "Re-index all active openspec changes (status in ACTIVE_STATUSES from openspec-embed.mjs) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]"
@@ -119,9 +108,12 @@ tasks:
         done
 
   openspec:validate:
-    desc: "Validate the openspec/ tree (same as test:openspec)."
+    # C7a-B1 (T900560): reduziert auf den Halb-Archiv-Check — die
+    # Vitest-Format-Validierung ist mit test:openspec retired. Einziger
+    # Verbraucher: openspec-orphan-archive.yml (fail-closed nach Auto-Archiv).
+    desc: "Check the openspec/ tree for half-archived slugs (fail-closed)."
     cmds:
-      - task: test:openspec
+      - bash scripts/openspec-half-archive-check.sh
 
   openspec:header-inject:
     desc: "Bulk-add ## Purpose + ## Requirements H2 headers to SSOT specs under openspec/specs/. Usage: task openspec:header-inject [-- --dry-run]"

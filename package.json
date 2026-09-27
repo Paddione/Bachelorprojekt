@@ -7,7 +7,6 @@
     "test:track-pr": "node --test scripts/track-pr.test.mjs",
     "test:agent-guide": "node --test scripts/agent-guide/*.test.mjs",
     "test:code-quality": "node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs",
-    "test:openspec": "vitest run scripts/openspec-validate.test.ts scripts/openspec-merge.test.ts scripts/openspec-merge-truncation.test.ts --reporter=verbose",
     "test:migrate-factory": "node --test scripts/migrate-factory.test.mjs"
   },
   "engines": {

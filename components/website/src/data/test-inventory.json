@@ -3624,6 +3624,12 @@
     "kind": "shell"
   },
   {
+    "id": "guard-preconditions/guard-preconditions",
+    "file": "tests/spec/guard-preconditions/guard-preconditions.bats",
+    "category": "guard-preconditions",
+    "kind": "shell"
+  },
+  {
     "id": "harness-workflow-split/harness-enum",
     "file": "tests/spec/harness-workflow-split/harness-enum.bats",
     "category": "harness-workflow-split",

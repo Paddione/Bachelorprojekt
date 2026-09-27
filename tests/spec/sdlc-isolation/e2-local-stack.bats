@@ -8,6 +8,8 @@
 # Run: tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-isolation/e2-local-stack.bats
 # or:  task test:unit SPEC=sdlc-isolation/e2-local-stack
 
+load "../../lib/guard-preconditions.sh"
+
 setup() {
   REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)}"
   SDLC_STACK="${REPO_ROOT}/k3d/sdlc-stack"
@@ -66,24 +68,10 @@ cluster_running() {
 # ── DoD Verifikation (bedingt: nur wenn Cluster laeuft) ─────────────────────
 
 # [T900537] cluster_running beweist, dass ein devmesh-Cluster antwortet — nicht,
-# dass sdlc-console darin auch deployed ist. Gemessen am 2026-09-27 war der Cluster
-# da, das Deployment nicht: der reine Liveness-Probe lief in
-# `readyReplicas | grep -q '1'` und faerbte test:changed lokal rot, waehrend die CI
-# (vollstaendig deployed) gruen war. Der Probe muss die Ressource benennen, auf die
-# die Assertion sich stuetzt.
+# dass sdlc-console darin auch deployed ist. Der Probe benennt die Ressource,
+# auf die die Assertion sich stuetzt (seit T900651 aus guard-preconditions.sh).
 _skip_unless_sdlc_console() {
-  if ! cluster_running; then skip "cluster devmesh not running"; fi
-  # Gemessen am 2026-09-27: devmesh laeuft, sdlc-console steht auf 0/1 (seit 10 Tagen,
-  # alle anderen Deployments 1/1). Ein vorhandenes, aber nicht ausgerolltes
-  # Deployment ist ein lokaler Stack-Zustand — die Manifest-Aussage decken die
-  # Tests 1-7 ab, die weiter oben gruen sind. Wo das Deployment ausgerollt ist
-  # (CI), laeuft die Assertion und kann weiterhin rot werden.
-  local ready replicas
-  ready="$(kubectl --context devmesh get deploy sdlc-console -n workspace -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)"
-  replicas="$(kubectl --context devmesh get deploy sdlc-console -n workspace -o jsonpath='{.spec.replicas}' 2>/dev/null || true)"
-  if [ "${ready:-0}" != "${replicas:-1}" ] || [ "${ready:-0}" = "0" ]; then
-    skip "sdlc-console im devmesh nicht ausgerollt (readyReplicas=${ready:-0}/${replicas:-?}) — lokaler Stack unvollstaendig (Umgebung, kein Produktfehler; T900537)"
-  fi
+  require_k8s_rollout devmesh workspace deploy sdlc-console
 }
 
 @test "E2 DoD: sdlc-console deployment is Ready" {

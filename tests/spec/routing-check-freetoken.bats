@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+load "../lib/guard-preconditions.sh"
+
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   ROUTING_CHECK="${REPO_ROOT}/scripts/llm/routing-check.sh"
@@ -22,7 +24,7 @@ setup() {
 }
 
 @test "T900213: opencode.jsonc Standardmodell ist im Live-Katalog vorhanden (wenn :1919 erreichbar)" {
-  curl -s -m 2 http://127.0.0.1:1919/v1/models >/dev/null 2>&1 || skip ":1919 nicht erreichbar"
+  require_http "http://127.0.0.1:1919/v1/models" 200 ":1919 /v1/models"
 
   model=$(python3 -c "
 import re
@@ -36,15 +38,11 @@ if m:
     print(val)
 ")
   [ -n "$model" ]
-  run curl -s -m 2 http://127.0.0.1:1919/v1/models
-  [ "${status}" -eq 0 ]
   # [T900537] Der Test kann nur behaupten, dass Konfiguration und LIVE-Katalog
   # uebereinstimmen, wenn der Katalog das konfigurierte Modell ueberhaupt fuehrt.
   # Wo er es nicht fuehrt, ist die Aussage nicht "Auth-Regression", sondern
-  # "diese Maschine serviert einen anderen Katalog" (Drift, T900509) — als Skip
-  # mit dem tatsaechlich gelesenen Katalog, damit der Befund im Log sichtbar
-  # bleibt statt in einem not ok zu verschwinden.
-  if [[ "${output}" != *"$model"* ]]; then
-    skip ":1919 fuehrt das konfigurierte Modell '${model}' nicht (Katalog-Drift, T900509)"
-  fi
+  # "diese Maschine serviert einen anderen Katalog" (Drift, T900509) — als Skip,
+  # damit der Befund im Log sichtbar bleibt statt in einem not ok zu
+  # verschwinden (seit T900651 aus guard-preconditions.sh).
+  require_http_contains "http://127.0.0.1:1919/v1/models" "$model" ":1919-Katalog (Drift, T900509)"
 }

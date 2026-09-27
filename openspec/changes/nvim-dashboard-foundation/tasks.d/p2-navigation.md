@@ -150,19 +150,19 @@ The pre-commit status must show exactly the two new files and nothing else.
 
 ### Acceptance criteria
 
-- [ ] `dotfiles/nvim/lua/config/gitroot.lua` (gitroot.lua) exists and all five
+- [x] `dotfiles/nvim/lua/config/gitroot.lua` (gitroot.lua) exists and all five
   Step 3 headless cases pass with the prescribed expected values.
-- [ ] Unnamed, non-file, and out-of-repo buffers yield `nil` plus a user
+- [x] Unnamed, non-file, and out-of-repo buffers yield `nil` plus a user
   message, never a stale or foreign directory.
-- [ ] The module never changes the global working directory and escapes shell
+- [x] The module never changes the global working directory and escapes shell
   and Ex paths correctly, including the space-containing path case.
-- [ ] `dotfiles/nvim/lua/config/dashboard.lua` (dashboard.lua) exists; Home
+- [x] `dotfiles/nvim/lua/config/dashboard.lua` (dashboard.lua) exists; Home
   lists exactly the ten chapters in the Step 2 order with no Factory page.
-- [ ] Category pages, at least one sub-page, back, Home, key, and `j` / `k`
+- [x] Category pages, at least one sub-page, back, Home, key, and `j` / `k`
   navigation all work per the Step 4 headless assertions.
-- [ ] Search focuses an action on first selection; execution needs a separate
+- [x] Search focuses an action on first selection; execution needs a separate
   explicit step; opening any menu executes nothing.
-- [ ] Every action exposes `name`, `inputs`, `target` / `effect`, `cwd` from
+- [x] Every action exposes `name`, `inputs`, `target` / `effect`, `cwd` from
   the Git-root function, and `on_error` behavior.
-- [ ] The commit message matches `feat(T900655): <subject> [T900655]` and the
+- [x] The commit message matches `feat(T900655): <subject> [T900655]` and the
   commit contains only the two new files staged via explicit paths.

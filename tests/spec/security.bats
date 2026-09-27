@@ -41,7 +41,7 @@ setup() {
 }
 
 @test "env:seal task is declared in Taskfile" {
-  run grep -q 'env:seal' "$REPO/Taskfile.yml"
+  run grep -q 'env:seal' "$REPO/taskfiles/Taskfile.platform.yml"
   [ "$status" -eq 0 ]
 }
 

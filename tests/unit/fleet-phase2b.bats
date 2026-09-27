@@ -3,35 +3,36 @@
 
 setup() {
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE_PLATFORM="$REPO_ROOT/taskfiles/Taskfile.platform.yml"
+  TASKFILE_WORKSPACE="$REPO_ROOT/taskfiles/Taskfile.workspace.yml"
 }
 
 @test "fleet:shared-services task exists" {
-  run grep -qE '^\s+fleet:shared-services:' "$TASKFILE"
+  run grep -qE '^\s+fleet:shared-services:' "$TASKFILE_PLATFORM"
   [ "$status" -eq 0 ]
 }
 
 @test "fleet:talk-setup:brand task exists" {
-  run grep -qE '^\s+fleet:talk-setup:brand:' "$TASKFILE"
+  run grep -qE '^\s+fleet:talk-setup:brand:' "$TASKFILE_PLATFORM"
   [ "$status" -eq 0 ]
 }
 
 @test "fleet:deploy:brand runs workspace:deploy and post-setup but NOT talk-setup" {
   # Extract the fleet:deploy:brand block (until the next top-level task at same indent)
-  block="$(awk '/^  fleet:deploy:brand:/{f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:brand:/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  block="$(awk '/^  fleet:deploy:brand:/{f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:brand:/{if(seen)exit} f{print; seen=1}' "$TASKFILE_PLATFORM")"
   echo "$block" | grep -q 'workspace:deploy'
   echo "$block" | grep -q 'workspace:post-setup'
   ! echo "$block" | grep -q 'talk-setup'
 }
 
 @test "fleet:deploy deploys shared-services exactly once (not per brand)" {
-  block="$(awk '/^  fleet:deploy:/{if($0 ~ /fleet:deploy:$/)f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:$/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  block="$(awk '/^  fleet:deploy:/{if($0 ~ /fleet:deploy:$/)f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:$/{if(seen)exit} f{print; seen=1}' "$TASKFILE_PLATFORM")"
   count="$(echo "$block" | grep -c 'fleet:shared-services')"
   [ "$count" -eq 1 ]
 }
 
 @test "fleet:deploy orders shared-services after both brand deploys, before talk-setup" {
-  block="$(awk '/^  fleet:deploy:/{if($0 ~ /fleet:deploy:$/)f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:$/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  block="$(awk '/^  fleet:deploy:/{if($0 ~ /fleet:deploy:$/)f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:$/{if(seen)exit} f{print; seen=1}' "$TASKFILE_PLATFORM")"
   shared_line="$(echo "$block" | grep -n 'fleet:shared-services' | head -1 | cut -d: -f1)"
   talk_line="$(echo "$block" | grep -n 'fleet:talk-setup:brand' | head -1 | cut -d: -f1)"
   brand_line="$(echo "$block" | grep -n 'fleet:deploy:brand' | tail -1 | cut -d: -f1)"
@@ -44,7 +45,7 @@ setup() {
 # fleet:deploy:brand must be able to skip that embedded talk chain.
 
 @test "workspace:deploy gates its embedded talk-setup behind SKIP_TALK_SETUP" {
-  block="$(awk '/^  workspace:deploy:$/{f=1} f&&/^  [a-z].*:$/&&!/workspace:deploy:$/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  block="$(awk '/^  workspace:deploy:$/{f=1} f&&/^  [a-z].*:$/&&!/workspace:deploy:$/{if(seen)exit} f{print; seen=1}' "$TASKFILE_WORKSPACE")"
   # the block still invokes talk-setup ...
   echo "$block" | grep -q 'workspace:talk-setup'
   # ... but only when SKIP_TALK_SETUP is not "true"
@@ -52,7 +53,7 @@ setup() {
 }
 
 @test "fleet:deploy:brand passes SKIP_TALK_SETUP=true so brand core skips talk-setup" {
-  block="$(awk '/^  fleet:deploy:brand:/{f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:brand:/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  block="$(awk '/^  fleet:deploy:brand:/{f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:brand:/{if(seen)exit} f{print; seen=1}' "$TASKFILE_PLATFORM")"
   echo "$block" | grep -q 'SKIP_TALK_SETUP'
 }
 
@@ -86,7 +87,7 @@ setup() {
 }
 
 @test "cert:install wires IPV64_API_KEY into the lego webhook (not just cert:secret)" {
-  block="$(awk '/^  cert:install:/{f=1} f&&/^  [a-z].*:$/&&!/cert:install:/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  block="$(awk '/^  cert:install:/{f=1} f&&/^  [a-z].*:$/&&!/cert:install:/{if(seen)exit} f{print; seen=1}' "$TASKFILE_PLATFORM")"
   # injects the key from the existing secret into the webhook deployment
   echo "$block" | grep -q 'cert-manager-lego-webhook'
   echo "$block" | grep -qE 'set env .*(--from=secret/ipv64-api-key|IPV64_API_KEY)'

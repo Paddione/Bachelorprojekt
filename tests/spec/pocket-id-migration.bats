@@ -148,7 +148,7 @@ setup() {
   # Both the dev pipeline (around line 2473) and the prod ENVSUBST_VARS
   # builder (around line 2571) must include the three tokens.
   local snippet
-  snippet=$(grep -A300 '^  workspace:deploy:$' "${REPO_ROOT}/Taskfile.yml" | head -300)
+  snippet=$(grep -A300 '^  workspace:deploy:$' "${REPO_ROOT}/taskfiles/Taskfile.workspace.yml" | head -300)
   echo "$snippet" | grep -E 'POCKET_ID_DOMAIN' >/dev/null
   echo "$snippet" | grep -E 'POCKET_ID_FRONTEND_URL' >/dev/null
   echo "$snippet" | grep -E 'POCKET_ID_URL' >/dev/null

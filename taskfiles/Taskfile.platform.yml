@@ -1,0 +1,835 @@
+version: "3"
+
+tasks:
+
+  dev:bootstrap:
+    desc: "Install harness configs + inject secrets from SSOT (environments/.secrets/dev-tools.yaml)"
+    cmds:
+      - bash dotfiles/install.sh
+
+  dev:setup-signing:
+    desc: "Configure local commit/tag signing (SSH key, G-SEC05 gate) — one-time per developer checkout"
+    cmds:
+      - bash scripts/setup-dev-env.sh {{.CLI_ARGS}}
+
+  # ─────────────────────────────────────────────
+  # Ingress (k3s built-in Traefik)
+  # ─────────────────────────────────────────────
+  ingress:status:
+    desc: Show Traefik ingress controller status (built into k3s)
+    cmds:
+      - kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik
+      - kubectl get svc -n kube-system traefik
+
+  # Netzwerk-Adressplan (T012645). SSOT: docs/agent-guide/registry/networks.yaml.
+  # networks:check laeuft in test:changed mit, networks:map in freshness:regenerate.
+  networks:check:
+    desc: "Verify the network address plan: no undeclared overlap between declared ranges (exit != 0 on violation; never writes)"
+    cmds:
+      - node scripts/networks-check.mjs
+
+  networks:map:
+    desc: "Regenerate docs/agent-guide/maps/networks-map.md from the SSOT registry (docs/agent-guide/registry/networks.yaml)"
+    cmds:
+      - node scripts/networks-check.mjs --emit-map
+
+  secrets:sync:
+    desc: "Apply SealedSecrets to both prod clusters without touching workloads. Run after env:seal ENV=<env>."
+    cmds:
+      - |
+        for ENV in mentolder korczewski; do
+          source scripts/env-resolve.sh "$ENV"
+          CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+          SEALED="environments/sealed-secrets/${ENV}.yaml"
+          if [[ ! -f "$SEALED" ]]; then
+            echo "✗ $SEALED not found — run: task env:seal ENV=$ENV"
+            exit 1
+          fi
+          echo "→ Applying sealed secrets to $ENV ($ENV_CONTEXT) ..."
+          kubectl $CTX apply -f "$SEALED"
+          echo "✓ $ENV sealed secrets applied"
+          echo "  ⚠ Applied the SealedSecret only — workloads + Postgres still hold the OLD value (latent landmine)."
+          echo "    Reconcile now: task workspace:sync-db-passwords ENV=$ENV && kubectl $CTX -n \"${WORKSPACE_NAMESPACE:-workspace}\" rollout restart deploy"
+          echo "    Or run the full path in one shot: task secrets:sync:full"
+        done
+
+  secrets:sync:full:
+    desc: "Apply SealedSecrets AND reconcile workloads+DB on both prod clusters (apply → sync-db-passwords → rollout restart)."
+    cmds:
+      - task: secrets:sync
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "mentolder" }
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "korczewski" }
+      - |
+        for ENV in mentolder korczewski; do
+          source scripts/env-resolve.sh "$ENV"
+          CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+          NS="${WORKSPACE_NAMESPACE:-workspace}"
+          echo "→ Rolling consumer deployments in $ENV/$NS ..."
+          kubectl $CTX -n "$NS" rollout restart deploy
+        done
+
+  secrets:install-hooks:
+    desc: "Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard + commit-vs-diff guard + merge drivers"
+    cmds:
+      - git config extensions.worktreeConfig true
+      - git config core.hooksPath .githooks
+      - git config --worktree core.hooksPath .githooks 2>/dev/null || true
+      - chmod +x .githooks/pre-commit
+      - chmod +x .githooks/commit-msg
+      - chmod +x .githooks/pre-push
+      - chmod +x .githooks/post-commit
+      - chmod +x .githooks/post-commit-index
+      - chmod +x .githooks/post-checkout
+      - chmod +x .githooks/post-merge
+      - git config merge.ours.driver true
+      - echo "hooksPath set to .githooks; merge.ours driver registered"
+      # T002760: post-commit-index hook needs pgvector reachable at localhost:5432.
+      # Enable the systemd port-forward unit (pattern T002604, wie devmesh-forward.service).
+      - |
+        svc="scripts/semantic-code-search/pgvector-forward.service"
+        if [ -f "$svc" ]; then
+          mkdir -p ~/.config/systemd/user
+          ln -sf "$PWD/$svc" ~/.config/systemd/user/pgvector-forward.service
+          systemctl --user daemon-reload 2>/dev/null || true
+          systemctl --user enable --now "$PWD/$svc" 2>/dev/null || true
+          state=$(systemctl --user is-active pgvector-forward.service 2>/dev/null || echo 'inactive')
+          echo "  pgvector-forward: ${state}"
+        fi
+
+  secrets:unlock:
+    desc: "Decrypt git-crypt secrets on a new machine (KEY=/path/to/bp-secrets.key)"
+    requires:
+      vars: [KEY]
+    cmds:
+      - git-crypt unlock {{.KEY}}
+      - git-crypt status -e
+      - echo "secrets unlocked"
+
+  secrets:status:
+    desc: "List git-crypt-encrypted files and their state"
+    cmds:
+      - git-crypt status -e
+
+  secrets:lock:
+    desc: "Re-encrypt the working tree (removes plaintext locally)"
+    cmds:
+      - git-crypt lock
+      - echo "working tree re-locked"
+
+  logs:debug-restart:
+    desc: "Staging: Rollout-Restart aller Deployments, damit die Debug-Log-Patches greifen [T900018]"
+    vars:
+      ENV: '{{.ENV | default "staging"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/collect-debug-logs.sh --restart
+
+  logs:debug-runtime:
+    desc: "Staging: Log-Level fuer Container ohne Env-Schalter setzen (nextcloud/redis/postgres) [T900018]"
+    vars:
+      ENV: '{{.ENV | default "staging"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/collect-debug-logs.sh --runtime
+
+  logs:debug-scan:
+    desc: "Staging: Debug-Logs aller Services sammeln und auf fehlende Implementierungen scannen [T900018]"
+    vars:
+      ENV: '{{.ENV | default "staging"}}'
+      SINCE: '{{.SINCE | default "1h"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/collect-debug-logs.sh --since {{.SINCE}}
+
+  # ─────────────────────────────────────────────
+  # Multi-Cluster Overview
+  # ─────────────────────────────────────────────
+  clusters:status:
+    desc: Show status of both brands on the unified fleet cluster (mentolder + korczewski)
+    cmds:
+      - |
+        echo "═══ FLEET NODES ═══"
+        kubectl --context fleet get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
+      - |
+        echo ""
+        echo "═══ MENTOLDER.DE (fleet / ns workspace) ═══"
+        echo "  Workspace pods:"
+        kubectl --context fleet get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+      - |
+        echo ""
+        echo "═══ KORCZEWSKI.DE (fleet / ns workspace-korczewski) ═══"
+        echo "  Workspace pods:"
+        kubectl --context fleet get pods -n workspace-korczewski --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+
+  ha:status:
+    desc: Show HA cluster node and pod status (ENV=mentolder|korczewski)
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        WS_NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl --context "${ENV_CONTEXT}" get nodes -o wide
+        echo "---"
+        kubectl --context "${ENV_CONTEXT}" get pods -n "$NS" --sort-by=.metadata.name
+        echo "---"
+        kubectl --context "${ENV_CONTEXT}" get pods -n "$WS_NS" --sort-by=.metadata.name 2>/dev/null || true
+        echo "---"
+        kubectl --context "${ENV_CONTEXT}" get certificate -n "$NS" 2>/dev/null || true
+
+  monitoring:render:
+    desc: "Pre-render kube-prometheus-stack to committed YAML (re-run on Helm chart upgrade). Renders the DEV values baseline; prod layers patches via prod/monitoring."
+    preconditions:
+      - sh: command -v helm > /dev/null
+        msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
+    cmds:
+      - |
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>/dev/null || true
+        helm repo update prometheus-community
+        helm template monitoring prometheus-community/kube-prometheus-stack \
+          --namespace monitoring \
+          --include-crds \
+          -f k3d/monitoring/values/kube-prometheus-stack-dev-values.yaml \
+          > k3d/monitoring/kube-prometheus-stack-rendered.yaml
+        echo "✓ Rendered to k3d/monitoring/kube-prometheus-stack-rendered.yaml — review the diff and commit."
+
+  gitlab-runner:render:
+    # T012503/T012634: Die Chart-Ausgabe enthaelt ausschliesslich Shell-
+    # Laufzeit-Variablen (${CONFIG_PATH_FOR_INIT}, ${i}, ${retval} …) und
+    # keinen einzigen envsubst-Platzhalter. Committet werden muessen sie als
+    # $${VAR} — sonst nimmt scripts/flux-render-artifact.sh sie in seine
+    # envsubst-Liste auf und setzt sie auf "": "mkdir -p" laeuft dann ohne
+    # Argument und der Runner crasht beim Start.
+    #
+    # Bis T012634 war das Handarbeit nach jedem Render, mit einem Warnhinweis
+    # an dieser Stelle. Das hat genau einmal funktioniert und beim naechsten
+    # Render nicht mehr — deshalb escaped der Task jetzt selbst. Der Guard
+    # tests/spec/flux-render-security/runtime-var-unwrapping.bats prueft das
+    # Ergebnis; scripts/flux-render-artifact.sh macht das $$ beim Rendern des
+    # Artefakts wieder rueckgaengig.
+    desc: "Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Escaped Laufzeit-Variablen automatisch."
+    preconditions:
+      - sh: command -v helm > /dev/null
+        msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
+    cmds:
+      - |
+        helm repo add gitlab https://charts.gitlab.io 2>/dev/null || true
+        helm repo update gitlab
+        helm template gitlab-runner gitlab/gitlab-runner \
+          --namespace gitlab-runner \
+          -f k3d/gitlab-runner-stack/values/gitlab-runner.yaml \
+          > k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml
+        # Nur ${NAME} wird escaped — genau die Form, die der Extraktor in
+        # flux-render-artifact.sh sieht. Die klammerlose Form $NAME sieht er
+        # nicht, $(cmd)/$!/$? sind keine Variablen: alle drei bleiben unberuehrt.
+        sed -i -E 's/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/$${\1}/g' \
+          k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml
+        # Fail-closed: bleibt eine unescapte ${VAR} stehen, wuerde sie im
+        # Cluster als Leerstring landen. Lieber hier abbrechen.
+        if grep -qE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' \
+             k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml; then
+          echo "ERROR: unescapte \${VAR} in gitlab-runner-rendered.yaml:" >&2
+          grep -nE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' \
+            k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml >&2
+          exit 1
+        fi
+        echo "✓ Rendered to k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml — review the diff and commit."
+
+  loki:render:
+    desc: "Pre-render Loki + promtail Helm charts to committed YAML (additive to monitoring:render). Renders the DEV values baseline; prod layers patches via prod/monitoring."
+    preconditions:
+      - sh: command -v helm > /dev/null
+        msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
+    cmds:
+      - |
+        helm repo add grafana https://grafana.github.io/helm-charts 2>/dev/null || true
+        helm repo update grafana
+        helm template loki grafana/loki \
+          --namespace monitoring \
+          --version 7.0.0 \
+          -f k3d/monitoring/values/loki-values.yaml \
+          > k3d/monitoring/loki-rendered.yaml
+        helm template promtail grafana/promtail \
+          --namespace monitoring \
+          -f k3d/monitoring/values/promtail-values.yaml \
+          > k3d/monitoring/promtail-rendered.yaml
+        echo "✓ Rendered loki-rendered.yaml + promtail-rendered.yaml — review the diff and commit."
+
+  monitoring:validate:
+    desc: "Validate the monitoring base + prod overlays build cleanly."
+    cmds:
+      - kubectl kustomize k3d/monitoring/ --load-restrictor=LoadRestrictionsNone | kubectl apply --dry-run=client -f - >/dev/null
+      - echo "✓ k3d/monitoring builds"
+      - kustomize build prod-fleet/mentolder/ --load-restrictor=LoadRestrictionsNone >/dev/null && echo "✓ prod-fleet/mentolder builds"
+      - kustomize build prod-fleet/korczewski/ --load-restrictor=LoadRestrictionsNone >/dev/null && echo "✓ prod-fleet/korczewski builds"
+
+  cicd:kubeconfig:
+    desc: "Generate a minimal kubeconfig for the cicd-deploy ServiceAccount (delegates to scripts/cicd-kubeconfig-gen.sh)"
+    vars:
+      CONTEXT: '{{.CONTEXT | default "fleet"}}'
+      NAMESPACE: '{{.NAMESPACE | default "workspace"}}'
+    cmds:
+      - bash scripts/cicd-kubeconfig-gen.sh "{{.CONTEXT}}" "{{.NAMESPACE}}"
+
+  env:validate:
+    desc: Validate environment config against schema
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/env-validate.sh --env {{.ENV}} --env-dir environments {{if eq .ENV "dev"}}--schema-only{{end}}
+
+  env:validate:all:
+    desc: Validate all environment configs (schema-only, no cluster needed)
+    cmds:
+      - |
+        errors=0
+        # Non-env files that live in environments/ but are NOT full env configs:
+        #   schema.yaml   — the validation schema itself
+        #   versions.yaml — version-pin file (scripts/discover-versions.sh)
+        #   fleet.yaml    — partial bootstrap/shared config, not a deployable ENV
+        for f in environments/*.yaml; do
+          name="$(basename "$f" .yaml)"
+          case "$name" in
+            schema|versions|fleet) continue ;;
+          esac
+          echo "--- Validating: $name ---"
+          bash scripts/env-validate.sh --env "$name" --env-dir environments --schema-only || errors=$((errors + 1))
+        done
+        exit "$errors"
+
+  env:generate:
+    desc: Generate secrets for an environment from schema
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/env-generate.sh --env {{.ENV}} --env-dir environments
+
+  env:seal:
+    desc: "Encrypt secrets into a SealedSecret manifest. NOTE: rotates workspace-secrets only — co-rotate website-secrets (WEBSITE_OIDC_SECRET) separately."
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: command -v kubeseal > /dev/null
+        msg: "kubeseal not found. Install: https://github.com/bitnami-labs/sealed-secrets#kubeseal"
+    cmds:
+      - bash scripts/env-seal.sh --env {{.ENV}} --env-dir environments
+
+  env:fetch-cert:
+    desc: Fetch the sealing certificate from a cluster
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        mkdir -p environments/certs
+        # [T900021] Symlink-Ziel aufloesen: unter core.symlinks=false (Windows)
+        # ueberschreibt '>' die Symlink-Textdatei mit Zertifikatstext. Ist der
+        # Zielpfad im Git-Tree ein Symlink (Mode 120000), in dessen Ziel schreiben.
+        out="environments/certs/{{.ENV}}.pem"
+        mode=$(git ls-files -s "$out" 2>/dev/null | awk '{print $1}')
+        if [ "$mode" = "120000" ]; then
+          target=$(git cat-file -p ":$out" 2>/dev/null || true)
+          if [ -n "$target" ]; then
+            out="$(dirname "$out")/$target"
+          fi
+        fi
+        kubeseal --controller-name=sealed-secrets \
+                 --controller-namespace=sealed-secrets \
+                 --context "$ENV_CONTEXT" \
+                 --fetch-cert > "$out"
+        echo "Certificate saved to $out"
+
+  env:init:
+    desc: Create a new environment file from schema template
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        if [ -f "environments/{{.ENV}}.yaml" ]; then
+          echo "ERROR: environments/{{.ENV}}.yaml already exists" >&2
+          exit 1
+        fi
+        echo "# environments/{{.ENV}}.yaml" > "environments/{{.ENV}}.yaml"
+        echo "environment: {{.ENV}}" >> "environments/{{.ENV}}.yaml"
+        echo "context: FILL_ME" >> "environments/{{.ENV}}.yaml"
+        echo "domain: FILL_ME" >> "environments/{{.ENV}}.yaml"
+        echo "" >> "environments/{{.ENV}}.yaml"
+        echo "env_vars:" >> "environments/{{.ENV}}.yaml"
+        awk '/^env_vars:/{in_sect=1;next} in_sect&&/^[a-z_]/{exit} in_sect&&/- name:/{gsub(/.*name: */,"");gsub(/"/,"");print "  "$0": FILL_ME"}' environments/schema.yaml >> "environments/{{.ENV}}.yaml"
+        echo "" >> "environments/{{.ENV}}.yaml"
+        echo "setup_vars:" >> "environments/{{.ENV}}.yaml"
+        awk '/^setup_vars:/{in_sect=1;next} in_sect&&/^[a-z_]/{exit} in_sect&&/- name:/{gsub(/.*name: */,"");gsub(/"/,"");print "  "$0": FILL_ME"}' environments/schema.yaml >> "environments/{{.ENV}}.yaml"
+        echo "Created: environments/{{.ENV}}.yaml — fill in all FILL_ME values."
+
+  # NOTE: The fleet cluster is deployed PUSH-based (task workspace:deploy ENV=<brand>
+  # / task feature:*), NOT via a Flux/Argo controller — there is no flux-system on
+  # fleet and no GitOps reconciler runs there. The former flux:status/sync/logs tasks
+  # and the flux/clusters + flux/images GitOps machinery were removed with the
+  # standalone-cluster decommission (both standalone clusters are gone). Only the
+  # website kustomize overlays under flux/apps/ were relocated to prod-fleet/website-{mentolder,korczewski}
+  # (applied directly by website:deploy); the flux/ folder is completely removed. Git stays the source of truth.
+
+  fleet:platform:
+    desc: "Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand."
+    cmds:
+      - |
+        set -euo pipefail
+        kubectl config use-context fleet
+        # Platform manifests are placeholder-free, so no envsubst is needed here.
+        kustomize build prod-fleet/platform/ --load-restrictor=LoadRestrictionsNone \
+          | kubectl --context fleet apply --server-side --force-conflicts -f -
+
+  fleet:membership:
+    desc: "Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context fleet get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task fleet:membership"
+    cmds:
+      - bash scripts/fleet-membership-check.sh
+
+  wg:reconcile:
+    desc: "WireGuard-Mesh: traegt fehlende Peers (aus wireguard/wg-mesh-nodes.yaml gerendert) per SSH+wg auf allen erreichbaren Nodes einer Umgebung nach. --dry-run zeigt nur die Differenz; --prune entfernt ueberzaehlige Peers (sonst nur ergaenzen). Sichert /etc/wireguard/<iface>.conf vor jeder Aenderung. Exit 0 bei Erfolg/Dry-Run/Skip (keine Nodes erreichbar), Exit != 0 bei fehlendem interface:-Key (z.B. korczewski) oder Konfigurationsfehler. Usage: task wg:reconcile ENV=fleet [-- --dry-run|--prune|--node <name>]"
+    cmds:
+      - bash scripts/wg-mesh-sync.sh reconcile --env {{.ENV}} {{.CLI_ARGS}}
+
+  wg:drift:
+    desc: "WireGuard-Mesh: vergleicht Ist- gegen Soll-Peer-Menge je Node einer Umgebung, ohne zu aendern. Exit != 0 bei Abweichung mit namentlicher Nennung der Nodes und Peers; Exit 0 bei Deckungsgleichheit ODER wenn kein Node erreichbar ist (Skip, analog fleet:membership). Usage: task wg:drift ENV=fleet"
+    cmds:
+      - bash scripts/wg-mesh-sync.sh drift --env {{.ENV}}
+
+  fleet:deploy:brand:
+    desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
+    requires:
+      vars: [BRAND]
+    cmds:
+      # Reuse workspace:deploy entirely — the fleet-<brand> env file sets
+      # context=fleet and overlay=prod-fleet/<brand>, so the full prod deploy
+      # path (SealedSecret, ns labels, shared-db ordering, envsubst, separately
+      # applied CronJobs) runs unchanged against the fleet cluster.
+      # post-setup is the core post-deploy step that is safe WITHOUT coturn.
+      # The Talk wiring phase is deferred to its own brand task because it
+      # requires the shared coturn/Janus (fleet:shared-services) to exist.
+      # SKIP_TALK_SETUP=true stops workspace:deploy from running its embedded
+      # coturn sync + Talk wiring (which hard-fails before coturn exists).
+      - task: workspace:deploy
+        vars: { ENV: "{{.BRAND}}", SKIP_TALK_SETUP: "true" }
+      - task: workspace:post-setup
+        vars: { ENV: "{{.BRAND}}" }
+
+  fleet:talk-setup:brand:
+    desc: "Wire ONE brand to the shared coturn/Janus: sync coturn secret from this brand, run talk-setup + recording-setup + transcriber-setup. Run AFTER fleet:shared-services. Usage: task fleet:talk-setup:brand BRAND=fleet-mentolder"
+    requires:
+      vars: [BRAND]
+    cmds:
+      - task: workspace:talk-setup
+        vars: { ENV: "{{.BRAND}}" }
+      - task: workspace:recording-setup
+        vars: { ENV: "{{.BRAND}}" }
+      - task: workspace:transcriber-setup
+        vars: { ENV: "{{.BRAND}}" }
+
+  fleet:deploy:
+    desc: "Full Phase 2b deploy: platform → both brands' core → shared office/coturn → both brands' talk-setup. Brings up the COMPLETE stack for both brands on the fleet cluster."
+    cmds:
+      - task: fleet:platform
+      - task: fleet:deploy:brand
+        vars: { BRAND: fleet-mentolder }
+      - task: fleet:deploy:brand
+        vars: { BRAND: fleet-korczewski }
+      - task: fleet:shared-services
+      - task: fleet:talk-setup:brand
+        vars: { BRAND: fleet-mentolder }
+      - task: fleet:talk-setup:brand
+        vars: { BRAND: fleet-korczewski }
+
+  fleet:shared-services:
+    desc: "Deploy the SHARED Collabora (office-stack) + CoTURN/Janus (coturn-stack) ONCE on the fleet cluster, serving both brands. Run AFTER both brand workspace:deploy passes (needs workspace-secrets to exist for coturn sync)."
+    cmds:
+      - |
+        set -euo pipefail
+        kubectl config use-context fleet
+        # --- TLS cert sync: copy wildcard certs to workspace-office and coturn ---
+        # tls-sync-manual runs before certs are issued; sync here as a fallback.
+        for NS in workspace-office coturn; do
+          kubectl --context fleet get secret workspace-wildcard-tls -n workspace -o json \
+            | jq --arg ns "$NS" 'del(.metadata.resourceVersion,.metadata.uid,.metadata.creationTimestamp,.metadata.managedFields,.metadata.annotations) | .metadata.namespace = $ns' \
+            | kubectl --context fleet apply -f - || echo "warn: failed to sync workspace-wildcard-tls to $NS"
+          kubectl --context fleet get secret korczewski-tls -n workspace-korczewski -o json \
+            | jq --arg ns "$NS" 'del(.metadata.resourceVersion,.metadata.uid,.metadata.creationTimestamp,.metadata.managedFields,.metadata.annotations) | .metadata.namespace = $ns' \
+            | kubectl --context fleet apply -f - || echo "warn: failed to sync korczewski-tls to $NS"
+        done
+        # --- Collabora (shared, dual-brand) ---
+        # Primary (mentolder) vars; second brand applied as a separate Ingress resource
+        # (ingress-korczewski.yaml) so each brand gets its own TLS secret and its own
+        # namespace-prefixed middleware chain (T000478).
+        source scripts/env-resolve.sh fleet-mentolder
+        export COLLABORA_HOST="office.${PROD_DOMAIN}"
+        # Empty server_name → coolwsd auto-derives the WOPI discovery urlsrc hostname
+        # from the request Host header, making a single Collabora instance serve both brands.
+        export COLLABORA_SERVER_NAME=""
+        export COLLABORA_ALIASGROUP1="https://files\\.${PROD_DOMAIN}:443"
+        export COLLABORA_SSL_TERMINATION="true"
+        export COLLABORA_TLS_SECRET="workspace-wildcard-tls"
+        export COLLABORA_INGRESS_MIDDLEWARES="workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
+        # Capture mentolder TURN vars BEFORE re-sourcing korczewski.
+        MENTOLDER_TURN_NODE="$TURN_NODE"; MENTOLDER_TURN_PUBLIC_IP="${TURN_PUBLIC_IP}"
+        MENTOLDER_TLS_SECRET_NAME="${TLS_SECRET_NAME:-workspace-tls}"; MENTOLDER_PROD_DOMAIN="$PROD_DOMAIN"
+        ( source scripts/env-resolve.sh fleet-korczewski; echo "office.${PROD_DOMAIN}|https://files\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
+        export COLLABORA_HOST_2="$(cut -d'|' -f1 /tmp/_kore_collabora.txt)"
+        export COLLABORA_ALIASGROUP2="$(cut -d'|' -f2 /tmp/_kore_collabora.txt)"
+        export COLLABORA_TLS_SECRET_2="korczewski-tls"
+        export COLLABORA_INGRESS_MIDDLEWARES_2="workspace-korczewski-redirect-https@kubernetescrd,workspace-korczewski-hsts-headers@kubernetescrd"
+        # Apply kustomize (primary brand Deployment + Service + primary Ingress).
+        kustomize build k3d/office-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
+          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
+          | kubectl --context fleet apply -f -
+        # Apply second-brand Ingress separately (own TLS + own middleware namespace).
+        envsubst '$COLLABORA_HOST_2 $COLLABORA_TLS_SECRET_2 $COLLABORA_INGRESS_MIDDLEWARES_2' \
+          < k3d/office-stack/ingress-korczewski.yaml \
+          | kubectl --context fleet apply -f -
+        kubectl --context fleet rollout status deploy/collabora -n workspace-office --timeout=300s
+        # --- CoTURN/Janus (shared) ---
+        export TURN_NODE="$MENTOLDER_TURN_NODE"; export TURN_PUBLIC_IP="$MENTOLDER_TURN_PUBLIC_IP"
+        export PROD_DOMAIN="$MENTOLDER_PROD_DOMAIN"; export TLS_SECRET_NAME="$MENTOLDER_TLS_SECRET_NAME"
+        kustomize build k3d/coturn-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
+          | envsubst '$TURN_NODE $TURN_PUBLIC_IP $PROD_DOMAIN $TLS_SECRET_NAME' \
+          | kubectl --context fleet apply -f -
+        kubectl --context fleet rollout status deploy/coturn -n coturn --timeout=180s
+        kubectl --context fleet rollout status deploy/janus  -n coturn --timeout=180s
+        # --- RustDesk relay (shared, dual-brand) ---
+        # Same public node as coturn/Janus (${TURN_NODE}); raw TCP/UDP,
+        # so it bypasses Traefik via hostNetwork. Only ${TURN_NODE} is
+        # substituted — the image digest + secret literals have no vars.
+        kustomize build k3d/rustdesk-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
+          | envsubst '$TURN_NODE' \
+          | kubectl --context fleet apply -f -
+        kubectl --context fleet rollout status deploy/hbbs -n rustdesk --timeout=180s
+        kubectl --context fleet rollout status deploy/hbbr -n rustdesk --timeout=180s
+
+  fleet:dns:cutover:
+    desc: "Flip a brand's cluster A-records onto the fleet nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task fleet:dns:cutover ENV=fleet-mentolder [ACTION=cutover]"
+    requires:
+      vars: [ENV]
+    cmds:
+      - |
+        set -euo pipefail
+        # env-resolve exports PROD_DOMAIN + LIVEKIT_PIN_IP from environments/<env>.yaml.
+        # IPV64_API_KEY must be present in the ambient environment for ACTION=cutover
+        # (the fleet token controls both brands' domains — see the cutover runbook).
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/fleet-dns-cutover.sh '{{.ACTION | default "plan"}}'
+
+  fleet:dns:rollback:
+    desc: "Restore a brand's A-records from the rollback state file captured by the last cutover. Usage: task fleet:dns:rollback ENV=fleet-mentolder"
+    requires:
+      vars: [ENV]
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/fleet-dns-cutover.sh rollback
+
+  ci:local:
+    desc: |
+      Run all CI steps locally (mirrors .github/workflows/ci.yml offline-tests job).
+      Flags: FAST=1 (only test:all + quality:check, ~3s), SKIP_NETWORK=1 (skip api-auth + freshness:check).
+    vars:
+      FAST:         '{{.FAST         | default "0"}}'
+      SKIP_NETWORK: '{{.SKIP_NETWORK | default "0"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        PASS=0; FAIL=0
+        _step() { echo; echo "=== CI:LOCAL: $* ==="; }
+        _ok()   { echo "  PASS: $*"; PASS=$((PASS+1)); }
+        _fail() { echo "  FAIL: $*"; FAIL=$((FAIL+1)); }
+        _run()  {
+          local label="$1"; shift
+          if "$@"; then _ok "$label"; else _fail "$label"; fi
+        }
+
+        if [[ "{{.FAST}}" == "1" ]]; then
+          _step "FAST mode: test:all + quality:check"
+          _run "task test:all"           task test:all
+          _run "task quality:check"      task quality:check
+          echo
+          echo "ci:local FAST: ${PASS} passed, ${FAIL} failed"
+          [[ $FAIL -eq 0 ]]
+          exit $?
+        fi
+
+        _step "1/5: Offline tests (task test:all)"
+        _run "task test:all" task test:all
+
+        if [[ "{{.SKIP_NETWORK}}" != "1" ]]; then
+          _step "2/5: API auth regression gate"
+          git fetch origin main --depth=1 2>/dev/null || true
+          git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json 2>/dev/null \
+            || echo '{"generatedAt":"","endpoints":[]}' > /tmp/api-map-main.json
+          _run "api-auth-check" node scripts/api-auth-check.mjs --regression --main-map /tmp/api-map-main.json
+
+          _step "3/5: Freshness + quality ratchet (task freshness:check)"
+          _run "task freshness:check" task freshness:check
+        else
+          echo "  SKIP: api-auth regression (SKIP_NETWORK=1)"
+          echo "  SKIP: freshness:check (SKIP_NETWORK=1)"
+        fi
+
+        _step "4/5: Learning-assets build test"
+        _run "build-learning-assets.test" node --test scripts/build-learning-assets.test.mjs
+
+        _step "5/5: Systembrett template validation"
+        _run "systembrett-template.test.sh" bash scripts/tests/systembrett-template.test.sh
+
+        echo
+        echo "========================================"
+        echo "ci:local summary: ${PASS} passed, ${FAIL} failed"
+        echo "========================================"
+        [[ $FAIL -eq 0 ]]
+
+  # ─────────────────────────────────────────────
+  # CoreDNS resilience — replicas:2 + topology spread (T000371)
+  # ─────────────────────────────────────────────
+  coredns:scale:
+    desc: "Scale CoreDNS to 2 replicas + topology spread + PDB (ENV=dev|mentolder|korczewski). Re-run after k3s upgrades (k3s reverts its addon)."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if ! kubectl --context "$ENV_CONTEXT" cluster-info >/dev/null 2>&1; then
+          echo "No cluster reachable for ENV={{.ENV}} context $ENV_CONTEXT" >&2; exit 1
+        fi
+        kubectl --context "$ENV_CONTEXT" apply -f prod/coredns-scale.yaml
+        kubectl --context "$ENV_CONTEXT" -n kube-system rollout status deploy/coredns --timeout=120s
+        echo "✓ CoreDNS scaled to 2 replicas with topology spread (ENV={{.ENV}})"
+
+  # ─────────────────────────────────────────────
+  # Cert-Manager — wildcard TLS via DNS-01/lego
+  # ─────────────────────────────────────────────
+  cert:install:
+    desc: Install cert-manager + lego DNS-01 webhook for wildcard certs (ENV=dev|mentolder|korczewski selects cluster context)
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if ! kubectl --context "$ENV_CONTEXT" cluster-info >/dev/null 2>&1; then
+          echo "No cluster reachable for ENV={{.ENV}} context $ENV_CONTEXT" >&2; exit 1
+        fi
+
+        helm repo add jetstack https://charts.jetstack.io --force-update
+        helm repo update
+
+        helm upgrade --install cert-manager jetstack/cert-manager \
+          --namespace cert-manager --create-namespace \
+          --kube-context "$ENV_CONTEXT" \
+          --set crds.enabled=true \
+          --set podDnsPolicy=Default \
+          --wait --timeout=180s
+
+        kubectl patch deploy -n cert-manager cert-manager --context "$ENV_CONTEXT" \
+          --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}' \
+          2>/dev/null || true
+
+        kubectl patch deploy -n cert-manager cert-manager --context "$ENV_CONTEXT" \
+          --type=merge -p '{
+            "spec":{"template":{"spec":{"affinity":{"nodeAffinity":{
+              "requiredDuringSchedulingIgnoredDuringExecution":{
+                "nodeSelectorTerms":[{"matchExpressions":[{
+                  "key":"kubernetes.io/hostname",
+                  "operator":"In",
+                  "values":["gekko-hetzner-2","gekko-hetzner-3","gekko-hetzner-4","pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]
+                }]}]
+              }
+            }}}}}
+          }' 2>/dev/null || true
+
+        helm repo add cert-manager-lego-webhook https://yxwuxuanl.github.io/cert-manager-lego-webhook/ --force-update
+        helm repo update
+
+        helm upgrade --install cert-manager-lego-webhook cert-manager-lego-webhook/cert-manager-lego-webhook \
+          --namespace cert-manager \
+          --kube-context "$ENV_CONTEXT" \
+          --set certManager.namespace=cert-manager \
+          --set certManager.serviceAccountName=cert-manager \
+          --wait --timeout=120s
+
+        kubectl patch deploy -n cert-manager cert-manager-lego-webhook --context "$ENV_CONTEXT" \
+          --type=merge -p '{
+            "spec":{"template":{"spec":{"affinity":{"nodeAffinity":{
+              "requiredDuringSchedulingIgnoredDuringExecution":{
+                "nodeSelectorTerms":[{"matchExpressions":[{
+                  "key":"kubernetes.io/hostname",
+                  "operator":"In",
+                  "values":["gekko-hetzner-2","gekko-hetzner-3","gekko-hetzner-4","pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]
+                }]}]
+              }
+            }}}}}
+          }' 2>/dev/null || true
+
+        # Wire IPV64_API_KEY from sealed secret into webhook — idempotent;
+        # no-op when cert:secret hasn't run yet (key secret absent).
+        if kubectl --context "$ENV_CONTEXT" get secret ipv64-api-key -n cert-manager >/dev/null 2>&1; then
+          kubectl --context "$ENV_CONTEXT" set env deployment/cert-manager-lego-webhook -n cert-manager --from=secret/ipv64-api-key
+          echo "✓ IPV64_API_KEY wired into cert-manager-lego-webhook from ipv64-api-key secret"
+        else
+          echo "ℹ IPV64_API_KEY not yet available — run cert:secret after sealing"
+        fi
+      - echo "✓ cert-manager + lego webhook installed on {{.ENV}}"
+      - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key> ENV={{.ENV}}'' to store credentials"'
+
+  cert:secret:
+    desc: "Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml). ENV=dev|mentolder|korczewski selects target cluster + workspace ns."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    preconditions:
+      - sh: '[ -n "{{.CLI_ARGS}}" ]'
+        msg: "Usage: task cert:secret -- <your-ipv64-api-key> [ENV=...]"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        if ! kubectl $CTX cluster-info > /dev/null 2>&1; then
+          echo "No cluster reachable for ENV={{.ENV}}." >&2; exit 1
+        fi
+        # Ensure target namespaces exist
+        kubectl $CTX create namespace "$NS" --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX create namespace cert-manager --dry-run=client -o yaml | kubectl $CTX apply -f -
+
+        kubectl $CTX create secret generic ipv64-api-key \
+          --namespace cert-manager \
+          --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
+          --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX annotate secret ipv64-api-key -n cert-manager sealedsecrets.bitnami.com/managed="true" --overwrite
+
+        kubectl $CTX create secret generic ipv64-api-key \
+          --namespace "$NS" \
+          --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
+          --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX annotate secret ipv64-api-key -n "$NS" sealedsecrets.bitnami.com/managed="true" --overwrite
+
+        if kubectl $CTX get deployment/cert-manager-lego-webhook -n cert-manager &>/dev/null; then
+          kubectl $CTX set env deployment/cert-manager-lego-webhook \
+            -n cert-manager --from=secret/ipv64-api-key
+        fi
+        echo "✓ Secret 'ipv64-api-key' created/updated in cert-manager + ${NS} (ENV={{.ENV}})"
+
+  cert:status:
+    desc: "Show wildcard certificate and ClusterIssuer status (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX get clusterissuer letsencrypt-prod -o wide 2>/dev/null || true
+        kubectl $CTX get certificate -n "$NS" -o wide 2>/dev/null || true
+        kubectl $CTX get certificaterequest -n "$NS" 2>/dev/null || true
+        kubectl $CTX get order -n "$NS" 2>/dev/null || true
+
+  sealed-secrets:install:
+    desc: Install Sealed Secrets controller on a cluster via Helm
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        # Pin the chart to the version recorded in environments/versions.yaml so
+        # every cluster gets the same controller (an unpinned install silently
+        # tracks Helm's latest, drifting clusters apart). Fail soft if unset.
+        chart_version=$(awk -F': *' '/^sealed_secrets_chart:/{print $2; exit}' environments/versions.yaml 2>/dev/null)
+        version_flag=""
+        if [ -n "$chart_version" ]; then
+          version_flag="--version $chart_version"
+          echo "Pinning sealed-secrets chart to $chart_version (environments/versions.yaml)"
+        else
+          echo "WARNING: sealed_secrets_chart not found in environments/versions.yaml — installing latest (unpinned)"
+        fi
+        helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+        helm repo update
+        helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
+          --namespace sealed-secrets --create-namespace \
+          --kube-context "$ENV_CONTEXT" \
+          $version_flag \
+          --set resources.requests.cpu=50m \
+          --set resources.requests.memory=64Mi \
+          --set resources.limits.memory=128Mi
+        echo "✓ Sealed Secrets controller installed on ${ENV_CONTEXT}"
+
+  sealed-secrets:status:
+    desc: Show Sealed Secrets controller status
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $context_flag get pods -n sealed-secrets
+        echo ""
+        kubectl $context_flag get sealedsecrets -n "$NS" 2>/dev/null || echo "(no SealedSecrets in ${NS} namespace)"
+
+  app:install:
+    desc: "Install a curated catalog app (ENV=dev|mentolder|korczewski). Usage: task app:install -- <app-name> [--dry-run]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/app-install.sh {{.CLI_ARGS}}
+
+  app:validate:
+    desc: "Validate an app manifest against the schema. Usage: task app:validate -- <app-name>"
+    cmds:
+      - node scripts/validate-manifest.mjs apps/{{.CLI_ARGS}}/app.yaml
+
+  # ─────────────────────────────────────────────
+  # FluxCD GitOps tasks (T002083)
+  # ─────────────────────────────────────────────
+  flux:render:
+    desc: "Render fleet-Komponenten + Flux-CRs nach out/ (kein Apply)"
+    cmds:
+      - bash scripts/flux-render-artifact.sh --out "{{.OUT | default "out"}}"
+
+  flux:bootstrap:
+    desc: "Einmalig: flux-operator via Helm + FluxInstance + Receiver/IngressRoute/ghcr-auth (imperativ)"
+    vars:
+      ENV: '{{.ENV | default "fleet-mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        export FLUX_WEBHOOK_HOST="${FLUX_WEBHOOK_HOST:-flux-webhook.${PROD_DOMAIN}}"
+        helm upgrade --install flux-operator \
+          oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator \
+          --namespace flux-system --create-namespace \
+          --kube-context "$ENV_CONTEXT"
+        kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/ghcr-auth-sealedsecret.yaml
+        kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/flux-webhook-token-sealedsecret.yaml
+        kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/flux-instance.yaml
+        kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/receiver.yaml
+        envsubst "\$PROD_DOMAIN" \
+          < flux/clusters/fleet/bootstrap/certificate-flux-webhook.yaml \
+          | kubectl --context "$ENV_CONTEXT" apply -f -
+        envsubst "\$FLUX_WEBHOOK_HOST" \
+          < flux/clusters/fleet/bootstrap/ingressroute-flux-webhook.yaml \
+          | kubectl --context "$ENV_CONTEXT" apply -f -
+        flux check --context "$ENV_CONTEXT" || true
+
+  flux:push:
+    desc: "Render + flux push artifact (privates GHCR) + Receiver-Ping"
+    cmds:
+      - |
+        task flux:render OUT=out
+        flux push artifact \
+          oci://ghcr.io/paddione/fleet-manifests:latest \
+          --path=out \
+          --source="$(git config --get remote.origin.url)" \
+          --revision="main@sha1:$(git rev-parse HEAD)"
+
+  flux:stalled:
+    desc: "Read-only: check for stalled (long-term Ready=False) Flux Kustomizations (T002207)"
+    cmds:
+      - bash scripts/flux-stalled-check.sh --context fleet --threshold 30m
+

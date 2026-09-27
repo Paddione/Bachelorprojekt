@@ -34,7 +34,7 @@ setup() {
   # The prod-overlay deploy pipes kustomize output through envsubst "$ENVSUBST_VARS";
   # PROD_DOMAIN must be in that list so MEDIAVIEWER_HOST: "mediaviewer.${PROD_DOMAIN}"
   # is substituted rather than reaching the cluster literally.
-  run grep -qE 'ENVSUBST_VARS=.*PROD_DOMAIN' "$TASKFILE"
+  run grep -rqE 'ENVSUBST_VARS=.*PROD_DOMAIN' "$REPO_ROOT/Taskfile.yml" "$REPO_ROOT/taskfiles/"
   [ "$status" -eq 0 ]
 }
 

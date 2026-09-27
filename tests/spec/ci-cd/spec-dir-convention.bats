@@ -32,7 +32,7 @@ setup() {
   # conflict-gate.bats): der Block ERKLAERT in einem Kommentar, dass `find` hier
   # `bats -r tests/spec/` ersetzt — diese Erklaerung erfuellte die Regex unten und
   # hielt den Guard gruen, obwohl der Task auf einen flachen Glob umgestellt war.
-  run bash -c "awk '/^  test:spec:\$/{f=1;next} f && /^  [a-z][a-zA-Z0-9:_-]*:\$/{exit} f' '${REPO_ROOT}/Taskfile.yml' | grep -vE '^\s*#'"
+  run bash -c "awk '/^  test:spec:\$/{f=1;next} f && /^  [a-z][a-zA-Z0-9:_-]*:\$/{exit} f' '${REPO_ROOT}/taskfiles/Taskfile.test.yml' | grep -vE '^\s*#'"
   [ "$status" -eq 0 ]
   [ -n "$output" ]
   # [T003278] Zwei zulaessige Aufrufformen: das vendierte Binary direkt, oder der
@@ -53,11 +53,11 @@ setup() {
 
 @test "spec-dir: Zaehl-Logik in test:spec:changed zaehlt auch Unterverzeichnisse" {
   # Positiv-Anker: die Zaehlung existiert ...
-  run grep -n 'TOTAL=' "${REPO_ROOT}/Taskfile.yml"
+  run grep -n 'TOTAL=' "${REPO_ROOT}/taskfiles/Taskfile.test.yml"
   [ "$status" -eq 0 ]
   # ... und benutzt nicht mehr den flachen ls-Glob, der Unterverzeichnisse unterschlaegt.
   # Waere TOTAL zu klein, meldete der Task faelschlich "FULL spec suite".
-  run bash -c "grep 'TOTAL=' '${REPO_ROOT}/Taskfile.yml' | grep -c 'ls tests/spec/\*\.bats'"
+  run bash -c "grep 'TOTAL=' '${REPO_ROOT}/taskfiles/Taskfile.test.yml' | grep -c 'ls tests/spec/\*\.bats'"
   [ "$output" -eq 0 ]
 }
 

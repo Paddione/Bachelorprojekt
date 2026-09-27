@@ -26,8 +26,14 @@
 load test_helper
 
 setup_file() {
-  export TASKFILE="${PROJECT_DIR}/Taskfile.yml"
+  export TASKFILE_SUITE_DIR="${PROJECT_DIR}/taskfiles"
+  export TASKFILE_ROOT="${PROJECT_DIR}/Taskfile.yml"
   export COLLABORA_MANIFEST="${PROJECT_DIR}/k3d/office-stack/collabora.yaml"
+}
+
+# Total matching lines across the whole Taskfile suite (root + taskfiles/).
+suite_count() {
+  grep -rhE "$1" "$TASKFILE_ROOT" "$TASKFILE_SUITE_DIR" 2>/dev/null | wc -l | tr -d ' '
 }
 
 # ── Taskfile deploy contract ─────────────────────────────────────────
@@ -35,7 +41,7 @@ setup_file() {
 @test "office:deploy does NOT hardcode COLLABORA_SERVER_NAME to a brand host" {
   # A literal office.<domain> value forces the discovery urlsrc host and
   # breaks the non-default brand on the shared stack.
-  run grep -nE 'export[[:space:]]+COLLABORA_SERVER_NAME="office\.\$\{PROD_DOMAIN\}"' "$TASKFILE"
+  run grep -rnE 'export[[:space:]]+COLLABORA_SERVER_NAME="office\.\$\{PROD_DOMAIN\}"' "$TASKFILE_ROOT" "$TASKFILE_SUITE_DIR"
   [ "$status" -ne 0 ] || {
     echo "Found hardcoded COLLABORA_SERVER_NAME=office.\${PROD_DOMAIN}:" >&2
     echo "$output" >&2
@@ -45,15 +51,14 @@ setup_file() {
 
 @test "office:deploy exports an empty COLLABORA_SERVER_NAME for dynamic Host resolution" {
   # Every deploy target that sets COLLABORA_SERVER_NAME must set it empty.
-  run grep -cE 'export[[:space:]]+COLLABORA_SERVER_NAME=""' "$TASKFILE"
-  [ "$status" -eq 0 ]
+  output=$(suite_count 'export[[:space:]]+COLLABORA_SERVER_NAME=""')
   [ "$output" -ge 1 ]
 }
 
 @test "every COLLABORA_SERVER_NAME assignment in Taskfile is the empty form" {
   # Guard against one of the two deploy call sites being left hardcoded.
-  total=$(grep -cE 'export[[:space:]]+COLLABORA_SERVER_NAME=' "$TASKFILE" || true)
-  empty=$(grep -cE 'export[[:space:]]+COLLABORA_SERVER_NAME=""' "$TASKFILE" || true)
+  total=$(suite_count 'export[[:space:]]+COLLABORA_SERVER_NAME=')
+  empty=$(suite_count 'export[[:space:]]+COLLABORA_SERVER_NAME=""')
   [ "$total" -ge 1 ]
   [ "$total" -eq "$empty" ]
 }

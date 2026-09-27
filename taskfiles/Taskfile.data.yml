@@ -1,0 +1,660 @@
+version: "3"
+
+tasks:
+
+  context:retrieve:
+    desc: "S1-Retrieval (T002658): budgetierter Kontextblock aus Pinned-Set + Vektor-Retrieval. Usage: task context:retrieve -- --task-prompt '…' --role bachelorprojekt-<x> [--budget N] [--limit N] [--corpora a,b]"
+    cmds:
+      - node scripts/context-retrieve.mjs {{.CLI_ARGS}}
+
+  context:retrieve:explain:
+    desc: "S1-Retrieval mit Diagnose-JSON (Scores, Kandidatenzahl, Token-Bilanz, mode). Usage: task context:retrieve:explain -- --task-prompt '…' --role bachelorprojekt-<x> [--budget N] [--limit N]"
+    cmds:
+      - node scripts/context-retrieve.mjs {{.CLI_ARGS}} --json
+
+  graph:build:
+    desc: "Generiere K8s-Abhängigkeitsgraph + API-Surface-Map nach docs/generated/"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/build-graph.mjs
+      - node scripts/build-api-map.mjs
+      - task: graph:blast-radius
+
+  graph:blast-radius:
+    desc: "Generiere Blast-Radius-Report nach docs/generated/blast-radius.md (LAD)"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/build-blast-radius.mjs
+
+  graph:build-docs:
+    desc: "Generiere Mermaid-Architecture-Markdown nach docs/diagrams/architecture.md (LAD-3)"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/build-graph-docs.mjs
+
+  codebase:index:
+    desc: "Vollständiger codebase-memory-mcp Graph-Index (full, persistiertes Artefakt in .codebase-memory/)"
+    cmds:
+      - |
+        ROOT=$(git rev-parse --show-toplevel)
+        bash scripts/mcp/cbm-single-flight.sh "{\"repo_path\": \"$ROOT\", \"mode\": \"full\", \"persistence\": true}"
+
+  codebase:refresh:
+    desc: "Schnell-Refresh des codebase-memory Graph-Index (fast, kein Similarity-Embedding)"
+    cmds:
+      - |
+        ROOT=$(git rev-parse --show-toplevel)
+        bash scripts/mcp/cbm-single-flight.sh "{\"repo_path\": \"$ROOT\", \"mode\": \"fast\", \"persistence\": true}"
+
+  recovery:prepare:
+    desc: "Apply recovery-pvc (run once per cluster before staging). ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        kubectl apply --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" -f k3d/recovery-pvc.yaml
+
+  recovery:stage:
+    desc: "Stage one backup entry browsable. ENV=<env> -- <timestamp> <db|service>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh stage {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:verify:
+    desc: "Prove a DB dump restores + show table counts. ENV=<env> -- <timestamp> <db>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh verify {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:browse:
+    desc: "Bring up the on-demand recovery filebrowser (SSO). ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh browse --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:unbrowse:
+    desc: "Tear the recovery filebrowser down. ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh unbrowse --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:restore-file:
+    desc: "Restore ONE staged file/dir into the live PVC. ENV=<env> -- <timestamp> <service> <path>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh restore-file {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:restore-table:
+    desc: "Restore ONE table into the live DB. ENV=<env> -- <timestamp> <db> <table>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh restore-table {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "{{.ENV}}" }
+
+  recovery:unstage:
+    desc: "Drop *_recovery DBs + clear staging. ENV=<env> -- <timestamp>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh unstage {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  db:diagram:
+    desc: Regenerate docs/db-schema-diagram.md from live shared-db
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
+          python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
+        echo "Written to docs/db-schema-diagram.md"
+
+  db:cleanup-test-inbox:
+    desc: "Delete all is_test_data=true rows from inbox_items (one-time prod cleanup)"
+    cmds:
+      - bash scripts/cleanup-test-inbox.sh
+
+  datamodel:build:
+    desc: "Regenerate /tmp/datamodel-workflow.md from shared-db + workflow-map.yaml"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
+          python3 scripts/datamodel/build_datamodel.py \
+            --map scripts/datamodel/workflow-map.yaml \
+            --out /tmp/datamodel-workflow.md
+
+  srgb-icc:build:
+    desc: "Regenerate components/website/src/lib/srgb-icc.ts from the canonical sRGB.icc (delegates to scripts/build-srgb-icc.mjs)"
+    cmds:
+      - node scripts/build-srgb-icc.mjs
+
+  # ─────────────────────────────────────────────
+  # Environment Management
+  # ─────────────────────────────────────────────
+  content:export:
+    desc: Export site content (DB → components/website/content/<brand>/*.json) for the bundle (T001490)
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - ENV={{.ENV}} components/website/node_modules/.bin/tsx scripts/export-site-content.mjs
+
+  billing:validate-einvoice:
+    desc: "Validate XML/PDF e-invoice(s) via Mustangproject. With no args, validates every fixture in components/website/test/fixtures/einvoice/. Pass `-- <file>` for a single file."
+    cmds:
+      - |
+        set -e
+        if [ -n "{{.CLI_ARGS}}" ]; then
+          bash components/website/tests/fixtures/mustang.sh validate {{.CLI_ARGS}}
+        else
+          fixtures_dir="components/website/test/fixtures/einvoice"
+          if [ ! -d "$fixtures_dir" ]; then
+            echo "✗ No fixtures directory at $fixtures_dir" >&2
+            exit 1
+          fi
+          shopt -s nullglob
+          mapfile -t files < <(find "$fixtures_dir" -maxdepth 1 -type f -name '*.xml' | sort -u)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "✗ No XML/PDF fixtures found in $fixtures_dir" >&2
+            exit 1
+          fi
+          echo "→ No file given — validating ${#files[@]} fixture(s) in $fixtures_dir"
+          rc=0
+          for f in "${files[@]}"; do
+            echo
+            echo "── $f ──"
+            bash components/website/tests/fixtures/mustang.sh validate "$f" || rc=$?
+          done
+          exit "$rc"
+        fi
+    silent: false
+
+  db:migrate:
+    desc: "Run migrations/*.sql against the target DB (idempotent). ENV=dev|mentolder|korczewski."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        echo "Waiting for shared-db to be ready before running db migrations..."
+        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
+
+        echo "Fetching postgres superuser password from ${NS}/shared-db..."
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
+        if [ -z "$PG_PW" ]; then
+          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
+        fi
+
+        echo "Port-forwarding shared-db (5432) and running db migrations..."
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/db-migrate-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+          node scripts/migrate-db.mjs
+
+  # ─────────────────────────────────────────────
+  # Knowledge Base (pgvector RAG)
+  # ─────────────────────────────────────────────
+  knowledge:reindex:
+    desc: "Re-index knowledge collections (SOURCE=prs|markdown|bugs|context7|all, ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+      SOURCE: '{{.SOURCE | default "all"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/knowledge-reindex-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+          SOURCE="{{.SOURCE}}" \
+          bash scripts/knowledge/reindex.sh
+
+  knowledge:search:
+    desc: "Semantic similarity search in knowledge collections (QUERY=<text>, SOURCE=specs_plans, LIMIT=5, THRESHOLD=0.65, ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+      QUERY: '{{.QUERY}}'
+      SOURCE: '{{.SOURCE | default "specs_plans"}}'
+      LIMIT: '{{.LIMIT | default "5"}}'
+      THRESHOLD: '{{.THRESHOLD | default "0.65"}}'
+    cmds:
+      - |
+        if [ -z "{{.QUERY}}" ]; then
+          echo "Usage: task knowledge:search QUERY=\"<text>\" [SOURCE=specs_plans] [LIMIT=5] [THRESHOLD=0.65] [ENV=mentolder]" >&2
+          exit 1
+        fi
+
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        WEBSITE_DB_PASSWORD=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.WEBSITE_DB_PASSWORD}" 2>/dev/null | base64 -d)
+        if [ -z "$WEBSITE_DB_PASSWORD" ]; then
+          echo "ERROR: WEBSITE_DB_PASSWORD not found in workspace-secrets" >&2; exit 1
+        fi
+        VOYAGE_API_KEY=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.VOYAGE_API_KEY}" 2>/dev/null | base64 -d)
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/knowledge-search-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 2
+
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+        VOYAGE_API_KEY="${VOYAGE_API_KEY}" \
+        QUERY="{{.QUERY}}" SOURCE="{{.SOURCE}}" LIMIT="{{.LIMIT}}" THRESHOLD="{{.THRESHOLD}}" \
+          node scripts/knowledge/search-similar.mjs
+
+  knowledge:crawl:
+    desc: "Crawl a web_crawl collection (COLLECTION_ID=<uuid>, ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        if [ -z "{{.COLLECTION_ID}}" ]; then
+          echo "Usage: task knowledge:crawl COLLECTION_ID=<uuid> ENV=<env>"
+          exit 1
+        fi
+
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/knowledge-crawl-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        COLLECTION_ID="{{.COLLECTION_ID}}" \
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+          node scripts/knowledge/ingest-web.mjs {{.CLI_ARGS}}
+
+  knowledge:seed-context7:
+    desc: "Create + ingest all 35 context7 library collections (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        WEBSITE_DB_PASSWORD=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.WEBSITE_DB_PASSWORD}" 2>/dev/null | base64 -d)
+        if [ -z "$WEBSITE_DB_PASSWORD" ]; then
+          echo "ERROR: WEBSITE_DB_PASSWORD not found in workspace-secrets" >&2; exit 1
+        fi
+        VOYAGE_API_KEY=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.VOYAGE_API_KEY}" 2>/dev/null | base64 -d)
+        export VOYAGE_API_KEY
+
+        # Apply SQL migration via kubectl exec as postgres (DDL requires table owner)
+        echo "=== Applying context7_docs source migration ==="
+        kubectl $ctx_flag exec -i -n "$NS" deploy/shared-db -- \
+          psql -U postgres -d website < scripts/one-shot/archive/20260519-context7-source.sql
+
+        # Helper: run SQL as website user via kubectl exec (avoids port-forward TCP RST crashes)
+        # -q suppresses command completion tags (INSERT 0 1) that pollute $() captures
+        kexec_psql() {
+          kubectl $ctx_flag exec -i -n "$NS" deploy/shared-db -- \
+            psql -U website -d website -q "$@"
+        }
+
+        # Library seed list: name → context7 ID
+        declare -A LIBS=(
+          ["Astro"]="/withastro/docs"
+          ["Svelte"]="/sveltejs/svelte"
+          ["Playwright"]="/microsoft/playwright"
+          ["Keycloak"]="/keycloak/keycloak"
+          ["LiveKit"]="/websites/livekit_io"
+          ["Kubernetes"]="/kubernetes/website"
+          ["SealedSecrets"]="/bitnami-labs/sealed-secrets"
+          ["Anthropic SDK (TS)"]="/anthropics/anthropic-sdk-typescript"
+          ["pgvector"]="/pgvector/pgvector"
+          ["Taskfile (go-task)"]="/go-task/task"
+          ["Tailwind CSS v4"]="/tailwindlabs/tailwindcss.com"
+          ["Zod v4"]="/websites/zod_dev_v4"
+          ["Drizzle ORM"]="/drizzle-team/drizzle-orm-docs"
+          ["Vitest"]="/vitest-dev/vitest"
+          ["Socket.IO"]="/websites/socket_io_v4"
+          ["cert-manager"]="/cert-manager/website"
+          ["React 19"]="/websites/react_dev"
+          ["Traefik"]="/websites/doc_traefik_io_traefik"
+          ["Kustomize"]="/kubernetes-sigs/kustomize"
+          ["Express 5"]="/websites/expressjs_en_5"
+          ["OpenAI SDK"]="/websites/developers_openai_api"
+          ["Mistral AI SDK"]="/mistralai/client-ts"
+          ["Stripe.js"]="/stripe/stripe-js"
+          ["PDFKit"]="/foliojs/pdfkit"
+          ["pdf-lib"]="/hopding/pdf-lib"
+          ["pdf-parse"]="/mehmet-kozan/pdf-parse"
+          ["D3"]="/d3/d3"
+          ["Chart.js"]="/chartjs/chart.js"
+          ["PixiJS"]="/pixijs/pixijs"
+          ["rrweb"]="/rrweb-io/rrweb"
+          ["Pino"]="/pinojs/pino"
+          ["Nodemailer"]="/nodemailer/nodemailer"
+          ["qrcode"]="/soldair/node-qrcode"
+          ["signature_pad"]="/szimek/signature_pad"
+          ["epub2"]="/julien-c/epub"
+        )
+
+        # Phase 1: create all collections via kubectl exec (no port-forward needed)
+        echo "=== Phase 1: ensuring collections ==="
+        declare -A COL_IDS
+        for NAME in "${!LIBS[@]}"; do
+          COL_ID=$(kexec_psql -At -c \
+            "INSERT INTO knowledge.collections (name, source, description)
+             VALUES ('context7: $NAME', 'context7_docs', 'context7 docs for $NAME')
+             ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description
+             RETURNING id;")
+          COL_IDS["$NAME"]="$COL_ID"
+          echo "  $NAME → $COL_ID"
+        done
+
+        # Phase 2: port-forward for Node.js ingestion
+        # Use 15499 (not 5432) to avoid conflicts with other open port-forwards
+        echo ""
+        echo "=== Phase 2: ingesting via context7 API ==="
+        fuser -k 15499/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15499:5432 \
+          >/tmp/knowledge-context7-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 4
+        if ! nc -z 127.0.0.1 15499 2>/dev/null; then
+          echo "ERROR: port-forward not listening on 15499:" >&2
+          cat /tmp/knowledge-context7-pf.log >&2
+          exit 1
+        fi
+
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:15499/website"
+        SUMMARY=""
+        for NAME in "${!LIBS[@]}"; do
+          LIB_ID="${LIBS[$NAME]}"
+          COL_ID="${COL_IDS[$NAME]}"
+          echo ""
+          echo "=== $NAME ($LIB_ID) ==="
+          echo "  Collection: $COL_ID"
+
+          COLLECTION_ID="$COL_ID" \
+          LIBRARY_ID="$LIB_ID" \
+          PGURL="$PGURL" \
+            node scripts/knowledge/ingest-context7.mjs || echo "  ⚠ Ingest failed for $NAME — continuing"
+        done
+
+        # Phase 3: collect counts via kubectl exec (kill port-forward first)
+        kill $PF 2>/dev/null || true
+        sleep 1
+        echo ""
+        echo "=== Phase 3: chunk counts ==="
+        for NAME in "${!LIBS[@]}"; do
+          COL_ID="${COL_IDS[$NAME]}"
+          CHUNKS=$(kexec_psql -At -c \
+            "SELECT COALESCE(chunk_count, 0) FROM knowledge.collections WHERE id = '$COL_ID';" \
+            2>/dev/null || echo "?")
+          SUMMARY="$SUMMARY\n  $NAME: $CHUNKS chunks"
+        done
+
+        echo ""
+        echo "=== Summary ==="
+        echo -e "$SUMMARY"
+
+  knowledge:ingest-context7:
+    desc: "Ingest a single context7 library (LIBRARY_ID=/org/repo COLLECTION_ID=<uuid> ENV=...)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        if [ -z "{{.LIBRARY_ID}}" ] || [ -z "{{.COLLECTION_ID}}" ]; then
+          echo "Usage: task knowledge:ingest-context7 LIBRARY_ID=/org/repo COLLECTION_ID=<uuid> ENV=<env>"
+          exit 1
+        fi
+
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        WEBSITE_DB_PASSWORD=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.WEBSITE_DB_PASSWORD}" 2>/dev/null | base64 -d)
+        VOYAGE_API_KEY=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.VOYAGE_API_KEY}" 2>/dev/null | base64 -d)
+        export VOYAGE_API_KEY
+
+        fuser -k 15499/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15499:5432 \
+          >/tmp/knowledge-context7-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null || true' EXIT
+        sleep 4
+        if ! nc -z 127.0.0.1 15499 2>/dev/null; then
+          echo "ERROR: port-forward not listening on 15499:" >&2
+          cat /tmp/knowledge-context7-pf.log >&2
+          exit 1
+        fi
+
+        COLLECTION_ID="{{.COLLECTION_ID}}" \
+        LIBRARY_ID="{{.LIBRARY_ID}}" \
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:15499/website" \
+          node scripts/knowledge/ingest-context7.mjs
+
+  coaching:ingest:
+    desc: "Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]"
+    cmds:
+      - source scripts/env-resolve.sh "${ENV:-dev}" && cd components/website && npx tsx ../../scripts/coaching/ingest-book.mts {{.CLI_ARGS}}
+
+  coaching:ingest-json:
+    desc: "Ingest a pre-chunked JSON file into a knowledge collection. Args: -- <file.json> <slug> [--brand=mentolder|korczewski]"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "${ENV:-mentolder}"
+        ctx_flag=""
+        [ "${ENV:-mentolder}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        WEBSITE_DB_PASSWORD=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.WEBSITE_DB_PASSWORD}" 2>/dev/null | base64 -d)
+        if [ -z "$WEBSITE_DB_PASSWORD" ]; then
+          echo "ERROR: WEBSITE_DB_PASSWORD not found in workspace-secrets" >&2; exit 1
+        fi
+        VOYAGE_API_KEY=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.VOYAGE_API_KEY}" 2>/dev/null | base64 -d)
+        export VOYAGE_API_KEY
+
+        fuser -k 15499/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15499:5432 \
+          >/tmp/coaching-ingest-json-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null || true' EXIT
+        sleep 4
+        if ! nc -z 127.0.0.1 15499 2>/dev/null; then
+          echo "ERROR: port-forward not listening on 15499:" >&2
+          cat /tmp/coaching-ingest-json-pf.log >&2
+          exit 1
+        fi
+
+        cd components/website && PGHOST=localhost PGPORT=15499 PGDATABASE=website PGUSER=website \
+          PGPASSWORD="$WEBSITE_DB_PASSWORD" \
+          LLM_ENABLED=false \
+          npx tsx ../../scripts/coaching/ingest-json.mts {{.CLI_ARGS}}
+
+  coaching:batch-ingest:
+    desc: "Batch-ingest a directory of coaching PDFs/DOCs — Usage: task coaching:batch-ingest -- <dir> <kurs-slug> [--dry-run] [--yes] [--classify]"
+    cmds:
+      - source scripts/env-resolve.sh "{{.ENV | default "mentolder"}}"
+      - cd scripts/coaching && npx tsx batch-ingest-dir.mts {{.CLI_ARGS}}
+
+  coaching:classify:
+    desc: "Run AI classifier over UNCLASSIFIED chunks of a coaching book. Args: -- --slug=<slug> | --all"
+    cmds:
+      - source scripts/env-resolve.sh "${ENV:-dev}" && cd components/website && npx tsx ../../scripts/coaching/classify-book.mts {{.CLI_ARGS}}
+
+  scs:index:
+    desc: "Build the semantic code search index (bge-m3 embeddings → pgvector). Requires cluster DB access."
+    cmds:
+      - |
+        source scripts/env-resolve.sh "${ENV:-dev}"
+        ctx_flag=""
+        [ "${ENV:-dev}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        # T002292: Der port-forward auf shared-db reisst reproduzierbar ab. Der
+        # Indexer bricht deshalb jetzt hart ab statt still weiterzuskippen —
+        # hier wird er so oft neu gestartet, bis er durchlaeuft. Das traegt,
+        # weil der Hash-Skip in indexFile() Laeufe resumierbar macht: ein
+        # abgebrochener Pass hinterlaesst einen konsistenten Teil-Index.
+        # Jeder Pass bekommt einen EIGENEN Port — kein `fuser -k`, das wuerde
+        # die eigene Prozessgruppe (und damit diese Shell) mit abschiessen.
+        rc=1
+        for pass in 1 2 3 4 5; do
+          port=$((15434 + pass))
+          kubectl $ctx_flag -n "$NS" port-forward svc/shared-db ${port}:5432 \
+            >/tmp/scs-index-pf.log 2>&1 &
+          pf=$!
+          sleep 4
+          if ! nc -z 127.0.0.1 $port 2>/dev/null; then
+            echo "→ Pass $pass: port-forward kam nicht hoch, neuer Versuch" >&2
+            cat /tmp/scs-index-pf.log >&2
+            kill $pf 2>/dev/null || true
+            continue
+          fi
+          # `|| rc=$?` ist Pflicht: go-task fuehrt jeden cmds-Block mit
+          # set -e-Semantik aus. Ohne das `||` bricht die Shell beim ersten
+          # fehlschlagenden Lauf ab — noch BEVOR `rc=$?` gelesen wird — und die
+          # Retry-Schleife kommt nie zum Zug (beobachtet 2026-07-27: Pass 1
+          # endete mit Exit 1, es folgte kein zweiter Pass).
+          rc=0
+          PGHOST=localhost PGPORT=$port PGDATABASE=website PGUSER=website \
+            npx tsx scripts/index-repo.ts || rc=$?
+          kill $pf 2>/dev/null || true
+          [ $rc -eq 0 ] && break
+          echo "→ Pass $pass endete mit Exit $rc, setze fort" >&2
+        done
+        exit $rc
+
+  scs:index-incremental:
+    desc: "Incremental SCS reindex — pass changed file paths as args: task scs:index-incremental -- path/to/file.ts"
+    cmds:
+      - bash scripts/index-repo-incremental.sh {{.CLI_ARGS}}
+
+  scs:search:
+    desc: "Semantic code search — Usage: task scs:search -- 'query text' [--limit=5] [--augmented]"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "${ENV:-dev}"
+        ctx_flag=""
+        [ "${ENV:-dev}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        fuser -k 15434/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15434:5432 \
+          >/tmp/scs-search-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null || true' EXIT
+        sleep 4
+
+        PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
+          npx tsx -e "
+            import { searchCode, searchCodeAugmented } from './components/website/src/lib/codesearch-db.ts';
+            const args = process.argv.slice(1);
+            const q = args[0];
+            const augmented = args.includes('--augmented');
+            const limitMatch = args.find(a => a.startsWith('--limit='));
+            const limit = limitMatch ? parseInt(limitMatch.split('=')[1]) : 5;
+            const fn = augmented ? searchCodeAugmented : searchCode;
+            fn(q, limit).then(r => console.log(JSON.stringify(r, null, 2))).catch(e => { console.error(e.message); process.exit(1); });
+          " {{.CLI_ARGS}}
+
+  # ─────────────────────────────────────────────
+  # Maintenance — periodic cleanups
+  # ─────────────────────────────────────────────
+  maintenance:ai-log-cleanup:
+    desc: "Delete ai_call_log rows older than 90 days. Usage: task maintenance:ai-log-cleanup [-- ENV=dev|mentolder|korczewski]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX exec -n "$NS" deploy/shared-db -- \
+          psql -U website -d website -c "DELETE FROM ai_call_log WHERE ts < NOW() - INTERVAL '90 days';"
+
+  maintenance:dispatch-log-cleanup:
+    desc: "Delete tickets.llm_proxy_request_log rows older than 14 days. Usage: task maintenance:dispatch-log-cleanup [-- ENV=dev|mentolder|korczewski]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX exec -n "$NS" deploy/shared-db -- \
+          psql -U website -d website -c "DELETE FROM tickets.llm_proxy_request_log WHERE ts < NOW() - INTERVAL '14 days';"
+
+  maintenance:all:
+    desc: "Run all maintenance tasks. Usage: task maintenance:all [-- ENV=dev|mentolder|korczewski]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - task: maintenance:ai-log-cleanup
+        vars: { ENV: '{{.ENV}}' }
+      - task: maintenance:dispatch-log-cleanup
+        vars: { ENV: '{{.ENV}}' }
+

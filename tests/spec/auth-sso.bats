@@ -133,7 +133,7 @@ _render_korczewski() {
 
 @test "T002154: kein bare Kurzname als POCKET_ID_URL-Fallback im Taskfile" {
   local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-  run grep -n 'POCKET_ID_URL:-http://pocket-id:1411' "${repo_root}/Taskfile.yml"
+  run grep -rn 'POCKET_ID_URL:-http://pocket-id:1411' "${repo_root}/Taskfile.yml" "${repo_root}/taskfiles/"
   [ "$status" -ne 0 ] || {
     echo "FAIL: bare Kurzname 'pocket-id:1411' als Fallback — cross-namespace nicht auflösbar:"
     echo "$output"
@@ -145,7 +145,7 @@ _render_korczewski() {
   local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   # Ganze Zuweisung extrahieren (bis zum schließenden "), damit verschachtelte
   # Defaults wie ${WORKSPACE_NAMESPACE:-workspace} nicht mitten drin abgeschnitten werden.
-  local assignments; assignments="$(grep -o 'POCKET_ID_URL="[^"]*"' "${repo_root}/Taskfile.yml" | sort -u)"
+  local assignments; assignments="$(grep -rho 'POCKET_ID_URL="[^"]*"' "${repo_root}/Taskfile.yml" "${repo_root}/taskfiles/" | sort -u)"
   [ -n "$assignments" ] || skip "keine POCKET_ID_URL-Zuweisung im Taskfile"
 
   local a resolved
@@ -284,7 +284,7 @@ data:
   local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   local missing=""
   grep -q 'website-config-sha.sh' "${repo_root}/scripts/flux-render-artifact.sh"        || missing="$missing flux-render-artifact.sh"
-  grep -q 'website-config-sha.sh' "${repo_root}/Taskfile.yml"                            || missing="$missing Taskfile.yml"
+  grep -rq 'website-config-sha.sh' "${repo_root}/Taskfile.yml" "${repo_root}/taskfiles/"  || missing="$missing Taskfile-suite"
   grep -q 'website-config-sha.sh' "${repo_root}/.github/workflows/build-website.yml"     || missing="$missing build-website.yml"
   [ -z "$missing" ] || {
     echo "FAIL: Pfade ohne gemeinsamen Helper:$missing"

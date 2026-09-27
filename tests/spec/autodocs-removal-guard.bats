@@ -32,7 +32,7 @@ setup() {
 
 @test "(c) tasks gone: no docs:build/docs:deploy/test:docs-gen definitions" {
   local hits
-  hits="$(grep -nE '^  (docs:build|docs:deploy|test:docs-gen):' "$REPO_ROOT/Taskfile.yml" || true)"
+  hits="$(grep -rnE '^  (docs:build|docs:deploy|test:docs-gen):' "$REPO_ROOT/Taskfile.yml" "$REPO_ROOT/taskfiles/" || true)"
   [ -z "$hits" ] || { echo "stale task definitions: $hits"; return 1; }
 }
 
@@ -56,7 +56,7 @@ setup() {
 
 @test "(f) keepers present: regen workflow, graph task, legacy-html, templates" {
   [ -f "$REPO_ROOT/.github/workflows/freshness-regen.yml" ]
-  grep -qE '^  graph:build-docs:' "$REPO_ROOT/Taskfile.yml"
+  grep -qE '^  graph:build-docs:' "$REPO_ROOT/taskfiles/Taskfile.data.yml"
   [ -d "$REPO_ROOT/docs/legacy-html" ]
   [ -d "$REPO_ROOT/templates/brain" ]
 }

@@ -8,7 +8,7 @@ setup() {
   WRAPPER="$REPO_ROOT/scripts/mcp/cbm-single-flight.sh"
   CRON="$REPO_ROOT/scripts/cbm-refresh-cron.sh"
   RUNBOOK="$REPO_ROOT/docs/runbooks/cbm-index-stampede.md"
-  TASKFILE="$REPO_ROOT/Taskfile.yml"
+  TASKFILE="$REPO_ROOT/taskfiles/Taskfile.data.yml"
 }
 
 @test "T900450-W1: Wrapper existiert, ist ausfuehrbar, enthaelt flock + Lockpfad + Timeout 3000 + Exit-3-Zweig" {

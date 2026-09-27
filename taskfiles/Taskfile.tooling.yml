@@ -1,0 +1,147 @@
+version: "3"
+
+tasks:
+
+  # ─────────────────────────────────────────────
+  # Git Hooks & Workflow
+  # ─────────────────────────────────────────────
+  hooks:install:
+    desc: Install git hooks (branch naming, kustomize validation, secret scanning)
+    cmds:
+      - git config extensions.worktreeConfig true
+      - git config core.hooksPath .githooks
+      - git config --worktree core.hooksPath .githooks 2>/dev/null || true
+      - echo '✓ Git hooks installed from .githooks/'
+      - 'echo "  pre-commit:         blocks main commits, validates kustomize, scans secrets"'
+      - 'echo "  prepare-commit-msg: auto-prefixes commit message from branch name"'
+
+  hooks:check:
+    desc: "Verify git hooks are active and core.hooksPath is configured"
+    cmds:
+      - bash scripts/check-hooks-path.sh
+
+  opencode:sync-agents:
+    desc: "Merge .opencode/agent-models.jsonc config into ~/.config/opencode/opencode.jsonc"
+    cmds:
+      - bash scripts/opencode-sync-agents.sh
+
+  opencode:model-select:
+    desc: "Interactive fzf picker to change agent models and sync them"
+    cmds:
+      - bash scripts/agent-model-select.sh
+
+  opencode:serve:
+    desc: "Lifecycle management for opencode HTTP server (start/stop/restart/status/health)"
+    cmds:
+      - bash scripts/opencode-serve.sh "{{.OPENCODE_SERVE_CMD|start}}"
+
+  opencode:monitor:
+    desc: "Observe opencode serve: sessions, status, SSE events, session details, todos"
+    cmds:
+      - bash scripts/opencode-monitor.sh "{{.OPENCODE_MONITOR_CMD|help}}"
+
+  opencode:autostart:
+    desc: "Install/remove the opencode serve autostart block in ~/.bashrc (install/remove/status)"
+    cmds:
+      - bash scripts/setup-autostart.sh "{{.OPENCODE_AUTOSTART_CMD|status}}"
+
+  # ── MCP Registry SSOT ────────────────────────────────────────────────────
+  # Verwaltet die drei Harness-Konfigurationen aus einer Registry (SSOT).
+  # Siehe docs/agent-guide/registry/mcp.yaml und scripts/mcp-sync.sh.
+
+  mcp:sync:
+    desc: "Regenerate .mcp.json, .opencode/opencode.jsonc, and ~/.gemini/config/mcp_config.json from the SSOT registry (docs/agent-guide/registry/mcp.yaml)"
+    cmds:
+      - bash scripts/mcp-sync.sh render
+      - bash scripts/opencode-sync-agents.sh
+
+  mcp:check:
+    desc: "Verify that the three target configs match the SSOT registry (exit != 0 on drift; never writes)"
+    cmds:
+      - bash scripts/mcp-sync.sh check
+
+  mcp:doctor:
+    desc: "MCP-Auth-Gesundheitscheck fuer alle Harnesses: Units, Bearer-Probes (:13001/:13003/:13005), opencode-Plugins, aufgeloeste Harness-Configs, ticket-stdio (nie Token-Werte)"
+    cmds:
+      - bash scripts/mcp-gateway/doctor.sh
+
+  mcp:start-windows:
+    desc: "T900039/T900191: Windows-Pendant zu mcp-gateway.service + devmesh-forward.service — Port-Forwards fleet (18080, 13002) und devmesh (18235, 13001, 13005); schliesst den WSL-Mechanismus aus"
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/start-windows.ps1
+
+  mcp:autostart:register:
+    desc: "T900040: start-windows.ps1 als Autostart-Task registrieren (onlogon) — Windows-Pendant zu 'systemctl --user enable' von mcp-gateway/devmesh-forward"
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/register-autostart.ps1
+
+  mcp:autostart:remove:
+    desc: "T900040: den Autostart-Task aus mcp:autostart:register wieder entfernen"
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/register-autostart.ps1 -Remove
+
+  agent:orchestrator:
+    desc: "T001588: local agent orchestration (start/stop/status/submit) via worktrees — see scripts/agent-orchestrator.sh --help"
+    cmds:
+      - bash scripts/agent-orchestrator.sh {{.CLI_ARGS}}
+
+  agy:sync:
+    desc: "Mirror .claude/agents and .claude/skills into .gemini/ for the agy CLI / Antigravity IDE (per-worktree; .gemini/* is gitignored)"
+    cmds:
+      - bash scripts/agy-sync.sh
+
+  # ─────────────────────────────────────────────
+  # E-Invoice Sidecar
+  # ─────────────────────────────────────────────
+  einvoice-sidecar:build:
+    desc: "Build the einvoice-sidecar Docker image"
+    cmds:
+      - docker build -t einvoice-sidecar:dev docker/einvoice-sidecar
+
+  einvoice-sidecar:push:
+    desc: "Build and push einvoice-sidecar image to ghcr.io"
+    cmds:
+      - docker build -t ghcr.io/paddione/einvoice-sidecar:latest docker/einvoice-sidecar
+      - docker push ghcr.io/paddione/einvoice-sidecar:latest
+
+  einvoice-sidecar:logs:
+    desc: "Tail einvoice-sidecar logs (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX -n "$NS" logs -l app=einvoice-sidecar --tail=200 -f
+
+  # ─────────────────────────────────────────────
+  # ticket-mcp Go Binary
+  # ─────────────────────────────────────────────
+  ticket-mcp:build:
+    desc: "Build the ticket-mcp Go binary and install it onto the PATH as ticket-mcp-go"
+    cmds:
+      - |
+        # Die Registry referenziert 'ticket-mcp-go' ueber den PATH-Namen (T002301), nicht
+        # ueber einen absoluten Repo-Pfad. Der Install-Schritt ist deshalb Teil des Builds.
+        # Best-effort wie mcp-task-runner: ist /usr/local/bin nicht schreibbar, bleibt das
+        # bereits installierte Binary in Kraft — kein Abbruch der Task-Kette.
+        make -C scripts/ticket-mcp/go build
+        if install -m 0755 scripts/ticket-mcp/ticket-mcp-go /usr/local/bin/ticket-mcp-go 2>/dev/null; then
+          echo "ticket-mcp: installed fresh build to /usr/local/bin"
+        elif sudo -n install -m 0755 scripts/ticket-mcp/ticket-mcp-go /usr/local/bin/ticket-mcp-go 2>/dev/null; then
+          echo "ticket-mcp: installed fresh build to /usr/local/bin (sudo)"
+        else
+          echo "ticket-mcp: /usr/local/bin not writable — using pre-installed binary if present"
+        fi
+
+  ticket-mcp:test:
+    desc: "Run the ticket-mcp Go test suite"
+    cmds:
+      - |
+        if command -v go >/dev/null 2>&1; then
+          make -C scripts/ticket-mcp/go test
+        else
+          echo "ticket-mcp:test: Go toolchain not found — skipping (non-fatal)"
+        fi
+

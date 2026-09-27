@@ -1,0 +1,402 @@
+version: "3"
+
+tasks:
+
+  lint:workflows:
+    desc: "Lint aller GitHub-Actions-Workflows mit gepinntem actionlint (Kontexte, Action-Inputs, Runner-Labels)"
+    cmds:
+      - bash scripts/lint-workflows.sh
+
+  api:inventory:
+    desc: Regenerate components/website/src/data/api-inventory.json (SDLC API/connector inventory)
+    cmds:
+      - node scripts/sdlc/api-inventory.mjs
+
+  routes:manifest:
+    desc: Regenerate components/website/src/data/route-manifest.json (page files + brand service slugs -> sweep route manifest)
+    cmds:
+      - node scripts/build-route-manifest.mjs
+
+  assets:learning:
+    desc: Regenerate components/website/src/lib/learning-assets.generated.json from the SSOT manifest
+    cmds:
+      - node scripts/build-learning-assets.mjs
+
+  freshness:graph-check:
+    desc: "Prüft ob graph.json + api-map.json + blast-radius.md aktuell sind (kein struktureller Drift)"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/build-graph.mjs
+      - node scripts/build-api-map.mjs
+      - node scripts/build-blast-radius.mjs
+      - |
+        ERRORS=0
+        for f in docs/generated/graph.json docs/generated/api-map.json; do
+          # Strip generatedAt before diffing (timestamp changes on every run)
+          committed=$(git show HEAD:"$f" 2>/dev/null | jq 'del(.generatedAt)' 2>/dev/null || echo "")
+          current=$(jq 'del(.generatedAt)' "$f" 2>/dev/null || echo "")
+          if [ "$committed" != "$current" ]; then
+            echo "  ✗ $f strukturell veraltet — bitte 'task graph:build' ausführen und committen"
+            ERRORS=$((ERRORS + 1))
+          fi
+        done
+        committed_br=$(git show HEAD:docs/generated/blast-radius.md 2>/dev/null | grep -v "^> Generated:" || echo "")
+        current_br=$(grep -v "^> Generated:" docs/generated/blast-radius.md 2>/dev/null || echo "")
+        if [ "$committed_br" != "$current_br" ]; then
+          echo "  ✗ docs/generated/blast-radius.md strukturell veraltet"
+          ERRORS=$((ERRORS + 1))
+        fi
+        [ $ERRORS -eq 0 ] && echo "✓ Graph-Artefakte sind aktuell" || exit 1
+
+  freshness:regenerate:
+    desc: "Regenerate ALL generated artifacts (inventory, routes, learning, quality index, agent-guide surfaces)"
+    cmds:
+      # node_modules may be absent in a fresh worktree (scripts/worktree-create.sh
+      # ships no root node_modules). No-op in CI / installed trees. [T000427]
+      #
+      # NOTE: Concurrent branches that both regenerate freshness artifacts will
+      # collide on rebase (the generated files differ in both branches).  To
+      # avoid git merge conflict noise, all freshness output files are registered
+      # in .gitattributes with merge=ours — CI's freshness-regen.yml will
+      # overwrite the canonical version post-merge.  If you add a new output
+      # artifact to this list, add a matching .gitattributes entry.
+      - '[ -d node_modules ] || npm ci'
+      - task: test:inventory
+      - task: api:inventory
+      - task: design:leitstand-ds-sync
+      - task: routes:manifest
+      - task: assets:learning
+      - task: quality:index
+      - task: agent-guide:emit
+      - task: graph:build    # LAD: K8s graph artifacts
+      - task: graph:build-docs
+      - task: openspec:status-map
+      - task: openspec:atlas
+      - task: health:goals:emit
+      - task: networks:map   # T012645: docs/agent-guide/maps/networks-map.md
+
+  freshness:check:
+    desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
+    cmds:
+      # --- Phase 0: regenerate, THEN diff-check (T002252) ---
+      # Without this step the diff below compares the artifacts against
+      # themselves: on a fresh checkout the tree is clean by definition, so the
+      # gate was structurally green even for stale artifacts. Verified against
+      # merge commit c792d6f85 (brett file_count 366, actual 365):
+      #   task freshness:check                       -> exit 0   (green, wrong)
+      #   task quality:index && task freshness:check -> exit 201 (drift caught)
+      # Consequence of the blind gate: nearly every PR left stale artifacts on
+      # main and freshness-regen.yml healed them with a bot commit afterwards
+      # (21 such commits on 2026-07-26 alone), which keeps main moving and is one
+      # of the reasons Renovate's ~150s run aborts with repository-changed
+      # (T002249).
+      #
+      # Yes, this makes a "check" mutate the working tree — it rewrites exactly
+      # the generated files the error message below already tells you to
+      # regenerate and commit, same as `gofmt -l` / `cargo fmt --check` flows.
+      # Safe to do so because regeneration is deterministic: two consecutive runs
+      # from an identical tree produce zero changed files, and none of the 16
+      # artifacts embed a wall-clock timestamp. Costs ~9s.
+      - task: freshness:regenerate
+      # --- Phase 0b: measured-base note + origin/main divergence warning (T002561) ---
+      # `git diff --quiet HEAD -- "$f"` below measures only against the local HEAD.
+      # CI runs the same task against the PR's merge commit, which already
+      # contains the current origin/main — a different base. A local-green run
+      # can still fail in CI when the branch is behind origin/main. This block
+      # does not change the pass/fail outcome (warning only, no `exit 1`); it
+      # just makes the measured base visible and flags the exact condition that
+      # produces the mismatch, so a re-run isn't the first troubleshooting step.
+      - |
+        HEAD_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+        BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+        echo "ℹ freshness:check measured against local HEAD ${HEAD_SHA}"
+        if [ "${BEHIND:-0}" -gt 0 ] 2>/dev/null; then
+          echo "⚠ local branch is ${BEHIND} commit(s) behind origin/main — CI checks against the PR merge commit, which already includes those commits, so a green result here does not guarantee a green result in CI. Consider rebasing/merging origin/main first."
+        fi
+      # --- Phase 0c: lokal-only Hygiene-Ziele, WARNUNG ohne Fail (T002443) ---
+      # Diese Ziele messen lokalen Maschinenzustand (Worktrees, Hauptcheckout-Branch,
+      # agent-locks, main-Divergenz). Ein CI-Runner hat davon nichts, deshalb wird hier
+      # in CI NICHT gemessen, sondern sichtbar uebersprungen — eine strukturell gruene
+      # Messung waere schlimmer als gar keine, weil sie Hygiene vortaeuscht.
+      #
+      # Der Block failt bewusst NICHT (`|| true`): freshness:check ist ein Merge-Gate.
+      # Ein harter Fail bei dirty Hauptcheckout blockierte jeden lokalen Commit und
+      # fuehrte zur Umgehung des Gates statt zu Hygiene. Die Zahl gehoert in den Report,
+      # die Sichtbarkeit in den Alltagspfad.
+      #
+      # Bewusst NICHT in freshness:regenerate: die Task schreibt Artefakte und laeuft
+      # auch in CI; dieser Block ist reine lokale Anzeige.
+      - |
+        if [ -n "${CI:-}" ]; then
+          echo "ℹ lokal-only Hygiene-Ziele ({{.HG_LOCAL_ONLY_GOALS}}) uebersprungen — Grund: CI-Runner hat weder Worktrees noch agent-locks noch einen Hauptcheckout noch lokale LLM-Endpunkte; die Messung waere strukturell gruen und damit wertlos. Lokal pruefen mit 'task health:wt'."
+        else
+          echo "ℹ lokale Worktree-/Session-Hygiene ({{.HG_LOCAL_ONLY_GOALS}}) — Warnung, kein Gate:"
+          task health:wt || true
+        fi
+      # --- Phase 1: diff-check each file ---
+      - |
+        ERRORS=0
+        # NICHT in dieser Liste: docs/code-quality/repo-index.json [T002687].
+        # Es enthaelt acht file_count-Zaehler; jeder PR mit einer hinzugefuegten
+        # oder entfernten Datei aendert dieselbe Zeile, womit parallele PRs
+        # zwangslaeufig kollidieren — merge=ours greift auf GitHub nicht, und ein
+        # konfliktbehafteter PR unterdrueckt dort die CI. Die Datei wird nirgends
+        # gelesen (quality:check scannt live per trackedFiles -> git ls-files),
+        # ist also reines Reporting. freshness-regen.yml haelt sie auf main
+        # aktuell; sie muss dafuer nicht durch jeden PR wandern.
+        #
+        # ACHTUNG: FILES ist ein Shell-String, der unten per Wortsplitting
+        # durchlaufen wird — KEINE Kommentare hineinschreiben. Jedes Wort gilt
+        # als Pfad; ein Kommentar erzeugt Phantom-Eintraege wie "an" oder "PR"
+        # und der Guard meldet 40 fehlende Artefakte (T002686, beim Bau dieses
+        # Fixes selbst hineingelaufen). Erklaerungen gehoeren hierher, ueber die
+        # Zuweisung. agents-map.md steht bewusst in der Liste: es stammt aus
+        # demselben Emitter wie die drei Karten darueber, fehlte aber bis
+        # T002686 — Staleness fiel dadurch erst in agent-roster.bats (P4.5) auf,
+        # also in einem ANDEREN CI-Job (beobachtet an PR #3813).
+        # Guard: tests/spec/ci-cd/generated-artifacts-registry.bats
+        FILES="
+          components/website/src/data/test-inventory.json
+          components/website/src/data/api-inventory.json
+          design/leitstand-ds/_tokens.css
+          components/website/src/data/route-manifest.json
+          components/website/src/lib/learning-assets.generated.json
+          components/website/public/learning-assets/THIRD-PARTY-ASSETS.md
+          components/website/src/data/openspec-status.json
+          docs/spec-atlas.md
+          docs/diagrams/architecture.md
+          components/website/src/lib/sdlc/goals-data.generated.json
+          docs/agent-guide/10-ziele.md
+          docs/agent-guide/20-werkzeuge.md
+          docs/agent-guide/30-bausteine.md
+          docs/agent-guide/maps/goals-map.md
+          docs/agent-guide/maps/tools-map.md
+          docs/agent-guide/maps/danger-map.md
+          docs/agent-guide/maps/agents-map.md
+          docs/agent-guide/maps/networks-map.md
+          components/website/src/lib/agent-guide.generated.json
+          components/website/src/lib/platform-descriptions.generated.json
+        "
+        # [T002375-p4] Die Meldung unterscheidet jetzt, WAS fehlt. Phase 0 oben hat
+        # freshness:regenerate bereits ausgefuehrt — der Arbeitsbaum ist danach per
+        # Konstruktion aktuell. "is stale" war deshalb strukturell die falsche Diagnose
+        # und las sich wie ein fehlgeschlagenes regenerate; T002352-M3 beschreibt genau
+        # die Schleife, in die man daraufhin laeuft: regenerate, check, regenerate, check.
+        # Fehlend ist in Wahrheit immer nur der Commit — die Meldung sagt das jetzt und
+        # nennt die naechste Aktion statt der bereits erledigten.
+        for f in $FILES; do
+          if ! git diff --quiet "$f" 2>/dev/null; then
+            echo "  ✗ $f regenerated but not staged — run 'git add $f' and commit"
+            ERRORS=$((ERRORS + 1))
+          elif ! git diff --quiet HEAD -- "$f" 2>/dev/null; then
+            echo "  ✗ $f staged but not committed — commit it"
+            ERRORS=$((ERRORS + 1))
+          fi
+        done
+        if [ $ERRORS -gt 0 ]; then
+          echo "ERROR: ${ERRORS} generated artifact(s) are not committed (see above)."
+          echo "       Der Arbeitsbaum ist aktuell — freshness:regenerate erneut auszufuehren aendert nichts."
+          exit 1
+        fi
+        echo "✓ All generated artifacts are fresh"
+      # --- Phase 1b: LAD graph freshness (structural drift check) ---
+      - task: freshness:graph-check
+      # --- Phase 2: code-quality gate (baseline ratchet) ---
+      - task: quality:check
+      # --- Phase 3: baseline count assertion (hardened, T001155) ---
+      # Blocks new baseline.json keys unless PR body contains [baseline-allow:<reason>].
+      - |
+        if ! node scripts/code-quality/baseline-key-count-assertion.mjs; then
+          echo "ERROR: baseline.json guard failed. See scripts/code-quality/baseline-key-count-assertion.mjs"
+          exit 1
+        fi
+      # --- Phase 4: route-manifest invariants ---
+      - |
+        node -e '
+          const fs = require("fs");
+          const m = JSON.parse(fs.readFileSync("components/website/src/data/route-manifest.json", "utf8"));
+          const errs = [];
+          if (m.generatedFrom !== "components/website/src/pages") {
+            errs.push(`generatedFrom must be "components/website/src/pages", got ${JSON.stringify(m.generatedFrom)}`);
+          }
+          if (!Array.isArray(m.routes)) {
+            errs.push("routes must be an array");
+          }
+          for (const r of (m.routes || [])) {
+            const isAdmin = r.route.startsWith("/admin");
+            const isPortal = r.route.startsWith("/portal");
+            if ((isAdmin || isPortal) && r.authTier === "public") {
+              errs.push(`${r.route} is under /admin or /portal but tagged authTier=public`);
+            }
+            if (!isAdmin && !isPortal && r.authTier !== "public") {
+              errs.push(`${r.route} is public-namespace but tagged authTier=${r.authTier}`);
+            }
+          }
+          if (errs.length) {
+            console.error("ERROR: route-manifest invariants violated:\n  - " + errs.join("\n  - "));
+            process.exit(1);
+          }
+          console.log(`route-manifest OK: ${m.count} page files, ${m.routes.length} sweep routes, auth tiers consistent`);
+        '
+
+  systemtest:cycle:
+    desc: "Fan out 3 parallel Playwright sessions, one per System-Test (CYCLE=1..4, ENV=mentolder|korczewski|dev)"
+    vars:
+      CYCLE: '{{.CYCLE | default "2"}}'
+      ENV:   '{{.ENV   | default "mentolder"}}'
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:cycle requires E2E_ADMIN_PASS in the env"
+    env:
+      SKIP_DB_PURGE: "1"
+    cmds:
+      - bash scripts/systemtest-fanout.sh "{{.CYCLE}}" "{{.ENV}}"
+
+  systemtest:all:
+    desc: "Run all 12 system-test specs across 4 cycles (ENV=mentolder|korczewski|dev)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:all requires E2E_ADMIN_PASS in the env"
+    env:
+      SKIP_DB_PURGE: "1"
+    cmds:
+      - task: systemtest:cycle
+        vars: { CYCLE: "1", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "2", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "3", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "4", ENV: "{{.ENV}}" }
+        ignore_error: true
+
+  systemtest:all-prods:
+    desc: "Run all 12 system-test specs against mentolder then korczewski"
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:all-prods requires E2E_ADMIN_PASS in the env"
+    env:
+      SKIP_DB_PURGE: "1"
+    cmds:
+      - task: systemtest:all
+        vars: { ENV: "mentolder" }
+      - task: systemtest:all
+        vars: { ENV: "korczewski" }
+
+  systemtest:all:headed:
+    desc: "Run all 12 system-test specs headed with 4 workers (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:all:headed requires E2E_ADMIN_PASS in the env"
+    env:
+      PLAYWRIGHT_WORKERS: "4"
+      SKIP_DB_PURGE: "1"
+    cmds:
+      - task: systemtest:cycle
+        vars: { CYCLE: "1", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "2", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "3", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "4", ENV: "{{.ENV}}" }
+        ignore_error: true
+
+  systemtest:analyze:
+    desc: "Analyse system-test outcome files and produce drift report (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: 'ls tests/e2e/results/outcomes/systemtest-*-{{.ENV}}.json 2>/dev/null | grep -q .'
+        msg: "No outcome files for ENV={{.ENV}} — run: task systemtest:all ENV={{.ENV}} first"
+    cmds:
+      - bash scripts/systemtest-analyze.sh "{{.ENV}}"
+
+  quality:index:
+    desc: "Validate the code-quality registry and regenerate docs/code-quality/repo-index.json"
+    cmds:
+      - node scripts/code-quality/validate.mjs
+      - node scripts/code-quality/emit-index.mjs
+
+  quality:check:
+    desc: "Run all code-quality gates (S1-S4) with the baseline ratchet (fails only on new/worsened)"
+    cmds:
+      - node scripts/code-quality/check.mjs
+
+  quality:pod-phase-filter:
+    desc: "Prüft, dass jede shared-db-Pod-Selektion auf status.phase=Running filtert (T002439). Wurzeln nach --, z.B. task quality:pod-phase-filter -- scripts"
+    cmds:
+      - bash scripts/check-pod-phase-filter.sh {{.CLI_ARGS}}
+
+  health:goals:
+    desc: "Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast"
+    cmds:
+      - bash scripts/health-goals-check.sh {{.CLI_ARGS}}
+
+  health:wt:
+    desc: "Ampel-Report NUR der lokal messbaren Ziele (HG_LOCAL_ONLY_GOALS — Worktree-/Session-Hygiene G-WT* + LLM-Stack G-LLM*, T002442/T002443). Laeuft nicht in CI, siehe freshness:check."
+    cmds:
+      - bash scripts/health-goals-check.sh --fast --only={{.HG_LOCAL_ONLY_GOALS}} {{.CLI_ARGS}}
+
+  health:llm:
+    desc: "Ampel-Report NUR der lokal messbaren LLM-Stack-Ziele (G-LLM01..G-LLM05, T002442). Laeuft nicht in CI, siehe freshness:check."
+    cmds:
+      - bash scripts/health-goals-check.sh --fast --only=G-LLM01,G-LLM02,G-LLM03,G-LLM04,G-LLM05 {{.CLI_ARGS}}
+
+  health:goals:update:
+    desc: "Schreibt frisch gemessene Werte in die Aktuell-Spalte der Prio-C-Tabelle (Green Gates) und in die Baseline-Ketten der Prio-A/B-Meta-Zeilen von .claude/lib/goals.md (Prio-C-Tabelle + Baseline-Kette, gekappt auf 5 Pfeile). Freitextige Policy-Abschnitte bleiben unangetastet. Flags nach --, z.B. task health:goals:update -- --dry-run"
+    cmds:
+      - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
+
+  health:goals:emit:
+    desc: "Regenerate components/website/src/lib/sdlc/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)"
+    cmds:
+      - node scripts/gen-goals-data.mjs
+
+  health:goals:drift:
+    desc: "Read-only Drift-Report: dokumentierte current-Werte (goals-data.generated.json) vs. frische Messung. Kein Schreiben. Flags nach --."
+    cmds:
+      - bash scripts/health-goals-update.sh --drift {{.CLI_ARGS}}
+
+  health:goals:llm-fill:
+    desc: "LLM-gestützter Fill für deterministisch nicht abgedeckte Ziele via T002102-Gateway. Default report-only; --apply schreibt nur Prio-C-Aktuell mit (LLM)-Marker. Flags nach --."
+    cmds:
+      - bash scripts/health-goals-llm-fill.sh {{.CLI_ARGS}}
+
+  quality:baseline:freeze:
+    desc: "One-time: freeze the current code-quality violations into docs/code-quality/baseline.json"
+    cmds:
+      - node scripts/code-quality/freeze.mjs
+
+  quality:baseline:refresh:
+    desc: "Remove FIXED entries and lower improved metrics in docs/code-quality/baseline.json"
+    cmds:
+      - node scripts/code-quality/baseline-refresh.mjs
+
+  quality:tighten:
+    desc: "Lower baseline.json entries where current metric improved; commit if --commit passed (COMMIT=1)"
+    cmds:
+      - |
+        if [[ "{{.COMMIT}}" == "1" ]]; then
+          node scripts/code-quality/tighten.mjs --commit
+        else
+          node scripts/code-quality/tighten.mjs
+        fi
+    vars:
+      COMMIT: '{{.COMMIT | default "0"}}'
+
+  quality:loop:
+    desc: "Enqueue \u2264MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview."
+    cmds:
+      - bash scripts/code-quality/loop.sh
+

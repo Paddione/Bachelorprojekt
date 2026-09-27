@@ -231,7 +231,7 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 }
 
 @test "T001490 content bundle: export script registered (no orphan)" {
-  f="$BATS_TEST_DIRNAME/../../Taskfile.yml"
+  f="$BATS_TEST_DIRNAME/../../taskfiles/Taskfile.data.yml"
   run grep -F "content:export" "$f"
   [ "$status" -eq 0 ]
   run bash -c "test -f '$BATS_TEST_DIRNAME/../../scripts/export-site-content.mjs'"
@@ -271,8 +271,8 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 
   # 4. Taskfile envsubst lists must whitelist $PRIMARY_FRONTEND + $WEBSITE_PRIMARY_SERVICE.
   for needle in 'WEBSITE_PRIMARY_SERVICE' 'PRIMARY_FRONTEND'; do
-    run grep -F "\$${needle}" "$BATS_TEST_DIRNAME/../../Taskfile.yml"
-    [ "$status" -eq 0 ] || { echo "Taskfile.yml envsubst list missing $${needle}"; return 1; }
+    run grep -rF "\$${needle}" "$BATS_TEST_DIRNAME/../../Taskfile.yml" "$BATS_TEST_DIRNAME/../../taskfiles/"
+    [ "$status" -eq 0 ] || { echo "Taskfile suite envsubst list missing $${needle}"; return 1; }
   done
 }
 

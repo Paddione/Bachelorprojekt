@@ -119,7 +119,7 @@ BACKUP_RESTORE="${PROJECT_DIR}/scripts/backup-restore.sh"
 }
 
 @test "#4 db:restore task chains workspace:sync-db-passwords" {
-  run bash -c 'sed -n "/workspace:db:restore:/,/db:diagram:/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -c "workspace:sync-db-passwords"'
+  run bash -c 'sed -n "/^  workspace:db:restore:/,/^  [a-z]/p" "'"${PROJECT_DIR}/taskfiles/Taskfile.workspace.yml"'" | grep -c "workspace:sync-db-passwords"'
   assert_output --partial 1
 }
 
@@ -133,12 +133,12 @@ APP_INSTALL="${PROJECT_DIR}/scripts/app-install.sh"
 
 # ── Finding #6: secrets:sync must warn about un-reconciled workloads ────────
 @test "#6 secrets:sync emits a workload-reconcile reminder" {
-  run bash -c 'sed -n "/^  secrets:sync:/,/^  secrets:install-hooks:/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -ciE "sync-db-passwords|rollout restart|landmine|latent"'
+  run bash -c 'sed -n "/^  secrets:sync:/,/^  secrets:install-hooks:/p" "'"${PROJECT_DIR}/taskfiles/Taskfile.platform.yml"'" | grep -ciE "sync-db-passwords|rollout restart|landmine|latent"'
   refute_output --partial 0
 }
 
 @test "#6 secrets:sync:full companion task exists" {
-  run grep -c 'secrets:sync:full:' "${PROJECT_DIR}/Taskfile.yml"
+  run grep -c 'secrets:sync:full:' "${PROJECT_DIR}/taskfiles/Taskfile.platform.yml"
   assert_output --partial 1
 }
 
@@ -147,6 +147,6 @@ APP_INSTALL="${PROJECT_DIR}/scripts/app-install.sh"
 #  the script was archived in the Pocket ID migration. website-secrets still
 #  needs co-rotation because it now carries POCKET_ID_API_KEY / POCKET_ID_*.)
 @test "#9 env:seal desc notes website-secrets co-rotation" {
-  run bash -c 'sed -n "/  env:seal:/,/  env:fetch-cert:/p" "'"${PROJECT_DIR}/Taskfile.yml"'" | grep -ciE "website-secrets|WEBSITE_OIDC"'
+  run bash -c 'sed -n "/  env:seal:/,/  env:fetch-cert:/p" "'"${PROJECT_DIR}/taskfiles/Taskfile.platform.yml"'" | grep -ciE "website-secrets|WEBSITE_OIDC"'
   refute_output --partial 0
 }

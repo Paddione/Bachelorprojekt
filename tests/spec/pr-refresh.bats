@@ -145,10 +145,10 @@ _fixture() {
 }
 
 @test "pr-refresh: Taskfile-Einsprung pr:refresh existiert (S4 Orphan-Guard)" {
-  # Positiv-Anker: das Taskfile ist lesbar und enthaelt ueberhaupt Tasks ...
-  run grep -c '^  [a-z][a-z0-9:_-]*:$' "${REPO_ROOT}/Taskfile.yml"
+  # Positiv-Anker: die Taskfile-Suite ist lesbar und enthaelt ueberhaupt Tasks ...
+  run bash -c "grep -h '^  [a-z][a-z0-9:_-]*:$' '${REPO_ROOT}/Taskfile.yml' '${REPO_ROOT}'/taskfiles/Taskfile.*.yml '${REPO_ROOT}'/taskfiles/Taskfile.*.yaml | wc -l | tr -d ' '"
   [ "$status" -eq 0 ]
   [ "$output" -gt 50 ]
   # ... und pr:refresh ist einer davon.
-  grep -qE '^  pr:refresh:' "${REPO_ROOT}/Taskfile.yml"
+  grep -qE '^  pr:refresh:' "${REPO_ROOT}/taskfiles/Taskfile.process.yml"
 }

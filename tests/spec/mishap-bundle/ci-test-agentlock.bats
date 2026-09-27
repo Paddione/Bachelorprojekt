@@ -35,20 +35,20 @@ setup() {
 # nicht crashen, sondern muss einen lesbaren Warnhinweis ausgeben.
 
 @test "T002414-M2: Taskfile test:changed prints warning when vitest unavailable" {
-  run grep -qF '⚠ vitest not available (worktree symlink limitation)' "$REPO/Taskfile.yml"
+  run grep -qF '⚠ vitest not available (worktree symlink limitation)' "$REPO/taskfiles/Taskfile.test.yml"
   [ "$status" -eq 0 ]
 }
 
 @test "T002414-M2: Taskfile test:changed guards vitest invocation behind condition" {
   # Verify the guard pattern: vitest invocation is wrapped in if/else, not bare
-  run grep -cF 'pnpm vitest --version' "$REPO/Taskfile.yml"
+  run grep -cF 'pnpm vitest --version' "$REPO/taskfiles/Taskfile.test.yml"
   [ "$status" -eq 0 ]
   local guard_count
-  guard_count=$(grep -c 'vitest not available (worktree symlink limitation)' "$REPO/Taskfile.yml")
+  guard_count=$(grep -c 'vitest not available (worktree symlink limitation)' "$REPO/taskfiles/Taskfile.test.yml")
   # Each vitest call that appears is guarded — we count how many warnings exist
   # for each vitest reference (website + mentolder-web sections)
   local vitest_refs
-  vitest_refs=$(grep -c 'pnpm vitest --version' "$REPO/Taskfile.yml")
+  vitest_refs=$(grep -c 'pnpm vitest --version' "$REPO/taskfiles/Taskfile.test.yml")
   [ "$guard_count" -eq "$vitest_refs" ] || {
     echo "WARNING: $guard_count warning lines for $vitest_refs vitest refs — mismatch!"
   }

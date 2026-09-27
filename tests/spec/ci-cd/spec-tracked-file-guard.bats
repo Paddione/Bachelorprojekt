@@ -162,7 +162,7 @@ _sandbox() {
   # Querschnittspruefung der Verdrahtung — sie manifestiert sich
   # ausschliesslich in der Taskfile-Konfiguration, deshalb ist grep hier das
   # angemessene Mittel (Ausnahme nach T002448-M4).
-  run grep -c 'spec-tracked-file-guard' "$REPO_ROOT/Taskfile.yml"
+  run grep -c 'spec-tracked-file-guard' "$REPO_ROOT/taskfiles/Taskfile.test.yml"
   [ "$status" -eq 0 ]
   # Beide Tasks — test:spec UND test:spec:changed — muessen den Guard fuehren.
   [ "$output" -ge 2 ]

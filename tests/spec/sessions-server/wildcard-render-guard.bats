@@ -109,6 +109,6 @@ render_sessions() {
 }
 
 @test "Verdrahtung [Konfiguration]: Taskfile-workspace:deploy ruft den Guard auf" {
-  run grep -qF 'render-guard.sh' "$REPO_ROOT/Taskfile.yml"
+  run grep -qF 'render-guard.sh' "$REPO_ROOT/taskfiles/Taskfile.workspace.yml"
   assert_success
 }

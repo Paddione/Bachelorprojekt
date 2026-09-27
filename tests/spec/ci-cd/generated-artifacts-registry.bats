@@ -31,7 +31,7 @@ setup() {
 # Extraktion einen Dateinamen aus dem Fliesstext und meldet ihn als
 # ungeschuetzten Pfad — beobachtet beim Bau dieses Guards.
 _gate_files() {
-  sed -n '/freshness:check:/,/^  [a-z][a-z:-]*:$/p' Taskfile.yml \
+  sed -n '/freshness:check:/,/^  [a-z][a-z:-]*:$/p' taskfiles/Taskfile.quality.yml \
     | sed -n '/FILES="/,/^\s*"$/p' \
     | grep -v '^\s*#' \
     | grep -oE "[a-zA-Z0-9/._-]+/[a-zA-Z0-9/._-]+\.(json|md)" \
@@ -75,7 +75,7 @@ _attr_files() {
   # das Gate meldete 40 fehlende Artefakte. Deshalb wird hier roh extrahiert —
   # OHNE den Kommentarfilter aus _gate_files, der genau diesen Fehler kaschiert.
   local raw missing=""
-  raw="$(sed -n '/freshness:check:/,/^  [a-z][a-z:-]*:$/p' Taskfile.yml \
+  raw="$(sed -n '/freshness:check:/,/^  [a-z][a-z:-]*:$/p' taskfiles/Taskfile.quality.yml \
         | sed -n '/FILES="/,/^\s*"$/p' \
         | sed '1d;$d' | tr -d '\r' | xargs -n1 2>/dev/null || true)"
 

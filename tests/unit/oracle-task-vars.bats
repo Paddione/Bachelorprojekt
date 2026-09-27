@@ -106,3 +106,23 @@ EOF
   [ "$status" -eq 0 ]
   [ "$output" = "" ]
 }
+
+# C4 split (T900560): tasks live in taskfiles/ too — the var resolution must
+# scan the whole suite, not just the root Taskfile.yml.
+@test "task_required_var finds a BRAND task in a split taskfile" {
+  mkdir -p "$FIXTURE_DIR/taskfiles"
+  cat > "$FIXTURE_DIR/taskfiles/Taskfile.split.yml" <<'EOF'
+version: '3'
+
+tasks:
+  split:deploy:brand:
+    desc: "Split-file brand deploy"
+    requires:
+      vars: [BRAND]
+    cmds:
+      - echo deploy-split-brand
+EOF
+  run task_required_var "split:deploy:brand" "$FIXTURE_DIR"
+  [ "$status" -eq 0 ]
+  [ "$output" = "BRAND" ]
+}

@@ -91,7 +91,7 @@ teardown() { rm -rf "$TMP"; }
 }
 
 @test "Taskfile backfill referenziert ACTIVE_STATUSES" {
-  run grep -n 'ACTIVE_STATUSES' "$REPO/Taskfile.yml"
+  run grep -n 'ACTIVE_STATUSES' "$REPO/taskfiles/Taskfile.process.yml"
   [ "$status" -eq 0 ]
 }
 

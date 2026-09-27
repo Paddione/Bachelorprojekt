@@ -91,7 +91,7 @@ KUBE
 }
 
 @test "T002630-P3: Taskfile.yml enthaelt task fleet:membership (S4-Erreichbarkeit)" {
-  taskfile="${REPO_ROOT}/Taskfile.yml"
+  taskfile="${REPO_ROOT}/taskfiles/Taskfile.platform.yml"
   [ -f "$taskfile" ] || { echo "MISSING: $taskfile"; return 1; }
   grep -q 'fleet:membership' "$taskfile" \
     || { echo "FAIL: Taskfile.yml enthaelt keinen fleet:membership Task"; return 1; }

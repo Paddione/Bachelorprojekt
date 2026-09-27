@@ -16,7 +16,7 @@ load '../test_helper'
 
 NTFY_MANIFEST="${PROJECT_DIR}/k3d/ntfy.yaml"
 SCHEMA="${PROJECT_DIR}/environments/schema.yaml"
-TASKFILE="${PROJECT_DIR}/Taskfile.yml"
+TASKFILE="${PROJECT_DIR}/taskfiles/Taskfile.workspace.yml"
 FLUX_RENDER="${PROJECT_DIR}/scripts/flux-render-artifact.sh"
 
 # Full deploy-pipeline over the two token lines: re-quote sed, envsubst with

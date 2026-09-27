@@ -1,0 +1,697 @@
+version: "3"
+
+tasks:
+
+  web:audit:
+    desc: "Semantische Pruefung + Triage: axe, Lighthouse, LLM (T002612)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "web:audit requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  export PROD_DOMAIN=mentolder.de ;;
+          korczewski) export PROD_DOMAIN=korczewski.de ;;
+        esac
+        export ENV="{{.ENV}}"
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        node scripts/web-audit.mjs --brand "{{.ENV}}" {{.CLI_ARGS}}
+
+  a11y:axe:
+    desc: "axe-core a11y-Scan der Kern-Routen gegen ENV=mentolder|korczewski (G-FE01, T001361)"
+    dir: tests/e2e
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "a11y:axe requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  WEBSITE_URL=https://web.mentolder.de  PROD_DOMAIN=mentolder.de ;;
+          korczewski) WEBSITE_URL=https://web.korczewski.de PROD_DOMAIN=korczewski.de ;;
+        esac
+        export WEBSITE_URL PROD_DOMAIN SKIP_DB_PURGE=1
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright test a11y-axe.spec.ts --project=website
+
+  # ─────────────────────────────────────────────
+  # Website (Astro + Svelte)
+  # ─────────────────────────────────────────────
+  website:migrate:
+    desc: "Run components/website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        echo "Waiting for shared-db to be ready before running website migrations..."
+        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
+
+        echo "Fetching postgres superuser password from ${NS}/shared-db..."
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
+        if [ -z "$PG_PW" ]; then
+          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
+        fi
+
+        echo "Port-forwarding shared-db (5432) and running website migrations..."
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/website-migrate-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+          pnpm --dir components/website db:migrate
+
+  website:migrate:homepage-blocks:
+    desc: "Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run)."
+    cmds:
+      - node scripts/migrate-homepage-blocks.mjs {{.CLI_ARGS}}
+
+  website:build:
+    desc: "Build the Astro website Docker image (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    deps:
+      - assets:sync
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
+        docker build -t "${IMAGE}:latest" \
+          -f components/website/Dockerfile \
+          --build-arg PROD_DOMAIN="${PROD_DOMAIN}" \
+          --build-arg BRAND_NAME="${BRAND_NAME}" \
+          --build-arg CONTACT_EMAIL="${CONTACT_EMAIL}" \
+          --build-arg CONTACT_PHONE="${CONTACT_PHONE}" \
+          --build-arg CONTACT_CITY="${CONTACT_CITY}" \
+          --build-arg CONTACT_NAME="${CONTACT_NAME}" \
+          --build-arg LEGAL_STREET="${LEGAL_STREET}" \
+          --build-arg LEGAL_ZIP="${LEGAL_ZIP}" \
+          --build-arg LEGAL_JOBTITLE="${LEGAL_JOBTITLE}" \
+          --build-arg LEGAL_UST_ID="${LEGAL_UST_ID}" \
+          --build-arg LEGAL_WEBSITE="${LEGAL_WEBSITE}" \
+          .
+        echo "✓ Docker image built: ${IMAGE}:latest"
+
+  website:bundle:check:
+    desc: "Check client-JS bundle size against committed baseline (exit 1 if above threshold) — G-FE02"
+    cmds:
+      - node scripts/check-bundle-size.mjs --check --fail
+
+  website:bundle:baseline:
+    desc: "Measure and update the client-JS bundle baseline (components/website/bundle-baseline.json) — G-FE02"
+    cmds:
+      - node scripts/check-bundle-size.mjs --update-baseline
+
+  website:portrait-derivatives:
+    desc: "Rebuild the portrait derivatives from gerald.jpg — 4:5 crop anchored at y=0 so the head stays whole (T002507)"
+    cmds:
+      - bash scripts/build-portrait-derivatives.sh
+
+  website:sync:
+    desc: "Fast-sync components/website/src to the running pod and rebuild (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        POD=$(kubectl $CTX get pod -n "$NS" -l app=website -o name | head -n 1 | cut -d'/' -f2)
+        if [[ -z "$POD" ]]; then echo "ERROR: No website pod found in $NS" >&2; exit 1; fi
+        
+        echo "1/3 Syncing source and assets to $POD..."
+        # We sync src/, public/ and configs to ensure the build can run correctly.
+        kubectl $CTX cp components/website/src "$NS/$POD:/app/src"
+        kubectl $CTX cp components/website/public "$NS/$POD:/app/public"
+        kubectl $CTX cp components/website/astro.config.mjs "$NS/$POD:/app/astro.config.mjs"
+        kubectl $CTX cp components/website/tsconfig.json "$NS/$POD:/app/tsconfig.json"
+        
+        echo "2/3 Running incremental build inside pod..."
+        # This uses the node_modules already present in the container.
+        # We use --no-install to be fast.
+        kubectl $CTX exec -n "$NS" "$POD" -- npm run build
+        
+        echo "3/3 Restarting node process..."
+        # Killing the entry point makes Kubernetes restart the container (fast)
+        # while keeping the synced files in the ephemeral storage.
+        kubectl $CTX exec -n "$NS" "$POD" -- pkill -f "node ./dist/server/entry.mjs" || true
+        echo "✓ Website synced and rebuilt. Changes should be live in a few seconds."
+
+  website:push:
+    desc: Build and push website image to ghcr.io (for production)
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    deps:
+      - task: website:build
+        vars: { ENV: "{{.ENV}}" }
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
+        docker push "${IMAGE}:latest"
+        echo "✓ Pushed ${IMAGE}:latest"
+
+  website:pull-secret:
+    desc: Create/update ghcr-pull-secret in website + workspace namespaces (ENV=dev|mentolder|korczewski)
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
+        if [[ "{{.ENV}}" == "dev" ]]; then
+          TOKEN=$(gh auth token)
+        elif [[ -f "$SECRETS_FILE" ]]; then
+          TOKEN=$(grep -E '^GHCR_PAT:' "$SECRETS_FILE" | sed 's/^GHCR_PAT:[[:space:]]*//' | tr -d '"')
+        fi
+        if [[ -z "$TOKEN" ]]; then
+          echo "ERROR: GHCR_PAT not found in $SECRETS_FILE" >&2; exit 1
+        fi
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        WEBSITE_NS="${WEBSITE_NAMESPACE:-website}"
+        WORKSPACE_NS="${WORKSPACE_NAMESPACE:-workspace}"
+        for NS in "${WEBSITE_NS}" "${WORKSPACE_NS}"; do
+          kubectl $CTX_FLAG create secret docker-registry ghcr-pull-secret \
+            --namespace="$NS" \
+            --docker-server=ghcr.io \
+            --docker-username=Paddione \
+            --docker-password="$TOKEN" \
+            --dry-run=client -o yaml | kubectl $CTX_FLAG apply -f -
+          echo "✓ ghcr-pull-secret updated in $NS namespace"
+        done
+
+  website:deploy:
+    desc: "Deploy the Astro website to the website namespace (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running. Point kubectl at a reachable context first (ENV=dev → devmesh, see environments/dev.yaml: context: devmesh)."
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
+        # T900310: ENV=dev deploys the image already published to the registry —
+        # there is no local k3d import step anymore. It still uses the current
+        # kubectl context rather than an explicit --context flag.
+        CTX_ARG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_ARG="--context=${ENV_CONTEXT}"
+
+        # Run website DB migrations before build/rollout (T001652). Idempotent
+        # and tracked — safe even though workspace:deploy also calls this.
+        task website:migrate ENV="{{.ENV}}"
+        task factory:migrate ENV="{{.ENV}}"
+
+        if [ "{{.ENV}}" = "dev" ]; then
+          WEBSITE_HOST="web.localhost"
+          WEBSITE_SITE_URL="http://web.localhost"
+          KEYCLOAK_FRONTEND_URL="http://auth.localhost"
+          REACT_APP_ORIGIN="${REACT_APP_ORIGIN:-http://react.localhost}"
+          DIGEST=""
+        else
+          WEBSITE_HOST="web.${PROD_DOMAIN}"
+          WEBSITE_SITE_URL="https://web.${PROD_DOMAIN}"
+          KEYCLOAK_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
+          REACT_APP_ORIGIN="${REACT_APP_ORIGIN:-https://react.${PROD_DOMAIN}}"
+          task website:build ENV={{.ENV}}
+          echo "Pushing ${IMAGE}:latest..."
+          docker push "${IMAGE}:latest"
+          DIGEST=$(docker inspect --format='{{`{{index .RepoDigests 0}}`}}' "${IMAGE}:latest" 2>/dev/null | grep -oE 'sha256:[a-f0-9]{64}' | head -1)
+          [ -z "${DIGEST}" ] && { echo "ERROR: could not read digest after push"; exit 1; }
+          echo "✓ Pushed digest: ${DIGEST}"
+        fi
+        WEBSITE_NAMESPACE="${WEBSITE_NAMESPACE:-website}"
+        WORKSPACE_NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
+        SYSTEMTEST_LOOP_ENABLED="${SYSTEMTEST_LOOP_ENABLED:-false}"
+        PRIMARY_FRONTEND="${PRIMARY_FRONTEND:-astro}"
+        # T001490 Task 9 — apex Host() backend selector. The IngressRoute
+        # references the literal Service name; the deploy chooses which
+        # one to wire by setting `WEBSITE_PRIMARY_SERVICE` here.
+        case "${PRIMARY_FRONTEND}" in
+          astro) WEBSITE_PRIMARY_SERVICE="website" ;;
+          react) WEBSITE_PRIMARY_SERVICE="mentolder-web" ;;
+          *) echo "ERROR: PRIMARY_FRONTEND=${PRIMARY_FRONTEND} (expected astro|react)"; exit 1 ;;
+        esac
+        export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL WEBSITE_NAMESPACE WORKSPACE_NAMESPACE SYSTEMTEST_LOOP_ENABLED REACT_APP_ORIGIN PRIMARY_FRONTEND WEBSITE_PRIMARY_SERVICE
+
+        # T002154: Zwischenablage fuer das gerenderte Manifest. Der
+        # checksum/config-Hash wird darauf NACH envsubst gebildet — beide Zweige
+        # (dev + prod-Overlay) nutzen dieselbe Datei und raeumen sie selbst auf.
+        _WEB_RENDER="$(mktemp)"
+        trap 'rm -f "$_WEB_RENDER"' EXIT
+
+        # T002209: envsubst kennt kein \${VAR:-default}. Der Default stellt sicher,
+        # dass der image-Tag nie leer gerendert wird, wenn WEBSITE_IMAGE_TAG/
+        # BRETT_IMAGE_TAG nicht gesetzt sind (Dev/Break-glass-Pfad).
+        : "${WEBSITE_IMAGE_TAG:=latest}"
+        : "${BRETT_IMAGE_TAG:=latest}"
+        export WEBSITE_IMAGE_TAG BRETT_IMAGE_TAG
+
+        if [ "{{.ENV}}" = "dev" ]; then
+          # Dev: imperative apply (web.localhost, no TLS, no prod overlay).
+          LLM_ENABLED="${LLM_ENABLED:-false}" \
+          LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
+          LLM_RERANKER_URL="${LLM_RERANKER_URL:-http://llm-gateway-rerank.workspace.svc.cluster.local:8081}" \
+          LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-}" \
+          LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-}" \
+          COMFY_HOST_IP="${COMFY_HOST_IP:-}" \
+          COMFY_PORT="${COMFY_PORT:-}" \
+          RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}" \
+          RIGGER_PORT="${RIGGER_PORT:-8190}" \
+          POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://id.localhost}" \
+          POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id.${WORKSPACE_NAMESPACE:-workspace}.svc.cluster.local:1411}" \
+           envsubst "\$WEBSITE_IMAGE \$WEBSITE_IMAGE_TAG \$WEBSITE_IMAGE_DIGEST \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$BRAIN_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$PENPOT_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_EMBED_URL \$LLM_RERANKER_URL \$LLM_EMBED_BATCH_URL \$LLM_RERANKER_BATCH_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" < k3d/website.yaml > "$_WEB_RENDER"
+          # T002154/T002156: checksum/config NACH envsubst aus dem website-config-
+          # data-Block bilden (gemeinsamer Helper — alle drei Render-Pfade muessen
+          # denselben Wert liefern, sonst ueberschreiben sie sich gegenseitig).
+          WEBSITE_CONFIG_SHA="$(bash scripts/website-config-sha.sh < "$_WEB_RENDER")" \
+            envsubst "\$WEBSITE_CONFIG_SHA" < "$_WEB_RENDER" | kubectl ${CTX_ARG} apply -f -
+          rm -f "$_WEB_RENDER"
+          envsubst "\$WEBSITE_NAMESPACE" < k3d/website-seller-config.yaml | kubectl ${CTX_ARG} apply -f -
+        else
+          # Prod: apply the brand overlay as the single source of truth. The overlay
+          # bundles k3d/website.yaml + website-seller-config.yaml + the additive TLS
+          # resources (mentolder: website-ingress-web Ingress; korczewski: IngressRoute
+          # TLS patch + website-security-headers Middleware). This REPLACES the former
+          # imperative website.yaml apply and the never-applied flux/apps overlays
+          # (closes the T000146 source-of-truth gap). Brand config/image/affinity stay
+          # sourced from environments/<env>.yaml via the envsubst below + the node-affinity
+          # patch (the overlay carries no redundant image-tag/config-patch).
+          case "${BRAND_ID}" in
+            mentolder)  WEBSITE_OVERLAY="prod-fleet/website-mentolder" ;;
+            korczewski) WEBSITE_OVERLAY="prod-fleet/website-korczewski" ;;
+            *) echo "ERROR: no website overlay for BRAND_ID=${BRAND_ID}"; exit 1 ;;
+          esac
+          LLM_ENABLED="${LLM_ENABLED:-false}" \
+          LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
+          LLM_RERANKER_URL="${LLM_RERANKER_URL:-http://llm-gateway-rerank.workspace.svc.cluster.local:8081}" \
+          LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-}" \
+          LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-}" \
+          COMFY_HOST_IP="${COMFY_HOST_IP:-}" \
+          COMFY_PORT="${COMFY_PORT:-}" \
+          RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}" \
+          RIGGER_PORT="${RIGGER_PORT:-8190}" \
+          POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-https://auth.${PROD_DOMAIN}}" \
+          POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id.${WORKSPACE_NAMESPACE:-workspace}.svc.cluster.local:1411}" \
+          kustomize build "$WEBSITE_OVERLAY" --load-restrictor=LoadRestrictionsNone \
+            | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
+            | envsubst "\$WEBSITE_IMAGE \$WEBSITE_IMAGE_TAG \$WEBSITE_IMAGE_DIGEST \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$BRAIN_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$PENPOT_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_EMBED_URL \$LLM_RERANKER_URL \$LLM_EMBED_BATCH_URL \$LLM_RERANKER_BATCH_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" \
+            | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
+            > "$_WEB_RENDER"
+          # T002154/T002156: siehe Dev-Zweig oben — Hash NACH envsubst ueber den
+          # website-config-data-Block, via gemeinsamem Helper.
+          WEBSITE_CONFIG_SHA="$(bash scripts/website-config-sha.sh < "$_WEB_RENDER")" \
+            envsubst "\$WEBSITE_CONFIG_SHA" < "$_WEB_RENDER" \
+            | kubectl ${CTX_ARG} apply --server-side --force-conflicts -f -
+          rm -f "$_WEB_RENDER"
+        fi
+
+        # Override node affinity when the env specifies non-default nodes. The k3d/
+        # base (T001853) no longer carries a nodeAffinity block at all — it must be
+        # environment-neutral so it schedules on any single-node dev cluster — so this
+        # patch adds the whole affinity subtree (op: add) instead of replacing a
+        # values array nested inside an affinity block that may not exist yet.
+        if [ -n "${WEBSITE_NODE_AFFINITY:-}" ]; then
+          kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" patch deployment website --type=json \
+            -p "[{\"op\":\"add\",\"path\":\"/spec/template/spec/affinity\",\"value\":{\"nodeAffinity\":{\"requiredDuringSchedulingIgnoredDuringExecution\":{\"nodeSelectorTerms\":[{\"matchExpressions\":[{\"key\":\"kubernetes.io/hostname\",\"operator\":\"In\",\"values\":${WEBSITE_NODE_AFFINITY}}]}]}}}}]"
+          echo "✓ Node affinity patched to ${WEBSITE_NODE_AFFINITY}"
+        fi
+
+        # Dev-only: apply plaintext dev secrets (prod uses SealedSecrets — never overwrite).
+        # T001853: these manifests now parameterize namespace: ${WEBSITE_NAMESPACE}
+        # (was hardcoded to "website", breaking on korczewski dev where the website
+        # namespace differs) — must flow through envsubst before apply.
+        if [ "{{.ENV}}" = "dev" ]; then
+          envsubst "\$WEBSITE_NAMESPACE" < k3d/website-dev-secrets.yaml | kubectl ${CTX_ARG} apply -f -
+          # T001490 Task 9 — content-publish bot token placeholder
+          envsubst "\$WEBSITE_NAMESPACE" < k3d/website-content-token-secret.yaml | kubectl ${CTX_ARG} apply -f -
+          # T001853: domain-config ConfigMap was never applied to the website ns in
+          # dev, causing "domain-config not found" on the website pod.
+          kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" apply -f k3d/configmap-domains.yaml
+        fi
+
+        # Only pin to digest on pure-amd64 clusters; mixed-arch clusters (e.g. korczewski
+        # has both amd64 and arm64 nodes) need the multi-arch :latest tag because the
+        # push digest only covers the amd64 manifest, not the manifest list.
+        HAS_ARM=$(kubectl ${CTX_ARG} get nodes -o jsonpath='{range .items[*]}{.status.nodeInfo.architecture}{"\n"}{end}' 2>/dev/null | grep -c arm64 || true)
+        if [ -n "${DIGEST}" ] && [ "${HAS_ARM}" = "0" ]; then
+          echo "Pinning deployment to ${IMAGE}@${DIGEST}..."
+          kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" set image deployment/website "website=${IMAGE}@${DIGEST}"
+        elif [ -n "${DIGEST}" ]; then
+          # Without a digest pin the Deployment spec is unchanged, so `apply` is a
+          # no-op and the pod keeps its cached :latest image. Force a rollout so
+          # imagePullPolicy:Always actually pulls the freshly-pushed tag.
+          echo "Mixed-arch cluster detected — forcing rollout to pick up :latest"
+          kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" rollout restart deployment/website
+        fi
+
+        # TLS/middlewares are applied from the prod-fleet/website-<brand>/ overlay
+        # (now wired into this task above), not imperative patches:
+        # - mentolder: website-ingress-web Ingress (workspace-wildcard-tls + middlewares)
+        # - korczewski: IngressRoute TLS patch (korczewski-tls + websecure) + security-headers
+        # Removed blanket certResolver:letsencrypt patch that broke korczewski (T000147).
+
+        echo "Waiting for website..."
+        kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" rollout status deployment/website --timeout=180s
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if [ "{{.ENV}}" = "dev" ]; then
+          SMOKE_URL="http://web.localhost/404"
+        else
+          SMOKE_URL="https://web.${PROD_DOMAIN}/404"
+        fi
+        echo ""
+        echo "Smoke check: ${SMOKE_URL} must not redirect to itself (would cause ERR_TOO_MANY_REDIRECTS)..."
+        HEADERS=$(curl -sS -I --max-redirs 0 --max-time 15 "${SMOKE_URL}" 2>/dev/null || true)
+        if [ -z "${HEADERS}" ]; then
+          echo "⚠ Smoke check skipped — ${SMOKE_URL} not reachable from this host."
+        else
+          STATUS=$(printf '%s\n' "${HEADERS}" | awk 'NR==1{print $2}')
+          LOCATION=$(printf '%s\n' "${HEADERS}" | awk 'tolower($1)=="location:"{print $2; exit}' | tr -d '\r')
+          case "${STATUS}" in
+            200|404)
+              echo "✓ /404 returns HTTP ${STATUS} (no redirect loop)"
+              ;;
+            30[12378])
+              if printf '%s' "${LOCATION}" | grep -qE '(^|/)404/?$'; then
+                echo "✗ /404 redirects to itself (${STATUS} → ${LOCATION}). ERR_TOO_MANY_REDIRECTS regression."
+                echo "  Ensure components/website/src/pages/404.astro exists so Astro serves a static 404 page."
+                exit 1
+              fi
+              echo "⚠ /404 responded ${STATUS} → ${LOCATION} (unexpected but not a self-loop)"
+              ;;
+            *)
+              echo "⚠ /404 returned HTTP '${STATUS:-<empty>}' — expected 200/404. Not failing deploy."
+              ;;
+          esac
+        fi
+      - echo ""
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if [ "{{.ENV}}" = "dev" ]; then
+          echo "✓ Website deployed — URL: http://web.{{.DEV_DOMAIN}}"
+        else
+          echo "✓ Website deployed — URL: https://${PROD_DOMAIN}"
+        fi
+      - 'echo ""'
+      - 'echo "  Next → task brett:deploy ENV={{.ENV}}"'
+
+  website:dev:
+    desc: Run Astro dev server locally (hot-reload)
+    dir: website
+    cmds:
+      - npm run dev
+
+  cockpit:dev:
+    desc: Serve SDLC Cockpit static files locally (http://localhost:8765)
+    dir: .lavish
+    cmds:
+      - fuser -k 8765/tcp 2>/dev/null || true; sleep 0.3
+      - python3 -m http.server 8765 --bind 127.0.0.1
+
+  cockpit:daemon:
+    desc: "Start the SDLC Cockpit daemon in the background and wait until it answers (PORT= to override)"
+    silent: true
+    vars:
+      # Muss dem Default in .lavish/kit/daemon/server.ts entsprechen — ein
+      # abweichender Wert liesse diesen Task gegen einen anderen Port pruefen,
+      # als der Daemon bindet. 49152 lag im Hyper-V-Reservierungsbereich [T002708].
+      PORT: '{{.PORT | default "39152"}}'
+    cmds:
+      # Ein still im Hintergrund gestorbener Daemon darf nicht als Erfolg
+      # durchgehen — genau diese Art stiller Erfolg liess die Cockpit-Tests
+      # monatelang skippen, ohne dass es jemandem auffiel [T002508].
+      - |
+        set -eu
+        PORT="{{.PORT}}"
+        LOG="${COCKPIT_DAEMON_LOG:-/tmp/cockpit-daemon.log}"
+
+        if curl -sf -m 2 "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
+          echo "cockpit:daemon: bereits erreichbar auf Port ${PORT}"
+          exit 0
+        fi
+
+        # setsid ist nicht optional: go-task raeumt beim Task-Ende die eigene
+        # Prozessgruppe ab. Ein einfaches `cmd &` wuerde den Daemon zusammen mit
+        # diesem Task beenden — er startet, schreibt sein Log und ist wieder weg.
+        # Der Daemon muss eine eigene Session bekommen, um den Task zu ueberleben.
+        #
+        # Bewusst der direkte Binary-Aufruf statt `npx tsx`: npx schiebt einen
+        # Wrapper-Prozess dazwischen, dessen PID nicht die des Daemons ist.
+        rm -f /tmp/cockpit-daemon.pid
+        COCKPIT_DAEMON_PORT="${PORT}" setsid ./node_modules/.bin/tsx .lavish/kit/daemon/server.ts >"${LOG}" 2>&1 &
+
+        for _ in $(seq 1 60); do
+          if curl -sf -m 1 "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
+            echo "cockpit:daemon: bereit auf http://127.0.0.1:${PORT} (pid $(cat /tmp/cockpit-daemon.pid 2>/dev/null || echo '?'))"
+            echo "cockpit:daemon: stoppen mit  kill \$(cat /tmp/cockpit-daemon.pid)"
+            exit 0
+          fi
+          sleep 0.25
+        done
+
+        echo "cockpit:daemon: FEHLER — /health auf Port ${PORT} antwortet nach 15s nicht" >&2
+        cat "${LOG}" >&2
+        if [ -f /tmp/cockpit-daemon.pid ]; then
+          kill "$(cat /tmp/cockpit-daemon.pid)" 2>/dev/null || true
+        fi
+        exit 1
+
+  website:status:
+    desc: "Show website deployment status (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        echo "=== Pods ==="
+        kubectl $CTX get pods -n "$NS" -o wide
+        echo ""
+        echo "=== Services ==="
+        kubectl $CTX get svc -n "$NS"
+        echo ""
+        echo "=== IngressRoute ==="
+        kubectl $CTX get ingressroute -n "$NS" 2>/dev/null || echo "(no IngressRoute found)"
+
+  website:logs:
+    desc: "Tail website logs (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl $CTX logs -n "$NS" deploy/website -f --tail=50
+
+  website:restart:
+    desc: "Restart the website pod (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl $CTX rollout restart deployment/website -n "$NS"
+        kubectl $CTX rollout status deployment/website -n "$NS" --timeout=60s
+
+  website:redeploy:
+    desc: "Rebuild image, push, and restart the website (ENV=mentolder|korczewski); ENV=dev aborts — see error message"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a rebuild here cannot reach it." >&2
+          echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task website:deploy ENV=dev." >&2
+          exit 1
+        else
+          task website:push ENV={{.ENV}}
+        fi
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl $CTX rollout restart deployment/website -n "$NS"
+        kubectl $CTX rollout status deployment/website -n "$NS" --timeout=120s
+        echo "✓ Website redeployed (ENV={{.ENV}}, ns=$NS)"
+
+  website:redeploy:all-prods:
+    desc: "Rebuild + redeploy the website on mentolder + korczewski"
+    cmds:
+      - task: website:redeploy
+        vars: { ENV: "mentolder" }
+      - task: website:redeploy
+        vars: { ENV: "korczewski" }
+
+  website:teardown:
+    desc: "Remove website namespace and all resources (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    prompt: "This will delete the website namespace for ENV={{.ENV}}. Continue?"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl $CTX delete namespace "$NS" --ignore-not-found --timeout=60s
+        echo "✓ Namespace '$NS' deleted (ENV={{.ENV}})"
+
+  # ─────────────────────────────────────────────
+  # Brett (Systemisches Whiteboard)
+  # ─────────────────────────────────────────────
+  brett:build:
+    desc: "Build brett image locally"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    deps:
+      - assets:sync
+    cmds:
+      - docker build -t ghcr.io/paddione/workspace-brett:latest components/brett/
+      - echo "✓ brett image built locally (run 'task brett:push ENV={{.ENV}}' to publish)"
+
+  brett:push:
+    desc: "Build and push brett image to ghcr.io (for production)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - task: brett:build
+        vars: { ENV: "{{.ENV}}" }
+      - docker push ghcr.io/paddione/workspace-brett:latest
+      - echo "✓ Pushed ghcr.io/paddione/workspace-brett:latest"
+
+  brett:deploy:
+    desc: "Push and roll out brett (ENV=mentolder|korczewski); ENV=dev aborts — see error message"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a local build here cannot reach it." >&2
+          echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task workspace:deploy ENV=dev." >&2
+          exit 1
+        else
+          task brett:push ENV={{.ENV}}
+        fi
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX_FLAG rollout restart deploy/brett -n "$NS"
+        kubectl $CTX_FLAG rollout status  deploy/brett -n "$NS"
+      - 'echo ""'
+      - 'echo "  Next → task brett:bot-setup ENV={{.ENV}}"'
+
+  brett:sync:
+    desc: "Fast-sync brett source to the running pod and restart (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        POD=$(kubectl $CTX get pod -n "$NS" -l app=brett -o name | head -n 1 | cut -d'/' -f2)
+        if [[ -z "$POD" ]]; then echo "ERROR: No brett pod found in $NS" >&2; exit 1; fi
+        
+        echo "1/2 Syncing components/brett/src/ and components/brett/public/ to $POD..."
+        kubectl $CTX cp components/brett/src/ "$NS/$POD:/app/src/"
+        kubectl $CTX cp components/brett/public/ "$NS/$POD:/app/public/"
+
+        echo "2/2 Restarting node process..."
+        kubectl $CTX exec -n "$NS" "$POD" -- pkill node || true
+        echo "✓ Brett synced and restarted. Changes should be live in a few seconds."
+
+  brett:deploy:all-prods:
+    desc: "Build, push, and roll brett on mentolder + korczewski"
+    cmds:
+      - task: brett:deploy
+        vars: { ENV: "mentolder" }
+      - task: brett:deploy
+        vars: { ENV: "korczewski" }
+
+  brett:bot-setup:
+    desc: "Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)"
+    cmds:
+      - bash scripts/brett-bot-setup.sh
+    preconditions:
+      - sh: '[[ -n "${ENV:-}" ]]'
+        msg: "ENV= must be set (dev|mentolder|korczewski)"
+
+  brett:logs:
+    desc: "Tail brett logs (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX_FLAG logs -n "$NS" -l app=brett --tail=200 -f
+
+  studio:build:
+    desc: "Build studio-server image locally (T001002)"
+    cmds:
+      - docker build -t ${STUDIO_IMAGE:-studio-server}:latest components/studio-server/
+      - echo "✓ studio image built"
+
+  studio:push:
+    desc: "Push studio-server image to ghcr.io (T001002)"
+    deps: [studio:build]
+    cmds:
+      - docker push ${STUDIO_IMAGE:-studio-server}:latest
+      - echo "✓ Pushed ${STUDIO_IMAGE:-studio-server}:latest"
+
+  studio:deploy:
+    desc: "Push and roll out studio-server (mentolder-only for MVP; T001002); ENV=dev aborts — see error message"
+    cmds:
+      - |
+          if [ "{{.ENV}}" = "korczewski" ]; then
+            echo "studio-server is mentolder-only for MVP. Skipping."
+            exit 0
+          fi
+          if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
+            echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a local build here cannot reach it." >&2
+            echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task workspace:deploy ENV=dev." >&2
+            exit 1
+          else
+            task studio:push
+          fi
+      - |
+          source scripts/env-resolve.sh "{{.ENV}}"
+          CTX_ARG=""
+          if [ -n "$ENV_CONTEXT" ]; then CTX_ARG="--context $ENV_CONTEXT"; fi
+          # workspace:deploy already applies k3d/studio.yaml + oauth2-proxy-studio.yaml
+          # (envsubst renders PROD_DOMAIN/STUDIO_IMAGE); just force a rollout here.
+          kubectl $CTX_ARG -n "${WORKSPACE_NAMESPACE:-workspace}" rollout restart deployment/studio-server || true
+      - echo "✓ studio deployed to {{.ENV}}"
+

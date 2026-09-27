@@ -2,8 +2,8 @@
 
 load test_helper
 
-@test "coaching:ingest-json task exists in Taskfile.yml" {
-  run grep -c "coaching:ingest-json:" "${PROJECT_DIR}/Taskfile.yml"
+@test "coaching:ingest-json task exists in Taskfile suite" {
+  run grep -c "coaching:ingest-json:" "${PROJECT_DIR}/taskfiles/Taskfile.data.yml"
   assert_success
   assert_output "1"
 }

@@ -29,7 +29,7 @@ setup() {
 }
 
 @test "T003120: das Go-Testziel ist aus der CI-Konfiguration erreichbar" {
-  local taskfile="${REPO_ROOT}/Taskfile.yml"
+  local taskfile="${REPO_ROOT}/taskfiles/Taskfile.tooling.yml"
   local ci="${REPO_ROOT}/.github/workflows/ci.yml"
   [ -f "$taskfile" ]
   [ -f "$ci" ]

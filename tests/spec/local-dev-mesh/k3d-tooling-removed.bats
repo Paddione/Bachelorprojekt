@@ -70,7 +70,7 @@ setup() {
 }
 
 @test "no task imports images into k3d" {
-  grep -qE '^  brett:build:' Taskfile.yml
+  grep -qE '^  brett:build:' taskfiles/Taskfile.web.yml
 
   run grep -rn 'k3d image import' Taskfile.yml taskfiles/
   [ "$status" -eq 1 ]

@@ -6,7 +6,7 @@ READY=False, Prometheus-PVC (~38 GB) robustness=degraded.
 **Ticket:** T016425 · Epic T016422 · ADR-007
 
 > ⚠ **Ausführungsgrenze:** Schritte mit **MANUELL — Operator** dürfen nicht
-> vom autonomen Factory-Tick ausgeführt werden. Alles andere ist lesend.
+> automatisiert ausgeführt werden. Alles andere ist lesend.
 
 ## 1. Vorprüfung (lesend)
 
@@ -49,7 +49,7 @@ Ziel: PVC `robustness=healthy`, kein degraded mehr.
 ## 5. Verifikationsskript
 
 ```bash
-bash scripts/factory/verify-decommission.sh gekko-hetzner-2   # Exit 0 = sauber
+# Das Skript scripts/factory/verify-decommission.sh entfiel mit T900399; bis zum Ersatz die Vorprüfung aus §1 wiederholen.
 ```
 
 ## 6. Infrastruktur-Rückbau — **MANUELL — Operator**

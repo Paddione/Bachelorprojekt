@@ -16,7 +16,7 @@ Bei vorhandenem Ticket stattdessen die UUID lesen: `ticket-mcp-node_get_ticket({
 Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execute) — **MCP-first**:
 > `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
 `hold` ist **PFLICHT** (T003267): ohne das Feld defaultet der Go-Adapter auf `false` und
-ruft `--no-hold` auf — die Factory greift sofort zu, statt auf `dev-flow-execute` zu warten.
+ruft `--no-hold` auf — das Ticket gilt dann sofort als freigegeben, statt auf `dev-flow-execute` zu warten.
 
 **Partial-Anzahl mitgeben (T002074):** Bei einem Multi-Partial-Plan die Slot-Zahl
 für das Gang-Gating durchreichen — MCP-seitig via `set_plan_meta`, sonst per Fallback
@@ -29,8 +29,8 @@ lebt in `scripts/vda/ticket/stage-plan.sh` — `scripts/ticket.sh` bleibt unber�
 > Formulierung „bei einem Multi-Partial-Plan" liest sich wie eine Ausnahme. [T002372-M2]
 
 > **⚠️ `stage-plan` verlangt seit T003267 eine explizite Hold-Entscheidung.** Ohne
-> `--hold` ODER `--no-hold` beendet sich `stage-plan.sh` mit Exit 1. `--no-hold` weckt
-> `factory.service` und setzt eine Force-Tick-Flag — die Factory greift sofort zu.
+> `--hold` ODER `--no-hold` beendet sich `stage-plan.sh` mit Exit 1. `--no-hold` gibt
+> das Ticket sofort frei (`execution_released=true`).
 > Wer interaktiv plant und den Zeitpunkt selbst bestimmen will, muss `--hold` setzen.
 > `dev-flow-execute` gibt später per `ticket.sh release-hold` frei. [T002372-M2]
 
@@ -50,8 +50,8 @@ lebt in `scripts/vda/ticket/stage-plan.sh` — `scripts/ticket.sh` bleibt unber�
 > ```
 
 **Embedding-Index (Hybrid-Kontext-Transfer Teil 2):** Direkt nach dem Stage, vor
-Commit/Push, den Change nach pgvector indizieren, damit die Execute-/Factory-Phase
-ihn per factory-mcp `openspec_find_similar` abrufen kann — über den **fail-visible
+Commit/Push, den Change nach pgvector indizieren, damit die Execute-Phase
+ihn per Ähnlichkeitssuche (`openspec_find_similar`) abrufen kann — über den **fail-visible
 Wrapper** (NICHT das nackte `openspec-embed.mjs`, das skippt bei fehlender Env still):
 `bash scripts/openspec-embed-local.sh <slug> "$(pwd)"`
 (2. Argument = Worktree-Root, in dem `openspec/changes/<slug>/` liegt. Der Wrapper
@@ -93,7 +93,7 @@ fi
   --plan "openspec/changes/<slug>/tasks.md" \
   --hold
 ```
-**`--hold`-Flag Pflicht seit T003267:** `stage-plan` verlangt entweder `--hold` oder `--no-hold`. `--hold` setzt `readiness.execution_released=false` — der Factory-Dispatch wird zurückgehalten, bis `dev-flow-execute` per `ticket.sh release-hold` freigibt. Verwende `--hold` in allen interaktiven dev-flow-plan Calls, damit der Operator die Kontrolle behält. `--no-hold` ist für headless Factory-Pfade reserviert.
+**`--hold`-Flag Pflicht seit T003267:** `stage-plan` verlangt entweder `--hold` oder `--no-hold`. `--hold` setzt `readiness.execution_released=false` — das Ticket wird zurückgehalten, bis `dev-flow-execute` per `ticket.sh release-hold` freigibt. Verwende `--hold` in allen interaktiven dev-flow-plan Calls, damit der Operator die Kontrolle behält. `--no-hold` gibt sofort frei und ist nur für headless Pfade gedacht.
 
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
 Ticket-Claim jetzt nachholen (Session-Koordination [T000510]) — der Feature-Pfad kennt
@@ -121,8 +121,8 @@ bash scripts/ticket.sh stage-plan \
 
 | Flag | Semantik |
 |---|---|
-| `--hold` / `--no-hold` | **Eines von beiden ist Pflicht** (T003267) — ohne Flag Exit 1. `--hold` setzt `readiness.execution_released=false` und hält das Ticket vom Factory-Dispatch zurück, bis `dev-flow-execute` per `ticket.sh release-hold` freigibt. Interaktive Calls immer `--hold`; `--no-hold` ist headless Factory-Pfaden vorbehalten. |
-| `--partials <N>` | Anzahl der Partials aus dem `## Partials`-Manifest, 1..9, Pflicht. Setzt `slot_count` — die Factory dispatcht nur bis zu dieser Grenze (Race-Condition-Schutz). |
+| `--hold` / `--no-hold` | **Eines von beiden ist Pflicht** (T003267) — ohne Flag Exit 1. `--hold` setzt `readiness.execution_released=false` und hält das Ticket zurück, bis `dev-flow-execute` per `ticket.sh release-hold` freigibt. Interaktive Calls immer `--hold`; `--no-hold` ist headless Pfaden vorbehalten. |
+| `--partials <N>` | Anzahl der Partials aus dem `## Partials`-Manifest, 1..9, Pflicht. Setzt `slot_count`. |
 | `--allow-empty-touched` | Override. Seit T003267 bricht `stage-plan` bei leerer `touched_files`-Ableitung hart ab (Exit 1) statt still zu melden. Leere Ableitung heißt fast immer: zu früh aufgerufen — siehe T002673 in [dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md). |
 
 **Reihenfolge:** `stage-plan` läuft **nach** `git commit` + `git push`, nicht in Schritt 4.5. Begründung: T002673 in den Gotchas.

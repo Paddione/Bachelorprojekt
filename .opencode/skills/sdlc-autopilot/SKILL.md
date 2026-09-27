@@ -8,7 +8,7 @@ description: 'Autonomer SDLC-Loop: sammelt Specs fuer Tickets ohne Spec, prioris
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
 > `mishap-tracker` auf — Eintragsformat und Ablauf: siehe `mishap-tracker` §Input.
 
-Fährt die Pipeline ticket-triage → dev-flow-plan → Factory selbstständig ab, bis das
+Fährt die Pipeline ticket-triage → dev-flow-plan → dev-flow-execute selbstständig ab, bis das
 Queue-Material erschöpft ist oder menschliche Freigabe fehlt.
 
 ## Voraussetzungen
@@ -32,8 +32,8 @@ Pro Iteration, in dieser Reihenfolge:
    angefasst. Steht ein `abandoned`-Eintrag drin, erst Schritt W des
    WIP-Aufraeumens, dann weiter — ein liegengebliebenes Ticket-Repo darf
    den Loop nicht stillstehen lassen.
-1. **Inventur** — `ticket-mcp_list_tickets` (Status `triage`/`planning`) plus
-   `factory-mcp_factory_status` + `factory_queue`. Baue die Arbeitsliste:
+1. **Inventur** — `ticket-mcp_list_tickets` (Status `triage`/`planning`/`plan_staged`).
+   Baue die Arbeitsliste:
    Tickets mit `spec_skizziert=false` zuerst (Spec-Rückstand), dann bereits
    plan_staged/backlog.
 2. **Priorisierung** — Sortiere nach: `needs_human`/`blocked` ans Ende bzw.
@@ -49,11 +49,9 @@ Pro Iteration, in dieser Reihenfolge:
      Antwort verweigert/nicht eindeutig → Ticket als `needs_human` markieren,
      weiter mit dem nächsten.
 4. **Plan + Staging** — dev-flow-plan Phasen B/C: Worktree + Branch, Partial-Plan
-   schreiben, `stage_plan --no-hold` (oder `enqueue_ticket`). Pipeline-Prinzip:
-   sobald ein Plan steht, sofort stagen — die Factory arbeitet parallel, während
-   der Loop das nächste Ticket plant.
-5. **Factory füttern** — nach dem Stagen `factory_trigger`; Fortschritt via
-   `factory_recent` prüfen. Merge schließt das Ticket (Merge = closure).
+   schreiben, `stage_plan --hold`.
+5. **Ausführen** — `dev-flow-execute` (gibt den Hold frei); lokal optional per
+   `node scripts/llm/plan-runner.mjs`. Merge schließt das Ticket (Merge = closure).
 
 Dann zurück zu 1.
 

@@ -7,7 +7,7 @@ description: 'Turn already-triaged tickets into a dependency-aware wave plan and
 
 # ticket-dispatch
 
-This skill consumes persisted output from `ticket-triage`. It plans and launches only ticket work; `dev-flow-plan`, `dev-flow-execute`, and Factory retain their own lifecycle ownership.
+This skill consumes persisted output from `ticket-triage`. It plans and launches only ticket work; `dev-flow-plan` and `dev-flow-execute` retain their own lifecycle ownership.
 
 ## Contract
 

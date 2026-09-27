@@ -17,13 +17,13 @@ Jeder Agent liest nur die für seine Domäne relevanten Fragmente.
 
 ## Prompts
 
-Wiederverwendbare Prompt-Bausteine für Factory-Prompts und LLM-Aufrufe.
+Wiederverwendbare Prompt-Bausteine für Review-Prompts und LLM-Aufrufe.
 
 | Fragment | Zweck | Referenziert von |
 |---|---|---|
-| [`prompts/review-lens-format.md`](prompts/review-lens-format.md) | HARD CONSTRAINT Block für Review-Lenses | factory review-prompts |
-| [`prompts/diff-analysis-context.md`](prompts/diff-analysis-context.md) | Diff-Scope Boilerplate (nur `+`-Zeilen) | factory lenses |
-| [`prompts/review-coordinator.md`](prompts/review-coordinator.md) | Koordinations-Logik Consolidation-Agent | factory coordinator |
+| [`prompts/review-lens-format.md`](prompts/review-lens-format.md) | HARD CONSTRAINT Block für Review-Lenses | Review-Prompts |
+| [`prompts/diff-analysis-context.md`](prompts/diff-analysis-context.md) | Diff-Scope Boilerplate (nur `+`-Zeilen) | Review-Lenses |
+| [`prompts/review-coordinator.md`](prompts/review-coordinator.md) | Koordinations-Logik Consolidation-Agent | Review-Koordinator |
 
 ## Goals
 

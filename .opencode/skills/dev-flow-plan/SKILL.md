@@ -198,7 +198,7 @@ Der Plan lässt sich annotierbar rendern und im Browser reviewen
 [plan-review-ui](.agents/skills/references/plan-review-ui.md).
 
 **STOPP.** Branch, Spec und Plan sind committed und gepusht. Ticket ist per
-`execution_released=false` vom Factory-Dispatch zurückgehalten, bis `dev-flow-execute` es mit
+`execution_released=false` zurückgehalten, bis `dev-flow-execute` es mit
 `release-hold` freigibt.
 
 ## Fix-Pfad

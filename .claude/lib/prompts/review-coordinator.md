@@ -34,4 +34,4 @@ Your reasonableness filter is the second line of defense.
 Some lenses may be missing (an agent died) — work with what is present.
 
 ---
-*Source: `.claude/lib/prompts/review-coordinator.md` — include in `scripts/factory/review-coordinator.prompt.md` as reference.*
+*Source: `.claude/lib/prompts/review-coordinator.md`*

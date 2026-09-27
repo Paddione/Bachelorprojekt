@@ -1,6 +1,6 @@
 ---
 name: repo-hygiene
-description: 'Use for the state of the repository itself — stale branches and worktrees, open PRs to merge and close, GitHub issue intake, software factory queue status, proactive hygiene recommendations, and scheduling guidance. Triggers on "clean branches", "merge PRs", "prune worktrees", "stale worktrees", "factory queue status", "close resolved tickets", git worktree remove, gh pr merge, "repo health check", "hygiene recommendations", "what should I clean up". Not for the content of tickets — triage, missing information and parallel-work planning belong to ticket-ops.'
+description: 'Use for the state of the repository itself — stale branches and worktrees, open PRs to merge and close, GitHub issue intake, proactive hygiene recommendations, and scheduling guidance. Triggers on "clean branches", "merge PRs", "prune worktrees", "stale worktrees", "close resolved tickets", git worktree remove, gh pr merge, "repo health check", "hygiene recommendations", "what should I clean up". Not for the content of tickets — triage, missing information and parallel-work planning belong to ticket-ops.'
 ---
 
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
@@ -8,7 +8,7 @@ description: 'Use for the state of the repository itself — stale branches and 
 
 # repo-hygiene
 
-Day-to-day repository hygiene, PR merging, issue intake, and Software Factory queue management.
+Day-to-day repository hygiene, PR merging and issue intake.
 
 Der interne Postgres-Tracker `tickets.tickets` ist die SSOT für Issues. DB-Zugriff (MCP-first,
 `psql()`-Helper): [`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md) §mcp-postgres.
@@ -26,7 +26,7 @@ die acht Abschnitte der Reihe nach ausführen:
 2. **Stale Branches** (inkl. squash-`[gone]`-Prune) — §2
 3. **PR-Triage → verknüpftes Ticket schließen** — §3
 4. **GitHub-Issue-Intake** (Dedupe-Guard [T001210]) — §4
-5. **Software-Factory-Queue** (MCP-first via `factory-mcp`) — §5
+5. *(entfallen, T900399)* — §5
 6. **Proactive Hygiene Recommendations** — §6 (nach jedem Lauf: Top-3-Empfehlungen, Aging-Report)
 7. **Scheduling & Trigger Guidance** — §7 (wann und wie oft Hygiene laufen sollte)
 
@@ -43,7 +43,7 @@ Befunde neben den Branch-, Worktree- und Queue-Befunden:
 
 1. **MCP-Prozesse gegen ihre Binaries** — laufende stdio-Server, deren Binary ersetzt wurde
    (Prozess läuft mit der alten Inode, `/proc/<pid>/exe` zeigt `(deleted)` oder weicht im
-   sha256 ab). Schließt automatisch `factory-mcp` ein (T003071).
+   sha256 ab).
 2. **DB-Funktionen gegen ihre Migrationen** — Funktionen, deren `pg_proc.prosrc` den in
    `scripts/one-shot/*.sql` deklarierten `RUNTIME-CHECK`-Marker nicht trägt.
 

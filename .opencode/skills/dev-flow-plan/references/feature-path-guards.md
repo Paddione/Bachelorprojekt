@@ -16,10 +16,9 @@ Vollständige Guard-Liste des Feature-Pfads. Der SKILL.md nennt den Preflight
 - **Disjunkte Partials (D1):** Keine Datei darf in zwei Partials liegen — `scripts/plan-lint.sh`
   erzwingt das. Das letzte Partial ist **immer** die Tests-Rolle und trägt den
   STRUCT2-Failing-Test-Step. Obergrenze 9.
-- **Plan-Mutation:** Sobald ein Partial enqueued ist, darf der Planner es nicht mehr ändern.
-- **Slot-Gating:** `stage-plan --partials N` setzt `slot_count`; die Factory dispatcht nur bis zu
-  dieser Grenze. Ist die Factory schneller als der Planner, pausiert der Dispatcher, bis das nächste
-  Partial enqueued ist.
+- **Plan-Mutation:** Ein gestagter Plan wird nicht still geändert — Änderungen gehen als eigener
+  Commit, danach `stage-plan` erneut.
+- **Slot-Angabe:** `stage-plan --partials N` setzt `slot_count` = Anzahl der Partials im Manifest.
 - **Qualitäts-Gate vor Design-Assets:** Jedes synchronisierte SVG vor dem Ablegen prüfen —
   `currentColor` statt `<img>`-Einbettung, keine Stray-Hex-Werte, kein Root-`width/height`,
   Export-Vollständigkeit. Unpassende Assets werden **verworfen**, nicht mitkopiert (T000756).

@@ -87,14 +87,6 @@
       "order": 7,
       "accent": "#c77dff",
       "blurb_de": "Secrets, Keycloak, Zertifikate."
-    },
-    {
-      "id": "fabrik",
-      "label_de": "Software Factory",
-      "emoji": "🏭",
-      "order": 8,
-      "accent": "#7d6cf0",
-      "blurb_de": "Features (halb-)autonom bauen lassen — von der Übergabe bis zum Deploy."
     }
   ],
   "glossary": [
@@ -145,26 +137,6 @@
     {
       "term": "CI",
       "def_de": "Continuous Integration — automatische Tests bei jedem Pull Request."
-    },
-    {
-      "term": "Software Factory",
-      "def_de": "Eine (halb-)autonome Pipeline, die ein Feature mit mehreren Agenten von der Planung bis zum Deploy selbst baut."
-    },
-    {
-      "term": "Pipeline",
-      "def_de": "Die feste Phasenfolge der Factory: Scout → Design → Plan → Implement → Verify → Deploy."
-    },
-    {
-      "term": "Dispatcher",
-      "def_de": "Der Verteiler, der wartende Tickets aus der Warteschlange holt, auf Konflikte prüft und die Pipeline startet."
-    },
-    {
-      "term": "Dry-Run",
-      "def_de": "Ein Probelauf der Factory bis kurz vor Deploy (args dry_run: true) — ohne Merge und ohne Live-Schaltung, um Fehler vorab zu finden."
-    },
-    {
-      "term": "Scout",
-      "def_de": "Die erste Factory-Phase: erkundet die Codebase, schätzt die Komplexität und findet die betroffenen Dateien."
     }
   ],
   "goals": [

@@ -11,7 +11,6 @@ All harnesses create worktrees at **`.worktrees/<slug>`** (repo-relative), deleg
 | **opencode** | `.worktrees/<slug>` | `worktree_create` tool → `scripts/worktree-create.sh` |
 | **agy** | `.worktrees/<slug>` | Treats opencode path as authoritative — same script, same guards |
 | **Claude Code** | `.claude/worktrees/<branch>` | Built-in `worktree_create` tool (separate path, not delegated) |
-| **factory** | `.worktrees/<slug>` | `scripts/worktree-create.sh` directly |
 
 Config: `.opencode/worktree.jsonc` sets `worktreePath: ".worktrees"`.
 

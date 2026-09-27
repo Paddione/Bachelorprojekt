@@ -33,12 +33,6 @@ Befehlsfolgen: [dev-flow-execute-phases](.agents/skills/references/dev-flow-exec
 
 > **Worktree-Isolation ist Pflicht** [T001363]. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [factory-resume-contract](.agents/skills/references/factory-resume-contract.md).
 
-> **Pipeline-Modus:** Bei `slot_count > 1` hat die Factory bereits begonnen. Erst warten, bis alle
-> N Partials im Branch sichtbar sind, dann implementieren.
-
-> **⚠️ Für `type=task`-Tickets dispatcht die Factory nicht** (`dispatcher-bridge.sh` scheduled nur
-> `type=feature`) — hier immer manuell weiterfahren.
-
 ### Schritt −1.1: Branch-Claim ist branch-scoped (T003102)
 
 Der Pre-Flight-Lock claimt **branch-scoped** — niemals über das Ticket:
@@ -49,8 +43,8 @@ branch-scoped (T003102, T006284).
 
 ## Schritt 1.8: Ticket freigeben (release hold)
 
-Nach `stage-plan --hold` ist `readiness.execution_released=false` gesetzt und die Factory hält das
-Ticket zurück. Ohne Hold ist der Aufruf ein No-op, daher `|| true`. `execution_released=false`
+Nach `stage-plan --hold` ist `readiness.execution_released=false` gesetzt; das Ticket bleibt bis zur
+Freigabe zurückgehalten. Ohne Hold ist der Aufruf ein No-op, daher `|| true`. `execution_released=false`
 bleibt der **Default** [T002327].
 
 ```bash

@@ -23,8 +23,8 @@ Bei mehreren staged plans den User via `AskUserQuestion` (Claude Code) oder `que
 
 ## Schritt −1 bis 0.5 — Pre-Flight, Sync, Worktree-Konsistenz, Rebase
 
-Vor jeder Git-Operation MUSS das Ticket geclaimed werden (verhindert die Race zwischen
-dev-flow-execute und der Factory-Pipeline — Claim VOR dem ersten Factory-Check, [T002038]).
+Vor jeder Git-Operation MUSS das Ticket geclaimed werden (verhindert, dass zwei Sessions
+dasselbe Ticket bearbeiten — Claim VOR der ersten Git-Operation, [T002038]).
 
 **Status-Check vor dem Claim:** Ein bereits abgeschlossenes Ticket abbrechen lassen:
 ```bash
@@ -44,8 +44,7 @@ esac
 **Branch atomic claimen — [T003102] branch-scoped statt ticket-scoped:** ein ticket-scoped
 Lock der auftraggebenden Session blockt den späteren Abschluss durch Subagent/ticket-mcp/
 post-merge (je eigene SID). Der branch-scoped Claim schützt den Worktree, den diese Session
-betritt, und blockt den Status-Schreibpfad nicht; die Factory sieht ihn über die Ticket-ID im
-Branch-Namen (`factory-prep.sh` prüft beide Scopes). Der Status-Check oben ersetzt den
+betritt, und blockt den Status-Schreibpfad nicht. Der Status-Check oben ersetzt den
 atomaren Status-Check von `check-and-claim`.
 ```bash
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
@@ -214,29 +213,9 @@ TICKET_STATUS=$(echo "$TICKET_STRUCT" | jq -r '.status // empty')
 echo "ℹ️  Ticket $TICKET_ID: status=$TICKET_STATUS, slot_count=$SLOT_COUNT"
 ```
 
-- **slot_count > 1:** Pipeline-Modus — die Factory hat bereits mit der Arbeit begonnen (vom Planner enqueued). Warte auf vollständige Partial-Dispatches (siehe Schritt 2.1).
+- **slot_count > 1:** Multi-Partial-Plan — Partials in Manifest-Reihenfolge abarbeiten (siehe Schritt 2.1).
 - **slot_count = 1:** Single-Shot — normale sequentielle Ausführung.
 
-### Schritt 1.4.6: Pipeline-Modus — Auf Partial-Vollständigkeit warten
-
-Wenn `slot_count > 1` und Factory bereits läuft (`status == 'in_progress'`):
-
-```bash
-# Poll-Schleife: warte bis alle N Partials im Branch sichtbar sind
-for wait_min in $(seq 1 30); do
-  git fetch origin "$(git branch --show-current)"
-  PLAN_COUNT=$(grep -c '^| p[0-9]' "$PLAN_FILE" 2>/dev/null || echo 0)
-  if [ "$PLAN_COUNT" -ge "$SLOT_COUNT" ]; then
-    echo "✅ Alle $SLOT_COUNT Partials sind im Branch sichtbar."
-    break
-  fi
-  echo "⏳ Warte auf Partial $PLAN_COUNT/$SLOT_COUNT ..."
-  git pull --rebase origin "$(git branch --show-current)"
-  sleep 30
-done
-```
-
-Dann normal rebasen und alle Partials implementieren.
 
 ### Schritt 1.4.7: Auto-Merge-Zustand prüfen
 

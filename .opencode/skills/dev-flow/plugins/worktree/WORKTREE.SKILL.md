@@ -4,7 +4,7 @@ Worktree management for OpenCode git isolation and temporary workspace creation.
 
 ## Canonical path
 
-All harnesses (opencode, agy, factory) create worktrees at **`.worktrees/<slug>`** via `scripts/worktree-create.sh`. Config: `.opencode/worktree.jsonc` (`worktreePath: ".worktrees"`).
+All harnesses (opencode, agy) create worktrees at **`.worktrees/<slug>`** via `scripts/worktree-create.sh`. Config: `.opencode/worktree.jsonc` (`worktreePath: ".worktrees"`).
 
 ## Purpose
 

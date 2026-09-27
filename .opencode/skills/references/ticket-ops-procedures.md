@@ -1,7 +1,7 @@
 # ticket-ops — Prozeduren
 
 Referenz zu [`ticket-ops`](../ticket-ops/SKILL.md). Der Skill-Body führt den Phasen-Ablauf und
-alle Invarianten (Enum-Werte, DoR-vs-Factory-Gate, Escalation-Cap, Approval-Gate); hier stehen
+alle Invarianten (Enum-Werte, DoR-vs-Ausführungs-Gate, Escalation-Cap, Approval-Gate); hier stehen
 die ausformulierten Schritte, Queries und Rubriken.
 
 ---
@@ -440,7 +440,6 @@ All subagents report back with: ticket_id, decisions made, branch created, plan 
 │ Total offen: 23  │  Ready (Triage done): 14  │  Blocked (deps): 5    │
 │ Batch-Gruppen: 2 (deckt 6 Tickets ab)  │  Quick Wins: 4             │
 │ Offene PRs: 3 (1 mergeable, 1 CI-failing, 1 in review)              │
-│ Factory-Queue: 2 wartend, 1 aktiv                                    │
 └──────────────────────────────────────────────────────────────────────┘
 
 WELLE 1  (parallel · keine offenen Abh. · 3 Einheiten)

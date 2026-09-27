@@ -299,7 +299,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "reviewer": {
-      "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
+      "description": "Reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
       "model": "llamacpp-local/Muse-Glimmer-30B",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -381,7 +381,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: Muse Glimmer 30B on the RTX 5070 Ti via llama.cpp :1919 (131k served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation (exe-muse on the Go rail, then helper-go/helper, pro/pro-direct, flash/flash-direct). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: Muse Glimmer 30B on the RTX 5070 Ti via llama.cpp :1919 (131k served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation (exe-muse on the Go rail, then helper-go/helper, pro/pro-direct, flash/flash-direct). Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "llamacpp-local/Muse-Glimmer-30B",
       "prompt": "{file:./prompts/orchestrator.md}",
@@ -401,7 +401,7 @@
           "deepseek-pro-direct": "allow",
           "deepseek-flash": "allow",
           "deepseek-flash-direct": "allow",
-          // T900074-p2: factory reviewer role must be dispatchable.
+          // T900074-p2: reviewer role must be dispatchable.
           "reviewer": "allow"
         }
       }

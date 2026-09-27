@@ -212,17 +212,6 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 > Skript-Aufruf für diese beiden Tools der Normalfall und der MCP-Call die Ausnahme. Aus dem
 > Haupt-Checkout heraus funktionieren beide MCP-Tools regulär.
 
-## `factory-mcp` / `factory-mcp-node` — Software-Factory (HTTP, Daemon erforderlich)
-
-> **ENTFALLEN mit T900399.** Der Daemon `factory-mcp-node` (`:13003`) ist mit der
-> Software-Factory abgeschaltet; die Registry `docs/agent-guide/registry/mcp.yaml`
-> fuehrt ihn nicht mehr, `task mcp:check` bestaetigt das fuer alle Harness-Konfigurationen.
-> **Offene-Ähnlichkeitssuche** hat jetzt `openspec_find_similar` (siehe unten);
-> **Backlog-/Queue-Status** laeuft ueber `mcp-postgres_query` bzw. `psql` gegen
-> `tickets.tickets WHERE status IN ('backlog','plan_staged')`. Es gibt keinen
-> Tick-Mechanismus mehr — ein Ticket startet ueber `task factory:enqueue` nicht mehr,
-> sondern manuell per `node-factory`-freiem dev-flow (siehe `dev-flow-plan`).
-
 ## `mcp-task-runner` — go-task-Ausführung + OTel
 
 - **Transport:** lokales Binary (`mcp-task-runner`), OTel-Endpoint `localhost:4317`.

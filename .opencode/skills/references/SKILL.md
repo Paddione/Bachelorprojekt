@@ -26,7 +26,7 @@ auf die passende Datei (nicht den ganzen Hub laden, nicht die Inhalte dupliziere
 | gh-axi | [`gh-axi.md`](gh-axi.md) | GitHub-CLI-Wrapper — bevorzugt statt `gh` für read/view-Flows |
 | Verifikationsblock | [`verification-block.md`](verification-block.md) | Lokale CI-äquivalente Verifikation: die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste |
 | Session-Koordination | [`session-coordination.md`](session-coordination.md) | agent-lock-Lebenszyklus: reap/claim/release, Registry-Overlap, agent-msg |
-| Repo-Hygiene-Mechanik | [`repo-hygiene-ops.md`](repo-hygiene-ops.md) | Stale Worktrees/Branches, Arbeitsbaum/Stashes, PR-Triage→Ticket-Close, Issue-Intake, Factory-Queue |
+| Repo-Hygiene-Mechanik | [`repo-hygiene-ops.md`](repo-hygiene-ops.md) | Stale Worktrees/Branches, Arbeitsbaum/Stashes, PR-Triage→Ticket-Close, Issue-Intake |
 | CI-Fix-Schleife | [`ci-fix-loop.md`](ci-fix-loop.md) | PR-CI überwachen und fixen: devflow-ci-watch, Required Checks, Fix-Routine |
 | Lifecycle-Vertrag | [`dev-flow-lifecycle.md`](dev-flow-lifecycle.md) | Übergangs-SSOT der vier dev-flow-Skills — Rollen und Übergabezustände |
 | dev-flow-plan Phasen | [`dev-flow-plan-phases.md`](dev-flow-plan-phases.md) | Schrittfolge, Decompose-/Fan-out-Mechanik und Kontext-Injektion für Plan-Subagenten |

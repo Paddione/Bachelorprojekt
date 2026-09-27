@@ -122,7 +122,7 @@ und ueberlebt Sessionwechsel, Worktrees und Neustarts.
 | Weg | Ausloeser | Ergebnis |
 |---|---|---|
 | Schwelle | `report_mishap` ab **10** Eintraegen | Eintraege protokolliert und verworfen, Buffer geleert |
-| Alters-Schnitt | Factory-Tick ruft `ticket-mcp-go --flush-stale-mishaps` | dito, sobald der aelteste Eintrag ≥ 7 Tage alt ist |
+| Alters-Schnitt | manuell `ticket-mcp-go --flush-stale-mishaps` (automatischer Aufruf entfiel mit T900399) | dito, sobald der aelteste Eintrag ≥ 7 Tage alt ist |
 
 **Der Weg, auf dem ein Mishap erhalten bleibt, ist der Ticket-Kommentar** — nicht der Buffer:
 

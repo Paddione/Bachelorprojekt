@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "spill_threshold_mib": 15900,
+  "gpu_uuids": {},
+  "production_services": [],
+  "models": [
+    {
+      "id": "qwen38-27b",
+      "label": "Fixture: produziert nichts, zeigt auf den Fake-Server",
+      "engine": "api",
+      "gpu": "remote",
+      "port": null,
+      "capabilities": ["tools"],
+      "max_context": 65536,
+      "enabled": false,
+      "endpoint_env": "AGENT_BENCH_TEACHER_URL"
+    },
+    {
+      "id": "qwen35-4b",
+      "label": "Fixture: produziert nichts, zeigt auf den Fake-Server",
+      "engine": "api",
+      "gpu": "remote",
+      "port": null,
+      "capabilities": ["tools"],
+      "max_context": 32768,
+      "enabled": false,
+      "endpoint_env": "AGENT_BENCH_TEACHER_URL"
+    },
+    {
+      "id": "gemma4-12b-nvfp4",
+      "label": "Fixture: einziges Modell mit Vision",
+      "engine": "api",
+      "gpu": "remote",
+      "port": null,
+      "capabilities": ["tools", "vision"],
+      "max_context": 65536,
+      "enabled": false,
+      "endpoint_env": "AGENT_BENCH_TEACHER_URL"
+    }
+  ]
+}

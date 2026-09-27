@@ -7,8 +7,8 @@
     "budget_cap": 30
   },
   "roles": {
-    "planner": { "clarify_miss_error": 1, "file_precision_detour": 1 },
-    "orchestrator": { "accepted_faulty_result_error": 2, "self_exec_detour": 1 },
+    "planner": { "clarify_miss_error": 1, "file_precision_detour": 1, "invalid_manifest_error": 1 },
+    "orchestrator": { "accepted_faulty_result_error": 2, "self_exec_detour": 1, "redelegate_without_cause_detour": 1 },
     "code-worker": { "red_test_run_detour": 0.5, "out_of_scope_file_detour": 1 },
     "vision-worker": { "hallucinated_element_error": 2 },
     "reviewer": {

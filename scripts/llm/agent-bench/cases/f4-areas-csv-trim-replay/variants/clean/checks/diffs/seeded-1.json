@@ -1,7 +1,0 @@
-{
-  "file": "tests/spec/ticket-system/areas-csv-trim.bats",
-  "line": 96,
-  "defect": "Halbe Reparatur: CTX ist auf ${TICKET_CTX:-fleet} angeglichen, aber es fehlt der Anker-Test 'T900250: teardown actually deletes the testrow from the DB ticket.sh wrote to'. Damit ist der Teardown-Erfolg weiterhin unbelegt — die naechste Umbenennung von TICKET_CTX wuerde denselben Defekt wieder durchwinken.",
-  "insert_before": "@test \"T900250: teardown actually deletes the testrow from the DB ticket.sh wrote to\"",
-  "expected_marker": "Anker-Test folgt (in dieser Fassung noch nicht ergaenzt)"
-}

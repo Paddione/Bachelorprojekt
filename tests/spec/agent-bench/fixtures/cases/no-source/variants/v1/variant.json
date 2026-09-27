@@ -1,0 +1,1 @@
+{"budget": {"tokens": 1000, "turns": 2}, "budget_source": "Fixture", "expected_decision": "execute", "perspective": "clean", "roles": ["code-worker"]}

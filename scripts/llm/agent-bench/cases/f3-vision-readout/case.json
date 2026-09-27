@@ -1,7 +1,0 @@
-{
-  "id": "f3-vision-readout",
-  "title": "Vision-Readout aus Fixture-Seite und Cluster-Diagramm",
-  "split": "train",
-  "source_ref": "ticket:T900561 case:f3-vision-readout source:offline-fixture",
-  "notes": "Reine Lese-Aufgabe: keine echten Personendaten, keine Cluster-Verbindung."
-}

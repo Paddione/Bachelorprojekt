@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.384.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.383.0...website-v1.384.0) (2026-09-27)
+
+
+### Features
+
+* **infra:** add Langfuse agent tracing [T900688] ([#6075](https://github.com/Paddione/Bachelorprojekt/issues/6075)) ([1c14d30](https://github.com/Paddione/Bachelorprojekt/commit/1c14d301a4cfd9c5b426f7ead6f84c95c1bdf19d))
+
 ## [1.383.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.382.0...website-v1.383.0) (2026-09-27)
 
 

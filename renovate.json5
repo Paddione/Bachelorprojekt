@@ -51,8 +51,8 @@
     // Reproduce the scan with:
     //   git ls-files -z | xargs -0 grep -lIP '[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2064}\x{FEFF}\x{00AD}]'
     "docs/legacy-html/systembrett.html",
-    "environments/korczewski/KERN Logo Design.html",
-    "environments/mentolder/ui_kits/website/index.html",
+    "assets/brands/korczewski/KERN Logo Design.html",
+    "assets/brands/mentolder/ui_kits/website/index.html",
     "k3d/docs-content-built/2026-07-09-index-and-nplus1-audit.html",
     "k3d/docs-content-built/systembrett.html",
     "openspec/changes/archive/2026-06-21-coaching-studio/assets/new/coaching_studio/Praesentation.html"

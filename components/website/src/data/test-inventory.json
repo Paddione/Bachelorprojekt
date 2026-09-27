@@ -4524,6 +4524,12 @@
     "kind": "shell"
   },
   {
+    "id": "neovim-dashboard",
+    "file": "tests/spec/neovim-dashboard.bats",
+    "category": "neovim-dashboard",
+    "kind": "shell"
+  },
+  {
     "id": "newsletter-system",
     "file": "tests/spec/newsletter-system.bats",
     "category": "newsletter-system",

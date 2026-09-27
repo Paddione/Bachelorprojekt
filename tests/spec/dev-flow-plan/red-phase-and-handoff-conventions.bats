@@ -24,12 +24,15 @@ setup() {
   [ "$output" -ge 1 ]
 }
 
-@test "T002829: Prior-Art-Suche ueber openspec/specs vor der Architekturfrage ist dokumentiert" {
+@test "T002829: Prior-Art-Suche ueber ADRs und Guards vor der Architekturfrage ist dokumentiert" {
   run grep -F 'T002829' "$SKILL"
   [ "$status" -eq 0 ]
-  # Der Kern der Ableitung: gesucht wird ueber die Requirements, nicht nur ueber den Code.
+  # Der Kern der Ableitung: gesucht wird ueber die Entscheidungen, nicht nur ueber den Code.
   echo "$output" | grep -qiF 'architekturfrage'
-  grep -qF 'openspec/specs/' "$SKILL"
+  # C7a-1b (T900560, Fix T900685): die Suche geht ueber ADRs und Guards —
+  # openspec/specs/ nimmt keine neuen Entscheidungen mehr auf.
+  grep -qF 'docs/adr/' "$SKILL"
+  grep -qF 'tests/spec/' "$SKILL"
 }
 
 @test "T002829: die Prior-Art-Suche steht VOR den Pfad-Abschnitten, nicht am Dateiende" {

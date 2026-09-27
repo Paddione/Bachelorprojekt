@@ -6,64 +6,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Interaction Contract
 
-Wie Agenten mit dir kommunizieren — Autonomiegrenze, die vier Stop-Trigger, die Form von
-Entscheidungsfragen und der Status-Footer — steht vollständig in
-[`AGENTS.md` → „Interaction Contract"](AGENTS.md). Das ist der harness-übergreifende SSOT;
-hier wird er nicht gespiegelt.
+Wie Agenten kommunizieren — Autonomiegrenze, die vier Stop-Trigger, Entscheidungsfragen und Status-Footer — steht vollständig in [`AGENTS.md` → „Interaction Contract"](AGENTS.md). Harness-übergreifender SSOT, hier nicht gespiegelt.
 
 ## Agent Routing
 
-Before responding to any request, check these signals and delegate to the named agent. The signal lists below mirror the routing table in [`AGENTS.md`](AGENTS.md) (the single source of truth matching each agent's frontmatter in `.agents/agents/<name>.md`).
+Before responding to any request, check these signals and delegate to the named agent. Full signal table + MCP mappings: [`AGENTS.md` → „Agent Routing"](AGENTS.md); agent frontmatter SSOT: `.agents/agents/<name>.md` (symlink to `.claude/agents/`).
 
-> **Subagent layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source (`.agents/agents` is a symlink). **Claude Code only** reads these via native `task` tool dispatch. **opencode** uses `.opencode/agent-models.jsonc` (local runtimes `orchestrator`, `local`, `qwen35-mtp`, plus cloud rails). Full map in `docs/agent-guide/maps/agents-map.md` and [`AGENTS.md`](AGENTS.md).
+| Signals (short) | Agent |
+|---------|-------|
+| website, Astro, Svelte, UI, frontend, mentolder brand | `bachelorprojekt-website` |
+| pod, logs, kubectl, crash, health, GPU, model | `bachelorprojekt-ops` |
+| manifest, kustomize, overlay, Taskfile, deploy, environments | `bachelorprojekt-infra` |
+| test, BATS, Playwright, runner.sh | `bachelorprojekt-test` |
+| database, PostgreSQL, psql, schema, backup, query | `bachelorprojekt-db` |
+| SealedSecret, OIDC, credentials, DSGVO, secret | `bachelorprojekt-security` |
 
-| Signals | Agent | MCP-Primär (Claude Code) |
-|---------|-------|--------------------------|
-| `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
-| `fleet/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
-| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test" | `bachelorprojekt-test` | `ticket-mcp` (Go-Adapter) — Ticket-Reads/Lifecycle; `mcp-postgres` (:13001, devmesh seit T900191, nur mentolder) für Nicht-Ticket-Tabellen |
-| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) — Ticket-Reads → `ticket-mcp` mit `brand` |
-| SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
+> **Subagent layout:** `.claude/agents/bachelorprojekt-*.md` is canonical (`.agents/agents` is a symlink). Claude Code dispatches via the native `task` tool. MCP servers: `mcp-kubernetes` (localhost:18080, Claude-Code-only), `ticket-mcp` + `mcp-postgres` (:13001, devmesh) — reachability SSOT `docs/agent-guide/registry/mcp.yaml`, usage [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
+> **gh-axi (T004612):** Anzeige via Wrapper; `--json`/`-q`/Polling/Mutationen immer `gh` direkt.
 
-> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `.opencode/opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `codebase-memory-mcp`, `context7`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `ticket-mcp-node`, `warden`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
-> **gh-axi (T004612):** Bevorzugt für Anzeige. Für maschinelles Parsen (`--json`, `-q`, `--jq`), Polling (`pr checks`) und Mutationen (`pr merge`, `gh api`) immer `gh` direkt verwenden. Siehe [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
-
-**Before dispatching any agent, inject active plan context & curated toolset:**
-See full execution snippet and fail-closed rules in [`AGENTS.md` → „Agent Routing"](AGENTS.md).
-Cross-cutting requests stay with the main orchestrator, coordinating multiple domain agents in sequence.
+**Before dispatching any agent, inject active plan context & curated toolset** — snippet + fail-closed rules: [`AGENTS.md` → „Agent Routing"](AGENTS.md).
 
 ### Session model & delegation (T002153)
 
-The main loop runs on the **user's default model** (`/model`, currently Opus 5, 1M context). Model tiering:
-- **Domain agents**: `bachelorprojekt-ops/-db/-test/-website` → `sonnet` (mechanical recon, queries, tests, UI); `bachelorprojekt-infra`/`-security` → `opus` (cross-system, risky, irreversible).
-- **Ad-hoc subagents**: explicit model per dispatch. See [`subagent-provisioning.md`](.claude/skills/references/subagent-provisioning.md).
-- **Context Window Budget**: Full condensation and compaction retention rules live in [`AGENTS.md` → „Session Model & Delegation"](AGENTS.md).
+Main loop runs on the user's default model. Tiering: `bachelorprojekt-ops/-db/-test/-website` → `sonnet`; `bachelorprojekt-infra`/`-security` → `opus`. Provisioning: [`.claude/skills/references/subagent-provisioning.md`](.claude/skills/references/subagent-provisioning.md). Compaction rules: [`AGENTS.md` → „Session Model & Delegation"](AGENTS.md).
 
-## Default Workflow & OpenSpec
+## Default Workflow
 
-For any work request, invoke **`dev-flow-plan`**, **`dev-flow-chore`**, or **`dev-flow-execute`**.
-Full workflow definitions, lifecycle steps, and conventions live in [`AGENTS.md` → „Workflow Rules" & „OpenSpec Conventions"](AGENTS.md):
-- **OpenSpec Change Lifecycle**: `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore`.
-- **Delta-Spec-Konvention (T001304)**: Delta files named after parent SSOT slug.
-- **Merge = Abschluss (T001092)**: Ticket closure on auto-merge to `main`.
-- **Deliverable-Check vor manuellem done/shipped (M10, T002506)**: Validation via `git ls-tree -r --name-only origin/main | grep -qxF <pfad>` before setting done.
+For any work request, invoke **`dev-flow-plan`**, **`dev-flow-chore`**, or **`dev-flow-execute`** — definitions in [`AGENTS.md` → „Workflow Rules"](AGENTS.md). Specs live in `openspec/` (`/opsx:propose|apply|archive|explore`); deltas are named after the parent SSOT slug (T001304); Merge = Abschluss (T001092); Deliverable-Check M10/T002506.
 
 ## Project Overview & Architecture
 
-Full architecture, cluster topology, service inventory, and configuration patterns live in [`AGENTS.md` → „Architecture & Cluster Topology"](AGENTS.md).
-
-Summary for Claude sessions:
-- **Workspace MVP**: Kubernetes-based self-hosted platform (Traefik, Pocket ID OIDC, Nextcloud+Talk, Collabora, Vaultwarden, Whiteboard, Brett, Mailpit, DocuSeal, Tracking, Website, Shared PostgreSQL 16 `shared-db`).
-- **Cluster Topology**:
-  - `mentolder` (Brand): Production brand routed to unified **`fleet`** cluster (`workspace` namespace).
-  - `korczewski` (Brand — **FROZEN per T002479**): `flux/clusters/fleet/ks-korczewski.yaml` is `suspend: true`, scaled to 0 replicas. Do not deploy or scale up.
-  - Active contexts: `fleet` (Prod) and `devmesh` (Dev, ADR-008). All other contexts are dead.
-- **Key Components**:
-  - `k3d/`: Base Kubernetes manifests (Kustomize).
-  - Flux CD GitOps pull-based pipeline via OCI artifact (`render-fleet-artifact.yml` → `ghcr.io/paddione/fleet-manifests` → Flux on fleet). `task workspace:deploy ENV=mentolder` is break-glass only.
-  - Overlays: `prod-fleet/mentolder/`, `prod-fleet/korczewski/`, isolated jobs overlays `prod-fleet/*-jobs/` (T002207), staging stack `prod-fleet/staging/` & `prod-fleet/website-staging/` (T015004).
-  - Secrets: Plaintext in `environments/.secrets/<env>.yaml` (git-crypt-tracked) → sealed to `environments/sealed-secrets/<env>.yaml`.
+Full topology: [`AGENTS.md` → „Architecture & Cluster Topology"](AGENTS.md). Short version:
+- **Workspace MVP**: self-hosted k8s collaboration platform (SSO via Pocket ID OIDC, Nextcloud+Talk, Collabora, Vaultwarden, Brett, Website, shared PostgreSQL 16).
+- **Brands**: `mentolder` live on the `fleet` cluster (`workspace` ns); `korczewski` **FROZEN per T002479** (`suspend: true`, 0 replicas — do not deploy).
+- **Contexts**: `fleet` (prod), `devmesh` (dev, ADR-008); all others dead.
+- **Deploy**: pull-based FluxCD (`ghcr.io/paddione/fleet-manifests`); `task workspace:deploy` is break-glass only. Base `k3d/`, overlays `prod-fleet/<brand>/`, config `environments/`.
 
 ## Running Tasks
 
@@ -71,32 +48,26 @@ Never look up or hardcode task commands. Use the task oracle instead:
 ```bash
 bash scripts/vda.sh oracle '<goal in plain English>'
 ```
-For flags (`--dry-run`, `--json`, `--quiet`) and task details, see [`AGENTS.md` → „Core Commands & Task Oracle"](AGENTS.md).
+Flags/details: [`AGENTS.md` → „Core Commands & Task Oracle"](AGENTS.md).
 
 ## CI/CD & Testing Conventions
 
-GitHub Actions runs offline tests, manifest validation, and inventory checks on every PR:
-- **Test- und BATS-Konventionen (tests/CLAUDE.md, T002448-M4)**: Tests pruefen **command output** und Resultate (**output verification**) statt der Implementierungsquelle, und die Zusicherung haengt an der Semantik des Outputs (Exit-Code, Vorhandensein eines Werts), nicht an dessen Darstellung.
-- **Inventory Check**: Re-runs `task test:inventory` and fails if `components/website/src/data/test-inventory.json` differs.
-- **Release Notes**: Generate via `bash scripts/vda.sh release-notes generate` or `task release:notes`.
+`.github/workflows/ci.yml` runs on PRs. Tests verify **command output** + semantics, not source (T002448-M4); inventory check against `test-inventory.json`; release notes via `bash scripts/vda.sh release-notes generate`.
 
 ## Image Exclusions
 
-The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`), Factory-Runner (`factory-runner`), MCP-Node (`mcp-node`), Repo-Sync (`repo-sync`), Dev-Shell (`dev-shell`).
+`:latest` permitted for: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`), Factory-Runner (`factory-runner`), MCP-Node (`mcp-node`), Repo-Sync (`repo-sync`), Dev-Shell (`dev-shell`).
 
 ## Development Rules
 
-1. Only deploy via k3s/Flux with Kustomize (`k3d/` is the base; see [`AGENTS.md`](AGENTS.md)). Prod is deployed pull-based via FluxCD GitOps.
-2. All changes via Pull Requests — no direct pushes to `main`.
-3. Use **squash-and-merge** to keep `main` history clean.
-4. CI must be green before merge.
-5. Validate manifests before committing: `task workspace:validate`.
-6. After modifying Kubernetes manifests, run the relevant test(s): `./tests/runner.sh local <TEST-ID>`.
-7. Branch naming: feature/*, fix/*, chore/*.
+1. Deploy only via k3s/Flux + Kustomize (`k3d/` base); pull-based FluxCD in prod.
+2. All changes via PRs — no direct pushes to `main`; squash-merge; CI green before merge.
+3. Validate manifests: `task workspace:validate`; after manifest changes run `./tests/runner.sh local <TEST-ID>`.
+4. Branches: `feature/*`, `fix/*`, `chore/*`.
 
 ## Gotchas & Footguns
 
-Non-obvious repo behaviors are documented in full in [`AGENTS.md` → „Critical Footguns"](AGENTS.md) and [`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
+Full reference: [`AGENTS.md` → „Critical Footguns"](AGENTS.md) and [`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
 
 ### PowerShell-Skripte (.ps1) [T002495-M7]
 

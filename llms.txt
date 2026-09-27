@@ -1,0 +1,27 @@
+# Bachelorprojekt
+
+Kubernetes-basierte, selbstgehostete Kollaborationsplattform für kleine Teams (Bachelorarbeit).
+Kern: SSO via Pocket ID (OIDC), Nextcloud + Talk, Collabora, Vaultwarden, Brett-Board, Astro/Svelte-Website,
+alles auf einem Shared-PostgreSQL, deployed per FluxCD-GitOps auf den Fleet-Cluster.
+Primäre Agent-Anleitung ist [AGENTS.md](AGENTS.md) (SSOT); diese Datei ist nur der Einstiegsindex.
+
+## Systemarchitektur
+
+- Einstieg & Regeln: [AGENTS.md](AGENTS.md) (SSOT), [CLAUDE.md](CLAUDE.md) (Claude-Harness),
+  [docs/agent-context/](docs/agent-context/) (Persona), [.agents/docs/reorg-phase2/](.agents/docs/reorg-phase2/) (Reorg-Plan)
+- Build-Komponenten: [components/](components/) (website, brett, studio-server, mentolder-web,
+  mediaviewer-widget, VideoVault), [packages/](packages/) (npm-Pakete), [apps/](apps/) (App-Registry)
+- Infra & Deploy: [k3d/](k3d/) (Basis-Manifeste), [prod-fleet/](prod-fleet/) (Overlays),
+  [flux/](flux/) (GitOps), [environments/](environments/) (Config; Brand live: mentolder, korczewski FROZEN)
+- Schnittstellen-Verträge: [assets/schemas/](assets/schemas/) (OpenAPI/JSONSchema),
+  [tests/spec/](tests/spec/) (BATS-Guards), [tests/unit/](tests/unit/), [tests/evals/](tests/evals/) (geplant, C5)
+- Wissen & Entscheidungen: [docs/adr/](docs/adr/) (ADRs), [.agents/skills/](.agents/skills/) (Runbooks),
+  [docs/agent-guide/](docs/agent-guide/) (Registry: `mcp.yaml`, `capabilities.yaml`, `agents.yaml`)
+- Operative Fassade: `Taskfile.yml` + [taskfiles/](taskfiles/) (go-task), Einstieg via Task-Oracle (unten)
+
+## Operative Richtlinien
+
+- Befehle nie raten: `bash scripts/vda.sh oracle '<goal in plain English>'` (Details: AGENTS.md → Core Commands)
+- Workflow: dev-flow-plan → dev-flow-execute (Chores: dev-flow-chore); Branches `feature|fix|chore/*`, PRs + Squash-Merge
+- Verifikation: `task test:changed` + `task freshness:check` + `task workspace:validate`
+- Interaktionsvertrag (Autonomie, Stop-Trigger, Status-Footer): AGENTS.md → Interaction Contract

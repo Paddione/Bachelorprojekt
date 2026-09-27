@@ -75,3 +75,6 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
 - 27.09.26 [T900560] Human-only-Evals-Policy auf Owner-Dekret entfernt (C5b):
   Hook-Block + CI-Token-Check raus, Job-ID `test-evals` behalten (GitLab-
   Mapping keyed by ID), Golden-Descs nachziehen. — Beleg: C5b
+- 27.09.26 [T900560] C8-Konsolidierung: nur `docs/audits/` → `archive/` war
+  frei; `legacy-html/` ist test-gepinnt (autodocs-guard f),
+  `drift-reports/` + `generated/` haben lebende Schreiber. — Beleg: C8

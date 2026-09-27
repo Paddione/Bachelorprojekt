@@ -250,7 +250,7 @@ Baseline-Messung. Pinned Images werden gescannt; `:latest` Images (projekt-eigen
 nicht gescannt (Build-Zeitpunkt variiert).
 
 Erster Scan (2026-07-17): **39 CRITICAL / 706 HIGH** — Details und CVE-Triage
-in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17-trivy-cve-baseline.md).
+in [`docs/archive/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/archive/audits/2026-07-17-trivy-cve-baseline.md).
 
 **Image-Pin-Refresh (2026-07-19, T001949): 39 → 8 CRITICAL (−79 %).** Vier Images gebumpt:
 `alpine/k8s:1.34.0 → 1.36.2` (23→4 CRITICAL — der Baseline-Report ging fälschlich von

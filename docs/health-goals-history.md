@@ -104,7 +104,7 @@ G-BRAIN15 Seed-Template-Lint Exit 0 (Gate) — alle drei in health-goals-check.s
 G-BRAIN14 Ingest-Backlog 17→0 (Prio B, T001912). Messwerte: G-CQ02 9→8, G-CQ05 1→0.
 
 **Baseline-Update 2026-07-17 (T001909 — G-SEC06 erster Trivy-Scan):** G-SEC06 n/a→39 (CRITICAL;
-706 HIGH). Vollständige CVE-Triage in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17-trivy-cve-baseline.md).
+706 HIGH). Vollständige CVE-Triage in [`docs/archive/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/archive/audits/2026-07-17-trivy-cve-baseline.md).
 Alle CRITICAL-Funde fixable, keine False-Positives; Konzentration auf `alpine/k8s:1.34.0`
 (23/39). Bugfix im gleichen Zug: `scripts/trivy-scan.sh` fehlte der `ghcr.io/`-Prefix beim
 pocket-id-Image (Scan schlug für dieses Image still fehl statt zu warnen). Fix der CRITICAL-CVEs

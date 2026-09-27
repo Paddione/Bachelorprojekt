@@ -52,3 +52,12 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
 - 27.09.26 [T900610] `task --list-all` wird unter `FORCE_COLOR=1` (GitHub
   Actions setzt das) bunt — Goldens/Test-Aufrufe brauchen `--color=false`;
   CI-Env lokal per `FORCE_COLOR=1 task …` nachstellen. — Beleg: #6034 CI-Fail
+- 27.09.26 [T900560] AGENTS.md ist 10-fach guard-gepinnt (Contract, Rollen,
+  Runtime-Tabelle, Dispatch, OpenSpec, Advisory ≤160, Recall-Routing, Stale-Refs)
+  + 4 Health-Gates lesen sie — vor Diät alle Pins + Gate-Baseline messen. —
+  Beleg: C1b (3 Gates waren schon rot: G-AGENTIC02/04/07)
+- 27.09.26 [T900560] Volle Spec-Suite nie gegen eine fremde Suite fahren
+  (CPU/gpg-Konkurrenz hängt) — bei gehaltener Suite: Change-Surface per
+  Konsumenten-Sweep abdecken, Rest der CI-Matrix überlassen. — Beleg: C1b
+- 27.09.26 [T900560] `pkill -f` matcht die eigene Shell bei Pfad im
+  Pattern — nie mit Worktree-Pfad als Pattern killen. — Beleg: C1b

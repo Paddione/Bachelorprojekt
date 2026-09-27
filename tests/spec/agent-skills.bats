@@ -214,16 +214,19 @@ _registry_keys() { # $1 = roles|runtimes
   [ "$fail" -eq 0 ]
 }
 
-@test "T002305: AGENTS.md runtime table covers every registry runtime" {
+@test "T002305: registry runtimes.md covers every registry runtime [T900560-C1b]" {
+  # C1b-Umbau: die Runtime-Tabelle zog von AGENTS.md nach
+  # docs/agent-guide/registry/runtimes.md (AGENTS-Diät ≤160). Assertion
+  # unverändert — nur der kanonische Ort wanderte mit.
   local runtimes; runtimes="$(_registry_keys runtimes)"
   [ -n "$runtimes" ]
   # Geprueft wird die Tabellenzeile (| `name` | …), nicht blosses Vorkommen im Fliesstext —
   # 'orchestrator' stand bereits in der Ueberschrift, fehlte aber in der Tabelle.
   local rows r fail=0
-  rows="$(grep -oE '^\| `[a-z0-9-]+`' "$REPO/AGENTS.md" | tr -d '|` ')"
+  rows="$(grep -oE '^\| `[a-z0-9-]+`' "$REPO/docs/agent-guide/registry/runtimes.md" | tr -d '|` ')"
   while read -r r; do
     [ -z "$r" ] && continue
-    grep -qxF -- "$r" <<< "$rows" || { echo "AGENTS.md Runtime-Tabelle fehlt: $r"; fail=1; }
+    grep -qxF -- "$r" <<< "$rows" || { echo "runtimes.md Runtime-Tabelle fehlt: $r"; fail=1; }
   done <<< "$runtimes"
   [ "$fail" -eq 0 ]
 }

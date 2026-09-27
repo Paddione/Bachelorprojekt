@@ -786,6 +786,16 @@ tasks:
         echo "Video recorded in: tests/e2e/test-results/**/video.webm"
         echo "HTML report:        tests/e2e/playwright-report/index.html"
 
+  test:evals:
+    desc: "Run human-owned agent evals (tests/evals/, offline). Agents may run, never edit — see tests/evals/README.md."
+    cmds:
+      - tests/unit/lib/bats-core/bin/bats tests/evals/*.bats
+
+  test:evals:update:
+    desc: "Regenerate tests/evals/golden/task-list-all.txt (human-only, needs [evals-override] in PR)."
+    cmds:
+      - task --list-all > tests/evals/golden/task-list-all.txt
+
   test:inventory:
     desc: Regenerate components/website/src/data/test-inventory.json (requirement → test mapping)
     cmds:

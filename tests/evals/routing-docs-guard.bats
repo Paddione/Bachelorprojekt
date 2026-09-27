@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# tests/spec/routing-docs-guard.bats
+# tests/evals/routing-docs-guard.bats (moved from tests/spec/ — human-owned eval [T900560-C5])
 # SSOT: openspec/changes/agent-routing-docs/specs/agent-skills.md
 # Ticket: T900453 — Change agent-routing-docs (6/6): Routing-Seite plus Sweep.
 # Block (a): Seite plus Szenario-Anker; (b): Oberflaechen-Referenzen;

@@ -1,0 +1,441 @@
+task: Available tasks for this project:
+* clean:                                        Prune local Docker images and volumes
+* health:                                       Cross-cluster health check (status + connectivity + deployment verification)
+* shell:                                        Open a debug shell in the cluster
+* a11y:axe:                                     axe-core a11y-Scan der Kern-Routen gegen ENV=mentolder|korczewski (G-FE01, T001361)
+* agent-guide:docs:                             Regenerate docs/agent-guide/{10-ziele,20-werkzeuge,30-bausteine}.md from the registry
+* agent-guide:emit:                             Umbrella: regenerate all agent-guide surfaces (docs + webapp + maps + platform-descriptions)
+* agent-guide:maps:                             Regenerate docs/agent-guide/maps/{goals,tools,danger,agents}-map.md from the registry
+* agent-guide:platform-descriptions:            Regenerate components/website/src/lib/platform-descriptions.generated.json from the components registry
+* agent-guide:webapp:                           S2: regenerate components/website/src/lib/agent-guide.generated.json from the registry
+* agent:orchestrator:                           T001588: local agent orchestration (start/stop/status/submit) via worktrees — see scripts/agent-orchestrator.sh --help
+* agents:mcp-cors-proxy:install:                Install mcp-cors-proxy as a persistent systemd USER service (autostart + Restart=always).
+* agents:mcp-cors-proxy:service-status:         Show the mcp-cors-proxy systemd service state + recent journal tail.
+* agents:mcp-cors-proxy:status:                 Health-check mcp-cors-proxy (:18082 preflight + initialize)
+* agents:mcp-cors-proxy:uninstall:              Stop + disable the mcp-cors-proxy systemd service and remove the symlinked unit.
+* agents:mcp-gateway-watchdog:install:          Install the mcp-gateway Tunnel-Liveness Watchdog (systemd timer + oneshot service).
+* agents:mcp-gateway-watchdog:uninstall:        Stop + disable the mcp-gateway-watchdog timer and service, remove symlinked units.
+* agents:mcp-gateway:install:                   Install mcp-gateway + devmesh-forward as persistent systemd USER services (autostart + Restart=always)
+* agents:mcp-gateway:service-status:            Show mcp-gateway + devmesh-forward systemd service state + recent journal tail.
+* agents:mcp-gateway:start:                     Start the mcp-gateway (fleet) + devmesh-forward kubectl port-forwards in the background (PID files)
+* agents:mcp-gateway:status:                    Health-check mcp-kubernetes (:18080, fleet), mcp-postgres (:13001) and bge-mcp (:13005, devmesh)
+* agents:mcp-gateway:stop:                      Stop both mcp-gateway kubectl port-forwards (fleet + devmesh)
+* agents:mcp-gateway:uninstall:                 Stop + disable mcp-gateway and devmesh-forward systemd services and remove symlinked units.
+* agents:mcp:install:                           Install all daemon-backed MCP servers as systemd USER services (Linux with systemd --user)
+* agents:mcp:service-status:                    Show systemd service state for all MCP daemons (Linux only)
+* agents:mcp:start:                             Start fleet + devmesh port-forwards (no systemd) — not together with start-windows.ps1
+* agents:mcp:status:                            Health-check all MCP endpoints (mcp-kubernetes, mcp-postgres, bge-mcp)
+* agents:mcp:stop:                              Stop all daemon-backed MCP servers
+* agents:mcp:uninstall:                         Uninstall all daemon-backed MCP servers from systemd --user
+* agents:plugins:check:                         T002651: Plugin-Aktivierung gegen Installation prüfen (scripts/plugin-doctor.sh)
+* agents:plugins:sync:                          T900056: Vom plugin-doctor-Befund zur Installation -- fehlende, im Repo aktivierte Plugins nachinstallieren
+* agents:stack:install:                         Install every daemon-backed MCP server (mcp-gateway, mcp-cors-proxy) as persistent systemd services
+* agents:stack:status:                          Status overview of every configured MCP server (daemons + stdio presence check)
+* agents:stack:uninstall:                       Uninstall every daemon-backed MCP server's systemd service
+* agents:stdio:status:                          Check that the stdio-transport MCP binaries (client-spawned, no daemon) are present and executable
+* agents:toolset:check:                         Run toolset capability gate (fail-closed, offline)
+* agents:toolset:collect:                       Collect toolset inventory across all harnesses
+* agents:toolset:context:                       Render the curated toolset block for an agent role (ROLE=bachelorprojekt-db)
+* agents:toolset:map:                           Regenerate the human-readable toolset map from the registry
+* agents:toolset:probe:                         Probe live MCP servers and update lockfile
+* agents:toolset:sync:                          Surgically sync toolset registry into harness configs
+* agents:vendor:check:                          Integrationsvertrag der Vendor-Skills/-Plugins prüfen (Referenzen, Konfliktmarker, Pins)
+* agents:vendor:status:                         Vendor-Skills/-Plugins: gelockter Stand vs. neueste Upstream-Release (schreibt nichts)
+* agents:vendor:update:                         Vendor-Skills/-Plugins auf neueste Release heben (3-Wege-Merge, lokale Patches bleiben)
+* agy:sync:                                     Mirror .claude/agents and .claude/skills into .gemini/ for the agy CLI / Antigravity IDE (per-worktree; .gemini/* is gitignored)
+* api:inventory:                                Regenerate components/website/src/data/api-inventory.json (SDLC API/connector inventory)
+* app:install:                                  Install a curated catalog app (ENV=dev|mentolder|korczewski). Usage: task app:install -- <app-name> [--dry-run]
+* app:validate:                                 Validate an app manifest against the schema. Usage: task app:validate -- <app-name>
+* assets:index:                                 Index root /assets into assets.registry in the database (ENV=mentolder|korczewski)
+* assets:learning:                              Regenerate components/website/src/lib/learning-assets.generated.json from the SSOT manifest
+* assets:sync:                                  Sync root /assets to service public/ directories (run before website:build or brett:build)
+* billing:validate-einvoice:                    Validate XML/PDF e-invoice(s) via Mustangproject. With no args, validates every fixture in components/website/test/fixtures/einvoice/. Pass `-- <file>` for a single file.
+* brain:brain:chunk:                            Run the section-aware chunker (T002679)
+* brain:chunk:                                  Zerlege eine Quelldatei an Abschnittsgrenzen in Chunks (TSV-Manifest auf stdout)
+* brain:eval:                                   Run deterministic offline Brain retrieval evaluation (report-only)
+* brainstorm:collab:                            [brainstorm] Apply the collab patch, then publish a local port + print the SSO link for gekko. Usage: task brainstorm:collab -- <localport>
+* brainstorm:firewall:open:                     [brainstorm] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules for tcp/2222 on $DEV_NODE (delegates to dev:firewall:open)
+* brainstorm:publish:                           [brainstorm] Publish a local port at https://brainstorm.${DEV_DOMAIN}. Usage: task brainstorm:publish -- <localport>
+* brainstorm:push:                              [brainstorm] Push a dev-flow status screen to the live board. Usage: task brainstorm:push TITLE='Schritt 1' STATUS='läuft…' (requires active session under $HOME/Bachelorprojekt/.superpowers/brainstorm/)
+* brainstorm:setup:                             [brainstorm] One-time setup: apply DEV_SSH_ALLOWLIST ufw rules on the dev node
+* brainstorm:status:                            [brainstorm] Show dev sish pod status and probe the public Ingress
+* brett:bot-setup:                              Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)
+* brett:build:                                  Build brett image locally
+* brett:deploy:                                 Push and roll out brett (ENV=mentolder|korczewski); ENV=dev aborts — see error message
+* brett:deploy:all-prods:                       Build, push, and roll brett on mentolder + korczewski
+* brett:logs:                                   Tail brett logs (ENV=dev|mentolder|korczewski)
+* brett:push:                                   Build and push brett image to ghcr.io (for production)
+* brett:sync:                                   Fast-sync brett source to the running pod and restart (ENV=dev|mentolder|...)
+* cert:install:                                 Install cert-manager + lego DNS-01 webhook for wildcard certs (ENV=dev|mentolder|korczewski selects cluster context)
+* cert:secret:                                  Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml). ENV=dev|mentolder|korczewski selects target cluster + workspace ns.
+* cert:status:                                  Show wildcard certificate and ClusterIssuer status (ENV=dev|mentolder|korczewski)
+* ci:local:                                     Run all CI steps locally (mirrors .github/workflows/ci.yml offline-tests job). Flags: FAST=1 (only test:all + quality:check, ~3s), SKIP_NETWORK=1 (skip api-auth + freshness:check). 
+* cicd:kubeconfig:                              Generate a minimal kubeconfig for the cicd-deploy ServiceAccount (delegates to scripts/cicd-kubeconfig-gen.sh)
+* clusters:status:                              Show status of both brands on the unified fleet cluster (mentolder + korczewski)
+* coaching:batch-ingest:                        Batch-ingest a directory of coaching PDFs/DOCs — Usage: task coaching:batch-ingest -- <dir> <kurs-slug> [--dry-run] [--yes] [--classify]
+* coaching:classify:                            Run AI classifier over UNCLASSIFIED chunks of a coaching book. Args: -- --slug=<slug> | --all
+* coaching:ingest:                              Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]
+* coaching:ingest-json:                         Ingest a pre-chunked JSON file into a knowledge collection. Args: -- <file.json> <slug> [--brand=mentolder|korczewski]
+* cockpit:daemon:                               Start the SDLC Cockpit daemon in the background and wait until it answers (PORT= to override)
+* cockpit:dev:                                  Serve SDLC Cockpit static files locally (http://localhost:8765)
+* codebase:index:                               Vollständiger codebase-memory-mcp Graph-Index (full, persistiertes Artefakt in .codebase-memory/)
+* codebase:refresh:                             Schnell-Refresh des codebase-memory Graph-Index (fast, kein Similarity-Embedding)
+* config:show:                                  Show resolved config for an environment (usage: task config:show ENV=mentolder)
+* content:export:                               Export site content (DB → components/website/content/<brand>/*.json) for the bundle (T001490)
+* context:retrieve:                             S1-Retrieval (T002658): budgetierter Kontextblock aus Pinned-Set + Vektor-Retrieval. Usage: task context:retrieve -- --task-prompt '…' --role bachelorprojekt-<x> [--budget N] [--limit N] [--corpora a,b]
+* context:retrieve:explain:                     S1-Retrieval mit Diagnose-JSON (Scores, Kandidatenzahl, Token-Bilanz, mode). Usage: task context:retrieve:explain -- --task-prompt '…' --role bachelorprojekt-<x> [--budget N] [--limit N]
+* coredns:scale:                                Scale CoreDNS to 2 replicas + topology spread + PDB (ENV=dev|mentolder|korczewski). Re-run after k3s upgrades (k3s reverts its addon).
+* datamodel:build:                              Regenerate /tmp/datamodel-workflow.md from shared-db + workflow-map.yaml
+* db:cleanup-test-inbox:                        Delete all is_test_data=true rows from inbox_items (one-time prod cleanup)
+* db:diagram:                                   Regenerate docs/db-schema-diagram.md from live shared-db
+* db:migrate:                                   Run migrations/*.sql against the target DB (idempotent). ENV=dev|mentolder|korczewski.
+* design:check-sync:                            Check if design tokens in design/leitstand-ds/_tokens.css are in sync with components/website/src/styles/sdlc-leitstand.css
+* design:leitstand-ds-sync:                     Regenerate design/leitstand-ds artifacts (tokens verbatim copy, glyph assets, card assembly)
+* dev-korczewski:db:refresh:                    [dev] Restore latest prod snapshot into shared-db-dev (drops + recreates DBs)
+* dev-korczewski:firewall:open:                 [dev] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules on $DEV_NODE
+* dev-korczewski:logs:                          [dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)
+* dev-korczewski:psql:                          [dev] Open psql shell to shared-db-dev
+* dev-korczewski:redeploy:brett:                [dev] Roll brett deployment (requires CI-built :dev image)
+* dev-korczewski:redeploy:website:              [dev] Roll website deployment (requires CI-built :dev image)
+* dev-korczewski:secrets:                       [dev] Materialise plaintext secrets from environments/.secrets/korczewski.yaml into workspace-korczewski-dev
+* dev-korczewski:tunnel:                        [dev] ssh -R wrapper. Usage: task dev:tunnel -- <name> <localport>
+* dev:bootstrap:                                Install harness configs + inject secrets from SSOT (environments/.secrets/dev-tools.yaml)
+* dev:db:refresh:                               [dev] Restore latest prod snapshot into shared-db-dev (drops + recreates DBs)
+* dev:firewall:open:                            [dev] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules on $DEV_NODE
+* dev:logs:                                     [dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)
+* dev:psql:                                     [dev] Open psql shell to shared-db-dev
+* dev:redeploy:brett:                           [dev] Roll brett deployment (requires CI-built :dev image)
+* dev:redeploy:website:                         [dev] Roll website deployment (requires CI-built :dev image)
+* dev:secrets:                                  [dev] Materialise plaintext secrets from environments/.secrets/mentolder.yaml into workspace-dev
+* dev:setup-signing:                            Configure local commit/tag signing (SSH key, G-SEC05 gate) — one-time per developer checkout
+* dev:tunnel:                                   [dev] ssh -R wrapper. Usage: task dev:tunnel -- <name> <localport>
+* devmesh:acceptance:                           Abnahme-Gate vor dem k3d-Abbau: Health, migration comparison, fresh dump [T900145]
+* devmesh:backup:run:                           shared-db-Backup auf devmesh sofort ausloesen (CronJob shared-db-backup) [T900118]
+* devmesh:deploy:                               devmesh-Stack aus der Arbeitskopie deployen (PROFILE=core|full, Default DEVMESH_PROFILE) [T900118]
+* devmesh:install:                              devmesh: k3s auf HOST in seiner Inventar-Rolle installieren (DRY_RUN=1 zeigt nur den Befehl)
+* devmesh:k3d:teardown:                         Operator-only: decommission the former k3d development cluster [T900145]
+* devmesh:kubeconfig:                           devmesh: Admin-Kubeconfig als Context devmesh mergen (SERVER=<name>, Default: server-init)
+* devmesh:migrate:                              pocket_id + website aus devmesh nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]
+* devmesh:preflight:                            devmesh: Host vor der k3s-Installation pruefen (HOST=<name aus devmesh/inventory.yaml>; Exit 1 = Befund, 2 = Vorbedingung)
+* devmesh:registry:migrate:                     devmesh: llm-proxy-Registry seeden und mcp_readonly-Passwort setzen [T900191]
+* devmesh:status:                               devmesh: Knoten, etcd-Mitglieder und juengsten etcd-Snapshot melden (Exit != 0 ab 12h Snapshot-Alter)
+* devmesh:tailnet:check:                        devmesh: jeden Inventar-Server per tailscale ping pruefen und direct/relay melden (Exit 1 = Server unerreichbar, 2 = Vorbedingung fehlt)
+* docs:refresh-diagrams:                        Regenerate all auto-generated diagrams (DB schema, …)
+* dsh:dsh:build:                                Build deepseek-harness (pnpm install + build)
+* dsh:dsh:doctor:                               Check DSH prerequisites (clone, build, CLI)
+* dsh:dsh:web:                                  Start the DSH Web UI on port 3080
+* einvoice-sidecar:build:                       Build the einvoice-sidecar Docker image
+* einvoice-sidecar:logs:                        Tail einvoice-sidecar logs (ENV=dev|mentolder|korczewski)
+* einvoice-sidecar:push:                        Build and push einvoice-sidecar image to ghcr.io
+* env:fetch-cert:                               Fetch the sealing certificate from a cluster
+* env:generate:                                 Generate secrets for an environment from schema
+* env:init:                                     Create a new environment file from schema template
+* env:seal:                                     Encrypt secrets into a SealedSecret manifest. NOTE: rotates workspace-secrets only — co-rotate website-secrets (WEBSITE_OIDC_SECRET) separately.
+* env:validate:                                 Validate environment config against schema
+* env:validate:all:                             Validate all environment configs (schema-only, no cluster needed)
+* factory:migrate:                              Run migrations/*.sql against the target DB (idempotent, tracked in public.factory_schema_migrations). ENV=dev|mentolder|korczewski.
+* feature:brett:                                Rebuild + redeploy brett on BOTH prod clusters
+* feature:deploy:                               Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)
+* feature:promote:                              Promote a service dev → prod with Playwright smoke gate (SERVICE=website|brett TARGET=mentolder|korczewski|both; prompts if unset)
+* feature:website:                              Rebuild + redeploy the Astro website on BOTH prod clusters
+* finetune-eval:gate:                           Same as run, but quiet — exit code only. Use as an acceptance step before export.
+* finetune-eval:run:                            Run the base-vs-tuned eval harness against ADAPTER=<path>, print the JSON report.
+* finetune:export:                              GGUF-Export mit Template-Korrektur. ADAPTER_DIR=<dir> SLOT_NAME=<name> [HUB_TEMPLATE=<datei>] [DRY_RUN=1]
+* finetune:guard:                               Byte-Gleichheit Hub- vs. gepatchtes Chat-Template. HUB_TEMPLATE=<datei> PATCHED_TEMPLATE=<datei> CORPUS=<jsonl>
+* finetune:hf-jobs:export:                      GGUF-Export als HF Job. ADAPTER_REPO=<hf-id> GGUF_REPO=<hf-id> [FLAVOR=l4x1]
+* finetune:hf-jobs:train:                       Trainingslauf auf HF Jobs Cloud. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> HUB_MODEL_ID=<hf-id> [FLAVOR=l4x1]
+* finetune:measure:                             Token-Laengenverteilung + VRAM-Machbarkeitsmatrix. CORPUS=<jsonl> MODEL=<label> [TEMPLATE_FILE=<jinja>]
+* finetune:traces:                              Erfolgreiche Factory-Laeufe zu Trainingskorpus rendern. FIXTURE=<json>|ROWS_JSON=<json> [COMMENTS_JSON=<json>] [WITH_CONTEXT=1] OUT=<jsonl>
+* finetune:train:                               Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> [PRECISION=auto|4bit|16bit] [GPU_MODE=single|balanced] [EVAL_CORPUS=<jsonl>]
+* finetune:train-vision:                        Qwen3-VL image/screenshot QLoRA. CORPUS=<jsonl> MODEL=<hf-id-or-snapshot> MAX_SEQ_LENGTH=<n> [EVAL_CORPUS=<jsonl>] [DRY_RUN=1]
+* fleet:deploy:                                 Full Phase 2b deploy: platform → both brands' core → shared office/coturn → both brands' talk-setup. Brings up the COMPLETE stack for both brands on the fleet cluster.
+* fleet:deploy:brand:                           Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski
+* fleet:dns:cutover:                            Flip a brand's cluster A-records onto the fleet nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task fleet:dns:cutover ENV=fleet-mentolder [ACTION=cutover]
+* fleet:dns:rollback:                           Restore a brand's A-records from the rollback state file captured by the last cutover. Usage: task fleet:dns:rollback ENV=fleet-mentolder
+* fleet:membership:                             Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context fleet get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task fleet:membership
+* fleet:platform:                               Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand.
+* fleet:shared-services:                        Deploy the SHARED Collabora (office-stack) + CoTURN/Janus (coturn-stack) ONCE on the fleet cluster, serving both brands. Run AFTER both brand workspace:deploy passes (needs workspace-secrets to exist for coturn sync).
+* fleet:talk-setup:brand:                       Wire ONE brand to the shared coturn/Janus: sync coturn secret from this brand, run talk-setup + recording-setup + transcriber-setup. Run AFTER fleet:shared-services. Usage: task fleet:talk-setup:brand BRAND=fleet-mentolder
+* flux:bootstrap:                               Einmalig: flux-operator via Helm + FluxInstance + Receiver/IngressRoute/ghcr-auth (imperativ)
+* flux:push:                                    Render + flux push artifact (privates GHCR) + Receiver-Ping
+* flux:render:                                  Render fleet-Komponenten + Flux-CRs nach out/ (kein Apply)
+* flux:stalled:                                 Read-only: check for stalled (long-term Ready=False) Flux Kustomizations (T002207)
+* freshness:check:                              Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)
+* freshness:graph-check:                        Prüft ob graph.json + api-map.json + blast-radius.md aktuell sind (kein struktureller Drift)
+* freshness:regenerate:                         Regenerate ALL generated artifacts (inventory, routes, learning, quality index, agent-guide surfaces)
+* gh:branch-protection:apply:                   Set required checks for main (removes E2E PR). Requires GH_PAT env-var with admin:repo scope.
+* gh:branch-protection:emergency-add-e2e:       Emergency: add E2E PR back to required checks (re-enables the Henne-Ei block)
+* gh:branch-protection:status:                  Show current required status checks for main branch
+* gitlab-runner:render:                         Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Escaped Laufzeit-Variablen automatisch.
+* graph:blast-radius:                           Generiere Blast-Radius-Report nach docs/generated/blast-radius.md (LAD)
+* graph:build:                                  Generiere K8s-Abhängigkeitsgraph + API-Surface-Map nach docs/generated/
+* graph:build-docs:                             Generiere Mermaid-Architecture-Markdown nach docs/diagrams/architecture.md (LAD-3)
+* ha:status:                                    Show HA cluster node and pod status (ENV=mentolder|korczewski)
+* health:goals:                                 Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast
+* health:goals:drift:                           Read-only Drift-Report: dokumentierte current-Werte (goals-data.generated.json) vs. frische Messung. Kein Schreiben. Flags nach --.
+* health:goals:emit:                            Regenerate components/website/src/lib/sdlc/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)
+* health:goals:llm-fill:                        LLM-gestützter Fill für deterministisch nicht abgedeckte Ziele via T002102-Gateway. Default report-only; --apply schreibt nur Prio-C-Aktuell mit (LLM)-Marker. Flags nach --.
+* health:goals:update:                          Schreibt frisch gemessene Werte in die Aktuell-Spalte der Prio-C-Tabelle (Green Gates) und in die Baseline-Ketten der Prio-A/B-Meta-Zeilen von .claude/lib/goals.md (Prio-C-Tabelle + Baseline-Kette, gekappt auf 5 Pfeile). Freitextige Policy-Abschnitte bleiben unangetastet. Flags nach --, z.B. task health:goals:update -- --dry-run
+* health:llm:                                   Ampel-Report NUR der lokal messbaren LLM-Stack-Ziele (G-LLM01..G-LLM05, T002442). Laeuft nicht in CI, siehe freshness:check.
+* health:wt:                                    Ampel-Report NUR der lokal messbaren Ziele (HG_LOCAL_ONLY_GOALS — Worktree-/Session-Hygiene G-WT* + LLM-Stack G-LLM*, T002442/T002443). Laeuft nicht in CI, siehe freshness:check.
+* hooks:check:                                  Verify git hooks are active and core.hooksPath is configured
+* hooks:install:                                Install git hooks (branch naming, kustomize validation, secret scanning)
+* ingress:status:                               Show Traefik ingress controller status (built into k3s)
+* iso:build:                                    Autoinstall-ISO fuer die Cluster-Workstations bauen (ISO_SSH_KEY=, ISO_NODE_MAP=, ISO_OUT=)
+* iso:check:                                    ISO- und PXE-Skripte auf Syntaxfehler pruefen (ohne Build)
+* iso:deps:                                     Werkzeuge fuer den ISO-Build pruefen
+* iso:pxe:                                      PXE-Boot-Server starten — Netzweg statt USB (ISO_SSH_KEY=, ISO_NODE_MAP=). Braucht sudo.
+* iso:pxe:status:                               Zustand des PXE-Boot-Servers anzeigen
+* iso:pxe:stop:                                 PXE-Boot-Server beenden
+* knowledge:crawl:                              Crawl a web_crawl collection (COLLECTION_ID=<uuid>, ENV=dev|mentolder|korczewski)
+* knowledge:ingest-context7:                    Ingest a single context7 library (LIBRARY_ID=/org/repo COLLECTION_ID=<uuid> ENV=...)
+* knowledge:reindex:                            Re-index knowledge collections (SOURCE=prs|markdown|bugs|context7|all, ENV=dev|mentolder|korczewski)
+* knowledge:search:                             Semantic similarity search in knowledge collections (QUERY=<text>, SOURCE=specs_plans, LIMIT=5, THRESHOLD=0.65, ENV=dev|mentolder|korczewski)
+* knowledge:seed-context7:                      Create + ingest all 35 context7 library collections (ENV=mentolder|korczewski)
+* lint:workflows:                               Lint aller GitHub-Actions-Workflows mit gepinntem actionlint (Kontexte, Action-Inputs, Runner-Labels)
+* llm:bench-embed:                              Measure bge-embed throughput (chunks/s) against the cluster. ENV=<env>
+* llm:bootstrap-host:                           Bootstrap the GPU host (ufw, wg-mesh reachability). HOST=<wg-mesh-ip>
+* llm:comfy-image:install:                      Bild-MCP (127.0.0.1:13008, ComfyUI bei Bedarf) installieren und in Muse Code (WSL + Windows) eintragen [T900379]
+* llm:deploy:                                   Apply bge Deployments + PVCs + Services (k3d/llm-gpu.yaml) to ENV=mentolder
+* llm:glimmer-worker:install:                   Glimmer-Worker-MCP (127.0.0.1:13007) installieren und in Muse Code (WSL + Windows) eintragen [T900373]
+* llm:lmstudio-preload:                         DEPRECATED — bge embed/rerank sind seit T002551 CPU-Deployments im Cluster.
+* llm:loadouts:check:                           Prueft loadouts.json auf die kanonische writeLoadouts()-Form (fail-closed, CI) [T002553]
+* llm:loadouts:format:                          Normalisiert loadouts.json auf die kanonische Form — Reparatur fuer loadouts:check [T002553]
+* llm:measure-equivalence:                      Measure embedding equivalence between TEI and new llama.cpp endpoint
+* llm:proxy:logs:                               Tail the local LLM proxy log
+* llm:proxy:start:                              Start the local LLM proxy (scripts/llm-proxy, Port 18235) detached with PID/log file
+* llm:proxy:status:                             Show LLM proxy health + discovered backends/models
+* llm:proxy:stop:                               Stop the local LLM proxy via PID file
+* llm:routing:check:                            Prueft, ob jede konfigurierte Modell-ID von einem erreichbaren Backend serviert wird [T002359]
+* llm:status:                                   Show LLM pipeline status (bge Deployments, gateway services, health). ENV=<env>
+* llm:test:                                     Smoke-test the gateway Services directly (embed + rerank). ENV=<env>
+* llm:tools-sandbox:down:                       Entfernt den Tool-Sandbox-Container
+* llm:tools-sandbox:status:                     Exit 0, wenn der Tool-Sandbox-Container laeuft — dieselbe Pruefung, die der Proxy vor dem Start macht
+* llm:tools-sandbox:up:                         Startet den Container, in dem die eingebauten llama-server-Tools laufen (--tools-runtime)
+* logs:debug-restart:                           Staging: Rollout-Restart aller Deployments, damit die Debug-Log-Patches greifen [T900018]
+* logs:debug-runtime:                           Staging: Log-Level fuer Container ohne Env-Schalter setzen (nextcloud/redis/postgres) [T900018]
+* logs:debug-scan:                              Staging: Debug-Logs aller Services sammeln und auf fehlende Implementierungen scannen [T900018]
+* loki:render:                                  Pre-render Loki + promtail Helm charts to committed YAML (additive to monitoring:render). Renders the DEV values baseline; prod layers patches via prod/monitoring.
+* maintenance:ai-log-cleanup:                   Delete ai_call_log rows older than 90 days. Usage: task maintenance:ai-log-cleanup [-- ENV=dev|mentolder|korczewski]
+* maintenance:all:                              Run all maintenance tasks. Usage: task maintenance:all [-- ENV=dev|mentolder|korczewski]
+* maintenance:dispatch-log-cleanup:             Delete tickets.llm_proxy_request_log rows older than 14 days. Usage: task maintenance:dispatch-log-cleanup [-- ENV=dev|mentolder|korczewski]
+* mcp:autostart:register:                       T900040: start-windows.ps1 als Autostart-Task registrieren (onlogon) — Windows-Pendant zu 'systemctl --user enable' von mcp-gateway/devmesh-forward
+* mcp:autostart:remove:                         T900040: den Autostart-Task aus mcp:autostart:register wieder entfernen
+* mcp:check:                                    Verify that the three target configs match the SSOT registry (exit != 0 on drift; never writes)
+* mcp:doctor:                                   MCP-Auth-Gesundheitscheck fuer alle Harnesses: Units, Bearer-Probes (:13001/:13003/:13005), opencode-Plugins, aufgeloeste Harness-Configs, ticket-stdio (nie Token-Werte)
+* mcp:start-windows:                            T900039/T900191: Windows-Pendant zu mcp-gateway.service + devmesh-forward.service — Port-Forwards fleet (18080, 13002) und devmesh (18235, 13001, 13005); schliesst den WSL-Mechanismus aus
+* mcp:sync:                                     Regenerate .mcp.json, .opencode/opencode.jsonc, and ~/.gemini/config/mcp_config.json from the SSOT registry (docs/agent-guide/registry/mcp.yaml)
+* mishap:categorize:                            Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback
+* monitoring:render:                            Pre-render kube-prometheus-stack to committed YAML (re-run on Helm chart upgrade). Renders the DEV values baseline; prod layers patches via prod/monitoring.
+* monitoring:validate:                          Validate the monitoring base + prod overlays build cleanly.
+* networks:check:                               Verify the network address plan: no undeclared overlap between declared ranges (exit != 0 on violation; never writes)
+* networks:map:                                 Regenerate docs/agent-guide/maps/networks-map.md from the SSOT registry (docs/agent-guide/registry/networks.yaml)
+* openclaw:backup:                              Move existing config to a dated backup directory (no-op if absent)
+* openclaw:configure:                           Configure the CLI and ensure configuration directory exists
+* openclaw:install:                             npm install -g opencode@latest (Node ≥ 22.16 required)
+* openclaw:logs:                                Tail daemon log via journalctl --user
+* openclaw:restore:                             Roll back: stop daemon, uninstall, remove config, move backup back
+* openclaw:start:                               Restart the user systemd service
+* openclaw:status:                              Show daemon status + gateway health probe
+* openclaw:wipe:                                Destructive: remove config AND backup. Requires CONFIRM=yes
+* opencode:autostart:                           Install/remove the opencode serve autostart block in ~/.bashrc (install/remove/status)
+* opencode:model-select:                        Interactive fzf picker to change agent models and sync them
+* opencode:monitor:                             Observe opencode serve: sessions, status, SSE events, session details, todos
+* opencode:serve:                               Lifecycle management for opencode HTTP server (start/stop/restart/status/health)
+* opencode:sync-agents:                         Merge .opencode/agent-models.jsonc config into ~/.config/opencode/opencode.jsonc
+* openspec:apply:                               Mark an openspec change implementable. Usage: task openspec:apply -- <slug>
+* openspec:archive:                             Archive a done change + merge its delta into the SSOT. Usage: task openspec:archive -- <slug>
+* openspec:atlas:                               Regenerate docs/spec-atlas.md from openspec/specs + changes archive [T015012]
+* openspec:ci-telemetry-optout:                 Add OPENSPEC_TELEMETRY: '0' to every .github/workflows/*.yml that lacks it. Usage: task openspec:ci-telemetry-optout [-- --dry-run]
+* openspec:embed:backfill:                      Re-index all active openspec changes (status in ACTIVE_STATUSES from openspec-embed.mjs) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]
+* openspec:header-inject:                       Bulk-add ## Purpose + ## Requirements H2 headers to SSOT specs under openspec/specs/. Usage: task openspec:header-inject [-- --dry-run]
+* openspec:propose:                             Create an openspec change skeleton. Usage: task openspec:propose -- <slug> --ticket <ext-id>
+* openspec:status-map:                          Regenerate components/website/src/data/openspec-status.json from openspec/changes/
+* openspec:validate:                            Validate the openspec/ tree (same as test:openspec).
+* plan:qa:                                      DeepSeek-QA-Check for an implementation plan (PLAN=<path>)
+* plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md
+* plans:query:                                  Show active plan sections for a given role. Usage: task plans:query -- <role>
+* pr:refresh:                                   Rebase konfliktbehaftete PRs auf origin/main und heilt Konflikte in generierten Artefakten. Usage: task pr:refresh -- [--dry-run] <pr-nummer>...
+* quality:baseline:freeze:                      One-time: freeze the current code-quality violations into docs/code-quality/baseline.json
+* quality:baseline:refresh:                     Remove FIXED entries and lower improved metrics in docs/code-quality/baseline.json
+* quality:check:                                Run all code-quality gates (S1-S4) with the baseline ratchet (fails only on new/worsened)
+* quality:index:                                Validate the code-quality registry and regenerate docs/code-quality/repo-index.json
+* quality:loop:                                 Enqueue ≤MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview.
+* quality:pod-phase-filter:                     Prüft, dass jede shared-db-Pod-Selektion auf status.phase=Running filtert (T002439). Wurzeln nach --, z.B. task quality:pod-phase-filter -- scripts
+* quality:tighten:                              Lower baseline.json entries where current metric improved; commit if --commit passed (COMMIT=1)
+* recovery:browse:                              Bring up the on-demand recovery filebrowser (SSO). ENV=<env>
+* recovery:prepare:                             Apply recovery-pvc (run once per cluster before staging). ENV=<env>
+* recovery:restore-file:                        Restore ONE staged file/dir into the live PVC. ENV=<env> -- <timestamp> <service> <path>
+* recovery:restore-table:                       Restore ONE table into the live DB. ENV=<env> -- <timestamp> <db> <table>
+* recovery:stage:                               Stage one backup entry browsable. ENV=<env> -- <timestamp> <db|service>
+* recovery:unbrowse:                            Tear the recovery filebrowser down. ENV=<env>
+* recovery:unstage:                             Drop *_recovery DBs + clear staging. ENV=<env> -- <timestamp>
+* recovery:verify:                              Prove a DB dump restores + show table counts. ENV=<env> -- <timestamp> <db>
+* registry:list:                                List images in the local registry
+* release:notes:                                Generate release notes from merged PRs since last tag. Usage: task release:notes -- [--since <tag>] [--out <file>]
+* routes:manifest:                              Regenerate components/website/src/data/route-manifest.json (page files + brand service slugs -> sweep route manifest)
+* rustdesk:deploy:                              Full bring-up of the rustdesk relay stack on fleet (render pipeline like fleet:shared-services) + sleeper job. Usage: task rustdesk:deploy [ENV=mentolder]
+* rustdesk:sleep:                               Wind down immediately: scale hbbs+hbbr to 0 and remove the sleeper job. Usage: task rustdesk:sleep
+* rustdesk:status:                              Show relay deployments/pods plus replica counters (read-only). Usage: task rustdesk:status
+* rustdesk:wake:                                Wake the relay: scale hbbs+hbbr to 1 (full deploy if missing) and restart the TTL sleeper job. Usage: task rustdesk:wake [ENV=mentolder]
+* scs:index:                                    Build the semantic code search index (bge-m3 embeddings → pgvector). Requires cluster DB access.
+* scs:index-incremental:                        Incremental SCS reindex — pass changed file paths as args: task scs:index-incremental -- path/to/file.ts
+* scs:search:                                   Semantic code search — Usage: task scs:search -- 'query text' [--limit=5] [--augmented]
+* sdlc:sdlc:admin-session:                      Lokale Admin-Session fuer den Astro-Devserver anlegen (Cookie ausgeben, ohne OIDC)
+* sdlc:sdlc:auth:local:                         Console-Login zurueck auf die lokale Pocket ID (auth.localhost)
+* sdlc:sdlc:auth:prod:                          Console-Login auf die PROD-Pocket-ID umstellen (Prod-Passkeys nutzbar)
+* sdlc:sdlc:auth:status:                        Zeigt, gegen welche Pocket ID sich die Console anmeldet
+* sdlc:sdlc:backup:                             E3: lokale SDLC-DB nach fleet sichern (verschluesselt)
+* sdlc:sdlc:backup:install:                     E3: systemd-User-Timer fuer die taegliche Sicherung installieren
+* sdlc:sdlc:backup:list:                        E3: vorhandene SDLC-Sicherungen auf fleet auflisten
+* sdlc:sdlc:dev:                                Astro-Devserver mit BUILD_TARGET=sdlc starten (blockierend)
+* sdlc:sdlc:down:                               SDLC-Stack herunterfahren: Loadout → llm-proxy (devmesh bleibt laufen)
+* sdlc:sdlc:migrate:dump:                       E3: tickets-Schema aus fleet dumpen (ohne provider_config)
+* sdlc:sdlc:migrate:freeze:                     E3: fleet-Kopie schreibgeschuetzt stellen (SELECT bleibt, provider_config bleibt schreibbar)
+* sdlc:sdlc:migrate:preflight:                  E3: Vorbedingungen des tickets-Umzugs pruefen (aendert nichts)
+* sdlc:sdlc:migrate:restore:                    E3: Dump in die lokale DB einspielen und Zeilenzahlen vergleichen
+* sdlc:sdlc:migrate:seed-provider-config:       E3: lokale tickets.provider_config anlegen (bewusst keine fleet-Kopie)
+* sdlc:sdlc:migrate:status:                     E3: Zeilenzahlen fleet vs. lokal nebeneinander
+* sdlc:sdlc:oidc:sync:                          OIDC-Client-Secret zwischen Pocket ID und den SDLC-Secrets angleichen
+* sdlc:sdlc:refresh:                            SDLC-Console nach einem main-Merge auf die aktuelle :latest nachziehen (T003740)
+* sdlc:sdlc:restore-check:                      E3: Nachweis, dass die juengste Sicherung wiederherstellbar ist
+* sdlc:sdlc:smoke:                              E2E-Nachweis: Login-Roundtrip + /sdlc/cockpit rendert als Admin
+* sdlc:sdlc:status:                             SDLC-Stack Health-Übersicht
+* sdlc:sdlc:up:                                 SDLC-Entwicklungsinstanz starten: Cluster-Check → Rollout-Check → llm-proxy → Loadout → Health-Gate
+* sealed-secrets:install:                       Install Sealed Secrets controller on a cluster via Helm
+* sealed-secrets:status:                        Show Sealed Secrets controller status
+* secrets:install-hooks:                        Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard + commit-vs-diff guard + merge drivers
+* secrets:lock:                                 Re-encrypt the working tree (removes plaintext locally)
+* secrets:status:                               List git-crypt-encrypted files and their state
+* secrets:sync:                                 Apply SealedSecrets to both prod clusters without touching workloads. Run after env:seal ENV=<env>.
+* secrets:sync:full:                            Apply SealedSecrets AND reconcile workloads+DB on both prod clusters (apply → sync-db-passwords → rollout restart).
+* secrets:unlock:                               Decrypt git-crypt secrets on a new machine (KEY=/path/to/bp-secrets.key)
+* session:deregister:                           [session] Kill pids + drop a session. Usage: task session:deregister -- --name foo
+* session:list:                                 [session] Print the active-sessions JSON registry
+* session:reap:                                 [session] Drop registry entries whose tunnel pid is dead
+* session:register:                             [session] Register a listening port. Usage: task session:register -- --name foo --port 8080 --type brainstorm --title 'Foo'
+* session:start-form:                           [session] Serve an HTML file + tunnel + register. Usage: task session:start-form -- --file /tmp/foo.html --name foo
+* srgb-icc:build:                               Regenerate components/website/src/lib/srgb-icc.ts from the canonical sRGB.icc (delegates to scripts/build-srgb-icc.mjs)
+* studio:build:                                 Build studio-server image locally (T001002)
+* studio:deploy:                                Push and roll out studio-server (mentolder-only for MVP; T001002); ENV=dev aborts — see error message
+* studio:push:                                  Push studio-server image to ghcr.io (T001002)
+* systemtest:all:                               Run all 12 system-test specs across 4 cycles (ENV=mentolder|korczewski|dev)
+* systemtest:all-prods:                         Run all 12 system-test specs against mentolder then korczewski
+* systemtest:all:headed:                        Run all 12 system-test specs headed with 4 workers (ENV=mentolder|korczewski)
+* systemtest:analyze:                           Analyse system-test outcome files and produce drift report (ENV=mentolder|korczewski)
+* systemtest:cycle:                             Fan out 3 parallel Playwright sessions, one per System-Test (CYCLE=1..4, ENV=mentolder|korczewski|dev)
+* test:agent-guide:                             Validate the AI-agent guide registry (unit tests + real registry + generated JSON freshness)
+* test:agent-library:                           Guardrail: .claude/agents/*.md <-> AGENTS.md routing-table library assertions
+* test:agent-lock:                              Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*).
+* test:all:                                     Run tests for changed files only (smart selection) — delegates to test:changed
+* test:api-auth:                                API auth coverage gate — every endpoint must be classified; public endpoints need an allowlist entry
+* test:api-auth:regression:                     API auth regression check against origin/main
+* test:art-library:                             Validate every assets/art-library/sets/* manifest
+* test:branch-protection:                       Prüft Branch Protection auf main (enforce_admins + PR-Pflicht) [T002889]
+* test:changed:                                 Run only tests relevant to changed files (smart selection: vitest --changed + domain BATS + quality)
+* test:ci:                                      CI-friendly test suite (non-zero exit on failure)
+* test:code-quality:                            Run the code-quality gate + registry unit tests (node:test)
+* test:dry-run:                                 Dry-run key tasks to catch Taskfile syntax errors
+* test:e2e:                                     Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)
+* test:e2e:agent-guide:film:                    Filmable Agent-Anleitung walkthrough — headed, slowMo, video recorded (no auth required)
+* test:e2e:all-prods:                           Run Playwright e2e suite against mentolder + korczewski
+* test:e2e:brett:                               Run Playwright brett-mentolder project against WEBSITE_URL
+* test:e2e:korczewski:                          Run Playwright korczewski project against KORCZEWSKI_URL (default https://web.korczewski.de)
+* test:e2e:services:                            Run Playwright services project (infrastructure) against WEBSITE_URL
+* test:e2e:visual-sweep:                        Read-only full-route visual sweep (screenshots + nav/link-health) against ENV=mentolder|korczewski, VIEWPORT=desktop|mobile. NO prod-DB purge. VIDEO=1 records a per-tier webm; PUBLIC_ONLY=1 limits to anonymous public routes.
+* test:e2e:visual-sweep:all-prods:              Visual sweep across mentolder + korczewski × desktop + mobile, then one combined contact-sheet.
+* test:e2e:visual-sweep:vision:                 Headed Route-Sweep beider Brands mit Vision-Urteil je Screenshot (gemma12-vision, 3 Slots). Report-only, kein CI-Gate. MAX_ROUTES=N begrenzt die Zahl beurteilter Routen je Project.
+* test:e2e:website:                             Run Playwright website project against WEBSITE_URL (default localhost:4321)
+* test:evals:                                   Run human-owned agent evals (tests/evals/, offline). Agents may run, never edit — see tests/evals/README.md.
+* test:evals:update:                            Regenerate tests/evals/golden/task-list-all.txt (human-only, needs [evals-override] in PR).
+* test:factory:                                 Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe.
+* test:inventory:                               Regenerate components/website/src/data/test-inventory.json (requirement → test mapping)
+* test:llm-proxy:                               Run the llm-proxy routing + readiness unit tests (node:test + vitest)
+* test:manifests:                               Validate kustomize output structure (no cluster needed)
+* test:mcp-tooling:                             Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)
+* test:menu-gate:                               Enforce admin-menu rules (R1, R2, R4, R5, R7)
+* test:openspec:                                Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate, TypeScript/Vitest).
+* test:spec:                                    Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS laeuft nur die eigene Partition (siehe scripts/spec-shard.sh).
+* test:spec:build-mcp-runner:                   
+* test:spec:changed:                            Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]
+* test:spec:timing:                             Run the full offline-safe spec suite and write tests/spec/.spec-runtime.tsv (measured seconds per file) — the runtime weights for spec-shard.sh. [T003025] Am besten auf einem CI-gleichen Host (kein Live-Cluster/keine DB), damit die Gewichte die CI-Realitaet abbilden. CI-Alternative: junit-Artifakte aus ci.yml herunterladen und scripts/spec-junit-weights.sh darauf laufen lassen.
+* test:unit:                                    Run BATS unit tests (assertion lib, scripts, configs) in parallel
+* test:unit:quality-loop:                       
+* ticket-mcp:build:                             Build the ticket-mcp Go binary and install it onto the PATH as ticket-mcp-go
+* ticket-mcp:test:                              Run the ticket-mcp Go test suite
+* toolset:lookup:                               On-demand MCP/agent resource discovery — find, inspect, and record curation decisions
+* web:audit:                                    Semantische Pruefung + Triage: axe, Lighthouse, LLM (T002612)
+* website:build:                                Build the Astro website Docker image (ENV=dev|mentolder|...)
+* website:bundle:baseline:                      Measure and update the client-JS bundle baseline (components/website/bundle-baseline.json) — G-FE02
+* website:bundle:check:                         Check client-JS bundle size against committed baseline (exit 1 if above threshold) — G-FE02
+* website:deploy:                               Deploy the Astro website to the website namespace (ENV=dev|mentolder|...)
+* website:dev:                                  Run Astro dev server locally (hot-reload)
+* website:logs:                                 Tail website logs (ENV=dev|mentolder|korczewski)
+* website:migrate:                              Run components/website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski.
+* website:migrate:homepage-blocks:              Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run).
+* website:portrait-derivatives:                 Rebuild the portrait derivatives from gerald.jpg — 4:5 crop anchored at y=0 so the head stays whole (T002507)
+* website:pull-secret:                          Create/update ghcr-pull-secret in website + workspace namespaces (ENV=dev|mentolder|korczewski)
+* website:push:                                 Build and push website image to ghcr.io (for production)
+* website:redeploy:                             Rebuild image, push, and restart the website (ENV=mentolder|korczewski); ENV=dev aborts — see error message
+* website:redeploy:all-prods:                   Rebuild + redeploy the website on mentolder + korczewski
+* website:restart:                              Restart the website pod (ENV=dev|mentolder|korczewski)
+* website:status:                               Show website deployment status (ENV=dev|mentolder|korczewski)
+* website:sync:                                 Fast-sync components/website/src to the running pod and rebuild (ENV=dev|mentolder|...)
+* website:teardown:                             Remove website namespace and all resources (ENV=dev|mentolder|korczewski)
+* wg:drift:                                     WireGuard-Mesh: vergleicht Ist- gegen Soll-Peer-Menge je Node einer Umgebung, ohne zu aendern. Exit != 0 bei Abweichung mit namentlicher Nennung der Nodes und Peers; Exit 0 bei Deckungsgleichheit ODER wenn kein Node erreichbar ist (Skip, analog fleet:membership). Usage: task wg:drift ENV=fleet
+* wg:reconcile:                                 WireGuard-Mesh: traegt fehlende Peers (aus wireguard/wg-mesh-nodes.yaml gerendert) per SSH+wg auf allen erreichbaren Nodes einer Umgebung nach. --dry-run zeigt nur die Differenz; --prune entfernt ueberzaehlige Peers (sonst nur ergaenzen). Sichert /etc/wireguard/<iface>.conf vor jeder Aenderung. Exit 0 bei Erfolg/Dry-Run/Skip (keine Nodes erreichbar), Exit != 0 bei fehlendem interface:-Key (z.B. korczewski) oder Konfigurationsfehler. Usage: task wg:reconcile ENV=fleet [-- --dry-run|--prune|--node <name>]
+* workspace:admin-users-setup:                  Provision SSO admin users in Keycloak workspace realm
+* workspace:admin-users-setup:all-prods:        Provision SSO admin users in Keycloak on mentolder + korczewski
+* workspace:backup:                             Trigger an immediate database backup (usage: task workspace:backup [-- --context <ctx>])
+* workspace:backup:filen-pull:                  Download a backup timestamp from Filen cloud into backup-pvc (usage: task workspace:backup:filen-pull -- <timestamp> [--remote-path <p>]) [ENV=dev|mentolder|korczewski]
+* workspace:backup:list:                        List available database backup timestamps (usage: task workspace:backup:list [-- --context <ctx>])
+* workspace:backup:pvcs:                        Trigger an immediate PVC backup (nextcloud-files, vaultwarden-data, docuseal-data) [ENV=dev|mentolder|korczewski]
+* workspace:backup:pvcs:list:                   List available PVC backup timestamps [ENV=dev|mentolder|korczewski]
+* workspace:check-connectivity:                 Test HTTPS reachability of all workspace services
+* workspace:check-updates:                      Compare running container images against registry for available updates
+* workspace:coturn:deploy:                      Deploy the coturn-stack (TURN/STUN + Janus in coturn ns, ENV=mentolder|korczewski — not for dev)
+* workspace:coturn:sync-secret:                 Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets (ENV=dev|mentolder|korczewski)
+* workspace:db:drop:                            Drop a database from shared-db (usage: task workspace:db:drop -- <dbname> [ENV=...])
+* workspace:db:restore:                         List available backups then restore a database (usage: task workspace:db:restore -- <db> <timestamp> [ENV=...])
+* workspace:db:start:                           Ensure shared-db is running; scale up if at 0 replicas, otherwise restart (ENV=dev|mentolder|korczewski)
+* workspace:deploy:                             Deploy workspace to any environment (ENV=dev|mentolder|korczewski|...)
+* workspace:deploy:all-prods:                   Run workspace:deploy on mentolder + korczewski
+* workspace:dsgvo-check:                        Run DSGVO compliance verification (NFA-01 data sovereignty proof)
+* workspace:fix-tickets-grants:                 Idempotent: GRANT website role on tickets+bachelorprojekt schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails on tickets.* with permission denied.
+* workspace:import-users:                       Import users from CSV or LDIF into Keycloak
+* workspace:logs:                               Tail logs for a workspace service (usage: task workspace:logs -- <service>)
+* workspace:migrate:                            Interactive data migration assistant (import/export)
+* workspace:office:deploy:                      Deploy the office-stack (Collabora in a privileged workspace-office ns, ENV=dev|mentolder|...)
+* workspace:office:pull-secret:                 Create/update ghcr-pull-secret in workspace-office (for the custom collabora-code image, ENV=dev|mentolder|...)
+* workspace:office:sync-secret:                 Copy COLLABORA_ADMIN_PASSWORD from workspace-secrets into workspace-office/collabora-secrets (ENV=dev|mentolder|korczewski)
+* workspace:partial-deploy:                     Nur geänderte Services deployen (ENV=mentolder PARTIAL_SERVICES=brett,docs)
+* workspace:port-forward:                       Forward shared-db to localhost:5432
+* workspace:post-setup:                         Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair)
+* workspace:post-setup:all-prods:               Run workspace:post-setup + talk-setup + recording-setup on mentolder + korczewski
+* workspace:preflight:                          Pre-deploy checklist — secrets, SealedSecrets, overlay, cluster health (ENV=dev|mentolder|korczewski)
+* workspace:psql:                               Open psql shell to shared-db (usage: task workspace:psql -- <dbname>, default: postgres)
+* workspace:pvc:restore:                        List available PVC backups then restore a service (usage: task workspace:pvc:restore -- <service> <timestamp> [ENV=...])
+* workspace:recording-setup:                    Configure Nextcloud Talk recording backend (ENV=dev|mentolder|korczewski)
+* workspace:recording-setup:all-prods:          Configure Talk recording backend on all production clusters (mentolder + korczewski)
+* workspace:restart:                            Restart a workspace service (usage: task workspace:restart -- <service>)
+* workspace:setup:                              Full deploy on existing cluster: preflight -> deploy -> office -> post-config (ENV=dev|mentolder|korczewski)
+* workspace:shortcuts:seed:                     Seed default admin shortcuts into website DB (usage: task workspace:shortcuts:seed ENV=mentolder|korczewski)
+* workspace:status:                             Show Workspace MVP deployment status
+* workspace:status:all-prods:                   Show detailed workspace:status (pods + svc + ingress + PVC) on mentolder + korczewski
+* workspace:sync-db-passwords:                  Sync alle DB-Passwörter aus workspace-secrets → PostgreSQL ALTER USER (ENV=dev|mentolder|korczewski)
+* workspace:systembrett-setup:                  Upload Systembrett Whiteboard template into admin's Coaching/ folder (ENV=dev|mentolder|korczewski)
+* workspace:talk-dns-fix:                       Apply CoreDNS signaling override (kube-system is shared by mentolder + korczewski; ENV defaults to mentolder)
+* workspace:talk-dns-fix:all-prods:             Apply CoreDNS signaling override (single shared kube-system; one apply suffices)
+* workspace:talk-setup:                         Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)
+* workspace:talk-setup:all-prods:               Run workspace:talk-setup against every non-dev environment (mentolder + korczewski)
+* workspace:teardown:                           Remove all Workspace MVP resources (ENV=dev|mentolder|korczewski)
+* workspace:theme:nextcloud:                    Apply dark+gold Nextcloud branding via OCC (idempotent)
+* workspace:transcriber-build:                  Build talk-transcriber image
+* workspace:transcriber-push:                   Push talk-transcriber image to ghcr.io (for production)
+* workspace:transcriber-setup:                  Build talk-transcriber image and create transcriber-bot Nextcloud user
+* workspace:validate:                           Validate k3d manifests with kustomize dry-run
+* workspace:vaultwarden:seed:                   Seed Vaultwarden with production secret templates (ENV=dev|mentolder|korczewski). Run once after first login — see vaultwarden-seed-credentials.yaml.
+* workspace:vaultwarden:seed-logs:              Show logs from the last Vaultwarden seed job run (ENV=dev|mentolder|korczewski)
+* workspace:verify:                             Post-deploy sanity check — cross-namespace netpol probes + credential state (ENV=mentolder|korczewski)
+* workspace:verify:all-prods:                   Run workspace:verify on mentolder + korczewski
+* workspace:whiteboard-setup:                   Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)

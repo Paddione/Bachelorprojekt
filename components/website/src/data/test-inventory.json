@@ -4236,12 +4236,6 @@
     "kind": "shell"
   },
   {
-    "id": "main-commit-guard",
-    "file": "tests/spec/main-commit-guard.bats",
-    "category": "main-commit-guard",
-    "kind": "shell"
-  },
-  {
     "id": "mandatory-sequences",
     "file": "tests/local/mandatory-sequences.bats",
     "category": "mandatory-sequences",
@@ -5007,12 +5001,6 @@
     "id": "routing-check-freetoken",
     "file": "tests/spec/routing-check-freetoken.bats",
     "category": "routing-check-freetoken",
-    "kind": "shell"
-  },
-  {
-    "id": "routing-docs-guard",
-    "file": "tests/spec/routing-docs-guard.bats",
-    "category": "routing-docs-guard",
     "kind": "shell"
   },
   {

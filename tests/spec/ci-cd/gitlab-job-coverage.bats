@@ -81,11 +81,10 @@ MAPPING = {
     "vitest-website":         "vitest-website",
     "commit-lint":            "commit-lint",
     "lighthouse":             "lighthouse",
-    # Vorerst ohne Gegenstueck: der Integritaetsschritt wertet PR-Titel und -Body auf
-    # [evals-override] aus — eine gespiegelte Branch-Pipeline hat keinen von beiden
-    # (dieselbe Luecke wie bei commit-lint). Die Eval-Suite selbst (task test:evals)
-    # auf GitLab nachzuziehen ist Folgeticket T900642.
-    "test-evals":             None,
+    # Nur die Eval-Suite (task test:evals): der Integritaetsschritt wertet PR-Titel
+    # und -Body auf [evals-override] aus — eine gespiegelte Branch-Pipeline hat keinen
+    # von beiden (dieselbe Luecke wie bei commit-lint). [T900642]
+    "test-evals":             "evals",
 }
 
 with open(sys.argv[1]) as fh:
@@ -171,7 +170,7 @@ PY
   run python3 - "$GL_YML" <<'PY'
 import sys, yaml
 NEW_JOBS = ["factory-openspec", "factory-shard", "brett-typescript",
-            "vitest-website", "commit-lint", "lighthouse"]
+            "vitest-website", "commit-lint", "lighthouse", "evals"]
 with open(sys.argv[1]) as fh:
     doc = yaml.safe_load(fh) or {}
 missing = []

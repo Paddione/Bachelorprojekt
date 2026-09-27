@@ -72,7 +72,7 @@ echte Messung auf dem GPU-Host und läuft zuletzt, nachdem die Tests grün sind)
 
 Der Failing-Test-Step steht in `tasks.d/p9-tests.md` (Task 9.1, `expected: FAIL`).
 
-- [ ] **Task V: Finale Verifikation**
+- [x] **Task V: Finale Verifikation**
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/agent-bench/
   node --check scripts/llm/agent-bench/bench.mjs scripts/llm/agent-bench/lib/*.mjs

@@ -5143,6 +5143,12 @@
       "status": "archived"
     }
   ],
+  "T900687": [
+    {
+      "slug": "review-gate-optional",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -37,15 +37,11 @@ setup() {
 }
 
 @test "(d) env keys gone: no DOCS_URL/DOCS_IMAGE in environments" {
+  # [T900677] Glob statt Aufzaehlung: fleet.yaml, dev-cluster.yaml und
+  # versions.yaml kamen nach T900452 dazu und fielen durch die explizite
+  # 7er-Liste. Die Aussage gilt fuer alle Top-Level-Env-Yamls.
   local hits
-  hits="$(grep -n 'DOCS_URL\|DOCS_IMAGE' \
-    "$REPO_ROOT/environments/mentolder.yaml" \
-    "$REPO_ROOT/environments/korczewski.yaml" \
-    "$REPO_ROOT/environments/fleet-mentolder.yaml" \
-    "$REPO_ROOT/environments/fleet-korczewski.yaml" \
-    "$REPO_ROOT/environments/staging.yaml" \
-    "$REPO_ROOT/environments/dev.yaml" \
-    "$REPO_ROOT/environments/schema.yaml" || true)"
+  hits="$(grep -n 'DOCS_URL\|DOCS_IMAGE' "$REPO_ROOT"/environments/*.yaml || true)"
   [ -z "$hits" ] || { echo "stale env keys: $hits"; return 1; }
 }
 

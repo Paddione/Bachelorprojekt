@@ -69,17 +69,27 @@ export function parsePartialManifest(tasksMd) {
   return rows;
 }
 
+// Plan-Heimat seit C7a ist .agents/plans/<slug>; openspec/changes bleibt Fallback [T900689].
+const PLAN_ROOTS = [['.agents', 'plans'], ['openspec', 'changes']];
+
+export function resolvePlanDir(repoRoot, slug) {
+  const dirs = PLAN_ROOTS.map((r) => path.join(repoRoot || '.', ...r, slug));
+  return dirs.find((d) => existsSync(d)) ?? dirs[dirs.length - 1];
+}
+
 export function listLocalActivePlans(repoRoot) {
-  const changesDir = path.join(repoRoot, 'openspec', 'changes');
-  if (!existsSync(changesDir)) return [];
   const activeSlugs = [];
-  for (const slug of readdirSync(changesDir)) {
-    if (slug === 'archive') continue;
-    const tasksPath = path.join(changesDir, slug, 'tasks.md');
-    if (!existsSync(tasksPath)) continue;
-    const raw = readFileSync(tasksPath, 'utf8');
-    const { frontmatter } = stripFrontmatter(raw);
-    if (ACTIVE_STATUSES.includes(frontmatter.status)) activeSlugs.push(slug);
+  for (const root of PLAN_ROOTS) {
+    const plansDir = path.join(repoRoot, ...root);
+    if (!existsSync(plansDir)) continue;
+    for (const slug of readdirSync(plansDir)) {
+      if (slug === 'archive' || activeSlugs.includes(slug)) continue;
+      const tasksPath = path.join(plansDir, slug, 'tasks.md');
+      if (!existsSync(tasksPath)) continue;
+      const raw = readFileSync(tasksPath, 'utf8');
+      const { frontmatter } = stripFrontmatter(raw);
+      if (ACTIVE_STATUSES.includes(frontmatter.status)) activeSlugs.push(slug);
+    }
   }
   return activeSlugs;
 }
@@ -212,7 +222,7 @@ export async function defaultEmbed(texts) {
 }
 
 export function estimateSlugTokenWorst(slug, repoRoot) {
-  const changeDir = path.join(repoRoot, 'openspec', 'changes', slug);
+  const changeDir = resolvePlanDir(repoRoot, slug);
   const files = {
     proposal: readIfExists(path.join(changeDir, 'proposal.md')) ?? undefined,
     tasks: readIfExists(path.join(changeDir, 'tasks.md')) ?? undefined,
@@ -299,7 +309,7 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
   const embed = deps.embed ?? defaultEmbed;
   const model = resolveEmbeddingModel();
 
-  const changeDir = path.join(repoRoot || '.', 'openspec', 'changes', slug);
+  const changeDir = resolvePlanDir(repoRoot, slug);
   const files = {
     proposal: readIfExists(path.join(changeDir, 'proposal.md')) ?? undefined,
     tasks: readIfExists(path.join(changeDir, 'tasks.md')) ?? undefined,
@@ -378,7 +388,7 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
     const docRes = await query(
       `INSERT INTO knowledge.documents (collection_id, title, source_uri, raw_text, metadata)
        VALUES ($1, $2, $3, $4, $5::jsonb) RETURNING id`,
-      [collectionId, slug, `openspec/changes/${slug}/proposal.md`, '',
+      [collectionId, slug, path.relative(repoRoot || '.', path.join(changeDir, 'proposal.md')), '',
        JSON.stringify({ slug, ticket_id: ticketId, status, file_hash: fileHash })],
     );
     const documentId = docRes.rows[0].id;
@@ -510,7 +520,7 @@ export async function migrateChanges({ slugs, repoRoot, batch, deps = {}, dryRun
 
   const toEmbed = [];
   for (const slug of candidateSlugs) {
-    const changeDir = path.join(root, 'openspec', 'changes', slug);
+    const changeDir = resolvePlanDir(root, slug);
     const proposal = readIfExists(path.join(changeDir, 'proposal.md')) ?? '';
     const tasks = readIfExists(path.join(changeDir, 'tasks.md')) ?? '';
     const spec = readIfExists(path.join(changeDir, 'specs', `${slug}.md`)) ?? '';

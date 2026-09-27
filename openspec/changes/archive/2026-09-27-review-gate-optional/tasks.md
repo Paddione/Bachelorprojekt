@@ -2,7 +2,7 @@
 title: review-gate-optional implementation plan
 ticket_id: T900687
 domains: [test, docs]
-status: active
+status: completed
 ---
 
 # review-gate-optional — Implementation Plan

@@ -2,21 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 133 · Requirements: 2469 · Scenarios: 5473
+Specs: 133 · Requirements: 2469 · Scenarios: 5475
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 96 · Scenarios: 211 · Lines: 2529
+Reqs: 96 · Scenarios: 213 · Lines: 2549
 Last touches:
+  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900687 | 2026-09-27 | MODIFIED
+  - dev-flow-execute delegiert die Post-Merge-Finalisierung an einen frischen Finalizer-Subagenten | T900687 | 2026-09-27 | MODIFIED
   - OVERVIEW.md must name the complete vendor skill set | T900452 | 2026-09-26 | MODIFIED
   - Recall-Schichtwahl für Agenten | T900453 | 2026-09-26 | ADDED
   - WIP-Uebersicht | T900481 | 2026-09-26 | ADDED
-  - Fail-closed WIP-Finisher | T900481 | 2026-09-26 | ADDED
-  - 4B-Rail nur als Triagierer | T900481 | 2026-09-26 | ADDED
-In-flight:
-  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900687 | active | MODIFIED
-  - dev-flow-execute delegiert die Post-Merge-Finalisierung an einen frischen Finalizer-Subagenten | T900687 | active | MODIFIED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

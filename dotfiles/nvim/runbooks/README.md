@@ -26,6 +26,18 @@ Use `_template.md` as the starting point for a new chapter runbook.
 No Factory chapter: T900665 (Factory & Proxy) is archived/obsolete and was
 dropped from the EPIC chapter list.
 
+## Sub-pages
+
+Sub-pages nested under a chapter's real future content arrive with that
+chapter's own ticket (T900657–T900667 above) and are tracked there, not
+here. The one exception is **Infrastructure · Status**
+(`infrastructure-status`), built in this foundation ticket (T900655) as a
+worked example of the visible action model — it is not part of
+Infrastructure's future content from T900664:
+
+- **Infrastructure · Status** — foundation (T900655) — parent: Infrastructure — [`infrastructure-status.md`](infrastructure-status.md) — status: complete
+
 Per-chapter local tables of contents (sub-pages within each chapter)
-arrive with the chapter tickets above, which define those pages. This
-index tracks only the top-level chapter list and its status.
+otherwise arrive with the chapter tickets above, which define those
+pages. This index tracks only the top-level chapter list, the one
+foundation sub-page above, and their status.

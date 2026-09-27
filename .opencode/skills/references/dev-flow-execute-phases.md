@@ -332,7 +332,7 @@ Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Re
 > Läuft über `devflow-post-merge-finalize.sh` (Schritte 7–8 der Skript-Kette). Referenz:
 
 Zwei Schritte: (1) `tasks.md` nach postgres (`ticket-mcp` `archive_plan` bzw. `ticket.sh archive-plan`),
-(2) der gesamte OpenSpec-Change-Ordner ins Archiv via `scripts/openspec.sh archive` — inkl.
+(2) der Plan-Ordner `.agents/plans/<slug>/` wird per PR gelöscht — inkl.
 Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständige Mechanik:
 [plan-archive-steps](.agents/skills/references/plan-archive-steps.md).
 

@@ -1,23 +1,17 @@
 #!/usr/bin/env bats
 
 load ../test_helper
+load "../../lib/guard-preconditions.sh"
 
 setup() {
   curl -s -m 2 -o /dev/null "http://127.0.0.1:18235/livez" || skip "llm-proxy not running"
 }
 
 # [T900537] /livez beweist, dass der PROZESS laeuft — nicht, dass die
-# Admin-Routen antworten. Auf einem llm-proxy ohne LLM_PROXY_ADMIN_TOKEN bzw.
-# ohne aktivierten Loopback-Listener liefert /admin/state nichts Verwertbares, und
-# die Testfaelle meldeten das als Auth-/410-Regression. Der Probe muss die Route
-# benennen, auf die die Assertion sich stuetzt.
+# Admin-Routen antworten. Der Probe benennt die Route, auf die die Assertion
+# sich stuetzt (seit T900651 aus guard-preconditions.sh).
 _skip_unless_admin_endpoint() {
-  local code
-  code="$(curl -s -m 2 -o /dev/null -w '%{http_code}' "http://127.0.0.1:18235/admin/state" 2>/dev/null || true)"
-  case "$code" in
-    200) : ;;
-    *) skip "llm-proxy antwortet auf /admin/state mit '${code:-kein Code}' — Admin-Loopback nicht freigeschaltet (Umgebung, kein Produktfehler; T900537)" ;;
-  esac
+  require_http "http://127.0.0.1:18235/admin/state" 200 "llm-proxy /admin/state (Admin-Loopback)"
 }
 
 @test "admin state on loopback responds 200 without token" {

@@ -92,6 +92,8 @@ wireguard/*.pub
 # ── Docker ──────────────────────────────────────
 .docker/
 **/target/
+# agent-bench-Fixtures nutzen target/ als Symlink-Ziel, kein Build-Output (T900641)
+!scripts/llm/agent-bench/cases/**/target/
 
 # ── Tracking (local SQLite, regenerated from JSON) ──
 tracking.db

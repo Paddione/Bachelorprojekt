@@ -59,3 +59,23 @@ export const WorktreeWriteGuard = async ({ directory }: { directory: string }) =
 		},
 	}
 }
+
+export default {
+	id: "worktree-write-guard",
+	async setup(ctx: { location: { directory: string }; tool: { hook: (name: string, callback: (event: { tool: string; input: unknown }) => void) => Promise<unknown> } }) {
+		const directory = ctx.location.directory
+		const guard = join(directory, GUARD_REL)
+		await ctx.tool.hook("execute.before", (event) => {
+			if (!WRITE_TOOLS.has(event.tool.toLowerCase())) return
+			const path = targetPath(event.input as Record<string, unknown>)
+			if (!path || !existsSync(guard)) return
+			const res = spawnSync("bash", [guard], {
+				cwd: directory,
+				input: JSON.stringify({ tool_input: { file_path: path } }),
+				encoding: "utf8",
+				timeout: 5000,
+			})
+			if (res.status === 2) throw new Error(res.stderr?.trim() || `WORKTREE-GUARD: Schreibzugriff auf ${path} abgelehnt.`)
+		})
+	},
+}

@@ -38,6 +38,7 @@ _objects() {
 @test "T900688: Collector-Config maskiert jeden Secret-Typ aus design.md" {
   run yq ea -r 'select(.kind == "ConfigMap" and .metadata.name == "langfuse-otel-redact-config") | .data."config.yaml"' "$RENDERED"
   [ "$status" -eq 0 ]
+  [[ "$output" == *"traces_url_path: /api/public/otel/v1/traces"* ]]
   for typ in langfuse anthropic-openai github gitlab aws private-key bearer kv-secret; do
     [[ "$output" == *"[REDACTED:$typ]"* ]] || { echo "fehlt: $typ"; return 1; }
   done

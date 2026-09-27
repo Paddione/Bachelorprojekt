@@ -29,7 +29,7 @@ wenn `command -v` leer:
 | claude | `claude plugin marketplace add langfuse/claude-observability-plugin`, `claude plugin install langfuse-observability@langfuse-observability`, Credentials per `--config LANGFUSE_PUBLIC_KEY=… --config LANGFUSE_SECRET_KEY=… --config LANGFUSE_BASE_URL=…` (README des Plugins). |
 | opencode | Globales `~/.config/opencode/opencode.json`: `plugins` um `@langfuse/opencode-observability-plugin@0.5.1` ergänzen (per `jq`, idempotent), Credentials in `~/.config/opencode/opencode-langfuse.json` (`publicKey`, `secretKey`, `baseUrl`, `environment: "development"`). |
 | pi | `pi install npm:@langfuse/pi-observability-plugin@0.1.2`, Credentials in `~/.pi/agent/langfuse.json`. |
-| codex | `codex plugin marketplace add langfuse/codex-observability-plugin`, `codex plugin add tracing@codex-observability-plugin`, in `~/.codex/config.toml` `[features] hooks = true` und `[plugins."tracing@codex-observability-plugin"] enabled = true` setzen, falls fehlend; Credentials in `~/.codex/langfuse.json` (`enabled`, `public_key`, `secret_key`, `base_url`). |
+| codex | `codex plugin marketplace add langfuse/codex-observability-plugin`, in `~/.codex/config.toml` `[features] hooks = true` und `[plugins."tracing@codex-observability-plugin"] enabled = true` setzen, falls fehlend; Credentials in `~/.codex/langfuse.json` (`enabled`, `public_key`, `secret_key`, `base_url`). Die aktuelle Plugin-Doku verlangt keinen separaten `codex plugin add`-Befehl. |
 
 Alle Credential-Dateien mit `umask 077`. `userId` in allen Configs = `git config user.email`.
 Flags: `--dry-run` gibt pro Harness die geplante Aktion als Zeile `<harness>: <aktion>` aus und

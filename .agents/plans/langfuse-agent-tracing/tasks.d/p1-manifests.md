@@ -40,7 +40,8 @@ und `langfuse-worker` (`docker.langfuse.com/langfuse/langfuse-worker:4.46.0`, Po
 gleichen Namens. Gemeinsame Env (YAML-Anker nicht verwenden, kustomize löst sie nicht auf, Env
 explizit doppelt schreiben):
 
-- `DATABASE_URL` aus Secret-Key `LANGFUSE_DATABASE_URL`
+- `LANGFUSE_DB_PASSWORD` aus Secret und `DATABASE_URL` per Kubernetes-Env-Expansion
+  `postgresql://langfuse:$(LANGFUSE_DB_PASSWORD)@shared-db:5432/langfuse` (kein URL-Secret)
 - `NEXTAUTH_URL=https://langfuse.${DEVMESH_DOMAIN}`, `NEXTAUTH_SECRET`, `SALT`, `ENCRYPTION_KEY` aus Secret
 - `CLICKHOUSE_URL=http://langfuse-clickhouse:8123`, `CLICKHOUSE_MIGRATION_URL=clickhouse://langfuse-clickhouse:9000`,
   `CLICKHOUSE_USER=clickhouse`, `CLICKHOUSE_CLUSTER_ENABLED=false`

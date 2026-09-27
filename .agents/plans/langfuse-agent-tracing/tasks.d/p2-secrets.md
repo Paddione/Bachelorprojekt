@@ -11,7 +11,6 @@ bleibt unberührt), landen in `workspace-secrets`:
 | Name | Erzeugung |
 |---|---|
 | `LANGFUSE_DB_PASSWORD` | `generate: true`, `length: 32` |
-| `LANGFUSE_DATABASE_URL` | abgeleitet: `postgresql://langfuse:<LANGFUSE_DB_PASSWORD>@shared-db:5432/langfuse`, Muster wie die bestehenden `*_DATABASE_URL`-Einträge (`grep -n 'DATABASE_URL' environments/schema.yaml`) |
 | `LANGFUSE_NEXTAUTH_SECRET`, `LANGFUSE_SALT` | `generate: true`, `length: 32` |
 | `LANGFUSE_ENCRYPTION_KEY` | 64 Hex-Zeichen (`openssl rand -hex 32`); unterstützt der Generator kein Hex, `generate: false` mit Beschreibung des Befehls |
 | `LANGFUSE_CLICKHOUSE_PASSWORD`, `LANGFUSE_REDIS_AUTH`, `LANGFUSE_S3_SECRET` | `generate: true`, `length: 32` |
@@ -37,4 +36,4 @@ Admin-Mail aus dem Git-User. Ergebnis: neue Keys in der SealedSecret `workspace-
 yq ea -r 'select(.metadata.name == "workspace-secrets") | .spec.encryptedData | keys | .[]' environments/sealed-secrets/dev.yaml | grep -c '^LANGFUSE_'
 ```
 
-Erwartet: 13.
+Erwartet: 12 (die Datenbank-URL wird im Pod aus `LANGFUSE_DB_PASSWORD` zusammengesetzt).

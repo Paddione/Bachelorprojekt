@@ -5125,6 +5125,12 @@
       "status": "archived"
     }
   ],
+  "T900529": [
+    {
+      "slug": "pi-harness",
+      "status": "plan_staged"
+    }
+  ],
   "T900561": [
     {
       "slug": "2026-09-27-agent-bench",

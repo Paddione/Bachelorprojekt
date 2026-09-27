@@ -224,7 +224,7 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
 
 ## Task 6: Finale Verifikation
 
-- [ ] **6.1**
+- [x] **6.1**
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/pi-harness.bats tests/spec/toolset-registry/context-injection.bats
   node --test scripts/toolset/check.test.mjs

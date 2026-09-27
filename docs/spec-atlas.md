@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2447 · Scenarios: 5430
+Specs: 131 · Requirements: 2459 · Scenarios: 5454
 
 ## factory-pipeline
 
@@ -194,6 +194,15 @@ Last touches:
   - Visual Diagrams for Complex Decision Trees | T900165 | 2026-09-12 | ADDED
   - Lavish HTML Review Surfaces for Visual Review Artifacts | T900165 | 2026-09-12 | ADDED
   - Domain agents declare no tools allowlist | T002651 | 2026-08-04 | ADDED
+
+### agent-bench
+Reqs: 12 · Scenarios: 24 · Lines: 204
+Last touches:
+  - Role Selection At Startup | T900561 | 2026-09-27 | ADDED
+  - Cases Are Grounded In Real Events | T900561 | 2026-09-27 | ADDED
+  - Isolated And Chained Role Execution | T900561 | 2026-09-27 | ADDED
+  - Deterministic Score Vector | T900561 | 2026-09-27 | ADDED
+  - Combination Matrix Over A Model Pool | T900561 | 2026-09-27 | ADDED
 
 ### agentic-review
 Reqs: 8 · Scenarios: 13 · Lines: 169

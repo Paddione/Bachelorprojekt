@@ -72,15 +72,8 @@ test.describe('Integration Smoke Tests', () => {
     );
   });
 
-  test('@smoke Docs site responds', async ({ request }, testInfo) => {
-    // 200 = public; 302 = redirect to auth; 401 = behind auth proxy (alive)
-    await assertReachable(
-      request,
-      `https://docs.${DOMAIN}`,
-      { acceptableStatuses: [200, 302, 401], label: 'Docs' },
-      testInfo
-    );
-  });
+  // NOTE [T900601]: no Docs smoke test — auto-docs was retired in #5961
+  // (T900452, ADR-009); docs.${DOMAIN} intentionally 404s since 26.09.
 
   test('@smoke Mailpit responds', async ({ request }, testInfo) => {
     // 200 = accessible; 302/401 = behind oauth2-proxy (alive)

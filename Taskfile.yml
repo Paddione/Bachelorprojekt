@@ -68,6 +68,11 @@ includes:
   openclaw:
     taskfile: ./taskfiles/Taskfile.openclaw.yml
     dir: .
+
+  # Pi (pi-mono) — minimaler Coding-Harness, Trial-Runner scripts/pi-run.sh (T900529).
+  pi:
+    taskfile: ./taskfiles/Taskfile.pi.yml
+    dir: .
   # Cross-harness agent infrastructure (MCP servers, etc.) shared by every
   # agent harness in this repo — Claude Code, opencode, Hermes. See Taskfile.agents.yml.
   agents:

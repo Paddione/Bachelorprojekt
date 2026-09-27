@@ -44,7 +44,7 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
 
 ## Task 1: Failing Tests (RED)
 
-- [ ] **1.1** `tests/spec/pi-harness.bats` anlegen. Prüfmodus: command output verification
+- [x] **1.1** `tests/spec/pi-harness.bats` anlegen. Prüfmodus: command output verification
   (Skript ausführen, `$status`/`$output` prüfen, keinen Quelltext greppen). Fälle:
   1. `taskfiles/Taskfile.pi.yml` parst mit `python3 -c 'import yaml,sys; d=yaml.safe_load(open(sys.argv[1])); assert {"install","status","uninstall","run"} <= set(d["tasks"])'` und die `install`-Zeile enthält `@mariozechner/pi-coding-agent@` gefolgt von einer Versionsnummer.
   2. `scripts/pi-run.sh <plan> --level L0 --dry-run` → Exit 0, Output enthält `--no-context-files`, `--no-skills`, `--no-extensions`, `--tools read,write,edit,bash`, enthält weder `--skill` noch `--append-system-prompt`.
@@ -53,14 +53,14 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
   5. `--level L9 --dry-run` → Exit 1, Output enthält `L0 L1 L2 L3`.
   6. `PI_LOCAL_BASE_URL=http://127.0.0.1:9` und ein Fake-`pi` im `PATH` (Stub-Skript, das `STARTED` nach `$BATS_TEST_TMPDIR/pi.log` schreibt) → `scripts/pi-run.sh <plan> --level L0` endet mit Exit 2, Output enthält `http://127.0.0.1:9`, `pi.log` existiert nicht.
   Der Plan-Pfad ist eine Fixture-Datei in `$BATS_TEST_TMPDIR`.
-- [ ] **1.2** `tests/spec/toolset-registry/context-injection.bats`: Fixture um
+- [x] **1.2** `tests/spec/toolset-registry/context-injection.bats`: Fixture um
   `demo-pi: { skill:pi-only-skill: { state: canonical, use_when: "Nur fuer pi", roles: [pi] } }`
   erweitern. Neuer Fall: `run_ctx pi` → Exit 0, Output enthält `skill:pi-only-skill`, enthält
   nicht `mcp:everywhere-server` (Wildcard `all` gilt nicht für `pi`).
-- [ ] **1.3** `scripts/toolset/check.test.mjs`: neuer Test nach dem Muster des ersten Tests —
+- [x] **1.3** `scripts/toolset/check.test.mjs`: neuer Test nach dem Muster des ersten Tests —
   Registry mit einer kanonischen Instanz `roles: [pi]` → `check.mjs` meldet keinen
   `unknown role`-Fehler.
-- [ ] **1.4** Rot bestätigen — expected: FAIL (Skript, Taskfile und Rolle existieren noch nicht):
+- [x] **1.4** Rot bestätigen — expected: FAIL (Skript, Taskfile und Rolle existieren noch nicht):
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/pi-harness.bats tests/spec/toolset-registry/context-injection.bats
   node --test scripts/toolset/check.test.mjs
@@ -68,7 +68,7 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
 
 ## Task 2: Registry-Rolle `pi`
 
-- [ ] **2.1** `scripts/toolset-context.sh`: `pi` in `VALID_ROLES` aufnehmen. Im Node-Filter die
+- [x] **2.1** `scripts/toolset-context.sh`: `pi` in `VALID_ROLES` aufnehmen. Im Node-Filter die
   Wildcard für `pi` ausnehmen:
   ```js
   // Rolle pi bekommt nur explizite Freigaben — mit Wildcard erbte der minimale Harness
@@ -77,8 +77,8 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
   if (!cfg.roles.includes(role) && !grantsAll) continue;
   ```
   Kopfkommentar um einen Satz zur Ausnahme ergänzen.
-- [ ] **2.2** `scripts/toolset/check.mjs`: `'pi'` in `VALID_ROLES` aufnehmen.
-- [ ] **2.3** Grün prüfen:
+- [x] **2.2** `scripts/toolset/check.mjs`: `'pi'` in `VALID_ROLES` aufnehmen.
+- [x] **2.3** Grün prüfen:
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/toolset-registry/context-injection.bats
   node --test scripts/toolset/check.test.mjs
@@ -87,7 +87,7 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
 
 ## Task 3: Installation `taskfiles/Taskfile.pi.yml`
 
-- [ ] **3.1** Taskfile anlegen:
+- [x] **3.1** Taskfile anlegen:
   ```yaml
   version: "3"
 
@@ -133,23 +133,23 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
   ```
   Falls `npm install -g` Root-Rechte verlangt (Prefix unter `/usr`), mit `npm config get prefix`
   prüfen. Der Nutzer hat `~/.npm-global` als Prefix (dort liegt `gh-axi`); kein `sudo` einplanen.
-- [ ] **3.2** `Taskfile.yml`: Include direkt nach dem `openclaw:`-Block ergänzen:
+- [x] **3.2** `Taskfile.yml`: Include direkt nach dem `openclaw:`-Block ergänzen:
   ```yaml
     # Pi (pi-mono) — minimaler Coding-Harness, Trial-Runner scripts/pi-run.sh (T900529).
     pi:
       taskfile: ./taskfiles/Taskfile.pi.yml
       dir: .
   ```
-- [ ] **3.3** `task --list | grep 'pi:'` zeigt `pi:install`, `pi:status`, `pi:uninstall`, `pi:run`.
+- [x] **3.3** `task --list | grep 'pi:'` zeigt `pi:install`, `pi:status`, `pi:uninstall`, `pi:run`.
 
 ## Task 4: Trial-Runner `scripts/pi-run.sh` und Kontext
 
-- [ ] **4.1** `.pi/context.md` anlegen (höchstens 60 Zeilen, deutsch). Inhalt: Arbeite nur im
+- [x] **4.1** `.pi/context.md` anlegen (höchstens 60 Zeilen, deutsch). Inhalt: Arbeite nur im
   aktuellen Worktree. Kein Push auf `main`, kein `git push --force`. Commit-Format
   `<type>(<scope>): <text> [T######]`. Nach jeder Code-Änderung `task test:changed`. Plan-Tasks in
   Reihenfolge abarbeiten und erledigte Checkboxen `- [x]` setzen. Bei unklarem Plan anhalten und
   die Frage ausgeben statt zu raten. Keine Secrets lesen (`environments/.secrets/`).
-- [ ] **4.2** `scripts/pi-run.sh` anlegen (`set -euo pipefail`). Ablauf:
+- [x] **4.2** `scripts/pi-run.sh` anlegen (`set -euo pipefail`). Ablauf:
   1. Argumente: `<target>` (Pflicht), `--level L0|L1|L2|L3` (Default `L1`), `--model <id>`,
      `--dry-run`. Unbekannte Stufe: `echo "FEHLER: unbekannte Stufe '<x>' — gueltig: L0 L1 L2 L3"`, Exit 1.
   2. Plan auflösen: Beginnt `<target>` mit `T` gefolgt von Ziffern, dann
@@ -192,8 +192,8 @@ S1-Budgets (wirksame Schwelle, `docs/code-quality/gates.yaml` / `baseline.json`)
        `bash scripts/ticket.sh add-comment --id <id> --body "<bericht>"` (Flags vorher mit
        `bash scripts/ticket.sh add-comment --help` prüfen).
      - Exit-Code des Runners ist der pi-Exit-Code.
-- [ ] **4.3** `.gitignore`: `.pi/runs/` ergänzen.
-- [ ] **4.4** Grün prüfen:
+- [x] **4.3** `.gitignore`: `.pi/runs/` ergänzen.
+- [x] **4.4** Grün prüfen:
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/pi-harness.bats
   shellcheck scripts/pi-run.sh

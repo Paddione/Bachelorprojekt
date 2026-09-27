@@ -4764,6 +4764,12 @@
     "kind": "shell"
   },
   {
+    "id": "pi-harness",
+    "file": "tests/spec/pi-harness.bats",
+    "category": "pi-harness",
+    "kind": "shell"
+  },
+  {
     "id": "pipeline-interface",
     "file": "tests/spec/pipeline-interface.bats",
     "category": "pipeline-interface",

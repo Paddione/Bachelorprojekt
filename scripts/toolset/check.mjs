@@ -35,6 +35,9 @@ const VALID_ROLES = new Set([
   // capabilities.yaml und toolset-context.sh ein, hier fehlte sie — das Gate
   // stand danach auf jedem PR rot.
   'big-pickle',
+  // [T900529] Zweiter Harness neben opencode: pi-coding-agent. Eigene Rolle, damit
+  // eine `roles: [pi]`-Kuration moeglich ist, ohne die bestehenden Rollen anzufassen.
+  'pi',
   'all',
 ]);
 

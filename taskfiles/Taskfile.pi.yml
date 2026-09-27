@@ -1,0 +1,41 @@
+version: "3"
+
+# Pi (pi-mono) — minimaler Coding-Harness fuer lokale Modelle (T900529).
+# Isoliert von ~/.pi: jedes Kommando setzt PI_CODING_AGENT_DIR und PI_OFFLINE.
+vars:
+  PI_VERSION: '{{.PI_VERSION | default "0.73.1"}}'
+  PI_AGENT_DIR:
+    sh: 'echo "${XDG_STATE_HOME:-$HOME/.local/state}/pi-harness/agent"'
+  PI_LOCAL_BASE_URL: '{{.PI_LOCAL_BASE_URL | default "http://127.0.0.1:1919"}}'
+
+env:
+  PI_CODING_AGENT_DIR: '{{.PI_AGENT_DIR}}'
+  PI_OFFLINE: "1"
+
+tasks:
+  install:
+    desc: "Pi global installieren (gepinnte Version, Node >= 20.6)"
+    cmds:
+      - npm install -g @mariozechner/pi-coding-agent@{{.PI_VERSION}}
+      - mkdir -p "{{.PI_AGENT_DIR}}"
+      - pi --version
+
+  status:
+    desc: "Pi-Version, Agent-Verzeichnis und lokalen Endpunkt pruefen"
+    cmds:
+      - 'command -v pi >/dev/null && pi --version || echo "pi: nicht installiert (task pi:install)"'
+      - 'echo "agent dir: {{.PI_AGENT_DIR}}"'
+      - 'curl -sS --max-time 3 "{{.PI_LOCAL_BASE_URL}}/v1/models" | head -c 300 && echo || echo "endpoint: {{.PI_LOCAL_BASE_URL}} nicht erreichbar"'
+
+  uninstall:
+    desc: "Pi deinstallieren und das isolierte Agent-Verzeichnis entfernen"
+    cmds:
+      - npm uninstall -g @mariozechner/pi-coding-agent || true
+      - rm -rf "{{.PI_AGENT_DIR}}"
+
+  run:
+    desc: "Gestagten Plan mit Pi abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3)"
+    requires:
+      vars: [TARGET]
+    cmds:
+      - bash scripts/pi-run.sh "{{.TARGET}}" --level "{{.LEVEL | default "L1"}}" {{if .MODEL}}--model "{{.MODEL}}"{{end}}

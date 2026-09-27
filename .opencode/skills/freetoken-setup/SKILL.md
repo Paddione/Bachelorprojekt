@@ -1,6 +1,7 @@
 ---
 name: freetoken-setup
-description: Set up, switch, and tune the FreeToken MoE serving backend (:1919, Windows) with the optimal config per model - Qwen3.6-35B-A3B-NVFP4, gpt-oss-20b, Gemma-4-26B-A4B-NVFP4 under C:\Users\PatrickKorczewski\models. Use when starting or restarting ft serve, switching the resident model, sizing KV/expert caches, wiring opencode to the local backend, or diagnosing slow decode and context-limit drops.
+description: Retired FreeToken setup retained for historical reference; invoke explicitly only when reviewing the former backend configuration.
+archived: true
 ---
 
 # FreeToken Setup

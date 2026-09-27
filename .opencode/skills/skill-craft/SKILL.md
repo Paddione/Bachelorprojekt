@@ -1,6 +1,6 @@
 ---
 name: skill-craft
-description: Unified skill lifecycle for this repo - discover and install existing skills, then author or improve skills following official best practices. Use when the user wants to find a skill, install a skill, check whether a skill exists for a task, create a new skill, write a SKILL.md, fix a skill that does not trigger, or improve an existing skill.
+description: Unified skill lifecycle for this repo. Use to find, install, share, sync, audit, retire, create, or improve skills across agent tools.
 ---
 
 # Skill Craft

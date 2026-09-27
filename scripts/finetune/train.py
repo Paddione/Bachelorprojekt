@@ -36,6 +36,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from langfuse_tracking import TrainingRun
+
 STANDARD_LORA_MODULES = [
     "q_proj", "k_proj", "v_proj", "o_proj",
     "gate_proj", "up_proj", "down_proj",
@@ -174,7 +176,7 @@ def resolve_config(argv=None) -> dict:
     merged.setdefault("lora_dropout", 0.0)
     merged.setdefault("learning_rate", 2e-4)
     merged.setdefault("max_steps", 60)
-    merged.setdefault("output_dir", "outputs/train")
+    merged.setdefault("output_dir", str(SCRIPT_DIR / "outputs" / "train"))
     merged.update(resolve_training_mode(merged))
     if merged.get("max_seq_length") is not None and merged["max_seq_length"] <= 0:
         raise SystemExit("FEHLER: --max-seq-length muss positiv sein.")
@@ -205,7 +207,7 @@ def tokenize_row_with_assistant_mask(tokenizer, messages: list[dict], max_seq_le
     return {"input_ids": input_ids, "assistant_masks": assistant_masks}
 
 
-def run_training(config: dict) -> int:
+def run_training(config: dict, tracking: TrainingRun) -> int:
     # Schwere Abhaengigkeiten erst hier importieren (siehe Modul-Docstring).
     import torch
     from unsloth import FastLanguageModel
@@ -218,6 +220,7 @@ def run_training(config: dict) -> int:
         raise SystemExit("FEHLER: keine CUDA-GPU sichtbar. CUDA_VISIBLE_DEVICES und PyTorch pruefen.")
     if config["gpu_mode"] == "balanced" and torch.cuda.device_count() < 2:
         raise SystemExit("FEHLER: balanced braucht mindestens zwei sichtbare CUDA-GPUs.")
+    tracking.record_gpu(torch)
     for index in range(torch.cuda.device_count()):
         props = torch.cuda.get_device_properties(index)
         print(f"CUDA {index}: {props.name}, {props.total_memory / 2**30:.1f} GiB")
@@ -275,6 +278,7 @@ def run_training(config: dict) -> int:
     signal_fraction = signal_tokens / total_tokens if total_tokens else 0.0
     print(f"Zeilen ohne Lernsignal verworfen: {dropped}/{len(rows)}")
     print(f"Anteil des Lernsignals (assistant-Tokens / Gesamt-Tokens): {signal_fraction:.4f}")
+    tracking.record_signal(rows=len(rows), kept=len(tokenized), assistant_fraction=signal_fraction)
 
     from datasets import Dataset
     dataset = Dataset.from_list(tokenized)
@@ -315,9 +319,12 @@ def run_training(config: dict) -> int:
             hub_model_id=config.get("hub_model_id"),
         ),
     )
+    trainer.add_callback(tracking.trainer_callback())
 
     print("Starte Training...")
     stats = trainer.train()
+    tracking.log_metrics(trainer.state.global_step, stats.metrics)
+    tracking.record_gpu_peak(torch)
     print(f"Training abgeschlossen: {stats}")
 
     # Hub-Template vor dem Speichern zurueckschreiben, damit der Adapter nicht das
@@ -329,10 +336,12 @@ def run_training(config: dict) -> int:
     model.save_pretrained(str(out_dir))
     tokenizer.save_pretrained(str(out_dir))
     print(f"Adapter gespeichert: {out_dir}")
+    tracking.record_artifact(out_dir)
     if config.get("hub_model_id"):
         model.push_to_hub(config["hub_model_id"])
         tokenizer.push_to_hub(config["hub_model_id"])
         print(f"Adapter im Hub gespeichert: {config['hub_model_id']}")
+    tracking.record_artifact(out_dir, config.get("hub_model_id"))
     return 0
 
 
@@ -358,7 +367,12 @@ def main(argv=None) -> int:
         print(json.dumps(config, indent=2, default=str))
         return 0
 
-    return run_training(config)
+    with TrainingRun(
+        kind="text-training", config=config, output_dir=config["output_dir"],
+        corpus=config["corpus"], eval_corpus=config.get("eval_corpus"),
+        measure_report=config["measure_report"],
+    ) as tracking:
+        return run_training(config, tracking)
 
 
 if __name__ == "__main__":

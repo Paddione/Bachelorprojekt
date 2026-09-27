@@ -12,6 +12,8 @@ import argparse
 import json
 from pathlib import Path
 
+from langfuse_tracking import TrainingRun
+
 
 def read_rows(corpus: Path) -> tuple[list[dict], int]:
     if not corpus.is_file():
@@ -75,7 +77,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--corpus", required=True, type=Path)
     parser.add_argument("--eval-corpus", type=Path)
     parser.add_argument("--max-seq-length", required=True, type=int)
-    parser.add_argument("--output-dir", default="outputs/vision", type=Path)
+    parser.add_argument("--output-dir", default=Path(__file__).resolve().parent / "outputs" / "vision", type=Path)
     parser.add_argument("--max-steps", default=60, type=int)
     parser.add_argument("--learning-rate", default=2e-4, type=float)
     parser.add_argument("--min-free-vram-gb", default=10.0, type=float)
@@ -106,6 +108,17 @@ def main(argv=None) -> int:
         print("OK: vision corpus and model route validated; GPU not loaded")
         return 0
 
+    with TrainingRun(
+        kind="vision-training", config=vars(args), output_dir=args.output_dir,
+        corpus=args.corpus, eval_corpus=args.eval_corpus, image_rows=train_rows,
+        eval_image_rows=eval_rows,
+    ) as tracking:
+        return run_training(args, train_rows, eval_rows, tracking)
+
+
+def run_training(args, train_rows: list[dict], eval_rows: list[dict] | None,
+                 tracking: TrainingRun) -> int:
+
     from unsloth import FastVisionModel
     from unsloth.trainer import UnslothVisionDataCollator
     import torch
@@ -117,6 +130,8 @@ def main(argv=None) -> int:
     print(f"CUDA 0: {torch.cuda.get_device_name(0)}, free {free_bytes / 2**30:.1f}/{total_bytes / 2**30:.1f} GiB")
     if free_bytes / 2**30 < args.min_free_vram_gb:
         raise SystemExit("insufficient free VRAM; free the training GPU before loading the model")
+    tracking.record_gpu(torch)
+    tracking.record_signal(rows=len(train_rows), kept=len(train_rows))
 
     model, processor = FastVisionModel.from_pretrained(
         model_name=args.model,
@@ -171,10 +186,14 @@ def main(argv=None) -> int:
             report_to="none",
         ),
     )
-    trainer.train()
+    trainer.add_callback(tracking.trainer_callback())
+    stats = trainer.train()
+    tracking.log_metrics(trainer.state.global_step, stats.metrics)
+    tracking.record_gpu_peak(torch)
     adapter_dir = args.output_dir / "adapter"
     model.save_pretrained(str(adapter_dir))
     processor.save_pretrained(str(adapter_dir))
+    tracking.record_artifact(adapter_dir)
     print(f"vision adapter saved: {adapter_dir}")
     return 0
 

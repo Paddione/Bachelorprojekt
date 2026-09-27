@@ -219,6 +219,37 @@ der identische Pfad fuer Tests (Kommentarzeilen: `{"ticket_id": <int>, "author":
 
 `outputs/`, `*.gguf` und Unsloth-Kompilat-Caches sind ueber `scripts/finetune/.gitignore`
 ausgeschlossen (umgezogen aus dem entfernten `unsloth_training_setup/.gitignore`).
+Die Trainer schreiben jetzt pro Lauf eine `run-manifest-<uuid>.json` und
+`trainer-metrics-<uuid>.jsonl` in ihren Output-Ordner. Die Default-Ordner liegen
+unter `scripts/finetune/outputs/train` bzw. `scripts/finetune/outputs/vision`.
+
+### Langfuse fuer Unsloth-Laeufe
+
+Die Integration nutzt die aktuelle Python-SDK-v4-API. Im GPU-Venv `pip install
+'langfuse>=4.7,<5'` ausfuehren und `LANGFUSE_PUBLIC_KEY` sowie
+`LANGFUSE_SECRET_KEY` als Umgebungsvariablen setzen; fuer eine eigene Instanz
+zusaetzlich `LANGFUSE_BASE_URL`. Beide Keys zusammen aktivieren Tracking automatisch.
+Bei gesetzten Keys werden SDK-Installation und Authentisierung **vor** dem
+GPU-Lauf geprueft. Ohne Keys laufen Training und Evaluation lokal weiter.
+
+Langfuse erhaelt einen Trace pro Text- oder Vision-Lauf: Modell-ID/Revision,
+Git-Commit, Paketversionen, gewaehlte Hyperparameter, Korpus- und
+Messbericht-SHA256 samt Zeilenzahlen, bei Vision auch einen Sammel-Hash der
+Bilddateien, GPU-Namen/Kapazitaet, Lernsignal-Anteil (Text), finale
+Trainings-/Validierungsmetriken und Adapter-Datei-Fingerprints. Die komplette
+Metrik-Zeitreihe bleibt lokal im JSONL; auf HF Jobs wird sie zusammen mit einem
+bereinigten Manifest unter `training-runs/<run-id>/` im Adapter-Hub-Repo
+gesichert. `eval_harness.py` sendet bei echten Modell-Laeufen aggregierte
+Base/Tuned-Scores und Regressionen als separaten Trace. Lokale Fixture-Tests
+werden nicht gesendet. Die Testset-Version wird per SHA256 festgehalten.
+
+Rohkorpora, Screenshots, Prompts, Modellantworten und Gewichte werden nicht an
+Langfuse gesendet. Das Hub-Manifest enthaelt keinen lokalen Adapter-Pfad.
+Langfuse ersetzt weder den privaten Trainingsdatenspeicher noch das Adapter-Repo.
+Ein Langfuse-Datensatz mit einzelnen Testfaellen erfordert eine separate,
+bewusst freigegebene Datenfreigabe. Die Evaluations-Scores lassen sich nach
+identischem Testset-Hash vergleichen; die Vision-Bewertung braucht weiterhin
+ein eigenes Bild-Testset.
 
 ## Trainingspfad nach dem WSL-Exit: HF Jobs Cloud (primär)
 
@@ -240,7 +271,9 @@ hf download <user/gguf-repo> --local-dir <registry-pfad>
   Job-Ende erhalten. Keine ungeprueften oder vertraulichen Korpora hochladen.
 * GPU-Job und GGUF-Export sind asynchron und kostenpflichtig. `--timeout 2h`
   ist ein Startwert; Laenge und Kosten vor dem Start anhand Korpus und Flavor
-  einschaetzen. **Trackio** sammelt Trainingsmetriken.
+  einschaetzen. **Trackio** sammelt Trainingsmetriken; Langfuse erfasst bei
+  gesetzten Keys den Lauf und die spaeteren Vergleichs-Scores. Das Job-Target
+  gibt die Langfuse-Keys als HF-Job-Secrets weiter, niemals als CLI-Werte.
 * Das GGUF landet zuerst im separaten Hub-Repo. Nach Job-Ende per `hf download`
   in den Registry-Pfad holen und `eval_harness.py` gegen das Basismodell laufen
   lassen. Die Modell-Registry wird erst nach dieser Pruefung aktualisiert.

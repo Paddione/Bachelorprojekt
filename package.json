@@ -11,7 +11,8 @@
     "test:migrate-factory": "node --test scripts/migrate-factory.test.mjs"
   },
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.13.0",
+    "npm": "10.x"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

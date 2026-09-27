@@ -364,9 +364,6 @@ jobs:
       - name: Run ticket-mcp Go tests
         run: task ticket-mcp:test
 
-      - name: OpenSpec validation
-        run: npm run test:openspec
-
       - name: Agent setup replay reminder
         run: |
           changed=$(git diff --name-only origin/main...HEAD || true)

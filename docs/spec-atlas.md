@@ -967,6 +967,8 @@ Last touches:
   - inspect returns schemas rather than prose where possible | T002611 | 2026-08-10 | ADDED
   - Only decisions are persisted, never lookups | T002611 | 2026-08-10 | ADDED
   - Every curated instance carries injectable usage semantics | T002592 | 2026-08-03 | ADDED
+In-flight:
+  - The role pi receives explicit grants only | T900529 | active | ADDED
 
 ### unsloth-eval-harness
 Reqs: 7 · Scenarios: 12 · Lines: 126

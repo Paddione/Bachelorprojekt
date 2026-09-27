@@ -1,0 +1,50 @@
+version: "3"
+
+# Pi (pi-mono) — minimaler Coding-Harness fuer lokale Modelle (T900529).
+# Isoliert von ~/.pi: jedes Kommando setzt PI_CODING_AGENT_DIR und PI_OFFLINE.
+vars:
+  PI_VERSION: '{{.PI_VERSION | default "0.73.1"}}'
+  PI_AGENT_DIR:
+    sh: 'echo "${XDG_STATE_HOME:-$HOME/.local/state}/pi-harness/agent"'
+  # Endpunkt-Verbund (Design D5): llama-server :1919 und LM Studio :1234, das die
+  # LM-Link-Geraete durchreicht. Tailnet-Hosts einfach anhaengen.
+  PI_ENDPOINTS: '{{.ENDPOINTS | default "http://127.0.0.1:1919,http://127.0.0.1:1234"}}'
+
+env:
+  PI_CODING_AGENT_DIR: '{{.PI_AGENT_DIR}}'
+  PI_OFFLINE: "1"
+  PI_ENDPOINTS: '{{.PI_ENDPOINTS}}'
+
+tasks:
+  install:
+    desc: "Pi global installieren (gepinnte Version, Node >= 20.6)"
+    cmds:
+      - npm install -g @mariozechner/pi-coding-agent@{{.PI_VERSION}}
+      - mkdir -p "{{.PI_AGENT_DIR}}"
+      - pi --version
+
+  status:
+    desc: "Pi-Version, Agent-Verzeichnis und Endpunkt-Verbund pruefen"
+    cmds:
+      - 'command -v pi >/dev/null && pi --version || echo "pi: nicht installiert (task pi:install)"'
+      - 'echo "agent dir: {{.PI_AGENT_DIR}}"'
+      - 'echo "endpunkte: {{.PI_ENDPOINTS}}"'
+      - 'bash scripts/pi-run.sh --list-models || echo "kein Endpunkt liefert ein Modell"'
+
+  models:
+    desc: "Chat-Modelle des Endpunkt-Verbunds auflisten (ENDPOINTS=<url,...> JSON=1)"
+    cmds:
+      - bash scripts/pi-run.sh --list-models {{if .JSON}}--json{{end}}
+
+  uninstall:
+    desc: "Pi deinstallieren und das isolierte Agent-Verzeichnis entfernen"
+    cmds:
+      - npm uninstall -g @mariozechner/pi-coding-agent || true
+      - rm -rf "{{.PI_AGENT_DIR}}"
+
+  run:
+    desc: "Gestagten Plan mit Pi abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3 MODEL=<id> ENDPOINTS=<url,...> JSON=1)"
+    requires:
+      vars: [TARGET]
+    cmds:
+      - bash scripts/pi-run.sh "{{.TARGET}}" --level "{{.LEVEL | default "L1"}}" {{if .MODEL}}--model "{{.MODEL}}"{{end}} {{if .JSON}}--json{{end}}

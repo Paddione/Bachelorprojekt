@@ -73,3 +73,40 @@ capabilities:
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+
+// [T900529] Die minimale Harness-Rolle `pi` ist eine gueltige Rolle. Ohne ihren
+// Eintrag in VALID_ROLES wuerde check.mjs jede explizit an `pi` vergebene
+// Instanz als "unknown role" ablehnen — die Registry koennte den Harness gar
+// nicht versorgen.
+test('check.mjs accepts role pi on a canonical instance', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'toolset-check-test-pi-'));
+  const regFile = path.join(tmpDir, 'capabilities.yaml');
+  const claudeDir = path.join(tmpDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+
+  fs.writeFileSync(regFile, `
+capabilities:
+  pi-harness:
+    skill:pi-only-skill:
+      state: canonical
+      use_when: "Nur fuer die minimale Harness-Rolle"
+      roles:
+        - pi
+`);
+
+  const settingsFile = path.join(claudeDir, 'settings.json');
+  fs.writeFileSync(settingsFile, JSON.stringify({}));
+
+  const output = execFileSync('node', ['scripts/toolset/check.mjs'], {
+    env: {
+      ...process.env,
+      TOOLSET_REGISTRY: regFile,
+      TOOLSET_OUT_DIR: tmpDir,
+    }
+  }).toString();
+
+  assert.match(output, /check passed/);
+  assert.doesNotMatch(output, /unknown role/);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});

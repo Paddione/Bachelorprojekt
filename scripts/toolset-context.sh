@@ -31,6 +31,24 @@ VALID_ROLES=(
   bachelorprojekt-security
   orchestrator
   big-pickle
+  # [T900529] Zweiter Harness (pi-coding-agent) — eigene Rolle, eigene Skills.
+  pi
+)
+
+# Rollen, die die Wildcard `all` abdeckt. Bewusst als eigene Liste und NICHT als
+# "alles ausser pi": eine Wildcard, die sich still mit der Rollenliste ausdehnt,
+# wuerde einer neu aufgenommenen Rolle den kompletten Katalog aufdruecken. Der
+# Katalog ist fuer die opencode-Rollen kuratiert; pi bekommt nur, was explizit
+# auf `pi` gesetzt ist. Deshalb steht `pi` hier nicht.
+WILDCARD_ROLES=(
+  bachelorprojekt-website
+  bachelorprojekt-ops
+  bachelorprojekt-infra
+  bachelorprojekt-test
+  bachelorprojekt-db
+  bachelorprojekt-security
+  orchestrator
+  big-pickle
 )
 
 usage() {
@@ -75,6 +93,7 @@ fi
 # YAML wird mit js-yaml geparst statt in Bash zerlegt. Ein bash-eigener YAML-Parser bricht an
 # der ersten mehrzeiligen Zeichenkette und waere hier nichts als ein kuenftiger Bug.
 TOOLSET_REGISTRY="$REGISTRY" TOOLSET_ROLE="$ROLE" TOOLSET_JSON="$AS_JSON" \
+  TOOLSET_WILDCARD_ROLES="${WILDCARD_ROLES[*]}" \
 node --input-type=module -e '
 import fs from "node:fs";
 import * as yamlPkg from "js-yaml";
@@ -83,6 +102,9 @@ const yaml = yamlPkg.default ?? yamlPkg;
 const registryPath = process.env.TOOLSET_REGISTRY;
 const role = process.env.TOOLSET_ROLE;
 const asJson = process.env.TOOLSET_JSON === "1";
+// Wildcard-Umfang kommt aus dem Bash-Teil, damit beide Werkzeuge dieselbe SSOT
+// haben: VALID_ROLES zerlegt sich in `pi` und die von `all` abgedeckten Rollen.
+const wildcardRoles = (process.env.TOOLSET_WILDCARD_ROLES || "").split(/[\s,]+/).filter(Boolean);
 
 const data = yaml.load(fs.readFileSync(registryPath, "utf8"));
 const capabilities = (data && data.capabilities) || {};
@@ -94,7 +116,8 @@ for (const [capName, instances] of Object.entries(capabilities)) {
     if (!cfg || cfg.state === "suppressed") continue;
     // Ohne roles ist die Instanz unkuriert und hat in einem Prompt nichts verloren.
     if (!Array.isArray(cfg.roles)) continue;
-    if (!cfg.roles.includes(role) && !cfg.roles.includes("all")) continue;
+    const covered = cfg.roles.includes(role) || (cfg.roles.includes("all") && wildcardRoles.includes(role));
+    if (!covered) continue;
     picked.push({
       capability: capName,
       instance: instKey,

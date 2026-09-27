@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1309,
+      "file_count": 1310,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -962,6 +962,7 @@
         "tests/spec/openspec-workflow/t002573-backlog-slugs.txt",
         "tests/spec/openspec-workflow/ticket-file-required.bats",
         "tests/spec/openspec-worktree-anchor.bats",
+        "tests/spec/pi-harness.bats",
         "tests/spec/pipeline-interface.bats",
         "tests/spec/plan-context.bats",
         "tests/spec/plan-partials-embedding/build-chunks.bats",
@@ -4013,7 +4014,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 848,
+      "file_count": 849,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4671,6 +4672,7 @@
         "scripts/openspec-validate.test.ts",
         "scripts/openspec-validate.ts",
         "scripts/openspec.sh",
+        "scripts/pi-run.sh",
         "scripts/plan-context.sh",
         "scripts/plan-frontmatter-hook.sh",
         "scripts/plan-intel-filter.sh",

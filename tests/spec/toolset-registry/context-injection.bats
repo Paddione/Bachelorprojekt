@@ -39,6 +39,11 @@ capabilities:
       reason: "Nicht projektrelevant."
       use_when: "Darf nie erscheinen"
       roles: [all]
+  demo-pi:
+    skill:pi-only-skill:
+      state: canonical
+      use_when: "Nur fuer die minimale Harness-Rolle"
+      roles: [pi]
 EOF
 }
 
@@ -144,4 +149,13 @@ EOF
   [ "$status" -eq 0 ]
   run bash -c "cd '$REPO_ROOT' && bash scripts/toolset-context.sh orchestrator | grep -c '^### '"
   [ "$output" -ge 1 ]
+}
+
+@test "context: Rolle pi erbt die Wildcard 'all' nicht" {
+  run_ctx pi
+  [ "$status" -eq 0 ]
+  # Positiv-Anker zuerst: die explizite Freigabe fuer pi ist da.
+  [[ "$output" == *"skill:pi-only-skill"* ]]
+  # Die Wildcard-Instanz aus demo-shared darf hier nicht auftauchen.
+  [[ "$output" != *"mcp:everywhere-server"* ]]
 }

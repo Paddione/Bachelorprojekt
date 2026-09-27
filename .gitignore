@@ -257,3 +257,6 @@ scripts/iso/node-map
 # plan-runner: Laufzustand je Change (T900504)
 openspec/changes/*/.plan-runner/
 consideration.md
+
+# pi-run.sh: JSONL-Protokolle je Lauf (T900529)
+.pi/runs/

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.379.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.378.0...website-v1.379.0) (2026-09-27)
+
+
+### Features
+
+* **scripts:** agent-bench case corpus with four offline-verifiable cases [T900561] ([#6026](https://github.com/Paddione/Bachelorprojekt/issues/6026)) ([b72441b](https://github.com/Paddione/Bachelorprojekt/commit/b72441b3ace097c5948c50c3647b4d358a1caec4))
+
 ## [1.378.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.377.0...website-v1.378.0) (2026-09-26)
 
 

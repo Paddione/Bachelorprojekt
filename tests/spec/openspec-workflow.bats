@@ -323,39 +323,10 @@ EOF
   [ "$missing" -eq 0 ]
 }
 
-# ── T002243: --create-new documentation for mishap bundles ────────────#
-
-@test "T002243: plan-archive-steps.md documents --create-new for mishap bundles" {
-  local f="$REPO/.claude/skills/references/plan-archive-steps.md"
-  [ -f "$f" ]
-  grep -q -- '--create-new' "$f"
-  grep -qi 'mishap' "$f"
-}
-
-# ── T002282: Archiv-Commit muss die regenerierten Freshness-Artefakte tragen ──
-# `scripts/openspec.sh cmd_archive` schreibt components/website/src/data/openspec-status.json
-# NACH dem `mv "$dir" "$dest"` neu (openspec.sh:154-156). Schritt 4 von
-# plan-archive-steps.md staged aber nur `openspec/changes/` — die regenerierte
-# JSON-Datei bleibt unstaged und fällt erst im CI als stale auf. Der Bash-Block
-# in der .md IST die ausführbare Prozedur, daher ein Konventions-Check auf sie.
-
-@test "T002282-M2: plan-archive-steps.md Schritt 4 staged components/website/src/data/openspec-status.json" {
-  local f="$REPO/.claude/skills/references/plan-archive-steps.md"
-  [ -f "$f" ]
-  run grep -Fq 'components/website/src/data/openspec-status.json' "$f"
-  [ "$status" -eq 0 ]
-}
-
-@test "T002282-M2: plan-archive-steps.md regeneriert Freshness vor dem Archiv-Commit" {
-  local f="$REPO/.claude/skills/references/plan-archive-steps.md"
-  [ -f "$f" ]
-  local regen commit
-  regen=$(grep -n 'task freshness:regenerate' "$f" | head -1 | cut -d: -f1)
-  commit=$(grep -n 'git commit -m "chore(plans): archive' "$f" | head -1 | cut -d: -f1)
-  [ -n "$commit" ] || { echo "Archiv-Commit-Zeile nicht gefunden in $f"; return 1; }
-  [ -n "$regen" ] || { echo "kein 'task freshness:regenerate' in $f"; return 1; }
-  [ "$regen" -lt "$commit" ] || { echo "freshness:regenerate steht NACH dem Archiv-Commit"; return 1; }
-}
+# ── C7a-1c (T900560): T002243 + T002282-M2 (×2) retired ──
+# Die gepinnte Mechanik existiert nicht mehr: kein openspec.sh-archive-Verb,
+# kein openspec-status.json-Regen, kein --create-new — der Plan-Ordner wird per
+# PR geloescht, der Record liegt in Postgres (plan-archive-steps.md Delete-Flow).
 
 # ── [T002375-p5] OpenSpec-Lifecycle: Resume statt blindem Abbruch ──────#
 
@@ -395,11 +366,5 @@ _p5_repo() { cd "$BATS_TEST_DIRNAME/../.." && pwd; }
 # sind entfernt. Der in_progress-Write wird heute ueber
 # scripts/vda/ticket/update-status.sh gesteuert, der weiter unten getestet ist.
 
-@test "T002375-p5: plan-archive-steps.md verbietet den SSOT-Direktedit im Change" {
-  local repo; repo="$(_p5_repo)"
-  local ref="$repo/.claude/skills/references/plan-archive-steps.md"
-  run bash -c "grep -c 'Delta-Disziplin' '$ref'"
-  [ "$output" = "1" ] || { echo "Delta-Disziplin fehlt"; false; }
-  run bash -c "grep -c 'REMOVED Requirements. listet ganze Requirement-Namen' '$ref'"
-  [ "$output" -ge 1 ] || { echo "die REMOVED-Regel fehlt"; false; }
-}
+# C7a-1c (T900560): T002375-p5-Direktedit-Test retired — Delta-Disziplin und
+# REMOVED-Regel sind mit dem OpenSpec-Delta-Flow gegenstandslos (Delete-Flow).

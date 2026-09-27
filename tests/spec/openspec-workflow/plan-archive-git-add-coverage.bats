@@ -8,26 +8,15 @@
 # Archiv-Flows). Die `git add`-Liste dort IST die ausfuehrbare Prozedur —
 # es gibt kein Laufzeitverhalten, gegen das gemessen werden koennte.
 #
-# Hintergrund (T004271): Die Referenz listete beim Archiv-Commit eine feste
-# `git add`-Pfadliste, die openspec/specs/ NICHT abdeckte — obwohl
-# `scripts/openspec.sh cmd_archive` die Delta-Specs dorthin merged
-# (openspec-merge.mjs batch, Pass 2, dry_run=false; SSOT-Mutation).
-# Folgte der Implementer der Referenz woertlich, blieb das SSOT-Delta
-# unstaged und ging beim naechsten Rebase/Cleanup still verloren — die SSOT
-# verlor den Anforderungstext, ohne dass ein Guard anschlug.
-# Beleg: T002614 (PR #4328, Commit 5b70a791), repariert per Follow-up
-# PR #4334 ("chore(plans): merge T002614 delta into openspec SSOT").
-#
-# Mutationspfade des Archiv-Verbs (scripts/openspec.sh cmd_archive), gegen
-# die die git add-Liste abgeglichen wird:
-#   - openspec/specs/                       : SSOT-Delta-Merge (openspec-merge.mjs batch, Pass 2)
-#   - openspec/changes/                     : Move-Quelle  (mv "$dir" "$dest")
-#   - openspec/changes/archive/             : Move-Ziel    (mv "$dir" "$dest")
-#   - components/website/src/data/openspec-status.json : Regeneration (openspec-status-map.sh) + eigenes Staging (T003136)
+# Hintergrund (T004271): Die Referenz listete frueher beim Archiv-Commit eine
+# feste `git add`-Pfadliste, die das SSOT-Delta in openspec/specs/ NICHT
+# abdeckte (Beleg: T002614, PR #4328, repariert per PR #4334). Seit C7a-1c ist
+# die Prozedur der Delete-Flow: archive-plan nach Postgres, DANN git rm auf
+# den Plan-Ordner. Die Guards pinnen diese Reihenfolge.
 #
 # Positiv-Anker (T002356-M1): der erste Test verlangt die Existenz der
-# git add-Zeile mit openspec/changes/ — ohne sie bestuenden die
-# Pfad-Checks vakuos gruen.
+# git rm-Zeile mit $PLAN_DIR — ohne sie bestuende der Reihenfolgen-Check
+# vakuos gruen.
 #
 # Hinweis: `fail` aus bats-support wird hier bewusst nicht benutzt — in
 # tests/spec/openspec-workflow/ wird test_helper.bash nicht autoloaded
@@ -41,30 +30,26 @@ setup() {
   REF="$REPO/.claude/skills/references/plan-archive-steps.md"
 }
 
-# Pfadgruppen, die `scripts/openspec.sh archive` mutiert — die git add-Liste
-# der Referenz muss jede abdecken, sonst bleibt die Mutation unstaged.
-ARCHIVE_MUTATION_PATHS=(
-  'openspec/changes/'
-  'openspec/changes/archive/'
-  'openspec/specs/'
-  'components/website/src/data/openspec-status.json'
-)
+# C7a-1c (T900560): das Archiv-Verb existiert nicht mehr — der Plan-Ordner wird
+# per PR geloescht, nachdem der Inhalt nach Postgres archiviert wurde
+# (plan-archive-steps.md Delete-Flow). Die T004271-Guards pinnen die NEUE
+# Prozedur: (1) git rm auf den Plan-Ordner, (2) archive-plan VOR dem Loeschen.
 
-@test "T004271: Positiv-Anker — die Referenz traegt eine git add-Liste mit openspec/changes/" {
+@test "T004271: Positiv-Anker — die Referenz loescht den Plan-Ordner per git rm" {
   [ -f "$REF" ] || { echo "Referenz fehlt: $REF" >&2; return 1; }
-  run grep -E '^git add ' "$REF"
-  [ "$status" -eq 0 ] || { echo "keine 'git add'-Zeile in $REF gefunden" >&2; return 1; }
-  echo "$output" | grep -qF 'openspec/changes/' || { echo "git add-Zeile ohne openspec/changes/" >&2; return 1; }
+  run grep -E '^git rm ' "$REF"
+  [ "$status" -eq 0 ] || { echo "keine 'git rm'-Zeile in $REF gefunden" >&2; return 1; }
+  echo "$output" | grep -qF '$PLAN_DIR' || { echo "git rm-Zeile ohne \$PLAN_DIR" >&2; return 1; }
 }
 
-@test "T004271: die git add-Liste deckt jeden vom Archiv-Verb mutierten Pfad ab" {
+@test "T004271: archive-plan steht VOR dem Loeschen des Plan-Ordners" {
   [ -f "$REF" ] || { echo "Referenz fehlt: $REF" >&2; return 1; }
-  run grep -E '^git add ' "$REF"
-  [ "$status" -eq 0 ] || { echo "keine 'git add'-Zeile in $REF gefunden" >&2; return 1; }
-  for p in "${ARCHIVE_MUTATION_PATHS[@]}"; do
-    echo "$output" | grep -qF -- "$p" \
-      || { echo "git add-Liste deckt den vom Archiv-Verb mutierten Pfad '$p' nicht ab" >&2; return 1; }
-  done
+  local archive rmline
+  archive=$(grep -n 'ticket.sh archive-plan' "$REF" | head -1 | cut -d: -f1)
+  rmline=$(grep -n '^git rm ' "$REF" | head -1 | cut -d: -f1)
+  [ -n "$rmline" ] || { echo "keine git rm-Zeile in $REF" >&2; return 1; }
+  [ -n "$archive" ] || { echo "kein 'ticket.sh archive-plan' in $REF" >&2; return 1; }
+  [ "$archive" -lt "$rmline" ] || { echo "archive-plan steht NACH git rm — Postgres-Kopie ginge verloren" >&2; return 1; }
 }
 
 # ── T005564: Status-Sed-Muster deckt 'planning' ab ────────────────────────

@@ -133,6 +133,34 @@ echo "  ✓ agy/settings.json — env secrets injected"
 # ── 4) Openclaw: LM Studio endpoint config ────────────────────────────
 install_file "${DOTFILES}/openclaw/.env" "${HOME}/.openclaw/.env"
 
+# ── 5) Neovim config — copy repo dashboard config to ~/.config/nvim ───
+# Idempotent: no-op when identical, backs up a differing live config
+# before replacing it, never destroys a live config silently.
+#
+# lazy-lock.json is versioned in the repo (pins the 13 kept plugins, see
+# design.md) but lazy.nvim also rewrites the LIVE copy on every plugin
+# load/update — that drift is expected plugin-manager state, not an authored
+# config change. Comparing it would make every install after the first
+# `nvim` launch look "different" and force a pointless backup+reinstall on
+# every unrelated `install.sh` run. -x excludes it from the equality check
+# only; a real change to any other file still triggers backup + replace
+# (which does intentionally re-pin lazy-lock.json to the repo's committed
+# version — repo stays the plugin-version SSOT per design.md).
+NVIM_SRC="${DOTFILES}/nvim"
+NVIM_DST="${HOME}/.config/nvim"
+if [ ! -e "$NVIM_DST" ]; then
+  mkdir -p "$(dirname "$NVIM_DST")"
+  cp -r "$NVIM_SRC" "$NVIM_DST"
+  echo "  ✓ nvim config → ${NVIM_DST} (installed)"
+elif diff -rq -x lazy-lock.json "$NVIM_SRC" "$NVIM_DST" >/dev/null 2>&1; then
+  echo "  ✓ nvim config — already up to date (no-op; lazy-lock.json drift ignored)"
+else
+  NVIM_BACKUP="${HOME}/.config/nvim-backup-$(date +%Y%m%d-%H%M%S)"
+  mv "$NVIM_DST" "$NVIM_BACKUP"
+  cp -r "$NVIM_SRC" "$NVIM_DST"
+  echo "  ✓ nvim config → ${NVIM_DST} (updated; previous config backed up to ${NVIM_BACKUP})"
+fi
+
 echo ""
 echo "Done. Notes for new machine setup:"
 echo "  1. Paths reference /home/patrick — update dotfiles/agy/settings.json if username differs."

@@ -5137,6 +5137,12 @@
       "status": "archived"
     }
   ],
+  "T900655": [
+    {
+      "slug": "nvim-dashboard-foundation",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

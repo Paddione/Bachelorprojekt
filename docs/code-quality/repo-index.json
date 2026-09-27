@@ -3190,7 +3190,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 870,
+      "file_count": 867,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3616,9 +3616,6 @@
         ".opencode/skills/web-audit/SKILL.md",
         ".opencode/skills/website-specialist/SKILL.md",
         ".opencode/worktree.jsonc",
-        "claude-code/gekko-android-mcp-guide.md",
-        "claude-code/settings.json",
-        "claude-code/system-prompt.md",
         "docker/collabora/Dockerfile",
         "docker/dev-shell/Dockerfile",
         "docker/dev-shell/entrypoint.sh",
@@ -5208,10 +5205,8 @@
       "id": "openclaw",
       "name": "OpenClaw WSL gateway config",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 1,
-      "files": [
-        "openclaw/.env.example"
-      ]
+      "file_count": 0,
+      "files": []
     },
     {
       "id": "assets",

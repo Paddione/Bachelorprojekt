@@ -92,8 +92,14 @@ _is_backlog_slug() {
   # Test vakuos, sobald die Kandidatenliste leer laeuft — "0 fehlende von 0
   # geprueften" waere dann ein gruener Test ohne Aussage. Auf dem PR-Pfad darf
   # die Liste leer sein (PR ohne OpenSpec-Beruehrung) — das ist das Scoping
-  # selbst (T002934).
+  # selbst (T002934). Auf main ist eine leere Liste ebenfalls legitim, sobald
+  # alle Changes archiviert sind (leeres openspec/changes/ ist Ruhezustand,
+  # kein Validatorschaden — T900519): dann skippen statt fehlschlagen, ein
+  # kuenftiger Change ohne .ticket laesst [ "$missing" -eq 0 ] unten greifen.
   echo "Anker: geprueft=$checked mit_ticket=$with_ticket fehlend=$missing" >&3
+  if [ "$on_main" -eq 1 ] && [ "$checked" -eq 0 ]; then
+    skip "keine unarchivierten Changes — .ticket-Pflicht vakuos erfuellt (alles archiviert)"
+  fi
   if [ "$on_main" -eq 1 ]; then
     [ "$checked" -gt 0 ]
     [ "$with_ticket" -gt 0 ]

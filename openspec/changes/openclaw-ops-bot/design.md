@@ -29,7 +29,9 @@ status: draft
 | State-Verzeichnis | `$HOME/.openclaw` (OpenClaw-Default) |
 | Config-Ziel | `$HOME/.openclaw/openclaw.json` (JSON5), Vorlage `openclaw/openclaw.json5` im Repo |
 | Secrets | `$HOME/.openclaw/.env`, chmod 600, Vorlage `openclaw/.env.example` |
-| Workspace | `$HOME/.openclaw/workspace`, darin Symlinks `HEARTBEAT.md` und `AGENTS.md` auf `openclaw/workspace/` im Repo |
+| Exec-Approvals | Vorlage `openclaw/exec-approvals.json5` im Repo, eingespielt per `openclaw approvals set --file` in `configure` |
+| Workspace | `$HOME/.openclaw/workspace`, darin nur der Symlink `AGENTS.md` auf `openclaw/workspace/AGENTS.md` im Repo |
+| Heartbeat-Checkliste | `openclaw/heartbeat-scratch.md` im Repo, eingespielt per `openclaw cron scratch <jobId> --file` in `start` (braucht das laufende Gateway). Kein `HEARTBEAT.md` im Workspace: die Datei ist ab OpenClaw ausgemustert, `doctor --fix` würde sie archivieren und löschen |
 | systemd-Unit | `openclaw/openclaw-gateway.service` → installiert nach `$HOME/.config/systemd/user/openclaw-gateway.service` |
 | Gateway | `bind: loopback`, Port `18789`, `auth.mode: token` mit `${OPENCLAW_GATEWAY_TOKEN}` |
 | HTTP-API | `gateway.http.endpoints.chatCompletions.enabled: true` |
@@ -42,6 +44,7 @@ status: draft
 |----------|-------|--------|
 | `OPENCLAW_GATEWAY_TOKEN` | Gateway-Bearer | `configure` erzeugt 64 Hex-Zeichen (`openssl rand -hex 32`), wenn leer |
 | `TELEGRAM_BOT_TOKEN` | Telegram-Bot | Nutzer trägt ihn ein (@BotFather) |
+| `TELEGRAM_CHAT_ID` | Heartbeat-Ziel (`heartbeat.to`) | Nutzer trägt seine Chat-ID nach dem Pairing ein |
 | `OPENCLAW_LOCAL_BASE_URL` | lokales Modell | Default `http://127.0.0.1:1919/v1` |
 | `OPENCODE_GO_API_KEY` | Fallback-Modell | `configure` liest `."opencode-go".key` aus `~/.local/share/opencode/auth.json`, wenn leer |
 | `OPENCLAW_GO_SESSION` | stabiler `x-opencode-session` | `configure` erzeugt eine UUID, wenn leer |
@@ -58,9 +61,11 @@ Die Task-Namen bleiben (Spec `llm-local-dev`): `backup`, `install`, `configure`,
 - `install`: Node-Tarball nach `$TMPDIR` laden, SHA-256 prüfen (Abbruch bei Abweichung), nach
   `~/.local/opt/node24` entpacken; `npm install -g --prefix ~/.local/opt/openclaw openclaw@<version>`
   mit dem Node-24-`npm`; Wrapper schreiben; `openclaw --version` muss `2026.9.6` enthalten.
-- `configure`: `.env` aus `.env.example` anlegen, falls nicht vorhanden, und leere generierbare
+- `configure`: nach dem Kopieren der Config `openclaw approvals set --file openclaw/exec-approvals.json5`
+  ausführen (exakte Syntax gegen `openclaw approvals --help` der installierten Version prüfen).
+  Außerdem `.env` aus `.env.example` anlegen, falls nicht vorhanden, und leere generierbare
   Werte füllen (siehe Tabelle). `openclaw/openclaw.json5` nach `~/.openclaw/openclaw.json`
-  kopieren. Workspace-Symlinks setzen. Unit installieren und `daemon-reload`.
+  kopieren. Workspace-Symlink `AGENTS.md` setzen. Heartbeat-Scratch einspielen: Job-ID des Monitor-Jobs von `ops` per `openclaw cron list` (JSON-Ausgabe, Syntax gegen `--help` prüfen) ermitteln, dann `openclaw cron scratch <jobId> --file openclaw/heartbeat-scratch.md`. Das braucht das laufende Gateway, deshalb führt `start` diesen Schritt nach dem Start aus, nicht `configure`. Unit installieren und `daemon-reload`.
 - `start`: `systemctl --user enable --now openclaw-gateway.service`, danach `status`.
 - `status`: Unit aktiv? `GET http://127.0.0.1:18789/healthz`; Erreichbarkeit von
   `${OPENCLAW_LOCAL_BASE_URL}/models`.
@@ -93,19 +98,22 @@ Die Unit startet `%h/.local/opt/node24/bin/node <openclaw-bin> gateway --port 18
 - `agents.defaults.model: { primary: "local/local-default", fallbacks: ["opencode-go/muse-spark-1.3-contributor"] }`,
   `agents.defaults.models["opencode-go/muse-spark-1.3-contributor"].params.thinking: "low"`.
 - `agents.entries.ops`: `default: true`, `workspace: "~/.openclaw/workspace"`,
-  `heartbeat: { every: "30m", target: "telegram" }`,
+  `heartbeat: { every: "30m", target: "telegram", to: "${TELEGRAM_CHAT_ID}" }`,
   `tools: { allow: ["read","exec","message"], deny: ["write","edit","apply_patch","browser","canvas"] }`.
 - `agents.entries.task-runner`: selber Workspace, kein Heartbeat, dieselben `tools`.
-- `tools.exec`: `mode: "allowlist"`, Allowlist-Muster `kubectl` (argPattern
-  `^(--context \S+ )?(get|describe|logs|top) `), `flux` (`^get `), `gh` (`^(run|pr) (list|view) `),
-  `git` (`^(status|log|diff) `), `task` (`^--list`), `bash` (`^scripts/(ticket\.sh (list|get)|vda\.sh oracle .* --dry-run)`).
+- `tools.exec.security: "allowlist"` in `openclaw.json`. Die Allowlist selbst liegt laut Doku
+  (`tools/exec-approvals-advanced`) im host-lokalen Approvals-Dokument unter
+  `agents.<id>.allowlist` und kommt aus `openclaw/exec-approvals.json5` (für `ops` und
+  `task-runner` identisch). Muster `kubectl` (argPattern
+  `^(--context \S+ )?(get|describe|logs|top)( |$)`), `flux` (`^get( |$)`), `gh` (`^(run|pr) (list|view)( |$)`),
+  `git` (`^(status|log|diff)( |$)`), `task` (`^--list`), `bash` (`^scripts/(ticket\.sh (list|get)|vda\.sh oracle .* --dry-run)`).
 - `channels.telegram: { enabled: true, dmPolicy: "pairing", groups: { "*": { requireMention: true } } }`,
   Token aus `TELEGRAM_BOT_TOKEN` (Umgebung, nicht in der Datei).
 - Keine `mcp`-Sektion.
 
-### 3. Workspace (`openclaw/workspace/`)
+### 3. Workspace und Heartbeat-Scratch
 
-- `HEARTBEAT.md`: Checkliste. Jeder Punkt nennt den exakten Read-only-Befehl und die
+- `openclaw/heartbeat-scratch.md` (nicht im Workspace): Checkliste für den Monitor-Scratch. Jeder Punkt nennt den exakten Read-only-Befehl und die
   Befund-Bedingung:
   1. `flux get kustomizations --context fleet -A`, Befund bei `READY=False`, außer `korczewski`
      (per Design suspendiert).
@@ -114,7 +122,7 @@ Die Unit startet `%h/.local/opt/node24/bin/node <openclaw-bin> gateway --port 18
   3. `gh run list --branch main --limit 5`, Befund bei `failure`.
   4. `bash scripts/ticket.sh list --status plan_staged`, Befund bei Einträgen älter als 24 h.
   
-  Ohne Befund antwortet der Agent mit `HEARTBEAT_OK` (OpenClaw-Konvention, dann keine Zustellung).
+  Ohne Befund antwortet der Agent mit `NO_REPLY` (aktuelle OpenClaw-Konvention, dann keine Zustellung).
   Mit Befund: pro Befund Symptom, vermutete Ursache, empfohlener Befehl. Nichts ausführen, was
   nicht auf der Allowlist steht.
 - `AGENTS.md` (40–60 Zeilen): Rolle, Repo-Pfad `/home/patrick/Bachelorprojekt`, Read-only-Regel,

@@ -58,16 +58,16 @@ test.describe('Brett Mannequin Focus', () => {
   });
 
   test('T2: Adding a figure via button', async ({ page }) => {
-    // Deselect any active figure so the panel switches to 'NEUE FIGUR' mode
-    await page.evaluate(() => (window as any).selectFigure?.(null));
-    await page.keyboard.press('Escape');
-
-    // Quiescence [T900601]: the live backend seeds template figures async
-    // after load — two reads 2s apart must agree before measuring, otherwise
-    // the seed lands between beforeCount and the +1 assertion (flake: 0 → 5).
     const readFigures = () => page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+
+    // Sync-wait [T900601]: new rooms are seeded async with the brand default
+    // template over websocket (server ws-connection.ts join → brand default).
+    // Measuring before the seed lands flakes (observed 0 → 5).
+    await expect.poll(readFigures, { timeout: 10_000 }).toBeGreaterThan(0);
+
+    // Settle: one 2s stability check in case the template streams in.
     let beforeCount = await readFigures();
-    const deadline = Date.now() + 15_000;
+    const deadline = Date.now() + 6_000;
     for (;;) {
       await page.waitForTimeout(2000);
       const now = await readFigures();
@@ -76,12 +76,17 @@ test.describe('Brett Mannequin Focus', () => {
       if (Date.now() > deadline) break;
     }
 
+    // Establish panel mode LAST — right before clicking. Async UI updates
+    // during the waits above can otherwise leave 'NEUE FIGUR' mode and hide
+    // #fig-panel-add (force-click on hidden has no box → "not visible").
+    await page.evaluate(() => (window as any).selectFigure?.(null));
+    await page.keyboard.press('Escape');
+    beforeCount = await readFigures();
+
     await page.locator('#fig-panel-btn').click({ force: true });
     await page.locator('#fig-panel-add').click({ force: true });
     await page.locator('canvas').click({ position: { x: 300, y: 300 }, force: true });
-    await expect.poll(async () => {
-      return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
-    }, { timeout: 10_000 }).toBe(beforeCount + 1);
+    await expect.poll(readFigures, { timeout: 10_000 }).toBe(beforeCount + 1);
     await page.keyboard.press('Escape');
   });
 

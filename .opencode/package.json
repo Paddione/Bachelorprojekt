@@ -2,7 +2,6 @@
   "dependencies": {
     "@opencode-ai/plugin": "1.18.30",
     "@tarquinen/opencode-dcp": "^3.2.0",
-    "envsitter-guard": "^0.0.4",
     "jsonc-parser": "^3.3.1",
     "oh-my-opencode-slim": "^2.2.25",
     "opencode-agent-memory": "^0.3.0",

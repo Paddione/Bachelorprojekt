@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1313,
+      "file_count": 1314,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -912,6 +912,7 @@
         "tests/spec/monitoring-alerts.bats",
         "tests/spec/monitoring-alerts/backup-alerting.bats",
         "tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats",
+        "tests/spec/neovim-dashboard.bats",
         "tests/spec/network-address-plan/fixtures/declared-overlap.yaml",
         "tests/spec/network-address-plan/fixtures/duplicate-id.yaml",
         "tests/spec/network-address-plan/fixtures/prefix-span-overlap.yaml",

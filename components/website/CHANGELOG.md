@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.383.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.382.0...website-v1.383.0) (2026-09-27)
+
+
+### Features
+
+* merge gate with optional code review in dev-flow-execute [T900687] ([#6068](https://github.com/Paddione/Bachelorprojekt/issues/6068)) ([ca2e9c9](https://github.com/Paddione/Bachelorprojekt/commit/ca2e9c99ed018c91789a01d5c74205272113c95e))
+* review gate optional T900687 ([#6069](https://github.com/Paddione/Bachelorprojekt/issues/6069)) ([566e343](https://github.com/Paddione/Bachelorprojekt/commit/566e343524b24af17da9791628161e69f41a193d))
+
+
+### Bug Fixes
+
+* **plans:** resolve plan dir under .agents/plans [T900689] ([#6067](https://github.com/Paddione/Bachelorprojekt/issues/6067)) ([01912c8](https://github.com/Paddione/Bachelorprojekt/commit/01912c8513db35a7fe31b1bfc69a2332dea1a46c))
+
 ## [1.382.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.381.0...website-v1.382.0) (2026-09-27)
 
 

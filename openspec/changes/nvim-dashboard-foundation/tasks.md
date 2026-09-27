@@ -26,12 +26,12 @@ _partial-index —
 
 ### Changed files
 
-| `dotfiles/install.sh` | 159 | 641 |
+| `dotfiles/install.sh` | 169 | 631 |
 
 - `docs/runbooks/neovim-plugin-scouting.md` (durable-facts refresh; .md not S1-gated)
 - `components/website/src/data/test-inventory.json` (regenerated via test inventory; .json not S1-gated)
 
-S1 note: only `.sh` files carry a static limit here (800). `dotfiles/install.sh` is not baselined: Ist 159, wirksame Schwelle 800, Restbudget 641. All other targets (.lua/.md/.bats/.json) have no S1 limit entry and are not budget-capped. No baseline entries may be added.
+S1 note: only `.sh` files carry a static limit here (800). `dotfiles/install.sh` is not baselined: Ist 169, wirksame Schwelle 800, Restbudget 631. All other targets (.lua/.md/.bats/.json) have no S1 limit entry and are not budget-capped. No baseline entries may be added.
 
 ## Partials
 

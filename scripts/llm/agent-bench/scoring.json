@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "weights": {
+    "error": 15,
+    "detour": 8,
+    "budget_per_50pct_over": 10,
+    "budget_cap": 30
+  },
+  "roles": {
+    "planner": { "clarify_miss_error": 1, "file_precision_detour": 1 },
+    "orchestrator": { "accepted_faulty_result_error": 2, "self_exec_detour": 1 },
+    "code-worker": { "red_test_run_detour": 0.5, "out_of_scope_file_detour": 1 },
+    "vision-worker": { "hallucinated_element_error": 2 },
+    "reviewer": {
+      "false_pass_error": 3,
+      "false_fail_error": 1,
+      "defect_unnamed_detour": 1
+    }
+  }
+}

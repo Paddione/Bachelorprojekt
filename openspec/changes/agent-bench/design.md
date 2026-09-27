@@ -41,9 +41,9 @@ _Ticket: T900561_
 | D2 | Aufgabenquelle | Mix: 5–6 Fixture-Fälle + 2–3 Replays archivierter Changes, ~8 Fälle à 3–5 Varianten | nur Fixture; nur Replays |
 | D3 | Fallgrundlage | Jeder Fall beruht auf einer echten Begebenheit (`source.md`, Pflicht) und prägt sie in Perspektiven aus: `clean`, `ambiguous`, `faulty-worker`, `conflicting`, `detour-trap`, `vision` | freie synthetische Aufgaben |
 | D4 | Rollen | Planner, Orchestrator, Code-Worker, Vision-Worker, Reviewer; Auswahl per `--roles` | feste Rollenmenge |
-| D5 | Bewertung | Vektor O/E/D/T, Score = 100·O − w·E − w·D − Budgetabzug, Untergrenze 0; `scoring.yaml` versioniert; deterministisch | LLM-Judge in v1 |
+| D5 | Bewertung | Vektor O/E/D/T, Score = 100·O − w·E − w·D − Budgetabzug, Untergrenze 0; `scoring.json` versioniert (JSON: Node-Standardbibliothek ohne YAML-Parser); deterministisch | LLM-Judge in v1 |
 | D6 | Planner-Bewertung | Nicht gegen festes Setup, sondern über die Kombinationsmatrix (Marginal-Score über alle Ausführungsbelegungen) | fest gepinntes Ausführungs-Setup |
-| D7 | Kombinationen | Modell-Pool `models.yaml`; Stufen Plan → Ausführung → Review mit Cache je (Variante, Modell, Rep); Ausführungspaare nur aus gleichzeitig residenten Modellen; Scheduler gruppiert nach Loadout | volles Kreuzprodukt ohne Cache |
+| D7 | Kombinationen | Modell-Pool `models.json`; Stufen Plan → Ausführung → Review mit Cache je (Variante, Modell, Rep); Ausführungspaare nur aus gleichzeitig residenten Modellen; Scheduler gruppiert nach Loadout | volles Kreuzprodukt ohne Cache |
 | D8 | Report | Marginal-Scores, Kompatibilitätsmatrix (Wechselwirkungseffekt), Entdeckungen, Infra-Fehler separat | Einzelzahl je Modell |
 | D9 | Traces | Proxy je Rolle auf eigenem Port; neutrales OpenAI-Chat-Format; Bilder per SHA-256-Datei; Secret-Schwärzung mit Marker; `manifest.json` je Run | Logging im Harness (verfehlt `opencode`-Worker) |
 | D10 | Korpus | Beste saubere Trajektorie (O=1, E=0, D=0) je Variante/Rolle; Präferenzpaare; Lückenliste; Teacher füllt Lücken optional | alles ungefiltert exportieren |
@@ -52,7 +52,7 @@ _Ticket: T900561_
 | D13 | Gemma-Serving | vLLM 0.30.0, nur 5070 Ti, `--gpu-memory-utilization 0.88`, FP8-KV, `--max-model-len 65536`, Tool-Parser, Kernel-Check gegen Marlin, Spill-Check | llama.cpp-GGUF (anderer Vergleich) |
 | D14 | Loadout-Sicherheit | `gpu-lock.sh`, `qwen38-gsq-iq2s` stoppen, Wiederherstellung per trap/finally auch bei Abbruch | manuelles Umschalten |
 | D15 | Finetune-Readiness | Inventur je Familie (Checkpoint, Template mit Generation-Marker, Precision, Ort, Export-Ziel, Vision) in Phase 3; Umsetzung als Folge-Change | alles vorab bereitstellen |
-| D16 | Altbench | `bench-orchestration.mjs` bleibt bis Ende Phase 1 als Vergleichswert, seine 5 Aufgaben werden nicht übernommen (keine echte Begebenheit) | sofort löschen |
+| D16 | Altbench | `bench-orchestration.mjs` bleibt unverändert (Reproduktion des Messprotokolls 2026-09-26); seine 5 Aufgaben werden nicht übernommen (keine echte Begebenheit) | löschen (bricht Mess-Konvention) |
 
 ### Struktur
 
@@ -60,14 +60,14 @@ _Ticket: T900561_
 scripts/llm/agent-bench/
   bench.mjs            CLI: run | resume | report | gate | export-corpus
   lib/cases.mjs        Fall-/Varianten-Laden und Validierung
-  lib/scoring.mjs      O/E/D/T je Rolle, scoring.yaml
+  lib/scoring.mjs      O/E/D/T je Rolle, scoring.json
   lib/recorder.mjs     Proxy je Rolle, Schwärzung, Bild-Ablage
   lib/matrix.mjs       Belegungen, Stufen-Cache, Loadout-Scheduler
   lib/loadouts.mjs     systemd-run, gpu-lock, Kernel-/Spill-Check, Restore
   lib/report.mjs       Marginal/Kompatibilität/Entdeckungen, Gate
   lib/corpus.mjs       Export, Präferenzpaare, Lücken
-  scoring.yaml  models.yaml
-  cases/<fall-id>/{source.md, base/|replay.yaml, variants/<vid>/{brief.md, variant.yaml, reference/, checks/}}
+  scoring.json  models.json
+  cases/<fall-id>/{source.md, base/|replay.json, variants/<vid>/{brief.md, variant.json, reference/, checks/}}
 runs/<run-id>/{manifest.json, state.json, <stufe>/<variante>/<modell>/<rep>/{trace.jsonl, artefakte, score.json}}
 ```
 
@@ -87,7 +87,7 @@ runs/<run-id>/{manifest.json, state.json, <stufe>/<variante>/<modell>/<rep>/{tra
 
 1. Gerüst, Recorder, Scoring, Orchestrator- und Code-Worker-Rolle, 2–3 Fälle, Gemma-vLLM-Loadout; erste Messung Gemma gegen Baseline.
 2. Planner, Reviewer, Vision-Worker, Matrix-Scheduler, restliche Fälle.
-3. `export-corpus`, Finetune-Inventur, Entfernen von `bench-orchestration.mjs`.
+3. `export-corpus`, Finetune-Inventur.
 
 ## Risks / Trade-offs
 

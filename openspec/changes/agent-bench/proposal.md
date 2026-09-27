@@ -6,13 +6,13 @@ Welches lokale Modell welche Agentenrolle am besten erfüllt, lässt sich heute 
 
 - Neuer Bench `scripts/llm/agent-bench/` (Node, nur Standardbibliothek) mit den Rollen Planner, Orchestrator, Code-Worker, Vision-Worker und Reviewer; die zu messenden Rollen werden beim Start gewählt.
 - Fälle beruhen verpflichtend auf einer echten Begebenheit (archivierter Change, Bug-Ticket, Incident) und prägen sie in mehreren Varianten-Perspektiven aus (`clean`, `ambiguous`, `faulty-worker`, `conflicting`, `detour-trap`, `vision`); Soll-Plan im Plan-Runner-Format, versteckte Checks.
-- Bewertung je Lauf als Vektor aus Outcome, Fehlern, Umwegen und Aufwand gegen ein Referenzbudget, mit versionierter `scoring.yaml` und ohne LLM-Richter.
-- Kombinationsmatrix über einen Modell-Pool (`models.yaml`) mit Stufen-Cache (Plan, Ausführung, Review) und Loadout-Scheduler; Report mit Marginal-Scores, Kompatibilitätsmatrix und hervorgehobenen Entdeckungen.
+- Bewertung je Lauf als Vektor aus Outcome, Fehlern, Umwegen und Aufwand gegen ein Referenzbudget, mit versionierter `scoring.json` und ohne LLM-Richter.
+- Kombinationsmatrix über einen Modell-Pool (`models.json`) mit Stufen-Cache (Plan, Ausführung, Review) und Loadout-Scheduler; Report mit Marginal-Scores, Kompatibilitätsmatrix und hervorgehobenen Entdeckungen.
 - Trace-Recorder als Proxy je Rolle, Ablage im neutralen OpenAI-Chat-Format mit Secret-Schwärzung; `export-corpus` liefert die beste saubere Trajektorie je Variante und Rolle, Präferenzpaare und eine Lückenliste, strikt getrennt nach `split: eval`/`train` je Begebenheit.
 - `gate` vergleicht gepaart gegen eine gespeicherte Baseline und endet mit Exit ≠ 0 bei Regression über der Rauschschwelle.
 - Neuer GPU-Loadout für Gemma-4-12B-it-NVFP4 in vLLM auf der RTX 5070 Ti mit Kernel- und Spill-Check; der produktive Orchestrator wird nach jedem Lauf garantiert wiederhergestellt.
 - Finetune-Inventur je Modellfamilie (Qwen3.5-4B, Qwen3.8-27B, Gemma-4-12B): Checkpoint, Chat-Template mit Generation-Marker, Precision, Trainingsort, Export-Ziel.
-- `scripts/llm/bench-orchestration.mjs` bleibt bis zum Abschluss von Phase 1 als Vergleichswert bestehen und wird danach entfernt.
+- `scripts/llm/bench-orchestration.mjs` bleibt unverändert bestehen, weil das Messprotokoll 2026-09-26-orchestration-4b.md es zur Reproduktion referenziert; neue Messungen laufen über agent-bench.
 
 ## Capabilities
 

@@ -172,3 +172,22 @@ _render_fleet_proxy() {
   run yq -r '.processors.batch.metadata_keys[]' <<<"$output"
   [ "$output" = "authorization" ]
 }
+
+@test "T900693: codex-Stop-Hook ist aktiviert und fuer v0.4.0 freigegeben, zweiter Lauf aendert nichts" {
+  _setup_env
+  printf '#!/bin/sh\nexit 0\n' > "$BATS_TEST_TMPDIR/bin/codex"; chmod +x "$BATS_TEST_TMPDIR/bin/codex"
+  mkdir -p "$BATS_TEST_TMPDIR/home/.codex"
+  cfg="$BATS_TEST_TMPDIR/home/.codex/config.toml"
+  printf '[features]\nhooks = true\n\n[hooks.state."tracing@codex-observability-plugin:hooks/hooks.json:stop:0:0"]\ntrusted_hash = "sha256:alt"\n\n[mcp_servers.x]\nurl = "http://localhost"\n' > "$cfg"
+  _run_setup
+  [ "$status" -eq 0 ]
+  sec='[hooks.state."tracing@codex-observability-plugin:hooks/hooks.json:stop:0:0"]'
+  [ "$(grep -cF "$sec" "$cfg")" -eq 1 ]
+  run awk -v s="$sec" '/^\[/{in_s=($0==s)} in_s && /^(enabled|trusted_hash)/' "$cfg"
+  [[ "$output" == *'enabled = true'* ]]
+  [[ "$output" == *'trusted_hash = "sha256:69a05cbfa6984ec5f1433343b45480d5239c119e7332ae863f9865edc2efec74"'* ]]
+  grep -q '^\[mcp_servers.x\]' "$cfg"
+  before="$(md5sum < "$cfg")"
+  _run_setup
+  [ "$(md5sum < "$cfg")" = "$before" ]
+}

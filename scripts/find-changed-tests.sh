@@ -186,6 +186,20 @@ while IFS= read -r file; do
     continue
   fi
 
+  # Shared test libs (tests/lib/*) are loaded relatively (load ../../lib/<name>)
+  # or sourced absolutely — "lib/<basename>" matches BOTH spellings exactly,
+  # unlike the ancestor probe which only sees absolute mentions. Surgical on
+  # purpose: RUN_ALL here would pull the whole suite for every lib edit.
+  # [T900676]
+  if [[ "$file" == tests/lib/* ]]; then
+    _libbase="lib/$(basename "$file")"
+    _libmatched=$(find "$BASE_DIR" -name '*.bats' -type f -exec grep -lF -- "$_libbase" {} + 2>/dev/null || true)
+    while IFS= read -r _m; do
+      [ -n "$_m" ] && ! is_excluded "$_m" && CANDIDATES+=("$_m")
+    done <<< "$_libmatched" || true
+    continue
+  fi
+
   # If workflow, configs, or test helper libraries changed, run all tests for safety
   if [[ "$file" == .github/workflows/* ]] || [[ "$file" == Taskfile* ]] || [[ "$file" == tests/unit/lib/* ]] || [[ "$file" == package.json ]]; then
     _trigger_run_all "$file"

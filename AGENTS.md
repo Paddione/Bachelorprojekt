@@ -105,9 +105,9 @@ bash scripts/agent-escalate.sh --agent "bachelorprojekt-<role>" --reason "<what>
 
 Route recall by query type ([recall-routing](docs/brain/recall-routing.md)): known symbol → K3 graph; semantic question → K1 embeddings; doctrine/process → authored `docs/`. Fallback K1 → K3 → K4; grep/glob only for literals, errors, config values.
 
-## OpenSpec Conventions & Dev Experience
+## Staged Plans & Dev Experience
 
-Lifecycle under `openspec/`: `/opsx:propose <slug>` → `/opsx:apply <slug>` → `/opsx:archive <slug>`. Purpose in German; Requirements/Scenarios in English (`GIVEN`/`WHEN`/`THEN`). Delta files named after parent SSOT slug; shell completion: `openspec completion install`.
+Plans live in `.agents/plans/<slug>/` (`tasks.md` + `tasks.d/` partials): staged by `dev-flow-plan`, tracked on the ticket, executed by `dev-flow-execute`. Purpose in German; tasks as checklists with gates. Merged plans are deleted (record survives in `tickets.ticket_plans`).
 
 ## Interaction Contract
 

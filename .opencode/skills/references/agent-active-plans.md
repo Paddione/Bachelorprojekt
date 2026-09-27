@@ -8,7 +8,7 @@ verweisen hierher, statt diesen Text sechsmal zu wiederholen.
 Der Orchestrator (siehe `CLAUDE.md` → „Agent Routing") baut vor dem Dispatch einen
 `<active-plans>`-Block aus `scripts/plan-context.sh <rolle> --with-openspec` und stellt
 ihn dem Agent-Prompt voran. Quelle sind die aktiven Proposals unter
-`openspec/changes/*/proposal.md`.
+`.agents/plans/*/proposal.md`.
 
 **Der injizierte Block ist maßgeblich** — er ist der Arbeitskontext für das laufende Feature.
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bachelorprojekt.local/schemas/plan-intel-bundle.schema.json",
   "title": "Plan Intel Bundle",
-  "description": "Typed, schema-validated intel artifact (openspec/changes/<slug>/intel.json) consumed by dev-flow-plan and dev-flow-execute.",
+  "description": "Typed, schema-validated intel artifact (.agents/plans/<slug>/intel.json) consumed by dev-flow-plan and dev-flow-execute.",
   "type": "object",
   "required": ["meta", "impact_files", "symbols"],
   "additionalProperties": false,

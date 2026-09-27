@@ -198,7 +198,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 > | Tool | Fehlermeldung |
 > |---|---|
 > | `stage_plan` | `... does not exist in git` |
-> | `archive_plan` | `plan file does not exist or is empty: openspec/changes/<slug>/tasks.md` |
+> | `archive_plan` | `plan file does not exist or is empty: .agents/plans/<slug>/tasks.md` |
 >
 > **Regelweg aus einem Worktree ist das Skript** — nicht den MCP-Call debuggen:
 >

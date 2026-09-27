@@ -55,7 +55,7 @@ setup() {
   git -C "$TMP_ROOT" config user.email "pcf-test@example.invalid"
   git -C "$TMP_ROOT" config user.name "PCF Test"
 
-  CHANGES_DIR="$TMP_ROOT/openspec/changes"
+  CHANGES_DIR="$TMP_ROOT/.agents/plans"
   FIXTURE_OPS_SLUG="zz-test-pcf-fixture-ops"
   FIXTURE_WEBSITE_SLUG="zz-test-pcf-fixture-website"
   FIXTURE_CI_SLUG="zz-test-pcf-fixture-ci"

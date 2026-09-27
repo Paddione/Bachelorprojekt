@@ -107,10 +107,12 @@ setup() {
   grep -Eq '^[[:space:]]+design:' "$f"
 }
 
-@test "T001265: AGENTS.md documents OpenSpec conventions" {
+@test "T001265: AGENTS.md documents staged plans [T900560-C7a1b]" {
+  # C7a-Umbau: OpenSpec-Konventionen sind tot; AGENTS.md lehrt jetzt die
+  # Plan-Heimat .agents/plans/. Assertion folgt dem kanonischen Ort.
   local f="$REPO/AGENTS.md"
   [ -f "$f" ]
-  grep -qi 'openspec conventions\|OpenSpec conventions' "$f"
+  grep -qF '.agents/plans' "$f"
 }
 
 @test "T001265: AGENTS.md documents Dev experience (shell completions)" {

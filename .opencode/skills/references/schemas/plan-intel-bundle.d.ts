@@ -1,7 +1,7 @@
 /**
  * Plan Intel Bundle — TypeScript mirror of plan-intel-bundle.schema.json.
  * Hand-maintained; the BATS drift-guard (tests/spec/dev-flow-plan.bats) asserts
- * top-level key parity with the JSON-Schema. Runtime path: openspec/changes/<slug>/intel.json
+ * top-level key parity with the JSON-Schema. Runtime path: .agents/plans/<slug>/intel.json
  */
 
 export type IntelEdgeKind = "calls" | "data_flow" | "cross_service";

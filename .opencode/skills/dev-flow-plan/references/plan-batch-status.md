@@ -33,7 +33,7 @@ PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres 
 ```
 ✅ <Feature|Fix>-Plan bereit: <slug> (Ticket $TICKET_EXT_ID)
    Branch: <feature|fix>/<slug>
-   Plan: openspec/changes/<slug>/tasks.md
+   Plan: .agents/plans/<slug>/tasks.md
 
 📋 Kommissionierung (status=plan_staged): $STAGED_COUNT Plan(s)
    • T000xxx [priorität] <titel> — <value_prop>
@@ -49,7 +49,7 @@ PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres 
    → Implementiert nur diesen einen Plan
 
 2. **Lokal mit dem Plan-Runner:**
-   node scripts/llm/plan-runner.mjs openspec/changes/<slug> --worktree <pfad>
+   node scripts/llm/plan-runner.mjs .agents/plans/<slug> --worktree <pfad>
    → Führt die Partials mit den lokalen Modellen aus (Runbook: docs/runbooks/plan-runner.md)
 
 3. **Batch-Planung (mit dev-flow-batch):**

@@ -89,3 +89,38 @@ _stub_bin() {
   run env KUBECONFIG=/dev/null bash "$REPO/scripts/langfuse/client-env.sh"
   [ "$status" -eq 2 ]
 }
+
+# T900690: Setup gegen echte Vorzustaende — nur die jeweils gestubbte Harness liegt im PATH.
+_setup_env() {
+  mkdir -p "$BATS_TEST_TMPDIR/home" "$BATS_TEST_TMPDIR/xdg/langfuse" "$BATS_TEST_TMPDIR/bin"
+  printf 'LANGFUSE_PUBLIC_KEY=pk-test\nLANGFUSE_SECRET_KEY=sk-test\nLANGFUSE_BASE_URL=https://langfuse.example.test\n' \
+    > "$BATS_TEST_TMPDIR/xdg/langfuse/agent-tracing.env"
+}
+
+_run_setup() {
+  run env HOME="$BATS_TEST_TMPDIR/home" XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/xdg" \
+    PATH="$BATS_TEST_TMPDIR/bin:/usr/bin:/bin" bash "$REPO/scripts/langfuse/setup-harnesses.sh"
+}
+
+@test "T900690: codex bekommt hooks = true auch bei bestehender [features]-Sektion" {
+  _setup_env
+  printf '#!/bin/sh\nexit 0\n' > "$BATS_TEST_TMPDIR/bin/codex"; chmod +x "$BATS_TEST_TMPDIR/bin/codex"
+  mkdir -p "$BATS_TEST_TMPDIR/home/.codex"
+  printf '[features]\nprevent_idle_sleep = true\n\n[mcp_servers.x]\nurl = "http://localhost"\n' \
+    > "$BATS_TEST_TMPDIR/home/.codex/config.toml"
+  _run_setup
+  [ "$status" -eq 0 ]
+  cfg="$BATS_TEST_TMPDIR/home/.codex/config.toml"
+  [ "$(grep -c '^\[features\]' "$cfg")" -eq 1 ]
+  run awk '/^\[/{s=$0} s=="[features]" && /^hooks *= *true/' "$cfg"
+  [ -n "$output" ]
+}
+
+@test "T900690: pi-Setup scheitert laut, wenn das Plugin nach pi install fehlt" {
+  _setup_env
+  printf '#!/bin/sh\n[ "$1" = list ] && echo "No packages installed."\nexit 0\n' > "$BATS_TEST_TMPDIR/bin/pi"
+  chmod +x "$BATS_TEST_TMPDIR/bin/pi"
+  _run_setup
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"pi-observability-plugin"* ]]
+}

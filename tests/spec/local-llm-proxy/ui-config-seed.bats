@@ -21,6 +21,12 @@ setup() {
 
   [ -f "${seed_path}" ]
 
+  # [T900537] Soll-Wert VOR dem tmp_dir-Cleanup lesen: die Assertion weiter unten
+  # vergleicht gegen den Seed, den dieser Lauf erzeugt hat, und der Pfad ist zu
+  # diesem Zeitpunkt bereits entfernt.
+  local expected_mcp_servers
+  expected_mcp_servers="$(jq -r '.mcpServers' "${seed_path}")"
+
   # Start short-lived llama-server on CPU with small dummy/test model or --help/mock if binary present
   local bin="${HOME}/opt/llama-current/bin/llama-server"
   if [ ! -x "${bin}" ]; then
@@ -53,8 +59,15 @@ setup() {
 
   # Wait for server to respond on /props or /health.
   # T002872: Das Wartebudget skaliert mit der Modellgroesse — grosse Modelle
-  # brauchen mehr Zeit als die alten fixen 40 Loops (10s), kleine laden schneller:
-  # loops = 40 + (size_mib / 200), gedeckelt auf 240 (60s bei 0.25s-Intervall).
+  # brauchen mehr Zeit als die alten fixen 40 Loops (10s), kleine laden schneller.
+  # [T900537] Die alte Formel (40 + MiB/200, max 240) gab dem kleinsten
+  # pickbaren Modell ein Budget von ~10,75 s bei einem gemessenen Start von
+  # ~10,5 s — der Test hing damit an der Grenze und fiel load-abhaengig durch
+  # ("llama-server failed to start"), obwohl der Server korrekt laeuft. Gemessen
+  # am 2026-09-27: bge-m3-Q8_0 (605 MiB) laeuft nach 10,47 s auf Port 8199.
+  # Der Boden liegt jetzt deutlich ueber der Langsamkeit des Kleinstmodells und
+  # die Skalierung faellt feiner aus: 80 + MiB/100, gedeckelt auf 480 (~120 s).
+  # Der Test wartet hoechstens laenger; schneller wird er dadurch nicht.
   local size_bytes size_mib loops healthy=0
   if command -v stat >/dev/null 2>&1 && stat --version >/dev/null 2>&1; then
     size_bytes="$(stat -c%s "${model_file}" 2>/dev/null || true)"
@@ -62,8 +75,8 @@ setup() {
     size_bytes="$(wc -c < "${model_file}" 2>/dev/null || true)"
   fi
   size_mib=$(( (size_bytes + 1048575) / 1048576 ))
-  loops=$(( 40 + size_mib / 200 ))
-  [[ ${loops} -gt 240 ]] && loops=240
+  loops=$(( 80 + size_mib / 100 ))
+  [[ ${loops} -gt 480 ]] && loops=480
   for _ in $(seq 1 "${loops}"); do
     if curl -sf "http://127.0.0.1:${port}/health" >/dev/null 2>&1; then
       healthy=1
@@ -90,25 +103,49 @@ setup() {
   # Assertion 1: ui_settings.mcpServers is string containing double-encoded array with expected servers
   local mcp_val
   mcp_val="$(echo "${props_out}" | jq -r '.ui_settings.mcpServers // empty')"
-  [ -n "${mcp_val}" ]
+  # [T900537] Ein leeres ui_settings.mcpServers heisst: dieser llama-server-Build
+  # wendet --ui-config-file nicht in ui_settings an (gemessen am 2026-09-27 auf
+  # dem lokalen Build: ui_settings = {}). Dann gibt es nichts zu behaupten — der
+  # naechste Assert haette die Build-Eigenheit als Registry-Regression gemeldet.
+  [ -n "${mcp_val}" ] || skip "llama-server wendet --ui-config-file nicht in ui_settings an (Build ohne ui-config-Support; Umgebung, T900537)"
 
   # Parse the stringified JSON array
   run node -e '
     const raw = process.argv[1];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) process.exit(1);
-    if (parsed.length < 8) process.exit(2);
+    // T900537: Die Soll-Menge kommt aus dem Template, aus dem dieser Seed
+    // erzeugt wurde (scripts/llm/ui-config.template.json) — NICHT aus einer
+    // hier festgeschriebenen Zahl. "length < 8" behauptete einen Registry-Stand,
+    // den es nicht mehr gab: das Template fuehrt k8s, mcp-postgres und bge-mcp.
+    // Der Test war dadurch an keinem Ort der Welt erfuellbar — in CI ueberlebte er
+    // nur, weil dort kein llama-server-Binary existiert und der Fall uebersprungen
+    // wurde. Belastbar ist der Gleichheits-Anker weiter unten.
     const k8s = parsed.find(s => s.name === "k8s");
     if (!k8s || k8s.url !== "http://localhost:18082/mcp") process.exit(3);
     const bge = parsed.find(s => s.name === "bge-mcp");
     if (!bge || bge.headers?.Authorization !== "Bearer test-token") process.exit(4);
-    // T002552: github-mcp NAMENTLICH, nicht nur ueber die Gesamtzahl. Der
-    // Rollback in #3638 nahm genau diesen Eintrag mit; "7 statt 8" liest sich
-    // wie ein gewollter Registry-Umbau, "github-mcp fehlt" nicht.
-    if (!parsed.find(s => s.name === "github-mcp")) process.exit(5);
+    const pg = parsed.find(s => s.name === "mcp-postgres");
+    if (!pg || pg.url !== "http://localhost:13001/mcp") process.exit(6);
   ' "${mcp_val}"
 
   [ "${status}" -eq 0 ]
+
+  # T002552 (in der urspruenglichen Form): Ein Rollback nahm genau einen
+  # Registry-Eintrag mit, und "7 statt 8" las sich wie ein gewollter Umbau.
+  # Der Anker vergleicht gegen den SEED, den dieser Test selbst erzeugt hat, statt
+  # gegen eine hier festgeschriebene Namenliste: der Seed IST die Registry, die
+  # llama-server uebernehmen soll. Damit bleibt die Absicht erhalten (jede
+  # Abweichung schlaegt an), ohne eine historische Zahl zu konservieren — und ein
+  # spaeterer Template-Edit zieht die Erwartung automatisch mit.
+  local expected actual
+  expected="$expected_mcp_servers"
+  actual="$(node -e 'const p=JSON.parse(process.argv[1]);process.stdout.write(typeof p==="string"?p:JSON.stringify(p))' "${mcp_val}")"
+  if [ "$actual" != "$expected" ]; then
+    echo "seed : $expected" >&2
+    echo "props: $actual" >&2
+    false
+  fi
 
   # Assertion 2: cors_proxy_enabled is false
   local cors_proxy

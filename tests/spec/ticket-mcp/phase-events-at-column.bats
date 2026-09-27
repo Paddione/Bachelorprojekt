@@ -31,6 +31,14 @@ _pod() {
     -o name 2>/dev/null | head -1
 }
 
+# [T900537] Dieser Test IST die Aussage ueber die `at`-Spalte. Wo die Tabelle
+# fehlt, gibt es nichts zu behaupten — der Introspection-Query liefert dann leer
+# (nicht "created_at") und der Test meldete Schema-Abwesenheit als Spalten-Drift.
+_skip_if_no_phase_events() {
+  _skip_if_no_db
+  require_ticket_table factory_phase_events
+}
+
 setup_file() {
   export BRAND="mentolder"
   export SEEDED_ID_FILE="$BATS_FILE_TMPDIR/seeded_id"
@@ -49,7 +57,7 @@ _seed_once() {
 }
 
 @test "T003804: factory_phase_events traegt die Zeit-Spalte 'at' (Introspection-Wissen)" {
-  _skip_if_no_db
+  _skip_if_no_phase_events
   local pod
   pod=$(_pod)
 
@@ -61,7 +69,7 @@ _seed_once() {
 }
 
 @test "T003804: Timeline liest das Phasen-Event mit befuellter ts-Spalte" {
-  _skip_if_no_db
+  _skip_if_no_phase_events
   local ext_id
   ext_id=$(_seed_once)
 

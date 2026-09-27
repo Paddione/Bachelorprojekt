@@ -30,6 +30,8 @@ _skip_if_no_db() {
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)
   [[ -n "$_pod" ]] || skip "kein erreichbarer shared-db-Pod — DB-gestuetzter Test uebersprungen"
+  # [T900537] Pod laeuft, das tickets-Schema kann trotzdem unvollstaendig sein.
+  require_ticket_table tickets
 }
 
 setup_file() {

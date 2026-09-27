@@ -40,10 +40,17 @@ TEST_DIR="$BATS_TEST_DIRNAME"
   [[ "$output" == *'C.UTF-8'* || "$output" == *'"C.UTF-8"* || "$output" == *"utf-8"* || "$output" == *'"utf-8"* ]]
 }
 
-@test "tests/bats exec'd den BATS-Core (kein npm-wrapper)" {
-  # Der Wrapper muss BATS-Core direkt aufrufen via exec, nicht den npm-globalen
-  # bats, der keine Vendored-Konfiguration hätte.
-  grep -q 'exec.*bats-core' tests/bats
+# [T900537] Der urspruengliche Ausdruck `exec.*bats-core` klebte an der AUFRUFART
+# und nicht an der Absicht. Seit T900537 holt der Wrapper seinen Skip-Zaehler
+# (bats summary: … skipped) und kann deshalb nicht mehr mit `exec` enden — der
+# Aufruf selbst ist unveraendert der VENDORED BATS-Core, nicht das npm-Binary.
+# Der Guard wird auf die Absicht umgestellt: vendored Pfad wird aufgerufen, und
+# ausdruecklich NICHT ueber npm/npx — genau die Verwechslung, die verhindert
+# werden soll. Ein fehlender `exec` ist hier kein Fehler mehr, ein npm-Aufruf
+# weiterhin einer.
+@test "tests/bats ruft den vendorten BATS-Core direkt auf (kein npm/npx-Binary)" {
+  grep -q 'unit/lib/bats-core/bin/bats' tests/bats
+  ! grep -qE '^[^#]*(npm|npx)[[:space:]]+(exec[[:space:]]+)?bats' tests/bats
 }
 
 # --- Guard: ASCII-Namenskonvention für @test-Namen ---

@@ -33,6 +33,10 @@ _skip_if_no_db() {
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)
   [[ -n "$_pod" ]] || skip "kein erreichbarer shared-db-Pod — DB-gestuetzter Test uebersprungen"
+  # [T900537] Ohne diesen Probe lief der Test in
+  # `relation "tickets.tickets" does not exist` und meldete Schema-Drift als
+  # Produktfehler; die lokale shared-db hat das tickets-Schema nicht (T900537).
+  require_ticket_table tickets
 }
 
 # _qts_row_count <external_id> — zaehlt tickets.tickets-Zeilen mit dieser

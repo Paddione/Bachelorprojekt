@@ -33,3 +33,6 @@ require('lazy').setup({
 
 -- ── Shared editor defaults ──────────────────────────────────────────────────
 require('config.editor').setup()
+
+-- ── Dashboard: registers :Dashboard and <leader>h ───────────────────────────
+require('config.dashboard').setup()

@@ -47,6 +47,13 @@ for harness in claude opencode pi codex; do
              sec && /^hooks[[:space:]]*=/ { next } { print }' "$config" > "$config.tmp"; mv "$config.tmp" "$config"
       fi
       grep -q '^\[plugins."tracing@codex-observability-plugin"\]' "$config" || printf '\n[plugins."tracing@codex-observability-plugin"]\nenabled = true\n' >> "$config"
+      # Enable and trust the plugin's Stop hook; codex skips it without this entry. The hash belongs
+      # to the pinned v0.4.0 only, so a plugin update makes codex ask for review again.
+      hook='[hooks.state."tracing@codex-observability-plugin:hooks/hooks.json:stop:0:0"]'
+      hook_hash='sha256:69a05cbfa6984ec5f1433343b45480d5239c119e7332ae863f9865edc2efec74'
+      awk -v h="$hook" '/^\[/ { skip = ($0 == h) } !skip { l[++n] = $0 }
+        END { while (n > 0 && l[n] == "") n--; for (i = 1; i <= n; i++) print l[i] }' "$config" > "$config.tmp"; mv "$config.tmp" "$config"
+      printf '\n%s\nenabled = true\ntrusted_hash = "%s"\n' "$hook" "$hook_hash" >> "$config"
       config="$HOME/.codex/langfuse.json"; umask 077
       jq -n --arg p "$LANGFUSE_PUBLIC_KEY" --arg s "$LANGFUSE_SECRET_KEY" --arg b "$LANGFUSE_BASE_URL" --arg u "$user_id" '{enabled:true,public_key:$p,secret_key:$s,base_url:$b,userId:$u}' > "$config"; chmod 600 "$config" ;;
   esac

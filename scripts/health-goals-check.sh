@@ -193,19 +193,22 @@ row gate G-AGENTIC05 "$(
   echo $(( $(comm -3 <(echo "$files") <(echo "$routing") | grep -c .) + $(comm -3 <(echo "$files") <(echo "$registry") | grep -c .) ))
 )" eq 0 "6-Agenten agent↔routing↔registry Cross-Reference"
 row gate G-AGENTIC06 "$(
-  claimed=$(grep -oE '[0-9]+ project-local skills' .claude/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
+  # SSOT-Pfad (T900070): .claude/skills/* sind Symlinks — git ls-files fände dort
+  # keine SKILL.md und das Gate wäre vakant (0=0). Gezählt wird die SSOT.
+  claimed=$(grep -oE '[0-9]+ tracked skills' .opencode/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
   # nur getrackte SKILL.md zählen — lokal via market-cli installierte Skills sind
   # nicht projekt-relevant und dürfen das Gate nicht kippen (Präzedenz T001783)
-  real=$(git ls-files -- .claude/skills | grep -c '/SKILL\.md$')
+  real=$(git ls-files -- .opencode/skills | grep -c '/SKILL\.md$')
   echo $(( claimed>real ? claimed-real : real-claimed ))
 )" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift, nur getrackte)"
 row gate G-AGENTIC07 "$(
   c=0
-  for f in $(git ls-files -- .claude/skills | grep '/SKILL\.md$'); do
-    d=$(echo "$f" | sed 's#.claude/skills/##;s#/SKILL.md##'); base=$(basename "$d")
+  # SSOT-Pfad (T900070) — siehe G-AGENTIC06: .claude/skills ist ein Symlink-Spiegel.
+  for f in $(git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+    d=$(echo "$f" | sed 's#.opencode/skills/##;s#/SKILL.md##'); base=$(basename "$d")
     awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^description:/{print 1;exit}' "$f" | grep -q 1 || continue
-    n=$( { grep -rl -- "$base" CLAUDE.md AGENTS.md .claude/skills/OVERVIEW.md 2>/dev/null
-           grep -rl --include=SKILL.md -- "$base" .claude/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
+    n=$( { grep -rl -- "$base" CLAUDE.md AGENTS.md .opencode/skills/OVERVIEW.md 2>/dev/null
+           grep -rl --include=SKILL.md -- "$base" .opencode/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
     [ "$n" -eq 0 ] && c=$((c+1))
   done; echo $c
 )" eq 0 "Verwaiste aktive Skills (keine Referenzquelle, nur getrackte)"

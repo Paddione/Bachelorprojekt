@@ -8,9 +8,9 @@ import { fileURLToPath } from 'node:url';
  *  discovered page slug is bachelorprojekt-<x>. */
 const AGENT_SUFFIXES = new Set(['website', 'ops', 'infra', 'test', 'db', 'security']);
 
-/** The four beginner-spine skills whose ids equal their SKILL.md slug. */
+/** The three beginner-spine skills whose ids equal their SKILL.md slug. */
 const SPINE_SKILLS = new Set([
-  'dev-flow-plan', 'dev-flow-execute', 'dev-flow-iterate', 'dev-flow-e2e',
+  'dev-flow-plan', 'dev-flow-execute', 'dev-flow-e2e',
 ]);
 
 /**

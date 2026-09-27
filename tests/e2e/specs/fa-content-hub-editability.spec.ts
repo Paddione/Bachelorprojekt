@@ -11,7 +11,7 @@
 //
 // These are non-destructive read assertions — they do NOT mutate production data.
 // The "edit → appears live" mutation flow is exercised on the dev cluster
-// (dev.mentolder.de, prod-copy data) via dev-flow-iterate, where writes are safe.
+// (dev.mentolder.de, prod-copy data) via a manual dev-namespace run, where writes are safe.
 //
 // Run:
 //   WEBSITE_URL=https://web.mentolder.de \

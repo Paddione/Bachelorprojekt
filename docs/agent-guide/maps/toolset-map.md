@@ -691,8 +691,8 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `skill-discovery`
 
-- **`skill:find-skills`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Installierbare Skills zu einer Aufgabe finden.
+- **`skill:skill-craft`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Installierbare Skills zu einer Aufgabe finden und bewerten.
   - _Rollen:_ `orchestrator`
 
 ## Fähigkeit: `lokales-modell-serving`
@@ -785,6 +785,13 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`skill:trl-training`** — Status `unreviewed`
   - _Grund:_ Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed.
+
+## Fähigkeit: `neovim-konfiguration`
+
+- **`skill:bachelorprojekt-vim`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Neue oder bestehende Neovim-Konfiguration fuer dieses Repository planen, erstellen oder warten.
+  - _Rollen:_ `all`
+  - _Tiefe:_ `.agents/skills/bachelorprojekt-vim/SKILL.md`
 
 ## Residuale Mehrdeutigkeiten
 

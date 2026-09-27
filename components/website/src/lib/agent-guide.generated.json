@@ -889,7 +889,7 @@
       ],
       "related": [
         "dev-flow-plan",
-        "dev-flow-iterate"
+        "dev-flow-e2e"
       ],
       "links": [],
       "theme": "entwickeln",
@@ -907,51 +907,6 @@
         "pr-ci"
       ],
       "init_prompt_de": "/dev-flow-execute – setze den fertigen Plan um und öffne einen PR."
-    },
-    {
-      "id": "dev-flow-iterate",
-      "name_de": "Dev-Iterations-Skill (dev-flow-iterate)",
-      "kind": "skill",
-      "kind_de": "Fertigkeit",
-      "summary_de": "Deployt Änderungen in den Dev-Namespace (workspace-dev) auf dem Fleet-Cluster und zeigt Logs – zum schnellen Ausprobieren.",
-      "what_for_de": "Shortcut für 'deploy + Logs ansehen + debuggen' im Dev-Namespace auf dem Fleet-Cluster (dev.mentolder.de). Der lokale Dev-Cluster (k3d) ist seit T002630 abgeschafft.",
-      "how_to_start_de": "Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Namespace live sehen willst.",
-      "what_could_go_wrong_de": "Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen.",
-      "danger": "caution",
-      "guardrails": [
-        {
-          "id": "G-ENV-EXPLICIT",
-          "name_de": "ENV immer explizit setzen",
-          "rule_de": "Bei jedem Deploy/Cluster-Befehl ENV= ausdrücklich angeben (z. B. ENV=mentolder).",
-          "why_de": "Ohne ENV= wird 'dev' angenommen und der Befehl trifft heimlich die falsche Umgebung."
-        },
-        {
-          "id": "G-CONTEXT-CHECK",
-          "name_de": "Namespace prüfen (Single-Cluster)",
-          "rule_de": "Vor jeder Cluster-Aktion prüfen, ob der Befehl in workspace, workspace-korczewski oder workspace-dev läuft.",
-          "why_de": "Es gibt nur einen Cluster (fleet) — der falsche Namespace betrifft die falsche Marke oder den Dev-Stack."
-        }
-      ],
-      "related": [
-        "dev-flow-execute",
-        "dev-flow-e2e"
-      ],
-      "links": [],
-      "theme": "entwickeln",
-      "aliases_de": [
-        "dev",
-        "iterieren",
-        "ausprobieren",
-        "dev-namespace"
-      ],
-      "common": false,
-      "order": 999,
-      "harness": "claude",
-      "stages": [
-        "code",
-        "deploy"
-      ],
-      "init_prompt_de": "/dev-flow-iterate – deploye in den Dev-Namespace auf Fleet und zeig mir die Logs."
     },
     {
       "id": "dev-flow-e2e",
@@ -972,7 +927,7 @@
         }
       ],
       "related": [
-        "dev-flow-iterate"
+        "dev-flow-execute"
       ],
       "links": [],
       "theme": "testen",
@@ -1730,7 +1685,6 @@
         "toolIds": [
           "dev-flow-chore",
           "dev-flow-execute",
-          "dev-flow-iterate",
           "opencode-git-workflow"
         ]
       },
@@ -1766,7 +1720,6 @@
           "datenbank-aendern"
         ],
         "toolIds": [
-          "dev-flow-iterate",
           "agent-infra"
         ]
       },

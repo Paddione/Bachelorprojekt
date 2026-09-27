@@ -124,7 +124,7 @@
       // ── Generic meta / skill discovery ───────────────────────────────
       "agent-orchestration": "deny",
       "project-overview": "deny",
-      "find-skills": "deny",
+      "skill-craft": "deny",
       "skill-creator": "deny",
       "codebase-memory": "deny",
       // ── Domain specialists (dispatched via agent routing, not skills) ─

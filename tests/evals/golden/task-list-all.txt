@@ -252,6 +252,11 @@ task: Available tasks for this project:
 * openspec:propose:                             Create an openspec change skeleton. Usage: task openspec:propose -- <slug> --ticket <ext-id>
 * openspec:status-map:                          Regenerate components/website/src/data/openspec-status.json from openspec/changes/
 * openspec:validate:                            Validate the openspec/ tree (same as test:openspec).
+* pi:install:                                   Pi global installieren (gepinnte Version, Node >= 20.6)
+* pi:models:                                    Chat-Modelle des Endpunkt-Verbunds auflisten (ENDPOINTS=<url,...> JSON=1)
+* pi:run:                                       Gestagten Plan mit Pi abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3 MODEL=<id> ENDPOINTS=<url,...> JSON=1)
+* pi:status:                                    Pi-Version, Agent-Verzeichnis und Endpunkt-Verbund pruefen
+* pi:uninstall:                                 Pi deinstallieren und das isolierte Agent-Verzeichnis entfernen
 * plan:qa:                                      DeepSeek-QA-Check for an implementation plan (PLAN=<path>)
 * plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md
 * plans:query:                                  Show active plan sections for a given role. Usage: task plans:query -- <role>

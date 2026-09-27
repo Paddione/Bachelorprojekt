@@ -94,7 +94,7 @@ export function exportCorpus(runDirs, outDir) {
       role: idRole,
       model: best?.model || null,
       scoring_version: best?.score?.scoring_version || null,
-      run_id: best ? basename(best.dir) : null,
+      run_id: best?.loaded?.manifest?.run_id || null,
     };
 
     if (best) {

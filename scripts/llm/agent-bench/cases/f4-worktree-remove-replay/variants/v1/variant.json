@@ -1,0 +1,1 @@
+{"budget": {"tokens": 12000, "turns": 12}, "budget_source": "Repo-grosses Replay: 1 Partial, 5 Dateien (neue Lib plus 4 Aufrufer), Orientierung im fremden Checkout kostet Runden; kein Teacher-Probelauf", "expected_decision": "execute", "perspective": "clean", "roles": ["planner", "orchestrator", "code-worker", "reviewer"]}

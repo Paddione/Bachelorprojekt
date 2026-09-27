@@ -288,15 +288,6 @@ export async function ensureLoadout(modelIds, pool, { reason = 'agent-bench' } =
   const endpoints = {};
   for (const id of ids) {
     const model = modelById(pool, id);
-    const started = await startModel(model);
-    if (!started.ok) {
-      await restoreProduction(pool);
-      return {
-        ok: false,
-        infra: true,
-        reason: `start ${id}: ${started.stderr.trim() || started.code}`,
-      };
-    }
     if (model.engine === 'api') {
       const url = process.env[model.endpoint_env] || '';
       if (!url) {
@@ -305,6 +296,15 @@ export async function ensureLoadout(modelIds, pool, { reason = 'agent-bench' } =
       }
       endpoints[id] = url;
       continue;
+    }
+    const started = await startModel(model);
+    if (!started.ok) {
+      await restoreProduction(pool);
+      return {
+        ok: false,
+        infra: true,
+        reason: `start ${id}: ${started.stderr.trim() || started.code}`,
+      };
     }
     const url = `http://127.0.0.1:${model.port}`;
     const ready = await waitForModels(url, SERVE_TIMEOUT_MS);
@@ -350,20 +350,24 @@ export async function restoreProduction(pool) {
 export function installRestoreHooks(restore, { syncRestore } = {}) {
   const target = process;
   let done = false;
-  const once = () => {
-    if (done) return;
+  // Das Restore ist asynchron (systemctl-Aufrufe): wer hier nicht wartet,
+  // beendet den Prozess vor dem ersten `start` — der Produktionsdienst
+  // kaeme nach einem Abbruch nicht zurueck. Deshalb wartet bail() ab.
+  const onceAsync = () => {
+    if (done) return Promise.resolve();
     done = true;
     try {
-      const result = restore();
-      if (result && typeof result.catch === 'function') result.catch(() => {});
+      return Promise.resolve(restore()).catch(() => {});
     } catch {
       /* Restore ist best-effort, der Abbruch laeuft weiter. */
+      return Promise.resolve();
     }
   };
   const bail = (code) => () => {
-    once();
-    if (process.env.AGENT_BENCH_RESTORE_NO_EXIT === '1') return;
-    process.exit(code);
+    onceAsync().finally(() => {
+      if (process.env.AGENT_BENCH_RESTORE_NO_EXIT === '1') return;
+      process.exit(code);
+    });
   };
   target.on('SIGINT', bail(130));
   target.on('SIGTERM', bail(143));
@@ -378,5 +382,5 @@ export function installRestoreHooks(restore, { syncRestore } = {}) {
       }
     });
   }
-  return once;
+  return onceAsync;
 }

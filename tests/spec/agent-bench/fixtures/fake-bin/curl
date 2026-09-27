@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# fixtures/fake-bin/curl — antwortet auf /v1/models sofort mit Erfolg
+# (fuer waitForModels in restoreProduction-Tests), delegiert sonst an curl.
+echo "curl $*" >> "${FAKE_BIN_LOG:?FAKE_BIN_LOG not set}"
+for a in "$@"; do
+  if [[ "$a" == */v1/models ]]; then
+    echo '{"data":[{"id":"fake"}]}'
+    exit 0
+  fi
+done
+exec "${FAKE_REAL_CURL:-/usr/bin/curl}" "$@"

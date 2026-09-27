@@ -1,0 +1,1 @@
+{"budget": {"tokens": 3000, "turns": 2}, "budget_source": "Eine Bild-Anfrage plus JSON-Antwort; Bild-Tokens grob geschaetzt, kein Teacher-Probelauf", "expected_decision": "execute", "perspective": "vision", "roles": ["vision-worker"]}

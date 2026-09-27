@@ -1,0 +1,1 @@
+{"budget": {"tokens": 8000, "turns": 10}, "budget_source": "Wie v-clean; ein Fehlversuch des Workers ist einkalkuliert (Neu-Delegation)", "expected_decision": "execute", "perspective": "faulty-worker", "roles": ["orchestrator"]}

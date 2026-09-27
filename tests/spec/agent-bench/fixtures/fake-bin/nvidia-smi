@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# fixtures/fake-bin/nvidia-smi — protokolliert Aufrufe, druckt
+# FAKE_NVIDIA_SMI_OUTPUT (Default: eine GPU unter der Spill-Grenze).
+echo "nvidia-smi $*" >> "${FAKE_BIN_LOG:?FAKE_BIN_LOG not set}"
+printf '%s\n' "${FAKE_NVIDIA_SMI_OUTPUT:-GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4, 1000}"
+exit "${FAKE_NVIDIA_SMI_EXIT:-0}"

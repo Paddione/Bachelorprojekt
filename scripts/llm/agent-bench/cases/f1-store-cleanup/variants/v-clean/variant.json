@@ -1,0 +1,1 @@
+{"budget": {"tokens": 6000, "turns": 8}, "budget_source": "Geschaetzt aus Referenzplan (1 Partial, 2 Dateien, je ca. 15 Zeilen Shell); kein Teacher-Probelauf moeglich (Offline-Fixture), TODO kalibrieren", "expected_decision": "execute", "perspective": "clean", "roles": ["planner", "orchestrator", "code-worker"]}

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# fixtures/fake-bin/systemctl — protokolliert Aufrufe; list-units druckt
+# FAKE_SYSTEMCTL_UNITS (Default: leer = keine Bench-Units).
+echo "systemctl $*" >> "${FAKE_BIN_LOG:?FAKE_BIN_LOG not set}"
+if [ "${1:-}" = "--user" ] && [ "${2:-}" = "list-units" ]; then
+  printf '%s' "${FAKE_SYSTEMCTL_UNITS:-}"
+fi
+exit "${FAKE_SYSTEMCTL_EXIT:-0}"

@@ -1788,6 +1788,96 @@
     "kind": "shell"
   },
   {
+    "id": "agent-bench/fixtures/cases/no-source/base/nothing",
+    "file": "tests/spec/agent-bench/fixtures/cases/no-source/base/nothing.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/cases/no-source/variants/v1/checks/run",
+    "file": "tests/spec/agent-bench/fixtures/cases/no-source/variants/v1/checks/run.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/cases/tiny-eval/base/app",
+    "file": "tests/spec/agent-bench/fixtures/cases/tiny-eval/base/app.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/cases/tiny-eval/variants/v1/checks/run",
+    "file": "tests/spec/agent-bench/fixtures/cases/tiny-eval/variants/v1/checks/run.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/cases/tiny-train/base/greet",
+    "file": "tests/spec/agent-bench/fixtures/cases/tiny-train/base/greet.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/cases/tiny-train/variants/v1/checks/run",
+    "file": "tests/spec/agent-bench/fixtures/cases/tiny-train/variants/v1/checks/run.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/fake-bin/gpu-lock",
+    "file": "tests/spec/agent-bench/fixtures/fake-bin/gpu-lock.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/fake-opencode",
+    "file": "tests/spec/agent-bench/fixtures/fake-opencode.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/mkresult",
+    "file": "tests/spec/agent-bench/fixtures/mkresult.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/fixtures/mktrace",
+    "file": "tests/spec/agent-bench/fixtures/mktrace.sh",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/loadouts",
+    "file": "tests/spec/agent-bench/loadouts.bats",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/matrix-cli",
+    "file": "tests/spec/agent-bench/matrix-cli.bats",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/recorder",
+    "file": "tests/spec/agent-bench/recorder.bats",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/report-corpus",
+    "file": "tests/spec/agent-bench/report-corpus.bats",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/scoring",
+    "file": "tests/spec/agent-bench/scoring.bats",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
     "id": "agent-collision-false-positives",
     "file": "tests/spec/agent-collision-false-positives.bats",
     "category": "agent-collision-false-positives",

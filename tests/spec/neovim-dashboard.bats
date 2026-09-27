@@ -15,16 +15,19 @@ setup() {
   # run (see the plan's step 7) can point this at an empty directory.
   CONFIG_SRC="${NVIM_DASHBOARD_CONFIG_SRC:-$REPO/dotfiles/nvim}"
 
-  STAGE="$BATS_TEST_TMPDIR/stage"
-  mkdir -p "$STAGE"
-  if [ -d "$CONFIG_SRC" ]; then
-    cp -r "$CONFIG_SRC"/. "$STAGE"/ 2>/dev/null || true
-  fi
-
   export XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/xdg-config"
   export XDG_DATA_HOME="$BATS_TEST_TMPDIR/xdg-data"
   export XDG_STATE_HOME="$BATS_TEST_TMPDIR/xdg-state"
   mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME"
+
+  # STAGE must be exactly $XDG_CONFIG_HOME/nvim (== stdpath('config')): only
+  # then does Neovim's normal startup add its lua/ directory to the runtime
+  # path automatically, even when started with an explicit -u file.
+  STAGE="$XDG_CONFIG_HOME/nvim"
+  mkdir -p "$STAGE"
+  if [ -d "$CONFIG_SRC" ]; then
+    cp -r "$CONFIG_SRC"/. "$STAGE"/ 2>/dev/null || true
+  fi
 
   PROBE_DIR="$BATS_TEST_TMPDIR/probes"
   mkdir -p "$PROBE_DIR"

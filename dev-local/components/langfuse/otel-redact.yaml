@@ -54,7 +54,8 @@ data:
               - replace_all_patterns(spanevent.attributes, "value", "-----BEGIN [A-Z ]*PRIVATE KEY-----[\\s\\S]*?-----END [A-Z ]*PRIVATE KEY-----", "[REDACTED:private-key]")
               - replace_all_patterns(spanevent.attributes, "value", "(?i)bearer\\s+[A-Za-z0-9._~+/=-]{16,}", "[REDACTED:bearer]")
               - replace_all_patterns(spanevent.attributes, "value", "(?i)(password|passwd|secret|token|api[_-]?key)([\\\"']?\\s*[:=]\\s*[\\\"']?)[^\\s\\\"',}]{6,}", "$$1$$2[REDACTED:kv-secret]")
-      batch: {}
+      batch:
+        metadata_keys: [authorization]
     exporters:
       otlphttp/langfuse:
         traces_endpoint: http://langfuse-web:3000/api/public/otel/v1/traces

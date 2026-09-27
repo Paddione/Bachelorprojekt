@@ -135,6 +135,7 @@ export function loadCases(casesDir, { split } = {}) {
     const meta = loadJson(join(dir, 'case.json'));
     const metaValue = meta.value && typeof meta.value === 'object' ? meta.value : {};
     const base = join(dir, 'base');
+    const variantsDir = join(dir, 'variants');
     const replayJson = loadJson(join(dir, 'replay.json'));
     const record = {
       id,
@@ -145,7 +146,7 @@ export function loadCases(casesDir, { split } = {}) {
       source: readTextSafe(join(dir, 'source.md')),
       base: isDir(base) ? base : null,
       replay: replayJson.value ?? null,
-      variants: subdirs(join(dir, 'variants')).map(loadVariant),
+      variants: subdirs(variantsDir).map((name) => loadVariant(join(variantsDir, name))),
       json_error: meta.error,
       replay_json_error: replayJson.error,
     };

@@ -94,6 +94,52 @@ local pages = {
       }
     end,
   },
+  -- Files & Search chapter page (T900657). Rows are action() records in the
+  -- exact EPIC order; each effect resolves cwd at execution time through the
+  -- dashboard action model and passes it to the matching files-search module
+  -- function (which nil-guards and degrades gracefully when no git root).
+  ['files-search'] = {
+    title = 'Files & Search',
+    rows = function()
+      return {
+        action({
+          key = 'f',
+          name = 'find-file',
+          inputs = {},
+          effect = function(cwd) require('config.files-search').find_file(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'g',
+          name = 'live-grep',
+          inputs = {},
+          effect = function(cwd) require('config.files-search').live_grep(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'b',
+          name = 'buffers',
+          inputs = {},
+          effect = function(cwd) require('config.files-search').buffers(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'recent-files',
+          inputs = {},
+          effect = function(cwd) require('config.files-search').recent(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'o',
+          name = 'related-open',
+          inputs = {},
+          effect = function(cwd) require('config.files-search').related(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
 }
 
 for _, chapter in ipairs(CHAPTERS) do

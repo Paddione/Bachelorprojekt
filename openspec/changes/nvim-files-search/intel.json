@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "slug": "nvim-files-search",
+    "ticket_id": "T900657",
+    "generated_from": "origin/main@e9a1eb5a0",
+    "domains": [
+      "developer-experience",
+      "vim"
+    ],
+    "intel_sources": [
+      "wc",
+      "grep",
+      "plan-lint"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "dotfiles/nvim/lua/config/files-search.lua",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/dashboard.lua",
+      "language": "text",
+      "loc": 225,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/files-search.md",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/neovim-dashboard.bats",
+      "language": "text",
+      "loc": 609,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    "M.find_file",
+    "M.live_grep",
+    "M.buffers",
+    "M.recent",
+    "M.related",
+    "M.root",
+    "M.sections"
+  ]
+}

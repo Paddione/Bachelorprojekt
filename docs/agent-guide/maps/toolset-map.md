@@ -167,10 +167,8 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `abhaengigkeits-pflege`
 
-- **`skill:update-dependencies`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Dependency-Bumps im Repo koordinieren.
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/update-dependencies/SKILL.md`
+- **`skill:update-dependencies`** — Status `suppressed`
+  - _Grund:_ Archivierte Routine mit ueberholten Pfaden; nur explizit als historische Referenz nutzen.
 
 ## Fähigkeit: `openspec-vorschlag`
 
@@ -692,99 +690,93 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `skill-discovery`
 
 - **`skill:skill-craft`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Installierbare Skills zu einer Aufgabe finden und bewerten.
-  - _Rollen:_ `orchestrator`
+  - _Wann:_ Repo-Skills finden, installieren, synchronisieren oder verbessern.
+  - _Rollen:_ `all`
 
 ## Fähigkeit: `lokales-modell-serving`
 
-- **`skill:freetoken-setup`** — Status `canonical` · Tier `caution`
-  - _Wann:_ FreeToken-MoE-Backend starten, Modell wechseln, Caches dimensionieren.
-  - _Rollen:_ `orchestrator`
+- **`skill:freetoken-setup`** — Status `suppressed`
+  - _Grund:_ FreeToken ist auf diesem Host retired; das Skill bleibt nur als historische Referenz.
 
 ## Fähigkeit: `hf-mem`
 
-- **`skill:hf-mem`** — Status `unreviewed`
-  - _Grund:_ Klärung: nutzt der freetoken-Flow Speicherschätzung? Falls ja canonical [orchestrator], sonst suppressed.
+- **`skill:hf-mem`** — Status `suppressed`
+  - _Grund:_ FreeToken ist retired; kein aktiver Repo-Konsument fuer diese Speicherschaetzung.
 
 ## Fähigkeit: `huggingface-best`
 
-- **`skill:huggingface-best`** — Status `unreviewed`
+- **`skill:huggingface-best`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-community-evals`
 
-- **`skill:huggingface-community-evals`** — Status `unreviewed`
+- **`skill:huggingface-community-evals`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-datasets`
 
-- **`skill:huggingface-datasets`** — Status `unreviewed`
+- **`skill:huggingface-datasets`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-llm-trainer`
 
-- **`skill:huggingface-llm-trainer`** — Status `unreviewed`
+- **`skill:huggingface-llm-trainer`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-local-models`
 
-- **`skill:huggingface-local-models`** — Status `unreviewed`
+- **`skill:huggingface-local-models`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-lora-space-builder`
 
-- **`skill:huggingface-lora-space-builder`** — Status `unreviewed`
+- **`skill:huggingface-lora-space-builder`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-paper-publisher`
 
-- **`skill:huggingface-paper-publisher`** — Status `unreviewed`
+- **`skill:huggingface-paper-publisher`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-papers`
 
-- **`skill:huggingface-papers`** — Status `unreviewed`
+- **`skill:huggingface-papers`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-tool-builder`
 
-- **`skill:huggingface-tool-builder`** — Status `unreviewed`
+- **`skill:huggingface-tool-builder`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-trackio`
 
-- **`skill:huggingface-trackio`** — Status `unreviewed`
+- **`skill:huggingface-trackio`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-vision-trainer`
 
-- **`skill:huggingface-vision-trainer`** — Status `unreviewed`
+- **`skill:huggingface-vision-trainer`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-zerogpu`
 
-- **`skill:huggingface-zerogpu`** — Status `unreviewed`
+- **`skill:huggingface-zerogpu`** — Status `suppressed`
   - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
-
-## Fähigkeit: `skill-craft`
-
-- **`skill:skill-craft`** — Status `unreviewed`
-  - _Grund:_ Klärung: Verhältnis zu superpowers:writing-skills (kanonischer Skill-Pfad).
 
 ## Fähigkeit: `train-sentence-transformers`
 
-- **`skill:train-sentence-transformers`** — Status `unreviewed`
-  - _Grund:_ Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed.
+- **`skill:train-sentence-transformers`** — Status `suppressed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainingsbedarf einzeln kuratieren.
 
 ## Fähigkeit: `transformers-js`
 
-- **`skill:transformers-js`** — Status `unreviewed`
-  - _Grund:_ Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed.
+- **`skill:transformers-js`** — Status `suppressed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Frontend-Inferenzbedarf einzeln kuratieren.
 
 ## Fähigkeit: `trl-training`
 
-- **`skill:trl-training`** — Status `unreviewed`
-  - _Grund:_ Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed.
+- **`skill:trl-training`** — Status `suppressed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainingsbedarf einzeln kuratieren.
 
 ## Fähigkeit: `neovim-konfiguration`
 
@@ -795,23 +787,4 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Residuale Mehrdeutigkeiten
 
-Diese Einträge sind bewusst offen. Auflösung über den Skill `toolset-curate`.
-
-- `skill:hf-mem` (Fähigkeit `hf-mem`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-best` (Fähigkeit `huggingface-best`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-community-evals` (Fähigkeit `huggingface-community-evals`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-datasets` (Fähigkeit `huggingface-datasets`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-llm-trainer` (Fähigkeit `huggingface-llm-trainer`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-local-models` (Fähigkeit `huggingface-local-models`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-lora-space-builder` (Fähigkeit `huggingface-lora-space-builder`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-paper-publisher` (Fähigkeit `huggingface-paper-publisher`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-papers` (Fähigkeit `huggingface-papers`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-tool-builder` (Fähigkeit `huggingface-tool-builder`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-trackio` (Fähigkeit `huggingface-trackio`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-vision-trainer` (Fähigkeit `huggingface-vision-trainer`) — unreviewed — noch nicht kuriert
-- `skill:huggingface-zerogpu` (Fähigkeit `huggingface-zerogpu`) — unreviewed — noch nicht kuriert
-- `skill:skill-craft` (Fähigkeit `skill-craft`) — unreviewed — noch nicht kuriert
-- `skill:train-sentence-transformers` (Fähigkeit `train-sentence-transformers`) — unreviewed — noch nicht kuriert
-- `skill:transformers-js` (Fähigkeit `transformers-js`) — unreviewed — noch nicht kuriert
-- `skill:trl-training` (Fähigkeit `trl-training`) — unreviewed — noch nicht kuriert
-
+Keine — jede Instanz ist kuriert, und jede unterdrückte Instanz ist technisch durchsetzbar.

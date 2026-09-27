@@ -1181,13 +1181,13 @@ multiple locks (different scopes on the same path) SHALL appear once in the list
 
 ### Requirement: dev-flow-execute delegiert die Post-Merge-Finalisierung an einen frischen Finalizer-Subagenten
 
-Die Skill-Datei `.claude/skills/dev-flow-execute/SKILL.md` SHALL die Schritte 6.4 bis 7.5 (Merge-Wait, Ticket-Abschluss, Plan-Archivierung, Worktree-/Branch-Cleanup, Lock-Release) als Delegation an einen **frischen Finalizer-Subagenten** ausweisen, der nach dem bestandenen Code-Review-Gate (Schritt 3.8) und dem Auto-Merge-Request gespawnt wird. Der Orchestrator SHALL nach dem Auto-Merge-Request enden und die Finalisierung NICHT im eigenen, bereits kontextbelasteten Kontext ausführen. Der Finalizer-Auftrag SHALL ein kompaktes Lagebild enthalten (Ticket-ID, PR-Nummer, Branch, Worktree-Pfad, Plan-Pfad, Resolution) und die T001571-Standing-Direktive (Kontext-Budget: bei Überlauf strukturierten Handoff-Report liefern). Der Finalizer SHALL die Abschluss-Schritte über das idempotente Finalize-Skript ausführen und den Endzustand strukturiert zurückmelden.
+Die Skill-Datei `.claude/skills/dev-flow-execute/SKILL.md` SHALL die Schritte 6.4 bis 7.5 (Merge-Wait, Ticket-Abschluss, Plan-Archivierung, Worktree-/Branch-Cleanup, Lock-Release) als Delegation an einen **frischen Finalizer-Subagenten** ausweisen, der nach dem Merge-Gate (Schritt 3.8: Phase-Chain-Assert und Auto-Merge-Request, oder bereits aktives Auto-Merge) gespawnt wird. Der Orchestrator SHALL nach dem Auto-Merge-Request enden und die Finalisierung NICHT im eigenen, bereits kontextbelasteten Kontext ausführen. Der Finalizer-Auftrag SHALL ein kompaktes Lagebild enthalten (Ticket-ID, PR-Nummer, Branch, Worktree-Pfad, Plan-Pfad, Resolution) und die T001571-Standing-Direktive (Kontext-Budget: bei Überlauf strukturierten Handoff-Report liefern). Der Finalizer SHALL die Abschluss-Schritte über das idempotente Finalize-Skript ausführen und den Endzustand strukturiert zurückmelden.
 
 Hintergrund: Beim Incident T006284 (PR #4460) starb der Executor nach dem Merge an Kontext-Erschöpfung — Ticket-Closure, Archiv und Cleanup blieben liegen, die Eskalation musste alles manuell nachholen. Ein reines Prompt-Verbot bleibt wirkungslos (Muster T001571, T002365): Die Härtung entfernt die Gelegenheit, statt die Direktive zu verschärfen — die Finalisierung läuft in einem Kontext, der sie per Konstruktion noch tragen kann.
 
 #### Scenario: Der Executor starb — die Finalisierung ist trotzdem nachholbar
 
-- **GIVEN** ein Executor hat nach dem Review-Gate den Auto-Merge angefordert
+- **GIVEN** ein Executor hat im Merge-Gate den Auto-Merge angefordert oder bereits aktives Auto-Merge vorgefunden
 - **WHEN** die Finalisierung an einen frischen Finalizer-Subagenten delegiert ist
 - **THEN** sind Merge-Wait, Ticket-Abschluss, Plan-Archivierung und Cleanup im Finalizer-Auftrag enthalten
 - **AND** der Orchestrator endet nach dem Auto-Merge-Request statt die Schritte 6.4–7.5 im eigenen Kontext auszuführen
@@ -1342,8 +1342,8 @@ Hintergrund: Nach-Merge-Befund zu T006348 — der Plan (Befund 2) deklarierte de
 ### Requirement: dev-flow-execute erkennt extern aktivierten Auto-Merge
 
 Die Skill-Datei `.claude/skills/dev-flow-execute/SKILL.md` SHALL den Auto-Merge-Zustand
-des Pull Requests über `scripts/check-pr-automerge.sh` prüfen, bevor das Code-Review-Gate
-(Schritt 3.8) ein Review-Ergebnis erteilt. Das Skript SHALL den Zustand über
+des Pull Requests im Merge-Gate (Schritt 3.8) über `scripts/check-pr-automerge.sh --branch "$BRANCH"`
+prüfen. Das Skript SHALL den Zustand über
 `gh pr view --json number,autoMergeRequest` ermitteln und mit definierten Exit-Codes
 beenden: `0` = kein Auto-Merge aktiv (kein PR für den explizit genannten Branch oder
 `autoMergeRequest` null), `1` = Auto-Merge aktiv (Meldung nennt die PR-Nummer),
@@ -1352,20 +1352,24 @@ Aufrufkontext. Ein Aufruf OHNE `--pr` und OHNE `--branch` SHALL mit Exit-Code 2
 abbrechen und den fehlenden Kontext (`--pr`/`--branch`) in der Fehlermeldung nennen,
 statt `gh pr view` gegen den ambient Branch zu proben — es gibt bewusst KEIN
 Env-Override für den Kontext (der Kontext ist pro Aufruf zu bestimmen, nicht global).
-Bei Exit-Code `1` SHALL das Review-Gate fail-closed abbrechen: kein Review-Ergebnis
-wird erteilt, kein Auto-Merge wird still deaktiviert. Die Pre-Flight-Phasen
+Bei Exit-Code `1` im Merge-Gate SHALL der Orchestrator NICHT abbrechen und Auto-Merge
+NICHT deaktivieren: der Merge läuft bei grünen Required Checks. Bei Exit-Code `2` SHALL
+das Merge-Gate als Umgebungsfehler abbrechen. Ein Code-Review SHALL keine
+Merge-Voraussetzung sein; es läuft nur, wenn der Operator es in der laufenden Session
+ausdrücklich verlangt. Findings eines verlangten Reviews SHALL vor dem Merge per
+`SendMessage` an den bereits gespawnten Implementer gehen und nach dem Merge als
+Folge-Ticket mit Folge-PR. Die Pre-Flight-Phasen
 (`dev-flow-execute-phases.md`, Schritt 1.4.7) SHALL denselben Check mit explizitem
-Kontext (`--branch "$BRANCH"`, wie SKILL.md Schritt 3.8 seit T900040) ausführen;
+Kontext (`--branch "$BRANCH"`) ausführen;
 existiert für den Branch bereits ein PR mit aktivem Auto-Merge, bricht die Session
 als Doppel-Execution ab und koordiniert sich, statt die Implementierung zu
 duplizieren.
 
-Hintergrund: T006282 — während des Review-Gates (Verdict "With fixes") aktivierte der
-User Auto-Merge auf PR #4524; der Merge lief bei grüner CI durch, der Review-Fix (2
-Doc-Zeilen) kam nach dem Merge und brauchte Folge-Ticket T006330 + PR #4527. Das Gate
-kontrolliert nur die eigene `gh pr merge --auto`-Anforderung (T005565); extern
-aktiviertes Auto-Merge bleibt unsichtbar. T900043/Befund 2: Der bare Call in
-phases.md 1.4.7 fiel auf `main` in genau diese Unsichtbarkeit zurück (PR #5409).
+Hintergrund: T006282 führte den Check ein, weil extern aktiviertes Auto-Merge während eines
+Reviews mergte. T900655 (PR #6062) zeigte, dass der CI-Workflow „Enable Auto-Merge" Auto-Merge
+nach jedem grünen Push wieder aktiviert; ein fail-closed Review-Gate ist so nicht durchhaltbar.
+Nutzerentscheid 2026-09-27 (T900687): grüne CI reicht zum Merge. T900043/Befund 2: Der bare
+Call in phases.md 1.4.7 fiel auf `main` in die Unsichtbarkeit zurück (PR #5409).
 
 #### Scenario: Barer Aufruf ohne Kontext ist fail-closed
 
@@ -1374,13 +1378,27 @@ phases.md 1.4.7 fiel auf `main` in genau diese Unsichtbarkeit zurück (PR #5409)
 - **THEN** endet es mit Exit-Code 2 und nennt `--pr`/`--branch` als fehlenden Kontext
 - **AND** es wird kein `gh pr view` gegen den ambient Branch ausgeführt
 
-#### Scenario: Auto-Merge ist vor dem Review-Gate extern aktiviert
+#### Scenario: Auto-Merge ist im Merge-Gate bereits aktiv
 
-- **GIVEN** der User oder eine parallele Session hat Auto-Merge auf dem PR aktiviert
-- **WHEN** das Code-Review-Gate (Schritt 3.8) beginnt
+- **GIVEN** der CI-Workflow, der User oder eine parallele Session hat Auto-Merge auf dem PR aktiviert
+- **WHEN** das Merge-Gate (Schritt 3.8) beginnt
 - **THEN** prüft der Orchestrator den Auto-Merge-Zustand über `scripts/check-pr-automerge.sh`
-- **AND** bei aktivem Auto-Merge (Exit-Code 1) bricht das Gate ab und nennt die PR-Nummer
-- **AND** es wird kein Review-Ergebnis erteilt und kein Auto-Merge deaktiviert
+- **AND** bei Exit-Code 1 bricht das Gate nicht ab und deaktiviert Auto-Merge nicht
+- **AND** der Merge läuft bei grünen Required Checks
+
+#### Scenario: Ohne Zuruf läuft kein Review
+
+- **GIVEN** der Operator hat in der Session kein Code-Review verlangt
+- **WHEN** der Orchestrator das Merge-Gate durchläuft
+- **THEN** führt er nur den Phase-Chain-Assert und `gh pr merge --auto --squash` aus
+- **AND** es wird kein Review-Subagent gestartet
+
+#### Scenario: Ein verlangtes Review liefert Findings nach dem Merge
+
+- **GIVEN** der Operator hat ein Review verlangt und der PR ist bereits gemergt
+- **WHEN** das Review Findings liefert
+- **THEN** gehen die Findings als Folge-Ticket mit Folge-PR raus
+- **AND** Auto-Merge wurde zu keinem Zeitpunkt deaktiviert
 
 #### Scenario: Der Pre-Flight erkennt eine Doppel-Execution mit aktivem Auto-Merge
 
@@ -2527,3 +2545,5 @@ SHALL geplant, aber nie automatisch ausgefuehrt werden.
   neues Ticket angefasst wird
 
 <!-- merged from change delta agent-skills.md (7a2a4dedee8c) -->
+
+<!-- merged from change delta agent-skills.md (9e043f802f5e) -->

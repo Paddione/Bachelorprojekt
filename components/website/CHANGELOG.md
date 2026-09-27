@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.381.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.380.0...website-v1.381.0) (2026-09-27)
+
+
+### Features
+
+* **scripts:** pi harness with lm-link endpoint pool [T900529] ([#6040](https://github.com/Paddione/Bachelorprojekt/issues/6040)) ([f4c5ae8](https://github.com/Paddione/Bachelorprojekt/commit/f4c5ae849f55bd90cafd9e4d33ee6f586b7c1df6))
+
 ## [1.380.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.379.0...website-v1.380.0) (2026-09-27)
 
 

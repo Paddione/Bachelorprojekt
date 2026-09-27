@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "slug": "langfuse-public-host",
+    "ticket_id": "",
+    "generated_from": "main@ece6a913d",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "dev-local/components/langfuse/ingress-public.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/langfuse/kustomization.yaml",
+      "language": "config",
+      "loc": 12,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/langfuse/langfuse.yaml",
+      "language": "config",
+      "loc": 175,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/core/ingress.yaml",
+      "language": "config",
+      "loc": 46,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/dev.yaml",
+      "language": "config",
+      "loc": 64,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1805,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/mentolder/kustomization.yaml",
+      "language": "config",
+      "loc": 79,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/mentolder/langfuse-dev-proxy.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/langfuse/client-env.sh",
+      "language": "bash",
+      "loc": 32,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 768
+    },
+    {
+      "path": "tests/spec/langfuse-agent-tracing.bats",
+      "language": "bash",
+      "loc": 167,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/langfuse-agent-tracing.bats:8:setup() {",
+      "kind": "function",
+      "file": "tests/spec/langfuse-agent-tracing.bats",
+      "signature": "8:setup() {(...)",
+      "type_text": "8:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/langfuse-agent-tracing.bats:17:_objects() {",
+      "kind": "function",
+      "file": "tests/spec/langfuse-agent-tracing.bats",
+      "signature": "17:_objects() {(...)",
+      "type_text": "17:_objects() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/langfuse-agent-tracing.bats:61:_stub_bin() {",
+      "kind": "function",
+      "file": "tests/spec/langfuse-agent-tracing.bats",
+      "signature": "61:_stub_bin() {(...)",
+      "type_text": "61:_stub_bin() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/langfuse-agent-tracing.bats:94:_setup_env() {",
+      "kind": "function",
+      "file": "tests/spec/langfuse-agent-tracing.bats",
+      "signature": "94:_setup_env() {(...)",
+      "type_text": "94:_setup_env() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/langfuse-agent-tracing.bats:100:_run_setup() {",
+      "kind": "function",
+      "file": "tests/spec/langfuse-agent-tracing.bats",
+      "signature": "100:_run_setup() {(...)",
+      "type_text": "100:_run_setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/langfuse-agent-tracing.bats:145:_render_fleet_proxy() {",
+      "kind": "function",
+      "file": "tests/spec/langfuse-agent-tracing.bats",
+      "signature": "145:_render_fleet_proxy() {(...)",
+      "type_text": "145:_render_fleet_proxy() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

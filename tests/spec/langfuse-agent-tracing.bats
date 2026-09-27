@@ -29,7 +29,7 @@ _objects() {
 }
 
 @test "T900688: Ingress routet /api/public/otel auf den Redact-Collector, / auf langfuse-web" {
-  run yq ea -r 'select(.kind == "Ingress") | .spec.rules[] | select(.host | test("^langfuse\.")) | .http.paths[] | .path + " " + .backend.service.name' "$RENDERED"
+  run yq ea -r 'select(.kind == "Ingress") | .spec.rules[] | select(.host | test("^langfuse-dev\.")) | .http.paths[] | .path + " " + .backend.service.name' "$RENDERED"
   [ "$status" -eq 0 ]
   [[ "$output" == *"/api/public/otel langfuse-otel-redact"* ]]
   [[ "$output" == *"/ langfuse-web"* ]]
@@ -123,4 +123,45 @@ _run_setup() {
   _run_setup
   [ "$status" -ne 0 ]
   [[ "$output" == *"pi-observability-plugin"* ]]
+}
+
+# T900691: Langfuse oeffentlich als langfuse-dev.<prod-domain> — fleet terminiert TLS mit dem
+# Wildcard und leitet per Tailscale an devmesh-Traefik (web-Entrypoint, Port 80) weiter.
+@test "T900691: devmesh-Ingress fuer langfuse-dev lauscht auf dem web-Entrypoint" {
+  run yq ea -r 'select(.kind == "Ingress" and (.spec.rules[].host | test("^langfuse-dev\\."))) | .metadata.annotations."traefik.ingress.kubernetes.io/router.entrypoints"' "$RENDERED"
+  [ "$status" -eq 0 ]
+  [ "$output" = "web" ]
+}
+
+@test "T900691: devmesh rendert keinen langfuse.<devmesh-domain>-Host mehr und NEXTAUTH_URL zeigt auf langfuse-dev" {
+  run yq ea -r 'select(.kind == "Ingress") | .spec.rules[].host' "$RENDERED"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"langfuse-dev."* ]]
+  ! grep -q '^langfuse\.' <<<"$output"
+  run yq ea -r 'select(.kind == "Deployment" and .metadata.name == "langfuse-web") | .spec.template.spec.containers[].env[] | select(.name == "NEXTAUTH_URL") | .value' "$RENDERED"
+  [[ "$output" == https://langfuse-dev.* ]]
+}
+
+_render_fleet_proxy() {
+  WORKSPACE_NAMESPACE=workspace PROD_DOMAIN=mentolder.example TLS_SECRET_NAME=workspace-wildcard-tls \
+    envsubst '$WORKSPACE_NAMESPACE $PROD_DOMAIN $TLS_SECRET_NAME' < "$REPO/prod-fleet/mentolder/langfuse-dev-proxy.yaml"
+}
+
+@test "T900691: fleet-Ingress langfuse-dev nutzt das Wildcard-TLS und den Proxy-Service" {
+  [ -f "$REPO/prod-fleet/mentolder/langfuse-dev-proxy.yaml" ]
+  out="$(_render_fleet_proxy)"
+  run yq ea -r 'select(.kind == "Ingress") | .spec.tls[0].secretName + " " + .spec.rules[0].host + " " + .spec.rules[0].http.paths[0].backend.service.name' - <<<"$out"
+  [ "$output" = "workspace-wildcard-tls langfuse-dev.mentolder.example langfuse-dev-proxy" ]
+}
+
+@test "T900691: EndpointSlice zeigt auf die drei devmesh-Tailscale-Adressen, Port 80" {
+  out="$(_render_fleet_proxy)"
+  run yq ea -r 'select(.kind == "EndpointSlice") | (.metadata.labels."kubernetes.io/service-name") + " " + (.ports[0].port | tostring) + " " + ([.endpoints[].addresses[0]] | sort | join(","))' - <<<"$out"
+  [ "$output" = "langfuse-dev-proxy 80 100.115.236.87,100.120.125.39,100.126.111.105" ]
+}
+
+@test "T900691: fleet-Overlay bindet den Langfuse-Proxy ein" {
+  run kubectl kustomize "$REPO/prod-fleet/mentolder"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"name: langfuse-dev-proxy"* ]]
 }

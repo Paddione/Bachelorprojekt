@@ -78,6 +78,18 @@ const isInfra = (run) => Boolean(run.infra_error);
 const value = (run) => Number(run.score?.score ?? 0);
 
 /** Task 6.1 — Report als JSON + Markdown. */
+/**
+ * Markdown-Tabellenzelle sicher escapen: Backslash zuerst, dann Pipe, Zeilenumbrueche flach.
+ * Ohne den Backslash-Schritt bricht ein Wert wie `a\|b` die Tabelle auf (`\\|` = literaler
+ * Backslash gefolgt von einem unescapter Trenner) — CodeQL js/regex/incomplete-escaping [T900561].
+ */
+export function mdCell(value) {
+  return String(value ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, ' ');
+}
+
 export function buildReport(runDir) {
   const loaded = loadRun(runDir);
   const { manifest } = loaded;
@@ -174,7 +186,7 @@ export function buildReport(runDir) {
   lines.push('');
   lines.push('| Modell | Engine | Kommandozeile |');
   lines.push('| --- | --- | --- |');
-  for (const s of json.servers) lines.push(`| ${s.id} | ${s.engine} | \`${(s.command || s.url || '').replace(/\|/g, '\\|')}\` |`);
+  for (const s of json.servers) lines.push(`| ${mdCell(s.id)} | ${mdCell(s.engine)} | \`${mdCell(s.command || s.url || '')}\` |`);
   if (!json.servers.length) lines.push('| (keine) | | |');
   lines.push('');
   lines.push('## Marginal-Score je (Rolle, Modell)');
@@ -208,7 +220,7 @@ export function buildReport(runDir) {
     lines.push('| Fall | Variante | Rolle | Modell | Rep | Grund |');
     lines.push('| --- | --- | --- | --- | --- | --- |');
     for (const e of json.infra_errors) {
-      lines.push(`| ${e.case} | ${e.variant} | ${e.role} | ${e.model} | ${e.rep} | ${String(e.reason).replace(/\|/g, '\\|')} |`);
+      lines.push(`| ${mdCell(e.case)} | ${mdCell(e.variant)} | ${mdCell(e.role)} | ${mdCell(e.model)} | ${e.rep} | ${mdCell(e.reason)} |`);
     }
   } else {
     lines.push('- keine');

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 131 · Requirements: 2459 · Scenarios: 5454
+Specs: 132 · Requirements: 2465 · Scenarios: 5466
 
 ## factory-pipeline
 
@@ -756,6 +756,15 @@ Reqs: 1 · Scenarios: 1 · Lines: 22
 Last touches:
   - Partial-done state accepted | T002130 | 2026-08-02 | ADDED
 
+### pi-harness
+Reqs: 5 · Scenarios: 10 · Lines: 119
+Last touches:
+  - Pi is installed pinned and isolated from the user's Pi configuration | T900529 | 2026-09-27 | ADDED
+  - The trial runner builds each level from an all-disabled baseline | T900529 | 2026-09-27 | ADDED
+  - The trial runner resolves models across the local endpoint pool and fails loudly without one | T900529 | 2026-09-27 | ADDED
+  - The trial runner offers a caller contract for orchestration | T900529 | 2026-09-27 | ADDED
+  - Every trial run leaves a reproducible record | T900529 | 2026-09-27 | ADDED
+
 ### plan-ref-lifecycle-fixes
 Reqs: 3 · Scenarios: 3 · Lines: 31
 Last touches:
@@ -960,15 +969,13 @@ Last touches:
   - Prosa-Blocker-Erkennung in Phase 1 | T002771 | 2026-08-09 | ADDED
 
 ### toolset-registry
-Reqs: 20 · Scenarios: 43 · Lines: 522
+Reqs: 21 · Scenarios: 45 · Lines: 544
 Last touches:
+  - The role pi receives explicit grants only | T900529 | 2026-09-27 | ADDED
   - Usage semantics schema validation in check runner | T004889 | 2026-08-14 | ADDED
   - Local sources are consulted before remote ones | T002611 | 2026-08-10 | ADDED
   - inspect returns schemas rather than prose where possible | T002611 | 2026-08-10 | ADDED
   - Only decisions are persisted, never lookups | T002611 | 2026-08-10 | ADDED
-  - Every curated instance carries injectable usage semantics | T002592 | 2026-08-03 | ADDED
-In-flight:
-  - The role pi receives explicit grants only | T900529 | active | ADDED
 
 ### unsloth-eval-harness
 Reqs: 7 · Scenarios: 12 · Lines: 126

@@ -17,7 +17,7 @@ setup() {
 @test "task-list-golden: task --list-all matches the snapshot byte-for-byte" {
   [ -f "$GOLDEN" ] || { echo "MISSING golden: $GOLDEN"; return 1; }
   command -v task >/dev/null || { echo "MISSING task binary (repo prerequisite)"; return 1; }
-  run bash -c "cd '$REPO_ROOT' && task --list-all | diff -u '$GOLDEN' -"
+  run bash -c "cd '$REPO_ROOT' && task --list-all --color=false | diff -u '$GOLDEN' -"
   [ "$status" -eq 0 ] || {
     echo "CLI surface drifted from golden. If intentional, a HUMAN refreshes via:"
     echo "  task test:evals:update   # human-only, PR needs [evals-override]"

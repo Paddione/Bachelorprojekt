@@ -794,7 +794,7 @@ tasks:
   test:evals:update:
     desc: "Regenerate tests/evals/golden/task-list-all.txt (human-only, needs [evals-override] in PR)."
     cmds:
-      - task --list-all > tests/evals/golden/task-list-all.txt
+      - task --list-all --color=false > tests/evals/golden/task-list-all.txt
 
   test:inventory:
     desc: Regenerate components/website/src/data/test-inventory.json (requirement → test mapping)

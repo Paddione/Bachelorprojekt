@@ -1,8 +1,8 @@
 # Skills Overview
 
-54 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+53 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
-> **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/` und `.agents/skills/` sind echte Verzeichnis-Spiegel (keine Symlinks — T900077/T900151, vgl. `[ ! -L ]`-Guard in `tests/spec/agent-skills/harness-workflow-split.bats`); Inhalte sind pro Harness projiziert (Tool-Namen, Referenz-Pfade). Alle neuen Skills gehören unter `.opencode/skills/`.
+> **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/*` sind pro-Skill-Symlinks in die SSOT, `.agents/skills` ist ein Symlink auf das SSOT-Verzeichnis (T900236, Guard in `tests/spec/agent-skills/skill-symlink-targets.bats`); Inhalte sind pro Harness projiziert (Tool-Namen, Referenz-Pfade). Alle neuen Skills gehören unter `.opencode/skills/`.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Archivierte SKILL.md-Dateien (`archived: true`) tragen eine explizite "invoke explicitly only"-Description statt eines Auto-Triggers.
 
@@ -35,7 +35,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 > **Nur opencode (T900064):** `.opencode/skills/sdlc-autopilot/` faehrt die Pipeline
 > ticket-triage -> dev-flow-plan -> Factory selbststaendig ab, bis das Queue-Material erschoepft
-> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 54 oben
+> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 53 oben
 > (die misst `git ls-files -- .opencode/skills`), unterliegt aber denselben Konventionen.
 
 ---
@@ -141,7 +141,7 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 |---|---|
 | [`references`](references/SKILL.md) | Geteilte Querschnitts-Referenzen für dev-flow-Skills und Subagenten — Subagent-Provisionierung, Plan-Quality-Gates, MCP-Tool-Guide, Session-Koordination, CI-Fix-Loop, Deploy-Routing. |
 | [`agentic-resource-lookup`](agentic-resource-lookup/SKILL.md) | Externe MCP-Server und Agent-Plugins **bei Bedarf** finden (`scripts/agentic-lookup.mjs`), ohne sie zu installieren und ohne ihre Beschreibungen dauerhaft im Kontext zu tragen. Findet und protokolliert nur — die Kuratierungs-Entscheidung selbst gehört zu [`toolset-curate`](toolset-curate/SKILL.md). |
-| [`skill-craft`](skill-craft/SKILL.md) | Skill-Lebenszyklus-Einstieg — finden, installieren, erstellen und verbessern (`find-skills`, `skill-creator`). |
+| [`skill-craft`](skill-craft/SKILL.md) | Skill-Lebenszyklus-Einstieg — finden, installieren, erstellen und verbessern (Erstellen/Verbessern via `skill-creator`). |
 
 ---
 
@@ -187,6 +187,7 @@ alle Skills als projekteigen — das Gate wird dann strenger, nicht schwächer.
 | `lavish` | Kun Chen (kunchenguid) | Komplexe oder visuelle Antworten als annotierbares HTML-Artefakt rendern (`lavish-axi`). Nur nach Zustimmung des Nutzers. |
 | `superpowers:using-git-worktrees` | Superpowers-Plugin | Hintergrund zur Worktree-Isolation (Detached-HEAD, git-crypt). Im dev-flow-Pfad ersetzt durch `scripts/worktree-create.sh`. |
 | `vitest` | Anthony Fu (antfu/skills) | Vitest-Referenz — Mocking, Coverage-Konfiguration, Test-Filtering, Fixtures. |
+| `llama-cpp` | Orchestra-Research/AI-research-SKILLs | llama.cpp-Inferenz auf CPU/Edge-GPUs (opencode-only). |
 | `hf-mem` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Hugging-Face-Modell-Speicherabschaetzung (CLI). |
 | `huggingface-best` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Modell-Empfehlungen und -Vergleiche. |
 | `huggingface-community-evals` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Community-Evals auf lokaler Hardware. |

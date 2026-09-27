@@ -2,14 +2,6 @@
   "$comment": "SSOT der Herkunft extern bezogener Skills/Plugins. Gepflegt von scripts/vendor-sync.py (update schreibt ref/version). Runbook: docs/runbooks/vendor-sync.md. ref = Upstream-Commit, gegen den die Repo-Kopie zuletzt synchronisiert wurde (Merge-Basis fuer den 3-Wege-Merge). track: release = hoechste stabile SemVer-Tag (optional tag_prefix), branch = Default-Branch-HEAD (Upstream ohne Releases).",
   "schema_version": 1,
   "skills": {
-    "find-skills": {
-      "repo": "vercel-labs/skills",
-      "path": "skills/find-skills",
-      "dest": ".opencode/skills/find-skills",
-      "track": "release",
-      "ref": "7407f3893ad4dceab546ac002c3ef806e4000c73",
-      "version": null
-    },
     "gitops-cluster-debug": {
       "repo": "fluxcd/agent-skills",
       "path": "skills/gitops-cluster-debug",

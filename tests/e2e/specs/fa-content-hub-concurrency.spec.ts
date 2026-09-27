@@ -53,7 +53,7 @@ test.describe('FA content-hub: concurrency safety (AC 6)', { tag: ['@content-hub
     //   components/website/src/pages/api/admin/content/save.test.ts (unit mock)
     //   components/website/src/lib/admin/conflict.test.ts (pure helper)
     // This test documents the expected API contract so future authenticated
-    // runners (dev-flow-iterate against a live cluster) can exercise it.
+    // runners (authenticated run against a live cluster) can exercise it.
     const request = await anonContext(playwright);
     try {
       const payload = { contentKey: 'stammdaten', baseVersion: -1, payload: {} };

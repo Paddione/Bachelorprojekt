@@ -114,29 +114,7 @@ Setzt einen fertigen Plan um und öffnet einen Pull Request.
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
 
-**Verwandt:** [[dev-flow-plan]], [[dev-flow-iterate]]
-
-## Dev-Iterations-Skill (dev-flow-iterate)
-
-**Skill** · 🟡 **Vorsicht**
-
-Deployt Änderungen in den Dev-Namespace (workspace-dev) auf dem Fleet-Cluster und zeigt Logs – zum schnellen Ausprobieren.
-
-**Wofür?** Shortcut für 'deploy + Logs ansehen + debuggen' im Dev-Namespace auf dem Fleet-Cluster (dev.mentolder.de). Der lokale Dev-Cluster (k3d) ist seit T002630 abgeschafft.
-
-**So startest du:** Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Namespace live sehen willst.
-
-**Was schiefgehen kann:** Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen.
-
-**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
-
-```text
-/dev-flow-iterate – deploye in den Dev-Namespace auf Fleet und zeig mir die Logs.
-```
-
-**Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Namespace prüfen (Single-Cluster) (G-CONTEXT-CHECK)
-
-**Verwandt:** [[dev-flow-execute]], [[dev-flow-e2e]]
+**Verwandt:** [[dev-flow-plan]], [[dev-flow-e2e]]
 
 ## E2E-Test-Skill (dev-flow-e2e)
 
@@ -158,7 +136,7 @@ Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge au
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT)
 
-**Verwandt:** [[dev-flow-iterate]]
+**Verwandt:** [[dev-flow-execute]]
 
 ## Task-Orakel (task-oracle)
 

@@ -137,7 +137,7 @@ function makeFixtureRegistry() {
 }
 
 test('slugForToolId: spine skills keep their id (discoverable SKILL.md slug)', () => {
-  for (const id of ['dev-flow-plan', 'dev-flow-execute', 'dev-flow-iterate', 'dev-flow-e2e']) {
+  for (const id of ['dev-flow-plan', 'dev-flow-execute', 'dev-flow-e2e']) {
     assert.equal(slugForToolId(id), id);
   }
 });
@@ -209,7 +209,7 @@ test('urlLink: renders a markdown link, empty string for blank url', () => {
 
 /** The set of slugs the docs generator WILL discover (for membership checks). */
 const DISCOVERABLE = new Set([
-  'dev-flow-plan', 'dev-flow-execute', 'dev-flow-iterate', 'dev-flow-e2e',
+  'dev-flow-plan', 'dev-flow-execute', 'dev-flow-e2e',
   'bachelorprojekt-website', 'bachelorprojekt-ops', 'bachelorprojekt-infra',
   'bachelorprojekt-test', 'bachelorprojekt-db', 'bachelorprojekt-security',
   '00-anleitung', '10-ziele', '20-werkzeuge', '30-bausteine',

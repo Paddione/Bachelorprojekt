@@ -846,9 +846,9 @@ capabilities:
       reason: "Doppelt superpowers:writing-skills (wie das gleichnamige Plugin)."
 
   skill-discovery:
-    skill:find-skills:
+    skill:skill-craft:
       state: canonical
-      use_when: "Installierbare Skills zu einer Aufgabe finden."
+      use_when: "Installierbare Skills zu einer Aufgabe finden und bewerten."
       roles: [orchestrator]
       tier: safe
 

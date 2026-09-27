@@ -9,7 +9,7 @@
 //   • Restore endpoint rejects unauthenticated requests.
 //
 // The full edit→Verlauf→restore UI flow is tested against the live cluster via
-// dev-flow-iterate; this spec covers the API contract offline-safe checks.
+// a manual dev-namespace run; this spec covers the API contract offline-safe checks.
 //
 // Run:
 //   WEBSITE_URL=https://web.mentolder.de \

@@ -3,7 +3,10 @@ name: ticket-ops
 description: 'Compatibility router for internal ticket content. Routes completeness triage and clarification to ticket-triage; routes dependency waves and approved dispatch to ticket-dispatch. Use for existing "ticket-ops" invocations or ambiguous ticket-content requests. Request map: completeness/DoR/missing facts → ticket-triage; waves/collisions/dispatch → ticket-dispatch; branches/worktrees/PRs/queue → repo-hygiene; live outage → incident-response.'
 ---
 
-# ticket-ops — compatibility router
+# ticket-ops — compatibility router (legacy alias)
+
+> Legacy alias: `operations-management` routes directly to `ticket-triage` / `ticket-dispatch`.
+> This entrypoint stays for existing invocations — new references should use the direct skills.
 
 Use this small entrypoint to preserve existing invocations without loading the complete ticket workflow. The ticket database is the system of record; GitHub PRs are only merge mechanics.
 

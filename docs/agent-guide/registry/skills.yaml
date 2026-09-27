@@ -7,6 +7,13 @@
 # The projection engine is scripts/agent-skills/project.mjs.
 # Upstream-Herkunft der `provenance: vendor`-Einträge (Repo, Pfad, gelockter Commit):
 # docs/agent-guide/registry/vendor-lock.json — gepflegt von scripts/vendor-sync.py.
+#
+# Scoping-Modell: Das Dateisystem ist bewusst geteilt (.agents/skills ist ein
+# Symlink auf die SSOT, .claude/skills/* sind pro-Skill-Symlinks) — alle Skills
+# sind in jedem Harness ladbar. Die `harnesses`/`exclusions`-Einträge unten
+# dokumentieren die Besitz-Absicht (primärer Harness), erzwingen aber nichts.
+# Durchgesetzt wird das Scoping in docs/agent-guide/registry/capabilities.yaml
+# (canonical/suppressed + roles) und injiziert via scripts/toolset-context.sh.
 schema_version: 1
 
 harnesses:
@@ -811,21 +818,6 @@ skills:
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
   # ── OpenCode native corpus ──
       muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
-  - id: find-skills
-    provenance: vendor
-    exposure: native
-    source: .opencode/skills/find-skills
-    harnesses:
-      opencode:
-        path: .opencode/skills/find-skills
-        sync: identical
-      claude_code:
-        path: .claude/skills/find-skills
-        sync: identical
-    exclusions:
-      codex: "OpenCode-only vendor skill from the skills CLI ecosystem."
-      agy: "OpenCode-only vendor skill from the skills CLI ecosystem."
-      muse: "OpenCode-only vendor skill from the skills CLI ecosystem."
   - id: freetoken-setup
     provenance: project
     exposure: native

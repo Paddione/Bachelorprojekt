@@ -1,8 +1,10 @@
 # Skills Overview
 
-53 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+54 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/*` sind pro-Skill-Symlinks in die SSOT, `.agents/skills` ist ein Symlink auf das SSOT-Verzeichnis (T900236, Guard in `tests/spec/agent-skills/skill-symlink-targets.bats`); Inhalte sind pro Harness projiziert (Tool-Namen, Referenz-Pfade). Alle neuen Skills gehören unter `.opencode/skills/`.
+
+> **Sharing:** Die getrackten Skills werden mit dem Repo geklont. Codex, agy und Muse lesen `.agents/skills`; OpenCode liest `.opencode/skills`; Claude Code liest die Symlinks in `.claude/skills`. Antigravity erzeugt seinen lokalen Spiegel mit `task agy:sync` nach dem Klonen (generierte `.gemini/skills` sind gitignored). `node scripts/agent-skills/project.mjs --check` prueft das Inventar. `llama-cpp` bleibt als dokumentierter OpenCode-only-Skill ausserhalb des Claude/Antigravity-Spiegels. Benutzerinstallierte Codex-Plugins unter `~/.codex/plugins` gehoeren nicht zum Repo und werden durch diesen Sync nicht verteilt.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Archivierte SKILL.md-Dateien (`archived: true`) tragen eine explizite "invoke explicitly only"-Description statt eines Auto-Triggers.
 
@@ -35,7 +37,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 > **Nur opencode (T900064):** `.opencode/skills/sdlc-autopilot/` faehrt die Pipeline
 > ticket-triage -> dev-flow-plan -> dev-flow-execute selbststaendig ab, bis das Queue-Material erschoepft
-> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 53 oben
+> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 54 oben
 > (die misst `git ls-files -- .opencode/skills`), unterliegt aber denselben Konventionen.
 
 ---

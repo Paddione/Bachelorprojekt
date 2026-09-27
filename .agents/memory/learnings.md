@@ -10,6 +10,8 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
 
 ---
 
+- 27.09.26 [T900609] Repo-Skills sind bereits per `.agents/skills` und `.claude/skills` geteilt; `task agy:sync` erzeugt den ignorierten Antigravity-Spiegel. Ignorierte neue Dateien in getrackten Vendor-Skill-Verzeichnissen koennen sonst unbemerkt bleiben. — Beleg: `node scripts/agent-skills/project.mjs --check`, `task agy:sync`, `.gitignore`
+- 27.09.26 [T900609] `task agy:sync` kopiert ein dokumentiertes Beispiel-Key in `.gemini/skills/gitops-knowledge/references/`; gitleaks `--no-git` scannt auch diesen ignorierten Spiegel. Nur den konkreten Fixture-Pfad allowlisten. — Beleg: `gitleaks detect --config .gitleaks.toml --no-git --redact`
 - 27.09.26 [T900560] Freshness-Artefakte müssen COMMITTET sein, bevor `check` läuft —
   gestagt reicht nicht („staged but not committed"). — Beleg: `task freshness:check`, C3
 - 27.09.26 [T900560] `test:changed` ist lokal strenger als CI (CI fährt spec-Suite);

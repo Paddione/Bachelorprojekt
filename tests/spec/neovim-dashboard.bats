@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -604,6 +604,175 @@ LUA
   EXPECT="$(printf '%s\n' status parsers-install lsp-install completion-check)"
 
   if [ "$STEPS" != "$EXPECT" ]; then
+    fail "runbook step order mismatch"
+  fi
+}
+
+# ── T900657 p2: module shape ────────────────────────────────────────────────
+@test "neovim-dashboard: files-search module exposes five functions" {
+  write_load_probe
+  STAGED="$STAGE"
+  cat > "$PROBE_DIR/files-search-shape.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.files-search')
+if not ok then
+  io.stderr:write('LOAD FAILED config.files-search:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+if not m.find_file then
+  io.stderr:write('missing find_file\n')
+  os.exit(1)
+end
+if not m.live_grep then
+  io.stderr:write('missing live_grep\n')
+  os.exit(1)
+end
+if not m.buffers then
+  io.stderr:write('missing buffers\n')
+  os.exit(1)
+end
+if not m.recent then
+  io.stderr:write('missing recent\n')
+  os.exit(1)
+end
+if not m.related then
+  io.stderr:write('missing related\n')
+  os.exit(1)
+end
+print('all five functions exist')
+os.exit(0)
+LUA
+  run nvim -l "$PROBE_DIR/files-search-shape.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all five functions exist"* ]]
+}
+
+# ── T900657 p2: page order ─────────────────────────────────────────────────
+@test "neovim-dashboard: files-search page lists five actions in order" {
+  write_home_probe
+  cat > "$PROBE_DIR/files-search-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('files-search')
+local names = {}
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    names[#names + 1] = r.name
+  end
+end
+local f = io.open(outfile, 'w')
+for _, n in ipairs(names) do
+  f:write(n .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/files-search-order.out"
+  run nvim -l "$PROBE_DIR/files-search-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  run cat "$OUT"
+  EXPECTED="$(printf 'find-file\nlive-grep\nbuffers\nrecent-files\nrelated-open\n')"
+  run diff - <<< "$EXPECTED" "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+# ── T900657 p2: find-file gitroot cwd resolution (nested / worktree / space) ──
+write_findfile_cwd_probe() {
+  cat > "$PROBE_DIR/find-file-cwd.lua" <<'LUA'
+local stage, target, outfile = arg[1], arg[2], arg[3]
+package.path = stage .. '/lua/?.lua;' .. package.path
+-- Fake telescope.builtin recorder: package.preload entries must be FUNCTIONS
+-- returning the module table (Lua 5.1 silently skips preload tables).
+local recorded = {}
+package.preload['telescope.builtin'] = function()
+  return {
+    find_files = function(opts) recorded.cwd = opts and opts.cwd or nil end,
+    live_grep = function() end,
+    buffers = function() end,
+    oldfiles = function() end,
+  }
+end
+local ok, m = pcall(require, 'config.files-search')
+if not ok then
+  io.stderr:write('LOAD FAILED\n')
+  os.exit(1)
+end
+vim.cmd.edit(vim.fn.fnameescape(target))
+local okc, err = pcall(m.find_file)
+if not okc then
+  io.stderr:write('FIND_FILE FAILED: ' .. tostring(err) .. '\n')
+  os.exit(1)
+end
+local f = io.open(outfile, 'w')
+f:write((recorded.cwd or 'NO_CWD') .. '\n')
+f:close()
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: find-file resolves nested scratch repo to toplevel" {
+  write_findfile_cwd_probe
+  SCRATCH="$BATS_TEST_TMPDIR/fs-nested-scratch"
+  mkdir -p "$SCRATCH/nested/deep"
+  git -C "$SCRATCH" init -q
+  printf 'x\n' > "$SCRATCH/nested/deep/file.lua"
+  EXPECTED="$(cd "$SCRATCH" && git rev-parse --show-toplevel)"
+  OUT="$BATS_TEST_TMPDIR/fs-cwd-nested.out"
+  run nvim -l "$PROBE_DIR/find-file-cwd.lua" "$STAGE" "$SCRATCH/nested/deep/file.lua" "$OUT"
+  [ "$status" -eq 0 ]
+  run diff <(printf '%s\n' "$EXPECTED") "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: find-file resolves linked worktree to its toplevel" {
+  write_findfile_cwd_probe
+  WORKTREE="$BATS_TEST_TMPDIR/fs-linked-worktree"
+  git -C "$REPO" worktree add --detach --no-checkout "$WORKTREE" HEAD >/dev/null 2>&1
+  git -C "$WORKTREE" checkout HEAD -- CLAUDE.md
+  EXPECTED="$WORKTREE"
+  OUT="$BATS_TEST_TMPDIR/fs-cwd-worktree.out"
+  run nvim -l "$PROBE_DIR/find-file-cwd.lua" "$STAGE" "$WORKTREE/CLAUDE.md" "$OUT"
+  [ "$status" -eq 0 ]
+  run diff <(printf '%s\n' "$EXPECTED") "$OUT"
+  [ "$status" -eq 0 ]
+  git -C "$REPO" worktree remove --force "$WORKTREE"
+}
+
+@test "neovim-dashboard: find-file resolves space-containing repo to toplevel" {
+  write_findfile_cwd_probe
+  SCRATCH="$BATS_TEST_TMPDIR/nv space/repo"
+  mkdir -p "$SCRATCH/nested"
+  git -C "$SCRATCH" init -q
+  printf 'x\n' > "$SCRATCH/nested/file.txt"
+  EXPECTED="$(cd "$SCRATCH" && git rev-parse --show-toplevel)"
+  OUT="$BATS_TEST_TMPDIR/fs-cwd-space.out"
+  run nvim -l "$PROBE_DIR/find-file-cwd.lua" "$STAGE" "$SCRATCH/nested/file.txt" "$OUT"
+  [ "$status" -eq 0 ]
+  run diff <(printf '%s\n' "$EXPECTED") "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+# ── T900657 p2: runbook coverage ────────────────────────────────────────────
+@test "neovim-dashboard: files-search runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/files-search.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/files-search.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
+  EXPECTED="$(printf 'find-file\nlive-grep\nbuffers\nrecent-files\nrelated-open')"
+  if [ "$ACTIONS" != "$EXPECTED" ]; then
+    fail "runbook actions mismatch"
+  fi
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  EXPECTED_STEPS="$(printf '%s\n' find-file live-grep buffers recent-files related-open)"
+  if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
     fail "runbook step order mismatch"
   fi
 }

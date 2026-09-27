@@ -49,3 +49,6 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
 - 27.09.26 [T900560] `build-test-inventory.sh` discovert per `git ls-files` —
   nach Moves erst stagen, dann regenerieren, sonst reproduziert der Builder
   stale Pfade. — Beleg: C5
+- 27.09.26 [T900610] `task --list-all` wird unter `FORCE_COLOR=1` (GitHub
+  Actions setzt das) bunt — Goldens/Test-Aufrufe brauchen `--color=false`;
+  CI-Env lokal per `FORCE_COLOR=1 task …` nachstellen. — Beleg: #6034 CI-Fail

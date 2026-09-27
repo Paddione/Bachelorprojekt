@@ -86,3 +86,24 @@ teardown() { unset FIND_CHANGED_TESTS_FILES; }
     return 1
   fi
 }
+
+@test "T900676: tests/lib-Aenderung selektiert relativ ladende Konsumenten" {
+  # host-listener-auth laedt tests/lib/guard-preconditions.sh relativ
+  # (load ../../lib/...) ohne absolute tests/lib-Erwähnung — der Pfad-Probe
+  # findet es nicht. Shared-Harness wie tests/lib/* muss trotzdem jeden
+  # Konsumenten erreichen (gleiche Begruendung wie tests/spec/helpers/*).
+  local consumer="tests/spec/local-llm-proxy/host-listener-auth.bats"
+  [ -f "$consumer" ] || {
+    echo "Anker-Datei fehlt — dieser Test prueft nichts" >&2; return 1
+  }
+  if grep -q 'tests/lib' "$consumer"; then
+    echo "Anker veraltet: Konsument erwähnt tests/lib absolut — Probe griffe" >&2
+    return 1
+  fi
+  export FIND_CHANGED_TESTS_FILES='tests/lib/guard-preconditions.sh'
+  run bash "$SCRIPT" spec
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qxF "$consumer" || {
+    echo "relativ ladender Konsument fehlt in der Auswahl" >&2; return 1
+  }
+}

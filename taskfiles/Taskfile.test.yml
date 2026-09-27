@@ -649,8 +649,8 @@ tasks:
         # spec-Finder prueft per Pfad-Probe, welche spec-bats einen geaenderten
         # Pfad referenziert. Ohne diesen Zweig wrde eine reine scripts/*-Aenderung
         # nur RUN_SCRIPTS setzen und find-changed-tests.sh unit aufrufen. [T002345]
-        echo "$CHANGED" | grep -qE "^(tests/spec/|scripts/)" && RUN_SPEC=true || true
-        echo "$CHANGED" | grep -qE "^(tests/unit/|\.bats)" && RUN_UNIT=true || true
+        echo "$CHANGED" | grep -qE "^(tests/spec/|tests/lib/|scripts/)" && RUN_SPEC=true || true
+        echo "$CHANGED" | grep -qE "^(tests/unit/|tests/lib/|\.bats)" && RUN_UNIT=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
         echo "$CHANGED" | grep -qE "^openspec/" && RUN_OPENSPEC=true || true

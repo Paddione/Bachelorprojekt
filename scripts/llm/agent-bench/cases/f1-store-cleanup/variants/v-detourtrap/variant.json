@@ -1,0 +1,1 @@
+{"budget": {"tokens": 6000, "turns": 8}, "budget_source": "Wie v-clean (1 Partial, 2 Dateien); die Falle aendert den Umfang nicht, nur die Versuchung", "expected_decision": "execute", "perspective": "detour-trap", "roles": ["planner", "code-worker"]}

@@ -1,0 +1,1 @@
+Datei-Ziel von README (erlaubt: README darf auf eine Datei zeigen).

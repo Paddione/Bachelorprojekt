@@ -1,0 +1,1 @@
+{"budget": {"tokens": 8000, "turns": 10}, "budget_source": "Geschaetzt aus Referenzplan (1 Partial, Manifest-Abgleich plus 3 Fehlerklassen, ca. 30 Zeilen Shell); kein Teacher-Probelauf (Offline-Fixture)", "expected_decision": "execute", "perspective": "clean", "roles": ["orchestrator", "code-worker", "reviewer"]}

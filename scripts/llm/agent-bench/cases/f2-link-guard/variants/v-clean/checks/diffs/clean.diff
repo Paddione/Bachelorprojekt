@@ -1,0 +1,31 @@
+--- a/check-links.sh
++++ b/check-links.sh
+@@ -1,13 +1,21 @@
+ #!/usr/bin/env bash
+-# Prueft die Symlinks in $1. SCHWACH: ueberspringt Nicht-Verzeichnis-Ziele
+-# still (`[ -d ... ] || continue`), kennt kein Manifest und zaehlt nur —
+-# ein leergeraumtes Verzeichnis bleibt unbemerkt, solange ein Link steht.
++# Prueft die Symlinks in $1 gegen links/manifest.txt: exakt die Menge, alle
++# Ziele gueltig, Verzeichnis-Ziele ausser bei README.
+ set -u
+ dir="${1:?Verzeichnis fehlt}"
+-count=0
++manifest="$dir/manifest.txt"
++[ -f "$manifest" ] || { echo "Manifest fehlt: $manifest" >&2; exit 1; }
++fail=0
++while IFS= read -r name || [ -n "$name" ]; do
++  [ -n "$name" ] || continue
++  link="$dir/$name"
++  if [ ! -L "$link" ]; then echo "fehlt: $name" >&2; fail=1; continue; fi
++  if [ ! -e "$link" ]; then echo "kaputt: $name" >&2; fail=1; continue; fi
++  if [ "$name" != "README" ] && [ ! -d "$link" ]; then echo "kein Verzeichnis: $name" >&2; fail=1; fi
++done < "$manifest"
+ for link in "$dir"/*; do
+   [ -L "$link" ] || continue
+-  [ -d "$link" ] || continue
+-  count=$((count + 1))
++  name="$(basename "$link")"
++  grep -qxF "$name" "$manifest" || { echo "ueberzaehlig: $name" >&2; fail=1; }
+ done
+-[ "$count" -gt 0 ]
++exit $fail

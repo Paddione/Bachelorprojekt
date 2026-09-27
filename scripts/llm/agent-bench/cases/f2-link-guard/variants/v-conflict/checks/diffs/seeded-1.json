@@ -1,0 +1,1 @@
+{"defect": "README wird als Nicht-Verzeichnis-Ziel beanstandet, obwohl die neuere Regel §9 Datei-Ziele fuer README erlaubt", "file": "check-links.sh", "line": 14}

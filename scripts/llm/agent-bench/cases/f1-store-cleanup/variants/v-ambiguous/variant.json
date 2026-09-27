@@ -1,0 +1,1 @@
+{"budget": {"tokens": 2000, "turns": 3}, "budget_source": "Rueckfrage statt Plan: 1-2 Runden erwartet; kein Teacher-Probelauf (Offline-Fixture)", "expected_decision": "clarify", "perspective": "ambiguous", "roles": ["planner"]}

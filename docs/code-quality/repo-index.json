@@ -1317,7 +1317,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 72,
+      "file_count": 73,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -1390,7 +1390,8 @@
         "scripts/migrations/2026-08-29-bge-role-registry.sql",
         "scripts/migrations/2026-09-16-devmesh-llm-proxy-backends.sql",
         "scripts/migrations/2026-09-16-llm-proxy-freetoken-backend.sql",
-        "scripts/migrations/2026-09-26-factory-decommission.sql"
+        "scripts/migrations/2026-09-26-factory-decommission.sql",
+        "scripts/migrations/2026-09-28-k1-collections-sources.sql"
       ]
     },
     {

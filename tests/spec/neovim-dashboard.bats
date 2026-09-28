@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md|infrastructure.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md|infrastructure.md|sdlc.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -776,6 +776,142 @@ LUA
     fail "runbook step order mismatch"
   fi
 }
+
+# ── T900660 sdlc chapter ──
+write_sdlc_shape_probe() {
+  cat > "$PROBE_DIR/sdlc-shape.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.sdlc')
+if not ok then
+  io.stderr:write('LOAD FAILED config.sdlc\n')
+  os.exit(1)
+end
+for _, f in ipairs({'list_tickets','show_triage','show_readiness','show_deps','open_plan','exec_status','show_gates','close_check','open_process_docs'}) do
+  if type(m[f]) ~= 'function' then
+    io.stderr:write('missing ' .. f .. '\n')
+    os.exit(1)
+  end
+end
+print('nine functions exist')
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: T900660 sdlc module exposes nine functions" {
+  write_sdlc_shape_probe
+  run nvim -l "$PROBE_DIR/sdlc-shape.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"nine functions exist"* ]]
+}
+
+write_sdlc_order_probe() {
+  cat > "$PROBE_DIR/sdlc-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, dashboard = pcall(require, 'config.dashboard')
+if not ok then
+  io.stderr:write('LOAD FAILED config.dashboard\n')
+  os.exit(1)
+end
+local rows = dashboard.sections('sdlc')
+local f = io.open(outfile, 'w')
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    f:write(r.name .. '\n')
+  end
+end
+f:close()
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: T900660 sdlc page lists nine actions in order" {
+  write_sdlc_order_probe
+  OUT="$BATS_TEST_TMPDIR/sdlc-order.out"
+  run nvim -l "$PROBE_DIR/sdlc-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  run cat "$OUT"
+  EXPECTED="$(printf 'tickets-list\ntriage-show\nreadiness-show\ndeps-show\nplan-open\nexec-status\nverify-gates\nclose-check\nprocess-docs\n')"
+  run diff - <<< "$EXPECTED" "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+write_sdlc_noop_probe() {
+  cat > "$PROBE_DIR/sdlc-noop.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local notes = {}
+vim.notify = function(msg, _level) notes[#notes + 1] = tostring(msg) end
+local ok, m = pcall(require, 'config.sdlc')
+if not ok then
+  io.stderr:write('LOAD FAILED config.sdlc\n')
+  os.exit(1)
+end
+-- Unnamed buffer: no :edit call, so no project is resolvable.
+local ok1 = pcall(m.list_tickets)
+local ok2 = pcall(m.show_triage)
+local sdlc_bufs = 0
+for _, b in ipairs(vim.api.nvim_list_bufs()) do
+  if vim.bo[b].filetype == 'sdlc' then
+    sdlc_bufs = sdlc_bufs + 1
+  end
+end
+local f = io.open(outfile, 'w')
+f:write('list_ok=' .. tostring(ok1) .. '\n')
+f:write('triage_ok=' .. tostring(ok2) .. '\n')
+for _, n in ipairs(notes) do
+  f:write('note=' .. n .. '\n')
+end
+f:write('sdlc_bufs=' .. sdlc_bufs .. '\n')
+f:close()
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: T900660 sdlc actions no-op with a warning outside any checkout" {
+  write_sdlc_noop_probe
+  OUT="$BATS_TEST_TMPDIR/sdlc-noop.out"
+  run nvim -l "$PROBE_DIR/sdlc-noop.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^list_ok=true$' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^triage_ok=true$' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q 'no project' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^sdlc_bufs=0$' "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: T900660 sdlc runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/sdlc.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/sdlc.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
+  EXPECTED="$(printf 'tickets-list\ntriage-show\nreadiness-show\ndeps-show\nplan-open\nexec-status\nverify-gates\nclose-check\nprocess-docs')"
+  if [ "$ACTIONS" != "$EXPECTED" ]; then
+    fail "runbook actions mismatch"
+  fi
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  EXPECTED_STEPS="$(printf '%s\n' tickets-list triage-show readiness-show deps-show plan-open exec-status verify-gates close-check process-docs)"
+  if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
+    fail "runbook step order mismatch"
+  fi
+}
+
+@test "neovim-dashboard: T900660 sdlc files carry no OpenSpec references" {
+  run grep -r -i openspec "$STAGE/lua/config/sdlc.lua" "$STAGE/lua/config/dashboard.lua" "$STAGE/runbooks/sdlc.md"
+  [ "$status" -eq 1 ]
+  [ -z "$output" ]
+}
+
 
 # ── T900664 p2: module shape ───────────────────────────────────────────────
 @test "neovim-dashboard: T900664 infrastructure module exposes six functions with fleet/workspace state" {

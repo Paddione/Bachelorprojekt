@@ -12,6 +12,7 @@ _offenders() {
     [[ -n "$f" && -e "$REPO/$f" ]] || continue
     grep -qiE "openspec|opsx" "$REPO/$f" && echo "$f"
   done < "$1"
+  return 0
 }
 
 @test "T900725: Code-Dateien der Liste ohne OpenSpec-Bezug" {

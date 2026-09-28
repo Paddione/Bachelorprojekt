@@ -162,14 +162,43 @@ jobs:
 
           gh pr merge "$BRANCH" --auto --squash --delete-branch
 
+      # [T900810] Der failure-Job laeuft auf einem eigenen Runner — $RUNNER_TEMP des
+      # archive-Jobs sieht er nicht. Ohne Artefakt waere failed.tsv dort nie vorhanden
+      # und der Reporter liefe immer ins Leere. always(), damit auch ein
+      # fehlgeschlagener archive-Lauf seine Fehlschlaege meldet.
+      - name: Upload failure report for the issue reporter
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orphan-failed
+          path: ${{ runner.temp }}/orphan/failed.tsv
+          if-no-files-found: ignore
+          retention-days: 7
+
   failure:
     name: Create failure issues
     runs-on: ubuntu-latest
     needs: archive
-    if: always()
+    # [T900810] Ohne Checkout kennt gh kein Repo ("not a git repository") — jede
+    # ruhige Nacht (archive skipped, keine Orphans) war dadurch rot. Der Job laeuft
+    # nur noch, wenn archive wirklich lief; der Download toleriert das Fehlen des
+    # Artefakts (keine Fehlschlaege => nichts zu melden => stiller Erfolg).
+    if: always() && needs.archive.result != 'skipped' && needs.archive.result != 'cancelled'
     permissions:
+      contents: read
       issues: write
     steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-tags: false
+
+      - name: Download failure report
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: orphan-failed
+          path: ${{ runner.temp }}/orphan
+
       - name: Create label
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}

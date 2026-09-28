@@ -146,7 +146,7 @@ STUB
   # weiterhin, wofuer er da ist. Ohne diesen Anker bestuende der Negativtest
   # auch bei geloeschter Datei.
   grep -q 'render-artifact:' "$wf"
-  grep -q 'deploy-legacy:' "$wf"
+  # T900810: der deploy-legacy-Anker ist mit dem pre-Flux-Job entfallen.
   # Erst jetzt die Negativ-Aussage: keine ausfuehrbare Ticket-Schreibzeile mehr.
   run grep -c '^[^#]*ticket\.sh update-status' "$wf"
   [ "$output" = "0" ]

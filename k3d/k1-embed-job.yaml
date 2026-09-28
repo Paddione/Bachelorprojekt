@@ -30,7 +30,12 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-          command: ["sh", "-c", "set -eu && git init /repo && cd /repo && git remote add origin \"$REPO_URL\" && git fetch --depth 1 origin \"$MERGE_SHA\" && git checkout FETCH_HEAD"]
+          # [T900810] safe.directory zuerst: /repo ist ein root-owned emptyDir-Mount,
+          # der Prozess laeuft als runAsUser 65534 — ohne die Ausnahme bricht JEDER
+          # git-Befehl nach `init` mit exit 128 "dubious ownership" ab (der Job lief
+          # dadurch nie ueber git-fetch hinaus). HOME=/tmp (unten) ist beschreibbar,
+          # die Config landet in /tmp/.gitconfig (readOnlyRootFilesystem-konform).
+          command: ["sh", "-c", "set -eu && git config --global --add safe.directory /repo && git init /repo && cd /repo && git remote add origin \"$REPO_URL\" && git fetch --depth 1 origin \"$MERGE_SHA\" && git checkout FETCH_HEAD"]
           env:
             - name: REPO_URL
               value: "$REPO_URL"

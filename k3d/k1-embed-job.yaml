@@ -140,7 +140,11 @@ spec:
               trap 'echo "k1-embed FAILED merge=$MERGE_SHA"' ERR
               echo "k1-embed start merge=$MERGE_SHA full=$FULL"
               DIFF_FILE="/diff/diff.txt"
-              if [ "$FULL" = "1" ] || [ ! -s "$DIFF_FILE" ]; then
+              # [T900810] Nur FULL=1 triggert den Voll-Index. Der alte
+              # "[ ! -s ]"-Fallback machte aus jedem Leer-Diff einen Full-Run,
+              # der das Budget sprengt; leerer Diff meldet unten stattdessen
+              # "keine indexierten Pfade" und schliesst gruen ab.
+              if [ "$FULL" = "1" ]; then
                 node scripts/openspec-embed.mjs --all-specs
                 node scripts/openspec-embed.mjs --all-docs
                 node scripts/openspec-embed.mjs --migrate-changes

@@ -48,12 +48,41 @@ mv ~/.config/nvim.old-20260927 ~/.config/nvim
 
 ## Windows wrapper
 
-`%LOCALAPPDATA%\nvim\init.lua` (the native-Windows wrapper, UNC path +
-robocopy cache) is untouched by this change. It loads the WSL-side
-config at `~/.config/nvim` and currently finds nothing there until the
-install step above has run on the WSL host; after that it should load
-this config. See "Manual Windows-wrapper test protocol" below for how to
-verify this by hand.
+`windows/init.lua` is the tracked source of the native-Windows wrapper,
+installed to `%LOCALAPPDATA%\nvim\init.lua`. It is the only Neovim
+startup file on the Windows side and stays a thin pointer — a second
+config would drift. All plugins, keymaps and the dashboard live in
+`~/.config/nvim` on WSL (distro `k3d-dev`); the wrapper mirrors that
+directory over UNC to `%LOCALAPPDATA%\nvim-data\wsl-config` with
+`robocopy /MIR` at startup and loads the mirror, so one bulk copy
+replaces hundreds of single reads over `\\wsl.localhost` (WSL 9P
+flakiness). Install it on the Windows host with:
+
+```powershell
+Copy-Item dotfiles\nvim\windows\init.lua $env:LOCALAPPDATA\nvim\init.lua
+```
+
+Edit the WSL-side config, never the Windows copy: the mirror is
+disposable and `/MIR` overwrites it on the next start. The
+`filereadable(UNC .. '\\init.lua')` guard runs before the mirror, so an
+unreachable WSL config leaves the previous mirror untouched instead of
+mirroring an empty directory over it.
+
+### Why `package.path` sits next to `runtimepath`
+
+`lazy.nvim` owns the runtimepath: `require('lazy').setup()` removes
+entries it does not manage. The mirror is not `stdpath('config')` on
+Windows — that is the wrapper itself — so a `vim.opt.rtp:prepend(CACHE)`
+alone is discarded, and every `require('config.*')` after the setup
+fails with *module not found*. The dashboard then never opens while
+`:Dashboard` looks registered. `package.path` is not touched by
+lazy.nvim, so the wrapper sets the Lua path there as well. On WSL the
+line is harmless but unnecessary: there the config *is*
+`stdpath('config')` and stays in the runtimepath.
+
+The wrapper also self-tests after loading. If `config.dashboard` is
+missing from `package.loaded`, it reports `wrapper_err` instead of
+silently serving a config whose modules are all unresolvable.
 
 ## Backup directories
 
@@ -94,3 +123,24 @@ run** — never as passed.
 
 Report the six recorded values (or "not run — no Windows host
 available") alongside this change.
+
+### Recorded run (2026-09-28)
+
+Executed against the live Windows host from WSL through interop, not
+from a native Windows shell. Windows nvim **0.12.3+v0.12.3**; WSL
+nvim 0.12.5 for comparison.
+
+1. `nvim --version` — `0.12.3+v0.12.3` (Windows), `0.12.5` (WSL).
+2. `Get-Command nvim` — `C:\Program Files\Neovim\bin\nvim.exe`.
+3. `stdpath('config')` — `C:\Users\PatrickKorczewski\AppData\Local\nvim`
+   (the wrapper). Config source: `\\wsl.localhost\k3d-dev\home\patrick\.config\nvim`.
+4. `:set shell?` — `cmd.exe`.
+5. `dir "%LOCALAPPDATA%\nvim"` — `init.lua` present.
+6. Launch — **loaded the WSL-side config** through a fresh robocopy
+   mirror: `wrapper_ok=true`, `wrapper_err=none`, `:Dashboard` opens
+   (`snacks_dashboard`, 12 pages), `<leader>h` → `<Cmd>Dashboard<CR>`.
+
+Caveat: `cmd.exe` refuses the UNC working directory that WSL interop
+inherits ("UNC-Pfade werden nicht unterstützt"). Launch the wrapper
+from a drive-letter shell, or `pushd` a drive path first — otherwise the
+launch tests nothing about the wrapper.

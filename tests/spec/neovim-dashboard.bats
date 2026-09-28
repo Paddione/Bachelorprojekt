@@ -2449,3 +2449,59 @@ LUA
     fail "runbook step order mismatch"
   fi
 }
+
+# ── T900747 editor wiring — registry probe (init.lua must import plugins.editor) ──
+write_editor_wiring_probe() {
+  cat > "$PROBE_DIR/editor-wiring.lua" <<'LUA'
+local out_file = os.getenv('EDITOR_WIRING_OUT')
+local out = io.open(out_file, 'w')
+local ok, config = pcall(require, 'lazy.core.config')
+if not ok or not config or not config.plugins then
+  out:write('REGISTRY_MISSING\n')
+  out:close()
+  os.exit(1)
+end
+local names = {}
+for name, _ in pairs(config.plugins) do
+  names[#names + 1] = name
+end
+table.sort(names)
+for _, name in ipairs(names) do
+  out:write('plugin=' .. name .. '\n')
+end
+local au = vim.api.nvim_get_autocmds({ event = 'BufWritePre' })
+out:write('bufwritepre_count=' .. #au .. '\n')
+out:close()
+LUA
+}
+
+@test "neovim-dashboard: T900747 editor wiring registers treesitter, lspconfig and blink" {
+  if ! timeout 5 git ls-remote https://github.com/folke/lazy.nvim.git HEAD >/dev/null 2>&1; then
+    skip "plugin host (github.com) unreachable — cannot bootstrap lazy.nvim offline"
+  fi
+  [ -f "$STAGE/init.lua" ] || fail "staged init.lua missing"
+  write_editor_wiring_probe
+
+  # Priming run: bootstraps lazy.nvim + all plugins. Its own log is a
+  # separate file and is never the asserted run below (F6).
+  nvim --headless -u "$STAGE/init.lua" -i NONE +"Lazy! sync" +qa \
+    >"$BATS_TEST_TMPDIR/sync-wiring.out" 2>"$BATS_TEST_TMPDIR/sync-wiring.log" || true
+
+  # The actual asserted run: headless startup with a file buffer, dumping
+  # the sorted lazy registry plus the BufWritePre autocmd count.
+  SCRATCH="$BATS_TEST_TMPDIR/wiring-buffer.txt"
+  echo "wiring probe buffer" > "$SCRATCH"
+  export EDITOR_WIRING_OUT="$BATS_TEST_TMPDIR/editor-wiring.out"
+  LOG="$BATS_TEST_TMPDIR/startup-wiring.log"
+  nvim --headless -u "$STAGE/init.lua" -i NONE "$SCRATCH" \
+    +"luafile $PROBE_DIR/editor-wiring.lua" +qa >/dev/null 2>"$LOG"
+  STARTUP_STATUS=$?
+  [ "$STARTUP_STATUS" -eq 0 ]
+  [ -s "$EDITOR_WIRING_OUT" ] || fail "wiring probe produced no output"
+  grep -qx 'plugin=nvim-treesitter' "$EDITOR_WIRING_OUT" || fail "plugin=nvim-treesitter missing from lazy registry"
+  grep -qx 'plugin=nvim-lspconfig' "$EDITOR_WIRING_OUT" || fail "plugin=nvim-lspconfig missing from lazy registry"
+  grep -qx 'plugin=blink.cmp' "$EDITOR_WIRING_OUT" || fail "plugin=blink.cmp missing from lazy registry"
+  grep -qx 'bufwritepre_count=0' "$EDITOR_WIRING_OUT" || fail "BufWritePre autocmds present after wiring startup"
+  run bash -c "grep -qi error '$LOG'"
+  [ "$status" -ne 0 ]
+}

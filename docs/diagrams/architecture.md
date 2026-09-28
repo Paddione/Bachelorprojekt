@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-91 Services · 1849 Abhängigkeitskanten · 297 API-Endpoints
+91 Services · 1848 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -142,7 +142,6 @@ flowchart LR
   pocket_id -->|"DB_CONNECTION_STRING"| shared_db
   pocket_id -->|"configmap:domain-c…"| brett
   pocket_id -->|"configmap:domain-c…"| traefik
-  pvc_backup -->|"command"| nextcloud
   pvc_backup -->|"command"| vaultwarden
   oauth2_proxy_recovery -->|"command"| recovery_browser
   sdlc_console -->|"SESSIONS_DATABASE_…"| shared_db

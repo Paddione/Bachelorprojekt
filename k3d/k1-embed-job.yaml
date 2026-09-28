@@ -78,10 +78,14 @@ spec:
             capabilities:
               drop: ["ALL"]
           env:
+            # [T900810] workspace-secrets, nicht website-secrets: Letzteres existiert
+            # nur im Namespace website — der Job lief dadurch in
+            # CreateContainerConfigError (zweite k1-Root-Cause neben safe.directory).
+            # Muster wie alle anderen workspace-Workloads (admin-actions, backup).
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: website-secrets
+                  name: workspace-secrets
                   key: WEBSITE_DB_PASSWORD
             - name: SESSIONS_DATABASE_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"

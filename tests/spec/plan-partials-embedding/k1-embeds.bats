@@ -174,6 +174,17 @@ setup() {
   [ "$status" -eq 1 ]
 }
 
+@test "Job-YAML referenziert workspace-secrets, nie website-secrets (T900810)" {
+  # website-secrets existiert nur im Namespace website — der Verweis trieb den
+  # Job in CreateContainerConfigError (zweite k1-Root-Cause). Muster wie alle
+  # anderen workspace-Workloads (admin-actions, backup).
+  run grep -c "name: workspace-secrets" "$REPO/k3d/k1-embed-job.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+  run grep -n "name: website-secrets" "$REPO/k3d/k1-embed-job.yaml"
+  [ "$status" -eq 1 ]
+}
+
 @test "Job-YAML rendert per sed-Substitution vollstaendig (offline)" {
   run bash -c "sed -e 's/\\\$JOB_ID/abc1234-999/g' -e 's/\\\$MERGE_SHA/abc1234def5678/g' -e 's/\\\$FULL/0/g' -e 's|\\\$REPO_URL|https://example.invalid/x.git|g' '$REPO/k3d/k1-embed-job.yaml'"
   [ "$status" -eq 0 ]

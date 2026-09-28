@@ -13,6 +13,7 @@ _offenders() {
     [[ -n "$f" && -e "$REPO/$f" ]] || continue
     grep -qi "openspec" "$REPO/$f" && echo "$f"
   done < "$LIST"
+  return 0
 }
 
 @test "T900724: keine Datei der Liste enthaelt noch einen Verweis" {

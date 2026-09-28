@@ -329,6 +329,53 @@ local pages = {
       }
     end,
   },
+  -- AI & Agents chapter page (T900662 ai-agents). Rows are action() records
+  -- in the exact EPIC order; each effect resolves cwd at execution time
+  -- through the dashboard action model and passes it to the matching
+  -- ai-agents module function (which nil-guards and degrades gracefully
+  -- when no git root).
+  ['ai-agents'] = {
+    title = 'AI & Agents',
+    rows = function()
+      return {
+        action({
+          key = 'a',
+          name = 'ask',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').ask(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 's',
+          name = 'select',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').select(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'send-context',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').send_context(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'k',
+          name = 'list-skills',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').list_skills(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'n',
+          name = 'session-new',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').session_new(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
 }
 
 for _, chapter in ipairs(CHAPTERS) do

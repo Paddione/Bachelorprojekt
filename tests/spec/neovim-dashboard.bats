@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -776,6 +776,166 @@ LUA
     fail "runbook step order mismatch"
   fi
 }
+
+# ── T900662 ai-agents ─────────────────────────────────────────────────
+
+# ── T900662 ai-agents: module shape (a) ───────────────────────────────
+@test "neovim-dashboard: T900662 ai-agents module exposes five functions" {
+  cat > "$PROBE_DIR/ai-agents-shape.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.ai-agents')
+if not ok then
+  io.stderr:write('LOAD FAILED config.ai-agents:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+for _, fn in ipairs({ 'ask', 'select', 'send_context', 'list_skills', 'session_new' }) do
+  if type(m[fn]) ~= 'function' then
+    io.stderr:write('missing ' .. fn .. '\n')
+    os.exit(1)
+  end
+end
+print('all five ai-agents functions exist')
+os.exit(0)
+LUA
+  run nvim -l "$PROBE_DIR/ai-agents-shape.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all five ai-agents functions exist"* ]]
+}
+
+# ── T900662 ai-agents: page order + action-model shape (b) ───────────
+@test "neovim-dashboard: T900662 ai-agents page lists five actions in order with full action-model shape" {
+  cat > "$PROBE_DIR/ai-agents-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('ai-agents')
+local f = io.open(outfile, 'w')
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    f:write('name=' .. r.name .. '\n')
+    f:write('shape=' .. tostring(r.name ~= nil)
+      .. ',' .. tostring(r.inputs ~= nil)
+      .. ',' .. tostring(type(r.effect) == 'function')
+      .. ',' .. tostring(type(r.on_error) == 'function') .. '\n')
+  end
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/ai-agents-order.out"
+  run nvim -l "$PROBE_DIR/ai-agents-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  NAMES="$(grep '^name=' "$OUT" | sed 's/^name=//')"
+  EXPECTED="$(printf 'ask\nselect\nsend-context\nlist-skills\nsession-new')"
+  [ "$NAMES" = "$EXPECTED" ] || fail "ai-agents page order mismatch"
+  SHAPES="$(grep -c '^shape=true,true,true,true' "$OUT")"
+  [ "$SHAPES" -eq 5 ] || fail "ai-agents action-model shape incomplete"
+}
+
+# ── T900662 ai-agents: focus-before-execute (c) ───────────────────────
+write_ai_agents_focus_probe() {
+  cat > "$PROBE_DIR/ai-agents-focus.lua" <<'LUA'
+local stage, marker_file, out_file, repo_file = arg[1], arg[2], arg[3], arg[4]
+package.path = stage .. '/lua/?.lua;' .. package.path
+-- Test-only marker: any vim.notify call appends to marker_file. Building
+-- or focusing a page never calls gitroot/effect, so it must never write
+-- here; only the explicit execute step does (via the fake opencode below).
+vim.notify = function(msg)
+  local f = io.open(marker_file, 'a')
+  f:write(tostring(msg) .. '\n')
+  f:close()
+end
+_G.Snacks = { dashboard = function(opts) return { win = nil, opts = opts } end }
+-- Fake opencode recorder: any real call notifies (== writes the marker).
+-- package.preload entries must be FUNCTIONS returning the module table
+-- (Lua 5.1 silently skips preload tables).
+package.preload['opencode'] = function()
+  return {
+    ask = function(a) vim.notify('opencode.ask ' .. tostring(a)) end,
+    select = function() vim.notify('opencode.select') end,
+    prompt = function(p) vim.notify('opencode.prompt ' .. tostring(p)) end,
+    command = function(c) vim.notify('opencode.command ' .. tostring(c)) end,
+  }
+end
+local dashboard = require('config.dashboard')
+dashboard.show('ai-agents')
+dashboard.focus({ text = 'send-context', page = 'ai-agents', key = 'c' })
+local mf1 = io.open(marker_file, 'r')
+local phase1 = mf1 ~= nil
+if mf1 then mf1:close() end
+local rows = dashboard.sections('ai-agents')
+local row
+for _, r in ipairs(rows[3]) do
+  if r.name == 'send-context' then row = r end
+end
+local out = io.open(out_file, 'w')
+out:write('phase1_marker_exists=' .. tostring(phase1) .. '\n')
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+if row then row.action() end
+local mf2 = io.open(marker_file, 'r')
+out:write('phase2_marker_exists=' .. tostring(mf2 ~= nil) .. '\n')
+if mf2 then mf2:close() end
+out:close()
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: T900662 focusing the ai-agents page runs nothing; the explicit step does" {
+  write_ai_agents_focus_probe
+  MARKER="$BATS_TEST_TMPDIR/ai-agents-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/ai-agents-focus.out"
+  run nvim -l "$PROBE_DIR/ai-agents-focus.lua" "$STAGE" "$MARKER" "$OUT" "$REPO/CLAUDE.md"
+  [ "$status" -eq 0 ]
+  run grep '^phase1_marker_exists=' "$OUT"
+  [[ "$output" == *"phase1_marker_exists=false"* ]]
+  run grep '^phase2_marker_exists=' "$OUT"
+  [[ "$output" == *"phase2_marker_exists=true"* ]]
+  run grep -q 'opencode.prompt @buffer @diagnostics ' "$MARKER"
+  [ "$status" -eq 0 ]
+}
+
+# ── T900662 ai-agents: live skills listing (d) ────────────────────────
+@test "neovim-dashboard: T900662 muse skills list exits 0 with a header line" {
+  command -v muse >/dev/null 2>&1 || skip "muse CLI fehlt"
+  OUT="$BATS_TEST_TMPDIR/ai-agents-skills.out"
+  run muse skills list --source all
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" > "$OUT"
+  run head -1 "$OUT"
+  [[ "$output" == NAME* ]]
+  [[ "$output" == *SCOPE* ]]
+}
+
+# ── T900662 ai-agents: runbook coverage (e) ───────────────────────────
+@test "neovim-dashboard: T900662 ai-agents runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/ai-agents.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/ai-agents.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
+  EXPECTED="$(printf 'ask\nselect\nsend-context\nlist-skills\nsession-new')"
+  if [ "$ACTIONS" != "$EXPECTED" ]; then
+    fail "runbook actions mismatch"
+  fi
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  EXPECTED_STEPS="$(printf '%s\n' ask select send-context list-skills session-new)"
+  if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
+    fail "runbook step order mismatch"
+  fi
+  # Category-workflow mapping table + Blink delineation markers.
+  run grep -q '| session lifecycle |' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  run grep -q 'setup_blink()' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  run grep -q 'keine Agenten-Verdrahtung' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+}
+
 
 # ── T900667 settings-help ──
 @test "neovim-dashboard: settings-help module exposes eight action functions" {

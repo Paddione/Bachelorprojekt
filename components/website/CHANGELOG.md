@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.386.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.2...website-v1.386.0) (2026-09-28)
+
+
+### Features
+
+* **scripts:** harness registry with per-harness sync [T900791] ([#6113](https://github.com/Paddione/Bachelorprojekt/issues/6113)) ([4f147fa](https://github.com/Paddione/Bachelorprojekt/commit/4f147fa2ae24c72ce83871d509992593ae1f6ea2))
+
 ## [1.385.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.1...website-v1.385.2) (2026-09-28)
 
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { FactoryTicket } from './types';
   import type { HallItem } from '../../../lib/factory-floor-types.ts';
+  import { ciIcon } from '../../../lib/sdlc/factory-floor-client.ts';
 
   let {
     ticket,
@@ -46,10 +47,6 @@
     const h = Math.floor(m / 60), r = m % 60;
     return r ? `${h} h ${r} Min.` : `${h} h`;
   });
-
-  function ciIcon(s: 'success' | 'pending' | 'failure' | null): string {
-    return s === 'success' ? '🟢' : s === 'failure' ? '🔴' : s === 'pending' ? '🟡' : '';
-  }
 </script>
 
 <button

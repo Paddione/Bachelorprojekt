@@ -32,6 +32,8 @@ Last touches:
   - Bewusste korczewski-Brand-Pause und hängende Admin-Jobs sind nachvollziehbar | T014537 | 2026-08-23 | ADDED
   - Runtime health measurements fail closed | T013429 | 2026-08-22 | ADDED
   - G-FLUX01 measures Flux reconciliation health | T013429 | 2026-08-22 | ADDED
+In-flight:
+  - Bewusste korczewski-Brand-Pause und hängende Admin-Jobs sind nachvollziehbar | T900650 | active | MODIFIED
 
 ### openspec-workflow
 Reqs: 72 · Scenarios: 168 · Lines: 1830
@@ -64,6 +66,24 @@ Last touches:
   - Docs-Content-Linting auf veraltete und verbotene Inhalte | T900452 | 2026-09-26 | REMOVED
   - Brand-Switch-Shell | T900452 | 2026-09-26 | REMOVED
   - Docs-Content-Vollständigkeit — Mermaid-Diagramme | T900452 | 2026-09-26 | REMOVED
+In-flight:
+  - GitHub Actions ist die einzige CI-Plattform | T900650 | active | ADDED
+  - GitLab-Parallelbetrieb — GitHub bleibt SSOT und Merge-Gate | T900650 | active | REMOVED
+  - Spiegelung GitHub → GitLab per Push-Mirror | T900650 | active | REMOVED
+  - Compute-Fallback per Runner-Tag-Variable | T900650 | active | REMOVED
+  - Werkzeug-Parität zwischen GitHub- und GitLab-Pipeline | T900650 | active | REMOVED
+  - Runner-Registrierung über Authentication-Token | T900650 | active | REMOVED
+  - GitLab-Kern-Jobs spiegeln die GitHub-Offline-Gates | T900650 | active | REMOVED
+  - GitLab-Pipeline-Status ist lesbar klassifiziert | T900650 | active | REMOVED
+  - CI-Runner auf fleet läuft in einer harten Ressourcen-Umzäunung | T900650 | active | REMOVED
+  - CI-Jobs erhalten keinen Cluster-Zugriff | T900650 | active | REMOVED
+  - Image-Pulls laufen über einen Pull-Through-Cache | T900650 | active | REMOVED
+  - Ausfall eines Runners legt die Pipeline nicht still | T900650 | active | REMOVED
+  - Gerenderte Helm-Artefakte folgen der bestehenden Repo-Konvention | T900650 | active | REMOVED
+  - GitLab-Jobs decken jeden Offline-Gate-Job aus ci.yml ab | T900650 | active | REMOVED
+  - Diff-Basis wird an einer Stelle aufgeloest und meldet ihr Fehlen | T900650 | active | REMOVED
+  - Commit-Lint auf GitLab prueft den Commit-Range | T900650 | active | REMOVED
+  - GitLab CI image refs carry a full registry host | T900650 | active | REMOVED
 
 ### fleet-operations
 Reqs: 65 · Scenarios: 121 · Lines: 1279
@@ -577,6 +597,8 @@ Last touches:
   - Immutable Image References in Rendered Prod Overlays | T004041 | 2026-08-14 | MODIFIED
   - Placeholder-Digests erreichen nie ein Artefakt (fail-closed) | T004041 | 2026-08-14 | ADDED
   - Digest Resolution Is Fail-Closed Online | T002706 | 2026-08-10 | ADDED
+In-flight:
+  - OCIRepositories pin a deterministic sha revision | T900650 | active | MODIFIED
 
 ### g-db01-fk-indexes
 Reqs: 2 · Scenarios: 2 · Lines: 57

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.386.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.2...website-v1.386.3) (2026-09-28)
+
+
+### Bug Fixes
+
+* **ci:** post-merge-e2e Checkout + gh-Repo-Kontext-Guard [T900810] ([#6132](https://github.com/Paddione/Bachelorprojekt/issues/6132)) ([9892472](https://github.com/Paddione/Bachelorprojekt/commit/9892472f5fd4754412f81e4bfaeea4e9897f7685))
+
 ## [1.386.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.1...website-v1.386.2) (2026-09-28)
 
 

@@ -376,6 +376,76 @@ local pages = {
       }
     end,
   },
+  -- ── T900666 comfyui-images chapter page ──
+  -- Rows are action() records in the ticket order; each effect passes the
+  -- execution-time cwd to the matching comfyui-images module function.
+  -- The runbook master-index row stays stub-marked on purpose: the
+  -- foundation stub-count test requires all ten rows stub-marked, the
+  -- merged files-search precedent shipped the same way, and F5 coverage
+  -- passes via the per-page runbook file (T900666 p2 deviation, proven).
+  ['comfyui-images'] = {
+    title = 'ComfyUI & Images',
+    rows = function()
+      return {
+        action({
+          key = 's',
+          name = 'status',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'e',
+          name = 'queue',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').queue(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'logs',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').logs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'a',
+          name = 'start',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').start(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'u',
+          name = 'use',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').use(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 't',
+          name = 'troubleshoot',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').troubleshoot(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'n',
+          name = 'unload',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').unload(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'stop',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').stop(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
 }
 
 for _, chapter in ipairs(CHAPTERS) do

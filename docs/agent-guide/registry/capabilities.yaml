@@ -25,6 +25,7 @@
 # `node scripts/toolset/check.mjs` erzwingt das fail-closed. Unkuratierte Funde meldet es als
 # `unreviewed`, ohne CI rot zu machen — auflösen mit dem Skill `toolset-curate`.
 # Den rollengefilterten Prompt-Block rendert `bash scripts/toolset-context.sh <rolle>`.
+# harnesses: Aufgabe/Anbieter/Rollen je Harness (T900791), Messprotokoll: docs/agent-guide/registry/harness-config-targets.md
 #
 # Gültige Rollen:
 #   bachelorprojekt-website | -ops | -infra | -test | -db | -security | orchestrator | big-pickle | all
@@ -941,3 +942,48 @@ capabilities:
       roles: [all]
       tier: caution
       deep_ref: ".agents/skills/bachelorprojekt-vim/SKILL.md"
+
+harnesses:
+  claude:
+    job: "Planung und Risikoarbeit: dev-flow-plan, Infra, Security, Cluster-Mutation"
+    provider: anthropic
+    default_model: opus
+    roles: [bachelorprojekt-infra, bachelorprojekt-security, bachelorprojekt-ops, bachelorprojekt-db]
+    config: .claude/settings.json
+  codex:
+    job: "Plaene umsetzen: dev-flow-execute, Tests, CI-Fix-Schleife"
+    provider: openai
+    default_model: gpt-6-sol
+    roles: [bachelorprojekt-test, bachelorprojekt-website]
+    config: null
+  omp:
+    job: "Interaktiver Editor-Agent: LSP-Refactor, Debugging, Review"
+    provider: opencode-zen
+    default_model: muse-spark-1.3-contributor-free
+    roles: [pi]
+    config: null
+  opencode:
+    job: "Orchestrator der lokalen Modellflotte: plan-runner, Eskalation"
+    provider: local
+    default_model: Qwen3.8-27B
+    roles: [orchestrator]
+    config: .opencode/opencode.jsonc
+  muse:
+    job: "Cloud-Ausfuehrung mit grossem Kontext: ganze Plaene, grosse Refactors"
+    provider: meta
+    default_model: muse-spark-1.3
+    roles: [bachelorprojekt-test, bachelorprojekt-website]
+    config: null
+  agy:
+    job: "Website und Frontend: Astro/Svelte, Browser, Screenshots"
+    provider: google
+    default_model: gemini
+    roles: [bachelorprojekt-website]
+    config: null
+  openclaw:
+    job: "Always-on-Assistent auf dem GPU-Host: Modell- und GPU-Betrieb"
+    provider: local
+    default_model: lmstudio
+    roles: [bachelorprojekt-ops]
+    config: null
+forbidden_providers: [deepseek]

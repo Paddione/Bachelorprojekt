@@ -6,9 +6,15 @@ Ticket: T900727. Kontext: `design.md`. 29 Dateien.
 
 Die Software Factory ist seit T900399 stillgelegt. Reste entfernen.
 
-**Bleibt unangetastet:** `FACTORY-PLAN-REF` (Format des Plan-Verweises in Tickets, von
-`ticket.sh stage-plan` und `dev-flow-execute` genutzt), das Wort „factory“ in fremder Bedeutung
-(Factory-Funktion, Test-Factory, Hersteller).
+**Bleibt unangetastet:**
+- `FACTORY-PLAN-REF` (Format des Plan-Verweises in Tickets, von `ticket.sh stage-plan` und
+  `dev-flow-execute` genutzt).
+- DB-Objekte, die in der Live-DB noch existieren: `tickets.factory_phase_events` (Phase-Chain von
+  dev-flow-execute, `ticket.sh phase`, `assert-phase-chain`), `tickets.factory_control`,
+  `tickets.factory_model_slots`, `tickets.factory_run_budget`, `tickets.v_factory_metrics`,
+  `factory_schema_migrations`. Code, der sie für noch genutzte Funktionen liest oder schreibt, bleibt.
+  Tabellen löschen braucht eine eigene Migration (Folge-Ticket, nicht hier).
+- Das Wort „factory“ in fremder Bedeutung (Factory-Funktion, Test-Factory, Hersteller).
 
 Pro Datei die erste passende Regel:
 
@@ -21,7 +27,7 @@ Pro Datei die erste passende Regel:
 3. **Test prüft Factory-Verhalten** → `@test` löschen, leere Datei löschen.
 4. **Prosa/Kommentar** → Factory-Satz streichen.
 
-Nach jeder Datei: `grep -inE 'software[ -]?factory|factory-runner|factory[-_ ](floor|queue|runs?|tick|control|budget|pipeline|slots?|worker|eval|post-merge|mcp|cockpit|dispatch|runner|daemon|state)|factoryfloor|/factory/|factory_[a-z]+|factory:' <datei> | grep -v FACTORY-PLAN-REF` ist leer (oder Datei gelöscht).
+Nach jeder Datei: `grep -inE 'software[ -]?factory|factory-runner|factory[-_ ](floor|queue|runs?|tick|control|budget|pipeline|slots?|worker|eval|post-merge|mcp|cockpit|dispatch|runner|daemon|state)|factoryfloor|/factory/|factory_[a-z]+|factory:' <datei> | grep -vE 'FACTORY-PLAN-REF|tickets\.(v_)?factory_|factory_schema_migrations'` ist leer (oder Datei gelöscht).
 Für Website-Dateien danach `cd components/website && pnpm exec astro check` bzw. die betroffenen Vitest-Dateien.
 
 ## Dateien

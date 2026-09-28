@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -1165,6 +1165,211 @@ LUA
   EXPECTED_STEPS="$(printf '%s\n' models-status server-config server-logs gpu-resources server-start server-stop)"
   GOT_STEPS="$(cat "$STEPS_OUT")"
   if [ "$GOT_STEPS" != "$EXPECTED_STEPS" ]; then
+    fail "runbook step order mismatch"
+  fi
+}
+
+# ── T900661 repo-knowledge chapter (anchor: repo-knowledge) ──
+@test "neovim-dashboard: repo-knowledge module exposes nine functions plus quickfix helper" {
+  cat > "$PROBE_DIR/repo-knowledge-shape.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.repo-knowledge')
+if not ok then
+  io.stderr:write('LOAD FAILED config.repo-knowledge:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+local want = {
+  'task_discover', 'k3_status', 'k3_symbol', 'k3_trace', 'project_docs',
+  'runbook_open', 'check_freshness', 'check_manifests', 'code_maps',
+  'send_to_quickfix',
+}
+for _, fn in ipairs(want) do
+  if type(m[fn]) ~= 'function' then
+    io.stderr:write('missing ' .. fn .. '\n')
+    os.exit(1)
+  end
+end
+print('all nine functions plus quickfix helper exist')
+os.exit(0)
+LUA
+  run nvim -l "$PROBE_DIR/repo-knowledge-shape.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all nine functions plus quickfix helper exist"* ]]
+}
+
+@test "neovim-dashboard: repo-knowledge page lists nine actions in order" {
+  cat > "$PROBE_DIR/repo-knowledge-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('repo-knowledge')
+local names = {}
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    names[#names + 1] = r.name
+  end
+end
+local f = io.open(outfile, 'w')
+for _, n in ipairs(names) do
+  f:write(n .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/repo-knowledge-order.out"
+  run nvim -l "$PROBE_DIR/repo-knowledge-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  EXPECTED="$(printf 'task-discover\nk3-status\nk3-symbol\nk3-trace\nproject-docs\nrunbook-open\ncheck-freshness\ncheck-manifests\ncode-maps\n')"
+  run diff - <<< "$EXPECTED" "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: repo-knowledge page names no openspec action" {
+  cat > "$PROBE_DIR/repo-knowledge-names.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('repo-knowledge')
+local f = io.open(outfile, 'w')
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    f:write(r.name .. '\n')
+  end
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/repo-knowledge-names.out"
+  run nvim -l "$PROBE_DIR/repo-knowledge-names.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  [ -s "$OUT" ] || fail "no repo-knowledge action names dumped"
+  run bash -c "grep -qi openspec '$OUT'"
+  [ "$status" -ne 0 ]
+}
+
+@test "neovim-dashboard: repo-knowledge focus writes no marker, explicit execute does" {
+  cat > "$PROBE_DIR/repo-knowledge-focus.lua" <<'LUA'
+local stage, marker_file, out_file, repo_file = arg[1], arg[2], arg[3], arg[4]
+package.path = stage .. '/lua/?.lua;' .. package.path
+vim.notify = function(msg)
+  local f = io.open(marker_file, 'a')
+  f:write(tostring(msg) .. '\n')
+  f:close()
+end
+_G.Snacks = {
+  dashboard = function(opts) return { win = nil, opts = opts } end,
+}
+local dashboard = require('config.dashboard')
+dashboard.show('repo-knowledge')
+local mf1 = io.open(marker_file, 'r')
+local phase1_marker_exists = mf1 ~= nil
+if mf1 then mf1:close() end
+local rows = dashboard.sections('repo-knowledge')
+local target = nil
+for _, r in ipairs(rows[3]) do
+  if r.name == 'check-freshness' then target = r end
+end
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+if target then target.action() end
+local mf2 = io.open(marker_file, 'r')
+local phase2_marker_exists = mf2 ~= nil
+if mf2 then mf2:close() end
+local out = io.open(out_file, 'w')
+out:write('phase1_marker_exists=' .. tostring(phase1_marker_exists) .. '\n')
+out:write('phase2_marker_exists=' .. tostring(phase2_marker_exists) .. '\n')
+out:close()
+os.exit(0)
+LUA
+  MARKER="$BATS_TEST_TMPDIR/repo-knowledge-focus-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/repo-knowledge-focus-out.txt"
+  nvim -l "$PROBE_DIR/repo-knowledge-focus.lua" "$STAGE" "$MARKER" "$OUT" "$REPO/CLAUDE.md"
+  run grep '^phase1_marker_exists=' "$OUT"
+  [[ "$output" == *"phase1_marker_exists=false"* ]]
+  run grep '^phase2_marker_exists=' "$OUT"
+  [[ "$output" == *"phase2_marker_exists=true"* ]]
+  [ -s "$MARKER" ]
+}
+
+@test "neovim-dashboard: repo-knowledge k3-status names the index state" {
+  command -v codebase-memory-mcp >/dev/null 2>&1 || skip "codebase-memory-mcp fehlt"
+  cat > "$PROBE_DIR/repo-knowledge-k3status.lua" <<'LUA'
+local stage, marker_file, repo_file = arg[1], arg[2], arg[3]
+package.path = stage .. '/lua/?.lua;' .. package.path
+vim.notify = function(msg)
+  local f = io.open(marker_file, 'a')
+  f:write(tostring(msg) .. '\n')
+  f:close()
+end
+local ok, m = pcall(require, 'config.repo-knowledge')
+if not ok then
+  io.stderr:write('LOAD FAILED config.repo-knowledge:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+m.k3_status()
+os.exit(0)
+LUA
+  MARKER="$BATS_TEST_TMPDIR/repo-knowledge-k3status-marker.txt"
+  run nvim -l "$PROBE_DIR/repo-knowledge-k3status.lua" "$STAGE" "$MARKER" "$REPO/CLAUDE.md"
+  [ "$status" -eq 0 ]
+  [ -s "$MARKER" ] || fail "k3-status produced no output"
+  run grep -Eqi "ready|no K3 index covers|unavailable" "$MARKER"
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: repo-knowledge k3-symbol nonsense term reports zero hits, quickfix untouched" {
+  command -v codebase-memory-mcp >/dev/null 2>&1 || skip "codebase-memory-mcp fehlt"
+  cat > "$PROBE_DIR/repo-knowledge-k3symbol.lua" <<'LUA'
+local stage, marker_file, out_file, repo_file = arg[1], arg[2], arg[3], arg[4]
+package.path = stage .. '/lua/?.lua;' .. package.path
+vim.notify = function(msg)
+  local f = io.open(marker_file, 'a')
+  f:write(tostring(msg) .. '\n')
+  f:close()
+end
+vim.ui.input = function(_, cb) cb('xkcd-9371-qwerty') end
+local ok, m = pcall(require, 'config.repo-knowledge')
+if not ok then
+  io.stderr:write('LOAD FAILED config.repo-knowledge:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+m.k3_symbol()
+local qf = vim.fn.getqflist()
+local out = io.open(out_file, 'w')
+out:write('qflen=' .. #qf .. '\n')
+out:close()
+os.exit(0)
+LUA
+  MARKER="$BATS_TEST_TMPDIR/repo-knowledge-k3symbol-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/repo-knowledge-k3symbol-out.txt"
+  run nvim -l "$PROBE_DIR/repo-knowledge-k3symbol.lua" "$STAGE" "$MARKER" "$OUT" "$REPO/CLAUDE.md"
+  [ "$status" -eq 0 ]
+  run grep -q 'zero hits' "$MARKER"
+  [ "$status" -eq 0 ]
+  run grep '^qflen=' "$OUT"
+  [[ "$output" == *"qflen=0"* ]]
+}
+
+@test "neovim-dashboard: repo-knowledge runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/repo-knowledge.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/repo-knowledge.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
+  EXPECTED="$(printf 'task-discover\nk3-status\nk3-symbol\nk3-trace\nproject-docs\nrunbook-open\ncheck-freshness\ncheck-manifests\ncode-maps')"
+  if [ "$ACTIONS" != "$EXPECTED" ]; then
+    fail "runbook actions mismatch"
+  fi
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  EXPECTED_STEPS="$(printf '%s\n' task-discover k3-status k3-symbol k3-trace project-docs runbook-open check-freshness check-manifests code-maps)"
+  if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
     fail "runbook step order mismatch"
   fi
 }

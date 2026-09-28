@@ -66,15 +66,55 @@ local pages = {
       return rows
     end,
   },
-  -- Infrastructure is the one chapter that demonstrates a reachable
-  -- sub-page and one example executable action for this foundation
-  -- partial; its real content arrives with its own chapter ticket.
+  -- Infrastructure chapter page (T900664).
   infrastructure = {
     title = 'Infrastructure',
     rows = function()
-      local rows = stub_rows('Infrastructure')
-      rows[#rows + 1] = link('s', 'Status', 'infrastructure-status')
-      return rows
+      return {
+        action({
+          key = 'c',
+          name = 'cluster-status',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').cluster_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'pods',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').pods(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'v',
+          name = 'services',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').services(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'pod-logs',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').pod_logs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'x',
+          name = 'context-select',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').context_select(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'k',
+          name = 'setup-checklist',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').setup_checklist(cwd) end,
+          on_error = function() end,
+        }),
+        link('s', 'Status', 'infrastructure-status'),
+      }
     end,
   },
   ['infrastructure-status'] = {

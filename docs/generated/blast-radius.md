@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-09-27T21:26:43.072Z
-> Nodes: 93 | Edges: 1850 | Isolated: 7
+> Generated: 2026-09-28T05:34:01.440Z
+> Nodes: 91 | Edges: 1849 | Isolated: 6
 
 ## Ranking (transitive Abhängige)
 
@@ -81,11 +81,10 @@
 | 73 | sealed-secrets-controller | 2 | 2 | 2 |
 | 74 | downloads | 1 | 1 | 1 |
 | 75 | einvoice-sidecar | 1 | 1 | 1 |
-| 76 | registry-cache | 1 | 1 | 1 |
-| 77 | mediaviewer-widget | 1 | 1 | 1 |
-| 78 | blackbox-exporter | 1 | 1 | 1 |
-| 79 | nextcloud-redis | 1 | 1 | 1 |
-| 80 | whisper | 1 | 1 | 1 |
+| 76 | mediaviewer-widget | 1 | 1 | 1 |
+| 77 | blackbox-exporter | 1 | 1 | 1 |
+| 78 | nextcloud-redis | 1 | 1 | 1 |
+| 79 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -462,11 +461,6 @@
 ### einvoice-sidecar
 **Direkte Abhängige:** 1 — einvoice-sidecar
 **Transitive Abhängige:** 1 — einvoice-sidecar
-**Upstream (In-Degree):** 1
-
-### registry-cache
-**Direkte Abhängige:** 1 — registry-cache
-**Transitive Abhängige:** 1 — registry-cache
 **Upstream (In-Degree):** 1
 
 ### mediaviewer-widget

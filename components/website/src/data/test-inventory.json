@@ -2562,12 +2562,6 @@
     "kind": "shell"
   },
   {
-    "id": "ci-cd/ci-diff-base",
-    "file": "tests/spec/ci-cd/ci-diff-base.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
     "id": "ci-cd/ci-wait-loop-nonempty-guard",
     "file": "tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats",
     "category": "ci-cd",
@@ -2670,104 +2664,8 @@
     "kind": "shell"
   },
   {
-    "id": "ci-cd/gitlab-batsunit-toolchain",
-    "file": "tests/spec/ci-cd/gitlab-batsunit-toolchain.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-ci-image-refs",
-    "file": "tests/spec/ci-cd/gitlab-ci-image-refs.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-job-coverage",
-    "file": "tests/spec/ci-cd/gitlab-job-coverage.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-mirror-workflow",
-    "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-parallel-non-blocking",
-    "file": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-pipeline-check",
-    "file": "tests/spec/ci-cd/gitlab-pipeline-check.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-registry-cache",
-    "file": "tests/spec/ci-cd/gitlab-registry-cache.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-registry-mirror",
-    "file": "tests/spec/ci-cd/gitlab-registry-mirror.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-runner-executor-rbac",
-    "file": "tests/spec/ci-cd/gitlab-runner-executor-rbac.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-runner-fleet-guardrails",
-    "file": "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-runner-fleet-rbac",
-    "file": "tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-runner-job-pod-toml",
-    "file": "tests/spec/ci-cd/gitlab-runner-job-pod-toml.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-runner-nonroot-uid",
-    "file": "tests/spec/ci-cd/gitlab-runner-nonroot-uid.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-runner-quota-fit",
-    "file": "tests/spec/ci-cd/gitlab-runner-quota-fit.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-runner-setup-dryrun",
-    "file": "tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-runner-tag-routing",
-    "file": "tests/spec/ci-cd/gitlab-runner-tag-routing.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/gitlab-tool-parity",
-    "file": "tests/spec/ci-cd/gitlab-tool-parity.bats",
+    "id": "ci-cd/github-only-ci",
+    "file": "tests/spec/ci-cd/github-only-ci.bats",
     "category": "ci-cd",
     "kind": "shell"
   },

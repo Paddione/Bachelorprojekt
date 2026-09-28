@@ -137,7 +137,6 @@ tests/spec/ci-cd/cfr-trend-window.bats
 tests/spec/ci-cd/changed-tests-collection-parity.bats
 tests/spec/ci-cd/changed-tests-env-hermetic.bats
 tests/spec/ci-cd/changed-tests-uncommitted-diff.bats
-tests/spec/ci-cd/ci-diff-base.bats
 tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats
 tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats
 tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats
@@ -155,21 +154,7 @@ tests/spec/ci-cd/generated-artifacts-registry.bats
 tests/spec/ci-cd/generated-path-separators.bats
 tests/spec/ci-cd/ghcr-digest-auth.bats
 tests/spec/ci-cd/git-flow-poll-and-branch-order.bats
-tests/spec/ci-cd/gitlab-batsunit-toolchain.bats
-tests/spec/ci-cd/gitlab-job-coverage.bats
-tests/spec/ci-cd/gitlab-mirror-workflow.bats
-tests/spec/ci-cd/gitlab-parallel-non-blocking.bats
-tests/spec/ci-cd/gitlab-pipeline-check.bats
-tests/spec/ci-cd/gitlab-registry-cache.bats
-tests/spec/ci-cd/gitlab-registry-mirror.bats
-tests/spec/ci-cd/gitlab-runner-executor-rbac.bats
-tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats
-tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats
-tests/spec/ci-cd/gitlab-runner-job-pod-toml.bats
-tests/spec/ci-cd/gitlab-runner-nonroot-uid.bats
-tests/spec/ci-cd/gitlab-runner-quota-fit.bats
-tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats
-tests/spec/ci-cd/gitlab-tool-parity.bats
+tests/spec/ci-cd/github-only-ci.bats
 tests/spec/ci-cd/hybrid-runner-placement.bats
 tests/spec/ci-cd/main-direct-push-guard.bats
 tests/spec/ci-cd/mishap-t002425.bats
@@ -221,6 +206,7 @@ tests/spec/dev-flow-plan/archive-staged-scope.bats
 tests/spec/dev-flow-plan/domains-vocabulary.bats
 tests/spec/dev-flow-plan/guard-parity.bats
 tests/spec/dev-flow-plan/plan-commit-scope-guard.bats
+tests/spec/dev-flow-plan/plan-dir-resolution.bats
 tests/spec/dev-flow-plan/plan-intel-annotated-target-files.bats
 tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats
 tests/spec/dev-flow-plan/plan-lint-b1b-prose-path.bats
@@ -333,6 +319,7 @@ tests/spec/image-drift.bats
 tests/spec/k4-surgery-guard.bats
 tests/spec/k8-headed-tests/headed-verify-not-in-ci-path.bats
 tests/spec/kv-budget.bats
+tests/spec/langfuse-agent-tracing.bats
 tests/spec/lavish.bats
 tests/spec/llm-local-dev.bats
 tests/spec/llm-local-dev/comfy-image-mcp.bats
@@ -455,6 +442,7 @@ tests/spec/mishap-tracking/go-tests-registriert.bats
 tests/spec/monitoring-alerts.bats
 tests/spec/monitoring-alerts/backup-alerting.bats
 tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats
+tests/spec/neovim-dashboard.bats
 tests/spec/network-address-plan/networks-registry.bats
 tests/spec/newsletter-system.bats
 tests/spec/nextcloud-integration.bats

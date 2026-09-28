@@ -49,11 +49,4 @@ setup() {
     echo "korczewski Flux Kustomizations are not all suspended" >&2
     return 1
   }
-
-  run timeout 20 kubectl --context fleet -n flux-system get ocirepository fleet-manifests-gitlab -o json
-  [ "$status" -eq 0 ] || { echo "kubectl get OCIRepository failed: $output" >&2; return 1; }
-  jq -e '.spec.suspend == true' <<<"$output" >/dev/null || {
-    echo "fleet-manifests-gitlab is not suspended" >&2
-    return 1
-  }
 }

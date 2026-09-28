@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # fixtures/fake-opencode.sh — Stub fuer `opencode run` in tests/spec/agent-bench/.
 # Muster: tests/spec/llm-local-dev/fixtures/plan-runner-fake-opencode.sh.
-# Aufruf wie opencode: run --agent <agent> --dir <worktree> [--model m] <prompt>
+# Aufruf wie opencode v2: run --agent <agent> [--model m] <prompt>, Arbeitsverzeichnis = cwd
+# (--dir entfiel mit T900729; wird es noch uebergeben, gilt es weiter).
 # (der Prompt ist grundsaetzlich das LETZTE Argument).
 #
 # Env:
@@ -18,6 +19,7 @@ for a in "$@"; do
   [ "$prev" = "--dir" ] && dir="$a"
   prev="$a"
 done
+dir="${dir:-$PWD}"
 prompt="${*: -1}"
 sleep "${FAKE_OPENCODE_SLEEP:-0}"
 {

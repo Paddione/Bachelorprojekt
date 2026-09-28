@@ -5137,6 +5137,12 @@
       "status": "archived"
     }
   ],
+  "T900650": [
+    {
+      "slug": "remove-gitlab",
+      "status": "plan_staged"
+    }
+  ],
   "T900655": [
     {
       "slug": "2026-09-27-nvim-dashboard-foundation",

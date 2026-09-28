@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.385.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.384.0...website-v1.385.0) (2026-09-28)
+
+
+### Features
+
+* **ci:** GitLab vollständig entfernen [T900650] ([#6099](https://github.com/Paddione/Bachelorprojekt/issues/6099)) ([f273523](https://github.com/Paddione/Bachelorprojekt/commit/f27352344790b40096256cb403bcb13f8eddb5c6))
+
 ## [1.384.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.383.0...website-v1.384.0) (2026-09-27)
 
 

@@ -180,6 +180,99 @@ local pages = {
       }
     end,
   },
+  -- T900658 js-frontend registration BEGIN (do not remove; other chapters own their own blocks)
+  ['js-frontend'] = {
+    title = 'JavaScript / Frontend',
+    rows = function()
+      return {
+        action({
+          key = 'p',
+          name = 'goto-page',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_page(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'goto-component',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_component(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'goto-layout',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_layout(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'goto-route',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_route(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'd',
+          name = 'goto-design',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_design(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'v',
+          name = 'dev',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').dev(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'w',
+          name = 'preview',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').preview(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'n',
+          name = 'lint',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').lint(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 't',
+          name = 'type-check',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').type_check(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'b',
+          name = 'build',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').build(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'e',
+          name = 'test',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').test_cmd(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 's',
+          name = 'lsp-status',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').lsp_status(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- T900658 js-frontend registration END
   -- Settings & Help chapter page (T900667 p2). Rows are action() records in
   -- the exact EPIC order; each effect resolves cwd at execution time through
   -- the dashboard action model and passes it to the matching settings-help

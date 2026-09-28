@@ -13,7 +13,7 @@ Use `_template.md` as the starting point for a new chapter runbook.
 ## Chapters (fixed EPIC order, listed on Home in this order)
 
 1. **Files & Search** — T900657 — status: stub
-2. **JavaScript / Frontend** — T900658 — status: stub
+2. **JavaScript / Frontend** — T900658 — status: complete — [`js-frontend.md`](js-frontend.md)
 3. **GitHub** — T900659 — status: stub
 4. **SDLC** — T900660 — status: stub
 5. **Repository & Code Knowledge** — T900661 — status: stub

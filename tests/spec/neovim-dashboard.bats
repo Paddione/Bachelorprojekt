@@ -216,31 +216,43 @@ EOF
   [ "$status" -ne 0 ]
 }
 
-@test "neovim-dashboard: runbook master index matches the dashboard Home order, all chapters stub-marked" {
+@test "neovim-dashboard: runbook master index matches the dashboard Home order, every chapter tracked" {
   [ -f "$STAGE/runbooks/README.md" ] || fail "staged runbooks/README.md missing"
   write_home_probe
   HOME_OUT="$BATS_TEST_TMPDIR/home-order2.out"
   nvim -l "$PROBE_DIR/home.lua" "$STAGE" "$HOME_OUT"
 
   # (a) Extract the ten chapter names from the index's numbered list and
-  # diff against the dashboard Home order.
+  # diff against the dashboard Home order. Chapters land ticket by
+  # ticket: a line is valid stub-marked or complete (with a runbook
+  # link), in either state, with the link allowed on either side of
+  # the status (js-frontend links after, settings-help before).
   INDEX_NAMES="$BATS_TEST_TMPDIR/index-names.txt"
-  grep -E '^[0-9]+\. \*\*.+\*\* — T[0-9]+ — status: stub' "$STAGE/runbooks/README.md" \
-    | sed -E 's/^[0-9]+\. \*\*(.+)\*\* — T[0-9]+ — status: stub.*/\1/' > "$INDEX_NAMES"
+  grep -E '^[0-9]+\. \*\*.+\*\* — T[0-9]+ — .*status: (stub|complete)' "$STAGE/runbooks/README.md" \
+    | sed -E 's/^[0-9]+\. \*\*(.+)\*\* — T[0-9]+ — .*status: (stub|complete).*/\1/' > "$INDEX_NAMES"
   run diff "$HOME_OUT" "$INDEX_NAMES"
   [ "$status" -eq 0 ]
   run bash -c "grep -qi factory '$INDEX_NAMES'"
   [ "$status" -ne 0 ]
 
-  # (c) Every chapter entry is stub-marked with an owning ticket; the
-  # count must be exactly ten, and no per-chapter file exists yet.
-  STUB_COUNT="$(grep -cE 'status: stub' "$STAGE/runbooks/README.md")"
-  [ "$STUB_COUNT" -eq 10 ]
+  # (c) Every chapter entry carries an owning ticket and a valid status;
+  # the count must be exactly ten. Complete chapters link their runbook,
+  # and no per-chapter runbook file may exist without such a link: the
+  # link may sit on either side of the status (both orders exist on
+  # main), so the check intersects the complete lines with the exact
+  # link target. The check is derived, so later chapters flipping
+  # their own line need no further edit here; files-search.md stays
+  # grandfathered from T900657, whose index line is still stub-marked.
+  CHAPTER_COUNT="$(grep -cE '^[0-9]+\. \*\*.+\*\* — T[0-9]+ — .*status: (stub|complete)' "$STAGE/runbooks/README.md")"
+  [ "$CHAPTER_COUNT" -eq 10 ]
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md|infrastructure.md|sdlc.md|github.md) ;;
-      *) fail "unexpected chapter runbook file already present: $base" ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md|infrastructure.md|sdlc.md|github.md|js-frontend.md) ;;
+      *)
+        run bash -c "grep -E 'status: complete' '$STAGE/runbooks/README.md' | grep -qF '(${base})'"
+        [ "$status" -eq 0 ] || fail "runbook file without a complete index link: $base"
+        ;;
     esac
   done
 }
@@ -1861,6 +1873,223 @@ LUA
   run bash -c "grep -F -- '**Settings & Help**' '$STAGE/runbooks/README.md' | grep -q 'status: complete'"
   [ "$status" -eq 0 ]
 }
+
+# ── T900658 js-frontend BEGIN ──────────────────────────────────────────
+# T900658 owns everything between BEGIN and END; other chapter tickets
+# must not edit inside these markers.
+
+# ── T900658: module shape ─────────────────────────────────────────────
+@test "neovim-dashboard: T900658 js-frontend module exposes twelve functions" {
+  cat > "$PROBE_DIR/js-frontend-shape.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.js-frontend')
+if not ok then
+  io.stderr:write('LOAD FAILED config.js-frontend:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+local want = {
+  'goto_page', 'goto_component', 'goto_layout', 'goto_route',
+  'goto_design', 'dev', 'preview', 'lint', 'type_check', 'build',
+  'test_cmd', 'lsp_status',
+}
+for _, f in ipairs(want) do
+  if type(m[f]) ~= 'function' then
+    io.stderr:write('missing or not a function: ' .. f .. '\n')
+    os.exit(1)
+  end
+end
+print('all twelve functions exist')
+os.exit(0)
+LUA
+  run nvim -l "$PROBE_DIR/js-frontend-shape.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all twelve functions exist"* ]]
+}
+
+# ── T900658: page order ───────────────────────────────────────────────
+@test "neovim-dashboard: T900658 js-frontend page lists twelve actions in order" {
+  cat > "$PROBE_DIR/js-frontend-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('js-frontend')
+local names = {}
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    names[#names + 1] = r.name
+  end
+end
+local f = io.open(outfile, 'w')
+for _, n in ipairs(names) do
+  f:write(n .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/js-frontend-order.out"
+  run nvim -l "$PROBE_DIR/js-frontend-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  EXPECTED="$(printf 'goto-page\ngoto-component\ngoto-layout\ngoto-route\ngoto-design\ndev\npreview\nlint\ntype-check\nbuild\ntest\nlsp-status')"
+  run diff <(printf '%s\n' "$EXPECTED") "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+# ── T900658: pnpm/npm package boundary ────────────────────────────────
+write_js_frontend_boundary_probe() {
+  cat > "$PROBE_DIR/js-frontend-boundary.lua" <<'LUA'
+local stage, website_file, brett_file, root_file, outfile = arg[1], arg[2], arg[3], arg[4], arg[5]
+package.path = stage .. '/lua/?.lua;' .. package.path
+-- Fake toggleterm.terminal recorder: package.preload entries must be
+-- FUNCTIONS returning the module table (Lua 5.1 silently skips
+-- preload tables).
+local recorded = {}
+package.preload['toggleterm.terminal'] = function()
+  return {
+    Terminal = {
+      new = function(_, opts)
+        recorded[#recorded + 1] = opts or {}
+        return { toggle = function() end }
+      end,
+    },
+  }
+end
+local warnings = {}
+vim.notify = function(msg, _)
+  warnings[#warnings + 1] = tostring(msg)
+end
+local ok, m = pcall(require, 'config.js-frontend')
+if not ok then
+  io.stderr:write('LOAD FAILED config.js-frontend\n')
+  os.exit(1)
+end
+local out = io.open(outfile, 'w')
+local function run_case(label, file, action)
+  recorded = {}
+  warnings = {}
+  vim.cmd.edit(vim.fn.fnameescape(file))
+  local okc, err = pcall(m[action])
+  if not okc then
+    out:write(label .. ' ERROR ' .. tostring(err) .. '\n')
+    return
+  end
+  if #recorded == 0 then
+    out:write(label .. ' NO_TERMINAL warnings=' .. #warnings .. '\n')
+    for _, w in ipairs(warnings) do
+      out:write(label .. ' WARN ' .. w .. '\n')
+    end
+    return
+  end
+  for _, o in ipairs(recorded) do
+    out:write(label .. ' CMD ' .. (o.cmd or 'NO_CMD') .. '\n')
+    out:write(label .. ' DIR ' .. (o.dir or 'NO_DIR') .. '\n')
+    out:write(label .. ' DIRECTION ' .. (o.direction or 'NO_DIRECTION') .. '\n')
+  end
+end
+run_case('website-typecheck', website_file, 'type_check')
+run_case('website-dev', website_file, 'dev')
+run_case('brett-build', brett_file, 'build')
+run_case('brett-preview', brett_file, 'preview')
+run_case('root-typecheck', root_file, 'type_check')
+run_case('root-dev', root_file, 'dev')
+out:close()
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: T900658 js-frontend keeps the pnpm/npm package boundary" {
+  write_js_frontend_boundary_probe
+  WEBSITE_FILE="$REPO/components/website/src/pages/index.astro"
+  BRETT_FILE="$REPO/components/brett/src/server/index.ts"
+  ROOT_FILE="$REPO/CLAUDE.md"
+  [ -f "$WEBSITE_FILE" ] || fail "boundary fixture missing: $WEBSITE_FILE"
+  [ -f "$BRETT_FILE" ] || fail "boundary fixture missing: $BRETT_FILE"
+  EXPECTED_ROOT="$(cd "$REPO" && git rev-parse --show-toplevel)"
+  OUT="$BATS_TEST_TMPDIR/js-frontend-boundary.out"
+  run nvim -l "$PROBE_DIR/js-frontend-boundary.lua" "$STAGE" "$WEBSITE_FILE" "$BRETT_FILE" "$ROOT_FILE" "$OUT"
+  [ "$status" -eq 0 ]
+
+  # Website buffers launch through pnpm; the launcher word must be
+  # exactly `pnpm` (word-exact, since the substring "npm" also sits
+  # inside "pnpm" and a substring check would be vacuous).
+  run grep '^website-typecheck CMD pnpm ' "$OUT"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -oE '^website-[a-z]+ CMD [^ ]+' '$OUT' | awk '{print \$3}' | sort -u"
+  [ "$status" -eq 0 ]
+  [ "$output" = "pnpm" ]
+  run grep 'website-typecheck CMD .*astro:check' "$OUT"
+  [ "$status" -eq 0 ]
+
+  # Brett buffers launch through npm with the brett package dir.
+  run grep '^brett-build CMD npm ' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep 'brett-build CMD .*components/brett.*run build' "$OUT"
+  [ "$status" -eq 0 ]
+
+  # Missing scripts warn and open no terminal.
+  run grep '^brett-preview NO_TERMINAL' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep 'brett-preview WARN .*preview' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep '^root-dev NO_TERMINAL' "$OUT"
+  [ "$status" -eq 0 ]
+
+  # Root buffers run only type-check, through npm at the root.
+  run grep '^root-typecheck CMD npm .*run typecheck' "$OUT"
+  [ "$status" -eq 0 ]
+
+  # Every launched terminal opens horizontal at the project root.
+  run bash -c "grep -c ' DIRECTION horizontal' '$OUT'"
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 4 ]
+  run bash -c "grep ' DIR ' '$OUT' | sed 's/.* DIR //' | sort -u"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$EXPECTED_ROOT" ]
+}
+
+# ── T900658: runbook coverage ─────────────────────────────────────────
+@test "neovim-dashboard: T900658 js-frontend runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/js-frontend.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/js-frontend.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
+  EXPECTED="$(printf 'goto-page\ngoto-component\ngoto-layout\ngoto-route\ngoto-design\ndev\npreview\nlint\ntype-check\nbuild\ntest\nlsp-status')"
+  if [ "$ACTIONS" != "$EXPECTED" ]; then
+    fail "runbook actions mismatch"
+  fi
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  EXPECTED_STEPS="$(printf '%s\n' goto-page goto-component goto-layout goto-route goto-design dev preview lint type-check build test lsp-status)"
+  if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
+    fail "runbook step order mismatch"
+  fi
+}
+
+# ── T900658: no format-on-save ────────────────────────────────────────
+@test "neovim-dashboard: T900658 js-frontend defines no format-on-save hook" {
+  cat > "$PROBE_DIR/js-frontend-noformat.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, _ = pcall(require, 'config.js-frontend')
+if not ok then
+  io.stderr:write('LOAD FAILED config.js-frontend\n')
+  os.exit(1)
+end
+local au = vim.api.nvim_get_autocmds({ event = 'BufWritePre' })
+print('bufwritepre_count=' .. #au)
+os.exit(0)
+LUA
+  run nvim -l "$PROBE_DIR/js-frontend-noformat.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"bufwritepre_count=0"* ]]
+}
+
+# ── T900658 js-frontend END ────────────────────────────────────────────
 
 # ── T900663 models-inference ─────────────────────────────────────────────
 # (a) module contract — the six chapter functions exist on the staged module

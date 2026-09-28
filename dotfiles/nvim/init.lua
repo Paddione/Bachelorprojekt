@@ -32,6 +32,9 @@ require('lazy').setup({
   { import = 'plugins.editor' },
 })
 
+-- Use the theme already included in the shared plugin set.
+vim.cmd.colorscheme('tokyonight-night')
+
 -- ── Shared editor defaults ──────────────────────────────────────────────────
 require('config.editor').setup()
 

@@ -832,8 +832,15 @@ M.pages = pages
 function M.sections(page)
   local spec = assert(pages[page], 'Unknown dashboard page: ' .. tostring(page))
   local rows = {
-    { text = { 'NEOVIM  /  ' .. spec.title, hl = 'SnacksDashboardHeader' }, padding = 1 },
-    { desc = 'j/k oder Pfeiltasten + Enter  |  direkte Auswahl per Taste', padding = 1 },
+    { text = {
+      { 'BACHELORPROJEKT', hl = 'SnacksDashboardHeader' },
+      { '  /  ' .. spec.title, hl = HL_GROUP },
+    }, padding = 1 },
+    { text = {
+      { 'j/k', hl = HL_FKEY }, { ' bewegen   ', hl = HL_DIM },
+      { 'Enter', hl = HL_FKEY }, { ' oeffnen   ', hl = HL_DIM },
+      { '<Space>hf', hl = HL_FKEY }, { ' suchen', hl = HL_DIM },
+    }, padding = { 0, 1 } },
     spec.rows(),
   }
   if page ~= 'home' then
@@ -842,9 +849,16 @@ function M.sections(page)
     local back = link('<BS>', 'Zurueck', spec.parent or 'home')
     back.hidden = true
     rows[#rows + 1] = back
-    rows[#rows + 1] = { desc = 'Backspace: zurueck  |  0: Inhaltsverzeichnis' }
+    rows[#rows + 1] = { text = {
+      { '<BS>', hl = HL_FKEY }, { ' zurueck   ', hl = HL_DIM },
+      { '0', hl = HL_FKEY }, { ' Inhaltsverzeichnis', hl = HL_DIM },
+    } }
   end
-  rows[#rows + 1] = { key = 'q', desc = 'Neovim beenden', action = ':qa' }
+  rows[#rows + 1] = { padding = { 1, 0 } }
+  rows[#rows + 1] = {
+    key = 'q', desc = 'Neovim beenden', action = ':qa',
+    text = { { 'q', hl = HL_FKEY }, { '  Neovim beenden', hl = HL_DIM } },
+  }
   return rows
 end
 

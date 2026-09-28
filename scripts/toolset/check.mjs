@@ -12,7 +12,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { spawnSync } from 'node:child_process';
 import { loadRegistry } from './lib/registry.mjs';
+import { validateHarnesses, resolveToolset } from './lib/resolve.mjs';
+import { ADAPTERS } from './lib/adapters/index.mjs';
 import { readClaudeCodeConfig } from './lib/harness.mjs';
 import { collectInstances, withRegistryOnlyInstances } from './collect.mjs';
 
@@ -101,27 +104,94 @@ for (const [capName, instances] of Object.entries(registry.capabilities)) {
   }
 }
 
-// 2. Check suppressed mcp servers against Claude Code settings.json
+// 1c. Harness-Schema (T900791): Pflichtfelder, Rollen-Vokabular, verbotene Anbieter.
+for (const msg of validateHarnesses(registry.harnesses, registry.forbiddenProviders, VALID_ROLES)) {
+  console.error(msg);
+  hasError = true;
+}
+
+// 2. Drift-Prüfung über Adapter (T900791): ersetzt den claude-suppressed-Vergleich.
+//    Jede Harness mit Adapter und existierender Zieldatei wird im Speicher gerendert;
+//    weicht das Render vom Dateitext ab, ist das Drift. Registries ohne
+//    harnesses-Eintrag fallen auf das Legacy-Verhalten zurück (nur suppressed
+//    wird deaktiviert), damit Fixture-Registries ohne Harness-Block weiter prüfbar sind.
+const registryMcp = new Set();
 const suppressedMcp = new Set();
 for (const [, instances] of Object.entries(registry.capabilities)) {
   for (const [instKey, instCfg] of Object.entries(instances)) {
     if (instKey.startsWith('mcp:') && instCfg.state === 'suppressed') {
       suppressedMcp.add(instKey.slice(4));
     }
+    if (instKey.startsWith('mcp:')) {
+      registryMcp.add(instKey.slice(4));
+    }
   }
 }
 
-const claude = readClaudeCodeConfig(outDir);
-if (fs.existsSync(claude.settingsPath)) {
-  const disabledInSettings = new Set(claude.settings.disabledMcpjsonServers || []);
-  for (const serverName of suppressedMcp) {
-    if (!disabledInSettings.has(serverName)) {
-      console.error(`Drift detected in ${claude.settingsPath}: disabledMcpjsonServers is missing '${serverName}'`);
-      hasError = true;
+const legacyToolset = new Set();
+for (const [, instances] of Object.entries(registry.capabilities)) {
+  for (const [instKey, instCfg] of Object.entries(instances)) {
+    if (instCfg.state !== 'suppressed') legacyToolset.add(instKey);
+  }
+}
+
+// Verwalteter Schlüssel je Harness für die Drift-Meldung. check-drift-detection.bats
+// verlangt Datei UND Schlüssel in einer Zeile.
+const MANAGED_KEYS = { claude: 'disabledMcpjsonServers', opencode: 'enabled' };
+
+function unifiedDiff(before, after, filePath) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'toolset-check-'));
+  const a = path.join(dir, 'a');
+  const b = path.join(dir, 'b');
+  fs.writeFileSync(a, before);
+  fs.writeFileSync(b, after);
+  const res = spawnSync('diff', ['-u', '--label', `a/${filePath}`, '--label', `b/${filePath}`, a, b], { encoding: 'utf8' });
+  fs.rmSync(dir, { recursive: true, force: true });
+  return res.stdout;
+}
+
+// Drift-Semantik je Ziel: claude vergleicht nur den verwalteten Schlüssel als Menge —
+// eine fehlende Liste zählt wie eine leere, andere Keys und reine Formatierung sind kein
+// Drift (Verallgemeinerung des alten §2-Teilmengenvergleichs auf den vollen Soll-Zustand).
+// opencode fällt auf den Byte-Vergleich zurück — der Adapter erhält dort jedes Byte.
+function isDrift(name, current, rendered) {
+  if (current === rendered) return false;
+  if (name === 'claude') {
+    try {
+      const a = JSON.parse(current).disabledMcpjsonServers ?? [];
+      const b = JSON.parse(rendered).disabledMcpjsonServers ?? [];
+      return JSON.stringify([...a].sort()) !== JSON.stringify([...b].sort());
+    } catch {
+      return true;
     }
   }
-} else {
-  console.log(`SKIP: Claude Code settings file missing at ${claude.settingsPath}`);
+  return true;
+}
+
+const claude = readClaudeCodeConfig(outDir);
+const projectMcp = new Set(Object.keys(claude.mcp?.mcpServers ?? {}));
+for (const [name, adapter] of Object.entries(ADAPTERS)) {
+  const harness = registry.harnesses?.[name];
+  if (harness && harness.config === null) continue;
+  const targetPath = path.join(outDir, adapter.file);
+  if (!fs.existsSync(targetPath)) continue;
+  const toolset = harness ? resolveToolset(registry.capabilities, harness) : legacyToolset;
+  const ctx = name === 'claude'
+    ? { toolset, registryMcp, suppressedMcp, projectMcp }
+    : { toolset, registryMcp };
+  const current = fs.readFileSync(targetPath, 'utf8');
+  let rendered;
+  try {
+    rendered = adapter.render(current, ctx);
+  } catch (e) {
+    console.error(`Drift detected in ${targetPath} (DRIFT ${name}): render failed: ${e.message}`);
+    hasError = true;
+    continue;
+  }
+  if (!isDrift(name, current, rendered)) continue;
+  console.error(`Drift detected in ${targetPath} (DRIFT ${name}): managed key '${MANAGED_KEYS[name] ?? 'managed state'}' differs`);
+  console.error(unifiedDiff(current, rendered, adapter.file).trimEnd());
+  hasError = true;
 }
 
 // 2b. Plugin-Durchsetzungslücke sichtbar machen (advisory, T002592).

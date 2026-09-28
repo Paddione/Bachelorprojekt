@@ -5712,6 +5712,12 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/harness-specialization",
+    "file": "tests/spec/toolset-registry/harness-specialization.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/schema-gate",
     "file": "tests/spec/toolset-registry/schema-gate.bats",
     "category": "toolset-registry",

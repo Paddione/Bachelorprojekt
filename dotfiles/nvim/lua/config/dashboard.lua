@@ -207,6 +207,57 @@ local pages = {
       }
     end,
   },
+  -- T900663 models-inference page begin
+  ['models-inference'] = {
+    title = 'Models & Inference',
+    rows = function()
+      return {
+        action({
+          key = 's',
+          name = 'models-status',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'server-config',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').show_config(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'server-logs',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').logs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'g',
+          name = 'gpu-resources',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').gpu(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'b',
+          name = 'server-start',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').start_unit(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'x',
+          name = 'server-stop',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').stop_unit(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- T900663 models-inference page end
 }
 
 for _, chapter in ipairs(CHAPTERS) do

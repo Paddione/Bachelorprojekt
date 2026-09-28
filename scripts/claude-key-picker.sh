@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/claude-key-picker.sh — Pick a DeepSeek API key and launch Claude Code
 #
-# Reads the two DeepSeek keys from environments/.secrets/mentolder.yaml (git-crypt
+# Reads the two DeepSeek keys from environments/.secrets/fleet-mentolder.yaml (git-crypt
 # encrypted) and presents an interactive menu. You can also pick via the CLAUDE_KEY
 # environment variable for non-interactive / one-shot use:
 #
@@ -20,7 +20,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SECRETS_FILE="${PROJECT_ROOT}/environments/.secrets/mentolder.yaml"
+SECRETS_FILE="${PROJECT_ROOT}/environments/.secrets/fleet-mentolder.yaml"
 
 DEFAULT_BASE_URL="https://api.deepseek.com/anthropic"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"

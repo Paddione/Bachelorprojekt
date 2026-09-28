@@ -291,13 +291,23 @@ fi
 
 [[ -z "$ENV_NAME" ]] && die "--env <name> is required"
 
+# T900789: an env may seal from another env's secrets (secrets_env, e.g.
+# mentolder -> fleet-mentolder); then everything runs as that env.
+# shellcheck source=scripts/lib/secrets-env.sh
+source "${SCRIPT_DIR}/lib/secrets-env.sh"
+SECRETS_ENV=$(secrets_env_for "$ENV_NAME" "$ENV_DIR") || die "secrets_env lookup failed for ${ENV_NAME}"
+if [[ "$SECRETS_ENV" != "$ENV_NAME" ]]; then
+  info "${ENV_NAME} declares secrets_env=${SECRETS_ENV} — sealing ${SECRETS_ENV}"
+  ENV_NAME="$SECRETS_ENV"
+fi
+
 ENV_FILE="${ENV_DIR}/${ENV_NAME}.yaml"
-SECRETS_FILE="${ENV_DIR}/.secrets/${ENV_NAME}.yaml"
+SECRETS_FILE="${ENV_DIR}/.secrets/${SECRETS_ENV}.yaml"
 SCHEMA="${ENV_DIR}/schema.yaml"
 CERTS_DIR="${ENV_DIR}/certs"
-CERT_FILE="${CERTS_DIR}/${ENV_NAME}.pem"
+CERT_FILE="${CERTS_DIR}/${SECRETS_ENV}.pem"
 SEALED_DIR="${ENV_DIR}/sealed-secrets"
-OUTPUT="${SEALED_DIR}/${ENV_NAME}.yaml"
+OUTPUT="${SEALED_DIR}/${SECRETS_ENV}.yaml"
 
 # ── Validate inputs ─────────────────────────────────────────────
 

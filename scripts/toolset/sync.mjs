@@ -2,40 +2,115 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { spawnSync } from 'node:child_process';
 import { loadRegistry } from './lib/registry.mjs';
+import { validateHarnesses, resolveToolset } from './lib/resolve.mjs';
+import { ADAPTERS } from './lib/adapters/index.mjs';
+import { readClaudeCodeConfig } from './lib/harness.mjs';
 
 const registryPath = process.env.TOOLSET_REGISTRY || path.join(process.cwd(), 'docs', 'agent-guide', 'registry', 'capabilities.yaml');
 const outDir = process.env.TOOLSET_OUT_DIR || process.cwd();
 
+// Rollen-Vokabular, bewusst aus check.mjs dupliziert (dort liegt der SSOT-Kommentar zur
+// Doppelung mit scripts/plan-context.sh). sync.mjs braucht es für validateHarnesses, kann
+// es aber nicht aus check.mjs importieren, weil dessen Top-Level-Code das Gate ausführt.
+const VALID_ROLES = new Set([
+  'bachelorprojekt-website',
+  'bachelorprojekt-ops',
+  'bachelorprojekt-infra',
+  'bachelorprojekt-test',
+  'bachelorprojekt-db',
+  'bachelorprojekt-security',
+  'orchestrator',
+  'big-pickle',
+  'pi',
+  'all',
+]);
+
+const args = process.argv.slice(2);
+let dryRun = false;
+let onlyHarness = null;
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--dry-run') {
+    dryRun = true;
+  } else if (args[i] === '--harness') {
+    onlyHarness = args[++i];
+  }
+}
+if (onlyHarness && !ADAPTERS[onlyHarness]) {
+  console.error(`Unknown harness '${onlyHarness}' (known: ${Object.keys(ADAPTERS).join(', ')})`);
+  process.exit(1);
+}
+
 const registry = loadRegistry(registryPath);
 
-// Gather suppressed MCP servers
-const suppressedMcpServers = new Set();
-for (const [capName, instances] of Object.entries(registry.capabilities)) {
+const harnessErrors = validateHarnesses(registry.harnesses, registry.forbiddenProviders, VALID_ROLES);
+if (harnessErrors.length > 0) {
+  for (const msg of harnessErrors) console.error(msg);
+  process.exit(1);
+}
+
+// mcp-Namen der Registry, aufgeteilt nach suppressed / Rest.
+const registryMcp = new Set();
+const suppressedMcp = new Set();
+for (const instances of Object.values(registry.capabilities)) {
   for (const [instKey, instCfg] of Object.entries(instances)) {
-    if (instKey.startsWith('mcp:') && instCfg.state === 'suppressed') {
-      suppressedMcpServers.add(instKey.slice(4));
-    }
+    if (!instKey.startsWith('mcp:')) continue;
+    registryMcp.add(instKey.slice(4));
+    if (instCfg.state === 'suppressed') suppressedMcp.add(instKey.slice(4));
   }
 }
 
-// 1. Surgical update of .claude/settings.json
-const claudeSettingsPath = path.join(outDir, '.claude', 'settings.json');
-if (fs.existsSync(claudeSettingsPath)) {
-  let settings = {};
-  try {
-    settings = JSON.parse(fs.readFileSync(claudeSettingsPath, 'utf8'));
-  } catch (e) {
-    console.error(`Failed to read ${claudeSettingsPath}: ${e.message}`);
-    process.exit(1);
+// Legacy-Fallback für Registries ohne harnesses-Eintrag (Fixture-Kompatibilität):
+// Werkzeugsatz = alle nicht-suppressed Instanzen, d.h. nur suppressed wird deaktiviert.
+const legacyToolset = new Set();
+for (const instances of Object.values(registry.capabilities)) {
+  for (const [instKey, instCfg] of Object.entries(instances)) {
+    if (instCfg.state !== 'suppressed') legacyToolset.add(instKey);
   }
+}
 
-  settings.disabledMcpjsonServers = Array.from(suppressedMcpServers).sort();
+const claudeCfg = readClaudeCodeConfig(outDir);
+const projectMcp = new Set(Object.keys(claudeCfg.mcp.mcpServers ?? {}));
 
-  const tmpPath = `${claudeSettingsPath}.tmp.${Date.now()}`;
-  fs.writeFileSync(tmpPath, JSON.stringify(settings, null, 2) + '\n');
-  fs.renameSync(tmpPath, claudeSettingsPath);
-  console.log(`Updated ${claudeSettingsPath}`);
+function unifiedDiff(before, after, filePath) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'toolset-dry-run-'));
+  const a = path.join(dir, 'a');
+  const b = path.join(dir, 'b');
+  fs.writeFileSync(a, before);
+  fs.writeFileSync(b, after);
+  const res = spawnSync('diff', ['-u', '--label', `a/${filePath}`, '--label', `b/${filePath}`, a, b], { encoding: 'utf8' });
+  fs.rmSync(dir, { recursive: true, force: true });
+  return res.stdout;
+}
+
+// 1+2. Adapter-Dispatcher (T900791): ersetzt Block (1) claude-suppressed und Block (2)
+// opencode-mcpServers. Jede Harness mit Adapter rendert ihr Konfigurationsziel im Speicher.
+for (const [name, adapter] of Object.entries(ADAPTERS)) {
+  if (onlyHarness && name !== onlyHarness) continue;
+  const harness = registry.harnesses?.[name];
+  if (harness && harness.config === null) continue;
+  const targetPath = path.join(outDir, adapter.file);
+  if (!fs.existsSync(targetPath)) {
+    console.log(`SKIP ${name}: ${adapter.file} missing`);
+    continue;
+  }
+  const toolset = harness ? resolveToolset(registry.capabilities, harness) : legacyToolset;
+  const ctx = name === 'claude'
+    ? { toolset, registryMcp, suppressedMcp, projectMcp }
+    : { toolset, registryMcp };
+  const current = fs.readFileSync(targetPath, 'utf8');
+  const rendered = adapter.render(current, ctx);
+  if (rendered === current) continue;
+  if (dryRun) {
+    console.log(`DRIFT ${name} ${adapter.file}`);
+    process.stdout.write(unifiedDiff(current, rendered, adapter.file));
+    continue;
+  }
+  const tmpPath = `${targetPath}.tmp.${Date.now()}`;
+  fs.writeFileSync(tmpPath, rendered);
+  fs.renameSync(tmpPath, targetPath);
+  console.log(`Updated ${targetPath}`);
 }
 
 // 3. Sync plugin: curation decisions → registry/settings.json
@@ -58,10 +133,13 @@ for (const [capName, instances] of Object.entries(registry.capabilities)) {
   }
 }
 
-if (Object.keys(pluginInstances).length > 0) {
+// Im Dry-Run schreibt Block (3) nichts und meldet nichts: registry/settings.json ist ein
+// generiertes, unversioniertes Artefakt, kein verwaltetes Harness-Konfigurationsziel —
+// die Dry-Run-Vorschau deckt die Adapter-Ziele ab.
+if (Object.keys(pluginInstances).length > 0 && !dryRun) {
   const settingsDir = path.join(outDir, 'registry');
-  fs.mkdirSync(settingsDir, { recursive: true });
   const settingsPath = path.join(settingsDir, 'settings.json');
+  fs.mkdirSync(settingsDir, { recursive: true });
   const settings = {};
   try {
     settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
@@ -73,28 +151,4 @@ if (Object.keys(pluginInstances).length > 0) {
   fs.writeFileSync(tmpPath, JSON.stringify(settings, null, 2) + '\n');
   fs.renameSync(tmpPath, settingsPath);
   console.log(`Updated ${settingsPath} (${Object.keys(pluginInstances).length} plugin decisions)`);
-}
-
-// 2. Surgical update of .opencode/opencode.jsonc
-const opencodeConfigPath = path.join(outDir, '.opencode', 'opencode.jsonc');
-if (fs.existsSync(opencodeConfigPath)) {
-  let content = fs.readFileSync(opencodeConfigPath, 'utf8');
-  // For opencode, we update the "enabled" field of mcpServers if they exist
-  try {
-    const stripped = content.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
-    const config = JSON.parse(stripped);
-    if (config.mcpServers) {
-      for (const serverName of Object.keys(config.mcpServers)) {
-        const isSuppressed = suppressedMcpServers.has(serverName);
-        config.mcpServers[serverName].enabled = !isSuppressed;
-      }
-      const tmpPath = `${opencodeConfigPath}.tmp.${Date.now()}`;
-      fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2) + '\n');
-      fs.renameSync(tmpPath, opencodeConfigPath);
-      console.log(`Updated ${opencodeConfigPath}`);
-    }
-  } catch (e) {
-    console.error(`Failed to update ${opencodeConfigPath}: ${e.message}`);
-    process.exit(1);
-  }
 }

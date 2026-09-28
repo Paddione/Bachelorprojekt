@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "slug": "nvim-editor-wiring",
+    "ticket_id": "",
+    "generated_from": "main@f9ad0c392",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "dotfiles/nvim/init.lua",
+      "language": "text",
+      "loc": 38,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/neovim-dashboard.bats",
+      "language": "bash",
+      "loc": 2451,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:5:fail() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "5:fail() {(...)",
+      "type_text": "5:fail() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:10:setup() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "10:setup() {(...)",
+      "type_text": "10:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:36:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "36:teardown() {(...)",
+      "type_text": "36:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:41:write_load_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "41:write_load_probe() {(...)",
+      "type_text": "41:write_load_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:106:write_gitroot_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "106:write_gitroot_probe() {(...)",
+      "type_text": "106:write_gitroot_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:180:write_home_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "180:write_home_probe() {(...)",
+      "type_text": "180:write_home_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:351:write_action_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "351:write_action_probe() {(...)",
+      "type_text": "351:write_action_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:513:write_editor_capability_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "513:write_editor_capability_probe() {(...)",
+      "type_text": "513:write_editor_capability_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:540:write_editor_noformat_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "540:write_editor_noformat_probe() {(...)",
+      "type_text": "540:write_editor_noformat_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:569:write_editor_parsers_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "569:write_editor_parsers_probe() {(...)",
+      "type_text": "569:write_editor_parsers_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:694:write_findfile_cwd_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "694:write_findfile_cwd_probe() {(...)",
+      "type_text": "694:write_findfile_cwd_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:793:write_github_shape_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "793:write_github_shape_probe() {(...)",
+      "type_text": "793:write_github_shape_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:823:write_github_order_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "823:write_github_order_probe() {(...)",
+      "type_text": "823:write_github_order_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:851:write_github_guard_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "851:write_github_guard_probe() {(...)",
+      "type_text": "851:write_github_guard_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:907:write_github_noformat_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "907:write_github_noformat_probe() {(...)",
+      "type_text": "907:write_github_noformat_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:965:write_sdlc_shape_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "965:write_sdlc_shape_probe() {(...)",
+      "type_text": "965:write_sdlc_shape_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:992:write_sdlc_order_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "992:write_sdlc_order_probe() {(...)",
+      "type_text": "992:write_sdlc_order_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:1024:write_sdlc_noop_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "1024:write_sdlc_noop_probe() {(...)",
+      "type_text": "1024:write_sdlc_noop_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:1536:write_ai_agents_focus_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "1536:write_ai_agents_focus_probe() {(...)",
+      "type_text": "1536:write_ai_agents_focus_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:1939:write_js_frontend_boundary_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "1939:write_js_frontend_boundary_probe() {(...)",
+      "type_text": "1939:write_js_frontend_boundary_probe() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

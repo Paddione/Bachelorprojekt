@@ -25,7 +25,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: paddione/factory-runner
 
-  OPENSPEC_TELEMETRY: '0'
 jobs:
   build-push:
     name: Build and push

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# T002582 — der in openspec/specs/local-llm-proxy.md zugesagte statische Lint.
+# T002582 — der in docs/superpowers/specs/local-llm-proxy.md zugesagte statische Lint.
 #
 # Die SSOT beschreibt unter "Static config lint blocks backend-port bypasses"
 # eine ueberwachte Flaeche von Gateway-Konsumenten, in der kein direktes
@@ -28,8 +28,6 @@ setup() {
   bash "$REPO/scripts/devmesh/render-stack.sh" core > "$RENDERED_LLM_SERVICES" 2>/dev/null || true
   # Ueberwachte Flaeche laut SSOT-Szenario. provider-register-local.sh ist der
   # umbenannte provider-register-bonsai.sh (T002582).
-  # T003205: die bge-Konsumenten bge-mcp.service und openspec-embed-local.sh
-  # kommen dazu — sie duerfen kein direktes Backend-Port-Literal mehr tragen.
   # T900191/D7: bge-mcp.service ist geloescht — an seine Stelle tritt das unten
   # gerenderte llm-services-Deployment (RENDERED_LLM_SERVICES), damit die
   # ueberwachte Flaeche nicht ersatzlos schrumpft.
@@ -41,18 +39,8 @@ setup() {
   # Lint deckt jetzt die verbleibenden Gateway-Konsumenten ab.
   SURFACES=(
     ".opencode/agent-models.jsonc"
-    "scripts/openspec-embed-local.sh"
   )
-  # Nur die Routing-Flaechen: hier entscheidet ein Modellname, wohin ein
-  # Request tatsaechlich geht. .opencode/agent-models.jsonc ist bewusst NICHT
-  # dabei — das ist ein Auswahlkatalog fuer den opencode-Modellwaehler, keine
-  # Route. Ein veralteter Eintrag dort erzeugt einen sichtbaren Fehler bei der
-  # Auswahl, nicht die stille Fehlleitung, gegen die dieser Lint gebaut ist.
-  # Der Backend-Port-Test unten deckt die Datei weiterhin ab, wie es das
-  # SSOT-Szenario verlangt.
-  ROUTING_SURFACES=(
-    "scripts/openspec-embed-local.sh"
-  )
+
 }
 
 # Eine Zeile, deren erstes nicht-leeres Zeichen '#' oder '//' ist, dokumentiert
@@ -74,7 +62,7 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
   if [ ${#missing[@]} -gt 0 ]; then
     echo "Fehlende Flaechen-Dateien: ${missing[*]}" >&2
     echo "Entweder wurde eine Datei umbenannt/geloescht, ohne SURFACES hier und" >&2
-    echo "das Szenario in openspec/specs/local-llm-proxy.md nachzuziehen." >&2
+    echo "die ueberwachte Flaeche hier nachzuziehen." >&2
     return 1
   fi
 }
@@ -101,22 +89,6 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
   if [ -n "$hits" ]; then
     printf 'Direkte Backend-Ports gefunden (erlaubt nur in Registry-Seeds/Migrationen und in scripts/llm/loadouts.json):\n' >&2
     printf "$hits" >&2
-    return 1
-  fi
-}
-
-@test "T002582: keine zurueckgezogenen Modell-IDs in den Routing-Flaechen" {
-  local hits=""
-  for f in "${ROUTING_SURFACES[@]}"; do
-    [ -e "$REPO/$f" ] || continue
-    local h
-    h="$(_active_lines 'ternary-bonsai-27b|gemma-4-12b' "$REPO/$f")"
-    [ -n "$h" ] && hits="${hits}${f}:\n${h}\n"
-  done
-  if [ -n "$hits" ]; then
-    printf 'Zurueckgezogene Modell-IDs als aktiver Wert (kein Backend serviert sie):\n' >&2
-    printf "$hits" >&2
-    printf 'Aktuell ist gemma26-factory ueber das Gateway http://127.0.0.1:18235.\n' >&2
     return 1
   fi
 }

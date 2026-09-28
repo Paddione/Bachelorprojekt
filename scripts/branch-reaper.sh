@@ -8,7 +8,7 @@
 #
 # Warum es dieses Skript gibt:
 #   Seit T004612 löscht der Merge-Flow Branches bewusst NICHT mehr (delete_branch_on_merge=false,
-#   kein --delete-branch im Fix-PR-Merge — das OpenSpec-Archiv braucht den Branch nach dem Merge).
+#   kein --delete-branch im Fix-PR-Merge — die Plan-Archivierung braucht den Branch nach dem Merge).
 #   Der Reaper ist damit nicht mehr nur Netz für Sammel-PR-Branches (Plan- und Factory-Branches
 #   laufen über einen Sammel-PR nach main — auf ihrem eigenen Ref findet nie ein Merge-Event
 #   statt), sondern der reguläre Aufräumer für ALLE gemergten Branches. Am 2026-08-01 lagen so
@@ -57,7 +57,7 @@ REPO_DIR="$(cd "$HERE/.." && pwd)"
 # Pfade, deren Abweichung von main folgenlos ist: Plan-Artefakte, die nie einzeln nach main
 # wandern, und generierte Dateien, die auf main ohnehin fortgeschrieben werden.
 ALLOWLIST=(
-  'openspec/changes/*'
+  '.agents/plans/*'
   'docs/code-quality/*'
   'components/website/src/data/*'
   '.release-please-manifest.json'

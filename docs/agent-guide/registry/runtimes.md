@@ -21,7 +21,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `deepseek-flash` | `opencode-go/deepseek-v4-flash` (all, write) | Parallel-Throughput bis 3 |
 | `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API, all, write) | Direkte API (bypass Go gateway) |
 | `reviewer` | `llamacpp-local/Muse-Glimmer-30B` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
-| `plan-worker-4b` | `llamacpp-qwen35/Qwen3.5-4B-MTP` (primary, write; 3 Slots :1920) | plan-runner-Worker: führt ein OpenSpec-Partial aus; via `scripts/llm/plan-runner.mjs`, nicht interaktiv [T900504] |
+| `plan-worker-4b` | `llamacpp-qwen35/Qwen3.5-4B-MTP` (primary, write; 3 Slots :1920) | plan-runner-Worker: führt ein plan-Partial aus; via `scripts/llm/plan-runner.mjs`, nicht interaktiv [T900504] |
 | `plan-worker-self` | `llamacpp-local/Muse-Glimmer-30B` (primary, write; :1919) | plan-runner-Fallback wenn alle 4B-Slots belegt; ein Partial in einem Lauf [T900504] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 

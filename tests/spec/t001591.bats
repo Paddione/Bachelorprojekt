@@ -8,7 +8,7 @@
 # implementation; do not delete — re-enable once `testHarness` exists.
 
 setup() {
-  skip "T001591 not yet implemented — testHarness wrapper does not exist (see openspec/changes/t001591)"
+  skip "T001591 not yet implemented — testHarness wrapper does not exist (see .agents/plans/t001591)"
 }
 
 @test "t001591: harness detects visual requests correctly" {

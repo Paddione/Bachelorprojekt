@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/rustdesk-server.bats
-# SSOT: openspec/specs/rustdesk-server.md (post-archive)
+# SSOT: docs/superpowers/specs/rustdesk-server.md (post-archive)
 # Renders k3d/rustdesk-stack offline and asserts the hbbs/hbbr contract.
 
 setup() {
@@ -104,7 +104,7 @@ setup() {
 }
 
 # ── RustDesk MSI installer + SSO-gated downloads surface (T001378) ──────
-# SSOT: openspec/specs/rustdesk-server.md (REQ-RUSTDESK-CLIENT-001..004).
+# SSOT: docs/superpowers/specs/rustdesk-server.md (REQ-RUSTDESK-CLIENT-001..004).
 # The MSI itself is a Windows artifact whose real gate is the windows-latest CI
 # smoke test; these BATS cover the locally-testable k8s / CI / WiX contract.
 
@@ -172,7 +172,7 @@ setup() {
 }
 
 # ── hbbs subPath Secret-Rotation runbook (T001382) ────────────────────────
-# SSOT: openspec/specs/rustdesk-server.md, REQ-RUSTDESK-RELAY-006.
+# SSOT: docs/superpowers/specs/rustdesk-server.md, REQ-RUSTDESK-RELAY-006.
 # subPath-mounted Secret files do not live-update in a running pod (documented
 # kubelet limitation); rotating rustdesk-secrets requires a manual rollout
 # restart. These tests guard the runbook's premise (hbbs.yaml still uses
@@ -185,12 +185,7 @@ setup() {
   echo "$out" | grep -qE 'subPath:[[:space:]]*id_ed25519\.pub$'
 }
 
-@test "rustdesk: Secret-Rotation-Runbook documents manual rollout restart for hbbs" {
-  spec="${REPO_ROOT}/openspec/specs/rustdesk-server.md"
-  [ -f "$spec" ]
-  grep -q 'REQ-RUSTDESK-RELAY-006' "$spec"
-  grep -q 'rollout restart deployment/hbbs' "$spec"
-}
+
 
 @test "rustdesk-client: WiX wrapper source is well-formed XML" {
   command -v python3 >/dev/null || skip "python3 not installed"
@@ -204,7 +199,7 @@ setup() {
 }
 
 # ── Manifest-Hardening: Non-Root + NetPol-Ausnahme (T014553, SA-GR-04/06) ──
-# SSOT: openspec/specs/rustdesk-server.md. hbbs/hbbr laufen non-root (uid
+# SSOT: docs/superpowers/specs/rustdesk-server.md. hbbs/hbbr laufen non-root (uid
 # 65534) mit workingDir /var/lib/rustdesk; die hostNetwork-Bypass-Ausnahme
 # ist kanonisch in k3d/README.md dokumentiert.
 

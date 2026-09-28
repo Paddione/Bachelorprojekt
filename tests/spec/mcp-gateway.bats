@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway.bats
-# SSOT: openspec/specs/mcp-gateway.md
+# MCP gateway behavior.
 #
 # Covers: OAuth2 proxy MCP bypass, MCP server registration, ops agent output-trust.
 
@@ -442,62 +442,4 @@ assert_selection_alive() {  # <kandidatenliste>
   echo "$output"
   [ "$status" -eq 0 ]
   [[ "$output" == *"OK"* ]]
-}
-
-# ── MCP Monolith Deployment Reality In SSOT (T002321) ──────────────────
-
-@test "mcp-gateway spec names the deployment that actually serves MCP" {
-  # [T900107] Der Guard haengt jetzt am dev-pod-Manifest. Zuvor stand hier
-  # `if [ -f k3d/default/claude-code-mcp-monolith-deploy.yaml ]` — mit dem
-  # Entfernen dieses Manifests waere der Rumpf still uebersprungen worden und
-  # der Test haette bestanden, ohne noch irgendetwas zu pruefen.
-  [ -f "$REPO/$DEV_POD_MANIFEST_REL" ] \
-    || { echo "dev-pod-Manifest fehlt — der Guard haette vakuos bestanden"; false; }
-
-  # Positiv-Anker: der Spec nennt das Deployment, das tatsaechlich bedient.
-  run grep -q 'dev-pod' "$REPO/openspec/specs/mcp-gateway.md"
-  [ "$status" -eq 0 ] || { echo "Spec nennt den dev-pod gar nicht"; false; }
-
-  if true; then
-    # Nur normative Prosa pruefen. Scenario-Bloecke beschreiben die Pruefbedingung
-    # und duerfen das Wort tragen: nach dem Archivieren des Changes steht der
-    # GIVEN-Text ("trug die Notiz, ... sei dekommissioniert") im SSOT und wuerde
-    # einen Grep ueber das ganze Dokument dauerhaft rot faerben.
-    # Ein Scenario-Block endet bei der ersten Zeile, die weder leer noch eine
-    # Bullet-Zeile noch deren eingerueckte Fortsetzung ist — NICHT erst bei der
-    # naechsten Ueberschrift, sonst verschluckt der Filter den gesamten Rest der
-    # Datei nach dem letzten Scenario.
-    run bash -c "awk '
-      /^#### Scenario:/                  { in_s = 1; next }
-      in_s && /^([[:space:]]*\$|[[:space:]]+|- )/ { next }
-      { in_s = 0 }
-      !in_s
-    ' \"$REPO/openspec/specs/mcp-gateway.md\" | grep -Eq 'dekommissioniert|decommissioned'"
-    [ "$status" -ne 0 ]
-
-    # [T002375-p7] Negativ-Probe zum Filter selbst. Der erste Fix-Versuch in PR #3398
-    # beendete Scenario-Bloecke erst bei der naechsten #-Ueberschrift und verschluckte
-    # damit den GESAMTEN Dateirest nach dem letzten Scenario — der Test waere unbemerkt
-    # dauerhaft gruen geblieben. Hier wird deshalb belegt, dass der Filter noch Substanz
-    # durchlaesst: eine Ueberschrift, die garantiert im Dokument steht, muss ihn passieren.
-    run bash -c "awk '
-      /^#### Scenario:/                  { in_s = 1; next }
-      in_s && /^([[:space:]]*\$|[[:space:]]+|- )/ { next }
-      { in_s = 0 }
-      !in_s
-    ' \"$REPO/openspec/specs/mcp-gateway.md\" | grep -cE '^#+ '"
-    [ "$output" -gt 0 ] || {
-      echo "der Scenario-Filter verschluckt den Dateirest — der Abwesenheitstest waere dauerhaft gruen"; false; }
-  fi
-}
-
-@test "mcp-gateway spec documents the Flux delivery path of the dev-pod" {
-  # [T900107] Der Vorgaenger-Guard verlangte, dass der Spec den manuellen
-  # Apply-Weg von k3d/default dokumentiert. Genau dieser Weg war der Mangel;
-  # geprueft gehoert jetzt, dass der Spec die Flux-Zustellung benennt.
-  run grep -q 'ks-dev-pod.yaml' "$REPO/openspec/specs/mcp-gateway.md"
-  [ "$status" -eq 0 ] || { echo "Spec nennt die Flux-Kustomization des dev-pod nicht"; false; }
-
-  run grep -qi 'Flux-GitOps-Pipeline\|Flux pipeline' "$REPO/openspec/specs/mcp-gateway.md"
-  [ "$status" -eq 0 ]
 }

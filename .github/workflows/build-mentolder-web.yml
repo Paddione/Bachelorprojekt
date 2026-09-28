@@ -12,9 +12,6 @@ concurrency:
   group: build-mentolder-web-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   build-and-deploy:
     name: Build & Deploy (react.mentolder.de)

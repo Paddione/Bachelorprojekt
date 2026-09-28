@@ -6,7 +6,7 @@
 // Selbstaufruf `opencode run --agent plan-worker-self`. Waehrend des Selbstaufrufs vergibt der Scheduler freie
 // 4B-Slots selbst und meldet die Ergebnisse nach der Rueckkehr. Fortschritt:
 // <plan-dir>/.plan-runner/state.json (atomar, Resume nach Abbruch; Plan-Heimat seit C7a:
-// .agents/plans/<slug>/, davor openspec/changes/<slug>/).
+// .agents/plans/<slug>/, davor .agents/plans/<slug>/).
 //
 // Aufruf:
 //   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N] [--max-turns N] [--timeout-min N]
@@ -97,7 +97,7 @@ function loadPlan(opts) {
 }
 
 // ---------- Orchestrator-Protokoll ----------
-const SYSTEM = `You are the orchestrator of a plan runner. You execute an OpenSpec plan that is split into partials.
+const SYSTEM = `You are the orchestrator of a plan runner. You execute an staged plan that is split into partials.
 Each partial is implemented by a worker: a small 4B model (dispatch_4b) or, only when every 4B slot is busy, yourself (execute_self).
 Rules:
 - Prefer the 4B workers. Call execute_self ONLY when plan_status shows free4b = 0 and a partial is ready.

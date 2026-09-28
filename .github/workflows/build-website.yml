@@ -21,9 +21,6 @@ concurrency:
   group: build-website-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   build-image:
     name: Build Website Image

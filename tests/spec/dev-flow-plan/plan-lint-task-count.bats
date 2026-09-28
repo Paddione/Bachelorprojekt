@@ -125,7 +125,7 @@ mkplan() {
   ! echo "$output" | grep -q 'G2'
 }
 
-@test "G2 zaehlt auch das OpenSpec-Format '## N. Titel', nicht nur '## Task N'" {
+@test "G2 zaehlt auch das plan-Format '## N. Titel', nicht nur '## Task N'" {
   # 17 von 95 Plaenen nutzten am 2026-08-03 das nummerierte Skeleton-Format. Zaehlt
   # G2 es nicht, warnt es dort "0 Tasks" — eine Warnung, die man ignorieren lernt.
   local p="$BATS_TEST_TMPDIR/numeriert.md"

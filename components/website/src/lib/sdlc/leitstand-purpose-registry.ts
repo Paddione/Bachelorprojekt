@@ -35,8 +35,8 @@ export const leitstandPurposes: Record<string, LeitstandPurpose> = {
     aktionen: ['Routing-Regel aendern', 'Factory-Standardmodell setzen'],
   },
   'deck-wissen': {
-    zweck: 'API-Katalog und OpenSpec-Suche als Nachschlage-Deck anbieten.',
-    datenquelle: 'api-inventory.json, OpenSpec-Suchindex',
+    zweck: 'API-Katalog und Prompt-Bibliothek als Nachschlage-Deck anbieten.',
+    datenquelle: 'api-inventory.json, Prompt-Bibliothek',
     aktionen: [],
   },
   'kpi-grid': {

@@ -7,7 +7,6 @@ on:
     # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
     # still trigger this workflow so the branch-protection required checks
     # (BATS Unit + Quality Gates, Manifest Validation,
-    # Factory + OpenSpec + Guards, Security Scan, Brett TypeScript,
     # Vitest (website), Conventional Commits) report success — otherwise
     # mergeStateStatus stays BLOCKED indefinitely and admin-merge is required.
     # See mishap T001149-M3.
@@ -51,7 +50,6 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   PUPPETEER_SKIP_DOWNLOAD: 'true'
 
-  OPENSPEC_TELEMETRY: '0'
 jobs:
   # [T012446] Portable Gates laufen GitHub-hosted. Dadurch koennen Fork-PRs
   # ihre secret-freien Validierungen ausfuehren, ohne eigenen Code auf unserer
@@ -217,15 +215,6 @@ jobs:
           fi
           echo "✅ Freshness and quality gates passed"
 
-      - name: OpenSpec spec-drift advisory gate [T001979]
-        if: github.event_name == 'pull_request'
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          # Advisory Phase 1: drift => exit 0 (warnings only). exit >=2 means the
-          # script itself broke and MUST fail CI — so NO continue-on-error here.
-          bash scripts/openspec-drift-check.sh
-
   test-evals:
     # Agent evals (tests/evals/): stability probes anyone may run and maintain.
     # (Human-only policy removed per owner decree [T900560-C5b].)
@@ -306,7 +295,6 @@ jobs:
   # [T002500] Vorher war das EIN Job mit ~400s, dem kritischen Pfad jedes PRs
   # (zweitlaengster Job: 165s). Zwei Probleme, beide hier behoben:
   #
-  #   1. Die billigen Gates (OpenSpec-Validierung: 1s) standen HINTER der
   #      6-Minuten-BATS-Suite und liefen bei deren Fehlschlag gar nicht mehr.
   #      Eine kaputte Spec meldete sich also erst nach sechs Minuten — oder,
   #      wenn vorher ein Test rot wurde, ueberhaupt nicht.
@@ -314,15 +302,14 @@ jobs:
   #      Mehr `bats -j` auf EINEM Runner war ausgereizt; der einzige Hebel
   #      sind mehr Runner. Details in scripts/spec-shard.sh.
   #
-  # Der Aggregator `test-factory` behaelt den Namen "Factory + OpenSpec + Guards",
   # weil genau dieser String als Required Status Check in der Branch Protection
   # von main haengt. Eine nackte Matrix haette ihn in "… (1)".."… (4)" umbenannt
   # und jeden PR dauerhaft blockiert.
 
-  test-factory-openspec:
+  test-factory-fast:
     # Die billigen, hochsignalhaften Gates — laufen parallel zu den Shards und
     # melden nach ~30s statt nach ~400s.
-    name: Factory OpenSpec + Guards (fast)
+    name: Factory fast guards
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -567,24 +554,24 @@ jobs:
     # needs uebersprungen und damit das Gate lautlos oeffnen.
     name: Factory + OpenSpec + Guards
     if: always() && github.event.action != 'edited'
-    needs: [test-factory-openspec, test-factory-shard]
+    needs: [test-factory-fast, test-factory-shard]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Aggregate shard + gate results
         env:
-          OPENSPEC_RESULT: ${{ needs.test-factory-openspec.result }}
+          FAST_RESULT: ${{ needs.test-factory-fast.result }}
           SHARDS_RESULT: ${{ needs.test-factory-shard.result }}
         run: |
-          echo "OpenSpec + Guards : $OPENSPEC_RESULT"
+          echo "Fast guards : $FAST_RESULT"
           echo "Spec shards (1-4) : $SHARDS_RESULT"
           # SHARDS_RESULT ist das Aggregat ueber ALLE Matrix-Legs — 'success'
           # nur, wenn jeder einzelne Shard erfolgreich war.
-          if [ "$OPENSPEC_RESULT" = "success" ] && [ "$SHARDS_RESULT" = "success" ]; then
+          if [ "$FAST_RESULT" = "success" ] && [ "$SHARDS_RESULT" = "success" ]; then
             echo "Alle Factory-Gates gruen."
             exit 0
           fi
-          echo "::error::Factory-Gates nicht gruen (openspec=$OPENSPEC_RESULT shards=$SHARDS_RESULT)"
+          echo "::error::Factory-Gates nicht gruen (fast=$FAST_RESULT shards=$SHARDS_RESULT)"
           exit 1
 
   # ── End scoped test jobs ──────────────────────────────────────────

@@ -68,10 +68,10 @@ import sys, yaml
 MAPPING = {
     "test-bats":              "bats-unit",
     "test-manifests":         "manifests",
-    # C7a-B1 (T900560): factory-openspec auf GitLab ist mit test:openspec
-    # retired — der Job spiegelte nur das OpenSpec-Format-Gate, nicht den
+    # C7a-B1 (T900560): factory-plan auf GitLab ist mit test:plan
+    # retired — der Job spiegelte nur das plan-Format-Gate, nicht den
     # ticket-mcp-Test des GitHub-Gegenstuecks. Bewusst ausgelassen.
-    "test-factory-openspec":  None,
+    "test-factory-fast":  None,
     "test-factory-shard":     "factory-shard",
     # Aggregator ohne Gegenstueck: test-factory existiert auf GitHub ausschliesslich,
     # weil ein UEBERSPRUNGENER Required Check in der Branch Protection als bestanden
@@ -170,7 +170,7 @@ PY
   # ueberholte Pipeline Kapazitaet, die die aktuelle braucht.
   run python3 - "$GL_YML" <<'PY'
 import sys, yaml
-NEW_JOBS = ["factory-shard", "brett-typescript",  # C7a-B1: factory-openspec retired
+NEW_JOBS = ["factory-shard", "brett-typescript",  # C7a-B1: factory-plan retired
             "vitest-website", "commit-lint", "lighthouse", "evals"]
 with open(sys.argv[1]) as fh:
     doc = yaml.safe_load(fh) or {}

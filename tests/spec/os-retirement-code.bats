@@ -10,7 +10,8 @@ _offenders() {
   local f
   while IFS= read -r f; do
     [[ -n "$f" && -e "$REPO/$f" ]] || continue
-    grep -qiE "openspec|opsx" "$REPO/$f" && echo "$f"
+    # Branch protection still requires this exact job name until A3b.
+    grep -iE "openspec|opsx" "$REPO/$f" | grep -qvFx "    name: Factory + OpenSpec + Guards" && echo "$f"
   done < "$1"
   return 0
 }

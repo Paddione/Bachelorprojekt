@@ -3,7 +3,7 @@
 # Jeder Schluessel MUSS einem von scripts/sdlc/api-inventory.mjs
 # gescannten Endpunkt/Server/Tool entsprechen -- sonst schlaegt die
 # Generierung fehl (Requirement "API Connector Inventory" in
-# openspec/specs/sdlc-cockpit.md, Szenario "Orphaned overlay entry
+# docs/superpowers/specs/sdlc-cockpit.md, Szenario "Orphaned overlay entry
 # fails"). Fehlende Kuration ist erlaubt: nicht gelistete Eintraege
 # behalten description/tier/deprecated = null.
 routes:

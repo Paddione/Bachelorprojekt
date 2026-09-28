@@ -23,11 +23,6 @@ on:
 permissions:
   pull-requests: write
 
-env:
-  # T001265: CI-wide OpenSpec telemetry opt-out (blanket convention, applied
-  # regardless of whether this workflow invokes the openspec CLI directly).
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   auto-title:
     name: Auto-title PR from branch name
@@ -104,7 +99,7 @@ jobs:
           #   plain-description         → no scope
           # SLUG is sanitized (alphanumeric + hyphens only after BRANCH sanitization).
           SCOPE=""
-          # Pattern: optional "g-" then 2-4 alpha chars + 2-3 digits (OpenSpec category code)
+          # Pattern: optional "g-" then 2-4 alpha chars + 2-3 digits (category code)
           # sed kennt kein -P: Perl-Regex gibt es nur in grep. Mit -nP druckt sed
           # seine Hilfeseite und endet mit 1, der Job faellt rot aus (T900095).
           # Deshalb hier ERE (-E), in das die Perl-Konstrukte uebersetzt sind:

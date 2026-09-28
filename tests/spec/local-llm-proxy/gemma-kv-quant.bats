@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/gemma-kv-quant.bats
-# SSOT: openspec/specs/local-llm-proxy.md
+# SSOT: docs/superpowers/specs/local-llm-proxy.md
 # Ticket: T002459 (Korrektur aus T002501)
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Geprueft
@@ -181,7 +181,7 @@ print(lo[0]['port'] if lo else '')
   health_code=$(llm_endpoint_healthy "http://127.0.0.1:${port}/health") || \
     skip "gemma26-factory auf :${port} nicht verfügbar (HTTP ${health_code})"
 
-  local NEEDLE1="openspec/changes/fix-korczewski-zero-replicas-T002539/tasks.md"
+  local NEEDLE1=".agents/plans/fix-korczewski-zero-replicas-T002539/tasks.md"
   local NEEDLE2="kustomize build prod-fleet/korczewski --load-restrictor=LoadRestrictionsNone"
   local NEEDLE3='function buildServerArgv(loadout, modelPath, defaults, overrides)'
   local NEEDLE4="oci://ghcr.io/paddione/fleet-manifests:latest"

@@ -15,7 +15,7 @@ export async function runCodeWorker({ variant, inputs, endpoints, workdir, recor
   const artifacts = { plan: null, reference: null };
   const isolated = Boolean(inputs.partialFile);
   if (!isolated) {
-    const changeDir = join(workdir, 'openspec', 'changes', inputs.slug || basename(workdir));
+    const changeDir = join(workdir, '.agents', 'plans', inputs.slug || basename(workdir));
     const tasks = join(changeDir, 'tasks.md');
     if (!existsSync(tasks)) return { ...emptyResult([{ kind: 'protocol_error' }]), cleanup: null };
     const manifest = parseManifest(readFileSync(tasks, 'utf8'));

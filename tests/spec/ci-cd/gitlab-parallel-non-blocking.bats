@@ -170,7 +170,7 @@ PY
   # Anders als Test 1, der drei Kern-Jobs prueft, deckt dieser ALLE zehn
   # Offline-Gate-Jobs ab: nach Etappe 3 hat jeder von ihnen ein GitLab-Gegenstueck,
   # jeder waere also ein Kandidat fuers Abschalten.
-  ALL_GATES="test-bats test-manifests test-factory-openspec test-factory-shard test-factory security-scan brett-typescript vitest-website commit-lint lighthouse"
+  ALL_GATES="test-bats test-manifests test-factory-fast test-factory-shard test-factory security-scan brett-typescript vitest-website commit-lint lighthouse"
 
   found=0
   missing=""

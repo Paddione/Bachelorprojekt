@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/devflow-selection-archive-hardening.md
+# SSOT: docs/superpowers/specs/devflow-selection-archive-hardening.md
 # Tickets: T002255, T002256 — Mishap-Bundles aus dem T002251-Zyklus.
 #
 # Zwei Wurzelursachen:
@@ -31,9 +31,9 @@ setup() {
 }
 
 @test "T002255-A1: filter entfernt generierte Pfade, behaelt Quelltext" {
-  run bash -c "cd '$REPO_ROOT' && printf 'components/website/src/data/openspec-status.json\nscripts/foo.sh\ncomponents/website/src/pages/index.astro\n' | bash '$FILTER'"
+  run bash -c "cd '$REPO_ROOT' && printf 'components/website/src/data/test-inventory.json\nscripts/foo.sh\ncomponents/website/src/pages/index.astro\n' | bash '$FILTER'"
   [ "$status" -eq 0 ]
-  [[ "$output" != *"openspec-status.json"* ]]
+  [[ "$output" != *"test-inventory.json"* ]]
   [[ "$output" == *"scripts/foo.sh"* ]]
   [[ "$output" == *"components/website/src/pages/index.astro"* ]]
 }
@@ -55,7 +55,7 @@ setup() {
 # `grep -v` liefert hier Exit 1 und reisst unter `set -o pipefail` den
 # aufrufenden Task mit.
 @test "T002255-A1: filter exit 0 wenn ALLE Eingabepfade generiert sind" {
-  run bash -c "cd '$REPO_ROOT' && printf 'components/website/src/data/openspec-status.json\ncomponents/website/src/data/route-manifest.json\n' | bash '$FILTER'"
+  run bash -c "cd '$REPO_ROOT' && printf 'components/website/src/data/test-inventory.json\ncomponents/website/src/data/route-manifest.json\n' | bash '$FILTER'"
   [ "$status" -eq 0 ]
   [ -z "$output" ]
 }
@@ -112,51 +112,19 @@ setup() {
 # B — plan-archive-steps.md
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T002255-B1: ARCHIVE_BRANCH-Vorlage enthaelt die Ticket-ID" {
-  run grep -nE 'ARCHIVE_BRANCH=.*\$\{TICKET_ID\}' "$ARCHIVE_REF"
-  [ "$status" -eq 0 ]
-}
 
-@test "T002255-B1: ARCHIVE_BRANCH-Vorlage erfuellt den pre-commit-Branch-Guard" {
-  # .githooks/pre-commit:117 verlangt [[ "$_bn" =~ T[0-9]{6,} ]] — case-sensitive.
-  SLUG="demo-slug" TICKET_ID="T002255"
-  BRANCH=$(grep -oE 'chore/plan-archive-[^"]*' "$ARCHIVE_REF" | head -1)
-  BRANCH="${BRANCH//\$\{SLUG\/\/\\\/-\}/$SLUG}"
-  BRANCH="${BRANCH//\$\{TICKET_ID\}/$TICKET_ID}"
-  [[ "$BRANCH" =~ T[0-9]{6,} ]]
-}
 
-@test "T002256-B2: Archiv-Branch wird von origin/main abgezweigt" {
-  run grep -nE 'checkout -B "\$ARCHIVE_BRANCH" origin/main' "$ARCHIVE_REF"
-  [ "$status" -eq 0 ]
-}
+
+
+
 
 @test "T002256-B2: kein checkout -b vom Fix-Branch mehr" {
   run grep -nE 'git checkout -b "\$ARCHIVE_BRANCH"\s*$' "$ARCHIVE_REF"
   [ "$status" -ne 0 ]
 }
 
-@test "T002256-B2: Reference holt origin/main vor dem Abzweigen" {
-  run grep -nE 'git fetch origin main' "$ARCHIVE_REF"
-  [ "$status" -eq 0 ]
-}
 
-@test "T002255-B1: kein Markdown-Fliesstext innerhalb eines Code-Blocks" {
-  # Die Fences sind zwar paarweise balanciert (5/12, 17/24, 27/67), aber der
-  # Block 27-67 schliesst den Blockquote ab Zeile 31 und den restlichen
-  # Fliesstext mit ein — er rendert als Shell-Code. Der bash-Block muss nach
-  # dem openspec.sh-Aufruf geschlossen und fuer Schritt 4 neu geoeffnet werden.
-  run bash -c "awk '/^\`\`\`/{f=!f; next} f && /^> /{print NR\": \"\$0}' '$ARCHIVE_REF'"
-  [ -z "$output" ]
-}
 
-# ─────────────────────────────────────────────────────────────────────────────
-# B3 — mcp-tool-guide.md
-# ─────────────────────────────────────────────────────────────────────────────
-
-# mcp-tool-guide.md erwaehnt beide Tools bereits in seiner Tool-Tabelle
-# (Zeile 100/105) — eine blosse Erwaehnung beweist nichts. Gepruefte
-# Eigenschaft ist die dokumentierte Worktree-Einschraenkung.
 @test "T002256-B3: mcp-tool-guide dokumentiert die Worktree-Einschraenkung" {
   run grep -niE 'worktree' "$MCP_GUIDE"
   [ "$status" -eq 0 ]

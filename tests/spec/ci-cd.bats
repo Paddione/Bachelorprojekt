@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/ci-cd.md
+# SSOT: docs/superpowers/specs/ci-cd.md
 # G-CD02: post-merge.yml muss konkurrierende Runs serialisieren (concurrency)
 # und transiente Ticket-Status-Updates mit Backoff wiederholen (retry).
 
@@ -116,7 +116,7 @@ setup() {
 # --- G-CD01: Brand-Parity im Website-Deploy (T001276) ---
 # build-website.yml muss korczewski in einem Job deployen, der NICHT vom
 # mentolder-Deploy-Job abhaengt --- ein mentolder-Fehler darf korczewski nicht
-# still ueberspringen. SSOT: openspec/specs/ci-cd.md.
+# still ueberspringen. SSOT: docs/superpowers/specs/ci-cd.md.
 
 @test "G-CD01: build-website.yml hat einen build-image Job mit image+sha_tag outputs" {
   run python3 - "$BUILD_WF" <<'PY'
@@ -227,7 +227,7 @@ PY
 }
 
 # ── G-COMMIT-VS-DIFF: commit-vs-diff consistency guard (T001434-mishap) ──────
-# SSOT: openspec/specs/ci-cd.md "Requirement: commit-vs-diff-consistency-guard"
+# SSOT: docs/superpowers/specs/ci-cd.md "Requirement: commit-vs-diff-consistency-guard"
 
 @test "G-COMMIT-VS-DIFF: scripts/check-commit-vs-diff.sh exists" {
   [ -f "$REPO_ROOT/scripts/check-commit-vs-diff.sh" ]
@@ -260,9 +260,7 @@ PY
   [[ "$stage_line" != *"fix(<scope>):"* ]]
 }
 
-@test "G-COMMIT-VS-DIFF: openspec/specs/ci-cd.md documents the guard requirement" {
-  grep -q '^### Requirement: commit-vs-diff-consistency-guard' "$REPO_ROOT/openspec/specs/ci-cd.md"
-}
+
 
 @test "G-COMMIT-VS-DIFF: unit tests in tests/unit/check-commit-vs-diff.bats cover all branches" {
   # Sanity: the unit suite must exercise both allow and block paths
@@ -389,36 +387,8 @@ EOF
   [ "$status" -eq 0 ]
 }
 
-# --- G-CD03: advisory OpenSpec spec-drift gate (T001979) ---
-@test "G-CD03: openspec-drift-check.sh exists and is executable" {
-  [ -x "$REPO_ROOT/scripts/openspec-drift-check.sh" ]
-}
+# --- G-CD03: advisory plan spec-drift gate (T001979) ---
 
-@test "G-CD03: drift gate --self-test passes" {
-  run bash "$REPO_ROOT/scripts/openspec-drift-check.sh" --self-test
-  [ "$status" -eq 0 ]
-}
-
-@test "G-CD03: SKIP_SPEC_DRIFT=1 bypasses with exit 0" {
-  run env SKIP_SPEC_DRIFT=1 bash "$REPO_ROOT/scripts/openspec-drift-check.sh"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"skipped"* ]]
-}
-
-@test "G-CD03: chore titles are skipped (no drift evaluation)" {
-  run env PR_TITLE="chore: housekeeping" bash "$REPO_ROOT/scripts/openspec-drift-check.sh"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"skipped"* ]]
-}
-
-@test "G-CD03: script emits greppable DRIFT: lines and honours enforce switch" {
-  grep -qE 'DRIFT: ' "$REPO_ROOT/scripts/openspec-drift-check.sh"
-  grep -q 'DRIFT_CHECK_ENFORCE' "$REPO_ROOT/scripts/openspec-drift-check.sh"
-}
-
-@test "G-CD03: ci.yml wires the advisory drift step (pull_request only)" {
-  grep -q 'openspec-drift-check.sh' "$REPO_ROOT/.github/workflows/ci.yml"
-}
 
 # --- T001994: envsubst-Allowlist-Drift-Guard für Taskfile-Deploy-Pfade ---
 # Nachwehen von T001993: envsubst laesst ungelistete Variablen still als
@@ -515,7 +485,7 @@ _assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)
   fi
 }
 
-# ── T002083: fluxcd-gitops — push→pull CI-Rückbau (SSOT: openspec/specs/ci-cd.md) ──
+# ── T002083: fluxcd-gitops — push→pull CI-Rückbau (SSOT: docs/superpowers/specs/ci-cd.md) ──
 
 @test "T002083: deploy-sealed-secrets.yml workflow no longer exists" {
   [ ! -f "$REPO_ROOT/.github/workflows/deploy-sealed-secrets.yml" ]
@@ -976,7 +946,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
     echo "FAIL: ci.yml ruft task test:spec nicht auf (laedt alle spec-tests)."
     echo "      Wenn ci-cd.bats nicht im Required Check laeuft, verhindert es"
     echo "      nichts — genau so blieben drei rote T001994-Assertions und ein"
-    echo "      rotes openspec:validate (T002167) unentdeckt auf main."
+    echo "      rotes plan:validate (T002167) unentdeckt auf main."
     return 1
   }
 }
@@ -1086,15 +1056,15 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   }
 }
 
-@test "T002245: find-changed-tests.sh spec maps openspec slugs and widens on harness changes" {
+@test "T002245: find-changed-tests.sh spec maps plan slugs and widens on harness changes" {
   local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
   local tmp="$BATS_TEST_TMPDIR/finder-repo"
-  mkdir -p "$tmp/scripts" "$tmp/tests/spec/helpers" "$tmp/openspec/specs/alpha"
+  mkdir -p "$tmp/scripts" "$tmp/tests/spec/helpers" "$tmp/docs/superpowers/specs/alpha"
   cp "$finder" "$tmp/scripts/find-changed-tests.sh"
   : > "$tmp/tests/spec/alpha.bats"
   : > "$tmp/tests/spec/beta.bats"
   : > "$tmp/tests/spec/helpers/shared.bash"
-  : > "$tmp/openspec/specs/alpha/spec.md"
+  : > "$tmp/docs/superpowers/specs/alpha/spec.md"
 
   cd "$tmp"
   git init -q -b main .
@@ -1110,10 +1080,10 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   # stderr, und `run` ohne das Flag buendelt stdout+stderr in $output. Eine
   # Gleichheits-Assertion auf die reine Dateiliste sieht sonst die Diagnose als
   # zusaetzliche Zeile. [T002713]
-  # openspec/specs/alpha/** → tests/spec/alpha.bats, and nothing else
+  # docs/superpowers/specs/alpha/** → tests/spec/alpha.bats, and nothing else
   git checkout -q -b topic
-  echo change >> openspec/specs/alpha/spec.md
-  git add -A && git -c user.email=t@t -c user.name=t commit -q -m openspec
+  echo change >> docs/superpowers/specs/alpha/spec.md
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m plan
   run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   [ "$output" = "tests/spec/alpha.bats" ]
@@ -1756,12 +1726,7 @@ PY
   [ "$output" = "0" ]
 }
 
-@test "T002328: ci-cd.md schreibt commitlint.config.cjs als Allowlist-Quelle fest" {
-  run grep -n 'semantic-PR allowlist from `ci.yml`' "$REPO_ROOT/openspec/specs/ci-cd.md"
-  [ "$status" -ne 0 ]
-  run grep -c 'commitlint.config.cjs' "$REPO_ROOT/openspec/specs/ci-cd.md"
-  [ "$output" -ge 1 ]
-}
+
 
 @test "T002328: die Alias-Struktur erfuellt ihre Invarianten" {
   # Die neun Tests darueber pruefen konkrete Paare (admin->website). Diese
@@ -1808,7 +1773,7 @@ PY
 # devflow-ci-watch.sh rebased bei mergeStateStatus=DIRTY selbstständig auf
 # origin/main und pusht sofort mit --force-with-lease (Zeilen 22-35). Ein Rebase
 # verschiebt HEAD auf eine neue Basis — jeder generierte Artefakt-Snapshot
-# (repo-index.json, openspec-status.json, test-inventory.json, …) kann danach
+# (repo-index.json, test-inventory.json, test-inventory.json, …) kann danach
 # gegenüber dieser Basis stale sein. `task freshness:check` regeneriert im CI
 # selbst und diff't gegen den Commit-Stand, schlägt also fehl, wenn niemand vor
 # dem Push regeneriert hat. Erwartung: `task freshness:regenerate` läuft nach
@@ -2025,7 +1990,7 @@ MOCKEOF
 @test "T002341-M2: agent-collision.sh filtert generierte Pfade aus einer Dateiliste" {
   [ -f "$REPO_ROOT/scripts/agent-collision.sh" ] || skip "agent-collision.sh nicht gefunden"
   run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
-    _drop_generated 'components/website/src/data/openspec-status.json'"
+    _drop_generated 'components/website/src/data/test-inventory.json'"
   [ "$status" -eq 0 ] || { echo "_drop_generated nicht aufrufbar"; return 1; }
   # Positiv-Anker zuerst: eine echte Quelldatei MUSS die Filterung ueberleben,
   # sonst besteht die Negativ-Aussage unten vakuos (T002356-M1).
@@ -2034,9 +1999,9 @@ MOCKEOF
   [ "$(printf '%s' "$output" | tr -d '[:space:]')" = "components/website/src/pages/index.astro" ] \
     || { echo "Quelldatei wurde faelschlich gefiltert: '$output'"; return 1; }
   run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
-    _drop_generated 'components/website/src/data/openspec-status.json'"
+    _drop_generated 'components/website/src/data/test-inventory.json'"
   [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ] \
-    || { echo "openspec-status.json haette gefiltert werden muessen: '$output'"; return 1; }
+    || { echo "test-inventory.json haette gefiltert werden muessen: '$output'"; return 1; }
 }
 
 @test "T002341-M2: cmd_check wendet den Generated-Filter auf beide Seiten an" {

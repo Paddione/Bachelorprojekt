@@ -111,7 +111,6 @@ count_fetch_calls() {
   # sie, ist die Negativ-Aussage unten wertlos — dann ruft eben niemand fetch(),
   # weil es gar keine Epic-Anzeige gibt.
   grep -q 'function epics' "$KIT_DIR/adapter.js"
-  grep -q 'function epicChangesSince' "$KIT_DIR/adapter.js"
 
   # GEGENPROBE: adapter.js DARF fetch( enthalten — er ist die eine Stelle, die
   # es soll. Waere die Zaehlfunktion kaputt und lieferte immer 0, faellt es hier

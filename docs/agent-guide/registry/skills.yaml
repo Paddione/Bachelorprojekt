@@ -1,5 +1,5 @@
 # docs/agent-guide/registry/skills.yaml
-# SSOT: openspec/specs/agent-skills.md — Delta: openspec/changes/portable-agent-skills/
+# SSOT: docs/superpowers/specs/agent-skills.md — Delta: .agents/plans/portable-agent-skills/
 # Ticket: T900151, Partial p1 (Inventar + Projektions-Engine)
 #
 # Authoritative four-harness skill inventory. This file records the target
@@ -756,68 +756,6 @@ skills:
         sync: identical
     exclusions: {}
 
-  # ── Claude Code native forks ──
-  - id: openspec-apply-change
-    provenance: project
-    exposure: native
-    source: .claude/skills/openspec-apply-change
-    harnesses:
-      claude_code:
-        path: .claude/skills/openspec-apply-change
-        sync: identical
-      opencode:
-        path: .opencode/skills/openspec-apply-change
-        sync: identical
-    exclusions:
-      codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
-      agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
-      muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
-  - id: openspec-archive-change
-    provenance: project
-    exposure: native
-    source: .claude/skills/openspec-archive-change
-    harnesses:
-      claude_code:
-        path: .claude/skills/openspec-archive-change
-        sync: identical
-      opencode:
-        path: .opencode/skills/openspec-archive-change
-        sync: identical
-    exclusions:
-      codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
-      agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
-      muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
-  - id: openspec-explore
-    provenance: project
-    exposure: native
-    source: .claude/skills/openspec-explore
-    harnesses:
-      claude_code:
-        path: .claude/skills/openspec-explore
-        sync: identical
-      opencode:
-        path: .opencode/skills/openspec-explore
-        sync: identical
-    exclusions:
-      codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
-      agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
-      muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
-  - id: openspec-propose
-    provenance: project
-    exposure: native
-    source: .claude/skills/openspec-propose
-    harnesses:
-      claude_code:
-        path: .claude/skills/openspec-propose
-        sync: identical
-      opencode:
-        path: .opencode/skills/openspec-propose
-        sync: identical
-    exclusions:
-      codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
-      agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
-  # ── OpenCode native corpus ──
-      muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
   - id: freetoken-setup
     provenance: project
     exposure: native

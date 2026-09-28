@@ -5,7 +5,7 @@
 # scripts/find-changed-tests.sh ausloesen kann: ein aktueller Repo-Pfad (oder
 # 2+-segmentiger Vorfahr — exakt die probe_spec_for_path-Regel inkl. T006999-
 # Floor) kommt in ihm vor, oder er ist name-mapped (scripts/<name>.*), oder
-# openspec-slug-mapped. Was davon nichts erfuellt, laeuft nur noch ueber
+# plan-slug-mapped. Was davon nichts erfuellt, laeuft nur noch ueber
 # RUN_ALL/direkte Aenderung/Nightly — bei einem Move unbemerkt (T900677).
 #
 # Der Soll-Stand steht in tests/spec/selection-integrity/live-snapshot.txt.
@@ -78,14 +78,6 @@ while IFS= read -r bats; do
       echo "$bats" >> "$_tmp/live-names.txt"
     fi
   fi
-  # Openspec-Slug-Mapping: openspec/changes/<slug>/* -> tests/spec/<slug>.bats
-  case "$bats" in
-    "$SPEC_DIR/"*.bats)
-      if [ "$bats" = "$SPEC_DIR/${base}.bats" ] && [ -d "openspec/changes/${base}" ]; then
-        echo "$bats" >> "$_tmp/live-names.txt"
-      fi
-      ;;
-  esac
 done < <(find "$SPEC_DIR" -name '*.bats' -type f | sort)
 
 cat "$_tmp/live-refs.txt" "$_tmp/live-names.txt" | grep . | sort -u > "$_tmp/live.txt" || true
@@ -120,7 +112,7 @@ while IFS= read -r s; do
     echo "stale: snapshot entry deleted from repo: $s"
     stale=$((stale + 1))
   elif ! grep -qxF "$s" "$_tmp/live.txt"; then
-    echo "lost-selection: $s matches no current path, name mapping, or openspec slug"
+    echo "lost-selection: $s matches no current path, name mapping, or plan slug"
     lost=$((lost + 1))
   fi
 done < "$_tmp/snap.txt"

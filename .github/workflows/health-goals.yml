@@ -33,9 +33,6 @@ concurrency:
   group: health-goals-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   measure:
     name: Measure health goals and update the SSOT

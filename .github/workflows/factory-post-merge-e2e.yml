@@ -18,9 +18,6 @@ concurrency:
   group: factory-post-merge-e2e
   cancel-in-progress: true
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   trigger-e2e:
     runs-on: ubuntu-latest

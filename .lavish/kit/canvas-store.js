@@ -73,18 +73,6 @@ export async function deleteCanvas(epicId) {
 // Ohne Adapter (z.B. im Unit-Test) ist die konservative Antwort `true`:
 // "möglicherweise geändert" führt zur Rückfrage, `false` würde stillschweigend
 // zum Überschreiben raten.
-export async function hasExternalChanges(epicId, lastExportTs) {
-  const adapter = typeof window !== 'undefined' ? window.data : undefined;
-  if (!adapter || typeof adapter.epicChangesSince !== 'function') return true;
-
-  try {
-    const result = await adapter.epicChangesSince(epicId, lastExportTs);
-    return result.hasChanges !== false;
-  } catch {
-    return true;
-  }
-}
-
 export async function recordExport(epicId) {
   const entry = await getCanvas(epicId);
   if (!entry) return;

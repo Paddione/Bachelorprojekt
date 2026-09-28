@@ -22,9 +22,6 @@ concurrency:
   group: build-dev-pod-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   build:
     name: Build & push ${{ matrix.image }}

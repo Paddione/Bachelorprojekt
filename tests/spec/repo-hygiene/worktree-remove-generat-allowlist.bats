@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/repo-hygiene/worktree-remove-generat-allowlist.bats
-# SSOT: openspec/specs/agent-skills.md — repo-hygiene-Runbook §1
+# SSOT: docs/superpowers/specs/agent-skills.md — repo-hygiene-Runbook §1
 #
 # Ticket T003121. Der Vorcheck vor `git worktree remove` verlangte bisher einen leeren
 # `git status --porcelain`. Das misst zu grob: jeder Worktree, in dem ein Plan gestaged
@@ -43,12 +43,12 @@ _make_dirty_worktree() {
   git -C "$wt" symbolic-ref HEAD refs/heads/main
   git -C "$wt" config user.email "t003121@example.invalid"
   git -C "$wt" config user.name "T003121 Guard"
-  printf '{}\n' > "$wt/components/website/src/data/openspec-status.json"
+  printf '{}\n' > "$wt/components/website/src/data/test-inventory.json"
   printf 'echo base\n' > "$wt/scripts/beispiel.sh"
   git -C "$wt" add -A
   git -C "$wt" commit -qm "base"
   # Generat wandert auf main ohnehin fort — folgenlos.
-  printf '{"regeneriert": true}\n' > "$wt/components/website/src/data/openspec-status.json"
+  printf '{"regeneriert": true}\n' > "$wt/components/website/src/data/test-inventory.json"
   # Echte Arbeit, die kein Commit sichert — genau das soll den Remove blockieren.
   printf 'echo ungesicherte Arbeit\n' >> "$wt/scripts/beispiel.sh"
 }
@@ -84,7 +84,7 @@ _make_dirty_worktree() {
                inside { print }
                inside && !/\\$/ { exit }' "$OPS")"
   [ -n "$form" ]
-  printf '%s\n' "$form" | grep -qF 'openspec/changes/'
+  printf '%s\n' "$form" | grep -qF '.agents/plans/'
 
   local wt="${BATS_TEST_TMPDIR}/dirty"
   _make_dirty_worktree "$wt"
@@ -96,7 +96,7 @@ _make_dirty_worktree() {
 
   # … und das Generat wird geschluckt. Ohne diese Haelfte waere der Vorcheck wieder
   # der grobe, der `--force` zum Standardgriff macht.
-  run bash -c "$form | grep -cF 'components/website/src/data/openspec-status.json'"
+  run bash -c "$form | grep -cF 'components/website/src/data/test-inventory.json'"
   [ "$output" -eq 0 ]
 }
 

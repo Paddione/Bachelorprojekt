@@ -6,7 +6,7 @@ verweisen hierher, statt diesen Text sechsmal zu wiederholen.
 ## Wer injiziert
 
 Der Orchestrator (siehe `CLAUDE.md` → „Agent Routing") baut vor dem Dispatch einen
-`<active-plans>`-Block aus `scripts/plan-context.sh <rolle> --with-openspec` und stellt
+`<active-plans>`-Block aus `scripts/plan-context.sh <rolle>` und stellt
 ihn dem Agent-Prompt voran. Quelle sind die aktiven Proposals unter
 `.agents/plans/*/proposal.md`.
 
@@ -23,8 +23,8 @@ ungefiltert — der Rollenfilter wirkt dann gar nicht (T002322). Das ist die eig
 Falle: der Aufruf sieht erfolgreich aus und der Agent bekommt fremden Kontext.
 
 ```bash
-bash scripts/plan-context.sh bachelorprojekt-infra --with-openspec   # richtig
-bash scripts/plan-context.sh infra --with-openspec                   # still ungefiltert
+bash scripts/plan-context.sh bachelorprojekt-infra   # richtig
+bash scripts/plan-context.sh infra                   # still ungefiltert
 ```
 
 Die Allowlist wird hier bewusst nicht dupliziert — maßgeblich ist die Funktion im Skript.

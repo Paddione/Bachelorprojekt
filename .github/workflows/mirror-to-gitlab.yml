@@ -2,7 +2,6 @@ name: Mirror to GitLab
 
 # Push-Spiegel GitHub -> GitLab (Etappe 1 T011790, erweitert in Etappe 3 T012405).
 # GitLab bleibt ein sekundaerer, nicht blockierender Spiegel — GitHub Actions ist
-# weiterhin SSOT und Merge-Gate. Details: openspec/specs/ci-cd.md.
 #
 # ETAPPE 3 — warum jetzt auch Arbeits-Branches gespiegelt werden:
 # Bis Etappe 2 lief hier ausschliesslich `main`. Eine Pipeline, die nur `main` sieht,
@@ -47,10 +46,6 @@ concurrency:
   cancel-in-progress: false
 
 # Repo-weite Anforderung: jeder Workflow unter .github/workflows/ deklariert den
-# OpenSpec-Telemetrie-Opt-out (Guard: tests/spec/openspec-workflow.bats, T001265).
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   mirror:
     name: Push-Spiegel nach GitLab
@@ -112,7 +107,6 @@ jobs:
             git push gitlab-mirror ":refs/heads/${branch}"
           elif [ "$branch" = "main" ]; then
             # Unveraendert gegenueber Etappe 1 — dieser Pfad ist in Betrieb und in
-            # openspec/specs/ci-cd.md zugesichert.
             echo "Spiegle main + Tags"
             git push --force gitlab-mirror HEAD:refs/heads/main
             git push --force --tags gitlab-mirror

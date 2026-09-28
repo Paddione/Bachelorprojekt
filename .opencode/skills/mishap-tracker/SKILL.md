@@ -27,13 +27,13 @@ Einzel-Mishap-Branch (mit Ticket-ID):
 
 ```bash
 ext_id="<T-ID aus ticket.sh>"       # z.B. T002239 — bleibt GROSS (pre-commit: T[0-9]{6,})
-slug=$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')   # openspec-Slug bleibt lowercase
+slug=$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')   # plan-Slug bleibt lowercase
 branch="chore/mishap-<ext-id>"      # Branch-Name mit GROSSEM Ticket-Suffix
 # Beispiel: branch="chore/mishap-T002239"
 ```
 
 - Der **Branch** traegt die Ticket-ID GROSS (`T[0-9]{6,}`) — sonst schlaegt die pre-commit-Pruefung fehl.
-- Das **openspec-Verzeichnis** (slug) bleibt lowercase (Konvention).
+- Das **plan-Verzeichnis** (slug) bleibt lowercase (Konvention).
 
 ---
 

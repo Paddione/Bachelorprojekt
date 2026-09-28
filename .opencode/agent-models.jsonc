@@ -279,7 +279,7 @@
     // primaere Worker mit schlankem Prompt; write ist erlaubt (Partials legen Dateien an),
     // task nicht (kein Weiterdelegieren). Genutzt von scripts/llm/plan-runner/workers.mjs.
     "plan-worker-4b": {
-      "description": "plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one OpenSpec partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
+      "description": "plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one plan partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
       "mode": "primary",
       "model": "llamacpp-qwen35/Qwen3.5-4B-MTP",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -289,7 +289,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "plan-worker-self": {
-      "description": "plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one OpenSpec partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
+      "description": "plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
       "model": "llamacpp-local/Muse-Glimmer-30B",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -488,9 +488,9 @@
     // Plan-Primary: Muse Glimmer 30B via llama.cpp :1919 (131072 served KV, T900365).
     // Heisst nach dem Modell, das es faehrt (Regel aus T016419; bis T900365 qwen38-primary).
     // Autonomous ticket-hammering agent: prioritizes critical issues,
-    // plans (/dev-flow-plan), explores (/opsx:explore), executes, archives.
+    // plans (/dev-flow-plan), explores , executes, archives.
     "glimmer-primary": {
-      "description": "PRIMARY: Local Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, 131k served KV, gemessen 2026-09-25). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
+      "description": "PRIMARY: Local Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, 131k served KV, gemessen 2026-09-25). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores , executes, and archives one by one. Tab-selectable.",
       "mode": "primary",
       "model": "llamacpp-local/Muse-Glimmer-30B",
       "prompt": "{file:./prompts/glimmer-primary.md}",

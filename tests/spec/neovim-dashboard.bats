@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -1013,4 +1013,158 @@ LUA
   done
   run bash -c "grep -F -- '**Settings & Help**' '$STAGE/runbooks/README.md' | grep -q 'status: complete'"
   [ "$status" -eq 0 ]
+}
+
+# ── T900663 models-inference ─────────────────────────────────────────────
+# (a) module contract — the six chapter functions exist on the staged module
+@test "neovim-dashboard: models-inference module exposes six functions" {
+  cat > "$PROBE_DIR/models-inference-shape.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.models-inference')
+if not ok then
+  io.stderr:write('LOAD FAILED config.models-inference:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+local want = { 'status', 'show_config', 'logs', 'gpu', 'start_unit', 'stop_unit' }
+local out = io.open(outfile, 'w')
+for _, fn in ipairs(want) do
+  if type(m[fn]) ~= 'function' then
+    io.stderr:write('missing function: ' .. fn .. '\n')
+    os.exit(1)
+  end
+  out:write('fn=' .. fn .. '\n')
+end
+out:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/models-inference-shape.out"
+  run nvim -l "$PROBE_DIR/models-inference-shape.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  [ -s "$OUT" ] || fail "shape probe produced no output"
+  for fn in status show_config logs gpu start_unit stop_unit; do
+    grep -qx "fn=$fn" "$OUT" || fail "fn=$fn missing from module contract"
+  done
+}
+
+# (b) page order — the dashboard page lists six actions in EPIC order
+@test "neovim-dashboard: models-inference page lists six actions in order" {
+  cat > "$PROBE_DIR/models-inference-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('models-inference')
+local names = {}
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    names[#names + 1] = r.name
+  end
+end
+local f = io.open(outfile, 'w')
+for _, n in ipairs(names) do
+  f:write(n .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/models-inference-order.out"
+  run nvim -l "$PROBE_DIR/models-inference-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  EXPECTED="$(printf 'models-status\nserver-config\nserver-logs\ngpu-resources\nserver-start\nserver-stop\n')"
+  run diff - <<< "$EXPECTED" "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+# (c) focus-before-execute — opening/focusing the page runs nothing; the
+# explicit execute step does (write_action_probe marker technique)
+@test "neovim-dashboard: models-inference focusing runs nothing, executing does" {
+  cat > "$PROBE_DIR/models-inference-focus.lua" <<'LUA'
+local stage, marker_file, out_file, repo_file = arg[1], arg[2], arg[3], arg[4]
+package.path = stage .. '/lua/?.lua;' .. package.path
+
+-- Test-only marker: any vim.notify call appends to marker_file. Building
+-- or focusing a page never calls gitroot/effect, so it must never write
+-- here; only the explicit execute step (an action's effect) does.
+vim.notify = function(msg, level)
+  local f = io.open(marker_file, 'a')
+  f:write(tostring(msg) .. '\n')
+  f:close()
+end
+
+-- Test-only stub: no real Snacks plugin in this headless probe.
+_G.Snacks = {
+  dashboard = function(opts) return { win = nil, opts = opts } end,
+  picker = {
+    pick = function(opts)
+      local item = opts.items[1]
+      if opts.confirm then opts.confirm({ close = function() end }, item) end
+    end,
+  },
+}
+
+local dashboard = require('config.dashboard')
+
+-- Phase 1: open the chapter page and drive the search-focus path. No
+-- action effect may run here.
+dashboard.show('models-inference')
+dashboard.show('home')
+dashboard.search()
+
+local mf1 = io.open(marker_file, 'r')
+local phase1_marker_exists = mf1 ~= nil
+if mf1 then mf1:close() end
+
+local rows = dashboard.sections('models-inference')
+local action_row = rows[3][1]
+
+local out = io.open(out_file, 'w')
+out:write('phase1_marker_exists=' .. tostring(phase1_marker_exists) .. '\n')
+
+-- Phase 2: explicit execute step, from a buffer inside a real checkout.
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+if action_row then action_row.action() end
+
+local mf2 = io.open(marker_file, 'r')
+local phase2_marker_exists = mf2 ~= nil
+if mf2 then mf2:close() end
+out:write('phase2_marker_exists=' .. tostring(phase2_marker_exists) .. '\n')
+out:close()
+os.exit(0)
+LUA
+  MARKER="$BATS_TEST_TMPDIR/models-inference-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/models-inference-focus.out"
+  run nvim -l "$PROBE_DIR/models-inference-focus.lua" "$STAGE" "$MARKER" "$OUT" "$REPO/CLAUDE.md"
+  [ "$status" -eq 0 ]
+  run grep '^phase1_marker_exists=' "$OUT"
+  [[ "$output" == *"phase1_marker_exists=false"* ]]
+  run grep '^phase2_marker_exists=' "$OUT"
+  [[ "$output" == *"phase2_marker_exists=true"* ]]
+  [ -s "$MARKER" ]
+}
+
+# (d) runbook coverage — header, actions, sections, and steps match the page
+@test "neovim-dashboard: models-inference runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/models-inference.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/models-inference.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  ACTIONS_OUT="$BATS_TEST_TMPDIR/models-inference-actions.txt"
+  awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next} f && !/^  - /{exit}' "$RUNBOOK" > "$ACTIONS_OUT"
+  EXPECTED_ACTIONS="$(printf 'models-status\nserver-config\nserver-logs\ngpu-resources\nserver-start\nserver-stop')"
+  GOT_ACTIONS="$(cat "$ACTIONS_OUT")"
+  if [ "$GOT_ACTIONS" != "$EXPECTED_ACTIONS" ]; then
+    fail "runbook actions mismatch"
+  fi
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+
+  STEPS_OUT="$BATS_TEST_TMPDIR/models-inference-steps.txt"
+  awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print line}' "$RUNBOOK" > "$STEPS_OUT"
+  EXPECTED_STEPS="$(printf '%s\n' models-status server-config server-logs gpu-resources server-start server-stop)"
+  GOT_STEPS="$(cat "$STEPS_OUT")"
+  if [ "$GOT_STEPS" != "$EXPECTED_STEPS" ]; then
+    fail "runbook step order mismatch"
+  fi
 }

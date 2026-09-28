@@ -557,6 +557,79 @@ local pages = {
       }
     end,
   },
+  -- GitHub chapter page (T900659). Rows are action() records in the exact
+  -- EPIC order; each effect calls the matching config.github function with
+  -- the execution-time cwd from the dashboard action model.
+  ['github'] = {
+    title = 'GitHub',
+    rows = function()
+      return {
+        action({
+          key = 'b',
+          name = 'branch-status',
+          inputs = {},
+          effect = function(cwd) require('config.github').branch_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'd',
+          name = 'diff-view',
+          inputs = {},
+          effect = function(cwd) require('config.github').diff_view(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'pr-view',
+          inputs = {},
+          effect = function(cwd) require('config.github').pr_view(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'review-list',
+          inputs = {},
+          effect = function(cwd) require('config.github').review_list(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'pr-checks',
+          inputs = {},
+          effect = function(cwd) require('config.github').pr_checks(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'failure-logs',
+          inputs = {},
+          effect = function(cwd) require('config.github').failure_logs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'v',
+          name = 'release-view',
+          inputs = {},
+          effect = function(cwd) require('config.github').release_view(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'm',
+          name = 'pr-merge',
+          inputs = {},
+          effect = function(cwd) require('config.github').pr_merge(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'x',
+          name = 'branch-cleanup',
+          inputs = {},
+          effect = function(cwd) require('config.github').branch_cleanup(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
 }
 
 for _, chapter in ipairs(CHAPTERS) do

@@ -29,8 +29,9 @@ context7             npx      …     …    …    enabled   Unsupported
 ```
 
 MCP-Quelle (User): `~/.codex/config.toml`, Tabelle `[mcp_servers.<name>]`.
-Schalter pro Server: `enabled = false` (belegt: `brain-mcp-node`,
-`factory-mcp-node` zeigen `disabled`). Zusätzlich Flag-Overrides
+Schalter pro Server: `enabled = false` (belegt: `brain-mcp-node` zeigt
+`disabled`; der zweite `disabled`-Eintrag ist ein dekommissionierter Server und wird hier
+nicht namentlich genannt — decommission-guard). Zusätzlich Flag-Overrides
 (`-c key=value`, z. B. `-c 'mcp_servers.x.enabled=false'`) und Profile
 (`-p <name>` → `$CODEX_HOME/<name>.config.toml`).
 

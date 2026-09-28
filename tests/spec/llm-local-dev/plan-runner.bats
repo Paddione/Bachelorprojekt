@@ -222,3 +222,20 @@ EOF
   [ "$(jq -r '.orchestrator.notes' "$CH/.plan-runner/state.json")" = "p1 on 4b, p2 self" ]
   [ "$(state_of p3)" = "done" ]
 }
+
+@test "T900729: Worker starten ohne --dir und mit dem Modell ihres Agenten" {
+  make_change "p1:"
+  export FAKE_OPENCODE_ARGS="$T/args.log"
+  start_orch '[
+    {"name":"dispatch_4b","args":{"partial_id":"p1","prompt":"go"}},
+    {"name":"wait_event","args":{}},
+    {"name":"mark","args":{"partial_id":"p1","status":"done","note":"ok"}},
+    {"name":"finish","args":{"summary":"done"}}
+  ]'
+  run_runner
+  [ "$(state_of p1)" = "done" ]
+  run cat "$T/args.log"
+  echo "$output"
+  [[ "$output" != *"--dir"* ]]
+  [[ "$output" == *"run --agent plan-worker-4b --model llamacpp-qwen35/"* ]]
+}

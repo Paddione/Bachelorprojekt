@@ -20,7 +20,7 @@ Target files:
 
 ### Steps
 
-- [ ] Step 1 — `claude.mjs`:
+- [x] Step 1 — `claude.mjs`:
   ```js
   export const file = '.claude/settings.json';
   // ctx = { toolset: Set, registryMcp: Set (alle mcp:-Namen der Registry),
@@ -31,7 +31,7 @@ Target files:
   Namen `n` in `ctx.projectMcp` mit `ctx.registryMcp.has(n) && !ctx.toolset.has('mcp:' + n)`.
   Alle anderen Keys bleiben in ihrer Reihenfolge erhalten. Ausgabe
   `JSON.stringify(obj, null, 2) + '\n'`, das Format, das `sync.mjs` heute schon schreibt.
-- [ ] Step 2 — `opencode.mjs`:
+- [x] Step 2 — `opencode.mjs`:
   ```js
   export const file = '.opencode/opencode.jsonc';
   // ctx = { toolset: Set, registryMcp: Set }
@@ -42,17 +42,17 @@ Target files:
   `/^(\s*"enabled":\s*)(true|false)/` nur den Wert. Nur Server mit `ctx.registryMcp.has(name)`
   werden angefasst, der Wert ist `ctx.toolset.has('mcp:' + name)`. Jede andere Zeile, auch
   Kommentare, bleibt byte-identisch. Endet der Block (`/^  \}/`), stoppt die Verarbeitung.
-- [ ] Step 3 — `index.mjs`:
+- [x] Step 3 — `index.mjs`:
   ```js
   import * as claude from './claude.mjs';
   import * as opencode from './opencode.mjs';
   export const ADAPTERS = { claude, opencode };
   ```
-- [ ] Step 4 — Probe gegen die echten Dateien. Beide Renders gegen den aktuellen Dateitext
+- [x] Step 4 — Probe gegen die echten Dateien. Beide Renders gegen den aktuellen Dateitext
   ausführen und das Ergebnis mit `diff` gegen die Datei vergleichen. opencode: kein Diff.
   claude: einziger Unterschied ist `mcp-task-runner` zusätzlich in `disabledMcpjsonServers`
   (Effekt E1 aus dem Design).
-- [ ] Step 5 — Commit:
+- [x] Step 5 — Commit:
   ```bash
   git add scripts/toolset/lib/adapters/claude.mjs scripts/toolset/lib/adapters/opencode.mjs scripts/toolset/lib/adapters/index.mjs
   git commit -m "feat(T900791): claude and opencode toolset adapters [T900791]"
@@ -60,6 +60,6 @@ Target files:
 
 ### Acceptance criteria
 
-- [ ] opencode-Render gegen die echte Datei ist byte-identisch (Kommentare bleiben erhalten).
-- [ ] claude-Render weicht nur um `mcp-task-runner` ab.
-- [ ] Keine anderen Dateien geändert.
+- [x] opencode-Render gegen die echte Datei ist byte-identisch (Kommentare bleiben erhalten).
+- [x] claude-Render weicht nur um `mcp-task-runner` ab.
+- [x] Keine anderen Dateien geändert.

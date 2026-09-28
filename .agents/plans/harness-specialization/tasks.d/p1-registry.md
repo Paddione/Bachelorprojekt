@@ -19,7 +19,7 @@ Target files:
 
 ### Steps
 
-- [ ] Step 1 — In `capabilities.yaml` am Dateiende (nach dem `capabilities:`-Block, gleiche
+- [x] Step 1 — In `capabilities.yaml` am Dateiende (nach dem `capabilities:`-Block, gleiche
   Einrückungsebene) zwei Top-Level-Keys anfügen. Im Kopfkommentar eine Zeile ergänzen:
   `# harnesses: Aufgabe/Anbieter/Rollen je Harness (T900791), Messprotokoll: docs/agent-guide/registry/harness-config-targets.md`.
   ```yaml
@@ -68,11 +68,11 @@ Target files:
       config: null
   forbidden_providers: [deepseek]
   ```
-- [ ] Step 2 — `scripts/toolset/lib/registry.mjs`: `loadRegistry()` gibt zusätzlich
+- [x] Step 2 — `scripts/toolset/lib/registry.mjs`: `loadRegistry()` gibt zusätzlich
   `harnesses: data.harnesses ?? {}` und `forbiddenProviders: data.forbidden_providers ?? []`
   zurück. Keine Validierung hier, die gehört in `resolve.mjs`. Bestehende Fehlermeldungen
   bleiben wörtlich gleich.
-- [ ] Step 3 — `scripts/toolset/lib/resolve.mjs` neu anlegen, reine Funktionen ohne I/O:
+- [x] Step 3 — `scripts/toolset/lib/resolve.mjs` neu anlegen, reine Funktionen ohne I/O:
   ```js
   // scripts/toolset/lib/resolve.mjs — Harness-Schema und Werkzeugsatz (T900791).
   // WILDCARD_ROLES spiegelt scripts/toolset-context.sh (WILDCARD_ROLES). `pi` fehlt bewusst.
@@ -92,13 +92,13 @@ Target files:
   `forbidden provider <p> in harness <h>`. `resolveToolset` nimmt jede Instanz mit
   `state !== 'suppressed'` und Array `roles`, bei der eine Harness-Rolle in `roles` steht oder
   `roles` `all` enthält und eine Harness-Rolle in `WILDCARD_ROLES` steht.
-- [ ] Step 4 — Plausibilitätsprobe gegen die echte Registry:
+- [x] Step 4 — Plausibilitätsprobe gegen die echte Registry:
   ```bash
   node --input-type=module -e "import {loadRegistry} from './scripts/toolset/lib/registry.mjs'; import {resolveToolset} from './scripts/toolset/lib/resolve.mjs'; const r=loadRegistry('docs/agent-guide/registry/capabilities.yaml'); console.log([...resolveToolset(r.capabilities, r.harnesses.claude)].filter(k=>k.startsWith('mcp:')).sort().join(' '))"
   ```
   Erwartet genau: `mcp:codebase-memory-mcp mcp:context7 mcp:mcp-kubernetes mcp:mcp-postgres mcp:ticket-mcp-node mcp:warden`.
   Bestehende Tests bleiben grün: `node --test scripts/toolset/*.test.mjs`.
-- [ ] Step 5 — Commit:
+- [x] Step 5 — Commit:
   ```bash
   git add docs/agent-guide/registry/capabilities.yaml scripts/toolset/lib/registry.mjs scripts/toolset/lib/resolve.mjs
   git commit -m "feat(T900791): harness block and toolset resolution in registry [T900791]"
@@ -106,6 +106,6 @@ Target files:
 
 ### Acceptance criteria
 
-- [ ] Die Probe aus Step 4 liefert exakt die sechs erwarteten Server.
-- [ ] `node --test scripts/toolset/*.test.mjs` grün, `emit-map.mjs` läuft ohne Fehler.
-- [ ] Keine anderen Dateien geändert.
+- [x] Die Probe aus Step 4 liefert exakt die sechs erwarteten Server.
+- [x] `node --test scripts/toolset/*.test.mjs` grün, `emit-map.mjs` läuft ohne Fehler.
+- [x] Keine anderen Dateien geändert.

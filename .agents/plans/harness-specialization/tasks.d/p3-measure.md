@@ -16,7 +16,7 @@ Target files:
 
 ### Steps
 
-- [ ] Step 1 — Pro installierter Harness (codex, muse, agy) messen:
+- [x] Step 1 — Pro installierter Harness (codex, muse, agy) messen:
   1. Welche Datei definiert MCP-Server? Quelle: `<cli> --help`, `<cli> mcp --help` bzw.
      `<cli> mcp list`, falls vorhanden.
   2. Wirkt eine Projekt-Datei im Repo? Probe: in einem Temp-Git-Repo eine Projekt-Konfiguration
@@ -25,14 +25,14 @@ Target files:
      zählen. Eine leere Liste ist kein Nein, sondern „nicht messbar" (Memory: leere Antwort ist
      kein Urteil).
   3. Gibt es einen Schalter pro Server (`enabled`, `disabled`, Allowlist)?
-- [ ] Step 2 — Für omp und openclaw nur die Upstream-Doku auswerten
+- [x] Step 2 — Für omp und openclaw nur die Upstream-Doku auswerten
   (`gh api repos/can1357/oh-my-pi/contents/docs` und README) und als „nicht installiert,
   Doku-Befund" markieren.
-- [ ] Step 3 — Protokoll schreiben: je Harness ein Abschnitt mit dem ausführbaren Befehl im
+- [x] Step 3 — Protokoll schreiben: je Harness ein Abschnitt mit dem ausführbaren Befehl im
   Code-Block, der Ausgabe (gekürzt), dem Befund (`project` / `user` / `flag-only` /
   `nicht messbar`) und dem vorgeschlagenen `config:`-Wert. Kopfzeile mit Commit-Stand
   (`git rev-parse HEAD`) nach Mess-Konvention T002717.
-- [ ] Step 4 — Ergebnis als Kommentar an T900791 (`bash scripts/ticket.sh add-comment --id T900791 --body "…"`).
+- [x] Step 4 — Ergebnis als Kommentar an T900791 (`bash scripts/ticket.sh add-comment --id T900791 --body "…"`).
   Commit:
   ```bash
   git add docs/agent-guide/registry/harness-config-targets.md
@@ -41,6 +41,6 @@ Target files:
 
 ### Acceptance criteria
 
-- [ ] Jeder der fünf Harnesses hat einen Abschnitt mit Befehl und Befund.
-- [ ] Keine Konfigurationsdatei im Repo oder im Home-Verzeichnis dauerhaft verändert
+- [x] Jeder der fünf Harnesses hat einen Abschnitt mit Befehl und Befund.
+- [x] Keine Konfigurationsdatei im Repo oder im Home-Verzeichnis dauerhaft verändert
   (Probe nur im Temp-Repo, danach gelöscht).

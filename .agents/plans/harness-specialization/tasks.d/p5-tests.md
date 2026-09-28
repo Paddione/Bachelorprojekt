@@ -17,7 +17,7 @@ Target files:
 
 ### Steps
 
-- [ ] Step 1 — `adapters.test.mjs` (node:test, `assert/strict`):
+- [x] Step 1 — `adapters.test.mjs` (node:test, `assert/strict`):
   1. claude: Fixture `{"theme":"dark","disabledMcpjsonServers":[]}`, `projectMcp = {a, b, c}`,
      `registryMcp = {a, b}`, `toolset = {'mcp:a'}`, `suppressedMcp = {}` →
      `disabledMcpjsonServers` ist `["b"]`, `theme` bleibt.
@@ -25,7 +25,7 @@ Target files:
      `"enabled": true` → nach Render mit `toolset = {'mcp:a'}` ist `b` `false`, `a` bleibt `true`,
      die Kommentarzeile ist unverändert enthalten.
   3. opencode: Server `x` ohne Registry-Eintrag bleibt unverändert.
-- [ ] Step 2 — `harness-specialization.bats`, gemeinsame Helper-Funktion erzeugt eine
+- [x] Step 2 — `harness-specialization.bats`, gemeinsame Helper-Funktion erzeugt eine
   Fixture-Registry mit `capabilities` (ein canonical `mcp:a` mit `roles: [orchestrator]`), einem
   `harnesses`-Block (eine Harness `opencode` mit `roles: [orchestrator]`,
   `config: .opencode/opencode.jsonc`) und `forbidden_providers: [deepseek]`, plus eine passende
@@ -39,7 +39,7 @@ Target files:
   4. `check: clean fixture passes` → `status -eq 0`.
   5. `sync: dry-run writes nothing` — Drift-Fixture, `sync.mjs --dry-run`, danach
      `sha256sum` der Datei unverändert und Ausgabe enthält die Zeile mit `"enabled": true`.
-- [ ] Step 3 — RED-Lauf (vor p4):
+- [x] Step 3 — RED-Lauf (vor p4):
   ```bash
   node --test scripts/toolset/lib/adapters/adapters.test.mjs
   tests/unit/lib/bats-core/bin/bats tests/spec/toolset-registry/harness-specialization.bats
@@ -47,7 +47,7 @@ Target files:
   Der node-Test ist grün (Adapter aus p2 existieren). Der BATS-Lauf hat expected: FAIL für die
   Tests 1, 2, 3 und 5, weil `check.mjs` den `harnesses`-Block noch ignoriert und `sync.mjs` kein
   `--dry-run` kennt. Die Fehlerausgabe als Rot-Beleg in den Commit-Body übernehmen.
-- [ ] Step 4 — `task test:inventory` ausführen, falls der Inventar-Check die neuen Dateien
+- [x] Step 4 — `task test:inventory` ausführen, falls der Inventar-Check die neuen Dateien
   meldet. Commit:
   ```bash
   git add scripts/toolset/lib/adapters/adapters.test.mjs tests/spec/toolset-registry/harness-specialization.bats
@@ -57,6 +57,6 @@ Target files:
 
 ### Acceptance criteria
 
-- [ ] Rot-Beleg vorhanden: BATS-Tests 1, 2, 3, 5 schlagen vor p4 fehl.
-- [ ] Adapter-Tests grün.
-- [ ] Keine anderen Dateien geändert.
+- [x] Rot-Beleg vorhanden: BATS-Tests 1, 2, 3, 5 schlagen vor p4 fehl.
+- [x] Adapter-Tests grün.
+- [x] Keine anderen Dateien geändert.

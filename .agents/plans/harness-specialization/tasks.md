@@ -36,9 +36,9 @@ Alle Fakten unten am 2026-09-28 live erhoben.
 
 | Datei | Ist | Budget |
 |---|---|---|
-| `scripts/toolset/check.mjs` | 183 | 617 |
-| `scripts/toolset/sync.mjs` | 100 | 700 |
-| `scripts/toolset/lib/registry.mjs` | 88 | 712 |
+| `scripts/toolset/check.mjs` | 183 | 547 |
+| `scripts/toolset/sync.mjs` | 100 | 646 |
+| `scripts/toolset/lib/registry.mjs` | 88 | 710 |
 
 - `docs/agent-guide/registry/capabilities.yaml` (Ist 943, .yaml nicht S1-gated, kein numerisches Budget)
 - `.claude/settings.json` (durch den echten Sync-Lauf, erwarteter Effekt E1; .json nicht S1-gated)
@@ -47,6 +47,7 @@ Alle Fakten unten am 2026-09-28 live erhoben.
 S1: Budgets gegen das statische `.mjs`-Limit 800 (`yq '.s1.limits' docs/code-quality/gates.yaml`),
 alle drei Dateien `nicht-baselined`
 (`jq -r '."S1:scripts/toolset/check.mjs".metric // "nicht-baselined"' docs/code-quality/baseline.json`).
+Ist = Stand bei Planung, Budget = Restbudget nach Umsetzung (B1a: 800 − aktuelle Zeilen).
 
 Prior art (T002829): `grep -rn -e 'scripts/toolset' -e 'capabilities.yaml' docs/adr/` ohne
 Treffer. `grep -rln 'toolset/sync.mjs\|toolset/check.mjs' tests/spec/` trifft die Suite

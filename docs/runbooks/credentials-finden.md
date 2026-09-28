@@ -15,7 +15,7 @@ fester Reihenfolge abgefragt. Enthaelt **keine** Credentials.
 
 ## Suchreihenfolge
 
-### 1. Lokale Dienst-Konfiguration (`~/.config/<dienst>/*.env`)
+### 1. Lokale Dienst-Konfiguration (`~/.config/<dienst>/*.env` und `.env`)
 
 Tokens fuer lokal laufende MCP-Server und Werkzeuge liegen je Dienst in einer
 `EnvironmentFile`, `chmod 600`, ausserhalb des Repos.
@@ -29,13 +29,15 @@ Tokens fuer lokal laufende MCP-Server und Werkzeuge liegen je Dienst in einer
 | `~/.config/warden-mcp/server.env` | `BW_HOST`, `BW_CLIENTID`, `BW_CLIENTSECRET`, `BW_PASSWORD` |
 | `~/.config/langfuse/agent-tracing.env` | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` |
 | `~/.config/llm-proxy/proxy.env` | Sammeldatei des llm-proxy (u. a. `LLM_PROXY_ADMIN_TOKEN`) |
+| `~/.config/mailbox-mcp/.env` | `MAILBOX_EMAIL`, `MAILBOX_PASSWORD` |
 
 ```bash
-grep -l '^\(export \)\?BGE_MCP_TOKEN=' ~/.config/*/*.env    # wo liegt der Schluessel?
+grep -l '^\(export \)\?BGE_MCP_TOKEN=' ~/.config/*/*.env ~/.config/*/.env 2>/dev/null   # wo liegt der Schluessel?
 set -a; . ~/.config/bge-mcp/server.env; set +a               # laden, ohne auszugeben
 ```
 
-Die Tabelle ist eine Momentaufnahme. Massgeblich ist `grep` ueber `~/.config/*/*.env`.
+Die Tabelle ist eine Momentaufnahme. Massgeblich ist der `grep` oben. `*.env` allein verfehlt
+Dateien, die nur `.env` heissen (Shell-Globs lassen fuehrende Punkte aus).
 
 ### 2. git-crypt-Dateien (`environments/.secrets/<env>.yaml`)
 

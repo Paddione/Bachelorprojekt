@@ -44,6 +44,12 @@ jobs:
       actions: write   # gh workflow run + gh run list brauchen write
       contents: read
     steps:
+      # [T900810] gh braucht Repo-Kontext (ohne Checkout: "not a git repository").
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          fetch-tags: false
+
       # T002155: Cooldown — prüft ob in den letzten 15 Minuten bereits eine
       # e2e.yml-Run auf main gestartet wurde. Verhindert Sekundentakt-Dispatch
       # bei rascher Merge-Folge (bis zu 15 s zwischen Merges beobachtet).

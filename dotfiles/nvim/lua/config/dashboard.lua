@@ -258,6 +258,77 @@ local pages = {
     end,
   },
   -- T900663 models-inference page end
+  -- T900661 repo-knowledge page (anchor: repo-knowledge)
+  ['repo-knowledge'] = {
+    title = 'Repository & Code Knowledge',
+    rows = function()
+      return {
+        action({
+          key = 't',
+          name = 'task-discover',
+          inputs = { 'query' },
+          effect = function(cwd) require('config.repo-knowledge').task_discover(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 's',
+          name = 'k3-status',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').k3_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'y',
+          name = 'k3-symbol',
+          inputs = { 'symbol' },
+          effect = function(cwd) require('config.repo-knowledge').k3_symbol(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'k3-trace',
+          inputs = { 'symbol' },
+          effect = function(cwd) require('config.repo-knowledge').k3_trace(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'project-docs',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').project_docs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'o',
+          name = 'runbook-open',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').runbook_open(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'f',
+          name = 'check-freshness',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').check_freshness(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'm',
+          name = 'check-manifests',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').check_manifests(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'code-maps',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').code_maps(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
 }
 
 for _, chapter in ipairs(CHAPTERS) do

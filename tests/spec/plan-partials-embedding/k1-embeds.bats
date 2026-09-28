@@ -185,6 +185,16 @@ setup() {
   [ "$status" -eq 1 ]
 }
 
+@test "Job-YAML npm-deps umgeht den arborist-Peer-Crash (T900810)" {
+  # npm 10.9.8 crasht beim Aufloesen des Repo-Dev-Baums (#loadPeerSet,
+  # "edgesOut") — ohne --legacy-peer-deps kommt der Job nie ueber npm-deps
+  # hinaus; --no-save verhindert den Schreibversuch auf package.json.
+  run grep -q "legacy-peer-deps" "$REPO/k3d/k1-embed-job.yaml"
+  [ "$status" -eq 0 ]
+  run grep -q -- "--no-save" "$REPO/k3d/k1-embed-job.yaml"
+  [ "$status" -eq 0 ]
+}
+
 @test "Job-YAML rendert per sed-Substitution vollstaendig (offline)" {
   run bash -c "sed -e 's/\\\$JOB_ID/abc1234-999/g' -e 's/\\\$MERGE_SHA/abc1234def5678/g' -e 's/\\\$FULL/0/g' -e 's|\\\$REPO_URL|https://example.invalid/x.git|g' '$REPO/k3d/k1-embed-job.yaml'"
   [ "$status" -eq 0 ]

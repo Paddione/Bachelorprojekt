@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T05:34:01.256Z",
+  "generatedAt": "2026-09-28T18:48:57.908Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -878,12 +878,6 @@
       "to": "shared-db",
       "via": "initContainer:wait",
       "kind": "initContainer"
-    },
-    {
-      "from": "pvc-backup",
-      "to": "nextcloud",
-      "via": "command",
-      "kind": "command"
     },
     {
       "from": "pvc-backup",

@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md|infrastructure.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -776,6 +776,188 @@ LUA
     fail "runbook step order mismatch"
   fi
 }
+
+# ── T900664 p2: module shape ───────────────────────────────────────────────
+@test "neovim-dashboard: T900664 infrastructure module exposes six functions with fleet/workspace state" {
+  cat > "$PROBE_DIR/infra-shape.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.infrastructure')
+if not ok then
+  io.stderr:write('LOAD FAILED config.infrastructure: ' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+for _, fn in ipairs({ 'cluster_status', 'pods', 'services', 'pod_logs', 'context_select', 'setup_checklist' }) do
+  if type(m[fn]) ~= 'function' then
+    io.stderr:write('missing function: ' .. fn .. '\n')
+    os.exit(1)
+  end
+end
+if m.state.context ~= 'fleet' or m.state.namespace ~= 'workspace' then
+  io.stderr:write('bad state defaults\n')
+  os.exit(1)
+end
+print('infra shape OK')
+os.exit(0)
+LUA
+  run nvim -l "$PROBE_DIR/infra-shape.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"infra shape OK"* ]]
+}
+
+# ── T900664 p2: page order ─────────────────────────────────────────────────
+@test "neovim-dashboard: T900664 infrastructure page lists six actions in order with Status link last" {
+  cat > "$PROBE_DIR/infra-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('infrastructure')
+local names = {}
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    names[#names + 1] = r.name
+  end
+end
+local last = rows[3][#rows[3]]
+local f = io.open(outfile, 'w')
+for _, n in ipairs(names) do
+  f:write(n .. '\n')
+end
+f:write('last_key=' .. tostring(last.key) .. '\n')
+f:write('last_desc=' .. tostring(last.desc) .. '\n')
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/infra-order.out"
+  run nvim -l "$PROBE_DIR/infra-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  EXPECTED="$(printf 'cluster-status\npods\nservices\npod-logs\ncontext-select\nsetup-checklist\n')"
+  run diff <(printf '%s\n' "$EXPECTED") <(head -n 6 "$OUT")
+  [ "$status" -eq 0 ]
+  run grep -q '^last_key=s$' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^last_desc=Status  >$' "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+# ── T900664 p2: korczewski refusal ─────────────────────────────────────────
+@test "neovim-dashboard: T900664 context-select refuses korczewski without switching" {
+  command -v kubectl >/dev/null 2>&1 || skip "kubectl fehlt"
+  cat > "$PROBE_DIR/infra-refusal.lua" <<'LUA'
+local stage, marker_file, out_file = arg[1], arg[2], arg[3]
+package.path = stage .. '/lua/?.lua;' .. package.path
+vim.notify = function(msg, level)
+  local f = io.open(marker_file, 'a')
+  f:write('level=' .. tostring(level) .. ' msg=' .. tostring(msg) .. '\n')
+  f:close()
+end
+local system_calls = 0
+vim.system = function()
+  system_calls = system_calls + 1
+  error('vim.system must not be called on the refusal path')
+end
+vim.ui.select = function(items, opts, on_choice)
+  on_choice('devmesh')
+end
+vim.ui.input = function(opts, on_confirm)
+  on_confirm('korczewski')
+end
+local infra = require('config.infrastructure')
+local before_ctx, before_ns = infra.state.context, infra.state.namespace
+local ok_exec = pcall(infra.context_select, '/tmp')
+local out = io.open(out_file, 'w')
+out:write('execute_ok=' .. tostring(ok_exec) .. '\n')
+out:write('system_calls=' .. tostring(system_calls) .. '\n')
+out:write('state_unchanged=' .. tostring(before_ctx == infra.state.context and before_ns == infra.state.namespace) .. '\n')
+out:close()
+os.exit(0)
+LUA
+  MARKER="$BATS_TEST_TMPDIR/infra-refusal-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/infra-refusal.out"
+  run nvim -l "$PROBE_DIR/infra-refusal.lua" "$STAGE" "$MARKER" "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^execute_ok=true$' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^system_calls=0$' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^state_unchanged=true$' "$OUT"
+  [ "$status" -eq 0 ]
+  [ -s "$MARKER" ] || fail "refusal probe produced no notification marker"
+  run grep -q 'current: context=fleet namespace=workspace' "$MARKER"
+  [ "$status" -eq 0 ]
+  run grep -q 'refusing korczewski' "$MARKER"
+  [ "$status" -eq 0 ]
+  run grep -q 'suspend: true' "$MARKER"
+  [ "$status" -eq 0 ]
+  run grep -q 'T002479' "$MARKER"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -q 'level=4' '$MARKER'"
+  [ "$status" -ne 0 ]
+}
+
+# ── T900664 p2: kubectl-missing degradation ────────────────────────────────
+@test "neovim-dashboard: T900664 actions degrade with warning when kubectl is missing" {
+  cat > "$PROBE_DIR/infra-nokubectl.lua" <<'LUA'
+local stage, marker_file, out_file = arg[1], arg[2], arg[3]
+package.path = stage .. '/lua/?.lua;' .. package.path
+-- vim.fn carries no __newindex, so this raw key shadows the real executable.
+vim.fn.executable = function() return 0 end
+local saw_system = false
+vim.system = function()
+  saw_system = true
+  error('must not spawn without kubectl')
+end
+vim.notify = function(msg, level)
+  local f = io.open(marker_file, 'a')
+  f:write('level=' .. tostring(level) .. ' msg=' .. tostring(msg) .. '\n')
+  f:close()
+end
+local infra = require('config.infrastructure')
+local ok = pcall(infra.cluster_status, '/tmp')
+local out = io.open(out_file, 'w')
+out:write('execute_ok=' .. tostring(ok) .. '\n')
+out:write('saw_system=' .. tostring(saw_system) .. '\n')
+out:close()
+os.exit(0)
+LUA
+  MARKER="$BATS_TEST_TMPDIR/infra-nokubectl-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/infra-nokubectl.out"
+  run nvim -l "$PROBE_DIR/infra-nokubectl.lua" "$STAGE" "$MARKER" "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^execute_ok=true$' "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -q '^saw_system=false$' "$OUT"
+  [ "$status" -eq 0 ]
+  [ -s "$MARKER" ] || fail "degradation probe produced no notification marker"
+  run grep -q 'level=3.*kubectl not found on PATH' "$MARKER"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -q 'level=4' '$MARKER'"
+  [ "$status" -ne 0 ]
+}
+
+# ── T900664 p2: runbook coverage ───────────────────────────────────────────
+@test "neovim-dashboard: T900664 infrastructure runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/infrastructure.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/infrastructure.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
+  EXPECTED="$(printf 'cluster-status\npods\nservices\npod-logs\ncontext-select\nsetup-checklist\nStatus')"
+  if [ "$ACTIONS" != "$EXPECTED" ]; then
+    fail "runbook actions mismatch"
+  fi
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  EXPECTED_STEPS="$(printf '%s\n' cluster-status pods services pod-logs context-select setup-checklist status)"
+  if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
+    fail "runbook step order mismatch"
+  fi
+}
+
 
 # ── T900666 comfyui-images chapter tests ──
 @test "neovim-dashboard: comfyui-images module exposes nine functions in order" {

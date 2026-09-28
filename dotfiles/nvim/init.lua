@@ -29,6 +29,7 @@ vim.opt.rtp:prepend(lazy_path)
 -- ── Plugin Spec ─────────────────────────────────────────────────────────────
 require('lazy').setup({
   { import = 'plugins.core' },
+  { import = 'plugins.editor' },
 })
 
 -- ── Shared editor defaults ──────────────────────────────────────────────────

@@ -486,6 +486,77 @@ local pages = {
       }
     end,
   },
+  -- SDLC chapter page (T900660)
+  ['sdlc'] = {
+    title = 'SDLC',
+    rows = function()
+      return {
+        action({
+          key = 't',
+          name = 'tickets-list',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').list_tickets(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'g',
+          name = 'triage-show',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').show_triage(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'readiness-show',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').show_readiness(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'd',
+          name = 'deps-show',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').show_deps(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'plan-open',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').open_plan(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'x',
+          name = 'exec-status',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').exec_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'v',
+          name = 'verify-gates',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').show_gates(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'close-check',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').close_check(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 's',
+          name = 'process-docs',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').open_process_docs(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
 }
 
 for _, chapter in ipairs(CHAPTERS) do

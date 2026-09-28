@@ -57,16 +57,53 @@ unter `~/.cache/codebase-memory-mcp/` zu und blockieren nicht.
    Wrapper standardmäßig ein.
 
 2. **Automatisierter Cron-Refresh mit Skip-if-fresh:**
-   Der periodische Cron-Job `scripts/cbm-refresh-cron.sh` prüft vor jedem Reindex `index_status`
-   und `detect_changes`. Liegt kein Drift vor, wird der Lauf via `fresh-skip` übersprungen.
+   Der periodische Cron-Job `scripts/cbm-refresh-cron.sh` prüft vor jedem Reindex per
+   Helper-Status (`index_status` und `detect_changes` plus Receipt). Nur explizit frisch
+   wird via `fresh-skip` übersprungen; unbekannte Evidenz meldet `unknown` mit Exit 1.
 
 3. **Betriebliche Grenzen:**
    Auf der lokalen 4-Kern-Box gilt die strikte Regel: Maximal ein indexierender Prozess.
    Parallele Worktrees greifen auf denselben K3-Graphen zu und dürfen keine eigenen
    parallelen Reindexe auslösen.
 
+## Freshness-Report und Receipts (T900805)
+
+Konservativer Read-only-Status ohne Fetch oder Index:
+
+```bash
+python3 scripts/mcp/cbm-freshness.py status --repo "$(git rev-parse --show-toplevel)" --project home-patrick-Bachelorprojekt --timeout 30
+```
+
+Antwort: ein JSON-Objekt mit `status` (`fresh`/`stale`/`unknown`), `reasons`,
+Checkout-Root/HEAD, lokalem `origin/main`-Stand, eindeutigen Dirty-/Untracked-Pfaden,
+Graph-Metadaten (`index_status`, `detect_changes`), erfolgreichem Index-Receipt und
+`refresh_allowed`. Fehlende, fehlgeschlagene oder fehlerhafte Proben ergeben nie `fresh`.
+
+Der Wrapper `scripts/mcp/cbm-single-flight.sh` hält sein `flock` und schreibt nur bei
+stabilem Erfolg (CLI-Exit 0, valides Ergebnis ohne Tool-Fehler, unveränderter
+Vorher-/Nachher-Fingerprint, passende Root/Projekt-Identität) atomar einen Receipt
+ausserhalb des Repos. Fehlversuche bewahren den vorherigen Receipt; ein separater
+Attempt-Marker (`in_progress`/`failed`/`success`) verhindert Vertrauen in alte Receipts
+nach Teilschreibungen. Ein identischer Dirty-Snapshot kann `fresh` mit `dirty=true`
+sein, ohne sauberen Checkout zu behaupten.
+
+Exit-/Status-Vertrag Cron: `fresh-skip`/`would-refresh`/`refreshed` mit Exit 0,
+`unknown` mit Exit 1, ungültige Argumente mit Exit 2. `stdout` trägt genau ein JSON.
+`--dry-run` indiziert nie. Fehlender Receipt meldet `unknown` mit `initial-refresh`;
+die Ersteinrichtung läuft nur bei valider Ziel-Identität und funktionierenden Proben
+über den Wrapper. Lokaler Upstream-Vorsprung allein löst keinen Reindex aus und führt
+keinen Fetch durch; Root-/Projekt-Mismatch oder fehlendes Tool verbieten Refresh.
+
+Erster Refresh nach Receipt-Verlust:
+
+```bash
+task codebase:refresh
+python3 scripts/mcp/cbm-freshness.py status --repo "$(git rev-parse --show-toplevel)" --timeout 30 | jq '{status, reasons, refresh_allowed}'
+```
+
 ## Referenzen
 
 - Wrapper: `scripts/mcp/cbm-single-flight.sh`
 - Cron-Job: `scripts/cbm-refresh-cron.sh`
+- Helper: `scripts/mcp/cbm-freshness.py status --repo PATH --project NAME --timeout SECONDS`
 - Taskfile: `task codebase:index`, `task codebase:refresh`

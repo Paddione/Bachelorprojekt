@@ -365,6 +365,10 @@ Last touches:
   - Diagramm mit beschrifteten Kanten (REQ-k3-01) | T002433 | 2026-08-02 | ADDED
   - Transport und Harness-Integration (REQ-k3-03) | T002433 | 2026-08-02 | ADDED
   - K1/K3-Verhältnis (Defekt D8) (REQ-k3-04) | T002433 | 2026-08-02 | ADDED
+In-flight:
+  - Periodischer Graph-Refresh (REQ-k3-05) | T900805 | active | MODIFIED
+  - Explicit read-only freshness evidence (REQ-k3-06) | T900805 | active | ADDED
+  - Verified successful-index receipt (REQ-k3-07) | T900805 | active | ADDED
 
 ### brain-k4-brain-wiki
 Reqs: 5 · Scenarios: 9 · Lines: 110

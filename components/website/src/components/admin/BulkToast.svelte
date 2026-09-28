@@ -62,7 +62,7 @@
           {/if}
         </span>
         {#if result.undoToken}
-          <button data-testid="bulk-undo" class="undo-btn" on:click={() => onUndo(result.undoToken)}>
+          <button data-testid="bulk-undo" class="undo-btn" on:click={() => result.undoToken && onUndo(result.undoToken)}>
             Rückgängig
           </button>
         {/if}

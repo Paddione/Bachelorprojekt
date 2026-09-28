@@ -1,21 +1,7 @@
 <script lang="ts">
   const DOR_KEYS = ['spec_skizziert', 'offene_fragen_geklaert', 'abhaengigkeiten_klar', 'aufwand_geschaetzt'] as const;
 
-  interface PlanItem {
-    extId: string;
-    title: string;
-    type: string;
-    valueProp: string | null;
-    priority: string;
-    effort: string | null;
-    areas: string[];
-    dependsOn: string[];
-    rank: number | null;
-    readiness: Record<string, boolean>;
-    dorScore: number;
-    isNextCandidate: boolean;
-    pinned: boolean;
-  }
+  import type { PlanItem } from './planning-office-types';
 
   function priorityColor(p: string): string {
     switch (p) {

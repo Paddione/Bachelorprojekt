@@ -117,6 +117,7 @@
         selected={stationSel === station.key}
         isFirst={i === 0}
         onStationSelect={selectStation}
+        {onSelect}
       />
     {/each}
     <button

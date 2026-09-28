@@ -5,11 +5,9 @@
   import GraphNodeComponent from './GraphNode.svelte';
   import GraphLegend from './GraphLegend.svelte';
 
-  interface SimNode extends GraphNode {
+  interface SimNode extends GraphNode, d3.SimulationNodeDatum {
     x: number;
     y: number;
-    fx?: number | null;
-    fy?: number | null;
   }
 
   interface SimEdge extends d3.SimulationLinkDatum<SimNode> {
@@ -17,8 +15,6 @@
     to: string;
     via?: string;
     kind?: string;
-    source?: SimNode | string;
-    target?: SimNode | string;
   }
 
   interface Props {

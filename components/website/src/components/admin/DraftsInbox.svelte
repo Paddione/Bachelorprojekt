@@ -125,7 +125,7 @@
     return acc;
   }, {} as Record<Kind, Draft[]>);
 
-  $: rateBadge = acceptanceRate?.acceptanceRate;
+  $: rateBadge = acceptanceRate?.acceptanceRate ?? null;
   $: rateClass = rateBadge === null ? 'badge--muted' : rateBadge < 0.3 ? 'badge--warn' : 'badge--ok';
 </script>
 

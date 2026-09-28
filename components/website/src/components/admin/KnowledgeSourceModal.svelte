@@ -123,7 +123,7 @@
       </label>
       {#if pdfFile}
         <p class="hint">{pdfFile.name} · {(pdfFile.size / 1024 / 1024).toFixed(2)} MB</p>
-        <p class="hint">Max. 25 MB. Große Bücher (≫ 200 Chunks) bitte via CLI: <code class="code-block">task coaching:ingest -- <datei> <slug></code></p>
+        <p class="hint">Max. 25 MB. Große Bücher (≫ 200 Chunks) bitte via CLI: <code class="code-block">task coaching:ingest -- &lt;datei&gt; &lt;slug&gt;</code></p>
       {/if}
     {/if}
 

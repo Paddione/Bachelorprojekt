@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.385.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.0...website-v1.385.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **infra:** Legacy-ENVs mentolder/korczewski nutzen fleet-Secrets [T900789] ([#6109](https://github.com/Paddione/Bachelorprojekt/issues/6109)) ([dbaa643](https://github.com/Paddione/Bachelorprojekt/commit/dbaa6436aaab5426062d0184b3efde043d96a211))
+
 ## [1.385.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.384.0...website-v1.385.0) (2026-09-28)
 
 

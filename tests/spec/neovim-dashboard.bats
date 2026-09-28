@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -776,6 +776,203 @@ LUA
     fail "runbook step order mismatch"
   fi
 }
+
+# ── T900666 comfyui-images chapter tests ──
+@test "neovim-dashboard: comfyui-images module exposes nine functions in order" {
+  cat > "$PROBE_DIR/comfyui-shape.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.comfyui-images')
+if not ok then
+  io.stderr:write('LOAD FAILED config.comfyui-images:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+local want = { 'status', 'queue', 'logs', 'start', 'use', 'troubleshoot', 'has_active_jobs', 'unload', 'stop' }
+local last_line = 0
+local f = io.open(outfile, 'w')
+for _, fn in ipairs(want) do
+  if type(m[fn]) ~= 'function' then
+    io.stderr:write('missing function: ' .. fn .. '\n')
+    os.exit(1)
+  end
+  local line = debug.getinfo(m[fn], 'S').linedefined or 0
+  f:write(fn .. ' ' .. tostring(line) .. '\n')
+  if line <= last_line then
+    io.stderr:write('order violation at: ' .. fn .. '\n')
+    os.exit(1)
+  end
+  last_line = line
+end
+f:close()
+print('all nine functions exist in order')
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/comfyui-shape.out"
+  run nvim -l "$PROBE_DIR/comfyui-shape.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all nine functions exist in order"* ]]
+  run diff <(printf 'status\nqueue\nlogs\nstart\nuse\ntroubleshoot\nhas_active_jobs\nunload\nstop\n') <(awk '{print $1}' "$OUT")
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: comfyui-images page lists eight actions in order" {
+  cat > "$PROBE_DIR/comfyui-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('comfyui-images')
+local names = {}
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    names[#names + 1] = r.name
+  end
+end
+local f = io.open(outfile, 'w')
+for _, n in ipairs(names) do
+  f:write(n .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/comfyui-order.out"
+  run nvim -l "$PROBE_DIR/comfyui-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  run diff <(printf 'status\nqueue\nlogs\nstart\nuse\ntroubleshoot\nunload\nstop\n') "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: comfyui-images focus runs nothing, the explicit step does" {
+  cat > "$PROBE_DIR/comfyui-focus.lua" <<'LUA'
+local stage, marker_file, out_file, repo_file = arg[1], arg[2], arg[3], arg[4]
+package.path = stage .. '/lua/?.lua;' .. package.path
+vim.notify = function(msg, level)
+  local f = io.open(marker_file, 'a')
+  f:write(tostring(msg) .. '\n')
+  f:close()
+end
+-- No subprocess and no network in this probe: every system() call is
+-- recorded and answers empty (curl "fails" instantly).
+local syscalls = {}
+vim.fn.system = function(cmd, ...)
+  local s = type(cmd) == 'table' and table.concat(cmd, ' ') or tostring(cmd)
+  syscalls[#syscalls + 1] = s
+  return ''
+end
+_G.Snacks = {
+  dashboard = function(opts) return { win = nil, opts = opts } end,
+  picker = {
+    pick = function(opts)
+      local item = opts.items[1]
+      if opts.confirm then opts.confirm({ close = function() end }, item) end
+    end,
+  },
+}
+local dashboard = require('config.dashboard')
+-- Phase 1: open the chapter page, home, and drive search-focus. Nothing executes.
+dashboard.show('comfyui-images')
+dashboard.show('home')
+dashboard.search()
+local mf1 = io.open(marker_file, 'r')
+local phase1_marker_exists = mf1 ~= nil
+if mf1 then mf1:close() end
+local rows = dashboard.sections('comfyui-images')
+local status_row = rows[3][1]
+local out = io.open(out_file, 'w')
+out:write('phase1_marker_exists=' .. tostring(phase1_marker_exists) .. '\n')
+out:write('status_row=' .. tostring(status_row and status_row.name or 'MISSING') .. '\n')
+-- Phase 2: explicit step from a buffer inside a real checkout.
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+if status_row then status_row.action() end
+local mf2 = io.open(marker_file, 'r')
+local phase2_marker_exists = mf2 ~= nil
+if mf2 then mf2:close() end
+out:write('phase2_marker_exists=' .. tostring(phase2_marker_exists) .. '\n')
+out:write('syscalls=' .. tostring(#syscalls) .. '\n')
+out:close()
+os.exit(0)
+LUA
+  MARKER="$BATS_TEST_TMPDIR/comfyui-focus-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/comfyui-focus.out"
+  COMFY_HOST_IP=192.0.2.1 nvim -l "$PROBE_DIR/comfyui-focus.lua" "$STAGE" "$MARKER" "$OUT" "$REPO/CLAUDE.md"
+  run grep '^phase1_marker_exists=' "$OUT"
+  [[ "$output" == *"phase1_marker_exists=false"* ]]
+  run grep '^status_row=' "$OUT"
+  [[ "$output" == *"status_row=status"* ]]
+  run grep '^phase2_marker_exists=' "$OUT"
+  [[ "$output" == *"phase2_marker_exists=true"* ]]
+  [ -s "$MARKER" ]
+}
+
+@test "neovim-dashboard: comfyui-images guard is fail-closed and unload/stop refuse without shelling out" {
+  cat > "$PROBE_DIR/comfyui-guard.lua" <<'LUA'
+local stage, repo_file, outfile = arg[1], arg[2], arg[3]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local calls = {}
+vim.fn.system = function(cmd, ...)
+  local s = type(cmd) == 'table' and table.concat(cmd, ' ') or tostring(cmd)
+  calls[#calls + 1] = s
+  return '' -- unreachable queue: every curl answers empty
+end
+local notifies = {}
+vim.notify = function(msg, level)
+  notifies[#notifies + 1] = tostring(msg)
+end
+local m = require('config.comfyui-images')
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+local guard = m.has_active_jobs()
+m.unload()
+m.stop()
+local f = io.open(outfile, 'w')
+f:write('guard=' .. tostring(guard) .. '\n')
+for i, c in ipairs(calls) do
+  f:write('call' .. i .. '=' .. c .. '\n')
+end
+for i, n in ipairs(notifies) do
+  f:write('notify' .. i .. '=' .. n .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/comfyui-guard.out"
+  COMFY_HOST_IP=192.0.2.1 nvim -l "$PROBE_DIR/comfyui-guard.lua" "$STAGE" "$REPO/CLAUDE.md" "$OUT"
+  run grep '^guard=' "$OUT"
+  [[ "$output" == *"guard=true"* ]]
+  # Exactly the three guard probes (GET /queue), nothing destructive.
+  run bash -c "grep -c '^call' '$OUT'"
+  [ "$output" -eq 3 ]
+  run bash -c "grep '^call' '$OUT' | grep -c '/queue'"
+  [ "$output" -eq 3 ]
+  run bash -c "grep '^call' '$OUT' | grep -c '/free' || true"
+  [ "$output" -eq 0 ]
+  run bash -c "grep '^call' '$OUT' | grep -c 'screen' || true"
+  [ "$output" -eq 0 ]
+  run grep -c 'refusing unload' "$OUT"
+  [ "$output" -eq 1 ]
+  run grep -c 'refusing stop' "$OUT"
+  [ "$output" -eq 1 ]
+}
+
+@test "neovim-dashboard: comfyui-images runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/comfyui-images.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/comfyui-images.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
+  EXPECTED="$(printf 'status\nqueue\nlogs\nstart\nuse\ntroubleshoot\nunload\nstop')"
+  if [ "$ACTIONS" != "$EXPECTED" ]; then
+    fail "runbook actions mismatch"
+  fi
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  EXPECTED_STEPS="$(printf '%s\n' status queue logs start use troubleshoot unload stop)"
+  if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
+    fail "runbook step order mismatch"
+  fi
+}
+
 
 # ── T900662 ai-agents ─────────────────────────────────────────────────
 

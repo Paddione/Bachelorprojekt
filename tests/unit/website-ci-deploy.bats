@@ -1,24 +1,21 @@
 #!/usr/bin/env bats
-# Regression test for T000423 (updated for the T001229 build consolidation).
+# Regression test for T000423 (updated for the T001229 build consolidation,
+# re-scoped for the Flux steady state in T900810).
 #
-# The website CI deploy step must actually REPOINT the Deployment to the
-# freshly-built image via `kubectl set image`, not merely `rollout restart`.
-# A `rollout restart` is a silent no-op when the live Deployment spec is
-# pinned to an immutable @sha256 digest (which `task website:deploy` does on
-# pure-amd64 clusters) — the pod just re-pulls the same old digest and the
-# new code never lands. The build step builds and pushes a unique
-# ${IMAGE}:${SHA_TAG} and exports IMAGE/SHA_TAG to $GITHUB_ENV, so each deploy
-# step has everything it needs to do a deterministic `set image`.
+# Intent (T000423): the website CI pipeline must actually LAND the freshly-built
+# image in prod — not silently keep serving the old one. Pre-Flux that meant a
+# deterministic `kubectl set image` to the fresh tag (a bare `rollout restart`
+# is a silent no-op against a digest-pinned Deployment spec). Since Flux is
+# steady state, the mechanism is the render-artifact job: it re-renders the
+# fleet manifests with the exact image digest from build-image outputs and Flux
+# reconciles it. These tests pin THAT wiring instead of the removed kubectl path.
 #
-# T001229 folded the standalone korczewski workflow into build-website.yml.
-# T001276 then split that consolidated workflow into THREE independent jobs:
-# `build-image` (one shared ghcr.io/paddione/website build, exports image +
-# sha_tag as job outputs) → `deploy-mentolder` (namespace `website`) and
-# `deploy-korczewski` (namespace `website-korczewski`), which both declare
-# `needs: [build-image]` and run in PARALLEL — neither depends on the other,
-# so a mentolder failure no longer skips the korczewski deploy. The legacy
-# build-website-korczewski.yml stays deleted. Each deploy job must still
-# `set image` to the freshly-built tag and wait for rollout.
+# History: T001229 folded the standalone korczewski workflow into
+# build-website.yml; T001276 split it into build-image → deploy-mentolder +
+# deploy-korczewski (parallel). T900810 removed deploy-mentolder (pre-Flux,
+# dead); deploy-korczewski stays only because guards pin its existence
+# (Guard-Entscheid T900810) — it never fires. The legacy
+# build-website-korczewski.yml stays deleted.
 
 setup() {
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
@@ -36,13 +33,21 @@ setup() {
   grep -Eq 'BRAND_ID:[[:space:]]*korczewski' "$KORCZEWSKI_WF"
 }
 
-@test "T000423: mentolder deploy repoints via 'kubectl set image deployment/website' (-n website)" {
-  grep -Eq 'kubectl[[:space:]]+set[[:space:]]+image[[:space:]]+deployment/website[[:space:]]+website=.*-n[[:space:]]+website[[:space:]]*$' "$MENTOLDER_WF"
+@test "T000423/T900810: website deploy pins the fresh image via render-artifact digest input (Flux)" {
+  # Flux successor of the mentolder set-image assertion: the render-artifact job
+  # must receive the exact digest built above — a static ref would silently
+  # keep serving the old image (the T000423 failure mode in Flux terms).
+  grep -Eq 'website_image_digest:[[:space:]]*\$\{\{[[:space:]]*needs\.build-image\.outputs\.digest' "$MENTOLDER_WF"
 }
 
-@test "T000423: mentolder set-image uses the freshly-built tag (SHA_TAG/IMAGE), not a static ref" {
-  grep -E 'kubectl[[:space:]]+set[[:space:]]+image[[:space:]]+deployment/website[[:space:]]+website=.*-n[[:space:]]+website[[:space:]]*$' "$MENTOLDER_WF" \
-    | grep -Eq '\$\{?SHA_TAG\}?|\$\{?IMAGE\}?'
+@test "T000423/T900810: build-image exports the digest output the Flux render consumes" {
+  run python3 - "$MENTOLDER_WF" <<'PY'
+import sys, yaml
+jobs = (yaml.safe_load(open(sys.argv[1])) or {}).get('jobs', {})
+outs = (jobs.get('build-image') or {}).get('outputs') or {}
+assert 'digest' in outs, 'build-image hat kein digest output (render-artifact liefe mit leerem Pin)'
+PY
+  [ "$status" -eq 0 ]
 }
 
 @test "T001229: korczewski deploy repoints via 'kubectl set image deployment/website' (-n website-korczewski)" {
@@ -54,6 +59,7 @@ setup() {
     | grep -Eq '\$\{?SHA_TAG\}?|\$\{?IMAGE\}?'
 }
 
-@test "T000423: both deploy steps still wait for rollout status (no regression)" {
-  [ "$(grep -Ec 'kubectl[[:space:]]+rollout[[:space:]]+status[[:space:]]+deployment/website' "$MENTOLDER_WF")" -eq 2 ]
+@test "T000423/T900810: the remaining deploy job still waits for rollout status (no regression)" {
+  # T900810: deploy-mentolder entfernt — genau EIN rollout-wait (korczewski).
+  [ "$(grep -Ec 'kubectl[[:space:]]+rollout[[:space:]]+status[[:space:]]+deployment/website' "$MENTOLDER_WF")" -eq 1 ]
 }

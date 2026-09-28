@@ -110,7 +110,28 @@ jobs:
           echo "job_id=${JOB_ID}" >> "$GITHUB_OUTPUT"
           echo "merge_sha=${MERGE_SHA}" >> "$GITHUB_OUTPUT"
 
-          kubectl wait --for=condition=complete "job/k1-embed-${JOB_ID}" -n workspace --timeout=5400s
+          # [T900810] Fail-fast Poll statt `kubectl wait --for=condition=complete`:
+          # kubectl wait erkennt einen fehlgeschlagenen Job nicht und sitzt das
+          # volle Timeout aus — jeder defekte Lauf kostete 90 Runner-Minuten und
+          # blockierte ueber den Concurrency-Guard die Queue dahinter. Die Schleife
+          # meldet Complete/Failed sofort und haelt dasselbe Gesamtbudget (5400s).
+          for _ in $(seq 1 180); do
+            complete="$(kubectl get "job/k1-embed-${JOB_ID}" -n workspace \
+              -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || true)"
+            failed="$(kubectl get "job/k1-embed-${JOB_ID}" -n workspace \
+              -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null || true)"
+            if [ "$complete" = "True" ]; then
+              echo "k1-embed job complete"
+              exit 0
+            fi
+            if [ "$failed" = "True" ]; then
+              echo "::error::k1-embed job failed — see job logs (kubectl -n workspace logs job/k1-embed-${JOB_ID})"
+              exit 1
+            fi
+            sleep 30
+          done
+          echo "::error::timed out waiting 5400s for job/k1-embed-${JOB_ID}"
+          exit 1
       - name: Cleanup configmap & record summary
         if: always()
         run: |

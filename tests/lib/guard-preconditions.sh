@@ -67,6 +67,25 @@ require_http_contains() {
     || skip "${what} enthaelt '${needle}' nicht (Umgebung, kein Produktfehler; T900651)"
 }
 
+# ── Node-Module (pnpm) ────────────────────────────────────────────────────
+# Ein veralteter lokaler Install meldet Phantom-Fehler (z.B. 137 ESLint-
+# Parser-Fehler bei gruener CI, T900653) — Umgebungsmangel, kein Produktfehler.
+# Frische-Heuristik: .modules.yaml schreibt pnpm bei jedem Install neu; ist
+# Lockfile oder package.json juenger, wurde seitdem nicht installiert.
+node_modules_fresh() {
+  local mod="$1/node_modules/.modules.yaml"
+  [ -f "$mod" ] || return 1
+  [ "$1/pnpm-lock.yaml" -ot "$mod" ] || return 1
+  [ "$1/package.json" -ot "$mod" ] || return 1
+  return 0
+}
+
+require_fresh_node_modules() {
+  local dir="$1"
+  node_modules_fresh "$dir" \
+    || skip "${dir}/node_modules aelter als Lockfile/package.json — 'pnpm install' im Haupt-Checkout (nie im Worktree mit verlinkten Modulen; Umgebung, kein Produktfehler; T900653)"
+}
+
 # ── Kubernetes ─────────────────────────────────────────────────────────
 
 k8s_context_ready() {

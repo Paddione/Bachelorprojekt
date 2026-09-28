@@ -3,6 +3,8 @@
 # G-CD02: post-merge.yml muss konkurrierende Runs serialisieren (concurrency)
 # und transiente Ticket-Status-Updates mit Backoff wiederholen (retry).
 
+load "../lib/guard-preconditions.sh"
+
 setup() {
   bats_require_minimum_version 1.5.0
   # [T003056] Die Tests dieser Datei pruefen den DEFAULT-Diff-Pfad von
@@ -109,6 +111,10 @@ setup() {
   if [ ! -x "$REPO_ROOT/components/website/node_modules/.bin/eslint" ]; then
     skip "website deps not installed in this context — enforced by CI vitest-website job"
   fi
+  # [T900653] Installiert != frisch: ein veralteter Baum meldete 137
+  # Phantom-Parser-Fehler bei gruener CI. Frische pruefen, sonst Skip mit
+  # Hinweis auf pnpm install — kein Produktfehler.
+  require_fresh_node_modules "$REPO_ROOT/components/website"
   run bash -c "cd "$REPO_ROOT/components/website" && ./node_modules/.bin/eslint . --max-warnings 0 --cache"
   [ "$status" -eq 0 ]
 }

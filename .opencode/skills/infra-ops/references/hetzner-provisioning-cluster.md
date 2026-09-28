@@ -22,7 +22,7 @@ bei einem **frischen Cluster-Setup** oder **Node-Replacement** ausgeführt — i
 ## Control-Plane INIT (erster CP)
 
 ```bash
-WG_KEY=$(grep WG_MESH_PK4_PRIVATE_KEY environments/.secrets/korczewski.yaml | awk '{print $2}')
+WG_KEY=$(grep WG_MESH_PK4_PRIVATE_KEY environments/.secrets/fleet-korczewski.yaml | awk '{print $2}')
 WG_CONF_B64=$(bash scripts/hetzner/generate-wg-conf.sh \
   --env korczewski --node-name pk-hetzner-4 --private-key "$WG_KEY" | base64 -w0)
 
@@ -47,7 +47,7 @@ kubectl --context fleet get nodes -w
 ```bash
 K3S_TOKEN=$(ssh patrick@204.168.244.104 "sudo cat /var/lib/rancher/k3s/server/node-token")
 
-WG_KEY=$(grep WG_MESH_PK6_PRIVATE_KEY environments/.secrets/korczewski.yaml | awk '{print $2}')
+WG_KEY=$(grep WG_MESH_PK6_PRIVATE_KEY environments/.secrets/fleet-korczewski.yaml | awk '{print $2}')
 WG_CONF_B64=$(bash scripts/hetzner/generate-wg-conf.sh \
   --env korczewski --node-name pk-hetzner-6 --private-key "$WG_KEY" | base64 -w0)
 

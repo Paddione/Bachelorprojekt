@@ -19,7 +19,7 @@ setup() {
   [ "$errors" -eq 0 ]
 }
 
-@test "T900809: CI-Job Vitest (website) führt svelte-check als blockierenden Schritt aus" {
+@test "T900809: CI-Job Vitest (website) fuehrt svelte-check als blockierenden Schritt aus" {
   run bash -c "awk '/^  vitest-website:/{f=1} f && /^  [a-z0-9-]+:\$/ && !/vitest-website/{exit} f' '$REPO_ROOT/.github/workflows/ci.yml'"
   [ "$status" -eq 0 ]
   echo "$output" | grep -q 'svelte-check --threshold error'

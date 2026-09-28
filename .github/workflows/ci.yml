@@ -6,11 +6,13 @@ on:
     types: [opened, synchronize, reopened, edited]
     # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
     # still trigger this workflow so the branch-protection required checks
-    # (BATS Unit + Quality Gates, Manifest Validation,
-    # Factory + OpenSpec + Guards, Security Scan, Brett TypeScript,
-    # Vitest (website), Conventional Commits) report success — otherwise
-    # mergeStateStatus stays BLOCKED indefinitely and admin-merge is required.
-    # See mishap T001149-M3.
+    # (SSOT: scripts/gh-branch-protection.sh — BATS Unit + Quality Gates,
+    # Security Scan, Brett TypeScript, Conventional Commits) report success —
+    # otherwise mergeStateStatus stays BLOCKED indefinitely and admin-merge is
+    # required. See mishap T001149-M3.
+    # [T900810] Manifest Validation, Factory + OpenSpec + Guards und Vitest
+    # (website) sind bewusst KEINE Required Checks (T900131), laufen hier aber
+    # als advisory Gates auf jedem PR weiter.
   push:
     branches:
       - main
@@ -314,10 +316,11 @@ jobs:
   #      Mehr `bats -j` auf EINEM Runner war ausgereizt; der einzige Hebel
   #      sind mehr Runner. Details in scripts/spec-shard.sh.
   #
-  # Der Aggregator `test-factory` behaelt den Namen "Factory + OpenSpec + Guards",
-  # weil genau dieser String als Required Status Check in der Branch Protection
-  # von main haengt. Eine nackte Matrix haette ihn in "… (1)".."… (4)" umbenannt
-  # und jeden PR dauerhaft blockiert.
+  # Der Aggregator `test-factory` behaelt den stabilen Namen
+  # "Factory + OpenSpec + Guards" (Guard: hybrid-runner-placement.bats). Eine
+  # nackte Matrix haette ihn in "… (1)".."… (4)" umbenannt.
+  # [T900810] Kein Required Check mehr (T900131, SSOT gh-branch-protection.sh) —
+  # der Name bleibt trotzdem stabil, weil Tooling/Guards ihn referenzieren.
 
   test-factory-openspec:
     # Die billigen, hochsignalhaften Gates — laufen parallel zu den Shards und
@@ -560,11 +563,11 @@ jobs:
           retention-days: 14
 
   test-factory:
-    # Aggregator. Traegt den Required-Check-Namen und ist fail-closed: alles,
-    # was nicht exakt "success" ist, laesst ihn scheitern. Das ist wesentlich —
-    # in der Branch Protection zaehlt ein UEBERSPRUNGENER Required Check als
-    # bestanden. Ein Aggregator ohne always() wuerde bei fehlgeschlagenen
-    # needs uebersprungen und damit das Gate lautlos oeffnen.
+    # Aggregator. Ist fail-closed: alles, was nicht exakt "success" ist, laesst
+    # ihn scheitern. Das ist wesentlich — ohne always() wuerde er bei
+    # fehlgeschlagenen needs uebersprungen und damit das Gate lautlos oeffnen
+    # (ein uebersprungener Check zaehlt als bestanden).
+    # [T900810] Advisory, kein Required Check (T900131).
     name: Factory + OpenSpec + Guards
     if: always() && github.event.action != 'edited'
     needs: [test-factory-openspec, test-factory-shard]
@@ -713,10 +716,11 @@ jobs:
       - run: npm run build --prefix components/brett
 
   vitest-website:
-    # Always runs on every PR (no job-level path filter) so the branch-protection
-    # required-check "Vitest (website)" reports on chore / config-only PRs too.
-    # See mishap: Vitest (website) was required by main but no workflow
-    # produced it, blocking auto-merge of chore PRs (e.g. #2094 admin-merged).
+    # Always runs on every PR (no job-level path filter) so the advisory gate
+    # "Vitest (website)" reports on chore / config-only PRs too.
+    # [T900810] Kein Required Check (T900131, SSOT gh-branch-protection.sh).
+    # Historie: Vitest (website) war required, aber kein Workflow produzierte
+    # ihn — das blockierte Auto-Merge von Chore-PRs (#2094 admin-merged).
     # Smart selection happens INSIDE the vitest run via `--changed`
     # (mirrors local `task test:changed`): a chore PR runs zero tests in
     # ~1s, a website-feature PR runs only the affected ones. The

@@ -20,7 +20,7 @@
     initialType?: 'erstgespraech' | 'callback' | 'meeting' | 'termin';
     serviceKey?: string;
   }
-  let { initialDate = '', initialStart = '', initialEnd = '', initialType = '', serviceKey } = $props<Props>();
+  let { initialDate = '', initialStart = '', initialEnd = '', initialType, serviceKey }: Props = $props();
 
   let name = $state('');
   let email = $state('');
@@ -74,7 +74,7 @@
   let showContactForm = $derived(isCallback || selectedSlot !== null);
   let currentDaySlots = $derived(days.find((d) => d.date === selectedDate));
 
-  const bookingTypes = [
+  const bookingTypes: { value: NonNullable<Props['initialType']>; label: string }[] = [
     { value: 'erstgespraech', label: 'Kostenloses Erstgespräch (30 Min.)' },
     { value: 'callback', label: 'Rückruf' },
     { value: 'meeting', label: 'Online-Meeting' },

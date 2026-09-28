@@ -32,7 +32,7 @@
   }
 
   function moveService(idx:number,delta:number){const next=idx+delta;if(next<0||next>=services.length)return;const arr=services;[arr[idx],arr[next]]=[arr[next],arr[idx]];services=[...arr];}
-  function ensurePageContent(svc:ServiceOverride){if(!svc.pageContent)svc.pageContent={};if(!svc.pageContent.sections)svc.pageContent.sections=[];if(!svc.pageContent.pricing)svc.pageContent.pricing=[];return svc.pageContent;}
+  function ensurePageContent(svc:ServiceOverride){if(!svc.pageContent)svc.pageContent={headline:'',intro:'',forWhom:[],sections:[],pricing:[]};if(!svc.pageContent.sections)svc.pageContent.sections=[];if(!svc.pageContent.pricing)svc.pageContent.pricing=[];return svc.pageContent;}
   function addSection(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.sections=[...(pc.sections??[]),{title:'Neuer Bereich',items:[]}];services=[...services];}
   function removeSection(svc:ServiceOverride,sIdx:number){if(!svc.pageContent?.sections)return;svc.pageContent.sections=svc.pageContent.sections.filter((_:unknown,i:number)=>i!==sIdx);services=[...services];}
   function moveSection(svc:ServiceOverride,sIdx:number,delta:number){const arr=svc.pageContent?.sections;if(!arr)return;const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];services=[...services];}
@@ -167,7 +167,7 @@
             <div><label class={labelCls}>Intro</label><textarea bind:value={svc.pageContent!.intro} rows={3} class="{inputCls} resize-none"></textarea></div>
             <div>
               <label class={labelCls}>Für wen (eine pro Zeile)</label>
-              <textarea value={(svc.pageContent!.forWhom??[]).join('\n')} oninput={(e)=>{if(!svc.pageContent)svc.pageContent={};svc.pageContent.forWhom=(e.currentTarget as HTMLTextAreaElement).value.split('\n').map(f=>f.trim()).filter(Boolean);}} rows={4} class="{inputCls} resize-none font-mono"></textarea>
+              <textarea value={(svc.pageContent!.forWhom??[]).join('\n')} oninput={(e)=>{if(!svc.pageContent)svc.pageContent={headline:'',intro:'',forWhom:[],sections:[],pricing:[]};svc.pageContent.forWhom=(e.currentTarget as HTMLTextAreaElement).value.split('\n').map(f=>f.trim()).filter(Boolean);}} rows={4} class="{inputCls} resize-none font-mono"></textarea>
             </div>
             <div class="border-t border-dark-lighter pt-3">
               <div class="flex items-center justify-between mb-2"><span class="text-sm font-semibold text-light">Schwerpunkte</span><button type="button" onclick={() => addSection(svc)} class="px-2 py-1 text-xs rounded-md border border-gold/40 text-gold hover:bg-gold/10">+ Bereich</button></div>

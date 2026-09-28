@@ -212,7 +212,6 @@
         hall={data.hall}
         loadingDock={data.loadingDock}
         {mobileColIndex}
-        {ciByExt}
         onSelect={openDetail}
         activeConfigs={{}}
       />

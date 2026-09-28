@@ -782,11 +782,12 @@ jobs:
         if: steps.filter.outputs.run_website == 'true'
         run: cd components/website && pnpm lint
 
-      - name: Run vitest + Astro check + Knip (parallel)
+      - name: Run vitest + Astro check + svelte-check + Knip (parallel)
         # Mirrors the local `task test:changed` smart selection via explicit
         # --changed origin/main (requires fetch-origin-main step above).
         # Astro typecheck and Knip dead-code analysis run concurrently with
-        # vitest to shave ~2-3 min off wall-clock time.
+        # vitest to shave ~2-3 min off wall-clock time. svelte-check is required
+        # because `astro check` does not validate `.svelte` files (T900809).
         # --coverage is conditional: only added when the PR touches
         # components/website/src/lib/ (where coverage gates apply), so trivial PRs
         # skip instrumentation overhead. The coverage gate step below
@@ -803,11 +804,14 @@ jobs:
           V=$!
           pnpm run astro:check &
           A=$!
+          pnpm exec svelte-check --threshold error &
+          S=$!
           pnpm exec knip --no-exit-code || true &
           K=$!
           EXIT=0
           wait $V || EXIT=$?
           wait $A || EXIT=$?
+          wait $S || EXIT=$?
           wait $K || true
           exit $EXIT
 

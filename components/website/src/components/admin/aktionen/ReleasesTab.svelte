@@ -22,7 +22,7 @@
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cluster: c }),
     });
     if (result.ok) {
-      toast('success', `${svc.label} (${c}) wird neu geladen…`);
+      toast('ok', `${svc.label} (${c}) wird neu geladen…`);
       setTimeout(() => { pending[key] = false; pending = pending; }, 90_000);
     } else {
       pending[key] = false; pending = pending;

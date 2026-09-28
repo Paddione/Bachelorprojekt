@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.386.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.1...website-v1.386.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* svelte check zero T900809 ([#6126](https://github.com/Paddione/Bachelorprojekt/issues/6126)) ([2c32094](https://github.com/Paddione/Bachelorprojekt/commit/2c320949d884ca4747a2fa48e86cc42dec2b6a9f))
+
 ## [1.386.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.0...website-v1.386.1) (2026-09-28)
 
 

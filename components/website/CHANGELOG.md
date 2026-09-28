@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.385.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.1...website-v1.385.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* **ci:** branch-reaper macht nicht entscheidbare Kandidaten sichtbar [T900787] ([#6111](https://github.com/Paddione/Bachelorprojekt/issues/6111)) ([86ab37d](https://github.com/Paddione/Bachelorprojekt/commit/86ab37d09969b1c0f13c9fc03342648a59eba02e))
+
 ## [1.385.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.0...website-v1.385.1) (2026-09-28)
 
 

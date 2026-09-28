@@ -239,7 +239,7 @@ EOF
   for f in "$STAGE"/runbooks/*.md; do
     base="$(basename "$f")"
     case "$base" in
-      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md|infrastructure.md|sdlc.md) ;;
+      README.md|_template.md|home.md|infrastructure-status.md|editor.md|files-search.md|models-inference.md|settings-help.md|repo-knowledge.md|ai-agents.md|comfyui-images.md|infrastructure.md|sdlc.md|github.md) ;;
       *) fail "unexpected chapter runbook file already present: $base" ;;
     esac
   done
@@ -776,6 +776,178 @@ LUA
     fail "runbook step order mismatch"
   fi
 }
+
+# ── T900659 p2: module shape ────────────────────────────────────────────────
+write_github_shape_probe() {
+  cat > "$PROBE_DIR/github-shape.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.github')
+if not ok then
+  io.stderr:write('LOAD FAILED config.github:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+local want = { 'branch_status', 'diff_view', 'pr_view', 'review_list', 'pr_checks',
+  'failure_logs', 'release_view', 'pr_merge', 'branch_cleanup', 'target', 'confirm_or_abort' }
+for _, fn in ipairs(want) do
+  if type(m[fn]) ~= 'function' then
+    io.stderr:write('missing ' .. fn .. '\n')
+    os.exit(1)
+  end
+end
+print('all eleven functions exist')
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: github module exposes nine actions plus target and guard" {
+  write_github_shape_probe
+  run nvim -l "$PROBE_DIR/github-shape.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all eleven functions exist"* ]]
+}
+
+# ── T900659 p2: page order with distinct keys ───────────────────────────────
+write_github_order_probe() {
+  cat > "$PROBE_DIR/github-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('github')
+local f = io.open(outfile, 'w')
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    f:write(r.key .. '\t' .. r.name .. '\n')
+  end
+end
+f:close()
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: github page lists nine actions in order with distinct keys" {
+  write_github_order_probe
+  OUT="$BATS_TEST_TMPDIR/github-order.out"
+  run nvim -l "$PROBE_DIR/github-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  EXPECTED="$(printf 'b\tbranch-status\nd\tdiff-view\np\tpr-view\nr\treview-list\nc\tpr-checks\nl\tfailure-logs\nv\trelease-view\nm\tpr-merge\nx\tbranch-cleanup\n')"
+  run diff <(printf '%s\n' "$EXPECTED") "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+# ── T900659 p2: guard decline-aborts / accept-runs ──────────────────────────
+write_github_guard_probe() {
+  cat > "$PROBE_DIR/github-guard.lua" <<'LUA'
+local stage, choice, outfile = arg[1], arg[2], arg[3]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.github')
+if not ok then
+  io.stderr:write('LOAD FAILED config.github\n')
+  os.exit(1)
+end
+-- Target triple is stubbed (its own resolution is covered by the gitroot
+-- tests); the guard behavior under test is decline-runs-nothing vs
+-- accept-runs-the-canonical-command.
+m.target = function()
+  return { repo = 'o/r', branch = 'feature/x', pr = '42', cwd = '/tmp' }
+end
+vim.fn.confirm = function() return tonumber(choice) end
+vim.notify = function() end
+local recorded = {}
+vim.system = function(argv, opts)
+  recorded[#recorded + 1] = table.concat(argv, ' ')
+  return { wait = function() return { code = 0, stdout = 'ok', stderr = '' } end }
+end
+local okc, err = pcall(m.pr_merge, '/tmp')
+if not okc then
+  io.stderr:write('PR_MERGE FAILED: ' .. tostring(err) .. '\n')
+  os.exit(1)
+end
+local f = io.open(outfile, 'w')
+f:write('count=' .. #recorded .. '\n')
+for _, c in ipairs(recorded) do
+  f:write(c .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: github guard decline runs zero external commands" {
+  write_github_guard_probe
+  OUT="$BATS_TEST_TMPDIR/github-guard-decline.out"
+  run nvim -l "$PROBE_DIR/github-guard.lua" "$STAGE" "2" "$OUT"
+  [ "$status" -eq 0 ]
+  run diff <(printf 'count=0\n') "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: github guard accept runs the recorded squash-merge command" {
+  write_github_guard_probe
+  OUT="$BATS_TEST_TMPDIR/github-guard-accept.out"
+  run nvim -l "$PROBE_DIR/github-guard.lua" "$STAGE" "1" "$OUT"
+  [ "$status" -eq 0 ]
+  run diff <(printf 'count=1\ngh pr merge 42 --squash\n') "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+# ── T900659 p2: no format-on-save ───────────────────────────────────────────
+write_github_noformat_probe() {
+  cat > "$PROBE_DIR/github-noformat.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.github')
+if not ok then
+  io.stderr:write('LOAD FAILED config.github: ' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+if type(m.branch_status) ~= 'function' then
+  io.stderr:write('config.github did not expose its actions\n')
+  os.exit(1)
+end
+local au = vim.api.nvim_get_autocmds({ event = 'BufWritePre' })
+print('bufwritepre_count=' .. #au)
+os.exit(0)
+LUA
+}
+
+@test "neovim-dashboard: github module creates zero BufWritePre autocmds" {
+  write_github_noformat_probe
+  run nvim -l "$PROBE_DIR/github-noformat.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"bufwritepre_count=0"* ]]
+}
+
+# ── T900659 p2: runbook coverage ────────────────────────────────────────────
+@test "neovim-dashboard: github runbook exists and matches dashboard order" {
+  RUNBOOK="$STAGE/runbooks/github.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/github.md missing"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  run grep -q '^ticket: T900659' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+
+  # Live dashboard page order is the oracle for both actions[] and steps.
+  write_github_order_probe
+  PAGE_OUT="$BATS_TEST_TMPDIR/github-page-names.out"
+  run nvim -l "$PROBE_DIR/github-order.lua" "$STAGE" "$BATS_TEST_TMPDIR/github-page-kv.out"
+  [ "$status" -eq 0 ]
+  cut -f2 "$BATS_TEST_TMPDIR/github-page-kv.out" > "$PAGE_OUT"
+
+  ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next} f && !/^  - /{exit}' "$RUNBOOK")"
+  run diff <(printf '%s\n' "$ACTIONS") "$PAGE_OUT"
+  [ "$status" -eq 0 ]
+
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+
+  STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
+  run diff <(printf '%s\n' "$STEPS") "$PAGE_OUT"
+  [ "$status" -eq 0 ]
+}
+
 
 # ── T900660 sdlc chapter ──
 write_sdlc_shape_probe() {

@@ -177,7 +177,8 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
+        source scripts/lib/secrets-env.sh   # T900789: mentolder -> fleet-mentolder
+        SECRETS_FILE="environments/.secrets/$(secrets_env_for "{{.ENV}}").yaml"
         if [[ "{{.ENV}}" == "dev" ]]; then
           TOKEN=$(gh auth token)
         elif [[ -f "$SECRETS_FILE" ]]; then

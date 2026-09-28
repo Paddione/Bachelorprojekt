@@ -32,7 +32,7 @@ _Ticket: T900789_
 | `environments/mentolder.yaml`, `environments/korczewski.yaml` | — | n/a |
 | `environments/.secrets/{mentolder,korczewski}.yaml`, `environments/sealed-secrets/{mentolder,korczewski}.yaml` | — | geloescht |
 | `docs/superpowers/references/secrets-architecture.md` | — | n/a |
-| `tests/spec/legacy-secrets-fleet.bats` und angepasste Bestandstests | — | n/a (S1-ungated) |
+| `tests/spec/fleet-operations/legacy-secrets-fleet.bats` und angepasste Bestandstests | — | n/a (S1-ungated) |
 
 Budget geprueft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_budget <datei>`.
 
@@ -44,12 +44,12 @@ Budget geprueft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_bud
 |----|------|------|--------------|------------|----------|------------|
 | p1 | tasks.d/p1-resolve.md | impl | scripts/lib/secrets-env.sh, scripts/env-seal.sh, scripts/secret-rotate.sh, scripts/claude-key-picker.sh, taskfiles/Taskfile.platform.yml, taskfiles/Taskfile.workspace.yml, taskfiles/Taskfile.web.yml, environments/mentolder.yaml, environments/korczewski.yaml | | 27b-local | 32000 |
 | p2 | tasks.d/p2-remove.md | impl | environments/.secrets/mentolder.yaml, environments/.secrets/korczewski.yaml, environments/sealed-secrets/mentolder.yaml, environments/sealed-secrets/korczewski.yaml, docs/superpowers/references/secrets-architecture.md | p1 | 4b-local | 8000 |
-| p3 | tasks.d/p3-tests.md | tests | tests/spec/legacy-secrets-fleet.bats, tests/spec/fleet-operations.bats, tests/unit/secrets-sync.bats, tests/spec/secrets-deploy-automation.bats, tests/spec/health-goals.bats | p2 | 4b-local | 16000 |
+| p3 | tasks.d/p3-tests.md | tests | tests/spec/fleet-operations/legacy-secrets-fleet.bats, tests/spec/fleet-operations.bats, tests/unit/secrets-sync.bats, tests/spec/secrets-deploy-automation.bats, tests/spec/health-goals.bats | p2 | 4b-local | 16000 |
 
 ## Task: Failing Test bestaetigen
 
 ```bash
-bats tests/spec/legacy-secrets-fleet.bats
+bats tests/spec/fleet-operations/legacy-secrets-fleet.bats
 ```
 
 expected: FAIL (vor p1/p2; alle vier Tests rot).

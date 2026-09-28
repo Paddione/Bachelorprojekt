@@ -40,7 +40,8 @@ tasks:
         for ENV in mentolder korczewski; do
           source scripts/env-resolve.sh "$ENV"
           CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-          SEALED="environments/sealed-secrets/${ENV}.yaml"
+          source scripts/lib/secrets-env.sh   # T900789: mentolder -> fleet-mentolder
+          SEALED="environments/sealed-secrets/$(secrets_env_for "$ENV").yaml"
           if [[ ! -f "$SEALED" ]]; then
             echo "✗ $SEALED not found — run: task env:seal ENV=$ENV"
             exit 1

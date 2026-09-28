@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
-# tests/spec/legacy-secrets-fleet.bats — T900789
+# tests/spec/fleet-operations/legacy-secrets-fleet.bats — T900789
 # ENV=mentolder/korczewski duerfen keine eigenen Secret-Dateien mehr lesen oder anwenden;
 # sie loesen ueber `secrets_env` auf fleet-<brand> auf.
 
 setup() {
-  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   HELPER="${REPO_ROOT}/scripts/lib/secrets-env.sh"
 }
 
@@ -40,4 +40,15 @@ setup() {
   [ "$status" -ne 0 ] || { echo "$output"; return 1; }
   run git grep -n 'environments/.secrets/mentolder.yaml' -- scripts
   [ "$status" -ne 0 ] || { echo "$output"; return 1; }
+}
+
+@test "T900789: env-generate/env-seal/secret-rotate loesen ueber secrets_env auf" {
+  cd "$REPO_ROOT"
+  for f in scripts/env-generate.sh scripts/env-seal.sh scripts/secret-rotate.sh; do
+    grep -q 'lib/secrets-env.sh' "$f" || { echo "ohne Helper: $f"; return 1; }
+  done
+  run bash scripts/env-generate.sh --env mentolder --env-dir environments
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"fleet-mentolder"* ]]
+  [ ! -e environments/.secrets/mentolder.yaml ]
 }

@@ -153,6 +153,7 @@ tests/spec/ci-cd/freshness-paths-exist.bats
 tests/spec/ci-cd/freshness-regen-rebase-guard.bats
 tests/spec/ci-cd/generated-artifacts-registry.bats
 tests/spec/ci-cd/generated-path-separators.bats
+tests/spec/ci-cd/gh-repo-context-guard.bats
 tests/spec/ci-cd/ghcr-digest-auth.bats
 tests/spec/ci-cd/git-flow-poll-and-branch-order.bats
 tests/spec/ci-cd/github-only-ci.bats

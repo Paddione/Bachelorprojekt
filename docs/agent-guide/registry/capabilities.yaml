@@ -368,6 +368,13 @@ capabilities:
       roles: [all]
       tier: safe
 
+  code-graph-interpretation:
+    skill:code-graph-interpretation:
+      state: canonical
+      use_when: "K3-Codegraph lesen oder erklären, Call-Chain und Change-Impact aus Graphkanten prüfen, Graphbefund gegen Quellcode verifizieren."
+      roles: [all]
+      tier: safe
+
   embedding-rerank:
     mcp:bge-mcp:
       state: canonical

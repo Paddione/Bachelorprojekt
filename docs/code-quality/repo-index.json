@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1302,
+      "file_count": 1303,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -738,6 +738,7 @@
         "tests/spec/g-fe02-bundle-budget.bats",
         "tests/spec/g-fe03-structured-logger.bats",
         "tests/spec/g-size02-large-files.bats",
+        "tests/spec/gen-goals-data.bats",
         "tests/spec/githooks-worktree-fallback.bats",
         "tests/spec/grilling-flow.bats",
         "tests/spec/guard-preconditions/guard-preconditions.bats",

@@ -3528,6 +3528,12 @@
     "kind": "shell"
   },
   {
+    "id": "gen-goals-data",
+    "file": "tests/spec/gen-goals-data.bats",
+    "category": "gen-goals-data",
+    "kind": "shell"
+  },
+  {
     "id": "githooks-worktree-fallback",
     "file": "tests/spec/githooks-worktree-fallback.bats",
     "category": "githooks-worktree-fallback",

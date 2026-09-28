@@ -192,7 +192,7 @@
       "path": "skills/vitest",
       "dest": ".opencode/skills/vitest",
       "track": "branch",
-      "ref": "e98e476e315f068f72d53bd3afb34fdd4d5851c3",
+      "ref": "d02c48452d782231e4c32d7069cde731a4c7db42",
       "version": null
     }
   },

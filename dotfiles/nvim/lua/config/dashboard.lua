@@ -140,6 +140,73 @@ local pages = {
       }
     end,
   },
+  -- Settings & Help chapter page (T900667 p2). Rows are action() records in
+  -- the exact EPIC order; each effect resolves cwd at execution time through
+  -- the dashboard action model and passes it to the matching settings-help
+  -- module function (which nil-guards and degrades gracefully when no root).
+  ['settings-help'] = {
+    title = 'Settings & Help',
+    rows = function()
+      return {
+        action({
+          key = 'o',
+          name = 'open-config-source',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').open_config_source(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 's',
+          name = 'sync-status',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').sync_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'plugins',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').plugins() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'health',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').health() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'w',
+          name = 'keybindings',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').keybindings() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'reload-config',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').reload() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'b',
+          name = 'backup-config',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').backup() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'u',
+          name = 'recover-config',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').recover() end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
 }
 
 for _, chapter in ipairs(CHAPTERS) do

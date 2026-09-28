@@ -17,8 +17,8 @@ Target files:
 
 ### Steps
 
-- [ ] Step 1 — Rebase onto the latest `origin/main` first, then add one line to the `lazy.setup()` block in `dotfiles/nvim/init.lua`, directly after the core import (anchor: lines 30-32, `{ import = 'plugins.core' },`): `  { import = 'plugins.editor' },`. Keep leaders, lazy bootstrap, and the `config.editor` / `config.dashboard` setup calls byte-identical. No `M.setup()` call: the lazy specs already invoke the per-capability setups at plugin load, and an eager call would emit WARN notifies before the plugins load (see `design.md` E1). Gate: `git diff` shows exactly one added line and `grep -c "import = 'plugins.editor'" dotfiles/nvim/init.lua` prints 1.
-- [ ] Step 2 — Stage exactly the touched path and commit (dotfiles/ is gitignored, force-add per repo convention):
+- [x] Step 1 — Rebase onto the latest `origin/main` first, then add one line to the `lazy.setup()` block in `dotfiles/nvim/init.lua`, directly after the core import (anchor: lines 30-32, `{ import = 'plugins.core' },`): `  { import = 'plugins.editor' },`. Keep leaders, lazy bootstrap, and the `config.editor` / `config.dashboard` setup calls byte-identical. No `M.setup()` call: the lazy specs already invoke the per-capability setups at plugin load, and an eager call would emit WARN notifies before the plugins load (see `design.md` E1). Gate: `git diff` shows exactly one added line and `grep -c "import = 'plugins.editor'" dotfiles/nvim/init.lua` prints 1.
+- [x] Step 2 — Stage exactly the touched path and commit (dotfiles/ is gitignored, force-add per repo convention):
   ```bash
   git add -f dotfiles/nvim/init.lua
   git commit -m "feat(T900747): wire editor plugins import into init [T900747]"
@@ -26,5 +26,5 @@ Target files:
 
 ### Acceptance criteria
 
-- [ ] `init.lua` imports both `plugins.core` and `plugins.editor`; diff to `origin/main` is exactly one added line.
-- [ ] No other file changed; `plugins/editor.lua` and `config/editor-capabilities.lua` untouched (T900656 shipped, no revert).
+- [x] `init.lua` imports both `plugins.core` and `plugins.editor`; diff to `origin/main` is exactly one added line.
+- [x] No other file changed; `plugins/editor.lua` and `config/editor-capabilities.lua` untouched (T900656 shipped, no revert).

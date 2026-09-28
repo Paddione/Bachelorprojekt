@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.386.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.0...website-v1.386.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **scripts:** report K3 freshness from validated index receipts [T900805] ([#6120](https://github.com/Paddione/Bachelorprojekt/issues/6120)) ([7a3c67a](https://github.com/Paddione/Bachelorprojekt/commit/7a3c67a26c5bed092390cb52c1e7f10085223903))
+
 ## [1.386.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.2...website-v1.386.0) (2026-09-28)
 
 

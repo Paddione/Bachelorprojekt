@@ -184,6 +184,7 @@ local pages = {
           effect = function(cwd) require('config.infrastructure').setup_checklist(cwd) end,
           on_error = function() end,
         }),
+        link('n', 'Node Control', 'infrastructure-node'),
         link('s', 'Status', 'infrastructure-status'),
       }
     end,
@@ -203,6 +204,20 @@ local pages = {
           on_error = function() end,
         }),
       }
+    end,
+  },
+  -- Node control sub-page (T900800): flat rows from the nodectl module;
+  -- the `r` refresh runs the async probes and re-renders this page.
+  ['infrastructure-node'] = {
+    title = 'Infrastructure · Node Control',
+    parent = 'infrastructure',
+    rows = function()
+      local n = require('config.nodectl')
+      return n.node_rows(function()
+        n.probe_async(function()
+          pcall(M.show, 'infrastructure-node')
+        end)
+      end)
     end,
   },
   -- Files & Search chapter page (T900657). Rows are action() records in the

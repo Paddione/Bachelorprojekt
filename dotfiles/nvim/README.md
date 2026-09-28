@@ -37,6 +37,31 @@ command -v nvim >/dev/null && nvim --headless -i NONE +qa
 
 Exit code `0` with no error output means the config loads cleanly.
 
+## Nodectl layer (T900800)
+
+Wiring the bare-metal node-control layer into the dashboard config:
+
+1. `lua/config/nodectl.lua` - drop-in module: async cluster probes, binary
+   checks, SETUP_CHECKLIST.md parsing, `:Node*` commands and `<leader>N*`
+   keymaps.
+2. `lua/plugins/nodectl.lua` - lazy specs for kubectl.nvim, ToggleTerm and
+   telescope (+ plenary), each guarded by `pcall`; the spec callback calls
+   `config.nodectl.setup()`.
+3. `SETUP_CHECKLIST.md` - the checklist the node page renders.
+4. `init.lua` adds `{ import = 'plugins.nodectl' },` to the lazy spec table
+   and calls `require('config.nodectl').setup()` at startup (after
+   `config.dashboard.setup()`), so `:Node*`/`<leader>N*` exist before any
+   `:Kubectl`.
+5. `lua/config/dashboard.lua` wires the `infrastructure-node` sub-page:
+   link `n` ("Node Control") on the Infrastructure page between
+   `setup-checklist` and the kept `Status` link, and the page's flat rows
+   from `require('config.nodectl').node_rows(...)` - probe display rows,
+   missing-binary rows, checklist rows, the explicit `r` probe-refresh and
+   the `n` checklist-edit entry.
+
+The runbook index (`runbooks/README.md`) carries the stub line for the
+sub-page until its chapter content lands.
+
 ## Rollback
 
 The previous host config was preserved before this install path existed.

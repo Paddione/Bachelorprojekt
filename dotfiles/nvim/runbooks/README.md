@@ -36,6 +36,7 @@ worked example of the visible action model — it is not part of
 Infrastructure's future content from T900664:
 
 - **Infrastructure · Status** — foundation (T900655) — parent: Infrastructure — [`infrastructure-status.md`](infrastructure-status.md) — status: complete
+- **Infrastructure · Node Control** — T900800 — parent: Infrastructure — status: stub
 
 Per-chapter local tables of contents (sub-pages within each chapter)
 otherwise arrive with the chapter tickets above, which define those

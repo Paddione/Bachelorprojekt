@@ -30,6 +30,7 @@ vim.opt.rtp:prepend(lazy_path)
 require('lazy').setup({
   { import = 'plugins.core' },
   { import = 'plugins.editor' },
+  { import = 'plugins.nodectl' },
 })
 
 -- Use the theme already included in the shared plugin set.
@@ -40,3 +41,6 @@ require('config.editor').setup()
 
 -- ── Dashboard: registers :Dashboard and <leader>h ───────────────────────────
 require('config.dashboard').setup()
+
+-- Nodectl: node-control layer (:Node* commands, <leader>N* keymaps)
+require('config.nodectl').setup()

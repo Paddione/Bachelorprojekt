@@ -1262,7 +1262,7 @@ LUA
   run grep -q '^status: complete' "$RUNBOOK"
   [ "$status" -eq 0 ]
   ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
-  EXPECTED="$(printf 'cluster-status\npods\nservices\npod-logs\ncontext-select\nsetup-checklist\nStatus')"
+  EXPECTED="$(printf 'cluster-status\npods\nservices\npod-logs\ncontext-select\nsetup-checklist\nNode Control\nStatus')"
   if [ "$ACTIONS" != "$EXPECTED" ]; then
     fail "runbook actions mismatch"
   fi
@@ -1272,12 +1272,45 @@ LUA
   done
 
   STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
-  EXPECTED_STEPS="$(printf '%s\n' cluster-status pods services pod-logs context-select setup-checklist status)"
+  EXPECTED_STEPS="$(printf '%s\n' cluster-status pods services pod-logs context-select setup-checklist 'node control' status)"
   if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
     fail "runbook step order mismatch"
   fi
 }
 
+
+# ── T900800: infrastructure-node sub-page ─────────────────────────────────
+@test "neovim-dashboard: infrastructure-node page exists and renders flat rows" {
+  cat > "$PROBE_DIR/node-page.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local spec = dashboard.pages['infrastructure-node']
+if not spec then
+  io.stderr:write('infrastructure-node page missing\n')
+  os.exit(1)
+end
+local ok, rows = pcall(spec.rows)
+if not ok then
+  io.stderr:write('node rows failed: ' .. tostring(rows) .. '\n')
+  os.exit(1)
+end
+if type(rows) ~= 'table' or #rows == 0 then
+  io.stderr:write('infrastructure-node page rendered no rows\n')
+  os.exit(1)
+end
+local f = io.open(outfile, 'w')
+for _, r in ipairs(rows) do
+  f:write(tostring(r.desc) .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/node-page.out"
+  run nvim -l "$PROBE_DIR/node-page.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  [ -s "$OUT" ] || fail "infrastructure-node page rendered no rows"
+}
 
 # ── T900666 comfyui-images chapter tests ──
 @test "neovim-dashboard: comfyui-images module exposes nine functions in order" {

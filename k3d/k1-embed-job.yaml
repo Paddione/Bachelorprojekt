@@ -56,7 +56,11 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-          command: ["sh", "-c", "set -eu && cd /repo && npm install pg tsx --no-package-lock --silent"]
+          # [T900810] --legacy-peer-deps: npm 10.9.8 (im Node-Image) crasht beim
+          # Aufloesen des Repo-Dev-Baums in arborist (#loadPeerSet, "edgesOut",
+          # exit 1) — der Job kam dadurch nie ueber npm-deps hinaus. --no-save
+          # verhindert zusaetzlich den Schreibversuch auf package.json.
+          command: ["sh", "-c", "set -eu && cd /repo && npm install pg tsx --no-package-lock --legacy-peer-deps --no-save --silent"]
           env:
             - name: HOME
               value: "/tmp"

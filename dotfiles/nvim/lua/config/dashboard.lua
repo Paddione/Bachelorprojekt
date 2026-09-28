@@ -963,6 +963,27 @@ function M.setup()
     { desc = 'Search dashboard categories and actions' })
   vim.keymap.set('n', '<leader>h', '<cmd>Dashboard<CR>', { desc = 'Dashboard', silent = true })
   vim.keymap.set('n', '<leader>hf', '<cmd>DashboardSearch<CR>', { desc = 'Dashboard search', silent = true })
+  -- Startup page: with no file arguments the dashboard IS the start screen,
+  -- so a bare `nvim` must not land on the empty default buffer. Guards keep
+  -- `nvim <file>`, `-c` scripted starts and non-file buffers untouched;
+  -- `once` keeps this a start-time-only side effect; `schedule` defers the
+  -- render past VimEnter so nothing else is still claiming the window.
+  -- Rollback without editing: `let g:dashboard_startup = 0` before startup,
+  -- or drop this autocmd. [T900807]
+  vim.api.nvim_create_autocmd('VimEnter', {
+    once = true,
+    callback = function()
+      if vim.g.dashboard_startup == 0 or vim.g.dashboard_startup == false then
+        return
+      end
+      if vim.fn.argc() > 0 or vim.bo.buftype ~= '' then
+        return
+      end
+      vim.schedule(function()
+        pcall(M.show, 'home')
+      end)
+    end,
+  })
 end
 
 return M

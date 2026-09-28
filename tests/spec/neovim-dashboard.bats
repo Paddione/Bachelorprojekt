@@ -2538,3 +2538,41 @@ LUA
   run bash -c "grep -qi error '$LOG'"
   [ "$status" -ne 0 ]
 }
+
+@test "neovim-dashboard: T900807 bare startup opens the dashboard, file startup does not" {
+  if ! timeout 5 git ls-remote https://github.com/folke/lazy.nvim.git HEAD >/dev/null 2>&1; then
+    skip "plugin host (github.com) unreachable — cannot bootstrap lazy.nvim offline"
+  fi
+  [ -f "$STAGE/init.lua" ] || fail "staged init.lua missing"
+
+  # Runs from a VimEnter autocmd registered AFTER the config's own, so the
+  # scheduled dashboard render has already been processed by the vim.wait().
+  # Writes the post-startup buffer identity, then quits.
+  cat > "$PROBE_DIR/startup-dashboard.lua" <<'LUA'
+vim.wait(1500, function() return vim.bo.buftype ~= '' end)
+io.stdout:write('STARTUP buftype=' .. vim.bo.buftype .. ' ft=' .. vim.bo.filetype .. '\n')
+vim.schedule(function() vim.cmd('qa!') end)
+LUA
+
+  # Priming run: bootstraps lazy.nvim + all plugins so both asserted runs below
+  # measure the dashboard, not a cold plugin install.
+  timeout 600 nvim --headless -i NONE +"Lazy! sync" +qa \
+    >"$BATS_TEST_TMPDIR/sync-startup.out" 2>"$BATS_TEST_TMPDIR/sync-startup.log" || true
+
+  # Bare start: argc == 0 and an empty start buffer, so the dashboard is the
+  # startup page.
+  timeout 120 nvim --headless -i NONE \
+    +"autocmd VimEnter * ++once luafile $PROBE_DIR/startup-dashboard.lua" \
+    >"$BATS_TEST_TMPDIR/bare-start.out" 2>"$BATS_TEST_TMPDIR/bare-start.log"
+  grep -qx 'STARTUP buftype=nofile ft=snacks_dashboard' "$BATS_TEST_TMPDIR/bare-start.out" \
+    || fail "bare startup did not render the dashboard: $(cat "$BATS_TEST_TMPDIR/bare-start.out")"
+
+  # File start: argc > 0, so the dashboard must stay out of the way.
+  SCRATCH="$BATS_TEST_TMPDIR/startup-dashboard.txt"
+  echo "startup probe" > "$SCRATCH"
+  timeout 120 nvim --headless -i NONE "$SCRATCH" \
+    +"autocmd VimEnter * ++once luafile $PROBE_DIR/startup-dashboard.lua" \
+    >"$BATS_TEST_TMPDIR/file-start.out" 2>"$BATS_TEST_TMPDIR/file-start.log"
+  grep -qx 'STARTUP buftype= ft=text' "$BATS_TEST_TMPDIR/file-start.out" \
+    || fail "file startup was overridden by the dashboard: $(cat "$BATS_TEST_TMPDIR/file-start.out")"
+}

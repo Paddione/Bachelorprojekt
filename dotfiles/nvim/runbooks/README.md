@@ -21,7 +21,7 @@ Use `_template.md` as the starting point for a new chapter runbook.
 7. **Models & Inference** — T900663 — status: stub
 8. **Infrastructure** — T900664 — status: stub
 9. **ComfyUI & Images** — T900666 — status: stub
-10. **Settings & Help** — T900667 — status: stub
+10. **Settings & Help** — T900667 — [`settings-help.md`](settings-help.md) — status: complete
 
 No Factory chapter: T900665 (Factory & Proxy) is archived/obsolete and was
 dropped from the EPIC chapter list.

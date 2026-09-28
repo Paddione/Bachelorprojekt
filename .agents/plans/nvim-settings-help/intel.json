@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "slug": "nvim-settings-help",
+    "ticket_id": "",
+    "generated_from": "main@b4612a29a",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6038,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/dashboard.lua",
+      "language": "text",
+      "loc": 271,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/settings-help.lua",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/README.md",
+      "language": "markdown",
+      "loc": 43,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/settings-help.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/neovim-dashboard.bats",
+      "language": "bash",
+      "loc": 778,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:5:fail() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "5:fail() {(...)",
+      "type_text": "5:fail() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:10:setup() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "10:setup() {(...)",
+      "type_text": "10:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:36:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "36:teardown() {(...)",
+      "type_text": "36:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:41:write_load_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "41:write_load_probe() {(...)",
+      "type_text": "41:write_load_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:106:write_gitroot_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "106:write_gitroot_probe() {(...)",
+      "type_text": "106:write_gitroot_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:180:write_home_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "180:write_home_probe() {(...)",
+      "type_text": "180:write_home_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:339:write_action_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "339:write_action_probe() {(...)",
+      "type_text": "339:write_action_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:501:write_editor_capability_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "501:write_editor_capability_probe() {(...)",
+      "type_text": "501:write_editor_capability_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:528:write_editor_noformat_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "528:write_editor_noformat_probe() {(...)",
+      "type_text": "528:write_editor_noformat_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:557:write_editor_parsers_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "557:write_editor_parsers_probe() {(...)",
+      "type_text": "557:write_editor_parsers_probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:682:write_findfile_cwd_probe() {",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "682:write_findfile_cwd_probe() {(...)",
+      "type_text": "682:write_findfile_cwd_probe() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

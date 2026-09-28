@@ -776,3 +776,241 @@ LUA
     fail "runbook step order mismatch"
   fi
 }
+
+# ── T900667 settings-help ──
+@test "neovim-dashboard: settings-help module exposes eight action functions" {
+  cat > "$PROBE_DIR/sh-shape.lua" <<'LUA'
+local stage = arg[1]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.settings-help')
+if not ok then
+  io.stderr:write('LOAD FAILED config.settings-help:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+for _, f in ipairs({'open_config_source','sync_status','plugins','health','keybindings','reload','backup','recover'}) do
+  if type(m[f]) ~= 'function' then
+    io.stderr:write('missing ' .. f .. '\n')
+    os.exit(1)
+  end
+end
+print('all eight functions exist')
+os.exit(0)
+LUA
+  run nvim -l "$PROBE_DIR/sh-shape.lua" "$STAGE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all eight functions exist"* ]]
+}
+
+@test "neovim-dashboard: settings-help page lists eight actions in order" {
+  cat > "$PROBE_DIR/sh-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('settings-help')
+local f = io.open(outfile, 'w')
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    f:write(r.name .. '\n')
+  end
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/sh-order.out"
+  run nvim -l "$PROBE_DIR/sh-order.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  EXPECTED="$(printf 'open-config-source\nsync-status\nplugins\nhealth\nkeybindings\nreload-config\nbackup-config\nrecover-config\n')"
+  run diff <(printf '%s\n' "$EXPECTED") "$OUT"
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: settings-help open-config-source targets the repo init.lua" {
+  SCRATCH="$BATS_TEST_TMPDIR/sh-src-scratch"
+  mkdir -p "$SCRATCH/dotfiles/nvim" "$SCRATCH/nested"
+  git -C "$SCRATCH" init -q
+  printf -- '-- scratch init\n' > "$SCRATCH/dotfiles/nvim/init.lua"
+  printf 'x\n' > "$SCRATCH/nested/file.txt"
+  EXPECTED="$(cd "$SCRATCH" && git rev-parse --show-toplevel)/dotfiles/nvim/init.lua"
+  cat > "$PROBE_DIR/sh-open.lua" <<'LUA'
+local stage, target, expected, outfile = arg[1], arg[2], arg[3], arg[4]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.settings-help')
+if not ok then
+  io.stderr:write('LOAD FAILED\n')
+  os.exit(1)
+end
+vim.cmd.edit(vim.fn.fnameescape(target))
+local recorded = nil
+vim.cmd.edit = function(p) recorded = p end
+local got = m.open_config_source()
+local f = io.open(outfile, 'w')
+f:write('recorded=' .. tostring(recorded) .. '\n')
+f:write('returned=' .. tostring(got) .. '\n')
+f:write('expected_escaped=' .. vim.fn.fnameescape(expected) .. '\n')
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/sh-open.out"
+  run nvim -l "$PROBE_DIR/sh-open.lua" "$STAGE" "$SCRATCH/nested/file.txt" "$EXPECTED" "$OUT"
+  [ "$status" -eq 0 ]
+  RECORDED="$(grep '^recorded=' "$OUT" | cut -d= -f2-)"
+  RETURNED="$(grep '^returned=' "$OUT" | cut -d= -f2-)"
+  WANT_ESCAPED="$(grep '^expected_escaped=' "$OUT" | cut -d= -f2-)"
+  [ "$RECORDED" = "$WANT_ESCAPED" ]
+  [ "$RETURNED" = "$EXPECTED" ]
+}
+
+@test "neovim-dashboard: settings-help sync-status reports in-sync and differs" {
+  ROOT="$BATS_TEST_TMPDIR/sh-sync-root"
+  mkdir -p "$ROOT/nested"
+  git -C "$ROOT" init -q
+  printf 'x\n' > "$ROOT/nested/file.txt"
+  mkdir -p "$ROOT/dotfiles"
+  cp -r "$STAGE" "$ROOT/dotfiles/nvim"
+  cat > "$PROBE_DIR/sh-sync.lua" <<'LUA'
+local stage, target, outfile = arg[1], arg[2], arg[3]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.settings-help')
+if not ok then
+  io.stderr:write('LOAD FAILED\n')
+  os.exit(1)
+end
+vim.cmd.edit(vim.fn.fnameescape(target))
+local state = m.sync_status()
+local f = io.open(outfile, 'w')
+f:write(tostring(state) .. '\n')
+f:close()
+os.exit(0)
+LUA
+  OUT_SYNC="$BATS_TEST_TMPDIR/sh-sync-insync.out"
+  run nvim -l "$PROBE_DIR/sh-sync.lua" "$STAGE" "$ROOT/nested/file.txt" "$OUT_SYNC"
+  [ "$status" -eq 0 ]
+  [ "$(cat "$OUT_SYNC")" = "in-sync" ]
+
+  printf -- '-- drift\n' >> "$ROOT/dotfiles/nvim/init.lua"
+  OUT_DIFF="$BATS_TEST_TMPDIR/sh-sync-differs.out"
+  run nvim -l "$PROBE_DIR/sh-sync.lua" "$STAGE" "$ROOT/nested/file.txt" "$OUT_DIFF"
+  [ "$status" -eq 0 ]
+  [ "$(cat "$OUT_DIFF")" = "differs" ]
+}
+
+@test "neovim-dashboard: settings-help reload sources a file and returns true" {
+  MARKER_FILE="$BATS_TEST_TMPDIR/sh-reload-target.lua"
+  printf 'vim.g.sh_reload_marker = "set-by-reload"\n' > "$MARKER_FILE"
+  cat > "$PROBE_DIR/sh-reload.lua" <<'LUA'
+local stage, target, outfile = arg[1], arg[2], arg[3]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.settings-help')
+if not ok then
+  io.stderr:write('LOAD FAILED\n')
+  os.exit(1)
+end
+local res = m.reload(target)
+local f = io.open(outfile, 'w')
+f:write('result=' .. tostring(res) .. '\n')
+f:write('marker=' .. tostring(vim.g.sh_reload_marker) .. '\n')
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/sh-reload.out"
+  run nvim -l "$PROBE_DIR/sh-reload.lua" "$STAGE" "$MARKER_FILE" "$OUT"
+  [ "$status" -eq 0 ]
+  grep -qx 'result=true' "$OUT"
+  grep -qx 'marker=set-by-reload' "$OUT"
+}
+
+@test "neovim-dashboard: settings-help backup creates exactly one timestamped directory" {
+  ls -d "$XDG_CONFIG_HOME"/nvim-backup-* 2>/dev/null | sort > "$BATS_TEST_TMPDIR/sh-backup-before.txt" || true
+  cat > "$PROBE_DIR/sh-backup.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local ok, m = pcall(require, 'config.settings-help')
+if not ok then
+  io.stderr:write('LOAD FAILED\n')
+  os.exit(1)
+end
+local dst = m.backup()
+local f = io.open(outfile, 'w')
+f:write(tostring(dst) .. '\n')
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/sh-backup.out"
+  run nvim -l "$PROBE_DIR/sh-backup.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  NEW_DST="$(cat "$OUT")"
+  [ -n "$NEW_DST" ]
+  [ "$NEW_DST" != "nil" ]
+  [ -d "$NEW_DST" ]
+  ls -d "$XDG_CONFIG_HOME"/nvim-backup-* 2>/dev/null | sort > "$BATS_TEST_TMPDIR/sh-backup-after.txt"
+  ADDED="$(comm -13 "$BATS_TEST_TMPDIR/sh-backup-before.txt" "$BATS_TEST_TMPDIR/sh-backup-after.txt" | wc -l)"
+  [ "$ADDED" -eq 1 ]
+  grep -Fxq "$NEW_DST" "$BATS_TEST_TMPDIR/sh-backup-after.txt"
+}
+
+@test "neovim-dashboard: settings-help recover warns and changes nothing without backups" {
+  ls -d "$XDG_CONFIG_HOME"/nvim-backup-* 2>/dev/null | sort > "$BATS_TEST_TMPDIR/sh-recover-before.txt" || true
+  [ ! -s "$BATS_TEST_TMPDIR/sh-recover-before.txt" ] || fail "unexpected pre-existing backups in fresh XDG_CONFIG_HOME"
+  cat > "$PROBE_DIR/sh-recover.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local notifies = {}
+vim.notify = function(msg, level)
+  notifies[#notifies + 1] = tostring(msg)
+end
+local ok, m = pcall(require, 'config.settings-help')
+if not ok then
+  io.stderr:write('LOAD FAILED\n')
+  os.exit(1)
+end
+local state = m.recover()
+local f = io.open(outfile, 'w')
+f:write('state=' .. tostring(state) .. '\n')
+f:write('notifies=' .. table.concat(notifies, ' | ') .. '\n')
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/sh-recover.out"
+  run nvim -l "$PROBE_DIR/sh-recover.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  grep -qx 'state=no-backups' "$OUT"
+  grep -q '^notifies=.*no backups' "$OUT"
+  ls -d "$XDG_CONFIG_HOME"/nvim-backup-* 2>/dev/null | sort > "$BATS_TEST_TMPDIR/sh-recover-after.txt" || true
+  run diff "$BATS_TEST_TMPDIR/sh-recover-before.txt" "$BATS_TEST_TMPDIR/sh-recover-after.txt"
+  [ "$status" -eq 0 ]
+}
+
+@test "neovim-dashboard: settings-help runbook matches the dashboard page" {
+  RUNBOOK="$STAGE/runbooks/settings-help.md"
+  [ -f "$RUNBOOK" ] || fail "runbooks/settings-help.md missing in staged config"
+  run grep -q '^status: complete' "$RUNBOOK"
+  [ "$status" -eq 0 ]
+  cat > "$PROBE_DIR/sh-rb-order.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local rows = dashboard.sections('settings-help')
+local f = io.open(outfile, 'w')
+for _, r in ipairs(rows[3]) do
+  if r.name then
+    f:write(r.name .. '\n')
+  end
+end
+f:close()
+os.exit(0)
+LUA
+  DASH_OUT="$BATS_TEST_TMPDIR/sh-rb-order.out"
+  run nvim -l "$PROBE_DIR/sh-rb-order.lua" "$STAGE" "$DASH_OUT"
+  [ "$status" -eq 0 ]
+  GOT="$BATS_TEST_TMPDIR/sh-rb-actions.txt"
+  awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next} f && !/^  - /{exit}' \
+    "$RUNBOOK" > "$GOT"
+  run diff "$DASH_OUT" "$GOT"
+  [ "$status" -eq 0 ]
+  for section in "Voraussetzungen" "Geordnete Schritte" "Erwartetes Ergebnis" "Troubleshooting" "Recovery"; do
+    run grep -q "^## $section" "$RUNBOOK"
+    [ "$status" -eq 0 ]
+  done
+  run bash -c "grep -F -- '**Settings & Help**' '$STAGE/runbooks/README.md' | grep -q 'status: complete'"
+  [ "$status" -eq 0 ]
+}

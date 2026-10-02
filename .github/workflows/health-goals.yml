@@ -175,7 +175,7 @@ jobs:
       # Rennverlierer-Cleanup, gleiche Form wie in freshness-regen.yml (T006998): beide
       # Dateien aendern sich bei jeder Messung, ein aelterer Mess-PR konfligiert also,
       # sobald ein juengerer gemergt ist, und heilt nie von selbst. Jeder Lauf schliesst
-      # deshalb die offenen chore/health-goals-*-PRs frueherer Laeufe. Der
+      # deshalb die offenen chore/health-goals-run-*-PRs frueherer Laeufe. Der
       # concurrency-Guard oben serialisiert die Laeufe; der eigene Branch existiert
       # hier noch nicht.
       - name: Close superseded measurement PRs
@@ -192,7 +192,7 @@ jobs:
             git push origin --delete "$head" >/dev/null 2>&1 || true
           done < <(gh pr list --state open --limit 100 \
             --json number,headRefName \
-            --jq '.[] | select(.headRefName | startswith("chore/health-goals-")) | "\(.number) \(.headRefName)"')
+            --jq '.[] | select(.headRefName | startswith("chore/health-goals-run-")) | "\(.number) \(.headRefName)"')
           exit 0
 
       # T900810: Der Bot schreibt ueber einen PR statt direkt auf main. Die Branch
@@ -210,7 +210,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
           # Je Lauf eindeutig — sonst kollidieren zwei Laeufe auf demselben Ref.
-          BRANCH: chore/health-goals-${{ github.run_id }}
+          BRANCH: chore/health-goals-run-${{ github.run_id }}
           RUN_ID: ${{ github.run_id }}
         run: |
           git config user.name "github-actions[bot]"

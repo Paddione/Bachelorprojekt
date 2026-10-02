@@ -70,3 +70,19 @@ wf_config() {
   run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$BATS_TEST_TMPDIR/title.txt"
   [ "$status" -eq 0 ]
 }
+
+@test "health-goals: Cleanup trifft nur Bot-Branches, nicht von Hand angelegte (T900837)" {
+  # `chore/health-goals-` tragen auch von Hand angelegte Branches (z. B.
+  # chore/health-goals-fixes-sept25). Der Cleanup-Schritt schliesst PRs und loescht ihre
+  # Branches — sein Filter muss deshalb ein Praefix nutzen, das nur der Bot vergibt.
+  [ -f "$WF" ]
+  bot_branch="$(wf_config | sed -n 's/^[[:space:]]*BRANCH:[[:space:]]*\(chore\/[^$]*\)\${{.*$/\1/p' | head -1)"
+  filter="$(wf_config | sed -n 's/.*startswith("\([^"]*\)").*/\1/p' | head -1)"
+  # Positiv-Anker: beide Werte wurden gefunden — sonst waere der Vergleich vakuos.
+  [ -n "$bot_branch" ]
+  [ -n "$filter" ]
+  # Der Filter ist genau das Praefix, unter dem der Bot seinen Branch anlegt.
+  [ "$filter" = "$bot_branch" ]
+  # Ein von Hand angelegter Branch faellt nicht darunter.
+  case "chore/health-goals-fixes-sept25" in "$filter"*) return 1 ;; esac
+}

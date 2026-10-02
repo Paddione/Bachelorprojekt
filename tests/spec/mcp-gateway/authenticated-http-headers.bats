@@ -78,7 +78,8 @@ setup() {
   # Wenn der Header in .mcp.json steht und check gruen ist, dann hat der
   # Generator ihn reproduzierbar aus der Registry erzeugt. Genau das trennt
   # den Fix von einem manuellen Eintrag, den der naechste sync ueberschreibt.
-  run bash "$SYNC" check
+  # Entruempelt das Aufrufer-Env, damit der Renderer deterministisch aus server.env aufloest (T900922).
+  run env -u BGE_MCP_TOKEN -u MCP_POSTGRES_TOKEN bash "$SYNC" check
   echo "output: $output"
   [ "$status" -eq 0 ]
 }

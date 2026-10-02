@@ -43,7 +43,8 @@ setup() {
 }
 
 @test "mcp-sync.sh check passes (registry matches generated configs)" {
-  run bash "$REPO/scripts/mcp-sync.sh" check
+  # Entruempelt das Aufrufer-Env, damit der Renderer deterministisch aus server.env aufloest (T900922).
+  run env -u BGE_MCP_TOKEN -u MCP_POSTGRES_TOKEN bash "$REPO/scripts/mcp-sync.sh" check
   echo "output: $output"
   [ "$status" -eq 0 ]
 }

@@ -136,15 +136,16 @@ _all_spec_files() {
 }
 
 @test "T002500: ci.yml behaelt den Required-Check-Namen" {
-  # Genau dieser String haengt in der Branch Protection von main. Eine nackte
-  # Matrix haette ihn in "… (1)".."… (4)" umbenannt und jeden PR blockiert.
+  # Genau dieser String ist der Aggregator-Name (advisory seit T900810, kein
+  # Required Check mehr — T900131). Eine nackte Matrix haette ihn in
+  # "… (1)".."… (4)" umbenannt und jeden PR blockiert.
   run python3 -c "
 import yaml, sys
 wf = yaml.safe_load(open('$CI_YML'))
 names = [j.get('name') for j in wf['jobs'].values()]
-assert 'Factory + Open' + 'Spec + Guards' in names, 'Required-Check-Name fehlt: %r' % (names,)
-agg = wf['jobs']['test-factory']
-assert agg['name'] == 'Factory + Open' + 'Spec + Guards', agg['name']
+assert 'Spec + Guards' in names, 'Aggregator-Name fehlt: %r' % (names,)
+agg = wf['jobs']['test-spec']
+assert agg['name'] == 'Spec + Guards', agg['name']
 assert 'strategy' not in agg, 'Aggregator darf keine Matrix haben (wuerde den Namen suffixen)'
 print('OK')
 "
@@ -158,11 +159,11 @@ print('OK')
   run python3 -c "
 import yaml
 wf = yaml.safe_load(open('$CI_YML'))
-agg = wf['jobs']['test-factory']
+agg = wf['jobs']['test-spec']
 cond = str(agg.get('if', ''))
 assert 'always()' in cond, 'if fehlt always(): %r' % cond
 needs = agg['needs']
-assert 'test-factory-shard' in needs and 'test-factory-fast' in needs, needs
+assert 'test-spec-shard' in needs and 'test-spec-fast' in needs, needs
 body = ' '.join(str(s.get('run', '')) for s in agg['steps'])
 assert 'exit 1' in body, 'Aggregator scheitert nie'
 for var in ('FAST_RESULT', 'SHARDS_RESULT'):
@@ -180,7 +181,7 @@ print('OK')
   run python3 -c "
 import yaml
 wf = yaml.safe_load(open('$CI_YML'))
-steps = wf['jobs']['test-factory-shard']['steps']
+steps = wf['jobs']['test-spec-shard']['steps']
 names = [str(s.get('name', '')) for s in steps]
 pyyaml = next(i for i, n in enumerate(names) if 'PyYAML' in n)
 suite  = next(i for i, n in enumerate(names) if 'Spec BATS suite' in n)
@@ -195,7 +196,7 @@ print('OK')
   run python3 -c "
 import yaml
 wf = yaml.safe_load(open('$CI_YML'))
-job = wf['jobs']['test-factory-shard']
+job = wf['jobs']['test-spec-shard']
 shards = job['strategy']['matrix']['shard']
 assert len(shards) > 1, shards
 assert job['strategy'].get('fail-fast') is False, 'fail-fast muss false sein'

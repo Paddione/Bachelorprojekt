@@ -12,9 +12,9 @@ _ci_portable_jobs() {
   printf '%s\n' \
     test-bats \
     test-manifests \
-    test-factory-fast \
-    test-factory-shard \
-    test-factory \
+    test-spec-fast \
+    test-spec-shard \
+    test-spec \
     security-scan \
     brett-typescript \
     vitest-website \
@@ -98,7 +98,7 @@ EOF
 @test "T012446: Required-Check-Namen bleiben stabil" {
   [ "$(yq -r '.jobs.test-bats.name' .github/workflows/ci.yml)" = "BATS Unit + Quality Gates" ]
   [ "$(yq -r '.jobs.test-manifests.name' .github/workflows/ci.yml)" = "Manifest Validation" ]
-  [ "$(yq -r '.jobs.test-factory.name' .github/workflows/ci.yml)" = "Factory + Open""Spec + Guards" ]
+  [ "$(yq -r '.jobs.test-spec.name' .github/workflows/ci.yml)" = "Factory + Open""Spec + Guards" ]
   [ "$(yq -r '.jobs.vitest-website.name' .github/workflows/ci.yml)" = "Vitest (website)" ]
   [ "$(yq -r '.jobs.commit-lint.name' .github/workflows/ci.yml)" = "Conventional Commits" ]
   [ "$(yq -r '.jobs.e2e-pr.name' .github/workflows/e2e-pr.yml)" = "E2E PR" ]

@@ -293,7 +293,7 @@ jobs:
             tests/unit/manifests.bats tests/unit/changed-manifests.bats \
             tests/unit/dead-node-affinity.bats
 
-  # ── Factory: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
+  # ── Spec: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
   #
   # [T002500] Vorher war das EIN Job mit ~400s, dem kritischen Pfad jedes PRs
   # (zweitlaengster Job: 165s). Zwei Probleme, beide hier behoben:
@@ -311,10 +311,10 @@ jobs:
   # [T900810] Kein Required Check mehr (T900131, SSOT gh-branch-protection.sh) —
   # der Name bleibt trotzdem stabil, weil Tooling/Guards ihn referenzieren.
 
-  test-factory-fast:
+  test-spec-fast:
     # Die billigen, hochsignalhaften Gates — laufen parallel zu den Shards und
     # melden nach ~30s statt nach ~400s.
-    name: Factory fast guards
+    name: Spec fast guards
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -359,19 +359,19 @@ jobs:
       - name: Agent setup replay reminder
         run: |
           changed=$(git diff --name-only origin/main...HEAD || true)
-          # [T900399] scripts/factory/review-*.prompt.md und provider-router.js sind mit
-          # dem Factory-Abau entfallen; 'task factory:eval:replay' gibt es nicht mehr —
-          # das Gate dafuer ist heute 'task agents:toolset:check'.
+          # [T900399] Die Factory-Review-Prompts und provider-router.js sind mit
+          # dem Factory-Abbau entfallen; das Replay-Gate dafuer ist heute
+          # 'task agents:toolset:check'.
           if echo "$changed" | grep -Eq '^(.opencode/agent-models.jsonc|AGENTS.md)$'; then
             echo "::warning::Agenten-Setup geändert — lokal 'task agents:toolset:check' ausführen"
           fi
 
-  test-factory-shard:
+  test-spec-shard:
     # tests/spec/*.bats + setup-go fuer den mcp-task-runner-Build (von test:spec
     # gebraucht). Alle Spec-Tests ueberspringen Live-DB-Faelle ohne Cluster
     # (CI-safe). [T002182]
     # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
-    name: Factory spec shard ${{ matrix.shard }}
+    name: Spec shard ${{ matrix.shard }}
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -551,32 +551,32 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  test-factory:
+  test-spec:
     # Aggregator. Ist fail-closed: alles, was nicht exakt "success" ist, laesst
     # ihn scheitern. Das ist wesentlich — ohne always() wuerde er bei
     # fehlgeschlagenen needs uebersprungen und damit das Gate lautlos oeffnen
     # (ein uebersprungener Check zaehlt als bestanden).
     # [T900810] Advisory, kein Required Check (T900131).
-    name: Factory + OpenSpec + Guards
+    name: Spec + Guards
     if: always() && github.event.action != 'edited'
-    needs: [test-factory-fast, test-factory-shard]
+    needs: [test-spec-fast, test-spec-shard]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Aggregate shard + gate results
         env:
-          FAST_RESULT: ${{ needs.test-factory-fast.result }}
-          SHARDS_RESULT: ${{ needs.test-factory-shard.result }}
+          FAST_RESULT: ${{ needs.test-spec-fast.result }}
+          SHARDS_RESULT: ${{ needs.test-spec-shard.result }}
         run: |
           echo "Fast guards : $FAST_RESULT"
           echo "Spec shards (1-4) : $SHARDS_RESULT"
           # SHARDS_RESULT ist das Aggregat ueber ALLE Matrix-Legs — 'success'
           # nur, wenn jeder einzelne Shard erfolgreich war.
           if [ "$FAST_RESULT" = "success" ] && [ "$SHARDS_RESULT" = "success" ]; then
-            echo "Alle Factory-Gates gruen."
+            echo "Alle Spec-Gates gruen."
             exit 0
           fi
-          echo "::error::Factory-Gates nicht gruen (fast=$FAST_RESULT shards=$SHARDS_RESULT)"
+          echo "::error::Spec-Gates nicht gruen (fast=$FAST_RESULT shards=$SHARDS_RESULT)"
           exit 1
 
   # ── End scoped test jobs ──────────────────────────────────────────

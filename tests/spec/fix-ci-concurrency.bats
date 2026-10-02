@@ -21,7 +21,7 @@
   local guarded
   guarded=$(grep -c "github.event.action != 'edited'" .github/workflows/ci.yml)
   # At least the core test jobs must be guarded (test-bats, test-manifests,
-  # test-factory, security-scan, brett-typescript, vitest-website,
+  # test-spec, security-scan, brett-typescript, vitest-website,
   # bundle-budget, lighthouse).
   [ "$guarded" -ge 8 ]
 }

@@ -13,7 +13,7 @@ import {
   STATUS_BUCKETS as FF_STATUS_BUCKETS,
   ALL_TICKET_STATUSES as FF_ALL_TICKET_STATUSES,
 } from './factory-floor';
-import { TABS, MOBILE_COL_INDEX } from '../../components/sdlc/factory/mobile-tab-bar-constants';
+import { TABS, MOBILE_COL_INDEX } from '../../components/sdlc/cockpit/mobile-tab-bar-constants';
 import { PHASE_ORDER } from '../factory-floor-types.ts';
 
 // The declared expectation, independent of the implementation. Front→back, linear lanes only.
@@ -66,7 +66,7 @@ describe('pipeline-order SSOT', () => {
   });
 
   // ---- Component-order checks wired by Sub-Plan 4 (T000922). ----
-  // SP4 owns MobileTabBar.svelte / FactoryFloor.svelte; TABS, MOBILE_COL_INDEX,
+  // SP4 owns MobileTabBar.svelte / CockpitFloor.svelte; TABS, MOBILE_COL_INDEX,
   // and macro-lane DOM order are derived from PIPELINE_LANES/PHASE_ORDER.
   it('SP4: MobileTabBar.TABS order matches the SSOT-derived lane/phase order', () => {
     const linearLanes = PIPELINE_LANES.filter(l => !l.side && l.key !== 'planning');
@@ -86,7 +86,7 @@ describe('pipeline-order SSOT', () => {
     expect(Object.keys(MOBILE_COL_INDEX)).toHaveLength(TABS.length);
   });
 
-  it('SP4: FactoryFloor macro-lane DOM order matches PIPELINE_LANES (qa before done)', () => {
+  it('SP4: CockpitFloor macro-lane DOM order matches PIPELINE_LANES (qa before done)', () => {
     const nonSide = PIPELINE_LANES.filter(l => !l.side);
     const qaIdx = nonSide.findIndex(l => l.key === 'qa');
     const shippedIdx = nonSide.findIndex(l => l.key === 'shipped');

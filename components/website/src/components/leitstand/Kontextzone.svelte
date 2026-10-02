@@ -5,10 +5,10 @@
   import { onLeitstandSelectionChange, pushLeitstandSelection } from '../../lib/sdlc/leitstand-url.ts';
   import type { LeitstandSelection } from '../../lib/sdlc/leitstand-url.ts';
   import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store.ts';
-  import FactoryFloor from '../sdlc/FactoryFloor.svelte';
+  import CockpitFloor from '../sdlc/CockpitFloor.svelte';
   import PlanningOffice from '../PlanningOffice.svelte';
-  import DetailPanel from '../sdlc/factory/DetailPanel.svelte';
-  import ShippedColumn from '../sdlc/factory/ShippedColumn.svelte';
+  import DetailPanel from '../sdlc/cockpit/DetailPanel.svelte';
+  import ShippedColumn from '../sdlc/cockpit/ShippedColumn.svelte';
   import KpiGrid from './KpiGrid.svelte';
 
   // Props: SSR-Erstzustand von cockpit.astro durchgereicht.
@@ -32,7 +32,7 @@
     return () => offSel();
   });
 
-  // ── Ticket-Zweig: eigenes Detail-Fetch (analog FactoryFloor.openDetail,
+  // ── Ticket-Zweig: eigenes Detail-Fetch (analog CockpitFloor.openDetail,
   //    bewusst kleine Dopplung statt groesserer Extraktion -- T007957/E3). ──
   let detail = $state<TicketDetail | null>(null);
   let detailLoading = $state(false);
@@ -86,7 +86,7 @@
     pushLeitstandSelection({ station: sel.station });
   }
 
-  // ── Ship-Zweig: Shipped-Liste aus dem floorStore (wie FactoryFloor). ──
+  // ── Ship-Zweig: Shipped-Liste aus dem floorStore (wie CockpitFloor). ──
   let shippedList = $state<{ extId: string; title: string; prNumber?: number | null; doneAt?: string | null }[]>([]);
   onMount(() => {
     const release = acquireFloor();
@@ -117,7 +117,7 @@
     />
   {:else if isFertigung}
     <!-- Alle sechs Fertigungsstationen zeigen dieselbe Bauen-Ansicht -->
-    <FactoryFloor {initial} />
+    <CockpitFloor {initial} />
   {:else if sel.station === 'triage' || sel.station === 'planung'}
     <PlanningOffice {brand} stationFilter={sel.station} />
   {:else if sel.station === 'ship'}

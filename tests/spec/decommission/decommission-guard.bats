@@ -197,13 +197,10 @@ setup() {
   }
 }
 
-@test "decommission: cockpit force-tick endpoint reports decommissioning" {
-  run grep -q 'factory_decommissioned' \
-    "$REPO/components/website/src/pages/sdlc/api/factory/force-tick.ts"
-  [ "$status" -eq 0 ] || {
-    echo "force-tick.ts does not report factory_decommissioned" >&2
-    false
-  }
+@test "decommission: cockpit force-tick endpoint is removed (T900399 complete)" {
+  # T900727: der 410-Stub api/factory/force-tick.ts ist mit A3a entfallen —
+  # kein toter Endpunkt mehr noetig, das Flag lebt in tickets.factory_control.
+  [ ! -e "$REPO/components/website/src/pages/sdlc/api/factory/force-tick.ts" ]
 }
 
 @test "decommission: no cockpit endpoint reads the factory_control table" {

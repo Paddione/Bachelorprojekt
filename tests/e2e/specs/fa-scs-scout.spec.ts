@@ -98,7 +98,7 @@ test.describe('FA-SCS: Scout phase injects suggested_files', { tag: ['@admin', '
     );
 
     await page.goto('/dev-status');
-    await expect(page.getByTestId('factory-floor')).toBeVisible();
+    await expect(page.getByTestId('cockpit-floor')).toBeVisible();
 
     const workpiece = page.getByTestId('floor-workpiece').filter({ hasText: HALL_ITEM.extId });
     await expect(workpiece).toBeVisible();

@@ -17,13 +17,13 @@ setup() {
   SRC="$REPO/components/website/src"
 }
 
-@test "(a) Positiv-Anker: das Factory-Komponentenverzeichnis enthaelt Svelte-Dateien" {
-  anchor="$(find "$SRC/components/sdlc/factory" -name '*.svelte' 2>/dev/null | wc -l | tr -d ' ')"
+@test "(a) Positiv-Anker: das Cockpit-Komponentenverzeichnis enthaelt Svelte-Dateien" {
+  anchor="$(find "$SRC/components/sdlc/cockpit" -name '*.svelte' 2>/dev/null | wc -l | tr -d ' ')"
   [ "$anchor" -gt 0 ]
 }
 
 @test "(a) FactoryModelSlots.svelte existiert nicht mehr" {
-  [ ! -e "$SRC/components/sdlc/factory/FactoryModelSlots.svelte" ]
+  [ ! -e "$SRC/components/sdlc/cockpit/FactoryModelSlots.svelte" ]
 }
 
 @test "(a) FactoryModelSlots ist nowhere tracked im Repo" {

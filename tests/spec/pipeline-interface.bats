@@ -2,9 +2,9 @@
 # tests/spec/pipeline-interface.bats
 
 STORE="components/website/src/lib/stores/factory-floor-store.ts"
-FLOOR="components/website/src/components/sdlc/FactoryFloor.svelte"
-CTRL="components/website/src/components/sdlc/factory/ControlPanel.svelte"
-STRIP="components/website/src/components/sdlc/factory/StatusStrip.svelte"
+FLOOR="components/website/src/components/sdlc/CockpitFloor.svelte"
+CTRL="components/website/src/components/sdlc/cockpit/ControlPanel.svelte"
+STRIP="components/website/src/components/sdlc/cockpit/StatusStrip.svelte"
 DAG="components/website/src/components/DependencyGraph.svelte"
 SIDEKICK="components/website/src/components/PortalSidekick.svelte"
 PIPEVIEW="components/website/src/components/assistant/PipelineSidekickView.svelte"
@@ -30,8 +30,8 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
   done
 }
 
-@test "D3: KI provider editor extracted; FactoryFloor drops KiProviderDrawer" {
-  [ -f "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte" ]
+@test "D3: KI provider editor extracted; CockpitFloor drops KiProviderDrawer" {
+  [ -f "components/website/src/components/sdlc/cockpit/KiRoutingPanel.svelte" ]
   run grep -q "KiProviderDrawer" "$FLOOR"
   [ "$status" -ne 0 ]
 }
@@ -77,7 +77,7 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
       components/website/src/components/PlanningOfficeDetail.svelte \
       components/website/src/components/PlanningOfficeTriage.svelte \
       components/website/src/components/PlanningOfficeQueue.svelte \
-      components/website/src/components/sdlc/factory/PhaseBadge.svelte
+      components/website/src/components/sdlc/cockpit/PhaseBadge.svelte
   [ "$status" -ne 0 ]
 }
 
@@ -90,12 +90,12 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
 @test "D4: der geteilte Analytics-Fensterfilter ist mitsamt seinen Konsumenten entfernt" {
   # Positiv-Anker: der Pfad, unter dem gesucht wird, existiert überhaupt —
   # sonst bestünde die Abwesenheitsaussage vakuos.
-  [ -d "components/website/src/components/sdlc/factory" ]
-  [ ! -f "components/website/src/components/sdlc/factory/AnalyticsWindowFilter.svelte" ]
+  [ -d "components/website/src/components/sdlc/cockpit" ]
+  [ ! -f "components/website/src/components/sdlc/cockpit/AnalyticsWindowFilter.svelte" ]
 }
 
 @test "D7.3: orphan ViewSwitcher is deleted and unreferenced" {
-  [ ! -f "components/website/src/components/sdlc/factory/ViewSwitcher.svelte" ]
+  [ ! -f "components/website/src/components/sdlc/cockpit/ViewSwitcher.svelte" ]
   run grep -rq "ViewSwitcher" components/website/src
   [ "$status" -ne 0 ]
 }

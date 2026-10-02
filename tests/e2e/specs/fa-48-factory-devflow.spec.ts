@@ -48,7 +48,7 @@ async function gotoDevStatusWithStub(page: any, payload: any) {
   await page.route('**/api/factory-floor/stream', (route: any) => route.abort());
 
   await page.goto('/admin/cockpit?tab=factory', { waitUntil: 'domcontentloaded' });
-  // DevStatusTabs & FactoryFloor listen for floor-stub-update and ingest the payload.
+  // DevStatusTabs & CockpitFloor listen for floor-stub-update and ingest the payload.
   // The island hydrates asynchronously — dispatch repeatedly so the listener is
   // guaranteed to be registered when the event lands (idempotent overwrite).
   await page.evaluate((p: any) => {
@@ -57,10 +57,10 @@ async function gotoDevStatusWithStub(page: any, payload: any) {
     setTimeout(fire, 200);
     setTimeout(fire, 800);
   }, payload);
-  await expect(page.getByTestId('factory-floor')).toBeVisible();
+  await expect(page.getByTestId('cockpit-floor')).toBeVisible();
 }
 
-test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {
+test.describe('FA-48: CockpitFloor devflow chip & CI badge', () => {
   test.beforeEach(async ({ page, request }) => {
     await guardSdlc(request);
     // Stub SSE endpoint to avoid real connection / error logs
@@ -69,7 +69,7 @@ test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {
 
   test('T1: devflow workpiece hat data-driver="devflow" und kein goldenes bg', async ({ page }) => {
     await gotoDevStatusWithStub(page, stubPayload([...FACTORY_HALL, ...DEVFLOW_HALL]));
-    await expect(page.getByTestId('factory-floor')).toBeVisible();
+    await expect(page.getByTestId('cockpit-floor')).toBeVisible();
 
     const devflowWps = page.getByTestId('floor-workpiece').filter({ hasText: 'T000582' });
     await expect(devflowWps).toBeVisible();

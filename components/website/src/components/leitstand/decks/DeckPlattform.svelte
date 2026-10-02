@@ -1,7 +1,7 @@
 <script lang="ts">
   // DeckPlattform.svelte — Nebendomaenen-Deck "Plattform" (T008016/E4).
-  // Betriebsparameter (ControlPanel), Observability (FactoryObservability),
-  // Budgets (FactoryBudgetPage) und Cluster-Karten aus den bestehenden
+  // Betriebsparameter (ControlPanel), Observability (CockpitObservability),
+  // Budgets (CockpitBudgetPage) und Cluster-Karten aus den bestehenden
   // /sdlc/api/-Routen (lib/sdlc/k8s.ts-gestuetzt: deployments.ts,
   // cluster/pods-list.ts). Jede Sektion ist fail-soft: eine fehlende oder
   // fehlschlagende Datenquelle rendert den Fehlerzustand ihrer eigenen Karte,
@@ -10,9 +10,9 @@
   // Dashboard-Fallback-Zahlen von /sdlc/api/cluster/status sind deshalb
   // bewusst KEINE Quelle dieses Decks).
   import { onMount } from 'svelte';
-  import ControlPanel from '../../sdlc/factory/ControlPanel.svelte';
-  import FactoryObservability from '../../sdlc/factory/FactoryObservability.svelte';
-  import FactoryBudgetPage from '../../sdlc/factory/FactoryBudgetPage.svelte';
+  import ControlPanel from '../../sdlc/cockpit/ControlPanel.svelte';
+  import CockpitObservability from '../../sdlc/cockpit/CockpitObservability.svelte';
+  import CockpitBudgetPage from '../../sdlc/cockpit/CockpitBudgetPage.svelte';
 
   type DeploymentStatus = 'healthy' | 'degraded' | 'stopped';
   interface DeploymentInfo {
@@ -71,12 +71,12 @@
 
   <h3 class="deck-plattform__sub">Observability</h3>
   <div class="deck-plattform__card">
-    <FactoryObservability />
+    <CockpitObservability />
   </div>
 
   <h3 class="deck-plattform__sub">Budgets</h3>
   <div class="deck-plattform__card">
-    <FactoryBudgetPage />
+    <CockpitBudgetPage />
   </div>
 
   <h3 class="deck-plattform__sub">Cluster</h3>

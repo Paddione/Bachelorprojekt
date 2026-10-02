@@ -286,72 +286,16 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // Big Pickle auf OpenCode Zen — als primaerer (Tab-waehlbarer) Agent bis das
-    // Free-Kontingent verbraucht ist, danach auf exe-muse wechseln (T900751).
-    // Dieselbe benannte Allow-Liste wie der Orchestrator (Prinzip T002298).
-    "big-pickle": {
-      "description": "PRIMARY: Big Pickle on OpenCode Zen (free tier). Tab-selectable singleagent model — use it while the free Zen quota lasts, then switch to exe-muse (T900751). Runs through the zen gateway (opencode-zen/big-pickle), not the Go catalog. Can dispatch the same subagent set as the orchestrator.",
-      "mode": "primary",
-      "model": "opencode-zen/big-pickle",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#F472B6",
-      "temperature": 0.2,
-      "steps": 150,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "bash": "allow",
-        "webfetch": "deny",
-        "websearch": "deny",
-        "task": {
-          "local": "allow",
-          "qwen35-mtp": "allow",
-          "exe-muse": "allow",
-          "reviewer": "allow"
-        }
-      }
-    },
-    // Ox Alpha Free — zweiter Free-Tier-Primary neben Big Pickle [2026-08-22].
-    // Dispatcht ausschliesslich ox-alpha (exakte Namen statt Wildcard).
-    "ox-alpha-free": {
-      "description": "PRIMARY: Ox Alpha Free on OpenCode Zen (laguna-s-2.1-free, Poolside agentic coding model, free tier, 256k ctx per models.dev). Tab-selectable singleagent next to big-pickle. Live-smoke-tested 2026-08-22. Dispatches ONLY ox-alpha subagents.",
-      "mode": "primary",
-      "model": "opencode-zen/laguna-s-2.1-free",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#38BDF8",
-      "temperature": 0.2,
-      "steps": 150,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "bash": "allow",
-        "webfetch": "deny",
-        "websearch": "deny",
-        "task": {
-          "ox-alpha": "allow"
-        }
-      }
-    },
-    "ox-alpha": {
-      "description": "Subagent twin of ox-alpha-free on OpenCode Zen (same laguna-s-2.1-free model, Poolside agentic coding model, free tier). Sole dispatch target of ox-alpha-free — keeps parallel/specialized work inside the same free-tier model family. Write-capable.",
-      "mode": "subagent",
-      "model": "opencode-zen/laguna-s-2.1-free",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#0EA5E9",
-      "temperature": 0.2,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    // Plan-Primary: Qwen3.8-27B via llama.cpp :1919 (131072 served KV, T900365).
-    // Heisst nach dem Modell, das es faehrt (Regel aus T016419; bis T900365 qwen38-primary).
-    // Autonomous ticket-hammering agent: prioritizes critical issues,
-    // plans (/dev-flow-plan), explores , executes, archives.
-    "glimmer-primary": {
-      "description": "PRIMARY: Local Qwen3.8-27B via llama.cpp :1919 (RTX 5070 Ti, 131k served KV, gemessen 2026-09-25). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores , executes, and archives one by one. Tab-selectable.",
+    // bp-* primaries (T900858): three thin domain primaries over the OMO
+    // engine. Retire glimmer-primary (loop moved into orchestrator +
+    // sdlc-autopilot), big-pickle / ox-alpha-free (free-tier fallback is a
+    // model choice, not a separate primary). plan-worker-* untouched.
+    "bp-build": {
+      "description": "PRIMARY: build — manifests, Kustomize overlays, Taskfile, environments, sealed secrets. Tab-selectable domain entry over the OMO engine (local Qwen3.8-27B :1919).",
       "mode": "primary",
       "model": "llamacpp-local/Qwen3.8-27B",
-      "prompt": "{file:./prompts/glimmer-primary.md}",
-      "color": "#10B981",
+      "prompt": "{file:./prompts/bp-build.md}",
+      "color": "#FB9236",
       "temperature": 0.3,
       "steps": 150,
       "permission": {
@@ -363,7 +307,55 @@
         "task": {
           "local": "allow",
           "qwen35-mtp": "allow",
-          "exe-muse": "allow"
+          "reviewer": "allow",
+          "fixer": "allow",
+          "oracle": "allow"
+        }
+      }
+    },
+    "bp-run": {
+      "description": "PRIMARY: run — live cluster ops via task workspace:* and kubectl, postgres reads. Tab-selectable domain entry over the OMO engine (local Qwen3.8-27B :1919). Read-only filesystem for manifests.",
+      "mode": "primary",
+      "model": "llamacpp-local/Qwen3.8-27B",
+      "prompt": "{file:./prompts/bp-run.md}",
+      "color": "#F87171",
+      "temperature": 0.3,
+      "steps": 150,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "task": {
+          "local": "allow",
+          "qwen35-mtp": "allow",
+          "exe-muse": "allow",
+          "oracle": "allow"
+        }
+      }
+    },
+    "bp-ship": {
+      "description": "PRIMARY: ship — BATS/Playwright, Astro/Svelte website, brand pages, test inventory. Tab-selectable domain entry over the OMO engine (Muse Spark via Go, reasoning-heavy UI/test work).",
+      "mode": "primary",
+      "model": "opencode-go-oai/muse-spark-1.3-contributor",
+      "variant": "low",
+      "prompt": "{file:./prompts/bp-ship.md}",
+      "color": "#A78BFA",
+      "temperature": 0.2,
+      "steps": 150,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "task": {
+          "local": "allow",
+          "qwen35-mtp": "allow",
+          "reviewer": "allow",
+          "designer": "allow",
+          "librarian": "allow"
         }
       }
     }

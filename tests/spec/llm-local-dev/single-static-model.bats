@@ -39,7 +39,7 @@ setup() {
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$MODELS_CFG','utf8'));
     const a = d.agent || {};
-    for (const name of ['local', 'reviewer', 'glimmer-primary']) {
+    for (const name of ['local', 'reviewer', 'bp-build', 'bp-run', 'bp-ship']) {
       if (!(name in a)) {
         console.error('positive anchor failed: agent ' + name + ' fehlt'); process.exit(1);
       }

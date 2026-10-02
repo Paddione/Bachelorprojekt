@@ -28,7 +28,7 @@ const CODE_PARSE = -32700;
 const env = (k, d) => process.env[k] || d;
 const PORT = Number(env('GLIMMER_WORKER_MCP_PORT', '13007'));
 const OPENCODE = env('GLIMMER_WORKER_OPENCODE', `${homedir()}/.opencode/bin/opencode`);
-const AGENT = env('GLIMMER_WORKER_AGENT', 'glimmer-primary');
+const AGENT = env('GLIMMER_WORKER_AGENT', 'bp-build');
 const LLAMA = env('GLIMMER_WORKER_LLAMA_URL', 'http://127.0.0.1:1919').replace(/\/+$/, '');
 // Untergrenze fuer timeout_s. Default 60; nur Tests setzen sie niedriger.
 const TIMEOUT_FLOOR_S = Math.max(1, Number(env('GLIMMER_WORKER_TIMEOUT_FLOOR_S', '60')));

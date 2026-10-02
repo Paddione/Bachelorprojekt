@@ -1,0 +1,219 @@
+{
+  "meta": {
+    "slug": "primary-agents-omo",
+    "ticket_id": "",
+    "generated_from": "main@633092e4c",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/agents/bachelorprojekt-db.md",
+      "language": "markdown",
+      "loc": 85,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/agents/bachelorprojekt-infra.md",
+      "language": "markdown",
+      "loc": 97,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/agents/bachelorprojekt-ops.md",
+      "language": "markdown",
+      "loc": 92,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/agents/bachelorprojekt-security.md",
+      "language": "markdown",
+      "loc": 104,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/agents/bachelorprojekt-test.md",
+      "language": "markdown",
+      "loc": 73,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/agents/bachelorprojekt-website.md",
+      "language": "markdown",
+      "loc": 73,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/agents/bp-build.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/agents/bp-run.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/agents/bp-ship.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/agent-models.jsonc",
+      "language": "text",
+      "loc": 371,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/opencode.jsonc",
+      "language": "text",
+      "loc": 271,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/prompts/bp-build.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/prompts/bp-run.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/prompts/bp-ship.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "loc": 157,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "language": "bash",
+      "loc": 161,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/llm-local-dev/single-static-model.bats",
+      "language": "bash",
+      "loc": 70,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/primary-agents-omo.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats:11:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "signature": "11:setup_file() {(...)",
+      "type_text": "11:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats:52:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "signature": "52:teardown_file() {(...)",
+      "type_text": "52:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats:57:rpc() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "signature": "57:rpc() {(...)",
+      "type_text": "57:rpc() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats:64:call() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "signature": "64:call() {(...)",
+      "type_text": "64:call() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/single-static-model.bats:12:setup() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/single-static-model.bats",
+      "signature": "12:setup() {(...)",
+      "type_text": "12:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

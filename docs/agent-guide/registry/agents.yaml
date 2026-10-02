@@ -13,27 +13,17 @@
 #                   not from .claude/agents/.
 #   tools         — the tools: list from the agent frontmatter, if present.
 roles:
-  bachelorprojekt-db:
-    claude_code: sonnet
-    agy: unsupported
-    opencode: null
-  bachelorprojekt-infra:
+  # T900858: three thin domain primaries over the OMO engine, replacing the
+  # six bachelorprojekt-* domain agents.
+  bp-build:
     claude_code: opus
     agy: unsupported
     opencode: null
-  bachelorprojekt-ops:
+  bp-run:
     claude_code: sonnet
     agy: unsupported
     opencode: null
-  bachelorprojekt-security:
-    claude_code: opus
-    agy: unsupported
-    opencode: null
-  bachelorprojekt-test:
-    claude_code: sonnet
-    agy: unsupported
-    opencode: null
-  bachelorprojekt-website:
+  bp-ship:
     claude_code: sonnet
     agy: unsupported
     opencode: null
@@ -65,21 +55,6 @@ runtimes:
     model: llamacpp-local/Qwen3.8-27B
     write_capable: false
     note: "Reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
-  big-pickle:
-    mode: primary
-    model: opencode-zen/big-pickle
-    write_capable: true
-    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + exe-muse)."
-  ox-alpha-free:
-    mode: primary
-    model: opencode-zen/laguna-s-2.1-free
-    write_capable: true
-    note: "PRIMARY: Ox Alpha Free next to big-pickle — second free-tier Zen agent on laguna-s-2.1-free (Poolside agentic coding model, 256k ctx per models.dev, live-smoke-tested 2026-08-22; deepseek-v4-flash-free was tested in the same run and is upstream-unavailable). Since 2026-08-23 dispatches ONLY ox-alpha subagents."
-  ox-alpha:
-    mode: subagent
-    model: opencode-zen/laguna-s-2.1-free
-    write_capable: true
-    note: "Subagent twin of ox-alpha-free on the same laguna-s-2.1-free model [2026-08-23] — sole dispatch target of ox-alpha-free, keeping parallel work in the same free-tier family."
   # orchestrator: Slim-first — der interaktive Orchestrator kommt aus dem
   # oh-my-opencode-slim-Plugin (Modell-Pinning: .opencode/oh-my-opencode-slim.jsonc),
   # nicht aus agent-models.jsonc (P4.3-Bidirektionalitaet).
@@ -87,12 +62,22 @@ runtimes:
     mode: subagent
     model: opencode-go-oai/muse-spark-1.3-contributor
     write_capable: true
-    note: "EXECUTOR on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator, big-pickle, glimmer-primary. Free-first chain: orchestrator (Zen-free) → exe-muse (Go) (T900751: DeepSeek rails removed)."
-  glimmer-primary:
+    note: "EXECUTOR on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator and the bp-* primaries. Free-first chain: orchestrator (Zen-free) → exe-muse (Go) (T900751: DeepSeek rails removed)."
+  bp-build:
     mode: primary
     model: llamacpp-local/Qwen3.8-27B
     write_capable: true
-    note: "PRIMARY: Local Qwen3.8-27B via llama.cpp (:1919, RTX 5070 Ti, served KV 131072) (llamacpp-local/Qwen3.8-27B) [T900365]. Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/dev-flow-plan), executes, and archives."
+    note: "PRIMARY: build — manifests, Kustomize overlays, Taskfile, environments, sealed secrets. Thin domain entry over the OMO engine (local Qwen3.8-27B :1919) [T900858]."
+  bp-run:
+    mode: primary
+    model: llamacpp-local/Qwen3.8-27B
+    write_capable: true
+    note: "PRIMARY: run — live cluster ops via task workspace:* and kubectl, postgres reads. Thin domain entry over the OMO engine (local Qwen3.8-27B :1919), read-only filesystem for manifests [T900858]."
+  bp-ship:
+    mode: primary
+    model: opencode-go-oai/muse-spark-1.3-contributor
+    write_capable: true
+    note: "PRIMARY: ship — BATS/Playwright, Astro/Svelte website, brand pages, test inventory. Thin domain entry over the OMO engine (Muse Spark via Go) [T900858]."
   plan-worker-4b:
     mode: primary
     model: llamacpp-qwen35/Qwen3.5-4B-MTP

@@ -121,22 +121,22 @@ setup() {
 
 # ── Ops Agent Output-Trust Guardrails ─────────────────────────────────
 
-@test "bachelorprojekt-ops.md exists" {
-  [ -f "$REPO/.claude/agents/bachelorprojekt-ops.md" ]
+@test "bp-run.md exists" {
+  [ -f "$REPO/.claude/agents/bp-run.md" ]
 }
 
 @test "ops agent has Output trust & shell-session integrity section" {
-  run grep -qi 'output.*trust\|shell.*session.*integrity' "$REPO/.claude/agents/bachelorprojekt-ops.md"
+  run grep -qi 'output.*trust\|shell.*session.*integrity' "$REPO/.claude/agents/bp-run.md"
   [ "$status" -eq 0 ]
 }
 
 @test "ops agent warns against fabricating diagnosis from unverified output" {
-  run grep -qi 'fabricate\|do not conclude\|never.*diagnose.*unverified' "$REPO/.claude/agents/bachelorprojekt-ops.md"
+  run grep -qi 'fabricate\|do not conclude\|never.*diagnose.*unverified' "$REPO/.claude/agents/bp-run.md"
   [ "$status" -eq 0 ]
 }
 
 @test "ops agent prescribes kubectl get nodes as verification probe" {
-  run grep -q 'kubectl get nodes' "$REPO/.claude/agents/bachelorprojekt-ops.md"
+  run grep -q 'kubectl get nodes' "$REPO/.claude/agents/bp-run.md"
   [ "$status" -eq 0 ]
 }
 

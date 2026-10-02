@@ -95,22 +95,22 @@ EOF
 
 # ── (1) role=ops must include ops-tagged proposals and exclude website-only ──
 
-@test "PCF: role=bachelorprojekt-ops includes ops-tagged proposal (fixture)" {
-  out="$(_run_pcf bachelorprojekt-ops 2>/dev/null || true)"
+@test "PCF: role=bp-run includes ops-tagged proposal (fixture)" {
+  out="$(_run_pcf bp-run 2>/dev/null || true)"
   echo "$out" | grep -q "### Active proposal: $FIXTURE_OPS_SLUG" \
     || { echo "MISSING: $FIXTURE_OPS_SLUG (domains: [ops]) should be included for ops"; return 1; }
 }
 
-@test "PCF: role=bachelorprojekt-ops excludes website-only proposal (fixture)" {
-  out="$(_run_pcf bachelorprojekt-ops 2>/dev/null || true)"
+@test "PCF: role=bp-run excludes website-only proposal (fixture)" {
+  out="$(_run_pcf bp-run 2>/dev/null || true)"
   if echo "$out" | grep -q "### Active proposal: $FIXTURE_WEBSITE_SLUG"; then
     echo "REGRESSION: $FIXTURE_WEBSITE_SLUG (domains: [website]) leaked into ops output — filter not active"
     return 1
   fi
 }
 
-@test "PCF: role=bachelorprojekt-ops excludes non-ops/non-infra proposal (fixture)" {
-  out="$(_run_pcf bachelorprojekt-ops 2>/dev/null || true)"
+@test "PCF: role=bp-run excludes non-ops/non-infra proposal (fixture)" {
+  out="$(_run_pcf bp-run 2>/dev/null || true)"
   if echo "$out" | grep -q "### Active proposal: $FIXTURE_CI_SLUG"; then
     echo "REGRESSION: $FIXTURE_CI_SLUG (domains: [ci]) leaked into ops output — filter not active"
     return 1
@@ -119,14 +119,14 @@ EOF
 
 # ── (2) role=website must include website-tagged and exclude pure-test ──
 
-@test "PCF: role=bachelorprojekt-website includes website-tagged proposal (fixture)" {
-  out="$(_run_pcf bachelorprojekt-website 2>/dev/null || true)"
+@test "PCF: role=bp-ship includes website-tagged proposal (fixture)" {
+  out="$(_run_pcf bp-ship 2>/dev/null || true)"
   echo "$out" | grep -q "### Active proposal: $FIXTURE_WEBSITE_SLUG" \
     || { echo "MISSING: $FIXTURE_WEBSITE_SLUG (domains: [website]) should be included for website"; return 1; }
 }
 
-@test "PCF: role=bachelorprojekt-website excludes non-website proposal (fixture)" {
-  out="$(_run_pcf bachelorprojekt-website 2>/dev/null || true)"
+@test "PCF: role=bp-ship excludes non-website proposal (fixture)" {
+  out="$(_run_pcf bp-ship 2>/dev/null || true)"
   if echo "$out" | grep -q "### Active proposal: $FIXTURE_OPS_SLUG"; then
     echo "REGRESSION: $FIXTURE_OPS_SLUG (domains: [ops]) leaked into website output"
     return 1
@@ -176,7 +176,7 @@ EOF
 # ── (5) archive/ is always excluded (anchor) ──
 
 @test "PCF: archive/* proposals never appear in any role output (anchor)" {
-  for role in bachelorprojekt-website bachelorprojekt-ops orchestrator; do
+  for role in bp-ship bp-run orchestrator; do
     out="$(_run_pcf "$role" 2>/dev/null || true)"
     if echo "$out" | grep -qE "^### Active proposal: $FIXTURE_ARCHIVE_SLUG\$"; then
       echo "REGRESSION: $FIXTURE_ARCHIVE_SLUG proposal leaked into output for role=$role"
@@ -189,8 +189,8 @@ EOF
 
 @test "PCF: filtered output is substantially smaller than orchestrator output" {
   all="$(_run_pcf orchestrator 2>/dev/null | grep -c '^### Active proposal:' || true)"
-  ops="$(_run_pcf bachelorprojekt-ops 2>/dev/null | grep -c '^### Active proposal:' || true)"
-  website="$(_run_pcf bachelorprojekt-website 2>/dev/null | grep -c '^### Active proposal:' || true)"
+  ops="$(_run_pcf bp-run 2>/dev/null | grep -c '^### Active proposal:' || true)"
+  website="$(_run_pcf bp-ship 2>/dev/null | grep -c '^### Active proposal:' || true)"
   # A correctly filtered ops/website output should be strictly less than
   # the unfiltered orchestrator count (the script today returns the same
   # entries for all three — the bug). The fixture set (ops/components/website/ci)
@@ -262,7 +262,7 @@ EOF
 
 @test "T002322: per-proposal output is a summary, not the full plan body" {
   local slug; slug="$(_t002322_bulky_fixture)"
-  out="$(_run_pcf bachelorprojekt-ops 2>/dev/null || true)"
+  out="$(_run_pcf bp-run 2>/dev/null || true)"
   # Der Titel muss da sein — sonst waere das Proposal gar nicht ausgewaehlt.
   echo "$out" | grep -q "### Active proposal: $slug"
   # Der Rumpf darf NICHT vollstaendig mitkommen.
@@ -279,6 +279,6 @@ EOF
   # Zusammenfassung eingebaut, das Flag aber vergessen wurde. Wer den Fix
   # umsetzt, darf sich also nicht auf sein gruenes Ergebnis vorher berufen.
   local slug; slug="$(_t002322_bulky_fixture)"
-  out="$(_run_pcf bachelorprojekt-ops --full 2>/dev/null || true)"
+  out="$(_run_pcf bp-run --full 2>/dev/null || true)"
   echo "$out" | grep -q "ZZMARKERTIEFIMRUMPF150"
 }

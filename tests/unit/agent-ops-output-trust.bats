@@ -2,8 +2,8 @@
 # ═══════════════════════════════════════════════════════════════════
 # agent-ops-output-trust.bats — Regression guard for T000288
 # ═══════════════════════════════════════════════════════════════════
-# The bachelorprojekt-ops agent once narrated a confident-but-false
-# diagnosis from a corrupted PTY (run_shell_command echoed input;
+# The ops agent (bachelorprojekt-ops, since T900858 bp-run) once narrated
+# a confident-but-false diagnosis from a corrupted PTY (run_shell_command echoed input;
 # `date` returned the literal username instead of real output).
 #
 # The fixable hazard is the FABRICATION, not the broken shell. These
@@ -14,9 +14,9 @@
 
 load test_helper
 
-AGENT_FILE="${PROJECT_DIR}/.claude/agents/bachelorprojekt-ops.md"
+AGENT_FILE="${PROJECT_DIR}/.claude/agents/bp-run.md"
 
-@test "bachelorprojekt-ops agent file exists" {
+@test "bp-run agent file exists" {
   [ -f "$AGENT_FILE" ]
 }
 

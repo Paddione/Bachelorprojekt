@@ -33,7 +33,7 @@ setup() {
   # Agent-Dateien gefunden wurden, dann die Negativaussage pruefen.
   local found=0
   local offenders=""
-  for agent in .claude/agents/bachelorprojekt-*.md; do
+  for agent in .claude/agents/bp-*.md; do
     [ -f "$agent" ] || continue
     found=$((found + 1))
     if grep -qE '^tools:([[:space:]]*$|[[:space:]]*\[)' "$agent"; then
@@ -41,7 +41,7 @@ setup() {
     fi
   done
 
-  [ "$found" -ge 6 ] || {
+  [ "$found" -ge 3 ] || {
     echo "Positiv-Anker fehlgeschlagen: nur $found Agent-Definitionen gefunden (erwartet >= 6)"
     return 1
   }
@@ -64,7 +64,7 @@ setup() {
     const d = y.parse(fs.readFileSync('docs/agent-guide/registry/agents.yaml','utf8'));
     const roles = d.roles || {};
     const names = Object.keys(roles);
-    if (names.length < 6) {
+    if (names.length < 3) {
       console.log('ANCHOR_FAIL: nur ' + names.length + ' roles in der Registry');
       process.exit(1);
     }

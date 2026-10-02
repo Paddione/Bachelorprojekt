@@ -132,7 +132,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/dev-flow-plan/SKILL.md`
 - **`plugin:feature-dev@claude-plugins-official`** — Status `suppressed`
-  - _Grund:_ dev-flow-plan ist der repo-eigene Pfad inklusive OpenSpec- und Ticket-Anbindung.
+  - _Grund:_ dev-flow-plan ist der repo-eigene Pfad inklusive plan- und Ticket-Anbindung.
 
 ## Fähigkeit: `plan-umsetzung`
 
@@ -169,39 +169,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`skill:update-dependencies`** — Status `suppressed`
   - _Grund:_ Archivierte Routine mit ueberholten Pfaden; nur explizit als historische Referenz nutzen.
-
-## Fähigkeit: `openspec-vorschlag`
-
-- **`skill:openspec-propose`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Neues Change-Proposal mit Design, Delta-Spec und Tasks anlegen.
-  - _Nicht:_ Innerhalb von dev-flow-plan — dessen Phase A ruft es bereits auf.
-  - _Fallback:_ `bash scripts/openspec.sh propose <slug> --ticket T… --target-spec <parent>`
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/openspec-propose/SKILL.md`
-
-## Fähigkeit: `openspec-umsetzung`
-
-- **`skill:openspec-apply-change`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Tasks eines bestehenden Change abarbeiten ausserhalb von dev-flow-execute.
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/openspec-apply-change/SKILL.md`
-
-## Fähigkeit: `openspec-archivierung`
-
-- **`skill:openspec-archive-change`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Fertigen Change archivieren und sein Delta in den SSOT-Spec mergen — NACH Merge.
-  - _Nicht:_ Delta-Spec neben dem SSOT-Spec editieren — dann scheitert archive.
-  - _Fallback:_ `bash scripts/openspec.sh archive <slug> [--create-new]`
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/openspec-archive-change/SKILL.md`
-
-## Fähigkeit: `denk-partner`
-
-- **`skill:openspec-explore`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Idee durchdenken, Optionen vergleichen, festgefahrene Stelle lösen — ohne Artefakt.
-  - _Nicht:_ Wenn eine Entscheidung festgehalten werden soll — dann dev-flow-plan.
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/openspec-explore/SKILL.md`
 
 ## Fähigkeit: `vorfall-behandlung`
 
@@ -261,7 +228,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `system-audit`
 
 - **`skill:system-audit`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Authored-Docs) — endet je Befund in Ticket + OpenSpec-Proposal.
+  - _Wann:_ Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Authored-Docs) — endet je Befund in Ticket + plan-Proposal.
   - _Nicht:_ Akute Störung — dafür incident-response; Tiefe eines Einzel-Audits bleibt beim Spezial-Skill.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/system-audit/SKILL.md`

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.386.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.4...website-v1.386.5) (2026-10-02)
+
+
+### Bug Fixes
+
+* **mcp:** mcp-sync check schwärzt Token in jedem Drift-Diff [T900839] ([#6146](https://github.com/Paddione/Bachelorprojekt/issues/6146)) ([2aeceb8](https://github.com/Paddione/Bachelorprojekt/commit/2aeceb848094b2c619056416833acfa705ea13b1))
+
 ## [1.386.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.3...website-v1.386.4) (2026-10-02)
 
 

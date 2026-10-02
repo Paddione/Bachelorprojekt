@@ -73,7 +73,7 @@ task workspace:validate                          # Kustomize dry-run
 ## CI/CD, Testing Standards & Image Exclusions
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command output** (T002448-M4); runner `tests/unit/lib/bats-core/bin/bats`. Inventory check re-runs `task test:inventory`. Release notes: `bash scripts/vda.sh release-notes generate` (publish `publish-github` / `publish-changelog`).
-`:latest` digest-pinning exemptions: Website, Brett, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console, Factory-Runner, MCP-Node, Repo-Sync, Dev-Shell.
+`:latest` digest-pinning exemptions: Website, Brett, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console, MCP-Node, Repo-Sync, Dev-Shell.
 
 ## Critical Footguns (must-know)
 

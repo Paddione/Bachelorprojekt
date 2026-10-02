@@ -46,8 +46,11 @@
     // V2. Their old hook and SDK contracts need a separate migration.
     // Agent Memory (Letta-style memory blocks)
     "opencode-agent-memory",
-    // Oh My OpenCode / OmO Slim (multi-agent)
-    "oh-my-opencode-slim",
+    // Oh My OpenCode / OmO Slim (multi-agent). Version-pinned: a bare
+    // spec re-resolves the `latest` tag through bun's packument cache and
+    // stuck at 2.2.25 after restart; the repo declares ^3.0.2 in
+    // .opencode/package.json, so the runtime spec pins the same line.
+    "oh-my-opencode-slim@3.0.2",
     // superpowers (T900056): opencode does NOT inherit Claude Code's plugin
     // set -- each harness declares its own. See the upstream install notes at
     // https://github.com/obra/superpowers/blob/main/.opencode/INSTALL.md.

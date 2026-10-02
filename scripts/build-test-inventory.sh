@@ -49,9 +49,8 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/te
     if [[ "$id" == "$base" ]]; then
       # BATS files whose name does not carry a number may contain @test lines with
       # structured IDs (e.g. MCP-TASK-RUNNER.bats with "MCP-TASK-RUNNER-001: ...").
-      # Extract those IDs directly from the file.
-      # tests/spec/software-factory.bats groups multiple @test lines under one ID;
-      # de-duplicate to a single entry per ID per file.
+      # Extract those IDs directly from the file; de-duplicate to a single
+      # entry per ID per file (tests group multiple @test lines under one ID).
       found_structured_id=0
       while IFS= read -r test_id; do
         found_structured_id=1
@@ -62,8 +61,8 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/te
       fi
       # Path-derived fallback [T002445]: neither the filename nor the @test titles carry a
       # structured ID. This is reached ONLY when both detection paths above found nothing —
-      # they keep precedence, so software-factory.bats still yields its 54 FA-SF-* entries.
-      # Derive id/category from the path relative to the tier directory, extension stripped.
+      # they keep precedence. Derive id/category from the path relative to the tier
+      # directory, extension stripped.
       # T002416 convention: tests/spec/<ssot-spec-slug>/<short-slug>.bats — the directory
       # name is the SSOT spec slug, so category becomes that slug. Top-level files (no
       # subdirectory) use the bare filename for both id and category.

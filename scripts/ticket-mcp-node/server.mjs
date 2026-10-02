@@ -345,7 +345,7 @@ const TOOLS = [
   // 12. enqueue_ticket
   {
     name: 'enqueue_ticket',
-    description: 'Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog). Ein bereits plan_staged Ticket bleibt unveraendert — es ist über die Staged-Lane schon dispatchbar.',
+    description: 'Reiht ein Ticket in den Ticket-Backlog ein (status=backlog). Ein bereits plan_staged Ticket bleibt unveraendert — es ist über die Staged-Lane schon dispatchbar.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -841,7 +841,7 @@ const TOOLS = [
 {
   const t = TOOLS[TOOLS.length] = {};
   t.name = 'enqueue_ticket';
-  t.description = 'Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog).';
+  t.description = 'Reiht ein Ticket in den Ticket-Backlog ein (status=backlog).';
   t.inputSchema = {
   "type": "object",
   "properties": {

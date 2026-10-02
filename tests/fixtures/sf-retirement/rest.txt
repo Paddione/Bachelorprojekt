@@ -159,6 +159,7 @@ taskfiles/Taskfile.brain.yaml
 taskfiles/Taskfile.finetune.yml
 taskfiles/Taskfile.openclaw.yml
 taskfiles/Taskfile.process.yml
+taskfiles/Taskfile.quality.yml
 taskfiles/Taskfile.test.yml
 templates/application-pipeline/cover-letter.typ
 templates/application-pipeline/resume.typ

@@ -397,7 +397,7 @@ tasks:
       COMMIT: '{{.COMMIT | default "0"}}'
 
   quality:loop:
-    desc: "Enqueue \u2264MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview."
+    desc: "Enqueue \u2264MAX_NEW new CQ-GATE tickets (throttled + deduped). DRY_RUN=1 to preview."
     cmds:
       - bash scripts/code-quality/loop.sh
 

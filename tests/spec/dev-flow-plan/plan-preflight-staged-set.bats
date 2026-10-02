@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/dev-flow-plan.md (stage-plan-Guards) + docs/agent-guide/registry/plan-guards.yaml
+# SSOT: docs/superpowers/specs/dev-flow-plan.md (stage-plan-Guards) + docs/agent-guide/registry/plan-guards.yaml
 # Ticket: T005114 — plan-preflight pre-commit verlangt einen komplett leeren
 # Working-Tree; mit gestagten Plan-Artefakten (der Zustand unmittelbar vor dem
 # plan-stage-Commit) kann der Guard in der Skill-Reihenfolge nie grün werden.
@@ -47,13 +47,13 @@ setup() {
   # Gültiger Fall: staged nur Plan-Artefakte — der Guard darf NICHT am
   # Clean-Tree-Zwang scheitern (das ist der Zustand direkt vor dem plan-stage-Commit).
   # Absoluter Fixture-Pfad (T002368-Guard): ein relatives Plan-Verzeichnis im
-  # Fixture liest der Guard als Anlage im echten openspec/ — obwohl hier nach
+  # Fixture liest der Guard als Anlage im echten plan/ — obwohl hier nach
   # `cd "$TEST_DIR"` (mktemp) nur relativ zum Fixture angelegt wird.
-  mkdir -p "$TEST_DIR/openspec/changes/xyz" tests/spec/xyz "$TEST_DIR/.agents/plans/xyz"
-  echo "plan" > openspec/changes/xyz/tasks.md
+  mkdir -p "$TEST_DIR/.agents/plans/xyz" tests/spec/xyz "$TEST_DIR/.agents/plans/xyz"
+  echo "plan" > .agents/plans/xyz/tasks.md
   echo "test" > tests/spec/xyz/example.bats
   echo "plan" > .agents/plans/xyz/tasks.md
-  git add openspec/changes/xyz/tasks.md tests/spec/xyz/example.bats .agents/plans/xyz/tasks.md
+  git add .agents/plans/xyz/tasks.md tests/spec/xyz/example.bats .agents/plans/xyz/tasks.md
 
   run bash "$SCRIPT" pre-commit --ticket T009999
   [ "$status" -eq 0 ]

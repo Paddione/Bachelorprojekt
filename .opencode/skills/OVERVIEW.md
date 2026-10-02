@@ -53,20 +53,6 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 ---
 
-## OpenSpec Workflow
-
-Diese vier Skills stammen aus dem OpenSpec-Upstream (installiert via T001263), wurden hier aber
-weiterentwickelt und sind **Forks** — siehe die Fork-Deklaration in ihrem jeweiligen Frontmatter.
-Sie zählen deshalb als projekteigen und unterliegen dem Zeilenbudget.
-
-| Skill | When to use |
-|---|---|
-| [`openspec-propose`](openspec-propose/SKILL.md) | Create a new OpenSpec change proposal with design, specs, and tasks in one step. |
-| [`openspec-apply-change`](openspec-apply-change/SKILL.md) | Implement tasks from an OpenSpec change — start/continue implementation. |
-| [`openspec-explore`](openspec-explore/SKILL.md) | Enter explore mode — thinking partner for ideas, investigations, requirements. |
-| [`openspec-archive-change`](openspec-archive-change/SKILL.md) | Archive a completed change after implementation is complete. |
-
----
 
 ## Git Lifecycle
 
@@ -158,7 +144,7 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 | [`ticket-triage`](ticket-triage/SKILL.md) | **Ticket-Vorbereitung** — Vollständigkeit, DoR, Rückfragen und Batch-Kandidaten; dispatcht nie Arbeit. |
 | [`ticket-dispatch`](ticket-dispatch/SKILL.md) | **Wellen & Freigabe** — Abhängigkeiten, Konflikte und nach expliziter Freigabe Wave 1 an dev-flow weitergeben. |
 | [`repo-hygiene`](repo-hygiene/SKILL.md) | **Repo-Zustand** — veraltete Branches und Worktrees, offene PRs mergen und schließen, GitHub-Issue-Intake. Nicht für Ticket-Inhalte — das ist [`ticket-ops`](ticket-ops/SKILL.md). |
-| [`system-audit`](system-audit/SKILL.md) | **Audit-Hub** — ein Einstiegspunkt für Audits aller Systeme (GitOps-Repo, Live-Cluster, Brand-Seiten, Repo-Zustand, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki). Delegiert an die Spezial-Skills, schließt deren Audit-Lücken per Checkliste; jeder Critical/Warning-Befund endet als Ticket mit angehängtem OpenSpec-Proposal im Backlog. Kein Merge-Gate. |
+| [`system-audit`](system-audit/SKILL.md) | **Audit-Hub** — ein Einstiegspunkt für Audits aller Systeme (GitOps-Repo, Live-Cluster, Brand-Seiten, Repo-Zustand, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki). Delegiert an die Spezial-Skills, schließt deren Audit-Lücken per Checkliste; jeder Critical/Warning-Befund endet als Ticket mit angehängtem plan-Proposal im Backlog. Kein Merge-Gate. |
 | [`mishap-tracker`](mishap-tracker/SKILL.md) | **End-of-skill routine** — batches accumulated `MISHAP_LOG` entries from runbook skills into a single aggregate `tickets.tickets` row. Reuses an open "Mishap collection" ticket if one exists. |
 | [`update-dependencies`](update-dependencies/SKILL.md) | Archivierte Dependency-Update-Routine (historisch — Pfade wie `website/`/pnpm sind überholt); läuft als biweekly Cloud-Routine. `archived: true`, Description sagt explizit "invoke explicitly only" (kein Auto-Trigger). |
 

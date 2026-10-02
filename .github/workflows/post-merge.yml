@@ -10,9 +10,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   # ENTFERNT mit E3/T002626 (ADR-006): die Jobs "mark-awaiting" und
   # "reap-branches".

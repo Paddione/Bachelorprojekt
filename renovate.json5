@@ -40,7 +40,7 @@
     //
     // The warning still fires after these entries (T002246). A full scan of all
     // tracked files found 15 hits, only 6 of which are listed here; the other 9
-    // are Markdown/JSON/JSX/TS/Svelte files across docs/, openspec/changes/archive/,
+    // are Markdown/JSON/JSX/TS/Svelte files across docs/,
     // tests/e2e/ and components/website/src/. Every hit is U+00AD (soft hyphen, German
     // hyphenation), U+200B (zero-width space) or U+200C/U+200D (ZWJ inside emoji
     // sequences) — no bidirectional overrides (U+202A–U+202E), so there is no
@@ -55,7 +55,7 @@
     "assets/brands/mentolder/ui_kits/website/index.html",
     "k3d/docs-content-built/2026-07-09-index-and-nplus1-audit.html",
     "k3d/docs-content-built/systembrett.html",
-    "openspec/changes/archive/2026-06-21-coaching-studio/assets/new/coaching_studio/Praesentation.html"
+    "docs/superpowers/specs/coaching-studio.md"
   ],
 
   // Rate limiting to prevent PR floods on first run.

@@ -21,8 +21,8 @@ tasks:
     summary: |
       Ruft den Chunker mit seiner vollstaendigen Aufrufkonvention auf, damit er
       ohne Kenntnis derselben benutzbar ist:
-        task brain:chunk -- --source openspec/specs/software-factory.md \
-          --slug openspec-specs-software-factory --out-dir /tmp/chunks
+        task brain:chunk -- --source docs/superpowers/specs/software-factory.md \
+          --slug software-factory --out-dir /tmp/chunks
       Zusaetzliche Flags (--moc, --target-chars) werden durchgereicht.
     cmds:
       - bash scripts/brain-chunk.sh "$@"

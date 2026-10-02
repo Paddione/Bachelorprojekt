@@ -7,10 +7,8 @@
 # NOT embedding-based.
 set -euo pipefail
 src="${1:?usage: plan-intel-filter.sh <intel.json|slug> <target_file>...}"; shift
-# Plan-Heimat seit C7a ist .agents/plans/<slug>; openspec/changes bleibt Fallback [T900689].
 if [[ ! -f "$src" ]]; then
-  if [[ -f ".agents/plans/${src}/intel.json" ]]; then src=".agents/plans/${src}/intel.json"
-  else src="openspec/changes/${src}/intel.json"; fi
+  src=".agents/plans/${src}/intel.json"
 fi
 [[ -f "$src" ]] || { echo "intel.json not found: $src" >&2; exit 1; }
 # NOTE: with `--args` jq treats every remaining CLI arg as a positional string,

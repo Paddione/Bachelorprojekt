@@ -1,9 +1,9 @@
 {
   "files": [
     "components/brett/src/client/ws-client.ts",
-    "openspec/changes/fix-t001935-brett-admin-session/proposal.md",
-    "openspec/changes/fix-t001935-brett-admin-session/specs/capability.md",
-    "openspec/changes/fix-t001935-brett-admin-session/tasks.md"
+    ".agents/plans/fix-t001935-brett-admin-session/proposal.md",
+    ".agents/plans/fix-t001935-brett-admin-session/specs/capability.md",
+    ".agents/plans/fix-t001935-brett-admin-session/tasks.md"
   ],
   "forbidden": [
     "k3d/configmap-domains.yaml",

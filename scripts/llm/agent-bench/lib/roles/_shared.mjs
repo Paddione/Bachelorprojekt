@@ -185,7 +185,7 @@ export async function prepareWorkdir(caseRecord, variant, dest) {
     const slug = basename(changePath || '');
     let copied = false;
     if (changePath && existsSync(join(REPO_ROOT, changePath))) {
-      cpSync(join(REPO_ROOT, changePath), join(dest, 'openspec', 'changes', slug), { recursive: true });
+      cpSync(join(REPO_ROOT, changePath), join(dest, '.agents', 'plans', slug), { recursive: true });
       copied = true;
     }
     return {

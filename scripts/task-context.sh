@@ -22,7 +22,7 @@ done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FILTER="$REPO_ROOT/scripts/plan-intel-filter.sh"
-INTEL="$REPO_ROOT/openspec/changes/$SLUG/intel.json"
+INTEL="$REPO_ROOT/.agents/plans/$SLUG/intel.json"
 
 # ── Statischer Kern (hart) ─────────────────────────────
 # Fehlt intel.json → sofort abbrechen, kein teilweiser Kontext.
@@ -46,7 +46,7 @@ if [[ "$(jq '.impact_files | length' "$INTEL")" -eq 0 ]]; then
 fi
 
 # ── Target-Files fuer Partial ermitteln ────────────────
-TASKS_MD="$REPO_ROOT/openspec/changes/$SLUG/tasks.md"
+TASKS_MD="$REPO_ROOT/.agents/plans/$SLUG/tasks.md"
 TARGET_FILES=""
 ALL_TARGET_FILES=""
 if [[ -f "$TASKS_MD" ]]; then
@@ -177,7 +177,7 @@ _signal_main_drift() {
     IFS=' ' read -ra DF <<<"$drift_files"
     diff_out="$(timeout 5 git -C "$REPO_ROOT" diff --stat "$base..origin/main" -- "${DF[@]}" 2>/dev/null || true)"
   else
-    diff_out="$(timeout 5 git -C "$REPO_ROOT" diff --stat "$base..origin/main" -- "openspec/changes/$SLUG/" 2>/dev/null || true)"
+    diff_out="$(timeout 5 git -C "$REPO_ROOT" diff --stat "$base..origin/main" -- ".agents/plans/$SLUG/" 2>/dev/null || true)"
   fi
   if [[ -z "$diff_out" ]]; then
     echo "Keine Drift (${base}..origin/main) — keine Aenderungen an target_files."
@@ -196,36 +196,6 @@ _signal_main_drift() {
   fi
 }
 
-# Signal 3: Similar changes via OpenSpec search
-_signal_similar_changes() {
-  local base_url="${OPENSPEC_SEARCH_URL:-http://localhost:4321}"
-  local search_url="${base_url}/api/openspec/search"
-  local query=""
-  if [[ -f "$TASKS_MD" ]]; then
-    query="$(head -20 "$TASKS_MD" | grep -E 'title:' | head -1 | sed 's/.*title:[[:space:]]*//; s/\"//g' || echo "$SLUG")"
-  else
-    query="$SLUG"
-  fi
-  local similar=""
-  similar="$(timeout 5 curl -sf "${search_url}?q=$(echo "$query" | jq -sRr @uri)&limit=3" 2>/dev/null || true)"
-  if [[ -z "$similar" ]]; then
-    echo "> WARN: OpenSpec-Suche nicht erreichbar — ahnliche Changes bleiben unbekannt"
-    echo ""
-    return
-  fi
-  local results_count
-  results_count="$(echo "$similar" | jq '.results | length' 2>/dev/null || echo "0")"
-  if [[ "$results_count" -eq 0 ]]; then
-    echo "Keine ahnlichen Changes gefunden."
-    echo ""
-    return
-  fi
-  echo "Ahnliche Changes (Top $results_count):"
-  echo "$similar" | jq -r '.results[] | "- \(.slug) (\(.ticket_id // "?"))"' 2>/dev/null
-  echo ""
-}
-
-# All signals with individual 5s timeouts
+# Signals with individual 5s timeouts
 _signal_parallel_work
 _signal_main_drift
-_signal_similar_changes

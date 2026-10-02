@@ -36,20 +36,19 @@ scripts/ticket.sh plan-meta --id <T-ID> --value-prop "<Nutzen aus dem Evidence>"
 wirklich nichts offen ist — sonst offen lassen und im Ticket kommentieren, was fehlt.
 Feature-Tickets: `prepare_feature` statt Einzelaufrufen.
 
-### C4 — OpenSpec-Proposal anhängen (nur im Worktree, siehe C0)
+### C4 — plan-Proposal anhängen (nur im Worktree, siehe C0)
 
 ```bash
-bash scripts/openspec.sh propose audit-<ziel>-<stichwort> --ticket <T-ID>
+mkdir -p .agents/plans/audit-<ziel>-<stichwort>
 ```
 
-Danach die Artefakte füllen (Vollständiges How-to: Skill `openspec-propose`):
+Danach die Artefakte füllen (Vollständiges How-to: Skill `dev-flow-plan`):
 `proposal.md` (Why/What aus dem Befund), `design.md`, `tasks.md`, Delta-Spec unter
-`openspec/changes/<slug>/specs/<parent-slug>.md` — Parent-SSOT-Slug laut
-`openspec/component-map.yaml`, nur bei genuinely new capability der eigene Slug.
+`.agents/plans/<slug>/specs/<parent-slug>.md` — Parent-SSOT-Slug aus dem bestehenden Themenbereich; nur bei neuer Capability ein eigener Slug.
 Jeder Requirement-Block braucht mindestens ein GIVEN/WHEN/THEN-Scenario. Dann:
 
 ```bash
-bash scripts/openspec.sh validate
+bash scripts/plan-lint.sh .agents/plans/audit-<ziel>-<stichwort>/tasks.md
 ```
 
 Validierung darf nicht rot bleiben: ein rotes Proposal ist kein Proposal. Mehrere

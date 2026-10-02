@@ -51,7 +51,7 @@ fi
 [ "$scopes" -eq 0 ] && BRANCH_DIFF=1
 
 # Repo-Pfad-Präfixe mit hoher Treffsicherheit (LLM-Seiten zitieren Quellen so).
-PREFIXES='scripts|docs|openspec|tests|components|k3d|flux|environments|apps|packages|docker|tools|migrations|templates|design|prod|prod-fleet|dev-local|devmesh|wireguard|openclaw|editor|assets|website'
+PREFIXES='scripts|docs|.agents|tests|components|k3d|flux|environments|apps|packages|docker|tools|migrations|templates|design|prod|prod-fleet|dev-local|devmesh|wireguard|openclaw|editor|assets|website'
 BACKTICKED_RE="\`((($PREFIXES)/[^\\\`]+))\`"
 BARE_RE="(($PREFIXES)/[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+)"
 TICKET_RE="T[0-9]{6}"

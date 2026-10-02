@@ -33,7 +33,8 @@
 
 @test "T002230: update-status.sh still clears resolution on a non-terminal status" {
   # Mirrors components/website/src/lib/tickets/transition.ts:79 — a resolution only means
-  # (→ backlog) depend on the clearing, so a blanket COALESCE would strand a stale
+  # anything for done/archived. Planning and backlog transitions depend on the
+  # clearing, so a blanket COALESCE would strand a stale
   # `fixed` on a reopened ticket.
   run grep -Fq "WHEN :'status' IN ('done','archived') THEN COALESCE(NULLIF(:'res', ''), resolution)" \
     scripts/vda/ticket/update-status.sh

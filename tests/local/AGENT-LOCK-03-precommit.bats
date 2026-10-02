@@ -51,7 +51,7 @@ teardown() { rm -rf "$AGENT_LOCK_DIR"; }
   cp "$REPO_ROOT"/scripts/agent-lock*.sh "$TMPREPO/scripts/"
   cp "$REPO_ROOT/.githooks/pre-commit" "$TMPREPO/.githooks/"
   # stub out non-agent-lock guards so the hook only exercises the agent-lock gate
-  for s in git-crypt-guard.sh agent-collision.sh openspec-half-archive-check.sh openspec-main-staging-guard.sh; do
+  for s in git-crypt-guard.sh agent-collision.sh plan-half-archive-check.sh plan-main-staging-guard.sh; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$TMPREPO/scripts/$s"
     chmod +x "$TMPREPO/scripts/$s"
   done

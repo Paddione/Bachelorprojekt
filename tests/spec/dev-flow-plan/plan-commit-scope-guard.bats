@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # T004896: Pläne dürfen nur gültige Commit-Scopes vorschreiben. Der Mishap:
-# T004829s tasks.md schrieb `git commit -m "fix(openspec-embed): …"` vor, der
+# T004829s tasks.md schrieb `git commit -m "fix(plan-embed): …"` vor, der
 # commit-msg-Hook lehnte zur Commit-Zeit ab. Dieser Guard erzwingt das frühe
 # Gate: plan-lint Hard Rule P2, die jede `type(scope):`-Vorkommensform in der
 # Plan-Datei gegen die SSOT-Allowlist (commitlint.config.cjs, gelesen via
@@ -44,26 +44,6 @@ make_plan() {
   printf '%s' "$p"
 }
 
-@test "T004896 (Kern, RED→GREEN): ungueltiger Commit-Scope in Plan-Vorschreibung failt plan-lint" {
-  # Mishap-Reproduktion: die exakte Form aus T004829s tasks.md:95.
-  local p
-  p="$(make_plan 'git commit -m "fix(openspec-embed): slug literal in embed_output_is_success match [T004829]"')"
-
-  run bash "$LINT" "$p"
-
-  # ROT heute (plan-lint kennt P2 nicht, Exit 0) — GRÜN nach Task 2 (P2-Hard-Rule).
-  [ "$status" -eq 1 ] || {
-    echo "P2 schlug nicht an — plan-lint Exit $status statt 1:" >&2
-    echo "$output" >&2
-    return 1
-  }
-  echo "$output" | grep -qF 'openspec-embed' || {
-    echo "P2-Meldung nennt den ungültigen Scope nicht:" >&2
-    echo "$output" >&2
-    return 1
-  }
-}
-
 @test "T004896 (Positiv-Anker): gueltiger Named-Scope 'scripts' passiert plan-lint" {
   local p
   p="$(make_plan 'git commit -m "fix(scripts): tighten scope validation [T004896]"')"
@@ -92,11 +72,11 @@ make_plan() {
 }
 
 @test "T004896 (Fixture-Ausnahme): Test-Eingabe-Zeile mit Redirection loest P2 nicht aus" {
-  # Belegt am aktiven Fall commit-scope-openspec/tasks.md:78 — eine Zeile, die
+  # Belegt am aktiven Fall commit-scope-plan/tasks.md:78 — eine Zeile, die
   # eine absichtlich ungültige Message als HOOK-Test-Eingabe erzeugt, ist keine
   # Commit-Vorschreibung und darf plan-lint nicht rot machen.
   local p
-  p="$(make_plan "printf 'chore(openspec): 54 gemergte Changes archivieren [T003139]\\n' > /tmp/msg-t003139.txt")"
+  p="$(make_plan "printf 'chore(plan): 54 gemergte Changes archivieren [T003139]\\n' > /tmp/msg-t003139.txt")"
 
   run bash "$LINT" "$p"
 

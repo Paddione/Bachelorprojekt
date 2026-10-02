@@ -3,7 +3,6 @@
   Startet llama-server.exe mit bge-reranker-v2-m3 auf dem PK-Tablet (Port 8080).
 .DESCRIPTION
   Rerank-Erstglied der llm-proxy-Kette (T006143, Design-Doc
-  openspec/changes/2026-08-15-laptop-bge-topologie/design.md). Das
   Tablet hat eine Intel-Iris-iGPU (8 GB shared) - Beschleunigung laeuft
   ueber Vulkan (Standard-Build von llama.cpp), NICHT ueber LM Studio: LM
   Studio 0.4.21 hat keinen /v1/rerank-Endpoint. Die Modell-Datei wird von

@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/dev-flow-plan/domains-vocabulary.bats
 # T002614 — Freie domains-Woerter in Proposals greifen im Rollenfilter ins Leere.
-# SSOT: openspec/specs/dev-flow-plan.md (Requirement "plan-context.sh filters by role").
+# SSOT: docs/superpowers/specs/dev-flow-plan.md (Requirement "plan-context.sh filters by role").
 #
 # Pruefmodus: Output-Verifikation — die Tests fuehren scripts/plan-context.sh gegen
 # Fixture-Repos aus und pruefen dessen Output/Exit, nicht den Quelltext. Das
@@ -10,11 +10,11 @@
 #
 # Fixture-Strategie: identisch zu tests/spec/plan-context.bats (T001895) — ein
 # Wegwerf-git-Repo unter $BATS_TEST_TMPDIR, damit `git rev-parse --show-toplevel`
-# in plan-context.sh CHANGES_DIR dorthin ankert und nie $REPO/openspec/changes/
-# anfasst (keine Races mit openspec-workflow.bats im parallelen CI-Lauf).
+# in plan-context.sh CHANGES_DIR dorthin ankert und nie $REPO/.agents/plans/
+# anfasst (keine Races mit plan-workflow.bats im parallelen CI-Lauf).
 #
 # Bewusste Ausnahme: der letzte Test (Korpus-Guard) liest die ECHTEN Proposals
-# unter $REPO/openspec/changes/ — absichtliche Abweichung von der Fixture-
+# unter $REPO/.agents/plans/ — absichtliche Abweichung von der Fixture-
 # Entkopplung (T001534/T001895), weil der Guard genau den lebenden Korpus pruefen
 # soll und nur liest (keine Mutation, daher keine Race). Wird ein neues Proposal
 # mit ungemappten Woertern angelegt, faellt der Guard rot, bis das Wort in
@@ -160,7 +160,7 @@ EOF
   fi
 
   unanchored=0
-  for f in "$REPO"/openspec/changes/*/proposal.md; do
+  for f in "$REPO"/.agents/plans/*/proposal.md; do
     [[ -f "$f" ]] || continue
     slug="$(basename "$(dirname "$f")")"
     [[ "$slug" == "archive" ]] && continue

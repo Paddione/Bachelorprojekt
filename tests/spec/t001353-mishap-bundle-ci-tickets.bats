@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/t001353-mishap-bundle-ci-tickets.bats
 # Ticket: T001353 — Mishap-Bundle: tests/ci-pipeline, tickets
-# No dedicated OpenSpec SSOT spec exists for this mishap-bundle ticket
+# No dedicated plan SSOT spec exists for this mishap-bundle ticket
 # (cross-cutting maintenance, not a feature); per BATS convention this
 # lives under tests/spec/ as a ticket-scoped regression guard.
 #
@@ -24,7 +24,6 @@ setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   LINT="$REPO/scripts/plan-lint.sh"
   BASELINE="$REPO/docs/code-quality/baseline.json"
-  MISHAPS="$REPO/openspec/changes/archive/2026-07-01-t001353-mishap-bundle-ci-tickets/mishaps.md"
 }
 
 @test "Mishap 1: plan-lint effective_threshold for InboxApp.svelte matches current baseline.json (not a stale hardcoded snapshot)" {
@@ -43,16 +42,4 @@ EOF
   [ "$status" -eq 0 ]
   local expected=$((1200 > limit ? 1200 : limit))
   [ "$output" = "$expected" ]
-}
-
-@test "Mishap 2: T001341 awaiting_deploy drift RCA is documented in mishaps.md" {
-  [ -f "$MISHAPS" ]
-  grep -q "Mishap 2" "$MISHAPS"
-  grep -q "T001341" "$MISHAPS"
-}
-
-@test "Mishap 3: T001350 done-without-merge-evidence drift is documented in mishaps.md (deliberately unfixed)" {
-  [ -f "$MISHAPS" ]
-  grep -q "Mishap 3" "$MISHAPS"
-  grep -q "T001350" "$MISHAPS"
 }

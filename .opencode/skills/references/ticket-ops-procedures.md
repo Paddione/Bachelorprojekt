@@ -136,21 +136,6 @@ WHERE status NOT IN ('done','archived')
 
 A ticket with an empty `missing[]` is **ready**. *Do not touch `in_progress` tickets referencing a live plan branch.*
 
-### Step 1.3: Load OpenSpec status & render the triage table
-
-```bash
-OMAP_FILE="$REPO/components/website/src/data/openspec-status.json"
-[[ -f "$OMAP_FILE" ]] || bash "$REPO/scripts/openspec-status-map.sh"   # regen if missing
-get_openspec_status() { jq -r --arg id "$1" '.[$id] // [] | map("\(.status):\(.slug)") | join(", ")' "$OMAP_FILE" 2>/dev/null || echo ""; }
-```
-
-Render one row per ticket with a `missing[]` column (use `get_openspec_status "$ext_id"`, `—` when empty):
-```
-T000953 | Cockpit Fullscreen   | plan_staged | hoch    | DoR 4/4 | —              | READY
-T000959 | Status-Badge         | planning    | mittel  | DoR 2/4 | spec, aufwand  | READY (openspec…)
-T000738 | Unbekanntes Feature  | backlog     | niedrig | —       | description    | needs_human?
-```
-
 ### Step 1.4: Classify (resolution × completeness)
 - **Already resolved** (PR merged, work shipped): mark `done` + `fixed` (or `shipped` for features), cite the PR.
 - **Obsolete** (e.g. decommissioned service): mark `done` + `obsolete`.

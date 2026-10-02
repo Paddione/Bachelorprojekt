@@ -251,7 +251,7 @@ async function runJob(ctx, job) {
         const planDir = resolvePlanDir(ctx, job, rec, v);
         if (!planDir) return { infra: `Ketten-Plan fehlt: ${job.plan}` };
         const slug = `${job.caseId}-${job.variantId}`;
-        const dest = join(workdir, 'openspec', 'changes', slug);
+        const dest = join(workdir, '.agents', 'plans', slug);
         rm_rf(dest);
         cpSync(planDir, dest, { recursive: true });
         const manifest = parseManifest(readFileSync(join(dest, 'tasks.md'), 'utf8'));

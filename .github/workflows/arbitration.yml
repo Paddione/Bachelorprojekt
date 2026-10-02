@@ -31,9 +31,6 @@ name: Merge Arbitration
 on:
   workflow_dispatch: {}
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   arbitrate:
     # [T002927] Fork-Guard — Pflicht, weil dieser Job auf einem SELF-HOSTED

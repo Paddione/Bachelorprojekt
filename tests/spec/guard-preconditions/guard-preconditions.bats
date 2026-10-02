@@ -79,7 +79,50 @@ _with_skip_stub() {
 }
 
 @test "require_k8s_rollout laesst ausgerolltes Deployment durch" {
-  _with_skip_stub 'kubectl() { echo "1"; return 0; }; require_k8s_rollout __ctx__ __ns__ deploy __name__; echo PASS-THROUGH'
+  _with_skip_stub 'kubectl() { echo "1"; return 0; }; require_k8s_rollout __ctx__ __ns__ deploy __name__ && echo PASS-THROUGH'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"PASS-THROUGH"* ]]
+}
+
+@test "node_modules_fresh erkennt frischen Install (Module neuer als Lockfile)" {
+  local dir="$BATS_TMPDIR/nm-fresh"
+  mkdir -p "$dir/node_modules"
+  touch -d '2026-01-01' "$dir/pnpm-lock.yaml" "$dir/package.json"
+  touch -d '2026-06-01' "$dir/node_modules/.modules.yaml"
+  run node_modules_fresh "$dir"
+  [ "$status" -eq 0 ]
+}
+
+@test "node_modules_fresh meldet veralteten Install (Lockfile neuer)" {
+  local dir="$BATS_TMPDIR/nm-stale"
+  mkdir -p "$dir/node_modules"
+  touch -d '2026-06-01' "$dir/pnpm-lock.yaml" "$dir/package.json"
+  touch -d '2026-01-01' "$dir/node_modules/.modules.yaml"
+  run node_modules_fresh "$dir"
+  [ "$status" -eq 1 ]
+}
+
+@test "node_modules_fresh meldet fehlende Module" {
+  run node_modules_fresh "$BATS_TMPDIR/nm-missing-$$"
+  [ "$status" -eq 1 ]
+}
+
+@test "require_fresh_node_modules skippt mit pnpm-install-Hinweis bei Skew" {
+  local dir="$BATS_TMPDIR/nm-stale-skip"
+  mkdir -p "$dir/node_modules"
+  touch -d '2026-06-01' "$dir/pnpm-lock.yaml" "$dir/package.json"
+  touch -d '2026-01-01' "$dir/node_modules/.modules.yaml"
+  _with_skip_stub "require_fresh_node_modules '$dir'"
+  [ "$status" -eq 42 ]
+  [[ "$output" == *"pnpm install"* ]]
+}
+
+@test "require_fresh_node_modules laesst frischen Install durch" {
+  local dir="$BATS_TMPDIR/nm-fresh-through"
+  mkdir -p "$dir/node_modules"
+  touch -d '2026-01-01' "$dir/pnpm-lock.yaml" "$dir/package.json"
+  touch -d '2026-06-01' "$dir/node_modules/.modules.yaml"
+  _with_skip_stub "require_fresh_node_modules '$dir' && echo PASS-THROUGH"
   [ "$status" -eq 0 ]
   [[ "$output" == *"PASS-THROUGH"* ]]
 }

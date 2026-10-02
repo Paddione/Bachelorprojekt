@@ -67,7 +67,21 @@ data:
       console.log(`[brain] Daemon start exited with code ${code}`);
     });
 
+    process.on('uncaughtException', (err) => {
+      console.error('[brain] Uncaught exception:', err);
+    });
+    process.on('unhandledRejection', (err) => {
+      console.error('[brain] Unhandled rejection:', err);
+    });
+
     const server = http.createServer((req, res) => {
+      req.on('error', (err) => {
+        console.error('[brain] Client request error:', err.message);
+      });
+      res.on('error', (err) => {
+        console.error('[brain] Client response error:', err.message);
+      });
+
       // Auto-redirect root to default project
       if (req.url === '/' || req.url === '') {
         res.writeHead(302, { Location: '/?project=home-patrick-Bachelorprojekt' });
@@ -86,13 +100,27 @@ data:
         method: req.method,
         headers: headers
       }, (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
-        proxyRes.pipe(res);
+        if (!res.headersSent) {
+          try {
+            res.writeHead(proxyRes.statusCode, proxyRes.headers);
+            proxyRes.pipe(res);
+          } catch (err) {
+            console.error('[brain] Pipe error:', err.message);
+          }
+        }
       });
 
       proxyReq.on('error', (err) => {
-        res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
-        res.end('Codebase Memory Graph server warming up... Please refresh in a moment.');
+        if (!res.headersSent) {
+          try {
+            res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
+            res.end('Codebase Memory Graph server warming up... Please refresh in a moment.');
+          } catch (_) {}
+        }
+      });
+
+      res.on('close', () => {
+        proxyReq.destroy();
       });
 
       req.pipe(proxyReq);
@@ -145,10 +173,10 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
+              memory: 128Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 1Gi
           readinessProbe:
             httpGet:
               path: /api/ui-config

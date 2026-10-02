@@ -2,25 +2,24 @@
 // API-/Connector-Inventar-Scanner (SDLC-Leitstand E2, T007559).
 //
 // Erzeugt components/website/src/data/api-inventory.json: alle SDLC-API-Routen
-// (components/website/src/pages/sdlc/api/**), die MCP-Server aus
+// (components/website/src/pages/sdlc/api/**) und die MCP-Server aus
 // docs/agent-guide/registry/mcp.yaml (nur `clients:`-Top-Level, nicht
-// `cluster:`) und die factory-mcp-Tools aus scripts/factory/mcp-go/main.go
-// (toolList, keine Zweitquelle -- Aenderungen an main.go fliessen ein).
-// T900399: factory-mcp ist ausgebaut, main.go existiert nicht mehr; der Scan
-// liefert dann `factoryTools: []` (Key bleibt Teil des Vertrags, s.u.).
-// Angereichert mit kuratierten Feldern (description/tier/deprecated) aus
-// docs/agent-guide/registry/api-overlay.yaml. Deterministisch: keine
-// Zeitstempel, stabile Sortierungen -- zwei Laeufe ohne Zwischenaenderung
-// sind byte-identisch (fails then the freshness:check drift gate).
+// `cluster:`). Angereichert mit kuratierten Feldern
+// (description/tier/deprecated) aus docs/agent-guide/registry/api-overlay.yaml.
+// T900728: der Tool-Scan ist mit dem Factory-Teardown entfallen; der
+// Top-Level-Key `factoryTools` bleibt als leere Liste Teil des Vertrags (s.u.).
+// Deterministisch: keine Zeitstempel, stabile Sortierungen -- zwei Laeufe
+// ohne Zwischenaenderung sind byte-identisch (fails then the freshness:check
+// drift gate).
 //
 // Schnittstellenvertrag (bindend, p3-Tests):
 //   - Env-Overrides: API_INVENTORY_ROUTES_DIR, API_OVERLAY_PATH (primary) /
 //     API_INVENTORY_OVERLAY (Alias, p2), API_INVENTORY_MCP_REGISTRY,
-//     API_INVENTORY_FACTORY_MCP_GO, API_INVENTORY_OUT.
+//     API_INVENTORY_OUT.
 //   - Exit 0 bei Erfolg (Datei geschrieben); Exit 1 bei verwaistem
 //     Overlay-Eintrag (Datei NICHT geschrieben), Fehlermeldung auf stderr
 //     enthaelt `not found in scan` + Gruppe + Schluessel in Anfuehrungszeichen.
-//   - Top-Level: routes/mcpServers/factoryTools (nicht factoryMcpTools --
+//   - Top-Level: routes/mcpServers/factoryTools (leere Liste, Legacy-Key --
 //     p3-legacy-Namen sind verbindlich); Route-Feld `backend` (Array).
 //   - Overlay akzeptiert BEIDE Formate: p2-Gruppenformat (routes:/
 //     mcpServers:/mcpTools: Maps) und p3-Fixtureformat (entries:-Liste mit
@@ -34,7 +33,6 @@ const DEFAULTS = {
   routesDir: 'components/website/src/pages/sdlc/api',
   overlay: 'docs/agent-guide/registry/api-overlay.yaml',
   mcpRegistry: 'docs/agent-guide/registry/mcp.yaml',
-  factoryMcpGo: 'scripts/factory/mcp-go/main.go',
   out: 'components/website/src/data/api-inventory.json',
 };
 
@@ -42,7 +40,6 @@ const envOr = (key, fallback) => process.env[key] || fallback;
 const ROUTES_DIR = envOr('API_INVENTORY_ROUTES_DIR', DEFAULTS.routesDir);
 const OVERLAY_PATH = envOr('API_OVERLAY_PATH', envOr('API_INVENTORY_OVERLAY', DEFAULTS.overlay));
 const MCP_REGISTRY = envOr('API_INVENTORY_MCP_REGISTRY', DEFAULTS.mcpRegistry);
-const FACTORY_MCP_GO = envOr('API_INVENTORY_FACTORY_MCP_GO', DEFAULTS.factoryMcpGo);
 const OUT_PATH = envOr('API_INVENTORY_OUT', DEFAULTS.out);
 
 const METHOD_ORDER = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
@@ -114,23 +111,6 @@ export function scanMcpServers(registryPath) {
   return out;
 }
 
-/** factory-mcp-Tool-Scan: extrahiert die toolList-Eintraege aus main.go per
- *  Regex (Name/Description auf Folgezeilen) -- kein Hardcoding der Liste.
- *  T900399: der factory-mcp-Server (scripts/factory/mcp-go) ist ausgebaut;
- *  fehlt die Quelle, ist das Ergebnis die leere Liste statt eines Absturzes.
- *  Der Top-Level-Key `factoryTools` bleibt Teil des Schnittstellenvertrags. */
-export function scanFactoryMcpTools(goPath) {
-  if (!existsSync(goPath)) return [];
-  const src = readFileSync(goPath, 'utf8');
-  const re = /Name:\s*"([^"]+)",\s*\n\s*Description:\s*"([^"]+)"/g;
-  const out = [];
-  for (const m of src.matchAll(re)) {
-    out.push({ name: m[1], description: m[2], tier: null, deprecated: null });
-  }
-  out.sort((a, b) => a.name.localeCompare(b.name));
-  return out;
-}
-
 /** Overlay-Merge: schreibt description/tier/deprecated (Default null) auf
  *  getroffene Ziele. Verwaiste Schluessel werden gesammelt und alle am Ende
  *  gemeldet (Exit 1, keine Ausgabedatei). Fehlende Kuration ist erlaubt. */
@@ -188,7 +168,9 @@ export function applyOverlay(routes, mcpServers, factoryTools, overlayPath) {
 export function main() {
   const routes = scanRoutes(ROUTES_DIR);
   const mcpServers = scanMcpServers(MCP_REGISTRY);
-  const factoryTools = scanFactoryMcpTools(FACTORY_MCP_GO);
+  // T900728: Tool-Scan entfallen (Factory-Teardown); der Key bleibt als
+  // leere Liste Teil des Vertrags (Decommission-Guard, Drift-Test T2).
+  const factoryTools = [];
   applyOverlay(routes, mcpServers, factoryTools, OVERLAY_PATH);
   const json = JSON.stringify({ routes, mcpServers, factoryTools }, null, 2) + '\n';
   mkdirSync(dirname(resolve(OUT_PATH)), { recursive: true });

@@ -64,6 +64,11 @@
 - Transport: stdio
 - Bridge: `http://127.0.0.1:18235/mcp/codebase-memory-mcp`
 
+### 3D Graph Webview & UI
+
+- **Lokal:** `http://127.0.0.1:9749` (Port 9749 des lokalen CBM-Daemons).
+- **Produktion:** `https://brain.mentolder.de` (Cluster `fleet`, Namespace `workspace`, geschützt via Pocket ID SSO / `oauth2-proxy-brain`).
+
 ### Tools (14 verfügbar)
 
 | Tool | Funktion |
@@ -186,3 +191,4 @@
 | 2026-06 | PR #2281 | graph.db.zst (16.7MB) ursprünglich committed |
 | 2026-07 | T002433 | Dieses Dokument: Visualisierung und Schnittstellen-Dokumentation |
 | 2026-09 | T900450 | Periodischer Auto-Refresh via Cron, Single-Flight-Schutz, SQLite-Persistenz dokumentiert |
+| 2026-10 | T900884 | 3D Graph Webview unter brain.mentolder.de (fleet SSO) und lokale UI in Doku/Skill dokumentiert |

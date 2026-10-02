@@ -285,3 +285,33 @@ setup() {
   [ "$status" -eq 0 ]
   [ "$output" = "false" ]
 }
+
+# ── Guard 7: factory-runner build chain is gone (T900768) ─────────────
+# The runner workload is decommissioned (T900399) and runs nowhere; the
+# image build, its Dockerfile and any live image reference go with it.
+
+@test "decommission: no factory-runner build workflow remains" {
+  [ ! -f "$REPO/.github/workflows/build-factory-runner.yml" ] || {
+    echo "LEFTOVER: .github/workflows/build-factory-runner.yml still present (nothing consumes the image)" >&2
+    false
+  }
+}
+
+@test "decommission: no factory-runner docker sources remain" {
+  [ ! -d "$REPO/docker/factory-runner" ] || {
+    echo "LEFTOVER: docker/factory-runner/ still present" >&2
+    find "$REPO/docker/factory-runner" -type f >&2
+    false
+  }
+}
+
+@test "decommission: no live reference to the factory-runner image remains" {
+  # Comments may still name the retired image (tombstones document the removal).
+  local hits
+  hits="$(grep -rn 'paddione/factory-runner' "$REPO/.github" "$REPO/k3d" "$REPO/fleet" "$REPO/prod-fleet" "$REPO/docker" 2>/dev/null | grep -vE ':[0-9]+:[[:space:]]*#' || true)"
+  [ -z "$hits" ] || {
+    echo "LEFTOVER factory-runner image reference:" >&2
+    echo "$hits" >&2
+    false
+  }
+}

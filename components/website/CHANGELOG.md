@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.386.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.5...website-v1.386.6) (2026-10-02)
+
+
+### Bug Fixes
+
+* **scripts:** Nightly-Vendor-Sync schreibt in eigenen Worktree und reicht einen PR ein [T900454] ([#6150](https://github.com/Paddione/Bachelorprojekt/issues/6150)) ([7889597](https://github.com/Paddione/Bachelorprojekt/commit/78895970916cc3c2efb5df4f6bd773216584a51e))
+
 ## [1.386.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.4...website-v1.386.5) (2026-10-02)
 
 

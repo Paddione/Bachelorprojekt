@@ -22,13 +22,12 @@ STAMP="${MCP_WATCHDOG_STAMP:-$HOME/.config/systemd/user/mcp-gateway-watchdog.las
 RATE_LIMIT_SEC=300
 LIVE_SECRET_FILE="${MCP_LIVE_SECRET_FILE:-}"
 
-KEYS="BGE_MCP_TOKEN MCP_POSTGRES_TOKEN FACTORY_MCP_TOKEN"
+KEYS="BGE_MCP_TOKEN MCP_POSTGRES_TOKEN"
 
 key_env_file() { # <KEY> -> server.env-Pfad
   case "$1" in
     BGE_MCP_TOKEN) printf '%s' "$HOME/.config/bge-mcp/server.env" ;;
     MCP_POSTGRES_TOKEN) printf '%s' "$HOME/.config/mcp-postgres/server.env" ;;
-    FACTORY_MCP_TOKEN) printf '%s' "$HOME/.config/factory-mcp-node/server.env" ;;
   esac
 }
 
@@ -36,7 +35,6 @@ key_unit() { # <KEY> -> systemd-User-Unit bei Drift
   case "$1" in
     BGE_MCP_TOKEN) printf 'bge-mcp' ;;
     MCP_POSTGRES_TOKEN) printf 'mcp-postgres-local' ;;
-    FACTORY_MCP_TOKEN) printf 'factory-mcp' ;;
   esac
 }
 

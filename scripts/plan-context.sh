@@ -19,6 +19,12 @@ _role_allowlist() {
         bachelorprojekt-test)      echo "test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills" ;;
         bachelorprojekt-db)        echo "db postgres tracking timeline database" ;;
         bachelorprojekt-security)  echo "security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
+        # T900858: thin domain primaries over the OMO engine. Unions of the
+        # merged domains so `plan-context.sh bp-*` (AGENTS.md + agent files)
+        # filters instead of falling back to __ALL__.
+        bp-build)                  echo "infra deploy deployment k3d kustomize prod environments taskfile fleet-operations security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
+        bp-run)                    echo "ops llm llm-local-dev k8s observability monitoring factory-watchdog infra-monitoring db postgres tracking timeline database" ;;
+        bp-ship)                   echo "website frontend design ui svelte astro css brett test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills" ;;
         orchestrator)              echo "__ALL__" ;;
         *)
             printf 'WARN: unknown role "%s" — including all proposals as fail-soft\n' "$1" >&2
@@ -32,7 +38,8 @@ _role_allowlist() {
 # --vocab and by the dead-domains WARN (anchor check). SSOT: _role_allowlist.
 _domain_roles() {
     printf '%s\n' "bachelorprojekt-website" "bachelorprojekt-ops" "bachelorprojekt-infra" \
-        "bachelorprojekt-test" "bachelorprojekt-db" "bachelorprojekt-security"
+        "bachelorprojekt-test" "bachelorprojekt-db" "bachelorprojekt-security" \
+        "bp-build" "bp-run" "bp-ship"
 }
 
 _vocabulary_union() {

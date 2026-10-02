@@ -20,7 +20,7 @@
   Render-Lauf meldet `SKIP: GitLab-Registry-Spiegel nicht konfiguriert`) und
   die **Fallback-Quelle** `fleet-manifests-gitlab` (`suspend: true`, ohne
   Artefakt).
-- Entscheidungen und Messung: `openspec/changes/archive/*remove-gitlab*/design.md`.
+- Entscheidungen und Messung: `*remove-gitlab*/design.md` (Git-Verlauf).
 
 ## 2. GitLab-Projekt
 
@@ -81,8 +81,8 @@ zurueckuebernehmen:
 
 ## 5. Specs zurueckholen
 
-Neuen OpenSpec-Change anlegen, der die REMOVED-Requirements aus
-`openspec/changes/archive/*remove-gitlab*/specs/ci-cd.md` (16 Requirements)
+Neuen Change anlegen, der die REMOVED-Requirements aus
+`*remove-gitlab*/specs/ci-cd.md` (Git-Verlauf, 16 Requirements)
 wieder als ADDED aufnimmt. Der Volltext der Requirements stammt aus
 `git show archive/gitlab-ci:openspec/specs/ci-cd.md`.
 

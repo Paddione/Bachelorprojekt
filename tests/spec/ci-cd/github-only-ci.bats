@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/github-only-ci.bats — GitHub Actions ist die einzige CI-Plattform [T900650]
 #
-# Requirement: openspec/specs/ci-cd.md "GitHub Actions ist die einzige CI-Plattform".
+# Requirement (ci-cd-Spec): "GitHub Actions ist die einzige CI-Plattform".
 # Geprueft wird die Ausgabe von `git ls-files` und `git grep` (versionierter Stand), nicht
 # das Dateisystem: eine liegengebliebene, ungetrackte Datei ist kein Repo-Inhalt.
 

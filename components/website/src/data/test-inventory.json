@@ -4404,6 +4404,12 @@
     "kind": "shell"
   },
   {
+    "id": "os-retirement-dir",
+    "file": "tests/spec/os-retirement-dir.bats",
+    "category": "os-retirement-dir",
+    "kind": "shell"
+  },
+  {
     "id": "os-retirement-prose",
     "file": "tests/spec/os-retirement-prose.bats",
     "category": "os-retirement-prose",

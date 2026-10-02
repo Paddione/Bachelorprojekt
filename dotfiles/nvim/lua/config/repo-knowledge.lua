@@ -17,13 +17,15 @@
 -- execution-time cwd) and fall back to gitroot when it is nil — never at
 -- render time, never touching vim.fn.getcwd().
 --
--- Live facts verified 2026-09-28 against the installed 0.9.0 binary:
+-- Live facts verified 2026-10-02 against the installed 0.10.8 binary:
 --   * `cli index_status` with stdin {"project": slug} answers
 --     {status, nodes, edges, git.head_sha}; an unknown project answers
 --     {error = "project not found or not indexed", available_projects}.
---   * `cli search_graph` with stdin {"project", "query", "limit"} answers
---     {total, results[]}; rows carry name/qualified_name/label/file_path/
---     start_line/end_line/rank. BM25 is fuzzy — nonsense terms may still
+--   * `cli search_graph` with stdin {"project", "query", "limit",
+--     "format": "json"} answers {total, cols[], rows[]}; rows are arrays
+--     [qn, label, file, "start-end", rank] with column positions resolved
+--     from cols. The default (no format) is tree TEXT, not JSON — never
+--     parse it as JSON. BM25 is fuzzy — nonsense terms may still
 --     match — so total=0 is the only reliable empty signal.
 --   * `cli trace_path` with stdin {"project", "function_name", "depth"}
 --     answers {function, direction, callers[], callees[]}; rows carry only
@@ -133,7 +135,12 @@ local function k3_call(tool, payload)
   if result.code ~= 0 then
     return nil, 'k3 ' .. tool .. ' exited ' .. tostring(result.code)
   end
-  local dok, doc = pcall(vim.json.decode, result.stdout or '')
+  local stdout = result.stdout or ''
+  local brace = stdout:find('{', 1, true)
+  if brace then
+    stdout = stdout:sub(brace)
+  end
+  local dok, doc = pcall(vim.json.decode, stdout)
   if not dok then
     return nil, 'k3 ' .. tool .. ' returned non-JSON output'
   end
@@ -298,7 +305,7 @@ function M.k3_symbol(cwd)
       warn('no K3 index covers ' .. cwd .. '; see ' .. K3_DOC)
       return
     end
-    local doc, err = k3_call('search_graph', { project = name, query = symbol, limit = 50 })
+    local doc, err = k3_call('search_graph', { project = name, query = symbol, limit = 50, format = 'json' })
     if not doc then
       warn(tostring(err))
       return
@@ -307,21 +314,24 @@ function M.k3_symbol(cwd)
       warn('K3 search failed: ' .. tostring(doc.error))
       return
     end
-    if (doc.total or 0) == 0 or not doc.results or #doc.results == 0 then
+    if (doc.total or 0) == 0 or not doc.rows or #doc.rows == 0 then
       notify(string.format("K3 search '%s': zero hits", symbol))
       return
     end
+    local col = {}
+    for i, cname in ipairs(doc.cols or {}) do
+      col[cname] = i
+    end
     local items = {}
-    for _, r in ipairs(doc.results) do
+    for _, row in ipairs(doc.rows or {}) do
+      local qn = row[col.qn or 0] or '?'
+      local shortname = qn:match('([^%.]+)$') or qn
+      local lines = row[col.lines or 0] or ''
       items[#items + 1] = {
-        filename = join_root(cwd, r.file_path),
-        lnum = r.start_line or 1,
+        filename = join_root(cwd, row[col.file or 0]),
+        lnum = tonumber(lines:match('^(%d+)')) or 1,
         col = 1,
-        text = string.format(
-          '%s — %s',
-          r.name or '?',
-          r.qualified_name or '?'
-        ),
+        text = string.format('%s — %s', shortname, qn),
       }
     end
     M.send_to_quickfix(items)

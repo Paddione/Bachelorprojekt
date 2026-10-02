@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1257,
+      "file_count": 1258,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -910,6 +910,7 @@
         "tests/spec/opencode-local-model-runner.bats",
         "tests/spec/openspec-workflow/t002573-backlog-slugs.txt",
         "tests/spec/os-retirement-code.bats",
+        "tests/spec/os-retirement-dir.bats",
         "tests/spec/os-retirement-prose.bats",
         "tests/spec/pi-harness.bats",
         "tests/spec/pipeline-interface.bats",
@@ -1351,7 +1352,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1830,
+      "file_count": 1829,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",
@@ -1920,7 +1921,6 @@
         "components/website/src/data/help-videos.json",
         "components/website/src/data/learning-assets.manifest.json",
         "components/website/src/data/learning-assets.schema.json",
-        "components/website/src/data/openspec-status.json",
         "components/website/src/data/route-manifest.json",
         "components/website/src/data/test-inventory.json",
         "components/website/src/db/migrate.test.ts",

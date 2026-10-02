@@ -64,8 +64,8 @@ setup() {
 
 # OF1 changes-since-Tests entfernt (T900843): die Route
 # GET /api/cockpit/epics/:id/changes-since wurde mit A1b stillgelegt
-# (sie beantwortete "wurde openspec/changes/ seit dem Canvas-Export
-# veraendert?" — mit dem OpenSpec-Abriss gegenstandslos).
+# (sie meldete Aenderungen im Change-Baum seit dem Canvas-Export —
+# mit dem Abriss gegenstandslos).
 
 # ---------------------------------------------------------------------------
 # E1 — kein direktes fetch() in den Kit-Dateien

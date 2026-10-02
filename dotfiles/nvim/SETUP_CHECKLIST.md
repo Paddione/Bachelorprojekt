@@ -20,6 +20,6 @@ First view of the nodectl dashboard section. Check items off as they are done;
   - State 2026-09-16: stale node object DELETED (`kubectl delete node gpu-cluster-3`; only a DaemonSet pod attached, auto-recreates). Test-boot identity was machineID `ac9c17…`, Ubuntu 26.04, worker-only — no etcd impact.
   - On power-on the box should self-register (same machine-id on SSD, k3s agent + cloud-init user `patrick` baked in). Then: `ssh gpu-cluster-3` (alias pre-staged), `tailscale up --hostname=gpu-cluster-3`, verify `task devmesh:status` + snapshots, record NIC MAC in `devmesh/inventory.yaml` for future WoL.
 - [ ] Re-join `gpu-cluster-3` as k3s agent (`task devmesh:install HOST=gpu-cluster-3`)
-- [ ] Join `ws-ubuntu-1` as devmesh agent (spec: `openspec/specs/local-dev-mesh.md`)
+- [ ] Join `ws-ubuntu-1` as devmesh agent (spec: local-dev-mesh-Spec)
 - [ ] `task devmesh:status` green (nodes Ready, etcd snapshot < 12h)
 - [ ] `task devmesh:acceptance` passes, then `task devmesh:k3d:teardown`

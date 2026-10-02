@@ -6,7 +6,7 @@
 # Hintergrund: `gh run|workflow|pr|issue|api|label|...` loest das Ziel-Repo aus
 # dem Git-Checkout auf. Ohne Checkout im SELBEN Job (jeder Job laeuft auf eigenem
 # Runner) stirbt der Schritt mit "not a git repository". Zweimal eingetreten:
-# openspec-orphan-archive failure-Job (naechtlich rot) und post-merge-e2e nach
+# failure-Job (naechtlich rot) und post-merge-e2e nach
 # Entfernung des nur scheinbar ungenutzten Checkouts (T900810). Alternative zum
 # Checkout ist ein explizites `-R/--repo` am Aufruf (auto-enable-automerge,
 # release-please).

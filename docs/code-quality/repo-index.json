@@ -3250,7 +3250,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 760,
+      "file_count": 758,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3698,8 +3698,6 @@
         "docker/einvoice-sidecar/src/main/java/de/mentolder/einvoice/EmbedController.java",
         "docker/einvoice-sidecar/src/main/java/de/mentolder/einvoice/ValidateController.java",
         "docker/einvoice-sidecar/src/main/resources/application.yaml",
-        "docker/factory-runner/Dockerfile",
-        "docker/factory-runner/wakeup-listener.mjs",
         "docker/mcp-node/Dockerfile",
         "docker/mcp-node/reap-postgres-children.sh",
         "docker/mcp-node/supervisor.sh",

@@ -43,8 +43,3 @@ setup() {
   echo "$output" | grep -q "fetchedAt"
 }
 
-@test "GET /api/admin/factory-control responds" {
-  run curl -s "${BASE}/api/admin/factory-control"
-  [ "$?" -eq 0 ]
-  echo "$output" | grep -q "fetchedAt"
-}

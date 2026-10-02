@@ -47,7 +47,7 @@ setup() {
 }
 
 @test "(c) retired markers are present" {
-  grep -q 'stillgelegt, K4-Retire' "$REPO/docs/brain/k5-plan.md"
+  grep -q 'stillgelegt, K4-Retire' "$REPO/docs/brain/k2-bge-paare.md"
   grep -q '(entfernt)' "$REPO/docs/brain/k2-bge-paare.md"
   grep -q 'Mirror stillgelegt' "$REPO/docs/diagrams/brain-architektur-gesamtbild.md"
 }

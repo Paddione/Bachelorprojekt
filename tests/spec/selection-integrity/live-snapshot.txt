@@ -106,7 +106,6 @@ tests/spec/brain-k4-brain-wiki/parent-moc.bats
 tests/spec/brain-k4-brain-wiki/retrieval-eval.bats
 tests/spec/brain-quality-goals.bats
 tests/spec/branch-reaper-netzausfall.bats
-tests/spec/brett.bats
 tests/spec/cbm-stampede-guard.bats
 tests/spec/centralized-logging.bats
 tests/spec/chat-inbox.bats
@@ -176,7 +175,6 @@ tests/spec/ci-cd/unknown-scope-names-source.bats
 tests/spec/ci-cd/website-fast-path.bats
 tests/spec/ci-cd/windows-path-portability.bats
 tests/spec/ci-cd/workflow-self-trigger.bats
-tests/spec/ci-cd/worktrees-not-tracked.bats
 tests/spec/coaching-sessions-polish-guide.bats
 tests/spec/coaching/questionnaire-insights.bats
 tests/spec/coaching/session-summaries.bats
@@ -188,7 +186,6 @@ tests/spec/commit-signing.bats
 tests/spec/coverage-gate.bats
 tests/spec/database-migrations-runner.bats
 tests/spec/database.bats
-tests/spec/datev-export.bats
 tests/spec/db-guard/db-identity-guard.bats
 tests/spec/db-guard/kubeconfig-drift-guard.bats
 tests/spec/db-quality-goals.bats
@@ -287,7 +284,6 @@ tests/spec/g-cq08-knip-dead-code.bats
 tests/spec/g-dep01-npm-vuln.bats
 tests/spec/g-fe02-bundle-budget.bats
 tests/spec/g-fe03-structured-logger.bats
-tests/spec/g-size02-large-files.bats
 tests/spec/gen-goals-data.bats
 tests/spec/githooks-worktree-fallback.bats
 tests/spec/grilling-flow.bats
@@ -311,7 +307,6 @@ tests/spec/health-goals/service-health-goals.bats
 tests/spec/health-goals/worktree-hygiene-goals.bats
 tests/spec/health-goals/zielfamilien-audit.bats
 tests/spec/hermes-mcp-access.bats
-tests/spec/image-drift.bats
 tests/spec/k4-surgery-guard.bats
 tests/spec/k8-headed-tests/headed-verify-not-in-ci-path.bats
 tests/spec/kv-budget.bats
@@ -335,7 +330,6 @@ tests/spec/llm-pipeline/knowledge-ingest-live-sources.bats
 tests/spec/llm-pipeline/kv-offload.bats
 tests/spec/local-dev-mesh/db-backup-retention.bats
 tests/spec/local-dev-mesh/dev-local-render.bats
-tests/spec/local-dev-mesh/dev-stack-tasks.bats
 tests/spec/local-dev-mesh/devmesh-networks.bats
 tests/spec/local-dev-mesh/devmesh-taskfile.bats
 tests/spec/local-dev-mesh/gpu-enable.bats
@@ -413,10 +407,7 @@ tests/spec/mcp-gateway/token-drift-auto-sync.bats
 tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats
 tests/spec/mcp-skill-integration.bats
 tests/spec/mcp-skill-integration/psql-fallback-ticket-ssot.bats
-tests/spec/mcp-task-runner.bats
-tests/spec/mcp-task-runner/planner-sees-real-deps.bats
 tests/spec/mcp-tooling.bats
-tests/spec/mediaviewer.bats
 tests/spec/merge-arbitration/apply-escalation.bats
 tests/spec/merge-arbitration/apply-idempotency.bats
 tests/spec/merge-arbitration/detect-clustering.bats
@@ -437,11 +428,10 @@ tests/spec/monitoring-alerts/backup-alerting.bats
 tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats
 tests/spec/neovim-dashboard.bats
 tests/spec/network-address-plan/networks-registry.bats
-tests/spec/newsletter-system.bats
-tests/spec/nextcloud-integration.bats
 tests/spec/opencode-config-ssot.bats
 tests/spec/opencode-local-model-runner.bats
 tests/spec/os-retirement-code.bats
+tests/spec/os-retirement-prose.bats
 tests/spec/pi-harness.bats
 tests/spec/pipeline-interface.bats
 tests/spec/plan-context.bats
@@ -457,9 +447,7 @@ tests/spec/pocket-id-proxy-ip.bats
 tests/spec/pocket-id-seed-label-isolation/client-seed-service-endpoint-isolation.bats
 tests/spec/pr-refresh.bats
 tests/spec/pre-commit-freshness.bats
-tests/spec/projekttickets-cockpit.bats
 tests/spec/public-symlinks-resolve-in-image.bats
-tests/spec/questionnaire-system.bats
 tests/spec/react-homepage-blocks.bats
 tests/spec/react-login-edit-homepage.bats
 tests/spec/release-notes-erden.bats
@@ -471,7 +459,6 @@ tests/spec/repo-hygiene/windows-guards.bats
 tests/spec/repo-hygiene/worktree-clean-check-existence.bats
 tests/spec/repo-hygiene/worktree-remove-generat-allowlist.bats
 tests/spec/repo-hygiene/worktree-stash-inspection.bats
-tests/spec/repo-structure/components-group.bats
 tests/spec/repo-structure/inventory-registered.bats
 tests/spec/repo-structure/packages-assets.bats
 tests/spec/repo-structure/root-agent-md.bats
@@ -511,7 +498,6 @@ tests/spec/sdlc-cockpit/k9-stil-datenbank.bats
 tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats
 tests/spec/sdlc-cockpit/kit-artifacts-exist.bats
 tests/spec/sdlc-cockpit/kit-assets-in-image.bats
-tests/spec/sdlc-cockpit/kit-binding.bats
 tests/spec/sdlc-cockpit/layout-buildfree.bats
 tests/spec/sdlc-cockpit/layout-kit-asset-wiring.bats
 tests/spec/sdlc-cockpit/layout-rail-fixed.bats
@@ -617,7 +603,6 @@ tests/spec/unsloth-training-env/measure-corpus.bats
 tests/spec/unsloth-training-env/template-guard.bats
 tests/spec/unsloth-training-env/train-config.bats
 tests/spec/unsloth-training-env/vision-route.bats
-tests/spec/vaultwarden-integration.bats
 tests/spec/vim-ai-completion/context-status.bats
 tests/spec/vim-ai-completion/install-config.bats
 tests/spec/vim-ai-completion/request-stream.bats

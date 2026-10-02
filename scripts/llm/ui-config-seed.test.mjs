@@ -88,11 +88,11 @@ clients:
     }).toThrow(/BGE_MCP_TOKEN/);
   });
 
-  // ── T900202: Browser-Tokens fuer mcp-postgres, factory-mcp und k8s ────────
+  // ── T900202: Browser-Tokens fuer mcp-postgres, bge-mcp und k8s ─────────────
   // Gleiches Muster wie BGE_MCP_TOKEN: Platzhalter aus process.env aufloesen,
   // fehlende Variable hart mit klarer Meldung abbrechen.
 
-  it('substitutes MCP_POSTGRES_TOKEN, FACTORY_MCP_TOKEN and MCP_KUBERNETES_TOKEN from env', () => {
+  it('substitutes MCP_POSTGRES_TOKEN, BGE_MCP_TOKEN and MCP_KUBERNETES_TOKEN from env', () => {
     const templatePath = path.join(tmpDir, 'ui-config.template.json');
     const outputPath = path.join(tmpDir, 'ui-config.json');
     const registryPath = path.join(tmpDir, 'mcp.yaml');
@@ -104,10 +104,10 @@ clients:
     endpoint: "http://127.0.0.1:13001/mcp"
     headers:
       Authorization: "Bearer \${MCP_POSTGRES_TOKEN}"
-  factory-mcp:
-    endpoint: "http://127.0.0.1:13003/mcp"
+  bge-mcp:
+    endpoint: "http://127.0.0.1:13005/mcp"
     headers:
-      Authorization: "Bearer \${FACTORY_MCP_TOKEN}"
+      Authorization: "Bearer \${BGE_MCP_TOKEN}"
   mcp-kubernetes:
     browser_endpoint: "http://127.0.0.1:18082/mcp"
     headers:
@@ -115,7 +115,7 @@ clients:
 `);
 
     process.env.MCP_POSTGRES_TOKEN = 'postgres-token-123';
-    process.env.FACTORY_MCP_TOKEN = 'factory-token-123';
+    process.env.BGE_MCP_TOKEN = 'bge-token-123';
     process.env.MCP_KUBERNETES_TOKEN = 'k8s-token-123';
 
     generateUiConfigSeed({
@@ -128,11 +128,11 @@ clients:
     const byName = Object.fromEntries(servers.map((s) => [s.name, s]));
 
     expect(byName['mcp-postgres'].headers.Authorization).toBe('Bearer postgres-token-123');
-    expect(byName['factory-mcp'].headers.Authorization).toBe('Bearer factory-token-123');
+    expect(byName['bge-mcp'].headers.Authorization).toBe('Bearer bge-token-123');
     expect(byName['k8s'].headers.Authorization).toBe('Bearer k8s-token-123');
   });
 
-  it('uebernimmt Template-Header als Fallback, wenn der Registry-Eintrag keinen Header traegt (k8s, factory-mcp)', () => {
+  it('uebernimmt Template-Header als Fallback, wenn der Registry-Eintrag keinen Header traegt (k8s, mcp-postgres)', () => {
     const templatePath = path.join(tmpDir, 'ui-config.template.json');
     const outputPath = path.join(tmpDir, 'ui-config.json');
     const registryPath = path.join(tmpDir, 'mcp.yaml');
@@ -140,19 +140,19 @@ clients:
     fs.writeFileSync(templatePath, JSON.stringify({
       mcpServers: JSON.stringify([
         { name: 'k8s', url: 'http://127.0.0.1:18082/mcp', enabled: true, headers: { Authorization: 'Bearer ${MCP_KUBERNETES_TOKEN}' } },
-        { name: 'factory-mcp', url: 'http://127.0.0.1:13003/mcp', enabled: true, headers: { Authorization: 'Bearer ${FACTORY_MCP_TOKEN}' } },
+        { name: 'mcp-postgres', url: 'http://127.0.0.1:13001/mcp', enabled: true, headers: { Authorization: 'Bearer ${MCP_POSTGRES_TOKEN}' } },
       ]),
     }));
     fs.writeFileSync(registryPath, `
 clients:
   mcp-kubernetes:
     browser_endpoint: "http://127.0.0.1:18082/mcp"
-  factory-mcp-node:
-    endpoint: "http://127.0.0.1:13003/mcp"
+  mcp-postgres:
+    endpoint: "http://127.0.0.1:13001/mcp"
 `);
 
     process.env.MCP_KUBERNETES_TOKEN = 'k8s-token-123';
-    process.env.FACTORY_MCP_TOKEN = 'factory-token-123';
+    process.env.MCP_POSTGRES_TOKEN = 'postgres-token-123';
 
     generateUiConfigSeed({
       templatePath,
@@ -163,12 +163,11 @@ clients:
     const servers = JSON.parse(JSON.parse(fs.readFileSync(outputPath, 'utf8')).mcpServers);
     const byName = Object.fromEntries(servers.map((s) => [s.name, s]));
 
-    // factory-mcp-node wird als "factory-mcp" gefuehrt (Display-Override)
     expect(byName['k8s'].headers.Authorization).toBe('Bearer k8s-token-123');
-    expect(byName['factory-mcp'].headers.Authorization).toBe('Bearer factory-token-123');
+    expect(byName['mcp-postgres'].headers.Authorization).toBe('Bearer postgres-token-123');
   });
 
-  it.each(['MCP_POSTGRES_TOKEN', 'FACTORY_MCP_TOKEN', 'MCP_KUBERNETES_TOKEN'])(
+  it.each(['MCP_POSTGRES_TOKEN', 'BGE_MCP_TOKEN', 'MCP_KUBERNETES_TOKEN'])(
     'fails if required %s environment variable is missing when referenced in registry headers',
     (tokenName) => {
       const templatePath = path.join(tmpDir, 'ui-config.template.json');
@@ -237,9 +236,9 @@ clients:
     fs.writeFileSync(templatePath, JSON.stringify({}));
     fs.writeFileSync(registryPath, `
 clients:
-  factory-mcp:
+  bge-mcp:
     transport: http
-    endpoint: "http://127.0.0.1:13003/mcp"
+    endpoint: "http://127.0.0.1:13005/mcp"
   github-mcp:
     transport: stdio
     browser_endpoint: "http://127.0.0.1:18235/mcp/github-mcp"
@@ -254,7 +253,7 @@ clients:
 
     // Positiv-Anker zuerst (T002356-M1): ohne ihn waere die Negativ-Aussage
     // bei einer leeren Liste trivial erfuellt.
-    expect(names).toContain('factory-mcp');
+    expect(names).toContain('bge-mcp');
     expect(names).toContain('github-mcp');
     // stdio ohne jede Adresse bleibt draussen — die Bruecke bedient ihn nicht.
     expect(names).not.toContain('playwright');

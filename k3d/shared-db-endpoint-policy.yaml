@@ -6,7 +6,7 @@
 # NodePort/LB exponiert — beides wäre aus dem öffentlichen Internet erreichbar
 # oder von der Hetzner-Firewall abhängig. Stattdessen gilt:
 #
-#   * In-cluster-Konsumenten (factory-runner, website, sdlc-console) nutzen die
+#   * In-cluster-Konsumenten (website, sdlc-console) nutzen die
 #     ClusterIP svc/shared-db:5432 direkt.
 #   * Externe wg-Konsumenten (Windows-Desktop-MCPs) tunneln über den bereits
 #     betriebenen sish-TCP-SSH-Dienst (auth-gated, kein kubectl port-forward):

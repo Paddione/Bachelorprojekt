@@ -34,11 +34,11 @@ teardown() {
   [[ "$output" == *"mcp"* ]]
 }
 
-@test "rejects chore(tickets) and reports factory as target scope" {
+@test "rejects chore(tickets) and reports the Ticket-Scope redirect (T900728)" {
   echo "chore(tickets): register mcp tool params" > "$TMP_MSG"
   run "$SCRIPT" message "$TMP_MSG"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"factory"* ]]
+  [[ "$output" == *"Ticket-Scope"* ]]
 }
 
 @test "rejects unknown scope and hints at PR-title check not validating scope" {

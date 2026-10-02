@@ -95,6 +95,9 @@ spec:
                   name: shared-db-dev-secrets
                   key: DEV_WEBSITE_DB_PASSWORD
                   optional: true
+            # DB-Direktzugriff fuer In-Pod-Skripte (im Pod fehlt kubectl).
+            - name: WORKSPACE_PG_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website"
             - name: PGOPTIONS
               value: "-c statement_timeout=120000ms"
             - name: GITHUB_PERSONAL_ACCESS_TOKEN

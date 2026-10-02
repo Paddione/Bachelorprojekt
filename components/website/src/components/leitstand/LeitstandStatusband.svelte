@@ -98,7 +98,7 @@
     </div>
 
     <div class="ls-statusband__item">
-      <span class="ls-statusband__badge" title="Factory slots">
+      <span class="ls-statusband__badge" title="Parallel slots">
         🎯 {slotUsed}/{slotCap}
       </span>
     </div>

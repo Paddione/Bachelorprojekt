@@ -45,8 +45,12 @@ trap 'rm -f "$TEMP_SRC" "$TEMP_TGT" "$TEMP_OUT"' EXIT
 printf '%s\n' "$CLEAN_SRC" > "$TEMP_SRC"
 printf '%s\n' "$CLEAN_TGT" > "$TEMP_TGT"
 
+# Slim-first: Agent-Map MERGEN statt ersetzen — ein kompletter Replace wuerde
+# jede manuelle globale Korrektur (und Slims plugin-gelieferten `orchestrator`,
+# sobald dessen ID nicht mehr in agent-models.jsonc steht) auf den Repo-Stand
+# zuruecksetzen. `*=` behaelt globale Extras, Repo gewinnt bei Konflikten.
 jq -s '
-  .[1].agent = .[0].agent |
+  .[1].agent = ((.[1].agent // {}) * (.[0].agent // {})) |
   .[1].provider = (.[1].provider * .[0].provider) |
   .[1]
 ' "$TEMP_SRC" "$TEMP_TGT" > "$TEMP_OUT"

@@ -138,7 +138,7 @@ EOF"
 
 @test "agent-models.jsonc declares a MEASURED context for the local model, not n_ctx_train (T002545/T002558/T002633)" {
   # T900365: der llamacpp-local-Katalog fuehrt genau ein Modell:
-  # Muse-Glimmer-30B (llama.cpp :1919, scripts/llm/glimmer.service).
+  # Qwen3.8-27B (llama.cpp :1919, scripts/llm/glimmer.service).
   # limit.context 131072 ist die served KV (n_ctx in /props) und zugleich
   # max_position_embeddings von Glimmer. Frueher (Qwen, T900348) lag n_ctx_train
   # mit 262144 ueber dem real Verfuegbaren — daher die 262144-Sperre unten.
@@ -151,8 +151,8 @@ EOF"
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const o = JSON.parse(j);
     const m = ((o.provider || {})['llamacpp-local'] || {}).models || {};
-    const entry = m['Muse-Glimmer-30B'];
-    if (!entry) { console.error('Muse-Glimmer-30B fehlt im llamacpp-local-Katalog'); process.exit(1); }
+    const entry = m['Qwen3.8-27B'];
+    if (!entry) { console.error('Qwen3.8-27B fehlt im llamacpp-local-Katalog'); process.exit(1); }
     const ctx = (entry.limit || {}).context;
     if (!Number.isInteger(ctx) || ctx <= 0) {
       console.error('ctx ' + ctx + ' ist keine positive ganze Zahl'); process.exit(1);
@@ -168,12 +168,12 @@ EOF"
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc defines the local family on Muse Glimmer (T002545/T900203/T900365)" {
+@test "agent-models.jsonc defines the local family on Qwen3.8-27B (T002545/T900203/T900365)" {
   # T900203: die fuenf Familien-Handles (gptoss/devstral/gemma/gemma12/qwen38)
   # sind 2026-09-16 zu einem `local` kollabiert (T900164) — kein gemma-Subagent
   # mehr. Die lokale Familie ist: local + reviewer als Subagenten und
   # glimmer-primary als Primary, alle drei seit T900365 auf
-  # llamacpp-local/Muse-Glimmer-30B.
+  # llamacpp-local/Qwen3.8-27B.
   run node -e "
     const fs = require('fs');
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
@@ -184,8 +184,8 @@ EOF"
       const v = a[name];
       if (!v) { console.error(name + ' fehlt in agent-models.jsonc'); process.exit(1); }
       if (v.mode !== mode) { console.error(name + ' mode ' + v.mode + ' != ' + mode); process.exit(1); }
-      if (v.model !== 'llamacpp-local/Muse-Glimmer-30B') {
-        console.error(name + ' model ' + v.model + ' != llamacpp-local/Muse-Glimmer-30B'); process.exit(1);
+      if (v.model !== 'llamacpp-local/Qwen3.8-27B') {
+        console.error(name + ' model ' + v.model + ' != llamacpp-local/Qwen3.8-27B'); process.exit(1);
       }
     }
     process.exit(0);
@@ -195,7 +195,7 @@ EOF"
 
 @test "agent-models.jsonc provides a local primary with measured context (T002545/T016419/T900203)" {
   # T900203/T900365: der einzige lokale Primary ist glimmer-primary, Modell
-  # Muse-Glimmer-30B. Sein Kontext ist der served-KV-Wert 131072. Die Zahl steht als konkreter Eintrag im Provider
+  # Qwen3.8-27B. Sein Kontext ist der served-KV-Wert 131072. Die Zahl steht als konkreter Eintrag im Provider
   # (T014105-Prinzip); ihre Kopplung an -c der Unit prueft der Test unten.
   #
   # Warum <= und nicht ==: ein niedrigerer Wert ist konservativ und harmlos.
@@ -211,8 +211,8 @@ EOF"
     if (!prim) { console.error('glimmer-primary fehlt'); process.exit(1); }
     if (prim.mode !== 'primary') { console.error('glimmer-primary mode ' + prim.mode + ' != primary'); process.exit(1); }
     const model = prim.model;
-    if (model !== 'llamacpp-local/Muse-Glimmer-30B') {
-      console.error('glimmer-primary model ' + model + ' != llamacpp-local/Muse-Glimmer-30B'); process.exit(1);
+    if (model !== 'llamacpp-local/Qwen3.8-27B') {
+      console.error('glimmer-primary model ' + model + ' != llamacpp-local/Qwen3.8-27B'); process.exit(1);
     }
     const [prov, mid] = model.split('/');
     const entry = ((o.provider[prov] || {}).models || {})[mid];
@@ -249,7 +249,7 @@ EOF"
 
 @test "T016419: dead checkpoint catalog entries are removed" {
   # T900203/T900365: der llamacpp-local-Katalog fuehrt genau ein Modell
-  # (Muse-Glimmer-30B). Alle frueheren Checkpoint-Eintraege
+  # (Qwen3.8-27B). Alle frueheren Checkpoint-Eintraege
   # — die toten GGUFs UND die ehemaligen Fallback-Eintraege (hauhau-qwen36,
   # gemma12-vision, qwen38-220k) — sind entfernt. Statisch geprueft — bewusst
   # KEIN Filesystem-Check gegen GGUF-Pfade (CI hat weder /mnt/c noch ~/models).
@@ -257,8 +257,8 @@ EOF"
     const j5 = require('json5');
     const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
     const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
-    if (!('Muse-Glimmer-30B' in m)) {
-      console.error('positive anchor failed: Muse-Glimmer-30B fehlt im llamacpp-local-Katalog'); process.exit(1);
+    if (!('Qwen3.8-27B' in m)) {
+      console.error('positive anchor failed: Qwen3.8-27B fehlt im llamacpp-local-Katalog'); process.exit(1);
     }
     const dead = ['Qwen3.8-27B-gsq','Qwen3.6-35B-A3B-NVFP4','qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
       .filter(k => k in m);
@@ -280,7 +280,7 @@ EOF"
   [ "$output" = "1919" ]
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
-    const e = (((d.provider || {})['llamacpp-local'] || {}).models || {})['Muse-Glimmer-30B'];
+    const e = (((d.provider || {})['llamacpp-local'] || {}).models || {})['Qwen3.8-27B'];
     console.log(e ? e.limit.context : 'missing');
   "
   [ "$output" = "131072" ]

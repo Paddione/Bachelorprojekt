@@ -2682,6 +2682,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/health-goals-pr-path",
+    "file": "tests/spec/ci-cd/health-goals-pr-path.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/hybrid-runner-placement",
     "file": "tests/spec/ci-cd/hybrid-runner-placement.bats",
     "category": "ci-cd",

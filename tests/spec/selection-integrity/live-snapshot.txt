@@ -157,6 +157,7 @@ tests/spec/ci-cd/gh-repo-context-guard.bats
 tests/spec/ci-cd/ghcr-digest-auth.bats
 tests/spec/ci-cd/git-flow-poll-and-branch-order.bats
 tests/spec/ci-cd/github-only-ci.bats
+tests/spec/ci-cd/health-goals-pr-path.bats
 tests/spec/ci-cd/hybrid-runner-placement.bats
 tests/spec/ci-cd/main-direct-push-guard.bats
 tests/spec/ci-cd/mishap-t002425.bats

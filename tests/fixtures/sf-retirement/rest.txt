@@ -205,7 +205,7 @@ tests/fixtures/task-context-channel/intel.json
 tests/fixtures/task-context-channel/proposal.md
 tests/fixtures/task-context-channel/tasks.d/p3-gate-wiring.md
 tests/fixtures/task-context-channel/tasks.md
-tests/lib/factory-test-fixtures.sh
+tests/lib/ticket-test-fixtures.sh
 tests/local/FA-AR-01-filter-diff.bats
 tests/local/FA-AR-02-classify-risk.bats
 tests/local/learning-db-schema.bats

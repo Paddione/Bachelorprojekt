@@ -47,7 +47,7 @@ setup_file() {
 teardown_file() {
   # Purge raeumt ALLE is_test_data=true-Zeilen der Brand ab — genau der vorgesehene
   # teardown-Pfad der Fixture-Lib.
-  purge_factory_test_data "mentolder" >/dev/null 2>&1 || true
+  purge_ticket_test_data "mentolder" >/dev/null 2>&1 || true
 }
 
 _seed_once() {

@@ -82,9 +82,10 @@ Die Kriterien folgen `design.md` D3/D4/D5:
      Akzeptanz = SSOT-Regression-Gate (`unsloth-eval-harness`-Spec):
      Exit 0 erst wenn das adaptierte Modell das Basismodell aggregate erreicht oder
      übertrifft, keine Partitions-Regression.
-   - **Router:** Intent-Micro-Bench auf einem Factory-Trace-Testset, gebaut mit
-     `collect_factory_traces.py` (`--rows-json` aus dem mcp-postgres-Export von
-     `tickets.factory_phase_events`, nur verify/done-Läufe, Secret-Redaktion inklusive).
+   - **Router:** Intent-Micro-Bench auf einem Trace-Testset aus
+     `tickets.factory_phase_events` (mcp-postgres-Export, nur verify/done-Läufe,
+     Secret-Redaktion inklusive — der alte Render-Pfad ist mit der Factory entfallen,
+     Aufbereitung manuell).
      Akzeptanz: dieselbe Gate-Semantik gegen den ungefilterten Resident-Baseline-Lauf
      auf demselben Bench.
    - **Draft:** Messung im Integrationsticket: Akzeptanzrate der Draft-Tokens und netter
@@ -183,8 +184,9 @@ Gemeinsame Vorbedingungen für alle Läufe (Reihenfolge laut `scripts/finetune/R
   benanntes GGUF dieses Modells erzeugt. Erst auswerten, dann nachtrainieren: der existierende
   Adapter geht ins Integrationsticket (Speculation-Messung); ein Nachtraining nur falls die
   Akzeptanzrate unzureichend bleibt.
-- **Falls Nachtraining:** Korpus `collect_factory_traces.py`-Option (`--rows-json` aus dem
-  mcp-postgres-Export, `--with-context` für Beschreibung+Kommentare als Turns); LoRA-Basis
+- **Falls Nachtraining:** Korpus aus dem mcp-postgres-Export von
+  `tickets.factory_phase_events` (manuell aufbereitet: Beschreibung+Kommentare als Turns,
+  Secret-Redaktion); LoRA-Basis
   aus `lauf1-config.json`: r=16, alpha=16, lr=2e-4, max_seq_length=3072 (Kürzung 2.75 %),
   Steps nach Korpusgröße neu über den Messbericht leiten; Template-Guard-Pflicht wie oben.
 - **Export/Akzeptanz:** `export_gguf.py --slot-name <draft-slug>`; Erfolgskriterium im
@@ -195,8 +197,9 @@ Gemeinsame Vorbedingungen für alle Läufe (Reihenfolge laut `scripts/finetune/R
 
 ### Trainingsplan Router — `qwen35-2b`
 
-- **Korpus:** Factory-Trace-Testset und -Trainingskorpus aus `collect_factory_traces.py`
-  (`--with-context`); Ergänzung um absichtlich mehrdeutige Fälle für die `clarify`-Partition
+- **Korpus:** Trace-Testset und -Trainingskorpus aus dem `tickets.factory_phase_events`-Export
+  (manuell aufbereitet inkl. Beschreibung+Kommentare als Turns); Ergänzung um absichtlich mehrdeutige
+  Fälle für die `clarify`-Partition
   (Testset-Anforderungen: ≥ 40 Fälle, en/de-Paare, alle drei Partitionen nichtleer).
 - **LoRA-Basis:** r=16, alpha=16, lr=2e-4 aus `lauf1-config.json`; max_seq_length nach
   Messbericht wählen (Router-Prompts sind kurz; der Bericht liefert die Verteilung, keine
@@ -209,9 +212,9 @@ Gemeinsame Vorbedingungen für alle Läufe (Reihenfolge laut `scripts/finetune/R
 
 ### Trainingsplan Worker — `qwen35-4b`
 
-- **Korpus:** `collect_factory_traces.py` mit `--with-context --comments-json` — die
-  Worker-Aufgaben (Summarize/Tag/Extract) profitieren direkt von Beschreibungs- und
-  Kommentar-Turns; Secret-Redaktion gilt automatisch.
+- **Korpus:** `tickets.factory_phase_events`-Export, manuell aufbereitet mit Beschreibungs- und
+  Kommentar-Turns — die Worker-Aufgaben (Summarize/Tag/Extract) profitieren direkt davon;
+  Secret-Redaktion gilt automatisch.
 - **LoRA-Basis:** r=16, alpha=16, lr=2e-4, max_seq_length=3072 aus `lauf1-config.json`
   (p95 2430 Tokens deckt die Korpuslänge ab); Steps über den frischen Messbericht ableiten.
 - **Template-Guard:** Pflicht; Hub-Template des 4.66-B-Modells neu laden und patchen —

@@ -44,7 +44,7 @@ setup_file() {
 }
 
 teardown_file() {
-  purge_factory_test_data "mentolder" >/dev/null 2>&1 || true
+  purge_ticket_test_data "mentolder" >/dev/null 2>&1 || true
 }
 
 _repo_root() { cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd; }

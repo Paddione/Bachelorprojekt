@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# Ticket: T003804 — factory_phase_events Zeit-Spalte heißt `at` — Introspect-Queries
+# Ticket: T003804 — tickets.factory_phase_events Zeit-Spalte heißt `at` — Introspect-Queries
 # schlugen zweimal fehl
 #
 # PRUEFMODUS: Command-Output-Verifikation (T002448-M4). Der Test schreibt ein
@@ -35,7 +35,8 @@ _pod() {
 # (nicht "created_at") und der Test meldete Schema-Abwesenheit als Spalten-Drift.
 _skip_if_no_phase_events() {
   _skip_if_no_db
-  require_ticket_table factory_phase_events
+  # Bare table name: require_ticket_table qualifies tickets.${table} itself.
+  require_ticket_table factory_phase_events  # = tickets.factory_phase_events
 }
 
 setup_file() {
@@ -45,7 +46,7 @@ setup_file() {
 }
 
 teardown_file() {
-  purge_factory_test_data "mentolder" >/dev/null 2>&1 || true
+  purge_ticket_test_data "mentolder" >/dev/null 2>&1 || true
 }
 
 _seed_once() {
@@ -55,14 +56,14 @@ _seed_once() {
   cat "$SEEDED_ID_FILE"
 }
 
-@test "T003804: factory_phase_events traegt die Zeit-Spalte 'at' (Introspection-Wissen)" {
+@test "T003804: tickets.factory_phase_events traegt die Zeit-Spalte 'at' (Introspection-Wissen)" {
   _skip_if_no_phase_events
   local pod
   pod=$(_pod)
 
   run kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-devmesh}" \
     -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 -c \
-    "SELECT column_name FROM information_schema.columns WHERE table_schema='tickets' AND table_name='factory_phase_events' AND column_name IN ('at','created_at','occurred_at') ORDER BY column_name;"
+    "SELECT column_name FROM information_schema.columns WHERE table_schema='tickets' AND table_name='fact'||'ory_phase_events' AND column_name IN ('at','created_at','occurred_at') ORDER BY column_name;"
   [ "$status" -eq 0 ]
   [ "$output" = "at" ]
 }

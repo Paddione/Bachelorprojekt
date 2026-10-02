@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# tests/lib/factory-test-fixtures.sh — seed + reap throwaway feature tickets for
-# Software Factory FA-SF BATS tests. SOURCE, do not execute.
+# tests/lib/ticket-test-fixtures.sh — seed + reap throwaway feature tickets for
+# ticket-system BATS tests. SOURCE, do not execute.
 #
-#   source tests/lib/factory-test-fixtures.sh
+#   source tests/lib/ticket-test-fixtures.sh
 #   ext_id=$(seed_test_feature korczewski "tests/fixtures/sf-test-foo-a.txt")
 #   ... assertions ...
-#   purge_factory_test_data korczewski   # in teardown()
+#   purge_ticket_test_data korczewski   # in teardown()
 #
 # Every seeded ticket carries is_test_data=true and a unique 'SF-TEST-' title and
 # is reaped by tickets.fn_purge_test_data(). Pass DISJOINT touched_file paths per
@@ -43,7 +43,7 @@ _shared_db_pod() {
 # Warum ein eigener Probe statt _skip_if_no_db: EIN LAUFENDER POD BEWEIST NICHT,
 # dass das tickets-Schema vollstaendig ist. Gemessen am 2026-09-27 (T900537,
 # devmesh) hat die lokale shared-db genau EINE Tabelle im Schema `tickets` und
-# kein `factory_phase_events`. Der Pod-Only-Probe meldete daraufhin "DB da", der
+# kein `tickets.factory_phase_events`. Der Pod-Only-Probe meldete daraufhin "DB da", der
 # Test lief in `relation "tickets.tickets" does not exist` und `test:changed`
 # wurde rot, obwohl der Defekt an der Umgebung und nicht am Produkt lag. Der
 # Probe muss die Tabelle benennen, auf die die Assertion sich stuetzt.
@@ -184,8 +184,8 @@ ensure_purge_fn_current() {
     psql -U postgres -d website < "$latest"
 }
 
-# purge_factory_test_data <brand> — reap all is_test_data=true rows on that brand
-purge_factory_test_data() {
+# purge_ticket_test_data <brand> — reap all is_test_data=true rows on that brand
+purge_ticket_test_data() {
   local brand="$1"
   local ctx="${WORKSPACE_CTX:-devmesh}" ns
   # [T002689] Die Brand waehlt ZEILEN, nicht den Ort. seed_test_feature schreibt
@@ -194,7 +194,7 @@ purge_factory_test_data() {
   # daher nicht mehr und liesse Testzeilen stehen.
   case "$brand" in
     mentolder|korczewski) ns="${WORKSPACE_NS:-workspace}" ;;
-    *) echo "purge_factory_test_data: unknown brand $brand" >&2; return 2 ;;
+    *) echo "purge_ticket_test_data: unknown brand $brand" >&2; return 2 ;;
   esac
 
   # Resolve namespace by searching in likely candidates, not by guessing from the
@@ -220,7 +220,7 @@ purge_factory_test_data() {
 # purge_real_feature [--force] <brand> <ext_id> — hard DELETE of one real
 # (is_test_data=false) seeded feature row. [T005029] fn_purge_test_data() raeumt
 # nur is_test_data=true-Zeilen, deshalb loescht der Real-Feature-Cleanup direkt.
-# Pod-/Namespace-Aufloesung wie purge_factory_test_data ([T002689] Brand waehlt
+# Pod-/Namespace-Aufloesung wie purge_ticket_test_data ([T002689] Brand waehlt
 # ZEILEN, nicht den Ort; [T002781] shared-db liegt in 'workspace', nicht '-dev');
 # Prod-Guard wie seed_real_feature — ein DELETE auf fleet ist nicht rueckholbar.
 #

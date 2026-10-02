@@ -1,17 +1,16 @@
-// mcp-client-tokens-env — laedt FACTORY_MCP_TOKEN und MCP_POSTGRES_TOKEN in
+// mcp-client-tokens-env — laedt MCP_POSTGRES_TOKEN in
 // die opencode-Umgebung.
 //
-// Die Remote-MCP-Clients factory-mcp-node und mcp-postgres verlangen zwingend
+// Der Remote-MCP-Client mcp-postgres verlangt zwingend
 // einen Bearer-Token. Die opencode-Config referenziert ihn als Platzhalter
-//   "headers": {"Authorization":"Bearer {env:FACTORY_MCP_TOKEN}"}
 //   "headers": {"Authorization":"Bearer {env:MCP_POSTGRES_TOKEN}"}
 // in .opencode/opencode.jsonc. opencode expandiert {env:...} aus process.env —
 // ist die jeweilige Variable beim Start nicht gesetzt, wird der Header zu
 // "Bearer " (leer) und der Server antwortet 401, was opencode als "failed"
 // anzeigt (T900202).
 //
-// Die Tokens liegen in ~/.config/factory-mcp-node/server.env bzw.
-// ~/.config/mcp-postgres/server.env (SSOT, nicht getrackt). Dieses Plugin liest
+// Der Token liegt in ~/.config/mcp-postgres/server.env (SSOT, nicht getrackt).
+// Dieses Plugin liest
 // diese Dateien in process.env ein. Das passiert auf Modul-Top-Level, also beim
 // Laden des Plugins beim opencode-Start — der fruehestmoegliche Zeitpunkt im
 // Prozess, jedenfalls vor dem Verbinden der MCP-Clients. (Ein `config`-Hook
@@ -37,10 +36,6 @@ import { homedir } from "node:os"
 import { join } from "node:path"
 
 const SOURCES: ReadonlyArray<{ file: string; key: string }> = [
-  {
-    file: join(homedir(), ".config", "factory-mcp-node", "server.env"),
-    key: "FACTORY_MCP_TOKEN",
-  },
   {
     file: join(homedir(), ".config", "mcp-postgres", "server.env"),
     key: "MCP_POSTGRES_TOKEN",

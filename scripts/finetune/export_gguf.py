@@ -8,8 +8,8 @@ gedeckelt und deutlich knapper als der Host-Speicher.
 
 Der erzeugte GGUF-Pfad ist so benannt, dass `llm-proxy` ihn als benannten Slot aufnehmen
 kann: `<output-dir>/<slot-name>.gguf`. Die Slot-Registrierung selbst bleibt manuell (siehe
-scripts/finetune/README.md) — der automatische Austausch eines laufenden Factory-Slots
-gehoert nicht in einen Trainingslauf.
+scripts/finetune/README.md) — der automatische Austausch eines laufenden Modell-Slots
+(tickets.factory_model_slots) gehoert nicht in einen Trainingslauf.
 
 Schwere Abhaengigkeiten (unsloth, torch) werden erst beim tatsaechlichen Export importiert,
 damit `--dry-run` (nur Speichercheck + Pfadaufloesung) auch ohne GPU-Stack laeuft.

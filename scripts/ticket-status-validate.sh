@@ -15,8 +15,6 @@
 #       2 on usage error
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
 usage() {
   cat >&2 <<EOF
 Usage: BRAND=<brand> $0 [--json|--table|--help]
@@ -35,9 +33,55 @@ if [ -z "${BRAND:-}" ]; then
   echo '{"error":"BRAND is required (mentolder|korczewski)"}' >&2
   exit 2
 fi
+case "${BRAND:-}" in
+  mentolder|korczewski) ;;
+  *) echo '{"error":"unknown BRAND (use mentolder|korczewski)"}' >&2; exit 2 ;;
+esac
 
-source "$SCRIPT_DIR/factory/lib.sh"
-factory_resolve
+# DB-Zugang (T900728): ersetzt die mit T900399 entfernte Factory-lib
+# (Resolve- und PSQL-Helfer). WORKSPACE_PG_URL gewinnt, sonst kubectl exec
+# gegen den shared-db-Pod. SELECT-only — kein Write-Guard noetig.
+WS_CTX="${WORKSPACE_CTX:-fleet}"
+WS_NS="${WORKSPACE_NS:-workspace}"
+case "$WS_CTX" in
+  devmesh) ;;
+  *-dev)
+    case "$WS_NS" in
+      workspace) WS_NS="workspace-dev" ;;
+    esac
+    ;;
+esac
+_ws_pgpod() {
+  local pod all
+  pod=$(kubectl get pod -n "$WS_NS" --context "$WS_CTX" -l 'app in (shared-db, shared-db-dev)' \
+    --field-selector status.phase=Running -o name 2>/dev/null | head -1)
+  if [[ -z "$pod" ]]; then
+    all=$(kubectl get pod -n "$WS_NS" --context "$WS_CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | tr '\n' ' ')  # pod-phase-filter: intentional-unfiltered
+    if [[ -n "${all// /}" ]]; then
+      echo "{\"error\":\"no Running shared-db pod in namespace ${WS_NS} (context ${WS_CTX}); found but not Running: ${all% }; override the context with WORKSPACE_CTX\"}" >&2
+    else
+      echo "{\"error\":\"no shared-db pod found in namespace ${WS_NS} (context ${WS_CTX}); override the context with WORKSPACE_CTX\"}" >&2
+    fi
+    return 2
+  fi
+  echo "$pod"
+}
+_ws_psql() {  # SQL via stdin, TSV auf stdout
+  if [[ -n "${WORKSPACE_PG_URL:-}" ]]; then
+    psql "$WORKSPACE_PG_URL" -qtA -v ON_ERROR_STOP=1 "$@"
+    return
+  fi
+  local pod sql=""
+  if [[ ! -t 0 ]]; then sql="$(cat)"; fi
+  pod="$(_ws_pgpod)" || return 2
+  if [[ -n "$sql" ]]; then
+    kubectl exec -i "$pod" -n "$WS_NS" --context "$WS_CTX" -c postgres -- \
+      psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@" <<<"$sql"
+  else
+    kubectl exec "$pod" -n "$WS_NS" --context "$WS_CTX" -c postgres -- \
+      psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@"
+  fi
+}
 
 SQL="
 SELECT id, external_id, status, done_at
@@ -50,7 +94,7 @@ ORDER BY external_id;
 
 case "$MODE" in
   --json)
-    result=$(echo "$SQL" | factory_psql --no-align -F '|' 2>/dev/null || echo "")
+    result=$(echo "$SQL" | _ws_psql --no-align -F '|' 2>/dev/null || echo "")
     if [ -z "$result" ]; then
       echo '{"status":"ok","inconsistencies":[]}'
       exit 0
@@ -69,8 +113,8 @@ case "$MODE" in
     exit 1
     ;;
   --table)
-    echo "$SQL" | factory_psql 2>/dev/null || echo "No inconsistencies found."
-    if [ "$(echo "$SQL" | factory_psql 2>/dev/null | wc -l)" -gt 0 ]; then
+    echo "$SQL" | _ws_psql 2>/dev/null || echo "No inconsistencies found."
+    if [ "$(echo "$SQL" | _ws_psql 2>/dev/null | wc -l)" -gt 0 ]; then
       exit 1
     fi
     exit 0

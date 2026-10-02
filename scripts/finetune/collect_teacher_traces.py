@@ -5,7 +5,7 @@ Zeichnet Episoden von einem Teacher-Modell auf (OpenAI-kompatible Chat-Completio
 und schreibt sie ins Korpusformat, das measure_corpus.py/train.py erwarten:
 JSONL, eine Episode pro Zeile als {"messages": [...], "meta": {...}}.
 
-Anders als collect_factory_traces.py (passiv: DB-Laeufe -> Korpus) ist dies der
+Anders als der stillgelegte DB-Renderer (passiv: DB-Laeufe -> Korpus) ist dies der
 aktive Pfad: Szenarien werden an einen konfigurierbaren Teacher geschickt und die
 Antworten aufgezeichnet. Unterstuetzt einstufige Episoden sowie Tool-Loops mit
 kannisierten Tool-Ergebnissen (Teacher schlaegt tool_call vor, Szenario liefert
@@ -23,7 +23,7 @@ Aufbau eines Szenarios (--scenarios JSON-Liste):
       "max_hops": 4                             # optional, Default 4 (Tool-Loop-Schutz)
     }
 
-Filter und Schutz (gleiche Philosophie wie collect_factory_traces.py):
+Filter und Schutz (Philosophie des stillgelegten DB-Renderers):
   - Secret-Redaction ueber identische Muster — jeder Teacher-Output wird vor dem
     Schreiben gescrubbt (Teacher koennen Prompt-Injection-Opfer gewesen sein).
   - Dedupe auf Nachrichten-Fingerprint; Duplikate werden uebersprungen.
@@ -53,7 +53,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-# Identische Muster wie collect_factory_traces.py — bewusst konservativ.
+# Identische Muster wie der stillgelegte DB-Renderer — bewusst konservativ.
 SECRET_PATTERNS = [
     re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}"),
     re.compile(r"sk-[A-Za-z0-9]{20,}"),

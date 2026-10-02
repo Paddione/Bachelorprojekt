@@ -92,7 +92,7 @@
   }
 
   async function loadFactoryDefault() {
-    const res = await fetchJson<FactoryDefault & { error?: string }>('/sdlc/api/llm-proxy/factory');
+    const res = await fetchJson<FactoryDefault & { error?: string }>('/sdlc/api/llm-proxy/default');
     if (res.ok && res.body) {
       factoryDefault = {
         model: res.body.model ?? null,
@@ -142,7 +142,7 @@
     savingFactory = true;
     factoryConflict = false;
     try {
-      const res = await fetch('/sdlc/api/llm-proxy/factory', {
+      const res = await fetch('/sdlc/api/llm-proxy/default', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',

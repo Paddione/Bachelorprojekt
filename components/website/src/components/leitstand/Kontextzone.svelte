@@ -51,7 +51,7 @@
     }
     detailLoading = true;
     detail = null;
-    fetch(`/sdlc/api/factory-floor/${encodeURIComponent(ticket)}`, { credentials: 'same-origin' })
+    fetch(`/sdlc/api/cockpit-floor/${encodeURIComponent(ticket)}`, { credentials: 'same-origin' })
       .then((res) => (res.ok ? res.json() : null))
       .then((d) => { detail = d as TicketDetail | null; })
       .catch(() => { detail = null; })
@@ -67,7 +67,7 @@
     };
     if (injPhase) payload.phase = injPhase;
     try {
-      const res = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(sel.ticket)}/inject`, {
+      const res = await fetch(`/sdlc/api/cockpit-floor/${encodeURIComponent(sel.ticket)}/inject`, {
         method: 'POST', credentials: 'same-origin',
         headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
       });

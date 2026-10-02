@@ -29,8 +29,8 @@ describe('factory-floor-store', () => {
   });
 });
 
-// [T003459] getSharedMetrics fetchte '/api/factory-metrics'. Diese Route gibt es
-// nicht — der Endpunkt liegt unter '/sdlc/api/factory-metrics'. Jeder Aufruf lief
+// [T003459] getSharedMetrics fetchte '/api/cockpit-metrics'. Diese Route gibt es
+// nicht — der Endpunkt liegt unter '/sdlc/api/cockpit-metrics'. Jeder Aufruf lief
 // in einen 404, r.json() warf auf der HTML-Fehlerseite, die Promise rejectete.
 // Weil der Fehler still verschluckt wurde, sahen die Konsumenten nur '—'.
 describe('getSharedMetrics', () => {
@@ -38,7 +38,7 @@ describe('getSharedMetrics', () => {
 
   function mockFetch() {
     const spy = vi.fn(async (url: string) => {
-      if (url === '/sdlc/api/factory-metrics') {
+      if (url === '/sdlc/api/cockpit-metrics') {
         return { ok: true, status: 200, json: async () => OK } as unknown as Response;
       }
       // Astro liefert für unbekannte Routen eine HTML-Fehlerseite, kein JSON.
@@ -57,7 +57,7 @@ describe('getSharedMetrics', () => {
     const m = await import('./cockpit-floor-store');
 
     await expect(m.getSharedMetrics(true)).resolves.toMatchObject({ brand: 'mentolder' });
-    expect(spy).toHaveBeenCalledWith('/sdlc/api/factory-metrics', expect.anything());
+    expect(spy).toHaveBeenCalledWith('/sdlc/api/cockpit-metrics', expect.anything());
   });
 
   it('meldet einen HTTP-Fehler, statt ihn als leere Payload durchzureichen', async () => {

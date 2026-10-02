@@ -9,7 +9,7 @@ DAG="components/website/src/components/DependencyGraph.svelte"
 SIDEKICK="components/website/src/components/PortalSidekick.svelte"
 PIPEVIEW="components/website/src/components/assistant/PipelineSidekickView.svelte"
 NAV="components/website/src/components/admin/AdminSidebarNav.astro"
-BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
+BUDGETAPI="components/website/src/pages/sdlc/api/cockpit-budget.ts"
 
 @test "D1: shared floor store exists and exports the public surface" {
   [ -f "$STORE" ]
@@ -26,7 +26,7 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
   # `grep: … No such file or directory` fehl — also an einer fehlenden Datei
   # statt an einer fehlenden Store-Anbindung.
   for f in "$STRIP" "$FLOOR" "$PIPEVIEW" "$DAG"; do
-    grep -q "factory-floor-store" "$f"
+    grep -q "cockpit-floor-store" "$f"
   done
 }
 
@@ -105,7 +105,7 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
   [ "$status" -ne 0 ]
 }
 
-@test "D7.6: /api/factory-budget auth unified to 401 (no 403)" {
+@test "D7.6: /api/cockpit-budget auth unified to 401 (no 403)" {
   run grep -q "status: 403" "$BUDGETAPI"
   [ "$status" -ne 0 ]
 }

@@ -42,10 +42,10 @@ function stubPayload(hall: HallItem[]) {
 
 async function gotoDevStatusWithStub(page: any, payload: any) {
   // Stub the live API and SSE stream so only the stubbed payload reaches the UI.
-  await page.route('**/api/factory-floor', (route: any) => {
+  await page.route('**/api/cockpit-floor', (route: any) => {
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
   });
-  await page.route('**/api/factory-floor/stream', (route: any) => route.abort());
+  await page.route('**/api/cockpit-floor/stream', (route: any) => route.abort());
 
   await page.goto('/admin/cockpit?tab=factory', { waitUntil: 'domcontentloaded' });
   // DevStatusTabs & CockpitFloor listen for floor-stub-update and ingest the payload.
@@ -64,7 +64,7 @@ test.describe('FA-48: CockpitFloor devflow chip & CI badge', () => {
   test.beforeEach(async ({ page, request }) => {
     await guardSdlc(request);
     // Stub SSE endpoint to avoid real connection / error logs
-    await page.route('**/api/factory-floor/stream', (route) => route.abort());
+    await page.route('**/api/cockpit-floor/stream', (route) => route.abort());
   });
 
   test('T1: devflow workpiece hat data-driver="devflow" und kein goldenes bg', async ({ page }) => {

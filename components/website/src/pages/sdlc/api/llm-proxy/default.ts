@@ -30,7 +30,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     // nicht erreichbaren Proxy vortäuschen.
     locals?.requestLogger?.warn(
       { err },
-      '[sdlc/api/llm-proxy/factory] GET: proxy unreachable',
+      '[sdlc/api/llm-proxy/default] GET: proxy unreachable',
     );
     return json({ error: 'proxy_unreachable', message: 'llm-proxy nicht erreichbar', model: null }, 503);
   }
@@ -77,7 +77,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     }
     locals?.requestLogger?.error(
       { err },
-      '[sdlc/api/llm-proxy/factory] PUT failed',
+      '[sdlc/api/llm-proxy/default] PUT failed',
     );
     return json({ error: 'factory_write_failed' }, 500);
   }

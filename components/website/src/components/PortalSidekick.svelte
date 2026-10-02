@@ -80,7 +80,7 @@
   async function fetchSettings() {
     try {
       settingsLoading = true;
-      const res = await fetch('/sdlc/api/factory-control', { credentials: 'same-origin' });
+      const res = await fetch('/sdlc/api/cockpit-control', { credentials: 'same-origin' });
       if (res.ok) {
         const data = await res.json();
         settings.contextBudget = data.contextBudget ?? 180000;
@@ -97,7 +97,7 @@
 
   async function saveSettings() {
     try {
-      await fetch('/sdlc/api/factory-control', {
+      await fetch('/sdlc/api/cockpit-control', {
         method: 'PATCH',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },

@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ request, params , locals }) => {
       status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'private, max-age=30' },
     });
   } catch (err) {
-    locals.requestLogger.error({ err }, '[api/factory-floor/[extId]/ci]');
+    locals.requestLogger.error({ err }, '[api/cockpit-floor/[extId]/ci]');
     return new Response(JSON.stringify({ error: 'fetch_failed' }), {
       status: 500, headers: { 'content-type': 'application/json' },
     });

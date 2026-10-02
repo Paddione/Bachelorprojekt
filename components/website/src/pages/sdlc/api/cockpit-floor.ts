@@ -27,7 +27,7 @@ export const GET: APIRoute = async ({ request , locals }) => {
       headers: { 'content-type': 'application/json' },
     });
   } catch (err) {
-    locals.requestLogger.error({ err }, '[api/factory-floor]');
+    locals.requestLogger.error({ err }, '[api/cockpit-floor]');
     return new Response(JSON.stringify({ error: 'fetch_failed' }), {
       status: 500,
       headers: { 'content-type': 'application/json' },

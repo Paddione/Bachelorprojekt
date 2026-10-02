@@ -38,7 +38,7 @@ Unbekannte Aktionen gelten als `irreversible`.
   für programmatischen Zugriff.
 - `factory_tick`, `factory_enqueue`, `factory_release_slot`:
   schreiben über `writeControl()` in die `factory_phase_events`-Tabelle.
-  Die separate Route `GET /sdlc/api/factory-control` (`factory-control.ts`)
+  Die separate Route `GET /sdlc/api/cockpit-control` (`factory-control.ts`)
   liefert den lesenden Zugriff.
 - `flux_reconcile`, `ci_rerun`:
   Externe API-Aufrufe statt Shell (C3, T002643 — die CLI-Tools sind nicht im

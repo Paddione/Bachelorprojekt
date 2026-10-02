@@ -245,7 +245,7 @@
       if (v === 'desktop' || v === 'mobile') viewOverride = v;
     } catch {}
     window.addEventListener('resize', onResize);
-    window.addEventListener('factory-floor-refreshed', onFloorRefresh);
+    window.addEventListener('cockpit-floor-refreshed', onFloorRefresh);
     load();
   });
 
@@ -255,7 +255,7 @@
 
   onDestroy(() => {
     window.removeEventListener('resize', onResize);
-    window.removeEventListener('factory-floor-refreshed', onFloorRefresh);
+    window.removeEventListener('cockpit-floor-refreshed', onFloorRefresh);
   });
 </script>
 

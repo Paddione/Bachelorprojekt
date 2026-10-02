@@ -188,11 +188,11 @@ setup() {
 
 # ── Guard 6: cockpit endpoints answer as decommissioned ────────────────
 
-@test "decommission: cockpit factory-control endpoint reports decommissioning" {
+@test "decommission: cockpit-control endpoint reports decommissioning" {
   run grep -q 'factory_decommissioned' \
-    "$REPO/components/website/src/pages/sdlc/api/factory-control.ts"
+    "$REPO/components/website/src/pages/sdlc/api/cockpit-control.ts"
   [ "$status" -eq 0 ] || {
-    echo "factory-control.ts does not report factory_decommissioned" >&2
+    echo "cockpit-control.ts does not report factory_decommissioned" >&2
     false
   }
 }

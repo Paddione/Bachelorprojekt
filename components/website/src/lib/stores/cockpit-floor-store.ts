@@ -20,7 +20,7 @@ export function floorSubscriberCount(): number { return refCount; }
 
 async function loadOnce(): Promise<void> {
   try {
-    const res = await fetch('/sdlc/api/factory-floor', { credentials: 'same-origin' });
+    const res = await fetch('/sdlc/api/cockpit-floor', { credentials: 'same-origin' });
     if (res.ok) ingestFloorPayload(await res.json() as FloorPayload);
     else store.update((s) => ({ ...s, stale: true }));
   } catch { store.update((s) => ({ ...s, stale: true })); }
@@ -28,7 +28,7 @@ async function loadOnce(): Promise<void> {
 
 function connect(): void {
   if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
-  es = new EventSource('/sdlc/api/factory-floor/stream', { withCredentials: true });
+  es = new EventSource('/sdlc/api/cockpit-floor/stream', { withCredentials: true });
   es.addEventListener('phase', () => { void loadOnce(); });
   es.addEventListener('heartbeat', () => store.update((s) => ({ ...s, stale: false })));
   es.onerror = () => {
@@ -69,12 +69,12 @@ export interface FactoryMetricsPayload {
 }
 
 // [T003459] Der Endpunkt liegt unter /sdlc/api/, NICHT unter /api/. Ein
-// components/website/src/pages/api/factory-metrics.ts hat es nie gegeben; der Aufruf lief
+// components/website/src/pages/api/cockpit-metrics.ts hat es nie gegeben; der Aufruf lief
 // seit dem SDLC-Umzug (T002624) in einen 404. Weil die Konsumenten den Fehler
 // still schluckten, sah es nach "keine Daten vorhanden" statt nach "Route
 // falsch" aus — und war die Begruendung, mit der die Analytics-Komponenten in
 // T003417 als "never worked" geloescht wurden.
-const METRICS_ENDPOINT = '/sdlc/api/factory-metrics';
+const METRICS_ENDPOINT = '/sdlc/api/cockpit-metrics';
 
 let metricsCache: FactoryMetricsPayload | null = null;
 let metricsInflight: Promise<FactoryMetricsPayload> | null = null;

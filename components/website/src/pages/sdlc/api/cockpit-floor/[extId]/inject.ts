@@ -58,7 +58,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     if (!created) return json({ error: 'ticket not found' }, 404);
     return json({ ok: true, id: created.id }, 201);
   } catch (err) {
-    locals.requestLogger.error({ err }, '[api/factory-floor/[extId]/inject]');
+    locals.requestLogger.error({ err }, '[api/cockpit-floor/[extId]/inject]');
     return json({ error: 'insert_failed' }, 500);
   }
 };

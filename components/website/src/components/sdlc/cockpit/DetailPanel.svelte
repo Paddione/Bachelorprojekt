@@ -42,7 +42,7 @@
     const controller = new AbortController();
     (async () => {
       try {
-        const r = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(selected)}/ci`, {
+        const r = await fetch(`/sdlc/api/cockpit-floor/${encodeURIComponent(selected)}/ci`, {
           credentials: 'same-origin',
           signal: controller.signal,
         });

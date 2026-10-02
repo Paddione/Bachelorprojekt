@@ -11,7 +11,7 @@
   let loading = $state(true);
 
   // Kein stiller catch: schlaegt der Abruf fehl, wird das ANGEZEIGT statt als
-  // '—' getarnt. Genau diese Tarnung liess den 404 auf /api/factory-metrics
+  // '—' getarnt. Genau diese Tarnung liess den 404 auf /api/cockpit-metrics
   // wie "keine Daten vorhanden" aussehen [T003459].
   async function loadMetrics() {
     loading = true;

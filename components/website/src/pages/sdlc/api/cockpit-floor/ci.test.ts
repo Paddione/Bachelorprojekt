@@ -10,9 +10,9 @@ const fetchCiChecks = vi.fn();
 vi.mock('../../../../lib/sdlc/cockpit-ci', () => ({ fetchCiChecks: (...a: unknown[]) => fetchCiChecks(...a) }));
 
 import { GET } from './[extId]/ci';
-const req = (c: string | null) => new Request('http://x/sdlc/api/factory-floor/T1/ci', { headers: c ? { cookie: c } : {} });
+const req = (c: string | null) => new Request('http://x/sdlc/api/cockpit-floor/T1/ci', { headers: c ? { cookie: c } : {} });
 
-describe('GET /sdlc/api/factory-floor/[extId]/ci', () => {
+describe('GET /sdlc/api/cockpit-floor/[extId]/ci', () => {
   it('401 without admin', async () => {
     const res = await GET({ request: req(null), params: { extId: 'T1' }, locals: { requestLogger: { error: vi.fn() } } } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);

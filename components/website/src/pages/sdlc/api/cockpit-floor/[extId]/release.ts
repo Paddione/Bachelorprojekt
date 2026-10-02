@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     if (!ok) return json({ error: 'not_staged' }, 409);
     return json({ ok: true });
   } catch (err) {
-    locals.requestLogger.error({ err }, '[api/factory-floor/[extId]/release]');
+    locals.requestLogger.error({ err }, '[api/cockpit-floor/[extId]/release]');
     return json({ error: 'release_failed' }, 500);
   }
 };

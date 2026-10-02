@@ -45,7 +45,7 @@ export const GET: APIRoute = async ({ request, url , locals }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    locals.requestLogger.error({ err }, '[api/factory-budget GET]');
+    locals.requestLogger.error({ err }, '[api/cockpit-budget GET]');
     return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    locals.requestLogger.error({ err }, '[api/factory-budget POST]');
+    locals.requestLogger.error({ err }, '[api/cockpit-budget POST]');
     return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

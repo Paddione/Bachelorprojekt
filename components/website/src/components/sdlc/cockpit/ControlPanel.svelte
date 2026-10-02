@@ -27,7 +27,7 @@
   async function loadState() {
     try {
       loading = true;
-      const res = await fetch('/sdlc/api/factory-control');
+      const res = await fetch('/sdlc/api/cockpit-control');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       snap = await res.json() as ControlState;
       error = null;
@@ -44,7 +44,7 @@
     snap = { ...snap, ...partial };
 
     try {
-      const res = await fetch('/sdlc/api/factory-control', {
+      const res = await fetch('/sdlc/api/cockpit-control', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(partial),

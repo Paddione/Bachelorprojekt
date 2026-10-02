@@ -22,10 +22,10 @@ vi.mock('../../../../lib/sdlc/llm-proxy-default', () => ({
   writeFactoryDefault: (...a: unknown[]) => writeFactoryDefault(...a),
 }));
 
-import { GET, PUT } from './factory';
+import { GET, PUT } from './default';
 
 const req = (cookie: string | null, init?: RequestInit) =>
-  new Request('http://x/sdlc/api/llm-proxy/factory', {
+  new Request('http://x/sdlc/api/llm-proxy/default', {
     headers: cookie ? { cookie } : {},
     ...init,
   });
@@ -38,7 +38,7 @@ beforeEach(() => {
   writeFactoryDefault.mockReset();
 });
 
-describe('GET /sdlc/api/llm-proxy/factory', () => {
+describe('GET /sdlc/api/llm-proxy/default', () => {
   it('401 ohne Session', async () => {
     const res = await GET(call(null));
     expect(res.status).toBe(401);
@@ -77,7 +77,7 @@ describe('GET /sdlc/api/llm-proxy/factory', () => {
   });
 });
 
-describe('PUT /sdlc/api/llm-proxy/factory', () => {
+describe('PUT /sdlc/api/llm-proxy/default', () => {
   it('401 ohne Session', async () => {
     const res = await PUT(call(null, { method: 'PUT', body: JSON.stringify({ model: 'x' }) }));
     expect(res.status).toBe(401);

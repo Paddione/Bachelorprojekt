@@ -18,7 +18,7 @@ const MOCK_CRITERIA = [
 ];
 
 async function setupMocks(page: any, qaItems = [MOCK_ITEM]) {
-  await page.route('**/api/factory-floor', (route: any) =>
+  await page.route('**/api/cockpit-floor', (route: any) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
       control: { killSwitch: false, slotsUsed: 0, slotsCap: 4, dailyCap: 5, dailyUsed: 0, dryRun: false, watchdogStale: 0 },
       metrics: { shippedToday: 0, avgCycleH: null },

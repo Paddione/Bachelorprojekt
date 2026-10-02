@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     if (!ok) return json({ error: 'not_awaiting_deploy' }, 409);
     return json({ ok: true });
   } catch (err) {
-    locals.requestLogger.error({ err }, '[api/factory-floor/[extId]/deploy]');
+    locals.requestLogger.error({ err }, '[api/cockpit-floor/[extId]/deploy]');
     return json({ error: 'deploy_failed' }, 500);
   }
 };

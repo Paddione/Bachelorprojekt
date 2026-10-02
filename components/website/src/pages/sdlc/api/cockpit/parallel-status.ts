@@ -1,4 +1,4 @@
-// components/website/src/pages/sdlc/api/factory/parallel-status.ts
+// components/website/src/pages/sdlc/api/cockpit/parallel-status.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { deriveParallelStatus, type ParallelStatusRow } from '../../../../lib/parallel-status';

@@ -3,12 +3,12 @@ export interface LeitstandPurpose { zweck: string; datenquelle: string; aktionen
 export const leitstandPurposes: Record<string, LeitstandPurpose> = {
   statusband: {
     zweck: 'Gesamtzustand des Leitstands (Cluster, Watchdog, Slots, naechster Tick) permanent zeigen und den Hilfe-Zugang bieten.',
-    datenquelle: 'floorStore (acquireFloor) + /sdlc/api/factory/parallel-status + window.data.streamState()',
+    datenquelle: 'floorStore (acquireFloor) + /sdlc/api/cockpit/parallel-status + window.data.streamState()',
     aktionen: ['Hilfe-Overlay oeffnen'],
   },
   kontextzone: {
     zweck: 'Den zur aktuellen Auswahl passenden Inhalt zeigen: KPI-Leerlaufraster, Stationsliste/Planungsbuero oder Ticket-Detail.',
-    datenquelle: 'floorStore, /sdlc/api/planungsbuero, /sdlc/api/cockpit/portfolio, /sdlc/api/factory-floor/:id',
+    datenquelle: 'floorStore, /sdlc/api/planungsbuero, /sdlc/api/cockpit/portfolio, /sdlc/api/cockpit-floor/:id',
     aktionen: ['Ticket injizieren', 'Ticket aus Kommissionierung freigeben', 'DoR-Kriterium togglen'],
   },
   // Vorab-Eintraege fuer p2 (gleicher Epic, andere target_files) -- siehe Begruendung

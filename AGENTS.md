@@ -12,12 +12,9 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 
 | Signals | Agent | MCP-Primär (Claude Code) |
 |---------|-------|--------------------------|
-| `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
-| `fleet/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
-| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test" | `bachelorprojekt-test` | `ticket-mcp` (Go-Adapter) — Ticket-Reads/Lifecycle; `mcp-postgres` (:13001, devmesh seit T900191, nur mentolder) für Nicht-Ticket-Tabellen |
-| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) — Ticket-Reads → `ticket-mcp` mit `brand` |
-| SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
+| `fleet/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup`, SealedSecret, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bp-build` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
+| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, database, PostgreSQL, psql, schema, query, timeline | `bp-run` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md`; `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) — Ticket-Reads → `ticket-mcp` mit `brand` |
+| BATS/Playwright, `FA-*`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bp-ship` | — |
 
 > **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `.opencode/opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `codebase-memory-mcp`, `context7`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `ticket-mcp-node`, `warden`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
 > **gh-axi (T004612):** Bevorzugt für Anzeige. Für maschinelles Parsen (`--json`, `-q`, `--jq`), Polling (`pr checks`) und Mutationen (`pr merge`, `gh api`) immer `gh` direkt verwenden. Siehe [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
@@ -29,11 +26,11 @@ context=$(bash scripts/plan-context.sh <full-role-name>)
 tools=$(bash scripts/toolset-context.sh <full-role-name>)
 [ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
 ```
-`<role>` muss ein voller Rollenname sein (`bachelorprojekt-*` / `orchestrator`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
+`<role>` muss ein voller Rollenname sein (`bp-*` / `orchestrator`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
 
 ### Session Model & Delegation (T002153)
 
-Main loop: user's default model (or Opus in Claude Code). `bachelorprojekt-ops/-db/-test/-website` → `sonnet`; `bachelorprojekt-infra`/`-security` → `opus`; ad-hoc subagents: explicit model ([provisioning](.claude/skills/references/subagent-provisioning.md)). Context budget: bulk reads → condensing subagent; on compact preserve objective/plan/files/tests/decisions/blockers/next action.
+Main loop: user's default model (or Opus in Claude Code). `bp-run`/`bp-ship` → `sonnet`; `bp-build` → `opus`; ad-hoc subagents: explicit model ([provisioning](.claude/skills/references/subagent-provisioning.md)). Context budget: bulk reads → condensing subagent; on compact preserve objective/plan/files/tests/decisions/blockers/next action.
 
 ## Core Commands & Task Oracle
 
@@ -98,7 +95,7 @@ Session messaging: `bash scripts/agent-msg.sh read --unread`. Worktrees (`.workt
 ## Escalation (when subagent is stuck)
 
 ```bash
-bash scripts/agent-escalate.sh --agent "bachelorprojekt-<role>" --reason "<what>" --tried "<attempt>" --needs "<unblock>"
+bash scripts/agent-escalate.sh --agent "bp-<role>" --reason "<what>" --tried "<attempt>" --needs "<unblock>"
 ```
 
 ## Code Discovery
@@ -152,6 +149,6 @@ analyze the four values immediately after writing them:
 <details>
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
 
-- Claude Code: Skill mit `agent:` → `background-agents.ts` (`delegate` read-only, `task` write-capable); ohne `agent:` inline. Map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`/`web-audit`→website.
+- Claude Code: Skill mit `agent:` → `background-agents.ts` (`delegate` read-only, `task` write-capable); ohne `agent:` inline. Map: `dev-flow-e2e`→ship, `incident-response`→run, `infra-ops`→build, `database-specialist`→run, `security-specialist`→build, `website-specialist`/`web-audit`→ship.
 - opencode: `dev-flow-*` = Shared Sources wie Claude Code (T014086, ex-T013724-Dualnamen); Domain-Skills via Agent-Routing (`deny` in `opencode.jsonc`); `sdlc-autopilot` (opencode-only): ticket-triage → dev-flow-plan → dev-flow-execute. `ticket-ops` bleibt der kompatible Router; agy folgt dem opencode-Pfad.
 </details>

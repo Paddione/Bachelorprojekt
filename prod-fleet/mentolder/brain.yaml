@@ -27,11 +27,11 @@ data:
     import path from 'path';
     import { spawn } from 'child_process';
 
-    const CBM_DIR = process.env.CBM_RUNTIME_DIR || '/home/node';
+    const CBM_DIR = process.env.CBM_RUNTIME_DIR || '/data/cbm-home';
     const cacheDir = path.join(CBM_DIR, '.cache', 'codebase-memory-mcp');
     try {
       if (!fs.existsSync(cacheDir)) {
-        fs.mkdirSync(cacheDir, { recursive: true });
+        fs.mkdirSync(cacheDir, { recursive: true, mode: 0o700 });
       }
       const configPath = path.join(cacheDir, 'config.json');
       if (!fs.existsSync(configPath)) {
@@ -43,7 +43,7 @@ data:
 
     console.log('[brain] Starting codebase-memory-mcp daemon...');
     const daemon = spawn('codebase-memory-mcp', ['daemon', 'start'], {
-      env: { ...process.env, CBM_RUNTIME_DIR: CBM_DIR },
+      env: { ...process.env, CBM_RUNTIME_DIR: CBM_DIR, HOME: CBM_DIR },
       stdio: 'inherit'
     });
     daemon.on('exit', (code) => {
@@ -119,9 +119,9 @@ spec:
           command: ["node", "/opt/brain/proxy.mjs"]
           env:
             - name: CBM_RUNTIME_DIR
-              value: /home/node
+              value: /data/cbm-home
             - name: HOME
-              value: /home/node
+              value: /data/cbm-home
           ports:
             - containerPort: 80
               name: http
@@ -147,7 +147,7 @@ spec:
             periodSeconds: 30
           volumeMounts:
             - name: brain-data
-              mountPath: /home/node/.cache/codebase-memory-mcp
+              mountPath: /data
             - name: proxy-script
               mountPath: /opt/brain
       volumes:

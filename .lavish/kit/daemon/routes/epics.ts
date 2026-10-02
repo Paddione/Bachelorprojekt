@@ -28,8 +28,6 @@ export async function epicsHandler(c: Context) {
 }
 
 /**
- * OF1 — wurde openspec/changes/ seit dem letzten Canvas-Export veraendert?
- *
  * Der Canvas darf nur die Teile ueberschreiben, die er selbst verfasst hat. Wo
  * das nicht sicher entscheidbar ist, muss der Nutzer gefragt werden — deshalb
  * ist die konservative Antwort hier `hasChanges: true`. Ein fehlender oder

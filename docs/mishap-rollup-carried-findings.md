@@ -3,8 +3,8 @@
 Der Mishap-Rollup-Automat wurde mit T014104 abgebaut. Beim Abbau lagen **sechs** Container-Changes
 vom 2026-08-22 unarchiviert auf `main`. Ihre Delta-Dateien waren strukturell nicht archivierbar:
 der Generator benannte sie nach dem **Change**-Slug statt nach dem Parent-SSOT-Slug, also zeigten
-sie auf `openspec/specs/mishap-incident-rollup-<datum>-<id>.md` — eine Datei, die nie existierte.
-`openspec.sh archive` lehnte jeden der sechs mit `Target … does not exist` ab. Genau deshalb sind
+sie auf `<datum>-<id>.md` — eine Datei, die nie existierte.
+Lehnte jeden der sechs mit `Target … does not exist` ab. Genau deshalb sind
 sie liegen geblieben.
 
 Die Verzeichnisse wurden daher per `git mv` ins Archiv verschoben. Damit dabei keine Substanz

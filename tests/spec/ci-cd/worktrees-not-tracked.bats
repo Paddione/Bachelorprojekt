@@ -2,7 +2,7 @@
 # T002578-M1 — .worktrees/ darf keine versionierten Dateien enthalten.
 #
 # Hintergrund: drei Plandateien eines fremden Worktrees lagen als getrackte
-# Dateien in main (.worktrees/fix-plan-intel-merge-T002540/openspec/changes/…).
+# Dateien in main.
 # .gitignore:197 ignoriert .worktrees/, die Dateien waren also force-added.
 # Wirkung: sobald das Worktree-Verzeichnis lokal entfernt wird — der Normalfall
 # nach `git worktree remove` — meldet git sie als geloescht und JEDER

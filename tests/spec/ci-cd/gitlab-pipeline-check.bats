@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/gitlab-pipeline-check.bats
-# SSOT: openspec/specs/ci-cd.md
 # Ticket: T012267 — der GitLab-Spiegel (Projekt 85496968) läuft als
 # Zweitverifikation, aber kein Werkzeug liest den Pipeline-Status. Zwei
 # Zustände bleiben unbeantwortbar: (1) Pipelines stehen ohne Runner auf

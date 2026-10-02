@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/factory-reclaim-lock-respect.md
 # Ticket: T002849 — Block 0b ("Worktree+branch match beats a dead/mismatched SID",
 # T002204/T002513) in scripts/agent-lock.sh _reapable() only checks the heartbeat
 # against the full AGENT_LOCK_TTL (1800s) when the worktree exists and the branch

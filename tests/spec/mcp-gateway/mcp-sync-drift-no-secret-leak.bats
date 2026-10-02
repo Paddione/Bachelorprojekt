@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats
-# SSOT: openspec/specs/mcp-gateway.md
+
 # Ticket: T002941 (zweiter, unabhaengiger Befund aus derselben Quelldatei)
 # Ticket: T900052 (Task 4.4 — erweitert um Token-Isolations-Test)
 #

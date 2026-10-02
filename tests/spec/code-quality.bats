@@ -2,10 +2,10 @@
 # Querschnitts-Qualitaetstests ohne eigene SSOT-Spec.
 #
 # DIE G-CQ02-GATES STEHEN NICHT MEHR HIER, sondern in tests/spec/g-cq02-any-types.bats
-# (SSOT: openspec/changes/cq02-any-types-200/proposal.md) [T002624-Nachlauf].
+# [T002624-Nachlauf].
 #
-# Grund: Diese Datei trug das Batch-1-Gate (Schwelle 373) aus dem inzwischen archivierten
-# openspec/specs/archive/g-cq02-any-types-batch1.md. Die Nachfolge-Etappe zog die Schwelle
+# Grund: Diese Datei trug das Batch-1-Gate (Schwelle 373).
+# Die Nachfolge-Etappe zog die Schwelle
 # auf 200 und legte dieselben drei Tests erneut an — mit dem Ergebnis, dass
 #   * 'monitoring.ts <= 2' WORTGLEICH doppelt existierte (ein Fix an einer Stelle liess die
 #     andere rot — genau das kostete beim SDLC-Split eine CI-Runde),

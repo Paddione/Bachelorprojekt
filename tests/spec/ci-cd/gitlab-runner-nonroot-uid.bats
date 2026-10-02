@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/gitlab-runner-nonroot-uid.bats — non-root-UID der Job-Pods [T012644]
-# SSOT: openspec/specs/ci-cd.md
 #
 # PRUEFMODUS: Quelltext-Inspektion des gerenderten Manifests. Ausnahme nach
 # CLAUDE.md §Test-Resultats-Konvention [T002448-M4] fuer Deploy-Konfiguration — die Wirkung

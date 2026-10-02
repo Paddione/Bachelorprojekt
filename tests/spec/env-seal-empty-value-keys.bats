@@ -20,8 +20,6 @@
 #   guard). This test guards the root-cause: the seal script must
 #   never silently drop a schema-declared key.
 #
-# SSOT: openspec/changes/g-cd01-korczewski-secret-drift
-#       + follow-up T001198
 # ═══════════════════════════════════════════════════════════════════
 
 load 'test_helper'

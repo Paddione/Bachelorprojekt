@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-isolation/e2-local-stack.bats
-# SSOT: openspec/changes/e2-sdlc-local-stack/tasks.md (T002625)
+
 #
 # Struktur-Anker + DoD-Nachweis fuer E2 SDLC-Isolation:
 # Overlay, Console-Deployment, Auth-Provider, Runbook, Laufzeit-Checks.

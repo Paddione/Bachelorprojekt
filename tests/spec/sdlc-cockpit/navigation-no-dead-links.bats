@@ -3,7 +3,7 @@
 # T003737 — Guard: kein SDLC-Navigationsziel endet in 404, keine Redirect-Kette laenger
 # als 1 Hop (ADR-006 Routen-Cutover /admin/* -> /sdlc/*, T002624).
 #
-# SSOT: openspec/changes/fix-sdlc-navigation-redirects/specs/sdlc-cockpit.md
+
 #
 # Pruefmodus: Querschnittstest (Ausnahme zu T002448-M4) — die Navigationsziele liegen
 # als Literale im Quelltext (href-Attribute, href:-Eintraege in nav-items.ts,

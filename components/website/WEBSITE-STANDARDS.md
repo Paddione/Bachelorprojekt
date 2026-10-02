@@ -464,8 +464,7 @@ Seitenspezifisch:
 Seit dem Merge von T001490 (PR folgt) ist **Git** die einzige Source of Truth
 für alle ~13 öffentlichen Content-Domänen (Homepage, FAQ, Kontakt, Services,
 Stammdaten, Navigation, Footer, …). `site_settings` und
-`homepage_block_documents` werden nicht mehr beschrieben (siehe
-`openspec/specs/website-interfaces.md` → "Decommissioned Content-Tabellen").
+`homepage_block_documents` werden nicht mehr beschrieben.
 
 ### Datei-Layout
 

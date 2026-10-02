@@ -2,7 +2,7 @@
 # tests/spec/sdlc-cockpit/write-token-removed.bats
 # K4 (T002463): Der browser-seitige Zugriff auf die Daemon-Schreib-Stubs ist
 # entfernt — agentAction und getToken existieren im Adapter nicht mehr.
-# SSOT: openspec/changes/cockpit-auth-schnitt/specs/sdlc-cockpit.md
+
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"

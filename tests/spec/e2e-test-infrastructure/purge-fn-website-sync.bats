@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/e2e-test-infrastructure/purge-fn-website-sync.bats — T900381
-# SSOT: openspec/specs/e2e-test-infrastructure.md
 #   Requirement: Website Schema Init Installs the Latest Purge Function
 #
 # PRUEFMODUS: Output-Verifikation. Das TS-Modul wird mit node (Type-Stripping)

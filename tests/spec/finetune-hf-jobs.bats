@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/finetune-hf-jobs.bats
-# SSOT: openspec/changes/wsl-exit-hf-jobs/specs/modell-registry-training-grounds.md [T016438]
 
 setup() {
   load 'test_helper.bash'

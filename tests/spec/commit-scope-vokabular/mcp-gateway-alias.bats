@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/commit-scope-vokabular/mcp-gateway-alias.bats
-# SSOT: openspec/specs/ci-cd.md
 #
 # Requirement: "Konsolidierte Scope-Namen nennen ihr Ziel" — scopes that were
 # consolidated into a named scope MUST report the target scope name.

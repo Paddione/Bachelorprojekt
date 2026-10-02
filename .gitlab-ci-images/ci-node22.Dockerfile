@@ -1,5 +1,5 @@
 # ci-node22 — Prebuilt image for GitLab CI jobs using node:22
-# Profiles: bats-unit, factory-openspec, commit-lint
+# Profiles: bats-unit, commit-lint
 #
 # Replaces per-job apt-get + curl setup (~75s → ~2s image pull).
 # Source: .gitlab-ci.yml toolchain analysis (T012411).

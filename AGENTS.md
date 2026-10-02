@@ -24,7 +24,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 
 **Before dispatching any domain agent, inject active plan context & curated toolset:**
 ```bash
-context=$(bash scripts/plan-context.sh <full-role-name> --with-openspec)
+context=$(bash scripts/plan-context.sh <full-role-name>)
 [ -n "$context" ] && prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
 tools=$(bash scripts/toolset-context.sh <full-role-name>)
 [ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
@@ -80,7 +80,6 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command 
 - Full reference: [`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
 - `scripts/env-resolve.sh` must be sourced, never executed directly.
 - Never run `SELECT *` from `tickets.ticket_plans` (large content bloats memory).
-- OpenSpec changes must be staged in a worktree, never directly in the main checkout.
 - Pre-commit hooks block main checkout when another agent holds a lock → use worktrees.
 - `components/website/` is strictly `pnpm` (never `npm install` there); Root and `components/brett/` use `npm`.
 - `git-crypt` unlock without keyfile uses `gpg.program`; under WSL point to Windows `gpg.exe`. See `docs/runbooks/git-crypt-key-distribution.md`.

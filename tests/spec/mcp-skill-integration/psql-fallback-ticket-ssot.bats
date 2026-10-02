@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-skill-integration/psql-fallback-ticket-ssot.bats
-# SSOT: openspec/specs/mcp-skill-integration.md (Delta: mcp-tool-guide-psql-ticket-ssot)
 #
 # Prüfmodus: grep/Source — Querschnittstest einer Dokumentationskonvention
 # (`.claude/skills/references/mcp-tool-guide.md` §mcp-postgres), deren Ergebnis

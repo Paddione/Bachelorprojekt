@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/collabora-integration.bats
-# SSOT: openspec/specs/collabora-integration.md
 # Mode: Manifest-Guard — das Sicherheitsversprechen manifestiert sich im
 # Deployment-Quelltext, daher ist der YAML-Parse hier das angemessene Mittel.
 # Ticket T014549 [SA-GR-06]: collabora container runAsNonRoot hardening.

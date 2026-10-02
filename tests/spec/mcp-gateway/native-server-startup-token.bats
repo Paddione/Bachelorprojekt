@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/native-server-startup-token.bats
-# SSOT: openspec/specs/mcp-gateway.md (Delta: openspec/changes/mcp-http-origin-auth-hardening)
 # Ticket: T900052 — Task 2.4
 #
 # Jeder native HTTP-MCP-Server (bge-mcp, mcp-postgres-local)

@@ -1,6 +1,6 @@
 // canvas-store.js — IndexedDB Canvas-Store (K5)
 // Speichert Epic-Canvas-Daten clientseitig. Kein Server-Need.
-// Exportiert in openspec/changes/ bei Bedarf.
+// Exportiert bei Bedarf.
 
 const DB_NAME = 'epic-canvas-store';
 const DB_VERSION = 1;
@@ -63,8 +63,6 @@ export async function deleteCanvas(epicId) {
   });
 }
 
-// OF1: Prüft, ob openspec/changes/ seit dem letzten Export geändert wurde.
-//
 // Der Aufruf geht über window.data (adapter.js), nicht über ein eigenes fetch().
 // E1 verlangt das, und hier zeigt sich auch warum: die Kit-Seiten werden von
 // file:// geladen, ein relativer Pfad wie '/api/cockpit/…' hätte den Daemon auf

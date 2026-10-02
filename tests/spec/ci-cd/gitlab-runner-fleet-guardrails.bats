@@ -11,7 +11,7 @@
 # einen Heredoc) — sonst koennten Anfuehrungszeichen/Backslashes im Manifest die Einbettung
 # brechen.
 #
-# Design D2 (openspec/changes/gitlab-ci-k8s-runner-cache/design.md): vier voneinander
+# Design D2: vier voneinander
 # unabhaengige Grenzen — ResourceQuota, LimitRange, PriorityClass (< Default), nodeAffinity
 # (Worker-only). specs/ci-cd.md verlangt fuer die Node-Ausschluss-Zusicherung ausdruecklich
 # nodeAffinity mit operator: In ueber beide Hostnamen — eine einfache nodeSelector-Label-Map

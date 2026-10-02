@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/bge-mcp-windows-esm-url.bats
-# SSOT: openspec/specs/mcp-gateway.md
 #
 # T900039 — Der bge-mcp-Shim laedt components/website/src/lib/bge-router.ts per
 # dynamischem import(). Wird dabei ein absoluter Pfad statt einer file://-URL

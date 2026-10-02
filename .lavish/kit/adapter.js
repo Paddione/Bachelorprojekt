@@ -484,9 +484,6 @@ const data = (() => {
   }
 
   /**
-   * OF1-Vorpruefung vor einem Canvas-Export: hat jemand anders
-   * openspec/changes/ seit `sinceIso` angefasst?
-   *
    * Einmalabruf statt Poll — die Frage stellt sich nur im Moment des Exports.
    * Sie liegt hier im Adapter, damit Panel und canvas-store.js kein eigenes
    * fetch() brauchen (E1).

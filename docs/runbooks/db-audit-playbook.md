@@ -59,7 +59,7 @@ Vendor-Schemata (keycloak, nextcloud, vaultwarden, docuseal) sind für strukture
 Migrationen liegen historisch in fünf Verzeichnissen (`scripts/migrations/`,
 `scripts/datamodel/`, `scripts/one-shot/archive/`, `components/website/src/db/migrations/`,
 `arena-server/src/db/migrations/`). Der getrackte Factory-Runner
-(OpenSpec-Change `migrations-factory-runner`) konsolidiert davon nur
+(`migrations-factory-runner`) konsolidiert davon nur
 `scripts/migrations/` ↔ `components/website/src/db/migrations/` — `scripts/datamodel/` und
 `scripts/one-shot/` bleiben unkonsolidiert und gehören in jedes künftige Audit.
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/start-windows-unc.bats — T900190/T900191
-# SSOT: openspec/specs/mcp-gateway.md ("Windows hosts have a documented start mechanism")
 #
 # Pruefmodus: Quelltext (dokumentierte Ausnahme T002448-M4, wie
 # powershell-ascii-only.bats) — Windows-PowerShell laeuft nicht in der Linux-CI, das

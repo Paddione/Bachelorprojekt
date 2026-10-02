@@ -1,13 +1,13 @@
 ---
 name: "OPSX: Apply"
-description: Implement tasks from an OpenSpec change (Experimental)
+description: Implement tasks from a change (Experimental)
 category: Workflow
 tags: [workflow, artifacts, experimental]
 ---
 
-Implement tasks from an OpenSpec change.
+Implement tasks from a change.
 
-**Input**: Optionally specify a change name (e.g., `/opsx:apply add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+**Input**: Optionally specify a change name (e.g., `/change:apply add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
 
@@ -17,21 +17,21 @@ Implement tasks from an OpenSpec change.
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
    - If ambiguous, list the active changes directly (the raw `openspec` CLI is not
-     installed in this repo — use `ls openspec/changes/`) and use the
+     installed in this repo — use `ls changes/`) and use the
      **AskUserQuestion tool** to let the user select
 
-   Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
+   Always announce: "Using change: <name>" and how to override (e.g., `/change:apply <other>`).
 
 2. **Read the change directory**
 
-   Read `openspec/changes/<name>/` directly: `proposal.md`, `specs/`, `design.md`,
+   Read `changes/<name>/` directly: `proposal.md`, `specs/`, `design.md`,
    `tasks.md`. The task list always lives in `tasks.md` (`- [ ]` pending,
    `- [x]` complete).
 
 3. **Determine the state**
 
    - If `tasks.md` is missing: the change is not implementable yet — resolve the
-     missing artifacts first (re-run `/opsx:propose`), then re-run `/opsx:apply`
+     missing artifacts first (re-run `/opsx:propose`), then re-run `/change:apply`
    - If every task is `- [x]`: congratulate, suggest archive (`/opsx:archive`)
    - Otherwise: proceed to implementation
 

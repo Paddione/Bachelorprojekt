@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/flux-render-security/immutable-image-refs.bats
-# SSOT: openspec/specs/flux-render-security.md
 # Ticket: T002706
 #
 # PRUEFMODUS: Command-Output-Verifikation (T002448-M4). Diese Tests FUEHREN den

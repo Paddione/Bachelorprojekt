@@ -2,7 +2,7 @@
 
 Full standards in `components/website/WEBSITE-STANDARDS.md`. This file is the quick reference for agents.
 
-> **T001490 (2026-07-02):** Public-Content liest aus dem **git-versionierten Bundle** (`components/website/content/<brand>/*.json`), nicht aus `site_settings` / `homepage_block_documents`. Admin-Saves gehen über `publishContent()` (Bot-PR + Auto-Merge, ~5-10 min Latenz). SSOT: `openspec/specs/website-interfaces.md`. Standards: `WEBSITE-STANDARDS.md` § 8.
+> **T001490 (2026-07-02):** Public-Content liest aus dem **git-versionierten Bundle** (`components/website/content/<brand>/*.json`), nicht aus `site_settings` / `homepage_block_documents`. Admin-Saves gehen über `publishContent()` (Bot-PR + Auto-Merge, ~5-10 min Latenz). Standards: `WEBSITE-STANDARDS.md` § 8.
 
 ## Dev Quick-Start
 

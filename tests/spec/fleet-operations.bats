@@ -78,9 +78,7 @@ for section in ('env_vars', 'secrets', 'setup_vars'):
 
 # ── T001328/T001341: Traefik client-IP preservation ────────────────────────
 # Manifest-structure assertions only — there is no live cluster in CI, so
-# the actual SNAT fix can only be verified against the live fleet (see the
-# manual rollout tasks in openspec/changes/pocket-id-rate-limit/tasks.md and
-# openspec/changes/traefik-hostport-clientip/tasks.md). These guard the
+# the actual SNAT fix can only be verified against the live fleet. These guard the
 # static config that (a) the live rollout is based on and (b) future
 # full-cluster-rebuilds (prod/cloud-init.yaml) will install by default.
 
@@ -140,8 +138,7 @@ for section in ('env_vars', 'secrets', 'setup_vars'):
 # just never live), with klipper-lb removed via service.spec.type: ClusterIP
 # (the missing piece — without it, klipper-lb's svclb-traefik DaemonSet
 # competes for the same hostPorts and the new Traefik pods stay Pending).
-# Manifest-structure assertions only — see the manual rollout task in
-# openspec/changes/traefik-hostport-clientip/tasks.md for live verification.
+# Manifest-structure assertions only
 
 @test "prod/traefik-values.yaml sets service.spec.type: ClusterIP (removes klipper-lb)" {
   if ! command -v yq >/dev/null 2>&1; then

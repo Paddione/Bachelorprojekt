@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/dev-pod-mcp-bundle/dev-pod.bats
-# SSOT: openspec/specs/mcp-gateway.md  (Change: openspec/changes/dev-pod-mcp-bundle)
 # Ticket: T900107
 #
 # Pruefmodus: Der Gegenstand dieser Guards sind Kubernetes-Manifeste und

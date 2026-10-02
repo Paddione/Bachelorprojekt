@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/ci-cd.md
 # Prüfmodus: command output verification (T002448-M4) — ruft
 # scripts/check-fix-ticket-guard.sh mit Beispiel-Commit-Messages auf und
 # prüft die Exit-Codes. Positiv-Anker zuerst (T002356-M1).

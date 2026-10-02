@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/gitlab-registry-mirror.bats — Registry-Redundanz [T012415]
 #
-# Guards zu openspec/specs/ci-cd.md, Requirements:
+# Requirements:
 #   - Build-Artefakte werden in eine zweite Registry gespiegelt
 #   - Das signierte OCI-Artefakt wird mitsamt Signatur gespiegelt
 #   - Die GitLab-Quelle liegt bereit, aber suspendiert

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/ghcr-pull-secret.bats
-# SSOT: openspec/specs/fleet-operations.md
 # Ticket: T900036 (Batch T900041)
 #
 # PRUEFMODUS: Render-Output. Geprueft wird, was der Overlay-Build fuer die

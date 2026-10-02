@@ -3,8 +3,6 @@
 # Sekundaere, nicht blockierende Verifikation neben GitHub Actions. GitHub Actions
 # bleibt die einzige Quelle fuer Merge-Entscheidungen; kein hier definierter Job ist
 # irgendwo als Required Check hinterlegt. Details:
-#   openspec/specs/ci-cd.md
-#   openspec/changes/gitlab-ci-migration-stage1/design.md
 #   docs/runbooks/gitlab-runner.md (Betrieb, Fallback-Umschaltung)
 #
 # Diese Pipeline erhaelt Pushes ausschliesslich ueber den Mirror-Workflow
@@ -342,8 +340,6 @@ gitleaks:
     *) echo "ERROR: Diff-Basis nicht aufloesbar (rc=$DIFF_BASE_RC)" >&2; exit 1 ;;
   esac
   export DIFF_BASE
-
-# C7a-B1 (T900560): factory-openspec retired mit test:openspec (C7a).
 
 evals:
   # Gegenstueck zu test-evals: die Eval-Suite (task test:evals). [T900642]

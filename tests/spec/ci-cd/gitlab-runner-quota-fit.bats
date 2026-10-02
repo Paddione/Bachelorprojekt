@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/gitlab-runner-quota-fit.bats — concurrent passt in die Quota [T012647]
-# SSOT: openspec/specs/ci-cd.md
 #
 # PRUEFMODUS: Rechnung ueber Werte aus zwei Repo-Dateien. Ausnahme nach CLAUDE.md
 # §Test-Resultats-Konvention [T002448-M4] fuer Deploy-Konfiguration — die Wirkung zeigt

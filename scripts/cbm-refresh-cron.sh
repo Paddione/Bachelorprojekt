@@ -22,6 +22,11 @@
 
 set -euo pipefail
 
+# Cron-PATH ist minimal (/usr/bin:/bin); das Tool liegt in ~/.local/bin.
+# Ohne das meldet cbm-freshness.py dauerhaft "tool-missing" (fatal) und der
+# Hourly-Refresh wird nie ausgefuehrt. Export vererbt sich an Helper + Wrapper.
+export PATH="$HOME/.local/bin:$PATH"
+
 DRY_RUN=false
 REPO_ARG=""
 PROJECT="${CBM_PROJECT:-home-patrick-Bachelorprojekt}"

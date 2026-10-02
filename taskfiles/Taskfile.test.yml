@@ -53,26 +53,6 @@ tasks:
     cmds:
       - bash tests/bats tests/unit/T000668-graph-api.bats
 
-  test:unit:factory-blocked:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/factory-blocked.bats
-
-  test:unit:factory-readiness:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/factory-readiness.bats
-
-  test:unit:factory-scout-quality:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/factory-scout-quality.bats
-
-  test:unit:factory-scout-drift:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/factory-scout-drift.bats
-
   test:unit:readiness-webhook:
     internal: true
     cmds:

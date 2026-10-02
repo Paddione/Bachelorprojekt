@@ -15,8 +15,6 @@ show_help() {
   echo "  frontmatter                Plan/spec frontmatter hook (--spec: .agents/plans/<slug>/design.md)"
   echo "  backup                     Database backup operations"
   echo "  ticket                     Ticket operations (CRUD / pipeline)"
-  echo "  factory                    Factory operations (slots, …)"
-  echo "  factory-prep               Factory preparation guards"
   echo "  brainstorm                 Brainstorming bridge"
   echo "  release-notes              Release notes generator from merged PRs"
   echo "  cfr                        Change Failure Rate (fix()-Commits/Merges, letzte 8 Wochen, opt. CFR_WINDOW=<date>)"
@@ -50,17 +48,9 @@ main() {
       shift
       exec "${SCRIPT_DIR}/vda/ticket.sh" "$@"
       ;;
-    factory-prep)
-      shift
-      exec "${SCRIPT_DIR}/vda/factory-prep.sh" "$@"
-      ;;
     brainstorm)
       shift
       exec "${SCRIPT_DIR}/vda/brainstorm.sh" "$@"
-      ;;
-    factory)
-      shift
-      exec "${SCRIPT_DIR}/vda/factory.sh" "$@"
       ;;
     release-notes)
       shift

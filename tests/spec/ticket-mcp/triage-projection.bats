@@ -17,7 +17,7 @@
 # Ohne erreichbaren shared-db-Pod wird uebersprungen (etabliertes Muster aus
 # tests/spec/ticket-system/list-test-data-filter.bats).
 
-load "../../lib/factory-test-fixtures.sh"
+load "../../lib/ticket-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod

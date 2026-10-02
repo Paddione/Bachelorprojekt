@@ -14,7 +14,7 @@
 # DB-Zugriff: echte lokale Dev-DB (TICKET_TEST_DB_OK=1), Fixture wird in
 # teardown_file gepurged.
 
-load "../../lib/factory-test-fixtures.sh"
+load "../../lib/ticket-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod

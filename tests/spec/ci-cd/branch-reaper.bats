@@ -22,7 +22,7 @@ setup() {
   # Alle Fixture-Pfade sind ABSOLUT und alle git-Aufrufe nutzen -C. Kein `cd`, keine
   # relativen Verzeichnisse: ein relativ angelegtes .agents/plans/<slug> waere unter
   # `bats -j 6` fuer den validateTree('plan')-Test sichtbar und faerbte ihn sporadisch
-  # rot (Guard "T002368" in tests/spec/software-factory/ticket-lifecycle.bats).
+  # rot (Guard "T002368" in ticket-lifecycle.bats, retired with the factory).
   PLANDIR="$FIXTURE/.agents/plans/x"
 
   git init --bare --quiet "$REMOTE"

@@ -20,10 +20,10 @@
 # Aussagen darunter vakuos — eine Implementierung, die nichts zurueckgibt,
 # wuerde eine reine "enthaelt nicht"-Pruefung ebenfalls bestehen.
 #
-# Die Fixtures werden ueber tests/lib/factory-test-fixtures.sh erzeugt und in
+# Die Fixtures werden ueber tests/lib/ticket-test-fixtures.sh erzeugt und in
 # teardown_file gepurgt.
 
-load "../../lib/factory-test-fixtures.sh"
+load "../../lib/ticket-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod

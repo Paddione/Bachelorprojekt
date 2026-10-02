@@ -17,11 +17,11 @@
 # fehlschlagen, obwohl der Fix korrekt waere. Der Anker haengt deshalb an der eigenen
 # Fixture, nicht an Umgebungsdaten.
 #
-# Die Fixture wird ueber tests/lib/factory-test-fixtures.sh erzeugt und in teardown_file
+# Die Fixture wird ueber tests/lib/ticket-test-fixtures.sh erzeugt und in teardown_file
 # wieder gepurgt — der Test stuetzt sich ausdruecklich NICHT auf liegengebliebene
 # SF-TEST-Zeilen fremder Laeufe.
 
-load "../../lib/factory-test-fixtures.sh"
+load "../../lib/ticket-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod

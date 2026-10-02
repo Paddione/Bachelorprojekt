@@ -50,8 +50,8 @@ teardown() { unset FIND_CHANGED_TESTS_FILES; }
   [ "$status" -eq 0 ]
   # Stellvertretend zwei real existierende Verzeichnisse, deren Fehlen den
   # urspruenglichen Defekt ausmachte.
-  printf '%s\n' "$output" | grep -q '^tests/spec/software-factory/' || {
-    echo "tests/spec/software-factory/ fehlt in der Auswahl" >&2; return 1
+  printf '%s\n' "$output" | grep -q '^tests/spec/decommission/' || {
+    echo "tests/spec/decommission/ fehlt in der Auswahl" >&2; return 1
   }
   printf '%s\n' "$output" | grep -q '^tests/spec/sdlc-cockpit/' || {
     echo "tests/spec/sdlc-cockpit/ fehlt in der Auswahl" >&2; return 1

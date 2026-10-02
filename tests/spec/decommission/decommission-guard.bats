@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
-# tests/spec/software-factory/decommission-guard.bats
+# tests/spec/decommission/decommission-guard.bats
 # Ticket: T900399 — Software-Factory Decommission
 #
 # Decommissioning guard: asserts the Software-Factory subsystem is really gone.
-# This is the only file that survives in tests/spec/software-factory/ — every
-# other spec in that directory exercised the deleted pipeline/dispatcher and is
-# retired together with the subsystem (T900399, p5 Task 5.2).
+# Moved from tests/spec/software-factory/ (T900728 — the directory name itself
+# was a factory remain). Every other spec of that directory exercised the
+# deleted pipeline/dispatcher and is retired together with the subsystem
+# (T900399, p5 Task 5.2).
 #
 # RED proof: before the p1–p4 partials this guard failed (factory.timer active,
 # factory-runner in the kustomization, scripts/factory/ populated).

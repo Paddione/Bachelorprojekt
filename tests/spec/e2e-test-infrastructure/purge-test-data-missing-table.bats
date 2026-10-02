@@ -24,7 +24,7 @@
 # gemockt), weil genau diese Kombination (Tabelle fehlt + Funktion aufgerufen)
 # das beobachtete Verhalten ist.
 
-load "../../lib/factory-test-fixtures.sh"
+load "../../lib/ticket-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod
@@ -40,7 +40,7 @@ _skip_if_no_db() {
 
 # _qts_row_count <external_id> — zaehlt tickets.tickets-Zeilen mit dieser
 # external_id, die noch is_test_data=true tragen. Nutzt dieselbe
-# Pod-Aufloesung wie purge_factory_test_data() (tests/lib/factory-test-fixtures.sh),
+# Pod-Aufloesung wie purge_factory_test_data() (tests/lib/ticket-test-fixtures.sh),
 # damit Seed/Purge/Verify garantiert gegen dieselbe DB laufen.
 _ticket_row_count() {
   local ext_id="$1"

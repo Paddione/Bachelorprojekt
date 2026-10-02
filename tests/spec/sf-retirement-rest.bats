@@ -16,6 +16,10 @@ _offenders() {
     # tickets.factory_control table; the decommission DROP migration must keep
     # its table names. Both are unlisted/exempt by design.
     [[ "$f" == migrations/*.sql || "$f" == scripts/migrations/*.sql ]] && continue
+    # T900728: the decommission guard asserts factory absence, so it must name
+    # the retired subsystem (absence-guard self-exemption, same precedent as
+    # the os-retirement guards exempting their own scope).
+    [[ "$f" == tests/spec/decommission/decommission-guard.bats ]] && continue
     { [[ "$f" == *[Ff]actory* ]] && echo "$f"; } || { grep -vE 'FACTORY-PLAN-REF|tickets\.(v_)?factory_|factory_schema_migrations' "$REPO/$f" | grep -qiE 'software[ -]?factory|factory-runner|factory[-_ ](floor|queue|runs?|tick|control|budget|pipeline|slots?|worker|eval|post-merge|mcp|cockpit|dispatch|runner|daemon|state)|factoryfloor|/factory/|factory_[a-z]+|factory:' && echo "$f"; }
   done < "$LIST"
   return 0

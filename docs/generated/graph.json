@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T09:59:28.593Z",
+  "generatedAt": "2026-09-28T18:48:57.908Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -150,18 +150,6 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "error-log-retention"
-    },
-    {
-      "id": "gitlab-runner",
-      "namespace": "gitlab-runner",
-      "type": "Deployment",
-      "name": "gitlab-runner"
-    },
-    {
-      "id": "registry-cache",
-      "namespace": "gitlab-runner",
-      "type": "Deployment",
-      "name": "registry-cache"
     },
     {
       "id": "knowledge-ingest-prs",
@@ -524,6 +512,12 @@
       "name": "bachelorprojekt"
     },
     {
+      "id": "langfuse-dev-proxy",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "langfuse-dev-proxy"
+    },
+    {
       "id": "shared-db-dev-lb",
       "namespace": "mentolder",
       "type": "Service",
@@ -884,12 +878,6 @@
       "to": "shared-db",
       "via": "initContainer:wait",
       "kind": "initContainer"
-    },
-    {
-      "from": "pvc-backup",
-      "to": "nextcloud",
-      "via": "command",
-      "kind": "command"
     },
     {
       "from": "pvc-backup",
@@ -1319,6 +1307,12 @@
     },
     {
       "from": "traefik",
+      "to": "langfuse-dev-proxy",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "sessions-server",
       "via": "ingress",
       "kind": "ingress"
@@ -1392,12 +1386,6 @@
     {
       "from": "einvoice-sidecar",
       "to": "einvoice-sidecar",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "registry-cache",
-      "to": "registry-cache",
       "via": "selector",
       "kind": "selector"
     },

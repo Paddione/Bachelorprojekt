@@ -115,6 +115,7 @@ task: Available tasks for this project:
 * devmesh:install:                              devmesh: k3s auf HOST in seiner Inventar-Rolle installieren (DRY_RUN=1 zeigt nur den Befehl)
 * devmesh:k3d:teardown:                         Operator-only: decommission the former k3d development cluster [T900145]
 * devmesh:kubeconfig:                           devmesh: Admin-Kubeconfig als Context devmesh mergen (SERVER=<name>, Default: server-init)
+* devmesh:langfuse:setup:                       devmesh: Langfuse-Credentials holen und Agent-Harnesses fuer Tracing verdrahten [T900688]
 * devmesh:migrate:                              pocket_id + website aus devmesh nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]
 * devmesh:preflight:                            devmesh: Host vor der k3s-Installation pruefen (HOST=<name aus devmesh/inventory.yaml>; Exit 1 = Befund, 2 = Vorbedingung)
 * devmesh:registry:migrate:                     devmesh: llm-proxy-Registry seeden und mcp_readonly-Passwort setzen [T900191]
@@ -166,7 +167,6 @@ task: Available tasks for this project:
 * gh:branch-protection:apply:                   Set required checks for main (removes E2E PR). Requires GH_PAT env-var with admin:repo scope.
 * gh:branch-protection:emergency-add-e2e:       Emergency: add E2E PR back to required checks (re-enables the Henne-Ei block)
 * gh:branch-protection:status:                  Show current required status checks for main branch
-* gitlab-runner:render:                         Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Escaped Laufzeit-Variablen automatisch.
 * graph:blast-radius:                           Generiere Blast-Radius-Report nach docs/generated/blast-radius.md (LAD)
 * graph:build:                                  Generiere K8s-Abhängigkeitsgraph + API-Surface-Map nach docs/generated/
 * graph:build-docs:                             Generiere Mermaid-Architecture-Markdown nach docs/diagrams/architecture.md (LAD-3)

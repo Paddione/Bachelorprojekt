@@ -136,8 +136,8 @@ EOF
 
 # ── Schema → SealedSecrets ────────────────────────────────────────
 
-@test "every required schema secret exists in environments/sealed-secrets/mentolder.yaml" {
-  local file="${SEALED_DIR}/mentolder.yaml"
+@test "every required schema secret exists in environments/sealed-secrets/fleet-mentolder.yaml" {
+  local file="${SEALED_DIR}/fleet-mentolder.yaml"
   local missing=()
   while IFS= read -r key; do
     if ! sealed_keys "$file" | grep -qx "$key"; then
@@ -146,14 +146,14 @@ EOF
   done < <(schema_required_keys)
 
   if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "Required keys in schema but missing from mentolder.yaml SealedSecret:"
+    echo "Required keys in schema but missing from fleet-mentolder.yaml SealedSecret:"
     printf '  %s\n' "${missing[@]}"
     return 1
   fi
 }
 
-@test "every required schema secret exists in environments/sealed-secrets/korczewski.yaml" {
-  local file="${SEALED_DIR}/korczewski.yaml"
+@test "every required schema secret exists in environments/sealed-secrets/fleet-korczewski.yaml" {
+  local file="${SEALED_DIR}/fleet-korczewski.yaml"
   local missing=()
   while IFS= read -r key; do
     if ! sealed_keys "$file" | grep -qx "$key"; then
@@ -162,7 +162,7 @@ EOF
   done < <(schema_required_keys)
 
   if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "Required keys in schema but missing from korczewski.yaml SealedSecret:"
+    echo "Required keys in schema but missing from fleet-korczewski.yaml SealedSecret:"
     printf '  %s\n' "${missing[@]}"
     return 1
   fi

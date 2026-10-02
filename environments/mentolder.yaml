@@ -1,6 +1,8 @@
 # environments/mentolder.yaml
 environment: mentolder
 context: fleet
+# Secrets kommen aus fleet-mentolder (.secrets/ + sealed-secrets/); eigene Dateien entfallen. T900789
+secrets_env: fleet-mentolder
 domain: mentolder.de
 
 env_vars:

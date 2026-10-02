@@ -1,0 +1,51 @@
+# Oeffentlicher Zugang zum devmesh-Langfuse (T900691, .agents/plans/langfuse-public-host/design.md D2/D3).
+# fleet terminiert TLS mit dem Brand-Wildcard und leitet ueber Tailscale an den Traefik-web-Entrypoint
+# der devmesh-Nodes weiter; dort routet das Ingress langfuse-public (dev-local/components/langfuse).
+apiVersion: v1
+kind: Service
+metadata:
+  name: langfuse-dev-proxy
+  namespace: ${WORKSPACE_NAMESPACE}
+spec:
+  ports:
+    - {name: http, port: 80, protocol: TCP}
+---
+# Tailscale-Adressen der devmesh-Nodes (tailscale status): gpu-cluster, gpu-cluster2, gpu-metal.
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: langfuse-dev-proxy-devmesh
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    kubernetes.io/service-name: langfuse-dev-proxy
+addressType: IPv4
+ports:
+  - {name: http, port: 80, protocol: TCP}
+endpoints:
+  - addresses: ["100.115.236.87"]
+  - addresses: ["100.126.111.105"]
+  - addresses: ["100.120.125.39"]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-langfuse-dev
+  namespace: ${WORKSPACE_NAMESPACE}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - langfuse-dev.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: langfuse-dev.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: langfuse-dev-proxy
+                port:
+                  number: 80

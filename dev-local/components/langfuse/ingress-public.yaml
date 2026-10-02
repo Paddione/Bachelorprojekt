@@ -1,0 +1,17 @@
+# Oeffentlicher Langfuse-Host (T900691, .agents/plans/langfuse-public-host/design.md D4).
+# fleet terminiert TLS fuer ${LANGFUSE_PUBLIC_HOST} mit dem Prod-Wildcard und leitet per
+# Tailscale an diesen Ingress weiter (prod-fleet/mentolder/langfuse-dev-proxy.yaml), daher
+# Entrypoint web ohne tls-Block.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: langfuse-public
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: "${LANGFUSE_PUBLIC_HOST}"
+      http:
+        paths:
+          - {path: /api/public/otel, pathType: Prefix, backend: {service: {name: langfuse-otel-redact, port: {number: 4318}}}}
+          - {path: /, pathType: Prefix, backend: {service: {name: langfuse-web, port: {number: 3000}}}}

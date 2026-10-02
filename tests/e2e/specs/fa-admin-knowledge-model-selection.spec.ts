@@ -85,7 +85,9 @@ test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@ad
     await page.getByRole('button', { name: 'Sammlungen' }).click();
     const row = page.getByRole('row', { name: new RegExp(stamp) });
     if (await row.isVisible()) {
-      await row.getByRole('button', { name: 'Löschen' }).click();
+      // [T900838] dispatchEvent statt click(): die fixed positionierte Nudge-Bubble des
+      // Assistenten kann jederzeit über dem Button erscheinen und fängt den Klick ab.
+      await row.getByRole('button', { name: 'Löschen' }).dispatchEvent('click');
     }
     await expect(row).not.toBeVisible({ timeout: 60_000 });
   });

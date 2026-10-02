@@ -15,13 +15,13 @@ setup() {
   grep -q "test-only Chore" "$CONTRACT"
 }
 
-@test "execute orders review, phase chain, merge, then finalizer" {
-  review=$(grep -n "requesting-code-review\|Code-Review-Gate" "$EXEC" | head -1 | cut -d: -f1)
+@test "execute orders merge gate, phase chain, merge, then finalizer" {
+  gate=$(grep -n "Merge-Gate" "$EXEC" | grep "^[0-9]*:## Schritt 3.8" | head -1 | cut -d: -f1)
   phase=$(grep -n "assert-phase-chain" "$EXEC" | head -1 | cut -d: -f1)
   merge=$(grep -n "gh pr merge --auto" "$EXEC" | head -1 | cut -d: -f1)
   finalizer=$(grep -n "frischen Finalizer\|fresh Finalizer" "$EXEC" | head -1 | cut -d: -f1)
-  [ -n "$review" ] && [ -n "$phase" ] && [ -n "$merge" ] && [ -n "$finalizer" ]
-  [ "$review" -lt "$phase" ] && [ "$phase" -lt "$merge" ] && [ "$merge" -lt "$finalizer" ]
+  [ -n "$gate" ] && [ -n "$phase" ] && [ -n "$merge" ] && [ -n "$finalizer" ]
+  [ "$gate" -lt "$phase" ] && [ "$phase" -lt "$merge" ] && [ "$merge" -lt "$finalizer" ]
 }
 
 @test "contract keeps exception loop active until MERGED and re-enters gates" {
@@ -29,7 +29,8 @@ setup() {
   grep -q "DIRTY" "$CONTRACT"
   grep -q "CONFLICTING" "$CONTRACT"
   grep -q "replacement\|Ersatz" "$CONTRACT"
-  grep -q "re-review\|erneut.*Review\|phase-chain.*erneut" "$CONTRACT"
+  grep -q "phase-chain re-entry" "$CONTRACT"
+  grep -q "only when the operator asks\|nur auf Zuruf" "$CONTRACT"
 }
 
 @test "E2E points to chore lifecycle and keeps live test ownership" {

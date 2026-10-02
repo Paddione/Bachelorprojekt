@@ -128,7 +128,8 @@ clients:
         httpUrl: http://localhost:13001/mcp
       opencode:
         type: remote
-        url: http://localhost:13001/mcp
+        url: http://127.0.0.1:13001/mcp
+        oauth: false
         enabled: true
     windows_note: >-
       Windows: Port 13001 kommt seit T900191 aus dem devmesh-Cluster:

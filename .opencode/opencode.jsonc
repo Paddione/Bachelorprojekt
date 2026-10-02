@@ -5,8 +5,8 @@
   // 131072 served KV (systemd-User-Unit scripts/llm/glimmer.service, T900365).
   // Der Provider-Key heisst historisch "llamacpp-local".
   //
-  // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
-  // deepseek-*-Agenten (Go-Abo zuerst, dann direkte API).
+  // Fallback bei Ausfall des lokalen Servers: Eskalation an exe-muse
+  // (Muse Spark via OpenCode Go; T900751: DeepSeek-Schiene entfernt).
   "model": "llamacpp-local/Muse-Glimmer-30B",
   // ── Compaction (Requirement: Compaction Scales With the Model Window) ──────
   // opencode 1.18 liest die V2-Keys und bildet sie fuer die V1-Promptschleife
@@ -33,18 +33,17 @@
     "buffer": 33600
   },
   // ── Third-party opencode plugins (installed via npm into .opencode/) ──────
-  // Loaded from npm through the `plugin` array. Packages are declared in
+  // Loaded from npm through the `plugins` array. Packages are declared in
   // .opencode/package.json. Composio + Firecrawl are MCP servers (see `mcp`
   // below), not opencode plugins.
-  "plugin": [
+  "plugins": [
     // Dynamic Context Pruning
     "@tarquinen/opencode-dcp",
-    // Envsitter Guard (.env secret leak guard)
-    "envsitter-guard",
-    // NOTE: @devcxl/opencode-worktree DROPPED — broken as published (missing
-    // dist/server.js) AND clashes with the pre-existing dev-flow worktree
-    // plugin (.opencode/skills/dev-flow/worktree.ts): both register the same
-    // tools worktree_create/worktree_delete. The repo's own plugin is kept.
+    // The V1 envsitter-guard package does not load in OpenCode v2. The
+    // local env-file-guard plugin preserves its read/write protection.
+    // The V1 dev-flow worktree and background-agent entrypoints are retained
+    // as source under .opencode/skills/dev-flow/, but are not auto-loaded by
+    // V2. Their old hook and SDK contracts need a separate migration.
     // Agent Memory (Letta-style memory blocks)
     "opencode-agent-memory",
     // Oh My OpenCode / OmO Slim (multi-agent)
@@ -215,7 +214,9 @@
 
       "type": "remote",
 
-      "url": "http://localhost:13001/mcp",
+      "url": "http://127.0.0.1:13001/mcp",
+
+      "oauth": false,
 
       "headers": {"Authorization":"Bearer {env:MCP_POSTGRES_TOKEN}"},
 

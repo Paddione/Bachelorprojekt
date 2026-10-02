@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # scripts/plan-intel.sh — deterministic intel.json generator
 # Usage: scripts/plan-intel.sh <slug> [--target-files <f1> [<f2> ...]] [--out <pfad>]
-# Generates a schema-conformant Plan Intel Bundle at openspec/changes/<slug>/intel.json.
+# Generates a schema-conformant Plan Intel Bundle at .agents/plans/<slug>/intel.json
+# (Fallback: openspec/changes/<slug>/ fuer Altbestand, T900689).
 # Deterministic: same inputs produce identical output (git SHA aside).
 set -euo pipefail
 
@@ -30,7 +31,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CHANGE_DIR="$REPO_ROOT/openspec/changes/$SLUG"
+# Plan-Heimat seit C7a ist .agents/plans/<slug>; openspec/changes bleibt Fallback [T900689].
+CHANGE_DIR="$REPO_ROOT/.agents/plans/$SLUG"
+[[ -d "$CHANGE_DIR" ]] || CHANGE_DIR="$REPO_ROOT/openspec/changes/$SLUG"
 
 _resolve_target_files() {
   local tasks_md="$CHANGE_DIR/tasks.md"

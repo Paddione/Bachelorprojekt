@@ -45,14 +45,14 @@ setup() {
   [[ "$output" == *"always()"* ]]
 }
 
-@test "T002272-M2: dev-flow-execute review gate requests auto-merge before the CI-watch loop" {
+@test "T002272-M2: dev-flow-execute merge gate requests auto-merge before the CI-watch loop" {
   EXEC_SKILL="$REPO_ROOT/.claude/skills/dev-flow-execute/SKILL.md"
   # [T003796] Suche auf den Bereich Schritt 3.8..5.5 eingeschraenkt: der einzige
-  # `gh pr merge --auto`-Aufruf liegt im Code-Review-Gate-Abschnitt (Schritt 3.8),
+  # `gh pr merge --auto`-Aufruf liegt im Merge-Gate-Abschnitt (Schritt 3.8),
   # `devflow-ci-watch.sh`-Aufrufe folgen in Schritt 5.5. Ohne den Anker pickte
   # dokumentweites head -1 frueher den Arbeitsteilungs-Kommentar (T003104).
   local gate watch_line merge_line
-  gate="$(grep -n '^## Schritt 3.8: Code-Review-Gate' "$EXEC_SKILL" | head -1 | cut -d: -f1)"
+  gate="$(grep -n '^## Schritt 3.8: Merge-Gate' "$EXEC_SKILL" | head -1 | cut -d: -f1)"
   [ -n "$gate" ]
   merge_line=$(awk -v s="$gate" 'NR > s && /gh pr merge --auto/ { print NR; exit }' "$EXEC_SKILL")
   watch_line=$(awk -v s="$gate" 'NR > s && /devflow-ci-watch\.sh/ { print NR; exit }' "$EXEC_SKILL")
@@ -85,7 +85,7 @@ setup() {
   # wofür er da ist. Ohne ihn bestünde die Negativ-Aussage auch bei gelöschter Datei.
   [ -f "$WF" ]
   grep -q 'render-artifact:' "$WF"
-  grep -q 'deploy-legacy:' "$WF"
+  # T900810: der deploy-legacy-Anker ist mit dem pre-Flux-Job entfallen.
   # Erst jetzt: keine ausführbare Ticket-Schreibzeile mehr (Kommentare zählen nicht).
   run grep -cE '^[^#]*scripts/ticket\.sh[[:space:]]+update-status' "$WF"
   [ "$output" = "0" ]
@@ -119,10 +119,13 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-# --- G-CD01: Brand-Parity im Website-Deploy (T001276) ---
-# build-website.yml muss korczewski in einem Job deployen, der NICHT vom
-# mentolder-Deploy-Job abhaengt --- ein mentolder-Fehler darf korczewski nicht
-# still ueberspringen. SSOT: openspec/specs/ci-cd.md.
+# --- G-CD01: Website-Deploy laeuft ueber Flux (T002083, T900810) ---
+# Frueher (T001276 Brand-Parity): build-website.yml deployte beide Brands in zwei
+# unabhaengigen kubectl-Jobs. Seit Flux Steady State ist, rendert der Workflow nur
+# noch das Fleet-Artefakt (render-artifact mit Digest-Pins); der pre-Flux
+# mentolder-Job ist entfernt (T900810). deploy-korczewski bleibt als einziger
+# Legacy-Job bestehen, weil Guards seine Existenz pinnen (Guard-Entscheid T900810)
+# — er feuert nie (vars.FLUX_ENABLED != 'true'). SSOT: openspec/specs/ci-cd.md.
 
 @test "G-CD01: build-website.yml hat einen build-image Job mit image+sha_tag outputs" {
   run python3 - "$BUILD_WF" <<'PY'
@@ -136,15 +139,16 @@ PY
   [ "$status" -eq 0 ]
 }
 
-@test "G-CD01: deploy-mentolder needs build-image und NICHT deploy-korczewski" {
+@test "G-CD01: build-website.yml hat KEINEN deploy-mentolder mehr (Flux-only, T900810)" {
+  # T900810: der pre-Flux kubectl-Pfad (deploy-mentolder, vars.FLUX_ENABLED !=
+  # 'true') ist entfernt — Flux ist Steady State (T002083 pinnt den
+  # render-artifact-Job). Der Negativ-Anker verhindert, dass der tote Pfad
+  # still zurueckkehrt.
   run python3 - "$BUILD_WF" <<'PY'
 import sys, yaml
 jobs = (yaml.safe_load(open(sys.argv[1])) or {}).get('jobs', {})
-assert 'deploy-mentolder' in jobs, 'kein deploy-mentolder Job'
-needs = jobs['deploy-mentolder'].get('needs', [])
-if isinstance(needs, str): needs = [needs]
-assert 'build-image' in needs, 'deploy-mentolder muss build-image brauchen'
-assert 'deploy-korczewski' not in needs, 'deploy-mentolder darf nicht von deploy-korczewski abhaengen'
+assert 'deploy-mentolder' not in jobs, 'deploy-mentolder (pre-Flux) ist zurueckgekehrt'
+assert 'render-artifact' in jobs, 'kein render-artifact Job (Flux-Pfad fehlt)'
 PY
   [ "$status" -eq 0 ]
 }
@@ -162,7 +166,9 @@ PY
   [ "$status" -eq 0 ]
 }
 
-@test "G-CD01: beide Deploy-Jobs lesen den Image-Tag aus build-image outputs" {
+@test "G-CD01: der verbliebene Deploy-Job liest den Image-Tag aus build-image outputs" {
+  # T900810: nach Entfernung von deploy-mentolder bleibt nur deploy-korczewski
+  # (tot, Guard-gepinnt) — die Wiring-Aussage gilt fuer ihn weiter.
   grep -q 'needs.build-image.outputs.image' "$BUILD_WF"
   grep -q 'needs.build-image.outputs.sha_tag' "$BUILD_WF"
 }
@@ -280,16 +286,18 @@ PY
   grep -qE 'SKIP_COMMIT_VS_DIFF' "$bats_file"
 }
 
-@test "T001446: build-website Pre-Rollout Secret-Check skips optional secretKeyRefs (both deploy jobs)" {
+@test "T001446: build-website Pre-Rollout Secret-Check skips optional secretKeyRefs (deploy-korczewski)" {
   # Regression for T001446: the check collected ALL website-secrets keys from
   # k3d/website.yaml and hard-failed on cluster-missing ones — even when the
   # manifest marks the ref `optional: true` (SEPA_CREDITOR_*, DEEPSEEK_API_KEY*,
   # schema.yaml required:false). That blocked every korczewski website deploy.
+  # T900810: deploy-mentolder ist entfernt (Flux-only) — genau EIN Secret-Check
+  # (im verbliebenen deploy-korczewski) muss den optional-Filter tragen.
   local wf="$REPO_ROOT/.github/workflows/build-website.yml"
   [ -f "$wf" ]
   local count
   count=$(grep -c "and not v.get('optional')" "$wf")
-  [ "$count" -eq 2 ]
+  [ "$count" -eq 1 ]
 }
 
 @test "T001446: secret-check filter behaves correctly against a fixture manifest" {
@@ -642,10 +650,11 @@ sys.exit(0 if p.get('packages')=='write' else 1)
 # Workflow nach dem T002118-Fix wieder startete.
 @test "T002124: jeder Job, der (auch indirekt) pnpm braucht, richtet es ein" {
   # Loest die Task-Kette aus Taskfile.yml auf statt nur Workflow-Text zu
-  # greppen. deploy-legacy ruft `task workspace:deploy`, das intern
-  # `task website:migrate` startet, das `pnpm` braucht — im Workflow steht
-  # davon nichts. Der urspruengliche Guard (T002121) suchte nur nach der
-  # woertlichen Nennung von website:migrate und uebersah den Job deshalb.
+  # greppen. Historie: deploy-legacy (entfernt, T900810) rief
+  # `task workspace:deploy`, das intern `task website:migrate` startet, das
+  # `pnpm` braucht — im Workflow steht davon nichts. Der urspruengliche Guard
+  # (T002121) suchte nur nach der woertlichen Nennung von website:migrate und
+  # uebersah den Job deshalb.
   run python3 - "$REPO_ROOT" <<'PYEOF'
 import glob, os, re, sys, yaml
 

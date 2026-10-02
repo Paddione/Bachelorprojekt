@@ -82,6 +82,7 @@
     ]
   },
   "disabledMcpjsonServers": [
+    "mcp-task-runner",
     "playwright",
     "task-master-ai"
   ],

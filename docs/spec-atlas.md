@@ -2,18 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 132 · Requirements: 2465 · Scenarios: 5466
+Specs: 133 · Requirements: 2469 · Scenarios: 5475
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 96 · Scenarios: 211 · Lines: 2529
+Reqs: 96 · Scenarios: 213 · Lines: 2549
 Last touches:
+  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900687 | 2026-09-27 | MODIFIED
+  - dev-flow-execute delegiert die Post-Merge-Finalisierung an einen frischen Finalizer-Subagenten | T900687 | 2026-09-27 | MODIFIED
   - OVERVIEW.md must name the complete vendor skill set | T900452 | 2026-09-26 | MODIFIED
   - Recall-Schichtwahl für Agenten | T900453 | 2026-09-26 | ADDED
   - WIP-Uebersicht | T900481 | 2026-09-26 | ADDED
-  - Fail-closed WIP-Finisher | T900481 | 2026-09-26 | ADDED
-  - 4B-Rail nur als Triagierer | T900481 | 2026-09-26 | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -32,6 +32,8 @@ Last touches:
   - Bewusste korczewski-Brand-Pause und hängende Admin-Jobs sind nachvollziehbar | T014537 | 2026-08-23 | ADDED
   - Runtime health measurements fail closed | T013429 | 2026-08-22 | ADDED
   - G-FLUX01 measures Flux reconciliation health | T013429 | 2026-08-22 | ADDED
+In-flight:
+  - Bewusste korczewski-Brand-Pause und hängende Admin-Jobs sind nachvollziehbar | T900650 | active | MODIFIED
 
 ### openspec-workflow
 Reqs: 72 · Scenarios: 168 · Lines: 1830
@@ -64,6 +66,24 @@ Last touches:
   - Docs-Content-Linting auf veraltete und verbotene Inhalte | T900452 | 2026-09-26 | REMOVED
   - Brand-Switch-Shell | T900452 | 2026-09-26 | REMOVED
   - Docs-Content-Vollständigkeit — Mermaid-Diagramme | T900452 | 2026-09-26 | REMOVED
+In-flight:
+  - GitHub Actions ist die einzige CI-Plattform | T900650 | active | ADDED
+  - GitLab-Parallelbetrieb — GitHub bleibt SSOT und Merge-Gate | T900650 | active | REMOVED
+  - Spiegelung GitHub → GitLab per Push-Mirror | T900650 | active | REMOVED
+  - Compute-Fallback per Runner-Tag-Variable | T900650 | active | REMOVED
+  - Werkzeug-Parität zwischen GitHub- und GitLab-Pipeline | T900650 | active | REMOVED
+  - Runner-Registrierung über Authentication-Token | T900650 | active | REMOVED
+  - GitLab-Kern-Jobs spiegeln die GitHub-Offline-Gates | T900650 | active | REMOVED
+  - GitLab-Pipeline-Status ist lesbar klassifiziert | T900650 | active | REMOVED
+  - CI-Runner auf fleet läuft in einer harten Ressourcen-Umzäunung | T900650 | active | REMOVED
+  - CI-Jobs erhalten keinen Cluster-Zugriff | T900650 | active | REMOVED
+  - Image-Pulls laufen über einen Pull-Through-Cache | T900650 | active | REMOVED
+  - Ausfall eines Runners legt die Pipeline nicht still | T900650 | active | REMOVED
+  - Gerenderte Helm-Artefakte folgen der bestehenden Repo-Konvention | T900650 | active | REMOVED
+  - GitLab-Jobs decken jeden Offline-Gate-Job aus ci.yml ab | T900650 | active | REMOVED
+  - Diff-Basis wird an einer Stelle aufgeloest und meldet ihr Fehlen | T900650 | active | REMOVED
+  - Commit-Lint auf GitLab prueft den Commit-Range | T900650 | active | REMOVED
+  - GitLab CI image refs carry a full registry host | T900650 | active | REMOVED
 
 ### fleet-operations
 Reqs: 65 · Scenarios: 121 · Lines: 1279
@@ -345,6 +365,10 @@ Last touches:
   - Diagramm mit beschrifteten Kanten (REQ-k3-01) | T002433 | 2026-08-02 | ADDED
   - Transport und Harness-Integration (REQ-k3-03) | T002433 | 2026-08-02 | ADDED
   - K1/K3-Verhältnis (Defekt D8) (REQ-k3-04) | T002433 | 2026-08-02 | ADDED
+In-flight:
+  - Periodischer Graph-Refresh (REQ-k3-05) | T900805 | active | MODIFIED
+  - Explicit read-only freshness evidence (REQ-k3-06) | T900805 | active | ADDED
+  - Verified successful-index receipt (REQ-k3-07) | T900805 | active | ADDED
 
 ### brain-k4-brain-wiki
 Reqs: 5 · Scenarios: 9 · Lines: 110
@@ -577,6 +601,8 @@ Last touches:
   - Immutable Image References in Rendered Prod Overlays | T004041 | 2026-08-14 | MODIFIED
   - Placeholder-Digests erreichen nie ein Artefakt (fail-closed) | T004041 | 2026-08-14 | ADDED
   - Digest Resolution Is Fail-Closed Online | T002706 | 2026-08-10 | ADDED
+In-flight:
+  - OCIRepositories pin a deterministic sha revision | T900650 | active | MODIFIED
 
 ### g-db01-fk-indexes
 Reqs: 2 · Scenarios: 2 · Lines: 57
@@ -693,6 +719,14 @@ Last touches:
   - Mandatory Alert Set | T016124 | 2026-09-17 | MODIFIED
   - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | 2026-09-17 | ADDED
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | 2026-09-17 | ADDED
+
+### neovim-dashboard
+Reqs: 4 · Scenarios: 7 · Lines: 67
+Last touches:
+  - Repo-tracked Neovim foundation config | T900655 | 2026-09-27 | ADDED
+  - Buffer-based Git-root function | T900655 | 2026-09-27 | ADDED
+  - Dashboard shell with fixed chapter order | T900655 | 2026-09-27 | ADDED
+  - Runbook template, master index, and coverage | T900655 | 2026-09-27 | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

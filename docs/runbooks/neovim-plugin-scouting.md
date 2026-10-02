@@ -60,3 +60,11 @@ Prefer built-in Neovim features or an already installed tool when they meet the 
 ## 6. Keep findings durable
 
 When this scouting changes a durable fact (a canonical command, runtime boundary, plugin-manager decision, or architecture mapping), update the appropriate authored runbook/profile or project config documentation in the same change. Include a source/date for time-sensitive plugin compatibility. Do not edit generated maps directly. On later runs, verify the source and revise stale findings instead of assuming this snapshot is current.
+
+Durable facts recorded by the T900655 dashboard-foundation scouting (2026-09-27, re-verify on later runs rather than trusting this snapshot):
+
+- Verified target runtime: Neovim v0.12.5 at `/usr/local/bin/nvim` (WSL host).
+- A restart into an empty config (`~/.config/nvim` cleared) was verified to start headless with a clean exit (code 0, no error output).
+- The prior host config is preserved as a read-only reference at `~/.config/nvim.old-20260927`.
+- The plugin inventory carried forward into `dotfiles/nvim/` is the thirteen-plugin `lazy-lock.json` set from that prior config, with no additions.
+- New config files under the git-ignored `dotfiles/` tree are tracked with the existing `git add -f` dotfiles convention (same as `dotfiles/agy`, `dotfiles/claude-code`, `dotfiles/opencode`).

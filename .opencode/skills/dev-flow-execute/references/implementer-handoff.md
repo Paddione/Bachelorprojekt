@@ -42,5 +42,5 @@ Details: [dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-ph
 - *Fix:* Zuerst verifizieren, dass ein failing Test existiert, dann Rot-Grün bis grün.
 - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst CI "stale artifact"; `finishing-a-development-branch` überspringt das). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](.agents/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
 - **Hintergrund-Monitore für lange Test-Runs verboten [T001969 Mishap 1].** Lange Läufe synchron mit Timeout ausführen (`timeout 600 task test:changed`), nicht auf einen Monitor-Loop warten.
-- Erstelle einen PR (OHNE Auto-Merge-Anforderung — die folgt nach dem Code-Review-Gate, Schritt 3.8).
-- **ENDE (T002365):** Ergebnis zurückmelden. Review-Gate, CI-Fix-Schleife, Merge-Wait, Abschluss und Archivierung laufen im Orchestrator. **Der Worktree wird NICHT von dir entfernt** (T002352-M1). Der Orchestrator fährt bei Schritt 3.8 fort — nicht Schritt 8.
+- Erstelle einen PR (OHNE Auto-Merge-Anforderung — die folgt im Merge-Gate, Schritt 3.8).
+- **ENDE (T002365):** Ergebnis zurückmelden. Merge-Gate (Review nur auf Zuruf), CI-Fix-Schleife, Merge-Wait, Abschluss und Archivierung laufen im Orchestrator. **Der Worktree wird NICHT von dir entfernt** (T002352-M1). Der Orchestrator fährt bei Schritt 3.8 fort — nicht Schritt 8.

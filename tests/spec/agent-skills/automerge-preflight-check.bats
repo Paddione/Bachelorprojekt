@@ -75,9 +75,9 @@ GHSTUB
 
 # ── Integration (Source-Grep, dokumentierte Ausnahme) ─────────────────────
 
-@test "T006366: Review-Gate (Schritt 3.8) fuehrt den Auto-Merge-Check vor dem Review aus" {
+@test "T006366: Merge-Gate (Schritt 3.8) fuehrt den Auto-Merge-Check aus" {
   SKILL="$REPO_ROOT/.claude/skills/dev-flow-execute/SKILL.md"
-  GATE_SECTION="$(awk '/^## .*Code-Review-Gate/{flag=1; next} /^## /&&flag{exit} flag' "$SKILL")"
+  GATE_SECTION="$(awk '/^## Schritt 3\.8: Merge-Gate/{flag=1; next} /^## /&&flag{exit} flag' "$SKILL")"
   run grep -qF "check-pr-automerge.sh" <<<"$GATE_SECTION"
   [ "$status" -eq 0 ]
 }

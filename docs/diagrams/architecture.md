@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1849 Abhängigkeitskanten · 297 API-Endpoints
+91 Services · 1848 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -36,8 +36,6 @@ flowchart LR
   downloads["downloads"]:::default
   einvoice_sidecar["einvoice-sidecar"]:::default
   error_log_retention["error-log-retention"]:::default
-  gitlab_runner["gitlab-runner"]:::default
-  registry_cache["registry-cache"]:::default
   knowledge_ingest_prs["knowledge-ingest-prs"]:::default
   knowledge_ingest_markdown["knowledge-ingest-markdown"]:::default
   knowledge_ingest_bugs["knowledge-ingest-bugs"]:::default
@@ -98,6 +96,7 @@ flowchart LR
   WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]:::default
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
+  langfuse_dev_proxy["langfuse-dev-proxy"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
   sealed_secrets["sealed-secrets"]:::default
   keycloak["keycloak"]:::auth
@@ -143,7 +142,6 @@ flowchart LR
   pocket_id -->|"DB_CONNECTION_STRING"| shared_db
   pocket_id -->|"configmap:domain-c…"| brett
   pocket_id -->|"configmap:domain-c…"| traefik
-  pvc_backup -->|"command"| nextcloud
   pvc_backup -->|"command"| vaultwarden
   oauth2_proxy_recovery -->|"command"| recovery_browser
   sdlc_console -->|"SESSIONS_DATABASE_…"| shared_db
@@ -211,6 +209,7 @@ flowchart LR
   traefik -->|"ingress"| WEBSITE_PRIMARY_SERVICE
   traefik -->|"ingress"| old_webspace
   traefik -->|"ingress"| bachelorprojekt
+  traefik -->|"ingress"| langfuse_dev_proxy
   traefik -->|"ingress"| sessions_server
   coturn -->|"selector"| coturn
   janus -->|"selector"| janus
@@ -224,7 +223,6 @@ flowchart LR
   sish -->|"selector"| sish
   downloads -->|"selector"| downloads
   einvoice_sidecar -->|"selector"| einvoice_sidecar
-  registry_cache -->|"selector"| registry_cache
   llm_gateway_embed -->|"selector"| bge_embed
   llm_gateway_rerank -->|"selector"| bge_rerank
   mailpit -->|"selector"| mailpit
@@ -1960,6 +1958,7 @@ flowchart TB
     WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
+    langfuse_dev_proxy["langfuse-dev-proxy"]
     shared_db_dev_lb["shared-db-dev-lb"]
     sealed_secrets["sealed-secrets"]
     keycloak["keycloak"]
@@ -1977,10 +1976,6 @@ flowchart TB
   end
   subgraph workspace_dev["workspace-dev"]
     oauth2_proxy_dev["oauth2-proxy-dev"]
-  end
-  subgraph gitlab_runner["gitlab-runner"]
-    gitlab_runner["gitlab-runner"]
-    registry_cache["registry-cache"]
   end
   subgraph monitoring["monitoring"]
     blackbox_exporter["blackbox-exporter"]

@@ -287,7 +287,8 @@ render_opencode_jsonc() {
       const fields = [];
       fields.push(c + J('type') + ': ' + J(cl.transport === 'http' ? 'remote' : 'local'));
       if (cl.transport === 'http') {
-        fields.push(c + J('url') + ': ' + J(cl.endpoint));
+        fields.push(c + J('url') + ': ' + J(h.url || cl.endpoint));
+        if (h.oauth === false) fields.push(c + J('oauth') + ': false');
         // T002488: opencode expandiert \${VAR} NICHT — es kennt nur die eigene
         // Notation {env:VAR}. Empirisch belegt mit \`opencode mcp list\` gegen den
         // Shim auf :13005: mit \${BGE_MCP_TOKEN} meldet opencode 'failed', mit
@@ -523,12 +524,9 @@ diff_or_drift() {
   local label="$1" expected="$2" actual="$3"
   if ! diff -q "$expected" "$actual" >/dev/null 2>&1; then
     echo "mcp-sync: check: DRIFT in $label" >&2
-    if [ "$label" = "mcp_config.json" ]; then
-      # [T002941] Redigiere Authorization-Werte, um Secret-Leaks in CI-Logs zu verhindern
-      diff "$expected" "$actual" 2>/dev/null | sed -E 's/("Authorization"[[:space:]]*:[[:space:]]*")[^"]*(")/\1***REDACTED***\2/g' || true
-    else
-      diff "$expected" "$actual" 2>/dev/null || true
-    fi
+    # [T002941, T900839] Redigiere Authorization-Werte in jedem Drift-Diff. Mehrere
+    # Ziele (agy, qwen) tragen aufgeloeste Token; eine Label-Allowlist vergisst das naechste.
+    diff "$expected" "$actual" 2>/dev/null | sed -E 's/("Authorization"[[:space:]]*:[[:space:]]*")[^"]*(")/\1***REDACTED***\2/g' || true
     return 1
   fi
   echo "mcp-sync: check: OK $label"

@@ -109,10 +109,20 @@ done
 
 [[ -z "$ENV_NAME" ]] && die "--env <name> is required"
 
+# T900789: an env may take its secrets from another env (secrets_env, e.g.
+# mentolder -> fleet-mentolder); generate for that env, never a stray own file.
+# shellcheck source=scripts/lib/secrets-env.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/secrets-env.sh"
+SECRETS_ENV=$(secrets_env_for "$ENV_NAME" "$ENV_DIR") || die "secrets_env lookup failed for ${ENV_NAME}"
+if [[ "$SECRETS_ENV" != "$ENV_NAME" ]]; then
+  info "${ENV_NAME} declares secrets_env=${SECRETS_ENV} — generating ${SECRETS_ENV}"
+  ENV_NAME="$SECRETS_ENV"
+fi
+
 SCHEMA="${ENV_DIR}/schema.yaml"
 ENV_FILE="${ENV_DIR}/${ENV_NAME}.yaml"
 SECRETS_DIR="${ENV_DIR}/.secrets"
-OUTPUT="${SECRETS_DIR}/${ENV_NAME}.yaml"
+OUTPUT="${SECRETS_DIR}/${SECRETS_ENV}.yaml"
 
 [[ ! -f "$SCHEMA" ]] && die "Schema file not found: ${SCHEMA}"
 

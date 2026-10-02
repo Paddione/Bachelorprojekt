@@ -14,29 +14,7 @@
     stationFilter?: 'triage' | 'planung' | null;
   } = $props();
 
-  interface PlanItem {
-    extId: string;
-    title: string;
-    type: string;
-    valueProp: string | null;
-    priority: string;
-    effort: string | null;
-    areas: string[];
-    dependsOn: string[];
-    rank: number | null;
-    readiness: Record<string, boolean>;
-    dorScore: number;
-    isNextCandidate: boolean;
-    pinned: boolean;
-    requirementsList: string[];
-    lastenheftLocked: boolean;
-    triage: {
-      type: string; priority: string; severity: string;
-      areas: string[]; component: string | null;
-      assignee_suggested: string; rationale: string;
-      model: string; at: string;
-    } | null;
-  }
+  import type { PlanItem } from './planning-office-types';
 
   interface Stats {
     planning: number;
@@ -363,6 +341,8 @@
       promoteFn={promote}
       removeDepFn={removeDep}
       addDepFn={addDep}
+      saveRequirementsFn={saveRequirements}
+      lockFn={toggleLock}
       onSheetPointerDown={onSheetPointerDown}
       onSheetPointerUp={onSheetPointerUp}
     />

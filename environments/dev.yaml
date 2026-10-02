@@ -20,6 +20,8 @@ env_vars:
   # devmesh: Profil und Basis-Domain; A-Records zeigen nur auf Tailnet-Adressen (D3).
   DEVMESH_DOMAIN: devmesh.mentolder.de
   DEVMESH_PROFILE: core
+  # Langfuse ist oeffentlich ueber den fleet-Proxy erreichbar (T900691).
+  LANGFUSE_PUBLIC_HOST: langfuse-dev.mentolder.de
   PROD_DOMAIN: devmesh.mentolder.de
   # web.* ist die SDLC-Console (OIDC-Callback), die Website liegt auf site.*.
   WEBSITE_HOST: site.devmesh.mentolder.de

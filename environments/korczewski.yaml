@@ -1,6 +1,8 @@
 # environments/korczewski.yaml
 environment: korczewski
 context: fleet
+# Secrets kommen aus fleet-korczewski (.secrets/ + sealed-secrets/); eigene Dateien entfallen. T900789
+secrets_env: fleet-korczewski
 domain: korczewski.de
 
 env_vars:

@@ -4,7 +4,7 @@
 #
 # Opt-in: add to .claude/settings.json (gitignored, per-machine):
 #   { "hooks": { "PreCompact": [{ "command": "bash scripts/hooks/precompact-prune.sh" }] } }
-# Env: PRUNE_MIN_AGE_TURNS (default 3), OTEL_EXPORTER_OTLP_ENDPOINT (opt telemetry)
+# Env: PRUNE_MIN_AGE_TURNS (default 3)
 #
 # Fail-open: no transcript path, unparseable JSONL, missing tools → exit 0, original untouched.
 # Idempotent: [pruned: …] markers are never re-pruned.
@@ -85,11 +85,6 @@ if [[ $? -eq 0 ]] && [[ -s "$tmp_out" ]]; then
   if [[ "$output_count" -eq "$input_count" ]]; then
     cp "$tmp_out" "$transcript_path"
   fi
-fi
-
-if [[ -n "${OTEL_EXPORTER_OTLP_ENDPOINT:-}" && "$total_pruned" -gt 0 ]]; then
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  bash "${script_dir}/../factory/otel-emit.sh" metric factory.context.pruned_chars "$total_pruned" 2>/dev/null || true
 fi
 
 exit 0

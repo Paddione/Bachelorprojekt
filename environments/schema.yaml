@@ -1091,8 +1091,8 @@ secrets:
 
   # Software Factory OTel collector bearer token (per-brand, manually provisioned).
   # Sealed into the monitoring ns as the otel-collector-auth Secret (key
-  # FACTORY_OTLP_TOKEN) that the otel-collector Deployment reads for bearer auth.
-  - name: FACTORY_OTLP_TOKEN
+  # OTEL_AUTH_TOKEN) that the otel-collector Deployment reads for bearer auth.
+  - name: OTEL_AUTH_TOKEN
     required: true
     generate: false
     description: "Bearer token the autopilot presents to the OTel collector ingress (per-brand, set manually in .secrets/<env>.yaml)"
@@ -1361,7 +1361,7 @@ secrets:
   - name: DEEPSEEK_API_KEY_PK
     required: false
     generate: false
-    description: "DeepSeek API key for the Software Factory autopilot (pk-deepseek). Separate from the coaching key so billing can be tracked per purpose. Exposed to the website pod; also set as ANTHROPIC_AUTH_TOKEN in ~/.config/factory/autopilot.env."
+    description: "DeepSeek API key (pk-deepseek, legacy autopilot). Separate from the coaching key so billing can be tracked per purpose. Exposed to the website pod."
     extra_namespaces:
       - namespace: website
         secret: website-secrets

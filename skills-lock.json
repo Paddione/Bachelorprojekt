@@ -5,7 +5,7 @@
       "source": "langfuse/skills",
       "sourceType": "github",
       "skillPath": "skills/langfuse/SKILL.md",
-      "computedHash": "2694a0387367411a7cc5c0a81ae7a3a22df8d65a64d730adadccd25f99138969"
+      "computedHash": "14afde211553546dc280bbdd25feff7d20b64b17f7c5d0976db192f5998b3709"
     },
     "vitest": {
       "source": "supabase/supabase",

@@ -31,26 +31,57 @@ data:
     const cacheDir = path.join(CBM_DIR, '.cache', 'codebase-memory-mcp');
     try {
       if (!fs.existsSync(cacheDir)) {
-        fs.mkdirSync(cacheDir, { recursive: true });
+        fs.mkdirSync(cacheDir, { recursive: true, mode: 0o700 });
       }
       const configPath = path.join(cacheDir, 'config.json');
       if (!fs.existsSync(configPath)) {
         fs.writeFileSync(configPath, JSON.stringify({ ui_enabled: true, ui_port: 9749 }, null, 2));
       }
+
+      if (fs.existsSync('/data')) {
+        for (const file of fs.readdirSync('/data')) {
+          if (file.endsWith('.db')) {
+            const target = path.join('/data', file);
+            const link = path.join(cacheDir, file);
+            if (!fs.existsSync(link)) {
+              try {
+                fs.symlinkSync(target, link);
+                console.log(`[brain] Linked ${target} -> ${link}`);
+              } catch (e) {
+                console.error(`[brain] Failed to link ${target}:`, e);
+              }
+            }
+          }
+        }
+      }
     } catch (err) {
-      console.error('[brain] Failed to write default config.json:', err);
+      console.error('[brain] Failed to initialize cacheDir:', err);
     }
 
     console.log('[brain] Starting codebase-memory-mcp daemon...');
     const daemon = spawn('codebase-memory-mcp', ['daemon', 'start'], {
-      env: { ...process.env, CBM_RUNTIME_DIR: CBM_DIR },
+      env: { ...process.env, CBM_RUNTIME_DIR: CBM_DIR, HOME: CBM_DIR },
       stdio: 'inherit'
     });
     daemon.on('exit', (code) => {
       console.log(`[brain] Daemon start exited with code ${code}`);
     });
 
+    process.on('uncaughtException', (err) => {
+      console.error('[brain] Uncaught exception:', err);
+    });
+    process.on('unhandledRejection', (err) => {
+      console.error('[brain] Unhandled rejection:', err);
+    });
+
     const server = http.createServer((req, res) => {
+      req.on('error', (err) => {
+        console.error('[brain] Client request error:', err.message);
+      });
+      res.on('error', (err) => {
+        console.error('[brain] Client response error:', err.message);
+      });
+
       // Auto-redirect root to default project
       if (req.url === '/' || req.url === '') {
         res.writeHead(302, { Location: '/?project=home-patrick-Bachelorprojekt' });
@@ -69,13 +100,27 @@ data:
         method: req.method,
         headers: headers
       }, (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
-        proxyRes.pipe(res);
+        if (!res.headersSent) {
+          try {
+            res.writeHead(proxyRes.statusCode, proxyRes.headers);
+            proxyRes.pipe(res);
+          } catch (err) {
+            console.error('[brain] Pipe error:', err.message);
+          }
+        }
       });
 
       proxyReq.on('error', (err) => {
-        res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
-        res.end('Codebase Memory Graph server warming up... Please refresh in a moment.');
+        if (!res.headersSent) {
+          try {
+            res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
+            res.end('Codebase Memory Graph server warming up... Please refresh in a moment.');
+          } catch (_) {}
+        }
+      });
+
+      res.on('close', () => {
+        proxyReq.destroy();
       });
 
       req.pipe(proxyReq);
@@ -128,10 +173,10 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
+              memory: 128Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 1Gi
           readinessProbe:
             httpGet:
               path: /api/ui-config
@@ -147,7 +192,7 @@ spec:
             periodSeconds: 30
           volumeMounts:
             - name: brain-data
-              mountPath: /home/node/.cache/codebase-memory-mcp
+              mountPath: /data
             - name: proxy-script
               mountPath: /opt/brain
       volumes:

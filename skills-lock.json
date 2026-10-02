@@ -4,8 +4,8 @@
     "langfuse": {
       "source": "langfuse/skills",
       "sourceType": "github",
-      "skillPath": ".agents/skills/langfuse/SKILL.md",
-      "computedHash": "a4c0bde8e32e3ad06fc05968d3cb617a7d8745ba9b13e797c181760d71e4ee6b"
+      "skillPath": "skills/langfuse/SKILL.md",
+      "computedHash": "2694a0387367411a7cc5c0a81ae7a3a22df8d65a64d730adadccd25f99138969"
     },
     "vitest": {
       "source": "supabase/supabase",

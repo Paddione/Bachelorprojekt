@@ -67,6 +67,7 @@
   }
 
   function pushMode() {
+    if (mode === 'idle') return;
     iframeEl?.contentWindow?.postMessage(buildSetModeMessage(mode, grillingData?.ticketId), widgetOrigin);
   }
 

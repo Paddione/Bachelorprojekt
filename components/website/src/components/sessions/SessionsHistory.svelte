@@ -114,10 +114,6 @@
           <div class="session-info">
             <h4 class="session-title">{item.title}</h4>
             <span class="session-date">{new Date(item.date).toLocaleDateString()}</span>
-            <span class="session-owner">Besitzer: {item.owner}</span>
-            {#if item.participants && item.participants.length > 0}
-              <span class="session-participants">Teilnehmer: {item.participants.join(', ')}</span>
-            {/if}
           </div>
         </button>
       </li>
@@ -227,7 +223,7 @@
     font-weight: 600;
   }
 
-  .session-date, .session-owner, .session-participants {
+  .session-date {
     font-size: 0.8rem;
     color: var(--text-muted, #666);
   }

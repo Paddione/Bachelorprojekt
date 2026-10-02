@@ -25,7 +25,7 @@
   let resolvedNamespaces: string[] = $state([]);
   let statusMap: Map<string, NodeStatus> = $state(new Map());
   let warnings: Warning[] = $state([]);
-  let selectedNode: GraphNode | null = $state(null);
+  let selectedNode = $state<GraphNode | null>(null);
   let graphLoaded = $state(false);
   let errorGraph = $state('');
   let errorPods = $state('');

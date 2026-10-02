@@ -38,8 +38,8 @@
     const unsub = floorStore.subscribe((s) => {
       if (s.payload) {
         watchdogStale = s.payload.control.watchdogStale ?? 0;
-        slotUsed = s.payload.slots?.used ?? 0;
-        slotCap = s.payload.control.slotCap ?? 3;
+        slotUsed = s.payload.control.slotsUsed ?? 0;
+        slotCap = s.payload.control.slotsCap ?? 3;
       }
     });
 

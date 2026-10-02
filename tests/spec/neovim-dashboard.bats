@@ -1262,7 +1262,7 @@ LUA
   run grep -q '^status: complete' "$RUNBOOK"
   [ "$status" -eq 0 ]
   ACTIONS="$(awk '/^actions:/{f=1; next} f && /^  - /{sub(/^  - /,""); print; next}' "$RUNBOOK")"
-  EXPECTED="$(printf 'cluster-status\npods\nservices\npod-logs\ncontext-select\nsetup-checklist\nStatus')"
+  EXPECTED="$(printf 'cluster-status\npods\nservices\npod-logs\ncontext-select\nsetup-checklist\nNode Control\nStatus')"
   if [ "$ACTIONS" != "$EXPECTED" ]; then
     fail "runbook actions mismatch"
   fi
@@ -1272,12 +1272,45 @@ LUA
   done
 
   STEPS="$(awk '/^## Geordnete Schritte/{f=1; next} f && /^## /{exit} f && /^[0-9]+\. \*\*/{line=$0; sub(/^[0-9]+\. \*\*/, "", line); sub(/\*\*.*/, "", line); print tolower(line)}' "$RUNBOOK")"
-  EXPECTED_STEPS="$(printf '%s\n' cluster-status pods services pod-logs context-select setup-checklist status)"
+  EXPECTED_STEPS="$(printf '%s\n' cluster-status pods services pod-logs context-select setup-checklist 'node control' status)"
   if [ "$STEPS" != "$EXPECTED_STEPS" ]; then
     fail "runbook step order mismatch"
   fi
 }
 
+
+# ── T900800: infrastructure-node sub-page ─────────────────────────────────
+@test "neovim-dashboard: infrastructure-node page exists and renders flat rows" {
+  cat > "$PROBE_DIR/node-page.lua" <<'LUA'
+local stage, outfile = arg[1], arg[2]
+package.path = stage .. '/lua/?.lua;' .. package.path
+local dashboard = require('config.dashboard')
+local spec = dashboard.pages['infrastructure-node']
+if not spec then
+  io.stderr:write('infrastructure-node page missing\n')
+  os.exit(1)
+end
+local ok, rows = pcall(spec.rows)
+if not ok then
+  io.stderr:write('node rows failed: ' .. tostring(rows) .. '\n')
+  os.exit(1)
+end
+if type(rows) ~= 'table' or #rows == 0 then
+  io.stderr:write('infrastructure-node page rendered no rows\n')
+  os.exit(1)
+end
+local f = io.open(outfile, 'w')
+for _, r in ipairs(rows) do
+  f:write(tostring(r.desc) .. '\n')
+end
+f:close()
+os.exit(0)
+LUA
+  OUT="$BATS_TEST_TMPDIR/node-page.out"
+  run nvim -l "$PROBE_DIR/node-page.lua" "$STAGE" "$OUT"
+  [ "$status" -eq 0 ]
+  [ -s "$OUT" ] || fail "infrastructure-node page rendered no rows"
+}
 
 # ── T900666 comfyui-images chapter tests ──
 @test "neovim-dashboard: comfyui-images module exposes nine functions in order" {
@@ -2504,4 +2537,42 @@ LUA
   grep -qx 'bufwritepre_count=0' "$EDITOR_WIRING_OUT" || fail "BufWritePre autocmds present after wiring startup"
   run bash -c "grep -qi error '$LOG'"
   [ "$status" -ne 0 ]
+}
+
+@test "neovim-dashboard: T900807 bare startup opens the dashboard, file startup does not" {
+  if ! timeout 5 git ls-remote https://github.com/folke/lazy.nvim.git HEAD >/dev/null 2>&1; then
+    skip "plugin host (github.com) unreachable — cannot bootstrap lazy.nvim offline"
+  fi
+  [ -f "$STAGE/init.lua" ] || fail "staged init.lua missing"
+
+  # Runs from a VimEnter autocmd registered AFTER the config's own, so the
+  # scheduled dashboard render has already been processed by the vim.wait().
+  # Writes the post-startup buffer identity, then quits.
+  cat > "$PROBE_DIR/startup-dashboard.lua" <<'LUA'
+vim.wait(1500, function() return vim.bo.buftype ~= '' end)
+io.stdout:write('STARTUP buftype=' .. vim.bo.buftype .. ' ft=' .. vim.bo.filetype .. '\n')
+vim.schedule(function() vim.cmd('qa!') end)
+LUA
+
+  # Priming run: bootstraps lazy.nvim + all plugins so both asserted runs below
+  # measure the dashboard, not a cold plugin install.
+  timeout 600 nvim --headless -i NONE +"Lazy! sync" +qa \
+    >"$BATS_TEST_TMPDIR/sync-startup.out" 2>"$BATS_TEST_TMPDIR/sync-startup.log" || true
+
+  # Bare start: argc == 0 and an empty start buffer, so the dashboard is the
+  # startup page.
+  timeout 120 nvim --headless -i NONE \
+    +"autocmd VimEnter * ++once luafile $PROBE_DIR/startup-dashboard.lua" \
+    >"$BATS_TEST_TMPDIR/bare-start.out" 2>"$BATS_TEST_TMPDIR/bare-start.log"
+  grep -qx 'STARTUP buftype=nofile ft=snacks_dashboard' "$BATS_TEST_TMPDIR/bare-start.out" \
+    || fail "bare startup did not render the dashboard: $(cat "$BATS_TEST_TMPDIR/bare-start.out")"
+
+  # File start: argc > 0, so the dashboard must stay out of the way.
+  SCRATCH="$BATS_TEST_TMPDIR/startup-dashboard.txt"
+  echo "startup probe" > "$SCRATCH"
+  timeout 120 nvim --headless -i NONE "$SCRATCH" \
+    +"autocmd VimEnter * ++once luafile $PROBE_DIR/startup-dashboard.lua" \
+    >"$BATS_TEST_TMPDIR/file-start.out" 2>"$BATS_TEST_TMPDIR/file-start.log"
+  grep -qx 'STARTUP buftype= ft=text' "$BATS_TEST_TMPDIR/file-start.out" \
+    || fail "file startup was overridden by the dashboard: $(cat "$BATS_TEST_TMPDIR/file-start.out")"
 }

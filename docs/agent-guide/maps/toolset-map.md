@@ -297,6 +297,12 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Fallback:_ `Grep/Glob; bei nicht indiziertem Projekt zuerst index_repository`
   - _Rollen:_ `all`
 
+## Fähigkeit: `code-graph-interpretation`
+
+- **`skill:code-graph-interpretation`** — Status `canonical` · Tier `safe`
+  - _Wann:_ K3-Codegraph lesen oder erklären, Call-Chain und Change-Impact aus Graphkanten prüfen, Graphbefund gegen Quellcode verifizieren.
+  - _Rollen:_ `all`
+
 ## Fähigkeit: `embedding-rerank`
 
 - **`mcp:bge-mcp`** — Status `canonical` · Tier `safe`

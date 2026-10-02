@@ -2,6 +2,9 @@ name: Build Talk Transcriber
 
 on:
   push:
+    # [T900810] Nur main: ohne Branch-Filter landete Branch-Inhalt auf :latest.
+    # PRs bauen weiterhin ueber den pull_request-Trigger (push: false).
+    branches: [main]
     paths:
       - "k3d/talk-transcriber/**"
       - ".github/workflows/build-transcriber.yml"

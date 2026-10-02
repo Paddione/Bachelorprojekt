@@ -1,0 +1,223 @@
+{
+  "corpus_version": "2026-09-28.1",
+  "corpus_sha256": "5fedf25797a5407db88aae09257d8912902e124867ed6656ef7a3cedf9e3dc45",
+  "evaluated_at": "2026-09-28T14:47:04Z",
+  "evaluator": "single-agent source-grounded",
+  "checkouts": {
+    "main_head": "523d16e415da800b42ae9c777b38b296e2072d27",
+    "worktree_head": "6d68122d3a610b0cc93ad50fcd455c6127a17b70",
+    "local_origin_main": "6a86eafe22bbf86168e16d060d6f8b721a5f6bd7",
+    "graph_head": "523d16e415da800b42ae9c777b38b296e2072d27",
+    "tool_version": "codebase-memory-mcp 0.9.0"
+  },
+  "summary": {
+    "total": 20,
+    "accurately_resolved": 20,
+    "acceptance_minimum": 18,
+    "acceptance_met": true,
+    "valid_arguments_after_regression_setup": true,
+    "unsupported_safety_or_deletion_claims": 0
+  },
+  "cases": [
+    {
+      "id": 1,
+      "category": "impact",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["inbound-getSession", "snippet-getSession", "edge-factory-auth"],
+      "source_checks": ["components/website/src/pages/sdlc/api/factory-budget.ts:13 getSession", "components/website/src/pages/sdlc/api/factory-budget.ts:57 getSession"],
+      "findings": "99 inbound callers depth1 without tests; factory-budget GET/POST verified in source and via CALLS edge line 13.",
+      "limitations": "Bounded depth1; possible result cap near 100 retained; no exhaustive impact claim."
+    },
+    {
+      "id": 2,
+      "category": "absence_freshness",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["status", "changes", "projects"],
+      "source_checks": ["git_probes worktree-head 6d68122d vs main-head 523d16e vs graph-head 523d16e", "git status dirty/untracked in both checkouts"],
+      "findings": "Graph reports main root/head; worktree root/head differ; drift scopes recorded; receipt unknown; no fresh assertion.",
+      "limitations": "Local origin/main may itself be stale; snapshots describe evidence not completeness."
+    },
+    {
+      "id": 3,
+      "category": "feature_service_path",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["exchange-cross", "search-exchangeCode"],
+      "source_checks": ["components/website/src/lib/auth.ts:174 fetch(tokenEndpoint)", "components/website/src/lib/auth.ts:194 fetch(userinfoEndpoint)", "components/website/src/lib/auth/provider.ts:213-214 buildEndpoints token/userinfo URLs"],
+      "findings": "Graph cross_service shows 6 internal callees including provider resolve/build; source corroborates client fetches and both OIDC endpoints.",
+      "limitations": "External HTTP routes are string URLs not graph nodes; no invented service topology."
+    },
+    {
+      "id": 4,
+      "category": "failure_diff",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["search-GET", "snippet-GET", "search-getSession", "edge-factory-auth"],
+      "source_checks": ["components/website/src/pages/sdlc/api/factory-budget.ts:13 frame line", "import getSession from auth.ts"],
+      "findings": "GET and getSession resolved; frame/import/call verified; first inspect GET handler auth block.",
+      "limitations": "Exact diff unavailable; runtime cause remains unknown; illustrative only."
+    },
+    {
+      "id": 5,
+      "category": "absence_freshness",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["inbound-consumeReturnTo", "inbound-consumeReturnTo-tests", "zero-degree", "snippet-consumeReturnTo"],
+      "source_checks": ["components/website/src/pages/api/auth/callback.ts:60 consumeReturnTo(rawState)", "export in auth.ts:113"],
+      "findings": "1 production caller (callback.GET); zero-degree heuristic returns 0 for auth.ts; not dead.",
+      "limitations": "Degree includes non-call edges; no safe-deletion certificate from topology."
+    },
+    {
+      "id": 6,
+      "category": "absence_freshness",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["invalid-callers", "inbound-getSession"],
+      "source_checks": ["trace_schema direction enum inbound/outbound/both"],
+      "findings": "Deliberate invalid direction returns only function/direction/mode without callers field; corrected inbound returns 99; original proves nothing.",
+      "limitations": "Invalid setup recorded separately per acceptance; not counted as absence."
+    },
+    {
+      "id": 7,
+      "category": "impact",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["inbound-getSession-tests", "inbound-isAdmin-tests", "edge-factory-auth"],
+      "source_checks": ["factory-budget.ts:13-14 GET calls both", "factory-budget.ts:57-58 POST calls both"],
+      "findings": "Two-seed union with tests (100 each); factory-budget verified; seed provenance and bounds retained.",
+      "limitations": "Bounded depth1; no shortest-path or completeness claim; connectivity is not breakage."
+    },
+    {
+      "id": 8,
+      "category": "symbol",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["search-getSession", "snippet-getSession"],
+      "source_checks": ["components/website/src/lib/auth.ts:241 export async function getSession"],
+      "findings": "Exact qualified Function selected; snippet span 241-299 matches source in both checkouts.",
+      "limitations": "Single-symbol lookup; no impact inferred."
+    },
+    {
+      "id": 9,
+      "category": "symbol",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["search-isAdmin", "snippet-isAdmin"],
+      "source_checks": ["components/website/src/lib/auth.ts:233-238 realmRoles includes admin or ADMIN_USERNAMES fallback"],
+      "findings": "Exact isAdmin resolved; admin granted by realmRoles admin or username fallback per source.",
+      "limitations": "Graph degree not used as caller count."
+    },
+    {
+      "id": 10,
+      "category": "symbol",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["search-GET-broad", "search-GET", "snippet-GET"],
+      "source_checks": ["components/website/src/pages/sdlc/api/factory-budget.ts:12 export const GET"],
+      "findings": "Broad GET total 202 has_more true truncated; file-constrained query selects factory-budget GET exactly.",
+      "limitations": "Broad search cap retained; file filter required for precision."
+    },
+    {
+      "id": 11,
+      "category": "symbol",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["search-getSession", "search-getSessionId", "snippet-getSessionId"],
+      "source_checks": ["auth.ts:301 getSessionId sync regex cookie parsing", "auth.ts:241 getSession async"],
+      "findings": "Both anchors exact; getSessionId verified as synchronous cookie-id parser.",
+      "limitations": "Name similarity noted; qualified names disambiguate."
+    },
+    {
+      "id": 12,
+      "category": "failure_diff",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["search-isAdmin", "snippet-isAdmin"],
+      "source_checks": ["auth.test.ts:155 describe isAdmin", "auth.test.ts:156-158 realmRoles admin true case", "auth.ts:233 isAdmin impl"],
+      "findings": "Test literal and production isAdmin resolved; hypothesis separated from observed run.",
+      "limitations": "Illustrative failure; no real test execution claimed."
+    },
+    {
+      "id": 13,
+      "category": "failure_diff",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["snippet-isAdmin"],
+      "source_checks": ["auth.ts:238 fallback ADMIN_USERNAMES.has(...)", "auth.test.ts:158,163,168 isAdmin cases"],
+      "findings": "Hypothetical false breaks username-fallback true branch; auth.test.ts isAdmin cases inspect first.",
+      "limitations": "Patch hypothetical and not applied; no existing test covers fallback-true."
+    },
+    {
+      "id": 14,
+      "category": "failure_diff",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["search-POST", "snippet-POST", "outbound-POST", "search-setBudgetLimit"],
+      "source_checks": ["factory-budget.ts:57-74 POST calls setBudgetLimit", "factory-budget.ts lib:50-56 SQL INSERT factory_control"],
+      "findings": "POST and setBudgetLimit resolved; call and SQL verified; inspect POST validation then DB.",
+      "limitations": "No invented DB failure diagnosis; illustrative frame only."
+    },
+    {
+      "id": 15,
+      "category": "impact",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["outbound-GET", "edge-factory-auth"],
+      "source_checks": ["factory-budget.ts:13-14 auth calls", "factory-budget.ts:27,35,42 budget helper branches"],
+      "findings": "5 outbound callees: 2 auth plus 3 budget helpers; branches explain selection.",
+      "limitations": "Depth1 bounded; no runtime frequency inferred."
+    },
+    {
+      "id": 16,
+      "category": "impact",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["inbound-isAdmin", "inbound-isAdmin-tests", "edge-auth-tests"],
+      "source_checks": ["auth.test.ts:158 m.isAdmin realmRoles admin", "tests.results jobId route as graph test marker"],
+      "findings": "99 without tests vs 100 with tests; auth.test.ts call verified in source though Cypher CALLS returns 0 (dynamic import gap).",
+      "limitations": "Graph misses dynamic-import test edges; no full coverage claim."
+    },
+    {
+      "id": 17,
+      "category": "feature_service_path",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["snippet-GET", "outbound-GET", "outbound-GET-depth2", "search-getRecentRuns", "search-getRunBudgetByTicket", "search-getDailyBudgetSummary"],
+      "source_checks": ["factory-budget.ts:21-42 recent/ticketId/date branches", "factory-budget lib pool.query SELECTs"],
+      "findings": "Auth plus three branches to helpers/DB confirmed; depth2 shows transitive auth/db helpers.",
+      "limitations": "DB tables are not graph nodes; helper-to-DB hop is source-only."
+    },
+    {
+      "id": 18,
+      "category": "feature_service_path",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["outbound-GET", "edge-factory-auth", "search-GET", "search-isAdmin"],
+      "source_checks": ["factory-budget.ts:14 isAdmin(session) call"],
+      "findings": "Direct CALLS edge GET->isAdmin within depth1 verified in graph and source line 14.",
+      "limitations": "Bounded direct reachability only; no global shortest-path claim."
+    },
+    {
+      "id": 19,
+      "category": "feature_service_path",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["outbound-GET-depth2", "shortest-capability", "search-ensureSessionsTable"],
+      "source_checks": ["auth.ts:74 ensureSessionsTable def", "auth.ts:250 getSession calls ensureSessionsTable"],
+      "findings": "Bounded 2-hop path GET->getSession->ensureSessionsTable exists; shortestPath Cypher returns unrelated node, capability unsupported.",
+      "limitations": "Marked unresolved for shortest-path per expected output; bounded trace does not prove shortest."
+    },
+    {
+      "id": 20,
+      "category": "absence_freshness",
+      "accurately_resolved": true,
+      "valid_arguments": true,
+      "evidence_queries": ["search-nonexistent"],
+      "source_checks": ["rg -F __K3_EVAL_NONEXISTENT_T900805_20260928__ components/website/src exit 1 no matches"],
+      "findings": "Explicit empty graph result total 0 has_more false plus focused source absence.",
+      "limitations": "Scoped to project and website src; no universal runtime absence claim."
+    }
+  ]
+}

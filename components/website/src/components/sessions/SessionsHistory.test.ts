@@ -4,8 +4,8 @@ import SessionsHistory from './SessionsHistory.svelte';
 
 const sampleHistory = {
   items: [
-    { id: 's1', slug: 's1', type: 'form', title: 'S1 Title', date: '2026-06-20T12:00:00Z', owner: 'gekko', participants: ['gekko'], content_available: true },
-    { id: 's2', slug: 's2', type: 'brainstorm', title: 'S2 Title', date: '2026-06-20T11:00:00Z', owner: 'gekko', participants: [], content_available: true }
+    { id: 's1', slug: 's1', type: 'form', title: 'S1 Title', date: '2026-06-20T12:00:00Z', ticket_id: null, content_type: 'md', content_available: true },
+    { id: 's2', slug: 's2', type: 'brainstorm', title: 'S2 Title', date: '2026-06-20T11:00:00Z', ticket_id: null, content_type: 'md', content_available: true }
   ],
   total: 2,
   hasMore: false
@@ -33,11 +33,12 @@ afterEach(() => {
 
 describe('SessionsHistory', () => {
   it('renders cards for sessions from the history API', async () => {
-    const { getByText, getAllByText } = render(SessionsHistory);
+    const { getByText, queryByText } = render(SessionsHistory);
     await waitFor(() => {
       expect(getByText('S1 Title')).toBeTruthy();
       expect(getByText('S2 Title')).toBeTruthy();
-      expect(getAllByText(/Besitzer: gekko/).length).toBe(2);
+      // T900809: die Archiv-API liefert keinen Besitzer (T016251), die Karte zeigt keinen an.
+      expect(queryByText(/Besitzer/)).toBeNull();
     });
   });
 

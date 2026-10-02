@@ -21,10 +21,6 @@ export interface ZugferdNativeInput {
   seller: { name: string; address: string; postalCode: string; city: string; country: string; vatId: string; taxNumber?: string };
 }
 
-export function generateZugferdXml(): string {
-  throw new Error('generateZugferdXml is deprecated. Use generateFacturX from ./einvoice/factur-x.ts.');
-}
-
 export function generateZugferdXmlFromNative(input: ZugferdNativeInput): string {
   const mapped: InvoiceInput = {
     number: input.invoice.number,

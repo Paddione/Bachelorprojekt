@@ -3,8 +3,71 @@
 -- no shell commands, no file writes, no state changes beyond the buffer.
 local M = {}
 
-local function link(key, desc, page)
-  return { key = key, desc = desc .. '  >', action = function(dashboard) M.show(page, dashboard) end }
+-- Highlight groups for dashboard text chunks. All are standard groups so
+-- any colorscheme themes them; no custom groups to define or re-apply.
+local HL_KEY = 'DiagnosticOk' -- green key chip, e.g. the p in [p]
+local HL_DIM = 'Comment' -- brackets, hints, footer prose
+local HL_FKEY = 'DiagnosticHint' -- navigation keys in hint/footer lines
+local HL_GROUP = 'Title' -- group headers
+
+-- Human labels stay derived from the stable kebab-case action names (which
+-- runbooks and tests pin): capitalize + dashes to spaces, with explicit
+-- overrides where that reads wrong (acronyms, verb-first phrasing).
+local LABEL_OVERRIDES = {
+  ['related-open'] = 'Open related',
+  ['goto-page'] = 'Go to page',
+  ['goto-component'] = 'Go to component',
+  ['goto-layout'] = 'Go to layout',
+  ['goto-route'] = 'Go to route',
+  ['goto-design'] = 'Go to design',
+  ['dev'] = 'Dev server',
+  ['lsp-status'] = 'LSP status',
+  ['branch-status'] = 'Branch status',
+  ['pr-view'] = 'PR view',
+  ['pr-checks'] = 'PR checks',
+  ['pr-merge'] = 'PR merge',
+  ['tickets-list'] = 'Ticket list',
+  ['triage-show'] = 'Triage',
+  ['readiness-show'] = 'Readiness',
+  ['deps-show'] = 'Dependencies',
+  ['plan-open'] = 'Open plan',
+  ['task-discover'] = 'Discover tasks',
+  ['k3-symbol'] = 'K3 symbol lookup',
+  ['runbook-open'] = 'Open runbook',
+  ['session-new'] = 'New session',
+  ['server-start'] = 'Start server',
+  ['server-stop'] = 'Stop server',
+  ['gpu-resources'] = 'GPU resources',
+  ['context-select'] = 'Select context',
+}
+
+local function label_for(name)
+  if LABEL_OVERRIDES[name] then return LABEL_OVERRIDES[name] end
+  return (name:gsub('^%l', string.upper):gsub('-', ' '))
+end
+
+-- Left-side key chip chunks: [p] with dim brackets, green key.
+local function key_chunks(key)
+  return { { '[', hl = HL_DIM }, { key, hl = HL_KEY }, { '] ', hl = HL_DIM } }
+end
+
+local function link(key, desc, page, indent)
+  local text = key_chunks(key)
+  text[#text + 1] = { desc .. '  ' }
+  text[#text + 1] = { '>', hl = HL_DIM }
+  return {
+    key = key,
+    desc = desc .. '  >',
+    text = text,
+    indent = indent or 0,
+    action = function(dashboard) M.show(page, dashboard) end,
+  }
+end
+
+-- Non-actionable group header inside a page's rows(). Skipped by Enter
+-- navigation (no action) and by runbook/order probes (no name/key+desc).
+local function group(title)
+  return { title = { '▸ ' .. title, hl = HL_GROUP }, padding = { 0, 1 } }
 end
 
 --- Build a visible-action-model item. The action model's fields are all
@@ -12,9 +75,17 @@ end
 --- at execution time, never at render time), and on_error.
 --- @param spec table { name, inputs, effect, on_error }
 local function action(spec)
+  local label = label_for(spec.name)
+  local text = key_chunks(spec.key)
+  text[#text + 1] = { label }
+  if spec.inputs and #spec.inputs > 0 then
+    text[#text + 1] = { '  (+Eingabe: ' .. table.concat(spec.inputs, ', ') .. ')', hl = HL_DIM }
+  end
   return {
     key = spec.key,
-    desc = spec.name,
+    desc = label,
+    text = text,
+    indent = 2,
     name = spec.name,
     inputs = spec.inputs or {},
     effect = spec.effect,
@@ -113,6 +184,7 @@ local pages = {
           effect = function(cwd) require('config.infrastructure').setup_checklist(cwd) end,
           on_error = function() end,
         }),
+        link('n', 'Node Control', 'infrastructure-node'),
         link('s', 'Status', 'infrastructure-status'),
       }
     end,
@@ -132,6 +204,20 @@ local pages = {
           on_error = function() end,
         }),
       }
+    end,
+  },
+  -- Node control sub-page (T900800): flat rows from the nodectl module;
+  -- the `r` refresh runs the async probes and re-renders this page.
+  ['infrastructure-node'] = {
+    title = 'Infrastructure · Node Control',
+    parent = 'infrastructure',
+    rows = function()
+      local n = require('config.nodectl')
+      return n.node_rows(function()
+        n.probe_async(function()
+          pcall(M.show, 'infrastructure-node')
+        end)
+      end)
     end,
   },
   -- Files & Search chapter page (T900657). Rows are action() records in the
@@ -185,6 +271,7 @@ local pages = {
     title = 'JavaScript / Frontend',
     rows = function()
       return {
+        group('Navigation'),
         action({
           key = 'p',
           name = 'goto-page',
@@ -220,6 +307,7 @@ local pages = {
           effect = function(cwd) require('config.js-frontend').goto_design(cwd) end,
           on_error = function() end,
         }),
+        group('Entwicklung'),
         action({
           key = 'v',
           name = 'dev',
@@ -234,6 +322,7 @@ local pages = {
           effect = function(cwd) require('config.js-frontend').preview(cwd) end,
           on_error = function() end,
         }),
+        group('Prüfungen'),
         action({
           key = 'n',
           name = 'lint',
@@ -262,6 +351,7 @@ local pages = {
           effect = function(cwd) require('config.js-frontend').test_cmd(cwd) end,
           on_error = function() end,
         }),
+        group('Status'),
         action({
           key = 's',
           name = 'lsp-status',
@@ -396,6 +486,7 @@ local pages = {
     title = 'Repository & Code Knowledge',
     rows = function()
       return {
+        group('Aufgaben'),
         action({
           key = 't',
           name = 'task-discover',
@@ -403,6 +494,7 @@ local pages = {
           effect = function(cwd) require('config.repo-knowledge').task_discover(cwd) end,
           on_error = function() end,
         }),
+        group('Codegraph'),
         action({
           key = 's',
           name = 'k3-status',
@@ -424,6 +516,7 @@ local pages = {
           effect = function(cwd) require('config.repo-knowledge').k3_trace(cwd) end,
           on_error = function() end,
         }),
+        group('Doku'),
         action({
           key = 'p',
           name = 'project-docs',
@@ -584,6 +677,7 @@ local pages = {
     title = 'SDLC',
     rows = function()
       return {
+        group('Tickets'),
         action({
           key = 't',
           name = 'tickets-list',
@@ -598,6 +692,7 @@ local pages = {
           effect = function(cwd) require('config.sdlc').show_triage(cwd) end,
           on_error = function() end,
         }),
+        group('Planung'),
         action({
           key = 'r',
           name = 'readiness-show',
@@ -619,6 +714,7 @@ local pages = {
           effect = function(cwd) require('config.sdlc').open_plan(cwd) end,
           on_error = function() end,
         }),
+        group('Verifizierung'),
         action({
           key = 'x',
           name = 'exec-status',
@@ -640,6 +736,7 @@ local pages = {
           effect = function(cwd) require('config.sdlc').close_check(cwd) end,
           on_error = function() end,
         }),
+        group('Wissen'),
         action({
           key = 's',
           name = 'process-docs',
@@ -657,6 +754,7 @@ local pages = {
     title = 'GitHub',
     rows = function()
       return {
+        group('Zweig'),
         action({
           key = 'b',
           name = 'branch-status',
@@ -671,6 +769,7 @@ local pages = {
           effect = function(cwd) require('config.github').diff_view(cwd) end,
           on_error = function() end,
         }),
+        group('Pull Request'),
         action({
           key = 'p',
           name = 'pr-view',
@@ -713,6 +812,7 @@ local pages = {
           effect = function(cwd) require('config.github').pr_merge(cwd) end,
           on_error = function() end,
         }),
+        group('Aufräumen'),
         action({
           key = 'x',
           name = 'branch-cleanup',
@@ -747,8 +847,15 @@ M.pages = pages
 function M.sections(page)
   local spec = assert(pages[page], 'Unknown dashboard page: ' .. tostring(page))
   local rows = {
-    { text = { 'NEOVIM  /  ' .. spec.title, hl = 'SnacksDashboardHeader' }, padding = 1 },
-    { desc = 'j/k oder Pfeiltasten + Enter  |  direkte Auswahl per Taste', padding = 1 },
+    { text = {
+      { 'BACHELORPROJEKT', hl = 'SnacksDashboardHeader' },
+      { '  /  ' .. spec.title, hl = HL_GROUP },
+    }, padding = 1 },
+    { text = {
+      { 'j/k', hl = HL_FKEY }, { ' bewegen   ', hl = HL_DIM },
+      { 'Enter', hl = HL_FKEY }, { ' oeffnen   ', hl = HL_DIM },
+      { '<Space>hf', hl = HL_FKEY }, { ' suchen', hl = HL_DIM },
+    }, padding = { 0, 1 } },
     spec.rows(),
   }
   if page ~= 'home' then
@@ -757,9 +864,16 @@ function M.sections(page)
     local back = link('<BS>', 'Zurueck', spec.parent or 'home')
     back.hidden = true
     rows[#rows + 1] = back
-    rows[#rows + 1] = { desc = 'Backspace: zurueck  |  0: Inhaltsverzeichnis' }
+    rows[#rows + 1] = { text = {
+      { '<BS>', hl = HL_FKEY }, { ' zurueck   ', hl = HL_DIM },
+      { '0', hl = HL_FKEY }, { ' Inhaltsverzeichnis', hl = HL_DIM },
+    } }
   end
-  rows[#rows + 1] = { key = 'q', desc = 'Neovim beenden', action = ':qa' }
+  rows[#rows + 1] = { padding = { 1, 0 } }
+  rows[#rows + 1] = {
+    key = 'q', desc = 'Neovim beenden', action = ':qa',
+    text = { { 'q', hl = HL_FKEY }, { '  Neovim beenden', hl = HL_DIM } },
+  }
   return rows
 end
 
@@ -849,6 +963,27 @@ function M.setup()
     { desc = 'Search dashboard categories and actions' })
   vim.keymap.set('n', '<leader>h', '<cmd>Dashboard<CR>', { desc = 'Dashboard', silent = true })
   vim.keymap.set('n', '<leader>hf', '<cmd>DashboardSearch<CR>', { desc = 'Dashboard search', silent = true })
+  -- Startup page: with no file arguments the dashboard IS the start screen,
+  -- so a bare `nvim` must not land on the empty default buffer. Guards keep
+  -- `nvim <file>`, `-c` scripted starts and non-file buffers untouched;
+  -- `once` keeps this a start-time-only side effect; `schedule` defers the
+  -- render past VimEnter so nothing else is still claiming the window.
+  -- Rollback without editing: `let g:dashboard_startup = 0` before startup,
+  -- or drop this autocmd. [T900807]
+  vim.api.nvim_create_autocmd('VimEnter', {
+    once = true,
+    callback = function()
+      if vim.g.dashboard_startup == 0 or vim.g.dashboard_startup == false then
+        return
+      end
+      if vim.fn.argc() > 0 or vim.bo.buftype ~= '' then
+        return
+      end
+      vim.schedule(function()
+        pcall(M.show, 'home')
+      end)
+    end,
+  })
 end
 
 return M

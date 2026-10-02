@@ -26,7 +26,7 @@
       body: JSON.stringify({ collection: c.id }),
     });
     if (r.ok) {
-      toast('success', `Reindex von "${c.name}" gestartet`);
+      toast('ok', `Reindex von "${c.name}" gestartet`);
       const poller = setInterval(async () => {
         const status = await apiCall<{ actions: AuditAction[] }>(`/api/admin/ops/audit/log?action_filter=ai_reindex&limit=5`);
         if (status.ok) {

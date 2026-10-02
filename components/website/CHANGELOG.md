@@ -1,5 +1,68 @@
 # Changelog
 
+## [1.386.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.5...website-v1.386.6) (2026-10-02)
+
+
+### Bug Fixes
+
+* **scripts:** Nightly-Vendor-Sync schreibt in eigenen Worktree und reicht einen PR ein [T900454] ([#6150](https://github.com/Paddione/Bachelorprojekt/issues/6150)) ([7889597](https://github.com/Paddione/Bachelorprojekt/commit/78895970916cc3c2efb5df4f6bd773216584a51e))
+
+## [1.386.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.4...website-v1.386.5) (2026-10-02)
+
+
+### Bug Fixes
+
+* **mcp:** mcp-sync check schwärzt Token in jedem Drift-Diff [T900839] ([#6146](https://github.com/Paddione/Bachelorprojekt/issues/6146)) ([2aeceb8](https://github.com/Paddione/Bachelorprojekt/commit/2aeceb848094b2c619056416833acfa705ea13b1))
+
+## [1.386.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.3...website-v1.386.4) (2026-10-02)
+
+
+### Bug Fixes
+
+* **ci:** health-goals schreibt per PR statt Direkt-Push auf main [T900810] ([#6140](https://github.com/Paddione/Bachelorprojekt/issues/6140)) ([93bd562](https://github.com/Paddione/Bachelorprojekt/commit/93bd562c1c50e7545b93a05a18a5425a6a20e5ec))
+
+## [1.386.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.2...website-v1.386.3) (2026-09-28)
+
+
+### Bug Fixes
+
+* **ci:** post-merge-e2e Checkout + gh-Repo-Kontext-Guard [T900810] ([#6132](https://github.com/Paddione/Bachelorprojekt/issues/6132)) ([9892472](https://github.com/Paddione/Bachelorprojekt/commit/9892472f5fd4754412f81e4bfaeea4e9897f7685))
+
+## [1.386.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.1...website-v1.386.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* svelte check zero T900809 ([#6126](https://github.com/Paddione/Bachelorprojekt/issues/6126)) ([2c32094](https://github.com/Paddione/Bachelorprojekt/commit/2c320949d884ca4747a2fa48e86cc42dec2b6a9f))
+
+## [1.386.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.0...website-v1.386.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **scripts:** report K3 freshness from validated index receipts [T900805] ([#6120](https://github.com/Paddione/Bachelorprojekt/issues/6120)) ([7a3c67a](https://github.com/Paddione/Bachelorprojekt/commit/7a3c67a26c5bed092390cb52c1e7f10085223903))
+
+## [1.386.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.2...website-v1.386.0) (2026-09-28)
+
+
+### Features
+
+* **scripts:** harness registry with per-harness sync [T900791] ([#6113](https://github.com/Paddione/Bachelorprojekt/issues/6113)) ([4f147fa](https://github.com/Paddione/Bachelorprojekt/commit/4f147fa2ae24c72ce83871d509992593ae1f6ea2))
+
+## [1.385.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.1...website-v1.385.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* **ci:** branch-reaper macht nicht entscheidbare Kandidaten sichtbar [T900787] ([#6111](https://github.com/Paddione/Bachelorprojekt/issues/6111)) ([86ab37d](https://github.com/Paddione/Bachelorprojekt/commit/86ab37d09969b1c0f13c9fc03342648a59eba02e))
+
+## [1.385.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.385.0...website-v1.385.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **infra:** Legacy-ENVs mentolder/korczewski nutzen fleet-Secrets [T900789] ([#6109](https://github.com/Paddione/Bachelorprojekt/issues/6109)) ([dbaa643](https://github.com/Paddione/Bachelorprojekt/commit/dbaa6436aaab5426062d0184b3efde043d96a211))
+
 ## [1.385.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.384.0...website-v1.385.0) (2026-09-28)
 
 

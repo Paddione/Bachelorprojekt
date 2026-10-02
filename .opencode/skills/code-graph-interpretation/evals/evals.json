@@ -1,0 +1,162 @@
+{
+  "skill_name": "code-graph-interpretation",
+  "corpus_version": "2026-09-28.1",
+  "fixed_before_scoring": true,
+  "method": "Single-agent source-grounded evaluation; no statistical multi-agent benchmark. IDs 1–7 retain prior prompts for audit. All 20 cases fixed before execution/scoring; no replacements.",
+  "acceptance": {
+    "accurately_resolved_minimum": 18,
+    "total": 20,
+    "valid_arguments_after_explicit_regression_setup": true,
+    "unsupported_safety_or_deletion_assertions": 0,
+    "unsupported_or_missing_capability_is_resolved": false
+  },
+  "evals": [
+    {
+      "id": 1,
+      "category": "impact",
+      "prompt": "Who calls the production getSession in components/website/src/lib/auth.ts? Use inbound calls depth 1, exclude tests, and verify factory-budget GET/POST.",
+      "expected_output": "Positive callers and verified import/calls; bounds and potential cap retained.",
+      "files": [],
+      "prior_prompt": "Use the K3 graph to explain who calls components/website/src/lib/auth.ts getSession and how confident we should be."
+    },
+    {
+      "id": 2,
+      "category": "absence_freshness",
+      "prompt": "Can this main-checkout graph establish freshness for the T900805 worktree? Compare reported graph SHA, main HEAD, worktree HEAD and locally known origin/main, detect_changes and git status without reindexing.",
+      "expected_output": "Record checkout mismatch and drift scopes; successful-index receipt unknown unless independently available; no fresh assertion from zero drift.",
+      "files": [],
+      "prior_prompt": "Can I trust the K3 graph for a change-impact assessment after a new main commit and local edits?"
+    },
+    {
+      "id": 3,
+      "category": "feature_service_path",
+      "prompt": "Trace exchangeCode in components/website/src/lib/auth.ts to its Pocket ID token and userinfo service routes using cross_service, and verify both service endpoints and routing.",
+      "expected_output": "Corroborate client fetch and provider configuration; mark unresolved if graph/source cannot establish both server endpoints.",
+      "files": [],
+      "prior_prompt": "The graph says a website function calls a service route. Show me the path and whether it is real."
+    },
+    {
+      "id": 4,
+      "category": "failure_diff",
+      "prompt": "Illustrative failure frame: at GET (components/website/src/pages/sdlc/api/factory-budget.ts:13), after changing auth.ts getSession. Exact diff unavailable. Identify first code to inspect.",
+      "expected_output": "Resolve GET and getSession, verify frame/import/call; missing diff and runtime cause remain unknown.",
+      "files": [],
+      "prior_prompt": "Given this illustrative failure frame: at GET (components/website/src/pages/sdlc/api/factory-budget.ts:13), after changing getSession in components/website/src/lib/auth.ts, identify the first code to inspect. The exact diff is unavailable; do not invent it."
+    },
+    {
+      "id": 5,
+      "category": "absence_freshness",
+      "prompt": "Is exported consumeReturnTo in components/website/src/lib/auth.ts dead and safe to delete? Inspect inbound references and zero-degree heuristic with tests included.",
+      "expected_output": "Find callback registration/use or report explicit bounds; exports/framework source checked; no safe-deletion assertion.",
+      "files": [],
+      "prior_prompt": "trace_path for my function returns nothing. Is it dead code I can delete?"
+    },
+    {
+      "id": 6,
+      "category": "absence_freshness",
+      "prompt": "Regression setup: trace getSession with invalid direction callers, inspect missing result fields, then correct to inbound depth 1 without tests. Does the original prove no callers?",
+      "expected_output": "Record deliberately invalid setup separately; corrected query valid and positive; omitted callers field is not empty-list evidence.",
+      "files": [],
+      "prior_prompt": "I ran trace_path for home-patrick-Bachelorprojekt.components.website.src.lib.auth.getSession with direction=callers and got only function and direction back. Does that prove nothing calls it?"
+    },
+    {
+      "id": 7,
+      "category": "impact",
+      "prompt": "Assess both auth.ts getSession and isAdmin changes using inbound depth 1 with tests. Deduplicate qualified symbols retaining seed provenance. Does this prove shortest path to factory-budget?",
+      "expected_output": "Two-seed union, test markers/filter and cap retained; representative production/test source verified; no shortest/completeness claim.",
+      "files": [],
+      "prior_prompt": "Assess potential impact if both getSession and isAdmin in components/website/src/lib/auth.ts change. Include tests and explain whether the graph proves a shortest path to the factory-budget handler."
+    },
+    {
+      "id": 8,
+      "category": "symbol",
+      "prompt": "Resolve exactly production auth.ts getSession and verify declaration source.",
+      "expected_output": "Qualified Function selected with file/name constraints; snippet and source line agree or mismatch is explicit.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "category": "symbol",
+      "prompt": "Resolve exactly auth.ts isAdmin and explain what grants admin in source.",
+      "expected_output": "Qualified Function and role/username fallback anchored to source; graph degree not caller count.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "category": "symbol",
+      "prompt": "Disambiguate GET among website functions to select pages/sdlc/api/factory-budget.ts GET.",
+      "expected_output": "Broad search truncation recorded; file-constrained qualified anchor selected and verified.",
+      "files": []
+    },
+    {
+      "id": 11,
+      "category": "symbol",
+      "prompt": "Disambiguate getSession from getSessionId in auth.ts; identify which parses the cookie id synchronously.",
+      "expected_output": "Exact anchors for both; getSessionId source verified as synchronous cookie parsing helper.",
+      "files": []
+    },
+    {
+      "id": 12,
+      "category": "failure_diff",
+      "prompt": "Illustrative failing test: auth.test.ts describe isAdmin, test returns true when realmRoles includes admin. Resolve implementation and relevant test call without claiming a real test run.",
+      "expected_output": "Literal test source and production isAdmin resolved; failure hypothesis distinguished from observed result.",
+      "files": []
+    },
+    {
+      "id": 13,
+      "category": "failure_diff",
+      "prompt": "Hypothetical patch in auth.ts isAdmin: replace return ADMIN_USERNAMES.has(session.preferred_username.toLowerCase()) with return false. Which current branch changes and which tests inspect first?",
+      "expected_output": "Source-backed fallback behavior change and tests identified; patch explicitly hypothetical and not applied.",
+      "files": []
+    },
+    {
+      "id": 14,
+      "category": "failure_diff",
+      "prompt": "Illustrative failure frame: at POST (components/website/src/pages/sdlc/api/factory-budget.ts:74) during setBudgetLimit. Trace dependency to database update and identify inspection locations.",
+      "expected_output": "Resolve POST and setBudgetLimit, verify call and SQL source; no invented database failure diagnosis.",
+      "files": []
+    },
+    {
+      "id": 15,
+      "category": "impact",
+      "prompt": "Trace factory-budget GET outbound calls depth 1 excluding tests; classify authentication and budget-data dependencies using source.",
+      "expected_output": "Bounded call results and source explain branches; no runtime frequency inference.",
+      "files": []
+    },
+    {
+      "id": 16,
+      "category": "impact",
+      "prompt": "Compare inbound isAdmin depth 1 with include_tests false and true. Identify a source-verified test dependency and explain counts.",
+      "expected_output": "Both counts and test markers retained; auth.test.ts call verified; no full coverage claim.",
+      "files": []
+    },
+    {
+      "id": 17,
+      "category": "feature_service_path",
+      "prompt": "Explain the factory-budget GET feature from request parameters through recent/ticket/date selection to budget helpers and DB.",
+      "expected_output": "Source confirms authentication, branches and helpers/queries; unsupported graph hops identified.",
+      "files": []
+    },
+    {
+      "id": 18,
+      "category": "feature_service_path",
+      "prompt": "Is factory-budget GET connected to auth.ts isAdmin within outbound CALLS depth 1? Resolve both endpoints and verify the edge.",
+      "expected_output": "Explicit bounded direct reachability and source call; no globally shortest path claim.",
+      "files": []
+    },
+    {
+      "id": 19,
+      "category": "feature_service_path",
+      "prompt": "Use the installed engine to establish a globally shortest call path from factory-budget GET to auth.ts ensureSessionsTable. Can trace_path prove it?",
+      "expected_output": "Require actual supported shortest-path query and result; mark unsupported/unresolved if only bounded trace available; source path may be supplementary.",
+      "files": []
+    },
+    {
+      "id": 20,
+      "category": "absence_freshness",
+      "prompt": "Look for exact Function __K3_EVAL_NONEXISTENT_T900805_20260928__ throughout the selected project, then verify literal absence in components/website/src.",
+      "expected_output": "Explicit empty results with total/has_more bounds and focused source absence; does not claim universal runtime absence.",
+      "files": []
+    }
+  ]
+}

@@ -23,7 +23,7 @@
 
   type Item = { id: View; no: string; title: string; sub: string; badge?: number; show?: boolean; href?: string };
 
-  const items = $derived<Item[]>([
+  const items = $derived<Item[]>(([
     { id: 'cockpit',      no: '01', title: 'Projekttickets', sub: 'Container & Features', badge: pendingContainerCount > 0 ? pendingContainerCount : undefined, show: isAdmin },
     { id: 'terminal',      no: '02', title: 'Agentic Terminal',     sub: 'Live-Agenten-Terminal (ttyd)', show: isAdmin },
     { id: 'ai-quality',    no: '03', title: 'KI-Qualität', sub: 'Latenz · Kosten · Fehler', badge: aiErrorCount > 0 ? aiErrorCount : undefined, show: isAdmin },
@@ -35,7 +35,7 @@
     { id: 'agent-guide',   no: isAdmin ? '09' : '03', title: 'Agent-Anleitung', sub: 'Lernen, wie alles funktioniert', show: true },
     { id: 'mediaviewer',   no: isAdmin ? '10' : '04', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
     { id: 'help',          no: isAdmin ? '11' : '05', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
-  ].filter(i => i.show));
+  ] satisfies Item[]).filter(i => i.show));
 
   let hover = $state<string | null>(null);
 </script>

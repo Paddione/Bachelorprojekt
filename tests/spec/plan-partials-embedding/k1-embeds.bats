@@ -174,6 +174,41 @@ setup() {
   [ "$status" -eq 1 ]
 }
 
+@test "Job-YAML referenziert workspace-secrets, nie website-secrets (T900810)" {
+  # website-secrets existiert nur im Namespace website — der Verweis trieb den
+  # Job in CreateContainerConfigError (zweite k1-Root-Cause). Muster wie alle
+  # anderen workspace-Workloads (admin-actions, backup).
+  run grep -c "name: workspace-secrets" "$REPO/k3d/k1-embed-job.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+  run grep -n "name: website-secrets" "$REPO/k3d/k1-embed-job.yaml"
+  [ "$status" -eq 1 ]
+}
+
+@test "openspec-embed SOURCE_DEFS sind im collections-CHECK enthalten (T900810)" {
+  # Drift-Guard: #5948 fuehrte specs_ssot/docs im Skript ein, aber keine Migration
+  # erweiterte collections_source_check — jeder k1-Lauf starb mit 23514.
+  run node --input-type=module -e "
+import { SOURCE_DEFS } from '$REPO/scripts/openspec-embed.mjs';
+import fs from 'node:fs';
+const sql = fs.readFileSync('$REPO/scripts/migrations/2026-09-28-k1-collections-sources.sql', 'utf8');
+const missing = Object.keys(SOURCE_DEFS).filter(s => !sql.includes(\`'\${s}'\`));
+if (missing.length) { console.error('SOURCES ohne CHECK-Abdeckung: ' + missing.join(',')); process.exit(1); }
+console.log('alle ' + Object.keys(SOURCE_DEFS).length + ' SOURCES abgedeckt');
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "Job-YAML npm-deps umgeht den arborist-Peer-Crash (T900810)" {
+  # npm 10.9.8 crasht beim Aufloesen des Repo-Dev-Baums (#loadPeerSet,
+  # "edgesOut") — ohne --legacy-peer-deps kommt der Job nie ueber npm-deps
+  # hinaus; --no-save verhindert den Schreibversuch auf package.json.
+  run grep -q "legacy-peer-deps" "$REPO/k3d/k1-embed-job.yaml"
+  [ "$status" -eq 0 ]
+  run grep -q -- "--no-save" "$REPO/k3d/k1-embed-job.yaml"
+  [ "$status" -eq 0 ]
+}
+
 @test "Job-YAML rendert per sed-Substitution vollstaendig (offline)" {
   run bash -c "sed -e 's/\\\$JOB_ID/abc1234-999/g' -e 's/\\\$MERGE_SHA/abc1234def5678/g' -e 's/\\\$FULL/0/g' -e 's|\\\$REPO_URL|https://example.invalid/x.git|g' '$REPO/k3d/k1-embed-job.yaml'"
   [ "$status" -eq 0 ]

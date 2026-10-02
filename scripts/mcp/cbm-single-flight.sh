@@ -2,7 +2,8 @@
 # scripts/mcp/cbm-single-flight.sh — Single-Flight-Wrapper fuer codebase-memory-mcp
 #
 # Serialisiert gleichzeitige Index-Laeufe per flock, um CPU/Disk-Stampedes auf der
-# Entwicklerbox zu verhindern.
+# Entwicklerbox zu verhindern. Erfasst vor/nach dem Lauf einen Fingerprint und
+# schreibt bei stabilem Erfolg einen atomaren Receipt (siehe Helper).
 #
 # Usage:
 #   scripts/mcp/cbm-single-flight.sh '<json-args>'
@@ -23,6 +24,10 @@ if [ "$#" -ne 1 ]; then
   exit 2
 fi
 
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HELPER="$HERE/cbm-freshness.py"
+ARGS_JSON="$1"
+
 LOCKDIR="$HOME/.cache/codebase-memory-mcp"
 LOCKFILE="$HOME/.cache/codebase-memory-mcp/cbm-index.lock"
 
@@ -40,4 +45,51 @@ if ! flock -w "$TIMEOUT" 9; then
   exit 3
 fi
 
-exec codebase-memory-mcp cli index_repository "$@"
+if [ ! -f "$HELPER" ]; then
+  echo "[cbm-single-flight] helper missing: $HELPER" >&2
+  exit 1
+fi
+
+BEGIN_OUT=""
+if ! BEGIN_OUT=$(python3 "$HELPER" begin --args-json "$ARGS_JSON" 2>/tmp/cbm-begin-$$.err); then
+  BEGIN_RC=$?
+  cat /tmp/cbm-begin-$$.err >&2 || true
+  rm -f /tmp/cbm-begin-$$.err
+  exit "$BEGIN_RC"
+fi
+rm -f /tmp/cbm-begin-$$.err
+
+ATTEMPT_ID=$(printf '%s' "$BEGIN_OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("attempt_id",""))' 2>/dev/null || true)
+if [ -z "$ATTEMPT_ID" ]; then
+  echo "[cbm-single-flight] begin returned no attempt_id" >&2
+  exit 1
+fi
+
+OUT_FILE=$(mktemp /tmp/cbm-index-out-XXXXXX)
+ERR_FILE=$(mktemp /tmp/cbm-index-err-XXXXXX)
+cleanup() { rm -f "$OUT_FILE" "$ERR_FILE"; }
+trap cleanup EXIT
+
+set +e
+codebase-memory-mcp cli index_repository "$ARGS_JSON" >"$OUT_FILE" 2>"$ERR_FILE"
+CLI_EXIT=$?
+set -e
+
+cat "$OUT_FILE"
+cat "$ERR_FILE" >&2
+
+set +e
+python3 "$HELPER" finish --args-json "$ARGS_JSON" --attempt-id "$ATTEMPT_ID" --exit-code "$CLI_EXIT" --stdout-file "$OUT_FILE" --stderr-file "$ERR_FILE"
+FINISH_EXIT=$?
+set -e
+
+cleanup
+trap - EXIT
+
+if [ "$CLI_EXIT" -ne 0 ]; then
+  exit "$CLI_EXIT"
+fi
+if [ "$FINISH_EXIT" -ne 0 ]; then
+  exit "$FINISH_EXIT"
+fi
+exit 0

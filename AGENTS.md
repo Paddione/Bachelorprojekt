@@ -84,6 +84,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command 
 - Pre-commit hooks block main checkout when another agent holds a lock → use worktrees.
 - `components/website/` is strictly `pnpm` (never `npm install` there); Root and `components/brett/` use `npm`.
 - `git-crypt` unlock without keyfile uses `gpg.program`; under WSL point to Windows `gpg.exe`. See `docs/runbooks/git-crypt-key-distribution.md`.
+- Missing credential: follow `docs/runbooks/credentials-finden.md` (fixed lookup order, never print or invent values, stop and ask if nothing is found).
 - After modifying manifests, run `./tests/runner.sh local <TEST-ID>`.
 
 ## Agent Coordination & Locks

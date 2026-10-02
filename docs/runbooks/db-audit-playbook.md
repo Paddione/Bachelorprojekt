@@ -56,12 +56,13 @@ Vendor-Schemata (keycloak, nextcloud, vaultwarden, docuseal) sind für strukture
 
 ## Bekannte offene Flanke
 
-Migrationen liegen historisch in fünf Verzeichnissen (`scripts/migrations/`,
-`scripts/datamodel/`, `scripts/one-shot/archive/`, `components/website/src/db/migrations/`,
-`arena-server/src/db/migrations/`). Der getrackte Factory-Runner
-(`migrations-factory-runner`) konsolidiert davon nur
-`scripts/migrations/` ↔ `components/website/src/db/migrations/` — `scripts/datamodel/` und
-`scripts/one-shot/` bleiben unkonsolidiert und gehören in jedes künftige Audit.
+Migrationen liegen historisch in fünf Verzeichnissen (`migrations/`,
+`scripts/migrations/`, `scripts/datamodel/`, `scripts/one-shot/archive/`,
+`components/website/src/db/migrations/`). Der getrackte Runner (`task db:migrate` →
+`scripts/migrate-db.mjs`, Stand: `public.factory_schema_migrations`) spielt davon nur
+`migrations/*.sql` ein; die Website-Migrationen verwaltet `website/src/db/migrate.ts`
+selbst — `scripts/migrations/`, `scripts/datamodel/` und `scripts/one-shot/archive/`
+laufen an keinem Runner und gehören in jedes künftige Audit.
 
 ## Restore-Verifikation (G-DB05) [T014544]
 

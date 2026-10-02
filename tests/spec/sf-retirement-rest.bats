@@ -36,9 +36,10 @@ _offenders() {
     esac
     # T900728: cockpit structure tests assert on website factory paths that
     # only A3a may change (added to web.txt there); ki-deck additionally
-    # guards the dropped factory_model_slots table and must name it.
+    # guards the dropped factory_model_slots table and must name it;
+    # scs-search asserts on the SCS website panels.
     case "$f" in
-      tests/spec/sdlc-cockpit/redesign-struktur.bats|tests/spec/sdlc-cockpit/deck-kompakt-layout.bats|tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats|tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats|tests/spec/pipeline-interface.bats) continue ;;
+      tests/spec/sdlc-cockpit/redesign-struktur.bats|tests/spec/sdlc-cockpit/deck-kompakt-layout.bats|tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats|tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats|tests/spec/pipeline-interface.bats|tests/unit/scs-search.bats) continue ;;
     esac
     { [[ "$f" == *[Ff]actory* ]] && echo "$f"; } || { grep -vE 'FACTORY-PLAN-REF|tickets\.(v_)?factory_|factory_schema_migrations' "$REPO/$f" | grep -qiE 'software[ -]?factory|factory-runner|factory[-_ ](floor|queue|runs?|tick|control|budget|pipeline|slots?|worker|eval|post-merge|mcp|cockpit|dispatch|runner|daemon|state)|factoryfloor|/factory/|factory_[a-z]+|factory:' && echo "$f"; }
   done < "$LIST"

@@ -162,15 +162,15 @@ Index-Lookup würde die Few-Row-Filter nicht beschleunigen (Plan-Wechsel findet
 bei `~5000+` Zeilen statt, nicht bei <1000). Indiziert werden sollte erst, wenn
 die Tabelle regelmäßig `>10k` Zeilen erreicht.
 
-### 4b. `factory_phase_events` (958 Zeilen)
+### 4b. `tickets.factory_phase_events` (958 Zeilen)
 
 EXPLAIN-Output für `SELECT … FROM tickets.factory_phase_events WHERE ticket_id = $1
-ORDER BY at DESC LIMIT 1` (Hot-Path in `factory-floor.ts:392`):
+ORDER BY at DESC LIMIT 1` (Hot-Path im SDLC-Cockpit):
 
 ```
 Limit  (cost=0.28..8.29 rows=1 width=54) (actual time=0.017..0.017 rows=0 loops=1)
   Buffers: shared hit=2
-  ->  Index Scan using factory_phase_events_ticket_at_idx on factory_phase_events  …
+  ->  Index Scan using factory_phase_events_ticket_at_idx on factory_phase_events  … (Tabelle tickets.factory_phase_events)
         Index Cond: (ticket_id = '…'::uuid)
 Execution Time: 0.247 ms
 ```
@@ -178,12 +178,12 @@ Execution Time: 0.247 ms
 **Bereits optimal**: existierender Composite-Index `(ticket_id, at DESC)` greift.
 
 EXPLAIN-Output für `SELECT COALESCE(MAX(at)::text, '') FROM tickets.factory_phase_events`
-(`pages/api/factory-floor/stream.ts:29`):
+(Streaming-Endpoint des SDLC-Cockpits):
 
 ```
 Aggregate  (cost=25.55..25.57 rows=1 width=32) (actual time=0.744..0.745 rows=1 loops=1)
   Buffers: shared hit=14 dirtied=1
-  ->  Seq Scan on factory_phase_events  (cost=0.00..23.24 rows=924 width=8) (actual time=0.018..0.422 rows=958 loops=1)
+  ->  Seq Scan on factory_phase_events  (cost=0.00..23.24 rows=924 width=8) (actual time=0.018..0.422 rows=958 loops=1) (Tabelle tickets.factory_phase_events)
 Execution Time: 0.857 ms
 ```
 
@@ -309,7 +309,7 @@ die `embedding`-Spalte) wird empfohlen, **vor** dem nächsten DB-Audit-Fenster.
 | `evidence/applied-status-korczewski.csv` | §1-Resultate korczewski (28 Zeilen) |
 | `evidence/seq-scan-hotspots.csv` | `pg_stat_user_tables` für die drei Hotspot-Tabellen |
 | `evidence/explain-questionnaire_assignments.txt` | §4a EXPLAIN-Auszüge |
-| `evidence/explain-factory_phase_events.txt` | §4b EXPLAIN-Auszüge |
+| `evidence/explain-phase-events.txt` | §4b EXPLAIN-Auszüge |
 | `evidence/explain-ticket_links.txt` | §4c EXPLAIN-Auszüge |
 | `evidence/unused-indexes-mentolder.csv` | §6 Snapshot mentolder |
 | `evidence/unused-indexes-korczewski.csv` | §6 Snapshot korczewski |
@@ -317,9 +317,9 @@ die `embedding`-Spalte) wird empfohlen, **vor** dem nächsten DB-Audit-Fenster.
 Re-Erzeugung:
 
 ```bash
-# Applied-Status (mentolder via mcp-postgres; korczewski via kubectl)
-BRAND=mentolder  bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql -c "SELECT '\''...'\'' AS migration, … FROM …"'
-BRAND=korczewski bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql -c "SELECT '\''...'\'' AS migration, … FROM …"'
+# Applied-Status via kubectl gegen shared-db (eine DB fuer beide Brands seit T002689;
+# mcp-postgres-Query ist aequivalent)
+kubectl exec -i "$(kubectl get pod -n workspace --context fleet -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)" -n workspace --context fleet -c postgres -- psql -U website -d website -c "SELECT '...' AS migration, … FROM …"
 ```
 
 ## 9. Tickets / Follow-ups

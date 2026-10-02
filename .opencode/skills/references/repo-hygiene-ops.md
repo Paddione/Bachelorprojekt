@@ -23,7 +23,7 @@ bash scripts/repo-hygiene-precheck.sh          # 0 = frei, 1 = Befund, 2 = nicht
 
 **`2` heißt „unbekannt", nicht „blockiert" [T900061].** Unter Git Bash auf Windows ist der
 Lock-Test nicht durchführbar — `flock` scheitert am fd-Redirect, und `/tmp` zeigt dort nicht
-auf die Lock-Datei, die die Factory unter WSL hält. Bis T900061 fiel dieser Fehler in denselben
+auf die Lock-Datei, die der Tick unter WSL hält. Bis T900061 fiel dieser Fehler in denselben
 Zweig wie „Lock gehalten": der Vorcheck meldete auf jedem Windows-Host dauerhaft einen
 laufenden Tick und blockierte §1 grundlos. Jetzt sagt er, dass er es nicht weiß. Die
 Konsequenz ist dieselbe wie bei einem echten Tick, aber aus dem richtigen Grund: die
@@ -413,8 +413,8 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 
 Dieser Abgleich ist **verbindlicher** Bestandteil jedes repo-hygiene-Laufs — kein optionaler
 Zusatzschritt. Er war als Skript (`auto-close-merged.sh` im Factory-Baum, eingehängt in den
-Factory-Wakeup) automatisiert und lief für beide Brands, aber nur solange die Factory tickte; wenn
-die Factory nicht lief (Ausfall, manuell gestoppt), blieb das PR-Ticket-Delta unentdeckt — genau
+Factory-Wakeup) automatisiert und lief für beide Brands, aber nur solange der Wakeup-Tick lief; wenn
+der Wakeup ausfiel (Ausfall, manuell gestoppt), blieb das PR-Ticket-Delta unentdeckt — genau
 das Muster der sieben Fälle vom 2026-09-04 (T900103, Messung 2026-09-20: weder `gh`-Metadaten
 noch die Phasen-Kette unterscheiden dabei Auto-Merge von Hand-Merge — Punkt 1/2 der
 ursprünglichen ZU-KLAEREN-Liste bleiben deshalb offen und sind nicht Gegenstand dieses Schritts).

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.386.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.3...website-v1.386.4) (2026-10-02)
+
+
+### Bug Fixes
+
+* **ci:** health-goals schreibt per PR statt Direkt-Push auf main [T900810] ([#6140](https://github.com/Paddione/Bachelorprojekt/issues/6140)) ([93bd562](https://github.com/Paddione/Bachelorprojekt/commit/93bd562c1c50e7545b93a05a18a5425a6a20e5ec))
+
 ## [1.386.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.2...website-v1.386.3) (2026-09-28)
 
 

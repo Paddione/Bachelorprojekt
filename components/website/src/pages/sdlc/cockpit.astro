@@ -21,7 +21,7 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session || !isAdmin(session)) return Astro.redirect(buildLoginRedirect(Astro.url));
 
 const brand = BRAND();
-const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
+const slotsCap = parseInt(process.env.WORKSPACE_GLOBAL_CAP ?? '3', 10);
 
 // E5 (T008017): Print-Light. ?report=1 setzt die .report-Klasse am Shell-Root
 // und rendert damit die helle Export-/Druck-Ansicht (sdlc-leitstand.css teilt

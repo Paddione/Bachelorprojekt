@@ -1,17 +1,17 @@
 // components/website/src/lib/cockpit-floor-types.ts
-// Type-only (and pure-constant) re-exports from factory-floor.ts. The runtime
+// Type-only (and pure-constant) re-exports from cockpit-floor.ts. The runtime
 // module pulls in `pg` + `dns` via website-db (server-only Node built-ins);
 // Svelte/Astro files that only need the *types* and the client-safe `PHASE_ORDER`
 // constant must import them from here to keep the Vite client-side resolver
-// from walking factory-floor.ts and emitting "externalized for browser"
+// from walking cockpit-floor.ts and emitting "externalized for browser"
 // warnings — and worse, from accidentally bundling server code (including the
 // SESSIONS_DATABASE_URL connection string) into the client bundle when a
 // refactor swaps `import type` for a runtime import.
 //
 // Runtime functions (getFloor, getTicketDetail, getControl, …) stay in
-// factory-floor.ts — this file intentionally has zero server-side imports.
+// cockpit-floor.ts — this file intentionally has zero server-side imports.
 
-// Re-exported from factory-floor-lanes (pure module, no DB).
+// Re-exported from cockpit-floor-lanes (pure module, no DB).
 import type { ShippedItem, AwaitingDeployItem } from './cockpit-floor-lanes';
 export type { ShippedItem, AwaitingDeployItem };
 

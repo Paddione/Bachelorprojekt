@@ -1,7 +1,7 @@
 <script module lang="ts">
   import { PHASE_ORDER } from '../../lib/cockpit-floor-types.ts';
   import type { Phase } from '../../lib/cockpit-floor-types.ts';
-  import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
+  import { MOBILE_COL_INDEX } from './cockpit/MobileTabBar.svelte';
   export { MOBILE_COL_INDEX }; // eslint-disable-line no-import-assign
   export const MOBILE_COL_COUNT = 11;
   export const STATIONS: { key: Phase; label: string }[] =
@@ -15,13 +15,13 @@
 
   import QaChip from '../QaChip.svelte';
   import QaModal from '../QaModal.svelte';
-  import DetailPanel from './factory/DetailPanel.svelte';
-  import MobileTabBar from './factory/MobileTabBar.svelte';
-  import StagedColumn from './factory/StagedColumn.svelte';
-  import ShippedColumn from './factory/ShippedColumn.svelte';
-  import AwaitingDeployLane from './factory/AwaitingDeployLane.svelte';
+  import DetailPanel from './cockpit/DetailPanel.svelte';
+  import MobileTabBar from './cockpit/MobileTabBar.svelte';
+  import StagedColumn from './cockpit/StagedColumn.svelte';
+  import ShippedColumn from './cockpit/ShippedColumn.svelte';
+  import AwaitingDeployLane from './cockpit/AwaitingDeployLane.svelte';
   import CockpitFloorLane from './CockpitFloorLane.svelte';
-  import FloorControlCard from './factory/FloorControlCard.svelte';
+  import FloorControlCard from './cockpit/FloorControlCard.svelte';
   import type { QaItem } from '../../lib/qa-dal.ts';
   import type { CiRollup } from '../../lib/sdlc/cockpit-ci.ts';
   import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../../lib/sdlc/cockpit-floor-client.ts';
@@ -123,7 +123,7 @@
   }
   let releasing = $state<string | null>(null);
   let releaseErr = $state<string | null>(null);
-  async function releaseToFactory(extId: string) {
+  async function releaseToFloor(extId: string) {
     releasing = extId; releaseErr = null;
     try {
       const res = await fetch(`/sdlc/api/cockpit-floor/${encodeURIComponent(extId)}/release`, {
@@ -201,7 +201,7 @@
         {manualHintFor}
         {mobileColIndex}
         onOpenDetail={openDetail}
-        onReleaseToFactory={releaseToFactory}
+        onReleaseToFloor={releaseToFloor}
         onToggleManualHint={toggleManualHint}
         {relTime}
         {prioDot}

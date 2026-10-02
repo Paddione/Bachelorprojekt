@@ -2,7 +2,7 @@
   import type { HallItem, LoadingDockItem, ProviderConfigSummary } from '../../lib/cockpit-floor-types.ts';
   import { PHASE_ORDER } from '../../lib/cockpit-floor-types.ts';
   import type { Phase } from '../../lib/cockpit-floor-types.ts';
-  import ConveyorBelt from './factory/ConveyorBelt.svelte';
+  import ConveyorBelt from './cockpit/ConveyorBelt.svelte';
   import { prioDot, ticketUrl } from '../../lib/sdlc/cockpit-floor-client.ts';
 
   const STATIONS: { key: Phase; label: string }[] =

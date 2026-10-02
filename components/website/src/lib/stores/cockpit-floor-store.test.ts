@@ -6,7 +6,7 @@ const fake = { fetchedAt: '2026-07-15T00:00:00Z', hall: [], staged: [] } as unkn
 
 beforeEach(() => { vi.resetModules(); });
 
-describe('factory-floor-store', () => {
+describe('cockpit-floor-store', () => {
   it('seedFloor caches the SSR payload', async () => {
     const m = await import('./cockpit-floor-store');
     m.seedFloor(fake);

@@ -11,7 +11,7 @@
 import type { Pool, PoolClient } from 'pg';
 
 export async function applyFactoryControlSchema(pool: Pool | PoolClient): Promise<void> {
-  // Software Factory Live-Floor (T-FACTORY-FLOOR): append-only phase telemetry; latest row per ticket = current phase/state. Emitted best-effort by `ticket.sh phase`.
+  // Cockpit Live-Floor (T-COCKPIT-FLOOR): append-only phase telemetry; latest row per ticket = current phase/state. Emitted best-effort by `ticket.sh phase`.
   await pool.query(`CREATE TABLE IF NOT EXISTS tickets.factory_phase_events (id BIGSERIAL PRIMARY KEY, ticket_id UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE, phase TEXT NOT NULL CHECK (phase IN ('scout','design','plan','implement','verify','deploy')), state TEXT NOT NULL CHECK (state IN ('entered','done','blocked')), detail TEXT, driver TEXT NOT NULL DEFAULT 'factory' CHECK (driver IN ('factory','devflow')), at TIMESTAMPTZ NOT NULL DEFAULT now())`);
   await pool.query(`CREATE INDEX IF NOT EXISTS factory_phase_events_ticket_at_idx ON tickets.factory_phase_events (ticket_id, at DESC)`);
   // Factory Injection (factory-injection): operator notes/context/assets fed back into a

@@ -13,7 +13,7 @@ export const GET: APIRoute = async ({ request , locals }) => {
       headers: { 'content-type': 'application/json' },
     });
   }
-  const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
+  const slotsCap = parseInt(process.env.WORKSPACE_GLOBAL_CAP ?? '3', 10);
   try {
     const payload = await getFloor(slotsCap);
     // Enrich devflow tickets currently in deploy with their live CI verdict.

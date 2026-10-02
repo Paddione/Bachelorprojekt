@@ -5,7 +5,7 @@ import { deriveParallelStatus, type ParallelStatusRow } from '../../../../lib/pa
 
 export const prerender = false;
 
-// T900399 — Software-Factory-Decommission: die Gang-/Slot-Auswertung lebte von
+// T900399 — Decommission: die Gang-/Slot-Auswertung lebte von
 // `tickets.factory_control` (last-tick-at) und den Factory-Pipeline-Slots. Die
 // Tabelle ist entfallen, deshalb antwortet der Endpunkt statisch, ohne Query.
 

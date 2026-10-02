@@ -111,7 +111,7 @@
           {/each}
         </div>
       {:else}
-        <p class="muted">Keine Phasen-Metriken verfügbar (Prometheus/OTel Verbindung prüfen oder noch keine Factory Ticks gelaufen).</p>
+        <p class="muted">Keine Phasen-Metriken verfügbar (Prometheus/OTel Verbindung prüfen oder noch keine Ticks gelaufen).</p>
       {/if}
     </div>
 

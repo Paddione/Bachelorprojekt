@@ -1,4 +1,4 @@
-// Client-safe utilities extracted from factory-floor.ts.
+// Client-safe utilities extracted from cockpit-floor.ts.
 // NO server imports — safe to bundle for the browser.
 
 type Phase = 'scout' | 'design' | 'plan' | 'implement' | 'verify' | 'deploy';

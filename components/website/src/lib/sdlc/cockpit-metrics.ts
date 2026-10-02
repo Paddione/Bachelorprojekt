@@ -1,4 +1,4 @@
-// Software Factory Phase 3 — dashboard read helpers.
+// Phase 3 — dashboard read helpers.
 // Reads the existing tickets.v_factory_metrics + tickets.v_active_features views
 // (FA-SF-04) and tickets.feature_flags via the PER-BRAND pool. Same-namespace
 // only — never cross-namespace (korczewski cannot reach shared-db.workspace).

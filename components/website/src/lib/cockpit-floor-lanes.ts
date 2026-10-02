@@ -1,5 +1,5 @@
-// Pure lane mapping + visibility helpers for the Software Factory floor (T001092).
-// Extracted from factory-floor.ts to keep that file under its S1 line budget.
+// Pure lane mapping + visibility helpers for the cockpit floor (T001092).
+// Extracted from cockpit-floor.ts to keep that file under its S1 line budget.
 // No DB/API imports — pure functions, Vitest-testable.
 
 export interface ShippedItem {

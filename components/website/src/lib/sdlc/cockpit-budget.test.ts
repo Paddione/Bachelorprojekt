@@ -7,12 +7,12 @@ import { setBudgetLimit, getDailyBudgetSummary, getRunBudgetByTicket, getRecentR
 
 beforeEach(() => query.mockReset());
 
-describe('factory-budget', () => {
-  it('setBudgetLimit writes a fixed-precision usd string into factory_control', async () => {
+describe('cockpit-budget', () => {
+  it('setBudgetLimit writes a fixed-precision usd string into tickets.factory_control', async () => {
     query.mockResolvedValueOnce({ rows: [] });
     await setBudgetLimit(12.5);
     const [sql, params] = query.mock.calls[0];
-    expect(sql).toMatch(/INSERT INTO tickets\.factory_control/);
+    expect(sql).toMatch('INSERT INTO tickets.factory_control');
     expect(sql).toMatch(/ON CONFLICT \(key, brand\)/);
     expect(params[0]).toBe('budget-limit-daily-usd');
     expect(params[1]).toBe('12.50');
@@ -86,7 +86,7 @@ describe('factory-budget', () => {
       updatedAt: '2026-05-20T10:30:00.000Z',
     }]);
     const [sql, params] = query.mock.calls[0];
-    expect(sql).toMatch(/FROM tickets\.factory_run_budget b/);
+    expect(sql).toMatch('FROM tickets.factory_run_budget b');
     expect(sql).toMatch(/WHERE t\.id::text = \$1 OR t\.external_id = \$1/);
     expect(params).toEqual(['T000001']);
   });

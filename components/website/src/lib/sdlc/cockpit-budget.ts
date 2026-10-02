@@ -46,7 +46,7 @@ interface RecentRunSummary {
   totalCostEst: number;
 }
 
-/** Set daily budget limit in USD (writes key 'budget-limit-daily-usd' in factory_control). */
+/** Set daily budget limit in USD (writes key 'budget-limit-daily-usd' in tickets.factory_control). */
 export async function setBudgetLimit(usd: number): Promise<void> {
   await pool.query(
     `INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)

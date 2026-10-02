@@ -108,9 +108,9 @@
   const percent = $derived(summary && summary.limit ? Math.min(100, (summary.used / summary.limit) * 100) : 0);
 </script>
 
-<div class="factory-budget-page">
+<div class="cockpit-budget-page">
   <header class="page-header">
-    <h1>Software Factory Token-Budget-Leitstand</h1>
+    <h1>Token-Budget-Leitstand</h1>
   </header>
 
   {#if loading}
@@ -255,7 +255,7 @@
 </div>
 
 <style>
-  .factory-budget-page { padding: 2rem; max-width: 1400px; margin: 0 auto; color: var(--admin-text, #eef1f3); font-family: var(--font-sans, inherit); }
+  .cockpit-budget-page { padding: 2rem; max-width: 1400px; margin: 0 auto; color: var(--admin-text, #eef1f3); font-family: var(--font-sans, inherit); }
   .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
   .page-header h1 { font-size: 24px; margin: 0; font-weight: 700; }
   .page-loading { text-align: center; padding: 4rem 0; color: var(--admin-text-mute, #8c96a3); }
@@ -264,7 +264,7 @@
   @media (min-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } }
 
   @container (max-width: 480px) {
-    .factory-budget-page { padding: 0.5rem; }
+    .cockpit-budget-page { padding: 0.5rem; }
     .dashboard-grid { grid-template-columns: 1fr; }
     .col-left, .col-right { min-width: 0; }
     .card { overflow-x: auto; }

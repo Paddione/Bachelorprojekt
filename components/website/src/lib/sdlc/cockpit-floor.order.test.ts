@@ -6,7 +6,7 @@ import {
   ALL_TICKET_STATUSES,
   type LaneKey,
 } from '../tickets/pipeline-order.ts';
-// Re-export contract: the same symbols must be reachable from factory-floor.ts so
+// Re-export contract: the same symbols must be reachable from cockpit-floor.ts so
 // existing consumers (SP2/SP3/SP4) keep importing from './cockpit-floor.ts'.
 import {
   PIPELINE_LANES as FF_PIPELINE_LANES,
@@ -59,7 +59,7 @@ describe('pipeline-order SSOT', () => {
     }
   });
 
-  it('factory-floor.ts re-exports the SSOT symbols unchanged (consumer contract)', () => {
+  it('cockpit-floor.ts re-exports the SSOT symbols unchanged (consumer contract)', () => {
     expect(FF_PIPELINE_LANES).toBe(PIPELINE_LANES);
     expect(FF_STATUS_BUCKETS).toBe(STATUS_BUCKETS);
     expect(FF_ALL_TICKET_STATUSES).toBe(ALL_TICKET_STATUSES);

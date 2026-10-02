@@ -20,9 +20,6 @@ Unbekannte Aktionen gelten als `irreversible`.
 | `reorder` | `/sdlc/api/cockpit/actions` | POST | `reversible` | success/failure |
 | `reparent` | `/sdlc/api/cockpit/actions` | POST | `reversible` | success/failure |
 | `suggest` | `/sdlc/api/cockpit/actions` | POST | `irreversible` | success/failure |
-| `factory_tick` | `/sdlc/api/cockpit/actions` | POST | `repeatable` | success/failure |
-| `factory_enqueue` | `/sdlc/api/cockpit/actions` | POST | `repeatable` | success/failure |
-| `factory_release_slot` | `/sdlc/api/cockpit/actions` | POST | `reversible` | success/failure |
 | `flux_reconcile` | `/sdlc/api/cockpit/actions` | POST | `irreversible` | success/failure |
 | `ci_rerun` | `/sdlc/api/cockpit/actions` | POST | `irreversible` | success/failure |
 | `ticket_stage_plan` | `/sdlc/api/cockpit/actions` | POST | `reversible` | success/failure |
@@ -36,10 +33,10 @@ Unbekannte Aktionen gelten als `irreversible`.
   (`feature-action.ts`, `feature-actions.ts`, `batch.ts`, `reorder.ts`,
   `reparent.ts`, `suggest.ts`) existieren weiterhin als API-Dokumentation und
   für programmatischen Zugriff.
-- `factory_tick`, `factory_enqueue`, `factory_release_slot`:
-  schreiben über `writeControl()` in die `factory_phase_events`-Tabelle.
-  Die separate Route `GET /sdlc/api/cockpit-control` (`factory-control.ts`)
-  liefert den lesenden Zugriff.
+- `GET /sdlc/api/cockpit-control` (`cockpit-control.ts`):
+  Decommission-Stub (T900399) — meldet `factory_decommissioned`.
+  Die Schreib-Aktionen (`factory_tick`, `factory_enqueue`,
+  `factory_release_slot`) sind mit T900727 entfallen.
 - `flux_reconcile`, `ci_rerun`:
   Externe API-Aufrufe statt Shell (C3, T002643 — die CLI-Tools sind nicht im
   Container installiert): `flux_reconcile` pingt den Flux-Webhook-Receiver

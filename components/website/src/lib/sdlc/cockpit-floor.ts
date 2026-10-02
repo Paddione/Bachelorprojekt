@@ -1,6 +1,6 @@
-// Software Factory Live-Floor (T-FACTORY-FLOOR) — read-only aggregation DAL.
+// Cockpit Live-Floor (T-COCKPIT-FLOOR) — read-only aggregation DAL.
 // Reads tickets.factory_phase_events (current phase per ticket) joined with the
-// existing tickets/factory_control tables. PER-BRAND pool, same-namespace only.
+// existing tickets.factory_control tables. PER-BRAND pool, same-namespace only.
 // factory-metrics.ts is intentionally left untouched; this is a separate module.
 import { pool } from '../db-pool';
 import { officeCount } from '../planning-office.ts';
@@ -69,21 +69,12 @@ export {
 };
 
 // Ordered pipeline-lane SSOT lives in ./tickets/pipeline-order (pure module, no DB
-// import). Re-exported here so existing consumers keep importing from factory-floor.
+// import). Re-exported here so existing consumers keep importing from cockpit-floor.
 export {
   ALL_TICKET_STATUSES,
   PIPELINE_LANES,
   STATUS_BUCKETS,
 } from '../tickets/pipeline-order.ts';
-
-export async function writeControl(key: string, value: string, setBy = 'admin-ui'): Promise<void> {
-  await pool.query(
-    `INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
-     VALUES ($1, NULL, $2, $3, now())
-     ON CONFLICT (key, brand) DO UPDATE SET value = $2, set_by = $3, updated_at = now()`,
-    [key, value, setBy],
-  );
-}
 
 async function readControl(key: string, fallback: string): Promise<string> {
   const r = await pool.query(
@@ -124,7 +115,7 @@ export async function getControl(slotsCap: number): Promise<ControlSnapshot> {
   };
 }
 
-/** Throughput + cycle-time for today (today = newest v_factory_metrics day). */
+/** Throughput + cycle-time for today (today = newest tickets.v_factory_metrics day). */
 export async function getMetrics(): Promise<FloorMetrics> {
   const r = await pool.query(
     `SELECT features_shipped, avg_cycle_time_h FROM tickets.v_factory_metrics ORDER BY day DESC LIMIT 1`,
@@ -352,7 +343,7 @@ export async function getProviderHealth(): Promise<ProviderStatus[]> {
   }));
 }
 
-/** Assemble the full floor payload. slotsCap from FACTORY_GLOBAL_CAP. */
+/** Assemble the full floor payload. slotsCap from WORKSPACE_GLOBAL_CAP. */
 export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   const control = await getControl(slotsCap);
   const [metrics, loadingDock, hall, shipped, awaitingDeploy, staged, officeWaiting, planningCount, providerHealth] = await Promise.all([

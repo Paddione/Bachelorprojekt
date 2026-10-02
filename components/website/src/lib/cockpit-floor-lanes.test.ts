@@ -5,7 +5,7 @@ import {
   isAwaitingDeployLaneVisible,
 } from './cockpit-floor-lanes';
 
-describe('factory-floor-lanes', () => {
+describe('cockpit-floor-lanes', () => {
   it('mapShippedRow normalises done_at to ISO and keeps prNumber', () => {
     const r = mapShippedRow({ external_id: 'T1', title: 'X', done_at: '2026-06-22T10:00:00Z', pr_number: 42 });
     expect(r).toEqual({ extId: 'T1', title: 'X', doneAt: '2026-06-22T10:00:00.000Z', prNumber: 42 });

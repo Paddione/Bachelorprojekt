@@ -7,7 +7,7 @@ import { subscribe, isListening } from '../../../../lib/sdlc/cockpit-listen-hub'
 
 export const prerender = false;
 
-// E4 (T008016): Der Factory-Floor-Stream wird primär von LISTEN/NOTIFY über
+// E4 (T008016): Der Cockpit-Floor-Stream wird primär von LISTEN/NOTIFY über
 // den cockpit-listen-hub getrieben — ein DB-Abfrage-setInterval ist nur noch
 // FALLBACK, solange keine NOTIFY-Verbindung verfügbar ist (isListening-Watchdog).
 // Reconnect-Events des Hubs erzwingen eine Voll-Snapshot-Zustellung, weil

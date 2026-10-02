@@ -80,7 +80,7 @@ function spawnTicketCreate(title: string, description: string): Promise<string> 
 
 /**
  * Legt je Ziel genau ein Verbesserungs-Ticket an — mit Dedup gegen offene
- * Tickets zur selben Ziel-ID. KEIN enqueue: der Factory-Dispatch bleibt eine
+ * Tickets zur selben Ziel-ID. KEIN enqueue: der Dispatch bleibt eine
  * ausdrückliche Operator-Entscheidung. Ein Fehlschlag bei einem Ziel bricht
  * die übrigen nicht ab.
  */

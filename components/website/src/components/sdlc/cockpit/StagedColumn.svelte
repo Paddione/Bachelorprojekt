@@ -7,7 +7,7 @@
     manualHintFor,
     mobileColIndex,
     onOpenDetail,
-    onReleaseToFactory,
+    onReleaseToFloor,
     onToggleManualHint,
     relTime,
     prioDot,
@@ -21,7 +21,7 @@
     manualHintFor: string | null;
     mobileColIndex: number;
     onOpenDetail: (extId: string) => void;
-    onReleaseToFactory: (extId: string) => void;
+    onReleaseToFloor: (extId: string) => void;
     onToggleManualHint: (extId: string) => void;
     relTime: (iso: string | null) => string;
     prioDot: (p: string) => string;
@@ -65,7 +65,7 @@
             <span class="mt-1 block text-[10px] text-muted">⚠ kein Plan-Ref</span>
           {/if}
           <div class="mt-1.5 flex gap-1.5">
-            <button type="button" onclick={() => onReleaseToFactory(s.extId)} disabled={releasing === s.extId}
+            <button type="button" onclick={() => onReleaseToFloor(s.extId)} disabled={releasing === s.extId}
                     data-testid="floor-staged-release"
                     class="rounded bg-emerald-500/80 px-2 py-0.5 text-[11px] font-semibold transition-colors hover:bg-emerald-400 disabled:opacity-50">
               {releasing === s.extId ? '…' : '→ Factory'}

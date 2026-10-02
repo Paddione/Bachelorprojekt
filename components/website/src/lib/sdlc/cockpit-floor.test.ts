@@ -82,7 +82,7 @@ import type { HallItem, ProviderStatus, PhaseEventRow } from './cockpit-floor';
 import { TICKET_STATUSES } from '../tickets/status';
 import { aggregateCheckRuns } from './github-ci';
 
-describe('factory-floor DAL', () => {
+describe('cockpit-floor DAL', () => {
   it('getHall derives the latest phase/state per active ticket and the block reason', async () => {
     const hall = await getHall();
     const byId = Object.fromEntries(hall.map((h) => [h.extId, h]));
@@ -191,7 +191,7 @@ describe('factory-floor DAL', () => {
   it('getHall includes slot-less devflow tickets and tags driver + prNumber', async () => {
     const hall = await getHall();
     const byId = Object.fromEntries(hall.map((h) => [h.extId, h]));
-    // Factory ticket keeps driver=factory, no prNumber from its detail
+    // Ticket keeps driver=factory, no prNumber from its detail
     expect(byId['T000459'].driver).toBe('factory');
     // devflow ticket present despite NULL pipeline_slot
     expect(byId['T000582']).toBeDefined();
@@ -241,7 +241,7 @@ describe('github-ci aggregation', () => {
   });
 });
 
-describe('factory-floor injection DAL', () => {
+describe('cockpit-floor injection DAL', () => {
   it('insertInjection + getInjections round-trips and exposes open status', async () => {
     await insertInjection({
       extId: 'T000459', kind: 'context', phase: 'implement',

@@ -68,7 +68,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
       // Konkurrierender Schreibzugriff — als eigener Konflikt sichtbar machen,
       // nicht als generisches Versagen verschwinden lassen.
       return json(
-        { error: 'stale_factory_write', message: err.message },
+        { error: 'stale_default_write', message: err.message },
         409,
       );
     }
@@ -79,6 +79,6 @@ export const PUT: APIRoute = async ({ request, locals }) => {
       { err },
       '[sdlc/api/llm-proxy/default] PUT failed',
     );
-    return json({ error: 'factory_write_failed' }, 500);
+    return json({ error: 'default_write_failed' }, 500);
   }
 };

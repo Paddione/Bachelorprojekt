@@ -110,7 +110,7 @@ describe('PUT /sdlc/api/llm-proxy/default', () => {
     }));
     expect(res.status).toBe(409);
     const body = await res.json();
-    expect(body.error).toBe('stale_factory_write');
+    expect(body.error).toBe('stale_default_write');
     // nicht der generische 500-Pfad
     expect(res.status).not.toBe(500);
   });

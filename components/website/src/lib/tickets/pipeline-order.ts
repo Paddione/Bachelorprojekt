@@ -4,7 +4,7 @@
 // the pg Pool.
 // The 11 canonical status values are NOT declared here — they come from
 // ./status.ts (T007955 SSOT). ALL_TICKET_STATUSES is the historical name, kept
-// as an alias so existing consumers and the factory-floor.ts re-export contract
+// as an alias so existing consumers and the cockpit-floor.ts re-export contract
 // stay untouched; lane order lives in PIPELINE_LANES below.
 import { TICKET_STATUSES, type TicketStatus } from './status';
 
@@ -40,7 +40,7 @@ export const PIPELINE_STATUSES: readonly TicketStatus[] =
   PIPELINE_LANES.filter((l) => !l.side).flatMap((l) => l.statuses);
 
 // Derived/centralized: status → lane-key. Replaces the hand-maintained map; values
-// stay byte-identical to the previous literal (asserted in factory-floor.order.test.ts).
+// stay byte-identical to the previous literal (asserted in cockpit-floor.order.test.ts).
 export const STATUS_BUCKETS: Record<TicketStatus, LaneKey> = Object.fromEntries(
   PIPELINE_LANES.flatMap((l) => l.statuses.map((s) => [s, l.key] as const)),
 ) as Record<TicketStatus, LaneKey>;

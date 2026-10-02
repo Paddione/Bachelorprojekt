@@ -72,11 +72,11 @@ function stubDetailPayload(detail: TicketDetail) {
 
 test.describe('FA-SCS: Scout phase injects suggested_files', { tag: ['@admin', '@factory', '@scs'] }, () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/api/factory-floor/stream', (route) => route.abort());
+    await page.route('**/api/cockpit-floor/stream', (route) => route.abort());
   });
 
   test('T1: DetailPanel shows suggested_files section when Scout returns results', async ({ page }) => {
-    await page.route('**/api/factory-floor', (route) =>
+    await page.route('**/api/cockpit-floor', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -84,7 +84,7 @@ test.describe('FA-SCS: Scout phase injects suggested_files', { tag: ['@admin', '
       }),
     );
 
-    await page.route('**/api/factory-floor/*/detail', (route) =>
+    await page.route('**/api/cockpit-floor/*/detail', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -98,7 +98,7 @@ test.describe('FA-SCS: Scout phase injects suggested_files', { tag: ['@admin', '
     );
 
     await page.goto('/dev-status');
-    await expect(page.getByTestId('factory-floor')).toBeVisible();
+    await expect(page.getByTestId('cockpit-floor')).toBeVisible();
 
     const workpiece = page.getByTestId('floor-workpiece').filter({ hasText: HALL_ITEM.extId });
     await expect(workpiece).toBeVisible();
@@ -115,7 +115,7 @@ test.describe('FA-SCS: Scout phase injects suggested_files', { tag: ['@admin', '
   });
 
   test('T2: DetailPanel hides suggested_files section when Scout returns empty', async ({ page }) => {
-    await page.route('**/api/factory-floor', (route) =>
+    await page.route('**/api/cockpit-floor', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -123,7 +123,7 @@ test.describe('FA-SCS: Scout phase injects suggested_files', { tag: ['@admin', '
       }),
     );
 
-    await page.route('**/api/factory-floor/*/detail', (route) =>
+    await page.route('**/api/cockpit-floor/*/detail', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -152,7 +152,7 @@ test.describe('FA-SCS: Scout phase injects suggested_files', { tag: ['@admin', '
       { path: 'low-score.ts', score: 0.65, snippet: 'Less relevant' },
     ];
 
-    await page.route('**/api/factory-floor', (route) =>
+    await page.route('**/api/cockpit-floor', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -160,7 +160,7 @@ test.describe('FA-SCS: Scout phase injects suggested_files', { tag: ['@admin', '
       }),
     );
 
-    await page.route('**/api/factory-floor/*/detail', (route) =>
+    await page.route('**/api/cockpit-floor/*/detail', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',

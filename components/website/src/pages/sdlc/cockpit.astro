@@ -2,14 +2,14 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, isAdmin } from '../../lib/auth';
 import { buildLoginRedirect } from '../../lib/login-redirect';
-import { STATIONS } from '../../components/sdlc/FactoryFloor.svelte';
+import { STATIONS } from '../../components/sdlc/CockpitFloor.svelte';
 import LeitstandStatusband from '../../components/leitstand/LeitstandStatusband.svelte';
 import HelpOverlay from '../../components/leitstand/HelpOverlay.svelte';
 import Kontextzone from '../../components/leitstand/Kontextzone.svelte';
 import DeckLeiste from '../../components/leitstand/DeckLeiste.svelte';
-import AttentionStrip from '../../components/sdlc/factory/AttentionStrip.svelte';
-import ConveyorBelt from '../../components/sdlc/factory/ConveyorBelt.svelte';
-import { getFloor } from '../../lib/sdlc/factory-floor.ts';
+import AttentionStrip from '../../components/sdlc/cockpit/AttentionStrip.svelte';
+import ConveyorBelt from '../../components/sdlc/cockpit/ConveyorBelt.svelte';
+import { getFloor } from '../../lib/sdlc/cockpit-floor.ts';
 import { parseLeitstandQuery } from '../../lib/sdlc/leitstand-url.ts';
 import '../../styles/sdlc-leitstand.css';
 
@@ -21,7 +21,7 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session || !isAdmin(session)) return Astro.redirect(buildLoginRedirect(Astro.url));
 
 const brand = BRAND();
-const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
+const slotsCap = parseInt(process.env.WORKSPACE_GLOBAL_CAP ?? '3', 10);
 
 // E5 (T008017): Print-Light. ?report=1 setzt die .report-Klasse am Shell-Root
 // und rendert damit die helle Export-/Druck-Ansicht (sdlc-leitstand.css teilt

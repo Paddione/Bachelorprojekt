@@ -20,8 +20,8 @@ _offenders() {
     # the retired subsystem (absence-guard self-exemption, same precedent as
     # the os-retirement guards exempting their own scope).
     [[ "$f" == tests/spec/decommission/decommission-guard.bats ]] && continue
-    # T900728: these E2E specs stub website factory contracts (api/factory-floor,
-    # factory-floor-refreshed) that only A3a may change. They move atomically
+    # T900728: these E2E specs stub website factory contracts (api/cockpit-floor,
+    # cockpit-floor-refreshed) that only A3a may change. They move atomically
     # with the website in T900727 (added to web.txt there) — scrubbing the
     # stubs here would break them against the unchanged website.
     case "$f" in

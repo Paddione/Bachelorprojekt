@@ -87,7 +87,7 @@ test('FA-UNIF-09: Attention strip appears when a workpiece is blocked', async ({
 test('FA-UNIF-10: Planung reflects a promote without manual reload', async ({ page }) => {
   await page.goto('/admin/cockpit?tab=planung', { waitUntil: 'domcontentloaded' });
   const before = await page.locator('[data-planning-item]').count();
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent('factory-floor-refreshed', { detail: {} })));
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('cockpit-floor-refreshed', { detail: {} })));
   await expect.poll(() => page.locator('[data-planning-item]').count()).toBeGreaterThanOrEqual(0);
   expect(before).toBeGreaterThanOrEqual(0);
 });

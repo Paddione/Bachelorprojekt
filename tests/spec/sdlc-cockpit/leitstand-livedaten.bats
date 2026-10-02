@@ -23,7 +23,7 @@
 setup() {
   REPO="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   MAP="$REPO/components/website/src/middleware/redirect-map.ts"
-  STREAM="$REPO/components/website/src/pages/sdlc/api/factory-floor/stream.ts"
+  STREAM="$REPO/components/website/src/pages/sdlc/api/cockpit-floor/stream.ts"
   LEITSTAND_DIR="$REPO/components/website/src/components/leitstand"
   REGISTRY="$REPO/components/website/src/lib/sdlc/leitstand-purpose-registry.ts"
 }

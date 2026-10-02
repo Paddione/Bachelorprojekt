@@ -16,7 +16,7 @@ const SCHEMA_SRC = readFileSync(resolve(THIS_DIR, 'tickets-schema.ts'), 'utf8')
 const MIGRATIONS_SRC = readFileSync(resolve(THIS_DIR, 'tickets/migrations.ts'), 'utf8')
 const ALL_SRC = SCHEMA_SRC + '\n' + MIGRATIONS_SRC
 
-describe('factory: inert pg_notify trigger on feature inserts', () => {
+describe('pg_notify: inert pg_notify trigger on feature inserts', () => {
   it('creates the notify function and trigger', () => {
     expect(ALL_SRC).toContain('CREATE OR REPLACE FUNCTION tickets.notify_feature_inserted')
     expect(ALL_SRC).toContain('factory_feature_inserted') // NOTIFY channel name

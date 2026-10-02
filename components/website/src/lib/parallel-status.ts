@@ -10,7 +10,7 @@ export interface ParallelStatusRow {
   slots_claimed: number | string;
 }
 
-/** Shape returned by GET /api/factory/parallel-status. */
+/** Shape returned by GET /api/cockpit/parallel-status. */
 export interface ParallelStatus {
   gangTickets: number;
   slotsClaimed: number;

@@ -98,7 +98,7 @@ scripts/lib/mcp-http-security.mjs
 scripts/lib/mcp-http-security.test.mjs
 scripts/lib/ticket-help.sh
 scripts/llm-proxy/backends.mjs
-scripts/llm-proxy/factory-pin.test.mjs
+scripts/llm-proxy/default-pin.test.mjs
 scripts/llm-proxy/fixups.mjs
 scripts/llm-proxy/request-log.mjs
 scripts/llm-proxy/request-log.test.mjs
@@ -252,7 +252,7 @@ tests/spec/llm-local-dev/glimmer-worker-mcp.bats
 tests/spec/llm-local-dev/opencode-compaction.bats
 tests/spec/local-llm-proxy.bats
 tests/spec/local-llm-proxy/dispatch-capture.bats
-tests/spec/local-llm-proxy/factory-model-lock.bats
+tests/spec/local-llm-proxy/default-model-lock.bats
 tests/spec/local-llm-proxy/ui-config-seed.bats
 tests/spec/mcp-gateway.bats
 tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats

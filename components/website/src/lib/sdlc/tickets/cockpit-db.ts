@@ -452,13 +452,13 @@ async function upsertForceTick(actor: string): Promise<void> {
          SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now()`,
       [actor],
     );
-  } catch { /* best-effort — factory ticks on its own interval */ }
+  } catch { /* best-effort — the tick runs on its own interval */ }
 }
 
 // Mirrors stage-plan.sh (without the plan-file/touched_files derivation, which
 // requires git + the repo checkout — unavailable in the container). Sets
 // status=plan_staged, writes the FACTORY-PLAN-REF comment and the scout/design/
-// plan phase events, and (unless held) requests a factory tick.
+// plan phase events, and (unless held) requests a tick.
 export async function stageTicketPlan(
   brand: string,
   ticketId: string,
@@ -533,7 +533,7 @@ export async function stageTicketPlan(
   return { ok: true, ticketId, status: 'plan_staged' };
 }
 
-// Mirrors release-hold.sh: clears the execution hold and requests a factory tick.
+// Mirrors release-hold.sh: clears the execution hold and requests a tick.
 export async function releaseTicketHold(
   brand: string,
   ticketId: string,

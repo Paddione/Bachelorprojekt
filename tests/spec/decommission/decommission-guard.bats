@@ -188,22 +188,19 @@ setup() {
 
 # ── Guard 6: cockpit endpoints answer as decommissioned ────────────────
 
-@test "decommission: cockpit factory-control endpoint reports decommissioning" {
+@test "decommission: cockpit-control endpoint reports decommissioning" {
   run grep -q 'factory_decommissioned' \
-    "$REPO/components/website/src/pages/sdlc/api/factory-control.ts"
+    "$REPO/components/website/src/pages/sdlc/api/cockpit-control.ts"
   [ "$status" -eq 0 ] || {
-    echo "factory-control.ts does not report factory_decommissioned" >&2
+    echo "cockpit-control.ts does not report factory_decommissioned" >&2
     false
   }
 }
 
-@test "decommission: cockpit force-tick endpoint reports decommissioning" {
-  run grep -q 'factory_decommissioned' \
-    "$REPO/components/website/src/pages/sdlc/api/factory/force-tick.ts"
-  [ "$status" -eq 0 ] || {
-    echo "force-tick.ts does not report factory_decommissioned" >&2
-    false
-  }
+@test "decommission: cockpit force-tick endpoint is removed (T900399 complete)" {
+  # T900727: der 410-Stub api/factory/force-tick.ts ist mit A3a entfallen —
+  # kein toter Endpunkt mehr noetig, das Flag lebt in tickets.factory_control.
+  [ ! -e "$REPO/components/website/src/pages/sdlc/api/factory/force-tick.ts" ]
 }
 
 @test "decommission: no cockpit endpoint reads the factory_control table" {
@@ -222,7 +219,7 @@ setup() {
 @test "decommission: the website schema init no longer recreates factory_control" {
   # The DROP migration is only durable if no code path re-creates the table.
   run grep -q 'CREATE TABLE IF NOT EXISTS tickets.factory_control' \
-    "$REPO/components/website/src/lib/tickets/tables/factory-control.ts"
+    "$REPO/components/website/src/lib/tickets/tables/cockpit-control.ts"
   [ "$status" -ne 0 ] || {
     echo "website schema init still creates tickets.factory_control (undoes the DROP migration)" >&2
     false

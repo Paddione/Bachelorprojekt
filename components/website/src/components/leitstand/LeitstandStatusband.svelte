@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import PilotLight from '../sdlc/factory/PilotLight.svelte';
-  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store.ts';
+  import PilotLight from '../sdlc/cockpit/PilotLight.svelte';
+  import { floorStore, acquireFloor } from '../../lib/stores/cockpit-floor-store.ts';
   import { helpOverlayActive } from '../../lib/stores/help-overlay-store.ts';
   import { deriveCountdownSec } from '../../lib/parallel-status';
 
@@ -46,7 +46,7 @@
     // Fetch parallel status for tick countdown
     async function loadParallel() {
       try {
-        const res = await fetch('/sdlc/api/factory/parallel-status');
+        const res = await fetch('/sdlc/api/cockpit/parallel-status');
         if (res.ok) {
           const data = await res.json();
           if (data.nextTickAt) nextTickAt = data.nextTickAt;
@@ -98,7 +98,7 @@
     </div>
 
     <div class="ls-statusband__item">
-      <span class="ls-statusband__badge" title="Factory slots">
+      <span class="ls-statusband__badge" title="Parallel slots">
         🎯 {slotUsed}/{slotCap}
       </span>
     </div>

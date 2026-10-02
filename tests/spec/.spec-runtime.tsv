@@ -253,7 +253,7 @@
 0.169	tests/spec/local-llm-proxy/brain-ingest-port.bats
 1.064	tests/spec/local-llm-proxy/dispatch-capture.bats
 0.092	tests/spec/local-llm-proxy/embed-bge-fallback.bats
-2.000	tests/spec/local-llm-proxy/factory-model-lock.bats
+2.000	tests/spec/local-llm-proxy/default-model-lock.bats
 0.173	tests/spec/local-llm-proxy/gateway-consumer-lint.bats
 0.526	tests/spec/local-llm-proxy/gemma-kv-quant.bats
 2.286	tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats

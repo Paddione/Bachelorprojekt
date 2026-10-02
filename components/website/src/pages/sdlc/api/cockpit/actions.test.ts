@@ -27,11 +27,6 @@ vi.mock('../../../../lib/sdlc/tickets/cockpit-db', () => ({
   NotFoundError: class extends Error {},
 }));
 
-// ---- Mock factory-floor ----
-vi.mock('../../../../lib/sdlc/factory-floor', () => ({
-  writeControl: vi.fn(async () => {}),
-}));
-
 // ---- Mock website-db (pool for audit) ----
 vi.mock('../../../../lib/website-db', () => ({
   pool: { query: vi.fn(async () => ({ rows: [] })) },
@@ -39,7 +34,6 @@ vi.mock('../../../../lib/website-db', () => ({
 
 import { POST } from './actions';
 import * as cockpitDb from '../../../../lib/sdlc/tickets/cockpit-db';
-import * as factoryFloor from '../../../../lib/sdlc/factory-floor';
 import * as websiteDb from '../../../../lib/website-db';
 
 const setFeatureAction = vi.mocked(cockpitDb.setFeatureAction);
@@ -50,7 +44,6 @@ const stageTicketPlan = vi.mocked(cockpitDb.stageTicketPlan);
 const releaseTicketHold = vi.mocked(cockpitDb.releaseTicketHold);
 const closeTicket = vi.mocked(cockpitDb.closeTicket);
 const isValidTicketId = vi.mocked(cockpitDb.isValidTicketId);
-const writeControl = vi.mocked(factoryFloor.writeControl);
 const poolQuery = vi.mocked(websiteDb.pool.query);
 
 beforeEach(() => {
@@ -63,7 +56,6 @@ beforeEach(() => {
   releaseTicketHold.mockResolvedValue({ ok: true, ticketId: 't' });
   closeTicket.mockResolvedValue({ ok: true, ticketId: 't', from: 'in_review', to: 'done' });
   isValidTicketId.mockImplementation((id: string) => /^[0-9a-f-]{36}$/i.test(id));
-  writeControl.mockResolvedValue(undefined);
 });
 
 function req(cookie: string | null, body: unknown): Request {
@@ -107,12 +99,6 @@ describe('POST /sdlc/api/cockpit/actions (Task 8)', () => {
     const res = await POST({ request: req('admin', { action: 'reparent', ticketId: '42', newParentId: null }) } as never);
     expect(res.status).toBe(200);
     expect(reparentTicket).toHaveBeenCalledTimes(1);
-  });
-
-  it('routes factory_tick to writeControl', async () => {
-    const res = await POST({ request: req('admin', { action: 'factory_tick' }) } as never);
-    expect(res.status).toBe(200);
-    expect(writeControl).toHaveBeenCalledTimes(1);
   });
 
   it('routes ticket_stage_plan to stageTicketPlan (DB, no shell)', async () => {

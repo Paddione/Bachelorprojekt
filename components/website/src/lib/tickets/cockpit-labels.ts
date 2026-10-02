@@ -57,8 +57,8 @@ export function resolutionLabel(r: string): string { return RESOLUTION_LABELS[r]
 // done/archived require a resolution server-side (transition.ts §44). Pick a
 // sensible default by ticket type so a one-click "Erledigt" succeeds instead of 400.
 export function defaultResolutionFor(type: string): string {
-  // Muss deckungsgleich mit scripts/factory/auto-close-merged.sh bleiben, sonst
-  // weichen Cockpit-Anzeige und automatischer Merge-Abschluss voneinander ab.
+  // Bug/Fix schliessen als fixed, alles andere als shipped — Standard damit
+  // ein Klick auf "Erledigt" statt 400 erfolgreich ist.
   return type === 'bug' || type === 'fix' ? 'fixed' : 'shipped';
 }
 

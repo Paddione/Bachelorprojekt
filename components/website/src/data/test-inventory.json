@@ -4506,6 +4506,12 @@
     "kind": "shell"
   },
   {
+    "id": "primary-agents-omo",
+    "file": "tests/spec/primary-agents-omo.bats",
+    "category": "primary-agents-omo",
+    "kind": "shell"
+  },
+  {
     "id": "projekttickets-cockpit",
     "file": "tests/spec/projekttickets-cockpit.bats",
     "category": "projekttickets-cockpit",

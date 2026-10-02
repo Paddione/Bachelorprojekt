@@ -60,13 +60,9 @@ setup() {
   popd >/dev/null || exit 1
 }
 
-@test "T002352-M2: mcp-gateway.bats has negation probe for scenario filter" {
-  TESTFILE="$REPO_ROOT/tests/spec/mcp-gateway.bats"
-  # The test at line 429 contains "Negativ-Probe" — a probe that verifies the
-  # scenario filter still lets non-scenario content through (grep -cE '^#+ ')
-  run grep -c "Negativ-Probe" "$TESTFILE"
-  [ "$output" -ge 1 ] || { echo "missing negation probe in mcp-gateway.bats"; false; }
-}
+# T002352-M2 retired (T900852): the scenario filter tested openspec-spec
+# filtering in mcp-gateway.bats; A1b removed the feature with its spec,
+# so the negation-probe meta-assertion has no subject left.
 
 # ── Mishap 3: freshness:check must distinguish "not staged" from "stale" ───
 

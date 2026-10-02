@@ -45,7 +45,7 @@ new_test_repo() {
   if [[ "${1:-archive}" == "archive" ]]; then
     mkdir -p "$TEST_REPO/.agents/plans/archive/foo"
     echo spec > "$TEST_REPO/.agents/plans/archive/foo/spec.md"
-    git -C "$TEST_REPO" add plan
+    git -C "$TEST_REPO" add .agents/plans
     git -C "$TEST_REPO" commit -q -m "chore(plans): archive foo → bar [T009999]"
     ARCHIVE_SHA="$(git -C "$TEST_REPO" rev-parse HEAD)"
   else

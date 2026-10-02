@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # Leitstand-DS-Token-Guard [T007559] -- Requirement "Leitstand Design Token Set"
-# (openspec/changes/sdlc-leitstand-e1-e2/specs/sdlc-cockpit.md).
 #
 # Pruefmodus: Quelltext-Pruefung (dokumentierte Ausnahme T002448-M4) -- ein
 # CSS-Custom-Property-Set *ist* sein Quelltext; es gibt ohne Playwright-

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sessions-server/deregister-reap.bats
-# SSOT: openspec/specs/sessions-server.md — Deregistration + Dead Process Reaping.
 # Prüfmodus: command output verification (Exit-Codes + Registry-JSON-Zustand).
 #
 # Hinweis: Das Verhalten von reap bei ungetrackten PIDs (server_pid <= 0) ist

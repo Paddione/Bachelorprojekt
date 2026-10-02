@@ -22,7 +22,7 @@ Dieser Index verlinkt die gepflegten Einstiegspunkte. Konfiguration, Spezifikati
 ## Entscheidungen und Historie
 
 - [Architekturentscheidungen](adr/) — Status und Nachträge der jeweiligen ADR beachten; [ADR-008](adr/ADR-008-local-k3s-dev-mesh.md) beschreibt das lokale Dev-Mesh.
-- [Aktuelle OpenSpec-Spezifikationen](../openspec/specs/), [laufende Änderungen](../openspec/changes/) und [Change-Archiv](../openspec/changes/archive/)
+- [Laufende Pläne](../.agents/plans/) und [ADRs](adr/)
 - [Historischer Dev-Stack](dev-stack/README.md) — die dortigen k3d-Schritte sind als veraltet markiert.
 - [Frühere Planungsdokumente](superpowers/) und [alte HTML-Dokumentation](legacy-html/)
 

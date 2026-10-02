@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/fit-ngl-conflict.bats
-# SSOT: openspec/changes/qwen-fit-ngl/specs/llm-local-dev.md
 #       Requirement "Start scripts leave -ngl to -fit" (T900171).
 #
 # llama.cpp (b10881) bricht -fit ab, sobald -ngl von Hand gesetzt ist:

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/security/cluster-admin-audit.bats
-# SSOT: openspec/specs/security.md  (Change: openspec/changes/rbac-exec-least-privilege)
 # Ticket: T900110
 #
 # Pruefmodus: Laufzeit — fuehrt das Audit-Skript aus und prueft Output/Exit-Code

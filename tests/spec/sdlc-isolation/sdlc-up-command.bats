@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-isolation/sdlc-up-command.bats
-# SSOT: openspec/changes/sdlc-up-command/tasks.md (T002655)
 #
 # Acceptance tests for the sdlc:up / sdlc:down / sdlc:dev orchestration commands.
 # Tests run against task --dry (command output), not implementation source.

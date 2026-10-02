@@ -28,8 +28,8 @@ scripts/plan-intel.sh <slug> [--target-files <f1,f2,...>] [--out <pfad>]
 ```
 
 - Ohne `--target-files`: Zieldateien aus dem Partial-Manifest von
-  `openspec/changes/<slug>/tasks.md` lesen (`## Partials`-Tabelle, Spalte `target_files`).
-- Ohne `--out`: nach `openspec/changes/<slug>/intel.json` schreiben.
+  `.agents/plans/<slug>/tasks.md` lesen (`## Partials`-Tabelle, Spalte `target_files`).
+- Ohne `--out`: nach `.agents/plans/<slug>/intel.json` schreiben.
 - Existiert die Zieldatei bereits, werden `api_contracts` und `external_types` aus ihr
   übernommen — der Generator überschreibt niemals, was der Planner von Hand ergänzt hat.
 
@@ -78,8 +78,8 @@ validieren. Pflichtsektionen sind `meta`, `impact_files` und `symbols`; die übr
 leer sein.
 
 ```bash
-jq -e . openspec/changes/<slug>/intel.json
-bash scripts/plan-intel-filter.sh openspec/changes/<slug>/intel.json <eine-zieldatei>
+jq -e . .agents/plans/<slug>/intel.json
+bash scripts/plan-intel-filter.sh .agents/plans/<slug>/intel.json <eine-zieldatei>
 ```
 
 Der zweite Befehl prüft die Interoperabilität mit dem bestehenden Filter: `impact_files` und

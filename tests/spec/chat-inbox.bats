@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/chat-inbox.md
 # T001456: E2E-Testdaten dürfen weder im Admin-Postfach auftauchen noch als
 # unmarkierte Meetings/Kunden in Prod persistieren.
 

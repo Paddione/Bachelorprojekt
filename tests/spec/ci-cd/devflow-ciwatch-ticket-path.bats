@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/devflow-ciwatch-ticket-path.bats
-# SSOT: openspec/specs/ci-cd.md, openspec/specs/mishap-t002242.md
 #
 # T006370 — scripts/devflow-ci-watch.sh ruft ./scripts/ticket.sh relativ auf.
 # Nach Worktree-Remove (cwd zeigt ins Nichts oder enthält kein scripts/)

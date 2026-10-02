@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/backup-pipeline.bats
-# SSOT: openspec/specs/backup-pipeline.md
 #
 # Covers: render-sichere Runtime-Variablen im PVC-Backup-Mounter (T014535).
 # Reproduziert die Flux-Render-Logik (scripts/flux-render-artifact.sh) auf

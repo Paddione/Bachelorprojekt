@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/automerge-preflight-check.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: devflow-automerge-preflight, T006366)
 #
 # PRÜFMODUS: Output-Verifikation (T002448-M4) für das Script-Verhalten — das Skript
 # wird AUSGEFÜHRT und gegen einen gh-Stub im PATH gemessen (kein Ambient-gh, Muster

@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/s1-violations-batch1/proposal.md
 # G-RH01: S1-Frozen-Violations ≤ 30 Einträge.
 # Counts only S1-prefixed keys (file-size violations). S2/S3/S4 are
 # independent gates tracked separately and not in scope for G-RH01.

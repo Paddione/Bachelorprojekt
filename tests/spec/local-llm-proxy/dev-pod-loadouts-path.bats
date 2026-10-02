@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/dev-pod-loadouts-path.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T900109
 
 setup() {

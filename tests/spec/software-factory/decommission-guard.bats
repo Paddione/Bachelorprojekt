@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/software-factory/decommission-guard.bats
 # Ticket: T900399 — Software-Factory Decommission
-# SSOT: openspec/changes/software-factory-decommission/
 #
 # Decommissioning guard: asserts the Software-Factory subsystem is really gone.
 # This is the only file that survives in tests/spec/software-factory/ — every

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/opencode-compaction.bats
-# SSOT: openspec/specs/llm-local-dev.md (change opencode-factory-context-tuning)
 
 setup() {
   export REPO="$(cd "$BATS_TEST_DIRNAME/../../../" && pwd)"

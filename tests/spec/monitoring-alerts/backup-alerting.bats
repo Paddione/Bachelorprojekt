@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/monitoring-alerts/backup-alerting.bats
-# SSOT: openspec/specs/monitoring-alerts.md
 #
 # Covers: backup.rules alert group and the Alertmanager routing fix that makes
 # alerts from the workspace namespaces reach a receiver at all. [T015712]

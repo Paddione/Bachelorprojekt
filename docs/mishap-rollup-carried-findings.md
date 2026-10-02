@@ -18,7 +18,7 @@ Reproduktion der Liste (Stand vor dem Abbau, `origin/main` bei `0d56ca413`):
 ```bash
 PRE=0d56ca413
 git show "$PRE" --stat >/dev/null   # Stand fixieren
-git grep -h '^### Requirement:' "$PRE" -- 'openspec/changes/mishap-incident-rollup-*/specs/*.md' \
+git grep -h '^### Requirement:' "$PRE" -- 'mishap-incident-rollup-*/specs/*.md' \
   | sed 's/^### Requirement: //' | sort -u
 ```
 
@@ -29,7 +29,7 @@ git grep -h '^### Requirement:' "$PRE" -- 'openspec/changes/mishap-incident-roll
 3. Bekannte Worktree/Test-Frictions: SID-Drift, BATS stderr-Mixing, pnpm-TTY-Abbruch, commitlint-Scopes
 4. Brain-Ingest-Lauf 2026-08-22 17:14 fehlgeschlagen: Coverage-Gate 88% < 95%
 5. Carry-over-Eskalations-Tickets haben kryptische Titel aus Task-Zeilen
-6. Commit-msg-Hook lehnte 'openspec'-Scope ab; Debug-Tippfehler erzeugte Scheinwiderspruch
+6. Commit-msg-Hook lehnte einen Scope ab; Debug-Tippfehler erzeugte Scheinwiderspruch
 7. Commit-msg-Hook-Friction: drei Ablehnungen für Plan-only-Commit (Scope-Rätselraten)
 8. Delegation für Review-/Finalizer-Subagenten im Subagent-Kontext unbrauchbar
 9. Finalizer-Rezept erzeugte Archive-PR auf veraltetem main — DIRTY bis manueller Rebuild
@@ -40,8 +40,8 @@ git grep -h '^### Requirement:' "$PRE" -- 'openspec/changes/mishap-incident-roll
 14. Merge=Closure griff nicht bei MCP-angelegtem Chore-Ticket (T013675 blieb triage nach gemergtem PR)
 15. Mishap-Rollup-Container-Vermehrung: 11 Collect-Mode-Container parallel (Dedupe-Guard-Verstoß)
 16. Nackte '!'-Pipeline als BATS-Assertion wirkungslos — bash-errexit-Ausnahme verschleiert die fehlschlagende Zeile
-17. OpenSpec-Archiv hinterlässt uncommitteten SSOT-Merge — main verliert Requirements aus archiviertem Change (T013528)
-18. Openspec-Change von T012967 nie archiviert — Plan-Scaffold nur unter Reaper-Archiv-Tag erhalten
+17. Change-Archiv hinterlässt uncommitteten SSOT-Merge — main verliert Requirements aus archiviertem Change (T013528)
+18. Change von T012967 nie archiviert — Plan-Scaffold nur unter Reaper-Archiv-Tag erhalten
 19. Orphane brain-ingest-Watcher-PID 4065280: pgrep-Selbstmatch, Loop terminiert nie
 20. Paralleler Akteur mutiert Hauptcheckout während Hygiene-Lauf — §0-Befund löst sich mid-run auf
 21. Plan-Staging übersah spec-gekoppelte BATS-Suiten — Factory-CI-Shard 4 rot
@@ -66,7 +66,7 @@ git grep -h '^### Requirement:' "$PRE" -- 'openspec/changes/mishap-incident-roll
 40. gh run list findet Checks nicht beim Rollup-Namen — Job-Name ≠ Workflow-Name liefert leere Messung
 41. git-worktree-health.sh objects wertet harmloses dangling als BEFUND (Exit 1)
 42. llm_proxy_request_log verliert erfolgreiches Dispatch (Blind Spot bei Incident-Analyse)
-43. openspec-embed Post-Commit-Hook timeoutet wiederholt (non-fatal, ~90s/Commit)
+43. Post-Commit-Embed-Hook timeoutet wiederholt (non-fatal, ~90s/Commit)
 44. plan-qa-check.sh uebersprungen — llm-proxy antwortet 503 no_backend
 45. stage-plan-Hilfe verschweigt --no-hold, obwohl eine explizite Hold-Entscheidung Pflicht ist
 46. svelte-check in components/website nicht installiert — Plan-Verifikationsschritt nicht ausführbar

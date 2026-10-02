@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-dev-mesh/k3d-tooling-removed.bats — T900310, T900332
-# SSOT: openspec/changes/k3d-tooling-removal/specs/local-dev-mesh.md,
 # Requirement "The repository ships no local k3d cluster tooling"
 #
 # Pruefmodus: Test 1 ist Command-Output-Verifikation (`task --list-all`,

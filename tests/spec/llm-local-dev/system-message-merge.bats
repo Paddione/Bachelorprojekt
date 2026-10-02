@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # PRUEFMODUS: Output-Verifikation
-# SSOT: openspec/specs/llm-local-dev.md
 # Ticket: T900220 — FreeToken (:1919, Qwen3.6) lehnt jede zweite
 # role=system-Nachricht ab ("could not encode request: System message must be
 # at the beginning."). opencode 1.18.31 schickt fuer glimmer-primary und den

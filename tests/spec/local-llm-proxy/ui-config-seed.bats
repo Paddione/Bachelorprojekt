@@ -45,7 +45,6 @@ setup() {
   # Ladezeit und damit der Health-Wait-Erfolg vom Dateisystem-Cache-Zustand ab
   # (teils zufaellig ein 12B-Modell). Das feste 10s-Budget war Testfragilitaet,
   # kein Konfig-Drift (G-LLM03 widerlegt). Root-Cause-Analyse:
-  # openspec/changes/llm-proxy-bats-local-red/design.md
   local model_file helper
   helper="${REPO_ROOT}/tests/spec/local-llm-proxy/lib/pick-small-model.sh"
   # shellcheck source=/dev/null

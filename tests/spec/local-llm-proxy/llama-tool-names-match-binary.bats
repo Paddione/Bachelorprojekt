@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/llama-tool-names-match-binary.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Der Test
 # fragt das installierte Binary mit `llama-server --help` nach seiner Tool-Liste

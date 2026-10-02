@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/cbm-stampede-guard.bats
-# SSOT: openspec/changes/k3-auto-refresh/design.md (E2/E4/E6), p1-Schnittstellenvertrag
 # Ticket: T900450, T900805 (conservative freshness + receipts)
 
 setup() {

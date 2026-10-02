@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sessions-server.bats
-# SSOT: openspec/specs/sessions-server.md
 #
 # Initial placeholder coverage for the Sessions Server spec. [T002010]
 # Manifest-Hardening assertions (non-root nginx on 8080): T014553, SA-GR-06.

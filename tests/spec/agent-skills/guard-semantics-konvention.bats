@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/guard-semantics-konvention.bats
-# SSOT: openspec/changes/test-guard-semantics/specs/agent-skills.md  [T003796]
 #
 # Pruefmodus: MISCHMODUS, im Dateikopf begruendet (T002448-M4).
 #

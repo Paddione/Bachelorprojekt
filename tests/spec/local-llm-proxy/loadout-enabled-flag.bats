@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/loadout-enabled-flag.bats [T003204]
-# SSOT: openspec/specs/local-llm-proxy.md
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Die Tests
 # rufen parseLoadouts und isLoadoutEnabled AUF und bewerten deren Rueckgabe —

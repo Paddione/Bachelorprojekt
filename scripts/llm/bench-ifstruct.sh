@@ -30,7 +30,6 @@
 #     scripts/llm/bench-ifstruct.sh 1919 Qwen3.6-35B-A3B-NVFP4 freetoken-qwen-200k
 #     scripts/llm/bench-ifstruct.sh 8194 gpt-oss-20b llamacpp-gptoss
 #
-# Voraussetzungen (einmalig, siehe openspec/changes/freetoken-backend-evaluation/tasks.d/p5-ifstruct.md):
 #     - Liquid4All/ifstruct geklont + `uv sync` unter $IFSTRUCT_REPO
 #     - py -3.14 mit huggingface_hub + pyarrow (die `hf`-CLI ist auf diesem Host ein
 #       verwaister Launcher, siehe docs/runbooks/freetoken-native.md Zeile 127ff)

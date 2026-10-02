@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 
 # PRUEFMODUS: Output-Verifikation
-# SSOT: openspec/specs/agent-skills.md
 # Ticket: T900047 — `scripts/hooks/worktree-write-guard.sh` haengt den Repo-Root
 # vor einen bereits absoluten Pfad (`case "$TARGET" in /*)` erkennt nur
 # POSIX-`/...` als absolut; `C:\...` / `C:/...` faellt in den `*`-Zweig und bekommt

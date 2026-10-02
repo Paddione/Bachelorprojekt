@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills.bats
-# SSOT: openspec/specs/agent-skills.md
 #
 # Covers: dev-flow-chore git-crypt guard, ticket-ops dedup, agent-push notifications.
 

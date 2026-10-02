@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sessions-server/register-list.bats
-# SSOT: openspec/specs/sessions-server.md — Session Registration, Session
 # Listing, Idempotent Re-Registration. Prüfmodus: command output verification.
 
 setup() {

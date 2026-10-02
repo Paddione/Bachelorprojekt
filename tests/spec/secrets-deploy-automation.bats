@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/secrets-deploy-automation.bats
-# SSOT: openspec/specs/secrets-deploy-automation.md
 # Uses simple [ ... ] assertions (matches tests/spec/* convention).
 
 load 'test_helper'

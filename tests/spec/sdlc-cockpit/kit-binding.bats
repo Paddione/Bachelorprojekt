@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-cockpit/kit-binding.bats
-# SSOT: openspec/changes/sdlc-cockpit-design/design.md
 #
 # Prüft, dass die Belegartefakte das Kit korrekt einbinden. [T002460]
 

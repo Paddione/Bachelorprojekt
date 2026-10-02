@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/admin-token-consolidation.bats
-# SSOT: openspec/specs/admin-token-consolidation.md
 #
 # Spec-BATS Coverage for the admin-token-consolidation spec:
 # single color-token source in Tailwind @theme layer.

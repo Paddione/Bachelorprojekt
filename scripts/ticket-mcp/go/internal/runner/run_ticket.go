@@ -46,7 +46,7 @@ var initialRepoRoot = findRepoRoot()
 // Programmstart einzufrieren [T003553]. findRepoRoot() liest TICKET_MCP_REPO_ROOT
 // bereits als hoechste Prioritaet — als Paketvariable ausgewertet wurde die
 // Variable aber nur einmal beim Init gelesen. Damit blieb der in
-// openspec/specs/mishap-tracking.md beschriebene Stub-Mechanismus
+// mishap-tracking.md beschriebene Stub-Mechanismus
 // (TICKET_SH + TICKET_MCP_REPO_ROOT) zur Testlaufzeit wirkungslos: ein Test, der
 // die Variablen setzt, traf weiterhin die echte Repo-Wurzel. Genau deshalb konnte
 // fuer die Szenarien dieses Requirements nie ein Test geschrieben werden.

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/review-gate-before-auto-merge.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: review-gate-optional, T900687)
 #
 # Review ist optional seit dem Nutzerentscheid 2026-09-27: grüne Required
 # Checks plus bestandener fail-closed Phase-Chain-Assert sind das

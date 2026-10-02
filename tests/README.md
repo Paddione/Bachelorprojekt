@@ -7,7 +7,7 @@ integration checks, Playwright end-to-end tests, and factory eval scripts.
 
 | Directory | Content |
 |-----------|---------|
-| `spec/` | BATS tests per OpenSpec SSOT spec (one `.bats` per `openspec/specs/*.md`) |
+| `spec/` | BATS tests per area (one `.bats` per Vorgang, grouped by `<spec-slug>/`) |
 | `unit/` | BATS unit tests for cross-cutting concerns |
 | `integration/` | Service integration tests (HTTP, SSO, DB) |
 | `e2e/` | Playwright browser tests against live environments |

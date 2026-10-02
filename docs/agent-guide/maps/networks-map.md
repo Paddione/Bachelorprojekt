@@ -45,7 +45,7 @@ beteiligten Bereiche einander nennen, mit Grund und Absicherung.
 
 - **`home-lan`** — Das /8 ist ungewöhnlich weit und der Grund für die meisten Einträge unter overlaps. Beobachtete Hosts liegen in 10.0.0.x, 10.1.0.x und 10.10.0.x — ein engeres Präfix würde eine Neuvergabe im gesamten Haushalt bedeuten und ist bewusst zurückgestellt (Operator-Entscheidung 2026-08-19).
 - **`korczewski-mesh`** — Der Cluster wurde mit PR #1189 abgebaut; die Marke läuft seither auf fleet im Namespace workspace-korczewski. Der Eintrag bleibt stehen, damit eine Neuvergabe dieses Bereichs als Kollision auffällt.
-- **`fleet-overlay`** — Die Präfixlänge ist /24, belegt am lebenden Cluster. openspec/specs/ rustdesk-server.md nannte bis T012645 fälschlich /16 — in einer ufw-Freigabe hätte das 255-mal mehr Adressen geöffnet als beabsichtigt.
+- **`fleet-overlay`** — Die Präfixlänge ist /24, belegt am lebenden Cluster. Die rustdesk-server-Spec nannte bis T012645 fälschlich /16 — in einer ufw-Freigabe hätte das 255-mal mehr Adressen geöffnet als beabsichtigt.
 - **`devmesh-pod-cidr`** — Bewusst nicht 10.42.0.0/16. PK-Desktop routet das Pod-Netz von fleet über wg-gpu, gleiche Adressen aus devmesh liefen dort in den falschen Tunnel.
 - **`tailscale`** — Der einzige Bereich, der ohne eigenes Zutun kollisionsfrei bleibt — Tailscale benutzt den für Carrier-Grade-NAT reservierten Block, den sonst niemand vergibt. Einzelne Geräte-Adressen stehen bewusst nicht hier, weil sie sich bei einer Neuregistrierung ändern. k3s-Knotenverkehr läuft nicht über das Tailnet, sondern direkt über home-lan.
 - **`docker-k3d-sdlc-dev`** — Der Cluster wurde mit T900145 abgebaut (Nachfolger devmesh, ADR-008); der Bereich bleibt als retired stehen, damit eine Neuvergabe als Kollision auffällt.

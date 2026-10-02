@@ -1,8 +1,6 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/archive/2026-07-15-hermes-agent-mcp-access/specs/hermes-mcp-access.md
 #
 # BATS suite for hermes-agent-mcp-access capability.
-# All scenarios mirror 1:1 the Scenarios in the OpenSpec spec.
 
 # ── File-level variables ─────────────────────────────────────────────────────
 SCRIPT_REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"

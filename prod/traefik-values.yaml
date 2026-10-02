@@ -6,7 +6,7 @@
 # Consumed by `prod/cloud-init.yaml` (fresh full-cluster-rebuild bootstrap
 # only — fetched via curl, mirrors the install-dev-tools.sh pattern). For an
 # ALREADY-RUNNING fleet cluster this file does NOT apply itself — see the
-# manual rollout task in openspec/changes/pocket-id-rate-limit/tasks.md for
+# manual rollout task (pocket-id-rate-limit) for
 # the `helm upgrade` commands that bring a live cluster in line with this
 # file. There is no GitOps reconciler for this resource (it is Helm-managed,
 # not Kustomize-applied) — see CLAUDE.md "Operational" gotcha.

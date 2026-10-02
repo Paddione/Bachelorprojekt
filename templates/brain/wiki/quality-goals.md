@@ -2,7 +2,7 @@
 type: decision
 tags: [quality, goals, meta]
 status: active
-source:: Bachelorprojekt openspec/changes/brain-quality-goals (T001608)
+source:: Bachelorprojekt <plan-pfad>/brain-quality-goals (T001608)
 ---
 # Quality Goals — G-BRAIN01 bis G-BRAIN11
 
@@ -23,7 +23,7 @@ gemessen, bewusst ohne Enforcement.
 | G-BRAIN08 | Jede `wiki/`-Seite ist über maximal 2 MOC-Hops von `index.md` erreichbar | Target | erfüllt (trivial bei 2 Seiten) | weiterhin max. 2 Hops |
 | G-BRAIN09 | 1 `log.md`-Eintrag pro inhaltlichem Commit auf main | Target | 1 Eintrag / 2 Commits (50 %) | 100 % |
 | G-BRAIN10 | Keine `raw/`-Datei älter als 14 Tage (Backlog-Frische) | Target | raw/ leer | gemessen ab Erst-Ingest |
-| G-BRAIN11 | Jede Hauptrepo-Spec (`openspec/specs/*.md`) hat eine Brain-Seite mit `source::`-Rückverweis | Target | 0/24 | 24/24 |
+| G-BRAIN11 | Jede Hauptrepo-Spec (`<spec-pfad>`/`*.md`) hat eine Brain-Seite mit `source::`-Rückverweis | Target | 0/24 | 24/24 |
 
 ## Gates (G-BRAIN01–06)
 
@@ -66,10 +66,10 @@ c="$(git log --oneline --no-merges -- wiki raw index.md SCHEMA.md | wc -l)"; e="
 find raw -name '*.md' -type f -mtime +14 -print | grep . && echo 'BACKLOG UEBERALTERT' || echo 'raw-Backlog OK'
 ```
 
-### G-BRAIN11 — OpenSpec-SSOT-Abdeckung
+### G-BRAIN11 — SSOT-Abdeckung
 
 ```bash
-n="$(grep -rlE '^source:: .*openspec/specs/' wiki | wc -l)"; echo "SSOT-Seiten: $n / 24 (Nenner: Specs im Hauptrepo, Stand 2026-07-03)"
+n="$(grep -rlE '^source:: .*<spec-pfad>/' wiki | wc -l)"; echo "SSOT-Seiten: $n / 24 (Nenner: Specs im Hauptrepo, Stand 2026-07-03)"
 ```
 
 Erfüllung via künftigen Ingest (Worklist-Gruppe `ssot-specs` im Hauptrepo);

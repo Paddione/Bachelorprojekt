@@ -9,7 +9,6 @@
 # Abbruch als "nicht live claimed", hielt also einen fremd gehaltenen Worktree
 # für löschbar. Die Bestandstests bemerkten das nicht, weil sie AGENT_LOCK_DIR
 # selbst setzen. Dieser Test läuft deshalb bewusst OHNE die Variable — dieselbe
-# Regel, die openspec/specs/active-sessions-hub.md für die SID-Auflösung
 # festhält: mindestens ein Fall darf die Variable nicht vorsetzen.
 
 setup() {

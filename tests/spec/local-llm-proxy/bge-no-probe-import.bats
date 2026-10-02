@@ -2,7 +2,6 @@
 # tests/spec/local-llm-proxy/bge-no-probe-import.bats
 load "../../unit/lib/bats-support/load"
 load "../../unit/lib/bats-assert/load"
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T900006
 #
 # Guard: bge-routes.mjs darf discovery.mjs weder direkt noch transitiv importieren,

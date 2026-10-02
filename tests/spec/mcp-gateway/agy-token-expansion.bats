@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/agy-token-expansion.bats
-# SSOT: openspec/changes/agy-token-expansion/proposal.md
 # Ticket: T002704
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-orientiert.

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/superpowers-harness-parity.bats — T900056
-# SSOT: openspec/specs/agent-skills.md
 #
 # Die dev-flow-Skills rufen 11 superpowers:*-Skills an 61 Stellen auf. In opencode
 # konnte keiner davon je aufloesen: opencode erbt den Plugin-Satz von Claude Code
@@ -156,7 +155,6 @@ PY
 }
 
 @test "T900056: kein projektlokaler Skill kollidiert mit einem superpowers-Skillnamen" {
-  # openspec/specs/agent-skills.md: genau ein Skill darf auf einen Namen antworten.
   # .claude/skills/superpowers/using-git-worktrees/ deklariert einen Namen, den das
   # installierte Plugin ebenfalls liefert.
   run python3 - "$REPO" <<'PY'

@@ -2,8 +2,7 @@
 
 MCP-Server, über den **Muse Code** (Metas Coding-CLI, WSL und Windows) das lokale **Muse Glimmer 30B**
 (`llama-server` auf `:1919`, `scripts/llm/glimmer.service`) als Arbeitermodell nutzt. Muse Spark plant und
-prüft, Glimmer führt abgegrenzte Aufgaben lokal aus. Ticket T900373, Design:
-`openspec/changes/archive/*glimmer-worker-mcp/design.md`.
+prüft, Glimmer führt abgegrenzte Aufgaben lokal aus. Ticket T900373.
 
 ## Warum MCP und kein Muse-Provider
 

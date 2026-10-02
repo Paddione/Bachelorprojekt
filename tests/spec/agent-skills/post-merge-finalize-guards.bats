@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/post-merge-finalize-guards.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: post-merge-finalize-guards, T006348)
 #
 # PRÜFMODUS: Source-Grep — dokumentierte Ausnahme von der Output-Verifikation
 # (T002448-M4): Der Laufzeitpfad von scripts/devflow-post-merge-finalize.sh
@@ -8,7 +7,6 @@
 # existiert; die Guard-Logik manifestiert sich ausschließlich im Quelltext
 # (gleiche Ausnahme wie Tests 1–3 in tests/spec/agent-skills/executor-post-merge-death.bats).
 # T006791: Die Restore-Mechanik der Archiv-Sektion wurde zusätzlich isoliert
-# verifiziert (Bare-Git-Repo + Fake-openspec.sh, Code-Review PR #4586) — ein
 # voller BATS-Runtime-Test bleibt unmöglich, weil die Sektion nicht als Funktion
 # isolierbar ist und Schritt 1 (ticket.sh get) die Ticket-DB braucht.
 #

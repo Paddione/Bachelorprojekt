@@ -58,7 +58,7 @@ To prevent wall-of-text infodumps, raw execution logs, stack traces, and verbose
 
 ```bash
 ✓ tests/spec/agent-visual-decision.bats (3.1s)
-  ✓ OpenSpec delta agent-behavior.md exists (120ms)
+  ✓ Spec delta agent-behavior.md exists (120ms)
   ✓ Visual accessibility guide docs/agent-guide/visual-accessibility.md exists (95ms)
   ✓ Guide covers ask_question decision modals (80ms)
   ✓ Guide covers details summary progressive disclosure (85ms)

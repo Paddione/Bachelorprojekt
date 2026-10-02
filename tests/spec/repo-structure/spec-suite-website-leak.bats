@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/repo-structure/spec-suite-website-leak.bats
-# SSOT: openspec/specs/repo-structure.md
 #
 # [T011792] Leak-Haertung (Nachfolge T008635): Die Spec-Suite hinterlaesst in
 # bestimmten Lauf-Ordnungen ein leeres Top-Level-Website/ im Repo-Root

@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/plan-runner.bats — T900504
-# SSOT: openspec/changes/plan-runner/specs/llm-local-dev.md
-#   Requirement: Plan Runner Executes OpenSpec Partials With Local Models
 #   Requirement: Orchestrator Self-Execution When All Workers Are Busy
 #
 # PRUEFMODUS: Output-Verifikation. scripts/llm/plan-runner.mjs wird GESTARTET.

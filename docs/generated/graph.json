@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T18:48:57.908Z",
+  "generatedAt": "2026-10-02T14:42:58.872Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -468,6 +468,18 @@
       "namespace": "${WORKSPACE_NAMESPACE}",
       "type": "CronJob",
       "name": "dev-db-refresh"
+    },
+    {
+      "id": "brain",
+      "namespace": "${WORKSPACE_NAMESPACE}",
+      "type": "Deployment",
+      "name": "brain"
+    },
+    {
+      "id": "oauth2-proxy-brain",
+      "namespace": "${WORKSPACE_NAMESPACE}",
+      "type": "Deployment",
+      "name": "oauth2-proxy-brain"
     },
     {
       "id": "traefik",
@@ -1307,6 +1319,12 @@
     },
     {
       "from": "traefik",
+      "to": "oauth2-proxy-brain",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "langfuse-dev-proxy",
       "via": "ingress",
       "kind": "ingress"
@@ -1522,6 +1540,18 @@
       "kind": "selector"
     },
     {
+      "from": "brain",
+      "to": "brain",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-brain",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
       "from": "admin-actions-cleanup",
       "to": "admin-actions-prune",
       "via": "secret:workspace-secrets",
@@ -2002,6 +2032,18 @@
       "kind": "secret"
     },
     {
+      "from": "admin-actions-cleanup",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "admin-actions-prune",
       "to": "sessions-purge",
       "via": "secret:workspace-secrets",
@@ -2470,6 +2512,18 @@
       "kind": "secret"
     },
     {
+      "from": "admin-actions-prune",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "sessions-purge",
       "to": "db-backup",
       "via": "secret:workspace-secrets",
@@ -2926,6 +2980,18 @@
       "kind": "secret"
     },
     {
+      "from": "sessions-purge",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "sessions-purge",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "db-backup",
       "to": "db-restore-verify",
       "via": "secret:workspace-secrets",
@@ -3370,6 +3436,18 @@
       "kind": "secret"
     },
     {
+      "from": "db-backup",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "db-restore-verify",
       "to": "brett",
       "via": "secret:workspace-secrets",
@@ -3802,6 +3880,18 @@
       "kind": "secret"
     },
     {
+      "from": "db-restore-verify",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "db-restore-verify",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "brett",
       "to": "billing-dunning-detection",
       "via": "secret:workspace-secrets",
@@ -4222,6 +4312,18 @@
       "kind": "secret"
     },
     {
+      "from": "brett",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "billing-dunning-detection",
       "to": "monthly-billing",
       "via": "secret:workspace-secrets",
@@ -4630,6 +4732,18 @@
       "kind": "secret"
     },
     {
+      "from": "billing-dunning-detection",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "monthly-billing",
       "to": "scheduled-publish",
       "via": "secret:workspace-secrets",
@@ -5026,6 +5140,18 @@
       "kind": "secret"
     },
     {
+      "from": "monthly-billing",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "scheduled-publish",
       "to": "oauth2-proxy-brainstorm",
       "via": "secret:workspace-secrets",
@@ -5410,6 +5536,18 @@
       "kind": "secret"
     },
     {
+      "from": "scheduled-publish",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-brainstorm",
       "to": "oauth2-proxy-dev",
       "via": "secret:workspace-secrets",
@@ -5782,6 +5920,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-brainstorm",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-dev",
       "to": "oauth2-proxy-session-hub",
       "via": "secret:workspace-secrets",
@@ -6142,6 +6292,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-dev",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-session-hub",
       "to": "error-log-retention",
       "via": "secret:workspace-secrets",
@@ -6490,6 +6652,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-session-hub",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-session-hub",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "error-log-retention",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
@@ -6826,6 +7000,18 @@
       "kind": "secret"
     },
     {
+      "from": "error-log-retention",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "error-log-retention",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "knowledge-ingest-prs",
       "to": "knowledge-ingest-bugs",
       "via": "secret:workspace-secrets",
@@ -7150,6 +7336,18 @@
       "kind": "secret"
     },
     {
+      "from": "knowledge-ingest-prs",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "knowledge-ingest-bugs",
       "to": "knowledge-reindex-all",
       "via": "secret:workspace-secrets",
@@ -7462,6 +7660,18 @@
       "kind": "secret"
     },
     {
+      "from": "knowledge-ingest-bugs",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "knowledge-reindex-all",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
@@ -7762,6 +7972,18 @@
       "kind": "secret"
     },
     {
+      "from": "knowledge-reindex-all",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "nextcloud",
       "to": "notify-unread",
       "via": "secret:workspace-secrets",
@@ -8050,6 +8272,18 @@
       "kind": "secret"
     },
     {
+      "from": "nextcloud",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "notify-unread",
       "to": "oauth2-proxy-brett",
       "via": "secret:workspace-secrets",
@@ -8326,6 +8560,18 @@
       "kind": "secret"
     },
     {
+      "from": "notify-unread",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-brett",
       "to": "oauth2-proxy-comfy",
       "via": "secret:workspace-secrets",
@@ -8590,6 +8836,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-brett",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-comfy",
       "to": "oauth2-proxy-downloads",
       "via": "secret:workspace-secrets",
@@ -8842,6 +9100,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-comfy",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-downloads",
       "to": "oauth2-proxy-mailpit",
       "via": "secret:workspace-secrets",
@@ -9082,6 +9352,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-downloads",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-downloads",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-mailpit",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
@@ -9310,6 +9592,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-mailpit",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-mediaviewer",
       "to": "oauth2-proxy-rustdesk-web",
       "via": "secret:workspace-secrets",
@@ -9526,6 +9820,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-rustdesk-web",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
@@ -9730,6 +10036,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-studio",
       "to": "oauth2-proxy-terminal",
       "via": "secret:workspace-secrets",
@@ -9922,6 +10240,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-studio",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-studio",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-terminal",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
@@ -10102,6 +10432,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-terminal",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-terminal",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-traefik",
       "to": "oauth2-proxy-videovault",
       "via": "secret:workspace-secrets",
@@ -10270,6 +10612,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-videovault",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
@@ -10426,6 +10780,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "pocket-id",
       "to": "oauth2-proxy-recovery",
       "via": "secret:workspace-secrets",
@@ -10570,6 +10936,18 @@
       "kind": "secret"
     },
     {
+      "from": "pocket-id",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "pocket-id",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-recovery",
       "to": "sdlc-console",
       "via": "secret:workspace-secrets",
@@ -10702,6 +11080,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-recovery",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "sdlc-console",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
@@ -10822,6 +11212,18 @@
       "kind": "secret"
     },
     {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "shared-db",
       "to": "studio-server",
       "via": "secret:workspace-secrets",
@@ -10930,6 +11332,18 @@
       "kind": "secret"
     },
     {
+      "from": "shared-db",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "studio-server",
       "to": "spreed-signaling",
       "via": "secret:workspace-secrets",
@@ -11026,6 +11440,18 @@
       "kind": "secret"
     },
     {
+      "from": "studio-server",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "studio-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "spreed-signaling",
       "to": "talk-recording",
       "via": "secret:workspace-secrets",
@@ -11110,6 +11536,18 @@
       "kind": "secret"
     },
     {
+      "from": "spreed-signaling",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "talk-recording",
       "to": "vaultwarden",
       "via": "secret:workspace-secrets",
@@ -11182,6 +11620,18 @@
       "kind": "secret"
     },
     {
+      "from": "talk-recording",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "vaultwarden",
       "to": "videovault",
       "via": "secret:workspace-secrets",
@@ -11242,6 +11692,18 @@
       "kind": "secret"
     },
     {
+      "from": "vaultwarden",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "videovault",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
@@ -11290,6 +11752,18 @@
       "kind": "secret"
     },
     {
+      "from": "videovault",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "whiteboard",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
@@ -11326,6 +11800,18 @@
       "kind": "secret"
     },
     {
+      "from": "whiteboard",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "talk-transcriber",
       "to": "ddns-updater",
       "via": "secret:workspace-secrets",
@@ -11350,6 +11836,18 @@
       "kind": "secret"
     },
     {
+      "from": "talk-transcriber",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "ddns-updater",
       "to": "dev-db-refresh",
       "via": "secret:workspace-secrets",
@@ -11358,6 +11856,30 @@
     {
       "from": "dev-db-refresh",
       "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "dev-db-refresh",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

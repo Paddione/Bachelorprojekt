@@ -2,7 +2,7 @@
 # Ticket: T013107 — vda.sh frontmatter Domain-Ableitung ignoriert Code-Blöcke
 
 setup() {
-  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   VDA="${REPO_ROOT}/scripts/vda.sh"
   TMP="$(mktemp -d)"
 }

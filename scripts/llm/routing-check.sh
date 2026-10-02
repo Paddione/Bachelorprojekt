@@ -19,8 +19,27 @@
 #   bash scripts/llm/routing-check.sh      # oder: task llm:routing:check
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=/dev/null
-source "$HERE/../factory/lib.sh"; factory_resolve
+
+# DB-Zugang (T900728): ersetzt die entfernte Factory-lib (Resolve- und
+# PSQL-Helfer). WORKSPACE_PG_URL gewinnt, sonst kubectl exec gegen den
+# shared-db-Pod. Ohne DB-Zugang rc!=0 — der Aufrufer unten faellt dann
+# fail-soft auf die anderen Quellen zurueck.
+WS_CTX="${WORKSPACE_CTX:-fleet}"
+WS_NS="${WORKSPACE_NS:-workspace}"
+_ws_psql() {  # SQL via stdin, TSV auf stdout
+  if [[ -n "${WORKSPACE_PG_URL:-}" ]]; then
+    psql "$WORKSPACE_PG_URL" -qtA -v ON_ERROR_STOP=1 "$@"
+    return
+  fi
+  command -v kubectl >/dev/null 2>&1 || return 3
+  local pod
+  pod="$(kubectl get pod -n "$WS_NS" --context "$WS_CTX" -l app=shared-db \
+    --field-selector status.phase=Running \
+    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)" || return 3
+  [[ -n "$pod" ]] || return 3
+  kubectl exec -i "$pod" -n "$WS_NS" --context "$WS_CTX" -c postgres -- \
+    psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@"
+}
 
 FAILED=0
 AVAILABLE=""
@@ -39,36 +58,26 @@ if [[ -z "${AVAILABLE//[[:space:]]/}" ]]; then
   exit 0
 fi
 
-while IFS=$'\t' read -r model burl; do
-  [[ -z "$model" ]] && continue
-  case "$burl" in https://*) continue ;; esac   # Cloud-Provider nicht pruefbar
-  if ! grep -qiF -- "$model" <<< "$AVAILABLE"; then
-    echo "routing-check: FEHLT — '$model' (${burl:-kein base_url}) wird von keinem lokalen Backend serviert." >&2
-    FAILED=1
-  fi
-done < <(factory_psql <<'SQL'
+# ERSTE Quelle: provider_config aus der Workspace-DB. Ohne DB-Zugang (kein
+# kubectl/Cluster) wird die Quelle uebersprungen — Laptops ohne Cluster
+# duerfen nicht rot laufen (fail-soft wie bei fehlendem Backend).
+if DB_MODELS="$(_ws_psql <<'SQL' 2>/dev/null
 SELECT model_id||E'\t'||COALESCE(base_url,'') FROM tickets.provider_config WHERE enabled = true;
 SQL
-)
-
-# Die Factory-Env ist die ZWEITE Quelle von Modell-IDs — und war die, an der der Drift
-# real haftete: provider_config zeigte laengst auf gemma-4-12b, waehrend ANTHROPIC_MODEL
-# in autopilot.env noch ternary-bonsai-27b nannte. Eine reine DB-Pruefung haette den
-# Ausgangsfall dieses Tickets nicht gesehen. Die Datei liegt ausserhalb des Repos; fehlt
-# sie, wird der Abschnitt uebersprungen.
-FACTORY_ENV_FILE="${FACTORY_ENV_FILE:-${HOME}/.config/factory/autopilot.env}"
-if [[ -f "$FACTORY_ENV_FILE" ]]; then
-  while IFS='=' read -r var val; do
-    val="${val%\"}"; val="${val#\"}"; val="${val/\[1m\]/}"
-    [[ -z "$val" ]] && continue
-    if ! grep -qiF -- "$val" <<< "$AVAILABLE"; then
-      echo "routing-check: FEHLT — ${var}='${val}' aus ${FACTORY_ENV_FILE} hat kein Backend." >&2
+)"; then
+  while IFS=$'\t' read -r model burl; do
+    [[ -z "$model" ]] && continue
+    case "$burl" in https://*) continue ;; esac   # Cloud-Provider nicht pruefbar
+    if ! grep -qiF -- "$model" <<< "$AVAILABLE"; then
+      echo "routing-check: FEHLT — '$model' (${burl:-kein base_url}) wird von keinem lokalen Backend serviert." >&2
       FAILED=1
     fi
-  done < <(grep -E '^ANTHROPIC_(DEFAULT_[A-Z]+_)?MODEL=' "$FACTORY_ENV_FILE" 2>/dev/null || true)
+  done <<< "$DB_MODELS"
+else
+  echo "routing-check: DB-Quelle nicht erreichbar — uebersprungen." >&2
 fi
 
-# Dritte Quelle [T900213]: Top-Level-Standardmodell aus .opencode/opencode.jsonc.
+# ZWEITE Quelle [T900213]: Top-Level-Standardmodell aus .opencode/opencode.jsonc.
 # Kommentar-robust auslesen (JSONC). Provider-Präfix strippen, Cloud-Werte
 # überspringen.
 OPENCODE_CONFIG="${REPO_ROOT:-$HERE/../..}/.opencode/opencode.jsonc"

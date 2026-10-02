@@ -9,17 +9,16 @@
 #
 # Ablauf:
 #   1. Worker-Liveness bestimmen: in_progress MIT pipeline_slot UND updated_at
-#      juenger als die Stale-Schwelle. Dieselbe Semantik wie
-#      scripts/factory/watchdog.sh (FACTORY_STALE_MIN, Default 30) — beide
-#      Urteile ueber "Worker lebt" muessen uebereinstimmen.
+#      juenger als die Stale-Schwelle (RECLAIM_STALE_MIN, Default 30) gilt
+#      als lebend.
 #   2. Lebt ein Worker und fehlt --force: abbrechen, nichts veraendern.
 #   3. Sonst: Slot freigeben, Status auf plan_staged, Ticket fuer diese Session
-#      claimen. Der T000510-Guard in scripts/factory/factory-prep-*.sh laesst das
-#      Ticket danach in Ruhe, weil agent-lock check `held` meldet.
+#      claimen. Der T000510-Guard laesst das Ticket danach in Ruhe, weil
+#      agent-lock check `held` meldet.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STALE_MIN="${FACTORY_STALE_MIN:-30}"
+STALE_MIN="${RECLAIM_STALE_MIN:-30}"
 
 ID=""; FORCE=0
 while [ $# -gt 0 ]; do

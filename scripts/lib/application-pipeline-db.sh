@@ -2,33 +2,19 @@
 # scripts/lib/application-pipeline-db.sh — Shared DB functions for application pipeline (T900228)
 # Sourced by scripts/vda/apply/ingest.sh and scripts/vda/apply/import-bootstrap.sh.
 
-_app_pipeline_repo_root() {
-  local dir; dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-  echo "$dir"
-}
-
-_app_pipeline_resolve_db() {
-  local root; root="$(_app_pipeline_repo_root)"
-  if [[ -f "${root}/scripts/factory/lib.sh" ]]; then
-    source "${root}/scripts/factory/lib.sh"
-    factory_resolve >/dev/null 2>&1 || true
-  fi
-}
-
 _app_pipeline_exec_sql() {
   local sql="$1"; shift
-  _app_pipeline_resolve_db
-  if [[ -n "${FACTORY_PG_URL:-}" ]]; then
-    echo "$sql" | psql "$FACTORY_PG_URL" -qtA -v ON_ERROR_STOP=1 "$@"
+  if [[ -n "${WORKSPACE_PG_URL:-}" ]]; then
+    echo "$sql" | psql "$WORKSPACE_PG_URL" -qtA -v ON_ERROR_STOP=1 "$@"
   else
     local pod
-    pod="$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+    pod="$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
       -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)"
     if [[ -z "$pod" ]]; then
       echo "Error: no running shared-db pod found" >&2
       return 1
     fi
-    echo "$sql" | kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+    echo "$sql" | kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
       -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@" 2>/dev/null
   fi
 }

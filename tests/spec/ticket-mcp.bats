@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  export FACTORY_DRY_RESOLVE=1
+  export TICKET_DRY_RESOLVE=1
   export BRAND=mentolder
   REPO="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }

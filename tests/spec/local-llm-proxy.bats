@@ -82,7 +82,7 @@ _skip_if_no_db() {
   # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
   # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
   # am lokalen Cluster.
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
+  _pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-devmesh}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then
@@ -213,14 +213,14 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
 # Der Proxy lief bis 2026-07-27 ausschliesslich als manuell gestarteter
 # Node-Prozess; nach jedem Reboot war die Factory ohne Zutun tot.
 
-@test "llm-services-Deployment setzt FACTORY_PG_URL statt kubectl-exec-Pfad (T900191, D3)" {
+@test "llm-services-Deployment setzt WORKSPACE_PG_URL statt kubectl-exec-Pfad (T900191, D3)" {
   # Ersetzt "llm-proxy.service existiert ..." und "llm-proxy.service hat kubectl
   # im PATH": der kubectl-exec-Pfad gegen die Registry entfaellt mit devmesh,
-  # FACTORY_PG_URL zeigt jetzt direkt auf shared-db (kein kubectl-Umweg mehr).
+  # WORKSPACE_PG_URL zeigt jetzt direkt auf shared-db (kein kubectl-Umweg mehr).
   local deploy_out
   deploy_out="$(bash "${BATS_TEST_DIRNAME}/../../scripts/devmesh/render-stack.sh" core 2>/dev/null)" || skip "render-stack.sh Vorbedingung fehlt (siehe llm-services.bats)"
-  echo "$deploy_out" | grep -qF 'FACTORY_PG_URL'
-  echo "$deploy_out" | grep -A1 'name: FACTORY_PG_URL' | grep -qF 'shared-db'
+  echo "$deploy_out" | grep -qF 'WORKSPACE_PG_URL'
+  echo "$deploy_out" | grep -A1 'name: WORKSPACE_PG_URL' | grep -qF 'shared-db'
 }
 
 @test "proxy:start erkennt eine bereits laufende Instanz (T002277)" {

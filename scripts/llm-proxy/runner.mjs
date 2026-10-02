@@ -17,9 +17,8 @@ import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
 // T002555 — Repo-Wurzel fuer das schreibende Binding der gehaerteten Unit.
 // Aus dem Modulpfad abgeleitet (scripts/llm-proxy/ → zwei Ebenen hoch) statt
 // hartkodiert, damit ein Worktree oder ein anderer Checkout-Ort nicht still das
-// falsche Verzeichnis einbindet. FACTORY_REPO ueberschreibt, konsistent mit
-// scripts/factory/sandbox-run.sh.
-const REPO_ROOT = process.env.FACTORY_REPO || path.resolve(import.meta.dirname, '../..');
+// falsche Verzeichnis einbindet. WORKSPACE_REPO ueberschreibt (Override-Knopf).
+const REPO_ROOT = process.env.WORKSPACE_REPO || path.resolve(import.meta.dirname, '../..');
 
 export function unitName(slug) { return `llama-${slug}.service`; }
 

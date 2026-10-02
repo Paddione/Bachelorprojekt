@@ -28,11 +28,11 @@
 # Resolve the repo root from this file's location so the fixture works
 # regardless of the BATS working directory.
 _FIXTURE_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-export FACTORY_CTX="${FACTORY_CTX:-devmesh}"   # [T900145] Tests never write to fleet
+export WORKSPACE_CTX="${WORKSPACE_CTX:-devmesh}"   # [T900145] Tests never write to fleet
 
 # [T900537] shared-db-Pod des Testkontexts (leer, wenn keiner laeuft).
 _shared_db_pod() {
-  kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
+  kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-devmesh}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1
 }
@@ -51,7 +51,7 @@ ticket_table_exists() {
   local table="$1" pod out
   pod="$(_shared_db_pod)"
   [[ -n "$pod" ]] || return 1
-  out="$(kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
+  out="$(kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-devmesh}" \
     -c postgres -- psql -U website -d website -qtA -c \
     "SELECT count(*) FROM information_schema.tables WHERE table_schema='tickets' AND table_name='${table}';" 2>/dev/null | tr -d '[:blank:]')"
   [[ "$out" == "1" ]]
@@ -84,10 +84,10 @@ _fixture_marker_comment() {
 seed_test_feature() {
   local brand="$1"; shift
   # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
-  local ctx="${FACTORY_CTX:-devmesh}"
-  [[ "$ctx" != "devmesh" ]] || skip "devmesh refuses ticket writes — set FACTORY_CTX to a writable test DB"
-  if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
-    echo "refusing to seed test data into prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
+  local ctx="${WORKSPACE_CTX:-devmesh}"
+  [[ "$ctx" != "devmesh" ]] || skip "devmesh refuses ticket writes — set WORKSPACE_CTX to a writable test DB"
+  if [[ "$ctx" == "fleet" && -z "${WORKSPACE_ALLOW_PROD_SEED:-}" ]]; then
+    echo "refusing to seed test data into prod context 'fleet' (set WORKSPACE_ALLOW_PROD_SEED=1 to override)" >&2
     return 3
   fi
   local files; files="$(IFS=,; echo "$*")"
@@ -124,10 +124,10 @@ seed_test_feature() {
 # Positiv-Anker schlaegt fehl.
 seed_real_feature() {
   local brand="$1"; shift
-  local ctx="${FACTORY_CTX:-devmesh}"
-  [[ "$ctx" != "devmesh" ]] || skip "devmesh refuses ticket writes — set FACTORY_CTX to a writable test DB"
-  if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
-    echo "refusing to seed test data into prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
+  local ctx="${WORKSPACE_CTX:-devmesh}"
+  [[ "$ctx" != "devmesh" ]] || skip "devmesh refuses ticket writes — set WORKSPACE_CTX to a writable test DB"
+  if [[ "$ctx" == "fleet" && -z "${WORKSPACE_ALLOW_PROD_SEED:-}" ]]; then
+    echo "refusing to seed test data into prod context 'fleet' (set WORKSPACE_ALLOW_PROD_SEED=1 to override)" >&2
     return 3
   fi
   local files; files="$(IFS=,; echo "$*")"
@@ -187,13 +187,13 @@ ensure_purge_fn_current() {
 # purge_factory_test_data <brand> — reap all is_test_data=true rows on that brand
 purge_factory_test_data() {
   local brand="$1"
-  local ctx="${FACTORY_CTX:-devmesh}" ns
+  local ctx="${WORKSPACE_CTX:-devmesh}" ns
   # [T002689] Die Brand waehlt ZEILEN, nicht den Ort. seed_test_feature schreibt
   # ueber scripts/ticket.sh, das seit T002689 fuer beide Brands nach `workspace`
   # aufloest — eine Purge in `workspace-korczewski` fand die eigenen Fixtures
   # daher nicht mehr und liesse Testzeilen stehen.
   case "$brand" in
-    mentolder|korczewski) ns="${FACTORY_NS:-workspace}" ;;
+    mentolder|korczewski) ns="${WORKSPACE_NS:-workspace}" ;;
     *) echo "purge_factory_test_data: unknown brand $brand" >&2; return 2 ;;
   esac
 
@@ -237,13 +237,13 @@ purge_real_feature() {
     shift
   fi
   local brand="$1" ext_id="$2"
-  local ctx="${FACTORY_CTX:-devmesh}" ns
-  if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
-    echo "refusing to purge on prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
+  local ctx="${WORKSPACE_CTX:-devmesh}" ns
+  if [[ "$ctx" == "fleet" && -z "${WORKSPACE_ALLOW_PROD_SEED:-}" ]]; then
+    echo "refusing to purge on prod context 'fleet' (set WORKSPACE_ALLOW_PROD_SEED=1 to override)" >&2
     return 3
   fi
   case "$brand" in
-    mentolder|korczewski) ns="${FACTORY_NS:-workspace}" ;;
+    mentolder|korczewski) ns="${WORKSPACE_NS:-workspace}" ;;
     *) echo "purge_real_feature: unknown brand $brand" >&2; return 2 ;;
   esac
   local pod candidate_ns

@@ -28,6 +28,12 @@ _offenders() {
       tests/e2e/specs/fa-48-factory-devflow.spec.ts|tests/e2e/specs/fa-scs-scout.spec.ts|tests/e2e/specs/dev-status-tabs.spec.ts|tests/e2e/specs/fa-qa-review.spec.ts) continue ;;
       scripts/sdlc-cockpit-smoke.mjs|docs/sdlc/cockpit-action-inventory.md|tests/spec/sdlc-cockpit/leitstand-livedaten.bats) continue ;;
     esac
+    # T900728: agent-bench replay fixtures pin parent_commit 6ee02649, which
+    # still contains scripts/factory/cleanup.sh — the brief/check/reference
+    # paths are accurate for the pin and must not be rewritten.
+    case "$f" in
+      scripts/llm/agent-bench/cases/f4-worktree-remove-replay/variants/v1/brief.md|scripts/llm/agent-bench/cases/f4-worktree-remove-replay/variants/v1/checks/run.sh|scripts/llm/agent-bench/cases/f4-worktree-remove-replay/variants/v1/reference/p1.md|scripts/llm/agent-bench/cases/f4-worktree-remove-replay/variants/v1/reference/tasks.md) continue ;;
+    esac
     { [[ "$f" == *[Ff]actory* ]] && echo "$f"; } || { grep -vE 'FACTORY-PLAN-REF|tickets\.(v_)?factory_|factory_schema_migrations' "$REPO/$f" | grep -qiE 'software[ -]?factory|factory-runner|factory[-_ ](floor|queue|runs?|tick|control|budget|pipeline|slots?|worker|eval|post-merge|mcp|cockpit|dispatch|runner|daemon|state)|factoryfloor|/factory/|factory_[a-z]+|factory:' && echo "$f"; }
   done < "$LIST"
   return 0

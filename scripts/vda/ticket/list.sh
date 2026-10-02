@@ -33,7 +33,7 @@ main() {
   [[ -n "$type" ]]           && { _ticket_validate_enum type "$type" "$TICKET_VALID_TYPE" || exit 2; }
   [[ -n "$attention_mode" ]] && { _ticket_validate_enum attention-mode "$attention_mode" "$TICKET_VALID_ATTENTION" || exit 2; }
 
-  if [[ -n "${FACTORY_DRY_RESOLVE:-}" ]]; then
+  if [[ -n "${TICKET_DRY_RESOLVE:-}" ]]; then
     echo "ticket list [DRY-RESOLVE]: brand=${brand}"
     exit 0
   fi

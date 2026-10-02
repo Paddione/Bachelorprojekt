@@ -56,15 +56,6 @@ teardown() {
   [[ "$output" == *"\"branch\": \"feature/probe\""* ]]
 }
 
-@test "worktree-list.sh --all bleibt ohne Cluster-Zugang erfolgreich und meldet den Grund" {
-  # Ein unerreichbarer Factory-Pod darf die lokale Menge nicht entwerten:
-  # rc=0, lokale Zeilen vorhanden, Grund benannt.
-  run bash -c "cd '$MAIN' && FACTORY_CTX=does-not-exist bash '$SCRIPT' --all"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"$MAIN"* ]]
-  [[ "$output" == *"nicht erhoben"* ]]
-}
-
 @test "worktree-list.sh meldet ausserhalb eines Git-Repos einen Umgebungsfehler" {
   run bash -c "cd '$TMP' && bash '$SCRIPT'"
   [ "$status" -eq 2 ]

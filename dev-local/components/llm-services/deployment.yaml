@@ -60,8 +60,6 @@ spec:
             - {name: DEV_POD_REPO, value: /workspace/repo}
             - name: WEBSITE_DB_PASSWORD
               valueFrom: {secretKeyRef: {name: workspace-secrets, key: WEBSITE_DB_PASSWORD, optional: true}}
-            - name: FACTORY_PG_URL
-              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
             - name: MCP_READONLY_DB_PASSWORD
               valueFrom: {secretKeyRef: {name: workspace-secrets, key: MCP_READONLY_DB_PASSWORD, optional: true}}
             - name: DATABASE_URL

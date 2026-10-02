@@ -286,7 +286,7 @@ Last touches:
 ### batch-pipeline-robustness
 Reqs: 3 · Scenarios: 6 · Lines: 71
 Last touches:
-  - The FACTORY_CTX default is visible immediately on sourcing lib.sh | T900145 | 2026-09-16 | MODIFIED
+  - The WORKSPACE_CTX default is visible immediately on sourcing lib.sh | T900145 | 2026-09-16 | MODIFIED
   - Merged-PR-Gate schließt gemergte Tickets vor dem Dispatch | T014384 | 2026-08-23 | ADDED
   - The factory stops dispatching a plan after three consecutive no-commit runs | T003810 | 2026-08-14 | ADDED
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # devflow-build-loop.sh — Local self-correcting build loop (optional, vor push)
 # Aus dev-flow-execute Schritt 2.5 extrahiert (Chore T001007).
-# Default MAX_LOOP=3, überschreibbar via FACTORY_BUILD_LOOP_MAX.
+# Default MAX_LOOP=3, überschreibbar via DEVFLOW_BUILD_LOOP_MAX.
 set -u
 
 TICKET_ID="${1:-}"
-MAX_LOOP="${FACTORY_BUILD_LOOP_MAX:-3}"
+MAX_LOOP="${DEVFLOW_BUILD_LOOP_MAX:-3}"
 ITER=0
 PREV_HASH=""
 RESULT_FILE=$(mktemp)

@@ -73,7 +73,7 @@ sorgfältiger verifizieren.
 
 `bash scripts/devflow-build-loop.sh "$TICKET_ID"` — läuft lokal **vor** Verifikation und Push,
 entlastet die CI-Retry-Schleife (5.5), ersetzt sie nicht. Default `MAX_LOOP=3`
-(`FACTORY_BUILD_LOOP_MAX`).
+(`DEVFLOW_BUILD_LOOP_MAX`).
 
 > Bei `abort:escalate-gate|no-progress|max-iterations` eskalieren (Ticket-Kommentar) — **kein**
 > blindes Weiter-Pushen.

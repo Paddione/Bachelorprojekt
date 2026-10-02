@@ -110,7 +110,7 @@ _worktree_has_active_process() {
 # Checks:
 #   (a) Any process has cwd in the worktree (_worktree_has_active_process)
 #   (b) Any process holds an open file descriptor under the worktree (/proc/*/fd/*)
-#   (c) Any file in the worktree has mtime within FACTORY_WORKTREE_ACTIVE_MIN (default 10)
+#   (c) Any file in the worktree has mtime within LOCK_WORKTREE_ACTIVE_MIN (default 10)
 _worktree_recently_active() {
   local wt="$1"
   [ -d "$wt" ] || return 1
@@ -142,8 +142,8 @@ _worktree_recently_active() {
     done
   done
 
-  # 3. Recent file modifications within FACTORY_WORKTREE_ACTIVE_MIN
-  local active_min="${FACTORY_WORKTREE_ACTIVE_MIN:-10}"
+  # 3. Recent file modifications within LOCK_WORKTREE_ACTIVE_MIN
+  local active_min="${LOCK_WORKTREE_ACTIVE_MIN:-10}"
   local recent_file
   recent_file="$(find "$wt" -maxdepth 4 -not -path '*/.git*' -mmin "-${active_min}" 2>/dev/null | head -n 1)"
   if [ -n "$recent_file" ]; then

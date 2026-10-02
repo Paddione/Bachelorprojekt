@@ -89,18 +89,12 @@ spec:
             # der Supervisor beide erneut.
             - name: MCP_NODE_SERVICES
               value: "github,ticket-mcp,task-runner,codebase-memory"
-            # [T900106/T900191] factory_psql (scripts/factory/lib.sh) spricht mit
-            # gesetzter FACTORY_PG_URL die ClusterIP direkt an; im Pod fehlt
-            # kubectl. Seit dem Umzug des llm-proxy nach devmesh nutzt das nur
-            # noch der task-runner, wenn er Factory-Tasks startet.
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: shared-db-dev-secrets
                   key: DEV_WEBSITE_DB_PASSWORD
                   optional: true
-            - name: FACTORY_PG_URL
-              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website"
             - name: PGOPTIONS
               value: "-c statement_timeout=120000ms"
             - name: GITHUB_PERSONAL_ACCESS_TOKEN

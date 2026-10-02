@@ -30,9 +30,9 @@ Konsequenz ist dieselbe wie bei einem echten Tick, aber aus dem richtigen Grund:
 `--porcelain`-Prüfung unmittelbar vor jedem Remove wiederholen, statt sich auf den Vorcheck zu
 verlassen.
 
-Er prüft beides: den laufenden Factory-Tick **und** den `main-checkout`-Claim aus
+Er prüft beides: den laufenden Hygiene-Tick **und** den `main-checkout`-Claim aus
 `scripts/agent-lock.sh`. Der zweite Teil ist die Lehre aus dem 2026-08-30: der alte Vorcheck
-kannte nur den Tick, und eine **interaktive Fremdsession** mutiert ohne `/tmp/factory-tick.lock`.
+kannte nur den Tick, und eine **interaktive Fremdsession** mutiert ohne `/tmp/repo-hygiene-tick.lock`.
 An diesem Tag geschah das zweimal in einem Lauf — einmal ein `git reset` auf `origin/main`,
 einmal ein Branch-Wechsel, der einen Commit auf einem fremden Branch landen ließ. Während beider
 Vorfälle war `agent-lock.sh list` leer: der Scope, der genau diesen Konflikt verhindert, wurde
@@ -97,7 +97,7 @@ Branch-Bestände mutierten während desselben Laufs mehrfach.
 
 Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit-Bereich allein reicht nicht — ein Worktree kann ungetrackte Änderungen enthalten, die kein `git log` anzeigt.
 
-> **Vorcheck [T003227, erweitert T900016]:** Läuft gerade ein Factory-Tick — oder hält eine
+> **Vorcheck [T003227, erweitert T900016]:** Läuft gerade ein Hygiene-Tick — oder hält eine
 > andere Session den `main-checkout`-Claim —, verändern sich Worktrees und Branches unter dem
 > Lauf; real beobachtet: 5 von 7 Worktrees mutierten während einer Messung. Maßgeblich ist der
 > gemeinsame Vorcheck aus §0 (`bash scripts/repo-hygiene-precheck.sh`); der Lock-Test darunter
@@ -106,11 +106,11 @@ Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit
 > entfallen; der `main-checkout`-Lock ist der verbleibende maßgebliche Fall).
 > ```bash
 > tick_running() {
->   test -f /tmp/factory-tick.lock || return 1
->   (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/factory-tick.lock
+>   test -f /tmp/repo-hygiene-tick.lock || return 1
+>   (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/repo-hygiene-tick.lock
 > }
 > if tick_running; then
->   echo "Factory-Tick läuft — Worktree-Sektion übersprungen oder Messung unmittelbar vor Remove wiederholen"
+>   echo "Hygiene-Tick läuft — Worktree-Sektion übersprungen oder Messung unmittelbar vor Remove wiederholen"
 > fi
 > ```
 > Bei laufendem Tick die Worktree-Sektion überspringen **oder** die `--porcelain`-Prüfung

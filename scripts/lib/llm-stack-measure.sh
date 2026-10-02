@@ -34,7 +34,7 @@
 #   LLM_PROXY_URL              llm-proxy-Basis-URL        (Vorgabe: http://127.0.0.1:18235)
 #   LLM_MEASURE_LOADOUTS       Loadout-Registry-JSON      (Vorgabe: scripts/llm/loadouts.json)
 #   LLM_MEASURE_BACKENDS_CMD   Kommando, das "name<TAB>base_url" ausgibt (Vorgabe:
-#                              factory_psql-Abfrage auf tickets.llm_proxy_backends, enabled=true)
+#                              PG-Abfrage auf tickets.llm_proxy_backends, enabled=true)
 #   LLM_MEASURE_MCP_REGISTRY   MCP-Registry-Datei         (Vorgabe: docs/agent-guide/registry/mcp.yaml)
 #   LLM_MEASURE_UNIT_DIRS      Unit-Verzeichnisse (":"-sep.) (Vorgabe: scripts/llm:scripts/llm-proxy)
 #   LLM_MEASURE_UNIT_STATE_CMD Kommando, das für einen Unit-Namen enabled|disabled ausgibt
@@ -225,7 +225,7 @@ cmd_dead_endpoints() {
   if [ -n "${LLM_MEASURE_BACKENDS_CMD:-}" ]; then
     backends="$($LLM_MEASURE_BACKENDS_CMD 2>/dev/null)" || na
   else
-    backends="$(factory_psql_backends 2>/dev/null)" || na
+    backends="$(pg_backends 2>/dev/null)" || na
   fi
   [ -n "$backends" ] || na
   # MCP-Registry-Ports für die Familiengrenze (G-IF01 führt diese Fälle).
@@ -260,15 +260,15 @@ PY
   echo "$n"
 }
 
-# Backend-Registry in Produktion: factory_psql-Abfrage auf tickets.llm_proxy_backends.
-factory_psql_backends() {
+# Backend-Registry in Produktion: PG-Abfrage auf tickets.llm_proxy_backends.
+pg_backends() {
   local pod
   # Default seit ADR-007/T900145: Ticket-DB of record ist fleet (siehe scripts/ticket.sh).
-  pod="$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  pod="$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
     -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | awk '{print $1}')"
   [ -n "$pod" ] || return 1
-  kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" -c postgres -- \
+  kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" -c postgres -- \
     psql -U website -d website -qtA -c \
     "SELECT name||E'\t'||base_url FROM tickets.llm_proxy_backends WHERE enabled = true" 2>/dev/null
 }

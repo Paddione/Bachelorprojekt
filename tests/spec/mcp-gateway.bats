@@ -150,7 +150,7 @@ setup() {
   # = extern nach ~/.local/bin installiert) sind ausgenommen: ihr Pfad ist nicht durch
   # einen Build-Schritt dieses Repos beeinflussbar.
   local server fail=0
-  for server in ticket-mcp mcp-task-runner factory-mcp; do
+  for server in ticket-mcp mcp-task-runner; do
     local block hits
     block="$(awk -v s="^  ${server}:$" '$0 ~ s {f=1; next} f && /^  [a-z]/ {exit} f' "$reg")"
     hits="$(printf '%s\n' "$block" | grep -nE '^\s*command: */home/' || true)"

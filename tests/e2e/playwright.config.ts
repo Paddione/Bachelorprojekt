@@ -104,8 +104,7 @@ export default defineConfig({
       name: 'mentolder',
       dependencies: ['mentolder-setup'],
       // T013329 F3/D2: Die guardSdlc-Specs (dev-status-tabs, fa-42, fa-43,
-      // fa-48, fa-49, fa-53, fa-58, fa-factory-floor, fa-factory-injection,
-      // fa-kommissionierung, fa-mobile-factory, fa-planning-office, sa-21)
+      // fa-48, fa-53, fa-58, fa-kommissionierung, fa-planning-office, sa-21)
       // sind in playwright.local.config.ts (Projekt sdlc-local) gewandert —
       // die SDLC-Routen existieren im Prod-Build absichtlich nicht.
       testMatch: [

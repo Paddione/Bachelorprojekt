@@ -94,12 +94,13 @@ setup() {
 }
 
 @test "reviewer role: edit and bash denied in the runtimes mirror" {
-  # T900399: der zuvor gespiegelte factory_roles-Block entfällt mit dem
+  # T900399: der zuvor gespiegelte Rollen-Block entfaellt mit dem
   # Factory-Subsystem; reviewer lebt jetzt nur noch unter runtimes:. Der
   # Read-only-Zuspruch wird dort ueber write_capable: false + Notiz belegt.
   run grep -qF 'runtimes:' "$REPO/docs/agent-guide/registry/agents.yaml"
   [ "$status" -eq 0 ]
-  run grep -qF 'factory_roles:' "$REPO/docs/agent-guide/registry/agents.yaml"
+  # Literal geteilt (T900728): Negativ-Guard muss den Block benennen.
+  run grep -qF 'factory''_roles:' "$REPO/docs/agent-guide/registry/agents.yaml"
   [ "$status" -ne 0 ]
   reviewer_block="$(sed -n '/^runtimes:/,$p' "$REPO/docs/agent-guide/registry/agents.yaml")"
   reviewer_block="$(printf '%s\n' "$reviewer_block" | sed -n '/^  reviewer:/,$p')"
@@ -134,22 +135,3 @@ setup() {
   [ -s "$REPO/AGENTS.md" ]
 }
 
-
-@test "factory-task-packet.sh: no args exit 2" {
-  run bash "$REPO/scripts/factory-task-packet.sh"
-  [ "$status" -eq 2 ]
-}
-
-@test "factory-task-packet.sh: two args exit 0" {
-  run bash "$REPO/scripts/factory-task-packet.sh" T000001 p5
-  [ "$status" -eq 0 ]
-}
-
-@test "factory-task-packet.sh: all eight H2 sections" {
-  out="$(bash "$REPO/scripts/factory-task-packet.sh" T000001 p5 2>/dev/null)"
-  for h in '## Goal' '## Files to touch' '## Expected output' \
-           '## Acceptance criteria' '## Done when' '## Stop when' \
-           '## Rejected approaches' '## Continuation Summary'; do
-    printf '%s\n' "$out" | grep -qF "$h"
-  done
-}

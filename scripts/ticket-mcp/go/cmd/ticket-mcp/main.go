@@ -38,9 +38,9 @@ func main() {
 	// während Laufzeit). Stdio-safe: nur stderr, nie stdout.
 	warnIfStale(os.Stderr)
 
-	// Periodischer Schnitt (Factory-Tick, scripts/factory/wakeup.sh) — läuft
-	// bewusst als kurzlebiger Prozess und NICHT als MCP-Server, damit der Tick
-	// ihn ohne Session aufrufen kann (T002383).
+	// Periodischer Schnitt (Hygiene-Tick) — läuft bewusst als kurzlebiger
+	// Prozess und NICHT als MCP-Server, damit der Tick ihn ohne Session
+	// aufrufen kann (T002383).
 	if *flushStale {
 		maxAge := time.Duration(*flushMaxAgeDays * float64(24*time.Hour))
 		ext, err := tools.FlushStaleBuffer(*flushBrand, maxAge)

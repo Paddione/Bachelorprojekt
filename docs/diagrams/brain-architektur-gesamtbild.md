@@ -12,7 +12,7 @@
 | K3 | Code-Graph (codebase-memory-mcp) | Symbol-Graph, Aufrufketten, 14 MCP-Tools | `docs/brain/k3-code-graph.md` |
 | K4 | Authored-Docs-Kern in `docs/` (Mirror stillgelegt) | ADRs, Runbooks, Gotchas, Karten; kein externes Repo mehr | `docs/brain/recall-routing.md` |
 | K5 | Spec-Store (retired) | SSOT-Specs + Changes + Archiv, Lebenszyklus propose→apply→archive | retired |
-| K6 | Ticket/Factory | tickets.tickets DB + factory pipeline | T002436 (in Arbeit) |
+| K6 | Ticket-Datenmodell | tickets.tickets DB | T002436 (in Arbeit) |
 | K7 | Agenten/MCP-Harness | MCP-Server, Agenten-Rollen, llm-proxy Bridge | `docs/brain/k7-agenten-mcp.md` |
 
 ## Gesamtdiagramm
@@ -66,7 +66,6 @@ Kanten-Legende:
 │  K1 ← K6: ticket_embeddings (leer)             │   auf (verschiedene Abfragearten)
 │                                                │
 │  K1 → knowledge-db.ts (Retrieval)              │
-│  K1 → factory-mcp (find_similar)               │
 └────────────────────────────────────────────────┘
                                                 │
 ┌───────────────────────────────────────────────┼──────────────────────────────────┐
@@ -102,19 +101,19 @@ Kanten-Legende:
 └───────────────────────────────────────────────────────────────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────────────────────────┐
-│                     K6 — Ticket/Factory (tickets.tickets + factory pipeline)        │
-│  PostgreSQL-Tabellen, factory-mcp HTTP-Server :13003, ticket-mcp stdio              │
+│  K6 — Ticket-Datenmodell (tickets.tickets)                                          │
+│  PostgreSQL-Tabellen, ticket-mcp stdio                                              │
 │                                                                                     │
 │  ══► K5 (Ticket-Link)    (F) external_id  (T) PostgreSQL JOIN                     │
 │       (A) propose (schreibt .ticket)                                                │
 │                                                                                     │
-│  ══► K7 (MCP-Tools)      ticket-mcp (26 Tools), factory-mcp (HTTP :13003)         │
-│       (T) stdio→Bridge (ticket-mcp), HTTP direkt (factory-mcp)                     │
+│  ══► K7 (MCP-Tools)      ticket-mcp (26 Tools)                                    │
+│       (T) stdio→Bridge (ticket-mcp)                                                │
 │                                                                                     │
 │  - -> K1 (ticket_embeddings)  Tabelle existiert, tickets-embed.ts implementiert,   │
 │       aber 0 Zeilen — kein Aufrufer, keine Hook, kein Cron. Toter Code.            │
 │                                                                                     │
-│  ···► K3 FEHLT            Factory-Pipeline trifft Entscheidungen über Tickets,     │
+│  ···► K3 FEHLT            Ticket-Pipeline trifft Entscheidungen über Tickets,      │
 │       aber ohne Code-Graph-Kontext. Eine Ticket-Beschreibung die „ändere X" sagt,   │
 │       kann nicht automatisch prüfen, ob X im Code-Graph existiert.                  │
 └───────────────────────────────────────────────────────────────────────────────────┘
@@ -125,7 +124,7 @@ Kanten-Legende:
 │                                                                                     │
 │  ══► K2 (bge-mcp)        (T) HTTP :13005  (A) MCP-Tool-Aufruf                     │
 │  ══► K3 (codebase-memory) (T) stdio→Bridge  (A) MCP-Tool-Aufruf                   │
-│  ══► K6 (ticket/factory)  (T) stdio→Bridge + HTTP :13003                           │
+│  ══► K6 (tickets-Tabellen)  (T) stdio→Bridge                                       │
 │                                                                                     │
 │  Alle stdio-MCP-Server laufen als Kindprozesse des llm-proxy.                       │
 │  Die Bridge macht 93 Tools aus 4 Servern per HTTP erreichbar.                       │
@@ -167,7 +166,7 @@ Kanten-Legende:
 
 ### D1 — Tracking-Pipeline ins Nichts (Vorerhebung)
 **Betroffene Kante:** K6 → (Monitoring)  
-**Auswirkung:** Factory-Phasen-Events werden geschrieben, aber nicht aggregiert ausgewertet.  
+**Auswirkung:** Ticket-Phasen-Events werden geschrieben, aber nicht aggregiert ausgewertet.  
 **Typ:** Fehlfunktion (Daten produziert, nicht konsumiert).
 
 ### D2 — ticket_plans leer (Vorerhebung)
@@ -244,7 +243,7 @@ Kanten-Legende:
 | # | Von | Nach | Begründung | Priorität |
 |---|-----|------|-----------|-----------|
 | E1 | K1 | K3 | Gemeinsamer Index oder Querverweise zwischen Vektor- und Graph-Sicht auf dieselbe Codebasis | **hoch** (D8) |
-| E2 | K6 | K3 | Factory soll Code-Kontext für automatisierte Entscheidungen nutzen können | mittel |
+| E2 | K6 | K3 | Ticket-Pipeline soll Code-Kontext für automatisierte Entscheidungen nutzen können | mittel |
 | E3 | K7 | K1 | MCP-Tool für Vektorsuche — Agenten direkten pgvector-Zugriff geben | mittel |
 | E4 | K7 | K5 | MCP-Tool zum Lesen/Schreiben von Specs | mittel |
 | E5 | K4 | K1 | Brain-Wiki-Inhalte vektorisieren für semantische Suche | niedrig |
@@ -260,7 +259,7 @@ Kanten-Legende:
 - K2→K1 (Embedding-Produktion) — aktiv, bge-m3 + Voyage-Fallback
 - K2→K7 (bge-mcp) — aktiv, Bearer-geschützt
 - K3→K7 (codebase-memory via Bridge) — aktiv, 14 Tools
-- K6→K7 (ticket-mcp + factory-mcp) — aktiv, 26+7 Tools
+- K6→K7 (ticket-mcp) — aktiv, 26 Tools
 - K7 (llm-proxy + Bridge) — aktiv, 93 Tools aggregiert
 
 **Trägt teilweise oder degradiert:**
@@ -277,7 +276,7 @@ Kanten-Legende:
 **Unklar (mangels K4/K6-Dokumentation):**
 - K4↔K6 (Verlinkung Wiki↔Tickets)
 - K4↔K7 (MCP-Zugriff auf Wiki)
-- K6 interne Datenflüsse (Factory-Pipeline-Details)
+- K6 interne Datenflüsse (Ticket-Pipeline-Details)
 
 ## Änderungshistorie
 

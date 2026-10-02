@@ -1,6 +1,6 @@
 # k3d/monitoring/otel-collector.yaml
-# On-prem OpenTelemetry Collector for the headless Software Factory autopilot.
-# Receives OTLP (native Claude-Code telemetry + custom factory spans/metrics) and
+# On-prem OpenTelemetry Collector for headless task-runner telemetry.
+# Receives OTLP (native Claude-Code telemetry + custom task spans/metrics) and
 # exposes a Prometheus /metrics endpoint scraped by the kube-prometheus-stack
 # (servicemonitor-otel-collector.yaml). Bearer-token auth on the OTLP receiver is
 # enforced by the collector itself (bearertokenauth extension); the token comes from
@@ -17,7 +17,7 @@ data:
     extensions:
       bearertokenauth:
         scheme: Bearer
-        token: ${env:FACTORY_OTLP_TOKEN}
+        token: ${env:OTEL_AUTH_TOKEN}
     receivers:
       otlp:
         protocols:
@@ -86,11 +86,11 @@ spec:
           image: otel/opentelemetry-collector-contrib:0.157.0@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6
           args: ["--config=/etc/otel/config.yaml"]
           env:
-            - name: FACTORY_OTLP_TOKEN
+            - name: OTEL_AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: otel-collector-auth
-                  key: FACTORY_OTLP_TOKEN
+                  key: OTEL_AUTH_TOKEN
           ports:
             - name: otlp-http
               containerPort: 4318

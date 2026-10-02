@@ -122,7 +122,7 @@ flowchart LR
   systemtest_cleanup -->|"command"| website
   systemtest_purge_all -->|"command"| website
   systemtest_outbox -->|"command"| website
-  dev_pod -->|"FACTORY_PG_URL"| website
+  dev_pod -->|"WORKSPACE_PG_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
   sdlc_console -->|"SESSIONS_DATABASE_…"| website
   error_log_retention -->|"command"| website

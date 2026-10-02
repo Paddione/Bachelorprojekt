@@ -1,10 +1,9 @@
 # .github/workflows/post-merge-e2e.yml
 # E2E-Trigger nach verhaltensrelevanten Merges auf main. [T000730, T900810]
 #
-# T900810: frueher "Factory Post-Merge E2E" — der Scope war ein T######-Ticket-
-# kuerzel in der Merge-Message, was praktisch JEDEN Merge traf (bis zu ~14
-# E2E-Laeufe/Tag gegen Prod). Die Factory ist abgebaut (T900399); Scope ist
-# jetzt der paths-Filter unten: nur Merges, die Prod-Verhalten aendern koennen
+# T900810: frueher traf der Scope per T######-Ticket-Kuerzel in der Merge-Message
+# praktisch JEDEN Merge (bis zu ~14 E2E-Laeufe/Tag gegen Prod). Scope ist
+# seit T900399 der paths-Filter unten: nur Merges, die Prod-Verhalten aendern koennen
 # (Service-Code, Images, Manifeste, E2E-Suite selbst), loesen die Suite aus.
 # Reine Doku-/Script-/Plan-Merges bleiben still.
 #

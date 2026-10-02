@@ -141,6 +141,6 @@ tasks:
       - rm -rf "{{.ACTIVE_HOME}}" "{{.BACKUP_DIR}}"
       - echo "Wiped."
 
-# factory-mcp:* tasks moved to Taskfile.agents.yml (agents: namespace) —
-# it's a cross-harness MCP server (Claude Code + opencode + Hermes), not
+# MCP-server tasks moved to Taskfile.agents.yml (agents: namespace) —
+# they are cross-harness (Claude Code + opencode + Hermes), not
 # specific to the opencode/openclaw CLI installed by this Taskfile.

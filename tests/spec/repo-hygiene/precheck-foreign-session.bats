@@ -5,7 +5,7 @@
 # Pruefmodus: command output verification [T002448-M4]. Das Skript wird
 # AUSGEFUEHRT und an Exit-Code und Ausgabe gemessen.
 #
-# Hintergrund T900016: Der Vorcheck prueste nur /tmp/factory-tick.lock. Eine
+# Hintergrund T900016: Der Vorcheck prueste nur den Tick-Lock. Eine
 # interaktive Fremdsession mutiert das Repo aber ohne diesen Lock — am
 # 2026-08-30 zweimal in einem Lauf (ein `git reset` auf origin/main, ein
 # Branch-Wechsel, der einen Commit auf einem fremden Branch landen liess).
@@ -56,7 +56,7 @@ teardown() {
   run bash "$SCRIPT" --verify "$fp"
   [ "$status" -eq 0 ]
 
-  # Das tut eine Fremdsession: sie veraendert Refs, ohne /tmp/factory-tick.lock
+  # Das tut eine Fremdsession: sie veraendert Refs, ohne den Tick-Lock
   # zu halten.
   git -C "$REPO" branch "$PROBE_BRANCH" HEAD
 
@@ -87,7 +87,7 @@ teardown() {
   [[ "$output" == *"Usage:"* ]]
 }
 
-@test "T900016: der Vorcheck prueft den main-checkout-Claim, nicht nur den Factory-Tick" {
+@test "T900016: der Vorcheck prueft den main-checkout-Claim, nicht nur den Hygiene-Tick" {
   run bash "$SCRIPT" --check
   echo "output: $output"
   # rc 0, 1 und 2 sind alle gueltige Ergebnisse eines echten Laufs: frei,
@@ -97,7 +97,7 @@ teardown() {
   [[ "$output" != *"Usage:"* ]]
   # Beide Quellen werden benannt — das war der Kern des Befunds: der alte
   # Vorcheck kannte nur die erste.
-  [[ "$output" == *"Factory-Tick"* ]]
+  [[ "$output" == *"Hygiene-Tick"* ]]
   [[ "$output" == *"main-checkout"* ]]
 }
 

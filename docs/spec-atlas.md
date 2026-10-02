@@ -4,7 +4,7 @@
 
 Specs: 133 · Requirements: 2469 · Scenarios: 5475
 
-## factory-pipeline
+## pipeline
 
 ### agent-skills
 Reqs: 96 · Scenarios: 213 · Lines: 2549
@@ -45,14 +45,14 @@ Last touches:
   - Archive regenerates and stages every derived freshness artifact | T900341 | 2026-09-23 | ADDED
   - Half-archive detection does not spawn a process per archive entry | T013673 | 2026-09-17 | ADDED
 
-### software-factory
+### retired-factory
 Reqs: 207 · Scenarios: 628 · Lines: 5729
 Paths: scripts/factory
 Last touches:
   - Queue-Poll und Slot-Claim | T900399 | 2026-09-26 | REMOVED
   - Dispatcher-Tick-Execution | T900399 | 2026-09-26 | REMOVED
   - Kill-Switch und Daily-Cap Guards | T900399 | 2026-09-26 | REMOVED
-  - Software-Factory Subsystem Decommissioned | T900399 | 2026-09-26 | ADDED
+  - Factory Subsystem Decommissioned | T900399 | 2026-09-26 | ADDED
   - Independent Database Migration Execution | T900399 | 2026-09-26 | ADDED
 
 ## delivery
@@ -283,10 +283,10 @@ Last touches:
   - Summary generation is idempotent | T003814 | 2026-08-14 | ADDED
   - Coaching content is only sent to on-premises providers | T003814 | 2026-08-14 | ADDED
 
-### batch-factory-pipeline-robustness
+### batch-pipeline-robustness
 Reqs: 3 · Scenarios: 6 · Lines: 71
 Last touches:
-  - The FACTORY_CTX default is visible immediately on sourcing lib.sh | T900145 | 2026-09-16 | MODIFIED
+  - The WORKSPACE_CTX default is visible immediately on sourcing lib.sh | T900145 | 2026-09-16 | MODIFIED
   - Merged-PR-Gate schließt gemergte Tickets vor dem Dispatch | T014384 | 2026-08-23 | ADDED
   - The factory stops dispatching a plan after three consecutive no-commit runs | T003810 | 2026-08-14 | ADDED
 
@@ -302,8 +302,8 @@ Reqs: 4 · Scenarios: 4 · Lines: 49
 Last touches:
   - Vollständige Triage-Projektion in ticket list | T003811 | 2026-08-13 | ADDED
   - Such-URL defaultet lokal | T003811 | 2026-08-13 | ADDED
-  - factory_ask antwortet vor dem Client-Timeout | T003811 | 2026-08-13 | ADDED
-  - factory_phase_events Zeit-Spalte bleibt `at` | T003811 | 2026-08-13 | ADDED
+  - LLM-Q&A-Tool antwortet vor dem Client-Timeout | T003811 | 2026-08-13 | ADDED
+  - tickets.factory_phase_events Zeit-Spalte bleibt `at` | T003811 | 2026-08-13 | ADDED
 
 ### batch-embed-fixes
 Reqs: 7 · Scenarios: 9 · Lines: 100
@@ -387,10 +387,10 @@ Last touches:
   - Rückstau-Erhebung (REQ-k5-03) | T002435 | 2026-08-02 | ADDED
   - Defekt-Referenz (REQ-k5-04) | T002435 | 2026-08-02 | ADDED
 
-### brain-k6-ticket-factory
+### brain-k6-ticket-datenmodell
 Reqs: 4 · Scenarios: 5 · Lines: 59
 Last touches:
-  - factory_control hat einen Primary Key und dedupliziert Globaleinträge | T014545 | 2026-08-23 | ADDED
+  - tickets.factory_control hat einen Primary Key und dedupliziert Globaleinträge | T014545 | 2026-08-23 | ADDED
   - Diagramm mit beschrifteten Kanten (REQ-k6-01) | T002436 | 2026-08-02 | ADDED
   - Vollständige Erhebung (REQ-k6-02) | T002436 | 2026-08-02 | ADDED
   - Defekt-Referenz (REQ-k6-03) | T002436 | 2026-08-02 | ADDED
@@ -564,7 +564,7 @@ Last touches:
 ### factory-session-reuse
 Reqs: 3 · Scenarios: 3 · Lines: 33
 Last touches:
-  - Session reuse in factory pipeline | T002072 | 2026-08-02 | ADDED
+  - Session reuse im Pipeline-Betrieb | T002072 | 2026-08-02 | ADDED
   - Graceful fallback on session loss | T002072 | 2026-08-02 | ADDED
   - Timeout handling with session reuse | T002072 | 2026-08-02 | ADDED
 
@@ -581,7 +581,7 @@ Reqs: 8 · Scenarios: 10 · Lines: 131
 Last touches:
   - Worktree-Aktivitätsschutz vor Zombie-Löschung | T900227 | 2026-09-17 | ADDED
   - Serialisierung von Heartbeat-TTL-Reap und Zombie-Purge | T900227 | 2026-09-17 | ADDED
-  - factory_excluded-Tickets bleiben vom eigenen Watchdog verschont | T900227 | 2026-09-17 | ADDED
+  - Ausgeschlossene Tickets bleiben vom eigenen Watchdog verschont | T900227 | 2026-09-17 | ADDED
   - Claim-Readiness-Gate vor Gang-Slot-Claim | T015556 | 2026-08-24 | ADDED
   - Unlesbarer INFRA-Counter blockiert Eskalation nicht dauerhaft | T015556 | 2026-08-24 | ADDED
 
@@ -984,7 +984,7 @@ Last touches:
 ### t001592
 Reqs: 2 · Scenarios: 2 · Lines: 29
 Last touches:
-  - Factory Floor MUST display provider badges for each station phase and open a drawer on click | T001592 | 2026-08-03 | ADDED
+  - Leitstand MUST display provider badges for each station phase and open a drawer on click | T001592 | 2026-08-03 | ADDED
   - Sidekick interface MUST expose global agent settings including context budget, spawn harness, lavish review, and kill switch | T001592 | 2026-08-03 | ADDED
 
 ### terminal-sidekick

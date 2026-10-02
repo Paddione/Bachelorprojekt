@@ -154,7 +154,7 @@ call() {
 
 @test "the MCP registry does not list the worker" {
   # Positiv-Anker: die Registry ist lesbar und enthaelt überhaupt MCP-Server.
-  # (Bis T900399 stand hier `factory-mcp`; der Server ist mit der Software-Factory
+  # (Bis T900399 stand hier der HTTP-MCP-Server; er ist mit T900399
   # entfallen, der Anker muss an einem verbleibenden Server haengen.)
   grep -q 'mcp-kubernetes' "$REPO/docs/agent-guide/registry/mcp.yaml"
   [ -z "$(grep -F 'glimmer-worker' "$REPO/docs/agent-guide/registry/mcp.yaml" || true)" ]

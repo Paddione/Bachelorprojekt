@@ -30,12 +30,12 @@ test('allowedBrowserOrigins returns empty set when unset', () => {
 
 // --- requireToken ---
 test('requireToken returns trimmed token when present', () => {
-  assert.equal(requireToken('FACTORY_MCP_TOKEN', { FACTORY_MCP_TOKEN: '  abc  ' }), 'abc');
+  assert.equal(requireToken('EXAMPLE_TOKEN', { EXAMPLE_TOKEN: '  abc  ' }), 'abc');
 });
 
 test('requireToken throws when missing or empty', () => {
-  assert.throws(() => requireToken('FACTORY_MCP_TOKEN', {}), /Pflicht-Token/);
-  assert.throws(() => requireToken('FACTORY_MCP_TOKEN', { FACTORY_MCP_TOKEN: '   ' }), /Pflicht-Token/);
+  assert.throws(() => requireToken('EXAMPLE_TOKEN', {}), /Pflicht-Token/);
+  assert.throws(() => requireToken('EXAMPLE_TOKEN', { EXAMPLE_TOKEN: '   ' }), /Pflicht-Token/);
 });
 
 // --- isLocalHost ---

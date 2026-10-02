@@ -3,7 +3,7 @@
 # LiquidAI/ifstruct-v1.0 (2.000 Prompts, binaere Wertung ohne constrained decoding).
 #
 # Warum: ifstruct prueft, ob ein Modell gueltiges JSON/YAML nach einem geforderten Schema
-# erzeugt -- der Fehlermodus, an dem die Software Factory bei tool_calls scheitert.
+# erzeugt -- der Fehlermodus, an dem LLM-Tool-Aufrufe scheitern.
 # EINSCHRAENKUNG: gewertet wird NUR die Struktur, nicht inhaltliche Korrektheit oder
 # Qualitaet -- eine Antwort kann inhaltliche Anweisungen ignorieren und trotzdem bestehen.
 # Als alleiniges Qualitaetsmass taugt dieser Benchmark deshalb nicht.

@@ -1,0 +1,90 @@
+# Fortsetzungs-Kontrakt für angefangene Tickets [T002327]
+
+> **HINWEIS T900399 — historisch.** Die Factory ist abgeschaltet: der Watchdog, die
+> `queue.sh` und `ticket.sh unfactory` existieren nicht mehr. Dieses Dokument bleibt als
+> Begründung des **Hold-Gates** (`readiness.execution_released=false` als Default, T002272)
+> lesbar — das Gate selbst besteht weiter. Die factory-spezifischen Abschnitte
+> (Watchdog-Verhalten, `unfactory` als „durable half of …", `queue.sh`) beschreiben einen
+> Stand, der nicht mehr existiert; sie sind unten entsprechend markiert und **nicht** als
+> Handlungsanweisung zu lesen.
+
+Referenz zu `dev-flow-execute`. Sie steht hier und nicht im Skill-Body, weil
+der Skill-Body unter `.agents/skills/dev-flow-execute` (Shim zu `.agents/skills/dev-flow-execute/SKILL.md`) exakt auf der 250-Zeilen-Grenze des
+fail-closed Gates **G-AGENTIC09** liegt und keine einzige Zeile Spielraum hat.
+
+Der Kontrakt gilt für **Mensch und Factory gleichermaßen**. Es gibt bewusst keinen
+zweiten Ausführungs-Skill (Design-Entscheidung E1): zwei Pfade für dieselbe Aufgabe
+laufen auseinander, und dann ist unklar, welcher gilt.
+
+## Fortsetzung statt Neubeginn
+
+Liegt auf dem Branch bereits Arbeit, wird sie **fortgesetzt**, nicht wiederholt.
+
+- **Erledigte Partials erkennt allein die `partial-done`-Phase-Event-Auswertung**
+  (`tickets.factory_phase_events`, ausgewertet in `read-partials`). Es gibt **keine
+  zweite Fortschrittsquelle**: wer zusätzlich Commit-Betreffs oder Plan-Checkboxen
+  auswertet, baut Drift ein — zwei Quellen, die irgendwann widersprechen, ohne Regel,
+  welche gewinnt.
+- **Der Worktree entsteht, bevor das Partial-Manifest gelesen wird.** Ohne diese
+  Reihenfolge liegt `.agents/plans/<slug>/tasks.d/` zum Lesezeitpunkt noch nicht auf
+  der Platte, `readPartials` liefert nichts, und der Lauf fällt auf den LLM-Decompose
+  zurück. Der kennt keine erledigten Partials und erzeugt die volle Taskliste — die
+  Implementierungsschleife wiederholt dann bereits geleistete Arbeit.
+- **Der Fehler war nicht einmal stabil.** Blieb `.worktrees/<slug>` von einem früheren
+  Tick liegen, griff der Partial-Pfad plötzlich doch. Wiederaufnahme wirkte dadurch wie
+  Zufall statt wie eine Zusage — der Grund, warum der Reihenfolgefehler so lange
+  unentdeckt blieb.
+- **Ein Rückfall auf den LLM-Decompose wird protokolliert**, ebenso ein Fehlschlag der
+  Phase-Event-Abfrage und die Liste der übersprungenen Partials. Ein stiller Fallback
+  sieht aus wie der Normalfall; genau das ist die Fehlersituation, die dieser Kontrakt
+  beseitigt, und sie darf nicht in anderer Form zurückkehren.
+
+## Der Branch ist anderswo ausgecheckt
+
+Hält ein anderer Worktree den Branch, **stellt die Factory zurück**: sie gibt ihren Slot
+frei, schreibt ein `deferred`-Phase-Event und lässt den Ticket-Status unangetastet.
+Kein `blocked`, keine PushNotification — der nächste Tick greift das Ticket regulär
+wieder auf.
+
+Die Slot-Freigabe ist der kritische Teil: bleibt der Slot belegt, verhungert die Queue —
+das wäre schlimmer als das `blocked`, das hier ersetzt wird.
+
+Erkannt wird der Fall an der Markerzeile `branch in use` und **Exit-Code 3** aus
+`scripts/worktree-create.sh`. Die Erkennung sitzt bewusst im Skript und nicht als Regex
+auf der Fehlermeldung von `git worktree add`: deren Wortlaut wechselt zwischen
+git-Versionen (`is already checked out at …` / `already used by worktree at …`), und ein
+Regex darauf würde bei geändertem Wortlaut still in den generischen Fehlerpfad
+zurückfallen — also wieder `blocked` setzen.
+
+Für den menschlichen Ausführer heißt das: **ein Ticket, das kurz nicht anläuft, ist kein
+Defekt, sondern eine belegte Ressource.**
+
+## Manuelle Übernahme
+
+Wer ein gestagtes Ticket manuell übernimmt (`dev-flow-execute`), setzt kein Readiness-Flag: Mit dem Factory-Teardown (T900399/T900728) existieren Watchdog, `queue.sh` und `ticket.sh unfactory` nicht mehr — es gibt nichts mehr, wovor das Ticket zu schützen wäre.
+
+**[T900399 — historisch, nicht mehr ausführbar]** Früher wurde unmittelbar nach dem Branch-Claim ein Ausschluss-Flag gesetzt; Watchdog und `queue.sh` respektierten es — ohne das Flag pongte der Watchdog (`STALE_MIN=0`) gegen die Pipeline: Reset auf `plan_staged` → erneuter Dispatch → Defer am fremden Claim → Status bleibt `in_progress` → nächster Tick resettete erneut (beobachtet an T005560, 22:41–22:54 UTC). Nach Abschluss (Merge → done) wurde das Flag beim nächsten Dispatch-Bedarf von Hand zurückgesetzt — es war die „durable half of `ticket.sh unfactory`" und wurde bewusst nie automatisch gelöscht.
+
+## Das Hold-Gate bleibt unverändert
+
+`readiness.execution_released=false` bleibt der **Default** (T002272). Fortsetzungs-
+fähigkeit ersetzt die Freigabe **nicht** — sie macht sie nur folgenlos für bereits
+geleistete Arbeit. Ob ein gestagtes Ticket laufen darf, bleibt eine menschliche
+Entscheidung; neu ist allein, dass eine spätere Freigabe nicht mehr bedeutet, dass die
+Factory von vorne anfängt. **[T900399]** Die `queue.sh`, die diesen Fall behandelt
+hat, ist mit der Factory entfallen — der Hold ist heute der einzige Schutz
+gegen Doppel-Dispatch.
+
+## `reclaim` ist der Notausstieg, nicht der Regelweg
+
+`bash scripts/ticket.sh reclaim` ist für **entgleiste** Ausführungen gedacht. Keine
+Automatik löst ihn aus. Dass er zeitweise zum Normalfall wurde, war ein Symptom der
+fehlenden Fortsetzungsfähigkeit — mit dieser ist er wieder das, was er sein sollte.
+
+## Was davon testbar ist
+
+`tickets.factory_phase_events` ist in CI nicht erreichbar. Die Absicherung in
+`tests/spec/decommission/` prüft deshalb **Struktur und Verzweigung** im
+Quelltext — Aufrufreihenfolge, Markerzeile, Exit-Code, Abwesenheit des `blocked`-Pfads
+im Fremdbesitz-Zweig, Unverändertheit von `queue.sh` — nicht den Datenbank-Roundtrip.
+Wer dort einen DB-Test sucht: es gibt keinen, und das ist Absicht.

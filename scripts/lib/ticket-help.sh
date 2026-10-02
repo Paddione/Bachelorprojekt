@@ -28,7 +28,7 @@ ticket_help_wanted() {
 
 ticket_usage() {
   echo "Usage: $0 <command> [options]"
-  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, seq-repair, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, find-similar"
+  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, seq-repair, assert-phase-chain, retry-count, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, find-similar"
 }
 
 ticket_help_subcommand() {
@@ -201,38 +201,6 @@ HELP
 Usage: ticket.sh retry-count <action> --id <external_id>
   <action>                get|incr|reset (required)
   --id <external_id>      Ticket-ID (required)
-HELP
-      ;;
-    unfactory)
-      cat <<'HELP'
-Usage: ticket.sh unfactory --id <external_id> [--attempts <n>]
-  --id <external_id>      Ticket-ID (required)
-  --attempts <n>          Anzahl fehlgeschlagener Runden (Zahl oder CLASS-N, z. B. INFRA-3)
-  Setzt status=blocked, attention_mode=needs_human, readiness.factory_excluded=true.
-HELP
-      ;;
-    factory-control)
-      cat <<'HELP'
-Usage: ticket.sh factory-control <action> --key <key> [options]
-  <action>                get|set (required)
-  --key <key>             Control-Key (required)
-  --brand <brand>         Optionaler Brand (NULL = global)
-  --value <value>         Wert (required bei set)
-  --set-by <label>        Setzer-Label
-HELP
-      ;;
-    dryrun-mark)
-      cat <<'HELP'
-Usage: ticket.sh dryrun-mark --id <external_id>
-  --id <external_id>      Ticket-ID (required)
-  Markiert den Dryrun des Tickets als done.
-HELP
-      ;;
-    dryrun-check)
-      cat <<'HELP'
-Usage: ticket.sh dryrun-check --id <external_id>
-  --id <external_id>      Ticket-ID (required)
-  Exit 0 wenn der Dryrun als done markiert ist, sonst Exit 1.
 HELP
       ;;
     feature-flag)

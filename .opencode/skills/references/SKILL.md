@@ -31,7 +31,7 @@ auf die passende Datei (nicht den ganzen Hub laden, nicht die Inhalte dupliziere
 | Lifecycle-Vertrag | [`dev-flow-lifecycle.md`](dev-flow-lifecycle.md) | Übergangs-SSOT der vier dev-flow-Skills — Rollen und Übergabezustände |
 | dev-flow-plan Phasen | [`dev-flow-plan-phases.md`](dev-flow-plan-phases.md) | Schrittfolge, Decompose-/Fan-out-Mechanik und Kontext-Injektion für Plan-Subagenten |
 | dev-flow-execute Phasen | [`dev-flow-execute-phases.md`](dev-flow-execute-phases.md) | Pre-Flight-, Rebase-, BATS- und Finalize-Befehlsfolgen im Detail |
-| Fortsetzungs-Kontrakt | [`factory-resume-contract.md`](factory-resume-contract.md) | Angefangenes Ticket fortschreiben statt neu beginnen (T002327) |
+| Fortsetzungs-Kontrakt | [`resume-contract.md`](resume-contract.md) | Angefangenes Ticket fortschreiben statt neu beginnen (T002327) |
 | Plan archivieren | [`plan-archive-steps.md`](plan-archive-steps.md) | DB-Archivierung nach Merge |
 | Artefakt-Ebene | [`plan-artifact-level.md`](plan-artifact-level.md) | PRD vs. ADR vs. Change-Proposal vs. Chore-Ticket — Entscheidungstabelle + PRD-Checkliste |
 | Plan Intel Bundle | [`plan-intel-bundle.md`](plan-intel-bundle.md) | `intel.json`-Format: schema-validierte Quellen (codebase-memory, LSP, mcp-postgres, context7) — Schemas in [`schemas/`](schemas/) |

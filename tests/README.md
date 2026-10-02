@@ -1,7 +1,7 @@
 # tests/
 
 Test framework for the Workspace MVP platform. Combines BATS shell tests,
-integration checks, Playwright end-to-end tests, and factory eval scripts.
+integration checks, and Playwright end-to-end tests.
 
 ## Directory layout
 
@@ -12,7 +12,6 @@ integration checks, Playwright end-to-end tests, and factory eval scripts.
 | `integration/` | Service integration tests (HTTP, SSO, DB) |
 | `e2e/` | Playwright browser tests against live environments |
 | `manual/` | Manual test checklists (not automated) |
-| `factory-eval/` | Software Factory quality-gate eval scripts |
 | `fixtures/` | Shared test fixtures and seed data |
 | `lib/` | Shared BATS helper functions |
 

@@ -49,8 +49,8 @@ setup() {
   [ "$missing" -eq 0 ] || { echo "FEHLT: .dockerignore verweist auf: $offenders"; return 1; }
 }
 
-# T900399: entfernt. Der Test las die `[k3d/…]=`-Schluessel aus
-# `scripts/factory/service-registry.sh` — mit dem Factory-Teardown existiert
+# T900399: entfernt. Der Test las die `[k3d/…]=`-Schluessel aus der
+# Shell-Service-Registry — mit dem Factory-Teardown existiert
 # diese Shell-Registry nicht mehr, und die verbleibenden SSOT-Registries
 # (`docs/agent-guide/registry/*.yaml`) fuehren keine Pfad-zu-Datei-Tabelle
 # dieses Formats mehr. Der Container-Registry-Key ist inzwischen

@@ -142,7 +142,7 @@ test('ensureUiConfigRendered schreibt die Seed-Datei fuer ein Loadout mit uiConf
   // T900202: der Seed verlangt alle referenzierten Browser-Tokens. Nur BGE zu
   // setzen liesse generateUiConfigSeed mit "Required environment variable ...
   // is not set" abbrechen und die Seed-Datei bliebe ungeschrieben.
-  const TOKENS = ['BGE_MCP_TOKEN', 'MCP_POSTGRES_TOKEN', 'FACTORY_MCP_TOKEN', 'MCP_KUBERNETES_TOKEN']
+  const TOKENS = ['BGE_MCP_TOKEN', 'MCP_POSTGRES_TOKEN', 'MCP_KUBERNETES_TOKEN']
   const prev = Object.fromEntries(TOKENS.map((t) => [t, process.env[t]]))
   for (const t of TOKENS) process.env[t] = 'test-token'
 

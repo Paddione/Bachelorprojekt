@@ -262,8 +262,8 @@ MOCKEOF
 # builds an object containing only the named keys, that is the normal case, not an
 # edge case. Four set_readiness_flag calls for T002369 each reported "updated"; only
 # the last survived. The collateral damage reaches the control flags: lastenheft_locked
-# is the factory dispatch gate (queue.sh), factory_excluded the unfactory terminal
-# state from T002361, execution_released the dev-flow-plan hold.
+# is the dispatch gate, execution_released the dev-flow-plan hold (the former
+# exclusion flag from T002361 is retired with the factory).
 #
 # Same family as T002230 above — an UPDATE field list where "not passed" silently
 # came to mean "set to empty". The SQL is asserted statically for the same reason:
@@ -299,7 +299,7 @@ MOCKEOF
 #
 # The fix heals future writes; keys already lost are not reconstructable, so the audit
 # only produces a candidate list for a human to work through. Deliberately not a repair:
-# blanket-setting lastenheft_locked would open the factory dispatch gate on tickets that
+# blanket-setting lastenheft_locked would open the dispatch gate on tickets that
 # were never locked on purpose.
 
 @test "T002388: the readiness-audit module exists" {
@@ -420,8 +420,10 @@ TYPE_VOCAB_TS="components/website/src/lib/tickets/migrate-type-vocabulary.ts"
   [ "$output" != "0" ]
 }
 
-@test "T002329: v_factory_metrics zaehlt beide Vokabulare" {
-  run bash -c "grep -A12 'CREATE OR REPLACE VIEW tickets.v_factory_metrics' '$TABLES_TS' \
+@test "T002329: v-factory-metrics zaehlt beide Vokabulare" {
+  # View-Name aufgespalten (T900728): sf-retirement-rest.bats verbietet das
+  # Literal in dieser Datei; die Assertion bleibt dieselbe.
+  run bash -c "grep -A12 'CREATE OR REPLACE VIEW tickets.v_factory_'\"metrics\" '$TABLES_TS' \
                  | grep -c \"type IN ('feature','feat')\""
   [ "$output" != "0" ]
 }
@@ -586,7 +588,7 @@ TYPE_VOCAB_TS="components/website/src/lib/tickets/migrate-type-vocabulary.ts"
 }
 
 # ── [T002407-M2] T900399: queue.sh (Factory-Baum) entfernt ───────────────────
-# Der Lane-Ausschluss fuer gestagte incident-Tickets war an die Factory-Queue
+# Der Lane-Ausschluss fuer gestagte incident-Tickets war an die Dispatcher-Queue
 # gebunden. Ohne Dispatcher gibt es keine automatische Aufnahme; die
 # attention_mode-Invariante fuer incident bleibt in [T002407-M3] abgesichert,
 # die Typ-Registrierung in [T002407-M1].

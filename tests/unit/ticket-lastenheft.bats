@@ -4,7 +4,7 @@
 # Arg-validation runs before any cluster access; SQL shape is
 # asserted against captured psql input. kubectl is mocked; no live cluster.
 # T900399: the former queue.sh autopilot gate was dropped along with the
-# software-factory pipeline; the lastenheft_locked readiness flag itself is
+# retired dispatcher; the lastenheft_locked readiness flag itself is
 # unchanged and still exercised below.
 
 setup() {

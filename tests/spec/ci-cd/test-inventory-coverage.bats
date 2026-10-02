@@ -114,7 +114,7 @@ build_sandbox_inventory() {
   # durch einen einzelnen Slug-Eintrag ersetzt werden.
   #
   # [T002503] Gegen das VERZEICHNIS statt gegen die fruehere Sammeldatei — dieselbe
-  # Struktur wie beim urspruenglichen FA-SF-Anker. [T900399] Die Software-Factory-Suite
+  # Struktur wie beim urspruenglichen FA-SF-Anker. [T900399] Die FA-SF-Suite
   # (FA-SF-01..55) ist mit dem Factory-Teardown ersatzlos entfallen, dieser Anker haengt
   # deshalb jetzt an der naechsten strukturiert-ID-Suite, die uebrig ist.
   run jq '[.[] | select(.file | startswith("tests/spec/harness-workflow-split")) | select(.id | startswith("HWS-"))] | length' "$SANDBOX"

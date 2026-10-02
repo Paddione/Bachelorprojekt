@@ -1,7 +1,8 @@
 // scripts/llm-proxy/fixups.mjs
-// Benannte Request-Fixups. Abgeglichen gegen ~/.config/factory/qwythos-msg-fixup-proxy.py
-// (T001812-Workaround), das bisher als systemd-Service vor :8093 stand - siehe
-// "T002102 Unified Gateway" Ablösung, 2026-07-23.
+// Benannte Request-Fixups. Abgeglichen gegen das fruehere
+// qwythos-msg-fixup-proxy.py (T001812-Workaround), das bisher als
+// systemd-Service vor :8093 stand - siehe "T002102 Unified Gateway"
+// Abloesung, 2026-07-23.
 
 // Qwythos/Bonsai-Chat-Template hart-failt auf role:"system" an Index > 0
 // ("System message must be at the beginning"). Fix: auf "user" umschreiben.

@@ -80,8 +80,8 @@ async function queryLlm(prompt) {
       // jeder Consumer, der eine sofort verwertbare Antwort braucht, es
       // clientseitig abschalten. Sonst bleibt content leer, bis die Denkphase
       // endet — und dieser Aufrufer erwartet unten JSON in content (T002501).
-      // Gleiche Absicherung wie in scripts/health-goals-payload.py und
-      // scripts/factory/triage-body.sh.
+      // Gleiche Absicherung wie in scripts/health-goals-payload.py
+      // (der zweite Absicherer triage-body.sh ist mit T900399 entfallen).
       chat_template_kwargs: { enable_thinking: false, reasoning_strength: 'low' },
     });
 

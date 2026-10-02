@@ -5,9 +5,9 @@
 # nutzt (dev-flow-chore Schritt 1), bekommt in genau dem Fenster ein
 # falsch-negatives Ergebnis und arbeitet inline im Haupt-Checkout weiter.
 #
-# Der Claim wird NICHT auf den Session-Start vorgezogen — software-factory.md
-# ("main-checkout lock is self-claimed on every commit") legt den Zeitpunkt
-# ausdrücklich fest, und ein früher Claim überlebt seine Session um bis zu
+# Der Claim wird NICHT auf den Session-Start vorgezogen ("main-checkout lock
+# is self-claimed on every commit") — ein früher Claim überlebt seine Session
+# um bis zu
 # AGENT_LOCK_TTL (30 min), in denen guard-precommit fremde Commits blockiert.
 # Statt Falsch-Negativen gegen Falsch-Positive zu tauschen, bekommt das Werkzeug
 # eine zweite, claim-unabhängige Evidenzquelle: laufende Prozesse, deren cwd im

@@ -110,7 +110,7 @@ while IFS= read -r file; do
   fi
   
   # If it's a script, find matching test file
-  if [[ "$file" == scripts/*.sh ]] || [[ "$file" == scripts/*.mjs ]] || [[ "$file" == scripts/*.js ]] || [[ "$file" == scripts/*.ts ]] || [[ "$file" == scripts/factory/*.ts ]] || [[ "$file" == scripts/factory/*.js ]]; then
+  if [[ "$file" == scripts/*.sh ]] || [[ "$file" == scripts/*.mjs ]] || [[ "$file" == scripts/*.js ]] || [[ "$file" == scripts/*.ts ]]; then
     basename=$(basename "$file")
     name="${basename%.*}"
     # Try name.bats and common patterns
@@ -233,7 +233,7 @@ if [ "$RUN_ALL" = "true" ]; then
   # Vorher galt `-maxdepth 1` fuer beide. Da JEDER PR ueber diesen Pfad laeuft
   # (test:spec:changed), fielen damit alle 65 Spec-Tests in Unterverzeichnissen
   # aus der PR-Abdeckung — u. a. die kompletten Verzeichnisse
-  # tests/spec/software-factory/ und tests/spec/sdlc-cockpit/. Nur der
+  # tests/spec/decommission/ und tests/spec/sdlc-cockpit/. Nur der
   # Push-nach-main-Pfad erfasste sie. [T002518]
   if [ "$TYPE" = "spec" ]; then
     _find_args=(-name "*.bats")

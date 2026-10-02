@@ -5,14 +5,14 @@
 # Terminating-Pod liefern; das nachfolgende `kubectl exec` scheitert dann mit Exit-Code 1.
 # Beobachtet im Verify von T002418 als "DB-Nachweis rc=1".
 #
-# Der Vorgaenger dieses Guards (T002386, inline in tests/spec/software-factory.bats) hatte zwei
+# Der Vorgaenger dieses Guards (T002386, inline in einem Spec-Test) hatte zwei
 # Blindstellen, die dieses Skript beseitigt:
 #
 #   1. Er scannte nur scripts/ mit --include='*.sh'. Sieben Dateien unter tests/ blieben
 #      ungeprueft.
 #   2. Er zaehlte PRO DATEI: enthielt eine Datei den Filter-String irgendwo, galt sie als sauber.
-#      tests/spec/software-factory.bats fuehrte den String in seinem eigenen Guard-Testtext und
-#      entkam damit trotz vier ungefilterter Selektionen.
+#      Der alte Guard-Testtext fuehrte den String selbst und entkam damit trotz
+#      vier ungefilterter Selektionen.
 #
 # Die Datei-Granularitaet war damals damit begruendet, dass die Selektion ueber mehrere Zeilen
 # umgebrochen sein darf (so steht sie in scripts/vda/ticket/_ticket-core.sh). Dieses Skript

@@ -2,39 +2,31 @@
 # scripts/mcp-gateway/start-mcp-unified.sh
 # Unified MCP server launcher for Windows/WSL — no systemd required.
 #
-# Starts the three MCP infrastructure components the local clients depend on:
+# Starts the two MCP infrastructure components the local clients depend on:
 #   1. mcp-gateway      (kubectl port-forward fleet dev-pod → :18080 mcp-kubernetes, :13002 github)
 #   2. devmesh-forward  (kubectl port-forward devmesh llm-services → :18235 llm-proxy,
 #                        :13001 mcp-postgres, :13005 bge-mcp) [T900191]
-#   3. factory-mcp      (Node.js stdlib → factory-mcp-node :13003)
+# [T900728] Der dritte Eintrag (:13003) ist mit der Factory entfallen.
 # Not together with scripts/mcp-gateway/start-windows.ps1 (shared loopback under
 # networkingMode=mirrored → "address already in use").
 #
 # PID files (all under /tmp):
 #   /tmp/mcp-gateway.pid      — fleet port-forward
 #   /tmp/devmesh-forward.pid  — devmesh port-forward
-#   /tmp/factory-mcp.pid      — factory-mcp-node server
 # Idempotent: if a process is already running on its port, it is skipped.
 # Safe to call repeatedly.
 
 set -euo pipefail
 
-# Resolve repo root from the script's location.
-# The script lives at <repo>/scripts/mcp-gateway/start-mcp-unified.sh
-# → two levels up from the script's directory = repo root.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
 # ── pre-load all tokens so downstream functions and the shell have them ─────
 for _envfile in \
   "$HOME/.config/bge-mcp/server.env" \
-  "$HOME/.config/factory-mcp-node/server.env" \
   "$HOME/.config/mcp-postgres/server.env" \
   "$HOME/.config/mcp-cors-proxy/server.env"; do
   [[ -f "$_envfile" ]] || continue
   while IFS='=' read -r _k _v; do
     case "$_k" in
-      BGE_MCP_TOKEN|FACTORY_MCP_TOKEN|MCP_POSTGRES_TOKEN|MCP_KUBERNETES_TOKEN)
+      BGE_MCP_TOKEN|MCP_POSTGRES_TOKEN|MCP_KUBERNETES_TOKEN)
         export "$_k"="$_v"
         ;;
     esac
@@ -92,7 +84,6 @@ stop_process() {
   case "$name" in
     mcp-gateway)     hex_port=$(printf '%04X' 18080) ;;
     devmesh-forward) hex_port=$(printf '%04X' 18235) ;;
-    factory-mcp)     hex_port=$(printf '%04X' 13003) ;;
   esac
   if [ -n "$hex_port" ]; then
     for pid_dir in /proc/[0-9]*; do
@@ -133,7 +124,7 @@ load_token() {
 # --- MCP components ---------------------------------------------------------
 
 start_gateway() {
-  echo "  [1/3] mcp-gateway (fleet port-forward) ..."
+  echo "  [1/2] mcp-gateway (fleet port-forward) ..."
   if is_running "mcp-gateway"; then
     echo "    already running (PID $(cat "$(pid_file mcp-gateway)"))"
     return 0
@@ -152,7 +143,7 @@ start_gateway() {
 }
 
 start_devmesh() {
-  echo "  [2/3] devmesh-forward (devmesh llm-services) ..."
+  echo "  [2/2] devmesh-forward (devmesh llm-services) ..."
   if is_running "devmesh-forward"; then
     echo "    already running (PID $(cat "$(pid_file devmesh-forward)"))"
     return 0
@@ -170,36 +161,10 @@ start_devmesh() {
   fi
 }
 
-start_factory() {
-  echo "  [3/3] factory-mcp-node ..."
-  if is_running "factory-mcp"; then
-    echo "    already running (PID $(cat "$(pid_file factory-mcp)"))"
-    return 0
-  fi
-
-  if ! load_token "FACTORY_MCP_TOKEN" "$HOME/.config/factory-mcp-node/server.env"; then
-    echo "    skipped (missing FACTORY_MCP_TOKEN)"
-    return 1
-  fi
-
-  # Use Node.js stdlib implementation (stdlib only, no npm deps)
-  nohup node "$REPO_ROOT/scripts/factory-mcp-node/server.mjs" \
-    > /tmp/factory-mcp.log 2>&1 &
-  echo $! > "$(pid_file factory-mcp)"
-
-  wait_for_port 13003 10
-  if port_in_use 13003; then
-    echo "    started (PID $(cat "$(pid_file factory-mcp)")) — :13003"
-  else
-    echo "    FAILED — check /tmp/factory-mcp.log"
-    return 1
-  fi
-}
-
 # --- status ----------------------------------------------------------------
 
 status() {
-  local k8s_ok="FAIL" pg_ok="FAIL" fac_ok="FAIL" bge_ok="FAIL"
+  local k8s_ok="FAIL" pg_ok="FAIL" bge_ok="FAIL"
 
   # In WSL2, port_in_use via curl is unreliable (Windows-side socket state leaks).
   # Use actual MCP initialize calls as the health check instead.
@@ -220,14 +185,6 @@ status() {
     pg_ok="OK"
   fi
 
-  if curl -s -m 2 -X POST http://localhost:13003/mcp \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer ${FACTORY_MCP_TOKEN:-}" \
-    -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{}},"id":1}' \
-    2>/dev/null | grep -q '"result"'; then
-    fac_ok="OK"
-  fi
-
   if curl -s -m 2 -X POST http://localhost:13005/mcp \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${BGE_MCP_TOKEN:-}" \
@@ -239,10 +196,9 @@ status() {
   echo "MCP status:"
   echo "  mcp-kubernetes     (:18080) → $k8s_ok"
   echo "  mcp-postgres       (:13001) → $pg_ok"
-  echo "  factory-mcp-node   (:13003) → $fac_ok"
   echo "  bge-mcp (devmesh)  (:13005) → $bge_ok"
 
-  if [ "$k8s_ok" = "OK" ] && [ "$pg_ok" = "OK" ] && [ "$fac_ok" = "OK" ] && [ "$bge_ok" = "OK" ]; then
+  if [ "$k8s_ok" = "OK" ] && [ "$pg_ok" = "OK" ] && [ "$bge_ok" = "OK" ]; then
     return 0
   fi
   return 1
@@ -256,7 +212,6 @@ case "${1:-start}" in
     errors=0
     start_gateway || errors=$((errors + 1))
     start_devmesh || errors=$((errors + 1))
-    start_factory || errors=$((errors + 1))
     if [ "$errors" -gt 0 ]; then
       echo "=== $errors server(s) failed to start ==="
       exit 1
@@ -265,7 +220,7 @@ case "${1:-start}" in
     ;;
   stop)
     echo "=== Stopping MCP infrastructure ==="
-    for name in mcp-gateway devmesh-forward factory-mcp; do
+    for name in mcp-gateway devmesh-forward; do
       stop_process "$name" 2>/dev/null || echo "$name was not running"
     done
     echo "=== MCP infrastructure stopped ==="

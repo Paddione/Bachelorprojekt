@@ -222,7 +222,7 @@ tasks:
         # Run website DB migrations before build/rollout (T001652). Idempotent
         # and tracked — safe even though workspace:deploy also calls this.
         task website:migrate ENV="{{.ENV}}"
-        task factory:migrate ENV="{{.ENV}}"
+        task db:migrate ENV="{{.ENV}}"
 
         if [ "{{.ENV}}" = "dev" ]; then
           WEBSITE_HOST="web.localhost"

@@ -3,8 +3,9 @@
 Begebenheit (T900250, Change `2026-09-20-areas-csv-trim-testdata-leak`): Der
 Test `areas-csv-trim.bats` legte Ticketzeilen via `ticket.sh create` an — das
 loest seinen Schreibkontext ueber `${TICKET_CTX:-fleet}` auf. Der Teardown
-loeschte aber ueber `${FACTORY_CTX:-devmesh}`. Zwei verschiedene Variablen mit
-verschiedenen Defaults fuer denselben Begriff: Der Teardown meldete Erfolg
+loeschte aber ueber eine zweite Variable mit abweichendem Default (devmesh).
+Zwei verschiedene Variablen mit verschiedenen Defaults fuer denselben Begriff:
+Der Teardown meldete Erfolg
 und traf nichts; jeder Lauf hinterliess Zeilen in der echten Ticket-SSOT.
 
 Anfrage: Der Teardown trifft nicht, was der Test anlegt — Testdaten laufen in

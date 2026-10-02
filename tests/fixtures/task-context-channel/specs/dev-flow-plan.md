@@ -2,14 +2,14 @@
 
 ### Requirement: Unified Task Context Assembly
 
-The system SHALL provide a single context assembler that both execution paths — the Software
-Factory dispatcher and `dev-flow-execute` — invoke to build the context block prepended to an
+The system SHALL provide a single context assembler that both execution paths — the
+orchestrator dispatcher and `dev-flow-execute` — invoke to build the context block prepended to an
 implementer agent's prompt, so that neither path is structurally better supplied than the other.
 
-#### Scenario: Factory dispatch receives the assembled context
+#### Scenario: Orchestrator dispatch receives the assembled context
 
 - **GIVEN** a ticket whose change directory contains a valid `intel.json`
-- **WHEN** the Factory dispatches an implementer for one of its partials
+- **WHEN** the orchestrator dispatches an implementer for one of its partials
 - **THEN** the agent prompt contains the assembled context block in addition to `tasks.md`
 - **AND** the block carries the intel subset for that partial's `target_files`
 

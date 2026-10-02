@@ -11,12 +11,12 @@ setup() {
   [ -f "$ADAPTER_FILE" ]
 }
 
-@test "adapter.js exposes all 6 read methods" {
+@test "adapter.js exposes all 5 read methods" {
   # Extract all assignments to data.* =
   run grep -oP 'function\s+\w+(?=\s*\()' "$ADAPTER_FILE"
-  
-  # Must contain: tickets, agents, ci, cluster, factory, models
-  for method in tickets agents ci cluster factory models; do
+
+  # Must contain: tickets, agents, ci, cluster, models (factory removed T900728)
+  for method in tickets agents ci cluster models; do
     echo "$output" | grep -q "$method" || {
       echo "Missing method: $method"
       return 1
@@ -24,9 +24,9 @@ setup() {
   done
 }
 
-@test "adapter.js exposes 2 stream methods (K2 new)" {
+@test "adapter.js exposes 1 stream method (K2 new)" {
   run grep -oP 'function\s+\w+(?=\s*\()' "$ADAPTER_FILE"
-  for method in agentStream factoryStream; do
+  for method in agentStream; do
     echo "$output" | grep -q "$method" || {
       echo "Missing stream method: $method"
       return 1

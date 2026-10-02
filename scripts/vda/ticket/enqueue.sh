@@ -51,9 +51,9 @@ SELECT t.id, 'factory', :'ref', 'internal'
 EOF
   fi
   if [[ "$staged" == true ]]; then
-    echo "Ticket $id ist bereits plan_staged — Status unveraendert gelassen (queue.sh dispatcht gestagte Tickets direkt; eine Demotion nach backlog haette es unsichtbar gemacht)."
+    echo "Ticket $id ist bereits plan_staged — Status unveraendert gelassen (Staged-Lane; eine Demotion nach backlog haette es unsichtbar gemacht)."
   else
-    echo "Ticket $id enqueued for the Software Factory (status=backlog)"
+    echo "Ticket $id enqueued (status=backlog)"
   fi
 }
 

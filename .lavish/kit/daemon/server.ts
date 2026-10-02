@@ -12,11 +12,10 @@ import { generateToken, writeTokenFile } from './lib/token';
 import { auditMiddleware } from './lib/token';
 import { portfolioHandler, featureHandler } from './routes/cockpit';
 import { podsListHandler, warningsHandler } from './routes/cluster';
-import { factoryStatusHandler } from './routes/factory';
 import { agentsHandler, ciHandler, modelsHandler } from './routes/custom';
 import { epicsHandler } from './routes/epics';
 import { stylesHandler } from './routes/styles';
-import { agentStreamHandler, factoryStreamHandler } from './routes/stream';
+import { agentStreamHandler } from './routes/stream';
 
 // 39152 statt des IANA-dynamic range: Windows/Hyper-V reserviert auf WSL2-Hosts
 // blockweise Portbereiche ab 49152 (`netsh interface ipv4 show excludedportrange
@@ -64,9 +63,6 @@ app.get('/api/admin/cockpit/feature', featureHandler);
 app.get('/api/admin/cluster/pods-list', podsListHandler);
 app.get('/api/admin/cluster/warnings', warningsHandler);
 
-// Admin Factory
-app.get('/api/admin/factory-control', factoryStatusHandler);
-
 // Custom Cockpit Endpoints (new)
 app.get('/api/cockpit/agents', agentsHandler);
 app.get('/api/cockpit/ci', ciHandler);
@@ -99,7 +95,6 @@ app.get('/api/cockpit/styles', stylesHandler);
 
 // SSE Streams
 app.get('/api/cockpit/stream/agents', agentStreamHandler);
-app.get('/api/cockpit/stream/factory', factoryStreamHandler);
 
 // Write stubs (token-protected, real implementation in K4)
 app.post('/api/cockpit/ticket-action', (c) => c.json({ ok: true, message: 'Write actions in K4' }));

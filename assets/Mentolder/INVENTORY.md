@@ -121,7 +121,6 @@ Diese sind **nicht** library-fähig (es sind lauffähige HTML-Bundles, keine ein
 | `sidekick.jsx` | 20 KB | Source für Sidekick-Bundle |
 | `design-canvas.jsx` | 52 KB | Source für Design-Canvas-Tool |
 | `coaching_studio/` | 120 KB | Coaching Studio App (`Coaching Studio.html`, `Praesentation.html`, `Export.html`, 5 JSX-Module) |
-| `factory/` | 152 KB | Factory Design Tool (`FactoryFloor.html`, `Planungsbüro.html`, `Control Panel.html`, `Analytics.html`, 5 JSX-Module) |
 | `kontakt_redesign/` | 2,1 MB | Kontakt-Seite (3 HTML-Varianten + JSX + CSS) |
 | `game_assets_mentolder/` | 1,1 MB | Game-Asset-Katalog (`catalog.html`, CSS, README) |
 | `print_export/` | 896 KB | Print-fertige HTML-Templates (6 Stück) + README |

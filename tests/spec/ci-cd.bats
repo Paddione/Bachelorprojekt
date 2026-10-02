@@ -971,19 +971,19 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 # spec files, because any file not in the list runs in no required check and
 # can rot on main undetected (observed: T002163, T002167, image-drift).
 #
-# [T002500] Der gepruefte Job heisst seit dem Sharding `test-factory-shard` —
-# dort laeuft die Suite. `test-factory` ist nur noch der Aggregator, der den
+# [T002500] Der gepruefte Job heisst seit dem Sharding `test-spec-shard` —
+# dort laeuft die Suite. `test-spec` ist nur noch der Aggregator, der den
 # Required-Check-Namen traegt und keine Tests selbst ausfuehrt. Die Schutzabsicht
 # ist unveraendert: WER die Spec-Suite faehrt, muss sie vollstaendig fahren.
 
-@test "T002182: ci.yml test-factory job uses task test:spec (full glob)" {
+@test "T002182: ci.yml test-spec job uses task test:spec (full glob)" {
   local ci="$REPO_ROOT/.github/workflows/ci.yml"
   # Extract the spec-suite job steps between its header and the next job
   local block
-  block=$(awk '/^  test-factory-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
+  block=$(awk '/^  test-spec-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
   # Must invoke task test:spec, not enumerate individual .bats files
   echo "$block" | grep -qE 'task test:spec|tests/spec/\*\.bats' || {
-    echo "FAIL: test-factory job does not use task test:spec or tests/spec/*.bats glob."
+    echo "FAIL: test-spec job does not use task test:spec or tests/spec/*.bats glob."
     echo "      Every tests/spec/*.bats file must run in this required check."
     echo "      Current block:"
     echo "$block" | sed 's/^/  /'
@@ -991,7 +991,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   }
   # Must NOT list individual .bats filenames in a way that excludes others
   ! echo "$block" | grep -v '^[[:space:]]*#' | grep -qE 'tests/spec/[a-z0-9_-]+\.bats' || {
-    echo "FAIL: test-factory job still enumerates individual spec files."
+    echo "FAIL: test-spec job still enumerates individual spec files."
     echo "      Use 'task test:spec' to run the full tests/spec/*.bats glob."
     return 1
   }
@@ -1014,15 +1014,15 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 @test "T002245/T002780: gescopte Spec-Suite behaelt einen erreichbaren Vollauf" {
   local ci="$REPO_ROOT/.github/workflows/ci.yml"
   local block
-  # [T002500] siehe Kommentar an T002182 oben: die Suite lebt in test-factory-shard.
-  block=$(awk '/^  test-factory-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
+  # [T002500] siehe Kommentar an T002182 oben: die Suite lebt in test-spec-shard.
+  block=$(awk '/^  test-spec-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
 
   # Positiv-Anker [T002356-M1]: der Job-Block muss ueberhaupt gefunden worden
   # sein. Ohne ihn waeren alle folgenden greps auf Leerstring und die
   # Bedingung unten (`if ... grep -qF`) fiele trivial durch — der Test waere
   # vakuos gruen, gerade wenn jemand den Job umbenennt oder loescht.
   [ -n "$block" ] || {
-    echo "FAIL: Job-Block 'test-factory-shard:' in ci.yml nicht gefunden."
+    echo "FAIL: Job-Block 'test-spec-shard:' in ci.yml nicht gefunden."
     return 1
   }
 
@@ -1034,7 +1034,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
     }
     # ...the unscoped fallback must survive alongside it...
     echo "$block" | grep -qE '^\s+(task )?test:spec\s*$|task test:spec$' || {
-      echo "FAIL: no bare 'task test:spec' fallback left in the test-factory job."
+      echo "FAIL: no bare 'task test:spec' fallback left in the test-spec job."
       echo "      Current block:"; echo "$block" | sed 's/^/  /'
       return 1
     }
@@ -1065,7 +1065,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   # vor dem ersten Test starb) faerbte damit diesen Guard rot, obwohl der
   # Fetch unveraendert stattfindet — Darstellung statt Semantik [T002716].
   echo "$block" | grep -qE 'origin \+?main:refs/remotes/origin/main' || {
-    echo "FAIL: test-factory does not fetch origin/main — a diff-scoped run"
+    echo "FAIL: test-spec does not fetch origin/main — a diff-scoped run"
     echo "      would select nothing and report green."
     return 1
   }
@@ -1154,32 +1154,32 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 
 # ── T002345: scripts/*-Aenderungen erreichen die Pfad-Probe nie ──────────────
 # Der scripts/*-Zweig in find-changed-tests.sh versucht einen Namensabgleich
-# (queue.sh -> queue.bats / vda-queue.bats / ticket-queue.bats / factory-queue.bats)
+# (queue.sh -> queue.bats / vda-queue.bats / ticket-queue.bats / dispatch-queue.bats)
 # und setzt bei Fehlschlag RUN_ALL=true, gefolgt von `continue`. Das `continue`
 # springt ueber die Pfad-Probe hinweg, die den Pfad in den spec-Dateien greppt
 # und den tiefsten Treffer waehlt.
 #
 # Folge: Fuer scripts/-Aenderungen liefert der spec-Finder entweder einen
 # Namenstreffer oder ALLE Suiten — nie die eine, die den Pfad tatsaechlich
-# prueft. Gemessen an scripts/factory/queue.sh: 138 Suiten statt der einen
-# software-factory.bats, die den Pfad woertlich referenziert.
+# prueft. Gemessen an scripts/pipeline/queue.sh: 138 Suiten statt der einen
+# pipeline-queue.bats, die den Pfad woertlich referenziert.
 #
 # Zusammen mit RUN_SPEC=false im Taskfile (die spec-Suite wird fuer scripts/
 # gar nicht erst angefragt) ergibt das ein False-Green im Pflicht-Gate vor dem
-# PR: Ein Fix an scripts/factory/*.sh besteht `task test:changed`, ohne dass
+# PR: Ein Fix an scripts/pipeline/*.sh besteht `task test:changed`, ohne dass
 # die Suite laeuft, die ihn absichert.
 @test "T002345: a scripts/ change without a name match falls through to the path probe" {
   local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
   local tmp="$BATS_TEST_TMPDIR/scripts-probe-repo"
-  mkdir -p "$tmp/scripts/factory" "$tmp/tests/spec"
+  mkdir -p "$tmp/scripts/pipeline" "$tmp/tests/spec"
   cp "$finder" "$tmp/scripts/find-changed-tests.sh"
-  # Keine Datei heisst queue.bats/factory-queue.bats — der Namensabgleich MUSS
+  # Keine Datei heisst queue.bats/dispatch-queue.bats — der Namensabgleich MUSS
   # scheitern, damit der Fall ueberhaupt getestet wird. Genau eine Suite nennt
   # den Pfad; sie ist die richtige Antwort.
-  echo '# covers scripts/factory/queue.sh' > "$tmp/tests/spec/software-factory.bats"
+  echo '# covers scripts/pipeline/queue.sh' > "$tmp/tests/spec/pipeline-queue.bats"
   : > "$tmp/tests/spec/unrelated-one.bats"
   : > "$tmp/tests/spec/unrelated-two.bats"
-  : > "$tmp/scripts/factory/queue.sh"
+  : > "$tmp/scripts/pipeline/queue.sh"
 
   cd "$tmp"
   git init -q -b main .
@@ -1187,12 +1187,12 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   git update-ref refs/remotes/origin/main HEAD
 
   git checkout -q -b topic
-  echo change >> scripts/factory/queue.sh
+  echo change >> scripts/pipeline/queue.sh
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m scripts-change
   run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   # Genau die referenzierende Suite — nicht alle drei (RUN_ALL) und nicht leer.
-  [ "$output" = "tests/spec/software-factory.bats" ]
+  [ "$output" = "tests/spec/pipeline-queue.bats" ]
 }
 
 @test "T002345: a scripts/ change with no referencing spec still widens to the full suite" {
@@ -1429,7 +1429,7 @@ MOCKEOF
 #    gesamten Repo-Lauf mit result=repository-changed — ohne Retry und mit
 #    Exit-Code 0. Gemessen an Run 30238038240: 157s Laufzeit (30s Extraktion
 #    fuer 192 Dateien/983 Deps, 127s Lookup), dann Abbruch. Dem stehen ~103
-#    Commits/Tag auf main gegenueber (factory-tick alle 5-6 min, Freshness-Bot,
+#    Commits/Tag auf main gegenueber (Auto-Ticks alle 5-6 min, Freshness-Bot,
 #    Auto-Merges) — ein driftfreies 157s-Fenster ist waehrend aktiver Stunden
 #    nicht zu erwischen. Ergebnis: seit T000898 (2026-06-17) null Renovate-PRs,
 #    bei zehn aufeinanderfolgenden Runs mit conclusion=success.

@@ -32,7 +32,7 @@ teardown() {
   [ "$row" = "done|t" ]
 }
 
-@test "FA-QS-08 reject setzt status=in_progress und legt factory_injection an" {
+@test "FA-QS-08 reject setzt status=in_progress und legt ticket_injections an" {
   node -e "
     const { createQaReview } = require('./components/website/src/lib/qa-dal');
     createQaReview({

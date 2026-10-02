@@ -391,8 +391,8 @@
       "backend": [
         "github"
       ],
-      "description": "Wertstrom-Ansicht: Slots, Hall, Backlog je Ticket-Phase.",
-      "tier": "core",
+      "description": null,
+      "tier": null,
       "deprecated": null
     },
     {

@@ -17,15 +17,15 @@ setup() {
 
 @test "T900230: evidence catalog selects relevant entries for Platform/DevOps posting" {
   # "Kubernetes" matcht fleet-k3s (keyword: kubernetes)
-  # "CI/CD" matcht software-factory (keywords: ci, cd)
+  # "testing" matcht bats-quality-gates (keyword: testing)
   local output
-  output=$(app_pipeline_select_evidence "Kubernetes CI/CD")
+  output=$(app_pipeline_select_evidence "Kubernetes testing")
 
   # fleet-k3s sollte enthalten sein (kubernetes-Match)
   echo "$output" | grep -q '"id":"fleet-k3s"'
 
-  # software-factory sollte enthalten sein (ci/cd-Match)
-  echo "$output" | grep -q '"id":"software-factory"'
+  # bats-quality-gates sollte enthalten sein (testing-Match)
+  echo "$output" | grep -q '"id":"bats-quality-gates"'
 }
 
 @test "T900230: evidence catalog matches multiple keywords per entry" {
@@ -58,11 +58,10 @@ setup() {
   echo "$output" | grep -q '"id":"freetoken-moe"'
 }
 
-@test "T900230: CI/CD-Job matcht software-factory und bats-quality-gates" {
+@test "T900230: CI/CD-Job matcht bats-quality-gates" {
   local output
   output=$(app_pipeline_select_evidence "CI/CD pipeline automation testing quality gates")
 
-  echo "$output" | grep -q '"id":"software-factory"'
   echo "$output" | grep -q '"id":"bats-quality-gates"'
 }
 

@@ -6,7 +6,7 @@ Validierung (DNS-Rebinding), exakte Browser-Origin-Allowlist, konstante-Zeit-
 Bearer-Token pro Server. Quelle der gemeinsamen Logik:
 `scripts/lib/mcp-http-security.mjs` (kein npm-Abhaengigkeitspaket).
 
-> **Hinweis T900399:** `factory-mcp-node` (`:13003`) ist mit der Software-Factory abgeschaltet;
+> **Hinweis T900399:** Der HTTP-MCP-Server auf `:13003` ist mit T900399 abgeschaltet;
 > die Schritte 1–3 betrafen nur diesen Server und entfallen.
 
 ## Betroffene Server und ihre Tokens
@@ -45,7 +45,7 @@ export MCP_BROWSER_ORIGINS=https://app.example.com,http://localhost:3000
 
 ## Schritte 1–3 — entfallen (T900399)
 
-Sie verdrahteten Token und Guard für `factory-mcp-node`, der abgeschaltet ist.
+Sie verdrahteten Token und Guard für den abgeschalteten HTTP-Server (`:13003`).
 
 ## Schritt 4 — Client-Authorization-Check (vor Aktivierung)
 

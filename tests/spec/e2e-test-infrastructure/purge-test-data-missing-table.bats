@@ -4,7 +4,7 @@
 # questionnaire_test_status komplett ab und purgt dadurch NICHTS.
 #
 # PRUEFMODUS: Command-Output-/Ergebnis-Verifikation (T002448-M4). Der Test SAET
-# eine echte Testdaten-Zeile, RUFT den Teardown-Pfad (purge_factory_test_data,
+# eine echte Testdaten-Zeile, RUFT den Teardown-Pfad (purge_ticket_test_data,
 # der intern tickets.fn_purge_test_data() aufruft) tatsaechlich AUF und PRUEFT
 # per Datenbank-Query, ob die Zeile danach weg ist. Kein grep auf die
 # Funktionsquelle.
@@ -24,11 +24,11 @@
 # gemockt), weil genau diese Kombination (Tabelle fehlt + Funktion aufgerufen)
 # das beobachtete Verhalten ist.
 
-load "../../lib/factory-test-fixtures.sh"
+load "../../lib/ticket-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
+  _pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-devmesh}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)
   [[ -n "$_pod" ]] || skip "kein erreichbarer shared-db-Pod — DB-gestuetzter Test uebersprungen"
@@ -40,11 +40,11 @@ _skip_if_no_db() {
 
 # _qts_row_count <external_id> — zaehlt tickets.tickets-Zeilen mit dieser
 # external_id, die noch is_test_data=true tragen. Nutzt dieselbe
-# Pod-Aufloesung wie purge_factory_test_data() (tests/lib/factory-test-fixtures.sh),
+# Pod-Aufloesung wie purge_ticket_test_data() (tests/lib/ticket-test-fixtures.sh),
 # damit Seed/Purge/Verify garantiert gegen dieselbe DB laufen.
 _ticket_row_count() {
   local ext_id="$1"
-  local ctx="${FACTORY_CTX:-devmesh}" ns="workspace" pod candidate_ns
+  local ctx="${WORKSPACE_CTX:-devmesh}" ns="workspace" pod candidate_ns
   for candidate_ns in "workspace" "workspace-dev"; do
     pod=$(kubectl get pod -n "$candidate_ns" --context "$ctx" \
       -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
@@ -66,7 +66,7 @@ setup_file() {
 }
 
 teardown_file() {
-  purge_factory_test_data "mentolder" >/dev/null 2>&1 || true
+  purge_ticket_test_data "mentolder" >/dev/null 2>&1 || true
 }
 
 @test "T002894: gesaete Testdaten-Zeile existiert vor dem Purge (Positiv-Anker)" {
@@ -87,7 +87,7 @@ teardown_file() {
   # Vorbedingung erneut absichern (falls Testreihenfolge/-auswahl abweicht).
   [ "$(_ticket_row_count "$seeded")" -eq 1 ]
 
-  run purge_factory_test_data "mentolder"
+  run purge_ticket_test_data "mentolder"
   [ "$status" -eq 0 ]
 
   # Eigentliche Aussage: die Zeile ist nach dem Purge weg — nicht nur "irgendein"

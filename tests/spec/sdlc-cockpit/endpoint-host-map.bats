@@ -28,7 +28,7 @@ global.EventSource = function () {};
 // eslint-disable-next-line no-new-func
 new Function('window', 'document', 'location', 'fetch', 'EventSource', src)(win, document, location, fetch, EventSource);
 
-const keys = ['portfolio', 'pods-list', 'factory-control', 'ticket-status', 'audit',
+const keys = ['portfolio', 'pods-list', 'ticket-status', 'audit',
   'epics', 'styles', 'ci', 'agents', 'models'];
 for (const key of keys) {
   const r = win.data.resolveEndpoint(key);
@@ -54,7 +54,7 @@ EOF
 
 @test "K4 website-gestuetzte Endpunkte sind im Admin-Kontext verfuegbar" {
   run node "$DUMP_JS" "$ADAPTER_FILE"
-  for key in portfolio pods-list factory-control ticket-status audit; do
+  for key in portfolio pods-list ticket-status audit; do
     echo "$output" | grep "^${key} " | grep -c 'unavailable' | grep -q '^0$' || {
       echo "$key sollte im Admin-Kontext verfuegbar sein"
       return 1

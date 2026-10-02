@@ -1,0 +1,13 @@
+# Risiko-Pfade: Dateien in diesen Verzeichnissen/Pfaden betreffen geteilten
+# Cluster-, Secret- oder Deploy-State. Kollisionen hier werden eskaliert,
+# nicht automatisch zusammengeführt.
+#
+# Kanonischer Ort seit T900728 (zuvor unter scripts/factory, mit T900399
+# entfallen): neben dem einzigen Konsumenten
+# scripts/arbitration/apply.sh (SHARED_STATE-Default).
+# Schwesterliste: scripts/devflow/shared-state-allowlist.txt (ohne flux/).
+k3d/
+prod
+environments/
+flux/
+Taskfile

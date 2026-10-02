@@ -2,7 +2,7 @@
 # plan-touched-files.sh — leitet die beruehrten Dateien aus dem `## File Structure`-Block
 # eines Implementierungsplans ab und schreibt sie zeilenweise auf stdout.
 #
-# Warum: `touched_files` speist die Kollisionspruefung in scripts/factory/conflict-check.sh.
+# Warum: `touched_files` speist den Scope-Check in scripts/pr-scope-check.sh.
 # Gesetzt wurde die Spalte bisher erst in dev-flow-execute Schritt 1.5, und dort konditional
 # ("Falls der Plan die beruehrten Dateien kennt"). Der Plan kennt sie immer — `## File Structure`
 # ist plan-lint Hard Rule STRUCT1. Die Information lag also beim Stagen bereits zwingend vor,

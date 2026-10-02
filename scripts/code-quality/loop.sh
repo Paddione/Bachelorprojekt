@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# scripts/code-quality/loop.sh — idempotent top-up: enqueue ≤MAX_NEW new Factory
+# scripts/code-quality/loop.sh — idempotent top-up: enqueue ≤MAX_NEW new quality
 # tickets, one per (Gate × Subsystem) group with open baseline violations.
 #
 # Environment variables:
-#   MAX_NEW=2            max new tickets to create per run (default 2)
-#   DRY_RUN=1            print actions without executing (no psql, no ticket.sh)
-#   BRAND=mentolder      ticket brand (default mentolder)
-#   FACTORY_CTX=fleet    kubectl context for psql (default fleet, via lib.sh)
-#   FACTORY_NS=workspace kubectl namespace (default workspace, via lib.sh)
+#   MAX_NEW=2              max new tickets to create per run (default 2)
+#   DRY_RUN=1              print actions without executing (no psql, no ticket.sh)
+#   BRAND=mentolder        ticket brand (default mentolder)
+#   WORKSPACE_CTX=fleet    kubectl context for psql (default fleet)
+#   WORKSPACE_NS=workspace kubectl namespace (default workspace)
 #
 # Seams for unit testing (override with env vars):
 #   QUALITY_LOOP_GROUPS_CMD   command to emit the groups JSON (default: node ...)
@@ -36,18 +36,27 @@ fi
 group_count="$(echo "$groups_json" | jq 'length')"
 echo "quality:loop — ${group_count} violation group(s) in baseline"
 
-# ── Factory lib (psql access) ─────────────────────────────────────────────────
-# Only sourced when not in DRY_RUN and no QUALITY_LOOP_PSQL_CMD override.
-if [[ -z "$DRY_RUN" && -z "${QUALITY_LOOP_PSQL_CMD:-}" ]]; then
-  # shellcheck source=scripts/factory/lib.sh
-  source "${REPO_ROOT}/scripts/factory/lib.sh"
-  factory_resolve
-fi
+# ── Workspace psql access (T900728: ersetzt die entfernte Factory-lib) ───────
+# Only used when not in DRY_RUN and no QUALITY_LOOP_PSQL_CMD override.
+_ws_psql() {  # SQL via stdin, TSV auf stdout
+  if [[ -n "${WORKSPACE_PG_URL:-}" ]]; then
+    psql "$WORKSPACE_PG_URL" -qtA -v ON_ERROR_STOP=1 "$@"
+    return
+  fi
+  command -v kubectl >/dev/null 2>&1 || return 3
+  local pod
+  pod="$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
+    -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
+    -o name 2>/dev/null | head -1)" || return 3
+  [[ -n "$pod" ]] || return 3
+  kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
+    -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@"
+}
 
 # ── Per-group function ─────────────────────────────────────────────────────────
 # Returns 0 if an open ticket already exists for this title prefix, 1 otherwise.
 # The psql seam (QUALITY_LOOP_PSQL_CMD) receives the SQL on stdin — same contract
-# as factory_psql — so test stubs can be real scripts that read stdin.
+# as _ws_psql — so test stubs can be real scripts that read stdin.
 has_open_ticket() {
   local title_prefix="$1"
   # Safe: gate/subsystem contain only [A-Za-z0-9_-], no SQL injection risk;
@@ -59,7 +68,7 @@ has_open_ticket() {
   if [[ -n "${QUALITY_LOOP_PSQL_CMD:-}" ]]; then
     result="$(echo "$sql" | "${QUALITY_LOOP_PSQL_CMD}" 2>/dev/null || true)"
   else
-    result="$(echo "$sql" | factory_psql 2>/dev/null || true)"
+    result="$(echo "$sql" | _ws_psql 2>/dev/null || true)"
   fi
   [[ -n "$result" ]]
 }

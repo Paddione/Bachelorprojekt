@@ -82,7 +82,7 @@ write_loadouts() {
 }
 
 # Backend-Registry-Kommando-Override: gibt Zeilen "name<TAB>base_url" aus.
-# In Produktion die factory_psql-Abfrage auf tickets.llm_proxy_backends.
+# In Produktion die PG-Abfrage auf tickets.llm_proxy_backends.
 backend_cmd() { # <zeilen...>
   local f="$FIX/backends.txt"
   : > "$f"

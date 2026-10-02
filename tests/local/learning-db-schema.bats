@@ -8,8 +8,8 @@ setup() {
 
 psql_website() {
   local query="$1"
-  local ctx="${FACTORY_CTX:-devc}"
-  local ns="${FACTORY_NS:-workspace-dev}"
+  local ctx="${WORKSPACE_CTX:-devc}"
+  local ns="${WORKSPACE_NS:-workspace-dev}"
   local pod
   pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
   if [[ -z "$pod" ]]; then

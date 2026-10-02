@@ -49,7 +49,7 @@ Ziel: PVC `robustness=healthy`, kein degraded mehr.
 ## 5. Verifikationsskript
 
 ```bash
-# Das Skript scripts/factory/verify-decommission.sh entfiel mit T900399; bis zum Ersatz die Vorprüfung aus §1 wiederholen.
+# Das Verify-Decommission-Skript entfiel mit T900399; bis zum Ersatz die Vorprüfung aus §1 wiederholen.
 ```
 
 ## 6. Infrastruktur-Rückbau — **MANUELL — Operator**

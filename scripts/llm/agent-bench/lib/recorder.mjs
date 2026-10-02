@@ -9,7 +9,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 /**
- * Secret-Muster, portiert aus scripts/finetune/collect_factory_traces.py (Z. 50-66).
+ * Secret-Muster, identisch zum Kern von scripts/finetune/collect_teacher_traces.py (SECRET_PATTERNS).
  * Bewusst konservativ: lieber ein Falsch-Positiv redigieren als ein Secret durchlassen.
  * `name` erscheint im Trace als Marker `[REDACTED:<name>]`.
  */

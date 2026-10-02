@@ -8,7 +8,7 @@ main() {
     *)       echo "Unknown backfill-id option: $1" >&2; exit 2 ;;
   esac; done
 
-  if [[ -n "${FACTORY_DRY_RESOLVE:-}" ]]; then
+  if [[ -n "${TICKET_DRY_RESOLVE:-}" ]]; then
     echo "ticket backfill-id [DRY-RESOLVE]: brand=${brand}"
     exit 0
   fi

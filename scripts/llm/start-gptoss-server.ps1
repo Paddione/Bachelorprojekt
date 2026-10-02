@@ -2,11 +2,10 @@
 .SYNOPSIS
   Startet llama-server.exe fuer openai/gpt-oss-20b (MXFP4) auf Port 8097.
 .DESCRIPTION
-  Zweiter Modellkandidat fuer die Factory-Phasen implement/review, gedacht fuer
-  den A/B-Vergleich gegen Ternary-Bonsai (:8093) via scripts/factory/eval-replay.mjs.
+  Zweiter Modellkandidat fuer Implementierungsarbeit, gedacht fuer
+  den A/B-Vergleich gegen Ternary-Bonsai (:8093).
   Laeuft parallel zu Bonsai bzw. anstelle davon - die Routing-Entscheidung faellt
-  NICHT hier, sondern in tickets.provider_config (siehe
-  scripts/factory/provider-register-gptoss.sh).
+  NICHT hier, sondern in tickets.provider_config.
   VRAM-Notausstieg via Umgebungsvariable LLM_GPTOSS_NGL (Default 999).
 
   WARUM DIESES MODELL (T002268, Recherche 2026-07-27 ueber die offiziellen
@@ -188,12 +187,8 @@ if (-not $NoWait) {
     Write-Output "gpt-oss-20b: PID $($p.Id) healthy on :8097"
     Write-Output "  VRAM danach: $(Get-FreeVramMiB -Uuid $GpuUuid) MiB frei"
     Write-Output ""
-    Write-Output "Naechster Schritt - als Kandidat registrieren (priority 1, aendert das"
-    Write-Output "Routing NICHT, Bonsai bleibt auf priority 0 scharf):"
-    Write-Output "  bash scripts/factory/provider-register-gptoss.sh"
-    Write-Output ""
-    Write-Output "Dann A/B gegen echte Factory-Tickets:"
-    Write-Output "  node scripts/factory/eval-replay.mjs --help"
+    Write-Output "Naechster Schritt: als Kandidat in tickets.provider_config registrieren"
+    Write-Output "  (priority 1, aendert das Routing NICHT, Bonsai bleibt priority 0)."
   } elseif ($p.HasExited) {
     Write-Output "gpt-oss-20b FAILED: exited (code $($p.ExitCode)) - see $logErr"
     Get-Content $logErr -Tail 20

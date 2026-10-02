@@ -53,26 +53,6 @@ tasks:
     cmds:
       - bash tests/bats tests/unit/T000668-graph-api.bats
 
-  test:unit:factory-blocked:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/factory-blocked.bats
-
-  test:unit:factory-readiness:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/factory-readiness.bats
-
-  test:unit:factory-scout-quality:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/factory-scout-quality.bats
-
-  test:unit:factory-scout-drift:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/factory-scout-drift.bats
-
   test:unit:readiness-webhook:
     internal: true
     cmds:
@@ -413,22 +393,22 @@ tasks:
       # gegen die tatsaechlich vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs
-      - node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/factory-pin.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/listeners.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
+      - node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/loadout-pin.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/listeners.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
-  test:factory:
-    desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+  test:decommission:
+    desc: "Run the offline-safe decommission regression bats (tests/spec/decommission/). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
       # [T002427] Zeigte bis hierher auf tests/local/FA-SF-*.bats. Diese 41 Dateien waren
-      # Duplikate der Sammeldatei tests/spec/software-factory.bats, in die sie konsolidiert
+      # Duplikate der Sammeldatei, in die sie konsolidiert
       # worden waren, ohne die Originale zu entfernen. Der doppelte Testname verdeckte
-      # T002421: ein gefilterter Lauf auf tests/spec/ sah gruen aus, waehrend test:factory
+      # T002421: ein gefilterter Lauf auf tests/spec/ sah gruen aus, waehrend test:decommission
       # ueber die veraltete Kopie rot lief.
       #
-      # [T002503] Die Sammeldatei ist jetzt in tests/spec/software-factory/ aufgeteilt und
+      # [T002503] Die Sammeldatei ist jetzt in tests/spec/decommission/ aufgeteilt und
       # ENTFERNT — dieselbe Lehre, diesmal beim Aufteilen statt beim Zusammenfuehren
       # beachtet. `-r` auf das Verzeichnis, damit kuenftige Dateien ohne Aenderung hier
       # mitlaufen; ein Glob wuerde sie stillschweigend auslassen.
-      - bash -c "tests/bats -r tests/spec/software-factory/ tests/local/FA-AR-*.bats"
+      - bash -c "tests/bats -r tests/spec/decommission/"
 
   test:spec:build-mcp-runner:
     cmds:
@@ -696,7 +676,7 @@ tasks:
           fi
         fi
 
-        if [ "$RUN_FACTORY" = "true" ]; then echo "→ factory changes: task test:factory"; task test:factory; fi
+        if [ "$RUN_FACTORY" = "true" ]; then echo "→ FA changes: task test:decommission"; task test:decommission; fi
         if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_UNIT" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
         if [ "$RUN_WORKFLOWS" = "true" ]; then echo "→ workflow changes: task lint:workflows"; task lint:workflows; fi

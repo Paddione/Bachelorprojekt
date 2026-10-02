@@ -18,11 +18,11 @@ setup() {
 
 @test "automerge-scope: push-auf-main prueft das Merge-Delta, nicht die volle Suite" {
   local block
-  block=$(awk '/^  test-factory-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$CI")
+  block=$(awk '/^  test-spec-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$CI")
 
   # Positiv-Anker (T002356-M1): der Block existiert ueberhaupt.
   [ -n "$block" ] || {
-    echo "FAIL: Job-Block 'test-factory-shard:' nicht gefunden."
+    echo "FAIL: Job-Block 'test-spec-shard:' nicht gefunden."
     return 1
   }
 
@@ -30,7 +30,7 @@ setup() {
   # dort ist HEAD == origin/main, der Default-Diff in find-changed-tests.sh also
   # leer. Fehlt BEFORE_SHA, faellt der Job zwangslaeufig wieder auf den Vollauf.
   echo "$block" | grep -qF 'github.event.before' || {
-    echo "FAIL: test-factory-shard nutzt github.event.before nicht — auf main"
+    echo "FAIL: test-spec-shard nutzt github.event.before nicht — auf main"
     echo "      gibt es dann keinen Diff-Bezugspunkt und die volle Suite laeuft"
     echo "      bei JEDEM Merge erneut."
     return 1

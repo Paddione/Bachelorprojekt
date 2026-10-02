@@ -43,8 +43,8 @@ setup() {
 
 @test "T900365: reasoning-off callers also send reasoning_strength low" {
   local f missing=""
-  # T900399: die drei Factory-Aufrufer (triage-body.sh, factory-mcp-node/server.mjs,
-  # factory/mcp-go/main.go) sind mit dem Factory-Subsystem entfallen.
+  # T900399: die drei Factory-Aufrufer (Triage-, MCP- und Go-Pfad) sind mit dem
+  # Factory-Subsystem entfallen.
   for f in scripts/health-goals-payload.py scripts/arbitration/synthesize.mjs \
            scripts/web-audit.mjs scripts/plan-qa-check.sh; do
     # Positiv-Anker: der Aufrufer schaltet Thinking ueberhaupt ab.
@@ -55,6 +55,6 @@ setup() {
   if [ -n "$missing" ]; then printf "$missing" >&2; return 1; fi
 }
 
-# T900399: mit dem Wegfall von scripts/factory-mcp-node/server.mjs und
-# scripts/factory/mcp-go/main.go bleibt kein modell-gegateter Aufrufer uebrig —
-# der Test entfaellt ersatzlos (kein Ersatz-Anker noetig, es gibt kein Substrat).
+# T900399: mit dem Wegfall der Factory-Aufrufer bleibt kein modell-gegateter
+# Aufrufer uebrig — der Test entfaellt ersatzlos (kein Ersatz-Anker noetig,
+# es gibt kein Substrat).

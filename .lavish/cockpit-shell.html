@@ -66,19 +66,6 @@
         <div class="panel__context"></div>
       </div>
 
-      <div class="panel panel--rail" data-panel-type="status" data-source="factory" data-refresh-interval="30000" id="panel-factory">
-        <div class="panel__head">
-          <span class="panel__title">Factory</span>
-          <span class="panel__type-badge" data-panel-type="status"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn">Aktualisieren</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
       <div class="panel panel--rail" data-panel-type="status" data-source="models" data-refresh-interval="30000" id="panel-models">
         <div class="panel__head">
           <span class="panel__title">Modelle</span>
@@ -133,20 +120,6 @@
           <button class="panel__action-btn" onclick="Panel.registry.get('panel-agents-card').refresh()">Aktualisieren</button>
           <button class="panel__action-btn" onclick="Panel.registry.get('panel-agents-card').setActionState('locked')">Sperren</button>
           <button class="panel__action-btn" onclick="Panel.registry.get('panel-agents-card').confirmAction('Kill Agent', 'agent-1941661', () => {})">Kill</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--fullscreen" data-panel-type="strom" data-source="factory" data-refresh-interval="15000" id="panel-factory-log">
-        <div class="panel__head">
-          <span class="panel__title">Factory-Log (Strom)</span>
-          <span class="panel__type-badge" data-panel-type="strom"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-factory-log').refresh()">Neu laden</button>
-          <button class="panel__action-btn panel__close-btn" onclick="Panel.registry.get('panel-factory-log').resize('card')">×</button>
         </div>
         <div class="panel__context"></div>
       </div>

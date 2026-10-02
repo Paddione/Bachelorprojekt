@@ -32,7 +32,7 @@ TICKET_SH="$BATS_TEST_DIRNAME/../../scripts/vda/ticket.sh"
   [[ "$output" == *"oracle"* ]]
   [[ "$output" == *"promote"* ]]
   [[ "$output" == *"ticket"* ]]
-  [[ "$output" == *"factory-prep"* ]]
+  [[ "$output" == *"frontmatter"* ]]
 }
 
 @test "ticket help lists triage subcommand" {

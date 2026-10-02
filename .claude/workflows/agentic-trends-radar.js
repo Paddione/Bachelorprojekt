@@ -18,8 +18,8 @@ const WINDOW = (args && args.windowMonths) || 4
 const OUR_SDLC = `
 Unser SDLC (Kubernetes-Workspace-Plattform, Solo-Hauptentwickler + Agenten-Flotte):
 - Orchestrator-Skills: dev-flow-plan (Brainstorming → Spec → Plan, committed auf Branch), dev-flow-execute (Implementierung, Verify, PR, Auto-Merge), dev-flow-chore (inline). Darunter generische "superpowers"-Skills: TDD, systematic-debugging, writing-plans, verification-before-completion.
-- Software Factory: Ticket-Pipeline (PostgreSQL-Ticketsystem, Phase-Events, Autopilot), die Tickets automatisiert mit lokalen LLM-Subagenten (qwen3.5-Varianten via opencode/LM Studio) abarbeitet; Quality-Gates als verify-Phase-Events; Merge = Ticket-Abschluss; DORA-Metriken inkl. Change-Failure-Rate-Gate (fix()-Commits brauchen Bug-Ticket).
-- Agenten: 6 Domänen-Subagenten (website/ops/infra/test/db/security) mit Routing-Tabelle; MCP-Server für k8s, Postgres, Tickets, Factory; codebase-memory-MCP (Code-Knowledge-Graph mit Call-Tracing); generierte Agent-Routing-Karten (goals/tools/danger maps).
+- Ehemaliger Ticket-Autopilot (bis T900399): Ticket-Pipeline (PostgreSQL-Ticketsystem, Phase-Events), die Tickets automatisiert mit lokalen LLM-Subagenten (qwen3.5-Varianten via opencode/LM Studio) abarbeitete. Weiter live: Quality-Gates als verify-Phase-Events; Merge = Ticket-Abschluss; DORA-Metriken inkl. Change-Failure-Rate-Gate (fix()-Commits brauchen Bug-Ticket).
+- Agenten: 6 Domänen-Subagenten (website/ops/infra/test/db/security) mit Routing-Tabelle; MCP-Server für k8s, Postgres, Tickets; codebase-memory-MCP (Code-Knowledge-Graph mit Call-Tracing); generierte Agent-Routing-Karten (goals/tools/danger maps).
 - Hygiene: Worktree-Pflicht für mutierende Arbeit, agent-lock-Session-Koordination, Mishap-Tracker (Fehlersammlung als Aggregat-Tickets), Task-Oracle (LLM-Routing natürlicher Sprache auf Taskfile-Kommandos), Release-Notes-Generierung per LLM.
 - CI/CD: GitHub Actions, BATS + Playwright, Squash-Merge, push-basiertes Deploy auf k3s-Fleet (kein GitOps-Reconciler), nightly E2E.
 - Besonderheit: Multi-Harness (Claude Code + opencode mit lokalen Modellen), lokale GPU-Inferenz, DSGVO/on-prem.

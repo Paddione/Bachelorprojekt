@@ -8,7 +8,7 @@ bats_require_minimum_version 1.5.0
 #   T003181  §3 merge-tree Konfliktprobe statt invasivem Arbeitsbaum-Merge
 #   T003224  §3/ci-watch: cancelled ≠ fail (Gegenprobe auf Job-Ebene)
 #   T003225  ci-watch: statusCheckRollup nur für den aktuellen head-SHA
-#   T003227  §1/cron: Factory-Tick-Vorcheck (tick_running) vor der Worktree-Messung
+#   T003227  §1/cron: Hygiene-Tick-Vorcheck (tick_running) vor der Worktree-Messung
 #
 # Prüfmodus: COMMAND OUTPUT VERIFICATION (branch-reaper-Tests gegen Wegwerf-Repo,
 # devflow-ci-watch gegen gh/ticket.sh-Stubs, Runbook-Texte per Marker-Grep).
@@ -227,13 +227,13 @@ JSON
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# T003227 — Factory-Tick-Vorcheck (p2-Runbook + p4 repo-hygiene-cron.sh)
+# T003227 — Hygiene-Tick-Vorcheck (p2-Runbook + p4 repo-hygiene-cron.sh)
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T003227: Runbook S1 dokumentiert den Factory-Tick-Vorcheck (tick_running)" {
+@test "T003227: Runbook S1 dokumentiert den Hygiene-Tick-Vorcheck (tick_running)" {
   RUNBOOK="$PROJECT_DIR/.claude/skills/references/repo-hygiene-ops.md"
   grep -q "tick_running" "$RUNBOOK" || { echo "tick_running-Vorcheck fehlt in §1"; false; }
-  grep -q "/tmp/factory-tick.lock" "$RUNBOOK" || { echo "Lock-Pfad fehlt"; false; }
+  grep -q "/tmp/repo-hygiene-tick.lock" "$RUNBOOK" || { echo "Lock-Pfad fehlt"; false; }
 }
 
 @test "T003227: repo-hygiene-cron.sh ueberspringt die Worktree-Messung bei tick_running=true" {
@@ -267,17 +267,17 @@ GH_EOF
   # der Subshell-Flock nicht endlos. stdout/stderr auf /dev/null: überlebt ein
   # verwaister Flock-Kindprozess den kill, hält er die Bats-Output-Pipe nicht
   # offen (sonst hängt die Suite am Testende).
-  # [T012414] Eigener Lock-Pfad statt des geteilten /tmp/factory-tick.lock: auf
+  # [T012414] Eigener Lock-Pfad statt des geteilten /tmp/repo-hygiene-tick.lock: auf
   # einem self-hosted Runner gehört der einem anderen User, das Anlegen scheiterte
   # mit "Permission denied" und der Test maß die Eigenschaft nie. Das Skript nimmt
-  # den Pfad über FACTORY_TICK_LOCK entgegen; der Default bleibt der geteilte.
-  TICK_LOCK="$WORK/factory-tick.lock"
+  # den Pfad über REPO_HYGIENE_TICK_LOCK entgegen; der Default bleibt der geteilte.
+  TICK_LOCK="$WORK/hygiene-tick.lock"
   ( flock -w 10 -x 9; sleep 30 ) 9>"$TICK_LOCK" >/dev/null 2>&1 &
   TMP_LOCK_PID=$!
   sleep 0.2
 
   run --separate-stderr env -C "$WORK" PATH="$WORK/bin:$PATH" REPO_DIR="$FIXTURE" AGENT_LOCK_DIR="$WORK/locks" \
-    FACTORY_TICK_LOCK="$TICK_LOCK" \
+    REPO_HYGIENE_TICK_LOCK="$TICK_LOCK" \
     bash "$PROJECT_DIR/scripts/repo-hygiene-cron.sh" standard
   kill "$TMP_LOCK_PID" 2>/dev/null || true
   wait "$TMP_LOCK_PID" 2>/dev/null || true

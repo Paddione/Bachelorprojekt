@@ -6,7 +6,7 @@
 // bietet Glimmer stattdessen als MCP-Werkzeug an: ein Job fuehrt opencode mit
 // dem Agenten glimmer-primary im Ziel-Repo aus (gleiches Modell, gleiche
 // Tool-Schleife). Streamable HTTP auf 127.0.0.1, Bearer, Node-stdlib only —
-// Aufbau wie scripts/factory-mcp-node/server.mjs.
+// abgesichert ueber scripts/lib/mcp-http-security.mjs.
 
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
@@ -181,7 +181,7 @@ async function callTool(name, args) {
 }
 
 // ---------------------------------------------------------------------------
-// HTTP / JSON-RPC (Muster: factory-mcp-node)
+// HTTP / JSON-RPC
 // ---------------------------------------------------------------------------
 
 function readBody(req) {

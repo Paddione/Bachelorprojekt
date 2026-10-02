@@ -1,8 +1,7 @@
 # Subagent-Provisioning
 
 Wenn ein dev-flow-Skill Arbeit an einen frischen Subagenten delegiert, wähle **nicht** pauschal ein
-Modell — provisioniere den **passenden** Subagenten entlang dreier Achsen. (Gleiche Logik wie die
-Software-Factory-`provision()` aus `docs/superpowers/specs/2026-06-05-software-factory-phase3-design.md`.)
+Modell — provisioniere den **passenden** Subagenten entlang dreier Achsen.
 
 Leitsatz: **Korrektheit vor Kosten.** Im Zweifel eine Stufe höher (Modell) bzw. mehr Effort.
 

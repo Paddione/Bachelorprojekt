@@ -61,7 +61,7 @@ tasks:
       - bash scripts/mcp-sync.sh check
 
   mcp:doctor:
-    desc: "MCP-Auth-Gesundheitscheck fuer alle Harnesses: Units, Bearer-Probes (:13001/:13003/:13005), opencode-Plugins, aufgeloeste Harness-Configs, ticket-stdio (nie Token-Werte)"
+    desc: "MCP-Auth-Gesundheitscheck fuer alle Harnesses: Units, Bearer-Probes (:13001/:13005), opencode-Plugins, aufgeloeste Harness-Configs, ticket-stdio (nie Token-Werte)"
     cmds:
       - bash scripts/mcp-gateway/doctor.sh
 

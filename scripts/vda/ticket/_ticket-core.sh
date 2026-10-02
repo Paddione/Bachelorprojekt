@@ -50,10 +50,10 @@ fi
 #
 # [T002386] Korrektur der urspruenglichen Annahme: Hier stand "All ~25 call sites
 # route through here, so the filter belongs here and nowhere else." Das stimmt
-# nicht. Die Factory haelt in scripts/factory/lib.sh (factory_pgpod) eine eigene
-# Implementierung, ebenso conflict-check.sh, mishap-categorize.sh und
-# batch-gap-analysis.sh. Alle vier behielten den Bug und legten am 2026-07-28 die
-# gesamte korczewski-Brand fuer den Dispatcher still.
+# nicht. Vier Stellen hielten je eine eigene Implementierung (Factory-lib,
+# conflict-check.sh, mishap-categorize.sh, batch-gap-analysis.sh). Alle vier
+# behielten den Bug und legten am 2026-07-28 die gesamte korczewski-Brand
+# fuer den Dispatcher still.
 #
 # Wer eine weitere Pod-Selektion anlegt, braucht den Filter erneut. Der Guard
 # dagegen ist scripts/check-pod-phase-filter.sh (seit T002439 ein eigenes Skript

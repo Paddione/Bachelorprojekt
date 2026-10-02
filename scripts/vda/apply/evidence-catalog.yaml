@@ -47,20 +47,6 @@ catalog:
       - model-as-a-service
     summary: "LLM-Serving-Stack mit FreeToken-basierter Zuteilung, KV-Cache-Optimierung und MoE-Modellen (40% resident)"
 
-  - id: software-factory
-    label: "Software Factory"
-    keywords:
-      - ci
-      - cd
-      - pipeline
-      - automation
-      - factory
-      - ticket
-      - sdlc
-      - workflow
-      - conventional-commit
-    summary: "Ticket-getriebene SDLC-Pipeline mit staged plans, BATS-Gates und Factory-Orchestrierung"
-
   - id: bats-quality-gates
     label: "BATS Quality Gates"
     keywords:

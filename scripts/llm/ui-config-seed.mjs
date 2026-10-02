@@ -19,7 +19,6 @@ export function buildSystemMessage(clients, servers) {
   const PURPOSE = {
     'k8s': 'Kubernetes-Cluster: Pods, Logs, Ressourcen, Events (lesend bevorzugt)',
     'mcp-postgres': 'SQL gegen die mentolder-Datenbank — NICHT fuer Tickets',
-    'factory-mcp': 'Software-Factory: Queue, Status, Dispatch',
     'bge-mcp': 'Embeddings und Reranking',
     'ticket-mcp': 'Tickets: lesen, anlegen, Status, Plaene',
     'mcp-task-runner': 'Taskfile-Ziele ausfuehren',
@@ -77,10 +76,9 @@ export function generateUiConfigSeed(options = {}) {
   // browser_endpoint (bevorzugt) oder endpoint. stdio-Eintraege ohne beides
   // bedient die Bruecke nicht und gehoeren deshalb nicht in den Seed.
   //
-  // Anzeigenamen entsprechen dem Registry-Schluessel — Ausnahmen:
-  // mcp-kubernetes heisst in der UI seit jeher "k8s", factory-mcp-node wird
-  // als "factory-mcp" gefuehrt (Template, Runbook, Systemprompt-PURPOSE).
-  const DISPLAY_NAME_OVERRIDES = { 'mcp-kubernetes': 'k8s', 'factory-mcp-node': 'factory-mcp' };
+  // Anzeigenamen entsprechen dem Registry-Schluessel — Ausnahme:
+  // mcp-kubernetes heisst in der UI seit jeher "k8s".
+  const DISPLAY_NAME_OVERRIDES = { 'mcp-kubernetes': 'k8s' };
 
   let templateContent = {};
   let templateRaw = '';
@@ -89,14 +87,13 @@ export function generateUiConfigSeed(options = {}) {
     templateContent = JSON.parse(templateRaw);
   }
 
-  // T900202 — Browser-Tokens: die llama-Web-UI braucht fuer mcp-postgres,
-  // factory-mcp und k8s denselben Bearer-Header wie bge-mcp. Die Registry
-  // traegt die Header fuer mcp-postgres und bge-mcp bereits auf Top-Level;
-  // mcp-kubernetes und factory-mcp-node bewusst nicht (T002779-Guard: ein
-  // ${VAR}-Header wuerde factory-mcp-node aus .mcp.json entfernen). SSOT fuer
-  // diese Browser-Header ist das Template (docs/runbooks/mcp-http-local-security.md,
+  // T900202 — Browser-Tokens: die llama-Web-UI braucht fuer mcp-postgres
+  // und k8s denselben Bearer-Header wie bge-mcp. Die Registry traegt die
+  // Header fuer mcp-postgres und bge-mcp bereits auf Top-Level;
+  // mcp-kubernetes bewusst nicht (T002779-Guard). SSOT fuer diese
+  // Browser-Header ist das Template (docs/runbooks/mcp-http-local-security.md,
   // Schritt 2) — der Seed uebernimmt sie als Fallback in die Serverliste.
-  const TOKEN_PLACEHOLDERS = ['BGE_MCP_TOKEN', 'MCP_POSTGRES_TOKEN', 'FACTORY_MCP_TOKEN', 'MCP_KUBERNETES_TOKEN'];
+  const TOKEN_PLACEHOLDERS = ['BGE_MCP_TOKEN', 'MCP_POSTGRES_TOKEN', 'MCP_KUBERNETES_TOKEN'];
 
   const referencedTokens = TOKEN_PLACEHOLDERS.filter((name) =>
     templateRaw.includes(`\${${name}}`) ||
@@ -118,7 +115,7 @@ export function generateUiConfigSeed(options = {}) {
     value.replace(/\$\{([A-Z][A-Z0-9_]*)\}/g, (match, name) => process.env[name] ?? match);
 
   // Template-Eintraege als Header-Quelle fuer Browser-Clients, deren
-  // Registry-Eintrag bewusst keinen Top-Level-Header traegt (k8s, factory-mcp).
+  // Registry-Eintrag bewusst keinen Top-Level-Header traegt (k8s).
   let templateServers = [];
   if (typeof templateContent.mcpServers === 'string') {
     try {

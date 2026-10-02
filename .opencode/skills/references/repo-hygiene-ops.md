@@ -23,16 +23,16 @@ bash scripts/repo-hygiene-precheck.sh          # 0 = frei, 1 = Befund, 2 = nicht
 
 **`2` heißt „unbekannt", nicht „blockiert" [T900061].** Unter Git Bash auf Windows ist der
 Lock-Test nicht durchführbar — `flock` scheitert am fd-Redirect, und `/tmp` zeigt dort nicht
-auf die Lock-Datei, die die Factory unter WSL hält. Bis T900061 fiel dieser Fehler in denselben
+auf die Lock-Datei, die der Tick unter WSL hält. Bis T900061 fiel dieser Fehler in denselben
 Zweig wie „Lock gehalten": der Vorcheck meldete auf jedem Windows-Host dauerhaft einen
 laufenden Tick und blockierte §1 grundlos. Jetzt sagt er, dass er es nicht weiß. Die
 Konsequenz ist dieselbe wie bei einem echten Tick, aber aus dem richtigen Grund: die
 `--porcelain`-Prüfung unmittelbar vor jedem Remove wiederholen, statt sich auf den Vorcheck zu
 verlassen.
 
-Er prüft beides: den laufenden Factory-Tick **und** den `main-checkout`-Claim aus
+Er prüft beides: den laufenden Hygiene-Tick **und** den `main-checkout`-Claim aus
 `scripts/agent-lock.sh`. Der zweite Teil ist die Lehre aus dem 2026-08-30: der alte Vorcheck
-kannte nur den Tick, und eine **interaktive Fremdsession** mutiert ohne `/tmp/factory-tick.lock`.
+kannte nur den Tick, und eine **interaktive Fremdsession** mutiert ohne `/tmp/repo-hygiene-tick.lock`.
 An diesem Tag geschah das zweimal in einem Lauf — einmal ein `git reset` auf `origin/main`,
 einmal ein Branch-Wechsel, der einen Commit auf einem fremden Branch landen ließ. Während beider
 Vorfälle war `agent-lock.sh list` leer: der Scope, der genau diesen Konflikt verhindert, wurde
@@ -97,7 +97,7 @@ Branch-Bestände mutierten während desselben Laufs mehrfach.
 
 Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit-Bereich allein reicht nicht — ein Worktree kann ungetrackte Änderungen enthalten, die kein `git log` anzeigt.
 
-> **Vorcheck [T003227, erweitert T900016]:** Läuft gerade ein Factory-Tick — oder hält eine
+> **Vorcheck [T003227, erweitert T900016]:** Läuft gerade ein Hygiene-Tick — oder hält eine
 > andere Session den `main-checkout`-Claim —, verändern sich Worktrees und Branches unter dem
 > Lauf; real beobachtet: 5 von 7 Worktrees mutierten während einer Messung. Maßgeblich ist der
 > gemeinsame Vorcheck aus §0 (`bash scripts/repo-hygiene-precheck.sh`); der Lock-Test darunter
@@ -106,11 +106,11 @@ Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit
 > entfallen; der `main-checkout`-Lock ist der verbleibende maßgebliche Fall).
 > ```bash
 > tick_running() {
->   test -f /tmp/factory-tick.lock || return 1
->   (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/factory-tick.lock
+>   test -f /tmp/repo-hygiene-tick.lock || return 1
+>   (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/repo-hygiene-tick.lock
 > }
 > if tick_running; then
->   echo "Factory-Tick läuft — Worktree-Sektion übersprungen oder Messung unmittelbar vor Remove wiederholen"
+>   echo "Hygiene-Tick läuft — Worktree-Sektion übersprungen oder Messung unmittelbar vor Remove wiederholen"
 > fi
 > ```
 > Bei laufendem Tick die Worktree-Sektion überspringen **oder** die `--porcelain`-Prüfung
@@ -413,8 +413,8 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 
 Dieser Abgleich ist **verbindlicher** Bestandteil jedes repo-hygiene-Laufs — kein optionaler
 Zusatzschritt. Er war als Skript (`auto-close-merged.sh` im Factory-Baum, eingehängt in den
-Factory-Wakeup) automatisiert und lief für beide Brands, aber nur solange die Factory tickte; wenn
-die Factory nicht lief (Ausfall, manuell gestoppt), blieb das PR-Ticket-Delta unentdeckt — genau
+Factory-Wakeup) automatisiert und lief für beide Brands, aber nur solange der Wakeup-Tick lief; wenn
+der Wakeup ausfiel (Ausfall, manuell gestoppt), blieb das PR-Ticket-Delta unentdeckt — genau
 das Muster der sieben Fälle vom 2026-09-04 (T900103, Messung 2026-09-20: weder `gh`-Metadaten
 noch die Phasen-Kette unterscheiden dabei Auto-Merge von Hand-Merge — Punkt 1/2 der
 ursprünglichen ZU-KLAEREN-Liste bleiben deshalb offen und sind nicht Gegenstand dieses Schritts).

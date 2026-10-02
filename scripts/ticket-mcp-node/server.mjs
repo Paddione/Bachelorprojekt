@@ -215,7 +215,7 @@ const TOOLS = [
   // 4. export_ticket_timeline
   {
     name: 'export_ticket_timeline',
-    description: 'Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (factory_phase_events), PR-Links (ticket_links kind=pr), archivierte Pläne (ticket_plans). HINWEIS: CLI-Statusuebergaenge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Luecke — Follow-up-Ticket erforderlich).',
+    description: 'Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (tickets.factory_phase_events), PR-Links (ticket_links kind=pr), archivierte Pläne (ticket_plans). HINWEIS: CLI-Statusuebergaenge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Luecke — Follow-up-Ticket erforderlich).',
     inputSchema: {
       type: 'object',
       properties: {
@@ -345,7 +345,7 @@ const TOOLS = [
   // 12. enqueue_ticket
   {
     name: 'enqueue_ticket',
-    description: 'Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog). Ein bereits plan_staged Ticket bleibt unveraendert — es ist über die Staged-Lane schon dispatchbar.',
+    description: 'Reiht ein Ticket in den Ticket-Backlog ein (status=backlog). Ein bereits plan_staged Ticket bleibt unveraendert — es ist über die Staged-Lane schon dispatchbar.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -415,13 +415,13 @@ const TOOLS = [
   // 16. set_readiness_flag
   {
     name: 'set_readiness_flag',
-    description: 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released).',
+    description: 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, execution_released).',
     inputSchema: {
       type: 'object',
       properties: {
         id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-        flag: { type: 'string', description: 'spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'factory_excluded', 'execution_released'] },
+        flag: { type: 'string', description: 'spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, execution_released', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'execution_released'] },
         value: { type: 'boolean', description: 'true oder false' },
       },
       required: ['id', 'flag', 'value'],
@@ -601,13 +601,13 @@ const TOOLS = [
 {
   const t = TOOLS[TOOLS.length] = {};
   t.name = 'set_readiness_flag';
-  t.description = 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released).';
+  t.description = 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, execution_released).';
   t.inputSchema = {
     type: 'object',
     properties: {
       id: { type: 'string', description: 'external_id z.B. T000123' },
       brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-      flag: { type: 'string', description: 'Readiness-Flag', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'factory_excluded', 'execution_released'] },
+      flag: { type: 'string', description: 'Readiness-Flag', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'execution_released'] },
       value: { type: 'boolean', description: 'true oder false' },
     },
     required: ['id', 'flag', 'value'],
@@ -841,7 +841,7 @@ const TOOLS = [
 {
   const t = TOOLS[TOOLS.length] = {};
   t.name = 'enqueue_ticket';
-  t.description = 'Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog).';
+  t.description = 'Reiht ein Ticket in den Ticket-Backlog ein (status=backlog).';
   t.inputSchema = {
   "type": "object",
   "properties": {

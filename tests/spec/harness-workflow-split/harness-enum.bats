@@ -24,7 +24,7 @@ REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   # Count 'both' harness values in tools.yaml — 9 seit dem dsh-Enum-Bau (T013724-
   # Ära), +3 durch T014086: dev-flow-plan/-execute/-chore sind jetzt both, weil
   # opencode sie unter denselben Namen lädt → 12. T900399 hat mit `factory` und
-  # `factory-dispatch` zwei both-Eintraege entfernt → 10. Kein Eintrag darf nach
+  # dem Dispatch-Eintrag zwei both-Eintraege entfernt → 10. Kein Eintrag darf nach
   # 'all' umgeschrieben worden sein.
   local count
   count=$(grep -c 'harness: both' "$REPO/docs/agent-guide/registry/tools.yaml" || echo 0)

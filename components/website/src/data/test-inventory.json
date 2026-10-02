@@ -318,18 +318,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:fa-factory-floor",
-    "file": "tests/e2e/specs/fa-factory-floor.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:fa-factory-injection",
-    "file": "tests/e2e/specs/fa-factory-injection.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:fa-ios-talk",
     "file": "tests/e2e/specs/fa-ios-talk.spec.ts",
     "category": "E2E",
@@ -350,12 +338,6 @@
   {
     "id": "E2E:fa-meeting-history",
     "file": "tests/e2e/specs/fa-meeting-history.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:fa-mobile-factory",
-    "file": "tests/e2e/specs/fa-mobile-factory.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },
@@ -894,12 +876,6 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-49",
-    "file": "tests/e2e/specs/fa-49-factory-observability.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-50",
     "file": "tests/e2e/specs/fa-50-request-correlation.spec.ts",
     "category": "FA",
@@ -964,18 +940,6 @@
     "file": "tests/e2e/specs/fa-61-sdlc-leitstand-devonly-split.spec.ts",
     "category": "FA",
     "kind": "playwright"
-  },
-  {
-    "id": "FA-AR-01",
-    "file": "tests/local/FA-AR-01-filter-diff.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-AR-02",
-    "file": "tests/local/FA-AR-02-classify-risk.bats",
-    "category": "FA",
-    "kind": "shell"
   },
   {
     "id": "HWS-1",
@@ -1884,6 +1848,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-lock-reclaim/pid-dead-worktree-match-T002849",
+    "file": "tests/spec/agent-lock-reclaim/pid-dead-worktree-match-T002849.bats",
+    "category": "agent-lock-reclaim",
+    "kind": "shell"
+  },
+  {
     "id": "agent-lock-session-identity",
     "file": "tests/spec/agent-lock-session-identity.bats",
     "category": "agent-lock-session-identity",
@@ -2532,12 +2502,6 @@
     "kind": "shell"
   },
   {
-    "id": "ci-cd/factory-shard-optimization",
-    "file": "tests/spec/ci-cd/factory-shard-optimization.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/spec/ci-cd/fetch-refspec-forced.bats",
     "category": "ci-cd",
@@ -2684,6 +2648,12 @@
   {
     "id": "ci-cd/spec-dir-convention",
     "file": "tests/spec/ci-cd/spec-dir-convention.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/spec-shard-optimization",
+    "file": "tests/spec/ci-cd/spec-shard-optimization.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2871,6 +2841,12 @@
     "id": "db-restore-verification/restore-verify-cronjob",
     "file": "tests/spec/db-restore-verification/restore-verify-cronjob.bats",
     "category": "db-restore-verification",
+    "kind": "shell"
+  },
+  {
+    "id": "decommission/decommission-guard",
+    "file": "tests/spec/decommission/decommission-guard.bats",
+    "category": "decommission",
     "kind": "shell"
   },
   {
@@ -3225,18 +3201,6 @@
     "id": "env-seal-empty-value-keys",
     "file": "tests/spec/env-seal-empty-value-keys.bats",
     "category": "env-seal-empty-value-keys",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-reclaim-lock-respect/pid-dead-worktree-match-T002849",
-    "file": "tests/spec/factory-reclaim-lock-respect/pid-dead-worktree-match-T002849.bats",
-    "category": "factory-reclaim-lock-respect",
-    "kind": "shell"
-  },
-  {
-    "id": "factory/vda-frontmatter",
-    "file": "tests/spec/factory/vda-frontmatter.bats",
-    "category": "factory",
     "kind": "shell"
   },
   {
@@ -3924,12 +3888,6 @@
     "kind": "shell"
   },
   {
-    "id": "local-llm-proxy/factory-model-lock",
-    "file": "tests/spec/local-llm-proxy/factory-model-lock.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
     "id": "local-llm-proxy/gateway-consumer-lint",
     "file": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
     "category": "local-llm-proxy",
@@ -4004,6 +3962,12 @@
   {
     "id": "local-llm-proxy/loadout-model-files-exist",
     "file": "tests/spec/local-llm-proxy/loadout-model-files-exist.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/loadout-model-lock",
+    "file": "tests/spec/local-llm-proxy/loadout-model-lock.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -5166,15 +5130,15 @@
     "kind": "shell"
   },
   {
-    "id": "sidekick-assistant",
-    "file": "tests/spec/sidekick-assistant.bats",
-    "category": "sidekick-assistant",
+    "id": "sf-retirement-rest",
+    "file": "tests/spec/sf-retirement-rest.bats",
+    "category": "sf-retirement-rest",
     "kind": "shell"
   },
   {
-    "id": "software-factory/decommission-guard",
-    "file": "tests/spec/software-factory/decommission-guard.bats",
-    "category": "software-factory",
+    "id": "sidekick-assistant",
+    "file": "tests/spec/sidekick-assistant.bats",
+    "category": "sidekick-assistant",
     "kind": "shell"
   },
   {
@@ -5484,12 +5448,6 @@
     "kind": "shell"
   },
   {
-    "id": "unsloth-training-env/factory-traces",
-    "file": "tests/spec/unsloth-training-env/factory-traces.bats",
-    "category": "unsloth-training-env",
-    "kind": "shell"
-  },
-  {
     "id": "unsloth-training-env/measure-corpus",
     "file": "tests/spec/unsloth-training-env/measure-corpus.bats",
     "category": "unsloth-training-env",
@@ -5517,6 +5475,12 @@
     "id": "vaultwarden-integration",
     "file": "tests/spec/vaultwarden-integration.bats",
     "category": "vaultwarden-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "vda-frontmatter",
+    "file": "tests/spec/vda-frontmatter.bats",
+    "category": "vda-frontmatter",
     "kind": "shell"
   },
   {

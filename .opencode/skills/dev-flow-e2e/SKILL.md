@@ -78,7 +78,7 @@ Es gibt **kein** separates E2E-Test-Passwort für Korczewski: Der Brand ist
 eingefroren (T002602 — Flux-Kustomizations suspendiert, Deployments in
 `workspace-korczewski` stehen auf 0/0, `web.korczewski.de` antwortet mit 503),
 und der Key `E2E_TEST_ADMIN_PASSWORD` existiert nicht in
-`environments/.secrets/korczewski.yaml`. E2E-Tests laufen ausschließlich gegen
+`environments/.secrets/fleet-korczewski.yaml`. E2E-Tests laufen ausschließlich gegen
 Mentolder; das `korczewski`-Playwright-Projekt ist deaktiviert (siehe Kommentar
 in `.github/workflows/e2e.yml`).
 

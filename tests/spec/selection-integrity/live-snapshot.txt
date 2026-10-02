@@ -122,6 +122,7 @@ tests/spec/ci-cd/branch-reaper-freshness-regen.bats
 tests/spec/ci-cd/branch-reaper-local-ref.bats
 tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats
 tests/spec/ci-cd/branch-reaper-sweep.bats
+tests/spec/ci-cd/branch-reaper-undecided.bats
 tests/spec/ci-cd/branch-reaper-unknown-ticket-merged-pr.bats
 tests/spec/ci-cd/branch-reaper-unmerged-keep.bats
 tests/spec/ci-cd/branch-reaper.bats
@@ -129,7 +130,6 @@ tests/spec/ci-cd/cfr-trend-window.bats
 tests/spec/ci-cd/changed-tests-collection-parity.bats
 tests/spec/ci-cd/changed-tests-env-hermetic.bats
 tests/spec/ci-cd/changed-tests-uncommitted-diff.bats
-tests/spec/ci-cd/ci-diff-base.bats
 tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats
 tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats
 tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats
@@ -145,23 +145,11 @@ tests/spec/ci-cd/freshness-paths-exist.bats
 tests/spec/ci-cd/freshness-regen-rebase-guard.bats
 tests/spec/ci-cd/generated-artifacts-registry.bats
 tests/spec/ci-cd/generated-path-separators.bats
+tests/spec/ci-cd/gh-repo-context-guard.bats
 tests/spec/ci-cd/ghcr-digest-auth.bats
 tests/spec/ci-cd/git-flow-poll-and-branch-order.bats
-tests/spec/ci-cd/gitlab-batsunit-toolchain.bats
-tests/spec/ci-cd/gitlab-job-coverage.bats
-tests/spec/ci-cd/gitlab-mirror-workflow.bats
-tests/spec/ci-cd/gitlab-parallel-non-blocking.bats
-tests/spec/ci-cd/gitlab-pipeline-check.bats
-tests/spec/ci-cd/gitlab-registry-cache.bats
-tests/spec/ci-cd/gitlab-registry-mirror.bats
-tests/spec/ci-cd/gitlab-runner-executor-rbac.bats
-tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats
-tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats
-tests/spec/ci-cd/gitlab-runner-job-pod-toml.bats
-tests/spec/ci-cd/gitlab-runner-nonroot-uid.bats
-tests/spec/ci-cd/gitlab-runner-quota-fit.bats
-tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats
-tests/spec/ci-cd/gitlab-tool-parity.bats
+tests/spec/ci-cd/github-only-ci.bats
+tests/spec/ci-cd/health-goals-pr-path.bats
 tests/spec/ci-cd/hybrid-runner-placement.bats
 tests/spec/ci-cd/main-direct-push-guard.bats
 tests/spec/ci-cd/mishap-t002425.bats
@@ -276,6 +264,7 @@ tests/spec/fleet-operations/dev-node-binding.bats
 tests/spec/fleet-operations/firewall-program-match.bats
 tests/spec/fleet-operations/ghcr-pull-secret.bats
 tests/spec/fleet-operations/internal-endpoints.bats
+tests/spec/fleet-operations/legacy-secrets-fleet.bats
 tests/spec/fleet-operations/membership-drift.bats
 tests/spec/fleet-operations/monitoring-ready.bats
 tests/spec/fleet-operations/penpot-secret-keys.bats
@@ -298,6 +287,7 @@ tests/spec/g-dep01-npm-vuln.bats
 tests/spec/g-fe02-bundle-budget.bats
 tests/spec/g-fe03-structured-logger.bats
 tests/spec/g-size02-large-files.bats
+tests/spec/gen-goals-data.bats
 tests/spec/githooks-worktree-fallback.bats
 tests/spec/grilling-flow.bats
 tests/spec/guard-preconditions/guard-preconditions.bats
@@ -607,6 +597,7 @@ tests/spec/toolset-registry/check-drift-detection.bats
 tests/spec/toolset-registry/check-offline.bats
 tests/spec/toolset-registry/collect-kinds.bats
 tests/spec/toolset-registry/context-injection.bats
+tests/spec/toolset-registry/harness-specialization.bats
 tests/spec/toolset-registry/schema-gate.bats
 tests/spec/toolset-registry/sync-all-harnesses.bats
 tests/spec/toolset-registry/sync-surgical.bats
@@ -636,6 +627,7 @@ tests/spec/website-core/email-notifications.bats
 tests/spec/website-core/portrait-derivate-crop.bats
 tests/spec/website-core/web-audit.bats
 tests/spec/website-interfaces.bats
+tests/spec/website-svelte-check.bats
 tests/spec/workspace-deploy-secrets-scope.bats
 tests/spec/workspace-deploy.bats
 tests/spec/workspace-deploy/flux-secrets-ordering.bats

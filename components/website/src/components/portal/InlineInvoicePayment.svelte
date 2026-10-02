@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, tick } from 'svelte';
   import { loadStripe } from '@stripe/stripe-js';
-  import type { Stripe, StripeElements } from '@stripe/stripe-js';
+  import type { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
   import { browserLogger } from '$lib/browser-logger';
 
   export let invoiceId: string;
@@ -14,9 +14,11 @@
   let errorMessage = '';
   let stripeInstance: Stripe | null = null;
   let elementsInstance: StripeElements | null = null;
+  let paymentElement: StripePaymentElement | null = null;
 
   onDestroy(() => {
-    elementsInstance?.destroy();
+    paymentElement?.destroy();
+    paymentElement = null;
     stripeInstance = null;
     elementsInstance = null;
   });
@@ -52,7 +54,7 @@
       // Set state first so Svelte renders the container div, then mount
       state = 'ready';
       await tick();
-      const paymentElement = elementsInstance.create('payment');
+      paymentElement = elementsInstance.create('payment');
       paymentElement.mount(`#payment-element-${invoiceId}`);
     } catch (e) {
       browserLogger.error({ err: e }, '[InlineInvoicePayment]');
@@ -86,7 +88,8 @@
   }
 
   function cancel() {
-    elementsInstance?.destroy();
+    paymentElement?.destroy();
+    paymentElement = null;
     stripeInstance = null;
     elementsInstance = null;
     state = 'idle';

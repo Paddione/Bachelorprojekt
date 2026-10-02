@@ -84,5 +84,7 @@ export function loadRegistry(filePath) {
 
   return {
     capabilities: validatedCapabilities,
+    harnesses: data.harnesses ?? {},
+    forbiddenProviders: data.forbidden_providers ?? [],
   };
 }

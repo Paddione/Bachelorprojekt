@@ -33,7 +33,7 @@
     sidebarText = '',
     sidebarCta = '',
     showSteps = false,
-  } = $props<Props>();
+  }: Props = $props();
 
   let activeMode = $state<'termin' | 'message' | 'callback'>(initialMode ?? 'termin');
 </script>

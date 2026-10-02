@@ -1703,7 +1703,7 @@ Agents route based on their permissions:
 | Agent | Tool | Why |
 |-------|------|-----|
 | Read-only sub-agents (explore, general, scout) | \`delegate\` | Background session, async |
-| Write-capable sub-agents (bonsai-8b, deepseek-helper) | \`task\` | Native task, preserves undo/branching |
+| Write-capable sub-agents (bonsai-8b, exe-muse) | \`task\` | Native task, preserves undo/branching |
 
 **Read-only sub-agents** have edit="deny", write="deny", bash={"*":"deny"}.
 **Write-capable sub-agents** have any write tool enabled.

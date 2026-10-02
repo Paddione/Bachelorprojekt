@@ -7,9 +7,10 @@ name: Build Collabora (setcap)
 
 on:
   push:
-    # Any branch — path filters keep it cheap. Safe to build + push
-    # from branches because the resulting tag is the upstream version,
-    # not a branch-derived name, so nothing a PR author could poison.
+    # [T900810] Nur main: der Push ohne Branch-Filter baute (und publizierte
+    # :latest aus) jedem Feature-Branch — Branch-Inhalt auf dem Prod-Tag.
+    # PRs bauen weiterhin ueber den pull_request-Trigger (push: false).
+    branches: [main]
     paths:
       - "docker/collabora/Dockerfile"
       - ".github/workflows/build-collabora.yml"
@@ -88,13 +89,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=min
 
-      - name: Mirror image to GitLab registry
-        if: ${{ github.event_name != 'pull_request' }}
-        continue-on-error: true
-        env:
-          GITLAB_REGISTRY_PREFIX: ${{ secrets.GITLAB_REGISTRY_PREFIX }}
-          GITLAB_REGISTRY_TOKEN: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
-          SOURCE_TAGS: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.published }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        run: bash scripts/mirror-image-to-gitlab.sh

@@ -2,6 +2,9 @@ name: Build Talk Transcriber
 
 on:
   push:
+    # [T900810] Nur main: ohne Branch-Filter landete Branch-Inhalt auf :latest.
+    # PRs bauen weiterhin ueber den pull_request-Trigger (push: false).
+    branches: [main]
     paths:
       - "k3d/talk-transcriber/**"
       - ".github/workflows/build-transcriber.yml"
@@ -60,13 +63,3 @@ jobs:
             org.opencontainers.image.description=Nextcloud Talk Transcriber Bot
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Mirror image to GitLab registry
-        if: ${{ github.event_name != 'pull_request' }}
-        continue-on-error: true
-        env:
-          GITLAB_REGISTRY_PREFIX: ${{ secrets.GITLAB_REGISTRY_PREFIX }}
-          GITLAB_REGISTRY_TOKEN: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
-          SOURCE_TAGS: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ env.BUILD_DATE }}-${{ github.sha }}
-        run: bash scripts/mirror-image-to-gitlab.sh

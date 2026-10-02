@@ -40,6 +40,7 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -168,20 +169,69 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # Deliberately no [skip ci]: the commit touches components/website/**, which is what
-      # build-website.yml triggers on. Suppressing CI here would leave the dashboard
-      # on the old image despite fresh data — exactly the T002158 failure mode.
-      - name: Commit and push if changed
+      # Rennverlierer-Cleanup, gleiche Form wie in freshness-regen.yml (T006998): beide
+      # Dateien aendern sich bei jeder Messung, ein aelterer Mess-PR konfligiert also,
+      # sobald ein juengerer gemergt ist, und heilt nie von selbst. Jeder Lauf schliesst
+      # deshalb die offenen chore/health-goals-run-*-PRs frueherer Laeufe. Der
+      # concurrency-Guard oben serialisiert die Laeufe; der eigene Branch existiert
+      # hier noch nicht.
+      - name: Close superseded measurement PRs
+        if: steps.measure.outputs.dry == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          while IFS=' ' read -r num head; do
+            echo "Schliesse ueberholten Mess-PR #$num ($head)"
+            gh pr close "$num" \
+              --comment "Superseded: geschlossen durch health-goals.yml (run ${RUN_ID}). Der neueste Messlauf gewinnt." \
+              || echo "WARNUNG: gh pr close #$num fehlgeschlagen (bereits gemergt?)"
+            git push origin --delete "$head" >/dev/null 2>&1 || true
+          done < <(gh pr list --state open --limit 100 \
+            --json number,headRefName \
+            --jq '.[] | select(.headRefName | startswith("chore/health-goals-run-")) | "\(.number) \(.headRefName)"')
+          exit 0
+
+      # T900810: Der Bot schreibt ueber einen PR statt direkt auf main. Die Branch
+      # Protection lehnt den Direkt-Push seit T002889 auch fuer das Admin-Token ab
+      # (GH006) — der Lauf war an jedem Tag rot, an dem sich ein Messwert aenderte,
+      # und goals.md blieb alt.
+      #
+      # Deliberately no [skip ci]: under required status checks a skipped run never
+      # reports a result and the PR would stay open forever. The squash merge then
+      # touches components/website/**, which is what the image builds trigger on —
+      # suppressing CI would leave the dashboard on the old image despite fresh
+      # data, exactly the T002158 failure mode.
+      - name: Open PR if changed
         if: steps.diff.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          # Je Lauf eindeutig — sonst kollidieren zwei Laeufe auf demselben Ref.
+          BRANCH: chore/health-goals-run-${{ github.run_id }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
           git add .claude/lib/goals.md components/website/src/lib/sdlc/goals-data.generated.json
-          # Scope 'goals' ist in 'ci' aufgegangen (T002328). Der commit-lint-Job
-          # laeuft nur auf pull_request und haette diesen Bot-Push auf main nicht
-          # abgefangen — der Commit wuerde die Historie genau dort verschmutzen,
-          # wo die Konsolidierung aufraeumt.
+          # Scope 'goals' ist in 'ci' aufgegangen (T002328).
           git commit -m "chore(ci): refresh health goal measurements"
-          git push
+          git push -u origin "$BRANCH"
+
+          cat >/tmp/pr-body.md <<EOF
+          Automatisch erzeugt von \`health-goals.yml\` (run ${RUN_ID}).
+
+          Frisch gemessene Health-Goal-Werte in \`.claude/lib/goals.md\` samt
+          \`goals-data.generated.json\`. Ersetzt den frueheren Direkt-Push auf \`main\` (T900810).
+          EOF
+
+          # Conventional-Commit-Titel: "Conventional Commits" gehoert zu den Required
+          # Checks — ein abweichender Titel wuerde nie gruen und der PR nie mergen.
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore(ci): refresh health goal measurements" \
+            --body-file /tmp/pr-body.md
+
+          # Ohne Auto-Merge bliebe der PR liegen und goals.md trotz gruenem Lauf alt.
+          gh pr merge "$BRANCH" --auto --squash --delete-branch

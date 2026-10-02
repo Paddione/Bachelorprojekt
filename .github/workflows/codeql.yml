@@ -22,7 +22,6 @@ on:
     paths:
       - 'components/**'
       - 'scripts/**'
-      - 'brett/**'
       - '.github/workflows/**'
       - '.github/workflows/codeql.yml'
   pull_request:
@@ -30,7 +29,6 @@ on:
     paths:
       - 'components/**'
       - 'scripts/**'
-      - 'brett/**'
       - '.github/workflows/**'
       - '.github/workflows/codeql.yml'
   schedule:

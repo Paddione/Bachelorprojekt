@@ -7,23 +7,7 @@
     aufwand_geschaetzt: 'Aufwand geschätzt',
   };
 
-  interface PlanItem {
-    extId: string;
-    title: string;
-    type: string;
-    valueProp: string | null;
-    priority: string;
-    effort: string | null;
-    areas: string[];
-    dependsOn: string[];
-    rank: number | null;
-    readiness: Record<string, boolean>;
-    dorScore: number;
-    isNextCandidate: boolean;
-    pinned: boolean;
-    requirementsList: string[];
-    lastenheftLocked: boolean;
-  }
+  import type { PlanItem } from './planning-office-types';
 
   let {
     item,

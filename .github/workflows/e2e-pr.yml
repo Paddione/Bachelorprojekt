@@ -2,7 +2,8 @@ name: E2E (PR — gefiltert)
 
 # Läuft bei jedem PR auf main. Prüft zuerst ob E2E-relevante Dateien
 # (components/website/**, tests/e2e/**) geändert wurden. Falls nicht, wird der Job
-# übersprungen — erfüllt aber den Required-Check "E2E PR".
+# übersprungen — meldet aber grün als advisory Gate "E2E PR".
+# [T900810] Bewusst KEIN Required Check (SSOT: scripts/gh-branch-protection.sh).
 #
 # Ziel:  Regressionsschutz im eigenen Scope, schnell (<5 min).
 # Nightly e2e.yml testet weiterhin die gesamte Suite gegen Fleet.
@@ -38,8 +39,9 @@ env:
 
 jobs:
   e2e-pr:
-    # Static name — branch protection requires the context "E2E PR";
-    # a dynamic name (with branch) never satisfies it and blocks every merge.
+    # Static name — the "E2E PR" context must stay stable (referenced by
+    # guards and tooling); a dynamic name (with branch) never matches.
+    # [T900810] Advisory, kein Required Check (SSOT gh-branch-protection.sh).
     name: E2E PR
     # [T012414] Fork-Guard: self-hosted Runner duerfen keinen Fork-Code
     # ausfuehren (actions/checkout holt bei pull_request den PR-HEAD).

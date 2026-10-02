@@ -42,8 +42,8 @@
       body: JSON.stringify({ firstName: modal.firstName, lastName: modal.lastName, email: modal.email, groupIds: modal.selectedGroupIds, sendInvite: modal.sendInvite }),
     });
     if (r.ok) {
-      if (r.data.partial) toast('warning', `Anwender angelegt, Einladung fehlgeschlagen: ${r.data.inviteError ?? '?'}`);
-      else toast('success', 'Anwender erfolgreich angelegt');
+      if (r.data.partial) toast('warn', `Anwender angelegt, Einladung fehlgeschlagen: ${r.data.inviteError ?? '?'}`);
+      else toast('ok', 'Anwender erfolgreich angelegt');
       modal = null;
       load();
     }

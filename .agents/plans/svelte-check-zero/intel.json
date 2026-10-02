@@ -1,0 +1,1635 @@
+{
+  "meta": {
+    "slug": "svelte-check-zero",
+    "ticket_id": "",
+    "generated_from": "main@eda8a8587",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "config",
+      "loc": 1031,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/package.json",
+      "language": "config",
+      "loc": 84,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/pnpm-lock.yaml",
+      "language": "config",
+      "loc": 8660,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/BookingForm.svelte",
+      "language": "svelte",
+      "loc": 560,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 540
+    },
+    {
+      "path": "components/website/src/components/ContactHub.svelte",
+      "language": "svelte",
+      "loc": 318,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 782
+    },
+    {
+      "path": "components/website/src/components/MediaviewerPanel.svelte",
+      "language": "svelte",
+      "loc": 228,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 872
+    },
+    {
+      "path": "components/website/src/components/PlanningOffice.svelte",
+      "language": "svelte",
+      "loc": 448,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 652
+    },
+    {
+      "path": "components/website/src/components/PlanningOfficeItem.svelte",
+      "language": "svelte",
+      "loc": 85,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1015
+    },
+    {
+      "path": "components/website/src/components/WhyMe.svelte",
+      "language": "svelte",
+      "loc": 223,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 877
+    },
+    {
+      "path": "components/website/src/components/admin/AppCatalog.svelte",
+      "language": "svelte",
+      "loc": 224,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 876
+    },
+    {
+      "path": "components/website/src/components/admin/ArchitekturGraph.svelte",
+      "language": "svelte",
+      "loc": 224,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 876
+    },
+    {
+      "path": "components/website/src/components/admin/AssetGallery.svelte",
+      "language": "svelte",
+      "loc": 204,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 896
+    },
+    {
+      "path": "components/website/src/components/admin/BulkToast.svelte",
+      "language": "svelte",
+      "loc": 167,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 933
+    },
+    {
+      "path": "components/website/src/components/admin/DraftsInbox.svelte",
+      "language": "svelte",
+      "loc": 282,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 818
+    },
+    {
+      "path": "components/website/src/components/admin/InhalteEditor.svelte",
+      "language": "svelte",
+      "loc": 320,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 780
+    },
+    {
+      "path": "components/website/src/components/admin/PublishEditor.svelte",
+      "language": "svelte",
+      "loc": 188,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 912
+    },
+    {
+      "path": "components/website/src/components/admin/TaxMonitorWidget.svelte",
+      "language": "svelte",
+      "loc": 51,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1049
+    },
+    {
+      "path": "components/website/src/components/admin/WissenHub.svelte",
+      "language": "svelte",
+      "loc": 377,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 723
+    },
+    {
+      "path": "components/website/src/components/admin/aktionen/BackupsTab.svelte",
+      "language": "svelte",
+      "loc": 124,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 976
+    },
+    {
+      "path": "components/website/src/components/admin/aktionen/KnowledgeTab.svelte",
+      "language": "svelte",
+      "loc": 86,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1014
+    },
+    {
+      "path": "components/website/src/components/admin/aktionen/ReleasesTab.svelte",
+      "language": "svelte",
+      "loc": 71,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1029
+    },
+    {
+      "path": "components/website/src/components/admin/aktionen/UsersTab.svelte",
+      "language": "svelte",
+      "loc": 120,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 980
+    },
+    {
+      "path": "components/website/src/components/admin/graph/GraphCanvas.svelte",
+      "language": "svelte",
+      "loc": 213,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 887
+    },
+    {
+      "path": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "language": "svelte",
+      "loc": 258,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 842
+    },
+    {
+      "path": "components/website/src/components/admin/platform/SoftwareTab.svelte",
+      "language": "svelte",
+      "loc": 175,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 925
+    },
+    {
+      "path": "components/website/src/components/assistant/LlmProxyView.svelte",
+      "language": "svelte",
+      "loc": 72,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1028
+    },
+    {
+      "path": "components/website/src/components/assistant/LogsSidekickView.svelte",
+      "language": "svelte",
+      "loc": 196,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 904
+    },
+    {
+      "path": "components/website/src/components/assistant/SidekickHome.svelte",
+      "language": "svelte",
+      "loc": 307,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 793
+    },
+    {
+      "path": "components/website/src/components/inbox/InboxApp.svelte",
+      "language": "svelte",
+      "loc": 1001,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 99
+    },
+    {
+      "path": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "language": "svelte",
+      "loc": 238,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 862
+    },
+    {
+      "path": "components/website/src/components/live/shared/ScheduleNudge.svelte",
+      "language": "svelte",
+      "loc": 24,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1076
+    },
+    {
+      "path": "components/website/src/components/live/stream/PollOverlayPanel.svelte",
+      "language": "svelte",
+      "loc": 61,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1039
+    },
+    {
+      "path": "components/website/src/components/portal/InlineInvoicePayment.svelte",
+      "language": "svelte",
+      "loc": 148,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 952
+    },
+    {
+      "path": "components/website/src/components/portal/WorkflowStatusMinimap.svelte",
+      "language": "svelte",
+      "loc": 99,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1001
+    },
+    {
+      "path": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "language": "svelte",
+      "loc": 329,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 771
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/ControlPanel.svelte",
+      "language": "svelte",
+      "loc": 182,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 918
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "language": "svelte",
+      "loc": 228,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 872
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "language": "svelte",
+      "loc": 549,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 551
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "language": "svelte",
+      "loc": 180,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 920
+    },
+    {
+      "path": "components/website/src/components/sessions/SessionsHistory.svelte",
+      "language": "svelte",
+      "loc": 334,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 766
+    },
+    {
+      "path": "components/website/src/lib/factory-floor-types.ts",
+      "language": "javascript",
+      "loc": 119,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 781
+    },
+    {
+      "path": "components/website/src/lib/sessions/archive.ts",
+      "language": "javascript",
+      "loc": 246,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 654
+    },
+    {
+      "path": "tests/spec/website-svelte-check.bats",
+      "language": "bash",
+      "loc": 26,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/components/BookingForm.svelte:122:      loadSlots();",
+      "kind": "function",
+      "file": "components/website/src/components/BookingForm.svelte",
+      "signature": "122:      loadSlots();(...)",
+      "type_text": "122:      loadSlots();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/BookingForm.svelte:126:  function selectSlot(slot: TimeSlot) {",
+      "kind": "function",
+      "file": "components/website/src/components/BookingForm.svelte",
+      "signature": "126:  function selectSlot(slot: TimeSlot) {(...)",
+      "type_text": "126:  function selectSlot(slot: TimeSlot) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/BookingForm.svelte:130:  function formatDate(dateStr: string): string {",
+      "kind": "function",
+      "file": "components/website/src/components/BookingForm.svelte",
+      "signature": "130:  function formatDate(dateStr: string): string {(...)",
+      "type_text": "130:  function formatDate(dateStr: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/BookingForm.svelte:193:  function formatSlotTime(isoStart: string, isoEnd: string): string {",
+      "kind": "function",
+      "file": "components/website/src/components/BookingForm.svelte",
+      "signature": "193:  function formatSlotTime(isoStart: string, isoEnd: string): string {(...)",
+      "type_text": "193:  function formatSlotTime(isoStart: string, isoEnd: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:48:  function broadcastSession(payload: Record<string, unknown>) {",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "48:  function broadcastSession(payload: Record<string, unknown>) {(...)",
+      "type_text": "48:  function broadcastSession(payload: Record<string, unknown>) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:63:  function pushVideos() {",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "63:  function pushVideos() {(...)",
+      "type_text": "63:  function pushVideos() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:69:  function pushMode() {",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "69:  function pushMode() {(...)",
+      "type_text": "69:  function pushMode() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:73:  function pushGrillingData() {",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "73:  function pushGrillingData() {(...)",
+      "type_text": "73:  function pushGrillingData() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:81:  function dispatch(msg: HostOutbound) {",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "81:  function dispatch(msg: HostOutbound) {(...)",
+      "type_text": "81:  function dispatch(msg: HostOutbound) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:110:    return () => window.removeEventListener('message', handler);",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "110:    return () => window.removeEventListener('message', handler);(...)",
+      "type_text": "110:    return () => window.removeEventListener('message', handler);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:115:    pushVideos();",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "115:    pushVideos();(...)",
+      "type_text": "115:    pushVideos();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:120:    pushMode();",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "120:    pushMode();(...)",
+      "type_text": "120:    pushMode();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:126:      pushGrillingData();",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "126:      pushGrillingData();(...)",
+      "type_text": "126:      pushGrillingData();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/MediaviewerPanel.svelte:136:    return () => window.removeEventListener('mediaviewer:open-session', onOpen);",
+      "kind": "function",
+      "file": "components/website/src/components/MediaviewerPanel.svelte",
+      "signature": "136:    return () => window.removeEventListener('mediaviewer:open-session', onOpen);(...)",
+      "type_text": "136:    return () => window.removeEventListener('mediaviewer:open-session', onOpen);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:145:  function selectItem(it: PlanItem) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "145:  function selectItem(it: PlanItem) {(...)",
+      "type_text": "145:  function selectItem(it: PlanItem) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:170:  function onDragStart(e: DragEvent, it: PlanItem) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "170:  function onDragStart(e: DragEvent, it: PlanItem) {(...)",
+      "type_text": "170:  function onDragStart(e: DragEvent, it: PlanItem) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:178:  function onDragOver(e: DragEvent, idx: number) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "178:  function onDragOver(e: DragEvent, idx: number) {(...)",
+      "type_text": "178:  function onDragOver(e: DragEvent, idx: number) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:183:  function onDragLeave() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "183:  function onDragLeave() {(...)",
+      "type_text": "183:  function onDragLeave() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:197:  function onDragEnd() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "197:  function onDragEnd() {(...)",
+      "type_text": "197:  function onDragEnd() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:207:  function onHandlePointerDown(e: PointerEvent, it: PlanItem) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "207:  function onHandlePointerDown(e: PointerEvent, it: PlanItem) {(...)",
+      "type_text": "207:  function onHandlePointerDown(e: PointerEvent, it: PlanItem) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:213:  function onHandlePointerMove(e: PointerEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "213:  function onHandlePointerMove(e: PointerEvent) {(...)",
+      "type_text": "213:  function onHandlePointerMove(e: PointerEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:234:  function toggleView() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "234:  function toggleView() {(...)",
+      "type_text": "234:  function toggleView() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:240:  function onResize() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "240:  function onResize() {(...)",
+      "type_text": "240:  function onResize() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:244:  function onSheetPointerDown(e: PointerEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "244:  function onSheetPointerDown(e: PointerEvent) {(...)",
+      "type_text": "244:  function onSheetPointerDown(e: PointerEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:248:  function onSheetPointerUp(e: PointerEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "248:  function onSheetPointerUp(e: PointerEvent) {(...)",
+      "type_text": "248:  function onSheetPointerUp(e: PointerEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:271:    load();",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "271:    load();(...)",
+      "type_text": "271:    load();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:274:  function onFloorRefresh() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "274:  function onFloorRefresh() {(...)",
+      "type_text": "274:  function onFloorRefresh() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/WhyMe.svelte:41:    return () => obs.disconnect();",
+      "kind": "function",
+      "file": "components/website/src/components/WhyMe.svelte",
+      "signature": "41:    return () => obs.disconnect();(...)",
+      "type_text": "41:    return () => obs.disconnect();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/AppCatalog.svelte:22:  function openDetails(app: AppManifest) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/AppCatalog.svelte",
+      "signature": "22:  function openDetails(app: AppManifest) {(...)",
+      "type_text": "22:  function openDetails(app: AppManifest) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/AppCatalog.svelte:27:  function closeModal() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/AppCatalog.svelte",
+      "signature": "27:  function closeModal() {(...)",
+      "type_text": "27:  function closeModal() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/AppCatalog.svelte:32:  function getInstallCommand(appName: string): string {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/AppCatalog.svelte",
+      "signature": "32:  function getInstallCommand(appName: string): string {(...)",
+      "type_text": "32:  function getInstallCommand(appName: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/AppCatalog.svelte:39:  function handleCopyCommand(appName: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/AppCatalog.svelte",
+      "signature": "39:  function handleCopyCommand(appName: string) {(...)",
+      "type_text": "39:  function handleCopyCommand(appName: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/ArchitekturGraph.svelte:91:  function handleNodeClick(node: GraphNode) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/ArchitekturGraph.svelte",
+      "signature": "91:  function handleNodeClick(node: GraphNode) {(...)",
+      "type_text": "91:  function handleNodeClick(node: GraphNode) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/ArchitekturGraph.svelte:95:  function handleClose() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/ArchitekturGraph.svelte",
+      "signature": "95:  function handleClose() {(...)",
+      "type_text": "95:  function handleClose() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/ArchitekturGraph.svelte:99:  function handleVisibilityChange() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/ArchitekturGraph.svelte",
+      "signature": "99:  function handleVisibilityChange() {(...)",
+      "type_text": "99:  function handleVisibilityChange() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/ArchitekturGraph.svelte:105:        fetchPodStatus();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/ArchitekturGraph.svelte",
+      "signature": "105:        fetchPodStatus();(...)",
+      "type_text": "105:        fetchPodStatus();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/ArchitekturGraph.svelte:114:      fetchWarnings();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/ArchitekturGraph.svelte",
+      "signature": "114:      fetchWarnings();(...)",
+      "type_text": "114:      fetchWarnings();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/AssetGallery.svelte:33:  function filtered(list: Asset[], f: typeof filter) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/AssetGallery.svelte",
+      "signature": "33:  function filtered(list: Asset[], f: typeof filter) {(...)",
+      "type_text": "33:  function filtered(list: Asset[], f: typeof filter) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/AssetGallery.svelte:43:  function counts(list: Asset[]) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/AssetGallery.svelte",
+      "signature": "43:  function counts(list: Asset[]) {(...)",
+      "type_text": "43:  function counts(list: Asset[]) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/AssetGallery.svelte:55:  function publicUrl(filePath: string): string | null {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/AssetGallery.svelte",
+      "signature": "55:  function publicUrl(filePath: string): string | null {(...)",
+      "type_text": "55:  function publicUrl(filePath: string): string | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/AssetGallery.svelte:62:  function handleImgError(e: Event) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/AssetGallery.svelte",
+      "signature": "62:  function handleImgError(e: Event) {(...)",
+      "type_text": "62:  function handleImgError(e: Event) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/BulkToast.svelte:17:  function startTimer() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/BulkToast.svelte",
+      "signature": "17:  function startTimer() {(...)",
+      "type_text": "17:  function startTimer() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/BulkToast.svelte:20:        onDismiss();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/BulkToast.svelte",
+      "signature": "20:        onDismiss();(...)",
+      "type_text": "20:        onDismiss();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/BulkToast.svelte:25:  function clearTimer() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/BulkToast.svelte",
+      "signature": "25:  function clearTimer() {(...)",
+      "type_text": "25:  function clearTimer() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/BulkToast.svelte:32:    startTimer();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/BulkToast.svelte",
+      "signature": "32:    startTimer();(...)",
+      "type_text": "32:    startTimer();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/BulkToast.svelte:36:    clearTimer();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/BulkToast.svelte",
+      "signature": "36:    clearTimer();(...)",
+      "type_text": "36:    clearTimer();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/BulkToast.svelte:42:      clearTimer();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/BulkToast.svelte",
+      "signature": "42:      clearTimer();(...)",
+      "type_text": "42:      clearTimer();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/BulkToast.svelte:43:      startTimer();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/BulkToast.svelte",
+      "signature": "43:      startTimer();(...)",
+      "type_text": "43:      startTimer();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/DraftsInbox.svelte:77:  function closeDetail() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/DraftsInbox.svelte",
+      "signature": "77:  function closeDetail() {(...)",
+      "type_text": "77:  function closeDetail() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/DraftsInbox.svelte:117:  function toggleKind(k: Kind) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/DraftsInbox.svelte",
+      "signature": "117:  function toggleKind(k: Kind) {(...)",
+      "type_text": "117:  function toggleKind(k: Kind) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/DraftsInbox.svelte:120:    refresh();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/DraftsInbox.svelte",
+      "signature": "120:    refresh();(...)",
+      "type_text": "120:    refresh();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/InhalteEditor.svelte:72:  function switchTab(tab: PrimaryTab) { activeTab = tab; if (tab === 'website' && !activeSection) activeSection = 'startseite'; }",
+      "kind": "function",
+      "file": "components/website/src/components/admin/InhalteEditor.svelte",
+      "signature": "72:  function switchTab(tab: PrimaryTab) { activeTab = tab; if (tab === 'website' && !activeSection) activeSection = 'startseite'; }(...)",
+      "type_text": "72:  function switchTab(tab: PrimaryTab) { activeTab = tab; if (tab === 'website' && !activeSection) activeSection = 'startseite'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/InhalteEditor.svelte:74:  function addField() { newFields = [...newFields, { name: '', label: '', type: 'text', required: false }]; }",
+      "kind": "function",
+      "file": "components/website/src/components/admin/InhalteEditor.svelte",
+      "signature": "74:  function addField() { newFields = [...newFields, { name: '', label: '', type: 'text', required: false }]; }(...)",
+      "type_text": "74:  function addField() { newFields = [...newFields, { name: '', label: '', type: 'text', required: false }]; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/InhalteEditor.svelte:75:  function removeField(i: number) { newFields = newFields.filter((_, idx) => idx !== i); }",
+      "kind": "function",
+      "file": "components/website/src/components/admin/InhalteEditor.svelte",
+      "signature": "75:  function removeField(i: number) { newFields = newFields.filter((_, idx) => idx !== i); }(...)",
+      "type_text": "75:  function removeField(i: number) { newFields = newFields.filter((_, idx) => idx !== i); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/InhalteEditor.svelte:77:  function resetDialog() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/InhalteEditor.svelte",
+      "signature": "77:  function resetDialog() {(...)",
+      "type_text": "77:  function resetDialog() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/InhalteEditor.svelte:100:  function onCustomDeleted(slug: string) { customSections = customSections.filter(s => s.slug !== slug); activeSection = 'startseite'; }",
+      "kind": "function",
+      "file": "components/website/src/components/admin/InhalteEditor.svelte",
+      "signature": "100:  function onCustomDeleted(slug: string) { customSections = customSections.filter(s => s.slug !== slug); activeSection = 'startseite'; }(...)",
+      "type_text": "100:  function onCustomDeleted(slug: string) { customSections = customSections.filter(s => s.slug !== slug); activeSection = 'startseite'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/InhalteEditor.svelte:102:  function slugify(s: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/InhalteEditor.svelte",
+      "signature": "102:  function slugify(s: string) {(...)",
+      "type_text": "102:  function slugify(s: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/InhalteEditor.svelte:130:  function onSectionSearchKeydown(e: KeyboardEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/InhalteEditor.svelte",
+      "signature": "130:  function onSectionSearchKeydown(e: KeyboardEvent) {(...)",
+      "type_text": "130:  function onSectionSearchKeydown(e: KeyboardEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/PublishEditor.svelte:20:  function currentPayload(): Record<string, unknown> {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/PublishEditor.svelte",
+      "signature": "20:  function currentPayload(): Record<string, unknown> {(...)",
+      "type_text": "20:  function currentPayload(): Record<string, unknown> {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/PublishEditor.svelte:29:  function candidateText(): string {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/PublishEditor.svelte",
+      "signature": "29:  function candidateText(): string {(...)",
+      "type_text": "29:  function candidateText(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/PublishEditor.svelte:77:  function citationLine(): string {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/PublishEditor.svelte",
+      "signature": "77:  function citationLine(): string {(...)",
+      "type_text": "77:  function citationLine(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/WissenHub.svelte:29:  function openJsonImport() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/WissenHub.svelte",
+      "signature": "29:  function openJsonImport() {(...)",
+      "type_text": "29:  function openJsonImport() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/WissenHub.svelte:32:  function openWebCrawl() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/WissenHub.svelte",
+      "signature": "32:  function openWebCrawl() {(...)",
+      "type_text": "32:  function openWebCrawl() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/WissenHub.svelte:35:  function openNewCollection() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/WissenHub.svelte",
+      "signature": "35:  function openNewCollection() {(...)",
+      "type_text": "35:  function openNewCollection() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/WissenHub.svelte:38:  function openMerge() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/WissenHub.svelte",
+      "signature": "38:  function openMerge() {(...)",
+      "type_text": "38:  function openMerge() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/WissenHub.svelte:87:  function pollCrawl(id: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/WissenHub.svelte",
+      "signature": "87:  function pollCrawl(id: string) {(...)",
+      "type_text": "87:  function pollCrawl(id: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/aktionen/UsersTab.svelte:26:  function openModal() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/aktionen/UsersTab.svelte",
+      "signature": "26:  function openModal() {(...)",
+      "type_text": "26:  function openModal() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/aktionen/UsersTab.svelte:30:  function toggleGroup(id: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/aktionen/UsersTab.svelte",
+      "signature": "30:  function toggleGroup(id: string) {(...)",
+      "type_text": "30:  function toggleGroup(id: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/aktionen/UsersTab.svelte:48:      load();",
+      "kind": "function",
+      "file": "components/website/src/components/admin/aktionen/UsersTab.svelte",
+      "signature": "48:      load();(...)",
+      "type_text": "48:      load();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/graph/GraphCanvas.svelte:51:  function nsColor(ns: string): string {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/graph/GraphCanvas.svelte",
+      "signature": "51:  function nsColor(ns: string): string {(...)",
+      "type_text": "51:  function nsColor(ns: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/graph/GraphCanvas.svelte:55:  function computeNamespaceRects(nodes: SimNode[]) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/graph/GraphCanvas.svelte",
+      "signature": "55:  function computeNamespaceRects(nodes: SimNode[]) {(...)",
+      "type_text": "55:  function computeNamespaceRects(nodes: SimNode[]) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/graph/GraphCanvas.svelte:144:  function edgeSource(e: SimEdge): { x: number; y: number } {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/graph/GraphCanvas.svelte",
+      "signature": "144:  function edgeSource(e: SimEdge): { x: number; y: number } {(...)",
+      "type_text": "144:  function edgeSource(e: SimEdge): { x: number; y: number } {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/graph/GraphCanvas.svelte:149:  function edgeTarget(e: SimEdge): { x: number; y: number } {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/graph/GraphCanvas.svelte",
+      "signature": "149:  function edgeTarget(e: SimEdge): { x: number; y: number } {(...)",
+      "type_text": "149:  function edgeTarget(e: SimEdge): { x: number; y: number } {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:18:  function slugify(s:string){return(s??'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "18:  function slugify(s:string){return(s??'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);}(...)",
+      "type_text": "18:  function slugify(s:string){return(s??'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:19:  function uniqueSlug(base:string){const used=new Set(services.map((s:ServiceOverride)=>s.slug));if(!used.has(base)&&base)return base||`karte-${services.length+1}`;let n=2;while(used.has(`${base}-${n}`))n++;return base?`${base}-${n}`:`karte-${services.length+1}`;}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "19:  function uniqueSlug(base:string){const used=new Set(services.map((s:ServiceOverride)=>s.slug));if(!used.has(base)&&base)return base||`karte-${services.length+1}`;let n=2;while(used.has(`${base}-${n}`))n++;return base?`${base}-${n}`:`karte-${services.length+1}`;}(...)",
+      "type_text": "19:  function uniqueSlug(base:string){const used=new Set(services.map((s:ServiceOverride)=>s.slug));if(!used.has(base)&&base)return base||`karte-${services.length+1}`;let n=2;while(used.has(`${base}-${n}`))n++;return base?`${base}-${n}`:`karte-${services.length+1}`;}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:21:  function addService(){const slug=uniqueSlug(slugify('neue Leistungskarte'));services=[...services,{slug,title:'Neue Leistungskarte',description:'',icon:'✨',price:'',features:[],meta:'',hidden:false,pageContent:{headline:'',intro:'',forWhom:[],sections:[],pricing:[],faq:[]}} satisfies ServiceOverride];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "21:  function addService(){const slug=uniqueSlug(slugify('neue Leistungskarte'));services=[...services,{slug,title:'Neue Leistungskarte',description:'',icon:'✨',price:'',features:[],meta:'',hidden:false,pageContent:{headline:'',intro:'',forWhom:[],sections:[],pricing:[],faq:[]}} satisfies ServiceOverride];}(...)",
+      "type_text": "21:  function addService(){const slug=uniqueSlug(slugify('neue Leistungskarte'));services=[...services,{slug,title:'Neue Leistungskarte',description:'',icon:'✨',price:'',features:[],meta:'',hidden:false,pageContent:{headline:'',intro:'',forWhom:[],sections:[],pricing:[],faq:[]}} satisfies ServiceOverride];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:22:  function removeService(idx:number){if(!confirm(`Leistungskarte „${services[idx].title}\" entfernen?`))return;services=services.filter((_:ServiceOverride,i:number)=>i!==idx);}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "22:  function removeService(idx:number){if(!confirm(`Leistungskarte „${services[idx].title}\" entfernen?`))return;services=services.filter((_:ServiceOverride,i:number)=>i!==idx);}(...)",
+      "type_text": "22:  function removeService(idx:number){if(!confirm(`Leistungskarte „${services[idx].title}\" entfernen?`))return;services=services.filter((_:ServiceOverride,i:number)=>i!==idx);}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:34:  function moveService(idx:number,delta:number){const next=idx+delta;if(next<0||next>=services.length)return;const arr=services;[arr[idx],arr[next]]=[arr[next],arr[idx]];services=[...arr];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "34:  function moveService(idx:number,delta:number){const next=idx+delta;if(next<0||next>=services.length)return;const arr=services;[arr[idx],arr[next]]=[arr[next],arr[idx]];services=[...arr];}(...)",
+      "type_text": "34:  function moveService(idx:number,delta:number){const next=idx+delta;if(next<0||next>=services.length)return;const arr=services;[arr[idx],arr[next]]=[arr[next],arr[idx]];services=[...arr];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:35:  function ensurePageContent(svc:ServiceOverride){if(!svc.pageContent)svc.pageContent={};if(!svc.pageContent.sections)svc.pageContent.sections=[];if(!svc.pageContent.pricing)svc.pageContent.pricing=[];return svc.pageContent;}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "35:  function ensurePageContent(svc:ServiceOverride){if(!svc.pageContent)svc.pageContent={};if(!svc.pageContent.sections)svc.pageContent.sections=[];if(!svc.pageContent.pricing)svc.pageContent.pricing=[];return svc.pageContent;}(...)",
+      "type_text": "35:  function ensurePageContent(svc:ServiceOverride){if(!svc.pageContent)svc.pageContent={};if(!svc.pageContent.sections)svc.pageContent.sections=[];if(!svc.pageContent.pricing)svc.pageContent.pricing=[];return svc.pageContent;}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:36:  function addSection(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.sections=[...(pc.sections??[]),{title:'Neuer Bereich',items:[]}];services=[...services];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "36:  function addSection(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.sections=[...(pc.sections??[]),{title:'Neuer Bereich',items:[]}];services=[...services];}(...)",
+      "type_text": "36:  function addSection(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.sections=[...(pc.sections??[]),{title:'Neuer Bereich',items:[]}];services=[...services];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:37:  function removeSection(svc:ServiceOverride,sIdx:number){if(!svc.pageContent?.sections)return;svc.pageContent.sections=svc.pageContent.sections.filter((_:unknown,i:number)=>i!==sIdx);services=[...services];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "37:  function removeSection(svc:ServiceOverride,sIdx:number){if(!svc.pageContent?.sections)return;svc.pageContent.sections=svc.pageContent.sections.filter((_:unknown,i:number)=>i!==sIdx);services=[...services];}(...)",
+      "type_text": "37:  function removeSection(svc:ServiceOverride,sIdx:number){if(!svc.pageContent?.sections)return;svc.pageContent.sections=svc.pageContent.sections.filter((_:unknown,i:number)=>i!==sIdx);services=[...services];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:38:  function moveSection(svc:ServiceOverride,sIdx:number,delta:number){const arr=svc.pageContent?.sections;if(!arr)return;const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];services=[...services];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "38:  function moveSection(svc:ServiceOverride,sIdx:number,delta:number){const arr=svc.pageContent?.sections;if(!arr)return;const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];services=[...services];}(...)",
+      "type_text": "38:  function moveSection(svc:ServiceOverride,sIdx:number,delta:number){const arr=svc.pageContent?.sections;if(!arr)return;const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];services=[...services];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:39:   function addPricing(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.pricing=[...(pc.pricing??[]),{label:'Neuer Tarif',price:'nach Vereinbarung'}];services=[...services];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "39:   function addPricing(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.pricing=[...(pc.pricing??[]),{label:'Neuer Tarif',price:'nach Vereinbarung'}];services=[...services];}(...)",
+      "type_text": "39:   function addPricing(svc:ServiceOverride){const pc=ensurePageContent(svc);pc.pricing=[...(pc.pricing??[]),{label:'Neuer Tarif',price:'nach Vereinbarung'}];services=[...services];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:40:  function removePricing(svc:ServiceOverride,pIdx:number){if(!svc.pageContent?.pricing)return;svc.pageContent.pricing=svc.pageContent.pricing.filter((_:unknown,i:number)=>i!==pIdx);services=[...services];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "40:  function removePricing(svc:ServiceOverride,pIdx:number){if(!svc.pageContent?.pricing)return;svc.pageContent.pricing=svc.pageContent.pricing.filter((_:unknown,i:number)=>i!==pIdx);services=[...services];}(...)",
+      "type_text": "40:  function removePricing(svc:ServiceOverride,pIdx:number){if(!svc.pageContent?.pricing)return;svc.pageContent.pricing=svc.pageContent.pricing.filter((_:unknown,i:number)=>i!==pIdx);services=[...services];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:41:  function movePricing(svc:ServiceOverride,pIdx:number,delta:number){const arr=svc.pageContent?.pricing;if(!arr)return;const next=pIdx+delta;if(next<0||next>=arr.length)return;[arr[pIdx],arr[next]]=[arr[next],arr[pIdx]];services=[...services];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "41:  function movePricing(svc:ServiceOverride,pIdx:number,delta:number){const arr=svc.pageContent?.pricing;if(!arr)return;const next=pIdx+delta;if(next<0||next>=arr.length)return;[arr[pIdx],arr[next]]=[arr[next],arr[pIdx]];services=[...services];}(...)",
+      "type_text": "41:  function movePricing(svc:ServiceOverride,pIdx:number,delta:number){const arr=svc.pageContent?.pricing;if(!arr)return;const next=pIdx+delta;if(next<0||next>=arr.length)return;[arr[pIdx],arr[next]]=[arr[next],arr[pIdx]];services=[...services];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:42:  function moveLeistungService(cat:LeistungCategoryOverride,sIdx:number,delta:number){const arr=cat.services??[];const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];leistungen=[...leistungen];}",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "42:  function moveLeistungService(cat:LeistungCategoryOverride,sIdx:number,delta:number){const arr=cat.services??[];const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];leistungen=[...leistungen];}(...)",
+      "type_text": "42:  function moveLeistungService(cat:LeistungCategoryOverride,sIdx:number,delta:number){const arr=cat.services??[];const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];leistungen=[...leistungen];}(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:45:  function linkedCat(svc: ServiceOverride): LeistungCategoryOverride | undefined {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "45:  function linkedCat(svc: ServiceOverride): LeistungCategoryOverride | undefined {(...)",
+      "type_text": "45:  function linkedCat(svc: ServiceOverride): LeistungCategoryOverride | undefined {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/inhalte/AngeboteSection.svelte:49:  function previewPrice(svc: ServiceOverride): string {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/inhalte/AngeboteSection.svelte",
+      "signature": "49:  function previewPrice(svc: ServiceOverride): string {(...)",
+      "type_text": "49:  function previewPrice(svc: ServiceOverride): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/platform/SoftwareTab.svelte:40:  function openEdit(asset: EnrichedAsset) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/platform/SoftwareTab.svelte",
+      "signature": "40:  function openEdit(asset: EnrichedAsset) {(...)",
+      "type_text": "40:  function openEdit(asset: EnrichedAsset) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/platform/SoftwareTab.svelte:45:  function openCreate() {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/platform/SoftwareTab.svelte",
+      "signature": "45:  function openCreate() {(...)",
+      "type_text": "45:  function openCreate() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/admin/platform/SoftwareTab.svelte:63:  function viewTickets(slug: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/admin/platform/SoftwareTab.svelte",
+      "signature": "63:  function viewTickets(slug: string) {(...)",
+      "type_text": "63:  function viewTickets(slug: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/assistant/LogsSidekickView.svelte:50:  function toggleLevel(l: LogLevel) {",
+      "kind": "function",
+      "file": "components/website/src/components/assistant/LogsSidekickView.svelte",
+      "signature": "50:  function toggleLevel(l: LogLevel) {(...)",
+      "type_text": "50:  function toggleLevel(l: LogLevel) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/assistant/LogsSidekickView.svelte:55:  function toggleSource(s: LogSource) {",
+      "kind": "function",
+      "file": "components/website/src/components/assistant/LogsSidekickView.svelte",
+      "signature": "55:  function toggleSource(s: LogSource) {(...)",
+      "type_text": "55:  function toggleSource(s: LogSource) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/assistant/LogsSidekickView.svelte:74:  function startPod() {",
+      "kind": "function",
+      "file": "components/website/src/components/assistant/LogsSidekickView.svelte",
+      "signature": "74:  function startPod() {(...)",
+      "type_text": "74:  function startPod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/assistant/LogsSidekickView.svelte:80:  function stopPod() { podHandle?.close(); podHandle = null; }",
+      "kind": "function",
+      "file": "components/website/src/components/assistant/LogsSidekickView.svelte",
+      "signature": "80:  function stopPod() { podHandle?.close(); podHandle = null; }(...)",
+      "type_text": "80:  function stopPod() { podHandle?.close(); podHandle = null; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/assistant/LogsSidekickView.svelte:82:  function reconnectServer() {",
+      "kind": "function",
+      "file": "components/website/src/components/assistant/LogsSidekickView.svelte",
+      "signature": "82:  function reconnectServer() {(...)",
+      "type_text": "82:  function reconnectServer() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/assistant/LogsSidekickView.svelte:101:  function toggleMode() {",
+      "kind": "function",
+      "file": "components/website/src/components/assistant/LogsSidekickView.svelte",
+      "signature": "101:  function toggleMode() {(...)",
+      "type_text": "101:  function toggleMode() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:27:  function readInitialStatus(): InboxStatus {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "27:  function readInitialStatus(): InboxStatus {(...)",
+      "type_text": "27:  function readInitialStatus(): InboxStatus {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:96:  function closeCompose(): void {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "96:  function closeCompose(): void {(...)",
+      "type_text": "96:  function closeCompose(): void {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:123:  function matchesSearch(i: InboxItem, q: string): boolean {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "123:  function matchesSearch(i: InboxItem, q: string): boolean {(...)",
+      "type_text": "123:  function matchesSearch(i: InboxItem, q: string): boolean {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:235:    function onKey(e: KeyboardEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "235:    function onKey(e: KeyboardEvent) {(...)",
+      "type_text": "235:    function onKey(e: KeyboardEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:246:    return () => window.removeEventListener('keydown', onKey);",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "246:    return () => window.removeEventListener('keydown', onKey);(...)",
+      "type_text": "246:    return () => window.removeEventListener('keydown', onKey);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:251:  function dispatch(action: ReturnType<typeof handleShortcut>['action']): void {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "251:  function dispatch(action: ReturnType<typeof handleShortcut>['action']): void {(...)",
+      "type_text": "251:  function dispatch(action: ReturnType<typeof handleShortcut>['action']): void {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:274:  function moveSelection(delta: number): void {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "274:  function moveSelection(delta: number): void {(...)",
+      "type_text": "274:  function moveSelection(delta: number): void {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:281:  function setType(t: InboxType | 'all'): void {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "281:  function setType(t: InboxType | 'all'): void {(...)",
+      "type_text": "281:  function setType(t: InboxType | 'all'): void {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:287:  function setStatus(s: InboxStatus): void {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "287:  function setStatus(s: InboxStatus): void {(...)",
+      "type_text": "287:  function setStatus(s: InboxStatus): void {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/inbox/InboxApp.svelte:444:  function selectItem(id: number): void {",
+      "kind": "function",
+      "file": "components/website/src/components/inbox/InboxApp.svelte",
+      "signature": "444:  function selectItem(id: number): void {(...)",
+      "type_text": "444:  function selectItem(id: number): void {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/leitstand/LeitstandStatusband.svelte:26:  function fmtCountdown(sec: number): string {",
+      "kind": "function",
+      "file": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "signature": "26:  function fmtCountdown(sec: number): string {(...)",
+      "type_text": "26:  function fmtCountdown(sec: number): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/leitstand/LeitstandStatusband.svelte:57:    loadParallel();",
+      "kind": "function",
+      "file": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "signature": "57:    loadParallel();(...)",
+      "type_text": "57:    loadParallel();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/leitstand/LeitstandStatusband.svelte:61:    return () => {",
+      "kind": "function",
+      "file": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "signature": "61:    return () => {(...)",
+      "type_text": "61:    return () => {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/leitstand/LeitstandStatusband.svelte:62:      unsub();",
+      "kind": "function",
+      "file": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "signature": "62:      unsub();(...)",
+      "type_text": "62:      unsub();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/leitstand/LeitstandStatusband.svelte:63:      release();",
+      "kind": "function",
+      "file": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "signature": "63:      release();(...)",
+      "type_text": "63:      release();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/leitstand/LeitstandStatusband.svelte:73:  function toggleHelp() {",
+      "kind": "function",
+      "file": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "signature": "73:  function toggleHelp() {(...)",
+      "type_text": "73:  function toggleHelp() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/live/shared/ScheduleNudge.svelte:6:  function minutesUntil(iso: string): number {",
+      "kind": "function",
+      "file": "components/website/src/components/live/shared/ScheduleNudge.svelte",
+      "signature": "6:  function minutesUntil(iso: string): number {(...)",
+      "type_text": "6:  function minutesUntil(iso: string): number {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/live/stream/PollOverlayPanel.svelte:18:    tick();",
+      "kind": "function",
+      "file": "components/website/src/components/live/stream/PollOverlayPanel.svelte",
+      "signature": "18:    tick();(...)",
+      "type_text": "18:    tick();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/live/stream/PollOverlayPanel.svelte:20:    return () => { cancelled = true; clearInterval(t); };",
+      "kind": "function",
+      "file": "components/website/src/components/live/stream/PollOverlayPanel.svelte",
+      "signature": "20:    return () => { cancelled = true; clearInterval(t); };(...)",
+      "type_text": "20:    return () => { cancelled = true; clearInterval(t); };(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/portal/InlineInvoicePayment.svelte:24:  function formatCurrency(n: number): string {",
+      "kind": "function",
+      "file": "components/website/src/components/portal/InlineInvoicePayment.svelte",
+      "signature": "24:  function formatCurrency(n: number): string {(...)",
+      "type_text": "24:  function formatCurrency(n: number): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/portal/InlineInvoicePayment.svelte:88:  function cancel() {",
+      "kind": "function",
+      "file": "components/website/src/components/portal/InlineInvoicePayment.svelte",
+      "signature": "88:  function cancel() {(...)",
+      "type_text": "88:  function cancel() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/portal/WorkflowStatusMinimap.svelte:18:  function toggle() {",
+      "kind": "function",
+      "file": "components/website/src/components/portal/WorkflowStatusMinimap.svelte",
+      "signature": "18:  function toggle() {(...)",
+      "type_text": "18:  function toggle() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/portal/WorkflowStatusMinimap.svelte:41:  function stepClass(track: WorkflowTrack, index: number): string {",
+      "kind": "function",
+      "file": "components/website/src/components/portal/WorkflowStatusMinimap.svelte",
+      "signature": "41:  function stepClass(track: WorkflowTrack, index: number): string {(...)",
+      "type_text": "41:  function stepClass(track: WorkflowTrack, index: number): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/portal/WorkflowStatusMinimap.svelte:49:  function trackAria(track: WorkflowTrack): string {",
+      "kind": "function",
+      "file": "components/website/src/components/portal/WorkflowStatusMinimap.svelte",
+      "signature": "49:  function trackAria(track: WorkflowTrack): string {(...)",
+      "type_text": "49:  function trackAria(track: WorkflowTrack): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:40:    return () => mq.removeEventListener('change', handler);",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "40:    return () => mq.removeEventListener('change', handler);(...)",
+      "type_text": "40:    return () => mq.removeEventListener('change', handler);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:52:    return () => window.removeEventListener('floor-stub-update', handler);",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "52:    return () => window.removeEventListener('floor-stub-update', handler);(...)",
+      "type_text": "52:    return () => window.removeEventListener('floor-stub-update', handler);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:55:  function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "55:  function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }(...)",
+      "type_text": "55:  function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:56:  function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "56:  function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }(...)",
+      "type_text": "56:  function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:57:  function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "57:  function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }(...)",
+      "type_text": "57:  function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:58:  function onTouchEnd(e: TouchEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "58:  function onTouchEnd(e: TouchEvent) {(...)",
+      "type_text": "58:  function onTouchEnd(e: TouchEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:101:  function closeDetail() { selected = null; detail = null; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "101:  function closeDetail() { selected = null; detail = null; }(...)",
+      "type_text": "101:  function closeDetail() { selected = null; detail = null; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:140:  function toggleManualHint(extId: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "140:  function toggleManualHint(extId: string) {(...)",
+      "type_text": "140:  function toggleManualHint(extId: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:152:    return () => { unsub(); release(); };",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "152:    return () => { unsub(); release(); };(...)",
+      "type_text": "152:    return () => { unsub(); release(); };(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ControlPanel.svelte:62:    loadState();",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ControlPanel.svelte",
+      "signature": "62:    loadState();(...)",
+      "type_text": "62:    loadState();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:57:    return () => {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "57:    return () => {(...)",
+      "type_text": "57:    return () => {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:58:      unsub();",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "58:      unsub();(...)",
+      "type_text": "58:      unsub();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:59:      release();",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "59:      release();(...)",
+      "type_text": "59:      release();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:60:      offSel();",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "60:      offSel();(...)",
+      "type_text": "60:      offSel();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:64:  function itemsFor(phase: Phase): HallItem[] {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "64:  function itemsFor(phase: Phase): HallItem[] {(...)",
+      "type_text": "64:  function itemsFor(phase: Phase): HallItem[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:72:  function isMobileVisible(phase: Phase): boolean {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "72:  function isMobileVisible(phase: Phase): boolean {(...)",
+      "type_text": "72:  function isMobileVisible(phase: Phase): boolean {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:76:  function selectStation(key: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "76:  function selectStation(key: string) {(...)",
+      "type_text": "76:  function selectStation(key: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:59:  function blankForm(source = '', tier: 'sonnet' | 'haiku' = 'sonnet') {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "59:  function blankForm(source = '', tier: 'sonnet' | 'haiku' = 'sonnet') {(...)",
+      "type_text": "59:  function blankForm(source = '', tier: 'sonnet' | 'haiku' = 'sonnet') {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:63:  function onProviderChange() {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "63:  function onProviderChange() {(...)",
+      "type_text": "63:  function onProviderChange() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:131:  function resolutionFor(phase: string): PhaseResolution | undefined {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "131:  function resolutionFor(phase: string): PhaseResolution | undefined {(...)",
+      "type_text": "131:  function resolutionFor(phase: string): PhaseResolution | undefined {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:135:  function showToast(msg: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "135:  function showToast(msg: string) {(...)",
+      "type_text": "135:  function showToast(msg: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:175:  function sourceForPhase(phase: string): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "175:  function sourceForPhase(phase: string): string {(...)",
+      "type_text": "175:  function sourceForPhase(phase: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:187:  function entryKey(entry: CatalogEntry): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "187:  function entryKey(entry: CatalogEntry): string {(...)",
+      "type_text": "187:  function entryKey(entry: CatalogEntry): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:191:  function configuredKey(phase: string): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "191:  function configuredKey(phase: string): string {(...)",
+      "type_text": "191:  function configuredKey(phase: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:228:  function closeDrawer() { openDrawerPhase = null; editId = null; confirmingDelete = null; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "228:  function closeDrawer() { openDrawerPhase = null; editId = null; confirmingDelete = null; }(...)",
+      "type_text": "228:  function closeDrawer() { openDrawerPhase = null; editId = null; confirmingDelete = null; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:230:  function startEdit(e: ProviderEntry) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "230:  function startEdit(e: ProviderEntry) {(...)",
+      "type_text": "230:  function startEdit(e: ProviderEntry) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:235:  function startNew() {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "235:  function startNew() {(...)",
+      "type_text": "235:  function startNew() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte:296:  function entriesForPhase(phase: string): ProviderEntry[] {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte",
+      "signature": "296:  function entriesForPhase(phase: string): ProviderEntry[] {(...)",
+      "type_text": "296:  function entriesForPhase(phase: string): ProviderEntry[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte:29:  function blankForm() {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "signature": "29:  function blankForm() {(...)",
+      "type_text": "29:  function blankForm() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte:69:  function toggleEnabled(b: BackendState) { patchBackend(b.id, { enabled: !b.enabled }); }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "signature": "69:  function toggleEnabled(b: BackendState) { patchBackend(b.id, { enabled: !b.enabled }); }(...)",
+      "type_text": "69:  function toggleEnabled(b: BackendState) { patchBackend(b.id, { enabled: !b.enabled }); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte:70:  function bump(b: BackendState, delta: number) { patchBackend(b.id, { priority: Math.max(0, b.priority + delta) }); }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "signature": "70:  function bump(b: BackendState, delta: number) { patchBackend(b.id, { priority: Math.max(0, b.priority + delta) }); }(...)",
+      "type_text": "70:  function bump(b: BackendState, delta: number) { patchBackend(b.id, { priority: Math.max(0, b.priority + delta) }); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte:84:  function startEdit(b: BackendState) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "signature": "84:  function startEdit(b: BackendState) {(...)",
+      "type_text": "84:  function startEdit(b: BackendState) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sessions/SessionsHistory.svelte:88:  function closeSession() {",
+      "kind": "function",
+      "file": "components/website/src/components/sessions/SessionsHistory.svelte",
+      "signature": "88:  function closeSession() {(...)",
+      "type_text": "88:  function closeSession() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sessions/archive.ts:5:function getRegistryPath(): string {",
+      "kind": "function",
+      "file": "components/website/src/lib/sessions/archive.ts",
+      "signature": "5:function getRegistryPath(): string {(...)",
+      "type_text": "5:function getRegistryPath(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sessions/archive.ts:11:function getArchiveDir(): string {",
+      "kind": "function",
+      "file": "components/website/src/lib/sessions/archive.ts",
+      "signature": "11:function getArchiveDir(): string {(...)",
+      "type_text": "11:function getArchiveDir(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/website-svelte-check.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/website-svelte-check.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

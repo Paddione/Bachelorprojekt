@@ -15,7 +15,7 @@ Stand: 2026-08-23 ([T014541])
 |---|---|---|---|---|---|---|
 | CronJob `knowledge-ingest-markdown` | `workspace`, `workspace-staging` | `k3d/knowledge-ingest-cronjob.yaml` (`suspend: true`) | 2026-08-09 | Markdown-Ingest läuft bewusst **lokal-only** (`task knowledge:reindex SOURCE=markdown`) — der Cluster hat kein Repo-Mount | [T002605] (Kommentar im Manifest) | nächstem Knowledge-Stack-Change |
 | CronJobs `systemtest-cleanup`, `systemtest-outbox`, `systemtest-purge-all` | `website-staging` | `k3d/cronjob-systemtest-cleanup.yaml` (`suspend: true`, seit [T014541]) | ~2026-06-26 (live), 2026-08-23 (git) | Staging-Systemtest-Pipeline ruht (LastSchedule 2026-06-26). Der ursprüngliche Live-Grund wurde nicht protokolliert — die Suspension geschah ungeplant per kubectl; mit [T014541] ins Manifest kodifiziert, um die stille Drift zu beenden | [T014541] | Reaktivierung der Systemtest-/Failure-Bridge-Pipeline |
-| Kustomizations `ks-korczewski`, `ks-jobs-korczewski`, `ks-website-korczewski`; OCIRepository `fleet-manifests-gitlab`; Deployment `ddns-updater` | `workspace-korczewski` u. a. | `flux/clusters/fleet/ks-*.yaml`, `flux/clusters/fleet/oci-source-gitlab.yaml`, `prod-korczewski/*` | 2026-08-23 (kodifiziert) | Bewusste **korczewski-Brand-Pause** | [T014537] | Reaktivierung der korczewski-Brand |
+| Kustomizations `ks-korczewski`, `ks-jobs-korczewski`, `ks-website-korczewski`; Deployment `ddns-updater` | `workspace-korczewski` u. a. | `flux/clusters/fleet/ks-*.yaml`, `flux/clusters/fleet/oci-source-gitlab.yaml`, `prod-korczewski/*` | 2026-08-23 (kodifiziert) | Bewusste **korczewski-Brand-Pause** | [T014537] | Reaktivierung der korczewski-Brand |
 
 ## Regeln
 

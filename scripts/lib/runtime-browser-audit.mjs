@@ -12,10 +12,14 @@ const output = process.argv[2];
 if (!output) throw new Error('usage: runtime-browser-audit.mjs <output.json>');
 const runs = [];
 const browser = await chromium.launch({ headless: true });
+// [T900810] @axe-core/playwright 4.x verweigert analyze() auf Pages, die direkt am
+// Browser haengen ("Please use browser.newContext()") — Pages kommen aus einem
+// expliziten Context (eine Instanz fuer alle Routen genuegt).
+const context = await browser.newContext();
 try {
   for (const [brand, paths] of Object.entries(routes)) {
     for (const route of paths) {
-      const page = await browser.newPage();
+      const page = await context.newPage();
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto(new URL(route, bases[brand]).href, { waitUntil: 'domcontentloaded', timeout: 30_000 });
       const result = await new AxeBuilder({ page })
@@ -26,5 +30,6 @@ try {
   }
   await fs.writeFile(output, JSON.stringify({ runs }));
 } finally {
+  await context.close();
   await browser.close();
 }

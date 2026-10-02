@@ -1,0 +1,515 @@
+{
+  "meta": {
+    "slug": "remove-gitlab",
+    "ticket_id": "T900650",
+    "generated_from": "main@c3d52e03b",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".github/workflows/build-brett.yml",
+      "language": "config",
+      "loc": 144,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-collabora.yml",
+      "language": "config",
+      "loc": 101,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-dev-pod.yml",
+      "language": "config",
+      "loc": 96,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-factory-runner.yml",
+      "language": "config",
+      "loc": 94,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-mediaviewer-widget.yml",
+      "language": "config",
+      "loc": 133,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-mentolder-web.yml",
+      "language": "config",
+      "loc": 108,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-sdlc-console.yml",
+      "language": "config",
+      "loc": 96,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-transcriber.yml",
+      "language": "config",
+      "loc": 73,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-videovault.yml",
+      "language": "config",
+      "loc": 148,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-website.yml",
+      "language": "config",
+      "loc": 451,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/mirror-to-gitlab.yml",
+      "language": "config",
+      "loc": 122,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/render-fleet-artifact.yml",
+      "language": "config",
+      "loc": 182,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".gitlab-ci-images/README.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".gitlab-ci-images/ci-node22-heavy.Dockerfile",
+      "language": "text",
+      "loc": 46,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".gitlab-ci-images/ci-node22.Dockerfile",
+      "language": "text",
+      "loc": 28,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".gitlab-ci-images/ci-node24.Dockerfile",
+      "language": "text",
+      "loc": 19,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".gitlab-ci-images/ci-ubuntu.Dockerfile",
+      "language": "text",
+      "loc": 34,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".gitlab-ci.yml",
+      "language": "config",
+      "loc": 617,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6014,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/code-quality/gates.yaml",
+      "language": "config",
+      "loc": 276,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/flux-suspensions.md",
+      "language": "markdown",
+      "loc": 34,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/gitlab-restore.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/gitlab-runner.md",
+      "language": "markdown",
+      "loc": 692,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/.secrets/fleet-mentolder.yaml",
+      "language": "config",
+      "loc": 127,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1733,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/sealed-secrets/fleet-mentolder.yaml",
+      "language": "config",
+      "loc": 369,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet/ks-gitlab-runner.yaml",
+      "language": "config",
+      "loc": 22,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet/oci-source-gitlab.yaml",
+      "language": "config",
+      "loc": 35,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml",
+      "language": "config",
+      "loc": 474,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/kustomization.yaml",
+      "language": "config",
+      "loc": 7,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/namespace.yaml",
+      "language": "config",
+      "loc": 106,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/registry-cache.yaml",
+      "language": "config",
+      "loc": 93,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/values/gitlab-runner.yaml",
+      "language": "config",
+      "loc": 295,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/dev-pod/kustomization.yaml",
+      "language": "config",
+      "loc": 15,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/build-ci-images.sh",
+      "language": "bash",
+      "loc": 52,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 748
+    },
+    {
+      "path": "scripts/ci-diff-base.sh",
+      "language": "bash",
+      "loc": 97,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 703
+    },
+    {
+      "path": "scripts/flux-render-artifact.sh",
+      "language": "bash",
+      "loc": 460,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 340
+    },
+    {
+      "path": "scripts/gitlab-pipeline-check.sh",
+      "language": "bash",
+      "loc": 59,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 741
+    },
+    {
+      "path": "scripts/gitlab-runner-cache.sh",
+      "language": "bash",
+      "loc": 312,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 488
+    },
+    {
+      "path": "scripts/gitlab-runner-setup.sh",
+      "language": "bash",
+      "loc": 140,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 660
+    },
+    {
+      "path": "scripts/mirror-image-to-gitlab.sh",
+      "language": "bash",
+      "loc": 73,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 727
+    },
+    {
+      "path": "taskfiles/Taskfile.platform.yml",
+      "language": "config",
+      "loc": 835,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/.spec-runtime.tsv",
+      "language": "text",
+      "loc": 659,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/awk-interval-portability.bats",
+      "language": "bash",
+      "loc": 53,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
+      "language": "bash",
+      "loc": 121,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/health-goals/korczewski-brand-pause.bats",
+      "language": "bash",
+      "loc": 59,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml:222:    signal_handler() {",
+      "kind": "function",
+      "file": "k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml",
+      "signature": "222:    signal_handler() {(...)",
+      "type_text": "222:    signal_handler() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ci-diff-base.sh:35:log() { printf '%s\\n' \"ci-diff-base: $*\" >&2; }",
+      "kind": "function",
+      "file": "scripts/ci-diff-base.sh",
+      "signature": "35:log() { printf '%s\\n' \"ci-diff-base: $*\" >&2; }(...)",
+      "type_text": "35:log() { printf '%s\\n' \"ci-diff-base: $*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/flux-render-artifact.sh:66:apply_schema_defaults() {",
+      "kind": "function",
+      "file": "scripts/flux-render-artifact.sh",
+      "signature": "66:apply_schema_defaults() {(...)",
+      "type_text": "66:apply_schema_defaults() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/flux-render-artifact.sh:71:render_component() {",
+      "kind": "function",
+      "file": "scripts/flux-render-artifact.sh",
+      "signature": "71:render_component() {(...)",
+      "type_text": "71:render_component() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/gitlab-runner-cache.sh:35:usage() {",
+      "kind": "function",
+      "file": "scripts/gitlab-runner-cache.sh",
+      "signature": "35:usage() {(...)",
+      "type_text": "35:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/gitlab-runner-cache.sh:101:_print_dry_run_plan() {",
+      "kind": "function",
+      "file": "scripts/gitlab-runner-cache.sh",
+      "signature": "101:_print_dry_run_plan() {(...)",
+      "type_text": "101:_print_dry_run_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/gitlab-runner-setup.sh:34:usage() {",
+      "kind": "function",
+      "file": "scripts/gitlab-runner-setup.sh",
+      "signature": "34:usage() {(...)",
+      "type_text": "34:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.platform.yml:543:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.platform.yml",
+      "signature": "543:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "543:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.platform.yml:544:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.platform.yml",
+      "signature": "544:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "544:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.platform.yml:545:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.platform.yml",
+      "signature": "545:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "545:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.platform.yml:546:        _run()  {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.platform.yml",
+      "signature": "546:        _run()  {(...)",
+      "type_text": "546:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/awk-interval-portability.bats:25:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/awk-interval-portability.bats",
+      "signature": "25:setup() {(...)",
+      "type_text": "25:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/flux-render-security/runtime-var-unwrapping.bats:18:setup() {",
+      "kind": "function",
+      "file": "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
+      "signature": "18:setup() {(...)",
+      "type_text": "18:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/health-goals/korczewski-brand-pause.bats:10:setup() {",
+      "kind": "function",
+      "file": "tests/spec/health-goals/korczewski-brand-pause.bats",
+      "signature": "10:setup() {(...)",
+      "type_text": "10:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

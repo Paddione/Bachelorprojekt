@@ -9,6 +9,7 @@ actions:
   - pod-logs
   - context-select
   - setup-checklist
+  - Node Control
   - Status
 ---
 
@@ -36,13 +37,15 @@ actions:
 
 6. **setup-checklist**: Druecken Sie `k`. Ein Scratch-Buffer meldet je eine Zeile pro Pruefung: kubectl auf dem `PATH`, Contexts `fleet` und `devmesh` erreichbar, gewaehlter Namespace vorhanden, kubectl.nvim- und ToggleTerm-Specs in `plugins/core.lua` vorhanden.
 
-7. **Status**: Druecken Sie `s`. Der kept Foundation-Link fuehrt auf die Unterseite `infrastructure-status` (T900655, eigenes Runbook `infrastructure-status.md`) — dort liegt die Beispielaktion `Show current buffer git root`.
+7. **Node Control**: Druecken Sie `n`. Der kept Link fuehrt auf die Unterseite `infrastructure-node` (T900800, nodectl-Layer): Probe-Anzeigezeilen (Contexts `fleet`/`devmesh`, `gpu-cluster-3` Ready), fehlende Binaries und die SETUP_CHECKLIST.md-Punkte. `r` aktualisiert die Proben explizit (die Seite rendert selbst keine Proben), `n` oeffnet die Checkliste zum Bearbeiten.
+
+8. **Status**: Druecken Sie `s`. Der kept Foundation-Link fuehrt auf die Unterseite `infrastructure-status` (T900655, eigenes Runbook `infrastructure-status.md`) — dort liegt die Beispielaktion `Show current buffer git root`.
 
 Fokus-versus-Ausfuehrung: Das Navigieren auf der Seite (Cursor bewegen, Suchtreffer fokussieren) fuehrt **keine** Aktion aus ("focus-no-side-effect", per headless Probe verifiziert); erst Enter bzw. der Buchstabe der jeweiligen Zeile startet die Aktion.
 
 ## Erwartetes Ergebnis
 
-- Die Seite "Infrastructure" zeigt genau sechs Aktionen in dieser Reihenfolge: `cluster-status`, `pods`, `services`, `pod-logs`, `context-select`, `setup-checklist`, danach den kept Link `Status` auf die Unterseite.
+- Die Seite "Infrastructure" zeigt genau sechs Aktionen in dieser Reihenfolge: `cluster-status`, `pods`, `services`, `pod-logs`, `context-select`, `setup-checklist`, danach die kept Links `Node Control` und `Status` auf die Unterseiten.
 - `cluster-status`/`services`/`setup-checklist` zeigen Scratch-Buffer (fluechtig, `bufhidden=wipe`); `pods` oeffnet `:Kubectl`; `pod-logs` oeffnet ein ToggleTerm mit dem Log-Tail; `context-select` meldet die aktuelle Auswahl zuerst und wechselt nur nach Bestaetigung.
 - `context-select` gegen einen `korczewski`-Namespace verweigert mit Verweis auf die frozen Kustomization — ohne `use-context`-Aufruf, ohne Statusaenderung.
 - Headless-Start des Moduls (`require('config.infrastructure')`) endet mit Exit-Code 0 und definiert genau die sechs Aktionen plus `M.state` (`context = 'fleet'`, `namespace = 'workspace'`).

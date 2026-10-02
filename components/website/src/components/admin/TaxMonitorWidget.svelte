@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  let status: Record<string, unknown> | null = $state(null);
+  let status = $state<Record<string, unknown> | null>(null);
   onMount(async () => {
     const r = await fetch('/api/admin/tax-monitor/status');
     status = await r.json();

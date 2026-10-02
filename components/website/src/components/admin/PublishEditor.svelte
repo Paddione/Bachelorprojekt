@@ -86,7 +86,7 @@
     <p class="src">{citationLine()}</p>
 
     <div class="surface-row">
-      {#each ['questionnaire','assistant','brett','chatroom'] as s (s)}
+      {#each (['questionnaire','assistant','brett','chatroom'] as Surface[]) as s (s)}
         <button class="surface" class:selected={targetSurface === s} on:click={() => (targetSurface = s)}>
           {s === 'questionnaire' ? 'Questionnaire' : s === 'assistant' ? 'Assistant' : s === 'brett' ? 'Brett' : 'Chatroom'}
         </button>

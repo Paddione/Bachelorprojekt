@@ -234,7 +234,7 @@
     if (typeof window === 'undefined') return;
     function onKey(e: KeyboardEvent) {
       const r = handleShortcut({
-        event: e,
+        event: { key: e.key, metaKey: e.metaKey, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, target: e.target instanceof Element ? e.target : null },
         ctx: { selectedType: selected?.type ?? null, awaitingG, pointerFine },
       });
       awaitingG = r.awaitingG;

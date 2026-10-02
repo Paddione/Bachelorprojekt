@@ -69,7 +69,7 @@
   $: c = counts(assets);
   $: visible = filtered(assets, filter);
 
-  const TAB_LABELS: Record<typeof filter, string> = {
+  const TAB_LABELS: Record<AssetType | 'all', string> = {
     all: 'Alle',
     image: 'Bilder',
     audio: 'Audio',

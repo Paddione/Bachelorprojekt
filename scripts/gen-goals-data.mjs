@@ -119,7 +119,8 @@ function titleFromHeading(rawTitle) {
 
 function parseTableCell(text) {
   const cleaned = text.replace(/[✓🔴🟡⚠️❌]/g, '').trim();
-  if (/^Exit\s+-?\d+$/i.test(cleaned)) return { value: null, unitHint: 'Exit' };
+  const exitMatch = cleaned.match(/^Exit\s+(-?\d+)$/i);
+  if (exitMatch) return { value: Number(exitMatch[1]), unitHint: 'Exit' };
   const num = firstNumber(cleaned);
   if (num !== null) return { value: num, unitHint: null };
   return { value: null, unitHint: cleaned };

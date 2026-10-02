@@ -11,8 +11,8 @@
     //
     // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
     // stillgelegt (ADR-007). Der Server bedient einen Slot (-np 1); weitere
-    // Requests warten in seiner Queue. Ausweichen auf deepseek ist eine
-    // explizite Agenten-Wahl.
+    // Requests warten in seiner Queue. Ausweichen auf Cloud (exe-muse) ist
+    // eine explizite Agenten-Wahl.
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama.cpp :1919 (Qwen3.8-27B GSQ-RCO IQ2_S-mtp, RTX 5070 Ti, 196k served KV)",
@@ -65,9 +65,9 @@
       }
     },
     // OpenCode Zen/Go: "opencode-go" statt "opencode" (Zen) - Subscription-Tier
-    // ($10/mo), deepseek-v4-flash ist Teil des Go-Katalogs (verifiziert per curl
-    // gegen https://opencode.ai/zen/go/v1/chat/completions, cost:"0" = im Abo
-    // enthalten).
+    // ($10/mo). Nur Modelle mit gemessener Bindung werden hier eingetragen
+    // (verifiziert per curl gegen https://opencode.ai/zen/go/v1/chat/completions,
+    // cost:"0" = im Abo enthalten).
     //
     // Kein "apiKey" hier [2026-08-03]: Der Schluessel liegt in
     // ~/.local/share/opencode/auth.json, wo `opencode auth login` ihn ablegt.
@@ -79,23 +79,9 @@
         "baseURL": "https://opencode.ai/zen/go/v1"
       },
       "models": {
-        "deepseek-v4-flash": {
-          "name": "DeepSeek V4 Flash (OpenCode Go, 1M ctx, MoE 284B/13B active)",
-          "limit": {
-            "context": 1000000,
-            "output": 8192
-          }
-        },
         // Der Go-Katalog fuehrt weit mehr (minimax-m3, kimi-k3, glm-5.2,
         // qwen3.8-max u.a.). Sie sind hier bewusst NICHT eingetragen — jeder
         // Eintrag will gemessen sein, bevor ein Agent darauf zeigt.
-        "deepseek-v4-pro": {
-          "name": "DeepSeek V4 Pro (OpenCode Go, 1M ctx, maximale Reasoning-Tiefe)",
-          "limit": {
-            "context": 1000000,
-            "output": 16384
-          }
-        },
         // T900210: Muse Spark 1.3 Contributor im Go-Katalog (Katalogwerte:
         // 1M ctx / 131k output). Go-Fallback hinter Zen-free (free zuerst,
         // Go danach); Auth wie ueblich via ~/.local/share/opencode/auth.json.
@@ -150,8 +136,8 @@
     // OpenCode Zen (https://opencode.ai/zen/v1) — der Katalog MIT `big-pickle`,
     // das auf dem Go-Katalog (/zen/go/v1) fehlt. Gleicher Auth-Schluessel wie
     // opencode-go (via `opencode auth` unter "opencode-zen" gehalten). big-pickle
-    // laeuft im Free-Kontingent — bis das verbraucht ist, dann auf die
-    // deepseek-Primaries wechseln.
+    // laeuft im Free-Kontingent — bis das verbraucht ist, dann auf exe-muse
+    // wechseln (T900751).
     "opencode-zen": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "OpenCode Zen (big-pickle, bis Free-Kontingent verbraucht)",
@@ -209,37 +195,6 @@
           "name": "Muse Spark 1.3 Contributor Free (Zen /responses, 1M ctx, 131k output)",
           "reasoning": true,
           "limit": { "context": 1000000, "output": 131072 }
-        }
-      }
-    },
-    // Direkte DeepSeek-API als Ausweichweg, wenn OpenCode Go nicht traegt
-    // (Abo-Limit, Zen-Ausfall). Key liegt in ~/.local/share/opencode/auth.json
-    // unter dem Provider-Schluessel "deepseek" (via `opencode auth`).
-    //
-    // Beide V4-Modelle sind Reasoning-Modelle und fuellen reasoning_content
-    // zusaetzlich zu content. Wer sie mit knappem max_tokens testet, sieht
-    // content="" bei finish_reason="length" — das Budget ging fuers Denken
-    // drauf und ist KEIN Fehler des Modells.
-    "deepseek": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "DeepSeek (direkte API, Ausweichweg zu OpenCode Go)",
-      "options": {
-        "baseURL": "https://api.deepseek.com/v1"
-      },
-      "models": {
-        "deepseek-v4-flash": {
-          "name": "DeepSeek V4 Flash (direkte API)",
-          "limit": {
-            "context": 1000000,
-            "output": 8192
-          }
-        },
-        "deepseek-v4-pro": {
-          "name": "DeepSeek V4 Pro (direkte API, maximale Reasoning-Tiefe)",
-          "limit": {
-            "context": 1000000,
-            "output": 16384
-          }
         }
       }
     }
@@ -309,79 +264,10 @@
       "permission": { "edit": "deny", "write": "deny", "bash": "deny", "task": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "todowrite": "allow", "question": "allow", "skill": "allow", "lsp": "allow" }
     },
     // Eskalationsstufe NACH lokaler Kompaktierung/Retry und opencodes eigener
-    // Kompaktierung. ZWEIGLEISIG (Go zuerst, direkte API als Fallback) —
-    // die Alibaba-Drittschiene ist 2026-09-16 entfallen (2-Rail-Entscheidung).
-    "deepseek-helper-go": {
-      "description": "ESCALATION: DeepSeek V4 Flash via OpenCode Go (1M ctx) — FIRST escalation rail after local fails. Same role and prompt as deepseek-helper. Mode subagent: escalation-only, not tab-selectable.",
-      "mode": "subagent",
-      "model": "opencode-go/deepseek-v4-flash",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#F97316",
-      "temperature": 0.3,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    "deepseek-helper": {
-      "description": "ESCALATION: DeepSeek V4 Flash via the direct DeepSeek API (1M ctx) — SECOND rail, dispatch when OpenCode Go is exhausted or rate-limited. Uses the direct API so it stays usable when the Go subscription is exhausted or Zen is down.",
-      "mode": "subagent",
-      "model": "deepseek/deepseek-v4-flash",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#F97316",
-      "temperature": 0.3,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    // Tiefe: DeepSeek V4 Pro mit maximaler Reasoning-Tiefe fuer komplexe
-    // Architektur-Debugging, mehrschrittiges Reasoning und harte
-    // Multi-File-Refactorings. EINER gleichzeitig — teure, langsame Stufe.
-    "deepseek-pro": {
-      "description": "DEPTH: DeepSeek V4 Pro via OpenCode Go (1M ctx, maximum reasoning effort). Use for deep analysis, complex multi-file debugging, architectural reasoning, or hard refactors that exceed what deepseek-flash can handle. Dispatch ONE at a time — this is the expensive, slow tier. If Go is unavailable, use deepseek-pro-direct. Mode all: tab-selectable AND task-dispatchable.",
-      "mode": "all",
-      "model": "opencode-go/deepseek-v4-pro",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#EF4444",
-      "temperature": 0.1,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    // Ausweich-Zwilling von deepseek-pro auf der direkten API. opencode kennt
-    // kein Provider-Failover pro Agent — ein zweiter Agentname ist der
-    // einzige Weg, denselben Auftrag ueber den anderen Anbieter zu fahren.
-    "deepseek-pro-direct": {
-      "description": "FALLBACK twin of deepseek-pro on the direct DeepSeek API (1M ctx). Identical role and prompt — dispatch this instead of deepseek-pro when OpenCode Go is exhausted, rate-limited, or down. Not a second parallel slot: it is the same tier via another route. Mode all: tab-selectable AND task-dispatchable.",
-      "mode": "all",
-      "model": "deepseek/deepseek-v4-pro",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#EF4444",
-      "temperature": 0.1,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    // Durchsatz: DeepSeek V4 Flash, bis zu 3 Instanzen gleichzeitig (je 1M ctx).
-    // Remote-Modelle konkurrieren nicht um die lokale GPU — der Default, wenn
-    // lokal belegt ist. Breite, nicht Tiefe.
-    "deepseek-flash": {
-      "description": "THROUGHPUT: DeepSeek V4 Flash via OpenCode Go (1M ctx). Dispatch up to 3 at a time for independent parallel subtasks — each gets its own context window, and remote models do not contend for the single local GPU. Faster and cheaper than deepseek-pro; use for breadth, not depth. Default choice when no local model is loaded. Mode all: tab-selectable AND task-dispatchable.",
-      "mode": "all",
-      "model": "opencode-go/deepseek-v4-flash",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#F59E0B",
-      "temperature": 0.2,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    "deepseek-flash-direct": {
-      "description": "FALLBACK twin of deepseek-flash on the direct DeepSeek API (1M ctx). Same role and prompt — dispatch when OpenCode Go is exhausted, rate-limited, or down. Mode all: tab-selectable AND task-dispatchable.",
-      "mode": "all",
-      "model": "deepseek/deepseek-v4-flash",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#F59E0B",
-      "temperature": 0.2,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
+    // Kompaktierung: exe-muse (Muse Spark via OpenCode Go) ist die einzige
+    // Cloud-Schiene (T900751: DeepSeek-Schienen entfernt).
     "orchestrator": {
-      "description": "Primary orchestrator: Muse Glimmer 30B on the RTX 5070 Ti via llama.cpp :1919 (131k served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation (exe-muse on the Go rail, then helper-go/helper, pro/pro-direct, flash/flash-direct). Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: Muse Glimmer 30B on the RTX 5070 Ti via llama.cpp :1919 (131k served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation via exe-muse (Muse Spark on the Go rail). Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "llamacpp-local/Muse-Glimmer-30B",
       "prompt": "{file:./prompts/orchestrator.md}",
@@ -395,12 +281,6 @@
           "local": "allow",
           "qwen35-mtp": "allow",
           "exe-muse": "allow",
-          "deepseek-helper-go": "allow",
-          "deepseek-helper": "allow",
-          "deepseek-pro": "allow",
-          "deepseek-pro-direct": "allow",
-          "deepseek-flash": "allow",
-          "deepseek-flash-direct": "allow",
           // T900074-p2: reviewer role must be dispatchable.
           "reviewer": "allow"
         }
@@ -424,10 +304,10 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     // Big Pickle auf OpenCode Zen — als primaerer (Tab-waehlbarer) Agent bis das
-    // Free-Kontingent verbraucht ist, danach auf die deepseek-Primaries wechseln.
+    // Free-Kontingent verbraucht ist, danach auf exe-muse wechseln (T900751).
     // Dieselbe benannte Allow-Liste wie der Orchestrator (Prinzip T002298).
     "big-pickle": {
-      "description": "PRIMARY: Big Pickle on OpenCode Zen (free tier). Tab-selectable singleagent model — use it while the free Zen quota lasts, then switch to the deepseek-pro/flash primaries. Runs through the zen gateway (opencode-zen/big-pickle), not the Go catalog. Can dispatch the same subagent set as the orchestrator.",
+      "description": "PRIMARY: Big Pickle on OpenCode Zen (free tier). Tab-selectable singleagent model — use it while the free Zen quota lasts, then switch to exe-muse (T900751). Runs through the zen gateway (opencode-zen/big-pickle), not the Go catalog. Can dispatch the same subagent set as the orchestrator.",
       "mode": "primary",
       "model": "opencode-zen/big-pickle",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -444,12 +324,6 @@
           "local": "allow",
           "qwen35-mtp": "allow",
           "exe-muse": "allow",
-          "deepseek-helper-go": "allow",
-          "deepseek-helper": "allow",
-          "deepseek-pro": "allow",
-          "deepseek-pro-direct": "allow",
-          "deepseek-flash": "allow",
-          "deepseek-flash-direct": "allow",
           "reviewer": "allow"
         }
       }
@@ -506,13 +380,7 @@
         "task": {
           "local": "allow",
           "qwen35-mtp": "allow",
-          "exe-muse": "allow",
-          "deepseek-helper-go": "allow",
-          "deepseek-helper": "allow",
-          "deepseek-pro": "allow",
-          "deepseek-pro-direct": "allow",
-          "deepseek-flash": "allow",
-          "deepseek-flash-direct": "allow"
+          "exe-muse": "allow"
         }
       }
     }

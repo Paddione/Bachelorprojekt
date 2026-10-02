@@ -3189,7 +3189,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 734,
+      "file_count": 735,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3827,6 +3827,7 @@
         "prod-fleet/korczewski/kustomization.yaml",
         "prod-fleet/mentolder-jobs/kustomization.yaml",
         "prod-fleet/mentolder/bge-hosts-patch.yaml",
+        "prod-fleet/mentolder/brain.yaml",
         "prod-fleet/mentolder/brett-patch.yaml",
         "prod-fleet/mentolder/kustomization.yaml",
         "prod-fleet/mentolder/langfuse-dev-proxy.yaml",

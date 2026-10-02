@@ -36,6 +36,7 @@ data:
               - replace_all_patterns(span.attributes, "value", "(?i)(password|passwd|secret|token|api[_-]?key)([\\\"']?\\s*[:=]\\s*[\\\"']?)[^\\s\\\"',}]{6,}", "$$1$$2[REDACTED:kv-secret]")
           - context: resource
             statements:
+              - set(resource.attributes["langfuse.environment"], "development") where resource.attributes["langfuse.environment"] == nil
               - replace_all_patterns(resource.attributes, "value", "(pk|sk)-lf-[A-Za-z0-9-]{8,}", "[REDACTED:langfuse]")
               - replace_all_patterns(resource.attributes, "value", "sk-(ant-)?[A-Za-z0-9_-]{20,}", "[REDACTED:anthropic-openai]")
               - replace_all_patterns(resource.attributes, "value", "(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}", "[REDACTED:github]")

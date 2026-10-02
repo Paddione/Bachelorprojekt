@@ -1089,7 +1089,7 @@ secrets:
   # removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
   # POCKET_ID_* equivalents are above.
 
-  # Software Factory OTel collector bearer token (per-brand, manually provisioned).
+  # OTel collector bearer token (per-brand, manually provisioned).
   # Sealed into the monitoring ns as the otel-collector-auth Secret (key
   # OTEL_AUTH_TOKEN) that the otel-collector Deployment reads for bearer auth.
   - name: OTEL_AUTH_TOKEN

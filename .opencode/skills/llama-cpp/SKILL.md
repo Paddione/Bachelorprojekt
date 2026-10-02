@@ -42,16 +42,22 @@ brew install llama.cpp
 # Or build from source
 git clone https://github.com/ggerganov/llama.cpp
 cd llama.cpp
-make
+
+# CPU only (default)
+cmake -B build && cmake --build build --config Release
 
 # With Metal (Apple Silicon)
-make LLAMA_METAL=1
+cmake -B build -DGGML_METAL=ON && cmake --build build --config Release
 
 # With CUDA (NVIDIA)
-make LLAMA_CUDA=1
+cmake -B build -DGGML_CUDA=ON && cmake --build build --config Release
+# For Blackwell (RTX 50-series): add -DCMAKE_CUDA_ARCHITECTURES=120
 
 # With ROCm (AMD)
-make LLAMA_HIP=1
+cmake -B build -DGGML_HIP=ON && cmake --build build --config Release
+
+# Note: the old `make LLAMA_CUDA=1` / `make LLAMA_METAL=1` flags are deprecated.
+# Use the cmake -DGGML_* equivalents above.
 ```
 
 ### Download model
@@ -137,8 +143,8 @@ Q3_K_M or Q4_K_S  # Lower bits to fit in memory
 ### Apple Silicon (Metal)
 
 ```bash
-# Build with Metal
-make LLAMA_METAL=1
+# Build with Metal (Apple Silicon)
+cmake -B build -DGGML_METAL=ON && cmake --build build --config Release
 
 # Run with GPU acceleration (automatic)
 ./llama-cli -m model.gguf -ngl 999  # Offload all layers
@@ -150,7 +156,8 @@ make LLAMA_METAL=1
 
 ```bash
 # Build with CUDA
-make LLAMA_CUDA=1
+cmake -B build -DGGML_CUDA=ON && cmake --build build --config Release
+# For Blackwell (RTX 50xx): cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=120
 
 # Offload layers to GPU
 ./llama-cli -m model.gguf -ngl 35  # Offload 35/40 layers
@@ -162,8 +169,8 @@ make LLAMA_CUDA=1
 ### AMD GPUs (ROCm)
 
 ```bash
-# Build with ROCm
-make LLAMA_HIP=1
+# Build with ROCm (AMD)
+cmake -B build -DGGML_HIP=ON && cmake --build build --config Release
 
 # Run with AMD GPU
 ./llama-cli -m model.gguf -ngl 999

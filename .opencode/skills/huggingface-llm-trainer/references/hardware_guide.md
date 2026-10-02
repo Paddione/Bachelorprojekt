@@ -15,15 +15,22 @@ Choosing the right hardware (flavor) is critical for cost-effective training.
 
 | Flavor | GPU | Memory | Use Case | Cost/hour |
 |--------|-----|--------|----------|-----------|
-| `t4-small` | NVIDIA T4 | 16GB | <1B models, demos | ~$0.50-1 |
-| `t4-medium` | NVIDIA T4 | 16GB | 1-3B models, development | ~$1-2 |
-| `l4x1` | NVIDIA L4 | 24GB | 3-7B models, efficient training | ~$2-3 |
-| `l4x4` | 4x NVIDIA L4 | 96GB | Multi-GPU training | ~$8-12 |
-| `a10g-small` | NVIDIA A10G | 24GB | 3-7B models, production | ~$3-4 |
-| `a10g-large` | NVIDIA A10G | 24GB | 7-13B models | ~$4-6 |
-| `a10g-largex2` | 2x NVIDIA A10G | 48GB | Multi-GPU, large models | ~$8-12 |
-| `a10g-largex4` | 4x NVIDIA A10G | 96GB | Multi-GPU, very large models | ~$16-24 |
-| `a100-large` | NVIDIA A100 | 40GB | 13B+ models, fast training | ~$8-12 |
+| `t4-small` | NVIDIA T4 | 16 GB | <1B models, demos | ~$0.50–1 |
+| `t4-medium` | NVIDIA T4 | 16 GB | 1–3B models, development | ~$1–2 |
+| `l4x1` | NVIDIA L4 | 24 GB | 3–7B models, efficient training | ~$2–3 |
+| `l4x4` | 4× NVIDIA L4 | 96 GB | Multi-GPU training | ~$8–12 |
+| `a10g-small` | NVIDIA A10G | 24 GB | 3–7B models, production | ~$3–4 |
+| `a10g-large` | NVIDIA A10G | 24 GB | 7–13B models | ~$4–6 |
+| `a10g-largex2` | 2× NVIDIA A10G | 48 GB | Multi-GPU, large models | ~$8–12 |
+| `a10g-largex4` | 4× NVIDIA A10G | 96 GB | Multi-GPU, very large models | ~$16–24 |
+| `l40s` | NVIDIA L40S | 48 GB | 13–40B models; best cost/perf above A10G | ~$6–9 |
+| `l40sx4` | 4× NVIDIA L40S | 192 GB | High-throughput multi-GPU | ~$24–36 |
+| `l40sx8` | 8× NVIDIA L40S | 384 GB | Largest multi-GPU jobs | ~$48–72 |
+| `a100-large` | NVIDIA A100 | 80 GB | 40B+ models, fast training | ~$8–12 |
+| `h100` | NVIDIA H100 | 80 GB | Maximum single-GPU speed | ~$15–20 |
+| `h100x8` | 8× NVIDIA H100 | 640 GB | Maximum scale | ~$120–160 |
+
+> **Note:** Prices are approximate — check [huggingface.co/pricing](https://huggingface.co/pricing) for current rates.
 
 ### TPU Options
 
@@ -58,14 +65,14 @@ Choosing the right hardware (flavor) is critical for cost-effective training.
 - **Training time:** 4-8 hours for 10K examples
 
 **Large Models (7-13B parameters)**
-- **Recommended:** `a10g-large` or `a100-large`
+- **Recommended:** `a10g-large` or `l40s`
 - **Example:** Llama-3-8B, Mixtral-8x7B (with LoRA)
 - **Batch size:** 1 (full fine-tuning) or 2-4 (LoRA)
 - **Training time:** 6-12 hours for 10K examples
 - **Note:** Always use LoRA/PEFT
 
-**Very Large Models (13B+ parameters)**
-- **Recommended:** `a100-large` with LoRA
+**Very Large Models (13–40B parameters)**
+- **Recommended:** `l40s` or `a100-large` with LoRA
 - **Example:** Llama-3-13B, Llama-3-70B (LoRA only)
 - **Batch size:** 1-2 with LoRA
 - **Training time:** 8-24 hours for 10K examples
@@ -92,7 +99,7 @@ Choosing the right hardware (flavor) is critical for cost-effective training.
 - Model up to 7B parameters
 
 **Large Budget ($50-200)**
-- Use `a10g-large` or `a100-large`
+- Use `a10g-large`, `l40s`, or `a100-large`
 - Full dataset training
 - Multiple epochs
 - Model up to 13B parameters with LoRA
@@ -112,7 +119,7 @@ Choosing the right hardware (flavor) is critical for cost-effective training.
 - ~30-60 minutes
 
 **Production Training**
-- `a10g-large` or `a100-large`
+- `a10g-large`, `l40s`, or `a100-large`
 - Full dataset
 - 3-5 epochs
 - 4-12 hours
@@ -174,7 +181,7 @@ If hitting memory limits:
    ```
 
 6. **Upgrade to larger GPU**
-   - t4 → a10g → a100
+   - t4 → a10g → l40s → a100
 
 ## Cost Estimation
 
@@ -243,17 +250,21 @@ No code changes needed—TRL/Accelerate handles distribution automatically.
 
 ## Choosing Between Options
 
-### a10g vs a100
+### a10g vs l40s vs a100
 
 **Choose a10g when:**
 - Model <13B parameters
 - Budget conscious
 - Training time not critical
 
+**Choose l40s when:**
+- Model 13–40B parameters (48 GB VRAM sweet spot)
+- Best cost/performance above A10G
+- Prefer single-GPU over multi-A10G
+
 **Choose a100 when:**
-- Model 13B+ parameters
-- Need fastest training
-- Memory requirements high
+- Model 40B+ parameters or need 80 GB VRAM
+- Need maximum throughput
 - Budget allows
 
 ### Single vs Multi-GPU
@@ -277,7 +288,23 @@ HARDWARE_MAP = {
     "<1B":     "t4-small",
     "1-3B":    "a10g-small",
     "3-7B":    "a10g-large",
-    "7-13B":   "a10g-large (LoRA) or a100-large",
-    ">13B":    "a100-large (LoRA required)"
+    "7-13B":   "l40s or a10g-large (LoRA)",
+    "13-40B":  "l40s or a100-large (LoRA required)",
+    ">40B":    "a100-large or h100 (LoRA required)"
 }
 ```
+
+## Inference Endpoints (Post-Training Deployment)
+
+After training on HF Jobs, deploy the resulting model on Inference Endpoints for always-on serving.
+Blackwell-generation hardware is now available (mid-2026):
+
+| Instance | GPU | VRAM | Cost/hr (approx) | Use Case |
+|----------|-----|------|------------------|----------|
+| `nvidia-rtx-pro-6000` | NVIDIA RTX Pro 6000 Blackwell | 96 GB | ~$2.75 | Cost-effective large model serving |
+| `nvidia-b200` | NVIDIA B200 Blackwell | 192 GB | ~$9.25 | Maximum throughput, MoE models |
+
+These complement existing A10G, A100, H100, H200 options. For NVFP4-quantized models (e.g., Qwen3-Flash-Next-NVFP4),
+Blackwell hardware provides the best price/performance ratio.
+
+> Check the [Inference Endpoints catalog](https://huggingface.co/docs/inference-endpoints) for current availability and pricing.

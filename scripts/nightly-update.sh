@@ -146,20 +146,10 @@ fi
 # 7. Agent Skills & Vendor Sync (Bachelorprojekt & Global)
 # ─────────────────────────────────────────────────────────────────────────────
 log "--- [7/8] Updating Agent Skills & Vendor Components (Project & Global) ---"
-if [ -d "$REPO_DIR" ]; then
-  cd "$REPO_DIR"
-  log "Updating project skills in Bachelorprojekt via skills CLI..."
-  npx -y skills update -y || log "WARNING: npx skills update in Bachelorprojekt failed"
-
-  if [ -f "scripts/vendor-sync.py" ]; then
-    log "Updating external vendor skills and plugins via vendor-sync.py..."
-    python3 scripts/vendor-sync.py update --report /tmp/vendor-report.json || log "WARNING: vendor-sync update reported findings"
-    python3 scripts/vendor-sync.py check || log "WARNING: vendor-sync check reported drift"
-  fi
-
-  if [ -f "scripts/agent-skills/project.mjs" ]; then
-    node scripts/agent-skills/project.mjs --check || log "WARNING: agent-skills projection drift detected"
-  fi
+# [T900454] Die Projekt-Updater laufen in einem eigenen Worktree und reichen einen PR
+# ein. Im Hauptcheckout selbst wird nichts geschrieben.
+if [ -f "${REPO_DIR}/scripts/nightly-vendor-sync.sh" ]; then
+  REPO_DIR="$REPO_DIR" bash "${REPO_DIR}/scripts/nightly-vendor-sync.sh" || log "WARNING: nightly-vendor-sync failed"
 fi
 
 log "Updating global skills..."

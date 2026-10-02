@@ -477,8 +477,6 @@ const inputs = await tokenizer('Hello world!');
 const outputs = await model(inputs);
 ```
 
-### Batch Processing
-
 ```javascript
 const classifier = await pipeline('sentiment-analysis');
 
@@ -490,10 +488,49 @@ const results = await classifier([
 ]);
 ```
 
-## Runtime-Specific Considerations
+### Structured Output / Constrained Decoding (v4.3)
+
+Added in v4.3 (Sep 2026). Constrain text generation to a JSON schema or regex — no external libraries required.
+
+```javascript
+import { pipeline } from '@huggingface/transformers';
+
+const generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct');
+
+// Constrain output to a JSON schema
+const result = await generator('Extract the name and age from: "Alice is 30 years old"', {
+  max_new_tokens: 50,
+  constrained_decoding: {
+    type: 'json_schema',
+    json_schema: {
+      name: { type: 'string' },
+      age: { type: 'number' }
+    }
+  }
+});
+
+// Constrain output to a regex
+const result2 = await generator('What is the capital of France?', {
+  max_new_tokens: 20,
+  constrained_decoding: {
+    type: 'regex',
+    pattern: 'Paris|Lyon|Marseille'
+  }
+});
+```
+
+This enables deterministic, schema-valid output without post-processing or retry loops — useful for tool-calling, data extraction, and structured APIs.
+
+
 
 ### WebGPU Usage
-WebGPU provides GPU acceleration in browsers and server-side runtimes (when supported):
+WebGPU provides GPU acceleration in browsers and server-side runtimes (when supported).
+
+**v4.x: The WebGPU runtime was rewritten in C++ using the ONNX Runtime backend**, providing:
+- ~4× speedup for BERT-class embedding models
+- Support for models up to 8B+ parameters in-browser
+- Works in Node.js, Bun, and Deno server-side (same code path as browser)
+- Safari 26+ now supported (v4.3, Sep 2026)
 
 ```javascript
 const pipe = await pipeline('text-generation', 'onnx-community/gemma-3-270m-it-ONNX', {
@@ -502,7 +539,12 @@ const pipe = await pipeline('text-generation', 'onnx-community/gemma-3-270m-it-O
 });
 ```
 
-**Note**: Use `webgpu` when available and fall back to WASM/CPU when not supported in the current runtime.
+**Note**: Use `webgpu` when available and fall back to WASM/CPU when not supported. Check support with:
+```javascript
+const isWebGPUAvailable = navigator.gpu !== undefined; // browser
+// Node.js: @webgpu/types package + runtime that exposes GPU
+```
+
 
 ### WASM Performance
 WASM is the most compatible execution backend across runtimes:
@@ -624,9 +666,10 @@ For detailed patterns (React cleanup, servers, browser), see **[Code Examples](.
 - Limit sequence length with `max_length`
 
 ### WebGPU Errors
-- Check browser compatibility (Chrome 113+, Edge 113+)
+- Check browser compatibility: Chrome 113+, Edge 113+, **Safari 26+** (added in Transformers.js v4.3)
 - Try `dtype: 'fp16'` if `fp32` fails
 - Fall back to WASM if WebGPU unavailable
+
 
 ## Reference Documentation
 

@@ -55,4 +55,3 @@ export const ticketUrl = (extId: string) => `/admin/tickets?q=${encodeURICompone
 export const planUrl = (branch: string, planPath: string) =>
   `https://github.com/${GH_REPO}/blob/${branch}/${planPath}`;
 export function openPR(n: number | null) { if (n) window.open(prUrl(n), '_blank', 'noopener'); }
-export function assetFallback(e: Event) { (e.currentTarget as HTMLImageElement).style.display = 'none'; }

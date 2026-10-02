@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/coaching-sessions-polish-guide.bats
-# SSOT: openspec/specs/coaching-sessions-polish-guide.md + admin-nav-accordion.md
 # Structural assertions for the coaching-sessions-admin-ux change (T001638).
 
 setup() {

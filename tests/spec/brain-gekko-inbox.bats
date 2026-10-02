@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/brain-gekko-inbox.bats
-# SSOT: openspec/changes/brain-llm-wiki/proposal.md (Change 6: brain-gekko-inbox)
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   INBOX="$REPO_ROOT/scripts/brain-gekko-inbox.sh"

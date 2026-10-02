@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-dev-mesh/llm-services.bats — T900191
-# SSOT: openspec/specs/local-dev-mesh.md ("devmesh hosts the CPU-bound LLM and database
 #       services", "The GPU endpoint exposes one port per workstation GPU service",
 #       "The devmesh backend registry contains no loopback URLs")
 #

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-dev-mesh/migrate-from-k3d.bats — T900118, umgeschrieben fuer T900120
-# SSOT: openspec/specs/local-dev-mesh.md, Requirement
 #       "The k3d migration verifies row counts against the archived dump"
 #
 # Pruefmodus: Output-Verifikation. Die Quelle ist eine Dump-DATEI (der k3d-Cluster existiert

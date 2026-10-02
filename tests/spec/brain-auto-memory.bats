@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # T001567: brain-auto-memory bridge — BATS Spec (RED first, GREEN after scripts land)
-# SSOT: openspec/changes/brain-auto-memory/tasks.md
 
 load 'test_helper'
 

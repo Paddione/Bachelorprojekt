@@ -4,7 +4,6 @@
 # Routendatei unter components/website/src/pages/ hat und kein Eintrag die
 # ehemaligen /api/admin/-Pfade verwendet.
 #
-# SSOT: openspec/changes/cockpit-realtime-push/specs/sdlc-cockpit.md
 # (Cockpit sources resolve against the SDLC build target)
 #
 # Pruefmodus: Datei-Existenz als Erreichbarkeitsbedingung des Astro-Routings,

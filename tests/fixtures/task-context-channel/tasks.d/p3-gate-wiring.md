@@ -29,7 +29,7 @@ die vorhandene `hard`-Funktion, damit sie in `emit_verdict` einfließt.
 
 Geprüft wird für einen Plan mit `tasks.d/`:
 
-1. `openspec/changes/<slug>/intel.json` existiert und ist valides JSON.
+1. `.agents/plans/<slug>/intel.json` existiert und ist valides JSON.
 2. `meta`, `impact_files` und `symbols` sind nicht leer.
 3. Die Menge der `impact_files[].path` deckt die Union aller `target_files` aus dem Manifest ab.
    Nicht abgedeckte Dateien werden **namentlich** in der Fehlermeldung genannt — eine Meldung wie

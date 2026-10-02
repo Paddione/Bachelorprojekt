@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-cockpit/leitstand-livedaten.bats
-# SSOT: openspec/changes/sdlc-leitstand-e4-livedaten/specs/sdlc-cockpit.md
 # (E4 Live-Daten & Luecken [T008016]) -- drei Querschnitts-Zusicherungen:
 #   1. Redirect statt Platzhalter: /sdlc/observability wird per redirect-map
 #      auf /sdlc/cockpit?deck=plattform umgeleitet, die Platzhalterseite ist

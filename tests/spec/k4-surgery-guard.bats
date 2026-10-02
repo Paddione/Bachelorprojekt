@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/k4-surgery-guard.bats
-# SSOT: openspec/specs/brain-k4-brain-wiki.md (REQ-k4-10), openspec/specs/brain-foundation.md (REQ-BRAIN-FOUNDATION-009), openspec/specs/sdlc-cockpit.md
 # Ticket: T900451
 # k4-surgery absence guard: pipeline/MCP/cockpit gone (p1/p2), keepers present.
 

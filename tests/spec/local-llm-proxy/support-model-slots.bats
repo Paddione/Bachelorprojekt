@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/support-model-slots.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T006840 (erweitert in T007033 — P2.5-Reviewer-Findings)
 #
 # SICHERT: die beiden Unterstuetzermodelle aus E6 des Designs

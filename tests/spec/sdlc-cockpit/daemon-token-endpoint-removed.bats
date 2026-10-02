@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats
-# SSOT: openspec/specs/sdlc-cockpit.md
 # Ticket: T002505
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): QUELLTEXT fuer die

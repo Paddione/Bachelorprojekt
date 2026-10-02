@@ -359,6 +359,6 @@ Die Datei existiert; es ist ein Windows-Pfadproblem des Tests, kein
 Inhaltsfehler. Gegenprobe im sauberen Haupt-Checkout schlägt identisch fehl, und
 `git diff origin/main..HEAD -- scripts/llm/loadouts.json` ist leer.
 
-Der Archiv-Record unter `openspec/changes/archive/2026-09-04-freetoken-backend-evaluation/`
+Der Archiv-Record `2026-09-04-freetoken-backend-evaluation`
 bleibt unverändert: ein Archiv ist ein historischer Beleg und wird nicht
 rückwirkend geschönt. Diese Notiz hier ist die Korrektur.

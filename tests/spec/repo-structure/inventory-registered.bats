@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/repo-structure/inventory-registered.bats
-# SSOT: openspec/changes/repo-structure-reorg (T006999, Partial p5-tests)
 # Pruefmodus: Output-Verifikation (T002448-M4) — der Test liest das generierte
 # JSON-Artefakt (components/website/src/data/test-inventory.json), keine Source-Greps.
 # Positiv-Anker zuerst (T002356-M1): die vier Guard-Dateien aus p1–p4 existieren im

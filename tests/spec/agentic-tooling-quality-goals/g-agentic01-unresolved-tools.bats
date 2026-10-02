@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats
-# SSOT: openspec/specs/agentic-tooling-quality-goals.md
 # Ticket: T002494 — Gate G-AGENTIC01 misst kuenftig ins Leere zeigende tools:-Eintraege
 #
 # PRUEFMODUS (Konvention T002448-M4): resultatsbasiert. Die Tests rufen den

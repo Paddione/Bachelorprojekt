@@ -2,7 +2,7 @@
 # tests/spec/dev-flow-chore-ticket-ops-mishaps.bats
 # T001210 — Mishap-Bundle: dev-flow-chore (git-crypt staging) + ticket-ops (duplicate intake)
 #
-# Convention: one .bats file per OpenSpec SSOT spec / fix bundle. Simple
+# Convention: one .bats file per SSOT spec / fix bundle. Simple
 # [ ... ] assertions, no bats-support dependency required. The
 # `load 'test_helper'` is harmless if the helper is absent (BATS `load`
 # silently no-ops on a missing file at this layer — both existing

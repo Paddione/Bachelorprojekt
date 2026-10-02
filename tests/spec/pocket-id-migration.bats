@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/pocket-id-migration.bats
-# SSOT: openspec/changes/pocket-id-migration/tasks.md (T001068)
 #
 # Verifies that the Pocket ID migration (Welle 0 + Welle 1 + Welle 2) is
 # correctly wired into manifests, env, schema, and code. Welle 3

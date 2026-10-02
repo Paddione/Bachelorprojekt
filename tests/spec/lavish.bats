@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/lavish.bats
-# SSOT delta: openspec/specs/dev-flow-plan.md (Requirement: lavish reload safety)
 # T001393 — Lavish-Reload-Protokoll kann In-Flight-Formulareingaben verwerfen.
 #
 # Reproduces the mishap from T001373 M3: an agent iterating on layout_warnings

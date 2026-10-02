@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/bge-role-routes.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T003205
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Der Test

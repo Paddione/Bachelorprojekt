@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/secret-rotation.bats
-# SSOT: openspec/specs/secret-rotation.md
 # Uses simple [ ... ] assertions (matches tests/spec/* convention — bats-assert
 # is not loaded by tests/spec/test_helper.bash).
 

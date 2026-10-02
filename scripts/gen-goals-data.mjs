@@ -4,8 +4,10 @@
  * health goals) and emits components/website/src/lib/sdlc/goals-data.generated.json, an
  * array matching the HealthGoal TypeScript shape (components/website/src/lib/sdlc/goals-data.ts).
  *
- * pattern, wired into `task freshness:regenerate` / `task freshness:check`.
+ * Mirrors the generator-script -> generated-JSON pattern, wired into
+ * `task freshness:regenerate` / `task freshness:check`.
  *
+ * Env overrides (for BATS fixtures):
  *   GOALS_MD_PATH  — default .claude/lib/goals.md
  *   GOALS_JSON_OUT — default components/website/src/lib/sdlc/goals-data.generated.json
  *

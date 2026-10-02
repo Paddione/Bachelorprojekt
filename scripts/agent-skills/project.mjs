@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 // scripts/agent-skills/project.mjs
-// SSOT: openspec/specs/agent-skills.md — Delta: openspec/changes/portable-agent-skills/
 // Ticket: T900151, Partial p1 (Inventar + Projektions-Engine)
 //
 // Check-only projection validator and deliberate writer for the authoritative

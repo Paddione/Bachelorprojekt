@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-pipeline/bge-usecase-reachability.bats
-# SSOT: openspec/specs/llm-pipeline.md
 # Ticket: T002604
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert fuer die

@@ -2,7 +2,6 @@
 # Partitioniert eine Liste von .bats-Dateien (stdin, eine pro Zeile) in
 # --of M gleich schwere Buckets und gibt die Dateien von --shard N aus.
 #
-# Warum ueberhaupt: `Factory + OpenSpec + Guards` war mit ~400s der kritische
 # Pfad jedes PRs (zweitlaengster Job: 165s). Die Suite ist durchsatz-, nicht
 # tail-gebunden — rund 537s CPU-Arbeit. Mehr `bats -j` auf EINEM Runner ist
 # damit ausgereizt (gemessen: zusaetzliche Within-File-Parallelisierung machte

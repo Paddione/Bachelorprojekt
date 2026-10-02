@@ -10,7 +10,7 @@
 #      T900399: der einzige geprüfte gh-Stelle-Halter war der gh-Resolver des
 #      mit dem Factory-Baum entfallenen pr-babysit-ticket.sh. Die Regel selbst
 #      lebt als Positiv-Anker (devflow-ci-watch.sh) im Doku-Guard am Ende weiter.
-#   2. Fix-PR-Merges tragen kein `--delete-branch` — die OpenSpec-Archivierung
+#   2. Fix-PR-Merges tragen kein `--delete-branch` — die Archivierung
 #      (dev-flow Schritt 7) läuft NACH dem Merge und braucht den Branch noch;
 #      gelöscht wird erst in Schritt 7.5. Einzige Ausnahme: der Archiv-PR-Merge
 #      (dessen Wegwerf-Branch hängt an nichts mehr) — dokumentiert in

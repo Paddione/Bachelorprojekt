@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/active-sessions-hub.md
 # Ticket: T003110 — `agent-lock.sh check ticket <id>` meldet aus einem Worktree
 # "held" statt "mine", `ticket.sh update-status` bricht mit Exit 7 ab und nur
 # TICKET_LOCK_OVERRIDE=1 kommt noch durch.
@@ -13,7 +12,6 @@
 #  (2) _ticket_lock_guard (scripts/vda/ticket/_ticket-core.sh) baut die
 #      SID-Auflösung selbst nach und liest dabei nur CLAUDE_CODE_SESSION_ID und
 #      CLAUDE_SESSION_ID — weder AGENT_LOCK_SID noch OPENCODE_SESSION_ID, die
-#      openspec/specs/active-sessions-hub.md ("Harness-Stable Session Identity")
 #      verbindlich vorschreibt. Daher die Diagnosezeile "Eigene SID: <nicht gesetzt>".
 #
 # Prüfmodus: command output verification (T002448-M4) — Exit-Codes echter
@@ -91,7 +89,6 @@ setup() {
 
   # Die Aussage: der Halter oc-1 ist der Aufrufer selbst. Die Rettungsklausel
   # MUSS greifen — sie tut es nur, wenn der Guard OPENCODE_SESSION_ID kennt.
-  # openspec/specs/active-sessions-hub.md führt den Namen seit T002671 in der
   # verbindlichen Auflösungsreihenfolge; die private Liste im Guard nennt nur
   # CLAUDE_CODE_SESSION_ID und CLAUDE_SESSION_ID und läuft damit auseinander.
   run env -u CLAUDE_CODE_SESSION_ID -u CLAUDE_SESSION_ID OPENCODE_SESSION_ID=oc-1 \

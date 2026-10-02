@@ -5,7 +5,6 @@
 # das Statusband verdrahtet den [?]-Toggle an den helpOverlayActive-Store
 # (aria-pressed).
 #
-# SSOT: openspec/specs/sdlc-cockpit.md — "Help Overlay Layer" (E5).
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): Mischform. T1 ist
 # OUTPUT-Verifikation — der Checker importiert die Registry per

@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-// .js-Endung fuer eine .ts-Datei — ESM-Konvention, wie in
-// allowImportingTsExtensions, das hier nicht gesetzt ist.
+// .js-Endung fuer eine .ts-Datei — ESM-Konvention: ein '.ts'-Import
+// braucht allowImportingTsExtensions, das hier nicht gesetzt ist.
 import {
   chunkCode, chunkSource, chunkYaml, estimateTokens, isInfrastructureError,
 } from './index-repo.js';

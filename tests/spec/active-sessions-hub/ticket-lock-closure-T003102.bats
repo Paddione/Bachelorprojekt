@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/active-sessions-hub/ticket-lock-closure-T003102.bats
-# SSOT: openspec/specs/active-sessions-hub.md (agent-lock Semantik)
 # Ticket: T003102
 #
 # PRUEFMODUS (bewusst gemischt, je Zusicherung begruendet):

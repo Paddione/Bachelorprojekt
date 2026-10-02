@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/autodocs-removal-guard.bats
 #
-# SSOT: openspec/changes/autodocs-removal/specs/ci-cd.md
 #   (Requirement: Keine Auto-Docs-Maschinerie mehr)
 # Ticket: T900452
 #

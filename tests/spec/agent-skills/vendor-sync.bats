@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/vendor-sync.bats
-# SSOT: openspec/specs/agent-skills.md — Runbook: docs/runbooks/vendor-sync.md
 #
 # scripts/vendor-sync.py hebt extern bezogene Skills/Plugins nächtlich auf die neueste
 # Release. Die Vendor-Kopien tragen lokale Patches (z. B. der Consent-Gate in lavish,

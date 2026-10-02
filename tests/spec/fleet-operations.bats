@@ -66,8 +66,7 @@ setup() {
 # just never live), with klipper-lb removed via service.spec.type: ClusterIP
 # (the missing piece — without it, klipper-lb's svclb-traefik DaemonSet
 # competes for the same hostPorts and the new Traefik pods stay Pending).
-# Manifest-structure assertions only — see the manual rollout task in
-# openspec/changes/traefik-hostport-clientip/tasks.md for live verification.
+# Manifest-structure assertions only
 
 @test "prod/traefik-values.yaml sets service.spec.type: ClusterIP (removes klipper-lb)" {
   if ! command -v yq >/dev/null 2>&1; then

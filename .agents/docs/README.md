@@ -23,4 +23,4 @@ Abgrenzung: [`docs/`](../../docs/) ist Menschen-Doku (Runbooks, Handbücher, ADR
 
 ## Index
 
-- [`reorg-phase2/`](reorg-phase2/) (T900560) — agentennative Repo-Struktur + OpenSpec ad acta; Status: C0–C3 gemergt, C6 läuft.
+- [`reorg-phase2/`](reorg-phase2/) (T900560) — agentennative Repo-Struktur; Status: C0–C3 gemergt, C6 läuft.

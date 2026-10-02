@@ -1,5 +1,4 @@
 // tests/unit/cockpit-panel.test.ts
-// SSOT: openspec/changes/sdlc-cockpit-design/design.md
 //
 // Testet den Panel-Vertrag ohne DOM: Typvalidierung, Groessen, Aktions-Zustaende.
 // [T002460]

@@ -7,8 +7,7 @@ des Projekts.
 
 - **[CLAUDE.md](CLAUDE.md)** — die maßgebliche Referenz: Agent-Routing, Architektur,
   Cluster-Topologie, Konfigurationsmuster, CI/CD, Entwicklungsregeln, Footguns.
-- **[AGENTS.md](AGENTS.md)** — cross-harness Quick-Start: Kernkommandos, Workflow-Regeln,
-  OpenSpec-Konventionen.
+- **[AGENTS.md](AGENTS.md)** — cross-harness Quick-Start: Kernkommandos, Workflow-Regeln.
 
 Beide sind für dich gedacht — öffne sie, statt dich auf diese Datei zu verlassen.
 

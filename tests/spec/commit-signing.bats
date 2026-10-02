@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/commit-signing.bats
-# SSOT: openspec/changes/sec05-bot-commit-signing/proposal.md
 # G-SEC05: adjusted metric — Bot-Commits (github-actions[bot]) von unsigned-Zaehlung ausschliessen
 
 load 'test_helper'

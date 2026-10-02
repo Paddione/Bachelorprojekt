@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=offline
 # tests/spec/planning-office/epic-lastenheft.bats
-# SSOT: openspec/specs/planning-office.md — "Epics durchlaufen das Lastenheft-Gate".
 #
 # Der CLI-Lock-Pfad (`ticket.sh lastenheft lock`) ist typunabhängig: er adressiert
 # das Ticket per external_id, nicht per Typ. Damit ein Epic (`type=project`) über

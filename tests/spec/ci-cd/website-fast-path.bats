@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/ci-cd.md
 # Requirement: PR-Gate — Vitest (website) mit Step-Level Fast-Path
 
 setup() {

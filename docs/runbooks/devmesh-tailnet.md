@@ -9,7 +9,7 @@ Soll-Zustand im Repo:
 - `devmesh/tailnet-policy.hujson` — ACL-Soll (Guard: `tests/spec/local-dev-mesh/tailnet-policy.bats`)
 - `scripts/devmesh/tailnet-check.sh` — Prüfung, Aufruf `task devmesh:tailnet:check`
 
-Entscheidungen: ADR-008 (Nachtrag 2026-09-11), `openspec/changes/archive/2026-09-11-devmesh-tailnet/design.md`.
+Entscheidungen: ADR-008 (Nachtrag 2026-09-11), Design `2026-09-11-devmesh-tailnet`.
 
 ## Rollen
 
@@ -136,7 +136,7 @@ git grep -n "100\.102\.71\.114"      # Konsumenten der Tailnet-Adresse von pk-de
 FritzBox → Internet → Freigaben → Portfreigaben. Es darf keine Freigabe auf 10.1.0.101,
 10.10.10.2 oder 10.10.10.3 zeigen. Tailscale baut nur ausgehende Verbindungen auf
 (Requirement „Remote access to the SDLC surface only through the tailnet, without an inbound
-port" in `openspec/specs/sdlc-isolation.md`).
+port" in der sdlc-isolation-Spec).
 
 ## Datenschutz
 

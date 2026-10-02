@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-lock-claim-persist.bats
-# SSOT: openspec/changes/agent-lock-claim-persist/specs/active-sessions-hub.md
 # Regression suite for T001384 (agent-lock.sh claim persistiert Lock-Datei
 # nicht zuverlässig). Deckt die drei zusammenwirkenden Defekte in
 # scripts/agent-lock.sh ab.

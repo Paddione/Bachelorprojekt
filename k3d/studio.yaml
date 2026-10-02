@@ -2,7 +2,7 @@
 # Coaching Studio server — Express + Vite/React SPA
 # Persists to shared-db (website DB) under the `studio` schema.
 # Uses in-cluster LLM router (LM Studio OpenAI-compatible) + faster-whisper.
-# See openspec/changes/coaching-studio/ (T001002)
+# Kontext: T001002 (coaching-studio)
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment

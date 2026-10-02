@@ -67,8 +67,3 @@ Use `codebase-memory-mcp` first (search_graph, trace_path, get_code_snippet, que
 - `task test:code-quality` — file-size caps, import-cycle, hardcoded-hostname scan
 - Brett: `npm run typecheck --prefix components/brett && npm test --prefix components/brett && npm run build --prefix components/brett`
 - Website: `(cd website && pnpm test:unit)`
-
-## OpenSpec Lifecycle
-
-- `/opsx:propose <slug>` → `/opsx:apply <slug>` → `/opsx:archive <slug>`
-- Archival ONLY in worktree — never from main-checkout.

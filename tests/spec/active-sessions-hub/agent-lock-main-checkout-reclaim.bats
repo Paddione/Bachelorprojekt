@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/active-sessions-hub/agent-lock-main-checkout-reclaim.bats
-# SSOT: openspec/specs/active-sessions-hub.md
 #
 # T002809: a `main-checkout` lock left as auto-claimed bookkeeping
 # (label `auto: pre-commit self-claim`, written by `_self_claim_main_checkout`
@@ -11,7 +10,6 @@
 # `cmd_guard_postcheckout` only skips its revert when `owner_sid` matches the
 # CURRENT session's SID (scripts/agent-lock-guards.sh). The result: a
 # legitimate branch switch by the new session got silently reverted
-# (observed 2026-08-09, see openspec/changes/agent-lock-main-checkout-reclaim/proposal.md
 # for the verified reproduction).
 #
 # `reclaim-main-checkout` lets the CURRENT session deliberately take over

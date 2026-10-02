@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/reflector-annotations.bats
-# SSOT: openspec/specs/fleet-operations.md (Delta: openspec/changes/reflector-annotations)
 # T002880: Drift-Gate — die Wildcard-Certificate-Manifeste tragen keine
 # reflector.v1.emberstack.eu-Annotationen, weil kein Reflector-Controller im
 # fleet-Cluster laeuft. Der reale Sync-Mechanismus ist der tls-sync CronJob

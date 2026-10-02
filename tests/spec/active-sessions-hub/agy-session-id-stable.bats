@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/active-sessions-hub/agy-session-id-stable.bats
-# SSOT: openspec/specs/active-sessions-hub.md
 # Ticket: T900306
 #
 # Antigravity (agy) exports ANTIGRAVITY_CONVERSATION_ID as its stable conversation

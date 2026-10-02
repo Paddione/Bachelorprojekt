@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-pipeline/kv-offload.bats
-# SSOT: openspec/specs/llm-pipeline.md
-# Change: openspec/changes/gemma-kv-offload-slot-cache/
 #
 # Pruefmodus: statisches Grep. Das Skript scripts/llm/start-gemma-server.ps1 laeuft
 # ausschliesslich unter Windows-PowerShell auf dem GPU-Host; CI laeuft auf Linux ohne

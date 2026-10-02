@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/node-mcp-server-startup.bats
-# SSOT: openspec/specs/mcp-gateway.md
 #
 # Pruefmodus: command output verification — die Server werden tatsaechlich als
 # stdio-Prozess gestartet und ihre JSON-RPC-Antwort geprueft. Ein Source-Grep

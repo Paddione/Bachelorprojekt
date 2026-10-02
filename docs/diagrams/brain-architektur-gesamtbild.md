@@ -11,7 +11,7 @@
 | K2 | bge-Embedding/Reranker | bge-m3 + bge-reranker-v2-m3 als K8s-Deployments | `docs/brain/k2-bge-paare.md` |
 | K3 | Code-Graph (codebase-memory-mcp) | Symbol-Graph, Aufrufketten, 14 MCP-Tools | `docs/brain/k3-code-graph.md` |
 | K4 | Authored-Docs-Kern in `docs/` (Mirror stillgelegt) | ADRs, Runbooks, Gotchas, Karten; kein externes Repo mehr | `docs/brain/recall-routing.md` |
-| K5 | OpenSpec | SSOT-Specs + Changes + Archiv, Lebenszyklus propose→apply→archive | `docs/brain/k5-openspec.md` |
+| K5 | Spec-Store (retired) | SSOT-Specs + Changes + Archiv, Lebenszyklus propose→apply→archive | retired |
 | K6 | Ticket/Factory | tickets.tickets DB + factory pipeline | T002436 (in Arbeit) |
 | K7 | Agenten/MCP-Harness | MCP-Server, Agenten-Rollen, llm-proxy Bridge | `docs/brain/k7-agenten-mcp.md` |
 
@@ -28,21 +28,21 @@ Kanten-Legende:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                         K5 — OpenSpec (SSOT)                                  │
-│  openspec/specs/  (74 Dateien)  +  changes/  (176 unarchiviert)              │
+│                           K5 — Spec-Store (retired)                           │
+│  specs/  (74 Dateien)  +  changes/  (176 unarchiviert)                       │
 │                                                                               │
 │  ══► K1 (post-commit Hook)    (F) plaintext→bge-m3→1024d-Vektor              │
 │       (T) HTTP via bge-router  (A) git commit                                │
 │       Ziel: knowledge.chunks (pgvector)                                       │
 │                                                                               │
 │  ──► K4 (Brain-Ingest)        (F) Markdown                                   │
-│       (T) Git (brain-ingest.sh liest openspec/specs/*.md)                    │
+│       (T) Git (brain-ingest.sh liest specs/*.md)                             │
 │       (A) manuell/CI (task brain:ingest:run)                                  │
 │       ⚠ Nur archivierte SSOT — 134 gemergte, unarchivierte Changes fehlen    │
 │                                                                               │
 │  ══► K6 (Ticket-Link)         (F) .ticket-Datei → tickets.tickets DB        │
 │       (T) Dateisystem→PostgreSQL (ticket.sh)                                 │
-│       (A) openspec.sh propose                                                │
+│       (A) propose                                                            │
 └──────────┬──────────────────────────────────────┬──────────────────────────────┘
            │                                       │
            ▼                                       ▼
@@ -57,7 +57,7 @@ Kanten-Legende:
 │  │ codesearch-db.ts       │          │      (T) stdio→HTTP Bridge :18235        │
 │  │ knowledge-db.ts        │          │                                          │
 │  │ coaching-db.ts         │          │  ══► K7 (via llm-proxy)                  │
-│  │ openspec_find_similar  │          │      (T) HTTP POST /v1/embeddings        │
+│  │ find_similar           │          │      (T) HTTP POST /v1/embeddings        │
 │  │ tickets-embed.ts 🔴    │          │      (T) HTTP POST /v1/rerank            │
 │  └────────────────────────┘          └──────────────────────────────────────────┘
 │                                                │
@@ -66,7 +66,7 @@ Kanten-Legende:
 │  K1 ← K6: ticket_embeddings (leer)             │   auf (verschiedene Abfragearten)
 │                                                │
 │  K1 → knowledge-db.ts (Retrieval)              │
-│  K1 → factory-mcp (openspec_find_similar)      │
+│  K1 → factory-mcp (find_similar)               │
 └────────────────────────────────────────────────┘
                                                 │
 ┌───────────────────────────────────────────────┼──────────────────────────────────┐
@@ -80,7 +80,7 @@ Kanten-Legende:
 │       Beide indizieren dieselbe Codebasis, aber teilen weder Indexlauf noch       │
 │       Speicher. Keine Querverweise zwischen Graph-Knoten und Vektor-Einträgen.   │
 │                                                                                   │
-│  ···► K5 FEHLT            Keine Kante: OpenSpec-Specs sind nicht im Code-Graph   │
+│  ···► K5 FEHLT            Keine Kante: Specs sind nicht im Code-Graph            │
 │       indiziert (nur Code-Symbole). Ein Spec-Requirement kann nicht zu der        │
 │       Funktion verlinken, die es implementiert.                                   │
 └───────────────────────────────────────────────────────────────────────────────────┘
@@ -88,7 +88,7 @@ Kanten-Legende:
 ┌───────────────────────────────────────────────────────────────────────────────────┐
 │                     K4 — Brain-Wiki (Paddione/brain)                                │
 │  Externes Git-Repo, ingest via scripts/brain-ingest.sh                             │
-│  Quellen: openspec/specs/*.md (SSOT), docs/**/*.md, docs/agent-guide/              │
+│  Quellen: specs/*.md (SSOT), docs/**/*.md, docs/agent-guide/                       │
 │                                                                                     │
 │  ◄── K5 (ingest)    (F) Markdown  (T) Git (brain-ingest.sh)                       │
 │       (A) task brain:ingest:run / CI                                               │
@@ -106,7 +106,7 @@ Kanten-Legende:
 │  PostgreSQL-Tabellen, factory-mcp HTTP-Server :13003, ticket-mcp stdio              │
 │                                                                                     │
 │  ══► K5 (Ticket-Link)    (F) external_id  (T) PostgreSQL JOIN                     │
-│       (A) openspec.sh propose (schreibt .ticket)                                    │
+│       (A) propose (schreibt .ticket)                                                │
 │                                                                                     │
 │  ══► K7 (MCP-Tools)      ticket-mcp (26 Tools), factory-mcp (HTTP :13003)         │
 │       (T) stdio→Bridge (ticket-mcp), HTTP direkt (factory-mcp)                     │
@@ -135,7 +135,7 @@ Kanten-Legende:
 │       components/website/src/lib/knowledge-db.ts                                    │
 │       erreichbar, nicht als MCP-Ressource.                                          │
 │                                                                                     │
-│  ···► K5 FEHLT            Kein MCP-Tool zum Lesen/Schreiben von OpenSpec-Specs.    │
+│  ···► K5 FEHLT            Kein MCP-Tool zum Lesen/Schreiben von Specs.             │
 │       Der Agent muss Dateien manuell lesen (Read-Tool).                             │
 └───────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -146,11 +146,11 @@ Kanten-Legende:
 |-----|------|----------|--------|-----------|----------|--------|
 | K5 | K1 | K5→K1 | plaintext→Vektor | HTTP (bge-router) | post-commit Hook | **trägt** |
 | K5 | K4 | K5→K4 | Markdown | Git (brain-ingest.sh) | task brain:ingest:run | **trägt teilweise** (nur SSOT, nicht Changes) |
-| K5 | K6 | K5→K6 | .ticket-Datei | Dateisystem→SQL | openspec.sh propose | **trägt** |
+| K5 | K6 | K5→K6 | .ticket-Datei | Dateisystem→SQL | propose | **trägt** |
 | K2 | K1 | K2→K1 | Vektor (1024d) | HTTP POST | embedQuery/embedBatch | **trägt** |
 | K2 | K3 | K2→K3 | JSON-RPC | HTTP (bge-mcp) | MCP-Tool-Aufruf | **trägt** |
 | K2 | K7 | K2→K7 | JSON-RPC | HTTP :13005 | MCP-Tool-Aufruf | **trägt** |
-| K1 | K5 | K1→K5 | SQL-Query | pgvector | openspec_find_similar | **trägt** |
+| K1 | K5 | K1→K5 | SQL-Query | pgvector | find_similar | **trägt** |
 | K3 | K7 | K3→K7 | JSON-RPC | stdio→Bridge :18235 | MCP-Tool-Aufruf | **trägt** |
 | K6 | K7 | K6→K7 | JSON-RPC / HTTP | stdio→Bridge / :13003 | MCP-Tool-Aufruf | **trägt** |
 | K6 | K1 | K6→K1 | Vektor (1024d) | HTTP (geplant) | — | **läuft ins Nichts** (0 Zeilen) |
@@ -172,7 +172,7 @@ Kanten-Legende:
 
 ### D2 — ticket_plans leer (Vorerhebung)
 **Betroffene Kante:** K6 → K5  
-**Auswirkung:** Ticket-Pläne existieren als Dateien in `openspec/changes/`, nicht als DB-Zeilen in `ticket_plans`.  
+**Auswirkung:** Ticket-Pläne existieren als Dateien in `.agents/plans/`, nicht als DB-Zeilen in `ticket_plans`.  
 **Typ:** Inkompatibilität (zwei Wahrheiten über denselben Plan).
 
 ### D3 — Brain-Ingest nur Pilot (Vorerhebung)
@@ -226,7 +226,7 @@ Kanten-Legende:
 
 ### D12 — Spec↔Code-Lücke (diese Erhebung)
 **Betroffene Kante:** K3 → K5 (fehlt)  
-**Auswirkung:** Ein OpenSpec-Requirement kann nicht automatisch zur implementierenden Funktion verlinken. Manuelles Tracing nötig.  
+**Auswirkung:** Ein Requirement kann nicht automatisch zur implementierenden Funktion verlinken. Manuelles Tracing nötig.  
 **Typ:** Fehlende Kante.
 
 ### D13 — Kein MCP-Tool für Vektorsuche (diese Erhebung)
@@ -234,7 +234,7 @@ Kanten-Legende:
 **Auswirkung:** Agenten können pgvector nicht direkt abfragen. Müssen über website-API-Routen gehen.  
 **Typ:** Fehlende Kante.
 
-### D14 — Kein MCP-Tool für OpenSpec (diese Erhebung)
+### D14 — Kein MCP-Tool für Specs (diese Erhebung)
 **Betroffene Kante:** K7 → K5 (fehlt)  
 **Auswirkung:** Agenten lesen Specs via Read-Tool (Dateisystem) statt über strukturierte MCP-API.  
 **Typ:** Fehlende Kante.
@@ -246,7 +246,7 @@ Kanten-Legende:
 | E1 | K1 | K3 | Gemeinsamer Index oder Querverweise zwischen Vektor- und Graph-Sicht auf dieselbe Codebasis | **hoch** (D8) |
 | E2 | K6 | K3 | Factory soll Code-Kontext für automatisierte Entscheidungen nutzen können | mittel |
 | E3 | K7 | K1 | MCP-Tool für Vektorsuche — Agenten direkten pgvector-Zugriff geben | mittel |
-| E4 | K7 | K5 | MCP-Tool zum Lesen/Schreiben von OpenSpec-Specs | mittel |
+| E4 | K7 | K5 | MCP-Tool zum Lesen/Schreiben von Specs | mittel |
 | E5 | K4 | K1 | Brain-Wiki-Inhalte vektorisieren für semantische Suche | niedrig |
 | E6 | K3 | K5 | Requirements→Code-Links (welche Funktion implementiert welches Requirement) | niedrig |
 | E7 | K4 | K3 | Code-Graph des externen Brain-Repos | niedrig |
@@ -270,7 +270,7 @@ Kanten-Legende:
 **Fehlt (strukturelle Lücken):**
 - K1↔K3 (D8) — getrennte Indexe, keine Reconciliation
 - K7→K1 — kein MCP-Tool für Vektorsuche
-- K7→K5 — kein MCP-Tool für OpenSpec
+- K7→K5 — kein MCP-Tool für Specs
 - K6→K3 — kein Ticket↔Code-Kontext
 - K4↔K1 — Wiki ohne Vektorsuche
 

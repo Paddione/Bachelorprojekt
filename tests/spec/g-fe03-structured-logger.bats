@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/g-fe03-structured-logger/
 # G-FE03: Strukturierten Logger einführen
 # Migrates raw console.error/warn calls to the pino-based structured logger.
 

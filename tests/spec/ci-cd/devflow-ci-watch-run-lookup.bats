@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats
-# SSOT: openspec/specs/ci-cd.md
 #
 # T014466: Die T003224-Gegenprobe in scripts/devflow-ci-watch.sh soll aggregierte
 # failure-Checks entschaerfen, deren Jobs in Wahrheit cancelled/skipped sind. Sie

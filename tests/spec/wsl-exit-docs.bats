@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/wsl-exit-docs.bats
-# SSOT: openspec/changes/wsl-exit-adr007/specs/sdlc-isolation.md [T016436]
 
 setup() {
   load 'test_helper.bash'

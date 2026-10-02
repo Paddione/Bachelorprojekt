@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sessions-server/reap-untracked.bats
-# SSOT: openspec/specs/sessions-server.md — Dead Process Reaping (untracked PIDs).
 # T016251: register-Eintraege (server_pid=0) duerfen vom reap nicht geloescht
 # werden. Prüfmodus: command output verification (Registry-JSON-Zustand).
 

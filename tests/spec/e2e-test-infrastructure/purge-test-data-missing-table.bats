@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/e2e-test-infrastructure.md
 # Ticket: T002894 — tickets.fn_purge_test_data() bricht auf DBs ohne
 # questionnaire_test_status komplett ab und purgt dadurch NICHTS.
 #

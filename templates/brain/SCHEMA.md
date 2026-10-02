@@ -47,7 +47,7 @@ Manifest-Gruppe haben keine Upstream-SHA und werden ausschließlich lokal gehash
 nur mit `type`, `tags` und `status` bleiben gültig; Lifecycle-Werkzeuge melden ihre zeitliche
 Einordnung als unbekannt, statt Werte zu erfinden.
 
-`source_kind` ist einer von `openspec`, `runbook`, `adr`, `gotcha`, `agent-guide`,
+`source_kind` ist einer von `runbook`, `adr`, `gotcha`, `agent-guide`,
 `core-doc`, `health-goal`, `diagram` oder `github-reviewed`. `source_revision` ist bei
 lokalen Quellen der lowercase SHA-256 der vollständigen Ursprungsdatei. Zeitwerte verwenden
 ISO-8601; Intervalle sind halboffen: `valid_from <= as_of < valid_until`.

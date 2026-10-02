@@ -6,8 +6,6 @@ set -u
 # T009368: Merge-Commit-Selektion als eigene Funktion, damit BATS sie gegen ein
 # temp-Git-Repo laufen lassen kann (Output-Verifikation, T002448-M4).
 # Semantik: neuester Commit auf origin/main mit [TICKET_ID] im Subject, AUSSER
-# OpenSpec-Archiv-Commits (chore(plans): archive ...). Ein Archiv-Commit traegt
-# die Ticket-ID ebenfalls im Subject, enthaelt aber nur openspec/changes/archive/-
 # Pfade und fuehrte sonst zu "Keine bekannten Deploy-Trigger" ohne Deploy-Phase-
 # Event (beobachtet T008017: getroffen 673f14a48 statt Feature-Merge abda93f9a).
 # Nicht nutzbar: --all-match + --invert-match — "matcht nicht beide Patterns"
@@ -66,8 +64,6 @@ fi
 TICKET_IDS=$(git show --format=%s "$MERGE_COMMIT" 2>/dev/null | grep -oE 'T00[0-9]{4}' | sort -u | tr '\n' ' ')
 echo "Referenzierte Ticket-IDs im Merge-Commit: ${TICKET_IDS:-keine}"
 # Generierte Artefakte (linguist-generated in .gitattributes) aus der Deploy-Routing-
-# Selektion nehmen: components/website/src/data/openspec-status.json & Co. liegen im Merge-Diff jedes
-# Changes mit OpenSpec-Artefakt und loesten sonst einen Deploy ohne Website-Bezug aus
 # (T002255). SSOT des Routings: .claude/skills/references/deploy-routing.md
 # T003982: k3d/sdlc-stack/ existiert nur auf dem lokalen k3d-Dev-Cluster, nicht auf
 # fleet. grep -E hat kein Lookahead, deshalb VOR dem DEPLOY_K8S-Match (Zeile 48) filtern.

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/pipeline-interface.bats
-# SSOT: openspec/specs/pipeline-interface.md
 
 STORE="components/website/src/lib/stores/factory-floor-store.ts"
 FLOOR="components/website/src/components/sdlc/FactoryFloor.svelte"

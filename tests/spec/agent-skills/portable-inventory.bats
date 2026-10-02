@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/portable-inventory.bats
-# SSOT: openspec/specs/agent-skills.md — Delta: openspec/changes/portable-agent-skills/
 # Ticket: T900151, Partial p1 (Inventar + Projektions-Engine)
 #
 # Prüfmodus (T002448-M4): Command-Output-Verifikation. Jeder Test baut ein

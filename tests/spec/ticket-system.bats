@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ticket-system.bats
-# SSOT: openspec/specs/ticket-system.md
 #
 # Initial placeholder coverage for the Ticket System spec. [T002010]
 
@@ -34,8 +33,8 @@
 
 @test "T002230: update-status.sh still clears resolution on a non-terminal status" {
   # Mirrors components/website/src/lib/tickets/transition.ts:79 — a resolution only means
-  # anything for done/archived. plan stage (→ planning) and factory/pipeline.mjs
-  # (→ backlog) depend on the clearing, so a blanket COALESCE would strand a stale
+  # anything for done/archived. Planning and backlog transitions depend on the
+  # clearing, so a blanket COALESCE would strand a stale
   # `fixed` on a reopened ticket.
   run grep -Fq "WHEN :'status' IN ('done','archived') THEN COALESCE(NULLIF(:'res', ''), resolution)" \
     scripts/vda/ticket/update-status.sh

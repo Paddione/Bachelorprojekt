@@ -6,7 +6,7 @@ Zusammenfassung des Projekts.
 ## Lade Kontext gezielt
 
 - Lies zuerst **[AGENTS.md](AGENTS.md)** — den cross-harness Quick-Start für Kommandos,
-  Workflow-Regeln und OpenSpec-Konventionen.
+  Workflow-Regeln.
 - Lies **[CLAUDE.md](CLAUDE.md)** nicht pauschal. Öffne nur die zum Auftrag passende Sektion,
   wenn Routing, Architektur, CI/CD, Konfigurationsmuster oder Footguns nötig sind.
 

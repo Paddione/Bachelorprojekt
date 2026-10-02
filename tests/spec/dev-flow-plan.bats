@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/dev-flow-plan.bats
-# SSOT: openspec/specs/dev-flow-plan.md (delta: openspec/changes/plan-intel-bundle/specs/dev-flow-plan.md)
 # T001323 — Plan Intel Bundle: schema contract + .d.ts mirror + fixture + skill wiring.
 #
 # One .bats file per SSOT spec (slug convention). Hermetic: only reads repo files

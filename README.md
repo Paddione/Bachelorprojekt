@@ -52,7 +52,6 @@ Die Architekturentscheidungen sind als [ADRs](docs/adr/) dokumentiert, zum Beisp
 
 1. **GitOps-Deployment.** Jeder Merge auf `main` rendert die Manifeste zu einem OCI-Artefakt, das Flux auf dem Cluster abgleicht. Ein manueller Deploy-Pfad existiert nur für Notfälle.
 2. **Secrets.** Klartext-Secrets liegen git-crypt-verschlüsselt im Repository und werden als SealedSecrets ausgerollt. gitleaks prüft jeden Commit.
-3. **Spezifikationsgetriebene Entwicklung.** Anforderungen sind als [OpenSpec-Spezifikationen](openspec/specs/) beschrieben. Jede Änderung durchläuft Proposal, Delta-Spec und Archivierung.
 4. **Testabdeckung.** BATS-Tests für Skripte und Manifeste, Vitest für die Website und Playwright-E2E-Tests gegen die laufenden Umgebungen. Die CI blockiert jeden Merge ohne grüne Prüfungen.
 5. **KI-gestützter Entwicklungsprozess.** Ein Ticket-System steuert Coding-Agents durch Planung, Umsetzung, Review und Merge. Lokale LLMs übernehmen Routineaufgaben, Embedding und Reranking laufen auf eigener GPU.
 
@@ -65,7 +64,6 @@ Stand September 2026.
 | Entwicklungszeitraum | seit März 2026 |
 | Commits | über 8.400 |
 | Gemergte Pull Requests | über 5.000 |
-| OpenSpec-Spezifikationen | 129 aktiv, über 900 archivierte Changes |
 | Testdateien | über 900 BATS, über 500 Vitest, über 150 Playwright |
 | GitHub-Actions-Workflows | 31 |
 
@@ -89,7 +87,7 @@ Stand September 2026.
 | [dev-local/](dev-local/), [devmesh/](devmesh/) | Lokaler Entwicklungscluster |
 | [environments/](environments/) | Umgebungsprofile, Schema und verschlüsselte Secrets |
 | [scripts/](scripts/), [taskfiles/](taskfiles/), [Taskfile.yml](Taskfile.yml) | Automatisierung |
-| [tests/](tests/), [openspec/](openspec/) | Tests, Spezifikationen und Change-Archiv |
+| [tests/](tests/) | Tests |
 | [docs/](docs/README.md) | Dokumentation, Runbooks und ADRs |
 
 ## Für Entwickler

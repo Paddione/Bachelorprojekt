@@ -1,8 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/pocket-id-proxy-ip.bats
-# SSOT: openspec/specs/workspace-deploy.md
-# History: openspec/changes/pocket-id-proxy-ip-rate-limit/tasks.md (T001328)
-#          openspec/changes/pocket-id-ingressroute-schema-drift/tasks.md (T001397)
 #
 # T001328 added `spec.forwardedHeaders.trustedIPs` to the Pocket-ID
 # IngressRoute to fix Pocket-ID's rate-limiter/audit-log seeing the

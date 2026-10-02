@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/ci-cd.md
 # Prüfmodus: command output verification (T002448-M4) — führt
 # `bash scripts/vda.sh cfr` aus und prüft die Semantik der Ausgabe
 # (Exit-Code, Vorhandensein beider Messungen), nicht den Wortlaut (T002716).

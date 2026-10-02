@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# SSOT: openspec/changes/hermes-agent-mcp-access/tasks.md (Task 3)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

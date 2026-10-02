@@ -2,7 +2,7 @@
 // scripts/glimmer-worker-mcp/server.mjs — Glimmer als Arbeitermodell fuer Muse Code (T900373).
 //
 // Muse Code (Meta) kann llama-server nicht als Provider nutzen (proprietaeres
-// Stream-/Tool-Format, siehe openspec design glimmer-worker-mcp). Dieser Server
+// Stream-/Tool-Format). Dieser Server
 // bietet Glimmer stattdessen als MCP-Werkzeug an: ein Job fuehrt opencode mit
 // dem Agenten glimmer-primary im Ziel-Repo aus (gleiches Modell, gleiche
 // Tool-Schleife). Streamable HTTP auf 127.0.0.1, Bearer, Node-stdlib only —

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/post-merge-finalize-guards.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: post-merge-finalize-guards, T006348)
 #
 # PRÜFMODUS: Source-Grep — dokumentierte Ausnahme von der Output-Verifikation
 # (T002448-M4): Der Laufzeitpfad von scripts/devflow-post-merge-finalize.sh

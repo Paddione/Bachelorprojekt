@@ -478,7 +478,6 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
 fi
 
 # === STRUCT2: at least one failing-test step (fail phrase + a real test-runner) ===
-# The phrase alone is cheap to fake and is pre-seeded by the `openspec propose`
 # skeleton, so we ALSO require an actual test-runner invocation (bats/vitest/pytest/…).
 # The final `task test:*` gate does NOT count — every plan has it for STRUCT3 (T001791 #2).
 # Partial mode: STRUCT2 is checked against the mandatory tests partial (STRUCT2_FILE).
@@ -679,11 +678,9 @@ while IFS= read -r g; do warn "${g/G1:/G1: }"; done < <(awk '
 # produces plans cut to hit the number instead of the invariant (one task = one
 # verifiable claim ending in a green, committable state).
 #
-# TWO heading conventions coexist in openspec/changes and both must count, or the
 # warning fires on plans that are perfectly well structured and is learned-ignored —
 # taking the neighbouring W3/W4/G1 warnings down with it:
 #   a) "## Task 1 ", "## Task 1:", "## Task 1.", "### Task: x"
-#   b) "## 1. <title>" — the OpenSpec skeleton default (17 of 95 plans on 2026-08-03)
 #   c) "## T1 — <title>"
 #   d) "- [ ] **Task 1: <title>**" — tasks as checklist items, not headings
 # `## Tasks` and `## Task List` are section headers, not tasks — hence the required

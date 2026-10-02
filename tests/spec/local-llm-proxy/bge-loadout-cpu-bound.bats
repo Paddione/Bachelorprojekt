@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/bge-loadout-cpu-bound.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T002607
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Der Test

@@ -1,9 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/brett.bats
-# SSOT: openspec/specs/brett.md
 #
 # Structural gate for the Systembrett-Vollausbau change (T001931, brett-vollausbau).
-# One .bats file per OpenSpec SSOT spec. Deterministic + offline (grep/existence
 # only — no DB, no cluster). RED on the pre-change branch, GREEN as tasks 2–12 land.
 
 setup() {

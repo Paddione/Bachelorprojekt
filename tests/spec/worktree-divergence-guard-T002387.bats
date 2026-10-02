@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/worktree-divergence-guard-T002387.bats
-# SSOT spec: openspec/changes/worktree-divergence-guard-T002387/specs/worktree-divergence-guard-T002387.md
 #
 # Tests that the divergence guard in worktree-create.sh uses a safe fetch that
 # does NOT update the local main ref — preventing FATAL when main is checked out

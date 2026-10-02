@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/release-notes-erden.bats
-# Ticket: T002403 / openspec/changes/release-notes-erden/tasks.md
 
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats
-# SSOT: openspec/specs/ci-cd.md
 #
 # T012239: scripts/devflow-ci-watch.sh wertet rote Checks über einen
 # statusCheckRollup-Selector mit `select(.headSha == $p.headRefOid)` aus. Das Feld

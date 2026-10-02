@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/worktree-remove-managed.bats
-# SSOT: openspec/specs/agent-skills.md
 #   "Removal of managed worktrees unlocks before removing" (T900340)
 #
 # PRUEFMODUS: Output-Verifikation (T002448-M4) fuer Helper und finalize-Schritt 10:

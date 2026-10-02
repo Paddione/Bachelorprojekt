@@ -22,7 +22,6 @@
 # the fleet). Without a cluster it SKIPS — runnable in the `factory:`
 # pipeline and on developer machines with a live context.
 #
-# SSOT: openspec/changes/g-cd01-korczewski-secret-drift
 # ═══════════════════════════════════════════════════════════════════
 
 load 'test_helper'

@@ -60,7 +60,7 @@ setup() {
   popd >/dev/null || exit 1
 }
 
-# T002352-M2 retired (T900852): the scenario filter tested openspec-spec
+# T002352-M2 retired (T900852): the scenario filter tested spec-content
 # filtering in mcp-gateway.bats; A1b removed the feature with its spec,
 # so the negation-probe meta-assertion has no subject left.
 

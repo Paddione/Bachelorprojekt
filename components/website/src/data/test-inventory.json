@@ -5136,6 +5136,12 @@
     "kind": "shell"
   },
   {
+    "id": "sf-retirement-web",
+    "file": "tests/spec/sf-retirement-web.bats",
+    "category": "sf-retirement-web",
+    "kind": "shell"
+  },
+  {
     "id": "sidekick-assistant",
     "file": "tests/spec/sidekick-assistant.bats",
     "category": "sidekick-assistant",

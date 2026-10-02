@@ -3,7 +3,7 @@ import { guardSdlc } from '../lib/sdlc-guard';
 
 // Kommissionierung-Spalte auf /dev-status (admin-gated, läuft im mentolder-Projekt
 // mit gespeichertem Admin-Auth-State). Read-only Render + „-> Factory"-Knopf.
-test.describe('Kommissionierung (Factory-Floor)', () => {
+test.describe('Kommissionierung', () => {
   test.beforeEach(async ({ page, request }) => {
     await guardSdlc(request);
     await page.goto('/dev-status');

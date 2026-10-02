@@ -1,4 +1,4 @@
-# K6: Ticket- und Factory-Datenmodell
+# K6: Ticket-Datenmodell
 
 > Komponente des Brain-Architektur-Epics T002430.
 > Stand: August 2026.
@@ -46,9 +46,8 @@
                │  SCHREIBER               │  SCHREIBER
                ▼                         ▼
      ┌────────────────────────────────────────────────────┐
-     │  scripts/factory/pipeline.js (Ticket-Statuswechsel  │
-     │  während der Pipeline), dev-flow-execute (Merge=    │
-     │  Abschluss), scripts/ticket.sh update-status (CLI), │
+     │  dev-flow-execute (Merge=Abschluss),               │
+     │  scripts/ticket.sh update-status (CLI),            │
      │  ticket-mcp-Tools (transition_status,               │
      │  record_phase_event, stage_plan, set_touched_files) │
      └────────────────────────────────────────────────────┘
@@ -56,35 +55,11 @@
                │  LESER
                ▼
      ┌────────────────────────────────────────────────────┐
-     │  Factory-Floor (website/src/lib/factory-floor*.ts,  │
-     │  /api/factory-floor/stream), /admin/dora,           │
-     │  scripts/factory/queue.sh (Dispatcher-Poll),        │
-     │  Agenten (via ticket-mcp list_tickets/get_ticket)   │
+     │  /admin/dora, Agenten (via ticket-mcp               │
+     │  list_tickets/get_ticket)                           │
      └────────────────────────────────────────────────────┘
 
 
-┌───────────────────────────────────────────────────────────────────────┐
-│           factory-mcp — HTTP, Port :13003 (Go-SSOT, seit T014936)      │
-│                                                                         │
-│  ┌─────────────────────────────┐                                       │
-│  │ scripts/factory/mcp-go/      │                                       │
-│  │  main.go                     │                                       │
-│  │  Go, Streamable-HTTP          │                                      │
-│  │  PORT: FACTORY_MCP_PORT      │                                        │
-│  │  (Default 13003)             │                                       │
-│  │  systemd-Unit:                │                                      │
-│  │  factory-mcp.service          │                                      │
-│  │  ("task agents:factory-mcp:   │                                      │
-│  │  install")                    │                                      │
-│  │  + factory_ask (LLM Q&A)     │                                        │
-│  └───────────────┬───────────────┘                                       │
-│                  │ aktiv (systemd)                                        │
-│                  ▼                                                        │
-│         Queue-Wahrheit: scripts/factory/queue.sh (SSOT [T014936])        │
-│         Registry-Eintrag docs/agent-guide/registry/mcp.yaml:             │
-│         endpoint http://localhost:13003/mcp, harness claude_code:        │
-│         type http                                                        │
-└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Schnittstellen
@@ -94,7 +69,7 @@
 | Aspekt | mentolder-DB | korczewski-DB |
 |--------|--------------|----------------|
 | Namespace | `workspace` | `workspace-korczewski` |
-| Pod-Selector | `shared-db`/`shared-db-dev` (`scripts/factory/lib.sh:49`) | dito, andere NS |
+| Pod-Selector | `shared-db`/`shared-db-dev` | dito, andere NS |
 | `external_id`-Format | `T000001…` | `T000001…` (**identischer Zahlenraum**, siehe Diagramm-Warnung) |
 | Standard-Auswahl | `TICKET_NS`/`BRAND` default `mentolder` (`scripts/ticket.sh:18,39`) | explizit über `--brand korczewski` / `BRAND=korczewski` |
 
@@ -114,50 +89,23 @@
 | Pfad | Transport | Scope | Aufrufer |
 |------|-----------|-------|----------|
 | `ticket-mcp` | stdio (`command: ticket-mcp-go`, Bridge `127.0.0.1:18235/mcp/ticket-mcp`) | beide Brands via `brand`-Argument | Agenten, `bachelorprojekt-test`, `bachelorprojekt-db` (Ticket-Reads) |
-| `scripts/ticket.sh` | CLI, direkter `kubectl exec` gegen den Postgres-Pod | brand-Auflösung `--brand` > `BRAND` env > `TICKET_NS` env > Default `mentolder` (`scripts/ticket.sh:18,39,54`) | dev-flow-Skripte, Factory-Pipeline, manuelle Bedienung |
+| `scripts/ticket.sh` | CLI, direkter `kubectl exec` gegen den Postgres-Pod | brand-Auflösung `--brand` > `BRAND` env > `TICKET_NS` env > Default `mentolder` (`scripts/ticket.sh:18,39,54`) | dev-flow-Skripte, manuelle Bedienung |
 | `mcp-postgres` (:13001) | HTTP | **nur mentolder**, feste `DATABASE_URL` | Nicht-Ticket-Tabellen (Registry-Warnung rät explizit von Ticket-Reads ab) |
 
-### factory-mcp (HTTP, Port :13003) — zwei Implementierungen
+### Retired: MCP-Server, Dispatcher-Queue, Komponenten (T900399/T900728)
 
-| Implementierung | Datei | Sprache | Default-Port-Env | systemd-Unit | Status |
-|------------------|-------|---------|-------------------|--------------|--------|
-| Go | `scripts/factory/mcp-go/main.go` (`func port()`, Zeile 36) | Go, Streamable-HTTP, stdlib-only | `FACTORY_MCP_PORT` (Default `13003`) | `scripts/factory/mcp-go/factory-mcp.service` — aktiv installiert via `task agents:factory-mcp:install` | **aktiv** (registrierter systemd-Dienst) |
-| Node | ~~`scripts/factory/mcp-server.mjs`~~ | Node, `@modelcontextprotocol/sdk` | `FACTORY_MCP_PORT` (Default `13003`) | keine | **entfernt (T014936)** — war tot/dupliziert; Go ist SSOT |
-
-**Ehemaliger latenter Konflikt (aufgelöst T014936):** Beide Implementierungen banden denselben Default-Port über dieselbe Env-Variable; die `.mjs`-Datei blieb als tote Zweitschnittstelle liegen (Bind-Risiko bei manuellem Start). Mit T014936 entfernt — der Go-Server ist die einzige factory-mcp-Implementierung und bezieht Queue-Wahrheit ausschließlich aus `scripts/factory/queue.sh`.
-
-### Factory-Queue-Selektivität (Dispatcher)
-
-`scripts/factory/queue.sh` (SELECT gegen `tickets.tickets`, Zeilen 17-51) dispatcht **nur** zwei Typ-/Status-Kombinationen; alles andere bleibt stumm in der Queue liegen:
-
-| # | Bedingung | Kommentar im Code |
-|---|-----------|--------------------|
-| 1 | `type IN ('feature','feat') AND status='backlog' AND readiness.lastenheft_locked=true AND readiness.factory_excluded=false` | Feature-Backlog: nur Lastenheft-lock=true gilt als AI-ready |
-| 2 | `type NOT IN ('project','incident') AND status='plan_staged' AND readiness.execution_released!=false (Default true) AND readiness.factory_excluded=false` | Alle anderen Typen (bug, chore, task, …) mit gestagtem Plan; `project` (Epics) und `incident` (needs_human) sind explizit ausgeschlossen |
-
-`factory_excluded` (T002361) gilt für beide Zweige und überlebt einen späteren Statuswechsel — nur ein expliziter `ticket.sh plan-meta set --readiness factory_excluded=false` hebt ihn auf.
-
-### Komponenten der Software Factory (Kurzbeschreibung)
-
-| Skript | Funktion |
-|--------|----------|
-| `scripts/factory/queue.sh` | Liest den dispatchbaren Backlog (siehe Tabelle oben) als JSON, read-only |
-| `scripts/factory/wakeup.sh` | Vom systemd-USER-Timer (`factory.timer`) gefeuerter Wrapper; single-flight per `flock`, entsperrt git-crypt, ruft headless `claude -p`-Dispatcher-Ticks; "Inversion of Intelligence" — trägt selbst keine Scheduling-Logik |
-| `scripts/factory/dispatcher-bridge.sh` | Ersetzt den früheren Workflow-Tool-Aufruf durch eine bash-Schleife: liest die Prep-Datei, führt Budget-Checks aus, startet jede Pipeline als eigene `claude -p`-Session; bei `launch_count=0` nur Metriken |
-| `scripts/factory/schedule.sh` | Poll gegen den Backlog + Conflict-Gate + Slot-Claim (von `wakeup.sh`/`dispatcher.js` konsolidiert) |
-| `scripts/factory/dispatcher.js` | Phase-2-Dispatcher: Watchdog-Sweep → Poll → Conflict-Gate/Slot-Claim → Pipeline-Start → Metriken |
+Die Abschnitte über den ehemaligen MCP-Server (Go/Node, Port :13003), die Dispatcher-Queue-Selektivität und die Factory-Komponenten sind mit dem Factory-Teardown entfallen — die beschriebenen Skripte, Units und Tasks existieren nicht mehr. Historischer Stand: siehe Git-Historie dieser Datei vor T900728.
 
 ## Silent-Failure-Pfade / formal existierende, faktisch tote Schnittstellen
 
 | # | Pfad | Befund | Sichtbarkeit |
 |---|------|--------|--------------|
 | 1 | `tickets.ticket_plans` | **Widerlegt für mentolder** (293 Zeilen, 291 mit Inhalt) — siehe Defekt-Referenz unten für die Einordnung der ursprünglichen Epic-Aussage | per COUNT-Query verifiziert |
-| 2 | ~~`scripts/factory/mcp-server.mjs` neben `scripts/factory/mcp-go/main.go`~~ | **Behoben (T014936):** Legacy-.mjs gelöscht; Go-Server einzige Implementierung, Queue-SQL nur noch in queue.sh (SSOT-Guardrail: `tests/spec/software-factory/factory-mcp-queue-ssot.bats`) | Guardrail-Test fällt bei Wiedereinführung aus |
-| 3 | CLI-Statusübergänge (`scripts/ticket.sh update-status`) vs. Timeline | **Teilweise widerlegt**: `scripts/vda/ticket/update-status.sh` emittiert seit T001444 automatisch Phase-Events für `in_progress`, `in_review`, `qa_review`, `done`, `blocked` (Zeilen 21-27). Für alle anderen Statuswerte (`backlog`, `plan_staged`, `triage`, `archived`, …) gibt es **keine** automatische Emission — diese Übergänge bleiben in `factory_phase_events`/`v_timeline` unsichtbar | kein Log/Warnung bei fehlender Emission — stiller Lückenpfad für die nicht gelisteten Statuswerte |
+| 2 | CLI-Statusübergänge (`scripts/ticket.sh update-status`) vs. Timeline | **Teilweise widerlegt**: `scripts/vda/ticket/update-status.sh` emittiert seit T001444 automatisch Phase-Events für `in_progress`, `in_review`, `qa_review`, `done`, `blocked` (Zeilen 21-27). Für alle anderen Statuswerte (`backlog`, `plan_staged`, `triage`, `archived`, …) gibt es **keine** automatische Emission — diese Übergänge bleiben in `tickets.factory_phase_events`/`v_timeline` unsichtbar | kein Log/Warnung bei fehlender Emission — stiller Lückenpfad für die nicht gelisteten Statuswerte |
 
 ### Zusätzlich beobachtet (NEU, nicht Teil der Epic-D-Liste D1-D9)
 
-- **Punkt 3 oben** ist präziser als "CLI-Übergänge erscheinen nicht in der Timeline" — tatsächlich deckt der Auto-Phase-Mechanismus fünf der am häufigsten genutzten Statuswerte ab. Die Lücke betrifft die übrigen Statuswerte (insbesondere `backlog`→`plan_staged` bzw. `triage`), die für den DORA-Funnel relevant sein können, aber nicht mit-instrumentiert sind.
+- **Punkt 2 oben** ist präziser als "CLI-Übergänge erscheinen nicht in der Timeline" — tatsächlich deckt der Auto-Phase-Mechanismus fünf der am häufigsten genutzten Statuswerte ab. Die Lücke betrifft die übrigen Statuswerte (insbesondere `backlog`→`plan_staged` bzw. `triage`), die für den DORA-Funnel relevant sein können, aber nicht mit-instrumentiert sind.
 
 ## Defekt-Referenz (T002430)
 
@@ -178,7 +126,6 @@ Frühere Bestätigung im Repo (`2026-08-01-epic-canvas-k5/design.md:44`): "OF2: 
 | Aspekt | IST | SOLL (aus Erhebung ableitbar) |
 |--------|-----|-------------------------------|
 | `ticket_plans`-Befüllung | 293 Zeilen (mentolder), aktiv genutzt | Epic-Text (D2) auf Basis dieser Erhebung aktualisieren |
-| factory-mcp-Implementierungen | 2 im Repo, 1 aktiv (Go, systemd) | `.mjs`-Datei entfernen oder klar als deprecated markieren, um das Bind-Kollisionsrisiko zu beseitigen |
 | CLI→Timeline-Kopplung | 5 von N Statuswerten automatisch instrumentiert | Vollständige oder bewusst dokumentierte Teilabdeckung (aktuell nicht dokumentiert) |
 | Brand-Trennung | Zwei physisch getrennte DBs (unterschiedliche Namespaces), überlappender ID-Raum | Bereits durch `brand`-Argument/`TICKET_NS` sauber adressiert — kein Soll-Delta, aber Fehlerquelle bei falscher Tool-Wahl (`mcp-postgres` statt `ticket-mcp`) |
 
@@ -187,3 +134,4 @@ Frühere Bestätigung im Repo (`2026-08-01-epic-canvas-k5/design.md:44`): "OF2: 
 | Datum | Ticket | Änderung |
 |-------|--------|----------|
 | 2026-08 | T002436 | Dieses Dokument: Visualisierung, Datenerhebung, Defekt-Neubewertung (D2) |
+| 2026-10 | T900728 | Factory-Teardown: Pipeline-/MCP-/Dispatcher-Abschnitte entfernt, umbenannt nach `k6-ticket-datenmodell.md` |

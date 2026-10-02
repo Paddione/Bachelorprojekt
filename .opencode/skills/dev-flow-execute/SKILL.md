@@ -31,7 +31,7 @@ Befehlsfolgen: [dev-flow-execute-phases](.agents/skills/references/dev-flow-exec
 > **Der Plan-Pfad kommt aus der Datenbank, nie aus einem Glob** — `ticket.sh stage-plan` setzt
 > `FACTORY-PLAN-REF branch=<branch> plan=<pfad>`.
 
-> **Worktree-Isolation ist Pflicht** [T001363]. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [factory-resume-contract](.agents/skills/references/factory-resume-contract.md).
+> **Worktree-Isolation ist Pflicht** [T001363]. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [resume-contract](.agents/skills/references/resume-contract.md).
 
 ### Schritt −1.1: Branch-Claim ist branch-scoped (T003102)
 

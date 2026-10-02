@@ -7,8 +7,7 @@
 # alphabetisch sortiert.
 
 groups:
-  factory-pipeline:
-    - software-factory
+  pipeline:
     - dev-flow-plan
     - agent-skills
     - health-goals

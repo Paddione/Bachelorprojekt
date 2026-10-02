@@ -1,6 +1,6 @@
 ---
 name: dev-flow-execute
-description: 'Use when on a feature/* or fix/* branch that has a staged plan in .agents/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.'
+description: 'Use when implementing, executing, or delivering a staged plan on a feature/* or fix/* branch in .agents/plans/. Invoke after dev-flow-plan has committed and pushed the plan to the branch. Triggers on dev-flow-execute, execute plan, implement plan, resume plan, execute tasks, deliver feature, run plan runner.'
 ---
 
 # dev-flow-execute — Plan-Ausführung & PR

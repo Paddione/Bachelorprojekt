@@ -1,6 +1,6 @@
 # Skills Overview
 
-54 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+52 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/*` sind pro-Skill-Symlinks in die SSOT, `.agents/skills` ist ein Symlink auf das SSOT-Verzeichnis (T900236, Guard in `tests/spec/agent-skills/skill-symlink-targets.bats`); Inhalte sind pro Harness projiziert (Tool-Namen, Referenz-Pfade). Alle neuen Skills gehören unter `.opencode/skills/`.
 
@@ -32,12 +32,13 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-chore`](dev-flow-chore/SKILL.md) | Maintenance with no behavior change (docs, dep bumps, config, CI) — executes and merges **inline**, no plan/execute handoff. |
 | [`dev-flow-execute`](dev-flow-execute/SKILL.md) | After [`dev-flow-plan`](dev-flow-plan/SKILL.md) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
 | [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
+| [`sdlc-autopilot`](sdlc-autopilot/SKILL.md) | Autonomous SDLC pipeline loop (opencode-only) — runs ticket-triage → dev-flow-plan → dev-flow-execute across backlog tickets. |
 
 > **SSOT (T900070):** `.opencode/skills/` ist die Single Source of Truth — alle Skills unten liegen hier kanonisch. `.claude/skills/*` und `.agents/skills/*` sind echte Spiegel mit pro-Harness-Projektion (Registry: `docs/agent-guide/registry/skills.yaml`, Engine: `scripts/agent-skills/project.mjs --check`). Nur `opencode-git-workflow` und `sdlc-autopilot` waren schon immer opencode-eigen.
 
 > **Nur opencode (T900064):** `.opencode/skills/sdlc-autopilot/` faehrt die Pipeline
 > ticket-triage -> dev-flow-plan -> dev-flow-execute selbststaendig ab, bis das Queue-Material erschoepft
-> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 54 oben
+> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 52 oben
 > (die misst `git ls-files -- .opencode/skills`), unterliegt aber denselben Konventionen.
 
 ---
@@ -59,6 +60,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | Skill | When to use |
 |---|---|
 | [`git-workflow`](git-workflow/SKILL.md) | **Immer beim Committen, Pushen oder PR-Erstellen** — vollständiger Lifecycle: pull-first, Conventional Commits + Ticket-ID, Freshness Guard, Commit-Verifikation (git-crypt), PR-Scope-Preflight, CI-Fix-Loop, Auto-Merge `--squash --delete-branch`, Worktree-Cleanup. |
+| [`opencode-git-workflow`](opencode-git-workflow/SKILL.md) | Pointer to the git-workflow SSOT for OpenCode sessions. |
 
 ---
 
@@ -128,9 +130,19 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 
 | Skill | When to use |
 |---|---|
+| [`code-graph-interpretation`](code-graph-interpretation/SKILL.md) | Inspect and interpret the K3 code graph, symbol resolution, blast radius, call paths, and index freshness. |
 | [`references`](references/SKILL.md) | Geteilte Querschnitts-Referenzen für dev-flow-Skills und Subagenten — Subagent-Provisionierung, Plan-Quality-Gates, MCP-Tool-Guide, Session-Koordination, CI-Fix-Loop, Deploy-Routing. |
 | [`agentic-resource-lookup`](agentic-resource-lookup/SKILL.md) | Externe MCP-Server und Agent-Plugins **bei Bedarf** finden (`scripts/agentic-lookup.mjs`), ohne sie zu installieren und ohne ihre Beschreibungen dauerhaft im Kontext zu tragen. Findet und protokolliert nur — die Kuratierungs-Entscheidung selbst gehört zu [`toolset-curate`](toolset-curate/SKILL.md). |
 | [`skill-craft`](skill-craft/SKILL.md) | Skill-Lebenszyklus-Einstieg — finden, installieren, erstellen und verbessern (Erstellen/Verbessern via `skill-creator`). |
+| [`skill-creator`](skill-creator/SKILL.md) | Create new skills, modify and iteratively improve existing skills, run evals, and optimize trigger descriptions. |
+
+---
+
+## Developer Environment & Editor
+
+| Skill | When to use |
+|---|---|
+| [`bachelorprojekt-vim`](bachelorprojekt-vim/SKILL.md) | Plan, create, configure, or troubleshoot the Bachelorprojekt Neovim setup, Lua plugins, keybindings, and editor integration. |
 
 ---
 
@@ -146,6 +158,7 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 | [`repo-hygiene`](repo-hygiene/SKILL.md) | **Repo-Zustand** — veraltete Branches und Worktrees, offene PRs mergen und schließen, GitHub-Issue-Intake. Nicht für Ticket-Inhalte — das ist [`ticket-ops`](ticket-ops/SKILL.md). |
 | [`system-audit`](system-audit/SKILL.md) | **Audit-Hub** — ein Einstiegspunkt für Audits aller Systeme (GitOps-Repo, Live-Cluster, Brand-Seiten, Repo-Zustand, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki). Delegiert an die Spezial-Skills, schließt deren Audit-Lücken per Checkliste; jeder Critical/Warning-Befund endet als Ticket mit angehängtem plan-Proposal im Backlog. Kein Merge-Gate. |
 | [`mishap-tracker`](mishap-tracker/SKILL.md) | **End-of-skill routine** — batches accumulated `MISHAP_LOG` entries from runbook skills into a single aggregate `tickets.tickets` row. Reuses an open "Mishap collection" ticket if one exists. |
+| [`freetoken-setup`](freetoken-setup/SKILL.md) | Retired FreeToken setup retained for historical reference (`archived: true`, invoke explicitly only). |
 | [`update-dependencies`](update-dependencies/SKILL.md) | Archivierte Dependency-Update-Routine (historisch — Pfade wie `website/`/pnpm sind überholt); läuft als biweekly Cloud-Routine. `archived: true`, Description sagt explizit "invoke explicitly only" (kein Auto-Trigger). |
 
 ---

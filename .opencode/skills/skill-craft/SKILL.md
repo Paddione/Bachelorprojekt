@@ -1,6 +1,6 @@
 ---
 name: skill-craft
-description: Unified skill lifecycle for this repo. Use to find, install, share, sync, audit, retire, create, or improve skills across agent tools.
+description: 'Single entry point for the full skill lifecycle in this repo. Use to find, install, audit, analyze, sync, create, or improve skills across agent tools (Claude Code, OpenCode, Antigravity, Codex). Triggers on skill-craft, audit skills, improve skills, analyze skills, find skill, install skill, skill lifecycle, npx skills.'
 ---
 
 # Skill Craft

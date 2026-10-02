@@ -4686,12 +4686,6 @@
     "kind": "shell"
   },
   {
-    "id": "openspec-workflow/plan-archive-git-add-coverage",
-    "file": "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
     "id": "openspec-workflow/propose-help",
     "file": "tests/spec/openspec-workflow/propose-help.bats",
     "category": "openspec-workflow",
@@ -4725,6 +4719,12 @@
     "id": "openspec-worktree-anchor",
     "file": "tests/spec/openspec-worktree-anchor.bats",
     "category": "openspec-worktree-anchor",
+    "kind": "shell"
+  },
+  {
+    "id": "os-retirement-prose",
+    "file": "tests/spec/os-retirement-prose.bats",
+    "category": "os-retirement-prose",
     "kind": "shell"
   },
   {

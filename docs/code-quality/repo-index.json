@@ -3908,7 +3908,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 835,
+      "file_count": 834,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4300,7 +4300,6 @@
         "scripts/llm-proxy/gpu-lock.test.mjs",
         "scripts/llm-proxy/listeners.mjs",
         "scripts/llm-proxy/listeners.test.mjs",
-        "scripts/llm-proxy/loadout-pin.test.mjs",
         "scripts/llm-proxy/loadouts.mjs",
         "scripts/llm-proxy/loadouts.test.mjs",
         "scripts/llm-proxy/local-only.test.mjs",

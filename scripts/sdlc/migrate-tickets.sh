@@ -139,14 +139,6 @@ _db_password() {
     -o jsonpath='{.data.WEBSITE_DB_PASSWORD}' 2>/dev/null | base64 -d
 }
 
-_say_or_run() {
-  if $DRY_RUN; then
-    echo "[dry-run] $*"
-    return 0
-  fi
-  "$@"
-}
-
 # --- preflight ---------------------------------------------------------------
 cmd_preflight() {
   local rc=0

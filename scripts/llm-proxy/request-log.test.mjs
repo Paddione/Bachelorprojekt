@@ -6,7 +6,7 @@
 // zurueckliefert — nicht, welche Zeichenketten im Quelltext stehen.
 //
 // Der Schreibweg wird injiziert, damit die Tests ohne Cluster laufen: in
-// Produktion ist er `kubectl exec -i <pod> -- psql` (factory_psql), hier ein
+// Produktion ist er `kubectl exec -i <pod> -- psql` (WS_PSQL_SCRIPT), hier ein
 // Sammler. Das ist der Grund, warum das Modul als Fabrik gebaut ist.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'

@@ -3,7 +3,7 @@
 
 PROXY_MOD="scripts/llm-proxy/server.mjs"
 # T900399: entfernt. `route-provider.sh` (Slot-Claim, tier-Pin, Phase-Zweig) lag im
-# Factory-Baum `scripts/factory/` und ist mit dem Software-Factory-Teardown entfallen.
+# Factory-Baum und ist mit dem Teardown entfallen.
 # Ebenso die drei route-provider-Tests weiter unten (`factory-implement`-Gateway-Pin,
 # `tier=opus` aus der Registry, `slotId == null`). Der Provider-Loadout dieser Spec
 # (`loadouts.json`, `PROXY_MOD=scripts/llm-proxy/server.mjs`) bleibt unberuehrt.

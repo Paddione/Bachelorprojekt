@@ -13,12 +13,13 @@
 //    verliert der Proxy Mitschnitte und sonst nichts.
 //
 // 2. Buendelung. Der einzige Weg zur tickets-DB ist
-//    `kubectl exec -i <pod> -- psql` (factory_psql in scripts/factory/lib.sh) —
+//    `kubectl exec -i <pod> -- psql` (WS_PSQL_SCRIPT in ws-psql.mjs) —
 //    ein Bash- UND ein kubectl-Spawn pro Aufruf. backends.mjs ertraegt das, weil
 //    es alle 30 s einmal die Registry liest. Ein Insert je Dispatch legte einen
 //    Prozessstart in den Anfragepfad; deshalb sammelt ein Timer und schreibt N
 //    Zeilen mit EINEM Aufruf.
 import { execFile } from 'node:child_process'
+import { WS_PSQL_SCRIPT } from './ws-psql.mjs'
 
 /** Obergrenze je Body-Feld. Darueber wird gekappt und die Zeile markiert. */
 export const LIMIT_BYTES = 256 * 1024
@@ -97,12 +98,11 @@ export function buildInsert(rows) {
     + `FROM json_array_elements($${tag}$${json}$${tag}$::json) AS e;`
 }
 
-/** Schreibweg in Produktion: ein factory_psql-Aufruf je Stapel. */
+/** Schreibweg in Produktion: ein psql-Aufruf je Stapel. */
 function psqlWriter(rows) {
   const sql = buildInsert(rows)
   return new Promise((resolve, reject) => {
-    const script = 'source scripts/factory/lib.sh; factory_resolve; factory_psql'
-    const child = execFile('bash', ['-c', script], {
+    const child = execFile('bash', ['-c', WS_PSQL_SCRIPT], {
       env: { ...process.env, BRAND: process.env.BRAND || 'mentolder' },
       maxBuffer: 1024 * 1024,
     }, (err) => (err ? reject(err) : resolve()))

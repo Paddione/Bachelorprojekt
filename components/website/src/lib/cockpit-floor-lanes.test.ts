@@ -3,7 +3,7 @@ import {
   mapShippedRow,
   mapAwaitingRow,
   isAwaitingDeployLaneVisible,
-} from './factory-floor-lanes';
+} from './cockpit-floor-lanes';
 
 describe('factory-floor-lanes', () => {
   it('mapShippedRow normalises done_at to ISO and keeps prNumber', () => {

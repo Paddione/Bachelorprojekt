@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/pipeline-interface.bats
 
-STORE="components/website/src/lib/stores/factory-floor-store.ts"
+STORE="components/website/src/lib/stores/cockpit-floor-store.ts"
 FLOOR="components/website/src/components/sdlc/CockpitFloor.svelte"
 CTRL="components/website/src/components/sdlc/cockpit/ControlPanel.svelte"
 STRIP="components/website/src/components/sdlc/cockpit/StatusStrip.svelte"

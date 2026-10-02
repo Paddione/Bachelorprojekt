@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { FloorPayload, TicketDetail, InjectionKind } from '../../lib/factory-floor-types.ts';
-  import { relTime, prUrl } from '../../lib/sdlc/factory-floor-client.ts';
+  import type { FloorPayload, TicketDetail, InjectionKind } from '../../lib/cockpit-floor-types.ts';
+  import { relTime, prUrl } from '../../lib/sdlc/cockpit-floor-client.ts';
   import { onLeitstandSelectionChange, pushLeitstandSelection } from '../../lib/sdlc/leitstand-url.ts';
   import type { LeitstandSelection } from '../../lib/sdlc/leitstand-url.ts';
-  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store.ts';
+  import { floorStore, acquireFloor } from '../../lib/stores/cockpit-floor-store.ts';
   import CockpitFloor from '../sdlc/CockpitFloor.svelte';
   import PlanningOffice from '../PlanningOffice.svelte';
   import DetailPanel from '../sdlc/cockpit/DetailPanel.svelte';

@@ -1,5 +1,5 @@
 import { PIPELINE_LANES } from '../../../lib/tickets/pipeline-order.ts';
-import { PHASE_ORDER } from '../../../lib/factory-floor-types.ts';
+import { PHASE_ORDER } from '../../../lib/cockpit-floor-types.ts';
 
 const linearLanes = PIPELINE_LANES.filter(l => !l.side && l.key !== 'planning');
 

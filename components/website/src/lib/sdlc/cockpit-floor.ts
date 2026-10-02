@@ -4,9 +4,9 @@
 // factory-metrics.ts is intentionally left untouched; this is a separate module.
 import { pool } from '../db-pool';
 import { officeCount } from '../planning-office.ts';
-import { mapShippedRow, mapAwaitingRow, isAwaitingDeployLaneVisible } from '../factory-floor-lanes.ts';
-import type { ShippedItem, AwaitingDeployItem } from '../factory-floor-lanes.ts';
-export type { ShippedItem, AwaitingDeployItem } from '../factory-floor-lanes.ts';
+import { mapShippedRow, mapAwaitingRow, isAwaitingDeployLaneVisible } from '../cockpit-floor-lanes.ts';
+import type { ShippedItem, AwaitingDeployItem } from '../cockpit-floor-lanes.ts';
+export type { ShippedItem, AwaitingDeployItem } from '../cockpit-floor-lanes.ts';
 
 
 import {
@@ -38,7 +38,7 @@ import {
   parsePrNumber,
   parsePlanRef,
   mapInjection
-} from './factory-floor-filters';
+} from './cockpit-floor-filters';
 
 export {
   PHASE_ORDER,

@@ -5,7 +5,7 @@ import {
   writeFactoryDefault,
   FactoryProxyOfflineError,
   FactoryWriteConflictError,
-} from '../../../../lib/sdlc/llm-proxy-factory';
+} from '../../../../lib/sdlc/llm-proxy-default';
 
 export const prerender = false;
 

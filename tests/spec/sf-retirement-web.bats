@@ -11,6 +11,9 @@ _offenders() {
   local f
   while IFS= read -r f; do
     [[ -n "$f" && -e "$REPO/$f" ]] || continue
+    # T900727: applied migrations are immutable history (never edited).
+    # The cockpit notify trigger names tickets.factory_phase_events.
+    [[ "$f" == */migrations/*.sql || "$f" == */db/migrations/* ]] && continue
     { [[ "$f" == *[Ff]actory* ]] && echo "$f"; } || { grep -vE 'FACTORY-PLAN-REF|tickets\.(v_)?factory_|factory_schema_migrations' "$REPO/$f" | grep -qiE 'software[ -]?factory|factory-runner|factory[-_ ](floor|queue|runs?|tick|control|budget|pipeline|slots?|worker|eval|post-merge|mcp|cockpit|dispatch|runner|daemon|state)|factoryfloor|/factory/|factory_[a-z]+|factory:' && echo "$f"; }
   done < "$LIST"
   return 0

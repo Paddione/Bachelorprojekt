@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SSE_RECONNECT_MS, STUCK_MIN, STREAM_POLL_MS, STREAM_HEARTBEAT_MS } from './factory-constants';
+import { SSE_RECONNECT_MS, STUCK_MIN, STREAM_POLL_MS, STREAM_HEARTBEAT_MS } from './cockpit-constants';
 
 describe('factory-constants', () => {
   it('exposes the streaming / polling intervals in milliseconds', () => {

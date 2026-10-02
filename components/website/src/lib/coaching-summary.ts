@@ -16,7 +16,7 @@
 import type { Pool } from 'pg';
 import { getActiveProvider, getKiProviderById } from './coaching-ki-config-db.ts';
 import { getSession, getSessionStepsContent, updateSessionSummary, type SessionStepContent } from './coaching-session-db';
-import { createSessionAgent } from './session-agent-factory';
+import { createSessionAgent } from './session-agent-provider';
 
 export const SUMMARY_SYSTEM_PROMPT = [
   'Du bist ein Coaching-Dokumentationsassistent. Fasse die folgende Coaching-Session',

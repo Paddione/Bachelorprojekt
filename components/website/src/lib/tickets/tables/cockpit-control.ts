@@ -1,4 +1,4 @@
-// components/website/src/lib/tickets/tables/factory-control.ts
+// components/website/src/lib/tickets/tables/cockpit-control.ts
 // DDL for tickets.factory_phase_events and tickets.ticket_injections.
 // Extracted from tickets-db.ts (G-RH01 Batch 2 — T001155).
 //

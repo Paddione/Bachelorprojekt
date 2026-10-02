@@ -70,8 +70,8 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   [[ "$output" -ge 1 ]]
 }
 
-@test "SCS-4: factory-floor.ts TicketDetail has suggested_files field" {
-  run grep -c 'suggested_files' "$PROJECT_DIR/components/website/src/lib/sdlc/factory-floor.ts"
+@test "SCS-4: cockpit-floor.ts TicketDetail has suggested_files field" {
+  run grep -c 'suggested_files' "$PROJECT_DIR/components/website/src/lib/sdlc/cockpit-floor.ts"
   [[ "$output" -ge 2 ]]
 }
 

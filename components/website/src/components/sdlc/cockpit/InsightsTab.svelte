@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { getSharedMetrics } from '../../../lib/stores/factory-floor-store';
-  import { deriveMetrics, formatCycleTime } from '../../../lib/sdlc/factory-metrics-derive';
-  import type { DerivedMetrics } from '../../../lib/sdlc/factory-metrics-derive';
+  import { getSharedMetrics } from '../../../lib/stores/cockpit-floor-store';
+  import { deriveMetrics, formatCycleTime } from '../../../lib/sdlc/cockpit-metrics-derive';
+  import type { DerivedMetrics } from '../../../lib/sdlc/cockpit-metrics-derive';
 
   const WINDOW_DAYS = 7;
 

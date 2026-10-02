@@ -6,7 +6,7 @@ import {
   type Phase,
   type RailSection,
 } from '../leitstand-metrics';
-import { formatCycleTime } from '../factory-metrics-derive';
+import { formatCycleTime } from '../cockpit-metrics-derive';
 
 const ids = (sections: RailSection[]): string[] => sections.map((s) => s.id);
 

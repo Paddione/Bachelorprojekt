@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { subscribe } from '../../../../lib/sdlc/cockpit-listen-hub';
-import { STREAM_HEARTBEAT_MS } from '../../../../lib/factory-constants.ts';
+import { STREAM_HEARTBEAT_MS } from '../../../../lib/cockpit-constants.ts';
 
 export const prerender = false;
 

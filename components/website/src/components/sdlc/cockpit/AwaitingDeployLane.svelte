@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { AwaitingDeployItem } from '../../../lib/factory-floor-types.ts';
-  import { MOBILE_COL_INDEX } from '../FactoryFloor.svelte';
+  import type { AwaitingDeployItem } from '../../../lib/cockpit-floor-types.ts';
+  import { MOBILE_COL_INDEX } from '../CockpitFloor.svelte';
   let { items = [], mobileColIndex }: { items: AwaitingDeployItem[]; mobileColIndex: number } = $props();
 
   let deploying = $state<string | null>(null);

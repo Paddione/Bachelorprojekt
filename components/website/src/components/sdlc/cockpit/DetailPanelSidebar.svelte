@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { TicketDetail, Phase, InjectionKind } from '../../../lib/factory-floor-types.ts';
-  import { phaseDurations } from '../../../lib/sdlc/factory-floor-client.ts';
-  import type { CiCheck, CiRollup } from '../../../lib/sdlc/factory-ci.ts';
+  import type { TicketDetail, Phase, InjectionKind } from '../../../lib/cockpit-floor-types.ts';
+  import { phaseDurations } from '../../../lib/sdlc/cockpit-floor-client.ts';
+  import type { CiCheck, CiRollup } from '../../../lib/sdlc/cockpit-ci.ts';
   import SuggestedFiles from './SuggestedFiles.svelte';
 
   const PHASE_ORDER: Phase[] = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'];

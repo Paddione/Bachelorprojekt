@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { phaseDurations } from './factory-floor-client';
+import { phaseDurations } from './cockpit-floor-client';
 
 describe('phaseDurations', () => {
   it('returns an empty array for no events', () => {

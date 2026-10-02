@@ -77,8 +77,8 @@ import { getHall, getLoadingDock, getShipped, getMetrics, getControl,
          insertInjection, getInjections, consumeInjections, getTicketDetail,
          getStaged, releaseToBacklog, getProviderHealth, getAwaitingDeploy,
          phaseProgress, STATUS_BUCKETS, ALL_TICKET_STATUSES,
-         buildAttention, phaseDurations } from './factory-floor';
-import type { HallItem, ProviderStatus, PhaseEventRow } from './factory-floor';
+         buildAttention, phaseDurations } from './cockpit-floor';
+import type { HallItem, ProviderStatus, PhaseEventRow } from './cockpit-floor';
 import { TICKET_STATUSES } from '../tickets/status';
 import { aggregateCheckRuns } from './github-ci';
 
@@ -136,7 +136,7 @@ describe('factory-floor DAL', () => {
   });
 
   it('getTicketDetail returns the full phase timeline + breadcrumbs + PR for a ticket', async () => {
-    const { getTicketDetail } = await import('./factory-floor');
+    const { getTicketDetail } = await import('./cockpit-floor');
     const detail = await getTicketDetail('T000459');
     expect(detail).not.toBeNull();
     expect(detail!.extId).toBe('T000459');
@@ -147,7 +147,7 @@ describe('factory-floor DAL', () => {
   });
 
   it('getTicketDetail returns null for an unknown ticket', async () => {
-    const { getTicketDetail } = await import('./factory-floor');
+    const { getTicketDetail } = await import('./cockpit-floor');
     expect(await getTicketDetail('T999999')).toBeNull();
   });
 

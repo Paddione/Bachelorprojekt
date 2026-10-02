@@ -1,19 +1,4 @@
-// components/website/src/lib/factory-floor-types.ts
-// Type-only (and pure-constant) re-exports from factory-floor.ts. The runtime
-// module pulls in `pg` + `dns` via website-db (server-only Node built-ins);
-// Svelte/Astro files that only need the *types* and the client-safe `PHASE_ORDER`
-// constant must import them from here to keep the Vite client-side resolver
-// from walking factory-floor.ts and emitting "externalized for browser"
-// warnings — and worse, from accidentally bundling server code (including the
-// SESSIONS_DATABASE_URL connection string) into the client bundle when a
-// refactor swaps `import type` for a runtime import.
-//
-// Runtime functions (getFloor, getTicketDetail, getControl, …) stay in
-// factory-floor.ts — this file intentionally has zero server-side imports.
-
-// Re-exported from factory-floor-lanes (pure module, no DB).
-import type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
-export type { ShippedItem, AwaitingDeployItem };
+import type { ShippedItem, AwaitingDeployItem } from '../cockpit-floor-lanes.ts';
 
 export const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
 export type Phase = (typeof PHASE_ORDER)[number];
@@ -26,6 +11,7 @@ export function phaseProgress(phase: Phase | null, state: PhaseState | null): Ph
   const idx = phase ? PHASE_ORDER.indexOf(phase) : -1;
   return PHASE_ORDER.map((p, i): PhaseProgressSegment => {
     if (idx < 0 || i < idx) return { phase: p, state: idx < 0 ? 'pending' : 'done' };
+    if (i > idx) return { phase: p, state: 'pending' };
     if (state === 'blocked') return { phase: p, state: 'blocked' };
     if (state === 'done') return { phase: p, state: 'done' };
     return { phase: p, state: 'active' };
@@ -37,6 +23,31 @@ export interface AttentionPayload {
   stuck:   { extId: string; minutes: number }[];
   cooldowns: { provider: string; cooldownUntil: string | null }[];
   isEmpty: boolean;
+}
+
+export function buildAttention(
+  hall: HallItem[], providers: ProviderStatus[], stuckMin = 15,
+): AttentionPayload {
+  const blocked = hall
+    .filter(h => h.phaseState === 'blocked')
+    .map(h => ({ extId: h.extId, reason: h.blockReason ?? 'blockiert' }));
+  const stuck = hall
+    .filter(h => h.phaseState !== 'blocked' && h.phaseSince &&
+      (Date.now() - new Date(h.phaseSince).getTime()) / 60_000 >= stuckMin)
+    .map(h => ({ extId: h.extId, minutes: Math.round((Date.now() - new Date(h.phaseSince!).getTime()) / 60_000) }));
+  const cooldowns = providers
+    .filter(p => p.status === 'cooldown')
+    .map(p => ({ provider: p.provider, cooldownUntil: p.cooldownUntil }));
+  return { blocked, stuck, cooldowns, isEmpty: !blocked.length && !stuck.length && !cooldowns.length };
+}
+
+export interface TimelineEntry extends PhaseEventRow { durationSec: number | null; }
+export function phaseDurations(events: PhaseEventRow[]): TimelineEntry[] {
+  const asc = [...events].sort((a, b) => +new Date(a.at) - +new Date(b.at));
+  return asc.map((e, i) => ({
+    ...e,
+    durationSec: i === 0 ? null : Math.round((+new Date(e.at) - +new Date(asc[i - 1].at)) / 1000),
+  }));
 }
 
 export interface ControlSnapshot {
@@ -101,13 +112,17 @@ export interface InjectionRow {
   dataUrl: string | null; ncPath: string | null; filename: string | null; mimeType: string | null;
   injectedBy: string; injectedAt: string; consumedAt: string | null;
 }
+export interface InjectInput {
+  extId: string; kind: InjectionKind; phase?: Phase | null;
+  title?: string | null; content?: string | null; targetFiles?: string[] | null;
+  dataUrl?: string | null; ncPath?: string | null; filename?: string | null; mimeType?: string | null;
+  injectedBy: string;
+}
 export interface SuggestedFile {
   path: string;
   score: number;
   snippet: string;
 }
-export interface ProviderConfigSummary { provider: string; model_id: string; }
-
 export interface TicketDetail {
   extId: string; title: string; status: string; priority: string;
   retryCount: number; prNumber: number | null;
@@ -116,4 +131,31 @@ export interface TicketDetail {
   breadcrumbs: Breadcrumb[];
   injections: InjectionRow[];
   suggested_files?: SuggestedFile[];
+}
+
+/** Extract a PR number from a phase-event detail string ("PR #1512 · …"); null on miss. */
+export function parsePrNumber(detail: string | null): number | null {
+  if (!detail) return null;
+  const m = /PR #(\d+)/.exec(detail);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+/** Parse "FACTORY-PLAN-REF branch=<b> plan=<p>" -> { branch, planPath }; nulls on miss. */
+export function parsePlanRef(body: string | null): { branch: string | null; planPath: string | null } {
+  if (!body) return { branch: null, planPath: null };
+  const branch = /\bbranch=(\S+)/.exec(body)?.[1] ?? null;
+  const planPath = /\bplan=(\S+)/.exec(body)?.[1] ?? null;
+  return { branch, planPath };
+}
+
+export function mapInjection(r: Record<string, unknown>): InjectionRow {
+  return {
+    id: String(r.id), phase: (r.phase as Phase | null) ?? null, kind: r.kind as InjectionKind,
+    title: (r.title as string | null) ?? null, content: (r.content as string | null) ?? null,
+    targetFiles: (r.target_files as string[] | null) ?? null,
+    dataUrl: (r.data_url as string | null) ?? null, ncPath: (r.nc_path as string | null) ?? null,
+    filename: (r.filename as string | null) ?? null, mimeType: (r.mime_type as string | null) ?? null,
+    injectedBy: r.injected_by as string, injectedAt: new Date(r.injected_at as string).toISOString(),
+    consumedAt: r.consumed_at ? new Date(r.consumed_at as string).toISOString() : null,
+  };
 }

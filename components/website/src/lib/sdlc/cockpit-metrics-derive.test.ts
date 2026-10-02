@@ -1,8 +1,8 @@
 // [T003459] Rechenregeln der Insights-Kennzahlen.
 // Prüfmodus: Rückgabewerte der Funktionen, keine Quelltext-Muster.
 import { describe, it, expect } from 'vitest';
-import { deriveMetrics, windowRows, formatCycleTime } from './factory-metrics-derive';
-import type { FactoryMetricRow } from '../stores/factory-floor-store';
+import { deriveMetrics, windowRows, formatCycleTime } from './cockpit-metrics-derive';
+import type { FactoryMetricRow } from '../stores/cockpit-floor-store';
 
 function row(day: string, shipped: number, cycle: number | null, esc = 0): FactoryMetricRow {
   return { day, features_shipped: shipped, avg_cycle_time_h: cycle, escalations: esc, total_features: shipped };

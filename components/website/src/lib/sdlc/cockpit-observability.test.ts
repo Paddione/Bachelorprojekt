@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { queryRange, buildPromQL } from './factory-observability';
+import { queryRange, buildPromQL } from './cockpit-observability';
 
 afterEach(() => vi.restoreAllMocks());
 

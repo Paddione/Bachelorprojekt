@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { AttentionPayload } from '../../../lib/factory-floor-types.ts';
-  import { floorStore, acquireFloor } from '../../../lib/stores/factory-floor-store.ts';
+  import type { AttentionPayload } from '../../../lib/cockpit-floor-types.ts';
+  import { floorStore, acquireFloor } from '../../../lib/stores/cockpit-floor-store.ts';
 
   const EMPTY_ATTENTION: AttentionPayload = { blocked: [], stuck: [], cooldowns: [], isEmpty: true };
 

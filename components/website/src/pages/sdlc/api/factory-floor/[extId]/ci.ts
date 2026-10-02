@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getTicketDetail } from '../../../../../lib/sdlc/factory-floor';
-import { fetchCiChecks } from '../../../../../lib/sdlc/factory-ci';
+import { getTicketDetail } from '../../../../../lib/sdlc/cockpit-floor';
+import { fetchCiChecks } from '../../../../../lib/sdlc/cockpit-ci';
 
 export const prerender = false;
 

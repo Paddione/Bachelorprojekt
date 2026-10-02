@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import FactoryKpiCard from './FactoryKpiCard.svelte';
-  import { ACCENT, PHASE_COLOR_BY_NAME } from './factory-chart-colors';
+  import CockpitKpiCard from './CockpitKpiCard.svelte';
+  import { ACCENT, PHASE_COLOR_BY_NAME } from './cockpit-chart-colors';
 
   interface PromResult {
     metric: Record<string, string>;
@@ -86,10 +86,10 @@
   <div class="obs-dashboard">
     <!-- KPI Row -->
     <div class="kpi-row">
-      <FactoryKpiCard icon={KPI_COST} value={`$${sumValues(data.cost?.data?.result ?? []).toFixed(2)}`} label="Kosten (7d)" />
-      <FactoryKpiCard icon={KPI_TOKENS} value={sumValues(data.tokens?.data?.result ?? []).toLocaleString()} label="Tokens (7d)" />
-      <FactoryKpiCard icon={KPI_PHASES} value={Object.keys(phaseDurationTotals(data.phaseDuration)).length} label="Phasen aktiv" />
-      <FactoryKpiCard icon={KPI_TICKS} value={data.timeline.length} label="Tick-Events" />
+      <CockpitKpiCard icon={KPI_COST} value={`$${sumValues(data.cost?.data?.result ?? []).toFixed(2)}`} label="Kosten (7d)" />
+      <CockpitKpiCard icon={KPI_TOKENS} value={sumValues(data.tokens?.data?.result ?? []).toLocaleString()} label="Tokens (7d)" />
+      <CockpitKpiCard icon={KPI_PHASES} value={Object.keys(phaseDurationTotals(data.phaseDuration)).length} label="Phasen aktiv" />
+      <CockpitKpiCard icon={KPI_TICKS} value={data.timeline.length} label="Tick-Events" />
     </div>
 
     <!-- Phase Duration Breakdown -->

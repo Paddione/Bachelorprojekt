@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createSessionAgent } from './session-agent-factory';
+import { createSessionAgent } from './session-agent-provider';
 
 // These tests just need to exercise the dispatch in createSessionAgent — we
 // don't care about the agents' actual behaviour, just that the right class is

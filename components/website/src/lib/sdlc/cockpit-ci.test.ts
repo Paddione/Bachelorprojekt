@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeChecks, rollupConclusion } from './factory-ci';
+import { normalizeChecks, rollupConclusion } from './cockpit-ci';
 
 describe('factory-ci normalization', () => {
   it('normalizes GitHub check-run objects', () => {

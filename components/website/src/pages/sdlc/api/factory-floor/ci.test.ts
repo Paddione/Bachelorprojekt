@@ -5,9 +5,9 @@ vi.mock('../../../../lib/auth', () => ({
   isAdmin: vi.fn((s: { groups?: string[] } | null | undefined) => s?.groups?.includes('admins') ?? false),
 }));
 const getTicketDetail = vi.fn();
-vi.mock('../../../../lib/sdlc/factory-floor', () => ({ getTicketDetail: (...a: unknown[]) => getTicketDetail(...a) }));
+vi.mock('../../../../lib/sdlc/cockpit-floor', () => ({ getTicketDetail: (...a: unknown[]) => getTicketDetail(...a) }));
 const fetchCiChecks = vi.fn();
-vi.mock('../../../../lib/sdlc/factory-ci', () => ({ fetchCiChecks: (...a: unknown[]) => fetchCiChecks(...a) }));
+vi.mock('../../../../lib/sdlc/cockpit-ci', () => ({ fetchCiChecks: (...a: unknown[]) => fetchCiChecks(...a) }));
 
 import { GET } from './[extId]/ci';
 const req = (c: string | null) => new Request('http://x/sdlc/api/factory-floor/T1/ci', { headers: c ? { cookie: c } : {} });

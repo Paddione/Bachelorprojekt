@@ -1,4 +1,4 @@
-// components/website/src/lib/sdlc/llm-proxy-factory.ts
+// components/website/src/lib/sdlc/llm-proxy-default.ts
 // Durchreichschicht zum Factory-Default des llm-proxy (GET/PUT /admin/factory).
 // Der Default lebt in scripts/llm/loadouts.json (factory.model) und wird vom
 // Proxy mit mtimeMs gegen konkurrierende Schreibvorgänge geschützt — dieser

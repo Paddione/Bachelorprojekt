@@ -5,7 +5,7 @@ import {
   getRunBudgetByTicket,
   setBudgetLimit,
   getRecentRuns
-} from '../../../lib/sdlc/factory-budget';
+} from '../../../lib/sdlc/cockpit-budget';
 
 export const prerender = false;
 

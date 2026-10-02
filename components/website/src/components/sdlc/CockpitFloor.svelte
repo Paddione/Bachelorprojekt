@@ -1,6 +1,6 @@
 <script module lang="ts">
-  import { PHASE_ORDER } from '../../lib/factory-floor-types.ts';
-  import type { Phase } from '../../lib/factory-floor-types.ts';
+  import { PHASE_ORDER } from '../../lib/cockpit-floor-types.ts';
+  import type { Phase } from '../../lib/cockpit-floor-types.ts';
   import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
   export { MOBILE_COL_INDEX }; // eslint-disable-line no-import-assign
   export const MOBILE_COL_COUNT = 11;
@@ -10,8 +10,8 @@
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { FloorPayload, TicketDetail, InjectionKind } from '../../lib/factory-floor-types.ts';
-  import { floorStore, acquireFloor, seedFloor, ingestFloorPayload } from '../../lib/stores/factory-floor-store.ts';
+  import type { FloorPayload, TicketDetail, InjectionKind } from '../../lib/cockpit-floor-types.ts';
+  import { floorStore, acquireFloor, seedFloor, ingestFloorPayload } from '../../lib/stores/cockpit-floor-store.ts';
 
   import QaChip from '../QaChip.svelte';
   import QaModal from '../QaModal.svelte';
@@ -20,11 +20,11 @@
   import StagedColumn from './factory/StagedColumn.svelte';
   import ShippedColumn from './factory/ShippedColumn.svelte';
   import AwaitingDeployLane from './factory/AwaitingDeployLane.svelte';
-  import FactoryFloorLane from './FactoryFloorLane.svelte';
+  import CockpitFloorLane from './CockpitFloorLane.svelte';
   import FloorControlCard from './factory/FloorControlCard.svelte';
   import type { QaItem } from '../../lib/qa-dal.ts';
-  import type { CiRollup } from '../../lib/sdlc/factory-ci.ts';
-  import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../../lib/sdlc/factory-floor-client.ts';
+  import type { CiRollup } from '../../lib/sdlc/cockpit-ci.ts';
+  import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../../lib/sdlc/cockpit-floor-client.ts';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
@@ -152,7 +152,7 @@
     return () => { unsub(); release(); };
   });
 </script>
-<div class="text-light" data-testid="factory-floor">
+<div class="text-light" data-testid="cockpit-floor">
   {#if !data}
     <p class="text-muted">Fabrikhalle lädt…</p>
   {:else}
@@ -208,7 +208,7 @@
         {planUrl}
         {ticketUrl}
       />
-      <FactoryFloorLane
+      <CockpitFloorLane
         hall={data.hall}
         loadingDock={data.loadingDock}
         {mobileColIndex}

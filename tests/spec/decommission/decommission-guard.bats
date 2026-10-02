@@ -219,7 +219,7 @@ setup() {
 @test "decommission: the website schema init no longer recreates factory_control" {
   # The DROP migration is only durable if no code path re-creates the table.
   run grep -q 'CREATE TABLE IF NOT EXISTS tickets.factory_control' \
-    "$REPO/components/website/src/lib/tickets/tables/factory-control.ts"
+    "$REPO/components/website/src/lib/tickets/tables/cockpit-control.ts"
   [ "$status" -ne 0 ] || {
     echo "website schema init still creates tickets.factory_control (undoes the DROP migration)" >&2
     false

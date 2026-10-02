@@ -8,7 +8,7 @@ vi.mock('../../../../lib/auth', () => ({
   isAdmin: vi.fn((s: { groups?: string[] } | null | undefined) => s?.groups?.includes('admins') ?? false),
 }));
 const insertInjection = vi.fn(async (..._args: unknown[]) => ({ id: 'x' }));
-vi.mock('../../../../lib/sdlc/factory-floor', () => ({ insertInjection: (...a: unknown[]) => insertInjection(...a) }));
+vi.mock('../../../../lib/sdlc/cockpit-floor', () => ({ insertInjection: (...a: unknown[]) => insertInjection(...a) }));
 
 import { POST } from './[extId]/inject';
 

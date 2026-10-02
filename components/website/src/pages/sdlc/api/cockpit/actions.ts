@@ -6,7 +6,7 @@ import {
   stageTicketPlan, releaseTicketHold, closeTicket, isValidTicketId,
   BrandMismatchError, CycleError, NotFoundError,
 } from '../../../../lib/sdlc/tickets/cockpit-db';
-import { writeControl } from '../../../../lib/sdlc/factory-floor';
+import { writeControl } from '../../../../lib/sdlc/cockpit-floor';
 import { createHmac } from 'node:crypto';
 import type { BatchMutation } from '../../../../lib/tickets/cockpit-types.ts';
 

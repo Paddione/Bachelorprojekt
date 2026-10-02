@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { Phase, HallItem, ProviderConfigSummary } from '../../../lib/factory-floor-types.ts';
+  import type { Phase, HallItem, ProviderConfigSummary } from '../../../lib/cockpit-floor-types.ts';
   import StationColumn from './StationColumn.svelte';
-  import { floorStore, acquireFloor } from '../../../lib/stores/factory-floor-store.ts';
+  import { floorStore, acquireFloor } from '../../../lib/stores/cockpit-floor-store.ts';
   import { onLeitstandSelectionChange, parseLeitstandQuery, pushLeitstandSelection } from '../../../lib/sdlc/leitstand-url.ts';
 
   let {

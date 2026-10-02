@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { FactoryTicket } from './types';
-  import type { HallItem } from '../../../lib/factory-floor-types.ts';
-  import { ciIcon } from '../../../lib/sdlc/factory-floor-client.ts';
+  import type { HallItem } from '../../../lib/cockpit-floor-types.ts';
+  import { ciIcon } from '../../../lib/sdlc/cockpit-floor-client.ts';
 
   let {
     ticket,

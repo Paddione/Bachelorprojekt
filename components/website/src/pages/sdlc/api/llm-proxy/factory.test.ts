@@ -11,7 +11,7 @@ vi.mock('../../../../lib/auth', () => ({
 
 const readFactoryDefault = vi.fn();
 const writeFactoryDefault = vi.fn();
-vi.mock('../../../../lib/sdlc/llm-proxy-factory', () => ({
+vi.mock('../../../../lib/sdlc/llm-proxy-default', () => ({
   FactoryProxyOfflineError: class FactoryProxyOfflineError extends Error {
     constructor() { super('llm-proxy nicht erreichbar'); this.name = 'FactoryProxyOfflineError'; }
   },
@@ -102,7 +102,7 @@ describe('PUT /sdlc/api/llm-proxy/factory', () => {
   });
 
   it('übersetzt einen Konflikt des Proxy in einen eigenen 409 mit Fehlerschlüssel', async () => {
-    const { FactoryWriteConflictError } = await import('../../../../lib/sdlc/llm-proxy-factory');
+    const { FactoryWriteConflictError } = await import('../../../../lib/sdlc/llm-proxy-default');
     writeFactoryDefault.mockRejectedValueOnce(new FactoryWriteConflictError());
     const res = await PUT(call('admin', {
       method: 'PUT',

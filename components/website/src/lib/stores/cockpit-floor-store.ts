@@ -1,6 +1,6 @@
 import { writable, get, type Readable } from 'svelte/store';
-import type { FloorPayload } from '../factory-floor-types';
-import { SSE_RECONNECT_MS } from '../factory-constants';
+import type { FloorPayload } from '../cockpit-floor-types';
+import { SSE_RECONNECT_MS } from '../cockpit-constants';
 
 export interface FloorState { payload: FloorPayload | null; stale: boolean; }
 const store = writable<FloorState>({ payload: null, stale: false });

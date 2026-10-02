@@ -1,7 +1,7 @@
 // [T003459] Ableitung der Insights-Kennzahlen aus den Tageszeilen der View
 // `tickets.v_factory_metrics`. Bewusst frei von DOM und fetch, damit die
 // Rechenregeln einzeln pruefbar sind — die Komponenten reichen nur durch.
-import type { FactoryMetricRow } from '../stores/factory-floor-store';
+import type { FactoryMetricRow } from '../stores/cockpit-floor-store';
 
 export interface DerivedMetrics {
   /** Summe der ausgelieferten Features im Fenster. */

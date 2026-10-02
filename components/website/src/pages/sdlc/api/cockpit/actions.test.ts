@@ -28,7 +28,7 @@ vi.mock('../../../../lib/sdlc/tickets/cockpit-db', () => ({
 }));
 
 // ---- Mock factory-floor ----
-vi.mock('../../../../lib/sdlc/factory-floor', () => ({
+vi.mock('../../../../lib/sdlc/cockpit-floor', () => ({
   writeControl: vi.fn(async () => {}),
 }));
 
@@ -39,7 +39,7 @@ vi.mock('../../../../lib/website-db', () => ({
 
 import { POST } from './actions';
 import * as cockpitDb from '../../../../lib/sdlc/tickets/cockpit-db';
-import * as factoryFloor from '../../../../lib/sdlc/factory-floor';
+import * as factoryFloor from '../../../../lib/sdlc/cockpit-floor';
 import * as websiteDb from '../../../../lib/website-db';
 
 const setFeatureAction = vi.mocked(cockpitDb.setFeatureAction);

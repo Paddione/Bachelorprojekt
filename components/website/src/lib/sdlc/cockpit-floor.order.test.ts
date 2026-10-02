@@ -7,14 +7,14 @@ import {
   type LaneKey,
 } from '../tickets/pipeline-order.ts';
 // Re-export contract: the same symbols must be reachable from factory-floor.ts so
-// existing consumers (SP2/SP3/SP4) keep importing from './factory-floor.ts'.
+// existing consumers (SP2/SP3/SP4) keep importing from './cockpit-floor.ts'.
 import {
   PIPELINE_LANES as FF_PIPELINE_LANES,
   STATUS_BUCKETS as FF_STATUS_BUCKETS,
   ALL_TICKET_STATUSES as FF_ALL_TICKET_STATUSES,
-} from './factory-floor';
+} from './cockpit-floor';
 import { TABS, MOBILE_COL_INDEX } from '../../components/sdlc/cockpit/mobile-tab-bar-constants';
-import { PHASE_ORDER } from '../factory-floor-types.ts';
+import { PHASE_ORDER } from '../cockpit-floor-types.ts';
 
 // The declared expectation, independent of the implementation. Front→back, linear lanes only.
 const EXPECTED_LINEAR_STATUSES = [

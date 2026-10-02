@@ -48,7 +48,7 @@ vi.mock('./tickets-schema', () => ({
 }));
 vi.mock('./tickets/transition', () => ({ transitionTicket: vi.fn().mockResolvedValue(undefined) }));
 
-import { listFactoryMetrics } from './factory-metrics';
+import { listFactoryMetrics } from './cockpit-metrics';
 
 describe('listFactoryMetrics', () => {
   it('returns metric rows newest-day-first with all KPI columns', async () => {
@@ -62,7 +62,7 @@ describe('listFactoryMetrics', () => {
   });
 
   it('listActiveFeatures returns the active working set with pipeline_slot', async () => {
-    const { listActiveFeatures } = await import('./factory-metrics');
+    const { listActiveFeatures } = await import('./cockpit-metrics');
     const rows = await listActiveFeatures();
     expect(rows.length).toBe(1);
     expect(rows[0].external_id).toBe('T000500');
@@ -71,7 +71,7 @@ describe('listFactoryMetrics', () => {
   });
 
   it('listActiveFlags returns only enabled=false (dark) flags for the brand', async () => {
-    const { listActiveFlags } = await import('./factory-metrics');
+    const { listActiveFlags } = await import('./cockpit-metrics');
     const rows = await listActiveFlags('mentolder');
     expect(rows.map((r) => r.key)).toEqual(['dark-a']);
     expect(rows[0].enabled).toBe(false);

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import PilotLight from '../sdlc/cockpit/PilotLight.svelte';
-  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store.ts';
+  import { floorStore, acquireFloor } from '../../lib/stores/cockpit-floor-store.ts';
   import { helpOverlayActive } from '../../lib/stores/help-overlay-store.ts';
   import { deriveCountdownSec } from '../../lib/parallel-status';
 

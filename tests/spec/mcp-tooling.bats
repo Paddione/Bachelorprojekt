@@ -5,7 +5,7 @@ load 'test_helper'
 
 MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
 
-# T900399: Der frueher hier gepruefte factory-mcp-node ist mit der Software-Factory
+# T900399: Der frueher hier gepruefte HTTP-MCP-Server (`:13003`) ist mit T900399
 # entfallen (Registry `docs/agent-guide/registry/mcp.yaml` fuehrt ihn nicht mehr,
 # `task mcp:sync` hat .mcp.json + .opencode/opencode.jsonc bereinigt). Der
 # Assertion-Teil fuer die verbleibenden Harness-Server bleibt erhalten.

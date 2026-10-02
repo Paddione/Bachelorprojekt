@@ -86,9 +86,9 @@ _registered() { git -C "$SANDBOX" worktree list --porcelain | grep -qxF "worktre
 
 @test "T900340: Aufrufer entfernen Worktrees nur ueber den Helper" {
   local f bare
-  # T900399: `scripts/factory/cleanup.sh` ist mit dem Factory-Teardown entfallen und
-  # steht deshalb nicht mehr in der Caller-Liste. Wer den Factory-Baum wieder
-  # aufbaut, muss den Aufrufer hier wieder eintragen.
+  # T900399: Der Factory-Cleanup-Helper ist mit dem Factory-Teardown entfallen und
+  # steht deshalb nicht mehr in der Caller-Liste. Wer ihn wieder aufbaut,
+  # muss den Aufrufer hier wieder eintragen.
   for f in scripts/devflow-post-merge-finalize.sh scripts/pr-refresh.sh \
            scripts/weekly-dep-schema-audit.sh; do
     # Positiv-Anker (T002356-M1): die Datei nutzt den Helper ueberhaupt.

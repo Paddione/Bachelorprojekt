@@ -32,9 +32,9 @@ vorhandene Einträge entfernen oder als „(bereits geplant: TXXXxxx)" markieren
 - Alert-Regeln (Grafana)
 - Automated Rollback bei Failed Deploy
 
-**AI / Factory:**
+**AI / Automation:**
 - Ticket-Auto-Triage (Severity-Erkennung)
-- Factory-Qualitäts-Ratchet (Scout-Output-Bewertung)
+- Qualitäts-Ratchet (Scout-Output-Bewertung)
 - DeepSeek Scout-Qualität verbessern (touched_files Coverage)
 
 ## Areas-Normalisierung (für `--areas`-Parameter)
@@ -47,6 +47,6 @@ Formular-Output verwendet deutsche/kapitalisierte Namen — vor `plan-meta set` 
 | `Website / Content-Hub` | `website` |
 | `Chat / Messaging` | `chat` |
 | `Infra / DevEx` | `infra` |
-| `AI / Factory` | `ai/factory` |
+| `AI / Automation` | `ai/automation` |
 | `Keycloak / Auth` | `auth` |
 | `Nextcloud / Files` | `nextcloud` |

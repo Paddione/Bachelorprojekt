@@ -28,7 +28,7 @@ Kompaktheits-Regeln: subagent-provisioning §3.
 ## BATS-Pflicht
 
 Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die plan-Spec, die das
-Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage: `tests/spec/software-factory/`);
+Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage: `tests/spec/ticket-system.bats`);
 ohne klare Spec-Zuordnung `tests/unit/` erweitern. Ticket-nummerierte Dateien (`FA-SF-42.bats`)
 sind Legacy und werden **nicht** neu angelegt.
 Details: [dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md) §BATS.

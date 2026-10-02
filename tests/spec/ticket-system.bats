@@ -588,7 +588,7 @@ TYPE_VOCAB_TS="components/website/src/lib/tickets/migrate-type-vocabulary.ts"
 }
 
 # ── [T002407-M2] T900399: queue.sh (Factory-Baum) entfernt ───────────────────
-# Der Lane-Ausschluss fuer gestagte incident-Tickets war an die Factory-Queue
+# Der Lane-Ausschluss fuer gestagte incident-Tickets war an die Dispatcher-Queue
 # gebunden. Ohne Dispatcher gibt es keine automatische Aufnahme; die
 # attention_mode-Invariante fuer incident bleibt in [T002407-M3] abgesichert,
 # die Typ-Registrierung in [T002407-M1].

@@ -85,7 +85,7 @@ let motivation = meta.lookup("motivation").str.or(
 
 #section("Kuratierte Projekt-Evidenz")
 let evidence-items = meta.lookup("evidence-items").str.or(
-  "Fleet/k3s · Dev-Mesh · FreeToken MoE · Software Factory · BATS Quality Gates"
+  "Fleet/k3s · Dev-Mesh · FreeToken MoE · SDLC-Automation · BATS Quality Gates"
 )
 text(evidence-items, color: color-text)
 

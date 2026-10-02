@@ -148,7 +148,7 @@ ticket-mcp-node_flush_mishap_buffer({ brand: "<brand>" })
 
 Ein Mishap-**Bundle**-Ticket (`severity=minor`/`trivial`) wurde vom `triage`-Pfad automatisch nach
 `plan_staged` gehoben. Das erledigte bis **T900399** `auto-chore-plan.sh` im Factory-Baum [T002390]
-— der Factory-Tick rief es pro Marke auf.
+— der Hygiene-Tick rief es pro Marke auf.
 
 > **[T900399] Entfallen.** Mit dem Factory-Teardown gibt es keinen automatischen Hebepfad mehr:
 > ein Bundle-Ticket wandert manuell von `triage` nach `plan_staged`. Der Rest dieses Abschnitts

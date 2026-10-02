@@ -295,7 +295,7 @@ const server = createServer(async (req, res) => {
   // Bis 2026-08-08 oeffnete GET hier einen text/event-stream, in den der Shim nie
   // schrieb — jede Antwort kommt im POST-Body zurueck. Ein Client, der diesem Kanal
   // folgt, wartet also auf Daten, die nie kommen, statt schnell zu scheitern. Die
-  // uebrigen HTTP-MCP-Server des Repos (mcp-postgres, factory-mcp) antworten auf GET
+  // uebrigen HTTP-MCP-Server des Repos (mcp-postgres) antworten auf GET
   // mit 405; dieser Shim tut es jetzt auch.
   //
   // Kein Kausalzusammenhang mit dem Ausfall, der zu T002703 fuehrte: dass agy

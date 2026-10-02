@@ -44,7 +44,6 @@ path_to_category() {
     components/brett/src/*|components/brett/app/*)    echo "FA"; return ;;
     k3d/*|environments/*)       echo "NFA"; return ;;
     components/VideoVault/*)               echo "AK"; return ;;
-    scripts/factory/*)          echo "SA"; return ;;
     *)                          echo ""; return ;;
   esac
 }

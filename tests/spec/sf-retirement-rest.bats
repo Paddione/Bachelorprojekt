@@ -38,6 +38,16 @@ _offenders() {
     # only A3a may change (added to web.txt there); ki-deck additionally
     # guards the dropped factory_model_slots table and must name it;
     # scs-search asserts on the SCS website panels.
+    # T900728: frozen records and foreign meanings that must keep their
+    # factory vocabulary — the mishap korpus (observation accurate for the
+    # 2026-08-09 worktree name; the test reads only ID pairs), the
+    # context-retrieve golden set (2026-08-14 calibration record T002658;
+    # the expected title must match the measured index), the Blender API
+    # call in rig_for_mixamo.py, and the backfill taxonomy (join key to
+    # the 49-row mapping and DB idempotency key, covered by a live test).
+    case "$f" in
+      tests/fixtures/mishap-dedupe-korpus.json|tests/fixtures/context-retrieve/golden-queries.json|scripts/rig_for_mixamo.py|scripts/one-shot/2026-07-21-feature-product-backfill.mjs) continue ;;
+    esac
     case "$f" in
       tests/spec/sdlc-cockpit/redesign-struktur.bats|tests/spec/sdlc-cockpit/deck-kompakt-layout.bats|tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats|tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats|tests/spec/pipeline-interface.bats|tests/unit/scs-search.bats) continue ;;
     esac

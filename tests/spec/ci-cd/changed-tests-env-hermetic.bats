@@ -42,7 +42,7 @@ setup() {
   # Pfad, der im tmp-Repo der Guards nicht existiert — greift der
   # override-Zweig dort, weicht die Auswahl ab und die Guards fallen.
   # Ergebnis-Verifikation ueber den echten Runner, kein Quelltext-grep.
-  run bash -c "FIND_CHANGED_TESTS_FILES='scripts/factory/queue.sh' '$BATS_BIN' --filter '$filter' tests/spec/ci-cd.bats"
+  run bash -c "FIND_CHANGED_TESTS_FILES='scripts/nonexistent/queue.sh' '$BATS_BIN' --filter '$filter' tests/spec/ci-cd.bats"
   if [ "$status" -ne 0 ]; then
     echo "FAIL: Guards fallen mit gesetztem FIND_CHANGED_TESTS_FILES — die Variable leckt in die Tests."
     printf '%s\n' "$output" | grep -E '^not ok' | head -8

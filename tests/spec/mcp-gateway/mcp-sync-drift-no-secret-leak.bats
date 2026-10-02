@@ -82,7 +82,7 @@ JSON
 
 # [T900052] Task 4.4: Token-Isolation — ein Server-Specific Token darf NUR
 # seinen eigenen Endpoint autorisieren, nicht einen anderen. Die Registry
-# gettete Token getrennt (FACTORY_MCP_TOKEN vs. MCP_POSTGRES_TOKEN vs.
+# gettete Token getrennt (ein Token pro Server, z.B. MCP_POSTGRES_TOKEN vs.
 # BGE_MCP_TOKEN), und die generierten Configs muessen diese Trennung
 # respektieren.
 @test "T900052: server-specific tokens are isolated in rendered configs" {

@@ -356,7 +356,7 @@ git push origin --delete "<branch>"   # remote: der Merge löscht nicht mehr (T0
   Neue `@test`-Einträge gehören in `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name).
   Reihenfolge:
   1. **Feature-Slug ermitteln:** Welcher Slug beschreibt das zu testende Verhalten? (Ticket-Titel, kein Spec-Verzeichnis mehr seit C7a.)
-  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<feature-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/software-factory/`).
+  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<feature-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/ticket-system.bats`).
   3. **Fallback:** Für übergreifende Tests ohne Feature-Zuordnung → passende Datei in `tests/unit/` erweitern.
   ```bash
   # Bestehende Slugs prüfen:

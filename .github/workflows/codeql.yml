@@ -7,8 +7,8 @@
 # Zuschnitt:
 #   - Sprachen mit echtem Nutzen: javascript-typescript (Website inkl. /api/*, Node-Skripte),
 #     go (scripts/ticket-mcp/go), actions (Workflow-Dateien selbst).
-#     [T900399] scripts/factory/mcp-go ist mit dem Factory-Abau entfallen und war
-#     das zweite Go-Modul — scripts/ticket-mcp/go ist damit das einzige.
+#     [T900399] Das zweite Go-Modul (mcp-go) ist mit dem Factory-Abau entfallen —
+#     scripts/ticket-mcp/go ist damit das einzige.
 #     Kein Python/Shell — dort deckt CodeQL wenig ab.
 #   - PRs nur bei Code-Aenderungen (Pfadfilter); reine Plan-/Doku-PRs laufen nicht an.
 #   - Woechentlich komplett auf main, damit neue Regeln auch Bestandscode pruefen.

@@ -136,7 +136,7 @@ fi
 # den Guard.
 case "${1:-} ${2:-}" in
   "get "*|"list "*|"get-attachments "*|"get-ticket-links "*|"get-timeline "*|\
-  "get-injections "*|"find-similar "*|"retry-count "*|"dryrun-check "*|"plan-meta get"|\
+  "get-injections "*|"find-similar "*|"retry-count "*|"plan-meta get"|\
   "help "*|"-h "*|"--help "*|" ")
     : ;;
   *)
@@ -417,8 +417,8 @@ UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"exe
  WHERE external_id = :'ext_id';
 EOF
   echo "execution_released set to true for ticket $id"
-  # T900399: the Software Factory is decommissioned, so there is no wake-up path
-  # left. The release is now a pure DB flag that the next dev-flow session picks up.
+  # T900399: decommissioned, so there is no wake-up path left. The release is
+  # now a pure DB flag that the next dev-flow session picks up.
 }
 
 cmd_seq_repair() {

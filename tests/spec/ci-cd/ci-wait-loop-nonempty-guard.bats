@@ -24,7 +24,7 @@
 # messen Verdict + Exit-Code. Kein echter gh-Aufruf, kein Netz. Zugesichert wird
 # die Semantik (Exit-Code, Verdict-Wort), nicht das Ausgabeformat (T002716).
 #
-# T900399: die beiden Schleifen-Tests, die scripts/factory/pr-babysit-ticket.sh
+# T900399: die beiden Schleifen-Tests, die pr-babysit-ticket.sh
 # gegen ein gh-Stub-Paar fuhren, sind mit dem Factory-Baum entfallen. Die
 # Helper-Semantik (der eigentliche Gegenstand dieses Guards) bleibt vollständig
 # über ci_checks_verdict abgesichert.

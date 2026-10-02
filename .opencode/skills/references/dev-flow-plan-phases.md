@@ -329,7 +329,7 @@ Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch
 kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
-**Wo:** In `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<feature-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/software-factory/`).
+**Wo:** In `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<feature-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/ticket-system.bats`).
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf (Superpowers-Plugin; opencode: das Äquivalent ist als inlinede Steps in diesem Skill) oder führe die Plan-Schreib-Schritte
 direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; schreibe den Plan nach

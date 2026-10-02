@@ -43,7 +43,7 @@
   },
   {
     "title": "k3d configuration files unclassified in service-registry.sh",
-    "description": "Newly added mediaviewer and videovault files were causing test:factory to fail because they were not mapped in scripts/factory/service-registry.sh.",
+    "description": "Newly added mediaviewer and videovault files were causing test:decommission to fail because they were not mapped in the service registry.",
     "areas": "",
     "manual_severity": "low"
   },

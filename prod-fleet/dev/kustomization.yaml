@@ -5,7 +5,7 @@ namespace: workspace-dev
 resources:
   - ../../k3d/dev-stack
 # T900399: die Fleet-native-Factory-SealedSecret (T016422 / ADR-007 A.4)
-# entfaellt mit dem factory-runner — sie enthielt ausschliesslich dessen
+# entfaellt mit T900768 — sie enthielt ausschliesslich dessen
 # Repo-Key, Dispatcher-Konfiguration und Provider-Credentials.
 
 patches:

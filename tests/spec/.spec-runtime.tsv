@@ -191,7 +191,7 @@
 0.089	tests/spec/e2e-testing.bats
 0.458	tests/spec/env-seal-empty-value-keys.bats
 0.390	tests/spec/factory-reclaim-lock-respect/pid-dead-worktree-match-T002849.bats
-1.000	tests/spec/factory/vda-frontmatter.bats
+1.000	tests/unit/vda-frontmatter.bats
 0.301	tests/spec/feature-product-linking.bats
 12.000	tests/spec/finetune/model-registry.bats
 0.024	tests/spec/fix-ci-concurrency.bats

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# scripts/ticket-reclaim.sh — hand a factory-held ticket back to this session.
+# scripts/ticket-reclaim.sh — hand a worker-held ticket back to this session.
 #   bash scripts/ticket.sh reclaim <T000123> [--force]
 #
-# Zweck (T002267): ein gestagtes Ticket soll in der Factory-Queue sichtbar
+# Zweck (T002267): ein gestagtes Ticket soll in der Staged-Lane sichtbar
 # bleiben, aber jederzeit interaktiv uebernehmbar sein. Ohne dieses Kommando
 # blieb nur der Umweg ueber status=blocked — semantisch falsch, weil der Plan
 # fertig ist und nichts blockiert; er verfaelscht ausserdem die Auswertung.

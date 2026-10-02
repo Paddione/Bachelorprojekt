@@ -36,7 +36,8 @@
 @test "all agents have a Library section" {
   agents_dir=".agents/agents"
   [ -d "$agents_dir" ] || agents_dir=".claude/agents"
-  for agent in "$agents_dir"/bachelorprojekt-*.md; do
+  for agent in "$agents_dir"/bachelorprojekt-*.md "$agents_dir"/bp-*.md; do
+    [ -e "$agent" ] || continue
     grep -q "^## Library" "$agent" || { echo "MISSING Library section in: $agent"; return 1; }
   done
 }
@@ -44,7 +45,8 @@
 @test "all library paths referenced in agents actually exist" {
   agents_dir=".agents/agents"
   [ -d "$agents_dir" ] || agents_dir=".claude/agents"
-  for agent in "$agents_dir"/bachelorprojekt-*.md; do
+  for agent in "$agents_dir"/bachelorprojekt-*.md "$agents_dir"/bp-*.md; do
+    [ -e "$agent" ] || continue
     while IFS= read -r line; do
       if [[ "$line" =~ ^-\ \.claude/lib/ ]]; then
         path="${line#- }"

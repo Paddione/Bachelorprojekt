@@ -1,7 +1,7 @@
 ---
 title: Primary agents over OMO engine (bp-build/bp-run/bp-ship)
 ticket_id: T900858
-domains: [agents, docs]
+domains: [agent-skills, scripts]
 status: draft
 ---
 

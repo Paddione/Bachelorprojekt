@@ -46,8 +46,8 @@ setup() {
 
 # ── Security agent exists ─────────────────────────────────────────────
 
-@test "bachelorprojekt-security agent file exists" {
-  [ -f "$REPO/.claude/agents/bachelorprojekt-security.md" ]
+@test "bp-build agent file exists (security merged, T900858)" {
+  [ -f "$REPO/.claude/agents/bp-build.md" ]
 }
 
 # ── Run-as-non-root baseline (T015293) ────────────────────────────────

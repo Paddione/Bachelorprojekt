@@ -2046,6 +2046,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/nightly-vendor-sync",
+    "file": "tests/spec/agent-skills/nightly-vendor-sync.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/plugin-activation",
     "file": "tests/spec/agent-skills/plugin-activation.bats",
     "category": "agent-skills",

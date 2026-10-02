@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1306,
+      "file_count": 1307,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -487,6 +487,7 @@
         "tests/spec/agent-skills/harness-guard-registration-T900024.bats",
         "tests/spec/agent-skills/interaction-contract.bats",
         "tests/spec/agent-skills/messung-mit-befehl.bats",
+        "tests/spec/agent-skills/nightly-vendor-sync.bats",
         "tests/spec/agent-skills/plugin-activation.bats",
         "tests/spec/agent-skills/portable-inventory.bats",
         "tests/spec/agent-skills/post-merge-finalize-create-new.bats",
@@ -4016,7 +4017,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 856,
+      "file_count": 857,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4627,6 +4628,7 @@
         "scripts/mishap-keywords.json",
         "scripts/networks-check.mjs",
         "scripts/nightly-update.sh",
+        "scripts/nightly-vendor-sync.sh",
         "scripts/one-shot/2026-07-21-feature-product-backfill-mapping.json",
         "scripts/one-shot/2026-07-21-feature-product-backfill.mjs",
         "scripts/one-shot/20260524-billing-invoices-pdf-blob.sql",

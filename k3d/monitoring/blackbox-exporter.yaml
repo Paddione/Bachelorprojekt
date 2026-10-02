@@ -84,6 +84,7 @@ spec:
         - https://web.korczewski.de/api/health
         # Public production Ingress hosts.  Keep this list in sync with the
         # production Ingress manifests; G-SVC01 validates the coverage.
+        - https://brain.mentolder.de
         - https://design.mentolder.de
         - https://design.korczewski.de
         - https://studio.mentolder.de

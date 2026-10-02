@@ -67,9 +67,11 @@ run_match() {
 }
 
 @test "T900234: strong evidence-catalog overlap → match_score > 70" {
-  # Insert a test job with requirements that match several evidence-catalog keywords
+  # Insert a test job with requirements that match several evidence-catalog keywords.
+  # (T900728: CI/CD/pipeline/docker/Linux verloren mit dem stillgelegten Eintrag
+  # ihren Treffer — der Text zielt jetzt auf die kuratierten Keywords.)
   local job_id
-  job_id=$(_query "INSERT INTO applications.jobs (company, role_title, raw_text, requirements, status) VALUES ('test', 'match-high', 'Kubernetes CI/CD Linux docker pipeline testing', 'Kubernetes CI/CD Linux docker pipeline testing', 'found') ON CONFLICT DO NOTHING RETURNING id;")
+  job_id=$(_query "INSERT INTO applications.jobs (company, role_title, raw_text, requirements, status) VALUES ('test', 'match-high', 'Kubernetes microservice testing postgres migration flux helm', 'Kubernetes microservice testing postgres migration flux helm', 'found') ON CONFLICT DO NOTHING RETURNING id;")
 
   # If DUPLICATE (empty), find existing
   if [[ -z "$job_id" ]]; then

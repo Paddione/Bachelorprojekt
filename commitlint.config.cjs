@@ -2,7 +2,6 @@
 // (.claude/agents/bachelorprojekt-*), plus acht Querschnitts-Scopes für das,
 // was keiner Domäne gehört. Konsolidiert von 95 auf 14 in T002328 — die
 // vollständige Herleitung steht in
-// openspec/changes/commit-scope-consolidation/design.md.
 const NAMED_SCOPES = [
   // Domänen
   'website',
@@ -44,7 +43,7 @@ const SCOPE_ALIAS_GROUPS = {
   security: ['secrets', 'sso', 'auth', 'pocket-id', 'rbac', 'keycloak', 'pentest'],
   ops: ['llm', 'terminal', 'recovery', 'monitoring', 'graph', 'oracle', 'gemini', 'claude'],
   test: ['tests', 'testing', 'e2e', 'systemtest', 'dev-status'],
-  plans: ['plan', 'openspec', 'spec', 'specs', 'brainstorm'],
+  plans: ['plan', 'spec', 'specs', 'brainstorm'],
   factory: ['dev-flow', 'tickets', 'factory-floor', 'auto', 'hooks'],
   agents: ['agent-guide', 'opencode', 'prompt-library', 'knowledge-ingest',
     'openclaw'],

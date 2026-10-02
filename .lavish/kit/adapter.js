@@ -484,29 +484,6 @@ const data = (() => {
   }
 
   /**
-   * OF1-Vorpruefung vor einem Canvas-Export: hat jemand anders
-   * openspec/changes/ seit `sinceIso` angefasst?
-   *
-   * Einmalabruf statt Poll — die Frage stellt sich nur im Moment des Exports.
-   * Sie liegt hier im Adapter, damit Panel und canvas-store.js kein eigenes
-   * fetch() brauchen (E1).
-   *
-   * @param {string} epicId
-   * @param {string} sinceIso
-   * @returns {Promise<{hasChanges: boolean, error?: string, reason?: string}>}
-   */
-  async function epicChangesSince(epicId, sinceIso) {
-    const data = await fetchEndpoint('epics', {
-      path: `/${encodeURIComponent(epicId)}/changes-since`,
-      query: `ts=${encodeURIComponent(sinceIso)}`,
-    });
-    // Konservativ: wo die Antwort nichts Eindeutiges sagt, gilt "geaendert".
-    // Der Nutzer wird dann gefragt, statt dass still ueberschrieben wird.
-    if (data.error) return { hasChanges: true, error: data.error };
-    return { hasChanges: data.hasChanges !== false, reason: data.reason };
-  }
-
-  /**
    * K9 Stil-Datenbank (T002468) — die Gestaltungsquelle für die Modelle.
    *
    * Einmalabruf statt Poll: die Sammlung ändert sich nur, wenn jemand einen
@@ -623,7 +600,6 @@ const data = (() => {
     factory,
     models,
     epics,
-    epicChangesSince,
     styles,
     dispatches,
     dispatchDetail,

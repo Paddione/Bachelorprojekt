@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/finalize-archive-frontmatter.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: archive-frontmatter-completed, T015916)
+# SSOT: docs/superpowers/specs/agent-skills.md (Delta: archive-frontmatter-completed, T015916)
 #
 # PRÜFMODUS: gemischt.
 # - Tests 1-2: OUTPUT-VERIFIKATION gegen den DB-freien Einstieg
@@ -31,10 +31,10 @@ setup() {
   git -C "$FIX" config user.email t@example.com
   git -C "$FIX" config user.name test
   git -C "$FIX" remote add origin "$REMOTE"
-  mkdir -p "$FIX/openspec/changes/demo-change/specs"
-  echo "T015916" > "$FIX/openspec/changes/demo-change/.ticket"
-  echo "# demo" > "$FIX/openspec/changes/demo-change/proposal.md"
-  printf '# plan\ntitle: demo\nstatus: active\n' > "$FIX/openspec/changes/demo-change/tasks.md"
+  mkdir -p "$FIX/.agents/plans/demo-change/specs"
+  echo "T015916" > "$FIX/.agents/plans/demo-change/.ticket"
+  echo "# demo" > "$FIX/.agents/plans/demo-change/proposal.md"
+  printf '# plan\ntitle: demo\nstatus: active\n' > "$FIX/.agents/plans/demo-change/tasks.md"
   git -C "$FIX" add -A
   git -C "$FIX" -c commit.gpgsign=false commit -q -m "seed"
   git -C "$FIX" push -q origin HEAD:main
@@ -49,7 +49,7 @@ setup() {
 }
 
 @test "T015916: --frontmatter-state meldet completed fuer gesetztes Frontmatter" {
-  sed -i 's/^status: active$/status: completed/' "$FIX/openspec/changes/demo-change/tasks.md"
+  sed -i 's/^status: active$/status: completed/' "$FIX/.agents/plans/demo-change/tasks.md"
   cd "$FIX"
   run bash "$FINALIZE" --frontmatter-state demo-change --repo "$FIX"
   [ "$status" -eq 0 ]
@@ -58,26 +58,6 @@ setup() {
 
 # Positiv-Anker: Der Frontmatter-Wechsel existiert ueberhaupt — und zwar als
 # Hilfsfunktion mit Aufruf auf dem Archiv-Zielbaum, nicht als verstreuter Sed.
-@test "T015916: Frontmatter-Helper wird mit dem Archiv-Baum aufgerufen" {
-  run grep -qF '_apply_plan_frontmatter_completed "$ARCHIVE_DIR"' "$FINALIZE"
-  [ "$status" -eq 0 ]
-}
-
-# Die Kern-Reihenfolge: checkout -B (Zeile a) < Helper-Aufruf (Zeile b) <
-# openspec.sh archive (Zeile c). Genau hier versagte der alte Stand: der Sed
-# lag vor der Subshell, der Helper-Aufruf fehlte komplett.
-@test "T015916: Frontmatter-Wechsel liegt zwischen checkout -B und archive" {
-  local ln_checkout ln_helper ln_archive
-  ln_checkout="$(grep -nF 'git checkout -B "$ARCHIVE_BRANCH" origin/main' "$FINALIZE" | head -1 | cut -d: -f1)"
-  ln_helper="$(grep -nF '_apply_plan_frontmatter_completed "$ARCHIVE_DIR"' "$FINALIZE" | head -1 | cut -d: -f1)"
-  ln_archive="$(grep -nF 'openspec.sh archive "$SLUG"' "$FINALIZE" | head -1 | cut -d: -f1)"
-  [ -n "$ln_checkout" ] && [ -n "$ln_helper" ] && [ -n "$ln_archive" ]
-  [ "$ln_checkout" -lt "$ln_helper" ]
-  [ "$ln_helper" -lt "$ln_archive" ]
-}
-
-# Negativ-Aussage mit Positiv-Anker: Der alte Schritt-7-Sed direkt auf
-# "$PLAN_FILE" ist entfernt; die Status-Alternation lebt nur noch im Helper.
 @test "T015916: der verstreute PLAN_FILE-Sed aus Schritt 7 ist entfernt" {
   # Positiv-Anker: die Alternation existiert genau einmal — im Helper.
   local hits
@@ -91,28 +71,27 @@ setup() {
 
 @test "T900226: --apply-completed-frontmatter setzt status: active auf completed" {
   cd "$FIX"
-  run bash "$FINALIZE" --apply-completed-frontmatter "$FIX/openspec/changes/demo-change/tasks.md"
+  run bash "$FINALIZE" --apply-completed-frontmatter "$FIX/.agents/plans/demo-change/tasks.md"
   [ "$status" -eq 0 ]
-  run grep -qE '^status: completed$' "$FIX/openspec/changes/demo-change/tasks.md"
+  run grep -qE '^status: completed$' "$FIX/.agents/plans/demo-change/tasks.md"
   [ "$status" -eq 0 ]
 }
 
 @test "T900226: --apply-completed-frontmatter ist idempotent und tastet fremde Stati nicht an" {
   cd "$FIX"
-  printf '# plan\ntitle: draft-demo\nstatus: draft\n' > "$FIX/openspec/changes/demo-change/tasks.md"
+  printf '# plan\ntitle: draft-demo\nstatus: draft\n' > "$FIX/.agents/plans/demo-change/tasks.md"
   local before after
-  before="$(cat "$FIX/openspec/changes/demo-change/tasks.md")"
-  run bash "$FINALIZE" --apply-completed-frontmatter "$FIX/openspec/changes/demo-change/tasks.md"
+  before="$(cat "$FIX/.agents/plans/demo-change/tasks.md")"
+  run bash "$FINALIZE" --apply-completed-frontmatter "$FIX/.agents/plans/demo-change/tasks.md"
   [ "$status" -eq 0 ]
-  after="$(cat "$FIX/openspec/changes/demo-change/tasks.md")"
+  after="$(cat "$FIX/.agents/plans/demo-change/tasks.md")"
   [ "$before" = "$after" ]
 }
 
-@test "T900226: archive-plan Aufruf liegt in der Archiv-Sektion nach checkout -B" {
-  local ln_checkout ln_archive_plan
-  ln_checkout="$(grep -nF 'git checkout -B "$ARCHIVE_BRANCH" origin/main' "$FINALIZE" | head -1 | cut -d: -f1)"
-  ln_archive_plan="$(grep -nE 'bash "\$TICKET_SH" archive-plan' "$FINALIZE" | head -1 | cut -d: -f1)"
-  [ -n "$ln_checkout" ] && [ -n "$ln_archive_plan" ]
-  [ "$ln_checkout" -lt "$ln_archive_plan" ]
+@test "T900226: completed frontmatter is archived directly in the ticket database" {
+  local ln_complete ln_archive_plan
+  ln_complete="$(grep -nF '_apply_plan_frontmatter_completed_path "$_plan_copy"' "$FINALIZE" | head -1 | cut -d: -f1)"
+  ln_archive_plan="$(grep -nF 'bash "$TICKET_SH" archive-plan' "$FINALIZE" | head -1 | cut -d: -f1)"
+  [ -n "$ln_complete" ] && [ -n "$ln_archive_plan" ]
+  [ "$ln_complete" -lt "$ln_archive_plan" ]
 }
-

@@ -33,9 +33,6 @@ concurrency:
   group: post-merge-e2e
   cancel-in-progress: true
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   trigger-e2e:
     name: Trigger E2E on behavior-relevant merge

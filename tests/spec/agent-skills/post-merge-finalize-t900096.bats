@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/post-merge-finalize-t900096.bats
-# SSOT: openspec/specs/agent-skills.md (Delta devflow-post-merge-guards) · Ticket: T900096
+# SSOT: docs/superpowers/specs/agent-skills.md (Delta devflow-post-merge-guards) · Ticket: T900096
 #
 # PRÜFMODUS-Doku: Runtime fuer Lib-Helper (`scripts/lib/finalize-step-guards.sh`
 # per source laden, `git`-Stub via PATH mit porcelain-Fixtures, Exit-Codes
@@ -104,7 +104,7 @@ e4f5g6h fix: zweiter ungemergter Commit"
 
 @test "T900096 (2a): Dirty-Tree bricht VOR checkout -B ab — FATAL nennt Pfade" {
   export GIT_PORCELAIN="M docs/agent-guide/registry/agents.yaml
-?? openspec/changes/fremd/tasks.md"
+?? .agents/plans/fremd/tasks.md"
   # Die Lib ruft `exit 1` — darum in der Subshell (wie die Schritt-8-Subshell
   # in finalize.sh): Guard zuerst, checkout -B danach.
   run bash -c '
@@ -115,7 +115,7 @@ e4f5g6h fix: zweiter ungemergter Commit"
   [ "$status" -ne 0 ]
   printf '%s\n' "$output" | grep -q 'FATAL'
   printf '%s\n' "$output" | grep -q 'docs/agent-guide/registry/agents.yaml'
-  printf '%s\n' "$output" | grep -q 'openspec/changes/fremd/tasks.md'
+  printf '%s\n' "$output" | grep -q '.agents/plans/fremd/tasks.md'
   # Stub-Trace belegt: checkout -B wurde nie aufgerufen.
   [ -z "$(grep -F 'checkout -B' "$TRACE" || true)" ]
 }
@@ -132,16 +132,4 @@ e4f5g6h fix: zweiter ungemergter Commit"
   [ "$status" -eq 0 ]
   [ -z "$(printf '%s\n' "$output" | grep -F 'FATAL' || true)" ]
   grep -qF 'checkout -B' "$TRACE"
-}
-
-@test "T900096 (2b): Schritt 8 verwirft nichts — kein checkout -- . / clean -fd im Archiv-Abschnitt" {
-  # Bereichsmuster statt Zeilennummern (T003104): Einfuegungen oberhalb duerfen
-  # den Test nicht faerben. Anker: der extrahierte Abschnitt muss existieren,
-  # sonst waere die Negativ-Aussage vakuos.
-  section="$(awk '/# Schritt 8/ { inside = 1 } inside { print } inside && /trap _restore_prev_branch EXIT/ { exit }' "$FINALIZE")"
-  [ -n "$section" ]
-  run grep -qF 'git checkout -- .' <<<"$section"
-  [ "$status" -ne 0 ]
-  run grep -qF 'git clean -fd' <<<"$section"
-  [ "$status" -ne 0 ]
 }

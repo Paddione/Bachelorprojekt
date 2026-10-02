@@ -12,7 +12,7 @@
 #
 # --spec: prepend the spec frontmatter (ticket_id/plan_ref/status/date). Path
 # convention (T002074): the design spec now lives at
-#   openspec/changes/<slug>/design.md   (SSOT co-located with the change)
+#   .agents/plans/<slug>/design.md   (SSOT co-located with the change)
 # not under docs/superpowers/specs/ any more (Alt-Bestand bleibt gültig). Both
 # path worlds are accepted here — the mode only cares that the file exists.
 set -euo pipefail
@@ -82,7 +82,6 @@ _derive_domains_from_paths() {
     grep -qiE '(^|/)website/src/' <<<"$paths" && domains+=(website)
     grep -qiE '(^|/)\.agents/skills/' <<<"$paths" && domains+=(ops)
     grep -qiE '(^|/)tests/' <<<"$paths" && domains+=(test)
-    grep -qiE '(^|/)openspec/' <<<"$paths" && domains+=(docs)
     # Strip code blocks from content before searching for db/security text keywords
     local stripped; stripped=$(printf '%s\n' "$content" | sed '/^```/,/^```/d')
     grep -qiE 'database|postgresql|psql|schema' <<<"$stripped" && domains+=(db)

@@ -12,7 +12,7 @@ export async function runOrchestrator({ variant, inputs, endpoints, workdir, rec
   const prepared = await prepareWorkdir(inputs.case, variant, workdir);
   if (!prepared.ok) return { ...emptyResult([{ kind: 'infra_error' }]), infra: true, reason: prepared.reason, cleanup: null };
   const slug = prepared.slug;
-  const changeDir = join(workdir, 'openspec', 'changes', slug);
+  const changeDir = join(workdir, '.agents', 'plans', slug);
   if (inputs.planDir) {
     if (!existsSync(join(inputs.planDir, 'tasks.md'))) {
       return { ...emptyResult([{ kind: 'protocol_error' }]), cleanup: prepared.cleanup, reason: `planDir ohne tasks.md: ${inputs.planDir}` };

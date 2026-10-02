@@ -1,6 +1,6 @@
 # dev-flow-plan — Phasen im Detail
 
-Referenz zu [`dev-flow-plan`](../dev-flow-plan/SKILL.md). Der Skill-Body führt die Pfad-Wahl und
+Referenz zum Skill `dev-flow-plan`. Der Skill-Body führt die Pfad-Wahl und
 alle Guards; hier stehen die ausformulierten Phasen des Feature-Pfads, die Decompose-/Fan-out-
 Mechanik und die Schritte des Fix-Pfads.
 
@@ -32,7 +32,7 @@ Schema + Quellen-Mapping: [plan-intel-bundle](.agents/skills/references/plan-int
 `api_contracts` und `external_types` bleiben beim Planner — der Generator überschreibt nicht,
 was der Planner von Hand ergänzt hat. Fehlt eine Quelle, entsteht ein `risks[]`-Eintrag.
 Das Bundle informiert bereits das Brainstorming (A.4).
-Liegt vor `/opsx:propose` noch kein Change-Ordner vor, das Bundle erstellen und nach **B.2**
+Liegt vor der Plananlage noch kein Change-Ordner vor, das Bundle erstellen und nach **B.2**
 verschieben: `mkdir -p .agents/plans/<slug> && bash scripts/plan-intel.sh <slug>`.
 #### Schritt A.2: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
 Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), lege die Assets
@@ -83,9 +83,8 @@ und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 > nicht (er legt seine Spec per Default nach `docs/superpowers/specs/`, was hier ohnehin
 > durch den Change-Ordner ersetzt ist), deshalb steht der Scope hier. Also:
 > `docs(plans): …` oder `chore(plans): …`.
-#### Schritt A.5: OpenSpec-Change anlegen — AUF MAIN ⚡
-Lege den OpenSpec-Change-Ordner **auf dem main-Branch** an (seedet `proposal.md` + `tasks.md` +
-Delta-Skeleton, setzt Ticket-Status auf `planning`). Merke den Repo-Root für Schritt B.2:
+#### Schritt A.5: Plan anlegen — AUF MAIN ⚡
+Lege den Plan-Ordner auf `main` an und merke den Repo-Root für Schritt B.2:
 ```bash
 # Repo-Root für späteres Verschieben der Artefakte festhalten
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -143,9 +142,6 @@ mv "${REPO_ROOT}/.agents/plans/<slug>" "${WT}/.agents/plans/<slug>"
 
 # [T002523-M10] Phase A laeuft bewusst im Hauptcheckout: Brainstorm-Artefakte
 # (intel.json, lavish-Board) entstehen dort und ziehen in B.2 in den Worktree um.
-# (Der fruehere openspec.sh-propose-Seiteneffekt auf openspec-status.json ist mit
-# C7a entfallen — kein Checkout-Restore mehr noetig.)
-
 cd "${WT}"
 ```
 
@@ -196,11 +192,6 @@ bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "$(git branch -
 ```
 Ausgeführt wird der Plan danach von `dev-flow-execute` (gibt den Hold frei) oder lokal per
 `node scripts/llm/plan-runner.mjs .agents/plans/<slug>`.
-
-#### Schritt C.5: Pgvector-Index
-```bash
-bash scripts/openspec-embed-local.sh <slug> "$(pwd)"
-```
 
 ---
 

@@ -34,14 +34,14 @@ _reaper_fixture() {
   FIXTURE="$WORK/fixture"
   REMOTE="$WORK/remote.git"
   STUBS="$WORK/stubs"
-  mkdir -p "$STUBS" "$FIXTURE/openspec/changes/x"
+  mkdir -p "$STUBS" "$FIXTURE/.agents/plans/x"
 
   git init --bare --quiet "$REMOTE"
   git -C "$FIXTURE" init --quiet
   git -C "$FIXTURE" config user.email t@example.com
   git -C "$FIXTURE" config user.name Test
   git -C "$FIXTURE" remote add origin "$REMOTE"
-  echo base > "$FIXTURE/openspec/changes/x/tasks.md"
+  echo base > "$FIXTURE/.agents/plans/x/tasks.md"
   git -C "$FIXTURE" add -A
   git -C "$FIXTURE" commit --quiet -m base
   git -C "$FIXTURE" push --quiet origin HEAD:main
@@ -49,7 +49,7 @@ _reaper_fixture() {
   _branch() {
     git -C "$FIXTURE" checkout --quiet main
     git -C "$FIXTURE" checkout --quiet -b "$1"
-    echo "$1" > "$FIXTURE/openspec/changes/x/tasks.md"
+    echo "$1" > "$FIXTURE/.agents/plans/x/tasks.md"
     git -C "$FIXTURE" commit --quiet -am "plan only"
     git -C "$FIXTURE" push --quiet origin "$1"
   }

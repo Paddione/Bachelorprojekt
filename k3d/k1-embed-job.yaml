@@ -145,23 +145,21 @@ spec:
               # der das Budget sprengt; leerer Diff meldet unten stattdessen
               # "keine indexierten Pfade" und schliesst gruen ab.
               if [ "$FULL" = "1" ]; then
-                node scripts/openspec-embed.mjs --all-specs
-                node scripts/openspec-embed.mjs --all-docs
-                node scripts/openspec-embed.mjs --migrate-changes
+                node scripts/knowledge/ingest-markdown.mjs
                 npx tsx scripts/index-repo.ts
               else
                 matched=0
+                markdown_changed=0
                 while IFS= read -r f || [ -n "$f" ]; do
                   [ -z "$f" ] && continue
                   case "$f" in
-                    openspec/specs/*.md)
-                      [ -f "$f" ] && { node scripts/openspec-embed.mjs --path "$f" --source specs_ssot; matched=1; } ;;
-                    docs/adr/*.md|docs/runbooks/*.md)
-                      [ -f "$f" ] && { node scripts/openspec-embed.mjs --path "$f" --source docs; matched=1; } ;;
+                    .agents/plans/*.md|docs/adr/*.md|docs/runbooks/*.md)
+                      markdown_changed=1; matched=1 ;;
                     *.ts|*.mts|*.mjs|*.js|*.cjs|*.py|*.svelte|*.astro)
                       [ -f "$f" ] && { npx tsx scripts/index-repo.ts --file "$f"; matched=1; } ;;
                   esac
                 done < "$DIFF_FILE"
+                [ "$markdown_changed" -eq 1 ] && node scripts/knowledge/ingest-markdown.mjs
                 [ "$matched" -eq 0 ] && echo "keine indexierten Pfade"
               fi
               echo "k1-embed COMPLETE merge=$MERGE_SHA"

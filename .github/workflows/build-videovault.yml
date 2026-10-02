@@ -13,9 +13,6 @@ concurrency:
   group: build-videovault-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   build:
     name: Build & push VideoVault image

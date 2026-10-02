@@ -34,7 +34,7 @@
 
 @test "T002230: update-status.sh still clears resolution on a non-terminal status" {
   # Mirrors components/website/src/lib/tickets/transition.ts:79 — a resolution only means
-  # anything for done/archived. openspec.sh (→ planning) and factory/pipeline.mjs
+  # anything for done/archived. plan stage (→ planning) and factory/pipeline.mjs
   # (→ backlog) depend on the clearing, so a blanket COALESCE would strand a stale
   # `fixed` on a reopened ticket.
   run grep -Fq "WHEN :'status' IN ('done','archived') THEN COALESCE(NULLIF(:'res', ''), resolution)" \

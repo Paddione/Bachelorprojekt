@@ -140,7 +140,7 @@ _fixture() {
   [ "$output" -ge 10 ]
   # ... und das Skript leitet daraus ab, statt Pfade zu wiederholen.
   grep -q 'gitattributes\|filter-generated' "$SCRIPT"
-  run grep -c 'openspec-status.json' "$SCRIPT"
+  run grep -c 'test-inventory.json' "$SCRIPT"
   [ "$output" -eq 0 ]
 }
 

@@ -39,7 +39,6 @@ LOCK_REL = "docs/agent-guide/registry/vendor-lock.json"
 INVENTORY_REL = "docs/agent-guide/registry/skills.yaml"
 # Verzeichnisse, deren Referenzen historisch sind und nicht mehr aufgelöst werden müssen.
 REF_EXCLUDES = (
-    "openspec/changes/archive/",
     "docs/superpowers/plans/",
     "docs/superpowers/specs/",
     "CHANGELOG.md",

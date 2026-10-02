@@ -127,7 +127,7 @@ teardown() { rm -rf "$TMP"; }
 # Die Ausnahmeliste lebt jetzt in scripts/lib/branch-allowlist.sh. Die urspruengliche
 # Sorge bleibt adressiert: beide Guards sourcen bedingt, fehlt die Datei verhalten sie
 # sich wie zuvor. Der folgende Test misst die Eigenschaft, die das Requirement fordert
-# (openspec/specs/divergence-guard.md) — dass beide Guards derselben Quelle folgen —
+# (docs/superpowers/specs/divergence-guard.md) — dass beide Guards derselben Quelle folgen —
 # statt Textgleichheit zu vergleichen.
 
 @test "T002817: Hook und Helper folgen derselben Allowlist-Quelle" {
@@ -146,7 +146,7 @@ teardown() { rm -rf "$TMP"; }
   cp "$REPO/.gitleaks.toml" "$SB/.gitleaks.toml" 2>/dev/null || true
   sed 's|^TICKETLESS_BRANCHES=.*|TICKETLESS_BRANCHES="chore/probe-shared-source"|' \
     "$LIB" > "$SB/scripts/lib/branch-allowlist.sh"
-  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh openspec-half-archive-check.sh openspec-main-staging-guard.sh; do
+  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh plan-half-archive-check.sh plan-main-staging-guard.sh; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$SB/scripts/$s"; chmod +x "$SB/scripts/$s"
   done
   export FRESHNESS_HOOK_DISABLED=1

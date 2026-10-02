@@ -1,7 +1,7 @@
 [
   {
     "title": "Mishap collection: 2026-06-20",
-    "description": "--- operations-management — 2026-06-20 06:14 ---\n\n| # | Type | Severity | Priority | Attention | Component |\n|---|---|---|---|---|---|\n| 1 | drift | trivial | niedrig | ai_ready | openspec |\n\n<details>\n<summary>Descriptions</summary>\n\n**1. [drift] OpenSpec ticket ID mismatch for platform-cockpit-ali",
+    "description": "--- operations-management — 2026-06-20 06:14 ---\n\n| # | Type | Severity | Priority | Attention | Component |\n|---|---|---|---|---|---|\n| 1 | drift | trivial | niedrig | ai_ready | plans |\n\n<details>\n<summary>Descriptions</summary>\n\n**1. [drift] staged plan ticket ID mismatch for platform-cockpit-ali",
     "areas": "",
     "manual_severity": "high"
   },

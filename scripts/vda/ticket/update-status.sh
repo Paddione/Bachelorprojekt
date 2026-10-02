@@ -146,7 +146,7 @@ UPDATE tickets.tickets SET
   -- This mirrors components/website/src/lib/tickets/transition.ts:79, the other write path,
   -- which had it right all along: a resolution only means anything for a terminal
   -- status. So keep the existing value when none is supplied, let an explicit one
-  -- override, and still clear it on a non-terminal transition — `openspec.sh`
+  -- override, and still clear it on a non-terminal transition — plan stage
   -- (→ planning) and `factory/pipeline.mjs` (→ backlog) rely on that clearing, so
   -- a blanket COALESCE would strand a stale `fixed` on a reopened ticket.
   resolution = CASE

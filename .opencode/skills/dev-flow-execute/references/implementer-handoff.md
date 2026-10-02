@@ -27,7 +27,7 @@ Kompaktheits-Regeln: subagent-provisioning §3.
 
 ## BATS-Pflicht
 
-Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die OpenSpec-Spec, die das
+Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die plan-Spec, die das
 Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage: `tests/spec/software-factory/`);
 ohne klare Spec-Zuordnung `tests/unit/` erweitern. Ticket-nummerierte Dateien (`FA-SF-42.bats`)
 sind Legacy und werden **nicht** neu angelegt.

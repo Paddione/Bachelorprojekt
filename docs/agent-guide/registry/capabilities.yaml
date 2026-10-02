@@ -10,7 +10,7 @@
 # Endpunkt, Credentials). Diese Datei ist SSOT für *Auswahl und Nutzung*.
 #
 # Schema je Instanz — vollständig in
-# openspec/changes/toolset-usage-injection/CONTRACT.md §1:
+# .agents/plans/toolset-usage-injection/CONTRACT.md §1:
 #
 #   <kind>:<id>:            # kind ∈ mcp | plugin | skill | cli | agent
 #     state:      canonical | suppressed | unreviewed
@@ -178,7 +178,7 @@ capabilities:
       deep_ref: ".claude/skills/dev-flow-plan/SKILL.md"
     plugin:feature-dev@claude-plugins-official:
       state: suppressed
-      reason: "dev-flow-plan ist der repo-eigene Pfad inklusive OpenSpec- und Ticket-Anbindung."
+      reason: "dev-flow-plan ist der repo-eigene Pfad inklusive plan- und Ticket-Anbindung."
 
   plan-umsetzung:
     skill:dev-flow-execute:
@@ -219,44 +219,6 @@ capabilities:
     skill:update-dependencies:
       state: suppressed
       reason: "Archivierte Routine mit ueberholten Pfaden; nur explizit als historische Referenz nutzen."
-
-  # ─── OpenSpec ───────────────────────────────────────────────────────────────────────
-  openspec-vorschlag:
-    skill:openspec-propose:
-      state: canonical
-      use_when: "Neues Change-Proposal mit Design, Delta-Spec und Tasks anlegen."
-      avoid_when: "Innerhalb von dev-flow-plan — dessen Phase A ruft es bereits auf."
-      fallback: "bash scripts/openspec.sh propose <slug> --ticket T… --target-spec <parent>"
-      roles: [orchestrator]
-      tier: safe
-      deep_ref: ".claude/skills/openspec-propose/SKILL.md"
-
-  openspec-umsetzung:
-    skill:openspec-apply-change:
-      state: canonical
-      use_when: "Tasks eines bestehenden Change abarbeiten ausserhalb von dev-flow-execute."
-      roles: [orchestrator]
-      tier: safe
-      deep_ref: ".claude/skills/openspec-apply-change/SKILL.md"
-
-  openspec-archivierung:
-    skill:openspec-archive-change:
-      state: canonical
-      use_when: "Fertigen Change archivieren und sein Delta in den SSOT-Spec mergen — NACH Merge."
-      avoid_when: "Delta-Spec neben dem SSOT-Spec editieren — dann scheitert archive."
-      fallback: "bash scripts/openspec.sh archive <slug> [--create-new]"
-      roles: [orchestrator]
-      tier: caution
-      deep_ref: ".claude/skills/openspec-archive-change/SKILL.md"
-
-  denk-partner:
-    skill:openspec-explore:
-      state: canonical
-      use_when: "Idee durchdenken, Optionen vergleichen, festgefahrene Stelle lösen — ohne Artefakt."
-      avoid_when: "Wenn eine Entscheidung festgehalten werden soll — dann dev-flow-plan."
-      roles: [orchestrator]
-      tier: safe
-      deep_ref: ".claude/skills/openspec-explore/SKILL.md"
 
   # ─── Betrieb & Infrastruktur ────────────────────────────────────────────────────────
   vorfall-behandlung:
@@ -324,7 +286,7 @@ capabilities:
   system-audit:
     skill:system-audit:
       state: canonical
-      use_when: "Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Authored-Docs) — endet je Befund in Ticket + OpenSpec-Proposal."
+      use_when: "Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Authored-Docs) — endet je Befund in Ticket + plan-Proposal."
       avoid_when: "Akute Störung — dafür incident-response; Tiefe eines Einzel-Audits bleibt beim Spezial-Skill."
       roles: [orchestrator]
       tier: safe

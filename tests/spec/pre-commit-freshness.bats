@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/pre-commit-freshness.bats
-# SSOT: openspec/changes/pre-push-freshness-double-run/specs/ci-cd.md
+# SSOT: .agents/plans/pre-push-freshness-double-run/specs/ci-cd.md
 # T001388: pre-commit freshness auto-stage covers all regen-produced files.
 #
 # Three tests:
@@ -40,10 +40,10 @@ _freshness_check_files() {
 }
 
 # ── (1) RED-Sanity — the two specific files are listed in pre-commit ─────
-@test "T001388: pre-commit _FRESHNESS_FILES includes openspec-status.json (RED against main)" {
+@test "T001388: pre-commit _FRESHNESS_FILES includes test-inventory.json (RED against main)" {
   [ -f "$HOOK" ] || { echo "MISSING hook: $HOOK"; return 1; }
-  _pre_commit_files | grep -qxF 'components/website/src/data/openspec-status.json' \
-    || { echo "MISSING components/website/src/data/openspec-status.json from pre-commit _FRESHNESS_FILES"; return 1; }
+  _pre_commit_files | grep -qxF 'components/website/src/data/test-inventory.json' \
+    || { echo "MISSING components/website/src/data/test-inventory.json from pre-commit _FRESHNESS_FILES"; return 1; }
 }
 
 # [T002686] Der Test "pre-commit _FRESHNESS_FILES includes loc-budget.json"

@@ -18,8 +18,6 @@
 # Tools installed: build-essential, Docker CE, k3d (nur SKIP_K3D_GO=0),
 # kubectl, task, Go (nur SKIP_K3D_GO=0), gh (gepinntes Release-Binary),
 # git-crypt (apt), pnpm (via corepack fuer DEV_USER), Node.js 22 (NodeSource,
-# falls aelter oder fehlend). openspec-Tooling laeuft ueber den Repo-Wrapper
-# scripts/openspec.sh — es wird KEIN separates openspec-Binary installiert.
 set -euo pipefail
 
 HOST=$(hostname)

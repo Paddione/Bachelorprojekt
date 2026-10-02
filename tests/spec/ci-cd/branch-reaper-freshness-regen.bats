@@ -32,8 +32,8 @@ setup() {
   mkdir -p "$STUBS"
 
   # Alle Fixture-Pfade sind ABSOLUT und alle git-Aufrufe nutzen -C (bats -j 6: kein
-  # relatives openspec/changes/<slug> sichtbar fuer validateTree).
-  PLANDIR="$FIXTURE/openspec/changes/x"
+  # relatives .agents/plans/<slug> sichtbar fuer validateTree).
+  PLANDIR="$FIXTURE/.agents/plans/x"
   CODEDIR="$FIXTURE/docs/code-quality"
 
   git init --bare --quiet "$REMOTE"

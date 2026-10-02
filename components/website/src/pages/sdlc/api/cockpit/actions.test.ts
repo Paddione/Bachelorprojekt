@@ -117,7 +117,7 @@ describe('POST /sdlc/api/cockpit/actions (Task 8)', () => {
 
   it('routes ticket_stage_plan to stageTicketPlan (DB, no shell)', async () => {
     const res = await POST({
-      request: req('admin', { action: 'ticket_stage_plan', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', plan: 'openspec/changes/foo/tasks.md', branch: 'feature/foo' }),
+      request: req('admin', { action: 'ticket_stage_plan', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', plan: '.agents/plans/foo/tasks.md', branch: 'feature/foo' }),
     } as never);
     expect(res.status).toBe(200);
     expect(stageTicketPlan).toHaveBeenCalledTimes(1);

@@ -59,7 +59,7 @@ run_subject() {
 }
 
 @test "T003139: die Ablehnung nennt die Datei, in der die Scopes gepflegt werden" {
-  run_subject "chore(openspec): 54 gemergte Changes archivieren [T003139]"
+  run_subject "chore(plan): 54 gemergte Changes archivieren [T003139]"
   [ "$status" -ne 0 ]
   echo "$output" | grep -qF 'commitlint.config.cjs' || {
     echo "Diagnose nennt die SSOT-Datei nicht:" >&2
@@ -69,7 +69,7 @@ run_subject() {
 }
 
 @test "T003139: die Ablehnung nennt den Befehl, der alle gueltigen Scopes auflistet" {
-  run_subject "chore(openspec): 54 gemergte Changes archivieren [T003139]"
+  run_subject "chore(plan): 54 gemergte Changes archivieren [T003139]"
   [ "$status" -ne 0 ]
   echo "$output" | grep -qF 'validate-commit-msg.sh scopes' || {
     echo "Diagnose nennt den Auflistungsbefehl nicht:" >&2
@@ -78,7 +78,7 @@ run_subject() {
   }
 }
 
-@test "T003139: der Hinweis gilt fuer jeden abgelehnten Scope, nicht nur fuer 'openspec'" {
+@test "T003139: der Hinweis gilt fuer jeden abgelehnten Scope, nicht nur fuer 'plan'" {
   # Die eigentliche Begruendung der Wahl 'besser erklaeren statt Liste
   # aufweichen': der Zusatz muss auch dort erscheinen, wo es keinen Alias
   # gibt und suggest_scope nichts findet.
@@ -100,10 +100,10 @@ run_subject() {
   # Der Zusatz darf die vorhandene, praezisere Zeile aus T002328 nicht
   # verdraengen — sie nennt den Zielnamen und ist das Wertvollste an der
   # Meldung.
-  run_subject "chore(openspec): 54 gemergte Changes archivieren [T003139]"
+  run_subject "chore(plan): 54 gemergte Changes archivieren [T003139]"
   [ "$status" -ne 0 ]
   echo "$output" | grep -qF "'plans'" || {
-    echo "Alias-Auskunft openspec -> plans fehlt:" >&2
+    echo "Alias-Auskunft plan -> plans fehlt:" >&2
     echo "$output" >&2
     return 1
   }

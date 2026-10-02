@@ -37,7 +37,6 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-  OPENSPEC_TELEMETRY: '0'
 jobs:
   e2e-pr:
     # Static name — the "E2E PR" context must stay stable (referenced by

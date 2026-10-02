@@ -33,7 +33,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: paddione/collabora-code
 
-  OPENSPEC_TELEMETRY: '0'
 jobs:
   build-push:
     name: Build and push

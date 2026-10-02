@@ -3,7 +3,6 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // .js-Endung fuer eine .ts-Datei — ESM-Konvention, wie in
-// scripts/openspec-validate.test.ts. Ein '.ts'-Import braucht
 // allowImportingTsExtensions, das hier nicht gesetzt ist.
 import {
   chunkCode, chunkSource, chunkYaml, estimateTokens, isInfrastructureError,

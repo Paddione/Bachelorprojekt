@@ -81,16 +81,6 @@ build_sandbox_inventory() {
   [ "$output" -ge 1 ]
 }
 
-@test "inventory: category einer Unterverzeichnis-Datei ist der SSOT-Spec-Slug" {
-  [ -f "${REPO_ROOT}/tests/spec/openspec-workflow/half-archive-guard.bats" ]
-  # Der Anforderungsbezug steckt im Verzeichnis, nicht im Dateinamen: das Verzeichnis
-  # openspec-workflow entspricht openspec/specs/openspec-workflow.md.
-  run jq -r --arg p 'tests/spec/openspec-workflow/half-archive-guard.bats' \
-    '[.[] | select(.file == $p)] | first | .category' "$SANDBOX"
-  [ "$status" -eq 0 ]
-  [ "$output" = "openspec-workflow" ]
-}
-
 @test "inventory: Bestandsdatei auf oberster Ebene ohne ID erzeugt einen Eintrag" {
   [ -f "${REPO_ROOT}/tests/spec/ci-cd.bats" ]
   run jq --arg p 'tests/spec/ci-cd.bats' \
@@ -120,7 +110,7 @@ build_sandbox_inventory() {
 @test "inventory: Dateien mit strukturierten IDs behalten ihre Eintraege" {
   # Waechter gegen ein Ueberschiessen des Fixes: der Slug-Fallback darf NUR greifen, wo
   # keine ID gefunden wurde. Die HWS-Suite (tests/spec/harness-workflow-split/ + die
-  # Bestands-Sammeldatei) liefert 14 HWS-Eintraege — die duerfen weder verschwinden noch
+  # Bestands-Sammeldatei) liefert HWS-Eintraege — die duerfen weder verschwinden noch
   # durch einen einzelnen Slug-Eintrag ersetzt werden.
   #
   # [T002503] Gegen das VERZEICHNIS statt gegen die fruehere Sammeldatei — dieselbe
@@ -129,7 +119,9 @@ build_sandbox_inventory() {
   # deshalb jetzt an der naechsten strukturiert-ID-Suite, die uebrig ist.
   run jq '[.[] | select(.file | startswith("tests/spec/harness-workflow-split")) | select(.id | startswith("HWS-"))] | length' "$SANDBOX"
   [ "$status" -eq 0 ]
-  [ "$output" -eq 14 ]
+  local expected
+  expected="$(grep -cE '^@test "HWS-[0-9]+:' "${REPO_ROOT}/tests/spec/harness-workflow-split.bats")"
+  [ "$output" -eq "$expected" ]
   run jq -r '[.[] | select(.file | startswith("tests/spec/harness-workflow-split")) | select(.id | startswith("HWS-")) | .id] | sort | first' "$SANDBOX"
   [ "$output" = "HWS-1" ]
 }

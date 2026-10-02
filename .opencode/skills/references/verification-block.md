@@ -136,7 +136,7 @@ Diese Pfadliste lebt NUR hier (wartungskritisch — bei neuen Generatoren hier e
 ```bash
 git add \
   components/website/src/data/test-inventory.json \
-  components/website/src/data/openspec-status.json \
+  components/website/src/data/test-inventory.json \
   components/website/src/data/route-manifest.json \
   components/website/src/lib/learning-assets.generated.json \
   "components/website/public/learning-assets/THIRD-PARTY-ASSETS.md" \

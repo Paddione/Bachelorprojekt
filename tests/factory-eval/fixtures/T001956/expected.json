@@ -1,8 +1,8 @@
 {
   "files": [
-    "openspec/changes/fix-e2e-kontaktformular/proposal.md",
-    "openspec/changes/fix-e2e-kontaktformular/specs/fix-e2e-kontaktformular.md",
-    "openspec/changes/fix-e2e-kontaktformular/tasks.md",
+    ".agents/plans/fix-e2e-kontaktformular/proposal.md",
+    ".agents/plans/fix-e2e-kontaktformular/specs/fix-e2e-kontaktformular.md",
+    ".agents/plans/fix-e2e-kontaktformular/tasks.md",
     "tests/e2e/specs/fa-10-website.spec.ts"
   ],
   "forbidden": [

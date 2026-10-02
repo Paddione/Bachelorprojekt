@@ -35,9 +35,9 @@ setup() {
   mkdir -p "$STUBS"
 
   # Alle Fixture-Pfade sind ABSOLUT und alle git-Aufrufe nutzen -C. Kein `cd`, keine
-  # relativen Verzeichnisse: ein relativ angelegtes openspec/changes/<slug> waere unter
-  # `bats -j 6` fuer den validateTree('openspec')-Test sichtbar und faerbte ihn sporadisch rot.
-  PLANDIR="$FIXTURE/openspec/changes/x"
+  # relativen Verzeichnisse: ein relativ angelegtes .agents/plans/<slug> waere unter
+  # `bats -j 6` fuer den validateTree('plan')-Test sichtbar und faerbte ihn sporadisch rot.
+  PLANDIR="$FIXTURE/.agents/plans/x"
 
   git init --bare --quiet "$REMOTE"
   git init --quiet "$FIXTURE"
@@ -51,7 +51,7 @@ setup() {
   git -C "$FIXTURE" commit --quiet -m "base"
   git -C "$FIXTURE" push --quiet origin HEAD:main
 
-  # Zwei Branches mit reiner Allowlist-Abweichung (openspec/changes/**). Beide sind lokal
+  # Zwei Branches mit reiner Allowlist-Abweichung (.agents/plans/**). Beide sind lokal
   # UND am Remote vorhanden, beide lokalen Refs zeigen auf denselben SHA wie der jeweilige
   # Remote-Branch — der Ausgangszustand, in dem der lokale Ref mitentfernt werden darf.
   _branch() {

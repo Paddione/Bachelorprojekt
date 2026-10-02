@@ -11,16 +11,16 @@ setup() {
   # Begruendet war das damit, dass die Gate-Tests die intel.json an ihrem echten Ort
   # brauchen, weil plan-lint sie dort sucht. Der Preis dieser Entscheidung war
   # unsichtbar, solange niemand archivierte: T002569 Charge 7 verschob den Change nach
-  # openspec/changes/archive/, und alle neun Tests brachen mit 'intel.json not found'.
+  # .agents/plans/archive/, und alle neun Tests brachen mit 'intel.json not found'.
   # CI auf main war dadurch mehrere Laeufe lang rot, und jeder offene PR erbte den
   # Fehlschlag. Jeder produktive Change wird irgendwann archiviert — eine Testsuite
   # darf ihre Lebensdauer nicht erben.
   #
   # Die Eigenschaft, die die alte Entscheidung sichern wollte, bleibt erhalten: das
-  # Fixture wird unter openspec/changes/ materialisiert, also genau dort, wo plan-lint
+  # Fixture wird unter .agents/plans/ materialisiert, also genau dort, wo plan-lint
   # sucht. Es entsteht in setup() aus tests/fixtures/ und verschwindet in teardown().
   SLUG="tcc-fixture-$$"
-  CHANGE_DIR="$REPO/openspec/changes/$SLUG"
+  CHANGE_DIR="$REPO/.agents/plans/$SLUG"
   FIXTURE_SRC="$REPO/tests/fixtures/task-context-channel"
   # Wohin die Generator-Laeufe schreiben, die ihr Ergebnis nur lesen wollen.
   OUT="$BATS_TEST_TMPDIR/intel.json"
@@ -43,11 +43,11 @@ setup() {
   # Nachbarprozess waere juenger und bleibt verschont. Das eigene $CHANGE_DIR
   # existiert zu diesem Zeitpunkt noch nicht (mkdir laeuft erst NACH diesem Schritt)
   # und wird von find folglich gar nicht gesehen.
-  find "$REPO/openspec/changes" -maxdepth 1 -type d -name 'tcc-fixture-*[0-9]' -mmin +10 -print0 \
+  find "$REPO/.agents/plans" -maxdepth 1 -type d -name 'tcc-fixture-*[0-9]' -mmin +10 -print0 \
     | while IFS= read -r -d '' orphan; do
-        # Guard wie in teardown(): kein rm -rf ausserhalb von openspec/changes/tcc-fixture-*.
+        # Guard wie in teardown(): kein rm -rf ausserhalb von .agents/plans/tcc-fixture-*.
         case "$orphan" in
-          */openspec/changes/tcc-fixture-*) rm -rf "$orphan" ;;
+          */.agents/plans/tcc-fixture-*) rm -rf "$orphan" ;;
         esac
       done
 
@@ -55,8 +55,8 @@ setup() {
   mkdir -p "$CHANGE_DIR"
   cp -r "$FIXTURE_SRC/." "$CHANGE_DIR/"
   # [T003677-CI] Das Fixture traegt eine .ticket-Datei (T002420) und ein valides
-  # specs/-Delta, damit der ganzbaumige OpenSpec-Validator (openspec-workflow.bats,
-  # "validator ignores specs under openspec/specs/archive/") den transienten
+  # specs/-Delta, damit der ganzbaumige plan-Validator (plan-workflow.bats,
+  # "validator ignores specs under docs/superpowers/specs/archive/") den transienten
   # Fixture-Ordner nicht als kaputten Change meldet. Beide Dateien laufen unter
   # bats -j PARALLEL; ohne .ticket fiel der Validator-Test im Parallelbetrieb rot
   # ("tcc-fixture-<pid>: has no .ticket link"). Das Fixture MUSS deshalb
@@ -65,9 +65,9 @@ setup() {
 
 teardown() {
   # Nur ein Pfad, der wirklich unser Fixture ist — ein fehlgeleitetes rm -rf unter
-  # openspec/changes/ traefe sonst echte Vorgaenge. [T002586]
+  # .agents/plans/ traefe sonst echte Vorgaenge. [T002586]
   case "${CHANGE_DIR:-}" in
-    */openspec/changes/tcc-fixture-*) rm -rf "$CHANGE_DIR" ;;
+    */.agents/plans/tcc-fixture-*) rm -rf "$CHANGE_DIR" ;;
   esac
 }
 
@@ -144,7 +144,7 @@ teardown() {
 @test "TCC-gate: vollstaendiges Bundle passiert plan-lint" {
   run bash "$REPO/scripts/plan-intel.sh" "$SLUG"
   [ "$status" -eq 0 ]
-  run bash "$REPO/scripts/plan-lint.sh" "$REPO/openspec/changes/$SLUG/tasks.md"
+  run bash "$REPO/scripts/plan-lint.sh" "$REPO/.agents/plans/$SLUG/tasks.md"
   [ "$status" -eq 0 ] || { echo "lint failed on complete bundle: $output"; false; }
 }
 
@@ -156,7 +156,7 @@ teardown() {
   local modified
   modified="$(jq 'del(.impact_files[] | select(.path == "scripts/plan-intel.sh"))' "$CHANGE_DIR/intel.json")"
   echo "$modified" > "$CHANGE_DIR/intel.json"
-  run bash "$REPO/scripts/plan-lint.sh" "$REPO/openspec/changes/$SLUG/tasks.md"
+  run bash "$REPO/scripts/plan-lint.sh" "$REPO/.agents/plans/$SLUG/tasks.md"
   local rc="$status"
   cp "$backup" "$CHANGE_DIR/intel.json"
   rm -f "$backup"
@@ -165,8 +165,34 @@ teardown() {
 }
 
 @test "TCC-gate: Plan ohne tasks.d/ wird von I1 nicht beruehrt" {
-  local single_plan="$REPO/openspec/changes/archive/2026-08-04-gpu-arbitrierung-trainings-vorrang/tasks.md"
-  [ -f "$single_plan" ] || { echo "Plan ohne tasks.d/ nicht gefunden"; false; }
+  local single_plan="$BATS_TEST_TMPDIR/tasks.md"
+  cat > "$single_plan" <<'PLAN'
+---
+title: "single — Implementation Plan"
+ticket_id: T900725
+domains: [test]
+status: completed
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
+---
+
+# single — Implementation Plan
+
+_Ticket: T900725_
+
+## File Structure
+
+- `scripts/plan-intel.sh`
+
+## Tasks
+
+- [x] Failing test step: `bats tests/spec/os-retirement-code.bats`; expected: FAIL before implementation.
+- [x] Keep `scripts/plan-intel.sh` working.
+- [x] Final verification: `task test:changed`, `task freshness:regenerate`, `task freshness:check`.
+PLAN
   run bash "$REPO/scripts/plan-lint.sh" "$single_plan"
   [ "$status" -eq 0 ] || { echo "lint failed auf Plan ohne tasks.d/: $output"; false; }
 }

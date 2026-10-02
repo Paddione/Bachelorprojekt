@@ -1,8 +1,8 @@
 {
   "files": [
-    "openspec/changes/fix-t001940-coaching-generate-502/proposal.md",
-    "openspec/changes/fix-t001940-coaching-generate-502/specs/capability.md",
-    "openspec/changes/fix-t001940-coaching-generate-502/tasks.md",
+    ".agents/plans/fix-t001940-coaching-generate-502/proposal.md",
+    ".agents/plans/fix-t001940-coaching-generate-502/specs/capability.md",
+    ".agents/plans/fix-t001940-coaching-generate-502/tasks.md",
     "components/website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts"
   ],
   "forbidden": [

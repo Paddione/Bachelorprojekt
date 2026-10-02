@@ -100,6 +100,7 @@ scripts/lib/ticket-help.sh
 scripts/llm-proxy/backends.mjs
 scripts/llm-proxy/default-pin.test.mjs
 scripts/llm-proxy/fixups.mjs
+scripts/llm-proxy/loadouts.mjs
 scripts/llm-proxy/request-log.mjs
 scripts/llm-proxy/request-log.test.mjs
 scripts/llm-proxy/runner.mjs
@@ -112,6 +113,7 @@ scripts/llm/agent-bench/cases/f4-worktree-remove-replay/variants/v1/reference/p1
 scripts/llm/agent-bench/cases/f4-worktree-remove-replay/variants/v1/reference/tasks.md
 scripts/llm/agent-bench/lib/recorder.mjs
 scripts/llm/bench-ifstruct.sh
+scripts/llm/loadouts.json
 scripts/llm/measure-factory-context.mjs
 scripts/llm/measurements/2026-09-04-freetoken-vs-llamacpp.md
 scripts/llm/routing-check.sh
@@ -145,6 +147,7 @@ scripts/ticket-reclaim.sh
 scripts/ticket-status-validate.sh
 scripts/ticket.sh
 scripts/triage/few-shot-examples.json
+scripts/triage/heuristik.mjs
 scripts/vda/apply/evidence-catalog.yaml
 scripts/vda/factory-prep.sh
 scripts/vda/factory.sh

@@ -15,7 +15,7 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const AREA_WEIGHTS = { infra: 1.0, chat: 0.9, ops: 0.8, db: 0.8, ai: 0.7,
-                       factory: 0.6, website: 0.5, docs: 0.3 };
+                       website: 0.5, docs: 0.3 };
 const CRITICAL_KEYWORDS = ['kritisch', 'prod-down', 'datenverlust', 'ausfall',
                            'notfall', 'severe', 'down', 'offline'];
 const HIGH_KEYWORDS     = ['fehler', 'bug', 'kaputt', 'broken', 'failing'];

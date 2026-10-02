@@ -8,7 +8,7 @@
 # Ausnahme in [T002448-M4]. Ein Laufzeittest gegen :8091 waere in CI nicht
 # ausfuehrbar, dort laeuft kein llama-server.
 #
-# T900365: der lokale Stack faehrt Muse-Glimmer-30B via llama.cpp :1919
+# T900365: der lokale Stack faehrt Qwen3.8-27B via llama.cpp :1919
 # (davor Qwen3.8-27B-gsq, T900348/T900359; FreeToken, T900164/T900203). Der Provider-Key heisst historisch "llamacpp-local";
 # die Loadout-Kopplung an loadouts.json ist entfallen.
 
@@ -65,10 +65,10 @@ setup() {
   [ "${output}" = "0" ]
 }
 
-@test "T002545: die Agentendefinitionen verweisen auf Muse-Glimmer-30B" {
-  # T900365: alle lokalen Agenten laufen auf llamacpp-local/Muse-Glimmer-30B
+@test "T002545: die Agentendefinitionen verweisen auf Qwen3.8-27B" {
+  # T900365: alle lokalen Agenten laufen auf llamacpp-local/Qwen3.8-27B
   # (llama.cpp :1919, RTX 5070 Ti, 131072 served KV).
-  run grep -c 'llamacpp-local/Muse-Glimmer-30B' "${AGENTS}"
+  run grep -c 'llamacpp-local/Qwen3.8-27B' "${AGENTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 }

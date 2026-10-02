@@ -1,0 +1,26 @@
+{
+  // Project-local Slim overrides (Slim-first, chore/slim-orchestrator-setup).
+  // Slim's `orchestrator` is the sole interactive orchestration definition;
+  // repo workflow rules live in ~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md.
+  // Local models stay available as specialist/worker choices below.
+  "agents": {
+    "orchestrator": {
+      "model": "llamacpp-local/Qwen3.8-27B"
+    },
+    "explorer": {
+      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP"
+    },
+    "librarian": {
+      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP"
+    },
+    "fixer": {
+      "model": "llamacpp-local/Qwen3.8-27B"
+    },
+    "oracle": {
+      "model": "llamacpp-local/Qwen3.8-27B"
+    },
+    "designer": {
+      "model": "llamacpp-local/Qwen3.8-27B"
+    }
+  }
+}

@@ -19,7 +19,7 @@
 
 | Modell | Limit (ctx/output) | Messung | Status |
 |---|---|---|---|
-| Muse-Glimmer-30B | 131072/8192 | — | `ok` |
+| Qwen3.8-27B | 131072/8192 | — | `ok` |
 
 ### llamacpp-qwen35
 
@@ -57,17 +57,16 @@
 
 | Agent | Modell | Status |
 |---|---|---|
-| local | llamacpp-local/Muse-Glimmer-30B | `ok` |
+| local | llamacpp-local/Qwen3.8-27B | `ok` |
 | qwen35-mtp | llamacpp-qwen35/Qwen3.5-4B-MTP | `ok` |
 | plan-worker-4b | llamacpp-qwen35/Qwen3.5-4B-MTP | `ok` |
-| plan-worker-self | llamacpp-local/Muse-Glimmer-30B | `ok` |
-| reviewer | llamacpp-local/Muse-Glimmer-30B | `ok` |
-| orchestrator | llamacpp-local/Muse-Glimmer-30B | `ok` |
+| plan-worker-self | llamacpp-local/Qwen3.8-27B | `ok` |
+| reviewer | llamacpp-local/Qwen3.8-27B | `ok` |
 | exe-muse | opencode-go-oai/muse-spark-1.3-contributor | `ok` |
 | big-pickle | opencode-zen/big-pickle | `ok` |
 | ox-alpha-free | opencode-zen/laguna-s-2.1-free | `ok` |
 | ox-alpha | opencode-zen/laguna-s-2.1-free | `ok` |
-| glimmer-primary | llamacpp-local/Muse-Glimmer-30B | `ok` |
+| glimmer-primary | llamacpp-local/Qwen3.8-27B | `ok` |
 
 ## Zusatz-Config: /mnt/c/Users/PatrickKorczewski/.config/opencode/opencode.jsonc
 

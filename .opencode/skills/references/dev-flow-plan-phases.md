@@ -215,7 +215,7 @@ sie sagen dem Orchestrator, mit welcher billigsten Stufe und welchem
 Kontextbudget er das Partial dispatchen soll.
 
 **(b) Fan-out** — N parallele Plan-Subagenten (Claude Code: `Task`-Tool; opencode:
-`delegate(...)`). Kontext pro Subagent NUR: `.agents/plans/<slug>/proposal.md`,
+`subagent()` — `delegate()` ist retired). Kontext pro Subagent NUR: `.agents/plans/<slug>/proposal.md`,
 sein Manifest-Eintrag, die Ausgabe von
 `bash scripts/plan-intel-filter.sh <slug> <target_files...>` (deterministisch
 gefilterte `intel.json` für genau seine Dateien) und die
@@ -231,7 +231,8 @@ dispatcht jedes Partial auf genau der Stufe aus `min_tier` und budgetiert aus
 `ctx_tokens` — nie darunter, Eskalation nur bei Fehlschlag (Kette im
 Orchestrator-Prompt). Die Stufen-Labels sind stabile Kapazitätsklassen; die
 konkrete Runtime-Bindung steht in `.opencode/agent-models.jsonc` +
-`.opencode/prompts/orchestrator.md` (heute: `4b-local` → `qwen35-mtp`,
+`.opencode/oh-my-opencode-slim.jsonc` (Slim-first; Workflow-Regeln in
+`~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md`) (heute: `4b-local` → `qwen35-mtp`,
 `27b-local` → `local`, `cloud` → `exe-muse`):
 - `4b-local`: mechanisch, voll spezifiziert — exakte Anker, ein Subsystem,
   Testausführung/Reporting, Boilerplate, Doc-Sync. Text-only, kein Deep-Debugging.

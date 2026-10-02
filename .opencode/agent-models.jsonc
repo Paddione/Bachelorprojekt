@@ -6,8 +6,9 @@
     // und opencode-Default referenzieren ihn). Seit T900348 steht dahinter wieder
     // llama.cpp, seit 2026-09-26 Qwen3.8-27B GSQ-RCO IQ2_S-mtp (196608 served KV,
     // MTP n-max 4, -cram 12288) auf der RTX 5070 Ti allein (scripts/llm/qwen38-gsq-iq2s.service).
-    // Die Modell-ID "Muse-Glimmer-30B" ist nur noch ein Alias (llama-server ignoriert sie).
-    // Davor: Muse Glimmer 30B (T900365), Qwen3.8 GSQ-RCO IQ3_XXS (T900359), FreeToken (T900203).
+    // Die Modell-ID "Qwen3.8-27B" ist der opencode-seitige Name (llama-server ignoriert ihn;
+    // live-Alias: Qwen3.8-27B-gsq-iq2s; davor opencode-Alias "Muse-Glimmer-30B", T900365).
+    // Davor opencode-Alias "Muse-Glimmer-30B" (T900365), Qwen3.8 GSQ-RCO IQ3_XXS (T900359), FreeToken (T900203).
     //
     // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
     // stillgelegt (ADR-007). Der Server bedient einen Slot (-np 1); weitere
@@ -31,7 +32,7 @@
         // limit.input ist Pflicht fuer den V1-Compaction-Trigger: ohne ihn
         // ignoriert opencode compaction.reserved und kompaktiert erst bei
         // context − output (T900362, siehe opencode.jsonc).
-        "Muse-Glimmer-30B": {
+        "Qwen3.8-27B": {
           "name": "Qwen3.8-27B GSQ-RCO IQ2_S-mtp (llama.cpp :1919, RTX 5070 Ti, 196k served KV, limit 131k, ~71-102 tok/s decode)",
           "limit": {
             "context": 131072,
@@ -211,7 +212,7 @@
     "local": {
       "description": "Higher-capability local implementation subagent (Qwen3.8-27B GSQ-RCO IQ2_S-mtp via llama.cpp :1919, RTX 5070 Ti, one slot; context limit 131k shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -246,7 +247,7 @@
     "plan-worker-self": {
       "description": "plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -256,36 +257,18 @@
     "reviewer": {
       "description": "Reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny", "task": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "todowrite": "allow", "question": "allow", "skill": "allow", "lsp": "allow" }
     },
-    // Eskalationsstufe NACH lokaler Kompaktierung/Retry und opencodes eigener
-    // Kompaktierung: exe-muse (Muse Spark via OpenCode Go) ist die einzige
-    // Cloud-Schiene (T900751: DeepSeek-Schienen entfernt).
-    "orchestrator": {
-      "description": "Primary orchestrator: Muse Glimmer 30B on the RTX 5070 Ti via llama.cpp :1919 (131k served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation via exe-muse (Muse Spark on the Go rail). Tab-selectable via Tab key.",
-      "mode": "primary",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
-      "prompt": "{file:./prompts/orchestrator.md}",
-      "color": "#8B5CF6",
-      "temperature": 0.2,
-      "steps": 150,
-      // Exakte Namen statt Wildcards (Prinzip aus T002298): eine Wildcard
-      // wuerde jeden neu hinzugefuegten Subagenten automatisch mitfreigeben.
-      "permission": {
-        "task": {
-          "local": "allow",
-          "qwen35-mtp": "allow",
-          "exe-muse": "allow",
-          // T900074-p2: reviewer role must be dispatchable.
-          "reviewer": "allow"
-        }
-      }
-    },
+    // Slim-first (chore/slim-orchestrator-setup): kein eigenes `orchestrator`-Profil mehr —
+    // Slims Orchestrator ist die einzige interaktive Orchestrierungs-Definition
+    // (Modell-Pinning in .opencode/oh-my-opencode-slim.jsonc, Workflow-Regeln in
+    // ~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md). `local`,
+    // `qwen35-mtp`, `exe-muse` und `reviewer` bleiben als Worker verfuegbar.
     // exe-muse — Muse-Spark-Ausfuehrungs-Agent auf dem Go-Katalog
     // (Subscription, kein Training-Sharing wie Zen-free). Niedrige
     // Reasoning-Stufe (`low`) und `mode: subagent`: dispatchbar, bewusst NICHT
@@ -359,14 +342,14 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // Plan-Primary: Muse Glimmer 30B via llama.cpp :1919 (131072 served KV, T900365).
+    // Plan-Primary: Qwen3.8-27B via llama.cpp :1919 (131072 served KV, T900365).
     // Heisst nach dem Modell, das es faehrt (Regel aus T016419; bis T900365 qwen38-primary).
     // Autonomous ticket-hammering agent: prioritizes critical issues,
     // plans (/dev-flow-plan), explores , executes, archives.
     "glimmer-primary": {
-      "description": "PRIMARY: Local Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, 131k served KV, gemessen 2026-09-25). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores , executes, and archives one by one. Tab-selectable.",
+      "description": "PRIMARY: Local Qwen3.8-27B via llama.cpp :1919 (RTX 5070 Ti, 131k served KV, gemessen 2026-09-25). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores , executes, and archives one by one. Tab-selectable.",
       "mode": "primary",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/glimmer-primary.md}",
       "color": "#10B981",
       "temperature": 0.3,

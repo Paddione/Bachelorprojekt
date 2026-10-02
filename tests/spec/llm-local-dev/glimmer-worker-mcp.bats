@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/glimmer-worker-mcp.bats — T900373
-# SSOT: openspec/specs/llm-local-dev.md
 #   Requirement: Glimmer Worker MCP for Muse Code
 #   Requirement: Windows Paths Are Accepted by the Glimmer Worker
 #   Requirement: The Glimmer Worker Is Registered Only in Muse Code

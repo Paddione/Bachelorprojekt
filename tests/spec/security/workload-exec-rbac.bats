@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/security/workload-exec-rbac.bats
-# SSOT: openspec/specs/security.md  (Change: openspec/changes/rbac-exec-least-privilege)
 # Ticket: T900110
 #
 # Pruefmodus: Die Guards prüfen Kubernetes-Manifeste und Kustomize-Transformer-

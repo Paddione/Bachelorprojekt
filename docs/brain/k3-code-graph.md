@@ -123,7 +123,7 @@
 ┌──────────────────────────────────────────────────────────────┐
 │                    K1 (Vektor-Embeddings)                     │
 │  bge-m3 → embeddings.ts → pgvector                           │
-│  Index: openspec/specs/, docs/, Code-Chunks                   │
+│  Index: superpowers/specs/, .agents/plans/, Code-Chunks       │
 │  Semantische Suche (Bedeutung, natürliche Sprache)            │
 │  Trigger: post-commit Hook (automatisch)                      │
 ├──────────────────────────────────────────────────────────────┤

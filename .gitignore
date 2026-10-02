@@ -204,11 +204,9 @@ deepseek.sh
 environments/.secrets/.ssh/known_hosts
 .proxmox
 
-# ── Vendored design system committed inside an OpenSpec change (legacy) ──
 # mentolder-ds was committed whole (build output + vendor tooling + lockfile) under
 # the mentolder-react-rebuild proposal. It must never be re-tracked; if a fresh
 # design-system vendor is needed, do it as a proper package or git submodule.
-openspec/changes/mentolder-react-rebuild/mentolder-ds/
 
 # Factory injection assets — materialized into the worktree at a phase boundary, never committed.
 assets-inbox/docs/superpowers/specs/.gaps/
@@ -257,7 +255,6 @@ build/iso/
 scripts/iso/node-map
 
 # plan-runner: Laufzustand je Change (T900504)
-openspec/changes/*/.plan-runner/
 consideration.md
 
 # pi-run.sh: JSONL-Protokolle je Lauf (T900529)

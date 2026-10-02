@@ -222,7 +222,7 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 		mcp.NewTool("archive_plan",
 			mcp.WithDescription("Archiviert einen Plan und mergt den Delta-Spec in die SSOT."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
-			mcp.WithString("slug", mcp.Description("OpenSpec-Change-Slug"), mcp.Required()),
+			mcp.WithString("slug", mcp.Description("Plan-Slug"), mcp.Required()),
 			mcp.WithString("branch", mcp.Description("Feature/Fix-Branch"), mcp.Required()),
 			mcp.WithString("plan_file", mcp.Description("Pfad zur Plan-Datei"), mcp.Required()),
 			mcp.WithString("pr", mcp.Description("Optionale PR-Nummer (integer)")),

@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/t001358-sec05-health-goals/tasks.md
 # G-SEC05: health-goals-check.sh muss BEIDE github-actions[bot]-Mail-Varianten
 # aus der "unsignierte Commits"-Zaehlung ausschliessen — mit und ohne den
 # numerischen 41898282+-Praefix.
@@ -211,7 +210,6 @@ g_db09_query() {
 
 # ═══════════════════════════════════════════════════════════════════
 # G-OPS01: Pods nicht Running/Ready (fleet, beide Brand-Namespaces)
-# SSOT: openspec/changes/ops-pods-not-ready/tasks.md [T002097]
 #
 # Der Test ist statisch (kein Live-Cluster nötig, CI-lauffähig) und
 # deckt den in Scope stehenden Root Cause der 2026-07-23-Re-Messung

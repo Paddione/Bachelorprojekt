@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/fetch-refspec-forced.bats
-# SSOT: openspec/specs/ci-cd.md
 #
 # Pruefmodus: Quelltext-Pruefung der Workflow-Dateien. Das ist hier das
 # angemessene Mittel und keine Verletzung der Output-Konvention [T002448-M4] —

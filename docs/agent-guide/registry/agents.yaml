@@ -92,14 +92,14 @@ runtimes:
     mode: primary
     model: llamacpp-local/Qwen3.8-27B
     write_capable: true
-    note: "PRIMARY: Local Qwen3.8-27B via llama.cpp (:1919, RTX 5070 Ti, served KV 131072) (llamacpp-local/Qwen3.8-27B) [T900365]. Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
+    note: "PRIMARY: Local Qwen3.8-27B via llama.cpp (:1919, RTX 5070 Ti, served KV 131072) (llamacpp-local/Qwen3.8-27B) [T900365]. Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/dev-flow-plan), executes, and archives."
   plan-worker-4b:
     mode: primary
     model: llamacpp-qwen35/Qwen3.5-4B-MTP
     write_capable: true
-    note: "plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one OpenSpec partial; started by scripts/llm/plan-runner.mjs, not for interactive use [T900504]."
+    note: "plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one plan partial; started by scripts/llm/plan-runner.mjs, not for interactive use [T900504]."
   plan-worker-self:
     mode: primary
     model: llamacpp-local/Qwen3.8-27B
     write_capable: true
-    note: "plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one OpenSpec partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs [T900504]."
+    note: "plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs [T900504]."

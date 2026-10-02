@@ -62,36 +62,10 @@ setup() {
   fi
 }
 
-@test "T002464 changes-since antwortet ohne ts konservativ mit hasChanges=true (OF1)" {
-  require_daemon || return 1
-
-  # Ohne Bezugszeitpunkt laesst sich nichts ausschliessen. Die Vorgaengerfassung
-  # antwortete hier mit hasChanges:false und haette damit ausgerechnet im
-  # unklarsten Fall zum Ueberschreiben geraten.
-  run curl -s "${BASE}/api/cockpit/epics/T002458/changes-since"
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -q '"hasChanges":true'
-}
-
-@test "T002464 changes-since weist einen unbrauchbaren Zeitstempel ab (OF1)" {
-  require_daemon || return 1
-
-  # POSITIV-ANKER: ein gueltiger ISO-Zeitstempel wird verarbeitet und liefert
-  # ein hasChanges-Feld. Ohne diesen Anker waere die Aussage unten trivial,
-  # falls die Route generell kaputt ist.
-  run curl -s -G --data-urlencode "ts=2026-01-01T00:00:00.000Z" \
-    "${BASE}/api/cockpit/epics/T002458/changes-since"
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -q '"hasChanges"'
-
-  # Freitext ist kein Zeitstempel und darf nicht an git durchgereicht werden.
-  run curl -s -G --data-urlencode "ts=yesterday; id" \
-    "${BASE}/api/cockpit/epics/T002458/changes-since"
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -q '"hasChanges":true'
-  # Eine Shell haette `id` ausgefuehrt; die uid-Zeile darf nirgends auftauchen.
-  ! echo "$output" | grep -qE 'uid=[0-9]+'
-}
+# OF1 changes-since-Tests entfernt (T900843): die Route
+# GET /api/cockpit/epics/:id/changes-since wurde mit A1b stillgelegt
+# (sie beantwortete "wurde openspec/changes/ seit dem Canvas-Export
+# veraendert?" — mit dem OpenSpec-Abriss gegenstandslos).
 
 # ---------------------------------------------------------------------------
 # E1 — kein direktes fetch() in den Kit-Dateien
@@ -111,7 +85,6 @@ count_fetch_calls() {
   # sie, ist die Negativ-Aussage unten wertlos — dann ruft eben niemand fetch(),
   # weil es gar keine Epic-Anzeige gibt.
   grep -q 'function epics' "$KIT_DIR/adapter.js"
-  grep -q 'function epicChangesSince' "$KIT_DIR/adapter.js"
 
   # GEGENPROBE: adapter.js DARF fetch( enthalten — er ist die eine Stelle, die
   # es soll. Waere die Zaehlfunktion kaputt und lieferte immer 0, faellt es hier

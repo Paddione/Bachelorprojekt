@@ -38,7 +38,6 @@ git -C "$REPO_DIR" fetch origin main --prune 2>/dev/null || true
 # ── Step 2: Reap stale agent locks ──────────────────────────────────────
 log "agent-lock reap"
 # stdout auf stderr umleiten: agent-lock.sh reap meldet u.a. die
-# openspec-half-archive-Check-Zeile auf stdout — die wuerde die JSON-Metrik-
 # Ausgabe (stdout ist Vertrag) verunreinigen. Log-Zeilen gehoeren auf stderr.
 bash "$HERE/agent-lock.sh" reap >&2 2>/dev/null || true
 

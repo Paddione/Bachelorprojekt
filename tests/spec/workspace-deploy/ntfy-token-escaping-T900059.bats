@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/workspace-deploy/ntfy-token-escaping-T900059.bats
-# SSOT: openspec/specs/workspace-deploy.md
 # Covers T900059 (chore, NTFY/PUSHOVER-Teilscope): k3d/ntfy.yaml Z48/50 must
 # carry the runtime tokens as $${...} (escaped), so a future envsubst
 # allowlist/render path cannot silently substitute them to empty strings.

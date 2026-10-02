@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/internal-endpoints.bats
-# SSOT: openspec/changes/wsl-exit-internal-endpoints/specs/fleet-operations.md [T016430]
 
 setup() {
   load '../test_helper.bash'

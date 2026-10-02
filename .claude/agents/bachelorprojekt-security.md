@@ -95,7 +95,7 @@ Vollständige Regel: [`escalation-protocol.md`](../lib/behaviors/escalation-prot
 ## Active plans
 
 Der Orchestrator injiziert einen `<active-plans>`-Block aus
-`scripts/plan-context.sh bachelorprojekt-security --with-openspec`. Ist er da, ist er maßgeblich.
+`scripts/plan-context.sh bachelorprojekt-security`. Ist er da, ist er maßgeblich.
 Ist er nicht da, läuft für diese Rolle kein Plan — **nicht** ersatzweise
 `superpowers.plans` abfragen (eingefrorene Historie).
 

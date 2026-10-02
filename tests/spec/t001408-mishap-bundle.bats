@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/t001408-mishap-bundle.bats
-# SSOT: openspec/changes/t001408-mishap-bundle/proposal.md
 # T001408 — Mishap-Bundle: agent-lock, skills/dev-flow-execute,
 # scripts/devflow-ci-watch.sh (3 Einträge).
 #

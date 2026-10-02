@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/repo-hygiene/worktree-stash-inspection.bats
-# SSOT: openspec/specs/agent-skills.md
 #   — "repo-hygiene covers the local working tree and stashes"
 #   — "Path-filtered stash inspection uses a two-revision diff"
 #   — "Stash relevance is decided against today's main, not against the stash base"

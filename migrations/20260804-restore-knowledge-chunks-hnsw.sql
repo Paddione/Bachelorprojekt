@@ -5,7 +5,7 @@
 -- pg_stat_user_indexes zwangslaeufig unbenutzt, solange niemand semantisch sucht —
 -- und wird prospektiv zum Blocker, sobald jeder Agent-Dispatch ueber die
 -- Retrieval-Schicht (scripts/context-retrieve.mjs, S1 von T002658) laeuft.
--- Ohne HNSW ist jede Vektorsuche ein Sequential Scan; openspec/specs/openspec-pgvector.md
+-- Ohne HNSW ist jede Vektorsuche ein Sequential Scan; die Vektor-DB-Spec
 -- sichert den Index seit dem Drop faelschlich zu. Dieser Kommentarkopf hält eine spaetere
 -- Unused-Index-Aufraeumung davon ab, denselben Fehler aus demselben Grund zu wiederholen.
 --

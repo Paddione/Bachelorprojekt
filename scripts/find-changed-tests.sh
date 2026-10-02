@@ -170,10 +170,10 @@ while IFS= read -r file; do
     continue
   fi
 
-  # tests/spec/*.bats are named after their OpenSpec SSOT spec slug, so an
-  # openspec/ change maps straight onto the same-named spec bats. [T002245]
-  if [ "$TYPE" = "spec" ] && [[ "$file" == openspec/* ]]; then
-    slug=$(printf '%s\n' "$file" | cut -d/ -f3)
+  # tests/spec/*.bats are named after their spec slug, so a
+  # docs/superpowers/specs/ change maps straight onto the same-named spec bats. [T002245]
+  if [ "$TYPE" = "spec" ] && [[ "$file" == docs/superpowers/specs/* ]]; then
+    slug=$(printf '%s\n' "$file" | cut -d/ -f4)
     if [ -n "$slug" ] && [ -f "$BASE_DIR/$slug.bats" ]; then
       CANDIDATES+=("$BASE_DIR/$slug.bats")
     fi

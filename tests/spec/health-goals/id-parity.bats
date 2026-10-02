@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/health-goals.md
 #
 # Prüfmodus: **Output-Verifikation** [T002448-M4]. Die Tests führen die ID-Extraktion
 # tatsächlich aus und vergleichen die resultierenden Mengen; sie greppen nicht nach

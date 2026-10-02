@@ -13,7 +13,7 @@
 # of the same PR.
 #
 # SSOT: this script + hook implements the policy declared in
-#   openspec/specs/ci-cd.md (commit-msg-guard requirement).
+#   docs/superpowers/specs/ci-cd.md (commit-msg-guard requirement).
 # Convention: one .bats per script. BATS runs as part of `task test:unit`.
 
 setup() {
@@ -70,8 +70,8 @@ teardown() {
 @test "allows: chore(plan-only) — plan-only commit uses chore(plans):" {
   mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'chore(plans): stage t001434 for execution [T001434]\n' > "$TMP/msg-subject"
-  mkdir -p openspec/changes/t001434 && printf 'plan' > openspec/changes/t001434/tasks.md
-  git add openspec/
+  mkdir -p .agents/plans/t001434 && printf 'plan' > .agents/plans/t001434/tasks.md
+  git add .agents/plans/
   run bash "$SCRIPT" "$TMP/msg-subject"
   [ "$status" -eq 0 ]
 }
@@ -138,8 +138,8 @@ teardown() {
 @test "blocks: fix(plan-only)" {
   mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware\n' > "$TMP/msg-subject"
-  mkdir -p openspec/changes/x && printf 'plan' > openspec/changes/x/tasks.md
-  git add openspec/
+  mkdir -p .agents/plans/x && printf 'plan' > .agents/plans/x/tasks.md
+  git add .agents/plans/
   run bash "$SCRIPT" "$TMP/msg-subject"
   [ "$status" -ne 0 ]
 }
@@ -148,17 +148,17 @@ teardown() {
   mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware\n' > "$TMP/msg-subject"
   mkdir -p src && printf 'test' > src/middleware.test.ts
-  mkdir -p openspec/changes/x && printf 'plan' > openspec/changes/x/tasks.md
-  git add src/ openspec/
+  mkdir -p .agents/plans/x && printf 'plan' > .agents/plans/x/tasks.md
+  git add src/ .agents/plans/
   run bash "$SCRIPT" "$TMP/msg-subject"
   [ "$status" -ne 0 ]
 }
 
-@test "blocks: fix(spec-only — openspec/specs)" {
+@test "blocks: fix(spec-only — plan/specs)" {
   mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware\n' > "$TMP/msg-subject"
-  mkdir -p openspec/specs && printf 'spec' > openspec/specs/centralized-logging.md
-  git add openspec/specs/
+  mkdir -p docs/superpowers/specs && printf 'spec' > docs/superpowers/specs/centralized-logging.md
+  git add docs/superpowers/specs/
   run bash "$SCRIPT" "$TMP/msg-subject"
   [ "$status" -ne 0 ]
 }
@@ -166,8 +166,8 @@ teardown() {
 @test "blocks: feat(plan-only)" {
   mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'feat(infra): add logging chain\n' > "$TMP/msg-subject"
-  mkdir -p openspec/changes/x && printf 'p' > openspec/changes/x/tasks.md && printf 'p' > openspec/changes/x/proposal.md
-  git add openspec/changes/x/
+  mkdir -p .agents/plans/x && printf 'p' > .agents/plans/x/tasks.md && printf 'p' > .agents/plans/x/proposal.md
+  git add .agents/plans/x/
   run bash "$SCRIPT" "$TMP/msg-subject"
   [ "$status" -ne 0 ]
 }
@@ -175,8 +175,8 @@ teardown() {
 @test "blocks: refactor(plan-only)" {
   mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'refactor(scripts): consolidate guards\n' > "$TMP/msg-subject"
-  mkdir -p openspec/changes/cleanup && printf 'p' > openspec/changes/cleanup/tasks.md
-  git add openspec/changes/cleanup/
+  mkdir -p .agents/plans/cleanup && printf 'p' > .agents/plans/cleanup/tasks.md
+  git add .agents/plans/cleanup/
   run bash "$SCRIPT" "$TMP/msg-subject"
   [ "$status" -ne 0 ]
 }
@@ -184,8 +184,8 @@ teardown() {
 @test "blocks: perf(plan-only)" {
   mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'perf(db): index tickets table\n' > "$TMP/msg-subject"
-  mkdir -p openspec/changes/perf && printf 'p' > openspec/changes/perf/tasks.md
-  git add openspec/changes/perf/
+  mkdir -p .agents/plans/perf && printf 'p' > .agents/plans/perf/tasks.md
+  git add .agents/plans/perf/
   run bash "$SCRIPT" "$TMP/msg-subject"
   [ "$status" -ne 0 ]
 }

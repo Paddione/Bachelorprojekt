@@ -1,8 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/g-size02-large-files-reduction/tasks.md
-# G-SIZE02: Large files (>600 lines) in VideoVault reduced to <= 8.
-# Pfad seit T006999: components/VideoVault (p3-Move).
-
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }

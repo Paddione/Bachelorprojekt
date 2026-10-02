@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/skill-path-references.bats
-# SSOT: openspec/specs/agent-skills.md
+# SSOT: docs/superpowers/specs/agent-skills.md
 #
 # Guard gegen tote Pfadverweise in eigenen Skill-Dateien (T002613).
 #
@@ -34,7 +34,7 @@ EXCLUDED_SKILLS=(gitops-repo-audit gitops-knowledge gitops-cluster-debug vitest 
 # bare-`website` in der Alternation: GNU grep (POSIX-ERE) wählt leftmost-longest,
 # so extrahiert ein Verweis auf components/website/src/... den Endzustands-Pfad
 # und nicht den Substring website/src/... (der nicht mehr existiert).
-PATH_PATTERN='\b((components/website)|(openspec|scripts|tests|docs|website|k3d|environments|flux))/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*'
+PATH_PATTERN='\b((components/website)|(plan|scripts|tests|docs|website|k3d|environments|flux))/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*'
 
 # Zweites Muster (T014027, T900070, T900078): Verweise auf Pfade unter
 # .claude/skills/ UND .opencode/skills/ — v. a. die Referenz-Links der Form

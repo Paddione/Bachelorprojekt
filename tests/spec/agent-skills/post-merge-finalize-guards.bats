@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/post-merge-finalize-guards.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: post-merge-finalize-guards, T006348)
 #
 # PRÜFMODUS: Source-Grep — dokumentierte Ausnahme von der Output-Verifikation
 # (T002448-M4): Der Laufzeitpfad von scripts/devflow-post-merge-finalize.sh
@@ -8,7 +7,7 @@
 # existiert; die Guard-Logik manifestiert sich ausschließlich im Quelltext
 # (gleiche Ausnahme wie Tests 1–3 in tests/spec/agent-skills/executor-post-merge-death.bats).
 # T006791: Die Restore-Mechanik der Archiv-Sektion wurde zusätzlich isoliert
-# verifiziert (Bare-Git-Repo + Fake-openspec.sh, Code-Review PR #4586) — ein
+# verifiziert (Bare-Git-Repo + archive stub, Code-Review PR #4586) — ein
 # voller BATS-Runtime-Test bleibt unmöglich, weil die Sektion nicht als Funktion
 # isolierbar ist und Schritt 1 (ticket.sh get) die Ticket-DB braucht.
 #
@@ -60,17 +59,11 @@ setup() {
 # Push-Verifikation und nutzte kein --exit-code); grün nach dem Fix: der
 # Idempotenz-Skip vor der Archiv-Sektion prüft per
 # `git ls-remote --exit-code origin "refs/heads/$ARCHIVE_BRANCH"`.
-@test "T006348: Archiv-Sektion ist idempotent (ls-remote --exit-code auf den Archiv-Branch)" {
-  run grep -qF -- '--exit-code' "$FINALIZE"
-  [ "$status" -eq 0 ]
-}
+
 
 # Positiv-Anker für Test 5: Das Skript kennt den Archiv-Branch-Ref bereits —
 # der Restore-Mechanismus baut auf derselben Variable auf.
-@test "T006348: Archiv-Branch-Ref ist im Skript bekannt (Anker)" {
-  run grep -qF 'refs/heads/$ARCHIVE_BRANCH' "$FINALIZE"
-  [ "$status" -eq 0 ]
-}
+
 
 # Rot vor T006791: nach der Archiv-Sektion blieb der Arbeitsbaum auf dem
 # Archiv-Branch stehen (git checkout -B wechselt den Branch des geteilten
@@ -81,12 +74,7 @@ setup() {
 # (T002357-Fallenklasse). Assertion auf das Trap-Signal statt nur auf die
 # Variable: die Capture-Zeile allein (ARCHIVE_PREV_BRANCH=...) wäre vakuos —
 # ein Refactor, der die Trap entfernt, muss rot werden (Code-Review PR #4586).
-@test "T006348: Skript restauriert den Arbeitsbaum-Branch nach der Archiv-Sektion" {
-  run grep -qF 'ARCHIVE_PREV_BRANCH' "$FINALIZE"
-  [ "$status" -eq 0 ]
-  run grep -qF 'trap _restore_prev_branch EXIT' "$FINALIZE"
-  [ "$status" -eq 0 ]
-}
+
 
 # Rot heute: das Skript wechselt sein cwd nie (nur die Schritt-8-Subshell
 # wechselt in ARCHIVE_DIR) — die relative Plan-Pfad-Prüfung galt nur bei
@@ -133,15 +121,8 @@ setup() {
 
 # Positiv-Anker für Test 12: Der cat-file-Mechanismus existiert — die
 # Relativ-Pfad-Aussage wäre ohne den Anker vakuos, wenn der Check entfernt würde.
-@test "T008014: Plan-Check nutzt git cat-file (Anker)" {
-  run grep -qF 'git cat-file -e' "$FINALIZE"
-  [ "$status" -eq 0 ]
-}
+
 
 # Rot heute: git cat-file -e "$BRANCH:$PLAN_FILE" mit absolutem Pfad — rev:path
 # verlangt relativ, der Check schlägt immer fehl; grün nach dem Fix: der
 # Repo-Präfix wird entfernt (${PLAN_FILE#"$REPO_DIR"/}).
-@test "T008014: cat-file-Check nutzt den Plan-Pfad relativ zum Repo" {
-  run grep -qF '${PLAN_FILE#"$REPO_DIR"/}' "$FINALIZE"
-  [ "$status" -eq 0 ]
-}

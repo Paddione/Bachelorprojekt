@@ -7,7 +7,7 @@
 # kein Source-Grep.
 #
 # HINTERGRUND (T015784): Im repo-hygiene-Lauf vom 2026-08-24 stand
-# .worktrees/openspec-closure-guard-spec-T015670 mitten in einem Rebase, dessen
+# .worktrees/plan-closure-guard-spec-T015670 mitten in einem Rebase, dessen
 # Konflikte alle geloest und dessen Kommandos alle abgearbeitet waren — nur
 # `git rebase --continue` fehlte. PR #5191 stand deshalb auf DIRTY und
 # blockierte, obwohl `git merge-tree --write-tree origin/main` lokal mit rc=0
@@ -38,11 +38,11 @@ _make_fixture() {
   git -C "$FIXTURE" config user.email t@example.invalid
   git -C "$FIXTURE" config user.name "T"
   mkdir -p "$FIXTURE/components/website/src/data"
-  echo base > "$FIXTURE/components/website/src/data/openspec-status.json"
+  echo base > "$FIXTURE/components/website/src/data/test-inventory.json"
   git -C "$FIXTURE" add -A
   git -C "$FIXTURE" commit -qm base
   git -C "$FIXTURE" branch feat
-  echo mainside > "$FIXTURE/components/website/src/data/openspec-status.json"
+  echo mainside > "$FIXTURE/components/website/src/data/test-inventory.json"
   git -C "$FIXTURE" commit -qam mainside
 
   WT="$BATS_TEST_TMPDIR/wt"
@@ -50,14 +50,14 @@ _make_fixture() {
   git -C "$FIXTURE" worktree add -q "$WT" feat
   [ "$mode" = "clean" ] && return 0
 
-  echo feat > "$WT/components/website/src/data/openspec-status.json"
+  echo feat > "$WT/components/website/src/data/test-inventory.json"
   git -C "$WT" commit -qam feat
 
   case "$mode" in
     --mid-rebase)
       git -C "$WT" rebase main >/dev/null 2>&1 || true
-      echo resolved > "$WT/components/website/src/data/openspec-status.json"
-      git -C "$WT" add components/website/src/data/openspec-status.json
+      echo resolved > "$WT/components/website/src/data/test-inventory.json"
+      git -C "$WT" add components/website/src/data/test-inventory.json
       ;;
     --mid-rebase-conflict)
       git -C "$WT" rebase main >/dev/null 2>&1 || true

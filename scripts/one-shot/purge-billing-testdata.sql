@@ -30,7 +30,7 @@
 --
 -- PROTOKOLLIERUNG: Jeder Schritt zählt über RAISE NOTICE; die vollständige
 -- Ausgabe ist im Ticket T015362 zu dokumentieren (bewusster GoBD-Eingriff,
--- vgl. OpenSpec-Anforderung lückenloser Nummernkreis / Unveränderbarkeit).
+-- vgl. Anforderung lückenloser Nummernkreis / Unveränderbarkeit).
 --
 -- BACKUP (PFLICHT vor Ausführung, wie beim Vor-Eingriff 2026-08-23):
 --   POD=$(kubectl --context fleet -n workspace get pods -l app=shared-db -o name | head -1); POD=${POD#pod/}

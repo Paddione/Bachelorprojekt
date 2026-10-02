@@ -4,7 +4,7 @@
 # Dokumentationskonventionen). Positiv-Anker zuerst (T002356-M1): der gültige Fall
 # (Persona-Dateien unter docs/agent-context) muss durchlaufen, sonst ist die
 # Negativ-Aussage (keine Root-Persona-MDs) vakuos.
-# Gehört zum OpenSpec-Change repo-structure-reorg (T006999), SSOT-Spec-Slug: repo-structure.
+
 
 @test "Persona-MDs: konsolidiert unter docs/agent-context, nicht mehr in der Root" {
   # Positiv-Anker: Zielzustand vorhanden

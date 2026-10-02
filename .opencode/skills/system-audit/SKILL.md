@@ -1,6 +1,6 @@
 ---
 name: system-audit
-description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manifeste, Live-Flux-Cluster, Brand-Seiten, Repo-Zustand, Tool-Registry, Security & Secrets, Datenbank, LLM-Pipeline, Brain-Wiki. Critical/Warning-Befunde enden als Ticket mit OpenSpec-Proposal im Backlog. Triggers on system-audit, Systemaudit, Full-Audit, 'audit all systems', 'audit the cluster/repo/website/security/database/llm pipeline/toolset', 'audit report with tickets'."
+description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manifeste, Live-Flux-Cluster, Brand-Seiten, Repo-Zustand, Tool-Registry, Security & Secrets, Datenbank, LLM-Pipeline, Brain-Wiki. Critical/Warning-Befunde enden als Ticket mit plan-Proposal im Backlog. Triggers on system-audit, Systemaudit, Full-Audit, 'audit all systems', 'audit the cluster/repo/website/security/database/llm pipeline/toolset', 'audit report with tickets'."
 ---
 
 # system-audit
@@ -147,7 +147,7 @@ und Warning-Befunde. Info-Befunde bleiben im Report.
 
 ### C0 — Worktree-Guard
 
-OpenSpec-Proposals erzeugen Dateien unter `openspec/changes/`. Das geschieht nur in
+plan-Proposals erzeugen Dateien unter `.agents/plans/`. Das geschieht nur in
 einem Worktree (Fußnote: Archivierung NUR im Worktree — Main-Checkout-Commits leave
 orphaned files). Prüfe:
 
@@ -169,7 +169,7 @@ abgearbeitet.
 
 ### C2–C5 — Ticket, DoR, Proposal, Enqueue
 
-Ticket-Anlage (Typ-Mapping), DoR-Felder (`plan-meta`, Readiness-Flags), OpenSpec-Proposal (`openspec.sh propose`, Artefakt-How-to) und Enqueue + Rückverfolgbarkeit: [phase-c-tickets](references/phase-c-tickets.md). C0-Worktree-Guard und C1-Dedupe oben gelten unverändert.
+Ticket-Anlage (Typ-Mapping), DoR-Felder (`plan-meta`, Readiness-Flags), plan-Proposal (Plananlage, Artefakt-How-to) und Enqueue + Rückverfolgbarkeit: [phase-c-tickets](references/phase-c-tickets.md). C0-Worktree-Guard und C1-Dedupe oben gelten unverändert.
 
 ## Nachbereitung: Mishap Report
 
@@ -189,7 +189,7 @@ Ausgefallene Ziele (FAILED-Markierungen) sind Mishaps, keine stillen Auslassunge
 | Skill | Beziehung |
 |-------|--------------|
 | `gitops-repo-audit`, `web-audit`, `repo-hygiene`, `toolset-curate` | delegierte Ziele dieses Skills |
-| `openspec-propose` | How-to für die Proposal-Artefakte in C4 |
+| `dev-flow-plan` | How-to für die Proposal-Artefakte in C4 |
 | `ticket-ops` | Weitertriage der erzeugten Tickets (Vollständigkeit, Klärung) |
 | `incident-response` | wenn Befunde akut sind — sofortiger Wechsel erlaubt |
 | `infra-ops` §5–§7 | Fachprozeduren hinter den Checklisten security/database/llm-pipeline |

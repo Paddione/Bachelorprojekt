@@ -14,7 +14,6 @@
 # jeden registrierten self-hosted Runner, wodurch die Platzierung vom Runner-Inventar
 # abhaengt statt von der Workflow-Definition.
 #
-# Requirement: openspec/specs/ci-cd.md — "Self-hosted Kapazitaet wird ueber
 # Capability-Labels adressiert".
 #
 # Usage: scripts/ci/runner-placement-check.sh [<workflow-verzeichnis>]

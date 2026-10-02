@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/dev-flow-plan.md (worktree-Lifecycle, T000510 Session-Koordination)
 # Ticket: T005115 — Fremde Cleanups entfernten den Rollup-Worktree mitten im Lauf;
 # der einzige dokumentierte Fremd-Remove-Pfad (dev-flow-plan Schritt −1) prüfte
 # keine agent-lock-Claims. Fix: worktree-clean-check.sh lehnt Worktrees mit

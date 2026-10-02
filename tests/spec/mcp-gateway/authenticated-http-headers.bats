@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/authenticated-http-headers.bats
-# SSOT: openspec/specs/mcp-gateway.md
 # Ticket: T002487
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-orientiert.

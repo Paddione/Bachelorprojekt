@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/brain-quality-goals.bats
-# SSOT: openspec/specs/brain-foundation.md (Delta: openspec/changes/brain-quality-goals, T001608)
+# SSOT: docs/superpowers/specs/brain-foundation.md (Delta: .agents/plans/brain-quality-goals, T001608)
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   LINT_WL="$REPO_ROOT/templates/brain/scripts/lint-wikilinks.sh"
@@ -135,10 +135,3 @@ teardown() { rm -rf "$WORK"; }
   grep -q '2026-07-03' "$qg"
   grep -q 'type: decision' "$qg"
 }
-
-@test "llm-workflows ships at least five prompt templates incl. OpenSpec-SSOT-Sync" {
-  n="$(grep -c '^### Prompt' "$TPL/wiki/llm-workflows.md")"
-  [ "$n" -ge 5 ]
-  grep -qi 'openspec' "$TPL/wiki/llm-workflows.md"
-}
-

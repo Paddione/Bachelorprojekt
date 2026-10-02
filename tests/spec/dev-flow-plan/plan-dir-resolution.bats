@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
 # tests/spec/dev-flow-plan/plan-dir-resolution.bats
-# T900689: plan-intel.sh, plan-intel-filter.sh und openspec-embed.mjs fanden Plaene
-# nur unter openspec/changes/<slug>/. Plan-Heimat seit C7a ist .agents/plans/<slug>/.
+# T900689: plan-intel.sh, plan-intel-filter.sh und plan-embed.mjs fanden Plaene
+# nur unter .agents/plans/<slug>/. Plan-Heimat seit C7a ist .agents/plans/<slug>/.
 # PRUEFMODUS: Output-Verifikation [T002448-M4] — Skripte AUSFUEHREN gegen einen
 # Sandbox-Slug unter .agents/plans/, teardown raeumt auf.
 
@@ -49,11 +49,4 @@ teardown() {
   run bash -c "cd '$REPO' && scripts/plan-intel-filter.sh '$SLUG' scripts/plan-intel.sh | jq -r '.impact_files[].path'"
   [ "$status" -eq 0 ]
   [ "$output" = "scripts/plan-intel.sh" ]
-}
-
-@test "T900689: openspec-embed.mjs --dry-run findet den Plan unter .agents/plans" {
-  run node "$REPO/scripts/openspec-embed.mjs" --slug "$SLUG" --dry-run
-  [ "$status" -eq 0 ]
-  [[ "$output" != *"no OpenSpec files"* ]]
-  [[ "$output" == *"[dry-run] slug='$SLUG'"* ]]
 }

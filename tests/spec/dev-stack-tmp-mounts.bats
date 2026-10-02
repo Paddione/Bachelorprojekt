@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/dev-stack-tmp-mounts.bats
-# SSOT: openspec/changes/wsl-exit-brett-dev-tmp/specs/fleet-operations.md [T016424]
 #
 # Dev-Stack-Deployments mit runAsUser != 0 brauchen ein schreibbares /tmp
 # (emptyDir), sonst crashen Images beim Start (brett: mkdir '/tmp/tsx-1000'

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/website-interfaces.bats
-# SSOT: openspec/specs/website-interfaces.md
 #
 # Regression coverage for T002196: website API endpoint status/error fixes.
 

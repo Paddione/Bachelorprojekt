@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/repo-health-goals.bats
-# SSOT: openspec/specs/t001358-sec05-health-goals.md
 # Covers: Open-Goals Report with Ticket Suggestion (health-goals-update.sh).
 
 SCRIPT="scripts/health-goals-update.sh"

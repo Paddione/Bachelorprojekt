@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/react-login-edit-homepage.bats
-# SSOT: openspec/specs/react-login-edit-homepage.md
+
 #
 # Spec-BATS Coverage for the react-login-edit-homepage spec:
 # react.mentolder.de login (Astro-Auth-Reuse) + Edit Homepage Block-Editor.

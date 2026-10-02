@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ticket-system/backfill-id-sequence.bats
-# SSOT: openspec/changes/backfill-id-sequence/specs/ticket-system.md (T002732)
 #
 # PRUEFMODUS (T002448-M4): Output-Verifikation. Die Verhaltenstests fuehren
 # `scripts/ticket.sh backfill-id` AUS und pruefen $status und $output. Der erste

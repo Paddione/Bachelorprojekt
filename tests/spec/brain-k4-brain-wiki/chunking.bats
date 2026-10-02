@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/brain-k4-brain-wiki/chunking.bats
 # Ticket: T002679
-# SSOT-Spec: openspec/specs/brain-k4-brain-wiki.md
+# SSOT-Spec: docs/superpowers/specs/brain-k4-brain-wiki.md
 # Pruefmodus: Output-Verifikation — jeder Test fuehrt den Chunker aus und prueft
 #   Exit-Code, TSV-Ausgabe und erzeugte Chunk-Dateien. Kein grep auf Skript-Interna.
 # Aufrufform (verbindlich): bash scripts/brain-chunk.sh --source <pfad> --slug <quell-slug> --out-dir <dir> [--moc <datei>] [--target-chars <n>]
@@ -11,8 +11,8 @@ setup() {
   CHUNKER="scripts/brain-chunk.sh"
 }
 
-# ── Fixture: OpenSpec spec with multiple Requirement headings ──
-@test "chunker splits an OpenSpec spec at Requirement headings" {
+# ── Fixture: plan spec with multiple Requirement headings ──
+@test "chunker splits an plan spec at Requirement headings" {
   local src="$BATS_TEST_TMPDIR/spec-mit-requirements.md"
   local out="$BATS_TEST_TMPDIR/out"
   local slug="test-spec-with-requirements"

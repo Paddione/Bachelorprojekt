@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/ci-cd.md, openspec/specs/divergence-guard.md
+# SSOT: docs/superpowers/specs/ci-cd.md, docs/superpowers/specs/divergence-guard.md
 # T002817: eine gemeinsame Quelle fuer ticketlose Branch-Ausnahmen.
 #
 # PRUEFMODUS: Output-Verifikation [T002448-M4]. Die Tests fuehren den echten
@@ -33,7 +33,7 @@ setup() {
   # Vorgelagerte Hook-Abschnitte neutralisieren: sie rufen Repo-Skripte auf, die
   # fuer diesen Guard ohne Belang sind. Stubs statt Kopien, damit der Test nicht
   # an fremden Guards scheitert und deren Aenderungen ihn nicht rot faerben.
-  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh openspec-half-archive-check.sh openspec-main-staging-guard.sh; do
+  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh plan-half-archive-check.sh plan-main-staging-guard.sh; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$SANDBOX/scripts/$s"
     chmod +x "$SANDBOX/scripts/$s"
   done

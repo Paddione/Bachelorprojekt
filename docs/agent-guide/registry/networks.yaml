@@ -95,8 +95,8 @@ networks:
     status: active
     source: wireguard/wg-mesh-nodes.yaml (Sektion fleet)
     notes: >-
-      Die Präfixlänge ist /24, belegt am lebenden Cluster. openspec/specs/
-      rustdesk-server.md nannte bis T012645 fälschlich /16 — in einer
+      Die Präfixlänge ist /24, belegt am lebenden Cluster. Die rustdesk-server-Spec
+      nannte bis T012645 fälschlich /16 — in einer
       ufw-Freigabe hätte das 255-mal mehr Adressen geöffnet als beabsichtigt.
     overlaps:
       - with: home-lan

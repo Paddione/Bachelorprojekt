@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/spec-tracked-file-guard-isolation.bats
-# SSOT: openspec/specs/mcp-gateway.md (Requirement: Tracked-File Mutation
-# Guard Is Immune To Concurrent Legitimate Spec Runs)
 # Ticket: T003001 (Symptom aus PR #3974, CI-Run 31315262369, Shard 4/4;
 # T003006 ist eine bereits geschlossene Dublette dieses Tickets)
 #

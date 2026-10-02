@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-isolation/fleet-sequence-split.bats
-# SSOT: openspec/changes/fleet-sequence-split/specs/sdlc-isolation.md (T002731)
+
 #
 # PRUEFMODUS (T002448-M4): Output-Verifikation. Die Tests rufen
 # `scripts/sdlc/migrate-tickets.sh` AUF und pruefen $status und $output. Der

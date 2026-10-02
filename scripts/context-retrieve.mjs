@@ -89,7 +89,7 @@ function warningSentence(mode, reason) {
  * Delegation an die heutigen rollen-schluesselbaren *-context.sh, hart am
  * Budget gekappt. plan-context.sh und toolset-context.sh sind die beiden
  * Skripte, die allein aus einer Rolle bedienbar sind; task-context.sh braucht
- * ein Ticket, openspec-context.sh einen Pfad (beides S3-Kanaele).
+ * ein Ticket (S3-Kanal).
  */
 async function rulefilterContext(role, budgetTokens) {
   const scripts = ['scripts/plan-context.sh', 'scripts/toolset-context.sh'];

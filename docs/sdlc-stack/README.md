@@ -189,5 +189,5 @@ ein). Der Nachweis, dass eine Sicherung zurückspielbar ist, läuft über
 
 - **dev.mentolder.de (dev-stack auf fleet)** bleibt — dokumentierte Ausnahme
 - **terminal-sidekick** bleibt — dokumentierte Ausnahme
-- **`knowledge`/`wissen`** bleibt produktiv — `scripts/openspec-embed-local.sh` schreibt
+- **`knowledge`/`wissen`** bleibt produktiv — schreibt
   deshalb weiterhin gegen fleet, obwohl alles andere lokal liegt

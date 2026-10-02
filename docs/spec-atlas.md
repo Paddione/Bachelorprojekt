@@ -1,6 +1,6 @@
 # Spec Atlas
 
-<!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
+<!-- Stand T015012 — Generator retired, Ausgabe eingefroren -->
 
 Specs: 133 · Requirements: 2469 · Scenarios: 5475
 
@@ -35,14 +35,14 @@ Last touches:
 In-flight:
   - Bewusste korczewski-Brand-Pause und hängende Admin-Jobs sind nachvollziehbar | T900650 | active | MODIFIED
 
-### openspec-workflow
+### retired-workflow
 Reqs: 72 · Scenarios: 168 · Lines: 1830
-Paths: scripts/openspec, openspec/
+Paths: retired
 Last touches:
   - Orphaned changes are archived by a CI executor without discretionary flags | T900338 | 2026-09-26 | ADDED
   - A dispatch-only workflow turns executor results into a pull request and issues | T900338 | 2026-09-26 | ADDED
-  - A scheduled CI job dispatches archiving of orphaned OpenSpec changes | T900503 | 2026-09-26 | ADDED
-  - Archive regenerates and stages every openspec-derived freshness artifact | T900341 | 2026-09-23 | ADDED
+  - A scheduled CI job dispatches archiving of orphaned changes | T900503 | 2026-09-26 | ADDED
+  - Archive regenerates and stages every derived freshness artifact | T900341 | 2026-09-23 | ADDED
   - Half-archive detection does not spawn a process per archive entry | T013673 | 2026-09-17 | ADDED
 
 ### software-factory
@@ -301,20 +301,20 @@ Last touches:
 Reqs: 4 · Scenarios: 4 · Lines: 49
 Last touches:
   - Vollständige Triage-Projektion in ticket list | T003811 | 2026-08-13 | ADDED
-  - OpenSpec-Such-URL defaultet lokal | T003811 | 2026-08-13 | ADDED
+  - Such-URL defaultet lokal | T003811 | 2026-08-13 | ADDED
   - factory_ask antwortet vor dem Client-Timeout | T003811 | 2026-08-13 | ADDED
   - factory_phase_events Zeit-Spalte bleibt `at` | T003811 | 2026-08-13 | ADDED
 
-### batch-openspec-embed-fixes
+### batch-embed-fixes
 Reqs: 7 · Scenarios: 9 · Lines: 100
 Last touches:
   - Partial-Dateien token-budgetiert embedden | T003491 | 2026-08-11 | ADDED
   - Port-Kollision nicht-fatal mit klarer Meldung | T003491 | 2026-08-11 | ADDED
   - Falsche "Backend nicht erreichbar"-Ursache korrigieren | T003491 | 2026-08-11 | ADDED
-  - openspec.sh archive im Batch-Modus skalieren | T003491 | 2026-08-11 | ADDED
+  - Archivierung im Batch-Modus skalieren | T003491 | 2026-08-11 | ADDED
   - Platzhalter im Delta fail-closed ablehnen | T003491 | 2026-08-11 | ADDED
 
-### batch-openspec-tooling-fixes
+### batch-tooling-fixes
 Reqs: 2 · Scenarios: 6 · Lines: 67
 Last touches:
   - MODIFIED delta truncation is detected at merge time | T005310 | 2026-08-14 | ADDED
@@ -379,7 +379,7 @@ Last touches:
   - Fail-closed Prompt-Obergrenze (REQ-k4-05) | T900451 | 2026-09-26 | REMOVED
   - Deterministische Eltern-MOC (REQ-k4-06) | T900451 | 2026-09-26 | REMOVED
 
-### brain-k5-openspec
+### brain-k5
 Reqs: 4 · Scenarios: 4 · Lines: 41
 Last touches:
   - Diagramm mit beschrifteten Kanten (REQ-k5-01) | T002435 | 2026-08-02 | ADDED
@@ -619,7 +619,7 @@ Reqs: 6 · Scenarios: 11 · Lines: 148
 Last touches:
   - opencode has native dev-flow and git-workflow skills | T014086 | 2026-09-17 | MODIFIED
   - AGENTS.md declares the shared-source routing | T014086 | 2026-09-17 | MODIFIED
-  - shared openspec-* skills are harness-neutral | T013724 | 2026-08-22 | MODIFIED
+  - shared skills are harness-neutral | T013724 | 2026-08-22 | MODIFIED
   - AGENTS.md declares an opencode-native dispatch protocol | T013724 | 2026-08-22 | REMOVED
   - opencode worktree isolation stays git-crypt-safe | T013724 | 2026-08-22 | MODIFIED
 
@@ -627,7 +627,7 @@ Last touches:
 Reqs: 48 · Scenarios: 96 · Lines: 1199
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
-  - Plan Runner Executes OpenSpec Partials With Local Models | T900504 | 2026-09-27 | ADDED
+  - Plan Runner Executes Plan Partials With Local Models | T900504 | 2026-09-27 | ADDED
   - Orchestrator Self-Execution When All Workers Are Busy | T900504 | 2026-09-27 | ADDED
   - Dead Checkpoints Are Not Declared | T900365 | 2026-09-25 | MODIFIED
   - Single Definition Site for the opencode `llamacpp-local` Provider | T900365 | 2026-09-25 | MODIFIED
@@ -748,12 +748,12 @@ Last touches:
   - opencode workflow rejects fork-originated PRs | T001780 | 2026-08-02 | ADDED
   - opencode workflow uses the local model instead of the cloud API | T001780 | 2026-08-02 | ADDED
 
-### openspec-embedding-T002334
+### embedding-T002334
 Reqs: 1 · Scenarios: 2 · Lines: 25
 Last touches:
   - post-commit-hook-embedding | T002334 | 2026-08-02 | ADDED
 
-### openspec-embedding
+### retired-embedding
 Reqs: 15 · Scenarios: 36 · Lines: 403
 Last touches:
   - `chunkProposal()` teilt übergroße Proposals per Token-Budget | T900449 | 2026-09-26 | MODIFIED
@@ -762,7 +762,7 @@ Last touches:
   - Unified prose chunking with migration | T900449 | 2026-09-26 | ADDED
   - Dauerhafte Probe-Fehlschläge enden sofort und ohne Hook-Retry | T900209 | 2026-09-17 | ADDED
 
-### openspec-pgvector
+### pgvector
 Reqs: 11 · Scenarios: 15 · Lines: 189
 Last touches:
   - Bundled context retrieval CLI | T002658 | 2026-08-14 | ADDED
@@ -771,7 +771,7 @@ Last touches:
   - Retrieval quality is guarded by a golden query set | T002658 | 2026-08-14 | ADDED
   - HNSW index on knowledge.chunks is restored and verified | T002658 | 2026-08-14 | ADDED
 
-### openspec-upstream-cli
+### upstream-cli
 Reqs: 6 · Scenarios: 11 · Lines: 140
 Last touches:
   - Delta-merge handles MODIFIED operation in-place | T001262 | 2026-06-28 | ADDED
@@ -780,10 +780,10 @@ Last touches:
   - Validator rejects stub requirements | T001262 | 2026-06-28 | ADDED
   - Validator cross-references MODIFIED and REMOVED targets | T001262 | 2026-06-28 | ADDED
 
-### openspec-worktree-anchor
+### worktree-anchor
 Reqs: 1 · Scenarios: 2 · Lines: 34
 Last touches:
-  - openspec.sh SHALL anchor REPO on the caller's working directory | T001997 | 2026-08-02 | ADDED
+  - CLI SHALL anchor REPO on the caller's working directory | T001997 | 2026-08-02 | ADDED
 
 ### phase-events
 Reqs: 1 · Scenarios: 1 · Lines: 22
@@ -903,7 +903,7 @@ Last touches:
 Reqs: 7 · Scenarios: 11 · Lines: 136
 Last touches:
   - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | 2026-09-17 | ADDED
-  - archive stages the openspec status map unconditionally | T006371 | 2026-08-15 | ADDED
+  - archive stages the status map unconditionally | T006371 | 2026-08-15 | ADDED
   - agent-lock check unterscheidet tote Halter | T005560 | 2026-08-15 | ADDED
   - ticket write guard passes through stale holders | T005560 | 2026-08-15 | ADDED
   - plan-preflight pre-commit accepts the staged plan set | T004899 | 2026-08-14 | ADDED

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/admin-ui-modal-drawer.bats
-# SSOT: openspec/specs/admin-ui-modal-drawer.md
 #
 # Spec-BATS Coverage for the admin-ui-modal-drawer spec:
 # native <dialog>-based AdminModal/AdminDrawer primitives.
@@ -96,7 +95,6 @@ ADMIN_UI_DIR="$BATS_TEST_DIRNAME/../../components/website/src/components/admin"
 
 # ── Requirement 6: Migrated dialogs preserve stable selectors ─────────────────
 @test "migrated dialogs preserve stable data-testid selectors" {
-  # The migration notes at openspec/changes/admin-ui-modal-drawer/notes.md
   # record the data-testid values for each migrated modal/drawer.
   # Verify these selectors are preserved.
   run grep -qE "data-testid" "$ADMIN_UI/AdminModal.svelte"

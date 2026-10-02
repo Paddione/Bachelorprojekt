@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/dev-flow-execute.bats
-# SSOT: openspec/specs/mishap-t002352.md
+# SSOT: docs/superpowers/specs/mishap-t002352.md
 #
 # Post-facto tests for T002352 mishap bundle. All fixes were already merged to
 # main in separate PRs (T002375, PR #3398). These tests verify the fixes are
@@ -45,13 +45,13 @@ setup() {
   BATS_DIR="$REPO_ROOT/tests/spec"
   pushd "$BATS_DIR" >/dev/null || exit 1
   for batsfile in *.bats; do
-    run grep -nE 'grep.*openspec/specs' "$batsfile"
+    run grep -nE 'grep.*plan/specs' "$batsfile"
     if [ "$status" -eq 0 ] && [ -n "$output" ]; then
       has_negative=$(grep -cE '\$status -ne 0|fail.*grep.*found|not grep' "$batsfile" || true)
       if [ "$has_negative" -gt 0 ]; then
         has_filter=$(grep -cE 'Scenario:|in_s[[:space:]]*=|!in_s' "$batsfile" || true)
         [ "$has_filter" -ge 1 ] || {
-          echo "ERROR: $batsfile has negative grep over openspec/specs without Scenario filter"
+          echo "ERROR: $batsfile has negative grep over plan/specs without Scenario filter"
           exit 1
         }
       fi
@@ -60,13 +60,9 @@ setup() {
   popd >/dev/null || exit 1
 }
 
-@test "T002352-M2: mcp-gateway.bats has negation probe for scenario filter" {
-  TESTFILE="$REPO_ROOT/tests/spec/mcp-gateway.bats"
-  # The test at line 429 contains "Negativ-Probe" — a probe that verifies the
-  # scenario filter still lets non-scenario content through (grep -cE '^#+ ')
-  run grep -c "Negativ-Probe" "$TESTFILE"
-  [ "$output" -ge 1 ] || { echo "missing negation probe in mcp-gateway.bats"; false; }
-}
+# T002352-M2 retired (T900852): the scenario filter tested openspec-spec
+# filtering in mcp-gateway.bats; A1b removed the feature with its spec,
+# so the negation-probe meta-assertion has no subject left.
 
 # ── Mishap 3: freshness:check must distinguish "not staged" from "stale" ───
 

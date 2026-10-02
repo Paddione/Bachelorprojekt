@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/t002204-mishap-bundle.bats
-# SSOT: openspec/changes/t002204-worktree-lock/proposal.md
 # T002204 — Mishap-Bundle: scripts/worktree-create.sh, scripts/agent-lock.sh (2 Einträge).
 #
 #   M1 — scripts/worktree-create.sh only symlinked the repo-root and components/website/

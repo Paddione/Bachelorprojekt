@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/comfy-image-mcp.bats — T900379
-# SSOT: openspec/specs/llm-local-dev.md
 #   Requirement: Image Generation MCP for Muse Code
 #   Requirement: Image Output Is Confined to Git Working Trees
 #   Requirement: ComfyUI Runs Only While Images Are Requested

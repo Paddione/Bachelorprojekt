@@ -19,17 +19,17 @@ function findMarkdownFiles() {
       }
     } catch { /* dir may not exist yet */ }
   }
-  // openspec/changes/<slug>/{proposal.md,tasks.md} — recursive, exclude archive/
-  const changesDir = join(REPO_ROOT, 'openspec/changes');
+  // Staged plans are part of the searchable planning corpus.
+  const plansDir = join(REPO_ROOT, '.agents/plans');
   try {
-    for (const entry of readdirSync(changesDir, { withFileTypes: true })) {
-      if (!entry.isDirectory() || entry.name === 'archive') continue;
-      const slugDir = join(changesDir, entry.name);
-      for (const f of readdirSync(slugDir)) {
-        if (f.endsWith('.md')) files.push(join(slugDir, f));
+    for (const entry of readdirSync(plansDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const planDir = join(plansDir, entry.name);
+      for (const f of readdirSync(planDir)) {
+        if (f.endsWith('.md')) files.push(join(planDir, f));
       }
     }
-  } catch { /* dir may not exist yet */ }
+  } catch { /* plans may not exist yet */ }
   // Always include CLAUDE.md at repo root
   files.push(join(REPO_ROOT, 'CLAUDE.md'));
   return files;

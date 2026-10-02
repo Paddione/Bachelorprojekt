@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/dev-machine-onboarding/key-register.bats [T900119]
-# SSOT: openspec/changes/dev-repo-per-machine/specs/dev-machine-onboarding/spec.md
 # Pruefmodus: Register per yq geparst (Ergebnis). Runbook per Abschnitts-grep, weil sich
 # diese Zusicherung ausschliesslich im Dokumenttext manifestiert.
 

@@ -1,4 +1,4 @@
-// plan.mjs — Planmodell des plan-runners (T900504): OpenSpec-Partial-Manifest, Abhaengigkeiten,
+// plan.mjs — Planmodell des plan-runners (T900504): plan partial-Manifest, Abhaengigkeiten,
 // Zustandsdatei, Worker-Prompt und Ergebniszeile. Reines Modul ohne Netzwerk- und Prozesszugriff.
 // Aufrufer: scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.
 
@@ -91,7 +91,7 @@ export function buildWorkerPrompt({ partial, partialText, worktree, extra = '' }
   const files = partial.targetFiles.length ? partial.targetFiles.join(', ') : '(none declared)';
   return [
     `Partial-ID: ${partial.id}`,
-    `You implement one partial of an OpenSpec plan. Work in the git worktree ${worktree}.`,
+    `You implement one partial of an staged plan. Work in the git worktree ${worktree}.`,
     `Only change these files: ${files}. Do not touch any other file. Do not commit.`,
     'Carry out every task of the partial below completely.',
     extra ? `\nNotes from the orchestrator:\n${extra}` : '',

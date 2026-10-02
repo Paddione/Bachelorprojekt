@@ -22,7 +22,6 @@
 # This BATS file guards layers 1 + 2 end-to-end via a kubeseal stub
 # (analog to `tests/spec/env-seal-empty-value-keys.bats`).
 #
-# SSOT: openspec/changes/t001404-workspace-deploy-secrets-scope
 # ═══════════════════════════════════════════════════════════════════
 
 load 'test_helper'

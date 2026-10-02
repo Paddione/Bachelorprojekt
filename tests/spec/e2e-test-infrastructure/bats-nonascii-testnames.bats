@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/e2e-test-infrastructure/bats-nonascii-testnames.bats
-# SSOT: openspec/specs/e2e-test-infrastructure.md
 #
 # Guard gegen den Locale-Ausfall aus T900065.
 #

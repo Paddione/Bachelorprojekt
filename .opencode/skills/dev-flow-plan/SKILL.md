@@ -90,12 +90,11 @@ und Fallbeispiel: T002817 in [dev-flow-gotchas](.agents/skills/references/dev-fl
 ## Feature-Pfad
 
 ### Ablauf in drei Phasen
-Die Proposal-Phase läuft bewusst **auf `main`** — so sieht OpenSpec beim Propose alle SSOT-Specs
-und committed Proposals, nicht nur das eigene Branch-Delta. Erst danach entsteht der Worktree.
+Die Planphase startet auf `main`; danach entsteht der Worktree.
 
 | Phase | Wo | Was |
 |---|---|---|
-| **A — Proposal** | `main` | Assets sammeln, Codebase erkunden, Plan Intel Bundle (`intel.json`) füllen, Design-Bundle co-lokalisieren, Lavish-Board, **Brainstorming**, `/opsx:propose <slug>` — Design-Spec-Frontmatter per `scripts/vda.sh frontmatter` |
+| **A — Proposal** | `main` | Assets sammeln, Codebase erkunden, Plan Intel Bundle (`intel.json`) füllen, Design-Bundle co-lokalisieren, Lavish-Board, **Brainstorming**, Plan in `.agents/plans/<slug>/` anlegen — Design-Spec-Frontmatter per `scripts/vda.sh frontmatter` |
 | **B — Branch live** | Worktree | `scripts/worktree-create.sh <branch> <path>`, agent-lock claimen, Artefakte verschieben, Scaffold-Commit + Push |
 | **C — Partial-Pipeline** | Worktree | Decompose in Partials, pro Partial: Plan schreiben → committen → stagen → enqueuen; danach plan-lint, Embedding, finaler Push |
 
@@ -167,7 +166,6 @@ Vertrag, den der Operator nachvollziehen können muss (Umsetzung: Skript +
    Worktree-Branch ist zulässig.
 2. **Staged-Set-Pflicht [T005114]:** geprüft wird `git diff --cached --name-only`; erlaubt sind
    Pfade unter `tests/` und `.agents/plans/` sowie exakt
-   `components/website/src/data/openspec-status.json` und
    `components/website/src/data/test-inventory.json`. Andere gestagte Dateien brechen den Guard ab
    (Abhilfe: `git restore --staged <pfad>`). Unstaged/untracked wird nicht geprüft.
 3. **Branch stimmt mit dem agent-lock-Claim überein [T003102 — akzeptiert ticket- UND
@@ -249,7 +247,6 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 ## Verwandte Skills
 | Skill | Beziehung |
 |-------|-----------|
-| `openspec-explore` (`/opsx:explore`) | **Vorgelagert** — Denkpartner ohne Artefakt; übergibt verdichtet an diese Skill, sobald Code entstehen soll |
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
 | `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8. Superpowers-Plugin; opencode: inlined in diesem Skill (Shared Source) |
 | `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7). Superpowers-Plugin; opencode: inlined in diesem Skill (Shared Source) |

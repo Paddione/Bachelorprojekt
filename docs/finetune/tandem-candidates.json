@@ -3,7 +3,7 @@
     "title": "Tandem-Kleinstmodelle-Kandidatenmatrix",
     "ticket": "T015248",
     "date": "2026-08-24",
-    "change": "openspec/changes/tandem-small-models",
+    "change": ".agents/plans/tandem-small-models",
     "resident_model": {
       "label": "Qwen3.6-35B-A3B NVFP4 (FTW-Checkpoint)",
       "hf_repo": "nvidia/Qwen3.6-35B-A3B-NVFP4",
@@ -247,7 +247,7 @@
       },
       "evidence": [
         { "id": "mtp-module", "claim": "GGUF-Snapshot enthaelt mmproj-F16.gguf und mtp-gemma-4-E2B-it.gguf", "source": "local-hf-cache" },
-        { "id": "freetoken-gemma-only", "claim": "FreeToken serviert GGUF nur fuer Gemma-Architekturen; Nicht-Gemma ride llamacpp-Fallback (T015175)", "source": "openspec/changes/tandem-small-models/design.md" },
+        { "id": "freetoken-gemma-only", "claim": "FreeToken serviert GGUF nur fuer Gemma-Architekturen; Nicht-Gemma ride llamacpp-Fallback (T015175)", "source": ".agents/plans/tandem-small-models/design.md" },
         { "id": "params-card", "claim": "~2 B effektiv (E-Serie-Naming)", "source": "model-card-public", "note": "Roh-Checkpoint groesser als der effektive Wert; konservativ unter der 8-B-Grenze eingeordnet" }
       ]
     },

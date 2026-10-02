@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/warden-mcp/launcher.bats
-# SSOT-Spec: openspec/specs/warden-mcp.md (REQ-WARDEN-MCP-001, REQ-WARDEN-MCP-004)
 #
 # Der Launcher darf warden-mcp nur mit vollstaendigen Credentials aus
 # ~/.config/warden-mcp/server.env starten und gibt nie einen Secret-Wert aus

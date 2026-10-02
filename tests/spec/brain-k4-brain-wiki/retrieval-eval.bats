@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# SSOT-Spec: openspec/specs/brain-k4-brain-wiki.md
+# SSOT-Spec: docs/superpowers/specs/brain-k4-brain-wiki.md
 # Ticket: T012913
 # Ticket: T900448 (Erweiterung: versioniertes Set)
 
@@ -13,7 +13,7 @@ setup() {
 type: decision
 tags: [eval, alpha]
 status: active
-source_kind: openspec
+source_kind: plan
 observed_at: 2025-01-01
 valid_from: 2025-01-01
 valid_until: 2030-01-01

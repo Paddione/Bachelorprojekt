@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/token-drift-auto-sync.bats
-# SSOT: openspec/changes/mcp-token-auto-sync/specs/mcp-gateway.md (Delta-Spec, 6 Szenarien)
 # Ticket: T900223
 #
 # Pruefmodus (T002448-M4): ERGEBNIS-orientiert. `token-drift-heal.sh` wird per

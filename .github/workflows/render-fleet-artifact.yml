@@ -27,9 +27,6 @@ permissions:
   # to Sigstore (Fulcio/Rekor). Without id-token the `cosign sign` step fails.
   id-token: write
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   render-push-ping:
     name: Render, push OCI artifact, ping receiver

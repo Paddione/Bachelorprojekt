@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/finalize-plan-ref-whitespace.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: finalize-plan-ref-whitespace, T012243)
+# SSOT: docs/superpowers/specs/agent-skills.md (Delta: finalize-plan-ref-whitespace, T012243)
 #
 # PRÜFMODUS: Output-Verifikation (T002448-M4). Die Feld-Extraktion aus
 # scripts/devflow-post-merge-finalize.sh wird per awk-Bereichsmuster extrahiert
@@ -24,7 +24,7 @@ setup() {
   [ -f "$FINALIZE" ]
 
   EXPECTED_BRANCH="fix/finalizer-resolve-worktree-by-branch-T012240"
-  EXPECTED_PLAN="openspec/changes/finalizer-resolve-worktree-by-branch/tasks.md"
+  EXPECTED_PLAN=".agents/plans/finalizer-resolve-worktree-by-branch/tasks.md"
   # Realistische ticket.sh-get-Ausgabe (Feldreihenfolge wie im echten JSON)
   TICKET_JSON="{\"external_id\" : \"T012240\", \"type\" : \"bug\", \"status\" : \"done\", \"plan_ref\" : \"FACTORY-PLAN-REF branch=${EXPECTED_BRANCH} plan=${EXPECTED_PLAN}\"}"
 }

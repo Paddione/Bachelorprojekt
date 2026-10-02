@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/devflow-execute-hardening-t002365.bats
-# SSOT: openspec/changes/devflow-execute-hardening-T002365/specs/devflow-execute-hardening-T002365.md
 #
 # Regression tests for T002365 — three consolidated dev-flow-execute mishaps:
 #   1) CI-watch ownership moved from Implementer to Orchestrator (T002351-M3)

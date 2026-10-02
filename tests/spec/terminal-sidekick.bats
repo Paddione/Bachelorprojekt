@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/terminal-sidekick.bats
-# SSOT: openspec/specs/terminal-sidekick.md (post-archive)
 # Structural assertions over the raw k3d/ + prod/ manifests + host script.
 
 setup() {

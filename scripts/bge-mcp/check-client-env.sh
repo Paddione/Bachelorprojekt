@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # scripts/bge-mcp/check-client-env.sh
 # Ticket: T002504
-# SSOT: openspec/changes/bge-mcp-client-env-check/proposal.md
 #
 # Diagnostiziert die Betriebsvoraussetzung fuer bge-mcp (Shim auf :13005):
 # BGE_MCP_TOKEN muss VOR dem Harness-Start in der Umgebung exportiert sein.

@@ -12,7 +12,6 @@
 # `task --dry` WERTET preconditions AUS (gemessen an systemtest:all:headed ->
 # Exit 201). Als precondition formuliert waere die Stufe in CI nicht pruefbar.
 #
-# SSOT: openspec/specs/e2e-test-infrastructure.md (REQ-vs-01..04, REQ-k8-02/04)
 
 setup() {
   REPO_ROOT="$(cd "$(dirname "${BATS_TEST_FILENAME}")/../../.." && pwd)"

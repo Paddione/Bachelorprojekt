@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/active-sessions-hub.md
 # Ticket: T900023 — `_lock_dir()` (scripts/agent-lock.sh) haelt Windows-Laufwerkspfade
 # faelschlich fuer relativ.
 #

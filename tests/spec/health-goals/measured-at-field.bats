@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/health-goals.md
 #
 # Prüfmodus: **Output-Verifikation** [T002448-M4]. Die Tests rufen gen-goals-data.mjs
 # bzw. den Update-Pfad tatsächlich auf und prüfen das erzeugte Artefakt.

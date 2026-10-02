@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/workspace-deploy.bats
-# SSOT: openspec/specs/workspace-deploy.md
 # Covers T001396: Pocket-ID SMTP wiring (SMTP_USER unsubstituted in prod,
 # missing POCKET_ID_SMTP_TLS derivation).
 # Covers T001400: Pocket-ID SMTP_PORT unsubstituted in prod (ENVSUBST_VARS

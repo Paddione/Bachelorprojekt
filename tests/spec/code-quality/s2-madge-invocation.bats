@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/code-quality/s2-madge-invocation.bats
-# SSOT: openspec/specs/code-quality.md
 #
 # Prüfmodus: command output verification [T002448-M4]. Der aufgelöste Befehl
 # wird AUSGEFÜHRT, nicht im Quelltext gesucht.

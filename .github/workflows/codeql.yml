@@ -42,9 +42,6 @@ concurrency:
   group: codeql-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})

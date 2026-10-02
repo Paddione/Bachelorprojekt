@@ -2,9 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { aggregateDora, formatKpiTile } from '../leitstand-kpi';
 import type { DeliveryMetric } from '../../delivery-metrics';
 
-// Feste Fixture-Zeilen -> deterministische DORA-Werte (SSOT:
-// openspec/changes/sdlc-leitstand-e4-livedaten/specs/sdlc-cockpit.md,
-// "Aggregation is pure and tested").
+// Feste Fixture-Zeilen -> deterministische DORA-Werte.
 
 function metric(partial: Partial<DeliveryMetric>): DeliveryMetric {
   return {

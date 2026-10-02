@@ -3,8 +3,7 @@
 **Scope:** `shared-db` (mentolder + korczewski), `website` DB. Companion zu T001676
 (`db-legacy-cleanup-optimize`).
 
-**Spec / Plan:** `openspec/changes/db-legacy-cleanup-optimize/specs/database.md`,
-`openspec/changes/db-legacy-cleanup-optimize/tasks.md`.
+**Spec / Plan:** `db-legacy-cleanup-optimize` (specs/database.md, tasks.md).
 
 **Methodik:** Per-Migration Existenzabfrage gegen **beide** Brand-DBs
 (`workspace` + `workspace-korczewski`); `EXPLAIN (ANALYZE, BUFFERS)` auf den real

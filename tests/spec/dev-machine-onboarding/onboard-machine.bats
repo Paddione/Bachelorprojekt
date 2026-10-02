@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/dev-machine-onboarding/onboard-machine.bats [T900119]
-# SSOT: openspec/changes/dev-repo-per-machine/specs/dev-machine-onboarding/spec.md
 # Pruefmodus: Laufzeit. Das Skript laeuft gegen ein lokales Origin-Repo mit gestubbten
 # wslinfo, gh, git-crypt, sudo, task, node, pnpm und kubectl; geprueft werden Exit-Code,
 # Dateimodus und Modification-Times, nicht der Quelltext.

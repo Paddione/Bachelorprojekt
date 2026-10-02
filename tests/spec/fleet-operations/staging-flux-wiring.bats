@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/staging-flux-wiring.bats
-# SSOT: openspec/changes/staging-verdrahtung/specs/fleet-operations.md
 # T015004: Staging voll verdrahten — prod-fleet/staging als ks-staging in Flux.
 #
 # Guards gegen zwei Regressionen:

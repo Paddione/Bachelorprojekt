@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev.bats
-# SSOT: openspec/specs/llm-local-dev.md
 #
 # Covers: Taskfile.openclaw.yml validity, required tasks, env.example config.
 
@@ -119,7 +118,6 @@ setup() {
   # und die Fallback-Kette gemma -> deepseek -> opencode-zen greift auch lokal.
   # Vorher stand hier :8091 — direkt am Proxy vorbei.
   # [T900208] Der llm-proxy (:18235) ist stillgelegt — der Provider zeigt direkt
-  # auf FreeToken-native :1919 (openspec/specs/llm-local-dev.md).
   run grep -qE '"baseURL": *"http://127\.0\.0\.1:1919/v1"' "$REPO/.opencode/agent-models.jsonc"
   [ "$status" -eq 0 ]
   run grep -qE '"baseURL": *"http://127\.0\.0\.1:18235' "$REPO/.opencode/agent-models.jsonc"

@@ -256,26 +256,9 @@ def sig(c):
 print(sum(1 for k in set(a)&set(b) if sig(a[k])!=sig(b[k])))
 PY
 )" eq 0 ".mcp.json ↔ opencode Parity (gemeinsame Server)"
-row gate G-AGENTIC15 "$(
-  valid=$( { for f in .claude/commands/opsx/*.md; do basename "$f" .md; done
-             for f in .opencode/commands/opsx-*.md; do basename "$f" .md | sed 's/^opsx-//'; done; } | sort -u)
-  refs=$(grep -rhoE '/opsx[:-][a-z]+' CLAUDE.md AGENTS.md .claude/commands .opencode/commands .claude/skills --include='*.md' 2>/dev/null \
-         | sed -E 's#/opsx[:-]##' | sort -u)
-  c=0; for r in $refs; do echo "$valid" | grep -qx "$r" || c=$((c+1)); done; echo $c
-)" eq 0 "Phantom-/opsx-Command-Referenzen"
-row gate G-AGENTIC16 "$(
-  m=0
-  for f in .claude/commands/opsx/*.md; do
-    name=$(basename "$f" .md); o=".opencode/commands/opsx-$name.md"
-    [ -f "$o" ] || { m=$((m+1)); continue; }
-    a=$(awk 'BEGIN{fm=0}/^---$/{fm++;next} fm>=2{print}' "$f" | sed 's#/opsx:#/opsx-#g')
-    b=$(awk 'BEGIN{fm=0}/^---$/{fm++;next} fm>=2{print}' "$o" | sed 's#/opsx:#/opsx-#g')
-    [ "$a" = "$b" ] || m=$((m+1))
-  done; echo $m
-)" eq 0 "Claude ↔ opencode Command-Sync (normalisiert)"
 want G-AGENTIC17 && row gate G-AGENTIC17 "$(
   cfg=$(grep -cE '(\.claude/commands|\.opencode/commands)/\*\*/\*\.md' docs/code-quality/gates.yaml)
-  orph=$(node scripts/code-quality/gates/s4-orphans.mjs 2>/dev/null | grep -cE '(^|/)(\.claude/commands|\.opencode/commands)/|commands/opsx')
+  orph=$(node scripts/code-quality/gates/s4-orphans.mjs 2>/dev/null | grep -cE '(^|/)(\.claude/commands|\.opencode/commands)/')
   if [ "$cfg" -ge 2 ]; then echo "$orph"; else echo 99; fi
 )" le 0 "Command-Orphans via S4 (Config-Guard)"
 
@@ -299,7 +282,7 @@ want G-OPS03 && row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlauf
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
-row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|openspec.sh|openspec-validate|openspec-merge' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
+row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
 # [T013916] 30 -> 5, Ist 0. Ratchet-Regel: .claude/lib/goals.md §Rueckbau.
 row target G-RH01 "$(n_baseline_gate ALL)" le 5 "Baselined Gate-Violations gesamt"
 row target G-CQ07 "$(n_baseline_gate S2)" le 0  "S2 Import-Zyklen"
@@ -487,9 +470,6 @@ row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated'
 row gate   G-TEST01 "$(grep -rniE "skip [\"']" tests --include='*.bats' 2>/dev/null | grep -ciE 'pending|todo|WP-|disabled' || true)" eq 0 "BATS Debt-Skips (pending/todo/WP-/disabled)"
 row target G-TEST03 "$(anchor_dir components/website/src; grep -rnE '(describe|it|test)\.(skip|todo)\b' components/website/src --include='*.ts' 2>/dev/null | wc -l | tr -d ' ')" le 1 "Vitest Skipped/Todo-Suiten (Ist 1 bei Aufnahme T002598)"
 row gate   G-TEST04 "$(git status --porcelain components/website/src/data/test-inventory.json 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Test-Inventory-Drift (uncommitted)"
-row gate   G-SPEC01 "$(exit_code_of_script scripts/openspec.sh validate)" eq 0 "openspec validate (Exit)"
-row gate   G-SPEC02 "$(c=0; cutoff=$(( $(date +%s) - 30*86400 )); for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; ts=$(git log -1 --format=%at -- "$d" 2>/dev/null); [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && c=$((c+1)); done; echo $c)" eq 0 "OpenSpec-Changes ohne Aktivitaet >30 Tage"
-row target G-SPEC03 "$(m=0; for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; [ -f "$d/.ticket" ] || m=$((m+1)); done; echo $m)" le 5 "Proposals ohne .ticket-Verknuepfung"   # [T013916] 41 -> 5, Ist 0
 row gate   G-SEC02 "$(exit_code_of_script scripts/git-crypt-guard.sh check-tracked)" eq 0 "git-crypt Guard (Exit)"
 row target G-SEC03 "$(ts=$(git log -1 --format=%at -- environments/sealed-secrets/*.yaml 2>/dev/null); [ -n "$ts" ] && echo $(( ( $(date +%s) - ts ) / 86400 )) || echo '-')" le 90 "Tage seit letzter SealedSecret-Rotation"
 row target G-SEC04 "$(min=''; for p in environments/certs/*.pem; do [ -f "$p" ] || continue; e=$(openssl x509 -enddate -noout -in "$p" 2>/dev/null | cut -d= -f2); [ -n "$e" ] || continue; d=$(( ( $(date -d "$e" +%s 2>/dev/null || echo 0) - $(date +%s) ) / 86400 )); { [ -z "$min" ] || [ "$d" -lt "$min" ]; } && min=$d; done; echo "${min:--}")" ge 30 "Sealing-Cert Restlaufzeit (Tage, Minimum)"

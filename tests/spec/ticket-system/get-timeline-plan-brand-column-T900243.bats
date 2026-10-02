@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/ticket-system.md
 # Ticket: T900243 — `get-timeline` filtert auf nicht existierende Spalte
 # ticket_plans.brand
 #

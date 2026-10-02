@@ -82,7 +82,7 @@ Zusätzlich:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/dev-flow-plan/task-context.bats
-bash scripts/plan-lint.sh openspec/changes/task-context-channel/tasks.md
+bash scripts/plan-lint.sh .agents/plans/task-context-channel/tasks.md
 task test:inventory
 bash scripts/health-goals-check.sh 2>&1 | grep G-AGENTIC09
 ```

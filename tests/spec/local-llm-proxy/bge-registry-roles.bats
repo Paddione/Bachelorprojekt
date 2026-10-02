@@ -2,7 +2,6 @@
 # tests/spec/local-llm-proxy/bge-registry-roles.bats
 load "../../unit/lib/bats-support/load"
 load "../../unit/lib/bats-assert/load"
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T900006
 #
 # PRUEFMODUS (T002448-M4): ERGEBNIS-basiert — der Test ruft die echten

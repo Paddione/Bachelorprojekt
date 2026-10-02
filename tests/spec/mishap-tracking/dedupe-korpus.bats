@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# Spec: openspec/specs/mishap-tracking.md — "Dublettenerkennung vergleicht
 # Komponente und Dateipfade, nicht nur Titel" [T003120 / T003117]
 #
 # Pruefmodus: OUTPUT-VERIFIKATION (T002448-M4). Der Test ruft

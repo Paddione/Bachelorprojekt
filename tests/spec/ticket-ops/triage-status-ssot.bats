@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ticket-ops/triage-status-ssot.bats
-# SSOT: openspec/specs/ticket-ops.md (vda.sh ticket triage)
 # Fix: T008345
 #
 # Die Status-Validierung von `vda.sh ticket triage` liest ihr Vokabular aus der

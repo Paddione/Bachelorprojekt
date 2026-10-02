@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/health-goals.md
 # Ticket: T013916 — Ein Ziel, das nicht rot werden kann, steuert nichts. Diese
 # Datei sichert die drei Wege, auf denen ein Health-Goal seine Aussagekraft
 # verliert: kaputte Messung, unerreichbare Schwelle, nicht nachgezogenes Ratchet.

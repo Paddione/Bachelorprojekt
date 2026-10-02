@@ -14,7 +14,7 @@ Diese Datei war bis T900024 eine **unabhaengige Kopie** von
 `.claude/skills/git-workflow/SKILL.md` — 319 gegen 321 Zeilen, mit inhaltlicher
 Drift in beide Richtungen. Die auffaelligste: die Claude-Code-Fassung zitierte
 `T069/T070`, wo hier `T003069/T003070` stand. Nachweisbar richtig sind die
-sechsstelligen IDs (`openspec/changes/archive/2026-08-14-batch-git-worktree-integrity/`);
+sechsstelligen IDs (`.agents/plans/2026-08-14-batch-git-worktree-integrity/`);
 die kurzen waren Kuerzungsfehler. Wer zwei Kopien pflegt, pflegt am Ende zwei
 verschiedene Ablaeufe — und merkt es erst, wenn eine Session dem falschen folgt.
 

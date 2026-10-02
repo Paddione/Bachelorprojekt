@@ -1,12 +1,10 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/freshness-regen-rebase-guard.bats
-# SSOT: openspec/specs/ci-cd.md (delta: openspec/changes/freshness-regen-rebase-guard/specs/ci-cd.md)
 # T002669: PR #3788 (T002634) needed two expensive regen-commit-push cycles
 # (~1-2min each) because `main` advanced twice mid-session (two release
 # commits) while the branch's committed freshness artifacts were generated
 # against an older tree. `task freshness:check` already WARNS about this
-# (T002561, archived under
-# openspec/changes/archive/2026-08-02-freshness-check-base-mismatch/) but
+# (T002561) but
 # only AFTER `freshness:regenerate` has already run, and only inside the
 # Taskfile — not inside the `git-workflow` skill step an agent actually
 # follows before pushing. Chosen fix (Variante a, see proposal.md): a

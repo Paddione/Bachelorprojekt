@@ -5,7 +5,6 @@ Loest die drei duplizierten Fassungen aus dem Vorversuch (unsloth_training_setup
 train_gemma.py, train_qwen.py) ab. Konfiguration ueber CLI-Flags und optional eine
 Konfigdatei (--config, JSON), nicht ueber kopierte Skriptvarianten.
 
-Verbindliche Eigenschaften (siehe openspec/changes/unsloth-training-env/tasks.md, Task 2a):
 
   - Vorbedingungen: bricht ab, wenn der Messbericht aus measure_corpus.py fehlt oder der
     Template-Guard aus template_guard.py nicht bestanden wird.

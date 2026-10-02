@@ -32,12 +32,11 @@ auf die passende Datei (nicht den ganzen Hub laden, nicht die Inhalte dupliziere
 | dev-flow-plan Phasen | [`dev-flow-plan-phases.md`](dev-flow-plan-phases.md) | Schrittfolge, Decompose-/Fan-out-Mechanik und Kontext-Injektion für Plan-Subagenten |
 | dev-flow-execute Phasen | [`dev-flow-execute-phases.md`](dev-flow-execute-phases.md) | Pre-Flight-, Rebase-, BATS- und Finalize-Befehlsfolgen im Detail |
 | Fortsetzungs-Kontrakt | [`factory-resume-contract.md`](factory-resume-contract.md) | Angefangenes Ticket fortschreiben statt neu beginnen (T002327) |
-| Plan & OpenSpec archivieren | [`plan-archive-steps.md`](plan-archive-steps.md) | Archivierungs-Mechanik nach Merge, Push-Verifikation (T001268), PR-Creation (T001331) |
+| Plan archivieren | [`plan-archive-steps.md`](plan-archive-steps.md) | DB-Archivierung nach Merge |
 | Artefakt-Ebene | [`plan-artifact-level.md`](plan-artifact-level.md) | PRD vs. ADR vs. Change-Proposal vs. Chore-Ticket — Entscheidungstabelle + PRD-Checkliste |
 | Plan Intel Bundle | [`plan-intel-bundle.md`](plan-intel-bundle.md) | `intel.json`-Format: schema-validierte Quellen (codebase-memory, LSP, mcp-postgres, context7) — Schemas in [`schemas/`](schemas/) |
 | Ticket-Stage-Prozedur | [`ticket-stage-procedure.md`](ticket-stage-procedure.md) | Ticket-Anlage, Claim, `stage-plan` (Flag-Semantik, `hold`-Pflicht, `--partials`) |
 | ticket-ops Prozeduren | [`ticket-ops-procedures.md`](ticket-ops-procedures.md) | Phasen-Mechanik zu `ticket-ops`: Dispatch-Skripte, DoR-Felder |
-| openspec-explore Katalog | [`openspec-explore-procedures.md`](openspec-explore-procedures.md) | Einstiegspunkte/Anwendungsfälle für den Explore-Skill |
 | git-workflow Nachschlagewerk | [`git-workflow-procedures.md`](git-workflow-procedures.md) | Befehlsfolgen zu `git-workflow`: commit, PR-Scope-Preflight, CI-Fix-Loop |
 | Agent-Active-Plans | [`agent-active-plans.md`](agent-active-plans.md) | Kontrakt zur Plan-Kontext-Injektion für `.claude/agents/bachelorprojekt-*.md` |
 

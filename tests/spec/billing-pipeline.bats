@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/billing-pipeline.bats
-# SSOT: openspec/specs/billing-pipeline.md
 
 setup() {
   export WT="$BATS_TEST_DIRNAME/../../"

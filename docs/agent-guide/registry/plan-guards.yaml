@@ -11,8 +11,8 @@
 # applies_to-Liste deklariert (Beispiel: T002444 war bis T013724 opencode-only
 # und liegt seit der Symlink-Konsolidierung in der Shared Source).
 # KEIN Generator: die Prosa bleibt handgepflegt, dieser Katalog prueft nur Praesenz.
-# Design: openspec/changes/cross-harness-plan-guardrails/design.md (archiviert:
-# openspec/specs/dev-flow-plan.md).
+# Design: .agents/plans/cross-harness-plan-guardrails/design.md (archiviert:
+# docs/superpowers/specs/dev-flow-plan.md).
 guards:
   - id: T002673
     title: "stage-plan erst NACH dem Plan-Commit (touched_files sonst still leer)"

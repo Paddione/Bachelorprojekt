@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/network-address-plan/networks-registry.bats
-# SSOT: openspec/specs/network-address-plan.md  (Ticket T012645)
 #
 # PRUEFMODUS (T002448-M4): Output-Verifikation. Geprueft werden Exit-Code und
 # Ausgabe von `scripts/networks-check.mjs` gegen Fixtures — NICHT der Quelltext

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/dev-env-split.bats
-# SSOT: openspec/changes/cluster-dev-node-gekko2/specs/fleet-operations.md
 # T002630 P1: Env-Entflechtung — dev-cluster.yaml steuert den Cluster-Dev-Stack,
 # dev.yaml steuert nur noch die lokale k3d-Umgebung.
 #

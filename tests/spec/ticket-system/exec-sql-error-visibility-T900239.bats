@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ticket-system/exec-sql-error-visibility-T900239.bats — T900239
-# SSOT: openspec/specs/ticket-system.md
 #
 # Bug: `bash scripts/ticket.sh get-timeline --id <id>` bricht mit Exit 3 ab,
 # stdout UND stderr leer — ununterscheidbar von "Ticket hat keine Historie".

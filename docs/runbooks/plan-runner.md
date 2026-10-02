@@ -1,6 +1,6 @@
-# Runbook: plan-runner (OpenSpec-Partials mit lokalen Modellen)
+# Runbook: plan-runner (Plan-Partials mit lokalen Modellen)
 
-`scripts/llm/plan-runner.mjs` führt die Partials eines OpenSpec-Changes aus (T900504). Der
+`scripts/llm/plan-runner.mjs` führt die Partials eines gestagten Plans aus (T900504). Der
 Orchestrator (Qwen3.8-27B GSQ-RCO IQ2_S-mtp, RTX 5070 Ti, `:1919`) steuert per Tool-Loop. Die Partials
 laufen als `opencode run --agent plan-worker-4b` auf dem 4B-Worker (Qwen3.5-4B, RTX 3060 Ti, `:1920`).
 Sind alle 4B-Slots belegt, darf der Orchestrator eine Partial selbst ausführen
@@ -27,7 +27,7 @@ Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, 
 ## Aufruf
 
 ```bash
-node scripts/llm/plan-runner.mjs openspec/changes/<slug> [--worktree <pfad>] [--4b-slots N] [--max-turns N] [--timeout-min N]
+node scripts/llm/plan-runner.mjs .agents/plans/<slug> [--worktree <pfad>] [--4b-slots N] [--max-turns N] [--timeout-min N]
 ```
 
 - `--worktree`: Default ist das Git-Toplevel des Change-Ordners.
@@ -54,13 +54,13 @@ Wiederholungen, danach wird die Partial `failed`.
 
 ## Zustandsdatei und Resume
 
-Fortschritt und Orchestrator-Notizen liegen in `openspec/changes/<slug>/.plan-runner/state.json`. Die
+Fortschritt und Orchestrator-Notizen liegen in `.agents/plans/<slug>/.plan-runner/state.json`. Die
 Datei wird nach jedem Tool-Aufruf atomar geschrieben (Temp-Datei, dann `rename`).
 
 Nach einem Abbruch (Ctrl-C, Absturz, Timeout) denselben Befehl erneut starten. Partials mit `done` oder
 `failed` bleiben unverändert. Partials mit `running` werden auf `open` zurückgesetzt und neu vergeben. Die
 Notizen aus dem letzten `execute_self` gehen als Kontext an den Orchestrator. Einen kompletten Neustart
-erzwingt `rm -r openspec/changes/<slug>/.plan-runner`.
+erzwingt `rm -r .agents/plans/<slug>/.plan-runner`.
 
 ## Messgrundlage
 

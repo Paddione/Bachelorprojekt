@@ -164,7 +164,6 @@ _exec_sql() {
 }
 
 # TICKET_OFFLINE=1 — skip the cluster call for writes (dev-flow-execute best-effort).
-# Mirrors scripts/openspec.sh so the same env var works for both CLIs.
 # [T001582-M3] Moved here from scripts/ticket.sh so both scripts/ticket.sh and
 # scripts/vda/ticket/get.sh (which only sources this shared core, not
 # ticket.sh) can reach it. Previously get.sh called _ticket_offline_refuse_read

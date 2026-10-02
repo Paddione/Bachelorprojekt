@@ -123,7 +123,7 @@ HELP
       cat <<'HELP'
 Usage: ticket.sh archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>]
   --id <external_id>      Ticket-ID (required)
-  --slug <slug>           OpenSpec-Change-Slug (required)
+  --slug <slug>           Plan-Slug (required)
   --branch <branch>       Feature/Fix-Branch (required)
   --plan-file <pfad>      Pfad zur Plan-Datei (required)
   --pr <pr_number>        Optionale PR-Nummer
@@ -377,7 +377,7 @@ HELP
       cat <<'HELP'
 Usage: ticket.sh find-similar <titel-oder-text> [--corpus <quelle>]
   Positionale Anfrage (Titel/Beschreibung) plus optional --corpus.
-  Findet semantisch aehnliche OpenSpec-Changes/Tickets.
+  Findet semantisch aehnliche Pläne/Tickets.
 HELP
       ;;
     reclaim)

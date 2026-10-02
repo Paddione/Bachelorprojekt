@@ -165,7 +165,7 @@ Wörtlich aus dem Epic (`project_t002430-brain-architektur-epic` Memory, 2026-07
 
 > **D2**: `ticket_plans` leer.
 
-Frühere Bestätigung im Repo: `openspec/changes/archive/2026-08-01-epic-canvas-k5/design.md:44` ("OF2: ticket_plans ist leer — bestätigt", im Kontext der Epic-Canvas-Funktion, die bewusst IndexedDB/LocalStorage statt `ticket_plans` nutzt).
+Frühere Bestätigung im Repo (`2026-08-01-epic-canvas-k5/design.md:44`): "OF2: ticket_plans ist leer — bestätigt", im Kontext der Epic-Canvas-Funktion, die bewusst IndexedDB/LocalStorage statt `ticket_plans` nutzt.
 
 **Aktueller Befund (2026-08-02, mentolder-DB):** `tickets.ticket_plans` enthält 293 Zeilen, davon 291 mit nichtleerem `content`. Die Tabelle ist **nicht mehr repo-weit leer** — die Aussage war entweder zum Zeitpunkt der Epic-Formulierung (2026-07-28) zutreffend und die Tabelle wurde seither befüllt (z.B. durch `ticket-mcp`s `stage_plan`/`set_plan_meta`-Tools), oder sie bezog sich ausschließlich auf einen Teilbereich (z.B. eine bestimmte Brand-DB oder einen bestimmten Zeitraum). Die korczewski-DB wurde für diese Dokumentation nicht erhoben (siehe oben, **unklar**). Status: **teilweise überholt** — D2 sollte im Epic-Tracking neu bewertet werden, statt unverändert als offen zu gelten.
 

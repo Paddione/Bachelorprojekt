@@ -41,8 +41,8 @@ setup() {
   mkdir -p "$STUBS"
 
   # Alle Fixture-Pfade sind ABSOLUT und alle git-Aufrufe nutzen -C (bats -j 6: kein
-  # relatives openspec/changes/<slug> sichtbar fuer validateTree).
-  PLANDIR="$FIXTURE/openspec/changes/x"
+  # relatives .agents/plans/<slug> sichtbar fuer validateTree).
+  PLANDIR="$FIXTURE/.agents/plans/x"
   CODEDIR="$FIXTURE/scripts"
 
   git init --bare --quiet "$REMOTE"
@@ -67,7 +67,7 @@ setup() {
     git -C "$FIXTURE" push --quiet origin "$1"
   }
 
-  # _plan <name>: Branch weicht NUR in openspec/changes/* ab — INNERHALB der ALLOWLIST.
+  # _plan <name>: Branch weicht NUR in .agents/plans/* ab — INNERHALB der ALLOWLIST.
   _plan() {
     git -C "$FIXTURE" checkout --quiet main
     git -C "$FIXTURE" checkout --quiet -b "$1"
@@ -199,7 +199,7 @@ _kept()   { printf '%s\n' "$output" | grep '^KEEP ' || true; }
 }
 
 @test "T012412: unbekanntes Ticket ohne Positiv-Signal faellt NICHT auf den Allowlist-Check durch" {
-  # Der entscheidende Negativfall. Dieser Branch weicht NUR in openspec/changes/* ab, liegt also
+  # Der entscheidende Negativfall. Dieser Branch weicht NUR in .agents/plans/* ab, liegt also
   # vollstaendig in der ALLOWLIST. Wuerde der unbekannte Ticket-Status einfach weiterlaufen
   # statt ein Positiv-Signal zu verlangen, gaebe der Blob-Check ihn frei — und damit waere
   # "Ticket done" als zweites noetiges Signal ausgehebelt (T002431: die Allowlist allein haette

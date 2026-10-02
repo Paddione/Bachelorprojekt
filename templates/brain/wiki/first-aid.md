@@ -2,7 +2,7 @@
 type: runbook
 tags: [troubleshooting, ci]
 status: active
-source:: Bachelorprojekt openspec/changes/brain-quality-goals (T001608)
+source:: Bachelorprojekt <plan-pfad>/brain-quality-goals (T001608)
 ---
 # First Aid — CI ist rot
 

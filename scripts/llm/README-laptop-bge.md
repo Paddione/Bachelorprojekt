@@ -1,6 +1,6 @@
 # Laptop-bge-Betrieb (PK-L-1 + PK-Tablet)
 
-Runbook zum Design-Doc `openspec/changes/2026-08-15-laptop-bge-topologie/design.md` (T006143).
+Runbook zum Design-Doc `2026-08-15-laptop-bge-topologie` (T006143).
 
 ## Rollen
 

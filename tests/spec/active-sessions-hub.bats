@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/active-sessions-hub.bats
-# SSOT: openspec/specs/active-sessions-hub.md
 #
 # Deckt den Argument-Vertrag von `agent-lock.sh claim` / `check-and-claim` ab. [T002363]
 # Der frühere Platzhalter-Test (`run true`) ist durch echte Abdeckung ersetzt.

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/dev-node-binding.bats
-# SSOT: openspec/changes/cluster-dev-node-gekko2/specs/fleet-operations.md
 # T002630 P2: Dev-Node-Bindung — Toleration + nodeAffinity auf role=dev.
 #
 # Pruefmodus: Ausfuehrung — kustomize build wird ausgefuehrt und die YAML-Ausgabe

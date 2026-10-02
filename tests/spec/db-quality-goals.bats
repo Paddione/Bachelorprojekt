@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/db-quality-goals.bats
-# SSOT: openspec/changes/db-quality-goals/specs/db-quality-goals.md (→ openspec/specs/ nach archive)
-# Konvention: ein .bats-File pro OpenSpec-SSOT-Spec.
+# Konvention: ein .bats-File pro SSOT-Spec.
 
 HGC="scripts/health-goals-check.sh"
 DB_IDS="G-DB01 G-DB03 G-DB04 G-DB06 G-DB08"

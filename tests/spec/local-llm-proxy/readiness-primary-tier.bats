@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/readiness-primary-tier.bats
-# SSOT: openspec/specs/local-llm-proxy.md (Requirement: Health endpoint reports readiness, not liveness)
 # Ticket: T900212
 #
 # Seit T900189 traegt das einzige Chat-Backend (freetoken-local) priority 0.

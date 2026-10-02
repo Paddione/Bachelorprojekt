@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/repo-hygiene/dead-path-references.bats
-# SSOT: openspec/specs/agent-skills.md
 #
 # Guard gegen tote Pfad-Referenzen (T002688, Vorgang A). Prüfmodus:
 # Kommando-Ergebnis-Verifikation — jede Prüfung extrahiert Kandidaten aus der

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agentic-tooling-quality-goals.bats
-# SSOT: openspec/specs/agentic-tooling-quality-goals.md
 #
 # Covers: G-AGENTIC01–05: agent frontmatter, routing table, library reachability.
 # Covers: G-AGENTIC09: SKILL.md > 500 lines (T002094).

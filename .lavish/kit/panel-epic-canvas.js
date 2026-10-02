@@ -1,5 +1,5 @@
 // panel-epic-canvas.js — K5 Epic-Canvas Panel
-import { saveCanvas, getAllCanvases, hasExternalChanges, recordExport } from './canvas-store.js';
+import { saveCanvas, getAllCanvases, recordExport } from './canvas-store.js';
 
 export class EpicCanvas {
   constructor(container, options = {}) {
@@ -88,7 +88,7 @@ export class EpicCanvas {
         this.setContext([{ href: '#', label: 'Brain-Verweise nicht verfügbar' }]);
         return;
       }
-      const result = await window.data.brainLinks(['openspec/specs/sdlc-cockpit.md']);
+      const result = await window.data.brainLinks(['docs/agent-guide/reference.md']);
       this.renderBrainContext(result);
     } catch (e) {
       this.setContext([{ href: '#', label: `Brain-Verweise: ${e.message}` }]);
@@ -200,7 +200,7 @@ export class EpicCanvas {
         <textarea class="epic-notes" rows="3">${this.esc(epic.notes || '')}</textarea>
         <div class="epic-actions">
           <button class="epic-save">Speichern</button>
-          <button class="epic-export-primary primary">Als OpenSpec exportieren</button>
+          <button class="epic-export-primary primary">Als Markdown exportieren</button>
         </div>
       </div>
     `;
@@ -214,25 +214,6 @@ export class EpicCanvas {
       });
     };
     list.querySelector('.epic-export-primary').onclick = async () => {
-      if (epic.lastExportAt) {
-        const changed = await hasExternalChanges(epic.id, epic.lastExportAt);
-        if (changed) {
-          if (!confirm('openspec/changes/ wurde seit dem letzten Export geändert. Trotzdem exportieren?')) return;
-        }
-      }
-      // Der Export laeuft clientseitig als Datei-Download, nicht ueber eine
-      // Schreib-Route.
-      //
-      // Zwei Gruende. Erstens liegen die Canvas-Daten ohnehin schon im Browser
-      // (IndexedDB) — ein Server-Rundlauf haette nichts hinzugefuegt. Zweitens
-      // sind die Schreib-Endpunkte des Daemons bewusst Stubs bis K4, und
-      // T002505 hat dem Browser die Schreibrechte gezielt entzogen (CORS
-      // erlaubt Origin 'null', der Token liegt nur noch in einer 0600-Datei).
-      // Eine Route, die von hier aus in openspec/changes/ schreibt, waere genau
-      // der Datenvernichter, vor dem OF1 warnt.
-      //
-      // Die heruntergeladene Datei traegt nur die Teile, die der Canvas selbst
-      // verfasst — proposal.md und tasks.md bleiben unberuehrt.
       try {
         const markdown = this.buildExportMarkdown(epic, {
           description: list.querySelector('.epic-desc').value,
@@ -250,8 +231,7 @@ export class EpicCanvas {
   /**
    * Rendert die canvas-eigenen Felder als Markdown. Bewusst NUR diese Felder:
    * die Eigentumsgrenze aus OF1 verlaeuft zwischen dem, was der Canvas verfasst,
-   * und dem, was Agenten und CI waehrend der Umsetzung an den OpenSpec-Dateien
-   * fortschreiben.
+   * und dem, was Agenten und CI waehrend der Umsetzung fortschreiben.
    */
   buildExportMarkdown(epic, fields) {
     const lines = [

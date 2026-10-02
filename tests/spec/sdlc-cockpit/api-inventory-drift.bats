@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # API-Inventar-Drift-Guard [T007559] -- Requirement "API Connector Inventory"
-# (openspec/changes/sdlc-leitstand-e1-e2/specs/sdlc-cockpit.md).
 #
 # Pruefmodus: Output-Verifikation (T002448-M4) -- jeder Test FUEHRT den Scanner
 # aus und prueft $status/$output/erzeugtes JSON; es wird NICHT auf

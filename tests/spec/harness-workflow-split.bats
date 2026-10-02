@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# T001611 harness-workflow-split — one file per OpenSpec SSOT spec (harness-workflow-split).
+# T001611 harness-workflow-split — one file per plan SSOT spec (harness-workflow-split).
 # T900151: the OpenCode flow skills are registry-declared projections. Adapter
 # bodies may diverge from the portable source only for documented runtime-tool
 # mappings; identical portable projections remain allowed.
@@ -10,7 +10,6 @@
 # manifestiert sich ausschließlich im Quelltext).
 # Forbidden Claude-only tokens (see plan "Forbidden-token contract"):
 FORBIDDEN='AskUserQuestion|TodoWrite|subagent_type|Task tool'
-OPENSPEC_SKILLS='openspec-propose openspec-apply-change openspec-archive-change openspec-explore'
 OC_FLOW_LINKS='dev-flow-plan dev-flow-execute dev-flow-chore'
 OC_SKILLS="$OC_FLOW_LINKS opencode-git-workflow"
 
@@ -58,17 +57,6 @@ OC_SKILLS="$OC_FLOW_LINKS opencode-git-workflow"
   grep -qF 'git-workflow' .claude/skills/dev-flow-chore/SKILL.md
 }
 
-@test "HWS-6: shared openspec-* skills are free of Claude-only tool syntax" {
-  for s in $OPENSPEC_SKILLS; do
-    run grep -nE "$FORBIDDEN" ".claude/skills/$s/SKILL.md"
-    [ "$status" -ne 0 ]
-  done
-}
-
-@test "HWS-7: openspec-archive-change retains its delegation instruction" {
-  grep -qF 'openspec-sync-specs' .claude/skills/openspec-archive-change/SKILL.md
-}
-
 @test "HWS-8: AGENTS.md Skill Dispatch Protocol is opencode-native" {
   # T002181: der Abschnitt hiess einmal '## Skill Dispatch Protocol'. Seit dem
   # AGENTS.md-Umbau auf Quick-Start liegen die Referenzteile in <details>-Blöcken
@@ -111,18 +99,9 @@ OC_SKILLS="$OC_FLOW_LINKS opencode-git-workflow"
 }
 
 # ── Antigravity guard (home-dir state, skip-when-absent — mcp-tooling.bats pattern) ──
-@test "HWS-13: Antigravity inherits the cleaned openspec-* skills (repo is the source)" {
-  # Antigravity (~/.gemini/antigravity-cli/) is a Claude-Code instance that reads the repo
-  # .claude/skills/ directly, so the cleanup applies to it automatically.
-  for s in $OPENSPEC_SKILLS; do
-    run grep -nE "$FORBIDDEN" ".claude/skills/$s/SKILL.md"
-    [ "$status" -ne 0 ]
-  done
-}
-
-@test "HWS-14: host antigravity-cli carries no shadowing dirty openspec-* copy" {
+@test "HWS-14: host antigravity-cli carries no shadowing dirty plan-* copy" {
   local ag="$HOME/.gemini/antigravity-cli"
   [ -d "$ag" ] || skip "antigravity-cli not installed on this machine"
-  run bash -c "find \"$ag\" -path '*openspec-*/SKILL.md' -exec grep -lE \"$FORBIDDEN\" {} + 2>/dev/null"
+  run bash -c "find \"$ag\" -path '*plan-*/SKILL.md' -exec grep -lE \"$FORBIDDEN\" {} + 2>/dev/null"
   [ -z "$output" ]
 }

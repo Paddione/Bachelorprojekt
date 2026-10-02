@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/loadout-aux-files-exist.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T002886
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Der Test

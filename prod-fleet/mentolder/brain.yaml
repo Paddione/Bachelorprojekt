@@ -27,7 +27,7 @@ data:
     import path from 'path';
     import { spawn } from 'child_process';
 
-    const CBM_DIR = process.env.CBM_RUNTIME_DIR || '/data/cbm-home';
+    const CBM_DIR = process.env.CBM_RUNTIME_DIR || '/home/node';
     const cacheDir = path.join(CBM_DIR, '.cache', 'codebase-memory-mcp');
     try {
       if (!fs.existsSync(cacheDir)) {
@@ -37,8 +37,25 @@ data:
       if (!fs.existsSync(configPath)) {
         fs.writeFileSync(configPath, JSON.stringify({ ui_enabled: true, ui_port: 9749 }, null, 2));
       }
+
+      if (fs.existsSync('/data')) {
+        for (const file of fs.readdirSync('/data')) {
+          if (file.endsWith('.db')) {
+            const target = path.join('/data', file);
+            const link = path.join(cacheDir, file);
+            if (!fs.existsSync(link)) {
+              try {
+                fs.symlinkSync(target, link);
+                console.log(`[brain] Linked ${target} -> ${link}`);
+              } catch (e) {
+                console.error(`[brain] Failed to link ${target}:`, e);
+              }
+            }
+          }
+        }
+      }
     } catch (err) {
-      console.error('[brain] Failed to write default config.json:', err);
+      console.error('[brain] Failed to initialize cacheDir:', err);
     }
 
     console.log('[brain] Starting codebase-memory-mcp daemon...');
@@ -119,9 +136,9 @@ spec:
           command: ["node", "/opt/brain/proxy.mjs"]
           env:
             - name: CBM_RUNTIME_DIR
-              value: /data/cbm-home
+              value: /home/node
             - name: HOME
-              value: /data/cbm-home
+              value: /home/node
           ports:
             - containerPort: 80
               name: http

@@ -170,14 +170,14 @@ EOF"
   # T900203: die fuenf Familien-Handles (gptoss/devstral/gemma/gemma12/qwen38)
   # sind 2026-09-16 zu einem `local` kollabiert (T900164) — kein gemma-Subagent
   # mehr. Die lokale Familie ist: local + reviewer als Subagenten und
-  # glimmer-primary als Primary, alle drei seit T900365 auf
-  # llamacpp-local/Qwen3.8-27B.
+  # bp-build + bp-run als Primaries, alle vier seit T900365/T900858 auf
+  # llamacpp-local/Qwen3.8-27B (bp-ship faehrt Cloud: exe-muse-Familie).
   run node -e "
     const fs = require('fs');
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const a = JSON.parse(j).agent || {};
-    const expect = { local: 'subagent', reviewer: 'subagent', 'glimmer-primary': 'primary' };
+    const expect = { local: 'subagent', reviewer: 'subagent', 'bp-build': 'primary', 'bp-run': 'primary' };
     for (const [name, mode] of Object.entries(expect)) {
       const v = a[name];
       if (!v) { console.error(name + ' fehlt in agent-models.jsonc'); process.exit(1); }
@@ -192,8 +192,9 @@ EOF"
 }
 
 @test "agent-models.jsonc provides a local primary with measured context (T002545/T016419/T900203)" {
-  # T900203/T900365: der einzige lokale Primary ist glimmer-primary, Modell
-  # Qwen3.8-27B. Sein Kontext ist der served-KV-Wert 131072. Die Zahl steht als konkreter Eintrag im Provider
+  # T900203/T900365/T900858: die lokalen Primaries sind bp-build + bp-run
+  # (write-capable default: bp-build), Modell Qwen3.8-27B. Geprueft wird
+  # bp-build; sein Kontext ist der served-KV-Wert 131072. Die Zahl steht als konkreter Eintrag im Provider
   # (T014105-Prinzip); ihre Kopplung an -c der Unit prueft der Test unten.
   #
   # Warum <= und nicht ==: ein niedrigerer Wert ist konservativ und harmlos.
@@ -205,12 +206,12 @@ EOF"
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const o = JSON.parse(j);
-    const prim = (o.agent || {})['glimmer-primary'];
-    if (!prim) { console.error('glimmer-primary fehlt'); process.exit(1); }
-    if (prim.mode !== 'primary') { console.error('glimmer-primary mode ' + prim.mode + ' != primary'); process.exit(1); }
+    const prim = (o.agent || {})['bp-build'];
+    if (!prim) { console.error('bp-build fehlt'); process.exit(1); }
+    if (prim.mode !== 'primary') { console.error('bp-build mode ' + prim.mode + ' != primary'); process.exit(1); }
     const model = prim.model;
     if (model !== 'llamacpp-local/Qwen3.8-27B') {
-      console.error('glimmer-primary model ' + model + ' != llamacpp-local/Qwen3.8-27B'); process.exit(1);
+      console.error('bp-build model ' + model + ' != llamacpp-local/Qwen3.8-27B'); process.exit(1);
     }
     const [prov, mid] = model.split('/');
     const entry = ((o.provider[prov] || {}).models || {})[mid];

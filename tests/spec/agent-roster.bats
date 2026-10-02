@@ -30,7 +30,8 @@ setup_file() {
 
   # Dateien -> Registry: jede .claude/agents/*.md hat einen roles-Eintrag
   local extra=""
-  for agent in .claude/agents/bachelorprojekt-*.md; do
+  for agent in .claude/agents/bachelorprojekt-*.md .claude/agents/bp-*.md; do
+    [ -e "$agent" ] || continue
     name="$(basename "$agent" .md)"
     node -e "
       const y = require('yaml');

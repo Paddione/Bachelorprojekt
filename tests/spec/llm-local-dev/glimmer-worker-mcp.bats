@@ -79,7 +79,7 @@ call() {
   [ "$(jq -r '[.tools[].name] | sort | join(",")' <<<"$output")" = "glimmer_worker_result,glimmer_worker_start,glimmer_worker_status" ]
 }
 
-@test "a job runs glimmer-primary in the repo and reports the diff" {
+@test "a job runs bp-build in the repo and reports the diff" {
   run call glimmer_worker_start "$(jq -cn --arg c "$T_DIR/repo" '{task:"fix it",cwd:$c}')"
   [ "$(jq -r '.isError // false' <<<"$output")" = "false" ]
   local job; job="$(jq -r '.content[0].text | fromjson | .job_id' <<<"$output")"
@@ -93,7 +93,7 @@ call() {
   grep -q 'worker done' <<<"$(jq -r .summary <<<"$res")"
 
   grep -qx -e '--agent' "$T_DIR/argv"
-  grep -qx 'glimmer-primary' "$T_DIR/argv"
+  grep -qx 'bp-build' "$T_DIR/argv"
   ! grep -qx -e '--dir' "$T_DIR/argv"
   [ "$(cat "$T_DIR/cwd")" = "$T_DIR/repo" ]
 }

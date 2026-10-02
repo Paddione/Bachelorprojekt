@@ -7,80 +7,8 @@ setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
 }
 
-@test "fleet-* sealed secrets contain all non-legacy keys from their legacy counterparts" {
-  if ! command -v yq >/dev/null 2>&1; then
-    skip "yq is not installed"
-  fi
-  if ! command -v python3 >/dev/null 2>&1; then
-    skip "python3 is not installed"
-  fi
-
-  # Collect legacy_only keys from environments/schema.yaml
-  #
-  # [T012414/T012415] UEBER ALLE ABSCHNITTE, nicht nur 'secrets'. Vorher las
-  # diese Stelle ausschliesslich schema['secrets'] — dort steht keine einzige
-  # legacy_only-Markierung: alle 16 liegen in 'setup_vars', ebenso die 26
-  # WG_MESH_*-Eintraege. Ein gesetztes legacy_only wirkte damit NICHT, ohne
-  # dass irgendetwas es meldete; die Ausnahmeliste blieb dauerhaft leer.
-  #
-  # Zwei Dinge verdeckten den Defekt: die GEKKO-/K3S-Pendants stehen in beiden
-  # Dateien und liefen deshalb nie in die Ausnahmepruefung — sichtbar wurde es
-  # erst mit WG_MESH_PKL1_*/WG_MESH_PKT_*, die im Legacy-Secret liegen und im
-  # Fleet-Secret fehlen. Und bis zum Umzug der PR-Jobs auf den self-hosted
-  # Runner fehlte dort `yq`, sodass der Test sich uebersprang statt zu pruefen.
-  legacy_only_keys=$(python3 -c "
-import yaml
-with open('${REPO_ROOT}/environments/schema.yaml') as f:
-    schema = yaml.safe_load(f)
-for section in ('env_vars', 'secrets', 'setup_vars'):
-    for s in schema.get(section, []) or []:
-        if isinstance(s, dict) and s.get('legacy_only', False):
-            print(s['name'])
-" 2>/dev/null || true)
-
-  for pair in "mentolder:fleet-mentolder" "korczewski:fleet-korczewski"; do
-    legacy="${pair%%:*}"
-    fleet="${pair##*:}"
-
-    legacy_file="${REPO_ROOT}/environments/sealed-secrets/${legacy}.yaml"
-    fleet_file="${REPO_ROOT}/environments/sealed-secrets/${fleet}.yaml"
-
-    if [[ ! -f "$legacy_file" || ! -f "$fleet_file" ]]; then
-      continue
-    fi
-
-    # T001584: eval-all + select — env:seal emits doubled '---' separators
-    # (empty YAML docs); single-eval yq aborts on the first null doc and
-    # silently reports only the first SealedSecret's keys.
-    legacy_keys=$(yq eval-all 'select(.spec.encryptedData != null) | .spec.encryptedData | keys | .[]' "$legacy_file" 2>/dev/null | sort -u)
-    fleet_keys=$(yq eval-all 'select(.spec.encryptedData != null) | .spec.encryptedData | keys | .[]' "$fleet_file" 2>/dev/null | sort -u)
-
-    missing=""
-    while IFS= read -r key; do
-      [[ -z "$key" ]] && continue
-      # Skip if it is declared as legacy_only
-      if echo "$legacy_only_keys" | grep -qxF "$key"; then
-        continue
-      fi
-      # Skip if it is present in the fleet keys
-      if echo "$fleet_keys" | grep -qxF "$key"; then
-        continue
-      fi
-      missing="${missing} ${key}"
-    done <<< "$legacy_keys"
-
-    if [[ -n "$missing" ]]; then
-      echo "Keys missing in sealed-secrets/${fleet}.yaml:${missing}" >&2
-      false
-    fi
-  done
-}
-
-# ── T001328/T001341: Traefik client-IP preservation ────────────────────────
-# Manifest-structure assertions only — there is no live cluster in CI, so
-# the actual SNAT fix can only be verified against the live fleet. These guard the
-# static config that (a) the live rollout is based on and (b) future
-# full-cluster-rebuilds (prod/cloud-init.yaml) will install by default.
+# T900789: der Vergleich "fleet ⊇ legacy" entfiel mit den Legacy-Secret-Dateien;
+# siehe tests/spec/fleet-operations/legacy-secrets-fleet.bats.
 
 @test "prod/traefik-values.yaml does not set externalTrafficPolicy (invalid once type is ClusterIP)" {
   if ! command -v yq >/dev/null 2>&1; then

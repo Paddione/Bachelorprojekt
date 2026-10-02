@@ -3,7 +3,7 @@
   import { logEntries, clearLog, filterEntries, type LogFilters } from '../../lib/logging/log-store';
   import { levelClass, levelLabel, formatMetaInline } from '../../lib/logging/log-format';
   import { openServerLogStream, openPodLogStream, type StreamHandle } from '../../lib/logging/log-streams';
-  import { postError, podLineToError, fetchErrorHistory } from '../../lib/logging/error-report.ts';
+  import { fetchErrorHistory } from '../../lib/logging/error-report.ts';
   import { browserLogger } from '../../lib/browser-logger.ts';
   import type { LogLevel, LogSource, LogEntry } from '../../lib/logging/log-types';
 
@@ -82,12 +82,7 @@
   function reconnectServer() {
     serverHandle?.close();
     serverDown = false;
-    serverHandle = openServerLogStream(async (line) => {
-      const errorReport = podLineToError(line);
-      if (errorReport && levels.has('error')) {
-        postError(errorReport);
-      }
-    });
+    serverHandle = openServerLogStream(() => { serverDown = true; });
   }
 
   async function loadErrorHistory() {
@@ -109,12 +104,7 @@
   }
 
   onMount(() => {
-    serverHandle = openServerLogStream(async (line) => {
-      const errorReport = podLineToError(line);
-      if (errorReport && levels.has('error')) {
-        postError(errorReport);
-      }
-    });
+    serverHandle = openServerLogStream(() => { serverDown = true; });
   });
   onDestroy(() => { serverHandle?.close(); podHandle?.close(); });
 </script>

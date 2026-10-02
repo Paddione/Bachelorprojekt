@@ -195,7 +195,7 @@
           <div class="flex items-center justify-between mb-2">
             <h4 class="text-xs uppercase tracking-wider text-zinc-500 font-bold">Installations-Befehl</h4>
             <button 
-              on:click={() => handleCopyCommand(selectedApp.name)} 
+              on:click={() => selectedApp && handleCopyCommand(selectedApp.name)} 
               class="text-xs text-gold hover:underline font-semibold"
             >
               Kopieren
@@ -213,7 +213,7 @@
           Schließen
         </button>
         <button 
-          on:click={() => { handleCopyCommand(selectedApp.name); closeModal(); }}
+          on:click={() => { if (selectedApp) handleCopyCommand(selectedApp.name); closeModal(); }}
           class="px-5 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-dark text-sm font-semibold transition-colors shadow-lg"
         >
           Befehl kopieren & Schließen

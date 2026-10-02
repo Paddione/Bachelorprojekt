@@ -255,28 +255,7 @@ for k in sorted(data.keys()):
 PY
 }
 
-@test "G-OPS01a: korczewski secrets file has every workspace-secrets key oauth2-proxy-terminal requires" {
-  skip "Pre-existing regression — follow-up via T002222/T002223 mishap bundles"
-  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
-  local required_file="${REPO_ROOT}/k3d/oauth2-proxy-terminal.yaml"
-  local secrets_file="${REPO_ROOT}/environments/.secrets/korczewski.yaml"
-  [ -f "$required_file" ] || { echo "SKIP: $required_file not found"; skip; }
-  [ -f "$secrets_file" ] || { echo "SKIP: $secrets_file not found"; skip; }
-
-  local missing=()
-  while IFS= read -r key; do
-    [[ -z "$key" ]] && continue
-    if ! secrets_file_keys "$secrets_file" | grep -qx "$key"; then
-      missing+=("$key")
-    fi
-  done < <(required_workspace_secret_keys "$required_file")
-
-  if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "k3d/oauth2-proxy-terminal.yaml requires these workspace-secrets keys but environments/.secrets/korczewski.yaml is missing them:"
-    printf '  %s\n' "${missing[@]}"
-    return 1
-  fi
-}
+# T900789: der Legacy-Zwilling (.secrets/korczewski.yaml) entfiel mit der Datei.
 
 @test "G-OPS01a: fleet-korczewski secrets file has every workspace-secrets key oauth2-proxy-terminal requires" {
   skip "Pre-existing regression — follow-up via T002222/T002223 mishap bundles"

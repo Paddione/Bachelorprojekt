@@ -31,7 +31,7 @@ export async function runCodeWorker({ variant, inputs, endpoints, workdir, recor
   const before = new Set(walkFiles(workdir).map((f) => relative(workdir, f)));
   const workerUrl = recorderUrls?.codeWorker || endpoints?.codeWorker;
   const modelId = inputs.workerModel || 'qwen35-4b';
-  const args = ['run', '--agent', inputs.workerAgent || 'plan-worker-4b', '--dir', workdir];
+  const args = ['run', '--agent', inputs.workerAgent || 'plan-worker-4b'];
   const env = { OPENCODE_BENCH_ROLE: 'code-worker' };
   if (workerUrl) {
     env.OPENCODE_CONFIG_CONTENT = opencodeBenchConfig(workerUrl, modelId, inputs.workerContext);

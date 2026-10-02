@@ -241,7 +241,7 @@ dispatcht jedes Partial auf genau der Stufe aus `min_tier` und budgetiert aus
 Orchestrator-Prompt). Die Stufen-Labels sind stabile Kapazitätsklassen; die
 konkrete Runtime-Bindung steht in `.opencode/agent-models.jsonc` +
 `.opencode/prompts/orchestrator.md` (heute: `4b-local` → `qwen35-mtp`,
-`27b-local` → `local`, `cloud` → `exe-muse`/DeepSeek-Kette):
+`27b-local` → `local`, `cloud` → `exe-muse`):
 - `4b-local`: mechanisch, voll spezifiziert — exakte Anker, ein Subsystem,
   Testausführung/Reporting, Boilerplate, Doc-Sync. Text-only, kein Deep-Debugging.
 - `27b-local`: Default für Implementation — Multi-File-Änderungen, Debugging mit

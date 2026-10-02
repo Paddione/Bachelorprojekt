@@ -87,6 +87,7 @@ spec:
         - https://design.mentolder.de
         - https://design.korczewski.de
         - https://studio.mentolder.de
+        - https://langfuse-dev.mentolder.de
       relabelingConfigs:
         - sourceLabels: [__param_target]
           regex: https://web\.mentolder\.de/.*

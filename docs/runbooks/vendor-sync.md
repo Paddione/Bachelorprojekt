@@ -10,7 +10,9 @@
 | Werkzeug (`status` / `update` / `check`) | `scripts/vendor-sync.py` — Tasks `agents:vendor:status\|update\|check` |
 | Inventar (welche Skills `provenance: vendor` sind) | `docs/agent-guide/registry/skills.yaml` |
 | Guards | `tests/spec/agent-skills/vendor-sync.bats` |
-| Nächtlicher Runner (WSL Cron) | `scripts/nightly-update.sh` |
+| Nächtlicher Runner (WSL Cron) | `scripts/nightly-update.sh` → Schritt 7 ruft `scripts/nightly-vendor-sync.sh` |
+
+**WSL-Cron-Lauf [T900454]:** `scripts/nightly-vendor-sync.sh` legt einen Worktree von `origin/main` unter `~/runs/nightly-vendor-sync` an, lässt dort die skills-CLI und `vendor-sync.py update` laufen und reicht das Ergebnis als PR auf `chore/nightly-vendor-sync-T900454-<YYYYMMDD>` ein. Der Hauptcheckout wird nicht beschrieben. Ohne Upstream-Änderung entsteht kein PR, ein noch offener Nightly-PR verhindert einen zweiten. Der Lauf ist rein mechanisch: Konfliktauflösung und Bruchanalyse aus dem Ablauf unten leistet er nicht, das Gate ist die CI des PRs. Guard: `tests/spec/agent-skills/nightly-vendor-sync.bats`.
 
 ## Was abgedeckt ist
 

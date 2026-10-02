@@ -19,14 +19,25 @@
 
 | Modell | Limit (ctx/output) | Messung | Status |
 |---|---|---|---|
-| Qwen3.6-35B-A3B-NVFP4 | 200000/8192 | — | `ok` |
+| Muse-Glimmer-30B | 131072/8192 | — | `ok` |
+
+### llamacpp-qwen35
+
+| Modell | Limit (ctx/output) | Messung | Status |
+|---|---|---|---|
+| Qwen3.5-4B-MTP | 98304/8192 | — | `ok` |
 
 ### opencode-go
 
 | Modell | Limit (ctx/output) | Messung | Status |
 |---|---|---|---|
-| deepseek-v4-flash | 1000000/8192 | — | `ok` |
-| deepseek-v4-pro | 1000000/16384 | — | `ok` |
+| muse-spark-1.3-contributor | 1000000/131072 | — | `fehlt` |
+
+### opencode-go-oai
+
+| Modell | Limit (ctx/output) | Messung | Status |
+|---|---|---|---|
+| muse-spark-1.3-contributor | 1000000/131072 | — | `ok` |
 
 ### opencode-zen
 
@@ -34,31 +45,29 @@
 |---|---|---|---|
 | big-pickle | 260000/16384 | 2026-09-12 | `ok` |
 | laguna-s-2.1-free | 256000/32000 | — | `ok` |
+| muse-spark-1.3-contributor-free | 1000000/131072 | — | `fehlt` |
 
-### deepseek
+### opencode-zen-oai
 
 | Modell | Limit (ctx/output) | Messung | Status |
 |---|---|---|---|
-| deepseek-v4-flash | 1000000/8192 | — | `ok` |
-| deepseek-v4-pro | 1000000/16384 | — | `ok` |
+| muse-spark-1.3-contributor-free | 1000000/131072 | — | `fehlt` |
 
 ## Agenten
 
 | Agent | Modell | Status |
 |---|---|---|
-| local | llamacpp-local/Qwen3.6-35B-A3B-NVFP4 | `ok` |
-| reviewer | llamacpp-local/Qwen3.6-35B-A3B-NVFP4 | `ok` |
-| deepseek-helper-go | opencode-go/deepseek-v4-flash | `ok` |
-| deepseek-helper | deepseek/deepseek-v4-flash | `ok` |
-| deepseek-pro | opencode-go/deepseek-v4-pro | `ok` |
-| deepseek-pro-direct | deepseek/deepseek-v4-pro | `ok` |
-| deepseek-flash | opencode-go/deepseek-v4-flash | `ok` |
-| deepseek-flash-direct | deepseek/deepseek-v4-flash | `ok` |
-| orchestrator | opencode-zen/laguna-s-2.1-free | `ok` |
+| local | llamacpp-local/Muse-Glimmer-30B | `ok` |
+| qwen35-mtp | llamacpp-qwen35/Qwen3.5-4B-MTP | `ok` |
+| plan-worker-4b | llamacpp-qwen35/Qwen3.5-4B-MTP | `ok` |
+| plan-worker-self | llamacpp-local/Muse-Glimmer-30B | `ok` |
+| reviewer | llamacpp-local/Muse-Glimmer-30B | `ok` |
+| orchestrator | llamacpp-local/Muse-Glimmer-30B | `ok` |
+| exe-muse | opencode-go-oai/muse-spark-1.3-contributor | `ok` |
 | big-pickle | opencode-zen/big-pickle | `ok` |
 | ox-alpha-free | opencode-zen/laguna-s-2.1-free | `ok` |
 | ox-alpha | opencode-zen/laguna-s-2.1-free | `ok` |
-| qwen38-primary | llamacpp-local/Qwen3.6-35B-A3B-NVFP4 | `ok` |
+| glimmer-primary | llamacpp-local/Muse-Glimmer-30B | `ok` |
 
 ## Zusatz-Config: /mnt/c/Users/PatrickKorczewski/.config/opencode/opencode.jsonc
 
@@ -73,20 +82,16 @@
 | qwen38-220k | 114688/8192 | — | `unbelegt` |
 | qwen36-35b-a3b-262k | 262144/8192 | — | `unbelegt` |
 
-### alibaba-intl
+### freetoken-local
 
 | Modell | Limit (ctx/output) | SSOT-Limit | Status |
 |---|---|---|---|
-| qwen3.8-max | 131072/8192 | — | `unbelegt` |
-| deepseek-v4-flash-0731 | 131072/8192 | — | `unbelegt` |
-| deepseek-v4-pro | 131072/16384 | — | `unbelegt` |
+| Qwen3.6-35B-A3B-NVFP4 | 200000/8192 | — | `unbelegt` |
 
 ### opencode-go
 
 | Modell | Limit (ctx/output) | SSOT-Limit | Status |
 |---|---|---|---|
-| deepseek-v4-flash | 1000000/8192 | 1000000 | `ok` |
-| deepseek-v4-pro | 1000000/16384 | 1000000 | `ok` |
 
 ### opencode-zen
 
@@ -94,13 +99,6 @@
 |---|---|---|---|
 | big-pickle | 1000000/16384 | 260000 | `stale` (Limit-Drift) |
 | laguna-s-2.1-free | 256000/32000 | 256000 | `ok` |
-
-### deepseek
-
-| Modell | Limit (ctx/output) | SSOT-Limit | Status |
-|---|---|---|---|
-| deepseek-v4-flash | 1000000/8192 | 1000000 | `ok` |
-| deepseek-v4-pro | 1000000/16384 | 1000000 | `ok` |
 
 ### lmstudio
 
@@ -121,23 +119,41 @@
 |---|---|---|---|
 | qwen3.8-27b | 85760/8192 | — | `unbelegt` |
 
+### opencode
+
+| Modell | Limit (ctx/output) | SSOT-Limit | Status |
+|---|---|---|---|
+
+### alibaba-token-plan
+
+| Modell | Limit (ctx/output) | SSOT-Limit | Status |
+|---|---|---|---|
+
+### huggingface
+
+| Modell | Limit (ctx/output) | SSOT-Limit | Status |
+|---|---|---|---|
+
+### openrouter
+
+| Modell | Limit (ctx/output) | SSOT-Limit | Status |
+|---|---|---|---|
+
 ### Agenten
 
 | Agent | Modell | Status |
 |---|---|---|
 | qwen38 | llamacpp-native/qwen3.8-27b | `unbelegt` |
-| qwen-cloud | alibaba-intl/qwen3.8-max | `unbelegt` |
+| qwen-cloud | freetoken-local/Qwen3.6-35B-A3B-NVFP4 | `unbelegt` |
 | qwen38-primary | llamacpp-native/qwen3.8-27b | `unbelegt` |
-| deepseek-helper | deepseek/deepseek-v4-flash | `ok` |
-| deepseek-helper-go | opencode-go/deepseek-v4-flash | `ok` |
-| deepseek-helper-alibaba | alibaba-intl/deepseek-v4-flash-0731 | `unbelegt` |
-| deepseek-pro | opencode-go/deepseek-v4-pro | `ok` |
-| deepseek-pro-direct | deepseek/deepseek-v4-pro | `ok` |
-| deepseek-pro-alibaba | alibaba-intl/deepseek-v4-pro | `unbelegt` |
-| deepseek-flash | opencode-go/deepseek-v4-flash | `ok` |
-| deepseek-flash-direct | deepseek/deepseek-v4-flash | `ok` |
-| orchestrator | opencode-zen/laguna-s-2.1-free | `ok` |
-| alibaba-primary | alibaba-intl/qwen3.8-max | `unbelegt` |
+| deepseek-helper-alibaba | freetoken-local/Qwen3.6-35B-A3B-NVFP4 | `unbelegt` |
+| deepseek-pro-alibaba | freetoken-local/Qwen3.6-35B-A3B-NVFP4 | `unbelegt` |
+| orchestrator | opencode/muse-spark-1.3-contributor-free | `unbelegt` |
+| alibaba-primary | freetoken-local/Qwen3.6-35B-A3B-NVFP4 | `unbelegt` |
 | big-pickle | opencode-zen/big-pickle | `ok` |
 | ox-alpha-free | opencode-zen/laguna-s-2.1-free | `ok` |
 | ox-alpha | opencode-zen/laguna-s-2.1-free | `ok` |
+| compaction | (kein model) | `unbelegt` |
+| muse | opencode-go/muse-spark-1.3-contributor | `ok` |
+| general | opencode-go/muse-spark-1.3-contributor | `ok` |
+| explore | opencode-go/muse-spark-1.3-contributor | `ok` |

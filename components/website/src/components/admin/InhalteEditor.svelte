@@ -196,8 +196,8 @@
         {#if activeSection === 'seo'}<SeoEditor />
         {:else if activeSection === 'startseite'}<StartseiteSection initialData={initialData.startseite} />
         {:else if activeSection === 'uebermich'}<UebermichSection initialData={initialData.uebermich} />
-        {:else if activeSection === 'coaching'}<SchemaEditor schema={schemaFor('service:coaching')!} initialValue={initialData.coaching?.value ?? null} initialVersion={initialData.coaching?.version ?? 0} />
-        {:else if activeSection === 'fuehrung-persoenlichkeit'}<SchemaEditor schema={schemaFor('service:fuehrung-persoenlichkeit')!} initialValue={initialData.fuehrung?.value ?? null} initialVersion={initialData.fuehrung?.version ?? 0} />
+        {:else if activeSection === 'coaching'}<SchemaEditor schema={schemaFor('service:coaching')!} initialValue={initialData.coaching?.value ?? {}} initialVersion={initialData.coaching?.version ?? 0} />
+        {:else if activeSection === 'fuehrung-persoenlichkeit'}<SchemaEditor schema={schemaFor('service:fuehrung-persoenlichkeit')!} initialValue={initialData.fuehrung?.value ?? {}} initialVersion={initialData.fuehrung?.version ?? 0} />
         {:else if activeSection === '50plus-digital'}
           <ServicePageSection initialData={initialData['50plus-digital']} slug="50plus-digital" pageLabel="50+ digital"
             isCatalogLinked={initialData['50plus-digital']?.isCatalogLinked}

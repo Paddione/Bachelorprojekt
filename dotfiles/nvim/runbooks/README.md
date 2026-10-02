@@ -13,7 +13,7 @@ Use `_template.md` as the starting point for a new chapter runbook.
 ## Chapters (fixed EPIC order, listed on Home in this order)
 
 1. **Files & Search** — T900657 — status: stub
-2. **JavaScript / Frontend** — T900658 — status: stub
+2. **JavaScript / Frontend** — T900658 — status: complete — [`js-frontend.md`](js-frontend.md)
 3. **GitHub** — T900659 — status: stub
 4. **SDLC** — T900660 — status: stub
 5. **Repository & Code Knowledge** — T900661 — status: stub
@@ -21,7 +21,7 @@ Use `_template.md` as the starting point for a new chapter runbook.
 7. **Models & Inference** — T900663 — status: stub
 8. **Infrastructure** — T900664 — status: stub
 9. **ComfyUI & Images** — T900666 — status: stub
-10. **Settings & Help** — T900667 — status: stub
+10. **Settings & Help** — T900667 — [`settings-help.md`](settings-help.md) — status: complete
 
 No Factory chapter: T900665 (Factory & Proxy) is archived/obsolete and was
 dropped from the EPIC chapter list.
@@ -36,6 +36,7 @@ worked example of the visible action model — it is not part of
 Infrastructure's future content from T900664:
 
 - **Infrastructure · Status** — foundation (T900655) — parent: Infrastructure — [`infrastructure-status.md`](infrastructure-status.md) — status: complete
+- **Infrastructure · Node Control** — T900800 — parent: Infrastructure — status: stub
 
 Per-chapter local tables of contents (sub-pages within each chapter)
 otherwise arrive with the chapter tickets above, which define those

@@ -348,7 +348,8 @@ tasks:
             pod-security.kubernetes.io/enforce=privileged \
             pod-security.kubernetes.io/warn=privileged --overwrite
         fi
-        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
+        source scripts/lib/secrets-env.sh   # T900789: mentolder -> fleet-mentolder
+        SECRETS_FILE="environments/.secrets/$(secrets_env_for "{{.ENV}}").yaml"
         if [[ "{{.ENV}}" == "dev" ]]; then
           TOKEN=$(gh auth token)
         elif [[ -f "$SECRETS_FILE" ]]; then
@@ -799,7 +800,8 @@ tasks:
           _website_ns="${WEBSITE_NAMESPACE:-website}"
 
           # Apply SealedSecret first so the Secret is ready when pods start
-          sealed="environments/sealed-secrets/{{.ENV}}.yaml"
+          source scripts/lib/secrets-env.sh   # T900789: mentolder -> fleet-mentolder
+          sealed="environments/sealed-secrets/$(secrets_env_for "{{.ENV}}").yaml"
           if [ -f "$sealed" ]; then
             # Pre-create ALL namespaces referenced by SealedSecrets so apply doesn't fail.
             # Includes coturn + workspace-office so their SealedSecrets land cleanly.

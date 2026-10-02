@@ -6,6 +6,9 @@
 
 import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseResult } from './plan.mjs';
 
 // Primaer-Agenten: opencode run ersetzt Subagenten still durch den Default-Agenten.
@@ -21,7 +24,24 @@ export function killAllWorkers() {
   }
 }
 
-// Startet `<bin> run --agent <agent> --dir <worktree> <prompt>` und liefert
+// Modell eines Agenten aus .opencode/agent-models.jsonc im Repo des Runners, sonst null.
+// opencode v2 nutzt bei `run --agent` das Default-Modell, deshalb geben wir es explizit mit (T900729).
+const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+const models = new Map();
+export function agentModel(agent) {
+  if (!models.has(agent)) {
+    let model = null;
+    try {
+      const raw = readFileSync(join(REPO, '.opencode', 'agent-models.jsonc'), 'utf8');
+      const cfg = JSON.parse(raw.replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''));
+      model = cfg?.agent?.[agent]?.model ?? null;
+    } catch { /* keine Konfiguration: opencode waehlt selbst */ }
+    models.set(agent, model);
+  }
+  return models.get(agent);
+}
+
+// Startet `<bin> run --agent <agent> [--model <modell>] <prompt>` im Worktree und liefert
 // { code, tail, ok, summary, ms }. Beim Timeout: SIGTERM an die Prozessgruppe, ok=false.
 export function runWorker({ agent, prompt, worktree, timeoutMs }) {
   const bin = process.env.PLAN_RUNNER_OPENCODE || 'opencode';
@@ -31,7 +51,8 @@ export function runWorker({ agent, prompt, worktree, timeoutMs }) {
     let timedOut = false;
     let child;
     try {
-      child = spawn(bin, ['run', '--agent', agent, '--dir', worktree, prompt], {
+      const model = agentModel(agent);
+      child = spawn(bin, ['run', '--agent', agent, ...(model ? ['--model', model] : []), prompt], {
         cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], detached: true,
       });
     } catch (e) {

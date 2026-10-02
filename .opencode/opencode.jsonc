@@ -5,8 +5,8 @@
   // 131072 served KV (systemd-User-Unit scripts/llm/glimmer.service, T900365).
   // Der Provider-Key heisst historisch "llamacpp-local".
   //
-  // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
-  // deepseek-*-Agenten (Go-Abo zuerst, dann direkte API).
+  // Fallback bei Ausfall des lokalen Servers: Eskalation an exe-muse
+  // (Muse Spark via OpenCode Go; T900751: DeepSeek-Schiene entfernt).
   "model": "llamacpp-local/Muse-Glimmer-30B",
   // ── Compaction (Requirement: Compaction Scales With the Model Window) ──────
   // opencode 1.18 liest die V2-Keys und bildet sie fuer die V1-Promptschleife

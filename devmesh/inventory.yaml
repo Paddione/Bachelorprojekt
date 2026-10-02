@@ -56,6 +56,7 @@ peers:
     role: server
     tag: "tag:devmesh"
     lan_ip: 10.10.10.4
+    # mac: FC:34:97:A5:DA:60 (recorded 2026-09-16, for Wake-on-LAN)
     tailnet_name: gpu-cluster-3
     k3s_role: agent
     labels:

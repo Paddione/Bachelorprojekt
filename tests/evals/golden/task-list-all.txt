@@ -167,7 +167,6 @@ task: Available tasks for this project:
 * gh:branch-protection:apply:                   Set required checks for main (removes E2E PR). Requires GH_PAT env-var with admin:repo scope.
 * gh:branch-protection:emergency-add-e2e:       Emergency: add E2E PR back to required checks (re-enables the Henne-Ei block)
 * gh:branch-protection:status:                  Show current required status checks for main branch
-* gitlab-runner:render:                         Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Escaped Laufzeit-Variablen automatisch.
 * graph:blast-radius:                           Generiere Blast-Radius-Report nach docs/generated/blast-radius.md (LAD)
 * graph:build:                                  Generiere K8s-Abhängigkeitsgraph + API-Surface-Map nach docs/generated/
 * graph:build-docs:                             Generiere Mermaid-Architecture-Markdown nach docs/diagrams/architecture.md (LAD-3)

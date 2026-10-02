@@ -31,8 +31,12 @@ else
   ENV_DIR="${DEFAULT_ENV_DIR}"
 fi
 
-SECRETS_FILE="${ENV_DIR}/.secrets/${ENV_NAME}.yaml"
-SEALED_OUTPUT="${ENV_DIR}/sealed-secrets/${ENV_NAME}.yaml"
+# T900789: secrets_env redirects e.g. mentolder -> fleet-mentolder.
+# shellcheck source=scripts/lib/secrets-env.sh
+source "${SCRIPT_DIR}/lib/secrets-env.sh"
+SECRETS_ENV=$(secrets_env_for "$ENV_NAME" "$ENV_DIR")
+SECRETS_FILE="${ENV_DIR}/.secrets/${SECRETS_ENV}.yaml"
+SEALED_OUTPUT="${ENV_DIR}/sealed-secrets/${SECRETS_ENV}.yaml"
 
 [[ ! -f "$SECRETS_FILE" ]] && { echo "❌ Secrets file missing: ${SECRETS_FILE}"; exit 1; }
 

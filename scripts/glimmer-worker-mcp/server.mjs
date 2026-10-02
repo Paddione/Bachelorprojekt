@@ -47,7 +47,7 @@ function runOpencode(job) {
     // Eigene Prozessgruppe (detached): beim Timeout wird die GANZE Gruppe beendet,
     // also auch Shell-Tools, die opencode gestartet hat — sonst liefen sie nach
     // dem 'timeout' weiter und veraenderten das Repo neben dem naechsten Job.
-    const child = spawn(OPENCODE, ['run', '--agent', AGENT, '--dir', job.cwd, job.task], {
+    const child = spawn(OPENCODE, ['run', '--agent', AGENT, job.task], {
       cwd: job.cwd,
       env: { ...process.env, NO_COLOR: '1' },
       stdio: ['ignore', 'pipe', 'pipe'],

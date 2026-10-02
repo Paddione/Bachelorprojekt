@@ -78,3 +78,39 @@ Format: `TT.MM.JJ [Ticket] Eintrag — Beleg: <Befehl/Test>`.
 - 27.09.26 [T900560] C8-Konsolidierung: nur `docs/audits/` → `archive/` war
   frei; `legacy-html/` ist test-gepinnt (autodocs-guard f),
   `drift-reports/` + `generated/` haben lebende Schreiber. — Beleg: C8
+
+- 27.09.26 [T900561] Vor Archiv-Branch immer `git fetch` + `git ls-tree -r origin/main`
+  auf Change-Pfad prüfen — Archiv (#6033) war bereits gemergt, eigener Worktree
+  überflüssig. — Beleg: T900561-Abschluss
+- 27.09.26 [T900561] `git worktree remove` an worktree-create-Worktrees scheitert
+  (lock reason „managed agent worktree") — erst `unlock`, dann `remove`
+  (repo-hygiene §1), danach Branch `-D`. — Beleg: T900561-Cleanup
+- 27.09.26 [T900601] E2E-Onset-Pinning via `gh run list --json
+  databaseId,conclusion,createdAt -q 'sort_by(.createdAt)…'` — letzter grüner Lauf
+  25.09. 23:01 UTC, erster roter 26.09. 03:20 UTC. — Beleg: T900601-Messung
+- 27.09.26 [T900601] `ticket.sh triage --suggest` braucht im non-interactive mode
+  mind. ein Feld; `component` ist Freitext ohne Enum-Validierung. — Beleg: T900601-Triage
+
+- 27.09.26 [T900601] `ticket.sh get` blendet Triage-Felder aus (kein
+  component/attention_mode/areas) — Verifikation via `list --attention-mode …`.
+  Severity-Aenderung nur via `triage --severity … --apply`, nicht update-fields.
+  — Beleg: T900601-Dispatch
+- 27.09.26 [T900601] GH-Step-Conclusions decisiv via API: `gh api
+  …/actions/runs/<id>/jobs -q '.jobs[].steps[]'` — Log-Grep fand Skip nicht.
+  Beleg: Install-Playwright=skipped. — Beleg: T900601-Diagnose
+- 27.09.26 [T900601] Playwright-Cache-Falle: Browser-Cache-Hit + `if:
+  cache-hit` ueberspringt `--with-deps` auf ephemeren Runnern → webkit stirbt
+  an fehlender System-Lib (libwoff2dec). Fix: install-deps immer fahren.
+  — Beleg: Run 36315202214, e2e.yml:120
+
+- 27.09.26 [T900601] Playwright-`force`-Click auf `hidden`-Element scheitert trotzdem
+  („no box") — Panel-Mode immer UNMITTELBAR vor dem Klick etablieren, nie vor
+  Wartebloecken. — Beleg: Run 36319267720, Fix #6039
+- 27.09.26 [T900601] Brett-Neuraeume werden async per WS mit Brand-Template geseedet
+  (ws-connection.ts join) — E2E muss Seed abwarten (`length > 0` + Settle), sonst
+  0→5-Flake. — Beleg: Run 36319267720, Fix #6039
+- 27.09.26 [T900601] `gh run watch <id> --exit-status` wartet fremde Laeufe zuverlaessig
+  ab; Proof-Run nach Merge ist der einzige tragende Gruen-Beleg fuer E2E-Fixes.
+  — Beleg: Run 36320215585 success
+- 27.09.26 [T900601] `${VAR:0:9}` ist bash-only — unter /bin/sh (dash) `Bad
+  substitution`; in Task-Shells `git rev-parse --short` verwenden. — Beleg: #6039-Commit

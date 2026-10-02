@@ -11,7 +11,7 @@
 # Belegt (2026-08-18): scripts/lib/ticket-grill.sh nutzte /^#{2,3}[ \t]+/ fuer
 # Markdown-Ueberschriften. Unter mawk lieferte der Parser
 # {"answers":{},"questions":[]} — der zugehoerige Test war die letzte rote
-# Zusicherung im GitLab-Job bats-unit.
+# Zusicherung im damaligen GitLab-Job bats-unit (entfernt mit T900650).
 #
 #   docker run --rm node:22 bash -c 'printf "## X\n" | awk "/^#{2,3}[ \t]+/{print \"MATCH\"}"'
 #   # -> keine Ausgabe (mawk 1.3.4)

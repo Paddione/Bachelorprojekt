@@ -36,12 +36,6 @@ export function relTime(iso: string | null): string {
   return `vor ${Math.round(h / 24)} Tg.`;
 }
 
-/** Minutes elapsed since an ISO timestamp (0 if null). */
-export function minutesSince(iso: string | null): number {
-  if (!iso) return 0;
-  return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-}
-
 /** Emoji indicator for CI status. */
 export function ciIcon(s: 'success' | 'pending' | 'failure' | null): string {
   return s === 'success' ? '🟢' : s === 'failure' ? '🔴' : s === 'pending' ? '🟡' : '';

@@ -42,24 +42,25 @@
         }
       }
     },
-    // Qwen3.5-4B-MTP auf der RTX 3060 Ti: 3 Slots mit geteiltem 98304-Token-KV-Pool
-    // (-np 3 -kvu, Q4 fuer Target und MTP-Draft), gemessen 2026-09-26: 162 t/s gesamt
-    // bei 3 Stroemen gegen 101 t/s mit einem Slot, 6.933 MiB (T900504 p4,
-    // scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md). Text-only: kein mmproj.
+    // Qwen3.5-9B Q4_K_M auf der RTX 3060 Ti (seit 2026-10-02, ersetzt Qwen3.5-4B-MTP):
+    // 1 Slot, 32768 Kontext, Q4_0 KV (288 MiB KV @32k), 64 t/s gen / 2200 t/s pp,
+    // 6.975 MiB VRAM. Thinking per --chat-template-kwargs '{"enable_thinking": false}'
+    // abgeschaltet, sonst liefert /v1/chat/completions leeres content (alles in
+    // reasoning_content). Vorheriger 4B-MTP-Stand: scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md.
     "llamacpp-qwen35": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1920 (Qwen3.5-4B MTP Q4_K_XL, RTX 3060 Ti, 3 Slots, 96k geteilter KV)",
+      "name": "llama.cpp :1920 (Qwen3.5-9B Q4_K_M, RTX 3060 Ti, 1 Slot, 32k KV, Q4_0 KV)",
       "options": {
         "baseURL": "http://127.0.0.1:1920/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        "Qwen3.5-4B-MTP": {
-          "name": "Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 Slots, 96k geteilter KV, Q4_K_XL, Q4 KV)",
+        "Qwen3.5-9B": {
+          "name": "Qwen3.5-9B (llama.cpp :1920, RTX 3060 Ti, 1 Slot, 32k KV, Q4_K_M, Q4_0 KV, kein Thinking)",
           "limit": {
-            "context": 98304,
-            "input": 98304,
+            "context": 32768,
+            "input": 32768,
             "output": 8192
           }
         }
@@ -220,9 +221,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "qwen35-mtp": {
-      "description": "Fast text-only local subagent: Qwen3.5-4B MTP Q4_K_XL via llama.cpp :1920 on the RTX 3060 Ti, 3 parallel slots sharing a 96k KV pool with Q4 target and draft KV. Up to three requests at a time; no vision projector. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model.",
+      "description": "Text-only local subagent: Qwen3.5-9B Q4_K_M via llama.cpp :1920 on the RTX 3060 Ti, 1 slot, 32k context, Q4_0 KV, non-thinking mode. Serial requests only (one slot); no vision projector. Stronger than the previous 4B on reasoning and instruction following but ~1.5x slower (64 t/s). Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model.",
       "mode": "subagent",
-      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP",
+      "model": "llamacpp-qwen35/Qwen3.5-9B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22D3EE",
       "temperature": 0.3,
@@ -235,9 +236,9 @@
     // primaere Worker mit schlankem Prompt; write ist erlaubt (Partials legen Dateien an),
     // task nicht (kein Weiterdelegieren). Genutzt von scripts/llm/plan-runner/workers.mjs.
     "plan-worker-4b": {
-      "description": "plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one plan partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
+      "description": "plan-runner worker on Qwen3.5-9B (llama.cpp :1920, RTX 3060 Ti, 1 slot, 32k context). Executes one plan partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
       "mode": "primary",
-      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP",
+      "model": "llamacpp-qwen35/Qwen3.5-9B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22D3EE",
       "temperature": 0.3,

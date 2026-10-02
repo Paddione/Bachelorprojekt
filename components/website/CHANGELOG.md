@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.387.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.6...website-v1.387.0) (2026-10-02)
+
+
+### Features
+
+* **agents:** primary agents over OMO engine bp-build bp-run bp-ship [T900858] ([#6175](https://github.com/Paddione/Bachelorprojekt/issues/6175)) ([113fd2e](https://github.com/Paddione/Bachelorprojekt/commit/113fd2ed32cd58730dbe0fd14fb7c0263b0de1a2))
+
 ## [1.386.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.5...website-v1.386.6) (2026-10-02)
 
 

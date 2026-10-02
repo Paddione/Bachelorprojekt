@@ -1,7 +1,7 @@
 // scripts/lib/mcp-http-security.mjs
 //
 // Gemeinsame fail-closed HTTP-Sicherheitsgrenze fuer die nativen MCP-Server
-// (factory-mcp-node, bge-mcp, mcp-postgres-local) und den guarded
+// (bge-mcp, mcp-postgres-local, comfy-image-mcp, glimmer-worker-mcp) und den guarded
 // Kubernetes/PostgreSQL-Proxy. Kein npm-Abhaengigkeiten — nur node:crypto,
 // um DNS-Rebinding (Host/Origin-Validierung) und Browser-CSRF (Origin-Allowlist)
 // fuer lokale HTTP-MCP-Server einheitlich abzusichern. [T900052]

@@ -23,7 +23,7 @@ name: Renovate
 #   reads the base branch SHA when it clones and re-checks it before writing
 #   (optimistic concurrency). On drift it discards the whole repository run with
 #   result=repository-changed — and exits 0. With ~103 commits/day landing on main
-#   (factory-tick every 5-6 min, freshness bot commits, auto-merges) against a 157s
+#   (hygiene-tick every 5-6 min, freshness bot commits, auto-merges) against a 157s
 #   run, that abort is the normal case, not the exception: between 2026-06-17 and
 #   2026-07-27 Renovate opened zero PRs while every run reported success.
 #   `repository-changed` is modelled upstream as transient ("state is stale, throw
@@ -186,7 +186,7 @@ jobs:
               continue
             fi
 
-            # Random sleep 30-90s to let main settle between factory ticks
+            # Random sleep 30-90s to let main settle between hygiene ticks
             if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
               wait=$((30 + RANDOM % 60))
               echo "::notice::Sleeping ${wait}s before attempt $((attempt + 1))..."
@@ -201,10 +201,10 @@ jobs:
           # time, not bunched, so waiting does not improve the odds — it only
           # burns job time. The next attempt instead benefits from the warm cache
           # and is therefore shorter, which is what actually narrows the window.
-          # → T002475: Factory ticks every 5-6 min (103 commits/day). With 7
+          # → T002475: Hygiene tick runs every 5-6 min (103 commits/day). With 7
           #   attempts at 30-90s random backoff, the run spans ~6-12 min — enough
           #   to overlap a quiet window between ticks. The randomisation prevents
-          #   the retries from landing on the same phase of the factory cycle.
+          #   the retries from landing on the same phase of the tick cycle.
           if [ "$success" -ne 1 ]; then
             wait=$((30 + RANDOM % 60))
             echo "::warning::Renovate aborted with repository-changed on all ${MAX_ATTEMPTS} attempts — no repository was processed."

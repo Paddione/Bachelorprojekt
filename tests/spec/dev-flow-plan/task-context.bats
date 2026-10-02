@@ -91,7 +91,7 @@ teardown() {
   lint_budget="$(jq -r '.impact_files[] | select(.path == "scripts/plan-lint.sh") | .s1_budget' "$OUT")"
   [[ "$lint_budget" =~ ^-?[0-9]+$ ]] || { echo "gemessene Datei hat nicht-numerischen budget: $lint_budget"; false; }
   local pipeline_budget
-  pipeline_budget="$(jq -r '.impact_files[] | select(.path == "scripts/factory/pipeline.mjs") | .s1_budget' "$OUT")"
+  pipeline_budget="$(jq -r '.impact_files[] | select(.path == "scripts/orchestrator/pipeline.mjs") | .s1_budget' "$OUT")"
   [ "$pipeline_budget" == "null" ] || { echo "s1.ignore Datei hat budget: $pipeline_budget (sollte null sein)"; false; }
 }
 

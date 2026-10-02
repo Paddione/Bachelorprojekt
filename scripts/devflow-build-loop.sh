@@ -11,11 +11,11 @@ PREV_HASH=""
 RESULT_FILE=$(mktemp)
 
 # shellcheck disable=SC1091
-source scripts/factory/build-loop.sh
+source scripts/devflow/build-loop.sh
 # shellcheck disable=SC1091
-source scripts/factory/classify-failure.sh
+source scripts/devflow/classify-failure.sh
 # shellcheck disable=SC1091
-source scripts/factory/classify-paths.sh
+source scripts/devflow/classify-paths.sh
 
 while [[ $ITER -lt $MAX_LOOP ]]; do
   task test:changed > "$RESULT_FILE" 2>&1 || true

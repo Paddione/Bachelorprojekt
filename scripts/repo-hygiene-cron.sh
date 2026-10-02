@@ -46,7 +46,7 @@ bash "$HERE/agent-lock.sh" reap >&2 2>/dev/null || true
 # (beobachtet: 5 von 7 Worktrees mutierten während der Messung). Die Worktree-Messung
 # auf veraltetem Stand ist wertlos — die Sektion wird dann übersprungen und als
 # "skipped" ausgewiesen, statt falsche Zahlen zu liefern. Dasselbe Lock-Test-Muster
-# wie scripts/factory/mcp-go/main.go (factory_status) [T014936].
+# wie scripts/repo-hygiene-precheck.sh (tick_state) [T014936].
 # [T012414] Der Pfad ist überschreibbar, damit ein Test nicht auf den echten,
 # geteilten Lock angewiesen ist. Auf einem self-hosted Runner gehört
 # /tmp/repo-hygiene-tick.lock einem anderen User; der Test scheiterte dort schon beim
@@ -91,7 +91,7 @@ mapfile -t wt_paths < <(git -C "$REPO_DIR" worktree list --porcelain 2>/dev/null
 wt_count=0
 wt_gone=0           # worktrees on a branch whose upstream is [gone]
 wt_no_upstream=0    # worktrees whose branch has no upstream configured
-wt_skipped=0        # worktrees not measured because a factory tick is running
+wt_skipped=0        # worktrees not measured because a hygiene tick is running
 
 for wt in "${wt_paths[@]}"; do
   [ -z "$wt" ] && continue
@@ -199,7 +199,7 @@ if [ "$stale_total" -gt "$STALE_THRESHOLD" ]; then
 | Worktrees (total) | $wt_count |
 | Worktrees on [gone] branches | $wt_gone |
 | Worktrees without upstream | $wt_no_upstream |
-| Worktrees skipped (factory tick) | $wt_skipped |
+| Worktrees skipped (hygiene tick) | $wt_skipped |
 | [gone] local branches | $gone_count |
 | Remote branches (non-main) | $remote_branch_count |
 | Open PRs | $pr_count |

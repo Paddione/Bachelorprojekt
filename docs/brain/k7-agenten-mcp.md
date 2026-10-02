@@ -86,7 +86,7 @@ EBENE 3 — LAUFENDE PROZESSE (gemessen 2026-08-02)
 │  mcp-cors-proxy.service ══► :18082 ──UPSTREAM──► :18080                      │
 │           (nur für den Browser: setzt CORS-Header, die :18080 nicht liefert) │
 │                                                                              │
-│  factory-mcp.service ══► :13003   (GET /health → 200)                        │
+│  ✗ :13003 KEIN LISTENER MEHR (T900399: HTTP-MCP-Server entfernt)             │
 │  bge-mcp.service     ══► :13005   (POST /mcp → 401, Bearer erforderlich)     │
 │                                                                              │
 │  llama-gemma26-factory.service ══► :8091                                     │
@@ -99,19 +99,18 @@ EBENE 3 — LAUFENDE PROZESSE (gemessen 2026-08-02)
 │  :8093 / :8094 (bonsai Test/Vision)  ✗ kein Listener                         │
 └──────────────────────────────────────────────────────────────────────────────┘
         │
-        │  Browser lädt ui-config.json → 8 MCP-Server-Einträge
+        │  Browser lädt ui-config.json → 7 MCP-Server-Einträge
         ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  llama.cpp WebUI (Browser, client-seitige MCP-Aufrufe)                       │
 │    k8s               → http://localhost:18082/mcp        (CORS-Proxy)        │
 │    mcp-postgres      → http://localhost:13001/mcp                            │
-│    factory-mcp       → http://localhost:13003/mcp                            │
 │    bge-mcp           → http://localhost:13005/mcp   (Bearer-Header)          │
 │    mcp-task-runner   → http://127.0.0.1:18235/mcp/mcp-task-runner            │
 │    ticket-mcp        → http://127.0.0.1:18235/mcp/ticket-mcp                 │
 │    codebase-memory   → http://127.0.0.1:18235/mcp/codebase-memory-mcp        │
 │    github-mcp        → http://127.0.0.1:18235/mcp/github-mcp                 │
-│  Alle 8 stammen aus der Registry — die vier Ad-hoc-Einträge von 2026-07-28   │
+│  Alle 7 stammen aus der Registry — die vier Ad-hoc-Einträge von 2026-07-28   │
 │  (Github, hf, Context7, Exa) existieren NICHT mehr.                          │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -122,7 +121,6 @@ EBENE 3 — LAUFENDE PROZESSE (gemessen 2026-08-02)
 |---|---|---|---|---|
 | `mcp-kubernetes` | http | `:18080/mcp`, Browser `:18082/mcp` | **ja** (`/sse` → 200) | `mcp-gateway.service` (kubectl port-forward) |
 | `mcp-postgres` | http | `:13001/mcp` | **ja** (`/health` → 200) | dieselbe port-forward-PID |
-| `factory-mcp` | http | `:13003/mcp` | **ja** (`/health` → 200) | `factory-mcp.service` |
 | `bge-mcp` | http | `:13005/mcp` + Bearer | **ja** (401 ohne Token) | `bge-mcp.service` |
 | `ticket-mcp` | stdio | Bridge `:18235/mcp/ticket-mcp` | **ja**, 26 Tools | Kind des llm-proxy |
 | `codebase-memory-mcp` | stdio | Bridge `:18235/mcp/codebase-memory-mcp` | **ja**, 14 Tools | Kind des llm-proxy |

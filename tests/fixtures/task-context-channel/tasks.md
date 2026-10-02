@@ -25,7 +25,7 @@ _Ticket: T002420_
 | `scripts/plan-intel.sh` | 0 (neu) | n/a (neue Datei, Limit 800) |
 | `scripts/task-context.sh` | 0 (neu) | n/a (neue Datei, Limit 800) |
 | `scripts/plan-lint.sh` | n/a (laufend gemessen, s. u.) | n/a (laufend gemessen, s. u.) |
-| `scripts/factory/pipeline.mjs` | 663 | n/a (auf `s1.ignore`) |
+| `scripts/orchestrator/pipeline.mjs` | 663 | n/a (auf `s1.ignore`) |
 | `.claude/skills/dev-flow-execute/SKILL.md` | 250 | n/a (S1-ungated) |
 | `.claude/skills/references/dev-flow-plan-phases.md` | 327 | n/a (S1-ungated) |
 | `tests/spec/dev-flow-plan/task-context.bats` | 0 (neu) | n/a (S1-ungated) |
@@ -54,7 +54,7 @@ Jede netto hinzugefügte Zeile reißt es. P3 **verkleinert** die Datei deshalb: 
 |----|------|------|--------------|------------|----------|------------|
 | p1 | tasks.d/p1-generator.md | impl | scripts/plan-intel.sh | | 27b-local | 32000 |
 | p2 | tasks.d/p2-assembler.md | impl | scripts/task-context.sh | p1 | 27b-local | 32000 |
-| p3 | tasks.d/p3-gate-wiring.md | impl | scripts/plan-lint.sh, scripts/factory/pipeline.mjs, .claude/skills/dev-flow-execute/SKILL.md, .claude/skills/references/dev-flow-plan-phases.md | p1, p2 | 27b-local | 80000 |
+| p3 | tasks.d/p3-gate-wiring.md | impl | scripts/plan-lint.sh, scripts/orchestrator/pipeline.mjs, .claude/skills/dev-flow-execute/SKILL.md, .claude/skills/references/dev-flow-plan-phases.md | p1, p2 | 27b-local | 80000 |
 | p4 | tasks.d/p4-tests.md | tests | tests/spec/dev-flow-plan/task-context.bats | p1, p2, p3 | 4b-local | 32000 |
 
 ## Task: Rot-Grün-Anker

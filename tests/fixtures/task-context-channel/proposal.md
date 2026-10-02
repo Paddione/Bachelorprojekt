@@ -6,8 +6,8 @@ Implementer-Agenten werden über die beiden Ausführungspfade ungleich versorgt,
 der Hochdurchsatz-Pfad ist der schlechtere.
 
 `dev-flow-execute` injiziert das Plan Intel Bundle als Pflicht-Kontext (`SKILL.md:69–72`) plus Plan,
-Attachments und Ticket-ID. Die Factory dagegen kennt genau eine Quelle — `task-source.cjs`:
-*"tasks.md is the only accepted source"*. Der Factory-Worker bekommt den Plan und sonst
+Attachments und Ticket-ID. Der Orchestrator-Pfad dagegen kennt genau eine Quelle — `task-source.cjs`:
+*"tasks.md is the only accepted source"*. Der Worker bekommt den Plan und sonst
 nichts; er läuft unbeaufsichtigt und kann nicht nachfragen, was ihm fehlt.
 
 Zusätzlich existiert das Bundle nur in 12 von 127 Changes (9 %). Ursache ist keine Nachlässigkeit,
@@ -24,7 +24,7 @@ Ein gemeinsamer Kontext-Assembler für beide Pfade, hybrid aufgebaut:
 
 - **Statischer Kern** — `intel.json`, zur Plan-Zeit von einem Generator deterministisch befüllt,
   committet und im PR reviewbar. Erhält die Reproduzierbarkeit, auf die Retry und Eval-Replay
-  (`scripts/factory/eval-replay.mjs`) angewiesen sind.
+  angewiesen sind.
 - **Frische Ergänzung** — zur Dispatch-Zeit, fail-soft: parallele agent-locks, main-Drift seit
   Plan-Erstellung, semantisch ähnliche Changes über den bereits gebauten, aber nirgends
   aufgerufenen Pfad `plan-context.sh:152–163`.

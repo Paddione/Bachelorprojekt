@@ -20,14 +20,14 @@
 #                          emittieren — siehe detect.sh)
 #   TICKET_SH            - Kommando für Ticket-Erstellung (Default: scripts/ticket.sh)
 #   SYNTHESIZE           - Pfad zu synthesize.mjs (Default: neben diesem Skript)
-#   SHARED_STATE         - Risiko-Pfadliste (Default: scripts/factory/shared-state-paths.txt)
+#   SHARED_STATE         - Risiko-Pfadliste (Default: scripts/arbitration/shared-state-paths.txt)
 #   CONFIDENCE_THRESHOLD - Eskalationsschwelle (Default: 0.8)
 set -uo pipefail
 
 GH_AXI="${GH_AXI:-gh}"
 TICKET_SH="${TICKET_SH:-scripts/ticket.sh}"
 SYNTHESIZE="${SYNTHESIZE:-$(dirname "$0")/synthesize.mjs}"
-SHARED_STATE="${SHARED_STATE:-scripts/factory/shared-state-paths.txt}"
+SHARED_STATE="${SHARED_STATE:-scripts/arbitration/shared-state-paths.txt}"
 CONFIDENCE_THRESHOLD="${CONFIDENCE_THRESHOLD:-0.8}"
 
 syntax_check() {

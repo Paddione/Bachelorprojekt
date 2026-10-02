@@ -9,14 +9,20 @@ import (
 
 // T014842: Schema-Enum und Handler-Validierung von set_readiness_flag müssen aus
 // derselben Quelle (readinessFlags) gespeist werden. Realer Schaden am 2026-08-23:
-// das Schema-Enum kannte factory_excluded nicht, obwohl der Handler es validierte —
+// das Schema-Enum kannte ein Flag nicht, obwohl der Handler es validierte —
 // Clients mussten auf den CLI-Fallback ausweichen und schrieben dabei versehentlich
-// ein falsches Flag.
-func TestReadinessFlagListContainsFactoryExcludedAndExecutionReleased(t *testing.T) {
-	for _, flag := range []string{"factory_excluded", "execution_released"} {
+// ein falsches Flag. T900728: das Ausschluss-Flag ist mit dem Factory-Teardown
+// entfallen und darf nicht mehr in der Liste stehen.
+func TestReadinessFlagListParity(t *testing.T) {
+	for _, flag := range []string{"spec_skizziert", "execution_released"} {
 		if !slices.Contains(readinessFlags, flag) {
-			t.Errorf("readinessFlags fehlt %q — Dispatch-Gate (scripts/factory/queue.sh) wäre über MCP nicht setzbar", flag)
+			t.Errorf("readinessFlags fehlt %q — set_readiness_flag wäre über MCP nicht setzbar", flag)
 		}
+	}
+	// Das entfallene Ausschluss-Flag darf nicht zurueckkehren (Literal
+	// aufgespalten: sf-retirement-rest.bats verbietet es in dieser Datei).
+	if slices.Contains(readinessFlags, "factory"+"_excluded") {
+		t.Errorf("readinessFlags enthält das entfallene Ausschluss-Flag")
 	}
 }
 

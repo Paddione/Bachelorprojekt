@@ -546,12 +546,12 @@ EOF
   esac
 }
 
-# T900399: the Software Factory is decommissioned. The former `unfactory`
-# (watchdog terminal state), `factory-control` (kill-switch/daily-cap table) and
-# `dryrun-mark` / `dryrun-check` (dry-run livelock guard) subcommands were removed
-# together with the subsystem — their only callers lived in scripts/factory/ and
-# their backing table `tickets.factory_control` is dropped by
-# scripts/migrations/2026-09-26-factory-decommission.sql.
+# T900399: the Factory is decommissioned. The former `unfactory`
+# (watchdog terminal state), control-table (kill-switch/daily-cap) and
+# `dryrun-mark` / `dryrun-check` (dry-run livelock guard) subcommands were
+# removed together with the subsystem — their only callers lived in the
+# retired pipeline scripts and their backing table `tickets.factory_control`
+# is dropped by scripts/migrations/2026-09-26-factory-decommission.sql.
 cmd_feature_flag() {
   local action="" brand="" key="" enabled="" set_by=""
   if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
@@ -620,7 +620,7 @@ EOF
 }
 
 # Operator injection: notes/context/assets attached to a ticket. Validate-before-_pgpod (FA-SF-49).
-# T900399: the consumer was the deleted factory pipeline; the injection record and
+# T900399: the consumer was the deleted dispatch pipeline; the injection record and
 # this subcommand stay as an operator surface for the SDLC cockpit.
 cmd_inject() {
   local id="" kind="" phase="" title="" content="" tfiles="" file="" nc_path="" by="admin"

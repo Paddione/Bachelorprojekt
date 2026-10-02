@@ -14,8 +14,9 @@ import (
 
 // readinessFlags ist die gemeinsame Quelle für Schema-Enum und Handler-Validierung
 // von set_readiness_flag [T014842]: Drift zwischen beidem war die Ursache dafür, dass
-// MCP-Clients factory_excluded nicht senden konnten, obwohl der Handler es akzeptierte.
-var readinessFlags = []string{"spec_skizziert", "abhaengigkeiten_klar", "offene_fragen_geklaert", "aufwand_geschaetzt", "lastenheft_locked", "factory_excluded", "execution_released"}
+// MCP-Clients ein Flag nicht senden konnten, obwohl der Handler es akzeptierte.
+// T900728: das Ausschluss-Flag ist mit dem Factory-Teardown entfallen.
+var readinessFlags = []string{"spec_skizziert", "abhaengigkeiten_klar", "offene_fragen_geklaert", "aufwand_geschaetzt", "lastenheft_locked", "execution_released"}
 
 func RegisterPlanningTools(s *server.MCPServer) {
 	s.AddTool(

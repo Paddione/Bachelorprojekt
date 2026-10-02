@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-91 Services · 1848 Abhängigkeitskanten · 297 API-Endpoints
+93 Services · 1933 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -89,6 +89,8 @@ flowchart LR
   whisper["whisper"]:::default
   ddns_updater["ddns-updater"]:::default
   dev_db_refresh["dev-db-refresh"]:::default
+  brain["brain"]:::default
+  oauth2_proxy_brain["oauth2-proxy-brain"]:::default
   traefik["traefik"]:::ingress
   llm_gateway_embed["llm-gateway-embed"]:::default
   llm_gateway_rerank["llm-gateway-rerank"]:::default
@@ -209,6 +211,7 @@ flowchart LR
   traefik -->|"ingress"| WEBSITE_PRIMARY_SERVICE
   traefik -->|"ingress"| old_webspace
   traefik -->|"ingress"| bachelorprojekt
+  traefik -->|"ingress"| oauth2_proxy_brain
   traefik -->|"ingress"| langfuse_dev_proxy
   traefik -->|"ingress"| sessions_server
   coturn -->|"selector"| coturn
@@ -245,6 +248,8 @@ flowchart LR
   whiteboard -->|"selector"| whiteboard
   talk_transcriber -->|"selector"| talk_transcriber
   whisper -->|"selector"| whisper
+  brain -->|"selector"| brain
+  oauth2_proxy_brain -->|"selector"| oauth2_proxy_brain
   admin_actions_cleanup -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| sessions_purge
@@ -324,6 +329,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_prune -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| db_backup
@@ -401,6 +408,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| admin_actions_prune
+  admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| admin_actions_prune
   sessions_purge -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| db_restore_verify
@@ -477,6 +486,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| sessions_purge
   db_backup -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| brett
@@ -548,6 +559,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| db_backup
+  db_backup -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| db_backup
   db_restore_verify -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| billing_dunning_detection
@@ -619,6 +632,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| db_restore_verify
   brett -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| monthly_billing
@@ -683,6 +698,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| brett
   billing_dunning_detection -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| scheduled_publish
@@ -751,6 +768,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| billing_dunning_detection
   monthly_billing -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
@@ -817,6 +836,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| monthly_billing
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_dev
@@ -881,6 +902,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| scheduled_publish
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_session_hub
@@ -943,6 +966,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| error_log_retention
@@ -1003,6 +1028,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_dev
+  oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| knowledge_ingest_prs
@@ -1061,6 +1088,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   error_log_retention -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| knowledge_ingest_bugs
@@ -1117,6 +1146,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| error_log_retention
+  error_log_retention -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| error_log_retention
   knowledge_ingest_prs -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| knowledge_reindex_all
@@ -1170,6 +1201,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| nextcloud
@@ -1221,6 +1254,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_reindex_all -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| notify_unread
@@ -1270,6 +1305,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| knowledge_reindex_all
+  knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_reindex_all
   nextcloud -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_brett
@@ -1313,6 +1350,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| nextcloud
+  nextcloud -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| nextcloud
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_comfy
@@ -1359,6 +1398,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| notify_unread
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_downloads
@@ -1403,6 +1444,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1445,6 +1488,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
@@ -1485,6 +1530,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_downloads
+  oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
@@ -1523,6 +1570,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_studio
@@ -1559,6 +1608,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| oauth2_proxy_terminal
@@ -1593,6 +1644,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
+  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_traefik
@@ -1625,6 +1678,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_terminal -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| oauth2_proxy_videovault
@@ -1655,6 +1710,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_terminal
+  oauth2_proxy_terminal -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| pocket_id
@@ -1683,6 +1740,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_videovault -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_recovery
@@ -1709,6 +1768,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_videovault
   pocket_id -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| sdlc_console
@@ -1732,6 +1793,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| pocket_id
+  pocket_id -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| pocket_id
   oauth2_proxy_recovery -->|"secret:workspace-s…"| sdlc_console
   sdlc_console -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| shared_db
@@ -1754,6 +1817,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_recovery
   shared_db -->|"secret:workspace-s…"| sdlc_console
   sdlc_console -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| sdlc_console
@@ -1773,6 +1838,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| sdlc_console
   sdlc_console -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| sdlc_console
+  sdlc_console -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| sdlc_console
   shared_db -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| spreed_signaling
@@ -1785,6 +1852,8 @@ flowchart LR
   shared_db -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| dev_db_refresh
+  shared_db -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| shared_db
   studio_server -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| talk_recording
@@ -1801,6 +1870,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| studio_server
   spreed_signaling -->|"secret:workspace-s…"| talk_recording
   spreed_signaling -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| spreed_signaling
@@ -1814,6 +1885,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| spreed_signaling
   talk_recording -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| talk_recording
   talk_recording -->|"secret:workspace-s…"| videovault
@@ -1826,6 +1899,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| talk_recording
   talk_recording -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| talk_recording
   vaultwarden -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| whiteboard
@@ -1836,6 +1911,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| vaultwarden
   videovault -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| talk_transcriber
@@ -1844,18 +1921,28 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| videovault
   whiteboard -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| whiteboard
   talk_transcriber -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| talk_transcriber
   ddns_updater -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| ddns_updater
+  dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| dev_db_refresh
   systemtest_cleanup -->|"secret:website-sec…"| systemtest_purge_all
   systemtest_purge_all -->|"secret:website-sec…"| systemtest_cleanup
   systemtest_cleanup -->|"secret:website-sec…"| systemtest_outbox
@@ -1999,6 +2086,8 @@ flowchart TB
     tests_results_retention(["tests-results-retention"])
     tls_sync(["tls-sync"])
     dev_db_refresh(["dev-db-refresh"])
+    brain["brain"]
+    oauth2_proxy_brain["oauth2-proxy-brain"]
   end
   subgraph kube_system["kube-system"]
     coredns["coredns"]

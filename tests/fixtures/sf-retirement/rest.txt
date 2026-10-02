@@ -5,7 +5,9 @@
 .github/workflows/ci.yml
 .github/workflows/codeql.yml
 .github/workflows/factory-post-merge-e2e.yml
+.github/workflows/post-merge-e2e.yml
 .github/workflows/post-merge.yml
+.github/workflows/quality-loop.yml
 .github/workflows/renovate.yml
 .gitlab-ci.yml
 .lavish/kit/action-policy.js
@@ -49,6 +51,7 @@ docs/runbooks/mcp-http-local-security.md
 docs/runbooks/rejoin-k3s-node.md
 docs/sdlc/cockpit-action-inventory.md
 docs/spec-atlas.md
+docs/superpowers/references/gotchas-footguns.md
 docs/windows-dev-setup.md
 environments/schema.yaml
 environments/sealed-secrets/dev.yaml
@@ -86,6 +89,7 @@ scripts/finetune/collect_teacher_traces.py
 scripts/finetune/export_gguf.py
 scripts/generate-bitwarden-export.py
 scripts/glimmer-worker-mcp/server.mjs
+scripts/hooks/mishap-tracker.sh
 scripts/hooks/precompact-prune.sh
 scripts/install-dev-tools.sh
 scripts/lib/application-pipeline-db.sh
@@ -100,6 +104,7 @@ scripts/llm-proxy/request-log.mjs
 scripts/llm-proxy/request-log.test.mjs
 scripts/llm-proxy/runner.mjs
 scripts/llm-proxy/runner.test.mjs
+scripts/llm-pull-models.sh
 scripts/llm/agent-bench/cases/f1-store-cleanup/source.md
 scripts/llm/agent-bench/cases/f4-worktree-remove-replay/variants/v1/brief.md
 scripts/llm/agent-bench/cases/f4-worktree-remove-replay/variants/v1/checks/run.sh
@@ -204,6 +209,7 @@ tests/fixtures/context-retrieve/golden-queries.json
 tests/fixtures/mishap-dedupe-korpus.json
 tests/fixtures/task-context-channel/intel.json
 tests/fixtures/task-context-channel/proposal.md
+tests/fixtures/task-context-channel/specs/dev-flow-plan.md
 tests/fixtures/task-context-channel/tasks.d/p3-gate-wiring.md
 tests/fixtures/task-context-channel/tasks.md
 tests/lib/ticket-test-fixtures.sh
@@ -230,6 +236,7 @@ tests/spec/ci-cd/factory-shard-optimization.bats
 tests/spec/ci-cd/hybrid-runner-placement.bats
 tests/spec/ci-cd/mishap-t002425.bats
 tests/spec/ci-cd/spec-dir-convention.bats
+tests/spec/ci-cd/taskfiles-dir-convention.bats
 tests/spec/ci-cd/test-inventory-coverage.bats
 tests/spec/database.bats
 tests/spec/dev-flow-plan/task-context.bats
@@ -267,6 +274,7 @@ tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats
 tests/spec/sdlc-cockpit/leitstand-livedaten.bats
 tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats
 tests/spec/sdlc-cockpit/redesign-struktur.bats
+tests/spec/sealed-secret-cluster-drift.bats
 tests/spec/selection-integrity/live-snapshot.txt
 tests/spec/software-factory/decommission-guard.bats
 tests/spec/ticket-mcp.bats
@@ -279,6 +287,7 @@ tests/spec/ticket-system/get-timeline-plan-brand-column-T900243.bats
 tests/spec/ticket-system/list-status-comma-list.bats
 tests/spec/ticket-system/list-test-data-filter.bats
 tests/spec/unsloth-training-env/factory-traces.bats
+tests/unit/cockpit-panel.test.ts
 tests/unit/factory/otel-emit.bats
 tests/unit/qa-dal.bats
 tests/unit/scs-search.bats

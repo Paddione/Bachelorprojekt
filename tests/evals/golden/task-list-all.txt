@@ -134,7 +134,6 @@ task: Available tasks for this project:
 * env:seal:                                     Encrypt secrets into a SealedSecret manifest. NOTE: rotates workspace-secrets only — co-rotate website-secrets (WEBSITE_OIDC_SECRET) separately.
 * env:validate:                                 Validate environment config against schema
 * env:validate:all:                             Validate all environment configs (schema-only, no cluster needed)
-* factory:migrate:                              Run migrations/*.sql against the target DB (idempotent, tracked in public.factory_schema_migrations). ENV=dev|mentolder|korczewski.
 * feature:brett:                                Rebuild + redeploy brett on BOTH prod clusters
 * feature:deploy:                               Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)
 * feature:promote:                              Promote a service dev → prod with Playwright smoke gate (SERVICE=website|brett TARGET=mentolder|korczewski|both; prompts if unset)
@@ -146,7 +145,6 @@ task: Available tasks for this project:
 * finetune:hf-jobs:export:                      GGUF-Export als HF Job. ADAPTER_REPO=<hf-id> GGUF_REPO=<hf-id> [FLAVOR=l4x1]
 * finetune:hf-jobs:train:                       Trainingslauf auf HF Jobs Cloud. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> HUB_MODEL_ID=<hf-id> [FLAVOR=l4x1]
 * finetune:measure:                             Token-Laengenverteilung + VRAM-Machbarkeitsmatrix. CORPUS=<jsonl> MODEL=<label> [TEMPLATE_FILE=<jinja>]
-* finetune:traces:                              Erfolgreiche Factory-Laeufe zu Trainingskorpus rendern. FIXTURE=<json>|ROWS_JSON=<json> [COMMENTS_JSON=<json>] [WITH_CONTEXT=1] OUT=<jsonl>
 * finetune:train:                               Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> [PRECISION=auto|4bit|16bit] [GPU_MODE=single|balanced] [EVAL_CORPUS=<jsonl>]
 * finetune:train-vision:                        Qwen3-VL image/screenshot QLoRA. CORPUS=<jsonl> MODEL=<hf-id-or-snapshot> MAX_SEQ_LENGTH=<n> [EVAL_CORPUS=<jsonl>] [DRY_RUN=1]
 * fleet:deploy:                                 Full Phase 2b deploy: platform → both brands' core → shared office/coturn → both brands' talk-setup. Brings up the COMPLETE stack for both brands on the fleet cluster.
@@ -222,7 +220,7 @@ task: Available tasks for this project:
 * mcp:autostart:register:                       T900040: start-windows.ps1 als Autostart-Task registrieren (onlogon) — Windows-Pendant zu 'systemctl --user enable' von mcp-gateway/devmesh-forward
 * mcp:autostart:remove:                         T900040: den Autostart-Task aus mcp:autostart:register wieder entfernen
 * mcp:check:                                    Verify that the three target configs match the SSOT registry (exit != 0 on drift; never writes)
-* mcp:doctor:                                   MCP-Auth-Gesundheitscheck fuer alle Harnesses: Units, Bearer-Probes (:13001/:13003/:13005), opencode-Plugins, aufgeloeste Harness-Configs, ticket-stdio (nie Token-Werte)
+* mcp:doctor:                                   MCP-Auth-Gesundheitscheck fuer alle Harnesses: Units, Bearer-Probes (:13001/:13005), opencode-Plugins, aufgeloeste Harness-Configs, ticket-stdio (nie Token-Werte)
 * mcp:start-windows:                            T900039/T900191: Windows-Pendant zu mcp-gateway.service + devmesh-forward.service — Port-Forwards fleet (18080, 13002) und devmesh (18235, 13001, 13005); schliesst den WSL-Mechanismus aus
 * mcp:sync:                                     Regenerate .mcp.json, .opencode/opencode.jsonc, and ~/.gemini/config/mcp_config.json from the SSOT registry (docs/agent-guide/registry/mcp.yaml)
 * mishap:categorize:                            Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback
@@ -257,7 +255,7 @@ task: Available tasks for this project:
 * quality:baseline:refresh:                     Remove FIXED entries and lower improved metrics in docs/code-quality/baseline.json
 * quality:check:                                Run all code-quality gates (S1-S4) with the baseline ratchet (fails only on new/worsened)
 * quality:index:                                Validate the code-quality registry and regenerate docs/code-quality/repo-index.json
-* quality:loop:                                 Enqueue ≤MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview.
+* quality:loop:                                 Enqueue ≤MAX_NEW new CQ-GATE tickets (throttled + deduped). DRY_RUN=1 to preview.
 * quality:pod-phase-filter:                     Prüft, dass jede shared-db-Pod-Selektion auf status.phase=Running filtert (T002439). Wurzeln nach --, z.B. task quality:pod-phase-filter -- scripts
 * quality:tighten:                              Lower baseline.json entries where current metric improved; commit if --commit passed (COMMIT=1)
 * recovery:browse:                              Bring up the on-demand recovery filebrowser (SSO). ENV=<env>
@@ -332,6 +330,7 @@ task: Available tasks for this project:
 * test:changed:                                 Run only tests relevant to changed files (smart selection: vitest --changed + domain BATS + quality)
 * test:ci:                                      CI-friendly test suite (non-zero exit on failure)
 * test:code-quality:                            Run the code-quality gate + registry unit tests (node:test)
+* test:decommission:                            Run the offline-safe decommission regression bats (tests/spec/decommission/). Live-DB cases skip without a reachable cluster, so this is CI-safe.
 * test:dry-run:                                 Dry-run key tasks to catch Taskfile syntax errors
 * test:e2e:                                     Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)
 * test:e2e:agent-guide:film:                    Filmable Agent-Anleitung walkthrough — headed, slowMo, video recorded (no auth required)
@@ -345,7 +344,6 @@ task: Available tasks for this project:
 * test:e2e:website:                             Run Playwright website project against WEBSITE_URL (default localhost:4321)
 * test:evals:                                   Run agent evals (tests/evals/, offline). See tests/evals/README.md.
 * test:evals:update:                            Regenerate tests/evals/golden/task-list-all.txt (state the reason in the PR).
-* test:factory:                                 Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe.
 * test:inventory:                               Regenerate components/website/src/data/test-inventory.json (requirement → test mapping)
 * test:llm-proxy:                               Run the llm-proxy routing + readiness unit tests (node:test + vitest)
 * test:manifests:                               Validate kustomize output structure (no cluster needed)

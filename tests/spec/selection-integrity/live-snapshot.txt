@@ -32,6 +32,7 @@ tests/spec/agent-lock-fetch-guard.bats
 tests/spec/agent-lock-force-claim.bats
 tests/spec/agent-lock-liveness-heartbeat.bats
 tests/spec/agent-lock-lsp-reap-T900306.bats
+tests/spec/agent-lock-reclaim/pid-dead-worktree-match-T002849.bats
 tests/spec/agent-lock-session-identity.bats
 tests/spec/agent-roster.bats
 tests/spec/agent-skills.bats
@@ -137,7 +138,6 @@ tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats
 tests/spec/ci-cd/devflow-ciwatch-ticket-path.bats
 tests/spec/ci-cd/devflow-execute-hardening-t002365.bats
 tests/spec/ci-cd/e2e-project-selection.bats
-tests/spec/ci-cd/factory-shard-optimization.bats
 tests/spec/ci-cd/fetch-refspec-forced.bats
 tests/spec/ci-cd/fix-ticket-commit-guard.bats
 tests/spec/ci-cd/freshness-check-base-mismatch.bats
@@ -163,6 +163,7 @@ tests/spec/ci-cd/self-hosted-fork-guard.bats
 tests/spec/ci-cd/self-hosted-no-root-install.bats
 tests/spec/ci-cd/skip-ci-marker-guard.bats
 tests/spec/ci-cd/spec-dir-convention.bats
+tests/spec/ci-cd/spec-shard-optimization.bats
 tests/spec/ci-cd/spec-shard-partition.bats
 tests/spec/ci-cd/spec-test-no-tracked-file-mutation.bats
 tests/spec/ci-cd/spec-tracked-file-guard-isolation.bats
@@ -190,6 +191,7 @@ tests/spec/db-guard/db-identity-guard.bats
 tests/spec/db-guard/kubeconfig-drift-guard.bats
 tests/spec/db-quality-goals.bats
 tests/spec/db-restore-verification/restore-verify-cronjob.bats
+tests/spec/decommission/decommission-guard.bats
 tests/spec/dev-flow-chore-ticket-ops-mishaps.bats
 tests/spec/dev-flow-e2e.bats
 tests/spec/dev-flow-execute.bats
@@ -248,8 +250,6 @@ tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats
 tests/spec/e2e-test-infrastructure/vision-sweep.bats
 tests/spec/e2e-testing.bats
 tests/spec/env-seal-empty-value-keys.bats
-tests/spec/factory-reclaim-lock-respect/pid-dead-worktree-match-T002849.bats
-tests/spec/factory/vda-frontmatter.bats
 tests/spec/feature-product-linking.bats
 tests/spec/finetune-hf-jobs.bats
 tests/spec/finetune/model-registry.bats
@@ -359,7 +359,6 @@ tests/spec/local-llm-proxy/brain-ingest-port.bats
 tests/spec/local-llm-proxy/dev-pod-loadouts-path.bats
 tests/spec/local-llm-proxy/dispatch-capture.bats
 tests/spec/local-llm-proxy/embed-bge-fallback.bats
-tests/spec/local-llm-proxy/factory-model-lock.bats
 tests/spec/local-llm-proxy/gateway-consumer-lint.bats
 tests/spec/local-llm-proxy/gemma-kv-quant.bats
 tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats
@@ -371,6 +370,7 @@ tests/spec/local-llm-proxy/loadout-aux-files-exist.bats
 tests/spec/local-llm-proxy/loadout-enabled-flag.bats
 tests/spec/local-llm-proxy/loadout-env-property.bats
 tests/spec/local-llm-proxy/loadout-model-files-exist.bats
+tests/spec/local-llm-proxy/loadout-model-lock.bats
 tests/spec/local-llm-proxy/loadouts-format.bats
 tests/spec/local-llm-proxy/model-path-large-file.bats
 tests/spec/local-llm-proxy/opencode-agent-model-drift.bats
@@ -431,6 +431,7 @@ tests/spec/network-address-plan/networks-registry.bats
 tests/spec/opencode-config-ssot.bats
 tests/spec/opencode-local-model-runner.bats
 tests/spec/os-retirement-code.bats
+tests/spec/os-retirement-dir.bats
 tests/spec/os-retirement-prose.bats
 tests/spec/pi-harness.bats
 tests/spec/pipeline-interface.bats
@@ -545,8 +546,8 @@ tests/spec/sessions-server/form-lifecycle.bats
 tests/spec/sessions-server/reap-untracked.bats
 tests/spec/sessions-server/register-list.bats
 tests/spec/sessions-server/wildcard-render-guard.bats
+tests/spec/sf-retirement-rest.bats
 tests/spec/sidekick-assistant.bats
-tests/spec/software-factory/decommission-guard.bats
 tests/spec/studio-sessions-reorganize.bats
 tests/spec/systemd-units/unit-install-copy-guard.bats
 tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats
@@ -598,11 +599,11 @@ tests/spec/unsloth-eval-harness/scoring-rules.bats
 tests/spec/unsloth-eval-harness/tandem-candidates.bats
 tests/spec/unsloth-eval-harness/testset-shape.bats
 tests/spec/unsloth-training-env/agent-discovery.bats
-tests/spec/unsloth-training-env/factory-traces.bats
 tests/spec/unsloth-training-env/measure-corpus.bats
 tests/spec/unsloth-training-env/template-guard.bats
 tests/spec/unsloth-training-env/train-config.bats
 tests/spec/unsloth-training-env/vision-route.bats
+tests/spec/vda-frontmatter.bats
 tests/spec/vim-ai-completion/context-status.bats
 tests/spec/vim-ai-completion/install-config.bats
 tests/spec/vim-ai-completion/request-stream.bats

@@ -43,7 +43,7 @@ Mehrere Agenten-Sessions teilen ein `.git`/denselben Checkout. `scripts/agent-lo
 - **Wer macht was:** `bash scripts/agent-lock.sh list`.
 - **Nachrichten an parallele Sessions:** `bash scripts/agent-msg.sh read --unread` zu Skill-Start (offene Nachrichten anderer lebender Sessions sichten); vor dem Anfassen geteilter Registry-Dateien (`k3d/configmap-domains.yaml`, `environments/schema.yaml`) optional `bash scripts/agent-msg.sh post "berühre <datei> auf <branch>"` (broadcast) oder `--to <sid|label>` gerichtet. Kanal = append-only JSONL unter `.git/agent-msgs/` (nie committet).
 - **Aktive Edit-Kollisionswarnung:** der `.githooks/pre-commit`-Hook ruft `scripts/agent-collision.sh check --staged` auf und warnt, wenn eine **andere lebende** Session dieselbe Datei in-flight hat. Advisory/fail-open — blockt nur mit `AGENT_COLLISION_STRICT=1`. Manuell: `bash scripts/agent-collision.sh check --all`.
-- Live-Claims blocken auch die **Software Factory** (Dispatcher überspringt interaktiv geclaimte Tickets).
+- Live-Claims blocken auch den Dispatcher (interaktiv geclaimte Tickets werden übersprungen).
 - Optionaler **SessionStart-Reaper:** `.claude/settings.json` ist gitignored (lokal/maschinengebunden) — wer den Reaper bei jedem Session-Start (nicht nur dev-flow) will, fügt lokal hinzu: `{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash scripts/agent-lock.sh reap 2>/dev/null || true"}]}]}}`.
 
 ### Environment targeting

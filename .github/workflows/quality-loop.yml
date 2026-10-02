@@ -1,5 +1,5 @@
 # .github/workflows/quality-loop.yml
-# Nightly quality loop: enqueue ≤MAX_NEW CQ-GATE Factory tickets per
+# Nightly quality loop: enqueue ≤MAX_NEW CQ-GATE tickets per
 # (Gate × Subsystem) group that has open baseline violations.
 # Runs at 02:00 UTC (after dev-db-refresh at 03:30 UTC is not a conflict —
 # we hit fleet, not dev). Fires on workflow_dispatch for manual re-runs.

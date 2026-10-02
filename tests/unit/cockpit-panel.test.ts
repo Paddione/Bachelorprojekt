@@ -123,7 +123,6 @@ describe('Adapter method mapping', () => {
     agents: 'agents',
     ci: 'ci',
     cluster: 'cluster',
-    factory: 'factory',
     models: 'models',
   };
 
@@ -133,8 +132,8 @@ describe('Adapter method mapping', () => {
     }
   });
 
-  it('stellt 6 Lese-Methoden bereit', () => {
-    expect(Object.keys(ADAPTER_MAP)).toHaveLength(6);
+  it('stellt 5 Lese-Methoden bereit', () => {
+    expect(Object.keys(ADAPTER_MAP)).toHaveLength(5);
   });
 });
 

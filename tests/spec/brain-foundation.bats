@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/brain-foundation.bats
-# SSOT: openspec/specs/brain-foundation.md
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   LINT_WL="$REPO_ROOT/templates/brain/scripts/lint-wikilinks.sh"

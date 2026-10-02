@@ -2,7 +2,7 @@
 // scripts/glimmer-worker-mcp/server.mjs — Glimmer als Arbeitermodell fuer Muse Code (T900373).
 //
 // Muse Code (Meta) kann llama-server nicht als Provider nutzen (proprietaeres
-// Stream-/Tool-Format, siehe openspec design glimmer-worker-mcp). Dieser Server
+// Stream-/Tool-Format). Dieser Server
 // bietet Glimmer stattdessen als MCP-Werkzeug an: ein Job fuehrt opencode mit
 // dem Agenten glimmer-primary im Ziel-Repo aus (gleiches Modell, gleiche
 // Tool-Schleife). Streamable HTTP auf 127.0.0.1, Bearer, Node-stdlib only —
@@ -47,7 +47,7 @@ function runOpencode(job) {
     // Eigene Prozessgruppe (detached): beim Timeout wird die GANZE Gruppe beendet,
     // also auch Shell-Tools, die opencode gestartet hat — sonst liefen sie nach
     // dem 'timeout' weiter und veraenderten das Repo neben dem naechsten Job.
-    const child = spawn(OPENCODE, ['run', '--agent', AGENT, '--dir', job.cwd, job.task], {
+    const child = spawn(OPENCODE, ['run', '--agent', AGENT, job.task], {
       cwd: job.cwd,
       env: { ...process.env, NO_COLOR: '1' },
       stdio: ['ignore', 'pipe', 'pipe'],

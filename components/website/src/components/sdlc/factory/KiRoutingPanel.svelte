@@ -298,7 +298,7 @@
     return providerEntries.filter((e) => e.source === src).sort((a, b) => a.priority - b.priority);
   }
 
-  onMount(() => { void reloadAll(); browserLogger.debug('[KiRoutingPanel] geladen'); });
+  onMount(() => { void reloadAll(); browserLogger.info('[KiRoutingPanel] geladen'); });
 </script>
 
 <div class="ki-routing-panel">
@@ -343,7 +343,7 @@
         <td></td>
       </tr>
 
-      {#each PHASE_LABELS as [phase, label] (phase)}
+      {#each Object.entries(PHASE_LABELS) as [phase, label] (phase)}
         {@const r = resolutionFor(phase)}
         <tr data-testid={`ki-phase-${phase}`}>
           <td class="kr-phase-label">

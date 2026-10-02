@@ -12,7 +12,7 @@
 # Voraussetzung: llama.cpp ab e85e15cf6 hinter %h/opt/llama-current — DFlash2 kam mit
 # upstream #27816 ("spec : add DFlash2 support"). Aeltere Builds kennen den Drafter nicht.
 # Build: git worktree des Quellbaums, CUDA 13.3, CMAKE_CUDA_ARCHITECTURES="86;120",
-# GGML_CUDA_FA_ALL_QUANTS=ON (Details: openspec/changes/archive/*glimmer-local-backend/design.md).
+# GGML_CUDA_FA_ALL_QUANTS=ON (Details: glimmer-local-backend-Design, T-Archiv).
 #
 # Installation:
 #   hf download unsloth/Muse-Glimmer-30B-GGUF Muse-Glimmer-30B-UD-IQ3_XXS.gguf --local-dir ~/models/Muse-Glimmer-30B

@@ -15,7 +15,7 @@ export async function runCodeWorker({ variant, inputs, endpoints, workdir, recor
   const artifacts = { plan: null, reference: null };
   const isolated = Boolean(inputs.partialFile);
   if (!isolated) {
-    const changeDir = join(workdir, 'openspec', 'changes', inputs.slug || basename(workdir));
+    const changeDir = join(workdir, '.agents', 'plans', inputs.slug || basename(workdir));
     const tasks = join(changeDir, 'tasks.md');
     if (!existsSync(tasks)) return { ...emptyResult([{ kind: 'protocol_error' }]), cleanup: null };
     const manifest = parseManifest(readFileSync(tasks, 'utf8'));
@@ -31,7 +31,7 @@ export async function runCodeWorker({ variant, inputs, endpoints, workdir, recor
   const before = new Set(walkFiles(workdir).map((f) => relative(workdir, f)));
   const workerUrl = recorderUrls?.codeWorker || endpoints?.codeWorker;
   const modelId = inputs.workerModel || 'qwen35-4b';
-  const args = ['run', '--agent', inputs.workerAgent || 'plan-worker-4b', '--dir', workdir];
+  const args = ['run', '--agent', inputs.workerAgent || 'plan-worker-4b'];
   const env = { OPENCODE_BENCH_ROLE: 'code-worker' };
   if (workerUrl) {
     env.OPENCODE_CONFIG_CONTENT = opencodeBenchConfig(workerUrl, modelId, inputs.workerContext);

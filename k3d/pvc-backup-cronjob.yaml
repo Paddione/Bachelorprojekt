@@ -77,17 +77,17 @@ spec:
                    CLONES=""
                    [ "$VW_SC" = "longhorn" ] && CLONES="$CLONES vaultwarden-data-backup-clone"
 
-                  # Each data volume points at its clone (longhorn) or its live
-                  # PVC (local-path). The mounter co-locates with every live
-                  # local-path source's owning pod via these podAffinity terms.
-                  if [ "$VW_SC" = "longhorn" ]; then
-                    VW_CLAIM="vaultwarden-data-backup-clone"; VW_AFFINITY=""
-                  else
-                    VW_CLAIM="vaultwarden-data-pvc"
-                    VW_AFFINITY="
-                              - labelSelector: { matchLabels: { app: vaultwarden } }
-                                topologyKey: kubernetes.io/hostname"
-                  fi
+                   # Each data volume points at its clone (longhorn) or its live
+                   # PVC (local-path). Mounter placement is enforced by the RWO
+                   # volumes' node affinity (PVs pinned to their nodes); the
+                   # former required podAffinity terms [nextcloud, vaultwarden]
+                   # were deterministically unschedulable on fleet (k3s 1.36.1)
+                   # and removed. [T900801]
+                   if [ "$VW_SC" = "longhorn" ]; then
+                     VW_CLAIM="vaultwarden-data-backup-clone"
+                   else
+                     VW_CLAIM="vaultwarden-data-pvc"
+                   fi
 
 
                   cleanup() {
@@ -179,22 +179,12 @@ spec:
                         labels: { app: pvc-backup, role: mounter }
                       spec:
                         restartPolicy: Never
-                        affinity:
-                          # Co-locate with the nextcloud pod so its local-path
-                          # volume is shareable (same node). This podAffinity is
-                          # sufficient for placement; the former nodeAffinity NotIn
-                          # list referenced decommissioned nodes (k3s-1/2/3,
-                          # k3w-1/2/3) that no longer exist on fleet — dead drift,
-                          # removed. [T000368]
-                          # When a data PVC is local-path (korczewski), the per-source
-                          # affinity snippets below add a podAffinity term for that
-                          # source's owning pod so the LIVE RWO volume is shareable on
-                          # the same node; they are empty for longhorn-cloned sources
-                          # (mentolder), leaving only the nextcloud term. [T000403]
-                          podAffinity:
-                            requiredDuringSchedulingIgnoredDuringExecution:
-                              - labelSelector: { matchLabels: { app: nextcloud } }
-                                topologyKey: kubernetes.io/hostname$${VW_AFFINITY}
+                         # Placement: the mounter mounts the live RWO data volumes
+                         # (nextcloud-data, vaultwarden-data) and backup-pvc; the
+                         # scheduler pins it to the PVs' node via the volumes' node
+                         # affinity. The former required podAffinity terms
+                         # [nextcloud, vaultwarden] were deterministically
+                         # unschedulable on fleet (k3s 1.36.1) and removed. [T900801]
                         securityContext:
                           runAsNonRoot: true
                           runAsUser: 65534

@@ -70,8 +70,6 @@ tasks:
       - task: agent-guide:emit
       - task: graph:build    # LAD: K8s graph artifacts
       - task: graph:build-docs
-      - task: openspec:status-map
-      - task: openspec:atlas
       - task: health:goals:emit
       - task: networks:map   # T012645: docs/agent-guide/maps/networks-map.md
 
@@ -162,8 +160,6 @@ tasks:
           components/website/src/data/route-manifest.json
           components/website/src/lib/learning-assets.generated.json
           components/website/public/learning-assets/THIRD-PARTY-ASSETS.md
-          components/website/src/data/openspec-status.json
-          docs/spec-atlas.md
           docs/diagrams/architecture.md
           components/website/src/lib/sdlc/goals-data.generated.json
           docs/agent-guide/10-ziele.md

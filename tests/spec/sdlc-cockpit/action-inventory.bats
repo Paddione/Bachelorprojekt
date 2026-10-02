@@ -7,7 +7,6 @@
 # 3. Fuer jede Zeile existiert die Routendatei zur angegebenen
 #    HTTP-Pfad-Spalte.
 #
-# SSOT: openspec/changes/cockpit-realtime-push/specs/sdlc-cockpit.md
 # (Reachability of exposed actions is demonstrated, not asserted)
 #
 # Pruefmodus: Datei-/Struktur-Verifikation — die Aussage "dokumentierte Aktion

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/warden-mcp/config-guards.bats
-# SSOT-Spec: openspec/specs/warden-mcp.md (REQ-WARDEN-MCP-002, REQ-WARDEN-MCP-003)
 #
 # Der MCP-Server `warden` greift auf den persoenlichen Tresor des Nutzers zu
 # (T900404). Diese Guards halten vier Zusagen fest: keine Credentials in

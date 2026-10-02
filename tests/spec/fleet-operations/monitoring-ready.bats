@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/monitoring-ready.bats
-# SSOT: openspec/specs/fleet-operations.md
 # Ticket: T900034 (Batch T900041)
 #
 # PRUEFMODUS: Quelltext (Manifest-Konfiguration). Ausnahmefall der

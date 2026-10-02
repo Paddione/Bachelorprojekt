@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/check-pr-automerge-fail-closed.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: devflow-main-checkout-guards-T900043, T900043)
 #
 # PRÜFMODUS: Output-Verifikation (T002448-M4) für das Skript-Verhalten — das Skript
 # wird AUSGEFÜHRT und gegen einen gh-Stub im PATH gemessen (kein Ambient-gh, Muster

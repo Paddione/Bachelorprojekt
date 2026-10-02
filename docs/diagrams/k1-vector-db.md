@@ -29,7 +29,7 @@ alle Vektoren sind 1024-dimensional.
 │  scripts/index-repo.ts ───bge-m3──► code_embeddings (18.549 rows)  │
 │  (SCS-Indexer, post-commit hook)                                    │
 │                                                                     │
-│  scripts/openspec-embed.mjs ───bge-m3/voyage──► knowledge.chunks   │
+│  ingest-markdown.mjs ───bge-m3/voyage──► knowledge.chunks          │
 │  scripts/knowledge/lib-knowledge-pg.mjs ───voyage──►   (18.405)    │
 │  components/website/src/lib/ingest-json-core.ts ───router──►        │
 │  components/website/src/lib/knowledge-db.ts ───router──►            │
@@ -49,7 +49,7 @@ alle Vektoren sind 1024-dimensional.
 │  → /api/codesearch                                                   │
 │                                                                     │
 │  components/website/src/lib/knowledge-db.ts ◄── knowledge.chunks    │
-│  → /api/openspec/search, queryNearest()                             │
+│  → /api/search, queryNearest()                                      │
 │                                                                     │
 │  components/website/src/lib/coaching-db.ts ◄── knowledge.chunks     │
 │  → Coaching Semantic Search                                          │
@@ -96,7 +96,7 @@ throw new MixedEmbeddingModelError(models)
 | Schreiber | Läuft? | Beweis |
 |---|---|---|
 | `scripts/index-repo.ts` | ✅ Ja | 18.549 Zeilen in `code_embeddings`; läuft als post-commit-Hook |
-| `scripts/openspec-embed.mjs` | ✅ Ja | Hat `knowledge.chunks`-Einträge erzeugt |
+| `scripts/knowledge/ingest-markdown.mjs` | ✅ Ja | Hat `knowledge.chunks`-Einträge erzeugt |
 | `components/website/src/lib/knowledge-db.ts` (ingest) | ✅ Ja | Collections mit `source=custom` haben Chunks |
 | `scripts/knowledge/ingest-web.mjs` | ✅ Ja | Collections mit `source=web_crawl` haben Chunks |
 | `scripts/knowledge/lib-knowledge-pg.mjs` | ✅ Ja | CLI-Ingest-Pfad |

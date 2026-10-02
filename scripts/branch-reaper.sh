@@ -8,7 +8,7 @@
 #
 # Warum es dieses Skript gibt:
 #   Seit T004612 löscht der Merge-Flow Branches bewusst NICHT mehr (delete_branch_on_merge=false,
-#   kein --delete-branch im Fix-PR-Merge — das OpenSpec-Archiv braucht den Branch nach dem Merge).
+#   kein --delete-branch im Fix-PR-Merge — die Plan-Archivierung braucht den Branch nach dem Merge).
 #   Der Reaper ist damit nicht mehr nur Netz für Sammel-PR-Branches (Plan- und Factory-Branches
 #   laufen über einen Sammel-PR nach main — auf ihrem eigenen Ref findet nie ein Merge-Event
 #   statt), sondern der reguläre Aufräumer für ALLE gemergten Branches. Am 2026-08-01 lagen so
@@ -57,7 +57,7 @@ REPO_DIR="$(cd "$HERE/.." && pwd)"
 # Pfade, deren Abweichung von main folgenlos ist: Plan-Artefakte, die nie einzeln nach main
 # wandern, und generierte Dateien, die auf main ohnehin fortgeschrieben werden.
 ALLOWLIST=(
-  'openspec/changes/*'
+  '.agents/plans/*'
   'docs/code-quality/*'
   'components/website/src/data/*'
   '.release-please-manifest.json'
@@ -128,7 +128,12 @@ cd "$TARGET_REPO" || { echo "FEHLER: --repo '$TARGET_REPO' nicht betretbar" >&2;
 # manuellem Aufruf aus einem Worktree wäre es der eigene Arbeitsbranch.
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
 
-git fetch --quiet "$REMOTE" 2>/dev/null || true
+# [T900787] Ein gescheiterter Fetch (z. B. Ref-Lock durch eine parallele Session) laesst
+# veraltete Tracking-Refs zurueck. Sichtbar machen, Lauf fortsetzen: ls-remote ist die
+# Live-Quelle, der Ref-Abgleich je Kandidat faengt Abweichungen ab.
+if ! fetch_err="$(git fetch --quiet "$REMOTE" 2>&1)"; then
+  echo "WARN: git fetch $REMOTE fehlgeschlagen: $(printf '%s' "$fetch_err" | head -1)" >&2
+fi
 
 # Trifft der Pfad eines der ALLOWLIST-Muster?
 _allowed() {
@@ -243,6 +248,8 @@ if [ "${#CANDIDATES[@]}" -eq 0 ]; then
 fi
 
 REAP_LIST=()
+# [T900787] Kandidaten, die mangels Messung nicht entscheidbar waren (gh-/Ref-Fehler).
+UNDECIDED=0
 
 for branch in "${CANDIDATES[@]}"; do
   [ -z "$branch" ] && continue
@@ -276,7 +283,7 @@ for branch in "${CANDIDATES[@]}"; do
       if [[ "$branch" == chore/freshness-regen-* ]]; then
         if ! pr_all="$(gh pr list --head "$branch" --state all --json state 2>&1)"; then
           echo "KEEP $branch — gh-Abfrage fehlgeschlagen: $(printf '%s' "$pr_all" | head -1)"
-          continue
+          UNDECIDED=$((UNDECIDED + 1)); continue
         fi
         if printf '%s' "$pr_all" | grep -q '"state"[[:space:]]*:[[:space:]]*"OPEN"'; then
           echo "KEEP $branch — offener Freshness-PR (Auto-Merge ausstehend)"
@@ -298,11 +305,23 @@ for branch in "${CANDIDATES[@]}"; do
   # sonst aus wie "kein PR" und würde einen Branch faelschlich freigeben.
   if ! pr_json="$(gh pr list --head "$branch" --state open --json number 2>&1)"; then
     echo "KEEP $branch — gh-Abfrage fehlgeschlagen: $(printf '%s' "$pr_json" | head -1)"
-    continue
+    UNDECIDED=$((UNDECIDED + 1)); continue
   fi
   if printf '%s' "$pr_json" | grep -q '"number"'; then
     echo "KEEP $branch — offener pull request"
     continue
+  fi
+
+  # [T900787] Alle folgenden Pruefungen lesen den lokalen Tracking-Ref. Fehlt er oder zeigt er
+  # nicht auf den Live-Tip aus ls-remote, faellt Positiv-Signal 1 still weg und der
+  # Ancestor-Check meldet faelschlich T900096. Gezielt nachholen, sonst nicht entscheidbar.
+  live_sha="$(printf '%s\n' "$LS_REMOTE_RAW" | awk -v r="refs/heads/$branch" '$2 == r {print $1; exit}')"
+  if [ "$(git rev-parse -q --verify "refs/remotes/$REMOTE/$branch" 2>/dev/null)" != "$live_sha" ]; then
+    git fetch --quiet "$REMOTE" "+refs/heads/$branch:refs/remotes/$REMOTE/$branch" 2>/dev/null || true
+    if [ "$(git rev-parse -q --verify "refs/remotes/$REMOTE/$branch" 2>/dev/null)" != "$live_sha" ]; then
+      echo "KEEP $branch — Remote-Ref lokal nicht aktuell (Fetch gescheitert?)"
+      UNDECIDED=$((UNDECIDED + 1)); continue
+    fi
   fi
 
   # (3) Ticket-Status — fuer freshness_decided=1 bereits durch den PR-Status entschieden
@@ -337,7 +356,7 @@ for branch in "${CANDIDATES[@]}"; do
     tip_sha="$(git rev-parse "$REMOTE/$branch" 2>/dev/null || echo "")"
     if ! merged_oid="$(_merged_pr_head_oid "$branch")"; then
       echo "KEEP $branch — gh-Abfrage fehlgeschlagen: $merged_oid"
-      continue
+      UNDECIDED=$((UNDECIDED + 1)); continue
     fi
     if [ -n "$merged_oid" ] && [ -n "$tip_sha" ] && [ "$merged_oid" = "$tip_sha" ]; then
       echo "REAP $branch"
@@ -401,8 +420,16 @@ for branch in "${CANDIDATES[@]}"; do
   REAP_LIST+=("$branch")
 done
 
+# [T900787] "Nichts verwaist" und "nichts pruefbar" sind verschiedene Aussagen.
+_undecided_note() {
+  [ "$UNDECIDED" -gt 0 ] && echo "ACHTUNG: $UNDECIDED Branch(es) nicht entscheidbar (gh-/Ref-Fehler) — Lauf wiederholen"
+  return 0
+}
+
 if [ "${#REAP_LIST[@]}" -eq 0 ]; then
-  if [ "$SWEEP" -eq 1 ]; then
+  if [ "$UNDECIDED" -gt 0 ]; then
+    echo "keine Branches geloescht — $UNDECIDED Branch(es) nicht entscheidbar (gh-/Ref-Fehler), Lauf wiederholen"
+  elif [ "$SWEEP" -eq 1 ]; then
     # [T003074] Leerer Sweep-Bestand ist ein gültiger Messwert, kein Fehlschlag —
     # aber explizit als solcher benannt (kein vakuoses Exit 0 ohne Aussage).
     echo "keine verwaisten Branches gefunden"
@@ -414,6 +441,7 @@ fi
 
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "Dry-Run — ${#REAP_LIST[@]} Branch(es) waeren geloescht worden."
+  _undecided_note
   exit 0
 fi
 
@@ -498,3 +526,5 @@ if [ "${#tag_ok[@]}" -gt 0 ]; then
     done
   fi
 fi
+
+_undecided_note

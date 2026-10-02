@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-skill-integration.bats
-# SSOT: openspec/specs/mcp-skill-integration.md
 #
 # Covers: ticket-mcp adapter completeness, Go binary, mishap buffer tools.
 

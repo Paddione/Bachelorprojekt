@@ -1,7 +1,7 @@
 # E3-Cutover — tickets-Schema nach lokal
 
 **Ticket:** T002626 · **ADR:** [ADR-006](../adr/ADR-006-sdlc-isolation-dev-host.md) Etappe 3
-**Entwurf:** `openspec/changes/e3-sdlc-tickets-lokal/design.md`
+**Entwurf:** `e3-sdlc-tickets-lokal/design.md`
 
 Dieser Vorgang verlagert die Datenhoheit über die SDLC-Daten von fleet auf den Dev-Host.
 Er ist **kein Skriptlauf**, sondern eine Abfolge einzeln nachprüfbarer Schritte. Jeder liefert
@@ -101,7 +101,7 @@ Einen vollständigen Tick abwarten und prüfen, dass er lokal schreibt.
 ### 7. fleet einfrieren — NICHT in dieser Etappe
 
 Ursprünglich war hier der `REVOKE` vorgesehen, der die fleet-Kopie gegen Schreibzugriffe
-sperrt. **Er entfällt** und wandert nach [T002722](../../openspec/changes/) (ADR-006 E4).
+sperrt. **Er entfällt** und wandert nach T002722 (ADR-006 E4).
 
 Der Grund wurde bei der Umsetzung gemessen: `website/src/lib/projects-db.ts` führt aus dem
 **Produktions-Build** `INSERT`, `UPDATE` und `DELETE` auf `tickets.tickets` (`type='project'`)

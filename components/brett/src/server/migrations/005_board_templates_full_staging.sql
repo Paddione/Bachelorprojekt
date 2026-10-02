@@ -1,5 +1,5 @@
 -- 005_board_templates_full_staging.sql
--- T900360 / openspec: systembrett-presets — Partial P1.
+-- T900360 / systembrett-presets — Partial P1.
 --
 -- Repairs and upgrades the three system board templates (brand 'mentolder')
 -- without touching 004_board_templates.sql (already applied in prod — editing

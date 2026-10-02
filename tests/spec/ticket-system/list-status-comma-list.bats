@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/ticket-system.md
 # Ticket: T012972 — `ticket list --status` nimmt eine Komma-Liste
 #
 # PRUEFMODUS: Command-Output-Verifikation (T002448-M4). Die Tests FUEHREN

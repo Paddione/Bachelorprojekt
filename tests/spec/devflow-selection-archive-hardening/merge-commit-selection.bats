@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/devflow-selection-archive-hardening.md
+# SSOT: docs/superpowers/specs/devflow-selection-archive-hardening.md
 # Ticket: T009368
 #
 # Pruefmodus: OUTPUT-VERIFIKATION (T002448-M4) — die Selektionslogik
@@ -43,9 +43,9 @@ new_test_repo() {
   git -C "$TEST_REPO" commit -q -am "feat(foo): implement x [T009999]"
   FEATURE_SHA="$(git -C "$TEST_REPO" rev-parse HEAD)"
   if [[ "${1:-archive}" == "archive" ]]; then
-    mkdir -p "$TEST_REPO/openspec/changes/archive/foo"
-    echo spec > "$TEST_REPO/openspec/changes/archive/foo/spec.md"
-    git -C "$TEST_REPO" add openspec
+    mkdir -p "$TEST_REPO/.agents/plans/archive/foo"
+    echo spec > "$TEST_REPO/.agents/plans/archive/foo/spec.md"
+    git -C "$TEST_REPO" add .agents/plans
     git -C "$TEST_REPO" commit -q -m "chore(plans): archive foo → bar [T009999]"
     ARCHIVE_SHA="$(git -C "$TEST_REPO" rev-parse HEAD)"
   else

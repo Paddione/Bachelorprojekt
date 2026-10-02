@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/website-core/portrait-derivate-crop.bats
-# SSOT: openspec/specs/website-core.md
 # Ticket: T002507
 #
 # Pruefmodus (Konvention T002448-M4): RESULTAT-basiert. Die Tests messen die

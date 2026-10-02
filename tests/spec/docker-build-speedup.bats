@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/docker-build-speedup.bats
-# SSOT: openspec/changes/docker-build-speedup/specs/docker-build-speedup.md
 # Invarianten der Docker-Build-Beschleunigung (T001229), je Phase ein Block.
 
 # ── Phase 1: Layer-Caching ──────────────────────────────────────────────────

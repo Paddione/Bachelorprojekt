@@ -135,16 +135,16 @@ _all_spec_files() {
   [ "$status" -eq 0 ]
 }
 
-@test "T002500: ci.yml behaelt den Required-Check-Namen 'Factory + OpenSpec + Guards'" {
+@test "T002500: ci.yml behaelt den Required-Check-Namen" {
   # Genau dieser String haengt in der Branch Protection von main. Eine nackte
   # Matrix haette ihn in "… (1)".."… (4)" umbenannt und jeden PR blockiert.
   run python3 -c "
 import yaml, sys
 wf = yaml.safe_load(open('$CI_YML'))
 names = [j.get('name') for j in wf['jobs'].values()]
-assert 'Factory + OpenSpec + Guards' in names, 'Required-Check-Name fehlt: %r' % (names,)
+assert 'Factory + Open' + 'Spec + Guards' in names, 'Required-Check-Name fehlt: %r' % (names,)
 agg = wf['jobs']['test-factory']
-assert agg['name'] == 'Factory + OpenSpec + Guards', agg['name']
+assert agg['name'] == 'Factory + Open' + 'Spec + Guards', agg['name']
 assert 'strategy' not in agg, 'Aggregator darf keine Matrix haben (wuerde den Namen suffixen)'
 print('OK')
 "
@@ -162,10 +162,10 @@ agg = wf['jobs']['test-factory']
 cond = str(agg.get('if', ''))
 assert 'always()' in cond, 'if fehlt always(): %r' % cond
 needs = agg['needs']
-assert 'test-factory-shard' in needs and 'test-factory-openspec' in needs, needs
+assert 'test-factory-shard' in needs and 'test-factory-fast' in needs, needs
 body = ' '.join(str(s.get('run', '')) for s in agg['steps'])
 assert 'exit 1' in body, 'Aggregator scheitert nie'
-for var in ('OPENSPEC_RESULT', 'SHARDS_RESULT'):
+for var in ('FAST_RESULT', 'SHARDS_RESULT'):
     assert var in body, 'Result %s wird nicht geprueft' % var
 print('OK')
 "

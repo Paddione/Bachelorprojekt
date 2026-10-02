@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-cockpit/leitstand-url-scheme.bats
-# SSOT: openspec/specs/sdlc-cockpit.md — E3-Leitstand-Shell [T007957], Kontrakt B
 # (leitstand-url.ts: 9 Stationen, 4 Decks, Praezedenz neu-vor-legacy, Legacy-Mapping
 # phase=/mode=, Feld-Reihenfolge station,ticket,deck, kein fuehrendes '?').
 #

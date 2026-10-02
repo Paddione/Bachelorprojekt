@@ -97,7 +97,7 @@ if [[ $SELF_TEST -eq 1 ]]; then
   assert_allows "feat(real-code)"      "feat(website): add pricing widget"        "components/website/src/components/Pricing.tsx"
   assert_allows "fix(real-code)"       "fix(infra): chain middleware sequence"    "components/website/src/middleware.ts"
   assert_allows "fix(real+test)"       "fix(infra): chain middleware sequence"    "components/website/src/middleware.ts components/website/src/middleware.test.ts"
-  assert_allows "chore(plans)"         "chore(plans): stage t001434 for execution" "openspec/changes/t001434/tasks.md"
+  assert_allows "chore(plans)"         "chore(plans): stage t001434 for execution" ".agents/plans/t001434/tasks.md"
   assert_allows "test(red-only)"       "test(red): verify locals.requestLogger"   "components/website/src/middleware.test.ts"
   assert_allows "docs(readme)"         "docs: update README"                      "README.md"
   assert_allows "ci(workflow)"         "ci: bump action versions"                ".github/workflows/ci.yml"
@@ -105,12 +105,12 @@ if [[ $SELF_TEST -eq 1 ]]; then
 
   # Block cases — the T001434 pattern
   assert_blocks "fix(red-only-test)"   "fix(infra): chain middleware sequence"    "components/website/src/middleware.test.ts"
-  assert_blocks "fix(plan-only)"       "fix(infra): chain middleware sequence"    "openspec/changes/t001434/tasks.md"
-  assert_blocks "fix(plan-and-test)"   "fix(infra): chain middleware sequence"    "components/website/src/middleware.test.ts openspec/changes/t001434/tasks.md"
-  assert_blocks "fix(spec-only)"       "fix(infra): chain middleware sequence"    "openspec/specs/centralized-logging.md"
-  assert_blocks "feat(plan-only)"      "feat(infra): add logging chain"           "openspec/changes/t001434/proposal.md openspec/changes/t001434/tasks.md"
-  assert_blocks "refactor(plan-only)"  "refactor(scripts): consolidate guards"    "openspec/changes/cleanup/tasks.md"
-  assert_blocks "perf(plan-only)"      "perf(db): index tickets table"            "openspec/changes/perf-index/tasks.md"
+  assert_blocks "fix(plan-only)"       "fix(infra): chain middleware sequence"    ".agents/plans/t001434/tasks.md"
+  assert_blocks "fix(plan-and-test)"   "fix(infra): chain middleware sequence"    "components/website/src/middleware.test.ts .agents/plans/t001434/tasks.md"
+  assert_blocks "fix(spec-only)"       "fix(infra): chain middleware sequence"    "docs/superpowers/specs/centralized-logging.md"
+  assert_blocks "feat(plan-only)"      "feat(infra): add logging chain"           ".agents/plans/t001434/proposal.md .agents/plans/t001434/tasks.md"
+  assert_blocks "refactor(plan-only)"  "refactor(scripts): consolidate guards"    ".agents/plans/cleanup/tasks.md"
+  assert_blocks "perf(plan-only)"      "perf(db): index tickets table"            ".agents/plans/perf-index/tasks.md"
 
   # Block cases — the T004611 pattern (unintended package.json drift)
   assert_blocks "fix(package-json-drift)"  "fix(infra): chain middleware sequence"    "components/website/src/middleware.ts .opencode/package.json"
@@ -192,11 +192,9 @@ fi
 # implementation claim in the subject line.
 NON_IMPL_FILES="$(echo "$STAGED_FILES" \
   | grep -vE '\.(test|spec)\.[A-Za-z0-9]+$' \
-  | grep -vE '^(openspec/changes/|openspec/changes/archive/)' \
-  | grep -vE '^openspec/specs/' \
+  | grep -vE '^(.agents/plans/|.agents/plans/archive/)' \
   | grep -vE '^docs/superpowers/specs/' \
-  | grep -vE '^\.ticket$' \
-  | grep -vE '^openspec/changes/[^/]+/\.openspec\.yaml$')"
+  | grep -vE '^\.ticket$')"
 
 if [[ -z "$NON_IMPL_FILES" ]]; then
   cat >&2 <<EOF
@@ -212,7 +210,7 @@ and the bug lands in a follow-up commit instead of the same PR.
 
 Use one of these prefixes instead:
   test(red): …   for a RED-only test commit (the test is supposed to fail)
-  chore(plan): … for a plan-only commit (openspec/changes/, openspec/specs/, docs/superpowers/specs/)
+  chore(plan): … for a plan-only commit (.agents/plans/, docs/superpowers/specs/)
   test: …        for a test commit that is intentionally part of the fix
 
 If this really IS an implementation commit, your diff is missing the

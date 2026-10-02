@@ -29,7 +29,6 @@ setup() {
 
 # Sammelt alle components/website/src/**-Pfade auf goals-data*.json, die im Health-Goal-
 # und Factory-Tooling hartkodiert sind. Bewusst ueber eine Dateiliste statt
-# repo-weit: ein Treffer in openspec/changes/archive/** ist eine historische
 # Momentaufnahme und darf gerade NICHT mitwandern.
 #
 # Bewusst OHNE sort -u: gezaehlt werden Referenzen, nicht eindeutige Pfade. Nach

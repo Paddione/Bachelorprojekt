@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# SSOT-Spec: openspec/specs/sdlc-cockpit.md — Change: sdlc-dashboard-redesign [T003417]
+
 #
 # Pruefmodus: Quelltext-Guards (dokumentierte Ausnahme in CLAUDE.md
 # "Test-Resultats-Konvention" [T002448-M4]). Geprueft wird ausschliesslich, was

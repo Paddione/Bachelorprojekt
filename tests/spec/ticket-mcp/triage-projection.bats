@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/changes/batch-mcp-introspection (T003811, Batch-Parent)
 # Ticket: T003406 — ticket-mcp export_tickets returns insufficient fields for triage
 #
 # PRUEFMODUS: Command-Output-Verifikation (T002448-M4). Der Test FUEHRT

@@ -43,7 +43,7 @@ Pro Iteration, in dieser Reihenfolge:
 3. **Spec akkumulieren** — für das oberste Ticket ohne Spec:
    - Kontext holen (`get_ticket`, Attachments, verwandte Tickets), Code-Recherche
      mit codebase-memory-mcp.
-   - OpenSpec-Skizze anlegen (Phase A aus dev-flow-plan) oder bei Chores direkte
+   - plan-Skizze anlegen (Phase A aus dev-flow-plan) oder bei Chores direkte
      Pfad-Wahl; danach `set_readiness_flag spec_skizziert=true`.
    - Echte Ermessensfragen maximal EINMAL gebündelt per `question` stellen;
      Antwort verweigert/nicht eindeutig → Ticket als `needs_human` markieren,

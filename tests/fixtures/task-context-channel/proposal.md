@@ -7,7 +7,7 @@ der Hochdurchsatz-Pfad ist der schlechtere.
 
 `dev-flow-execute` injiziert das Plan Intel Bundle als Pflicht-Kontext (`SKILL.md:69–72`) plus Plan,
 Attachments und Ticket-ID. Die Factory dagegen kennt genau eine Quelle — `task-source.cjs`:
-*"OpenSpec tasks.md is the only accepted source"*. Der Factory-Worker bekommt den Plan und sonst
+*"tasks.md is the only accepted source"*. Der Factory-Worker bekommt den Plan und sonst
 nichts; er läuft unbeaufsichtigt und kann nicht nachfragen, was ihm fehlt.
 
 Zusätzlich existiert das Bundle nur in 12 von 127 Changes (9 %). Ursache ist keine Nachlässigkeit,

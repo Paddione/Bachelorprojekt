@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/freshness-check-base-mismatch.bats
-# SSOT: openspec/specs/ci-cd.md
 # T002561: `task freshness:check` measures generated artifacts against the
 # LOCAL branch tip (`git diff HEAD -- "$f"`), while CI measures the same
 # task against the PR's merge commit (which already includes the latest

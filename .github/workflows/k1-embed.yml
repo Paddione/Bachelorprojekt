@@ -18,9 +18,11 @@ on:
   workflow_dispatch:
     inputs:
       full:
-        description: 'Full reindex'
+        description: 'Full reindex (sprengt i.d.R. das 90-Min-Budget — nur gezielt)'
         type: boolean
-        default: true
+        # [T900810] Default false: manuelle Laeufe ohne Auswahl sollen den
+        # schnellen selektiven Pfad (bzw. No-op) nehmen, keinen Full-Run.
+        default: false
 
 concurrency:
   group: k1-embed-${{ github.ref }}
@@ -28,9 +30,6 @@ concurrency:
 
 permissions:
   contents: read
-
-env:
-  OPENSPEC_TELEMETRY: '0'
 
 jobs:
   diff:
@@ -52,7 +51,15 @@ jobs:
           else
             diffs=$(git diff --name-only HEAD~1..HEAD -- '**.ts' '**.mts' '**.mjs' '**.js' '**.cjs' '**.py' '**.svelte' '**.astro' '**.md' || true)
             count=$(echo "$diffs" | grep -c . || true)
-            if [ "$count" -gt 200 ] || [ "$count" -eq 0 ]; then
+            # [T900810] Leerer Diff -> No-op (nichts zu tun, gruen) statt Full:
+            # ein Voll-Index sprengt das 90-Minuten-Budget (gemessen: ~1,4
+            # Spec-Dateien/min) — jeder Leer-Diff waere dadurch dauerrot. Full
+            # bleibt fuer echte Gross-Diffs (>200) und explizite Dispatches.
+            if [ "$count" -eq 0 ]; then
+              echo "full=false" >> "$GITHUB_OUTPUT"
+              echo "files=" >> "$GITHUB_OUTPUT"
+              echo "::notice::Keine indexierbaren Aenderungen im Diff — nichts zu tun."
+            elif [ "$count" -gt 200 ]; then
               echo "full=true" >> "$GITHUB_OUTPUT"
               echo "files=" >> "$GITHUB_OUTPUT"
             else
@@ -110,7 +117,28 @@ jobs:
           echo "job_id=${JOB_ID}" >> "$GITHUB_OUTPUT"
           echo "merge_sha=${MERGE_SHA}" >> "$GITHUB_OUTPUT"
 
-          kubectl wait --for=condition=complete "job/k1-embed-${JOB_ID}" -n workspace --timeout=5400s
+          # [T900810] Fail-fast Poll statt `kubectl wait --for=condition=complete`:
+          # kubectl wait erkennt einen fehlgeschlagenen Job nicht und sitzt das
+          # volle Timeout aus — jeder defekte Lauf kostete 90 Runner-Minuten und
+          # blockierte ueber den Concurrency-Guard die Queue dahinter. Die Schleife
+          # meldet Complete/Failed sofort und haelt dasselbe Gesamtbudget (5400s).
+          for _ in $(seq 1 180); do
+            complete="$(kubectl get "job/k1-embed-${JOB_ID}" -n workspace \
+              -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || true)"
+            failed="$(kubectl get "job/k1-embed-${JOB_ID}" -n workspace \
+              -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null || true)"
+            if [ "$complete" = "True" ]; then
+              echo "k1-embed job complete"
+              exit 0
+            fi
+            if [ "$failed" = "True" ]; then
+              echo "::error::k1-embed job failed — see job logs (kubectl -n workspace logs job/k1-embed-${JOB_ID})"
+              exit 1
+            fi
+            sleep 30
+          done
+          echo "::error::timed out waiting 5400s for job/k1-embed-${JOB_ID}"
+          exit 1
       - name: Cleanup configmap & record summary
         if: always()
         run: |

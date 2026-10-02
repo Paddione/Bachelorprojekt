@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/agent-lock-claim-help-flag.bats
-# SSOT: openspec/changes/agent-lock-claim-help/specs/agent-skills.md  [T003107]
 #
 # Pruefmodus: Output-Verifikation (T002448-M4) — jeder Test FUEHRT
 # scripts/agent-lock.sh AUS und misst Exit-Code plus den Zustand des

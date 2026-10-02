@@ -40,14 +40,13 @@ task workspace:deploy ENV=<env> # applies SealedSecret before manifests
 
 ## Secrets-Dateiarchitektur
 
-Die vollständige Dokumentation der `.secrets/`-Datei-Topologie, der Fleet-Sync-Regel und
+Die vollständige Dokumentation der `.secrets/`-Datei-Topologie, der `secrets_env`-Umleitung und
 der kanonischen Sektionsstruktur steht in:
 → `docs/superpowers/references/secrets-architecture.md`
 
 **Wichtigste Regel:** `fleet-mentolder.yaml` und `fleet-korczewski.yaml` sind die
-einzigen aktiven Prod-Dateien. Legacy-Dateien (`mentolder.yaml`, `korczewski.yaml`)
-existieren nur als Referenz für den decommissionten Standalone-Cluster.
-Jeder neue Secret-Block muss in die fleet-Dateien (außer `legacy_only: true`).
+einzigen Prod-Dateien. `ENV=mentolder`/`ENV=korczewski` lesen sie über
+`secrets_env` (T900789); eigene Legacy-Dateien gibt es nicht mehr.
 
 ## Pocket ID OIDC clients
 
@@ -96,7 +95,7 @@ Vollständige Regel: [`escalation-protocol.md`](../lib/behaviors/escalation-prot
 ## Active plans
 
 Der Orchestrator injiziert einen `<active-plans>`-Block aus
-`scripts/plan-context.sh bachelorprojekt-security --with-openspec`. Ist er da, ist er maßgeblich.
+`scripts/plan-context.sh bachelorprojekt-security`. Ist er da, ist er maßgeblich.
 Ist er nicht da, läuft für diese Rolle kein Plan — **nicht** ersatzweise
 `superpowers.plans` abfragen (eingefrorene Historie).
 

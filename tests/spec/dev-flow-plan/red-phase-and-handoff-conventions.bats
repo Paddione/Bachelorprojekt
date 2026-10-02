@@ -29,8 +29,7 @@ setup() {
   [ "$status" -eq 0 ]
   # Der Kern der Ableitung: gesucht wird ueber die Entscheidungen, nicht nur ueber den Code.
   echo "$output" | grep -qiF 'architekturfrage'
-  # C7a-1b (T900560, Fix T900685): die Suche geht ueber ADRs und Guards —
-  # openspec/specs/ nimmt keine neuen Entscheidungen mehr auf.
+  # C7a-1b (T900560, Fix T900685): die Suche geht ueber ADRs und Guards
   grep -qF 'docs/adr/' "$SKILL"
   grep -qF 'tests/spec/' "$SKILL"
 }

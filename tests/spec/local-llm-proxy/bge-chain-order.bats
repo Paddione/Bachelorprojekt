@@ -2,7 +2,6 @@
 # tests/spec/local-llm-proxy/bge-chain-order.bats
 load "../../unit/lib/bats-support/load"
 load "../../unit/lib/bats-assert/load"
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T006143 / T900006
 #
 # PRUEFMODUS (T002448-M4): ERGEBNIS-basiert — der Test importiert die ECHTE

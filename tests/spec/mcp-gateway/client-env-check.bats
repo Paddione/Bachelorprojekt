@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/client-env-check.bats
-# SSOT: openspec/changes/bge-mcp-client-env-check/proposal.md
 # Ticket: T002504
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-orientiert.

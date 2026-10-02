@@ -2,7 +2,7 @@
 # tests/spec/dev-flow-plan/tcc-fixture-orphan-reap.bats
 # T002710 — task-context.bats' teardown() only fires if the process that created the
 # fixture survives to run it. An aborted run (WSL crash, session kill, systemd
-# timeout) leaves openspec/changes/tcc-fixture-<pid>/ behind as a 0-byte leftover in
+# timeout) leaves .agents/plans/tcc-fixture-<pid>/ behind as a 0-byte leftover in
 # the tracked working tree. setup() must reap such orphans on the NEXT run instead of
 # relying on the dying process' own teardown().
 #
@@ -15,15 +15,15 @@ setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   BATS_BIN="$REPO/tests/unit/lib/bats-core/bin/bats"
   TCC_FILE="$REPO/tests/spec/dev-flow-plan/task-context.bats"
-  STALE_DIR="$REPO/openspec/changes/tcc-fixture-999999999"
-  ANCHOR_DIR="$REPO/openspec/changes/_t002710-anchor-fixture"
+  STALE_DIR="$REPO/.agents/plans/tcc-fixture-999999999"
+  ANCHOR_DIR="$REPO/.agents/plans/_t002710-anchor-fixture"
   # [T003025] Seit dem Archivieren des T002710-Plans (2026-08-09, Commit 0a23ae709)
-  # existiert openspec/changes/tcc-fixture-cleanup nicht mehr im Arbeitsbaum — der
+  # existiert .agents/plans/tcc-fixture-cleanup nicht mehr im Arbeitsbaum — der
   # Test legt sein Negativ-Fixture (tcc-fixture-* OHNE Ziffern-Suffix) jetzt selbst an,
   # statt sich auf einen committeten, vergaenglichen Plan zu stuetzen. Der Aussagekern
   # bleibt: der Reaper darf Verzeichnisse im tcc-fixture-*-Muster ohne Ziffern-Suffix
   # nicht anfassen.
-  PLAN_LIKE_DIR="$REPO/openspec/changes/tcc-fixture-cleanup"
+  PLAN_LIKE_DIR="$REPO/.agents/plans/tcc-fixture-cleanup"
 }
 
 teardown() {

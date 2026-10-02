@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/monitoring-alerts.bats
-# SSOT: openspec/specs/monitoring-alerts.md
 #
 # Covers: Prometheus rules file, mandatory alert set, alertmanager config.
 

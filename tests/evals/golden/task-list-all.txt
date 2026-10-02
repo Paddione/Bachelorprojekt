@@ -167,7 +167,6 @@ task: Available tasks for this project:
 * gh:branch-protection:apply:                   Set required checks for main (removes E2E PR). Requires GH_PAT env-var with admin:repo scope.
 * gh:branch-protection:emergency-add-e2e:       Emergency: add E2E PR back to required checks (re-enables the Henne-Ei block)
 * gh:branch-protection:status:                  Show current required status checks for main branch
-* gitlab-runner:render:                         Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Escaped Laufzeit-Variablen automatisch.
 * graph:blast-radius:                           Generiere Blast-Radius-Report nach docs/generated/blast-radius.md (LAD)
 * graph:build:                                  Generiere K8s-Abhängigkeitsgraph + API-Surface-Map nach docs/generated/
 * graph:build-docs:                             Generiere Mermaid-Architecture-Markdown nach docs/diagrams/architecture.md (LAD-3)
@@ -244,19 +243,13 @@ task: Available tasks for this project:
 * opencode:monitor:                             Observe opencode serve: sessions, status, SSE events, session details, todos
 * opencode:serve:                               Lifecycle management for opencode HTTP server (start/stop/restart/status/health)
 * opencode:sync-agents:                         Merge .opencode/agent-models.jsonc config into ~/.config/opencode/opencode.jsonc
-* openspec:atlas:                               Regenerate docs/spec-atlas.md from openspec/specs + changes archive [T015012]
-* openspec:ci-telemetry-optout:                 Add OPENSPEC_TELEMETRY: '0' to every .github/workflows/*.yml that lacks it. Usage: task openspec:ci-telemetry-optout [-- --dry-run]
-* openspec:embed:backfill:                      Re-index all active openspec changes (status in ACTIVE_STATUSES from openspec-embed.mjs) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]
-* openspec:header-inject:                       Bulk-add ## Purpose + ## Requirements H2 headers to SSOT specs under openspec/specs/. Usage: task openspec:header-inject [-- --dry-run]
-* openspec:status-map:                          Regenerate components/website/src/data/openspec-status.json from openspec/changes/
-* openspec:validate:                            Check the openspec/ tree for half-archived slugs (fail-closed).
 * pi:install:                                   Pi global installieren (gepinnte Version, Node >= 20.6)
 * pi:models:                                    Chat-Modelle des Endpunkt-Verbunds auflisten (ENDPOINTS=<url,...> JSON=1)
 * pi:run:                                       Gestagten Plan mit Pi abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3 MODEL=<id> ENDPOINTS=<url,...> JSON=1)
 * pi:status:                                    Pi-Version, Agent-Verzeichnis und Endpunkt-Verbund pruefen
 * pi:uninstall:                                 Pi deinstallieren und das isolierte Agent-Verzeichnis entfernen
 * plan:qa:                                      DeepSeek-QA-Check for an implementation plan (PLAN=<path>)
-* plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md
+* plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- .agents/plans/<slug>/tasks.md
 * plans:query:                                  Show active plan sections for a given role. Usage: task plans:query -- <role>
 * pr:refresh:                                   Rebase konfliktbehaftete PRs auf origin/main und heilt Konflikte in generierten Artefakten. Usage: task pr:refresh -- [--dry-run] <pr-nummer>...
 * quality:ast:                                  Advisory AST scan with project rules (sgconfig.yml). No gate — BATS stays authoritative. See docs/agent-guide/ast-toolchain.md.

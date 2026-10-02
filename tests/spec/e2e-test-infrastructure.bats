@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/e2e-test-infrastructure.bats
-# SSOT: openspec/specs/e2e-test-infrastructure.md
 #
 # Covers: e2e-seed.ts helper module — seedAvailable, seedAdminTicket, cleanup.
 

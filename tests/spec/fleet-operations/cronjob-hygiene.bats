@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/cronjob-hygiene.bats
-# SSOT: openspec/specs/fleet-operations.md
 # Ticket: T900035 (Batch T900041)
 #
 # PRUEFMODUS: gemischt — Render-Output fuer die Ziel-URL (dort sitzt der

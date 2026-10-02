@@ -22,7 +22,6 @@ on:
     paths:
       - 'components/**'
       - 'scripts/**'
-      - 'brett/**'
       - '.github/workflows/**'
       - '.github/workflows/codeql.yml'
   pull_request:
@@ -30,7 +29,6 @@ on:
     paths:
       - 'components/**'
       - 'scripts/**'
-      - 'brett/**'
       - '.github/workflows/**'
       - '.github/workflows/codeql.yml'
   schedule:
@@ -43,9 +41,6 @@ permissions:
 concurrency:
   group: codeql-${{ github.ref }}
   cancel-in-progress: true
-
-env:
-  OPENSPEC_TELEMETRY: '0'
 
 jobs:
   analyze:

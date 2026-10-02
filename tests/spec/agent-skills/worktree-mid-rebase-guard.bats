@@ -31,11 +31,11 @@ _make_fixture() {
   git -C "$FIXTURE" config user.email t@example.invalid
   git -C "$FIXTURE" config user.name "T"
   mkdir -p "$FIXTURE/components/website/src/data"
-  echo base > "$FIXTURE/components/website/src/data/openspec-status.json"
+  echo base > "$FIXTURE/components/website/src/data/test-inventory.json"
   git -C "$FIXTURE" add -A
   git -C "$FIXTURE" commit -qm base
   git -C "$FIXTURE" branch feat
-  echo mainside > "$FIXTURE/components/website/src/data/openspec-status.json"
+  echo mainside > "$FIXTURE/components/website/src/data/test-inventory.json"
   git -C "$FIXTURE" commit -qam mainside
 
   WT="$BATS_TEST_TMPDIR/wt"
@@ -44,14 +44,14 @@ _make_fixture() {
 
   [ "$mode" = "--mid-rebase" ] || return 0
 
-  echo feat > "$WT/components/website/src/data/openspec-status.json"
+  echo feat > "$WT/components/website/src/data/test-inventory.json"
   git -C "$WT" commit -qam feat
   # Plain, NICHT-interaktiver Rebase. Git meldet den Zustand dennoch als
   # "interactive rebase in progress" — das Merge-Backend ist der Standard.
   git -C "$WT" rebase main >/dev/null 2>&1 || true
   # Konflikt aufloesen und stagen, dann NICHT --continue: die Unterbrechung.
-  echo resolved > "$WT/components/website/src/data/openspec-status.json"
-  git -C "$WT" add components/website/src/data/openspec-status.json
+  echo resolved > "$WT/components/website/src/data/test-inventory.json"
+  git -C "$WT" add components/website/src/data/test-inventory.json
 }
 
 @test "Positiv-Anker: der Guard laeuft und meldet ein Fixture ohne unterbrochene Operation mit Exit 0" {
@@ -84,7 +84,7 @@ _make_fixture() {
   _make_fixture --mid-rebase
   # Genau der Ausdruck aus repo-hygiene-ops.md Abschnitt 1.
   filtered="$(git -C "$WT" status --porcelain | cut -c4- \
-    | grep -Ev '^(openspec/changes/|docs/code-quality/|components/website/src/data/)' \
+    | grep -Ev '^(.agents/plans/|docs/code-quality/|components/website/src/data/)' \
     | grep -Ev '^(\.release-please-manifest\.json|components/website/CHANGELOG\.md|components/website/package\.json)$' || true)"
   # Leer heisst nach dem Runbook "sauber" — obwohl der Worktree mitten im Rebase steht.
   # Das ist der Grund, warum der Guard dem Vorcheck vorgelagert sein muss.

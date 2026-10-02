@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/repo-hygiene/signal-gaps.bats
-# SSOT: openspec/specs/agent-skills.md — repo-hygiene-Runbook
 #
 # Tickets T002821, T002822, T002823, T002844, T002847. Alle fünf sind Instanzen EINER
 # Fehlerklasse: ein Signal meldet Gesundheit, ohne das Attestierte geprüft zu haben.

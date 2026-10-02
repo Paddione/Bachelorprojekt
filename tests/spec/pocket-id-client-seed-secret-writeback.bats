@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/pocket-id-client-seed-secret-writeback.bats
-# SSOT: openspec/changes/pocket-id-client-seed-secret-writeback/specs/pocket-id-client-seed-secret-writeback.md (T001435)
 #
 # Verifies pocket-id-client-seed no longer rotates an EXISTING client's
 # secret on every run (the root cause of the persistent "secret mismatch" /

@@ -17,7 +17,6 @@
 # IMMER falsch. Der Schritt wird `skipped`, der Job bleibt grün, und ein
 # legitimer Skip ist davon nicht zu unterscheiden.
 #
-# SSOT: openspec/specs/ci-cd.md
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"

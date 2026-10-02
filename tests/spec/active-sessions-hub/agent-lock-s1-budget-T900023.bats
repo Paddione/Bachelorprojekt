@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/active-sessions-hub.md
 # Ticket: T900023 — `scripts/agent-lock.sh` hat mit dem Windows-Pfad-Fix (d60c3704)
 # das S1-Limit gerissen: 806 Zeilen bei Limit 800 fuer `.sh`.
 #

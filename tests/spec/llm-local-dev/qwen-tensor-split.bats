@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/qwen-tensor-split.bats
-# SSOT: openspec/changes/qwen-tensor-split/specs/llm-local-dev.md
 #       Requirement "Start scripts leave -ngl to -fit" (MODIFIED, T900172).
 #
 # Der Dual-GPU-Split des Qwen-27B-Loadouts legt 85 % der Layer auf die

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/ticket-system.md
 # Ticket: T002781 — ticket.sh list filtert is_test_data nicht
 #
 # PRUEFMODUS: Command-Output-Verifikation (T002448-M4). Die Tests FUEHREN

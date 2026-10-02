@@ -59,7 +59,7 @@ catalog:
       - sdlc
       - workflow
       - conventional-commit
-    summary: "Ticket-getriebene SDLC-Pipeline mit OpenSpec-Changes, BATS-Gates und Factory-Orchestrierung"
+    summary: "Ticket-getriebene SDLC-Pipeline mit staged plans, BATS-Gates und Factory-Orchestrierung"
 
   - id: bats-quality-gates
     label: "BATS Quality Gates"

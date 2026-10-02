@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-isolation/e3-tickets-lokal.bats
-# SSOT: openspec/changes/e3-sdlc-tickets-lokal/tasks.md (T002626)
+
 #
 # PRUEFMODUS: command output verification [T002448-M4]. Die Umstellung wird
 # gemessen, indem die Skripte AUSGEFUEHRT und ihre Ausgaben gelesen werden —
@@ -146,7 +146,7 @@ STUB
   # weiterhin, wofuer er da ist. Ohne diesen Anker bestuende der Negativtest
   # auch bei geloeschter Datei.
   grep -q 'render-artifact:' "$wf"
-  grep -q 'deploy-legacy:' "$wf"
+  # T900810: der deploy-legacy-Anker ist mit dem pre-Flux-Job entfallen.
   # Erst jetzt die Negativ-Aussage: keine ausfuehrbare Ticket-Schreibzeile mehr.
   run grep -c '^[^#]*ticket\.sh update-status' "$wf"
   [ "$output" = "0" ]

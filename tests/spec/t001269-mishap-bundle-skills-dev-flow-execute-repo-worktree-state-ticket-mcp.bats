@@ -20,23 +20,14 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
-@test "T001269: dev-flow-execute SKILL.md converts plan_staged/in_progress/active in sed" {
-  # T002181: der Regex stand einmal direkt im SKILL.md. Die Archivierungsmechanik
-  # ist seither nach references/plan-archive-steps.md ausgelagert, auf die
-  # Schritt 7 verbindlich verweist. Die Anforderung ist unverändert — geprüft
-  # wird jetzt die Kette: SKILL.md verweist, und die Referenz trägt den Regex.
-  [ -f "$DEV_FLOW_EXECUTE_SKILL" ]
-  local archive_ref="$REPO/.claude/skills/references/plan-archive-steps.md"
-  [ -f "$archive_ref" ] || archive_ref="$REPO/.agents/skills/references/plan-archive-steps.md"
-
-  run grep -qF 'plan-archive-steps' "$DEV_FLOW_EXECUTE_SKILL"
-  [ "$status" -eq 0 ]
-  [ -f "$archive_ref" ]
-
-  # The fix must match all active states in a single regex (including planning, T005564):
-  # sed -E -i 's/^status: (active|plan_staged|in_progress|planning)$/status: completed/'
-  run grep -E 'sed -E -i '\''s/\^status: \(active\|plan_staged\|in_progress(\|planning)?\)\$/status: completed/'\''' "$archive_ref"
-  [ "$status" -eq 0 ]
+@test "T001269: finalizer converts all active plan states before database archive" {
+  local finalizer="$REPO/scripts/devflow-post-merge-finalize.sh"
+  local helper="$REPO/scripts/lib/finalize-frontmatter.sh"
+  [ -f "$finalizer" ]
+  [ -f "$helper" ]
+  grep -qF "_PLAN_STATUS_ACTIVE_ALT='(active|plan_staged|in_progress|planning)'" "$finalizer"
+  grep -qF '_apply_plan_frontmatter_completed_path "$_plan_copy"' "$finalizer"
+  grep -qF 'status: completed' "$helper"
 }
 
 # ── Mishap 2: local settings loss warning ────────────────────────────────────

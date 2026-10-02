@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/tools-runtime-sandbox.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Der Test
 # ruft scripts/llm/tools-sandbox.sh und den Preflight aus runner.mjs auf und

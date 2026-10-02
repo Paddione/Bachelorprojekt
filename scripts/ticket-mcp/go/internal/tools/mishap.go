@@ -268,7 +268,7 @@ func RegisterMishapTools(s *server.MCPServer) {
 				return nil, err
 			}
 			// [T003553] Der Buffer aggregiert, er konvertiert nicht — SSOT:
-			// openspec/specs/mishap-tracking.md, Requirement "Der Mishap-Buffer
+			// docs/agent-guide/reference.md, Requirement "Der Mishap-Buffer
 			// aggregiert, er konvertiert nicht". Es entsteht hier weder ein
 			// Factory-Fix-Ticket pro Eintrag noch ein Sammel-Container
 			// [T014104]: die Eintraege werden protokolliert und verworfen.

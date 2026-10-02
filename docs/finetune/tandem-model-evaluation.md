@@ -1,6 +1,6 @@
 # Tandem-Kleinstmodelle — Evaluierung und Trainingsempfehlung
 
-_Ticket T015248 · Change `openspec/changes/tandem-small-models` · Stand 2026-08-24_
+_Ticket T015248 · Change `tandem-small-models` · Stand 2026-08-24_
 
 Forschungs-Deliverable: begründete Modell-Empfehlung je Tandem-Rolle plus Trainingsplan.
 Die Umsetzung (Training, Export, Loadout-Integration) folgt in Folge-Tickets. Zahlenquellen
@@ -79,7 +79,7 @@ Die Kriterien folgen `design.md` D3/D4/D5:
    - **Worker:** Paired Measurement via `scripts/finetune/eval_harness.py` gegen das
      Testset-Format `scripts/finetune/testsets/agent-actions.jsonl` (Klassen
      `action`/`no_action`/`clarify`, en/de-Paare, ≥ 40 Fälle laut `validate-testset`).
-     Akzeptanz = SSOT-Regression-Gate (`openspec/specs/unsloth-eval-harness.md`):
+     Akzeptanz = SSOT-Regression-Gate (`unsloth-eval-harness`-Spec):
      Exit 0 erst wenn das adaptierte Modell das Basismodell aggregate erreicht oder
      übertrifft, keine Partitions-Regression.
    - **Router:** Intent-Micro-Bench auf einem Factory-Trace-Testset, gebaut mit

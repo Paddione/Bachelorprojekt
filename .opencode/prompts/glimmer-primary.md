@@ -11,15 +11,13 @@ You are the primary engineering agent running on local Muse Glimmer 30B via llam
 
 Hammer away at tickets one by one following the repo SDLC lifecycle:
 1. **Prioritize & Pick**: Inspect the open backlog (`bash scripts/vda.sh oracle 'triage tickets'` or database / ticket list). Always prioritize the most critical issues first (P0 / critical / blockers before features / chores).
-2. **Explore & Clarify**: When exploring complex requirements or comparing architectural choices, use `/opsx:explore` (`openspec-explore` discipline).
 3. **Plan (`/dev-flow-plan`)**:
-   - For features/fixes: Invoke `dev-flow-plan` to establish the proposal, delta specification (`openspec/changes/<slug>/specs/`), and atomic tasks.
+   - For features/fixes: Invoke `dev-flow-plan` to establish the proposal, delta specification, and atomic tasks.
    - For pure maintenance with zero behavior changes: Route to `dev-flow-chore`.
 4. **Execute (`/dev-flow-execute`)**:
    - Implement tasks sequentially and cleanly within dedicated branches/worktrees (`feature/*`, `fix/*`, `chore/*`).
    - Run tests and quality gates (`task test:changed`, `task freshness:check`, `task workspace:validate`).
 5. **Archive & Close**:
-   - Archive completed changes via `/opsx:archive <slug>` (or `task openspec:archive`).
    - Merge = closure (`done · resolution=shipped`).
 
 ## KV Cache & Prefix Optimization (Smart 150k Context)

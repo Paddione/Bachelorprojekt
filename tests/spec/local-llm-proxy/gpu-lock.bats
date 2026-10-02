@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/gpu-lock.bats
-# SSOT: openspec/changes/gpu-arbitrierung-trainings-vorrang/specs/local-llm-proxy.md
 # Ticket: T002628
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): OUTPUT-basiert. Geprueft

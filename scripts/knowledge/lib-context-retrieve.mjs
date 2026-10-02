@@ -44,7 +44,8 @@
  */
 
 import { createHash } from 'node:crypto';
-import { approxTokens, ACTIVE_STATUSES } from '../openspec-embed.mjs';
+const ACTIVE_STATUSES = ['planning', 'plan_staged'];
+const approxTokens = (text) => Math.ceil(text.length / 4);
 
 /** Modell des lokalen bge-Gateways (k3d/llm-gpu.yaml), konfigurierbar. */
 const embedModel = () => process.env.LLM_EMBED_MODEL ?? 'bge-m3';
@@ -251,7 +252,7 @@ export async function rerank(query, candidates, topK = candidates.length) {
 
 /**
  * Budget-Fuellung: greedy nach Score bis zur Budget-Grenze (Token-Schaetzung
- * wie scripts/openspec-embed.mjs approxTokens, Laenge / 4 — Index- und
+ * Laenge / 4 — Index- und
  * Retrieval-Seite rechnen identisch). Rueckgabe { selected, balance } mit
  * balance = { used, budget, selected, candidates } als Bilanz fuer --json.
  */

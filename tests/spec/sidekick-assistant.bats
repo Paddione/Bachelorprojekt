@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sidekick-assistant.bats
-# SSOT: openspec/specs/sidekick-assistant.md
 #
 # Covers: Profile-based access separation, nudge API routes, chat interface.
 

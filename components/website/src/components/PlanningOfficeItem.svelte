@@ -13,6 +13,8 @@
     promoteFn,
     removeDepFn,
     addDepFn,
+    saveRequirementsFn,
+    lockFn,
     onSheetPointerDown,
     onSheetPointerUp,
   } = $props();
@@ -41,6 +43,8 @@
       promoteFn={promoteFn}
       removeDepFn={removeDepFn}
       addDepFn={addDepFn}
+      saveRequirementsFn={saveRequirementsFn}
+      lockFn={lockFn}
     />
   </div>
 </div>

@@ -8,7 +8,7 @@
 #
 # Hintergrund: refactor/sdlc-routes-remove-T002627 wurde abgelehnt (T002627),
 # der Operator wich geraten auf feature/ aus. Die Allowlist bleibt bewusst bei
-# vier Praefixen (siehe openspec/specs/divergence-guard.md); der Guard soll die
+# vier Praefixen; der Guard soll die
 # konforme Alternative nennen statt sie erraten zu lassen.
 #
 # RED-Phase: Die Typ-Praefix-Abbildung existiert noch nicht. Die Vorschlags-Tests

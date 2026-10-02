@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -e
 # T001780: opencode-local-model-runner — Implementation Plan
-# SSOT: openspec/changes/opencode-local-model-runner/tasks.md
 
 load 'test_helper'
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/security.bats
-# SSOT: openspec/specs/security.md
 #
 # Covers: Hybrid-auth model, secret rotation, ingress paths, NetworkPolicy exclusion.
 
@@ -52,7 +51,6 @@ setup() {
 }
 
 # ── Run-as-non-root baseline (T015293) ────────────────────────────────
-# SSOT: openspec/specs/security.md (Delta: changes/runasnonroot-hardening-followup)
 # Gehardenede Deployments tragen pod-level runAsNonRoot + RuntimeDefault-Seccomp;
 # ihre Container zusätzlich runAsNonRoot/runAsUser:1000/APE:false. Ausnahme-
 # Container benötigen den maschinenlesbaren Marker '# runAsNonRoot-Ausnahme:'.

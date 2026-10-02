@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/health-goals-erden.bats
-# Ticket: T002402 / openspec/changes/health-goals-erden/tasks.md
+# Ticket: T002402
 
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"

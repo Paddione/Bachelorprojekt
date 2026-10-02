@@ -7,7 +7,7 @@ setup() {
 }
 
 @test "stage-plan rejects FACTORY-PLAN-REF pointing to nonexistent file" {
-  run bash "$STAGE_PLAN" --id T000999 --branch "feature/test" --plan "openspec/changes/nonexistent/tasks.md" --no-hold
+  run bash "$STAGE_PLAN" --id T000999 --branch "feature/test" --plan ".agents/plans/nonexistent/tasks.md" --no-hold
   [ "$status" -eq 1 ]
   [[ "$output" == *"does not exist"* ]]
 }
@@ -19,13 +19,13 @@ setup() {
 }
 
 @test "stage-plan rejects missing --id flag" {
-  run bash "$STAGE_PLAN" --branch "feature/test" --plan "openspec/changes/test/tasks.md"
+  run bash "$STAGE_PLAN" --branch "feature/test" --plan ".agents/plans/test/tasks.md"
   [ "$status" -eq 2 ]
   [[ "$output" == *"--id is required"* ]]
 }
 
 @test "stage-plan rejects missing --branch flag" {
-  run bash "$STAGE_PLAN" --id T000999 --plan "openspec/changes/test/tasks.md"
+  run bash "$STAGE_PLAN" --id T000999 --plan ".agents/plans/test/tasks.md"
   [ "$status" -eq 2 ]
   [[ "$output" == *"--branch is required"* ]]
 }
@@ -54,16 +54,16 @@ setup() {
     git add README.md
     git commit -q -m base
     git checkout -q -b feature/only-here
-    mkdir -p openspec/changes/demo
-    echo "# plan" > openspec/changes/demo/tasks.md
-    git add openspec/changes/demo/tasks.md
+    mkdir -p .agents/plans/demo
+    echo "# plan" > .agents/plans/demo/tasks.md
+    git add .agents/plans/demo/tasks.md
     git commit -q -m plan
     # Back to main: the plan is NOT in the working tree and NOT in HEAD.
     git checkout -q main
   )
   cd "$repo"
   run bash "$STAGE_PLAN" --id T000999 --branch "feature/only-here" \
-      --plan "openspec/changes/demo/tasks.md"
+      --plan ".agents/plans/demo/tasks.md"
   # The DB step will fail in this sandbox — that is fine. What must NOT happen
   # is the pre-flight rejecting the plan as missing.
   [[ "$output" != *"does not exist in git"* ]]
@@ -83,7 +83,7 @@ setup() {
   )
   cd "$repo"
   run bash "$STAGE_PLAN" --id T000999 --branch "feature/absent" \
-      --plan "openspec/changes/ghost/tasks.md" --no-hold
+      --plan ".agents/plans/ghost/tasks.md" --no-hold
   [ "$status" -eq 1 ]
   [[ "$output" == *"does not exist"* ]]
 }
@@ -102,15 +102,15 @@ setup() {
     git add README.md
     git commit -q -m base
     git checkout -q -b feature/only-here
-    mkdir -p openspec/changes/demo
-    echo "# plan" > openspec/changes/demo/tasks.md
-    git add openspec/changes/demo/tasks.md
+    mkdir -p .agents/plans/demo
+    echo "# plan" > .agents/plans/demo/tasks.md
+    git add .agents/plans/demo/tasks.md
     git commit -q -m plan
     git checkout -q main
   )
   cd "$repo"
   run bash "$REPO_ROOT/scripts/ticket.sh" archive-plan --id T000999 --slug demo \
-      --branch "feature/only-here" --plan-file "openspec/changes/demo/tasks.md"
+      --branch "feature/only-here" --plan-file ".agents/plans/demo/tasks.md"
   # The DB step will fail in this sandbox — that is fine. What must NOT happen
   # is the pre-flight rejecting the plan file as missing/empty.
   [[ "$output" != *"does not exist or is empty"* ]]
@@ -130,7 +130,7 @@ setup() {
   )
   cd "$repo"
   run bash "$REPO_ROOT/scripts/ticket.sh" archive-plan --id T000999 --slug ghost \
-      --branch "feature/absent" --plan-file "openspec/changes/ghost/tasks.md"
+      --branch "feature/absent" --plan-file ".agents/plans/ghost/tasks.md"
   [ "$status" -eq 1 ]
   [[ "$output" == *"does not exist or is empty"* ]]
 }

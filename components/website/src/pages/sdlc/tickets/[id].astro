@@ -24,10 +24,6 @@ import ContainerDorPanel from '../../../components/admin/ContainerDorPanel.svelt
 import TicketPlanPanel from '../../../components/admin/TicketPlanPanel.svelte';
 import TicketSpecProgress from '../../../components/admin/TicketSpecProgress.svelte';
 import TicketAttachmentsPanel from '../../../components/admin/TicketAttachmentsPanel.svelte';
-import OpenSpecProposalsPanel from '../../../components/admin/OpenSpecProposalsPanel.svelte';
-import openspecStatusMap from '../../../data/openspec-status.json';
-import { readProposal } from '../../../lib/sdlc/openspec/proposal.ts';
-import DorPanel from '../../../components/admin/DorPanel.svelte';
 import { logger } from '../../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -45,7 +41,6 @@ const [ticket, timeline] = await Promise.all([
 
 if (!ticket) return Astro.redirect('/sdlc/cockpit');
 
-const openspecProposals = (openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>)[ticket.externalId ?? ''] ?? [];
 
 let questionnaireBundles: AssignmentBundle[] = [];
 
@@ -78,8 +73,6 @@ const containerDor = containerRollup
 const planHtml = containerPlan?.content ? renderMarkdown(containerPlan.content) : '';
 const grillingQnId = Object.keys(ticket.grillingAnswers ?? {}).filter((k) => k !== 'coaching-sessions-v1')[0] ?? 'final-grilling-v1';
 
-const dorSlug = isContainer && openspecProposals[0]?.slug ? openspecProposals[0].slug : null;
-const proposalContent = dorSlug ? await readProposal(dorSlug).catch(() => null) : null;
 
 const STATUS_CLS: Record<string, string> = { triage: 'bg-purple-900/40 text-purple-300 border-purple-800', backlog: 'bg-slate-900/40 text-slate-300 border-slate-700', in_progress: 'bg-yellow-900/40 text-yellow-300 border-yellow-800', in_review: 'bg-blue-900/40 text-blue-300 border-blue-800', blocked: 'bg-red-900/40 text-red-300 border-red-800', done: 'bg-green-900/40 text-green-300 border-green-800', archived: 'bg-dark text-muted border-dark-lighter' };
 const PRIO_CLS:  Record<string, string> = { hoch: 'text-red-400', mittel: 'text-yellow-400', niedrig: 'text-green-400' };
@@ -177,7 +170,6 @@ function fmtDateTime(d: Date | string | null): string {
 
           {containerDor && <ContainerDorPanel client:load dor={containerDor} />}
 
-          {dorSlug && <DorPanel client:load slug={dorSlug} proposalContent={proposalContent} />}
 
           {containerPlan && <TicketPlanPanel client:load plan={containerPlan} renderedHtml={planHtml} planContent={containerPlan.content ?? ''} />}
 
@@ -199,9 +191,6 @@ function fmtDateTime(d: Date | string | null): string {
 
           <TicketAttachmentsPanel client:load ticketId={ticket.id} attachments={ticket.attachments} />
 
-          {openspecProposals.length > 0 && (
-            <OpenSpecProposalsPanel client:load proposals={openspecProposals} />
-          )}
         </div>
 
         {/* Sidebar */}

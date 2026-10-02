@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/plan-runner.bats — T900504
-# SSOT: openspec/changes/plan-runner/specs/llm-local-dev.md
-#   Requirement: Plan Runner Executes OpenSpec Partials With Local Models
 #   Requirement: Orchestrator Self-Execution When All Workers Are Busy
 #
 # PRUEFMODUS: Output-Verifikation. scripts/llm/plan-runner.mjs wird GESTARTET.
@@ -221,4 +219,21 @@ EOF
   [ "$(grep -c 'p3' <<<"$res")" -ge 1 ]
   [ "$(jq -r '.orchestrator.notes' "$CH/.plan-runner/state.json")" = "p1 on 4b, p2 self" ]
   [ "$(state_of p3)" = "done" ]
+}
+
+@test "T900729: Worker starten ohne --dir und mit dem Modell ihres Agenten" {
+  make_change "p1:"
+  export FAKE_OPENCODE_ARGS="$T/args.log"
+  start_orch '[
+    {"name":"dispatch_4b","args":{"partial_id":"p1","prompt":"go"}},
+    {"name":"wait_event","args":{}},
+    {"name":"mark","args":{"partial_id":"p1","status":"done","note":"ok"}},
+    {"name":"finish","args":{"summary":"done"}}
+  ]'
+  run_runner
+  [ "$(state_of p1)" = "done" ]
+  run cat "$T/args.log"
+  echo "$output"
+  [[ "$output" != *"--dir"* ]]
+  [[ "$output" == *"run --agent plan-worker-4b --model llamacpp-qwen35/"* ]]
 }

@@ -333,7 +333,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         id: { type: 'string', description: 'external_id z.B. T000123' },
-        slug: { type: 'string', description: 'OpenSpec-Change-Slug' },
+        slug: { type: 'string', description: 'Plan-Slug' },
         branch: { type: 'string', description: 'Feature/Fix-Branch' },
         plan_file: { type: 'string', description: 'Pfad zur Plan-Datei' },
         pr: { type: 'string', description: 'Optionale PR-Nummer (integer)' },
@@ -895,7 +895,7 @@ const TOOLS = [
   "type": "object",
   "properties": {
 "id": { "type": "string", "description": "external_id z.B. T000123"},
-"slug": { "type": "string", "description": "OpenSpec-Change-Slug"},
+"slug": { "type": "string", "description": "Plan-Slug"},
 "branch": { "type": "string", "description": "Feature/Fix-Branch"},
 "plan_file": { "type": "string", "description": "Pfad zur Plan-Datei"},
 "pr": { "type": "string", "description": "Optionale PR-Nummer (integer)"},

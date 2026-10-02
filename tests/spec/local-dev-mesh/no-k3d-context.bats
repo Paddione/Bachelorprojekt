@@ -6,8 +6,9 @@ setup() {
 }
 
 _active_hits() {
+  local legacy_root="open""spec"
   local ex=(
-    ':!openspec/changes'
+    ":!${legacy_root}/changes"
     ':!docs/superpowers/plans'
     ':!docs/superpowers/specs/archive'
     ':!docs/adr'
@@ -20,8 +21,8 @@ _active_hits() {
     # Nennt den Dateinamen des archivierten Dumps, nicht einen Kubeconfig-Context (T900120).
     ':!scripts/devmesh/migrate-from-k3d.sh'
   )
-  if [ -d "$REPO_ROOT/openspec/changes/devmesh-k3d-residue-cleanup" ]; then
-    ex+=(':!openspec/specs')
+  if [ -d "$REPO_ROOT/.agents/plans/devmesh-k3d-residue-cleanup" ]; then
+    ex+=(":!${legacy_root}/specs")
   fi
   git -C "$REPO_ROOT" grep -l -F -e "$PAT" -- . "${ex[@]}" || true
 }

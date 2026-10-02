@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sessions-server/domain-config.bats
-# SSOT: openspec/specs/sessions-server.md — Zentrale Session-Domain-Konfiguration.
 # Prüfmodus: Querschnitts-Konventionstest (Ergebnis manifestiert sich im
 # Quelltext) — grep ist hier das angemessene Mittel; jeder Negativtest hat
 # seinen Positiv-Anker im selben Test.

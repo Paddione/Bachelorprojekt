@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/vaultwarden-smtp-from.bats
-# SSOT: openspec/specs/fleet-operations.md
 # Ticket: T900028 (Batch T900041)
 #
 # PRUEFMODUS: Render-Output. Der Defekt sitzt in dem, was der Overlay-Build

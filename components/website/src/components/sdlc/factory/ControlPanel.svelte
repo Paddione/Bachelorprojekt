@@ -20,7 +20,7 @@
     updatedAt: string | null;
   }
 
-  let state = $state<ControlState | null>(null);
+  let snap = $state<ControlState | null>(null);
   let error = $state<string | null>(null);
   let loading = $state(true);
 
@@ -29,7 +29,7 @@
       loading = true;
       const res = await fetch('/sdlc/api/factory-control');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      state = await res.json() as ControlState;
+      snap = await res.json() as ControlState;
       error = null;
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to load';
@@ -39,9 +39,9 @@
   }
 
   async function patch(partial: Partial<ControlState>) {
-    if (!state) return;
-    const prev = { ...state };
-    state = { ...state, ...partial };
+    if (!snap) return;
+    const prev = { ...snap };
+    snap = { ...snap, ...partial };
 
     try {
       const res = await fetch('/sdlc/api/factory-control', {
@@ -50,10 +50,10 @@
         body: JSON.stringify(partial),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      state = await res.json() as ControlState;
+      snap = await res.json() as ControlState;
       error = null;
     } catch (err) {
-      state = prev;
+      snap = prev;
       error = err instanceof Error ? err.message : 'Update failed';
     }
   }
@@ -66,39 +66,39 @@
 <div class="control-panel">
   {#if loading}
     <div class="control-panel__loading">Loading control state...</div>
-  {:else if error && !state}
+  {:else if error && !snap}
     <div class="control-panel__error">
       <p>Failed to load control state: {error}</p>
       <button onclick={loadState}>Retry</button>
     </div>
-  {:else if state}
+  {:else if snap}
     <div class="control-panel__grid">
       <KillSwitchCard
-        value={state.killSwitch}
+        value={snap.killSwitch}
         onchange={(v) => patch({ killSwitch: v })}
       />
       <DryRunCard
-        value={state.dryRun}
+        value={snap.dryRun}
         onchange={(v) => patch({ dryRun: v })}
       />
       <SlotCapCard
-        value={state.slotCap}
+        value={snap.slotCap}
         onchange={(v) => patch({ slotCap: v })}
       />
       <DailyCapCard
-        value={state.dailyCap}
+        value={snap.dailyCap}
         onchange={(v) => patch({ dailyCap: v })}
       />
       <ContextBudgetCard
-        value={state.contextBudget}
+        value={snap.contextBudget}
         onchange={(v) => patch({ contextBudget: v })}
       />
       <SpawnHarnessCard
-        value={state.spawnHarness}
+        value={snap.spawnHarness}
         onchange={(v) => patch({ spawnHarness: v })}
       />
       <LavishDelegationCard
-        value={state.lavishDelegation}
+        value={snap.lavishDelegation}
         onchange={(v) => patch({ lavishDelegation: v })}
       />
     </div>
@@ -109,7 +109,7 @@
       </div>
     {/if}
 
-    <StatusStrip {state} />
+    <StatusStrip state={snap} />
   {/if}
 </div>
 

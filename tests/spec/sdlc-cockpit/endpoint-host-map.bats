@@ -3,7 +3,6 @@
 # Misst die Endpunkt-Karte aus K4 (T002463) IM LAUF, nicht im Quelltext: ein
 # node-Aufruf laedt adapter.js mit document/window/fetch-Attrappe und gibt fuer
 # jeden Schluessel eine Zeile "<key> <host-oder-unavailable>" aus.
-# SSOT: openspec/changes/cockpit-auth-schnitt/specs/sdlc-cockpit.md
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"

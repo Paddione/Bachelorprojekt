@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/divergence-guard.bats
-# SSOT spec: openspec/specs/ci-cd.md (capability divergence-guard)
 # Tests for local main divergence check in scripts/worktree-create.sh
 
 setup() {

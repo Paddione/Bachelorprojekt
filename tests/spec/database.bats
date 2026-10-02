@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/database.bats
-# SSOT: openspec/specs/database.md
 #
 # Phase-2-Drop Regression: nach Anwendung von
 # scripts/migrations/2026-07-09-coaching-phase2-drop-legacy.sql MÜSSEN

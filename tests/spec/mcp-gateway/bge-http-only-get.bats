@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/bge-http-only-get.bats
-# SSOT: openspec/changes/bge-mcp-http-only-get/proposal.md
 # Ticket: T002703
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-orientiert.

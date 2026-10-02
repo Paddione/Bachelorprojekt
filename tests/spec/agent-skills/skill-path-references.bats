@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/skill-path-references.bats
-# SSOT: openspec/specs/agent-skills.md
+# SSOT: docs/superpowers/specs/agent-skills.md
 #
 # Guard gegen tote Pfadverweise in eigenen Skill-Dateien (T002613).
 #
@@ -34,7 +34,7 @@ EXCLUDED_SKILLS=(gitops-repo-audit gitops-knowledge gitops-cluster-debug vitest 
 # bare-`website` in der Alternation: GNU grep (POSIX-ERE) wählt leftmost-longest,
 # so extrahiert ein Verweis auf components/website/src/... den Endzustands-Pfad
 # und nicht den Substring website/src/... (der nicht mehr existiert).
-PATH_PATTERN='\b((components/website)|(openspec|scripts|tests|docs|website|k3d|environments|flux))/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*'
+PATH_PATTERN='\b((components/website)|(plan|scripts|tests|docs|website|k3d|environments|flux))/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*'
 
 # Zweites Muster (T014027, T900070, T900078): Verweise auf Pfade unter
 # .claude/skills/ UND .opencode/skills/ — v. a. die Referenz-Links der Form
@@ -61,9 +61,15 @@ skill_files() {
 
 # Extrahiert alle repo-relativen Pfadverweise aus einer Datei, strippt Anhänge
 # (`:45`, `REQ-…`, `)`) und dedupliziert.
+#
+# URLs werden vorher entfernt (T900835): der Pfadteil von
+# `https://langfuse.com/docs/observability/overview.md` beginnt mit einem der
+# Wurzelpräfixe, ist aber kein Verweis ins Repo.
 extract_paths() {
-  { grep -oE "$PATH_PATTERN" "$1" 2>/dev/null
-    grep -oE "$SKILL_PATH_PATTERN" "$1" 2>/dev/null
+  local text
+  text="$(sed -E 's#https?://[^][:space:])"'"'"'<>`]+##g' "$1" 2>/dev/null)"
+  { grep -oE "$PATH_PATTERN" <<<"$text"
+    grep -oE "$SKILL_PATH_PATTERN" <<<"$text"
   } | sed -E 's/:[0-9]+$//; s/REQ-[A-Za-z0-9-]+$//; s/\)$//' \
     | sort -u
 }
@@ -122,4 +128,20 @@ extract_paths() {
   [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
   grep -q '^  - id: llama-cpp$' "$REPO/docs/agent-guide/registry/skills.yaml"
   grep -A12 '^  - id: llama-cpp$' "$REPO/docs/agent-guide/registry/skills.yaml" | grep -q 'claude_code: "OpenCode-only vendor skill'
+}
+
+@test "URL-Pfade gelten nicht als repo-relative Verweise (T900835)" {
+  # Der langfuse-Skill nennt `https://langfuse.com/docs/observability/overview.md`. Der
+  # Pfadteil einer URL beginnt mit einem der Wurzelpraefixe (`docs/`), ist aber kein Verweis
+  # ins Repo — der Guard meldete ihn als toten Verweis und faerbte main rot.
+  local f="$BATS_TEST_TMPDIR/skill.md"
+  printf '%s\n' \
+    'curl -s "https://langfuse.com/docs/observability/overview.md"' \
+    'siehe (http://example.org/scripts/install.sh) und <https://example.org/tests/x.bats>' \
+    'echter Verweis: tests/spec/agent-skills/skill-path-references.bats' > "$f"
+  run extract_paths "$f"
+  [ "$status" -eq 0 ]
+  # Positiv-Anker (T002356-M1): der echte Verweis wird weiterhin extrahiert — sonst waere
+  # die Negativ-Aussage auch dann erfuellt, wenn die Extraktion gar nichts mehr liefert.
+  [ "$output" = "tests/spec/agent-skills/skill-path-references.bats" ]
 }

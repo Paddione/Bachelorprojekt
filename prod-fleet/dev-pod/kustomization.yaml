@@ -5,8 +5,7 @@
 # Dev-Node-Bindung und Resource-Werte, und es gibt nur EINE Zielumgebung.
 #
 # Kein ${VAR}-Platzhalter in der Basis — deshalb braucht der Render-Pfad
-# (scripts/flux-render-artifact.sh) hier kein vorheriges env-resolve.sh,
-# genauso wie beim gitlab-runner-stack.
+# (scripts/flux-render-artifact.sh) hier kein vorheriges env-resolve.sh.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: workspace-dev

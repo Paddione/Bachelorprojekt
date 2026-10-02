@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/phase-events.md (factory_phase_events)
 # Ticket: T003804 — factory_phase_events Zeit-Spalte heißt `at` — Introspect-Queries
 # schlugen zweimal fehl
 #

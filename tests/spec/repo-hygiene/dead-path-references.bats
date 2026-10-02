@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/repo-hygiene/dead-path-references.bats
-# SSOT: openspec/specs/agent-skills.md
 #
 # Guard gegen tote Pfad-Referenzen (T002688, Vorgang A). Prüfmodus:
 # Kommando-Ergebnis-Verifikation — jede Prüfung extrahiert Kandidaten aus der
@@ -82,6 +81,60 @@ _normalize_repo_relpath() {
   echo "$res"
 }
 
+# Loest Zwischen-Symlinks in einem repo-relativen Pfad ueber den Git-Tree auf (T900836).
+# `git cat-file -e HEAD:a/b/c` folgt keinem Symlink in `a` oder `a/b`: liegt das Ziel
+# hinter einem getrackten Symlink (`.agents/skills` -> `../.opencode/skills`), meldet git
+# es als fehlend, obwohl es in jedem Checkout existiert. Die Aufloesung bleibt im Tree —
+# ein nur lokal vorhandenes Ziel gilt weiterhin als haengend.
+_resolve_tracked_symlinks() {
+  local path="$1" hops=0
+  while [ "$hops" -lt 16 ]; do
+    local prefix="" seg rest="" replaced=0
+    local -a segs=()
+    IFS="/" read -ra segs <<< "$path"
+    local i n="${#segs[@]}"
+    for ((i = 0; i < n - 1; i++)); do
+      seg="${segs[$i]}"
+      prefix="${prefix:+$prefix/}$seg"
+      if [ "$(git -C "$REPO_ROOT" ls-tree HEAD -- "$prefix" 2>/dev/null | awk '{print $1}')" = "120000" ]; then
+        local link_target dir
+        link_target="$(git -C "$REPO_ROOT" cat-file -p "HEAD:$prefix" 2>/dev/null || true)"
+        [ -n "$link_target" ] || break
+        rest="$(IFS="/"; echo "${segs[*]:$((i + 1))}")"
+        dir="$(dirname "$prefix")"
+        [ "$dir" = "." ] && dir=""
+        path="$(_normalize_repo_relpath "${dir:+$dir/}$link_target/$rest")"
+        replaced=1
+        break
+      fi
+    done
+    [ "$replaced" -eq 1 ] || break
+    hops=$((hops + 1))
+  done
+  echo "$path"
+}
+
+@test "T900836: Zwischen-Symlinks werden ueber den Git-Tree aufgeloest" {
+  # Positiv-Anker: der Zwischen-Symlink, an dem der Guard scheiterte, ist getrackt.
+  [ "$(git -C "$REPO_ROOT" ls-tree HEAD -- .agents/skills | awk '{print $1}')" = "120000" ]
+
+  # Ein Ziel hinter dem Symlink wird auf seinen echten, getrackten Pfad abgebildet.
+  run _resolve_tracked_symlinks ".agents/skills/repo-hygiene/SKILL.md"
+  [ "$status" -eq 0 ]
+  git -C "$REPO_ROOT" cat-file -e "HEAD:$output"
+
+  # Ein Pfad ohne Zwischen-Symlink bleibt unveraendert.
+  run _resolve_tracked_symlinks "tests/spec/repo-hygiene/dead-path-references.bats"
+  [ "$output" = "tests/spec/repo-hygiene/dead-path-references.bats" ]
+
+  # Negativ: ein fehlendes Ziel hinter dem Symlink bleibt fehlend — die Aufloesung darf
+  # haengende Symlinks nicht gruen machen.
+  run _resolve_tracked_symlinks ".agents/skills/gibt-es-nicht-T900836"
+  [ "$status" -eq 0 ]
+  run git -C "$REPO_ROOT" cat-file -e "HEAD:$output"
+  [ "$status" -ne 0 ]
+}
+
 @test "T002688: kein getrackter Symlink haengt in der Luft" {
   # [T900021] Plattformunabhaengige Pruefung ueber den Git-Tree statt Arbeitsbaum.
   # Auf Checkouts mit core.symlinks=false (Windows) ist ein Symlink im FS eine
@@ -123,7 +176,7 @@ _normalize_repo_relpath() {
     else
       combined="$dir/$target"
     fi
-    resolved="$(_normalize_repo_relpath "$combined")"
+    resolved="$(_resolve_tracked_symlinks "$(_normalize_repo_relpath "$combined")")"
 
     if ! git -C "$REPO_ROOT" cat-file -e "HEAD:$resolved" 2>/dev/null; then
       missing=1

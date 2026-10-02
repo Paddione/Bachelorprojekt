@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/img02-image-drift/ (planned)
 # G-IMG02: Fremd-Image-Versions-Drift — 0 Drift-Familien über alle k3d/ und
 # prod*/ Manifeste. Drift = dieselbe Image-Familie in ≥ 2 unterschiedlichen Tags
 # (ohne @sha256-Digest).

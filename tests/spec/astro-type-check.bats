@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/astro-type-check.bats
-# SSOT: openspec/specs/astro-type-check.md
 #
 # Covers: astro:check script, CI job, fixture factory existence.
 

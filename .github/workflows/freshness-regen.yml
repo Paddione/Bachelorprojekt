@@ -8,9 +8,6 @@ concurrency:
   group: freshness-regen-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   regenerate:
     name: Regenerate stale artifacts

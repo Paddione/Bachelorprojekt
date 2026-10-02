@@ -27,7 +27,7 @@
       body: JSON.stringify({ cluster: triggerCluster }),
     });
     if (r.ok) {
-      toast('success', 'Backup wird erstellt — erscheint in 1–3 Minuten in der Liste');
+      toast('ok', 'Backup wird erstellt — erscheint in 1–3 Minuten in der Liste');
       setTimeout(load, 10_000);
     }
     pending = false;
@@ -40,7 +40,7 @@
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cluster: triggerCluster, db: restoreModal.db, backupJobName: restoreModal.job.name }),
     });
-    if (r.ok) toast('success', 'Wiederherstellung gestartet');
+    if (r.ok) toast('ok', 'Wiederherstellung gestartet');
     pending = false;
     restoreModal = null;
   }

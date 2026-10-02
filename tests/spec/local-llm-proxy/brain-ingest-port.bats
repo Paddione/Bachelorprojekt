@@ -43,7 +43,6 @@ forward_ports() {
 
   # POSITIV-ANKER (T002356-M1): Ohne diesen Test bestuenden beide Negativ-Aussagen unten
   # vakuos, sobald ein grep ins Leere laeuft — eine leere Menge schneidet sich mit allem
-  # zu nichts. Vergleiche openspec/specs/divergence-guard.md:141.
   run bash -c "jq -r '.loadouts[].port' '$LOADOUTS' | wc -l"
   [ "$status" -eq 0 ]
   [ "$output" -gt 0 ]

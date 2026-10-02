@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/rustdesk-server/on-demand-lifecycle.bats
-# SSOT: openspec/specs/rustdesk-server.md (Delta T015170: On-Demand-Lifecycle).
 # Guards für den task-verwalteten RustDesk-Lifecycle: Taskfile-Registrierung,
 # Sleeper-Job mit minimaler RBAC und Kustomize-Isolation von on-demand.yaml.
 # Prüfmodus: Konfigurations-Manifestation (Taskfile-/Manifest-Greps) +

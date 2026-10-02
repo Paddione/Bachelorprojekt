@@ -820,32 +820,6 @@
       "deprecated": null
     },
     {
-      "path": "/sdlc/api/openspec/save-proposal",
-      "file": "openspec/save-proposal.ts",
-      "methods": [
-        "POST"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/openspec/search",
-      "file": "openspec/search.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "postgres"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
       "path": "/sdlc/api/ops/ai/reindex",
       "file": "ops/ai/reindex.ts",
       "methods": [

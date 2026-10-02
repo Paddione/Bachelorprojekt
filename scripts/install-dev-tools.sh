@@ -18,8 +18,6 @@
 # Tools installed: build-essential, Docker CE, k3d (nur SKIP_K3D_GO=0),
 # kubectl, task, Go (nur SKIP_K3D_GO=0), gh (gepinntes Release-Binary),
 # git-crypt (apt), pnpm (via corepack fuer DEV_USER), Node.js 22 (NodeSource,
-# falls aelter oder fehlend). openspec-Tooling laeuft ueber den Repo-Wrapper
-# scripts/openspec.sh — es wird KEIN separates openspec-Binary installiert.
 set -euo pipefail
 
 HOST=$(hostname)
@@ -129,8 +127,8 @@ fi
 
 log "step 6/8 — gh ${GH_VERSION} (pinned release binary)"
 if ! command -v gh >/dev/null; then
-  # gh ist NICHT in Debian bookworm main — gepinntes Release-Binary wie im
-  # factory-runner-Image (docker/factory-runner/Dockerfile), kein fremdes apt-Repo.
+  # gh ist NICHT in Debian bookworm main — gepinntes Release-Binary (gleiche
+  # Installationsform wie go-task), kein fremdes apt-Repo.
   curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" \
     | tar -xz -C /tmp
   mv "/tmp/gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh

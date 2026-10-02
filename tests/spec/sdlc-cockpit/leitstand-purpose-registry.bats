@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-cockpit/leitstand-purpose-registry.bats
-# SSOT: openspec/specs/sdlc-cockpit.md — E3-Leitstand-Shell [T007957], Kontrakt A
+# SSOT: docs/superpowers/specs/sdlc-cockpit.md — E3-Leitstand-Shell [T007957], Kontrakt A
 # (purpose-Registry: Shape `{ zweck, datenquelle, aktionen[] }`, Key-Ableitung
 # PascalCase→kebab-case des Datei-Basenamens, `leitstand-`-Praefix-Strip NUR fuer
 # Dateien direkt unter components/leitstand/).
@@ -83,7 +83,7 @@ EOF
   cat > "$BATS_TEST_TMPDIR/fixture-registry-complete.mjs" <<'EOF'
 export const leitstandPurposes = {
   kontextzone: { zweck: 'Tiefe/Aktion folgt Selektion', datenquelle: 'floorStore', aktionen: [] },
-  'deck-wissen': { zweck: 'API-Katalog + OpenSpec-Suche', datenquelle: 'api-inventory', aktionen: [] },
+  'deck-wissen': { zweck: 'API-Katalog + plan-Suche', datenquelle: 'api-inventory', aktionen: [] },
 };
 EOF
   run node --experimental-strip-types "$BATS_TEST_TMPDIR/check-registry.mjs" \

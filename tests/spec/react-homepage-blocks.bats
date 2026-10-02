@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/react-homepage-blocks.bats
 #
-# OpenSpec capability smoke for the react-homepage-blocks P1 implementation.
 # Verifies structural contracts that don't need the live cluster:
 #   - Block-Katalog: schema.ts covers all 7 catalog + 3 generic block types
 #   - Seed-Schema-Kontrakt: seed.ts validates against the schema

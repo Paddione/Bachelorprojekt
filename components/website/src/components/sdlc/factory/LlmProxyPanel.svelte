@@ -16,7 +16,7 @@
 
   const KINDS = ['llamacpp', 'lmstudio', 'openai-remote'] as const;
 
-  let state = $state<ProxyState | null>(null);
+  let snap = $state<ProxyState | null>(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
   let probing = $state(false);
@@ -30,14 +30,14 @@
     return { name: '', kind: 'llamacpp' as string, base_url: '', api_key_env: '', priority: 10, enabled: true };
   }
 
-  const isOnline = $derived(state?.proxy === 'online');
+  const isOnline = $derived(snap?.proxy === 'online');
 
   async function load() {
     try {
       loading = true;
       const stRes = await fetch('/sdlc/api/llm-proxy/status', { credentials: 'same-origin' });
       if (!stRes.ok) throw new Error(`HTTP ${stRes.status}`);
-      state = (await stRes.json()) as ProxyState;
+      snap = (await stRes.json()) as ProxyState;
       error = null;
     } catch (err) {
       error = err instanceof Error ? err.message : 'Laden fehlgeschlagen';
@@ -99,32 +99,32 @@
 
   {#if loading}
     <div class="lp-loading">Status wird geladen…</div>
-  {:else if error && !state}
+  {:else if error && !snap}
     <div class="lp-error"><p>{error}</p><button class="ff-pill ff-pill--ghost" onclick={load}>Erneut</button></div>
-  {:else if state}
-    {#if state.proxy === 'unreachable'}
+  {:else if snap}
+    {#if snap.proxy === 'unreachable'}
       <div class="lp-offline">
-        Proxy unter <code>{state.address ?? 'Host-Adresse'}</code> nicht erreichbar ({state.message ?? 'Verbindungsfehler'})
+        Proxy unter <code>{snap.address ?? 'Host-Adresse'}</code> nicht erreichbar ({snap.message ?? 'Verbindungsfehler'})
       </div>
-    {:else if state.proxy === 'unauthorized'}
+    {:else if snap.proxy === 'unauthorized'}
       <div class="lp-unauthorized">
-        Authentifizierung abgelehnt ({state.address ?? 'Host-Adresse'}). Bitte <code>LLM_PROXY_ADMIN_TOKEN</code> in <code>proxy.env</code> und Cluster-Secret abgleichen.
+        Authentifizierung abgelehnt ({snap.address ?? 'Host-Adresse'}). Bitte <code>LLM_PROXY_ADMIN_TOKEN</code> in <code>proxy.env</code> und Cluster-Secret abgleichen.
       </div>
-    {:else if state.proxy === 'error'}
+    {:else if snap.proxy === 'error'}
       <div class="lp-offline">
-        Fehler vom Proxy ({state.address ?? 'Host-Adresse'}): {state.message ?? 'Fehler'}
+        Fehler vom Proxy ({snap.address ?? 'Host-Adresse'}): {snap.message ?? 'Fehler'}
       </div>
     {:else}
       <div class="lp-status">
-        <span class="lp-dot lp-dot--ok"></span> online · Port {state.port ?? '—'} ·
-        Uptime {state.uptimeSec ? `${Math.floor(state.uptimeSec / 60)}m` : '—'} · v{state.version ?? '—'}
+        <span class="lp-dot lp-dot--ok"></span> online · Port {snap.port ?? '—'} ·
+        Uptime {snap.uptimeSec ? `${Math.floor(snap.uptimeSec / 60)}m` : '—'} · v{snap.version ?? '—'}
       </div>
     {/if}
 
     <table class="lp-table">
       <thead><tr><th>Name</th><th>Kind</th><th>URL</th><th>Health</th><th>Prio</th><th>An</th><th></th></tr></thead>
       <tbody>
-        {#each state.backends as b (b.id)}
+        {#each snap.backends as b (b.id)}
           <tr>
             <td>{b.name}</td>
             <td>{b.kind}</td>

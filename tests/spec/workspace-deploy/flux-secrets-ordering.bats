@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/workspace-deploy/flux-secrets-ordering.bats
-# SSOT: openspec/specs/workspace-deploy.md + openspec/changes/flux-secrets-ordering/specs/workspace-deploy.md
 # Covers T900014: brand/staging Kustomizations must reconcile AFTER their matching
 # Sealed Secrets Kustomization (dependsOn ordering), so Secret keys exist before
 # any workload referencing them is applied (shared-db race from T900011).

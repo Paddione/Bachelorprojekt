@@ -102,6 +102,7 @@ Alternatively, you can start on `https://langfuse.com/docs` and explore the site
 Any page listed in llms.txt can be fetched as markdown by appending `.md` to its path or by using `Accept: text/markdown` in the request headers. Use this when you know which page contains the information needed. Returns clean markdown with code examples and configuration details.
 
 ```bash
+curl -s "https://langfuse.com/docs/observability/overview.md"
 curl -s "https://langfuse.com/docs/observability/overview" -H "Accept: text/markdown"
 ```
 

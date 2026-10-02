@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/glimmer-worker-mcp.bats — T900373
-# SSOT: openspec/specs/llm-local-dev.md
 #   Requirement: Glimmer Worker MCP for Muse Code
 #   Requirement: Windows Paths Are Accepted by the Glimmer Worker
 #   Requirement: The Glimmer Worker Is Registered Only in Muse Code
@@ -19,8 +18,10 @@ setup_file() {
   cat > "$T_DIR/bin/opencode" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$@" > "$T_DIR/argv"
-dir=""; prev=""
-for a in "\$@"; do [ "\$prev" = "--dir" ] && dir="\$a"; prev="\$a"; done
+# opencode v2: kein --dir mehr, Arbeitsverzeichnis ist das cwd (T900729).
+for a in "\$@"; do [ "\$a" = "--dir" ] && { echo "Unrecognized flag: --dir" >&2; exit 1; }; done
+dir="\$PWD"
+printf '%s\n' "\$PWD" > "$T_DIR/cwd"
 last="\${@: -1}"
 if [ "\$last" = "slow" ]; then
   # Tool-Kindprozess, der nach dem Timeout noch schreiben wuerde (Prozessgruppen-Kill).
@@ -93,7 +94,8 @@ call() {
 
   grep -qx -e '--agent' "$T_DIR/argv"
   grep -qx 'glimmer-primary' "$T_DIR/argv"
-  grep -qx "$T_DIR/repo" "$T_DIR/argv"
+  ! grep -qx -e '--dir' "$T_DIR/argv"
+  [ "$(cat "$T_DIR/cwd")" = "$T_DIR/repo" ]
 }
 
 @test "a timeout ends the whole process group, including tool children" {

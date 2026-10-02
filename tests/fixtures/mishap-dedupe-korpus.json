@@ -15,9 +15,9 @@
         },
         {
             "id": "T002877",
-            "areas": "scripts/openspec-embed · openspec_find_similar",
-            "title": "openspec-embed Completeness-Gate: 12 Dokumente in der Collection, 57 lokale aktive Pläne",
-            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** scripts/openspec-embed · openspec_find_similar\n\nBeim Plan-Stage-Commit meldete der openspec-embed-Hook: \"WARN: completeness gate — collection has 12 docs but 57 local active plans (status=planning|plan_staged|active)\". Die Embedding-Collection deckt also rund ein Fünftel der aktiven Pläne ab.\n\nFolge: semantische Suche über Pläne (Kontexttransfer, Ähnlichkeitssuche via openspec_find_similar) arbeitet auf einem stark unvollständigen Index, ohne dass der Aufrufer das merkt — die Suche liefert Treffer, nur eben aus einem Fünftel des Bestands. Das ist die gefährlichere Sorte Lücke, weil sie wie ein Ergebnis aussieht.\n\nAbzugrenzen von T002839 (2 Dokumente über dem 2048-Token-Limit übersprungen): das erklärt 2 fehlende Dokumente, nicht 45. Die Ursache der übrigen Lücke ist offen — Kandidaten sind ein nie gelaufener Backfill (task openspec:embed:backfill) oder Pläne, die nie durch den Hook liefen, weil sie außerhalb eines Commits entstanden."
+            "areas": "scripts/plans-embed · plans_find_similar",
+            "title": "plans-embed Completeness-Gate: 12 Dokumente in der Collection, 57 lokale aktive Pläne",
+            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** scripts/plans-embed · plans_find_similar\n\nBeim Plan-Stage-Commit meldete der plans-embed-Hook: \"WARN: completeness gate — collection has 12 docs but 57 local active plans (status=planning|plan_staged|active)\". Die Embedding-Collection deckt also rund ein Fünftel der aktiven Pläne ab.\n\nFolge: semantische Suche über Pläne (Kontexttransfer, Ähnlichkeitssuche via plans_find_similar) arbeitet auf einem stark unvollständigen Index, ohne dass der Aufrufer das merkt — die Suche liefert Treffer, nur eben aus einem Fünftel des Bestands. Das ist die gefährlichere Sorte Lücke, weil sie wie ein Ergebnis aussieht.\n\nAbzugrenzen von T002839 (2 Dokumente über dem 2048-Token-Limit übersprungen): das erklärt 2 fehlende Dokumente, nicht 45. Die Ursache der übrigen Lücke ist offen — Kandidaten sind ein nie gelaufener Backfill (task plans:embed:backfill) oder Pläne, die nie durch den Hook liefen, weil sie außerhalb eines Commits entstanden."
         },
         {
             "id": "T002909",
@@ -27,9 +27,9 @@
         },
         {
             "id": "T002910",
-            "areas": "scripts/hooks openspec-embed",
-            "title": "openspec-embed: Collection deckt 14 von 58 aktiven Plänen ab, ohne dass ein Gate greift",
-            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** scripts/hooks openspec-embed\n\nDer post-commit-Hook meldet bei jedem Commit `WARN: completeness gate — collection has 14 docs but 58 local active plans (status=planning|plan_staged|active)` sowie `skipped: 2 documents (2 context limit > 2048 tokens, 0 other reasons)`. Die Embedding-Abdeckung liegt damit bei rund 24 Prozent. Das \"completeness gate\" ist nur eine Warnung: der Commit läuft durch, und die Lücke wird bei jedem weiteren Commit erneut gemeldet, ohne dass etwas sie schließt. Zwei Dokumente sind wegen Kontextlimit dauerhaft ausgeschlossen; der vorgeschlagene `task openspec:embed:backfill` behebt das nicht, solange die Dokumente über 2048 Tokens bleiben. Beobachtet bei zwei Commits auf feature/sdlc-up-T002655."
+            "areas": "scripts/hooks plans-embed",
+            "title": "plans-embed: Collection deckt 14 von 58 aktiven Plänen ab, ohne dass ein Gate greift",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** scripts/hooks plans-embed\n\nDer post-commit-Hook meldet bei jedem Commit `WARN: completeness gate — collection has 14 docs but 58 local active plans (status=planning|plan_staged|active)` sowie `skipped: 2 documents (2 context limit > 2048 tokens, 0 other reasons)`. Die Embedding-Abdeckung liegt damit bei rund 24 Prozent. Das \"completeness gate\" ist nur eine Warnung: der Commit läuft durch, und die Lücke wird bei jedem weiteren Commit erneut gemeldet, ohne dass etwas sie schließt. Zwei Dokumente sind wegen Kontextlimit dauerhaft ausgeschlossen; der vorgeschlagene `task plans:embed:backfill` behebt das nicht, solange die Dokumente über 2048 Tokens bleiben. Beobachtet bei zwei Commits auf feature/sdlc-up-T002655."
         },
         {
             "id": "T002911",
@@ -63,9 +63,9 @@
         },
         {
             "id": "T003077",
-            "areas": "scripts/openspec-embed (post-commit hook)",
-            "title": "openspec-embed scheitert bei jedem Commit an Port 15432 — k3d-Port-Forward belegt ihn dauerhaft",
-            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** scripts/openspec-embed (post-commit hook)\n\nBEOBACHTET (2026-08-09, dev-flow-plan T003045, Stage-Commit b78616a60)\n\nDer post-commit-Hook `openspec-embed` scheiterte dreimal in Folge und gab auf:\n\n  [openspec-embed-local] FEHLER: Port 15432 wird von einem fremden Prozess\n  (PID 50718: kubectl --context k3d-mentolder-dev port-forward -n workspace\n  svc/shared-db 15432:5432) belegt, nicht vom eigenen Port-Forward (PID 1660165).\n  Beende den fremden Prozess oder setze OPENSPEC_EMBED_PF_PORT auf einen freien Port.\n  [openspec-embed] retry 1/3 … retry 2/3 …\n  [openspec-embed] WARN: embed failed for 'main-ci-branch-precondition'\n                   after 3 attempts (non-fatal — see above)\n\nDer Change 'main-ci-branch-precondition' ist damit nicht eingebettet. Die\nAehnlichkeitssuche (openspec_find_similar) findet ihn nicht — genau die Funktion,\ndie Doppelarbeit an derselben Sache verhindern soll.\n\nEINORDNUNG — das Verhalten ist BESSER als frueher, nicht schlechter\nDer Guard erkennt den Fremdprozess und verweigert die Arbeit. Aeltere Notizen\nbeschreiben denselben Portkonflikt mit stillem Fallback auf die falsche Datenbank\n(Embedding landete i"
+            "areas": "scripts/plans-embed (post-commit hook)",
+            "title": "plans-embed scheitert bei jedem Commit an Port 15432 — k3d-Port-Forward belegt ihn dauerhaft",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** scripts/plans-embed (post-commit hook)\n\nBEOBACHTET (2026-08-09, dev-flow-plan T003045, Stage-Commit b78616a60)\n\nDer post-commit-Hook `plans-embed` scheiterte dreimal in Folge und gab auf:\n\n  [plans-embed-local] FEHLER: Port 15432 wird von einem fremden Prozess\n  (PID 50718: kubectl --context k3d-mentolder-dev port-forward -n workspace\n  svc/shared-db 15432:5432) belegt, nicht vom eigenen Port-Forward (PID 1660165).\n  Beende den fremden Prozess oder setze PLAN_EMBED_PF_PORT auf einen freien Port.\n  [plans-embed] retry 1/3 … retry 2/3 …\n  [plans-embed] WARN: embed failed for 'main-ci-branch-precondition'\n                   after 3 attempts (non-fatal — see above)\n\nDer Change 'main-ci-branch-precondition' ist damit nicht eingebettet. Die\nAehnlichkeitssuche (plans_find_similar) findet ihn nicht — genau die Funktion,\ndie Doppelarbeit an derselben Sache verhindern soll.\n\nEINORDNUNG — das Verhalten ist BESSER als frueher, nicht schlechter\nDer Guard erkennt den Fremdprozess und verweigert die Arbeit. Aeltere Notizen\nbeschreiben denselben Portkonflikt mit stillem Fallback auf die falsche Datenbank\n(Embedding landete i"
         },
         {
             "id": "T003078",
@@ -87,9 +87,9 @@
         },
         {
             "id": "T003101",
-            "areas": "scripts/openspec-embed (post-commit hook)",
-            "title": "openspec-embed post-commit Hook scheitert erneut an Port-15432-Konflikt",
-            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/openspec-embed (post-commit hook)\n\nBeim Commit fuer T002807 (openspec change plan-lint-w3-prose-path) schlug der openspec-embed post-commit Hook dreimal mit \"Port 15432 wird von einem fremden Prozess belegt (kubectl port-forward -n workspace svc/shared-db)\" fehl, bevor er non-fatal aufgab. Bekanntes, bereits dokumentiertes Verhalten (siehe User-MEMORY openspec-embed-port-collision.md) — kein neuer Defekt, aber weiterhin sichtbares Rauschen bei jedem Commit, solange ein k3d-dev-Port-Forward auf demselben Port laeuft. Nur zur Haeufigkeits-Dokumentation gemeldet, keine Handlungsaufforderung."
+            "areas": "scripts/plans-embed (post-commit hook)",
+            "title": "plans-embed post-commit Hook scheitert erneut an Port-15432-Konflikt",
+            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/plans-embed (post-commit hook)\n\nBeim Commit fuer T002807 (plans change plan-lint-w3-prose-path) schlug der plans-embed post-commit Hook dreimal mit \"Port 15432 wird von einem fremden Prozess belegt (kubectl port-forward -n workspace svc/shared-db)\" fehl, bevor er non-fatal aufgab. Bekanntes, bereits dokumentiertes Verhalten (siehe User-MEMORY plans-embed-port-collision.md) — kein neuer Defekt, aber weiterhin sichtbares Rauschen bei jedem Commit, solange ein k3d-dev-Port-Forward auf demselben Port laeuft. Nur zur Haeufigkeits-Dokumentation gemeldet, keine Handlungsaufforderung."
         },
         {
             "id": "T003111",
@@ -101,13 +101,13 @@
             "id": "T003112",
             "areas": "scripts/plan-qa-check.sh",
             "title": "plan-qa-check.sh liefert Parse-Fehler statt inhaltlicher QA-Rückmeldung",
-            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** scripts/plan-qa-check.sh\n\nBeim Plan-Stage für T003077 (openspec-embed-dynamic-port) lieferte die advisory LLM-QA (scripts/plan-qa-check.sh) in Iteration 2 \"FAIL — Missing criteria: Could not parse missing items\" statt einer inhaltlichen Rückmeldung — ein Parse-Fehler des LLM-Antwortformats, keine echte Lücke (das harte Gate scripts/plan-lint.sh war zu diesem Zeitpunkt bereits PASS). Nicht blockierend (Skill-Konvention: bricht nie, `|| true`), aber Rauschen, das potenziell bei jedem Plan-Stage-Lauf auftritt und den Nutzen der advisory QA mindert."
+            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** scripts/plan-qa-check.sh\n\nBeim Plan-Stage für T003077 (plans-embed-dynamic-port) lieferte die advisory LLM-QA (scripts/plan-qa-check.sh) in Iteration 2 \"FAIL — Missing criteria: Could not parse missing items\" statt einer inhaltlichen Rückmeldung — ein Parse-Fehler des LLM-Antwortformats, keine echte Lücke (das harte Gate scripts/plan-lint.sh war zu diesem Zeitpunkt bereits PASS). Nicht blockierend (Skill-Konvention: bricht nie, `|| true`), aber Rauschen, das potenziell bei jedem Plan-Stage-Lauf auftritt und den Nutzen der advisory QA mindert."
         },
         {
             "id": "T003113",
             "areas": "scripts/plan-touched-files.sh",
             "title": "touched_files-Ableitung nimmt reine Lesebefehl-Pfade als geänderte Dateien auf",
-            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/plan-touched-files.sh\n\nscripts/ticket.sh stage-plan (Ableitung via plan-touched-files.sh) trug für T003077 (openspec-embed-dynamic-port) docs/code-quality/baseline.json und docs/code-quality/gates.yaml als touched_files ein, obwohl der Plan diese Dateien nur per jq/grep-Lesebefehl referenziert (zur S1-Budget-Ermittlung in der Plan-Prosa), nicht verändert. touched_files zeigt dadurch zwei Dateien, die dieser Fix nicht anfasst — die Ableitung unterscheidet nicht zwischen \"im Plan als MODIFIED/NEW markierter Pfad\" und \"im Plan als Lesebefehl-Argument zitierter Pfad\"."
+            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/plan-touched-files.sh\n\nscripts/ticket.sh stage-plan (Ableitung via plan-touched-files.sh) trug für T003077 (plans-embed-dynamic-port) docs/code-quality/baseline.json und docs/code-quality/gates.yaml als touched_files ein, obwohl der Plan diese Dateien nur per jq/grep-Lesebefehl referenziert (zur S1-Budget-Ermittlung in der Plan-Prosa), nicht verändert. touched_files zeigt dadurch zwei Dateien, die dieser Fix nicht anfasst — die Ableitung unterscheidet nicht zwischen \"im Plan als MODIFIED/NEW markierter Pfad\" und \"im Plan als Lesebefehl-Argument zitierter Pfad\"."
         },
         {
             "id": "T003114",
@@ -117,9 +117,9 @@
         },
         {
             "id": "T003115",
-            "areas": "scripts/openspec-embed-local.sh",
-            "title": "openspec-embed-local.sh scheitert weiterhin an Port-15432-Kollision bei Plan-Stage-Commits (bekanntes Muster, erneut bestaetigt)",
-            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/openspec-embed-local.sh\n\nBeim Plan-Stage-Commit fuer T003075 (2026-08-09) loeste der post-commit-Hook openspec-embed-local.sh aus, welches 3x mit \"Port 15432 wird von einem fremden Prozess belegt (kubectl port-forward svc/shared-db)\" scheiterte, bevor es non-fatal aufgab. Kein neuer Befund — deckt sich mit dem bereits dokumentierten Muster (openspec-embed scheitert an Port 15432, k3d-Forward belegt ihn). Bestaetigt lediglich, dass das Problem in Multi-Session-Umgebungen mit parallelen kubectl-Port-Forwards weiterhin regelmaessig auftritt und bei jedem betroffenen Plan-Stage-Commit sichtbare Fehlermeldungen erzeugt (non-fatal, aber Rauschen im Session-Log)."
+            "areas": "scripts/plans-embed-local.sh",
+            "title": "plans-embed-local.sh scheitert weiterhin an Port-15432-Kollision bei Plan-Stage-Commits (bekanntes Muster, erneut bestaetigt)",
+            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/plans-embed-local.sh\n\nBeim Plan-Stage-Commit fuer T003075 (2026-08-09) loeste der post-commit-Hook plans-embed-local.sh aus, welches 3x mit \"Port 15432 wird von einem fremden Prozess belegt (kubectl port-forward svc/shared-db)\" scheiterte, bevor es non-fatal aufgab. Kein neuer Befund — deckt sich mit dem bereits dokumentierten Muster (plans-embed scheitert an Port 15432, k3d-Forward belegt ihn). Bestaetigt lediglich, dass das Problem in Multi-Session-Umgebungen mit parallelen kubectl-Port-Forwards weiterhin regelmaessig auftritt und bei jedem betroffenen Plan-Stage-Commit sichtbare Fehlermeldungen erzeugt (non-fatal, aber Rauschen im Session-Log)."
         },
         {
             "id": "T003116",

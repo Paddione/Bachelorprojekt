@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-isolation/build-target-split.bats
-# SSOT: openspec/changes/sdlc-build-target-split/specs/sdlc-isolation.md
+
 # T002624: Nachweis, dass ein reiner SDLC-Commit den Produktions-Build nicht mehr auslöst.
 
 setup() {

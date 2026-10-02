@@ -205,7 +205,7 @@ spec:
           # livenessProbe nur diesen Container neu.
           # Restrisiko: Pod-Ready ist das UND ueber alle Container. Steckt dev-shell
           # in CrashLoopBackOff/ImagePullBackOff oder startet gerade neu, ist der Pod
-          # trotzdem NotReady (openspec/changes/dev-pod-ssh/design.md, Verfuegbarkeit).
+          # trotzdem NotReady (dev-pod-ssh-Design, Verfuegbarkeit).
           livenessProbe:
             exec:
               command: ["sh", "-c", "nc -z -w 2 127.0.0.1 22"]

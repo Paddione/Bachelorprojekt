@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-isolation/e3-backup.bats
-# SSOT: openspec/changes/e3-sdlc-tickets-lokal/tasks.md (T002626)
+
 #
 # PRUEFMODUS: command output verification [T002448-M4]. Die Sicherungsschritte
 # werden ausgefuehrt (dry-run bzw. mit gestubbtem kubectl) und an ihrer Ausgabe

@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/software-factory.md
 # Ticket: T013107 — vda.sh frontmatter Domain-Ableitung ignoriert Code-Blöcke
 
 setup() {

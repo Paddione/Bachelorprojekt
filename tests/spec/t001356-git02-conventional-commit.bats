@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/t001356-git02-conventional-commit.bats
-# SSOT: openspec/changes/t001356-git02-conventional-commit/specs/t001356-git02-conventional-commit.md
 #
 # G-GIT02: Non-conventional commit regression — commits with "Betreff" in main.
 # Verifies scripts/validate-commit-msg.sh (the shared validator called by both
@@ -288,7 +287,6 @@ PRE_COMMIT_HOOK="${BATS_TEST_DIRNAME}/../../.githooks/pre-commit"
 @test "T002240: mishap-tracker defines a branch variable that keeps the ticket ID uppercase" {
   run grep -E '^\s*branch="chore/mishap-<ext-id>"' "$MISHAP_SKILL"
   [ "$status" -eq 0 ]
-  # and still keeps the directory slug lowercase (openspec convention)
   run grep -F "tr '[:upper:]' '[:lower:]'" "$MISHAP_SKILL"
   [ "$status" -eq 0 ]
 }

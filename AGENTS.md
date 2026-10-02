@@ -24,7 +24,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 
 **Before dispatching any domain agent, inject active plan context & curated toolset:**
 ```bash
-context=$(bash scripts/plan-context.sh <full-role-name> --with-openspec)
+context=$(bash scripts/plan-context.sh <full-role-name>)
 [ -n "$context" ] && prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
 tools=$(bash scripts/toolset-context.sh <full-role-name>)
 [ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
@@ -73,17 +73,17 @@ task workspace:validate                          # Kustomize dry-run
 ## CI/CD, Testing Standards & Image Exclusions
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command output** (T002448-M4); runner `tests/unit/lib/bats-core/bin/bats`. Inventory check re-runs `task test:inventory`. Release notes: `bash scripts/vda.sh release-notes generate` (publish `publish-github` / `publish-changelog`).
-`:latest` digest-pinning exemptions: Website, Brett, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console, Factory-Runner, MCP-Node, Repo-Sync, Dev-Shell.
+`:latest` digest-pinning exemptions: Website, Brett, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console, MCP-Node, Repo-Sync, Dev-Shell.
 
 ## Critical Footguns (must-know)
 
 - Full reference: [`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
 - `scripts/env-resolve.sh` must be sourced, never executed directly.
 - Never run `SELECT *` from `tickets.ticket_plans` (large content bloats memory).
-- OpenSpec changes must be staged in a worktree, never directly in the main checkout.
 - Pre-commit hooks block main checkout when another agent holds a lock → use worktrees.
 - `components/website/` is strictly `pnpm` (never `npm install` there); Root and `components/brett/` use `npm`.
 - `git-crypt` unlock without keyfile uses `gpg.program`; under WSL point to Windows `gpg.exe`. See `docs/runbooks/git-crypt-key-distribution.md`.
+- Missing credential: follow `docs/runbooks/credentials-finden.md` (fixed lookup order, never print or invent values, stop and ask if nothing is found).
 - After modifying manifests, run `./tests/runner.sh local <TEST-ID>`.
 
 ## Agent Coordination & Locks

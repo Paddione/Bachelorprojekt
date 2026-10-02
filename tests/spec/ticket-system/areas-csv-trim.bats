@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ticket-system/areas-csv-trim.bats
-# SSOT: openspec/changes/areas-csv-trim/specs/ticket-system.md (T004894)
 #
 # PRUEFMODUS (T002448-M4): Output-/Resultat-Verifikation gegen die reale Dev-DB.
 # Der Test FUEHRT `ticket.sh plan-meta set` bzw. `ticket.sh create` mit einer

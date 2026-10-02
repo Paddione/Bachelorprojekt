@@ -40,6 +40,8 @@ export type LeistungCategoryOverride = LeistungCategory;
 export type LeistungServiceOverride = LeistungServiceRow;
 export type ServiceOverride = HomepageService & {
   pageContent?: ServicePageContent;
+  meta?: string;
+  hidden?: boolean;
   leistungCategoryId?: string;
   headlineKey?: string;
   headlinePrefix?: boolean;

@@ -15,7 +15,7 @@
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   SLUG="_t002515-risks-dedupe-fixture"
-  CHANGE_DIR="$REPO/openspec/changes/$SLUG"
+  CHANGE_DIR="$REPO/.agents/plans/$SLUG"
   rm -rf "$CHANGE_DIR"
   mkdir -p "$CHANGE_DIR"
   INTEL="$CHANGE_DIR/intel.json"

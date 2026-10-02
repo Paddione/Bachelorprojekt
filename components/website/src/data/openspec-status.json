@@ -5137,6 +5137,12 @@
       "status": "archived"
     }
   ],
+  "T900650": [
+    {
+      "slug": "remove-gitlab",
+      "status": "plan_staged"
+    }
+  ],
   "T900655": [
     {
       "slug": "2026-09-27-nvim-dashboard-foundation",
@@ -5147,6 +5153,12 @@
     {
       "slug": "2026-09-27-review-gate-optional",
       "status": "archived"
+    }
+  ],
+  "T900805": [
+    {
+      "slug": "k3-freshness-report",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

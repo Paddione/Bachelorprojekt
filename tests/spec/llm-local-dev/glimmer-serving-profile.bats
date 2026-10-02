@@ -1,13 +1,11 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/glimmer-serving-profile.bats — T900365
-# SSOT: openspec/specs/llm-local-dev.md
 #   Requirement: Glimmer Serving Profile on :1919
 #   Requirement: Reasoning-Off Requests Also Lower Glimmer's Reasoning Strength
 #
 # PRUEFMODUS: Quelltext. Das Serving-Profil manifestiert sich ausschliesslich in
 # der systemd-Unit (CI hat weder GPU noch llama-server), die Reasoning-Kwargs
 # in den Payload-Buildern mehrerer Sprachen — dokumentierter Ausnahmefall
-# [T002448-M4]. Laufzeitbelege: openspec/changes/glimmer-local-backend/measurements/.
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"

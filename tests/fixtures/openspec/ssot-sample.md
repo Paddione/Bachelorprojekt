@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Fixture SSOT for openspec-merge.mjs tests.
+Fixture SSOT for merge-tool tests.
 
 ## Requirements
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/pocket-id-client-seed-timeout.bats
-# SSOT: openspec/changes/pocket-id-client-seed-timeout/tasks.md (T001327)
 #
 # Verifies that the pocket-id-client-seed init container timeout is raised
 # to accommodate cold-start scenarios. RED phase: expects -ge 60 (the

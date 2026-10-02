@@ -48,7 +48,7 @@
       <!-- Left: text + points -->
       <div>
         <p class="eyebrow">{headline}</p>
-        <h2 id="why-heading" set:html={intro.replace(/\*(.*?)\*/g, '<em>$1</em>')}></h2>
+        <h2 id="why-heading">{@html intro.replace(/\*(.*?)\*/g, '<em>$1</em>')}</h2>
 
         <ol class="points" aria-label="Gründe">
           {#each points as point, i}

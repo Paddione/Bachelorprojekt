@@ -1,4 +1,4 @@
-// sources/epics.ts — Epic-Liste und Fremdaenderungs-Erkennung (K5, T002464)
+// sources/epics.ts — Epic-Liste (K5, T002464)
 //
 // Diese Datei traegt die Daten-Beschaffung fuer den Epic-Canvas. Sie ist bewusst
 // von routes/epics.ts getrennt: die Route braucht `hono`, das in keiner
@@ -124,34 +124,4 @@ export function isValidIsoTimestamp(ts: string): boolean {
     return false;
   }
   return !Number.isNaN(Date.parse(ts));
-}
-
-/**
- * Baut die argv fuer `git log`. Ohne Shell gibt es keine Pipe — das frueher
- * angehaengte `| wc -l` waeren drei zusaetzliche Argumente an git gewesen.
- * Gezaehlt wird deshalb in JS, siehe countChangedCommits().
- */
-export function buildChangesSinceArgs(ts: string): string[] {
-  if (!isValidIsoTimestamp(ts)) {
-    throw new Error(`invalid timestamp: ${JSON.stringify(ts)}`);
-  }
-  return ['log', '--oneline', `--since=${ts}`, '--', 'openspec/changes/'];
-}
-
-/** Zaehlt git-log-Zeilen. Leere Ausgabe ist 0, nicht 1 (wie `echo "" | wc -l`). */
-export function countChangedCommits(stdout: string): number {
-  return stdout.split('\n').filter((line) => line.trim().length > 0).length;
-}
-
-/**
- * OF1: hat jemand anders `openspec/changes/` seit dem letzten Canvas-Export
- * angefasst? Wirft bei Fehlschlag — der Handler entscheidet, ob er daraus
- * "sicherheitshalber ja" macht.
- */
-export async function hasChangesSince(ts: string): Promise<boolean> {
-  const result = await exec('git', buildChangesSinceArgs(ts), 5000);
-  if (!result.ok) {
-    throw new Error(`git log: ${result.error || result.stderr || 'command failed'}`);
-  }
-  return countChangedCommits(result.stdout) > 0;
 }

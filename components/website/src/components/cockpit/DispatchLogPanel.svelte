@@ -7,7 +7,6 @@
   darin wuerde ausgeraeumt. Genutzt wird nur die geteilte CSS-Schicht (panel.css).
 
   Die Daten kommen ueber den Adapter (`window.data`), nicht ueber eigene fetch-Aufrufe:
-  openspec/specs/sdlc-cockpit.md, "Daten-Adapter — Kein direkter fetch() aus Panels".
   Die Liste traegt keine Bodies; die holt erst das Aufklappen einer Zeile.
 -->
 <script lang="ts">

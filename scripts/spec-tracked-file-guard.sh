@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # spec-tracked-file-guard.sh — Snapshot/Verify des getrackten Arbeitsbaums
 #
-# Entscheidung (T002779, openspec/specs/ci-cd.md):
 # Verglichen werden mtime und Groesse, nicht der Inhalt und nicht `git status`.
 # Die mutierenden Spec-Tests restaurieren den Originalinhalt selbst — danach ist
 # der Arbeitsbaum sauber und der Hash identisch. Ein Endzustands-Check meldete

@@ -8,7 +8,6 @@
 # preflight-pr-scope.sh als String-Match auf `.worktrees/`). Jede Kopie konnte
 # eigenständig driften, obwohl alle drei dieselbe Frage stellen. Die Iteration
 # über die git-Registrierung statt über den Filesystem-Glob ist zugesichert in
-# openspec/specs/divergence-guard.md ("git worktree list --porcelain (the
 # registration), not the filesystem glob") — genau deshalb gehört sie an eine
 # Stelle.
 #

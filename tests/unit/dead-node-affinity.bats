@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/unit/dead-node-affinity.bats
-# SSOT: openspec/changes/deploy-dead-node-affinity/specs/fleet-operations.md
 # T002699: tote Deploy-Konfiguration im mentolder-Auslieferungspfad.
 #
 # Pruefmodus: Ausfuehrung (T002448-M4) — `kubectl kustomize` wird ausgefuehrt und

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/backup-pipeline/filen-remote-retention.bats
-# SSOT: openspec/specs/backup-pipeline.md — Requirement "Remote-Retention auf Filen"
 # Ticket: T013300
 #
 # Prüfmodus (MIXED):

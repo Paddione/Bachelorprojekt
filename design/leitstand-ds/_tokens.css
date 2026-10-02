@@ -8,8 +8,7 @@
  * jeder Importer unter /sdlc/ liegt
  * (components/website/src/integrations/build-target.mjs keepRoute()).
  *
- * Bewusster Stilbruch zur Kore-Marke (kein Brass) -- eigenstaendiges Set,
- * siehe openspec/changes/sdlc-leitstand-e1-e2/design.md S4.
+ * Bewusster Stilbruch zur Kore-Marke (kein Brass) -- eigenstaendiges Set.
  */
 
 :root {

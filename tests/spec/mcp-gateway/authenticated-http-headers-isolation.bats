@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/authenticated-http-headers-isolation.bats
-# SSOT: openspec/specs/mcp-gateway.md
 # Ticket: T002941 (Fix unvollstaendig fuer T002779)
 #
 # Pruefmodus (T002448-M4): ERGEBNIS-orientiert. Misst die mtime der echten,

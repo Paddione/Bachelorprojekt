@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/repo-hygiene/worktree-clean-check-existence.bats
-# SSOT: openspec/specs/agent-skills.md — repo-hygiene-Runbook §1
+# SSOT: docs/superpowers/specs/agent-skills.md — repo-hygiene-Runbook §1
 #
 # Ticket T002932. Der Sauberkeits-Vorcheck vor `git worktree remove` lief als Pipe:
 #   git -C <pfad> status --porcelain | cut -c4- | grep -Ev ...
@@ -41,7 +41,7 @@ _make_repo() {
   git -C "$wt" symbolic-ref HEAD refs/heads/main
   git -C "$wt" config user.email "t002932@example.invalid"
   git -C "$wt" config user.name "T002932 Guard"
-  printf '{}\n' > "$wt/components/website/src/data/openspec-status.json"
+  printf '{}\n' > "$wt/components/website/src/data/test-inventory.json"
   printf 'echo base\n' > "$wt/scripts/beispiel.sh"
   git -C "$wt" add -A
   git -C "$wt" commit -qm "base"
@@ -94,7 +94,7 @@ _make_repo() {
 
   local wt="${BATS_TEST_TMPDIR}/generat"
   _make_repo "$wt"
-  printf '{"regeneriert": true}\n' > "$wt/components/website/src/data/openspec-status.json"
+  printf '{"regeneriert": true}\n' > "$wt/components/website/src/data/test-inventory.json"
 
   # Positiv-Anker: fuer git ist der Worktree dirty. Ohne ihn waere die Aussage
   # "gilt trotzdem als sauber" auch bei unveraendertem Baum wahr.

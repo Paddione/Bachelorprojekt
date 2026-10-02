@@ -3,8 +3,71 @@
 -- no shell commands, no file writes, no state changes beyond the buffer.
 local M = {}
 
-local function link(key, desc, page)
-  return { key = key, desc = desc .. '  >', action = function(dashboard) M.show(page, dashboard) end }
+-- Highlight groups for dashboard text chunks. All are standard groups so
+-- any colorscheme themes them; no custom groups to define or re-apply.
+local HL_KEY = 'DiagnosticOk' -- green key chip, e.g. the p in [p]
+local HL_DIM = 'Comment' -- brackets, hints, footer prose
+local HL_FKEY = 'DiagnosticHint' -- navigation keys in hint/footer lines
+local HL_GROUP = 'Title' -- group headers
+
+-- Human labels stay derived from the stable kebab-case action names (which
+-- runbooks and tests pin): capitalize + dashes to spaces, with explicit
+-- overrides where that reads wrong (acronyms, verb-first phrasing).
+local LABEL_OVERRIDES = {
+  ['related-open'] = 'Open related',
+  ['goto-page'] = 'Go to page',
+  ['goto-component'] = 'Go to component',
+  ['goto-layout'] = 'Go to layout',
+  ['goto-route'] = 'Go to route',
+  ['goto-design'] = 'Go to design',
+  ['dev'] = 'Dev server',
+  ['lsp-status'] = 'LSP status',
+  ['branch-status'] = 'Branch status',
+  ['pr-view'] = 'PR view',
+  ['pr-checks'] = 'PR checks',
+  ['pr-merge'] = 'PR merge',
+  ['tickets-list'] = 'Ticket list',
+  ['triage-show'] = 'Triage',
+  ['readiness-show'] = 'Readiness',
+  ['deps-show'] = 'Dependencies',
+  ['plan-open'] = 'Open plan',
+  ['task-discover'] = 'Discover tasks',
+  ['k3-symbol'] = 'K3 symbol lookup',
+  ['runbook-open'] = 'Open runbook',
+  ['session-new'] = 'New session',
+  ['server-start'] = 'Start server',
+  ['server-stop'] = 'Stop server',
+  ['gpu-resources'] = 'GPU resources',
+  ['context-select'] = 'Select context',
+}
+
+local function label_for(name)
+  if LABEL_OVERRIDES[name] then return LABEL_OVERRIDES[name] end
+  return (name:gsub('^%l', string.upper):gsub('-', ' '))
+end
+
+-- Left-side key chip chunks: [p] with dim brackets, green key.
+local function key_chunks(key)
+  return { { '[', hl = HL_DIM }, { key, hl = HL_KEY }, { '] ', hl = HL_DIM } }
+end
+
+local function link(key, desc, page, indent)
+  local text = key_chunks(key)
+  text[#text + 1] = { desc .. '  ' }
+  text[#text + 1] = { '>', hl = HL_DIM }
+  return {
+    key = key,
+    desc = desc .. '  >',
+    text = text,
+    indent = indent or 0,
+    action = function(dashboard) M.show(page, dashboard) end,
+  }
+end
+
+-- Non-actionable group header inside a page's rows(). Skipped by Enter
+-- navigation (no action) and by runbook/order probes (no name/key+desc).
+local function group(title)
+  return { title = { '▸ ' .. title, hl = HL_GROUP }, padding = { 0, 1 } }
 end
 
 --- Build a visible-action-model item. The action model's fields are all
@@ -12,9 +75,17 @@ end
 --- at execution time, never at render time), and on_error.
 --- @param spec table { name, inputs, effect, on_error }
 local function action(spec)
+  local label = label_for(spec.name)
+  local text = key_chunks(spec.key)
+  text[#text + 1] = { label }
+  if spec.inputs and #spec.inputs > 0 then
+    text[#text + 1] = { '  (+Eingabe: ' .. table.concat(spec.inputs, ', ') .. ')', hl = HL_DIM }
+  end
   return {
     key = spec.key,
-    desc = spec.name,
+    desc = label,
+    text = text,
+    indent = 2,
     name = spec.name,
     inputs = spec.inputs or {},
     effect = spec.effect,
@@ -66,15 +137,56 @@ local pages = {
       return rows
     end,
   },
-  -- Infrastructure is the one chapter that demonstrates a reachable
-  -- sub-page and one example executable action for this foundation
-  -- partial; its real content arrives with its own chapter ticket.
+  -- Infrastructure chapter page (T900664).
   infrastructure = {
     title = 'Infrastructure',
     rows = function()
-      local rows = stub_rows('Infrastructure')
-      rows[#rows + 1] = link('s', 'Status', 'infrastructure-status')
-      return rows
+      return {
+        action({
+          key = 'c',
+          name = 'cluster-status',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').cluster_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'pods',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').pods(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'v',
+          name = 'services',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').services(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'pod-logs',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').pod_logs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'x',
+          name = 'context-select',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').context_select(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'k',
+          name = 'setup-checklist',
+          inputs = {},
+          effect = function(cwd) require('config.infrastructure').setup_checklist(cwd) end,
+          on_error = function() end,
+        }),
+        link('n', 'Node Control', 'infrastructure-node'),
+        link('s', 'Status', 'infrastructure-status'),
+      }
     end,
   },
   ['infrastructure-status'] = {
@@ -92,6 +204,20 @@ local pages = {
           on_error = function() end,
         }),
       }
+    end,
+  },
+  -- Node control sub-page (T900800): flat rows from the nodectl module;
+  -- the `r` refresh runs the async probes and re-renders this page.
+  ['infrastructure-node'] = {
+    title = 'Infrastructure · Node Control',
+    parent = 'infrastructure',
+    rows = function()
+      local n = require('config.nodectl')
+      return n.node_rows(function()
+        n.probe_async(function()
+          pcall(M.show, 'infrastructure-node')
+        end)
+      end)
     end,
   },
   -- Files & Search chapter page (T900657). Rows are action() records in the
@@ -140,6 +266,563 @@ local pages = {
       }
     end,
   },
+  -- T900658 js-frontend registration BEGIN (do not remove; other chapters own their own blocks)
+  ['js-frontend'] = {
+    title = 'JavaScript / Frontend',
+    rows = function()
+      return {
+        group('Navigation'),
+        action({
+          key = 'p',
+          name = 'goto-page',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_page(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'goto-component',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_component(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'goto-layout',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_layout(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'goto-route',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_route(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'd',
+          name = 'goto-design',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').goto_design(cwd) end,
+          on_error = function() end,
+        }),
+        group('Entwicklung'),
+        action({
+          key = 'v',
+          name = 'dev',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').dev(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'w',
+          name = 'preview',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').preview(cwd) end,
+          on_error = function() end,
+        }),
+        group('Prüfungen'),
+        action({
+          key = 'n',
+          name = 'lint',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').lint(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 't',
+          name = 'type-check',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').type_check(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'b',
+          name = 'build',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').build(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'e',
+          name = 'test',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').test_cmd(cwd) end,
+          on_error = function() end,
+        }),
+        group('Status'),
+        action({
+          key = 's',
+          name = 'lsp-status',
+          inputs = {},
+          effect = function(cwd) require('config.js-frontend').lsp_status(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- T900658 js-frontend registration END
+  -- Settings & Help chapter page (T900667 p2). Rows are action() records in
+  -- the exact EPIC order; each effect resolves cwd at execution time through
+  -- the dashboard action model and passes it to the matching settings-help
+  -- module function (which nil-guards and degrades gracefully when no root).
+  ['settings-help'] = {
+    title = 'Settings & Help',
+    rows = function()
+      return {
+        action({
+          key = 'o',
+          name = 'open-config-source',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').open_config_source(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 's',
+          name = 'sync-status',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').sync_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'plugins',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').plugins() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'health',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').health() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'w',
+          name = 'keybindings',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').keybindings() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'reload-config',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').reload() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'b',
+          name = 'backup-config',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').backup() end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'u',
+          name = 'recover-config',
+          inputs = {},
+          effect = function(cwd) require('config.settings-help').recover() end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- T900663 models-inference page begin
+  ['models-inference'] = {
+    title = 'Models & Inference',
+    rows = function()
+      return {
+        action({
+          key = 's',
+          name = 'models-status',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'server-config',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').show_config(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'server-logs',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').logs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'g',
+          name = 'gpu-resources',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').gpu(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'b',
+          name = 'server-start',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').start_unit(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'x',
+          name = 'server-stop',
+          inputs = {},
+          effect = function(cwd) require('config.models-inference').stop_unit(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- T900663 models-inference page end
+  -- T900661 repo-knowledge page (anchor: repo-knowledge)
+  ['repo-knowledge'] = {
+    title = 'Repository & Code Knowledge',
+    rows = function()
+      return {
+        group('Aufgaben'),
+        action({
+          key = 't',
+          name = 'task-discover',
+          inputs = { 'query' },
+          effect = function(cwd) require('config.repo-knowledge').task_discover(cwd) end,
+          on_error = function() end,
+        }),
+        group('Codegraph'),
+        action({
+          key = 's',
+          name = 'k3-status',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').k3_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'y',
+          name = 'k3-symbol',
+          inputs = { 'symbol' },
+          effect = function(cwd) require('config.repo-knowledge').k3_symbol(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'k3-trace',
+          inputs = { 'symbol' },
+          effect = function(cwd) require('config.repo-knowledge').k3_trace(cwd) end,
+          on_error = function() end,
+        }),
+        group('Doku'),
+        action({
+          key = 'p',
+          name = 'project-docs',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').project_docs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'o',
+          name = 'runbook-open',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').runbook_open(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'f',
+          name = 'check-freshness',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').check_freshness(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'm',
+          name = 'check-manifests',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').check_manifests(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'code-maps',
+          inputs = {},
+          effect = function(cwd) require('config.repo-knowledge').code_maps(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- AI & Agents chapter page (T900662 ai-agents). Rows are action() records
+  -- in the exact EPIC order; each effect resolves cwd at execution time
+  -- through the dashboard action model and passes it to the matching
+  -- ai-agents module function (which nil-guards and degrades gracefully
+  -- when no git root).
+  ['ai-agents'] = {
+    title = 'AI & Agents',
+    rows = function()
+      return {
+        action({
+          key = 'a',
+          name = 'ask',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').ask(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 's',
+          name = 'select',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').select(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'send-context',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').send_context(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'k',
+          name = 'list-skills',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').list_skills(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'n',
+          name = 'session-new',
+          inputs = {},
+          effect = function(cwd) require('config.ai-agents').session_new(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- ── T900666 comfyui-images chapter page ──
+  -- Rows are action() records in the ticket order; each effect passes the
+  -- execution-time cwd to the matching comfyui-images module function.
+  -- The runbook master-index row stays stub-marked on purpose: the
+  -- foundation stub-count test requires all ten rows stub-marked, the
+  -- merged files-search precedent shipped the same way, and F5 coverage
+  -- passes via the per-page runbook file (T900666 p2 deviation, proven).
+  ['comfyui-images'] = {
+    title = 'ComfyUI & Images',
+    rows = function()
+      return {
+        action({
+          key = 's',
+          name = 'status',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'e',
+          name = 'queue',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').queue(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'logs',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').logs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'a',
+          name = 'start',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').start(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'u',
+          name = 'use',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').use(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 't',
+          name = 'troubleshoot',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').troubleshoot(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'n',
+          name = 'unload',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').unload(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'stop',
+          inputs = {},
+          effect = function(cwd) require('config.comfyui-images').stop(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- SDLC chapter page (T900660)
+  ['sdlc'] = {
+    title = 'SDLC',
+    rows = function()
+      return {
+        group('Tickets'),
+        action({
+          key = 't',
+          name = 'tickets-list',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').list_tickets(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'g',
+          name = 'triage-show',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').show_triage(cwd) end,
+          on_error = function() end,
+        }),
+        group('Planung'),
+        action({
+          key = 'r',
+          name = 'readiness-show',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').show_readiness(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'd',
+          name = 'deps-show',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').show_deps(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'p',
+          name = 'plan-open',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').open_plan(cwd) end,
+          on_error = function() end,
+        }),
+        group('Verifizierung'),
+        action({
+          key = 'x',
+          name = 'exec-status',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').exec_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'v',
+          name = 'verify-gates',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').show_gates(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'close-check',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').close_check(cwd) end,
+          on_error = function() end,
+        }),
+        group('Wissen'),
+        action({
+          key = 's',
+          name = 'process-docs',
+          inputs = {},
+          effect = function(cwd) require('config.sdlc').open_process_docs(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
+  -- GitHub chapter page (T900659). Rows are action() records in the exact
+  -- EPIC order; each effect calls the matching config.github function with
+  -- the execution-time cwd from the dashboard action model.
+  ['github'] = {
+    title = 'GitHub',
+    rows = function()
+      return {
+        group('Zweig'),
+        action({
+          key = 'b',
+          name = 'branch-status',
+          inputs = {},
+          effect = function(cwd) require('config.github').branch_status(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'd',
+          name = 'diff-view',
+          inputs = {},
+          effect = function(cwd) require('config.github').diff_view(cwd) end,
+          on_error = function() end,
+        }),
+        group('Pull Request'),
+        action({
+          key = 'p',
+          name = 'pr-view',
+          inputs = {},
+          effect = function(cwd) require('config.github').pr_view(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'r',
+          name = 'review-list',
+          inputs = {},
+          effect = function(cwd) require('config.github').review_list(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'c',
+          name = 'pr-checks',
+          inputs = {},
+          effect = function(cwd) require('config.github').pr_checks(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'l',
+          name = 'failure-logs',
+          inputs = {},
+          effect = function(cwd) require('config.github').failure_logs(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'v',
+          name = 'release-view',
+          inputs = {},
+          effect = function(cwd) require('config.github').release_view(cwd) end,
+          on_error = function() end,
+        }),
+        action({
+          key = 'm',
+          name = 'pr-merge',
+          inputs = {},
+          effect = function(cwd) require('config.github').pr_merge(cwd) end,
+          on_error = function() end,
+        }),
+        group('Aufräumen'),
+        action({
+          key = 'x',
+          name = 'branch-cleanup',
+          inputs = {},
+          effect = function(cwd) require('config.github').branch_cleanup(cwd) end,
+          on_error = function() end,
+        }),
+      }
+    end,
+  },
 }
 
 for _, chapter in ipairs(CHAPTERS) do
@@ -164,8 +847,15 @@ M.pages = pages
 function M.sections(page)
   local spec = assert(pages[page], 'Unknown dashboard page: ' .. tostring(page))
   local rows = {
-    { text = { 'NEOVIM  /  ' .. spec.title, hl = 'SnacksDashboardHeader' }, padding = 1 },
-    { desc = 'j/k oder Pfeiltasten + Enter  |  direkte Auswahl per Taste', padding = 1 },
+    { text = {
+      { 'BACHELORPROJEKT', hl = 'SnacksDashboardHeader' },
+      { '  /  ' .. spec.title, hl = HL_GROUP },
+    }, padding = 1 },
+    { text = {
+      { 'j/k', hl = HL_FKEY }, { ' bewegen   ', hl = HL_DIM },
+      { 'Enter', hl = HL_FKEY }, { ' oeffnen   ', hl = HL_DIM },
+      { '<Space>hf', hl = HL_FKEY }, { ' suchen', hl = HL_DIM },
+    }, padding = { 0, 1 } },
     spec.rows(),
   }
   if page ~= 'home' then
@@ -174,9 +864,16 @@ function M.sections(page)
     local back = link('<BS>', 'Zurueck', spec.parent or 'home')
     back.hidden = true
     rows[#rows + 1] = back
-    rows[#rows + 1] = { desc = 'Backspace: zurueck  |  0: Inhaltsverzeichnis' }
+    rows[#rows + 1] = { text = {
+      { '<BS>', hl = HL_FKEY }, { ' zurueck   ', hl = HL_DIM },
+      { '0', hl = HL_FKEY }, { ' Inhaltsverzeichnis', hl = HL_DIM },
+    } }
   end
-  rows[#rows + 1] = { key = 'q', desc = 'Neovim beenden', action = ':qa' }
+  rows[#rows + 1] = { padding = { 1, 0 } }
+  rows[#rows + 1] = {
+    key = 'q', desc = 'Neovim beenden', action = ':qa',
+    text = { { 'q', hl = HL_FKEY }, { '  Neovim beenden', hl = HL_DIM } },
+  }
   return rows
 end
 
@@ -266,6 +963,27 @@ function M.setup()
     { desc = 'Search dashboard categories and actions' })
   vim.keymap.set('n', '<leader>h', '<cmd>Dashboard<CR>', { desc = 'Dashboard', silent = true })
   vim.keymap.set('n', '<leader>hf', '<cmd>DashboardSearch<CR>', { desc = 'Dashboard search', silent = true })
+  -- Startup page: with no file arguments the dashboard IS the start screen,
+  -- so a bare `nvim` must not land on the empty default buffer. Guards keep
+  -- `nvim <file>`, `-c` scripted starts and non-file buffers untouched;
+  -- `once` keeps this a start-time-only side effect; `schedule` defers the
+  -- render past VimEnter so nothing else is still claiming the window.
+  -- Rollback without editing: `let g:dashboard_startup = 0` before startup,
+  -- or drop this autocmd. [T900807]
+  vim.api.nvim_create_autocmd('VimEnter', {
+    once = true,
+    callback = function()
+      if vim.g.dashboard_startup == 0 or vim.g.dashboard_startup == false then
+        return
+      end
+      if vim.fn.argc() > 0 or vim.bo.buftype ~= '' then
+        return
+      end
+      vim.schedule(function()
+        pcall(M.show, 'home')
+      end)
+    end,
+  })
 end
 
 return M

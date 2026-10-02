@@ -1,23 +1,16 @@
 #!/usr/bin/env bats
 # tests/spec/plan-context.bats
-# SSOT: openspec/changes/plan-context-role-filter/specs/dev-flow-plan.md
 # T001387 — plan-context.sh <role> wertet <role> nie aus; Filter ist wirkungslos.
-# T001534 — decoupled from live openspec/changes/ contents (PR #2480 archived
 #   60 stale changes incl. the two proposals this file used to hardcode by
 #   name, and dropped the active-changes count below the old >=30 floor —
 #   breaking these tests without any change to plan-context.sh itself).
-# T001895 — fixtures moved out of the real $REPO/openspec/changes/ into a
 #   throwaway git repo under $BATS_TEST_TMPDIR. plan-context.sh anchors its
 #   CHANGES_DIR via `git rev-parse --show-toplevel`, so writing fixtures
-#   straight into the real repo tree raced against openspec-workflow.bats's
-#   "T001452: validator ignores specs under openspec/specs/archive/" test
 #   (both files run in parallel in the CI "Spec BATS" job, `bats -j $(nproc)
 #   --no-parallelize-within-files`). That test calls
-#   `validateTree('openspec')` against the real repo mid-test; if it ran
 #   while a fixture dir was present (fixtures intentionally have no specs/
 #   delta dir), validateTree failed with "<slug>: missing specs/ delta dir".
 #   Anchoring plan-context.sh at an isolated temp repo means it never reads
-#   or writes $REPO/openspec/changes/, so the two files can no longer race.
 #
 # Failing-test contract: these cases MUST fail on the pre-fix
 # `fix/t001387-plan-context-role-filter` branch (the current script
@@ -27,14 +20,12 @@
 # Test strategy: run the script against a throwaway git repo built fresh in
 # setup() (see TMP_ROOT below), not the real repo — CHANGES_DIR resolution
 # via `git rev-parse --show-toplevel` inside plan-context.sh then anchors at
-# TMP_ROOT and never touches $REPO/openspec/changes/. The fixture set is
 # self-contained: exactly 3 non-archived proposals (ops/components/website/ci) plus one
 # proposal parked directly under a slug literally named "archive" (to
 # exercise the `slug == archive` skip in plan-context.sh — the real repo's
 # archive/ only ever holds nested sub-dirs, so that skip is otherwise
 # untested), so the "returns all non-archived proposals" / "archive is
 # always excluded" anchor assertions stay meaningful without depending on
-# the real repo's ever-changing openspec/changes/ contents.
 #
 # Cases 3, 5, 7 are anchor cases (PASS pre- and post-fix) that lock in
 # the existing semantics (archive exclusion, mandatory-arg error) so

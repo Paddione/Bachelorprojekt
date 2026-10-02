@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/g-cq08-knip-dead-code/proposal.md
 # G-CQ08: knip konfiguriert für website + Dead-Code (unused exports/files) −50%.
 
 setup() {

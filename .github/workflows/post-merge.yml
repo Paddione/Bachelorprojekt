@@ -10,9 +10,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   # ENTFERNT mit E3/T002626 (ADR-006): die Jobs "mark-awaiting" und
   # "reap-branches".
@@ -67,72 +64,14 @@ jobs:
     uses: ./.github/workflows/render-fleet-artifact.yml
     secrets: inherit
 
-  deploy-legacy:
-    name: Deploy manifests (legacy push, pre-Flux)
-    runs-on: ubuntu-latest
-    needs: [detect]
-    if: vars.FLUX_ENABLED != 'true' && needs.detect.outputs.manifests_changed == 'true'
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2
-          fetch-tags: false
-
-      - name: Install kubectl and kustomize
-        run: |
-          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
-            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-          rm -f /usr/local/bin/kustomize
-          curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
-            | bash -s -- 5.4.3 /usr/local/bin
-
-      - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      # `task workspace:deploy` ruft INTERN `task website:migrate` auf
-      # (Taskfile.yml:4015), das wiederum `pnpm --dir components/website db:migrate`
-      # startet. Die pnpm-Abhaengigkeit ist hier also indirekt ueber die
-      # Task-Kette und im Workflow-Text nicht sichtbar — genau deshalb hat der
-      # Guard aus T002121 diesen Job uebersehen. [T002124]
-      - name: Set up pnpm
-        uses: pnpm/action-setup@a15d269cd4658e1107c09f1fabf4cbd7bd1f308a  # v5.4.0
-        with:
-          version: 10
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: 'pnpm'
-          cache-dependency-path: components/website/pnpm-lock.yaml
-      - name: Install website dependencies
-        run: cd components/website && pnpm install --frozen-lockfile
-
-      - name: Set up kubeconfig
-        env:
-          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
-        run: |
-          mkdir -p "$HOME/.kube"
-          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
-
-      - name: Deploy workspace to mentolder
-        run: task workspace:deploy ENV=mentolder
-
-      - name: Deploy workspace to korczewski
-        run: task workspace:deploy ENV=korczewski
-
+  # [T900810] deploy-legacy entfernt: pre-Flux kubectl-Pfad (workspace:deploy),
+  # tot seit FLUX_ENABLED=true Steady State. post-deploy-imperative haengt nur
+  # noch am Flux-Render — Erfolg heisst dort Manifest-Merge, Skip alles andere.
   post-deploy-imperative:
     name: Imperative post-steps (TRANSITIONAL)
     runs-on: ubuntu-latest
-    needs: [render-artifact, deploy-legacy]
-    if: |
-      always() &&
-      needs.render-artifact.result != 'failure' &&
-      needs.deploy-legacy.result != 'failure' &&
-      (needs.render-artifact.result != 'skipped' || needs.deploy-legacy.result != 'skipped')
+    needs: [render-artifact]
+    if: always() && needs.render-artifact.result == 'success'
     steps:
       - uses: actions/checkout@v7
         with: { fetch-tags: false }
@@ -164,9 +103,10 @@ jobs:
           chmod 600 "$HOME/.kube/config"
           echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
       - name: Run transitional imperative post-steps
+        # [T900810] Nur mentolder: korczewski ist eingefroren (T002479), die
+        # Migration lief trotzdem bei jedem Manifest-Merge auch dorthin.
         run: |
           task website:migrate ENV=mentolder
-          task website:migrate ENV=korczewski
 
       # ENTFERNT mit E3/T002626 (ADR-006): "Mark ticket done" und
       # "Ticket closure scan".

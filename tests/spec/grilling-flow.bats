@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/grilling-flow.bats
-# SSOT: openspec/specs/grilling-flow.md
 #
 # Covers: Questionnaire registry, built-in questionnaires, multichoice chips.
 

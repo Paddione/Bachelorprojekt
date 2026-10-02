@@ -18,7 +18,7 @@ Begin with the authored sources that explain the repository:
 - `docs/agent-guide/README.md` and `docs/brain/recall-routing.md` for agent/tool boundaries and code discovery routing.
 - `docs/brain/k3-code-graph.md` for the K3 code-graph's purpose, available tools, freshness, and limitations. For known symbols/call chains, use K3 tools when available. Do not assume a graph result is current: the index may lag repository changes.
 - `docs/diagrams/architecture.md` for the current service map. Check its generation/source notes and refresh status before relying on it; use it to orient zones, not as a command source.
-- `docs/runbooks/`, `docs/agent-guide/`, `openspec/specs/`, and active `openspec/changes/` for canonical workflows. Use `task --list` and inspect the relevant Taskfile target before exposing a command in Neovim.
+- `docs/runbooks/`, `docs/agent-guide/`, and `.agents/plans/` for canonical workflows. Use `task --list` and inspect the relevant Taskfile target before exposing a command in Neovim.
 - `references/project-profile.md` for the retained language, package-manager, verification, and safe-integration findings.
 
 Treat generated maps and graphs as navigation aids. Treat authored runbooks, task definitions, specs, and repository instructions as the authority for actions. Do not copy a command from a generated diagram into a button without checking its canonical source and side effects.

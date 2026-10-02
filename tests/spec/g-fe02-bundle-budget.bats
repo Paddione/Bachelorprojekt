@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/g-fe02-bundle-budget/
 # G-FE02: Client-JS-Bundle messen + Budget (kein Netto-Zuwachs/Release).
 
 setup() {

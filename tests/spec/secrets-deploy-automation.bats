@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/secrets-deploy-automation.bats
-# SSOT: openspec/specs/secrets-deploy-automation.md
 # Uses simple [ ... ] assertions (matches tests/spec/* convention).
 
 load 'test_helper'
@@ -104,20 +103,20 @@ YAML
   [ "$status" -eq 0 ]
 }
 
-@test "sealed-secrets/mentolder.yaml exists and has encryptedData" {
-  local sealed="${REPO_ROOT}/environments/sealed-secrets/mentolder.yaml"
+@test "sealed-secrets/fleet-mentolder.yaml exists and has encryptedData" {
+  local sealed="${REPO_ROOT}/environments/sealed-secrets/fleet-mentolder.yaml"
   if [ ! -f "$sealed" ]; then
-    skip "mentolder sealed-secrets not found (env not sealed yet)"
+    skip "fleet-mentolder sealed-secrets not found (env not sealed yet)"
   fi
   run grep -c "encryptedData" "$sealed"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }
 
-@test "sealed-secrets/korczewski.yaml exists and has encryptedData" {
-  local sealed="${REPO_ROOT}/environments/sealed-secrets/korczewski.yaml"
+@test "sealed-secrets/fleet-korczewski.yaml exists and has encryptedData" {
+  local sealed="${REPO_ROOT}/environments/sealed-secrets/fleet-korczewski.yaml"
   if [ ! -f "$sealed" ]; then
-    skip "korczewski sealed-secrets not found (env not sealed yet)"
+    skip "fleet-korczewski sealed-secrets not found (env not sealed yet)"
   fi
   run grep -c "encryptedData" "$sealed"
   [ "$status" -eq 0 ]

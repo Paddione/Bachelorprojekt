@@ -5,7 +5,6 @@
 # .astro-Seiten existieren nicht mehr; kein /sdlc/cockpit-Ziel der Map traegt
 # ein ?tab=-Query (Leitstand-URL-Schema: station/ticket/deck).
 #
-# SSOT: openspec/specs/sdlc-cockpit.md — "Satellite Absorption Redirects" (E5).
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): Querschnittstest
 # (Ausnahme zu T002448-M4) — die Redirect-Semantik ist als Literal in der Map

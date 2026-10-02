@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/agentic-trends-radar.bats
-# SSOT: openspec/specs/agentic-trends-radar.md
+# SSOT: docs/superpowers/specs/agentic-trends-radar.md
 #
 # Covers: Trend-radar workflow — 5-angle sweep, consolidation, SDLC-fit verdict.
 
@@ -107,8 +107,8 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "agentic-trends-radar: OUR_SDLC mentions OpenSpec and dev-flow" {
-  run grep -q "OpenSpec" "$WORKFLOW"
+@test "agentic-trends-radar: OUR_SDLC mentions plan and dev-flow" {
+  run grep -q "plan" "$WORKFLOW"
   [ "$status" -eq 0 ]
   run grep -q "dev-flow" "$WORKFLOW"
   [ "$status" -eq 0 ]

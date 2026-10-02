@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/active-sessions-hub.md
 # Ticket: T002826 — `agent-lock.sh claim` returns exit 0 while the lock is NOT held.
 #
 # cmd_claim ends in `CREATED="$(_now)"; _write_lock "$f"; return 0` — the return

@@ -12,9 +12,6 @@ concurrency:
   group: build-mentolder-web-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   build-and-deploy:
     name: Build & Deploy (react.mentolder.de)
@@ -77,16 +74,6 @@ jobs:
             ghcr.io/paddione/mentolder-web:${{ steps.version.outputs.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Mirror image to GitLab registry
-        continue-on-error: true
-        env:
-          GITLAB_REGISTRY_PREFIX: ${{ secrets.GITLAB_REGISTRY_PREFIX }}
-          GITLAB_REGISTRY_TOKEN: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
-          SOURCE_TAGS: |
-            ghcr.io/paddione/mentolder-web:latest
-            ghcr.io/paddione/mentolder-web:${{ steps.version.outputs.sha }}
-        run: bash scripts/mirror-image-to-gitlab.sh
 
       - name: Deploy to fleet (react.mentolder.de)
         env:

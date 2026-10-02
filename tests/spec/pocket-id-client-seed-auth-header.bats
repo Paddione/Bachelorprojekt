@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/pocket-id-client-seed-auth-header.bats
-# SSOT: openspec/changes/pocket-id-client-seed-auth-header/specs/pocket-id-client-seed-auth-header.md (T001355)
 #
 # Verifies pocket-id-client-seed authenticates against Pocket ID's admin API
 # with the X-API-KEY header, not Authorization: Bearer (which Pocket ID

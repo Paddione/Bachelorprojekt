@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "slug": "plan-runner-opencode-v2",
+    "ticket_id": "",
+    "generated_from": "main@b4612a29a",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/glimmer-worker-mcp/server.mjs",
+      "language": "javascript",
+      "loc": 294,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 506
+    },
+    {
+      "path": "scripts/llm/agent-bench/lib/roles/code-worker.mjs",
+      "language": "javascript",
+      "loc": 56,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 744
+    },
+    {
+      "path": "scripts/llm/plan-runner/workers.mjs",
+      "language": "javascript",
+      "loc": 125,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 675
+    },
+    {
+      "path": "tests/spec/llm-local-dev/fixtures/plan-runner-fake-opencode.sh",
+      "language": "bash",
+      "loc": 23,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 777
+    },
+    {
+      "path": "tests/spec/llm-local-dev/plan-runner.bats",
+      "language": "bash",
+      "loc": 241,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/glimmer-worker-mcp/server.mjs:42:function runOpencode(job) {",
+      "kind": "function",
+      "file": "scripts/glimmer-worker-mcp/server.mjs",
+      "signature": "42:function runOpencode(job) {(...)",
+      "type_text": "42:function runOpencode(job) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/glimmer-worker-mcp/server.mjs:187:function readBody(req) {",
+      "kind": "function",
+      "file": "scripts/glimmer-worker-mcp/server.mjs",
+      "signature": "187:function readBody(req) {(...)",
+      "type_text": "187:function readBody(req) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/glimmer-worker-mcp/server.mjs:199:function applyCORS(res, req) {",
+      "kind": "function",
+      "file": "scripts/glimmer-worker-mcp/server.mjs",
+      "signature": "199:function applyCORS(res, req) {(...)",
+      "type_text": "199:function applyCORS(res, req) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:71:    super();",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "71:    super();(...)",
+      "type_text": "71:    super();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:84:  free4b() { return this.slots4b - this.jobs.size; }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "84:  free4b() { return this.slots4b - this.jobs.size; }(...)",
+      "type_text": "84:  free4b() { return this.slots4b - this.jobs.size; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:86:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "86:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }(...)",
+      "type_text": "86:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:116:  nextEvent() {",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "116:  nextEvent() {(...)",
+      "type_text": "116:  nextEvent() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:122:  drainEvents() { return this.done.splice(0); }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "122:  drainEvents() { return this.done.splice(0); }(...)",
+      "type_text": "122:  drainEvents() { return this.done.splice(0); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:124:  pending() { return this.done.length; }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "124:  pending() { return this.done.length; }(...)",
+      "type_text": "124:  pending() { return this.done.length; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/plan-runner.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/plan-runner.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/plan-runner.bats:27:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/plan-runner.bats",
+      "signature": "27:teardown() {(...)",
+      "type_text": "27:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/plan-runner.bats:32:make_change() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/plan-runner.bats",
+      "signature": "32:make_change() {(...)",
+      "type_text": "32:make_change() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/plan-runner.bats:47:start_orch() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/plan-runner.bats",
+      "signature": "47:start_orch() {(...)",
+      "type_text": "47:start_orch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/plan-runner.bats:62:run_runner() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/plan-runner.bats",
+      "signature": "62:run_runner() {(...)",
+      "type_text": "62:run_runner() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/plan-runner.bats:66:state_of() { jq -r --arg p \"$1\" '.partials[$p].status' \"$CH/.plan-runner/state.json\"; }",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/plan-runner.bats",
+      "signature": "66:state_of() { jq -r --arg p \"$1\" '.partials[$p].status' \"$CH/.plan-runner/state.json\"; }(...)",
+      "type_text": "66:state_of() { jq -r --arg p \"$1\" '.partials[$p].status' \"$CH/.plan-runner/state.json\"; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

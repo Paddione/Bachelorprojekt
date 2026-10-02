@@ -78,7 +78,7 @@ Es gibt **kein** separates E2E-Test-Passwort für Korczewski: Der Brand ist
 eingefroren (T002602 — Flux-Kustomizations suspendiert, Deployments in
 `workspace-korczewski` stehen auf 0/0, `web.korczewski.de` antwortet mit 503),
 und der Key `E2E_TEST_ADMIN_PASSWORD` existiert nicht in
-`environments/.secrets/korczewski.yaml`. E2E-Tests laufen ausschließlich gegen
+`environments/.secrets/fleet-korczewski.yaml`. E2E-Tests laufen ausschließlich gegen
 Mentolder; das `korczewski`-Playwright-Projekt ist deaktiviert (siehe Kommentar
 in `.github/workflows/e2e.yml`).
 
@@ -234,7 +234,7 @@ Teständerung.
 
 **Explizit optional — kein Pflichtschritt, kein CI-Gate.** Headed-Läufe gegen die Live-Umgebung
 sind langsam und flakeanfällig; als Merge-Gate würden sie den Durchsatz senken statt die Qualität
-zu heben (siehe `openspec/specs/e2e-test-infrastructure.md`, REQ-k8-02). Diese Stufe läuft **nur
+zu heben (REQ-k8-02). Diese Stufe läuft **nur
 manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als required check.
 
 **Trigger:** `--headed` Flag beim Aufruf dieses Skills, oder Env `HEADED_VERIFY=true`.
@@ -275,7 +275,7 @@ manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als re
 4. **Kein Abbruch bei Fehler:** Diese Stufe informiert den Agenten, blockiert aber nicht den
    Merge- oder Deploy-Flow — sie läuft grundsätzlich erst nach Merge/Deploy (Schritt 8).
 
-Details/Architektur: `openspec/specs/e2e-test-infrastructure.md` (REQ-k8-01…REQ-k8-04).
+
 
 ---
 

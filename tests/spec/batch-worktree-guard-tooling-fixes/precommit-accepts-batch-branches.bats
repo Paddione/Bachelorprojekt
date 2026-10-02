@@ -15,8 +15,8 @@ setup() {
   ln -s "$(pwd)/scripts/agent-lock.sh" "$FIXTURE/scripts/agent-lock.sh"
   ln -s "$(pwd)/scripts/agent-collision.sh" "$FIXTURE/scripts/agent-collision.sh"
   ln -s "$(pwd)/scripts/git-crypt-guard.sh" "$FIXTURE/scripts/git-crypt-guard.sh"
-  ln -s "$(pwd)/scripts/openspec-half-archive-check.sh" "$FIXTURE/scripts/openspec-half-archive-check.sh"
-  ln -s "$(pwd)/scripts/openspec-main-staging-guard.sh" "$FIXTURE/scripts/openspec-main-staging-guard.sh"
+  ln -s "$(pwd)/scripts/plan-half-archive-check.sh" "$FIXTURE/scripts/plan-half-archive-check.sh"
+  ln -s "$(pwd)/scripts/plan-main-staging-guard.sh" "$FIXTURE/scripts/plan-main-staging-guard.sh"
   ln -s "$(pwd)/scripts/lib/branch-allowlist.sh" "$FIXTURE/scripts/lib/branch-allowlist.sh"
   ln -s "$(pwd)/.gitleaks.toml" "$FIXTURE/.gitleaks.toml"
 

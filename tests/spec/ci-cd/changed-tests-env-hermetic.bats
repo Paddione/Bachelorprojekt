@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/changed-tests-env-hermetic.bats
-# SSOT: openspec/specs/ci-cd.md
 #
 # Pruefmodus: Ergebnis-Verifikation. Der Guard FUEHRT den Runner in einem
 # eigenen tmp-Repo aus, mit einem gesetzten FIND_CHANGED_TESTS_FILES in der

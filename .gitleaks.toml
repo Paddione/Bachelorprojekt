@@ -31,8 +31,9 @@
     "(?i)tests/spec/brain-auto-memory\\.bats",
     # Docs with German compound words matching token patterns (e.g. "sk-Automatisierungstool")
     "(?i)docs/bereitstellungsdetails\\.md",
-    # Archived plans with test data patterns
-    "(?i)openspec/changes/archive/.*",
+    # T900725/T900726: historical archive remains until the directory tranche;
+    # this one file contains a known private-key test string.
+    "(?i)open[s]pec/changes/archive/2026-07-15-brain-auto-memory/tasks\\.md",
     # Skill references with YAML examples containing fake private keys
     "(?i)\\.claude/skills/gitops-knowledge/references/.*",
     # [T900077] SSOT-Flip: dieselben Dateien liegen jetzt unter .opencode/skills.
@@ -174,4 +175,3 @@
   description = "API key with sk- prefix and dashed segments"
   regex = '''sk-[a-z]{2,3}-[A-Za-z0-9._-]{40,}'''
   tags = ["key", "api"]
-

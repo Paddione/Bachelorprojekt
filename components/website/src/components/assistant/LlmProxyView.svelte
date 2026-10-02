@@ -4,7 +4,7 @@
   interface BackendState { id: number; name: string; kind: string; enabled: boolean; health: 'ok' | 'unhealthy' | 'disabled' }
   interface ProxyState { proxy: 'online' | 'offline'; backends: BackendState[] }
 
-  let state = $state<ProxyState | null>(null);
+  let snap = $state<ProxyState | null>(null);
   let loading = $state(true);
   let busy = $state(false);
 
@@ -12,7 +12,7 @@
     try {
       loading = true;
       const res = await fetch('/sdlc/api/llm-proxy/status', { credentials: 'same-origin' });
-      state = res.ok ? ((await res.json()) as ProxyState) : null;
+      snap = res.ok ? ((await res.json()) as ProxyState) : null;
     } finally {
       loading = false;
     }
@@ -38,12 +38,12 @@
 <div class="lpv">
   {#if loading}
     <p class="lpv-mute">Status wird geladen…</p>
-  {:else if !state || state.proxy === 'offline'}
+  {:else if !snap || snap.proxy === 'offline'}
     <p class="lpv-offline">Proxy offline — Start: <code>task llm:proxy:start</code></p>
   {:else}
-    <p class="lpv-status"><span class="lpv-dot lpv-dot--ok"></span> online · {state.backends.length} Backends</p>
+    <p class="lpv-status"><span class="lpv-dot lpv-dot--ok"></span> online · {snap.backends.length} Backends</p>
     <ul class="lpv-list">
-      {#each state.backends as b (b.id)}
+      {#each snap.backends as b (b.id)}
         <li>
           <span class="lpv-dot lpv-dot--{b.health}"></span>
           <span class="lpv-name">{b.name}</span>

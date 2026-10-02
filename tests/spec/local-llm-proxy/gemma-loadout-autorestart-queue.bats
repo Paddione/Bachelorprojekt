@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T002459 (Task P5.5)
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Geprueft

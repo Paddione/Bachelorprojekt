@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/comfy-image-postprocess.bats — T900379
-# SSOT: openspec/specs/llm-local-dev.md
 #   Requirement: Generated Images Can Be Cut Out and Pixelated
 #
 # PRUEFMODUS: Output-Verifikation. postprocess.py wird mit einem generierten

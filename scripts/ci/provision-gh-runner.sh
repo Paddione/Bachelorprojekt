@@ -8,7 +8,6 @@
 # (`fleet-gpu`), nie den generischen Pool `[self-hosted, linux, x64]`. Damit ist
 # die Platzierung durch die Workflow-Definition bestimmt statt durch das
 # Runner-Inventar. Erzwungen von scripts/ci/runner-placement-check.sh; die Regel
-# steht als Requirement in openspec/specs/ci-cd.md.
 #
 # Dieses Skript stellt deshalb die AUSSTATTUNG des jeweiligen Runners sicher und
 # ist die einzige Stelle, an der der erwartete Werkzeugsatz steht. Es stellt nicht

@@ -116,8 +116,7 @@ vi.mock('pg', () => {
 
     -- T002722: Kundenprojekte ziehen aus tickets.tickets in eine eigene
     -- Geschaeftstabelle AUSSERHALB des Schemas tickets um (sonst faengt sie
-    -- der naechste ADR-006-Freeze wieder ein). Siehe
-    -- openspec/changes/tickets-projects-split/design.md D2.
+    -- der naechste ADR-006-Freeze wieder ein).
     CREATE TABLE public.customer_projects (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       parent_id UUID,

@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy.bats
-# SSOT: openspec/specs/local-llm-proxy.md
-# Konvention: eine .bats-Datei pro OpenSpec-SSOT-Spec.
 
 PROXY_MOD="scripts/llm-proxy/server.mjs"
 # T900399: entfernt. `route-provider.sh` (Slot-Claim, tier-Pin, Phase-Zweig) lag im

@@ -2,7 +2,7 @@
 type: runbook
 tags: [howto, reference]
 status: active
-source:: Bachelorprojekt openspec/changes/brain-quality-goals (T001608)
+source:: Bachelorprojekt <plan-pfad>/brain-quality-goals (T001608)
 ---
 # Cheatsheet
 
@@ -34,7 +34,7 @@ Linter nicht.
 ## source::-Rückverweise
 
 ```text
-source:: Bachelorprojekt openspec/specs/brain-foundation.md
+source:: Bachelorprojekt <spec-pfad>/brain-foundation.md
 source:: Vaultwarden-Eintrag "GPU-Host" (Credentials NIE im Klartext)
 ```
 

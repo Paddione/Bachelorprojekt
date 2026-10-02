@@ -16,7 +16,7 @@
 setup() {
   export REPO="$(cd "$(dirname "${BATS_TESTDIR%/}")" && pwd)"
   export SLUG="sandbox-slug"
-  export CHANGE_DIR="$REPO/openspec/changes/sandbox-slug"
+  export CHANGE_DIR="$REPO/.agents/plans/sandbox-slug"
   mkdir -p "$CHANGE_DIR/tasks.d"
 }
 

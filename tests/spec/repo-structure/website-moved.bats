@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/repo-structure/website-moved.bats
-# SSOT: openspec/specs/repo-structure.md
+
 #
 # Drift-Guard fuer den Move website/ -> components/website/ (T006999, Partial p4).
 # Pruefmodus (T002448-M4-Ausnahme, dokumentiert): Querschnitts-Struktur-Guard —

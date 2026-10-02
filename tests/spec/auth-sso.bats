@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/auth-sso.bats
-# SSOT: openspec/specs/auth-sso.md
 # T001579: oauth2-proxy gate hardening — render-based manifest assertions.
 # Render pattern follows tests/spec/brain-quartz-deploy.bats.
 load 'test_helper'
@@ -294,7 +293,6 @@ data:
 }
 
 # ── T002205: Keycloak-Abschaltung vollstaendig ──────────────────────────
-# SSOT: openspec/specs/auth-sso.md → "Single-Sign-On für alle Platform-Services"
 
 _repo_root() { cd "${BATS_TEST_DIRNAME}/../.." && pwd; }
 

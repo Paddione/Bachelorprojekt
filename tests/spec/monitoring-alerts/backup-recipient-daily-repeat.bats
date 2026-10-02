@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats
-# SSOT: openspec/specs/monitoring-alerts.md (Blackhole Receiver)
 #
 # T016592 hat alle ausgehenden Benachrichtigungs-E-Mails abgeschaltet. Damit
 # sind die frueheren Guards dieser Datei gegenstandslos geworden: der

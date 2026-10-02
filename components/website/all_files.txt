@@ -172,7 +172,6 @@ src/lib/nextcloud-shares.ts
 src/lib/nextcloud-talk-db.ts
 src/lib/notifications.ts
 src/lib/openai-compatible-session-agent.ts
-src/lib/openspec/proposal.ts
 src/lib/pdf-a3-embed.ts
 src/lib/planning-office-types.ts
 src/lib/planning-office.ts

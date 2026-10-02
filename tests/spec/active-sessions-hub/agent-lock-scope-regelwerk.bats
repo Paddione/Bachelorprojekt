@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats
-# SSOT: openspec/specs/active-sessions-hub.md
 # Ticket: T003116 (Ursache) · T003102 · T003131 · T003132
 #
 # PRUEFMODUS (bewusst gemischt, je Zusicherung begruendet):

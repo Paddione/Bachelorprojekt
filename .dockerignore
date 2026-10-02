@@ -19,7 +19,6 @@ scripts
 !scripts/knowledge
 components/brett
 docker
-!docker/factory-runner
 wireguard
 
 # Exclude test artifacts that don't belong in the runtime image

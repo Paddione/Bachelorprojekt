@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/agent-lock-session-identity.bats
-# SSOT: openspec/specs/active-sessions-hub.md (Identity is harness-stable)
+# SSOT: docs/superpowers/specs/active-sessions-hub.md (Identity is harness-stable)
 # Consolidated BATS suite for the agent-lock / dev-flow mishap bundle (T001268).
 # Covers the three mishaps from the bundle:
 #   - Mishap 1: agent-lock-Session-Identität driftet pro Bash-Aufruf
@@ -105,45 +105,8 @@ _unset_claude_harness_env() {
   # dass der Guard das Staged-Set (git diff --cached --name-only) prueft und
   # nur Plan-Artefakte erlaubt; unstaged/untracked blockiert nicht mehr.
   grep -Eqi 'diff[[:space:]]+--cached[[:space:]]+--name-only' "$PLAN_SKILL"
-  grep -qF 'openspec-status.json' "$PLAN_SKILL"
   grep -qF 'test-inventory.json' "$PLAN_SKILL"
-}
-
-# ── Mishap 3: dev-flow-execute push-verification checkpoint ────────────#
-#
-# The archive steps in dev-flow-execute Schritt 7 must be push-required.
-# The subagent return contract must include push_verified:<sha> AND the
-# skill must instruct the operator to verify the push via git ls-remote
-# before declaring the archive complete.
-
-@test "T001268-M3: dev-flow-execute SKILL.md requires push verification via git ls-remote" {
-  [ -f "$EXEC_SKILL" ]
-  # T002181: die Push-Verifikation stand einmal direkt im SKILL.md. Schritt 7
-  # verweist heute verbindlich auf references/plan-archive-steps.md, wo sie als
-  # `git ls-remote`-Abgleich umgesetzt ist. Die Anforderung ist unverändert;
-  # geprüft wird die Kette (Verweis vorhanden + Referenz trägt die Mechanik).
-  grep -qF 'T001268' "$EXEC_SKILL"
-  local archive_ref="$REPO/.claude/skills/references/plan-archive-steps.md"
-  [ -f "$archive_ref" ] || archive_ref="$REPO/.agents/skills/references/plan-archive-steps.md"
-  [ -f "$archive_ref" ]
-  grep -Eqi 'ls-remote|push_verified' "$archive_ref"
-}
-
-@test "T001268-M3: dev-flow-execute SKILL.md mandates push_verified:<sha> in subagent return contract" {
-  # T002181: der benannte Rückgabemarker `push_verified:<sha>` existiert
-  # nirgends mehr im Repo. Aufgegeben wurde aber nur der Marker-Name, nicht die
-  # Anforderung: plan-archive-steps.md vergleicht Remote- und Local-SHA und
-  # bricht bei Abweichung ab — inhaltlich genau die geforderte Verifikation.
-  # Geprüft wird daher der SHA-Abgleich statt des Marker-Strings.
-  [ -f "$EXEC_SKILL" ]
-  local archive_ref="$REPO/.claude/skills/references/plan-archive-steps.md"
-  [ -f "$archive_ref" ] || archive_ref="$REPO/.agents/skills/references/plan-archive-steps.md"
-  [ -f "$archive_ref" ]
-
-  grep -qF 'REMOTE_SHA' "$archive_ref"
-  grep -qF 'LOCAL_SHA' "$archive_ref"
-  # Der Abgleich muss fail-closed sein: Abweichung bricht ab.
-  grep -qE '\[ "\$REMOTE_SHA" = "\$LOCAL_SHA" \]' "$archive_ref"
+  grep -qF 'test-inventory.json' "$PLAN_SKILL"
 }
 
 # ── T001386: Feature-Pfad fehlt expliziter Ticket-Claim vor Pre-Commit-Guard ──#

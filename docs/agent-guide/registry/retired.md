@@ -28,3 +28,19 @@ KV-ladder (`scripts/llm/freetoken-kv-ladder.ps1`, dynamic `/v1/cache/rebuild` gr
 rejected 2026-09-16 — large MoE-growth rebuilds OOM under fragmentation;
 static `qwen-200k` pool (200k KV / moe 4150) measured healthy
 (decode ~100 tok/s, cold prefill ~2.6–3.7k tok/s wall, radix hit ~12–43k tok/s).
+
+## Removed DeepSeek rails (T900751, 2026-09-28)
+
+| Handle | Was | Why removed |
+|---|---|---|
+| `deepseek-helper-go` | subagent, `opencode-go/deepseek-v4-flash` | Cloud-Eskalation nur noch via `exe-muse` |
+| `deepseek-helper` | subagent, `deepseek/deepseek-v4-flash` | same (direkte-API-Rail entfällt) |
+| `deepseek-pro` | all, `opencode-go/deepseek-v4-pro` | same |
+| `deepseek-pro-direct` | all, `deepseek/deepseek-v4-pro` | same |
+| `deepseek-flash` | all, `opencode-go/deepseek-v4-flash` | same |
+| `deepseek-flash-direct` | all, `deepseek/deepseek-v4-flash` | same |
+
+## Removed model entries (no agent references them)
+
+- provider `deepseek` (direkte API, `https://api.deepseek.com/v1`)
+- `opencode-go/deepseek-v4-flash`, `opencode-go/deepseek-v4-pro`

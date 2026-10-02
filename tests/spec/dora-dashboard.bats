@@ -1,9 +1,8 @@
 #!/usr/bin/env bats
 # tests/spec/dora-dashboard.bats
-# SSOT: openspec/specs/dora-dashboard.md
 #
 # Consolidated BATS suite for the DORA dashboard removal (T001433).
-# Convention: one .bats file per OpenSpec SSOT spec.
+# Convention: one .bats file per SSOT spec.
 
 # ── File-level variables ──────────────────────────────────────────────────────
 DORA_DASHBOARD="$BATS_TEST_DIRNAME/../../components/website/src/components/admin/DoraDashboard.svelte"

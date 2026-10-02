@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/active-sessions-hub/opencode-session-id-stable.bats
-# SSOT: openspec/specs/active-sessions-hub.md
 #
 # T002671 (Befund 3): opencode exports OPENCODE_SESSION_ID (confirmed by its own
 # .opencode/hooks/session-start.sh / session-end.sh, which both read it as the
@@ -12,7 +11,6 @@
 # invocations of the SAME opencode session can observe different SIDs, so a
 # later ticket status write sees a "foreign" lock and needs the
 # TICKET_LOCK_OVERRIDE=1 escape hatch (observed during T002628 execution,
-# see openspec/changes/devflow-flow-frictions-T002671/proposal.md).
 #
 # The fix adds OPENCODE_SESSION_ID to the shared harness-env allowlist AND
 # teaches _detect_tool an explicit "opencode" branch (checked before the

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.391.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.390.0...website-v1.391.0) (2026-10-03)
+
+
+### Features
+
+* **infra:** pin bge-m3 embedding record + G2 retrieval spec [T900989] ([#6221](https://github.com/Paddione/Bachelorprojekt/issues/6221)) ([b621e21](https://github.com/Paddione/Bachelorprojekt/commit/b621e214910fdb977fe357dffa489f34046d449c))
+
 ## [1.390.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.389.0...website-v1.390.0) (2026-10-03)
 
 

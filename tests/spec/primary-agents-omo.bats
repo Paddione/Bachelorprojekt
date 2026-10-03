@@ -22,12 +22,12 @@ setup() {
 @test "T900858: opencode declares bp-build/bp-run/bp-ship as primaries" {
   # Positiv-Anker [T002356-M1]: ohne parse-Anker waere "nicht deklariert"
   # vakuos erfuellt, sobald die Config unlesbar wird.
+  # T900929: bp-ship zeigt auf den in-client verifizierten Chat-Rail
+  # ("opencode-go", 2026-10-03); "opencode-go-oai" antwortet mit
+  # Invalid credential und ist stillgelegt — der alte Pin waere tot.
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$MODELS_CFG','utf8'));
     const a = d.agent || {};
-    # T900929: bp-ship zeigt auf den in-client verifizierten Chat-Rail
-    # (`opencode-go`, 2026-10-03); `opencode-go-oai` antwortet mit
-    # Invalid credential und ist stillgelegt — der alte Pin waere tot.
     const expect = {
       'bp-build': 'llamacpp-local/Qwen3.8-27B',
       'bp-run': 'llamacpp-local/Qwen3.8-27B',

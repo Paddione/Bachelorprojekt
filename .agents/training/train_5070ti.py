@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-Local QLoRA fine-tuning of Qwen3-4B-Instruct-2507 (non-thinking) on the RTX 5070 Ti (16 GB).
-Uses Unsloth (~2x speed, ~70% less VRAM). Successor of the retired Qwen2.5-7B-BP training.
+Fine-tuning of Qwen3-4B-Instruct-2507 (non-thinking) on the RTX 5070 Ti (16 GB).
+Uses Unsloth. Successor of the retired Qwen2.5-7B-BP training.
 
-Model:  unsloth/Qwen3-4B-Instruct-2507-bnb-4bit (pre-quantized, falls back to the
-        full checkpoint with on-the-fly 4-bit load)
+Default (--precision 16bit): full bf16 checkpoint + LoRA r=32 — no quantization
+noise in the base weights, cleaner merged-16bit/GGUF export. Needs ~11-13 GB.
+Optional (--precision 4bit): QLoRA on the bnb-4bit checkpoint (~7 GB) for when
+the GPU must be shared. Full fine-tuning does NOT fit: ~27 GB across both GPUs,
+and the 8 GB card rules out DDP (see TRAINING_PLAN.md §3).
+
 Data:   .agents/training/dataset_train.jsonl  (see DATASET_PLAN.md, >=1000 unique)
-Output: qwen3_4b_2507_bp_lora/  (LoRA adapter; GGUF export via export_model.py)
+Output: qwen3_4b_2507_bp_lora/ (16-bit, default) or ..._lora_4bit/ — GGUF export
+        via export_model.py (expects the default 16-bit adapter).
 
 GPU-PREFLIGHT: the 5070 Ti also hosts the Qwen3.8-27B orchestrator rail
-(qwen38-gsq-iq3xxs.service, ~15/16 GB). Training needs ~8-10 GB free — stop the
-rail first (systemctl --user stop qwen38-gsq-iq3xxs), then restore it afterwards.
+(qwen38-gsq-iq3xxs.service, ~15/16 GB). Stop the rail first
+(systemctl --user stop qwen38-gsq-iq3xxs), restore it after training.
 The script aborts if free VRAM is insufficient; override with --force.
 
 Cloud alternative (ADR-007 primary path): task finetune:hf-jobs:train with the
@@ -24,7 +29,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-MIN_FREE_MIB = 12_000  # QLoRA 4B needs ~8-10 GB; keep headroom
+MIN_FREE_MIB = {"16bit": 13_000, "4bit": 9_000}
 
 
 def gpu_preflight(min_free_mib: int) -> None:
@@ -56,6 +61,8 @@ def gpu_preflight(min_free_mib: int) -> None:
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--precision", choices=["16bit", "4bit"], default="16bit",
+                    help="16-bit LoRA (default, best quality) or QLoRA 4-bit fallback")
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--lr", type=float, default=2e-4)
     ap.add_argument("--seq-len", type=int, default=2048)
@@ -63,7 +70,7 @@ def main():
     args = ap.parse_args()
 
     if not args.force:
-        gpu_preflight(MIN_FREE_MIB)
+        gpu_preflight(MIN_FREE_MIB[args.precision])
 
     os.environ.setdefault("CUDA_VISIBLE_DEVICES", "1")  # RTX 5070 Ti
 
@@ -72,19 +79,31 @@ def main():
     from unsloth import FastLanguageModel
     from trl import SFTConfig, SFTTrainer
 
-    model_name = "unsloth/Qwen3-4B-Instruct-2507-bnb-4bit"
+    output_lora_dir = HERE / (
+        "qwen3_4b_2507_bp_lora" if args.precision == "16bit" else "qwen3_4b_2507_bp_lora_4bit"
+    )
     dataset_file = HERE / "dataset_train.jsonl"
-    output_lora_dir = HERE / "qwen3_4b_2507_bp_lora"
 
-    print(f"Loading base model: {model_name} ...")
+    if args.precision == "16bit":
+        model_name = "unsloth/Qwen3-4B-Instruct-2507"   # full bf16 checkpoint
+        load_in_4bit = False
+        lora_r = lora_alpha = 32
+    else:
+        model_name = "unsloth/Qwen3-4B-Instruct-2507-bnb-4bit"
+        load_in_4bit = True
+        lora_r = lora_alpha = 16
+
+    print(f"[{args.precision}] Loading base model: {model_name} ...")
     try:
         model, tokenizer = FastLanguageModel.from_pretrained(
             model_name=model_name,
             max_seq_length=args.seq_len,
             dtype=torch.bfloat16,   # native on Blackwell (50-series)
-            load_in_4bit=True,      # QLoRA 4-bit
+            load_in_4bit=load_in_4bit,
         )
     except Exception:
+        if args.precision == "16bit":
+            raise
         # Pre-quantized repo unavailable -> full checkpoint with on-the-fly 4-bit
         model_name = "unsloth/Qwen3-4B-Instruct-2507"
         print(f"Falling back to {model_name} (on-the-fly 4-bit load) ...")
@@ -97,10 +116,10 @@ def main():
 
     model = FastLanguageModel.get_peft_model(
         model,
-        r=16,
+        r=lora_r,
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
                         "gate_proj", "up_proj", "down_proj"],
-        lora_alpha=16,             # unsloth recommendation: alpha == r
+        lora_alpha=lora_alpha,     # unsloth recommendation: alpha == r
         lora_dropout=0,            # MUST be 0 for unsloth kernels
         bias="none",               # MUST be "none" for unsloth kernels
         use_gradient_checkpointing="unsloth",  # ~30% VRAM saving

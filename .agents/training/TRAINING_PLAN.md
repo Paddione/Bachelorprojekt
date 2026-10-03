@@ -14,10 +14,17 @@ lokale LLM-Rails) auf der :8080-Worker-Rail — non-thinking, schnell, 3 Slots.
 - Kein Reasoning-Format nötig: Instruct-2507 generiert keine `<think>`-Blöcke.
 
 ## 3. Modell
-- `unsloth/Qwen3-4B-Instruct-2507-bnb-4bit` (Fallback: `unsloth/Qwen3-4B-Instruct-2507`,
-  on-the-fly 4-bit). Dichte 4B-Architektur → `FastLanguageModel`, `load_in_4bit=True`.
-- LoRA: `r=16, alpha=16` (unsloth: alpha==r; der Qwen2.5-Run nutzte alpha=32),
-  `lora_dropout=0`, `bias="none"`, `use_gradient_checkpointing="unsloth"`.
+- **Default `--precision 16bit`**: volles bf16-Checkpoint `unsloth/Qwen3-4B-Instruct-2507`
+  (~8 GB VRAM Gewichte) + LoRA `r=32, alpha=32` — keine Quantisierungs-Rauschbasis,
+  saubereres merged-16bit/GGUF. Gesamtbedarf ~11-13 GB → passt auf die 5070 Ti.
+- **Fallback `--precision 4bit`**: QLoRA auf `unsloth/Qwen3-4B-Instruct-2507-bnb-4bit`
+  (~7 GB) mit `r=16, alpha=16` — nur wenn die GPU geteilt werden muss.
+- LoRA gilt: `lora_dropout=0`, `bias="none"`, `use_gradient_checkpointing="unsloth"`,
+  `alpha == r` (unsloth-Empfehlung; der Qwen2.5-Run nutzte alpha=2r).
+- **Kein Full Fine-Tuning** — bewusst entschieden: ~27 GB Bedarf (8+8+8 bf16/8-bit-Adam)
+  vs. ~23,5 GB nutzbar über beide GPUs; DDP scheidet aus (8-GB-Karte kann nicht
+  replizieren), FSDP wäre über PCIe/WSL2 ohne P2P wertlos — und 1,1k kurze Samples
+  würden in Full-FT ohnehin memorisiert. Adapter bleiben die richtige Methode.
 - Achtung: kein MTP-Head → nach dem Merge keine Draft-Model-Spekulation auf :8080.
 
 ## 4. Daten
@@ -33,11 +40,13 @@ Teacher über :1919 + T3 Human-QC). Format: `messages`, System-Prompt
 - ADR-007: primärer Cloud-Pfad ist HF Jobs (`task finetune:hf-jobs:train`) —
   der Datensatz ist dafür direkt verwendbar (`CORPUS=<dataset_train.jsonl>`).
 
-## 6. Hyperparameter (Stand T9009xx-Training)
+## 6. Hyperparameter (Stand T900930-Training)
 | Parameter | Wert | Warum |
 |---|---|---|
+| precision | 16bit (Default), 4bit via Flag | 4B hat VRAM-Raum für echte bf16-LoRA — Qualitätsgewinn ohne Kosten |
+| LoRA rank | r=32 / alpha=32 (16bit) · r=16 (4bit) | mehr Adapter-Kapazität ist jetzt fast gratis; darüber Overfit-Risiko |
 | epochs | 3 | ~1–2k kurze Paare; 3 Epochen ohne Overfit-Evidenz, val im Blick halten |
-| lr | 2e-4 | Standard für LoRA r=16 |
+| lr | 2e-4 | Standard für LoRA r≤32 |
 | seq_len | 2048 | Workspace-Q/A ist kurz; spart KV/VRAM |
 | effective batch | 8 (2×4 accum) | stabil auf 16 GB |
 | optim | paged_adamw_8bit | OOM-sicher |

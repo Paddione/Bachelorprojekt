@@ -119,8 +119,8 @@ capabilities:
   ticket-lebenszyklus:
     mcp:ticket-mcp-node:
       state: canonical
-      use_when: "Tickets lesen, anlegen, Status setzen, Plan stagen, Phasen-Events schreiben."
-      avoid_when: "stage_plan im Worktree — schlägt dort immer fehl."
+      use_when: "Tickets lesen, anlegen, Status setzen, Phasen-Events schreiben."
+      avoid_when: "Plan stagen — das macht devflow-mcp plan_stage (stage_plan ist unterdrückt)."
       fallback: "scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)"
       roles: [bp-run, bp-ship, orchestrator]
       tier: caution
@@ -132,6 +132,30 @@ capabilities:
         archive_plan: dangerous
         flush_mishap_buffer: dangerous
         backfill_ticket_id: dangerous
+      # T900985: einziger Weg zum Stagen ist devflow-mcp plan_stage (Worktree + Lint + Push +
+      # stage-plan --hold); stage_plan scheiterte im Worktree und übersprang den Lint.
+      tools_suppressed: [stage_plan]
+      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+
+  devflow-kontext:
+    mcp:devflow-mcp:
+      state: canonical
+      use_when: "Vor jedem Auftrag context_for_task (Code, Pläne, Werkzeuge per Rerank); Pläne mit plan_stage stagen."
+      avoid_when: "Exakte Textsuche — dafür grep/search_code von codebase-memory."
+      fallback: "bash scripts/toolset-context.sh <rolle> + bash scripts/plan-context.sh <rolle>"
+      roles: [bp-build, bp-run, bp-ship, orchestrator]
+      tier: caution
+      # T900985: Lesetools safe, plan_stage pusht (assisted), lock erbt caution.
+      tool_tiers:
+        context_for_task: safe
+        recommend_tools: safe
+        search_code: safe
+        graph_status: safe
+        plan_lint: safe
+        collision_check: safe
+        ci_status: safe
+        task_oracle: safe
+        plan_stage: assisted
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 
   ticket-inhalt:

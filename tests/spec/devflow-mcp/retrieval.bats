@@ -58,6 +58,29 @@ setup() {
   [[ "$output" == "1 rerank" ]]
 }
 
+@test "retrieval: ohne Rerank sortiert recommend_tools lexikalisch statt in Registry-Reihenfolge" {
+  export FAKE_BGE_FAIL_RERANK=1
+  devflow_call recommend_tools '{"task":"read the logs of a pod","role":"bp-run","k":3}'
+  [ "$status" -eq 0 ]
+  run json 'd.tools[0].tool + " " + d.degraded.join(",")'
+  [ "$output" = "pods_log rerank" ]
+}
+
+@test "retrieval: Bearer-Token kommt aus server.env, wenn die Umgebung keinen hat" {
+  mkdir -p "$T/home/.config/bge-mcp" "$T/home/.config/mcp-postgres"
+  printf 'BGE_MCP_TOKEN="from-file"\n# Kommentar\n' > "$T/home/.config/bge-mcp/server.env"
+  printf 'MCP_POSTGRES_TOKEN=pg-file\n' > "$T/home/.config/mcp-postgres/server.env"
+  run env -u BGE_MCP_TOKEN -u MCP_POSTGRES_TOKEN node -e '
+    import(process.argv[1]).then(({ withTokens }) => {
+      const e = withTokens({ MCP_POSTGRES_TOKEN: "from-env" }, process.argv[2]);
+      console.log(e.BGE_MCP_TOKEN + " " + e.MCP_POSTGRES_TOKEN);
+    });
+  ' "$REPO_ROOT/scripts/devflow-mcp/lib/backends.mjs" "$T/home"
+  [ "$status" -eq 0 ]
+  # Umgebung gewinnt, die Datei fuellt nur Luecken.
+  [ "$output" = "from-file from-env" ]
+}
+
 @test "retrieval: unbekannte Rolle ist ein Tool-Fehler" {
   devflow_call recommend_tools '{"task":"x","role":"db"}'
   [ "$status" -eq 0 ]

@@ -48,6 +48,31 @@ cache_dir() { echo "$DEVFLOW_CACHE_DIR/fixture-proj"; }
   [ "$output" = "embed 1" ]
 }
 
+@test "graph-index: Abbruch mitten im Lauf sichert den Fortschritt, der naechste Lauf setzt fort" {
+  # Batch 1 und Ausfall nach dem ersten Aufruf: genau ein Symbol bekommt einen Vektor.
+  FAKE_BGE_FAIL_AFTER=1 DEVFLOW_EMBED_BATCH=1 devflow_index
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"partial"* ]]
+  run node -e 'const m=require(process.argv[1]); console.log(`count=${m.count} partial=${m.partial} pending=${m.pending}`)' "$(cache_dir)/meta.json"
+  [ "$output" = "count=1 partial=true pending=2" ]
+  : > "$FAKE_BGE_LOG"
+  DEVFLOW_EMBED_BATCH=1 devflow_index
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"reused 1"* ]]
+  run node -e 'const m=require(process.argv[1]); console.log(`count=${m.count} partial=${m.partial}`)' "$(cache_dir)/meta.json"
+  [ "$output" = "count=3 partial=false" ]
+}
+
+@test "graph-index: eingebettet wird nur der Kopf, der volle Text bleibt fuer den Ausschnitt" {
+  DEVFLOW_EMBED_CHARS=40 devflow_index
+  [ "$status" -eq 0 ]
+  run node -e '
+    const fs=require("fs"); const r=fs.readFileSync(process.argv[1],"utf8").trim().split("\n").map(JSON.parse).find(x=>x.name==="resolveToolTier");
+    console.log(`${r.embed_chars} ${r.text.includes("return instCfg.tier")}`);
+  ' "$(cache_dir)/symbols.jsonl"
+  [ "$output" = "40 true" ]
+}
+
 @test "graph-index: ohne erreichbares bge endet der Lauf mit Exit 0 und schreibt nichts" {
   export DEVFLOW_BGE_STDIO="/nonexistent/fake-bge"
   devflow_index

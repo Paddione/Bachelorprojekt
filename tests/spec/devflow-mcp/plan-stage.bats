@@ -11,6 +11,8 @@ setup() {
   devflow_setup
   ORIGIN="$T/origin.git"
   git init -q --bare "$ORIGIN"
+  git -C "$FREPO" config user.email t@t
+  git -C "$FREPO" config user.name t
   git -C "$FREPO" remote add origin "$ORIGIN"
   git -C "$FREPO" push -q origin HEAD:main
   git -C "$FREPO" fetch -q origin

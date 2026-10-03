@@ -84,44 +84,44 @@ kennt kein `summary`, die Toolset-Kette kennt `tools_suppressed` nicht.
 
 ## Task 2: Toolset-Kette (p1)
 
-- [ ] `probe.mjs`: `summary` je Tool (erste Beschreibungszeile, ≤ 200 Zeichen).
-- [ ] `lib/tools.mjs`: `suppressedTools(instKey, cfg, lock)`; `toolsForInstance` lässt sie weg.
-- [ ] `check.mjs`: `tools_suppressed` nur an `mcp:`, Glob ohne Treffer → Fehler; Drift der
+- [x] `probe.mjs`: `summary` je Tool (erste Beschreibungszeile, ≤ 200 Zeichen).
+- [x] `lib/tools.mjs`: `suppressedTools(instKey, cfg, lock)`; `toolsForInstance` lässt sie weg.
+- [x] `check.mjs`: `tools_suppressed` nur an `mcp:`, Glob ohne Treffer → Fehler; Drift der
       verwalteten `permissions.deny`-Einträge (Claude) → Fehler.
-- [ ] `sync.mjs` + `adapters/claude.mjs`: `permissions.deny` mit `mcp__<server>__<tool>`
+- [x] `sync.mjs` + `adapters/claude.mjs`: `permissions.deny` mit `mcp__<server>__<tool>`
       verwalten, fremde Regeln und Server ohne Registry-Eintrag unangetastet (D6).
 
 ## Task 3: Indexer (p2)
 
-- [ ] `lib/run.mjs` (Skriptaufruf mit Timeout), `lib/backends.mjs` (bge/pg/cbm nach D1).
-- [ ] `lib/symbols.mjs`: Graph-Export mit Cursor-Paging, Chunk-Text nach D2.
-- [ ] `lib/graph-cache.mjs`: Cache lesen/schreiben (atomar), Kosinus-Top-k (D3).
-- [ ] `graph-index.mjs`: `--repo`, inkrementell über `text_hash`, Exit 0 ohne Backends.
-- [ ] `sync-db.mjs`: Cache → `knowledge.*` (Collection „Code Graph", `source = code_graph`) per `PGURL`.
+- [x] `lib/run.mjs` (Skriptaufruf mit Timeout), `lib/backends.mjs` (bge/pg/cbm nach D1).
+- [x] `lib/symbols.mjs`: Graph-Export mit Cursor-Paging, Chunk-Text nach D2.
+- [x] `lib/graph-cache.mjs`: Cache lesen/schreiben (atomar), Kosinus-Top-k (D3).
+- [x] `graph-index.mjs`: `--repo`, inkrementell über `text_hash`, Exit 0 ohne Backends.
+- [x] `sync-db.mjs`: Cache → `knowledge.*` (Collection „Code Graph", `source = code_graph`) per `PGURL`.
 
 ## Task 4: Server (p3)
 
-- [ ] `lib/retrieve.mjs`: `searchCode`, `searchKnowledge` (mcp-postgres-Vektorabfrage), Rerank
+- [x] `lib/retrieve.mjs`: `searchCode`, `searchKnowledge` (mcp-postgres-Vektorabfrage), Rerank
       mit Kürzung auf 4500 Zeichen, `degraded` statt Fehler (D4).
-- [ ] `lib/tools-corpus.mjs`: Tool-Dokumente, Filter Rolle/Unterdrückung/Tier (D5).
-- [ ] `lib/plan-stage.mjs`: Ablauf nach D7, Abbruch bei rotem Lint.
-- [ ] `server.mjs`: zehn Tools (`context_for_task`, `recommend_tools`, `search_code`,
+- [x] `lib/tools-corpus.mjs`: Tool-Dokumente, Filter Rolle/Unterdrückung/Tier (D5).
+- [x] `lib/plan-stage.mjs`: Ablauf nach D7, Abbruch bei rotem Lint.
+- [x] `server.mjs`: zehn Tools (`context_for_task`, `recommend_tools`, `search_code`,
       `graph_status`, `plan_stage`, `plan_lint`, `lock`, `collision_check`, `ci_status`,
       `task_oracle`), Aufruferfehler als `isError`.
 
 ## Task 5: Registrierung und Automatik (p4)
 
-- [ ] `mcp.yaml`: Client `devflow-mcp` für alle Harnesses; `capabilities.yaml`: Fähigkeit
+- [x] `mcp.yaml`: Client `devflow-mcp` für alle Harnesses; `capabilities.yaml`: Fähigkeit
       `devflow-kontext` und `tools_suppressed: [stage_plan]` an `mcp:ticket-mcp-node`.
-- [ ] `node scripts/toolset/sync.mjs`, `probe.mjs --ack devflow-mcp --ack ticket-mcp-node`.
-- [ ] Taskfile: `agents:devflow:graph:index` (mit Port-Forward für `--sync-db`), `agents:devflow:graph:status`.
-- [ ] `.githooks/post-merge` und `scripts/nightly-update.sh` nach D9.
+- [x] `node scripts/toolset/sync.mjs`, `probe.mjs --ack devflow-mcp --ack ticket-mcp-node`.
+- [x] Taskfile: `agents:devflow:graph:index` (mit Port-Forward für `--sync-db`), `agents:devflow:graph:status`.
+- [x] `.githooks/post-merge` und `scripts/nightly-update.sh` nach D9.
 
 ## Task 6: Skills und Doku (p5)
 
-- [ ] `implementer-handoff.md`: `context_for_task` vor dem Spawn, Ergebnis in den Prompt.
-- [ ] `dev-flow-plan/SKILL.md` Schritt 5: `plan_stage` als Weg; `mcp-tool-guide.md`: Abschnitt devflow-mcp.
-- [ ] `AGENTS.md` Agent Routing: Verweis auf devflow-mcp.
+- [x] `implementer-handoff.md`: `context_for_task` vor dem Spawn, Ergebnis in den Prompt.
+- [x] `dev-flow-plan/SKILL.md` Schritt 5: `plan_stage` als Weg; `mcp-tool-guide.md`: Abschnitt devflow-mcp.
+- [x] `AGENTS.md` Agent Routing: Verweis auf devflow-mcp.
 
 ## Task 7: Finale Verifikation
 

@@ -57,12 +57,46 @@ export function toolDrift(entry) {
   return { added, removed, changed };
 }
 
-// Tools einer mcp-Instanz mit aufgelöstem Tier, riskanteste zuerst. Leeres Array ohne Lock-Eintrag.
+// T900985 D6: Ist ein Tool per tools_suppressed (Globs) unterdrückt?
+export function isToolSuppressed(name, instCfg) {
+  return (instCfg?.tools_suppressed ?? []).some(p => globMatch(p, name));
+}
+
+// T900985 D6: unterdrückte Tools einer mcp-Instanz als Claude-Permission-Namen. Globs werden gegen
+// den Lock expandiert; ein Muster ohne Wildcard gilt auch ohne Lock-Eintrag.
+export function denyRulesForInstance(instKey, instCfg, lock) {
+  if (!instKey.startsWith('mcp:') || !instCfg?.tools_suppressed?.length) return [];
+  const server = instKey.slice(4);
+  const known = Object.keys(lock.servers?.[server]?.tools ?? {});
+  const names = new Set();
+  for (const p of instCfg.tools_suppressed) {
+    if (!/[*?]/.test(p)) names.add(p);
+    for (const n of known) if (globMatch(p, n)) names.add(n);
+  }
+  return [...names].sort().map(n => `mcp__${server}__${n}`);
+}
+
+// Alle deny-Regeln der Registry (sync.mjs, check.mjs). Unterdrückte Instanzen fehlen: dort ist
+// der ganze Server über disabledMcpjsonServers abgeschaltet.
+export function denyRulesForRegistry(registry, lock) {
+  const rules = new Set();
+  for (const instances of Object.values(registry.capabilities)) {
+    for (const [instKey, cfg] of Object.entries(instances)) {
+      if (cfg.state === 'suppressed') continue;
+      for (const r of denyRulesForInstance(instKey, cfg, lock)) rules.add(r);
+    }
+  }
+  return rules;
+}
+
+// Tools einer mcp-Instanz mit aufgelöstem Tier, riskanteste zuerst. Unterdrückte Tools fehlen.
+// Leeres Array ohne Lock-Eintrag.
 export function toolsForInstance(instKey, instCfg, lock) {
   if (!instKey.startsWith('mcp:')) return [];
   const entry = lock.servers?.[instKey.slice(4)];
   if (!entry?.tools) return [];
   return Object.keys(entry.tools)
-    .map(name => ({ name, tier: resolveToolTier(name, instCfg) }))
+    .filter(name => !isToolSuppressed(name, instCfg))
+    .map(name => ({ name, tier: resolveToolTier(name, instCfg), summary: entry.tools[name]?.summary ?? null }))
     .sort((a, b) => tierRank(b.tier) - tierRank(a.tier) || a.name.localeCompare(b.name));
 }

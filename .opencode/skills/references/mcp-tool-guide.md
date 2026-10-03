@@ -300,6 +300,30 @@ den Endpunkt mit und ohne Token und unterscheidet die drei Zustände über Exit-
 `1` = Token fehlt/stimmt nicht, `2` = Server nicht erreichbar). Der Token-Wert wird nie
 ausgegeben. BATS-Regressionsschutz: `tests/spec/mcp-gateway/client-env-check.bats`.
 
+## `devflow-mcp` — Aufgabenkontext, Werkzeug-Empfehlung, Plan-Staging (T900985)
+
+Stdio-Server `scripts/devflow-mcp/server.mjs`. Design: `.agents/plans/devflow-mcp/design.md`.
+
+| Tool | Wofür | Tier |
+|---|---|---|
+| `context_for_task(task, role)` | **Einstieg für jeden Auftrag:** Code-Symbole (Datei:Zeile, Signatur), Pläne/Bugs/PRs, empfohlene Werkzeuge — alles per bge-Rerank | safe |
+| `recommend_tools(task, role, k, max_tier)` | Werkzeuge gefiltert nach Rolle, `tools_suppressed` und Tier (Default ≤ `assisted`) | safe |
+| `search_code(query, k, path_prefix)` | Semantische Suche über Function/Method/Class des Graphen | safe |
+| `graph_status()` | Index-Commit vs. HEAD, `partial`/`pending` beim Erstlauf | safe |
+| `plan_stage(...)` | Worktree → Plan → Lint → Commit → Push → `stage-plan --hold` | assisted |
+| `plan_lint`, `collision_check`, `ci_status`, `task_oracle` | Strukturierte Wrapper (ein `ci_status`-Aufruf = ein Schnappschuss, kein Polling) | safe |
+| `lock(action, …)` | `agent-lock.sh`; SID aus Parameter oder Harness-Env | caution |
+
+- **Backends:** bge-mcp :13005 (Bearer `BGE_MCP_TOKEN`), mcp-postgres :13001 (lesend, `knowledge.*`),
+  lokaler Graph-Cache `~/.cache/devflow-mcp/<projekt>/`. Fällt eine Quelle aus, bleibt nur deren
+  Sektion leer (`degraded`); Rerank-Ausfall liefert Vektor-Reihenfolge.
+- **Graph-Korpus:** `node scripts/devflow-mcp/graph-index.mjs --repo <pfad>` — frischer
+  codebase-memory-Index, ein Chunk je Symbol, nur Geändertes einbetten. Automatisch nach jedem
+  Merge auf `main` (`.githooks/post-merge`, 20 min Budget) und nachts mit Sync nach
+  `knowledge.*` (`task agents:devflow:graph:index SYNC_DB=1`). bge bettet seriell ein
+  (~2,2 ms/Zeichen): der Erstlauf dauert Stunden und setzt am Checkpoint fort.
+- **Nicht:** exakte Textsuche (grep / `search_code` von codebase-memory), Ticket-Status (ticket-mcp).
+
 ## `context7` — Bibliotheks-Dokumentation (Upstream-Docs)
 
 - **Transport:** stdio via `npx -y @upstash/context7-mcp@4.1.1`. Bewusst **stdio und nicht HTTP**,

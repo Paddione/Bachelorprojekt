@@ -128,6 +128,36 @@ bp-ship/orchestrator, Tier `caution`, `tool_tiers`: `plan_stage` assisted, Leset
 Skills: Implementer-Handoff ruft `context_for_task` vor dem Spawn; dev-flow-plan nennt
 `plan_stage` als Weg für Schritt 5.
 
+## Nachträge aus der Umsetzung (gemessen gegen die echten Backends, 2026-10-03)
+
+```bash
+# bge-Durchsatz je Textlänge (Batch 8, über bge-mcp :13005)
+node <scratch>/bge-tput2.mjs   # 150 Z.: 353 ms/Text · 300 Z.: 651 · 600 Z.: 1415 · 1200 Z.: ~2400
+# Batch 16 mit 1200 Zeichen: Upstream-Timeout nach 30 s
+node scripts/devflow-mcp/graph-index.mjs --repo /home/patrick/Bachelorprojekt --max-minutes 40
+```
+
+- **N1 — Eingebettet wird nur der Anfang (D2 präzisiert).** bge bettet seriell ein, ~2,2 ms je
+  Zeichen. Embedding-Text = erste `DEVFLOW_EMBED_CHARS` (500) Zeichen des Chunks; der volle Text
+  bleibt für Ausschnitt und Rerank. `text_hash` hängt am eingebetteten Teil.
+- **N2 — Erstlauf in Etappen.** ~13 300 Symbole × ~1,1 s ≈ 4 h. Checkpoint alle 25 Batches,
+  `--max-minutes` als Zeitbudget (Hook 20, Nightly 240), `meta.partial`/`meta.pending`;
+  der nächste Lauf setzt fort. Produktivcode vor Tests. Batch 4 (statt 8), damit interaktive
+  Anfragen nicht lange hinter einem Index-Batch warten; bei Timeout eine Wiederholung mit halber
+  Batchgröße.
+- **N3 — Tokens aus server.env.** Ohne Login-Shell fehlt `BGE_MCP_TOKEN` (gemessen: HTTP 401).
+  `withTokens` liest wie `scripts/mcp-sync.sh` erst die Umgebung, dann
+  `~/.config/{bge-mcp,mcp-postgres}/server.env`.
+- **N4 — Ein Embedding je `context_for_task`.** Code und Wissen teilen den Anfragevektor.
+- **N5 — Werkzeuge ohne Rerank lexikalisch.** Ohne Vektor-Reihenfolge wäre der Fallback die
+  Registry-Reihenfolge (gemessen: `gh-axi` vorn für „Pod-Logs lesen").
+- **N6 — Latenz unter Last.** Während ein Indexlauf bge belegt, braucht `context_for_task`
+  20–35 s und der Rerank kann ausfallen (`degraded`). Ohne parallelen Indexlauf: Embedding
+  ~0,35 s, Rerank ~0,7 s.
+- **N7 — post-merge-Hook reparierte nebenbei den Graph-Refresh.** Der bisherige Aufruf zeigte auf
+  `~/.local/bin/codebase-memory-mcp` (existiert nicht) — der codebase-memory-Index wurde nach
+  Merges nie aktualisiert; das Linux-Binary hatte 0 Projekte.
+
 ## Nicht in diesem Change
 - Ablösung des SCS-Index (Folgeticket nach Kalibrierung mit `kalibrierung-retrieval.mjs`).
 - PATH-Fix für `codebase-memory-mcp` in den WSL-Harnesses (Host-Konfiguration, kein Repo-Inhalt);

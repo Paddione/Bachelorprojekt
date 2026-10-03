@@ -76,12 +76,22 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `ticket-lebenszyklus`
 
 - **`mcp:ticket-mcp-node`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Tickets lesen, anlegen, Status setzen, Plan stagen, Phasen-Events schreiben.
-  - _Nicht:_ stage_plan im Worktree — schlägt dort immer fehl.
+  - _Wann:_ Tickets lesen, anlegen, Status setzen, Phasen-Events schreiben.
+  - _Nicht:_ Plan stagen — das macht devflow-mcp plan_stage (stage_plan ist unterdrückt).
   - _Fallback:_ `scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)`
   - _Rollen:_ `bp-run`, `bp-ship`, `orchestrator`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
-  - _Tools (26):_ dangerous: `archive_plan`, `backfill_ticket_id`, `flush_mishap_buffer` · caution: `add_comment`, `add_pr_link`, `create_ticket`, `enqueue_ticket`, `link_tickets`, `prepare_feature`, `record_grill_answers`, `record_phase_event`, `report_mishap`, `set_plan_meta`, `set_readiness_flag`, `set_touched_files`, `stage_plan`, `transition_status`, `triage_ticket`, `update_fields` · 7 safe
+  - _Tools (25):_ dangerous: `archive_plan`, `backfill_ticket_id`, `flush_mishap_buffer` · caution: `add_comment`, `add_pr_link`, `create_ticket`, `enqueue_ticket`, `link_tickets`, `prepare_feature`, `record_grill_answers`, `record_phase_event`, `report_mishap`, `set_plan_meta`, `set_readiness_flag`, `set_touched_files`, `transition_status`, `triage_ticket`, `update_fields` · 7 safe
+
+## Fähigkeit: `devflow-kontext`
+
+- **`mcp:devflow-mcp`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Vor jedem Auftrag context_for_task (Code, Pläne, Werkzeuge per Rerank); Pläne mit plan_stage stagen.
+  - _Nicht:_ Exakte Textsuche — dafür grep/search_code von codebase-memory.
+  - _Fallback:_ `bash scripts/toolset-context.sh <rolle> + bash scripts/plan-context.sh <rolle>`
+  - _Rollen:_ `bp-build`, `bp-run`, `bp-ship`, `orchestrator`
+  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tools (10):_ assisted: `plan_stage` · caution: `lock` · 8 safe
 
 ## Fähigkeit: `ticket-inhalt`
 

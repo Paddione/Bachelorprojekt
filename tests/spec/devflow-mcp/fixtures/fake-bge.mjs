@@ -8,6 +8,7 @@ import readline from 'node:readline';
 import fs from 'node:fs';
 
 const DIM = 64;
+let embedCalls = 0;
 const words = (s) => String(s).toLowerCase().match(/[a-z0-9_]+/g) ?? [];
 function hash(w) { let h = 2166136261; for (const c of w) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return Math.abs(h) % DIM; }
 function embed(text) {
@@ -28,6 +29,9 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
   if (m.method !== 'tools/call') return fail(m.id, 'method not found');
   const { name, arguments: a } = m.params;
   if (name === 'bge_embed') {
+    // FAKE_BGE_FAIL_AFTER=n: nach n erfolgreichen Embed-Aufrufen scheitert jeder weitere (Checkpoint-Test).
+    embedCalls++;
+    if (process.env.FAKE_BGE_FAIL_AFTER && embedCalls > Number(process.env.FAKE_BGE_FAIL_AFTER)) return fail(m.id, 'upstream did not answer');
     if (process.env.FAKE_BGE_LOG) fs.appendFileSync(process.env.FAKE_BGE_LOG, `embed ${a.texts.length}\n`);
     return reply(m.id, text({ dimensions: DIM, embeddings: a.texts.map(embed) }));
   }

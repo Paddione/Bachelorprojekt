@@ -79,6 +79,9 @@
       "mcp__warden__keychain_send_remove_password",
       "mcp__warden__keychain_set_login_uris",
       "mcp__warden__keychain_update_item"
+    ],
+    "deny": [
+      "mcp__ticket-mcp-node__stage_plan"
     ]
   },
   "disabledMcpjsonServers": [

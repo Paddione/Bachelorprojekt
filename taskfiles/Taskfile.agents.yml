@@ -469,3 +469,42 @@ tasks:
     requires:
       vars: [ROLE]
 
+  # T900985: devflow-mcp Graph-Korpus. Lokaler Cache immer; SYNC_DB=1 schreibt zusaetzlich nach
+  # knowledge.* (SSOT, source code_graph) ueber einen Port-Forward auf shared-db im Kontext von
+  # ENV (Default dev = devmesh, dieselbe DB, die mcp-postgres liest). Muster: knowledge:*-Tasks.
+  devflow:graph:index:
+    desc: "Refresh the devflow-mcp graph corpus (MAX_MINUTES=n, SYNC_DB=1 writes knowledge.*)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+      MAX_MINUTES: '{{.MAX_MINUTES | default "0"}}'
+      SYNC_DB: '{{.SYNC_DB | default "0"}}'
+    cmds:
+      - |
+        args=(--repo "$PWD")
+        [ "{{.MAX_MINUTES}}" != "0" ] && args+=(--max-minutes "{{.MAX_MINUTES}}")
+        node scripts/devflow-mcp/graph-index.mjs "${args[@]}"
+        [ "{{.SYNC_DB}}" = "1" ] || exit 0
+        # Port-Forward erst nach dem (stundenlangen) Einbetten und nur fuer den Sync — lange
+        # offene Forwards reissen ab (scripts/index-repo.ts, T002259).
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        WEBSITE_DB_PASSWORD=$(kubectl --context "$ENV_CONTEXT" get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.WEBSITE_DB_PASSWORD}" 2>/dev/null | base64 -d)
+        if [ -z "$WEBSITE_DB_PASSWORD" ]; then
+          echo "WARN: WEBSITE_DB_PASSWORD not found in $ENV_CONTEXT/$NS — knowledge sync skipped" >&2
+          exit 0
+        fi
+        fuser -k 15499/tcp 2>/dev/null || true
+        kubectl --context "$ENV_CONTEXT" -n "$NS" port-forward svc/shared-db 15499:5432 \
+          >/tmp/devflow-graph-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        for _ in 1 2 3 4 5 6 7 8; do nc -z 127.0.0.1 15499 2>/dev/null && break; sleep 1; done
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:15499/website" \
+          node scripts/devflow-mcp/sync-db.mjs --repo "$PWD"
+
+  devflow:graph:status:
+    desc: "Show the devflow-mcp graph corpus state (commit, symbols, pending)"
+    cmds:
+      - cat "${DEVFLOW_CACHE_DIR:-$HOME/.cache/devflow-mcp}"/*/meta.json
+

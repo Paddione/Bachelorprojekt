@@ -13,6 +13,14 @@
       ],
       "timeout_ms": 60000
     },
+    "devflow-mcp": {
+      "command": "node",
+      "args": [
+        "/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs"
+      ],
+      "cwd": "/home/patrick/Bachelorprojekt",
+      "timeout_ms": 60000
+    },
     "ticket-mcp-node": {
       "command": "node",
       "args": [

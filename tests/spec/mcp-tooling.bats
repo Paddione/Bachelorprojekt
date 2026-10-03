@@ -192,6 +192,9 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
       scripts/ticket-mcp-node/server.mjs)
         grep -q 'ticket-mcp-node:' "$reg_file" || orphans+=("$src (not in mcp.yaml)")
         ;;
+      scripts/devflow-mcp/server.mjs)
+        grep -q 'devflow-mcp:' "$reg_file" || orphans+=("$src (not in mcp.yaml)")
+        ;;
       scripts/llm-proxy/server.mjs)
         grep -q 'llm-proxy' "$reg_file" || orphans+=("$src (not in mcp.yaml cluster)")
         ;;

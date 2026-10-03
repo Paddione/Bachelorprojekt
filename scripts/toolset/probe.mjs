@@ -78,6 +78,10 @@ for (const r of results) {
   const tools = {};
   for (const t of [...r.tools].sort((a, b) => a.name.localeCompare(b.name))) {
     const entry = { hash: toolHash(t) };
+    // T900985: Kurzbeschreibung für devflow-mcp recommend_tools (Rerank-Dokument) — erste
+    // Zeile, gekürzt; die volle Beschreibung steckt nur im Hash.
+    const summary = String(t.description ?? '').split('\n')[0].trim().slice(0, 200);
+    if (summary) entry.summary = summary;
     if (t.annotations?.readOnlyHint === true) entry.read_only = true;
     if (t.annotations?.destructiveHint === true) entry.destructive = true;
     tools[t.name] = entry;

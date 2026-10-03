@@ -19,7 +19,8 @@ import { ADAPTERS } from './lib/adapters/index.mjs';
 import { readClaudeCodeConfig } from './lib/harness.mjs';
 import { collectInstances, withRegistryOnlyInstances } from './collect.mjs';
 import { ROLES, LEGACY_ROLE_ALIASES } from './lib/roles.mjs';
-import { VALID_TIERS as TIER_LIST, defaultLockPath, loadLock, globMatch, toolDrift, resolveToolTier } from './lib/tools.mjs';
+import { VALID_TIERS as TIER_LIST, defaultLockPath, loadLock, globMatch, toolDrift, resolveToolTier, denyRulesForRegistry } from './lib/tools.mjs';
+import { managedDeny } from './lib/adapters/claude.mjs';
 
 const registryPath = process.env.TOOLSET_REGISTRY || path.join(process.cwd(), 'docs', 'agent-guide', 'registry', 'capabilities.yaml');
 const outDir = process.env.TOOLSET_OUT_DIR || process.cwd();
@@ -142,18 +143,24 @@ function unifiedDiff(before, after, filePath) {
 // eine fehlende Liste zählt wie eine leere, andere Keys und reine Formatierung sind kein
 // Drift (Verallgemeinerung des alten §2-Teilmengenvergleichs auf den vollen Soll-Zustand).
 // opencode fällt auf den Byte-Vergleich zurück — der Adapter erhält dort jedes Byte.
+// Rückgabe: Name des abweichenden verwalteten Schlüssels oder null (kein Drift).
+// T900985: claude verwaltet zusätzlich die mcp__<registry-server>__*-Einträge in permissions.deny.
 function isDrift(name, current, rendered) {
-  if (current === rendered) return false;
+  if (current === rendered) return null;
   if (name === 'claude') {
     try {
-      const a = JSON.parse(current).disabledMcpjsonServers ?? [];
-      const b = JSON.parse(rendered).disabledMcpjsonServers ?? [];
-      return JSON.stringify([...a].sort()) !== JSON.stringify([...b].sort());
+      const cur = JSON.parse(current);
+      const ren = JSON.parse(rendered);
+      const a = cur.disabledMcpjsonServers ?? [];
+      const b = ren.disabledMcpjsonServers ?? [];
+      if (JSON.stringify([...a].sort()) !== JSON.stringify([...b].sort())) return 'disabledMcpjsonServers';
+      if (JSON.stringify(managedDeny(cur, registryMcp)) !== JSON.stringify(managedDeny(ren, registryMcp))) return 'permissions.deny';
+      return null;
     } catch {
-      return true;
+      return MANAGED_KEYS[name];
     }
   }
-  return true;
+  return MANAGED_KEYS[name] ?? 'managed state';
 }
 
 const claude = readClaudeCodeConfig(outDir);
@@ -165,7 +172,7 @@ for (const [name, adapter] of Object.entries(ADAPTERS)) {
   if (!fs.existsSync(targetPath)) continue;
   const toolset = harness ? resolveToolset(registry.capabilities, harness) : legacyToolset;
   const ctx = name === 'claude'
-    ? { toolset, registryMcp, suppressedMcp, projectMcp }
+    ? { toolset, registryMcp, suppressedMcp, projectMcp, denyRules: denyRulesForRegistry(registry, loadLock(defaultLockPath(registryPath))) }
     : { toolset, registryMcp };
   const current = fs.readFileSync(targetPath, 'utf8');
   let rendered;
@@ -176,8 +183,9 @@ for (const [name, adapter] of Object.entries(ADAPTERS)) {
     hasError = true;
     continue;
   }
-  if (!isDrift(name, current, rendered)) continue;
-  console.error(`Drift detected in ${targetPath} (DRIFT ${name}): managed key '${MANAGED_KEYS[name] ?? 'managed state'}' differs`);
+  const driftKey = isDrift(name, current, rendered);
+  if (!driftKey) continue;
+  console.error(`Drift detected in ${targetPath} (DRIFT ${name}): managed key '${driftKey}' differs`);
   console.error(unifiedDiff(current, rendered, adapter.file).trimEnd());
   hasError = true;
 }
@@ -235,11 +243,29 @@ if (fs.existsSync(claude.settingsPath)) {
           }
         }
       }
+      // T900985 D6: tools_suppressed — nur an mcp:, Liste von Globs.
+      const supp = cfg.tools_suppressed;
+      if (supp !== undefined && supp !== null) {
+        if (!instKey.startsWith('mcp:') || !Array.isArray(supp)) {
+          console.error(`Capability '${capName}' instance '${instKey}': tools_suppressed must be a list on an mcp: instance.`);
+          hasError = true;
+          continue;
+        }
+      }
       if (!instKey.startsWith('mcp:') || cfg.state === 'suppressed') continue;
       const server = instKey.slice(4);
       const entry = lock.servers[server];
       if (!entry?.tools) continue;
       const names = Object.keys(entry.tools);
+      for (const pattern of supp ?? []) {
+        if (!names.some(n => globMatch(pattern, n))) {
+          console.error(`Capability '${capName}' instance '${instKey}': tools_suppressed '${pattern}' matches no tool of '${server}' in the lock (stale curation).`);
+          hasError = true;
+        }
+      }
+      if (supp?.length) {
+        toolNotes.push(`  advisory: ${server}: tools_suppressed is enforced for Claude Code (permissions.deny) only, not for opencode`);
+      }
       for (const pattern of Object.keys(tiers ?? {})) {
         if (!names.some(n => globMatch(pattern, n))) {
           console.error(`Capability '${capName}' instance '${instKey}': tool_tiers '${pattern}' matches no tool of '${server}' in the lock (stale curation).`);

@@ -154,6 +154,13 @@ bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
 [dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md)).
 
 ### Schritt 5: Commit & Push, dann stagen — dann STOPP
+> **Ein Aufruf statt der Sequenz unten (T900985):** devflow-mcp `plan_stage(ticket, slug,
+> branch_type, plan_markdown | plan_file, design_markdown?, partials)` legt Worktree + Branch von
+> `origin/main` an, claimt, schreibt Plan und Design, lässt `plan-lint` laufen (rot = Abbruch mit
+> strukturierten Befunden, Worktree bleibt), dann Preflight, Commit, Push und
+> `stage-plan --hold`. Die Rückgabe listet jeden Schritt. `ticket-mcp-node.stage_plan` ist
+> unterdrückt. Die Einzelschritte unten bleiben der Vertrag, den `plan_stage` umsetzt.
+
 **Pre-Commit Guard (PFLICHT) [T001268]:** `plan-preflight.sh` bündelt drei Checks; hier steht der
 Vertrag, den der Operator nachvollziehen können muss (Umsetzung: Skript +
 `docs/agent-guide/registry/plan-guards.yaml`):

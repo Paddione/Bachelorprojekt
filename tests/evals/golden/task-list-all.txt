@@ -9,6 +9,8 @@ task: Available tasks for this project:
 * agent-guide:platform-descriptions:            Regenerate components/website/src/lib/platform-descriptions.generated.json from the components registry
 * agent-guide:webapp:                           S2: regenerate components/website/src/lib/agent-guide.generated.json from the registry
 * agent:orchestrator:                           T001588: local agent orchestration (start/stop/status/submit) via worktrees — see scripts/agent-orchestrator.sh --help
+* agents:devflow:graph:index:                   Refresh the devflow-mcp graph corpus (MAX_MINUTES=n, SYNC_DB=1 writes knowledge.*)
+* agents:devflow:graph:status:                  Show the devflow-mcp graph corpus state (commit, symbols, pending)
 * agents:mcp-cors-proxy:install:                Install mcp-cors-proxy as a persistent systemd USER service (autostart + Restart=always).
 * agents:mcp-cors-proxy:service-status:         Show the mcp-cors-proxy systemd service state + recent journal tail.
 * agents:mcp-cors-proxy:status:                 Health-check mcp-cors-proxy (:18082 preflight + initialize)

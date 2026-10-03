@@ -17,30 +17,6 @@ allowed-tools:
 
 # Langfuse
 
-> [!CAUTION]
-> **Langfuse v4 — Legacy APIs sunset 2026-11-16 (in ~6 weeks).**
-> All projects must migrate to the v4 data model before this date.
-> Run the **Migration Assistant** (sidebar → project settings) to identify required changes.
-> See [`references/v4-project-migration.md`](references/v4-project-migration.md) for the full migration guide.
-
-## What's New in Langfuse v4 (2026)
-
-| Feature | Summary |
-|---------|---------|
-| **v4 data model** | Observation-centric — `Observations` replace `Traces` as the primary view unit. Dashboards/tables load up to 165× faster. |
-| **Proactive Monitors & Alerts** | Threshold-based alerts on cost, latency, quality → Slack / webhook / GitHub Actions |
-| **Multi-modal evaluators** | Evaluate images, audio, video, PDFs natively |
-| **Code evaluators** | Deterministic Python or TypeScript checks run on live observations |
-| **Stable Evaluator API** | ID-based API (Aug 2026) for programmatic evaluator management |
-| **Langfuse Assistant** | In-app agent: analyzes observations, builds datasets/dashboards, runs sandbox code |
-| **MCP tools** | Agents can interact with observations, metrics, scores, datasets, comments via MCP |
-| **CLI 1.0** | 10× faster startup, typed flags, improved pagination |
-| **Dashboard API** | Dashboards and widgets fully manageable via Public API, CLI, and MCP |
-
-> Self-hosted users: check your installed version — v4 requires an upgrade for the new data model.
-
----
-
 This skill helps you use Langfuse effectively across all common workflows: instrumenting applications, migrating prompts, debugging traces, and accessing data programmatically.
 
 ## Core Principles

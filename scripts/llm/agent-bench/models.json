@@ -2,23 +2,22 @@
   "version": 1,
   "registry_note": "agent-bench model pool. Deliberately NOT the llama.cpp render registry scripts/llm/loadouts.json: that file is the llama.cpp render/serve registry (args, fit, speculative, mcp, exclusiveGroup) consumed by scripts/llm-proxy/*, scripts/lib/llm-stack-measure.sh and gpu-lock.sh (GPU_LOCK_LOADOUTS). This file is the bench pool and carries GPU residency, engine (llamacpp|vllm|api), tool/vision capabilities, systemd user units and the vLLM start argv. Both files stay separate on purpose; scripts/llm/loadouts.json is not a target_file of agent-bench.",
   "spill_threshold_mib": 15900,
-  "spill_threshold_note": "~15.9 GB ist die verifizierte WLS-Spill-Grenze der 5070 Ti (scripts/llm/qwen38-gsq-iq2s.service): darueber lagert CUDA still in den Systemspeicher aus. Wird als GPU_LOCK_REQUIRED_MIB an scripts/gpu-lock.sh uebergeben.",
+  "spill_threshold_note": "~15.9 GB ist die verifizierte WSL-Spill-Grenze der 5070 Ti (scripts/llm/measurements/2026-10-03-qwen38-iq2s-vs-iq3xxs.md): darueber lagert CUDA still in den Systemspeicher aus. Wird als GPU_LOCK_REQUIRED_MIB an scripts/gpu-lock.sh uebergeben.",
   "gpu_uuids": {
     "5070ti": "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4",
     "3060ti": null
   },
   "production_services": [
-    "qwen38-gsq-iq2s.service",
-    "qwen35-mtp.service"
+    "qwen38-gsq-iq3xxs.service"
   ],
   "models": [
     {
       "id": "qwen38-27b",
-      "label": "Qwen3.8-27B-GSQ-RCO-IQ2_S (produktiver Orchestrator)",
+      "label": "Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp (produktiver Orchestrator)",
       "engine": "llamacpp",
       "gpu": "5070ti",
       "port": 1919,
-      "service": "qwen38-gsq-iq2s.service",
+      "service": "qwen38-gsq-iq3xxs.service",
       "start": null,
       "capabilities": [
         "tools"
@@ -27,17 +26,17 @@
       "enabled": true
     },
     {
-      "id": "qwen35-4b",
-      "label": "Qwen3.5-4B-MTP (produktiver MTP-Subagent)",
+      "id": "qwen3-4b",
+      "label": "Qwen3-4B-Instruct-2507 UD-Q4_K_XL (Worker-Pool :8080, Windows-nativ, kein systemd)",
       "engine": "llamacpp",
       "gpu": "3060ti",
-      "port": 1920,
-      "service": "qwen35-mtp.service",
+      "port": 8080,
+      "service": null,
       "start": null,
       "capabilities": [
         "tools"
       ],
-      "max_context": 98304,
+      "max_context": 90112,
       "enabled": true
     },
     {

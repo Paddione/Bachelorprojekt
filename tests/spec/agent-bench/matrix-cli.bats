@@ -20,7 +20,7 @@ teardown() {
   bench_env "$T/runs" "$T/cases"
   export FAKE_OPENCODE_SOLVE=1
   export FAKE_OPENCODE_SNAP="printf '#!/usr/bin/env bash\necho fixed\n' > app.sh"
-  run node "$BENCH" run --profile quick --roles code-worker --models qwen35-4b --cases tiny-eval
+  run node "$BENCH" run --profile quick --roles code-worker --models qwen3-4b --cases tiny-eval
   echo "$output" | grep -q '^AGENT-BENCH: '
   local roles
   roles="$(node -e "
@@ -36,7 +36,7 @@ console.log(out.sort().join(','));
 
 @test "Unknown role is refused" {
   bench_env "$T/runs" "$T/cases"
-  run node "$BENCH" run --profile quick --roles planer --models qwen35-4b
+  run node "$BENCH" run --profile quick --roles planer --models qwen3-4b
   [ "$status" -eq 2 ]
   # Positiv-Anker: die Fehlermeldung nennt den falschen Namen und die Auswahl.
   [[ "$output" == *"planer"* ]]
@@ -49,7 +49,7 @@ console.log(out.sort().join(','));
   bench_env "$T/runs" "$T/cases"
   export FAKE_OPENCODE_SOLVE=1
   export FAKE_OPENCODE_SNAP="printf '#!/usr/bin/env bash\necho fixed\n' > app.sh"
-  run node "$BENCH" run --profile quick --roles code-worker --models qwen35-4b --cases tiny-eval:v1 --mode isolated
+  run node "$BENCH" run --profile quick --roles code-worker --models qwen3-4b --cases tiny-eval:v1 --mode isolated
   echo "$output" | grep -q '^AGENT-BENCH: '
   [ -s "$FAKE_OPENCODE_LOG" ]
   grep -q 'REFERENZ-PARTIAL-MARKER-V1' "$FAKE_OPENCODE_LOG"
@@ -61,7 +61,7 @@ console.log(out.sort().join(','));
   bench_env "$T/runs" "$T/cases"
   export FAKE_OPENCODE_SOLVE=1
   export FAKE_OPENCODE_SNAP="printf '#!/usr/bin/env bash\necho fixed\n' > app.sh"
-  run node "$BENCH" run --profile quick --roles planner,code-worker --models qwen35-4b --cases tiny-eval:v1 --mode chained
+  run node "$BENCH" run --profile quick --roles planner,code-worker --models qwen3-4b --cases tiny-eval:v1 --mode chained
   echo "$output" | grep -q '^AGENT-BENCH: '
   grep -q 'KETTEN-PLAN-MARKER' "$FAKE_OPENCODE_LOG"
   nomarker="$(grep -c 'REFERENZ-PARTIAL-MARKER-V1' "$FAKE_OPENCODE_LOG" || true)"
@@ -84,7 +84,7 @@ console.log(walk('$T/runs'));
   bench_env "$T/runs" "$T/cases"
   export FAKE_OPENCODE_SOLVE=1
   export FAKE_OPENCODE_SNAP="printf '#!/usr/bin/env bash\necho fixed\n' > app.sh"
-  run node "$BENCH" run --profile quick --roles planner,code-worker --models qwen35-4b,qwen38-27b --cases tiny-eval:v1 --mode chained
+  run node "$BENCH" run --profile quick --roles planner,code-worker --models qwen3-4b,qwen38-27b --cases tiny-eval:v1 --mode chained
   echo "$output" | grep -q '^AGENT-BENCH: '
   local counts
   counts="$(node -e "
@@ -101,7 +101,7 @@ console.log(plan + '/' + exec);
 @test "Vision role skips models without vision" {
   start_fake '[{"content": "{\"fields\": {\"boxes\": \"3\"}}"}]'
   bench_env "$T/runs" "$T/cases"
-  run node "$BENCH" run --profile quick --roles vision-worker --models qwen38-27b,qwen35-4b,gemma4-12b-nvfp4 --cases tiny-eval:v4
+  run node "$BENCH" run --profile quick --roles vision-worker --models qwen38-27b,qwen3-4b,gemma4-12b-nvfp4 --cases tiny-eval:v4
   echo "$output" | grep -q '^AGENT-BENCH: '
   local models
   models="$(node -e "
@@ -120,7 +120,7 @@ console.log(out.sort().join(','));
   bench_env "$T/runs" "$T/cases"
   export FAKE_OPENCODE_SOLVE=1
   export FAKE_OPENCODE_SNAP="printf '#!/usr/bin/env bash\necho fixed\n' > app.sh"
-  run node "$BENCH" run --profile quick --roles planner,code-worker --models qwen35-4b --cases tiny-eval:v1 --mode chained
+  run node "$BENCH" run --profile quick --roles planner,code-worker --models qwen3-4b --cases tiny-eval:v1 --mode chained
   echo "$output" | grep -q '^AGENT-BENCH: '
   local run_id
   run_id="$(echo "$output" | grep -o 'run=[^ ]*' | cut -d= -f2)"
@@ -145,7 +145,7 @@ console.log(out.sort().join(','));
   bench_env "$T/runs" "$T/cases"
   export FAKE_OPENCODE_SOLVE=1
   export FAKE_OPENCODE_SNAP="printf '#!/usr/bin/env bash\necho fixed\n' > app.sh; printf '#!/usr/bin/env bash\necho moin\n' > greet.sh"
-  run node "$BENCH" run --profile quick --roles code-worker --models qwen35-4b --split train
+  run node "$BENCH" run --profile quick --roles code-worker --models qwen3-4b --split train
   echo "$output" | grep -q '^AGENT-BENCH: '
   local cases
   cases="$(node -e "

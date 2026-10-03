@@ -16,7 +16,7 @@
       "endpoint_env": "AGENT_BENCH_TEACHER_URL"
     },
     {
-      "id": "qwen35-4b",
+      "id": "qwen3-4b",
       "label": "Fixture: produziert nichts, zeigt auf den Fake-Server",
       "engine": "api",
       "gpu": "remote",

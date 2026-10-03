@@ -65,7 +65,7 @@ console.log(JSON.stringify(await checkSpill(pool, 'testgpu')));
   node -e "
 const fs = require('fs');
 const pool = JSON.parse(fs.readFileSync('$FIX/pool.json', 'utf8'));
-pool.production_services = ['qwen38-gsq-iq2s.service', 'qwen35-mtp.service'];
+pool.production_services = ['qwen38-gsq-iq3xxs.service'];
 fs.writeFileSync('$T/pool.json', JSON.stringify(pool));
 "
   export POOL_JSON="$T/pool.json"
@@ -76,7 +76,7 @@ fs.writeFileSync('$T/pool.json', JSON.stringify(pool));
   grep -q 'DRIVE-RESTORE-READY' "$T/driver.log"
   kill -INT "$pid"
   wait "$pid" || true
-  grep -q 'start qwen38-gsq-iq2s.service' "$T/bin.log"
+  grep -q 'start qwen38-gsq-iq3xxs.service' "$T/bin.log"
   grep -q 'gpu-lock release' "$T/bin.log"
 }
 

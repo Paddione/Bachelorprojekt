@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // bench-orchestration.mjs — Misst, wie gut ein Orchestrator-Modell einen Plan ueber ein
-// kleines Arbeitermodell ausfuehrt (Qwen3.5-4B-MTP auf :1920, RTX 3060 Ti).
+// kleines Arbeitermodell ausfuehrt (Qwen3-4B-2507 auf :8080, RTX 3060 Ti).
 //
 // Der Orchestrator bekommt nur zwei Tools: delegate(task) ruft den Worker auf, finish(answer)
 // beendet die Aufgabe. Jede Aufgabe hat ein deterministisch pruefbares Ergebnis. Bestanden
@@ -20,7 +20,7 @@ import vm from 'node:vm';
 
 const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
 const ORCH = `http://127.0.0.1:${arg('orch', '1919')}`;
-const WORKER = `http://127.0.0.1:${arg('worker', '1920')}`;
+const WORKER = `http://127.0.0.1:${arg('worker', '8080')}`;
 const LABEL = arg('label', 'orch');
 const REPS = Number(arg('reps', '3'));
 const OUT = arg('out', `bench-orchestration-${LABEL}.jsonl`);

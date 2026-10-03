@@ -2,7 +2,7 @@
 // plan-runner.mjs — fuehrt die Partials eines gestagten Plans mit lokalen Modellen aus (T900504).
 //
 // Der Orchestrator (llama-server :1919, Qwen3.8-27B IQ3_XXS-mtp) steuert per Tool-Loop; Partials laufen als
-// `opencode run --agent plan-worker-4b` (4B-Worker Qwen3-4B-2507, Windows-nativ :8080) oder, wenn alle
+// `opencode run --agent plan-worker-qwen35` (4B-Worker Qwen3.5-4B-MTP, Windows-nativ :8080) oder, wenn alle
 // 4B-Slots belegt sind, als Selbstaufruf `opencode run --agent plan-worker-self`. Waehrend des
 // Selbstaufrufs vergibt der Scheduler freie 4B-Slots selbst und meldet die Ergebnisse nach der Rueckkehr. Fortschritt:
 // <plan-dir>/.plan-runner/state.json (atomar, Resume nach Abbruch; Plan-Heimat seit C7a:
@@ -23,7 +23,7 @@ import {
 } from './plan-runner/plan.mjs';
 import { WorkerPool, killAllWorkers } from './plan-runner/workers.mjs';
 
-// 3 Slots des Windows-nativen Qwen3-4B-2507-Pools (:8080, -np 3 -kvu -c 90112
+// 3 Slots des Windows-nativen Qwen3.5-4B-MTP-Pools (:8080, -np 3 -kvu -c 98304
 // seit 2026-10-03; davor -np 3 in qwen35-mtp.service auf :1920, T900504 p4).
 const DEFAULT_4B_SLOTS = 3;
 const IDLE_POLL_MS = 5000;

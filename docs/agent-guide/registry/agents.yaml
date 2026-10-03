@@ -45,7 +45,7 @@ runtimes:
     model: llamacpp-local/Qwen3.8-27B
     write_capable: false
     note: "Higher-capability local implementation subagent: Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp via llama.cpp :1919 (RTX 5070 Ti, 153600 served KV, ~98-106 tok/s decode, gemessen 2026-10-03) [T900365]. Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~100k)."
-  qwen3-4b:
+  qwen35-4b:
     mode: subagent
     model: llamacpp-qwen3/Qwen3.5-4B-MTP
     write_capable: false
@@ -78,7 +78,7 @@ runtimes:
     model: opencode-go/muse-spark-1.3-contributor
     write_capable: true
     note: "PRIMARY: ship — BATS/Playwright, Astro/Svelte website, brand pages, test inventory. Thin domain entry over the OMO engine (Muse Spark via Go) [T900858]."
-  plan-worker-4b:
+  plan-worker-qwen35:
     mode: primary
     model: llamacpp-qwen3/Qwen3.5-4B-MTP
     write_capable: true

@@ -39,4 +39,4 @@ Full rule: `.claude/lib/behaviors/escalation-protocol.md`.
 - `components/website/` is strictly `pnpm` (never `npm install` there);
   `tests/` spec guards live under `tests/spec/`.
 - MCP: none (playwright disabled by default).
-- Dispatch via task: `local`, `qwen3-4b`, `reviewer`, `designer`, `librarian`.
+- Dispatch via task: `local`, `qwen35-4b`, `reviewer`, `designer`, `librarian`.

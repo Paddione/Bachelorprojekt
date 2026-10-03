@@ -1,4 +1,4 @@
-# Windows-native QLoRA-Training (Qwen3-4B Tool-Use, 2026-08-24)
+# Windows-native LoRA-Training (Qwen3.5-4B Tool-Use, 2026-08-24)
 
 Artefakte des ersten Windows-nativen Unsloth-Trainings auf der RTX 5070 Ti
 (WSL2-Host, GPU-Interop). Der Lauf gehoert zur Ticket-freien Explorationsphase;
@@ -17,7 +17,7 @@ dieses Verzeichnis sichert die Skripte und die Erkenntnisse fuer Nachlaeufe.
 Aufruf aus PowerShell (native Windows):
 
 ```powershell
-Set-Location "$env:USERPROFILE\unsloth-train\qwen3-4b-tooluse-sft_2026_08_24"
+Set-Location "$env:USERPROFILE\unsloth-train\qwen35-4b-tooluse-sft_2026_08_24"
 & "$env:USERPROFILE\unsloth-train\.venv\Scripts\python.exe" train.py
 ```
 

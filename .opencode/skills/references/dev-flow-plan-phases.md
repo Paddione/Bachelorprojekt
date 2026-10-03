@@ -232,7 +232,7 @@ dispatcht jedes Partial auf genau der Stufe aus `min_tier` und budgetiert aus
 Orchestrator-Prompt). Die Stufen-Labels sind stabile Kapazitätsklassen; die
 konkrete Runtime-Bindung steht in `.opencode/agent-models.jsonc` +
 `.opencode/oh-my-opencode-slim.jsonc` (Slim-first; Workflow-Regeln in
-`~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md`) (heute: `4b-local` → `qwen3-4b`,
+`~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md`) (heute: `4b-local` → `qwen35-4b`,
 `27b-local` → `local`, `cloud` → `exe-muse`):
 - `4b-local`: mechanisch, voll spezifiziert — exakte Anker, ein Subsystem,
   Testausführung/Reporting, Boilerplate, Doc-Sync. Text-only, kein Deep-Debugging.

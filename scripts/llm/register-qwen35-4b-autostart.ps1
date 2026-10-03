@@ -1,14 +1,14 @@
-# scripts/llm/register-qwen3-4b-2507-autostart.ps1
-# Registers Qwen3-4B-Instruct-2507 worker pool to start on Windows logon.
+# scripts/llm/register-qwen35-4b-autostart.ps1
+# Registers Qwen3.5-4B-MTP worker pool to start on Windows logon.
 #
 # Hardware target: NVIDIA RTX 3060 Ti (8 GB VRAM)
-# Configuration: 3 parallel slots, 90112 shared KV pool (q4_0 KV, FlashAttention)
+# Configuration: 3 parallel slots, 98304 shared KV pool (q4_0 KV, FlashAttention)
 # Endpoint: http://127.0.0.1:8080
 #
 # Usage (WSL or PowerShell):
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/llm/register-qwen3-4b-2507-autostart.ps1 -Register
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/llm/register-qwen3-4b-2507-autostart.ps1 -Status
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/llm/register-qwen3-4b-2507-autostart.ps1 -Unregister
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/llm/register-qwen35-4b-autostart.ps1 -Register
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/llm/register-qwen35-4b-autostart.ps1 -Status
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/llm/register-qwen35-4b-autostart.ps1 -Unregister
 
 param(
     [switch]$Register,
@@ -19,16 +19,16 @@ param(
 $ErrorActionPreference = "Stop"
 
 $StartupFolder = [Environment]::GetFolderPath('Startup')
-$StartupCmd    = Join-Path $StartupFolder "Qwen3-4B-2507-Worker.cmd"
-$TargetPs1     = "F:\tools\llama.cpp\start-qwen3-4b-2507-service.ps1"
-$PidFile       = "F:\tools\llama.cpp\qwen3-4b-2507.pid"
+$StartupCmd    = Join-Path $StartupFolder "Qwen35-4B-Worker.cmd"
+$TargetPs1     = "F:\tools\llama.cpp\start-qwen35-4b-service.ps1"
+$PidFile       = "F:\tools\llama.cpp\qwen35-4b.pid"
 
 function Say([string]$msg) {
-    Write-Host ("[qwen34-autostart] " + $msg)
+    Write-Host ("[qwen35-autostart] " + $msg)
 }
 
 if ($Status) {
-    Say "Checking Qwen3-4B-2507 worker autostart status..."
+    Say "Checking Qwen3.5-4B-MTP worker autostart status..."
     if (Test-Path $StartupCmd) {
         Say "Autostart shortcut: PRESENT ($StartupCmd)"
     } else {

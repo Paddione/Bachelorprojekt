@@ -6,19 +6,19 @@ load 'test_helper'
   run node -e '
     const fs=require("fs"),assert=require("assert");
     const cfg=JSON.parse(fs.readFileSync(".opencode/agent-models.jsonc","utf8").replace(/^\s*\/\/.*$/gm,""));
-    for(const id of ["qwen3-4b","plan-worker-4b"]){
+    for(const id of ["qwen35-4b","plan-worker-qwen35"]){
       assert.equal(cfg.agent[id].model,"llamacpp-qwen3/Qwen3.5-4B-MTP");
       assert.equal(cfg.agent[id].prompt,"{file:./prompts/qwen35-worker.md}");
       assert.equal(cfg.agent[id].permission.task,"deny");
     }
-    assert.equal(cfg.agent["qwen3-4b"].permission.write,"deny");
-    assert.equal(cfg.agent["plan-worker-4b"].permission.write,"allow");
+    assert.equal(cfg.agent["qwen35-4b"].permission.write,"deny");
+    assert.equal(cfg.agent["plan-worker-qwen35"].permission.write,"allow");
     assert.equal(cfg.agent.local.model,"llamacpp-local/Qwen3.8-27B");
     const worker=cfg.provider["llamacpp-qwen3"].models["Qwen3.5-4B-MTP"];
     assert.equal(worker.limit.context,98304);
     const slim=JSON.parse(fs.readFileSync(".opencode/oh-my-opencode-slim.jsonc","utf8").replace(/^\s*\/\/.*$/gm,""));
-    assert.equal(slim.agents.explorer.model,cfg.agent["qwen3-4b"].model);
-    assert.equal(slim.agents.librarian.model,cfg.agent["qwen3-4b"].model);
+    assert.equal(slim.agents.explorer.model,cfg.agent["qwen35-4b"].model);
+    assert.equal(slim.agents.librarian.model,cfg.agent["qwen35-4b"].model);
   '
   [ "$status" -eq 0 ]
 }

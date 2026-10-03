@@ -1,4 +1,9 @@
-"""QLoRA SFT of unsloth/Qwen3-4B-Instruct-2507-unsloth-bnb-4bit on tool-use data.
+"""LoRA SFT of unsloth/Qwen3.5-4B on tool-use data.
+
+TO-VERIFY: swap base to the exact Qwen3.5-4B instruct checkpoint
+(unsloth bnb-4bit variant) once its HF ID is confirmed; HF API was
+gated (401) at verification time, so the verified full-precision
+unsloth/Qwen3.5-4B is used as base.
 
 Corpus override via env: CORPUS_TRAIN / CORPUS_VAL (default: synthetic dataset).
 """
@@ -13,7 +18,7 @@ from unsloth import FastLanguageModel
 from trl import SFTConfig, SFTTrainer
 
 BASE_MODEL = os.environ.get(
-    "MODEL", "unsloth/Qwen3-4B-Instruct-2507-unsloth-bnb-4bit")
+    "MODEL", "unsloth/Qwen3.5-4B")
 MAX_SEQ = 2048
 SEED = 3407
 HERE = Path(__file__).parent

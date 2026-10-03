@@ -25,8 +25,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const AGENT_BENCH_DIR = resolve(HERE, '..');
 const REPO_ROOT = resolve(AGENT_BENCH_DIR, '..', '..', '..');
 
-// Nur systemd-verwaltete Produktionsdienste. Die 4B-Rail (Qwen3-4B-2507 auf
-// :8080) ist Windows-nativ (Autostart via register-qwen3-4b-2507-autostart.ps1)
+// Nur systemd-verwaltete Produktionsdienste. Die 4B-Rail (Qwen3.5-4B-MTP auf
+// :8080) ist Windows-nativ (Autostart via register-qwen35-4b-autostart.ps1)
 // und hat keine User-Unit — der Bench startet/stoppt sie nicht.
 export const PRODUCTION_SERVICES = Object.freeze([
   'qwen38-gsq-iq3xxs.service',

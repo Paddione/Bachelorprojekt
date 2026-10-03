@@ -80,8 +80,8 @@ state_of() { jq -r --arg p "$1" '.partials[$p].status' "$CH/.plan-runner/state.j
   [ "$status" -eq 0 ]
   # Positiv-Anker: beide Partials liefen genau einmal.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -eq 2 ]
-  [ "$(sed -n 1p "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p1" ]
-  [ "$(sed -n 2p "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p2" ]
+  [ "$(sed -n 1p "$FAKE_OPENCODE_LOG")" = "plan-worker-qwen35 p1" ]
+  [ "$(sed -n 2p "$FAKE_OPENCODE_LOG")" = "plan-worker-qwen35 p2" ]
   # Der verfruehte dispatch_4b p2 wurde abgelehnt, nicht gestartet.
   [ "$(jq -r '.messages[-1].content' <<<"$(sed -n 2p "$T/requests.log")" | grep -c 'not ready')" -eq 1 ]
   [ "$(state_of p1)" = "done" ]
@@ -126,7 +126,7 @@ EOF
   [ "$status" -eq 0 ]
   # Positiv-Anker: p2 lief nach dem Neustart.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -gt 0 ]
-  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p2" ]
+  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-qwen35 p2" ]
   # Der erste Request zeigt p2 bereits zurueckgesetzt auf open.
   [ "$(sed -n 1p "$T/requests.log" | jq -r '.messages[1].content' | grep -c '"p2":{"status":"open"')" -eq 1 ]
   [ "$(state_of p1)" = "done" ]
@@ -148,7 +148,7 @@ EOF
   [ "$status" -eq 0 ]
   # Positiv-Anker: der 4B-Lauf fand statt.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -gt 0 ]
-  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p1" ]
+  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-qwen35 p1" ]
   # Die Anfrage nach execute_self enthaelt die Ablehnung.
   [ "$(sed -n 2p "$T/requests.log" | jq -r '.messages[-1].content' | grep -c 'use dispatch_4b')" -eq 1 ]
   [ -z "$(grep '^plan-worker-self' "$FAKE_OPENCODE_LOG" || true)" ]
@@ -224,7 +224,7 @@ EOF
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -eq 3 ]
   # p3 wurde waehrend des Selbstaufrufs vergeben und endete vor ihm.
   local p3 self
-  p3="$(grep -n '^plan-worker-4b p3$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
+  p3="$(grep -n '^plan-worker-qwen35 p3$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
   self="$(grep -n '^plan-worker-self p2$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
   [ -n "$p3" ] && [ -n "$self" ]
   [ "$p3" -lt "$self" ]
@@ -252,5 +252,5 @@ EOF
   run cat "$T/args.log"
   echo "$output"
   [[ "$output" != *"--dir"* ]]
-  [[ "$output" == *"run --agent plan-worker-4b --model llamacpp-qwen3/"* ]]
+  [[ "$output" == *"run --agent plan-worker-qwen35 --model llamacpp-qwen3/"* ]]
 }

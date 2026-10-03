@@ -46,8 +46,8 @@
         }
       }
     },
-    // Qwen3.5-4B-MTP UD-Q4_K_XL, Windows-nativ auf der RTX 3060 Ti
-    // (ersetzt Qwen3-4B-2507 auf :8080): 3 Slots teilen provisional 98304 KV
+    // Qwen3.5-4B-MTP UD-Q4_K_XL, Windows-nativ auf der RTX 3060 Ti:
+    // 3 Slots teilen provisional 98304 KV
     // (-np 3 -kvu, Q4_0 Target/Draft-KV, MTP r4, Thinking per Request).
     // Startskript scripts/llm/start-qwen35-4b-service.ps1 (Kopie nach
     // F:\tools\llama.cpp). Binaries b11352+
@@ -244,7 +244,7 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "qwen3-4b": {
+    "qwen35-4b": {
       "description": "Text-only Qwen3.5-4B instruction worker on RTX 3060 Ti, Windows-native llama.cpp :8080. Three slots share provisional 98304 KV. Direct mode by default; thinking is a per-request variant on the same checkpoint. Use bounded research, summaries and straightforward implementation; primary verifies conclusions.",
       "mode": "subagent",
       "model": "llamacpp-qwen3/Qwen3.5-4B-MTP",
@@ -255,11 +255,11 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     // plan-runner-Worker (T900504): opencode run akzeptiert nur Primaer-Agenten; ein
-    // Subagent (local, qwen3-4b) faellt dort still auf den Default-Agenten zurueck
+    // Subagent (local, qwen35-4b) faellt dort still auf den Default-Agenten zurueck
     // und laeuft dann mit dessen Modell und Werkzeugen auf :1919. Deshalb eigene
     // primaere Worker mit schlankem Prompt; write ist erlaubt (Partials legen Dateien an),
     // task nicht (kein Weiterdelegieren). Genutzt von scripts/llm/plan-runner/workers.mjs.
-    "plan-worker-4b": {
+    "plan-worker-qwen35": {
       "description": "Primary plan partial worker on Qwen3.5-4B-MTP (:8080, RTX 3060 Ti, 3 slots / provisional 98304 shared KV). Direct mode by default, write-capable only for assigned partials. Used by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
       "model": "llamacpp-qwen3/Qwen3.5-4B-MTP",
@@ -293,7 +293,7 @@
     // Slims Orchestrator ist die einzige interaktive Orchestrierungs-Definition
     // (Modell-Pinning in .opencode/oh-my-opencode-slim.jsonc, Workflow-Regeln in
     // ~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md). `local`,
-    // `qwen3-4b`, `exe-muse` und `reviewer` bleiben als Worker verfuegbar.
+    // `qwen35-4b`, `exe-muse` und `reviewer` bleiben als Worker verfuegbar.
     // exe-muse — Muse-Spark-Ausfuehrungs-Agent auf dem Go-Katalog
     // (Subscription, kein Training-Sharing wie Zen-free). Niedrige
     // Reasoning-Stufe (`low`) und `mode: subagent`: dispatchbar, bewusst NICHT
@@ -331,7 +331,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen3-4b": "allow",
+          "qwen35-4b": "allow",
           "reviewer": "allow",
           "fixer": "allow",
           "oracle": "allow"
@@ -354,7 +354,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen3-4b": "allow",
+          "qwen35-4b": "allow",
           "exe-muse": "allow",
           "oracle": "allow"
         }
@@ -377,7 +377,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen3-4b": "allow",
+          "qwen35-4b": "allow",
           "reviewer": "allow",
           "designer": "allow",
           "librarian": "allow"

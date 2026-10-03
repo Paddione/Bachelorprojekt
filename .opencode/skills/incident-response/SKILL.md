@@ -1,7 +1,7 @@
 ---
 name: incident-response
 description: 'Production incident triage, scope, diagnose, fix/rollback, and post-mortem close for the workspace platform. Time-critical — use when a core service is down or degraded.'
-agent: bachelorprojekt-ops
+agent: bp-run
 ---
 
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
@@ -30,7 +30,7 @@ die `psql -c`-Aufrufe unten setzen diesen Helper voraus.
 
 Determine:
 1. **Affected Service:** Pocket ID, Nextcloud, Website, Brett, Arena, Vaultwarden, Docs, or Shared-DB.
-2. **Target Cluster:** `mentolder` brand (fleet cluster), `korczewski` brand (fleet cluster), or both.
+2. **Target Cluster:** `mentolder` brand (fleet cluster). `korczewski` is FROZEN since 2026-07-23 (T002479, scaled to 0) — an incident there is expected state, not an outage.
 3. **Onset Time:** Since when has it been failing? Check git log or deployment status.
 4. **Blast Radius:** All users or a subset of features?
 

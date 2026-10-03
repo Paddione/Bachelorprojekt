@@ -19,8 +19,8 @@ angehängten Proposals.
 | Ziel | System | Deckung | Modus |
 |---|---|---|---|
 | `gitops-repo` | Flux-Manifeste dieses Repos (`fleet/`, `prod-fleet/`, `flux/`) | Skill `gitops-repo-audit` | delegiert |
-| `flux-cluster` | Live-Fleet-Cluster (ns `workspace`, `workspace-korczewski`) | Checkliste [§1](references/checklists.md#1-flux-cluster-live-sweep) | eigen |
-| `website` | Brand-Seiten mentolder + korczewski | Skill `web-audit` | delegiert |
+| `flux-cluster` | Live-Fleet-Cluster (ns `workspace`; `workspace-korczewski` eingefroren, T002479) | Checkliste [§1](references/checklists.md#1-flux-cluster-live-sweep) | eigen |
+| `website` | Brand-Seite mentolder (korczewski eingefroren) | Skill `web-audit` | delegiert |
 | `repo` | Repo-Zustand, PRs | Skill `repo-hygiene` §0–§7 inkl. Runtime-Drift | delegiert |
 | `toolset` | Tool-Registry (`capabilities.yaml`) | Skill `toolset-curate` Schritt 1–2 | delegiert |
 | `security` | SealedSecrets, OIDC, DSGVO, Secret-Alter | Checkliste [§2](references/checklists.md#2-security-sealedsecrets-oidc-dsgvo) (+ infra-ops `references/runbooks-operations.md` §6) | eigen |
@@ -71,10 +71,9 @@ bei der Befundliste.
 
 ```bash
 task web:audit ENV=mentolder
-task web:audit ENV=korczewski
 ```
 
-Beide Brands, Standard-Routen. Die axe/Lighthouse/LLM-Triage-Ergebnisse werden als
+Standard-Routen. korczewski ist seit 2026-07-23 eingefroren (T002479, 0 Replicas) und wird nicht auditiert. Die axe/Lighthouse/LLM-Triage-Ergebnisse werden als
 Befunde übernommen (Rangliste des Web-Audits ≙ Priorisierung nach Severity-Mapping:
 axe critical/Lighthouse <50 ⇒ Critical, sonst Warning, kosmetisch ⇒ Info).
 

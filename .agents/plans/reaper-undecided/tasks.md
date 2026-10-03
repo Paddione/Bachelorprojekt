@@ -32,10 +32,10 @@ Budget geprueft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_bud
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-reaper.md | impl | scripts/branch-reaper.sh | | 27b-local | 32000 |
-| p2 | tasks.d/p2-tests.md | tests | tests/spec/ci-cd/branch-reaper-undecided.bats | p1 | 4b-local | 8000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-reaper.md | impl | scripts/branch-reaper.sh | |
+| p2 | tasks.d/p2-tests.md | tests | tests/spec/ci-cd/branch-reaper-undecided.bats | p1 |
 
 ## Task: Failing Test bestaetigen
 

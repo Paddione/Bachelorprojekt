@@ -18,10 +18,10 @@ CHANGED:
 
 ## Partials
 
-| # | File | Role | Description | depends_on | min_tier | ctx_tokens |
-|---|------|------|-------------|------------|----------|------------|
-| 1 | tasks.d/p1-impl.md | impl | Implementation with line-suffix reference | | 27b-local | 32000 |
-| 2 | tasks.d/p2-tests.md | tests | Test verification | | 4b-local | 32000 |
+| # | File | Role | Description | depends_on |
+|---|------|------|-------------|------------|
+| 1 | tasks.d/p1-impl.md | impl | Implementation with line-suffix reference | |
+| 2 | tasks.d/p2-tests.md | tests | Test verification | |
 
 ## Tasks
 

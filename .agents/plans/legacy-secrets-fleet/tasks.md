@@ -40,11 +40,11 @@ Budget geprueft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_bud
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-resolve.md | impl | scripts/lib/secrets-env.sh, scripts/env-seal.sh, scripts/secret-rotate.sh, scripts/claude-key-picker.sh, taskfiles/Taskfile.platform.yml, taskfiles/Taskfile.workspace.yml, taskfiles/Taskfile.web.yml, environments/mentolder.yaml, environments/korczewski.yaml | | 27b-local | 32000 |
-| p2 | tasks.d/p2-remove.md | impl | environments/.secrets/mentolder.yaml, environments/.secrets/korczewski.yaml, environments/sealed-secrets/mentolder.yaml, environments/sealed-secrets/korczewski.yaml, docs/superpowers/references/secrets-architecture.md | p1 | 4b-local | 8000 |
-| p3 | tasks.d/p3-tests.md | tests | tests/spec/fleet-operations/legacy-secrets-fleet.bats, tests/spec/fleet-operations.bats, tests/unit/secrets-sync.bats, tests/spec/secrets-deploy-automation.bats, tests/spec/health-goals.bats | p2 | 4b-local | 16000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-resolve.md | impl | scripts/lib/secrets-env.sh, scripts/env-seal.sh, scripts/secret-rotate.sh, scripts/claude-key-picker.sh, taskfiles/Taskfile.platform.yml, taskfiles/Taskfile.workspace.yml, taskfiles/Taskfile.web.yml, environments/mentolder.yaml, environments/korczewski.yaml | |
+| p2 | tasks.d/p2-remove.md | impl | environments/.secrets/mentolder.yaml, environments/.secrets/korczewski.yaml, environments/sealed-secrets/mentolder.yaml, environments/sealed-secrets/korczewski.yaml, docs/superpowers/references/secrets-architecture.md | p1 |
+| p3 | tasks.d/p3-tests.md | tests | tests/spec/fleet-operations/legacy-secrets-fleet.bats, tests/spec/fleet-operations.bats, tests/unit/secrets-sync.bats, tests/spec/secrets-deploy-automation.bats, tests/spec/health-goals.bats | p2 |
 
 ## Task: Failing Test bestaetigen
 

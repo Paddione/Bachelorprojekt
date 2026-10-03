@@ -36,10 +36,10 @@ Bewusst nicht geaendert (Praezedenz T900657, gemergt in #6082): `dotfiles/nvim/r
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/config/infrastructure.lua, dotfiles/nvim/lua/config/dashboard.lua |  | 27b-local | 32000 |
-| p2 | tasks.d/p2-tests-runbook.md | tests | dotfiles/nvim/runbooks/infrastructure.md, tests/spec/neovim-dashboard.bats | p1 | 4b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/config/infrastructure.lua, dotfiles/nvim/lua/config/dashboard.lua |  |
+| p2 | tasks.d/p2-tests-runbook.md | tests | dotfiles/nvim/runbooks/infrastructure.md, tests/spec/neovim-dashboard.bats | p1 |
 
 Execution order honoring depends_on: p1 first, then p2. Each partial rebases onto latest `origin/main` before touching shared files (`dashboard.lua`, `neovim-dashboard.bats`) and keeps other chapters blocks. Each partial commits its own files as `feat(T900664): <subject> [T900664]` with explicit pathspecs (`git add -f` for dotfiles paths — `dotfiles/` is gitignored, force-add per repo convention), never broad adds.
 

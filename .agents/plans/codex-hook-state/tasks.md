@@ -30,10 +30,10 @@ Budget geprüft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_bud
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-setup.md | impl | scripts/langfuse/setup-harnesses.sh | | 4b-local | 8000 |
-| p2 | tasks.d/p2-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1 | 4b-local | 6000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-setup.md | impl | scripts/langfuse/setup-harnesses.sh | |
+| p2 | tasks.d/p2-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1 |
 
 ## Task: Failing Test bestätigen
 

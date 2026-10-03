@@ -52,13 +52,13 @@ Budgets geprüft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_bu
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-manifests.md | impl | dev-local/components/langfuse/kustomization.yaml, dev-local/components/langfuse/langfuse.yaml, dev-local/components/langfuse/clickhouse.yaml, dev-local/components/langfuse/valkey.yaml, dev-local/components/langfuse/minio.yaml, dev-local/components/langfuse/db-init.yaml, dev-local/components/langfuse/otel-redact.yaml, dev-local/core/kustomization.yaml, dev-local/core/ingress.yaml | | 27b-local | 64000 |
-| p2 | tasks.d/p2-secrets.md | impl | environments/schema.yaml, environments/sealed-secrets/dev.yaml | | 27b-local | 90000 |
-| p3 | tasks.d/p3-harness-wiring.md | impl | scripts/langfuse/client-env.sh, scripts/langfuse/setup-harnesses.sh, taskfiles/Taskfile.devmesh.yml | p2 | 27b-local | 48000 |
-| p4 | tasks.d/p4-skill.md | impl | skills-lock.json, .agents/skills/langfuse/ | | 4b-local | 16000 |
-| p5 | tasks.d/p5-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1, p2, p3, p4 | 27b-local | 40000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-manifests.md | impl | dev-local/components/langfuse/kustomization.yaml, dev-local/components/langfuse/langfuse.yaml, dev-local/components/langfuse/clickhouse.yaml, dev-local/components/langfuse/valkey.yaml, dev-local/components/langfuse/minio.yaml, dev-local/components/langfuse/db-init.yaml, dev-local/components/langfuse/otel-redact.yaml, dev-local/core/kustomization.yaml, dev-local/core/ingress.yaml | |
+| p2 | tasks.d/p2-secrets.md | impl | environments/schema.yaml, environments/sealed-secrets/dev.yaml | |
+| p3 | tasks.d/p3-harness-wiring.md | impl | scripts/langfuse/client-env.sh, scripts/langfuse/setup-harnesses.sh, taskfiles/Taskfile.devmesh.yml | p2 |
+| p4 | tasks.d/p4-skill.md | impl | skills-lock.json, .agents/skills/langfuse/ | |
+| p5 | tasks.d/p5-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1, p2, p3, p4 |
 
 ## Task: Rot-Grün-Anker
 

@@ -97,8 +97,15 @@ Jeder Plan, der in `components/website/src/lib/**` oder `components/website/src/
 
 ### plan-lint Hard Rules (fail-closed Gate — `scripts/plan-lint.sh`)
 
-Jede `tasks.md` muss diese Hard-Pflichten erfüllen (SSOT hier + im Skript; Plan-Subagenten
-lesen diese Datei statt einer Kopie im Skill-Prompt):
+Jede `tasks.md` muss diese Hard-Pflichten erfüllen. **Diese Datei ist die kanonische
+Referenz für das Plan-Format** (SSOT hier + im Skript `scripts/plan-lint.sh`;
+`dev-flow-plan`-Skill und `dev-flow-plan-phases`-Referenz verlinken hierher und
+wiederholen die Regeln nicht; Plan-Subagenten lesen diese Datei statt einer
+Kopie im Skill-Prompt):
+
+> Hinweis (T900948): Das `## Partials`-Manifest trägt KEINE per-partial
+> Tier-/Kontext-Spalten mehr — der Orchestrator routet nach Komplexitätsklasse
+> ([subagent-provisioning](./subagent-provisioning.md)).
 
 - **F1 Frontmatter:** YAML-Frontmatter am Anfang mit den vier Pflicht-Keys
   `title`, `ticket_id`, `domains`, `status` (alle nicht-leer).
@@ -129,13 +136,6 @@ lesen diese Datei statt einer Kopie im Skill-Prompt):
   (Stichwörter: `split`, `extract`, `verkleiner`, `shrink`, `aufteil`), gibt der Linter eine
   Warnung aus — kosmetisches Zusammenziehen reicht bei Budget≈0 nicht (siehe Schritt 3.7/4
   im Skill).
-- **R1 min_tier (nur Partial-Modus):** Jede `## Partials`-Manifest-Zeile trägt `min_tier`
-  exakt aus {`4b-local`, `27b-local`, `cloud`} (kleingeschrieben, keine Varianten) — die
-  billigste Stufe, die das Partial noch schafft. Stufen-Rubrik:
-  [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md) §3.7(b).
-- **R2 ctx_tokens (nur Partial-Modus):** Jede Manifest-Zeile trägt `ctx_tokens` als positive
-  Ganzzahl ≤ 1000000; auf den lokalen Stufen (`4b-local`, `27b-local`) zusätzlich ≤ 131072
-  (served KV-Fenster) — darüber `cloud` wählen oder das Partial aufteilen.
 
 ### Gate-Messung & Ad-hoc-Skripte (Positiv-Anker-Pflicht) [T002495-M10]
 

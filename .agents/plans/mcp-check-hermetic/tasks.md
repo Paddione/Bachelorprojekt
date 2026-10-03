@@ -40,10 +40,10 @@ Prior art (T002829): `grep -rn -e 'mcp-tooling' -e 'mcp:check' docs/adr/` has no
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-impl.md | impl | tests/spec/mcp-tooling.bats, tests/spec/mcp-gateway.bats, tests/spec/mcp-gateway/authenticated-http-headers.bats |  | 4b-local | 32000 |
-| p2 | tasks.d/p2-tests.md | tests | tests/spec/ci-cd/spec-tracked-file-guard.bats | p1 | 4b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | tests/spec/mcp-tooling.bats, tests/spec/mcp-gateway.bats, tests/spec/mcp-gateway/authenticated-http-headers.bats |  |
+| p2 | tasks.d/p2-tests.md | tests | tests/spec/ci-cd/spec-tracked-file-guard.bats | p1 |
 
 Execution order honoring depends_on: p1 first, then p2, then Task 3. Each partial commits its own files as `fix(T900922): <subject> [T900922]` with explicit pathspecs, never broad adds. p1 touches exactly the four check invocations (one `env -u`-prefix each) and keeps every assertion byte-identical; p2 is verify-only on the guard file (no edit — it must turn green through p1 alone, otherwise the executor stops and reports instead of adjusting the guard silently).
 

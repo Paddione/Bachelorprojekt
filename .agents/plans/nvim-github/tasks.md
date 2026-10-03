@@ -49,10 +49,10 @@ hit, the existing suite file neovim-dashboard.bats extended by this plan.
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/config/github.lua, dotfiles/nvim/lua/config/dashboard.lua |  | 27b-local | 32000 |
-| p2 | tasks.d/p2-tests-runbook.md | tests | dotfiles/nvim/runbooks/github.md, tests/spec/neovim-dashboard.bats | p1 | 4b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/config/github.lua, dotfiles/nvim/lua/config/dashboard.lua |  |
+| p2 | tasks.d/p2-tests-runbook.md | tests | dotfiles/nvim/runbooks/github.md, tests/spec/neovim-dashboard.bats | p1 |
 
 Execution order honoring depends_on: p1 first, then p2, then Task 3. Each
 partial commits its own files as `feat(T900659): <subject> [T900659]` with

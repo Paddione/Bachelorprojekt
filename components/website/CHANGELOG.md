@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.388.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.388.0...website-v1.388.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **agents:** bp-*-Rollen in der Toolset-Kette [T900980] ([#6210](https://github.com/Paddione/Bachelorprojekt/issues/6210)) ([1989d01](https://github.com/Paddione/Bachelorprojekt/commit/1989d01d4553078b551348c5d4bdb8fc73e744eb))
+
 ## [1.388.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.387.0...website-v1.388.0) (2026-10-03)
 
 

@@ -968,7 +968,7 @@ def k3_context(topic):
     )
     try:
         proc = subprocess.run([CBM_BIN], input=script, capture_output=True,
-                              text=True, timeout=45)
+                              text=True, timeout=2)
         for line in proc.stdout.splitlines():
             try:
                 msg = json.loads(line)
@@ -987,6 +987,7 @@ def build_grounding(mode):
     if mode == "none":
         return lambda topic, k=2: []
     chunks = load_doc_chunks()
+    k3_available = bool(k3_context("test")) if mode == "auto" else False
 
     def chunk_for(topic, k=2):
         tokens = set(topic.lower().replace("-", " ").split())
@@ -1001,9 +1002,10 @@ def build_grounding(mode):
         if reranked:
             picked = [("k1:" + tag, text) for tag, text in reranked]
         # K3 graph facts when the binary responds
-        k3 = k3_context(topic)
-        if k3:
-            picked.append(("k3:graph", k3))
+        if k3_available:
+            k3 = k3_context(topic)
+            if k3:
+                picked.append(("k3:graph", k3))
         return picked
 
     return chunk_for
@@ -1043,9 +1045,12 @@ def qc_pass(kept, url, ground, batch=8):
             pairs_text.append(f"{n}. Q: {q[:300]}\n   A: {a[:600]}")
         context = ""
         if ground:
-            chunks = ground.chunk_for(" ".join(query_hint.split()[:8]) , k=1)
-            if chunks:
-                context = f"\nReference context:\n{chunks[0][1][:1200]}\n"
+            try:
+                chunks = ground(" ".join(query_hint.split()[:8]), k=1)
+                if chunks:
+                    context = f"\nReference context:\n{chunks[0][1][:1200]}\n"
+            except Exception:
+                pass
         prompt = (
             "You are a strict fact-checker for the Bachelorprojekt workspace. "
             "For each numbered Q/A pair below, judge whether the ANSWER is "
@@ -1067,7 +1072,12 @@ def qc_pass(kept, url, ground, batch=8):
             continue
         for obj in arr:
             if isinstance(obj, dict) and obj.get("verdict"):
-                verdicts[batch_idx[obj.get("n", 0)]] = obj["verdict"]
+                try:
+                    n_val = int(obj.get("n", 0))
+                    if 0 <= n_val < len(batch_idx):
+                        verdicts[batch_idx[n_val]] = obj["verdict"]
+                except (ValueError, TypeError):
+                    continue
     dropped = [i for i, v in verdicts.items() if v == "wrong"]
     unsure = sum(1 for v in verdicts.values() if v == "unsure")
     kept = [entry for i, entry in enumerate(kept) if i not in set(dropped)]
@@ -1261,6 +1271,27 @@ def main():
     qc_stats = {"checked": 0, "dropped_wrong": 0, "unsure": 0}
     if args.teacher and args.qc:
         kept, qc_stats = qc_pass(kept, args.teacher_url, ground)
+        while len(kept) < args.target and round_i < args.rounds:
+            topic = TEACHER_TOPICS[round_i % len(TEACHER_TOPICS)]
+            angle = TEACHER_ANGLES[(round_i // len(TEACHER_TOPICS)) % len(TEACHER_ANGLES)]
+            lang = "de" if (round_i // len(TEACHER_TOPICS)) % 3 == 2 else "en"
+            ctx = ground(topic) if args.ground != "none" else []
+            ground_tags_seen.update(tag.split(":")[0] for tag, _ in ctx)
+            try:
+                pairs = call_teacher(args.teacher_url, topic, angle, lang=lang,
+                                     grounding=ctx)
+            except Exception as exc:  # noqa: BLE001 — teacher is best-effort
+                print(f"[teacher] round {round_i} ({topic}) failed: {exc}", file=sys.stderr)
+                round_i += 1
+                continue
+            batch = [("teacher", pair(q, a)) for q, a in pairs]
+            teacher_raw += len(batch)
+            kept, _ = dedup(kept + batch)
+            teacher_unique = len(kept) - t1_unique - corpus_added
+            print(f"[teacher-topup] round {round_i} ({topic} | {angle.split('(')[0].strip()} "
+                  f"| {lang} | +{len(ctx)} ground): +{len(batch)} raw -> "
+                  f"total unique {len(kept)}", flush=True)
+            round_i += 1
 
     # ---- system-prompt mix ----
     kept, system_mix = apply_system_mix(kept, rng)

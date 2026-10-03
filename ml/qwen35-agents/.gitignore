@@ -1,0 +1,11 @@
+data/
+outputs/
+__pycache__/
+*.pyc
+.venv
+registry/registry.json
+
+runs/
+exports/
+scenarios-v*/
+.pytest_cache/

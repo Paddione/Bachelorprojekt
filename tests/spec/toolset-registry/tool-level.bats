@@ -156,3 +156,14 @@ EOF
   [ "$status" -eq 0 ]
   [[ "$output" == *"dangerous caution safe"* ]]
 }
+
+@test "tool-level: doppelte Tool-Namen landen im Lock und im Check-Hinweis (T900984)" {
+  export FAKE_MCP_TOOLS='[{"name":"pods_list"},{"name":"pods_exec"},{"name":"pods_exec"},{"name":"resources_get"},{"name":"resources_delete"}]'
+  probe --ack fake-k8s
+  [ "$status" -eq 0 ]
+  run cat "$TOOLSET_LOCK"
+  [[ "$output" == *"duplicate_names"* ]]
+  check
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"twice"*"pods_exec"* ]]
+}

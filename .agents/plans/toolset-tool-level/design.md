@@ -53,7 +53,9 @@ node scripts/toolset/probe.mjs --dry-run   # nach Task 3; vorher Prototyp im Scr
   geändert; `destructiveHint` auf einem Tool, das zu `safe` auflöst. `check.mjs` bleibt
   offline: es liest nur den Lock.
 - **D5 — Rendering.** `toolset-context.sh` nennt je mcp-Instanz Tools mit Tier ≥ `caution`
-  einzeln (`name (tier)`), den Rest als `+N safe`. `--json` liefert `tools: [{name, tier}]`
+  einzeln (`name (tier)`), sofern ihr Tier über dem Instanz-Tier liegt; der Rest erscheint
+  gezählt je Tier (`+20 caution, +6 safe`). Präzisiert bei der Umsetzung: ticket-mcp-node
+  (Instanz `caution`) hätte sonst 20 geerbte caution-Tools einzeln gelistet. `--json` liefert `tools: [{name, tier}]`
   vollständig. Ohne Lock-Eintrag bleibt der Block wie bisher.
 - **D6 — Lock-Pfad bei Fixtures.** Ohne `TOOLSET_LOCK` liegt der Lock neben der Registry
   (`dirname(TOOLSET_REGISTRY)/toolset.lock.yaml`). Fixture-Registries lesen damit nie den

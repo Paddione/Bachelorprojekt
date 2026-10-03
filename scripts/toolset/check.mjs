@@ -19,6 +19,7 @@ import { ADAPTERS } from './lib/adapters/index.mjs';
 import { readClaudeCodeConfig } from './lib/harness.mjs';
 import { collectInstances, withRegistryOnlyInstances } from './collect.mjs';
 import { ROLES, LEGACY_ROLE_ALIASES } from './lib/roles.mjs';
+import { VALID_TIERS as TIER_LIST, defaultLockPath, loadLock, globMatch, toolDrift, resolveToolTier } from './lib/tools.mjs';
 
 const registryPath = process.env.TOOLSET_REGISTRY || path.join(process.cwd(), 'docs', 'agent-guide', 'registry', 'capabilities.yaml');
 const outDir = process.env.TOOLSET_OUT_DIR || process.cwd();
@@ -28,7 +29,7 @@ const outDir = process.env.TOOLSET_OUT_DIR || process.cwd();
 // migriert, ein Rückfall soll rot werden.
 const VALID_ROLES = new Set(ROLES);
 
-const VALID_TIERS = new Set(['safe', 'caution', 'assisted', 'dangerous']);
+const VALID_TIERS = new Set(TIER_LIST);
 
 let registry;
 try {
@@ -207,6 +208,61 @@ if (fs.existsSync(claude.settingsPath)) {
     console.log(`\n${divergent.length} plugin decision(s) are not enforced (sync.mjs covers mcp: only):`);
     for (const d of divergent) console.log(`  advisory: ${d}`);
     console.log(`  → toggle them with /plugin, or revise the registry via the 'toolset-curate' skill.`);
+  }
+}
+
+// 2c. Tool-Ebene (T900983, design.md D3/D4). Liest nur den Lock — offline wie der Rest.
+//     fail-closed: ungültiger Tier, tool_tiers an Nicht-mcp-Instanz, Glob ohne Treffer bei
+//     gemessenem Server (veraltete Kuration).
+//     fail-open:   neue/entfernte/geänderte Tools gegenüber `reviewed`; destructiveHint auf
+//     einem Tool, das zu `safe` auflöst.
+{
+  const lock = loadLock(defaultLockPath(registryPath));
+  const toolNotes = [];
+  for (const [capName, instances] of Object.entries(registry.capabilities)) {
+    for (const [instKey, cfg] of Object.entries(instances)) {
+      const tiers = cfg.tool_tiers;
+      if (tiers !== undefined && tiers !== null) {
+        if (!instKey.startsWith('mcp:')) {
+          console.error(`Capability '${capName}' instance '${instKey}': tool_tiers is only valid on mcp: instances.`);
+          hasError = true;
+          continue;
+        }
+        for (const [pattern, tier] of Object.entries(tiers)) {
+          if (!VALID_TIERS.has(tier)) {
+            console.error(`Capability '${capName}' instance '${instKey}': tool_tiers '${pattern}' has invalid tier '${tier}' (valid: ${[...VALID_TIERS].join(', ')}).`);
+            hasError = true;
+          }
+        }
+      }
+      if (!instKey.startsWith('mcp:') || cfg.state === 'suppressed') continue;
+      const server = instKey.slice(4);
+      const entry = lock.servers[server];
+      if (!entry?.tools) continue;
+      const names = Object.keys(entry.tools);
+      for (const pattern of Object.keys(tiers ?? {})) {
+        if (!names.some(n => globMatch(pattern, n))) {
+          console.error(`Capability '${capName}' instance '${instKey}': tool_tiers '${pattern}' matches no tool of '${server}' in the lock (stale curation).`);
+          hasError = true;
+        }
+      }
+      if (entry.duplicate_names?.length) {
+        toolNotes.push(`  advisory: ${server} lists ${entry.duplicate_names.length} tool name(s) twice in tools/list: ${entry.duplicate_names.join(', ')}`);
+      }
+      const { added, removed, changed } = toolDrift(entry);
+      for (const n of added) toolNotes.push(`  unreviewed tool: ${server}.${n} (new)`);
+      for (const n of removed) toolNotes.push(`  unreviewed tool: ${server}.${n} (removed)`);
+      for (const n of changed) toolNotes.push(`  unreviewed tool: ${server}.${n} (description/schema changed)`);
+      for (const n of names) {
+        if (entry.tools[n]?.destructive && resolveToolTier(n, cfg) === 'safe') {
+          toolNotes.push(`  advisory: ${server}.${n} carries destructiveHint but resolves to tier 'safe' — add a tool_tiers entry`);
+        }
+      }
+    }
+  }
+  if (toolNotes.length > 0) {
+    console.log(`\nTool level — ack with 'node scripts/toolset/probe.mjs --ack <server>' after review:`);
+    for (const n of toolNotes) console.log(n);
   }
 }
 

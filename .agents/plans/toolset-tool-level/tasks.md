@@ -51,31 +51,31 @@ expected: FAIL. Alle 9 Tests schlagen fehl: `probe.mjs` schreibt keine Tools, `c
 
 ## Task 2: Gemeinsame Tool-Logik
 
-- [ ] `scripts/toolset/lib/tools.mjs`: `defaultLockPath(registryPath)` (D6), `loadLock`,
+- [x] `scripts/toolset/lib/tools.mjs`: `defaultLockPath(registryPath)` (D6), `loadLock`,
       `toolHash`, `globMatch`, `resolveToolTier(name, instCfg)` (D3),
       `toolDrift(serverEntry)` → `{ added, removed, changed }`.
-- [ ] `scripts/toolset/lib/mcp-client.mjs` bleibt wie im Branch (http + stdio, Paginierung).
+- [x] `scripts/toolset/lib/mcp-client.mjs` bleibt wie im Branch (http + stdio, Paginierung).
 
 ## Task 3: Probe
 
-- [ ] `probe.mjs`: Clients aus `TOOLSET_MCP_REGISTRY` (Default `docs/agent-guide/registry/mcp.yaml`);
+- [x] `probe.mjs`: Clients aus `TOOLSET_MCP_REGISTRY` (Default `docs/agent-guide/registry/mcp.yaml`);
       http über `endpoint` + `headers` (`${VAR}` aus der Umgebung), stdio über
       `harness.claude_code` (Fallback Top-Level `command`/`args`), `cwd` = Repo-Root.
-- [ ] Lock nach D1/D2 schreiben; `--server <name>` begrenzt, `--ack <name>` übernimmt
+- [x] Lock nach D1/D2 schreiben; `--server <name>` begrenzt, `--ack <name>` übernimmt
       `tools` → `reviewed`, `--dry-run` schreibt nicht. Exit 0 auch bei unerreichbaren Servern.
-- [ ] `probe.test.mjs` an das neue Lock-Format anpassen (Merge-Verhalten bleibt geprüft).
+- [x] `probe.test.mjs` an das neue Lock-Format anpassen (Merge-Verhalten bleibt geprüft).
 
 ## Task 4: Gate und Rendering
 
-- [ ] `check.mjs`: D4 umsetzen (fail-closed-Regeln + fail-open-Report, offline).
-- [ ] `toolset-context.sh`: D5 umsetzen; Lock-Pfad nach D6.
-- [ ] `emit-map.mjs`: Tool-Zahl und riskante Tools je Instanz in die Karte.
+- [x] `check.mjs`: D4 umsetzen (fail-closed-Regeln + fail-open-Report, offline).
+- [x] `toolset-context.sh`: D5 umsetzen; Lock-Pfad nach D6.
+- [x] `emit-map.mjs`: Tool-Zahl und riskante Tools je Instanz in die Karte.
 
 ## Task 5: Erstkuration und Lock
 
-- [ ] `node scripts/toolset/probe.mjs` auf dem Host; erreichbare Server mit `--ack` übernehmen.
-- [ ] `tool_tiers` in `capabilities.yaml` nach der Tabelle in `design.md`.
-- [ ] `toolset-curate/SKILL.md`: Abschnitt „Tool-Ebene" (Probe, `--ack`, `tool_tiers`, Drift-Report);
+- [x] `node scripts/toolset/probe.mjs` auf dem Host; erreichbare Server mit `--ack` übernehmen.
+- [x] `tool_tiers` in `capabilities.yaml` nach der Tabelle in `design.md`.
+- [x] `toolset-curate/SKILL.md`: Abschnitt „Tool-Ebene" (Probe, `--ack`, `tool_tiers`, Drift-Report);
       Kommentar in `toolset.lock.yaml` aktualisieren.
 
 ## Task 6: Finale Verifikation

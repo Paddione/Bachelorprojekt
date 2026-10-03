@@ -36,6 +36,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Fallback:_ `kubectl --context fleet get/logs (bei Portforward-Ausfall)`
   - _Rollen:_ `bp-build`, `bp-run`, `orchestrator`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tools (19):_ dangerous: `pods_delete`, `pods_exec`, `resources_delete` · caution: `pods_run`, `resources_create_or_update`, `resources_scale` · 13 safe
 
 ## Fähigkeit: `kubernetes-mutation`
 
@@ -54,6 +55,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Fallback:_ `kubectl exec -i … psql (ohne -i läuft psql mit leerem stdin durch)`
   - _Rollen:_ `bp-run`, `orchestrator`, `big-pickle`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tools (1):_ 1 safe
 
 ## Fähigkeit: `postgres-schreiben`
 
@@ -79,6 +81,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Fallback:_ `scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)`
   - _Rollen:_ `bp-run`, `bp-ship`, `orchestrator`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tools (26):_ dangerous: `archive_plan`, `backfill_ticket_id`, `flush_mishap_buffer` · caution: `add_comment`, `add_pr_link`, `create_ticket`, `enqueue_ticket`, `link_tickets`, `prepare_feature`, `record_grill_answers`, `record_phase_event`, `report_mishap`, `set_plan_meta`, `set_readiness_flag`, `set_touched_files`, `stage_plan`, `transition_status`, `triage_ticket`, `update_fields` · 7 safe
 
 ## Fähigkeit: `ticket-inhalt`
 
@@ -110,6 +113,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Taskfile-Ziele auflösen und ausführen, Task-Graph inspizieren.
   - _Fallback:_ `bash scripts/vda.sh oracle '<ziel in klarem Deutsch>'`
   - _Rollen:_ `orchestrator`
+  - _Tools (7):_ caution: `cancel_task`, `execute_plan`, `run_task`, `run_task_async` · 3 safe
 
 ## Fähigkeit: `externes-task-management`
 
@@ -255,6 +259,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`mcp:warden`** — Status `canonical` · Tier `caution`
   - _Wann:_ Persönliche Tresor-Credentials lesen; Schreiben nur nach Rückfrage.
   - _Rollen:_ `bp-build`, `orchestrator`
+  - _Tools (53):_ dangerous: `keychain_delete_attachment`, `keychain_delete_folder`, `keychain_delete_item`, `keychain_delete_items`, `keychain_delete_org_collection`, `keychain_send_delete`, `keychain_send_remove_password` · caution: `keychain_create_attachment`, `keychain_create_card`, `keychain_create_folder`, `keychain_create_identity`, `keychain_create_login`, `keychain_create_logins`, `keychain_create_note`, `keychain_create_org_collection`, `keychain_create_ssh_key`, `keychain_edit_folder`, `keychain_edit_org_collection`, `keychain_encode`, `keychain_generate`, `keychain_generate_username`, `keychain_get_attachment`, `keychain_get_collection`, `keychain_get_exposed`, `keychain_get_folder`, `keychain_get_item`, `keychain_get_notes`, `keychain_get_org_collection`, `keychain_get_organization`, `keychain_get_password`, `keychain_get_password_history`, `keychain_get_totp`, `keychain_get_uri`, `keychain_get_username`, `keychain_move_item_to_organization`, `keychain_receive`, `keychain_restore_item`, `keychain_send_create`, `keychain_send_create_encoded`, `keychain_send_edit`, `keychain_send_get`, `keychain_send_list`, `keychain_send_template`, `keychain_set_login_uris`, `keychain_sync`, `keychain_update_item` · 7 safe
 
 ## Fähigkeit: `code-graph`
 
@@ -276,6 +281,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Semantische Was-Fragen über Code, Specs und Docs: K1-Roh-Recall zuerst (docs/brain/recall-routing.md).
   - _Nicht:_ Wenn bge-embed im Cluster nicht Ready ist; bei bekanntem Symbol zuerst K3-Graph.
   - _Rollen:_ `orchestrator`
+  - _Tools (2):_ 2 safe
 
 ## Fähigkeit: `dokumentations-lookup`
 
@@ -283,6 +289,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Aktuelle Doku zu Bibliotheken, Frameworks, SDKs und CLIs statt aus dem Gedächtnis.
   - _Nicht:_ Refactoring, Business-Logik, allgemeine Programmierkonzepte.
   - _Rollen:_ `all`
+  - _Tools (2):_ 2 safe
 - **`plugin:context7@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ Doppelt mcp:context7; der Plugin-Endpoint verlangt Auth, der MCP-Server funktioniert anonym.
 
@@ -328,6 +335,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `bp-ship`
 - **`mcp:playwright`** — Status `suppressed`
   - _Grund:_ Nicht project-relevant; E2E läuft über die Playwright-CLI in dev-flow-e2e.
+  - _Tools (25):_ 25 safe
 - **`plugin:playwright@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ Doppelt den chrome-devtools-Pfad und die Playwright-CLI.
 - **`plugin:superpowers-chrome@superpowers-marketplace`** — Status `suppressed`

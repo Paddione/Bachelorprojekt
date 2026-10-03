@@ -88,3 +88,54 @@ failure/timeout capture, realistic OpenCode events, fabricated-success rejection
 path guards, argument-sensitive dedupe, held-out split preservation and atomic
 export refusal. `eval/role_metrics.py` remains the role-scoring scaffold; observed
 plans require explicit parsing/review before planner or orchestrator scoring.
+
+## CPU preflight for Hugging Face / TRL
+
+The dataset and trainer skills inform these preparation gates; no Hugging Face
+Job or training run is submitted by this pipeline. SFT rows use conversational
+`messages` plus `tools`. Export converts wire-format JSON argument strings into
+function argument dictionaries required by Transformers chat templates.
+
+```sh
+uv run python -m pipeline.preflight exports/v1 --role executor
+uv run --with 'datasets>=4.7.0' python -m pipeline.preflight exports/v1 --role executor --hf-datasets
+uv run --with transformers python -m pipeline.preflight exports/v1 --role executor \
+  --tokenizer /absolute/path/to/local-tokenizer --max-length 32768
+```
+
+Preflight validates manifest hashes, split/family metadata and SFT shape before
+GPU allocation. Optional Hugging Face loading tests the actual JSON dataset
+conversion on CPU using explicit `Json()` features for messages, tools and
+metadata, preserving heterogeneous tool arguments without Arrow struct
+inference. This requires `datasets>=4.7.0`. Filter each existing split by role; never merge splits and call
+`train_test_split` again. Empty role splits stay empty. Before a GPU training run, explicitly require
+a nonempty selected train split; a small family-based dataset may contain only
+held-out examples. For example:
+
+```python
+from pipeline.preflight import load_hf_splits
+splits = load_hf_splits("exports/v1", role="executor")
+assert "train" in splits and len(splits["train"]), "No reviewed executor training rows"
+train_dataset = splits["train"]
+eval_dataset = splits.get("val")  # reserve test for final evaluation
+```
+ The optional tokenizer
+check uses only local/cached files, with no model weights or remote code. Choose
+context length from the measured token lengths; reject overlong episodes rather
+than silently cutting tool outputs. TRL's configuration field is `max_length`.
+
+For `assistant_only_loss=True`, add `--assistant-only-loss` and require a chat
+template supporting generation masks. Preflight rejects missing, empty or
+misaligned masks; a successful text rendering alone does not prove that loss
+masking works. Tool-bearing transcripts must render correctly with the selected
+model's actual template before training.
+
+Future Hub dataset/trace sharing requires explicit authorization. Default to a
+private dataset repository, inspect/redact sensitive prompts, paths, outputs and
+PII first, preserve source provenance and split membership, and verify Viewer
+subset/split metadata rather than assuming upload success. Current raw OpenCode
+captures are not claimed to be automatically supported by the Hub trace viewer.
+
+Format references: [Transformers tool chat templates](https://huggingface.co/docs/transformers/chat_extras),
+[TRL tool-calling dataset formats](https://huggingface.co/docs/trl/dataset_formats#tool-calling),
+and [SFT Trainer](https://huggingface.co/docs/trl/sft_trainer).

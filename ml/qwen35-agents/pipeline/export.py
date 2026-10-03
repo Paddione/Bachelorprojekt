@@ -70,6 +70,19 @@ def export_dataset(source, output, *, seed='qwen35-v1', train=80, val=10, regist
         defined = {tool.get('function', {}).get('name') for tool in ep.tools}
         if called - defined:
             errors.append(f'missing tool definitions: {sorted(called - defined)}')
+        else:
+            import jsonschema
+            schemas = {tool.get('function', {}).get('name'): tool.get('function', {}).get('parameters') for tool in ep.tools}
+            for message in ep.messages:
+                for call in message.get('tool_calls', []):
+                    function = call['function']
+                    arguments = function['arguments']
+                    if isinstance(arguments, str):
+                        arguments = json.loads(arguments)
+                    try:
+                        jsonschema.validate(arguments, schemas[function['name']])
+                    except (jsonschema.ValidationError, jsonschema.SchemaError, TypeError) as exc:
+                        errors.append(f'invalid tool schema/arguments: {exc}')
         if errors:
             raise ValueError(f'{path.name}: ' + '; '.join(errors))
         split = families.get(ep.scenario_id) or family_split(ep.scenario_id, seed, train, val)
@@ -80,6 +93,14 @@ def export_dataset(source, output, *, seed='qwen35-v1', train=80, val=10, regist
         messages = [{key: value for key, value in message.items()
                      if key in ('role', 'content', 'tool_calls', 'tool_call_id', 'name', 'reasoning_content')}
                     for message in ep.messages]
+        for message in messages:
+            if message.get('tool_calls'):
+                # Transformers chat templates require dict arguments, unlike the wire protocol.
+                message['tool_calls'] = json.loads(json.dumps(message['tool_calls']))
+                for call in message['tool_calls']:
+                    arguments = call['function']['arguments']
+                    if isinstance(arguments, str):
+                        call['function']['arguments'] = json.loads(arguments)
         rows[split].append({'messages': messages, 'tools': ep.tools,
                             'meta': {'episode_id': ep.episode_id, 'role': ep.role,
                                      'family': ep.scenario_id, 'split': split,

@@ -9,6 +9,9 @@ status: staged
 ## File Structure
 - `ml/qwen35-agents/pipeline/scenarios.py`: versioned scenario definitions and templates.
 - `ml/qwen35-agents/pipeline/capture.py`: real OpenCode JSON event capture and normalization.
+- `ml/qwen35-agents/pipeline/preflight.py`: CPU format, JSON schema, manifest and tokenizer gates.
+- `ml/qwen35-agents/schema/episodes.py`: observed decision and source metadata.
+- `ml/qwen35-agents/eval/role_metrics.py`: score observed selections and reviewed completions.
 - `ml/qwen35-agents/pipeline/export.py`: deterministic family splits and QC-gated JSONL.
 - `ml/qwen35-agents/schema/validate.py`: canonical transcript fingerprints and evidence validation.
 - `ml/qwen35-agents/tests/test_pipeline.py`: focused regression coverage.
@@ -30,7 +33,11 @@ Python-Schwelle 800 Zeilen, keine Baseline fuer diese Dateien. Bestehender Valid
 - [x] Implement QC-gated deterministic JSONL exports with family-based splitting and manifest hashes; refuse overwrite or invalid input.
 - [x] Strengthen canonical dedupe and tool-evidence QC. Document human review, read-only smoke and explicit run boundaries.
 
-## Task 3 — Verify and deliver
+## Task 3 — Hugging Face preparation
+- [x] Convert exported function.arguments into dictionaries, validate schemas in `ml/qwen35-agents/pipeline/preflight.py`, and preserve heterogeneous JSON using datasets Json features.
+- [x] Document role filtering without resplitting, local tokenizer context/mask preflight and private future trace sharing; no GPU jobs submitted.
+
+## Task 4 — Verify and deliver
 - [x] Run focused unittest suite and CLI smoke with real local read-only teacher when available.
 - [x] Run `task test:inventory`, `task test:changed`, `task freshness:regenerate`, `task freshness:check`, and `task workspace:validate`.
 - [x] Commit and push implementation; create PR with concrete validation and limitations. Parent handles review and merge; create draft PR because original ticket scope remains open.

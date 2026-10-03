@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT / 'schema'))
 from pipeline.capture import from_events, run_teacher
 from pipeline.scenarios import Scenario
 from pipeline.export import export_dataset
+from pipeline.preflight import inspect_export
 from validate import validate_episode, episode_fingerprint
 
 
@@ -158,6 +159,42 @@ class PipelineTests(unittest.TestCase):
             (source / 'a.json').write_text(a.model_dump_json())
             (source / 'b.json').write_text(b.model_dump_json())
             with self.assertRaisesRegex(ValueError, 'duplicate episode id'):
+                export_dataset(source, root / 'out')
+            self.assertFalse((root / 'out').exists())
+
+    def test_preflight_template_masks_schema_and_hashes(self):
+        class Tokenizer:
+            def apply_chat_template(self, messages, **kwargs):
+                self.arguments = messages[1]['tool_calls'][0]['function']['arguments']
+                return {'input_ids': [1, 2], 'assistant_masks': [0, 1]}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); source = root / 'data'; source.mkdir()
+            (source / 'a.json').write_text(episode().model_dump_json())
+            export_dataset(source, root / 'out')
+            tokenizer = Tokenizer()
+            report = inspect_export(root / 'out', role='executor', tokenizer=tokenizer, assistant_only=True, max_length=2)
+            self.assertIsInstance(tokenizer.arguments, dict)
+            self.assertEqual(report['max_tokens'], 2)
+            with self.assertRaisesRegex(ValueError, 'exceeds max_length'):
+                inspect_export(root / 'out', tokenizer=tokenizer, assistant_only=True, max_length=1)
+            def empty_mask(*args, **kwargs):
+                return {'input_ids': [1, 2], 'assistant_masks': [0, 0]}
+            tokenizer.apply_chat_template = empty_mask
+            with self.assertRaisesRegex(ValueError, 'generation masks'):
+                inspect_export(root / 'out', tokenizer=tokenizer, assistant_only=True)
+            path = next(path for path in (root / 'out').glob('*.jsonl') if path.stat().st_size)
+            path.write_text(path.read_text() + '\n')
+            with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+                inspect_export(root / 'out')
+
+    def test_export_rejects_arguments_that_violate_tool_schema(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); source = root / 'data'; source.mkdir()
+            ep = episode()
+            ep.messages[1]['tool_calls'][0]['function']['arguments'] = '{"filePath":7}'
+            ep.tool_calls[0].arguments = {'filePath': 7}
+            (source / 'a.json').write_text(ep.model_dump_json())
+            with self.assertRaisesRegex(ValueError, 'invalid tool schema/arguments'):
                 export_dataset(source, root / 'out')
             self.assertFalse((root / 'out').exists())
 

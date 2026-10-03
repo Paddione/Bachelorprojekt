@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.390.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.389.0...website-v1.390.0) (2026-10-03)
+
+
+### Features
+
+* **agents:** devflow-mcp — Kontext, Werkzeuge und Plan-Staging fuer Subagenten [T900985] ([#6216](https://github.com/Paddione/Bachelorprojekt/issues/6216)) ([6daa5ae](https://github.com/Paddione/Bachelorprojekt/commit/6daa5ae5e8fff24bfc89c5b7c33babb7f359de4a))
+
 ## [1.389.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.388.1...website-v1.389.0) (2026-10-03)
 
 

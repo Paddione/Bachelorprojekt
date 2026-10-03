@@ -52,3 +52,44 @@ Spec `tests/spec/p0min-freeze-embed.bats`, run before the pipeline exists:
 bash tests/unit/lib/bats-core/bin/bats tests/spec/p0min-freeze-embed.bats
 P0MIN_FORCE_RETRIEVAL=1 bash tests/unit/lib/bats-core/bin/bats tests/spec/p0min-freeze-embed.bats  # red-first
 ```
+
+## First full run (T900990, 2026-10-03)
+
+Status: **DONE** — pipeline `scripts/p0min-embed-run.py` green, gate G2
+retrieval 3/3 top-5.
+
+| Field | Value |
+|---|---|
+| Model | `bge-m3` (llm-gateway-embed, Q8_0 GGUF, 1024 dims, `n_ctx_slot=4096`) |
+| Endpoint | `http://localhost:8081` (port-forward svc/llm-gateway-embed) |
+| Corpus sha256 | `d8b03c5981a7f4dd43675001e9b49f19856de309cc41d076792e4f81fdeccffd` |
+| Handled-by sha256 | `17bc9a1485256f2d8ff308620d5c913067ba3aa3e76c8d06a13c6b966e0b1fe2` |
+| K3 snapshot | frozen corpus commit `8fed539b996fdcb89181fa8e8084fec8d299c8ab` |
+| Index artifact | `docs/brain/embed-index.json`, sha256 `d204a12c4cc34fba8b7a03b7e724382e1c7f7c72c8ccc2bfb503a147022adbe4` |
+| Candidates | 116 distinct `handled_by` handlers (349 rows flattened) |
+| Candidate text | handler repo path + file content head (2500 chars) |
+| Query text | route id + route file source head (2500 chars) |
+| K3 full index | `task codebase:index` exit 0, receipt `beb451dbaa9238ad` (mode full, tool 0.10.8, 56131 nodes / 135693 edges) |
+
+Held-out top-5 (k=5, spec `tests/spec/p0min-freeze-embed.bats` 8/8 green):
+
+| Route | Expected | Rank |
+|---|---|---|
+| `auth/callback.ts:GET` | `components/website/src/lib/auth.ts` | 4 |
+| `billing/create-invoice.ts:POST` | `components/website/src/lib/stripe-billing.ts` | 2 |
+| `brett/bot.ts:POST` | `components/website/src/lib/brett-bot.ts` | 1 |
+
+Run history: runs 2–3 failed on oversized embed batches (4×6000-char
+texts overflow the bge-embed 4096-token slot → `RemoteDisconnected`;
+run 3 also hit a `bge-embed` pod restart mid-run). Fixed to 2×2500-char
+batches + retry. Run 4 (bare route-id queries) scored 1/3 — id strings
+only match path-similar files; run 5 (id + route source queries) 3/3.
+
+Freshness caveat: `python3 scripts/mcp/cbm-freshness.py status` reports
+`unknown` (`probe-malformed` + `root-mismatch`), NOT `fresh`, for reasons
+outside this ticket's file boundary: (a) tool 0.10.8 `detect_changes`
+defaults to human-readable text, the helper parses JSON (needs
+`--format json`); (b) the tool canonicalizes the worktree `repo_path` to
+the main-checkout git root, so the graph identity can never equal a
+worktree checkout. Fix belongs to the freshness helper / tool, filed for
+follow-up — the K3 receipt above is the run evidence.

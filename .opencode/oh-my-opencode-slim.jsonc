@@ -12,7 +12,7 @@
   // Bearer (Invalid credential on chat AND /responses, verified T900939);
   // only the managed-credential path (no apiKey field -> token from
   // opencode.db) works. All specialists/workers below stay on the
-  // local llama.cpp endpoints (:1919 IQ3_XXS-mtp, :8080 2507-90k pool) so
+  // local llama.cpp endpoints (:1919 IQ3_XXS-mtp, :8080 Qwen3.5-4B pool) so
   // bulk execution costs no cloud budget.
   "agents": {
     "orchestrator": {
@@ -20,10 +20,10 @@
       "variant": "low"
     },
     "explorer": {
-      "model": "llamacpp-qwen3/Qwen3-4B-2507"
+      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP"
     },
     "librarian": {
-      "model": "llamacpp-qwen3/Qwen3-4B-2507"
+      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP"
     },
     "fixer": {
       "model": "llamacpp-local/Qwen3.8-27B"

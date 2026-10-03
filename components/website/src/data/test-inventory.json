@@ -4494,6 +4494,12 @@
     "kind": "shell"
   },
   {
+    "id": "qwen35-worker-modes",
+    "file": "tests/spec/qwen35-worker-modes.bats",
+    "category": "qwen35-worker-modes",
+    "kind": "shell"
+  },
+  {
     "id": "react-homepage-blocks",
     "file": "tests/spec/react-homepage-blocks.bats",
     "category": "react-homepage-blocks",

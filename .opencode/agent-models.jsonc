@@ -46,36 +46,35 @@
         }
       }
     },
-    // Qwen3-4B-Instruct-2507 UD-Q4_K_XL, Windows-nativ auf der RTX 3060 Ti
-    // (seit 2026-10-03, ersetzt Qwen2.5-7B-BP auf :8080 und Qwen3.5-9B auf :1920):
-    // 3 Slots teilen 90112 KV (-np 3 -kvu -c 90112, Q4_0 KV, FlashAttention,
-    // kein MTP, kein Thinking, kein Vision-Projektor). Startskript
-    // F:\tools\llama.cpp\start-qwen3-4b-2507-service.ps1 (Autostart via
-    // scripts/llm/register-qwen3-4b-2507-autostart.ps1). Binaries b11352+
+    // Qwen3.5-4B-MTP UD-Q4_K_XL, Windows-nativ auf der RTX 3060 Ti
+    // (ersetzt Qwen3-4B-2507 auf :8080): 3 Slots teilen provisional 98304 KV
+    // (-np 3 -kvu, Q4_0 Target/Draft-KV, MTP r4, Thinking per Request).
+    // Startskript scripts/llm/start-qwen35-4b-service.ps1 (Kopie nach
+    // F:\tools\llama.cpp). Binaries b11352+
     // (0.3.0-dev kann opencode's task_reply-Grammatik nicht parsen).
-    // Warum nicht Qwen2.5-7B-BP: dessen 32k-Maximalfenster liegt unter
-    // Buffer 33600 + ~25k Tool-Overhead (Trigger negativ, Worker unbrauchbar);
-    // 98k waren mit q4_0 korrupt (alle Builds) und mit q8_0 OOM. Der 2507 hat
-    // nativ 262144 Kontext (rope_theta 5M) — 90112 ist maximal VRAM-sicher
-    // (Leiter: 98304 = 7850 MiB unsicher, 81920 = 7582 gesund, 90112 = 7790
-    // gesund unter Last, Needle-HIT bei 74k, kein Spill).
-    // GEMESSEN 2026-10-03: Prefill ~1200 t/s, Decode ~97-104 t/s solo,
-    // ~85 t/s je Strom bei 3 parallel (256 total); 7748-7790/8192 MiB VRAM.
-    // Live-Alias: Qwen3-4B-2507. Limit 90112 -> Compaction-Trigger 56512.
+    // 98304 ist provisional: kurze Requests/Tool-Calls und 3-Strom-Direct-Smoke
+    // verifiziert, Long-Load/Stress noch offen. Keine Linux-era Speed-Claims.
+    // Qwen3.5-4B-MTP UD-Q4_K_XL, Windows-native :8080 on RTX 3060 Ti.
+    // Linux OpenCode V2 uses explicit model/variant body overlays.
+    // One resident checkpoint serves direct and thinking requests without reload.
+    // Provisional shared KV: 98304 / 3 slots, q4_0 target/draft KV, MTP r4.
+    // Windows b11352 short requests/tool calls and 3-stream direct smoke verified;
+    // long-context quality/concurrency stress still pending. No Linux-era speed claims.
+    // Reproducible launcher: scripts/llm/start-qwen35-4b-service.ps1.
     "llamacpp-qwen3": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :8080 Windows-nativ (Qwen3-4B-2507 UD-Q4_K_XL, RTX 3060 Ti, 3 Slots, 90k shared KV, Q4_0 KV)",
+      "name": "llama.cpp :8080 (Qwen3.5-4B-MTP, RTX 3060 Ti, 3 slots, provisional 98304 shared KV)",
       "options": {
         "baseURL": "http://127.0.0.1:8080/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        "Qwen3-4B-2507": {
-          "name": "Qwen3-4B-2507 (Windows-nativ :8080, RTX 3060 Ti, 3 Slots, 90k shared KV, UD-Q4_K_XL, ~97-104 t/s)",
+        "Qwen3.5-4B-MTP": {
+          "name": "Qwen3.5-4B-MTP UD-Q4_K_XL (Windows-native :8080, RTX 3060 Ti)",
           "limit": {
-            "context": 90112,
-            "input": 90112,
+            "context": 98304,
+            "input": 98304,
             "output": 8192
           }
         }
@@ -246,10 +245,10 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "qwen3-4b": {
-      "description": "Text-only local subagent: Qwen3-4B-Instruct-2507 UD-Q4_K_XL, Windows-native via llama.cpp :8080 on the RTX 3060 Ti, 3 slots sharing 90112 KV (Q4_0 KV, FlashAttention, no MTP, non-thinking). ~97-104 t/s solo, ~85 t/s per stream at 3 parallel. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model.",
+      "description": "Text-only Qwen3.5-4B instruction worker on RTX 3060 Ti, Windows-native llama.cpp :8080. Three slots share provisional 98304 KV. Direct mode by default; thinking is a per-request variant on the same checkpoint. Use bounded research, summaries and straightforward implementation; primary verifies conclusions.",
       "mode": "subagent",
-      "model": "llamacpp-qwen3/Qwen3-4B-2507",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP",
+      "prompt": "{file:./prompts/qwen35-worker.md}",
       "color": "#22D3EE",
       "temperature": 0.3,
       "steps": 40,
@@ -261,10 +260,10 @@
     // primaere Worker mit schlankem Prompt; write ist erlaubt (Partials legen Dateien an),
     // task nicht (kein Weiterdelegieren). Genutzt von scripts/llm/plan-runner/workers.mjs.
     "plan-worker-4b": {
-      "description": "plan-runner worker on Qwen3-4B-2507 (Windows-native llama.cpp :8080, RTX 3060 Ti, 3 slots sharing 90112 KV). Executes one plan partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
+      "description": "Primary plan partial worker on Qwen3.5-4B-MTP (:8080, RTX 3060 Ti, 3 slots / provisional 98304 shared KV). Direct mode by default, write-capable only for assigned partials. Used by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
-      "model": "llamacpp-qwen3/Qwen3-4B-2507",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP",
+      "prompt": "{file:./prompts/qwen35-worker.md}",
       "color": "#22D3EE",
       "temperature": 0.3,
       "steps": 40,

@@ -125,13 +125,17 @@
         }
       }
     },
-    // STILLGELEGT 2026-10-03: die Env-Key-Auth (`{env:OPENCODE_GO_API_KEY}`)
-    // antwortet in-client mit `Invalid credential` (selbst bei byte-identischem
-    // Key mit auth.json); alle Konsumenten zeigen wieder auf `opencode-go`
-    // (chat rail, s.o.). Block bleibt als Parkplatz, bis die {env:}-Aufloesung
-    // root-caused ist. Historie: OpenAI-RESPONSES-Protokoll — /chat/completions
-    // lehnte das Modell mit `ModelProtocolUnsupported` ab (gilt seit
-    // 2026-10-03 nicht mehr); eigener Block wegen fehlendem per-model `npm`.
+    // STILLGELEGT 2026-10-03 (Root-Cause verifiziert, T900939): `{env:}`
+    // wird korrekt aufgeloest (per lokalem Echo-Server bewiesen) — aber die
+    // Go/Zen-Rails akzeptieren KEINE rohen API-Keys als Bearer
+    // (`Invalid credential`, auf chat UND /responses). Nur der
+    // Managed-Credential-Pfad funktioniert: ohne `apiKey`-Feld sendet opencode
+    // das gemanagte Token aus opencode.db (Tabelle `credential`), nicht den
+    // auth.json-Key roh (per Wiretap bewiesen). Alle Konsumenten zeigen auf
+    // `opencode-go` (s.o.). Historie: OpenAI-RESPONSES-Protokoll —
+    // /chat/completions lehnte das Modell mit `ModelProtocolUnsupported` ab
+    // (gilt seit 2026-10-03 nicht mehr); eigener Block wegen fehlendem
+    // per-model `npm`.
     "opencode-go-oai": {
       "npm": "@ai-sdk/openai",
       "name": "OpenCode Go (Responses-Protokoll — muse-spark-1.3-contributor)",

@@ -139,3 +139,44 @@ captures are not claimed to be automatically supported by the Hub trace viewer.
 Format references: [Transformers tool chat templates](https://huggingface.co/docs/transformers/chat_extras),
 [TRL tool-calling dataset formats](https://huggingface.co/docs/trl/dataset_formats#tool-calling),
 and [SFT Trainer](https://huggingface.co/docs/trl/sft_trainer).
+
+## Google Colab: Qwen3.5-9B planner only
+
+[Qwen35_9B_Planner_Colab.ipynb](colab/Qwen35_9B_Planner_Colab.ipynb) is a standalone,
+downloadable Google Colab notebook. Upload it to Colab, choose A100 40GB or larger
+bf16 hardware, and replace its Google Drive export placeholder when reviewed
+planner data exists. The placeholder intentionally fails before package setup
+or model downloads. No fixture dataset is supplied and no training has run.
+
+The recipe is text-only bf16 LoRA: rank/alpha 16, batch 1, gradient accumulation
+8, Unsloth gradient checkpointing, and a 20-step pilot with 2048-token context.
+It requires nonempty reviewed planner train episodes, valid observed plan JSON
+and at least 75% actual recorded reasoning examples for the reasoning planner.
+Capture now preserves actual OpenCode reasoning events as `reasoning_content`;
+it never creates rationales. Existing episodes without those traces need new
+teacher collection/review. Full-conversation loss is explicit: the raw Qwen
+chat template lacks generation masks, so assistant-only loss is not assumed.
+
+Enter the compute-units/hour currently displayed by Colab and update already-used
+units after reconnecting. The ceiling is 200 units, including elapsed setup,
+with a configurable saving/evaluation reserve. No fixed hourly rate or guaranteed
+training duration is claimed. GPU availability and billing can vary; callbacks
+stop at optimizer-step boundaries and cannot impose a hard billing limit. Setup,
+compilation and a long step can overrun the estimate. Inspect the pilot before
+choosing a measured larger run. An attached idle GPU continues consuming units:
+disconnect and delete the runtime after verifying durable files in Drive.
+
+Adapters, tokenizer, frequent optimizer checkpoints, local Trackio metrics,
+model/source revisions, dependency versions and dataset/config hashes persist
+to the chosen Drive run directory. Resume requires the same immutable run
+manifest and an actual full checkpoint, plus unchanged critical dependencies;
+changed datasets/configs require a new run directory. Final saving is guarded
+with `finally`, but a terminated Colab runtime cannot execute that block, so
+frequent checkpoints matter. No HF Job, public Space, Hub upload or production
+deployment is launched. Notebook syntax, nbformat and CPU guards are verified;
+**actual Colab GPU installation/training remains unverified**.
+
+Sources: [Unsloth Qwen3.5 training](https://unsloth.ai/docs/models/qwen3.5/fine-tune),
+[Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B), and
+[Colab resource/compute-unit FAQ](https://research.google.com/colaboratory/faq.html).
+Regenerate the notebook with `python3 colab/build_notebook.py` from this directory.

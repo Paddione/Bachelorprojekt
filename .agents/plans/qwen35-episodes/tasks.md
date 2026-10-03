@@ -43,10 +43,10 @@ Python-Schwelle 800 Zeilen, keine Baseline fuer diese Dateien. Bestehender Valid
 - [x] Document role filtering without resplitting, local tokenizer context/mask preflight and private future trace sharing; no GPU jobs submitted.
 
 ## Task 4 — Colab planner continuation
-- [ ] Write focused regression tests in `ml/qwen35-agents/tests/test_colab.py`; run `uv run --project ml/qwen35-agents --with pytest python -m pytest ml/qwen35-agents/tests/test_colab.py` (expected: FAIL before helper exists).
-- [ ] Implement `ml/qwen35-agents/colab/config.py`, with displayed Colab rate, 200-credit ceiling/reserve, reviewed planner schema/reasoning gates and immutable resume identity.
-- [ ] Generate `ml/qwen35-agents/colab/Qwen35_9B_Planner_Colab.ipynb` from `ml/qwen35-agents/colab/build_notebook.py`: bf16 LoRA9B only, local Trackio, Drive persistence and short pilot; no paid jobs run here.
-- [ ] Preserve actual recorded reasoning in capture; no synthesized rationales. Require 75 percent reasoning examples for the reasoning planner.
+- [x] Write focused regression tests in `ml/qwen35-agents/tests/test_colab.py`; run `uv run --project ml/qwen35-agents --with pytest python -m pytest ml/qwen35-agents/tests/test_colab.py` (expected: FAIL before helper exists).
+- [x] Implement `ml/qwen35-agents/colab/config.py`, with displayed Colab rate, 200-credit ceiling/reserve, reviewed planner schema/reasoning gates and immutable resume identity.
+- [x] Generate `ml/qwen35-agents/colab/Qwen35_9B_Planner_Colab.ipynb` from `ml/qwen35-agents/colab/build_notebook.py`: bf16 LoRA9B only, local Trackio, Drive persistence and short pilot; no paid jobs run here.
+- [x] Preserve actual recorded reasoning in capture; no synthesized rationales. Require 75 percent reasoning examples for the reasoning planner.
 
 ## Task 5 — Verify and deliver
 - [x] Run focused unittest suite and CLI smoke with real local read-only teacher when available.

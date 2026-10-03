@@ -3924,7 +3924,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 853,
+      "file_count": 854,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4581,6 +4581,7 @@
         "scripts/opencode-serve.sh",
         "scripts/opencode-sync-agents.sh",
         "scripts/openspec-atlas-groups.yaml",
+        "scripts/p0min-embed-run.py",
         "scripts/pi-run.sh",
         "scripts/plan-context.sh",
         "scripts/plan-frontmatter-hook.sh",

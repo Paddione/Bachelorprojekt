@@ -25,9 +25,9 @@ status: plan_staged
 - scripts/plan-intel.sh
 
 ## Partials
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1.md | tests | scripts/plan-intel.sh | | 4b-local | 16000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1.md | tests | scripts/plan-intel.sh | |
 MARKDOWN
   printf '# sandbox\n\nProposal text for the embed dry-run.\n' > "$PLAN_DIR/proposal.md"
 }

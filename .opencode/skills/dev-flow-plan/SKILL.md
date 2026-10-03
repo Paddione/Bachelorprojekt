@@ -108,7 +108,7 @@ Plan-Subagenten: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-
 - Alle weiteren Guards (Kollisions-Check T002444, Brainstorming-Pflicht, Ticket-vor-Branch, disjunkte Partials, Plan-Mutation, Slot-Gating, Design-Asset-Qualität): [feature-path-guards](references/feature-path-guards.md).
 
 ### Schritt 3.7: Plan-Erstellung — Decompose, dann paralleler Fan-out (T002074)
-Zweistufig aus `intel.json` (deterministisch via `scripts/plan-intel.sh`) in Partials mit disjunkten `target_files` decomposen (Tests separat, Obergrenze 9), dann schreiben **parallele Plan-Subagenten** je ihre `tasks.d/pX-<name>.md`; der Orchestrator schreibt den `tasks.md`-Index mit Partial-Manifest (jede Zeile mit `min_tier` + `ctx_tokens`, R1/R2), `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und Provisionierung: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md).
+Zweistufig aus `intel.json` (deterministisch via `scripts/plan-intel.sh`) in Partials mit disjunkten `target_files` decomposen (Tests separat, Obergrenze 9), dann schreiben **parallele Plan-Subagenten** je ihre `tasks.d/pX-<name>.md`; der Orchestrator schreibt den `tasks.md`-Index mit Partial-Manifest, `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und Provisionierung: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md).
 
 **SID-Propagation (PFLICHT, T006365):** Ermittle deine Session-SID mit
 `bash scripts/agent-lock.sh mine` und weise die Plan-Subagenten an, in jedem Bash-Call zuerst
@@ -116,12 +116,8 @@ Zweistufig aus `intel.json` (deterministisch via `scripts/plan-intel.sh`) in Par
 Datei-Tools.
 
 **Der Subagent-Prompt MUSS [plan-quality-gates](.agents/skills/references/plan-quality-gates.md) verbindlich einbinden** —
-der Subagent liest die Datei und schreibt den Plan dagegen. Sie ist SSOT für die plan-lint Hard
-Rules: Frontmatter mit `title`, `ticket_id`, `domains`, `status` (F1), `## File Structure` nach der
-H1 (STRUCT1), ein Failing-Test-Step mit der wörtlichen Phrase `expected: FAIL` **plus** echtem
-Testrunner-Aufruf (STRUCT2), der finale Verify-Task mit `task test:changed` /
-`task freshness:regenerate` / `task freshness:check` (STRUCT3), das Verbot offener Platzhalter wie
-`TBD`/`TODO`/`FIXME` in der Prosa (P1), die Budget-Integrität (B1a/B1b) und das Partial-Resourcing (R1/R2).
+der Subagent liest die Datei und schreibt den Plan dagegen. Sie ist die kanonische Referenz für
+alle plan-lint Hard Rules (Details dort, nicht hier dupliziert).
 
 ### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)
 Führe ZUERST den fail-closed Linter auf den vom Subagenten zurückgegebenen Plan-Pfad aus — das ist

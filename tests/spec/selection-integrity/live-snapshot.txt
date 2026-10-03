@@ -450,6 +450,7 @@ tests/spec/pr-refresh.bats
 tests/spec/pre-commit-freshness.bats
 tests/spec/primary-agents-omo.bats
 tests/spec/public-symlinks-resolve-in-image.bats
+tests/spec/qwen35-worker-modes.bats
 tests/spec/react-homepage-blocks.bats
 tests/spec/react-login-edit-homepage.bats
 tests/spec/release-notes-erden.bats

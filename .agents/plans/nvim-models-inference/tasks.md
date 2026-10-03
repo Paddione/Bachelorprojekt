@@ -36,12 +36,12 @@ S1 note: `docs/code-quality/gates.yaml` (`s1.limits`, gelesen per `grep -A15 '  
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-module.md | impl | dotfiles/nvim/lua/config/models-inference.lua |  | 27b-local | 32000 |
-| p2 | tasks.d/p2-registration.md | impl | dotfiles/nvim/lua/config/dashboard.lua | p1 | 4b-local | 16000 |
-| p3 | tasks.d/p3-runbook.md | impl | dotfiles/nvim/runbooks/models-inference.md, dotfiles/nvim/runbooks/README.md | p1 | 4b-local | 16000 |
-| p4 | tasks.d/p4-tests.md | tests | tests/spec/neovim-dashboard.bats, components/website/src/data/test-inventory.json | p1,p2,p3 | 27b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-module.md | impl | dotfiles/nvim/lua/config/models-inference.lua |  |
+| p2 | tasks.d/p2-registration.md | impl | dotfiles/nvim/lua/config/dashboard.lua | p1 |
+| p3 | tasks.d/p3-runbook.md | impl | dotfiles/nvim/runbooks/models-inference.md, dotfiles/nvim/runbooks/README.md | p1 |
+| p4 | tasks.d/p4-tests.md | tests | tests/spec/neovim-dashboard.bats, components/website/src/data/test-inventory.json | p1,p2,p3 |
 
 Execution order honoring depends_on: p1 first; p2 and p3 after p1 (either order); p4 after p1, p2, p3; then Task 5. Each partial commits its own files as `feat(T900663): <subject> [T900663]` with explicit pathspecs (`git add -f` for dotfiles paths — dotfiles/ is gitignored, force-add per repo convention), never broad adds. Before touching a shared file, the executor rebases the branch onto latest `origin/main` (`git fetch origin main && git rebase origin/main` from the worktree root) and keeps every other chapter block intact. No partial creates `openspec/` directories, and the dashboard must not integrate OpenSpec.
 

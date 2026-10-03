@@ -35,11 +35,11 @@ Prior art (T002829): `grep -rn dotfiles/nvim docs/adr/` has no hits; `grep -rln 
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/config/ai-agents.lua, dotfiles/nvim/lua/config/dashboard.lua |  | 27b-local | 32000 |
-| p2 | tasks.d/p2-runbook.md | impl | dotfiles/nvim/runbooks/ai-agents.md | p1 | 4b-local | 16000 |
-| p3 | tasks.d/p3-tests.md | tests | tests/spec/neovim-dashboard.bats, components/website/src/data/test-inventory.json | p1,p2 | 27b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/config/ai-agents.lua, dotfiles/nvim/lua/config/dashboard.lua |  |
+| p2 | tasks.d/p2-runbook.md | impl | dotfiles/nvim/runbooks/ai-agents.md | p1 |
+| p3 | tasks.d/p3-tests.md | tests | tests/spec/neovim-dashboard.bats, components/website/src/data/test-inventory.json | p1,p2 |
 
 Execution order honoring depends_on: p1 first, then p2, then p3, then Task 4. Each partial commits its own files as `feat(T900662): <subject> [T900662]` with explicit pathspecs (`git add -f` for dotfiles paths — dotfiles/ is gitignored, force-add per repo convention), never broad adds. Before touching a shared file (`dashboard.lua`, `neovim-dashboard.bats`), the executor rebases onto the latest `origin/main` first and keeps every other chapter block intact (anchor-based appends only, unique `T900662 ai-agents` markers). The dashboard must not integrate OpenSpec. `runbooks/README.md` stays untouched: the foundation suite asserts exactly ten `status: stub` entries, and the shipped files-search chapter (T900657) set the precedent of landing its runbook without flipping its index line.
 

@@ -163,9 +163,12 @@ git push -u origin $(git branch --show-current)
 
 #### Schritt C.1: Decompose — Partial-Manifest erstellen
 Erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest** — Partials mit disjunkten
-`target_files`-Listen; jede Zeile trägt zusätzlich `min_tier` + `ctx_tokens` (R1/R2 — Rubrik in
-Schritt 3.7); das **letzte Partial ist IMMER die Tests-Rolle** (`tests`) und trägt den
+`target_files`-Listen (`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> |`);
+das **letzte Partial ist IMMER die Tests-Rolle** (`tests`) und trägt den
 STRUCT2-Failing-Test-Step. Keine Datei in zwei Partials (D1). Obergrenze 9 (`--partials`-Cap).
+Format-SSOT: [plan-quality-gates](./plan-quality-gates.md). Worker-Routing entscheidet der
+Orchestrator zur Dispatch-Zeit ([subagent-provisioning](./subagent-provisioning.md)) — keine
+Routing-Spalten im Manifest.
 
 #### Schritt C.2: Pro Partial — Plan schreiben, committen, pushen
 
@@ -210,9 +213,9 @@ Dateimengen; Obergrenze 9 (`--partials`-Cap). Keine Datei darf in zwei Partials
 liegen (D1 — `scripts/plan-lint.sh` erzwingt das im Partial-Modus). Partials
 können über die optionale 5. Manifest-Spalte `depends_on` Abhängigkeiten
 deklarieren (D2 — `scripts/plan-lint.sh` validiert Referenzen und Azyklizität).
-Die Spalten 6+7 (`min_tier`, `ctx_tokens`) sind PFLICHT (R1/R2 — Rubrik in (b)):
-sie sagen dem Orchestrator, mit welcher billigsten Stufe und welchem
-Kontextbudget er das Partial dispatchen soll.
+Kein Partial trägt Routing-Annotationen: Die Worker-Wahl trifft der Orchestrator
+zur Dispatch-Zeit nach Komplexitätsklasse
+([subagent-provisioning](./subagent-provisioning.md)).
 
 **(b) Fan-out** — N parallele Plan-Subagenten (Claude Code: `Task`-Tool; opencode:
 `subagent()` — `delegate()` ist retired). Kontext pro Subagent NUR: `.agents/plans/<slug>/proposal.md`,
@@ -222,30 +225,17 @@ gefilterte `intel.json` für genau seine Dateien) und die
 [plan-quality-gates](.agents/skills/references/plan-quality-gates.md)-Referenz.
 Jeder schreibt SEINE `.agents/plans/<slug>/tasks.d/pX-<name>.md`; der Orchestrator
 schreibt den `tasks.md`-**Index** mit der `## Partials`-Manifest-Tabelle
-(`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> | min_tier | ctx_tokens |`),
+(`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> |`),
 der `## File Structure` (Union aller Partials) und dem finalen Verify-Task (STRUCT3).
 `plan-lint.sh` aktiviert den Partial-Modus über die Existenz von `tasks.d/` automatisch.
 
-**Resourcing-Rubrik (R1/R2 — „cheapest that does the trick"):** Der Orchestrator
-dispatcht jedes Partial auf genau der Stufe aus `min_tier` und budgetiert aus
-`ctx_tokens` — nie darunter, Eskalation nur bei Fehlschlag (Kette im
-Orchestrator-Prompt). Die Stufen-Labels sind stabile Kapazitätsklassen; die
-konkrete Runtime-Bindung steht in `.opencode/agent-models.jsonc` +
-`.opencode/oh-my-opencode-slim.jsonc` (Slim-first; Workflow-Regeln in
-`~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md`) (heute: `4b-local` → `qwen35-4b`,
-`27b-local` → `local`, `cloud` → `exe-muse`):
-- `4b-local`: mechanisch, voll spezifiziert — exakte Anker, ein Subsystem,
-  Testausführung/Reporting, Boilerplate, Doc-Sync. Text-only, kein Deep-Debugging.
-- `27b-local`: Default für Implementation — Multi-File-Änderungen, Debugging mit
-  Urteil, Review, alles mit echtem Reasoning-Bedarf innerhalb des 131k-Fensters.
-- `cloud`: Bedarf über 131072 Tokens, tiefstes Reasoning (neuartige Architektur,
-  systemübergreifendes Design) oder genuin offene Exploration.
-`ctx_tokens`-Faustregel: (Σ `wc -l` der target_files + zu lesende Testdateien) × 40,
-aufgerundet auf den nächsten S/M/L-Bucket (32000/80000/90000). Über 90000: das
-Partial weiter aufteilen statt breiter zu dispatchen; was sich nicht unter 131072
-aufteilen lässt, bekommt `cloud`. `plan-lint.sh` erzwingt: `min_tier` exakt aus
-der Enum (R1), `ctx_tokens` positive Ganzzahl ≤ 1000000 und auf lokalen Stufen
-≤ 131072 (R2).
+**Budget-Faustregel für den Orchestrator:** (Σ `wc -l` der target_files + zu
+lesende Testdateien) × 40, aufgerundet auf den nächsten S/M/L-Bucket
+(32000/80000/100000). Über 100000: das Partial weiter aufteilen statt breiter
+zu dispatchen. Welche Worker-Stufe ein Partial bekommt, entscheidet der
+Orchestrator nach Komplexitätsklasse
+([subagent-provisioning](./subagent-provisioning.md)) — die Leiter steht dort,
+nicht hier.
 
 Der folgende Single-Plan-Ablauf gilt für den 1-Partial-Fall (und ist der Prompt-Kern,
 den jeder Fan-out-Subagent für sein Partial bekommt):

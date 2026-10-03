@@ -60,7 +60,12 @@ Teacher über :1919 + T3 Human-QC). Format: `messages`, System-Prompt
 5. `python3 .agents/training/train_5070ti.py` (Preflight beachtet die 27B-Rail)
 6. `python3 .agents/training/export_model.py` → merged16 + GGUF q4_k_m/q8_0
 7. Deploy auf :8080 (Alias `Qwen3-4B-2507` beibehalten!) — Schritte im Kopf von `export_model.py`
-8. Evaluation: `test_3_agents_parallel.py` (3 Slots, Domänen-Fragen) + Stichproben gegen Basis-Modell
+8. Evaluation (`eval.py`, Sampling temp 0.7 / top_p 0.8 / top_k 20):
+   - `python3 eval.py --mode compare --limit 8` → Base-vs-Tuned Side-by-Side (val-Fragen, `eval_results.json`)
+   - `python3 eval.py --mode val` → ganzer Val-Split + grobes Command-Match-Signal
+   - `python3 eval.py --mode interactive` → REPL gegen das getunte Modell
+   - `--worker-style` = Robustheits-Check ohne BP-System-Prompt
+9. Deploy-Smoke: `test_3_agents_parallel.py` (3 Slots, Domänen-Fragen)
 
 ## 8. Abgrenzungen
 - `scripts/finetune/` (Tandem-Projekt Qwen3.5-4B/27B/Gemma) bleibt separater

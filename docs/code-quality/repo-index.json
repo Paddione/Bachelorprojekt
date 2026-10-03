@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1248,
+      "file_count": 1249,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -895,6 +895,7 @@
         "tests/spec/os-retirement-code.bats",
         "tests/spec/os-retirement-dir.bats",
         "tests/spec/os-retirement-prose.bats",
+        "tests/spec/p0min-freeze-embed.bats",
         "tests/spec/pi-harness.bats",
         "tests/spec/pipeline-interface.bats",
         "tests/spec/plan-context.bats",

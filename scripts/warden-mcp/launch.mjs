@@ -6,6 +6,10 @@
 // gelesen (T004272). Fehlt die Datei oder einer der Pflicht-Keys, startet der
 // Server nicht (fail-closed). Werte werden nie ausgegeben.
 //
+// Das Master-Passwort gehoert nicht mehr in server.env: es kommt aus der Windows-
+// Anmeldeinformationsverwaltung oder entfaellt ganz, wenn unlock.mjs eine Session
+// hinterlegt hat (Quellen und Reihenfolge: siehe common.mjs).
+//
 // Windows-Befunde aus dem Smoke-Test (T900404):
 //   - warden-mcp spawnt `bw` ohne Shell; das gebuendelte @bitwarden/cli ist dort
 //     eine .js-Datei (spawn EFTYPE). BW_BIN muss auf eine echte bw.exe zeigen —
@@ -24,76 +28,20 @@
 // ist — der rohe Fehler von warden-mcp lautet dann nur
 // "create item <redacted> failed with exit code 1".
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
+import {
+  isWin, home, confDir, envFile, readEnvFile, findBw, bwVersion,
+  SESSION_ONLY_PASSWORD, credTarget, readCredential,
+} from './common.mjs';
 
 const PACKAGE = '@icoretech/warden-mcp@0.2.44';
-const REQUIRED = ['BW_HOST', 'BW_CLIENTID', 'BW_CLIENTSECRET', 'BW_PASSWORD'];
-const isWin = process.platform === 'win32';
-const home = os.homedir();
-const confDir = path.join(home, '.config', 'warden-mcp');
-const envFile = path.join(confDir, 'server.env');
+const REQUIRED = ['BW_HOST', 'BW_CLIENTID', 'BW_CLIENTSECRET'];
 
 const fail = (msg) => {
   process.stderr.write(`warden-mcp: ${msg}\n`);
   process.exit(1);
 };
-
-// Parser wie render_agy_json in scripts/mcp-sync.sh: KEY=VALUE, #-Kommentare,
-// umschliessende Quotes entfernen.
-function readEnvFile(file) {
-  const vars = {};
-  for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
-    const eq = line.indexOf('=');
-    if (eq < 1 || line.trimStart().startsWith('#')) continue;
-    const key = line.slice(0, eq).trim();
-    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
-    let val = line.slice(eq + 1).trim();
-    if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === "'" || val[0] === '"')) {
-      val = val.slice(1, -1);
-    }
-    vars[key] = val;
-  }
-  return vars;
-}
-
-function findOnPath(name) {
-  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
-    if (!dir) continue;
-    const candidate = path.join(dir, name);
-    if (fs.existsSync(candidate)) return candidate;
-  }
-  return null;
-}
-
-// ~/.local/bin liegt in WSL-Loginshells im PATH, aber nicht zwingend im
-// Environment eines von opencode uebergebenen Kindprozesses.
-function findUserLocalBw() {
-  const candidate = path.join(home, '.local', 'bin', 'bw');
-  return fs.existsSync(candidate) ? candidate : null;
-}
-
-// 'Bitwarden CLI 2026.6.0' (Windows) bzw. '2026.6.0' (Linux) -> [2026, 6, 0].
-function bwVersion(bin) {
-  try {
-    const probe = spawnSync(bin, ['--version'], { encoding: 'utf8', timeout: 10000 });
-    const m = /(\d{4})\.(\d+)\.(\d+)/.exec(`${probe.stdout || ''}${probe.stderr || ''}`);
-    return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
-  } catch {
-    return null;
-  }
-}
-
-// Fallback fuer Prozesse, die vor `winget install` gestartet wurden und den
-// neuen PATH-Eintrag nicht kennen (z. B. eine laufende Claude-Desktop-App).
-function findWingetBw() {
-  const pkgs = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'WinGet', 'Packages');
-  if (!process.env.LOCALAPPDATA || !fs.existsSync(pkgs)) return null;
-  const dir = fs.readdirSync(pkgs).find((d) => d.startsWith('Bitwarden.CLI_'));
-  const candidate = dir && path.join(pkgs, dir, 'bw.exe');
-  return candidate && fs.existsSync(candidate) ? candidate : null;
-}
 
 if (!fs.existsSync(envFile)) {
   fail(`${envFile} fehlt — Datei mit ${REQUIRED.join(', ')} anlegen (Rechte nur fuer den eigenen Benutzer).`);
@@ -107,9 +55,21 @@ if (!isWin && (fs.statSync(envFile).mode & 0o077) !== 0) {
 }
 
 const env = { ...process.env, ...fileVars };
+let passwordSource = 'server.env';
+if (env.BW_PASSWORD) {
+  process.stderr.write(`warden-mcp: WARN: BW_PASSWORD steht im Klartext in ${envFile} — ` +
+    'mit `node scripts/warden-mcp/unlock.mjs --store` umziehen und die Zeile loeschen.\n');
+} else if ((env.BW_PASSWORD = readCredential(env.BW_HOST))) {
+  passwordSource = `Anmeldeinformationsverwaltung (${credTarget(env.BW_HOST)})`;
+} else {
+  // Nur-Session: warden-mcp nutzt die von unlock.mjs hinterlegte Session; ist sie
+  // abgelaufen, scheitern die keychain_*-Tools, bis unlock.mjs erneut laeuft.
+  env.BW_PASSWORD = SESSION_ONLY_PASSWORD;
+  passwordSource = 'Nur-Session (unlock.mjs)';
+}
 env.KEYCHAIN_BW_HOME_ROOT ||= path.join(confDir, 'bw-profiles');
 if (!env.BW_BIN) {
-  env.BW_BIN = findOnPath(isWin ? 'bw.exe' : 'bw') || findUserLocalBw() || (isWin && findWingetBw()) || null;
+  env.BW_BIN = findBw();
   if (!env.BW_BIN) {
     process.stderr.write('warden-mcp: WARN: keine bw-CLI gefunden — der Server startet, aber jedes ' +
       'keychain_*-Tool scheitert. Gepinnte 2026.6.x in PATH oder ~/.local/bin ablegen, ' +
@@ -132,7 +92,8 @@ const [cmd, args] = isWin && fs.existsSync(npxCli)
 
 if (process.env.WARDEN_MCP_DRY_RUN === '1') {
   process.stderr.write(`warden-mcp: dry-run: npx -y ${PACKAGE} --stdio ` +
-    `(bw-profiles=${env.KEYCHAIN_BW_HOME_ROOT}, bw=${env.BW_BIN || 'mitgeliefertes @bitwarden/cli'})\n`);
+    `(bw-profiles=${env.KEYCHAIN_BW_HOME_ROOT}, bw=${env.BW_BIN || 'mitgeliefertes @bitwarden/cli'}, ` +
+    `passwort=${passwordSource})\n`);
   process.exit(0);
 }
 

@@ -48,16 +48,22 @@ def inspect_export(directory, *, role=None, tokenizer=None, assistant_only=False
                     except (jsonschema.ValidationError, jsonschema.SchemaError) as exc:
                         raise ValueError(f'tool JSON schema mismatch: {exc.message}') from exc
             if tokenizer is not None:
-                kwargs = {'tools': tools or None, 'tokenize': True, 'add_generation_prompt': False}
+                kwargs = {'tools': tools or None, 'tokenize': True, 'add_generation_prompt': False, 'return_dict': True}
                 if assistant_only:
                     kwargs.update(return_dict=True, return_assistant_tokens_mask=True)
                 tokenized = tokenizer.apply_chat_template(messages, **kwargs)
                 if assistant_only:
                     ids, mask = tokenized['input_ids'], tokenized.get('assistant_masks')
+                    if ids and isinstance(ids[0], list):
+                        ids = ids[0]
+                    if mask and isinstance(mask[0], list):
+                        mask = mask[0]
                     if not mask or len(mask) != len(ids) or not any(mask):
                         raise ValueError('assistant-only loss needs valid nonempty generation masks')
                 else:
-                    ids = tokenized
+                    ids = tokenized['input_ids'] if isinstance(tokenized, dict) or hasattr(tokenized, 'keys') else tokenized
+                    if ids and isinstance(ids[0], list):
+                        ids = ids[0]
                 max_tokens = max(max_tokens, len(ids))
                 if max_length is not None and len(ids) > max_length:
                     raise ValueError(f'episode {row["meta"]["episode_id"]} exceeds max_length; do not truncate tool evidence silently')

@@ -22,6 +22,7 @@ def normalize(events, prompt):
     calls = []
     sessions = set()
     finished = False
+    reasoning = ""
     for event in events:
         if not isinstance(event, dict):
             raise ValueError('event must be an object')
@@ -29,10 +30,18 @@ def normalize(events, prompt):
             sessions.add(event['sessionID'])
         kind = event.get('type')
         part = event.get('part', {})
-        if kind == 'text':
+        if kind == 'reasoning':
+            if not isinstance(part.get('text'), str):
+                raise ValueError('reasoning event missing text')
+            reasoning += part['text']
+        elif kind == 'text':
             if not isinstance(part.get('text'), str):
                 raise ValueError('text event missing text')
-            messages.append({'role': 'assistant', 'content': part['text']})
+            message = {'role': 'assistant', 'content': part['text']}
+            if reasoning:
+                message['reasoning_content'] = reasoning
+                reasoning = ''
+            messages.append(message)
         elif kind == 'tool_use':
             state = part.get('state', {})
             status = state.get('status')
@@ -47,9 +56,13 @@ def normalize(events, prompt):
             content = state.get('output') if status == 'completed' else state.get('error')
             if not isinstance(content, str):
                 raise ValueError('tool output/error must be text')
-            messages.append({'role': 'assistant', 'content': '', 'tool_calls': [
+            assistant = {'role': 'assistant', 'content': '', 'tool_calls': [
                 {'id': call_id, 'type': 'function', 'function': {
-                    'name': name, 'arguments': json.dumps(arguments, sort_keys=True)}}]})
+                    'name': name, 'arguments': json.dumps(arguments, sort_keys=True)}}]}
+            if reasoning:
+                assistant['reasoning_content'] = reasoning
+                reasoning = ''
+            messages.append(assistant)
             metadata = state.get('metadata', {})
             exit_code = metadata.get('exit')
             # OpenCode bash may report a completed invocation with nonzero shell exit.
@@ -64,6 +77,8 @@ def normalize(events, prompt):
             raise ValueError(f'teacher error: {event.get("error", "unspecified")}')
         elif kind not in ('step_start', 'reasoning'):
             raise ValueError(f'unsupported event type: {kind}')
+    if reasoning:
+        raise ValueError('reasoning lacks subsequent assistant text/tool call')
     if len(sessions) != 1:
         raise ValueError('capture must contain exactly one teacher session')
     if not finished:

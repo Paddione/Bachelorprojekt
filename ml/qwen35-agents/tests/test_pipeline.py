@@ -198,6 +198,25 @@ class PipelineTests(unittest.TestCase):
                 export_dataset(source, root / 'out')
             self.assertFalse((root / 'out').exists())
 
+    def test_recorded_reasoning_is_preserved_without_synthesis(self):
+        captured = events()
+        captured.insert(1, {'type': 'reasoning', 'sessionID': 'session1', 'part': {'text': 'Actual teacher rationale.'}})
+        ep = from_events(scenario(), captured, teacher_model='teacher', raw_sha256='r')
+        self.assertEqual(ep.messages[-1]['reasoning_content'], 'Actual teacher rationale.')
+        self.assertNotIn('reasoning_content', episode().messages[-1])
+
+    def test_preflight_counts_batchencoding_tokens_not_dictionary_keys(self):
+        class Tokenizer:
+            def apply_chat_template(self, *args, **kwargs):
+                return {'input_ids': [[1] * 16], 'attention_mask': [[1] * 16]}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); source = root / 'data'; source.mkdir()
+            (source / 'a.json').write_text(episode().model_dump_json())
+            export_dataset(source, root / 'out')
+            self.assertEqual(inspect_export(root / 'out', tokenizer=Tokenizer())['max_tokens'], 16)
+            with self.assertRaisesRegex(ValueError, 'exceeds max_length'):
+                inspect_export(root / 'out', tokenizer=Tokenizer(), max_length=15)
+
     def test_export_invalid_input_and_duplicate_ids(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); source = root / 'data'; source.mkdir()

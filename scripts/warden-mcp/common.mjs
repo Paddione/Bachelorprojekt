@@ -18,8 +18,10 @@ export const home = os.homedir();
 export const confDir = path.join(home, '.config', 'warden-mcp');
 export const envFile = path.join(confDir, 'server.env');
 // Fester Platzhalter: warden-mcp verlangt BW_PASSWORD und hasht es in den Profil-
-// pfad — ein konstanter Wert haelt das Nur-Session-Profil stabil.
-export const SESSION_ONLY_PASSWORD = 'warden-mcp-session-only';
+// pfad — ein konstanter Wert haelt das Nur-Session-Profil stabil. Sein sha256 ist
+// vorberechnet, damit hier nie ein Passwort-Wert gehasht wird.
+export const SESSION_ONLY_PLACEHOLDER = 'warden-mcp-session-only';
+const SESSION_ONLY_PLACEHOLDER_SHA256 = '8f9661b285c2c3d31d34dffa0b37999fdd2d26e2053982e340c43e811755394c';
 export const credTarget = (host) => `warden-mcp:${host}`;
 
 // Parser wie render_agy_json in scripts/mcp-sync.sh: KEY=VALUE, #-Kommentare,
@@ -81,13 +83,14 @@ export function bwVersion(bin) {
   }
 }
 
-// Gleiche Ableitung wie BwSessionPool.keyForEnv in @icoretech/warden-mcp (apikey-Login).
-export function profileDir(vars, password) {
+// Profilpfad des Nur-Session-Modus — gleiche Ableitung wie BwSessionPool.keyForEnv in
+// @icoretech/warden-mcp (apikey-Login), mit dem Platzhalter als Passwort.
+export function sessionProfileDir(vars) {
   const sha = (v) => crypto.createHash('sha256').update(v).digest('hex');
   const keyMaterial = JSON.stringify({
     host: vars.BW_HOST,
     identity: { method: 'apikey', clientId: vars.BW_CLIENTID },
-    secrets: { clientSecret: sha(vars.BW_CLIENTSECRET), password: sha(password) },
+    secrets: { clientSecret: sha(vars.BW_CLIENTSECRET), password: SESSION_ONLY_PLACEHOLDER_SHA256 },
   });
   const root = process.env.KEYCHAIN_BW_HOME_ROOT || path.join(confDir, 'bw-profiles');
   return path.join(root, sha(keyMaterial));

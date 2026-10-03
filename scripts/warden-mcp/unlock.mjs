@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import {
-  envFile, readEnvFile, findBw, profileDir, SESSION_ONLY_PASSWORD,
+  envFile, readEnvFile, findBw, sessionProfileDir,
   credTarget, readCredential, writeCredential,
 } from './common.mjs';
 
@@ -81,7 +81,7 @@ function writeSessionState(dir, session) {
   }), { encoding: 'utf8', mode: 0o600 });
 }
 
-const sessionDir = profileDir(vars, SESSION_ONLY_PASSWORD);
+const sessionDir = sessionProfileDir(vars);
 
 if (mode === '--status') {
   const fromFile = Boolean(vars.BW_PASSWORD);

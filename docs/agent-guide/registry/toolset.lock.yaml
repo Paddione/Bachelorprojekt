@@ -1,6 +1,570 @@
-# docs/agent-guide/registry/toolset.lock.yaml
-# Leere servers-Map ist ABSICHTLICH: scripts/toolset/probe.mjs ist ein Stub, der
-# bestehende Eintraege nur mergt (keine echten HTTP-Probes), sodass sich der Lock
-# nie selbst fuellen kann. Die tatsaechliche Reachability kuratiert mcp.yaml.
-lock_version: 1
-servers: {}
+# docs/agent-guide/registry/toolset.lock.yaml — gemessene Tools je MCP-Server (T900983)
+# Geschrieben von: node scripts/toolset/probe.mjs   (gemessen: status, tools)
+# Geprüft per:     node scripts/toolset/probe.mjs --ack <server>   (reviewed)
+# Gelesen von check.mjs (Tool-Drift, tool_tiers-Gate) und toolset-context.sh (Rendering).
+# Erreichbarkeit pro Harness kuratiert mcp.yaml; dieser Lock hält nur Messwerte.
+lock_version: 2
+servers:
+  bge-mcp:
+    status: ok
+    probed_at: '2026-10-03T14:12:30.004Z'
+    server_info:
+      name: bge-mcp
+      version: 1.0.0
+    tool_count: 2
+    tools:
+      bge_embed:
+        hash: 70f96e3875ef
+      bge_rerank:
+        hash: 64ebd51625c2
+    reviewed:
+      bge_embed: 70f96e3875ef
+      bge_rerank: 64ebd51625c2
+  codebase-memory-mcp:
+    status: unreachable
+    probed_at: '2026-10-03T14:12:30.004Z'
+    error: 'codebase-memory-mcp: EACCES'
+  context7:
+    status: ok
+    probed_at: '2026-10-03T14:12:30.004Z'
+    server_info:
+      name: Context7
+      version: 4.1.1
+      websiteUrl: 'https://context7.com'
+      description: Context7 provides up-to-date documentation and code examples for libraries and frameworks.
+      icons:
+        - src: 'https://context7.com/context7-icon-green.png'
+          mimeType: image/png
+    tool_count: 2
+    tools:
+      query-docs:
+        hash: 65ebfa66256d
+        read_only: true
+      resolve-library-id:
+        hash: a5f77af29427
+        read_only: true
+    reviewed:
+      query-docs: 65ebfa66256d
+      resolve-library-id: a5f77af29427
+  mcp-kubernetes:
+    status: ok
+    probed_at: '2026-10-03T14:12:30.004Z'
+    server_info:
+      name: kubernetes-mcp-server
+      title: kubernetes-mcp-server
+      version: ''
+      websiteUrl: 'https://github.com/containers/kubernetes-mcp-server'
+    tool_count: 19
+    tools:
+      configuration_view:
+        hash: 3d314fb0d3e9
+        read_only: true
+      events_list:
+        hash: 5e3d7b0c0147
+        read_only: true
+      namespaces_list:
+        hash: 5ea6d1fd6ed4
+        read_only: true
+      nodes_log:
+        hash: 3953978781cd
+        read_only: true
+      nodes_stats_summary:
+        hash: 2b06b26f74ce
+        read_only: true
+      nodes_top:
+        hash: 83cf983f9c77
+        read_only: true
+      pods_delete:
+        hash: b117f6919956
+        destructive: true
+      pods_exec:
+        hash: c3db0db11e7a
+        destructive: true
+      pods_get:
+        hash: 1519bb133780
+        read_only: true
+      pods_list:
+        hash: 449984970e1b
+        read_only: true
+      pods_list_in_namespace:
+        hash: 8024290735ac
+        read_only: true
+      pods_log:
+        hash: 8f63224a0c96
+        read_only: true
+      pods_run:
+        hash: 2fb9f1edd667
+      pods_top:
+        hash: b3f74555beb4
+        read_only: true
+      resources_create_or_update:
+        hash: f83bbbe40549
+        destructive: true
+      resources_delete:
+        hash: e92b9e046b3e
+        destructive: true
+      resources_get:
+        hash: f575c5a51260
+        read_only: true
+      resources_list:
+        hash: e9425f7be115
+        read_only: true
+      resources_scale:
+        hash: 55dd30a17b43
+        destructive: true
+    reviewed:
+      configuration_view: 3d314fb0d3e9
+      events_list: 5e3d7b0c0147
+      namespaces_list: 5ea6d1fd6ed4
+      nodes_log: 3953978781cd
+      nodes_stats_summary: 2b06b26f74ce
+      nodes_top: 83cf983f9c77
+      pods_delete: b117f6919956
+      pods_exec: c3db0db11e7a
+      pods_get: 1519bb133780
+      pods_list: 449984970e1b
+      pods_list_in_namespace: 8024290735ac
+      pods_log: 8f63224a0c96
+      pods_run: 2fb9f1edd667
+      pods_top: b3f74555beb4
+      resources_create_or_update: f83bbbe40549
+      resources_delete: e92b9e046b3e
+      resources_get: f575c5a51260
+      resources_list: e9425f7be115
+      resources_scale: 55dd30a17b43
+  mcp-postgres:
+    status: ok
+    probed_at: '2026-10-03T14:12:30.004Z'
+    server_info:
+      name: mcp-postgres-local
+      version: 1.0.0
+    tool_count: 1
+    tools:
+      query:
+        hash: 68775a54f7e4
+    reviewed:
+      query: 68775a54f7e4
+  mcp-task-runner:
+    status: ok
+    probed_at: '2026-10-03T14:12:30.004Z'
+    server_info:
+      name: mcp-task-runner
+      version: 1.0.0
+    tool_count: 7
+    tools:
+      cancel_task:
+        hash: b8fc366b945d
+      execute_plan:
+        hash: 696457f52c8c
+      get_task_graph:
+        hash: af5f96ed7e94
+      get_task_result:
+        hash: 0f5cc6d4948e
+      plan_tasks:
+        hash: b89ad3e1801f
+      run_task:
+        hash: f68a6d628e3a
+      run_task_async:
+        hash: '752842591591'
+    reviewed:
+      cancel_task: b8fc366b945d
+      execute_plan: 696457f52c8c
+      get_task_graph: af5f96ed7e94
+      get_task_result: 0f5cc6d4948e
+      plan_tasks: b89ad3e1801f
+      run_task: f68a6d628e3a
+      run_task_async: '752842591591'
+  playwright:
+    status: ok
+    probed_at: '2026-10-03T14:12:30.004Z'
+    server_info:
+      name: Playwright
+      version: 1.64.0-alpha-1790635538000
+    tool_count: 25
+    tools:
+      browser_click:
+        hash: 14a5cee71d31
+        destructive: true
+      browser_close:
+        hash: 1707b0b49570
+        destructive: true
+      browser_console_messages:
+        hash: 3079111f5e6e
+        read_only: true
+      browser_drag:
+        hash: c4f634946740
+        destructive: true
+      browser_drop:
+        hash: 6ccd0a9805f7
+        destructive: true
+      browser_emulate_media:
+        hash: f3a2b9fb935a
+        destructive: true
+      browser_evaluate:
+        hash: 7a66161f5ce8
+        destructive: true
+      browser_file_upload:
+        hash: 8ca4c5ba189a
+        destructive: true
+      browser_fill_form:
+        hash: e4dc8cafa287
+        destructive: true
+      browser_find:
+        hash: 8623394e248d
+        read_only: true
+      browser_handle_dialog:
+        hash: 23a6d6fbece4
+        destructive: true
+      browser_hover:
+        hash: 71cc28df4e51
+        destructive: true
+      browser_navigate:
+        hash: 8ab2584f6dc0
+        destructive: true
+      browser_navigate_back:
+        hash: a6cf66170395
+        destructive: true
+      browser_network_request:
+        hash: db05f922b85d
+        read_only: true
+      browser_network_requests:
+        hash: 78aaf26abecb
+        read_only: true
+      browser_press_key:
+        hash: 83d2943a8b5a
+        destructive: true
+      browser_resize:
+        hash: 6edad47716bd
+        destructive: true
+      browser_run_code_unsafe:
+        hash: 38f1aeb1fb5e
+        destructive: true
+      browser_select_option:
+        hash: 965934ba8c96
+        destructive: true
+      browser_snapshot:
+        hash: 228d1f109fb7
+        read_only: true
+      browser_tabs:
+        hash: cc8229092623
+        destructive: true
+      browser_take_screenshot:
+        hash: 84c58a3615a9
+        read_only: true
+      browser_type:
+        hash: 444ae836e5d4
+        destructive: true
+      browser_wait_for:
+        hash: a30c8bd44240
+        read_only: true
+  ticket-mcp-node:
+    status: ok
+    probed_at: '2026-10-03T14:12:30.004Z'
+    server_info:
+      name: ticket-mcp
+      version: 1.0.0
+    tool_count: 46
+    tools:
+      add_comment:
+        hash: e4a5df338693
+      add_pr_link:
+        hash: e95794226996
+      archive_plan:
+        hash: a589acaa4a7b
+      backfill_ticket_id:
+        hash: c082120f6a90
+      create_ticket:
+        hash: 2f7e58736a88
+      enqueue_ticket:
+        hash: 1848514f2709
+      export_ticket_timeline:
+        hash: d54ceeb400e4
+      export_tickets:
+        hash: ca9e4f80c356
+      flush_mishap_buffer:
+        hash: f71459f150f2
+      get_attachments:
+        hash: b33fc1dcef08
+      get_mishap_buffer:
+        hash: ded129717adb
+      get_ticket:
+        hash: 56842c7974af
+      get_ticket_links:
+        hash: df1e049cf4dc
+      link_tickets:
+        hash: 17b4191ad7ab
+      list_tickets:
+        hash: 4a8a5f8191e5
+      prepare_feature:
+        hash: 1987594ec667
+      record_grill_answers:
+        hash: f8f9a685a264
+      record_phase_event:
+        hash: 576c89c67739
+      report_mishap:
+        hash: dca143de5126
+      set_plan_meta:
+        hash: a2de70915605
+      set_readiness_flag:
+        hash: 969e51094c8b
+      set_touched_files:
+        hash: 6cd0cdcf404a
+      stage_plan:
+        hash: 92f67861554a
+      transition_status:
+        hash: e85b3753a00d
+      triage_ticket:
+        hash: 92cb32b41691
+      update_fields:
+        hash: 667a2c808b8e
+    duplicate_names:
+      - add_comment
+      - add_pr_link
+      - archive_plan
+      - create_ticket
+      - enqueue_ticket
+      - flush_mishap_buffer
+      - get_attachments
+      - get_mishap_buffer
+      - get_ticket_links
+      - link_tickets
+      - prepare_feature
+      - record_grill_answers
+      - record_phase_event
+      - report_mishap
+      - set_plan_meta
+      - set_readiness_flag
+      - set_touched_files
+      - stage_plan
+      - transition_status
+      - update_fields
+    reviewed:
+      add_comment: e4a5df338693
+      add_pr_link: e95794226996
+      archive_plan: a589acaa4a7b
+      backfill_ticket_id: c082120f6a90
+      create_ticket: 2f7e58736a88
+      enqueue_ticket: 1848514f2709
+      export_ticket_timeline: d54ceeb400e4
+      export_tickets: ca9e4f80c356
+      flush_mishap_buffer: f71459f150f2
+      get_attachments: b33fc1dcef08
+      get_mishap_buffer: ded129717adb
+      get_ticket: 56842c7974af
+      get_ticket_links: df1e049cf4dc
+      link_tickets: 17b4191ad7ab
+      list_tickets: 4a8a5f8191e5
+      prepare_feature: 1987594ec667
+      record_grill_answers: f8f9a685a264
+      record_phase_event: 576c89c67739
+      report_mishap: dca143de5126
+      set_plan_meta: a2de70915605
+      set_readiness_flag: 969e51094c8b
+      set_touched_files: 6cd0cdcf404a
+      stage_plan: 92f67861554a
+      transition_status: e85b3753a00d
+      triage_ticket: 92cb32b41691
+      update_fields: 667a2c808b8e
+  warden:
+    status: ok
+    probed_at: '2026-10-03T14:12:30.004Z'
+    server_info:
+      name: keychain-mcp
+      version: 0.2.44
+    tool_count: 53
+    tools:
+      keychain_create_attachment:
+        hash: 329a86eb4a57
+      keychain_create_card:
+        hash: e22972aebbf1
+      keychain_create_folder:
+        hash: 45a3f5202498
+      keychain_create_identity:
+        hash: 9ed5474ec577
+      keychain_create_login:
+        hash: 28697890e7eb
+      keychain_create_logins:
+        hash: 8ff111ef62f1
+      keychain_create_note:
+        hash: 9387f3eb7b85
+      keychain_create_org_collection:
+        hash: 829a2db2b5c8
+      keychain_create_ssh_key:
+        hash: 177d34d70331
+      keychain_delete_attachment:
+        hash: 75746bab1f98
+        destructive: true
+      keychain_delete_folder:
+        hash: 58f43c8d8c24
+        destructive: true
+      keychain_delete_item:
+        hash: 8a68d7c9111c
+        destructive: true
+      keychain_delete_items:
+        hash: 282c1802d97b
+        destructive: true
+      keychain_delete_org_collection:
+        hash: 0a70f0f84b93
+        destructive: true
+      keychain_edit_folder:
+        hash: afbbbd71c568
+      keychain_edit_org_collection:
+        hash: 3badf183148d
+      keychain_encode:
+        hash: 62eb6b4af132
+        read_only: true
+      keychain_generate:
+        hash: 1955d0b7d30f
+        read_only: true
+      keychain_generate_username:
+        hash: 9ae0b14034a5
+        read_only: true
+      keychain_get_attachment:
+        hash: e299147742aa
+        read_only: true
+      keychain_get_collection:
+        hash: 80c8f4b28f2d
+        read_only: true
+      keychain_get_exposed:
+        hash: bb3e685bb21e
+        read_only: true
+      keychain_get_folder:
+        hash: e2f1a5e6ac67
+        read_only: true
+      keychain_get_item:
+        hash: 91fd899e9d29
+        read_only: true
+      keychain_get_notes:
+        hash: a735df2cc6d6
+        read_only: true
+      keychain_get_org_collection:
+        hash: 8002b67f2cd3
+        read_only: true
+      keychain_get_organization:
+        hash: 4cc6713e1be0
+        read_only: true
+      keychain_get_password:
+        hash: e47f3aa70c1c
+        read_only: true
+      keychain_get_password_history:
+        hash: 5cefa9b72c15
+        read_only: true
+      keychain_get_totp:
+        hash: 021278f5e8e4
+        read_only: true
+      keychain_get_uri:
+        hash: 52468d1df832
+        read_only: true
+      keychain_get_username:
+        hash: 0d923ff41fdf
+        read_only: true
+      keychain_list_collections:
+        hash: 076fa4a8502e
+        read_only: true
+      keychain_list_folders:
+        hash: 18f84d5a940f
+        read_only: true
+      keychain_list_org_collections:
+        hash: 1a3e396a66e6
+        read_only: true
+      keychain_list_organizations:
+        hash: be4bd2c4c6ee
+        read_only: true
+      keychain_move_item_to_organization:
+        hash: c167ff7f8686
+      keychain_receive:
+        hash: e853db872d8f
+        read_only: true
+      keychain_restore_item:
+        hash: '2212e1443970'
+      keychain_sdk_version:
+        hash: 5b0729408056
+        read_only: true
+      keychain_search_items:
+        hash: 5b7c26d3b6b0
+        read_only: true
+      keychain_send_create:
+        hash: 8c4074272bfc
+      keychain_send_create_encoded:
+        hash: 43ead8720ec9
+      keychain_send_delete:
+        hash: 34967b3e7127
+        destructive: true
+      keychain_send_edit:
+        hash: 0e7f609027b3
+      keychain_send_get:
+        hash: ccb818b1e830
+        read_only: true
+      keychain_send_list:
+        hash: b6d7b20a0bde
+        read_only: true
+      keychain_send_remove_password:
+        hash: 666e4e71a8b2
+        destructive: true
+      keychain_send_template:
+        hash: 64f26b432c97
+        read_only: true
+      keychain_set_login_uris:
+        hash: 62b497afe37c
+      keychain_status:
+        hash: 5371b25cd255
+        read_only: true
+      keychain_sync:
+        hash: dad59ab25879
+        read_only: true
+      keychain_update_item:
+        hash: e416f4097539
+    reviewed:
+      keychain_create_attachment: 329a86eb4a57
+      keychain_create_card: e22972aebbf1
+      keychain_create_folder: 45a3f5202498
+      keychain_create_identity: 9ed5474ec577
+      keychain_create_login: 28697890e7eb
+      keychain_create_logins: 8ff111ef62f1
+      keychain_create_note: 9387f3eb7b85
+      keychain_create_org_collection: 829a2db2b5c8
+      keychain_create_ssh_key: 177d34d70331
+      keychain_delete_attachment: 75746bab1f98
+      keychain_delete_folder: 58f43c8d8c24
+      keychain_delete_item: 8a68d7c9111c
+      keychain_delete_items: 282c1802d97b
+      keychain_delete_org_collection: 0a70f0f84b93
+      keychain_edit_folder: afbbbd71c568
+      keychain_edit_org_collection: 3badf183148d
+      keychain_encode: 62eb6b4af132
+      keychain_generate: 1955d0b7d30f
+      keychain_generate_username: 9ae0b14034a5
+      keychain_get_attachment: e299147742aa
+      keychain_get_collection: 80c8f4b28f2d
+      keychain_get_exposed: bb3e685bb21e
+      keychain_get_folder: e2f1a5e6ac67
+      keychain_get_item: 91fd899e9d29
+      keychain_get_notes: a735df2cc6d6
+      keychain_get_org_collection: 8002b67f2cd3
+      keychain_get_organization: 4cc6713e1be0
+      keychain_get_password: e47f3aa70c1c
+      keychain_get_password_history: 5cefa9b72c15
+      keychain_get_totp: 021278f5e8e4
+      keychain_get_uri: 52468d1df832
+      keychain_get_username: 0d923ff41fdf
+      keychain_list_collections: 076fa4a8502e
+      keychain_list_folders: 18f84d5a940f
+      keychain_list_org_collections: 1a3e396a66e6
+      keychain_list_organizations: be4bd2c4c6ee
+      keychain_move_item_to_organization: c167ff7f8686
+      keychain_receive: e853db872d8f
+      keychain_restore_item: '2212e1443970'
+      keychain_sdk_version: 5b0729408056
+      keychain_search_items: 5b7c26d3b6b0
+      keychain_send_create: 8c4074272bfc
+      keychain_send_create_encoded: 43ead8720ec9
+      keychain_send_delete: 34967b3e7127
+      keychain_send_edit: 0e7f609027b3
+      keychain_send_get: ccb818b1e830
+      keychain_send_list: b6d7b20a0bde
+      keychain_send_remove_password: 666e4e71a8b2
+      keychain_send_template: 64f26b432c97
+      keychain_set_login_uris: 62b497afe37c
+      keychain_status: 5371b25cd255
+      keychain_sync: dad59ab25879
+      keychain_update_item: e416f4097539

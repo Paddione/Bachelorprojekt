@@ -50,12 +50,14 @@ done
 # Rollenpruefung VOR dem Registry-Zugriff: eine ungueltige Rolle gibt nie eine Instanz aus.
 TOOLSET_REGISTRY="$REGISTRY" TOOLSET_ROLE="$ROLE" TOOLSET_JSON="$AS_JSON" \
   TOOLSET_ROLES_MODULE="$REPO_ROOT/scripts/toolset/lib/roles.mjs" \
+  TOOLSET_TOOLS_MODULE="$REPO_ROOT/scripts/toolset/lib/tools.mjs" \
 node --input-type=module -e '
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
 import * as yamlPkg from "js-yaml";
 const yaml = yamlPkg.default ?? yamlPkg;
 const { ROLES, WILDCARD_ROLES, resolveRole } = await import(pathToFileURL(process.env.TOOLSET_ROLES_MODULE).href);
+const { defaultLockPath, loadLock, toolsForInstance, tierRank } = await import(pathToFileURL(process.env.TOOLSET_TOOLS_MODULE).href);
 
 const requested = process.env.TOOLSET_ROLE;
 const asJson = process.env.TOOLSET_JSON === "1";
@@ -81,6 +83,8 @@ if (!fs.existsSync(registryPath)) {
 
 const data = yaml.load(fs.readFileSync(registryPath, "utf8"));
 const capabilities = (data && data.capabilities) || {};
+// T900983 D6: Lock neben der Registry, ausser TOOLSET_LOCK ist gesetzt.
+const lock = loadLock(defaultLockPath(registryPath));
 
 const picked = [];
 for (const [capName, instances] of Object.entries(capabilities)) {
@@ -100,6 +104,8 @@ for (const [capName, instances] of Object.entries(capabilities)) {
       fallback: cfg.fallback || null,
       tier: cfg.tier || null,
       deep_ref: cfg.deep_ref || null,
+      // T900983: Tools mit aufgeloestem Tier aus dem Lock; leer ohne Lock-Eintrag.
+      tools: toolsForInstance(instKey, cfg, lock),
     });
   }
 }
@@ -125,6 +131,18 @@ for (const p of picked) {
   if (p.avoid_when) out.push(`- **Nicht:** ${p.avoid_when}`);
   if (p.fallback)   out.push(`- **Fallback:** \`${p.fallback}\``);
   if (p.deep_ref)   out.push(`- **Tiefe:** \`${p.deep_ref}\``);
+  // T900983 D5: einzeln nur Tools ab caution, die ueber dem Instanz-Tier liegen — der Tier im
+  // Header deckt den Rest ab. Der Rest wird je Tier gezaehlt; ein Server mit 46 Tools darf den
+  // Block nicht aufblaehen.
+  if (p.tools.length > 0) {
+    const base = tierRank(p.tier || "safe");
+    const named = p.tools.filter(t => tierRank(t.tier) >= tierRank("caution") && tierRank(t.tier) > base);
+    const counts = {};
+    for (const t of p.tools) if (!named.includes(t)) counts[t.tier] = (counts[t.tier] || 0) + 1;
+    const parts = named.map(t => `\`${t.name}\` (${t.tier})`);
+    for (const [tier, n] of Object.entries(counts).sort((a, b) => tierRank(b[0]) - tierRank(a[0]))) parts.push(`+${n} ${tier}`);
+    out.push(`- **Tools:** ${parts.join(", ")}`);
+  }
   out.push("");
 }
 process.stdout.write(out.join("\n"));

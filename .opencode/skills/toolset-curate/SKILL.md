@@ -64,9 +64,10 @@ in `.claude/settings.json`, `skill:` aus dem `name:`-Frontmatter der Skill-Datei
 Vor der Frage an den Operator gehören drei Angaben auf den Tisch:
 
 - **Welche Fähigkeit** der Eintrag berührt — und welche Instanz dort heute `canonical` ist.
-- **Die gemessene Tool-Zahl**, sofern `docs/agent-guide/registry/toolset.lock.yaml` einen
-  Eintrag hat (`node scripts/toolset/probe.mjs` füllt sie). Ein Server mit 40 Tools kostet
-  spürbar Kontext; das gehört in die Entscheidung.
+- **Die gemessene Tool-Zahl** und die riskanten Tools aus
+  `docs/agent-guide/registry/toolset.lock.yaml` (`node scripts/toolset/probe.mjs`, siehe
+  „Tool-Ebene" unten). Ein Server mit 40 Tools kostet spürbar Kontext; das gehört in die
+  Entscheidung.
 - **Ob die Unterdrückung technisch durchsetzbar ist**: `mcp:` vollständig, `plugin:`/`skill:`
   teilweise, `cli:` gar nicht. Ein `suppressed` auf `cli:` ist eine Konvention, kein Schalter.
 
@@ -117,6 +118,30 @@ Zum Schluss die Karte neu erzeugen:
 ```bash
 node scripts/toolset/emit-map.mjs   # → docs/agent-guide/maps/toolset-map.md
 ```
+
+## Tool-Ebene (T900983)
+
+Instanzen sind kuratiert, einzelne Tools darunter über den Lock und `tool_tiers`.
+Design und Entscheidungen: `.agents/plans/toolset-tool-level/design.md`.
+
+```bash
+node scripts/toolset/probe.mjs                        # misst tools/list aller Server aus mcp.yaml
+node scripts/toolset/probe.mjs --server warden        # nur einen Server
+node scripts/toolset/probe.mjs --ack warden           # gemessenen Stand nach Prüfung übernehmen
+```
+
+- **Lock** `toolset.lock.yaml`: je Server `status` (`ok`/`unreachable`/`auth_failed`/`timeout`/
+  `protocol`), `tools` (gemessen: Hash, `read_only`, `destructive` aus den MCP-Annotations),
+  `reviewed` (geprüft, nur per `--ack`). Ein unerreichbarer Server behält seine Tools.
+  `duplicate_names` zeigt Server, die einen Namen doppelt ausliefern (T900984).
+- **`tool_tiers`** an einer `mcp:`-Instanz: Glob → Tier, erste passende Zeile gewinnt; nicht
+  genannte Tools erben `tier` der Instanz. Startwert für Mutationen ist der `destructiveHint`
+  aus dem Lock; Server ohne Annotations (ticket-mcp-node, task-runner) brauchen Handarbeit.
+- **Gate:** `check.mjs` bricht bei ungültigem Tier, `tool_tiers` an Nicht-mcp-Instanzen und
+  einem Glob ohne Treffer (veraltete Kuration). Neue, entfernte oder geänderte Tools und ein
+  `destructiveHint` auf einem `safe`-Tool meldet es nur — erst prüfen, dann `--ack`.
+- **Prompt-Block:** `toolset-context.sh` nennt Tools ab `caution` einzeln, sofern sie über dem
+  Instanz-Tier liegen; der Rest erscheint gezählt je Tier. `--json` liefert alle Tools mit Tier.
 
 ## Injektion in einen Agenten
 

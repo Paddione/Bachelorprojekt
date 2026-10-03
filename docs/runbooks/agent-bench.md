@@ -19,7 +19,9 @@ Nur Node-Standardbibliothek (plus Python-Stdlib fuer den Kernel-Check).
 ## Voraussetzungen
 
 - GPU-Host mit beiden Karten: RTX 5070 Ti (`:1919`, Orchestrator-Modell) und RTX 3060 Ti
-  (`:1920`, 4B-Worker). Produktion: `qwen38-gsq-iq2s.service` + `qwen35-mtp.service`.
+  (`:8080`, Qwen3-4B-2507-Worker-Pool, Windows-nativ). Produktion: `qwen38-gsq-iq3xxs.service`
+  (WSL-Unit) + Windows-Autostart des :8080-Pools (`scripts/llm/register-qwen3-4b-2507-autostart.ps1`,
+  kein systemd).
 - vLLM 0.30.0 unter `~/opt/vllm-nvfp4`, Modell `~/models/gemma-4-12b-it-NVFP4`
   (nur fuer `gemma4-12b-nvfp4`-Laeufe noetig).
 - `opencode` im `PATH` mit den Primaer-Agenten `plan-worker-4b` und `plan-worker-self`.
@@ -90,7 +92,7 @@ aendern (sonst vergleicht das Gate Ungleiches — es verweigert bei Mismatch mit
 ## Profile und Laufzeit
 
 - `quick` (≤ 1 h): Diagonale (jedes Modell allein) + Baseline
-  (`qwen38-27b` plant/orchestriert/reviewt, `qwen35-4b` arbeitet), 1 Rep, erste
+  (`qwen38-27b` plant/orchestriert/reviewt, `qwen3-4b` arbeitet), 1 Rep, erste
   Variante je Fall. Baseline nur, wenn beide Modelle gewaehlt sind.
 - `full` (nachts): alle Varianten, 3 Reps, ganze Matrix; ueber `AGENT_BENCH_MAX_JOBS`
   hinaus Stichprobe mit Seed (`sampled: true` im Manifest und Report).
@@ -105,8 +107,9 @@ auch bei Abbruch und Fehler — stellt er die Produktion wieder her und gibt den
 frei (Trap via `installRestoreHooks`). Pruefen und notfalls von Hand:
 
 ```bash
-systemctl --user is-active qwen38-gsq-iq2s qwen35-mtp
-systemctl --user start qwen38-gsq-iq2s qwen35-mtp
+systemctl --user is-active qwen38-gsq-iq3xxs
+systemctl --user start qwen38-gsq-iq3xxs
+curl -sf -m 5 http://127.0.0.1:8080/health   # 4B-Pool (Windows-nativ, kein systemd)
 bash scripts/gpu-lock.sh release
 ```
 

@@ -83,8 +83,9 @@
     },
     // OpenCode Zen/Go: "opencode-go" statt "opencode" (Zen) - Subscription-Tier
     // ($10/mo). Nur Modelle mit gemessener Bindung werden hier eingetragen
-    // (verifiziert per curl gegen https://opencode.ai/zen/go/v1/chat/completions,
-    // cost:"0" = im Abo enthalten).
+    // (verifiziert per `opencode run --model ...` IN-CLIENT — rohes curl wird
+    // abgewiesen, die Rails verlangen den opencode-Client: MissingSessionID
+    // (go) bzw. FreeTierError (zen); cost:"0" = im Abo enthalten).
     //
     // Kein "apiKey" hier [2026-08-03]: Der Schluessel liegt in
     // ~/.local/share/opencode/auth.json, wo `opencode auth login` ihn ablegt.
@@ -100,8 +101,11 @@
         // qwen3.8-max u.a.). Sie sind hier bewusst NICHT eingetragen — jeder
         // Eintrag will gemessen sein, bevor ein Agent darauf zeigt.
         // T900210: Muse Spark 1.3 Contributor im Go-Katalog (Katalogwerte:
-        // 1M ctx / 131k output). Go-Fallback hinter Zen-free (free zuerst,
-        // Go danach); Auth wie ueblich via ~/.local/share/opencode/auth.json.
+        // 1M ctx / 131k output). Seit 2026-10-03 die EINZIGE genutzte
+        // Muse-Bindung (in-client verifiziert: `opencode run --model
+        // opencode-go/muse-spark-1.3-contributor#low` antwortet korrekt); die
+        // alte ModelProtocolUnsupported-Einschraenkung auf /chat/completions
+        // gilt nicht mehr. Auth via ~/.local/share/opencode/auth.json.
         "muse-spark-1.3-contributor": {
           "name": "Muse Spark 1.3 Contributor (OpenCode Go, 1M ctx, 131k output)",
           "reasoning": true,
@@ -121,11 +125,13 @@
         }
       }
     },
-    // Go-Rail, aber OpenAI-RESPONSES-Protokoll: muse-spark-1.3-contributor wird
-    // vom /responses-Endpoint bedient; /chat/completions + /v1/messages lehnen
-    // es mit `ModelProtocolUnsupported` ab. opencode kennt kein per-model `npm`,
-    // also eigener Provider-Block mit `@ai-sdk/openai` (Doku: opencode.ai/docs/go,
-    // Endpoints-Tabelle). Key kommt aus der ENV, damit hier kein Secret steht.
+    // STILLGELEGT 2026-10-03: die Env-Key-Auth (`{env:OPENCODE_GO_API_KEY}`)
+    // antwortet in-client mit `Invalid credential` (selbst bei byte-identischem
+    // Key mit auth.json); alle Konsumenten zeigen wieder auf `opencode-go`
+    // (chat rail, s.o.). Block bleibt als Parkplatz, bis die {env:}-Aufloesung
+    // root-caused ist. Historie: OpenAI-RESPONSES-Protokoll — /chat/completions
+    // lehnte das Modell mit `ModelProtocolUnsupported` ab (gilt seit
+    // 2026-10-03 nicht mehr); eigener Block wegen fehlendem per-model `npm`.
     "opencode-go-oai": {
       "npm": "@ai-sdk/openai",
       "name": "OpenCode Go (Responses-Protokoll — muse-spark-1.3-contributor)",
@@ -261,7 +267,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "plan-worker-self": {
-      "description": "plan-runner self-execution worker on the orchestrator model (Qwen3.8-27B IQ3_XXS-mtp via llama.cpp :1919, RTX 5070 Ti). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
+      "description": "plan-runner self-execution worker on the local Qwen3.8-27B IQ3_XXS-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
       "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -294,7 +300,7 @@
     "exe-muse": {
       "description": "EXECUTOR (dispatchable, low reasoning): Muse Spark 1.3 Contributor via the OpenCode Go subscription (1M ctx). The single Muse seat: cheap reasoning tier so bulk and mechanical execution stays fast. Dispatch here for oversized or under-specified implementation work and for local-stall escalation handoffs. Leaf: cannot dispatch further.",
       "mode": "subagent",
-      "model": "opencode-go-oai/muse-spark-1.3-contributor",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "variant": "low",
       "prompt": "{file:./prompts/muse.md}",
       "color": "#34D399",
@@ -354,7 +360,7 @@
     "bp-ship": {
       "description": "PRIMARY: ship — BATS/Playwright, Astro/Svelte website, brand pages, test inventory. Tab-selectable domain entry over the OMO engine (Muse Spark via Go, reasoning-heavy UI/test work).",
       "mode": "primary",
-      "model": "opencode-go-oai/muse-spark-1.3-contributor",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "variant": "low",
       "prompt": "{file:./prompts/bp-ship.md}",
       "color": "#A78BFA",

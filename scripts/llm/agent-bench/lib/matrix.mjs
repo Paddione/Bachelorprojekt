@@ -10,11 +10,11 @@
 export const STAGES = Object.freeze(['plan', 'execute', 'review']);
 
 // Produktions-Baseline fuer das quick-Profil: Planer/Orchestrator qwen38-27b,
-// Worker qwen35-4b. Wird nur aufgenommen, wenn beide Modelle gewaehlt sind.
+// Worker qwen3-4b. Wird nur aufgenommen, wenn beide Modelle gewaehlt sind.
 export const BASELINE = Object.freeze({
   planner: 'qwen38-27b',
   orch: 'qwen38-27b',
-  worker: 'qwen35-4b',
+  worker: 'qwen3-4b',
   reviewer: 'qwen38-27b',
 });
 

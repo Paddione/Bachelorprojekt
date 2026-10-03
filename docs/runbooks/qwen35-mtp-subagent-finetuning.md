@@ -1,5 +1,11 @@
 # Runbook: End-to-End Fine-Tuning & Deployment for Qwen3.5-4B-MTP Subagent
 
+> **RETIRED 2026-10-03:** The `qwen35-mtp` rail (Qwen3.5-4B-MTP, :1920) has been replaced by the
+> Qwen3-4B-Instruct-2507 worker pool — Windows-native llama.cpp on :8080, see
+> `.opencode/agent-models.jsonc` (`llamacpp-qwen3`) and `scripts/llm/register-qwen3-4b-2507-autostart.ps1`.
+> This runbook remains as the fine-tuning lifecycle reference; deployment now targets the :8080 pool
+> (no systemd unit — copy the GGUF and point the Windows start script at it).
+
 ## 1. Overview & Objectives
 
 This runbook documents the complete lifecycle to produce an optimized, specialized fine-tune of **Qwen3.5-4B** with **MTP (Multi-Token Prediction)** speculative decoding.

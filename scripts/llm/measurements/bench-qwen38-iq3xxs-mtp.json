@@ -1,0 +1,54 @@
+{
+  "test1_short_decode": {
+    "success": true,
+    "elapsed": 2.495760917663574,
+    "content": "```python\ndef binary_search(arr: list, target) -> int:\n    \"\"\"\n    Perform binary search on a sorted list to find the index of the target value.\n    \n    Args:\n        arr: A list of comparable elements that is sorted in ascending order.\n        target: The value to search for in the list.\n    \n    Returns:\n        The index of the target in the list if found, otherwise -1.\n    \"\"\"\n    # Initialize left and right pointers to the boundaries of the search space.\n    left = 0\n    right = len(arr) - 1\n    \n    # Continue searching while the search space is valid (left <= right).\n    while left <= right:\n        # Calculate the middle index to avoid integer overflow issues\n        # (though in Python, this is less critical, it's a good practice).\n        mid = left + (right - left) // 2\n        \n        # Compare the middle element with the target.\n        if arr[mid] == target:\n            # Target found",
+    "reasoning": "",
+    "prompt_tokens": 24,
+    "prompt_tps": 100.29587282483327,
+    "predicted_tokens": 220,
+    "predicted_tps": 106.31186658880172,
+    "draft_n": 240,
+    "draft_accepted": 159,
+    "accept_rate": 66.25
+  },
+  "test2_long_prefill": {
+    "success": true,
+    "elapsed": 5.341816663742065,
+    "content": "The `processData` function takes a `record` object and computes a new `value` by taking the square root of `record.val` multiplied by 2.5. It then returns a new object containing the original `id`, the computed `value`, and a status string set to 'computed'.",
+    "reasoning": "",
+    "prompt_tokens": 6641,
+    "prompt_tps": 1471.133246658826,
+    "predicted_tokens": 63,
+    "predicted_tps": 98.56931410065835,
+    "draft_n": 68,
+    "draft_accepted": 47,
+    "accept_rate": 69.11764705882352
+  },
+  "test3_reasoning": {
+    "success": true,
+    "elapsed": 5.608630418777466,
+    "content": "",
+    "reasoning": "We need answer two simple riddles. Need produce final with clear reasoning.\n\nFirst: farmer has 17 sheep. All but 9 run away. How many left? \"All but 9\" means 9 remain? Let's parse: All but 9 run away = all sheep except 9 run away, so 9 left. Some trick: 17-8? \"All but 9\" means 9 do not run away, so left 9. Could be 9. Need explain.\n\nSecond: If 3 cats catch 3 mice in 3 minutes, how many cats needed to catch 100 mice in 100 minutes? Work rate. 3 cats catch 3 mice in 3 min. Rate per cat? Total cat-minutes = 9 cat-min for 3 mice, so 3 cat-min per mouse? Let's compute: If each cat catches 1 mouse in 3 minutes? Assuming independent and rate constant: 3 cats in 3 min catch 3 mice -> one cat catches one mouse in 3 min? Actually total rate = 1 mouse/min. For 100 mice in 100 min, total rate needed = 1 mouse/min. With 3 cats gives rate 1 mouse/min, so 3 cats suffice. Alternative: 3 cats catch 3 in 3; in 100 min same 3 cats catch 100 mice (linear time). So answer 3. Need explain.\n\nCheck potential trick: If 3 cats catch 3 mice in 3 minutes, how many cats to catch 100 mice in 100 minutes? Many might say 100? But rate says 3. Let's verify: 3 cats / 3 min = 1 cat-min? Work = mice * cat-min/mouse. 3 mice / 3 min = 1 mouse",
+    "prompt_tokens": 113,
+    "prompt_tps": 285.7598049752552,
+    "predicted_tokens": 400,
+    "predicted_tps": 85.82223182972352,
+    "draft_n": 551,
+    "draft_accepted": 260,
+    "accept_rate": 47.186932849364794
+  },
+  "test4_json": {
+    "success": true,
+    "elapsed": 1.1055467128753662,
+    "content": "{\"action\": \"SELECT\", \"tables\": [\"accounts\"], \"filter\": \"registered_at > '2026-01-01'\"}",
+    "reasoning": "",
+    "prompt_tokens": 72,
+    "prompt_tps": 203.27441198641446,
+    "predicted_tokens": 33,
+    "predicted_tps": 113.61255986849346,
+    "draft_n": 32,
+    "draft_accepted": 24,
+    "accept_rate": 75.0
+  }
+}

@@ -4,7 +4,7 @@ ticket_id: T900930
 domains: [ops]
 status: staged
 ---
-# Qwen3.5 worker modes
+# Qwen3.5 worker modes — Implementation Plan
 
 ## File Structure
 - `.opencode/agent-models.jsonc`: worker provider model, request mode, context and prompt routing.

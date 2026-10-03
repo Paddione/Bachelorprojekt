@@ -1,0 +1,5614 @@
+[
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/agent-push/settings.ts:GET",
+  "path": "components/website/src/pages/api/admin/agent-push/settings.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/agent-push-settings.ts",
+   "components/website/src/pages/api/_errors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/agent-push/settings.ts:POST",
+  "path": "components/website/src/pages/api/admin/agent-push/settings.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/agent-push-settings.ts",
+   "components/website/src/pages/api/_errors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/angebote/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/angebote/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/content-publish.ts",
+   "components/website/src/lib/content-publish-handler.ts",
+   "components/website/src/config/index.ts",
+   "components/website/src/content-schema/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/art-library.ts:GET",
+  "path": "components/website/src/pages/api/admin/art-library.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/assets.ts:GET",
+  "path": "components/website/src/pages/api/admin/assets.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/assets/upload.ts:POST",
+  "path": "components/website/src/pages/api/admin/assets/upload.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/nextcloud-files.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/discard.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/[id]/discard.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/finalize-from-prepayment.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/[id]/finalize-from-prepayment.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/native-billing.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/billing/[id]/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/stripe-billing.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/item.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/billing/[id]/item.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/stripe-billing.ts",
+   "components/website/src/lib/stripe.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/item.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/billing/[id]/item.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/stripe-billing.ts",
+   "components/website/src/lib/stripe.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/item.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/[id]/item.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/stripe-billing.ts",
+   "components/website/src/lib/stripe.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/payments.ts:GET",
+  "path": "components/website/src/pages/api/admin/billing/[id]/payments.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/invoice-payments.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/payments.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/[id]/payments.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/invoice-payments.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/send.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/[id]/send.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/native-billing.ts",
+   "components/website/src/lib/invoice-pdf.ts",
+   "components/website/src/lib/einvoice/factur-x.ts",
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/pages/api/_errors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/storno.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/[id]/storno.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/invoice-storno.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/[id]/validate.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/[id]/validate.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/einvoice/sidecar-client.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/create-invoice.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/create-invoice.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/native-billing.ts",
+   "components/website/src/lib/e2e-marker.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/create-monthly-invoices.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/create-monthly-invoices.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/stripe-billing.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/customers/[id]/leitweg.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/billing/customers/[id]/leitweg.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/native-billing.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/datev-email.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/datev-email.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/datev-extf.ts",
+   "components/website/src/lib/email.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/datev-export.ts:GET",
+  "path": "components/website/src/pages/api/admin/billing/datev-export.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/datev-extf.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/draft-count.ts:GET",
+  "path": "components/website/src/pages/api/admin/billing/draft-count.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/drafts.ts:GET",
+  "path": "components/website/src/pages/api/admin/billing/drafts.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/dunning/[id]/send.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/dunning/[id]/send.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/invoice-dunning.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/dunning/run.ts:GET",
+  "path": "components/website/src/pages/api/admin/billing/dunning/run.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/invoice-dunning.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/dunning/run.ts:POST",
+  "path": "components/website/src/pages/api/admin/billing/dunning/run.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/invoice-dunning.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/integrity-check.ts:GET",
+  "path": "components/website/src/pages/api/admin/billing/integrity-check.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/invoice-hash.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/billing/sepa-export.ts:GET",
+  "path": "components/website/src/pages/api/admin/billing/sepa-export.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/sepa-pain008.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/bookings/[uid]/delete.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/bookings/[uid]/delete.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/caldav.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/bookings/[uid]/remind.ts:POST",
+  "path": "components/website/src/pages/api/admin/bookings/[uid]/remind.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/email.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/bookings/[uid]/status.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/bookings/[uid]/status.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/caldav.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/bookings/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/bookings/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/notifications.ts",
+   "components/website/src/lib/caldav.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/bookkeeping/summary.ts:GET",
+  "path": "components/website/src/pages/api/admin/bookkeeping/summary.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/eur-bookkeeping.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/brand-starter.ts:GET",
+  "path": "components/website/src/pages/api/admin/brand-starter.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/audit-log.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/brett/broadcast.ts:GET",
+  "path": "components/website/src/pages/api/admin/brett/broadcast.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/nextcloud-talk-db.ts",
+   "components/website/src/lib/brett-bot.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/brett/broadcast.ts:POST",
+  "path": "components/website/src/pages/api/admin/brett/broadcast.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/nextcloud-talk-db.ts",
+   "components/website/src/lib/brett-bot.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clientnotes/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/clientnotes/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clientnotes/delete.ts:POST",
+  "path": "components/website/src/pages/api/admin/clientnotes/delete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients-list.ts:GET",
+  "path": "components/website/src/pages/api/admin/clients-list.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/contact-history/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/contact-history/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/customer-crm-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/decline-enrollment.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/decline-enrollment.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/delete.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/delete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/enroll.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/enroll.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/flag-user.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/flag-user.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/newsletter-toggle.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/newsletter-toggle.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/reset-password.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/reset-password.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/roles-assign.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/roles-assign.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/roles-remove.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/roles-remove.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/set-admin-number.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/set-admin-number.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/set-customer-number.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/set-customer-number.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/set-is-admin.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/set-is-admin.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/update-crm.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/update-crm.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/customer-crm-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/clients/update.ts:POST",
+  "path": "components/website/src/pages/api/admin/clients/update.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/books/[id]/chunks.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/books/[id]/chunks.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/books/[id]/index.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/coaching/books/[id]/index.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/books/[id]/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/books/[id]/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/books/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/books/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/books/upload.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/books/upload.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/chunking.ts",
+   "components/website/src/lib/embeddings.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/clusters/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/clusters/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/clusters/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/clusters/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/drafts/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/drafts/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/drafts/[id]/accept.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/drafts/[id]/accept.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/drafts/[id]/reject.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/drafts/[id]/reject.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/drafts/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/drafts/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/ki-config/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/coaching/ki-config/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-ki-config-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/ki-config/[id].ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/ki-config/[id].ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-ki-config-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/ki-config/active.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/ki-config/active.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-ki-config-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/ki-catalog.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/ki-config/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/ki-config/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-ki-config-db.ts",
+   "components/website/src/lib/ki-catalog.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/ki-config/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/ki-config/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-ki-config-db.ts",
+   "components/website/src/lib/ki-catalog.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/ki-config/models.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/ki-config/models.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-ki-config-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/provider-config.ts",
+   "components/website/src/lib/llm-models-probe.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/projects/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/projects/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-project-db.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/projects/[id].ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/projects/[id].ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-project-db.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/projects/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/projects/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-project-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/questionnaire/insights.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/questionnaire/insights.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/coaching-questionnaire-insights.ts",
+   "components/website/src/lib/embeddings.ts",
+   "components/website/src/lib/bge-router.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/config/index.ts",
+   "components/website/src/lib/coaching-content.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/archive.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/archive.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/audit.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/audit.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/complete.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/complete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/claude-session-agent.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/provider-config.ts",
+   "components/website/src/lib/coaching-report.ts",
+   "components/website/src/lib/coaching-session-prompts.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/index.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/index.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/index.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/index.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/status.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/status.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/coaching-ki-config-db.ts",
+   "components/website/src/lib/coaching-templates-db.ts",
+   "components/website/src/lib/coaching-session-prompts.ts",
+   "components/website/src/lib/coaching-session-beats-db.ts",
+   "components/website/src/lib/coaching-project-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/prompt-scrubber.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/index.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/index.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/coaching-session-prompts.ts",
+   "components/website/src/lib/coaching-session-beats-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/summary.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/summary.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/coaching-summary.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/[id]/unarchive.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/[id]/unarchive.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/coaching-project-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/sessions/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/sessions/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-session-db.ts",
+   "components/website/src/lib/coaching-project-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/snippets/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/coaching/snippets/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/snippets/[id].ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/snippets/[id].ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/snippets/[id]/draft-template.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/snippets/[id]/draft-template.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/snippets/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/snippets/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/snippets/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/snippets/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/step-templates/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/coaching/step-templates/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-templates-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/step-templates/[id].ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/step-templates/[id].ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-templates-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/step-templates/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/step-templates/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-templates-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/step-templates/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/step-templates/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-templates-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/templates/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/templates/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/templates/[id].ts:PATCH",
+  "path": "components/website/src/pages/api/admin/coaching/templates/[id].ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/templates/[id]/publish.ts:POST",
+  "path": "components/website/src/pages/api/admin/coaching/templates/[id]/publish.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/coaching-publish.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/templates/[id]/versions.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/templates/[id]/versions.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/coaching/templates/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/coaching/templates/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/coaching-db.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/components/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/components/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/components-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/components/[id].ts:PATCH",
+  "path": "components/website/src/pages/api/admin/components/[id].ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/components-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/components/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/components/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/components-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/components/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/components/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/components-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/content/restore.ts:POST",
+  "path": "components/website/src/pages/api/admin/content/restore.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/content/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/content/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/admin/schemas/index.ts",
+   "components/website/src/lib/content-registry.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/content/versions.ts:GET",
+  "path": "components/website/src/pages/api/admin/content/versions.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/customers-list.ts:GET",
+  "path": "components/website/src/pages/api/admin/customers-list.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/customers.ts:GET",
+  "path": "components/website/src/pages/api/admin/customers.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/audit-log.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/assign.ts:POST",
+  "path": "components/website/src/pages/api/admin/documents/assign.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/identity.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/assignments.ts:GET",
+  "path": "components/website/src/pages/api/admin/documents/assignments.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/identity.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/assignments/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/documents/assignments/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/signing/audit.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/assignments/[id].ts:PATCH",
+  "path": "components/website/src/pages/api/admin/documents/assignments/[id].ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/signing/audit.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/assignments/[id]/pdf.ts:GET",
+  "path": "components/website/src/pages/api/admin/documents/assignments/[id]/pdf.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/signing/pdf-service.ts",
+   "components/website/src/lib/signing/preview-vars.ts",
+   "components/website/src/lib/signing/audit.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/notify/[id].ts:POST",
+  "path": "components/website/src/pages/api/admin/documents/notify/[id].ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/signing/audit.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/templates/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/documents/templates/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/templates/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/documents/templates/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/templates/[id].ts:PUT",
+  "path": "components/website/src/pages/api/admin/documents/templates/[id].ts",
+  "verb": "PUT",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/templates/[id]/pdf.ts:GET",
+  "path": "components/website/src/pages/api/admin/documents/templates/[id]/pdf.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/signing/pdf-service.ts",
+   "components/website/src/lib/signing/preview-vars.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/templates/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/documents/templates/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/documents/templates/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/documents/templates/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/einstellungen/backup.ts:POST",
+  "path": "components/website/src/pages/api/admin/einstellungen/backup.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/einstellungen/benachrichtigungen.ts:POST",
+  "path": "components/website/src/pages/api/admin/einstellungen/benachrichtigungen.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/einstellungen/branding.ts:POST",
+  "path": "components/website/src/pages/api/admin/einstellungen/branding.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/einstellungen/email.ts:POST",
+  "path": "components/website/src/pages/api/admin/einstellungen/email.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/einstellungen/rechnungen.ts:POST",
+  "path": "components/website/src/pages/api/admin/einstellungen/rechnungen.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/tax-monitor.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/einstellungen/upload-logo.ts:POST",
+  "path": "components/website/src/pages/api/admin/einstellungen/upload-logo.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/faq/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/faq/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/content-publish.ts",
+   "components/website/src/lib/content-publish-handler.ts",
+   "components/website/src/content-schema/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/folder-templates/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/folder-templates/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/folder-templates-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/folder-templates/delete.ts:POST",
+  "path": "components/website/src/pages/api/admin/folder-templates/delete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/folder-templates-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/folder-templates/update.ts:POST",
+  "path": "components/website/src/pages/api/admin/folder-templates/update.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/folder-templates-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/footer/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/footer/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/content-publish-handler.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/fuehrung/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/fuehrung/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/config/index.ts",
+   "components/website/src/lib/fuehrung-content.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/generate-3d.ts:POST",
+  "path": "components/website/src/pages/api/admin/generate-3d.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/comfy-client.ts",
+   "components/website/src/lib/generation-jobs.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/generate-3d/status.ts:GET",
+  "path": "components/website/src/pages/api/admin/generate-3d/status.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/comfy-client.ts",
+   "components/website/src/lib/rigger-client.ts",
+   "components/website/src/lib/generation-jobs.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/homepage/save.ts:OPTIONS",
+  "path": "components/website/src/pages/api/admin/homepage/save.ts",
+  "verb": "OPTIONS",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/cors.ts",
+   "components/website/src/lib/content-publish.ts",
+   "components/website/src/lib/content-publish-handler.ts",
+   "components/website/src/content-schema/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/homepage/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/homepage/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/cors.ts",
+   "components/website/src/lib/content-publish.ts",
+   "components/website/src/lib/content-publish-handler.ts",
+   "components/website/src/content-schema/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inbox.ts:GET",
+  "path": "components/website/src/pages/api/admin/inbox.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inbox/[id]/action.ts:POST",
+  "path": "components/website/src/pages/api/admin/inbox/[id]/action.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/identity.ts",
+   "components/website/src/lib/caldav.ts",
+   "components/website/src/lib/talk.ts",
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/stripe-billing.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inbox/count.ts:GET",
+  "path": "components/website/src/pages/api/admin/inbox/count.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inhalte/custom/[slug].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/inhalte/custom/[slug].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inhalte/custom/[slug].ts:PUT",
+  "path": "components/website/src/pages/api/admin/inhalte/custom/[slug].ts",
+  "verb": "PUT",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inhalte/custom/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/inhalte/custom/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inhalte/custom/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/inhalte/custom/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inhalte/rechnungsvorlagen/preview.ts:GET",
+  "path": "components/website/src/pages/api/admin/inhalte/rechnungsvorlagen/preview.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/invoice-html.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/context7-config.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/context7-config.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/context7.ts:GET",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/context7.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/pages/api/_errors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/context7.ts:POST",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/context7.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/pages/api/_errors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/crawl-config.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/crawl-config.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/lib/safe-url.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts:GET",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/pages/api/_errors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts:POST",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/pages/api/_errors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/documents.ts:POST",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/documents.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/lib/embeddings.ts",
+   "components/website/src/lib/chunking.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/index.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/index.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/[id]/reindex.ts:POST",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/[id]/reindex.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/merge.ts:POST",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/merge.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/collections/suggest.ts:GET",
+  "path": "components/website/src/pages/api/admin/knowledge/collections/suggest.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/knowledge/import/json.ts:POST",
+  "path": "components/website/src/pages/api/admin/knowledge/import/json.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/ingest-json-core.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/kontakt/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/kontakt/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/content-publish.ts",
+   "components/website/src/lib/content-publish-handler.ts",
+   "components/website/src/content-schema/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/kore-flags/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/kore-flags/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/content-publish-handler.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/legal/[key]/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/legal/[key]/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/legal/retokenize.ts:POST",
+  "path": "components/website/src/pages/api/admin/legal/retokenize.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/legal-tokens.ts",
+   "components/website/src/lib/content.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/meetings/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/meetings/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/meetings/[id].ts:PATCH",
+  "path": "components/website/src/pages/api/admin/meetings/[id].ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/meetings/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/meetings/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/caldav.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/meetings/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/meetings/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/members/[userId].ts:GET",
+  "path": "components/website/src/pages/api/admin/members/[userId].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/learning-db.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/members/list.ts:GET",
+  "path": "components/website/src/pages/api/admin/members/list.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/learning-db.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/messages.ts:GET",
+  "path": "components/website/src/pages/api/admin/messages.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/messages.ts:POST",
+  "path": "components/website/src/pages/api/admin/messages.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/messages/[threadId].ts:GET",
+  "path": "components/website/src/pages/api/admin/messages/[threadId].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/messages/[threadId].ts:POST",
+  "path": "components/website/src/pages/api/admin/messages/[threadId].ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/navigation/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/navigation/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/content-publish-handler.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/blocks/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/newsletter/blocks/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-blocks-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/blocks/[id].ts:PUT",
+  "path": "components/website/src/pages/api/admin/newsletter/blocks/[id].ts",
+  "verb": "PUT",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-blocks-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/blocks/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/newsletter/blocks/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-blocks-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/blocks/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/newsletter/blocks/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-blocks-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/campaigns/[id].ts:PUT",
+  "path": "components/website/src/pages/api/admin/newsletter/campaigns/[id].ts",
+  "verb": "PUT",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts:POST",
+  "path": "components/website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/campaigns/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/newsletter/campaigns/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/campaigns/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/newsletter/campaigns/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/preview.ts:POST",
+  "path": "components/website/src/pages/api/admin/newsletter/preview.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-template.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/subscribers/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/newsletter/subscribers/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/subscribers/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/newsletter/subscribers/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/newsletter/subscribers/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/newsletter/subscribers/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/onboarding/reset.ts:POST",
+  "path": "components/website/src/pages/api/admin/onboarding/reset.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/onboarding/update.ts:POST",
+  "path": "components/website/src/pages/api/admin/onboarding/update.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/poll/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/poll/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/poll-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/poll/[id]/share.ts:POST",
+  "path": "components/website/src/pages/api/admin/poll/[id]/share.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/poll-db.ts",
+   "components/website/src/lib/brett-bot.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/poll/active.ts:GET",
+  "path": "components/website/src/pages/api/admin/poll/active.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/poll-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/poll/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/poll/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/poll-db.ts",
+   "components/website/src/lib/nextcloud-talk-db.ts",
+   "components/website/src/lib/brett-bot.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/poll/templates.ts:GET",
+  "path": "components/website/src/pages/api/admin/poll/templates.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/poll-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekte/attachments/delete.ts:POST",
+  "path": "components/website/src/pages/api/admin/projekte/attachments/delete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/nextcloud-files.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekte/attachments/download.ts:GET",
+  "path": "components/website/src/pages/api/admin/projekte/attachments/download.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/nextcloud-files.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekte/attachments/upload.ts:POST",
+  "path": "components/website/src/pages/api/admin/projekte/attachments/upload.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/nextcloud-files.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekte/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/projekte/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/folder-templates-db.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekte/delete.ts:POST",
+  "path": "components/website/src/pages/api/admin/projekte/delete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekte/export.ts:GET",
+  "path": "components/website/src/pages/api/admin/projekte/export.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/project-export-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekte/update.ts:POST",
+  "path": "components/website/src/pages/api/admin/projekte/update.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekttasks/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/projekttasks/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekttasks/delete.ts:POST",
+  "path": "components/website/src/pages/api/admin/projekttasks/delete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/projekttasks/update.ts:POST",
+  "path": "components/website/src/pages/api/admin/projekttasks/update.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/assign.ts:POST",
+  "path": "components/website/src/pages/api/admin/questionnaires/assign.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/identity.ts",
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/questionnaire-db/index.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/assignments/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/questionnaires/assignments/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/compute-scores.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/assignments/[id].ts:PUT",
+  "path": "components/website/src/pages/api/admin/questionnaires/assignments/[id].ts",
+  "verb": "PUT",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/compute-scores.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/assignments/[id]/archive.ts:POST",
+  "path": "components/website/src/pages/api/admin/questionnaires/assignments/[id]/archive.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/assignments/[id]/create-task.ts:POST",
+  "path": "components/website/src/pages/api/admin/questionnaires/assignments/[id]/create-task.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/assignments/[id]/reassign.ts:POST",
+  "path": "components/website/src/pages/api/admin/questionnaires/assignments/[id]/reassign.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/assignments/[id]/reopen.ts:POST",
+  "path": "components/website/src/pages/api/admin/questionnaires/assignments/[id]/reopen.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/assignments/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/questionnaires/assignments/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/identity.ts",
+   "components/website/src/lib/questionnaire-db/index.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/templates/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/questionnaires/templates/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/templates/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/questionnaires/templates/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/templates/[id].ts:PUT",
+  "path": "components/website/src/pages/api/admin/questionnaires/templates/[id].ts",
+  "verb": "PUT",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/templates/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/questionnaires/templates/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/questionnaires/templates/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/questionnaires/templates/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/rechtliches/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/rechtliches/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/referenzen/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/referenzen/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/content-publish-handler.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/seo/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/seo/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/seo/pages.ts:GET",
+  "path": "components/website/src/pages/api/admin/seo/pages.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/content.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/seo/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/seo/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/content-publish.ts",
+   "components/website/src/lib/content-publish-handler.ts",
+   "components/website/src/lib/content-bundle.ts",
+   "components/website/src/content-schema/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/seo/upload-og-image.ts:POST",
+  "path": "components/website/src/pages/api/admin/seo/upload-og-image.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/service-page/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/service-page/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/content-bundle.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/config/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/history/[id].ts:GET",
+  "path": "components/website/src/pages/api/admin/sessions/history/[id].ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/sessions/archive.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/history/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/sessions/history/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/sessions/archive.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/index.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/sessions/index.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/sessions/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/sessions/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/purge.ts:POST",
+  "path": "components/website/src/pages/api/admin/sessions/purge.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/sessions/archive.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/templates/[id].ts:DELETE",
+  "path": "components/website/src/pages/api/admin/sessions/templates/[id].ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/sessions/templates.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/templates/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/sessions/templates/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/sessions/templates.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/sessions/templates/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/sessions/templates/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/sessions/templates.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/shortcuts/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/shortcuts/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/shortcuts/delete.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/shortcuts/delete.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/shortcuts/fetch-title.ts:GET",
+  "path": "components/website/src/pages/api/admin/shortcuts/fetch-title.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/shortcuts/update.ts:PATCH",
+  "path": "components/website/src/pages/api/admin/shortcuts/update.ts",
+  "verb": "PATCH",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/slots/add.ts:POST",
+  "path": "components/website/src/pages/api/admin/slots/add.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/slots/remove.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/slots/remove.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/stammdaten/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/stammdaten/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/content-publish-handler.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/startseite/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/startseite/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/content-publish.ts",
+   "components/website/src/lib/content-publish-handler.ts",
+   "components/website/src/content-schema/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/startseite/upload-portrait.ts:POST",
+  "path": "components/website/src/pages/api/admin/startseite/upload-portrait.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/subprojekte/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/subprojekte/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/subprojekte/delete.ts:POST",
+  "path": "components/website/src/pages/api/admin/subprojekte/delete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/subprojekte/update.ts:POST",
+  "path": "components/website/src/pages/api/admin/subprojekte/update.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/redirect.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/tax-monitor/status.ts:GET",
+  "path": "components/website/src/pages/api/admin/tax-monitor/status.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/tax-monitor.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/tax-monitor/ustvaexport.ts:GET",
+  "path": "components/website/src/pages/api/admin/tax-monitor/ustvaexport.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/tax-monitor.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/time-windows/add.ts:POST",
+  "path": "components/website/src/pages/api/admin/time-windows/add.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/time-windows/remove.ts:DELETE",
+  "path": "components/website/src/pages/api/admin/time-windows/remove.ts",
+  "verb": "DELETE",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/transcription/index.ts:GET",
+  "path": "components/website/src/pages/api/admin/transcription/index.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/nextcloud-talk-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/transcription/index.ts:POST",
+  "path": "components/website/src/pages/api/admin/transcription/index.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/nextcloud-talk-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/uebermich/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/uebermich/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/content-publish.ts",
+   "components/website/src/lib/content-publish-handler.ts",
+   "components/website/src/content-schema/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/urlaub/save.ts:POST",
+  "path": "components/website/src/pages/api/admin/urlaub/save.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/zeiterfassung/create.ts:POST",
+  "path": "components/website/src/pages/api/admin/zeiterfassung/create.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/zeiterfassung/delete.ts:POST",
+  "path": "components/website/src/pages/api/admin/zeiterfassung/delete.ts",
+  "verb": "POST",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/admin/zeiterfassung/export.ts:GET",
+  "path": "components/website/src/pages/api/admin/zeiterfassung/export.ts",
+  "verb": "GET",
+  "slice": "admin",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/assets/[...path].ts:GET",
+  "path": "components/website/src/pages/api/assets/[...path].ts",
+  "verb": "GET",
+  "slice": "assets",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/nextcloud-files.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/assistant/chat.ts:POST",
+  "path": "components/website/src/pages/api/assistant/chat.ts",
+  "verb": "POST",
+  "slice": "assistant",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/assistant/conversations.ts",
+   "components/website/src/lib/assistant/llm.ts",
+   "components/website/src/lib/assistant/types.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/assistant/dismiss.ts:POST",
+  "path": "components/website/src/pages/api/assistant/dismiss.ts",
+  "verb": "POST",
+  "slice": "assistant",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/assistant/dismissals.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/assistant/execute.ts:POST",
+  "path": "components/website/src/pages/api/assistant/execute.ts",
+  "verb": "POST",
+  "slice": "assistant",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/assistant/actions.ts",
+   "components/website/src/lib/assistant/types.ts",
+   "components/website/src/lib/assistant/actions/admin/index.ts",
+   "components/website/src/lib/assistant/actions/portal/index.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/assistant/nudges.ts:GET",
+  "path": "components/website/src/pages/api/assistant/nudges.ts",
+  "verb": "GET",
+  "slice": "assistant",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/assistant/triggers.ts",
+   "components/website/src/lib/assistant/dismissals.ts",
+   "components/website/src/lib/assistant/types.ts",
+   "components/website/src/lib/assistant/triggers/admin.ts",
+   "components/website/src/lib/assistant/triggers/portal.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/assistant/transcribe.ts:POST",
+  "path": "components/website/src/pages/api/assistant/transcribe.ts",
+  "verb": "POST",
+  "slice": "assistant",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/whisper.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/auth/callback.ts:GET",
+  "path": "components/website/src/pages/api/auth/callback.ts",
+  "verb": "GET",
+  "slice": "auth",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/auth/delete-account.ts:POST",
+  "path": "components/website/src/pages/api/auth/delete-account.ts",
+  "verb": "POST",
+  "slice": "auth",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/auth/e2e-login.ts:GET",
+  "path": "components/website/src/pages/api/auth/e2e-login.ts",
+  "verb": "GET",
+  "slice": "auth",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/auth/login.ts:GET",
+  "path": "components/website/src/pages/api/auth/login.ts",
+  "verb": "GET",
+  "slice": "auth",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/auth/logout.ts:GET",
+  "path": "components/website/src/pages/api/auth/logout.ts",
+  "verb": "GET",
+  "slice": "auth",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/auth/magic.ts:GET",
+  "path": "components/website/src/pages/api/auth/magic.ts",
+  "verb": "GET",
+  "slice": "auth",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth/magic-link.ts",
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/auth/me.ts:GET",
+  "path": "components/website/src/pages/api/auth/me.ts",
+  "verb": "GET",
+  "slice": "auth",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/cors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/auth/me.ts:OPTIONS",
+  "path": "components/website/src/pages/api/auth/me.ts",
+  "verb": "OPTIONS",
+  "slice": "auth",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/cors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/bge/changes.ts:GET",
+  "path": "components/website/src/pages/api/bge/changes.ts",
+  "verb": "GET",
+  "slice": "bge",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/lib/bge-router.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/bge/retrieve.ts:GET",
+  "path": "components/website/src/pages/api/bge/retrieve.ts",
+  "verb": "GET",
+  "slice": "bge",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/knowledge-db.ts",
+   "components/website/src/lib/rerank.ts",
+   "components/website/src/lib/bge-router.ts",
+   "components/website/src/lib/embeddings.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/billing/create-invoice.ts:POST",
+  "path": "components/website/src/pages/api/billing/create-invoice.ts",
+  "verb": "POST",
+  "slice": "billing",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/stripe-billing.ts",
+   "components/website/src/lib/e2e-marker.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/billing/invoice/[id]/pdf.ts:GET",
+  "path": "components/website/src/pages/api/billing/invoice/[id]/pdf.ts",
+  "verb": "GET",
+  "slice": "billing",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/native-billing.ts",
+   "components/website/src/lib/invoice-pdf.ts",
+   "components/website/src/lib/einvoice-profile.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts:GET",
+  "path": "components/website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts",
+  "verb": "GET",
+  "slice": "billing",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/billing/invoice/[id]/zugferd.ts:GET",
+  "path": "components/website/src/pages/api/billing/invoice/[id]/zugferd.ts",
+  "verb": "GET",
+  "slice": "billing",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/native-billing.ts",
+   "components/website/src/lib/einvoice-profile.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/booking.ts:POST",
+  "path": "components/website/src/pages/api/booking.ts",
+  "verb": "POST",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/notifications.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/rate-limit.ts",
+   "components/website/src/lib/e2e-marker.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/bookings/[uid]/project.ts:PATCH",
+  "path": "components/website/src/pages/api/bookings/[uid]/project.ts",
+  "verb": "PATCH",
+  "slice": "bookings",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/brett/bot.ts:POST",
+  "path": "components/website/src/pages/api/brett/bot.ts",
+  "verb": "POST",
+  "slice": "brett",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/brett-bot.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/calendar/slots.ts:GET",
+  "path": "components/website/src/pages/api/calendar/slots.ts",
+  "verb": "GET",
+  "slice": "calendar",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/caldav.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/contact.ts:POST",
+  "path": "components/website/src/pages/api/contact.ts",
+  "verb": "POST",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/notifications.ts",
+   "components/website/src/lib/rate-limit.ts",
+   "components/website/src/lib/e2e-marker.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/cron/error-log-retention.ts:POST",
+  "path": "components/website/src/pages/api/cron/error-log-retention.ts",
+  "verb": "POST",
+  "slice": "cron",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/logging/error-log-store.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/cron/notify-unread.ts:POST",
+  "path": "components/website/src/pages/api/cron/notify-unread.ts",
+  "verb": "POST",
+  "slice": "cron",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/email.ts",
+   "components/website/src/pages/api/_errors.ts",
+   "components/website/src/lib/db-pool.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/cron/scheduled-publish.ts:GET",
+  "path": "components/website/src/pages/api/cron/scheduled-publish.ts",
+  "verb": "GET",
+  "slice": "cron",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/newsletter-db.ts",
+   "components/website/src/pages/api/_errors.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/demo/coaching-sim.ts:POST",
+  "path": "components/website/src/pages/api/demo/coaching-sim.ts",
+  "verb": "POST",
+  "slice": "demo",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/provider-config.ts",
+   "components/website/src/lib/coaching-ki-config-db.ts",
+   "components/website/src/lib/coaching-session-prompts.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/dsgvo-request.ts:POST",
+  "path": "components/website/src/pages/api/dsgvo-request.ts",
+  "verb": "POST",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/notifications.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/rate-limit.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/health.ts:GET",
+  "path": "components/website/src/pages/api/health.ts",
+  "verb": "GET",
+  "slice": "(root)",
+  "components": [],
+  "layer": "inline",
+  "public_api": false,
+  "handled_by": [
+   "inline:self"
+  ],
+  "hops": 0,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/homepage.ts:GET",
+  "path": "components/website/src/pages/api/homepage.ts",
+  "verb": "GET",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/cors.ts",
+   "components/website/src/lib/content-bundle.ts",
+   "components/website/src/lib/logger.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/homepage.ts:OPTIONS",
+  "path": "components/website/src/pages/api/homepage.ts",
+  "verb": "OPTIONS",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/cors.ts",
+   "components/website/src/lib/content-bundle.ts",
+   "components/website/src/lib/logger.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/internal/applications/[id]/detail.ts:GET",
+  "path": "components/website/src/pages/api/internal/applications/[id]/detail.ts",
+  "verb": "GET",
+  "slice": "internal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/pages/api/internal/applications/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/internal/applications/[id]/dossiers.ts:GET",
+  "path": "components/website/src/pages/api/internal/applications/[id]/dossiers.ts",
+  "verb": "GET",
+  "slice": "internal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/pages/api/internal/applications/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/internal/applications/[id]/index.ts:PUT",
+  "path": "components/website/src/pages/api/internal/applications/[id]/index.ts",
+  "verb": "PUT",
+  "slice": "internal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/logger.ts",
+   "components/website/src/pages/api/internal/applications/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/internal/applications/[id]/timeline.ts:GET",
+  "path": "components/website/src/pages/api/internal/applications/[id]/timeline.ts",
+  "verb": "GET",
+  "slice": "internal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/pages/api/internal/applications/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/internal/applications/list.ts:GET",
+  "path": "components/website/src/pages/api/internal/applications/list.ts",
+  "verb": "GET",
+  "slice": "internal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/pages/api/internal/applications/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/internal/applications/timeline.ts:POST",
+  "path": "components/website/src/pages/api/internal/applications/timeline.ts",
+  "verb": "POST",
+  "slice": "internal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/pages/api/internal/applications/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/internal/tickets/notify-close.ts:POST",
+  "path": "components/website/src/pages/api/internal/tickets/notify-close.ts",
+  "verb": "POST",
+  "slice": "internal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/tickets/email-templates.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/leistungen.ts:GET",
+  "path": "components/website/src/pages/api/leistungen.ts",
+  "verb": "GET",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/content.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/meeting/finalize.ts:POST",
+  "path": "components/website/src/pages/api/meeting/finalize.ts",
+  "verb": "POST",
+  "slice": "meeting",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/talk.ts",
+   "components/website/src/lib/whisper.ts",
+   "components/website/src/lib/whiteboard.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/claude.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/meeting/release.ts:POST",
+  "path": "components/website/src/pages/api/meeting/release.ts",
+  "verb": "POST",
+  "slice": "meeting",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/meeting/save-transcript.ts:POST",
+  "path": "components/website/src/pages/api/meeting/save-transcript.ts",
+  "verb": "POST",
+  "slice": "meeting",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/nextcloud-files.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/meeting/transcribe.ts:POST",
+  "path": "components/website/src/pages/api/meeting/transcribe.ts",
+  "verb": "POST",
+  "slice": "meeting",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/whisper.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/meetings/[id]/project.ts:PATCH",
+  "path": "components/website/src/pages/api/meetings/[id]/project.ts",
+  "verb": "PATCH",
+  "slice": "meetings",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/project-export-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/newsletter/confirm.ts:GET",
+  "path": "components/website/src/pages/api/newsletter/confirm.ts",
+  "verb": "GET",
+  "slice": "newsletter",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/newsletter/subscribe.ts:POST",
+  "path": "components/website/src/pages/api/newsletter/subscribe.ts",
+  "verb": "POST",
+  "slice": "newsletter",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/newsletter-db.ts",
+   "components/website/src/lib/email.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/newsletter/unsubscribe.ts:GET",
+  "path": "components/website/src/pages/api/newsletter/unsubscribe.ts",
+  "verb": "GET",
+  "slice": "newsletter",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/newsletter-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/poll/[id].ts:GET",
+  "path": "components/website/src/pages/api/poll/[id].ts",
+  "verb": "GET",
+  "slice": "poll",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/poll-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/poll/[id]/answer.ts:POST",
+  "path": "components/website/src/pages/api/poll/[id]/answer.ts",
+  "verb": "POST",
+  "slice": "poll",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/poll-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/poll/[id]/results.ts:GET",
+  "path": "components/website/src/pages/api/poll/[id]/results.ts",
+  "verb": "GET",
+  "slice": "poll",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/poll-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/documents/[assignmentId]/pdf.ts:GET",
+  "path": "components/website/src/pages/api/portal/documents/[assignmentId]/pdf.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/signing/audit.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/learning/summary.ts:GET",
+  "path": "components/website/src/pages/api/portal/learning/summary.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/learning-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/learning/track.ts:POST",
+  "path": "components/website/src/pages/api/portal/learning/track.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/learning-db.ts",
+   "components/website/src/lib/agentGuide.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/messages.ts:GET",
+  "path": "components/website/src/pages/api/portal/messages.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/e2e-marker.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/messages.ts:POST",
+  "path": "components/website/src/pages/api/portal/messages.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/e2e-marker.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/messages/[threadId].ts:GET",
+  "path": "components/website/src/pages/api/portal/messages/[threadId].ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/e2e-marker.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/messages/[threadId].ts:POST",
+  "path": "components/website/src/pages/api/portal/messages/[threadId].ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/e2e-marker.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/nachrichten.ts:GET",
+  "path": "components/website/src/pages/api/portal/nachrichten.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/onboarding/mark-step.ts:POST",
+  "path": "components/website/src/pages/api/portal/onboarding/mark-step.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/learning-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/onboarding/reset.ts:POST",
+  "path": "components/website/src/pages/api/portal/onboarding/reset.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/onboarding/update.ts:POST",
+  "path": "components/website/src/pages/api/portal/onboarding/update.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/profile/export.ts:GET",
+  "path": "components/website/src/pages/api/portal/profile/export.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/customer-crm-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/profile/update.ts:POST",
+  "path": "components/website/src/pages/api/portal/profile/update.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/customer-crm-db.ts",
+   "components/website/src/lib/identity.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/projekte.ts:GET",
+  "path": "components/website/src/pages/api/portal/projekte.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/projekttasks/[id]/done.ts:POST",
+  "path": "components/website/src/pages/api/portal/projekttasks/[id]/done.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/questionnaires/[id]/answer.ts:PUT",
+  "path": "components/website/src/pages/api/portal/questionnaires/[id]/answer.ts",
+  "verb": "PUT",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/questionnaires/[id]/dismiss.ts:POST",
+  "path": "components/website/src/pages/api/portal/questionnaires/[id]/dismiss.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/questionnaires/[id]/index.ts:GET",
+  "path": "components/website/src/pages/api/portal/questionnaires/[id]/index.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/questionnaires/[id]/submit.ts:POST",
+  "path": "components/website/src/pages/api/portal/questionnaires/[id]/submit.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/questionnaires/index.ts:GET",
+  "path": "components/website/src/pages/api/portal/questionnaires/index.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": true,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts",
+   "components/website/src/lib/project-attachments-db.ts",
+   "components/website/src/lib/project-portal-db.ts",
+   "components/website/src/lib/questionnaire-db/index.ts"
+  ],
+  "hops": 2,
+  "via": [
+   "components/website/src/lib/projects-db.ts",
+   "components/website/src/lib/questionnaire-db.ts"
+  ]
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/rooms.ts:GET",
+  "path": "components/website/src/pages/api/portal/rooms.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/rooms/[id]/messages.ts:GET",
+  "path": "components/website/src/pages/api/portal/rooms/[id]/messages.ts",
+  "verb": "GET",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/rooms/[id]/messages.ts:POST",
+  "path": "components/website/src/pages/api/portal/rooms/[id]/messages.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/rooms/[id]/share.ts:POST",
+  "path": "components/website/src/pages/api/portal/rooms/[id]/share.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/nextcloud-shares.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/rooms/ensure-direct.ts:POST",
+  "path": "components/website/src/pages/api/portal/rooms/ensure-direct.ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/messaging-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/portal/sign/[assignmentId].ts:POST",
+  "path": "components/website/src/pages/api/portal/sign/[assignmentId].ts",
+  "verb": "POST",
+  "slice": "portal",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/documents-db.ts",
+   "components/website/src/lib/signing/template-renderer.ts",
+   "components/website/src/lib/signing/pdf-service.ts",
+   "components/website/src/lib/signing/audit.ts",
+   "components/website/src/lib/signing/types.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/register.ts:POST",
+  "path": "components/website/src/pages/api/register.ts",
+  "verb": "POST",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/messaging-db.ts",
+   "components/website/src/lib/email.ts",
+   "components/website/src/lib/notifications.ts",
+   "components/website/src/lib/rate-limit.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/signing/confirm.ts:POST",
+  "path": "components/website/src/pages/api/signing/confirm.ts",
+  "verb": "POST",
+  "slice": "signing",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts",
+   "components/website/src/lib/nextcloud-files.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/status.ts:GET",
+  "path": "components/website/src/pages/api/status.ts",
+  "verb": "GET",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts",
+   "components/website/src/lib/rate-limit.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/stream/end.ts:POST",
+  "path": "components/website/src/pages/api/stream/end.ts",
+  "verb": "POST",
+  "slice": "stream",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/stream/recording.ts:POST",
+  "path": "components/website/src/pages/api/stream/recording.ts",
+  "verb": "POST",
+  "slice": "stream",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/auth.ts"
+  ],
+  "hops": 1,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/stripe/checkout.ts:POST",
+  "path": "components/website/src/pages/api/stripe/checkout.ts",
+  "verb": "POST",
+  "slice": "stripe",
+  "components": [],
+  "layer": "inline",
+  "public_api": false,
+  "handled_by": [
+   "inline:self"
+  ],
+  "hops": 0,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/stripe/invoice-payment-intent.ts:POST",
+  "path": "components/website/src/pages/api/stripe/invoice-payment-intent.ts",
+  "verb": "POST",
+  "slice": "stripe",
+  "components": [],
+  "layer": "inline",
+  "public_api": false,
+  "handled_by": [
+   "inline:self"
+  ],
+  "hops": 0,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/stripe/webhook.ts:POST",
+  "path": "components/website/src/pages/api/stripe/webhook.ts",
+  "verb": "POST",
+  "slice": "stripe",
+  "components": [],
+  "layer": "inline",
+  "public_api": false,
+  "handled_by": [
+   "inline:self"
+  ],
+  "hops": 0,
+  "via": []
+ },
+ {
+  "id": "repo@8fed539b996fdcb89181fa8e8084fec8d299c8ab:components/website/src/pages/api/timeline.ts:GET",
+  "path": "components/website/src/pages/api/timeline.ts",
+  "verb": "GET",
+  "slice": "(root)",
+  "components": [],
+  "layer": "lib",
+  "public_api": false,
+  "handled_by": [
+   "components/website/src/lib/website-db.ts"
+  ],
+  "hops": 1,
+  "via": []
+ }
+]

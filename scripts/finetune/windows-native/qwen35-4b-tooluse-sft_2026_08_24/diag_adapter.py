@@ -6,7 +6,7 @@ from unsloth import FastLanguageModel
 
 HERE = Path(__file__).parent
 ADAPTER = HERE / "outputs" / "adapters"
-BASE = "unsloth/Qwen3-4B-Instruct-2507-unsloth-bnb-4bit"
+BASE = "unsloth/Qwen3.5-4B"  # TO-VERIFY: exact Qwen3.5-4B instruct/bnb-4bit ID once confirmed
 
 SYSTEM = ("You are a helpful assistant with access to tools. "
           "Call tools when they help answer the request; "

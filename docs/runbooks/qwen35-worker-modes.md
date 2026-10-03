@@ -41,14 +41,6 @@ via `CUDA_VISIBLE_DEVICES`, starts non-thinking default, validates
 health/model/template, and never kills foreign :8080 listeners
 (it aborts with the occupant instead).
 
-## Rollback
-
-Restore `Qwen3-4B-2507` references (90112 ctx) in
-`.opencode/agent-models.jsonc` (provider `llamacpp-qwen3` model block,
-agents `qwen3-4b`/`plan-worker-4b`), `.opencode/oh-my-opencode-slim.jsonc`
-(explorer/librarian), `docs/agent-guide/registry/runtimes.md`, and
-re-run `scripts/opencode-sync-agents.sh`. No mode switch needs rollback.
-
 ## Limits
 
 98304 shared KV is provisional: short requests verified, long-load and

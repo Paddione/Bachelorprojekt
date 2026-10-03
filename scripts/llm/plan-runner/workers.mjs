@@ -1,5 +1,5 @@
 // workers.mjs — Worker-Pool des plan-runners (T900504): startet `opencode run` fuer 4B-Worker
-// (Agent plan-worker-4b auf llamacpp-qwen3/Qwen3-4B-2507, Windows-nativ :8080) und den
+// (Agent plan-worker-qwen35 auf llamacpp-qwen3/Qwen3.5-4B-MTP, Windows-nativ :8080) und den
 // Selbstaufruf des Orchestrators (Agent plan-worker-self auf llamacpp-local, :1919),
 // verwaltet die 4B-Slots und puffert beendete 4B-Ergebnisse.
 // Aufrufer: scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { parseResult } from './plan.mjs';
 
 // Primaer-Agenten: opencode run ersetzt Subagenten still durch den Default-Agenten.
-export const AGENT_4B = 'plan-worker-4b';
+export const AGENT_4B = 'plan-worker-qwen35';
 export const AGENT_SELF = 'plan-worker-self';
 const TAIL_CHARS = 4000;
 const live = new Set(); // laufende Kindprozesse, fuer killAllWorkers()

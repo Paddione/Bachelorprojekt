@@ -31,15 +31,15 @@ Die am 2026-09-27 unter `F:\models\hub` geprueften Snapshots entsprechen:
 
 | Hub-ID | Gewichte | Trainingspfad |
 |---|---|---|
-| `unsloth/Qwen3-4B-unsloth-bnb-4bit` | BNB 4-bit, Qwen3 Text | `finetune:train` mit QLoRA; Vergleichskandidat |
-| `unsloth/Qwen3-4B-Instruct-2507` | volle Gewichte, Qwen3 Text | `finetune:train` mit `PRECISION=4bit` (Quantisierung beim Laden); erster Kandidat fuer Tool-Use/Repo-Workflow |
+| `unsloth/Qwen3.5-4B` | volle Gewichte, Qwen3.5 Text | `finetune:train` mit 16-bit LoRA (Quantisierung beim Laden); erster Kandidat fuer Tool-Use/Repo-Workflow |
+| `unsloth/Qwen3.5-4B-MTP-GGUF` (`Qwen3.5-4B-UD-Q4_K_XL.gguf`) | GGUF Q4_K_XL, Qwen3.5 Text | Deploy-/Serving-Referenz (:8080-Pool, 98304 ctx, Windows-nativ) |
 | `unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit` | BNB 4-bit, Qwen3-VL | `finetune:train-vision` mit Screenshot-/Bild-Beispielen |
 
-Nur **zwei** der drei Snapshots sind BNB 4-bit. Der Text-Trainer verweigert
+Nur der Vision-Snapshot ist BNB 4-bit; die Qwen3.5-Text-Snapshots sind unquantisiert (16-bit-LoRA-Default). Der Text-Trainer verweigert
 Qwen3-VL bewusst, auch bei einem lokalen Snapshot-Pfad. Fuer den Vision-Lauf
 nutzt `train_vision.py` `FastVisionModel` und `UnslothVisionDataCollator` statt
 des Text-Collators. Ein Text-only-Verhaltensziel gehoert zuerst auf das
-Instruct-2507-Modell; fuer den VLM-Lauf braucht es Bild-Daten und eine eigene
+Qwen3.5-4B-Basismodell; fuer den VLM-Lauf braucht es Bild-Daten und eine eigene
 Bild-/Text-Evaluation. Die Snapshot-Verzeichnisse koennen als `MODEL=` direkt
 verwendet werden, wenn der Python-Prozess dasselbe Laufwerk sieht. Auf HF Jobs
 ist der lokale `F:`-Cache nicht vorhanden; dort Hub-IDs verwenden.
@@ -63,7 +63,7 @@ von den Text-Traces evaluieren; ein niedriger Trainings-Loss allein genuegt nich
   weil dessen Quantisierungsabweichung erhoeht ist. Ein bereits heruntergeladenes
   `bnb-4bit`-Repo ist kein 16-bit-Basismodell. `--allow-qwen35-4bit` ist nur fuer
   einen bewusst evaluierten Vergleichslauf vorgesehen.
-* **Qwen3-4B und andere geeignete Dense-Modelle:** 4-bit QLoRA bleibt der
+* **Qwen3.5-4B-Vorgaben:** 16-bit LoRA bleibt der
   Default. Das Windows-Experiment unter `windows-native/` ist ein historisches
   Beispiel; seine gemessenen 8.97 GB Peak-VRAM gelten fuer genau dessen 2048er
   Korpus, Batch und Modell, nicht als allgemeine 4B-Garantie.

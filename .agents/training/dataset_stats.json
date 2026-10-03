@@ -1,0 +1,45 @@
+{
+  "t1_raw": 283,
+  "t1_unique": 279,
+  "corpus_worker_added": 0,
+  "teacher_raw": 0,
+  "teacher_unique_added": 0,
+  "qc": {
+    "checked": 0,
+    "dropped_wrong": 0,
+    "unsure": 0
+  },
+  "grounding_sources": [],
+  "system_mix": {
+    "bp": 189,
+    "worker": 32,
+    "none": 27,
+    "de": 31
+  },
+  "german_entries": 7,
+  "total_unique": 279,
+  "train": 265,
+  "val": 14,
+  "target": 1100,
+  "target_met": null,
+  "near_dup_jaccard": 0.6,
+  "by_domain": {
+    "cli": 61,
+    "gotchas": 44,
+    "workflow": 30,
+    "llmstack": 29,
+    "arch": 25,
+    "agents": 22,
+    "stale": 13,
+    "deutsch": 12,
+    "runbooks": 10,
+    "ci": 10,
+    "refusal": 9,
+    "multiturn": 8,
+    "components": 6
+  },
+  "dropped_exact": 4,
+  "dropped_near": 0,
+  "dropped_too_short": 0,
+  "dropped_answer_cap": 0
+}

@@ -58,8 +58,8 @@
 | Agent | Modell | Status |
 |---|---|---|
 | local | llamacpp-local/Qwen3.8-27B | `ok` |
-| qwen3-4b | llamacpp-qwen3/Qwen3.5-4B-MTP | `ok` |
-| plan-worker-4b | llamacpp-qwen3/Qwen3.5-4B-MTP | `ok` |
+| qwen35-4b | llamacpp-qwen3/Qwen3.5-4B-MTP | `ok` |
+| plan-worker-qwen35 | llamacpp-qwen3/Qwen3.5-4B-MTP | `ok` |
 | plan-worker-self | llamacpp-local/Qwen3.8-27B | `ok` |
 | reviewer | llamacpp-local/Qwen3.8-27B | `ok` |
 | exe-muse | opencode-go/muse-spark-1.3-contributor | `ok` |

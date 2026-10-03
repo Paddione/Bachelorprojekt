@@ -1,4 +1,4 @@
-"""Generate a synthetic tool-use SFT dataset for Qwen3-4B-Instruct-2507.
+"""Generate a synthetic tool-use SFT dataset for Qwen3.5-4B.
 
 Output rows: {"tools": [<openai function schemas>], "messages": [<chatml>]}
 Archetypes: single_call, parallel_calls, sequential_calls, no_tool_direct, clarify_decline

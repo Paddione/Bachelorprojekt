@@ -1,8 +1,8 @@
 # Runbook: End-to-End Fine-Tuning & Deployment for Qwen3.5-4B-MTP Subagent
 
-> **RETIRED 2026-10-03:** The `qwen35-mtp` rail (Qwen3.5-4B-MTP, :1920) has been replaced by the
-> Qwen3-4B-Instruct-2507 worker pool — Windows-native llama.cpp on :8080, see
-> `.opencode/agent-models.jsonc` (`llamacpp-qwen3`) and `scripts/llm/register-qwen3-4b-2507-autostart.ps1`.
+> **RETIRED 2026-10-03:** The `qwen35-mtp` rail (Qwen3.5-4B-MTP, :1920) has been retired — production
+> is the Qwen3.5-4B-MTP UD-Q4_K_XL worker pool, Windows-native llama.cpp on :8080, see
+> `.opencode/agent-models.jsonc` (`llamacpp-qwen3`) and `scripts/llm/register-qwen35-4b-autostart.ps1`.
 > This runbook remains as the fine-tuning lifecycle reference; deployment now targets the :8080 pool
 > (no systemd unit — copy the GGUF and point the Windows start script at it).
 

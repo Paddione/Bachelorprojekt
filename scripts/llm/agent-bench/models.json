@@ -27,7 +27,7 @@
     },
     {
       "id": "qwen3-4b",
-      "label": "Qwen3-4B-Instruct-2507 UD-Q4_K_XL (Worker-Pool :8080, Windows-nativ, kein systemd)",
+      "label": "Qwen3.5-4B-MTP UD-Q4_K_XL (Worker-Pool :8080, Windows-nativ, kein systemd)",
       "engine": "llamacpp",
       "gpu": "3060ti",
       "port": 8080,
@@ -36,7 +36,7 @@
       "capabilities": [
         "tools"
       ],
-      "max_context": 90112,
+      "max_context": 98304,
       "enabled": true
     },
     {

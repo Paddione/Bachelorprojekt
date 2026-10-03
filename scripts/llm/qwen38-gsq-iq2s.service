@@ -6,7 +6,7 @@
 # FreeToken Qwen3.6-35B-A3B 11/15.
 #
 # Modell:
-#   hf download ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf --local-dir ~/models/Qwen3.8-27B-GSQ-RCO
+#   hf download ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf --local-dir /mnt/f/models/Qwen3.8-27B-GSQ-RCO
 #
 # Installation (Kopie, KEIN Symlink -- T900376):
 #   cp scripts/llm/qwen38-gsq-iq2s.service ~/.config/systemd/user/
@@ -30,7 +30,7 @@ Type=simple
 Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
 Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
 ExecStart=%h/opt/llama-current/bin/llama-server \
-  -m %h/models/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf \
+  -m /mnt/f/models/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf \
   --alias Qwen3.8-27B-gsq-iq2s \
   -c 196608 -np 1 -ub 512 \
   -fit off -ngl 999 \

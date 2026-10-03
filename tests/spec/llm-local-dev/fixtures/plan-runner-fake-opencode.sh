@@ -13,6 +13,7 @@ for a in "$@"; do
 done
 prompt="${*: -1}"
 [ -n "${FAKE_OPENCODE_ARGS:-}" ] && echo "${*:1:$#-1}" >> "$FAKE_OPENCODE_ARGS"
+[ -n "${FAKE_OPENCODE_PWD:-}" ] && echo "$PWD" >> "$FAKE_OPENCODE_PWD"
 partial="$(grep -oE 'Partial-ID: [A-Za-z0-9_-]+' <<<"$prompt" | head -1 | cut -d' ' -f2 || true)"
 case "$agent" in
   plan-worker-4b) sleep "${FAKE_SLEEP_4B:-0}" ;;

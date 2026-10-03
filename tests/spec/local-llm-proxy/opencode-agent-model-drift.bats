@@ -67,7 +67,7 @@ setup() {
 
 @test "T002545: die Agentendefinitionen verweisen auf Qwen3.8-27B" {
   # T900365: alle lokalen Agenten laufen auf llamacpp-local/Qwen3.8-27B
-  # (llama.cpp :1919, RTX 5070 Ti, 131072 served KV).
+  # (llama.cpp :1919, RTX 5070 Ti, 153600 served KV).
   run grep -c 'llamacpp-local/Qwen3.8-27B' "${AGENTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
@@ -79,7 +79,7 @@ setup() {
   # FreeToken-Zahl. Gebunden wird jetzt per PROVIDER: jeder
   # llamacpp-local-limit.context muss eine positive ganze Zahl sein, ungleich
   # dem advertised max_model_len 262144 und nicht groesser als die served
-  # KV 131072 (T900365; vorher 153600, T900348).
+  # KV 153600 (IQ3_XXS-mtp seit 2026-10-03; vorher 131072, T900365).
   #
   # [T003065] Vorher stand hier `grep -c '262144'` mit der Erwartung 0: 262144
   # war der Wert des abgeloesten 12B-Servers und stand fuer die Drift-Klasse,
@@ -105,8 +105,8 @@ setup() {
       if (ctx === 262144) {
         console.error(k + ' ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
       }
-      if (ctx > 131072) {
-        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
+      if (ctx > 153600) {
+        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
       }
     }
     process.exit(0);

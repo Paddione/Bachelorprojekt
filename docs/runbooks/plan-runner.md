@@ -1,8 +1,9 @@
 # Runbook: plan-runner (Plan-Partials mit lokalen Modellen)
 
 `scripts/llm/plan-runner.mjs` führt die Partials eines gestagten Plans aus (T900504). Der
-Orchestrator (Qwen3.8-27B GSQ-RCO IQ2_S-mtp, RTX 5070 Ti, `:1919`) steuert per Tool-Loop. Die Partials
-laufen als `opencode run --agent plan-worker-4b` auf dem 4B-Worker (Qwen3.5-4B, RTX 3060 Ti, `:1920`).
+Orchestrator (Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp, RTX 5070 Ti, `:1919`) steuert per Tool-Loop. Die Partials
+laufen als `opencode run --agent plan-worker-4b` auf dem 4B-Worker (Qwen3-4B-Instruct-2507 UD-Q4_K_XL,
+Windows-nativ auf der RTX 3060 Ti, `:8080`).
 Sind alle 4B-Slots belegt, darf der Orchestrator eine Partial selbst ausführen
 (`opencode run --agent plan-worker-self`). Während dieses Selbstaufrufs vergibt der Scheduler frei werdende
 4B-Slots selbst und meldet die Ergebnisse, sobald der Orchestrator zurückkehrt.
@@ -12,12 +13,14 @@ Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, 
 
 ## Voraussetzungen
 
-- `qwen38-gsq-iq2s.service` läuft auf `:1919` mit 1 Slot und `-cram 12288`. `--cache-ram` hält den
+- `qwen38-gsq-iq3xxs.service` läuft auf `:1919` mit 1 Slot und `-cram 12288`. `--cache-ram` hält den
   Orchestrator-Kontext im Host-RAM, während der Selbstaufruf den Slot belegt.
-- `qwen35-mtp.service` läuft auf `:1920`. Die Slot-Zahl des 4B muss zu `--4b-slots` passen
-  (Default 3, entspricht `-np 3 -kvu -c 98304` in `scripts/llm/qwen35-mtp.service`; gemessen in
-  `scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md`). `--4b-slots 0` schaltet den 4B ab: jede Partial laeuft dann als
-  Selbstaufruf. Das braucht es, wenn eine Partial `qwen35-mtp.service` selbst stoppt oder umkonfiguriert.
+- Der Windows-native Qwen3-4B-2507-Pool läuft auf `:8080`
+  (`F:\tools\llama.cpp\start-qwen3-4b-2507-service.ps1`, Autostart via
+  `scripts/llm/register-qwen3-4b-2507-autostart.ps1`). Die 4B-Slot-Zahl muss zu `--4b-slots`
+  passen (Default 3, entspricht `-np 3 -kvu -c 90112`, max VRAM-sicher auf 8 GB).
+  `--4b-slots 0` schaltet den 4B ab: jede Partial laeuft dann als Selbstaufruf.
+  Das braucht es, wenn eine Partial den Worker-Pool selbst stoppt oder umkonfiguriert.
 - `opencode` ist im `PATH`, und die Primaer-Agenten `plan-worker-4b` und `plan-worker-self` sind in
   `.opencode/agent-models.jsonc` konfiguriert.
 - Der Change hat eine `## Partials`-Tabelle in `tasks.md` (`id | plan | role | target_files | depends_on`)
@@ -31,7 +34,7 @@ node scripts/llm/plan-runner.mjs .agents/plans/<slug> [--worktree <pfad>] [--4b-
 ```
 
 - `--worktree`: Default ist das Git-Toplevel des Change-Ordners.
-- `--4b-slots`: gleichzeitige 4B-Worker (Default 1).
+- `--4b-slots`: gleichzeitige 4B-Worker (Default 3).
 - `--max-turns`: Obergrenze der Orchestrator-Antworten (Default 200).
 - `--timeout-min`: Timeout je Worker-Lauf (Default 120). Danach wird die Prozessgruppe beendet und der
   Lauf gilt als `failure`.

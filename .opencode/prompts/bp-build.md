@@ -37,4 +37,4 @@ Full rule: `.claude/lib/behaviors/escalation-protocol.md`.
 - Write: manifests/overlays, Taskfile, environments. MCP: k8s status-only.
 - Secrets: never output plaintext credentials; credential lookup order is
   `docs/runbooks/credentials-finden.md` (stop and ask if nothing is found).
-- Dispatch via task: `local`, `qwen35-mtp`, `reviewer`, `fixer`, `oracle`.
+- Dispatch via task: `local`, `qwen3-4b`, `reviewer`, `fixer`, `oracle`.

@@ -4,11 +4,13 @@
     //
     // Der Key heisst aus historischen Gruenden "llamacpp-local" (Modell-Strings
     // und opencode-Default referenzieren ihn). Seit T900348 steht dahinter wieder
-    // llama.cpp, seit 2026-09-26 Qwen3.8-27B GSQ-RCO IQ2_S-mtp (196608 served KV,
-    // MTP n-max 4, -cram 12288) auf der RTX 5070 Ti allein (scripts/llm/qwen38-gsq-iq2s.service).
+    // llama.cpp, seit 2026-10-03 Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (153600 served KV,
+    // MTP n-max 4, -ub 512, -cram 12288) auf der RTX 5070 Ti allein
+    // (scripts/llm/qwen38-gsq-iq3xxs.service).
     // Die Modell-ID "Qwen3.8-27B" ist der opencode-seitige Name (llama-server ignoriert ihn;
-    // live-Alias: Qwen3.8-27B-gsq-iq2s; davor opencode-Alias "Muse-Glimmer-30B", T900365).
-    // Davor opencode-Alias "Muse-Glimmer-30B" (T900365), Qwen3.8 GSQ-RCO IQ3_XXS (T900359), FreeToken (T900203).
+    // live-Alias: Qwen3.8-27B-gsq-iq3xxs; davor IQ2_S-mtp mit 196608 KV, davor
+    // opencode-Alias "Muse-Glimmer-30B", T900365).
+    // Davor opencode-Alias "Muse-Glimmer-30B" (T900365), Qwen3.8 GSQ-RCO IQ3_XXS ohne MTP (T900359), FreeToken (T900203).
     //
     // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
     // stillgelegt (ADR-007). Der Server bedient einen Slot (-np 1); weitere
@@ -16,51 +18,64 @@
     // eine explizite Agenten-Wahl.
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1919 (Qwen3.8-27B GSQ-RCO IQ2_S-mtp, RTX 5070 Ti, 196k served KV)",
+      "name": "llama.cpp :1919 (Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp, RTX 5070 Ti, 153600 served KV)",
       "options": {
         "baseURL": "http://127.0.0.1:1919/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        // GEMESSEN 2026-09-25 (llama.cpp e85e15cf6, 5070 Ti allein, q8_0-KV,
-        // draft-dflash n-max 4): Decode ~79 tok/s bei kurzem Kontext;
-        // 117.097-Token-Prompt: Prefill ~1095 tok/s, Decode 84-89 tok/s, Needle
-        // gefunden. Dense 30B; das Chat-Template setzt "Reasoning strength: high"
+        // GEMESSEN 2026-10-03 (llama.cpp e85e15cf6, 5070 Ti allein, q4_0-KV,
+        // draft-mtp n-max 4, scripts/llm/measurements/2026-10-03-qwen38-iq2s-vs-iq3xxs.md):
+        // Short-Prompt Decode 106 t/s (MTP-Annahme 66 %), 6641-Token-Prompt:
+        // Prefill 1471 tok/s, Decode 99 tok/s. Orchestrierungs-Bench 15/15,
+        // LiveCodeBench v6 84.57 %, GPQA-Diamond 88.89 %. VRAM 15059 MiB.
+        // Dense 27B; das Chat-Template setzt "Reasoning strength: high"
         // selbst -> kleines max_tokens liefert leeren content (length) — Budget
-        // grosszuegig. 131072 = served KV = max_position_embeddings.
+        // grosszuegig. 153600 = served KV (-c der Unit).
         // limit.input ist Pflicht fuer den V1-Compaction-Trigger: ohne ihn
         // ignoriert opencode compaction.reserved und kompaktiert erst bei
         // context − output (T900362, siehe opencode.jsonc).
         "Qwen3.8-27B": {
-          "name": "Qwen3.8-27B GSQ-RCO IQ2_S-mtp (llama.cpp :1919, RTX 5070 Ti, 196k served KV, limit 131k, ~71-102 tok/s decode)",
+          "name": "Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (llama.cpp :1919, RTX 5070 Ti, 153600 served KV, ~98-106 tok/s decode)",
           "limit": {
-            "context": 131072,
-            "input": 131072,
+            "context": 153600,
+            "input": 153600,
             "output": 8192
           }
         }
       }
     },
-    // Qwen3.5-9B Q4_K_M auf der RTX 3060 Ti (seit 2026-10-02, ersetzt Qwen3.5-4B-MTP):
-    // 1 Slot, 32768 Kontext, Q4_0 KV (288 MiB KV @32k), 64 t/s gen / 2200 t/s pp,
-    // 6.975 MiB VRAM. Thinking per --chat-template-kwargs '{"enable_thinking": false}'
-    // abgeschaltet, sonst liefert /v1/chat/completions leeres content (alles in
-    // reasoning_content). Vorheriger 4B-MTP-Stand: scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md.
-    "llamacpp-qwen35": {
+    // Qwen3-4B-Instruct-2507 UD-Q4_K_XL, Windows-nativ auf der RTX 3060 Ti
+    // (seit 2026-10-03, ersetzt Qwen2.5-7B-BP auf :8080 und Qwen3.5-9B auf :1920):
+    // 3 Slots teilen 90112 KV (-np 3 -kvu -c 90112, Q4_0 KV, FlashAttention,
+    // kein MTP, kein Thinking, kein Vision-Projektor). Startskript
+    // F:\tools\llama.cpp\start-qwen3-4b-2507-service.ps1 (Autostart via
+    // scripts/llm/register-qwen3-4b-2507-autostart.ps1). Binaries b11352+
+    // (0.3.0-dev kann opencode's task_reply-Grammatik nicht parsen).
+    // Warum nicht Qwen2.5-7B-BP: dessen 32k-Maximalfenster liegt unter
+    // Buffer 33600 + ~25k Tool-Overhead (Trigger negativ, Worker unbrauchbar);
+    // 98k waren mit q4_0 korrupt (alle Builds) und mit q8_0 OOM. Der 2507 hat
+    // nativ 262144 Kontext (rope_theta 5M) — 90112 ist maximal VRAM-sicher
+    // (Leiter: 98304 = 7850 MiB unsicher, 81920 = 7582 gesund, 90112 = 7790
+    // gesund unter Last, Needle-HIT bei 74k, kein Spill).
+    // GEMESSEN 2026-10-03: Prefill ~1200 t/s, Decode ~97-104 t/s solo,
+    // ~85 t/s je Strom bei 3 parallel (256 total); 7748-7790/8192 MiB VRAM.
+    // Live-Alias: Qwen3-4B-2507. Limit 90112 -> Compaction-Trigger 56512.
+    "llamacpp-qwen3": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1920 (Qwen3.5-9B Q4_K_M, RTX 3060 Ti, 1 Slot, 32k KV, Q4_0 KV)",
+      "name": "llama.cpp :8080 Windows-nativ (Qwen3-4B-2507 UD-Q4_K_XL, RTX 3060 Ti, 3 Slots, 90k shared KV, Q4_0 KV)",
       "options": {
-        "baseURL": "http://127.0.0.1:1920/v1",
+        "baseURL": "http://127.0.0.1:8080/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        "Qwen3.5-9B": {
-          "name": "Qwen3.5-9B (llama.cpp :1920, RTX 3060 Ti, 1 Slot, 32k KV, Q4_K_M, Q4_0 KV, kein Thinking)",
+        "Qwen3-4B-2507": {
+          "name": "Qwen3-4B-2507 (Windows-nativ :8080, RTX 3060 Ti, 3 Slots, 90k shared KV, UD-Q4_K_XL, ~97-104 t/s)",
           "limit": {
-            "context": 32768,
-            "input": 32768,
+            "context": 90112,
+            "input": 90112,
             "output": 8192
           }
         }
@@ -208,10 +223,10 @@
     // FreeToken-Modell — fuenf Namen, ein Slot, kein Prefix-Cache-Gewinn mehr
     // (ein Resident-Checkpoint, ein Radix-Cache). Kollabiert zu einem `local`.
     // Engine: -np 1 (ein Slot); llama.cpp queuet weitere Requests als
-    // sequenzielle Dispatches, die ≤131072 served KV teilen. Der Orchestrator
+    // sequenzielle Dispatches, die ≤153600 served KV teilen. Der Orchestrator
     // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~100k).
     "local": {
-      "description": "Higher-capability local implementation subagent (Qwen3.8-27B GSQ-RCO IQ2_S-mtp via llama.cpp :1919, RTX 5070 Ti, one slot; context limit 131k shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
+      "description": "Higher-capability local implementation subagent (Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp via llama.cpp :1919, RTX 5070 Ti, one slot; context limit 153600 shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
       "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -220,10 +235,10 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "qwen35-mtp": {
-      "description": "Text-only local subagent: Qwen3.5-9B Q4_K_M via llama.cpp :1920 on the RTX 3060 Ti, 1 slot, 32k context, Q4_0 KV, non-thinking mode. Serial requests only (one slot); no vision projector. Stronger than the previous 4B on reasoning and instruction following but ~1.5x slower (64 t/s). Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model.",
+    "qwen3-4b": {
+      "description": "Text-only local subagent: Qwen3-4B-Instruct-2507 UD-Q4_K_XL, Windows-native via llama.cpp :8080 on the RTX 3060 Ti, 3 slots sharing 90112 KV (Q4_0 KV, FlashAttention, no MTP, non-thinking). ~97-104 t/s solo, ~85 t/s per stream at 3 parallel. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model.",
       "mode": "subagent",
-      "model": "llamacpp-qwen35/Qwen3.5-9B",
+      "model": "llamacpp-qwen3/Qwen3-4B-2507",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22D3EE",
       "temperature": 0.3,
@@ -231,14 +246,14 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     // plan-runner-Worker (T900504): opencode run akzeptiert nur Primaer-Agenten; ein
-    // Subagent (local, qwen35-mtp) faellt dort still auf den Default-Agenten zurueck
+    // Subagent (local, qwen3-4b) faellt dort still auf den Default-Agenten zurueck
     // und laeuft dann mit dessen Modell und Werkzeugen auf :1919. Deshalb eigene
     // primaere Worker mit schlankem Prompt; write ist erlaubt (Partials legen Dateien an),
     // task nicht (kein Weiterdelegieren). Genutzt von scripts/llm/plan-runner/workers.mjs.
     "plan-worker-4b": {
-      "description": "plan-runner worker on Qwen3.5-9B (llama.cpp :1920, RTX 3060 Ti, 1 slot, 32k context). Executes one plan partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
+      "description": "plan-runner worker on Qwen3-4B-2507 (Windows-native llama.cpp :8080, RTX 3060 Ti, 3 slots sharing 90112 KV). Executes one plan partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
       "mode": "primary",
-      "model": "llamacpp-qwen35/Qwen3.5-9B",
+      "model": "llamacpp-qwen3/Qwen3-4B-2507",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22D3EE",
       "temperature": 0.3,
@@ -246,7 +261,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "plan-worker-self": {
-      "description": "plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
+      "description": "plan-runner self-execution worker on the orchestrator model (Qwen3.8-27B IQ3_XXS-mtp via llama.cpp :1919, RTX 5070 Ti). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
       "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -269,7 +284,7 @@
     // Slims Orchestrator ist die einzige interaktive Orchestrierungs-Definition
     // (Modell-Pinning in .opencode/oh-my-opencode-slim.jsonc, Workflow-Regeln in
     // ~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md). `local`,
-    // `qwen35-mtp`, `exe-muse` und `reviewer` bleiben als Worker verfuegbar.
+    // `qwen3-4b`, `exe-muse` und `reviewer` bleiben als Worker verfuegbar.
     // exe-muse — Muse-Spark-Ausfuehrungs-Agent auf dem Go-Katalog
     // (Subscription, kein Training-Sharing wie Zen-free). Niedrige
     // Reasoning-Stufe (`low`) und `mode: subagent`: dispatchbar, bewusst NICHT
@@ -307,7 +322,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen35-mtp": "allow",
+          "qwen3-4b": "allow",
           "reviewer": "allow",
           "fixer": "allow",
           "oracle": "allow"
@@ -330,7 +345,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen35-mtp": "allow",
+          "qwen3-4b": "allow",
           "exe-muse": "allow",
           "oracle": "allow"
         }
@@ -353,7 +368,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen35-mtp": "allow",
+          "qwen3-4b": "allow",
           "reviewer": "allow",
           "designer": "allow",
           "librarian": "allow"

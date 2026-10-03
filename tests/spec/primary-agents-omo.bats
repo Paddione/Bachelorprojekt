@@ -76,7 +76,7 @@ setup() {
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$MODELS_CFG','utf8'));
     const a = d.agent || {};
-    for (const name of ['local', 'qwen35-mtp', 'exe-muse', 'reviewer']) {
+    for (const name of ['local', 'qwen3-4b', 'exe-muse', 'reviewer']) {
       if (!(name in a)) { console.error('positive anchor failed: agent ' + name + ' fehlt'); process.exit(1); }
     }
     const retired = ['glimmer-primary', 'big-pickle', 'ox-alpha', 'ox-alpha-free'];

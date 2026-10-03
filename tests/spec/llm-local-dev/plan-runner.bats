@@ -88,6 +88,23 @@ state_of() { jq -r --arg p "$1" '.partials[$p].status' "$CH/.plan-runner/state.j
   [ "$(state_of p2)" = "done" ]
 }
 
+@test "Worker inherits the worktree as PWD (out-of-repo worktrees)" {
+  # `opencode run` nimmt das Projekt-Root aus PWD: ohne PWD=worktree im
+  # Spawn-Env schreibt ein Worktree ausserhalb des Repos ins aufrufende Repo.
+  make_change "p1:"
+  export FAKE_OPENCODE_PWD="$T/opencode.pwd.log"
+  : > "$FAKE_OPENCODE_PWD"
+  start_orch '[
+    {"name":"dispatch_4b","args":{"partial_id":"p1","prompt":"go"}},
+    {"name":"wait_event","args":{}},
+    {"name":"mark","args":{"partial_id":"p1","status":"done","note":"ok"}},
+    {"name":"finish","args":{"summary":"done"}}
+  ]'
+  run_runner --4b-slots 1
+  [ "$status" -eq 0 ]
+  [ "$(cat "$FAKE_OPENCODE_PWD")" = "$WT" ]
+}
+
 @test "Progress survives a restart" {
   make_change "p1:" "p2:p1"
   mkdir -p "$CH/.plan-runner"
@@ -174,7 +191,7 @@ EOF
     import { AGENT_4B, AGENT_SELF } from '$REPO/scripts/llm/plan-runner/workers.mjs';
     const s = readFileSync('$REPO/.opencode/agent-models.jsonc', 'utf8');
     const o = JSON.parse(s.replace(/^\\s*\\/\\/.*\$/gm, '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, ''));
-    const want = { [AGENT_4B]: 'llamacpp-qwen35/', [AGENT_SELF]: 'llamacpp-local/' };
+    const want = { [AGENT_4B]: 'llamacpp-qwen3/', [AGENT_SELF]: 'llamacpp-local/' };
     for (const [name, prefix] of Object.entries(want)) {
       const a = (o.agent || {})[name];
       if (!a) { console.log('missing ' + name); process.exit(1); }
@@ -235,5 +252,5 @@ EOF
   run cat "$T/args.log"
   echo "$output"
   [[ "$output" != *"--dir"* ]]
-  [[ "$output" == *"run --agent plan-worker-4b --model llamacpp-qwen35/"* ]]
+  [[ "$output" == *"run --agent plan-worker-4b --model llamacpp-qwen3/"* ]]
 }

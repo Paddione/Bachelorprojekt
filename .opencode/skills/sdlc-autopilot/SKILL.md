@@ -66,7 +66,7 @@ Zwei Skripte, beide fail-closed [T900481]:
 | `bash scripts/wip-finish.sh --apply --allow <aktion>` | nur die genannten Aktionen ausfuehren |
 
 - **Standard ist Planlauf.** `--apply` ohne `--allow` fuehrt nichts aus.
-- Ein 4B-Rail **triagiert nur** (2. GPU `127.0.0.1:1920` = Qwen3.5-4B-MTP,
+- Ein 4B-Rail **triagiert nur** (2. GPU `127.0.0.1:8080` = Qwen3-4B-2507 (Windows-nativ),
   PK-Tablet via `ssh pk-tablet` → LM Studio `:1234`; `--rails host:port`).
   Es antwortet mit `ACT=<aktion>|REASON=<kurz>` und schreibt NIE Repo-Inhalt —
   Grundlage ist der Benchmark `scripts/llm/measurements/`, in dem 4B-Modelle

@@ -3,7 +3,7 @@
 #
 # Sicherheitsmodell (bewusst fail-closed, siehe Ticket T900481):
 #   * Standardlauf = PLAN ONLY. Es wird nichts angefasst.
-#   * Ein 4B-Rail (2. GPU :1920, PK-Tablet via SSH) TRIAGEERT nur: es liefert
+#   * Ein Worker-Rail (2. GPU :8080 Windows-nativ, PK-Tablet via SSH) TRIAGEERT nur: es liefert
 #     eine Aktionsempfehlung im Format "ACT=<aktion>|REASON=<kurz>". Es schreibt
 #     NIE Repo-Inhalt, committet und pusht nicht.
 #   * Eine Rail-Antwort, die eine nicht angebotene Aktion nennt, wird verworfen
@@ -25,7 +25,7 @@ REQUIRE_RAIL=0
 WAIVE_LOCK=0
 MAX_ITEMS=8
 ALLOW=""
-RAILS="${WIP_FINISH_RAILS:-127.0.0.1:1920,pk-tablet:1234}"
+RAILS="${WIP_FINISH_RAILS:-127.0.0.1:8080,pk-tablet:1234}"
 REPO=""
 
 while [ $# -gt 0 ]; do

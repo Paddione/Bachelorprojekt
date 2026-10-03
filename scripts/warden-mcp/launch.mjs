@@ -32,7 +32,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import {
   isWin, home, confDir, envFile, readEnvFile, findBw, bwVersion,
-  SESSION_ONLY_PASSWORD, credTarget, readCredential,
+  SESSION_ONLY_PLACEHOLDER, credTarget, readCredential,
 } from './common.mjs';
 
 const PACKAGE = '@icoretech/warden-mcp@0.2.44';
@@ -64,7 +64,7 @@ if (env.BW_PASSWORD) {
 } else {
   // Nur-Session: warden-mcp nutzt die von unlock.mjs hinterlegte Session; ist sie
   // abgelaufen, scheitern die keychain_*-Tools, bis unlock.mjs erneut laeuft.
-  env.BW_PASSWORD = SESSION_ONLY_PASSWORD;
+  env.BW_PASSWORD = SESSION_ONLY_PLACEHOLDER;
   passwordSource = 'Nur-Session (unlock.mjs)';
 }
 env.KEYCHAIN_BW_HOME_ROOT ||= path.join(confDir, 'bw-profiles');

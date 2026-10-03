@@ -49,19 +49,7 @@ After=network.target
 
 [Service]
 Type=simple
-Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
-Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
-ExecStart=%h/opt/llama-current/bin/llama-server \
-  -m /mnt/f/models/Muse-Glimmer-30B/Muse-Glimmer-30B-UD-IQ3_XXS.gguf \
-  -md /mnt/f/models/Muse-Glimmer-30B/Muse-Glimmer-30B-DFlash2-Q4_K_M.gguf \
-  --spec-type draft-dflash --spec-draft-n-max 4 \
-  --alias Muse-Glimmer-30B \
-  -c 131072 \
-  -fit off -ngl 999 -ngld all \
-  -fa on -ctk q8_0 -ctv q8_0 \
-  --temp 1.0 --top-p 0.95 --top-k 64 \
-  -np 1 --jinja \
-  --host 0.0.0.0 --port 1919
+ExecStart=/mnt/f/models/Muse-Glimmer-30B/serve.sh
 Restart=on-failure
 RestartSec=10
 TimeoutStartSec=300

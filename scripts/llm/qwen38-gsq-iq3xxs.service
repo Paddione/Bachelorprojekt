@@ -30,18 +30,7 @@ After=network.target
 
 [Service]
 Type=simple
-Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
-Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
-ExecStart=%h/opt/llama-current/bin/llama-server \
-  -m /mnt/f/models/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf \
-  --alias Qwen3.8-27B-gsq-iq3xxs \
-  -c 153600 -np 1 -ub 512 \
-  -fit off -ngl 999 \
-  -fa on -ctk q4_0 -ctv q4_0 \
-  --spec-type draft-mtp --spec-draft-n-max 4 \
-  -cram 12288 \
-  --jinja \
-  --host 0.0.0.0 --port 1919
+ExecStart=/mnt/f/models/Qwen3.8-27B-GSQ-RCO/serve.sh
 Restart=on-failure
 RestartSec=10
 TimeoutStartSec=300

@@ -25,10 +25,13 @@ setup() {
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$MODELS_CFG','utf8'));
     const a = d.agent || {};
+    # T900929: bp-ship zeigt auf den in-client verifizierten Chat-Rail
+    # (`opencode-go`, 2026-10-03); `opencode-go-oai` antwortet mit
+    # Invalid credential und ist stillgelegt — der alte Pin waere tot.
     const expect = {
       'bp-build': 'llamacpp-local/Qwen3.8-27B',
       'bp-run': 'llamacpp-local/Qwen3.8-27B',
-      'bp-ship': 'opencode-go-oai/muse-spark-1.3-contributor',
+      'bp-ship': 'opencode-go/muse-spark-1.3-contributor',
     };
     for (const [name, model] of Object.entries(expect)) {
       const v = a[name];

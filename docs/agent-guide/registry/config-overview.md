@@ -31,13 +31,13 @@
 
 | Modell | Limit (ctx/output) | Messung | Status |
 |---|---|---|---|
-| muse-spark-1.3-contributor | 1000000/131072 | — | `fehlt` |
+| muse-spark-1.3-contributor | 1000000/131072 | — | `ok` |
 
 ### opencode-go-oai
 
 | Modell | Limit (ctx/output) | Messung | Status |
 |---|---|---|---|
-| muse-spark-1.3-contributor | 1000000/131072 | — | `ok` |
+| muse-spark-1.3-contributor | 1000000/131072 | — | `fehlt` |
 
 ### opencode-zen
 
@@ -62,10 +62,10 @@
 | plan-worker-4b | llamacpp-qwen3/Qwen3-4B-2507 | `ok` |
 | plan-worker-self | llamacpp-local/Qwen3.8-27B | `ok` |
 | reviewer | llamacpp-local/Qwen3.8-27B | `ok` |
-| exe-muse | opencode-go-oai/muse-spark-1.3-contributor | `ok` |
+| exe-muse | opencode-go/muse-spark-1.3-contributor | `ok` |
 | bp-build | llamacpp-local/Qwen3.8-27B | `ok` |
 | bp-run | llamacpp-local/Qwen3.8-27B | `ok` |
-| bp-ship | opencode-go-oai/muse-spark-1.3-contributor | `ok` |
+| bp-ship | opencode-go/muse-spark-1.3-contributor | `ok` |
 
 ## Zusatz-Config: /mnt/c/Users/PatrickKorczewski/.config/opencode/opencode.jsonc
 

@@ -5412,6 +5412,12 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/tool-level",
+    "file": "tests/spec/toolset-registry/tool-level.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/unreviewed-quarantine",
     "file": "tests/spec/toolset-registry/unreviewed-quarantine.bats",
     "category": "toolset-registry",

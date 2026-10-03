@@ -67,6 +67,14 @@ capabilities:
       fallback: "kubectl --context fleet get/logs (bei Portforward-Ausfall)"
       roles: [bp-build, bp-run, orchestrator]
       tier: safe
+      # T900983: Mutationen einzeln hochgestuft (destructiveHint laut Probe + pods_run).
+      tool_tiers:
+        pods_exec: dangerous
+        pods_delete: dangerous
+        resources_delete: dangerous
+        resources_create_or_update: caution
+        resources_scale: caution
+        pods_run: caution
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 
   kubernetes-mutation:
@@ -116,6 +124,14 @@ capabilities:
       fallback: "scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)"
       roles: [bp-run, bp-ship, orchestrator]
       tier: caution
+      # T900983: Lesepfade safe, nicht rücknehmbare Mutationen dangerous; Rest erbt caution.
+      tool_tiers:
+        "get_*": safe
+        "list_*": safe
+        "export_*": safe
+        archive_plan: dangerous
+        flush_mishap_buffer: dangerous
+        backfill_ticket_id: dangerous
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 
   ticket-inhalt:
@@ -152,6 +168,11 @@ capabilities:
       fallback: "bash scripts/vda.sh oracle '<ziel in klarem Deutsch>'"
       roles: [orchestrator]
       tier: caution
+      # T900983: Inspektion safe; Ausführen (run_task*, execute_plan, cancel_task) erbt caution.
+      tool_tiers:
+        get_task_graph: safe
+        get_task_result: safe
+        plan_tasks: safe
 
   externes-task-management:
     mcp:task-master-ai:
@@ -319,6 +340,16 @@ capabilities:
       use_when: "Persönliche Tresor-Credentials lesen; Schreiben nur nach Rückfrage."
       roles: [bp-build, orchestrator]
       tier: caution
+      # T900983: Löschen dangerous (destructiveHint laut Probe); Metadaten ohne Geheimnis safe;
+      # Lesen von Passwörtern/TOTP/Notizen und alle Schreibpfade erben caution.
+      tool_tiers:
+        "keychain_delete_*": dangerous
+        keychain_send_delete: dangerous
+        keychain_send_remove_password: dangerous
+        "keychain_list_*": safe
+        keychain_status: safe
+        keychain_sdk_version: safe
+        keychain_search_items: safe
 
   # ─── Wissen & Recherche ─────────────────────────────────────────────────────────────
   code-graph:

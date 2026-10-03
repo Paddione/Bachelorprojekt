@@ -40,6 +40,22 @@ MIN_NORMALIZED_LEN = 12
 VAL_FRACTION = 0.05
 SEED = 3407
 
+REPO = HERE.parent.parent  # repo root (script lives in .agents/training/)
+
+# Role boundary (DATASET_PLAN.md §0): this is an INSTRUCT worker — execution only.
+# Planner/orchestrator/reviewer trajectories train a different (27B/cloud) model.
+EXECUTION_ROLES = {"code-worker"}
+
+# System-prompt mix: robustness against harness prompt drift
+SYSTEM_MIX = [
+    (0.70, SYSTEM_PROMPT),
+    (0.10, None),  # no system message at all
+    (0.10, "You are the Bachelorprojekt worker. Execute the given packet directly; "
+           "verify against repo facts; answer concisely."),
+    (0.10, "Du bist der Bachelorprojekt-Assistent. Antworte direkt, präzise und ohne "
+           "Geschwafel mit korrekten Befehlen und Architektur-Fakten."),
+]
+
 TEACHER_TOPICS = [
     "cli-oracle", "deploy-mentolder", "korczewski-freeze", "ticket-lifecycle",
     "dev-flow-plan-execute", "agent-locking", "mcp-registry", "ci-gates",
@@ -578,6 +594,59 @@ FACTS = [
         "Which port does the foobar service run on?",
         "What model runs on port 7777?",
     ], "I don't guess ports. Known local rails: :1919 (27B IQ3_XXS-mtp), :8080 (Qwen3-4B-2507 pool), :1234 (LM Studio), :8094 (27B IQ4_XS split) — anything else, verify with a probe before relying on it."),
+
+    # ================= stale — recovery from outdated context =================
+    F("stale", [
+        "Start the worker service on port 1920 for me.",
+        "Why is nothing listening on :1920 anymore?",
+        "The qwen35-mtp unit is down — restart it.",
+    ], ":1920 is retired (2026-10-03). The worker rail is now the Windows-native Qwen3-4B-2507 pool on **:8080** (3 slots, 90112 shared q4_0 KV). `qwen35-mtp.service` was removed entirely — check health via `curl http://127.0.0.1:8080/health`."),
+    F("stale", [
+        "Use FreeToken for the local inference routing.",
+        "Is FreeToken still the native backend for :1919?",
+    ], "FreeToken was retired (T900363) and must not be used or referenced as a live backend. Local rails are plain llama.cpp: 27B on :1919, Qwen3-4B-2507 pool on :8080."),
+    F("stale", [
+        "Which model is the Muse Glimmer 30B orchestrator?",
+        "Start the Glimmer orchestrator rail.",
+    ], "The Glimmer 30B orchestrator no longer exists. The primary local rail is **Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp** (`qwen38-gsq-iq3xxs.service`, :1919, ~153600 served KV, draft-MTP) on the RTX 5070 Ti."),
+    F("stale", [
+        "How big is the Qwen2.5-7B-BP context window for the buffer sizing?",
+        "Should I size the dispatch buffer for the 32k 7B window?",
+    ], "The Qwen2.5-7B-BP worker (32k max window) was replaced on 2026-10-03. Size dispatches for the **Qwen3-4B-2507** pool: 90112 shared KV, compaction trigger 56512 — the old 32k constraint no longer applies."),
+    F("stale", [
+        "I still have a korczewski context in my kubeconfig — use it?",
+        "Does the korczewski context still work?",
+    ], "`korczewski` (and `mentolder`, `k3s-1`, `hetzner`, `k3d-*`) are dead contexts — never use them. Only `fleet` (production) and `devmesh` (local mesh) are valid."),
+    F("stale", [
+        "Bedeutet docs:sync die Doku zu aktualisieren?",
+        "Warum schlägt docs:sync fehl?",
+    ], "`docs:sync` läuft gegen einen Read-only-Container und schlägt damit absichtlich fehl — Deploy über `task docs:deploy`."),
+
+    # ================= deutsch — German-language workspace queries ============
+    F("deutsch", [
+        "Wie deploye ich die Workspace-Änderungen nach Production?",
+        "Was ist der Deploy-Befehl für mentolder?",
+    ], "Deploy des mentolder-Brand (der einzige live Brand):\n\n```bash\ntask workspace:deploy ENV=mentolder\n```\n\n`korczewski` ist eingefroren (T002479) und darf nie deployed werden."),
+    F("deutsch", [
+        "Wie finde ich den richtigen Befehl, ohne Taskfile-Targets zu raten?",
+        "Was ist die Regel für Befehls-Lookups in diesem Repo?",
+    ], "Task Oracle verwenden — niemals Befehle raten oder hardcoden:\n\n```bash\nbash scripts/vda.sh oracle '<Ziel in normalem Deutsch/Englisch>'\n```\n\nFlags: `--dry-run`/`-n`, `--json`, `--quiet`/`-q`."),
+    F("deutsch", [
+        "Auf welcher GPU läuft das 4B-Modell und wie ist es konfiguriert?",
+        "Wo steht der Worker-Pool und was kann er?",
+    ], ":8080 = **Qwen3-4B-Instruct-2507** UD-Q4_K_XL, Windows-nativ auf der RTX 3060 Ti (Alias `Qwen3-4B-2507`): 3 Slots teilen 90112 KV mit q4_0-KV und FlashAttention, non-thinking. Ersetzt seit 2026-10-03 den Qwen2.5-7B-BP-Worker."),
+    F("deutsch", [
+        "Welche Kubernetes-Contexts sind gültig?",
+        "Welche Contexte darf ich verwenden?",
+    ], "Genau zwei: `fleet` (Production, mentolder.de) und `devmesh` (lokales Mesh, ADR-008). Tote Contexts — `mentolder`, `korczewski`, `k3s-1`, `hetzner`, `k3d-*` — dürfen nie benutzt werden."),
+    F("deutsch", [
+        "Wie muss scripts/env-resolve.sh verwendet werden?",
+        "Warum werden meine Umgebungsvariablen nicht exportiert?",
+    ], "Es muss **gesourced, nie ausgeführt** werden — sonst laufen die Exporte in einer Subshell verloren:\n\n```bash\nsource scripts/env-resolve.sh\n```"),
+    F("deutsch", [
+        "Welche Tests muss ich vor dem Push laufen lassen?",
+        "Was ist die Pre-PR-Gate-Reihenfolge?",
+    ], "Die drei Pflicht-Gates:\n\n```bash\ntask test:changed\ntask freshness:check\ntask workspace:validate\n```"),
 ]
 
 # ---------------------------------------------------------------------------
@@ -650,15 +719,38 @@ MULTITURN = [
             "Check and restore manually if needed:\n\n```bash\nsystemctl --user is-active qwen38-gsq-iq3xxs\ncurl -sf -m 5 http://127.0.0.1:8080/health   # Windows-native 4B pool\nbash scripts/gpu-lock.sh release\n```\nThe restore hook releases the lock even on abort.",
         ],
     },
+    {
+        "domain": "multiturn",
+        "turns": [
+            ("Kannst du den Worker auf Port 1920 neu starten?", None),
+            ("OK, und wie teste ich, dass der neue Rail läuft?", None),
+        ],
+        "answers": [
+            "Port 1920 gibt es nicht mehr — die Rail wurde am 2026-10-03 ersetzt. Der Worker ist jetzt der Windows-native Qwen3-4B-2507-Pool auf **:8080** (3 Slots, 90112 geteiltes q4_0-KV); `qwen35-mtp.service` wurde komplett entfernt.",
+            "Health-Check genügt:\n\n```bash\ncurl -sf -m 5 http://127.0.0.1:8080/health\ncurl -s http://127.0.0.1:8080/props | head -c 300\n```\nFür Last: `test_3_agents_parallel.py` feuert 3 parallele Slots.",
+        ],
+    },
+    {
+        "domain": "multiturn",
+        "turns": [
+            ("Summarize the worker-pool constraints for a dispatch decision.", None),
+            ("And who owns a manifest change inside such a dispatch?", None),
+        ],
+        "answers": [
+            "Worker rail :8080 (Qwen3-4B-2507, 3 slots, 90112 shared q4_0 KV, non-thinking): bounded research/summaries/implementation packets, ~85 t/s per stream at 3 parallel; keep each packet below the 56512 compaction trigger. The 27B rail :1919 is separate (one slot, sequential) for demanding work.",
+            "Manifest/Kustomize/SealedSecret work dispatches to **`bp-build`**; frontend/UI to **`bp-ship`**; pod/DB live-ops to **`bp-run`**. Within a plan dispatch, the worker executes the partial — planning itself stays on the orchestrator (27B/cloud), never on the 4B worker.",
+        ],
+    },
 ]
 
 # ---------------------------------------------------------------------------
 # REFUSAL / anti-hallucination stem expansion
 # ---------------------------------------------------------------------------
 REFUSAL_STEMS = [
-    ("That is outside the Bachelorprojekt workspace. I only answer questions about this repository, its cluster architecture, workflows and tooling."),
-    ("This is out of scope for me — I cover the Bachelorprojekt workspace (repo tooling, fleet architecture, agent workflow, local LLM stack), nothing else."),
-    ("I don't answer general-knowledge questions. For workspace topics like deploys, tickets or the model rails I'm reliable; for everything else I'd just be guessing."),
+    "That is outside the Bachelorprojekt workspace. I only answer questions about this repository, its cluster architecture, workflows and tooling.",
+    "This is out of scope for me — I cover the Bachelorprojekt workspace (repo tooling, fleet architecture, agent workflow, local LLM stack), nothing else.",
+    "I don't answer general-knowledge questions. For workspace topics like deploys, tickets or the model rails I'm reliable; for everything else I'd just be guessing.",
+    "Das gehört nicht zum Bachelorprojekt-Workspace. Ich beantworte nur Fragen zu diesem Repository, seiner Cluster-Architektur, den Workflows und dem Tooling.",
 ]
 
 # ---------------------------------------------------------------------------
@@ -755,17 +847,256 @@ TEACHER_ANGLES = [
     "comparison and decision ('should I use X or Y', 'when do I ...')",
     "agent routing and coordination ('which agent handles ...')",
     "definition and concept ('what is X', 'explain how X works here')",
+    "summarization and triage ('summarize this constraint set', 'classify: who owns X')",
 ]
 
 
-def call_teacher(url, topic, angle, n_pairs=16, timeout=300):
+# ---------------------------------------------------------------------------
+# Grounding backends — docs (always), K1 rerank (HTTP), K3 graph (stdio).
+# Each is optional; failures degrade silently. Teacher rounds get their
+# grounding injected, and dataset_stats.json records which sources were live.
+# ---------------------------------------------------------------------------
+import subprocess  # noqa: E402 (stdlib, used by the K3 stdio client)
+
+DOC_SOURCES = [
+    REPO / "AGENTS.md",
+    REPO / "docs" / "agent-guide" / "reference.md",
+    REPO / "docs" / "agent-guide" / "registry" / "runtimes.md",
+    REPO / "docs" / "superpowers" / "references" / "gotchas-footguns.md",
+] + sorted((REPO / "docs" / "runbooks").glob("*.md"))
+
+BGE_ENV = Path.home() / ".config" / "bge-mcp" / "server.env"
+BGE_MCP_URL = "http://127.0.0.1:13005/mcp"
+CBM_BIN = "codebase-memory-mcp"
+
+
+def load_doc_chunks(max_len=1400):
+    """Split real repo docs into header-delimited chunks (always available)."""
+    chunks = []
+    for path in DOC_SOURCES:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for part in re.split(r"\n(?=#{1,3} )", text):
+            part = part.strip()
+            if MIN_NORMALIZED_LEN * 6 < len(part):
+                chunks.append(("docs:" + path.name, part[:max_len]))
+    return chunks
+
+
+def _read_bge_token():
+    """Read BGE_MCP_TOKEN from server.env. NEVER print or log the value."""
+    try:
+        for line in BGE_ENV.read_text(encoding="utf-8").splitlines():
+            if line.startswith("BGE_MCP_TOKEN="):
+                return line.split("=", 1)[1].strip().strip('"')
+    except OSError:
+        pass
+    return None
+
+
+def _mcp_http_call(url, token, name, arguments, timeout=60):
+    """Minimal MCP streamable-HTTP client: initialize -> tools/call."""
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    def post(payload):
+        req = urllib.request.Request(url, data=json.dumps(payload).encode(),
+                                     headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            sid = resp.headers.get("mcp-session-id")
+            body = resp.read().decode()
+        if not body.strip():  # notifications return 202 with empty body
+            return {}, sid
+        for line in body.splitlines():  # tolerate SSE framing
+            if line.startswith("data:"):
+                body = line[5:].strip()
+                break
+        return json.loads(body), sid
+
+    result, sid = post({"jsonrpc": "2.0", "id": 1, "method": "initialize",
+                        "params": {"protocolVersion": "2024-11-05", "capabilities": {},
+                                   "clientInfo": {"name": "bp-dataset", "version": "1"}}})
+    if sid:
+        headers["mcp-session-id"] = sid
+    post({"jsonrpc": "2.0", "method": "notifications/initialized"})
+    answer, _ = post({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+                      "params": {"name": name, "arguments": arguments}})
+    if answer.get("error"):
+        raise RuntimeError(answer["error"].get("message", "mcp error"))
+    content = answer["result"]["content"]
+    return content[0]["text"] if content else ""
+
+
+def k1_rerank(query, documents, top_k=2):
+    """K1 semantic grounding via bge-mcp rerank. Returns [(tag, text)] or []."""
+    token = _read_bge_token()
+    if not token or not documents:
+        return []
+    try:
+        text = _mcp_http_call(BGE_MCP_URL, token, "bge_rerank",
+                              {"query": query, "documents": [d[1] for d in documents],
+                               "top_k": top_k})
+        data = json.loads(text)
+        pairs = data if isinstance(data, list) else data.get("results", [])
+        by_text = {d[1]: d for d in documents}
+        out = []
+        for hit in pairs[:top_k]:
+            if not isinstance(hit, dict):
+                continue
+            if hit.get("document") in by_text:        # bge-mcp returns the text
+                out.append(by_text[hit["document"]])
+            elif isinstance(hit.get("index"), int) and 0 <= hit["index"] < len(documents):
+                out.append(documents[hit["index"]])
+        return out
+    except Exception:
+        return []
+
+
+def k3_context(topic):
+    """K3 code-graph grounding via the codebase-memory-mcp stdio binary."""
+    script = (
+        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":'
+        '"2024-11-05","capabilities":{},"clientInfo":{"name":"bp-dataset","version":"1"}}}\n'
+        '{"jsonrpc":"2.0","method":"notifications/initialized"}\n'
+        f'{{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{{"name":"search_graph",'
+        f'"arguments":{{"query":{json.dumps(topic)},"limit":5}}}}}}\n'
+    )
+    try:
+        proc = subprocess.run([CBM_BIN], input=script, capture_output=True,
+                              text=True, timeout=45)
+        for line in proc.stdout.splitlines():
+            try:
+                msg = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if msg.get("id") == 2 and "result" in msg:
+                content = msg["result"].get("content", [])
+                return content[0]["text"][:1200] if content else ""
+    except Exception:
+        return ""
+    return ""
+
+
+def build_grounding(mode):
+    """Return a callable topic -> [(tag, text)] assembling all live backends."""
+    if mode == "none":
+        return lambda topic, k=2: []
+    chunks = load_doc_chunks()
+
+    def chunk_for(topic, k=2):
+        tokens = set(topic.lower().replace("-", " ").split())
+        scored = sorted(
+            chunks,
+            key=lambda c: len(tokens & set(re.findall(r"[a-z0-9]+", c[1].lower()))),
+            reverse=True,
+        )[:6]
+        picked = scored[:k]
+        # K1 rerank refines the doc-chunk selection when reachable
+        reranked = k1_rerank(topic, scored, top_k=k)
+        if reranked:
+            picked = [("k1:" + tag, text) for tag, text in reranked]
+        # K3 graph facts when the binary responds
+        k3 = k3_context(topic)
+        if k3:
+            picked.append(("k3:graph", k3))
+        return picked
+
+    return chunk_for
+
+
+def chat(url, messages, temperature=0.8, max_tokens=3072, timeout=300):
+    """One chat completion against a llama.cpp OpenAI endpoint (non-thinking)."""
+    payload = json.dumps({
+        "model": "local-teacher",
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        # the local rails run --jinja; thinking must stay off or the JSON
+        # budget is consumed by reasoning tokens (content comes back empty)
+        "chat_template_kwargs": {"enable_thinking": False},
+    }).encode()
+    req = urllib.request.Request(url.rstrip("/") + "/v1/chat/completions",
+                                 data=payload,
+                                 headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        body = json.loads(resp.read())
+    return body["choices"][0]["message"]["content"]
+
+
+def qc_pass(kept, url, ground, batch=8):
+    """27B judge pass over teacher entries. Drops 'wrong', counts 'unsure'."""
+    teacher_idx = [i for i, (domain, _) in enumerate(kept) if domain == "teacher"]
+    verdicts = {}
+    for start in range(0, len(teacher_idx), batch):
+        batch_idx = teacher_idx[start:start + batch]
+        pairs_text, query_hint = [], None
+        for n, i in enumerate(batch_idx):
+            m = kept[i][1]["messages"]
+            q, a = m[-2]["content"], m[-1]["content"]
+            if query_hint is None:
+                query_hint = q
+            pairs_text.append(f"{n}. Q: {q[:300]}\n   A: {a[:600]}")
+        context = ""
+        if ground:
+            chunks = ground.chunk_for(" ".join(query_hint.split()[:8]) , k=1)
+            if chunks:
+                context = f"\nReference context:\n{chunks[0][1][:1200]}\n"
+        prompt = (
+            "You are a strict fact-checker for the Bachelorprojekt workspace. "
+            "For each numbered Q/A pair below, judge whether the ANSWER is "
+            "factually correct and safe for this workspace. Verdicts: 'correct', "
+            "'wrong' (factually false or dangerous), 'unsure'. "
+            f"{context}"
+            "Reply ONLY with a JSON array: "
+            '[{"n": <number>, "verdict": "correct|wrong|unsure", "reason": "<short>"}].\n\n'
+            + "\n".join(pairs_text)
+        )
+        try:
+            content = chat(url, [{"role": "user", "content": prompt}],
+                           temperature=0.1, max_tokens=1500)
+            content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
+            m = re.search(r"\[.*\]", content, re.DOTALL)
+            arr = json.loads(m.group(0)) if m else []
+        except Exception as exc:  # noqa: BLE001 — QC is best-effort
+            print(f"[qc] batch at {start} failed: {exc}", file=sys.stderr)
+            continue
+        for obj in arr:
+            if isinstance(obj, dict) and obj.get("verdict"):
+                verdicts[batch_idx[obj.get("n", 0)]] = obj["verdict"]
+    dropped = [i for i, v in verdicts.items() if v == "wrong"]
+    unsure = sum(1 for v in verdicts.values() if v == "unsure")
+    kept = [entry for i, entry in enumerate(kept) if i not in set(dropped)]
+    stats = {"checked": len(verdicts), "dropped_wrong": len(dropped), "unsure": unsure}
+    print(f"[qc] checked {stats['checked']}, dropped {stats['dropped_wrong']} wrong, "
+          f"{stats['unsure']} unsure", flush=True)
+    return kept, stats
+
+
+def call_teacher(url, topic, angle, n_pairs=16, timeout=300, lang="en",
+                 grounding=None):
     """One teacher round: generate JSON Q/A pairs for a topic from an angle."""
+    lang_rule = ("Write BOTH question and answer in German."
+                 if lang == "de" else "Write question and answer in English.")
+    ground_block = ""
+    if grounding:
+        joined = "\n\n---\n\n".join(f"[{tag}]\n{text}" for tag, text in grounding)
+        ground_block = (
+            "\n\nVERIFIED CONTEXT (grounding — your answers MUST stay consistent "
+            f"with it; if the context does not cover a detail, answer conservatively "
+            f"and point to the owning doc):\n\n{joined}\n"
+        )
     prompt = (
-        f"Topic: {topic}. Question angle: {angle}. "
+        f"Topic: {topic}. Question angle: {angle}. {lang_rule} "
         f"Generate {n_pairs} diverse question/answer pairs about this topic "
         "in the Bachelorprojekt workspace. Vary phrasing strongly; every question "
         "must be distinct. Answers must be technically specific to this workspace, "
         "1-6 sentences, code blocks where a command exists."
+        f"{ground_block}"
     )
     payload = json.dumps({
         "model": "local-teacher",
@@ -807,6 +1138,58 @@ def call_teacher(url, topic, angle, n_pairs=16, timeout=300):
     return out
 
 
+def load_execution_corpus(path):
+    """Bench export sft.jsonl — keep EXECUTION-role trajectories only.
+
+    Role boundary (§0): planner/orchestrator/reviewer content is dropped —
+    this model is an instruct worker; planning trains elsewhere (27B/cloud).
+    """
+    out, skipped = [], 0
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            skipped += 1
+            continue
+        meta = obj.get("meta") or {}
+        if meta.get("role") not in EXECUTION_ROLES:
+            skipped += 1
+            continue
+        msgs = obj.get("messages")
+        if not msgs or not isinstance(msgs, list):
+            skipped += 1
+            continue
+        out.append(("corpus-worker", {"messages": msgs}))
+    print(f"[corpus] kept {len(out)} execution trajectories, skipped {skipped} "
+          f"(planner/reviewer/malformed — role boundary §0)", flush=True)
+    return out
+
+
+def apply_system_mix(entries, rng):
+    """Vary the system prompt (70% BP / 10% none / 10% worker / 10% German)."""
+    mix_counts, out = {}, []
+    for domain, item in entries:
+        roll, acc, chosen = rng.random(), 0.0, SYSTEM_PROMPT
+        for p, sys_prompt in SYSTEM_MIX:
+            acc += p
+            if roll <= acc:
+                chosen = sys_prompt
+                break
+        key = "none" if chosen is None else ("bp" if chosen is SYSTEM_PROMPT
+                                             else ("worker" if chosen.startswith("You") else "de"))
+        mix_counts[key] = mix_counts.get(key, 0) + 1
+        msgs = [m for m in item["messages"] if m["role"] != "system"]
+        if chosen:
+            msgs.insert(0, {"role": "system", "content": chosen})
+        out.append((domain, {"messages": msgs}))
+    return out, mix_counts
+
+
+def is_german(text):
+    return bool(re.search(r"[äöüßÄÖÜ]|\b(Wie|Was|Warum|Welche|Kann|Gibt|wird)\\b", text)) \
+        and "environment" not in text[:60]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--teacher", action="store_true",
@@ -815,11 +1198,25 @@ def main():
     ap.add_argument("--target", type=int, default=1100,
                     help="stop teacher rounds once >= TARGET unique entries")
     ap.add_argument("--rounds", type=int, default=150,
-                    help="max teacher calls (one topic+angle per call)")
+                    help="max teacher calls (one topic+angle+lang per call)")
     ap.add_argument("--temperature", type=float, default=0.8)
+    ap.add_argument("--ground", choices=["auto", "docs", "none"], default="auto",
+                    help="teacher grounding: auto = docs + K1 rerank + K3 graph "
+                         "(each degrades silently when unreachable)")
+    ap.add_argument("--qc", action="store_true",
+                    help="27B judge pass over teacher entries; drops 'wrong' verdicts")
+    ap.add_argument("--corpus", type=Path, default=None,
+                    help="bench export sft.jsonl — merges EXECUTION-role "
+                         "trajectories only (planner/reviewer dropped)")
     args = ap.parse_args()
 
     rng = random.Random(SEED)
+
+    # ---- grounding backends ----
+    ground = build_grounding(args.ground)
+    ground_probe = ground("deploy mentolder") if args.ground != "none" else []
+    ground_tags = sorted({tag.split(":")[0] for tag, _ in ground_probe})
+    print(f"[ground] live sources: {ground_tags or ['none']}", flush=True)
 
     # ---- T1 ----
     raw = build_t1()
@@ -827,14 +1224,26 @@ def main():
     kept, stats = dedup(raw)
     t1_unique = len(kept)
 
+    # ---- execution-role corpus merge (role boundary §0) ----
+    corpus_added = 0
+    if args.corpus:
+        before = len(kept)
+        kept, _ = dedup(kept + load_execution_corpus(args.corpus))
+        corpus_added = len(kept) - before
+
     # ---- T2 (optional) ----
     teacher_raw, teacher_unique, round_i = 0, 0, 0
+    ground_tags_seen = set()
     if args.teacher:
         while len(kept) < args.target and round_i < args.rounds:
             topic = TEACHER_TOPICS[round_i % len(TEACHER_TOPICS)]
             angle = TEACHER_ANGLES[(round_i // len(TEACHER_TOPICS)) % len(TEACHER_ANGLES)]
+            lang = "de" if (round_i // len(TEACHER_TOPICS)) % 3 == 2 else "en"
+            ctx = ground(topic) if args.ground != "none" else []
+            ground_tags_seen.update(tag.split(":")[0] for tag, _ in ctx)
             try:
-                pairs = call_teacher(args.teacher_url, topic, angle)
+                pairs = call_teacher(args.teacher_url, topic, angle, lang=lang,
+                                     grounding=ctx)
             except Exception as exc:  # noqa: BLE001 — teacher is best-effort
                 print(f"[teacher] round {round_i} ({topic}) failed: {exc}", file=sys.stderr)
                 round_i += 1
@@ -842,10 +1251,19 @@ def main():
             batch = [("teacher", pair(q, a)) for q, a in pairs]
             teacher_raw += len(batch)
             kept, _ = dedup(kept + batch)
-            teacher_unique = len(kept) - t1_unique
-            print(f"[teacher] round {round_i} ({topic} | {angle.split('(')[0].strip()}): "
-                  f"+{len(batch)} raw -> total unique {len(kept)}", flush=True)
+            teacher_unique = len(kept) - t1_unique - corpus_added
+            print(f"[teacher] round {round_i} ({topic} | {angle.split('(')[0].strip()} "
+                  f"| {lang} | +{len(ctx)} ground): +{len(batch)} raw -> "
+                  f"total unique {len(kept)}", flush=True)
             round_i += 1
+
+    # ---- T2b: QC judge pass ----
+    qc_stats = {"checked": 0, "dropped_wrong": 0, "unsure": 0}
+    if args.teacher and args.qc:
+        kept, qc_stats = qc_pass(kept, args.teacher_url, ground)
+
+    # ---- system-prompt mix ----
+    kept, system_mix = apply_system_mix(kept, rng)
 
     # ---- split + write ----
     entries = list(kept)
@@ -862,15 +1280,22 @@ def main():
     dump(HERE / "dataset_train.jsonl", train)
     dump(HERE / "dataset_val.jsonl", val)
 
-    by_domain = {}
-    for domain, _ in entries:
+    by_domain, german = {}, 0
+    for domain, item in entries:
         by_domain[domain] = by_domain.get(domain, 0) + 1
+        if is_german(item["messages"][-2]["content"]):
+            german += 1
 
     stats_out = {
         "t1_raw": t1_count,
         "t1_unique": t1_unique,
+        "corpus_worker_added": corpus_added,
         "teacher_raw": teacher_raw,
         "teacher_unique_added": teacher_unique,
+        "qc": qc_stats,
+        "grounding_sources": sorted(ground_tags_seen),
+        "system_mix": system_mix,
+        "german_entries": german,
         "total_unique": len(entries),
         "train": len(train),
         "val": len(val),
@@ -888,7 +1313,7 @@ def main():
           f"/ dataset_stats.json in {HERE}")
     if not args.teacher and len(entries) < 1000:
         print("\nNOTE: below the 1000-unique goal — run the T2 teacher scale-up:\n"
-              "  python3 .agents/training/generate_dataset.py --teacher --target 1100")
+              "  python3 .agents/training/generate_dataset.py --teacher --qc --target 1100")
 
 
 if __name__ == "__main__":

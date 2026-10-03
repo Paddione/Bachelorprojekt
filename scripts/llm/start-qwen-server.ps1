@@ -102,7 +102,7 @@
 #>
 
 param(
-  [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10881-13.3",
+  [string]$LlamaDir = "F:\backends",
   [string]$Model = "F:\models\models--unsloth--Qwen3.8-27B-GGUF\snapshots\4ca720788d1e01f1bff70c033e0d0028fd02e502\Qwen3.8-27B-UD-IQ4_XS.gguf",
   [int]$Ctx = 0,
   [int]$MinCtx = 16384,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.389.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.388.1...website-v1.389.0) (2026-10-03)
+
+
+### Features
+
+* **agents:** Tool-Ebene der Toolset-Kette — Probe, tool_tiers, Tool-Drift [T900983] ([#6214](https://github.com/Paddione/Bachelorprojekt/issues/6214)) ([1238b28](https://github.com/Paddione/Bachelorprojekt/commit/1238b28c47efbb26d0c0de4ed446e2dfecf5ecb6))
+
 ## [1.388.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.388.0...website-v1.388.1) (2026-10-03)
 
 

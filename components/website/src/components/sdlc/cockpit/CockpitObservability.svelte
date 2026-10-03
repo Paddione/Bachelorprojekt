@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import CockpitKpiCard from './CockpitKpiCard.svelte';
-  import { ACCENT, PHASE_COLOR_BY_NAME } from './cockpit-chart-colors';
+  import { ACCENT, PHASE_COLOR_BY_NAME } from './chart-colors';
 
   interface PromResult {
     metric: Record<string, string>;

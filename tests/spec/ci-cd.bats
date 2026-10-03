@@ -1220,6 +1220,34 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   [ "$(echo "$output" | wc -l)" -eq 2 ]
 }
 
+@test "T900931: find-changed-tests.sh ignores removed code and does not fall back to RUN_ALL" {
+  local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
+  local tmp="$BATS_TEST_TMPDIR/removed-code-repo"
+  mkdir -p "$tmp/scripts/obsolete" "$tmp/tests/spec" "$tmp/tests/unit"
+  cp "$finder" "$tmp/scripts/find-changed-tests.sh"
+  : > "$tmp/tests/spec/alpha.bats"
+  : > "$tmp/tests/spec/beta.bats"
+  : > "$tmp/scripts/obsolete/remove-me.sh"
+
+  cd "$tmp"
+  git init -q -b main .
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
+  git update-ref refs/remotes/origin/main HEAD
+
+  # Removing a script should not trigger RUN_ALL
+  git checkout -q -b topic
+  git rm -q scripts/obsolete/remove-me.sh
+  git -c user.email=t@t -c user.name=t commit -q -m "remove obsolete script"
+
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+
+  run --separate-stderr bash scripts/find-changed-tests.sh unit
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
 # ── T002170: Restposten der Renovate-Config-Migration. fileMatch ist deprecated
 #    und wurde durch managerFilePatterns ersetzt (slash-gekapselte Regexes, wie
 #    schon bei matchPackageNames in T002165). Wichtig: der kubernetes-Manager hat

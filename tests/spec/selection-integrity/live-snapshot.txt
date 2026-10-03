@@ -448,6 +448,7 @@ tests/spec/pocket-id-proxy-ip.bats
 tests/spec/pocket-id-seed-label-isolation/client-seed-service-endpoint-isolation.bats
 tests/spec/pr-refresh.bats
 tests/spec/pre-commit-freshness.bats
+tests/spec/primary-agents-omo.bats
 tests/spec/public-symlinks-resolve-in-image.bats
 tests/spec/react-homepage-blocks.bats
 tests/spec/react-login-edit-homepage.bats
@@ -547,6 +548,7 @@ tests/spec/sessions-server/reap-untracked.bats
 tests/spec/sessions-server/register-list.bats
 tests/spec/sessions-server/wildcard-render-guard.bats
 tests/spec/sf-retirement-rest.bats
+tests/spec/sf-retirement-web.bats
 tests/spec/sidekick-assistant.bats
 tests/spec/studio-sessions-reorganize.bats
 tests/spec/systemd-units/unit-install-copy-guard.bats

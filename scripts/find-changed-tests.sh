@@ -24,10 +24,10 @@ ALLOWLIST="tests/unit/.coverage-allowlist"
 if [ -n "${FIND_CHANGED_TESTS_FILES:-}" ]; then
   CHANGED="$FIND_CHANGED_TESTS_FILES"
   DIFF_SOURCE="override"
-elif CHANGED="$(git diff --name-only origin/main 2>/dev/null)"; then
+elif CHANGED="$(git diff --name-only --diff-filter=d origin/main 2>/dev/null)"; then
   DIFF_SOURCE="origin/main"
 else
-  CHANGED="$(git diff --name-only HEAD 2>/dev/null || true)"
+  CHANGED="$(git diff --name-only --diff-filter=d HEAD 2>/dev/null || true)"
   DIFF_SOURCE="HEAD"
 fi
 _changed_count=$(printf '%s\n' "$CHANGED" | grep -c '.' || true)
@@ -100,6 +100,8 @@ is_excluded() {
 
 while IFS= read -r file; do
   [[ -z "$file" ]] && continue
+  # Ignore files that have been deleted/removed
+  [ ! -e "$file" ] && continue
   
   # If it is a test file in our base dir, it's a direct candidate
   if [[ "$file" == "$BASE_DIR"/*.bats ]]; then

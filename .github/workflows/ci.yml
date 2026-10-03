@@ -760,7 +760,7 @@ jobs:
         if: steps.filter.outputs.run_website == 'true'
         id: check-cov
         run: |
-          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+          CHANGED=$(git diff --name-only --diff-filter=d origin/main...HEAD 2>/dev/null || true)
           if echo "$CHANGED" | grep -q "^components/website/src/lib/"; then
             echo "run-coverage=true" >> "$GITHUB_OUTPUT"
           else

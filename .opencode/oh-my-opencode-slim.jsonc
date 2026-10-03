@@ -8,8 +8,10 @@
   // verified live in-client 2026-10-03). Variant `low` matches the established
   // repo-wide Muse configuration (fast interactive routing; bump per-session
   // if planning quality drops). The /responses rail `opencode-go-oai`
-  // (env-key auth) answers Invalid credential in-client and stays unused
-  // until that is root-caused. All specialists/workers below stay on the
+  // (env-key auth) stays unused: the Go/Zen rails reject raw API keys as
+  // Bearer (Invalid credential on chat AND /responses, verified T900939);
+  // only the managed-credential path (no apiKey field -> token from
+  // opencode.db) works. All specialists/workers below stay on the
   // local llama.cpp endpoints (:1919 IQ3_XXS-mtp, :8080 2507-90k pool) so
   // bulk execution costs no cloud budget.
   "agents": {

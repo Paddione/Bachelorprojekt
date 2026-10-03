@@ -21,12 +21,10 @@ def load(dirpath: Path) -> list[dict]:
 
 def m_dispatcher(eps: list[dict]) -> dict:
     n = len(eps)
-    sel = sum(1 for e in eps if e.get("expected_task") and e["expected_task"] in
-              [tc.get("name") for tc in e.get("tool_calls", [])])
-    exact = sum(
-        1 for e in eps if e.get("expected_arguments") is not None and
-        any(tc.get("arguments") == e["expected_arguments"] for tc in e.get("tool_calls", []))
-    )
+    sel = sum(1 for e in eps if e.get('expected_task') and e.get('selected_task') == e['expected_task'])
+    exact = sum(1 for e in eps if e.get('expected_arguments') is not None and
+                e.get('selected_task') == e.get('expected_task') and
+                e.get('selected_arguments') == e['expected_arguments'])
     fabricated = sum(
         1 for e in eps if e.get("result", {}) and e["result"].get("status") == "succeeded" and
         not any(m.get("role") == "tool" for m in e.get("messages", []))
@@ -38,12 +36,13 @@ def m_dispatcher(eps: list[dict]) -> dict:
 
 def m_executor(eps: list[dict]) -> dict:
     n = len(eps)
-    verified = sum(1 for e in eps if e.get("result", {}).get("status") == "succeeded")
+    verified = sum(1 for e in eps if (e.get("result") or {}).get("status") == "succeeded" and
+                   e.get("provenance", {}).get("reviewed"))
     path_violation = sum(
         1 for e in eps
         if e.get("allowed_paths") and any(
             p not in e["allowed_paths"] for tc in e.get("tool_calls", [])
-            for p in [tc.get("arguments", {}).get("path", tc.get("arguments", {}).get("file"))]
+            for p in [tc.get("arguments", {}).get("filePath", tc.get("arguments", {}).get("path", tc.get("arguments", {}).get("file")))]
             if p
         )
     )
@@ -72,7 +71,7 @@ def m_planner(eps: list[dict]) -> dict:
     valid = sum(
         1 for e in eps
         if (p := (e.get("plan") or {}).get("steps")) and
-        all(required.issubset(set(s.keys())) for s in p) and p
+        all(required.issubset(set(s.keys())) for s in p)
     )
     return {"episodes": n, "plan_schema_valid": round(valid / n, 3) if n else None}
 
@@ -85,7 +84,7 @@ def main() -> int:
     if len(sys.argv) != 3 or sys.argv[1] not in METRICS:
         print(f"usage: role_metrics.py <{'|'.join(METRICS)}> <episoden-dir>")
         return 1
-    eps = load(Path(sys.argv[2]))
+    eps = [ep for ep in load(Path(sys.argv[2])) if ep.get("role") == sys.argv[1]]
     print(json.dumps(METRICS[sys.argv[1]](eps), indent=2))
     return 0
 

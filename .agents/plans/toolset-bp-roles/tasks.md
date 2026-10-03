@@ -83,30 +83,30 @@ akzeptiert). Test 8 (echte Registry besteht `check.mjs`) ist schon grün und mus
 
 ## Task 2: `roles.mjs` als einzige Quelle
 
-- [ ] `scripts/toolset/lib/roles.mjs` anlegen: `ROLES` (`bp-build`, `bp-run`, `bp-ship`,
+- [x] `scripts/toolset/lib/roles.mjs` anlegen: `ROLES` (`bp-build`, `bp-run`, `bp-ship`,
       `orchestrator`, `big-pickle`, `pi`, `all`), `WILDCARD_ROLES` (alle außer `pi` und `all`),
       `LEGACY_ROLE_ALIASES` nach D2, `resolveRole(name)` → `{ role, legacy }` oder `null`.
-- [ ] `check.mjs`, `sync.mjs`, `lib/resolve.mjs`: lokale Listen durch Import ersetzen.
+- [x] `check.mjs`, `sync.mjs`, `lib/resolve.mjs`: lokale Listen durch Import ersetzen.
       `check.mjs` meldet eine Legacy-Rolle als `legacy role 'X' — use 'bp-…'` (Exit 1).
-- [ ] `toolset-context.sh`: Validierung in den Node-Teil verlegen (Import von `roles.mjs`),
+- [x] `toolset-context.sh`: Validierung in den Node-Teil verlegen (Import von `roles.mjs`),
       Exit 2 + Usage mit den gültigen Rollen bei unbekannter Rolle beibehalten, Legacy-Rolle
       auflösen und `veraltet` auf stderr melden.
 
 ## Task 3: Registry migrieren
 
-- [ ] Alle `roles:`-Listen in `capabilities.yaml` nach D2 umschreiben (deduplizieren,
+- [x] Alle `roles:`-Listen in `capabilities.yaml` nach D2 umschreiben (deduplizieren,
       Reihenfolge bp-build, bp-run, bp-ship, Rest).
-- [ ] `harnesses.claude.roles` → `[bp-build, bp-run]`, `harnesses.codex.roles` → `[bp-ship]`.
-- [ ] `node scripts/toolset/sync.mjs && node scripts/toolset/check.mjs` → Exit 0, kein Drift.
+- [x] `harnesses.claude.roles` → `[bp-build, bp-run]`, `harnesses.codex.roles` → `[bp-ship]`.
+- [x] `node scripts/toolset/sync.mjs && node scripts/toolset/check.mjs` → Exit 0, kein Drift.
 
 ## Task 4: Dispatch-Stellen
 
-- [ ] `AGENTS.md` „Agent Routing": Snippet bricht bei Exit ≠ 0 von `toolset-context.sh` ab.
-- [ ] `implementer-handoff.md` §Kontext-Injektion: `<toolset>`-Block mit der bp-Rolle aus den
+- [x] `AGENTS.md` „Agent Routing": Snippet bricht bei Exit ≠ 0 von `toolset-context.sh` ab.
+- [x] `implementer-handoff.md` §Kontext-Injektion: `<toolset>`-Block mit der bp-Rolle aus den
       Plan-`domains` (Zuordnung D2), Fallback `orchestrator` bei gemischten Domains.
-- [ ] `toolset-curate/SKILL.md`: Rollentabelle und Beispiele auf bp-*; `Taskfile.agents.yml`:
+- [x] `toolset-curate/SKILL.md`: Rollentabelle und Beispiele auf bp-*; `Taskfile.agents.yml`:
       `desc` auf `ROLE=bp-run`.
-- [ ] `context-injection.bats` und `schema-gate.bats`: Fixtures auf bp-Rollen umstellen.
+- [x] `context-injection.bats` und `schema-gate.bats`: Fixtures auf bp-Rollen umstellen.
 
 ## Task 5: Finale Verifikation
 

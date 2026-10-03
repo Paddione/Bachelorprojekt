@@ -5358,6 +5358,12 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/bp-roles",
+    "file": "tests/spec/toolset-registry/bp-roles.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/check-drift-detection",
     "file": "tests/spec/toolset-registry/check-drift-detection.bats",
     "category": "toolset-registry",

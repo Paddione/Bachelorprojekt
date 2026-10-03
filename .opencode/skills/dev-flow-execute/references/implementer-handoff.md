@@ -23,6 +23,11 @@ Kompaktheits-Regeln: subagent-provisioning §3.
 
 - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
 - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
+- **Kuratierter Werkzeug-Block (PFLICHT, T900980):** Rolle aus den Plan-`domains` ableiten —
+  infra/deploy/security/secrets → `bp-build`, ops/llm/k8s/db/postgres → `bp-run`,
+  website/frontend/test/ci/scripts/agent-skills → `bp-ship`, gemischt → `orchestrator`.
+  `tools=$(bash scripts/toolset-context.sh <rolle>) || STOPP` und als `<toolset>…</toolset>`
+  vor den Auftrag setzen. Exit ≠ 0 heißt: nicht ohne Block spawnen.
 - **Plan Intel Bundle (Optional):** `bash scripts/task-context.sh <slug>` liefert den Kern aus `intel.json` plus frische Signale. Format: [plan-intel-bundle](.agents/skills/references/plan-intel-bundle.md). Fehlt es, ist das kein Blocker.
 
 ## BATS-Pflicht

@@ -27,7 +27,7 @@ capabilities:
       use_when: "Tickets lesen, anlegen, Status setzen, Plan stagen."
       avoid_when: "stage_plan im Worktree — schlägt dort immer fehl."
       fallback: "scripts/ticket.sh (worktree-tauglich)"
-      roles: [bachelorprojekt-test, bachelorprojekt-db, orchestrator]
+      roles: [bp-run, bp-ship, orchestrator]
       tier: caution             # safe | caution | assisted | dangerous
       deep_ref: ".agents/skills/references/mcp-tool-guide.md"
 ```
@@ -86,8 +86,10 @@ Bei `canonical` zusätzlich erfassen:
 | `tier` | nein | `safe`/`caution`/`assisted`/`dangerous`. |
 | `deep_ref` | nein | Repo-relativer Pfad auf die Tiefenreferenz. |
 
-Gültige Rollen: `bachelorprojekt-website`, `-ops`, `-infra`, `-test`, `-db`, `-security`,
-`orchestrator`, `all`.
+Gültige Rollen: `bp-build` (infra + security), `bp-run` (ops + db), `bp-ship` (website + test),
+`orchestrator`, `big-pickle`, `pi`, `all` — SSOT `scripts/toolset/lib/roles.mjs` (T900980).
+Die alten `bachelorprojekt-*`-Namen lehnt `check.mjs` in der Registry mit Ersatzvorschlag ab;
+`toolset-context.sh` löst sie für Aufrufer noch auf und meldet `veraltet`.
 
 **Kann eine Entscheidung nicht ohne Raten getroffen werden, bleibt der Eintrag `unreviewed`**,
 und der `reason` hält fest, was zu klären ist. `unreviewed` bricht CI nicht. Ein geratenes
@@ -119,7 +121,7 @@ node scripts/toolset/emit-map.mjs   # → docs/agent-guide/maps/toolset-map.md
 ## Injektion in einen Agenten
 
 ```bash
-tools=$(bash scripts/toolset-context.sh bachelorprojekt-db)
+tools=$(bash scripts/toolset-context.sh bp-run) || exit 1
 [ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${task_prompt}"
 ```
 

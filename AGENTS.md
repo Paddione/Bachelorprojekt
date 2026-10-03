@@ -23,10 +23,10 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 ```bash
 context=$(bash scripts/plan-context.sh <full-role-name>)
 [ -n "$context" ] && prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
-tools=$(bash scripts/toolset-context.sh <full-role-name>)
+tools=$(bash scripts/toolset-context.sh <full-role-name>) || { echo "toolset-context failed — not dispatching" >&2; exit 1; }
 [ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
 ```
-`<role>` muss ein voller Rollenname sein (`bp-*` / `orchestrator`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
+`<role>` muss ein voller Rollenname sein (`bp-build`/`bp-run`/`bp-ship`/`orchestrator`, SSOT `scripts/toolset/lib/roles.mjs`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle) — bei Exit ≠ 0 **nicht** ohne Block dispatchen (T900980). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
 
 ### Session Model & Delegation (T002153)
 

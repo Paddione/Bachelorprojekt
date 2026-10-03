@@ -34,7 +34,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Pods, Logs, Events, Nodes und Ressourcen lesen — Status statt Mutation.
   - _Nicht:_ Jede Mutation: apply, rollout restart, scale, delete.
   - _Fallback:_ `kubectl --context fleet get/logs (bei Portforward-Ausfall)`
-  - _Rollen:_ `bachelorprojekt-ops`, `bachelorprojekt-infra`, `orchestrator`
+  - _Rollen:_ `bp-build`, `bp-run`, `orchestrator`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `kubernetes-mutation`
@@ -43,7 +43,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Cluster-Mutationen: apply, rollout restart, scale, delete, RBAC, Sealed Secrets.
   - _Nicht:_ Reine Status-Abfragen — dafür mcp-kubernetes.
   - _Fallback:_ `task workspace:deploy ENV=<brand> (break-glass; primär ist Flux)`
-  - _Rollen:_ `bachelorprojekt-infra`, `bachelorprojekt-ops`
+  - _Rollen:_ `bp-build`, `bp-run`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `postgres-lesen`
@@ -52,7 +52,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Read-only SQL gegen die mentolder-DB, Nicht-Ticket-Tabellen.
   - _Nicht:_ INSERT/UPDATE/DELETE/DDL — jede Query läuft READ ONLY und scheitert.
   - _Fallback:_ `kubectl exec -i … psql (ohne -i läuft psql mit leerem stdin durch)`
-  - _Rollen:_ `bachelorprojekt-db`, `orchestrator`, `big-pickle`
+  - _Rollen:_ `bp-run`, `orchestrator`, `big-pickle`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `postgres-schreiben`
@@ -61,14 +61,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Schreibende SQL, DDL und Superuser-Operationen als postgres.
   - _Nicht:_ Prod-Namespaces ohne prod-write-guard.sh — für Subagenten verboten.
   - _Fallback:_ `scripts/prod-write-guard.sh check <namespace> <sql>`
-  - _Rollen:_ `bachelorprojekt-db`
+  - _Rollen:_ `bp-run`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `datenbank-betrieb`
 
 - **`skill:database-specialist`** — Status `canonical` · Tier `assisted`
   - _Wann:_ Migrationen, Index-Optimierung, EXPLAIN ANALYZE, Backup und Restore.
-  - _Rollen:_ `bachelorprojekt-db`
+  - _Rollen:_ `bp-run`
   - _Tiefe:_ `.claude/skills/database-specialist/SKILL.md`
 
 ## Fähigkeit: `ticket-lebenszyklus`
@@ -77,7 +77,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Tickets lesen, anlegen, Status setzen, Plan stagen, Phasen-Events schreiben.
   - _Nicht:_ stage_plan im Worktree — schlägt dort immer fehl.
   - _Fallback:_ `scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)`
-  - _Rollen:_ `bachelorprojekt-test`, `bachelorprojekt-db`, `orchestrator`
+  - _Rollen:_ `bp-run`, `bp-ship`, `orchestrator`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `ticket-inhalt`
@@ -155,14 +155,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:dev-flow-e2e`** — Status `canonical` · Tier `caution`
   - _Wann:_ Playwright-Tests gegen die Live-Marken NACH Merge und Deploy.
   - _Nicht:_ Unit- und BATS-Tests während der Implementierung.
-  - _Rollen:_ `bachelorprojekt-test`
+  - _Rollen:_ `bp-ship`
   - _Tiefe:_ `.claude/skills/dev-flow-e2e/SKILL.md`
 
 ## Fähigkeit: `unit-tests`
 
 - **`skill:vitest`** — Status `canonical` · Tier `safe`
   - _Wann:_ Vitest-Tests schreiben, Mocking, Coverage und Test-Filter im website-Paket.
-  - _Rollen:_ `bachelorprojekt-test`, `bachelorprojekt-website`
+  - _Rollen:_ `bp-ship`
   - _Tiefe:_ `.claude/skills/vitest/SKILL.md`
 
 ## Fähigkeit: `abhaengigkeits-pflege`
@@ -175,7 +175,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:incident-response`** — Status `canonical` · Tier `assisted`
   - _Wann:_ Ein Kerndienst ist ausgefallen oder degradiert — zeitkritische Triage.
   - _Nicht:_ Nicht-dringende Repo-Pflege.
-  - _Rollen:_ `bachelorprojekt-ops`
+  - _Rollen:_ `bp-run`
   - _Tiefe:_ `.claude/skills/incident-response/SKILL.md`
 
 ## Fähigkeit: `infrastruktur-runbook`
@@ -183,7 +183,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:infra-ops`** — Status `canonical` · Tier `dangerous`
   - _Wann:_ Nur auf ausdrückliche Anfrage: Cluster-Setup, Deploy, Netz, SSO, Secrets, Migration.
   - _Nicht:_ Automatisch auslösen — der Skill ist ausdrücklich invoke-only.
-  - _Rollen:_ `bachelorprojekt-infra`
+  - _Rollen:_ `bp-build`
   - _Tiefe:_ `.claude/skills/infra-ops/SKILL.md`
 
 ## Fähigkeit: `repo-hygiene`
@@ -206,7 +206,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`skill:gitops-knowledge`** — Status `canonical` · Tier `safe`
   - _Wann:_ Flux-Konzepte erklären und schema-validiertes YAML für Flux-CRDs erzeugen.
-  - _Rollen:_ `bachelorprojekt-infra`
+  - _Rollen:_ `bp-build`
   - _Tiefe:_ `.claude/skills/gitops-knowledge/SKILL.md`
 
 ## Fähigkeit: `gitops-cluster-debug`
@@ -214,7 +214,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:gitops-cluster-debug`** — Status `canonical` · Tier `caution`
   - _Wann:_ Flux auf dem Live-Cluster diagnostizieren: stuck, not-ready, Artefakt-Pull.
   - _Nicht:_ Repo-Dateien prüfen — dafür gitops-repo-audit.
-  - _Rollen:_ `bachelorprojekt-infra`, `bachelorprojekt-ops`
+  - _Rollen:_ `bp-build`, `bp-run`
   - _Tiefe:_ `.claude/skills/gitops-cluster-debug/SKILL.md`
 
 ## Fähigkeit: `gitops-repo-audit`
@@ -222,7 +222,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:gitops-repo-audit`** — Status `canonical` · Tier `safe`
   - _Wann:_ GitOps-Repo-Dateien prüfen: Schema, veraltete APIs, RBAC, Secrets.
   - _Nicht:_ Live-Cluster-Zustand — dafür gitops-cluster-debug.
-  - _Rollen:_ `bachelorprojekt-infra`
+  - _Rollen:_ `bp-build`
   - _Tiefe:_ `.claude/skills/gitops-repo-audit/SKILL.md`
 
 ## Fähigkeit: `system-audit`
@@ -238,7 +238,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:security-specialist`** — Status `canonical` · Tier `dangerous`
   - _Wann:_ SealedSecrets, Pocket-ID-OIDC-Clients, DSGVO-Prüfung, Secret-Rotation.
   - _Nicht:_ Allgemeine Code-Sicherheit — dafür secure-coding-guidance.
-  - _Rollen:_ `bachelorprojekt-security`
+  - _Rollen:_ `bp-build`
   - _Tiefe:_ `.claude/skills/security-specialist/SKILL.md`
 
 ## Fähigkeit: `secure-coding-guidance`
@@ -254,7 +254,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`mcp:warden`** — Status `canonical` · Tier `caution`
   - _Wann:_ Persönliche Tresor-Credentials lesen; Schreiben nur nach Rückfrage.
-  - _Rollen:_ `orchestrator`, `bachelorprojekt-security`
+  - _Rollen:_ `bp-build`, `orchestrator`
 
 ## Fähigkeit: `code-graph`
 
@@ -295,7 +295,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`skill:website-specialist`** — Status `canonical` · Tier `caution`
   - _Wann:_ Astro- und Svelte-Komponenten, Seiten-Routing, Content und UI im website-Paket.
-  - _Rollen:_ `bachelorprojekt-website`
+  - _Rollen:_ `bp-ship`
   - _Tiefe:_ `.claude/skills/website-specialist/SKILL.md`
 
 ## Fähigkeit: `ui-design`
@@ -317,7 +317,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Brand-Seiten semantisch prüfen: axe, Lighthouse und LLM-Triage manuell gegen die Live-Marken.
   - _Nicht:_ PR-Entscheidungen — der Skill ist bewusst kein Merge-Gate.
   - _Fallback:_ `task web:audit ENV=<brand> [WEB_AUDIT_ROUTES=...]`
-  - _Rollen:_ `bachelorprojekt-website`, `bachelorprojekt-test`
+  - _Rollen:_ `bp-ship`
   - _Tiefe:_ `.claude/skills/web-audit/SKILL.md`
 
 ## Fähigkeit: `browser-automation`
@@ -325,7 +325,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`plugin:chrome-devtools-mcp@claude-plugins-official`** — Status `canonical` · Tier `caution`
   - _Wann:_ Seiten debuggen: DOM, Konsole, Netzwerk, Performance, Screenshots.
   - _Nicht:_ E2E-Testsuiten — die laufen über die Playwright-CLI in dev-flow-e2e.
-  - _Rollen:_ `bachelorprojekt-website`, `bachelorprojekt-test`
+  - _Rollen:_ `bp-ship`
 - **`mcp:playwright`** — Status `suppressed`
   - _Grund:_ Nicht project-relevant; E2E läuft über die Playwright-CLI in dev-flow-e2e.
 - **`plugin:playwright@claude-plugins-official`** — Status `suppressed`
@@ -338,7 +338,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`plugin:typescript-lsp@claude-plugins-official`** — Status `canonical` · Tier `safe`
   - _Wann:_ Typen, Signaturen und Referenzen in TypeScript und Svelte präzise auflösen.
   - _Nicht:_ Python — dafür wäre pyright-lsp nötig, das hier nicht aktiviert ist.
-  - _Rollen:_ `bachelorprojekt-website`, `bachelorprojekt-test`
+  - _Rollen:_ `bp-ship`
 - **`plugin:pyright-lsp@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ Kein nennenswerter Python-Anteil im Repo.
 
@@ -347,7 +347,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`plugin:pr-review-toolkit@claude-plugins-official`** — Status `canonical` · Tier `safe`
   - _Wann:_ PR-Review vor dem Merge: Bugs, stille Fehler, Testabdeckung, Typdesign.
   - _Nicht:_ Reine Vereinfachung ohne Fehlersuche — dafür der /simplify-Pfad.
-  - _Rollen:_ `orchestrator`, `bachelorprojekt-test`
+  - _Rollen:_ `bp-ship`, `orchestrator`
 - **`plugin:code-review@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ pr-review-toolkit deckt dieselbe Fähigkeit mit spezialisierten Agenten ab.
 - **`plugin:code-simplifier@claude-plugins-official`** — Status `suppressed`
@@ -400,7 +400,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Repo-Trainingslauf durchfuehren: Messschritt (measure_corpus.py) vor jeder Modellwahl, Template-Guard vor jedem Training, dann finetune:train/export ueber Taskfile.finetune.yml.
   - _Nicht:_ Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer die Unsloth/TRL-Upstream-Referenz direkt.
   - _Fallback:_ `Upstream-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist.`
-  - _Rollen:_ `orchestrator`, `bachelorprojekt-ops`
+  - _Rollen:_ `bp-run`, `orchestrator`
 
 ## Fähigkeit: `huggingface-hub-operationen`
 

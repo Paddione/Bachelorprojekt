@@ -1,0 +1,11 @@
+# .agents/training/.gitignore
+# Ignore model checkpoints, weights, and caches (Tier 3 artifacts)
+outputs/
+*_lora/
+*_gguf/
+*_gguf_gguf/
+*.safetensors
+*.gguf
+*.bin
+*.pt
+__pycache__/

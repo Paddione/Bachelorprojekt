@@ -1,8 +1,7 @@
 // scripts/toolset/lib/resolve.mjs — Harness-Schema und Werkzeugsatz (T900791).
-// WILDCARD_ROLES spiegelt scripts/toolset-context.sh (WILDCARD_ROLES). `pi` fehlt bewusst.
-export const WILDCARD_ROLES = ['bachelorprojekt-website', 'bachelorprojekt-ops',
-  'bachelorprojekt-infra', 'bachelorprojekt-test', 'bachelorprojekt-db',
-  'bachelorprojekt-security', 'orchestrator', 'big-pickle'];
+// WILDCARD_ROLES: SSOT lib/roles.mjs (T900980), hier re-exportiert für bestehende Importe.
+import { WILDCARD_ROLES } from './roles.mjs';
+export { WILDCARD_ROLES };
 
 // Validiert den `harnesses`-Block der Registry.
 // @param harnesses Objekt aus loadRegistry (Name → Harness-Eintrag)

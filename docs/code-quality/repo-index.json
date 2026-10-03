@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1235,
+      "file_count": 1236,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1056,6 +1056,7 @@
         "tests/spec/ticket-system/update-fields-cli.bats",
         "tests/spec/toolset-registry/agentic-resource-lookup.bats",
         "tests/spec/toolset-registry/agy-expected-proxy.bats",
+        "tests/spec/toolset-registry/bp-roles.bats",
         "tests/spec/toolset-registry/check-drift-detection.bats",
         "tests/spec/toolset-registry/check-offline.bats",
         "tests/spec/toolset-registry/collect-kinds.bats",
@@ -3910,7 +3911,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 840,
+      "file_count": 841,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4689,6 +4690,7 @@
         "scripts/toolset/lib/harness.mjs",
         "scripts/toolset/lib/registry.mjs",
         "scripts/toolset/lib/resolve.mjs",
+        "scripts/toolset/lib/roles.mjs",
         "scripts/toolset/probe.mjs",
         "scripts/toolset/probe.test.mjs",
         "scripts/toolset/registry.test.mjs",

@@ -463,7 +463,7 @@ tasks:
       - node scripts/toolset/emit-map.mjs
 
   toolset:context:
-    desc: "Render the curated toolset block for an agent role (ROLE=bachelorprojekt-db)"
+    desc: "Render the curated toolset block for an agent role (ROLE=bp-run)"
     cmds:
       - bash scripts/toolset-context.sh {{.ROLE}}
     requires:

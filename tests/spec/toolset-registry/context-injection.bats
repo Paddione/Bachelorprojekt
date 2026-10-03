@@ -20,14 +20,14 @@ capabilities:
       use_when: "Nur fuer die DB-Rolle"
       avoid_when: "Schreibende SQL"
       fallback: "kubectl exec … psql"
-      roles: [bachelorprojekt-db]
+      roles: [bp-run]
       tier: caution
       deep_ref: ".claude/skills/references/mcp-tool-guide.md#demo"
   demo-web:
     mcp:web-only-server:
       state: canonical
       use_when: "Nur fuer die Website-Rolle"
-      roles: [bachelorprojekt-website]
+      roles: [bp-ship]
   demo-shared:
     mcp:everywhere-server:
       state: canonical
@@ -52,7 +52,7 @@ run_ctx() {
 }
 
 @test "context: Rollenfilter grenzt die Ausgabe ein" {
-  run_ctx bachelorprojekt-db
+  run_ctx bp-run
   [ "$status" -eq 0 ]
   # Positiv-Anker zuerst: die passende Instanz ist da.
   [[ "$output" == *"mcp:db-only-server"* ]]
@@ -61,11 +61,11 @@ run_ctx() {
 }
 
 @test "context: Wildcard-Rolle 'all' erreicht jede Rolle" {
-  run_ctx bachelorprojekt-db
+  run_ctx bp-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"mcp:everywhere-server"* ]]
 
-  run_ctx bachelorprojekt-website
+  run_ctx bp-ship
   [ "$status" -eq 0 ]
   [[ "$output" == *"mcp:everywhere-server"* ]]
 }
@@ -80,7 +80,7 @@ run_ctx() {
 
 @test "context: unbekannte Rolle faellt closed und gibt keine Instanz aus" {
   # Positiv-Anker: die volle Rolle liefert Instanzen.
-  run_ctx bachelorprojekt-db
+  run_ctx bp-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"mcp:db-only-server"* ]]
 
@@ -100,12 +100,12 @@ run_ctx() {
 @test "context: Fehlermeldung nennt die gueltigen Rollen" {
   run_ctx nonsense-role
   [ "$status" -ne 0 ]
-  [[ "$output" == *"bachelorprojekt-db"* ]]
+  [[ "$output" == *"bp-run"* ]]
   [[ "$output" == *"orchestrator"* ]]
 }
 
 @test "context: gesetzte Felder werden gerendert, fehlende erzeugen keine Leerzeile" {
-  run_ctx bachelorprojekt-db
+  run_ctx bp-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"Nur fuer die DB-Rolle"* ]]
   [[ "$output" == *"Schreibende SQL"* ]]
@@ -114,7 +114,7 @@ run_ctx() {
   # everywhere-server hat kein avoid_when und keinen fallback — es darf keine leere
   # Rubrik entstehen. Positiv-Anker: der Server ist ueberhaupt im Block.
   [[ "$output" == *"mcp:everywhere-server"* ]]
-  run bash -c "env TOOLSET_REGISTRY='$FIXTURE' bash '$REPO_ROOT/scripts/toolset-context.sh' bachelorprojekt-db 2>/dev/null | grep -cE '\\*\\*(Nicht|Fallback|Tiefe):\\*\\*[[:space:]]*$' || true"
+  run bash -c "env TOOLSET_REGISTRY='$FIXTURE' bash '$REPO_ROOT/scripts/toolset-context.sh' bp-run 2>/dev/null | grep -cE '\\*\\*(Nicht|Fallback|Tiefe):\\*\\*[[:space:]]*$' || true"
   [ "$output" -eq 0 ]
 }
 
@@ -126,16 +126,16 @@ capabilities:
     mcp:db-only-server:
       state: canonical
       use_when: "Nur fuer die DB-Rolle"
-      roles: [bachelorprojekt-db]
+      roles: [bp-run]
 EOF
-  run env TOOLSET_REGISTRY="$empty" bash "$REPO_ROOT/scripts/toolset-context.sh" bachelorprojekt-security
+  run env TOOLSET_REGISTRY="$empty" bash "$REPO_ROOT/scripts/toolset-context.sh" bp-build
   [ "$status" -eq 0 ]
-  run bash -c "env TOOLSET_REGISTRY='$empty' bash '$REPO_ROOT/scripts/toolset-context.sh' bachelorprojekt-security 2>/dev/null | grep -c '^### ' || true"
+  run bash -c "env TOOLSET_REGISTRY='$empty' bash '$REPO_ROOT/scripts/toolset-context.sh' bp-build 2>/dev/null | grep -c '^### ' || true"
   [ "$output" -eq 0 ]
 }
 
 @test "context: --json liefert parsebares JSON" {
-  run bash -c "env TOOLSET_REGISTRY='$FIXTURE' bash '$REPO_ROOT/scripts/toolset-context.sh' bachelorprojekt-db --json | node -e '
+  run bash -c "env TOOLSET_REGISTRY='$FIXTURE' bash '$REPO_ROOT/scripts/toolset-context.sh' bp-run --json | node -e '
     const d = JSON.parse(require(\"fs\").readFileSync(0, \"utf8\"));
     console.log(\"n=\" + d.length + \" first=\" + d[0].instance);
   '"

@@ -28,7 +28,7 @@
 # harnesses: Aufgabe/Anbieter/Rollen je Harness (T900791), Messprotokoll: docs/agent-guide/registry/harness-config-targets.md
 #
 # Gültige Rollen:
-#   bachelorprojekt-website | -ops | -infra | -test | -db | -security | orchestrator | big-pickle | all
+#   bp-build | bp-run | bp-ship | orchestrator | big-pickle | pi | all   (SSOT: scripts/toolset/lib/roles.mjs, T900980)
 ---
 capabilities:
 
@@ -65,7 +65,7 @@ capabilities:
       use_when: "Pods, Logs, Events, Nodes und Ressourcen lesen — Status statt Mutation."
       avoid_when: "Jede Mutation: apply, rollout restart, scale, delete."
       fallback: "kubectl --context fleet get/logs (bei Portforward-Ausfall)"
-      roles: [bachelorprojekt-ops, bachelorprojekt-infra, orchestrator]
+      roles: [bp-build, bp-run, orchestrator]
       tier: safe
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 
@@ -75,7 +75,7 @@ capabilities:
       use_when: "Cluster-Mutationen: apply, rollout restart, scale, delete, RBAC, Sealed Secrets."
       avoid_when: "Reine Status-Abfragen — dafür mcp-kubernetes."
       fallback: "task workspace:deploy ENV=<brand> (break-glass; primär ist Flux)"
-      roles: [bachelorprojekt-infra, bachelorprojekt-ops]
+      roles: [bp-build, bp-run]
       tier: dangerous
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 
@@ -85,7 +85,7 @@ capabilities:
       use_when: "Read-only SQL gegen die mentolder-DB, Nicht-Ticket-Tabellen."
       avoid_when: "INSERT/UPDATE/DELETE/DDL — jede Query läuft READ ONLY und scheitert."
       fallback: "kubectl exec -i … psql (ohne -i läuft psql mit leerem stdin durch)"
-      roles: [bachelorprojekt-db, orchestrator, big-pickle]
+      roles: [bp-run, orchestrator, big-pickle]
       tier: safe
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 
@@ -95,7 +95,7 @@ capabilities:
       use_when: "Schreibende SQL, DDL und Superuser-Operationen als postgres."
       avoid_when: "Prod-Namespaces ohne prod-write-guard.sh — für Subagenten verboten."
       fallback: "scripts/prod-write-guard.sh check <namespace> <sql>"
-      roles: [bachelorprojekt-db]
+      roles: [bp-run]
       tier: dangerous
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 
@@ -103,7 +103,7 @@ capabilities:
     skill:database-specialist:
       state: canonical
       use_when: "Migrationen, Index-Optimierung, EXPLAIN ANALYZE, Backup und Restore."
-      roles: [bachelorprojekt-db]
+      roles: [bp-run]
       tier: assisted
       deep_ref: ".claude/skills/database-specialist/SKILL.md"
 
@@ -114,7 +114,7 @@ capabilities:
       use_when: "Tickets lesen, anlegen, Status setzen, Plan stagen, Phasen-Events schreiben."
       avoid_when: "stage_plan im Worktree — schlägt dort immer fehl."
       fallback: "scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)"
-      roles: [bachelorprojekt-test, bachelorprojekt-db, orchestrator]
+      roles: [bp-run, bp-ship, orchestrator]
       tier: caution
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 
@@ -203,7 +203,7 @@ capabilities:
       state: canonical
       use_when: "Playwright-Tests gegen die Live-Marken NACH Merge und Deploy."
       avoid_when: "Unit- und BATS-Tests während der Implementierung."
-      roles: [bachelorprojekt-test]
+      roles: [bp-ship]
       tier: caution
       deep_ref: ".claude/skills/dev-flow-e2e/SKILL.md"
 
@@ -211,7 +211,7 @@ capabilities:
     skill:vitest:
       state: canonical
       use_when: "Vitest-Tests schreiben, Mocking, Coverage und Test-Filter im website-Paket."
-      roles: [bachelorprojekt-test, bachelorprojekt-website]
+      roles: [bp-ship]
       tier: safe
       deep_ref: ".claude/skills/vitest/SKILL.md"
 
@@ -226,7 +226,7 @@ capabilities:
       state: canonical
       use_when: "Ein Kerndienst ist ausgefallen oder degradiert — zeitkritische Triage."
       avoid_when: "Nicht-dringende Repo-Pflege."
-      roles: [bachelorprojekt-ops]
+      roles: [bp-run]
       tier: assisted
       deep_ref: ".claude/skills/incident-response/SKILL.md"
 
@@ -235,7 +235,7 @@ capabilities:
       state: canonical
       use_when: "Nur auf ausdrückliche Anfrage: Cluster-Setup, Deploy, Netz, SSO, Secrets, Migration."
       avoid_when: "Automatisch auslösen — der Skill ist ausdrücklich invoke-only."
-      roles: [bachelorprojekt-infra]
+      roles: [bp-build]
       tier: dangerous
       deep_ref: ".claude/skills/infra-ops/SKILL.md"
 
@@ -261,7 +261,7 @@ capabilities:
     skill:gitops-knowledge:
       state: canonical
       use_when: "Flux-Konzepte erklären und schema-validiertes YAML für Flux-CRDs erzeugen."
-      roles: [bachelorprojekt-infra]
+      roles: [bp-build]
       tier: safe
       deep_ref: ".claude/skills/gitops-knowledge/SKILL.md"
 
@@ -270,7 +270,7 @@ capabilities:
       state: canonical
       use_when: "Flux auf dem Live-Cluster diagnostizieren: stuck, not-ready, Artefakt-Pull."
       avoid_when: "Repo-Dateien prüfen — dafür gitops-repo-audit."
-      roles: [bachelorprojekt-infra, bachelorprojekt-ops]
+      roles: [bp-build, bp-run]
       tier: caution
       deep_ref: ".claude/skills/gitops-cluster-debug/SKILL.md"
 
@@ -279,7 +279,7 @@ capabilities:
       state: canonical
       use_when: "GitOps-Repo-Dateien prüfen: Schema, veraltete APIs, RBAC, Secrets."
       avoid_when: "Live-Cluster-Zustand — dafür gitops-cluster-debug."
-      roles: [bachelorprojekt-infra]
+      roles: [bp-build]
       tier: safe
       deep_ref: ".claude/skills/gitops-repo-audit/SKILL.md"
 
@@ -298,7 +298,7 @@ capabilities:
       state: canonical
       use_when: "SealedSecrets, Pocket-ID-OIDC-Clients, DSGVO-Prüfung, Secret-Rotation."
       avoid_when: "Allgemeine Code-Sicherheit — dafür secure-coding-guidance."
-      roles: [bachelorprojekt-security]
+      roles: [bp-build]
       tier: dangerous
       deep_ref: ".claude/skills/security-specialist/SKILL.md"
 
@@ -317,7 +317,7 @@ capabilities:
     mcp:warden:
       state: canonical
       use_when: "Persönliche Tresor-Credentials lesen; Schreiben nur nach Rückfrage."
-      roles: [orchestrator, bachelorprojekt-security]
+      roles: [bp-build, orchestrator]
       tier: caution
 
   # ─── Wissen & Recherche ─────────────────────────────────────────────────────────────
@@ -366,7 +366,7 @@ capabilities:
     skill:website-specialist:
       state: canonical
       use_when: "Astro- und Svelte-Komponenten, Seiten-Routing, Content und UI im website-Paket."
-      roles: [bachelorprojekt-website]
+      roles: [bp-ship]
       tier: caution
       deep_ref: ".claude/skills/website-specialist/SKILL.md"
 
@@ -390,7 +390,7 @@ capabilities:
       use_when: "Brand-Seiten semantisch prüfen: axe, Lighthouse und LLM-Triage manuell gegen die Live-Marken."
       avoid_when: "PR-Entscheidungen — der Skill ist bewusst kein Merge-Gate."
       fallback: "task web:audit ENV=<brand> [WEB_AUDIT_ROUTES=...]"
-      roles: [bachelorprojekt-website, bachelorprojekt-test]
+      roles: [bp-ship]
       tier: assisted
       deep_ref: ".claude/skills/web-audit/SKILL.md"
 
@@ -400,7 +400,7 @@ capabilities:
       state: canonical
       use_when: "Seiten debuggen: DOM, Konsole, Netzwerk, Performance, Screenshots."
       avoid_when: "E2E-Testsuiten — die laufen über die Playwright-CLI in dev-flow-e2e."
-      roles: [bachelorprojekt-website, bachelorprojekt-test]
+      roles: [bp-ship]
       tier: caution
     mcp:playwright:
       state: suppressed
@@ -418,7 +418,7 @@ capabilities:
       state: canonical
       use_when: "Typen, Signaturen und Referenzen in TypeScript und Svelte präzise auflösen."
       avoid_when: "Python — dafür wäre pyright-lsp nötig, das hier nicht aktiviert ist."
-      roles: [bachelorprojekt-website, bachelorprojekt-test]
+      roles: [bp-ship]
       tier: safe
     plugin:pyright-lsp@claude-plugins-official:
       state: suppressed
@@ -430,7 +430,7 @@ capabilities:
       state: canonical
       use_when: "PR-Review vor dem Merge: Bugs, stille Fehler, Testabdeckung, Typdesign."
       avoid_when: "Reine Vereinfachung ohne Fehlersuche — dafür der /simplify-Pfad."
-      roles: [orchestrator, bachelorprojekt-test]
+      roles: [bp-ship, orchestrator]
       tier: safe
     plugin:code-review@claude-plugins-official:
       state: suppressed
@@ -502,7 +502,7 @@ capabilities:
       use_when: "Repo-Trainingslauf durchfuehren: Messschritt (measure_corpus.py) vor jeder Modellwahl, Template-Guard vor jedem Training, dann finetune:train/export ueber Taskfile.finetune.yml."
       avoid_when: "Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer die Unsloth/TRL-Upstream-Referenz direkt."
       fallback: "Upstream-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist."
-      roles: [orchestrator, bachelorprojekt-ops]
+      roles: [bp-run, orchestrator]
       tier: assisted
 
   # huggingface-skills lag bis T002596 unter `modell-finetuning` und war dort suppressed,
@@ -917,13 +917,13 @@ harnesses:
     job: "Planung und Risikoarbeit: dev-flow-plan, Infra, Security, Cluster-Mutation"
     provider: anthropic
     default_model: opus
-    roles: [bachelorprojekt-infra, bachelorprojekt-security, bachelorprojekt-ops, bachelorprojekt-db]
+    roles: [bp-build, bp-run]
     config: .claude/settings.json
   codex:
     job: "Plaene umsetzen: dev-flow-execute, Tests, CI-Fix-Schleife"
     provider: openai
     default_model: gpt-6-sol
-    roles: [bachelorprojekt-test, bachelorprojekt-website]
+    roles: [bp-ship]
     config: null
   omp:
     job: "Interaktiver Editor-Agent: LSP-Refactor, Debugging, Review"
@@ -941,18 +941,18 @@ harnesses:
     job: "Cloud-Ausfuehrung mit grossem Kontext: ganze Plaene, grosse Refactors"
     provider: meta
     default_model: muse-spark-1.3
-    roles: [bachelorprojekt-test, bachelorprojekt-website]
+    roles: [bp-ship]
     config: null
   agy:
     job: "Website und Frontend: Astro/Svelte, Browser, Screenshots"
     provider: google
     default_model: gemini
-    roles: [bachelorprojekt-website]
+    roles: [bp-ship]
     config: null
   openclaw:
     job: "Always-on-Assistent auf dem GPU-Host: Modell- und GPU-Betrieb"
     provider: local
     default_model: lmstudio
-    roles: [bachelorprojekt-ops]
+    roles: [bp-run]
     config: null
 forbidden_providers: [deepseek]

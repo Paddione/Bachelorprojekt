@@ -18,31 +18,15 @@ import { validateHarnesses, resolveToolset } from './lib/resolve.mjs';
 import { ADAPTERS } from './lib/adapters/index.mjs';
 import { readClaudeCodeConfig } from './lib/harness.mjs';
 import { collectInstances, withRegistryOnlyInstances } from './collect.mjs';
+import { ROLES, LEGACY_ROLE_ALIASES } from './lib/roles.mjs';
 
 const registryPath = process.env.TOOLSET_REGISTRY || path.join(process.cwd(), 'docs', 'agent-guide', 'registry', 'capabilities.yaml');
 const outDir = process.env.TOOLSET_OUT_DIR || process.cwd();
 
-// Abschließendes Rollen-Vokabular. Bewusst hier dupliziert statt aus der `case`-Konstruktion
-// in scripts/plan-context.sh geparst: Bash-Parsen wäre brüchig, und die beiden Listen
-// unterscheiden sich um die Wildcard `all`. SSOT der Doppelung ist CONTRACT.md §2 des
-// Change toolset-usage-injection.
-const VALID_ROLES = new Set([
-  'bachelorprojekt-website',
-  'bachelorprojekt-ops',
-  'bachelorprojekt-infra',
-  'bachelorprojekt-test',
-  'bachelorprojekt-db',
-  'bachelorprojekt-security',
-  'orchestrator',
-  // [T012912] Rolle aus agents.yaml/AGENTS.md; PR #4839 trug sie in
-  // capabilities.yaml und toolset-context.sh ein, hier fehlte sie — das Gate
-  // stand danach auf jedem PR rot.
-  'big-pickle',
-  // [T900529] Zweiter Harness neben opencode: pi-coding-agent. Eigene Rolle, damit
-  // eine `roles: [pi]`-Kuration moeglich ist, ohne die bestehenden Rollen anzufassen.
-  'pi',
-  'all',
-]);
+// Abschließendes Rollen-Vokabular aus lib/roles.mjs (T900980). Eine Legacy-Rolle
+// (bachelorprojekt-*) ist in der Registry ein Fehler mit Ersatzvorschlag — die Registry ist
+// migriert, ein Rückfall soll rot werden.
+const VALID_ROLES = new Set(ROLES);
 
 const VALID_TIERS = new Set(['safe', 'caution', 'assisted', 'dangerous']);
 
@@ -90,7 +74,10 @@ for (const [capName, instances] of Object.entries(registry.capabilities)) {
 
     if (Array.isArray(cfg.roles)) {
       for (const role of cfg.roles) {
-        if (!VALID_ROLES.has(role)) {
+        if (Object.hasOwn(LEGACY_ROLE_ALIASES, role)) {
+          console.error(`Capability '${capName}' instance '${instKey}': legacy role '${role}' — use '${LEGACY_ROLE_ALIASES[role]}' (T900858).`);
+          hasError = true;
+        } else if (!VALID_ROLES.has(role)) {
           console.error(`Capability '${capName}' instance '${instKey}': unknown role '${role}' (valid: ${[...VALID_ROLES].join(', ')}).`);
           hasError = true;
         }

@@ -7,25 +7,13 @@ import { loadRegistry } from './lib/registry.mjs';
 import { validateHarnesses, resolveToolset } from './lib/resolve.mjs';
 import { ADAPTERS } from './lib/adapters/index.mjs';
 import { readClaudeCodeConfig } from './lib/harness.mjs';
+import { ROLES } from './lib/roles.mjs';
 
 const registryPath = process.env.TOOLSET_REGISTRY || path.join(process.cwd(), 'docs', 'agent-guide', 'registry', 'capabilities.yaml');
 const outDir = process.env.TOOLSET_OUT_DIR || process.cwd();
 
-// Rollen-Vokabular, bewusst aus check.mjs dupliziert (dort liegt der SSOT-Kommentar zur
-// Doppelung mit scripts/plan-context.sh). sync.mjs braucht es für validateHarnesses, kann
-// es aber nicht aus check.mjs importieren, weil dessen Top-Level-Code das Gate ausführt.
-const VALID_ROLES = new Set([
-  'bachelorprojekt-website',
-  'bachelorprojekt-ops',
-  'bachelorprojekt-infra',
-  'bachelorprojekt-test',
-  'bachelorprojekt-db',
-  'bachelorprojekt-security',
-  'orchestrator',
-  'big-pickle',
-  'pi',
-  'all',
-]);
+// Rollen-Vokabular für validateHarnesses — SSOT lib/roles.mjs (T900980).
+const VALID_ROLES = new Set(ROLES);
 
 const args = process.argv.slice(2);
 let dryRun = false;

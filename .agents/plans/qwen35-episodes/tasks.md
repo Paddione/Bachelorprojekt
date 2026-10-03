@@ -7,6 +7,7 @@ status: staged
 # qwen35-episodes — Implementation Plan
 
 ## File Structure
+- `ml/qwen35-agents/pipeline/__init__.py`: pipeline package.
 - `ml/qwen35-agents/pipeline/scenarios.py`: versioned scenario definitions and templates.
 - `ml/qwen35-agents/pipeline/capture.py`: real OpenCode JSON event capture and normalization.
 - `ml/qwen35-agents/pipeline/preflight.py`: CPU format, JSON schema, manifest and tokenizer gates.

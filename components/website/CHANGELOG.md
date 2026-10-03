@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.388.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.387.0...website-v1.388.0) (2026-10-03)
+
+
+### Features
+
+* **ops:** Qwen3.5-4B instruction workers with per-request reasoning modes [T900930] ([#6203](https://github.com/Paddione/Bachelorprojekt/issues/6203)) ([8830b17](https://github.com/Paddione/Bachelorprojekt/commit/8830b1725329a8061e0031a8efcb0d5f183e4434))
+
 ## [1.387.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.6...website-v1.387.0) (2026-10-02)
 
 

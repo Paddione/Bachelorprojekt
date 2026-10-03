@@ -44,4 +44,4 @@ Full rule: `.claude/lib/behaviors/escalation-protocol.md`.
 
 - Read-only filesystem for manifests; diagnose and operate only.
 - MCP: `mcp-kubernetes` + `mcp-postgres` (mentolder data only).
-- Dispatch via task: `local`, `qwen35-mtp`, `exe-muse`, `oracle`.
+- Dispatch via task: `local`, `qwen3-4b`, `exe-muse`, `oracle`.

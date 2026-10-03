@@ -1,8 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Default = llamacpp-local/Qwen3.8-27B: Qwen3.8-27B via
-  // llama.cpp :1919 direkt, UD-IQ3_XXS + DFlash2-Drafter auf der RTX 5070 Ti,
-  // 131072 served KV (systemd-User-Unit scripts/llm/glimmer.service, T900365).
+  // Default = llamacpp-local/Qwen3.8-27B: Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp via
+  // llama.cpp :1919 direkt, Draft-MTP (n-max 4) auf der RTX 5070 Ti allein,
+  // 153600 served KV (systemd-User-Unit scripts/llm/qwen38-gsq-iq3xxs.service).
   // Der Provider-Key heisst historisch "llamacpp-local".
   //
   // Fallback bei Ausfall des lokalen Servers: Eskalation an exe-muse
@@ -15,18 +15,18 @@
   // TUI-Primaries UND jeder Subagent-Dispatch (task-Tool) laufen, rechnet:
   //   limit.input gesetzt:  threshold = limit.input − reserved
   //   limit.input fehlt:    threshold = limit.context − limit.output  (reserved ignoriert!)
-  //   Qwen3.8-27B (input 131072): 131072 − 33600 = 97472
+  //   Qwen3.8-27B (input 153600): 153600 − 33600 = 120000
   //   Cloud-Modelle ohne input:       1M − output (≈991k/868k), DCP haelt sie schlank
   // Bis T900362 fehlte limit.input im Katalog: der damalige Qwen-Trigger lag
   // deshalb bei 153600 − 8192 = 145408, und Subagents liefen bis ~150k.
   //
   // Die session.next-Runtime (packages/core/src/session/compaction.ts) rechnet
-  // limit.context − max(limit.output, buffer) = 131072 − max(8192, 33600) = 97472.
+  // limit.context − max(limit.output, buffer) = 153600 − max(8192, 33600) = 120000.
   //
   // Kalibrierung: buffer 33600 stammt aus T900350 (Qwen, 153600-Fenster, Trigger
   // 120k) und bleibt: er reserviert 33,6k fuer Output und Reasoning, unabhaengig
-  // vom Fenster. Unter Qwen3.8-27B (T900365) feuert die Compaction damit bei 97472;
-  // ein 117k-Prompt prefillt in ~110 s (1095 tok/s). keep.tokens 16000 haelt den Tail.
+  // vom Fenster. Unter Qwen3.8-27B IQ3_XXS feuert die Compaction damit bei 120000;
+  // ein 117k-Prompt prefillt in ~80 s (1471 tok/s). keep.tokens 16000 haelt den Tail.
   "compaction": {
     "auto": true,
     "keep": { "tokens": 16000 },

@@ -6,15 +6,15 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | `llamacpp-local/Qwen3.8-27B` (131k ctx, RTX 5070 Ti, primary, write) | Primary — dispatches `qwen35-mtp` on RTX 3060 Ti + exe-muse cloud escalation (T900751) |
-| `local` | `llamacpp-local/Qwen3.8-27B` (131k served KV, DFlash2) | Higher-capability local subagent; `write=deny`, `edit=allow`; sequential, `budget_tokens` per packet |
-| `qwen35-mtp` | `llamacpp-qwen35/Qwen3.5-4B-MTP` (128k served KV, RTX 3060 Ti) | Text-only single-slot MTP subagent; Q4_K_XL weights and Q4 KV |
+| `orchestrator` | `llamacpp-local/Qwen3.8-27B` (153600 ctx, RTX 5070 Ti, primary, write) | Primary — dispatches `qwen3-4b` on RTX 3060 Ti + exe-muse cloud escalation (T900751) |
+| `local` | `llamacpp-local/Qwen3.8-27B` (153600 served KV, draft-MTP) | Higher-capability local subagent; `write=deny`, `edit=allow`; sequential, `budget_tokens` per packet |
+| `qwen3-4b` | `llamacpp-qwen3/Qwen3-4B-2507` (90k shared KV, RTX 3060 Ti, 3 slots :8080) | Text-only worker-pool subagent; UD-Q4_K_XL weights and Q4_0 KV, non-thinking |
 | `exe-muse` | `opencode-go-oai/muse-spark-1.3-contributor` (1M ctx, subagent, write; Responses API) | Execution worker (M2 after 2× local); dispatched by `orchestrator`/bp-* primaries |
-| `bp-build` | `llamacpp-local/Qwen3.8-27B` (131k, primary, write) | Build-Primary: Manifeste, Overlays, Taskfile, Secrets [T900858] |
-| `bp-run` | `llamacpp-local/Qwen3.8-27B` (131k, primary, write) | Run-Primary: Live-Ops via task workspace:*/kubectl, Postgres-Reads [T900858] |
+| `bp-build` | `llamacpp-local/Qwen3.8-27B` (153600, primary, write) | Build-Primary: Manifeste, Overlays, Taskfile, Secrets [T900858] |
+| `bp-run` | `llamacpp-local/Qwen3.8-27B` (153600, primary, write) | Run-Primary: Live-Ops via task workspace:*/kubectl, Postgres-Reads [T900858] |
 | `bp-ship` | `opencode-go-oai/muse-spark-1.3-contributor` (1M ctx, primary, write; Responses API) | Ship-Primary: BATS/Playwright, Website, Test-Inventar [T900858] |
 | `reviewer` | `llamacpp-local/Qwen3.8-27B` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
-| `plan-worker-4b` | `llamacpp-qwen35/Qwen3.5-4B-MTP` (primary, write; 3 Slots :1920) | plan-runner-Worker: führt ein plan-Partial aus; via `scripts/llm/plan-runner.mjs`, nicht interaktiv [T900504] |
+| `plan-worker-4b` | `llamacpp-qwen3/Qwen3-4B-2507` (primary, write; 3 Slots :8080, 90k shared) | plan-runner-Worker: führt ein plan-Partial aus; via `scripts/llm/plan-runner.mjs`, nicht interaktiv [T900504] |
 | `plan-worker-self` | `llamacpp-local/Qwen3.8-27B` (primary, write; :1919) | plan-runner-Fallback wenn alle 4B-Slots belegt; ein Partial in einem Lauf [T900504] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 

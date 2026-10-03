@@ -136,13 +136,13 @@ EOF"
 
 @test "agent-models.jsonc declares a MEASURED context for the local model, not n_ctx_train (T002545/T002558/T002633)" {
   # T900365: der llamacpp-local-Katalog fuehrt genau ein Modell:
-  # Qwen3.8-27B (llama.cpp :1919, scripts/llm/glimmer.service).
-  # limit.context 131072 ist die served KV (n_ctx in /props) und zugleich
-  # max_position_embeddings von Glimmer. Frueher (Qwen, T900348) lag n_ctx_train
-  # mit 262144 ueber dem real Verfuegbaren — daher die 262144-Sperre unten.
+  # Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (llama.cpp :1919, scripts/llm/qwen38-gsq-iq3xxs.service).
+  # limit.context 153600 ist die served KV (n_ctx in /props, -c der Unit).
+  # Frueher (Qwen, T900348) lag n_ctx_train mit 262144 ueber dem real
+  # Verfuegbaren — daher die 262144-Sperre unten.
   #
   # Geprueft wird deshalb die EIGENSCHAFT: positive ganze Zahl, ungleich 262144
-  # (frueheres n_ctx_train) und nicht groesser als 131072 (served KV).
+  # (frueheres n_ctx_train) und nicht groesser als 153600 (served KV).
   run node -e "
     const fs = require('fs');
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
@@ -158,8 +158,8 @@ EOF"
     if (ctx === 262144) {
       console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
     }
-    if (ctx > 131072) {
-      console.error('ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
+    if (ctx > 153600) {
+      console.error('ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
     }
     process.exit(0);
   "
@@ -194,7 +194,7 @@ EOF"
 @test "agent-models.jsonc provides a local primary with measured context (T002545/T016419/T900203)" {
   # T900203/T900365/T900858: die lokalen Primaries sind bp-build + bp-run
   # (write-capable default: bp-build), Modell Qwen3.8-27B. Geprueft wird
-  # bp-build; sein Kontext ist der served-KV-Wert 131072. Die Zahl steht als konkreter Eintrag im Provider
+  # bp-build; sein Kontext ist der served-KV-Wert 153600. Die Zahl steht als konkreter Eintrag im Provider
   # (T014105-Prinzip); ihre Kopplung an -c der Unit prueft der Test unten.
   #
   # Warum <= und nicht ==: ein niedrigerer Wert ist konservativ und harmlos.
@@ -223,8 +223,8 @@ EOF"
     if (ctx === 262144) {
       console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
     }
-    if (ctx > 131072) {
-      console.error('ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
+    if (ctx > 153600) {
+      console.error('ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
     }
     process.exit(0);
   "
@@ -268,13 +268,14 @@ EOF"
 }
 
 @test "T900348/T900365: catalog context matches -c and port of the llama.cpp unit" {
-  # Die served KV entsteht aus -c in scripts/llm/glimmer.service. Weicht
-  # limit.context davon ab, verspricht opencode mehr (oder weniger) Kontext als
-  # der Server hat. Der Port muss der baseURL des Providers entsprechen.
-  local unit="$REPO/scripts/llm/glimmer.service"
+  # Die served KV entsteht aus -c in scripts/llm/qwen38-gsq-iq3xxs.service (live
+  # seit 2026-10-03; glimmer.service ist abgeloest). Weicht limit.context davon
+  # ab, verspricht opencode mehr (oder weniger) Kontext als der Server hat.
+  # Der Port muss der baseURL des Providers entsprechen.
+  local unit="$REPO/scripts/llm/qwen38-gsq-iq3xxs.service"
   run bash -c "grep -oE -- '-c [0-9]+' '$unit' | awk '{print \$2}'"
   [ "$status" -eq 0 ]
-  [ "$output" = "131072" ]
+  [ "$output" = "153600" ]
   run bash -c "grep -oE -- '--port [0-9]+' '$unit' | awk '{print \$2}'"
   [ "$output" = "1919" ]
   run node -e "
@@ -282,7 +283,7 @@ EOF"
     const e = (((d.provider || {})['llamacpp-local'] || {}).models || {})['Qwen3.8-27B'];
     console.log(e ? e.limit.context : 'missing');
   "
-  [ "$output" = "131072" ]
+  [ "$output" = "153600" ]
 }
 
 @test "T900051: FreeToken smoke test verifies version model KV and concurrency" {

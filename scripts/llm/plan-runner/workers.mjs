@@ -1,5 +1,6 @@
 // workers.mjs — Worker-Pool des plan-runners (T900504): startet `opencode run` fuer 4B-Worker
-// (Agent qwen35-mtp, :1920) und den Selbstaufruf des Orchestrators (Agent local, :1919),
+// (Agent plan-worker-4b auf llamacpp-qwen3/Qwen3-4B-2507, Windows-nativ :8080) und den
+// Selbstaufruf des Orchestrators (Agent plan-worker-self auf llamacpp-local, :1919),
 // verwaltet die 4B-Slots und puffert beendete 4B-Ergebnisse.
 // Aufrufer: scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.
 // Test-Override: PLAN_RUNNER_OPENCODE ersetzt das opencode-Binary.
@@ -54,6 +55,9 @@ export function runWorker({ agent, prompt, worktree, timeoutMs }) {
       const model = agentModel(agent);
       child = spawn(bin, ['run', '--agent', agent, ...(model ? ['--model', model] : []), prompt], {
         cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], detached: true,
+        // PWD must follow cwd: `opencode run` takes the project root from PWD,
+        // so without this an out-of-repo worktree writes into the caller's repo.
+        env: { ...process.env, PWD: worktree },
       });
     } catch (e) {
       resolve({ code: null, tail: String(e.message), ok: false, summary: `spawn failed: ${e.message}`, ms: 0 });

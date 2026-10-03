@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # T900203 — FreeToken-Konsolidierung (T900164): der llamacpp-local-Katalog
-# fuehrt genau ein Modell (seit T900348 Qwen3.8-27B, 131072 served KV),
+# fuehrt genau ein Modell (seit T900348 Qwen3.8-27B, 153600 served KV),
 # keine active/*-Aliase und keine freetoken-thinking/fast-Agenten mehr, und
 # das alte Opencode-Plugin freetoken-active.ts ist entfernt.
 #

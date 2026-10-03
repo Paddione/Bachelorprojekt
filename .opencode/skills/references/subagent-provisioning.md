@@ -64,7 +64,7 @@ Das `task`-Tool kennt **`subagent_type` und `description`**, keinen separaten Ef
 | high | „Ultrathink. Denke sehr gründlich nach." | komplex/riskant/Meta |
 | **ultra** | high **+ `Workflow`-Fan-out statt Einzel-Agent** | sehr groß/parallelisierbar (multi-subsystem Plan/Review): nutze das **Claude Code** `Workflow`-Tool (mehrere Agenten + adversariale Verifikation gegen einen **geteilten Interface-Contract**), nicht einen einzelnen Agenten. In **opencode/agy** kein `Workflow`-Pendant — führe die Plan-Schritte seriell oder delegiere an einen einzelnen Subagenten mit high-Effort-Prompt. |
 
-> **Framework-Routing für Subagenten:** Claude Code → `Agent`/`Task` tool mit `subagent_type`. opencode → `subagent()` (OpenCode v2; Slim-Routing: `explorer`/`librarian` read-only, `fixer`/`local`/`qwen35-mtp` write-capable) für Edit-Zugriff. agy → treat opencode path as authoritative; bash/MCP tool calls are framework-agnostic.
+> **Framework-Routing für Subagenten:** Claude Code → `Agent`/`Task` tool mit `subagent_type`. opencode → `subagent()` (OpenCode v2; Slim-Routing: `explorer`/`librarian` read-only, `fixer`/`local`/`qwen3-4b` write-capable) für Edit-Zugriff. agy → treat opencode path as authoritative; bash/MCP tool calls are framework-agnostic.
 
 ### 3. Kontext (passend & KOMPAKT)
 
@@ -103,7 +103,7 @@ das hart begrenzt — deshalb ist die Selbstmeldung Teil des Auftrags.
 
 Für **opencode/agy** stehen über `subagent(agent: "<name>", ...)` lokale Subagenten-Profile
 zur Verfügung (GPU-Host, `~/.config/opencode/opencode.jsonc`, Provider `llamacpp-*`; Slim-first:
-`explorer`/`librarian`/`fixer`/`oracle`/`designer` + Worker `local`/`qwen35-mtp`/`exe-muse`), zusätzlich zu
+`explorer`/`librarian`/`fixer`/`oracle`/`designer` + Worker `local`/`qwen3-4b`/`exe-muse`), zusätzlich zu
 `hermes-delegate` (Tier 0, oben). **Alle nutzen Qwen3.6-14B-A3B FableVibes und sind serialisiert (1
 gleichzeitig) — teilen sich das Hauptkontext-Fenster von 262k** auf einer 16-GB-Karte:
 

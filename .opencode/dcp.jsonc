@@ -11,13 +11,11 @@
     // Arbeitsband 60–100k: Nudge ab 85k, Zwang ab 103k.
     "minContextLimit": 85000,
     "maxContextLimit": 103000,
-    // Lokaler Qwen3.8-27B (131072 served KV, Compaction bei 97472; T900365).
+    // Lokaler Qwen3.8-27B IQ3_XXS-mtp (153600 served KV, Compaction bei 120000).
     // Prozentwerte beziehen sich auf limit.context und wandern mit, wenn das
     // served KV neu gemessen und im Katalog angepasst wird:
-    //   40 % = 52429 → Nudge, der Prefill eines Wechsels bleibt unter ~50 s
-    //   70 % = 91750 → Zwang, 5722 unter dem Compaction-Trigger
-    // 75 % (bis T900365 unter Qwen/153600) ergaebe 98304 — ueber dem Trigger
-    // 97472, also tote Konfiguration, weil die Compaction zuerst feuert.
+    //   40 % = 61440 → Nudge, der Prefill eines Wechsels bleibt unter ~45 s
+    //   70 % = 107520 → Zwang, 12480 unter dem Compaction-Trigger
     "modelMinLimits": {
       "llamacpp-local/Qwen3.8-27B": "40%"
     },

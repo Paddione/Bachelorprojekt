@@ -8,10 +8,10 @@
       "model": "llamacpp-local/Qwen3.8-27B"
     },
     "explorer": {
-      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP"
+      "model": "llamacpp-qwen3/Qwen3-4B-2507"
     },
     "librarian": {
-      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP"
+      "model": "llamacpp-qwen3/Qwen3-4B-2507"
     },
     "fixer": {
       "model": "llamacpp-local/Qwen3.8-27B"

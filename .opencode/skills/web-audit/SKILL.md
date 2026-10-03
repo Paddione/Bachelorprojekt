@@ -1,7 +1,7 @@
 ---
 name: web-audit
 description: "Semantische Pruefung und Triage der eigenen Brand-Seiten ueber axe, Lighthouse und LLM. Kombiniert a11y-Scan (axe), Performance-Audit (Lighthouse) und semantische LLM-Beurteilung (alt-Texte, Meta-Tags, Ueberschriften, Link-Labels). Kein Merge-Gate — laeuft manuell. Triggers on web-audit, web:audit, semantic audit, semantische Pruefung, axe triage, llm review, page audit."
-agent: bachelorprojekt-website
+agent: bp-ship
 ---
 
 # web-audit
@@ -18,7 +18,6 @@ eine Kurzfassung auf stdout.
 
 ```bash
 task web:audit ENV=mentolder     # Standard-Routen: /, /ueber-mich, /kontakt, /coaching
-task web:audit ENV=korczewski    # Standard-Routen: /
 task web:audit ENV=mentolder WEB_AUDIT_ROUTES="/,/leistungen"  # Eigene Routen
 ```
 
@@ -49,6 +48,6 @@ Fehlern 0.
 
 ## Abgrenzung
 
-- Nur eigene Brands (`mentolder`, `korczewski`)
+- Nur eigene Brands — aktiv nur `mentolder`; korczewski ist seit 2026-07-23 eingefroren (T002479, 0 Replicas), `web.korczewski.de` antwortet mit 503
 - Keine visuelle Pruefung (Screenshots/Vision gehoeren zum Headed-E2E-Vorgang)
 - Kein CI-Job — manueller Lauf

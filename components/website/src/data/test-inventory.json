@@ -4398,6 +4398,12 @@
     "kind": "shell"
   },
   {
+    "id": "p0min-freeze-embed",
+    "file": "tests/spec/p0min-freeze-embed.bats",
+    "category": "p0min-freeze-embed",
+    "kind": "shell"
+  },
+  {
     "id": "pi-harness",
     "file": "tests/spec/pi-harness.bats",
     "category": "pi-harness",

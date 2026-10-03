@@ -1,0 +1,30 @@
+{
+  "t1_raw": 256,
+  "t1_unique": 253,
+  "teacher_raw": 864,
+  "teacher_unique_added": 856,
+  "total_unique": 1109,
+  "train": 1054,
+  "val": 55,
+  "target": 1100,
+  "target_met": true,
+  "near_dup_jaccard": 0.6,
+  "by_domain": {
+    "teacher": 856,
+    "cli": 61,
+    "gotchas": 44,
+    "llmstack": 30,
+    "workflow": 30,
+    "arch": 25,
+    "agents": 22,
+    "runbooks": 10,
+    "ci": 10,
+    "refusal": 9,
+    "multiturn": 6,
+    "components": 6
+  },
+  "dropped_exact": 3,
+  "dropped_near": 0,
+  "dropped_too_short": 0,
+  "dropped_answer_cap": 0
+}

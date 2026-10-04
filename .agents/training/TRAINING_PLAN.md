@@ -19,7 +19,7 @@ lokale LLM-Rails) auf der :8080-Worker-Rail — Direkt-Modus default, schnell,
 
 ## 3. Modell
 - **T900978-Pilot `--model-size 2b` (Default)**: `unsloth/Qwen3.5-2B`
-  (TO-VERIFY: noch nicht per Pull verifiziert) + LoRA `r=32, alpha=32`,
+  (HF-verifiziert 04.10.: API 200, single-safetensors) + LoRA `r=32, alpha=32`,
   16-bit (~11-13 GB), Daten `dataset_2b_train.jsonl` (P1-Slice, 137 Zeilen),
   Output `qwen35_2b_bp_lora/`, 200 Steps (`--max-steps 200`), Export-Pfad
   `qwen35_2b_bp_merged/` + `qwen35_2b_bp_gguf/` (q4_k_m/q8_0).

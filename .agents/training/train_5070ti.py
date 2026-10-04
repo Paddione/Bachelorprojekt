@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Fine-tuning of Qwen3.5-4B-MTP (direct/non-thinking default) on the RTX 5070 Ti (16 GB).
+Fine-tuning of Qwen3.5-2B (T900978 pilot, default --model-size 2b) or
+Qwen3.5-4B-MTP (--model-size 4b-mtp, shipped run) on the RTX 5070 Ti (16 GB).
 Uses Unsloth. Successor of the retired Qwen3-4B-2507 and Qwen2.5-7B-BP trainings.
 
 Default (--precision 16bit): full bf16 checkpoint + LoRA r=32 — no quantization
@@ -30,6 +31,28 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 MIN_FREE_MIB = {"16bit": 13_000, "4bit": 9_000}
+
+# T900978 P2: model-size specs. 2B pilot (default): unsloth/Qwen3.5-2B,
+# 16-bit LoRA r=32 on the P1 slice (dataset_2b_train.jsonl, 200 steps).
+# 4B-MTP branch kept for reproducibility of the shipped 4B run.
+MODEL_SPECS = {
+    "2b": {
+        "hf_16bit": "unsloth/Qwen3.5-2B",
+        "hf_4bit": "unsloth/Qwen3.5-2B-bnb-4bit",
+        "lora_16bit": "qwen35_2b_bp_lora",
+        "lora_4bit": "qwen35_2b_bp_lora_4bit",
+        "dataset": "dataset_2b_train.jsonl",
+        "lora_r_16bit": 32,
+    },
+    "4b-mtp": {
+        "hf_16bit": "unsloth/Qwen3.5-4B-MTP",
+        "hf_4bit": "unsloth/Qwen3.5-4B-MTP-bnb-4bit",
+        "lora_16bit": "qwen35_4b_bp_lora",
+        "lora_4bit": "qwen35_4b_bp_lora_4bit",
+        "dataset": "dataset_train.jsonl",
+        "lora_r_16bit": 32,
+    },
+}
 
 
 def gpu_preflight(min_free_mib: int) -> None:
@@ -63,7 +86,13 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--precision", choices=["16bit", "4bit"], default="16bit",
                     help="16-bit LoRA (default, best quality) or QLoRA 4-bit fallback")
+    ap.add_argument("--model-size", choices=["2b", "4b-mtp"], default="2b",
+                    help="2b = Qwen3.5-2B pilot on the P1 slice (default); "
+                         "4b-mtp = shipped 4B run (reproducibility)")
     ap.add_argument("--epochs", type=int, default=3)
+    ap.add_argument("--max-steps", type=int, default=200,
+                    help="cap optimizer steps (overrides epochs when > 0; "
+                         "T900978 pilot: 200 steps per notebook Vorbefund)")
     ap.add_argument("--lr", type=float, default=2e-4)
     ap.add_argument("--seq-len", type=int, default=2048)
     ap.add_argument("--force", action="store_true", help="skip the VRAM preflight")
@@ -79,19 +108,20 @@ def main():
     from unsloth import FastLanguageModel
     from trl import SFTConfig, SFTTrainer
 
+    spec = MODEL_SPECS[args.model_size]
     output_lora_dir = HERE / (
-        "qwen35_4b_bp_lora" if args.precision == "16bit" else "qwen35_4b_bp_lora_4bit"
+        spec["lora_16bit"] if args.precision == "16bit" else spec["lora_4bit"]
     )
-    dataset_file = HERE / "dataset_train.jsonl"
+    dataset_file = HERE / spec["dataset"]
 
-    # TO-VERIFY: base checkpoint name derived from the served GGUF's origin
-    # (unsloth/Qwen3.5-4B-MTP-GGUF); confirm via pull before training.
+    # TO-VERIFY: base checkpoint names derived from the served GGUFs' origin;
+    # confirm via pull before training.
     if args.precision == "16bit":
-        model_name = "unsloth/Qwen3.5-4B-MTP"   # full bf16 checkpoint
+        model_name = spec["hf_16bit"]   # full bf16 checkpoint
         load_in_4bit = False
-        lora_r = lora_alpha = 32
+        lora_r = lora_alpha = spec["lora_r_16bit"]
     else:
-        model_name = "unsloth/Qwen3.5-4B-MTP-bnb-4bit"
+        model_name = spec["hf_4bit"]
         load_in_4bit = True
         lora_r = lora_alpha = 16
 
@@ -107,7 +137,7 @@ def main():
         if args.precision == "16bit":
             raise
         # Pre-quantized repo unavailable -> full checkpoint with on-the-fly 4-bit
-        model_name = "unsloth/Qwen3.5-4B-MTP"
+        model_name = spec["hf_16bit"]
         print(f"Falling back to {model_name} (on-the-fly 4-bit load) ...")
         model, tokenizer = FastLanguageModel.from_pretrained(
             model_name=model_name,
@@ -156,6 +186,7 @@ def main():
             gradient_accumulation_steps=4,    # effective batch 8
             warmup_ratio=0.03,
             num_train_epochs=args.epochs,
+            max_steps=args.max_steps,
             learning_rate=args.lr,
             fp16=False,
             bf16=True,
@@ -168,7 +199,8 @@ def main():
         ),
     )
 
-    print(f"Training Qwen3.5-4B-MTP on the RTX 5070 Ti ({args.epochs} epochs) ...")
+    print(f"Training {model_name} [{args.model_size}] on the RTX 5070 Ti "
+          f"({args.epochs} epochs, max {args.max_steps} steps) ...")
     trainer_stats = trainer.train()
     print(f"Training finished: {trainer_stats.metrics}")
 

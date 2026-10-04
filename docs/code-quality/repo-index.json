@@ -3924,7 +3924,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 856,
+      "file_count": 858,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4059,6 +4059,8 @@
         "scripts/cicd-kubeconfig-gen.sh",
         "scripts/claude-key-picker.sh",
         "scripts/cleanup-test-inbox.sh",
+        "scripts/cloud-env/rbac.yaml",
+        "scripts/cloud-env/setup.sh",
         "scripts/coaching/batch-ingest-dir.mts",
         "scripts/coaching/batch-ingest-dir.test.mts",
         "scripts/coaching/classify-book.mts",

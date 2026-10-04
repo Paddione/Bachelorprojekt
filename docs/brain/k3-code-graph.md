@@ -186,8 +186,8 @@ Recall. Format/Drift: `docs/brain/embed-store.md`.
 | D2: Informationsfluss undurchsichtig | ✅ | Behoben durch Diagramm |
 | D3: Keine Fehlerfortpflanzung dokumentiert | ✅ | Siehe Auseinanderlauf-Stellen |
 | D4: Host-SPOF | — | N/A (lokaler Prozess, kein Cluster-Dienst) |
-| D5: Kein Failover | ⚠️ | Kein Mechanismus bei Index-Ausfall |
-| D6: Keine Health-Metriken | ⚠️ | `health-goals-check.sh` prüft nur ob `graph.db.zst` getrackt ist (nicht mehr) |
+| D5: Kein Failover | ✅ | Failover-Verträge dokumentiert: `docs/runbooks/cbm-index-stampede.md` (Abschnitt T002430); G-K3FRESH/G-K3PROJ machen Ausfälle sichtbar (gelb), nie falsch-grün |
+| D6: Keine Health-Metriken | ✅ | G-K3FRESH (Freshness aus Receipts) + G-K3PROJ (Index-Praesenz) in `health-goals-check.sh`; Verdict via `scripts/mcp/cbm-freshness.py` / `cbm-reconcile.py` [T002430] |
 | D7: Index-Trigger manuell | ✅ | Behoben durch periodischen Cron-Job (`scripts/cbm-refresh-cron.sh`) |
 | D8: K1/K3 auseinanderlaufend | ⚠️ | Beobachtbar seit T002430: `python3 scripts/mcp/cbm-reconcile.py status` meldet Coverage-Divergenz (code_unindexed / k3_untracked) + K3-Freshness-Verdict, fail-closed. K1-Evidenz lokal `unavailable` (keine Receipts, pgvector extern) |
 

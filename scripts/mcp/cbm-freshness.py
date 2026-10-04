@@ -51,6 +51,7 @@ git_untracked_files = _STATE.git_untracked_files
 git_status_lists = _STATE.git_status_lists
 fingerprint_state = _STATE.fingerprint_state
 git_origin_main = _STATE.git_origin_main
+git_common_dir = _STATE.git_common_dir
 upstream_relation = _STATE.upstream_relation
 
 def eprint(msg):
@@ -350,13 +351,14 @@ def cmd_status(args):
             probe_failed = True
             if code not in reasons:
                 reasons.append(code)
+    main_root = git_common_dir(checkout_root)
     if status_data is not None:
         gproj, groot = graph_identity(status_data)
         if gproj and gproj != project:
             probe_failed = True
             if "project-mismatch" not in reasons:
                 reasons.append("project-mismatch")
-        if groot and groot != checkout_root:
+        if groot and groot != checkout_root and groot != main_root:
             probe_failed = True
             if "root-mismatch" not in reasons:
                 reasons.append("root-mismatch")
@@ -374,7 +376,12 @@ def cmd_status(args):
             rroot = os.path.realpath(receipt["canonical_root"])
         except Exception:
             rroot = receipt["canonical_root"]
-        if rroot != checkout_root or receipt["project"] != project:
+        # T002430: accept the main-checkout root too — the tool canonicalizes
+        # worktree repo roots, so a worktree receipt may carry the main root
+        # while still describing exactly this checkout (same common git dir).
+        same_repo = (rroot == checkout_root
+                     or (main_root is not None and rroot == main_root))
+        if not same_repo or receipt["project"] != project:
             reasons.append("receipt-identity-mismatch")
             receipt = None
     if aerr == "malformed":

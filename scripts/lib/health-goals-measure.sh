@@ -282,3 +282,50 @@ sec05_unsigned() {
   done < <(git log -50 --pretty='%H %ae' main 2>/dev/null)
   echo "$unsigned"
 }
+
+# k3_freshness_flag — K3-Index-Frische aus den cbm-freshness Receipts
+# (G-K3FRESH, T002430). 1 = Verdict "fresh", 0 = alles andere (stale/unknown,
+# Fail-closed: eine gescheiterte Probe darf nie gruen sehen). "-" nur, wenn
+# der Helper selbst nicht ausfuehrbar/nicht parsebar ist (nicht messbar,
+# kein Fehlersignal — das unterscheidet Defekt von Zustand [T002648-Muster]).
+# CBM_FRESHNESS_BIN ueberschreibt den Helper (BATS-Fixture-Seam).
+k3_freshness_flag() {
+  local script
+  script="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/mcp/cbm-freshness.py"
+  local out
+  if [ -n "${CBM_FRESHNESS_BIN:-}" ]; then
+    out="$("$CBM_FRESHNESS_BIN" 2>/dev/null)" || true
+  else
+    local root
+    root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+    out="$(python3 "$script" status --repo "$root" \
+        --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" \
+        --timeout "${CBM_FRESHNESS_TIMEOUT:-30}" 2>/dev/null)" || true
+  fi
+  [ -n "$out" ] || { echo '-'; return; }
+  printf '%s' "$out" | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    print(1 if d.get("status") == "fresh" else 0)
+except Exception:
+    print("-")' 2>/dev/null || echo '-'
+}
+
+# k3_project_flag — K3-Projekt im Codebase-Memory-Index vorhanden und bereit
+# (G-K3PROJ, T002430). 1 = index_status ready mit nodes/edges > 0, sonst 0
+# (Fail-closed: fehlender/defekter Tool-Aufruf ist ein rotes Signal, kein SKIP).
+k3_project_flag() {
+  local out
+  out="$(codebase-memory-mcp cli index_status \
+      --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" 2>/dev/null)" || { echo 0; return; }
+  [ -n "$out" ] || { echo 0; return; }
+  printf '%s' "$out" | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    ready = d.get("status") == "ready"
+    print(1 if ready and (d.get("nodes") or 0) > 0 and (d.get("edges") or 0) > 0 else 0)
+except Exception:
+    print(0)' 2>/dev/null || echo 0
+}

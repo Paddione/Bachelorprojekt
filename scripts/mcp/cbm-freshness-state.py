@@ -58,6 +58,27 @@ def git_toplevel(repo):
         return raw
 
 
+def git_common_dir(repo):
+    """Absolute common git dir of the repo (main checkout's .git for
+    worktrees). T002430: the graph tool canonicalizes worktree repo roots to
+    the main checkout, so identity checks must accept the common-dir root."""
+    rc, out, _err, to, missing = run_bytes(
+        ["git", "-C", repo, "rev-parse", "--path-format=absolute",
+         "--git-common-dir"], timeout=GIT_TIMEOUT_S)
+    if missing or to or rc != 0:
+        return None
+    raw = out.decode("utf-8", "surrogateescape").strip()
+    if not raw:
+        return None
+    p = Path(raw)
+    if p.name == ".git":
+        p = p.parent
+    try:
+        return os.path.realpath(str(p))
+    except Exception:
+        return str(p)
+
+
 
 def git_head(repo):
     rc, out, _err, _to, missing = run_bytes(

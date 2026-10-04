@@ -2340,6 +2340,12 @@
     "kind": "shell"
   },
   {
+    "id": "cbm-health-goals",
+    "file": "tests/spec/cbm-health-goals.bats",
+    "category": "cbm-health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "cbm-hybrid-search",
     "file": "tests/spec/cbm-hybrid-search.bats",
     "category": "cbm-hybrid-search",

@@ -376,6 +376,13 @@ want G-FE05 && row target G-FE05 "$(runtime_measure lighthouse)" ge 90 "Niedrige
 # Defekt der Messung, kein "nicht messbar" [T002648].
 row target G-IF01 "$(python3 scripts/lib/mcp-endpoint-probe.py)" le 0 "MCP-Endpunkte ohne Listener (Registry vs TCP)"
 
+# K3-Codegraph-Ziele [T002430]: Frische aus den cbm-freshness Receipts und
+# Projekt-Praesenz im Index. Bewusst `target` (gelb) statt `gate`: eine
+# veraltete Index-Infrastruktur ist ein Betriebszustand, keine Codequalitaets-
+# Regression — aber nie unsichtbar (Fail-closed, 0 = nicht gruen).
+row target G-K3FRESH "$(k3_freshness_flag)" eq 1 "K3-Index frisch laut cbm-freshness-Receipts"
+row target G-K3PROJ "$(k3_project_flag)" eq 1 "K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0)"
+
 row target G-IF02 "$(python3 -c "
 import os,re
 files = ['components/website/src/lib/embeddings.ts', 'components/website/src/lib/rerank.ts', 'components/website/src/lib/bge-router.ts']

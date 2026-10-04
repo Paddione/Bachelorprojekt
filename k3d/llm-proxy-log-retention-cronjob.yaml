@@ -8,6 +8,13 @@
 #     Dauer, Status — bleiben zur Analyse erhalten)
 #   * Zeilen > 90 Tage: DELETE
 # Runs daily 03:23 (zwischen den knowledge-ingest-Jobs 02:00/02:30/03:00).
+#
+# Warte-Loop vor dem ersten psql: frische CronJob-Pod-IPs brauchen bis
+# zu ~60s, bis kube-router sie in die NetPol-Quell-Sets uebernommen hat
+# — ohne Wait schlaegt der erste Verbindungsversuch mit TCP-refused
+# fehl und jede Backoff-Wiederholung (neuer Pod, neue IP) rennt in
+# dasselbe Race. Der Table-Guard haelt den Job in Umgebungen stabil,
+# deren website-DB das Log noch nicht kennt (z.B. korczewski).
 # Kein ${VAR}-Substitution — Credentials via secretKeyRef, daher
 # schema-audit-neutral.
 # ═══════════════════════════════════════════════════════════════════
@@ -54,20 +61,32 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: WEBSITE_DB_PASSWORD
-              command: ["psql"]
+              command: ["sh", "-c"]
               args:
-                - "-h"
-                - "shared-db"
-                - "-U"
-                - "website"
-                - "-d"
-                - "website"
-                - "-v"
-                - "ON_ERROR_STOP=1"
-                - "-c"
-                - "UPDATE tickets.llm_proxy_request_log SET request_body = NULL, response_body = NULL WHERE ts < now() - interval '7 days' AND (request_body IS NOT NULL OR response_body IS NOT NULL);"
-                - "-c"
-                - "DELETE FROM tickets.llm_proxy_request_log WHERE ts < now() - interval '90 days';"
+                - |
+                  set -e
+                  # NetPol-Sync abwarten (siehe Kommentar oben), max ~90s.
+                  ok=0
+                  for attempt in $(seq 1 18); do
+                    if pg_isready -h shared-db -p 5432 -t 3 -q; then ok=1; break; fi
+                    sleep 5
+                  done
+                  [ "$ok" = "1" ] || { echo "shared-db not reachable after 18 tries"; exit 1; }
+                  psql -h shared-db -U website -d website -v ON_ERROR_STOP=1 <<'EOSQL'
+                  DO $$
+                  BEGIN
+                    IF to_regclass('tickets.llm_proxy_request_log') IS NOT NULL THEN
+                      UPDATE tickets.llm_proxy_request_log
+                         SET request_body = NULL,
+                             response_body = NULL
+                       WHERE ts < now() - interval '7 days'
+                         AND (request_body IS NOT NULL OR response_body IS NOT NULL);
+                      DELETE FROM tickets.llm_proxy_request_log
+                       WHERE ts < now() - interval '90 days';
+                    END IF;
+                  END
+                  $$;
+                  EOSQL
               resources:
                 requests:
                   cpu: 10m

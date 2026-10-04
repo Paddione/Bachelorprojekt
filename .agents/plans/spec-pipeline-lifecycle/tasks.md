@@ -1,7 +1,7 @@
 ---
 title: Spec-Pipeline Lifecycle Receipt Delete
 ticket_id: T900999
-domains: plans
+domains: [plan-authoring, dev-tooling]
 status: staged
 ---
 

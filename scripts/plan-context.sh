@@ -16,7 +16,9 @@ _role_allowlist() {
         bachelorprojekt-infra)     echo "infra deploy deployment k3d kustomize prod environments taskfile fleet-operations" ;;
         # Gleiche Lehre wie llm-local-dev oben (T016598): ohne den Token faellt
         # jedes Proposal mit dieser Domain durch den Corpus-Guard T002614.
-        bachelorprojekt-test)      echo "test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills" ;;
+        # T901017: `agents`-Token aufgenommen (UNANCHORED worker-machine-format,
+        # domains: [agents]) — gleiche Lehre, bp-ship spiegelt die Test-Union.
+        bachelorprojekt-test)      echo "test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills agents" ;;
         bachelorprojekt-db)        echo "db postgres tracking timeline database" ;;
         bachelorprojekt-security)  echo "security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
         # T900858: thin domain primaries over the OMO engine. Unions of the
@@ -24,7 +26,7 @@ _role_allowlist() {
         # filters instead of falling back to __ALL__.
         bp-build)                  echo "infra deploy deployment k3d kustomize prod environments taskfile fleet-operations security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
         bp-run)                    echo "ops llm llm-local-dev k8s observability monitoring factory-watchdog infra-monitoring db postgres tracking timeline database" ;;
-        bp-ship)                   echo "website frontend design ui svelte astro css brett test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills" ;;
+        bp-ship)                   echo "website frontend design ui svelte astro css brett test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills agents" ;;
         orchestrator)              echo "__ALL__" ;;
         *)
             printf 'WARN: unknown role "%s" — including all proposals as fail-soft\n' "$1" >&2

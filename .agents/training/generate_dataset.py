@@ -12,6 +12,7 @@ DATASET_PLAN.md:
 
 Usage:
   python3 .agents/training/generate_dataset.py                 # T1 only
+  python3 .agents/training/generate_dataset.py --slice-2b       # T900978 2B pilot slice
   python3 .agents/training/generate_dataset.py --teacher --target 1100
   python3 .agents/training/generate_dataset.py --teacher-url http://127.0.0.1:1919
 """
@@ -39,6 +40,16 @@ ANSWER_CAP_PER_DOMAIN = 4
 MIN_NORMALIZED_LEN = 12
 VAL_FRACTION = 0.05
 SEED = 3407
+
+# P1 (T900978) 2B pilot slice: operational domains with exact anchors
+# (command, path/overlay, context). Dependent partials (P2 train, P3 eval)
+# build on the slice outputs dataset_2b_*.jsonl.
+SLICE_2B_DOMAINS = {"cli", "gotchas", "workflow", "runbooks", "ci", "llmstack"}
+# Anchor: executable command OR repo path/overlay OR task target in the answer.
+ANCHOR_RE = (
+    r"(?:```|\b(?:task|bash|git|curl|kubectl|systemctl|python3?|node|nvidia-smi)\s+\S"
+    r"|[a-zA-Z0-9_./-]+\.(?:md|yaml|yml|json|jsonc|mjs|sh|py)"
+    r"|ENV=|fleet|devmesh|:8080|:1919)")
 
 REPO = HERE.parent.parent  # repo root (script lives in .agents/training/)
 
@@ -783,6 +794,23 @@ def pair(user, assistant):
     }
 
 
+def is_slice_2b(domain, item):
+    """P1 (T900978): keep 2B-relevant domains whose answer carries an anchor."""
+    import re as _re
+    if domain not in SLICE_2B_DOMAINS:
+        return False
+    answer = item["messages"][-1]["content"]
+    return bool(_re.search(ANCHOR_RE, answer))
+
+
+def apply_slice_2b(raw):
+    """P1 (T900978): filter raw (domain, item) pairs to the 2B pilot slice."""
+    kept = [(d, it) for d, it in raw if is_slice_2b(d, it)]
+    return kept, {"slice_domains": sorted(SLICE_2B_DOMAINS),
+                  "slice_raw": len(raw), "slice_kept": len(kept),
+                  "slice_dropped": len(raw) - len(kept)}
+
+
 def build_t1():
     """Deterministic fact-base expansion -> list of (domain, messages)."""
     raw = []
@@ -1217,6 +1245,9 @@ def main():
     ap.add_argument("--corpus", type=Path, default=None,
                     help="bench export sft.jsonl — merges EXECUTION-role "
                          "trajectories only (planner/reviewer dropped)")
+    ap.add_argument("--slice-2b", action="store_true",
+                    help="T900978 P1: 2B pilot slice (domain + anchor filter); "
+                         "writes dataset_2b*.jsonl + dataset_stats.json")
     args = ap.parse_args()
 
     rng = random.Random(SEED)
@@ -1230,6 +1261,13 @@ def main():
     # ---- T1 ----
     raw = build_t1()
     t1_count = len(raw)
+    slice_stats = {}
+    out_prefix = "dataset"
+    if args.slice_2b:
+        raw, slice_stats = apply_slice_2b(raw)
+        out_prefix = "dataset_2b"
+        print(f"[slice-2b] {slice_stats['slice_kept']}/{slice_stats['slice_raw']} kept "
+              f"(domains {','.join(slice_stats['slice_domains'])})", flush=True)
     kept, stats = dedup(raw)
     t1_unique = len(kept)
 
@@ -1306,9 +1344,9 @@ def main():
             for _, item in rows:
                 f.write(json.dumps(item, ensure_ascii=False) + "\n")
 
-    dump(HERE / "dataset.jsonl", entries)
-    dump(HERE / "dataset_train.jsonl", train)
-    dump(HERE / "dataset_val.jsonl", val)
+    dump(HERE / f"{out_prefix}.jsonl", entries)
+    dump(HERE / f"{out_prefix}_train.jsonl", train)
+    dump(HERE / f"{out_prefix}_val.jsonl", val)
 
     by_domain, german = {}, 0
     for domain, item in entries:
@@ -1332,6 +1370,7 @@ def main():
         "target": args.target,
         "target_met": len(entries) >= args.target if args.teacher else None,
         "near_dup_jaccard": NEAR_DUP_JACCARD,
+        "slice_2b": slice_stats if args.slice_2b else None,
         "by_domain": dict(sorted(by_domain.items(), key=lambda kv: -kv[1])),
         **stats,
     }
@@ -1339,8 +1378,8 @@ def main():
         json.dump(stats_out, f, indent=2, ensure_ascii=False)
 
     print(json.dumps(stats_out, indent=2, ensure_ascii=False))
-    print(f"\nWrote dataset.jsonl / dataset_train.jsonl / dataset_val.jsonl "
-          f"/ dataset_stats.json in {HERE}")
+    print(f"\nWrote {out_prefix}.jsonl / {out_prefix}_train.jsonl / "
+          f"{out_prefix}_val.jsonl / dataset_stats.json in {HERE}")
     if not args.teacher and len(entries) < 1000:
         print("\nNOTE: below the 1000-unique goal — run the T2 teacher scale-up:\n"
               "  python3 .agents/training/generate_dataset.py --teacher --qc --target 1100")

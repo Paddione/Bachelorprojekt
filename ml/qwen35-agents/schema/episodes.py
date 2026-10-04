@@ -42,6 +42,9 @@ class Provenance(BaseModel):
     reviewed: bool = False
     tool_schema_version: str  # Version des Tool-Protokolls, z.B. "v1"
     scenario_version: str | None = None
+    raw_sha256: str | None = None
+    source_worktree: str | None = None
+    split_assigned: bool = True
 
 
 class Episode(BaseModel):
@@ -52,6 +55,11 @@ class Episode(BaseModel):
     base_model: str  # z.B. "Qwen3.5-0.8B-Instruct"
     messages: list[dict[str, Any]]  # Chat-Format inkl. tool_calls/tool-Rollen
     tool_calls: list[ToolCall] = Field(default_factory=list)
+    tools: list[dict[str, Any]] = Field(default_factory=list)
+    expected_plan: dict[str, Any] | None = None
+    selected_task: str | None = None
+    selected_arguments: dict[str, Any] | None = None
+    scenario_variant: str | None = None
     result: Result | None = None
     acceptance_criteria: list[str] = Field(default_factory=list)
     expected_task: str | None = None  # dispatcher: erwarteter Task

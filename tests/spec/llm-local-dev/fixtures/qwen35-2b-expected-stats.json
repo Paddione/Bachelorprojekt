@@ -1,0 +1,12 @@
+{
+  "fixture_rows": 9,
+  "slice_kept": 7,
+  "slice_dropped": 2,
+  "dedup_dropped_exact": 1,
+  "dedup_kept": 6,
+  "by_kind_kept": {
+    "single-file": 2,
+    "config": 2,
+    "boilerplate": 2
+  }
+}

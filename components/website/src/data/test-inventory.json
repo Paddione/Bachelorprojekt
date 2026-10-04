@@ -2310,6 +2310,12 @@
     "kind": "shell"
   },
   {
+    "id": "cbm-health-goals",
+    "file": "tests/spec/cbm-health-goals.bats",
+    "category": "cbm-health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "cbm-reconcile",
     "file": "tests/spec/cbm-reconcile.bats",
     "category": "cbm-reconcile",

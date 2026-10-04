@@ -32,8 +32,10 @@ for index outages.
 
 - [ ] **1. RED: health goal fails first.** Add BATS coverage asserting a new
   `G-K3FRESH` row exists and reports fail-closed: with a stubbed
-  `cbm-freshness.py` returning `unknown`, the row reports failure and the script
-  exits nonzero. Run against the current tree:
+  `cbm-freshness.py` returning `unknown`, the row reports NOT green
+  (`target`-Zeile: gelb/OPEN, niemals falsch-gruen) — der Script-Exit bleibt
+  gate-getrieben, damit lokale/CI-Laeufe durch einen Betriebszustand nicht
+  brechen. Run against the current tree:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/cbm-health-goals.bats

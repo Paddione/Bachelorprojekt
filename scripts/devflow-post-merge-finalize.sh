@@ -278,7 +278,26 @@ if [[ -n "$PR_NUM" ]]; then
 fi
 
 # Schritt 7 — Plan in der Ticket-Datenbank archivieren.
+# [T900999-P1] Lifecycle-Receipt: Schritt 7 schreibt das Receipt (Frontmatter +
+# Check-Evidenz + Merge-SHA) nach tickets.ticket_plans. Der Receipt-Datensatz IST die
+# verifizierte Archiv-Zeile (Schema: slug/branch/content/pr_number — keine separaten
+# Receipt-Spalten, daher kein zweiter Write-Pfad): Frontmatter steckt im Content, der
+# Merge-Bezug in pr_number, die Verifikation im Count-Check von archive-plan.
+# Idempotent: ein bereits archivierter Slug wird uebersprungen (kein Duplikat).
+# Fail-closed: archive-plan bricht bei DB-Schreibfehler mit Exit 1 ab (s. unten).
+# KEIN Delete hier — das ist P2 (branch-reaper.sh --plan-cleanup).
 if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
+  _receipt_done=0
+  # Idempotenz-Vorabfrage: get-timeline meldet plan_archived-Events mit Slug.
+  # Best-effort — scheitert die Abfrage, gilt "unbekannt" und es wird archiviert.
+  if _receipt_tl="$(bash "$TICKET_SH" get-timeline --id "$TICKET_ID" 2>/dev/null)"; then
+    if grep -q "$SLUG" <<<"$_receipt_tl" 2>/dev/null; then
+      _receipt_done=1
+    fi
+  fi
+  if [[ "$_receipt_done" -eq 1 ]]; then
+    mark_skip "Schritt 7: Plan-Slug $SLUG bereits in tickets.ticket_plans archiviert (Receipt idempotent)"
+  else
   _plan_source="$WORKTREE/$PLAN_REL"
   [[ -s "$_plan_source" ]] || _plan_source="$PLAN_FILE"
   if [[ -s "$_plan_source" ]]; then
@@ -288,7 +307,15 @@ if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
     ARCHIVE_PLAN_ARGS=(--id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" --plan-file "$_plan_copy")
     [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
     if bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1; then
-      mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert"
+      # Receipt-Evidenz zusammenfuehren (alles best-effort ausser dem Archiv selbst):
+      # Frontmatter-Felder aus der Plankopie, plan-lint-Verdikt, Merge-SHA aus dem
+      # gemergten PR (Rueckfall: origin/main-Spitze — belegt, WORAUF gemergt wurde).
+      _receipt_fm="$(grep -E '^(title|ticket_id|status):' "$_plan_copy" 2>/dev/null | tr '\n' ' ' || true)"
+      _receipt_sha=""
+      [[ -n "$PR_NUM" ]] && _receipt_sha="$(gh pr view "$PR_NUM" --json mergeCommit -q .mergeCommit.oid 2>/dev/null || true)"
+      [[ -z "$_receipt_sha" ]] && _receipt_sha="$(git -C "$REPO_DIR" rev-parse origin/main 2>/dev/null || true)"
+      _receipt_lint="$(bash "$REPO_DIR/scripts/plan-lint.sh" "$_plan_source" 2>/dev/null | tail -n 1 || true)"
+      mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert (Receipt slug=$SLUG merge=${_receipt_sha:-unbekannt} fm=[${_receipt_fm:-n/a}] lint=[${_receipt_lint:-n/a}])"
     else
       rm -f "$_plan_copy"
       echo "ERROR: Schritt 7 — archive-plan fehlgeschlagen (Ticket $TICKET_ID)." >&2
@@ -297,6 +324,7 @@ if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
     rm -f "$_plan_copy"
   else
     mark_warn "Schritt 7: Plan-Pfad $PLAN_REL nicht aufloesbar"
+  fi
   fi
 else
   mark_skip "Schritt 7: kein FACTORY-PLAN-REF mit Plan-Pfad"

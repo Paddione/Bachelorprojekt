@@ -4482,6 +4482,12 @@
     "kind": "shell"
   },
   {
+    "id": "plan-lifecycle",
+    "file": "tests/spec/plan-lifecycle.bats",
+    "category": "plan-lifecycle",
+    "kind": "shell"
+  },
+  {
     "id": "plan-partials-embedding/size-gate",
     "file": "tests/spec/plan-partials-embedding/size-gate.bats",
     "category": "plan-partials-embedding",

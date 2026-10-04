@@ -2,7 +2,7 @@
 
 QLoRA-Finetune von Qwen3.5-9B zum Planner des Bachelorprojekts, lokal auf der RTX 5070 Ti, 0 €.
 Spec: `docs/superpowers/specs/2026-10-04-qwen35-9b-planner-finetune-design.md`,
-Plan: `.agents/plans/qwen35-9b-planner/tasks.md`. Zahlen jedes Laufs: `data/stats.json`.
+Plan: `.agents/plans/qwen35-9b-planner/tasks.md`. Zahlen jedes Laufs: `stats.json`.
 
 ## Orte
 

@@ -1,5 +1,2 @@
-data/*
-!data/stats.json
-out/
 .venv/
 __pycache__/

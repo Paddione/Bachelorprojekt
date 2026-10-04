@@ -64,7 +64,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/cbm-embed-store.bats
   fail-closed on malformed lines. Commit as
   `feat(T900993): content-hash-keyed embedding store for K3 symbol layer`.
 
-- [ ] **3. RED: sync and rerank contracts fail first.** Write
+- [x] **3. RED: sync and rerank contracts fail first.** Write
   `tests/spec/cbm-graph-rerank.bats`: (a) sync's `plan_sync` is a pure
   function over (candidate texts, store contents) returning
   to_embed/to_prune/unchanged — no network in this path, asserted via

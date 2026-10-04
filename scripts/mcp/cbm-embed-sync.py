@@ -541,7 +541,7 @@ def kind_breakdown(candidates):
 
 def cmd_status(args):
     root, head = resolve(args)
-    status, receipt = GRAPH.GRAPH.freshness_state(root, args.project, args.timeout)
+    status, receipt = GRAPH.freshness_state(root, args.project, args.timeout)
     candidates = collect_candidates(args, root, head)
     store = STORE.load_artifact(artifact_path(root))
     try:
@@ -577,7 +577,7 @@ def cmd_status(args):
 
 def cmd_sync(args):
     root, head = resolve(args)
-    status, receipt = GRAPH.GRAPH.freshness_state(root, args.project, args.timeout)
+    status, receipt = GRAPH.freshness_state(root, args.project, args.timeout)
     guard_stale(status, args.allow_stale)
     receipt_id = (receipt or {}).get("timestamp")
     candidates = collect_candidates(args, root, head)

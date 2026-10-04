@@ -14,6 +14,8 @@
 #
 # Network-free: exercised via `python3 -c` imports with fixtures.
 
+bats_require_minimum_version 1.5.0
+
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   HYBRID_PY="$REPO_ROOT/scripts/mcp/cbm-hybrid.py"
@@ -173,7 +175,10 @@ con.commit()
 con.close()
 PYEOF
   RERANK_PY="$REPO_ROOT/scripts/mcp/cbm-graph-rerank.py"
-  run python3 "$RERANK_PY" --root "$EMPTYROOT" --project test-no-boost-probe hybrid \
+  # --separate-stderr ist Pflicht (Repo-Konvention, vgl. ci-cd.bats): die
+  # Query-Einbettung loggt Retries nach stderr (Gateway down -> Degradation);
+  # stdout muss reines JSON bleiben, unabhaengig vom Gateway-Zustand.
+  run --separate-stderr python3 "$RERANK_PY" --root "$EMPTYROOT" --project test-no-boost-probe hybrid \
     --query "freshness receipt" --db "$FIXDB" --top-k 3 --pool 10 \
     --no-rerank --no-boost
   [ "$status" -eq 0 ]
@@ -188,7 +193,7 @@ assert d['stages']['boosted']['max_boost'] == 0.0, d['stages']
 "
   # control: same query without --no-boost must NOT carry the skip warning
   # (graph probes degrade to empty features with a probe warning instead)
-  run python3 "$RERANK_PY" --root "$EMPTYROOT" --project test-no-boost-probe hybrid \
+  run --separate-stderr python3 "$RERANK_PY" --root "$EMPTYROOT" --project test-no-boost-probe hybrid \
     --query "freshness receipt" --db "$FIXDB" --top-k 3 --pool 10 \
     --no-rerank
   [ "$status" -eq 0 ]

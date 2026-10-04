@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-94 Services · 1934 Abhängigkeitskanten · 297 API-Endpoints
+95 Services · 2020 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -43,6 +43,7 @@ flowchart LR
   bge_embed["bge-embed"]:::default
   bge_rerank["bge-rerank"]:::default
   bge_embed_bulk["bge-embed-bulk"]:::default
+  llm_proxy_log_retention["llm-proxy-log-retention"]:::default
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
   mentolder_web["mentolder-web"]:::default
@@ -135,6 +136,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"PGDATABASE"| website
   knowledge_reindex_all -->|"PGHOST"| shared_db
   knowledge_reindex_all -->|"PGDATABASE"| website
+  llm_proxy_log_retention -->|"command"| shared_db
+  llm_proxy_log_retention -->|"command"| website
   nextcloud -->|"SMTP_HOST"| mailpit
   nextcloud -->|"configmap:domain-c…"| brett
   nextcloud -->|"configmap:domain-c…"| traefik
@@ -282,6 +285,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| notify_unread
@@ -361,6 +366,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| admin_actions_prune
+  admin_actions_prune -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| notify_unread
@@ -438,6 +445,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| notify_unread
@@ -514,6 +523,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| db_backup
+  db_backup -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| db_backup
   nextcloud -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| db_backup
@@ -585,6 +596,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| notify_unread
@@ -656,6 +669,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| nextcloud
   brett -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| brett
@@ -720,6 +735,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| notify_unread
@@ -788,6 +805,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| notify_unread
@@ -854,6 +873,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| notify_unread
@@ -918,6 +939,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| notify_unread
@@ -980,6 +1003,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_dev
+  oauth2_proxy_dev -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| notify_unread
@@ -1040,6 +1065,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| notify_unread
@@ -1098,6 +1125,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| error_log_retention
+  error_log_retention -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| notify_unread
@@ -1154,6 +1183,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| notify_unread
@@ -1207,6 +1238,8 @@ flowchart LR
   oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| notify_unread
@@ -1258,6 +1291,8 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_brain
   oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_reindex_all -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| notify_unread
@@ -1309,6 +1344,57 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_brain
   oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_reindex_all
+  llm_proxy_log_retention -->|"secret:workspace-s…"| nextcloud
+  nextcloud -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_downloads
+  oauth2_proxy_downloads -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
+  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_terminal
+  oauth2_proxy_terminal -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| pocket_id
+  pocket_id -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| sdlc_console
+  sdlc_console -->|"secret:workspace-s…"| llm_proxy_log_retention
+  shared_db -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| dev_db_refresh
+  dev_db_refresh -->|"secret:workspace-s…"| llm_proxy_log_retention
+  llm_proxy_log_retention -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| llm_proxy_log_retention
   nextcloud -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_brett
@@ -2008,6 +2094,7 @@ flowchart TB
     bge_embed["bge-embed"]
     bge_rerank["bge-rerank"]
     bge_embed_bulk["bge-embed-bulk"]
+    llm_proxy_log_retention(["llm-proxy-log-retention"])
     mailpit["mailpit"]
     mediaviewer_widget["mediaviewer-widget"]
     mentolder_web["mentolder-web"]

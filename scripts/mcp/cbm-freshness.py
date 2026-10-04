@@ -19,64 +19,38 @@ import stat as statmod
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 1
-DEFAULT_PROJECT = "home-patrick-Bachelorprojekt"
-DEFAULT_TIMEOUT_S = 30
-GIT_TIMEOUT_S = 15
+import sys as _sys
+from pathlib import Path as _Path
 
-def eprint(msg):
-    print(msg, file=sys.stderr)
-
-
-def cache_dir():
-    home = os.environ.get("HOME") or str(Path.home())
-    return Path(home) / ".cache" / "codebase-memory-mcp"
-
-
-def safe_project(project):
-    return "".join(c if c.isalnum() or c in ("-", "_", ".") else "_" for c in project)
+# T002430: pure utilities live in the sibling lib module (S1 budget relief).
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from cbm_freshness_lib import (  # noqa: E402
+    DEFAULT_PROJECT, DEFAULT_TIMEOUT_S, GIT_TIMEOUT_S, SCHEMA_VERSION,
+    attempt_path, atomic_write_json, cache_dir, db_path, eprint,
+    graph_identity, load_json_file, probe_json, receipt_path, root_hash,
+    run_bytes, safe_project, same_db, tool_version, utc_now_iso,
+    validate_receipt,
+)
 
 
-def root_hash(canonical_root):
-    return hashlib.sha256(canonical_root.encode("utf-8")).hexdigest()[:32]
 
 
-def receipt_path(project, canonical_root):
-    return cache_dir() / f"cbm-receipt-{safe_project(project)}-{root_hash(canonical_root)}.json"
 
 
-def attempt_path(project, canonical_root):
-    return cache_dir() / f"cbm-attempt-{safe_project(project)}-{root_hash(canonical_root)}.json"
 
 
-def db_path(project):
-    return cache_dir() / f"{project}.db"
 
 
-def utc_now_iso():
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
-def run_bytes(cmd, cwd=None, timeout=15):
-    """Run command, return (rc, stdout_bytes, stderr_bytes, timed_out, missing)."""
-    try:
-        p = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=timeout)
-        return p.returncode, p.stdout or b"", p.stderr or b"", False, False
-    except subprocess.TimeoutExpired as ex:
-        out = ex.stdout or b""
-        err = ex.stderr or b""
-        if isinstance(out, str):
-            out = out.encode()
-        if isinstance(err, str):
-            err = err.encode()
-        return 124, out, err, True, False
-    except FileNotFoundError:
-        return 127, b"", b"", False, True
-    except OSError:
-        return 1, b"", b"", False, False
+
+
+
+
+
+
 
 
 def git_toplevel(repo):
@@ -122,6 +96,27 @@ def git_origin_main(repo):
     if len(sha) != 40:
         return None
     return sha
+
+
+def git_common_dir(repo):
+    """Absolute common git dir of the repo (main checkout's .git for
+    worktrees). T002430: the graph tool canonicalizes worktree repo roots to
+    the main checkout, so identity checks must accept the common-dir root."""
+    rc, out, _err, to, missing = run_bytes(
+        ["git", "-C", repo, "rev-parse", "--path-format=absolute",
+         "--git-common-dir"], timeout=GIT_TIMEOUT_S)
+    if missing or to or rc != 0:
+        return None
+    raw = out.decode("utf-8", "surrogateescape").strip()
+    if not raw:
+        return None
+    p = Path(raw)
+    if p.name == ".git":
+        p = p.parent
+    try:
+        return os.path.realpath(str(p))
+    except Exception:
+        return str(p)
 
 
 def git_is_ancestor(repo, a, b):
@@ -297,121 +292,18 @@ def db_stat_info(project):
             "ino": st.st_ino, "mode": st.st_mode}
 
 
-def atomic_write_json(path, data):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.parent / f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp"
-    with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, ensure_ascii=False, sort_keys=True)
-        fh.write("\n")
-        fh.flush()
-        try:
-            os.fsync(fh.fileno())
-        except OSError:
-            pass
-    os.replace(tmp, path)
 
 
-def load_json_file(path):
-    try:
-        with open(path, "r", encoding="utf-8") as fh:
-            return json.load(fh), None
-    except FileNotFoundError:
-        return None, "missing"
-    except (json.JSONDecodeError, UnicodeDecodeError, OSError):
-        return None, "malformed"
 
 
-def tool_version(timeout=10):
-    rc, out, _err, timed_out, missing = run_bytes(
-        ["codebase-memory-mcp", "--version"], timeout=timeout)
-    if missing:
-        return None, "tool-missing"
-    if timed_out:
-        return None, "probe-timeout"
-    if rc != 0:
-        return None, "probe-failed"
-    try:
-        text = out.decode("utf-8", "surrogateescape").strip()
-    except Exception:
-        return None, "probe-malformed"
-    return (text or "unknown"), None
 
 
-def probe_json(cmd, timeout):
-    rc, out, err, timed_out, missing = run_bytes(cmd, timeout=timeout)
-    if missing:
-        return None, "tool-missing", "", ""
-    if timed_out:
-        return None, "probe-timeout", "", ""
-    try:
-        stdout = out.decode("utf-8", "surrogateescape")
-        stderr = err.decode("utf-8", "surrogateescape")
-    except Exception:
-        return None, "probe-malformed", "", ""
-    if rc != 0:
-        return None, "probe-failed", stdout, stderr
-    try:
-        data = json.loads(stdout) if stdout.strip() else None
-    except json.JSONDecodeError:
-        return None, "probe-malformed", stdout, stderr
-    if not isinstance(data, dict):
-        return None, "probe-malformed", stdout, stderr
-    if "error" in data or "tool_error" in data:
-        return data, "tool-error", stdout, stderr
-    return data, None, stdout, stderr
 
 
-def graph_identity(data):
-    """Extract (project, canonical_root) from index_status payload if present."""
-    if not isinstance(data, dict):
-        return None, None
-    proj = data.get("project")
-    root = data.get("root_path")
-    git = data.get("git") if isinstance(data.get("git"), dict) else {}
-    canon = git.get("canonical_root") or git.get("worktree_root") or root
-    if isinstance(canon, str):
-        try:
-            canon = os.path.realpath(canon)
-        except Exception:
-            pass
-    return proj, canon
 
 
-def validate_receipt(data):
-    if not isinstance(data, dict):
-        return False
-    required = ["schema_version", "timestamp", "head_sha", "canonical_root",
-                "project", "mode", "tool_version", "state_fingerprint", "dirty"]
-    for key in required:
-        if key not in data:
-            return False
-    if data.get("schema_version") != SCHEMA_VERSION:
-        return False
-    if not isinstance(data.get("head_sha"), str) or len(data["head_sha"]) != 40:
-        return False
-    if not isinstance(data.get("canonical_root"), str) or not data["canonical_root"]:
-        return False
-    if not isinstance(data.get("project"), str) or not data["project"]:
-        return False
-    if not isinstance(data.get("state_fingerprint"), str) or not data["state_fingerprint"]:
-        return False
-    if not isinstance(data.get("dirty"), bool):
-        return False
-    return True
 
 
-def same_db(a, b):
-    if a is None or b is None:
-        return a is None and b is None
-    if not isinstance(a, dict) or not isinstance(b, dict):
-        return False
-    if "error" in a or "error" in b:
-        return False
-    for key in ("size", "mtime_ns", "ino", "mode", "path"):
-        if a.get(key) != b.get(key):
-            return False
-    return True
 
 
 def script_checkout_root():
@@ -473,6 +365,13 @@ def cmd_status(args):
         ["codebase-memory-mcp", "cli", "index_status", "--project", project], timeout)
     changes_data, changes_err, _co, _ce = probe_json(
         ["codebase-memory-mcp", "cli", "detect_changes", "--project", project], timeout)
+    if changes_err == "probe-malformed":
+        # T002430: tool 0.10.8 has no JSON mode for detect_changes — it emits
+        # human-readable text even via --json. Informational only; must not
+        # force the verdict to unknown.
+        changes_err = None
+        changes_data = None
+        reasons.append("detect-changes-nonjson")
     graph = {"tool_version": ver,
              "index_status": status_data,
              "detect_changes": changes_data}
@@ -482,13 +381,14 @@ def cmd_status(args):
             probe_failed = True
             if code not in reasons:
                 reasons.append(code)
+    main_root = git_common_dir(checkout_root)
     if status_data is not None:
         gproj, groot = graph_identity(status_data)
         if gproj and gproj != project:
             probe_failed = True
             if "project-mismatch" not in reasons:
                 reasons.append("project-mismatch")
-        if groot and groot != checkout_root:
+        if groot and groot != checkout_root and groot != main_root:
             probe_failed = True
             if "root-mismatch" not in reasons:
                 reasons.append("root-mismatch")
@@ -506,7 +406,12 @@ def cmd_status(args):
             rroot = os.path.realpath(receipt["canonical_root"])
         except Exception:
             rroot = receipt["canonical_root"]
-        if rroot != checkout_root or receipt["project"] != project:
+        # T002430: accept the main-checkout root too — the tool canonicalizes
+        # worktree repo roots, so a worktree receipt may carry the main root
+        # while still describing exactly this checkout (same common git dir).
+        same_repo = (rroot == checkout_root
+                     or (main_root is not None and rroot == main_root))
+        if not same_repo or receipt["project"] != project:
             reasons.append("receipt-identity-mismatch")
             receipt = None
     if aerr == "malformed":

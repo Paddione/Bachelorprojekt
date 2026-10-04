@@ -3720,6 +3720,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/plan-runner-ticket-ref",
+    "file": "tests/spec/llm-local-dev/plan-runner-ticket-ref.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/qwen-tensor-split",
     "file": "tests/spec/llm-local-dev/qwen-tensor-split.bats",
     "category": "llm-local-dev",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.395.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.0...website-v1.395.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* T002430 k3 health monitoring ([#6235](https://github.com/Paddione/Bachelorprojekt/issues/6235)) ([e7ee91a](https://github.com/Paddione/Bachelorprojekt/commit/e7ee91a8d907ea32d76148aaa8f504f33779b1fd))
+
 ## [1.395.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.394.0...website-v1.395.0) (2026-10-04)
 
 

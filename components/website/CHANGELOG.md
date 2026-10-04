@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.395.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.1...website-v1.395.2) (2026-10-04)
+
+
+### Bug Fixes
+
+* **netpol:** namespaceSelector workaround + DB schema cleanup (retention, duplicate indexes) ([#6274](https://github.com/Paddione/Bachelorprojekt/issues/6274)) ([b997ff3](https://github.com/Paddione/Bachelorprojekt/commit/b997ff3476593baad166a1c72dd4eb65c3c30346))
+
 ## [1.395.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.0...website-v1.395.1) (2026-10-04)
 
 

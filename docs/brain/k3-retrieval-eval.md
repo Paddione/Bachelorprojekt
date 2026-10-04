@@ -49,36 +49,52 @@ rankers under test). Two adapters:
 The current `scripts/mcp/cbm-graph-rerank.py rerank` CLI and the future A3
 hybrid CLI both plug in via `--ranker-cmd` unchanged.
 
-## Status: live numbers PENDING
+## Status: live gemessen 2026-10-04
 
-As of 2026-10-04 in this worktree the live run is blocked on three
-independent prerequisites (checked, not assumed):
+Store: 22.336 Vektoren (`bge-m3`, dim 1024, Corpus-SHA
+`785f3257…`, Receipt `2026-10-04T10:32:20Z`, `verify → ok`).
+Hybrid: BM25 (`nodes_fts`) + Dense parallel, RRF k=60, Pool 50,
+Cross-Encoder `bge-reranker-v2-m3`, Graph-Boost cap 0,14.
+Rohdaten: `docs/brain/k3-retrieval-ablation.json`
+(Runner-Tabelle: `/tmp/opencode/eval-table.md`, per-call-Adapter durch
+Batch-Adapter mit identischen Codepfaden ersetzt — Store/Features 1×
+geladen, Dense per numpy float64, siehe Fußnote).
 
-1. No `.codebase-memory/` store exists (sync never ran here).
-2. `python3 scripts/mcp/cbm-embed-sync.py status` →
-   `cli-missing:codebase-memory-mcp` (no graph candidates/features).
-3. Embed gateway `http://localhost:8081` unreachable (empty reply).
+| Konfiguration | Recall@10 | MRR@10 |
+|---|---|---|
+| RRF, kein Rerank, kein Boost (`fts-only`) | 0,719 | 0,652 |
+| RRF + Boost, kein Rerank (`fused`) | 0,469 | 0,311 |
+| Dense allein (`dense-only`) | 0,562 | 0,512 |
+| RRF + Rerank, kein Boost (`+cross-encoder`) | 0,828 | 0,734 |
+| RRF + Rerank + Boost (`+graph-boost`) | 0,828 | 0,734 |
 
-No bulk embedding was performed for this task. Exact re-run once the
-prerequisites hold (port-forward `svc/llm-gateway-embed` first):
+Per-kind (Recall): code 0,958 / doc 0,650 / route 0,850 auf der
+Top-Zeile; Dense-doc 0,000 (Section-Vektoren ohne Prosa, A2-Limit).
 
-```bash
-python3 scripts/mcp/cbm-embed-sync.py sync --allow-stale   # or without flag once freshness is green
-python3 scripts/mcp/cbm-eval.py run \
-  --eval docs/brain/k3-retrieval-eval.jsonl \
-  --ranker-cmd 'python3 scripts/mcp/cbm-graph-rerank.py rerank --query "$CBM_EVAL_QUERY"' \
-  --md docs/brain/k3-retrieval-ablation.md --json docs/brain/k3-retrieval-ablation.json
-```
+## Ablation conclusion (live)
 
-Fixture-verified instead: `tests/spec/cbm-eval.bats` (7/7 green) plus an
-identity-replay smoke run over all 32 rows (exit 0, all stages 1.000 as
-expected when expected paths rank first).
+- **Graph-Boost schadet prä-Rerank (−0,250 Recall, MRR 0,652→0,311)**
+  und ist post-Rerank exakt neutral (±0,000). Der Runner-Verdict
+  „HELPS +0,422“ ist irreführend: er vergleicht `+graph-boost` gegen
+  `fused` und schreibt damit den Cross-Encoder-Gewinn dem Boost gut.
+  Ehrlich: Boost-an/aus bei fixiertem Rerank = 0,000.
+- **Mechanismus (verifiziert, k3eval-01):** RRF-Scores liegen bei
+  ~0,016–0,030, der Boost-Cap 0,14 ist ~50× größer — der Boost
+  dominiert statt zu feinjustieren. `HANDLES +0,10` feuert
+  query-blind auf Symbol-Ebene: `VideoVault/server/routes.ts` und
+  `brett/.../auth.ts` (falsche Auth!) ranken über
+  `website/.../auth.ts`. Cap relativ zur Score-Skala wählen oder
+  HANDLES an Query-Überlappung binden (Follow-up).
+- **Cross-Encoder trägt +0,359 Recall** (0,469→0,828) und rettet Doc
+  (0,050→0,650) trotz schwacher Stufe 1.
+- **D1-Stütze:** Dense-doc 0,000 bestätigt „K1 behalten“ — K3-Sections
+  haben keine Prosa (Graph liefert keinen Body-Text).
 
-## Ablation conclusion (preliminary)
-
-No live per-stage table exists yet, so **no claim about graph-boost is made
-from this set**. The harness is built so the conclusion, once measurable,
-cannot be circular: hand labels fixed before any ranking is observed,
-INCONCLUSIVE-by-default deltas, fail-closed ranker errors. Update this
-section with the `docs/brain/k3-retrieval-ablation.md` table after the live
-run above.
+Fußnoten: Batch-Adapter `/tmp/opencode/batch_rank.py` (kein Repo-Artefakt)
+ruft dieselben Funktionen in derselben Reihenfolge (`fts_search`,
+`dense_search`-äquivalent per numpy float64, `rrf_fuse`,
+`rerank_cross`, `apply_final_scores`); Store/Features einmal geladen,
+Rerank-Scores zwischen `+cross-encoder`/`+graph-boost` geteilt.
+CLI-Gegenprobe k3eval-01 mit korrektem `PATH` reproduziert die
+Batch-Rankings exakt (ohne `codebase-memory-mcp` im `PATH` degradieren
+die Features still zu Boost 0 — per Design, `warnings` beachten).

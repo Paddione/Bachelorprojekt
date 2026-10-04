@@ -153,6 +153,11 @@
 
 ### Auseinanderlauf-Stellen
 
+> Reconciliation: `scripts/mcp/cbm-reconcile.py status` (T002430) macht die
+> Divergenz messbar — pro Datei Coverage (git vs K3-Symbole, Code-Extensions)
+> und K3-Freshness aus den Receipts; `unknown` bei fehlender/veralteter
+> Evidenz. Workflow: `.opencode/skills/code-graph-interpretation/references/reconciliation.md`.
+
 | Stelle | K1 | K3 | Divergenz-Risiko |
 |--------|----|----|-----------------|
 | Index-Zeitpunkt | post-commit (sofort) | periodisch (hourly Cron) | K3 hinkt bis zu 1h hinterher |
@@ -171,7 +176,7 @@
 | D5: Kein Failover | ⚠️ | Kein Mechanismus bei Index-Ausfall |
 | D6: Keine Health-Metriken | ⚠️ | `health-goals-check.sh` prüft nur ob `graph.db.zst` getrackt ist (nicht mehr) |
 | D7: Index-Trigger manuell | ✅ | Behoben durch periodischen Cron-Job (`scripts/cbm-refresh-cron.sh`) |
-| D8: K1/K3 auseinanderlaufend | ⚠️ | **Kern-Defekt**: getrennte Indexe, keine Reconciliation |
+| D8: K1/K3 auseinanderlaufend | ⚠️ | Beobachtbar seit T002430: `python3 scripts/mcp/cbm-reconcile.py status` meldet Coverage-Divergenz (code_unindexed / k3_untracked) + K3-Freshness-Verdict, fail-closed. K1-Evidenz lokal `unavailable` (keine Receipts, pgvector extern) |
 
 ## Ist/Soll-Abgrenzung
 

@@ -21,7 +21,7 @@ import { execFileSync } from 'node:child_process';
 import {
   parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt,
 } from './plan-runner/plan.mjs';
-import { WorkerPool, killAllWorkers } from './plan-runner/workers.mjs';
+import { WorkerPool, decideTrack, killAllWorkers } from './plan-runner/workers.mjs';
 
 // 3 Slots des Windows-nativen Qwen3.5-4B-MTP-Pools (:8080, -np 3 -kvu -c 98304
 // seit 2026-10-03; davor -np 3 in qwen35-mtp.service auf :1920, T900504 p4).
@@ -203,14 +203,16 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
     dispatch_4b: ({ partial_id: id, prompt = '' }) => {
       const err = requireReady(id);
       if (err) return err;
-      if (pool.free4b() <= 0) return `BUSY: no free 4B slot (running: ${pool.running4b().join(',')})`;
+      // Worker-Track: Dispatch-Policy (T901014 P1) — ein 4B-Dispatch braucht 'worker'.
+      if (decideTrack({ ready: ready(), freeSlots: pool.free4b() }) !== 'worker') return `BUSY: no free 4B slot (running: ${pool.running4b().join(',')})`;
       start4b(id, String(prompt));
       return `STARTED ${id}`;
     },
 
     execute_self: async ({ partial_id: id, prompt = '', plan_notes: notes = '' }) => {
       if (!byId[id]) return `ERROR: unknown partial ${id}`;
-      if (pool.free4b() > 0) {
+      // Self-Track: nur wenn die Dispatch-Policy 'self' liefert (kein freier Slot, Partial bereit).
+      if (decideTrack({ ready: ready(), freeSlots: pool.free4b() }) === 'worker') {
         return `ERROR: ${pool.free4b()} 4B slot(s) free - use dispatch_4b. execute_self is only allowed when all 4B slots are busy.`;
       }
       const err = requireReady(id);

@@ -42,22 +42,42 @@ export function agentModel(agent) {
   return models.get(agent);
 }
 
+// Agent-Aufbau (Track-spezifisch): Binary, Argumente und Env fuer einen Worker-Spawn.
+// Von der Pool-Verwaltung (WorkerPool) entkoppelt, damit der Track (Self vs. 4B)
+// nur hier ueber agentModel/agent-Konstanten entscheidet (T901014 P1).
+// PWD must follow cwd: `opencode run` takes the project root from PWD,
+// so without this an out-of-repo worktree writes into the caller's repo.
+export function buildAgentSpawn({ agent, prompt, worktree }) {
+  const bin = process.env.PLAN_RUNNER_OPENCODE || 'opencode';
+  const model = agentModel(agent);
+  return {
+    bin,
+    args: ['run', '--agent', agent, ...(model ? ['--model', model] : []), prompt],
+    env: { ...process.env, PWD: worktree },
+  };
+}
+
+// Dispatch-Policy (T901014 P1): genau eine Funktion entscheidet Self-vs-Worker.
+// Eingaben: ready (bereite Partial-IDs in Manifest-Reihenfolge), freeSlots (freie 4B-Slots).
+// Ausgabe: 'worker' (4B-Dispatch), 'self' (Selbstaufruf, nur wenn kein Slot frei), 'idle' (nichts bereit).
+export function decideTrack({ ready, freeSlots }) {
+  if (!Array.isArray(ready) || ready.length === 0) return 'idle';
+  if (Number(freeSlots) > 0) return 'worker';
+  return 'self';
+}
+
 // Startet `<bin> run --agent <agent> [--model <modell>] <prompt>` im Worktree und liefert
 // { code, tail, ok, summary, ms }. Beim Timeout: SIGTERM an die Prozessgruppe, ok=false.
 export function runWorker({ agent, prompt, worktree, timeoutMs }) {
-  const bin = process.env.PLAN_RUNNER_OPENCODE || 'opencode';
   const t0 = Date.now();
   return new Promise((resolve) => {
     let out = '';
     let timedOut = false;
     let child;
     try {
-      const model = agentModel(agent);
-      child = spawn(bin, ['run', '--agent', agent, ...(model ? ['--model', model] : []), prompt], {
-        cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], detached: true,
-        // PWD must follow cwd: `opencode run` takes the project root from PWD,
-        // so without this an out-of-repo worktree writes into the caller's repo.
-        env: { ...process.env, PWD: worktree },
+      const { bin, args, env } = buildAgentSpawn({ agent, prompt, worktree });
+      child = spawn(bin, args, {
+        cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], detached: true, env,
       });
     } catch (e) {
       resolve({ code: null, tail: String(e.message), ok: false, summary: `spawn failed: ${e.message}`, ms: 0 });

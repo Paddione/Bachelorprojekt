@@ -1,0 +1,347 @@
+{
+  "meta": {
+    "slug": "worker-machine-format",
+    "ticket_id": "",
+    "generated_from": "main@09acffc0b",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/llm/plan-runner.mjs",
+      "language": "javascript",
+      "loc": 342,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 458
+    },
+    {
+      "path": "scripts/llm/plan-runner/plan.mjs",
+      "language": "javascript",
+      "loc": 116,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 684
+    },
+    {
+      "path": "scripts/llm/plan-runner/workers.mjs",
+      "language": "javascript",
+      "loc": 150,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 650
+    },
+    {
+      "path": "scripts/plan-lint.sh",
+      "language": "bash",
+      "loc": 716,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 84
+    },
+    {
+      "path": "tests/spec/llm-local-dev/",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:35:function fail(code, msg) {",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "35:function fail(code, msg) {(...)",
+      "type_text": "35:function fail(code, msg) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:41:function parseArgs(argv) {",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "41:function parseArgs(argv) {(...)",
+      "type_text": "41:function parseArgs(argv) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:65:function loadPlan(opts) {",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "65:function loadPlan(opts) {(...)",
+      "type_text": "65:function loadPlan(opts) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:143:function createScheduler({ changeDir, partials, texts, worktree, state }, pool) {",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "143:function createScheduler({ changeDir, partials, texts, worktree, state }, pool) {(...)",
+      "type_text": "143:function createScheduler({ changeDir, partials, texts, worktree, state }, pool) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:167:    save();",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "167:    save();(...)",
+      "type_text": "167:    save();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:183:    save();",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "183:    save();(...)",
+      "type_text": "183:    save();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:221:      save();",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "221:      save();(...)",
+      "type_text": "221:      save();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:238:      save();",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "238:      save();(...)",
+      "type_text": "238:      save();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:330:    killAllWorkers();",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "330:    killAllWorkers();(...)",
+      "type_text": "330:    killAllWorkers();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner.mjs:342:main().catch((e) => { killAllWorkers(); fail(1, e.stack || String(e)); });",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner.mjs",
+      "signature": "342:main().catch((e) => { killAllWorkers(); fail(1, e.stack || String(e)); });(...)",
+      "type_text": "342:main().catch((e) => { killAllWorkers(); fail(1, e.stack || String(e)); });(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:96:    super();",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "96:    super();(...)",
+      "type_text": "96:    super();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:109:  free4b() { return this.slots4b - this.jobs.size; }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "109:  free4b() { return this.slots4b - this.jobs.size; }(...)",
+      "type_text": "109:  free4b() { return this.slots4b - this.jobs.size; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:111:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "111:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }(...)",
+      "type_text": "111:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:141:  nextEvent() {",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "141:  nextEvent() {(...)",
+      "type_text": "141:  nextEvent() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:147:  drainEvents() { return this.done.splice(0); }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "147:  drainEvents() { return this.done.splice(0); }(...)",
+      "type_text": "147:  drainEvents() { return this.done.splice(0); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:149:  pending() { return this.done.length; }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "149:  pending() { return this.done.length; }(...)",
+      "type_text": "149:  pending() { return this.done.length; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:14:_load_s1_limits() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "14:_load_s1_limits() {(...)",
+      "type_text": "14:_load_s1_limits() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "type_text": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:49:_load_s1_ignore() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "49:_load_s1_ignore() {(...)",
+      "type_text": "49:_load_s1_ignore() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "type_text": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:71:effective_threshold() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "71:effective_threshold() {(...)",
+      "type_text": "71:effective_threshold() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:85:residual_budget() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "85:residual_budget() {(...)",
+      "type_text": "85:residual_budget() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:113:_print_rules() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "113:_print_rules() {(...)",
+      "type_text": "113:_print_rules() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:140:_manifest_rows() {  # <plan-file> -> alle Tabellenzeilen des Partials-Abschnitts",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "140:_manifest_rows() {  # <plan-file> -> alle Tabellenzeilen des Partials-Abschnitts(...)",
+      "type_text": "140:_manifest_rows() {  # <plan-file> -> alle Tabellenzeilen des Partials-Abschnitts(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:147:_row_targets() {  # <manifest-zeile> -> ein Pfad je Ausgabezeile",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "147:_row_targets() {  # <manifest-zeile> -> ein Pfad je Ausgabezeile(...)",
+      "type_text": "147:_row_targets() {  # <manifest-zeile> -> ein Pfad je Ausgabezeile(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:163:partial_targets() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "163:partial_targets() {(...)",
+      "type_text": "163:partial_targets() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:213:hard() { HARD+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "213:hard() { HARD+=(\"$1\"); }(...)",
+      "type_text": "213:hard() { HARD+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:214:warn() { WARN+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "214:warn() { WARN+=(\"$1\"); }(...)",
+      "type_text": "214:warn() { WARN+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:221:fm_field() {  # fm_field <key> -> value (empty if absent)",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "221:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "type_text": "221:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:404:  _check_intel_completeness() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "404:  _check_intel_completeness() {(...)",
+      "type_text": "404:  _check_intel_completeness() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:493:_plan_scope_violations() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "493:_plan_scope_violations() {(...)",
+      "type_text": "493:_plan_scope_violations() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:534:_structural_file_tokens() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "534:_structural_file_tokens() {(...)",
+      "type_text": "534:_structural_file_tokens() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:687:_json_str() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "687:_json_str() {(...)",
+      "type_text": "687:_json_str() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:697:emit_verdict() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "697:emit_verdict() {(...)",
+      "type_text": "697:emit_verdict() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

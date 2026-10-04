@@ -338,7 +338,81 @@ def tool_version(timeout=10):
     return (text or "unknown"), None
 
 
-def probe_json(cmd, timeout):
+def envelope_text(data):
+    """Extract concatenated text from an MCP `cli --json` envelope, or None."""
+    if not isinstance(data, dict):
+        return None
+    content = data.get("content")
+    if not isinstance(content, list):
+        return None
+    parts = [item.get("text", "") for item in content
+             if isinstance(item, dict) and item.get("type") == "text"]
+    return "\n".join(parts) if parts else None
+
+
+def parse_changes_text(text):
+    """Minimal structuring of a detect_changes plain-text payload.
+
+    Never fails the probe: unparseable fields stay None."""
+    base, changed = None, None
+    try:
+        for line in text.splitlines():
+            if ":" not in line:
+                continue
+            key, _, value = line.partition(":")
+            key = key.strip()
+            value = value.strip()
+            if key == "base" and value and base is None:
+                base = value
+            elif key == "changed_files" and changed is None:
+                try:
+                    changed = int(value.split()[0])
+                except (ValueError, IndexError):
+                    changed = None
+    except Exception:
+        pass
+    return {"text": text, "base": base, "changed_files": changed}
+
+
+def parse_probe_payload(data, expect_json):
+    """Unwrap a `cli --json` MCP envelope.
+
+    Returns (payload, raw_text, error_code): payload is the inner dict for
+    JSON probes (index_status) or {"text","base","changed_files"} for text
+    probes (detect_changes); raw_text is the unwrapped envelope text ("" when
+    absent); error_code is None on success, else probe-malformed/tool-error.
+    Fail-closed: any unrecognised shape yields an error code, never success.
+    """
+    if not isinstance(data, dict):
+        return None, "", "probe-malformed"
+    text = envelope_text(data)
+    if text is None:
+        if data.get("isError"):
+            return None, "", "tool-error"
+        return None, "", "probe-malformed"
+    if data.get("isError"):
+        return None, text, "tool-error"
+    if expect_json:
+        try:
+            inner = json.loads(text) if text.strip() else None
+        except json.JSONDecodeError:
+            return None, text, "probe-malformed"
+        if not isinstance(inner, dict):
+            return None, text, "probe-malformed"
+        if "error" in inner or "tool_error" in inner:
+            return inner, text, "tool-error"
+        return inner, text, None
+    if not text.strip():
+        return None, text, "probe-malformed"
+    return parse_changes_text(text), text, None
+
+
+def probe_graph(cmd, timeout, expect_json):
+    """Run a `cli --json` probe and unwrap its MCP envelope.
+
+    expect_json=True for probes whose inner text is JSON (index_status),
+    False for plain-text probes (detect_changes). Returns
+    (payload, error_code, stdout, stderr) like probe_json."""
     rc, out, err, timed_out, missing = run_bytes(cmd, timeout=timeout)
     if missing:
         return None, "tool-missing", "", ""
@@ -355,11 +429,16 @@ def probe_json(cmd, timeout):
         data = json.loads(stdout) if stdout.strip() else None
     except json.JSONDecodeError:
         return None, "probe-malformed", stdout, stderr
-    if not isinstance(data, dict):
-        return None, "probe-malformed", stdout, stderr
-    if "error" in data or "tool_error" in data:
-        return data, "tool-error", stdout, stderr
-    return data, None, stdout, stderr
+    payload, _raw, perr = parse_probe_payload(data, expect_json)
+    if perr:
+        return payload, perr, stdout, stderr
+    return payload, None, stdout, stderr
+
+
+def probe_json(cmd, timeout):
+    """Backwards-compatible JSON probe: unwraps a `cli --json` envelope
+    whose inner text is JSON (e.g. index_status)."""
+    return probe_graph(cmd, timeout, True)
 
 
 def graph_identity(data):
@@ -470,9 +549,10 @@ def cmd_status(args):
             reasons.append("snapshot-incomplete")
     ver, ver_err = tool_version(timeout=min(timeout, 10))
     status_data, status_err, _so, _se = probe_json(
-        ["codebase-memory-mcp", "cli", "index_status", "--project", project], timeout)
-    changes_data, changes_err, _co, _ce = probe_json(
-        ["codebase-memory-mcp", "cli", "detect_changes", "--project", project], timeout)
+        ["codebase-memory-mcp", "cli", "--json", "index_status", "--project", project], timeout)
+    changes_data, changes_err, _co, _ce = probe_graph(
+        ["codebase-memory-mcp", "cli", "--json", "detect_changes", "--project", project],
+        timeout, False)
     graph = {"tool_version": ver,
              "index_status": status_data,
              "detect_changes": changes_data}

@@ -17,7 +17,7 @@ metadata:
   name: llm-proxy-log-retention
   namespace: workspace
   labels:
-    app: llm-proxy
+    app: cronjobs
 spec:
   schedule: "23 3 * * *"
   concurrencyPolicy: Forbid
@@ -29,7 +29,7 @@ spec:
       template:
         metadata:
           labels:
-            app: llm-proxy
+            app: cronjobs
         spec:
           restartPolicy: Never
           securityContext:

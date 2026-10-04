@@ -143,9 +143,6 @@ export async function ensureQuestionnaireSchema(targetPool: pg.Pool = pool): Pro
   await targetPool.query(
     `ALTER TABLE IF EXISTS questionnaire_assignment_scores DROP COLUMN IF EXISTS dimension_name;`
   );
-  await targetPool.query(
-    `CREATE INDEX IF NOT EXISTS idx_qas_assignment ON questionnaire_assignment_scores(assignment_id)`,
-  );
   await targetPool.query(`CREATE SCHEMA IF NOT EXISTS bachelorprojekt`);
   await ensureSystemtestSchema(targetPool);
   await targetPool.query(`

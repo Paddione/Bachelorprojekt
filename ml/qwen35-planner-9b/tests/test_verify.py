@@ -52,3 +52,14 @@ def test_copy_ratio():
     a = " ".join(f"w{i}" for i in range(50))
     assert copy_ratio(a, a) == 1.0
     assert copy_ratio("x " * 3, a) == 0.0
+
+
+def test_finished_ids_resume_rules():
+    from planner.generate import finished_ids
+    rows = [{"id": "a", "attempt": 0, "accepted": True, "finish": "stop"},
+            {"id": "b", "attempt": 0, "accepted": False, "finish": "stop"},
+            {"id": "c", "attempt": 0, "accepted": False, "finish": "stop"},
+            {"id": "c", "attempt": 0, "accepted": False, "finish": "error: refused"},
+            {"id": "d", "attempt": 0, "accepted": False, "finish": "stop"},
+            {"id": "d", "attempt": 0, "accepted": False, "finish": "stop"}]
+    assert finished_ids(rows, 2) == {"a", "d"}

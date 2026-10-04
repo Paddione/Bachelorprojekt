@@ -23,6 +23,17 @@ SYSTEM = ("Du schreibst Implementierungspläne für das Bachelorprojekt-Reposito
           "<beispiel>\n{example}\n</beispiel>")
 
 
+def finished_ids(rows: list[dict], k: int) -> set[str]:
+    """A prompt is done once accepted or after all k first attempts; interrupted ones rerun."""
+    tries, ok = {}, set()
+    for r in rows:
+        if r.get("accepted"):
+            ok.add(r["id"])
+        if r.get("attempt") == 0 and not str(r.get("finish", "")).startswith("error"):
+            tries[r["id"]] = tries.get(r["id"], 0) + 1
+    return ok | {i for i, n in tries.items() if n >= k}
+
+
 def train_prompt(row: dict) -> str:
     return f"{row['prompt'].rstrip()}\n\nTicket-ID: {row['id']}\n"
 
@@ -100,7 +111,7 @@ def main(argv=None) -> int:
                            capture_output=True, text=True, check=True).stdout
     args.example = (args.repo / EXAMPLE).read_text(encoding="utf-8")
     system = SYSTEM.format(rules=rules, example=args.example)
-    done = {r["id"] for r in read_jsonl(args.out)}
+    done = finished_ids(read_jsonl(args.out), args.k)
     pool_rows = [r for f in args.prompts.split(",") if f for r in read_jsonl(Path(f))]
     todo = [r for r in pool_rows if r["id"] not in done]
     if args.limit:

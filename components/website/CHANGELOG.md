@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.394.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.393.0...website-v1.394.0) (2026-10-04)
+
+
+### Features
+
+* **scripts:** plan-runner loest Plan aus DB-Ref auf (T901015) ([#6258](https://github.com/Paddione/Bachelorprojekt/issues/6258)) ([0f40676](https://github.com/Paddione/Bachelorprojekt/commit/0f406765bad8f0a0e2be50be24564d7b59ccd628))
+
 ## [1.393.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.392.0...website-v1.393.0) (2026-10-04)
 
 

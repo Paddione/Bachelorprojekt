@@ -608,17 +608,89 @@ def embed_batch(texts, url, model, timeout):
                     % (EMBED_ATTEMPTS, last))
 
 
-def embed_texts(texts, url, model, timeout=EMBED_TIMEOUT_S, log=None):
-    """Embed texts in batches; returns one vector per input, input order."""
-    endpoint = normalize_embed_url(url)
-    vecs = []
-    for i in range(0, len(texts), EMBED_BATCH):
-        chunk = texts[i:i + EMBED_BATCH]
-        vecs.extend(embed_batch(chunk, endpoint, model, timeout))
+def embed_texts(texts, url_or_urls, model, timeout=EMBED_TIMEOUT_S, log=None,
+                on_batch=None):
+    """Embed texts in batches; returns one vector per input, input order.
+
+    url_or_urls: one endpoint string or a list (fan-out for bulk loads:
+    every idle box running llama-server --embeddings — spare CPU RAM or
+    VRAM — can join as an extra endpoint; batches shard round-robin,
+    results re-assemble in input order). A single endpoint preserves the
+    exact legacy sequential behavior. on_batch(pairs) fires after every
+    completed batch with [(text_index, vector)] — used for checkpointing."""
+    if isinstance(url_or_urls, (list, tuple)):
+        urls = [normalize_embed_url(u) for u in url_or_urls if u]
+    else:
+        urls = [normalize_embed_url(url_or_urls)]
+    if not urls:
+        raise SyncError("embed-no-endpoints")
+    chunks = [texts[i:i + EMBED_BATCH]
+              for i in range(0, len(texts), EMBED_BATCH)]
+    assignment = shard_batches(len(chunks), urls)
+    vecs_by_idx = [None] * len(chunks)
+    done = [0]
+
+    def finish(idx, vecs):
+        vecs_by_idx[idx] = vecs
+        done[0] += len(vecs)
         if log:
-            log("  embedded %d/%d" % (min(i + EMBED_BATCH, len(texts)),
-                                      len(texts)))
-    return vecs
+            log("  embedded %d/%d" % (done[0], len(texts)))
+        if on_batch:
+            base = idx * EMBED_BATCH
+            on_batch([(base + j, v) for j, v in enumerate(vecs)])
+
+    if len(urls) == 1:
+        for idx, chunk in enumerate(chunks):
+            finish(idx, embed_batch(chunk, urls[0], model, timeout))
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor(max_workers=len(urls),
+                               thread_name_prefix="embed-fanout") as ex:
+            futs = {ex.submit(embed_batch, chunk, url, model, timeout): idx
+                    for idx, (chunk, url) in enumerate(zip(chunks,
+                                                           assignment))}
+            for fut in as_completed(futs):
+                finish(futs[fut], fut.result())
+    out = []
+    for vecs in vecs_by_idx:
+        out.extend(vecs)
+    return out
+
+
+def shard_batches(n_chunks, urls):
+    """Pure: round-robin endpoint assignment per batch index.
+
+    Heterogeneous helpers (a 2-thread CPU pod next to a full-VRAM GPU box)
+    finish at different rates; chunks are uniform (EMBED_BATCH texts), so
+    static sharding stays fair and order re-assembly stays trivial."""
+    if not urls:
+        raise SyncError("embed-no-endpoints")
+    return [urls[i % len(urls)] for i in range(n_chunks)]
+
+
+def merge_pairs(store, pairs, model):
+    """Pure: fold freshly embedded (key, text, vector) triples into a copy
+    of the store — the checkpoint primitive. Untouched keys keep their
+    stored record; nothing is pruned or rekeyed (unlike apply_plan, which
+    finalizes the whole corpus). A resumed sync reloads this artifact and
+    embeds only what is still missing."""
+    out = dict(store)
+    for key, text, vec in pairs:
+        out[key] = {"hash": content_hash(model, text), "model": model,
+                    "dim": len(vec), "vector": list(vec)}
+    return out
+
+
+def resolve_embed_urls(args):
+    """Precedence: --embed-urls (comma-separated) > $LLM_EMBED_URLS >
+    --embed-url / $LLM_EMBED_URL (legacy single)."""
+    raw = getattr(args, "embed_urls", None)
+    if not raw:
+        raw = os.environ.get("LLM_EMBED_URLS", "")
+    urls = [u.strip() for u in (raw or "").split(",") if u.strip()]
+    if urls:
+        return urls
+    return [args.embed_url]
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────
@@ -699,8 +771,47 @@ def cmd_sync(args):
     if plan["to_embed"]:
         texts = [e["text"] for e in plan["to_embed"]]
         keys = [e["key"] for e in plan["to_embed"]]
-        vecs = embed_texts(texts, args.embed_url, args.model,
-                           log=lambda m: eprint(m))
+        text_by_key = dict(zip(keys, texts))
+        urls = resolve_embed_urls(args)
+        interim = dict(store)
+        pending = [0]
+
+        def on_batch(pairs):
+            for idx, vec in pairs:
+                key = keys[idx]
+                vectors_by_key[key] = vec
+            if args.checkpoint_every and args.checkpoint_every > 0:
+                pending[0] += len(pairs)
+                if pending[0] >= args.checkpoint_every:
+                    pending[0] = 0
+                    fresh = [(keys[i], text_by_key[keys[i]], vectors_by_key[keys[i]])
+                             for i, _ in pairs]
+                    for key, text, vec in fresh:
+                        interim[key] = {
+                            "hash": content_hash(args.model, text),
+                            "model": args.model, "dim": len(vec),
+                            "vector": list(vec)}
+                    STORE.write_artifact(artifact_path(root), interim)
+                    cp_manifest = STORE.make_manifest(
+                        corpus_sha256=corpus_sha256(candidates),
+                        receipt_id=receipt_id,
+                        receipt_timestamp=receipt_id,
+                        model=args.model,
+                        dim=next(iter(interim.values()))["dim"],
+                        vectors=len(interim),
+                        head_sha=head,
+                        project=args.project,
+                        freshness_status=status,
+                        allow_stale=bool(args.allow_stale),
+                        checkpoint=True,
+                        embedded_so_far=len(vectors_by_key),
+                        to_embed_total=len(plan["to_embed"]))
+                    STORE.write_manifest(manifest_path(root), cp_manifest)
+                    eprint("  checkpoint %d/%d" % (len(vectors_by_key),
+                                                   len(plan["to_embed"])))
+
+        vecs = embed_texts(texts, urls, args.model,
+                           log=lambda m: eprint(m), on_batch=on_batch)
         if len(set(len(v) for v in vecs)) > 1:
             raise SyncError("embed-inconsistent-dims")
         vectors_by_key = dict(zip(keys, vecs))
@@ -751,6 +862,16 @@ def main():
     common.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     common.add_argument("--embed-url", default=os.environ.get(
         "LLM_EMBED_URL", DEFAULT_EMBED_URL))
+    common.add_argument("--embed-urls", default=None,
+                        help="comma-separated embedding endpoints for bulk "
+                             "fan-out (default: $LLM_EMBED_URLS, else "
+                             "--embed-url). Every idle box running "
+                             "llama-server --embeddings — spare CPU RAM or "
+                             "VRAM — can join; batches shard round-robin.")
+    common.add_argument("--checkpoint-every", type=int, default=160,
+                        help="write artifact+manifest every N embedded texts "
+                             "(0 disables). A killed run resumes where it "
+                             "stopped instead of losing hours.")
     common.add_argument("--allow-stale", action="store_true",
                         help="override the freshness fail-closed guard")
     parser = argparse.ArgumentParser(description=__doc__, parents=[common])

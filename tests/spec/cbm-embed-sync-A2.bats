@@ -165,3 +165,72 @@ assert len(bump['to_embed']) == 3 and bump['unchanged'] == [], bump
 "
   [ "$status" -eq 0 ]
 }
+
+@test "shard_batches fans out round-robin; single URL keeps legacy order" {
+  run mod_py "
+assert m.shard_batches(5, ['a']) == ['a'] * 5
+assert m.shard_batches(5, ['a', 'b']) == ['a', 'b', 'a', 'b', 'a']
+assert m.shard_batches(0, ['a', 'b']) == []
+try:
+    m.shard_batches(3, [])
+    raise AssertionError('empty endpoints must fail closed')
+except m.SyncError as e:
+    assert 'embed-no-endpoints' in str(e), e
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "merge_pairs folds fresh vectors, keeps the rest (checkpoint)" {
+  run mod_py "
+store = {'k-old': {'hash': 'h', 'model': 'bge-m3', 'dim': 2, 'vector': [0.1, 0.2]}}
+pairs = [('k-new', 'TEXT', [0.5, 0.6])]
+out = m.merge_pairs(store, pairs, 'bge-m3')
+assert out['k-old'] == store['k-old'], 'untouched keys keep their record'
+assert out['k-new']['hash'] == m.content_hash('bge-m3', 'TEXT')
+assert out['k-new']['dim'] == 2 and out['k-new']['vector'] == [0.5, 0.6]
+assert store == {'k-old': store['k-old']}, 'input store not mutated'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "resolve_embed_urls: --embed-urls > env > legacy --embed-url" {
+  run mod_py "
+import types
+a = types.SimpleNamespace(embed_urls='http://x:1,http://y:2', embed_url='http://solo')
+assert m.resolve_embed_urls(a) == ['http://x:1', 'http://y:2']
+b = types.SimpleNamespace(embed_urls=None, embed_url='http://solo')
+import os
+os.environ.pop('LLM_EMBED_URLS', None)
+assert m.resolve_embed_urls(b) == ['http://solo']
+os.environ['LLM_EMBED_URLS'] = 'http://e1, http://e2'
+assert m.resolve_embed_urls(b) == ['http://e1', 'http://e2']
+os.environ.pop('LLM_EMBED_URLS', None)
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "embed_texts fans out over endpoints, order preserved (stubbed net)" {
+  run mod_py "
+import time
+seen = []
+def fake_batch(texts, url, model, timeout):
+    seen.append(url)
+    return [[float(len(t))] for t in texts]
+m.embed_batch = fake_batch
+m.EMBED_BATCH = 4
+texts = ['t%d' % i for i in range(10)]
+got_calls = []
+vecs = m.embed_texts(texts, ['http://a', 'http://b'], 'bge-m3',
+                     on_batch=lambda pairs: got_calls.extend(pairs))
+assert vecs == [[2.0]] * 10, vecs  # 't0'..'t9' all len 2 -> order kept
+assert sorted(set(seen)) == ['http://a/v1/embeddings',
+                              'http://b/v1/embeddings'], seen
+assert sorted(i for i, _ in got_calls) == list(range(10)), got_calls
+# legacy single-endpoint path unchanged
+seen.clear()
+m.embed_batch = fake_batch
+vecs1 = m.embed_texts(texts, 'http://solo', 'bge-m3')
+assert vecs1 == vecs and seen == ['http://solo/v1/embeddings'] * 3, seen
+"
+  [ "$status" -eq 0 ]
+}

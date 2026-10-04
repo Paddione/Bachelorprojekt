@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.395.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.394.0...website-v1.395.0) (2026-10-04)
+
+
+### Features
+
+* **agents:** Qwen3.5-2B training set T900978 ([#6264](https://github.com/Paddione/Bachelorprojekt/issues/6264)) ([20b7550](https://github.com/Paddione/Bachelorprojekt/commit/20b75505dac0af48156caa7571fe73c0ddce63f4))
+
 ## [1.394.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.393.0...website-v1.394.0) (2026-10-04)
 
 

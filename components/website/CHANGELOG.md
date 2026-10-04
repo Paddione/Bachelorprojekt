@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.392.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.391.0...website-v1.392.0) (2026-10-04)
+
+
+### Features
+
+* **T900993:** K3 symbol embed store with hybrid retrieval and graph rerank ([#6247](https://github.com/Paddione/Bachelorprojekt/issues/6247)) ([e454809](https://github.com/Paddione/Bachelorprojekt/commit/e454809a3aa4d4908765d9ce896811b0c791ba4c))
+
 ## [1.391.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.390.0...website-v1.391.0) (2026-10-03)
 
 

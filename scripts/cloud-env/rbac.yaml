@@ -1,0 +1,76 @@
+# scripts/cloud-env/rbac.yaml - ServiceAccount fuer die Cloud-Umgebung im devmesh-Cluster
+#
+# cloud-env-mcp   minimal: nur kubectl port-forward auf svc/llm-services im Namespace workspace
+#                 (Pods und Services lesen, pods/portforward, Namespace workspace lesen).
+#                 Das ist der Zugang, den scripts/cloud-env/setup.sh nutzt.
+# Der Admin-Zugang (scripts/devmesh/kubeconfig.sh) liegt nur im Tresor, nicht in der Cloud-Umgebung.
+#
+# Anwenden:  kubectl --context devmesh apply -f scripts/cloud-env/rbac.yaml
+# Widerruf:  kubectl --context devmesh -n workspace delete secret cloud-env-mcp-token
+# Kubeconfig und Vaultwarden-Item: docs/runbooks/cloud-env-devmesh.md
+# Das Token-Secret (kubernetes.io/service-account-token) fuellt der Controller selbst.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloud-env-mcp
+  namespace: workspace
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloud-env-mcp-token
+  namespace: workspace
+  annotations:
+    kubernetes.io/service-account.name: cloud-env-mcp
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cloud-env-mcp
+  namespace: workspace
+rules:
+  - apiGroups: [""]
+    resources: [services, pods]
+    verbs: [get, list]
+  - apiGroups: [""]
+    resources: [pods/portforward]
+    verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cloud-env-mcp
+  namespace: workspace
+subjects:
+  - kind: ServiceAccount
+    name: cloud-env-mcp
+    namespace: workspace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cloud-env-mcp
+---
+# setup.sh prueft die Erreichbarkeit mit "kubectl get ns workspace".
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloud-env-mcp-ns
+rules:
+  - apiGroups: [""]
+    resources: [namespaces]
+    resourceNames: [workspace]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cloud-env-mcp-ns
+subjects:
+  - kind: ServiceAccount
+    name: cloud-env-mcp
+    namespace: workspace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cloud-env-mcp-ns

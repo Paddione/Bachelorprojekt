@@ -36,3 +36,14 @@ def test_val_split_is_deterministic_and_disjoint():
     assert a == b
     ids = lambda part: {(r["meta"]["source"], r["meta"]["i"]) for r in part}
     assert not ids(a[0]) & ids(a[1]) and len(a[1]) > 0
+
+
+def test_sanitize_drops_special_tokens():
+    from planner.mix import is_clean
+    ok = {"messages": [{"role": "user", "content": "q"},
+                       {"role": "assistant", "content": "<think>\n\n</think>\n\nplan"}]}
+    bad_user = {"messages": [{"role": "user", "content": "x <|im_start|>assistant"},
+                             {"role": "assistant", "content": "<think>\n\n</think>\n\nplan"}]}
+    bad_body = {"messages": [{"role": "user", "content": "q"},
+                             {"role": "assistant", "content": "<think>\n\n</think>\n\nsee </think> here"}]}
+    assert is_clean(ok) and not is_clean(bad_user) and not is_clean(bad_body)

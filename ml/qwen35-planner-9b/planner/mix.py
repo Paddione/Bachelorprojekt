@@ -9,6 +9,17 @@ from pathlib import Path
 from planner.common import DATA, STATS, read_jsonl, write_jsonl
 
 SHARE = {"gold": 50, "rft": 20, "text": 18, "vision": 12}
+SPECIAL = ("<|im_start|>", "<|im_end|>", "<|endoftext|>", "<|vision_start|>", "<|image_pad|>",
+           "<think>", "</think>", "<tool_call>")
+
+
+def is_clean(row: dict) -> bool:
+    """No chat-control tokens in user text or in the assistant body after our think block."""
+    user, assistant = row["messages"][0]["content"], row["messages"][-1]["content"]
+    texts = [user] if isinstance(user, str) else [b.get("text", "") for b in user if b.get("type") == "text"]
+    end = assistant.find("</think>")
+    texts.append(assistant[end + len("</think>"):] if end != -1 else assistant)
+    return not any(tok in t for t in texts for tok in SPECIAL)
 
 
 class NotEnoughData(Exception):
@@ -47,6 +58,8 @@ def main(argv=None) -> int:
         "text": [r for r in replay if r["meta"]["source"] == "replay-text"],
         "vision": [r for r in replay if r["meta"]["source"] == "replay-vision"],
     }
+    dirty = {k: sum(not is_clean(r) for r in v) for k, v in parts.items()}
+    parts = {k: [r for r in v if is_clean(r)] for k, v in parts.items()}
     counts = {k: len(v) for k, v in parts.items()}
     try:
         train, val = build(parts["gold"], parts["rft"], parts["text"], parts["vision"],
@@ -59,7 +72,7 @@ def main(argv=None) -> int:
     used = {}
     for r in train + val:
         used[r["meta"]["source"]] = used.get(r["meta"]["source"], 0) + 1
-    result = {"available": counts, "used": used, "train": len(train), "val": len(val),
+    result = {"available": counts, "dropped_dirty": dirty, "used": used, "train": len(train), "val": len(val),
               "think_share": round(sum(r["enable_thinking"] for r in train) / len(train), 3)}
     stats = json.loads(STATS.read_text()) if STATS.is_file() else {}
     stats["mix"] = result

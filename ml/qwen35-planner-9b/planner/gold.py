@@ -22,6 +22,8 @@ TICKET = re.compile(r"\bT\d{6}\b")
 MIN_INTRO_WORDS = 15
 MIN_TARGET_WORDS, MAX_TARGET_WORDS = 200, 12000
 MAX_COMPANION_WORDS = 1500
+# this pipeline's own plan must never become training data (it is on the branch, so --all sees it)
+EXCLUDE_PREFIXES = (".agents/plans/qwen35-9b-planner/",)
 
 
 def classify(path: str) -> str:
@@ -138,6 +140,8 @@ def main(argv=None) -> int:
 
     rows, seen, stats = [], set(), {"files": 0, "heldout": 0, "dropped": 0, "dupes": 0}
     for path, sha in latest_versions(args.repo).items():
+        if path.startswith(EXCLUDE_PREFIXES):
+            continue
         stats["files"] += 1
         text = show(sha, path)
         if not keep_plan(ticket_ids(text + " " + path), heldout):

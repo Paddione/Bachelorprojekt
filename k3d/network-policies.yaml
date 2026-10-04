@@ -54,7 +54,14 @@ spec:
   - Egress
   egress:
   - to:
-    - podSelector: {}
+    # namespaceSelector statt podSelector:{} — Workaround für den
+    # k3s-NetPol-Controller-Bug (seit 2026-10-04 ~19:46): podSelector-Peers
+    # bekommen cluster-weit leere ipsets, same-namespace-Egress wird gedroppt.
+    # namespaceSelector-Peers funktionieren (Analyse siehe
+    # prod-fleet/components/fleet-common/netpol-deny-cross-brand.yaml).
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ${WORKSPACE_NAMESPACE}
 ---
 # Externe Verbindungen (Internet) erlauben
 apiVersion: networking.k8s.io/v1

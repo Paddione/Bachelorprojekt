@@ -3194,7 +3194,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 740,
+      "file_count": 741,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3711,6 +3711,7 @@
         "k3d/kustomization.yaml",
         "k3d/llm-gateway-ingress.yaml",
         "k3d/llm-gpu.yaml",
+        "k3d/llm-proxy-log-retention-cronjob.yaml",
         "k3d/mail-ingressroute-dev.yaml",
         "k3d/mailpit.yaml",
         "k3d/mediaviewer-widget.yaml",

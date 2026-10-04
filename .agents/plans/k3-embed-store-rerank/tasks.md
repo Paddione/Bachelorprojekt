@@ -116,3 +116,56 @@ tests/unit/lib/bats-core/bin/bats tests/spec/cbm-graph-rerank.bats
 bash scripts/plan-lint.sh .agents/plans/k3-embed-store-rerank/tasks.md
 task test:changed; task freshness:regenerate; task freshness:check;
 ```
+
+## Appendix A4/A5 — cron embed-sync hook + K1 markdown coverage (2026-10-04)
+
+Combined task A4 (K3 cron hook) + A5 (K1 markdown coverage + red-run
+diagnosis), implemented on branch `feature/k3-symbol-embed-rerank-T900993`.
+
+- A4: `scripts/cbm-refresh-cron.sh` invokes the K3 symbol embed sync after a
+  successful refresh (after `WRAP_EXIT==0`, before emitting `refreshed`):
+  `python3 "$HERE/mcp/cbm-embed-sync.py" sync --repo "$REPO" --project
+  "$PROJECT" --timeout "$TIMEOUT"`, output to stderr so stdout stays a single
+  JSON line. Non-fatal by construction: a sync failure only logs a WARNING
+  and the `refreshed` status stands. `--dry-run` exits at `would-refresh`
+  before the hook, so it never syncs. `CBM_EMBED_SYNC` overrides the CLI
+  path as a test seam (default is the in-repo script). Covered by
+  `tests/spec/cbm-refresh-cron-A4.bats` (3 tests, green).
+- A5a: `findMarkdownFiles()` in `scripts/knowledge/ingest-markdown.mjs` now
+  reads flat `*.md` from `docs/superpowers/specs`, `docs/adr`,
+  `docs/runbooks`, `docs/brain`, plus staged `.agents/plans/*/*.md` and root
+  `CLAUDE.md`. Flat per dir is deliberate: it mirrors the k1-embed-job
+  selective trigger so script and trigger cannot drift apart silently
+  (`docs/brain` has no subdirs as of 2026-10-04). Collection description
+  updated to name the new sources. Counts on 2026-10-04: specs 154, adr 12,
+  runbooks 28, brain 8, staged plans 54, CLAUDE.md 1 — total 257 files (was
+  209, +48). `node --check` green.
+- A5b: `.github/workflows/k1-embed.yml` needs no change. The push path
+  filter (line 15) and the diff calc (line 52) both match `**.md`, which
+  covers `docs/superpowers/specs/*.md`.
+- A5c red-run diagnosis: `k1-embed` runs 37173156181 (PR 6234, 3m40s) and
+  37167568013 (cloud-env, 3m10s) both fail in the `Launch embed job` step —
+  the fail-fast poll sees the in-cluster Job `Failed` condition. The Job
+  pods/logs are gone: `k3d/k1-embed-job.yaml` sets
+  `ttlSecondsAfterFinished: 3600`, so per-pod evidence expires one hour
+  after finish. Root cause of the container failure is therefore unknown
+  with reason (no logs, no describe output). Correlation recorded, not a
+  verdict: both diffs triggered the selective full-markdown path
+  (`ingest-markdown.mjs` over all files via the embed gateway) — 6234 via
+  `.agents/plans/*/*.md`, cloud-env via `docs/runbooks/cloud-env-devmesh.md`
+  — and failed within ~3 min, i.e. fast-fail rather than the 90-min budget
+  timeout documented in the workflow comments. Candidates consistent with a
+  fast fail are the transient embed-gateway 401s observed 2026-10-04, the 1Gi
+  container memory limit during a full ingest, or a DB-secret connectivity
+  fault; none is confirmable post-TTL.
+- TTL proposal (not applied, infra change out of scope): raise
+  `ttlSecondsAfterFinished` from 3600 to 86400 in `k3d/k1-embed-job.yaml`
+  so the next red run keeps `kubectl logs`/`describe` evidence for a day, or
+  ship the embed-container logs to a persistent artifact on failure.
+- Remaining uncertainty: the job selective trigger (`case` on diff paths)
+  matches `.agents/plans/*.md|docs/adr/*.md|docs/runbooks/*.md` but not
+  `docs/brain/*.md` or `docs/superpowers/specs/*.md` — edits confined to
+  those two dirs complete green as `keine indexierten Pfade` without
+  re-ingesting. `docs/superpowers/references` (e.g. gotchas-footguns) and
+  `docs/superpowers/plans` are ingested by neither the script nor the
+  trigger. Both gaps are left for a follow-up decision, not changed here.

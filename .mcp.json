@@ -10,6 +10,12 @@
         "@upstash/context7-mcp@4.1.1"
       ]
     },
+    "devflow-mcp": {
+      "command": "node",
+      "args": [
+        "scripts/devflow-mcp/server.mjs"
+      ]
+    },
     "mcp-kubernetes": {
       "type": "http",
       "url": "http://localhost:18080/mcp"

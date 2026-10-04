@@ -30,10 +30,10 @@ S1 note: no target carries a static limit here. Lua, Markdown and BATS-shell-tes
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/plugins/editor.lua, dotfiles/nvim/lua/config/editor-capabilities.lua |  | 27b-local | 32000 |
-| p2 | tasks.d/p2-tests-runbook.md | tests | dotfiles/nvim/runbooks/editor.md, tests/spec/neovim-dashboard.bats | p1 | 4b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/plugins/editor.lua, dotfiles/nvim/lua/config/editor-capabilities.lua |  |
+| p2 | tasks.d/p2-tests-runbook.md | tests | dotfiles/nvim/runbooks/editor.md, tests/spec/neovim-dashboard.bats | p1 |
 
 Execution order honoring depends_on: p1 first, then p2. Each partial commits its own files as `feat(T900656): <subject> [T900656]` with explicit pathspecs, never broad adds.
 

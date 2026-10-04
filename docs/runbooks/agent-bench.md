@@ -19,12 +19,12 @@ Nur Node-Standardbibliothek (plus Python-Stdlib fuer den Kernel-Check).
 ## Voraussetzungen
 
 - GPU-Host mit beiden Karten: RTX 5070 Ti (`:1919`, Orchestrator-Modell) und RTX 3060 Ti
-  (`:8080`, Qwen3-4B-2507-Worker-Pool, Windows-nativ). Produktion: `qwen38-gsq-iq3xxs.service`
-  (WSL-Unit) + Windows-Autostart des :8080-Pools (`scripts/llm/register-qwen3-4b-2507-autostart.ps1`,
+  (`:8080`, Qwen3.5-4B-MTP-Worker-Pool, Windows-nativ). Produktion: `qwen38-gsq-iq3xxs.service`
+  (WSL-Unit) + Windows-Autostart des :8080-Pools (`scripts/llm/register-qwen35-4b-autostart.ps1`,
   kein systemd).
 - vLLM 0.30.0 unter `~/opt/vllm-nvfp4`, Modell `~/models/gemma-4-12b-it-NVFP4`
   (nur fuer `gemma4-12b-nvfp4`-Laeufe noetig).
-- `opencode` im `PATH` mit den Primaer-Agenten `plan-worker-4b` und `plan-worker-self`.
+- `opencode` im `PATH` mit den Primaer-Agenten `plan-worker-qwen35` und `plan-worker-self`.
 - `scripts/llm/plan-runner.mjs` auf dem Arbeitsstand (Orchestrator-Rolle ruft ihn auf).
 - Laufdaten liegen ausserhalb des Repos unter `$AGENT_BENCH_RUNS` (Default
   `~/agent-bench-runs`); nur Messberichte gehen nach `scripts/llm/measurements/`.
@@ -52,7 +52,7 @@ node scripts/llm/agent-bench/bench.mjs export-corpus <run-id...> --out <dir>
   `AGENT_BENCH_MODELS` (Default `scripts/llm/agent-bench/models.json`),
   `AGENT_BENCH_MAX_JOBS` (Default 400, Stichproben-Deckel im full-Profil),
   `AGENT_BENCH_4B_SLOTS` (Default 1), `AGENT_BENCH_TEACHER_URL` (Pflicht bei
-  Teacher-Laeufen), `AGENT_BENCH_WORKER_AGENT` (Default `plan-worker-4b`).
+  Teacher-Laeufen), `AGENT_BENCH_WORKER_AGENT` (Default `plan-worker-qwen35`).
 
 Exit-Codes: `0` ok; `1` Gate-Regression (nur `gate`); `2` Konfigurationsfehler
 (unbekannte Rolle/Modell/Fall, Fall-Validierung, Scoring-Versions-Mismatch im Gate).
@@ -92,7 +92,7 @@ aendern (sonst vergleicht das Gate Ungleiches — es verweigert bei Mismatch mit
 ## Profile und Laufzeit
 
 - `quick` (≤ 1 h): Diagonale (jedes Modell allein) + Baseline
-  (`qwen38-27b` plant/orchestriert/reviewt, `qwen3-4b` arbeitet), 1 Rep, erste
+  (`qwen38-27b` plant/orchestriert/reviewt, `qwen35-4b` arbeitet), 1 Rep, erste
   Variante je Fall. Baseline nur, wenn beide Modelle gewaehlt sind.
 - `full` (nachts): alle Varianten, 3 Reps, ganze Matrix; ueber `AGENT_BENCH_MAX_JOBS`
   hinaus Stichprobe mit Seed (`sampled: true` im Manifest und Report).

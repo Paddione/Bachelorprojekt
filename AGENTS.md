@@ -16,17 +16,17 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, database, PostgreSQL, psql, schema, query, timeline | `bp-run` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md`; `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) — Ticket-Reads → `ticket-mcp` mit `brand` |
 | BATS/Playwright, `FA-*`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bp-ship` | — |
 
-> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `.opencode/opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `codebase-memory-mcp`, `context7`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `ticket-mcp-node`, `warden`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
+> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `.opencode/opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `codebase-memory-mcp`, `context7`, `devflow-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `ticket-mcp-node`, `warden`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
 > **gh-axi (T004612):** Bevorzugt für Anzeige. Für maschinelles Parsen (`--json`, `-q`, `--jq`), Polling (`pr checks`) und Mutationen (`pr merge`, `gh api`) immer `gh` direkt verwenden. Siehe [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
 
 **Before dispatching any domain agent, inject active plan context & curated toolset:**
 ```bash
 context=$(bash scripts/plan-context.sh <full-role-name>)
 [ -n "$context" ] && prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
-tools=$(bash scripts/toolset-context.sh <full-role-name>)
+tools=$(bash scripts/toolset-context.sh <full-role-name>) || { echo "toolset-context failed — not dispatching" >&2; exit 1; }
 [ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
 ```
-`<role>` muss ein voller Rollenname sein (`bp-*` / `orchestrator`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
+`<role>` muss ein voller Rollenname sein (`bp-build`/`bp-run`/`bp-ship`/`orchestrator`, SSOT `scripts/toolset/lib/roles.mjs`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle) — bei Exit ≠ 0 **nicht** ohne Block dispatchen (T900980). Aufgabenbezogener Kontext (Code-Symbole aus dem Graph-Index, Pläne/Bugs/PRs, per bge-Rerank empfohlene Werkzeuge) kommt über **devflow-mcp** `context_for_task(task, role)`; Pläne stagt `plan_stage` (T900985, [mcp-tool-guide](.claude/skills/references/mcp-tool-guide.md)). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
 
 ### Session Model & Delegation (T002153)
 

@@ -6,7 +6,7 @@
 #   update-status --id <external_id> --status <status> [--resolution <resolution>] [--notes <notes>]
 #   update-fields --id <external_id> [--title <title>] [--description <description>]
 #   add-comment --id <external_id> --body <body> [--author <author_label>] [--visibility <visibility>]
-#   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>]
+#   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>] [--reason merged|staged-stale|superseded] [--successor <slug>]
 #   get-attachments --id <external_id> --out-dir <out_dir>
 #   get --id <external_id>
 #   set-touched-files --id <external_id> --files <comma-separated-paths>
@@ -20,6 +20,11 @@
 # Never inferred from free-text --title/--description content (T002280).
 
 set -euo pipefail
+
+# [T900999-P4] Staged-Inaktivitaets-Frist (Tage): staged Plaene (>N Tage inaktiv)
+# und supersedete Plaene (bei Nachfolger-Merge) fallen unter dieselbe
+# Receipt+Delete-Regel wie gemergte (cmd_archive_plan --reason).
+STAGED_STALE_DAYS=14
 
 # Hilfe-Texte + Vorabgriff (T002843): ticket_usage, ticket_help_wanted,
 # ticket_help_subcommand. Die Texte leben bewusst in scripts/lib/ticket-help.sh,
@@ -224,13 +229,15 @@ EOF
 source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-links.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-grill.sh"
 cmd_archive_plan() {
-  local id="" slug="" branch="" plan_file="" pr=""
+  local id="" slug="" branch="" plan_file="" pr="" reason="merged" successor=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)        id="$2"; shift 2 ;;
       --slug)      slug="$2"; shift 2 ;;
       --branch)    branch="$2"; shift 2 ;;
       --plan-file) plan_file="$2"; shift 2 ;;
       --pr)        pr="$2"; shift 2 ;;
+      --reason)    reason="$2"; shift 2 ;;
+      --successor) successor="$2"; shift 2 ;;
       *)           echo "Unknown archive-plan option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh archive-plan" >&2; exit 2 ;;
     esac; done
 
@@ -238,6 +245,9 @@ cmd_archive_plan() {
     echo "ERROR: --id, --slug, --branch, and --plan-file are required." >&2
     exit 2
   fi
+
+  # Validate-before-_pgpod (FA-SF-48): schlechter Reason ist ohne Cluster deterministisch.
+  case "$reason" in merged|staged-stale|superseded) ;; *) echo "ERROR: --reason must be merged|staged-stale|superseded." >&2; exit 2 ;; esac
 
   # OFFLINE guard runs BEFORE the empty-plan-file check so operators get
   # the OFFLINE marker, not a 'plan file not found' error. See T001242 M3.
@@ -280,6 +290,15 @@ EOF
   local pr_sql="NULL"
   if [[ -n "$pr" ]]; then
     pr_sql="'$pr'::integer"
+  fi
+
+  # [T900999-P4] Reason-Trailer: tickets.ticket_plans hat keine eigene Reason-Spalte
+  # (Schema: slug/branch/content/pr_number) — der Grund wird als Trailer im Content
+  # mitgeschrieben, der Slug bleibt stabil (Verify per Slug, keine zweite Pruefung).
+  # Default merged schreibt KEINEN Trailer (Verhalten unveraendert).
+  if [[ "$reason" != "merged" ]]; then
+    plan_content="$plan_content
+<!-- lifecycle-receipt reason=$reason${successor:+ successor=$successor} -->"
   fi
 
   local tmpfile

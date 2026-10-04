@@ -18,33 +18,19 @@ import { validateHarnesses, resolveToolset } from './lib/resolve.mjs';
 import { ADAPTERS } from './lib/adapters/index.mjs';
 import { readClaudeCodeConfig } from './lib/harness.mjs';
 import { collectInstances, withRegistryOnlyInstances } from './collect.mjs';
+import { ROLES, LEGACY_ROLE_ALIASES } from './lib/roles.mjs';
+import { VALID_TIERS as TIER_LIST, defaultLockPath, loadLock, globMatch, toolDrift, resolveToolTier, denyRulesForRegistry } from './lib/tools.mjs';
+import { managedDeny } from './lib/adapters/claude.mjs';
 
 const registryPath = process.env.TOOLSET_REGISTRY || path.join(process.cwd(), 'docs', 'agent-guide', 'registry', 'capabilities.yaml');
 const outDir = process.env.TOOLSET_OUT_DIR || process.cwd();
 
-// Abschließendes Rollen-Vokabular. Bewusst hier dupliziert statt aus der `case`-Konstruktion
-// in scripts/plan-context.sh geparst: Bash-Parsen wäre brüchig, und die beiden Listen
-// unterscheiden sich um die Wildcard `all`. SSOT der Doppelung ist CONTRACT.md §2 des
-// Change toolset-usage-injection.
-const VALID_ROLES = new Set([
-  'bachelorprojekt-website',
-  'bachelorprojekt-ops',
-  'bachelorprojekt-infra',
-  'bachelorprojekt-test',
-  'bachelorprojekt-db',
-  'bachelorprojekt-security',
-  'orchestrator',
-  // [T012912] Rolle aus agents.yaml/AGENTS.md; PR #4839 trug sie in
-  // capabilities.yaml und toolset-context.sh ein, hier fehlte sie — das Gate
-  // stand danach auf jedem PR rot.
-  'big-pickle',
-  // [T900529] Zweiter Harness neben opencode: pi-coding-agent. Eigene Rolle, damit
-  // eine `roles: [pi]`-Kuration moeglich ist, ohne die bestehenden Rollen anzufassen.
-  'pi',
-  'all',
-]);
+// Abschließendes Rollen-Vokabular aus lib/roles.mjs (T900980). Eine Legacy-Rolle
+// (bachelorprojekt-*) ist in der Registry ein Fehler mit Ersatzvorschlag — die Registry ist
+// migriert, ein Rückfall soll rot werden.
+const VALID_ROLES = new Set(ROLES);
 
-const VALID_TIERS = new Set(['safe', 'caution', 'assisted', 'dangerous']);
+const VALID_TIERS = new Set(TIER_LIST);
 
 let registry;
 try {
@@ -90,7 +76,10 @@ for (const [capName, instances] of Object.entries(registry.capabilities)) {
 
     if (Array.isArray(cfg.roles)) {
       for (const role of cfg.roles) {
-        if (!VALID_ROLES.has(role)) {
+        if (Object.hasOwn(LEGACY_ROLE_ALIASES, role)) {
+          console.error(`Capability '${capName}' instance '${instKey}': legacy role '${role}' — use '${LEGACY_ROLE_ALIASES[role]}' (T900858).`);
+          hasError = true;
+        } else if (!VALID_ROLES.has(role)) {
           console.error(`Capability '${capName}' instance '${instKey}': unknown role '${role}' (valid: ${[...VALID_ROLES].join(', ')}).`);
           hasError = true;
         }
@@ -154,18 +143,24 @@ function unifiedDiff(before, after, filePath) {
 // eine fehlende Liste zählt wie eine leere, andere Keys und reine Formatierung sind kein
 // Drift (Verallgemeinerung des alten §2-Teilmengenvergleichs auf den vollen Soll-Zustand).
 // opencode fällt auf den Byte-Vergleich zurück — der Adapter erhält dort jedes Byte.
+// Rückgabe: Name des abweichenden verwalteten Schlüssels oder null (kein Drift).
+// T900985: claude verwaltet zusätzlich die mcp__<registry-server>__*-Einträge in permissions.deny.
 function isDrift(name, current, rendered) {
-  if (current === rendered) return false;
+  if (current === rendered) return null;
   if (name === 'claude') {
     try {
-      const a = JSON.parse(current).disabledMcpjsonServers ?? [];
-      const b = JSON.parse(rendered).disabledMcpjsonServers ?? [];
-      return JSON.stringify([...a].sort()) !== JSON.stringify([...b].sort());
+      const cur = JSON.parse(current);
+      const ren = JSON.parse(rendered);
+      const a = cur.disabledMcpjsonServers ?? [];
+      const b = ren.disabledMcpjsonServers ?? [];
+      if (JSON.stringify([...a].sort()) !== JSON.stringify([...b].sort())) return 'disabledMcpjsonServers';
+      if (JSON.stringify(managedDeny(cur, registryMcp)) !== JSON.stringify(managedDeny(ren, registryMcp))) return 'permissions.deny';
+      return null;
     } catch {
-      return true;
+      return MANAGED_KEYS[name];
     }
   }
-  return true;
+  return MANAGED_KEYS[name] ?? 'managed state';
 }
 
 const claude = readClaudeCodeConfig(outDir);
@@ -177,7 +172,7 @@ for (const [name, adapter] of Object.entries(ADAPTERS)) {
   if (!fs.existsSync(targetPath)) continue;
   const toolset = harness ? resolveToolset(registry.capabilities, harness) : legacyToolset;
   const ctx = name === 'claude'
-    ? { toolset, registryMcp, suppressedMcp, projectMcp }
+    ? { toolset, registryMcp, suppressedMcp, projectMcp, denyRules: denyRulesForRegistry(registry, loadLock(defaultLockPath(registryPath))) }
     : { toolset, registryMcp };
   const current = fs.readFileSync(targetPath, 'utf8');
   let rendered;
@@ -188,8 +183,9 @@ for (const [name, adapter] of Object.entries(ADAPTERS)) {
     hasError = true;
     continue;
   }
-  if (!isDrift(name, current, rendered)) continue;
-  console.error(`Drift detected in ${targetPath} (DRIFT ${name}): managed key '${MANAGED_KEYS[name] ?? 'managed state'}' differs`);
+  const driftKey = isDrift(name, current, rendered);
+  if (!driftKey) continue;
+  console.error(`Drift detected in ${targetPath} (DRIFT ${name}): managed key '${driftKey}' differs`);
   console.error(unifiedDiff(current, rendered, adapter.file).trimEnd());
   hasError = true;
 }
@@ -220,6 +216,79 @@ if (fs.existsSync(claude.settingsPath)) {
     console.log(`\n${divergent.length} plugin decision(s) are not enforced (sync.mjs covers mcp: only):`);
     for (const d of divergent) console.log(`  advisory: ${d}`);
     console.log(`  → toggle them with /plugin, or revise the registry via the 'toolset-curate' skill.`);
+  }
+}
+
+// 2c. Tool-Ebene (T900983, design.md D3/D4). Liest nur den Lock — offline wie der Rest.
+//     fail-closed: ungültiger Tier, tool_tiers an Nicht-mcp-Instanz, Glob ohne Treffer bei
+//     gemessenem Server (veraltete Kuration).
+//     fail-open:   neue/entfernte/geänderte Tools gegenüber `reviewed`; destructiveHint auf
+//     einem Tool, das zu `safe` auflöst.
+{
+  const lock = loadLock(defaultLockPath(registryPath));
+  const toolNotes = [];
+  for (const [capName, instances] of Object.entries(registry.capabilities)) {
+    for (const [instKey, cfg] of Object.entries(instances)) {
+      const tiers = cfg.tool_tiers;
+      if (tiers !== undefined && tiers !== null) {
+        if (!instKey.startsWith('mcp:')) {
+          console.error(`Capability '${capName}' instance '${instKey}': tool_tiers is only valid on mcp: instances.`);
+          hasError = true;
+          continue;
+        }
+        for (const [pattern, tier] of Object.entries(tiers)) {
+          if (!VALID_TIERS.has(tier)) {
+            console.error(`Capability '${capName}' instance '${instKey}': tool_tiers '${pattern}' has invalid tier '${tier}' (valid: ${[...VALID_TIERS].join(', ')}).`);
+            hasError = true;
+          }
+        }
+      }
+      // T900985 D6: tools_suppressed — nur an mcp:, Liste von Globs.
+      const supp = cfg.tools_suppressed;
+      if (supp !== undefined && supp !== null) {
+        if (!instKey.startsWith('mcp:') || !Array.isArray(supp)) {
+          console.error(`Capability '${capName}' instance '${instKey}': tools_suppressed must be a list on an mcp: instance.`);
+          hasError = true;
+          continue;
+        }
+      }
+      if (!instKey.startsWith('mcp:') || cfg.state === 'suppressed') continue;
+      const server = instKey.slice(4);
+      const entry = lock.servers[server];
+      if (!entry?.tools) continue;
+      const names = Object.keys(entry.tools);
+      for (const pattern of supp ?? []) {
+        if (!names.some(n => globMatch(pattern, n))) {
+          console.error(`Capability '${capName}' instance '${instKey}': tools_suppressed '${pattern}' matches no tool of '${server}' in the lock (stale curation).`);
+          hasError = true;
+        }
+      }
+      if (supp?.length) {
+        toolNotes.push(`  advisory: ${server}: tools_suppressed is enforced for Claude Code (permissions.deny) only, not for opencode`);
+      }
+      for (const pattern of Object.keys(tiers ?? {})) {
+        if (!names.some(n => globMatch(pattern, n))) {
+          console.error(`Capability '${capName}' instance '${instKey}': tool_tiers '${pattern}' matches no tool of '${server}' in the lock (stale curation).`);
+          hasError = true;
+        }
+      }
+      if (entry.duplicate_names?.length) {
+        toolNotes.push(`  advisory: ${server} lists ${entry.duplicate_names.length} tool name(s) twice in tools/list: ${entry.duplicate_names.join(', ')}`);
+      }
+      const { added, removed, changed } = toolDrift(entry);
+      for (const n of added) toolNotes.push(`  unreviewed tool: ${server}.${n} (new)`);
+      for (const n of removed) toolNotes.push(`  unreviewed tool: ${server}.${n} (removed)`);
+      for (const n of changed) toolNotes.push(`  unreviewed tool: ${server}.${n} (description/schema changed)`);
+      for (const n of names) {
+        if (entry.tools[n]?.destructive && resolveToolTier(n, cfg) === 'safe') {
+          toolNotes.push(`  advisory: ${server}.${n} carries destructiveHint but resolves to tier 'safe' — add a tool_tiers entry`);
+        }
+      }
+    }
+  }
+  if (toolNotes.length > 0) {
+    console.log(`\nTool level — ack with 'node scripts/toolset/probe.mjs --ack <server>' after review:`);
+    for (const n of toolNotes) console.log(n);
   }
 }
 

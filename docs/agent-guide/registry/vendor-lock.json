@@ -136,8 +136,8 @@
       "dest": ".opencode/skills/lavish",
       "track": "release",
       "tag_prefix": "lavish-axi-v",
-      "ref": "a2a199cd2275ab4d5cea1b94d42e2479bda36321",
-      "version": "lavish-axi-v0.1.80"
+      "ref": "7369205ec9c04136813f6c808dad548633dd1aff",
+      "version": "lavish-axi-v0.1.81"
     },
     "llama-cpp": {
       "repo": "Orchestra-Research/AI-research-SKILLs",
@@ -149,10 +149,10 @@
     },
     "langfuse": {
       "repo": "langfuse/skills",
-      "path": "langfuse",
+      "path": "skills/langfuse",
       "dest": ".opencode/skills/langfuse",
       "track": "branch",
-      "ref": "104acd9aa7b1f431066cd9fe4b0b431a0188e642",
+      "ref": "b86532b77f16f1e27c7cffa32bb632aa3cd9a352",
       "version": null
     },
     "skill-creator": {

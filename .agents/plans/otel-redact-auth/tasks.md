@@ -28,10 +28,10 @@ _Ticket: T900692_
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-collector.md | impl | dev-local/components/langfuse/otel-redact.yaml | | 4b-local | 6000 |
-| p2 | tasks.d/p2-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1 | 4b-local | 6000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-collector.md | impl | dev-local/components/langfuse/otel-redact.yaml | |
+| p2 | tasks.d/p2-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1 |
 
 ## Task: Failing Test bestätigen
 

@@ -109,9 +109,6 @@ P2_TICKET_SCOPE_RE='^T[0-9]{6}$'
 P2_HEALTH_SCOPE_RE='^G-[A-Z][A-Z0-9]+$'
 B1B_SPLIT_RE='split|extract|verkleiner|shrink|aufteil'
 PARTIAL_TOKEN_LIMIT=7000
-R1_TIERS="4b-local 27b-local cloud"
-R2_LOCAL_MAX=131072
-R2_ABS_MAX=1000000
 
 _print_rules() {
   cat <<_RULES_EOF
@@ -121,11 +118,9 @@ F2: 'domains' must be a non-empty YAML list (not '', not [], not null).
 STRUCT1: after the frontmatter: H1 '# <slug> — Implementation Plan', then an H2 section '## File Structure' listing changed/new files.
 STRUCT2: at least one task runs a real test runner (${STRUCT2_RUNNERS_RE}) and expects it to FAIL first. The final 'task test:*' verify does NOT count.
 STRUCT3: the last task lists verbatim: $(for c in $STRUCT3_CMDS; do printf 'task %s; ' "$c"; done)
-STRUCT-PARTIAL: if tasks.d/ exists next to tasks.md, tasks.md needs a '## Partials' manifest table; every referenced partial file must exist; the last row's role is 'tests'.
+STRUCT-PARTIAL: if tasks.d/ exists next to tasks.md, tasks.md needs a '## Partials' manifest table; every referenced partial file must exist; the last row's role is 'tests'; every row carries a machine-readable target_files cell (empty = FAIL, no .md-rest fallback).
 D1: no file may appear in the target_files of two partials (disjoint split).
 D2: depends_on may only reference existing partial ids and must be acyclic.
-R1: every manifest row carries min_tier from {$(echo "${R1_TIERS// /, }")} (exact, lowercase) — the cheapest tier that can still do the partial.
-R2: every manifest row carries ctx_tokens as a positive integer <= ${R2_ABS_MAX}; on local tiers (4b-local, 27b-local) additionally <= ${R2_LOCAL_MAX} (served KV window) — above that pick 'cloud' or split the partial.
 I1: intel.json must exist in the change dir, be valid JSON with meta/impact_files/symbols, and cover every target_file.
 P1: no open placeholders in prose outside code fences/inline code (regex: ${P1_RE}).
 P2: commit-scope prescriptions ('type(scope):') must use valid named scopes from validate-commit-msg.sh scopes, ticket scopes (${P2_TICKET_SCOPE_RE}), or health-goal scopes (${P2_HEALTH_SCOPE_RE}).
@@ -296,11 +291,11 @@ grep -qiE '^#+ +File Structure' "$PLAN" || hard "STRUCT1: missing 'File Structur
 PLAN_DIR="$(cd "$(dirname "$PLAN")" && pwd)"
 PARTIAL_MODE=0
 STRUCT2_FILE="$PLAN"   # single mode: the plan itself carries the failing-test step
-declare -a PARTIAL_FILES=() PARTIAL_ROLES=() ALL_PARTIAL_TARGETS=() PARTIAL_TIERS=() PARTIAL_CTX=()
+declare -a PARTIAL_FILES=() PARTIAL_ROLES=() ALL_PARTIAL_TARGETS=()
 if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
   PARTIAL_MODE=1
   # Parse the `## Partials` manifest table rows:
-  #   | <id> | tasks.d/pX-<name>.md | impl|tests | <target_files, comma-sep> | <depends_on, optional> | min_tier | ctx_tokens |
+  #   | <id> | tasks.d/pX-<name>.md | impl|tests | <target_files, comma-sep> | <depends_on, optional> |
   #   target_files-Zellen muessen pfadrein sein (T008015-3): Annotations-Praefixe
   #   ("Löschungen:") und Brace-Globs werden NICHT als Pfade aufgeloest; der
   #   Loesch-Status gehoert in die File-Structure-Spalte.
@@ -308,15 +303,17 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
   while IFS= read -r row; do
     [[ "$row" == *tasks.d/* ]] || continue
     row_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row")"
-    IFS='|' read -r c_id c_file c_role c_targets c_deps c_tier c_ctx <<<"$row_stripped"
+    IFS='|' read -r c_id c_file c_role c_targets c_deps _crest <<<"$row_stripped"
     c_file="$(printf '%s' "$c_file" | tr -d ' `')"
     c_role="$(printf '%s' "$c_role" | tr -d ' ')"
-    c_tier="$(printf '%s' "$c_tier" | tr -d ' `')"
-    c_ctx="$(printf '%s' "$c_ctx" | tr -d ' `')"
     PARTIAL_FILES+=("$c_file")
     PARTIAL_ROLES+=("$c_role")
-    PARTIAL_TIERS+=("$c_tier")
-    PARTIAL_CTX+=("$c_ctx")
+    _rid_now="$(printf '%s' "$c_id" | tr -d ' `')"
+    _targets_now="$(printf '%s' "$c_targets" | tr -d ' `')"
+    # T901014 P3: Partial ohne maschinenlesbares Manifest-Feld ist ein FAIL —
+    # ein leerer target_files-Rest darf nicht als Ablage durchgehen.
+    [[ -z "$_targets_now" ]] && hard "STRUCT-PARTIAL: partial '$_rid_now' ($c_file) has no machine-readable target_files cell — empty manifest field is a FAIL, not an .md-rest fallback"
+
     # [T900024] Dieselbe Zellen-Filterung wie `partial_targets` -- ueber
     # denselben Helfer, nicht ueber eine zweite Kopie der Regel.
     while IFS= read -r _t; do
@@ -335,9 +332,25 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     tests_file="${PARTIAL_FILES[${#PARTIAL_FILES[@]}-1]}"
     [[ -f "$PLAN_DIR/$tests_file" ]] && STRUCT2_FILE="$PLAN_DIR/$tests_file"
     # D1 (NEU, Hard): validateDisjoint-Logik — keine Datei in zwei Partials.
+    # T901014 P3: die Meldung nennt je Pfad die beteiligten Partial-IDs.
     if [[ ${#ALL_PARTIAL_TARGETS[@]} -gt 0 ]]; then
       dupes=$(printf '%s\n' "${ALL_PARTIAL_TARGETS[@]}" | sort | uniq -d)
-      [[ -n "$dupes" ]] && hard "D1: file(s) assigned to multiple partials: $(echo "$dupes" | tr '\n' ' ')"
+      if [[ -n "$dupes" ]]; then
+        _dupe_detail=""
+        while IFS= read -r _d; do
+          [[ -z "$_d" ]] && continue
+          _owners=""
+          while IFS= read -r _row; do
+            [[ "$_row" == *tasks.d/* ]] || continue
+            _rrid="$(sed -E 's/^\| *//' <<<"$_row" | cut -d'|' -f1 | tr -d ' `')"
+            while IFS= read -r _t; do
+              [[ "$_t" == "$_d" ]] && _owners="${_owners:+$_owners,}$_rrid"
+            done < <(_row_targets "$_row")
+          done <<<"$manifest_rows"
+          _dupe_detail="${_dupe_detail:+$_dupe_detail; }$_d (partials: ${_owners:-?})"
+        done <<<"$dupes"
+        hard "D1: file(s) assigned to multiple partials: $_dupe_detail"
+      fi
     fi
     # D2 (NEU, Hard): depends_on — validate references and acyclicity.
     declare -A PARTIAL_IDS=()
@@ -346,10 +359,10 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     for idx in "${!PARTIAL_FILES[@]}"; do
       row_line=$(sed -n "$((idx+1))p" <<<"$manifest_data_rows")
       rl_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row_line")"
-      # 7 Felder lesen (R1/R2-Spalten hinten): ohne _rtier/_rctx wuerde das
-      # letzte read-Feld (_rdeps) den Rest "… | min_tier | ctx_tokens" schlucken
-      # und D2 auf Phantom-IDs fehlschlagen.
-      IFS='|' read -r _rid _rfile _rrole _rtargets _rdeps _rtier _rctx <<<"$rl_stripped"
+      # 5 Felder + Rest lesen: ohne _rrest wuerde _rdeps bei Legacy-Zeilen
+      # den Rest "… | min_tier | ctx_tokens" schlucken und D2 auf Phantom-IDs
+      # fehlschlagen. _rrest wird verworfen (T900948: Spalten entfernt).
+      IFS='|' read -r _rid _rfile _rrole _rtargets _rdeps _rrest <<<"$rl_stripped"
       _rid="$(printf '%s' "$_rid" | tr -d ' `')"
       _rdeps="$(printf '%s' "$_rdeps" | tr -d ' `')"
       PARTIAL_IDS["$_rid"]=1
@@ -362,7 +375,7 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
       for _dep in "${_dep_arr[@]}"; do
         _dep="$(printf '%s' "$_dep" | tr -d ' ')"
         [[ -z "$_dep" ]] && continue
-        [[ -z "${PARTIAL_IDS[$_dep]+x}" ]] && hard "D2: unknown depends_on id: $_dep"
+        [[ -z "${PARTIAL_IDS[$_dep]+x}" ]] && hard "D2: unknown depends_on id: $_dep (partial $pid)"
       done
     done
     # D2 cycle check: iterative Kahn
@@ -406,25 +419,6 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
       done
       hard "D2: dependency cycle: $_remaining"
     fi
-    # R1/R2 (NEU, Hard): Resourcing — jede Manifest-Zeile ist die Dispatch-Vorgabe
-    # des Orchestrators ("cheapest that does the trick"). Index-parallel zu
-    # PARTIAL_FILES gelesen (Haupt-Loop oben); Reihenfolge ist identisch.
-    for idx in "${!PARTIAL_FILES[@]}"; do
-      _pid="${PARTIAL_FILES[$idx]}"
-      _tier="${PARTIAL_TIERS[$idx]}"
-      _ctx="${PARTIAL_CTX[$idx]}"
-      case "$_tier" in
-        4b-local|27b-local|cloud) ;;
-        *) hard "R1: ${_pid}: min_tier '${_tier}' ungueltig — erlaubt (6. Manifest-Spalte, exakt): ${R1_TIERS// /, }" ;;
-      esac
-      if ! [[ "$_ctx" =~ ^[0-9]+$ ]]; then
-        hard "R2: ${_pid}: ctx_tokens '${_ctx}' ist keine positive Ganzzahl (7. Manifest-Spalte)"
-      elif [[ $((10#$_ctx)) -gt $R2_ABS_MAX ]]; then
-        hard "R2: ${_pid}: ctx_tokens ${_ctx} > ${R2_ABS_MAX} — ausserhalb jedes Modell-Fensters"
-      elif [[ "$_tier" == "4b-local" || "$_tier" == "27b-local" ]] && [[ $((10#$_ctx)) -gt $R2_LOCAL_MAX ]]; then
-        hard "R2: ${_pid}: ctx_tokens ${_ctx} passt nicht ins lokale ${R2_LOCAL_MAX}-Fenster — min_tier 'cloud' oder Partial aufteilen"
-      fi
-    done
   fi
   # I1 (NEU, Hard): Vollständigkeit des Intel-Bundles.
   # Nur im Partial-Modus aktiv: prüft ob intel.json existiert, valide ist,
@@ -434,6 +428,9 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     slug="$(basename "$(dirname "$PLAN")")"
     local intel="$PLAN_DIR/intel.json"
     if [[ ! -f "$intel" ]]; then
+      # T901014 P3: bewusst weiter Warnung (kein FAIL) — fixtures ohne
+      # intel.json (z. B. tests/unit Fixtures) muessen PASS bleiben; FAIL
+      # greift bei vorhandener intel.json mit fehlender Target-Abdeckung.
       warn "I1: intel.json not found at $intel — run scripts/plan-intel.sh $slug to generate it"
       return
     fi
@@ -723,6 +720,10 @@ _json_str() {
 }
 
 emit_verdict() {
+  local _m _empty=0
+  [[ ${#HARD[@]} -gt 0 ]] && for _m in "${HARD[@]}"; do [[ -z "$_m" ]] || continue; _empty=1; done
+  [[ ${#WARN[@]} -gt 0 ]] && for _m in "${WARN[@]}"; do [[ -z "$_m" ]] || continue; _empty=1; done
+  [[ "$_empty" -eq 1 ]] && HARD+=("INTERNAL: empty lint reason — every FAIL/WARN must name file + rule")
   local n_hard=${#HARD[@]} n_warn=${#WARN[@]}
   if [[ $JSON -eq 1 ]]; then
     printf '{"verdict":"%s","hard":[' "$([[ $n_hard -eq 0 ]] && echo PASS || echo FAIL)"

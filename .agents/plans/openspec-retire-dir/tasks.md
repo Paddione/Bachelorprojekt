@@ -28,10 +28,10 @@ _Ticket: T900726_
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-delete.md | impl | openspec/ | | 4b-local | 16000 |
-| p2 | tasks.d/p2-tests.md | tests | tests/spec/os-retirement-dir.bats | p1 | 4b-local | 6000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-delete.md | impl | openspec/ | |
+| p2 | tasks.d/p2-tests.md | tests | tests/spec/os-retirement-dir.bats | p1 |
 
 ## Task: Failing Test bestätigen
 

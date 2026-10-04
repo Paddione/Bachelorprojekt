@@ -1,0 +1,47 @@
+{
+  "model": "bge-m3",
+  "dims": 1024,
+  "corpus": "docs/brain/corpus-freeze.json",
+  "corpus_sha256": "d8b03c5981a7f4dd43675001e9b49f19856de309cc41d076792e4f81fdeccffd",
+  "frozen_at_commit": "8fed539b996fdcb89181fa8e8084fec8d299c8ab",
+  "candidate_count": 116,
+  "created_at": "2026-10-03T17:18:00.014130+00:00",
+  "held_out": {
+    "auth/callback.ts:GET": [
+      "components/website/src/lib/cors.ts",
+      "components/website/src/lib/redirect.ts",
+      "components/website/src/pages/api/internal/applications/auth.ts",
+      "components/website/src/lib/auth.ts",
+      "components/website/src/lib/nextcloud-shares.ts",
+      "components/website/src/lib/provider-config.ts",
+      "components/website/src/lib/assistant/actions.ts",
+      "components/website/src/lib/claude-session-agent.ts",
+      "components/website/src/lib/assistant/llm.ts",
+      "components/website/src/lib/assistant/types.ts"
+    ],
+    "billing/create-invoice.ts:POST": [
+      "components/website/src/lib/invoice-storno.ts",
+      "components/website/src/lib/stripe-billing.ts",
+      "components/website/src/lib/invoice-hash.ts",
+      "components/website/src/lib/native-billing.ts",
+      "components/website/src/lib/invoice-payments.ts",
+      "components/website/src/lib/stripe.ts",
+      "components/website/src/lib/customer-crm-db.ts",
+      "components/website/src/lib/invoice-dunning.ts",
+      "components/website/src/lib/ingest-json-core.ts",
+      "components/website/src/pages/api/_errors.ts"
+    ],
+    "brett/bot.ts:POST": [
+      "components/website/src/lib/brett-bot.ts",
+      "components/website/src/lib/nextcloud-talk-db.ts",
+      "components/website/src/lib/talk.ts",
+      "components/website/src/lib/whiteboard.ts",
+      "components/website/src/lib/nextcloud-shares.ts",
+      "components/website/src/lib/assistant/types.ts",
+      "components/website/src/lib/coaching-report.ts",
+      "components/website/src/lib/poll-db.ts",
+      "components/website/src/lib/notifications.ts",
+      "components/website/src/lib/assistant/actions.ts"
+    ]
+  }
+}

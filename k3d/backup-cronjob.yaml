@@ -203,19 +203,11 @@ spec:
               # STAMP and UPLOAD_PATH below are read from /staging at runtime — NOT envsubst targets.
               args:
                 - |
-                  # Credential-Auflösung: Die optionale Secret filen-upload-credentials
-                  # gewinnt gegenüber workspace-secrets [T013037]. Hintergrund: Das
-                  # mentolder-Filen-Konto hat 2FA aktiviert (~2026-07-25), worauf die
-                  # CLI mit einem interaktiven Prompt antwortet und den Job bis zum
-                  # Deadline-Tod aufhängt. Bis das Konto wieder ohne 2FA nutzbar ist,
-                  # wird auf das korczewski-Filen-Konto (ohne 2FA) ausgewichen.
+                  # Credentials kommen ausschliesslich aus workspace-secrets. Der
+                  # frühere Override filen-upload-credentials [T013037] ist mit
+                  # T900796 entfernt (Werte waren hash-gleich zu workspace-secrets).
                   FILEN_EMAIL="$${FILEN_EMAIL:-}"
                   FILEN_PASSWORD="$${FILEN_PASSWORD:-}"
-                  if [ -n "$${FILEN_EMAIL_OVERRIDE:-}" ] && [ -n "$${FILEN_PASSWORD_OVERRIDE:-}" ]; then
-                    echo "Using override Filen credentials (filen-upload-credentials) [T013037]"
-                    FILEN_EMAIL="$${FILEN_EMAIL_OVERRIDE}"
-                    FILEN_PASSWORD="$${FILEN_PASSWORD_OVERRIDE}"
-                  fi
 
                   if [ -z "$${FILEN_EMAIL}" ] || [ -z "$${FILEN_PASSWORD}" ]; then
                     echo "Filen not configured — skipping remote backup"
@@ -325,22 +317,6 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: FILEN_PASSWORD
-                      optional: true
-                # T013037: Optionale Credential-Überschreibung für den temporären
-                # Backend-Reroute (korczewski-Filen-Konto statt mentolder, solange
-                # dort 2FA aktiv ist). Secret fehlt ⇒ beide Variablen leer ⇒
-                # workspace-secrets wird verwendet — Verhalten wie bisher.
-                - name: FILEN_EMAIL_OVERRIDE
-                  valueFrom:
-                    secretKeyRef:
-                      name: filen-upload-credentials
-                      key: EMAIL
-                      optional: true
-                - name: FILEN_PASSWORD_OVERRIDE
-                  valueFrom:
-                    secretKeyRef:
-                      name: filen-upload-credentials
-                      key: PASSWORD
                       optional: true
               volumeMounts:
                 - name: backup-storage

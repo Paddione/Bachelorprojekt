@@ -9,8 +9,15 @@ const COLLECTION_SOURCE = 'specs_plans';
 
 function findMarkdownFiles() {
   const files = [];
+  // Flat *.md per dir — mirrors the k1-embed-job selective trigger
+  // (.agents/plans/*.md|docs/adr/*.md|docs/runbooks/*.md). docs/brain is
+  // flat (no subdirs as of 2026-10-04); keep flat here so the script and
+  // the job trigger can never drift apart silently.
   const flatDirs = [
     join(REPO_ROOT, 'docs/superpowers/specs'),
+    join(REPO_ROOT, 'docs/adr'),
+    join(REPO_ROOT, 'docs/runbooks'),
+    join(REPO_ROOT, 'docs/brain'),
   ];
   for (const dir of flatDirs) {
     try {
@@ -65,7 +72,7 @@ async function main() {
     const collectionId = await ensureCollection(pool, {
       name: COLLECTION_NAME,
       source: COLLECTION_SOURCE,
-      description: 'Specs, plans, and CLAUDE.md from the repository',
+      description: 'Specs, plans, ADRs, runbooks, brain notes, and CLAUDE.md from the repository',
     });
 
     const files = findMarkdownFiles();

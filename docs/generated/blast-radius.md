@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-10-02T14:42:59.002Z
-> Nodes: 93 | Edges: 1933 | Isolated: 6
+> Generated: 2026-10-04T11:13:55.549Z
+> Nodes: 94 | Edges: 1934 | Isolated: 6
 
 ## Ranking (transitive Abhängige)
 
@@ -19,74 +19,75 @@
 | 11 | nats | 2 | 54 | 2 |
 | 12 | bge-embed | 1 | 54 | 1 |
 | 13 | bge-rerank | 1 | 54 | 1 |
-| 14 | sdlc-console | 49 | 53 | 49 |
-| 15 | brett | 45 | 53 | 45 |
-| 16 | oauth2-proxy-brainstorm | 43 | 53 | 43 |
-| 17 | oauth2-proxy-dev | 43 | 53 | 43 |
-| 18 | oauth2-proxy-session-hub | 43 | 53 | 43 |
-| 19 | nextcloud | 43 | 53 | 43 |
-| 20 | oauth2-proxy-recovery | 43 | 53 | 43 |
-| 21 | shared-db | 43 | 53 | 43 |
-| 22 | spreed-signaling | 43 | 53 | 43 |
-| 23 | vaultwarden | 43 | 53 | 43 |
-| 24 | whiteboard | 43 | 53 | 43 |
-| 25 | oauth2-proxy-brain | 43 | 53 | 43 |
-| 26 | oauth2-proxy-brett | 42 | 53 | 42 |
-| 27 | oauth2-proxy-comfy | 42 | 53 | 42 |
-| 28 | oauth2-proxy-downloads | 42 | 53 | 42 |
-| 29 | oauth2-proxy-mailpit | 42 | 53 | 42 |
-| 30 | oauth2-proxy-mediaviewer | 42 | 53 | 42 |
-| 31 | oauth2-proxy-rustdesk-web | 42 | 53 | 42 |
-| 32 | oauth2-proxy-studio | 42 | 53 | 42 |
-| 33 | oauth2-proxy-terminal | 42 | 53 | 42 |
-| 34 | oauth2-proxy-traefik | 42 | 53 | 42 |
-| 35 | oauth2-proxy-videovault | 42 | 53 | 42 |
-| 36 | pocket-id | 42 | 53 | 42 |
-| 37 | talk-recording | 42 | 53 | 42 |
-| 38 | videovault | 42 | 53 | 42 |
-| 39 | talk-transcriber | 42 | 53 | 42 |
-| 40 | admin-actions-cleanup | 41 | 53 | 41 |
-| 41 | admin-actions-prune | 41 | 53 | 41 |
-| 42 | sessions-purge | 41 | 53 | 41 |
-| 43 | db-backup | 41 | 53 | 41 |
-| 44 | db-restore-verify | 41 | 53 | 41 |
-| 45 | billing-dunning-detection | 41 | 53 | 41 |
-| 46 | monthly-billing | 41 | 53 | 41 |
-| 47 | scheduled-publish | 41 | 53 | 41 |
-| 48 | error-log-retention | 41 | 53 | 41 |
-| 49 | knowledge-ingest-prs | 41 | 53 | 41 |
-| 50 | knowledge-ingest-bugs | 41 | 53 | 41 |
-| 51 | knowledge-reindex-all | 41 | 53 | 41 |
-| 52 | notify-unread | 41 | 53 | 41 |
-| 53 | studio-server | 41 | 53 | 41 |
-| 54 | ddns-updater | 41 | 53 | 41 |
-| 55 | dev-db-refresh | 41 | 53 | 41 |
-| 56 | website | 23 | 53 | 23 |
-| 57 | shared-db-dev | 6 | 53 | 6 |
-| 58 | traefik | 6 | 53 | 6 |
-| 59 | dev-pod | 5 | 53 | 5 |
-| 60 | systemtest-cleanup | 4 | 53 | 4 |
-| 61 | systemtest-purge-all | 4 | 53 | 4 |
-| 62 | systemtest-outbox | 4 | 53 | 4 |
-| 63 | monitoring-grafana | 1 | 53 | 1 |
-| 64 | llm-gateway-embed | 1 | 53 | 1 |
-| 65 | llm-gateway-rerank | 1 | 53 | 1 |
-| 66 | api@internal | 1 | 53 | 1 |
-| 67 | ${WEBSITE_PRIMARY_SERVICE} | 1 | 53 | 1 |
-| 68 | old-webspace | 1 | 53 | 1 |
-| 69 | bachelorprojekt | 1 | 53 | 1 |
-| 70 | langfuse-dev-proxy | 1 | 53 | 1 |
-| 71 | keycloak | 1 | 53 | 1 |
-| 72 | tracking | 1 | 53 | 1 |
-| 73 | docuseal | 1 | 53 | 1 |
-| 74 | sealed-secrets-controller | 2 | 2 | 2 |
-| 75 | downloads | 1 | 1 | 1 |
-| 76 | einvoice-sidecar | 1 | 1 | 1 |
-| 77 | mediaviewer-widget | 1 | 1 | 1 |
-| 78 | blackbox-exporter | 1 | 1 | 1 |
-| 79 | nextcloud-redis | 1 | 1 | 1 |
-| 80 | whisper | 1 | 1 | 1 |
-| 81 | brain | 1 | 1 | 1 |
+| 14 | bge-embed-bulk | 1 | 54 | 1 |
+| 15 | sdlc-console | 49 | 53 | 49 |
+| 16 | brett | 45 | 53 | 45 |
+| 17 | oauth2-proxy-brainstorm | 43 | 53 | 43 |
+| 18 | oauth2-proxy-dev | 43 | 53 | 43 |
+| 19 | oauth2-proxy-session-hub | 43 | 53 | 43 |
+| 20 | nextcloud | 43 | 53 | 43 |
+| 21 | oauth2-proxy-recovery | 43 | 53 | 43 |
+| 22 | shared-db | 43 | 53 | 43 |
+| 23 | spreed-signaling | 43 | 53 | 43 |
+| 24 | vaultwarden | 43 | 53 | 43 |
+| 25 | whiteboard | 43 | 53 | 43 |
+| 26 | oauth2-proxy-brain | 43 | 53 | 43 |
+| 27 | oauth2-proxy-brett | 42 | 53 | 42 |
+| 28 | oauth2-proxy-comfy | 42 | 53 | 42 |
+| 29 | oauth2-proxy-downloads | 42 | 53 | 42 |
+| 30 | oauth2-proxy-mailpit | 42 | 53 | 42 |
+| 31 | oauth2-proxy-mediaviewer | 42 | 53 | 42 |
+| 32 | oauth2-proxy-rustdesk-web | 42 | 53 | 42 |
+| 33 | oauth2-proxy-studio | 42 | 53 | 42 |
+| 34 | oauth2-proxy-terminal | 42 | 53 | 42 |
+| 35 | oauth2-proxy-traefik | 42 | 53 | 42 |
+| 36 | oauth2-proxy-videovault | 42 | 53 | 42 |
+| 37 | pocket-id | 42 | 53 | 42 |
+| 38 | talk-recording | 42 | 53 | 42 |
+| 39 | videovault | 42 | 53 | 42 |
+| 40 | talk-transcriber | 42 | 53 | 42 |
+| 41 | admin-actions-cleanup | 41 | 53 | 41 |
+| 42 | admin-actions-prune | 41 | 53 | 41 |
+| 43 | sessions-purge | 41 | 53 | 41 |
+| 44 | db-backup | 41 | 53 | 41 |
+| 45 | db-restore-verify | 41 | 53 | 41 |
+| 46 | billing-dunning-detection | 41 | 53 | 41 |
+| 47 | monthly-billing | 41 | 53 | 41 |
+| 48 | scheduled-publish | 41 | 53 | 41 |
+| 49 | error-log-retention | 41 | 53 | 41 |
+| 50 | knowledge-ingest-prs | 41 | 53 | 41 |
+| 51 | knowledge-ingest-bugs | 41 | 53 | 41 |
+| 52 | knowledge-reindex-all | 41 | 53 | 41 |
+| 53 | notify-unread | 41 | 53 | 41 |
+| 54 | studio-server | 41 | 53 | 41 |
+| 55 | ddns-updater | 41 | 53 | 41 |
+| 56 | dev-db-refresh | 41 | 53 | 41 |
+| 57 | website | 23 | 53 | 23 |
+| 58 | shared-db-dev | 6 | 53 | 6 |
+| 59 | traefik | 6 | 53 | 6 |
+| 60 | dev-pod | 5 | 53 | 5 |
+| 61 | systemtest-cleanup | 4 | 53 | 4 |
+| 62 | systemtest-purge-all | 4 | 53 | 4 |
+| 63 | systemtest-outbox | 4 | 53 | 4 |
+| 64 | monitoring-grafana | 1 | 53 | 1 |
+| 65 | llm-gateway-embed | 1 | 53 | 1 |
+| 66 | llm-gateway-rerank | 1 | 53 | 1 |
+| 67 | api@internal | 1 | 53 | 1 |
+| 68 | ${WEBSITE_PRIMARY_SERVICE} | 1 | 53 | 1 |
+| 69 | old-webspace | 1 | 53 | 1 |
+| 70 | bachelorprojekt | 1 | 53 | 1 |
+| 71 | langfuse-dev-proxy | 1 | 53 | 1 |
+| 72 | keycloak | 1 | 53 | 1 |
+| 73 | tracking | 1 | 53 | 1 |
+| 74 | docuseal | 1 | 53 | 1 |
+| 75 | sealed-secrets-controller | 2 | 2 | 2 |
+| 76 | downloads | 1 | 1 | 1 |
+| 77 | einvoice-sidecar | 1 | 1 | 1 |
+| 78 | mediaviewer-widget | 1 | 1 | 1 |
+| 79 | blackbox-exporter | 1 | 1 | 1 |
+| 80 | nextcloud-redis | 1 | 1 | 1 |
+| 81 | whisper | 1 | 1 | 1 |
+| 82 | brain | 1 | 1 | 1 |
 
 ## Details
 
@@ -153,6 +154,11 @@
 ### bge-rerank
 **Direkte Abhängige:** 1 — llm-gateway-rerank
 **Transitive Abhängige:** 54 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, llm-gateway-rerank, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
+**Upstream (In-Degree):** 1
+
+### bge-embed-bulk
+**Direkte Abhängige:** 1 — llm-gateway-embed
+**Transitive Abhängige:** 54 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, llm-gateway-embed, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 1
 
 ### sdlc-console

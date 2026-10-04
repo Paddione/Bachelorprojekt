@@ -80,8 +80,8 @@ state_of() { jq -r --arg p "$1" '.partials[$p].status' "$CH/.plan-runner/state.j
   [ "$status" -eq 0 ]
   # Positiv-Anker: beide Partials liefen genau einmal.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -eq 2 ]
-  [ "$(sed -n 1p "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p1" ]
-  [ "$(sed -n 2p "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p2" ]
+  [ "$(sed -n 1p "$FAKE_OPENCODE_LOG")" = "plan-worker-qwen35 p1" ]
+  [ "$(sed -n 2p "$FAKE_OPENCODE_LOG")" = "plan-worker-qwen35 p2" ]
   # Der verfruehte dispatch_4b p2 wurde abgelehnt, nicht gestartet.
   [ "$(jq -r '.messages[-1].content' <<<"$(sed -n 2p "$T/requests.log")" | grep -c 'not ready')" -eq 1 ]
   [ "$(state_of p1)" = "done" ]
@@ -126,7 +126,7 @@ EOF
   [ "$status" -eq 0 ]
   # Positiv-Anker: p2 lief nach dem Neustart.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -gt 0 ]
-  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p2" ]
+  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-qwen35 p2" ]
   # Der erste Request zeigt p2 bereits zurueckgesetzt auf open.
   [ "$(sed -n 1p "$T/requests.log" | jq -r '.messages[1].content' | grep -c '"p2":{"status":"open"')" -eq 1 ]
   [ "$(state_of p1)" = "done" ]
@@ -148,7 +148,7 @@ EOF
   [ "$status" -eq 0 ]
   # Positiv-Anker: der 4B-Lauf fand statt.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -gt 0 ]
-  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p1" ]
+  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-qwen35 p1" ]
   # Die Anfrage nach execute_self enthaelt die Ablehnung.
   [ "$(sed -n 2p "$T/requests.log" | jq -r '.messages[-1].content' | grep -c 'use dispatch_4b')" -eq 1 ]
   [ -z "$(grep '^plan-worker-self' "$FAKE_OPENCODE_LOG" || true)" ]
@@ -224,7 +224,7 @@ EOF
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -eq 3 ]
   # p3 wurde waehrend des Selbstaufrufs vergeben und endete vor ihm.
   local p3 self
-  p3="$(grep -n '^plan-worker-4b p3$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
+  p3="$(grep -n '^plan-worker-qwen35 p3$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
   self="$(grep -n '^plan-worker-self p2$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
   [ -n "$p3" ] && [ -n "$self" ]
   [ "$p3" -lt "$self" ]
@@ -252,5 +252,85 @@ EOF
   run cat "$T/args.log"
   echo "$output"
   [[ "$output" != *"--dir"* ]]
-  [[ "$output" == *"run --agent plan-worker-4b --model llamacpp-qwen3/"* ]]
+  [[ "$output" == *"run --agent plan-worker-qwen35 --model llamacpp-qwen3/"* ]]
+}
+
+@test "T901014 P1: dispatch policy separates worker track from self track" {
+  # Worker-Track-Trennung: genau eine Policy-Funktion entscheidet Self vs.
+  # 4B-Slots; Pool-Verwaltung bleibt davon unberuehrt ( Faithful gegen
+  # plan-runner-fake-opencode.sh: PWD=worktree-Vererbung erhalten).
+  run node --input-type=module -e "
+    import { decideTrack, buildAgentSpawn } from '$REPO/scripts/llm/plan-runner/workers.mjs';
+    const eq = (got, want) => { if (got !== want) throw new Error(got + ' !== ' + want); };
+    eq(decideTrack({ ready: ['p1'], freeSlots: 2 }), 'worker');
+    eq(decideTrack({ ready: ['p1'], freeSlots: 0 }), 'self');
+    eq(decideTrack({ ready: [], freeSlots: 2 }), 'idle');
+    eq(decideTrack({ ready: [], freeSlots: 0 }), 'idle');
+    const sp = buildAgentSpawn({ agent: 'plan-worker-qwen35', prompt: 'x', worktree: '/tmp/wt' });
+    if (sp.env.PWD !== '/tmp/wt') throw new Error('PWD not inherited');
+    console.log('track-ok');
+  "
+  echo "$output"
+  [ "$status" -eq 0 ]
+  [ "$output" = "track-ok" ]
+}
+
+@test "T901014 P2: worker prompt is machine-format without .md rest" {
+  # Maschinen-Format: Record-Zeile mit Pflichtfeldern zuerst, BODY-Block mit
+  # Budget-Kuerzung; keine freien Markdown-Reste (Fake-Orch liest weiter
+  # fixtures/plan-runner-fake-orch.mjs, Fake-Worker braucht Partial-ID).
+  run node --input-type=module -e "
+    import { buildWorkerPrompt, formatPartialRecord, MAX_PROMPT_BODY_CHARS } from '$REPO/scripts/llm/plan-runner/plan.mjs';
+    const p = { id: 'p1', role: 'impl', targetFiles: ['src/a.txt'], dependsOn: [], file: 'tasks.d/p1.md' };
+    const out = buildWorkerPrompt({ partial: p, partialText: '# task', worktree: '/tmp/wt', extra: '' });
+    if (!out.startsWith('Partial-ID: p1')) throw new Error('Partial-ID first line lost');
+    if (!out.includes('PID:p1|ROLE:impl|FILES:src/a.txt|DEPS:-')) throw new Error('record line wrong');
+    if (/-----/.test(out)) throw new Error('.md-rest delimiter left');
+    if (!out.includes('END-BODY')) throw new Error('END-BODY missing');
+    const long = buildWorkerPrompt({ partial: p, partialText: 'x'.repeat(MAX_PROMPT_BODY_CHARS + 10), worktree: '/tmp/wt' });
+    if (!long.includes('[TRUNCATED 10 chars]')) throw new Error('budget trim missing');
+    if (formatPartialRecord(p) !== 'PID:p1|ROLE:impl|FILES:src/a.txt|DEPS:-') throw new Error('schema wrong');
+    console.log('format-ok');
+  "
+  echo "$output"
+  [ "$status" -eq 0 ]
+  [ "$output" = "format-ok" ]
+}
+
+@test "T901014 P3: plan without machine-readable manifest field fails validation" {
+  # Validierung ohne .md-Reste: ein Partial mit leerer target_files-Zelle
+  # schlaegt fail-closed fehl (Negativfall, kein Warn-Fallback).
+  mkdir -p "$T/badplan/tasks.d"
+  cat > "$T/badplan/tasks.md" <<'EOF'
+---
+title: bad
+ticket_id: T901014
+domains: [agents]
+status: draft
+---
+
+# Bad — Implementation Plan
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| P1 | tasks.d/p1.md | impl |  |  |
+| P2 | tasks.d/p2.md | tests | tests/spec/llm-local-dev/ | P1 |
+
+## File Structure
+
+- `tests/spec/llm-local-dev/`
+
+## Verify
+
+- task test:changed; task freshness:regenerate; task freshness:check
+EOF
+  echo "failing-test bats expected-FAIL" > "$T/badplan/tasks.d/p1.md"
+  printf 'run bats tests/spec/llm-local-dev/, expected FAIL on old stand\n' > "$T/badplan/tasks.d/p2.md"
+  echo '{"meta":{},"impact_files":[],"symbols":[]}' > "$T/badplan/intel.json"
+  run bash "$REPO/scripts/plan-lint.sh" "$T/badplan/tasks.md"
+  echo "$output"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"STRUCT-PARTIAL"* ]]
 }

@@ -222,6 +222,31 @@ clients:
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 30000
 
+  # devflow-mcp (T900985): Kontext, Werkzeug-Empfehlung und Plan-Staging fuer Subagenten.
+  # Reines Node.js, oeffnet bge-mcp (:13005), mcp-postgres (:13001) und den lokalen
+  # Graph-Cache (~/.cache/devflow-mcp) lazy — ohne diese Backends laufen die Wrapper-Tools
+  # (lock, plan_lint, plan_stage, ci_status) trotzdem. Pfad-Split wie ticket-mcp-node.
+  devflow-mcp:
+    transport: stdio
+    command: node
+    args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+    harness:
+      claude_code:
+        command: node
+        args: [scripts/devflow-mcp/server.mjs]
+      agy:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+      opencode:
+        type: local
+        command: [node, scripts/devflow-mcp/server.mjs]
+        enabled: true
+      llamacpp:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+        cwd: /home/patrick/Bachelorprojekt
+        timeout_ms: 60000
+
   mcp-task-runner:
     transport: stdio
     command: mcp-task-runner

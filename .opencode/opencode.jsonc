@@ -203,6 +203,16 @@
 
     },
 
+    "devflow-mcp": {
+
+      "type": "local",
+
+      "command": ["node","scripts/devflow-mcp/server.mjs"],
+
+      "enabled": true
+
+    },
+
     "mcp-kubernetes": {
 
       "type": "remote",

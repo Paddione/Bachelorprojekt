@@ -271,11 +271,19 @@ git fetch --prune                                                  # gone remote
 >
 > **Zeitzonen-Falle bei Nach-Merge-Commits [T002495-M1]:** `gh pr list --json mergedAt` liefert UTC (`Z`-Suffix), `git log --format='%cI'` lokale Offset-Zeit. Vor dem Vergleichen beide auf UTC normalisieren (`TZ=UTC git log -1 --format='%cd' --date=format-local:'%Y-%m-%dT%H:%M:%SZ'`), sonst meldet der Vergleich falsche Nach-Merge-Commits.
 >
-> **Three-dot-Diff-Falle (`origin/main...<branch>`) [T002495-M2]:** Three-dot zeigt den Diff seit dem Abzweigpunkt (`merge-base`), der sich beim Squash-Merge nicht verschiebt. Um echte ungemergte Änderungen zu prüfen, nur eigene Quelldateien gegen `origin/main` vergleichen:
+> **Three-dot-Diff-Falle (`origin/main...<branch>`) [T002495-M2, T900748]:** Three-dot zeigt den Diff seit dem Abzweigpunkt (`merge-base`), der sich beim Squash-Merge nicht verschiebt. Um echte ungemergte Änderungen zu prüfen, nur eigene Quelldateien gegen `origin/main` vergleichen. Wichtig: `git rev-parse` gibt bei nicht existierenden Pfaden sein Argument auf stdout aus — vor dem Hashvergleich muss die Existenz mit `git cat-file -e` geprüft werden, damit beidseitig gelöschte Dateien nicht fälschlich als abweichend gemeldet werden:
 > ```bash
 > mb=$(git merge-base origin/main "$b")
 > for f in $(git diff --name-only "$mb" "$b"); do
->   [ "$(git rev-parse "$b:$f")" = "$(git rev-parse "origin/main:$f")" ] || echo "ABWEICHEND: $f"
+>   git cat-file -e "$b:$f" 2>/dev/null && eb=1 || eb=0
+>   git cat-file -e "origin/main:$f" 2>/dev/null && em=1 || em=0
+>   if [ $eb -eq 1 ] && [ $em -eq 1 ]; then
+>     [ "$(git rev-parse "$b:$f")" = "$(git rev-parse "origin/main:$f")" ] || echo "ABWEICHEND: $f"
+>   elif [ $eb -eq 1 ]; then
+>     echo "ABWEICHEND (nur-branch): $f"
+>   elif [ $em -eq 1 ]; then
+>     echo "ABWEICHEND (nur-main): $f"
+>   fi
 > done
 > ```
 

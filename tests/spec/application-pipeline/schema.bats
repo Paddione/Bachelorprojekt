@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/application-pipeline/schema.bats
+# Validates: components/website/src/db/migrations/20260917_application_pipeline_schema.sql
 # Guard for applications.* relational data model (Phase 1, T900228).
 # Validates existence of applications schema, jobs, dossiers, and timeline tables,
 # check constraints, unique constraints, and foreign key cascades.

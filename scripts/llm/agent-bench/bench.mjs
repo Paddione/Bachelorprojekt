@@ -539,7 +539,7 @@ async function cmdRun(flags) {
     runDir, runId, pool, scoring, caseMap, jobs: ordered, mode,
     endpoints: {}, state: { run_id: runId, status: 'running', jobs: ordered.map((j) => ({ key: j.key, dirName: j.dirName, status: 'open' })) },
     slots4b: Number(process.env.AGENT_BENCH_4B_SLOTS || 1),
-    workerAgent: process.env.AGENT_BENCH_WORKER_AGENT || 'plan-worker-4b',
+    workerAgent: process.env.AGENT_BENCH_WORKER_AGENT || 'plan-worker-qwen35',
     timeoutMs: process.env.AGENT_BENCH_TIMEOUT_MS ? Number(process.env.AGENT_BENCH_TIMEOUT_MS) : undefined,
   };
   saveState(runDir, ctx.state);
@@ -588,7 +588,7 @@ async function cmdResume(runId) {
     runDir, runId, pool, scoring, caseMap, jobs: ordered, mode: manifest.mode,
     endpoints: {}, state,
     slots4b: Number(process.env.AGENT_BENCH_4B_SLOTS || 1),
-    workerAgent: process.env.AGENT_BENCH_WORKER_AGENT || 'plan-worker-4b',
+    workerAgent: process.env.AGENT_BENCH_WORKER_AGENT || 'plan-worker-qwen35',
     timeoutMs: process.env.AGENT_BENCH_TIMEOUT_MS ? Number(process.env.AGENT_BENCH_TIMEOUT_MS) : undefined,
   };
   installRestoreHooks(() => restoreProduction(pool));

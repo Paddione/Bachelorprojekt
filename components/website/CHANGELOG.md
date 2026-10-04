@@ -1,5 +1,68 @@
 # Changelog
 
+## [1.395.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.394.0...website-v1.395.0) (2026-10-04)
+
+
+### Features
+
+* **agents:** Qwen3.5-2B training set T900978 ([#6264](https://github.com/Paddione/Bachelorprojekt/issues/6264)) ([20b7550](https://github.com/Paddione/Bachelorprojekt/commit/20b75505dac0af48156caa7571fe73c0ddce63f4))
+
+## [1.394.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.393.0...website-v1.394.0) (2026-10-04)
+
+
+### Features
+
+* **scripts:** plan-runner loest Plan aus DB-Ref auf (T901015) ([#6258](https://github.com/Paddione/Bachelorprojekt/issues/6258)) ([0f40676](https://github.com/Paddione/Bachelorprojekt/commit/0f406765bad8f0a0e2be50be24564d7b59ccd628))
+
+## [1.393.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.392.0...website-v1.393.0) (2026-10-04)
+
+
+### Features
+
+* **plans:** spec-pipeline lifecycle receipt+delete T900999 ([#6253](https://github.com/Paddione/Bachelorprojekt/issues/6253)) ([b30a83b](https://github.com/Paddione/Bachelorprojekt/commit/b30a83b9e967756fdfa1c59f2db23114c053b649))
+
+## [1.392.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.391.0...website-v1.392.0) (2026-10-04)
+
+
+### Features
+
+* **T900993:** K3 symbol embed store with hybrid retrieval and graph rerank ([#6247](https://github.com/Paddione/Bachelorprojekt/issues/6247)) ([e454809](https://github.com/Paddione/Bachelorprojekt/commit/e454809a3aa4d4908765d9ce896811b0c791ba4c))
+
+## [1.391.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.390.0...website-v1.391.0) (2026-10-03)
+
+
+### Features
+
+* **infra:** pin bge-m3 embedding record + G2 retrieval spec [T900989] ([#6221](https://github.com/Paddione/Bachelorprojekt/issues/6221)) ([b621e21](https://github.com/Paddione/Bachelorprojekt/commit/b621e214910fdb977fe357dffa489f34046d449c))
+
+## [1.390.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.389.0...website-v1.390.0) (2026-10-03)
+
+
+### Features
+
+* **agents:** devflow-mcp — Kontext, Werkzeuge und Plan-Staging fuer Subagenten [T900985] ([#6216](https://github.com/Paddione/Bachelorprojekt/issues/6216)) ([6daa5ae](https://github.com/Paddione/Bachelorprojekt/commit/6daa5ae5e8fff24bfc89c5b7c33babb7f359de4a))
+
+## [1.389.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.388.1...website-v1.389.0) (2026-10-03)
+
+
+### Features
+
+* **agents:** Tool-Ebene der Toolset-Kette — Probe, tool_tiers, Tool-Drift [T900983] ([#6214](https://github.com/Paddione/Bachelorprojekt/issues/6214)) ([1238b28](https://github.com/Paddione/Bachelorprojekt/commit/1238b28c47efbb26d0c0de4ed446e2dfecf5ecb6))
+
+## [1.388.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.388.0...website-v1.388.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **agents:** bp-*-Rollen in der Toolset-Kette [T900980] ([#6210](https://github.com/Paddione/Bachelorprojekt/issues/6210)) ([1989d01](https://github.com/Paddione/Bachelorprojekt/commit/1989d01d4553078b551348c5d4bdb8fc73e744eb))
+
+## [1.388.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.387.0...website-v1.388.0) (2026-10-03)
+
+
+### Features
+
+* **ops:** Qwen3.5-4B instruction workers with per-request reasoning modes [T900930] ([#6203](https://github.com/Paddione/Bachelorprojekt/issues/6203)) ([8830b17](https://github.com/Paddione/Bachelorprojekt/commit/8830b1725329a8061e0031a8efcb0d5f183e4434))
+
 ## [1.387.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.6...website-v1.387.0) (2026-10-02)
 
 

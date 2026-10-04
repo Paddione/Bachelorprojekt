@@ -180,3 +180,13 @@ Sources: [Unsloth Qwen3.5 training](https://unsloth.ai/docs/models/qwen3.5/fine-
 [Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B), and
 [Colab resource/compute-unit FAQ](https://research.google.com/colaboratory/faq.html).
 Regenerate the notebook with `python3 colab/build_notebook.py` from this directory.
+
+## MTP acceptance gate
+
+After every training run, measure decode throughput with `eval/mtp_bench.py`
+(identical serve flags and role prompt set, base GGUF first, then the tuned
+GGUF, `--compare`). The tuned run must stay within -5 % of the base model: LoRA
+shifts the token distribution against the frozen MTP head, and falling
+acceptance eats the 98-106 tok/s. On failure: lower the LoRA rank, co-train the
+MTP head (if the trainer supports it), or keep the data format closer to the
+native chat template.

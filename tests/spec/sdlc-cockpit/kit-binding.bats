@@ -5,6 +5,7 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
+  KIT_DIR="$REPO/.lavish/kit"
   PROOF_DIR="$REPO/.lavish"
 }
 

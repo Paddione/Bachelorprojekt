@@ -57,6 +57,18 @@ LIST='{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
   [[ "$output" != *'"required":true'* ]]
 }
 
+@test "ticket-mcp-node tools/list enthaelt keine doppelten Tool-Namen (T900984)" {
+  run mcp_stdio "$REPO/scripts/ticket-mcp-node/server.mjs" "$INIT" "$LIST"
+  echo "output: $output"
+  [ "$status" -eq 0 ]
+  local dupes
+  dupes="$(printf '%s\n' "$output" | jq -r 'select(.id == 2) | .result.tools[].name' | sort | uniq -d)"
+  [ -z "$dupes" ]
+  local count
+  count="$(printf '%s\n' "$output" | jq -r 'select(.id == 2) | .result.tools | length')"
+  [ "$count" -eq 26 ]
+}
+
 @test "ticket-mcp-node startet auch ueber runner.mjs ohne Argumente" {
   run mcp_stdio "$REPO/scripts/ticket-mcp-node/runner.mjs" "$INIT"
   echo "output: $output"

@@ -2310,15 +2310,57 @@
     "kind": "shell"
   },
   {
+    "id": "cbm-embed-store",
+    "file": "tests/spec/cbm-embed-store.bats",
+    "category": "cbm-embed-store",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-embed-sync-A2",
+    "file": "tests/spec/cbm-embed-sync-A2.bats",
+    "category": "cbm-embed-sync-A2",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-eval",
+    "file": "tests/spec/cbm-eval.bats",
+    "category": "cbm-eval",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-freshness-probe",
+    "file": "tests/spec/cbm-freshness-probe.bats",
+    "category": "cbm-freshness-probe",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-graph-rerank",
+    "file": "tests/spec/cbm-graph-rerank.bats",
+    "category": "cbm-graph-rerank",
+    "kind": "shell"
+  },
+  {
     "id": "cbm-health-goals",
     "file": "tests/spec/cbm-health-goals.bats",
     "category": "cbm-health-goals",
     "kind": "shell"
   },
   {
+    "id": "cbm-hybrid-search",
+    "file": "tests/spec/cbm-hybrid-search.bats",
+    "category": "cbm-hybrid-search",
+    "kind": "shell"
+  },
+  {
     "id": "cbm-reconcile",
     "file": "tests/spec/cbm-reconcile.bats",
     "category": "cbm-reconcile",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-refresh-cron-A4",
+    "file": "tests/spec/cbm-refresh-cron-A4.bats",
+    "category": "cbm-refresh-cron-A4",
     "kind": "shell"
   },
   {
@@ -3528,6 +3570,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/knowledge-goals",
+    "file": "tests/spec/health-goals/knowledge-goals.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/korczewski-brand-pause",
     "file": "tests/spec/health-goals/korczewski-brand-pause.bats",
     "category": "health-goals",
@@ -3678,8 +3726,20 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/plan-runner-ticket-ref",
+    "file": "tests/spec/llm-local-dev/plan-runner-ticket-ref.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/qwen-tensor-split",
     "file": "tests/spec/llm-local-dev/qwen-tensor-split.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-local-dev/qwen35-2b-training",
+    "file": "tests/spec/llm-local-dev/qwen35-2b-training.bats",
     "category": "llm-local-dev",
     "kind": "shell"
   },
@@ -3693,6 +3753,12 @@
     "id": "llm-local-dev/system-message-merge",
     "file": "tests/spec/llm-local-dev/system-message-merge.bats",
     "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-pipeline/bge-bulk-pool",
+    "file": "tests/spec/llm-pipeline/bge-bulk-pool.bats",
+    "category": "llm-pipeline",
     "kind": "shell"
   },
   {
@@ -4431,6 +4497,12 @@
     "id": "plan-context",
     "file": "tests/spec/plan-context.bats",
     "category": "plan-context",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-lifecycle",
+    "file": "tests/spec/plan-lifecycle.bats",
+    "category": "plan-lifecycle",
     "kind": "shell"
   },
   {

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Evaluation for the Qwen3.5-4B-MTP BP-assistant fine-tune (CUDA/Unsloth).
+Evaluation for the Qwen3.5-2B (T900978 pilot, default) BP-assistant fine-tune (CUDA/Unsloth).
+Ladder rule: no agent-ID assignment before green eval on the P1 val split.
 
 Modes:
   --mode compare      base vs tuned side-by-side on dataset_val.jsonl questions
@@ -23,12 +24,17 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ADAPTER_DIR = HERE / "qwen35_4b_bp_lora"
-# TO-VERIFY: base checkpoint name derived from the served GGUF's origin
-# (unsloth/Qwen3.5-4B-MTP-GGUF); confirm via pull before training/eval.
-BASE_MODEL = "unsloth/Qwen3.5-4B-MTP"
+ADAPTER_DIR = HERE / "qwen35_2b_bp_lora"
+# TO-VERIFY: base checkpoint name; confirm via pull before training/eval.
+BASE_MODEL = "unsloth/Qwen3.5-2B"
+VAL_FILE = HERE / "dataset_2b_val.jsonl"
+RESULTS_FILE = HERE / "eval_2b_results.json"
 SEQ_LEN = 2048
 MAX_NEW_TOKENS = 300
+# T900978 P3 acceptance thresholds (full val split, --mode val, no --limit)
+MIN_COMMAND_MATCH = 0.70
+MAX_EMPTY_RATE = 0.0
+MAX_THINK_LEAK_RATE = 0.0
 # Qwen3.5-4B-MTP measured sampling defaults
 TEMPERATURE, TOP_P, TOP_K = 0.8, 0.95, 40
 MIN_P, REPEAT_PENALTY = 0.05, 1.0
@@ -77,7 +83,7 @@ def _generate(model, tokenizer, question: str) -> str:
 
 
 def _val_questions(limit):
-    rows = [json.loads(l) for l in (HERE / "dataset_val.jsonl").read_text().splitlines()]
+    rows = [json.loads(l) for l in VAL_FILE.read_text().splitlines()]
     qs = [r["messages"][-2]["content"] for r in rows]
     refs = [r["messages"][-1]["content"] for r in rows]
     return (qs[:limit], refs[:limit]) if limit else (qs, refs)
@@ -85,6 +91,35 @@ def _val_questions(limit):
 
 def _extract_commands(text):
     return re.findall(r"```(?:bash|sh|shell)?\n(.*?)```", text, re.DOTALL)
+
+
+def score_answer(answer, ref):
+    """P3: pure scoring helper — returns dict(cmd_hit, empty, think_leak)."""
+    think_leak = bool(re.search(r"<think>", answer))
+    empty = not answer.strip()
+    ref_cmds = " ".join(_extract_commands(ref))
+    ref_tokens = [t for t in re.findall(r"(?:task|bash|systemctl|curl|git|python3?|node)\s+\S+",
+                                        ref_cmds)]
+    if ref_tokens:
+        cmd_hit = any(tok.split()[-1].split(":")[0] in answer for tok in ref_tokens)
+    else:
+        cmd_hit = None
+    return {"cmd_hit": cmd_hit, "empty": empty, "think_leak": think_leak}
+
+
+def check_thresholds(command_match, empty_rate, leak_rate):
+    """P3: acceptance gate — (passed: bool, summary: str)."""
+    problems = []
+    if command_match < MIN_COMMAND_MATCH:
+        problems.append(f"command-match {command_match:.2f} < {MIN_COMMAND_MATCH:.2f}")
+    if empty_rate > MAX_EMPTY_RATE:
+        problems.append(f"empty-output-rate {empty_rate:.3f} > {MAX_EMPTY_RATE:.3f}")
+    if leak_rate > MAX_THINK_LEAK_RATE:
+        problems.append(f"think-leak-rate {leak_rate:.3f} > {MAX_THINK_LEAK_RATE:.3f}")
+    if problems:
+        return False, "FAIL: " + "; ".join(problems)
+    return True, (f"PASS: command-match {command_match:.2f} >= {MIN_COMMAND_MATCH:.2f}, "
+                  f"empty {empty_rate:.3f}, leak {leak_rate:.3f}")
 
 
 def run_compare(model, tokenizer, limit):
@@ -104,30 +139,38 @@ def run_compare(model, tokenizer, limit):
         print(f"Q: {r['question']}")
         print(f"\n-- BASE --\n{r['base']}")
         print(f"\n-- TUNED --\n{r['tuned']}")
-    (HERE / "eval_results.json").write_text(
+    RESULTS_FILE.write_text(
         json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"\n[eval] wrote {HERE / 'eval_results.json'}")
+    print(f"\n[eval] wrote {RESULTS_FILE}")
 
 
 def run_val(model, tokenizer, limit):
     questions, refs = _val_questions(limit)
-    hit, total, rows = 0, 0, []
+    hit, scored, total, empty_n, leak_n, rows = 0, 0, 0, 0, 0, []
     for q, ref in zip(questions, refs):
         answer = _generate(model, tokenizer, q)
-        ref_cmds = " ".join(_extract_commands(ref))
-        # rough signal: does the tuned answer contain a command token from the reference?
-        ref_tokens = [t for t in re.findall(r"(?:task|bash|systemctl|curl|git|python3?|node)\s+\S+",
-                                            ref_cmds)]
-        ok = any(tok.split()[-1].split(":")[0] in answer for tok in ref_tokens) if ref_tokens else None
+        s = score_answer(answer, ref)
+        ok = s["cmd_hit"]
         total += 1
-        hit += 1 if ok else 0
-        rows.append({"question": q, "reference": ref, "tuned": answer, "cmd_hit": ok})
+        empty_n += 1 if s["empty"] else 0
+        leak_n += 1 if s["think_leak"] else 0
+        if ok is not None:
+            scored += 1
+            hit += 1 if ok else 0
+        rows.append({"question": q, "reference": ref, "tuned": answer,
+                     "cmd_hit": ok, "empty": s["empty"], "think_leak": s["think_leak"]})
         print(f"[val {total}] {'HIT' if ok else ('MISS' if ok is False else 'n/a')}: {q[:70]}")
-    print(f"\n[eval] command-match: {hit}/{total} "
+    command_match = (hit / scored) if scored else 0.0
+    empty_rate, leak_rate = empty_n / total, leak_n / total
+    passed, summary = check_thresholds(command_match, empty_rate, leak_rate)
+    print(f"\n[eval] command-match: {hit}/{scored} = {command_match:.3f} "
           f"(rough signal — reference commands appearing in the tuned answer)")
-    (HERE / "eval_results.json").write_text(
-        json.dumps(rows, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"[eval] wrote {HERE / 'eval_results.json'}")
+    print(f"[eval] empty-output-rate: {empty_rate:.3f}, think-leak-rate: {leak_rate:.3f}")
+    print(f"[eval] {summary}")
+    RESULTS_FILE.write_text(json.dumps(rows, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"[eval] wrote {RESULTS_FILE}")
+    if not passed:
+        sys.exit(2)
 
 
 def run_interactive(model, tokenizer):

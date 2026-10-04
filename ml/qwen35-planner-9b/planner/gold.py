@@ -119,7 +119,7 @@ def build_pair(path: str, sha: str, text: str, tickets: dict, show) -> dict | No
         return None
     return make_sample(build_prompt(title, request, fmt), target, think=None, source="gold",
                        meta={"path": path, "sha": sha, "format": fmt, "origin": origin,
-                             "ticket_ids": sorted(ids)})
+                             "ticket_ids": sorted(ids), "title": title, "request": request})
 
 
 def main(argv=None) -> int:
@@ -154,6 +154,20 @@ def main(argv=None) -> int:
         seen.add(h)
         rows.append(pair)
     stats["kept"] = write_jsonl(args.out, rows)
+    # RFT prompt pool from history: whole-plan formats only (no partials), one per ticket id,
+    # re-wrapped as a current-format request; tickets already in the DB pool are skipped.
+    history, used = [], set()
+    for r in rows:
+        m = r["meta"]
+        if m["format"] == "partial" or m["origin"] == "ticket" or not m["ticket_ids"]:
+            continue
+        tid = m["ticket_ids"][0]
+        if tid in used or tid in tickets:
+            continue
+        used.add(tid)
+        history.append({"id": tid, "prompt": build_prompt(m["title"], m["request"], "tasks-index"),
+                        "origin": m["origin"]})
+    stats["history_prompts"] = write_jsonl(args.out.parent / "prompts_history.jsonl", history)
     for key in ("origin", "format"):
         stats[key] = {}
         for r in rows:

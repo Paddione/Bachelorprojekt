@@ -1,0 +1,76 @@
+# ═══════════════════════════════════════════════════════════════════
+# LLM-Proxy request-log retention (tickets.llm_proxy_request_log)
+#
+# Die Tabelle speichert request_body/response_body als vollstaendigen
+# TEXT (~200 KB/Zeile) — ohne Retention wauchs sie in 6 Wochen auf
+# 360 MB (Schema-Audit 2026-10-04). Politik:
+#   * Bodies > 7 Tage: NULL setzen (Metadaten — Modell, Tokens,
+#     Dauer, Status — bleiben zur Analyse erhalten)
+#   * Zeilen > 90 Tage: DELETE
+# Runs daily 03:23 (zwischen den knowledge-ingest-Jobs 02:00/02:30/03:00).
+# Kein ${VAR}-Substitution — Credentials via secretKeyRef, daher
+# schema-audit-neutral.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: llm-proxy-log-retention
+  namespace: workspace
+  labels:
+    app: llm-proxy
+spec:
+  schedule: "23 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: llm-proxy
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: retention
+              # Gleiche Version wie shared-db — Image ist auf allen Nodes
+              # bereits present, kein Pull, psql-Client inklusive.
+              image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: WEBSITE_DB_PASSWORD
+              command: ["psql"]
+              args:
+                - "-h"
+                - "shared-db"
+                - "-U"
+                - "website"
+                - "-d"
+                - "website"
+                - "-v"
+                - "ON_ERROR_STOP=1"
+                - "-c"
+                - "UPDATE tickets.llm_proxy_request_log SET request_body = NULL, response_body = NULL WHERE ts < now() - interval '7 days' AND (request_body IS NOT NULL OR response_body IS NOT NULL);"
+                - "-c"
+                - "DELETE FROM tickets.llm_proxy_request_log WHERE ts < now() - interval '90 days';"
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi

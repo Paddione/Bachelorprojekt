@@ -43,21 +43,31 @@ case "$1" in
     ;;
   cli)
     shift
+    # Real CLI: `cli --json <sub>` -> MCP envelope on stdout; bare `cli <sub>`
+    # -> raw payload (A1 fix uses --json everywhere).
+    if [ "$1" = "--json" ]; then shift; JSON_MODE=1; else JSON_MODE=0; fi
     sub="$1"; shift
+    emit_envelope() {
+      # $1 = inner text (already JSON-escaped via python to be safe)
+      python3 -c 'import json,sys; print(json.dumps({"content":[{"type":"text","text":sys.argv[1]}],"isError":False}))' "$1"
+    }
     case "$sub" in
       index_status)
         proj=""
         while [ "$#" -gt 0 ]; do case "$1" in --project) proj="$2"; shift 2;; *) shift;; esac; done
         root="${STUB_ROOT:-/tmp/repo}"
-        echo "{\"project\":\"$proj\",\"root_path\":\"$root\",\"git\":{\"canonical_root\":\"$root\",\"worktree_root\":\"$root\"},\"status\":\"ready\",\"nodes\":1,\"edges\":1}"
+        inner="{\"project\":\"$proj\",\"root_path\":\"$root\",\"git\":{\"canonical_root\":\"$root\",\"worktree_root\":\"$root\"},\"status\":\"ready\",\"nodes\":1,\"edges\":1}"
+        if [ "$JSON_MODE" = "1" ]; then emit_envelope "$inner"; else printf '%s\n' "$inner"; fi
         exit 0
         ;;
       detect_changes)
-        echo '{"changed_count":0,"changed_files":[]}'
+        inner='{"changed_count":0,"changed_files":[]}'
+        if [ "$JSON_MODE" = "1" ]; then emit_envelope "$inner"; else printf '%s\n' "$inner"; fi
         exit 0
         ;;
       index_repository)
-        echo '{"ok":true}'
+        inner='{"ok":true}'
+        if [ "$JSON_MODE" = "1" ]; then emit_envelope "$inner"; else printf '%s\n' "$inner"; fi
         exit 0
         ;;
       *) echo "unknown subcommand" >&2; exit 2;;

@@ -184,14 +184,27 @@ def k3_symbol_files(project, timeout, reasons):
 
 def k3_index_info(project, timeout, reasons):
     data, err, _so, _se = probe_cli_json(
-        ["codebase-memory-mcp", "cli", "index_status", "--project", project],
+        ["codebase-memory-mcp", "cli", "--json", "index_status",
+         "--project", project],
         timeout)
     if err or data is None:
         reasons.append("k3-index-probe-failed")
         return None
-    info = {"nodes": data.get("nodes"), "edges": data.get("edges"),
-            "status": data.get("status"), "root_path": data.get("root_path"),
-            "project": data.get("project")}
+    text = envelope_text(data)
+    if text is None:
+        reasons.append("k3-index-probe-failed")
+        return None
+    try:
+        body = json.loads(text)
+    except json.JSONDecodeError:
+        reasons.append("k3-index-probe-failed")
+        return None
+    if not isinstance(body, dict):
+        reasons.append("k3-index-probe-failed")
+        return None
+    info = {"nodes": body.get("nodes"), "edges": body.get("edges"),
+            "status": body.get("status"), "root_path": body.get("root_path"),
+            "project": body.get("project")}
     return info
 
 

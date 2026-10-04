@@ -234,3 +234,18 @@ assert vecs1 == vecs and seen == ['http://solo/v1/embeddings'] * 3, seen
 "
   [ "$status" -eq 0 ]
 }
+
+@test "sync CLI resolves freshness_state via single GRAPH indirection (T900998/P3)" {
+  # Regression: cmd_status/cmd_sync called GRAPH.GRAPH.freshness_state, but the
+  # loaded cbm-sync-graph module exposes freshness_state directly — status
+  # died with AttributeError before reaching the real dependency.
+  run mod_py "
+import inspect
+for fn in (m.cmd_status, m.cmd_sync):
+    src = inspect.getsource(fn)
+    assert 'GRAPH.GRAPH' not in src, 'double indirection in ' + fn.__name__
+    assert 'GRAPH.freshness_state' in src, 'freshness probe missing in ' + fn.__name__
+assert callable(m.GRAPH.freshness_state), 'graph layer must expose freshness_state'
+"
+  [ "$status" -eq 0 ]
+}

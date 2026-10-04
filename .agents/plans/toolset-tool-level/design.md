@@ -2,8 +2,10 @@
 title: "toolset-tool-level — Design"
 ticket_id: T900983
 domains: [agent-skills, dev-tooling, scripts]
-status: plan_staged
+status: superseded
 ---
+
+> **superseded-by: T900998** — Spec-Verweis: `.agents/plans/knowledge-mcp-consol/design.md`.
 
 # toolset-tool-level — Design
 

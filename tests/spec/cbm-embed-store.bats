@@ -16,7 +16,8 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   STORE_PY="$REPO_ROOT/scripts/mcp/cbm-embed-store.py"
   TEST_DIR="$BATS_TEST_TMPDIR/store-$$"
-  mkdir -p "$TEST_DIR"
+  STORE_DIR="$TEST_DIR/.codebase-memory"
+  mkdir -p "$STORE_DIR"
 }
 
 teardown() {
@@ -156,8 +157,8 @@ m.validate_manifest(loaded)
 }
 
 @test "corrupted artifact fails closed with non-zero exit instead of partial data" {
-  cat > "$TEST_DIR/embed-index.jsonl" <<'EOF'
-{"key":"repo@c1:lib/a.ts:GET","hash":"aa","model":"bge-m3","dim":2,"vector":[1.0,0.0]}
+  cat > "$STORE_DIR/embed-index.jsonl" <<'EOF'
+{"key":"repo@c1:lib/a.ts:GET","hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","model":"bge-m3","dim":2,"vector":[1.0,0.0]}
 {"key":"repo@c1:lib/broken
 EOF
   run store_py "
@@ -167,11 +168,19 @@ try:
 except m.EmbedStoreError:
     sys.exit(3)
 sys.exit(0)
-" "$TEST_DIR"
+" "$STORE_DIR/embed-index.jsonl"
   [ "$status" -eq 3 ]
-  # CLI verify must also fail closed on the corrupt artifact
+  # CLI verify must also fail closed on the corrupt artifact (manifest valid
+  # so the artifact corruption is the actual failure cause)
+  run store_py "
+m.write_manifest(sys.argv[2], m.make_manifest(
+    corpus_sha256='abc', receipt_id='r-1', receipt_timestamp='2026-10-04T10:00:00+00:00',
+    model='bge-m3', dim=2, vectors=2))
+" "$STORE_DIR/embed-manifest.json"
+  [ "$status" -eq 0 ]
   run python3 "$STORE_PY" verify --root "$TEST_DIR"
   [ "$status" -ne 0 ]
+  echo "$output" | grep -q "artifact" # failure names the artifact, not a spurious cause
 }
 
 @test "CLI verify passes on a well-formed store and reports counts" {
@@ -185,7 +194,7 @@ m.upsert(art, recs)
 m.write_manifest(os.path.join(sys.argv[2], 'embed-manifest.json'), m.make_manifest(
     corpus_sha256='abc', receipt_id='r-1', receipt_timestamp='2026-10-04T10:00:00+00:00',
     model='bge-m3', dim=2, vectors=1))
-" "$TEST_DIR"
+" "$STORE_DIR"
   [ "$status" -eq 0 ]
   run python3 "$STORE_PY" verify --root "$TEST_DIR"
   [ "$status" -eq 0 ]

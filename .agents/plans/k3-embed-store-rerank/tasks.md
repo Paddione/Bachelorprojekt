@@ -37,7 +37,7 @@ held-out set from the T900986-990 P0-min workstream.
 
 ## Tasks
 
-- [ ] **1. RED: store contract fails first.** Write `tests/spec/cbm-embed-store.bats`
+- [x] **1. RED: store contract fails first.** Write `tests/spec/cbm-embed-store.bats`
   exercising the store through `python3 -c` imports of
   `scripts/mcp/cbm-embed-store.py` in a temp dir: (a) identical text yields
   identical content hash, different text does not; (b) upsert writes the
@@ -54,7 +54,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/cbm-embed-store.bats
   Expected: FAIL — `scripts/mcp/cbm-embed-store.py` does not exist. Record the
   failing output under `.agents/plans/k3-embed-store-rerank/red-gate-output.txt`.
 
-- [ ] **2. Implement `scripts/mcp/cbm-embed-store.py`.** Stdlib-only. Key =
+- [x] **2. Implement `scripts/mcp/cbm-embed-store.py`.** Stdlib-only. Key =
   `repo@commit:path:symbol` (same id scheme as the frozen corpus); content
   hash = sha256 over model name + exact embedding input text, so a model bump
   invalidates all vectors by construction. Artifact is append-ordered JSONL

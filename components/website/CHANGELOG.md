@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.393.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.392.0...website-v1.393.0) (2026-10-04)
+
+
+### Features
+
+* **plans:** spec-pipeline lifecycle receipt+delete T900999 ([#6253](https://github.com/Paddione/Bachelorprojekt/issues/6253)) ([b30a83b](https://github.com/Paddione/Bachelorprojekt/commit/b30a83b9e967756fdfa1c59f2db23114c053b649))
+
 ## [1.392.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.391.0...website-v1.392.0) (2026-10-04)
 
 

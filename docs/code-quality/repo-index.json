@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1260,
+      "file_count": 1261,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -909,6 +909,7 @@
         "tests/spec/pi-harness.bats",
         "tests/spec/pipeline-interface.bats",
         "tests/spec/plan-context.bats",
+        "tests/spec/plan-lifecycle.bats",
         "tests/spec/plan-partials-embedding/size-gate.bats",
         "tests/spec/planning-office/epic-lastenheft.bats",
         "tests/spec/pocket-id-client-seed-auth-header.bats",

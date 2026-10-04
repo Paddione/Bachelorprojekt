@@ -254,3 +254,83 @@ EOF
   [[ "$output" != *"--dir"* ]]
   [[ "$output" == *"run --agent plan-worker-qwen35 --model llamacpp-qwen3/"* ]]
 }
+
+@test "T901014 P1: dispatch policy separates worker track from self track" {
+  # Worker-Track-Trennung: genau eine Policy-Funktion entscheidet Self vs.
+  # 4B-Slots; Pool-Verwaltung bleibt davon unberuehrt ( Faithful gegen
+  # plan-runner-fake-opencode.sh: PWD=worktree-Vererbung erhalten).
+  run node --input-type=module -e "
+    import { decideTrack, buildAgentSpawn } from '$REPO/scripts/llm/plan-runner/workers.mjs';
+    const eq = (got, want) => { if (got !== want) throw new Error(got + ' !== ' + want); };
+    eq(decideTrack({ ready: ['p1'], freeSlots: 2 }), 'worker');
+    eq(decideTrack({ ready: ['p1'], freeSlots: 0 }), 'self');
+    eq(decideTrack({ ready: [], freeSlots: 2 }), 'idle');
+    eq(decideTrack({ ready: [], freeSlots: 0 }), 'idle');
+    const sp = buildAgentSpawn({ agent: 'plan-worker-qwen35', prompt: 'x', worktree: '/tmp/wt' });
+    if (sp.env.PWD !== '/tmp/wt') throw new Error('PWD not inherited');
+    console.log('track-ok');
+  "
+  echo "$output"
+  [ "$status" -eq 0 ]
+  [ "$output" = "track-ok" ]
+}
+
+@test "T901014 P2: worker prompt is machine-format without .md rest" {
+  # Maschinen-Format: Record-Zeile mit Pflichtfeldern zuerst, BODY-Block mit
+  # Budget-Kuerzung; keine freien Markdown-Reste (Fake-Orch liest weiter
+  # fixtures/plan-runner-fake-orch.mjs, Fake-Worker braucht Partial-ID).
+  run node --input-type=module -e "
+    import { buildWorkerPrompt, formatPartialRecord, MAX_PROMPT_BODY_CHARS } from '$REPO/scripts/llm/plan-runner/plan.mjs';
+    const p = { id: 'p1', role: 'impl', targetFiles: ['src/a.txt'], dependsOn: [], file: 'tasks.d/p1.md' };
+    const out = buildWorkerPrompt({ partial: p, partialText: '# task', worktree: '/tmp/wt', extra: '' });
+    if (!out.startsWith('Partial-ID: p1')) throw new Error('Partial-ID first line lost');
+    if (!out.includes('PID:p1|ROLE:impl|FILES:src/a.txt|DEPS:-')) throw new Error('record line wrong');
+    if (/-----/.test(out)) throw new Error('.md-rest delimiter left');
+    if (!out.includes('END-BODY')) throw new Error('END-BODY missing');
+    const long = buildWorkerPrompt({ partial: p, partialText: 'x'.repeat(MAX_PROMPT_BODY_CHARS + 10), worktree: '/tmp/wt' });
+    if (!long.includes('[TRUNCATED 10 chars]')) throw new Error('budget trim missing');
+    if (formatPartialRecord(p) !== 'PID:p1|ROLE:impl|FILES:src/a.txt|DEPS:-') throw new Error('schema wrong');
+    console.log('format-ok');
+  "
+  echo "$output"
+  [ "$status" -eq 0 ]
+  [ "$output" = "format-ok" ]
+}
+
+@test "T901014 P3: plan without machine-readable manifest field fails validation" {
+  # Validierung ohne .md-Reste: ein Partial mit leerer target_files-Zelle
+  # schlaegt fail-closed fehl (Negativfall, kein Warn-Fallback).
+  mkdir -p "$T/badplan/tasks.d"
+  cat > "$T/badplan/tasks.md" <<'EOF'
+---
+title: bad
+ticket_id: T901014
+domains: [agents]
+status: draft
+---
+
+# Bad — Implementation Plan
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| P1 | tasks.d/p1.md | impl |  |  |
+| P2 | tasks.d/p2.md | tests | tests/spec/llm-local-dev/ | P1 |
+
+## File Structure
+
+- `tests/spec/llm-local-dev/`
+
+## Verify
+
+- task test:changed; task freshness:regenerate; task freshness:check
+EOF
+  echo "failing-test bats expected-FAIL" > "$T/badplan/tasks.d/p1.md"
+  printf 'run bats tests/spec/llm-local-dev/, expected FAIL on old stand\n' > "$T/badplan/tasks.d/p2.md"
+  echo '{"meta":{},"impact_files":[],"symbols":[]}' > "$T/badplan/intel.json"
+  run bash "$REPO/scripts/plan-lint.sh" "$T/badplan/tasks.md"
+  echo "$output"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"STRUCT-PARTIAL"* ]]
+}

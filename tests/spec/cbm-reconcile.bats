@@ -36,15 +36,27 @@ stub_cli() {
   mkdir -p "$bin"
   cat > "$bin/codebase-memory-mcp" <<STUBEOF
 #!/bin/sh
+# Emulates the real CLI: "cli --json <sub>" wraps the payload in an MCP
+# envelope; bare "cli <sub>" returns the raw payload (cbm-reconcile.py still
+# probes index_status without --json, cbm-freshness.py uses --json).
+json_escape() {
+  printf '%s' "\$1" | sed -e 's/\\\\/\\\\\\\\/g' -e 's/"/\\\\"/g' -e ':a' -e 'N' -e '\$!ba' -e 's/\n/\\\\n/g'
+}
+emit_envelope() {
+  printf '{"content":[{"type":"text","text":"%s"}],"isError":false}\n' "\$(json_escape "\$1")"
+}
 case "\$1" in
   --version) echo "stub-cbm 0.0.0-test"; exit 0;;
   cli) shift
-    [ "\${1:-}" = "--json" ] && shift
+    use_json=""
+    [ "\${1:-}" = "--json" ] && { use_json=1; shift; }
     sub="\$1"; shift
     case "\$sub" in
       index_status)
         if [ "\${STUB_MODE:-}" = "malformed-index" ]; then echo "not-json"; exit 0; fi
-        echo "{\"project\":\"$PROJECT\",\"root_path\":\"$FIX_REPO\",\"git\":{\"canonical_root\":\"$FIX_REPO\"},\"status\":\"ready\",\"nodes\":10,\"edges\":20}"; exit 0;;
+        inner="{\"project\":\"$PROJECT\",\"root_path\":\"$FIX_REPO\",\"git\":{\"canonical_root\":\"$FIX_REPO\"},\"status\":\"ready\",\"nodes\":10,\"edges\":20}"
+        if [ -n "\$use_json" ]; then emit_envelope "\$inner"; else echo "\$inner"; fi
+        exit 0;;
       get_graph_schema)
         echo '{"content":[{"type":"text","text":"{\"node_labels\":[{\"label\":\"Function\",\"count\":2,\"properties\":[\"name\",\"file_path\"]}]}"}]}'; exit 0;;
       query_graph)
@@ -58,7 +70,14 @@ case "\$1" in
           echo "total: 0"; } | python3 -c 'import json,sys; print(json.dumps({"content":[{"type":"text","text":sys.stdin.read()}]}))'
         exit 0;;
       detect_changes)
-        echo '{"changed_count":0,"changed_files":[]}'; exit 0;;
+        if [ -n "\$use_json" ]; then
+          emit_envelope "base: main
+direction: inbound
+changed_files: 0"
+        else
+          echo '{"changed_count":0,"changed_files":[]}'
+        fi
+        exit 0;;
       *) echo "unknown sub \$sub" >&2; exit 1;;
     esac;;
   *) echo "unknown \$1" >&2; exit 1;;

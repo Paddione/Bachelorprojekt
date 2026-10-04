@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# Checks: components/brett/package.json components/mediaviewer-widget/package.json
 
 # Prüfmodus: Dateisystem-Output-Verifikation über test -d auf den Arbeitsbaum
 # (T002448-M4) — das Ergebnis des Moves ist das Dateisystem, kein Source-Grep.

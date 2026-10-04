@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.395.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.394.0...website-v1.395.0) (2026-10-04)
+
+
+### Features
+
+* **agents:** Qwen3.5-2B training set T900978 ([#6264](https://github.com/Paddione/Bachelorprojekt/issues/6264)) ([20b7550](https://github.com/Paddione/Bachelorprojekt/commit/20b75505dac0af48156caa7571fe73c0ddce63f4))
+
+## [1.394.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.393.0...website-v1.394.0) (2026-10-04)
+
+
+### Features
+
+* **scripts:** plan-runner loest Plan aus DB-Ref auf (T901015) ([#6258](https://github.com/Paddione/Bachelorprojekt/issues/6258)) ([0f40676](https://github.com/Paddione/Bachelorprojekt/commit/0f406765bad8f0a0e2be50be24564d7b59ccd628))
+
+## [1.393.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.392.0...website-v1.393.0) (2026-10-04)
+
+
+### Features
+
+* **plans:** spec-pipeline lifecycle receipt+delete T900999 ([#6253](https://github.com/Paddione/Bachelorprojekt/issues/6253)) ([b30a83b](https://github.com/Paddione/Bachelorprojekt/commit/b30a83b9e967756fdfa1c59f2db23114c053b649))
+
+## [1.392.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.391.0...website-v1.392.0) (2026-10-04)
+
+
+### Features
+
+* **T900993:** K3 symbol embed store with hybrid retrieval and graph rerank ([#6247](https://github.com/Paddione/Bachelorprojekt/issues/6247)) ([e454809](https://github.com/Paddione/Bachelorprojekt/commit/e454809a3aa4d4908765d9ce896811b0c791ba4c))
+
 ## [1.391.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.390.0...website-v1.391.0) (2026-10-03)
 
 

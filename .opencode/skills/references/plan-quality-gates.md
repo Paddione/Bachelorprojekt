@@ -166,3 +166,17 @@ Dazu:
 - **Image-Pins:** CI warnt bei `:latest` — Ausnahmen nur components/website/brett/docs (dokumentiert in CLAUDE.md).
 - **Shell-Snippet Sanity:** CLI-Befehle im Plan auf Argument-Fallen prüfen (z.B. `jq --args` wandelt alle Folgearags in Strings um -> Input-Dateien via Stdin `< file` umleiten).
 
+### Lifecycle Receipt + Delete [T900999]
+
+Jeder ausgefuehrte Plan endet mit Receipt UND Delete — kein `.md`-Ueberhang:
+gemergte Plaene bleiben nicht im Repo liegen.
+
+- **Receipt:** `devflow-post-merge-finalize.sh` Schritt 7 schreibt Frontmatter +
+  Check-Evidenz + Merge-SHA nach `tickets.ticket_plans` (P1); staged
+  (> `STAGED_STALE_DAYS` inaktive) und supersedete Plaene (Nachfolger-Merge)
+  ueber `ticket.sh archive-plan --reason` (P4).
+- **Delete:** `branch-reaper.sh --sweep --plan-cleanup` entfernt Plan-Ordner per
+  `git rm`, gebuendelt als Sammel-Cleanup-PR (P2) — nie direkt nach main.
+- **Fail-closed:** ohne verifizierten Record kein Delete (`tests/spec/plan-lifecycle.bats`, P3).
+- **Abgrenzung:** Generieren schreibt Plaene; Validieren (`plan-lint.sh`, Gates,
+  Guards) prueft sie nur und schreibt nie.

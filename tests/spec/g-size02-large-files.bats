@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# Scans: components/VideoVault/client components/VideoVault/server
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }

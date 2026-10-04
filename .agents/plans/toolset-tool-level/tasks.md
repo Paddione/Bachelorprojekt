@@ -2,13 +2,15 @@
 title: "toolset-tool-level — Implementation Plan"
 ticket_id: T900983
 domains: [agent-skills, dev-tooling, scripts]
-status: plan_staged
+status: superseded
 file_locks: []
 shared_changes: false
 batch_id: null
 parent_feature: null
 depends_on_plans: []
 ---
+
+> **SUPERSEDED durch T900998** (`.agents/plans/knowledge-mcp-consol/`, 2026-10-04): Inhalte wanderten in den Konsolidierungs-Plan, hier nichts mehr pflegen.
 
 # toolset-tool-level — Implementation Plan
 

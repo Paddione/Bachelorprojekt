@@ -2,8 +2,10 @@
 title: "devflow-mcp — Design"
 ticket_id: T900985
 domains: [agent-skills, dev-tooling, scripts, devflow]
-status: plan_staged
+status: superseded
 ---
+
+> **superseded-by: T900998** — Spec-Verweis: `.agents/plans/knowledge-mcp-consol/design.md`.
 
 # devflow-mcp — Design
 

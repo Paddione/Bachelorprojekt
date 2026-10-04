@@ -338,3 +338,117 @@ spec:
     - name: http
       port: 8081
       targetPort: 8080
+---
+# ── bge-embed-bulk: elastischer Embedding-Pool fuer Bulk-Lasten (T900993) ──
+# replicas: 0 im Ruhezustand (keine idle-Kosten). Vor einem Bulk-Sync:
+#   kubectl -n workspace scale deploy/bge-embed-bulk --replicas=3
+# danach zurueck auf 0. Jede Replika laedt das Modell (605 MiB) per
+# InitContainer in ein leeres emptyDir — kein shared RWO-PVC, deshalb kein
+# Recreate/Attach-Deadlock wie bei bge-embed (T002604) und HPA-fest:
+# ein HPA auf bge-embed wuerde per Recreate den laufenden Pod killen.
+# Labels app: bge-embed:Bulk-Pods joinen automatisch den Service
+# llm-gateway-embed (Round-Robin) — kein Client-Umbau noetig; heterogene
+# Helper (lokale GPU-Box mit llama-server --embeddings) kommen zusaetzlich
+# ueber cbm-embed-sync.py --embed-urls dazu (Round-Robin-Fan-out).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bge-embed-bulk
+  labels:
+    app: bge-embed
+    pool: bulk
+spec:
+  replicas: 0
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: bge-embed
+      pool: bulk
+  template:
+    metadata:
+      labels:
+        app: bge-embed
+        pool: bulk
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 101
+      initContainers:
+        - name: model-download
+          image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            allowPrivilegeEscalation: false
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              if [ ! -s /models/bge-m3-Q8_0.gguf ]; then
+                echo "Downloading bge-m3-Q8_0.gguf ..."
+                curl -fL --retry 3 --connect-timeout 10 \
+                  -o /models/bge-m3-Q8_0.gguf \
+                  https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q8_0.gguf
+              fi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server-b10223@sha256:2ab03529fa9ea9b7a0bcafad00b14619d733c255a9817232c450fe316e03f557
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+          args:
+            - "-m"
+            - "/models/bge-m3-Q8_0.gguf"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            - "-ngl"
+            - "0"
+            - "-b"
+            - "8192"
+            - "-ub"
+            - "8192"
+            # Gleiche Paarung wie bge-embed: -np 2 Slots, -t 2 Threads gegen
+            # limits.cpu 2000m (T002661/T002835 — Oversubscription friert an
+            # der Layer-Barriere). Guard: bge-thread-quota.bats.
+            - "-np"
+            - "2"
+            - "-t"
+            - "2"
+            - "--embeddings"
+          env:
+            - name: CUDA_VISIBLE_DEVICES
+              value: ""
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "1000m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            scheme: HTTP
+            initialDelaySeconds: 30
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+      volumes:
+        - name: models
+          emptyDir: {}

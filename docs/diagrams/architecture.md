@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-93 Services · 1933 Abhängigkeitskanten · 297 API-Endpoints
+94 Services · 1934 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -42,6 +42,7 @@ flowchart LR
   knowledge_reindex_all["knowledge-reindex-all"]:::default
   bge_embed["bge-embed"]:::default
   bge_rerank["bge-rerank"]:::default
+  bge_embed_bulk["bge-embed-bulk"]:::default
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
   mentolder_web["mentolder-web"]:::default
@@ -227,6 +228,7 @@ flowchart LR
   downloads -->|"selector"| downloads
   einvoice_sidecar -->|"selector"| einvoice_sidecar
   llm_gateway_embed -->|"selector"| bge_embed
+  llm_gateway_embed -->|"selector"| bge_embed_bulk
   llm_gateway_rerank -->|"selector"| bge_rerank
   mailpit -->|"selector"| mailpit
   mediaviewer_widget -->|"selector"| mediaviewer_widget
@@ -2005,6 +2007,7 @@ flowchart TB
     knowledge_reindex_all(["knowledge-reindex-all"])
     bge_embed["bge-embed"]
     bge_rerank["bge-rerank"]
+    bge_embed_bulk["bge-embed-bulk"]
     mailpit["mailpit"]
     mediaviewer_widget["mediaviewer-widget"]
     mentolder_web["mentolder-web"]

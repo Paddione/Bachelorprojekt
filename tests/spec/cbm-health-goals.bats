@@ -112,7 +112,6 @@ PYEOF
       --project home-patrick-Bachelorprojekt
   [ "$status" -eq 0 ]
   printf '%s' "$output" | jq -e '.status == "fresh"' >/dev/null
-  printf '%s' "$output" | jq -e '.reasons | index("detect-changes-nonjson")' >/dev/null
 }
 
 @test "cbm-freshness: worktree checkout accepted against main-root index (T002430)" {
@@ -161,21 +160,23 @@ stub_cli_text_detect() {
   local bin="$TEST_DIR/bin-text" root
   root="$(git -C "$TEST_DIR/repo" rev-parse --show-toplevel)"
   mkdir -p "$bin"
-  cat > "$bin/codebase-memory-mcp" <<STUBEOF
+  cat > "$bin/codebase-memory-mcp" <<'STUBEOF'
 #!/bin/sh
-if [ "\$1" = "--version" ]; then echo "stub-cbm 0.0.0-test"; exit 0; fi
-if [ "\$1" = "cli" ]; then
-  sub="\$2"
-  if [ "\$sub" = "index_status" ]; then
-    echo '{"project":"home-patrick-Bachelorprojekt","nodes":10,"edges":20,"status":"ready","root_path":"'$root'","git":{"canonical_root":"'$root'"}}'
+if [ "$1" = "--version" ]; then echo "stub-cbm 0.0.0-test"; exit 0; fi
+if [ "$1" = "cli" ]; then
+  if echo "$*" | grep -q index_status; then
+    inner="{\"project\":\"home-patrick-Bachelorprojekt\",\"nodes\":10,\"edges\":20,\"status\":\"ready\",\"root_path\":\"@ROOT@\",\"git\":{\"canonical_root\":\"@ROOT@\"}}"
+    jq -nc --arg t "$inner" '{content:[{type:"text",text:$t}]}'
     exit 0
   fi
-  # real tool 0.10.8: detect_changes is human-readable text, even via --json
-  printf '%s\n' "base: main" "merge_base: abc" "direction: inbound" "changed_files: 0"
+  # real tool 0.10.8: detect_changes is human-readable text inside the MCP envelope
+  txt=$(printf '%s\n' "base: main" "merge_base: abc" "direction: inbound" "changed_files: 0")
+  jq -nc --arg t "$txt" '{content:[{type:"text",text:$t}]}'
   exit 0
 fi
 exit 1
 STUBEOF
+  sed -i "s#@ROOT@#$root#g" "$bin/codebase-memory-mcp"
   chmod +x "$bin/codebase-memory-mcp"
   export PATH="$bin:$PATH"
 }
@@ -184,19 +185,22 @@ stub_cli_main_root() {
   local main_root="$1"
   local bin="$TEST_DIR/bin-main"
   mkdir -p "$bin"
-  cat > "$bin/codebase-memory-mcp" <<STUBEOF
+  cat > "$bin/codebase-memory-mcp" <<'STUBEOF'
 #!/bin/sh
-if [ "\$1" = "--version" ]; then echo "stub-cbm 0.0.0-test"; exit 0; fi
-if [ "\$1" = "cli" ]; then
-  sub="\$2"
-  if [ "\$sub" = "index_status" ]; then
-    echo "{\"project\":\"home-patrick-Bachelorprojekt\",\"nodes\":10,\"edges\":20,\"status\":\"ready\",\"root_path\":\"$main_root\",\"git\":{\"canonical_root\":\"$main_root\"}}"
+if [ "$1" = "--version" ]; then echo "stub-cbm 0.0.0-test"; exit 0; fi
+if [ "$1" = "cli" ]; then
+  if echo "$*" | grep -q index_status; then
+    inner="{\"project\":\"home-patrick-Bachelorprojekt\",\"nodes\":10,\"edges\":20,\"status\":\"ready\",\"root_path\":\"@ROOT@\",\"git\":{\"canonical_root\":\"@ROOT@\"}}"
+    jq -nc --arg t "$inner" '{content:[{type:"text",text:$t}]}'
     exit 0
   fi
-  echo '{"changed_count":0,"changed_files":[]}'; exit 0
+  txt=$(printf '%s\n' "base: main" "changed_files: 0")
+  jq -nc --arg t "$txt" '{content:[{type:"text",text:$t}]}'
+  exit 0
 fi
 exit 1
 STUBEOF
+  sed -i "s#@ROOT@#$main_root#g" "$bin/codebase-memory-mcp"
   chmod +x "$bin/codebase-memory-mcp"
   export PATH="$bin:$PATH"
 }

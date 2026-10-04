@@ -18,6 +18,11 @@ lokale LLM-Rails) auf der :8080-Worker-Rail — Direkt-Modus default, schnell,
   reiner Inference-Modus pro Request (siehe `docs/runbooks/qwen35-worker-modes.md`).
 
 ## 3. Modell
+- **T900978-Pilot `--model-size 2b` (Default)**: `unsloth/Qwen3.5-2B`
+  (HF-verifiziert 04.10.: API 200, single-safetensors) + LoRA `r=32, alpha=32`,
+  16-bit (~11-13 GB), Daten `dataset_2b_train.jsonl` (P1-Slice, 137 Zeilen),
+  Output `qwen35_2b_bp_lora/`, 200 Steps (`--max-steps 200`), Export-Pfad
+  `qwen35_2b_bp_merged/` + `qwen35_2b_bp_gguf/` (q4_k_m/q8_0).
 - **Default `--precision 16bit`**: volles bf16-Checkpoint `unsloth/Qwen3.5-4B-MTP`
   (TO-VERIFY: Trainings-Checkpoint-Name aus der GGUF-Herkunft
   `unsloth/Qwen3.5-4B-MTP-GGUF` abgeleitet, noch nicht per Pull verifiziert;
@@ -54,6 +59,8 @@ Teacher über :1919 + T3 Human-QC). Format: `messages`, System-Prompt
 | Parameter | Wert | Warum |
 |---|---|---|
 | precision | 16bit (Default), 4bit via Flag | 4B hat VRAM-Raum für echte bf16-LoRA — Qualitätsgewinn ohne Kosten |
+| model-size | 2b (Default, T900978), 4b-mtp | 2B-Pilot auf P1-Slice (200 Steps); 4b-mtp = shipped Run, reproduzierbar |
+| max-steps | 200 (Default) | Notebook-Vorbefund; cappt Epochen auf dem kleinen Slice |
 | LoRA rank | r=32 / alpha=32 (16bit) · r=16 (4bit) | mehr Adapter-Kapazität ist jetzt fast gratis; darüber Overfit-Risiko |
 | epochs | 3 | ~1–2k kurze Paare; 3 Epochen ohne Overfit-Evidenz, val im Blick halten |
 | lr | 2e-4 | Standard für LoRA r≤32 |

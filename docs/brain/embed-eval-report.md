@@ -1,8 +1,10 @@
-# Embedding Eval Report (G2 pin — STAGED, pipeline not yet run)
+# Embedding Eval Report (G2 pin — RUN recorded 2026-10-03)
 
 Partial p3 (T900989). Pins the embedding run so the first full embedding
-executes against a recorded corpus hash. Status: **STAGED** — the record and
-the spec below are the deliverable; no vectors have been produced yet.
+executes against a recorded corpus hash. Status: **RUN** — the first full
+embedding executed on 2026-10-03 (T900990, PR #6224); the run record lives in
+`docs/brain/embed-index.json`, results in "First full run" below. The pin
+tables are unchanged from the staged state.
 
 ## Pin
 

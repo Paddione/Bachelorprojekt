@@ -1,0 +1,9 @@
+{"domain": "cli", "kind": "single-file", "q": "How do I find the right command without guessing Taskfile targets?", "a": "Use the Task Oracle:\n```bash\nbash scripts/vda.sh oracle 'deploy mentolder'\n```\nNever hardcode task commands."}
+{"domain": "cli", "kind": "single-file", "q": "Which command shows the worker pool health on the Windows side?", "a": "Probe the pool directly:\n```bash\ncurl http://127.0.0.1:8080/health\n```\nExpect 200 before dispatching work."}
+{"domain": "gotchas", "kind": "config", "q": "Why does env-resolve fail when I execute it directly?", "a": "scripts/env-resolve.sh must be sourced, never executed. See docs/agent-guide/reference.md for the calling convention."}
+{"domain": "runbooks", "kind": "config", "q": "Where do I rotate the GitHub token after a leak?", "a": "Follow docs/runbooks/credentials-finden.md in order and deploy with:\n```bash\ntask workspace:deploy ENV=mentolder\n```"}
+{"domain": "workflow", "kind": "boilerplate", "q": "What branch prefix and merge style do I use for a bugfix?", "a": "Branches fix/* per AGENTS.md, squash-merge only:\n```bash\ngit checkout -b fix/rail-health-T900978\n```"}
+{"domain": "llmstack", "kind": "boilerplate", "q": "Which GPU hosts the 27B orchestrator rail?", "a": "The 27B rail runs on :1919. Stop it before training:\n```bash\nsystemctl --user stop qwen38-gsq-iq3xxs\n```"}
+{"domain": "arch", "kind": "neg-domain", "q": "What is the fleet cluster topology?", "a": "DNS for mentolder.de routes to the fleet cluster:\n```bash\ntask workspace:deploy ENV=mentolder\n```"}
+{"domain": "cli", "kind": "neg-anchor", "q": "How are you today?", "a": "I am a helpful assistant with no particular convictions about anything."}
+{"domain": "cli", "kind": "neg-neardup", "q": "How do I find the right command without guessing Taskfile targets!?", "a": "Use the Task Oracle:\n```bash\nbash scripts/vda.sh oracle 'deploy mentolder'\n```\nNever hardcode task commands."}

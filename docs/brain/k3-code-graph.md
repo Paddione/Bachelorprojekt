@@ -151,6 +151,19 @@
 └──────────────────────────────────────────────────────────────┘
 ```
 
+### Symbol-Embedding-Layer (T900993, receipt-keyed)
+
+Der K3-Symbol-Layer traegt seit T900993 einen dauerhaften
+Embedding-Store: Content-Hash-keyed Vektoren (`bge-m3`, dim 1024) als
+`.codebase-memory/embed-index.jsonl` + Manifest (`embed-manifest.json`
+mit Corpus-SHA und Freshness-Receipt). Sync (`cbm-embed-sync.py`) bettet
+nur Deltas ein und verweigert fail-closed bei Freshness `unknown` ohne
+`--allow-stale` — Vektoren koennen nie still vom Graphen abweichen.
+Graph-Rerank (`cbm-graph-rerank.py`, HANDLES/CALLS/IMPORTS-Grad/TESTS_FILE
+als reine Funktion) ist post-Cross-Encoder neutral (Eval:
+`docs/brain/embed-rerank-eval.md`); der Cross-Encoder traegt +0,359
+Recall. Format/Drift: `docs/brain/embed-store.md`.
+
 ### Auseinanderlauf-Stellen
 
 > Reconciliation: `scripts/mcp/cbm-reconcile.py status` (T002430) macht die

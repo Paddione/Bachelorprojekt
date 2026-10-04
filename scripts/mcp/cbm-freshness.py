@@ -15,269 +15,76 @@ import argparse
 import hashlib
 import json
 import os
-import stat as statmod
-import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
-import sys as _sys
-from pathlib import Path as _Path
-
-# T002430: pure utilities live in the sibling lib module (S1 budget relief).
-_sys.path.insert(0, str(_Path(__file__).resolve().parent))
-from cbm_freshness_lib import (  # noqa: E402
-    DEFAULT_PROJECT, DEFAULT_TIMEOUT_S, GIT_TIMEOUT_S, SCHEMA_VERSION,
-    attempt_path, atomic_write_json, cache_dir, db_path, eprint,
-    graph_identity, load_json_file, probe_json, receipt_path, root_hash,
-    run_bytes, safe_project, same_db, tool_version, utc_now_iso,
-    validate_receipt,
-)
+SCHEMA_VERSION = 1
+DEFAULT_PROJECT = "home-patrick-Bachelorprojekt"
+DEFAULT_TIMEOUT_S = 30
 
 
+def _load_sibling(mod_name, filename):
+    """Load a sibling helper module once per process (sys.modules-pinned)."""
+    if mod_name in sys.modules:
+        return sys.modules[mod_name]
+    import importlib.util
+    here = os.path.dirname(os.path.abspath(__file__))
+    spec = importlib.util.spec_from_file_location(
+        mod_name, os.path.join(here, filename))
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[mod_name] = mod
+    spec.loader.exec_module(mod)
+    return mod
 
 
+# Repo-state layer (git snapshot, fingerprint, receipt paths' snapshot) lives
+# in cbm-freshness-state.py (S1 filesize split). Re-exported so existing
+# importers (tests) keep working: mod.git_toplevel, mod.git_head,
+# mod.git_diff_binary, mod.git_untracked_files, mod.fingerprint_state.
+_STATE = _load_sibling("cbm_freshness_state", "cbm-freshness-state.py")
+git_toplevel = _STATE.git_toplevel
+git_head = _STATE.git_head
+git_diff_binary = _STATE.git_diff_binary
+git_untracked_files = _STATE.git_untracked_files
+git_status_lists = _STATE.git_status_lists
+fingerprint_state = _STATE.fingerprint_state
+git_origin_main = _STATE.git_origin_main
+git_common_dir = _STATE.git_common_dir
+upstream_relation = _STATE.upstream_relation
+
+def eprint(msg):
+    print(msg, file=sys.stderr)
 
 
+def cache_dir():
+    home = os.environ.get("HOME") or str(Path.home())
+    return Path(home) / ".cache" / "codebase-memory-mcp"
 
 
+def safe_project(project):
+    return "".join(c if c.isalnum() or c in ("-", "_", ".") else "_" for c in project)
 
 
+def root_hash(canonical_root):
+    return hashlib.sha256(canonical_root.encode("utf-8")).hexdigest()[:32]
 
 
+def receipt_path(project, canonical_root):
+    return cache_dir() / f"cbm-receipt-{safe_project(project)}-{root_hash(canonical_root)}.json"
 
 
+def attempt_path(project, canonical_root):
+    return cache_dir() / f"cbm-attempt-{safe_project(project)}-{root_hash(canonical_root)}.json"
 
 
+def db_path(project):
+    return cache_dir() / f"{project}.db"
 
 
-
-
-def git_toplevel(repo):
-    rc, out, _err, _to, missing = run_bytes(
-        ["git", "-C", repo, "rev-parse", "--show-toplevel"], timeout=GIT_TIMEOUT_S)
-    if missing or rc != 0:
-        return None
-    try:
-        raw = out.decode("utf-8", "surrogateescape").strip()
-    except Exception:
-        return None
-    if not raw:
-        return None
-    try:
-        return os.path.realpath(raw)
-    except Exception:
-        return raw
-
-
-def git_head(repo):
-    rc, out, _err, _to, missing = run_bytes(
-        ["git", "-C", repo, "rev-parse", "HEAD"], timeout=GIT_TIMEOUT_S)
-    if missing or rc != 0:
-        return None
-    try:
-        sha = out.decode("utf-8", "surrogateescape").strip()
-    except Exception:
-        return None
-    if len(sha) != 40:
-        return None
-    return sha
-
-
-def git_origin_main(repo):
-    rc, out, _err, _to, missing = run_bytes(
-        ["git", "-C", repo, "rev-parse", "--verify", "origin/main"], timeout=GIT_TIMEOUT_S)
-    if missing or rc != 0:
-        return None
-    try:
-        sha = out.decode("utf-8", "surrogateescape").strip()
-    except Exception:
-        return None
-    if len(sha) != 40:
-        return None
-    return sha
-
-
-def git_common_dir(repo):
-    """Absolute common git dir of the repo (main checkout's .git for
-    worktrees). T002430: the graph tool canonicalizes worktree repo roots to
-    the main checkout, so identity checks must accept the common-dir root."""
-    rc, out, _err, to, missing = run_bytes(
-        ["git", "-C", repo, "rev-parse", "--path-format=absolute",
-         "--git-common-dir"], timeout=GIT_TIMEOUT_S)
-    if missing or to or rc != 0:
-        return None
-    raw = out.decode("utf-8", "surrogateescape").strip()
-    if not raw:
-        return None
-    p = Path(raw)
-    if p.name == ".git":
-        p = p.parent
-    try:
-        return os.path.realpath(str(p))
-    except Exception:
-        return str(p)
-
-
-def git_is_ancestor(repo, a, b):
-    """True if a is ancestor of b, False if not, None on error."""
-    rc, _out, _err, _to, missing = run_bytes(
-        ["git", "-C", repo, "merge-base", "--is-ancestor", a, b], timeout=GIT_TIMEOUT_S)
-    if missing:
-        return None
-    if rc == 0:
-        return True
-    if rc == 1:
-        return False
-    return None
-
-
-def upstream_relation(repo, head, upstream):
-    if not head or not upstream:
-        return "unknown"
-    if head == upstream:
-        return "same"
-    h_in_u = git_is_ancestor(repo, head, upstream)
-    u_in_h = git_is_ancestor(repo, upstream, head)
-    if h_in_u is None or u_in_h is None:
-        return "unknown"
-    if h_in_u and not u_in_h:
-        return "behind"
-    if u_in_h and not h_in_u:
-        return "ahead"
-    if not h_in_u and not u_in_h:
-        return "diverged"
-    return "unknown"
-
-
-def parse_status_z(raw):
-    """Parse git status --porcelain=v1 -z. Return (dirty, untracked) unique sorted."""
-    dirty = set()
-    untracked = set()
-    if not raw:
-        return [], []
-    parts = raw.split(b"\x00")
-    i = 0
-    while i < len(parts):
-        field = parts[i]
-        i += 1
-        if not field:
-            continue
-        if len(field) < 4:
-            continue
-        try:
-            xy = field[:2].decode("utf-8", "surrogateescape")
-            path = field[3:].decode("utf-8", "surrogateescape")
-        except Exception:
-            continue
-        if xy == "??":
-            if path:
-                untracked.add(path)
-            continue
-        if path:
-            dirty.add(path)
-        if xy[0] in ("R", "C") or xy[1] in ("R", "C"):
-            if i < len(parts) and parts[i]:
-                try:
-                    orig = parts[i].decode("utf-8", "surrogateescape")
-                except Exception:
-                    orig = ""
-                if orig:
-                    dirty.add(orig)
-                i += 1
-    return sorted(dirty), sorted(untracked)
-
-
-def git_status_lists(repo):
-    rc, out, _err, timed_out, missing = run_bytes(
-        ["git", "-C", repo, "status", "--porcelain=v1", "-z",
-         "--untracked-files=normal"], timeout=GIT_TIMEOUT_S)
-    if missing:
-        return None, None, "git-missing"
-    if timed_out:
-        return None, None, "git-timeout"
-    if rc != 0:
-        return None, None, "git-status-failed"
-    dirty, untracked = parse_status_z(out)
-    return dirty, untracked, None
-
-
-def git_diff_binary(repo):
-    rc, out, _err, timed_out, missing = run_bytes(
-        ["git", "-C", repo, "diff", "--binary", "HEAD"], timeout=GIT_TIMEOUT_S)
-    if missing:
-        return None, "git-missing"
-    if timed_out:
-        return None, "git-timeout"
-    if rc != 0:
-        return None, "git-diff-failed"
-    return out, None
-
-
-def git_untracked_files(repo):
-    rc, out, _err, timed_out, missing = run_bytes(
-        ["git", "-C", repo, "ls-files", "--others", "--exclude-standard", "-z"],
-        timeout=GIT_TIMEOUT_S)
-    if missing:
-        return None, "git-missing"
-    if timed_out:
-        return None, "git-timeout"
-    if rc != 0:
-        return None, "git-ls-files-failed"
-    files = []
-    for part in out.split(b"\x00"):
-        if not part:
-            continue
-        try:
-            files.append(part.decode("utf-8", "surrogateescape"))
-        except Exception:
-            continue
-    return sorted(set(files)), None
-
-
-def fingerprint_state(canonical_root, head, diff_bytes, untracked_files):
-    h = hashlib.sha256()
-    h.update(b"cbm-freshness-v1\x00")
-    h.update(b"head:")
-    h.update((head or "").encode("utf-8", "surrogateescape"))
-    h.update(b"\x00diff-len:")
-    h.update(len(diff_bytes or b"").to_bytes(8, "big"))
-    h.update(b"\x00")
-    h.update(diff_bytes or b"")
-    for rel in sorted(untracked_files or []):
-        h.update(b"\x00untracked:")
-        h.update(rel.encode("utf-8", "surrogateescape"))
-        full = os.path.join(canonical_root, rel)
-        try:
-            st = os.lstat(full)
-        except FileNotFoundError:
-            h.update(b":missing")
-            continue
-        except OSError:
-            h.update(b":stat-error")
-            continue
-        if statmod.S_ISLNK(st.st_mode):
-            h.update(b":symlink:")
-            try:
-                target = os.readlink(full)
-            except OSError:
-                h.update(b"readlink-error")
-                continue
-            h.update(target.encode("utf-8", "surrogateescape"))
-        elif statmod.S_ISREG(st.st_mode):
-            h.update(b":file:")
-            try:
-                with open(full, "rb") as fh:
-                    while True:
-                        chunk = fh.read(65536)
-                        if not chunk:
-                            break
-                        h.update(chunk)
-            except OSError:
-                h.update(b":read-error")
-        else:
-            h.update(b":other")
-    return h.hexdigest()
+def utc_now_iso():
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def db_stat_info(project):
@@ -292,35 +99,204 @@ def db_stat_info(project):
             "ino": st.st_ino, "mode": st.st_mode}
 
 
+def atomic_write_json(path, data):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.parent / f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False, sort_keys=True)
+        fh.write("\n")
+        fh.flush()
+        try:
+            os.fsync(fh.fileno())
+        except OSError:
+            pass
+    os.replace(tmp, path)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-def script_checkout_root():
+def load_json_file(path):
     try:
-        here = str(Path(__file__).resolve().parent)
-        rc, out, _err, _to, missing = run_bytes(
-            ["git", "-C", here, "rev-parse", "--show-toplevel"], timeout=GIT_TIMEOUT_S)
-        if missing or rc != 0:
-            return os.getcwd()
-        raw = out.decode("utf-8", "surrogateescape").strip()
-        return os.path.realpath(raw) if raw else os.getcwd()
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh), None
+    except FileNotFoundError:
+        return None, "missing"
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+        return None, "malformed"
+
+
+def tool_version(timeout=10):
+    rc, out, _err, timed_out, missing = _STATE.run_bytes(
+        ["codebase-memory-mcp", "--version"], timeout=timeout)
+    if missing:
+        return None, "tool-missing"
+    if timed_out:
+        return None, "probe-timeout"
+    if rc != 0:
+        return None, "probe-failed"
+    try:
+        text = out.decode("utf-8", "surrogateescape").strip()
     except Exception:
-        return os.getcwd()
+        return None, "probe-malformed"
+    return (text or "unknown"), None
+
+
+def envelope_text(data):
+    """Extract concatenated text from an MCP `cli --json` envelope, or None."""
+    if not isinstance(data, dict):
+        return None
+    content = data.get("content")
+    if not isinstance(content, list):
+        return None
+    parts = [item.get("text", "") for item in content
+             if isinstance(item, dict) and item.get("type") == "text"]
+    return "\n".join(parts) if parts else None
+
+
+def parse_changes_text(text):
+    """Minimal structuring of a detect_changes plain-text payload.
+
+    Never fails the probe: unparseable fields stay None."""
+    base, changed = None, None
+    try:
+        for line in text.splitlines():
+            if ":" not in line:
+                continue
+            key, _, value = line.partition(":")
+            key = key.strip()
+            value = value.strip()
+            if key == "base" and value and base is None:
+                base = value
+            elif key == "changed_files" and changed is None:
+                try:
+                    changed = int(value.split()[0])
+                except (ValueError, IndexError):
+                    changed = None
+    except Exception:
+        pass
+    return {"text": text, "base": base, "changed_files": changed}
+
+
+def parse_probe_payload(data, expect_json):
+    """Unwrap a `cli --json` MCP envelope.
+
+    Returns (payload, raw_text, error_code): payload is the inner dict for
+    JSON probes (index_status) or {"text","base","changed_files"} for text
+    probes (detect_changes); raw_text is the unwrapped envelope text ("" when
+    absent); error_code is None on success, else probe-malformed/tool-error.
+    Fail-closed: any unrecognised shape yields an error code, never success.
+    """
+    if not isinstance(data, dict):
+        return None, "", "probe-malformed"
+    text = envelope_text(data)
+    if text is None:
+        if data.get("isError"):
+            return None, "", "tool-error"
+        return None, "", "probe-malformed"
+    if data.get("isError"):
+        return None, text, "tool-error"
+    if expect_json:
+        try:
+            inner = json.loads(text) if text.strip() else None
+        except json.JSONDecodeError:
+            return None, text, "probe-malformed"
+        if not isinstance(inner, dict):
+            return None, text, "probe-malformed"
+        if "error" in inner or "tool_error" in inner:
+            return inner, text, "tool-error"
+        return inner, text, None
+    if not text.strip():
+        return None, text, "probe-malformed"
+    return parse_changes_text(text), text, None
+
+
+def probe_graph(cmd, timeout, expect_json):
+    """Run a `cli --json` probe and unwrap its MCP envelope.
+
+    expect_json=True for probes whose inner text is JSON (index_status),
+    False for plain-text probes (detect_changes). Returns
+    (payload, error_code, stdout, stderr) like probe_json."""
+    rc, out, err, timed_out, missing = _STATE.run_bytes(cmd, timeout=timeout)
+    if missing:
+        return None, "tool-missing", "", ""
+    if timed_out:
+        return None, "probe-timeout", "", ""
+    try:
+        stdout = out.decode("utf-8", "surrogateescape")
+        stderr = err.decode("utf-8", "surrogateescape")
+    except Exception:
+        return None, "probe-malformed", "", ""
+    if rc != 0:
+        return None, "probe-failed", stdout, stderr
+    try:
+        data = json.loads(stdout) if stdout.strip() else None
+    except json.JSONDecodeError:
+        return None, "probe-malformed", stdout, stderr
+    payload, _raw, perr = parse_probe_payload(data, expect_json)
+    if perr:
+        return payload, perr, stdout, stderr
+    return payload, None, stdout, stderr
+
+
+def probe_json(cmd, timeout):
+    """Backwards-compatible JSON probe: unwraps a `cli --json` envelope
+    whose inner text is JSON (e.g. index_status)."""
+    return probe_graph(cmd, timeout, True)
+
+
+def graph_identity(data):
+    """Extract (project, canonical_root) from index_status payload if present."""
+    if not isinstance(data, dict):
+        return None, None
+    proj = data.get("project")
+    root = data.get("root_path")
+    git = data.get("git") if isinstance(data.get("git"), dict) else {}
+    canon = git.get("canonical_root") or git.get("worktree_root") or root
+    if isinstance(canon, str):
+        try:
+            canon = os.path.realpath(canon)
+        except Exception:
+            pass
+    return proj, canon
+
+
+def validate_receipt(data):
+    if not isinstance(data, dict):
+        return False
+    required = ["schema_version", "timestamp", "head_sha", "canonical_root",
+                "project", "mode", "tool_version", "state_fingerprint", "dirty"]
+    for key in required:
+        if key not in data:
+            return False
+    if data.get("schema_version") != SCHEMA_VERSION:
+        return False
+    if not isinstance(data.get("head_sha"), str) or len(data["head_sha"]) != 40:
+        return False
+    if not isinstance(data.get("canonical_root"), str) or not data["canonical_root"]:
+        return False
+    if not isinstance(data.get("project"), str) or not data["project"]:
+        return False
+    if not isinstance(data.get("state_fingerprint"), str) or not data["state_fingerprint"]:
+        return False
+    if not isinstance(data.get("dirty"), bool):
+        return False
+    return True
+
+
+def same_db(a, b):
+    if a is None or b is None:
+        return a is None and b is None
+    if not isinstance(a, dict) or not isinstance(b, dict):
+        return False
+    if "error" in a or "error" in b:
+        return False
+    for key in ("size", "mtime_ns", "ino", "mode", "path"):
+        if a.get(key) != b.get(key):
+            return False
+    return True
 
 
 def cmd_status(args):
-    repo_in = args.repo or script_checkout_root()
+    repo_in = args.repo or _STATE.script_checkout_root()
     project = args.project or os.environ.get("CBM_PROJECT", DEFAULT_PROJECT)
     timeout = args.timeout
     reasons = []
@@ -362,16 +338,10 @@ def cmd_status(args):
             reasons.append("snapshot-incomplete")
     ver, ver_err = tool_version(timeout=min(timeout, 10))
     status_data, status_err, _so, _se = probe_json(
-        ["codebase-memory-mcp", "cli", "index_status", "--project", project], timeout)
-    changes_data, changes_err, _co, _ce = probe_json(
-        ["codebase-memory-mcp", "cli", "detect_changes", "--project", project], timeout)
-    if changes_err == "probe-malformed":
-        # T002430: tool 0.10.8 has no JSON mode for detect_changes — it emits
-        # human-readable text even via --json. Informational only; must not
-        # force the verdict to unknown.
-        changes_err = None
-        changes_data = None
-        reasons.append("detect-changes-nonjson")
+        ["codebase-memory-mcp", "cli", "--json", "index_status", "--project", project], timeout)
+    changes_data, changes_err, _co, _ce = probe_graph(
+        ["codebase-memory-mcp", "cli", "--json", "detect_changes", "--project", project],
+        timeout, False)
     graph = {"tool_version": ver,
              "index_status": status_data,
              "detect_changes": changes_data}
@@ -507,38 +477,13 @@ def parse_index_args(args_json):
     return {"repo_path": repo, "mode": mode, "project": proj, "raw": data}, None
 
 
-def snapshot_repo(repo_in):
-    root = git_toplevel(repo_in)
-    if not root:
-        return None, "repo-not-found"
-    head = git_head(root)
-    if not head:
-        return {"root": root, "head": None}, "head-unknown"
-    diff_bytes, derr = git_diff_binary(root)
-    if derr:
-        return {"root": root, "head": head}, derr
-    ufiles, lerr = git_untracked_files(root)
-    if lerr:
-        return {"root": root, "head": head}, lerr
-    try:
-        fp = fingerprint_state(root, head, diff_bytes, ufiles)
-    except Exception:
-        return {"root": root, "head": head}, "fingerprint-failed"
-    dirty, untracked, gerr = git_status_lists(root)
-    if gerr:
-        return {"root": root, "head": head}, gerr
-    return {"root": root, "head": head, "fingerprint": fp,
-            "dirty": bool(dirty or untracked),
-            "dirty_count": len(dirty), "untracked_count": len(untracked)}, None
-
-
 def cmd_begin(args):
     parsed, perr = parse_index_args(args.args_json)
     if perr:
         eprint(f"[cbm-freshness] begin: {perr}")
         return 2
     project = args.project or parsed["project"] or os.environ.get("CBM_PROJECT", DEFAULT_PROJECT)
-    snap, serr = snapshot_repo(parsed["repo_path"])
+    snap, serr = _STATE.snapshot_repo(parsed["repo_path"])
     if serr:
         eprint(f"[cbm-freshness] begin: {serr}")
         return 1
@@ -616,7 +561,7 @@ def cmd_finish(args):
             pass
         eprint("[cbm-freshness] finish: tool-error")
         return 1
-    snap_after, serr = snapshot_repo(parsed["repo_path"])
+    snap_after, serr = _STATE.snapshot_repo(parsed["repo_path"])
     if serr:
         try:
             marker.update({"state": "failed", "timestamp": utc_now_iso(), "reason": serr})

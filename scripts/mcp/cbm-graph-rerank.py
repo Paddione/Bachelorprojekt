@@ -399,16 +399,23 @@ def cmd_hybrid(args):
 
     # stage 4: small graph boost as capped last factor
     t0 = time.perf_counter()
-    sets = fetch_feature_sets(project, args.timeout, warnings)
     raw_boosts = {}
     breakdowns = {}
-    for cand in fused:
-        ident = identity_of(cand["key"])
-        feats = features_for_identity(ident, sets["handles"], sets["calls"],
-                                      sets["imports"], sets["tests_file"])
-        boosted = apply_boost(0.0, feats)
-        raw_boosts[cand["key"]] = boosted["boost"]
-        breakdowns[cand["key"]] = boosted["breakdown"]
+    if args.no_boost:
+        warnings.append("boost-skipped:--no-boost")
+        for cand in fused:
+            raw_boosts[cand["key"]] = 0.0
+            breakdowns[cand["key"]] = {"handles": 0.0, "degree": 0.0,
+                                       "tests_file": 0.0}
+    else:
+        sets = fetch_feature_sets(project, args.timeout, warnings)
+        for cand in fused:
+            ident = identity_of(cand["key"])
+            feats = features_for_identity(ident, sets["handles"], sets["calls"],
+                                          sets["imports"], sets["tests_file"])
+            boosted = apply_boost(0.0, feats)
+            raw_boosts[cand["key"]] = boosted["boost"]
+            breakdowns[cand["key"]] = boosted["breakdown"]
     final = HYBRID.apply_final_scores(fused, rerank_scores, raw_boosts)
     timings["boost_ms"] = round((time.perf_counter() - t0) * 1000, 1)
 
@@ -498,6 +505,9 @@ def main():
                     help="skip the cross-encoder stage (offline mode)")
     hy.add_argument("--no-fts", action="store_true",
                     help="skip the BM25 stage (dense-only)")
+    hy.add_argument("--no-boost", action="store_true",
+                    help="skip the graph-boost stage (ablation: fused/rerank "
+                         "order passes through unchanged)")
     args = parser.parse_args()
     if not args.project:
         args.project = os.environ.get("CBM_PROJECT", DEFAULT_PROJECT)

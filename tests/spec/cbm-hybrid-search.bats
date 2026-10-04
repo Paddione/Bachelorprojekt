@@ -151,3 +151,50 @@ for fn in (m.rrf_fuse, m.escape_fts_query, m.apply_final_scores,
 "
   [ "$status" -eq 0 ]
 }
+
+@test "--no-boost passes fused order through with zero boosts (ablation)" {
+  FIXDB="$TEST_DIR/fixture.db"
+  EMPTYROOT="$TEST_DIR/emptyroot"
+  mkdir -p "$EMPTYROOT"
+  python3 - "$FIXDB" <<'PYEOF'
+import sqlite3, sys
+con = sqlite3.connect(sys.argv[1])
+con.execute("CREATE TABLE nodes(id INTEGER PRIMARY KEY, name, qualified_name, label, file_path, properties)")
+con.execute("CREATE VIRTUAL TABLE nodes_fts USING fts5(name, qualified_name, label, file_path)")
+rows = [
+    (1, "receipt_path", "proj.mod.receipt_path", "Function", "scripts/mcp/cbm-freshness.py", "{}"),
+    (2, "validate_receipt", "proj.mod.validate_receipt", "Function", "scripts/mcp/cbm-freshness.py", "{}"),
+    (3, "unrelated_helper", "proj.other.unrelated_helper", "Function", "scripts/util.py", "{}"),
+]
+con.executemany("INSERT INTO nodes(id,name,qualified_name,label,file_path,properties) VALUES (?,?,?,?,?,?)", rows)
+con.executemany("INSERT INTO nodes_fts(rowid,name,qualified_name,label,file_path) VALUES (?,?,?,?,?)",
+                [(r[0], r[1], r[2], r[3], r[4]) for r in rows])
+con.commit()
+con.close()
+PYEOF
+  RERANK_PY="$REPO_ROOT/scripts/mcp/cbm-graph-rerank.py"
+  run python3 "$RERANK_PY" --root "$EMPTYROOT" --project test-no-boost-probe hybrid \
+    --query "freshness receipt" --db "$FIXDB" --top-k 3 --pool 10 \
+    --no-rerank --no-boost
+  [ "$status" -eq 0 ]
+  printf '%s' "$output" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+assert 'boost-skipped:--no-boost' in d['warnings'], d['warnings']
+assert d['stages']['fts']['hits'] >= 1, d['stages']
+for r in d['results']:
+    assert r['scores']['boost'] == 0.0, r
+assert d['stages']['boosted']['max_boost'] == 0.0, d['stages']
+"
+  # control: same query without --no-boost must NOT carry the skip warning
+  # (graph probes degrade to empty features with a probe warning instead)
+  run python3 "$RERANK_PY" --root "$EMPTYROOT" --project test-no-boost-probe hybrid \
+    --query "freshness receipt" --db "$FIXDB" --top-k 3 --pool 10 \
+    --no-rerank
+  [ "$status" -eq 0 ]
+  printf '%s' "$output" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+assert 'boost-skipped:--no-boost' not in d['warnings'], d['warnings']
+"
+}

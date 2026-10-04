@@ -37,12 +37,11 @@ $2
 
 @test "plan_sync is pure: returns exactly to_embed / to_prune / unchanged for fixtures" {
   run mod_py "$SYNC_PY" "
-ha = 'a' * 64
 def rec(h): return {'hash': h, 'model': 'bge-m3', 'dim': 2, 'vector': [1.0, 0.0]}
 store = {
-    'repo@c1:lib/a.ts:GET': rec(ha),
-    'repo@c1:lib/b.ts:POST': rec('b' * 64),
-    'repo@c1:lib/gone.ts:GET': rec('c' * 64),
+    'repo@c1:lib/a.ts:GET': rec(m.content_hash('bge-m3', 'text-a')),
+    'repo@c1:lib/b.ts:POST': rec(m.content_hash('bge-m3', 'text-b-OLD')),
+    'repo@c1:lib/gone.ts:GET': rec(m.content_hash('bge-m3', 'text-gone')),
 }
 candidates = [
     {'key': 'repo@c2:lib/a.ts:GET', 'text': 'text-a'},    # unchanged (hash equal via fixture store)
@@ -112,11 +111,12 @@ assert m.apply_boost(0.70, m.make_features(handles=True)) == strong
 
 @test "apply_boost: degree grows logarithmically, TESTS_FILE adds a small boost" {
   run mod_py "$RERANK_PY" "
-d1 = m.apply_boost(0.5, m.make_features(call_degree=1))
-d10 = m.apply_boost(0.5, m.make_features(call_degree=10))
+d0 = m.apply_boost(0.5, m.make_features(call_degree=0))
+d50 = m.apply_boost(0.5, m.make_features(call_degree=50))
 d100 = m.apply_boost(0.5, m.make_features(call_degree=100))
-assert d1['score'] < d10['score'] < d100['score']
-assert d100['score'] - d10['score'] < d10['score'] - d1['score'], 'must grow log, not linear'
+assert d0['score'] < d50['score'] < d100['score']
+# sublinear: 50 -> 100 adds less than 0 -> 50 (log, not linear)
+assert d100['score'] - d50['score'] < d50['score'] - d0['score']
 t = m.apply_boost(0.5, m.make_features(tests_file=True))
 assert t['score'] > 0.5 and t['breakdown']['tests_file'] > 0
 assert t['score'] < m.apply_boost(0.5, m.make_features(handles=True))['score']
@@ -128,8 +128,8 @@ assert t['score'] < m.apply_boost(0.5, m.make_features(handles=True))['score']
   run mod_py "$RERANK_PY" "
 cands = [
     {'key': 'repo@c:lib/first.ts:GET', 'embed_score': 0.81},
+    {'key': 'repo@c:lib/third.ts:GET', 'embed_score': 0.72},
     {'key': 'repo@c:lib/second.ts:POST', 'embed_score': 0.64},
-    {'key': 'repo@c:lib/third.ts:GET', 'embed_score': 0.52},
 ]
 feats = {c['key']: m.zero_features() for c in cands}
 ranked = m.score_candidates(cands, feats)

@@ -80,7 +80,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/cbm-graph-rerank.bats
   Expected: FAIL — neither script exists yet. Append the failing output to the
   RED evidence file.
 
-- [ ] **4. Implement sync and graph rerank.** `cbm-embed-sync.py status|sync`:
+- [x] **4. Implement sync and graph rerank.** `cbm-embed-sync.py status|sync`:
   `status` reports store coverage vs current candidates without network;
   `sync` pulls candidates via `query_graph` (Route file paths + docstring
   Functions, client-side row sort for deterministic order), diffs by content

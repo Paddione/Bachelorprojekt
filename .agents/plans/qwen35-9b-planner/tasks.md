@@ -99,7 +99,9 @@ def test_text_hash_ignores_whitespace_and_case():
   - `prompts.split_heldout(tickets: list[dict], heldout_areas: set[str]) -> tuple[list, list]` — Ticket ist Held-out, wenn eines seiner `areas` in `heldout_areas` liegt.
   - CLI `python -m planner.prompts --heldout-areas <a,b,c> --out data/` → `prompts_train.jsonl`, `prompts_heldout.jsonl`, `heldout_ids.txt`.
   - `gold.classify(path: str) -> str` ∈ {`tasks-index`, `partial`, `openspec-legacy`, `superpowers-legacy`}
-  - `gold.split_goal(text: str) -> tuple[str, str] | None` — Titel + erster Abschnitt namens Goal/Ziel/Why/Warum (oder `**Goal:**`-Zeile) als Auftrag, Rest als Ziel. `None`, wenn nichts gefunden wird.
+  - `gold.split_goal(text: str) -> tuple[str, str] | None` — Frontmatter entfernen, dann Titel plus Einleitung bis zur ersten Strukturüberschrift (`## File Structure|Partials|Tasks|Steps|Aufgaben|Global Constraints|Review Focus|File Map` oder `### Task`) als Auftrag, Rest als Ziel. Eine `**Goal:**`/`**Ziel:**`-Zeile in der Einleitung wandert mit in den Auftrag. `None`, wenn die Einleitung unter 15 Wörtern liegt.
+  - `gold.companion_paths(path: str, text: str) -> list[str]` — OpenSpec: `proposal.md`, `design.md` im selben Ordner. Superpowers: Pfad aus `spec_ref:` oder `Spec:`. Partial: das `tasks.md` eine Ebene höher.
+  - Rangfolge der Auftragsquelle: Ticketbeschreibung aus der DB > Begleitdokument (am selben Commit, auf 1500 Wörter gekürzt) > `split_goal`. Bei Ticket und Begleitdokument wird zusätzlich die Einleitung aus dem Ziel entfernt.
   - `gold.ticket_ids(text: str) -> set[str]` — Regex `\bT\d{6}\b`
   - CLI `python -m planner.gold --repo <pfad> --heldout data/heldout_ids.txt --tickets data/tickets.json --out data/gold.jsonl`
 
@@ -121,8 +123,19 @@ def test_split_goal_header_line():
     assert "Do X." in prompt and "Foo Plan" in prompt
     assert "Do X." not in target and "### Task 1" in target
 
-def test_split_goal_missing_returns_none():
-    assert split_goal("# Title\n\njust tasks") is None
+def test_split_goal_short_intro_returns_none():
+    assert split_goal("# Title\n\njust\n\n## Tasks\n- a") is None
+
+def test_split_goal_strips_frontmatter():
+    t = "---\ntitle: x\n---\n# T\n\n" + "intro word " * 10 + "\n\n## File Structure\nf"
+    prompt, target = split_goal(t)
+    assert "title: x" not in prompt and target.startswith("## File Structure")
+
+def test_companions():
+    from planner.gold import companion_paths
+    assert companion_paths("openspec/changes/x/tasks.md", "") == ["openspec/changes/x/proposal.md", "openspec/changes/x/design.md"]
+    assert companion_paths(".agents/plans/x/tasks.d/p1.md", "") == [".agents/plans/x/tasks.md"]
+    assert companion_paths("docs/superpowers/plans/a.md", "spec_ref: docs/superpowers/specs/s.md\n") == ["docs/superpowers/specs/s.md"]
 
 def test_ticket_ids():
     assert ticket_ids("fix [T001234] and T900001x T12345") == {"T001234"}

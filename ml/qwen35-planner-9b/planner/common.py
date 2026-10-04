@@ -3,12 +3,18 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
-OUT = ROOT / "out"
+# Datasets and checkpoints live outside the git worktree: the pre-commit gitleaks
+# scan runs with --no-git over the whole tree and historic plans contain
+# token-shaped strings. Only data/stats.json is tracked.
+WORK = Path(os.environ.get("QWEN35_PLANNER_HOME", Path.home() / "ml-data" / "qwen35-planner-9b"))
+DATA = WORK / "data"
+OUT = WORK / "out"
+STATS = ROOT / "data" / "stats.json"
 
 
 def read_jsonl(path: Path) -> list[dict]:

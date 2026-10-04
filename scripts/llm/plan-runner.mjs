@@ -10,6 +10,7 @@
 //
 // Aufruf:
 //   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N] [--max-turns N] [--timeout-min N]
+//   node scripts/llm/plan-runner.mjs --ticket <T-Id> [--worktree <pfad>] [--4b-slots N] ...  (Plan aus DB-Ref, T901015)
 // Env: PLAN_RUNNER_ORCH_URL (Default http://127.0.0.1:1919), PLAN_RUNNER_ORCH_MODEL (optional),
 //      PLAN_RUNNER_OPENCODE (ersetzt das opencode-Binary).
 // Exit: 0 alle Partials done · 1 mindestens eine failed bzw. Lauf abgebrochen · 2 Konfigurationsfehler.
@@ -39,7 +40,7 @@ function fail(code, msg) {
 
 // ---------- CLI ----------
 function parseArgs(argv) {
-  const opts = { changeDir: null, worktree: null, slots4b: DEFAULT_4B_SLOTS, maxTurns: 200, timeoutMin: 120 };
+  const opts = { changeDir: null, worktree: null, ticket: null, slots4b: DEFAULT_4B_SLOTS, maxTurns: 200, timeoutMin: 120 };
   // --4b-slots 0 = nur Selbstausfuehrung (z. B. wenn die Partial den 4B-Server selbst umkonfiguriert).
   const num = (k, v, min = 1) => {
     const n = Number(v);
@@ -49,6 +50,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--worktree') opts.worktree = argv[++i];
+    else if (a === '--ticket') opts.ticket = argv[++i];
     else if (a === '--4b-slots') opts.slots4b = num('4b-slots', argv[++i], 0);
     else if (a === '--max-turns') opts.maxTurns = num('max-turns', argv[++i]);
     else if (a === '--timeout-min') opts.timeoutMin = num('timeout-min', argv[++i]);
@@ -56,10 +58,65 @@ function parseArgs(argv) {
     else if (!opts.changeDir) opts.changeDir = a;
     else fail(2, `unexpected argument ${a}`);
   }
-  if (!opts.changeDir) {
+  if (opts.ticket) {
+    if (opts.changeDir) fail(2, '--ticket cannot be combined with a positional <change-dir>; the plan dir is derived from the FACTORY-PLAN-REF');
+    resolveTicketRef(opts);
+  } else if (!opts.changeDir) {
     fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--4b-slots N] [--max-turns N] [--timeout-min N]');
   }
   return opts;
+}
+
+// ---------- Ticket-Ref-Aufloesung (T901015) ----------
+// Mit --ticket <T-Id> wird der Plan aus der DB gelesen statt von Disk:
+// `ticket.sh get` liefert plan_ref = "FACTORY-PLAN-REF branch=<b> plan=<pfad>",
+// der Branch wird per `git worktree list --porcelain` (Repo des CWD) einem
+// ausgecheckten Worktree zugeordnet, changeDir = <worktree>/<plan-dir>.
+// Fail-closed (exit 2, kein stiller Disk-Fallback), wenn Ref oder Worktree fehlen.
+// Test-Seam: PLAN_RUNNER_TICKET_JSON ersetzt den ticket.sh-Aufruf (BATS).
+function resolveTicketRef(opts) {
+  const scriptDir = new URL('.', import.meta.url).pathname;
+  const repoRoot = resolve(scriptDir, '..', '..');
+  let raw;
+  if (process.env.PLAN_RUNNER_TICKET_JSON) {
+    raw = process.env.PLAN_RUNNER_TICKET_JSON;
+  } else {
+    try {
+      raw = execFileSync('bash', [join(repoRoot, 'scripts', 'ticket.sh'), 'get', '--id', opts.ticket], { encoding: 'utf8' });
+    } catch (e) {
+      fail(2, `--ticket ${opts.ticket}: ticket.sh get failed (${(e.message || e).toString().split('\n')[0]})`);
+    }
+  }
+  let planRef = null;
+  try {
+    const row = JSON.parse(raw);
+    const body = typeof row === 'object' && row !== null ? row.plan_ref : null;
+    const m = typeof body === 'string' ? body.match(/FACTORY-PLAN-REF\s+branch=(\S+)\s+plan=(\S+)/) : null;
+    if (m) planRef = { branch: m[1], plan: m[2] };
+  } catch {
+    // kein valides JSON -> planRef bleibt null -> fail unten
+  }
+  if (!planRef) fail(2, `--ticket ${opts.ticket}: no FACTORY-PLAN-REF comment on ticket (stage the plan first)`);
+  let worktree = opts.worktree;
+  if (!worktree) {
+    let list;
+    try {
+      list = execFileSync('git', ['worktree', 'list', '--porcelain'], { encoding: 'utf8' });
+    } catch {
+      fail(2, `--ticket ${opts.ticket}: 'git worktree list' failed; run inside the repo or pass --worktree`);
+    }
+    let cur = null;
+    for (const line of list.split('\n')) {
+      let m = line.match(/^worktree\s+(\S.*)$/);
+      if (m) { cur = m[1].trim(); continue; }
+      m = line.match(/^branch\s+refs\/heads\/(\S.*)$/);
+      if (m && cur && m[1].trim() === planRef.branch) { worktree = cur; break; }
+    }
+    if (!worktree) fail(2, `--ticket ${opts.ticket}: branch '${planRef.branch}' is not checked out in any worktree (git worktree list)`);
+  }
+  const planDir = planRef.plan.endsWith('/tasks.md') ? planRef.plan.slice(0, -'/tasks.md'.length) : planRef.plan;
+  opts.changeDir = join(worktree, planDir);
+  opts.worktree = worktree;
 }
 
 function loadPlan(opts) {

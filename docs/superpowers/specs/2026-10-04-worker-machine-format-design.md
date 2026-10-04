@@ -16,9 +16,8 @@ Pläne in ein low-quant-ausführbares Maschinen-Format überführen
 - P1 Worker-Track (`scripts/llm/plan-runner/workers.mjs`,
   `scripts/llm/plan-runner.mjs` Dispatch-Policy): Pool/Agent-Trennung,
   Worker-Ausführung als eigener Track neben Receipt/Delete.
-  Offener Punkt: stage-plan/enqueue→Runner-Handoff (Runner hat
-  0 FACTORY-PLAN-REF-Hits) — in Phase A als In- oder Out-Scope
-  entscheiden.
+  Runner-Handoff (FACTORY-REF-Auflösung) ist OUT — eigenes
+  Follow-up T901015.
 - P2 Maschinen-Format (`scripts/llm/plan-runner/plan.mjs`
   parseManifest/buildWorkerPrompt): Tabellen-Format + Prompt-Bau in
   low-quant-ausführbares Format; Context-Rerank je Edit,
@@ -67,5 +66,5 @@ Pläne in ein low-quant-ausführbares Maschinen-Format überführen
 ## 7. Offene Punkte für Phase A
 
 - Exakte File-Grenzen P1–P4 aus `intel.json` ableiten.
-- Runner-Handoff (FACTORY-REF) In-/Out-Scope.
+- Erledigt separiert: Runner-Handoff → T901015.
 - T2-Scope: Rerank/Web-Search/Headed drin oder Follow-up.

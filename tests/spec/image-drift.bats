@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# Targets: k3d/kustomization.yaml prod/kustomization.yaml
 # G-IMG02: Fremd-Image-Versions-Drift — 0 Drift-Familien über alle k3d/ und
 # prod*/ Manifeste. Drift = dieselbe Image-Familie in ≥ 2 unterschiedlichen Tags
 # (ohne @sha256-Digest).

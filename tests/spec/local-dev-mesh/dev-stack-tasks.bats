@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/local-dev-mesh/dev-stack-tasks.bats — T900332
+# Targets: taskfiles/Taskfile.dev-stack.yml
 # Requirements "Dev redeploy pulls the CI-built dev image", "Dev secrets are materialised by an explicit task"
 
 setup() {

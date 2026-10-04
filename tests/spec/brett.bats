@@ -7,7 +7,8 @@
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   BRETT="${REPO_ROOT}/components/brett"
-  SRC="${BRETT}/src"
+  SRC="${REPO_ROOT}/components/brett/src"
+  PUB="${REPO_ROOT}/components/brett/public"
 }
 
 # ── Task 2: shared types & message union ─────────────────────────────────────
@@ -150,7 +151,7 @@ setup() {
 # ── Task 6: feature-flag default-enable ──────────────────────────────────────
 
 @test "index.html seeds __brettFeatures defaults" {
-  run grep -E "__brettFeatures" "${BRETT}/public/index.html"
+  run grep -E "__brettFeatures" "${PUB}/index.html"
   [ "$status" -eq 0 ]
 }
 
@@ -219,11 +220,11 @@ setup() {
 }
 
 @test "T002050: index.html adds the edge-tab and rotation slider" {
-  run grep -E 'id="fig-panel-edge-tab"' "${BRETT}/public/index.html"
+  run grep -E 'id="fig-panel-edge-tab"' "${PUB}/index.html"
   [ "$status" -eq 0 ]
-  run grep -E '#fig-panel-edge-tab' "${BRETT}/public/index.html"
+  run grep -E '#fig-panel-edge-tab' "${PUB}/index.html"
   [ "$status" -eq 0 ]
-  run grep -E 'id="fig-rotate-slider"' "${BRETT}/public/index.html"
+  run grep -E 'id="fig-rotate-slider"' "${PUB}/index.html"
   [ "$status" -eq 0 ]
 }
 
@@ -245,7 +246,7 @@ setup() {
   # local/CI servers may be TCP-only, so pg_isready without args misses them.
   run env PGCONNECT_TIMEOUT=2 psql "$DATABASE_URL" -tAc 'SELECT 1'
   [ "$status" -eq 0 ] || skip "no postgres server reachable via DATABASE_URL (probe: psql SELECT 1)"
-  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  local mig="${SRC}/server/migrations/005_board_templates_full_staging.sql"
   # Single psql session: apply 005, count, apply 005 again, count, dupes —
   # statement order inside one connection. The dev DB's :5432 endpoint drops
   # connections intermittently, so the run gets 3 attempts; connection
@@ -282,7 +283,7 @@ setup() {
 # (b) Full staging — offline gates over the 005 migration file (grep-only,
 # following the guard file's offline convention).
 @test "T900360 (b1): 005 stages all three system template names" {
-  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  local mig="${SRC}/server/migrations/005_board_templates_full_staging.sql"
   [ -s "$mig" ]
   for name in "Familiensystem 4 Personen" "Team-Konflikt" "Innere Anteile"; do
     run grep -qF -- "$name" "$mig"
@@ -291,7 +292,7 @@ setup() {
 }
 
 @test "T900360 (b2): every staged state carries at least two distinct figure colors plus facingY and pose carriers" {
-  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  local mig="${SRC}/server/migrations/005_board_templates_full_staging.sql"
   [ -s "$mig" ]
   local fam team inn
   fam=$(awk '/Familiensystem 4 Personen/,/Team-Konflikt/' "$mig")
@@ -305,7 +306,7 @@ setup() {
 }
 
 @test "T900360 (b3): every staged state carries zones, anchors and optik (floor, sky, lightMood)" {
-  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  local mig="${SRC}/server/migrations/005_board_templates_full_staging.sql"
   [ -s "$mig" ]
   local fam team inn
   fam=$(awk '/Familiensystem 4 Personen/,/Team-Konflikt/' "$mig")
@@ -357,7 +358,7 @@ setup() {
   [ "$status" -eq 0 ]
   run grep -qF -- 'admin_reset_board_to_default' "${SRC}/server/ws-handler.ts"
   [ "$status" -eq 0 ]
-  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  local mig="${SRC}/server/migrations/005_board_templates_full_staging.sql"
   run grep -qF -- 'is_default' "$mig"
   [ "$status" -eq 0 ]
 }

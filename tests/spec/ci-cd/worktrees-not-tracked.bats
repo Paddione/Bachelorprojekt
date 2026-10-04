@@ -1,4 +1,6 @@
 #!/usr/bin/env bats
+# tests/spec/ci-cd/worktrees-not-tracked.bats
+# Guards: scripts/worktree-list.sh
 # T002578-M1 — .worktrees/ darf keine versionierten Dateien enthalten.
 #
 # Hintergrund: drei Plandateien eines fremden Worktrees lagen als getrackte

@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-task-runner/planner-sees-real-deps.bats
+# Targets: scripts/mcp-task-runner/planner.mjs
 #
 # Failing Test für T005596: planner.Parse liest deps aus `task --list-all --json`,
 # das go-task 3.52.0 nicht mehr liefert → plan_tasks baut einen kantenlosen

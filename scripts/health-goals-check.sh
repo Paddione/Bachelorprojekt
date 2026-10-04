@@ -250,6 +250,12 @@ want G-BRAIN15 && row gate G-BRAIN15 "$(
     && bash templates/brain/scripts/lint-wikilinks.sh templates/brain >/dev/null 2>&1; echo $?
 )" eq 0 "Brain-Seed-Template-Lint (frontmatter + wikilinks) grün"
 
+# ── Wissensablage — GATES (G-KNOW, T900995): Registry/Code/ADR statt Prosa-Doku ──
+KG="python3 scripts/lib/knowledge-goals.py"
+row gate G-KNOW02 "$($KG docs-md)" le 324 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs)"
+row gate G-KNOW06 "$($KG adr-edits)" le 7 "ADR-Inhaltsaenderungen nach dem Anlegen (kein Netto-Zuwachs)"
+want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/dev/null 2>&1; echo $?)" eq 0 "Agent-Registry-Schema valide"
+
 # ── DB-Gesundheit — GATES ──
 want G-DB06 && row gate G-DB06 "$(db_scalar "SELECT
   (SELECT count(*) FROM tickets.ticket_plans p    WHERE p.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=p.ticket_id))
@@ -287,6 +293,10 @@ row target G-AGENTIC10 "$(
   c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
     grep -RlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
 )" le 0 "Agenten ohne dispatchende Skill (website/db/security)"
+row target G-KNOW01 "$($KG docs-only)" le 0 "Registry-Regeln nur dokumentiert (enforced_by: docs-only)"
+row target G-KNOW03 "$($KG dangling)" le 0 "Registry-Verweise (enforced_by/where) ohne existierenden Pfad"
+row target G-KNOW04 "$($KG docs-md)" le 0 "Markdown unter docs/ ausser adr/ (Abbau)"
+row target G-KNOW05 "$($KG agent-ctx-bytes)" le 15000 "Bytes aller AGENTS.md/CLAUDE.md"
 row target G-DOC03 "$(c=0; for d in components/website components/brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; sec05_unsigned)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 

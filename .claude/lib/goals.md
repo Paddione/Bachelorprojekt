@@ -624,6 +624,53 @@ bash scripts/lib/wt-hygiene-measure.sh phantom-scope-locks
 > **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keine agent-locks) · **Ticket:** T002443
 
 
+## G-KNOW01 — Registry-Regeln nur dokumentiert (`enforced_by: docs-only`): 4 → 0
+
+**Was:** Zählt Einträge in `docs/agent-guide/registry/*.yaml` mit `enforced_by: docs-only`. Eine
+Regel, die nur aufgeschrieben ist, bricht still. Ziel: jede Regel verweist auf einen Hook oder Test.
+
+```bash
+python3 scripts/lib/knowledge-goals.py docs-only
+```
+
+> **B · Baseline:** 4 (2026-10-04, guardrails.yaml) → 0 · **Target:** 0 · **Aufwand:** mittel · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T900995
+
+## G-KNOW03 — Registry-Verweise ohne existierenden Pfad: 3 → 0
+
+**Was:** Zählt `enforced_by:`- und `where:`-Werte (außer `docs-only`), die auf keinen getrackten
+Pfad zeigen (`pfad`, `pfad:zeile`, `pfad::symbol`, kommagetrennt). Stand 2026-10-04: alle drei
+„abgesicherten" Guardrails (`hook-env-explicit`, `hook-no-push-main`, `hook-forbidden-stop`) nennen
+Namen ohne Datei. Wird nach Erreichen von 0 zum Gate.
+
+```bash
+python3 scripts/lib/knowledge-goals.py dangling
+```
+
+> **B · Baseline:** 3 (2026-10-04) → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T900995
+
+## G-KNOW04 — Markdown unter `docs/` außer `adr/`: 324 → 0
+
+**Was:** Abbau der Prosa-Doku. Ist-Zustand gehört in Registry, Code-Kommentar oder Guard-Test,
+Begründungen in Commits, Entscheidungen in ADRs. Das Gate G-KNOW02 verhindert Zuwachs, dieses
+Ziel misst den Abbau.
+
+```bash
+python3 scripts/lib/knowledge-goals.py docs-md
+```
+
+> **B · Baseline:** 324 (2026-10-04) → 0 · **Target:** 0 · **Aufwand:** hoch · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T900995
+
+## G-KNOW05 — Bytes aller AGENTS.md/CLAUDE.md: 53672 → 15000
+
+**Was:** Summe der getrackten `AGENTS.md`/`CLAUDE.md` (ohne Symlinks). Jeder Agent lädt diese
+Dateien pro Session. Ziel: Verweise auf Registry und Routing statt Prosa.
+
+```bash
+python3 scripts/lib/knowledge-goals.py agent-ctx-bytes
+```
+
+> **B · Baseline:** 53672 (2026-10-04, 7 Dateien) → 15000 · **Target:** ≤ 15000 · **Aufwand:** mittel · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T900995
+
 # Priorität C — Green Gates {#prio-c}
 
 Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-reproduzierbaren.
@@ -713,6 +760,9 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 2 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 23 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
+| **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 324 ✓ | ≤ 324 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995) |
+| **G-KNOW06** | ADR-Inhaltsänderungen nach dem Anlegen (kein Netto-Zuwachs) | 7 ✓ | ≤ 7 | `python3 scripts/lib/knowledge-goals.py adr-edits` — Status-/Superseded-Zeilen zählen nicht; neue Entscheidung = neues ADR (T900995) |
+| **G-KNOW07** | Agent-Registry-Schema valide | Exit 0 ✓ | Exit 0 | `node scripts/agent-guide/validate.mjs` (T900995) |
 
 ---
 

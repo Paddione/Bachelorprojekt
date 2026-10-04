@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1250,
+      "file_count": 1251,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -733,6 +733,7 @@
         "tests/spec/health-goals/goals-data-path-consistency.bats",
         "tests/spec/health-goals/goals-data-sdlc-target.bats",
         "tests/spec/health-goals/id-parity.bats",
+        "tests/spec/health-goals/knowledge-goals.bats",
         "tests/spec/health-goals/korczewski-brand-pause.bats",
         "tests/spec/health-goals/llm-stack-goals.bats",
         "tests/spec/health-goals/measured-at-field.bats",
@@ -3926,7 +3927,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 859,
+      "file_count": 860,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4282,6 +4283,7 @@
         "scripts/lib/finalize-step-guards.sh",
         "scripts/lib/google-import.sh",
         "scripts/lib/health-goals-measure.sh",
+        "scripts/lib/knowledge-goals.py",
         "scripts/lib/llm-stack-measure.sh",
         "scripts/lib/main-checkout-foreign-guard.sh",
         "scripts/lib/manifest-drift-check.sh",

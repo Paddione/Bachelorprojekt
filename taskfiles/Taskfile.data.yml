@@ -392,16 +392,19 @@ tasks:
           ["qrcode"]="/soldair/node-qrcode"
           ["signature_pad"]="/szimek/signature_pad"
           ["epub2"]="/julien-c/epub"
+          ["Tailscale"]="/websites/tailscale"
+          ["Langfuse"]="/langfuse/langfuse-docs"
         )
 
         # Phase 1: create all collections via kubectl exec (no port-forward needed)
         echo "=== Phase 1: ensuring collections ==="
         declare -A COL_IDS
         for NAME in "${!LIBS[@]}"; do
+          LIB_ID="${LIBS[$NAME]}"
           COL_ID=$(kexec_psql -At -c \
-            "INSERT INTO knowledge.collections (name, source, description)
-             VALUES ('context7: $NAME', 'context7_docs', 'context7 docs for $NAME')
-             ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description
+            "INSERT INTO knowledge.collections (name, source, description, crawl_config)
+             VALUES ('context7: $NAME', 'context7_docs', 'context7 docs for $NAME', jsonb_build_object('libraryId', '$LIB_ID'::text, 'tokens', 20000))
+             ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description, crawl_config = EXCLUDED.crawl_config
              RETURNING id;")
           COL_IDS["$NAME"]="$COL_ID"
           echo "  $NAME → $COL_ID"

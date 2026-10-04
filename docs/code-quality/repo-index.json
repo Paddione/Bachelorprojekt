@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1251,
+      "file_count": 1252,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1192,6 +1192,7 @@
         "tests/unit/freshness-graph.bats",
         "tests/unit/git-crypt-guard.bats",
         "tests/unit/helper-collab-headless.bats",
+        "tests/unit/k3d-wait-auth-guard.bats",
         "tests/unit/knowledge-ingest-bugs-schema.bats",
         "tests/unit/knowledge-ingest-manifest.bats",
         "tests/unit/knowledge-ingest-schema.bats",

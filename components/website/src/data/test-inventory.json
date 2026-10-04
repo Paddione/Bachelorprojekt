@@ -2310,6 +2310,12 @@
     "kind": "shell"
   },
   {
+    "id": "cbm-reconcile",
+    "file": "tests/spec/cbm-reconcile.bats",
+    "category": "cbm-reconcile",
+    "kind": "shell"
+  },
+  {
     "id": "cbm-stampede-guard",
     "file": "tests/spec/cbm-stampede-guard.bats",
     "category": "cbm-stampede-guard",

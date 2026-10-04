@@ -19,11 +19,16 @@ setup() {
     ':!tests/spec/os-retirement-*.bats' ':!tests/fixtures/os-retirement' \
     ':!tests/fixtures/sf-retirement' \
     ':!tests/spec/neovim-dashboard.bats' \
-    ':!.opencode/skills/code-graph-interpretation/evals/results-*'
+    ':!.opencode/skills/code-graph-interpretation/evals/results-*' \
+    ':!docs/brain/corpus-freeze.json' ':!docs/brain/embed-eval-report.md' ':!tests/spec/p0min-freeze-embed.bats'
   # Datei-Ausnahmen: neovim-dashboard.bats ist ein Absence-Guard wie os-retirement-*
   # (das Pattern steht im Test selbst); fixtures/sf-retirement listet A3-Pfade mit
   # openspec-Namen (Absence-Guard-Korpus wie tests/fixtures/os-retirement);
   # results-* sind unveraenderliche Eval-Evidenz.
+  # T900986-Freeze (corpus-freeze.json / embed-eval-report.md /
+  # p0min-freeze-embed.bats): die FSD-Zero-FP-Gates nennen openspec-status.json
+  # als Denylist-Artefakt, um seine Abwesenheit zu beweisen — Guard-Korpus,
+  # kein lebender Verweis.
   # Zeilen-Ausnahmen (exakt): ci.yml Aggregator-Name (faellt mit A3b),
   # gitlab-restore.md DR-Kommando (Pfad im eingefrorenen archive/gitlab-ci-Branch).
   [ -z "$output" ] && return 0

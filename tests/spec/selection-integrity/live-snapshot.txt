@@ -109,7 +109,14 @@ tests/spec/brain-k4-brain-wiki/retrieval-eval.bats
 tests/spec/brain-quality-goals.bats
 tests/spec/branch-reaper-netzausfall.bats
 tests/spec/brett.bats
+tests/spec/cbm-embed-store.bats
+tests/spec/cbm-embed-sync-A2.bats
+tests/spec/cbm-eval.bats
+tests/spec/cbm-freshness-probe.bats
+tests/spec/cbm-graph-rerank.bats
+tests/spec/cbm-hybrid-search.bats
 tests/spec/cbm-reconcile.bats
+tests/spec/cbm-refresh-cron-A4.bats
 tests/spec/cbm-stampede-guard.bats
 tests/spec/centralized-logging.bats
 tests/spec/chat-inbox.bats

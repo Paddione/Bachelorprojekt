@@ -160,22 +160,41 @@ _merged_pr_head_oid() {
   return 0
 }
 
+# [T900748] Prüft, ob zwei Refs denselben Blob-Inhalt für einen Pfad tragen.
+# Trennt Existenz mit git cat-file -e sauber ab:
+# - Beide existieren: Hash-Vergleich
+# - Beide gelöscht (existieren nicht): konsistent identisch (Exit 0)
+# - Einer existiert, der andere nicht: abweichend (Exit 1)
+# Verhindert, dass git rev-parse bei nicht existierenden Pfaden sein Argument
+# auf stdout ausgibt und gelöschte Dateien fälschlich als abweichend meldet.
+_blobs_equal() {
+  local ref1="$1" ref2="$2" file="$3"
+  local e1=0 e2=0
+  git cat-file -e "$ref1:$file" 2>/dev/null && e1=1
+  git cat-file -e "$ref2:$file" 2>/dev/null && e2=1
+  if [ "$e1" -eq 1 ] && [ "$e2" -eq 1 ]; then
+    [ "$(git rev-parse "$ref1:$file" 2>/dev/null)" = "$(git rev-parse "$ref2:$file" 2>/dev/null)" ]
+    return $?
+  fi
+  [ "$e1" -eq "$e2" ]
+}
+
 # Nachfolge-Branch mit MERGED-PR und identischen Blobs (Positiv-Signal 2, [T007032]): Ein
 # anderer Remote-Branch, der selbst einen MERGED-PR hat, traegt fuer JEDE Datei der
 # Divergenzmenge des Kandidaten denselben Blob — der Kandidat ist ein Teilinhalt eines
 # gemergten Nachfolgers, sicher reapbar. MERGED_HEADS und DIVERGENT befuellt der Aufrufer;
 # die Selbstreferenz ist kein Nachfolger. Ohne Treffer Exit 1 (kein Signal).
 _merged_successor() {
-  local branch="$1" s f a b ok
+  local branch="$1" s f ok
+  [ "${#MERGED_HEADS[@]}" -eq 0 ] && return 1
+  [ "${#DIVERGENT[@]}" -eq 0 ] && return 1
   while IFS= read -r s; do
     [ -z "$s" ] && continue
     [ "$s" = "$branch" ] && continue
     ok=1
     while IFS= read -r f; do
       [ -z "$f" ] && continue
-      a="$(git rev-parse "$REMOTE/$s:$f" 2>/dev/null || echo MISSING)"
-      b="$(git rev-parse "$REMOTE/$branch:$f" 2>/dev/null || echo MISSING)"
-      [ "$a" = "$b" ] || { ok=0; break; }
+      _blobs_equal "$REMOTE/$s" "$REMOTE/$branch" "$f" || { ok=0; break; }
     done < <(printf '%s\n' "${DIVERGENT[@]:-}")
     [ "$ok" -eq 1 ] && { echo "$s"; return 0; }
   done < <(printf '%s\n' "${MERGED_HEADS[@]:-}")
@@ -189,13 +208,11 @@ _merged_successor() {
 # ebenso falsch, weil er gegen den Abzweigpunkt misst, der sich beim Squash-Merge nicht
 # verschiebt.
 _diverging_files() {
-  local ref="$1" mb f a b
+  local ref="$1" mb f
   mb="$(git merge-base "$REMOTE/main" "$ref" 2>/dev/null)" || return 0
   while IFS= read -r f; do
     [ -z "$f" ] && continue
-    a="$(git rev-parse "$ref:$f" 2>/dev/null || echo MISSING)"
-    b="$(git rev-parse "$REMOTE/main:$f" 2>/dev/null || echo ABSENT)"
-    [ "$a" = "$b" ] || printf '%s\n' "$f"
+    _blobs_equal "$ref" "$REMOTE/main" "$f" || printf '%s\n' "$f"
   done < <(git diff --name-only "$mb" "$ref" 2>/dev/null)
 }
 

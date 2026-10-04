@@ -69,6 +69,7 @@ ALLOWLIST=(
 TICKET_ID=""
 DRY_RUN=0
 SWEEP=0
+PLAN_CLEANUP=0
 REMOTE="origin"
 TARGET_REPO="$PWD"
 
@@ -85,12 +86,14 @@ usage() {
   echo "  --ticket T######   Einzel-Ticket-Lauf (Post-Merge-Pfad)" >&2
   echo "  --dry-run          Nur anzeigen, nichts loeschen. Ohne --ticket: ticketloser Inspektionsblick ueber ALLE Remote-Branches." >&2
   echo "  --sweep            Loeschender Sweep ueber ALLE Remote-Branches (braucht KEIN --ticket)" >&2
+  echo "  --plan-cleanup     Plan-Ordner mit Receipt per git rm entfernen (nur mit --sweep) [T900999-P2]" >&2
 }
 
 while [[ $# -gt 0 ]]; do case "$1" in
   --ticket)  TICKET_ID="${2:-}"; shift 2 ;;
   --dry-run) DRY_RUN=1; shift ;;
   --sweep)   SWEEP=1; shift ;;
+  --plan-cleanup) PLAN_CLEANUP=1; shift ;;
   --remote)  REMOTE="${2:-}"; shift 2 ;;
   --repo)    TARGET_REPO="${2:-}"; shift 2 ;;
   -h|--help) usage; exit 0 ;;
@@ -102,6 +105,13 @@ esac; done
 # Ticket-ID-Vertrag (einmal vom Aufrufer, einmal aus dem Branch-Namen).
 if [ -n "$TICKET_ID" ] && [ "$SWEEP" -eq 1 ]; then
   echo "FEHLER: --ticket und --sweep schliessen sich gegenseitig aus." >&2
+  exit 2
+fi
+
+# [T900999-P2] Plan-Cleanup nur im Sweep: der Sammel-Cleanup-PR ist ein Batch-Vorgang,
+# kein Einzel-Ticket-Pfad.
+if [ "$PLAN_CLEANUP" -eq 1 ] && [ "$SWEEP" -ne 1 ]; then
+  echo "FEHLER: --plan-cleanup braucht --sweep (Sammel-Cleanup nur im Sweep-Modus)." >&2
   exit 2
 fi
 
@@ -133,6 +143,73 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
 # Live-Quelle, der Ref-Abgleich je Kandidat faengt Abweichungen ab.
 if ! fetch_err="$(git fetch --quiet "$REMOTE" 2>&1)"; then
   echo "WARN: git fetch $REMOTE fehlgeschlagen: $(printf '%s' "$fetch_err" | head -1)" >&2
+fi
+
+# [T900999-P2] Plan-Ordner-Cleanup im Sweep: Kandidat ist .agents/plans/<slug>/ mit
+# Ticket-Status done/archived UND verifiziertem Receipt (P1) in tickets.ticket_plans.
+# Ausgabevertrag wie oben: REAP PLAN <pfad> / KEEP PLAN <pfad> — <grund>.
+# Fail-closed: ohne Receipt kein Delete. Removal als Sammel-Cleanup-PR (ein PR, mehrere
+# Ordner) auf chore/plan-cleanup-<datum> — nie direkt nach main.
+if [ "$PLAN_CLEANUP" -eq 1 ]; then
+  PLAN_REAP=()
+  while IFS= read -r _plan_slug; do
+    [ -z "$_plan_slug" ] && continue
+    _plan_tasks=".agents/plans/$_plan_slug/tasks.md"
+    _plan_ticket="$(git show "$REMOTE/main:$_plan_tasks" 2>/dev/null | grep -E '^ticket_id:' | head -1 | awk '{print $2}' || true)"
+    if [ -z "$_plan_ticket" ]; then
+      echo "KEEP PLAN $_plan_tasks — keine ticket_id im Frontmatter erkennbar"
+      continue
+    fi
+    if ! _plan_open="$(gh pr list --state open --json headRefName 2>&1)"; then
+      echo "KEEP PLAN $_plan_tasks — gh-Abfrage fehlgeschlagen"
+      continue
+    fi
+    if printf '%s' "$_plan_open" | grep -q "$_plan_ticket"; then
+      echo "KEEP PLAN $_plan_tasks — offener PR zum Ticket $_plan_ticket"
+      continue
+    fi
+    _plan_json="$(bash "$TICKET_SH" get --id "$_plan_ticket" 2>/dev/null || echo '{}')"
+    _plan_status="$(printf '%s' "$_plan_json" | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//' || true)"
+    case "$_plan_status" in
+      done|archived) : ;;
+      *) echo "KEEP PLAN $_plan_tasks — Ticket-Status ist ${_plan_status:-unbekannt}"; continue ;;
+    esac
+    # Receipt-Check: plan_archived-Event mit Slug (P1-Receipt). Unpruefbar heisst
+    # verschonen — der Blob-Check entfaellt hier bewusst (T002431-Gegenbeispiel).
+    if _plan_tl="$(bash "$TICKET_SH" get-timeline --id "$_plan_ticket" 2>/dev/null)"; then
+      if ! grep -q "$_plan_slug" <<<"$_plan_tl" 2>/dev/null; then
+        echo "KEEP PLAN $_plan_tasks — kein verifizierter Receipt in tickets.ticket_plans"
+        continue
+      fi
+    else
+      echo "KEEP PLAN $_plan_tasks — Receipt nicht pruefbar (get-timeline fehlgeschlagen)"
+      continue
+    fi
+    echo "REAP PLAN $_plan_tasks"
+    PLAN_REAP+=("$_plan_slug")
+  done < <(git ls-tree -r --name-only "$REMOTE/main" -- .agents/plans/ 2>/dev/null | cut -d/ -f3 | sort -u)
+  if [ "${#PLAN_REAP[@]}" -eq 0 ]; then
+    echo "keine Plan-Ordner zum Aufraeumen gefunden"
+  elif [ "$DRY_RUN" -eq 1 ]; then
+    echo "Dry-Run — ${#PLAN_REAP[@]} Plan-Ordner wuerden entfernt (Sammel-Cleanup-PR)."
+  else
+    _cleanup_branch="chore/plan-cleanup-$(date +%Y%m%d)"
+    if git checkout -q -B "$_cleanup_branch" "$REMOTE/main" 2>/dev/null; then
+      for _plan_slug in "${PLAN_REAP[@]}"; do
+        git rm -r -q ".agents/plans/$_plan_slug" 2>/dev/null           || echo "KEEP PLAN .agents/plans/$_plan_slug/tasks.md — git rm fehlgeschlagen"
+      done
+      if git diff --cached --quiet; then
+        echo "keine Plan-Ordner zum Aufraeumen gefunden (nichts gestagt)"
+      elif git -c commit.gpgsign=false commit -q -m "chore(plans): Sammel-Cleanup abgeschlossener Plaene mit Receipt [T900999]"         && git push -q -u "$REMOTE" "$_cleanup_branch" 2>/dev/null; then
+        echo "Sammel-Cleanup-PR vorbereitet auf $_cleanup_branch (${#PLAN_REAP[@]} Ordner)"
+        gh pr create --head "$_cleanup_branch" --base main           --title "chore(plans): Sammel-Cleanup abgeschlossener Plaene mit Receipt"           --body "Automatischer Plan-Ordner-Cleanup (branch-reaper.sh --sweep --plan-cleanup). Nur Ordner mit verifiziertem Receipt in tickets.ticket_plans." 2>/dev/null           || echo "WARN: gh pr create fehlgeschlagen — Branch $_cleanup_branch liegt bereit, PR manuell oeffnen"
+      else
+        echo "KEEP PLAN — Commit/Push des Sammel-Cleanups fehlgeschlagen"
+      fi
+    else
+      echo "KEEP PLAN — Cleanup-Branch nicht anlegbar"
+    fi
+  fi
 fi
 
 # Trifft der Pfad eines der ALLOWLIST-Muster?

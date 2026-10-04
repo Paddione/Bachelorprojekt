@@ -113,7 +113,14 @@ k3d_wait() {
     kubectl wait --for=condition=Available deployment --all -n "$NAMESPACE" --timeout=300s 2>&1 || true
   fi
 
-  _wait_for_url "${KC_URL}/health/ready" "Keycloak" 180
+  # Wait for auth service [T900854]: Keycloak if deployment exists, else Pocket ID if deployment exists
+  if kubectl get deployment keycloak -n "$NAMESPACE" &>/dev/null; then
+    _wait_for_url "${KC_URL}/health/ready" "Keycloak" 180
+  elif kubectl get deployment pocket-id -n "$NAMESPACE" &>/dev/null; then
+    _wait_for_url "${KC_URL}/.well-known/openid-configuration" "Pocket ID" 60 || true
+  else
+    echo "  Kein Auth-Deployment (Keycloak/Pocket ID) im Namespace ${NAMESPACE} — überspringe Auth-Wait."
+  fi
   echo "  Alle Services bereit."
 
   # Start port-forward for local tier (bypasses ingress issues)
@@ -144,6 +151,10 @@ _kc_admin_login() {
 }
 
 _bootstrap_keycloak_user() {
+  if ! kubectl get deployment keycloak -n "$NAMESPACE" &>/dev/null; then
+    echo "  Kein Keycloak-Deployment im Namespace ${NAMESPACE} — KC-Bootstrap übersprungen."
+    return 0
+  fi
   echo "  Keycloak Test-User einrichten..."
   _kc_admin_login
   if [[ -z "$KC_ADMIN_TOKEN" ]]; then

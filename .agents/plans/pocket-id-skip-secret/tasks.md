@@ -2,7 +2,7 @@
 title: pocket-id-client-seed Skip greift bei nicht konfiguriertem Secret
 ticket_id: T901061
 domains: [infra, auth]
-status: staged
+status: implemented
 ---
 
 # pocket-id-skip-secret — Implementation Plan

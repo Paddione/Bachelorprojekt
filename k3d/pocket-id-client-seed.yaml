@@ -392,7 +392,9 @@ spec:
 
               echo "$ROWS" | while IFS='|' read -r cid env secret_key cb; do
                 [ -z "$cid" ] && continue
-                secret=$(eval "printf '%s' \"\$$env\"")
+                # T901061: eval 'secret="$'$env'"' wertet $env indirekt aus, ohne dass Flux
+                # postBuild ($$ -> $) oder die Shell-Doppelquotes den Variablennamen einsetzen.
+                eval 'secret="$'$env'"'
                 upsert "$cid" "$secret" "$secret_key" "$cb"
               done
               

@@ -4560,6 +4560,12 @@
     "kind": "shell"
   },
   {
+    "id": "pocket-id-client-seed-skip-secret",
+    "file": "tests/spec/pocket-id-client-seed-skip-secret.bats",
+    "category": "pocket-id-client-seed-skip-secret",
+    "kind": "shell"
+  },
+  {
     "id": "pocket-id-client-seed-timeout",
     "file": "tests/spec/pocket-id-client-seed-timeout.bats",
     "category": "pocket-id-client-seed-timeout",

@@ -216,6 +216,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/operations-management/SKILL.md`
 
+## Fähigkeit: `ops-broker`
+
+- **`cli:openclaw-ask`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Vage Ops-Aufgabe synchron an OpenClaw task-runner geben: bash scripts/openclaw-ask.sh '<aufgabe>'.
+  - _Nicht:_ mutierende Aktionen — OpenClaw empfiehlt nur
+  - _Rollen:_ `orchestrator`
+  - _Tiefe:_ `docs/runbooks/openclaw-ops-bot.md`
+
 ## Fähigkeit: `gitops-wissen`
 
 - **`skill:gitops-knowledge`** — Status `canonical` · Tier `safe`

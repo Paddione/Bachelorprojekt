@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.397.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.4...website-v1.397.0) (2026-10-07)
+
+
+### Features
+
+* **T901022:** business workspace foundation [T901022] ([#6327](https://github.com/Paddione/Bachelorprojekt/issues/6327)) ([9ea7afa](https://github.com/Paddione/Bachelorprojekt/commit/9ea7afa7b135d3d9d1b2a10c4be08adbe643f877))
+
+
+### Bug Fixes
+
+* **infra:** stream pvc-backup per volume so local-path PVCs on different nodes work [T901105] ([#6326](https://github.com/Paddione/Bachelorprojekt/issues/6326)) ([3ad90a8](https://github.com/Paddione/Bachelorprojekt/commit/3ad90a8d4c727dc2990be66c26159add11433cf3))
+
 ## [1.396.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.3...website-v1.396.4) (2026-10-07)
 
 

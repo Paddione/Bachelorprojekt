@@ -95,7 +95,7 @@ jobs:
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -104,8 +104,16 @@ jobs:
         if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
+      - name: Cache website node modules
+        id: website-node-modules-cache
+        uses: actions/cache@v6
+        with:
+          path: components/website/node_modules
+          key: website-node-modules-${{ runner.os }}-${{ hashFiles('components/website/pnpm-lock.yaml') }}
+
       - name: Cache pnpm store
-        uses: actions/cache@v4
+        if: steps.website-node-modules-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('components/website/pnpm-lock.yaml') }}
@@ -113,9 +121,18 @@ jobs:
             pnpm-store-${{ runner.os }}-
 
       - name: Install website dependencies
+        if: steps.website-node-modules-cache.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile --dir components/website
 
+      - name: Cache art-library tooling dependencies
+        id: art-library-cache
+        uses: actions/cache@v6
+        with:
+          path: assets/art-library/_tooling/node_modules
+          key: art-tooling-${{ runner.os }}-${{ hashFiles('assets/art-library/_tooling/package-lock.json') }}
+
       - name: Install art-library tooling dependencies
+        if: steps.art-library-cache.outputs.cache-hit != 'true'
         run: npm install --silent --prefix assets/art-library/_tooling
 
       - name: Create CI dummy secrets
@@ -243,7 +260,15 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Cache node modules
+        id: node-modules-cache
+        uses: actions/cache@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install generator dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Verify generated skill views
@@ -334,7 +359,7 @@ jobs:
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -348,7 +373,7 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: 'stable'
           cache: false
@@ -404,7 +429,7 @@ jobs:
         with:
           version: 10
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: 'stable'
           cache: false
@@ -416,7 +441,7 @@ jobs:
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -544,7 +569,7 @@ jobs:
       # ist eine Warnung, kein Fehler.
       - name: Upload spec junit report (timing diagnostics)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: spec-junit-shard-${{ matrix.shard }}
           path: junit-report/report.xml
@@ -867,8 +892,9 @@ jobs:
     # main niemand vor einer Entscheidung liest. Er auditiert ausserdem die
     # LIVE-URL web.mentolder.de, nicht den gemergten Stand — nach einem Merge
     # ist der dort noch gar nicht deployt.
+    # [T901067] Entkoppelt von vitest-website (laeuft parallel ab Minute 0)
+    # und mit Pfadfilter versehen (ueberspringt Audit bei reinen Nicht-Website-PRs).
     if: github.event.action != 'edited' && github.event_name == 'pull_request'
-    needs: [vitest-website]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # LHCI posts an advisory commit status; the built-in GITHUB_TOKEN needs
@@ -879,17 +905,36 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          fetch-depth: 1
           fetch-tags: false
 
+      - name: Fetch origin/main for diffing (shallow)
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
+
+      - name: Check if website or lighthouse files changed
+        id: filter
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+          if echo "$CHANGED" | grep -qE '^(components/website/|lighthouserc\.json|\.github/workflows/ci\.yml)'; then
+            echo "run_audit=true" >> "$GITHUB_OUTPUT"
+            echo "Website/Lighthouse files changed, running audit"
+          else
+            echo "run_audit=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No components/website/ or lighthouse changes — skipping live audit"
+          fi
+
       - uses: actions/setup-node@v7
+        if: steps.filter.outputs.run_audit == 'true'
         with:
           node-version: '24'
           cache: 'npm'
 
       - name: Install Lighthouse CI
+        if: steps.filter.outputs.run_audit == 'true'
         run: npm install -g @lhci/cli --loglevel=error
 
       - name: Run Lighthouse audit
+        if: steps.filter.outputs.run_audit == 'true'
         continue-on-error: true
         env:
           # Built-in Actions token (statuses:write above) — replaces the expired
@@ -904,7 +949,11 @@ jobs:
           echo "### Lighthouse Performance Audit" >> "$GITHUB_STEP_SUMMARY"
           echo "URL: https://web.mentolder.de" >> "$GITHUB_STEP_SUMMARY"
           echo "Budget: lighthouserc.json assertions (Performance ≥ 90)" >> "$GITHUB_STEP_SUMMARY"
-          echo "Status: advisory only (does not block CI); GitHub status check posted via LHCI_GITHUB_TOKEN" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.filter.outputs.run_audit }}" = "false" ]; then
+            echo "Status: skipped (keine Website-Änderungen auf diesem PR)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Status: advisory only (does not block CI); GitHub status check posted via LHCI_GITHUB_TOKEN" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   commit-lint:
     name: Conventional Commits

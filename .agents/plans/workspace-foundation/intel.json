@@ -1,0 +1,195 @@
+{
+ "meta": {
+  "slug": "workspace-foundation",
+  "ticket_id": "",
+  "generated_from": "main@50d745d89",
+  "domains": [
+   "plan-authoring",
+   "dev-tooling",
+   "factory"
+  ],
+  "intel_sources": [
+   "grep",
+   "plan-lint",
+   "wc",
+   "-l"
+  ]
+ },
+ "impact_files": [
+  {
+   "path": "components/website/src/lib/auth.ts",
+   "language": "javascript",
+   "loc": 340,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 560
+  },
+  {
+   "path": "components/website/src/middleware.ts",
+   "language": "javascript",
+   "loc": 33,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 867
+  },
+  {
+   "path": "components/website/src/lib/db-pool.ts",
+   "language": "javascript",
+   "loc": 72,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 828
+  },
+  {
+   "path": "components/website/src/db/migrate.ts",
+   "language": "javascript",
+   "loc": 113,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 787
+  },
+  {
+   "path": "components/website/src/lib/messaging-db.ts",
+   "language": "javascript",
+   "loc": 296,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 604
+  }
+ ],
+ "symbols": [
+  {
+   "qualified_name": "components/website/src/lib/auth.ts:43:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {",
+   "kind": "function",
+   "file": "components/website/src/lib/auth.ts",
+   "signature": "43:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {(...)",
+   "type_text": "43:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/auth.ts:55:function decodeRealmRoles(accessToken: string): string[] {",
+   "kind": "function",
+   "file": "components/website/src/lib/auth.ts",
+   "signature": "55:function decodeRealmRoles(accessToken: string): string[] {(...)",
+   "type_text": "55:function decodeRealmRoles(accessToken: string): string[] {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/auth.ts:87:function generateSessionId(): string {",
+   "kind": "function",
+   "file": "components/website/src/lib/auth.ts",
+   "signature": "87:function generateSessionId(): string {(...)",
+   "type_text": "87:function generateSessionId(): string {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/auth.ts:288:        clearProviderCache();",
+   "kind": "function",
+   "file": "components/website/src/lib/auth.ts",
+   "signature": "288:        clearProviderCache();(...)",
+   "type_text": "288:        clearProviderCache();(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/db-pool.ts:18:function nodeLookup(",
+   "kind": "function",
+   "file": "components/website/src/lib/db-pool.ts",
+   "signature": "18:function nodeLookup((...)",
+   "type_text": "18:function nodeLookup((...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/db/migrate.ts:17:function isPgError(e: unknown): e is { code: string; message: string } {",
+   "kind": "function",
+   "file": "components/website/src/db/migrate.ts",
+   "signature": "17:function isPgError(e: unknown): e is { code: string; message: string } {(...)",
+   "type_text": "17:function isPgError(e: unknown): e is { code: string; message: string } {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/db/migrate.ts:109:  main().catch((e) => {",
+   "kind": "function",
+   "file": "components/website/src/db/migrate.ts",
+   "signature": "109:  main().catch((e) => {(...)",
+   "type_text": "109:  main().catch((e) => {(...)",
+   "source": "grep"
+  }
+ ],
+ "call_graph": {
+  "entrypoints": [],
+  "edges": []
+ },
+ "db_tables": [
+  {
+   "table": "web_sessions",
+   "source": "code-read src/lib/auth.ts getSession",
+   "notes": "server-side sessions, 8h TTL cookie workspace_session"
+  },
+  {
+   "table": "inbox_items",
+   "source": "code-read src/lib/messaging-db.ts",
+   "notes": "types registration|booking|contact|bug|meeting_finalize|user_message; NO tenant column (verified T901020)"
+  },
+  {
+   "table": "slot_whitelist",
+   "source": "code-read src/lib/appointments-db.ts",
+   "notes": "brand FK, claimSlot(brand,start)"
+  },
+  {
+   "table": "booking_project_links",
+   "source": "code-read src/lib/appointments-db.ts",
+   "notes": "PK(caldav_uid,brand), brand FK"
+  },
+  {
+   "table": "billing_invoices",
+   "source": "code-read src/lib/invoice-payments.ts",
+   "notes": "FOR UPDATE locking, manual methods sepa|cash|bank|other|legacy"
+  },
+  {
+   "table": "public.brands",
+   "source": "FK-target only, NO prod CREATE TABLE found",
+   "notes": "bootstrap path open - must be clarified in plan"
+  }
+ ],
+ "api_contracts": [
+  {
+   "route": "GET /api/auth/login",
+   "handler": "components/website/src/pages/api/auth/login.ts",
+   "contract": "302 to getLoginUrl(returnTo)"
+  },
+  {
+   "route": "GET /api/auth/callback",
+   "handler": "components/website/src/pages/api/auth/callback.ts",
+   "contract": "exchangeCode(code), set cookie, fail-closed resolveReturnTo, default isAdmin?/admin:/portal"
+  },
+  {
+   "route": "GET /api/auth/logout",
+   "handler": "components/website/src/pages/api/auth/logout.ts",
+   "contract": "session delete, clear cookie, 302 to end-session"
+  },
+  {
+   "route": "GET /api/auth/me",
+   "handler": "components/website/src/pages/api/auth/me.ts",
+   "contract": "session JSON {authenticated,user.isAdmin}, CORS for React SPA"
+  }
+ ],
+ "external_types": [],
+ "risks": [
+  {
+   "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+   "severity": "warn"
+  },
+  {
+   "severity": "warn",
+   "note": "mcp-postgres unavailable in this session and no live DB read; db_tables come from code reads, not information_schema."
+  },
+  {
+   "severity": "warn",
+   "note": "K3 project home-patrick-Bachelorprojekt generation 2026-10-04 cited by ticket but not re-verified (K3 not exposed here)."
+  },
+  {
+   "severity": "warn",
+   "note": "T901035 tenant-isolation implementation still blocked; plan must carry explicit assumptions + depends_on."
+  }
+ ]
+}

@@ -74,7 +74,7 @@ STUB
 # Positiv-Anker: der lesende Sweep läuft durch und benennt Plan-Kandidaten. Ohne
 # ihn wären die KEEP/REAP-Aussagen unten vakuos (leere Ausgabe erfüllt jedes
 # "kommt nicht vor").
-@test "T900999-P3 Positiv-Anker: --sweep --plan-cleanup --dry-run läuft und nennt Plan-Kandidaten" {
+@test "T900999-P3 Positiv-Anker: --sweep --plan-cleanup --dry-run laeuft und nennt Plan-Kandidaten" {
   run bash "$REAPER" --sweep --plan-cleanup --dry-run --repo "$FIXTURE"
   [ "$status" -eq 0 ]
   [ "$(printf '%s\n' "$output" | grep -c '^\(REAP\|KEEP\) PLAN ')" -ge 1 ]

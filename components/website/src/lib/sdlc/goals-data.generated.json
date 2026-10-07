@@ -1230,6 +1230,36 @@
     "measured_at": "2026-10-07"
   },
   {
+    "id": "G-K3FRESH",
+    "title": "K3-Codegraph-Index frisch",
+    "category": "Sonstige",
+    "priority": "C",
+    "direction": "lower",
+    "baseline": null,
+    "current": null,
+    "target": 1,
+    "unit": "n/a",
+    "status": "unknown",
+    "measurement": "k3_freshness_flag` (scripts/lib/health-goals-measure.sh) — `cbm-freshness.py status`, Fail-closed: nicht messbar ⇒ 0 (T002430)",
+    "source": ".claude/lib/goals.md · G-K3FRESH",
+    "measured_at": "2026-10-07"
+  },
+  {
+    "id": "G-K3PROJ",
+    "title": "K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0)",
+    "category": "Sonstige",
+    "priority": "C",
+    "direction": "lower",
+    "baseline": null,
+    "current": null,
+    "target": 1,
+    "unit": "n/a",
+    "status": "unknown",
+    "measurement": "k3_project_flag` — `codebase-memory-mcp cli index_status`, Fail-closed ⇒ 0 (T002430)",
+    "source": ".claude/lib/goals.md · G-K3PROJ",
+    "measured_at": "2026-10-07"
+  },
+  {
     "id": "G-LLM03",
     "title": "Modell-ID-Drift (Loadout-Port)",
     "category": "Infrastruktur",

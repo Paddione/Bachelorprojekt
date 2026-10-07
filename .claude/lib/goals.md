@@ -725,6 +725,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-IF01** | MCP-Endpunkte ohne Listener | 3 ⚠ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
+| **G-K3FRESH** | K3-Codegraph-Index frisch | n/a | 1 | `k3_freshness_flag` (scripts/lib/health-goals-measure.sh) — `cbm-freshness.py status`, Fail-closed: nicht messbar ⇒ 0 (T002430) |
+| **G-K3PROJ** | K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0) | n/a | 1 | `k3_project_flag` — `codebase-memory-mcp cli index_status`, Fail-closed ⇒ 0 (T002430) |
 | **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 1 ⚠ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 89 ✓ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |

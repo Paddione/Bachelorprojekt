@@ -114,6 +114,7 @@ tests/spec/cbm-embed-sync-A2.bats
 tests/spec/cbm-eval.bats
 tests/spec/cbm-freshness-probe.bats
 tests/spec/cbm-graph-rerank.bats
+tests/spec/cbm-health-goals.bats
 tests/spec/cbm-hybrid-search.bats
 tests/spec/cbm-reconcile.bats
 tests/spec/cbm-refresh-cron-A4.bats
@@ -336,8 +337,10 @@ tests/spec/llm-local-dev/fit-ngl-conflict.bats
 tests/spec/llm-local-dev/glimmer-serving-profile.bats
 tests/spec/llm-local-dev/glimmer-worker-mcp.bats
 tests/spec/llm-local-dev/opencode-compaction.bats
+tests/spec/llm-local-dev/plan-runner-ticket-ref.bats
 tests/spec/llm-local-dev/plan-runner.bats
 tests/spec/llm-local-dev/qwen-tensor-split.bats
+tests/spec/llm-local-dev/qwen35-2b-training.bats
 tests/spec/llm-local-dev/single-static-model.bats
 tests/spec/llm-local-dev/system-message-merge.bats
 tests/spec/llm-pipeline/bge-thread-quota.bats
@@ -460,6 +463,7 @@ tests/spec/p0min-freeze-embed.bats
 tests/spec/pi-harness.bats
 tests/spec/pipeline-interface.bats
 tests/spec/plan-context.bats
+tests/spec/plan-lifecycle.bats
 tests/spec/plan-partials-embedding/size-gate.bats
 tests/spec/planning-office/epic-lastenheft.bats
 tests/spec/pocket-id-client-seed-auth-header.bats

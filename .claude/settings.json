@@ -130,6 +130,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/langfuse/tracing-status.sh check --hook 2>/dev/null || true",
+            "timeout": 5,
+            "statusMessage": "Checking Langfuse tracing..."
+          }
+        ]
       }
     ],
     "PermissionRequest": [

@@ -124,7 +124,6 @@ _run_setup() {
   [ "$status" -ne 0 ]
   [[ "$output" == *"pi-observability-plugin"* ]]
 }
-
 # T900691: Langfuse oeffentlich als langfuse-dev.<prod-domain> — fleet terminiert TLS mit dem
 # Wildcard und leitet per Tailscale an devmesh-Traefik (web-Entrypoint, Port 80) weiter.
 @test "T900691: devmesh-Ingress fuer langfuse-dev lauscht auf dem web-Entrypoint" {
@@ -190,4 +189,112 @@ _render_fleet_proxy() {
   before="$(md5sum < "$cfg")"
   _run_setup
   [ "$(md5sum < "$cfg")" = "$before" ]
+}
+
+# T900750: Langfuse-Agent-Tracing fertigstellen (design.md D1–D7).
+# Pruefmodus wie oben: Befehle AUSFUEHREN und Ausgaben pruefen, kein Cluster, kein Netzwerk.
+
+@test "T900750: ClickHouse-Limit ist 8Gi" {
+  run yq ea -r 'select(.kind=="StatefulSet" and .metadata.name=="langfuse-clickhouse") | .spec.template.spec.containers[0].resources.limits.memory' "$RENDERED"
+  [ "$status" -eq 0 ]
+  [ "$output" = "8Gi" ]
+}
+
+@test "T900750: Collector setzt fehlendes Environment auf development" {
+  run yq ea -r 'select(.kind == "ConfigMap" and .metadata.name == "langfuse-otel-redact-config") | .data."config.yaml"' "$RENDERED"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'set(resource.attributes["langfuse.environment"], "development") where resource.attributes["langfuse.environment"] == nil'* ]]
+}
+
+@test "T900750: CronJob langfuse-export mountet das Export-Skript" {
+  run yq ea -r 'select(.kind == "CronJob" and .metadata.name == "langfuse-export") | .spec.jobTemplate.spec.template.spec.volumes[0].configMap.name' "$RENDERED"
+  [ "$status" -eq 0 ]
+  [ "$output" = "langfuse-export-script" ]
+  run yq ea -r 'select(.kind == "ConfigMap" and .metadata.name == "langfuse-export-script") | .data | keys | .[]' "$RENDERED"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"export_traces.py"* ]]
+}
+
+@test "T900750: export_traces.py --print-key" {
+  run python3 "$REPO/scripts/langfuse/export_traces.py" --print-key --date 2026-09-27
+  [ "$status" -eq 0 ]
+  [ "$output" = "exports/observations/2026-09-27.jsonl" ]
+}
+
+@test "T900750: export_traces.py ohne Env endet mit 2" {
+  run env -i PATH="$PATH" python3 "$REPO/scripts/langfuse/export_traces.py" --date 2026-09-27
+  [ "$status" -eq 2 ]
+}
+
+_t900750_check_env() {
+  mkdir -p "$BATS_TEST_TMPDIR/stubbin" "$BATS_TEST_TMPDIR/xdg" "$BATS_TEST_TMPDIR/cache"
+  printf '#!/bin/sh\nexit 0\n' > "$BATS_TEST_TMPDIR/stubbin/opencode"
+  chmod +x "$BATS_TEST_TMPDIR/stubbin/opencode"
+}
+
+_t900750_write_cache() {
+  local tool_traces="$1" gap="$2"
+  mkdir -p "$BATS_TEST_TMPDIR/cache/langfuse"
+  printf '{"refreshed_at":"%s","tool_traces":%s,"last_claude_trace":null,"export_gap_session":%s}' \
+    "$(date -u +%FT%TZ)" "$tool_traces" "$gap" > "$BATS_TEST_TMPDIR/cache/langfuse/tracing-status.json"
+  touch "$BATS_TEST_TMPDIR/cache/langfuse/tracing-status.json"
+}
+
+@test "T900750: tracing-status check meldet fehlende Harness-Config" {
+  _t900750_check_env
+  run env HOME="$BATS_TEST_TMPDIR" XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/xdg" XDG_CACHE_HOME="$BATS_TEST_TMPDIR/cache" \
+    PATH="$BATS_TEST_TMPDIR/stubbin:/usr/bin:/bin" bash "$REPO/scripts/langfuse/tracing-status.sh" check
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"opencode tracet nicht"* ]]
+}
+
+@test "T900750: Finetune-Erinnerung ab 3000 Tool-Traces" {
+  _t900750_check_env
+  _t900750_write_cache 3000 null
+  run env HOME="$BATS_TEST_TMPDIR" XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/xdg" XDG_CACHE_HOME="$BATS_TEST_TMPDIR/cache" \
+    PATH="$BATS_TEST_TMPDIR/stubbin:/usr/bin:/bin" bash "$REPO/scripts/langfuse/tracing-status.sh" check
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"docs/runbooks/qwen35-mtp-subagent-finetuning.md"* ]]
+}
+
+@test "T900750: keine Finetune-Erinnerung bei 2999" {
+  _t900750_check_env
+  _t900750_write_cache 2999 null
+  run env HOME="$BATS_TEST_TMPDIR" XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/xdg" XDG_CACHE_HOME="$BATS_TEST_TMPDIR/cache" \
+    PATH="$BATS_TEST_TMPDIR/stubbin:/usr/bin:/bin" bash "$REPO/scripts/langfuse/tracing-status.sh" check
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"docs/runbooks/qwen35-mtp-subagent-finetuning.md"* ]]
+}
+
+@test "T900750: Exportluecke nennt den Backfill-Befehl" {
+  _t900750_check_env
+  _t900750_write_cache 0 '"322c4ec8-dd16-4f01-8b9c-7726559d91f3"'
+  run env HOME="$BATS_TEST_TMPDIR" XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/xdg" XDG_CACHE_HOME="$BATS_TEST_TMPDIR/cache" \
+    PATH="$BATS_TEST_TMPDIR/stubbin:/usr/bin:/bin" bash "$REPO/scripts/langfuse/tracing-status.sh" check
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"task devmesh:langfuse:backfill SESSION=322c4ec8-dd16-4f01-8b9c-7726559d91f3"* ]]
+}
+
+@test "T900750: check --hook liefert SessionStart-JSON" {
+  _t900750_check_env
+  _t900750_write_cache 3000 null
+  run env HOME="$BATS_TEST_TMPDIR" XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/xdg" XDG_CACHE_HOME="$BATS_TEST_TMPDIR/cache" \
+    PATH="$BATS_TEST_TMPDIR/stubbin:/usr/bin:/bin" bash "$REPO/scripts/langfuse/tracing-status.sh" check --hook
+  [ "$status" -eq 0 ]
+  run jq -r '.hookSpecificOutput.hookEventName' <<<"$output"
+  [ "$output" = "SessionStart" ]
+}
+
+@test "T900750: backfill-claude.sh lehnt ungueltige Session-ID ab" {
+  run bash "$REPO/scripts/langfuse/backfill-claude.sh" nope
+  [ "$status" -eq 2 ]
+}
+
+@test "T900750: Taskfile kennt status und backfill" {
+  command -v task >/dev/null 2>&1 || skip "task binary not installed"
+  cd "$REPO"
+  run task --list
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"devmesh:langfuse:status"* ]]
+  [[ "$output" == *"devmesh:langfuse:backfill"* ]]
 }

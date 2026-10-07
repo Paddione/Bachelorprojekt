@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.396.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.3...website-v1.396.0) (2026-10-07)
+
+
+### Features
+
+* **ops:** OpenClaw Ops-Bot [T900538] ([#6302](https://github.com/Paddione/Bachelorprojekt/issues/6302)) ([9e5a4d4](https://github.com/Paddione/Bachelorprojekt/commit/9e5a4d4e1dab7def19db9d061ce871745b99a85c))
+
 ## [1.395.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.2...website-v1.395.3) (2026-10-07)
 
 

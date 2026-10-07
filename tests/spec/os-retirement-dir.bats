@@ -20,7 +20,11 @@ setup() {
     ':!tests/fixtures/sf-retirement' \
     ':!tests/spec/neovim-dashboard.bats' \
     ':!.opencode/skills/code-graph-interpretation/evals/results-*' \
-    ':!docs/brain/corpus-freeze.json' ':!docs/brain/embed-eval-report.md' ':!tests/spec/p0min-freeze-embed.bats'
+    ':!docs/brain/corpus-freeze.json' ':!docs/brain/embed-eval-report.md' ':!tests/spec/p0min-freeze-embed.bats' \
+    ':!ml/qwen35-planner-9b'
+  # T901060: ml/qwen35-planner-9b liest historische openspec/changes/*-Plaene aus
+  # der Git-Historie als Trainings-Gold — Datenquelle wie scripts/migrations,
+  # kein lebender Verweis.
   # Datei-Ausnahmen: neovim-dashboard.bats ist ein Absence-Guard wie os-retirement-*
   # (das Pattern steht im Test selbst); fixtures/sf-retirement listet A3-Pfade mit
   # openspec-Namen (Absence-Guard-Korpus wie tests/fixtures/os-retirement);

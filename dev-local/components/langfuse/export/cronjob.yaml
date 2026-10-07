@@ -1,4 +1,4 @@
-# Täglicher JSONL-Export aller Langfuse-Observationen nach MinIO [T900750] (design.md D3)
+# Taeglicher JSONL-Export aller Langfuse-Observations nach MinIO [T900750] (design.md D3)
 apiVersion: batch/v1
 kind: CronJob
 metadata:

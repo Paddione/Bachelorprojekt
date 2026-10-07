@@ -1,55 +1,42 @@
-#!/bin/bash
-# backfill-claude.sh — Session End Hook Execution
-# Purpose: Execute Langfuse SessionEnd hook for a Claude transcript.
-# Usage: bash scripts/langfuse/backfill-claude.sh <session-id>
-# Exit codes: 0=success, 1=API error, 2=usage/missing args
+#!/usr/bin/env bash
+# backfill-claude.sh — verlorene Claude-Code-Turns erneut an Langfuse senden [T900750]
+# Zweck: loescht den State-Eintrag einer Session und ruft den Plugin-Hook mit dem
+# Transcript erneut auf (Trace-IDs sind deterministisch, Doppellauf überschreibt).
+# Aufruf: bash scripts/langfuse/backfill-claude.sh <session-id>
+# Exit-Codes: 0 ok, 2 Usage/fehlender Transcript/Hook/State.
 # [T900750]
-
 set -euo pipefail
 
 ENV_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/langfuse/agent-tracing.env"
 HOOK_LOG="$HOME/.claude/state/langfuse_hook.log"
 HOOK_STATE="$HOME/.claude/state/langfuse_state.json"
 
-main() {
-    local session_id="$1"
-    if [ -z "$session_id" ] || ! [[ "$session_id" =~ ^[0-9a-f-]{36}$ ]]; then
-        echo "Usage: $0 <session-id>" >&2
-        exit 2
-    fi
+[ $# -eq 1 ] || { echo "Usage: $0 <session-id>" >&2; exit 2; }
+id="$1"
+[[ "$id" =~ ^[0-9a-f-]{36}$ ]] || { echo "Usage: $0 <session-id>" >&2; exit 2; }
 
-    local transcript
-    transcript=$(find "$HOME/.claude/projects" -maxdepth 2 -name "${session_id}.jsonl" | head -1)
-    if [ -z "$transcript" ]; then
-        echo "transcript für $session_id nicht gefunden"
-        exit 2
-    fi
+transcript=$(find "$HOME/.claude/projects" -maxdepth 2 -name "$id.jsonl" 2>/dev/null | head -1 || true)
+[ -n "${transcript:-}" ] || { echo "transcript für $id nicht gefunden" >&2; exit 2; }
 
-    local hook_path
-    hook_path=$(ls -d "$HOME/.claude/plugins/cache/langfuse-observability/langfuse-observability/*/hooks/langfuse_hook.py" 2>/dev/null | sort -V | tail -1)
-    if [ -z "$hook_path" ]; then
-        exit 2
-    fi
+hook=$(ls -d "$HOME"/.claude/plugins/cache/langfuse-observability/langfuse-observability/*/hooks/langfuse_hook.py 2>/dev/null | sort -V | tail -1 || true)
+[ -n "${hook:-}" ] || { echo "Error: Plugin-Hook langfuse_hook.py nicht gefunden" >&2; exit 2; }
 
-    local state_key
-    state_key=$(printf '%s' "${session_id}:${transcript}" | sha256sum | cut -d' ' -f1)
-    if ! jq -e --arg k "$state_key" 'has($k)' "$HOOK_STATE" >/dev/null 2>&1; then
-        echo "kein Plugin-State für $session_id (Plugin-Format geändert?)"
-        exit 2
-    fi
+key=$(printf '%s' "$id::$transcript" | sha256sum | cut -d' ' -f1)
+if ! jq -e --arg k "$key" 'has($k)' "$HOOK_STATE" >/dev/null 2>&1; then
+  echo "kein Plugin-State für $id (Plugin-Format geändert?)" >&2
+  exit 2
+fi
+tmp=$(mktemp)
+jq --arg k "$key" 'del(.[$k])' "$HOOK_STATE" > "$tmp" && mv "$tmp" "$HOOK_STATE"
 
-    local new_state
-    new_state=$(jq -e --arg k "$state_key" 'del(.[$k])' "$HOOK_STATE" 2>/dev/null)
-    if [ "$new_state" != "$HOOK_STATE" ]; then
-        echo "$new_state" > "$HOOK_STATE"
-    fi
+[ -f "$ENV_FILE" ] || { echo "Error: $ENV_FILE not found" >&2; exit 2; }
+set -a
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+set +a
 
-    local hook_log_line
-    hook_log_line=$(jq -cn --arg s "$session_id" --arg t "$transcript" '{session_id:$s,transcript_path:$t,hook_event_name:"SessionEnd"}' \
-        | if command -v uv >/dev/null 2>&1; then uv run --quiet --script "$hook_path"; else python3 "$hook_path"; fi)
+jq -cn --arg s "$id" --arg t "$transcript" '{session_id:$s,transcript_path:$t,hook_event_name:"SessionEnd"}' \
+  | if command -v uv >/dev/null 2>&1; then uv run --quiet --script "$hook"; else python3 "$hook"; fi
 
-    echo "$hook_log_line"
-    exit 0
-}
-
-main "$@"
+grep "session=$id" "$HOOK_LOG" 2>/dev/null | tail -1 || true
+exit 0

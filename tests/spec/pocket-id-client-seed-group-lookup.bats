@@ -33,9 +33,9 @@ clients_fixture() { # $1 = object template with %s for the client name
 CLIENT_V214='{"id":"%s","name":"%s","description":"","hasLogo":false,"launchURL":null,"callbackURLs":["https://x.example.test/oauth2/callback"],"logoutCallbackURLs":[],"isPublic":false,"credentials":{"secrets":[{"id":"7f3e","prefix":"","createdAt":"2026-08-23T17:20:42Z","expiresAt":null,"isActive":true}]},"isGroupRestricted":false}'
 # "name" NOT directly after "id" (robustness, find_client_id).
 CLIENT_REORDERED='{"id":"%s","description":"","hasLogo":false,"name":"%s","callbackURLs":[],"credentials":{"secrets":[{"id":"7f3e","isActive":true}]}}'
-GROUPS_V214='{"data":[{"id":"2535036c-15fc-439d-811a-89805b41e19e","friendlyName":"Workspace Users","name":"workspace-users","customClaims":[],"userCount":0,"ldapId":null,"createdAt":"2026-08-23T17:18:24.820535Z"}],"pagination":{"totalPages":1,"totalItems":1,"currentPage":1,"itemsPerPage":20}}'
+GROUPS_V214='{"data":[{"id":"2535036c-15fc-439d-811a-89805b41e19e","friendlyName":"Workspace Users","name":"workspace-users","customClaims":[],"userCount":0,"ldapId":null,"createdAt":"2026-08-23T17:18:24.820535Z"},{"id":"7a1b2c3d-4e5f-6071-8293-a4b5c6d7e8f9","friendlyName":"Workspace Owners","name":"workspace-owners","customClaims":[],"userCount":0,"ldapId":null,"createdAt":"2026-10-07T00:00:00Z"}],"pagination":{"totalPages":1,"totalItems":2,"currentPage":1,"itemsPerPage":20}}'
 # Pre-v2.14 order (id directly followed by name) must keep working.
-GROUPS_LEGACY='{"data":[{"id":"g-legacy","name":"workspace-users","friendlyName":"Workspace Users"}],"pagination":{"totalPages":1,"totalItems":1,"currentPage":1,"itemsPerPage":20}}'
+GROUPS_LEGACY='{"data":[{"id":"g-legacy","name":"workspace-users","friendlyName":"Workspace Users"},{"id":"g-legacy-owners","name":"workspace-owners","friendlyName":"Workspace Owners"}],"pagination":{"totalPages":1,"totalItems":2,"currentPage":1,"itemsPerPage":20}}'
 
 setup() {
   load 'test_helper'

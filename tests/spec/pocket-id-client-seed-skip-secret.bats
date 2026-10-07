@@ -14,7 +14,7 @@ REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)}"
 MANIFEST="${REPO_ROOT}/k3d/pocket-id-client-seed.yaml"
 
 CLIENT_V214='{"id":"%s","name":"%s","description":"","hasLogo":false,"launchURL":null,"callbackURLs":["https://x.example.test/oauth2/callback"],"logoutCallbackURLs":[],"isPublic":false,"credentials":{"secrets":[{"id":"7f3e","isActive":true}]},"isGroupRestricted":false}'
-GROUPS_V214='{"data":[{"id":"2535036c-15fc-439d-811a-89805b41e19e","friendlyName":"Workspace Users","name":"workspace-users","customClaims":[],"userCount":0,"ldapId":null,"createdAt":"2026-08-23T17:18:24.820535Z"}],"pagination":{"totalPages":1,"totalItems":1,"currentPage":1,"itemsPerPage":20}}'
+GROUPS_V214='{"data":[{"id":"2535036c-15fc-439d-811a-89805b41e19e","friendlyName":"Workspace Users","name":"workspace-users","customClaims":[],"userCount":0,"ldapId":null,"createdAt":"2026-08-23T17:18:24.820535Z"},{"id":"7a1b2c3d-4e5f-6071-8293-a4b5c6d7e8f9","friendlyName":"Workspace Owners","name":"workspace-owners","customClaims":[],"userCount":0,"ldapId":null,"createdAt":"2026-10-07T00:00:00Z"}],"pagination":{"totalPages":1,"totalItems":2,"currentPage":1,"itemsPerPage":20}}'
 
 clients_fixture() {
   local objs="" name

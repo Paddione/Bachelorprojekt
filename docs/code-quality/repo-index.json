@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1272,
+      "file_count": 1273,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1127,6 +1127,7 @@
         "tests/spec/website-core/portrait-derivate-crop.bats",
         "tests/spec/website-core/web-audit.bats",
         "tests/spec/website-interfaces.bats",
+        "tests/spec/website-schema/fk-targets-unique.bats",
         "tests/spec/website-svelte-check.bats",
         "tests/spec/workspace-deploy-secrets-scope.bats",
         "tests/spec/workspace-deploy.bats",

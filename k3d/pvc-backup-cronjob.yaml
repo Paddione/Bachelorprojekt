@@ -6,10 +6,12 @@
 # PVCs (vaultwarden) via CSI dataSource so the backup mounts
 # placement-independent copies — never the live RWO volumes, which
 # deadlock on Multi-Attach when the app pod runs on another node.
-# nextcloud-data stays on local-path (no clone support) and is mounted
-# directly by the mounter, which is co-located with the nextcloud pod
-# via podAffinity (same node → local-path is shareable). After the
-# mounter Job completes, the orchestrator deletes the clones.
+# nextcloud-data stays on local-path (no clone support). local-path PVCs
+# are pinned to different nodes, so no single pod can mount them together
+# with backup-pvc. One reader Job per data volume lands on its PV's node;
+# the orchestrator streams its encrypted tar into the writer Job (which
+# owns backup-pvc) via kubectl exec. After the writer completes, the
+# orchestrator deletes the clones and readers. [T901105]
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: batch/v1
 kind: CronJob
@@ -93,6 +95,7 @@ spec:
                   cleanup() {
                     echo "Cleanup: deleting mounter Job and clone PVCs..."
                     kubectl -n "$NS" delete job "$MOUNTER" --ignore-not-found --wait=true || true
+                    kubectl -n "$NS" delete jobs -l app=pvc-backup,role=reader --ignore-not-found --wait=true || true
                     for c in $CLONES; do
                       kubectl -n "$NS" delete pvc "$c" --ignore-not-found || true
                     done
@@ -162,6 +165,7 @@ spec:
                   # Remove stale mounter Jobs from a crashed prior run — they
                   # hold node resources and can mask a new run's logs. [T013044]
                   kubectl -n "$NS" delete jobs -l app=pvc-backup,role=mounter --ignore-not-found || true
+                  kubectl -n "$NS" delete jobs -l app=pvc-backup,role=reader --ignore-not-found || true
 
                   echo "Launching mounter Job $MOUNTER..."
                   kubectl -n "$NS" apply -f - <<MJOB
@@ -179,12 +183,10 @@ spec:
                         labels: { app: pvc-backup, role: mounter }
                       spec:
                         restartPolicy: Never
-                         # Placement: the mounter mounts the live RWO data volumes
-                         # (nextcloud-data, vaultwarden-data) and backup-pvc; the
-                         # scheduler pins it to the PVs' node via the volumes' node
-                         # affinity. The former required podAffinity terms
-                         # [nextcloud, vaultwarden] were deterministically
-                         # unschedulable on fleet (k3s 1.36.1) and removed. [T900801]
+                         # Placement: the writer mounts only backup-pvc and is
+                         # pinned to that PV's node. Data volumes are read by
+                         # per-volume reader Jobs (each lands on its own PV's
+                         # node) and streamed in by the orchestrator. [T901105]
                         securityContext:
                           runAsNonRoot: true
                           runAsUser: 65534
@@ -201,8 +203,8 @@ spec:
                               runAsUser: 65534
                               capabilities: { drop: ["ALL"] }
                             env:
-                              - name: BACKUP_PASSPHRASE
-                                valueFrom: { secretKeyRef: { name: workspace-secrets, key: BACKUP_PASSPHRASE } }
+                              - name: BACKUP_STAMP
+                                value: "$${STAMP}"
                               - name: BRAND
                                 valueFrom: { configMapKeyRef: { name: backup-config, key: BRAND } }
                               - name: FILEN_DEFAULT_UPLOAD_PATH
@@ -215,38 +217,30 @@ spec:
                             args:
                               - |
                                 set -euo pipefail
-                                sleep 5
-                                STAMP=\$$(date +%Y%m%d-%H%M%S)
-                                BACKUP_DIR=/backups/pvc-\$${STAMP}
+                                # Writer: owns backup-pvc (and therefore its node). The
+                                # orchestrator streams one encrypted archive per data
+                                # volume into this container via kubectl exec, because
+                                # local-path data PVCs live on different nodes and no
+                                # single pod can mount them all. [T901105]
+                                BACKUP_DIR=/backups/pvc-\$${BACKUP_STAMP}
                                 mkdir -p "\$${BACKUP_DIR}"
-                                FAILED=0
-                                backup_dir() {
-                                  SRC="\$1"; OUT="\$2"; LABEL="\$3"
-                                  echo "Backing up \$${LABEL} (\$${SRC})..."
-                                  if [ "\$$(ls -A "\$${SRC}" 2>/dev/null)" ]; then
-                                    tar czf - -C "\$${SRC}" . \
-                                      | openssl enc -aes-256-cbc -salt -pbkdf2 \
-                                          -out "\$${BACKUP_DIR}/\$${OUT}" -pass env:BACKUP_PASSPHRASE \
-                                      && echo "  ✓ \$${LABEL} OK (\$$(ls -lh "\$${BACKUP_DIR}/\$${OUT}" | awk '{print \$5}'))" \
-                                      || { echo "  ✗ \$${LABEL} FAILED"; FAILED=\$$((FAILED+1)); }
-                                  else
-                                    echo "  ⚠ \$${SRC} empty — skipping"
-                                  fi
-                                }
-                                backup_dir /nextcloud-data   nextcloud-files.tar.gz.enc  nextcloud-data
-                                backup_dir /vaultwarden-data vaultwarden-data.tar.gz.enc vaultwarden-data
+                                touch /staging/.ready
+                                echo "Writer ready: \$${BACKUP_DIR} — waiting for streams..."
+                                for i in \$$(seq 1 1400); do
+                                  [ -f /staging/.streams-done ] && break
+                                  sleep 2
+                                done
+                                [ -f /staging/.streams-done ] || { echo "ERROR: orchestrator never signalled streams-done"; exit 1; }
+                                FAILED=\$$(cat /staging/.streams-done)
 
                                 find /backups -maxdepth 1 -type d -name 'pvc-*' -mtime +30 -exec rm -rf {} +
                                 printf '%s' "\$${FILEN_DEFAULT_UPLOAD_PATH}" > /staging/.filen_path
-                                printf '%s' "pvc-\$${STAMP}" > /staging/.done
+                                printf '%s' "pvc-\$${BACKUP_STAMP}" > /staging/.done
                                 echo "PVC backup complete: \$${BACKUP_DIR}"
                                 ls -lh "\$${BACKUP_DIR}/"
-                                [ "\$${FAILED}" -eq 0 ] || { echo "WARN: \$${FAILED} backup(s) failed"; exit 1; }
+                                [ "\$${FAILED}" -eq 0 ] || { echo "WARN: \$${FAILED} volume backup(s) failed"; exit 1; }
                             volumeMounts:
                               - { name: backup-storage,   mountPath: /backups }
-                              - { name: nextcloud-data,   mountPath: /nextcloud-data,   readOnly: true }
-                              - { name: vaultwarden-data, mountPath: /vaultwarden-data, readOnly: true }
-
                               - { name: staging,          mountPath: /staging }
                             resources:
                               requests: { memory: 256Mi, cpu: "200m" }
@@ -355,14 +349,115 @@ spec:
                         volumes:
                           - name: backup-storage
                             persistentVolumeClaim: { claimName: backup-pvc }
-                          - name: nextcloud-data
-                            persistentVolumeClaim: { claimName: nextcloud-data-pvc }
-                          - name: vaultwarden-data
-                            persistentVolumeClaim: { claimName: $${VW_CLAIM} }
-
                           - name: staging
                             emptyDir: {}
                   MJOB
+
+                  echo "Waiting for writer pod..."
+                  WPOD=""
+                  for i in $(seq 1 60); do
+                    WPOD=$(kubectl -n "$NS" get pod -l job-name="$MOUNTER" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+                    [ -n "$WPOD" ] && break
+                    sleep 2
+                  done
+                  [ -n "$WPOD" ] || { echo "ERROR: writer pod for $MOUNTER never appeared"; exit 1; }
+                  kubectl -n "$NS" wait --for=condition=Ready pod/"$WPOD" --timeout=600s \
+                    || { echo "ERROR: writer pod not ready (backup-pvc unschedulable?)"; kubectl -n "$NS" describe pod "$WPOD" | tail -20; exit 1; }
+                  for i in $(seq 1 60); do
+                    kubectl -n "$NS" exec "$WPOD" -c backup -- test -f /staging/.ready && break
+                    sleep 2
+                  done
+
+                  FAILED=0
+                  # One reader Job per data volume: the scheduler places it on the
+                  # PV's node (local-path node affinity). The archive is built in
+                  # the reader and streamed into the writer, so volumes on
+                  # different nodes never have to be mounted together. [T901105]
+                  stream_volume() {
+                    LABEL="$1"; CLAIM="$2"; OUT="$3"
+                    RJOB="pvc-backup-read-$${LABEL}-$${STAMP}"
+                    echo "Backing up $${LABEL} (claim $${CLAIM}) via reader $${RJOB}..."
+                    kubectl -n "$NS" apply -f - <<READER
+                  apiVersion: batch/v1
+                  kind: Job
+                  metadata:
+                    name: $${RJOB}
+                    labels: { app: pvc-backup, role: reader }
+                  spec:
+                    backoffLimit: 0
+                    ttlSecondsAfterFinished: 3600
+                    activeDeadlineSeconds: 3000
+                    template:
+                      metadata:
+                        labels: { app: pvc-backup, role: reader }
+                      spec:
+                        restartPolicy: Never
+                        securityContext:
+                          runAsNonRoot: true
+                          runAsUser: 65534
+                          fsGroup: 65534
+                          supplementalGroups: [33]
+                          seccompProfile: { type: RuntimeDefault }
+                        containers:
+                          - name: reader
+                            image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
+                            imagePullPolicy: IfNotPresent
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              runAsNonRoot: true
+                              runAsUser: 65534
+                              capabilities: { drop: ["ALL"] }
+                            env:
+                              - name: BACKUP_PASSPHRASE
+                                valueFrom: { secretKeyRef: { name: workspace-secrets, key: BACKUP_PASSPHRASE } }
+                            command: ["sleep", "3000"]
+                            volumeMounts:
+                              - { name: data, mountPath: /data, readOnly: true }
+                            resources:
+                              requests: { memory: 128Mi, cpu: "100m" }
+                              limits:   { memory: 512Mi, cpu: "1" }
+                        volumes:
+                          - name: data
+                            persistentVolumeClaim: { claimName: $${CLAIM}, readOnly: true }
+                  READER
+                    RPOD=""
+                    for i in $(seq 1 60); do
+                      RPOD=$(kubectl -n "$NS" get pod -l job-name="$RJOB" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+                      [ -n "$RPOD" ] && break
+                      sleep 2
+                    done
+                    if [ -z "$RPOD" ] || ! kubectl -n "$NS" wait --for=condition=Ready pod/"$RPOD" --timeout=600s; then
+                      echo "  ✗ $${LABEL} reader not ready (unschedulable?)"
+                      [ -n "$RPOD" ] && kubectl -n "$NS" describe pod "$RPOD" | tail -15
+                      FAILED=$((FAILED+1))
+                      return 0
+                    fi
+                    if [ -z "$(kubectl -n "$NS" exec "$RPOD" -- ls -A /data 2>/dev/null)" ]; then
+                      echo "  ⚠ $${LABEL} empty — skipping"
+                      return 0
+                    fi
+                    rm -f /tmp/reader-rc
+                    {
+                      if kubectl -n "$NS" exec "$RPOD" -- bash -c 'set -o pipefail; tar czf - -C /data . | openssl enc -aes-256-cbc -salt -pbkdf2 -pass env:BACKUP_PASSPHRASE'; then
+                        echo 0 > /tmp/reader-rc
+                      else
+                        echo 1 > /tmp/reader-rc
+                      fi
+                    } | kubectl -n "$NS" exec -i "$WPOD" -c backup -- sh -c "cat > /backups/pvc-$${STAMP}/$${OUT}" || echo 1 > /tmp/reader-rc
+                    SIZE=$(kubectl -n "$NS" exec "$WPOD" -c backup -- stat -c %s "/backups/pvc-$${STAMP}/$${OUT}" 2>/dev/null || echo 0)
+                    if [ "$(cat /tmp/reader-rc 2>/dev/null || echo 1)" = "0" ] && [ "$SIZE" -gt 0 ]; then
+                      echo "  ✓ $${LABEL} OK ($${SIZE} bytes)"
+                    else
+                      echo "  ✗ $${LABEL} FAILED"
+                      FAILED=$((FAILED+1))
+                    fi
+                    kubectl -n "$NS" delete job "$RJOB" --ignore-not-found --wait=false || true
+                  }
+
+                  stream_volume nextcloud-data nextcloud-data-pvc nextcloud-files.tar.gz.enc
+                  stream_volume vaultwarden-data "$VW_CLAIM" vaultwarden-data.tar.gz.enc
+
+                  kubectl -n "$NS" exec "$WPOD" -c backup -- sh -c "echo $FAILED > /staging/.streams-done"
 
                   echo "Waiting for mounter Job to finish..."
                   kubectl -n "$NS" wait --for=condition=complete --timeout=3000s job/"$MOUNTER" &

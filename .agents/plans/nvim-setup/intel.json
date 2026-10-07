@@ -1,0 +1,581 @@
+{
+  "meta": {
+    "slug": "nvim-setup",
+    "ticket_id": "T901043",
+    "generated_from": "main@8a6cded94",
+    "domains": [
+      "developer-experience",
+      "neovim"
+    ],
+    "intel_sources": [
+      "read",
+      "baseline.json",
+      "grep"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "json",
+      "loc": 5810,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/install.sh",
+      "language": "shell",
+      "loc": 169,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 631
+    },
+    {
+      "path": "dotfiles/nvim/README.md",
+      "language": "markdown",
+      "loc": 171,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/SETUP_CHECKLIST.md",
+      "language": "markdown",
+      "loc": 25,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/init.lua",
+      "language": "other",
+      "loc": 46,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/ai-agents.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/comfyui-images.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/editor.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/files-search.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/github.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/infrastructure.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/js-frontend.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/mcp-servers.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/ml-training.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/models-inference.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/repo-knowledge.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/sdlc.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/settings-help.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/chapters/user-services.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/ai-agents.lua",
+      "language": "other",
+      "loc": 142,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/comfyui-images.lua",
+      "language": "other",
+      "loc": 498,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/dashboard.lua",
+      "language": "other",
+      "loc": 989,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/editor-capabilities.lua",
+      "language": "other",
+      "loc": 123,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/editor.lua",
+      "language": "other",
+      "loc": 42,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/files-search.lua",
+      "language": "other",
+      "loc": 204,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/github.lua",
+      "language": "other",
+      "loc": 361,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/gitroot.lua",
+      "language": "other",
+      "loc": 37,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/infrastructure.lua",
+      "language": "other",
+      "loc": 343,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/js-frontend.lua",
+      "language": "other",
+      "loc": 267,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/models-inference.lua",
+      "language": "other",
+      "loc": 328,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/nodectl.lua",
+      "language": "other",
+      "loc": 244,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/repo-knowledge.lua",
+      "language": "other",
+      "loc": 481,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/config/sdlc.lua",
+      "language": "other",
+      "loc": 390,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/core/actions.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/core/dashboard.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/core/gitroot.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/core/keymaps.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/core/lazy.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/core/options.lua",
+      "language": "other",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/plugins/core.lua",
+      "language": "other",
+      "loc": 20,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/plugins/editor.lua",
+      "language": "other",
+      "loc": 61,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/lua/plugins/nodectl.lua",
+      "language": "other",
+      "loc": 99,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/README.md",
+      "language": "markdown",
+      "loc": 44,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/_template.md",
+      "language": "markdown",
+      "loc": 36,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/ai-agents.md",
+      "language": "markdown",
+      "loc": 79,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/comfyui-images.md",
+      "language": "markdown",
+      "loc": 77,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/editor.md",
+      "language": "markdown",
+      "loc": 98,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/files-search.md",
+      "language": "markdown",
+      "loc": 64,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/github.md",
+      "language": "markdown",
+      "loc": 79,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/home.md",
+      "language": "markdown",
+      "loc": 66,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/index.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/infrastructure-status.md",
+      "language": "markdown",
+      "loc": 40,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/infrastructure.md",
+      "language": "markdown",
+      "loc": 69,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/js-frontend.md",
+      "language": "markdown",
+      "loc": 78,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/mcp-servers.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/ml-training.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/models-inference.md",
+      "language": "markdown",
+      "loc": 65,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/repo-knowledge.md",
+      "language": "markdown",
+      "loc": 85,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/sdlc.md",
+      "language": "markdown",
+      "loc": 79,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/settings-help.md",
+      "language": "markdown",
+      "loc": 158,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/runbooks/user-services.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "dotfiles/nvim/windows/init.lua",
+      "language": "other",
+      "loc": 46,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/neovim-dashboard.bats",
+      "language": "shell",
+      "loc": 2614,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "dotfiles/nvim/init.lua:lazy-bootstrap",
+      "kind": "block",
+      "file": "dotfiles/nvim/init.lua",
+      "signature": "lazy.nvim clone --filter=blob:none, checkout stable, rtp:prepend",
+      "type_text": "bootstrap -> plugin-manager",
+      "source": "read"
+    },
+    {
+      "qualified_name": "dotfiles/install.sh:nvim-para5",
+      "kind": "block",
+      "file": "dotfiles/install.sh",
+      "signature": "NVIM_SRC/DST copy, diff -rq -x lazy-lock.json, timestamp backup",
+      "type_text": "repo -> live sync",
+      "source": "read"
+    },
+    {
+      "qualified_name": "tests/spec/neovim-dashboard.bats:setup",
+      "kind": "function",
+      "file": "tests/spec/neovim-dashboard.bats",
+      "signature": "setup() stages CONFIG_SRC to XDG_CONFIG_HOME/nvim, NVIM_DASHBOARD_CONFIG_SRC hook",
+      "type_text": "bats setup -> staged config",
+      "source": "read"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "dotfiles/nvim/init.lua"
+    ],
+    "edges": [
+      {
+        "from": "init.lua",
+        "to": "config.dashboard.setup",
+        "kind": "calls"
+      }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory/context7 nicht verfuegbar \u2014 Symbole per Read/grep erhoben",
+      "severity": "info"
+    },
+    {
+      "note": ".agents/plans/nvim-setup/inventory.md fehlt im Repo \u2014 Befunde I0-I5/K1-K11 als Hypothesen mit Probenpflicht",
+      "severity": "info"
+    },
+    {
+      "note": "Home-Dotfiles-Repo ausserhalb dieses Repos \u2014 p1 prueft nur, keine Mutation",
+      "severity": "warn"
+    },
+    {
+      "note": "user-services.lua nur live \u2014 p8 sichert vor Umbau (p1 Schritt 0)",
+      "severity": "warn"
+    }
+  ]
+}

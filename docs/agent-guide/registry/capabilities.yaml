@@ -302,6 +302,15 @@ capabilities:
       tier: safe
       deep_ref: ".claude/skills/operations-management/SKILL.md"
 
+  ops-broker:
+    cli:openclaw-ask:
+      state: canonical
+      use_when: "Vage Ops-Aufgabe synchron an OpenClaw task-runner geben: bash scripts/openclaw-ask.sh '<aufgabe>'."
+      avoid_when: "mutierende Aktionen — OpenClaw empfiehlt nur"
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: "docs/runbooks/openclaw-ops-bot.md"
+
   gitops-wissen:
     skill:gitops-knowledge:
       state: canonical

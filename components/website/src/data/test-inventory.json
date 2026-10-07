@@ -4452,6 +4452,12 @@
     "kind": "shell"
   },
   {
+    "id": "openclaw-ops-bot",
+    "file": "tests/spec/openclaw-ops-bot.bats",
+    "category": "openclaw-ops-bot",
+    "kind": "shell"
+  },
+  {
     "id": "opencode-config-ssot",
     "file": "tests/spec/opencode-config-ssot.bats",
     "category": "opencode-config-ssot",

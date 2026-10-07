@@ -1,7 +1,78 @@
+---
+title: "p1 — Installation: Taskfile und systemd-Unit"
+ticket_id: T900538
+domains: [agent-tooling, llm-local-dev]
+status: active
+---
+
+# p1 — Installation
+
+Files: `taskfiles/Taskfile.openclaw.yml` (komplett ersetzt), `openclaw/openclaw-gateway.service` (neu); disjunkt zu p2–p5.
+
+Vertrag: `openspec/changes/openclaw-ops-bot/design.md`, Abschnitte „Gemeinsamer Vertrag" und „1. Installation".
+Beide Dateien werden exakt mit den Inhalten unten geschrieben. Nichts anderes ändern, insbesondere
+nicht `Taskfile.yml` (der Include `openclaw:` bleibt) und nichts unter `openclaw/` außer der Unit.
+Die echte Installation (`task openclaw:install`) läuft in diesem Partial nicht, sie lädt aus dem Netz.
+
+Regeln für beide Dateien:
+
+- Im Taskfile verboten sind `sudo`, `npm install -g opencode`, `npm uninstall -g opencode`, `command -v opencode`
+  und `.config/opencode`, auch in Kommentaren (Spec `llm-local-dev`). Erlaubt ist das Lesen von
+  `~/.local/share/opencode/auth.json` mit `jq -r '."opencode-go".key // empty'`.
+- `{{.VAR}}` ist ein Go-Template von Task und wird vor der Shell ersetzt. `$VAR` ist Shell. Im Taskfile
+  darf nirgends sonst `{{` stehen.
+- `configure` und `start` lesen `openclaw/.env.example`, `openclaw/openclaw.json5`, `openclaw/exec-approvals.json5`,
+  `openclaw/workspace/AGENTS.md` und `openclaw/heartbeat-scratch.md` nur. Diese Dateien entstehen in p2 und p3.
+  Ein `HEARTBEAT.md` im Workspace gibt es nicht (in OpenClaw ausgemustert, `doctor --fix` würde es archivieren).
+  `.env.example` hat das Format `NAME=wert` je Zeile, Secrets mit leerem Wert.
+
+## Task 1.1: systemd-User-Unit anlegen
+
+Datei `openclaw/openclaw-gateway.service` mit exakt diesem Inhalt anlegen:
+
+```ini
+[Unit]
+Description=OpenClaw Gateway (openclaw-ops-bot, T900538)
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.openclaw/.env
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.local/bin/openclaw gateway --port 18789
+Restart=always
+RestartSec=5
+RestartPreventExitStatus=78
+
+[Install]
+WantedBy=default.target
+```
+
+`ExecStart` nutzt den Wrapper `%h/.local/bin/openclaw`, den `install` schreibt. `Environment=PATH` macht
+`kubectl`, `flux`, `gh` und `git` für die Exec-Allowlist auffindbar, ohne `~/.local/bin` vorauszusetzen.
+Kein `After=network-online.target`, weil der User-Manager dieses Target nicht kennt.
+
+Prüfung (kein `systemd-analyze verify`, das scheitert ohne installierten Wrapper):
+
+```bash
+f=openclaw/openclaw-gateway.service
+for l in 'EnvironmentFile=%h/.openclaw/.env' 'ExecStart=%h/.local/bin/openclaw gateway --port 18789' \
+         'Restart=always' 'RestartSec=5' 'RestartPreventExitStatus=78' 'WantedBy=default.target'; do
+  grep -qxF "$l" "$f" || { echo "fehlt: $l"; exit 1; }
+done
+echo "unit ok"
+```
+
+## Task 1.2: Taskfile ersetzen
+
+`taskfiles/Taskfile.openclaw.yml` vollständig durch diesen Inhalt ersetzen. Die alten Variablen
+`DETECTED_CMD`, `OPCODE_CMD`, `OPENCLAW_HOME`, `OPENCODE_HOME`, `ACTIVE_HOME`, `BACKUP_DIR` und der
+Schlusskommentar zu `factory-mcp` entfallen.
+
+```yaml
 version: "3"
 
 # OpenClaw-Ops-Bot (T900538): eigener Node 24, OpenClaw per npm-Prefix, systemd-User-Unit.
-# Vertrag: .agents/plans/openclaw-ops-bot/design.md. System-Node bleibt unverändert.
+# Vertrag: openspec/changes/openclaw-ops-bot/design.md. System-Node bleibt unverändert.
 
 vars:
   OPENCLAW_VERSION: "2026.9.6"
@@ -260,3 +331,86 @@ tasks:
         rm -rf "$HOME/.local/opt/openclaw" "$HOME/.local/bin/openclaw" "$HOME/.local/opt/node24" "$HOME/.openclaw"
         rm -rf "$HOME"/.openclaw.bak.*
         echo "Entfernt."
+```
+
+Semantik je Task (Design, Abschnitt 1):
+
+- `install`: Node-Tarball nach `$TMPDIR` laden, `sha256sum -c` bricht vor dem Entpacken ab, Entpacken nach
+  `~/.local/opt/node24`; `npm install -g --prefix ~/.local/opt/openclaw openclaw@2026.9.6` mit dem Node-24-`npm`.
+  Den Bin-Pfad liest Node aus `package.json` (`bin` als String oder als Objekt mit Schlüssel `openclaw`,
+  führendes `./` wird entfernt). Der Wrapper enthält `$HOME` wörtlich. Abschluss: `openclaw --version`
+  muss `2026.9.6` enthalten.
+- `configure`: bricht ab, wenn der Wrapper oder eine Vorlage fehlt. Legt `.env` nur an, wenn sie fehlt (chmod 600), füllt
+  nur leere Werte: Token per `openssl rand -hex 32`, Session per `/proc/sys/kernel/random/uuid`, Go-Key per
+  `jq` aus der Auth-Datei. Bestehende Werte bleiben. `TELEGRAM_BOT_TOKEN` und `TELEGRAM_CHAT_ID` bleiben leer (trägt der
+  Nutzer ein). Kopiert die Config, spielt danach die Exec-Allowlist per
+  `openclaw approvals set --file openclaw/exec-approvals.json5` ein, setzt den Symlink `~/.openclaw/workspace/AGENTS.md`, installiert
+  die Unit und ruft `daemon-reload`.
+- Syntax-Beleg für `approvals set`: context7 `/websites/openclaw_ai`, Seite `https://docs.openclaw.ai/cli/approvals.md`
+  („Set approvals from file or stdin": `openclaw approvals set --file ./exec-approvals.json`, JSON5 erlaubt).
+  Ohne `--gateway`/`--node` gilt das lokale Host-Dokument. Die Doku-Version ist nicht an `2026.9.6` gebunden,
+  deshalb nach der echten Installation einmal `openclaw approvals --help` gegenprüfen (Design R6).
+- `status`: Exit 1, wenn Unit oder Gateway nicht antworten. Ein nicht erreichbares lokales Modell ist nur ein
+  Hinweis (Fallback, R7). Leere `TELEGRAM_BOT_TOKEN` oder `TELEGRAM_CHAT_ID` ergeben je eine Hinweiszeile.
+- `start`: Unit aktivieren, bis zu 30 s `/healthz` pollen, dann die Job-ID des Heartbeat-Jobs von `ops` aus
+  `openclaw cron list --all --json` lesen und `openclaw cron scratch <jobId> --file openclaw/heartbeat-scratch.md`
+  ausführen, danach `status`. Gateway nicht bereit, Scratch-Datei fehlt, `cron list` scheitert oder kein Job
+  gefunden: je eine Zeile `Warnung: ...`, kein Abbruch.
+- Syntax-Beleg für `cron`: context7 `/websites/openclaw_ai`, `https://docs.openclaw.ai/gateway/heartbeat.md`
+  („Manage heartbeat scratch": `openclaw cron scratch <jobId> --file notes.md`; der Gateway führt je Agent mit
+  Heartbeat einen System-Job, sichtbar in `openclaw cron list --all` als `Heartbeat (agent-id)`) und
+  `https://docs.openclaw.ai/cli/cron.md` („--json always requests JSON output"). Die Form der JSON-Liste ist
+  dort nicht dokumentiert. Der `jq`-Filter akzeptiert deshalb ein Array oder ein Objekt mit `jobs`/`items`
+  und wählt `name == "Heartbeat (ops)"` oder `agentId == "ops"` mit Namen ab `Heartbeat`. Nach der echten
+  Installation einmal `openclaw cron list --all --json` gegenprüfen (Design R6).
+- `restore` und `wipe` entfernen zusätzlich den Wrapper `~/.local/bin/openclaw`, damit kein toter Wrapper
+  zurückbleibt.
+
+Prüfung:
+
+```bash
+python3 -c '
+import re, yaml
+d = yaml.safe_load(open("taskfiles/Taskfile.openclaw.yml"))
+v = d["vars"]
+assert re.fullmatch(r"[0-9a-f]{64}", v["NODE24_SHA256"]), "NODE24_SHA256"
+assert v["NODE24_SHA256"] == "fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6"
+assert v["OPENCLAW_VERSION"] == "2026.9.6" and v["NODE24_VERSION"] == "v24.21.0"
+want = "backup install configure start status logs restore wipe".split()
+assert sorted(d["tasks"]) == sorted(want), sorted(d["tasks"])
+print("yaml ok")
+'
+! grep -nF -e sudo -e 'npm install -g opencode' -e 'npm uninstall -g opencode' -e 'command -v opencode' -e '.config/opencode' taskfiles/Taskfile.openclaw.yml
+for t in backup install configure start status logs restore wipe; do
+  grep -qE "^  ${t}:" taskfiles/Taskfile.openclaw.yml || { echo "fehlt: $t"; exit 1; }
+done
+task --list-all --taskfile taskfiles/Taskfile.openclaw.yml
+```
+
+## Task 1.3: Offline-Rauchtest mit Fake-HOME
+
+Prüft `backup`, `restore` und die `wipe`-Sperre, ohne Netzwerk und ohne echte Installation. `systemctl` wird
+durch einen Stub ersetzt, damit der echte User-Manager unberührt bleibt. Nichts davon wird ins Repo geschrieben.
+
+```bash
+set -u
+tf="$PWD/taskfiles/Taskfile.openclaw.yml"
+tmp="$(mktemp -d)"
+mkdir -p "$tmp/home/.openclaw" "$tmp/stub"
+printf '#!/bin/sh\nexit 3\n' > "$tmp/stub/systemctl"
+chmod +x "$tmp/stub/systemctl"
+run() { HOME="$tmp/home" PATH="$tmp/stub:$PATH" task --taskfile "$tf" "$@"; }
+run backup && test -d "$tmp/home/.openclaw.bak.$(date +%Y%m%d)" && echo "backup ok"
+mkdir "$tmp/home/.openclaw"
+run backup && { echo "FEHLER: zweites backup hätte abbrechen müssen"; exit 1; }
+run restore && test -d "$tmp/home/.openclaw" && ! ls -d "$tmp/home"/.openclaw.bak.* 2>/dev/null && echo "restore ok"
+run wipe && { echo "FEHLER: wipe ohne CONFIRM=yes"; exit 1; }
+test -d "$tmp/home/.openclaw" && echo "wipe-sperre ok"
+run wipe CONFIRM=yes && ! test -e "$tmp/home/.openclaw" && echo "wipe ok"
+rm -rf "$tmp"
+```
+
+Erwartet: die Zeilen `backup ok`, `restore ok`, `wipe-sperre ok`, `wipe ok` und kein `FEHLER`.
+
+Akzeptanz: Die p5-Tests in `tests/unit/openclaw-taskfile.bats` (acht Tasks, keine verbotenen Muster,
+`NODE24_SHA256` mit 64 Hex-Zeichen, Root-Include) laufen gegen diese Dateien.

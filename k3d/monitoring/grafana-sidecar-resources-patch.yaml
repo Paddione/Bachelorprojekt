@@ -15,3 +15,11 @@ spec:
           resources:
             requests: { cpu: 10m, memory: 64Mi }
             limits:   { cpu: 100m, memory: 128Mi }
+      # T901100: Init-Container init-chown-data (busybox) braucht resources.requests & limits,
+      # um Sentinel-Findings (BestEffort QoS) in k3d und prod-fleet (mentolder/korczewski) zu beheben.
+      initContainers:
+        - name: init-chown-data
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits:   { cpu: 100m, memory: 64Mi }
+

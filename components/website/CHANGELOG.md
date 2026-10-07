@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.396.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.1...website-v1.396.2) (2026-10-07)
+
+
+### Bug Fixes
+
+* **infra:** repair workspace-staging secrets, schema hooks, grants and nextcloud host [T900806] ([#6315](https://github.com/Paddione/Bachelorprojekt/issues/6315)) ([50d745d](https://github.com/Paddione/Bachelorprojekt/commit/50d745d89e5f891822f808936abaeacbd8298474))
+
 ## [1.396.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.0...website-v1.396.1) (2026-10-07)
 
 

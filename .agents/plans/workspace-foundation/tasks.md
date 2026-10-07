@@ -60,6 +60,8 @@ mandatory repo verification sequence.
 - [ ] `task freshness:regenerate`
 - [ ] Commit regenerated artifacts with explicit pathspecs.
 - [ ] `task freshness:check`
+- [ ] CQ02 any-count stays within limit:
+  `bash -c "count=$(grep -rn ': any\|<any>\|as any' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l | tr -d ' '); echo \"any count: $count (limit: 200)\"; [ $count -le 200 ]"`
 
 ### Acceptance criteria
 

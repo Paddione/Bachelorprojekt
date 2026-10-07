@@ -32,10 +32,18 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 MIN_FREE_MIB = {"16bit": 13_000, "4bit": 9_000}
 
-# T900978 P2: model-size specs. 2B pilot (default): unsloth/Qwen3.5-2B,
-# 16-bit LoRA r=32 on the P1 slice (dataset_2b_train.jsonl, 200 steps).
+# T900979 P2: model-size specs including 0.8b minimal instruct worker.
+# 2B pilot: unsloth/Qwen3.5-2B, 16-bit LoRA r=32.
 # 4B-MTP branch kept for reproducibility of the shipped 4B run.
 MODEL_SPECS = {
+    "0.8b": {
+        "hf_16bit": "unsloth/Qwen3.5-0.8B",
+        "hf_4bit": "unsloth/Qwen3.5-0.8B-bnb-4bit",
+        "lora_16bit": "qwen35_08b_bp_lora",
+        "lora_4bit": "qwen35_08b_bp_lora_4bit",
+        "dataset": "dataset_08b_train.jsonl",
+        "lora_r_16bit": 16,
+    },
     "2b": {
         "hf_16bit": "unsloth/Qwen3.5-2B",
         "hf_4bit": "unsloth/Qwen3.5-2B-bnb-4bit",
@@ -122,9 +130,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--precision", choices=["16bit", "4bit"], default="16bit",
                     help="16-bit LoRA (default, best quality) or QLoRA 4-bit fallback")
-    ap.add_argument("--model-size", choices=["2b", "4b", "4b-mtp"], default="4b-mtp",
+    ap.add_argument("--model-size", choices=["0.8b", "2b", "4b", "4b-mtp"], default="4b-mtp",
                     help="4b / 4b-mtp = Qwen3.5-4B worker training (default); "
-                         "2b = Qwen3.5-2B pilot on the P1 slice")
+                         "2b = Qwen3.5-2B pilot on the P1 slice; "
+                         "0.8b = Qwen3.5-0.8B minimal mechanical worker")
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--max-steps", type=int, default=200,
                     help="cap optimizer steps (overrides epochs when > 0; "

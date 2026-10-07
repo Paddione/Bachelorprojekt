@@ -45,6 +45,8 @@ SEED = 3407
 # (command, path/overlay, context). Dependent partials (P2 train, P3 eval)
 # build on the slice outputs dataset_2b_*.jsonl.
 SLICE_2B_DOMAINS = {"cli", "gotchas", "workflow", "runbooks", "ci", "llmstack"}
+# P1 (T900979) 0.8B minimal slice: mechanical tasks (renames, lockfile bumps, doc-syncs, CLI basics)
+SLICE_08B_DOMAINS = {"cli", "gotchas", "boilerplate"}
 # Anchor: executable command OR repo path/overlay OR task target in the answer.
 ANCHOR_RE = (
     r"(?:```|\b(?:task|bash|git|curl|kubectl|systemctl|python3?|node|nvidia-smi)\s+\S"
@@ -811,6 +813,37 @@ def apply_slice_2b(raw):
                   "slice_dropped": len(raw) - len(kept)}
 
 
+def is_slice_08b(domain, item):
+    """P1 (T900979): keep 0.8B-relevant mechanical domains whose answer carries an anchor."""
+    import re as _re
+    if domain not in SLICE_08B_DOMAINS:
+        return False
+    answer = item["messages"][-1]["content"]
+    return bool(_re.search(ANCHOR_RE, answer))
+
+
+def apply_slice_08b(raw):
+    """P1 (T900979): filter raw (domain, item) pairs to the 0.8B minimal mechanical slice."""
+    kept = [(d, it) for d, it in raw if is_slice_08b(d, it)]
+    return kept, {"slice_domains": sorted(SLICE_08B_DOMAINS),
+                  "slice_raw": len(raw), "slice_kept": len(kept),
+                  "slice_dropped": len(raw) - len(kept)}
+
+
+def _prev_slice(key):
+    """T900979: preserve the other slice block across generator runs.
+
+    dataset_stats.json is shared by all slices; without this a
+    --slice-08b run would null out slice_2b (and vice versa), breaking
+    the sibling slice's spec test. Best-effort: None when unreadable.
+    """
+    try:
+        prev = json.loads((HERE / "dataset_stats.json").read_text())
+    except Exception:
+        return None
+    return prev.get(key)
+
+
 def build_t1():
     """Deterministic fact-base expansion -> list of (domain, messages)."""
     raw = []
@@ -1248,6 +1281,9 @@ def main():
     ap.add_argument("--slice-2b", action="store_true",
                     help="T900978 P1: 2B pilot slice (domain + anchor filter); "
                          "writes dataset_2b*.jsonl + dataset_stats.json")
+    ap.add_argument("--slice-08b", action="store_true",
+                    help="T900979 P1: 0.8B minimal mechanical slice (domain + anchor filter); "
+                         "writes dataset_08b*.jsonl + dataset_stats.json")
     args = ap.parse_args()
 
     rng = random.Random(SEED)
@@ -1267,6 +1303,11 @@ def main():
         raw, slice_stats = apply_slice_2b(raw)
         out_prefix = "dataset_2b"
         print(f"[slice-2b] {slice_stats['slice_kept']}/{slice_stats['slice_raw']} kept "
+              f"(domains {','.join(slice_stats['slice_domains'])})", flush=True)
+    elif args.slice_08b:
+        raw, slice_stats = apply_slice_08b(raw)
+        out_prefix = "dataset_08b"
+        print(f"[slice-08b] {slice_stats['slice_kept']}/{slice_stats['slice_raw']} kept "
               f"(domains {','.join(slice_stats['slice_domains'])})", flush=True)
     kept, stats = dedup(raw)
     t1_unique = len(kept)
@@ -1370,7 +1411,8 @@ def main():
         "target": args.target,
         "target_met": len(entries) >= args.target if args.teacher else None,
         "near_dup_jaccard": NEAR_DUP_JACCARD,
-        "slice_2b": slice_stats if args.slice_2b else None,
+        "slice_2b": slice_stats if args.slice_2b else _prev_slice("slice_2b"),
+        "slice_08b": slice_stats if args.slice_08b else _prev_slice("slice_08b"),
         "by_domain": dict(sorted(by_domain.items(), key=lambda kv: -kv[1])),
         **stats,
     }

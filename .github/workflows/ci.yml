@@ -7,7 +7,7 @@ on:
     # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
     # still trigger this workflow so the branch-protection required checks
     # (SSOT: scripts/gh-branch-protection.sh — BATS Unit + Quality Gates,
-    # Security Scan, Brett TypeScript, Conventional Commits) report success —
+    # Security Scan, Brett TypeScript, Conventional Commits, Spec + Guards) report success —
     # otherwise mergeStateStatus stays BLOCKED indefinitely and admin-merge is
     # required. See mishap T001149-M3.
     # [T900810] Manifest Validation, der test-factory-Aggregator und Vitest
@@ -556,7 +556,8 @@ jobs:
     # ihn scheitern. Das ist wesentlich — ohne always() wuerde er bei
     # fehlgeschlagenen needs uebersprungen und damit das Gate lautlos oeffnen
     # (ein uebersprungener Check zaehlt als bestanden).
-    # [T900810] Advisory, kein Required Check (T900131).
+    # [T901066] Required Check (SSOT gh-branch-protection.sh): als advisory Check
+    # liess Auto-Merge rote Spec-Laeufe nach main durch (#6280, #6287).
     name: Spec + Guards
     if: always() && github.event.action != 'edited'
     needs: [test-spec-fast, test-spec-shard]

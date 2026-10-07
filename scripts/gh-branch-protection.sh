@@ -3,7 +3,7 @@
 #
 # Setzt die required status checks für Paddione/Bachelorprojekt:main
 # auf: BATS Unit + Quality Gates, Security Scan, Brett TypeScript,
-#      Conventional Commits
+#      Conventional Commits, Spec + Guards
 # (E2E PR ist NICHT enthalten — informativ, blockiert keinen Auto-Merge)
 #
 # Verwendung:
@@ -29,6 +29,8 @@ REQUIRED_CHECKS_BASE=(
   "Brett TypeScript"
 
   "Conventional Commits"
+  # [T901066] Auto-Merge ueberging rote advisory Spec-Laeufe (#6280, #6287 -> main rot).
+  "Spec + Guards"
 )
 
 # Required checks inkl. E2E (Emergency-Stop-Zustand)
@@ -38,6 +40,7 @@ REQUIRED_CHECKS_WITH_E2E=(
   "Brett TypeScript"
 
   "Conventional Commits"
+  "Spec + Guards"
   "E2E PR"
 )
 

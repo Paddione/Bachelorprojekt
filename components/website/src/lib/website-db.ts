@@ -311,3 +311,10 @@ export { initBillingTables, initTaxMonitorTables, initEurTables } from './billin
 // Re-exports from content-store-db.ts
 export { readContent, writeContent, listVersions, ContentConflictError } from './content-store-db';
 export type { ContentRead } from './content-store-db';
+
+// Re-exports from business-memberships.ts (T901022)
+export {
+  listMembershipsForUser, listMembershipsForBrand, getMembership,
+  addMembership, removeMembership,
+} from './business-memberships';
+export type { BusinessMembership, BusinessRole } from './business-memberships';

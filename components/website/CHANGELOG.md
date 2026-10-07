@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.396.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.2...website-v1.396.3) (2026-10-07)
+
+
+### Bug Fixes
+
+* **infra:** add unique pr_number to bachelorprojekt.features before software_events FK [T901103] ([#6318](https://github.com/Paddione/Bachelorprojekt/issues/6318)) ([7848d8f](https://github.com/Paddione/Bachelorprojekt/commit/7848d8fcc3356fcebd31170b5149d37fc75c9123))
+
 ## [1.396.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.1...website-v1.396.2) (2026-10-07)
 
 

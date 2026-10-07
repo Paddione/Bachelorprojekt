@@ -74,24 +74,24 @@ capabilities:
 });
 
 
-// [T900529] Die minimale Harness-Rolle `pi` ist eine gueltige Rolle. Ohne ihren
-// Eintrag in VALID_ROLES wuerde check.mjs jede explizit an `pi` vergebene
+// [T900793] Die minimale Harness-Rolle `omp` ist eine gueltige Rolle. Ohne ihren
+// Eintrag in VALID_ROLES wuerde check.mjs jede explizit an `omp` vergebene
 // Instanz als "unknown role" ablehnen — die Registry koennte den Harness gar
 // nicht versorgen.
-test('check.mjs accepts role pi on a canonical instance', () => {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'toolset-check-test-pi-'));
+test('check.mjs accepts role omp on a canonical instance', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'toolset-check-test-omp-'));
   const regFile = path.join(tmpDir, 'capabilities.yaml');
   const claudeDir = path.join(tmpDir, '.claude');
   fs.mkdirSync(claudeDir, { recursive: true });
 
   fs.writeFileSync(regFile, `
 capabilities:
-  pi-harness:
-    skill:pi-only-skill:
+  omp-harness:
+    skill:omp-only-skill:
       state: canonical
       use_when: "Nur fuer die minimale Harness-Rolle"
       roles:
-        - pi
+        - omp
 `);
 
   const settingsFile = path.join(claudeDir, 'settings.json');

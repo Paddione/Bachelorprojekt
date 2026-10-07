@@ -12,7 +12,7 @@ if ! $dry; then
   : "${LANGFUSE_PUBLIC_KEY:?}" "${LANGFUSE_SECRET_KEY:?}" "${LANGFUSE_BASE_URL:?}"
 fi
 user_id="$(git -C "$root" config user.email 2>/dev/null || true)"
-for harness in claude opencode pi codex; do
+for harness in claude opencode omp codex; do
   if ! command -v "$harness" >/dev/null 2>&1; then echo "skip $harness: not installed"; continue; fi
   if $dry; then echo "$harness: configure Langfuse observability"; continue; fi
   case "$harness" in
@@ -30,11 +30,12 @@ for harness in claude opencode pi codex; do
       chmod 600 "$config"
       config="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/opencode-langfuse.json"; mkdir -p "$(dirname "$config")"; umask 077
       jq -n --arg p "$LANGFUSE_PUBLIC_KEY" --arg s "$LANGFUSE_SECRET_KEY" --arg b "$LANGFUSE_BASE_URL" --arg u "$user_id" '{publicKey:$p,secretKey:$s,baseUrl:$b,environment:"development",userId:$u}' > "$config"; chmod 600 "$config" ;;
-    pi)
-      pi install npm:@langfuse/pi-observability-plugin@0.1.2
-      pi list 2>/dev/null | grep -q '@langfuse/pi-observability-plugin' \
-        || { echo "pi: @langfuse/pi-observability-plugin missing after pi install" >&2; exit 1; }
-      config="$HOME/.pi/agent/langfuse.json"; mkdir -p "$(dirname "$config")"; umask 077
+    omp)
+      # omp ist pi-Linie (T900793): dasselbe Observability-Plugin, Agent-Home ~/.omp.
+      omp install npm:@langfuse/pi-observability-plugin@0.1.2
+      omp list 2>/dev/null | grep -q '@langfuse/pi-observability-plugin' \
+        || { echo "omp: @langfuse/pi-observability-plugin missing after omp install" >&2; exit 1; }
+      config="$HOME/.omp/agent/langfuse.json"; mkdir -p "$(dirname "$config")"; umask 077
       jq -n --arg p "$LANGFUSE_PUBLIC_KEY" --arg s "$LANGFUSE_SECRET_KEY" --arg b "$LANGFUSE_BASE_URL" --arg u "$user_id" '{publicKey:$p,secretKey:$s,baseUrl:$b,userId:$u}' > "$config"; chmod 600 "$config" ;;
     codex)
       codex plugin marketplace add langfuse/codex-observability-plugin --ref v0.4.0 >/dev/null

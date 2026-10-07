@@ -12,7 +12,7 @@ const yaml = yamlPkg.default ?? yamlPkg;
 
 export function resolveRoleOrThrow(role) {
   const r = resolveRole(role);
-  if (!r) throw new Error(`unbekannte Rolle "${role}" — gültig: bp-build, bp-run, bp-ship, orchestrator, big-pickle, pi`);
+  if (!r) throw new Error(`unbekannte Rolle "${role}" — gültig: bp-build, bp-run, bp-ship, orchestrator, big-pickle, omp`);
   return r.role;
 }
 

@@ -4458,6 +4458,12 @@
     "kind": "shell"
   },
   {
+    "id": "omp-harness",
+    "file": "tests/spec/omp-harness.bats",
+    "category": "omp-harness",
+    "kind": "shell"
+  },
+  {
     "id": "openclaw-ops-bot",
     "file": "tests/spec/openclaw-ops-bot.bats",
     "category": "openclaw-ops-bot",
@@ -4497,12 +4503,6 @@
     "id": "p0min-freeze-embed",
     "file": "tests/spec/p0min-freeze-embed.bats",
     "category": "p0min-freeze-embed",
-    "kind": "shell"
-  },
-  {
-    "id": "pi-harness",
-    "file": "tests/spec/pi-harness.bats",
-    "category": "pi-harness",
     "kind": "shell"
   },
   {

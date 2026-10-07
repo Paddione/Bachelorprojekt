@@ -24,7 +24,7 @@ cmd_check() {
 
   local -a msgs=()
   local h
-  for h in claude opencode pi codex; do
+  for h in claude opencode omp codex; do
     command -v "$h" >/dev/null 2>&1 || continue
     case "$h" in
       claude)
@@ -35,8 +35,8 @@ cmd_check() {
       opencode)
         [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/opencode-langfuse.json" ] || msgs+=("Langfuse: $h tracet nicht (Config fehlt) — task devmesh:langfuse:setup")
         ;;
-      pi)
-        [ -f "$HOME/.pi/agent/langfuse.json" ] || msgs+=("Langfuse: $h tracet nicht (Config fehlt) — task devmesh:langfuse:setup")
+      omp)
+        [ -f "$HOME/.omp/agent/langfuse.json" ] || msgs+=("Langfuse: $h tracet nicht (Config fehlt) — task devmesh:langfuse:setup")
         ;;
       codex)
         [ -f "$HOME/.codex/langfuse.json" ] || msgs+=("Langfuse: $h tracet nicht (Config fehlt) — task devmesh:langfuse:setup")

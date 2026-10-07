@@ -14,12 +14,13 @@ export const ROLES = Object.freeze([
   'orchestrator',
   // [T012912] Rolle aus agents.yaml/AGENTS.md.
   'big-pickle',
-  // [T900529] Zweiter Harness (pi-coding-agent) — erbt die Wildcard bewusst nicht.
-  'pi',
+  // [T900793] Harness-Rolle `omp` (oh-my-pi, ersetzt pi-coding-agent T900529) —
+  // erbt die Wildcard bewusst nicht.
+  'omp',
   'all',
 ]);
 
-// Rollen, die `all` abdeckt. Eigene Liste statt "alles außer pi": eine Wildcard, die sich
+// Rollen, die `all` abdeckt. Eigene Liste statt "alles außer omp": eine Wildcard, die sich
 // still mit der Rollenliste ausdehnt, drückte einer neu aufgenommenen Rolle den kompletten
 // Katalog auf.
 export const WILDCARD_ROLES = Object.freeze(['bp-build', 'bp-run', 'bp-ship', 'orchestrator', 'big-pickle']);

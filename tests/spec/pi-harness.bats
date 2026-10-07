@@ -139,6 +139,8 @@ printf '%s\n' "$@" > "${PI_STUB_LOG}.args"
 cp "${PI_CODING_AGENT_DIR}/models.json" "${PI_STUB_LOG}.models"
 echo "$PI_CODING_AGENT_DIR" > "${PI_STUB_LOG}.dir"
 [ -z "${PI_STUB_TOUCH:-}" ] || echo probe > "$PI_STUB_TOUCH"
+[ -z "${PI_STUB_STRAY:-}" ] || echo stray > "$PI_STUB_STRAY"
+[ -z "${PI_STUB_STRAY2:-}" ] || echo stray > "$PI_STUB_STRAY2"
 echo '{"type":"agent_end"}'
 exit 0
 SHEOF
@@ -149,6 +151,8 @@ SHEOF
 
 teardown() {
   [ -z "${PI_STUB_TOUCH:-}" ] || rm -f "$PI_STUB_TOUCH"
+  [ -z "${PI_STUB_STRAY:-}" ] || rm -f "$PI_STUB_STRAY"
+  [ -z "${PI_STUB_STRAY2:-}" ] || rm -f "$PI_STUB_STRAY2"
   if [ -f "${BATS_TEST_TMPDIR}/pids" ]; then
     xargs kill < "${BATS_TEST_TMPDIR}/pids" 2>/dev/null || true
   fi
@@ -215,7 +219,27 @@ teardown() {
 @test "pi-harness: changed_files zaehlt nur, was der Lauf selbst geaendert hat" {
   _pool
   _stub_pi
-  export PI_STUB_TOUCH="${REPO_ROOT}/pi-probe-${BATS_TEST_NUMBER}-$$.txt"
+  local wt="${BATS_TEST_TMPDIR}/worktree"
+  mkdir -p "$wt" && git init -q "$wt"
+  export PI_WORKTREE="$wt"
+  export PI_STUB_TOUCH="${wt}/pi-probe-${BATS_TEST_NUMBER}-$$.txt"
+  run bash "${REPO_ROOT}/scripts/pi-run.sh" "$PLAN" --level L0 --json --skip-tests
+  [ "$status" -eq 0 ]
+  run jq -r '.changed_files' <<<"$(printf '%s\n' "$output" | tail -n 1)"
+  [ "$output" = "1" ]
+}
+
+@test "pi-harness: changed_files ignoriert parallele Schreiber im echten Checkout (T901070)" {
+  _pool
+  _stub_pi
+  local wt="${BATS_TEST_TMPDIR}/worktree"
+  mkdir -p "$wt" && git init -q "$wt"
+  export PI_WORKTREE="$wt"
+  export PI_STUB_TOUCH="${wt}/pi-probe-${BATS_TEST_NUMBER}-$$.txt"
+  # Zwei Stray-Dateien im echten Checkout simulieren deterministisch parallele
+  # bats -j-Schreiber zwischen den dirty-Snapshots (kein Timing-Glueck noetig).
+  export PI_STUB_STRAY="${REPO_ROOT}/pi-stray-${BATS_TEST_NUMBER}-$$.txt"
+  export PI_STUB_STRAY2="${REPO_ROOT}/pi-stray2-${BATS_TEST_NUMBER}-$$.txt"
   run bash "${REPO_ROOT}/scripts/pi-run.sh" "$PLAN" --level L0 --json --skip-tests
   [ "$status" -eq 0 ]
   run jq -r '.changed_files' <<<"$(printf '%s\n' "$output" | tail -n 1)"

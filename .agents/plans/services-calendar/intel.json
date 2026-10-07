@@ -2,7 +2,7 @@
  "meta": {
   "slug": "services-calendar",
   "ticket_id": "",
-  "generated_from": "main@9ea7afa7b",
+  "generated_from": "main@3ad90a8d4",
   "domains": [
    "plan-authoring",
    "dev-tooling",
@@ -16,12 +16,20 @@
  },
  "impact_files": [
   {
-   "path": "components/website/src/lib/caldav.ts",
+   "path": "components/website/src/lib/__tests__/booking-availability.test.ts",
    "language": "javascript",
-   "loc": 468,
+   "loc": 0,
    "s1_limit": 900,
    "s1_baseline": null,
-   "s1_budget": 432
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/__tests__/business-settings.test.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
   },
   {
    "path": "components/website/src/lib/appointments-db.ts",
@@ -32,12 +40,12 @@
    "s1_budget": 432
   },
   {
-   "path": "components/website/src/pages/api/booking.ts",
+   "path": "components/website/src/lib/business-settings.ts",
    "language": "javascript",
-   "loc": 119,
+   "loc": 0,
    "s1_limit": 900,
    "s1_baseline": null,
-   "s1_budget": 781
+   "s1_budget": null
   },
   {
    "path": "components/website/src/lib/caldav-cache.ts",
@@ -48,12 +56,92 @@
    "s1_budget": 813
   },
   {
+   "path": "components/website/src/lib/caldav.ts",
+   "language": "javascript",
+   "loc": 468,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 432
+  },
+  {
+   "path": "components/website/src/lib/website-core-db.ts",
+   "language": "javascript",
+   "loc": 543,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 357
+  },
+  {
+   "path": "components/website/src/pages/api/booking.ts",
+   "language": "javascript",
+   "loc": 119,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 781
+  },
+  {
    "path": "components/website/src/pages/api/calendar/slots.ts",
    "language": "javascript",
    "loc": 30,
    "s1_limit": 900,
    "s1_baseline": null,
    "s1_budget": 870
+  },
+  {
+   "path": "components/website/src/pages/api/owner/bookings/[uid]/cancel.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/api/owner/bookings/[uid]/reschedule.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/api/owner/bookings/phone.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/api/owner/calendar/block.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/owner/kalender.astro",
+   "language": "astro",
+   "loc": 0,
+   "s1_limit": 1000,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "content/massage/leistungen.json",
+   "language": "config",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "tests/spec/services-calendar.bats",
+   "language": "bash",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
   }
  ],
  "symbols": [],
@@ -113,20 +201,20 @@
  "external_types": [],
  "risks": [
   {
-   "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
-   "severity": "warn"
-  },
-  {
    "severity": "warn",
-   "note": "mcp-postgres unavailable, no live DB read; db_tables from code reads."
+   "note": "No services DB table by design (static catalogue); price/duration snapshot per appointment must be specified in plan."
   },
   {
    "severity": "warn",
    "note": "Timezone fix touches shared availability code used by Mentolder paths — needs regression tests on existing behavior."
   },
   {
+   "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+   "severity": "warn"
+  },
+  {
    "severity": "warn",
-   "note": "No services DB table by design (static catalogue); price/duration snapshot per appointment must be specified in plan."
+   "note": "mcp-postgres unavailable, no live DB read; db_tables from code reads."
   }
  ]
 }

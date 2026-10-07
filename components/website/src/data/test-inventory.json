@@ -2178,6 +2178,12 @@
     "kind": "shell"
   },
   {
+    "id": "backup-pipeline/pvc-backup-multinode",
+    "file": "tests/spec/backup-pipeline/pvc-backup-multinode.bats",
+    "category": "backup-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "backup-pipeline/render-escaping",
     "file": "tests/spec/backup-pipeline/render-escaping.bats",
     "category": "backup-pipeline",
@@ -2889,6 +2895,12 @@
     "id": "db-quality-goals",
     "file": "tests/spec/db-quality-goals.bats",
     "category": "db-quality-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "db-restore-verification/generation-lookup",
+    "file": "tests/spec/db-restore-verification/generation-lookup.bats",
+    "category": "db-restore-verification",
     "kind": "shell"
   },
   {
@@ -5739,6 +5751,12 @@
     "id": "workspace-deploy/ntfy-token-escaping-T900059",
     "file": "tests/spec/workspace-deploy/ntfy-token-escaping-T900059.bats",
     "category": "workspace-deploy",
+    "kind": "shell"
+  },
+  {
+    "id": "workspace-foundation",
+    "file": "tests/spec/workspace-foundation.bats",
+    "category": "workspace-foundation",
     "kind": "shell"
   },
   {

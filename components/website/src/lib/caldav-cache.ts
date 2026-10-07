@@ -85,3 +85,44 @@ export function parseICalDate(val: string): Date {
   const iso = `${clean.slice(0, 4)}-${clean.slice(4, 6)}-${clean.slice(6, 8)}T${clean.slice(9, 11)}:${clean.slice(11, 13)}:${clean.slice(13, 15)}`;
   return clean.endsWith('Z') ? new Date(iso + 'Z') : new Date(iso);
 }
+
+// Booking rules (T901023): slot buffers and Berlin calendar-day helpers.
+// Pure and import-free like the rest of this module.
+export const SLOT_BUFFER_MIN = parseInt(process.env.SLOT_BUFFER_MIN || '0');
+export const BOOKING_LEADTIME_DAYS = parseInt(process.env.BOOKING_LEADTIME_DAYS || '1');
+export const BERLIN_TZ = process.env.BERLIN_TZ || 'Europe/Berlin';
+
+function berlinParts(d: Date): Record<string, string> {
+  const out: Record<string, string> = {};
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BERLIN_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(d);
+  for (const part of parts) {
+    if (part.type !== 'literal') out[part.type] = part.value;
+  }
+  return out;
+}
+
+/** Berlin calendar day of an instant as YYYY-MM-DD. */
+export function berlinDayKey(d: Date): string {
+  const p = berlinParts(d);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+/** Minutes since Berlin midnight for an instant (0–1439). */
+export function berlinWallMinutes(d: Date): number {
+  const p = berlinParts(d);
+  return parseInt(p.hour, 10) * 60 + parseInt(p.minute, 10);
+}
+
+/** Berlin ISO weekday of an instant (1 = Monday … 7 = Sunday). */
+export function berlinWeekdayIso(d: Date): number {
+  const days = Math.round(Date.parse(berlinDayKey(d)) / 86400000);
+  return ((((days + 3) % 7) + 7) % 7) + 1;
+}

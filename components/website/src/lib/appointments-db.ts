@@ -8,6 +8,7 @@
 
 import { pool } from './db-pool';
 import { initTicketsSchema } from './tickets-schema';
+import { berlinDayKey, berlinWallMinutes } from './caldav-cache';
 
 // SQL fragment that maps `tickets.status` back to the old `ProjectStatus`.
 // Copied from website-db.ts so this module stays self-contained.
@@ -451,18 +452,17 @@ export async function removeFreeTimeWindow(brand: string, id: string): Promise<v
 
 export async function isSlotInAnyWindow(brand: string, slotStart: Date, slotEnd: Date): Promise<boolean> {
   await initFreeTimeWindowsTable();
-  const dateStr = slotStart.toISOString().split('T')[0];
-  const sh = slotStart.getHours().toString().padStart(2, '0');
-  const sm = slotStart.getMinutes().toString().padStart(2, '0');
-  const eh = slotEnd.getHours().toString().padStart(2, '0');
-  const em = slotEnd.getMinutes().toString().padStart(2, '0');
+  // Berlin calendar-day bounds (T901023): DST-safe, no fixed offsets.
+  const dateStr = berlinDayKey(slotStart);
+  const formatWall = (minutes: number): string =>
+    `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
   const result = await pool.query(
     `SELECT 1 FROM free_time_windows
      WHERE brand = $1
        AND date = $2::date
        AND win_start <= $3::time
        AND win_end   >= $4::time`,
-    [brand, dateStr, `${sh}:${sm}`, `${eh}:${em}`]
+    [brand, dateStr, formatWall(berlinWallMinutes(slotStart)), formatWall(berlinWallMinutes(slotEnd))]
   );
   return (result.rowCount ?? 0) > 0;
 }

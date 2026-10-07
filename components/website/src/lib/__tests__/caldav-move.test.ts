@@ -50,7 +50,7 @@ describe('updateCalendarEventTime', () => {
     const [, putOpts] = fetchMock.mock.calls[2] as [string, RequestInit];
     expect(putOpts.method).toBe('PUT');
     const putBody = putOpts.body as string;
-    expect(putBody).toMatch(/DTSTART:20260702T090000Z/);
-    expect(putBody).toMatch(/DTEND:20260702T100000Z/);
+    expect(putBody).toMatch(/DTSTART;TZID=Europe\/Berlin:20260702T110000/);
+    expect(putBody).toMatch(/DTEND;TZID=Europe\/Berlin:20260702T120000/);
   });
 });

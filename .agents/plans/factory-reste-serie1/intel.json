@@ -1,0 +1,387 @@
+{
+  "meta": {
+    "slug": "factory-reste-serie1",
+    "ticket_id": "",
+    "generated_from": "main@bde6be76c",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "config",
+      "loc": 1078,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/codeql.yml",
+      "language": "config",
+      "loc": 100,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/e2e-pr.yml",
+      "language": "config",
+      "loc": 230,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/opencode.yml",
+      "language": "config",
+      "loc": 44,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/post-merge.yml",
+      "language": "config",
+      "loc": 122,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "commitlint.config.cjs",
+      "language": "javascript",
+      "loc": 121,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 279
+    },
+    {
+      "path": "docs/runbooks/db-audit-playbook.md",
+      "language": "markdown",
+      "loc": 118,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/freetoken-native.md",
+      "language": "markdown",
+      "loc": 559,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/README.md",
+      "language": "markdown",
+      "loc": 193,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/e3-cutover.md",
+      "language": "markdown",
+      "loc": 226,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/superpowers/references/factory-usage.md",
+      "language": "markdown",
+      "loc": 124,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/lib/ticket-help.sh",
+      "language": "bash",
+      "loc": 365,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 435
+    },
+    {
+      "path": "scripts/plan-touched-files.sh",
+      "language": "bash",
+      "loc": 116,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 684
+    },
+    {
+      "path": "scripts/repo-hygiene-precheck.sh",
+      "language": "bash",
+      "loc": 184,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 616
+    },
+    {
+      "path": "scripts/vda/ticket/stage-plan.sh",
+      "language": "bash",
+      "loc": 178,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 622
+    },
+    {
+      "path": "tests/spec/agent-roster.bats",
+      "language": "bash",
+      "loc": 162,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd.bats",
+      "language": "bash",
+      "loc": 2113,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/database.bats",
+      "language": "bash",
+      "loc": 122,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/pipeline-interface.bats",
+      "language": "bash",
+      "loc": 111,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/website-core.bats",
+      "language": "bash",
+      "loc": 482,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "commitlint.config.cjs:83:function scopeHint(scope) {",
+      "kind": "function",
+      "file": "commitlint.config.cjs",
+      "signature": "83:function scopeHint(scope) {(...)",
+      "type_text": "83:function scopeHint(scope) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/ticket-help.sh:23:ticket_help_wanted() {",
+      "kind": "function",
+      "file": "scripts/lib/ticket-help.sh",
+      "signature": "23:ticket_help_wanted() {(...)",
+      "type_text": "23:ticket_help_wanted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/ticket-help.sh:29:ticket_usage() {",
+      "kind": "function",
+      "file": "scripts/lib/ticket-help.sh",
+      "signature": "29:ticket_usage() {(...)",
+      "type_text": "29:ticket_usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/ticket-help.sh:34:ticket_help_subcommand() {",
+      "kind": "function",
+      "file": "scripts/lib/ticket-help.sh",
+      "signature": "34:ticket_help_subcommand() {(...)",
+      "type_text": "34:ticket_help_subcommand() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/repo-hygiene-precheck.sh:44:snapshot() {",
+      "kind": "function",
+      "file": "scripts/repo-hygiene-precheck.sh",
+      "signature": "44:snapshot() {(...)",
+      "type_text": "44:snapshot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/repo-hygiene-precheck.sh:62:flock_usable() {",
+      "kind": "function",
+      "file": "scripts/repo-hygiene-precheck.sh",
+      "signature": "62:flock_usable() {(...)",
+      "type_text": "62:flock_usable() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/repo-hygiene-precheck.sh:77:tick_state() {",
+      "kind": "function",
+      "file": "scripts/repo-hygiene-precheck.sh",
+      "signature": "77:tick_state() {(...)",
+      "type_text": "77:tick_state() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:14:_exec_sql_with_timeout() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "14:_exec_sql_with_timeout() {(...)",
+      "type_text": "14:_exec_sql_with_timeout() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:39:main() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "39:main() {(...)",
+      "type_text": "39:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-roster.bats:12:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/agent-roster.bats",
+      "signature": "12:setup_file() {(...)",
+      "type_text": "12:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:8:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "8:setup() {(...)",
+      "type_text": "8:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:416:_schema_env_vars() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "416:_schema_env_vars() {(...)",
+      "type_text": "416:_schema_env_vars() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:422:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "422:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)(...)",
+      "type_text": "422:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:437:_website_deploy_list() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "437:_website_deploy_list() {(...)",
+      "type_text": "437:_website_deploy_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:445:_render_placeholders() { # $1 = overlay dir",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "445:_render_placeholders() { # $1 = overlay dir(...)",
+      "type_text": "445:_render_placeholders() { # $1 = overlay dir(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:451:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "451:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)(...)",
+      "type_text": "451:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1299:flux_render_script() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1299:flux_render_script() {(...)",
+      "type_text": "1299:flux_render_script() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1554:_extract_renovate_step() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1554:_extract_renovate_step() {(...)",
+      "type_text": "1554:_extract_renovate_step() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1566:_write_docker_mock() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1566:_write_docker_mock() {(...)",
+      "type_text": "1566:_write_docker_mock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1575:setup_renovate_mock() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1575:setup_renovate_mock() {(...)",
+      "type_text": "1575:setup_renovate_mock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/database.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/database.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/database.bats:32:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/database.bats",
+      "signature": "32:_skip_if_no_db() {(...)",
+      "type_text": "32:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/database.bats:42:_psql_db() {",
+      "kind": "function",
+      "file": "tests/spec/database.bats",
+      "signature": "42:_psql_db() {(...)",
+      "type_text": "42:_psql_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/database.bats:101:_skip_if_no_cluster() {",
+      "kind": "function",
+      "file": "tests/spec/database.bats",
+      "signature": "101:_skip_if_no_cluster() {(...)",
+      "type_text": "101:_skip_if_no_cluster() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

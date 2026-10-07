@@ -70,7 +70,8 @@ BEGIN
     END IF;
 
     -- factory_psql verbindet als `website` (scripts/factory/lib.sh).
-    GRANT SELECT, INSERT, DELETE ON tickets.llm_proxy_request_log TO website;
+    -- UPDATE braucht llm-proxy-log-retention (Bodies nach 7 Tagen auf NULL) [T900806].
+    GRANT SELECT, INSERT, UPDATE, DELETE ON tickets.llm_proxy_request_log TO website;
     GRANT USAGE, SELECT ON SEQUENCE tickets.llm_proxy_request_log_id_seq TO website;
 
   END IF;

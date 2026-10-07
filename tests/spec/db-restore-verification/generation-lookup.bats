@@ -35,7 +35,7 @@ _latest_expr() {
     || { echo "erwartet 20261007-202706, gefunden: '${LATEST:-}'"; echo "$expr"; return 1; }
 }
 
-@test "T901104: pvc-*-Generationen und fremde Verzeichnisse zählen nicht" {
+@test "T901104: pvc-Generationen und fremde Verzeichnisse zaehlen nicht" {
   expr="$(_latest_expr)"
   [ -n "$expr" ] || { echo "LATEST=\$(find …) nicht im Manifest gefunden"; return 1; }
 

@@ -125,3 +125,34 @@ export function isValidIsoTimestamp(ts: string): boolean {
   }
   return !Number.isNaN(Date.parse(ts));
 }
+
+/**
+ * Baut die argv fuer `git log`. Ohne Shell gibt es keine Pipe — das frueher
+ * angehaengte `| wc -l` waeren drei zusaetzliche Argumente an git gewesen.
+ * Gezaehlt wird deshalb in JS, siehe countChangedCommits().
+ */
+export function buildChangesSinceArgs(ts: string): string[] {
+  if (!isValidIsoTimestamp(ts)) {
+    throw new Error(`invalid timestamp: ${JSON.stringify(ts)}`);
+  }
+  return ['log', '--oneline', `--since=${ts}`, '--', '.agents/plans/'];
+}
+
+/** Zaehlt git-log-Zeilen. Leere Ausgabe ist 0, nicht 1 (wie `echo "" | wc -l`). */
+export function countChangedCommits(stdout: string): number {
+  return stdout.split('\n').filter((line) => line.trim().length > 0).length;
+}
+
+/**
+ * OF1: hat jemand anders `.agents/plans/` seit dem letzten Canvas-Export
+ * angefasst? Wirft bei Fehlschlag — der Handler entscheidet, ob er daraus
+ * "sicherheitshalber ja" macht.
+ */
+export async function hasChangesSince(ts: string): Promise<boolean> {
+  const result = await exec('git', buildChangesSinceArgs(ts), 5000);
+  if (!result.ok) {
+    throw new Error(`git log: ${result.error || result.stderr || 'command failed'}`);
+  }
+  return countChangedCommits(result.stdout) > 0;
+}
+

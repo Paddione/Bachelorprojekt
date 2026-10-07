@@ -34,6 +34,7 @@ export interface UserSession {
   given_name?: string;
   family_name?: string;
   realmRoles: string[];
+  groups?: string[];
   brand: string | null;
   access_token: string;
   refresh_token: string;
@@ -59,6 +60,16 @@ function decodeRealmRoles(accessToken: string): string[] {
   // so downstream consumers (e.g. isAdmin() helpers) keep working unchanged.
   const claims = decodeJwtPayload(accessToken);
   return claims?.isAdmin === true ? ['admin'] : [];
+}
+
+export function decodeGroupsClaim(accessToken: string): string[] {
+  // Reads the `groups` claim from the access token via the shared JWT
+  // payload decoder. Missing or non-array claims fail closed to an empty
+  // array; non-string entries are dropped rather than trusted.
+  const claims = decodeJwtPayload(accessToken);
+  const groups: unknown = claims?.groups;
+  if (!Array.isArray(groups)) return [];
+  return groups.filter((entry: unknown): entry is string => typeof entry === 'string');
 }
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? null;
@@ -204,6 +215,12 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
 
   const sessionId = generateSessionId();
   const sessionExpiry = Date.now() + SESSION_TTL_MS;
+  const rawUserGroups: unknown = userInfo.groups;
+  const sessionGroups: string[] =
+    Array.isArray(rawUserGroups) &&
+    rawUserGroups.every((entry: unknown) => typeof entry === 'string')
+      ? rawUserGroups.filter((entry: unknown): entry is string => typeof entry === 'string')
+      : decodeGroupsClaim(tokens.access_token);
   const user: UserSession = {
     sub: userInfo.sub,
     email: userInfo.email,
@@ -212,6 +229,7 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
     given_name: userInfo.given_name,
     family_name: userInfo.family_name,
     realmRoles: userInfo.isAdmin ? ['admin'] : [],
+    groups: sessionGroups,
     brand: BRAND,
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
@@ -276,6 +294,7 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
           access_token: refreshed.access_token,
           refresh_token: refreshed.refresh_token,
           realmRoles: decodeRealmRoles(refreshed.access_token),
+          groups: decodeGroupsClaim(refreshed.access_token),
           brand: BRAND,
           expires_at: newExpiry,
         };

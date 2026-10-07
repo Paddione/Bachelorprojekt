@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 108,
+  "count": 110,
   "routes": [
     {
       "route": "/",
@@ -715,6 +715,22 @@
     },
     {
       "route": "/newsletter/token-ungueltig",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/owner",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/owner/anfragen",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

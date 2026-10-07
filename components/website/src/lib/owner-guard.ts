@@ -4,7 +4,7 @@
 // guests, missing groups, and foreign groups are denied, never exceptions.
 import { getSession, type UserSession } from './auth';
 
-const OWNER_GROUP = process.env.OWNER_GROUP ?? 'owner';
+const OWNER_GROUP = process.env.OWNER_GROUP ?? 'workspace-owners';
 
 export function isOwnerSession(session: UserSession | null): boolean {
   if (!session) return false;

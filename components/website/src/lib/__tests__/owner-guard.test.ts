@@ -55,7 +55,7 @@ describe('isOwnerSession', () => {
   });
 
   it('allows a session carrying the owner group', () => {
-    const groups = NEGATIVE ? ['workspace-users'] : ['owner'];
+    const groups = NEGATIVE ? ['workspace-users'] : ['workspace-owners'];
     expect(isOwnerSession(session({ groups }))).toBe(true);
   });
 });
@@ -77,7 +77,7 @@ describe('requireOwner', () => {
   });
 
   it('allows a session carrying the owner group', async () => {
-    const groups = NEGATIVE ? ['workspace-users'] : ['owner'];
+    const groups = NEGATIVE ? ['workspace-users'] : ['workspace-owners'];
     const owned = session({ groups });
     mockedGetSession.mockResolvedValue(owned);
     await expect(requireOwner('workspace_session=x')).resolves.toBe(owned);
@@ -97,7 +97,7 @@ describe('ownerBusiness', () => {
 
 describe('decodeGroupsClaim', () => {
   it('reads the groups claim from the access token', () => {
-    expect(decodeGroupsClaim(jwt({ groups: ['owner', 'team'] }))).toEqual(['owner', 'team']);
+    expect(decodeGroupsClaim(jwt({ groups: ['workspace-owners', 'team'] }))).toEqual(['workspace-owners', 'team']);
   });
 
   it('fails closed on a missing groups claim', () => {
@@ -105,11 +105,11 @@ describe('decodeGroupsClaim', () => {
   });
 
   it('fails closed on a non-array groups claim', () => {
-    expect(decodeGroupsClaim(jwt({ groups: 'owner' }))).toEqual([]);
+    expect(decodeGroupsClaim(jwt({ groups: 'workspace-owners' }))).toEqual([]);
   });
 
   it('drops non-string entries instead of trusting them', () => {
-    expect(decodeGroupsClaim(jwt({ groups: ['owner', 42] }))).toEqual(['owner']);
+    expect(decodeGroupsClaim(jwt({ groups: ['workspace-owners', 42] }))).toEqual(['workspace-owners']);
   });
 
   it('fails closed on a malformed token', () => {

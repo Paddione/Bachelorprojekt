@@ -41,7 +41,7 @@ try {
     out({ status: res.status, body: await res.json() });
   } else if (mode === 'guard-matrix') {
     const g = await import(`file://${ROOT}/components/website/src/lib/owner-guard.ts`);
-    const ownerGroups = process.env.WF_NEGATIVE_CONTROL === '1' ? ['workspace-users'] : ['owner'];
+    const ownerGroups = process.env.WF_NEGATIVE_CONTROL === '1' ? ['workspace-users'] : ['workspace-owners'];
     out({
       nullSession: g.isOwnerSession(null),
       noGroups: g.isOwnerSession({ brand: 'brand-a' }),

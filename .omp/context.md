@@ -1,7 +1,7 @@
-# Arbeitsregeln fuer den Pi-Harness (T900529)
+# Arbeitsregeln fuer den omp-Harness (T900793)
 
-Dieser Block ist der System-Prompt-Anhang von `scripts/pi-run.sh` (Stufe L1+).
-Kurz halten: Pi liest ihn bei jedem Lauf, jeder Token kostet Kontext.
+Dieser Block ist der System-Prompt-Anhang von `scripts/omp-run.sh` (Stufe L1+).
+Kurz halten: omp liest ihn bei jedem Lauf, jeder Token kostet Kontext.
 
 ## Arbeitsbereich
 
@@ -16,7 +16,7 @@ Kurz halten: Pi liest ihn bei jedem Lauf, jeder Token kostet Kontext.
 
 - Nie auf `main` pushen, nie `git push --force`, kein `git reset --hard`.
 - Commit-Format: `<type>(<scope>): <text> [T######]`
-  (Beispiel: `fix(toolset): Wildcard fuer pi nicht vererben [T900529]`).
+  (Beispiel: `fix(toolset): Wildcard fuer omp nicht vererben [T900793]`).
 - Nur Dateien anfassen, die zum Plan-Task gehoeren. Kein Nebenschritt im Vorbeigehen.
 
 ## Verifikation
@@ -30,5 +30,5 @@ Kurz halten: Pi liest ihn bei jedem Lauf, jeder Token kostet Kontext.
 
 - Keine Secrets lesen: `environments/.secrets/`, `.env`-Dateien, Vault-Items.
 - Kein Netzwerkzugriff auf fremde Hosts. Modelle kommen ausschliesslich aus dem
-  Endpunkt-Verbund des Runners (`PI_ENDPOINTS`).
+  Endpunkt-Verbund des Runners (`OMP_ENDPOINTS`).
 - Kein Deploy, kein `kubectl apply`, kein Secret-Rotieren.

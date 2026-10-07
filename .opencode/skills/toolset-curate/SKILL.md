@@ -88,7 +88,7 @@ Bei `canonical` zusätzlich erfassen:
 | `deep_ref` | nein | Repo-relativer Pfad auf die Tiefenreferenz. |
 
 Gültige Rollen: `bp-build` (infra + security), `bp-run` (ops + db), `bp-ship` (website + test),
-`orchestrator`, `big-pickle`, `pi`, `all` — SSOT `scripts/toolset/lib/roles.mjs` (T900980).
+`orchestrator`, `big-pickle`, `omp`, `all` — SSOT `scripts/toolset/lib/roles.mjs` (T900980).
 Die alten `bachelorprojekt-*`-Namen lehnt `check.mjs` in der Registry mit Ersatzvorschlag ab;
 `toolset-context.sh` löst sie für Aufrufer noch auf und meldet `veraltet`.
 

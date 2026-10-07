@@ -87,6 +87,7 @@ tests/spec/auth-sso.bats
 tests/spec/autodocs-removal-guard.bats
 tests/spec/background-agents-fallback.bats
 tests/spec/backup-pipeline/filen-remote-retention.bats
+tests/spec/backup-pipeline/pvc-backup-multinode.bats
 tests/spec/backup-pipeline/render-escaping.bats
 tests/spec/batch-git-worktree-integrity.bats
 tests/spec/batch-local-test-runner-fixes/runner-fixes.bats
@@ -203,6 +204,7 @@ tests/spec/datev-export.bats
 tests/spec/db-guard/db-identity-guard.bats
 tests/spec/db-guard/kubeconfig-drift-guard.bats
 tests/spec/db-quality-goals.bats
+tests/spec/db-restore-verification/generation-lookup.bats
 tests/spec/db-restore-verification/restore-verify-cronjob.bats
 tests/spec/decommission/decommission-guard.bats
 tests/spec/dev-flow-chore-ticket-ops-mishaps.bats
@@ -340,6 +342,7 @@ tests/spec/llm-local-dev/opencode-compaction.bats
 tests/spec/llm-local-dev/plan-runner-ticket-ref.bats
 tests/spec/llm-local-dev/plan-runner.bats
 tests/spec/llm-local-dev/qwen-tensor-split.bats
+tests/spec/llm-local-dev/qwen35-08b-training.bats
 tests/spec/llm-local-dev/qwen35-2b-training.bats
 tests/spec/llm-local-dev/qwen35-4b-training.bats
 tests/spec/llm-local-dev/single-static-model.bats
@@ -455,6 +458,7 @@ tests/spec/neovim-dashboard.bats
 tests/spec/network-address-plan/networks-registry.bats
 tests/spec/newsletter-system.bats
 tests/spec/nextcloud-integration.bats
+tests/spec/omp-harness.bats
 tests/spec/openclaw-ops-bot.bats
 tests/spec/opencode-config-ssot.bats
 tests/spec/opencode-local-model-runner.bats
@@ -462,7 +466,6 @@ tests/spec/os-retirement-code.bats
 tests/spec/os-retirement-dir.bats
 tests/spec/os-retirement-prose.bats
 tests/spec/p0min-freeze-embed.bats
-tests/spec/pi-harness.bats
 tests/spec/pipeline-interface.bats
 tests/spec/plan-context.bats
 tests/spec/plan-lifecycle.bats
@@ -473,6 +476,7 @@ tests/spec/pocket-id-client-seed-early-abort.bats
 tests/spec/pocket-id-client-seed-group-lookup.bats
 tests/spec/pocket-id-client-seed-pagination.bats
 tests/spec/pocket-id-client-seed-secret-writeback.bats
+tests/spec/pocket-id-client-seed-skip-secret.bats
 tests/spec/pocket-id-client-seed-timeout.bats
 tests/spec/pocket-id-migration.bats
 tests/spec/pocket-id-proxy-ip.bats
@@ -586,6 +590,7 @@ tests/spec/sessions-server/wildcard-render-guard.bats
 tests/spec/sf-retirement-rest.bats
 tests/spec/sf-retirement-web.bats
 tests/spec/sidekick-assistant.bats
+tests/spec/staging-stack-repair.bats
 tests/spec/studio-sessions-reorganize.bats
 tests/spec/systemd-units/unit-install-copy-guard.bats
 tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats
@@ -658,11 +663,13 @@ tests/spec/website-core/email-notifications.bats
 tests/spec/website-core/portrait-derivate-crop.bats
 tests/spec/website-core/web-audit.bats
 tests/spec/website-interfaces.bats
+tests/spec/website-schema/fk-targets-unique.bats
 tests/spec/website-svelte-check.bats
 tests/spec/workspace-deploy-secrets-scope.bats
 tests/spec/workspace-deploy.bats
 tests/spec/workspace-deploy/flux-secrets-ordering.bats
 tests/spec/workspace-deploy/ntfy-token-escaping-T900059.bats
+tests/spec/workspace-foundation.bats
 tests/spec/workstation-cluster-iso/assign-identity.bats
 tests/spec/workstation-cluster-iso/build-node-iso-guards.bats
 tests/spec/workstation-cluster-iso/k3s-join-guards.bats

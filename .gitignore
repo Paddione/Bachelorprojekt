@@ -257,5 +257,5 @@ scripts/iso/node-map
 # plan-runner: Laufzustand je Change (T900504)
 consideration.md
 
-# pi-run.sh: JSONL-Protokolle je Lauf (T900529)
-.pi/runs/
+# omp-run.sh: JSONL-Protokolle je Lauf (T900793)
+.omp/runs/

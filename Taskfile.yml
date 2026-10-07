@@ -69,9 +69,9 @@ includes:
     taskfile: ./taskfiles/Taskfile.openclaw.yml
     dir: .
 
-  # Pi (pi-mono) — minimaler Coding-Harness, Trial-Runner scripts/pi-run.sh (T900529).
-  pi:
-    taskfile: ./taskfiles/Taskfile.pi.yml
+  # omp (oh-my-pi) — interaktiver Editor-Agent, Trial-Runner scripts/omp-run.sh (T900793).
+  omp:
+    taskfile: ./taskfiles/Taskfile.omp.yml
     dir: .
   # Cross-harness agent infrastructure (MCP servers, etc.) shared by every
   # agent harness in this repo — Claude Code, opencode, Hermes. See Taskfile.agents.yml.

@@ -2178,6 +2178,12 @@
     "kind": "shell"
   },
   {
+    "id": "backup-pipeline/pvc-backup-multinode",
+    "file": "tests/spec/backup-pipeline/pvc-backup-multinode.bats",
+    "category": "backup-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "backup-pipeline/render-escaping",
     "file": "tests/spec/backup-pipeline/render-escaping.bats",
     "category": "backup-pipeline",

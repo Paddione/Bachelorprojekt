@@ -1,0 +1,22 @@
+[project]
+name = "qwen35-planner-9b"
+version = "0.1.0"
+description = "Qwen3.5-9B planner finetune pipeline (T901060): gold extraction, RFT, replay, mix, export, gates"
+requires-python = ">=3.12"
+dependencies = [
+    "requests>=2.31",
+    "pyyaml>=6",
+    "safetensors>=0.4",
+    "numpy>=1.26",
+    "pillow>=10",
+    "datasets>=3",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

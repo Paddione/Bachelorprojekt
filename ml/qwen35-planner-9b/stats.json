@@ -1,0 +1,56 @@
+{
+  "commit": "43015e393",
+  "prompts": {
+    "tickets": 784,
+    "usable": 723,
+    "train": 655,
+    "heldout": 68,
+    "heldout_areas": [
+      "security",
+      "website",
+      "ci"
+    ]
+  },
+  "gold": {
+    "files": 2373,
+    "heldout": 75,
+    "dropped": 495,
+    "dupes": 74,
+    "kept": 1728,
+    "origin": {
+      "ticket": 386,
+      "companion": 1014,
+      "intro": 329
+    },
+    "format": {
+      "tasks-index": 34,
+      "partial": 439,
+      "openspec-legacy": 837,
+      "superpowers-legacy": 419
+    },
+    "target_words": 2627575,
+    "leak_8gram_p99": 0.038
+  },
+  "commands": [
+    "uv run python -m planner.prompts --repo <worktree> --heldout-areas security,website,ci",
+    "uv run python -m planner.gold --repo <worktree>"
+  ],
+  "rft": {
+    "prompts_attempted": 813,
+    "generate_pass_rate_last_run": 0.842,
+    "verify": {
+      "candidates": 1537,
+      "lint_fail": 302,
+      "copied": 1,
+      "ungrounded": 554,
+      "kept": 679
+    },
+    "think": 655,
+    "repaired_nothink": 24,
+    "heldout_leak": 0,
+    "commands": [
+      "planner.generate --repo <wt> --slots 8 --k 3 --stop-on-pass --limit 765",
+      "planner.verify --repo <wt>"
+    ]
+  }
+}

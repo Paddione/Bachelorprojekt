@@ -117,7 +117,9 @@ task: Available tasks for this project:
 * devmesh:install:                              devmesh: k3s auf HOST in seiner Inventar-Rolle installieren (DRY_RUN=1 zeigt nur den Befehl)
 * devmesh:k3d:teardown:                         Operator-only: decommission the former k3d development cluster [T900145]
 * devmesh:kubeconfig:                           devmesh: Admin-Kubeconfig als Context devmesh mergen (SERVER=<name>, Default: server-init)
+* devmesh:langfuse:backfill:                    devmesh: verlorene Claude-Code-Turns einer Session erneut an Langfuse senden [T900750]
 * devmesh:langfuse:setup:                       devmesh: Langfuse-Credentials holen und Agent-Harnesses fuer Tracing verdrahten [T900688]
+* devmesh:langfuse:status:                      devmesh: Langfuse-Tracing-Status und Finetune-Readiness neu berechnen [T900750]
 * devmesh:migrate:                              pocket_id + website aus devmesh nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]
 * devmesh:preflight:                            devmesh: Host vor der k3s-Installation pruefen (HOST=<name aus devmesh/inventory.yaml>; Exit 1 = Befund, 2 = Vorbedingung)
 * devmesh:registry:migrate:                     devmesh: llm-proxy-Registry seeden und mcp_readonly-Passwort setzen [T900191]
@@ -230,14 +232,14 @@ task: Available tasks for this project:
 * monitoring:validate:                          Validate the monitoring base + prod overlays build cleanly.
 * networks:check:                               Verify the network address plan: no undeclared overlap between declared ranges (exit != 0 on violation; never writes)
 * networks:map:                                 Regenerate docs/agent-guide/maps/networks-map.md from the SSOT registry (docs/agent-guide/registry/networks.yaml)
-* openclaw:backup:                              Move existing config to a dated backup directory (no-op if absent)
-* openclaw:configure:                           Configure the CLI and ensure configuration directory exists
-* openclaw:install:                             npm install -g opencode@latest (Node ≥ 22.16 required)
-* openclaw:logs:                                Tail daemon log via journalctl --user
-* openclaw:restore:                             Roll back: stop daemon, uninstall, remove config, move backup back
-* openclaw:start:                               Restart the user systemd service
-* openclaw:status:                              Show daemon status + gateway health probe
-* openclaw:wipe:                                Destructive: remove config AND backup. Requires CONFIRM=yes
+* openclaw:backup:                              ~/.openclaw nach ~/.openclaw.bak.<YYYYMMDD> verschieben (Abbruch, wenn das Ziel existiert)
+* openclaw:configure:                           ~/.openclaw/.env, openclaw.json, Exec-Approvals, Workspace-Symlink AGENTS.md und systemd-Unit einrichten
+* openclaw:install:                             Node v24.21.0 (SHA-256-geprüft) und OpenClaw 2026.9.6 unter ~/.local/opt installieren
+* openclaw:logs:                                Letzte 100 Journal-Zeilen der Gateway-Unit
+* openclaw:restore:                             Unit stoppen, OpenClaw-Prefix und ~/.openclaw entfernen, neuestes Backup zurückholen (Node 24 bleibt)
+* openclaw:start:                               Gateway-Unit starten, Heartbeat-Scratch des Agenten ops einspielen, danach Status
+* openclaw:status:                              Unit-Zustand, Gateway-/healthz, lokales Modell und Telegram-Variablen
+* openclaw:wipe:                                Destruktiv: Unit, Prefix, Node 24, ~/.openclaw und alle Backups entfernen. Erfordert CONFIRM=yes
 * opencode:autostart:                           Install/remove the opencode serve autostart block in ~/.bashrc (install/remove/status)
 * opencode:model-select:                        Interactive fzf picker to change agent models and sync them
 * opencode:monitor:                             Observe opencode serve: sessions, status, SSE events, session details, todos

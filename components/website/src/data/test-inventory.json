@@ -5286,6 +5286,12 @@
     "kind": "shell"
   },
   {
+    "id": "staging-stack-repair",
+    "file": "tests/spec/staging-stack-repair.bats",
+    "category": "staging-stack-repair",
+    "kind": "shell"
+  },
+  {
     "id": "studio-sessions-reorganize",
     "file": "tests/spec/studio-sessions-reorganize.bats",
     "category": "studio-sessions-reorganize",

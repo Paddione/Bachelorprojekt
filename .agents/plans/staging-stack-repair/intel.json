@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "slug": "staging-stack-repair",
+    "ticket_id": "",
+    "generated_from": "main@08898fa6f",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "environments/.secrets/staging.yaml",
+      "language": "config",
+      "loc": 101,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/sealed-secrets/staging.yaml",
+      "language": "config",
+      "loc": 274,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/staging.yaml",
+      "language": "config",
+      "loc": 104,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/shared-db.yaml",
+      "language": "config",
+      "loc": 342,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/migrations/2026-08-10-llm-proxy-request-log.sql",
+      "language": "text",
+      "loc": 77,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/staging-stack-repair.bats",
+      "language": "bash",
+      "loc": 48,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/staging-stack-repair.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/staging-stack-repair.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

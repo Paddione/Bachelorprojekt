@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.398.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.397.0...website-v1.398.0) (2026-10-07)
+
+
+### Features
+
+* services calendar T901023 ([#6333](https://github.com/Paddione/Bachelorprojekt/issues/6333)) ([b72965d](https://github.com/Paddione/Bachelorprojekt/commit/b72965d3494d036cfd37d16be34f1dc9e2eefeee))
+
 ## [1.397.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.4...website-v1.397.0) (2026-10-07)
 
 

@@ -23,10 +23,10 @@ lokale LLM-Rails) auf der :8080-Worker-Rail — Direkt-Modus default, schnell,
   16-bit (~11-13 GB), Daten `dataset_2b_train.jsonl` (P1-Slice, 137 Zeilen),
   Output `qwen35_2b_bp_lora/`, 200 Steps (`--max-steps 200`), Export-Pfad
   `qwen35_2b_bp_merged/` + `qwen35_2b_bp_gguf/` (q4_k_m/q8_0).
-- **Default `--precision 16bit`**: volles bf16-Checkpoint `unsloth/Qwen3.5-4B-MTP`
-  (TO-VERIFY: Trainings-Checkpoint-Name aus der GGUF-Herkunft
-  `unsloth/Qwen3.5-4B-MTP-GGUF` abgeleitet, noch nicht per Pull verifiziert;
-  ~8 GB VRAM Gewichte) + LoRA `r=32, alpha=32` — keine Quantisierungs-Rauschbasis,
+- **Default `--precision 16bit` (T900977)**: volles bf16-Checkpoint `unsloth/Qwen3.5-4B`
+  (HF-verifiziert 07.10. T900977: API 200, sharded safetensors; Hinweis: `unsloth/Qwen3.5-4B-MTP`
+  existiert upstream nur als vorgebackenes GGUF `unsloth/Qwen3.5-4B-MTP-GGUF`, der LoRA-Trainingscheckpoint
+  ist kanonisch `unsloth/Qwen3.5-4B`; ~8 GB VRAM Gewichte) + LoRA `r=32, alpha=32` — keine Quantisierungs-Rauschbasis,
   saubereres merged-16bit/GGUF. Gesamtbedarf ~11-13 GB → passt auf die 5070 Ti.
 - **Fallback `--precision 4bit`**: QLoRA auf dem bnb-4bit-Checkpoint
   (~7 GB) mit `r=16, alpha=16` — nur wenn die GPU geteilt werden muss.
@@ -47,11 +47,12 @@ Siehe `DATASET_PLAN.md` (≥1000 unique post-Dedup, T1 deterministisch + T2
 Teacher über :1919 + T3 Human-QC). Format: `messages`, System-Prompt
 „Bachelorprojekt assistant", Val-Split 5 % nach Dedup (Leak-Schutz).
 
-## 5. Umgebung
-- WSL2, Python 3.12.3, venv `~/.venvs/unsloth` (unsloth 2026.8.2, torch 2.11.0+cu128, CUDA ok).
+## 5. Umgebung & Preflight
+- WSL2, Python 3.12.3, venv `~/.venvs/unsloth` (unsloth 2026.8.2, torch 2.11.0+cu130, CUDA ok).
 - GPU: RTX 5070 Ti (16 GB, `CUDA_VISIBLE_DEVICES=1`) — **Vorher die 27B-Rail
   stoppen** (`systemctl --user stop qwen38-gsq-iq3xxs`), danach wieder starten.
-  Das TrainingScript bricht mit Preflight ab, wenn < 12 GB frei sind (`--force` overrides).
+  Das TrainingScript erzwingt strikten Preflight: bricht ab, wenn < 13 GB frei sind
+  (13.000 MiB für 16bit, 9.000 MiB für 4bit; `--force` overrides nur für Test/Debug).
 - ADR-007: primärer Cloud-Pfad ist HF Jobs (`task finetune:hf-jobs:train`) —
   der Datensatz ist dafür direkt verwendbar (`CORPUS=<dataset_train.jsonl>`).
 

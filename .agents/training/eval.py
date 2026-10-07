@@ -24,11 +24,30 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ADAPTER_DIR = HERE / "qwen35_2b_bp_lora"
-# TO-VERIFY: base checkpoint name; confirm via pull before training/eval.
-BASE_MODEL = "unsloth/Qwen3.5-2B"
-VAL_FILE = HERE / "dataset_2b_val.jsonl"
-RESULTS_FILE = HERE / "eval_2b_results.json"
+
+
+def get_eval_config(model_size: str = "4b-mtp") -> dict:
+    """Return eval paths and model specs for 4b-mtp / 4b or 2b."""
+    if model_size in {"4b", "4b-mtp"}:
+        return {
+            "base_model": "unsloth/Qwen3.5-4B",
+            "adapter_dir": HERE / "qwen35_4b_bp_lora",
+            "val_file": HERE / "dataset_val.jsonl",
+            "results_file": HERE / "eval_results.json",
+        }
+    return {
+        "base_model": "unsloth/Qwen3.5-2B",
+        "adapter_dir": HERE / "qwen35_2b_bp_lora",
+        "val_file": HERE / "dataset_2b_val.jsonl",
+        "results_file": HERE / "eval_2b_results.json",
+    }
+
+
+_DEFAULT_CONFIG = get_eval_config("2b")
+ADAPTER_DIR = _DEFAULT_CONFIG["adapter_dir"]
+BASE_MODEL = _DEFAULT_CONFIG["base_model"]
+VAL_FILE = _DEFAULT_CONFIG["val_file"]
+RESULTS_FILE = _DEFAULT_CONFIG["results_file"]
 SEQ_LEN = 2048
 MAX_NEW_TOKENS = 300
 # T900978 P3 acceptance thresholds (full val split, --mode val, no --limit)
@@ -186,20 +205,42 @@ def run_interactive(model, tokenizer):
 
 
 def main():
-    global _bp_worker_style, ADAPTER_DIR
+    global _bp_worker_style, ADAPTER_DIR, BASE_MODEL, VAL_FILE, RESULTS_FILE
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mode", choices=["compare", "val", "interactive"], default="compare")
+    ap.add_argument("--model-size", choices=["2b", "4b", "4b-mtp"], default="4b-mtp",
+                    help="model size preset (default: 4b-mtp)")
     ap.add_argument("--limit", type=int, default=8, help="cap val questions (0 = all)")
-    ap.add_argument("--adapter", type=Path, default=ADAPTER_DIR)
+    ap.add_argument("--adapter", type=Path, default=None)
+    ap.add_argument("--base-model", type=str, default=None)
+    ap.add_argument("--val-file", type=Path, default=None)
+    ap.add_argument("--results-file", type=Path, default=None)
     ap.add_argument("--worker-style", action="store_true",
                     help="drop the BP system prompt (worker-style robustness check)")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="validate configuration and dataset without loading models")
+    ap.add_argument("--force", action="store_true", help="skip VRAM preflight")
     args = ap.parse_args()
     _bp_worker_style = args.worker_style
-    ADAPTER_DIR = args.adapter  # noqa: F841 — _load_model reads the module global
+
+    cfg = get_eval_config(args.model_size)
+    BASE_MODEL = args.base_model or cfg["base_model"]
+    ADAPTER_DIR = args.adapter or cfg["adapter_dir"]
+    VAL_FILE = args.val_file or cfg["val_file"]
+    RESULTS_FILE = args.results_file or cfg["results_file"]
+
+    if args.dry_run:
+        if not VAL_FILE.is_file():
+            print(f"[eval dry-run] ERROR: val file not found: {VAL_FILE}", file=sys.stderr)
+            sys.exit(1)
+        print(f"[eval dry-run] Config OK: base={BASE_MODEL}, adapter={ADAPTER_DIR.name}, "
+              f"val={VAL_FILE.name}, results={RESULTS_FILE.name}, mode={args.mode}")
+        return
 
     sys.path.insert(0, str(HERE))
     from train_5070ti import gpu_preflight
-    gpu_preflight(13_000)
+    if not args.force:
+        gpu_preflight(13_000)
 
     model, tokenizer = _load_model(adapter=False if args.mode == "compare" else True)
     if args.mode == "compare":

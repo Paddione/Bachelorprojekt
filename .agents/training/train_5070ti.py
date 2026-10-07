@@ -45,8 +45,16 @@ MODEL_SPECS = {
         "lora_r_16bit": 32,
     },
     "4b-mtp": {
-        "hf_16bit": "unsloth/Qwen3.5-4B-MTP",
-        "hf_4bit": "unsloth/Qwen3.5-4B-MTP-bnb-4bit",
+        "hf_16bit": "unsloth/Qwen3.5-4B",
+        "hf_4bit": "unsloth/Qwen3.5-4B-bnb-4bit",
+        "lora_16bit": "qwen35_4b_bp_lora",
+        "lora_4bit": "qwen35_4b_bp_lora_4bit",
+        "dataset": "dataset_train.jsonl",
+        "lora_r_16bit": 32,
+    },
+    "4b": {
+        "hf_16bit": "unsloth/Qwen3.5-4B",
+        "hf_4bit": "unsloth/Qwen3.5-4B-bnb-4bit",
         "lora_16bit": "qwen35_4b_bp_lora",
         "lora_4bit": "qwen35_4b_bp_lora_4bit",
         "dataset": "dataset_train.jsonl",
@@ -55,30 +63,58 @@ MODEL_SPECS = {
 }
 
 
-def gpu_preflight(min_free_mib: int) -> None:
-    """Abort when the 5070 Ti is still occupied by the 27B orchestrator rail."""
-    try:
-        out = subprocess.run(
-            ["nvidia-smi", "--query-gpu=index,memory.free", "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=30,
-        ).stdout.strip().splitlines()
-        free = {int(line.split(",")[0].strip()): int(line.split(",")[1].strip()) for line in out}
-    except Exception as exc:  # noqa: BLE001 — preflight is advisory without nvidia-smi
-        print(f"[preflight] nvidia-smi unavailable ({exc}); continuing without check")
-        return
-    device = int(os.environ.get("CUDA_VISIBLE_DEVICES", "1").split(",")[0])
-    free_mib = free.get(device, 0)
+def check_gpu_preflight(min_free_mib: int, free_mib: int | None, device: int = 1) -> tuple[bool, str]:
+    """Pure helper for testing and validating GPU VRAM preflight status."""
+    if free_mib is None:
+        return True, "[preflight] nvidia-smi unavailable; continuing without check"
     if free_mib >= min_free_mib:
-        print(f"[preflight] GPU {device}: {free_mib} MiB free — OK")
-        return
-    print(
+        return True, f"[preflight] GPU {device}: {free_mib} MiB free — OK"
+    msg = (
         f"[preflight] GPU {device} has only {free_mib} MiB free "
         f"(need >= {min_free_mib}). The 27B rail (qwen38-gsq-iq3xxs.service, "
         "~15/16 GB) is probably still running:\n"
         "  systemctl --user stop qwen38-gsq-iq3xxs   # restore after training!\n"
-        "Re-run with --force to override.",
-        file=sys.stderr,
+        "Re-run with --force to override."
     )
+    return False, msg
+
+
+def gpu_preflight(min_free_mib: int, device_override: int | str | None = None) -> None:
+    """Abort when the 5070 Ti is still occupied by the 27B orchestrator rail."""
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=index,uuid,memory.free", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=30,
+        ).stdout.strip().splitlines()
+        free_by_idx = {}
+        free_by_uuid = {}
+        for line in out:
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) >= 3:
+                idx, uuid, mem = int(parts[0]), parts[1], int(parts[2])
+                free_by_idx[idx] = mem
+                free_by_uuid[uuid] = mem
+    except Exception as exc:  # noqa: BLE001 — preflight is advisory without nvidia-smi
+        print(f"[preflight] nvidia-smi unavailable ({exc}); continuing without check")
+        return
+
+    dev_str = str(device_override) if device_override is not None else os.environ.get("CUDA_VISIBLE_DEVICES", "1").split(",")[0].strip()
+    if dev_str.isdigit():
+        device_id = int(dev_str)
+        free_mib = free_by_idx.get(device_id, 0)
+    elif dev_str in free_by_uuid:
+        device_id = dev_str
+        free_mib = free_by_uuid[dev_str]
+    else:
+        # Default to GPU 1 (RTX 5070 Ti) if environment string doesn't match
+        device_id = 1
+        free_mib = free_by_idx.get(1, 0)
+
+    ok, msg = check_gpu_preflight(min_free_mib, free_mib, device=device_id)
+    if ok:
+        print(msg)
+        return
+    print(msg, file=sys.stderr)
     sys.exit(1)
 
 
@@ -86,9 +122,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--precision", choices=["16bit", "4bit"], default="16bit",
                     help="16-bit LoRA (default, best quality) or QLoRA 4-bit fallback")
-    ap.add_argument("--model-size", choices=["2b", "4b-mtp"], default="2b",
-                    help="2b = Qwen3.5-2B pilot on the P1 slice (default); "
-                         "4b-mtp = shipped 4B run (reproducibility)")
+    ap.add_argument("--model-size", choices=["2b", "4b", "4b-mtp"], default="4b-mtp",
+                    help="4b / 4b-mtp = Qwen3.5-4B worker training (default); "
+                         "2b = Qwen3.5-2B pilot on the P1 slice")
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--max-steps", type=int, default=200,
                     help="cap optimizer steps (overrides epochs when > 0; "
@@ -96,10 +132,28 @@ def main():
     ap.add_argument("--lr", type=float, default=2e-4)
     ap.add_argument("--seq-len", type=int, default=2048)
     ap.add_argument("--force", action="store_true", help="skip the VRAM preflight")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="verify configuration, dataset paths and preflight without training")
     args = ap.parse_args()
 
     if not args.force:
         gpu_preflight(MIN_FREE_MIB[args.precision])
+
+    spec = MODEL_SPECS[args.model_size]
+    output_lora_dir = HERE / (
+        spec["lora_16bit"] if args.precision == "16bit" else spec["lora_4bit"]
+    )
+    dataset_file = HERE / spec["dataset"]
+
+    if args.dry_run:
+        if not dataset_file.is_file():
+            print(f"[dry-run] ERROR: dataset file not found: {dataset_file}", file=sys.stderr)
+            sys.exit(1)
+        model_name = spec["hf_16bit"] if args.precision == "16bit" else spec["hf_4bit"]
+        print(f"[dry-run] Configuration OK: model={model_name}, precision={args.precision}, "
+              f"dataset={dataset_file.name}, output={output_lora_dir.name}, "
+              f"epochs={args.epochs}, max_steps={args.max_steps}, lr={args.lr}")
+        return
 
     os.environ.setdefault("CUDA_VISIBLE_DEVICES", "1")  # RTX 5070 Ti
 
@@ -107,12 +161,6 @@ def main():
     from datasets import load_dataset
     from unsloth import FastLanguageModel
     from trl import SFTConfig, SFTTrainer
-
-    spec = MODEL_SPECS[args.model_size]
-    output_lora_dir = HERE / (
-        spec["lora_16bit"] if args.precision == "16bit" else spec["lora_4bit"]
-    )
-    dataset_file = HERE / spec["dataset"]
 
     # TO-VERIFY: base checkpoint names derived from the served GGUFs' origin;
     # confirm via pull before training.

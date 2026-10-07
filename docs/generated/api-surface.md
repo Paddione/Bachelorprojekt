@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-09-21T13:05:35.930Z
+> Generated at 2026-10-07T20:32:19.109Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -266,6 +266,7 @@
 | `/api/newsletter/confirm` | GET | ❓ unclassified | `components/website/src/pages/api/newsletter/confirm.ts` |
 | `/api/newsletter/subscribe` | POST | ❓ unclassified | `components/website/src/pages/api/newsletter/subscribe.ts` |
 | `/api/newsletter/unsubscribe` | GET | ❓ unclassified | `components/website/src/pages/api/newsletter/unsubscribe.ts` |
+| `/api/owner/me` | GET | 🔑 session | `components/website/src/pages/api/owner/me.ts` |
 | `/api/poll/{id}` | GET | ❓ unclassified | `components/website/src/pages/api/poll/[id].ts` |
 | `/api/poll/{id}/answer` | POST | ❓ unclassified | `components/website/src/pages/api/poll/[id]/answer.ts` |
 | `/api/poll/{id}/results` | GET | ❓ unclassified | `components/website/src/pages/api/poll/[id]/results.ts` |

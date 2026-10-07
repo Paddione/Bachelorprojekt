@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-21T13:05:35.930Z",
+  "generatedAt": "2026-10-07T20:32:19.109Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2145,6 +2145,14 @@
       ],
       "auth": "unclassified",
       "file": "components/website/src/pages/api/newsletter/unsubscribe.ts"
+    },
+    {
+      "path": "/api/owner/me",
+      "methods": [
+        "GET"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/me.ts"
     },
     {
       "path": "/api/poll/{id}",

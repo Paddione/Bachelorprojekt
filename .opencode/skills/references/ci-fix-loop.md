@@ -36,11 +36,13 @@ Auto-Merge wartet auf diese fünf required checks:
 
 | Check | Workflow |
 |-------|----------|
-| `Offline Tests (Manifests, Configs, Unit)` | `ci.yml` → `task test:all` |
+| `BATS Unit + Quality Gates` | `ci.yml` → BATS-Unit-Suite + Quality Gates |
 | `Security Scan` | `ci.yml` → image-pin + hardcoded-secret detection |
 | `Brett TypeScript` | `ci.yml` → tsc in `components/brett/` |
-| `Vitest (website + arena-server)` | `ci.yml` → `pnpm test` in `components/website/` |
 | `Conventional Commits` | `ci.yml` → commitlint PR-Titel |
+| `Spec + Guards` | `ci.yml` → Aggregator über Spec fast guards + Spec shards (T901066) |
+
+SSOT der Liste: `scripts/gh-branch-protection.sh`.
 
 `E2E PR` ist **kein** required check (T000722) — erscheint informativ, blockiert Merge nicht.
 

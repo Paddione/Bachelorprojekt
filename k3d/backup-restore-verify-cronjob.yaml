@@ -102,8 +102,10 @@ spec:
                   # written to the per-pod emptyDir /staging and never reaches the
                   # PVC — directory presence plus *.dump.enc content is the
                   # completeness proxy here. pvc-* generations are excluded.
+                  # -regextype posix-basic: im Default (emacs) kennt GNU find keine
+                  # Intervalle \{n\}, der Ausdruck matchte nie [T901104].
                   LATEST=$(find /backups -maxdepth 1 -mindepth 1 -type d \
-                    -regex '.*/[0-9]\{8\}-[0-9]\{6\}' | sort | tail -n 1)
+                    -regextype posix-basic -regex '.*/[0-9]\{8\}-[0-9]\{6\}' | sort | tail -n 1)
                   if [ -z "$${LATEST}" ]; then
                     echo "FATAL: no backup generation found under /backups" >&2
                     exit 1

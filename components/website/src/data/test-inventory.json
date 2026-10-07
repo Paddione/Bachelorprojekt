@@ -4536,6 +4536,12 @@
     "kind": "shell"
   },
   {
+    "id": "pocket-id-client-seed-group-lookup",
+    "file": "tests/spec/pocket-id-client-seed-group-lookup.bats",
+    "category": "pocket-id-client-seed-group-lookup",
+    "kind": "shell"
+  },
+  {
     "id": "pocket-id-client-seed-pagination",
     "file": "tests/spec/pocket-id-client-seed-pagination.bats",
     "category": "pocket-id-client-seed-pagination",

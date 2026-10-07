@@ -2,7 +2,7 @@
 title: pocket-id-client-seed Lookup unabhaengig von der JSON-Feldreihenfolge
 ticket_id: T900804
 domains: [infra, auth]
-status: draft
+status: implemented
 ---
 
 # pocket-id-group-lookup — Implementation Plan

@@ -261,6 +261,15 @@ spec:
               terminal-sidekick|SECRET_terminal|POCKET_ID_TERMINAL_SECRET|$${SCHEME}://terminal.$${SUFFIX}/oauth2/callback
               "
 
+              # T900804: Lookup ueber das JSON-Objekt, nicht ueber benachbarte Felder.
+              # Pocket ID v2.14.0 liefert user-groups als id,friendlyName,name -- die
+              # alte Annahme "name folgt direkt auf id" fand die Gruppe nie (409 beim
+              # Neuanlegen). Split an '{' trennt Objekte; id und name stehen in jedem
+              # Eintrag vor dem ersten verschachtelten Objekt (credentials, customClaims).
+              id_by_name() {
+                printf '%s' "$1" | tr '{' '\n' | grep "\"name\":\"$${2}\"" | head -1 | sed -nE 's/.*"id":"([^"]*)".*/\1/p'
+              }
+
               # Resolve a client's REAL pocket-id id by NAME. pocket-id:v2.9.0
               # always server-generates a random UUID as `id` on POST — it
               # does NOT accept/echo back the caller-supplied name as the id
@@ -268,17 +277,16 @@ spec:
               # before this was understood happen to have id==name and still
               # match here (the id==name row IS "the" row for that name); new
               # clients never do, so this must resolve by `name`, not assume
-              # id==cid. The Admin API returns a flat JSON array with `id`
-              # immediately followed by `name` per object (verified live) —
-              # matched with a plain grep/sed pair since this image ships no
-              # jq. Returns empty (not found) rather than failing.
+              # id==cid. The Admin API returns a flat JSON array; resolved
+              # via id_by_name() independent of field order since this image
+              # ships no jq. Returns empty (not found) rather than failing.
               # ($CURL_RETRY is defined above, next to the T001995 auth check.)
               find_client_id() {
                 name="$1"
                 page=1
                 while :; do
                   list=$(curl -fsS $CURL_RETRY -H "$AUTH" "$${API}/api/oidc/clients?pagination%5Bpage%5D=$${page}" </dev/null 2>/dev/null || true)
-                  id=$(echo "$list" | grep -o "\"id\":\"[^\"]*\",\"name\":\"$${name}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/')
+                  id=$(id_by_name "$list" "$name")
                   if [ -n "$id" ]; then
                     echo "$id"
                     return
@@ -395,12 +403,12 @@ spec:
               # MEMBERSHIP IS NOT AUTOMATED here — assigning users to the group
               # is a documented one-time admin step; the seed job must never
               # overwrite manually curated membership.
-              # Same grep/sed-over-JSON approach as find_client_id (no jq in
-              # this image); same X-API-KEY auth and retry policy.
+              # Resolved via id_by_name() (same helper as find_client_id); same
+              # X-API-KEY auth and retry policy.
               find_group_id() {
                 gname="$1"
                 glist=$(curl -fsS $CURL_RETRY -H "$AUTH" "$${API}/api/user-groups" </dev/null 2>/dev/null || true)
-                echo "$glist" | grep -o "\"id\":\"[^\"]*\",\"name\":\"$${gname}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/'
+                id_by_name "$glist" "$gname"
               }
               ensure_group() {
                 gname="$1"; gfriendly="$2"

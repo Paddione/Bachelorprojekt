@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { requireOwner, ownerBusiness } from '../../../../lib/owner-guard';
 import { getAllBookings, createCalendarEvent } from '../../../../lib/caldav';
 import { isSlotInAnyWindow, isSlotWhitelisted, claimSlot } from '../../../../lib/website-db';
+import { berlinDayKey } from '../../../../lib/caldav-cache';
 import massageCatalogue from '../../../../../../../content/massage/leistungen.json';
 import type { LeistungCategory } from '../../../../content-schema';
 
@@ -10,7 +11,8 @@ const BERLIN_TZ = 'Europe/Berlin';
 
 const catalogue: LeistungCategory[] = massageCatalogue;
 
-// Inline Berlin helpers (p2 is predecessor-free: no imports from other partials).
+// Local Berlin parts/offset for naive-datetime parsing; day keys come from
+// the shared caldav-cache helper to avoid logic drift.
 function berlinParts(d: Date): Record<string, string> {
   const out: Record<string, string> = {};
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -27,11 +29,6 @@ function berlinParts(d: Date): Record<string, string> {
     if (part.type !== 'literal') out[part.type] = part.value;
   }
   return out;
-}
-
-function berlinDayKey(d: Date): string {
-  const p = berlinParts(d);
-  return `${p.year}-${p.month}-${p.day}`;
 }
 
 function berlinOffsetMs(ms: number): number {

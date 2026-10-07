@@ -2,7 +2,9 @@ import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
 import { sendEmail } from '../../lib/email';
 import { sendAdminNotification } from '../../lib/notifications';
-import { isSlotInAnyWindow } from '../../lib/website-db';
+import { isSlotInAnyWindow, isSlotWhitelisted, claimSlot } from '../../lib/website-db';
+import { berlinDayKey } from '../../lib/caldav-cache';
+import { getEffectiveLeistungen } from '../../lib/content';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 import { isE2ETestRequest } from '../../lib/e2e-marker';
 
@@ -41,6 +43,39 @@ export const POST: APIRoute = async ({ request , locals }) => {
       );
     }
 
+    // Price/duration snapshot: freeze the catalogue entry at request time.
+    // Later catalogue changes never touch the stored request.
+    let serviceSnapshot: { key: string; name: string; price: string; durationMin: number | null } | null = null;
+    if (serviceKey) {
+      const catalogue = await getEffectiveLeistungen();
+      const entry = catalogue.flatMap((cat) => cat.services).find((svc) => svc.key === serviceKey);
+      if (!entry) {
+        return new Response(
+          JSON.stringify({ error: 'Unbekannte Leistung.' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      serviceSnapshot = {
+        key: entry.key,
+        name: entry.name,
+        price: entry.price,
+        durationMin: entry.durationMin ?? null,
+      };
+    }
+
+    // Berlin previous-day rule: the Berlin slot date must be strictly after
+    // the Berlin request date — same-day requests always fail with 409.
+    if (!isCallback && slotStart && slotEnd) {
+      const slotDayKey = berlinDayKey(new Date(slotStart));
+      const nowDayKey = berlinDayKey(new Date());
+      if (slotDayKey <= nowDayKey) {
+        return new Response(
+          JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),
+          { status: 409, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // Validate that the requested slot falls within an admin-defined time window.
     if (!isCallback && slotStart && slotEnd) {
       let valid = false;
@@ -54,6 +89,33 @@ export const POST: APIRoute = async ({ request , locals }) => {
           JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),
           { status: 409, headers: { 'Content-Type': 'application/json' } }
         );
+      }
+    }
+
+    // Atomic overlap guard for released (whitelisted) slots: consume the row
+    // immediately before the inbox insert, so concurrent double bookings race
+    // on DELETE…RETURNING and exactly one of them wins. Window-validated
+    // slots without a whitelist row stay bookable (released implicitly).
+    if (!isCallback && slotStart && slotEnd) {
+      let released = false;
+      try {
+        released = await isSlotWhitelisted(BRAND, new Date(slotStart));
+      } catch {
+        released = false;
+      }
+      if (released) {
+        let claimed = false;
+        try {
+          claimed = await claimSlot(BRAND, new Date(slotStart));
+        } catch {
+          // DB unavailable mid-claim — fail closed like the window check above.
+        }
+        if (!claimed) {
+          return new Response(
+            JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),
+            { status: 409, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
       }
     }
 
@@ -77,7 +139,8 @@ export const POST: APIRoute = async ({ request , locals }) => {
         name, email, phone: phone ?? null, type, typeLabel,
         slotStart: slotStart ?? null, slotEnd: slotEnd ?? null,
         slotDisplay: slotDisplay ?? null, date: date ?? null,
-        serviceKey: serviceKey ?? null, message: message ?? null,
+        serviceKey: serviceKey ?? null, serviceSnapshot,
+        message: message ?? null,
         projectId: projectId ?? null, leistungKey: leistungKey ?? null,
       },
       isTestData: isE2ETestRequest(request),

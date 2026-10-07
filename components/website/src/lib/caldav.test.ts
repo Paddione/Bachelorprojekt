@@ -12,9 +12,8 @@
 // helpers via importActual) for path 1, and stub the global fetch for path 2.
 // getAvailableSlots also dynamically imports ./website-db.js — mocked here.
 
-// getAvailableSlots mixes toISOString() (UTC) with setHours()/getDay() (local
-// time) internally. Pin the process TZ to UTC so "local" and "UTC" agree and
-// our fixture dates map predictably to date strings + weekday labels.
+// getAvailableSlots derives calendar days in Europe/Berlin via Intl (T901023).
+// Pin the process TZ to UTC so naive-time fixtures still map predictably.
 process.env.TZ = 'UTC';
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -32,8 +31,14 @@ vi.mock('./website-db.js', () => ({
   getVacationPeriods: vi.fn(),
 }));
 
+vi.mock('./website-core-db.js', () => ({
+  getHolidays: vi.fn(),
+  getBookingBuffers: vi.fn(),
+}));
+
 import { fetchEventsRaw } from './caldav-cache.ts';
 import { getFreeTimeWindows, getVacationPeriods } from './website-db.ts';
+import { getHolidays, getBookingBuffers } from './website-core-db.ts';
 import {
   getAllBookings,
   getClientBookings,
@@ -47,6 +52,8 @@ import {
 const mockFetchEventsRaw = vi.mocked(fetchEventsRaw);
 const mockGetFreeTimeWindows = vi.mocked(getFreeTimeWindows);
 const mockGetVacationPeriods = vi.mocked(getVacationPeriods);
+const mockGetHolidays = vi.mocked(getHolidays);
+const mockGetBookingBuffers = vi.mocked(getBookingBuffers);
 
 function vevent(props: Record<string, string>): string {
   const lines = ['BEGIN:VEVENT', ...Object.entries(props).map(([k, v]) => `${k}:${v}`), 'END:VEVENT'];
@@ -65,6 +72,8 @@ afterEach(() => {
 beforeEach(() => {
   mockGetVacationPeriods.mockResolvedValue([]);
   mockGetFreeTimeWindows.mockResolvedValue([]);
+  mockGetHolidays.mockResolvedValue([]);
+  mockGetBookingBuffers.mockResolvedValue({ preMin: 0, postMin: 0 });
 });
 
 describe('getAllBookings', () => {
@@ -217,10 +226,11 @@ describe('getAvailableSlots', () => {
   });
 
   it('excludes slots overlapping an existing calendar event', async () => {
+    // Busy 07:00–15:00Z covers the Berlin working day 09:00–17:00 (CEST, T901023).
     const busy = vevent({
       UID: 'busy@x',
-      DTSTART: '20300708T090000Z',
-      DTEND: '20300708T170000Z',
+      DTSTART: '20300708T070000Z',
+      DTEND: '20300708T150000Z',
     });
     mockFetchEventsRaw.mockResolvedValue([ical(busy)]);
     const from = new Date('2030-07-08T00:00:00Z');
@@ -414,8 +424,8 @@ describe('updateCalendarEventTime', () => {
     const result = await updateCalendarEventTime('uid5@x', newStart, newEnd);
     expect(result).toBe(true);
     const putCall = fetchMock.mock.calls[2];
-    expect(putCall[1].body).toContain('DTSTART:20260710T090000Z');
-    expect(putCall[1].body).toContain('DTEND:20260710T100000Z');
+    expect(putCall[1].body).toContain('DTSTART;TZID=Europe/Berlin:20260710T110000');
+    expect(putCall[1].body).toContain('DTEND;TZID=Europe/Berlin:20260710T120000');
   });
 
   it('returns false and logs when an exception is thrown', async () => {

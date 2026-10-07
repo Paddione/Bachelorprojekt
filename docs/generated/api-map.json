@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-07T20:32:19.109Z",
+  "generatedAt": "2026-10-07T22:51:21.701Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2145,6 +2145,38 @@
       ],
       "auth": "unclassified",
       "file": "components/website/src/pages/api/newsletter/unsubscribe.ts"
+    },
+    {
+      "path": "/api/owner/bookings/{uid}/cancel",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/bookings/[uid]/cancel.ts"
+    },
+    {
+      "path": "/api/owner/bookings/{uid}/reschedule",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/bookings/[uid]/reschedule.ts"
+    },
+    {
+      "path": "/api/owner/bookings/phone",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/bookings/phone.ts"
+    },
+    {
+      "path": "/api/owner/calendar/block",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/calendar/block.ts"
     },
     {
       "path": "/api/owner/me",

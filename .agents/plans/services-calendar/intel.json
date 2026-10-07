@@ -1,0 +1,220 @@
+{
+ "meta": {
+  "slug": "services-calendar",
+  "ticket_id": "",
+  "generated_from": "main@3ad90a8d4",
+  "domains": [
+   "plan-authoring",
+   "dev-tooling",
+   "factory"
+  ],
+  "intel_sources": [
+   "plan-lint",
+   "wc",
+   "-l"
+  ]
+ },
+ "impact_files": [
+  {
+   "path": "components/website/src/lib/__tests__/booking-availability.test.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/__tests__/business-settings.test.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/appointments-db.ts",
+   "language": "javascript",
+   "loc": 468,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 432
+  },
+  {
+   "path": "components/website/src/lib/business-settings.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/caldav-cache.ts",
+   "language": "javascript",
+   "loc": 87,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 813
+  },
+  {
+   "path": "components/website/src/lib/caldav.ts",
+   "language": "javascript",
+   "loc": 468,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 432
+  },
+  {
+   "path": "components/website/src/lib/website-core-db.ts",
+   "language": "javascript",
+   "loc": 543,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 357
+  },
+  {
+   "path": "components/website/src/pages/api/booking.ts",
+   "language": "javascript",
+   "loc": 119,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 781
+  },
+  {
+   "path": "components/website/src/pages/api/calendar/slots.ts",
+   "language": "javascript",
+   "loc": 30,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 870
+  },
+  {
+   "path": "components/website/src/pages/api/owner/bookings/[uid]/cancel.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/api/owner/bookings/[uid]/reschedule.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/api/owner/bookings/phone.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/api/owner/calendar/block.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/owner/kalender.astro",
+   "language": "astro",
+   "loc": 0,
+   "s1_limit": 1000,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "content/massage/leistungen.json",
+   "language": "config",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "tests/spec/services-calendar.bats",
+   "language": "bash",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  }
+ ],
+ "symbols": [],
+ "call_graph": {
+  "entrypoints": [],
+  "edges": []
+ },
+ "db_tables": [
+  {
+   "table": "free_time_windows",
+   "source": "code-read appointments-db.ts:396-414",
+   "notes": "brand, date DATE, win_start/win_end TIME"
+  },
+  {
+   "table": "slot_whitelist",
+   "source": "code-read appointments-db.ts:317-333",
+   "notes": "brand, slot_start/end TIMESTAMPTZ, PK(brand,slot_start); claimSlot DELETE..RETURNING :378-385"
+  },
+  {
+   "table": "booking_project_links",
+   "source": "code-read appointments-db.ts:164-186",
+   "notes": "caldav_uid, brand, project_id, leistung_key (label only)"
+  },
+  {
+   "table": "site_settings",
+   "source": "code-read website-core-db.ts:409-429",
+   "notes": "vacation_periods JSON blob per brand; extend with hours/buffers/holidays JSON"
+  },
+  {
+   "table": "inbox_items",
+   "source": "T901022 migration",
+   "notes": "brand column exists (nullable); booking payload carries serviceKey/slot"
+  }
+ ],
+ "api_contracts": [
+  {
+   "route": "POST /api/booking",
+   "handler": "components/website/src/pages/api/booking.ts",
+   "contract": "rate-limit 5/min/IP; isSlotInAnyWindow(BRAND) else 409; createInboxItem booking; user ack + admin notify; NEVER calls claimSlot today"
+  },
+  {
+   "route": "GET /api/calendar/slots?from=&durationMin=",
+   "handler": "components/website/src/pages/api/calendar/slots.ts",
+   "contract": "getAvailableSlots(fromDate, brand, durationMin); Cache-Control private max-age=60"
+  },
+  {
+   "route": "GET /api/leistungen",
+   "handler": "components/website/src/pages/api/leistungen.ts",
+   "contract": "flatten catalogue to {key,name,category,durationMin}"
+  },
+  {
+   "route": "POST/DELETE /api/admin/time-windows/add|remove",
+   "handler": "components/website/src/pages/api/admin/time-windows/",
+   "contract": "isAdmin; winStart<winEnd check; remove by id"
+  }
+ ],
+ "external_types": [],
+ "risks": [
+  {
+   "severity": "warn",
+   "note": "No services DB table by design (static catalogue); price/duration snapshot per appointment must be specified in plan."
+  },
+  {
+   "severity": "warn",
+   "note": "Timezone fix touches shared availability code used by Mentolder paths — needs regression tests on existing behavior."
+  },
+  {
+   "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+   "severity": "warn"
+  },
+  {
+   "severity": "warn",
+   "note": "mcp-postgres unavailable, no live DB read; db_tables from code reads."
+  }
+ ]
+}

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1274,
+      "file_count": 1275,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -619,6 +619,7 @@
         "tests/spec/db-guard/db-identity-guard.bats",
         "tests/spec/db-guard/kubeconfig-drift-guard.bats",
         "tests/spec/db-quality-goals.bats",
+        "tests/spec/db-restore-verification/generation-lookup.bats",
         "tests/spec/db-restore-verification/restore-verify-cronjob.bats",
         "tests/spec/decommission/decommission-guard.bats",
         "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",

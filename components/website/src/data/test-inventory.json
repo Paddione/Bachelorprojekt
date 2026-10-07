@@ -2892,6 +2892,12 @@
     "kind": "shell"
   },
   {
+    "id": "db-restore-verification/generation-lookup",
+    "file": "tests/spec/db-restore-verification/generation-lookup.bats",
+    "category": "db-restore-verification",
+    "kind": "shell"
+  },
+  {
     "id": "db-restore-verification/restore-verify-cronjob",
     "file": "tests/spec/db-restore-verification/restore-verify-cronjob.bats",
     "category": "db-restore-verification",

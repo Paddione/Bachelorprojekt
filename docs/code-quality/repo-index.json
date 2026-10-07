@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1267,
+      "file_count": 1268,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -920,6 +920,7 @@
         "tests/spec/planning-office/epic-lastenheft.bats",
         "tests/spec/pocket-id-client-seed-auth-header.bats",
         "tests/spec/pocket-id-client-seed-early-abort.bats",
+        "tests/spec/pocket-id-client-seed-group-lookup.bats",
         "tests/spec/pocket-id-client-seed-pagination.bats",
         "tests/spec/pocket-id-client-seed-secret-writeback.bats",
         "tests/spec/pocket-id-client-seed-timeout.bats",

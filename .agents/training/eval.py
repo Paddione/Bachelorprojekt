@@ -27,7 +27,14 @@ HERE = Path(__file__).resolve().parent
 
 
 def get_eval_config(model_size: str = "4b-mtp") -> dict:
-    """Return eval paths and model specs for 4b-mtp / 4b or 2b."""
+    """Return eval paths and model specs for 0.8b, 2b, or 4b-mtp / 4b."""
+    if model_size == "0.8b":
+        return {
+            "base_model": "unsloth/Qwen3.5-0.8B",
+            "adapter_dir": HERE / "qwen35_08b_bp_lora",
+            "val_file": HERE / "dataset_08b_val.jsonl",
+            "results_file": HERE / "eval_08b_results.json",
+        }
     if model_size in {"4b", "4b-mtp"}:
         return {
             "base_model": "unsloth/Qwen3.5-4B",
@@ -54,6 +61,9 @@ MAX_NEW_TOKENS = 300
 MIN_COMMAND_MATCH = 0.70
 MAX_EMPTY_RATE = 0.0
 MAX_THINK_LEAK_RATE = 0.0
+# T900979 P3: 0.8B viability gate is relaxed on command-match (mechanical
+# slice only) but equally strict on empty/think-leak. Off-ladder until green.
+MIN_COMMAND_MATCH_08B = 0.65
 # Qwen3.5-4B-MTP measured sampling defaults
 TEMPERATURE, TOP_P, TOP_K = 0.8, 0.95, 40
 MIN_P, REPEAT_PENALTY = 0.05, 1.0
@@ -126,18 +136,54 @@ def score_answer(answer, ref):
     return {"cmd_hit": cmd_hit, "empty": empty, "think_leak": think_leak}
 
 
-def check_thresholds(command_match, empty_rate, leak_rate):
-    """P3: acceptance gate — (passed: bool, summary: str)."""
+def get_viability_thresholds(model_size: str = "4b-mtp") -> dict:
+    """T900979 P3: per-model viability thresholds.
+
+    0.8b (mechanical slice): command-match >= 0.65, empty == 0.0,
+    think-leak == 0.0. All other sizes keep the global 0.70 gate.
+    """
+    if model_size == "0.8b":
+        return {
+            "min_command_match": MIN_COMMAND_MATCH_08B,
+            "max_empty_rate": MAX_EMPTY_RATE,
+            "max_think_leak_rate": MAX_THINK_LEAK_RATE,
+        }
+    return {
+        "min_command_match": MIN_COMMAND_MATCH,
+        "max_empty_rate": MAX_EMPTY_RATE,
+        "max_think_leak_rate": MAX_THINK_LEAK_RATE,
+    }
+
+
+def check_thresholds(command_match, empty_rate, leak_rate, model_size=None):
+    """P3: acceptance gate — (passed: bool, summary: str).
+
+    model_size selects the per-model viability thresholds
+    (0.8b: 0.65, else global 0.70). None keeps legacy global behavior
+    for pre-0.8b callers. On failure the summary carries the
+    VIABILITY_GATE_FAILED marker (off-ladder, no agent IDs).
+    """
+    if model_size == "0.8b":
+        thresholds = get_viability_thresholds("0.8b")
+    else:
+        thresholds = {
+            "min_command_match": MIN_COMMAND_MATCH,
+            "max_empty_rate": MAX_EMPTY_RATE,
+            "max_think_leak_rate": MAX_THINK_LEAK_RATE,
+        }
+    min_cmd = thresholds["min_command_match"]
+    max_empty = thresholds["max_empty_rate"]
+    max_leak = thresholds["max_think_leak_rate"]
     problems = []
-    if command_match < MIN_COMMAND_MATCH:
-        problems.append(f"command-match {command_match:.2f} < {MIN_COMMAND_MATCH:.2f}")
-    if empty_rate > MAX_EMPTY_RATE:
-        problems.append(f"empty-output-rate {empty_rate:.3f} > {MAX_EMPTY_RATE:.3f}")
-    if leak_rate > MAX_THINK_LEAK_RATE:
-        problems.append(f"think-leak-rate {leak_rate:.3f} > {MAX_THINK_LEAK_RATE:.3f}")
+    if command_match < min_cmd:
+        problems.append(f"command-match {command_match:.2f} < {min_cmd:.2f}")
+    if empty_rate > max_empty:
+        problems.append(f"empty-output-rate {empty_rate:.3f} > {max_empty:.3f}")
+    if leak_rate > max_leak:
+        problems.append(f"think-leak-rate {leak_rate:.3f} > {max_leak:.3f}")
     if problems:
-        return False, "FAIL: " + "; ".join(problems)
-    return True, (f"PASS: command-match {command_match:.2f} >= {MIN_COMMAND_MATCH:.2f}, "
+        return False, "FAIL VIABILITY_GATE_FAILED: " + "; ".join(problems) + " (off-ladder, no agent IDs)"
+    return True, (f"PASS: command-match {command_match:.2f} >= {min_cmd:.2f}, "
                   f"empty {empty_rate:.3f}, leak {leak_rate:.3f}")
 
 
@@ -163,7 +209,7 @@ def run_compare(model, tokenizer, limit):
     print(f"\n[eval] wrote {RESULTS_FILE}")
 
 
-def run_val(model, tokenizer, limit):
+def run_val(model, tokenizer, limit, model_size="4b-mtp"):
     questions, refs = _val_questions(limit)
     hit, scored, total, empty_n, leak_n, rows = 0, 0, 0, 0, 0, []
     for q, ref in zip(questions, refs):
@@ -181,7 +227,8 @@ def run_val(model, tokenizer, limit):
         print(f"[val {total}] {'HIT' if ok else ('MISS' if ok is False else 'n/a')}: {q[:70]}")
     command_match = (hit / scored) if scored else 0.0
     empty_rate, leak_rate = empty_n / total, leak_n / total
-    passed, summary = check_thresholds(command_match, empty_rate, leak_rate)
+    passed, summary = check_thresholds(command_match, empty_rate, leak_rate,
+                                       model_size=model_size)
     print(f"\n[eval] command-match: {hit}/{scored} = {command_match:.3f} "
           f"(rough signal — reference commands appearing in the tuned answer)")
     print(f"[eval] empty-output-rate: {empty_rate:.3f}, think-leak-rate: {leak_rate:.3f}")
@@ -208,7 +255,7 @@ def main():
     global _bp_worker_style, ADAPTER_DIR, BASE_MODEL, VAL_FILE, RESULTS_FILE
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mode", choices=["compare", "val", "interactive"], default="compare")
-    ap.add_argument("--model-size", choices=["2b", "4b", "4b-mtp"], default="4b-mtp",
+    ap.add_argument("--model-size", choices=["0.8b", "2b", "4b", "4b-mtp"], default="4b-mtp",
                     help="model size preset (default: 4b-mtp)")
     ap.add_argument("--limit", type=int, default=8, help="cap val questions (0 = all)")
     ap.add_argument("--adapter", type=Path, default=None)
@@ -233,8 +280,12 @@ def main():
         if not VAL_FILE.is_file():
             print(f"[eval dry-run] ERROR: val file not found: {VAL_FILE}", file=sys.stderr)
             sys.exit(1)
+        thresholds = get_viability_thresholds(args.model_size)
         print(f"[eval dry-run] Config OK: base={BASE_MODEL}, adapter={ADAPTER_DIR.name}, "
-              f"val={VAL_FILE.name}, results={RESULTS_FILE.name}, mode={args.mode}")
+              f"val={VAL_FILE.name}, results={RESULTS_FILE.name}, mode={args.mode}, "
+              f"viability=cmd>={thresholds['min_command_match']:.2f},"
+              f"empty<={thresholds['max_empty_rate']:.3f},"
+              f"leak<={thresholds['max_think_leak_rate']:.3f}")
         return
 
     sys.path.insert(0, str(HERE))
@@ -246,7 +297,7 @@ def main():
     if args.mode == "compare":
         run_compare(model, tokenizer, args.limit)
     elif args.mode == "val":
-        run_val(model, tokenizer, args.limit)
+        run_val(model, tokenizer, args.limit, model_size=args.model_size)
     else:
         run_interactive(model, tokenizer)
 

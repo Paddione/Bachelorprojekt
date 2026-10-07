@@ -18,6 +18,12 @@ lokale LLM-Rails) auf der :8080-Worker-Rail — Direkt-Modus default, schnell,
   reiner Inference-Modus pro Request (siehe `docs/runbooks/qwen35-worker-modes.md`).
 
 ## 3. Modell
+- **T900979-Minimal-Worker `--model-size 0.8b`**: `unsloth/Qwen3.5-0.8B`
+  (24 Transformer-Layers) + LoRA `r=16, alpha=16`, 16-bit (<6 GB VRAM Requirement, z. B. `6_000` MiB),
+  Daten `dataset_08b_train.jsonl` (P1-Slice: nur mechanische Aufgaben wie CLI, Gotchas, Boilerplate).
+  Output `qwen35_08b_bp_lora/`, Export `qwen35_08b_bp_merged/` + `qwen35_08b_bp_gguf/`.
+  Zweck: triviale mechanische Partials (Renames, Lockfile-Bumps, reine Doc-Syncs).
+  Ladder-Regel: provisorisch / off-ladder — keine Agent-IDs vor grüner Eval (hartes Viability-Gate).
 - **T900978-Pilot `--model-size 2b` (Default)**: `unsloth/Qwen3.5-2B`
   (HF-verifiziert 04.10.: API 200, single-safetensors) + LoRA `r=32, alpha=32`,
   16-bit (~11-13 GB), Daten `dataset_2b_train.jsonl` (P1-Slice, 137 Zeilen),
@@ -60,7 +66,7 @@ Teacher über :1919 + T3 Human-QC). Format: `messages`, System-Prompt
 | Parameter | Wert | Warum |
 |---|---|---|
 | precision | 16bit (Default), 4bit via Flag | 4B hat VRAM-Raum für echte bf16-LoRA — Qualitätsgewinn ohne Kosten |
-| model-size | 2b (Default, T900978), 4b-mtp | 2B-Pilot auf P1-Slice (200 Steps); 4b-mtp = shipped Run, reproduzierbar |
+| model-size | 2b (Default, T900978), 4b-mtp, 0.8b (T900979) | 0.8b = mechanischer Worker; 2B-Pilot auf P1-Slice; 4b-mtp = shipped Run |
 | max-steps | 200 (Default) | Notebook-Vorbefund; cappt Epochen auf dem kleinen Slice |
 | LoRA rank | r=32 / alpha=32 (16bit) · r=16 (4bit) | mehr Adapter-Kapazität ist jetzt fast gratis; darüber Overfit-Risiko |
 | epochs | 3 | ~1–2k kurze Paare; 3 Epochen ohne Overfit-Evidenz, val im Blick halten |

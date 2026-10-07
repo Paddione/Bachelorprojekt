@@ -3738,6 +3738,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/qwen35-08b-training",
+    "file": "tests/spec/llm-local-dev/qwen35-08b-training.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/qwen35-2b-training",
     "file": "tests/spec/llm-local-dev/qwen35-2b-training.bats",
     "category": "llm-local-dev",

@@ -26,7 +26,14 @@ HERE = Path(__file__).resolve().parent
 
 
 def get_export_paths(model_size: str = "4b-mtp") -> dict:
-    """Return export paths and expected blocks for 4b-mtp / 4b or 2b."""
+    """Return export paths and expected blocks for 0.8b, 4b-mtp / 4b or 2b."""
+    if model_size == "0.8b":
+        return {
+            "lora_dir": HERE / "qwen35_08b_bp_lora",
+            "merged_dir": HERE / "qwen35_08b_bp_merged",
+            "gguf_dir": HERE / "qwen35_08b_bp_gguf",
+            "expected_blocks": 24,
+        }
     if model_size in {"4b", "4b-mtp"}:
         return {
             "lora_dir": HERE / "qwen35_4b_bp_lora",
@@ -49,7 +56,9 @@ GGUF_DIR = _DEFAULT_PATHS["gguf_dir"]
 SEQ_LEN = 2048
 # Expected transformer block count of Qwen3.5-4B / 2B (verify after
 # export; llama.cpp issue #24737: some Qwen3.5 GGUFs report 33 instead of 32).
+# 0.8B (T900979): 24 blocks (25 tolerated as #24737 quirk, else FAIL).
 EXPECTED_BLOCKS = 32
+EXPECTED_BLOCKS_08B = 24
 
 
 def check_block_count(actual, expected=EXPECTED_BLOCKS):
@@ -90,7 +99,7 @@ def main():
     import sys
 
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--model-size", choices=["2b", "4b", "4b-mtp"], default="4b-mtp",
+    ap.add_argument("--model-size", choices=["0.8b", "2b", "4b", "4b-mtp"], default="4b-mtp",
                     help="model size preset (default: 4b-mtp)")
     ap.add_argument("--lora-path", type=Path, default=None, help="path to LoRA adapter")
     ap.add_argument("--merged-path", type=Path, default=None, help="output path for merged 16bit model")

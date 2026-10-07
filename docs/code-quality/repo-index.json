@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1268,
+      "file_count": 1270,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -696,6 +696,7 @@
         "tests/spec/fix-ci-concurrency.bats",
         "tests/spec/fix-ticket-tracking-T002279.bats",
         "tests/spec/fixtures/make-partial-plan.sh",
+        "tests/spec/fixtures/openclaw-fake-gateway.mjs",
         "tests/spec/fleet-operations.bats",
         "tests/spec/fleet-operations/cronjob-hygiene.bats",
         "tests/spec/fleet-operations/dev-env-split.bats",
@@ -905,6 +906,7 @@
         "tests/spec/network-address-plan/networks-registry.bats",
         "tests/spec/newsletter-system.bats",
         "tests/spec/nextcloud-integration.bats",
+        "tests/spec/openclaw-ops-bot.bats",
         "tests/spec/opencode-config-ssot.bats",
         "tests/spec/opencode-local-model-runner.bats",
         "tests/spec/openspec-workflow/t002573-backlog-slugs.txt",
@@ -3945,7 +3947,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 874,
+      "file_count": 875,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4609,6 +4611,7 @@
         "scripts/one-shot/purge-fn-v6.sql",
         "scripts/one-shot/purge-fn-v7.sql",
         "scripts/one-shot/purge-fn-v8.sql",
+        "scripts/openclaw-ask.sh",
         "scripts/opencode-config-viz.sh",
         "scripts/opencode-monitor.sh",
         "scripts/opencode-plugins/bge-mcp-env.ts",
@@ -5205,8 +5208,15 @@
       "id": "openclaw",
       "name": "OpenClaw WSL gateway config",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 0,
-      "files": []
+      "file_count": 6,
+      "files": [
+        "openclaw/.env.example",
+        "openclaw/exec-approvals.json5",
+        "openclaw/heartbeat-scratch.md",
+        "openclaw/openclaw-gateway.service",
+        "openclaw/openclaw.json5",
+        "openclaw/workspace/AGENTS.md"
+      ]
     },
     {
       "id": "assets",

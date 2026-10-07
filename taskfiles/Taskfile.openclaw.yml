@@ -1,146 +1,262 @@
 version: "3"
 
+# OpenClaw-Ops-Bot (T900538): eigener Node 24, OpenClaw per npm-Prefix, systemd-User-Unit.
+# Vertrag: .agents/plans/openclaw-ops-bot/design.md. System-Node bleibt unverändert.
+
 vars:
-  DETECTED_CMD:
-    sh: 'command -v opencode >/dev/null && echo opencode || echo openclaw'
-  OPCODE_CMD: '{{.OPCODE_CMD | default .DETECTED_CMD}}'
-  OPENCLAW_HOME: '{{.OPENCLAW_HOME | default "/home/patrick/.openclaw"}}'
-  OPENCODE_HOME: '{{.OPENCODE_HOME | default "/home/patrick/.config/opencode"}}'
-  ACTIVE_HOME: '{{if eq .OPCODE_CMD "opencode"}}{{.OPENCODE_HOME}}{{else}}{{.OPENCLAW_HOME}}{{end}}'
-  BACKUP_DIR: '{{.ACTIVE_HOME}}.bak.20260514'
-  ENV_TEMPLATE: dotfiles/openclaw/.env.example
+  OPENCLAW_VERSION: "2026.9.6"
+  NODE24_VERSION: "v24.21.0"
+  NODE24_SHA256: "fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6"
+  NODE24_TARBALL: "node-{{.NODE24_VERSION}}-linux-x64.tar.xz"
+  NODE24_URL: "https://nodejs.org/dist/{{.NODE24_VERSION}}/{{.NODE24_TARBALL}}"
+  GATEWAY_PORT: "18789"
+  UNIT_NAME: openclaw-gateway.service
+  UNIT_SRC: openclaw/openclaw-gateway.service
+  ENV_TEMPLATE: openclaw/.env.example
+  CONFIG_TEMPLATE: openclaw/openclaw.json5
+  WORKSPACE_SRC: openclaw/workspace
+  APPROVALS_TEMPLATE: openclaw/exec-approvals.json5
+  SCRATCH_TEMPLATE: openclaw/heartbeat-scratch.md
+  # Auth-Datei des Fallback-Providers, nur gelesen (Schlüssel "opencode-go").
+  GO_AUTH_FILE:
+    sh: 'printf "%s/opencode/auth.json" "${XDG_DATA_HOME:-$HOME/.local/share}"'
 
 tasks:
   backup:
-    desc: "Move existing config to a dated backup directory (no-op if absent)"
+    desc: "~/.openclaw nach ~/.openclaw.bak.<YYYYMMDD> verschieben (Abbruch, wenn das Ziel existiert)"
     cmds:
       - |
-        if [[ -d "{{.ACTIVE_HOME}}" ]]; then
-          if [[ -e "{{.BACKUP_DIR}}" ]]; then
-            echo "Backup already exists at {{.BACKUP_DIR}} — refusing to overwrite."
-            exit 1
-          fi
-          mv "{{.ACTIVE_HOME}}" "{{.BACKUP_DIR}}"
-          echo "Moved {{.ACTIVE_HOME}} → {{.BACKUP_DIR}}"
-        else
-          echo "No existing {{.ACTIVE_HOME}} — nothing to back up."
+        set -euo pipefail
+        src="$HOME/.openclaw"
+        dst="$HOME/.openclaw.bak.$(date +%Y%m%d)"
+        if [[ ! -d "$src" ]]; then
+          echo "Kein $src vorhanden, nichts zu sichern."
+          exit 0
         fi
+        if [[ -e "$dst" ]]; then
+          echo "Backup $dst existiert bereits, Abbruch." >&2
+          exit 1
+        fi
+        mv "$src" "$dst"
+        echo "Verschoben: $src -> $dst"
 
   install:
-    desc: "npm install -g opencode@latest (Node ≥ 22.16 required)"
-    preconditions:
-      - sh: "node --version | awk -F. '{ exit ($1 == \"v24\" || ($1 == \"v22\" && $2 >= 16)) ? 0 : 1 }'"
-        msg: "Node 22.16+ or 24 required (got $(node --version 2>/dev/null || echo 'no node'))"
+    desc: "Node {{.NODE24_VERSION}} (SHA-256-geprüft) und OpenClaw {{.OPENCLAW_VERSION}} unter ~/.local/opt installieren"
     cmds:
-      - sudo npm install -g opencode@latest
-      - opencode --version
+      - |
+        set -euo pipefail
+        node_dir="$HOME/.local/opt/node24"
+        prefix="$HOME/.local/opt/openclaw"
+        wrapper="$HOME/.local/bin/openclaw"
+        if [[ -x "$node_dir/bin/node" && "$("$node_dir/bin/node" --version)" == "{{.NODE24_VERSION}}" ]]; then
+          echo "Node {{.NODE24_VERSION}} liegt bereits in $node_dir."
+        else
+          tmp="$(mktemp -d "${TMPDIR:-/tmp}/node24.XXXXXX")"
+          trap 'rm -rf "$tmp"' EXIT
+          curl -fsSL -o "$tmp/{{.NODE24_TARBALL}}" "{{.NODE24_URL}}"
+          echo "{{.NODE24_SHA256}}  $tmp/{{.NODE24_TARBALL}}" | sha256sum -c -
+          rm -rf "$node_dir"
+          mkdir -p "$node_dir"
+          tar -xJf "$tmp/{{.NODE24_TARBALL}}" -C "$node_dir" --strip-components=1
+        fi
+        export PATH="$node_dir/bin:$PATH"
+        "$node_dir/bin/npm" install -g --prefix "$prefix" "openclaw@{{.OPENCLAW_VERSION}}"
+        pkg="$prefix/lib/node_modules/openclaw/package.json"
+        bin_rel="$("$node_dir/bin/node" -e '
+          const b = require(process.argv[1]).bin;
+          const r = typeof b === "string" ? b : (b && b.openclaw);
+          if (!r) { console.error("package.json ohne bin.openclaw"); process.exit(1); }
+          process.stdout.write(r);
+        ' "$pkg")"
+        bin_rel="${bin_rel#./}"
+        mkdir -p "$(dirname "$wrapper")"
+        printf '#!/usr/bin/env bash\nexec "$HOME/.local/opt/node24/bin/node" "$HOME/.local/opt/openclaw/lib/node_modules/openclaw/%s" "$@"\n' "$bin_rel" > "$wrapper"
+        chmod 755 "$wrapper"
+        ver="$("$wrapper" --version)"
+        if [[ "$ver" != *"{{.OPENCLAW_VERSION}}"* ]]; then
+          echo "Falsche Version: '$ver', erwartet {{.OPENCLAW_VERSION}}." >&2
+          exit 1
+        fi
+        echo "OpenClaw $ver installiert, Wrapper: $wrapper"
 
   configure:
-    desc: "Configure the CLI and ensure configuration directory exists"
-    deps: [install]
+    desc: "~/.openclaw/.env, openclaw.json, Exec-Approvals, Workspace-Symlink AGENTS.md und systemd-Unit einrichten"
     cmds:
       - |
-        if [[ "{{.OPCODE_CMD}}" == "openclaw" ]]; then
-          openclaw onboard --install-daemon --non-interactive || \
-            openclaw onboard --install-daemon
-        else
-          echo "Opencode configuration directory is located at {{.ACTIVE_HOME}}."
-          mkdir -p "{{.ACTIVE_HOME}}"
+        set -euo pipefail
+        repo="$(git rev-parse --show-toplevel)"
+        state="$HOME/.openclaw"
+        env_file="$state/.env"
+        wrapper="$HOME/.local/bin/openclaw"
+        if [[ ! -x "$wrapper" ]]; then
+          echo "Wrapper $wrapper fehlt, zuerst task openclaw:install ausführen." >&2
+          exit 1
         fi
-      - |
-        if [[ ! -f "{{.ACTIVE_HOME}}/.env" && "{{.OPCODE_CMD}}" == "openclaw" ]]; then
-          cp "{{.ENV_TEMPLATE}}" "{{.ACTIVE_HOME}}/.env"
-          chmod 600 "{{.ACTIVE_HOME}}/.env"
-          echo "Wrote {{.ACTIVE_HOME}}/.env from template — edit if defaults are wrong."
-        elif [[ ! -f "{{.ACTIVE_HOME}}/config.json" && "{{.OPCODE_CMD}}" == "opencode" ]]; then
-          echo "Opencode is installed and configured at {{.ACTIVE_HOME}}/config.json."
+        for f in "{{.ENV_TEMPLATE}}" "{{.CONFIG_TEMPLATE}}" "{{.APPROVALS_TEMPLATE}}" "{{.UNIT_SRC}}" "{{.WORKSPACE_SRC}}/AGENTS.md"; do
+          if [[ ! -f "$repo/$f" ]]; then
+            echo "Vorlage fehlt: $repo/$f" >&2
+            exit 1
+          fi
+        done
+        mkdir -p "$state/workspace"
+        chmod 700 "$state"
+        if [[ ! -f "$env_file" ]]; then
+          cp "$repo/{{.ENV_TEMPLATE}}" "$env_file"
+          echo "Angelegt: $env_file (aus {{.ENV_TEMPLATE}})"
         fi
-      - |
-        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
-          task: start
+        chmod 600 "$env_file"
+        set_if_empty() {
+          name="$1"
+          value="$2"
+          if grep -qE "^${name}=.+" "$env_file"; then
+            return 0
+          fi
+          if [[ -z "$value" ]]; then
+            echo "$name bleibt leer, bitte in $env_file eintragen."
+            return 0
+          fi
+          if grep -qE "^${name}=" "$env_file"; then
+            tmpf="$(mktemp)"
+            awk -v n="$name" -v v="$value" 'index($0, n "=") == 1 { print n "=" v; next } { print }' "$env_file" > "$tmpf"
+            cat "$tmpf" > "$env_file"
+            rm -f "$tmpf"
+          else
+            printf '%s=%s\n' "$name" "$value" >> "$env_file"
+          fi
+          echo "$name gesetzt."
+        }
+        go_key=""
+        if [[ -f "{{.GO_AUTH_FILE}}" ]]; then
+          go_key="$(jq -r '."opencode-go".key // empty' "{{.GO_AUTH_FILE}}")"
         fi
+        set_if_empty OPENCLAW_GATEWAY_TOKEN "$(openssl rand -hex 32)"
+        set_if_empty TELEGRAM_BOT_TOKEN ""
+        set_if_empty TELEGRAM_CHAT_ID ""
+        set_if_empty OPENCLAW_LOCAL_BASE_URL "http://127.0.0.1:1919/v1"
+        set_if_empty OPENCODE_GO_API_KEY "$go_key"
+        set_if_empty OPENCLAW_GO_SESSION "$(cat /proc/sys/kernel/random/uuid)"
+        set_if_empty OPENCLAW_LOG_LEVEL "info"
+        cp "$repo/{{.CONFIG_TEMPLATE}}" "$state/openclaw.json"
+        echo "Kopiert: {{.CONFIG_TEMPLATE}} -> $state/openclaw.json"
+        "$wrapper" approvals set --file "$repo/{{.APPROVALS_TEMPLATE}}"
+        echo "Exec-Approvals eingespielt aus {{.APPROVALS_TEMPLATE}}"
+        ln -sfn "$repo/{{.WORKSPACE_SRC}}/AGENTS.md" "$state/workspace/AGENTS.md"
+        unit_dir="$HOME/.config/systemd/user"
+        mkdir -p "$unit_dir"
+        cp "$repo/{{.UNIT_SRC}}" "$unit_dir/{{.UNIT_NAME}}"
+        systemctl --user daemon-reload
+        echo "Unit installiert: $unit_dir/{{.UNIT_NAME}}"
 
   start:
-    desc: "Restart the user systemd service"
+    desc: "Gateway-Unit starten, Heartbeat-Scratch des Agenten ops einspielen, danach Status"
     cmds:
+      - systemctl --user enable --now {{.UNIT_NAME}}
       - |
-        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
-          systemctl --user daemon-reload
-          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
-          systemctl --user restart "$svc_name"
-          systemctl --user status "$svc_name" --no-pager | head -20
-        else
-          echo "No systemd service found for {{.OPCODE_CMD}}."
+        set -euo pipefail
+        repo="$(git rev-parse --show-toplevel)"
+        wrapper="$HOME/.local/bin/openclaw"
+        scratch="$repo/{{.SCRATCH_TEMPLATE}}"
+        url="http://127.0.0.1:{{.GATEWAY_PORT}}/healthz"
+        ready=0
+        for i in $(seq 1 30); do
+          if curl -fsS --max-time 1 -o /dev/null "$url"; then
+            ready=1
+            break
+          fi
+          sleep 1
+        done
+        if [[ "$ready" != "1" ]]; then
+          echo "Warnung: Gateway nach 30 s nicht bereit ($url), Heartbeat-Scratch nicht eingespielt."
+          exit 0
         fi
+        if [[ ! -f "$scratch" ]]; then
+          echo "Warnung: $scratch fehlt, Heartbeat-Scratch nicht eingespielt."
+          exit 0
+        fi
+        jobs_json="$("$wrapper" cron list --all --json)" || {
+          echo "Warnung: openclaw cron list --all --json schlug fehl, Heartbeat-Scratch nicht eingespielt."
+          exit 0
+        }
+        job_id="$(printf '%s' "$jobs_json" | jq -r '
+          (if type == "array" then . else (.jobs // .items // []) end)
+          | .[]
+          | select((.name // "") == "Heartbeat (ops)" or ((.agentId // "") == "ops" and ((.name // "") | startswith("Heartbeat"))))
+          | .id' | head -n 1 || true)"
+        if [[ -z "$job_id" ]]; then
+          echo "Warnung: kein Heartbeat-Job für Agent ops gefunden, Heartbeat-Scratch nicht eingespielt."
+          exit 0
+        fi
+        "$wrapper" cron scratch "$job_id" --file "$scratch"
+        echo "Heartbeat-Scratch aus {{.SCRATCH_TEMPLATE}} in Job $job_id eingespielt."
+      - task: status
 
   status:
-    desc: "Show daemon status + gateway health probe"
+    desc: "Unit-Zustand, Gateway-/healthz, lokales Modell und Telegram-Variablen"
     cmds:
       - |
-        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
-          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
-          systemctl --user is-active "$svc_name" && echo "daemon: active" || echo "daemon: inactive"
+        set -uo pipefail
+        rc=0
+        if systemctl --user is-active --quiet {{.UNIT_NAME}}; then
+          echo "unit: active"
         else
-          echo "daemon: no service configured"
+          echo "unit: inactive"
+          rc=1
         fi
-      - |
-        port="${OPENCLAW_GATEWAY_PORT:-18789}"
-        curl -sS --max-time 3 "http://127.0.0.1:${port}/healthz" \
-          && echo "" \
-          || echo "gateway healthz did not respond on port ${port}"
-      - |
-        echo ""
-        echo "Backend reachability check (Ollama on localhost:11434):"
-        curl -sS --max-time 3 http://localhost:11434/v1/models | head -c 400 \
-          && echo "" \
-          || echo "WARNING: Ollama not reachable from localhost:11434"
+        if curl -fsS --max-time 3 -o /dev/null "http://127.0.0.1:{{.GATEWAY_PORT}}/healthz"; then
+          echo "gateway: ok (http://127.0.0.1:{{.GATEWAY_PORT}}/healthz)"
+        else
+          echo "gateway: keine Antwort auf http://127.0.0.1:{{.GATEWAY_PORT}}/healthz"
+          rc=1
+        fi
+        base="${OPENCLAW_LOCAL_BASE_URL:-}"
+        if [[ -z "$base" && -f "$HOME/.openclaw/.env" ]]; then
+          base="$(grep -E '^OPENCLAW_LOCAL_BASE_URL=' "$HOME/.openclaw/.env" | tail -n 1 | cut -d= -f2-)"
+        fi
+        base="${base:-http://127.0.0.1:1919/v1}"
+        if curl -fsS --max-time 3 -o /dev/null "$base/models"; then
+          echo "lokales Modell: ok ($base/models)"
+        else
+          echo "lokales Modell: nicht erreichbar ($base/models), Heartbeats laufen über den Fallback"
+        fi
+        for name in TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID; do
+          if ! grep -qE "^${name}=.+" "$HOME/.openclaw/.env" 2>/dev/null; then
+            echo "Hinweis: $name ist in $HOME/.openclaw/.env leer, Telegram-Zustellung fehlt."
+          fi
+        done
+        exit "$rc"
 
   logs:
-    desc: "Tail daemon log via journalctl --user"
+    desc: "Letzte 100 Journal-Zeilen der Gateway-Unit"
     cmds:
-      - |
-        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
-          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
-          journalctl --user -u "$svc_name" -n 100 --no-pager
-        else
-          echo "No service logs found."
-        fi
+      - journalctl --user -u {{.UNIT_NAME}} -n 100 --no-pager
 
   restore:
-    desc: "Roll back: stop daemon, uninstall, remove config, move backup back"
+    desc: "Unit stoppen, OpenClaw-Prefix und ~/.openclaw entfernen, neuestes Backup zurückholen (Node 24 bleibt)"
     cmds:
       - |
-        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
-          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
-          systemctl --user disable --now "$svc_name" || true
-        fi
-      - sudo npm uninstall -g "{{.OPCODE_CMD}}" || true
-      - rm -rf "{{.ACTIVE_HOME}}"
-      - |
-        if [[ -d "{{.BACKUP_DIR}}" ]]; then
-          mv "{{.BACKUP_DIR}}" "{{.ACTIVE_HOME}}"
-          echo "Restored {{.BACKUP_DIR}} → {{.ACTIVE_HOME}}"
+        set -euo pipefail
+        systemctl --user disable --now {{.UNIT_NAME}} 2>/dev/null || true
+        rm -rf "$HOME/.local/opt/openclaw" "$HOME/.local/bin/openclaw" "$HOME/.openclaw"
+        latest="$(ls -1d "$HOME"/.openclaw.bak.* 2>/dev/null | sort | tail -n 1 || true)"
+        if [[ -n "$latest" ]]; then
+          mv "$latest" "$HOME/.openclaw"
+          echo "Zurückgeholt: $latest -> $HOME/.openclaw"
         else
-          echo "No backup at {{.BACKUP_DIR}} — fresh install fully removed."
+          echo "Kein Backup gefunden, OpenClaw ist entfernt."
         fi
 
   wipe:
-    desc: "Destructive: remove config AND backup. Requires CONFIRM=yes"
+    desc: "Destruktiv: Unit, Prefix, Node 24, ~/.openclaw und alle Backups entfernen. Erfordert CONFIRM=yes"
     cmds:
       - |
-        if [[ "${CONFIRM:-}" != "yes" ]]; then
-          echo "Refusing — set CONFIRM=yes to wipe both {{.ACTIVE_HOME}} and {{.BACKUP_DIR}}"
+        set -euo pipefail
+        if [[ "{{.CONFIRM}}" != "yes" ]]; then
+          echo "Abbruch: task openclaw:wipe CONFIRM=yes entfernt Unit, Prefix, Node 24, ~/.openclaw und alle Backups." >&2
           exit 1
         fi
-      - |
-        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
-          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
-          systemctl --user disable --now "$svc_name" || true
-        fi
-      - sudo npm uninstall -g "{{.OPCODE_CMD}}" || true
-      - rm -rf "{{.ACTIVE_HOME}}" "{{.BACKUP_DIR}}"
-      - echo "Wiped."
-
-# MCP-server tasks moved to Taskfile.agents.yml (agents: namespace) —
-# they are cross-harness (Claude Code + opencode + Hermes), not
-# specific to the opencode/openclaw CLI installed by this Taskfile.
+        systemctl --user disable --now {{.UNIT_NAME}} 2>/dev/null || true
+        rm -f "$HOME/.config/systemd/user/{{.UNIT_NAME}}"
+        systemctl --user daemon-reload 2>/dev/null || true
+        rm -rf "$HOME/.local/opt/openclaw" "$HOME/.local/bin/openclaw" "$HOME/.local/opt/node24" "$HOME/.openclaw"
+        rm -rf "$HOME"/.openclaw.bak.*
+        echo "Entfernt."

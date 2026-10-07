@@ -68,15 +68,6 @@ setup() {
   [ -f "$ENV_EXAMPLE" ]
 }
 
-@test "dotfiles/openclaw/.env.example sets OPENAI_BASE_URL to local Ollama endpoint" {
-  run grep -qE '^OPENAI_BASE_URL=http://10\.10\.0\.3:11434/v1$' "$ENV_EXAMPLE"
-  [ "$status" -eq 0 ]
-}
-
-@test "dotfiles/openclaw/.env.example sets OPENAI_MODEL to qwen2.5 series" {
-  run grep -qE '^OPENAI_MODEL=qwen2\.5:' "$ENV_EXAMPLE"
-  [ "$status" -eq 0 ]
-}
 
 # ── opencode llamacpp-mtp provider config (T002159) ───────────────────
 # Der Provider-Key `llamacpp-gemma26` darf NUR in .opencode/agent-models.jsonc

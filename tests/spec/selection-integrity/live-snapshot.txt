@@ -580,6 +580,7 @@ tests/spec/security/stray-secret-dump-guard.bats
 tests/spec/security/website-clusterrole-least-privilege.bats
 tests/spec/security/workload-exec-rbac.bats
 tests/spec/selection-integrity/dead-selections.bats
+tests/spec/services-calendar.bats
 tests/spec/sessions-server.bats
 tests/spec/sessions-server/deregister-reap.bats
 tests/spec/sessions-server/domain-config.bats

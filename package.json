@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --build",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "test:track-pr": "node --test scripts/track-pr.test.mjs",
     "test:agent-guide": "node --test scripts/agent-guide/*.test.mjs",
     "test:code-quality": "node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs",

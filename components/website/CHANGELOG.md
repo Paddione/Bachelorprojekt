@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.396.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.3...website-v1.396.4) (2026-10-07)
+
+
+### Bug Fixes
+
+* **infra:** use posix-basic regextype in db-restore-verify generation lookup [T901104] ([#6322](https://github.com/Paddione/Bachelorprojekt/issues/6322)) ([99551e3](https://github.com/Paddione/Bachelorprojekt/commit/99551e3ab76980a9a5fdcf79baa8ffaa9313993a))
+
 ## [1.396.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.2...website-v1.396.3) (2026-10-07)
 
 

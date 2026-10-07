@@ -1128,6 +1128,7 @@
         "tests/spec/website-core/portrait-derivate-crop.bats",
         "tests/spec/website-core/web-audit.bats",
         "tests/spec/website-interfaces.bats",
+        "tests/spec/website-schema/fk-targets-unique.bats",
         "tests/spec/website-svelte-check.bats",
         "tests/spec/workspace-deploy-secrets-scope.bats",
         "tests/spec/workspace-deploy.bats",

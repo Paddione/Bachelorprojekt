@@ -1702,6 +1702,15 @@ data:
         LEFT JOIN bachelorprojekt.requirements r ON r.id = f.requirement_id
        ORDER BY f.merged_at DESC;
 
+      -- software_events.pr_number referenziert features(pr_number); ohne UNIQUE lehnt
+      -- Postgres den FK ab und das Skript bricht hier ab [T901103].
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'features_pr_number_key') THEN
+          ALTER TABLE bachelorprojekt.features ADD CONSTRAINT features_pr_number_key UNIQUE (pr_number);
+        END IF;
+      END $$;
+
       CREATE TABLE IF NOT EXISTS bachelorprojekt.software_events (
         id             BIGSERIAL PRIMARY KEY,
         pr_number      INTEGER NOT NULL REFERENCES bachelorprojekt.features(pr_number) ON DELETE CASCADE,

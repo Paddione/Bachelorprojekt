@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.395.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.2...website-v1.395.3) (2026-10-07)
+
+
+### Bug Fixes
+
+* **security:** pocket-id-client-seed group lookup independent of field order [T900804] ([#6297](https://github.com/Paddione/Bachelorprojekt/issues/6297)) ([97c83d5](https://github.com/Paddione/Bachelorprojekt/commit/97c83d55ce3cebe222fb260f0798c8978866a1be))
+
 ## [1.395.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.1...website-v1.395.2) (2026-10-04)
 
 

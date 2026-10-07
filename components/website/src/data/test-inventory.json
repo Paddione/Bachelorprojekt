@@ -3744,6 +3744,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/qwen35-4b-training",
+    "file": "tests/spec/llm-local-dev/qwen35-4b-training.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/single-static-model",
     "file": "tests/spec/llm-local-dev/single-static-model.bats",
     "category": "llm-local-dev",

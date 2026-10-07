@@ -2,7 +2,7 @@
 title: 4B instruct worker training set — run, eval, export, deploy
 ticket_id: T900977
 domains: [llm, training]
-status: staged
+status: implemented
 ---
 
 # Implementation Plan

@@ -23,11 +23,31 @@ os.environ.setdefault("CUDA_VISIBLE_DEVICES", "1")  # RTX 5070 Ti
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-LORA_DIR = HERE / "qwen35_2b_bp_lora"
-MERGED_DIR = HERE / "qwen35_2b_bp_merged"
-GGUF_DIR = HERE / "qwen35_2b_bp_gguf"
+
+
+def get_export_paths(model_size: str = "4b-mtp") -> dict:
+    """Return export paths and expected blocks for 4b-mtp / 4b or 2b."""
+    if model_size in {"4b", "4b-mtp"}:
+        return {
+            "lora_dir": HERE / "qwen35_4b_bp_lora",
+            "merged_dir": HERE / "qwen35_4b_bp_merged",
+            "gguf_dir": HERE / "qwen35_4b_bp_gguf",
+            "expected_blocks": 32,
+        }
+    return {
+        "lora_dir": HERE / "qwen35_2b_bp_lora",
+        "merged_dir": HERE / "qwen35_2b_bp_merged",
+        "gguf_dir": HERE / "qwen35_2b_bp_gguf",
+        "expected_blocks": 32,
+    }
+
+
+_DEFAULT_PATHS = get_export_paths("2b")
+LORA_DIR = _DEFAULT_PATHS["lora_dir"]
+MERGED_DIR = _DEFAULT_PATHS["merged_dir"]
+GGUF_DIR = _DEFAULT_PATHS["gguf_dir"]
 SEQ_LEN = 2048
-# T900978 P4: expected transformer block count of Qwen3.5-2B (verify after
+# Expected transformer block count of Qwen3.5-4B / 2B (verify after
 # export; llama.cpp issue #24737: some Qwen3.5 GGUFs report 33 instead of 32).
 EXPECTED_BLOCKS = 32
 
@@ -66,41 +86,64 @@ def read_gguf_block_count(gguf_path):
 
 
 def main():
+    import argparse
     import sys
-    if not LORA_DIR.is_dir():
-        print(f"[export] LoRA adapter not found: {LORA_DIR}\n"
-              f"  Train first: python3 train_5070ti.py --model-size 2b",
+
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--model-size", choices=["2b", "4b", "4b-mtp"], default="4b-mtp",
+                    help="model size preset (default: 4b-mtp)")
+    ap.add_argument("--lora-path", type=Path, default=None, help="path to LoRA adapter")
+    ap.add_argument("--merged-path", type=Path, default=None, help="output path for merged 16bit model")
+    ap.add_argument("--gguf-path", type=Path, default=None, help="output directory for GGUF files")
+    ap.add_argument("--quantization", type=str, default="q4_k_m,q8_0",
+                    help="comma-separated GGUF quantization formats (default: q4_k_m,q8_0)")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="verify export paths without loading models or merging")
+    args = ap.parse_args()
+
+    paths = get_export_paths(args.model_size)
+    lora_dir = args.lora_path or paths["lora_dir"]
+    merged_dir = args.merged_path or paths["merged_dir"]
+    gguf_dir = args.gguf_path or paths["gguf_dir"]
+    expected_blocks = paths["expected_blocks"]
+    quant_methods = [q.strip() for q in args.quantization.split(",") if q.strip()]
+
+    if not lora_dir.is_dir():
+        print(f"[export] LoRA adapter not found: {lora_dir}\n"
+              f"  Train first: python3 train_5070ti.py --model-size {args.model_size}",
               file=sys.stderr)
         sys.exit(1)
+
+    if args.dry_run:
+        print(f"[export dry-run] Paths OK: lora={lora_dir.name}, merged={merged_dir.name}, "
+              f"gguf={gguf_dir.name}, quant={quant_methods}, expected_blocks={expected_blocks}")
+        return
+
     import torch
     from unsloth import FastLanguageModel
 
-    print(f"Loading LoRA adapter from {LORA_DIR} ...")
+    print(f"Loading LoRA adapter from {lora_dir} ...")
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=str(LORA_DIR),
+        model_name=str(lora_dir),
         max_seq_length=SEQ_LEN,
         dtype=torch.bfloat16,
         load_in_4bit=True,
     )
 
-    print(f"Merging to 16-bit and saving to {MERGED_DIR} ...")
-    model.save_pretrained_merged(str(MERGED_DIR), tokenizer, save_method="merged_16bit")
+    print(f"Merging to 16-bit and saving to {merged_dir} ...")
+    model.save_pretrained_merged(str(merged_dir), tokenizer, save_method="merged_16bit")
 
-    print(f"Exporting GGUF (q4_k_m, q8_0) to {GGUF_DIR} ...")
-    model.save_pretrained_gguf(
-        str(GGUF_DIR),
-        tokenizer,
-        quantization_method="q4_k_m",
-    )
-    model.save_pretrained_gguf(
-        str(GGUF_DIR),
-        tokenizer,
-        quantization_method="q8_0",
-    )
+    for qm in quant_methods:
+        print(f"Exporting GGUF ({qm}) to {gguf_dir} ...")
+        model.save_pretrained_gguf(
+            str(gguf_dir),
+            tokenizer,
+            quantization_method=qm,
+        )
 
-    ggufs = sorted(GGUF_DIR.glob("*.gguf"))
+    ggufs = sorted(gguf_dir.glob("*.gguf"))
     if not ggufs:
-        print(f"[export] FAIL: no GGUF written to {GGUF_DIR}", file=sys.stderr)
+        print(f"[export] FAIL: no GGUF written to {gguf_dir}", file=sys.stderr)
         sys.exit(1)
     failed = False
     for gguf in ggufs:
@@ -109,14 +152,14 @@ def main():
         except Exception as exc:  # noqa: BLE001 — verify is best-effort per file
             print(f"[export] block-count unreadable for {gguf.name}: {exc}")
             continue
-        passed, msg = check_block_count(actual)
+        passed, msg = check_block_count(actual, expected=expected_blocks)
         print(f"[export] {gguf.name}: {msg}")
         failed = failed or not passed
     if failed:
         print("[export] FAIL: block-count verify failed", file=sys.stderr)
         sys.exit(1)
 
-    print(f"\nExport finished:\n  merged 16-bit: {MERGED_DIR}\n  GGUF:          {GGUF_DIR}")
+    print(f"\nExport finished:\n  merged 16-bit: {merged_dir}\n  GGUF:          {gguf_dir}")
     print(__doc__.split("Deploy steps after export:")[1])
 
 

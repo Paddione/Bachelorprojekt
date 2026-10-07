@@ -11,7 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const COMPONENT_TESTS = [
   'src/components/**/*.{test,spec}.ts',
   'src/lib/stores/cockpitStore.test.ts',
-  'src/lib/factory-floor.order.test.ts',
+  'src/lib/cockpit-floor.order.test.ts',
   // Client-only rrweb recorder — touches window/document/navigator directly.
   'src/lib/systemtest/recorder.test.ts',
 ];
@@ -57,7 +57,6 @@ export default defineConfig({
           include: [
             'src/**/*.{test,spec}.ts',
             'tests/**/*.{test,spec}.ts',
-            '../scripts/openspec-embed.test.mjs',
           ],
           exclude: ['node_modules/**', 'dist/**', ...COMPONENT_TESTS],
           globals: true,

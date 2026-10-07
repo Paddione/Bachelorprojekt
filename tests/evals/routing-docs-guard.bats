@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/evals/routing-docs-guard.bats (moved from tests/spec/ [T900560-C5])
-# SSOT: openspec/changes/agent-routing-docs/specs/agent-skills.md
+# SSOT: .agents/plans/agent-routing-docs/specs/agent-skills.md
 # Ticket: T900453 — Change agent-routing-docs (6/6): Routing-Seite plus Sweep.
 # Block (a): Seite plus Szenario-Anker; (b): Oberflaechen-Referenzen;
 # Block (c): Sweep-Abwesenheit je Datei plus Retired-Marker; (d): Keeper.
@@ -47,7 +47,7 @@ setup() {
 }
 
 @test "(c) retired markers are present" {
-  grep -q 'stillgelegt, K4-Retire' "$REPO/docs/brain/k5-openspec.md"
+  grep -q 'stillgelegt, K4-Retire' "$REPO/docs/brain/k2-bge-paare.md"
   grep -q '(entfernt)' "$REPO/docs/brain/k2-bge-paare.md"
   grep -q 'Mirror stillgelegt' "$REPO/docs/diagrams/brain-architektur-gesamtbild.md"
 }

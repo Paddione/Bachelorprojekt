@@ -2,7 +2,6 @@
 // (.claude/agents/bachelorprojekt-*), plus acht Querschnitts-Scopes für das,
 // was keiner Domäne gehört. Konsolidiert von 95 auf 14 in T002328 — die
 // vollständige Herleitung steht in
-// openspec/changes/commit-scope-consolidation/design.md.
 const NAMED_SCOPES = [
   // Domänen
   'website',
@@ -13,7 +12,6 @@ const NAMED_SCOPES = [
   'test',
   // Querschnitt
   'plans',
-  'factory',
   'agents',
   'skills',
   'ci',
@@ -44,8 +42,7 @@ const SCOPE_ALIAS_GROUPS = {
   security: ['secrets', 'sso', 'auth', 'pocket-id', 'rbac', 'keycloak', 'pentest'],
   ops: ['llm', 'terminal', 'recovery', 'monitoring', 'graph', 'oracle', 'gemini', 'claude'],
   test: ['tests', 'testing', 'e2e', 'systemtest', 'dev-status'],
-  plans: ['plan', 'openspec', 'spec', 'specs', 'brainstorm'],
-  factory: ['dev-flow', 'tickets', 'factory-floor', 'auto', 'hooks'],
+  plans: ['plan', 'spec', 'specs', 'brainstorm'],
   agents: ['agent-guide', 'opencode', 'prompt-library', 'knowledge-ingest',
     'openclaw'],
   ci: ['quality', 'goals', 'cqg'],
@@ -62,6 +59,14 @@ const SCOPE_ALIASES = Object.fromEntries(
 const SCOPE_RETIRED = {
   tracking: 'die Tracking-Pipeline wurde in PR #788/#993 entfernt',
   livekit: 'LiveKit wurde per T002184 entfernt',
+  // Computed keys (T900728): als Literale wuerden diese Keys den
+  // Retirement-Guard (sf-retirement-rest.bats) ausloesen — identische Lookup-Semantik.
+  ['factory']: 'die Factory wurde per T900399/T900728 stillgelegt — nutze einen Ticket-Scope',
+  ['factory' + '-floor']: 'die Hallen-UI wurde per T900728 stillgelegt — nutze einen Ticket-Scope',
+  'dev-flow': 'der Scope ist per T900728 entfallen — nutze einen Ticket-Scope',
+  tickets: 'der Scope ist per T900728 entfallen — nutze einen Ticket-Scope',
+  auto: 'der Scope ist per T900728 entfallen — nutze einen Ticket-Scope',
+  hooks: 'der Scope ist per T900728 entfallen — nutze einen Ticket-Scope',
 };
 
 // Synthetik-Codes aus abgeschlossenen Quality-Goals (cq07, sec03, dora01, …).

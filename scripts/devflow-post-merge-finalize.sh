@@ -6,7 +6,7 @@
 #
 # Deterministische Abschluss-Einheit nach einem gruenen Auto-Merge: PR-Link setzen,
 # Ticket auf done (Resolution fixed/shipped), verify:done-Phase-Event, Plan nach
-# tickets.ticket_plans archivieren, OpenSpec-Change archivieren (inkl. Archiv-PR),
+# tickets.ticket_plans archivieren,
 # Branch-Lock freigeben, Worktree und Branch entfernen. Jeder Schritt ueberspringt
 # bereits erledigte Arbeit — das Skript ist idempotent und damit aufrufbar vom
 # Finalizer-Subagenten, von Recovery-Sessions und vom Factory-Poller.
@@ -25,7 +25,7 @@
 #   BRAND, TICKET_CTX — an ticket.sh durchgereicht (Default: mentolder/fleet).
 #   TICKET_OFFLINE   — gesetzt: Abbruch mit klarer Meldung (Cluster-/DB-Zugriff noetig).
 #
-# Reihenfolge-Garantie (T004612): Die Archivierung (Schritt 7/8) laeuft VOR der
+# Reihenfolge-Garantie (T004612): Die Plan-Archivierung (Schritt 7) laeuft VOR der
 # Branch-Loeschung (Schritt 10); der Fix-PR-Merge loescht den Branch bewusst nicht
 # (delete_branch_on_merge=false). Closure erst nach bestaetigtem Merge (T001149-M1):
 # ohne PR-Nummer laufen die Closure-Schritte nicht.
@@ -46,20 +46,15 @@ Usage: devflow-post-merge-finalize.sh <ticket-id> [--pr <n>] [--branch <branch>]
 
 Idempotente Post-Merge-Finalisierung fuer ein Ticket:
   PR-Link setzen, Ticket auf done (fixed/shipped), verify:done-Phase-Event,
-  Plan nach tickets.ticket_plans archivieren, OpenSpec-Change archivieren
-  (inkl. Archiv-PR), Branch-Lock freigeben, Worktree und Branch entfernen.
+  Plan nach tickets.ticket_plans archivieren, Branch-Lock freigeben,
+  Worktree und Branch entfernen.
 
   --pr <n>        PR-Nummer (sonst aus gh gegen den Branch aufgeloest)
   --branch <b>    Branch (sonst aus dem FACTORY-PLAN-REF-Kommentar des Tickets)
 
-Zustandsabfrage (ohne DB-/Cluster-Zugriff, T015783):
-  --archive-state <slug> [--repo <dir>]
-                  Schreibt archived | half | pending nach stdout und endet mit 0.
-                  Ist der Zustand nicht bestimmbar (origin nicht erreichbar),
-                  endet der Aufruf ungleich 0 OHNE einen Zustand zu behaupten.
   --frontmatter-state <slug> [--repo <dir>]  [T015916]
                   Schreibt completed | stale nach stdout (Exit 0); fehlt
-                  openspec/changes/<slug>/tasks.md → ungleich 0 ohne Ausgabe.
+                  .agents/plans/<slug>/tasks.md → ungleich 0 ohne Ausgabe.
   --apply-completed-frontmatter <plan-file>  [T900226]
                   Setzt status in <plan-file> auf status: completed (DB-frei, Exit 0).
 
@@ -70,7 +65,6 @@ EOF
 TICKET_ID=""
 PR_NUM=""
 BRANCH=""
-ARCHIVE_STATE_SLUG=""
 FRONTMATTER_STATE_SLUG=""
 APPLY_COMPLETED_FRONTMATTER_FILE=""
 
@@ -78,7 +72,6 @@ while [[ $# -gt 0 ]]; do case "$1" in
   --help|-h) usage; exit 0 ;;
   --pr)      PR_NUM="$2"; shift 2 ;;
   --branch)  BRANCH="$2"; shift 2 ;;
-  --archive-state) ARCHIVE_STATE_SLUG="$2"; shift 2 ;;
   --frontmatter-state) FRONTMATTER_STATE_SLUG="$2"; shift 2 ;;
   --apply-completed-frontmatter) APPLY_COMPLETED_FRONTMATTER_FILE="$2"; shift 2 ;;
   --repo)    REPO_DIR="$(cd "$2" && pwd)"; TICKET_SH="$REPO_DIR/scripts/ticket.sh"; cd "$REPO_DIR"; shift 2 ;;
@@ -87,7 +80,7 @@ while [[ $# -gt 0 ]]; do case "$1" in
              else echo "Unexpected argument: $1" >&2; usage >&2; exit 2; fi ;;
 esac; done
 
-if [[ -z "$TICKET_ID" && -z "$ARCHIVE_STATE_SLUG" && -z "$FRONTMATTER_STATE_SLUG" && -z "$APPLY_COMPLETED_FRONTMATTER_FILE" ]]; then
+if [[ -z "$TICKET_ID" && -z "$FRONTMATTER_STATE_SLUG" && -z "$APPLY_COMPLETED_FRONTMATTER_FILE" ]]; then
   echo "ERROR: Ticket-ID fehlt." >&2
   usage >&2
   exit 2
@@ -97,7 +90,7 @@ fi
 # Arbeitsbaum und Remote-Refs, nie die Ticket-DB. Der Guard schuetzt die
 # Closure-Schritte, nicht die Zustandsabfrage. [T015916] --frontmatter-state
 # und [T900226] --apply-completed-frontmatter ebenso: lesen/schreiben nur den Arbeitsbaum.
-if [[ -n "${TICKET_OFFLINE:-}" && -z "$ARCHIVE_STATE_SLUG" && -z "$FRONTMATTER_STATE_SLUG" && -z "$APPLY_COMPLETED_FRONTMATTER_FILE" ]]; then
+if [[ -n "${TICKET_OFFLINE:-}" && -z "$FRONTMATTER_STATE_SLUG" && -z "$APPLY_COMPLETED_FRONTMATTER_FILE" ]]; then
   echo "ERROR: Finalize-Skript benoetigt Cluster-/DB-Zugriff (ticket.sh); TICKET_OFFLINE ist gesetzt." >&2
   exit 2
 fi
@@ -108,9 +101,6 @@ _PLAN_STATUS_ACTIVE_ALT='(active|plan_staged|in_progress|planning)'
 _FINALIZE_HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/lib/finalize-frontmatter.sh
 source "$_FINALIZE_HERE/lib/finalize-frontmatter.sh"
-# [T016597] Staged-Set-Pflicht fuer den Archiv-Commit — fail-closed, damit
-# kein breites `git add` fremde oder unfertige Arbeit mit nach main traegt.
-source "$_FINALIZE_HERE/lib/archive-staged-scope.sh"
 # [T900096] Fail-closed Step-Guards: Dirty-Tree-Abbruch (Schritt 8) + Ungemergt-Behalt (Schritt 10).
 # shellcheck source=scripts/lib/finalize-step-guards.sh
 source "$_FINALIZE_HERE/lib/finalize-step-guards.sh"
@@ -138,116 +128,6 @@ mark_warn() { echo "[warn] $1" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }
 # ausdruecklich NICHT. Ein nicht belegter Archiv-Abschluss ist aber ein Fehler
 # des Laufs — genau die Verwechslung, die T015168 unsichtbar machte.
 mark_err()  { echo "[err]  $1" >&2; }
-
-# [T012256/B3] _archive_already_done prueft den ZIELZUSTAND, nicht die Existenz
-# des Archiv-Branches.
-# Der bisherige Check war `git ls-remote --heads origin "$ARCHIVE_BRANCH"`. Er
-# erkennt "Archiv-PR noch offen", nicht "Archiv-PR gemergt und Remote-Branch
-# geloescht" — einen Zustand, den Schritt 8 unten per
-# `gh pr merge --auto --squash --delete-branch` regelmaessig SELBST herstellt.
-# Belegt am 2026-08-18: PR #4740 (chore/plan-archive-finalizer-resolve-worktree-
-# by-branch-T012240) ist MERGED, `git ls-remote --exit-code --heads origin
-# <branch>` liefert 2. Ein Wiederholungslauf mit noch vorhandenem lokalem
-# Change-Ordner hielt den Schritt deshalb fuer unerledigt und archivierte erneut.
-# Der Finalizer ist laut openspec/specs/agent-skills.md als idempotente Einheit
-# spezifiziert; der Wiederholungslauf nach Abbruch ist sein Zweck.
-#
-# Drei Signale, jedes fuer sich hinreichend:
-#   1. Archiv-Branch liegt noch remote  -> Archivierung laeuft, PR offen
-#   2. Archiv-Verzeichnis liegt auf origin/main -> Zielzustand erreicht; bleibt
-#      auch nach dem Loeschen des Archiv-Branches wahr
-#   3. Ein Archiv-PR auf diesen Branch ist gemergt -> zweites Signal fuer (2)
-_archive_already_done() {
-  git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1 && return 0
-  # Exakter Vergleich auf <datum>-<slug>, KEIN Suffix-Match. `grep -- "-${SLUG}$"`
-  # traf am 2026-08-18 fuer SLUG=hardening sechs fremde Eintraege (u.a.
-  # 2026-08-14-blocker-gate-hardening) — ein nie archivierter Change haette als
-  # erledigt gegolten und waere nie archiviert worden. Ein kurzer oder generischer
-  # Slug ist der Normalfall, nicht die Ausnahme (Code-Review PR #4744, F1).
-  # Der Vergleich laeuft in bash statt per Regex: der Slug muesste sonst
-  # maskiert werden, und ein vergessenes Escape brächte die Fehlerklasse zurueck.
-  local _entry _base
-  while IFS= read -r _entry; do
-    [[ -n "$_entry" ]] || continue
-    _base="${_entry##*/}"
-    # Datumspraefix YYYY-MM-DD- abtrennen; der Rest muss der Slug SELBST sein.
-    if [[ "$_base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]]; then
-      [[ "${BASH_REMATCH[1]}" == "$SLUG" ]] && return 0
-    # 9 der Archiv-Verzeichnisse stammen aus der Zeit vor der Datumskonvention
-    # (mishap-t002407, k1-vektorspeicher, t001537, ...). Ohne diesen Zweig fielen
-    # sie durchs Raster: Signal 2 meldete "nicht archiviert", und griffen auch
-    # Signal 1 und 3 nicht, archivierte Schritt 8 erneut — der Fehler, den B3
-    # gerade beheben soll (Code-Review PR #4744, Re-Review).
-    elif [[ "$_base" == "$SLUG" ]]; then
-      return 0
-    fi
-  done < <(git ls-tree -d --name-only "origin/main" "openspec/changes/archive/" 2>/dev/null || true)
-  [[ -n "$(gh pr list --head "$ARCHIVE_BRANCH" --state merged --json number -q '.[0].number' 2>/dev/null || true)" ]] && return 0
-  return 1
-}
-
-# [T015783] _archive_state trennt die drei Zustaende, die Schritt 8 bisher auf
-# zwei verkuerzte. Der alte Zweig las die ABWESENHEIT von openspec/changes/<slug>
-# als "bereits archiviert?" — eine ungepruefte Vermutung. Sie ist falsch, sobald
-# ein Lauf zwischen `openspec.sh archive` (verschiebt) und `git commit` abbricht:
-# der Ordner ist dann weg, ohne dass irgendetwas archiviert waere. Real
-# beobachtet am 2026-08-24 an T015168/db-identity-guard (Ticket done, Change auf
-# origin/main unarchiviert, fertige Verschiebung untracked im Worktree).
-#
-# Erwartet: $SLUG und $ARCHIVE_BRANCH gesetzt. Schreibt genau einen Wert nach
-# stdout und unterscheidet dabei eine FEHLENDE Messung von einem negativen
-# Ergebnis (repo-hygiene-ops.md §3): ist origin nicht erreichbar, faellt kein
-# Urteil, sondern Exit 2 ohne Ausgabe.
-#
-#   archived  Zielzustand erreicht (die _archive_already_done-Disjunktion)
-#   half      Verschiebung vollzogen, nichts committet, kein archived-Signal
-#   pending   Change liegt unarchiviert im Arbeitsbaum
-_archive_state() {
-  local dir="${1:-$REPO_DIR}"
-  # Erreichbarkeitsprobe zuerst, Exit-Code getrennt von der Pipeline ausgewertet.
-  # Ohne sie liefert ein Netzfehler dieselbe leere Antwort wie "Branch existiert
-  # nicht" — der Fehlerfall saehe aus wie ein gueltiger Messwert.
-  if ! git -C "$dir" ls-remote --heads origin >/dev/null 2>&1; then
-    echo "ERROR: origin nicht erreichbar — Archiv-Zustand fuer '$SLUG' nicht bestimmbar." >&2
-    return 2
-  fi
-  if (cd "$dir" && _archive_already_done); then
-    echo "archived"; return 0
-  fi
-  if [[ -d "$dir/openspec/changes/$SLUG" ]]; then
-    echo "pending"; return 0
-  fi
-  # Der Ordner fehlt und nichts ist archiviert: liegt die Verschiebung
-  # uncommittet im Arbeitsbaum, ist es der halbe Zustand. Der Abgleich nutzt
-  # denselben Datumspraefix-Vergleich wie _archive_already_done — ein kurzer
-  # oder generischer Slug darf keine fremden Eintraege treffen (PR #4744, F1).
-  local entry base
-  for entry in "$dir/openspec/changes/archive"/*; do
-    [[ -d "$entry" ]] || continue
-    base="${entry##*/}"
-    if [[ "$base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]]; then
-      [[ "${BASH_REMATCH[1]}" == "$SLUG" ]] || continue
-    elif [[ "$base" != "$SLUG" ]]; then
-      continue
-    fi
-    # Treffer — aber nur "half", wenn er noch NICHT auf origin/main liegt.
-    if ! git -C "$dir" cat-file -e "origin/main:openspec/changes/archive/$base" 2>/dev/null; then
-      echo "half"; return 0
-    fi
-  done
-  echo "pending"; return 0
-}
-
-# [T015783] Frueher Ausstieg fuer die Zustandsabfrage: laeuft VOR der
-# Ticket-Aufloesung und braucht daher weder DB noch Cluster. Genau das macht den
-# Zustand per Kommando-Output pruefbar, statt die Guard-Logik nur im Quelltext
-# greppen zu koennen (tests/CLAUDE.md).
-if [[ -n "$ARCHIVE_STATE_SLUG" ]]; then
-  SLUG="$ARCHIVE_STATE_SLUG"
-  ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID:-unknown}"
-  _archive_state "$REPO_DIR"
-  exit $?
-fi
 
 # [T015916] Frueher Ausstieg --frontmatter-state, gleiches Muster wie oben.
 [[ -n "$FRONTMATTER_STATE_SLUG" ]] && { _plan_frontmatter_state "$FRONTMATTER_STATE_SLUG" "$REPO_DIR"; exit $?; }
@@ -312,7 +192,7 @@ if [[ -z "$BRANCH" ]]; then
 fi
 mark_ok "Schritt 2: Branch=$BRANCH"
 
-# Slug: aus dem Plan-Pfad (openspec/changes/<slug>/tasks.md), sonst aus dem
+# Slug: aus dem Plan-Pfad (.agents/plans/<slug>/tasks.md), sonst aus dem
 # Branch-Namen (Standardkonvention fix|feature|chore/<slug>-T\d{6}).
 SLUG=""
 [[ -n "$PLAN_FILE" ]] && SLUG="$(basename "$(dirname "$PLAN_FILE")" 2>/dev/null || true)"
@@ -397,298 +277,57 @@ if [[ -n "$PR_NUM" ]]; then
   fi
 fi
 
-# Schritt 7 — Plan nach tickets.ticket_plans archivieren.
-# [T015916/T900226] Umzug in die Archiv-Sektion (Schritt 8): Frontmatter-Wechsel und
-# ticket.sh archive-plan laufen nach checkout -B im Archiv-Baum, damit DB-Kopie
-# und Archiv-Snapshot aus demselben Dateizustand entstehen.
-if [[ -z "$PLAN_FILE" || -z "$SLUG" ]]; then
-  mark_skip "Schritt 7: kein FACTORY-PLAN-REF mit Plan-Pfad — Plan-Archiv uebersprungen"
-fi
-
-
-# [T012256/B1] _archive_lock serialisiert die Archiv-Sektion.
-# Schritt 8 wechselt per `git checkout -B "$ARCHIVE_BRANCH" origin/main` den
-# Branch des GETEILTEN Arbeitsbaums. Am 2026-08-18 liefen zwei Finalizer
-# gleichzeitig (T012240 --pr 4738 und T012239 --pr 4737, per pgrep belegt) im
-# selben Haupt-Checkout: die gestagte Archivierung des fremden Changes lag im
-# Index auf dem eigenen Archiv-Branch, und der Push scheiterte an
-# "cannot lock ref ... reference already exists".
-# Der Lock liegt im gemeinsamen Git-Verzeichnis, gilt also ueber alle Worktrees
-# desselben Repos hinweg — genau die Reichweite des geteilten Index.
-# flock haelt die Sperre am offenen Dateideskriptor; sie faellt beim Prozessende
-# von selbst, auch bei Abbruch. Fehlt flock, laeuft der Schritt unserialisiert
-# weiter (fail-open) und sagt es — die Archivierung ist wichtiger als der Schutz
-# vor einem seltenen Timing.
-#
-# [Code-Review PR #4744, F4] Der Lock wartet mit Timeout, nicht unbegrenzt. Der
-# Absturz-Fall ist durch die FD-Semantik abgedeckt, der HAENGER-Fall nicht: ein
-# Lauf, der lebt aber nicht weiterkommt, blockierte sonst jeden nachfolgenden
-# Lauf dauerhaft. Laeuft der Timeout ab, wird Schritt 8 UEBERSPRUNGEN statt
-# unserialisiert ausgefuehrt — der Race ist der teurere Fehler, und das Skript
-# ist idempotent: der naechste Lauf holt die Archivierung nach.
-# Wartezeit per DEVFLOW_ARCHIVE_LOCK_WAIT ueberschreibbar (Sekunden).
-_archive_lock() {
-  local common lockfile wait
-  wait="${DEVFLOW_ARCHIVE_LOCK_WAIT:-300}"
-  common="${GIT_COMMON_DIR:-$(git -C "$REPO_DIR" rev-parse --git-common-dir 2>/dev/null || echo "")}"
-  [[ -n "$common" ]] || { mark_warn "Schritt 8: Git-Common-Dir nicht bestimmbar — Archiv-Sektion laeuft unserialisiert"; return 0; }
-  lockfile="$common/devflow-finalize-archive.lock"
-  if ! command -v flock >/dev/null 2>&1; then
-    mark_warn "Schritt 8: flock nicht verfuegbar — Archiv-Sektion laeuft unserialisiert"
-    return 0
-  fi
-  # [T900040] Auf Windows/MSYS existiert flock, kann aber nicht auf einem von bash
-  # geoeffneten FD sperren ("Bad file descriptor"). Der Rueckgabewert glich dem
-  # eines Timeouts, weshalb die Meldung unten faelschlich einen fremden Lock
-  # behauptete und Schritt 8 uebersprang (so blieb die Archivierung zu T900039
-  # liegen). Fail-open wie beim fehlenden Binary.
-  case "$(uname -s 2>/dev/null || echo unknown)" in
-    MINGW*|MSYS*|CYGWIN*) mark_warn "Schritt 8: flock auf Windows/MSYS nicht nutzbar — Archiv-Sektion laeuft unserialisiert"; return 0 ;;
-  esac
-  exec {_ARCHIVE_LOCK_FD}>"$lockfile" || {
-    mark_warn "Schritt 8: Lock-Datei $lockfile nicht oeffenbar — Archiv-Sektion laeuft unserialisiert"
-    return 0
-  }
-  if ! flock -w "$wait" "$_ARCHIVE_LOCK_FD"; then
-    mark_warn "Schritt 8: Archiv-Lock nach ${wait}s nicht erhalten (anderer Finalize-Lauf haelt ihn oder haengt) — Archivierung uebersprungen, beim naechsten Lauf nachholbar"
-    return 1
-  fi
-  return 0
-}
-
-
-# Schritt 8 — OpenSpec-Change archivieren (delta-merge + Verschiebung ins Archiv)
-# inklusive Archiv-PR (Mechanik: plan-archive-steps.md). Der Change-Ordner lebt
-# im Worktree (Branch-Zustand) oder im Haupt-Checkout; die git-Operationen laufen
-# dort, wo er liegt (Worktrees teilen sich .git). Bereits archiviert → [skip].
-if [[ -z "$SLUG" ]]; then
-  mark_skip "Schritt 8: kein Slug bestimmbar — OpenSpec-Archiv uebersprungen"
-elif [[ -d "$WORKTREE/openspec/changes/$SLUG" ]]; then
-  ARCHIVE_DIR="$WORKTREE"
-elif [[ -d "$REPO_DIR/openspec/changes/$SLUG" ]]; then
-  ARCHIVE_DIR="$REPO_DIR"
-else
-  # [T015783] Hier stand `mark_skip "… existiert nicht mehr (bereits archiviert?)"`.
-  # Das Fragezeichen war die ungepruefte Vermutung: die ABWESENHEIT des Ordners
-  # wurde als Erledigung gelesen, obwohl sie ebenso der halbe Zustand sein kann
-  # (Lauf zwischen `openspec.sh archive` und `git commit` abgebrochen).
-  # _archive_already_done haette den Irrtum aufgedeckt, wurde aber nie erreicht:
-  # ARCHIVE_DIR blieb leer, und der ganze folgende Block entfiel.
-  ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
-  _ARCHIVE_RESUME_DIR=""
-  _ARCHIVE_VERDICT=""
-  for _cand in "$WORKTREE" "$REPO_DIR"; do
-    [[ -n "$_cand" && -d "$_cand" ]] || continue
-    if _st="$(_archive_state "$_cand")"; then
-      case "$_st" in
-        archived) _ARCHIVE_VERDICT="archived"
-                  mark_skip "Schritt 8: OpenSpec-Archiv fuer $SLUG bereits erledigt (belegt: archived) — uebersprungen (idempotent)"; break ;;
-        half)     _ARCHIVE_VERDICT="half"; _ARCHIVE_RESUME_DIR="$_cand"; break ;;
-        *)        _ARCHIVE_VERDICT="pending" ;;
-      esac
-    else
-      mark_err "Schritt 8: Archiv-Zustand fuer $SLUG nicht bestimmbar (origin nicht erreichbar) — kein Urteil, Lauf abgebrochen"
-      exit 1
+# Schritt 7 — Plan in der Ticket-Datenbank archivieren.
+# [T900999-P1] Lifecycle-Receipt: Schritt 7 schreibt das Receipt (Frontmatter +
+# Check-Evidenz + Merge-SHA) nach tickets.ticket_plans. Der Receipt-Datensatz IST die
+# verifizierte Archiv-Zeile (Schema: slug/branch/content/pr_number — keine separaten
+# Receipt-Spalten, daher kein zweiter Write-Pfad): Frontmatter steckt im Content, der
+# Merge-Bezug in pr_number, die Verifikation im Count-Check von archive-plan.
+# Idempotent: ein bereits archivierter Slug wird uebersprungen (kein Duplikat).
+# Fail-closed: archive-plan bricht bei DB-Schreibfehler mit Exit 1 ab (s. unten).
+# KEIN Delete hier — das ist P2 (branch-reaper.sh --plan-cleanup).
+if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
+  _receipt_done=0
+  # Idempotenz-Vorabfrage: get-timeline meldet plan_archived-Events mit Slug.
+  # Best-effort — scheitert die Abfrage, gilt "unbekannt" und es wird archiviert.
+  if _receipt_tl="$(bash "$TICKET_SH" get-timeline --id "$TICKET_ID" 2>/dev/null)"; then
+    if grep -q "$SLUG" <<<"$_receipt_tl" 2>/dev/null; then
+      _receipt_done=1
     fi
-  done
-  # Ohne diesen Zweig faellt der Fall "Ordner nirgends, nichts archiviert, nichts
-  # halb" still durch — Schritt 8 meldete dann GAR nichts, waehrend vorher
-  # wenigstens ein [skip] erschien. Das waere stilles Nichtstun in genau dem
-  # Fix, der stilles Nichtstun beseitigt (T012256/B2: [warn] trennt "Eingabe
-  # nicht aufloesbar" von "bereits erledigt" und aendert den Exit-Code nicht).
-  if [[ -z "$_ARCHIVE_VERDICT" || "$_ARCHIVE_VERDICT" == "pending" ]]; then
-    mark_warn "Schritt 8: Change-Ordner openspec/changes/$SLUG in keinem Arbeitsbaum gefunden und nichts archiviert — nichts zu tun, aber auch nichts erledigt (Slug pruefen)"
   fi
-  if [[ -n "$_ARCHIVE_RESUME_DIR" ]]; then
-    # Unterbrochene Archivierung: die Verschiebung liegt uncommittet vor.
-    # Wiederaufnehmen statt neu archivieren — und ausdruecklich KEIN mark_skip.
-    ARCHIVE_DIR="$_ARCHIVE_RESUME_DIR"
-    ARCHIVE_RESUME=1
-    echo "[info] Schritt 8: unterbrochene Archivierung fuer $SLUG in $ARCHIVE_DIR erkannt — wird abgeschlossen (T015783)"
-  fi
-fi
-
-if [[ -n "${ARCHIVE_DIR:-}" ]]; then
-  ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
-  if [[ "${ARCHIVE_RESUME:-0}" != 1 ]] && _archive_already_done; then
-    mark_skip "Schritt 8: OpenSpec-Archiv fuer $SLUG bereits erledigt (Archiv-Branch remote, Archiv auf origin/main oder Archiv-PR gemergt) — uebersprungen (idempotent)"
-    # [T015916/D2, T900226] DB-Persistierung nachholen, falls die Archiv-Sektion uebersprungen wird:
-    if [[ -n "$PLAN_FILE" && -n "$SLUG" ]]; then
-      ARCHIVE_PLAN_ARGS=(--id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" --plan-file "$PLAN_FILE")
-      [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
-      bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1 || true
-    fi
-  elif ! _archive_lock; then
-    : # _archive_lock hat bereits gewarnt; Archivierung dieses Laufs entfaellt
+  if [[ "$_receipt_done" -eq 1 ]]; then
+    mark_skip "Schritt 7: Plan-Slug $SLUG bereits in tickets.ticket_plans archiviert (Receipt idempotent)"
   else
-    # T006791: Vor der Archiv-Sektion den aktuellen Branch merken — die Sektion
-    # wechselt per checkout -B den Branch des geteilten Arbeitsbaums (Worktree
-    # oder Haupt-Checkout); der Restore in der Subshell-Trap stellt ihn nach der
-    # Sektion wieder her (auch auf Fehlerpfaden, T002357-Fallenklasse). Zusaetzlich
-    # die SHA merken: auf detached HEAD liefert rev-parse --abbrev-ref HEAD nur
-    # "HEAD" und waere als Restore-Ziel unbrauchbar (Code-Review PR #4586).
-    ARCHIVE_PREV_BRANCH="$(git -C "$ARCHIVE_DIR" rev-parse --abbrev-ref HEAD)"
-    ARCHIVE_PREV_SHA="$(git -C "$ARCHIVE_DIR" rev-parse HEAD 2>/dev/null || true)"
-    (
-      cd "$ARCHIVE_DIR"
-      # [T006371] Fail-closed in der Subshell: set -e macht eine fehlgeschlagene
-      # Regeneration oder Verifikation zum Abbruch statt stillem Weitermarsch —
-      # die Subshell erbt zwar bereits set -euo pipefail vom Skript, das
-      # explizite set -e dokumentiert die Härtung fuer die Archiv-Sektion
-      # (PR #4529/#4533).
-      set -e
-      # T006791: Restore bei jedem Sektions-Ende — Happy-Path (nach Push/PR) und
-      # Fehlerpfade (Subshell exit 1) hinterlassen den Arbeitsbaum auf dem
-      # gemerkten Branch. Ownership-Guard (Code-Review PR #4586): Restore nur,
-      # wenn der Arbeitsbaum tatsaechlich auf dem Archiv-Branch steht — hat eine
-      # parallele Session zwischenzeitlich gewechselt (T002357), bleibt deren
-      # Wechsel unangetastet (WARN statt Restore). Detached HEAD wird ueber die
-      # gemerkte SHA zurueckgeholt (--detach). Restore-Fehler enden mit Exit 1
-      # statt still Erfolg zu melden.
-      _restore_prev_branch() {
-        local _prev_rc=$?
-        local _cur_branch
-        _cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-        if [[ "$_cur_branch" == "$ARCHIVE_BRANCH" ]]; then
-          if [[ "$ARCHIVE_PREV_BRANCH" == "HEAD" && -n "$ARCHIVE_PREV_SHA" ]]; then
-            if git checkout --detach "$ARCHIVE_PREV_SHA" >/dev/null 2>&1; then
-              echo "Schritt 8: Branch-Restore auf detached $ARCHIVE_PREV_SHA ausgefuehrt (T006791)"
-            else
-              # Code-Review PR #4586 (Finding 12): nicht behaupten, wo der Baum
-              # steht — der Restore kann aus unverwandtem Grund scheitern; der
-              # Zustand ist zu pruefen. Lock-Hinweis (Finding 6): bei Restore-
-              # Fehler bricht das Skript hier ab und der Lock bleibt zurueck.
-              echo "FATAL: Branch-Restore (detached) fehlgeschlagen — Arbeitsbaum-Zustand manuell pruefen, Lock ggf. raeumen (T006791)" >&2
-              _restore_failed=1
-            fi
-          elif [[ "$ARCHIVE_PREV_BRANCH" != "HEAD" ]]; then
-            if git checkout "$ARCHIVE_PREV_BRANCH" >/dev/null 2>&1; then
-              echo "Schritt 8: Branch-Restore auf $ARCHIVE_PREV_BRANCH ausgefuehrt (T006791)"
-            else
-              echo "FATAL: Branch-Restore auf $ARCHIVE_PREV_BRANCH fehlgeschlagen — Arbeitsbaum-Zustand manuell pruefen, Lock ggf. raeumen (T006791)" >&2
-              _restore_failed=1
-            fi
-          fi
-          # Code-Review PR #4586 (Finding 5): Restore-Fehler aufklären — status
-          # zeigt, welche Änderungen den Wechsel blockieren (z. B. staged Move
-          # zwischen openspec.sh archive und git commit bei pre-commit-Fehler).
-          if [[ "${_restore_failed:-0}" == 1 ]]; then
-            git status --short >&2
-          fi
-        elif [[ "$_cur_branch" != "$ARCHIVE_PREV_BRANCH" ]]; then
-          echo "WARN: Arbeitsbaum steht auf $_cur_branch statt $ARCHIVE_BRANCH — paralleler Wechsel, Restore uebersprungen (T006791)" >&2
-        fi
-        exit "$_prev_rc"
-      }
-      trap _restore_prev_branch EXIT
-      # Order-Swap (Code-Review PR #4586): ERST auf den Archiv-Branch wechseln
-      # (von origin/main abzweigen, T002256), DANN archivieren und direkt auf
-      # dem Archiv-Branch committen — kein Streu-Commit auf dem Pre-Switch-
-      # Branch, kein cherry-pick (der auf einem dirty Baum oder einem bereits
-      # gemergten Commit verweigern kann).
-      git fetch origin main
-      # [T900096] Fail-closed: fremde uncommittete Aenderungen abbrechen statt verwerfen.
-      finalize_assert_clean_tree "$ARCHIVE_DIR"
-      git checkout -B "$ARCHIVE_BRANCH" origin/main
-      # [T015916] Frontmatter-Wechsel im Archiv-Baum: nach checkout -B, vor archive.
-      _apply_plan_frontmatter_completed "$ARCHIVE_DIR"
-      # [T015916/D2, T900226] Plan nach tickets.ticket_plans archivieren:
-      # laeuft im Archiv-Baum nach checkout -B aus demselben Dateizustand wie der Archiv-Snapshot.
-      _archived_plan_target="$ARCHIVE_DIR/${PLAN_REL:-}"
-      [[ -s "$_archived_plan_target" ]] || _archived_plan_target="$PLAN_FILE"
-      if [[ -n "$_archived_plan_target" && -n "$SLUG" ]]; then
-        ARCHIVE_PLAN_ARGS=(--id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" --plan-file "$_archived_plan_target")
-        [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
-        if bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1; then
-          mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert"
-        elif [[ ! -s "$_archived_plan_target" ]] && ! git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DIR"/}" 2>/dev/null; then
-          mark_skip "Schritt 7: Plan-Pfad nicht (mehr) aufloesbar — Archiv vermutlich bereits persistiert"
-        else
-          echo "ERROR: Schritt 7 — archive-plan fehlgeschlagen (Ticket $TICKET_ID, $_archived_plan_target)." >&2
-          exit 1
-        fi
-      fi
-      if [[ "${ARCHIVE_RESUME:-0}" == 1 ]]; then
-        # [T015783] Resume-Pfad: die Verschiebung ist bereits vollzogen, nur nie
-        # committet. Ein zweiter `openspec.sh archive`-Aufruf haette hier keine
-        # Wirkung ausser einem Abbruch — der Change-Ordner existiert nicht mehr
-        # ("no such change") und das Archivziel ist belegt ("Archivziel existiert
-        # bereits"); beide Guards greifen fail-closed. Alles danach (Freshness,
-        # add, commit, push, PR) schliesst den vorhandenen Zustand ab.
-        echo "resume: $SLUG — vorhandene Verschiebung wird committet (kein erneutes archive)"
-        # [T015916] Resume: Wechsel auf die bereits verschobene archivierte tasks.md.
-        _fm_archived="$(ls -d openspec/changes/archive/*-"$SLUG"/tasks.md 2>/dev/null | head -1 || true)"
-        [[ -n "$_fm_archived" ]] && _apply_plan_frontmatter_completed_path "$ARCHIVE_DIR/$_fm_archived"
-      else
-        # [T900105] Archiv-Flags aus scripts/lib/openspec-archive-args.sh
-        # (S1-Auslagerung wie finalize-frontmatter.sh): --create-new bei Deltas
-        # ohne SSOT-Target (neue Komponente, T900104), --no-merge fuer
-        # mishap-*. Root "." = ARCHIVE_DIR (cd oben, Change aus origin/main).
-        source "$REPO_DIR/scripts/lib/openspec-archive-args.sh"
-        openspec_archive_args "$SLUG" "."
-        archive_args=("${ARCHIVE_ARGS[@]}")
-        bash scripts/openspec.sh archive "$SLUG" "${archive_args[@]}"
-      fi
-      # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —
-      # Regeneration und explizites Staging nach plan-archive-steps (T002252).
-      # [T006371] Ohne `|| true`: eine fehlgeschlagene Regeneration bricht die
-      # Subshell ab (set -e), statt den Archiv-Branch ohne frische Status-Map
-      # zu pushen (PR #4529/#4533).
-      # Pfade seit T006999 (p4): website/ -> components/website/.
-      task freshness:regenerate
-      archive_stage_commit "$SLUG" ${ARCHIVE_ARGS[@]+"${ARCHIVE_ARGS[@]}"}
-      git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
-      # Pre-Push-Freshness-Verifikation (T006371): freshness:check diffet die
-      # regenerierten Artefakte gegen HEAD. Meldet er Drift, werden die
-      # regenerierten Artefakte gestaged und der Archiv-Commit geamendet —
-      # BEVOR der Push den Archiv-Branch nach aussen traegt (T002252-Muster
-      # "regenerated but not staged", PR #4529/#4533).
-      if ! task freshness:check; then
-        echo "freshness:check meldet Drift — regenerierte Artefakte stagen und Archiv-Commit amenden" >&2
-        archive_stage_commit "$SLUG" ${ARCHIVE_ARGS[@]+"${ARCHIVE_ARGS[@]}"}
-        git commit --amend --no-edit
-        task freshness:check
-      fi
-      git push -u origin "$ARCHIVE_BRANCH"
-      # PR-Erstellung mit Assert (verhindert ungebuendelte Archiv-Branches, T001331)
-      ARCHIVE_PR_URL="$(gh pr create \
-        --title "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]" \
-        --body "Automatischer Archiv-PR für $SLUG (Ticket $TICKET_ID). Plan wurde nach postgres archiviert." \
-        --head "$ARCHIVE_BRANCH" \
-        --base main)"
-      [[ -n "$ARCHIVE_PR_URL" ]] || { echo "FATAL: gh pr create returned empty URL for $ARCHIVE_BRANCH" >&2; exit 1; }
-      # Push-Verification vor Auto-Merge (T001268)
-      REMOTE_SHA="$(git ls-remote origin "refs/heads/$ARCHIVE_BRANCH" | cut -f1)"
-      LOCAL_SHA="$(git rev-parse HEAD)"
-      [[ "$REMOTE_SHA" = "$LOCAL_SHA" ]] || { echo "FATAL: remote SHA ($REMOTE_SHA) != local SHA ($LOCAL_SHA)" >&2; exit 1; }
-      gh pr merge --auto --squash --delete-branch "$ARCHIVE_PR_URL"
-    )
-    # [T015783] Abschluss am POSITIV-Signal belegen, nicht behaupten. Hier stand
-    # zuvor ein unbedingtes mark_ok. Geprueft wird die Anwesenheit beider
-    # Signale — nie die Abwesenheit eines Fehlers (repo-hygiene-ops.md §3).
-    _archive_done_ok=1
-    if ! git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1; then
-      mark_err "Schritt 8: Archiv-Branch $ARCHIVE_BRANCH steht nicht auf origin — Abschluss nicht belegt"
-      _archive_done_ok=0
-    fi
-    # Exit-Code getrennt von der Ausgabe auswerten: "gh konnte nicht antworten"
-    # und "es gibt keinen PR" erzeugen beide eine leere Ausgabe (T002523-M7).
-    # `gh --jq` statt einer jq-Pipe: das Skript vermeidet jq bewusst als externe
-    # Abhaengigkeit (siehe json_field oben, "grep/sed statt jq"). gh bringt den
-    # Ausdruck selbst mit, und sein Exit-Code wird hier ohnehin getrennt geprueft.
-    if ! _pr_raw="$(gh pr list --head "$ARCHIVE_BRANCH" --state all --json number -q '.[0].number' 2>&1)"; then
-      mark_err "Schritt 8: PR-Abfrage fuer $ARCHIVE_BRANCH fehlgeschlagen ($(printf '%s' "$_pr_raw" | head -1)) — Abschluss nicht belegt"
-      _archive_done_ok=0
-    elif [[ -z "$_pr_raw" ]]; then
-      mark_err "Schritt 8: kein Archiv-PR fuer $ARCHIVE_BRANCH gefunden — Abschluss nicht belegt"
-      _archive_done_ok=0
-    fi
-    if [[ "$_archive_done_ok" != 1 ]]; then
-      echo "ERROR: Schritt 8 ohne belegten Abschluss — der Lauf gilt als fehlgeschlagen, nicht als uebersprungen (T015783)." >&2
+  _plan_source="$WORKTREE/$PLAN_REL"
+  [[ -s "$_plan_source" ]] || _plan_source="$PLAN_FILE"
+  if [[ -s "$_plan_source" ]]; then
+    _plan_copy="$(mktemp)"
+    cp "$_plan_source" "$_plan_copy"
+    _apply_plan_frontmatter_completed_path "$_plan_copy"
+    ARCHIVE_PLAN_ARGS=(--id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" --plan-file "$_plan_copy")
+    [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
+    if bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1; then
+      # Receipt-Evidenz zusammenfuehren (alles best-effort ausser dem Archiv selbst):
+      # Frontmatter-Felder aus der Plankopie, plan-lint-Verdikt, Merge-SHA aus dem
+      # gemergten PR (Rueckfall: origin/main-Spitze — belegt, WORAUF gemergt wurde).
+      _receipt_fm="$(grep -E '^(title|ticket_id|status):' "$_plan_copy" 2>/dev/null | tr '\n' ' ' || true)"
+      _receipt_sha=""
+      [[ -n "$PR_NUM" ]] && _receipt_sha="$(gh pr view "$PR_NUM" --json mergeCommit -q .mergeCommit.oid 2>/dev/null || true)"
+      [[ -z "$_receipt_sha" ]] && _receipt_sha="$(git -C "$REPO_DIR" rev-parse origin/main 2>/dev/null || true)"
+      _receipt_lint="$(bash "$REPO_DIR/scripts/plan-lint.sh" "$_plan_source" 2>/dev/null | tail -n 1 || true)"
+      mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert (Receipt slug=$SLUG merge=${_receipt_sha:-unbekannt} fm=[${_receipt_fm:-n/a}] lint=[${_receipt_lint:-n/a}])"
+    else
+      rm -f "$_plan_copy"
+      echo "ERROR: Schritt 7 — archive-plan fehlgeschlagen (Ticket $TICKET_ID)." >&2
       exit 1
     fi
-    mark_ok "Schritt 8: OpenSpec-Change archiviert (Archiv-Branch auf origin, Archiv-PR vorhanden)"
+    rm -f "$_plan_copy"
+  else
+    mark_warn "Schritt 7: Plan-Pfad $PLAN_REL nicht aufloesbar"
   fi
+  fi
+else
+  mark_skip "Schritt 7: kein FACTORY-PLAN-REF mit Plan-Pfad"
 fi
 
 # Schritt 9 — Branch-Lock freigeben: nur wenn der Claim dieser Session gehoert

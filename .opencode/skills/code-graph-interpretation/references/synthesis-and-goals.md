@@ -17,13 +17,13 @@ This synthesis combines the user's supplied repo-graph assessment with local K3 
 
 ## Correction from the combined review
 
-The initial investigation used `--direction callers` and reported an empty trace for the website's `getSession`. The installed tool's MCP schema specifies `inbound`, `outbound`, and `both`. A corrected query returned **94 caller entries** with tests excluded; source inspection corroborated the `GET` and `POST` calls in `components/website/src/pages/sdlc/api/factory-budget.ts`. This is a tool-usage failure, not evidence of missing call edges. These counts are a dated observation, not a lasting target.
+The initial investigation used `--direction callers` and reported an empty trace for the website's `getSession`. The installed tool's MCP schema specifies `inbound`, `outbound`, and `both`. A corrected query returned **94 caller entries** with tests excluded; source inspection corroborated the `GET` call in `components/website/src/pages/sdlc/api/cockpit-metrics.ts`. This is a tool-usage failure, not evidence of missing call edges. These counts are a dated observation, not a lasting target.
 
 Reproduction at checkout `PRE=523d16e415da800b42ae9c777b38b296e2072d27`:
 
 ```bash
 codebase-memory-mcp cli trace_path --project home-patrick-Bachelorprojekt --function-name home-patrick-Bachelorprojekt.components.website.src.lib.auth.getSession --direction inbound --mode calls --depth 1
-rg -n -F 'getSession(' components/website/src/pages/sdlc/api/factory-budget.ts
+rg -n -F 'getSession(' components/website/src/pages/sdlc/api/cockpit-metrics.ts
 ```
 
 The earlier architecture summary also included generated/minified hotspots and route candidates without handlers. Treat these as evidence for measuring signal quality, not a proven failure of the whole graph. Inspect query scope, edge types, test filters, and truncation before comparing counts between tools.

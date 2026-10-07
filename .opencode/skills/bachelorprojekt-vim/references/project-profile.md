@@ -28,6 +28,6 @@ Useful scoped checks:
 
 ## Safe editor integrations
 
-Good defaults include `rg`-backed grep, quickfix navigation, buffer-local Git-root detection, commands for the three local verification gates, and shortcuts to `AGENTS.md`, active OpenSpec changes, and task discovery.
+Good defaults include `rg`-backed grep, quickfix navigation, buffer-local Git-root detection, commands for the three local verification gates, and shortcuts to `AGENTS.md`, active plan changes, and task discovery.
 
 Keep deploy operations visible and manual. `task workspace:deploy` is a break-glass fallback, not a routine editor shortcut.

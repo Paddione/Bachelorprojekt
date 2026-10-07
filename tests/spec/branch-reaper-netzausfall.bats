@@ -11,9 +11,11 @@ setup() {
 @test "branch-reaper exits non-zero when git ls-remote fails (network error)" {
   # Run branch-reaper with a mock that makes git ls-remote return rc=1
   run bash -c '
-    # Override git to make ls-remote fail
+    # Override git to make ls-remote fail. fetch faellt mit aus — ein echter
+    # Netzausfall trifft beide, und ein ungemockter Fetch zieht im flachen
+    # CI-Checkout die volle Historie (12+ min, T901069).
     git() {
-      if [[ "$1" == "ls-remote" ]]; then
+      if [[ "$1" == "ls-remote" || "$1" == "fetch" ]]; then
         echo "fatal: unable to access" >&2
         return 1
       fi
@@ -36,6 +38,8 @@ setup() {
         echo ""
         return 0
       fi
+      # Kein echter Fetch gegen den flachen CI-Checkout (T901069).
+      [[ "$1" == "fetch" ]] && return 0
       command git "$@"
     }
     export -f git

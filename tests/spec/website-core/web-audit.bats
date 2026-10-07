@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/website-core/web-audit.bats
-# SSOT: openspec/changes/web-audit/specs/website-core.md
 
 AUDIT_SCRIPT="scripts/web-audit.mjs"
 FIXTURE_HTML="tests/fixtures/web-audit/route-sample.html"

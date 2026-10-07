@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # Prüfmodus: Output-/Artefakt-Verifikation (T002448-M4). Struktureller Guard
-# gegen die Tandem-Deliverables aus T015248 (openspec/changes/tandem-small-models):
 #   - docs/finetune/tandem-candidates.json  (Kandidaten-Matrix)
 #   - docs/finetune/tandem-model-evaluation.md (Empfehlung + Trainingsplan)
 # Die Assertions prüfen die Artefakte selbst, nicht den Plan-Text. JSON wird

@@ -21,7 +21,7 @@ Vollständige Änderungshistorie der Health Goals ab dem Baseline-Stichtag `2026
 > Chronik-Abschnitt — er war damit der letzte verbliebene `Baseline-Update`-Marker im Register
 > und hätte nach der Auslagerung zufällig das Messdatum des gesamten Dashboards bestimmt.
 
-**Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
+**Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (Spec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
 **Sprint-Highlights 2026-07-03:** G-FE03 (console.error/warn) von 10 auf 1 reduziert — deutliche Verbesserung. G-CQ02 (explizite `any`) weiter von 11 auf 10 gesunken. G-SIZE03 (God-File website-db.ts) von 2106 auf 1957 Zeilen geschrumpft. G-TEST05 (Vitest Coverage) steigt von 82 %→85 %. **Regressionen:** G-CFG01 (env:validate:all) von Exit 0 auf 201 Schema-Verstöße gesprungen; G-GIT02 (non-conventional Commits) von 0 auf 1; G-AGENTIC06/07 jeweils von 0 auf 3 — vier Gates von Prio C nach Prio A zurückgestuft.
 
@@ -131,7 +131,7 @@ Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-
 
 **Baseline-Update 2026-07-19 (T001950 — Live-Bestätigung nach Deploy):** G-FE05 **89→90 ✅ Target erreicht.** Nach Merge von PR #2948 (Auto-Deploy via `build-website.yml`, beide Brand-Jobs `Deploy Website (mentolder)`/`Deploy Website (korczewski)` grün) erneut 3× `npx @lhci/cli autorun --collect.numberOfRuns=3` gegen `https://web.mentolder.de` gemessen: Performance-Score konstant **90/100** über alle 3 Läufe (FCP 2.0s, LCP 3.0–3.1s). Live-HTML bestätigt den Fix: `sidekick-panels.css` wird per `<link rel="preload" as="style" onload="this.rel='stylesheet'">` + `<noscript>`-Fallback geladen, keine blockierende `<link rel="stylesheet">`-Variante mehr im `<head>`. G-FE05 wechselt von Prio B/A nach Prio C (Green Gate).
 
-**Baseline-Update 2026-07-21:** G-AGENTIC08 1→0 (toter Script-Pfad `scripts/openspec-validate.sh` in `openspec-propose/SKILL.md` zu `scripts/openspec.sh validate` korrigiert); G-DB04 1h→13h (Backup-Alter 13h, weiterhin im Target ≤26h); G-DEP04 2→0 (package.json engines korrigiert, Gate grün); G-CQ06 1→0 (@deprecated stripeServiceKey entfernt); G-CQ02 8→0 (any-Typen und comment-false-positives behoben); alle Prio-C-Gates grün via `scripts/health-goals-check.sh` verifiziert.
+**Baseline-Update 2026-07-21:** G-AGENTIC08 1→0 (toter Script-Pfad im propose-Skill korrigiert); G-DB04 1h→13h (Backup-Alter 13h, weiterhin im Target ≤26h); G-DEP04 2→0 (package.json engines korrigiert, Gate grün); G-CQ06 1→0 (@deprecated stripeServiceKey entfernt); G-CQ02 8→0 (any-Typen und comment-false-positives behoben); alle Prio-C-Gates grün via `scripts/health-goals-check.sh` verifiziert.
 
 **Baseline-Update 2026-07-22 (T002063 — neue Scopes E2E/OPS/Restore):** Drei neue Goal-Scopes
 aufgenommen, die die Laufzeit-Perspektive abdecken (bisher maßen nur die G-DB-Goals gegen
@@ -157,7 +157,7 @@ nach Deploy lief der Restore-Verify des Backups `20260722-000016` (website) voll
 (93 Tabellen, inkl. `chunks_embedding_hnsw`-HNSW-Build) und stempelte `recovery-verify-status`.
 Das website-Backup ist damit nachweislich wieder restaurierbar. Nebenbei entdeckt + gefixt
 (T002066, PR #3091): `RECOVER_DOMAIN` war im Schema required, fehlte aber in allen vier
-Brand-Env-Dateien — blockierte jeden `workspace:deploy`. OpenSpec-Change
+Brand-Env-Dateien — blockierte jeden `workspace:deploy`. Change
 `fix-t002064-shared-db-dev-shm` archiviert (Delta in `backup-pipeline`-SSOT gemergt).
 
 **Baseline-Update 2026-07-22:** Prio-C-Tabellenwerte mit `health-goals-check.sh` synchronisiert:
@@ -206,7 +206,7 @@ und alle 95 Ziele trugen einen vier Tage alten Mess-Stichtag. Jetzt gewinnt das 
   von „alle Skills" auf „projekteigene" (abgeleitet aus der Vendor-Sektion in `OVERVIEW.md`).
   Baseline 2 → 0. Die sechs Übergrößen wurden per Progressive Disclosure gekürzt, ohne einen
   Schritt zu verlieren: `dev-flow-execute` 486→248, `infra-ops` 476→176, `dev-flow-plan` 460→209,
-  `ticket-ops` 334→131, `openspec-explore` 298→206, `git-workflow` 283→230.
+  `ticket-ops` 334→131, `explore-skill` 298→206, `git-workflow` 283→230.
 - **G-AGENTIC08 Scope erweitert:** von `--include=SKILL.md` auf alle `.md` der projekteigenen
   Skills plus `references/`. Vorher blieben ausgelagerte Referenzdateien ungeprüft — genau die
   Lücke, die dieser Change sonst vergrößert hätte. Vendor-Skills bleiben ausgenommen, weil ihre

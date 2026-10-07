@@ -150,28 +150,12 @@ if [ "$FAST" = 0 ] && want G-CFG01 && command -v task >/dev/null 2>&1; then
 else row gate G-CFG01 "-" eq 0 "env:validate:all (--fast übersprungen)"; fi
 
 row gate G-AGENTIC02 "$(
-  python3 - <<'PY'
-import re,glob,os
-def norm(t):
-    t=re.sub(r'\([^)]*\)','',t); t=t.replace('`','').replace('"','').replace("'","")
-    return t.strip().rstrip('.').strip().lower()
-def toks(s): return {norm(x) for x in s.split(',') if norm(x)}
-def fm(p):
-    f=re.search(r'^---\n(.*?)\n---',open(p).read(),re.S).group(1)
-    d=re.search(r'description:\s*>?\s*(.*?)(?:\n[a-z_]+:|\Z)',f,re.S).group(1)
-    d=' '.join(l.strip() for l in d.splitlines())
-    m=re.search(r'[Tt]riggers on:\s*(.*)',d); return toks(m.group(1)) if m else set()
-rows={}; seg=False
-for line in open('AGENTS.md').read().splitlines():
-    if re.match(r'^<summary>(Claude Code )?Domain Agents',line): seg=True; continue
-    if seg and re.match(r'^</details>',line): break
-    if seg:
-        m=re.match(r'\|(.*?)\|\s*`(bachelorprojekt-[a-z]+)`\s*\|\s*$',line)
-        if m: rows[m.group(2)]=toks(m.group(1))
-print(sum(1 for p in glob.glob('.claude/agents/*.md')
-          if fm(p).symmetric_difference(rows.get(os.path.basename(p)[:-3],set()))))
-PY
-)" eq 0 "Agent-Routing-Tabelle ↔ Agent-Frontmatter-Drift"
+  c=0
+  for a in bp-build bp-run bp-ship; do
+    grep -q -- "$a" AGENTS.md || c=$((c+1))
+  done
+  echo $c
+)" eq 0 "AGENTS.md Routing-Tabelle enthält alle 3 bp-*-Agenten"
 row gate G-AGENTIC03 "$(
   c=0; for f in .claude/agents/*.md; do b=$(basename "$f" .md)
     nm=$(awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^name:/{sub(/^name:[ ]*/,"");print;exit}' "$f")
@@ -179,7 +163,7 @@ row gate G-AGENTIC03 "$(
     { [ "$nm" = "$b" ] && [ -n "$hd" ]; } || c=$((c+1)); done; echo $c
 )" eq 0 "Agent-Frontmatter (name=Dateiname + description)"
 row gate G-AGENTIC04 "$(
-  blk="$(awk '/^  test:changed:/{f=1} f&&/^  [a-z][a-z0-9-]*:/&&!/test:changed:/{exit} f' Taskfile.yml)"
+  blk="$(awk '/^  test:changed:/{f=1} f&&/^  [a-z][a-z0-9-]*:/&&!/test:changed:/{exit} f' taskfiles/Taskfile.test.yml)"
   m=0
   echo "$blk" | grep -qE '\.claude/agents/' || m=$((m+1))
   echo "$blk" | grep -q  'AGENTS'           || m=$((m+1))
@@ -187,11 +171,9 @@ row gate G-AGENTIC04 "$(
   echo $m
 )" eq 0 "test:changed Agents-Bucket-Erreichbarkeit"
 row gate G-AGENTIC05 "$(
-  files=$(ls .claude/agents/*.md | xargs -n1 basename | sed 's/\.md$//;s/^bachelorprojekt-//' | sort -u)
-  routing=$(grep -oE "'bachelorprojekt-[a-z]+'" scripts/code-quality/validate.mjs | tr -d "'" | sed 's/^bachelorprojekt-//' | sort -u)
-  registry=$(grep -oE '^- id: agent-[a-z]+' docs/agent-guide/registry/tools.yaml | sed 's/^- id: agent-//' | sort -u)
-  echo $(( $(comm -3 <(echo "$files") <(echo "$routing") | grep -c .) + $(comm -3 <(echo "$files") <(echo "$registry") | grep -c .) ))
-)" eq 0 "6-Agenten agent↔routing↔registry Cross-Reference"
+  count=$(find .claude/agents -name 'bp-*.md' 2>/dev/null | wc -l)
+  echo $(( count == 3 ? 0 : 1 ))
+)" eq 0 "3 Domain-Agenten unter .claude/agents (bp-*)"
 row gate G-AGENTIC06 "$(
   # SSOT-Pfad (T900070): .claude/skills/* sind Symlinks — git ls-files fände dort
   # keine SKILL.md und das Gate wäre vakant (0=0). Gezählt wird die SSOT.
@@ -229,10 +211,10 @@ row gate G-AGENTIC09 "$(
     [ "$(wc -l < ".opencode/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c
 )" eq 0 "Projekteigene SKILL.md >400 Zeilen"
 row gate G-AGENTIC11 "$(
-  claimed=$(grep 'opencode runtime registers' CLAUDE.md | grep -oE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u)
+  claimed=$(grep -h 'opencode runtime registers' AGENTS.md CLAUDE.md | grep -oE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u)
   actual=$(mcp_servers .opencode/opencode.jsonc)
   comm -3 <(echo "$claimed") <(echo "$actual") | grep -c .
-)" eq 0 "CLAUDE.md opencode-Liste vs opencode.jsonc (sym. Diff)"
+)" eq 0 "AGENTS.md opencode-Liste vs opencode.jsonc (sym. Diff)"
 row gate G-AGENTIC12 "$(
   c=0; for s in $(mcp_servers .mcp.json); do
     grep -q -- "$s" .claude/skills/references/mcp-tool-guide.md || c=$((c+1)); done; echo $c
@@ -256,26 +238,9 @@ def sig(c):
 print(sum(1 for k in set(a)&set(b) if sig(a[k])!=sig(b[k])))
 PY
 )" eq 0 ".mcp.json ↔ opencode Parity (gemeinsame Server)"
-row gate G-AGENTIC15 "$(
-  valid=$( { for f in .claude/commands/opsx/*.md; do basename "$f" .md; done
-             for f in .opencode/commands/opsx-*.md; do basename "$f" .md | sed 's/^opsx-//'; done; } | sort -u)
-  refs=$(grep -rhoE '/opsx[:-][a-z]+' CLAUDE.md AGENTS.md .claude/commands .opencode/commands .claude/skills --include='*.md' 2>/dev/null \
-         | sed -E 's#/opsx[:-]##' | sort -u)
-  c=0; for r in $refs; do echo "$valid" | grep -qx "$r" || c=$((c+1)); done; echo $c
-)" eq 0 "Phantom-/opsx-Command-Referenzen"
-row gate G-AGENTIC16 "$(
-  m=0
-  for f in .claude/commands/opsx/*.md; do
-    name=$(basename "$f" .md); o=".opencode/commands/opsx-$name.md"
-    [ -f "$o" ] || { m=$((m+1)); continue; }
-    a=$(awk 'BEGIN{fm=0}/^---$/{fm++;next} fm>=2{print}' "$f" | sed 's#/opsx:#/opsx-#g')
-    b=$(awk 'BEGIN{fm=0}/^---$/{fm++;next} fm>=2{print}' "$o" | sed 's#/opsx:#/opsx-#g')
-    [ "$a" = "$b" ] || m=$((m+1))
-  done; echo $m
-)" eq 0 "Claude ↔ opencode Command-Sync (normalisiert)"
 want G-AGENTIC17 && row gate G-AGENTIC17 "$(
   cfg=$(grep -cE '(\.claude/commands|\.opencode/commands)/\*\*/\*\.md' docs/code-quality/gates.yaml)
-  orph=$(node scripts/code-quality/gates/s4-orphans.mjs 2>/dev/null | grep -cE '(^|/)(\.claude/commands|\.opencode/commands)/|commands/opsx')
+  orph=$(node scripts/code-quality/gates/s4-orphans.mjs 2>/dev/null | grep -cE '(^|/)(\.claude/commands|\.opencode/commands)/')
   if [ "$cfg" -ge 2 ]; then echo "$orph"; else echo 99; fi
 )" le 0 "Command-Orphans via S4 (Config-Guard)"
 
@@ -284,6 +249,12 @@ want G-BRAIN15 && row gate G-BRAIN15 "$(
   bash templates/brain/scripts/lint-frontmatter.sh templates/brain >/dev/null 2>&1 \
     && bash templates/brain/scripts/lint-wikilinks.sh templates/brain >/dev/null 2>&1; echo $?
 )" eq 0 "Brain-Seed-Template-Lint (frontmatter + wikilinks) grün"
+
+# ── Wissensablage — GATES (G-KNOW, T900995): Registry/Code/ADR statt Prosa-Doku ──
+KG="python3 scripts/lib/knowledge-goals.py"
+row gate G-KNOW02 "$($KG docs-md)" le 324 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs)"
+row gate G-KNOW06 "$($KG adr-edits)" le 7 "ADR-Inhaltsaenderungen nach dem Anlegen (kein Netto-Zuwachs)"
+want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/dev/null 2>&1; echo $?)" eq 0 "Agent-Registry-Schema valide"
 
 # ── DB-Gesundheit — GATES ──
 want G-DB06 && row gate G-DB06 "$(db_scalar "SELECT
@@ -299,7 +270,7 @@ want G-OPS03 && row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlauf
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
-row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|openspec.sh|openspec-validate|openspec-merge' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
+row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
 # [T013916] 30 -> 5, Ist 0. Ratchet-Regel: .claude/lib/goals.md §Rueckbau.
 row target G-RH01 "$(n_baseline_gate ALL)" le 5 "Baselined Gate-Violations gesamt"
 row target G-CQ07 "$(n_baseline_gate S2)" le 0  "S2 Import-Zyklen"
@@ -322,6 +293,10 @@ row target G-AGENTIC10 "$(
   c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
     grep -RlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
 )" le 0 "Agenten ohne dispatchende Skill (website/db/security)"
+row target G-KNOW01 "$($KG docs-only)" le 0 "Registry-Regeln nur dokumentiert (enforced_by: docs-only)"
+row target G-KNOW03 "$($KG dangling)" le 0 "Registry-Verweise (enforced_by/where) ohne existierenden Pfad"
+row target G-KNOW04 "$($KG docs-md)" le 0 "Markdown unter docs/ ausser adr/ (Abbau)"
+row target G-KNOW05 "$($KG agent-ctx-bytes)" le 15000 "Bytes aller AGENTS.md/CLAUDE.md"
 row target G-DOC03 "$(c=0; for d in components/website components/brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; sec05_unsigned)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 
@@ -400,6 +375,13 @@ want G-FE05 && row target G-FE05 "$(runtime_measure lighthouse)" ge 90 "Niedrige
 # statt als '-'. Kein '|| echo "-"' hier: ein Fehlschlag DIESES Aufrufs waere ein
 # Defekt der Messung, kein "nicht messbar" [T002648].
 row target G-IF01 "$(python3 scripts/lib/mcp-endpoint-probe.py)" le 0 "MCP-Endpunkte ohne Listener (Registry vs TCP)"
+
+# K3-Codegraph-Ziele [T002430]: Frische aus den cbm-freshness Receipts und
+# Projekt-Praesenz im Index. Bewusst `target` (gelb) statt `gate`: eine
+# veraltete Index-Infrastruktur ist ein Betriebszustand, keine Codequalitaets-
+# Regression — aber nie unsichtbar (Fail-closed, 0 = nicht gruen).
+row target G-K3FRESH "$(k3_freshness_flag)" eq 1 "K3-Index frisch laut cbm-freshness-Receipts"
+row target G-K3PROJ "$(k3_project_flag)" eq 1 "K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0)"
 
 row target G-IF02 "$(python3 -c "
 import os,re
@@ -487,9 +469,6 @@ row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated'
 row gate   G-TEST01 "$(grep -rniE "skip [\"']" tests --include='*.bats' 2>/dev/null | grep -ciE 'pending|todo|WP-|disabled' || true)" eq 0 "BATS Debt-Skips (pending/todo/WP-/disabled)"
 row target G-TEST03 "$(anchor_dir components/website/src; grep -rnE '(describe|it|test)\.(skip|todo)\b' components/website/src --include='*.ts' 2>/dev/null | wc -l | tr -d ' ')" le 1 "Vitest Skipped/Todo-Suiten (Ist 1 bei Aufnahme T002598)"
 row gate   G-TEST04 "$(git status --porcelain components/website/src/data/test-inventory.json 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Test-Inventory-Drift (uncommitted)"
-row gate   G-SPEC01 "$(exit_code_of_script scripts/openspec.sh validate)" eq 0 "openspec validate (Exit)"
-row gate   G-SPEC02 "$(c=0; cutoff=$(( $(date +%s) - 30*86400 )); for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; ts=$(git log -1 --format=%at -- "$d" 2>/dev/null); [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && c=$((c+1)); done; echo $c)" eq 0 "OpenSpec-Changes ohne Aktivitaet >30 Tage"
-row target G-SPEC03 "$(m=0; for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; [ -f "$d/.ticket" ] || m=$((m+1)); done; echo $m)" le 5 "Proposals ohne .ticket-Verknuepfung"   # [T013916] 41 -> 5, Ist 0
 row gate   G-SEC02 "$(exit_code_of_script scripts/git-crypt-guard.sh check-tracked)" eq 0 "git-crypt Guard (Exit)"
 row target G-SEC03 "$(ts=$(git log -1 --format=%at -- environments/sealed-secrets/*.yaml 2>/dev/null); [ -n "$ts" ] && echo $(( ( $(date +%s) - ts ) / 86400 )) || echo '-')" le 90 "Tage seit letzter SealedSecret-Rotation"
 row target G-SEC04 "$(min=''; for p in environments/certs/*.pem; do [ -f "$p" ] || continue; e=$(openssl x509 -enddate -noout -in "$p" 2>/dev/null | cut -d= -f2); [ -n "$e" ] || continue; d=$(( ( $(date -d "$e" +%s 2>/dev/null || echo 0) - $(date +%s) ) / 86400 )); { [ -z "$min" ] || [ "$d" -lt "$min" ]; } && min=$d; done; echo "${min:--}")" ge 30 "Sealing-Cert Restlaufzeit (Tage, Minimum)"

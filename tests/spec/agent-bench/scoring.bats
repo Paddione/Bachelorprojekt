@@ -107,7 +107,7 @@ for (const e of r.errors) console.log(e.caseId + ': ' + e.message);
   mkdir -p "$T/runs" "$T/cases"
   cp -r "$FIX/cases/tiny-eval" "$FIX/cases/no-source" "$T/cases/"
   bench_env "$T/runs" "$T/cases"
-  run node "$BENCH" run --profile quick --roles code-worker --models qwen35-4b
+  run node "$BENCH" run --profile quick --roles code-worker --models qwen3-4b
   [ "$status" -eq 2 ]
   [[ "$output" == *"no-source"* ]]
 }
@@ -117,7 +117,7 @@ for (const e of r.errors) console.log(e.caseId + ': ' + e.message);
   mkdir -p "$T/runs" "$T/cases"
   cp -r "$FIX/cases/tiny-eval" "$T/cases/fresh-case"
   bench_env "$T/runs" "$T/cases"
-  run node "$BENCH" run --profile quick --roles reviewer --models qwen35-4b --cases fresh-case:v3
+  run node "$BENCH" run --profile quick --roles reviewer --models qwen3-4b --cases fresh-case:v3
   echo "$output" | grep -q '^AGENT-BENCH: '
   found="$(find "$T/runs" -name result.json | head -5)"
   [ -n "$found" ]

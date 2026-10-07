@@ -106,7 +106,7 @@
       { id: 'sammlungen',  label: 'Sammlungen' },
       { id: 'operationen', label: 'Operationen' },
       { id: 'entworfe',    label: 'Entwürfe', badge: draftCount > 0 ? draftCount : undefined },
-    ] as const) as tab}
+    ] as { id: Tab; label: string; badge?: number }[]) as tab}
       <button
         class="tab-btn {activeTab === tab.id ? 'active' : ''}"
         onclick={() => activeTab = tab.id}
@@ -228,7 +228,7 @@
 </div>
 
 <!-- Always-mounted modals (hidden until triggered) -->
-<KnowledgeJsonImport onCreated={() => location.reload()} />
+<KnowledgeJsonImport />
 <WebCrawlSourceModal onCreated={() => location.reload()} />
 <KnowledgeSourceModal onCreated={() => location.reload()} />
 <CollectionMergePanel />

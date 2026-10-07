@@ -1,7 +1,7 @@
 // Leichtgewichtiger Markdown-Subset-Renderer für die Ticket-UI.
 //
 // Bewusst KEIN npm-Dependency und KEIN WYSIWYG: Beschreibungen/Kommentare bleiben
-// Plaintext-Markdown in der DB, damit Gekko und die Software-Factory den Rohinhalt
+// Plaintext-Markdown in der DB, damit Gekko und andere Leser den Rohinhalt
 // direkt lesen können. Dieses Modul rendert diesen Plaintext sicher zu HTML.
 //
 // Sicherheit by construction: ALLER text-stammende Inhalt wird ZUERST escaped

@@ -46,7 +46,7 @@ actions:
 
 Fokus-versus-Ausfuehrung: Das Navigieren auf der Seite (Cursor bewegen) fuehrt **keine** Aktion aus ("focus-no-side-effect", per headless Probe verifiziert); erst Enter bzw. der Buchstabe der jeweiligen Zeile startet die Aktion.
 
-Leitplanken (EPIC): Generierte Karten zeigen ihre Grenzen und liefern keine ungeprueften Betriebsbefehle; das Dashboard bindet kein OpenSpec ein und fuehrt keine Produktionsaktionen aus dem Editor aus.
+Leitplanken (EPIC): Generierte Karten zeigen ihre Grenzen und liefern keine ungeprueften Betriebsbefehle; das Dashboard bindet keine Spec-Ablage ein und fuehrt keine Produktionsaktionen aus dem Editor aus.
 
 ## Erwartetes Ergebnis
 

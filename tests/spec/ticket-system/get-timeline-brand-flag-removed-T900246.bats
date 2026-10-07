@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/ticket-system.md
 # Ticket: T900246 — cmd_get_timeline's --brand/BRAND flag ist seit T900243
 # vestigial: geparst, defaultet, als psql-Variable :'brand' gebunden, aber in
 # keiner Query mehr referenziert (die AND tp.brand = :'brand'-Bedingung wurde
@@ -12,7 +11,6 @@
 # eine GLOBALE Sequenz (tickets.external_id_seq), keine Brand-Eingrenzung.
 # Zwei Brands koennen dieselbe external_id NICHT tragen, also ist ein
 # --brand-Mismatch fuer ein existierendes external_id ein logisch
-# unmoegliches Szenario. openspec/specs/ticket-system.md:1571-1578
 # dokumentiert bereits, dass die Brand-Eingrenzung transitiv ueber den
 # external_id-Subselect erfolgt.
 #

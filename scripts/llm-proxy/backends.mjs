@@ -1,5 +1,6 @@
 // scripts/llm-proxy/backends.mjs
 import { execFileSync } from 'node:child_process';
+import { WS_PSQL_SCRIPT } from './ws-psql.mjs';
 
 // [T900107] loadout_slug faellt weg: der Proxy laeuft als Container des dev-pod
 // und bedient ausschliesslich Remote-Backends. Es gibt kein lokales Loadout mehr,
@@ -20,9 +21,8 @@ export function loadBackendsOnce() {
   if (process.env.LLM_PROXY_BACKENDS_JSON) {
     return JSON.parse(process.env.LLM_PROXY_BACKENDS_JSON);
   }
-  const script = 'source scripts/factory/lib.sh; factory_resolve; factory_psql';
   const repoDir = process.env.DEV_POD_REPO || process.env.REPO_ROOT || process.cwd();
-  const out = execFileSync('bash', ['-c', script], {
+  const out = execFileSync('bash', ['-c', WS_PSQL_SCRIPT], {
     input: SQL, encoding: 'utf8',
     cwd: repoDir,
     env: { ...process.env, BRAND: process.env.BRAND || 'mentolder' },

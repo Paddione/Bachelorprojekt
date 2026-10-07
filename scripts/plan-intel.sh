@@ -2,7 +2,6 @@
 # scripts/plan-intel.sh — deterministic intel.json generator
 # Usage: scripts/plan-intel.sh <slug> [--target-files <f1> [<f2> ...]] [--out <pfad>]
 # Generates a schema-conformant Plan Intel Bundle at .agents/plans/<slug>/intel.json
-# (Fallback: openspec/changes/<slug>/ fuer Altbestand, T900689).
 # Deterministic: same inputs produce identical output (git SHA aside).
 set -euo pipefail
 
@@ -31,14 +30,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Plan-Heimat seit C7a ist .agents/plans/<slug>; openspec/changes bleibt Fallback [T900689].
 CHANGE_DIR="$REPO_ROOT/.agents/plans/$SLUG"
-[[ -d "$CHANGE_DIR" ]] || CHANGE_DIR="$REPO_ROOT/openspec/changes/$SLUG"
 
 _resolve_target_files() {
   local tasks_md="$CHANGE_DIR/tasks.md"
   [[ -f "$tasks_md" ]] || { echo "tasks.md not found: $tasks_md" >&2; return 1; }
-  # Table columns: | id | file | role | target_files | depends_on | min_tier | ctx_tokens |
+  # Table columns: | id | file | role | target_files | depends_on |
   # Leading | creates empty field 0. So read order: _0 _1(id) _2(file) _3(role) _4(targets) _5(rest incl. deps/tier/ctx)
   # [T008015-3] Annotierte Zellen tolerieren: Nur Pfad-Tokens (ein Wort ohne
   # Whitespace, mit '/', '.' oder '{') gelten als Pfade — Annotations-Praefixe

@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "slug": "qwen35-4b-training",
+    "ticket_id": "",
+    "generated_from": "main@a2510e122",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".agents/training/TRAINING_PLAN.md",
+      "language": "markdown",
+      "loc": 91,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/training/eval.py",
+      "language": "python",
+      "loc": 214,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 586
+    },
+    {
+      "path": ".agents/training/export_model.py",
+      "language": "python",
+      "loc": 124,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 676
+    },
+    {
+      "path": ".agents/training/train_5070ti.py",
+      "language": "python",
+      "loc": 214,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 586
+    },
+    {
+      "path": "tests/spec/llm-local-dev/",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": ".agents/training/eval.py:214:    main()",
+      "kind": "function",
+      "file": ".agents/training/eval.py",
+      "signature": "214:    main()(...)",
+      "type_text": "214:    main()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": ".agents/training/export_model.py:124:    main()",
+      "kind": "function",
+      "file": ".agents/training/export_model.py",
+      "signature": "124:    main()(...)",
+      "type_text": "124:    main()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": ".agents/training/train_5070ti.py:214:    main()",
+      "kind": "function",
+      "file": ".agents/training/train_5070ti.py",
+      "signature": "214:    main()(...)",
+      "type_text": "214:    main()(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

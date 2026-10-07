@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/active-sessions-hub/ticket-lock-closure-T003102.bats
-# SSOT: openspec/specs/active-sessions-hub.md (agent-lock Semantik)
 # Ticket: T003102
 #
 # PRUEFMODUS (bewusst gemischt, je Zusicherung begruendet):
@@ -27,7 +26,6 @@ setup() {
   LOCK_SH="$REPO/scripts/agent-lock.sh"
   EXEC_SKILL="$REPO/.opencode/skills/dev-flow-execute/SKILL.md"
   EXEC_PHASES="$REPO/.claude/skills/references/dev-flow-execute-phases.md"
-  FACTORY_PREP="$REPO/scripts/vda/factory-prep.sh"
 }
 
 # Baut eine fremde ticket-scoped Lock-Datei im isolierten Lock-Verzeichnis.
@@ -151,15 +149,5 @@ _section() {  # <file> <start-regex>
 }
 
 # ---------------------------------------------------------------------------
-# 7: factory-prep Dispatch-Gate prueft BEIDE Scopes [T003102]
+# 7: factory-prep Dispatch-Gate [T003102] — retired with scripts/vda/factory-prep.sh (T900728)
 # ---------------------------------------------------------------------------
-
-@test "factory-prep.sh: Dispatch-Gate sieht ticket- UND branch-scoped Locks" {
-  run grep -F 'check ticket' "$FACTORY_PREP"
-  [ "$status" -eq 0 ]
-  # Der branch-Scope-Zweig listet die Lock-Bestaende und sucht die Ticket-ID.
-  run grep -F 'list' "$FACTORY_PREP"
-  [ "$status" -eq 0 ]
-  run grep -F 'ext_id' "$FACTORY_PREP"
-  [ "$status" -eq 0 ]
-}

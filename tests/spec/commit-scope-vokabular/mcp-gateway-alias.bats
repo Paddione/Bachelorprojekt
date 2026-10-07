@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/commit-scope-vokabular/mcp-gateway-alias.bats
-# SSOT: openspec/specs/ci-cd.md
 #
 # Requirement: "Konsolidierte Scope-Namen nennen ihr Ziel" — scopes that were
 # consolidated into a named scope MUST report the target scope name.
@@ -35,11 +34,11 @@ teardown() {
   [[ "$output" == *"mcp"* ]]
 }
 
-@test "rejects chore(tickets) and reports factory as target scope" {
+@test "rejects chore(tickets) and reports the Ticket-Scope redirect (T900728)" {
   echo "chore(tickets): register mcp tool params" > "$TMP_MSG"
   run "$SCRIPT" message "$TMP_MSG"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"factory"* ]]
+  [[ "$output" == *"Ticket-Scope"* ]]
 }
 
 @test "rejects unknown scope and hints at PR-title check not validating scope" {

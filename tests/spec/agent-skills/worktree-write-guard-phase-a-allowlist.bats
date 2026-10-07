@@ -9,11 +9,11 @@ setup() {
   BATS_TMPDIR=$(mktemp -d)
   REPO="$BATS_TMPDIR/repo"
   mkdir -p "$REPO/wt-real"
-  mkdir -p "$REPO/openspec/changes/some-change"
+  mkdir -p "$REPO/.agents/plans/some-change"
   mkdir -p "$REPO/.lavish"
   mkdir -p "$REPO/scripts"
   touch "$REPO/wt-real/README.md"
-  touch "$REPO/openspec/changes/some-change/proposal.md"
+  touch "$REPO/.agents/plans/some-change/proposal.md"
   touch "$REPO/.lavish/some-change-brainstorm.html"
   touch "$REPO/scripts/foo.sh"
 
@@ -41,8 +41,8 @@ teardown() {
   rm -rf "$BATS_TMPDIR"
 }
 
-@test "worktree-write-guard: allows openspec/changes/* on main even when own worktree exists" {
-  local TARGET="$REPO/openspec/changes/some-change/proposal.md"
+@test "worktree-write-guard: allows .agents/plans/* on main even when own worktree exists" {
+  local TARGET="$REPO/.agents/plans/some-change/proposal.md"
 
   run bash "$GUARD" <<< "$(printf '{"tool_input":{"file_path":"%s"}}' "$TARGET")"
 

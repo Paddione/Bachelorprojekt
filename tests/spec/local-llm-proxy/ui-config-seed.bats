@@ -17,7 +17,7 @@ setup() {
   # T900202: der Seed verlangt alle referenzierten Browser-Tokens — nur BGE
   # zu setzen liesse ihn mit "Required environment variable ... is not set"
   # abbrechen. Dummy-Werte, keine echten Secrets.
-  BGE_MCP_TOKEN="test-token" MCP_POSTGRES_TOKEN="test-token" FACTORY_MCP_TOKEN="test-token" MCP_KUBERNETES_TOKEN="test-token" node "${REPO_ROOT}/scripts/llm/ui-config-seed.mjs" --output "${seed_path}"
+  BGE_MCP_TOKEN="test-token" MCP_POSTGRES_TOKEN="test-token" MCP_KUBERNETES_TOKEN="test-token" node "${REPO_ROOT}/scripts/llm/ui-config-seed.mjs" --output "${seed_path}"
 
   [ -f "${seed_path}" ]
 
@@ -45,7 +45,6 @@ setup() {
   # Ladezeit und damit der Health-Wait-Erfolg vom Dateisystem-Cache-Zustand ab
   # (teils zufaellig ein 12B-Modell). Das feste 10s-Budget war Testfragilitaet,
   # kein Konfig-Drift (G-LLM03 widerlegt). Root-Cause-Analyse:
-  # openspec/changes/llm-proxy-bats-local-red/design.md
   local model_file helper
   helper="${REPO_ROOT}/tests/spec/local-llm-proxy/lib/pick-small-model.sh"
   # shellcheck source=/dev/null

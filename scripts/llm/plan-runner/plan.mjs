@@ -1,4 +1,4 @@
-// plan.mjs — Planmodell des plan-runners (T900504): OpenSpec-Partial-Manifest, Abhaengigkeiten,
+// plan.mjs — Planmodell des plan-runners (T900504): plan partial-Manifest, Abhaengigkeiten,
 // Zustandsdatei, Worker-Prompt und Ergebniszeile. Reines Modul ohne Netzwerk- und Prozesszugriff.
 // Aufrufer: scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.
 
@@ -86,17 +86,38 @@ export function saveState(changeDir, state) {
   renameSync(tmp, file);
 }
 
-// Prompt fuer einen Worker (4B oder Selbstaufruf): vollstaendiger Partial-Text + Regeln.
+// Maschinenlesbares Partial-Schema (T901014 P2): Pflichtfelder zuerst, knappe
+// Feldnamen, feste Reihenfolge — kleine (low-quant) Modelle erhalten Struktur
+// statt Fliesstext. BODY ist auf MAX_PROMPT_BODY_CHARS gekuerzt (4B-Budget).
+export const PARTIAL_FIELDS = ['pid', 'role', 'files', 'deps'];
+export const MAX_PROMPT_BODY_CHARS = 12000;
+
+// Kompakte Record-Zeile eines Partials: `PID:..|ROLE:..|FILES:..|DEPS:..`.
+// Leere Listen werden als `-` kodiert, damit jeder Key immer vorhanden ist.
+export function formatPartialRecord(partial) {
+  const files = partial.targetFiles.length ? partial.targetFiles.join(',') : '-';
+  const deps = partial.dependsOn.length ? partial.dependsOn.join(',') : '-';
+  return `PID:${partial.id}|ROLE:${partial.role || '-'}|FILES:${files}|DEPS:${deps}`;
+}
+
+// Prompt fuer einen Worker (4B oder Selbstaufruf) im Maschinen-Format: eine
+// Record-Zeile + BODY-Block, kein Fliesstext-Ballast, keine .md-Reste.
+// `Partial-ID:` bleibt erste Zeile (Test-Stub parst sie, T900504).
 export function buildWorkerPrompt({ partial, partialText, worktree, extra = '' }) {
-  const files = partial.targetFiles.length ? partial.targetFiles.join(', ') : '(none declared)';
+  let body = String(partialText ?? '');
+  if (body.length > MAX_PROMPT_BODY_CHARS) {
+    body = `${body.slice(0, MAX_PROMPT_BODY_CHARS)}\n[TRUNCATED ${body.length - MAX_PROMPT_BODY_CHARS} chars]`;
+  }
   return [
     `Partial-ID: ${partial.id}`,
-    `You implement one partial of an OpenSpec plan. Work in the git worktree ${worktree}.`,
-    `Only change these files: ${files}. Do not touch any other file. Do not commit.`,
-    'Carry out every task of the partial below completely.',
-    extra ? `\nNotes from the orchestrator:\n${extra}` : '',
-    `\n----- partial ${partial.file} -----\n${partialText}\n----- end of partial -----\n`,
-    `When you are finished, print as your very last line exactly one of:`,
+    formatPartialRecord(partial),
+    `WORKTREE:${worktree}`,
+    'BODY:',
+    body,
+    'END-BODY',
+    extra ? `EXTRA:${String(extra).slice(0, 2000)}` : '',
+    'Carry out every task of the partial completely. Only change FILES. Do not commit.',
+    'RESULT: your very last line must be exactly one of:',
     `${RESULT_MARKER} success <one-line summary>`,
     `${RESULT_MARKER} failure <one-line reason>`,
   ].filter((l) => l !== '').join('\n');

@@ -1,17 +1,19 @@
 {
   "mcpServers": {
     "codebase-memory-mcp": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "codebase-memory-mcp@0.10.8"
-      ]
+      "command": "codebase-memory-mcp"
     },
     "context7": {
       "command": "npx",
       "args": [
         "-y",
         "@upstash/context7-mcp@4.1.1"
+      ]
+    },
+    "devflow-mcp": {
+      "command": "node",
+      "args": [
+        "scripts/devflow-mcp/server.mjs"
       ]
     },
     "mcp-kubernetes": {

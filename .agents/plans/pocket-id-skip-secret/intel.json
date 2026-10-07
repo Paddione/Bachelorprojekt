@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "slug": "pocket-id-skip-secret",
+    "ticket_id": "",
+    "generated_from": "main@288d147ae",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "k3d/pocket-id-client-seed.yaml",
+      "language": "config",
+      "loc": 430,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/pocket-id-client-seed-skip-secret.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "k3d/pocket-id-client-seed.yaml:269:              id_by_name() {",
+      "kind": "function",
+      "file": "k3d/pocket-id-client-seed.yaml",
+      "signature": "269:              id_by_name() {(...)",
+      "type_text": "269:              id_by_name() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/pocket-id-client-seed.yaml:284:              find_client_id() {",
+      "kind": "function",
+      "file": "k3d/pocket-id-client-seed.yaml",
+      "signature": "284:              find_client_id() {(...)",
+      "type_text": "284:              find_client_id() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/pocket-id-client-seed.yaml:315:              patch_secret() {",
+      "kind": "function",
+      "file": "k3d/pocket-id-client-seed.yaml",
+      "signature": "315:              patch_secret() {(...)",
+      "type_text": "315:              patch_secret() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/pocket-id-client-seed.yaml:350:              upsert() {",
+      "kind": "function",
+      "file": "k3d/pocket-id-client-seed.yaml",
+      "signature": "350:              upsert() {(...)",
+      "type_text": "350:              upsert() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/pocket-id-client-seed.yaml:408:              find_group_id() {",
+      "kind": "function",
+      "file": "k3d/pocket-id-client-seed.yaml",
+      "signature": "408:              find_group_id() {(...)",
+      "type_text": "408:              find_group_id() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/pocket-id-client-seed.yaml:413:              ensure_group() {",
+      "kind": "function",
+      "file": "k3d/pocket-id-client-seed.yaml",
+      "signature": "413:              ensure_group() {(...)",
+      "type_text": "413:              ensure_group() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/changes/batch-mcp-introspection (T003811, Batch-Parent)
 # Ticket: T003406 — ticket-mcp export_tickets returns insufficient fields for triage
 #
 # PRUEFMODUS: Command-Output-Verifikation (T002448-M4). Der Test FUEHRT
@@ -18,11 +17,11 @@
 # Ohne erreichbaren shared-db-Pod wird uebersprungen (etabliertes Muster aus
 # tests/spec/ticket-system/list-test-data-filter.bats).
 
-load "../../lib/factory-test-fixtures.sh"
+load "../../lib/ticket-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
+  _pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-devmesh}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)
   [[ -n "$_pod" ]] || skip "kein erreichbarer shared-db-Pod — DB-gestuetzter Test uebersprungen"
@@ -35,7 +34,7 @@ setup_file() {
 }
 
 teardown_file() {
-  purge_factory_test_data "mentolder" >/dev/null 2>&1 || true
+  purge_ticket_test_data "mentolder" >/dev/null 2>&1 || true
 }
 
 _seed_once() {

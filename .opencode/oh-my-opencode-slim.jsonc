@@ -1,0 +1,38 @@
+{
+  // Project-local Slim overrides (Slim-first, chore/slim-orchestrator-setup).
+  // Slim's `orchestrator` is the sole interactive orchestration definition;
+  // repo workflow rules live in ~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md.
+  //
+  // Model split: the orchestrator plans on Muse Spark 1.3 Contributor via the
+  // OpenCode Go subscription (1M ctx, auth.json key, chat rail `opencode-go` —
+  // verified live in-client 2026-10-03). Variant `low` matches the established
+  // repo-wide Muse configuration (fast interactive routing; bump per-session
+  // if planning quality drops). The /responses rail `opencode-go-oai`
+  // (env-key auth) stays unused: the Go/Zen rails reject raw API keys as
+  // Bearer (Invalid credential on chat AND /responses, verified T900939);
+  // only the managed-credential path (no apiKey field -> token from
+  // opencode.db) works. All specialists/workers below stay on the
+  // local llama.cpp endpoints (:1919 IQ3_XXS-mtp, :8080 Qwen3.5-4B pool) so
+  // bulk execution costs no cloud budget.
+  "agents": {
+    "orchestrator": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "variant": "low"
+    },
+    "explorer": {
+      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP"
+    },
+    "librarian": {
+      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP"
+    },
+    "fixer": {
+      "model": "llamacpp-local/Qwen3.8-27B"
+    },
+    "oracle": {
+      "model": "llamacpp-local/Qwen3.8-27B"
+    },
+    "designer": {
+      "model": "llamacpp-local/Qwen3.8-27B"
+    }
+  }
+}

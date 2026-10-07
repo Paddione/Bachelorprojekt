@@ -179,7 +179,7 @@ func RegisterListTools(s *server.MCPServer) {
 
 	s.AddTool(
 		mcp.NewTool("export_ticket_timeline",
-			mcp.WithDescription("Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (factory_phase_events), PR-Links (ticket_links kind=pr), archivierte Pläne (ticket_plans). HINWEIS: CLI-Statusübergänge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Lücke — Follow-up-Ticket erforderlich)."),
+			mcp.WithDescription("Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (tickets.factory_phase_events), PR-Links (ticket_links kind=pr), archivierte Pläne (ticket_plans). HINWEIS: CLI-Statusübergänge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Lücke — Follow-up-Ticket erforderlich)."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),

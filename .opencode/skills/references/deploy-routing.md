@@ -14,8 +14,8 @@ kopieren, sondern verlinken.
 > **Generierte Artefakte lösen kein Deploy aus (T002255).** Pfade, die in `.gitattributes`
 > als `linguist-generated` markiert sind, werden vor der Selektion aus `$CHANGED` entfernt.
 > Grund: `task freshness:regenerate` schreibt 16 Artefakte, mehrere davon unter `components/website/`
-> und `docs/` — u.a. `components/website/src/data/openspec-status.json`, das im Diff **jedes** Changes
-> mit OpenSpec-Artefakt liegt. Ohne den Filter deployte ein reiner Manifest- oder Test-Change
+> und `docs/` — u.a. `components/website/src/data/test-inventory.json`, das im Diff **jedes** Changes
+> mit plan-Artefakt liegt. Ohne den Filter deployte ein reiner Manifest- oder Test-Change
 > die Website. Filter: `scripts/filter-generated.sh`; er liest ausschließlich das
 > Git-Attribut, führt also **keine** eigene Pfadliste.
 

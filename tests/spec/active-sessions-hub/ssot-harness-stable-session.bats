@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Prüfmodus: Source-Grep auf openspec/specs/active-sessions-hub.md (Dokumentationskonvention,
+# Prüfmodus: Source-Grep auf docs/superpowers/specs/active-sessions-hub.md (Dokumentationskonvention,
 # T002448-M4-Ausnahme; Positiv-Anker vor Negativ-Aussage T002356-M1).
 #
 # Wächter gegen T005676: Der 54-Batch-Archiv-Merge (9ca6710b0, Delta von
@@ -10,8 +10,8 @@
 # friert die vollständige Sektion ein: alle 5 wiederherzustellenden + die 2 opencode-Szenarien.
 
 setup() {
-  SPEC="$BATS_TEST_DIRNAME/../../../openspec/specs/active-sessions-hub.md"
-  [ -f "$SPEC" ] || skip "openspec/specs/active-sessions-hub.md not found"
+  SPEC="$BATS_TEST_DIRNAME/../../../docs/superpowers/specs/active-sessions-hub.md"
+  [ -f "$SPEC" ] || skip "docs/superpowers/specs/active-sessions-hub.md not found"
 }
 
 @test "Harness-Stable requirement exists" {

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/mcp-postgres-multistatement.bats
-# SSOT: openspec/specs/mcp-gateway.md (Delta: openspec/changes/mcp-postgres-multistatement)
 # Ticket: T006293
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-orientiert.

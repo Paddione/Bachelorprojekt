@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/pocket-id-client-seed-early-abort.bats
-# SSOT: openspec/changes/pocket-id-seed-early-abort/tasks.md (T001995)
 #
 # Verifies pocket-id-client-seed aborts immediately when POCKET_ID_API_KEY is
 # invalid (HTTP 401/403 from the admin API), BEFORE processing any ROWS

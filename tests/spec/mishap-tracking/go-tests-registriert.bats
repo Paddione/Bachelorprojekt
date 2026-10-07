@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# Spec: openspec/specs/mishap-tracking.md — "Die Go-Tests des ticket-mcp laufen
 # in CI" [T003120]
 #
 # Pruefmodus: GEMISCHT, bewusst und begruendet.

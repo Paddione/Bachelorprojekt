@@ -3,7 +3,7 @@
 # LiquidAI/ifstruct-v1.0 (2.000 Prompts, binaere Wertung ohne constrained decoding).
 #
 # Warum: ifstruct prueft, ob ein Modell gueltiges JSON/YAML nach einem geforderten Schema
-# erzeugt -- der Fehlermodus, an dem die Software Factory bei tool_calls scheitert.
+# erzeugt -- der Fehlermodus, an dem LLM-Tool-Aufrufe scheitern.
 # EINSCHRAENKUNG: gewertet wird NUR die Struktur, nicht inhaltliche Korrektheit oder
 # Qualitaet -- eine Antwort kann inhaltliche Anweisungen ignorieren und trotzdem bestehen.
 # Als alleiniges Qualitaetsmass taugt dieser Benchmark deshalb nicht.
@@ -30,7 +30,6 @@
 #     scripts/llm/bench-ifstruct.sh 1919 Qwen3.6-35B-A3B-NVFP4 freetoken-qwen-200k
 #     scripts/llm/bench-ifstruct.sh 8194 gpt-oss-20b llamacpp-gptoss
 #
-# Voraussetzungen (einmalig, siehe openspec/changes/freetoken-backend-evaluation/tasks.d/p5-ifstruct.md):
 #     - Liquid4All/ifstruct geklont + `uv sync` unter $IFSTRUCT_REPO
 #     - py -3.14 mit huggingface_hub + pyarrow (die `hf`-CLI ist auf diesem Host ein
 #       verwaister Launcher, siehe docs/runbooks/freetoken-native.md Zeile 127ff)

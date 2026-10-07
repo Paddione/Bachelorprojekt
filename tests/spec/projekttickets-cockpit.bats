@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/projekttickets-cockpit.bats
-# SSOT: openspec/specs/projekttickets-cockpit.md
+# Target: components/website/src/lib/sdlc/tickets/cockpit-db.ts
 #
 # Initial placeholder coverage for the Projekttickets Cockpit spec. [T002010]
 

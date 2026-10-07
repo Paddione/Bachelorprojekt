@@ -159,7 +159,7 @@
   {/if}
 </div>
 
-{#if showModal}
+{#if showModal && selectedAsset}
   <AssetModal 
     asset={selectedAsset} 
     on:close={() => showModal = false} 

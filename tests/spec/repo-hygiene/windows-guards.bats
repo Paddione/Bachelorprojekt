@@ -8,7 +8,7 @@
 # Hintergrund T900061: Beide Guards des Runbooks lieferten unter Git Bash auf
 # Windows kein Messergebnis, sondern ein Artefakt.
 #
-#   1. repo-hygiene-precheck.sh testete den Factory-Tick mit
+#   1. repo-hygiene-precheck.sh testete den Hygiene-Tick mit
 #      `(flock -n 9 ...) 9>lock`. Unter Git Bash bricht flock mit
 #      "Bad file descriptor" ab — derselbe Zweig wie "Lock gehalten". Der
 #      Vorcheck meldete darum auf jedem Windows-Host dauerhaft einen laufenden
@@ -42,9 +42,9 @@ teardown() {
 # ── Vorcheck ──────────────────────────────────────────────────────────────
 
 @test "T900061: ohne Lock-Datei meldet der Vorcheck keinen laufenden Tick" {
-  run env FACTORY_TICK_LOCK="$BATS_TEST_TMPDIR/gibt-es-nicht.lock" bash "$PRECHECK"
+  run env REPO_HYGIENE_TICK_LOCK="$BATS_TEST_TMPDIR/gibt-es-nicht.lock" bash "$PRECHECK"
   echo "output: $output"
-  [[ "$output" == *"ok: kein laufender Factory-Tick"* ]]
+  [[ "$output" == *"ok: kein laufender Hygiene-Tick"* ]]
   # Positiv-Anker: der Vorcheck ist wirklich durchgelaufen und nicht vorher
   # abgebrochen — der Fingerabdruck steht am Ende jedes vollstaendigen Laufs.
   [[ "$output" == *"Stabilitaets-Fingerabdruck:"* ]]
@@ -54,19 +54,19 @@ teardown() {
   lock="$BATS_TEST_TMPDIR/frei.lock"
   : > "$lock"
 
-  run env FACTORY_TICK_LOCK="$lock" bash "$PRECHECK"
+  run env REPO_HYGIENE_TICK_LOCK="$lock" bash "$PRECHECK"
   echo "output: $output"
 
   # Der Kern der Regression: die Datei existiert, wird aber von niemandem
   # gehalten. Ein laufender Tick darf hier unter KEINER Plattform behauptet
   # werden.
-  [[ "$output" != *"BEFUND: Factory-Tick laeuft"* ]]
+  [[ "$output" != *"BEFUND: Hygiene-Tick laeuft"* ]]
 
   # Positiv-Anker: es muss eine der beiden ehrlichen Aussagen fallen —
   # gemessen (flock nutzbar) oder als nicht messbar ausgewiesen (Git Bash).
   # Ein stiller Durchlauf ohne Aussage waere genauso wertlos wie die
   # Falschmeldung.
-  [[ "$output" == *"ok: kein laufender Factory-Tick"* \
+  [[ "$output" == *"ok: kein laufender Hygiene-Tick"* \
      || "$output" == *"NICHT PRUEFBAR"* ]]
 }
 
@@ -75,7 +75,7 @@ teardown() {
   printf 'gehalten-von-4711\n' > "$lock"
   before="$(cat "$lock")"
 
-  run env FACTORY_TICK_LOCK="$lock" bash "$PRECHECK"
+  run env REPO_HYGIENE_TICK_LOCK="$lock" bash "$PRECHECK"
   echo "output: $output"
 
   # Der alte Redirect `9>` legte die Datei an bzw. kuerzte sie auf 0 Byte: der

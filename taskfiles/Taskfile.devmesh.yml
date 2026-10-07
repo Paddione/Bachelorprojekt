@@ -117,6 +117,19 @@ tasks:
       - bash scripts/langfuse/client-env.sh
       - bash scripts/langfuse/setup-harnesses.sh
 
+  langfuse:status:
+    desc: "devmesh: Langfuse-Tracing-Status und Finetune-Readiness neu berechnen [T900750]"
+    cmds:
+      - bash scripts/langfuse/tracing-status.sh refresh
+      - bash scripts/langfuse/tracing-status.sh check
+
+  langfuse:backfill:
+    desc: "devmesh: verlorene Claude-Code-Turns einer Session erneut an Langfuse senden [T900750]"
+    requires:
+      vars: [SESSION]
+    cmds:
+      - bash scripts/langfuse/backfill-claude.sh {{.SESSION}}
+
   migrate:
     desc: "pocket_id + website aus devmesh nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]"
     cmds:

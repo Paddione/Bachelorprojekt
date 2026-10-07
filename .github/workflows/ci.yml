@@ -6,11 +6,13 @@ on:
     types: [opened, synchronize, reopened, edited]
     # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
     # still trigger this workflow so the branch-protection required checks
-    # (BATS Unit + Quality Gates, Manifest Validation,
-    # Factory + OpenSpec + Guards, Security Scan, Brett TypeScript,
-    # Vitest (website), Conventional Commits) report success — otherwise
-    # mergeStateStatus stays BLOCKED indefinitely and admin-merge is required.
-    # See mishap T001149-M3.
+    # (SSOT: scripts/gh-branch-protection.sh — BATS Unit + Quality Gates,
+    # Security Scan, Brett TypeScript, Conventional Commits, Spec + Guards) report success —
+    # otherwise mergeStateStatus stays BLOCKED indefinitely and admin-merge is
+    # required. See mishap T001149-M3.
+    # [T900810] Manifest Validation, der test-factory-Aggregator und Vitest
+    # (website) sind bewusst KEINE Required Checks (T900131), laufen hier aber
+    # als advisory Gates auf jedem PR weiter.
   push:
     branches:
       - main
@@ -51,7 +53,6 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   PUPPETEER_SKIP_DOWNLOAD: 'true'
 
-  OPENSPEC_TELEMETRY: '0'
 jobs:
   # [T012446] Portable Gates laufen GitHub-hosted. Dadurch koennen Fork-PRs
   # ihre secret-freien Validierungen ausfuehren, ohne eigenen Code auf unserer
@@ -94,7 +95,7 @@ jobs:
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -103,8 +104,16 @@ jobs:
         if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
+      - name: Cache website node modules
+        id: website-node-modules-cache
+        uses: actions/cache@v6
+        with:
+          path: components/website/node_modules
+          key: website-node-modules-${{ runner.os }}-${{ hashFiles('components/website/pnpm-lock.yaml') }}
+
       - name: Cache pnpm store
-        uses: actions/cache@v4
+        if: steps.website-node-modules-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('components/website/pnpm-lock.yaml') }}
@@ -112,9 +121,18 @@ jobs:
             pnpm-store-${{ runner.os }}-
 
       - name: Install website dependencies
+        if: steps.website-node-modules-cache.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile --dir components/website
 
+      - name: Cache art-library tooling dependencies
+        id: art-library-cache
+        uses: actions/cache@v6
+        with:
+          path: assets/art-library/_tooling/node_modules
+          key: art-tooling-${{ runner.os }}-${{ hashFiles('assets/art-library/_tooling/package-lock.json') }}
+
       - name: Install art-library tooling dependencies
+        if: steps.art-library-cache.outputs.cache-hit != 'true'
         run: npm install --silent --prefix assets/art-library/_tooling
 
       - name: Create CI dummy secrets
@@ -188,7 +206,7 @@ jobs:
       # handgepflegte Liste ab jetzt gegen die vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - name: llm-proxy routing + readiness (always)
-        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/factory-pin.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/listeners.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
+        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/loadout-pin.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/listeners.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
       - name: API auth regression gate
         run: |
@@ -217,15 +235,6 @@ jobs:
           fi
           echo "✅ Freshness and quality gates passed"
 
-      - name: OpenSpec spec-drift advisory gate [T001979]
-        if: github.event_name == 'pull_request'
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          # Advisory Phase 1: drift => exit 0 (warnings only). exit >=2 means the
-          # script itself broke and MUST fail CI — so NO continue-on-error here.
-          bash scripts/openspec-drift-check.sh
-
   test-evals:
     # Agent evals (tests/evals/): stability probes anyone may run and maintain.
     # (Human-only policy removed per owner decree [T900560-C5b].)
@@ -251,7 +260,15 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Cache node modules
+        id: node-modules-cache
+        uses: actions/cache@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install generator dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Verify generated skill views
@@ -301,12 +318,11 @@ jobs:
             tests/unit/manifests.bats tests/unit/changed-manifests.bats \
             tests/unit/dead-node-affinity.bats
 
-  # ── Factory: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
+  # ── Spec: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
   #
   # [T002500] Vorher war das EIN Job mit ~400s, dem kritischen Pfad jedes PRs
   # (zweitlaengster Job: 165s). Zwei Probleme, beide hier behoben:
   #
-  #   1. Die billigen Gates (OpenSpec-Validierung: 1s) standen HINTER der
   #      6-Minuten-BATS-Suite und liefen bei deren Fehlschlag gar nicht mehr.
   #      Eine kaputte Spec meldete sich also erst nach sechs Minuten — oder,
   #      wenn vorher ein Test rot wurde, ueberhaupt nicht.
@@ -314,15 +330,16 @@ jobs:
   #      Mehr `bats -j` auf EINEM Runner war ausgereizt; der einzige Hebel
   #      sind mehr Runner. Details in scripts/spec-shard.sh.
   #
-  # Der Aggregator `test-factory` behaelt den Namen "Factory + OpenSpec + Guards",
-  # weil genau dieser String als Required Status Check in der Branch Protection
-  # von main haengt. Eine nackte Matrix haette ihn in "… (1)".."… (4)" umbenannt
-  # und jeden PR dauerhaft blockiert.
+  # Der Aggregator `test-factory` behaelt seinen stabilen Namen
+  # (Guard: hybrid-runner-placement.bats). Eine nackte Matrix haette ihn in
+  # "… (1)".."… (4)" umbenannt.
+  # [T900810] Kein Required Check mehr (T900131, SSOT gh-branch-protection.sh) —
+  # der Name bleibt trotzdem stabil, weil Tooling/Guards ihn referenzieren.
 
-  test-factory-openspec:
+  test-spec-fast:
     # Die billigen, hochsignalhaften Gates — laufen parallel zu den Shards und
     # melden nach ~30s statt nach ~400s.
-    name: Factory OpenSpec + Guards (fast)
+    name: Spec fast guards
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -342,7 +359,7 @@ jobs:
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -356,7 +373,7 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: 'stable'
           cache: false
@@ -367,19 +384,19 @@ jobs:
       - name: Agent setup replay reminder
         run: |
           changed=$(git diff --name-only origin/main...HEAD || true)
-          # [T900399] scripts/factory/review-*.prompt.md und provider-router.js sind mit
-          # dem Factory-Abau entfallen; 'task factory:eval:replay' gibt es nicht mehr —
-          # das Gate dafuer ist heute 'task agents:toolset:check'.
+          # [T900399] Die Factory-Review-Prompts und provider-router.js sind mit
+          # dem Factory-Abbau entfallen; das Replay-Gate dafuer ist heute
+          # 'task agents:toolset:check'.
           if echo "$changed" | grep -Eq '^(.opencode/agent-models.jsonc|AGENTS.md)$'; then
             echo "::warning::Agenten-Setup geändert — lokal 'task agents:toolset:check' ausführen"
           fi
 
-  test-factory-shard:
+  test-spec-shard:
     # tests/spec/*.bats + setup-go fuer den mcp-task-runner-Build (von test:spec
     # gebraucht). Alle Spec-Tests ueberspringen Live-DB-Faelle ohne Cluster
     # (CI-safe). [T002182]
     # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
-    name: Factory spec shard ${{ matrix.shard }}
+    name: Spec shard ${{ matrix.shard }}
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -412,7 +429,7 @@ jobs:
         with:
           version: 10
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: 'stable'
           cache: false
@@ -424,7 +441,7 @@ jobs:
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -552,39 +569,40 @@ jobs:
       # ist eine Warnung, kein Fehler.
       - name: Upload spec junit report (timing diagnostics)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: spec-junit-shard-${{ matrix.shard }}
           path: junit-report/report.xml
           if-no-files-found: warn
           retention-days: 14
 
-  test-factory:
-    # Aggregator. Traegt den Required-Check-Namen und ist fail-closed: alles,
-    # was nicht exakt "success" ist, laesst ihn scheitern. Das ist wesentlich —
-    # in der Branch Protection zaehlt ein UEBERSPRUNGENER Required Check als
-    # bestanden. Ein Aggregator ohne always() wuerde bei fehlgeschlagenen
-    # needs uebersprungen und damit das Gate lautlos oeffnen.
-    name: Factory + OpenSpec + Guards
+  test-spec:
+    # Aggregator. Ist fail-closed: alles, was nicht exakt "success" ist, laesst
+    # ihn scheitern. Das ist wesentlich — ohne always() wuerde er bei
+    # fehlgeschlagenen needs uebersprungen und damit das Gate lautlos oeffnen
+    # (ein uebersprungener Check zaehlt als bestanden).
+    # [T901066] Required Check (SSOT gh-branch-protection.sh): als advisory Check
+    # liess Auto-Merge rote Spec-Laeufe nach main durch (#6280, #6287).
+    name: Spec + Guards
     if: always() && github.event.action != 'edited'
-    needs: [test-factory-openspec, test-factory-shard]
+    needs: [test-spec-fast, test-spec-shard]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Aggregate shard + gate results
         env:
-          OPENSPEC_RESULT: ${{ needs.test-factory-openspec.result }}
-          SHARDS_RESULT: ${{ needs.test-factory-shard.result }}
+          FAST_RESULT: ${{ needs.test-spec-fast.result }}
+          SHARDS_RESULT: ${{ needs.test-spec-shard.result }}
         run: |
-          echo "OpenSpec + Guards : $OPENSPEC_RESULT"
+          echo "Fast guards : $FAST_RESULT"
           echo "Spec shards (1-4) : $SHARDS_RESULT"
           # SHARDS_RESULT ist das Aggregat ueber ALLE Matrix-Legs — 'success'
           # nur, wenn jeder einzelne Shard erfolgreich war.
-          if [ "$OPENSPEC_RESULT" = "success" ] && [ "$SHARDS_RESULT" = "success" ]; then
-            echo "Alle Factory-Gates gruen."
+          if [ "$FAST_RESULT" = "success" ] && [ "$SHARDS_RESULT" = "success" ]; then
+            echo "Alle Spec-Gates gruen."
             exit 0
           fi
-          echo "::error::Factory-Gates nicht gruen (openspec=$OPENSPEC_RESULT shards=$SHARDS_RESULT)"
+          echo "::error::Spec-Gates nicht gruen (fast=$FAST_RESULT shards=$SHARDS_RESULT)"
           exit 1
 
   # ── End scoped test jobs ──────────────────────────────────────────
@@ -713,10 +731,11 @@ jobs:
       - run: npm run build --prefix components/brett
 
   vitest-website:
-    # Always runs on every PR (no job-level path filter) so the branch-protection
-    # required-check "Vitest (website)" reports on chore / config-only PRs too.
-    # See mishap: Vitest (website) was required by main but no workflow
-    # produced it, blocking auto-merge of chore PRs (e.g. #2094 admin-merged).
+    # Always runs on every PR (no job-level path filter) so the advisory gate
+    # "Vitest (website)" reports on chore / config-only PRs too.
+    # [T900810] Kein Required Check (T900131, SSOT gh-branch-protection.sh).
+    # Historie: Vitest (website) war required, aber kein Workflow produzierte
+    # ihn — das blockierte Auto-Merge von Chore-PRs (#2094 admin-merged).
     # Smart selection happens INSIDE the vitest run via `--changed`
     # (mirrors local `task test:changed`): a chore PR runs zero tests in
     # ~1s, a website-feature PR runs only the affected ones. The
@@ -767,7 +786,7 @@ jobs:
         if: steps.filter.outputs.run_website == 'true'
         id: check-cov
         run: |
-          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+          CHANGED=$(git diff --name-only --diff-filter=d origin/main...HEAD 2>/dev/null || true)
           if echo "$CHANGED" | grep -q "^components/website/src/lib/"; then
             echo "run-coverage=true" >> "$GITHUB_OUTPUT"
           else
@@ -778,11 +797,12 @@ jobs:
         if: steps.filter.outputs.run_website == 'true'
         run: cd components/website && pnpm lint
 
-      - name: Run vitest + Astro check + Knip (parallel)
+      - name: Run vitest + Astro check + svelte-check + Knip (parallel)
         # Mirrors the local `task test:changed` smart selection via explicit
         # --changed origin/main (requires fetch-origin-main step above).
         # Astro typecheck and Knip dead-code analysis run concurrently with
-        # vitest to shave ~2-3 min off wall-clock time.
+        # vitest to shave ~2-3 min off wall-clock time. svelte-check is required
+        # because `astro check` does not validate `.svelte` files (T900809).
         # --coverage is conditional: only added when the PR touches
         # components/website/src/lib/ (where coverage gates apply), so trivial PRs
         # skip instrumentation overhead. The coverage gate step below
@@ -799,11 +819,14 @@ jobs:
           V=$!
           pnpm run astro:check &
           A=$!
+          pnpm exec svelte-check --threshold error &
+          S=$!
           pnpm exec knip --no-exit-code || true &
           K=$!
           EXIT=0
           wait $V || EXIT=$?
           wait $A || EXIT=$?
+          wait $S || EXIT=$?
           wait $K || true
           exit $EXIT
 
@@ -869,8 +892,9 @@ jobs:
     # main niemand vor einer Entscheidung liest. Er auditiert ausserdem die
     # LIVE-URL web.mentolder.de, nicht den gemergten Stand — nach einem Merge
     # ist der dort noch gar nicht deployt.
+    # [T901067] Entkoppelt von vitest-website (laeuft parallel ab Minute 0)
+    # und mit Pfadfilter versehen (ueberspringt Audit bei reinen Nicht-Website-PRs).
     if: github.event.action != 'edited' && github.event_name == 'pull_request'
-    needs: [vitest-website]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # LHCI posts an advisory commit status; the built-in GITHUB_TOKEN needs
@@ -881,17 +905,36 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          fetch-depth: 1
           fetch-tags: false
 
+      - name: Fetch origin/main for diffing (shallow)
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
+
+      - name: Check if website or lighthouse files changed
+        id: filter
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+          if echo "$CHANGED" | grep -qE '^(components/website/|lighthouserc\.json|\.github/workflows/ci\.yml)'; then
+            echo "run_audit=true" >> "$GITHUB_OUTPUT"
+            echo "Website/Lighthouse files changed, running audit"
+          else
+            echo "run_audit=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No components/website/ or lighthouse changes — skipping live audit"
+          fi
+
       - uses: actions/setup-node@v7
+        if: steps.filter.outputs.run_audit == 'true'
         with:
           node-version: '24'
           cache: 'npm'
 
       - name: Install Lighthouse CI
+        if: steps.filter.outputs.run_audit == 'true'
         run: npm install -g @lhci/cli --loglevel=error
 
       - name: Run Lighthouse audit
+        if: steps.filter.outputs.run_audit == 'true'
         continue-on-error: true
         env:
           # Built-in Actions token (statuses:write above) — replaces the expired
@@ -906,7 +949,11 @@ jobs:
           echo "### Lighthouse Performance Audit" >> "$GITHUB_STEP_SUMMARY"
           echo "URL: https://web.mentolder.de" >> "$GITHUB_STEP_SUMMARY"
           echo "Budget: lighthouserc.json assertions (Performance ≥ 90)" >> "$GITHUB_STEP_SUMMARY"
-          echo "Status: advisory only (does not block CI); GitHub status check posted via LHCI_GITHUB_TOKEN" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.filter.outputs.run_audit }}" = "false" ]; then
+            echo "Status: skipped (keine Website-Änderungen auf diesem PR)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Status: advisory only (does not block CI); GitHub status check posted via LHCI_GITHUB_TOKEN" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   commit-lint:
     name: Conventional Commits

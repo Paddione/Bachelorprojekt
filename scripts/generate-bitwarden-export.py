@@ -131,7 +131,7 @@ def get_secret_metadata(key_name, schema_entry, domain):
             None,
             False
         )
-    if key_name in ["INTERNAL_API_TOKEN", "MONITORING_WEBHOOK_TOKEN", "FACTORY_OTLP_TOKEN", "SESSIONS_CRON_TOKEN"]:
+    if key_name in ["INTERNAL_API_TOKEN", "MONITORING_WEBHOOK_TOKEN", "OTEL_AUTH_TOKEN", "SESSIONS_CRON_TOKEN"]:
         return (
             "Internal Service Bearer Token / Webhook Secret",
             "openssl rand -hex 32\n# Update in environments/.secrets/fleet-<tenant>.yaml and reseal",

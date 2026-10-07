@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * Postgres SQLSTATEs that indicate a migration's target object already
  * exists (relation / duplicate object / column). When a migration fails
  * with one of these, it is treated as already-applied (backfill) rather
- * than a real failure — see openspec/changes/website-migration-runner.
+ * than a real failure.
  */
 export const ALREADY_EXISTS_SQLSTATES = new Set(['42P07', '42710', '42701']);
 

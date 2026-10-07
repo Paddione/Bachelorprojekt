@@ -1,16 +1,15 @@
 #!/usr/bin/env bats
 # tests/spec/pipeline-interface.bats
-# SSOT: openspec/specs/pipeline-interface.md
 
-STORE="components/website/src/lib/stores/factory-floor-store.ts"
-FLOOR="components/website/src/components/sdlc/FactoryFloor.svelte"
-CTRL="components/website/src/components/sdlc/factory/ControlPanel.svelte"
-STRIP="components/website/src/components/sdlc/factory/StatusStrip.svelte"
+STORE="components/website/src/lib/stores/cockpit-floor-store.ts"
+FLOOR="components/website/src/components/sdlc/CockpitFloor.svelte"
+CTRL="components/website/src/components/sdlc/cockpit/ControlPanel.svelte"
+STRIP="components/website/src/components/sdlc/cockpit/StatusStrip.svelte"
 DAG="components/website/src/components/DependencyGraph.svelte"
 SIDEKICK="components/website/src/components/PortalSidekick.svelte"
 PIPEVIEW="components/website/src/components/assistant/PipelineSidekickView.svelte"
 NAV="components/website/src/components/admin/AdminSidebarNav.astro"
-BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
+BUDGETAPI="components/website/src/pages/sdlc/api/cockpit-budget.ts"
 
 @test "D1: shared floor store exists and exports the public surface" {
   [ -f "$STORE" ]
@@ -27,12 +26,12 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
   # `grep: … No such file or directory` fehl — also an einer fehlenden Datei
   # statt an einer fehlenden Store-Anbindung.
   for f in "$STRIP" "$FLOOR" "$PIPEVIEW" "$DAG"; do
-    grep -q "factory-floor-store" "$f"
+    grep -q "cockpit-floor-store" "$f"
   done
 }
 
-@test "D3: KI provider editor extracted; FactoryFloor drops KiProviderDrawer" {
-  [ -f "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte" ]
+@test "D3: KI provider editor extracted; CockpitFloor drops KiProviderDrawer" {
+  [ -f "components/website/src/components/sdlc/cockpit/KiRoutingPanel.svelte" ]
   run grep -q "KiProviderDrawer" "$FLOOR"
   [ "$status" -ne 0 ]
 }
@@ -78,7 +77,7 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
       components/website/src/components/PlanningOfficeDetail.svelte \
       components/website/src/components/PlanningOfficeTriage.svelte \
       components/website/src/components/PlanningOfficeQueue.svelte \
-      components/website/src/components/sdlc/factory/PhaseBadge.svelte
+      components/website/src/components/sdlc/cockpit/PhaseBadge.svelte
   [ "$status" -ne 0 ]
 }
 
@@ -91,12 +90,12 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
 @test "D4: der geteilte Analytics-Fensterfilter ist mitsamt seinen Konsumenten entfernt" {
   # Positiv-Anker: der Pfad, unter dem gesucht wird, existiert überhaupt —
   # sonst bestünde die Abwesenheitsaussage vakuos.
-  [ -d "components/website/src/components/sdlc/factory" ]
-  [ ! -f "components/website/src/components/sdlc/factory/AnalyticsWindowFilter.svelte" ]
+  [ -d "components/website/src/components/sdlc/cockpit" ]
+  [ ! -f "components/website/src/components/sdlc/cockpit/AnalyticsWindowFilter.svelte" ]
 }
 
 @test "D7.3: orphan ViewSwitcher is deleted and unreferenced" {
-  [ ! -f "components/website/src/components/sdlc/factory/ViewSwitcher.svelte" ]
+  [ ! -f "components/website/src/components/sdlc/cockpit/ViewSwitcher.svelte" ]
   run grep -rq "ViewSwitcher" components/website/src
   [ "$status" -ne 0 ]
 }
@@ -106,7 +105,7 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
   [ "$status" -ne 0 ]
 }
 
-@test "D7.6: /api/factory-budget auth unified to 401 (no 403)" {
+@test "D7.6: /api/cockpit-budget auth unified to 401 (no 403)" {
   run grep -q "status: 403" "$BUDGETAPI"
   [ "$status" -ne 0 ]
 }

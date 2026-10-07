@@ -19,10 +19,12 @@ Nur Node-Standardbibliothek (plus Python-Stdlib fuer den Kernel-Check).
 ## Voraussetzungen
 
 - GPU-Host mit beiden Karten: RTX 5070 Ti (`:1919`, Orchestrator-Modell) und RTX 3060 Ti
-  (`:1920`, 4B-Worker). Produktion: `qwen38-gsq-iq2s.service` + `qwen35-mtp.service`.
+  (`:8080`, Qwen3.5-4B-MTP-Worker-Pool, Windows-nativ). Produktion: `qwen38-gsq-iq3xxs.service`
+  (WSL-Unit) + Windows-Autostart des :8080-Pools (`scripts/llm/register-qwen35-4b-autostart.ps1`,
+  kein systemd).
 - vLLM 0.30.0 unter `~/opt/vllm-nvfp4`, Modell `~/models/gemma-4-12b-it-NVFP4`
   (nur fuer `gemma4-12b-nvfp4`-Laeufe noetig).
-- `opencode` im `PATH` mit den Primaer-Agenten `plan-worker-4b` und `plan-worker-self`.
+- `opencode` im `PATH` mit den Primaer-Agenten `plan-worker-qwen35` und `plan-worker-self`.
 - `scripts/llm/plan-runner.mjs` auf dem Arbeitsstand (Orchestrator-Rolle ruft ihn auf).
 - Laufdaten liegen ausserhalb des Repos unter `$AGENT_BENCH_RUNS` (Default
   `~/agent-bench-runs`); nur Messberichte gehen nach `scripts/llm/measurements/`.
@@ -50,7 +52,7 @@ node scripts/llm/agent-bench/bench.mjs export-corpus <run-id...> --out <dir>
   `AGENT_BENCH_MODELS` (Default `scripts/llm/agent-bench/models.json`),
   `AGENT_BENCH_MAX_JOBS` (Default 400, Stichproben-Deckel im full-Profil),
   `AGENT_BENCH_4B_SLOTS` (Default 1), `AGENT_BENCH_TEACHER_URL` (Pflicht bei
-  Teacher-Laeufen), `AGENT_BENCH_WORKER_AGENT` (Default `plan-worker-4b`).
+  Teacher-Laeufen), `AGENT_BENCH_WORKER_AGENT` (Default `plan-worker-qwen35`).
 
 Exit-Codes: `0` ok; `1` Gate-Regression (nur `gate`); `2` Konfigurationsfehler
 (unbekannte Rolle/Modell/Fall, Fall-Validierung, Scoring-Versions-Mismatch im Gate).
@@ -105,8 +107,9 @@ auch bei Abbruch und Fehler — stellt er die Produktion wieder her und gibt den
 frei (Trap via `installRestoreHooks`). Pruefen und notfalls von Hand:
 
 ```bash
-systemctl --user is-active qwen38-gsq-iq2s qwen35-mtp
-systemctl --user start qwen38-gsq-iq2s qwen35-mtp
+systemctl --user is-active qwen38-gsq-iq3xxs
+systemctl --user start qwen38-gsq-iq3xxs
+curl -sf -m 5 http://127.0.0.1:8080/health   # 4B-Pool (Windows-nativ, kein systemd)
 bash scripts/gpu-lock.sh release
 ```
 

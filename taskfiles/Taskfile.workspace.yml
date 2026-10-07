@@ -746,7 +746,7 @@ tasks:
           # Run website DB migrations before the website Deployment is rolled
           # out below (T001652 — website had no automated migration runner).
           task website:migrate ENV="{{.ENV}}"
-          task factory:migrate ENV="{{.ENV}}"
+          task db:migrate ENV="{{.ENV}}"
           # Full apply (idempotent — updates configs, adds remaining services)
           # SYSTEMTEST_LOOP_ENABLED defaults to "false" so the placeholder is
           # never emitted literally in dev (where the env file may omit it).
@@ -880,7 +880,7 @@ tasks:
           # Run website DB migrations before the website Deployment is rolled
           # out below (T001652 — website had no automated migration runner).
           task website:migrate ENV="{{.ENV}}"
-          task factory:migrate ENV="{{.ENV}}"
+          task db:migrate ENV="{{.ENV}}"
 
           overlay="${ENV_OVERLAY:-prod}"
           # Derive Nextcloud MAIL_FROM_ADDRESS / MAIL_DOMAIN from the authoritative SMTP_FROM

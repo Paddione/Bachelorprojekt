@@ -6,11 +6,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadRegistry, isEnforceable } from './lib/registry.mjs';
+import { defaultLockPath, loadLock, toolsForInstance, tierRank } from './lib/tools.mjs';
 
 const registryPath = process.env.TOOLSET_REGISTRY || path.join(process.cwd(), 'docs', 'agent-guide', 'registry', 'capabilities.yaml');
 const mapPath = path.join(process.cwd(), 'docs', 'agent-guide', 'maps', 'toolset-map.md');
 
 const registry = loadRegistry(registryPath);
+const lock = loadLock(defaultLockPath(registryPath));
 
 // Die Karte wird generiert; ohne diesen Kopf ginge eine Handänderung beim nächsten Lauf
 // wortlos verloren. Gleiche Formulierung wie in docs/agent-guide/maps/tools-map.md.
@@ -35,6 +37,19 @@ for (const [capName, instances] of Object.entries(registry.capabilities)) {
       md += `  - _Rollen:_ ${cfg.roles.map(r => `\`${r}\``).join(', ')}\n`;
     }
     if (cfg.deep_ref)   md += `  - _Tiefe:_ \`${cfg.deep_ref}\`\n`;
+    // T900983: Tool-Ebene aus dem Lock — nur deterministische Felder (kein probed_at), damit die
+    // Karte als Freshness-Artefakt stabil bleibt.
+    const tools = toolsForInstance(instKey, cfg, lock);
+    if (tools.length > 0) {
+      const byTier = {};
+      for (const t of tools) (byTier[t.tier] ??= []).push(t.name);
+      const parts = Object.entries(byTier)
+        .sort((a, b) => tierRank(b[0]) - tierRank(a[0]))
+        .map(([tier, names]) => tierRank(tier) >= tierRank('caution')
+          ? `${tier}: ${names.map(n => `\`${n}\``).join(', ')}`
+          : `${names.length} ${tier}`);
+      md += `  - _Tools (${tools.length}):_ ${parts.join(' · ')}\n`;
+    }
 
     // Residuale Mehrdeutigkeit: unreviewed, oder suppressed bei einem Kind, dessen
     // Unterdrückung sync.mjs technisch nicht durchsetzen kann (cli:, agent:).

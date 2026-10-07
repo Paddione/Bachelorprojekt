@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/health-goals.md
 # Ticket: T013107 — G-GIT03 Target-Parität zwischen goals.md und health-goals-check.sh
 
 setup() {

@@ -17,18 +17,17 @@ AGENT_LOCK_FETCH_TTL="${AGENT_LOCK_FETCH_TTL:-300}"
 # [T003102] SCOPE-SEMANTIK — was ein Claim schuetzt und wen er AUSSPERRT.
 #
 #   ticket-scoped  (claim ticket <id>):
-#     * Signal: "an Ticket <id> wird gearbeitet". Dispatch-Gates
-#       (scripts/vda/factory-prep.sh, scripts/factory/watchdog.sh) fragen
-#       `check ticket <id>` vor dem Dispatch ab und ueberspringen gehaltene
-#       Tickets.
+#     * Signal: "an Ticket <id> wird gearbeitet". Die frueheren Dispatch-Gates
+#       fragten `check ticket <id>` vor dem Dispatch ab und uebersprangen
+#       gehaltene Tickets (mit T900399 entfallen).
 #     * ERZWUNGEN im Status-Schreibpfad: scripts/vda/ticket/_ticket-core.sh
 #       `_ticket_lock_guard` blockt update-status/update-fields bei einem
 #       fremden ticket-Claim (T002282). Das ist der einzige erzwungene Scope.
 #     * FALLE (T003102): der Halter blockt damit den ABSCHLUSS seiner eigenen
-#       Arbeit. Subagent (andere SID), ticket-mcp (eigener Prozess) und der
-#       post-merge-Poller (scripts/factory/auto-close-merged.sh via
-#       github-poller systemd-Timer) schreiben alle im selben Vorgang, keiner
-#       haelt die SID des Claimers — "eine Session = eine SID" haelt nicht.
+#       Arbeit. Subagent (andere SID) und ticket-mcp (eigener Prozess) schreiben
+#       im selben Vorgang, keiner haelt die SID des Claimers — "eine Session =
+#       eine SID" haelt nicht. (Der fruehere post-merge-Poller ist mit T900399
+#       entfallen.)
 #       Seit T003102 blockt `_ticket_lock_guard` den Abschluss
 #       (update-status → done/archived) nicht mehr (closure-Modus), nur noch
 #       nicht-terminale Uebergaenge sind geschuetzt.
@@ -42,19 +41,17 @@ AGENT_LOCK_FETCH_TTL="${AGENT_LOCK_FETCH_TTL:-300}"
 #       worktree-write-guard.
 #     * BLOCKT den Status-Schreibpfad NICHT (`_ticket_lock_guard` prueft nur
 #       den ticket-Scope) — Subagent und post-merge koennen trotzdem
-#       abschliessen. Das Dispatch-Gate in factory-prep.sh sieht einen
-#       branch-Lock ueber die Ticket-ID im Branch-Namen (*-<ext-id>).
+#       abschliessen. Das fruehere Dispatch-Gate sah einen branch-Lock ueber
+#       die Ticket-ID im Branch-Namen (*-<ext-id>).
 #     * Empfehlung: Standard-Scope fuer Dispatch und Implementierung
 #       (ticket-ops Step 3.6, dev-flow-execute (in beiden Harnesses)).
 #
-#   Komponenten, die den ticket-scoped Lock pruefen (T003102-Analyse):
+#   Komponenten, die den ticket-scoped Lock pruefen (T003102-Analyse, Stand T900728):
 #     - scripts/vda/ticket/_ticket-core.sh:_ticket_lock_guard — Schreibpfad
 #       (update-status.sh, update-fields.sh), blockt bei fremder SID; seit
 #       T003102 mit closure-Ausnahme fuer done/archived.
-#     - scripts/vda/factory-prep.sh — Dispatch-Gate, ueberspringt gehaltene
-#       Tickets (advisory, gibt Slot frei).
-#     - scripts/factory/watchdog.sh — Orphan-Sweep, haelt in_progress-Tickets
-#       mit Lock als "nicht verwaist".
+#     (Die frueheren Pruefer factory-prep.sh und watchdog.sh sind mit T900399
+#     entfallen.)
 
 # Harness-Session-Variablen in Prüfreihenfolge: CLAUDE_CODE_SESSION_ID zuerst. [T002375-p1]
 # [T002671] OPENCODE_SESSION_ID ergaenzt; Sync mit agent-lock-identity.sh halten
@@ -498,7 +495,6 @@ cmd_check_and_claim() {
   #
   # Ohne Argumente schlug zuvor `set -u` mit '$1: unbound variable' zu — eine
   # Zeilennummer statt der erwarteten Form.
-  # Guard: tests/spec/software-factory/agent-lock-scope-argument.bats
   if [ $# -lt 2 ] || [ "${1#-}" != "$1" ]; then
     echo "AGENT-LOCK: check-and-claim erwartet <scope> <id> als Positionsargumente." >&2
     echo "  Beispiel: agent-lock.sh check-and-claim ticket T002657 --label dev-flow-execute" >&2

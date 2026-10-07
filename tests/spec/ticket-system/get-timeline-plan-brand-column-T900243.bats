@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 #
-# SSOT: openspec/specs/ticket-system.md
 # Ticket: T900243 — `get-timeline` filtert auf nicht existierende Spalte
 # ticket_plans.brand
 #
@@ -37,7 +36,7 @@
 
 _skip_if_no_db() {
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  _pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)
   [[ -n "$_pod" ]] || skip "kein erreichbarer shared-db-Pod — DB-gestuetzter Test uebersprungen"

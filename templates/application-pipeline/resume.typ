@@ -83,7 +83,7 @@
 
 #section("Kuratierte Evidenz")
 // Evidenz-Einträge kommen aus dem Katalog (Task 1)
-#let evidence-items = meta.lookup("evidence-items").str.or("Fleet/k3s, Dev-Mesh, FreeToken MoE, Software Factory, BATS-Gates")
+#let evidence-items = meta.lookup("evidence-items").str.or("Fleet/k3s, Dev-Mesh, FreeToken MoE, SDLC-Automation, BATS-Gates")
 #text(evidence-items)
 
 #section("Ausbildung & Zertifizierungen")

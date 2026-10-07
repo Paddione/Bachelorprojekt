@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/website-core/email-notifications.bats
-# SSOT: openspec/specs/website-core.md (notify-unread CronJob ist suspendiert)
-#       openspec/specs/monitoring-alerts.md (operator email receiver)
 #
 # T016592 schaltet alle ausgehenden Benachrichtigungs-E-Mails ab. Die drei
 # manifest-getragenen Anteile werden hier abgesichert: der suspendierte

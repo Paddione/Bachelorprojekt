@@ -23,12 +23,23 @@ Kompaktheits-Regeln: subagent-provisioning §3.
 
 - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
 - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
+- **Kuratierter Werkzeug-Block (PFLICHT, T900980):** Rolle aus den Plan-`domains` ableiten —
+  infra/deploy/security/secrets → `bp-build`, ops/llm/k8s/db/postgres → `bp-run`,
+  website/frontend/test/ci/scripts/agent-skills → `bp-ship`, gemischt → `orchestrator`.
+  `tools=$(bash scripts/toolset-context.sh <rolle>) || STOPP` und als `<toolset>…</toolset>`
+  vor den Auftrag setzen. Exit ≠ 0 heißt: nicht ohne Block spawnen.
+- **Aufgabenkontext per devflow-mcp (T900985):** vor dem Spawn
+  `context_for_task(task=<Plan-Titel + Ziel in einem Satz>, role=<rolle wie oben>)` aufrufen und
+  das Ergebnis als `<task-context>…</task-context>` in den Prompt setzen — Code-Symbole mit
+  Datei:Zeile, passende Pläne/Bugs/PRs und die per Rerank empfohlenen Werkzeuge. Meldet
+  `graph.stale` oder `degraded`, trotzdem dispatchen und das im Prompt vermerken; der Subagent
+  kann `search_code` selbst nachfragen. Ohne erreichbaren Server: weiter mit dem Toolset-Block.
 - **Plan Intel Bundle (Optional):** `bash scripts/task-context.sh <slug>` liefert den Kern aus `intel.json` plus frische Signale. Format: [plan-intel-bundle](.agents/skills/references/plan-intel-bundle.md). Fehlt es, ist das kein Blocker.
 
 ## BATS-Pflicht
 
-Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die OpenSpec-Spec, die das
-Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage: `tests/spec/software-factory/`);
+Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die plan-Spec, die das
+Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage: `tests/spec/ticket-system.bats`);
 ohne klare Spec-Zuordnung `tests/unit/` erweitern. Ticket-nummerierte Dateien (`FA-SF-42.bats`)
 sind Legacy und werden **nicht** neu angelegt.
 Details: [dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md) §BATS.

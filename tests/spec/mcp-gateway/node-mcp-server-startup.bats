@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/node-mcp-server-startup.bats
-# SSOT: openspec/specs/mcp-gateway.md
 #
 # Pruefmodus: command output verification — die Server werden tatsaechlich als
 # stdio-Prozess gestartet und ihre JSON-RPC-Antwort geprueft. Ein Source-Grep
@@ -56,6 +55,18 @@ LIST='{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
   [ "$status" -eq 0 ]
   [[ "$output" == *'"name":"create_ticket"'* ]]
   [[ "$output" != *'"required":true'* ]]
+}
+
+@test "ticket-mcp-node tools/list enthaelt keine doppelten Tool-Namen (T900984)" {
+  run mcp_stdio "$REPO/scripts/ticket-mcp-node/server.mjs" "$INIT" "$LIST"
+  echo "output: $output"
+  [ "$status" -eq 0 ]
+  local dupes
+  dupes="$(printf '%s\n' "$output" | jq -r 'select(.id == 2) | .result.tools[].name' | sort | uniq -d)"
+  [ -z "$dupes" ]
+  local count
+  count="$(printf '%s\n' "$output" | jq -r 'select(.id == 2) | .result.tools | length')"
+  [ "$count" -eq 26 ]
 }
 
 @test "ticket-mcp-node startet auch ueber runner.mjs ohne Argumente" {

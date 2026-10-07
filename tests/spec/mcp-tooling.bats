@@ -5,7 +5,7 @@ load 'test_helper'
 
 MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
 
-# T900399: Der frueher hier gepruefte factory-mcp-node ist mit der Software-Factory
+# T900399: Der frueher hier gepruefte HTTP-MCP-Server (`:13003`) ist mit T900399
 # entfallen (Registry `docs/agent-guide/registry/mcp.yaml` fuehrt ihn nicht mehr,
 # `task mcp:sync` hat .mcp.json + .opencode/opencode.jsonc bereinigt). Der
 # Assertion-Teil fuer die verbleibenden Harness-Server bleibt erhalten.
@@ -129,7 +129,8 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
   # Positiv-Anker [T002356-M1]: unmanipulierter Lauf muss gruen sein.
   # Waere das Skript nicht ausfuehrbar oder die Fixture kaputt, bliebe
   # status=0 trivial — die Negativ-Aussage unten waere vakuos wahr.
-  run env MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh check
+  # Entruempelt das Aufrufer-Env, damit der Renderer deterministisch aus server.env aufloest (T900922).
+  run env -u BGE_MCP_TOKEN -u MCP_POSTGRES_TOKEN MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh check
   [ "$status" -eq 0 ]
 
   # Drift injizieren und prufen dass check ihn erkennt.
@@ -140,7 +141,7 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
     d.mcpServers["drift-probe"]={command:"nope"};
     fs.writeFileSync(fn, JSON.stringify(d,null,2)+"\n");
   ' "$tmpw"
-  run env MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh check
+  run env -u BGE_MCP_TOKEN -u MCP_POSTGRES_TOKEN MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh check
   [ "$status" -ne 0 ]
 }
 
@@ -190,6 +191,9 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
         ;;
       scripts/ticket-mcp-node/server.mjs)
         grep -q 'ticket-mcp-node:' "$reg_file" || orphans+=("$src (not in mcp.yaml)")
+        ;;
+      scripts/devflow-mcp/server.mjs)
+        grep -q 'devflow-mcp:' "$reg_file" || orphans+=("$src (not in mcp.yaml)")
         ;;
       scripts/llm-proxy/server.mjs)
         grep -q 'llm-proxy' "$reg_file" || orphans+=("$src (not in mcp.yaml cluster)")

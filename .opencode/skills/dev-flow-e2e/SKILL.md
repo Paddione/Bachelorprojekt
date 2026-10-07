@@ -1,7 +1,7 @@
 ---
 name: dev-flow-e2e
 description: 'Use AFTER dev-flow-execute has merged and deployed, to write and run Playwright E2E tests against the live brand environments. Triggers on Playwright, E2E test, e2e/, playwright test, npx playwright, browser test against prod, "test the deployed change", nightly e2e workflow, Playwright project assignment. Not for unit or BATS tests during implementation — those belong in dev-flow-execute.'
-agent: bachelorprojekt-test
+agent: bp-ship
 ---
 
 # dev-flow-e2e — Playwright E2E Tests schreiben & ausführen
@@ -234,7 +234,7 @@ Teständerung.
 
 **Explizit optional — kein Pflichtschritt, kein CI-Gate.** Headed-Läufe gegen die Live-Umgebung
 sind langsam und flakeanfällig; als Merge-Gate würden sie den Durchsatz senken statt die Qualität
-zu heben (siehe `openspec/specs/e2e-test-infrastructure.md`, REQ-k8-02). Diese Stufe läuft **nur
+zu heben (REQ-k8-02). Diese Stufe läuft **nur
 manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als required check.
 
 **Trigger:** `--headed` Flag beim Aufruf dieses Skills, oder Env `HEADED_VERIFY=true`.
@@ -275,7 +275,7 @@ manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als re
 4. **Kein Abbruch bei Fehler:** Diese Stufe informiert den Agenten, blockiert aber nicht den
    Merge- oder Deploy-Flow — sie läuft grundsätzlich erst nach Merge/Deploy (Schritt 8).
 
-Details/Architektur: `openspec/specs/e2e-test-infrastructure.md` (REQ-k8-01…REQ-k8-04).
+
 
 ---
 

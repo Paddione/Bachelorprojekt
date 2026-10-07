@@ -6,7 +6,6 @@
 # EMPTY list; a CI wait loop that reads "no more pending checks" from it treats
 # a never-checked state as verified. A verdict is only trustworthy when the
 # list is NON-EMPTY AND every entry is green. SSOT:
-# openspec/specs/ci-cd.md (Requirement "Jedes Prädikat über einer Check-Liste
 # braucht einen Nichtleere-Guard").
 #
 # ci_checks_verdict reads a JSON array in the gh schema `[{name,state}]` from

@@ -1,6 +1,6 @@
 // canvas-store.js — IndexedDB Canvas-Store (K5)
 // Speichert Epic-Canvas-Daten clientseitig. Kein Server-Need.
-// Exportiert in openspec/changes/ bei Bedarf.
+// Exportiert bei Bedarf.
 
 const DB_NAME = 'epic-canvas-store';
 const DB_VERSION = 1;
@@ -63,8 +63,6 @@ export async function deleteCanvas(epicId) {
   });
 }
 
-// OF1: Prüft, ob openspec/changes/ seit dem letzten Export geändert wurde.
-//
 // Der Aufruf geht über window.data (adapter.js), nicht über ein eigenes fetch().
 // E1 verlangt das, und hier zeigt sich auch warum: die Kit-Seiten werden von
 // file:// geladen, ein relativer Pfad wie '/api/cockpit/…' hätte den Daemon auf
@@ -73,18 +71,6 @@ export async function deleteCanvas(epicId) {
 // Ohne Adapter (z.B. im Unit-Test) ist die konservative Antwort `true`:
 // "möglicherweise geändert" führt zur Rückfrage, `false` würde stillschweigend
 // zum Überschreiben raten.
-export async function hasExternalChanges(epicId, lastExportTs) {
-  const adapter = typeof window !== 'undefined' ? window.data : undefined;
-  if (!adapter || typeof adapter.epicChangesSince !== 'function') return true;
-
-  try {
-    const result = await adapter.epicChangesSince(epicId, lastExportTs);
-    return result.hasChanges !== false;
-  } catch {
-    return true;
-  }
-}
-
 export async function recordExport(epicId) {
   const entry = await getCanvas(epicId);
   if (!entry) return;

@@ -17,16 +17,30 @@ setup() {
   MIGRATION="${REPO_ROOT}/scripts/migrations/2026-08-10-llm-proxy-request-log.sql"
 }
 
+_ws_pod() {
+  kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
+    -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
+    -o name 2>/dev/null | head -1
+}
+
 _db_available() {
   command -v kubectl >/dev/null 2>&1 || return 1
-  ( cd "$REPO_ROOT" && BRAND=mentolder bash -c \
-      'source scripts/factory/lib.sh; factory_resolve >/dev/null 2>&1 && echo "SELECT 1;" | factory_psql' \
-  ) >/dev/null 2>&1
+  [ -n "$(_ws_pod)" ] || return 1
+  _psql "SELECT 1;" >/dev/null 2>&1
 }
 
 _psql() {
-  ( cd "$REPO_ROOT" && BRAND=mentolder bash -c \
-      "source scripts/factory/lib.sh; factory_resolve >/dev/null; echo \"$1\" | factory_psql" )
+  local pod; pod="$(_ws_pod)"
+  [ -n "$pod" ] || return 1
+  kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
+    -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 -c "$1"
+}
+
+_psql_file() {
+  local pod; pod="$(_ws_pod)"
+  [ -n "$pod" ] || return 1
+  kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
+    -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 < "$1"
 }
 
 @test "T003277: die Migrationsdatei existiert" {
@@ -38,8 +52,7 @@ _psql() {
 @test "T003277: die Migration legt die Tabelle mit allen Mitschnitt-Spalten an" {
   _db_available || skip "keine erreichbare tickets-DB (kein Cluster) — dieser Test misst sonst den Runner"
 
-  ( cd "$REPO_ROOT" && BRAND=mentolder bash -c \
-      "source scripts/factory/lib.sh; factory_resolve >/dev/null; factory_psql < '$MIGRATION'" ) >/dev/null 2>&1
+  _psql_file "$MIGRATION" >/dev/null 2>&1
 
   run _psql "SELECT column_name FROM information_schema.columns WHERE table_schema='tickets' AND table_name='llm_proxy_request_log' ORDER BY column_name;"
   [ "$status" -eq 0 ]
@@ -56,7 +69,7 @@ _psql() {
 
   # Zweiter Lauf gegen dieselbe DB darf nicht scheitern — Marken-Migrationslaeufe
   # spielen das Verzeichnis wiederholt ein.
-  run bash -c "cd '$REPO_ROOT' && BRAND=mentolder bash -c \"source scripts/factory/lib.sh; factory_resolve >/dev/null; factory_psql < '$MIGRATION'\""
+  run _psql_file "$MIGRATION"
   [ "$status" -eq 0 ]
 }
 

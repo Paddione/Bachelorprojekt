@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/vaultwarden-integration.bats
-# SSOT: openspec/specs/vaultwarden-integration.md
+# Target: k3d/vaultwarden.yaml
 
 @test "vaultwarden-integration spec covered" {
   run true

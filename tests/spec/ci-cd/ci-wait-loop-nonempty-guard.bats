@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats
-# SSOT: openspec/specs/ci-cd.md
 #
 # T003109 — Ein jq-Prädikat der Form `all(...)` ist über der LEEREN Liste per
 # Definition `true`. Eine CI-Warteschleife, die daraus "keine Checks mehr
@@ -19,14 +18,13 @@
 # scripts/devflow-ci-watch.sh via `total_count`), eines nicht:
 #   git grep -n -E '(all|any)\((\.\[\]; *)?\.(state|conclusion|bucket|status)' \
 #     f6f7e7f1996ab6beb33501d78c0de48f417d6a9c -- '*.sh' '*.md' '*.mjs' \
-#     ':!openspec/changes/archive' ':!openspec/specs/archive'
 #
 # Prüfmodus: command output verification (CLAUDE.md Test-Resultats-Konvention,
 # T002448-M4). Die Helper-Tests speisen eine Fixture-JSON über stdin ein und
 # messen Verdict + Exit-Code. Kein echter gh-Aufruf, kein Netz. Zugesichert wird
 # die Semantik (Exit-Code, Verdict-Wort), nicht das Ausgabeformat (T002716).
 #
-# T900399: die beiden Schleifen-Tests, die scripts/factory/pr-babysit-ticket.sh
+# T900399: die beiden Schleifen-Tests, die pr-babysit-ticket.sh
 # gegen ein gh-Stub-Paar fuhren, sind mit dem Factory-Baum entfallen. Die
 # Helper-Semantik (der eigentliche Gegenstand dieses Guards) bleibt vollständig
 # über ci_checks_verdict abgesichert.

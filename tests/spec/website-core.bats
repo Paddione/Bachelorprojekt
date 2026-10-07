@@ -1,9 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/website-core.bats
-# SSOT: openspec/specs/website-core.md
 #
 # Consolidated BATS suite for the website core component (T001433 admin-redesign).
-# Convention: one .bats file per OpenSpec SSOT spec.
 
 # ── File-level variables ──────────────────────────────────────────────────────
 ADMIN_FOUNDATION="$BATS_TEST_DIRNAME/../../components/website/src/styles/admin-foundation.css"

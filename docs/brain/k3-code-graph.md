@@ -64,6 +64,11 @@
 - Transport: stdio
 - Bridge: `http://127.0.0.1:18235/mcp/codebase-memory-mcp`
 
+### 3D Graph Webview & UI
+
+- **Lokal:** `http://127.0.0.1:9749` (Port 9749 des lokalen CBM-Daemons).
+- **Produktion:** `https://brain.mentolder.de` (Cluster `fleet`, Namespace `workspace`, geschützt via Pocket ID SSO / `oauth2-proxy-brain`).
+
 ### Tools (14 verfügbar)
 
 | Tool | Funktion |
@@ -123,7 +128,7 @@
 ┌──────────────────────────────────────────────────────────────┐
 │                    K1 (Vektor-Embeddings)                     │
 │  bge-m3 → embeddings.ts → pgvector                           │
-│  Index: openspec/specs/, docs/, Code-Chunks                   │
+│  Index: superpowers/specs/, .agents/plans/, Code-Chunks       │
 │  Semantische Suche (Bedeutung, natürliche Sprache)            │
 │  Trigger: post-commit Hook (automatisch)                      │
 ├──────────────────────────────────────────────────────────────┤
@@ -146,7 +151,25 @@
 └──────────────────────────────────────────────────────────────┘
 ```
 
+### Symbol-Embedding-Layer (T900993, receipt-keyed)
+
+Der K3-Symbol-Layer traegt seit T900993 einen dauerhaften
+Embedding-Store: Content-Hash-keyed Vektoren (`bge-m3`, dim 1024) als
+`.codebase-memory/embed-index.jsonl` + Manifest (`embed-manifest.json`
+mit Corpus-SHA und Freshness-Receipt). Sync (`cbm-embed-sync.py`) bettet
+nur Deltas ein und verweigert fail-closed bei Freshness `unknown` ohne
+`--allow-stale` — Vektoren koennen nie still vom Graphen abweichen.
+Graph-Rerank (`cbm-graph-rerank.py`, HANDLES/CALLS/IMPORTS-Grad/TESTS_FILE
+als reine Funktion) ist post-Cross-Encoder neutral (Eval:
+`docs/brain/embed-rerank-eval.md`); der Cross-Encoder traegt +0,359
+Recall. Format/Drift: `docs/brain/embed-store.md`.
+
 ### Auseinanderlauf-Stellen
+
+> Reconciliation: `scripts/mcp/cbm-reconcile.py status` (T002430) macht die
+> Divergenz messbar — pro Datei Coverage (git vs K3-Symbole, Code-Extensions)
+> und K3-Freshness aus den Receipts; `unknown` bei fehlender/veralteter
+> Evidenz. Workflow: `.opencode/skills/code-graph-interpretation/references/reconciliation.md`.
 
 | Stelle | K1 | K3 | Divergenz-Risiko |
 |--------|----|----|-----------------|
@@ -163,10 +186,10 @@
 | D2: Informationsfluss undurchsichtig | ✅ | Behoben durch Diagramm |
 | D3: Keine Fehlerfortpflanzung dokumentiert | ✅ | Siehe Auseinanderlauf-Stellen |
 | D4: Host-SPOF | — | N/A (lokaler Prozess, kein Cluster-Dienst) |
-| D5: Kein Failover | ⚠️ | Kein Mechanismus bei Index-Ausfall |
-| D6: Keine Health-Metriken | ⚠️ | `health-goals-check.sh` prüft nur ob `graph.db.zst` getrackt ist (nicht mehr) |
+| D5: Kein Failover | ✅ | Failover-Verträge dokumentiert: `docs/runbooks/cbm-index-stampede.md` (Abschnitt T002430); G-K3FRESH/G-K3PROJ machen Ausfälle sichtbar (gelb), nie falsch-grün |
+| D6: Keine Health-Metriken | ✅ | G-K3FRESH (Freshness aus Receipts) + G-K3PROJ (Index-Praesenz) in `health-goals-check.sh`; Verdict via `scripts/mcp/cbm-freshness.py` / `cbm-reconcile.py` [T002430] |
 | D7: Index-Trigger manuell | ✅ | Behoben durch periodischen Cron-Job (`scripts/cbm-refresh-cron.sh`) |
-| D8: K1/K3 auseinanderlaufend | ⚠️ | **Kern-Defekt**: getrennte Indexe, keine Reconciliation |
+| D8: K1/K3 auseinanderlaufend | ⚠️ | Beobachtbar seit T002430: `python3 scripts/mcp/cbm-reconcile.py status` meldet Coverage-Divergenz (code_unindexed / k3_untracked) + K3-Freshness-Verdict, fail-closed. K1-Evidenz lokal `unavailable` (keine Receipts, pgvector extern) |
 
 ## Ist/Soll-Abgrenzung
 
@@ -186,3 +209,4 @@
 | 2026-06 | PR #2281 | graph.db.zst (16.7MB) ursprünglich committed |
 | 2026-07 | T002433 | Dieses Dokument: Visualisierung und Schnittstellen-Dokumentation |
 | 2026-09 | T900450 | Periodischer Auto-Refresh via Cron, Single-Flight-Schutz, SQLite-Persistenz dokumentiert |
+| 2026-10 | T900884 | 3D Graph Webview unter brain.mentolder.de (fleet SSO) und lokale UI in Doku/Skill dokumentiert |

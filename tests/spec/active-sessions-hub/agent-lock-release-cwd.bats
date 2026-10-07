@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/active-sessions-hub/agent-lock-release-cwd.bats
-# SSOT: openspec/specs/active-sessions-hub.md (Delta: openspec/changes/agent-lock-release-cwd)
 #
 # T006290 — Mishap-Fix: `agent-lock.sh release branch` + nachfolgender Worktree-Remove
 # liefen mit Shell-cwd im Worktree. Der Remove selbst gelingt (rc=0), aber jedes

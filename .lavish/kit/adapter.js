@@ -22,7 +22,6 @@ const data = (() => {
   const ENDPOINT_MAP = {
     'portfolio':        { path: '/sdlc/api/cockpit/portfolio', website: true },
     'pods-list':        { path: '/sdlc/api/cluster/pods-list', website: true },
-    'factory-control':  { path: '/sdlc/api/factory-control', website: true },
     'ticket-status':    { path: '/sdlc/api/cockpit/ticket-status', website: true },
     'audit':            { path: '/sdlc/api/cockpit/audit', website: true },
     // T003277 — Dispatch-Mitschnitt. 'dispatches' liefert NUR Kopfdaten; die
@@ -37,7 +36,6 @@ const data = (() => {
     'agents':           { path: '/api/cockpit/agents', website: false, daemonOnly: true },
     'models':           { path: '/api/cockpit/models', website: false, daemonOnly: true },
     'agents-stream':    { path: '/api/cockpit/stream/agents', website: false, daemonOnly: true },
-    'factory-stream':   { path: '/api/cockpit/stream/factory', website: false, daemonOnly: true },
   };
 
   // Kontext wird EINMAL beim Laden bestimmt. Standalone = die Seite wird nicht
@@ -124,7 +122,7 @@ const data = (() => {
     }
   }
 
-  // ---- Poll factory (D10, D11) ----
+  // ---- Poll (D10, D11) ----
   function createPoll(key, defaultRefreshMs, query = '') {
     let lastData = null;
     let lastFetchedAt = null;
@@ -403,7 +401,7 @@ const data = (() => {
         // (sdlc/api/cockpit/stream.ts), und der NOTIFY-Trigger des
         // Mitschnitts traegt die Domaene 'dispatch'.
         const namedEvents = ['agent_update', 'agent_started', 'agent_heartbeat', 'agent_done',
-          'factory_tick', 'dispatch', 'gap', 'heartbeat', 'error'];
+          'dispatch', 'gap', 'heartbeat', 'error'];
         for (const evt of namedEvents) {
           eventSource.addEventListener(evt, (event) => {
             try {
@@ -464,11 +462,6 @@ const data = (() => {
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
-  function factory(opts) {
-    return createPush('factory-control', 'factory')(opts?.refreshMs);
-  }
-
-  /** @param {{ refreshMs?: number }} [opts] */
   function models(opts) {
     // Bleibt gepollt — Modell-Gesundheit kommt von Ollama, hat keine Postgres-Quelle.
     // Kein NOTIFY möglich.
@@ -481,29 +474,6 @@ const data = (() => {
    */
   function epics(opts) {
     return createPoll('epics', 60000)(opts?.refreshMs);
-  }
-
-  /**
-   * OF1-Vorpruefung vor einem Canvas-Export: hat jemand anders
-   * openspec/changes/ seit `sinceIso` angefasst?
-   *
-   * Einmalabruf statt Poll — die Frage stellt sich nur im Moment des Exports.
-   * Sie liegt hier im Adapter, damit Panel und canvas-store.js kein eigenes
-   * fetch() brauchen (E1).
-   *
-   * @param {string} epicId
-   * @param {string} sinceIso
-   * @returns {Promise<{hasChanges: boolean, error?: string, reason?: string}>}
-   */
-  async function epicChangesSince(epicId, sinceIso) {
-    const data = await fetchEndpoint('epics', {
-      path: `/${encodeURIComponent(epicId)}/changes-since`,
-      query: `ts=${encodeURIComponent(sinceIso)}`,
-    });
-    // Konservativ: wo die Antwort nichts Eindeutiges sagt, gilt "geaendert".
-    // Der Nutzer wird dann gefragt, statt dass still ueberschrieben wird.
-    if (data.error) return { hasChanges: true, error: data.error };
-    return { hasChanges: data.hasChanges !== false, reason: data.reason };
   }
 
   /**
@@ -546,11 +516,6 @@ const data = (() => {
   /** @param {function} onEvent */
   function agentStream(onEvent) {
     return createStream('agents-stream')(onEvent);
-  }
-
-  /** @param {function} onEvent */
-  function factoryStream(onEvent) {
-    return createStream('factory-stream')(onEvent);
   }
 
   // ---- Write methods (K4: Website-API statt Daemon-Stubs) ----
@@ -620,16 +585,13 @@ const data = (() => {
     agents,
     ci,
     cluster,
-    factory,
     models,
     epics,
-    epicChangesSince,
     styles,
     dispatches,
     dispatchDetail,
     dispatchStream,
     agentStream,
-    factoryStream,
     ticketAction,
     audit,
     performAction,

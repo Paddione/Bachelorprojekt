@@ -19,10 +19,9 @@
 #   3. Every required key MUST be present in the cluster.
 #
 # This test requires a live cluster (kubectl with an active context to
-# the fleet). Without a cluster it SKIPS — runnable in the `factory:`
-# pipeline and on developer machines with a live context.
+# the fleet). Without a cluster it SKIPS — runnable in CI and on developer
+# machines with a live context.
 #
-# SSOT: openspec/changes/g-cd01-korczewski-secret-drift
 # ═══════════════════════════════════════════════════════════════════
 
 load 'test_helper'

@@ -4,10 +4,13 @@
     //
     // Der Key heisst aus historischen Gruenden "llamacpp-local" (Modell-Strings
     // und opencode-Default referenzieren ihn). Seit T900348 steht dahinter wieder
-    // llama.cpp, seit 2026-09-26 Qwen3.8-27B GSQ-RCO IQ2_S-mtp (196608 served KV,
-    // MTP n-max 4, -cram 12288) auf der RTX 5070 Ti allein (scripts/llm/qwen38-gsq-iq2s.service).
-    // Die Modell-ID "Muse-Glimmer-30B" ist nur noch ein Alias (llama-server ignoriert sie).
-    // Davor: Muse Glimmer 30B (T900365), Qwen3.8 GSQ-RCO IQ3_XXS (T900359), FreeToken (T900203).
+    // llama.cpp, seit 2026-10-03 Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (153600 served KV,
+    // MTP n-max 4, -ub 512, -cram 12288) auf der RTX 5070 Ti allein
+    // (scripts/llm/qwen38-gsq-iq3xxs.service).
+    // Die Modell-ID "Qwen3.8-27B" ist der opencode-seitige Name (llama-server ignoriert ihn;
+    // live-Alias: Qwen3.8-27B-gsq-iq3xxs; davor IQ2_S-mtp mit 196608 KV, davor
+    // opencode-Alias "Muse-Glimmer-30B", T900365).
+    // Davor opencode-Alias "Muse-Glimmer-30B" (T900365), Qwen3.8 GSQ-RCO IQ3_XXS ohne MTP (T900359), FreeToken (T900203).
     //
     // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
     // stillgelegt (ADR-007). Der Server bedient einen Slot (-np 1); weitere
@@ -15,47 +18,60 @@
     // eine explizite Agenten-Wahl.
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1919 (Qwen3.8-27B GSQ-RCO IQ2_S-mtp, RTX 5070 Ti, 196k served KV)",
+      "name": "llama.cpp :1919 (Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp, RTX 5070 Ti, 153600 served KV)",
       "options": {
         "baseURL": "http://127.0.0.1:1919/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        // GEMESSEN 2026-09-25 (llama.cpp e85e15cf6, 5070 Ti allein, q8_0-KV,
-        // draft-dflash n-max 4): Decode ~79 tok/s bei kurzem Kontext;
-        // 117.097-Token-Prompt: Prefill ~1095 tok/s, Decode 84-89 tok/s, Needle
-        // gefunden. Dense 30B; das Chat-Template setzt "Reasoning strength: high"
+        // GEMESSEN 2026-10-03 (llama.cpp e85e15cf6, 5070 Ti allein, q4_0-KV,
+        // draft-mtp n-max 4, scripts/llm/measurements/2026-10-03-qwen38-iq2s-vs-iq3xxs.md):
+        // Short-Prompt Decode 106 t/s (MTP-Annahme 66 %), 6641-Token-Prompt:
+        // Prefill 1471 tok/s, Decode 99 tok/s. Orchestrierungs-Bench 15/15,
+        // LiveCodeBench v6 84.57 %, GPQA-Diamond 88.89 %. VRAM 15059 MiB.
+        // Dense 27B; das Chat-Template setzt "Reasoning strength: high"
         // selbst -> kleines max_tokens liefert leeren content (length) — Budget
-        // grosszuegig. 131072 = served KV = max_position_embeddings.
+        // grosszuegig. 153600 = served KV (-c der Unit).
         // limit.input ist Pflicht fuer den V1-Compaction-Trigger: ohne ihn
         // ignoriert opencode compaction.reserved und kompaktiert erst bei
         // context − output (T900362, siehe opencode.jsonc).
-        "Muse-Glimmer-30B": {
-          "name": "Qwen3.8-27B GSQ-RCO IQ2_S-mtp (llama.cpp :1919, RTX 5070 Ti, 196k served KV, limit 131k, ~71-102 tok/s decode)",
+        "Qwen3.8-27B": {
+          "name": "Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (llama.cpp :1919, RTX 5070 Ti, 153600 served KV, ~98-106 tok/s decode)",
           "limit": {
-            "context": 131072,
-            "input": 131072,
+            "context": 153600,
+            "input": 153600,
             "output": 8192
           }
         }
       }
     },
-    // Qwen3.5-4B-MTP auf der RTX 3060 Ti: 3 Slots mit geteiltem 98304-Token-KV-Pool
-    // (-np 3 -kvu, Q4 fuer Target und MTP-Draft), gemessen 2026-09-26: 162 t/s gesamt
-    // bei 3 Stroemen gegen 101 t/s mit einem Slot, 6.933 MiB (T900504 p4,
-    // scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md). Text-only: kein mmproj.
-    "llamacpp-qwen35": {
+    // Qwen3.5-4B-MTP UD-Q4_K_XL, Windows-nativ auf der RTX 3060 Ti:
+    // 3 Slots teilen provisional 98304 KV
+    // (-np 3 -kvu, Q4_0 Target/Draft-KV, MTP r4, Thinking per Request).
+    // Startskript scripts/llm/start-qwen35-4b-service.ps1 (Kopie nach
+    // F:\tools\llama.cpp). Binaries b11352+
+    // (0.3.0-dev kann opencode's task_reply-Grammatik nicht parsen).
+    // 98304 ist provisional: kurze Requests/Tool-Calls und 3-Strom-Direct-Smoke
+    // verifiziert, Long-Load/Stress noch offen. Keine Linux-era Speed-Claims.
+    // Qwen3.5-4B-MTP UD-Q4_K_XL, Windows-native :8080 on RTX 3060 Ti.
+    // Linux OpenCode V2 uses explicit model/variant body overlays.
+    // One resident checkpoint serves direct and thinking requests without reload.
+    // Provisional shared KV: 98304 / 3 slots, q4_0 target/draft KV, MTP r4.
+    // Windows b11352 short requests/tool calls and 3-stream direct smoke verified;
+    // long-context quality/concurrency stress still pending. No Linux-era speed claims.
+    // Reproducible launcher: scripts/llm/start-qwen35-4b-service.ps1.
+    "llamacpp-qwen3": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1920 (Qwen3.5-4B MTP Q4_K_XL, RTX 3060 Ti, 3 Slots, 96k geteilter KV)",
+      "name": "llama.cpp :8080 (Qwen3.5-4B-MTP, RTX 3060 Ti, 3 slots, provisional 98304 shared KV)",
       "options": {
-        "baseURL": "http://127.0.0.1:1920/v1",
+        "baseURL": "http://127.0.0.1:8080/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
         "Qwen3.5-4B-MTP": {
-          "name": "Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 Slots, 96k geteilter KV, Q4_K_XL, Q4 KV)",
+          "name": "Qwen3.5-4B-MTP UD-Q4_K_XL (Windows-native :8080, RTX 3060 Ti)",
           "limit": {
             "context": 98304,
             "input": 98304,
@@ -66,8 +82,9 @@
     },
     // OpenCode Zen/Go: "opencode-go" statt "opencode" (Zen) - Subscription-Tier
     // ($10/mo). Nur Modelle mit gemessener Bindung werden hier eingetragen
-    // (verifiziert per curl gegen https://opencode.ai/zen/go/v1/chat/completions,
-    // cost:"0" = im Abo enthalten).
+    // (verifiziert per `opencode run --model ...` IN-CLIENT — rohes curl wird
+    // abgewiesen, die Rails verlangen den opencode-Client: MissingSessionID
+    // (go) bzw. FreeTierError (zen); cost:"0" = im Abo enthalten).
     //
     // Kein "apiKey" hier [2026-08-03]: Der Schluessel liegt in
     // ~/.local/share/opencode/auth.json, wo `opencode auth login` ihn ablegt.
@@ -83,8 +100,11 @@
         // qwen3.8-max u.a.). Sie sind hier bewusst NICHT eingetragen — jeder
         // Eintrag will gemessen sein, bevor ein Agent darauf zeigt.
         // T900210: Muse Spark 1.3 Contributor im Go-Katalog (Katalogwerte:
-        // 1M ctx / 131k output). Go-Fallback hinter Zen-free (free zuerst,
-        // Go danach); Auth wie ueblich via ~/.local/share/opencode/auth.json.
+        // 1M ctx / 131k output). Seit 2026-10-03 die EINZIGE genutzte
+        // Muse-Bindung (in-client verifiziert: `opencode run --model
+        // opencode-go/muse-spark-1.3-contributor#low` antwortet korrekt); die
+        // alte ModelProtocolUnsupported-Einschraenkung auf /chat/completions
+        // gilt nicht mehr. Auth via ~/.local/share/opencode/auth.json.
         "muse-spark-1.3-contributor": {
           "name": "Muse Spark 1.3 Contributor (OpenCode Go, 1M ctx, 131k output)",
           "reasoning": true,
@@ -104,11 +124,17 @@
         }
       }
     },
-    // Go-Rail, aber OpenAI-RESPONSES-Protokoll: muse-spark-1.3-contributor wird
-    // vom /responses-Endpoint bedient; /chat/completions + /v1/messages lehnen
-    // es mit `ModelProtocolUnsupported` ab. opencode kennt kein per-model `npm`,
-    // also eigener Provider-Block mit `@ai-sdk/openai` (Doku: opencode.ai/docs/go,
-    // Endpoints-Tabelle). Key kommt aus der ENV, damit hier kein Secret steht.
+    // STILLGELEGT 2026-10-03 (Root-Cause verifiziert, T900939): `{env:}`
+    // wird korrekt aufgeloest (per lokalem Echo-Server bewiesen) — aber die
+    // Go/Zen-Rails akzeptieren KEINE rohen API-Keys als Bearer
+    // (`Invalid credential`, auf chat UND /responses). Nur der
+    // Managed-Credential-Pfad funktioniert: ohne `apiKey`-Feld sendet opencode
+    // das gemanagte Token aus opencode.db (Tabelle `credential`), nicht den
+    // auth.json-Key roh (per Wiretap bewiesen). Alle Konsumenten zeigen auf
+    // `opencode-go` (s.o.). Historie: OpenAI-RESPONSES-Protokoll —
+    // /chat/completions lehnte das Modell mit `ModelProtocolUnsupported` ab
+    // (gilt seit 2026-10-03 nicht mehr); eigener Block wegen fehlendem
+    // per-model `npm`.
     "opencode-go-oai": {
       "npm": "@ai-sdk/openai",
       "name": "OpenCode Go (Responses-Protokoll — muse-spark-1.3-contributor)",
@@ -206,47 +232,47 @@
     // FreeToken-Modell — fuenf Namen, ein Slot, kein Prefix-Cache-Gewinn mehr
     // (ein Resident-Checkpoint, ein Radix-Cache). Kollabiert zu einem `local`.
     // Engine: -np 1 (ein Slot); llama.cpp queuet weitere Requests als
-    // sequenzielle Dispatches, die ≤131072 served KV teilen. Der Orchestrator
+    // sequenzielle Dispatches, die ≤153600 served KV teilen. Der Orchestrator
     // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~100k).
     "local": {
-      "description": "Higher-capability local implementation subagent (Qwen3.8-27B GSQ-RCO IQ2_S-mtp via llama.cpp :1919, RTX 5070 Ti, one slot; context limit 131k shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
+      "description": "Higher-capability local implementation subagent (Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp via llama.cpp :1919, RTX 5070 Ti, one slot; context limit 153600 shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "qwen35-mtp": {
-      "description": "Fast text-only local subagent: Qwen3.5-4B MTP Q4_K_XL via llama.cpp :1920 on the RTX 3060 Ti, 3 parallel slots sharing a 96k KV pool with Q4 target and draft KV. Up to three requests at a time; no vision projector. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model.",
+    "qwen35-4b": {
+      "description": "Text-only Qwen3.5-4B instruction worker on RTX 3060 Ti, Windows-native llama.cpp :8080. Three slots share provisional 98304 KV. Direct mode by default; thinking is a per-request variant on the same checkpoint. Use bounded research, summaries and straightforward implementation; primary verifies conclusions.",
       "mode": "subagent",
-      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP",
+      "prompt": "{file:./prompts/qwen35-worker.md}",
       "color": "#22D3EE",
       "temperature": 0.3,
       "steps": 40,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     // plan-runner-Worker (T900504): opencode run akzeptiert nur Primaer-Agenten; ein
-    // Subagent (local, qwen35-mtp) faellt dort still auf den Default-Agenten zurueck
+    // Subagent (local, qwen35-4b) faellt dort still auf den Default-Agenten zurueck
     // und laeuft dann mit dessen Modell und Werkzeugen auf :1919. Deshalb eigene
     // primaere Worker mit schlankem Prompt; write ist erlaubt (Partials legen Dateien an),
     // task nicht (kein Weiterdelegieren). Genutzt von scripts/llm/plan-runner/workers.mjs.
-    "plan-worker-4b": {
-      "description": "plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one OpenSpec partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
+    "plan-worker-qwen35": {
+      "description": "Primary plan partial worker on Qwen3.5-4B-MTP (:8080, RTX 3060 Ti, 3 slots / provisional 98304 shared KV). Direct mode by default, write-capable only for assigned partials. Used by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
-      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP",
+      "prompt": "{file:./prompts/qwen35-worker.md}",
       "color": "#22D3EE",
       "temperature": 0.3,
       "steps": 40,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "plan-worker-self": {
-      "description": "plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one OpenSpec partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
+      "description": "plan-runner self-execution worker on the local Qwen3.8-27B IQ3_XXS-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -256,36 +282,18 @@
     "reviewer": {
       "description": "Reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny", "task": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "todowrite": "allow", "question": "allow", "skill": "allow", "lsp": "allow" }
     },
-    // Eskalationsstufe NACH lokaler Kompaktierung/Retry und opencodes eigener
-    // Kompaktierung: exe-muse (Muse Spark via OpenCode Go) ist die einzige
-    // Cloud-Schiene (T900751: DeepSeek-Schienen entfernt).
-    "orchestrator": {
-      "description": "Primary orchestrator: Muse Glimmer 30B on the RTX 5070 Ti via llama.cpp :1919 (131k served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation via exe-muse (Muse Spark on the Go rail). Tab-selectable via Tab key.",
-      "mode": "primary",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
-      "prompt": "{file:./prompts/orchestrator.md}",
-      "color": "#8B5CF6",
-      "temperature": 0.2,
-      "steps": 150,
-      // Exakte Namen statt Wildcards (Prinzip aus T002298): eine Wildcard
-      // wuerde jeden neu hinzugefuegten Subagenten automatisch mitfreigeben.
-      "permission": {
-        "task": {
-          "local": "allow",
-          "qwen35-mtp": "allow",
-          "exe-muse": "allow",
-          // T900074-p2: reviewer role must be dispatchable.
-          "reviewer": "allow"
-        }
-      }
-    },
+    // Slim-first (chore/slim-orchestrator-setup): kein eigenes `orchestrator`-Profil mehr —
+    // Slims Orchestrator ist die einzige interaktive Orchestrierungs-Definition
+    // (Modell-Pinning in .opencode/oh-my-opencode-slim.jsonc, Workflow-Regeln in
+    // ~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md). `local`,
+    // `qwen35-4b`, `exe-muse` und `reviewer` bleiben als Worker verfuegbar.
     // exe-muse — Muse-Spark-Ausfuehrungs-Agent auf dem Go-Katalog
     // (Subscription, kein Training-Sharing wie Zen-free). Niedrige
     // Reasoning-Stufe (`low`) und `mode: subagent`: dispatchbar, bewusst NICHT
@@ -295,7 +303,7 @@
     "exe-muse": {
       "description": "EXECUTOR (dispatchable, low reasoning): Muse Spark 1.3 Contributor via the OpenCode Go subscription (1M ctx). The single Muse seat: cheap reasoning tier so bulk and mechanical execution stays fast. Dispatch here for oversized or under-specified implementation work and for local-stall escalation handoffs. Leaf: cannot dispatch further.",
       "mode": "subagent",
-      "model": "opencode-go-oai/muse-spark-1.3-contributor",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "variant": "low",
       "prompt": "{file:./prompts/muse.md}",
       "color": "#34D399",
@@ -303,72 +311,16 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // Big Pickle auf OpenCode Zen — als primaerer (Tab-waehlbarer) Agent bis das
-    // Free-Kontingent verbraucht ist, danach auf exe-muse wechseln (T900751).
-    // Dieselbe benannte Allow-Liste wie der Orchestrator (Prinzip T002298).
-    "big-pickle": {
-      "description": "PRIMARY: Big Pickle on OpenCode Zen (free tier). Tab-selectable singleagent model — use it while the free Zen quota lasts, then switch to exe-muse (T900751). Runs through the zen gateway (opencode-zen/big-pickle), not the Go catalog. Can dispatch the same subagent set as the orchestrator.",
+    // bp-* primaries (T900858): three thin domain primaries over the OMO
+    // engine. Retire glimmer-primary (loop moved into orchestrator +
+    // sdlc-autopilot), big-pickle / ox-alpha-free (free-tier fallback is a
+    // model choice, not a separate primary). plan-worker-* untouched.
+    "bp-build": {
+      "description": "PRIMARY: build — manifests, Kustomize overlays, Taskfile, environments, sealed secrets. Tab-selectable domain entry over the OMO engine (local Qwen3.8-27B :1919).",
       "mode": "primary",
-      "model": "opencode-zen/big-pickle",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#F472B6",
-      "temperature": 0.2,
-      "steps": 150,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "bash": "allow",
-        "webfetch": "deny",
-        "websearch": "deny",
-        "task": {
-          "local": "allow",
-          "qwen35-mtp": "allow",
-          "exe-muse": "allow",
-          "reviewer": "allow"
-        }
-      }
-    },
-    // Ox Alpha Free — zweiter Free-Tier-Primary neben Big Pickle [2026-08-22].
-    // Dispatcht ausschliesslich ox-alpha (exakte Namen statt Wildcard).
-    "ox-alpha-free": {
-      "description": "PRIMARY: Ox Alpha Free on OpenCode Zen (laguna-s-2.1-free, Poolside agentic coding model, free tier, 256k ctx per models.dev). Tab-selectable singleagent next to big-pickle. Live-smoke-tested 2026-08-22. Dispatches ONLY ox-alpha subagents.",
-      "mode": "primary",
-      "model": "opencode-zen/laguna-s-2.1-free",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#38BDF8",
-      "temperature": 0.2,
-      "steps": 150,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "bash": "allow",
-        "webfetch": "deny",
-        "websearch": "deny",
-        "task": {
-          "ox-alpha": "allow"
-        }
-      }
-    },
-    "ox-alpha": {
-      "description": "Subagent twin of ox-alpha-free on OpenCode Zen (same laguna-s-2.1-free model, Poolside agentic coding model, free tier). Sole dispatch target of ox-alpha-free — keeps parallel/specialized work inside the same free-tier model family. Write-capable.",
-      "mode": "subagent",
-      "model": "opencode-zen/laguna-s-2.1-free",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#0EA5E9",
-      "temperature": 0.2,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    // Plan-Primary: Muse Glimmer 30B via llama.cpp :1919 (131072 served KV, T900365).
-    // Heisst nach dem Modell, das es faehrt (Regel aus T016419; bis T900365 qwen38-primary).
-    // Autonomous ticket-hammering agent: prioritizes critical issues,
-    // plans (/dev-flow-plan), explores (/opsx:explore), executes, archives.
-    "glimmer-primary": {
-      "description": "PRIMARY: Local Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, 131k served KV, gemessen 2026-09-25). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
-      "mode": "primary",
-      "model": "llamacpp-local/Muse-Glimmer-30B",
-      "prompt": "{file:./prompts/glimmer-primary.md}",
-      "color": "#10B981",
+      "model": "llamacpp-local/Qwen3.8-27B",
+      "prompt": "{file:./prompts/bp-build.md}",
+      "color": "#FB9236",
       "temperature": 0.3,
       "steps": 150,
       "permission": {
@@ -379,8 +331,56 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen35-mtp": "allow",
-          "exe-muse": "allow"
+          "qwen35-4b": "allow",
+          "reviewer": "allow",
+          "fixer": "allow",
+          "oracle": "allow"
+        }
+      }
+    },
+    "bp-run": {
+      "description": "PRIMARY: run — live cluster ops via task workspace:* and kubectl, postgres reads. Tab-selectable domain entry over the OMO engine (local Qwen3.8-27B :1919). Read-only filesystem for manifests.",
+      "mode": "primary",
+      "model": "llamacpp-local/Qwen3.8-27B",
+      "prompt": "{file:./prompts/bp-run.md}",
+      "color": "#F87171",
+      "temperature": 0.3,
+      "steps": 150,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "task": {
+          "local": "allow",
+          "qwen35-4b": "allow",
+          "exe-muse": "allow",
+          "oracle": "allow"
+        }
+      }
+    },
+    "bp-ship": {
+      "description": "PRIMARY: ship — BATS/Playwright, Astro/Svelte website, brand pages, test inventory. Tab-selectable domain entry over the OMO engine (Muse Spark via Go, reasoning-heavy UI/test work).",
+      "mode": "primary",
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "variant": "low",
+      "prompt": "{file:./prompts/bp-ship.md}",
+      "color": "#A78BFA",
+      "temperature": 0.2,
+      "steps": 150,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "task": {
+          "local": "allow",
+          "qwen35-4b": "allow",
+          "reviewer": "allow",
+          "designer": "allow",
+          "librarian": "allow"
         }
       }
     }

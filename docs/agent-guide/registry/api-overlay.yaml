@@ -3,19 +3,14 @@
 # Jeder Schluessel MUSS einem von scripts/sdlc/api-inventory.mjs
 # gescannten Endpunkt/Server/Tool entsprechen -- sonst schlaegt die
 # Generierung fehl (Requirement "API Connector Inventory" in
-# openspec/specs/sdlc-cockpit.md, Szenario "Orphaned overlay entry
+# docs/superpowers/specs/sdlc-cockpit.md, Szenario "Orphaned overlay entry
 # fails"). Fehlende Kuration ist erlaubt: nicht gelistete Eintraege
 # behalten description/tier/deprecated = null.
-routes:
-  "/sdlc/api/factory-floor":
-    description: "Wertstrom-Ansicht: Slots, Hall, Backlog je Ticket-Phase."
-    tier: "core"
-    deprecated: null
 mcpServers:
   mcp-kubernetes:
     description: "Cluster-Status/-Aktionen fuer den Leitstand (Claude-Code-only SSE, Port 18080)."
     tier: "core"
     deprecated: null
-# T900399: die mcpTools:-Kuratur fuer factory_status mit entfernt -- der
-# factory-mcp-Server ist ausgebaut, ein Overlay-Eintrag darauf waere ein
-# Orphan und laesst die Generierung fehlschlagen.
+# T900399/T900728: die mcpTools:-Kuratur (Factory-Tools) ist mit dem Teardown
+# entfallen -- ein Overlay-Eintrag darauf waere ein Orphan und laesst die
+# Generierung fehlschlagen.

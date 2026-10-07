@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/membership-drift.bats
-# SSOT: openspec/changes/cluster-dev-node-gekko2/specs/fleet-operations.md
 # T002630 P3: Drift-Gate — fleet-membership-check.sh meldet beide Richtungen
 # und skipped ohne Cluster-Zugang.
 #

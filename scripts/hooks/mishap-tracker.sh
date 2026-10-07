@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/hooks/mishap-tracker.sh
-# Record a process friction encountered during a dev-flow / factory run.
+# Record a process friction encountered during a dev-flow run.
 #   mishap-tracker.sh --friction "<text>" [--ticket T000XXX] [--severity minor|major|critical]
 # With --ticket: appends an internal ticket comment via ticket.sh add-comment.
 # Without --ticket: logs to stderr and appends a line to ./.mishaps.log

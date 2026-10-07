@@ -11,3 +11,10 @@ resources:
   - langfuse.yaml
   - otel-redact.yaml
   - ingress-public.yaml
+  - export/cronjob.yaml
+configMapGenerator:
+  - name: langfuse-export-script
+    files:
+      - export_traces.py=../../../scripts/langfuse/export_traces.py
+generatorOptions:
+  disableNameSuffixHash: true

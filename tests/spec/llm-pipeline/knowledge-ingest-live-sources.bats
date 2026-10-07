@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-pipeline/knowledge-ingest-live-sources.bats
-# SSOT: openspec/specs/llm-pipeline.md (fix-knowledge-ingest-zero-items-T002605)
 # Stellt sicher, dass die Knowledge-Ingest-CronJobs aus dem lebenden
 # Ticket-Store lesen (tickets.tickets / tickets.ticket_links) statt aus
 # leeren Legacy-Tabellen, den Zero-Item-Guard tragen und der Markdown-

@@ -101,6 +101,25 @@ task codebase:refresh
 python3 scripts/mcp/cbm-freshness.py status --repo "$(git rev-parse --show-toplevel)" --timeout 30 | jq '{status, reasons, refresh_allowed}'
 ```
 
+## Failover-Verhalten bei Index-Ausfall (T002430, Defekt D5)
+
+Der K3-Graph ist eine Beschleunigung, keine harte Abhaengigkeit — Ausfall
+bedeutet "langsamer/strukturlos", nie "falsch gruen". Die Vertrage:
+
+| Ausfall | Verhalten | Erholung |
+|---|---|---|
+| CLI fehlt (`tool-missing`) | `status` = `unknown`, `refresh_allowed=false`; Health-Ziel G-K3FRESH/G-K3PROJ meldet 0 (gelb), nie gruen | Tool installieren (`codebase-memory-mcp install`), danach initialen Refresh |
+| Probe haengt (`probe-timeout`) | `unknown` — Timeouts sind gebunden, kein Endlos-Warten | Ursache klären (Daemon/Pod), Refresh läuft nach `refresh_allowed` |
+| Refresh schlaegt fehl | `attempt`-Marker `failed` verwirft alte Receipts nicht, blockiert aber `fresh` bis ein Versuch erfolgreich ist | Wrapper erneut ausfuehren (`task codebase:refresh`), Single-Flight-Lock verhindert Stampede |
+| Graph-DB extern ersetzt/mutiert | `db-changed` — Receipt wird verworfen | Neuer initialer Refresh (`task codebase:index`) |
+| Receipt fehlt komplett | `unknown` + `initial-refresh`, Refresh ist erlaubt | Ein erfolgreicher Lauf etabliert den initialen Receipt |
+| Worktree-Checkout | Werkzeug kanonisiert Root auf den Haupt-Checkout; Common-Git-Dir-Gleichheit wird akzeptiert (T002430), `fresh` bleibt erreichbar | — |
+
+G-K3FRESH/G-K3PROJ sind bewusst `target`-Zeilen (gelb bei Verletzung): der
+Betriebszustand der Index-Infrastruktur darf sichtbar sein, ohne lokale/CI
+Gate-Läufe zu brechen. Ein `unknown`/`stale` Zustand ist damit nie unsichtbar,
+aber auch niemals falsch als gruen deklariert.
+
 ## Referenzen
 
 - Wrapper: `scripts/mcp/cbm-single-flight.sh`

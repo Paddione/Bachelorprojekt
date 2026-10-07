@@ -301,7 +301,6 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_drafts_book_status ON coaching.drafts(book_id, status);
       CREATE INDEX IF NOT EXISTS idx_drafts_kind_status ON coaching.drafts(template_kind, status);
-      CREATE INDEX IF NOT EXISTS idx_drafts_chunk ON coaching.drafts(knowledge_chunk_id);
 
       CREATE TABLE IF NOT EXISTS coaching.sessions (
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -348,7 +347,6 @@ data:
         generated_at  TIMESTAMPTZ,
         UNIQUE (session_id, step_number)
       );
-      CREATE INDEX IF NOT EXISTS idx_session_steps_session ON coaching.session_steps(session_id);
 
       CREATE TABLE IF NOT EXISTS coaching.session_audit_log (
         id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -405,7 +403,6 @@ data:
         created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
         UNIQUE (brand, step_number)
       );
-      CREATE INDEX IF NOT EXISTS idx_step_templates_brand ON coaching.step_templates(brand);
 
       -- ── Learning Progress Tracking ──────────────────────────────────
       CREATE TABLE IF NOT EXISTS learning_progress (
@@ -1082,7 +1079,6 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_drafts_book_status ON coaching.drafts(book_id, status);
       CREATE INDEX IF NOT EXISTS idx_drafts_kind_status ON coaching.drafts(template_kind, status);
-      CREATE INDEX IF NOT EXISTS idx_drafts_chunk ON coaching.drafts(knowledge_chunk_id);
 
       CREATE TABLE IF NOT EXISTS coaching.sessions (
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1150,7 +1146,6 @@ data:
         generated_at  TIMESTAMPTZ,
         UNIQUE (session_id, step_number)
       );
-      CREATE INDEX IF NOT EXISTS idx_session_steps_session ON coaching.session_steps(session_id);
 
       CREATE TABLE IF NOT EXISTS coaching.session_audit_log (
         id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1207,7 +1202,6 @@ data:
         created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
         UNIQUE (brand, step_number)
       );
-      CREATE INDEX IF NOT EXISTS idx_step_templates_brand ON coaching.step_templates(brand);
 
       -- ── Learning Progress Tracking ──────────────────────────────────
       CREATE TABLE IF NOT EXISTS learning_progress (
@@ -1843,7 +1837,6 @@ data:
       CREATE INDEX IF NOT EXISTS chunks_embedding_hnsw ON knowledge.chunks
         USING hnsw (embedding vector_cosine_ops);
       CREATE INDEX IF NOT EXISTS chunks_collection ON knowledge.chunks (collection_id);
-      CREATE INDEX IF NOT EXISTS documents_collection ON knowledge.documents (collection_id);
 
       -- Revert to superuser to run GRANTs (website role cannot GRANT to itself).
       RESET ROLE;
@@ -1911,7 +1904,6 @@ data:
       CREATE INDEX IF NOT EXISTS chunks_embedding_hnsw ON knowledge.chunks
         USING hnsw (embedding vector_cosine_ops);
       CREATE INDEX IF NOT EXISTS chunks_collection ON knowledge.chunks (collection_id);
-      CREATE INDEX IF NOT EXISTS documents_collection ON knowledge.documents (collection_id);
 
       -- Revert to superuser to run GRANTs (website role cannot GRANT to itself).
       RESET ROLE;

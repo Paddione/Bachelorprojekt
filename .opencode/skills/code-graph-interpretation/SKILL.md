@@ -71,6 +71,6 @@ For the comparison that motivated these workflows and measurable follow-up goals
 
 ## Viewing
 
-The local graph UI is normally at `http://127.0.0.1:9749`; verify it responds before directing someone there. On a remote host, forward port 9749. The UI helps explore a neighborhood; use CLI results and source for an auditable answer.
+The local graph UI is normally at `http://127.0.0.1:9749`; verify it responds before directing someone there. On a remote host, forward port 9749. The production/fleet 3D graph webview is deployed and accessible at `https://brain.mentolder.de` (protected by Pocket ID SSO). The UI helps explore a neighborhood; use CLI results and source for an auditable answer.
 
 For observed schema and known graph limits, read [K3 architecture](../../../docs/brain/k3-code-graph.md). For the MCP tool selection policy, read [MCP tool guide](../references/mcp-tool-guide.md).

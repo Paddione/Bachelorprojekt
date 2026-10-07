@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/sdlc-console-fleet.bats
-# SSOT: openspec/changes/wsl-exit-sdlc-console-fleet/specs/sdlc-isolation.md [T016429]
 
 setup() {
   load '../test_helper.bash'

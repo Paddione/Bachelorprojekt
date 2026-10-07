@@ -1,0 +1,50 @@
+# systemd-User-Unit: Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp auf der RTX 5070 Ti allein, llama.cpp :1919.
+# Alternative zu qwen38-gsq-iq2s.service fuer maximale Code- und Reasoning-Qualitaet (15/15 im Orchestrator-Bench).
+#
+# Warum dieses Modell:
+#   - 3.00 BPW (vs 2.75 bei IQ2_S): LiveCodeBench 84.57% (vs 82.29%), GPQA-Diamond 88.89% (vs 86.36%).
+#   - Orchestrierungs-Benchmark: 15/15 fehlerfrei (scripts/llm/measurements/2026-09-26-orchestration-4b.md).
+#   - Prefill-Durchsatz: 1.471 t/s (vs 1.330 t/s bei IQ2_S).
+#   - Decode mit MTP n-max 4: 106 t/s (vs 101 t/s bei IQ2_S).
+#
+# Modell:
+#   %h/models/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf
+#
+# Installation (Kopie, KEIN Symlink -- T900376):
+#   cp scripts/llm/qwen38-gsq-iq3xxs.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now qwen38-gsq-iq3xxs
+#
+# Gemessen (2026-10-03):
+#   153600 Kontext, q4_0-KV, 1 Slot: 15.059 MiB (1.244 MiB physische Reserve, ~850 MiB unter WSL-Spillgrenze).
+#   Prefill 1.471 t/s, Decode 98-106 t/s mit MTP n-max 4 (66% MTP-Annahme).
+#   -ub 512: stabil ohne VRAM-Spikes.
+#   -cram 12288: verdraengte Orchestrator-Slots kehren in ~3s zurueck.
+#
+# WICHTIG: qwen38-gsq-iq2s und qwen38-gsq-iq3xxs duerfen NICHT gleichzeitig laufen (5070 Ti VRAM).
+# Umschalten:
+#   systemctl --user stop qwen38-gsq-iq2s && systemctl --user start qwen38-gsq-iq3xxs
+
+[Unit]
+Description=llama-server Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (RTX 5070 Ti, 150k ctx) auf :1919
+After=network.target
+
+[Service]
+Type=simple
+Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
+Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
+ExecStart=%h/opt/llama-current/bin/llama-server \
+  -m %h/models/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf \
+  --alias Qwen3.8-27B-gsq-iq3xxs \
+  -c 153600 -np 1 -ub 512 \
+  -fit off -ngl 999 \
+  -fa on -ctk q4_0 -ctv q4_0 \
+  --spec-type draft-mtp --spec-draft-n-max 4 \
+  -cram 12288 \
+  --jinja \
+  --host 0.0.0.0 --port 1919
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

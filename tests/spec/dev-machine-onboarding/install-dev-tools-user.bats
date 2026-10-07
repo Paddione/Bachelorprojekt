@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/dev-machine-onboarding/install-dev-tools-user.bats [T900119]
-# SSOT: openspec/changes/dev-repo-per-machine/specs/dev-machine-onboarding/spec.md
 # Pruefmodus: Laufzeit-Output von `install-dev-tools.sh --print-dev-user` (kein root,
 # keine Installation); geprueft wird der aufgeloeste Ziel-Benutzer und der Exit-Code.
 

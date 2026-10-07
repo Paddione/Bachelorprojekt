@@ -2,8 +2,7 @@
 
 MCP-Server, über den **Muse Code** (Metas Coding-CLI, WSL und Windows) das lokale **Muse Glimmer 30B**
 (`llama-server` auf `:1919`, `scripts/llm/glimmer.service`) als Arbeitermodell nutzt. Muse Spark plant und
-prüft, Glimmer führt abgegrenzte Aufgaben lokal aus. Ticket T900373, Design:
-`openspec/changes/archive/*glimmer-worker-mcp/design.md`.
+prüft, Glimmer führt abgegrenzte Aufgaben lokal aus. Ticket T900373.
 
 ## Warum MCP und kein Muse-Provider
 
@@ -19,7 +18,7 @@ offizieller Erweiterungspunkt.
 | `glimmer_worker_result {job_id, wait_s?}` | Wartet höchstens 55 s; am Ende `status`, `exit_code`, `summary`, `git_status`, `diff_stat`. |
 | `glimmer_worker_status {}` | Zustand von `:1919` (Modell, `n_ctx`) und der Warteschlange. |
 
-Ein Job führt `opencode run --agent glimmer-primary --dir <cwd> <task>` aus. Jobs laufen nacheinander,
+Ein Job führt `opencode run --agent bp-build --dir <cwd> <task>` aus. Jobs laufen nacheinander,
 weil `:1919` einen Slot hat (`-np 1`); Default-Zeitlimit 900 s.
 
 ## Installation
@@ -45,4 +44,4 @@ bash scripts/glimmer-worker-mcp/install.sh --register-only
 - Die Warteschlange sieht nur ihre eigenen Jobs; ein gleichzeitiger opencode-`local`-Dispatch teilt sich den
   Slot auf `:1919` und verlängert die Wartezeit.
 - Bewusst **nicht** in `docs/agent-guide/registry/mcp.yaml`: `task mcp:sync` würde den Server sonst in
-  opencode eintragen, wo `glimmer-primary` selbst läuft (Rekursion).
+  opencode eintragen, wo `bp-build` selbst läuft (Rekursion).

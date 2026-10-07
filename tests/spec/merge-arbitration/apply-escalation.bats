@@ -3,10 +3,10 @@ setup() {
   TMPDIR=$(mktemp -d)
   cd "$TMPDIR" || exit
   git init --initial-branch main && git config user.email test@test && git config user.name test
-  mkdir -p components/website/src/lib scripts/factory k3d
+  mkdir -p components/website/src/lib scripts/arbitration k3d
   echo 'base' > components/website/src/lib/x.ts
   echo 'base: true' > k3d/foo.yaml
-  printf 'k3d/\nprod\n' > scripts/factory/shared-state-paths.txt
+  printf 'k3d/\nprod\n' > scripts/arbitration/shared-state-paths.txt
   git add -A && git commit -m 'base'
   git checkout -b pr1 && echo 'change1' > components/website/src/lib/x.ts && echo 'change1: true' > k3d/foo.yaml && git commit -am 'pr1 change'
   git checkout main && git checkout -b pr2 && echo 'change2' > components/website/src/lib/x.ts && echo 'change2: true' > k3d/foo.yaml && git commit -am 'pr2 change'
@@ -74,7 +74,7 @@ JS
   # --- Fall 1: Risiko-Pfad k3d/foo.yaml -> Eskalation trotz confidence 0.99 ---
   CLUSTER_K3D="$(cluster_for "k3d/foo.yaml" 101 102 103)"
   run env PATH="$PATH_STUB:$PATH" GH_AXI=gh-axi TICKET_SH="$PATH_STUB/ticket-sh-stub" \
-    SYNTHESIZE="$TMPDIR/synthesize-stub.mjs" SHARED_STATE="$TMPDIR/scripts/factory/shared-state-paths.txt" \
+    SYNTHESIZE="$TMPDIR/synthesize-stub.mjs" SHARED_STATE="$TMPDIR/scripts/arbitration/shared-state-paths.txt" \
     bash "$APPLY" <<< "$CLUSTER_K3D"
   echo "output(k3d)=$output"
   [ "$status" -eq 0 ]
@@ -88,7 +88,7 @@ JS
   # --- Positiv-Anker: components/website/src/lib/x.ts ist NICHT auf der Risiko-Liste -> PR ---
   CLUSTER_WEB="$(cluster_for "components/website/src/lib/x.ts" 201 202 203)"
   run env PATH="$PATH_STUB:$PATH" GH_AXI=gh-axi TICKET_SH="$PATH_STUB/ticket-sh-stub" \
-    SYNTHESIZE="$TMPDIR/synthesize-stub.mjs" SHARED_STATE="$TMPDIR/scripts/factory/shared-state-paths.txt" \
+    SYNTHESIZE="$TMPDIR/synthesize-stub.mjs" SHARED_STATE="$TMPDIR/scripts/arbitration/shared-state-paths.txt" \
     bash "$APPLY" <<< "$CLUSTER_WEB"
   echo "output(website)=$output"
   [ "$status" -eq 0 ]

@@ -2,18 +2,16 @@
 # plan-touched-files.sh — leitet die beruehrten Dateien aus dem `## File Structure`-Block
 # eines Implementierungsplans ab und schreibt sie zeilenweise auf stdout.
 #
-# Warum: `touched_files` speist die Kollisionspruefung in scripts/factory/conflict-check.sh.
+# Warum: `touched_files` speist den Scope-Check in scripts/pr-scope-check.sh.
 # Gesetzt wurde die Spalte bisher erst in dev-flow-execute Schritt 1.5, und dort konditional
 # ("Falls der Plan die beruehrten Dateien kennt"). Der Plan kennt sie immer — `## File Structure`
 # ist plan-lint Hard Rule STRUCT1. Die Information lag also beim Stagen bereits zwingend vor,
 # haing aber an einem Prosa-Satz in einer Anleitung statt an Code. [T002446]
 #
-# Drei Formate sind im Bestand (33 Plaene unter openspec/changes/ ausgezaehlt):
 #   1. Code-Fence mit NEW:/CHANGED:-Gruppenkoepfen   (23)
 #   2. Bullet-Liste mit Backtick-Pfaden               (~7)
 #   3. Markdown-Tabelle mit Backtick-Pfaden           (~3)
 #
-# Nicht jeder Eintrag ist ein Repo-Pfad: openspec/changes/fix-arena-db-url-secrets fuehrt unter
 # dieser Ueberschrift `deployment/arena-server in namespace workspace-korczewski` — eine
 # Cluster-Ressource. Deshalb wird gefiltert statt blind uebernommen.
 #
@@ -61,10 +59,8 @@ candidates="$(
 )"
 
 # Filtern. Die drei Regeln entstanden am realen Bestand, nicht am Reissbrett — ein Lauf gegen
-# die 33 Plaene unter openspec/changes/ foerderte zutage, was Fixtures nicht hergeben:
 #   - blosse Extension-Tokens (`.sh`, `.md`) aus S1-Budget-Tabellen im selben Abschnitt,
 #   - Basenames aus Prosa (`queue.sh`, `factory.service`) ohne Verzeichnisanteil,
-#   - Fragmente echter Pfade (`specs/database.md` statt `openspec/specs/database.md`).
 # Deshalb reicht "hat eine Extension" nicht: ein neuer Pfad muss zusaetzlich einen
 # Verzeichnisanteil haben, dessen erster Bestandteil im Repo existiert.
 declare -A seen=()

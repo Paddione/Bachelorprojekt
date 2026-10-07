@@ -34,7 +34,7 @@ _apply_plan_frontmatter_completed() {  # <base_dir>
 # behauptet dann keinen Zustand).
 _plan_frontmatter_state() {  # <slug> <repo_dir>
   local slug="$1" repo="$2" f
-  f="$repo/openspec/changes/$slug/tasks.md"
+  f="$repo/.agents/plans/$slug/tasks.md"
   [[ -s "$f" ]] || return 1
   if grep -qE "^status: ${_PLAN_STATUS_ACTIVE_ALT}([[:space:]]|\$)" "$f"; then
     echo "stale"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-isolation/llm-up-health.bats
-# SSOT: openspec/changes/dev-up-llm-proxy/tasks.md (T002656)
+
 #
 # Acceptance tests for the sdlc:up chat-loadout start (scripts/sdlc/llm-up.sh)
 # and the extended health-gate probes (llm-proxy-readiness, llm-loadout).

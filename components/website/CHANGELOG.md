@@ -1,5 +1,145 @@
 # Changelog
 
+## [1.396.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.0...website-v1.396.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **security:** pocket-id-client-seed skip when secret unset [T901061] ([#6307](https://github.com/Paddione/Bachelorprojekt/issues/6307)) ([57d5cd5](https://github.com/Paddione/Bachelorprojekt/commit/57d5cd50e2635c52b8cf70991726728c7c0ab3c5))
+
+## [1.396.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.3...website-v1.396.0) (2026-10-07)
+
+
+### Features
+
+* **ops:** OpenClaw Ops-Bot [T900538] ([#6302](https://github.com/Paddione/Bachelorprojekt/issues/6302)) ([9e5a4d4](https://github.com/Paddione/Bachelorprojekt/commit/9e5a4d4e1dab7def19db9d061ce871745b99a85c))
+
+## [1.395.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.2...website-v1.395.3) (2026-10-07)
+
+
+### Bug Fixes
+
+* **security:** pocket-id-client-seed group lookup independent of field order [T900804] ([#6297](https://github.com/Paddione/Bachelorprojekt/issues/6297)) ([97c83d5](https://github.com/Paddione/Bachelorprojekt/commit/97c83d55ce3cebe222fb260f0798c8978866a1be))
+
+## [1.395.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.1...website-v1.395.2) (2026-10-04)
+
+
+### Bug Fixes
+
+* **netpol:** namespaceSelector workaround + DB schema cleanup (retention, duplicate indexes) ([#6274](https://github.com/Paddione/Bachelorprojekt/issues/6274)) ([b997ff3](https://github.com/Paddione/Bachelorprojekt/commit/b997ff3476593baad166a1c72dd4eb65c3c30346))
+
+## [1.395.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.0...website-v1.395.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* T002430 k3 health monitoring ([#6235](https://github.com/Paddione/Bachelorprojekt/issues/6235)) ([e7ee91a](https://github.com/Paddione/Bachelorprojekt/commit/e7ee91a8d907ea32d76148aaa8f504f33779b1fd))
+
+## [1.395.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.394.0...website-v1.395.0) (2026-10-04)
+
+
+### Features
+
+* **agents:** Qwen3.5-2B training set T900978 ([#6264](https://github.com/Paddione/Bachelorprojekt/issues/6264)) ([20b7550](https://github.com/Paddione/Bachelorprojekt/commit/20b75505dac0af48156caa7571fe73c0ddce63f4))
+
+## [1.394.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.393.0...website-v1.394.0) (2026-10-04)
+
+
+### Features
+
+* **scripts:** plan-runner loest Plan aus DB-Ref auf (T901015) ([#6258](https://github.com/Paddione/Bachelorprojekt/issues/6258)) ([0f40676](https://github.com/Paddione/Bachelorprojekt/commit/0f406765bad8f0a0e2be50be24564d7b59ccd628))
+
+## [1.393.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.392.0...website-v1.393.0) (2026-10-04)
+
+
+### Features
+
+* **plans:** spec-pipeline lifecycle receipt+delete T900999 ([#6253](https://github.com/Paddione/Bachelorprojekt/issues/6253)) ([b30a83b](https://github.com/Paddione/Bachelorprojekt/commit/b30a83b9e967756fdfa1c59f2db23114c053b649))
+
+## [1.392.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.391.0...website-v1.392.0) (2026-10-04)
+
+
+### Features
+
+* **T900993:** K3 symbol embed store with hybrid retrieval and graph rerank ([#6247](https://github.com/Paddione/Bachelorprojekt/issues/6247)) ([e454809](https://github.com/Paddione/Bachelorprojekt/commit/e454809a3aa4d4908765d9ce896811b0c791ba4c))
+
+## [1.391.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.390.0...website-v1.391.0) (2026-10-03)
+
+
+### Features
+
+* **infra:** pin bge-m3 embedding record + G2 retrieval spec [T900989] ([#6221](https://github.com/Paddione/Bachelorprojekt/issues/6221)) ([b621e21](https://github.com/Paddione/Bachelorprojekt/commit/b621e214910fdb977fe357dffa489f34046d449c))
+
+## [1.390.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.389.0...website-v1.390.0) (2026-10-03)
+
+
+### Features
+
+* **agents:** devflow-mcp — Kontext, Werkzeuge und Plan-Staging fuer Subagenten [T900985] ([#6216](https://github.com/Paddione/Bachelorprojekt/issues/6216)) ([6daa5ae](https://github.com/Paddione/Bachelorprojekt/commit/6daa5ae5e8fff24bfc89c5b7c33babb7f359de4a))
+
+## [1.389.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.388.1...website-v1.389.0) (2026-10-03)
+
+
+### Features
+
+* **agents:** Tool-Ebene der Toolset-Kette — Probe, tool_tiers, Tool-Drift [T900983] ([#6214](https://github.com/Paddione/Bachelorprojekt/issues/6214)) ([1238b28](https://github.com/Paddione/Bachelorprojekt/commit/1238b28c47efbb26d0c0de4ed446e2dfecf5ecb6))
+
+## [1.388.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.388.0...website-v1.388.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **agents:** bp-*-Rollen in der Toolset-Kette [T900980] ([#6210](https://github.com/Paddione/Bachelorprojekt/issues/6210)) ([1989d01](https://github.com/Paddione/Bachelorprojekt/commit/1989d01d4553078b551348c5d4bdb8fc73e744eb))
+
+## [1.388.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.387.0...website-v1.388.0) (2026-10-03)
+
+
+### Features
+
+* **ops:** Qwen3.5-4B instruction workers with per-request reasoning modes [T900930] ([#6203](https://github.com/Paddione/Bachelorprojekt/issues/6203)) ([8830b17](https://github.com/Paddione/Bachelorprojekt/commit/8830b1725329a8061e0031a8efcb0d5f183e4434))
+
+## [1.387.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.6...website-v1.387.0) (2026-10-02)
+
+
+### Features
+
+* **agents:** primary agents over OMO engine bp-build bp-run bp-ship [T900858] ([#6175](https://github.com/Paddione/Bachelorprojekt/issues/6175)) ([113fd2e](https://github.com/Paddione/Bachelorprojekt/commit/113fd2ed32cd58730dbe0fd14fb7c0263b0de1a2))
+
+## [1.386.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.5...website-v1.386.6) (2026-10-02)
+
+
+### Bug Fixes
+
+* **scripts:** Nightly-Vendor-Sync schreibt in eigenen Worktree und reicht einen PR ein [T900454] ([#6150](https://github.com/Paddione/Bachelorprojekt/issues/6150)) ([7889597](https://github.com/Paddione/Bachelorprojekt/commit/78895970916cc3c2efb5df4f6bd773216584a51e))
+
+## [1.386.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.4...website-v1.386.5) (2026-10-02)
+
+
+### Bug Fixes
+
+* **mcp:** mcp-sync check schwärzt Token in jedem Drift-Diff [T900839] ([#6146](https://github.com/Paddione/Bachelorprojekt/issues/6146)) ([2aeceb8](https://github.com/Paddione/Bachelorprojekt/commit/2aeceb848094b2c619056416833acfa705ea13b1))
+
+## [1.386.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.3...website-v1.386.4) (2026-10-02)
+
+
+### Bug Fixes
+
+* **ci:** health-goals schreibt per PR statt Direkt-Push auf main [T900810] ([#6140](https://github.com/Paddione/Bachelorprojekt/issues/6140)) ([93bd562](https://github.com/Paddione/Bachelorprojekt/commit/93bd562c1c50e7545b93a05a18a5425a6a20e5ec))
+
+## [1.386.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.2...website-v1.386.3) (2026-09-28)
+
+
+### Bug Fixes
+
+* **ci:** post-merge-e2e Checkout + gh-Repo-Kontext-Guard [T900810] ([#6132](https://github.com/Paddione/Bachelorprojekt/issues/6132)) ([9892472](https://github.com/Paddione/Bachelorprojekt/commit/9892472f5fd4754412f81e4bfaeea4e9897f7685))
+
+## [1.386.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.1...website-v1.386.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* svelte check zero T900809 ([#6126](https://github.com/Paddione/Bachelorprojekt/issues/6126)) ([2c32094](https://github.com/Paddione/Bachelorprojekt/commit/2c320949d884ca4747a2fa48e86cc42dec2b6a9f))
+
 ## [1.386.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.386.0...website-v1.386.1) (2026-09-28)
 
 

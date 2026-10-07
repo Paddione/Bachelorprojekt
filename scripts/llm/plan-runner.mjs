@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 // plan-runner.mjs — fuehrt die Partials eines gestagten Plans mit lokalen Modellen aus (T900504).
 //
-// Der Orchestrator (llama-server :1919, Qwen3.8-27B) steuert per Tool-Loop; Partials laufen als
-// `opencode run --agent plan-worker-4b` (4B-Worker, :1920) oder, wenn alle 4B-Slots belegt sind, als
-// Selbstaufruf `opencode run --agent plan-worker-self`. Waehrend des Selbstaufrufs vergibt der Scheduler freie
-// 4B-Slots selbst und meldet die Ergebnisse nach der Rueckkehr. Fortschritt:
+// Der Orchestrator (llama-server :1919, Qwen3.8-27B IQ3_XXS-mtp) steuert per Tool-Loop; Partials laufen als
+// `opencode run --agent plan-worker-qwen35` (4B-Worker Qwen3.5-4B-MTP, Windows-nativ :8080) oder, wenn alle
+// 4B-Slots belegt sind, als Selbstaufruf `opencode run --agent plan-worker-self`. Waehrend des
+// Selbstaufrufs vergibt der Scheduler freie 4B-Slots selbst und meldet die Ergebnisse nach der Rueckkehr. Fortschritt:
 // <plan-dir>/.plan-runner/state.json (atomar, Resume nach Abbruch; Plan-Heimat seit C7a:
-// .agents/plans/<slug>/, davor openspec/changes/<slug>/).
+// .agents/plans/<slug>/, davor .agents/plans/<slug>/).
 //
 // Aufruf:
 //   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N] [--max-turns N] [--timeout-min N]
+//   node scripts/llm/plan-runner.mjs --ticket <T-Id> [--worktree <pfad>] [--4b-slots N] ...  (Plan aus DB-Ref, T901015)
 // Env: PLAN_RUNNER_ORCH_URL (Default http://127.0.0.1:1919), PLAN_RUNNER_ORCH_MODEL (optional),
 //      PLAN_RUNNER_OPENCODE (ersetzt das opencode-Binary).
 // Exit: 0 alle Partials done · 1 mindestens eine failed bzw. Lauf abgebrochen · 2 Konfigurationsfehler.
@@ -21,10 +22,11 @@ import { execFileSync } from 'node:child_process';
 import {
   parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt,
 } from './plan-runner/plan.mjs';
-import { WorkerPool, killAllWorkers } from './plan-runner/workers.mjs';
+import { WorkerPool, decideTrack, killAllWorkers } from './plan-runner/workers.mjs';
 
-// Gemessen in p4: scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md.
-const DEFAULT_4B_SLOTS = 3; // = -np 3 in qwen35-mtp.service (T900504 p4)
+// 3 Slots des Windows-nativen Qwen3.5-4B-MTP-Pools (:8080, -np 3 -kvu -c 98304
+// seit 2026-10-03; davor -np 3 in qwen35-mtp.service auf :1920, T900504 p4).
+const DEFAULT_4B_SLOTS = 3;
 const IDLE_POLL_MS = 5000;
 const MAX_PROTOCOL_ERRORS = 3;
 const MAX_RETRIES = 2;
@@ -38,7 +40,7 @@ function fail(code, msg) {
 
 // ---------- CLI ----------
 function parseArgs(argv) {
-  const opts = { changeDir: null, worktree: null, slots4b: DEFAULT_4B_SLOTS, maxTurns: 200, timeoutMin: 120 };
+  const opts = { changeDir: null, worktree: null, ticket: null, slots4b: DEFAULT_4B_SLOTS, maxTurns: 200, timeoutMin: 120 };
   // --4b-slots 0 = nur Selbstausfuehrung (z. B. wenn die Partial den 4B-Server selbst umkonfiguriert).
   const num = (k, v, min = 1) => {
     const n = Number(v);
@@ -48,6 +50,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--worktree') opts.worktree = argv[++i];
+    else if (a === '--ticket') opts.ticket = argv[++i];
     else if (a === '--4b-slots') opts.slots4b = num('4b-slots', argv[++i], 0);
     else if (a === '--max-turns') opts.maxTurns = num('max-turns', argv[++i]);
     else if (a === '--timeout-min') opts.timeoutMin = num('timeout-min', argv[++i]);
@@ -55,10 +58,65 @@ function parseArgs(argv) {
     else if (!opts.changeDir) opts.changeDir = a;
     else fail(2, `unexpected argument ${a}`);
   }
-  if (!opts.changeDir) {
+  if (opts.ticket) {
+    if (opts.changeDir) fail(2, '--ticket cannot be combined with a positional <change-dir>; the plan dir is derived from the FACTORY-PLAN-REF');
+    resolveTicketRef(opts);
+  } else if (!opts.changeDir) {
     fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--4b-slots N] [--max-turns N] [--timeout-min N]');
   }
   return opts;
+}
+
+// ---------- Ticket-Ref-Aufloesung (T901015) ----------
+// Mit --ticket <T-Id> wird der Plan aus der DB gelesen statt von Disk:
+// `ticket.sh get` liefert plan_ref = "FACTORY-PLAN-REF branch=<b> plan=<pfad>",
+// der Branch wird per `git worktree list --porcelain` (Repo des CWD) einem
+// ausgecheckten Worktree zugeordnet, changeDir = <worktree>/<plan-dir>.
+// Fail-closed (exit 2, kein stiller Disk-Fallback), wenn Ref oder Worktree fehlen.
+// Test-Seam: PLAN_RUNNER_TICKET_JSON ersetzt den ticket.sh-Aufruf (BATS).
+function resolveTicketRef(opts) {
+  const scriptDir = new URL('.', import.meta.url).pathname;
+  const repoRoot = resolve(scriptDir, '..', '..');
+  let raw;
+  if (process.env.PLAN_RUNNER_TICKET_JSON) {
+    raw = process.env.PLAN_RUNNER_TICKET_JSON;
+  } else {
+    try {
+      raw = execFileSync('bash', [join(repoRoot, 'scripts', 'ticket.sh'), 'get', '--id', opts.ticket], { encoding: 'utf8' });
+    } catch (e) {
+      fail(2, `--ticket ${opts.ticket}: ticket.sh get failed (${(e.message || e).toString().split('\n')[0]})`);
+    }
+  }
+  let planRef = null;
+  try {
+    const row = JSON.parse(raw);
+    const body = typeof row === 'object' && row !== null ? row.plan_ref : null;
+    const m = typeof body === 'string' ? body.match(/FACTORY-PLAN-REF\s+branch=(\S+)\s+plan=(\S+)/) : null;
+    if (m) planRef = { branch: m[1], plan: m[2] };
+  } catch {
+    // kein valides JSON -> planRef bleibt null -> fail unten
+  }
+  if (!planRef) fail(2, `--ticket ${opts.ticket}: no FACTORY-PLAN-REF comment on ticket (stage the plan first)`);
+  let worktree = opts.worktree;
+  if (!worktree) {
+    let list;
+    try {
+      list = execFileSync('git', ['worktree', 'list', '--porcelain'], { encoding: 'utf8' });
+    } catch {
+      fail(2, `--ticket ${opts.ticket}: 'git worktree list' failed; run inside the repo or pass --worktree`);
+    }
+    let cur = null;
+    for (const line of list.split('\n')) {
+      let m = line.match(/^worktree\s+(\S.*)$/);
+      if (m) { cur = m[1].trim(); continue; }
+      m = line.match(/^branch\s+refs\/heads\/(\S.*)$/);
+      if (m && cur && m[1].trim() === planRef.branch) { worktree = cur; break; }
+    }
+    if (!worktree) fail(2, `--ticket ${opts.ticket}: branch '${planRef.branch}' is not checked out in any worktree (git worktree list)`);
+  }
+  const planDir = planRef.plan.endsWith('/tasks.md') ? planRef.plan.slice(0, -'/tasks.md'.length) : planRef.plan;
+  opts.changeDir = join(worktree, planDir);
+  opts.worktree = worktree;
 }
 
 function loadPlan(opts) {
@@ -97,7 +155,7 @@ function loadPlan(opts) {
 }
 
 // ---------- Orchestrator-Protokoll ----------
-const SYSTEM = `You are the orchestrator of a plan runner. You execute an OpenSpec plan that is split into partials.
+const SYSTEM = `You are the orchestrator of a plan runner. You execute an staged plan that is split into partials.
 Each partial is implemented by a worker: a small 4B model (dispatch_4b) or, only when every 4B slot is busy, yourself (execute_self).
 Rules:
 - Prefer the 4B workers. Call execute_self ONLY when plan_status shows free4b = 0 and a partial is ready.
@@ -202,14 +260,16 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
     dispatch_4b: ({ partial_id: id, prompt = '' }) => {
       const err = requireReady(id);
       if (err) return err;
-      if (pool.free4b() <= 0) return `BUSY: no free 4B slot (running: ${pool.running4b().join(',')})`;
+      // Worker-Track: Dispatch-Policy (T901014 P1) — ein 4B-Dispatch braucht 'worker'.
+      if (decideTrack({ ready: ready(), freeSlots: pool.free4b() }) !== 'worker') return `BUSY: no free 4B slot (running: ${pool.running4b().join(',')})`;
       start4b(id, String(prompt));
       return `STARTED ${id}`;
     },
 
     execute_self: async ({ partial_id: id, prompt = '', plan_notes: notes = '' }) => {
       if (!byId[id]) return `ERROR: unknown partial ${id}`;
-      if (pool.free4b() > 0) {
+      // Self-Track: nur wenn die Dispatch-Policy 'self' liefert (kein freier Slot, Partial bereit).
+      if (decideTrack({ ready: ready(), freeSlots: pool.free4b() }) === 'worker') {
         return `ERROR: ${pool.free4b()} 4B slot(s) free - use dispatch_4b. execute_self is only allowed when all 4B slots are busy.`;
       }
       const err = requireReady(id);

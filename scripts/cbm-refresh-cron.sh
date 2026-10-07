@@ -22,6 +22,11 @@
 
 set -euo pipefail
 
+# Cron-PATH ist minimal (/usr/bin:/bin); das Tool liegt in ~/.local/bin.
+# Ohne das meldet cbm-freshness.py dauerhaft "tool-missing" (fatal) und der
+# Hourly-Refresh wird nie ausgefuehrt. Export vererbt sich an Helper + Wrapper.
+export PATH="$HOME/.local/bin:$PATH"
+
 DRY_RUN=false
 REPO_ARG=""
 PROJECT="${CBM_PROJECT:-home-patrick-Bachelorprojekt}"
@@ -159,6 +164,21 @@ print(json.dumps(d,ensure_ascii=False,sort_keys=True))
     exit 1
   fi
   log "Refresh complete in ${duration_s}s"
+  # A4 (T900993): K3 symbol embed-sync hook — best-effort, never fails the cron.
+  # Default target is the in-repo sync CLI; CBM_EMBED_SYNC overrides it (test seam).
+  # stdout stays a single JSON line: sync output goes to stderr via the log path.
+  EMBED_SYNC="${CBM_EMBED_SYNC:-$HERE/mcp/cbm-embed-sync.py}"
+  if [ -f "$EMBED_SYNC" ]; then
+    set +e
+    python3 "$EMBED_SYNC" sync --repo "$REPO" --project "$PROJECT" --timeout "$TIMEOUT" 1>&2 2>&2
+    SYNC_EXIT=$?
+    set -e
+    if [ "$SYNC_EXIT" -ne 0 ]; then
+      log "WARNING: embed-sync failed (exit $SYNC_EXIT), refresh stays valid"
+    else
+      log "Embed sync complete"
+    fi
+  fi
   python3 -c '
 import json,os,sys
 raw=os.environ.get("STATUS_JSON_JSON","{}")

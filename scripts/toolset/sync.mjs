@@ -7,25 +7,14 @@ import { loadRegistry } from './lib/registry.mjs';
 import { validateHarnesses, resolveToolset } from './lib/resolve.mjs';
 import { ADAPTERS } from './lib/adapters/index.mjs';
 import { readClaudeCodeConfig } from './lib/harness.mjs';
+import { ROLES } from './lib/roles.mjs';
+import { defaultLockPath, loadLock, denyRulesForRegistry } from './lib/tools.mjs';
 
 const registryPath = process.env.TOOLSET_REGISTRY || path.join(process.cwd(), 'docs', 'agent-guide', 'registry', 'capabilities.yaml');
 const outDir = process.env.TOOLSET_OUT_DIR || process.cwd();
 
-// Rollen-Vokabular, bewusst aus check.mjs dupliziert (dort liegt der SSOT-Kommentar zur
-// Doppelung mit scripts/plan-context.sh). sync.mjs braucht es für validateHarnesses, kann
-// es aber nicht aus check.mjs importieren, weil dessen Top-Level-Code das Gate ausführt.
-const VALID_ROLES = new Set([
-  'bachelorprojekt-website',
-  'bachelorprojekt-ops',
-  'bachelorprojekt-infra',
-  'bachelorprojekt-test',
-  'bachelorprojekt-db',
-  'bachelorprojekt-security',
-  'orchestrator',
-  'big-pickle',
-  'pi',
-  'all',
-]);
+// Rollen-Vokabular für validateHarnesses — SSOT lib/roles.mjs (T900980).
+const VALID_ROLES = new Set(ROLES);
 
 const args = process.argv.slice(2);
 let dryRun = false;
@@ -72,6 +61,7 @@ for (const instances of Object.values(registry.capabilities)) {
 
 const claudeCfg = readClaudeCodeConfig(outDir);
 const projectMcp = new Set(Object.keys(claudeCfg.mcp.mcpServers ?? {}));
+const denyRules = denyRulesForRegistry(registry, loadLock(defaultLockPath(registryPath)));
 
 function unifiedDiff(before, after, filePath) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'toolset-dry-run-'));
@@ -97,7 +87,7 @@ for (const [name, adapter] of Object.entries(ADAPTERS)) {
   }
   const toolset = harness ? resolveToolset(registry.capabilities, harness) : legacyToolset;
   const ctx = name === 'claude'
-    ? { toolset, registryMcp, suppressedMcp, projectMcp }
+    ? { toolset, registryMcp, suppressedMcp, projectMcp, denyRules }
     : { toolset, registryMcp };
   const current = fs.readFileSync(targetPath, 'utf8');
   const rendered = adapter.render(current, ctx);

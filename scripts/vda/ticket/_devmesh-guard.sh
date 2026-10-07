@@ -57,7 +57,7 @@ devmesh_refuse_write() {
   local ctx="${1:-}"
   devmesh_ctx_is_target "$ctx" || return 0
   echo "ERROR [T900118] Ticket-Write gegen devmesh verweigert (Context '$ctx') — fuehrende Ticket-DB ist fleet." >&2
-  echo "  devmesh traegt nur Entwicklungsdaten. Writes mit TICKET_CTX=fleet bzw. FACTORY_CTX=fleet ausfuehren." >&2
+  echo "  devmesh traegt nur Entwicklungsdaten. Writes mit TICKET_CTX=fleet bzw. WORKSPACE_CTX=fleet ausfuehren." >&2
   return 3
 }
 

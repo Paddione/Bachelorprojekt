@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/newsletter-system.bats
-# SSOT: openspec/specs/newsletter-system.md
+# Target: components/website/src/lib/newsletter-db.ts
 
 @test "newsletter-system spec covered" {
   run true

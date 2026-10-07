@@ -21,9 +21,9 @@ describe('WhyMe.svelte', () => {
     const { getByText, container } = render(WhyMe, { props: baseProps });
     // Headline is rendered as the eyebrow inside the section.
     expect(getByText('Warum ich?')).toBeTruthy();
-    // h2 with set:html may not hydrate textContent in jsdom, but it is in the DOM.
+    // T900809: frueher stand hier Astros set:html, das Svelte als Attribut rendert (leere h2).
     const h2 = container.querySelector('#why-heading');
-    expect(h2).toBeTruthy();
+    expect(h2?.textContent).toContain('40 Jahre etablierte Strukturen');
     const points = container.querySelectorAll('.point');
     expect(points).toHaveLength(3);
   });

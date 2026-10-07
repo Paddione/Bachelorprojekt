@@ -19,9 +19,6 @@ concurrency:
   group: build-sdlc-console-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  OPENSPEC_TELEMETRY: '0'
-
 jobs:
   build-image:
     name: Build SDLC Console Image

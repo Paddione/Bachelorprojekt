@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/llm-local-dev/glimmer-worker-mcp.bats — T900373
-# SSOT: openspec/specs/llm-local-dev.md
 #   Requirement: Glimmer Worker MCP for Muse Code
 #   Requirement: Windows Paths Are Accepted by the Glimmer Worker
 #   Requirement: The Glimmer Worker Is Registered Only in Muse Code
@@ -80,7 +79,7 @@ call() {
   [ "$(jq -r '[.tools[].name] | sort | join(",")' <<<"$output")" = "glimmer_worker_result,glimmer_worker_start,glimmer_worker_status" ]
 }
 
-@test "a job runs glimmer-primary in the repo and reports the diff" {
+@test "a job runs bp-build in the repo and reports the diff" {
   run call glimmer_worker_start "$(jq -cn --arg c "$T_DIR/repo" '{task:"fix it",cwd:$c}')"
   [ "$(jq -r '.isError // false' <<<"$output")" = "false" ]
   local job; job="$(jq -r '.content[0].text | fromjson | .job_id' <<<"$output")"
@@ -94,7 +93,7 @@ call() {
   grep -q 'worker done' <<<"$(jq -r .summary <<<"$res")"
 
   grep -qx -e '--agent' "$T_DIR/argv"
-  grep -qx 'glimmer-primary' "$T_DIR/argv"
+  grep -qx 'bp-build' "$T_DIR/argv"
   ! grep -qx -e '--dir' "$T_DIR/argv"
   [ "$(cat "$T_DIR/cwd")" = "$T_DIR/repo" ]
 }
@@ -155,7 +154,7 @@ call() {
 
 @test "the MCP registry does not list the worker" {
   # Positiv-Anker: die Registry ist lesbar und enthaelt überhaupt MCP-Server.
-  # (Bis T900399 stand hier `factory-mcp`; der Server ist mit der Software-Factory
+  # (Bis T900399 stand hier der HTTP-MCP-Server; er ist mit T900399
   # entfallen, der Anker muss an einem verbleibenden Server haengen.)
   grep -q 'mcp-kubernetes' "$REPO/docs/agent-guide/registry/mcp.yaml"
   [ -z "$(grep -F 'glimmer-worker' "$REPO/docs/agent-guide/registry/mcp.yaml" || true)" ]

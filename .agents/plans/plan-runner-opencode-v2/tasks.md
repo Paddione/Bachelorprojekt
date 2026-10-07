@@ -33,11 +33,11 @@ Budgets geprüft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_bu
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-runner.md | impl | scripts/llm/plan-runner/workers.mjs | | 4b-local | 8000 |
-| p2 | tasks.d/p2-callers.md | impl | scripts/glimmer-worker-mcp/server.mjs, scripts/llm/agent-bench/lib/roles/code-worker.mjs | | 4b-local | 8000 |
-| p3 | tasks.d/p3-tests.md | tests | tests/spec/llm-local-dev/plan-runner.bats, tests/spec/llm-local-dev/fixtures/plan-runner-fake-opencode.sh | p1, p2 | 4b-local | 6000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-runner.md | impl | scripts/llm/plan-runner/workers.mjs | |
+| p2 | tasks.d/p2-callers.md | impl | scripts/glimmer-worker-mcp/server.mjs, scripts/llm/agent-bench/lib/roles/code-worker.mjs | |
+| p3 | tasks.d/p3-tests.md | tests | tests/spec/llm-local-dev/plan-runner.bats, tests/spec/llm-local-dev/fixtures/plan-runner-fake-opencode.sh | p1, p2 |
 
 ## Task: Failing Test bestätigen
 

@@ -9,8 +9,15 @@ const COLLECTION_SOURCE = 'specs_plans';
 
 function findMarkdownFiles() {
   const files = [];
+  // Flat *.md per dir — mirrors the k1-embed-job selective trigger
+  // (.agents/plans/*.md|docs/adr/*.md|docs/runbooks/*.md). docs/brain is
+  // flat (no subdirs as of 2026-10-04); keep flat here so the script and
+  // the job trigger can never drift apart silently.
   const flatDirs = [
     join(REPO_ROOT, 'docs/superpowers/specs'),
+    join(REPO_ROOT, 'docs/adr'),
+    join(REPO_ROOT, 'docs/runbooks'),
+    join(REPO_ROOT, 'docs/brain'),
   ];
   for (const dir of flatDirs) {
     try {
@@ -19,17 +26,17 @@ function findMarkdownFiles() {
       }
     } catch { /* dir may not exist yet */ }
   }
-  // openspec/changes/<slug>/{proposal.md,tasks.md} — recursive, exclude archive/
-  const changesDir = join(REPO_ROOT, 'openspec/changes');
+  // Staged plans are part of the searchable planning corpus.
+  const plansDir = join(REPO_ROOT, '.agents/plans');
   try {
-    for (const entry of readdirSync(changesDir, { withFileTypes: true })) {
-      if (!entry.isDirectory() || entry.name === 'archive') continue;
-      const slugDir = join(changesDir, entry.name);
-      for (const f of readdirSync(slugDir)) {
-        if (f.endsWith('.md')) files.push(join(slugDir, f));
+    for (const entry of readdirSync(plansDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const planDir = join(plansDir, entry.name);
+      for (const f of readdirSync(planDir)) {
+        if (f.endsWith('.md')) files.push(join(planDir, f));
       }
     }
-  } catch { /* dir may not exist yet */ }
+  } catch { /* plans may not exist yet */ }
   // Always include CLAUDE.md at repo root
   files.push(join(REPO_ROOT, 'CLAUDE.md'));
   return files;
@@ -65,7 +72,7 @@ async function main() {
     const collectionId = await ensureCollection(pool, {
       name: COLLECTION_NAME,
       source: COLLECTION_SOURCE,
-      description: 'Specs, plans, and CLAUDE.md from the repository',
+      description: 'Specs, plans, ADRs, runbooks, brain notes, and CLAUDE.md from the repository',
     });
 
     const files = findMarkdownFiles();

@@ -164,10 +164,11 @@ AskUserQuestion({
             "question": "Which GPU hardware do you want to use?",
             "header": "Hardware Flavor",
             "options": [
-                {"label": "t4-small ($0.40/hr)", "description": "1x T4, 16 GB VRAM — sufficient for all OD models under 100M params"},
-                {"label": "l4x1 ($0.80/hr)", "description": "1x L4, 24 GB VRAM — more headroom for large images or batch sizes"},
-                {"label": "a10g-large ($1.50/hr)", "description": "1x A10G, 24 GB VRAM — faster training, more CPU/RAM"},
-                {"label": "a100-large ($2.50/hr)", "description": "1x A100, 80 GB VRAM — fastest, for very large datasets or image sizes"}
+                {"label": "t4-small (~$0.50/hr)", "description": "1x T4, 16 GB VRAM — sufficient for all OD models under 100M params"},
+                {"label": "l4x1 (~$0.80/hr)", "description": "1x L4, 24 GB VRAM — more headroom for large images or batch sizes"},
+                {"label": "a10g-large (~$1.50/hr)", "description": "1x A10G, 24 GB VRAM — faster training, more CPU/RAM"},
+                {"label": "l40s (~$6/hr)", "description": "1x L40S, 48 GB VRAM — ideal for SAM2-large or very large datasets"},
+                {"label": "a100-large (~$8/hr)", "description": "1x A100, 80 GB VRAM — fastest, for the largest datasets or image sizes"}
             ],
             "multiSelect": false
         }
@@ -358,7 +359,7 @@ Start with `facebook/sam2.1-hiera-small` for fast iteration. SAM2 models are gen
 
 ### Hardware recommendation
 
-All recommended OD and IC models are under 100M params — **`t4-small` (16 GB VRAM, $0.40/hr) is sufficient for all of them.** Image classification models are generally smaller and faster than object detection models — `t4-small` handles even ViT-Base comfortably. For SAM2 models up to `hiera-base-plus`, `t4-small` is sufficient since only the mask decoder is trained. For `sam2.1-hiera-large` or SAM v1 models, use `l4x1` or `a10g-large`. Only upgrade if you hit OOM from large batch sizes — reduce batch size first before switching hardware. Common upgrade path: `t4-small` → `l4x1` ($0.80/hr, 24 GB) → `a10g-large` ($1.50/hr, 24 GB).
+All recommended OD and IC models are under 100M params — **`t4-small` (16 GB VRAM, $0.40/hr) is sufficient for all of them.** Image classification models are generally smaller and faster than object detection models — `t4-small` handles even ViT-Base comfortably. For SAM2 models up to `hiera-base-plus`, `t4-small` is sufficient since only the mask decoder is trained. For `sam2.1-hiera-large` or SAM v1 models, use `l4x1` or `a10g-large`. Only upgrade if you hit OOM from large batch sizes — reduce batch size first before switching hardware. Common upgrade path: `t4-small` → `l4x1` (~$0.80/hr, 24 GB) → `a10g-large` (~$1.50/hr, 24 GB) → `l40s` (~$6/hr, 48 GB).
 
 For full hardware flavor list: refer to the `hugging-face-jobs` skill. For cost estimation: run `scripts/estimate_cost.py`.
 
@@ -540,7 +541,7 @@ api.get_job(job_id="your-job-id")                # Job details
 ## Common failure modes
 
 ### OOM (CUDA out of memory)
-Reduce `per_device_train_batch_size` (try 4, then 2), reduce `IMAGE_SIZE`, or upgrade hardware.
+Reduce `per_device_train_batch_size` (try 4, then 2), reduce `IMAGE_SIZE`, or upgrade hardware (`t4-small` → `l4x1` → `a10g-large` → `l40s` → `a100-large`).
 
 ### Dataset format errors
 Run `scripts/dataset_inspector.py` first. The training script auto-detects xyxy vs xywh, converts string categories to integer IDs, and adds `image_id` if missing. Ensure `objects.bbox` contains 4-value coordinate lists in absolute pixels and `objects.category` contains either integer IDs or string labels.

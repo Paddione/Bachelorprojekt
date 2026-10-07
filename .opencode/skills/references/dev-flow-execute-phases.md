@@ -327,15 +327,9 @@ Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Re
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 ```
 
-## Schritt 7: Plan & OpenSpec archivieren
+## Schritt 7: Plan archivieren
 
-> Läuft über `devflow-post-merge-finalize.sh` (Schritte 7–8 der Skript-Kette). Referenz:
-
-Zwei Schritte: (1) `tasks.md` nach postgres (`ticket-mcp` `archive_plan` bzw. `ticket.sh archive-plan`),
-(2) der Plan-Ordner `.agents/plans/<slug>/` wird per PR gelöscht — inkl.
-Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständige Mechanik:
-[plan-archive-steps](.agents/skills/references/plan-archive-steps.md).
-
+`devflow-post-merge-finalize.sh` archiviert den Plan in `tickets.ticket_plans` vor dem Branch-Cleanup. Details: [plan-archive-steps](plan-archive-steps.md).
 
 ## Schritt 7.5: Worktree & Branch bereinigen
 
@@ -344,8 +338,6 @@ Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständig
 > **Reihenfolge (T004612):** Dieser Schritt läuft NACH Schritt 7 (Archiv) — der Fix-PR-Merge
 > (Schritt 5) löscht den Branch bewusst NICHT mehr (`--delete-branch` entfernt,
 > `delete_branch_on_merge=false`), damit die Archivierung ihn noch vorfindet.
-> Der Archiv-Branch (`chore/plan-archive-*`) ist davon unberührt — sein eigener Merge behält
-> sein `--delete-branch` (plan-archive-steps).
 
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
 Claims freigeben VOR dem Worktree-Remove ([session-coordination](.agents/skills/references/session-coordination.md)), dann:
@@ -364,7 +356,7 @@ git push origin --delete "<branch>"   # remote: der Merge löscht nicht mehr (T0
   Neue `@test`-Einträge gehören in `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name).
   Reihenfolge:
   1. **Feature-Slug ermitteln:** Welcher Slug beschreibt das zu testende Verhalten? (Ticket-Titel, kein Spec-Verzeichnis mehr seit C7a.)
-  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<feature-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/software-factory/`).
+  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<feature-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/ticket-system.bats`).
   3. **Fallback:** Für übergreifende Tests ohne Feature-Zuordnung → passende Datei in `tests/unit/` erweitern.
   ```bash
   # Bestehende Slugs prüfen:

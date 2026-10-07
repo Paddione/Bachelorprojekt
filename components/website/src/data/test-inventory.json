@@ -318,18 +318,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:fa-factory-floor",
-    "file": "tests/e2e/specs/fa-factory-floor.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:fa-factory-injection",
-    "file": "tests/e2e/specs/fa-factory-injection.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:fa-ios-talk",
     "file": "tests/e2e/specs/fa-ios-talk.spec.ts",
     "category": "E2E",
@@ -350,12 +338,6 @@
   {
     "id": "E2E:fa-meeting-history",
     "file": "tests/e2e/specs/fa-meeting-history.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:fa-mobile-factory",
-    "file": "tests/e2e/specs/fa-mobile-factory.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },
@@ -894,12 +876,6 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-49",
-    "file": "tests/e2e/specs/fa-49-factory-observability.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-50",
     "file": "tests/e2e/specs/fa-50-request-correlation.spec.ts",
     "category": "FA",
@@ -966,18 +942,6 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-AR-01",
-    "file": "tests/local/FA-AR-01-filter-diff.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-AR-02",
-    "file": "tests/local/FA-AR-02-classify-risk.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
     "id": "HWS-1",
     "file": "tests/spec/harness-workflow-split.bats",
     "category": "HWS",
@@ -997,12 +961,6 @@
   },
   {
     "id": "HWS-12",
-    "file": "tests/spec/harness-workflow-split.bats",
-    "category": "HWS",
-    "kind": "shell"
-  },
-  {
-    "id": "HWS-13",
     "file": "tests/spec/harness-workflow-split.bats",
     "category": "HWS",
     "kind": "shell"
@@ -1033,18 +991,6 @@
   },
   {
     "id": "HWS-5",
-    "file": "tests/spec/harness-workflow-split.bats",
-    "category": "HWS",
-    "kind": "shell"
-  },
-  {
-    "id": "HWS-6",
-    "file": "tests/spec/harness-workflow-split.bats",
-    "category": "HWS",
-    "kind": "shell"
-  },
-  {
-    "id": "HWS-7",
     "file": "tests/spec/harness-workflow-split.bats",
     "category": "HWS",
     "kind": "shell"
@@ -1190,18 +1136,6 @@
   {
     "id": "MCP-TASK-RUNNER-004",
     "file": "tests/spec/mcp-task-runner.bats",
-    "category": "MCP",
-    "kind": "shell"
-  },
-  {
-    "id": "MCP-TASK-RUNNER-SPEC-001",
-    "file": "tests/spec/mcp-task-runner/spec-doc-covers-7-tools.bats",
-    "category": "MCP",
-    "kind": "shell"
-  },
-  {
-    "id": "MCP-TASK-RUNNER-SPEC-002",
-    "file": "tests/spec/mcp-task-runner/spec-doc-covers-7-tools.bats",
     "category": "MCP",
     "kind": "shell"
   },
@@ -1656,12 +1590,6 @@
     "kind": "shell"
   },
   {
-    "id": "T008015-6",
-    "file": "tests/spec/openspec-workflow/status-map-fail-closed-guard.bats",
-    "category": "T008015",
-    "kind": "shell"
-  },
-  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",
@@ -1920,6 +1848,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-lock-reclaim/pid-dead-worktree-match-T002849",
+    "file": "tests/spec/agent-lock-reclaim/pid-dead-worktree-match-T002849.bats",
+    "category": "agent-lock-reclaim",
+    "kind": "shell"
+  },
+  {
     "id": "agent-lock-session-identity",
     "file": "tests/spec/agent-lock-session-identity.bats",
     "category": "agent-lock-session-identity",
@@ -1940,12 +1874,6 @@
   {
     "id": "agent-skills/agent-lock-claim-help-flag",
     "file": "tests/spec/agent-skills/agent-lock-claim-help-flag.bats",
-    "category": "agent-skills",
-    "kind": "shell"
-  },
-  {
-    "id": "agent-skills/archive-stage-new-ssot",
-    "file": "tests/spec/agent-skills/archive-stage-new-ssot.bats",
     "category": "agent-skills",
     "kind": "shell"
   },
@@ -1998,12 +1926,6 @@
     "kind": "shell"
   },
   {
-    "id": "agent-skills/finalize-archive-state",
-    "file": "tests/spec/agent-skills/finalize-archive-state.bats",
-    "category": "agent-skills",
-    "kind": "shell"
-  },
-  {
     "id": "agent-skills/finalize-hardening",
     "file": "tests/spec/agent-skills/finalize-hardening.bats",
     "category": "agent-skills",
@@ -2046,6 +1968,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/nightly-vendor-sync",
+    "file": "tests/spec/agent-skills/nightly-vendor-sync.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/plugin-activation",
     "file": "tests/spec/agent-skills/plugin-activation.bats",
     "category": "agent-skills",
@@ -2054,12 +1982,6 @@
   {
     "id": "agent-skills/portable-inventory",
     "file": "tests/spec/agent-skills/portable-inventory.bats",
-    "category": "agent-skills",
-    "kind": "shell"
-  },
-  {
-    "id": "agent-skills/post-merge-finalize-create-new",
-    "file": "tests/spec/agent-skills/post-merge-finalize-create-new.bats",
     "category": "agent-skills",
     "kind": "shell"
   },
@@ -2154,12 +2076,6 @@
     "kind": "shell"
   },
   {
-    "id": "agent-visual-decision",
-    "file": "tests/spec/agent-visual-decision.bats",
-    "category": "agent-visual-decision",
-    "kind": "shell"
-  },
-  {
     "id": "agentic-tooling-quality-goals",
     "file": "tests/spec/agentic-tooling-quality-goals.bats",
     "category": "agentic-tooling-quality-goals",
@@ -2226,12 +2142,6 @@
     "kind": "shell"
   },
   {
-    "id": "archive",
-    "file": "tests/spec/archive.bats",
-    "category": "archive",
-    "kind": "shell"
-  },
-  {
     "id": "art-library-webapp",
     "file": "tests/spec/art-library-webapp.bats",
     "category": "art-library-webapp",
@@ -2286,12 +2196,6 @@
     "kind": "shell"
   },
   {
-    "id": "batch-openspec-embed-fixes",
-    "file": "tests/spec/batch-openspec-embed-fixes.bats",
-    "category": "batch-openspec-embed-fixes",
-    "kind": "shell"
-  },
-  {
     "id": "batch-repo-hygiene-ops-fixes",
     "file": "tests/spec/batch-repo-hygiene-ops-fixes.bats",
     "category": "batch-repo-hygiene-ops-fixes",
@@ -2324,12 +2228,6 @@
   {
     "id": "batch-worktree-guard-tooling-fixes/deploy-route-sdlc-exclusion",
     "file": "tests/spec/batch-worktree-guard-tooling-fixes/deploy-route-sdlc-exclusion.bats",
-    "category": "batch-worktree-guard-tooling-fixes",
-    "kind": "shell"
-  },
-  {
-    "id": "batch-worktree-guard-tooling-fixes/embed-connect-timeout",
-    "file": "tests/spec/batch-worktree-guard-tooling-fixes/embed-connect-timeout.bats",
     "category": "batch-worktree-guard-tooling-fixes",
     "kind": "shell"
   },
@@ -2409,6 +2307,60 @@
     "id": "brett",
     "file": "tests/spec/brett.bats",
     "category": "brett",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-embed-store",
+    "file": "tests/spec/cbm-embed-store.bats",
+    "category": "cbm-embed-store",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-embed-sync-A2",
+    "file": "tests/spec/cbm-embed-sync-A2.bats",
+    "category": "cbm-embed-sync-A2",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-eval",
+    "file": "tests/spec/cbm-eval.bats",
+    "category": "cbm-eval",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-freshness-probe",
+    "file": "tests/spec/cbm-freshness-probe.bats",
+    "category": "cbm-freshness-probe",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-graph-rerank",
+    "file": "tests/spec/cbm-graph-rerank.bats",
+    "category": "cbm-graph-rerank",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-health-goals",
+    "file": "tests/spec/cbm-health-goals.bats",
+    "category": "cbm-health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-hybrid-search",
+    "file": "tests/spec/cbm-hybrid-search.bats",
+    "category": "cbm-hybrid-search",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-reconcile",
+    "file": "tests/spec/cbm-reconcile.bats",
+    "category": "cbm-reconcile",
+    "kind": "shell"
+  },
+  {
+    "id": "cbm-refresh-cron-A4",
+    "file": "tests/spec/cbm-refresh-cron-A4.bats",
+    "category": "cbm-refresh-cron-A4",
     "kind": "shell"
   },
   {
@@ -2514,12 +2466,6 @@
     "kind": "shell"
   },
   {
-    "id": "ci-cd/branch-reaper-spec-atlas-allowlist",
-    "file": "tests/spec/ci-cd/branch-reaper-spec-atlas-allowlist.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
     "id": "ci-cd/branch-reaper-sweep",
     "file": "tests/spec/ci-cd/branch-reaper-sweep.bats",
     "category": "ci-cd",
@@ -2610,12 +2556,6 @@
     "kind": "shell"
   },
   {
-    "id": "ci-cd/factory-shard-optimization",
-    "file": "tests/spec/ci-cd/factory-shard-optimization.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/spec/ci-cd/fetch-refspec-forced.bats",
     "category": "ci-cd",
@@ -2658,6 +2598,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gh-repo-context-guard",
+    "file": "tests/spec/ci-cd/gh-repo-context-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/ghcr-digest-auth",
     "file": "tests/spec/ci-cd/ghcr-digest-auth.bats",
     "category": "ci-cd",
@@ -2672,6 +2618,12 @@
   {
     "id": "ci-cd/github-only-ci",
     "file": "tests/spec/ci-cd/github-only-ci.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/health-goals-pr-path",
+    "file": "tests/spec/ci-cd/health-goals-pr-path.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2750,6 +2702,12 @@
   {
     "id": "ci-cd/spec-dir-convention",
     "file": "tests/spec/ci-cd/spec-dir-convention.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/spec-shard-optimization",
+    "file": "tests/spec/ci-cd/spec-shard-optimization.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2940,6 +2898,12 @@
     "kind": "shell"
   },
   {
+    "id": "decommission/decommission-guard",
+    "file": "tests/spec/decommission/decommission-guard.bats",
+    "category": "decommission",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-chore-ticket-ops-mishaps",
     "file": "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
     "category": "dev-flow-chore-ticket-ops-mishaps",
@@ -2960,18 +2924,6 @@
   {
     "id": "dev-flow-plan",
     "file": "tests/spec/dev-flow-plan.bats",
-    "category": "dev-flow-plan",
-    "kind": "shell"
-  },
-  {
-    "id": "dev-flow-plan-ticket-sh-mishaps",
-    "file": "tests/spec/dev-flow-plan-ticket-sh-mishaps.bats",
-    "category": "dev-flow-plan-ticket-sh-mishaps",
-    "kind": "shell"
-  },
-  {
-    "id": "dev-flow-plan/archive-staged-scope",
-    "file": "tests/spec/dev-flow-plan/archive-staged-scope.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },
@@ -3156,6 +3108,24 @@
     "kind": "shell"
   },
   {
+    "id": "devflow-mcp/graph-index",
+    "file": "tests/spec/devflow-mcp/graph-index.bats",
+    "category": "devflow-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "devflow-mcp/plan-stage",
+    "file": "tests/spec/devflow-mcp/plan-stage.bats",
+    "category": "devflow-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "devflow-mcp/retrieval",
+    "file": "tests/spec/devflow-mcp/retrieval.bats",
+    "category": "devflow-mcp",
+    "kind": "shell"
+  },
+  {
     "id": "devflow-selection-archive-hardening",
     "file": "tests/spec/devflow-selection-archive-hardening.bats",
     "category": "devflow-selection-archive-hardening",
@@ -3303,18 +3273,6 @@
     "id": "env-seal-empty-value-keys",
     "file": "tests/spec/env-seal-empty-value-keys.bats",
     "category": "env-seal-empty-value-keys",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-reclaim-lock-respect/pid-dead-worktree-match-T002849",
-    "file": "tests/spec/factory-reclaim-lock-respect/pid-dead-worktree-match-T002849.bats",
-    "category": "factory-reclaim-lock-respect",
-    "kind": "shell"
-  },
-  {
-    "id": "factory/vda-frontmatter",
-    "file": "tests/spec/factory/vda-frontmatter.bats",
-    "category": "factory",
     "kind": "shell"
   },
   {
@@ -3612,6 +3570,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/knowledge-goals",
+    "file": "tests/spec/health-goals/knowledge-goals.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/korczewski-brand-pause",
     "file": "tests/spec/health-goals/korczewski-brand-pause.bats",
     "category": "health-goals",
@@ -3762,8 +3726,26 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/plan-runner-ticket-ref",
+    "file": "tests/spec/llm-local-dev/plan-runner-ticket-ref.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/qwen-tensor-split",
     "file": "tests/spec/llm-local-dev/qwen-tensor-split.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-local-dev/qwen35-2b-training",
+    "file": "tests/spec/llm-local-dev/qwen35-2b-training.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-local-dev/qwen35-4b-training",
+    "file": "tests/spec/llm-local-dev/qwen35-4b-training.bats",
     "category": "llm-local-dev",
     "kind": "shell"
   },
@@ -3777,6 +3759,12 @@
     "id": "llm-local-dev/system-message-merge",
     "file": "tests/spec/llm-local-dev/system-message-merge.bats",
     "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-pipeline/bge-bulk-pool",
+    "file": "tests/spec/llm-pipeline/bge-bulk-pool.bats",
+    "category": "llm-pipeline",
     "kind": "shell"
   },
   {
@@ -4002,24 +3990,6 @@
     "kind": "shell"
   },
   {
-    "id": "local-llm-proxy/embed-probe-timeout",
-    "file": "tests/spec/local-llm-proxy/embed-probe-timeout.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/embed-skip-visibility",
-    "file": "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/factory-model-lock",
-    "file": "tests/spec/local-llm-proxy/factory-model-lock.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
     "id": "local-llm-proxy/gateway-consumer-lint",
     "file": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
     "category": "local-llm-proxy",
@@ -4094,6 +4064,12 @@
   {
     "id": "local-llm-proxy/loadout-model-files-exist",
     "file": "tests/spec/local-llm-proxy/loadout-model-files-exist.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/loadout-model-lock",
+    "file": "tests/spec/local-llm-proxy/loadout-model-lock.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -4268,6 +4244,12 @@
   {
     "id": "mcp-gateway/mcp-sync-drift-no-secret-leak",
     "file": "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/mcp-sync-qwen-drift-no-secret-leak",
+    "file": "tests/spec/mcp-gateway/mcp-sync-qwen-drift-no-secret-leak.bats",
     "category": "mcp-gateway",
     "kind": "shell"
   },
@@ -4470,6 +4452,12 @@
     "kind": "shell"
   },
   {
+    "id": "openclaw-ops-bot",
+    "file": "tests/spec/openclaw-ops-bot.bats",
+    "category": "openclaw-ops-bot",
+    "kind": "shell"
+  },
+  {
     "id": "opencode-config-ssot",
     "file": "tests/spec/opencode-config-ssot.bats",
     "category": "opencode-config-ssot",
@@ -4482,225 +4470,27 @@
     "kind": "shell"
   },
   {
-    "id": "openspec-embedding",
-    "file": "tests/spec/openspec-embedding.bats",
-    "category": "openspec-embedding",
+    "id": "os-retirement-code",
+    "file": "tests/spec/os-retirement-code.bats",
+    "category": "os-retirement-code",
     "kind": "shell"
   },
   {
-    "id": "openspec-embedding/dynamic-port-T003077",
-    "file": "tests/spec/openspec-embedding/dynamic-port-T003077.bats",
-    "category": "openspec-embedding",
+    "id": "os-retirement-dir",
+    "file": "tests/spec/os-retirement-dir.bats",
+    "category": "os-retirement-dir",
     "kind": "shell"
   },
   {
-    "id": "openspec-embedding/embed-local-retry-T004608",
-    "file": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats",
-    "category": "openspec-embedding",
+    "id": "os-retirement-prose",
+    "file": "tests/spec/os-retirement-prose.bats",
+    "category": "os-retirement-prose",
     "kind": "shell"
   },
   {
-    "id": "openspec-embedding/embed-probe-fail-fast",
-    "file": "tests/spec/openspec-embedding/embed-probe-fail-fast.bats",
-    "category": "openspec-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-embedding/port-forward-identity-T002870",
-    "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
-    "category": "openspec-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-embedding/probe-diagnosis",
-    "file": "tests/spec/openspec-embedding/probe-diagnosis.bats",
-    "category": "openspec-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-embedding/slug-literal-match-T004829",
-    "file": "tests/spec/openspec-embedding/slug-literal-match-T004829.bats",
-    "category": "openspec-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-embedding/windows-entrypoint-T900084",
-    "file": "tests/spec/openspec-embedding/windows-entrypoint-T900084.bats",
-    "category": "openspec-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-pgvector/context-retrieve-cli",
-    "file": "tests/spec/openspec-pgvector/context-retrieve-cli.bats",
-    "category": "openspec-pgvector",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-pgvector/context-retrieve-fallback",
-    "file": "tests/spec/openspec-pgvector/context-retrieve-fallback.bats",
-    "category": "openspec-pgvector",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-pgvector/context-retrieve-recall",
-    "file": "tests/spec/openspec-pgvector/context-retrieve-recall.bats",
-    "category": "openspec-pgvector",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-ticket-links-evaluation",
-    "file": "tests/spec/openspec-ticket-links-evaluation.bats",
-    "category": "openspec-ticket-links-evaluation",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-upstream-cli",
-    "file": "tests/spec/openspec-upstream-cli.bats",
-    "category": "openspec-upstream-cli",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow",
-    "file": "tests/spec/openspec-workflow.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/archive-atomic-guards",
-    "file": "tests/spec/openspec-workflow/archive-atomic-guards.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/archive-consistency",
-    "file": "tests/spec/openspec-workflow/archive-consistency.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/archive-deliverable-guard",
-    "file": "tests/spec/openspec-workflow/archive-deliverable-guard.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/archive-no-merge",
-    "file": "tests/spec/openspec-workflow/archive-no-merge.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/archive-regen-spec-atlas",
-    "file": "tests/spec/openspec-workflow/archive-regen-spec-atlas.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/archive-status-offline-staging",
-    "file": "tests/spec/openspec-workflow/archive-status-offline-staging.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/archive-terminal-ticket-status",
-    "file": "tests/spec/openspec-workflow/archive-terminal-ticket-status.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/delta-scenario-guard",
-    "file": "tests/spec/openspec-workflow/delta-scenario-guard.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/design-location-guard",
-    "file": "tests/spec/openspec-workflow/design-location-guard.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/half-archive-fork-scaling",
-    "file": "tests/spec/openspec-workflow/half-archive-fork-scaling.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/half-archive-guard",
-    "file": "tests/spec/openspec-workflow/half-archive-guard.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/half-archive-uncommitted",
-    "file": "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/half-archive-unprefixed",
-    "file": "tests/spec/openspec-workflow/half-archive-unprefixed.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/main-staging-guard",
-    "file": "tests/spec/openspec-workflow/main-staging-guard.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/orphan-archive",
-    "file": "tests/spec/openspec-workflow/orphan-archive.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/orphan-detect",
-    "file": "tests/spec/openspec-workflow/orphan-detect.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/plan-archive-git-add-coverage",
-    "file": "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/propose-help",
-    "file": "tests/spec/openspec-workflow/propose-help.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/propose-tasks-testpath-guard",
-    "file": "tests/spec/openspec-workflow/propose-tasks-testpath-guard.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/spec-atlas-generator",
-    "file": "tests/spec/openspec-workflow/spec-atlas-generator.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/spec-atlas-grammar-parity",
-    "file": "tests/spec/openspec-workflow/spec-atlas-grammar-parity.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-workflow/ticket-file-required",
-    "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
-    "category": "openspec-workflow",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-worktree-anchor",
-    "file": "tests/spec/openspec-worktree-anchor.bats",
-    "category": "openspec-worktree-anchor",
+    "id": "p0min-freeze-embed",
+    "file": "tests/spec/p0min-freeze-embed.bats",
+    "category": "p0min-freeze-embed",
     "kind": "shell"
   },
   {
@@ -4722,27 +4512,9 @@
     "kind": "shell"
   },
   {
-    "id": "plan-partials-embedding/build-chunks",
-    "file": "tests/spec/plan-partials-embedding/build-chunks.bats",
-    "category": "plan-partials-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "plan-partials-embedding/coverage-gate",
-    "file": "tests/spec/plan-partials-embedding/coverage-gate.bats",
-    "category": "plan-partials-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "plan-partials-embedding/k1-embeds",
-    "file": "tests/spec/plan-partials-embedding/k1-embeds.bats",
-    "category": "plan-partials-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "plan-partials-embedding/manifest-parser",
-    "file": "tests/spec/plan-partials-embedding/manifest-parser.bats",
-    "category": "plan-partials-embedding",
+    "id": "plan-lifecycle",
+    "file": "tests/spec/plan-lifecycle.bats",
+    "category": "plan-lifecycle",
     "kind": "shell"
   },
   {
@@ -4770,6 +4542,12 @@
     "kind": "shell"
   },
   {
+    "id": "pocket-id-client-seed-group-lookup",
+    "file": "tests/spec/pocket-id-client-seed-group-lookup.bats",
+    "category": "pocket-id-client-seed-group-lookup",
+    "kind": "shell"
+  },
+  {
     "id": "pocket-id-client-seed-pagination",
     "file": "tests/spec/pocket-id-client-seed-pagination.bats",
     "category": "pocket-id-client-seed-pagination",
@@ -4779,6 +4557,12 @@
     "id": "pocket-id-client-seed-secret-writeback",
     "file": "tests/spec/pocket-id-client-seed-secret-writeback.bats",
     "category": "pocket-id-client-seed-secret-writeback",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-client-seed-skip-secret",
+    "file": "tests/spec/pocket-id-client-seed-skip-secret.bats",
+    "category": "pocket-id-client-seed-skip-secret",
     "kind": "shell"
   },
   {
@@ -4818,6 +4602,12 @@
     "kind": "shell"
   },
   {
+    "id": "primary-agents-omo",
+    "file": "tests/spec/primary-agents-omo.bats",
+    "category": "primary-agents-omo",
+    "kind": "shell"
+  },
+  {
     "id": "projekttickets-cockpit",
     "file": "tests/spec/projekttickets-cockpit.bats",
     "category": "projekttickets-cockpit",
@@ -4833,6 +4623,12 @@
     "id": "questionnaire-system",
     "file": "tests/spec/questionnaire-system.bats",
     "category": "questionnaire-system",
+    "kind": "shell"
+  },
+  {
+    "id": "qwen35-worker-modes",
+    "file": "tests/spec/qwen35-worker-modes.bats",
+    "category": "qwen35-worker-modes",
     "kind": "shell"
   },
   {
@@ -5436,12 +5232,6 @@
     "kind": "shell"
   },
   {
-    "id": "sessions-server/annotation-links",
-    "file": "tests/spec/sessions-server/annotation-links.bats",
-    "category": "sessions-server",
-    "kind": "shell"
-  },
-  {
     "id": "sessions-server/deregister-reap",
     "file": "tests/spec/sessions-server/deregister-reap.bats",
     "category": "sessions-server",
@@ -5478,15 +5268,21 @@
     "kind": "shell"
   },
   {
-    "id": "sidekick-assistant",
-    "file": "tests/spec/sidekick-assistant.bats",
-    "category": "sidekick-assistant",
+    "id": "sf-retirement-rest",
+    "file": "tests/spec/sf-retirement-rest.bats",
+    "category": "sf-retirement-rest",
     "kind": "shell"
   },
   {
-    "id": "software-factory/decommission-guard",
-    "file": "tests/spec/software-factory/decommission-guard.bats",
-    "category": "software-factory",
+    "id": "sf-retirement-web",
+    "file": "tests/spec/sf-retirement-web.bats",
+    "category": "sf-retirement-web",
+    "kind": "shell"
+  },
+  {
+    "id": "sidekick-assistant",
+    "file": "tests/spec/sidekick-assistant.bats",
+    "category": "sidekick-assistant",
     "kind": "shell"
   },
   {
@@ -5694,6 +5490,12 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/bp-roles",
+    "file": "tests/spec/toolset-registry/bp-roles.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/check-drift-detection",
     "file": "tests/spec/toolset-registry/check-drift-detection.bats",
     "category": "toolset-registry",
@@ -5724,6 +5526,12 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/lock-summary",
+    "file": "tests/spec/toolset-registry/lock-summary.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/schema-gate",
     "file": "tests/spec/toolset-registry/schema-gate.bats",
     "category": "toolset-registry",
@@ -5738,6 +5546,18 @@
   {
     "id": "toolset-registry/sync-surgical",
     "file": "tests/spec/toolset-registry/sync-surgical.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/tool-level",
+    "file": "tests/spec/toolset-registry/tool-level.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/tools-suppressed",
+    "file": "tests/spec/toolset-registry/tools-suppressed.bats",
     "category": "toolset-registry",
     "kind": "shell"
   },
@@ -5796,12 +5616,6 @@
     "kind": "shell"
   },
   {
-    "id": "unsloth-training-env/factory-traces",
-    "file": "tests/spec/unsloth-training-env/factory-traces.bats",
-    "category": "unsloth-training-env",
-    "kind": "shell"
-  },
-  {
     "id": "unsloth-training-env/measure-corpus",
     "file": "tests/spec/unsloth-training-env/measure-corpus.bats",
     "category": "unsloth-training-env",
@@ -5829,6 +5643,12 @@
     "id": "vaultwarden-integration",
     "file": "tests/spec/vaultwarden-integration.bats",
     "category": "vaultwarden-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "vda-frontmatter",
+    "file": "tests/spec/vda-frontmatter.bats",
+    "category": "vda-frontmatter",
     "kind": "shell"
   },
   {
@@ -5871,6 +5691,12 @@
     "id": "website-core/web-audit",
     "file": "tests/spec/website-core/web-audit.bats",
     "category": "website-core",
+    "kind": "shell"
+  },
+  {
+    "id": "website-svelte-check",
+    "file": "tests/spec/website-svelte-check.bats",
+    "category": "website-svelte-check",
     "kind": "shell"
   },
   {

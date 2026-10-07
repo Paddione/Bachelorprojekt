@@ -18,7 +18,7 @@ vi.mock('./embeddings', async (importOriginal) => {
   return { ...mod, embedBatch: vi.fn() };
 });
 
-vi.mock('./session-agent-factory', () => ({
+vi.mock('./session-agent-provider', () => ({
   createSessionAgent: vi.fn(),
 }));
 
@@ -27,7 +27,7 @@ vi.mock('./coaching-ki-config-db', () => ({
   getKiProviderById: vi.fn().mockResolvedValue(null),
 }));
 
-const { createSessionAgent } = await import('./session-agent-factory');
+const { createSessionAgent } = await import('./session-agent-provider');
 const { embedBatch } = await import('./embeddings');
 const { cluster, embed, label, generateQuestionnaireInsights } = await import('./coaching-questionnaire-insights');
 

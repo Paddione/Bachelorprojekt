@@ -142,6 +142,38 @@ uv run https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspect
   --dataset your/dataset --split train
 ```
 
+
+## TRL v1.0 — Stable vs Experimental
+
+Since TRL v1.0, the library distinguishes **stable** trainers from **experimental** ones:
+
+### Stable (production-ready)
+
+| Trainer | Category |
+|---------|----------|
+| `SFTTrainer` | Offline supervised |
+| `DPOTrainer` | Offline preference |
+| `KTOTrainer` | Offline preference |
+| `ORPOTrainer` | Offline preference |
+| `CPOTrainer` | Offline preference |
+| `GRPOTrainer` | Online RL |
+| `RLOOTrainer` | Online RL |
+| `RewardTrainer` | Reward modeling |
+
+### Experimental (`trl.experimental`) — cutting-edge, API may change
+
+```python
+from trl.experimental import AsyncGRPOTrainer  # async GRPO
+from trl.experimental import OnlineDPOTrainer   # online DPO
+from trl.experimental import GFPOTrainer        # concise-reasoning RL
+```
+
+Use stable trainers for production. Experimental trainers are worth tracking for advanced RL/reasoning workflows, but expect API churn.
+
+### Long-Context Training (>1M tokens)
+
+TRL now has a dedicated guide for sequences beyond 1M tokens — covers loss scaling, positional encodings, activation checkpointing, and multi-GPU node setup. See the [TRL long-context guide](https://huggingface.co/docs/trl/long_context).
+
 ## See Also
 
 - `references/training_patterns.md` - Common training patterns and examples

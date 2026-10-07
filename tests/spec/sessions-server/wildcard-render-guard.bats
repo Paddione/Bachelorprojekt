@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/sessions-server/wildcard-render-guard.bats
 # T900029 — Render-Guard gegen leere Sessions-Wildcards (SA-SEC-01, zweite Haelfte).
-# SSOT-Delta: openspec/changes/fix-sessions-wildcard-render-guard/specs/sessions-server.md
 # Pruefmodus: Verhaltens-Verifikation (Komando-Output/Exit-Code von
 # scripts/render-guard.sh auf echten Render-Artefakten) — kein Source-Grep als
 # Erfolgsnachweis. Die beiden Verdrahtungs-Tests am Ende sind Querschnitt-Checks

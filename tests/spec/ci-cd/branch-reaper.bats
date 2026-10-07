@@ -20,10 +20,10 @@ setup() {
   mkdir -p "$STUBS"
 
   # Alle Fixture-Pfade sind ABSOLUT und alle git-Aufrufe nutzen -C. Kein `cd`, keine
-  # relativen Verzeichnisse: ein relativ angelegtes openspec/changes/<slug> waere unter
-  # `bats -j 6` fuer den validateTree('openspec')-Test sichtbar und faerbte ihn sporadisch
-  # rot (Guard "T002368" in tests/spec/software-factory/ticket-lifecycle.bats).
-  PLANDIR="$FIXTURE/openspec/changes/x"
+  # relativen Verzeichnisse: ein relativ angelegtes .agents/plans/<slug> waere unter
+  # `bats -j 6` fuer den validateTree('plan')-Test sichtbar und faerbte ihn sporadisch
+  # rot (Guard "T002368" in ticket-lifecycle.bats, retired with the factory).
+  PLANDIR="$FIXTURE/.agents/plans/x"
 
   git init --bare --quiet "$REMOTE"
   git init --quiet "$FIXTURE"
@@ -71,6 +71,16 @@ setup() {
   # vom T900096-Guard, nicht mehr vom Allowlist-Check (siehe Test 2).
   git -C "$FIXTURE" checkout --quiet main
   git -C "$FIXTURE" merge --quiet chore/plan-T009001 -m "merge chore/plan-T009001"
+  git -C "$FIXTURE" push --quiet origin main
+
+  # [T900748] Branch 5: Datei auf Branch und main geloescht -> konsistent geloescht, nicht abweichend
+  git -C "$FIXTURE" checkout --quiet -b chore/del-T009005
+  git -C "$FIXTURE" rm --quiet "$FIXTURE/scripts/echt.sh"
+  git -C "$FIXTURE" commit --quiet -m "delete echt.sh on branch"
+  git -C "$FIXTURE" push --quiet origin chore/del-T009005
+
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" merge --quiet chore/del-T009005 -m "merge chore/del-T009005"
   git -C "$FIXTURE" push --quiet origin main
 
   git -C "$FIXTURE" checkout --quiet main
@@ -155,3 +165,11 @@ STUB
   # Die Ablehnung muss begruendet sein, nicht bloss ein Nicht-Null-Exit.
   [ "$(printf '%s\n' "$output" | grep -ci 'ticket')" -ge 1 ]
 }
+
+@test "T900748: beidseitig geloeschte Datei gilt nicht als abweichend" {
+  run bash "$REAPER" --dry-run --ticket T009005 --repo "$FIXTURE"
+  [ "$status" -eq 0 ]
+  reaped="$(printf '%s\n' "$output" | grep '^REAP ' || true)"
+  [ "$(printf '%s\n' "$reaped" | grep -c 'chore/del-T009005')" -eq 1 ]
+}
+

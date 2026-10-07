@@ -1,0 +1,51 @@
+{
+  "t1_raw": 283,
+  "t1_unique": 144,
+  "corpus_worker_added": 0,
+  "teacher_raw": 0,
+  "teacher_unique_added": 0,
+  "qc": {
+    "checked": 0,
+    "dropped_wrong": 0,
+    "unsure": 0
+  },
+  "grounding_sources": [],
+  "system_mix": {
+    "bp": 103,
+    "worker": 15,
+    "none": 13,
+    "de": 13
+  },
+  "german_entries": 0,
+  "total_unique": 144,
+  "train": 137,
+  "val": 7,
+  "target": 1100,
+  "target_met": null,
+  "near_dup_jaccard": 0.6,
+  "slice_2b": {
+    "slice_domains": [
+      "ci",
+      "cli",
+      "gotchas",
+      "llmstack",
+      "runbooks",
+      "workflow"
+    ],
+    "slice_raw": 283,
+    "slice_kept": 144,
+    "slice_dropped": 139
+  },
+  "by_domain": {
+    "cli": 61,
+    "gotchas": 30,
+    "llmstack": 25,
+    "workflow": 14,
+    "runbooks": 8,
+    "ci": 6
+  },
+  "dropped_exact": 0,
+  "dropped_near": 0,
+  "dropped_too_short": 0,
+  "dropped_answer_cap": 0
+}

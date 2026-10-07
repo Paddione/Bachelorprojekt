@@ -24,10 +24,10 @@ ALLOWLIST="tests/unit/.coverage-allowlist"
 if [ -n "${FIND_CHANGED_TESTS_FILES:-}" ]; then
   CHANGED="$FIND_CHANGED_TESTS_FILES"
   DIFF_SOURCE="override"
-elif CHANGED="$(git diff --name-only origin/main 2>/dev/null)"; then
+elif CHANGED="$(git diff --name-only --diff-filter=d origin/main 2>/dev/null)"; then
   DIFF_SOURCE="origin/main"
 else
-  CHANGED="$(git diff --name-only HEAD 2>/dev/null || true)"
+  CHANGED="$(git diff --name-only --diff-filter=d HEAD 2>/dev/null || true)"
   DIFF_SOURCE="HEAD"
 fi
 _changed_count=$(printf '%s\n' "$CHANGED" | grep -c '.' || true)
@@ -100,6 +100,8 @@ is_excluded() {
 
 while IFS= read -r file; do
   [[ -z "$file" ]] && continue
+  # Ignore files that have been deleted/removed
+  [ ! -e "$file" ] && continue
   
   # If it is a test file in our base dir, it's a direct candidate
   if [[ "$file" == "$BASE_DIR"/*.bats ]]; then
@@ -110,7 +112,7 @@ while IFS= read -r file; do
   fi
   
   # If it's a script, find matching test file
-  if [[ "$file" == scripts/*.sh ]] || [[ "$file" == scripts/*.mjs ]] || [[ "$file" == scripts/*.js ]] || [[ "$file" == scripts/*.ts ]] || [[ "$file" == scripts/factory/*.ts ]] || [[ "$file" == scripts/factory/*.js ]]; then
+  if [[ "$file" == scripts/*.sh ]] || [[ "$file" == scripts/*.mjs ]] || [[ "$file" == scripts/*.js ]] || [[ "$file" == scripts/*.ts ]]; then
     basename=$(basename "$file")
     name="${basename%.*}"
     # Try name.bats and common patterns
@@ -170,10 +172,10 @@ while IFS= read -r file; do
     continue
   fi
 
-  # tests/spec/*.bats are named after their OpenSpec SSOT spec slug, so an
-  # openspec/ change maps straight onto the same-named spec bats. [T002245]
-  if [ "$TYPE" = "spec" ] && [[ "$file" == openspec/* ]]; then
-    slug=$(printf '%s\n' "$file" | cut -d/ -f3)
+  # tests/spec/*.bats are named after their spec slug, so a
+  # docs/superpowers/specs/ change maps straight onto the same-named spec bats. [T002245]
+  if [ "$TYPE" = "spec" ] && [[ "$file" == docs/superpowers/specs/* ]]; then
+    slug=$(printf '%s\n' "$file" | cut -d/ -f4)
     if [ -n "$slug" ] && [ -f "$BASE_DIR/$slug.bats" ]; then
       CANDIDATES+=("$BASE_DIR/$slug.bats")
     fi
@@ -233,7 +235,7 @@ if [ "$RUN_ALL" = "true" ]; then
   # Vorher galt `-maxdepth 1` fuer beide. Da JEDER PR ueber diesen Pfad laeuft
   # (test:spec:changed), fielen damit alle 65 Spec-Tests in Unterverzeichnissen
   # aus der PR-Abdeckung — u. a. die kompletten Verzeichnisse
-  # tests/spec/software-factory/ und tests/spec/sdlc-cockpit/. Nur der
+  # tests/spec/decommission/ und tests/spec/sdlc-cockpit/. Nur der
   # Push-nach-main-Pfad erfasste sie. [T002518]
   if [ "$TYPE" = "spec" ]; then
     _find_args=(-name "*.bats")

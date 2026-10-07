@@ -4,7 +4,7 @@ package tools
 // Die Tests führen den echten Abflusspfad aus und prüfen das Aufruflog eines
 // ticket.sh-Stubs — sie greppen NICHT den Quelltext von mishap.go.
 //
-// SSOT: openspec/specs/mishap-tracking.md
+// SSOT: docs/agent-guide/reference.md
 //   Requirement "Der Mishap-Buffer aggregiert, er konvertiert nicht"
 //   Scenario   "Watchdog-Flush verhält sich wie der Schwellwert-Pfad"
 
@@ -136,7 +136,7 @@ func TestFlushStaleBuffer_DiscardsAndCreatesNoTickets(t *testing.T) {
 	// Einzelticket noch ein Sammel-Container [T014104].
 	if got := countCallsWithPrefix(calls, "create --type fix"); got != 0 {
 		t.Errorf("null Aufrufe mit 'create --type fix' erwartet, gefunden %d — der Buffer "+
-			"konvertiert statt zu aggregieren (openspec/specs/mishap-tracking.md:39)\nAufruflog:\n%s",
+			"konvertiert statt zu aggregieren (docs/agent-guide/reference.md:39)\nAufruflog:\n%s",
 			got, strings.Join(calls, "\n"))
 	}
 	if got := countCallsWithPrefix(calls, "rollup-container"); got != 0 {

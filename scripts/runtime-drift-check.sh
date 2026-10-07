@@ -192,7 +192,7 @@ notify_ticket() {
   [ -n "$NOTIFY_TICKET" ] || return 0
   local heal_note=""
   if [ "$AUTO_KILL" = true ]; then
-    heal_note="Stdio-Befunde wurden per SIGTERM geheilt (der Server startet beim nächsten Tool-Aufruf mit dem neuen Binary). HTTP-Server (factory-mcp) brauchen einen manuellen Restart: \`task agents:factory-mcp:start\` bzw. \`systemctl --user restart factory-mcp.service\`."
+    heal_note="Stdio-Befunde wurden per SIGTERM geheilt (der Server startet beim nächsten Tool-Aufruf mit dem neuen Binary). HTTP-Server brauchen einen manuellen Restart: \`task agents:mcp:start\` bzw. \`systemctl --user restart <dienst>.service\`."
   else
     heal_note="Nur meldend, kein Eingriff. Heilen mit \`bash scripts/runtime-drift-check.sh --auto-kill\` bzw. Restart der HTTP-Server."
   fi

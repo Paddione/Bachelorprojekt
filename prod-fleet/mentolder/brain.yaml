@@ -1,0 +1,381 @@
+# prod-fleet/mentolder/brain.yaml — K3 Code-Graph Webview [T900855]
+#
+# Provides the interactive 3D code graph webview (codebase-memory-mcp)
+# at https://brain.mentolder.de, gated by Pocket ID SSO (oauth2-proxy).
+#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: brain-data
+  namespace: ${WORKSPACE_NAMESPACE}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: brain-proxy-script
+  namespace: ${WORKSPACE_NAMESPACE}
+data:
+  proxy.mjs: |
+    import http from 'http';
+    import fs from 'fs';
+    import path from 'path';
+    import { spawn } from 'child_process';
+
+    const CBM_DIR = process.env.CBM_RUNTIME_DIR || '/home/node';
+    const cacheDir = path.join(CBM_DIR, '.cache', 'codebase-memory-mcp');
+    try {
+      if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir, { recursive: true, mode: 0o700 });
+      }
+      const configPath = path.join(cacheDir, 'config.json');
+      if (!fs.existsSync(configPath)) {
+        fs.writeFileSync(configPath, JSON.stringify({ ui_enabled: true, ui_port: 9749 }, null, 2));
+      }
+
+      if (fs.existsSync('/data')) {
+        for (const file of fs.readdirSync('/data')) {
+          if (file.endsWith('.db')) {
+            const target = path.join('/data', file);
+            const link = path.join(cacheDir, file);
+            if (!fs.existsSync(link)) {
+              try {
+                fs.symlinkSync(target, link);
+                console.log(`[brain] Linked ${target} -> ${link}`);
+              } catch (e) {
+                console.error(`[brain] Failed to link ${target}:`, e);
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[brain] Failed to initialize cacheDir:', err);
+    }
+
+    console.log('[brain] Starting codebase-memory-mcp daemon...');
+    const daemon = spawn('codebase-memory-mcp', ['daemon', 'start'], {
+      env: { ...process.env, CBM_RUNTIME_DIR: CBM_DIR, HOME: CBM_DIR },
+      stdio: 'inherit'
+    });
+    daemon.on('exit', (code) => {
+      console.log(`[brain] Daemon start exited with code ${code}`);
+    });
+
+    process.on('uncaughtException', (err) => {
+      console.error('[brain] Uncaught exception:', err);
+    });
+    process.on('unhandledRejection', (err) => {
+      console.error('[brain] Unhandled rejection:', err);
+    });
+
+    const server = http.createServer((req, res) => {
+      req.on('error', (err) => {
+        console.error('[brain] Client request error:', err.message);
+      });
+      res.on('error', (err) => {
+        console.error('[brain] Client response error:', err.message);
+      });
+
+      // Auto-redirect root to default project
+      if (req.url === '/' || req.url === '') {
+        res.writeHead(302, { Location: '/?project=home-patrick-Bachelorprojekt' });
+        res.end();
+        return;
+      }
+
+      const headers = { ...req.headers, host: '127.0.0.1:9749' };
+      delete headers['origin'];
+      delete headers['referer'];
+
+      const proxyReq = http.request({
+        host: '127.0.0.1',
+        port: 9749,
+        path: req.url,
+        method: req.method,
+        headers: headers
+      }, (proxyRes) => {
+        if (!res.headersSent) {
+          try {
+            res.writeHead(proxyRes.statusCode, proxyRes.headers);
+            proxyRes.pipe(res);
+          } catch (err) {
+            console.error('[brain] Pipe error:', err.message);
+          }
+        }
+      });
+
+      proxyReq.on('error', (err) => {
+        if (!res.headersSent) {
+          try {
+            res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
+            res.end('Codebase Memory Graph server warming up... Please refresh in a moment.');
+          } catch (_) {}
+        }
+      });
+
+      res.on('close', () => {
+        proxyReq.destroy();
+      });
+
+      req.pipe(proxyReq);
+    });
+
+    server.listen(80, '0.0.0.0', () => {
+      console.log('[brain] Proxy listening on 0.0.0.0:80 -> 127.0.0.1:9749');
+    });
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brain
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: brain
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: brain
+  template:
+    metadata:
+      labels:
+        app: brain
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: brain
+          image: ghcr.io/paddione/mcp-node:latest
+          imagePullPolicy: Always
+          command: ["node", "/opt/brain/proxy.mjs"]
+          env:
+            - name: CBM_RUNTIME_DIR
+              value: /home/node
+            - name: HOME
+              value: /home/node
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /api/ui-config
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /api/ui-config
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          volumeMounts:
+            - name: brain-data
+              mountPath: /data
+            - name: proxy-script
+              mountPath: /opt/brain
+      volumes:
+        - name: brain-data
+          persistentVolumeClaim:
+            claimName: brain-data
+        - name: proxy-script
+          configMap:
+            name: brain-proxy-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brain
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: brain
+spec:
+  selector:
+    app: brain
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-brain
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: oauth2-proxy-brain
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy-brain
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy-brain
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: write-cookie-secret
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - printf 'cookie_secret = "%s"\n' "$(printf '%s' "$OAUTH2_PROXY_COOKIE_SECRET" | cut -c1-32)" > /run/config/oauth2-extra.cfg
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          env:
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OAUTH2_PROXY_COOKIE_SECRET
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.3@sha256:10a1165743a192e1940b4708fb9647027185ce11a681a1c5519b442ff7f1f561
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config=/run/config/oauth2-extra.cfg
+            - --provider=oidc
+            - --client-id=48197a8b-7920-484f-8bf5-f10ff65e7c91
+            - --client-secret=$(POCKET_ID_BRAIN_SECRET)
+            - --redirect-url=https://brain.${PROD_DOMAIN}/oauth2/callback
+            - --oidc-issuer-url=https://auth.${PROD_DOMAIN}
+            - --skip-oidc-discovery=true
+            - --login-url=https://auth.${PROD_DOMAIN}/authorize
+            - --redeem-url=https://auth.${PROD_DOMAIN}/api/oidc/token
+            - --oidc-jwks-url=https://auth.${PROD_DOMAIN}/.well-known/jwks.json
+            - --profile-url=https://auth.${PROD_DOMAIN}/api/oidc/userinfo
+            - --upstream=http://brain:80
+            - --http-address=0.0.0.0:4180
+            - --cookie-secure=true
+            - --cookie-name=_oauth2_proxy_brain
+            - --pass-access-token=true
+            - --pass-authorization-header=true
+            - --set-xauthrequest=true
+            - --skip-provider-button=true
+            - --code-challenge-method=S256
+            - --oidc-extra-audience=brain
+            - --scope=openid email profile groups
+            - --oidc-groups-claim=groups
+            - --email-domain=*
+            - --allowed-group=workspace-users
+          env:
+            - name: POCKET_ID_BRAIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: POCKET_ID_BRAIN_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+              readOnly: true
+      volumes:
+        - name: oauth2-config
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-brain
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: oauth2-proxy-brain
+spec:
+  selector:
+    app: oauth2-proxy-brain
+  ports:
+    - port: 4180
+      targetPort: 4180
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-brain
+  namespace: ${WORKSPACE_NAMESPACE}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - brain.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: brain.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-brain
+                port:
+                  number: 4180

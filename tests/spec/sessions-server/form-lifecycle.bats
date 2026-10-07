@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sessions-server/form-lifecycle.bats
-# SSOT: openspec/specs/sessions-server.md — Form Session Start with Ticket
 # Association + Form Re-Upload (regen). Prüfmodus: command output verification.
 
 setup() {

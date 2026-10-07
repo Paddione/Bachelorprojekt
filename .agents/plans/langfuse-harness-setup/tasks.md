@@ -32,10 +32,10 @@ Die RED-Tests liegen bereits im Stage-Commit.
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-setup-fix.md | impl | scripts/langfuse/setup-harnesses.sh | | 4b-local | 12000 |
-| p2 | tasks.d/p2-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1 | 4b-local | 8000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-setup-fix.md | impl | scripts/langfuse/setup-harnesses.sh | |
+| p2 | tasks.d/p2-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1 |
 
 ## Task: Failing Test bestätigen
 

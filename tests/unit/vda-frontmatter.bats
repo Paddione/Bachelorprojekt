@@ -399,7 +399,7 @@ status: active
 
 # List Domains
 
-Touches scripts/factory/ scheduling and tests.
+Touches scheduling and tests.
 EOF
   run bash "$VDA" frontmatter --validate "$TMP/v-yaml-list.md"
   [ "$status" -eq 0 ]
@@ -417,7 +417,7 @@ status: active
 
 # List Domains
 
-Touches scripts/factory/ scheduling.
+Touches scheduling.
 EOF
   run bash "$VDA" frontmatter "$TMP/v-yaml-list-repair.md"
   [ "$status" -eq 0 ]

@@ -28,9 +28,9 @@ setup() {
   mkdir -p "$STUBS"
 
   # Alle Fixture-Pfade sind ABSOLUT und alle git-Aufrufe nutzen -C. Kein `cd`, keine relativen
-  # Verzeichnisse: ein relativ angelegtes openspec/changes/<slug> waere unter `bats -j 6` fuer
-  # den validateTree('openspec')-Test sichtbar und faerbte ihn sporadisch rot.
-  PLANDIR="$FIXTURE/openspec/changes/x"
+  # Verzeichnisse: ein relativ angelegtes .agents/plans/<slug> waere unter `bats -j 6` fuer
+  # den validateTree('plan')-Test sichtbar und faerbte ihn sporadisch rot.
+  PLANDIR="$FIXTURE/.agents/plans/x"
 
   git init --bare --quiet "$REMOTE"
   git init --quiet "$FIXTURE"
@@ -44,7 +44,7 @@ setup() {
   git -C "$FIXTURE" commit --quiet -m "base"
   git -C "$FIXTURE" push --quiet origin HEAD:main
 
-  # Vier Branches, alle mit reiner Allowlist-Abweichung (openspec/changes/**). Unterschieden
+  # Vier Branches, alle mit reiner Allowlist-Abweichung (.agents/plans/**). Unterschieden
   # werden sie ausschliesslich ueber die Ticket-Zuordnung — genau die Achse, auf der sich
   # Einzel-Ticket-Lauf und Sweep unterscheiden muessen.
   _branch() {

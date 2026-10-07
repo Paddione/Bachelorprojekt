@@ -179,7 +179,7 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 ```
 
 - **Immer `--squash`** — hält `main`-History sauber (Entwicklungsregel)
-- **KEIN `--delete-branch` (T004612)** — das Post-Merge-Archiv (OpenSpec, Schritt 7) braucht den
+- **KEIN `--delete-branch` (T004612)** — das Post-Merge-Archiv (plan, Schritt 7) braucht den
   Branch noch; gelöscht wird er im Cleanup NACH der Archivierung. `delete_branch_on_merge` ist
   repo-seitig deaktiviert; branch-reaper.sh räumt Verwaiste ab.
 - **`--auto`** — mergt automatisch wenn alle Required Checks grün sind; kehrt sofort zurück, der

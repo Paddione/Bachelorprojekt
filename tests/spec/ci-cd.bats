@@ -1,7 +1,9 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/ci-cd.md
+# SSOT: docs/superpowers/specs/ci-cd.md
 # G-CD02: post-merge.yml muss konkurrierende Runs serialisieren (concurrency)
 # und transiente Ticket-Status-Updates mit Backoff wiederholen (retry).
+
+load "../lib/guard-preconditions.sh"
 
 setup() {
   bats_require_minimum_version 1.5.0
@@ -83,7 +85,7 @@ setup() {
   # wofür er da ist. Ohne ihn bestünde die Negativ-Aussage auch bei gelöschter Datei.
   [ -f "$WF" ]
   grep -q 'render-artifact:' "$WF"
-  grep -q 'deploy-legacy:' "$WF"
+  # T900810: der deploy-legacy-Anker ist mit dem pre-Flux-Job entfallen.
   # Erst jetzt: keine ausführbare Ticket-Schreibzeile mehr (Kommentare zählen nicht).
   run grep -cE '^[^#]*scripts/ticket\.sh[[:space:]]+update-status' "$WF"
   [ "$output" = "0" ]
@@ -109,14 +111,21 @@ setup() {
   if [ ! -x "$REPO_ROOT/components/website/node_modules/.bin/eslint" ]; then
     skip "website deps not installed in this context — enforced by CI vitest-website job"
   fi
+  # [T900653] Installiert != frisch: ein veralteter Baum meldete 137
+  # Phantom-Parser-Fehler bei gruener CI. Frische pruefen, sonst Skip mit
+  # Hinweis auf pnpm install — kein Produktfehler.
+  require_fresh_node_modules "$REPO_ROOT/components/website"
   run bash -c "cd "$REPO_ROOT/components/website" && ./node_modules/.bin/eslint . --max-warnings 0 --cache"
   [ "$status" -eq 0 ]
 }
 
-# --- G-CD01: Brand-Parity im Website-Deploy (T001276) ---
-# build-website.yml muss korczewski in einem Job deployen, der NICHT vom
-# mentolder-Deploy-Job abhaengt --- ein mentolder-Fehler darf korczewski nicht
-# still ueberspringen. SSOT: openspec/specs/ci-cd.md.
+# --- G-CD01: Website-Deploy laeuft ueber Flux (T002083, T900810) ---
+# Frueher (T001276 Brand-Parity): build-website.yml deployte beide Brands in zwei
+# unabhaengigen kubectl-Jobs. Seit Flux Steady State ist, rendert der Workflow nur
+# noch das Fleet-Artefakt (render-artifact mit Digest-Pins); der pre-Flux
+# mentolder-Job ist entfernt (T900810). deploy-korczewski bleibt als einziger
+# Legacy-Job bestehen, weil Guards seine Existenz pinnen (Guard-Entscheid T900810)
+# — er feuert nie (vars.FLUX_ENABLED != 'true'). SSOT: docs/superpowers/specs/ci-cd.md.
 
 @test "G-CD01: build-website.yml hat einen build-image Job mit image+sha_tag outputs" {
   run python3 - "$BUILD_WF" <<'PY'
@@ -130,15 +139,16 @@ PY
   [ "$status" -eq 0 ]
 }
 
-@test "G-CD01: deploy-mentolder needs build-image und NICHT deploy-korczewski" {
+@test "G-CD01: build-website.yml hat KEINEN deploy-mentolder mehr (Flux-only, T900810)" {
+  # T900810: der pre-Flux kubectl-Pfad (deploy-mentolder, vars.FLUX_ENABLED !=
+  # 'true') ist entfernt — Flux ist Steady State (T002083 pinnt den
+  # render-artifact-Job). Der Negativ-Anker verhindert, dass der tote Pfad
+  # still zurueckkehrt.
   run python3 - "$BUILD_WF" <<'PY'
 import sys, yaml
 jobs = (yaml.safe_load(open(sys.argv[1])) or {}).get('jobs', {})
-assert 'deploy-mentolder' in jobs, 'kein deploy-mentolder Job'
-needs = jobs['deploy-mentolder'].get('needs', [])
-if isinstance(needs, str): needs = [needs]
-assert 'build-image' in needs, 'deploy-mentolder muss build-image brauchen'
-assert 'deploy-korczewski' not in needs, 'deploy-mentolder darf nicht von deploy-korczewski abhaengen'
+assert 'deploy-mentolder' not in jobs, 'deploy-mentolder (pre-Flux) ist zurueckgekehrt'
+assert 'render-artifact' in jobs, 'kein render-artifact Job (Flux-Pfad fehlt)'
 PY
   [ "$status" -eq 0 ]
 }
@@ -156,7 +166,9 @@ PY
   [ "$status" -eq 0 ]
 }
 
-@test "G-CD01: beide Deploy-Jobs lesen den Image-Tag aus build-image outputs" {
+@test "G-CD01: der verbliebene Deploy-Job liest den Image-Tag aus build-image outputs" {
+  # T900810: nach Entfernung von deploy-mentolder bleibt nur deploy-korczewski
+  # (tot, Guard-gepinnt) — die Wiring-Aussage gilt fuer ihn weiter.
   grep -q 'needs.build-image.outputs.image' "$BUILD_WF"
   grep -q 'needs.build-image.outputs.sha_tag' "$BUILD_WF"
 }
@@ -227,7 +239,7 @@ PY
 }
 
 # ── G-COMMIT-VS-DIFF: commit-vs-diff consistency guard (T001434-mishap) ──────
-# SSOT: openspec/specs/ci-cd.md "Requirement: commit-vs-diff-consistency-guard"
+# SSOT: docs/superpowers/specs/ci-cd.md "Requirement: commit-vs-diff-consistency-guard"
 
 @test "G-COMMIT-VS-DIFF: scripts/check-commit-vs-diff.sh exists" {
   [ -f "$REPO_ROOT/scripts/check-commit-vs-diff.sh" ]
@@ -260,9 +272,7 @@ PY
   [[ "$stage_line" != *"fix(<scope>):"* ]]
 }
 
-@test "G-COMMIT-VS-DIFF: openspec/specs/ci-cd.md documents the guard requirement" {
-  grep -q '^### Requirement: commit-vs-diff-consistency-guard' "$REPO_ROOT/openspec/specs/ci-cd.md"
-}
+
 
 @test "G-COMMIT-VS-DIFF: unit tests in tests/unit/check-commit-vs-diff.bats cover all branches" {
   # Sanity: the unit suite must exercise both allow and block paths
@@ -274,16 +284,18 @@ PY
   grep -qE 'SKIP_COMMIT_VS_DIFF' "$bats_file"
 }
 
-@test "T001446: build-website Pre-Rollout Secret-Check skips optional secretKeyRefs (both deploy jobs)" {
+@test "T001446: build-website Pre-Rollout Secret-Check skips optional secretKeyRefs (deploy-korczewski)" {
   # Regression for T001446: the check collected ALL website-secrets keys from
   # k3d/website.yaml and hard-failed on cluster-missing ones — even when the
   # manifest marks the ref `optional: true` (SEPA_CREDITOR_*, DEEPSEEK_API_KEY*,
   # schema.yaml required:false). That blocked every korczewski website deploy.
+  # T900810: deploy-mentolder ist entfernt (Flux-only) — genau EIN Secret-Check
+  # (im verbliebenen deploy-korczewski) muss den optional-Filter tragen.
   local wf="$REPO_ROOT/.github/workflows/build-website.yml"
   [ -f "$wf" ]
   local count
   count=$(grep -c "and not v.get('optional')" "$wf")
-  [ "$count" -eq 2 ]
+  [ "$count" -eq 1 ]
 }
 
 @test "T001446: secret-check filter behaves correctly against a fixture manifest" {
@@ -389,36 +401,8 @@ EOF
   [ "$status" -eq 0 ]
 }
 
-# --- G-CD03: advisory OpenSpec spec-drift gate (T001979) ---
-@test "G-CD03: openspec-drift-check.sh exists and is executable" {
-  [ -x "$REPO_ROOT/scripts/openspec-drift-check.sh" ]
-}
+# --- G-CD03: advisory plan spec-drift gate (T001979) ---
 
-@test "G-CD03: drift gate --self-test passes" {
-  run bash "$REPO_ROOT/scripts/openspec-drift-check.sh" --self-test
-  [ "$status" -eq 0 ]
-}
-
-@test "G-CD03: SKIP_SPEC_DRIFT=1 bypasses with exit 0" {
-  run env SKIP_SPEC_DRIFT=1 bash "$REPO_ROOT/scripts/openspec-drift-check.sh"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"skipped"* ]]
-}
-
-@test "G-CD03: chore titles are skipped (no drift evaluation)" {
-  run env PR_TITLE="chore: housekeeping" bash "$REPO_ROOT/scripts/openspec-drift-check.sh"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"skipped"* ]]
-}
-
-@test "G-CD03: script emits greppable DRIFT: lines and honours enforce switch" {
-  grep -qE 'DRIFT: ' "$REPO_ROOT/scripts/openspec-drift-check.sh"
-  grep -q 'DRIFT_CHECK_ENFORCE' "$REPO_ROOT/scripts/openspec-drift-check.sh"
-}
-
-@test "G-CD03: ci.yml wires the advisory drift step (pull_request only)" {
-  grep -q 'openspec-drift-check.sh' "$REPO_ROOT/.github/workflows/ci.yml"
-}
 
 # --- T001994: envsubst-Allowlist-Drift-Guard für Taskfile-Deploy-Pfade ---
 # Nachwehen von T001993: envsubst laesst ungelistete Variablen still als
@@ -515,7 +499,7 @@ _assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)
   fi
 }
 
-# ── T002083: fluxcd-gitops — push→pull CI-Rückbau (SSOT: openspec/specs/ci-cd.md) ──
+# ── T002083: fluxcd-gitops — push→pull CI-Rückbau (SSOT: docs/superpowers/specs/ci-cd.md) ──
 
 @test "T002083: deploy-sealed-secrets.yml workflow no longer exists" {
   [ ! -f "$REPO_ROOT/.github/workflows/deploy-sealed-secrets.yml" ]
@@ -636,10 +620,11 @@ sys.exit(0 if p.get('packages')=='write' else 1)
 # Workflow nach dem T002118-Fix wieder startete.
 @test "T002124: jeder Job, der (auch indirekt) pnpm braucht, richtet es ein" {
   # Loest die Task-Kette aus Taskfile.yml auf statt nur Workflow-Text zu
-  # greppen. deploy-legacy ruft `task workspace:deploy`, das intern
-  # `task website:migrate` startet, das `pnpm` braucht — im Workflow steht
-  # davon nichts. Der urspruengliche Guard (T002121) suchte nur nach der
-  # woertlichen Nennung von website:migrate und uebersah den Job deshalb.
+  # greppen. Historie: deploy-legacy (entfernt, T900810) rief
+  # `task workspace:deploy`, das intern `task website:migrate` startet, das
+  # `pnpm` braucht — im Workflow steht davon nichts. Der urspruengliche Guard
+  # (T002121) suchte nur nach der woertlichen Nennung von website:migrate und
+  # uebersah den Job deshalb.
   run python3 - "$REPO_ROOT" <<'PYEOF'
 import glob, os, re, sys, yaml
 
@@ -976,7 +961,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
     echo "FAIL: ci.yml ruft task test:spec nicht auf (laedt alle spec-tests)."
     echo "      Wenn ci-cd.bats nicht im Required Check laeuft, verhindert es"
     echo "      nichts — genau so blieben drei rote T001994-Assertions und ein"
-    echo "      rotes openspec:validate (T002167) unentdeckt auf main."
+    echo "      rotes plan:validate (T002167) unentdeckt auf main."
     return 1
   }
 }
@@ -986,19 +971,19 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 # spec files, because any file not in the list runs in no required check and
 # can rot on main undetected (observed: T002163, T002167, image-drift).
 #
-# [T002500] Der gepruefte Job heisst seit dem Sharding `test-factory-shard` —
-# dort laeuft die Suite. `test-factory` ist nur noch der Aggregator, der den
+# [T002500] Der gepruefte Job heisst seit dem Sharding `test-spec-shard` —
+# dort laeuft die Suite. `test-spec` ist nur noch der Aggregator, der den
 # Required-Check-Namen traegt und keine Tests selbst ausfuehrt. Die Schutzabsicht
 # ist unveraendert: WER die Spec-Suite faehrt, muss sie vollstaendig fahren.
 
-@test "T002182: ci.yml test-factory job uses task test:spec (full glob)" {
+@test "T002182: ci.yml test-spec job uses task test:spec (full glob)" {
   local ci="$REPO_ROOT/.github/workflows/ci.yml"
   # Extract the spec-suite job steps between its header and the next job
   local block
-  block=$(awk '/^  test-factory-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
+  block=$(awk '/^  test-spec-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
   # Must invoke task test:spec, not enumerate individual .bats files
   echo "$block" | grep -qE 'task test:spec|tests/spec/\*\.bats' || {
-    echo "FAIL: test-factory job does not use task test:spec or tests/spec/*.bats glob."
+    echo "FAIL: test-spec job does not use task test:spec or tests/spec/*.bats glob."
     echo "      Every tests/spec/*.bats file must run in this required check."
     echo "      Current block:"
     echo "$block" | sed 's/^/  /'
@@ -1006,7 +991,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   }
   # Must NOT list individual .bats filenames in a way that excludes others
   ! echo "$block" | grep -v '^[[:space:]]*#' | grep -qE 'tests/spec/[a-z0-9_-]+\.bats' || {
-    echo "FAIL: test-factory job still enumerates individual spec files."
+    echo "FAIL: test-spec job still enumerates individual spec files."
     echo "      Use 'task test:spec' to run the full tests/spec/*.bats glob."
     return 1
   }
@@ -1029,15 +1014,15 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 @test "T002245/T002780: gescopte Spec-Suite behaelt einen erreichbaren Vollauf" {
   local ci="$REPO_ROOT/.github/workflows/ci.yml"
   local block
-  # [T002500] siehe Kommentar an T002182 oben: die Suite lebt in test-factory-shard.
-  block=$(awk '/^  test-factory-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
+  # [T002500] siehe Kommentar an T002182 oben: die Suite lebt in test-spec-shard.
+  block=$(awk '/^  test-spec-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
 
   # Positiv-Anker [T002356-M1]: der Job-Block muss ueberhaupt gefunden worden
   # sein. Ohne ihn waeren alle folgenden greps auf Leerstring und die
   # Bedingung unten (`if ... grep -qF`) fiele trivial durch — der Test waere
   # vakuos gruen, gerade wenn jemand den Job umbenennt oder loescht.
   [ -n "$block" ] || {
-    echo "FAIL: Job-Block 'test-factory-shard:' in ci.yml nicht gefunden."
+    echo "FAIL: Job-Block 'test-spec-shard:' in ci.yml nicht gefunden."
     return 1
   }
 
@@ -1049,7 +1034,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
     }
     # ...the unscoped fallback must survive alongside it...
     echo "$block" | grep -qE '^\s+(task )?test:spec\s*$|task test:spec$' || {
-      echo "FAIL: no bare 'task test:spec' fallback left in the test-factory job."
+      echo "FAIL: no bare 'task test:spec' fallback left in the test-spec job."
       echo "      Current block:"; echo "$block" | sed 's/^/  /'
       return 1
     }
@@ -1080,21 +1065,21 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   # vor dem ersten Test starb) faerbte damit diesen Guard rot, obwohl der
   # Fetch unveraendert stattfindet — Darstellung statt Semantik [T002716].
   echo "$block" | grep -qE 'origin \+?main:refs/remotes/origin/main' || {
-    echo "FAIL: test-factory does not fetch origin/main — a diff-scoped run"
+    echo "FAIL: test-spec does not fetch origin/main — a diff-scoped run"
     echo "      would select nothing and report green."
     return 1
   }
 }
 
-@test "T002245: find-changed-tests.sh spec maps openspec slugs and widens on harness changes" {
+@test "T002245: find-changed-tests.sh spec maps plan slugs and widens on harness changes" {
   local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
   local tmp="$BATS_TEST_TMPDIR/finder-repo"
-  mkdir -p "$tmp/scripts" "$tmp/tests/spec/helpers" "$tmp/openspec/specs/alpha"
+  mkdir -p "$tmp/scripts" "$tmp/tests/spec/helpers" "$tmp/docs/superpowers/specs/alpha"
   cp "$finder" "$tmp/scripts/find-changed-tests.sh"
   : > "$tmp/tests/spec/alpha.bats"
   : > "$tmp/tests/spec/beta.bats"
   : > "$tmp/tests/spec/helpers/shared.bash"
-  : > "$tmp/openspec/specs/alpha/spec.md"
+  : > "$tmp/docs/superpowers/specs/alpha/spec.md"
 
   cd "$tmp"
   git init -q -b main .
@@ -1110,10 +1095,10 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   # stderr, und `run` ohne das Flag buendelt stdout+stderr in $output. Eine
   # Gleichheits-Assertion auf die reine Dateiliste sieht sonst die Diagnose als
   # zusaetzliche Zeile. [T002713]
-  # openspec/specs/alpha/** → tests/spec/alpha.bats, and nothing else
+  # docs/superpowers/specs/alpha/** → tests/spec/alpha.bats, and nothing else
   git checkout -q -b topic
-  echo change >> openspec/specs/alpha/spec.md
-  git add -A && git -c user.email=t@t -c user.name=t commit -q -m openspec
+  echo change >> docs/superpowers/specs/alpha/spec.md
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m plan
   run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   [ "$output" = "tests/spec/alpha.bats" ]
@@ -1169,32 +1154,32 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 
 # ── T002345: scripts/*-Aenderungen erreichen die Pfad-Probe nie ──────────────
 # Der scripts/*-Zweig in find-changed-tests.sh versucht einen Namensabgleich
-# (queue.sh -> queue.bats / vda-queue.bats / ticket-queue.bats / factory-queue.bats)
+# (queue.sh -> queue.bats / vda-queue.bats / ticket-queue.bats / dispatch-queue.bats)
 # und setzt bei Fehlschlag RUN_ALL=true, gefolgt von `continue`. Das `continue`
 # springt ueber die Pfad-Probe hinweg, die den Pfad in den spec-Dateien greppt
 # und den tiefsten Treffer waehlt.
 #
 # Folge: Fuer scripts/-Aenderungen liefert der spec-Finder entweder einen
 # Namenstreffer oder ALLE Suiten — nie die eine, die den Pfad tatsaechlich
-# prueft. Gemessen an scripts/factory/queue.sh: 138 Suiten statt der einen
-# software-factory.bats, die den Pfad woertlich referenziert.
+# prueft. Gemessen an scripts/pipeline/queue.sh: 138 Suiten statt der einen
+# pipeline-queue.bats, die den Pfad woertlich referenziert.
 #
 # Zusammen mit RUN_SPEC=false im Taskfile (die spec-Suite wird fuer scripts/
 # gar nicht erst angefragt) ergibt das ein False-Green im Pflicht-Gate vor dem
-# PR: Ein Fix an scripts/factory/*.sh besteht `task test:changed`, ohne dass
+# PR: Ein Fix an scripts/pipeline/*.sh besteht `task test:changed`, ohne dass
 # die Suite laeuft, die ihn absichert.
 @test "T002345: a scripts/ change without a name match falls through to the path probe" {
   local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
   local tmp="$BATS_TEST_TMPDIR/scripts-probe-repo"
-  mkdir -p "$tmp/scripts/factory" "$tmp/tests/spec"
+  mkdir -p "$tmp/scripts/pipeline" "$tmp/tests/spec"
   cp "$finder" "$tmp/scripts/find-changed-tests.sh"
-  # Keine Datei heisst queue.bats/factory-queue.bats — der Namensabgleich MUSS
+  # Keine Datei heisst queue.bats/dispatch-queue.bats — der Namensabgleich MUSS
   # scheitern, damit der Fall ueberhaupt getestet wird. Genau eine Suite nennt
   # den Pfad; sie ist die richtige Antwort.
-  echo '# covers scripts/factory/queue.sh' > "$tmp/tests/spec/software-factory.bats"
+  echo '# covers scripts/pipeline/queue.sh' > "$tmp/tests/spec/pipeline-queue.bats"
   : > "$tmp/tests/spec/unrelated-one.bats"
   : > "$tmp/tests/spec/unrelated-two.bats"
-  : > "$tmp/scripts/factory/queue.sh"
+  : > "$tmp/scripts/pipeline/queue.sh"
 
   cd "$tmp"
   git init -q -b main .
@@ -1202,12 +1187,12 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   git update-ref refs/remotes/origin/main HEAD
 
   git checkout -q -b topic
-  echo change >> scripts/factory/queue.sh
+  echo change >> scripts/pipeline/queue.sh
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m scripts-change
   run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   # Genau die referenzierende Suite — nicht alle drei (RUN_ALL) und nicht leer.
-  [ "$output" = "tests/spec/software-factory.bats" ]
+  [ "$output" = "tests/spec/pipeline-queue.bats" ]
 }
 
 @test "T002345: a scripts/ change with no referencing spec still widens to the full suite" {
@@ -1233,6 +1218,34 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   [ "$(echo "$output" | wc -l)" -eq 2 ]
+}
+
+@test "T900931: find-changed-tests.sh ignores removed code and does not fall back to RUN_ALL" {
+  local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
+  local tmp="$BATS_TEST_TMPDIR/removed-code-repo"
+  mkdir -p "$tmp/scripts/obsolete" "$tmp/tests/spec" "$tmp/tests/unit"
+  cp "$finder" "$tmp/scripts/find-changed-tests.sh"
+  : > "$tmp/tests/spec/alpha.bats"
+  : > "$tmp/tests/spec/beta.bats"
+  : > "$tmp/scripts/obsolete/remove-me.sh"
+
+  cd "$tmp"
+  git init -q -b main .
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
+  git update-ref refs/remotes/origin/main HEAD
+
+  # Removing a script should not trigger RUN_ALL
+  git checkout -q -b topic
+  git rm -q scripts/obsolete/remove-me.sh
+  git -c user.email=t@t -c user.name=t commit -q -m "remove obsolete script"
+
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+
+  run --separate-stderr bash scripts/find-changed-tests.sh unit
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
 }
 
 # ── T002170: Restposten der Renovate-Config-Migration. fileMatch ist deprecated
@@ -1444,7 +1457,7 @@ MOCKEOF
 #    gesamten Repo-Lauf mit result=repository-changed — ohne Retry und mit
 #    Exit-Code 0. Gemessen an Run 30238038240: 157s Laufzeit (30s Extraktion
 #    fuer 192 Dateien/983 Deps, 127s Lookup), dann Abbruch. Dem stehen ~103
-#    Commits/Tag auf main gegenueber (factory-tick alle 5-6 min, Freshness-Bot,
+#    Commits/Tag auf main gegenueber (Auto-Ticks alle 5-6 min, Freshness-Bot,
 #    Auto-Merges) — ein driftfreies 157s-Fenster ist waehrend aktiver Stunden
 #    nicht zu erwischen. Ergebnis: seit T000898 (2026-06-17) null Renovate-PRs,
 #    bei zehn aufeinanderfolgenden Runs mit conclusion=success.
@@ -1756,12 +1769,7 @@ PY
   [ "$output" = "0" ]
 }
 
-@test "T002328: ci-cd.md schreibt commitlint.config.cjs als Allowlist-Quelle fest" {
-  run grep -n 'semantic-PR allowlist from `ci.yml`' "$REPO_ROOT/openspec/specs/ci-cd.md"
-  [ "$status" -ne 0 ]
-  run grep -c 'commitlint.config.cjs' "$REPO_ROOT/openspec/specs/ci-cd.md"
-  [ "$output" -ge 1 ]
-}
+
 
 @test "T002328: die Alias-Struktur erfuellt ihre Invarianten" {
   # Die neun Tests darueber pruefen konkrete Paare (admin->website). Diese
@@ -1808,7 +1816,7 @@ PY
 # devflow-ci-watch.sh rebased bei mergeStateStatus=DIRTY selbstständig auf
 # origin/main und pusht sofort mit --force-with-lease (Zeilen 22-35). Ein Rebase
 # verschiebt HEAD auf eine neue Basis — jeder generierte Artefakt-Snapshot
-# (repo-index.json, openspec-status.json, test-inventory.json, …) kann danach
+# (repo-index.json, test-inventory.json, test-inventory.json, …) kann danach
 # gegenüber dieser Basis stale sein. `task freshness:check` regeneriert im CI
 # selbst und diff't gegen den Commit-Stand, schlägt also fehl, wenn niemand vor
 # dem Push regeneriert hat. Erwartung: `task freshness:regenerate` läuft nach
@@ -2025,7 +2033,7 @@ MOCKEOF
 @test "T002341-M2: agent-collision.sh filtert generierte Pfade aus einer Dateiliste" {
   [ -f "$REPO_ROOT/scripts/agent-collision.sh" ] || skip "agent-collision.sh nicht gefunden"
   run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
-    _drop_generated 'components/website/src/data/openspec-status.json'"
+    _drop_generated 'components/website/src/data/test-inventory.json'"
   [ "$status" -eq 0 ] || { echo "_drop_generated nicht aufrufbar"; return 1; }
   # Positiv-Anker zuerst: eine echte Quelldatei MUSS die Filterung ueberleben,
   # sonst besteht die Negativ-Aussage unten vakuos (T002356-M1).
@@ -2034,9 +2042,9 @@ MOCKEOF
   [ "$(printf '%s' "$output" | tr -d '[:space:]')" = "components/website/src/pages/index.astro" ] \
     || { echo "Quelldatei wurde faelschlich gefiltert: '$output'"; return 1; }
   run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
-    _drop_generated 'components/website/src/data/openspec-status.json'"
+    _drop_generated 'components/website/src/data/test-inventory.json'"
   [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ] \
-    || { echo "openspec-status.json haette gefiltert werden muessen: '$output'"; return 1; }
+    || { echo "test-inventory.json haette gefiltert werden muessen: '$output'"; return 1; }
 }
 
 @test "T002341-M2: cmd_check wendet den Generated-Filter auf beide Seiten an" {

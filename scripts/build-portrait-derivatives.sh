@@ -6,7 +6,6 @@
 # hochkanten Originals geschnitten (Ausschnitt y=340..1705 von 2048) — dabei ist
 # der Oberkopf verlorengegangen, ohne dass es irgendwo dokumentiert war.  Dieses
 # Skript friert den Ausschnitt ein: Anker y=0, Seitenverhaeltnis wie der
-# .portrait-Rahmen (4:5).  Siehe openspec/specs/website-core.md.
 #
 # Aufruf:
 #   bash scripts/build-portrait-derivatives.sh [--source <jpg>] [--out <dir>]

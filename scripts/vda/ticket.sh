@@ -15,7 +15,7 @@ show_help() {
   echo "Pass-through subcommands (delegated to ticket.sh):"
   echo "  add-comment, add-pr-link, grill, archive-plan, get-attachments,"
   echo "  set-touched-files, set-pipeline-slot, release-slot, touch, retry-count,"
-  echo "  factory-control, dryrun-mark, dryrun-check, feature-flag, phase,"
+  echo "  feature-flag, phase,"
   echo "  inject, get-injections, plan-meta, lastenheft"
   echo ""
   echo "Use 'vda.sh ticket help' for this message, or run 'ticket.sh help' for detailed usage."

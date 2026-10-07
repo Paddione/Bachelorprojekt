@@ -23,16 +23,16 @@ bash scripts/repo-hygiene-precheck.sh          # 0 = frei, 1 = Befund, 2 = nicht
 
 **`2` heißt „unbekannt", nicht „blockiert" [T900061].** Unter Git Bash auf Windows ist der
 Lock-Test nicht durchführbar — `flock` scheitert am fd-Redirect, und `/tmp` zeigt dort nicht
-auf die Lock-Datei, die die Factory unter WSL hält. Bis T900061 fiel dieser Fehler in denselben
+auf die Lock-Datei, die der Tick unter WSL hält. Bis T900061 fiel dieser Fehler in denselben
 Zweig wie „Lock gehalten": der Vorcheck meldete auf jedem Windows-Host dauerhaft einen
 laufenden Tick und blockierte §1 grundlos. Jetzt sagt er, dass er es nicht weiß. Die
 Konsequenz ist dieselbe wie bei einem echten Tick, aber aus dem richtigen Grund: die
 `--porcelain`-Prüfung unmittelbar vor jedem Remove wiederholen, statt sich auf den Vorcheck zu
 verlassen.
 
-Er prüft beides: den laufenden Factory-Tick **und** den `main-checkout`-Claim aus
+Er prüft beides: den laufenden Hygiene-Tick **und** den `main-checkout`-Claim aus
 `scripts/agent-lock.sh`. Der zweite Teil ist die Lehre aus dem 2026-08-30: der alte Vorcheck
-kannte nur den Tick, und eine **interaktive Fremdsession** mutiert ohne `/tmp/factory-tick.lock`.
+kannte nur den Tick, und eine **interaktive Fremdsession** mutiert ohne `/tmp/repo-hygiene-tick.lock`.
 An diesem Tag geschah das zweimal in einem Lauf — einmal ein `git reset` auf `origin/main`,
 einmal ein Branch-Wechsel, der einen Commit auf einem fremden Branch landen ließ. Während beider
 Vorfälle war `agent-lock.sh list` leer: der Scope, der genau diesen Konflikt verhindert, wurde
@@ -97,7 +97,7 @@ Branch-Bestände mutierten während desselben Laufs mehrfach.
 
 Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit-Bereich allein reicht nicht — ein Worktree kann ungetrackte Änderungen enthalten, die kein `git log` anzeigt.
 
-> **Vorcheck [T003227, erweitert T900016]:** Läuft gerade ein Factory-Tick — oder hält eine
+> **Vorcheck [T003227, erweitert T900016]:** Läuft gerade ein Hygiene-Tick — oder hält eine
 > andere Session den `main-checkout`-Claim —, verändern sich Worktrees und Branches unter dem
 > Lauf; real beobachtet: 5 von 7 Worktrees mutierten während einer Messung. Maßgeblich ist der
 > gemeinsame Vorcheck aus §0 (`bash scripts/repo-hygiene-precheck.sh`); der Lock-Test darunter
@@ -106,11 +106,11 @@ Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit
 > entfallen; der `main-checkout`-Lock ist der verbleibende maßgebliche Fall).
 > ```bash
 > tick_running() {
->   test -f /tmp/factory-tick.lock || return 1
->   (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/factory-tick.lock
+>   test -f /tmp/repo-hygiene-tick.lock || return 1
+>   (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/repo-hygiene-tick.lock
 > }
 > if tick_running; then
->   echo "Factory-Tick läuft — Worktree-Sektion übersprungen oder Messung unmittelbar vor Remove wiederholen"
+>   echo "Hygiene-Tick läuft — Worktree-Sektion übersprungen oder Messung unmittelbar vor Remove wiederholen"
 > fi
 > ```
 > Bei laufendem Tick die Worktree-Sektion überspringen **oder** die `--porcelain`-Prüfung
@@ -171,7 +171,7 @@ Remove. Es gilt dieselbe Grundregel wie in §0 Punkt 5 und §3: eine leere Antwo
 
 Die frühere Regel „`--porcelain` MUSS leer sein" misst zu grob, um allein zu entscheiden. Jeder
 Worktree, in dem ein Plan gestaged oder archiviert wurde, trägt danach ein regeneriertes
-`components/website/src/data/openspec-status.json` und ist damit dauerhaft dirty — ohne dass ein Byte eigener
+`components/website/src/data/test-inventory.json` und ist damit dauerhaft dirty — ohne dass ein Byte eigener
 Arbeit darin steht. Wörtlich genommen landet der Aufräumpfad deshalb im Normalfall im
 `--force`-Zweig, und ein Schutz, der bei fast jedem legitimen Aufruf übersprungen werden muss,
 macht `--force` zum Standardgriff. Danach fällt echte ungesicherte Arbeit im selben Zweig nicht
@@ -186,7 +186,7 @@ er ist Filterbeschreibung, nicht der operative Aufruf.
 ```bash
 # Nicht-allowlistete Abweichungen — nur diese blockieren den Remove.
 git -C <path> status --porcelain | cut -c4- \
-  | grep -Ev '^(\.agents/plans/|openspec/changes/|docs/code-quality/|components/website/src/data/)' \
+  | grep -Ev '^(\.agents/plans/|.agents/plans/|docs/code-quality/|components/website/src/data/)' \
   | grep -Ev '^(\.release-please-manifest\.json|components/website/CHANGELOG\.md|components/website/package\.json|docs/spec-atlas\.md)$'
 ```
 
@@ -271,11 +271,19 @@ git fetch --prune                                                  # gone remote
 >
 > **Zeitzonen-Falle bei Nach-Merge-Commits [T002495-M1]:** `gh pr list --json mergedAt` liefert UTC (`Z`-Suffix), `git log --format='%cI'` lokale Offset-Zeit. Vor dem Vergleichen beide auf UTC normalisieren (`TZ=UTC git log -1 --format='%cd' --date=format-local:'%Y-%m-%dT%H:%M:%SZ'`), sonst meldet der Vergleich falsche Nach-Merge-Commits.
 >
-> **Three-dot-Diff-Falle (`origin/main...<branch>`) [T002495-M2]:** Three-dot zeigt den Diff seit dem Abzweigpunkt (`merge-base`), der sich beim Squash-Merge nicht verschiebt. Um echte ungemergte Änderungen zu prüfen, nur eigene Quelldateien gegen `origin/main` vergleichen:
+> **Three-dot-Diff-Falle (`origin/main...<branch>`) [T002495-M2, T900748]:** Three-dot zeigt den Diff seit dem Abzweigpunkt (`merge-base`), der sich beim Squash-Merge nicht verschiebt. Um echte ungemergte Änderungen zu prüfen, nur eigene Quelldateien gegen `origin/main` vergleichen. Wichtig: `git rev-parse` gibt bei nicht existierenden Pfaden sein Argument auf stdout aus — vor dem Hashvergleich muss die Existenz mit `git cat-file -e` geprüft werden, damit beidseitig gelöschte Dateien nicht fälschlich als abweichend gemeldet werden:
 > ```bash
 > mb=$(git merge-base origin/main "$b")
 > for f in $(git diff --name-only "$mb" "$b"); do
->   [ "$(git rev-parse "$b:$f")" = "$(git rev-parse "origin/main:$f")" ] || echo "ABWEICHEND: $f"
+>   git cat-file -e "$b:$f" 2>/dev/null && eb=1 || eb=0
+>   git cat-file -e "origin/main:$f" 2>/dev/null && em=1 || em=0
+>   if [ $eb -eq 1 ] && [ $em -eq 1 ]; then
+>     [ "$(git rev-parse "$b:$f")" = "$(git rev-parse "origin/main:$f")" ] || echo "ABWEICHEND: $f"
+>   elif [ $eb -eq 1 ]; then
+>     echo "ABWEICHEND (nur-branch): $f"
+>   elif [ $em -eq 1 ]; then
+>     echo "ABWEICHEND (nur-main): $f"
+>   fi
 > done
 > ```
 
@@ -361,7 +369,7 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 
 * **Merge (mergeable, CI grün, kein Draft):**
   ```bash
-  # KEIN --delete-branch (T004612): das OpenSpec-Archiv läuft nach dem Merge und braucht
+  # KEIN --delete-branch (T004612): das plan-Archiv läuft nach dem Merge und braucht
   # den Branch noch; Verwaiste räumt branch-reaper.sh ab.
   gh pr merge <number> --squash
   ```
@@ -413,8 +421,8 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 
 Dieser Abgleich ist **verbindlicher** Bestandteil jedes repo-hygiene-Laufs — kein optionaler
 Zusatzschritt. Er war als Skript (`auto-close-merged.sh` im Factory-Baum, eingehängt in den
-Factory-Wakeup) automatisiert und lief für beide Brands, aber nur solange die Factory tickte; wenn
-die Factory nicht lief (Ausfall, manuell gestoppt), blieb das PR-Ticket-Delta unentdeckt — genau
+Factory-Wakeup) automatisiert und lief für beide Brands, aber nur solange der Wakeup-Tick lief; wenn
+der Wakeup ausfiel (Ausfall, manuell gestoppt), blieb das PR-Ticket-Delta unentdeckt — genau
 das Muster der sieben Fälle vom 2026-09-04 (T900103, Messung 2026-09-20: weder `gh`-Metadaten
 noch die Phasen-Kette unterscheiden dabei Auto-Merge von Hand-Merge — Punkt 1/2 der
 ursprünglichen ZU-KLAEREN-Liste bleiben deshalb offen und sind nicht Gegenstand dieses Schritts).
@@ -509,7 +517,7 @@ GitHub führt keine Custom-Merge-Driver aus; Details in
 > `gh api --method PUT …/update-branch` antwortete **HTTP 422 „merge conflict between base and
 > head"** — während lokal `git merge origin/main` glatt durchlief und
 > `git diff --name-only --diff-filter=U` **leer** blieb. Ursache sind die Freshness-Generate
-> (`components/website/src/data/openspec-status.json`, `test-inventory.json`), die in `.gitattributes`
+> (`components/website/src/data/test-inventory.json`, `test-inventory.json`), die in `.gitattributes`
 > einen Custom-Merge-Driver tragen, den GitHub nicht ausführt.
 >
 > Unterscheiden mit dem lokalen Probe-Merge aus §3 („Leere Checkliste kann auch Konflikt
@@ -518,7 +526,7 @@ GitHub führt keine Custom-Merge-Driver aus; Details in
 > ```bash
 > git fetch origin main && git merge origin/main    # läuft lokal konfliktfrei durch
 > task freshness:regenerate                          # Generate gegen den neuen Stand neu bauen
-> git add -- components/website/src/data/openspec-status.json components/website/src/data/test-inventory.json
+> git add -- components/website/src/data/test-inventory.json components/website/src/data/test-inventory.json
 > git commit --amend --no-edit || git commit -m "chore: regenerate freshness artifacts"
 > git push origin HEAD                               # Merge-Commit pushen — danach ist der PR sauber
 > ```

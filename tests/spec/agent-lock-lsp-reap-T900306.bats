@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-lock-lsp-reap-T900306.bats
-# SSOT: openspec/specs/active-sessions-hub.md
 # Ticket: T900306
 #
 # Background language servers (e.g. typescript-language-server, tsserver)

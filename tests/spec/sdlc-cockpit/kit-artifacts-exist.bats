@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-cockpit/kit-artifacts-exist.bats
-# SSOT: openspec/changes/sdlc-cockpit-design/design.md
 #
 # Prüft, dass alle 5 Kit-Dateien + 2 Belegartefakte existieren. [T002460]
 

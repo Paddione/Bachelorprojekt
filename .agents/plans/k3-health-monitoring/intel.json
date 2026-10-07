@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "slug": "k3-health-monitoring",
+    "ticket_id": "",
+    "generated_from": "main@5eaf0a82e",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/health-goals-check.sh",
+      "language": "bash",
+      "loc": 550,
+      "s1_limit": 800,
+      "s1_baseline": 592,
+      "s1_budget": 250
+    },
+    {
+      "path": "tests/spec/cbm-health-goals.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/cbm-index-stampede.md",
+      "language": "markdown",
+      "loc": 109,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/brain/k3-code-graph.md",
+      "language": "markdown",
+      "loc": 194,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/health-goals-check.sh:45:want() { [ -z \"$ONLY\" ] || [[ \"$ONLY\" == *\",$1,\"* ]]; }",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "45:want() { [ -z \"$ONLY\" ] || [[ \"$ONLY\" == *\",$1,\"* ]]; }(...)",
+      "type_text": "45:want() { [ -z \"$ONLY\" ] || [[ \"$ONLY\" == *\",$1,\"* ]]; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:55:row() {",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "55:row() {(...)",
+      "type_text": "55:row() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:97:n_baseline_gate() { # $1=S1|S2|S3|S4|ALL",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "97:n_baseline_gate() { # $1=S1|S2|S3|S4|ALL(...)",
+      "type_text": "97:n_baseline_gate() { # $1=S1|S2|S3|S4|ALL(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:104:count() { grep -rEn \"$1\" $2 --include=\"*.ts\" --include=\"*.svelte\" --include=\"*.astro\" 2>/dev/null | grep -v 'goals-data\\.ts' | wc -l | tr -d ' '; }",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "104:count() { grep -rEn \"$1\" $2 --include=\"*.ts\" --include=\"*.svelte\" --include=\"*.astro\" 2>/dev/null | grep -v 'goals-data\\.ts' | wc -l | tr -d ' '; }(...)",
+      "type_text": "104:count() { grep -rEn \"$1\" $2 --include=\"*.ts\" --include=\"*.svelte\" --include=\"*.astro\" 2>/dev/null | grep -v 'goals-data\\.ts' | wc -l | tr -d ' '; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:109:project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus (SSOT, T900070)",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "109:project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus (SSOT, T900070)(...)",
+      "type_text": "109:project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus (SSOT, T900070)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:118:mcp_servers() { python3 - \"$1\" <<'PY' 2>/dev/null || true",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "118:mcp_servers() { python3 - \"$1\" <<'PY' 2>/dev/null || true(...)",
+      "type_text": "118:mcp_servers() { python3 - \"$1\" <<'PY' 2>/dev/null || true(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:131:anchor_dir() { local d; for d in \"$@\"; do [ -d \"$d\" ] && return 0; done; echo -; exit 0; }",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "131:anchor_dir() { local d; for d in \"$@\"; do [ -d \"$d\" ] && return 0; done; echo -; exit 0; }(...)",
+      "type_text": "131:anchor_dir() { local d; for d in \"$@\"; do [ -d \"$d\" ] && return 0; done; echo -; exit 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:132:anchor_file() { [ -f \"$1\" ] || { echo -; exit 0; }; }",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "132:anchor_file() { [ -f \"$1\" ] || { echo -; exit 0; }; }(...)",
+      "type_text": "132:anchor_file() { [ -f \"$1\" ] || { echo -; exit 0; }; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:133:anchor_ref() { git rev-parse --verify --quiet \"$1\" >/dev/null 2>&1 || { echo -; exit 0; }; }",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "133:anchor_ref() { git rev-parse --verify --quiet \"$1\" >/dev/null 2>&1 || { echo -; exit 0; }; }(...)",
+      "type_text": "133:anchor_ref() { git rev-parse --verify --quiet \"$1\" >/dev/null 2>&1 || { echo -; exit 0; }; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

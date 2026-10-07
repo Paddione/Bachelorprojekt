@@ -42,8 +42,10 @@ spec:
             httpGet: {path: /ping, port: 8123}
             periodSeconds: 10
           resources:
+            # 8Gi = offizielles Langfuse-Minimum; bei 4Gi verwarf ClickHouse Inserts als
+            # "memory limit exceeded" (non-retryable) [T900750]
             requests: {cpu: 500m, memory: 2Gi}
-            limits: {memory: 4Gi}
+            limits: {memory: 8Gi}
           volumeMounts:
             - {name: data, mountPath: /var/lib/clickhouse}
             - {name: logs, mountPath: /var/log/clickhouse-server}

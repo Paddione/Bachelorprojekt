@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/auth-sso.bats
-# SSOT: openspec/specs/auth-sso.md
 # T001579: oauth2-proxy gate hardening — render-based manifest assertions.
 # Render pattern follows tests/spec/brain-quartz-deploy.bats.
 load 'test_helper'
@@ -46,22 +45,22 @@ _render_korczewski() {
   [ "$wildcard" -eq "$groups" ] || { echo "FAIL: ${wildcard} wildcard gates but ${groups} allowed-group restrictions"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 6 gates carry --allowed-group=workspace-users" {
+@test "prod render (mentolder): exactly 7 gates carry --allowed-group=workspace-users" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --allowed-group=workspace-users' <<< "$RENDER" || true)"
-  [ "$count" -eq 6 ] || { echo "FAIL: expected 6 allowed-group gates, got ${count}"; return 1; }
+  [ "$count" -eq 7 ] || { echo "FAIL: expected 7 allowed-group gates, got ${count}"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 7 gates carry --oidc-groups-claim=groups" {
+@test "prod render (mentolder): exactly 8 gates carry --oidc-groups-claim=groups" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --oidc-groups-claim=groups' <<< "$RENDER" || true)"
-  [ "$count" -eq 7 ] || { echo "FAIL: expected 7 oidc-groups-claim gates, got ${count}"; return 1; }
+  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 oidc-groups-claim gates, got ${count}"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 7 gates request the groups scope" {
+@test "prod render (mentolder): exactly 8 gates request the groups scope" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --scope=openid email profile groups' <<< "$RENDER" || true)"
-  [ "$count" -eq 7 ] || { echo "FAIL: expected 7 gates with groups scope, got ${count}"; return 1; }
+  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 gates with groups scope, got ${count}"; return 1; }
 }
 
 @test "prod render (mentolder): the 4 allowlist gates keep --authenticated-emails-file" {
@@ -294,7 +293,6 @@ data:
 }
 
 # ── T002205: Keycloak-Abschaltung vollstaendig ──────────────────────────
-# SSOT: openspec/specs/auth-sso.md → "Single-Sign-On für alle Platform-Services"
 
 _repo_root() { cd "${BATS_TEST_DIRNAME}/../.." && pwd; }
 

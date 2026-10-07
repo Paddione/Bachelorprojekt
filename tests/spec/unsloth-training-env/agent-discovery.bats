@@ -31,7 +31,8 @@ setup() {
 
   # Negativ/Positiv-Kern dieses Tests: jede neue finetune:-Task muss denselben Fast-Path
   # nehmen (Task existiert im Taskfile) statt auf die LLM-Fallback-Kette angewiesen zu sein.
-  for t in measure guard train traces export; do
+  # (finetune:traces entfiel mit T900728 — der Korpus-Renderer wurde stillgelegt.)
+  for t in measure guard train train-vision export; do
     run bash "$REPO_ROOT/scripts/vda.sh" oracle --dry-run "finetune:${t}"
     [ "$status" -eq 0 ] || { echo "finetune:${t} → exit=$status output=$output" >&2; false; }
     [[ "$output" == *"task finetune:${t}"* ]]

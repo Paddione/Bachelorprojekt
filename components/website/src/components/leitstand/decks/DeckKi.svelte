@@ -1,9 +1,9 @@
 <script lang="ts">
-  import LlmProxyPanel from '../../sdlc/factory/LlmProxyPanel.svelte';
-  import LlmLoadoutPanel from '../../sdlc/factory/LlmLoadoutPanel.svelte';
-  import KiRoutingPanel from '../../sdlc/factory/KiRoutingPanel.svelte';
+  import LlmProxyPanel from '../../sdlc/cockpit/LlmProxyPanel.svelte';
+  import LlmLoadoutPanel from '../../sdlc/cockpit/LlmLoadoutPanel.svelte';
+  import KiRoutingPanel from '../../sdlc/cockpit/KiRoutingPanel.svelte';
   import DispatchLogPanel from '../../cockpit/DispatchLogPanel.svelte';
-  import InsightsTab from '../../sdlc/factory/InsightsTab.svelte';
+  import InsightsTab from '../../sdlc/cockpit/InsightsTab.svelte';
 </script>
 
 <!-- KI-Deck (T007957/E3, p2 Task 3; konsolidiert T013302; Loadout-Panel T013909): alle Karten laden

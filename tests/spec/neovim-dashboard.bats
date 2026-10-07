@@ -2461,6 +2461,42 @@ LUA
   [[ "$output" == *"qflen=0"* ]]
 }
 
+@test "neovim-dashboard: repo-knowledge k3-symbol hitting term fills quickfix from rows (T900907)" {
+  command -v codebase-memory-mcp >/dev/null 2>&1 || skip "codebase-memory-mcp fehlt"
+  cat > "$PROBE_DIR/repo-knowledge-k3symbol-hits.lua" <<'LUA'
+local stage, marker_file, out_file, repo_file = arg[1], arg[2], arg[3], arg[4]
+package.path = stage .. '/lua/?.lua;' .. package.path
+vim.notify = function(msg)
+  local f = io.open(marker_file, 'a')
+  f:write(tostring(msg) .. '\n')
+  f:close()
+end
+vim.ui.input = function(_, cb) cb('function') end
+local ok, m = pcall(require, 'config.repo-knowledge')
+if not ok then
+  io.stderr:write('LOAD FAILED config.repo-knowledge:\n' .. tostring(m) .. '\n')
+  os.exit(1)
+end
+vim.cmd.edit(vim.fn.fnameescape(repo_file))
+m.k3_symbol()
+local qf = vim.fn.getqflist()
+local out = io.open(out_file, 'w')
+out:write('qflen=' .. #qf .. '\n')
+out:close()
+os.exit(0)
+LUA
+  MARKER="$BATS_TEST_TMPDIR/repo-knowledge-k3symbol-hits-marker.txt"
+  OUT="$BATS_TEST_TMPDIR/repo-knowledge-k3symbol-hits-out.txt"
+  run nvim -l "$PROBE_DIR/repo-knowledge-k3symbol-hits.lua" "$STAGE" "$MARKER" "$OUT" "$REPO/CLAUDE.md"
+  [ "$status" -eq 0 ]
+  run grep -q 'non-JSON output' "$MARKER"
+  [ "$status" -ne 0 ]
+  run grep -q 'hit(s) in quickfix' "$MARKER"
+  [ "$status" -eq 0 ]
+  QFLEN="$(grep -oE '^qflen=[0-9]+' "$OUT" | cut -d= -f2)"
+  [ "$QFLEN" -gt 0 ]
+}
+
 @test "neovim-dashboard: repo-knowledge runbook exists and matches dashboard order" {
   RUNBOOK="$STAGE/runbooks/repo-knowledge.md"
   [ -f "$RUNBOOK" ] || fail "runbooks/repo-knowledge.md missing"

@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/security/website-clusterrole-least-privilege.bats
-# SSOT: openspec/specs/security.md (Change: website-clusterrole-least-privilege)
 # Ticket: T900114
 
 setup() {

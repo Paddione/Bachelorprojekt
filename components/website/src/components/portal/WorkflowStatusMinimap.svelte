@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { WorkflowTrack } from '../../lib/workflow-status';
 
-  let { tracks = [] as WorkflowTrack[] } = $props<{ tracks?: WorkflowTrack[] }>();
+  let { tracks = [] }: { tracks?: WorkflowTrack[] } = $props();
 
   const STORAGE_KEY = 'wf-minimap-collapsed';
 

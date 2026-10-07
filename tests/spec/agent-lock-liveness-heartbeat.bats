@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/agent-lock-liveness-heartbeat (T015822)
 # Tests check REAL agent-lock.sh command output (claim/check/guard-precommit exit
 # codes), not script source — same convention as pid-dead-worktree-match-T002849.
 #

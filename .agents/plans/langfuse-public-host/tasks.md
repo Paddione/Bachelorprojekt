@@ -39,12 +39,12 @@ Budget geprüft mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_bud
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-devmesh.md | impl | dev-local/components/langfuse/langfuse.yaml, dev-local/components/langfuse/kustomization.yaml, dev-local/components/langfuse/ingress-public.yaml, dev-local/core/ingress.yaml, environments/dev.yaml, environments/schema.yaml | | 27b-local | 40000 |
-| p2 | tasks.d/p2-fleet.md | impl | prod-fleet/mentolder/langfuse-dev-proxy.yaml, prod-fleet/mentolder/kustomization.yaml | | 4b-local | 16000 |
-| p3 | tasks.d/p3-client.md | impl | scripts/langfuse/client-env.sh | p1 | 4b-local | 8000 |
-| p4 | tasks.d/p4-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1, p2, p3 | 4b-local | 8000 |
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-devmesh.md | impl | dev-local/components/langfuse/langfuse.yaml, dev-local/components/langfuse/kustomization.yaml, dev-local/components/langfuse/ingress-public.yaml, dev-local/core/ingress.yaml, environments/dev.yaml, environments/schema.yaml | |
+| p2 | tasks.d/p2-fleet.md | impl | prod-fleet/mentolder/langfuse-dev-proxy.yaml, prod-fleet/mentolder/kustomization.yaml | |
+| p3 | tasks.d/p3-client.md | impl | scripts/langfuse/client-env.sh | p1 |
+| p4 | tasks.d/p4-tests.md | tests | tests/spec/langfuse-agent-tracing.bats | p1, p2, p3 |
 
 ## Task: Failing Test bestätigen
 

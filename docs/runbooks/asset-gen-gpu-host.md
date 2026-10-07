@@ -2,7 +2,7 @@
 
 Betriebsanleitung für die 3D-Asset-Pipeline (ComfyUI/Hunyuan3D-2 + Blender-Rigger)
 auf dem GPU-Host. Architektur & Verhaltensvertrag: SSOT-Spec
-`openspec/specs/asset-generation.md`.
+`.md`-Datei im Repo.
 
 ## Einmalige Einrichtung
 

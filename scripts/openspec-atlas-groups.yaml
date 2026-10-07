@@ -1,15 +1,13 @@
-# openspec-atlas-groups.yaml — View-Gruppierung für docs/spec-atlas.md [T015012]
+# View-Gruppierung für docs/spec-atlas.md [T015012]
 #
 # Reine VIEW-Metadaten: beeinflusst ausschließlich das generierte Artefakt,
-# niemals die SSOT-Dateien unter openspec/specs/ (design.md D1/D4).
+# niemals die SSOT-Dateien selbst (design.md D1/D4).
 # Slugs ohne Zuordnung erscheinen im Abschnitt "Ungrouped".
 # Reihenfolge hier = Reihenfolge im Artefakt; innerhalb einer Gruppe wird
 # alphabetisch sortiert.
 
 groups:
-  factory-pipeline:
-    - software-factory
-    - openspec-workflow
+  pipeline:
     - dev-flow-plan
     - agent-skills
     - health-goals

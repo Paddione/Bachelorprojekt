@@ -33,7 +33,7 @@
       "s1_budget": null
     },
     {
-      "path": "scripts/factory/pipeline.mjs",
+      "path": "scripts/orchestrator/pipeline.mjs",
       "language": "javascript",
       "loc": 696,
       "s1_limit": 800,
@@ -476,7 +476,7 @@
       "severity": "warn"
     },
     {
-      "note": "scripts/factory/pipeline.mjs is on the s1.ignore list in docs/code-quality/gates.yaml, therefore S1-ungated. s1_budget 0 here means 'not measured', NOT 'no room'. Do not derive a shrink step from it.",
+      "note": "scripts/orchestrator/pipeline.mjs is on the s1.ignore list in docs/code-quality/gates.yaml, therefore S1-ungated. s1_budget 0 here means 'not measured', NOT 'no room'. Do not derive a shrink step from it.",
       "severity": "info"
     },
     {

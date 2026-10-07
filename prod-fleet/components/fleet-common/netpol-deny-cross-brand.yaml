@@ -26,7 +26,14 @@ spec:
   ingress:
     - from:
         # same-namespace clients (keycloak, nextcloud, etc.)
-        - podSelector: {}
+        # namespaceSelector-Form statt podSelector:{} — Workaround für den
+        # k3s-NetPol-Controller-Bug (seit 2026-10-04 ~19:46): podSelector-Peers
+        # werden cluster-weit mit LEEREN ipsets synchronisiert, sämtlicher
+        # same-namespace-Traffic wird gedroppt; namespaceSelector-Peers
+        # funktionieren. Siehe auch allow-intra-namespace-egress.
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ${WORKSPACE_NAMESPACE}
         # this brand's own website namespace (website / website-korczewski)
         - namespaceSelector:
             matchLabels:

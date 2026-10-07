@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/bge-host-routing.bats
-# SSOT: openspec/specs/mcp-gateway.md
 # Ticket: T002551
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): QUELLTEXT/RENDER — hier

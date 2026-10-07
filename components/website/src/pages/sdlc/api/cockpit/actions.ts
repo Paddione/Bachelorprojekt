@@ -6,7 +6,6 @@ import {
   stageTicketPlan, releaseTicketHold, closeTicket, isValidTicketId,
   BrandMismatchError, CycleError, NotFoundError,
 } from '../../../../lib/sdlc/tickets/cockpit-db';
-import { writeControl } from '../../../../lib/sdlc/factory-floor';
 import { createHmac } from 'node:crypto';
 import type { BatchMutation } from '../../../../lib/tickets/cockpit-types.ts';
 
@@ -118,27 +117,6 @@ async function runAction(
       }, { timeout: 10_000 });
       const text = resp.choices[0]?.message.content ?? '';
       return { status: 200, body: { suggestions: parseSuggestions(text) } };
-    }
-
-    // ---- Factory control (repeatable / reversible) ----
-    case 'factory_tick': {
-      const requestedAt = new Date().toISOString();
-      await writeControl('force-tick-requested', requestedAt, actor);
-      return { status: 200, body: { ok: true, action: 'tick', requestedAt } };
-    }
-    case 'factory_enqueue': {
-      const ticketId = target || String(body.ticketId || '');
-      if (!ticketId) return { status: 400, body: { error: 'ticketId required for enqueue' } };
-      const requestedAt = new Date().toISOString();
-      await writeControl('enqueue-requested', JSON.stringify({ ticketId, at: requestedAt }), actor);
-      return { status: 200, body: { ok: true, action: 'enqueue', ticketId, requestedAt } };
-    }
-    case 'factory_release_slot': {
-      const slotId = target || String(body.slotId || '');
-      if (!slotId) return { status: 400, body: { error: 'slotId required for release' } };
-      const requestedAt = new Date().toISOString();
-      await writeControl('release-slot-requested', JSON.stringify({ slotId, at: requestedAt }), actor);
-      return { status: 200, body: { ok: true, action: 'release_slot', slotId, requestedAt } };
     }
 
     // ---- Deploy / CI (irreversible — external API) ----

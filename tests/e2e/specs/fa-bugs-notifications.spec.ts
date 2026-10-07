@@ -14,7 +14,7 @@
 //      with a subject like "[T001751] Ihre Meldung wurde bearbeitet".
 //   4. afterEach deletes the seeded ticket row by external_id, so the
 //      fixture is never visible in the real triage queue longer than the
-//      duration of the test (T001754 — see openspec/changes/fa-bug-notify-e2e-seed).
+//      duration of the test (T001754).
 //
 // Requirements:
 //   E2E_ADMIN_USER  — Keycloak username with admin role  (default: paddione)

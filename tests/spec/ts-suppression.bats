@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/ts-suppression-elimination/proposal.md
 # G-RH02: keine TypeScript-Suppressionen in components/website/src
 
 setup() {

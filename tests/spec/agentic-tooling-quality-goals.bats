@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agentic-tooling-quality-goals.bats
-# SSOT: openspec/specs/agentic-tooling-quality-goals.md
 #
 # Covers: G-AGENTIC01–05: agent frontmatter, routing table, library reachability.
 # Covers: G-AGENTIC09: SKILL.md > 500 lines (T002094).
@@ -13,7 +12,7 @@ setup() {
 
 @test "G-AGENTIC03: every .claude/agents/*.md has a name: field in frontmatter" {
   local missing=0
-  for f in "$REPO"/.claude/agents/bachelorprojekt-*.md; do
+  for f in "$REPO"/.claude/agents/bp-*.md; do
     run grep -q '^name:' "$f"
     if [ "$status" -ne 0 ]; then
       echo "MISSING name: in $f" >&2
@@ -25,7 +24,7 @@ setup() {
 
 @test "G-AGENTIC03: every .claude/agents/*.md has a description: field in frontmatter" {
   local missing=0
-  for f in "$REPO"/.claude/agents/bachelorprojekt-*.md; do
+  for f in "$REPO"/.claude/agents/bp-*.md; do
     run grep -q '^description:' "$f"
     if [ "$status" -ne 0 ]; then
       echo "MISSING description: in $f" >&2
@@ -37,7 +36,7 @@ setup() {
 
 @test "G-AGENTIC03: agent name: matches filename basename" {
   local bad=0
-  for f in "$REPO"/.claude/agents/bachelorprojekt-*.md; do
+  for f in "$REPO"/.claude/agents/bp-*.md; do
     local base
     base=$(basename "$f" .md)
     local name_val
@@ -52,8 +51,8 @@ setup() {
 
 # ── G-AGENTIC02: Routing table drift ──────────────────────────────────
 
-@test "G-AGENTIC02: AGENTS.md routing table mentions all 6 agents" {
-  for agent in bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-db bachelorprojekt-security bachelorprojekt-test bachelorprojekt-website; do
+@test "G-AGENTIC02: AGENTS.md routing table mentions all 3 agents" {
+  for agent in bp-build bp-run bp-ship; do
     run grep -q "$agent" "$REPO/AGENTS.md"
     if [ "$status" -ne 0 ]; then
       echo "AGENTS.md missing routing entry for $agent" >&2
@@ -71,10 +70,10 @@ setup() {
 
 # ── G-AGENTIC05: six-agent cross-reference ────────────────────────────
 
-@test "G-AGENTIC05: exactly 6 agent files exist under .claude/agents/" {
+@test "G-AGENTIC05: exactly 3 agent files exist under .claude/agents/" {
   local count
-  count=$(find "$REPO/.claude/agents" -name 'bachelorprojekt-*.md' 2>/dev/null | wc -l)
-  [ "$count" -eq 6 ]
+  count=$(find "$REPO/.claude/agents" -name 'bp-*.md' 2>/dev/null | wc -l)
+  [ "$count" -eq 3 ]
 }
 
 # ── G-AGENTIC09: God-Skill line budget ────────────────────────────────

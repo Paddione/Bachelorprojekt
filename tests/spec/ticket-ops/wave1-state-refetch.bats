@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ticket-ops/wave1-state-refetch.bats
-# SSOT: openspec/specs/ticket-ops.md
 # Fix: T006295
 #
 # Guard gegen stale Wave-1-Dispatches in ticket-ops: Die Dispatch-Prozedur (§Step 3.6

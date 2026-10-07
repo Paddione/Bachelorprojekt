@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # API-Inventar-Drift-Guard [T007559] -- Requirement "API Connector Inventory"
-# (openspec/changes/sdlc-leitstand-e1-e2/specs/sdlc-cockpit.md).
 #
 # Pruefmodus: Output-Verifikation (T002448-M4) -- jeder Test FUEHRT den Scanner
 # aus und prueft $status/$output/erzeugtes JSON; es wird NICHT auf
@@ -39,9 +38,8 @@ setup() {
 }
 
 # T2 -- Kernfelder: Routen mit path/methods/backend, MCP-Server-Liste deckt
-# sich mit der Registry, factory-mcp-Tools zaehlen gegen dieselbe Regex-Quelle
-# wie der Scanner (kein harter Count -- T007968).
-@test "api-inventory: core fields present, mcp count matches registry, factory tools count matches source" {
+# sich mit der Registry, factoryTools ist leer (Server ausgebaut -- T900728).
+@test "api-inventory: core fields present, mcp count matches registry, factoryTools empty" {
   command -v node >/dev/null 2>&1 || skip "node not installed"
   out="$BATS_TEST_TMPDIR/inv.json"
   API_INVENTORY_OUT="$out" run node scripts/sdlc/api-inventory.mjs
@@ -54,22 +52,9 @@ setup() {
   registry_n=$(awk '/^clients:/{f=1;next} f && /^[a-z]/{exit} f && /^  [a-zA-Z0-9_-]+:$/{n++} END{print n+0}' \
     docs/agent-guide/registry/mcp.yaml)
   [ "$(jq '.mcpServers | length' "$out")" -eq "$registry_n" ]
-  # factory-mcp-Tools: Count gegen dieselbe Regex-Quelle wie der Scanner
-  # (scripts/sdlc/api-inventory.mjs scanFactoryMcpTools) -- kein harter Count,
-  # robust beim naechsten legitimen Tool-Zuwachs (T007968).
-  # T900399: der factory-mcp-Server ist ausgebaut, main.go existiert nicht mehr;
-  # der Scanner liefert dann die leere Liste, der Test ebenso.
-  if [ -f scripts/factory/mcp-go/main.go ]; then
-    factory_n=$(node -e '
-      const fs = require("fs");
-      const src = fs.readFileSync("scripts/factory/mcp-go/main.go", "utf8");
-      const re = /Name:\s*"([^"]+)",\s*\n\s*Description:\s*"([^"]+)"/g;
-      process.stdout.write(String([...src.matchAll(re)].length));
-    ')
-  else
-    factory_n=0
-  fi
-  [ "$(jq '.factoryTools | length' "$out")" -eq "$factory_n" ]
+  # factoryTools: der Tool-Scan ist mit dem Factory-Teardown entfallen
+  # (T900728) -- der Key bleibt als leere Liste Teil des Vertrags.
+  [ "$(jq '.factoryTools | length' "$out")" -eq 0 ]
 }
 
 # T3 -- Deterministisch sortiert, keine Zeitstempel.
@@ -109,8 +94,8 @@ setup() {
   [ "$status" -eq 0 ]
   # Drift simulieren: eine neue Route, die der committete Stand nicht kennt.
   # Fixture-Overlay im entries-Format (p3) mit exakt diesem Endpoint -- der
-  # reale Overlay referenziert /sdlc/api/factory-floor, den die Fixture-
-  # Routenquelle nicht kennt (Orphan, Exit 1).
+  # reale Overlay referenziert Routen, die die Fixture-Routenquelle nicht
+  # kennt (Orphan, Exit 1).
   mkdir -p "$BATS_TEST_TMPDIR/routes/__drift__"
   cat > "$BATS_TEST_TMPDIR/routes/__drift__/extra.ts" <<'EOF'
 export const GET: APIRoute = () => new Response('drift fixture');

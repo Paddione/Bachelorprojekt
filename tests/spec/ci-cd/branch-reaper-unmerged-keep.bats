@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/branch-reaper-unmerged-keep.bats
-# SSOT: openspec/specs/agent-skills.md · Ticket: T900096
+# SSOT: docs/superpowers/specs/agent-skills.md · Ticket: T900096
 # Requirement: "Reaper keeps branches with commits outside main".
 #
 # PRÜFMODUS: COMMAND OUTPUT VERIFICATION, keine Source-Greps — nur Exit-Code
@@ -33,7 +33,7 @@ setup() {
 
   # Alle Fixture-Pfade sind ABSOLUT und alle git-Aufrufe nutzen -C (T002356-Note
   # aus branch-reaper-sweep.bats: kein `cd`, keine relativen Verzeichnisse).
-  PLANDIR="$FIXTURE/openspec/changes/x"
+  PLANDIR="$FIXTURE/.agents/plans/x"
 
   git init --bare --quiet "$REMOTE"
   git init -b main --quiet "$FIXTURE"
@@ -47,7 +47,7 @@ setup() {
   git -C "$FIXTURE" commit --quiet -m "base"
   git -C "$FIXTURE" push --quiet origin HEAD:main
 
-  # Gemergter Branch mit reiner Allowlist-Abweichung (openspec/changes/**):
+  # Gemergter Branch mit reiner Allowlist-Abweichung (.agents/plans/**):
   # nach main gemergt + main gepusht → Tip ist Ancestor von Remote-main.
   git -C "$FIXTURE" checkout --quiet -b chore/merged-T900101
   echo "merged" > "$PLANDIR/tasks.md"

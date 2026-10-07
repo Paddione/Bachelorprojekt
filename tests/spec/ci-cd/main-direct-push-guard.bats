@@ -123,11 +123,11 @@ JSON
   [ "$status" -eq 0 ]
 }
 
-@test "gh-branch-protection: enthaelt alle vier Basis-Required-Checks" {
+@test "gh-branch-protection: enthaelt alle fuenf Basis-Required-Checks" {
   SCRIPT="$REPO_ROOT/scripts/gh-branch-protection.sh"
   [ -x "$SCRIPT" ]
 
-  for check in "BATS Unit + Quality Gates" "Security Scan" "Brett TypeScript" "Conventional Commits"; do
+  for check in "BATS Unit + Quality Gates" "Security Scan" "Brett TypeScript" "Conventional Commits" "Spec + Guards"; do
     run grep -F "\"$check\"" "$SCRIPT"
     [ "$status" -eq 0 ]
   done

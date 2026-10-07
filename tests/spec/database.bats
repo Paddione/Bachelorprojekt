@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/database.bats
-# SSOT: openspec/specs/database.md
 #
 # Phase-2-Drop Regression: nach Anwendung von
 # scripts/migrations/2026-07-09-coaching-phase2-drop-legacy.sql MÜSSEN
@@ -8,7 +7,7 @@
 # `coaching.sessions.ki_config_id` und der FK `sessions_ki_config_id_fkey`
 # (→ tickets.provider_config) unverändert bleiben.
 #
-# Modell-Vorlage: tests/spec/software-factory/_sf_common.bash (_skip_if_no_db) [T002503].
+# Modell-Vorlage: _sf_common.bash (_skip_if_no_db) [T002503] — retired with the factory.
 # Offline/CI ohne Cluster: _skip_if_no_db überspringt die DB-Tests.
 
 setup() {
@@ -32,7 +31,7 @@ PLAN_MIGRATION="scripts/migrations/2026-07-09-coaching-phase2-drop-legacy.sql"
 # sind. Guard und Testkoerper messen hier also korrekterweise fleet.
 _skip_if_no_db() {
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  _pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then
@@ -43,9 +42,9 @@ _skip_if_no_db() {
 _psql_db() {
   local sql="$1"
   local pod
-  pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
-  kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
     -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 -c "$sql"
 }
 
@@ -100,24 +99,24 @@ _psql_db() {
 # clean these up — only an explicit `kubectl delete` does. This test
 # guards against the orphans reappearing.
 _skip_if_no_cluster() {
-  kubectl get nodes --context "${FACTORY_CTX:-fleet}" --request-timeout=3s >/dev/null 2>&1 \
+  kubectl get nodes --context "${WORKSPACE_CTX:-fleet}" --request-timeout=3s >/dev/null 2>&1 \
     || skip "no live cluster reachable (kubectl get nodes failed)"
 }
 
 @test "cluster: workspace-korczewski has no orphaned arena-server deployment" {
   _skip_if_no_cluster
-  run kubectl get deployment arena-server -n workspace-korczewski --context "${FACTORY_CTX:-fleet}" -o name
+  run kubectl get deployment arena-server -n workspace-korczewski --context "${WORKSPACE_CTX:-fleet}" -o name
   [ "$status" -ne 0 ]
 }
 
 @test "cluster: workspace-korczewski has no orphaned arena-server service" {
   _skip_if_no_cluster
-  run kubectl get service arena-server -n workspace-korczewski --context "${FACTORY_CTX:-fleet}" -o name
+  run kubectl get service arena-server -n workspace-korczewski --context "${WORKSPACE_CTX:-fleet}" -o name
   [ "$status" -ne 0 ]
 }
 
 @test "cluster: workspace-korczewski has no orphaned arena-server ingressroute" {
   _skip_if_no_cluster
-  run kubectl get ingressroute.traefik.io arena-server -n workspace-korczewski --context "${FACTORY_CTX:-fleet}" -o name
+  run kubectl get ingressroute.traefik.io arena-server -n workspace-korczewski --context "${WORKSPACE_CTX:-fleet}" -o name
   [ "$status" -ne 0 ]
 }

@@ -18,11 +18,10 @@ die Unsloth/TRL-Upstream-Referenz — im Harness ueber `context7` (`resolve-libr
 4. export_gguf.py         Merge + GGUF-Export (Speichercheck vor dem fp16-Merge)
 ```
 
-`collect_factory_traces.py` ist ein optionaler Korpus-Beschaffungsschritt vor Schritt 1: er
-rendert historische Ticket-Laeufe aus `tickets.factory_phase_events` ins gleiche
-Korpusformat wie ein extern beschaffter Korpus. Die Software-Factory ist seit T900399
-stillgelegt, neue Zeilen entstehen dort nicht mehr; neue Trajektorien liefert der
-`agent-bench` (`export-corpus`, T900561).
+Historische Ticket-Laeufe aus `tickets.factory_phase_events` haben keinen Render-Pfad
+mehr (der DB-Renderer wurde mit der Factory stillgelegt); neue Trajektorien liefert der
+`agent-bench` (`export-corpus`, T900561), bewusst konstruierte Grenzfaelle
+`collect_teacher_traces.py`.
 
 ## Aktueller 4B-Trainingsmodus (September 2026)
 
@@ -32,15 +31,15 @@ Die am 2026-09-27 unter `F:\models\hub` geprueften Snapshots entsprechen:
 
 | Hub-ID | Gewichte | Trainingspfad |
 |---|---|---|
-| `unsloth/Qwen3-4B-unsloth-bnb-4bit` | BNB 4-bit, Qwen3 Text | `finetune:train` mit QLoRA; Vergleichskandidat |
-| `unsloth/Qwen3-4B-Instruct-2507` | volle Gewichte, Qwen3 Text | `finetune:train` mit `PRECISION=4bit` (Quantisierung beim Laden); erster Kandidat fuer Tool-Use/Repo-Workflow |
+| `unsloth/Qwen3.5-4B` | volle Gewichte, Qwen3.5 Text | `finetune:train` mit 16-bit LoRA (Quantisierung beim Laden); erster Kandidat fuer Tool-Use/Repo-Workflow |
+| `unsloth/Qwen3.5-4B-MTP-GGUF` (`Qwen3.5-4B-UD-Q4_K_XL.gguf`) | GGUF Q4_K_XL, Qwen3.5 Text | Deploy-/Serving-Referenz (:8080-Pool, 98304 ctx, Windows-nativ) |
 | `unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit` | BNB 4-bit, Qwen3-VL | `finetune:train-vision` mit Screenshot-/Bild-Beispielen |
 
-Nur **zwei** der drei Snapshots sind BNB 4-bit. Der Text-Trainer verweigert
+Nur der Vision-Snapshot ist BNB 4-bit; die Qwen3.5-Text-Snapshots sind unquantisiert (16-bit-LoRA-Default). Der Text-Trainer verweigert
 Qwen3-VL bewusst, auch bei einem lokalen Snapshot-Pfad. Fuer den Vision-Lauf
 nutzt `train_vision.py` `FastVisionModel` und `UnslothVisionDataCollator` statt
 des Text-Collators. Ein Text-only-Verhaltensziel gehoert zuerst auf das
-Instruct-2507-Modell; fuer den VLM-Lauf braucht es Bild-Daten und eine eigene
+Qwen3.5-4B-Basismodell; fuer den VLM-Lauf braucht es Bild-Daten und eine eigene
 Bild-/Text-Evaluation. Die Snapshot-Verzeichnisse koennen als `MODEL=` direkt
 verwendet werden, wenn der Python-Prozess dasselbe Laufwerk sieht. Auf HF Jobs
 ist der lokale `F:`-Cache nicht vorhanden; dort Hub-IDs verwenden.
@@ -64,7 +63,7 @@ von den Text-Traces evaluieren; ein niedriger Trainings-Loss allein genuegt nich
   weil dessen Quantisierungsabweichung erhoeht ist. Ein bereits heruntergeladenes
   `bnb-4bit`-Repo ist kein 16-bit-Basismodell. `--allow-qwen35-4bit` ist nur fuer
   einen bewusst evaluierten Vergleichslauf vorgesehen.
-* **Qwen3-4B und andere geeignete Dense-Modelle:** 4-bit QLoRA bleibt der
+* **Qwen3.5-4B-Vorgaben:** 16-bit LoRA bleibt der
   Default. Das Windows-Experiment unter `windows-native/` ist ein historisches
   Beispiel; seine gemessenen 8.97 GB Peak-VRAM gelten fuer genau dessen 2048er
   Korpus, Batch und Modell, nicht als allgemeine 4B-Garantie.
@@ -112,7 +111,7 @@ mehr erfordern.
 Der Korpus soll **beobachtete, erfolgreiche Handlungen** lehren: Dispatch-Paket
 lesen, passende Tools waehlen, echte Tool-Ergebnisse verarbeiten, kleine Edits
 verifizieren und ein knappes Status-/Dateien-/Befund-Ergebnis liefern.
-`collect_factory_traces.py` liefert historische Laeufe (bis T900399);
+Fruehere Korpora enthielten historische Laeufe (bis T900399);
 `collect_teacher_traces.py` kann bewusst konstruierte Grenzfaelle erzeugen.
 Jede Zeile muss zum *tatsaechlichen* Tool-Schema und Prompt des Ziel-Slots passen.
 Bei Tool-Use-Beispielen gehoeren auch Faelle **ohne** Tool-Aufruf, fehlgeschlagene
@@ -146,7 +145,7 @@ JSONL, eine Trainingszeile pro Zeile, TRL-Chat-Format:
 {"messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
 ```
 
-`measure_corpus.py`, `template_guard.py`, `train.py` und `collect_factory_traces.py` teilen
+`measure_corpus.py`, `template_guard.py`, `train.py` und `collect_teacher_traces.py` teilen
 dieses Format — derselbe Korpus laeuft unveraendert durch alle Schritte. Mit
 Kontext-Anreicherung enthaelt `messages` zusaetzlich `user`/`assistant`-Turns fuer
 Beschreibung und Kommentare, chronologisch vor dem abschliessenden Assistant-Turn mit den
@@ -199,25 +198,6 @@ ausgegeben.
 damit `llm-proxy` sie als benannten Slot aufnehmen kann. Die Registrierung selbst ist ein
 manueller Schritt (llm-proxy-Konfiguration aktualisieren) — der automatische Austausch eines
 laufenden Slots gehoert nicht in einen Trainingslauf.
-
-## Historische Factory-Traces als Korpus
-
-> Nur Altbestand: die Factory ist seit T900399 stillgelegt.
-
-`collect_factory_traces.py` baut selbst keine DB-Verbindung auf. Zeilen kommen aus einem
-vorgeschalteten `mcp__mcp-postgres__query`-Aufruf gegen `tickets.factory_phase_events`
-(siehe `.claude/skills/references/mcp-tool-guide.md`), als JSON-Datei via `--rows-json`
-uebergeben (`--fixture` ist der identische Pfad fuer Tests). Nur Ticket-Laeufe mit einem
-`verify`/`done`-Event werden uebernommen; bekannte Secret-Muster im `detail`-Feld werden vor
-dem Schreiben redigiert.
-
-`--with-context` (zusammen mit `--comments-json`) nimmt zusaetzlich die Ticket-Beschreibung
-und die Kommentare als chronologische Turns in den Korpus auf: Autoren `claude-code`/
-`factory` werden `assistant`-Turns, alle uebrigen `user`-Turns (E7-Konvention). Die
-Secret-Redaktion gilt auch fuer Beschreibung und Kommentar-Body. Ohne das Flag ist die
-Ausgabe byte-identisch zum bisherigen Verhalten. `--comments-json` ist wie `--fixture`
-der identische Pfad fuer Tests (Kommentarzeilen: `{"ticket_id": <int>, "author": "...",
-"body": "...", "created_at": "ISO-8601"}`).
 
 ## Trainingsartefakte
 

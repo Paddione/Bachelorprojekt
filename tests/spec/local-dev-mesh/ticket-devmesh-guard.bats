@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-dev-mesh/ticket-devmesh-guard.bats — T900118
-# SSOT: openspec/changes/devmesh-dev-stack/specs/local-dev-mesh.md
 #       Requirement "Ticket tooling refuses devmesh as a write target"
 # Pruefmodus: Output-Verifikation (T002448-M4). kubectl ist ein Stub, der jeden
 # Aufruf protokolliert; `kubectl config` geht an das echte kubectl mit einer

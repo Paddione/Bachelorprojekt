@@ -6,7 +6,7 @@
 -- (systemtest_failure_outbox, systemtest_magic_tokens) that are absent on the
 -- local k3d dev shared-db (schema drift vs. fleet). Without these guards,
 -- unconditional DELETE/UPDATE statements throw before any sweep runs, so
--- purge_factory_test_data() silently purges nothing. Also tightens existing
+-- purge_ticket_test_data() silently purges nothing. Also tightens existing
 -- has_src_assn_col/has_qts_evidence/has_scores/has_answers guards to additionally
 -- check has_assignments, so subqueries referencing the missing table are skipped.
 --

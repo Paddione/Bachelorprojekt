@@ -16,7 +16,7 @@
 # Hilfeseite aus und endet mit exit 1, der Job faellt rot aus.
 #
 # Der Zweig laeuft nur, wenn der grep-Guard eine Zeile darueber trifft, also der
-# Slug mit einem OpenSpec-Kategoriecode beginnt (2-4 Buchstaben + 2-3 Ziffern).
+# Slug mit einem Kategoriecode beginnt (2-4 Buchstaben + 2-3 Ziffern).
 # Deshalb blieb der Defekt lange unsichtbar: 'parallel-…' und 'skill-path-…'
 # treffen ihn nicht, 'qwen38-primary-…' schon (PR #5507).
 

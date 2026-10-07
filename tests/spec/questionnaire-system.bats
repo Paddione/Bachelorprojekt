@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/questionnaire-system.bats
-# SSOT: openspec/specs/questionnaire-system.md
+# Target: components/website/src/lib/questionnaire-db.ts
 
 @test "questionnaire-system spec covered" {
   run true

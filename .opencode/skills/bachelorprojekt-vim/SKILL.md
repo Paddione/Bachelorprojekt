@@ -1,6 +1,6 @@
 ---
 name: bachelorprojekt-vim
-description: Guides the agent in planning, creating, rebuilding, configuring, or troubleshooting the Bachelorprojekt Neovim setup on Linux, WSL, or native Windows. Use it whenever a request involves repository scouting, plugin choices, dashboard/navigation design, Lua modules, project-aware commands, or preserving a Neovim config during a rebuild. It keeps Neovim separate from classic Vim/gVim.
+description: 'Use to plan, create, rebuild, configure, or troubleshoot the Bachelorprojekt Neovim setup on Linux, WSL, or native Windows. Triggers on neovim, nvim, bachelorprojekt-vim, vim setup, nvim config, lua plugins, editor wiring, dashboard navigation, preserve neovim. Keeps Neovim separate from classic Vim/gVim.'
 ---
 
 # Bachelorprojekt Neovim

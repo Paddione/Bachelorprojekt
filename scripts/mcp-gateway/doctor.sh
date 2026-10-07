@@ -36,7 +36,7 @@ load_key() { # load_key <file> <key> -> prints value or empty
 
 echo "=== mcp:doctor — Server-Seite (Units) ==="
 if command -v systemctl >/dev/null 2>&1; then
-  for u in bge-mcp mcp-postgres-local factory-mcp mcp-gateway; do
+  for u in bge-mcp mcp-postgres-local mcp-gateway; do
     if systemctl --user is-active --quiet "$u" 2>/dev/null; then
       ok "unit $u aktiv"
     else
@@ -78,7 +78,6 @@ probe() { # probe <port> <envfile> <key> <label> <protocolVersion>
 }
 probe 13005 "$HOME/.config/bge-mcp/server.env" BGE_MCP_TOKEN bge-mcp 2025-06-18
 probe 13001 "$HOME/.config/mcp-postgres/server.env" MCP_POSTGRES_TOKEN mcp-postgres 2024-11-05
-probe 13003 "$HOME/.config/factory-mcp-node/server.env" FACTORY_MCP_TOKEN factory-mcp-node 2024-11-05
 
 echo "=== mcp:doctor — Client-Seite (opencode) ==="
 if [ -f "$HOME/.config/opencode/plugins/bge-mcp-env.ts" ] && \
@@ -88,9 +87,8 @@ else
   fail "Token-Plugins fehlen in ~/.config/opencode/plugins/" "bash scripts/opencode-sync-agents.sh (verteilt .opencode/plugin/*.ts)"
 fi
 if grep -q '{env:BGE_MCP_TOKEN}' .opencode/opencode.jsonc 2>/dev/null && \
-   grep -q '{env:MCP_POSTGRES_TOKEN}' .opencode/opencode.jsonc 2>/dev/null && \
-   grep -q '{env:FACTORY_MCP_TOKEN}' .opencode/opencode.jsonc 2>/dev/null; then
-  ok ".opencode/opencode.jsonc referenziert alle 3 {env:...}-Token"
+   grep -q '{env:MCP_POSTGRES_TOKEN}' .opencode/opencode.jsonc 2>/dev/null; then
+  ok ".opencode/opencode.jsonc referenziert alle 2 {env:...}-Token"
 else
   fail ".opencode/opencode.jsonc ohne {env:...}-Header" "task mcp:sync (Registry-SSOT)"
 fi
@@ -100,9 +98,9 @@ node -e "
   const fs = require('fs'), os = require('os'), path = require('path');
   const home = os.homedir();
   const targets = [
-    { file: path.join(home, '.claude', 'settings.json'), servers: ['bge-mcp', 'mcp-postgres', 'factory-mcp-node'], kind: 'claude-user' },
-    { file: path.join(home, '.gemini', 'config', 'mcp_config.json'), servers: ['bge-mcp', 'mcp-postgres', 'factory-mcp-node'], kind: 'agy' },
-    { file: path.join(home, '.qwen', 'settings.json'), servers: ['bge-mcp', 'mcp-postgres', 'factory-mcp-node'], kind: 'qwen' },
+    { file: path.join(home, '.claude', 'settings.json'), servers: ['bge-mcp', 'mcp-postgres'], kind: 'claude-user' },
+    { file: path.join(home, '.gemini', 'config', 'mcp_config.json'), servers: ['bge-mcp', 'mcp-postgres'], kind: 'agy' },
+    { file: path.join(home, '.qwen', 'settings.json'), servers: ['bge-mcp', 'mcp-postgres'], kind: 'qwen' },
   ];
   let bad = 0;
   for (const t of targets) {

@@ -17,7 +17,7 @@ depends_on_plans: []
 | Datei | Ist | Budget |
 |---|---|---|
 | `scripts/plan-lint.sh` | 411 | 89 |
-| `scripts/factory/pipeline.mjs` | 663 | n/a (auf `s1.ignore`) |
+| `scripts/orchestrator/pipeline.mjs` | 663 | n/a (auf `s1.ignore`) |
 | `.claude/skills/dev-flow-execute/SKILL.md` | 250 | n/a (S1-ungated) |
 | `.claude/skills/references/dev-flow-plan-phases.md` | 327 | n/a (S1-ungated) |
 
@@ -29,7 +29,7 @@ die vorhandene `hard`-Funktion, damit sie in `emit_verdict` einfließt.
 
 Geprüft wird für einen Plan mit `tasks.d/`:
 
-1. `openspec/changes/<slug>/intel.json` existiert und ist valides JSON.
+1. `.agents/plans/<slug>/intel.json` existiert und ist valides JSON.
 2. `meta`, `impact_files` und `symbols` sind nicht leer.
 3. Die Menge der `impact_files[].path` deckt die Union aller `target_files` aus dem Manifest ab.
    Nicht abgedeckte Dateien werden **namentlich** in der Fehlermeldung genannt — eine Meldung wie
@@ -44,7 +44,7 @@ kosmetisches Zeilen-Zusammenziehen, das bei der nächsten Änderung erneut tripp
 
 ## Task 2: Factory-Verdrahtung
 
-Der Implementer-Prompt entsteht in `scripts/factory/pipeline.mjs` in der Schleife um Zeile 43-46
+Der Implementer-Prompt entsteht in `scripts/orchestrator/pipeline.mjs` in der Schleife um Zeile 43-46
 (Label `impl:${t.id}:${i}`). Dort wird die Ausgabe von `scripts/task-context.sh` vor den
 bestehenden Prompt gehängt.
 
@@ -53,7 +53,7 @@ bestehenden Prompt gehängt.
 startet, ist zu verifizieren, statt es aus dem Dateinamen zu schließen — andernfalls wird eine tote
 Stelle verdrahtet und die Wirkung bleibt aus, ohne dass ein Test das bemerkt.
 
-`scripts/factory/task-source.cjs` bleibt **unverändert**. `tasks.md` bleibt die Plan-Quelle; der
+`scripts/orchestrator/task-source.cjs` bleibt **unverändert**. `tasks.md` bleibt die Plan-Quelle; der
 Kontextblock kommt zusätzlich, nicht stattdessen.
 
 Bricht `task-context.sh` mit Exit 1 ab (fehlender Kern), wird das Ticket nicht stumm mit

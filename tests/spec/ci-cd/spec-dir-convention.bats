@@ -28,8 +28,8 @@ setup() {
   # Die Rekursions-Assertion unten war damit erfuellt, auch wenn test:spec auf einen
   # flachen Glob umgestellt wurde. Der Guard war also genau gegen die Regression blind,
   # die er verhindern soll. Das Fenster endet jetzt am naechsten Task-Key gleicher Tiefe.
-  # Nur Nicht-Kommentarzeilen auswerten (Muster aus tests/spec/software-factory/
-  # conflict-gate.bats): der Block ERKLAERT in einem Kommentar, dass `find` hier
+  # Nur Nicht-Kommentarzeilen auswerten (Muster aus conflict-gate.bats):
+  # der Block ERKLAERT in einem Kommentar, dass `find` hier
   # `bats -r tests/spec/` ersetzt — diese Erklaerung erfuellte die Regex unten und
   # hielt den Guard gruen, obwohl der Task auf einen flachen Glob umgestellt war.
   run bash -c "awk '/^  test:spec:\$/{f=1;next} f && /^  [a-z][a-zA-Z0-9:_-]*:\$/{exit} f' '${REPO_ROOT}/taskfiles/Taskfile.test.yml' | grep -vE '^\s*#'"

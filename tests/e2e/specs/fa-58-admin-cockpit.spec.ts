@@ -1,12 +1,12 @@
 // tests/e2e/specs/fa-58-admin-cockpit.spec.ts
-// FA-58: Admin-Menü, SDLC Leitstand & Git-Flows (Factory-Pipeline).
+// FA-58: Admin-Menü, SDLC Leitstand & Git-Flows.
 // Verifiziert gegen die Live-Umgebung (WEBSITE_URL):
 //   - Admin-Sidebar: Kern-Navigation, Werkstatt-Akkordeon, aktive Zustände,
 //     externer Systembrett-Link, Sidebar-Collapse.
 //   - SDLC Leitstand (/sdlc/cockpit): Zonen-Shell (Statusband Z1, Kontextzone
 //     Z4, Deck-Leiste Z5, E3), Route-Aliase per 301-Redirect (/admin/cockpit,
 //     /admin/tickets), Auth-Gating. Titel "SDLC Leitstand" seit E3 (T007957).
-//   - Git-Flows: Factory-Floor (Stationen, QS-Abnahme, Versand), Planung,
+//   - Git-Flows: Stationen, QS-Abnahme, Versand, Planung,
 //     Analytics, Steuerung, Parallel sowie /admin/repohealth.
 // Läuft im `mentolder`-Projekt (admin-authentifiziert, storageState).
 // Hinweis: Der Leitstand existiert nur im SDLC-Build (BUILD_TARGET=sdlc,
@@ -218,7 +218,7 @@ test.describe('FA-58: Admin-Menü & SDLC Cockpit', { tag: ['@admin', '@factory']
     }
   });
 
-  // ── Git-Flows / Factory-Pipeline ────────────────────────────────
+  // ── Git-Flows ─────────────────────────────────────────────────
   test('T14: Floor-Tab zeigt Stationen, QS-Abnahme, Versand und Live-Statistiken', async ({ page }) => {
     await page.goto(`${BASE}/admin/cockpit?tab=factory`);
     for (const stat of ['Kill-Switch', 'Slots', 'Daily-Cap']) {

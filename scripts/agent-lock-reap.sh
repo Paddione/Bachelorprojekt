@@ -149,8 +149,8 @@ _reapable() {
 # It only (1) kills orphan processes with deleted cwd, (2) prunes git worktree
 # admin metadata, (2c) deletes local branches already merged into main, and
 # (3) drops dead lock files (.json). No existing worktree directory is removed.
-# For zombie worktree cleanup, see scripts/factory/watchdog.sh (git-status-guarded
-# force-remove). [T002242 M2-DOC]
+# For zombie worktree cleanup, see worktree_remove_managed
+# (scripts/lib/worktree-remove.sh). [T002242 M2-DOC]
 cmd_reap() {
   local d; d="$(_lock_dir)"
   # 1) kill orphan processes whose cwd is a DELETED worktree (matches /wt-…(deleted));
@@ -209,14 +209,6 @@ cmd_reap() {
   if [ -d "$d" ]; then
     local f
     for f in "$d"/*.json; do [ -e "$f" ] || continue; _reapable "$f" && rm -f "$f"; done
-  fi
-  # Advisory half-archive check (non-fatal): surfaces uncommitted half-archived
-  # OpenSpec slugs that the committed-tree check in task:openspec cannot see. [T002824]
-  local _haguard _hasc
-  _haguard="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/openspec-half-archive-check.sh"
-  if [ -x "$_haguard" ] && ! bash "$_haguard"; then
-    _hasc=$?
-    echo "AGENT-LOCK: half-archived OpenSpec slug(s) detected (see above)." >&2
   fi
   return 0
 }

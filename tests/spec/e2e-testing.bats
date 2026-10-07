@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/e2e-testing.bats
-# SSOT: openspec/specs/e2e-testing.md (created via this change, T001754)
 #
 # Regression coverage for the FA-bug-notify E2E fixture-leak fix: the test
 # must seed its ticket via a direct DB insert (not the public bug-report

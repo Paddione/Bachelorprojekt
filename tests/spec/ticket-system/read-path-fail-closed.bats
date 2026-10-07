@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/ticket-system.md
 # Ticket: T014386 — Die Lesepfade von ticket.sh unterscheiden 'kein Treffer' von
 # 'falsche Frage'. Vorher lieferten beide leer mit Exit 0; ein Agent las das als
 # "nein" statt als "ungueltige Anfrage".

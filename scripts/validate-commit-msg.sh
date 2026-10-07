@@ -49,7 +49,6 @@ TICKET_SCOPE_RE='^T[0-9]{6}$'
 
 # Health-goal scope pattern — G-<UPPERCASE_IDENT> (e.g. G-SIZE02, G-CQ07, G-AGENTIC01).
 # Mirrors commitlint.config.cjs HEALTH_GOAL_SCOPE_RE. Health goals are tracked
-# in .claude/lib/goals.md and the OpenSpec spec openspec/specs/agentic-tooling-quality-goals.md
 # (and the G-RH01–G-RH07 anchors in the goals doc).
 HEALTH_GOAL_SCOPE_RE='^G-[A-Z][A-Z0-9]+$'
 

@@ -1,6 +1,836 @@
-# docs/agent-guide/registry/toolset.lock.yaml
-# Leere servers-Map ist ABSICHTLICH: scripts/toolset/probe.mjs ist ein Stub, der
-# bestehende Eintraege nur mergt (keine echten HTTP-Probes), sodass sich der Lock
-# nie selbst fuellen kann. Die tatsaechliche Reachability kuratiert mcp.yaml.
-lock_version: 1
-servers: {}
+# docs/agent-guide/registry/toolset.lock.yaml — gemessene Tools je MCP-Server (T900983)
+# Geschrieben von: node scripts/toolset/probe.mjs   (gemessen: status, tools)
+# Geprüft per:     node scripts/toolset/probe.mjs --ack <server>   (reviewed)
+# Gelesen von check.mjs (Tool-Drift, tool_tiers-Gate) und toolset-context.sh (Rendering).
+# Erreichbarkeit pro Harness kuratiert mcp.yaml; dieser Lock hält nur Messwerte.
+lock_version: 2
+servers:
+  bge-mcp:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: bge-mcp
+      version: 1.0.0
+    tool_count: 2
+    tools:
+      bge_embed:
+        hash: 70f96e3875ef
+        summary: 'Embeds one or more texts with bge-m3 and returns the vectors. The caller passes plain text — model name, vector dimension and the endpoint are resolved server-side.'
+      bge_rerank:
+        hash: 64ebd51625c2
+        summary: Re-ranks candidate documents against a query with bge-reranker-v2-m3 and returns them sorted by descending relevance.
+    reviewed:
+      bge_embed: 70f96e3875ef
+      bge_rerank: 64ebd51625c2
+  codebase-memory-mcp:
+    status: unreachable
+    probed_at: '2026-10-03T14:43:55.555Z'
+    error: 'codebase-memory-mcp: EACCES'
+  context7:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: Context7
+      version: 4.1.1
+      websiteUrl: 'https://context7.com'
+      description: Context7 provides up-to-date documentation and code examples for libraries and frameworks.
+      icons:
+        - src: 'https://context7.com/context7-icon-green.png'
+          mimeType: image/png
+    tool_count: 2
+    tools:
+      query-docs:
+        hash: 65ebfa66256d
+        summary: Retrieves and queries up-to-date documentation and code examples from Context7 for any programming library or framework.
+        read_only: true
+      resolve-library-id:
+        hash: a5f77af29427
+        summary: Resolves a package/product name to a Context7-compatible library ID and returns matching libraries.
+        read_only: true
+    reviewed:
+      query-docs: 65ebfa66256d
+      resolve-library-id: a5f77af29427
+  devflow-mcp:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: devflow-mcp
+      version: 1.0.0
+    tool_count: 10
+    tools:
+      ci_status:
+        hash: 302ff53675d5
+        summary: 'Ein Schnappschuss des PR-Status (kein Polling): Zustand, Mergebarkeit, Checks nach Ergebnis, Namen der roten Checks.'
+        read_only: true
+      collision_check:
+        hash: 39fd670418cc
+        summary: 'agent-collision.sh check --branch im Worktree: überschneiden sich die geänderten Dateien mit fremden Claims?'
+        read_only: true
+      context_for_task:
+        hash: bad9d6d167cf
+        summary: >-
+          Einstieg für jeden Auftrag: relevante Code-Symbole (Graph-Index), Pläne/Bugs/PRs (knowledge) und empfohlene Werkzeuge für die Rolle — per bge-Rerank, in einem Aufruf. Vor der ersten
+          Datei-Suche aufruf
+        read_only: true
+      graph_status:
+        hash: 2ad36b2bef06
+        summary: 'Stand des Graph-Index: Symbolzahl, indizierter Commit, ob er hinter HEAD liegt.'
+        read_only: true
+      lock:
+        hash: 11b94484e045
+        summary: 'agent-lock.sh: claim | release | check | list | mine | activity. Die SID kommt aus dem Parameter oder der Harness-Umgebung des Servers.'
+      plan_lint:
+        hash: f9f8b3b09377
+        summary: 'plan-lint.sh --json: Urteil (PASS/FAIL) mit harten Befunden und Warnungen.'
+        read_only: true
+      plan_stage:
+        hash: 43c7a349aa2e
+        summary: >-
+          Plan stagen in einem Schritt: Worktree + Branch von origin/main, Ticket-Claim, Plan (und design.md) schreiben, plan-lint, Commit, Push, ticket.sh stage-plan --hold. Bei rotem Lint Abbruch
+          vor dem Comm
+      recommend_tools:
+        hash: 906bbf65ef87
+        summary: 'Werkzeuge (MCP-Tools, Skills, CLIs) für eine Aufgabe, gefiltert nach Rolle, Unterdrückung und Tier, sortiert per bge-Rerank.'
+        read_only: true
+      search_code:
+        hash: 4e0274d98239
+        summary: 'Semantische Suche über Function/Method/Class des Code-Graphen; Treffer mit Datei:Zeile, Signatur und Ausschnitt.'
+        read_only: true
+      task_oracle:
+        hash: a9557937f0a8
+        summary: 'Task-Oracle (vda.sh oracle --json): Ziel in Klartext → Taskfile-Task und Befehl.'
+        read_only: true
+    reviewed:
+      ci_status: 302ff53675d5
+      collision_check: 39fd670418cc
+      context_for_task: bad9d6d167cf
+      graph_status: 2ad36b2bef06
+      lock: 11b94484e045
+      plan_lint: f9f8b3b09377
+      plan_stage: 43c7a349aa2e
+      recommend_tools: 906bbf65ef87
+      search_code: 4e0274d98239
+      task_oracle: a9557937f0a8
+  mcp-kubernetes:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: kubernetes-mcp-server
+      title: kubernetes-mcp-server
+      version: ''
+      websiteUrl: 'https://github.com/containers/kubernetes-mcp-server'
+    tool_count: 19
+    tools:
+      configuration_view:
+        hash: 3d314fb0d3e9
+        summary: Get the current Kubernetes configuration content as a kubeconfig YAML
+        read_only: true
+      events_list:
+        hash: 5e3d7b0c0147
+        summary: 'List Kubernetes events (warnings, errors, state changes) for debugging and troubleshooting in the current cluster from all namespaces'
+        read_only: true
+      namespaces_list:
+        hash: 5ea6d1fd6ed4
+        summary: List all the Kubernetes namespaces in the current cluster
+        read_only: true
+      nodes_log:
+        hash: 3953978781cd
+        summary: 'Get logs from a Kubernetes node (kubelet, kube-proxy, or other system logs). This accesses node logs through the Kubernetes API proxy to the kubelet'
+        read_only: true
+      nodes_stats_summary:
+        hash: 2b06b26f74ce
+        summary: >-
+          Get detailed resource usage statistics from a Kubernetes node via the kubelet's Summary API. Provides comprehensive metrics including CPU, memory, filesystem, and network usage at the node,
+          pod, and c
+        read_only: true
+      nodes_top:
+        hash: 83cf983f9c77
+        summary: List the resource consumption (CPU and memory) as recorded by the Kubernetes Metrics Server for the specified Kubernetes Nodes or all nodes in the cluster
+        read_only: true
+      pods_delete:
+        hash: b117f6919956
+        summary: Delete a Kubernetes Pod in the current or provided namespace with the provided name
+        destructive: true
+      pods_exec:
+        hash: c3db0db11e7a
+        summary: 'Execute a command in a Kubernetes Pod (shell access, run commands in container) in the current or provided namespace with the provided name and command'
+        destructive: true
+      pods_get:
+        hash: 1519bb133780
+        summary: Get a Kubernetes Pod in the current or provided namespace with the provided name
+        read_only: true
+      pods_list:
+        hash: 449984970e1b
+        summary: List all the Kubernetes pods in the current cluster from all namespaces
+        read_only: true
+      pods_list_in_namespace:
+        hash: 8024290735ac
+        summary: List all the Kubernetes pods in the specified namespace in the current cluster
+        read_only: true
+      pods_log:
+        hash: 8f63224a0c96
+        summary: Get the logs of a Kubernetes Pod in the current or provided namespace with the provided name
+        read_only: true
+      pods_run:
+        hash: 2fb9f1edd667
+        summary: Run a Kubernetes Pod in the current or provided namespace with the provided container image and optional name
+      pods_top:
+        hash: b3f74555beb4
+        summary: >-
+          List the resource consumption (CPU and memory) as recorded by the Kubernetes Metrics Server for the specified Kubernetes Pods in the all namespaces, the provided namespace, or the current
+          namespace
+        read_only: true
+      resources_create_or_update:
+        hash: f83bbbe40549
+        summary: Create or update a Kubernetes resource in the current cluster by providing a YAML or JSON representation of the resource
+        destructive: true
+      resources_delete:
+        hash: e92b9e046b3e
+        summary: 'Delete a Kubernetes resource in the current cluster by providing its apiVersion, kind, optionally the namespace, and its name'
+        destructive: true
+      resources_get:
+        hash: f575c5a51260
+        summary: 'Get a Kubernetes resource in the current cluster by providing its apiVersion, kind, optionally the namespace, and its name'
+        read_only: true
+      resources_list:
+        hash: e9425f7be115
+        summary: List Kubernetes resources and objects in the current cluster by providing their apiVersion and kind and optionally the namespace and label selector
+        read_only: true
+      resources_scale:
+        hash: 55dd30a17b43
+        summary: >-
+          Get or update the scale of a Kubernetes resource in the current cluster by providing its apiVersion, kind, name, and optionally the namespace. If the scale is set in the tool call, the scale
+          will be u
+        destructive: true
+    reviewed:
+      configuration_view: 3d314fb0d3e9
+      events_list: 5e3d7b0c0147
+      namespaces_list: 5ea6d1fd6ed4
+      nodes_log: 3953978781cd
+      nodes_stats_summary: 2b06b26f74ce
+      nodes_top: 83cf983f9c77
+      pods_delete: b117f6919956
+      pods_exec: c3db0db11e7a
+      pods_get: 1519bb133780
+      pods_list: 449984970e1b
+      pods_list_in_namespace: 8024290735ac
+      pods_log: 8f63224a0c96
+      pods_run: 2fb9f1edd667
+      pods_top: b3f74555beb4
+      resources_create_or_update: f83bbbe40549
+      resources_delete: e92b9e046b3e
+      resources_get: f575c5a51260
+      resources_list: e9425f7be115
+      resources_scale: 55dd30a17b43
+  mcp-postgres:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: mcp-postgres-local
+      version: 1.0.0
+    tool_count: 1
+    tools:
+      query:
+        hash: 68775a54f7e4
+        summary: Run a read-only SQL query against the local k3d postgres database. Only a single statement per call is accepted.
+    reviewed:
+      query: 68775a54f7e4
+  mcp-task-runner:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: mcp-task-runner
+      version: 1.0.0
+    tool_count: 7
+    tools:
+      cancel_task:
+        hash: b8fc366b945d
+        summary: Cancel a running async task by job_id. Sends SIGTERM; SIGKILL follows after 5 seconds if the process has not exited.
+      execute_plan:
+        hash: 696457f52c8c
+        summary: 'Execute a plan returned by plan_tasks; groups run in parallel, fail-fast on error'
+      get_task_graph:
+        hash: af5f96ed7e94
+        summary: Return the full task dependency DAG from the Taskfile. Default format is Mermaid (graph TD); use format=json for programmatic consumption.
+      get_task_result:
+        hash: 0f5cc6d4948e
+        summary: 'Poll the status and output of an async task. Returns status=''running'' while in progress, ''done'' or ''cancelled'' when finished.'
+      plan_tasks:
+        hash: b89ad3e1801f
+        summary: Parse Taskfile deps and return a parallel execution plan
+      run_task:
+        hash: f68a6d628e3a
+        summary: Execute a single go-task task with OTel tracing
+      run_task_async:
+        hash: '752842591591'
+        summary: Start a task in the background and return a job_id immediately. Poll get_task_result to check progress.
+    reviewed:
+      cancel_task: b8fc366b945d
+      execute_plan: 696457f52c8c
+      get_task_graph: af5f96ed7e94
+      get_task_result: 0f5cc6d4948e
+      plan_tasks: b89ad3e1801f
+      run_task: f68a6d628e3a
+      run_task_async: '752842591591'
+  playwright:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: Playwright
+      version: 1.64.0-alpha-1790635538000
+    tool_count: 25
+    tools:
+      browser_click:
+        hash: 14a5cee71d31
+        summary: Perform click on a web page
+        destructive: true
+      browser_close:
+        hash: 1707b0b49570
+        summary: Close the page
+        destructive: true
+      browser_console_messages:
+        hash: 3079111f5e6e
+        summary: Returns all console messages
+        read_only: true
+      browser_drag:
+        hash: c4f634946740
+        summary: Perform drag and drop between two elements
+        destructive: true
+      browser_drop:
+        hash: 6ccd0a9805f7
+        summary: 'Drop files or MIME-typed data onto an element, as if dragged from outside the page. At least one of "paths" or "data" must be provided.'
+        destructive: true
+      browser_emulate_media:
+        hash: f3a2b9fb935a
+        summary: 'Emulate CSS media features for the page, for example switch between the light and dark color scheme. Omitted parameters are left unchanged; null clears an override.'
+        destructive: true
+      browser_evaluate:
+        hash: 7a66161f5ce8
+        summary: Evaluate JavaScript expression on page or element
+        destructive: true
+      browser_file_upload:
+        hash: 8ca4c5ba189a
+        summary: Upload one or multiple files
+        destructive: true
+      browser_fill_form:
+        hash: e4dc8cafa287
+        summary: Fill multiple form fields
+        destructive: true
+      browser_find:
+        hash: 8623394e248d
+        summary: >-
+          Search the accessibility snapshot of the current page for text or a regular expression. Returns matching snapshot nodes with a few lines of surrounding context (like search snippets), each
+          shown under
+        read_only: true
+      browser_handle_dialog:
+        hash: 23a6d6fbece4
+        summary: Handle a dialog
+        destructive: true
+      browser_hover:
+        hash: 71cc28df4e51
+        summary: Hover over element on page
+        destructive: true
+      browser_navigate:
+        hash: 8ab2584f6dc0
+        summary: Navigate to a URL
+        destructive: true
+      browser_navigate_back:
+        hash: a6cf66170395
+        summary: Go back to the previous page in the history
+        destructive: true
+      browser_network_request:
+        hash: db05f922b85d
+        summary: 'Returns full details (headers and body) of a single network request, or a single part if `part` is set. Use the number from browser_network_requests.'
+        read_only: true
+      browser_network_requests:
+        hash: 78aaf26abecb
+        summary: Returns a numbered list of network requests since loading the page. Use browser_network_request with the number to get full details.
+        read_only: true
+      browser_press_key:
+        hash: 83d2943a8b5a
+        summary: Press a key on the keyboard
+        destructive: true
+      browser_resize:
+        hash: 6edad47716bd
+        summary: Resize the browser window
+        destructive: true
+      browser_run_code_unsafe:
+        hash: 38f1aeb1fb5e
+        summary: 'Run a Playwright code snippet. Unsafe: executes arbitrary JavaScript in the Playwright server process and is RCE-equivalent.'
+        destructive: true
+      browser_select_option:
+        hash: 965934ba8c96
+        summary: Select an option in a dropdown
+        destructive: true
+      browser_snapshot:
+        hash: 228d1f109fb7
+        summary: 'Capture accessibility snapshot of the current page, this is better than screenshot'
+        read_only: true
+      browser_tabs:
+        hash: cc8229092623
+        summary: 'List, create, close, or select a browser tab.'
+        destructive: true
+      browser_take_screenshot:
+        hash: 84c58a3615a9
+        summary: 'Take a screenshot of the current page. You can''t perform actions based on the screenshot, use browser_snapshot for actions.'
+        read_only: true
+      browser_type:
+        hash: 444ae836e5d4
+        summary: Type text into editable element
+        destructive: true
+      browser_wait_for:
+        hash: a30c8bd44240
+        summary: Wait for text to appear or disappear or a specified time to pass
+        read_only: true
+  ticket-mcp-node:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: ticket-mcp
+      version: 1.0.0
+    tool_count: 46
+    tools:
+      add_comment:
+        hash: e4a5df338693
+        summary: Fügt einem Ticket einen Kommentar hinzu.
+      add_pr_link:
+        hash: e95794226996
+        summary: Verknuepft eine PR-Nummer mit einem Ticket (tickets.ticket_links kind=pr).
+      archive_plan:
+        hash: a589acaa4a7b
+        summary: Archiviert einen Plan und mergt den Delta-Spec in die SSOT.
+      backfill_ticket_id:
+        hash: c082120f6a90
+        summary: Findet Tickets ohne external_id (T-Nummer) und setzt die nächste Sequenznummer.
+      create_ticket:
+        hash: 2f7e58736a88
+        summary: Legt ein Ticket an. Gibt 'external_id|uuid' zurueck (Skills parsen cut -d'|' -f1).
+      enqueue_ticket:
+        hash: 1848514f2709
+        summary: Reiht ein Ticket in den Ticket-Backlog ein (status=backlog).
+      export_ticket_timeline:
+        hash: d54ceeb400e4
+        summary: >-
+          Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (tickets.factory_phase_events), PR-Links (ticket_links kind=pr),
+          archivierte 
+      export_tickets:
+        hash: ca9e4f80c356
+        summary: >-
+          Exportiert Tickets als JSON oder Markdown (gleiche Filter wie list_tickets). Default-Limit 200, neueste zuerst (created_at DESC); max 1000. Ohne Filter empfiehlt sich ein Status-Filter, um
+          den Kontext
+      flush_mishap_buffer:
+        hash: f71459f150f2
+        summary: 'Leert den Buffer sofort: die Einträge werden protokolliert und verworfen, auch unterhalb 10 Einträge. Es entsteht kein Ticket [T014104].'
+      get_attachments:
+        hash: b33fc1dcef08
+        summary: Laesdt die Attachments eines Tickets in ein Zielverzeichnis (out_dir required).
+      get_mishap_buffer:
+        hash: ded129717adb
+        summary: Zeigt den aktuellen Inhalt des Mishap-Buffers.
+      get_ticket:
+        hash: 56842c7974af
+        summary: Gibt vollständige Details eines Tickets per external_id zurueck.
+      get_ticket_links:
+        hash: df1e049cf4dc
+        summary: 'Gibt alle Dependency-Links eines Tickets zurueck: blocks (von diesem Ticket ausgehend), blocked_by (auf dieses Ticket zeigend), relates (symmetrisch), child_of (Elternticket).'
+      link_tickets:
+        hash: 17b4191ad7ab
+        summary: >-
+          Erstellt einen gerichteten Dependency-Link zwischen zwei Tickets (pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of). Idempotent — mehrfacher Aufruf mit gleichen
+          Argumenten e
+      list_tickets:
+        hash: 4a8a5f8191e5
+        summary: 'Listet Tickets gefiltert nach Status, Typ, Brand oder fehlender ID. Standard-Limit 200 Zeilen, neueste zuerst (created_at DESC); mit --limit erhebbar (max 1000).'
+      prepare_feature:
+        hash: 1987594ec667
+        summary: >-
+          Convenience: setzt alle Pflichtfelder für ein Feature-Ticket in einem Call und transitioniert zu planning. Fuehrt intern set_plan_meta + alle Readiness-Flags + transition_status(planning)
+          aus.
+      record_grill_answers:
+        hash: f8f9a685a264
+        summary: 'Persistiert Grilling-Antworten (tickets.grilling_answers JSONB). ''answers'': eine Zeile pro Antwort als qid=text.'
+      record_phase_event:
+        hash: 576c89c67739
+        summary: Schreibt ein Factory/Devflow-Phasen-Event (tickets.factory_phase_events).
+      report_mishap:
+        hash: dca143de5126
+        summary: 'Fügt einen Mishap in den Buffer ein. Incident-Typen erzeugen sofort ein Ticket. Bei >= 10 nicht-kritischen Einträgen: Buffer wird protokolliert und geleert.'
+      set_plan_meta:
+        hash: a2de70915605
+        summary: 'Setzt Planungs-Metadaten: value_prop, effort, areas, depends_on, planning_rank.'
+      set_readiness_flag:
+        hash: 969e51094c8b
+        summary: 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, execution_released).'
+      set_touched_files:
+        hash: 6cd0cdcf404a
+        summary: Setzt die touched_files eines Tickets (Konflikt-/Scope-Tracking).
+      stage_plan:
+        hash: 92f67861554a
+        summary: Stellt ein Ticket in die Kommissionierung (status=plan_staged) mit Branch + Plan-Pfad.
+      transition_status:
+        hash: e85b3753a00d
+        summary: Ändert den Status eines Tickets. Bei done/archived ist resolution erforderlich.
+      triage_ticket:
+        hash: 92cb32b41691
+        summary: 'Setzt Triage-Felder eines Tickets: type, severity, priority, attention_mode, status, component.'
+      update_fields:
+        hash: 667a2c808b8e
+        summary: 'Bulk-Patch: ändert title, description oder notes eines Tickets.'
+    duplicate_names:
+      - add_comment
+      - add_pr_link
+      - archive_plan
+      - create_ticket
+      - enqueue_ticket
+      - flush_mishap_buffer
+      - get_attachments
+      - get_mishap_buffer
+      - get_ticket_links
+      - link_tickets
+      - prepare_feature
+      - record_grill_answers
+      - record_phase_event
+      - report_mishap
+      - set_plan_meta
+      - set_readiness_flag
+      - set_touched_files
+      - stage_plan
+      - transition_status
+      - update_fields
+    reviewed:
+      add_comment: e4a5df338693
+      add_pr_link: e95794226996
+      archive_plan: a589acaa4a7b
+      backfill_ticket_id: c082120f6a90
+      create_ticket: 2f7e58736a88
+      enqueue_ticket: 1848514f2709
+      export_ticket_timeline: d54ceeb400e4
+      export_tickets: ca9e4f80c356
+      flush_mishap_buffer: f71459f150f2
+      get_attachments: b33fc1dcef08
+      get_mishap_buffer: ded129717adb
+      get_ticket: 56842c7974af
+      get_ticket_links: df1e049cf4dc
+      link_tickets: 17b4191ad7ab
+      list_tickets: 4a8a5f8191e5
+      prepare_feature: 1987594ec667
+      record_grill_answers: f8f9a685a264
+      record_phase_event: 576c89c67739
+      report_mishap: dca143de5126
+      set_plan_meta: a2de70915605
+      set_readiness_flag: 969e51094c8b
+      set_touched_files: 6cd0cdcf404a
+      stage_plan: 92f67861554a
+      transition_status: e85b3753a00d
+      triage_ticket: 92cb32b41691
+      update_fields: 667a2c808b8e
+  warden:
+    status: ok
+    probed_at: '2026-10-03T14:43:55.555Z'
+    server_info:
+      name: keychain-mcp
+      version: 0.2.44
+    tool_count: 53
+    tools:
+      keychain_create_attachment:
+        hash: 329a86eb4a57
+        summary: 'Attach base64-encoded file bytes to an existing item. Returns the updated item summary with normal redaction rules, so secrets stay hidden unless reveal is allowed.'
+      keychain_create_card:
+        hash: e22972aebbf1
+        summary: >-
+          Create a payment card item. Use this for cardholder name, brand, number, expiry, and code, not for login credentials or notes. Accepts custom fields plus folder/organization/collection
+          scoping, and re
+      keychain_create_folder:
+        hash: 45a3f5202498
+        summary: Create a personal Bitwarden folder. Use this to organize items outside organization collections.
+      keychain_create_identity:
+        hash: 9ed5474ec577
+        summary: >-
+          Create an identity item. Use this for personal, contact, and address data instead of a login or card. Accepts structured identity fields plus custom fields and scoping, and returned
+          summaries redact s
+      keychain_create_login:
+        hash: 28697890e7eb
+        summary: >-
+          Create a login item with username/password/TOTP/URI data. Use this for website or app credentials instead of a secure note, card, or identity. Accepts custom fields and attachments, supports
+          folder/or
+      keychain_create_logins:
+        hash: 8ff111ef62f1
+        summary: >-
+          Create multiple login items in one call. Use this when you need several independent credentials at once, with the same login-item behavior as create_login. Set continueOnError to keep going
+          after a fa
+      keychain_create_note:
+        hash: 9387f3eb7b85
+        summary: >-
+          Create a secure note item. Use this for free-form text or secrets that do not belong in a login, card, identity, or SSH key item. Accepts custom fields plus folder/organization/collection
+          scoping, and
+      keychain_create_org_collection:
+        hash: 829a2db2b5c8
+        summary: Create a new organization-scoped collection inside the required organizationId. Use this for shared vault grouping; returns the created collection summary.
+      keychain_create_ssh_key:
+        hash: 177d34d70331
+        summary: >-
+          Create an SSH key object stored as a secure note with standard fields. Use this when you need a public/private key pair plus optional fingerprint or comment, not a login or payment card. The
+          private k
+      keychain_delete_attachment:
+        hash: 75746bab1f98
+        summary: >-
+          Delete an attachment from its parent item using itemId plus attachmentId. The attachment id comes from item attachment metadata; this is destructive for that attachment and then refetches
+          the parent i
+        destructive: true
+      keychain_delete_folder:
+        hash: 58f43c8d8c24
+        summary: 'Delete a personal Bitwarden folder. Destructive: there is no restore helper in this server.'
+        destructive: true
+      keychain_delete_item:
+        hash: 8a68d7c9111c
+        summary: >-
+          Delete a vault item by id. By default this is a soft delete to trash and can be restored with restore_item; set permanent=true to hard delete through bw. Returns only the requested id, not
+          the deleted
+        destructive: true
+      keychain_delete_items:
+        hash: 282c1802d97b
+        summary: >-
+          Delete multiple vault items by id in one session. Soft-deletes to trash by default; set permanent=true to hard delete every id. Returns per-id ok/error results so partial failures are
+          visible.
+        destructive: true
+      keychain_delete_org_collection:
+        hash: 0a70f0f84b93
+        summary: 'Delete an organization collection. Destructive: there is no restore helper in this server.'
+        destructive: true
+      keychain_edit_folder:
+        hash: afbbbd71c568
+        summary: 'Rename an existing personal Bitwarden folder by id. This mutates only folder metadata, not the items inside it, and returns the updated folder id/name summary.'
+      keychain_edit_org_collection:
+        hash: 3badf183148d
+        summary: Rename an existing organization-scoped collection inside the required organizationId. This mutates collection metadata only and returns the updated collection summary.
+      keychain_encode:
+        hash: 62eb6b4af132
+        summary: Base64-encode a string with bw encode. This never mutates the vault; it only returns encoded text.
+        read_only: true
+      keychain_generate:
+        hash: 1955d0b7d30f
+        summary: 'Generate a password or passphrase with bw generate. This never mutates the vault; pass reveal=true to return the value, and NOREVEAL or KEYCHAIN_NOREVEAL force redaction.'
+        read_only: true
+      keychain_generate_username:
+        hash: 9ae0b14034a5
+        summary: >-
+          Generate a username like the Bitwarden generator (random word, plus-addressed email, catch-all, forwarded alias). This never mutates the vault; pass reveal=true to return the value, and
+          NOREVEAL or KE
+        read_only: true
+      keychain_get_attachment:
+        hash: e299147742aa
+        summary: >-
+          Download an attachment from a parent item and return raw bytes as contentBase64. Pass itemId plus an attachment id, or an unambiguous filename selector resolved from the item metadata before
+          calling b
+        read_only: true
+      keychain_get_collection:
+        hash: 80c8f4b28f2d
+        summary: Get a collection by id (bw get collection). Use organizationId when you need to disambiguate an organization-scoped lookup.
+        read_only: true
+      keychain_get_exposed:
+        hash: bb3e685bb21e
+        summary: >-
+          Check the exposed-password count returned by bw get exposed for a search term. Terms follow bw lookup behavior and may be ambiguous; use an exact item id or precise selector when possible.
+          Not-found r
+        read_only: true
+      keychain_get_folder:
+        hash: e2f1a5e6ac67
+        summary: Get one personal Bitwarden folder by stable folder id via bw get folder. Use this to verify a folder id before item updates; returns safe folder metadata only.
+        read_only: true
+      keychain_get_item:
+        hash: 91fd899e9d29
+        summary: >-
+          Get the full vault item by stable item id. Secret fields and signed attachment URLs are redacted by default; pass reveal=true only when the caller is allowed to receive secrets. When
+          attachments are p
+        read_only: true
+      keychain_get_notes:
+        hash: a735df2cc6d6
+        summary: >-
+          Get item notes matched by bw get notes for a search term. Notes are treated as secret output here: value is null unless reveal=true and NOREVEAL is not active. Terms can be ambiguous, so
+          prefer an exa
+        read_only: true
+      keychain_get_org_collection:
+        hash: 8002b67f2cd3
+        summary: Get an organization collection by id (bw get org-collection). organizationId is optional and narrows the org-scoped lookup when provided.
+        read_only: true
+      keychain_get_organization:
+        hash: 4cc6713e1be0
+        summary: Get one Bitwarden organization by stable organization id via bw get organization. Use list_organizations first when the id is unknown; returns organization metadata only.
+        read_only: true
+      keychain_get_password:
+        hash: e47f3aa70c1c
+        summary: 'Get a login password by search term (bw get password). The value is null unless reveal=true, and NOREVEAL or KEYCHAIN_NOREVEAL can still force redaction.'
+        read_only: true
+      keychain_get_password_history:
+        hash: 5cefa9b72c15
+        summary: Get an item password history (if any). Returning passwords requires reveal=true.
+        read_only: true
+      keychain_get_totp:
+        hash: 021278f5e8e4
+        summary: 'Get the current TOTP code by search term (bw get totp). The value is null unless reveal=true, and NOREVEAL or KEYCHAIN_NOREVEAL can still force redaction.'
+        read_only: true
+      keychain_get_uri:
+        hash: 52468d1df832
+        summary: >-
+          Get the first login URI matched by bw get uri for a search term. Terms can be names, ids, or other bw-supported selectors and may be ambiguous, so use an exact item id when possible. URI
+          values are re
+        read_only: true
+      keychain_get_username:
+        hash: 0d923ff41fdf
+        summary: 'Get a login username matched by bw get username for a search term. Usernames are treated as non-secret scalar output, but exact item ids are safest for ambiguous names.'
+        read_only: true
+      keychain_list_collections:
+        hash: 076fa4a8502e
+        summary: 'List collections in the current vault, optionally filtered by organizationId. Use list_org_collections when you already know the organization and only want organization-scoped collections.'
+        read_only: true
+      keychain_list_folders:
+        hash: 18f84d5a940f
+        summary: List personal Bitwarden folders visible to the current user. Use this to discover folder ids for item organization; returns safe folder id/name summaries only.
+        read_only: true
+      keychain_list_org_collections:
+        hash: 1a3e396a66e6
+        summary: List organization-scoped collections for the required organizationId. Use this after discovering an organization to find collection ids; returns safe id/name summaries.
+        read_only: true
+      keychain_list_organizations:
+        hash: be4bd2c4c6ee
+        summary: List organizations available to the current Bitwarden user so you can discover the organizationId required for org-scoped tools.
+        read_only: true
+      keychain_move_item_to_organization:
+        hash: c167ff7f8686
+        summary: >-
+          Move an existing vault item into the required organizationId. Optionally pass collectionIds to assign organization collections during the move; collection ids are organization collections,
+          not persona
+      keychain_receive:
+        hash: e853db872d8f
+        summary: >-
+          Receive a Bitwarden Send from an HTTPS url. Provide password when the Send is protected; obj=true returns the parsed JSON object, downloadFile=true downloads file bytes as base64, and the
+          default retu
+        read_only: true
+      keychain_restore_item:
+        hash: '2212e1443970'
+        summary: >-
+          Restore a soft-deleted vault item from trash by id. Use this after delete_item or delete_items when permanent was omitted or false; hard-deleted items cannot be restored. Returns the
+          restored item sum
+      keychain_sdk_version:
+        hash: 5b0729408056
+        summary: Return the Bitwarden CLI version reported by bw --version. Use this read-only check when diagnosing CLI/runtime compatibility without touching vault data.
+        read_only: true
+      keychain_search_items:
+        hash: 5b7c26d3b6b0
+        summary: 'Search vault items by text and filters (org/folder/collection/url). This wraps bw list items --search, which does not reliably search custom field values.'
+        read_only: true
+      keychain_send_create:
+        hash: 8c4074272bfc
+        summary: >-
+          Quick-create a Bitwarden Send through bw send. Use type=text with text, or type=file with filename plus contentBase64; deleteInDays controls expiration deletion, maxAccessCount limits
+          accesses, passwo
+      keychain_send_create_encoded:
+        hash: 43ead8720ec9
+        summary: >-
+          Create a Send with the advanced bw send create flow. Provide an encodedJson template or raw json to encode, or create directly from text/file fields; file uses filename plus contentBase64
+          and hidden o
+      keychain_send_delete:
+        hash: 34967b3e7127
+        summary: >-
+          Delete a Bitwarden Send by id through bw send delete. This is destructive for the Send and its shared content; it does not delete any vault item that may have been used to create it. The
+          visible text 
+        destructive: true
+      keychain_send_edit:
+        hash: 0e7f609027b3
+        summary: >-
+          Edit an existing Send with the advanced bw send edit flow. Provide encodedJson or raw json containing the Send edit payload; raw json is encoded before invoking bw. Optional itemId maps to
+          --itemid fo
+      keychain_send_get:
+        hash: ccb818b1e830
+        summary: >-
+          Get Sends owned by you. Use text=true to return text content; file Sends return metadata including accessUrl. To download file Send bytes, call receive with that accessUrl and
+          downloadFile=true.
+        read_only: true
+      keychain_send_list:
+        hash: b6d7b20a0bde
+        summary: List all the Sends owned by you (bw send list). This is read-only and does not mutate the vault.
+        read_only: true
+      keychain_send_remove_password:
+        hash: 666e4e71a8b2
+        summary: >-
+          Remove a Send's saved password so recipients no longer need that password. This is destructive for the Send password only; it does not delete the Send content. Use send_delete when the
+          entire Send sho
+        destructive: true
+      keychain_send_template:
+        hash: 64f26b432c97
+        summary: >-
+          Get a Bitwarden Send JSON template from bw send template. Choose a text or file template with object values send.text/text or send.file/file before using encoded create/edit flows. This is
+          read-only a
+        read_only: true
+      keychain_set_login_uris:
+        hash: 62b497afe37c
+        summary: >-
+          Set or update the URI list on a login item. mode=replace overwrites the full list; mode=merge updates existing URIs and adds new ones by URI. Match values can be domain, host, startsWith,
+          exact, regex
+      keychain_status:
+        hash: 5371b25cd255
+        summary: 'Returns Bitwarden CLI status (locked/unlocked, server, user). This is a lazy check: not-ready status does not mean later keychain tool calls cannot unlock or recover on demand.'
+        read_only: true
+      keychain_sync:
+        hash: dad59ab25879
+        summary: Pull the latest vault data from the server (bw sync). Returns the last sync timestamp.
+        read_only: true
+      keychain_update_item:
+        hash: e416f4097539
+        summary: >-
+          Update selected fields of an item by id. The patch is applied to the current item, so omitted fields stay unchanged while explicit nulls and empty arrays overwrite the stored folder,
+          collection, login
+    reviewed:
+      keychain_create_attachment: 329a86eb4a57
+      keychain_create_card: e22972aebbf1
+      keychain_create_folder: 45a3f5202498
+      keychain_create_identity: 9ed5474ec577
+      keychain_create_login: 28697890e7eb
+      keychain_create_logins: 8ff111ef62f1
+      keychain_create_note: 9387f3eb7b85
+      keychain_create_org_collection: 829a2db2b5c8
+      keychain_create_ssh_key: 177d34d70331
+      keychain_delete_attachment: 75746bab1f98
+      keychain_delete_folder: 58f43c8d8c24
+      keychain_delete_item: 8a68d7c9111c
+      keychain_delete_items: 282c1802d97b
+      keychain_delete_org_collection: 0a70f0f84b93
+      keychain_edit_folder: afbbbd71c568
+      keychain_edit_org_collection: 3badf183148d
+      keychain_encode: 62eb6b4af132
+      keychain_generate: 1955d0b7d30f
+      keychain_generate_username: 9ae0b14034a5
+      keychain_get_attachment: e299147742aa
+      keychain_get_collection: 80c8f4b28f2d
+      keychain_get_exposed: bb3e685bb21e
+      keychain_get_folder: e2f1a5e6ac67
+      keychain_get_item: 91fd899e9d29
+      keychain_get_notes: a735df2cc6d6
+      keychain_get_org_collection: 8002b67f2cd3
+      keychain_get_organization: 4cc6713e1be0
+      keychain_get_password: e47f3aa70c1c
+      keychain_get_password_history: 5cefa9b72c15
+      keychain_get_totp: 021278f5e8e4
+      keychain_get_uri: 52468d1df832
+      keychain_get_username: 0d923ff41fdf
+      keychain_list_collections: 076fa4a8502e
+      keychain_list_folders: 18f84d5a940f
+      keychain_list_org_collections: 1a3e396a66e6
+      keychain_list_organizations: be4bd2c4c6ee
+      keychain_move_item_to_organization: c167ff7f8686
+      keychain_receive: e853db872d8f
+      keychain_restore_item: '2212e1443970'
+      keychain_sdk_version: 5b0729408056
+      keychain_search_items: 5b7c26d3b6b0
+      keychain_send_create: 8c4074272bfc
+      keychain_send_create_encoded: 43ead8720ec9
+      keychain_send_delete: 34967b3e7127
+      keychain_send_edit: 0e7f609027b3
+      keychain_send_get: ccb818b1e830
+      keychain_send_list: b6d7b20a0bde
+      keychain_send_remove_password: 666e4e71a8b2
+      keychain_send_template: 64f26b432c97
+      keychain_set_login_uris: 62b497afe37c
+      keychain_status: 5371b25cd255
+      keychain_sync: dad59ab25879
+      keychain_update_item: e416f4097539

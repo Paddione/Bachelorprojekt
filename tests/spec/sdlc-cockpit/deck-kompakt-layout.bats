@@ -13,9 +13,9 @@
 
 WEBSITE_SRC="components/website/src"
 DECK_LEISTE="$WEBSITE_SRC/components/leitstand/DeckLeiste.svelte"
-CONTROL_PANEL="$WEBSITE_SRC/components/sdlc/factory/ControlPanel.svelte"
-OBSERVABILITY="$WEBSITE_SRC/components/sdlc/factory/FactoryObservability.svelte"
-BUDGET_PAGE="$WEBSITE_SRC/components/sdlc/factory/FactoryBudgetPage.svelte"
+CONTROL_PANEL="$WEBSITE_SRC/components/sdlc/cockpit/ControlPanel.svelte"
+OBSERVABILITY="$WEBSITE_SRC/components/sdlc/cockpit/CockpitObservability.svelte"
+BUDGET_PAGE="$WEBSITE_SRC/components/sdlc/cockpit/CockpitBudgetPage.svelte"
 
 @test "DeckLeiste: __body ist CSS-Query-Container (container-type: inline-size)" {
   # Positiv-Anker: Datei + Selektor existieren
@@ -33,13 +33,13 @@ BUDGET_PAGE="$WEBSITE_SRC/components/sdlc/factory/FactoryBudgetPage.svelte"
   grep -qF -e '@container' "$CONTROL_PANEL"
 }
 
-@test "FactoryObservability: @container-Regel fuer kpi-row vorhanden" {
+@test "CockpitObservability: @container-Regel fuer kpi-row vorhanden" {
   [ -f "$OBSERVABILITY" ]
   grep -qF -e '.kpi-row' "$OBSERVABILITY"
   grep -qF -e '@container' "$OBSERVABILITY"
 }
 
-@test "FactoryBudgetPage: @container-Regel fuer Kompakt-Layout vorhanden" {
+@test "CockpitBudgetPage: @container-Regel fuer Kompakt-Layout vorhanden" {
   [ -f "$BUDGET_PAGE" ]
   grep -qF -e '.dashboard-grid' "$BUDGET_PAGE"
   grep -qF -e '@container' "$BUDGET_PAGE"

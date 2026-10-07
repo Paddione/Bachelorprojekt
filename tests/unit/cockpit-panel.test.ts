@@ -1,5 +1,4 @@
 // tests/unit/cockpit-panel.test.ts
-// SSOT: openspec/changes/sdlc-cockpit-design/design.md
 //
 // Testet den Panel-Vertrag ohne DOM: Typvalidierung, Groessen, Aktions-Zustaende.
 // [T002460]
@@ -124,7 +123,6 @@ describe('Adapter method mapping', () => {
     agents: 'agents',
     ci: 'ci',
     cluster: 'cluster',
-    factory: 'factory',
     models: 'models',
   };
 
@@ -134,8 +132,8 @@ describe('Adapter method mapping', () => {
     }
   });
 
-  it('stellt 6 Lese-Methoden bereit', () => {
-    expect(Object.keys(ADAPTER_MAP)).toHaveLength(6);
+  it('stellt 5 Lese-Methoden bereit', () => {
+    expect(Object.keys(ADAPTER_MAP)).toHaveLength(5);
   });
 });
 

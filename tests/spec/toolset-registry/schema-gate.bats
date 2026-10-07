@@ -37,7 +37,7 @@ capabilities:
     mcp:demo-server:
       state: canonical
       use_when: "Demo-Zweck"
-      roles: [bachelorprojekt-db]
+      roles: [bp-run]
 EOF
 )"
   run_check "$ok"
@@ -49,7 +49,7 @@ capabilities:
   demo-cap:
     mcp:demo-server:
       state: canonical
-      roles: [bachelorprojekt-db]
+      roles: [bp-run]
 EOF
 )"
   run_check "$bad"
@@ -113,7 +113,7 @@ capabilities:
     mcp:demo-server:
       state: canonical
       use_when: "Demo-Zweck"
-      roles: [bachelorprojekt-db]
+      roles: [bp-run]
 EOF
 )"
   run_check "$ok"

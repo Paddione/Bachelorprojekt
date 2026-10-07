@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 #
-# SSOT-Spec: openspec/specs/sdlc-cockpit.md — Change: sdlc-dashboard-redesign [T003417]
+
 #
 # Pruefmodus: Quelltext-Guards (dokumentierte Ausnahme in CLAUDE.md
 # "Test-Resultats-Konvention" [T002448-M4]). Geprueft wird ausschliesslich, was
@@ -21,7 +21,7 @@
 #   - T1 (Nachfolger existieren): LeitstandStatusband/Kontextzone/DeckLeiste statt
 #     CommandBar/CockpitRail/OverviewDashboard; InsightsTab ueberlebt unveraendert.
 #   - T3 (Positiv-Anker): cockpit.astro importiert weiterhin die Z4 Kontextzone.
-#   - T4 (PlanningOffice/FactoryFloor ueberleben): Mount-Punkt ist jetzt Kontextzone.svelte.
+#   - T4 (PlanningOffice/CockpitFloor ueberleben): Mount-Punkt ist jetzt Kontextzone.svelte.
 #   - T5 (Laufzeit-Coverage in Vitest): die drei neuen lib-Suites
 #     leitstand-{url,purpose-registry,metrics}.test.ts statt der geloeschten
 #     Komponententests; Registrierungs-Glob ist das node-Projekt
@@ -31,7 +31,7 @@ setup() {
   REPO_ROOT="$BATS_TEST_DIRNAME/../../.."
   COCKPIT_PAGE="$REPO_ROOT/components/website/src/pages/sdlc/cockpit.astro"
   COCKPIT_DIR="$REPO_ROOT/components/website/src/components/cockpit"
-  FACTORY_DIR="$REPO_ROOT/components/website/src/components/sdlc/factory"
+  COCKPIT_DIR="$REPO_ROOT/components/website/src/components/sdlc/cockpit"
   LEITSTAND_DIR="$REPO_ROOT/components/website/src/components/leitstand"
   LIB_TESTS_DIR="$REPO_ROOT/components/website/src/lib/sdlc/__tests__"
 }
@@ -41,11 +41,11 @@ setup() {
 # zurueckbleibender Import bricht den Build erst zur Laufzeit.
 REMOVED_COMPONENTS=(
   "cockpit/PipelinePanel.svelte"
-  "sdlc/factory/AnalyticsWindowFilter.svelte"
-  "sdlc/factory/FactoryKpiGrid.svelte"
-  "sdlc/factory/FactoryPhaseHeatmap.svelte"
-  "sdlc/factory/FactoryShippedBar.svelte"
-  "sdlc/factory/FactoryThroughputChart.svelte"
+  "sdlc/cockpit/AnalyticsWindowFilter.svelte"
+  "sdlc/cockpit/FactoryKpiGrid.svelte"
+  "sdlc/cockpit/FactoryPhaseHeatmap.svelte"
+  "sdlc/cockpit/FactoryShippedBar.svelte"
+  "sdlc/cockpit/FactoryThroughputChart.svelte"
 )
 
 @test "SDLC-COCKPIT: die Nachfolger-Komponenten des Redesigns existieren" {
@@ -58,13 +58,13 @@ REMOVED_COMPONENTS=(
   [ -f "$LEITSTAND_DIR/LeitstandStatusband.svelte" ]
   [ -f "$LEITSTAND_DIR/Kontextzone.svelte" ]
   [ -f "$LEITSTAND_DIR/DeckLeiste.svelte" ]
-  [ -f "$FACTORY_DIR/InsightsTab.svelte" ]
+  [ -f "$COCKPIT_DIR/InsightsTab.svelte" ]
 }
 
 @test "SDLC-COCKPIT: die ersetzten Komponenten sind aus dem Quellbaum entfernt" {
   # Positiv-Anker: der Pfad, unter dem gesucht wird, existiert ueberhaupt.
   [ -d "$COCKPIT_DIR" ]
-  [ -d "$FACTORY_DIR" ]
+  [ -d "$COCKPIT_DIR" ]
 
   local missing=0
   for comp in "${REMOVED_COMPONENTS[@]}"; do
@@ -107,19 +107,19 @@ REMOVED_COMPONENTS=(
   [ "$orphans" -eq 0 ]
 }
 
-@test "SDLC-COCKPIT: PlanningOffice und FactoryFloor ueberleben das Redesign" {
+@test "SDLC-COCKPIT: PlanningOffice und CockpitFloor ueberleben das Redesign" {
   [ -f "$REPO_ROOT/components/website/src/components/PlanningOffice.svelte" ]
-  [ -f "$REPO_ROOT/components/website/src/components/sdlc/FactoryFloor.svelte" ]
+  [ -f "$REPO_ROOT/components/website/src/components/sdlc/CockpitFloor.svelte" ]
 
   # Existenz allein genuegt nicht — sie muessen auch weiterhin eingebunden sein.
   # [T007957/E3] Mount-Punkt ist jetzt die Kontextzone (Z4): sie haengt die
-  # Fertigungsstationen an FactoryFloor und triage/planung an PlanningOffice
+  # Fertigungsstationen an CockpitFloor und triage/planung an PlanningOffice
   # (p1 Task 10). cockpit.astro importiert die Zonen selbst nicht mehr einzeln.
   run grep -cF "PlanningOffice" "$LEITSTAND_DIR/Kontextzone.svelte"
   [ "$status" -eq 0 ]
   [ "$output" -gt 0 ]
 
-  run grep -cF "FactoryFloor" "$LEITSTAND_DIR/Kontextzone.svelte"
+  run grep -cF "CockpitFloor" "$LEITSTAND_DIR/Kontextzone.svelte"
   [ "$status" -eq 0 ]
   [ "$output" -gt 0 ]
 }

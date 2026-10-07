@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/cbm-stampede-guard.bats
-# SSOT: openspec/changes/k3-auto-refresh/design.md (E2/E4/E6), p1-Schnittstellenvertrag
 # Ticket: T900450, T900805 (conservative freshness + receipts)
 
 setup() {
@@ -35,6 +34,15 @@ stub_cli() {
   mkdir -p "$bin"
   cat > "$bin/codebase-memory-mcp" <<'STUBEOF'
 #!/bin/sh
+# Emulates the real CLI: `cli --json <sub>` wraps the payload in an MCP
+# envelope {"content":[{"type":"text","text":<payload>}]}; index_status
+# inner text is JSON, detect_changes inner text is plain text.
+json_escape() {
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'
+}
+emit_envelope() {
+  printf '{"content":[{"type":"text","text":"%s"}],"isError":false}\n' "$(json_escape "$1")"
+}
 if [ -n "${STUB_LOG:-}" ]; then printf '%s\n' "$*" >> "$STUB_LOG"; fi
 case "$1" in
   --version)
@@ -45,6 +53,7 @@ case "$1" in
     ;;
   cli)
     shift
+    if [ "${1:-}" = "--json" ]; then use_json=1; shift; else use_json=""; fi
     sub="$1"; shift
     case "$sub" in
       index_status)
@@ -53,20 +62,43 @@ case "$1" in
         case "${STUB_MODE:-ok}" in
           fail) exit 1;;
           malformed) echo "not-json"; exit 0;;
-          tool-error) echo '{"error":"boom"}'; exit 0;;
+          tool-error)
+            if [ -n "$use_json" ]; then emit_envelope '{"error":"boom"}'; else echo '{"error":"boom"}'; fi
+            exit 0;;
           timeout) sleep 5; echo '{}'; exit 0;;
-          mismatch) echo "{\"project\":\"$proj\",\"root_path\":\"/wrong/root\",\"git\":{\"canonical_root\":\"/wrong/root\"},\"status\":\"ready\"}"; exit 0;;
-          project-mismatch) echo "{\"project\":\"other-project\",\"root_path\":\"${STUB_ROOT:-/tmp}\",\"git\":{\"canonical_root\":\"${STUB_ROOT:-/tmp}\"},\"status\":\"ready\"}"; exit 0;;
-          *) root="${STUB_ROOT:-/tmp/repo}"; echo "{\"project\":\"$proj\",\"root_path\":\"$root\",\"git\":{\"canonical_root\":\"$root\",\"worktree_root\":\"$root\"},\"status\":\"ready\",\"nodes\":1,\"edges\":1}"; exit 0;;
+          mismatch)
+            inner="{\"project\":\"$proj\",\"root_path\":\"/wrong/root\",\"git\":{\"canonical_root\":\"/wrong/root\"},\"status\":\"ready\"}"
+            if [ -n "$use_json" ]; then emit_envelope "$inner"; else echo "$inner"; fi
+            exit 0;;
+          project-mismatch)
+            inner="{\"project\":\"other-project\",\"root_path\":\"${STUB_ROOT:-/tmp}\",\"git\":{\"canonical_root\":\"${STUB_ROOT:-/tmp}\"},\"status\":\"ready\"}"
+            if [ -n "$use_json" ]; then emit_envelope "$inner"; else echo "$inner"; fi
+            exit 0;;
+          *)
+            root="${STUB_ROOT:-/tmp/repo}"
+            inner="{\"project\":\"$proj\",\"root_path\":\"$root\",\"git\":{\"canonical_root\":\"$root\",\"worktree_root\":\"$root\"},\"status\":\"ready\",\"nodes\":1,\"edges\":1}"
+            if [ -n "$use_json" ]; then emit_envelope "$inner"; else echo "$inner"; fi
+            exit 0;;
         esac
         ;;
       detect_changes)
         case "${STUB_MODE:-ok}" in
           fail) exit 1;;
           malformed) echo "not-json"; exit 0;;
-          tool-error) echo '{"error":"boom"}'; exit 0;;
+          tool-error)
+            if [ -n "$use_json" ]; then echo '{"content":[{"type":"text","text":"boom"}],"isError":true}'; else echo '{"error":"boom"}'; fi
+            exit 0;;
           timeout) sleep 5; echo '{}'; exit 0;;
-          *) echo '{"changed_count":0,"changed_files":[]}'; exit 0;;
+          *)
+            if [ -n "$use_json" ]; then
+              emit_envelope "base: main
+merge_base: 0000000000000000000000000000000000000000
+direction: inbound
+changed_files: 0"
+            else
+              echo '{"changed_count":0,"changed_files":[]}'
+            fi
+            exit 0;;
         esac
         ;;
       index_repository)

@@ -8,7 +8,7 @@
 -- already-installed views/terminals.
 --
 -- Deliberate keeps: Windows/WSL routing untouched (no hardcoded paths,
--- kubectl resolved via inherited PATH); no OpenSpec integration; no
+-- kubectl resolved via inherited PATH); no spec-store integration; no
 -- format-on-save (zero BufWritePre autocmds); no production mutations
 -- (apply, delete, scale, deploy are not offered — manual shell only).
 -- All kubectl invocations run through vim.system with argv tables and the

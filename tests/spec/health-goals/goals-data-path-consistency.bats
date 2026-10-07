@@ -17,8 +17,8 @@
 # unbemerkt zurueck:
 #   scripts/health-goals-update.sh   → "task health:goals:drift" bricht ab
 #   scripts/health-goals-llm-fill.sh → keine Kandidatenbasis
-#   scripts/factory/auto-close-merged.sh → Allowlist generierter Artefakte
-#     greift nicht mehr, plan-only PRs gelten faelschlich als Implementierung
+#   ein dritter Leser (seither entfallen) → Allowlist generierter Artefakte
+#     griff nicht mehr, plan-only PRs galten faelschlich als Implementierung
 # Dieser Test faengt die Klasse "lesende Seite zeigt ins Leere", nicht den
 # Einzelfall des SDLC-Splits.
 
@@ -29,7 +29,6 @@ setup() {
 
 # Sammelt alle components/website/src/**-Pfade auf goals-data*.json, die im Health-Goal-
 # und Factory-Tooling hartkodiert sind. Bewusst ueber eine Dateiliste statt
-# repo-weit: ein Treffer in openspec/changes/archive/** ist eine historische
 # Momentaufnahme und darf gerade NICHT mitwandern.
 #
 # Bewusst OHNE sort -u: gezaehlt werden Referenzen, nicht eindeutige Pfade. Nach
@@ -54,8 +53,8 @@ goals_data_refs() {
   # Positiv-Anker [T002356-M1]: ohne ihn bestuende der Test vakuos, sobald eine
   # der Quelldateien umbenannt wird oder die Pfade in Variablen wandern — "0 tote
   # Pfade in 0 Referenzen" waere trivial gruen.
-  # T900399: scripts/factory/auto-close-merged.sh ist entfallen — drei
-  # Quellstellen tragen den Pfad weiterhin, also ist der Anker >= 3.
+  # T900399: der dritte Leser ist entfallen — drei Quellstellen tragen den
+  # Pfad weiterhin, also ist der Anker >= 3.
   [ "$count" -ge 3 ] || {
     echo "FAIL: nur ${count} goals-data-Referenzen gefunden (erwartet >= 3)."
     echo "      Die Extraktion greift daneben — der Guard waere ab hier blind."

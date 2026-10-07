@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/brain-k4-brain-wiki/parent-moc.bats
 # Ticket: T002679
-# SSOT-Spec: openspec/specs/brain-k4-brain-wiki.md
 # Pruefmodus: Output-Verifikation — fuehrt den Chunker mit --moc aus und prueft
 #   die erzeugte MOC-Datei gegen das TSV-Manifest.
 

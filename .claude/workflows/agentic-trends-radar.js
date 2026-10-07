@@ -17,10 +17,9 @@ const WINDOW = (args && args.windowMonths) || 4
 // Kompakte Selbstbeschreibung unseres SDLC — Referenzrahmen für die Bewertung.
 const OUR_SDLC = `
 Unser SDLC (Kubernetes-Workspace-Plattform, Solo-Hauptentwickler + Agenten-Flotte):
-- Spec-getrieben: OpenSpec-Change-Workflow (propose → apply → archive, Delta-Specs mergen in SSOT-Specs unter openspec/specs/), fail-closed CI-Validierung.
 - Orchestrator-Skills: dev-flow-plan (Brainstorming → Spec → Plan, committed auf Branch), dev-flow-execute (Implementierung, Verify, PR, Auto-Merge), dev-flow-chore (inline). Darunter generische "superpowers"-Skills: TDD, systematic-debugging, writing-plans, verification-before-completion.
-- Software Factory: Ticket-Pipeline (PostgreSQL-Ticketsystem, Phase-Events, Autopilot), die Tickets automatisiert mit lokalen LLM-Subagenten (qwen3.5-Varianten via opencode/LM Studio) abarbeitet; Quality-Gates als verify-Phase-Events; Merge = Ticket-Abschluss; DORA-Metriken inkl. Change-Failure-Rate-Gate (fix()-Commits brauchen Bug-Ticket).
-- Agenten: 6 Domänen-Subagenten (website/ops/infra/test/db/security) mit Routing-Tabelle; MCP-Server für k8s, Postgres, Tickets, Factory; codebase-memory-MCP (Code-Knowledge-Graph mit Call-Tracing); generierte Agent-Routing-Karten (goals/tools/danger maps).
+- Ehemaliger Ticket-Autopilot (bis T900399): Ticket-Pipeline (PostgreSQL-Ticketsystem, Phase-Events), die Tickets automatisiert mit lokalen LLM-Subagenten (qwen3.5-Varianten via opencode/LM Studio) abarbeitete. Weiter live: Quality-Gates als verify-Phase-Events; Merge = Ticket-Abschluss; DORA-Metriken inkl. Change-Failure-Rate-Gate (fix()-Commits brauchen Bug-Ticket).
+- Agenten: 6 Domänen-Subagenten (website/ops/infra/test/db/security) mit Routing-Tabelle; MCP-Server für k8s, Postgres, Tickets; codebase-memory-MCP (Code-Knowledge-Graph mit Call-Tracing); generierte Agent-Routing-Karten (goals/tools/danger maps).
 - Hygiene: Worktree-Pflicht für mutierende Arbeit, agent-lock-Session-Koordination, Mishap-Tracker (Fehlersammlung als Aggregat-Tickets), Task-Oracle (LLM-Routing natürlicher Sprache auf Taskfile-Kommandos), Release-Notes-Generierung per LLM.
 - CI/CD: GitHub Actions, BATS + Playwright, Squash-Merge, push-basiertes Deploy auf k3s-Fleet (kein GitOps-Reconciler), nightly E2E.
 - Besonderheit: Multi-Harness (Claude Code + opencode mit lokalen Modellen), lokale GPU-Inferenz, DSGVO/on-prem.
@@ -97,7 +96,7 @@ const ANGLES = [
   },
   {
     key: 'oss',
-    prompt: `Recherchiere per Websuche das Open-Source-Ökosystem für agentisches Software-Engineering (letzte ${WINDOW} Monate, heute ist ${DATE}): trending GitHub-Repos, MCP-Server-Ökosystem, Agent-Harnesses/Orchestrierungs-Frameworks, Spec-driven-Dev-Tools (z. B. spec-kit, OpenSpec u. ä.), Code-Review-Bots, Agent-Memory-/Kontext-Systeme, Sandboxing. Fokus: Werkzeuge mit echter Adoption, die man in einen bestehenden SDLC integrieren kann. Nutze ToolSearch um WebSearch/WebFetch zu laden. Liefere max. 6 distinkte Trends mit Quellen-URLs.`,
+    prompt: `Recherchiere per Websuche das Open-Source-Ökosystem für agentisches Software-Engineering (letzte ${WINDOW} Monate, heute ist ${DATE}): trending GitHub-Repos, MCP-Server-Ökosystem, Agent-Harnesses/Orchestrierungs-Frameworks, Spec-driven-Dev-Tools (z. B. spec-kit u. ä.), Code-Review-Bots, Agent-Memory-/Kontext-Systeme, Sandboxing. Fokus: Werkzeuge mit echter Adoption, die man in einen bestehenden SDLC integrieren kann. Nutze ToolSearch um WebSearch/WebFetch zu laden. Liefere max. 6 distinkte Trends mit Quellen-URLs.`,
   },
   {
     key: 'practices',

@@ -27,13 +27,13 @@ scripts/task-context.sh <slug> [--partial pX] [--plan-base <ref>]
 ```
 
 - `--partial pX`: schneidet den Kern auf die `target_files` dieses Partials zu (Manifest aus
-  `openspec/changes/<slug>/tasks.md`). Ohne das Flag gilt die Union aller Partials.
+  `.agents/plans/<slug>/tasks.md`). Ohne das Flag gilt die Union aller Partials.
 - `--plan-base <ref>`: Vergleichsbasis für die Drift-Erkennung. Default ist der Merge-Base des
   aktuellen Branches gegen `origin/main`.
 
 ## Task 2: Statischer Kern (hart)
 
-Quelle ist `openspec/changes/<slug>/intel.json`, zugeschnitten über das **bestehende**
+Quelle ist `.agents/plans/<slug>/intel.json`, zugeschnitten über das **bestehende**
 `scripts/plan-intel-filter.sh` — dieses Skript wird wiederverwendet, nicht neu geschrieben und
 nicht verändert.
 
@@ -53,7 +53,7 @@ Drei Sektionen, jede einzeln mit 5 s Timeout (derselbe Wert wie `plan-context.sh
    eine der eigenen `target_files` berührt.
 2. **main-Drift** — `git diff --stat <plan-base>..origin/main -- <target_files>`. Leerer Diff
    ergibt eine kurze Zeile „keine Drift", nicht das Weglassen der Sektion.
-3. **Ähnliche Changes** — `GET ${OPENSPEC_SEARCH_URL}/api/openspec/search?q=<slug>&limit=3`, exakt
+3. **Ähnliche Changes** — `GET <such-endpunkt>/api/search?q=<slug>&limit=3`, exakt
    der Pfad, den `plan-context.sh:152-163` bereits implementiert. Die Query wird aus dem
    Change-Titel gebildet, nicht aus dem Slug allein.
 

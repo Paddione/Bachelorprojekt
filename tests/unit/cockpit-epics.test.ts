@@ -137,10 +137,10 @@ describe('isValidIsoTimestamp — Eingabe der changes-since-Route', () => {
 });
 
 describe('buildChangesSinceArgs — git ohne Shell-Pipe', () => {
-  it('POSITIV-ANKER: baut ein git-log-argv fuer openspec/changes/', () => {
+  it('POSITIV-ANKER: baut ein git-log-argv fuer .agents/plans/', () => {
     const args = buildChangesSinceArgs('2026-08-01T12:00:00.000Z');
     expect(args[0]).toBe('log');
-    expect(args).toContain('openspec/changes/');
+    expect(args).toContain('.agents/plans/');
   });
 
   it('enthaelt kein `wc -l` — ohne Shell gibt es keine Pipe', () => {

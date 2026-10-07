@@ -92,6 +92,151 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/cockpit-budget",
+      "file": "cockpit-budget.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-control",
+      "file": "cockpit-control.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-floor",
+      "file": "cockpit-floor.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "github"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-floor/[extId]",
+      "file": "cockpit-floor/[extId].ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-floor/[extId]/ci",
+      "file": "cockpit-floor/[extId]/ci.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-floor/[extId]/deploy",
+      "file": "cockpit-floor/[extId]/deploy.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-floor/[extId]/inject",
+      "file": "cockpit-floor/[extId]/inject.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-floor/[extId]/release",
+      "file": "cockpit-floor/[extId]/release.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-floor/stream",
+      "file": "cockpit-floor/stream.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-metrics",
+      "file": "cockpit-metrics.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit-observability",
+      "file": "cockpit-observability.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/cockpit/actions",
       "file": "cockpit/actions.ts",
       "methods": [
@@ -177,6 +322,19 @@
       ],
       "backend": [
         "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/parallel-status",
+      "file": "cockpit/parallel-status.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
       ],
       "description": null,
       "tier": null,
@@ -355,177 +513,6 @@
       "deprecated": null
     },
     {
-      "path": "/sdlc/api/factory-budget",
-      "file": "factory-budget.ts",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-control",
-      "file": "factory-control.ts",
-      "methods": [
-        "GET",
-        "PATCH"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-floor",
-      "file": "factory-floor.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "github"
-      ],
-      "description": "Wertstrom-Ansicht: Slots, Hall, Backlog je Ticket-Phase.",
-      "tier": "core",
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-floor/[extId]",
-      "file": "factory-floor/[extId].ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-floor/[extId]/ci",
-      "file": "factory-floor/[extId]/ci.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-floor/[extId]/deploy",
-      "file": "factory-floor/[extId]/deploy.ts",
-      "methods": [
-        "POST"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-floor/[extId]/inject",
-      "file": "factory-floor/[extId]/inject.ts",
-      "methods": [
-        "POST"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-floor/[extId]/release",
-      "file": "factory-floor/[extId]/release.ts",
-      "methods": [
-        "POST"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-floor/stream",
-      "file": "factory-floor/stream.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "postgres"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-metrics",
-      "file": "factory-metrics.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory-observability",
-      "file": "factory-observability.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory/force-tick",
-      "file": "factory/force-tick.ts",
-      "methods": [
-        "POST"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/factory/parallel-status",
-      "file": "factory/parallel-status.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
       "path": "/sdlc/api/health-goals/rescan",
       "file": "health-goals/rescan.ts",
       "methods": [
@@ -661,8 +648,8 @@
       "deprecated": null
     },
     {
-      "path": "/sdlc/api/llm-proxy/factory",
-      "file": "llm-proxy/factory.ts",
+      "path": "/sdlc/api/llm-proxy/default",
+      "file": "llm-proxy/default.ts",
       "methods": [
         "GET",
         "PUT"
@@ -814,32 +801,6 @@
       ],
       "backend": [
         "k8s-rest"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/openspec/save-proposal",
-      "file": "openspec/save-proposal.ts",
-      "methods": [
-        "POST"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "path": "/sdlc/api/openspec/search",
-      "file": "openspec/search.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "postgres"
       ],
       "description": null,
       "tier": null,
@@ -1753,6 +1714,14 @@
     },
     {
       "name": "context7",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "devflow-mcp",
       "transport": "stdio",
       "endpoint": null,
       "description": null,

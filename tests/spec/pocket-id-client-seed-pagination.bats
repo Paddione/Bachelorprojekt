@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/pocket-id-client-seed-pagination.bats
-# SSOT: openspec/changes/pocket-id-seed-pagination/tasks.md (T001996)
 #
 # Verifies find_client_id() in pocket-id-client-seed.yaml searches ALL pages
 # of GET /api/oidc/clients, not just page 1. Pocket ID v2.9.0 hard-caps

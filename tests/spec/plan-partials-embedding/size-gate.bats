@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/plan-partials-embedding/size-gate.bats
-# SSOT: openspec/changes/plan-partials-embedding/
 # Verifies plan-lint.sh Größen-Gate >7000 Token.
 
 setup() {
@@ -23,10 +22,10 @@ status: planning
 
 ## Partials
 
-| id | file | role | target_files | depends_on | min_tier | ctx_tokens |
-|---|---|---|---|---|---|---|
-| p1 | `tasks.d/p1-small.md` | impl | `scripts/foo.sh` | | 27b-local | 32000 |
-| p2 | `tasks.d/p2-large.md` | tests | `scripts/bar.bats` | p1 | 4b-local | 32000 |
+| id | file | role | target_files | depends_on |
+|---|---|---|---|---|
+| p1 | `tasks.d/p1-small.md` | impl | `scripts/foo.sh` | |
+| p2 | `tasks.d/p2-large.md` | tests | `scripts/bar.bats` | p1 |
 
 ## Verify Task (STRUCT3)
 

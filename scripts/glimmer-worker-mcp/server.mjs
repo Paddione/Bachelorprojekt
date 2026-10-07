@@ -2,11 +2,11 @@
 // scripts/glimmer-worker-mcp/server.mjs — Glimmer als Arbeitermodell fuer Muse Code (T900373).
 //
 // Muse Code (Meta) kann llama-server nicht als Provider nutzen (proprietaeres
-// Stream-/Tool-Format, siehe openspec design glimmer-worker-mcp). Dieser Server
+// Stream-/Tool-Format). Dieser Server
 // bietet Glimmer stattdessen als MCP-Werkzeug an: ein Job fuehrt opencode mit
 // dem Agenten glimmer-primary im Ziel-Repo aus (gleiches Modell, gleiche
 // Tool-Schleife). Streamable HTTP auf 127.0.0.1, Bearer, Node-stdlib only —
-// Aufbau wie scripts/factory-mcp-node/server.mjs.
+// abgesichert ueber scripts/lib/mcp-http-security.mjs.
 
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
@@ -28,7 +28,7 @@ const CODE_PARSE = -32700;
 const env = (k, d) => process.env[k] || d;
 const PORT = Number(env('GLIMMER_WORKER_MCP_PORT', '13007'));
 const OPENCODE = env('GLIMMER_WORKER_OPENCODE', `${homedir()}/.opencode/bin/opencode`);
-const AGENT = env('GLIMMER_WORKER_AGENT', 'glimmer-primary');
+const AGENT = env('GLIMMER_WORKER_AGENT', 'bp-build');
 const LLAMA = env('GLIMMER_WORKER_LLAMA_URL', 'http://127.0.0.1:1919').replace(/\/+$/, '');
 // Untergrenze fuer timeout_s. Default 60; nur Tests setzen sie niedriger.
 const TIMEOUT_FLOOR_S = Math.max(1, Number(env('GLIMMER_WORKER_TIMEOUT_FLOOR_S', '60')));
@@ -181,7 +181,7 @@ async function callTool(name, args) {
 }
 
 // ---------------------------------------------------------------------------
-// HTTP / JSON-RPC (Muster: factory-mcp-node)
+// HTTP / JSON-RPC
 // ---------------------------------------------------------------------------
 
 function readBody(req) {

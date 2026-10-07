@@ -84,61 +84,10 @@ tasks:
     cmds:
       - bash scripts/vda.sh release-notes generate {{.CLI_ARGS}}
 
-  # C7a-B1 (T900560): openspec:propose/apply/archive retired — Plaene leben in
-  # .agents/plans/, das Archiv ist Postgres (plan-archive-steps.md Delete-Flow).
-  # openspec:embed:backfill bleibt bis B4 (Embed-Pipeline-Retirement).
-
-  openspec:embed:backfill:
-    desc: "Re-index all active openspec changes (status in ACTIVE_STATUSES from openspec-embed.mjs) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]"
-    cmds:
-      - |
-        set -e
-        # ACTIVE_STATUSES is the SSOT — read dynamically from the ESM export
-        ACTIVE_STATUSES="$(node --input-type=module -e "
-          import('./scripts/openspec-embed.mjs').then(m => console.log(m.ACTIVE_STATUSES.join('|')))
-        " 2>/dev/null || echo 'planning|plan_staged')"
-        for d in openspec/changes/*/; do
-          slug="$(basename "$d")"
-          [ "$slug" = "archive" ] && continue
-          [ -f "$d/tasks.md" ] || continue
-          st="$(sed -n 's/^status:[[:space:]]*//p' "$d/tasks.md" | head -1)"
-          case "$st" in $ACTIVE_STATUSES) ;; *) continue ;; esac
-          echo "backfill: $slug (status=$st)"
-          node scripts/openspec-embed.mjs --slug "$slug" {{.CLI_ARGS}}
-        done
-
-  openspec:validate:
-    # C7a-B1 (T900560): reduziert auf den Halb-Archiv-Check — die
-    # Vitest-Format-Validierung ist mit test:openspec retired. Einziger
-    # Verbraucher: openspec-orphan-archive.yml (fail-closed nach Auto-Archiv).
-    desc: "Check the openspec/ tree for half-archived slugs (fail-closed)."
-    cmds:
-      - bash scripts/openspec-half-archive-check.sh
-
-  openspec:header-inject:
-    desc: "Bulk-add ## Purpose + ## Requirements H2 headers to SSOT specs under openspec/specs/. Usage: task openspec:header-inject [-- --dry-run]"
-    cmds:
-      - bash scripts/openspec-header-inject.sh {{.CLI_ARGS}} openspec/specs/
-
-  openspec:ci-telemetry-optout:
-    desc: "Add OPENSPEC_TELEMETRY: '0' to every .github/workflows/*.yml that lacks it. Usage: task openspec:ci-telemetry-optout [-- --dry-run]"
-    cmds:
-      - python3 scripts/openspec-telemetry-optout.py {{.CLI_ARGS}} .github/workflows/*.yml .github/workflows/*.yaml
-
   design:leitstand-ds-sync:
     desc: Regenerate design/leitstand-ds artifacts (tokens verbatim copy, glyph assets, card assembly)
     cmds:
       - node design/leitstand-ds/build.mjs
-
-  openspec:status-map:
-    desc: "Regenerate components/website/src/data/openspec-status.json from openspec/changes/"
-    cmds:
-      - bash scripts/openspec-status-map.sh
-
-  openspec:atlas:
-    desc: "Regenerate docs/spec-atlas.md from openspec/specs + changes archive [T015012]"
-    cmds:
-      - bash scripts/openspec-atlas.sh
 
   gh:branch-protection:apply:
     desc: "Set required checks for main (removes E2E PR). Requires GH_PAT env-var with admin:repo scope."
@@ -203,7 +152,7 @@ tasks:
       - node scripts/gen-platform-descriptions.mjs
 
   plan:touched-files:
-    desc: "Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md"
+    desc: "Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- .agents/plans/<slug>/tasks.md"
     cmds:
       - bash scripts/plan-touched-files.sh {{.CLI_ARGS}}
 
@@ -232,44 +181,6 @@ tasks:
           python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
         echo "  Written to docs/db-schema-diagram.md"
     silent: false
-
-  factory:migrate:
-    desc: "Run migrations/*.sql against the target DB (idempotent, tracked in public.factory_schema_migrations). ENV=dev|mentolder|korczewski."
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        set -euo pipefail
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ctx_flag=""
-        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-
-        echo "Waiting for shared-db to be ready before running factory migrations..."
-        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
-
-        echo "Fetching postgres superuser password from ${NS}/shared-db..."
-        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
-        if [ -z "$PG_PW" ]; then
-          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
-          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
-          if [ -n "$POD" ]; then
-            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
-          fi
-        fi
-        if [ -z "$PG_PW" ]; then
-          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
-        fi
-
-        echo "Port-forwarding shared-db (5432) and running factory migrations..."
-        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
-          >/tmp/factory-migrate-pf.log 2>&1 &
-        PF=$!
-        trap 'kill $PF 2>/dev/null' EXIT
-        sleep 3
-
-        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
-          node scripts/migrate-db.mjs
 
   # ─────────────────────────────────────────────
   # End of tasks

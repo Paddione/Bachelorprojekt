@@ -222,6 +222,31 @@ clients:
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 30000
 
+  # devflow-mcp (T900985): Kontext, Werkzeug-Empfehlung und Plan-Staging fuer Subagenten.
+  # Reines Node.js, oeffnet bge-mcp (:13005), mcp-postgres (:13001) und den lokalen
+  # Graph-Cache (~/.cache/devflow-mcp) lazy — ohne diese Backends laufen die Wrapper-Tools
+  # (lock, plan_lint, plan_stage, ci_status) trotzdem. Pfad-Split wie ticket-mcp-node.
+  devflow-mcp:
+    transport: stdio
+    command: node
+    args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+    harness:
+      claude_code:
+        command: node
+        args: [scripts/devflow-mcp/server.mjs]
+      agy:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+      opencode:
+        type: local
+        command: [node, scripts/devflow-mcp/server.mjs]
+        enabled: true
+      llamacpp:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+        cwd: /home/patrick/Bachelorprojekt
+        timeout_ms: 60000
+
   mcp-task-runner:
     transport: stdio
     command: mcp-task-runner
@@ -254,31 +279,27 @@ clients:
         command: [node, scripts/mcp-task-runner/server.mjs, --otel-endpoint, localhost:4317, --taskfile, Taskfile.yml]
         enabled: true
 
-  # codebase-memory-mcp: als Node-Prozess ueber npx (npm-Wrapper, verifiziert
-  # 2026-09-04: 0.10.8 --help Exit 0, Default ist stdio-Server, OpenCode in der
-  # Client-Liste). Version gepinnt (Reproduzierbarkeit vor @latest-Drift, wie
-  # der superpowers-SHA-Pin). T002690: command UND args ueber alle
-  # Harness-Eintraege + Top-Level identisch — Ausnahme llamacpp: bleibt beim
-  # nativen Binary, weil npx den llama-Modellstart verzoegern wuerde.
+  # codebase-memory-mcp: natives Binary (T900921: npx -y braucht ~39s +
+  # CBM-Daemon-Single-Flight 30s -> `Request timed out`; nativ ~1s, v0.10.8).
+  # Version via npm-global/~/.local/bin gepinnt (0.10.8). T002690: command UND
+  # args ueber alle Harness-Eintraege + Top-Level identisch — alle nativ.
   codebase-memory-mcp:
     transport: stdio
-    command: npx
-    args:
-      - -y
-      - codebase-memory-mcp@0.10.8
+    command: codebase-memory-mcp
+    args: []
     # Der Browser-Bridge-Pfad wurde entfernt: die Container-Konfiguration
     # referenzierte ein Host-Binary, das dort nicht existiert. Die lokalen
     # stdio-Harnesses bleiben erhalten.
     harness:
       claude_code:
-        command: npx
-        args: [-y, codebase-memory-mcp@0.10.8]
+        command: codebase-memory-mcp
+        args: []
       agy:
-        command: npx
-        args: [-y, codebase-memory-mcp@0.10.8]
+        command: codebase-memory-mcp
+        args: []
       opencode:
         type: local
-        command: [npx, -y, codebase-memory-mcp@0.10.8]
+        command: [codebase-memory-mcp]
         enabled: true
       llamacpp:
         command: codebase-memory-mcp

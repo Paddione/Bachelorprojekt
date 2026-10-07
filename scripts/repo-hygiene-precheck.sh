@@ -2,9 +2,9 @@
 # scripts/repo-hygiene-precheck.sh — Vorcheck fuer repo-hygiene-Laeufe [T900016].
 #
 # Das Runbook (.claude/skills/references/repo-hygiene-ops.md §0/§1) prueft vor
-# Aufraeumentscheidungen bisher nur, ob ein Factory-Tick laeuft. Das deckt die
+# Aufraeumentscheidungen bisher nur, ob ein Hygiene-Tick laeuft. Das deckt die
 # Fehlerklasse nicht ab: eine INTERAKTIVE Fremdsession mutiert das Repo ohne
-# /tmp/factory-tick.lock. Am 2026-08-30 geschah das zweimal in einem Lauf —
+# /tmp/repo-hygiene-tick.lock. Am 2026-08-30 geschah das zweimal in einem Lauf —
 # einmal ein `git reset` auf origin/main, einmal ein Branch-Wechsel, der einen
 # Commit auf einem fremden Branch landen liess.
 #
@@ -52,7 +52,7 @@ snapshot() {
 
 # [T012414] Pfad ueberschreibbar (wie scripts/repo-hygiene-cron.sh); der Default
 # bleibt der geteilte Pfad, an dem die Absprache mit der Factory haengt.
-FACTORY_TICK_LOCK="${FACTORY_TICK_LOCK:-/tmp/factory-tick.lock}"
+REPO_HYGIENE_TICK_LOCK="${REPO_HYGIENE_TICK_LOCK:-/tmp/repo-hygiene-tick.lock}"
 
 # Ist der fd-Redirect-Lock-Test in DIESER Shell ueberhaupt durchfuehrbar?
 # [T900061] Unter Git Bash auf Windows ist er es nicht: `flock -n 9` bricht mit
@@ -75,9 +75,9 @@ flock_usable() {
 # `9<>` statt `9>`: der alte Redirect legte die Lock-Datei an bzw. kuerzte sie
 # auf 0 Byte — der blosse Vorcheck schrieb damit an fremdem Lock-Zustand herum.
 tick_state() {
-  test -f "$FACTORY_TICK_LOCK" || return 1
+  test -f "$REPO_HYGIENE_TICK_LOCK" || return 1
   flock_usable || return 2
-  if (flock -n 9) 9<>"$FACTORY_TICK_LOCK" 2>/dev/null; then return 1; fi
+  if (flock -n 9) 9<>"$REPO_HYGIENE_TICK_LOCK" 2>/dev/null; then return 1; fi
   return 0
 }
 
@@ -119,16 +119,16 @@ unknown=0
 tick_state
 case "$?" in
   0)
-    echo "BEFUND: Factory-Tick laeuft ($FACTORY_TICK_LOCK gehalten)."
+    echo "BEFUND: Hygiene-Tick laeuft ($REPO_HYGIENE_TICK_LOCK gehalten)."
     echo "  Worktrees und Branches mutieren waehrend der Messung. Sektion ueberspringen"
     echo "  oder die Pruefung unmittelbar vor jedem Remove wiederholen."
     rc=1
     ;;
   1)
-    echo "ok: kein laufender Factory-Tick."
+    echo "ok: kein laufender Hygiene-Tick."
     ;;
   *)
-    echo "NICHT PRUEFBAR: der Factory-Tick laesst sich in dieser Shell nicht messen." >&2
+    echo "NICHT PRUEFBAR: der Hygiene-Tick laesst sich in dieser Shell nicht messen." >&2
     echo "  'flock -n 9' scheitert hier an der Plattform (Git Bash unter Windows:" >&2
     echo "  'Bad file descriptor'), nicht am Lock-Zustand. Ob ein Tick laeuft, ist" >&2
     echo "  damit unbekannt — es wird KEIN Tick behauptet und keiner ausgeschlossen." >&2

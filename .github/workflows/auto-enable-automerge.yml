@@ -17,7 +17,7 @@ name: Auto-enable Auto-Merge
 # wäre beim Umbenennen eine stille Bruchstelle.
 # E2E PR is intentionally not a required check — see scripts/gh-branch-protection.sh
 # and task gh:branch-protection:status. Required checks: BATS Unit + Quality Gates,
-# Security Scan, Brett TypeScript, Conventional Commits.
+# Security Scan, Brett TypeScript, Conventional Commits, Spec + Guards (T901066).
 # Emergency: task gh:branch-protection:emergency-add-e2e
 
 on:
@@ -28,9 +28,6 @@ on:
 concurrency:
   group: auto-enable-automerge-${{ github.event.pull_request.number }}
   cancel-in-progress: true
-
-env:
-  OPENSPEC_TELEMETRY: '0'
 
 jobs:
   enable-automerge:

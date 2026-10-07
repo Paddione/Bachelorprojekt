@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/website-core/admin-nav-no-sdlc-routes.bats
-# SSOT: openspec/specs/website-core.md § Admin-Sidebar-Navigation
 #
 # PRÜFMODUS: Output-Verifikation. Der Test FÜHRT scripts/check-admin-nav-routes.mjs AUS
 # und prüft dessen Exit-Code und Ausgabe. Das Skript importiert die Nav-Definition samt

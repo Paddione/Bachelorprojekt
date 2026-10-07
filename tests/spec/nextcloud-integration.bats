@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/nextcloud-integration.bats
-# SSOT: openspec/specs/nextcloud-integration.md
+# Target: k3d/nextcloud.yaml
+
 
 @test "nextcloud-integration spec covered" {
   run true

@@ -97,8 +97,15 @@ Jeder Plan, der in `components/website/src/lib/**` oder `components/website/src/
 
 ### plan-lint Hard Rules (fail-closed Gate — `scripts/plan-lint.sh`)
 
-Jede `tasks.md` muss diese Hard-Pflichten erfüllen (SSOT hier + im Skript; Plan-Subagenten
-lesen diese Datei statt einer Kopie im Skill-Prompt):
+Jede `tasks.md` muss diese Hard-Pflichten erfüllen. **Diese Datei ist die kanonische
+Referenz für das Plan-Format** (SSOT hier + im Skript `scripts/plan-lint.sh`;
+`dev-flow-plan`-Skill und `dev-flow-plan-phases`-Referenz verlinken hierher und
+wiederholen die Regeln nicht; Plan-Subagenten lesen diese Datei statt einer
+Kopie im Skill-Prompt):
+
+> Hinweis (T900948): Das `## Partials`-Manifest trägt KEINE per-partial
+> Tier-/Kontext-Spalten mehr — der Orchestrator routet nach Komplexitätsklasse
+> ([subagent-provisioning](./subagent-provisioning.md)).
 
 - **F1 Frontmatter:** YAML-Frontmatter am Anfang mit den vier Pflicht-Keys
   `title`, `ticket_id`, `domains`, `status` (alle nicht-leer).
@@ -111,7 +118,7 @@ lesen diese Datei statt einer Kopie im Skill-Prompt):
   mit der wortwörtlichen Phrase `expected: FAIL` (regex tolerant: `expected:? *fail`) —
   UND einen echten Testrunner-Aufruf (`bats`, `vitest`, `pytest`, `jest`, `mocha`, `go test`
   oder `playwright test`). Die Phrase allein reicht NICHT: sie ist billig zu faken und wird
-  bereits vom `openspec.sh propose`-Skeleton vorgeseedet. Der finale `task test:*`-Verify-Task
+  im Plan-Skeleton vorgesehen. Der finale `task test:*`-Verify-Task
   (STRUCT3) zählt NICHT als dieser Failing-Test-Step — es muss ein eigener, expliziter
   Testrunner-Befehl im selben oder einem anderen Task stehen (T001791 #2).
 - **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory Verify-Commands:
@@ -129,13 +136,6 @@ lesen diese Datei statt einer Kopie im Skill-Prompt):
   (Stichwörter: `split`, `extract`, `verkleiner`, `shrink`, `aufteil`), gibt der Linter eine
   Warnung aus — kosmetisches Zusammenziehen reicht bei Budget≈0 nicht (siehe Schritt 3.7/4
   im Skill).
-- **R1 min_tier (nur Partial-Modus):** Jede `## Partials`-Manifest-Zeile trägt `min_tier`
-  exakt aus {`4b-local`, `27b-local`, `cloud`} (kleingeschrieben, keine Varianten) — die
-  billigste Stufe, die das Partial noch schafft. Stufen-Rubrik:
-  [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md) §3.7(b).
-- **R2 ctx_tokens (nur Partial-Modus):** Jede Manifest-Zeile trägt `ctx_tokens` als positive
-  Ganzzahl ≤ 1000000; auf den lokalen Stufen (`4b-local`, `27b-local`) zusätzlich ≤ 131072
-  (served KV-Fenster) — darüber `cloud` wählen oder das Partial aufteilen.
 
 ### Gate-Messung & Ad-hoc-Skripte (Positiv-Anker-Pflicht) [T002495-M10]
 
@@ -166,3 +166,17 @@ Dazu:
 - **Image-Pins:** CI warnt bei `:latest` — Ausnahmen nur components/website/brett/docs (dokumentiert in CLAUDE.md).
 - **Shell-Snippet Sanity:** CLI-Befehle im Plan auf Argument-Fallen prüfen (z.B. `jq --args` wandelt alle Folgearags in Strings um -> Input-Dateien via Stdin `< file` umleiten).
 
+### Lifecycle Receipt + Delete [T900999]
+
+Jeder ausgefuehrte Plan endet mit Receipt UND Delete — kein `.md`-Ueberhang:
+gemergte Plaene bleiben nicht im Repo liegen.
+
+- **Receipt:** `devflow-post-merge-finalize.sh` Schritt 7 schreibt Frontmatter +
+  Check-Evidenz + Merge-SHA nach `tickets.ticket_plans` (P1); staged
+  (> `STAGED_STALE_DAYS` inaktive) und supersedete Plaene (Nachfolger-Merge)
+  ueber `ticket.sh archive-plan --reason` (P4).
+- **Delete:** `branch-reaper.sh --sweep --plan-cleanup` entfernt Plan-Ordner per
+  `git rm`, gebuendelt als Sammel-Cleanup-PR (P2) — nie direkt nach main.
+- **Fail-closed:** ohne verifizierten Record kein Delete (`tests/spec/plan-lifecycle.bats`, P3).
+- **Abgrenzung:** Generieren schreibt Plaene; Validieren (`plan-lint.sh`, Gates,
+  Guards) prueft sie nur und schreibt nie.

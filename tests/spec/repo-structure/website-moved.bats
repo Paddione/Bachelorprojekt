@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/repo-structure/website-moved.bats
-# SSOT: openspec/specs/repo-structure.md
+
 #
 # Drift-Guard fuer den Move website/ -> components/website/ (T006999, Partial p4).
 # Pruefmodus (T002448-M4-Ausnahme, dokumentiert): Querschnitts-Struktur-Guard —
@@ -66,7 +66,7 @@ teardown() {
   #   .githooks/, .gitattributes, .dockerignore, renovate.json5,
   #   docs/code-quality/subsystems.yaml, docs/agent-guide/registry/,
   #   Root-MDs (bare Formen wie 'cd website' ohne Slash),
-  #   environments/-READMEs, factory-eval-Fixtures.
+  #   environments/-READMEs.
   # Sweep-Muster no-slash-Formen (dokumentiert): `cd website`, `--prefix brett`,
   # `brett/` in Tabellen — alle werden von den -F-Literalen unten erfasst
   # (git grep -F findet Teilstrings; 'cd website' und 'website/' sind getrennte Muster).
@@ -89,7 +89,7 @@ teardown() {
     .githooks .gitattributes .dockerignore renovate.json5 \
     docs/code-quality/subsystems.yaml docs/agent-guide/registry \
     AGENTS.md README.md components/website/CLAUDE.md \
-    environments tests/factory-eval/fixtures || true)
+    environments || true)
 
   [ "$stale" -eq 0 ] || return 1
 }

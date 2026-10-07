@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ticket-system/areas-csv-trim.bats
-# SSOT: openspec/changes/areas-csv-trim/specs/ticket-system.md (T004894)
 #
 # PRUEFMODUS (T002448-M4): Output-/Resultat-Verifikation gegen die reale Dev-DB.
 # Der Test FUEHRT `ticket.sh plan-meta set` bzw. `ticket.sh create` mit einer
@@ -14,7 +13,7 @@ setup() {
   REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)}"
   # [T900250] CTX spiegelt EXAKT die Kontext-Aufloesung, die scripts/ticket.sh
   # selbst benutzt (scripts/vda/ticket/_ticket-core.sh:11: CTX="${TICKET_CTX:-fleet}").
-  # Vorher stand hier FACTORY_CTX:-devmesh — eine andere Variable mit einem
+  # Vorher stand hier WORKSPACE_CTX:-devmesh — eine andere Variable mit einem
   # anderen Default. ticket.sh create schrieb dadurch nach fleet, waehrend
   # teardown gegen devmesh loeschte: der Teardown meldete Erfolg und traf nichts.
   CTX="${TICKET_CTX:-fleet}"

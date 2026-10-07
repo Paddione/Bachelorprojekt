@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/finalize-worktree-branch-validation.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: finalize-worktree-branch-validation, T012240)
 #
 # PRÜFMODUS: Output-Verifikation (T002448-M4). Anders als
 # tests/spec/agent-skills/post-merge-finalize-guards.bats (dokumentierte

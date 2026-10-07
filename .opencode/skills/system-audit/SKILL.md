@@ -1,6 +1,6 @@
 ---
 name: system-audit
-description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manifeste, Live-Flux-Cluster, Brand-Seiten, Repo-Zustand, Tool-Registry, Security & Secrets, Datenbank, LLM-Pipeline, Brain-Wiki. Critical/Warning-Befunde enden als Ticket mit OpenSpec-Proposal im Backlog. Triggers on system-audit, Systemaudit, Full-Audit, 'audit all systems', 'audit the cluster/repo/website/security/database/llm pipeline/toolset', 'audit report with tickets'."
+description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manifeste, Live-Flux-Cluster, Brand-Seiten, Repo-Zustand, Tool-Registry, Security & Secrets, Datenbank, LLM-Pipeline, Brain-Wiki. Critical/Warning-Befunde enden als Ticket mit plan-Proposal im Backlog. Triggers on system-audit, Systemaudit, Full-Audit, 'audit all systems', 'audit the cluster/repo/website/security/database/llm pipeline/toolset', 'audit report with tickets'."
 ---
 
 # system-audit
@@ -19,8 +19,8 @@ angehängten Proposals.
 | Ziel | System | Deckung | Modus |
 |---|---|---|---|
 | `gitops-repo` | Flux-Manifeste dieses Repos (`fleet/`, `prod-fleet/`, `flux/`) | Skill `gitops-repo-audit` | delegiert |
-| `flux-cluster` | Live-Fleet-Cluster (ns `workspace`, `workspace-korczewski`) | Checkliste [§1](references/checklists.md#1-flux-cluster-live-sweep) | eigen |
-| `website` | Brand-Seiten mentolder + korczewski | Skill `web-audit` | delegiert |
+| `flux-cluster` | Live-Fleet-Cluster (ns `workspace`; `workspace-korczewski` eingefroren, T002479) | Checkliste [§1](references/checklists.md#1-flux-cluster-live-sweep) | eigen |
+| `website` | Brand-Seite mentolder (korczewski eingefroren) | Skill `web-audit` | delegiert |
 | `repo` | Repo-Zustand, PRs | Skill `repo-hygiene` §0–§7 inkl. Runtime-Drift | delegiert |
 | `toolset` | Tool-Registry (`capabilities.yaml`) | Skill `toolset-curate` Schritt 1–2 | delegiert |
 | `security` | SealedSecrets, OIDC, DSGVO, Secret-Alter | Checkliste [§2](references/checklists.md#2-security-sealedsecrets-oidc-dsgvo) (+ infra-ops `references/runbooks-operations.md` §6) | eigen |
@@ -71,10 +71,9 @@ bei der Befundliste.
 
 ```bash
 task web:audit ENV=mentolder
-task web:audit ENV=korczewski
 ```
 
-Beide Brands, Standard-Routen. Die axe/Lighthouse/LLM-Triage-Ergebnisse werden als
+Standard-Routen. korczewski ist seit 2026-07-23 eingefroren (T002479, 0 Replicas) und wird nicht auditiert. Die axe/Lighthouse/LLM-Triage-Ergebnisse werden als
 Befunde übernommen (Rangliste des Web-Audits ≙ Priorisierung nach Severity-Mapping:
 axe critical/Lighthouse <50 ⇒ Critical, sonst Warning, kosmetisch ⇒ Info).
 
@@ -147,7 +146,7 @@ und Warning-Befunde. Info-Befunde bleiben im Report.
 
 ### C0 — Worktree-Guard
 
-OpenSpec-Proposals erzeugen Dateien unter `openspec/changes/`. Das geschieht nur in
+plan-Proposals erzeugen Dateien unter `.agents/plans/`. Das geschieht nur in
 einem Worktree (Fußnote: Archivierung NUR im Worktree — Main-Checkout-Commits leave
 orphaned files). Prüfe:
 
@@ -169,7 +168,7 @@ abgearbeitet.
 
 ### C2–C5 — Ticket, DoR, Proposal, Enqueue
 
-Ticket-Anlage (Typ-Mapping), DoR-Felder (`plan-meta`, Readiness-Flags), OpenSpec-Proposal (`openspec.sh propose`, Artefakt-How-to) und Enqueue + Rückverfolgbarkeit: [phase-c-tickets](references/phase-c-tickets.md). C0-Worktree-Guard und C1-Dedupe oben gelten unverändert.
+Ticket-Anlage (Typ-Mapping), DoR-Felder (`plan-meta`, Readiness-Flags), plan-Proposal (Plananlage, Artefakt-How-to) und Enqueue + Rückverfolgbarkeit: [phase-c-tickets](references/phase-c-tickets.md). C0-Worktree-Guard und C1-Dedupe oben gelten unverändert.
 
 ## Nachbereitung: Mishap Report
 
@@ -189,7 +188,7 @@ Ausgefallene Ziele (FAILED-Markierungen) sind Mishaps, keine stillen Auslassunge
 | Skill | Beziehung |
 |-------|--------------|
 | `gitops-repo-audit`, `web-audit`, `repo-hygiene`, `toolset-curate` | delegierte Ziele dieses Skills |
-| `openspec-propose` | How-to für die Proposal-Artefakte in C4 |
+| `dev-flow-plan` | How-to für die Proposal-Artefakte in C4 |
 | `ticket-ops` | Weitertriage der erzeugten Tickets (Vollständigkeit, Klärung) |
 | `incident-response` | wenn Befunde akut sind — sofortiger Wechsel erlaubt |
 | `infra-ops` §5–§7 | Fachprozeduren hinter den Checklisten security/database/llm-pipeline |

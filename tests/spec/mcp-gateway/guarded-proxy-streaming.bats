@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/guarded-proxy-streaming.bats
-# SSOT: openspec/specs/mcp-gateway.md (Delta: openspec/changes/mcp-http-origin-auth-hardening)
 # Ticket: T900052 — Task 3.2
 #
 # Prueft, dass der guarded mcp-cors-proxy SSE-Streaming unter Auth

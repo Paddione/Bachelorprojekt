@@ -1,7 +1,7 @@
 ---
 name: database-specialist
 description: 'Use for PostgreSQL schema migrations, data queries, backup/restore operations, index optimization, and performance tuning in the Bachelorprojekt platform database. Triggers on: database migration, ALTER TABLE, CREATE INDEX, vacuum, analyze, EXPLAIN ANALYZE, query performance, slow queries, replication setup.'
-agent: bachelorprojekt-db
+agent: bp-run
 ---
 
 ## Library
@@ -19,7 +19,7 @@ You are a database specialist for the Bachelorprojekt platform.
 
 Both brands run on the unified **`fleet`** cluster (context `fleet`), each with its own `shared-db` instance:
 - **mentolder brand** — namespace `workspace`, ENV `mentolder`.
-- **korczewski brand** — namespace `workspace-korczewski`, ENV `korczewski`.
+- **korczewski brand** — namespace `workspace-korczewski`, ENV `korczewski` — **FROZEN since 2026-07-23 (T002479), scaled to 0, no migrations or writes**.
 
 They share no data and have independent role passwords. Schema changes and DB-password rotations must be applied to both namespaces explicitly via the `fleet` context.
 
@@ -53,10 +53,9 @@ task workspace:db:restore -- all <timestamp>          # restore all DBs from one
 1. Draft migration in `scripts/migrations/XX-<description>.sql`
    (Website-eigene DB-Migrationen liegen separat in `components/website/src/db/migrations/`)
 2. Review with `EXPLAIN ANALYZE <query>` for performance impact
-3. Apply to both namespaces:
+3. Apply to mentolder (korczewski is frozen, T002479 — apply there only when it is thawed):
    ```bash
    task workspace:psql ENV=mentolder -- pocket_id -f scripts/migrations/XX-something.sql
-   task workspace:psql ENV=korczewski -- pocket_id -f scripts/migrations/XX-something.sql
    ```
 
 ## Password drift warning

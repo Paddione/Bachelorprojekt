@@ -1,5 +1,6 @@
 // workers.mjs — Worker-Pool des plan-runners (T900504): startet `opencode run` fuer 4B-Worker
-// (Agent qwen35-mtp, :1920) und den Selbstaufruf des Orchestrators (Agent local, :1919),
+// (Agent plan-worker-qwen35 auf llamacpp-qwen3/Qwen3.5-4B-MTP, Windows-nativ :8080) und den
+// Selbstaufruf des Orchestrators (Agent plan-worker-self auf llamacpp-local, :1919),
 // verwaltet die 4B-Slots und puffert beendete 4B-Ergebnisse.
 // Aufrufer: scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.
 // Test-Override: PLAN_RUNNER_OPENCODE ersetzt das opencode-Binary.
@@ -12,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { parseResult } from './plan.mjs';
 
 // Primaer-Agenten: opencode run ersetzt Subagenten still durch den Default-Agenten.
-export const AGENT_4B = 'plan-worker-4b';
+export const AGENT_4B = 'plan-worker-qwen35';
 export const AGENT_SELF = 'plan-worker-self';
 const TAIL_CHARS = 4000;
 const live = new Set(); // laufende Kindprozesse, fuer killAllWorkers()
@@ -41,19 +42,42 @@ export function agentModel(agent) {
   return models.get(agent);
 }
 
+// Agent-Aufbau (Track-spezifisch): Binary, Argumente und Env fuer einen Worker-Spawn.
+// Von der Pool-Verwaltung (WorkerPool) entkoppelt, damit der Track (Self vs. 4B)
+// nur hier ueber agentModel/agent-Konstanten entscheidet (T901014 P1).
+// PWD must follow cwd: `opencode run` takes the project root from PWD,
+// so without this an out-of-repo worktree writes into the caller's repo.
+export function buildAgentSpawn({ agent, prompt, worktree }) {
+  const bin = process.env.PLAN_RUNNER_OPENCODE || 'opencode';
+  const model = agentModel(agent);
+  return {
+    bin,
+    args: ['run', '--agent', agent, ...(model ? ['--model', model] : []), prompt],
+    env: { ...process.env, PWD: worktree },
+  };
+}
+
+// Dispatch-Policy (T901014 P1): genau eine Funktion entscheidet Self-vs-Worker.
+// Eingaben: ready (bereite Partial-IDs in Manifest-Reihenfolge), freeSlots (freie 4B-Slots).
+// Ausgabe: 'worker' (4B-Dispatch), 'self' (Selbstaufruf, nur wenn kein Slot frei), 'idle' (nichts bereit).
+export function decideTrack({ ready, freeSlots }) {
+  if (!Array.isArray(ready) || ready.length === 0) return 'idle';
+  if (Number(freeSlots) > 0) return 'worker';
+  return 'self';
+}
+
 // Startet `<bin> run --agent <agent> [--model <modell>] <prompt>` im Worktree und liefert
 // { code, tail, ok, summary, ms }. Beim Timeout: SIGTERM an die Prozessgruppe, ok=false.
 export function runWorker({ agent, prompt, worktree, timeoutMs }) {
-  const bin = process.env.PLAN_RUNNER_OPENCODE || 'opencode';
   const t0 = Date.now();
   return new Promise((resolve) => {
     let out = '';
     let timedOut = false;
     let child;
     try {
-      const model = agentModel(agent);
-      child = spawn(bin, ['run', '--agent', agent, ...(model ? ['--model', model] : []), prompt], {
-        cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], detached: true,
+      const { bin, args, env } = buildAgentSpawn({ agent, prompt, worktree });
+      child = spawn(bin, args, {
+        cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], detached: true, env,
       });
     } catch (e) {
       resolve({ code: null, tail: String(e.message), ok: false, summary: `spawn failed: ${e.message}`, ms: 0 });

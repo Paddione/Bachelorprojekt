@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/bge-cpu-parallel-start.bats
-# SSOT: openspec/specs/local-llm-proxy.md
 # Ticket: T002729
 #
 # [T900107] findExclusiveConflict und die exclusiveGroup-Arbitrierung sind

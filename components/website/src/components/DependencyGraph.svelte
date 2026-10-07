@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { floorStore, acquireFloor } from '../lib/stores/factory-floor-store';
+  import { floorStore, acquireFloor } from '../lib/stores/cockpit-floor-store';
 
   interface GraphNode {
     id: string;

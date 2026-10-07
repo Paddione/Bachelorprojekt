@@ -209,36 +209,6 @@ describe('ensureCollection', () => {
   });
 });
 
-describe('searchOpenspec', () => {
-  test('returns [] when no specs_plans collection exists (short-circuits before the pgvector query)', async () => {
-    const hits = await kdb.searchOpenspec({ query: 'anything' });
-    expect(hits).toEqual([]);
-  });
-
-  // NOTE: once a specs_plans collection exists, searchOpenspec's SELECT uses the
-  // pgvector `<=>` distance operator, which pg-mem cannot parse (it is not a real
-  // Postgres server and has no pgvector extension). That branch — and the same
-  // operator in queryNearest/clusterByEmbedding — is exercised only via the
-  // request-shape assertion on embedQuery below, matching the existing
-  // queryNearest test's `.catch(() => {})` precedent.
-  test('embeds the query with the specs_plans collection embedding model before querying chunks', async () => {
-    const c = await kdb.createCollection({ name: 'specs', source: 'specs_plans', embeddingModel: 'bge-m3' });
-    await kdb.addDocument({ collectionId: c.id, title: 'spec-doc', sourceUri: 'uri:1', rawText: 'text' });
-
-    const calls: Array<{ text: string; model?: string }> = [];
-    const embedMod = await import('./embeddings.ts');
-    vi.spyOn(embedMod, 'embedQuery').mockImplementationOnce(async (text, opts) => {
-      calls.push({ text, model: opts?.model });
-      return { embedding: Array(1024).fill(0.01), tokens: 1 };
-    });
-
-    await kdb.searchOpenspec({ query: 'find me', limit: 999, status: 'plan_staged' }).catch(() => {});
-    expect(calls).toHaveLength(1);
-    expect(calls[0]).toMatchObject({ text: 'find me', model: 'bge-m3' });
-    vi.restoreAllMocks();
-  });
-});
-
 // clusterByEmbedding is intentionally left without a dedicated test: its centroid
 // query combines `avg(embedding)` with the pgvector `<=>` operator, which pg-mem's
 // SQL parser rejects with a hard syntax error even on an empty table (this was

@@ -2,7 +2,7 @@ import type { Pool } from 'pg';
 
 // ADAPTER über den vereinheitlichten Store tickets.provider_config (source='coaching').
 // Der öffentliche Vertrag (KiConfig-Typ + Funktionssignaturen) bleibt identisch, damit die
-// Coaching-Consumer (coaching-session-db, session-agent-factory, generate.ts, die
+// Coaching-Consumer (coaching-session-db, session-agent-provider, generate.ts, die
 // /api/admin/coaching/ki-config-Endpoints, CoachingSettings.svelte) unverändert weiterlaufen.
 // Speicherung ist physisch fusioniert: nach der Datenmigration (2026-06-14) und der
 // Phase-2-Bereinigung (2026-07-09-coaching-phase2-drop-legacy.sql) sind die Legacy-Tabellen

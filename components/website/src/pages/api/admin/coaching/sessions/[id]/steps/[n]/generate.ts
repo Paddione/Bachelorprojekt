@@ -154,7 +154,7 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
   const wantsStream = new URL(request.url).searchParams.get('stream') === 'true';
 
   const { buildSessionHistory } = await import('../../../../../../../../lib/session-history');
-  const { createSessionAgent } = await import('../../../../../../../../lib/session-agent-factory');
+  const { createSessionAgent } = await import('../../../../../../../../lib/session-agent-provider');
 
   const history = await buildSessionHistory(sessionId, stepNumber);
   const agent = createSessionAgent(activeProvider);

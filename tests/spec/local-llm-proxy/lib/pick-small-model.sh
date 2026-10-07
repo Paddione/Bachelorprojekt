@@ -6,7 +6,6 @@
 # was die Ladezeit und damit den Health-Wait-Erfolg vom Dateisystem-Cache-Zustand
 # abhaengig machte statt von einer bewusst kleinen Testfixture.
 #
-# Root-Cause-Analyse: openspec/changes/llm-proxy-bats-local-red/design.md
 # Neben den eigentlichen Modellen liegen in den Roots auch Hilfsdateien:
 #   - mmproj-*  : Vision-Projektor (mmprojPath, siehe scripts/llm-proxy/loadouts.mjs)
 #   - *draft*   : Draft-/Spekulativ-Modelle (draftModelPath, siehe server.mjs)

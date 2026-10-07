@@ -17,7 +17,7 @@ import { defineConfig, devices } from '@playwright/test';
 //   @website       — general components/website/Astro changes
 //   @content-hub   — content hub features
 //   @admin         — admin panel
-//   @factory       — software factory / dev-status
+//   @factory       — dev-status / sdlc cockpit (legacy tag name, T900728)
 //   @planungsbuero — Planungsbüro feature
 //   @booking       — calendar/booking
 //   @meeting       — meeting lifecycle
@@ -95,7 +95,6 @@ export default defineConfig({
       dependencies: ['mentolder-setup'],
       testMatch: [
         '**/fa-content-hub-*.spec.ts',
-        '**/fa-factory-*.spec.ts',
         '**/fa-planning-office.spec.ts',
         '**/dev-status-tabs.spec.ts',
         '**/fa-admin-knowledge-model-selection.spec.ts',

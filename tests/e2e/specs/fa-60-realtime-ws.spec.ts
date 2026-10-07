@@ -4,7 +4,7 @@
 //
 // Die einzige produktiv erreichbare Realtime-Surface ist das brett-Sync-
 // WebSocket (wss://<brett>/sync?room=..&playerId=..). Die SSE-Streams der
-// SDLC-Console (/sdlc/api/factory-floor/stream) existieren nur im lokalen
+// SDLC-Console existieren nur im lokalen
 // k3d-Cluster und sind dort bewusst nicht in prod-fleet deployt.
 //
 // Dieses Spec verifiziert den echten Push-Pfad: Verbindung über oauth2-proxy

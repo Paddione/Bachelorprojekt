@@ -1,6 +1,6 @@
 ---
 name: dev-flow-execute
-description: 'Use when on a feature/* or fix/* branch that has a staged plan in .agents/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.'
+description: 'Use when implementing, executing, or delivering a staged plan on a feature/* or fix/* branch in .agents/plans/. Invoke after dev-flow-plan has committed and pushed the plan to the branch. Triggers on dev-flow-execute, execute plan, implement plan, resume plan, execute tasks, deliver feature, run plan runner.'
 ---
 
 # dev-flow-execute — Plan-Ausführung & PR
@@ -13,7 +13,7 @@ Rollen- und Übergabevertrag: [dev-flow-lifecycle](.agents/skills/references/dev
 
 ## Wann diese Skill greift
 
-Feature/Fix-Branch mit `plan_staged` Ticket → PR gemergt zu `main`, Ticket `done/shipped`, OpenSpec archiviert.
+Feature/Fix-Branch mit `plan_staged` Ticket → PR gemergt zu `main`, Ticket `done/shipped`, plan archiviert.
 
 ## Pre-Flight (Schritte −1 bis 1.7)
 
@@ -26,12 +26,12 @@ Befehlsfolgen: [dev-flow-execute-phases](.agents/skills/references/dev-flow-exec
 | **0 Worktree-Konsistenz** | Branch-Guard [T000321]: gültiger Branch ausgecheckt **und** unter `.worktrees/*` gearbeitet; legt sonst per `scripts/worktree-create.sh` einen an [T001363] | detached HEAD, oder Worktree-Erstellung schlägt fehl |
 | **0.5 Rebase** | `git fetch origin main && git rebase origin/main` | Konflikt — dann manuell lösen |
 | **1 Plan-Pfad laden** | liest `FACTORY-PLAN-REF` aus der DB, prüft die Plan-Datei **im Git-Tree** | kein `plan_ref`, leerer Pfad, oder Datei nicht in `HEAD` |
-| **1.4–1.7** | Doppelarbeit-Guard, Pipeline-Modus (`slot_count`), Ticket auf `in_progress` (optional vorher `/opsx:apply <slug>`), `touched_files`, Ticket-Anhänge laden | Claim gehört nicht mehr dieser Session |
+| **1.4–1.7** | Doppelarbeit-Guard, Pipeline-Modus (`slot_count`), Ticket auf `in_progress` (optional vorher `/dev-flow-execute <slug>`), `touched_files`, Ticket-Anhänge laden | Claim gehört nicht mehr dieser Session |
 
 > **Der Plan-Pfad kommt aus der Datenbank, nie aus einem Glob** — `ticket.sh stage-plan` setzt
 > `FACTORY-PLAN-REF branch=<branch> plan=<pfad>`.
 
-> **Worktree-Isolation ist Pflicht** [T001363]. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [factory-resume-contract](.agents/skills/references/factory-resume-contract.md).
+> **Worktree-Isolation ist Pflicht** [T001363]. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [resume-contract](.agents/skills/references/resume-contract.md).
 
 ### Schritt −1.1: Branch-Claim ist branch-scoped (T003102)
 
@@ -73,7 +73,7 @@ sorgfältiger verifizieren.
 
 `bash scripts/devflow-build-loop.sh "$TICKET_ID"` — läuft lokal **vor** Verifikation und Push,
 entlastet die CI-Retry-Schleife (5.5), ersetzt sie nicht. Default `MAX_LOOP=3`
-(`FACTORY_BUILD_LOOP_MAX`).
+(`DEVFLOW_BUILD_LOOP_MAX`).
 
 > Bei `abort:escalate-gate|no-progress|max-iterations` eskalieren (Ticket-Kommentar) — **kein**
 > blindes Weiter-Pushen.
@@ -214,8 +214,8 @@ bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
 ```
 
 Das Skript führt idempotent aus: PR verlinken, Ticket auf `done` (`shipped`/`fixed`),
-`verify:done`-Phase-Event, Plan nach `tickets.ticket_plans` archivieren, OpenSpec-Change ins Archiv
-(inkl. Archiv-PR), Claims freigeben, Worktree und Branch entfernen. Jede Session kann offene
+`verify:done`-Phase-Event, Plan nach `tickets.ticket_plans` archivieren, Claims freigeben,
+Worktree und Branch entfernen. Jede Session kann offene
 Schritte mit einem Aufruf nachholen. Die Closure darin:
 
 ```bash
@@ -223,9 +223,8 @@ Schritte mit einem Aufruf nachholen. Die Closure darin:
 ```
 
 Befehlsfolgen inkl. Poll-Loop und MCP-first-Aufrufen:
-[dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md). Archivierung samt
-Push-Verifikation [T001268] und PR-Creation-Verifikation [T001331]:
-[plan-archive-steps](.agents/skills/references/plan-archive-steps.md).
+[dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md).
+Plan-Archivierung: [plan-archive-steps](.agents/skills/references/plan-archive-steps.md).
 
 > **Merge = Abschluss (T001092)** — Regel in CLAUDE.md. `qa_review`/`awaiting_deploy` nicht als
 > Zwischenstatus setzen. **Reihenfolge (T004612):** Archivierung VOR der Branch-Löschung.

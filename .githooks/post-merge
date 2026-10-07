@@ -43,8 +43,15 @@ if [ -f "$_lb" ] && command -v jq &>/dev/null; then
     git -C "$repo_root" checkout -- docs/code-quality/loc-budget.json 2>/dev/null || true
   fi
 fi
-# Keep codebase-memory graph in sync after merge (incremental, non-blocking).
-if command -v /home/patrick/.local/bin/codebase-memory-mcp &>/dev/null; then
-  /home/patrick/.local/bin/codebase-memory-mcp cli index_repository \
-    '{"project": "home-patrick-Bachelorprojekt", "mode": "fast"}' 2>/dev/null || true
+# Keep codebase-memory graph + devflow-mcp graph corpus in sync after a merge on main
+# (T900985). Replaces the former reindex call: it pointed at ~/.local/bin, where the binary
+# never was (it lives in ~/.npm-global/bin), so the graph was never refreshed. graph-index.mjs
+# resolves the binary itself, re-indexes codebase-memory and embeds only changed symbols.
+# Background + nohup: a hook must never block git; single-flight is inside the indexer.
+if [ "$(git -C "$repo_root" branch --show-current 2>/dev/null)" = "main" ] \
+   && [ -f "$repo_root/scripts/devflow-mcp/graph-index.mjs" ] && command -v node &>/dev/null; then
+  _dl="${DEVFLOW_CACHE_DIR:-$HOME/.cache/devflow-mcp}"
+  mkdir -p "$_dl"
+  nohup node "$repo_root/scripts/devflow-mcp/graph-index.mjs" --repo "$repo_root" --max-minutes 20 \
+    >> "$_dl/post-merge.log" 2>&1 < /dev/null &
 fi

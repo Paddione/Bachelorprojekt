@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/secrets-deploy-automation/schema-dev-secrets-sync.bats — [T003141]
-# SSOT: openspec/specs/secrets-deploy-automation.md
 #
 # Pruefmodus: OUTPUT-VERIFIKATION (T002448-M4). Jeder Test fuehrt python3 gegen die
 # echten Dateien aus und prueft dessen Exit-Code und Ausgabe — kein grep auf

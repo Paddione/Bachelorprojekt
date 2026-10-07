@@ -17,7 +17,7 @@ drei P0-Spikes als abhakbare Schritte fest.
 - [ ] Repo klonen: `git clone git@github.com:Paddione/Bachelorprojekt.git`
 - [ ] git-crypt entsperren: Schlüssel `bp-secrets.key` beschaffen,
       `git-crypt unlock /pfad/zu/bp-secrets.key`
-- [ ] Gegenprobe: `bash scripts/factory/wakeup.sh --help` liefert Usage ohne
+- [ ] Gegenprobe: `bash scripts/ticket.sh --help` liefert Usage ohne
       `\r`-Fehler
 
 ## 2. P0-Spike A — opencode-Windows-Viability
@@ -56,7 +56,7 @@ Ziel: FreeToken (:1919 auf dem Windows-Desktop) ist aus dem Fleet erreichbar.
 - [ ] Von einem Fleet-Node: `curl http://<windows-wg-ip>:1919/v1/models`
       antwortet
 - [ ] Firewall-Regel auf Windows: eingehend 1919 nur aus dem wg-Subnetz
-- [ ] Latenz messen und notieren (für Timeout-Setzungen im factory-runner)
+- [ ] Latenz messen und notieren (für Timeout-Setzungen der :1919-Clients)
 
 **Messnotiz**: `scripts/llm/measurements/2026-mm-dd-fleet-to-windows-1919.md`.
 

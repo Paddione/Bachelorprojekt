@@ -6,7 +6,7 @@
 # pathname + search (returnTo) verloren; cockpit.astro und app-catalog.astro
 # waren bereits korrekt.
 #
-# SSOT: openspec/specs/sdlc-cockpit.md
+
 #
 # Pruefmodus: Output-Verifikation [T002448-M4]. Der Guard sammelt die gated
 # Seiten zwar per Regex aus dem Quelltext, aber die ZUSICHERUNG haengt an den

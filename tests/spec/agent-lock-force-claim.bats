@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-lock-force-claim.bats
-# SSOT: openspec/changes/mishap-agent-lock/specs/agent-lock-force-claim.bats
 # Regression suite for T002454 (agent-lock.sh claim --force uebernimmt Lock, wenn owner_pid tot ist).
 
 setup() {

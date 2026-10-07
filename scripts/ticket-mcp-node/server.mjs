@@ -215,7 +215,7 @@ const TOOLS = [
   // 4. export_ticket_timeline
   {
     name: 'export_ticket_timeline',
-    description: 'Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (factory_phase_events), PR-Links (ticket_links kind=pr), archivierte Pläne (ticket_plans). HINWEIS: CLI-Statusuebergaenge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Luecke — Follow-up-Ticket erforderlich).',
+    description: 'Exportiert die vollständige Ticket-History als chronologisches JSON. Quellen: Kommentare (ticket_comments), Factory-Phasen (tickets.factory_phase_events), PR-Links (ticket_links kind=pr), archivierte Pläne (ticket_plans). HINWEIS: CLI-Statusuebergaenge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Luecke — Follow-up-Ticket erforderlich).',
     inputSchema: {
       type: 'object',
       properties: {
@@ -333,7 +333,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         id: { type: 'string', description: 'external_id z.B. T000123' },
-        slug: { type: 'string', description: 'OpenSpec-Change-Slug' },
+        slug: { type: 'string', description: 'Plan-Slug' },
         branch: { type: 'string', description: 'Feature/Fix-Branch' },
         plan_file: { type: 'string', description: 'Pfad zur Plan-Datei' },
         pr: { type: 'string', description: 'Optionale PR-Nummer (integer)' },
@@ -345,7 +345,7 @@ const TOOLS = [
   // 12. enqueue_ticket
   {
     name: 'enqueue_ticket',
-    description: 'Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog). Ein bereits plan_staged Ticket bleibt unveraendert — es ist über die Staged-Lane schon dispatchbar.',
+    description: 'Reiht ein Ticket in den Ticket-Backlog ein (status=backlog). Ein bereits plan_staged Ticket bleibt unveraendert — es ist über die Staged-Lane schon dispatchbar.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -415,13 +415,13 @@ const TOOLS = [
   // 16. set_readiness_flag
   {
     name: 'set_readiness_flag',
-    description: 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released).',
+    description: 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, execution_released).',
     inputSchema: {
       type: 'object',
       properties: {
         id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-        flag: { type: 'string', description: 'spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'factory_excluded', 'execution_released'] },
+        flag: { type: 'string', description: 'spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, execution_released', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'execution_released'] },
         value: { type: 'boolean', description: 'true oder false' },
       },
       required: ['id', 'flag', 'value'],
@@ -574,352 +574,6 @@ const TOOLS = [
   },
 ];
 
-// Continue in next append...
-
-// ---- TOOLS continued: Planning + Lifecycle + Mishap + Link + Workflow ----
-
-// 7. set_plan_meta
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'set_plan_meta';
-  t.description = 'Setzt Planungs-Metadaten: value_prop, effort, areas, depends_on, planning_rank.';
-  t.inputSchema = {
-    type: 'object',
-    properties: {
-      id: { type: 'string', description: 'external_id z.B. T000123' },
-      brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-      value_prop: { type: 'string', description: 'Kern-Nutzen des Features' },
-      effort: { type: 'string', description: 'klein, mittel, gross', enum: ['klein', 'mittel', 'gross'] },
-      areas: { type: 'string', description: 'Komma-separierte Bereiche z.B. auth,chat' },
-      depends_on: { type: 'string', description: 'Komma-separierte Ticket-IDs z.B. T000100,T000101' },
-      rank: { type: 'integer', description: 'Planungs-Rang (niedrig = höhere Prio)' },
-    },
-    required: ['id'],
-  };
-}
-// 8. set_readiness_flag
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'set_readiness_flag';
-  t.description = 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released).';
-  t.inputSchema = {
-    type: 'object',
-    properties: {
-      id: { type: 'string', description: 'external_id z.B. T000123' },
-      brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-      flag: { type: 'string', description: 'Readiness-Flag', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'factory_excluded', 'execution_released'] },
-      value: { type: 'boolean', description: 'true oder false' },
-    },
-    required: ['id', 'flag', 'value'],
-  };
-}
-// 9. prepare_feature
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'prepare_feature';
-  t.description = 'Convenience: setzt alle Pflichtfelder für ein Feature-Ticket in einem Call und transitioniert zu planning. Fuehrt intern set_plan_meta + alle Readiness-Flags + transition_status(planning) aus.';
-  t.inputSchema = {
-    type: 'object',
-    properties: {
-      id: { type: 'string', description: 'external_id z.B. T000123' },
-      brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-      priority: { type: 'string', description: 'wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)', enum: ['hoch', 'mittel', 'niedrig'] },
-      severity: { type: 'string', description: 'wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)', enum: ['critical', 'major', 'minor', 'trivial'] },
-      attention_mode: { type: 'string', description: 'auto, ai_ready, needs_human', enum: ['auto', 'ai_ready', 'needs_human'] },
-      value_prop: { type: 'string', description: 'Kern-Nutzen des Features' },
-      effort: { type: 'string', description: 'klein, mittel, gross', enum: ['klein', 'mittel', 'gross'] },
-      areas: { type: 'string', description: 'Komma-separierte Bereiche z.B. auth,chat' },
-      depends_on: { type: 'string', description: 'Komma-separierte Ticket-IDs z.B. T000100,T000101' },
-      product_id: { type: 'string', description: "Optional: UUID oder external_id eines type='project'-Tickets im selben Brand — setzt parent_id via ticket.sh set-parent" },
-      spec_skizziert: { type: 'boolean', description: 'Readiness-Flag' },
-      abhaengigkeiten_klar: { type: 'boolean', description: 'Readiness-Flag' },
-      offene_fragen_geklaert: { type: 'boolean', description: 'Readiness-Flag' },
-      aufwand_geschaetzt: { type: 'boolean', description: 'Readiness-Flag' },
-    },
-    required: ['id'],
-  };
-}
-// 10. transition_status
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'transition_status';
-  t.description = 'Ändert den Status eines Tickets. Bei done/archived ist resolution erforderlich.';
-  t.inputSchema = {
-    type: 'object',
-    properties: {
-      id: { type: 'string', description: 'external_id z.B. T000123' },
-      brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-      status: { type: 'string', description: 'triage, planning, plan_staged, backlog, in_progress, in_review, qa_review, blocked, awaiting_deploy, done, archived', enum: ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'blocked', 'awaiting_deploy', 'done', 'archived'] },
-      resolution: { type: 'string', description: 'fixed, shipped, obsolete', enum: ['fixed', 'shipped', 'obsolete'] },
-      notes: { type: 'string', description: 'Optionaler Notiztext' },
-    },
-    required: ['id', 'status'],
-  };
-}
-// 11. add_comment
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'add_comment';
-  t.description = 'Fügt einem Ticket einen Kommentar hinzu.';
-  t.inputSchema = {
-    type: 'object',
-    properties: {
-      id: { type: 'string', description: 'external_id z.B. T000123' },
-      brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-      body: { type: 'string', description: 'Kommentartext (Markdown)' },
-      author: { type: 'string', description: 'default: claude-code' },
-      visibility: { type: 'string', description: 'default: internal', enum: ['internal', 'public'] },
-    },
-    required: ['id', 'body'],
-  };
-}
-// 12. update_fields
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'update_fields';
-  t.description = 'Bulk-Patch: ändert title, description oder notes eines Tickets.';
-  t.inputSchema = {
-    type: 'object',
-    properties: {
-      id: { type: 'string', description: 'external_id z.B. T000123' },
-      brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-      title: { type: 'string', description: 'Neuer Titel' },
-      description: { type: 'string', description: 'Neue Beschreibung' },
-      notes: { type: 'string', description: 'Wird an bestehende notes angehängt' },
-    },
-    required: ['id'],
-  };
-}
-// 13. report_mishap
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'report_mishap';
-  t.description = 'Fügt einen Mishap in den Buffer ein. Incident-Typen erzeugen sofort ein Ticket. Bei >= 10 nicht-kritischen Einträgen: Buffer wird protokolliert und geleert.';
-  t.inputSchema = {
-    type: 'object',
-    properties: {
-      title: { type: 'string', description: 'Kurztitel' },
-      description: { type: 'string', description: 'Beschreibung' },
-      component: { type: 'string', description: 'Komponente' },
-      type: { type: 'string', description: 'incident (sofort Ticket) | degraded, suspicious, drift, process', enum: ['incident', 'broken', 'degraded', 'suspicious', 'security', 'drift', 'process'] },
-      brand: { type: 'string', description: 'mentolder oder korczewski', enum: ['mentolder', 'korczewski'] },
-    },
-    required: ['title', 'description', 'component', 'type'],
-  };
-}
-// 14. get_mishap_buffer
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'get_mishap_buffer';
-  t.description = 'Zeigt den aktuellen Inhalt des Mishap-Buffers.';
-  t.inputSchema = { type: 'object', properties: {}, required: [] };
-}
-// 15. flush_mishap_buffer
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'flush_mishap_buffer';
-  t.description = 'Leert den Buffer sofort: die Einträge werden protokolliert und verworfen, auch unterhalb 10 Einträge. Es entsteht kein Ticket [T014104].';
-  t.inputSchema = {
-    type: 'object',
-    properties: {
-      brand: { type: 'string', description: 'mentolder oder korczewski', enum: ['mentolder', 'korczewski'] },
-    },
-    required: [],
-  };
-}
-// link_tickets
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'link_tickets';
-  t.description = 'Erstellt einen gerichteten Dependency-Link zwischen zwei Tickets (pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of). Idempotent — mehrfacher Aufruf mit gleichen Argumenten erzeugt keinen Duplikat-Eintrag.';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"from": { "type": "string", "description": "external_id des Quell-Tickets, z.B. T000100"},
-"to": { "type": "string", "description": "external_id des Ziel-Tickets, z.B. T000200"},
-"kind": { "type": "string", "description": "Art der Verknuepfung: pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of", "enum": ["pr", "relates_to", "blocks", "blocked_by", "duplicate_of", "fixes", "fixed_by", "child_of"]},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["from", "to", "kind"]
-};
-}
-
-// get_ticket_links
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'get_ticket_links';
-  t.description = 'Gibt alle Dependency-Links eines Tickets zurueck: blocks (von diesem Ticket ausgehend), blocked_by (auf dieses Ticket zeigend), relates (symmetrisch), child_of (Elternticket).';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id"]
-};
-}
-
-// record_phase_event
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'record_phase_event';
-  t.description = 'Schreibt ein Factory/Devflow-Phasen-Event (tickets.factory_phase_events).';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"phase": { "type": "string", "description": "scout|design|plan|implement|verify|deploy", "enum": ["scout", "design", "plan", "implement", "verify", "deploy"]},
-"state": { "type": "string", "description": "entered|done|blocked", "enum": ["entered", "done", "blocked"]},
-"detail": { "type": "string", "description": "Optionaler Detailtext"},
-"driver": { "type": "string", "description": "factory|devflow (default: factory)", "enum": ["factory", "devflow"]},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id", "phase", "state"]
-};
-}
-
-// record_grill_answers
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'record_grill_answers';
-  t.description = 'Persistiert Grilling-Antworten (tickets.grilling_answers JSONB). \'answers\': eine Zeile pro Antwort als qid=text.';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"answers": { "type": "string", "description": "Antworten, eine pro Zeile: qid=text"},
-"questionnaire": { "type": "string", "description": "default: coaching-sessions-v1"},
-"no_comment": { "type": "boolean", "description": "Kein Timeline-Kommentar (default false)"},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id", "answers"]
-};
-}
-
-// stage_plan
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'stage_plan';
-  t.description = 'Stellt ein Ticket in die Kommissionierung (status=plan_staged) mit Branch + Plan-Pfad.';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"branch": { "type": "string", "description": "Feature/Fix-Branch"},
-"plan": { "type": "string", "description": "Plan-Datei-Pfad"},
-"hold": { "type": "boolean", "description": "true => --hold (execution_released=false, Operator gibt spaeter frei); false/weggelassen => --no-hold (Factory greift sofort zu). stage-plan verlangt genau eines der Flags (T003267)."},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id", "branch", "plan"]
-};
-}
-
-// create_ticket
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'create_ticket';
-  t.description = 'Legt ein Ticket an. Gibt \'external_id|uuid\' zurueck (Skills parsen cut -d\'|\' -f1).';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"type": { "type": "string", "description": "fix|feat|chore|project|docs|refactor|perf|test|ci|build (bug/feature/task deprecated)", "enum": ["fix", "feat", "chore", "project", "docs", "refactor", "perf", "test", "ci", "build", "bug", "feature", "task"]},
-"title": { "type": "string", "description": "Ticket-Titel"},
-"description": { "type": "string", "description": "Beschreibung (Pflicht in create.sh)"},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]},
-"priority": { "type": "string", "description": "hoch|mittel|niedrig (default mittel)", "enum": ["hoch", "mittel", "niedrig"]},
-"severity": { "type": "string", "description": "critical|major|minor|trivial", "enum": ["critical", "major", "minor", "trivial"]},
-"status": { "type": "string", "description": "Start-Status (default triage)"},
-"attention_mode": { "type": "string", "description": "auto|ai_ready|needs_human", "enum": ["auto", "ai_ready", "needs_human"]},
-"areas": { "type": "string", "description": "Komma-separierte Bereiche z.B. auth,chat"},
-"product_id": { "type": "string", "description": "Optional: UUID oder external_id eines type=\'project\'-Tickets im selben Brand — setzt parent_id"}
-  },
-  "required": ["type", "title", "description"]
-};
-}
-
-// enqueue_ticket
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'enqueue_ticket';
-  t.description = 'Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog).';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"branch": { "type": "string", "description": "Optionaler Branch"},
-"plan": { "type": "string", "description": "Optionaler Plan-Pfad"},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id"]
-};
-}
-
-// set_touched_files
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'set_touched_files';
-  t.description = 'Setzt die touched_files eines Tickets (Konflikt-/Scope-Tracking).';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"files": { "type": "string", "description": "Komma- oder Whitespace-getrennte Pfade (wie ticket.sh erwartet)"},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id", "files"]
-};
-}
-
-// get_attachments
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'get_attachments';
-  t.description = 'Laesdt die Attachments eines Tickets in ein Zielverzeichnis (out_dir required).';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"out_dir": { "type": "string", "description": "Zielverzeichnis (wird angelegt)"},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id", "out_dir"]
-};
-}
-
-// archive_plan
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'archive_plan';
-  t.description = 'Archiviert einen Plan und mergt den Delta-Spec in die SSOT.';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"slug": { "type": "string", "description": "OpenSpec-Change-Slug"},
-"branch": { "type": "string", "description": "Feature/Fix-Branch"},
-"plan_file": { "type": "string", "description": "Pfad zur Plan-Datei"},
-"pr": { "type": "string", "description": "Optionale PR-Nummer (integer)"},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id", "slug", "branch", "plan_file"]
-};
-}
-
-// add_pr_link
-{
-  const t = TOOLS[TOOLS.length] = {};
-  t.name = 'add_pr_link';
-  t.description = 'Verknuepft eine PR-Nummer mit einem Ticket (tickets.ticket_links kind=pr).';
-  t.inputSchema = {
-  "type": "object",
-  "properties": {
-"id": { "type": "string", "description": "external_id z.B. T000123"},
-"pr": { "type": "string", "description": "PR-Nummer (integer)"},
-"brand": { "type": "string", "description": "mentolder oder korczewski (default: mentolder)", "enum": ["mentolder", "korczewski"]}
-  },
-  "required": ["id", "pr"]
-};
-}
 
 function handleToolCall(name, args) {
   try {

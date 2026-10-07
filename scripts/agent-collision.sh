@@ -3,8 +3,7 @@
 #
 # Warns when the files you are about to commit are ALSO in-flight in another
 # LIVE agent session's worktree. Pure local bash — no cluster, no DB → offline-
-# and CI-safe. Complements scripts/factory/conflict-check.sh (DB-based, Factory
-# scheduling) and agent-lock.sh (the passive mutex), without changing either.
+# and CI-safe. Complements agent-lock.sh (the passive mutex), without changing it.
 #
 # Discovery: reads agent-lock.sh's own claim store (the JSON files it writes),
 # because `agent-lock.sh list` does not expose the worktree path and agent-lock.sh
@@ -30,8 +29,7 @@ _sid_alive() {
   fi
   # Spiegelt scripts/agent-lock.sh:_sid_alive [T001268]: nicht-numerische SIDs sind
   # harness-vergebene Session-IDs (CLAUDE_SESSION_ID), die `pgrep -s` nicht aufloesen
-  # kann. Bei Aenderung dort HIER nachziehen — Guard: der Drift-Test in
-  # tests/spec/software-factory/collision-window.bats vergleicht beide Urteile.
+  # kann. Bei Aenderung dort HIER nachziehen (kein Drift-Test vorhanden).
   case "$1" in *[!0-9]*) return 0;; esac
   pgrep -s "$1" >/dev/null 2>&1
 }
@@ -84,8 +82,6 @@ cmd_check() {
   fi
   own="$(printf '%s\n' "$own" | sed '/^$/d' | sort -u)"
   # [T002375-p6] Generierte Artefakte aus der Kollisionspruefung nehmen. Sie werden von
-  # praktisch jedem Lauf angefasst — allen voran components/website/src/data/openspec-status.json,
-  # das jeder `openspec propose` neu schreibt. In T002341-M2 kamen so sechs
   # COLLISION-Warnungen zustande, von denen nur diese eine Datei eine echte Ueberschneidung
   # war; echte Kollisionen gehen in solchem Rauschen unter.
   #

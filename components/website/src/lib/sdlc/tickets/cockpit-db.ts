@@ -2,11 +2,10 @@ import { pool } from '../../website-db';
 import type {
   PortfolioPayload, ProductNode, FeatureNode,
   FeatureTickets, TicketRow, RollupMetrics, HealthStatus,
-  BatchMutation, BatchResult, OpenSpecProposal,
+  BatchMutation, BatchResult,
 } from '../../tickets/cockpit-types.ts';
 import { recordAudit } from './cockpit-audit';
 import type { TicketStatus } from '../../tickets/status.ts';   // SSOT (T007955)
-import openspecStatusMap from '../../../data/openspec-status.json';
 import { ALL_TICKETS_ID, NO_FEATURE_ID, NO_PRODUCT_ID } from './cockpit-ids';
 
 function toRollup(r: Record<string, unknown> | undefined): RollupMetrics {
@@ -97,7 +96,7 @@ async function getLeafTickets(
     parentId: t.parent_id ? String(t.parent_id) : undefined,
     planningRank: t.planning_rank != null ? Number(t.planning_rank) : undefined,
   }));
-  return { feature, tickets: mergeOpenSpec(tickets) };
+  return { feature, tickets: tickets };
 }
 
 export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
@@ -190,19 +189,6 @@ function aggregate(features: FeatureNode[]): RollupMetrics {
   return sum;
 }
 
-/** Attach openspecProposals from the static JSON map onto ticket rows.
- *  Pure — mutates `tickets` in place and returns the same array. */
-function mergeOpenSpec(tickets: TicketRow[]): TicketRow[] {
-  const map = openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>;
-  for (const t of tickets) {
-    const entries = map[t.extId];
-    if (entries && entries.length > 0) {
-      t.openspecProposals = entries as OpenSpecProposal[];
-    }
-  }
-  return tickets;
-}
-
 export class NotFoundError extends Error {}
 
 export async function getFeatureTickets(brand: string, extId: string): Promise<FeatureTickets> {
@@ -251,7 +237,7 @@ export async function getFeatureTickets(brand: string, extId: string): Promise<F
     parentId: t.parent_id ? String(t.parent_id) : undefined,
     planningRank: t.planning_rank != null ? Number(t.planning_rank) : undefined,
   }));
-  return { feature, tickets: mergeOpenSpec(tickets) };
+  return { feature, tickets: tickets };
 }
 
 // ---------------------------------------------------------------------------
@@ -466,13 +452,13 @@ async function upsertForceTick(actor: string): Promise<void> {
          SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now()`,
       [actor],
     );
-  } catch { /* best-effort — factory ticks on its own interval */ }
+  } catch { /* best-effort — the tick runs on its own interval */ }
 }
 
 // Mirrors stage-plan.sh (without the plan-file/touched_files derivation, which
 // requires git + the repo checkout — unavailable in the container). Sets
 // status=plan_staged, writes the FACTORY-PLAN-REF comment and the scout/design/
-// plan phase events, and (unless held) requests a factory tick.
+// plan phase events, and (unless held) requests a tick.
 export async function stageTicketPlan(
   brand: string,
   ticketId: string,
@@ -547,7 +533,7 @@ export async function stageTicketPlan(
   return { ok: true, ticketId, status: 'plan_staged' };
 }
 
-// Mirrors release-hold.sh: clears the execution hold and requests a factory tick.
+// Mirrors release-hold.sh: clears the execution hold and requests a tick.
 export async function releaseTicketHold(
   brand: string,
   ticketId: string,

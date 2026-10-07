@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/fleet-operations/monitoring-ready.bats
-# SSOT: openspec/specs/fleet-operations.md
 # Ticket: T900034 (Batch T900041)
 #
 # PRUEFMODUS: Quelltext (Manifest-Konfiguration). Ausnahmefall der
@@ -69,3 +68,12 @@ setup() {
   [[ "$strategy" == *"Recreate"* ]] \
     || { echo "Grafana-strategy ist '${strategy}' statt Recreate — RWO-PVC-Rollout blockiert" >&2; return 1; }
 }
+
+@test "T901100: Grafana initContainer init-chown-data setzt resources.requests und limits" {
+  # Pruefe, dass im Patch und in den Builds (k3d und prod-fleet) init-chown-data resources definiert hat
+  local patch="${REPO_ROOT}/k3d/monitoring/grafana-sidecar-resources-patch.yaml"
+  [ -f "$patch" ]
+  grep -A 5 'name: init-chown-data' "$patch" | grep -q 'requests:'
+  grep -A 5 'name: init-chown-data' "$patch" | grep -q 'limits:'
+}
+

@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/cq02-any-types-200/proposal.md
 # G-CQ02: Explizite any-Verwendungen in components/website/src auf ≤200 reduzieren.
 # GREEN (post-impl): ≤200 → PASS
 

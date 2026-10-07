@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 
 # tests/spec/agent-skills/devflow-worktree-cwd-guard.bats
-# SSOT: openspec/changes/devflow-worktree-cwd-guard/specs/agent-skills.md  [T006367]
 #
 # Pruefmodus: DOKUMENTATIONS-KONVENTION (grep-Modus) — begruendet im Dateikopf
 # (T002448-M4-Ausnahme): Der Defekt aus T006367 (bare git-Aufrufe in dev-flow-

@@ -187,7 +187,7 @@ setup() {
   # deren Wirkung sich nur im Workflow-Quelltext feststellen laesst.
 
   # POSITIV-ANKER: der Job, in dem die spec-Suite laeuft, existiert ueberhaupt.
-  run grep -c "^  test-factory-shard:" .github/workflows/ci.yml
+  run grep -c "^  test-spec-shard:" .github/workflows/ci.yml
   [ "$output" -eq 1 ]
 
   # Ohne die Variable im Workflow bliebe das Gate wirkungslos: die Suite liefe

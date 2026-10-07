@@ -34,11 +34,11 @@ Dieses Kapitel baut die Dashboard-Seite „Repository & Code Knowledge" (Ticket 
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/config/repo-knowledge.lua, dotfiles/nvim/lua/config/dashboard.lua |  | 27b-local | 32000 |
-| p2 | tasks.d/p2-runbook.md | docs | dotfiles/nvim/runbooks/repo-knowledge.md | p1 | 4b-local | 32000 |
-| p3 | tasks.d/p3-tests.md | tests | tests/spec/neovim-dashboard.bats | p1,p2 | 4b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | dotfiles/nvim/lua/config/repo-knowledge.lua, dotfiles/nvim/lua/config/dashboard.lua |  |
+| p2 | tasks.d/p2-runbook.md | docs | dotfiles/nvim/runbooks/repo-knowledge.md | p1 |
+| p3 | tasks.d/p3-tests.md | tests | tests/spec/neovim-dashboard.bats | p1,p2 |
 
 Execution order honoring depends_on: p1 first, then p2, then p3. Each partial commits its own files as `feat(T900661): <subject> [T900661]` with explicit pathspecs (`git add -f` for dotfiles paths — dotfiles/ is gitignored, force-add per repo convention), never broad adds. Before touching a shared file the executor rebases onto latest origin/main and keeps every other chapter block intact.
 

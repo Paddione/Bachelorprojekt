@@ -75,7 +75,7 @@ Erwartung: Prometheus-PVC wieder `robustness=healthy`, kein `degraded` mehr.
 Abschließende, rein lesende Gesamtprüfung:
 
 ```bash
-# Das Skript scripts/factory/verify-rejoin.sh entfiel mit T900399; bis zum Ersatz die Prüfschritte oben wiederholen.
+# Das Verify-Rejoin-Skript entfiel mit T900399; bis zum Ersatz die Prüfschritte oben wiederholen.
 ```
 
 Erwartung: Exit 0 — Node anwesend + `Ready`, Longhorn `READY=True` +

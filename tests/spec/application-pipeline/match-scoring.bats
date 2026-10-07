@@ -6,17 +6,15 @@
 setup() {
   command -v psql >/dev/null 2>&1 || skip "psql binary not installed"
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
-  source "${REPO_ROOT}/scripts/factory/lib.sh" 2>/dev/null || true
-  factory_resolve >/dev/null 2>&1 || true
   _skip_if_no_db
 }
 
 _skip_if_no_db() {
-  if [[ -n "${FACTORY_PG_URL:-}" ]]; then
+  if [[ -n "${WORKSPACE_PG_URL:-}" ]]; then
     return 0
   fi
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  _pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then
@@ -26,13 +24,13 @@ _skip_if_no_db() {
 
 _query() {
   local sql="$1"
-  if [[ -n "${FACTORY_PG_URL:-}" ]]; then
-    psql "$FACTORY_PG_URL" -qtA -v ON_ERROR_STOP=1 -c "$sql"
+  if [[ -n "${WORKSPACE_PG_URL:-}" ]]; then
+    psql "$WORKSPACE_PG_URL" -qtA -v ON_ERROR_STOP=1 -c "$sql"
   else
     local pod
-    pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+    pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
       -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
-    kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+    kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
       -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 -c "$sql"
   fi
 }
@@ -69,9 +67,11 @@ run_match() {
 }
 
 @test "T900234: strong evidence-catalog overlap → match_score > 70" {
-  # Insert a test job with requirements that match several evidence-catalog keywords
+  # Insert a test job with requirements that match several evidence-catalog keywords.
+  # (T900728: CI/CD/pipeline/docker/Linux verloren mit dem stillgelegten Eintrag
+  # ihren Treffer — der Text zielt jetzt auf die kuratierten Keywords.)
   local job_id
-  job_id=$(_query "INSERT INTO applications.jobs (company, role_title, raw_text, requirements, status) VALUES ('test', 'match-high', 'Kubernetes CI/CD Linux docker pipeline testing', 'Kubernetes CI/CD Linux docker pipeline testing', 'found') ON CONFLICT DO NOTHING RETURNING id;")
+  job_id=$(_query "INSERT INTO applications.jobs (company, role_title, raw_text, requirements, status) VALUES ('test', 'match-high', 'Kubernetes microservice testing postgres migration flux helm', 'Kubernetes microservice testing postgres migration flux helm', 'found') ON CONFLICT DO NOTHING RETURNING id;")
 
   # If DUPLICATE (empty), find existing
   if [[ -z "$job_id" ]]; then

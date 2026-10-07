@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mishap-t002424.bats — RED/GREEN suite for T002424
-# SSOT: openspec/changes/mishap-t002424/tasks.md
 #
 # Three Mishaps under test:
 #   M1: _ticket_lock_guard SID-Mismatch-Diagnose (+ same-tool-Fallback)

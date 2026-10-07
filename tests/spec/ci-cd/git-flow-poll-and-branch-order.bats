@@ -10,7 +10,7 @@
 #      T900399: der einzige geprüfte gh-Stelle-Halter war der gh-Resolver des
 #      mit dem Factory-Baum entfallenen pr-babysit-ticket.sh. Die Regel selbst
 #      lebt als Positiv-Anker (devflow-ci-watch.sh) im Doku-Guard am Ende weiter.
-#   2. Fix-PR-Merges tragen kein `--delete-branch` — die OpenSpec-Archivierung
+#   2. Fix-PR-Merges tragen kein `--delete-branch` — die Archivierung
 #      (dev-flow Schritt 7) läuft NACH dem Merge und braucht den Branch noch;
 #      gelöscht wird erst in Schritt 7.5. Einzige Ausnahme: der Archiv-PR-Merge
 #      (dessen Wegwerf-Branch hängt an nichts mehr) — dokumentiert in
@@ -22,16 +22,8 @@ setup() {
   REPO="$(git rev-parse --show-toplevel)"
 }
 
-@test "Fix-PR-Merges ohne --delete-branch — einzige Ausnahme ist der Archiv-PR (T004612)" {
-  # Positiv-Anker: der Archiv-PR-Merge in plan-archive-steps.md trägt sein --delete-branch weiter
-  run grep -n 'gh pr merge --auto --squash --delete-branch "\$ARCHIVE_PR_URL"' \
-    "$REPO/.claude/skills/references/plan-archive-steps.md"
-  [ "$status" -eq 0 ]
-  # Negativ-Aussage: alle übrigen pr-merge-Befehle in Skills/Skripten ohne --delete-branch.
-  # Kommentare (#) und Backticks begrenzen die Zeile — Treffer nur über echte Befehlsspannen.
-  # Ausnahmen: die beiden dokumentierten Archiv-PR-Merge (plan-archive-steps.md und
-  # devflow-post-merge-finalize.sh, T004612/T006284).
-  run bash -c "git -C '$REPO' grep -E -n 'pr merge[^#\`]*--delete-branch' -- '.claude/skills' '.opencode/skills' 'scripts' | grep -v -e 'plan-archive-steps.md' -e 'devflow-post-merge-finalize.sh'"
+@test "Fix-PR-Merges behalten den Branch bis zum Finalizer" {
+  run bash -c "git -C '$REPO' grep -E -n 'pr merge[^#\`]*--delete-branch' -- '.claude/skills' '.opencode/skills' 'scripts'"
   [ "$status" -ne 0 ]
 }
 

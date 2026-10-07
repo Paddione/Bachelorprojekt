@@ -30,7 +30,12 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-          command: ["sh", "-c", "set -eu && git init /repo && cd /repo && git remote add origin \"$REPO_URL\" && git fetch --depth 1 origin \"$MERGE_SHA\" && git checkout FETCH_HEAD"]
+          # [T900810] safe.directory zuerst: /repo ist ein root-owned emptyDir-Mount,
+          # der Prozess laeuft als runAsUser 65534 — ohne die Ausnahme bricht JEDER
+          # git-Befehl nach `init` mit exit 128 "dubious ownership" ab (der Job lief
+          # dadurch nie ueber git-fetch hinaus). HOME=/tmp (unten) ist beschreibbar,
+          # die Config landet in /tmp/.gitconfig (readOnlyRootFilesystem-konform).
+          command: ["sh", "-c", "set -eu && git config --global --add safe.directory /repo && git init /repo && cd /repo && git remote add origin \"$REPO_URL\" && git fetch --depth 1 origin \"$MERGE_SHA\" && git checkout FETCH_HEAD"]
           env:
             - name: REPO_URL
               value: "$REPO_URL"
@@ -51,7 +56,11 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-          command: ["sh", "-c", "set -eu && cd /repo && npm install pg tsx --no-package-lock --silent"]
+          # [T900810] --legacy-peer-deps: npm 10.9.8 (im Node-Image) crasht beim
+          # Aufloesen des Repo-Dev-Baums in arborist (#loadPeerSet, "edgesOut",
+          # exit 1) — der Job kam dadurch nie ueber npm-deps hinaus. --no-save
+          # verhindert zusaetzlich den Schreibversuch auf package.json.
+          command: ["sh", "-c", "set -eu && cd /repo && npm install pg tsx --no-package-lock --legacy-peer-deps --no-save --silent"]
           env:
             - name: HOME
               value: "/tmp"
@@ -73,10 +82,14 @@ spec:
             capabilities:
               drop: ["ALL"]
           env:
+            # [T900810] workspace-secrets, nicht website-secrets: Letzteres existiert
+            # nur im Namespace website — der Job lief dadurch in
+            # CreateContainerConfigError (zweite k1-Root-Cause neben safe.directory).
+            # Muster wie alle anderen workspace-Workloads (admin-actions, backup).
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: website-secrets
+                  name: workspace-secrets
                   key: WEBSITE_DB_PASSWORD
             - name: SESSIONS_DATABASE_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
@@ -127,24 +140,26 @@ spec:
               trap 'echo "k1-embed FAILED merge=$MERGE_SHA"' ERR
               echo "k1-embed start merge=$MERGE_SHA full=$FULL"
               DIFF_FILE="/diff/diff.txt"
-              if [ "$FULL" = "1" ] || [ ! -s "$DIFF_FILE" ]; then
-                node scripts/openspec-embed.mjs --all-specs
-                node scripts/openspec-embed.mjs --all-docs
-                node scripts/openspec-embed.mjs --migrate-changes
+              # [T900810] Nur FULL=1 triggert den Voll-Index. Der alte
+              # "[ ! -s ]"-Fallback machte aus jedem Leer-Diff einen Full-Run,
+              # der das Budget sprengt; leerer Diff meldet unten stattdessen
+              # "keine indexierten Pfade" und schliesst gruen ab.
+              if [ "$FULL" = "1" ]; then
+                node scripts/knowledge/ingest-markdown.mjs
                 npx tsx scripts/index-repo.ts
               else
                 matched=0
+                markdown_changed=0
                 while IFS= read -r f || [ -n "$f" ]; do
                   [ -z "$f" ] && continue
                   case "$f" in
-                    openspec/specs/*.md)
-                      [ -f "$f" ] && { node scripts/openspec-embed.mjs --path "$f" --source specs_ssot; matched=1; } ;;
-                    docs/adr/*.md|docs/runbooks/*.md)
-                      [ -f "$f" ] && { node scripts/openspec-embed.mjs --path "$f" --source docs; matched=1; } ;;
+                    .agents/plans/*.md|docs/adr/*.md|docs/runbooks/*.md)
+                      markdown_changed=1; matched=1 ;;
                     *.ts|*.mts|*.mjs|*.js|*.cjs|*.py|*.svelte|*.astro)
                       [ -f "$f" ] && { npx tsx scripts/index-repo.ts --file "$f"; matched=1; } ;;
                   esac
                 done < "$DIFF_FILE"
+                [ "$markdown_changed" -eq 1 ] && node scripts/knowledge/ingest-markdown.mjs
                 [ "$matched" -eq 0 ] && echo "keine indexierten Pfade"
               fi
               echo "k1-embed COMPLETE merge=$MERGE_SHA"

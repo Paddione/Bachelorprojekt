@@ -2,14 +2,14 @@
 type: runbook
 tags: [llm, workflow]
 status: active
-source:: Bachelorprojekt openspec/changes/brain-quality-goals (T001608)
+source:: Bachelorprojekt <plan-pfad>/brain-quality-goals (T001608)
 ---
 # LLM-Workflows — den Brain maschinell anreichern
 
 ## Ingest-Weg
 
 Im Hauptrepo (Bachelorprojekt) existiert die Skill `brain-ingest` samt
-Worklist; die Gruppe `ssot-specs` listet alle OpenSpec-SSOT-Specs als
+Worklist; die Gruppe `ssot-specs` listet alle SSOT-Specs als
 Ingest-Kandidaten (G-BRAIN11 in [[quality-goals]]). Rohmaterial landet in
 `raw/`, destillierte Seiten in `wiki/` — Details in [[usage]].
 
@@ -70,15 +70,15 @@ verschieben — siehe SCHEMA.md):
 4. Beide Lint-Skripte ausfuehren, log.md-Eintrag ergaenzen.
 ```
 
-### Prompt 5 — OpenSpec-SSOT-Sync
+### Prompt 5 — SSOT-Sync
 
 ```text
 Synchronisiere eine Hauptrepo-Spec ins brain-Wiki:
-Quelle: Bachelorprojekt openspec/specs/<spec-slug>.md (SSOT — bleibt dort).
+Quelle: Bachelorprojekt <spec-pfad>/<spec-slug>.md (SSOT — bleibt dort).
 1. Kompiliere sie zu wiki/<spec-slug>.md: Purpose als Kurzfassung,
    Requirements als Stichpunkte — keine Volltext-Kopie.
 2. Frontmatter: type: note, tags: [ssot, spec], status: active.
-3. Pflicht-Zeile: source:: Bachelorprojekt openspec/specs/<spec-slug>.md
+3. Pflicht-Zeile: source:: Bachelorprojekt <spec-pfad>/<spec-slug>.md
 4. Verlinke die Seite aus wiki/index-moc.md; beide Lint-Skripte ausfuehren;
    log.md-Eintrag ergaenzen.
 Kandidatenliste: Ingest-Worklist-Gruppe ssot-specs im Hauptrepo.

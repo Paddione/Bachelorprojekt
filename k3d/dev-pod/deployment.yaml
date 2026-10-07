@@ -89,17 +89,14 @@ spec:
             # der Supervisor beide erneut.
             - name: MCP_NODE_SERVICES
               value: "github,ticket-mcp,task-runner,codebase-memory"
-            # [T900106/T900191] factory_psql (scripts/factory/lib.sh) spricht mit
-            # gesetzter FACTORY_PG_URL die ClusterIP direkt an; im Pod fehlt
-            # kubectl. Seit dem Umzug des llm-proxy nach devmesh nutzt das nur
-            # noch der task-runner, wenn er Factory-Tasks startet.
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: shared-db-dev-secrets
                   key: DEV_WEBSITE_DB_PASSWORD
                   optional: true
-            - name: FACTORY_PG_URL
+            # DB-Direktzugriff fuer In-Pod-Skripte (im Pod fehlt kubectl).
+            - name: WORKSPACE_PG_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website"
             - name: PGOPTIONS
               value: "-c statement_timeout=120000ms"
@@ -205,7 +202,7 @@ spec:
           # livenessProbe nur diesen Container neu.
           # Restrisiko: Pod-Ready ist das UND ueber alle Container. Steckt dev-shell
           # in CrashLoopBackOff/ImagePullBackOff oder startet gerade neu, ist der Pod
-          # trotzdem NotReady (openspec/changes/dev-pod-ssh/design.md, Verfuegbarkeit).
+          # trotzdem NotReady (dev-pod-ssh-Design, Verfuegbarkeit).
           livenessProbe:
             exec:
               command: ["sh", "-c", "nc -z -w 2 127.0.0.1 22"]

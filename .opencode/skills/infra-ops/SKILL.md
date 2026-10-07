@@ -1,7 +1,7 @@
 ---
 name: infra-ops
 description: 'Explicit-invoke-only infrastructure runbook — DO NOT auto-trigger. Use when the user explicitly asks for: cluster setup or reset, workspace deploy (task workspace:setup/deploy/post-setup), host node networking (Hetzner, WireGuard wg-fleet, UFW), Pocket ID / SSO / OIDC client seeding, LLM pipeline and GPU host (task llm:*), secret and SealedSecret rotation (task env:seal, env:fetch-cert), or database migrations and backup/restore (task recovery:*).'
-agent: bachelorprojekt-infra
+agent: bp-build
 ---
 
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
@@ -134,7 +134,7 @@ Schema-Migrationen, Backup/Restore-Audits, Permissions auf beiden Brands.
 
 ### ⚠️ Zwei unabhängige shared-db Instanzen
 
-`workspace` (mentolder) und `workspace-korczewski` (korczewski) sind getrennte Instanzen —
+`workspace` (mentolder) und `workspace-korczewski` (korczewski, eingefroren seit 2026-07-23, T002479) sind getrennte Instanzen —
 Migrationen und Backup-Audits **immer auf beiden** ausführen. Eine einseitig angewandte Migration
 fällt erst auf, wenn der andere Brand bricht.
 

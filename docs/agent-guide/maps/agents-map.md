@@ -9,25 +9,20 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 
 | Agent | Zuständigkeit | Claude Code | agy | opencode | Tools |
 | --- | --- | --- | --- | --- | --- |
-| bachelorprojekt-db | PostgreSQL, Schema, Queries, Backup | sonnet | 🚫 unsupported | — | — |
-| bachelorprojekt-infra | Kubernetes, Kustomize, Deploy | opus | 🚫 unsupported | — | — |
-| bachelorprojekt-ops | Cluster-Operationen, LLM-Pipeline | sonnet | 🚫 unsupported | — | — |
-| bachelorprojekt-security | SealedSecrets, Pocket ID, OIDC | opus | 🚫 unsupported | — | — |
-| bachelorprojekt-test | Tests | sonnet | 🚫 unsupported | — | — |
-| bachelorprojekt-website | Astro/Svelte, UI, Frontend | sonnet | 🚫 unsupported | — | — |
+| bp-build | — | opus | 🚫 unsupported | — | — |
+| bp-run | — | sonnet | 🚫 unsupported | — | — |
+| bp-ship | — | sonnet | 🚫 unsupported | — | — |
 
 ## Runtimes (opencode Agenten)
 
 | Agent | Modus | Modell | Schreibfähig | Hinweis |
 | --- | --- | --- | --- | --- |
-| big-pickle | primary | opencode-zen/big-pickle | ja | PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + exe-muse). |
-| exe-muse | subagent | opencode-go-oai/muse-spark-1.3-contributor | ja | EXECUTOR on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator, big-pickle, glimmer-primary. Free-first chain: orchestrator (Zen-free) → exe-muse (Go) (T900751: DeepSeek rails removed). |
-| glimmer-primary | primary | llamacpp-local/Muse-Glimmer-30B | ja | PRIMARY: Local Muse Glimmer 30B via llama.cpp (:1919, RTX 5070 Ti, served KV 131072) (llamacpp-local/Muse-Glimmer-30B) [T900365]. Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives. |
-| local | subagent | llamacpp-local/Muse-Glimmer-30B | nein | Higher-capability local implementation subagent: Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, UD-IQ3_XXS + DFlash2, 131072 served KV, ~79-89 tok/s decode, gemessen 2026-09-25) [T900365]. Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~90k). |
-| orchestrator | primary | llamacpp-local/Muse-Glimmer-30B | ja | Primary orchestrator on Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, 131072 served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation (exe-muse only, T900751). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). |
-| ox-alpha | subagent | opencode-zen/laguna-s-2.1-free | ja | Subagent twin of ox-alpha-free on the same laguna-s-2.1-free model [2026-08-23] — sole dispatch target of ox-alpha-free, keeping parallel work in the same free-tier family. |
-| ox-alpha-free | primary | opencode-zen/laguna-s-2.1-free | ja | PRIMARY: Ox Alpha Free next to big-pickle — second free-tier Zen agent on laguna-s-2.1-free (Poolside agentic coding model, 256k ctx per models.dev, live-smoke-tested 2026-08-22; deepseek-v4-flash-free was tested in the same run and is upstream-unavailable). Since 2026-08-23 dispatches ONLY ox-alpha subagents. |
-| plan-worker-4b | primary | llamacpp-qwen35/Qwen3.5-4B-MTP | ja | plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one OpenSpec partial; started by scripts/llm/plan-runner.mjs, not for interactive use [T900504]. |
-| plan-worker-self | primary | llamacpp-local/Muse-Glimmer-30B | ja | plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one OpenSpec partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs [T900504]. |
-| qwen35-mtp | subagent | llamacpp-qwen35/Qwen3.5-4B-MTP | nein | Text-only Qwen3.5-4B MTP Q4_K_XL via llama.cpp :1920 on RTX 3060 Ti; 131072 served KV with Q4 target/draft KV, single slot. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model. |
-| reviewer | subagent | llamacpp-local/Muse-Glimmer-30B | nein | Reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074] |
+| bp-build | primary | llamacpp-local/Qwen3.8-27B | ja | PRIMARY: build — manifests, Kustomize overlays, Taskfile, environments, sealed secrets. Thin domain entry over the OMO engine (local Qwen3.8-27B :1919) [T900858]. |
+| bp-run | primary | llamacpp-local/Qwen3.8-27B | ja | PRIMARY: run — live cluster ops via task workspace:* and kubectl, postgres reads. Thin domain entry over the OMO engine (local Qwen3.8-27B :1919), read-only filesystem for manifests [T900858]. |
+| bp-ship | primary | opencode-go/muse-spark-1.3-contributor | ja | PRIMARY: ship — BATS/Playwright, Astro/Svelte website, brand pages, test inventory. Thin domain entry over the OMO engine (Muse Spark via Go) [T900858]. |
+| exe-muse | subagent | opencode-go/muse-spark-1.3-contributor | ja | EXECUTOR on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. Dispatched by the Slim orchestrator (same Go rail, .opencode/oh-my-opencode-slim.jsonc) and the bp-* primaries for oversized/under-specified work; Zen-free remains a manual fallback (T900751: DeepSeek rails removed). |
+| local | subagent | llamacpp-local/Qwen3.8-27B | nein | Higher-capability local implementation subagent: Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp via llama.cpp :1919 (RTX 5070 Ti, 153600 served KV, ~98-106 tok/s decode, gemessen 2026-10-03) [T900365]. Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~100k). |
+| plan-worker-qwen35 | primary | llamacpp-qwen3/Qwen3.5-4B-MTP | ja | Primary plan partial worker on Qwen3.5-4B-MTP (Windows-native llama.cpp :8080, RTX 3060 Ti, 3 slots sharing provisional 98304 KV). Executes one plan partial; started by scripts/llm/plan-runner.mjs, not for interactive use [T900504, T900930]. |
+| plan-worker-self | primary | llamacpp-local/Qwen3.8-27B | ja | plan-runner self-execution worker on the local Qwen3.8-27B IQ3_XXS-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs [T900504]. |
+| qwen35-4b | subagent | llamacpp-qwen3/Qwen3.5-4B-MTP | nein | Text-only Qwen3.5-4B instruction worker, Windows-native via llama.cpp :8080 on RTX 3060 Ti; provisional 98304 KV shared across 3 slots, direct mode by default with per-request thinking on the same checkpoint. Use for bounded research, summaries and straightforward implementation; primary verifies conclusions [T900930]. |
+| reviewer | subagent | llamacpp-local/Qwen3.8-27B | nein | Reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074] |

@@ -237,7 +237,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
   `);
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_attachments_ticket_idx ON tickets.ticket_attachments (ticket_id)`);
 
-  // Phase 1 Software Factory: pgvector-backed embedding table for semantic
+  // Phase 1: pgvector-backed embedding table for semantic
   // search across ticket content. bge-m3 produces 1024-dimensional vectors.
   // chunk_type classifies the embedded content: summary (title+desc), spec
   // (design docs), decision (architectural choices), lesson (post-mortem).
@@ -255,7 +255,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_ticket_idx ON tickets.ticket_embeddings (ticket_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_chunk_type_idx ON tickets.ticket_embeddings (chunk_type)`);
 
-  // Phase 1 Software Factory: tag each embedding row with the model that
+  // Phase 1: tag each embedding row with the model that
   // produced it. bge-m3 (prod) and voyage-multilingual-2 (dev) are both
   // 1024-dim but their vector spaces are NOT interchangeable — search MUST
   // never compare across models (see findSimilarTickets / MixedEmbeddingModelError).
@@ -323,7 +323,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
       END $$;
   `);
 
-  // Phase 3 Software Factory: feature_flags powers dark-launch / canary. Each
+  // Phase 3: feature_flags powers dark-launch / canary. Each
   // implement-agent gates new behaviour behind isFeatureEnabled(brand,'<slug>');
   // a flag flipped on enables it. Mirrors the tickets.tags id + brand-FK idiom.
   // [T000413]
@@ -475,7 +475,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
   await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_brand_idx     ON tickets.pr_events (brand) WHERE brand IS NOT NULL`);
   await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_category_idx  ON tickets.pr_events (category)`);
 
-  // Phase 1 Software Factory: metrics view for tracking throughput and cycle
+  // Phase 1: metrics view for tracking throughput and cycle
   // time. v_active_features is the Dispatcher's working set — features that
   // are in a non-terminal state and have file-touch data for conflict analysis.
   await pool.query(`

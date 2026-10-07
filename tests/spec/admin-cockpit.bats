@@ -1,9 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/admin-cockpit.bats
-# SSOT: openspec/specs/admin-cockpit.md
 #
 # Consolidated BATS suite for the admin cockpit (T001433 admin-redesign).
-# Convention: one .bats file per OpenSpec SSOT spec.
 #
 # Added tests for consolidated micro-specs:
 # - admin-content-db (T001787)

@@ -1,15 +1,13 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/active-sessions-hub.md
 # Ticket: T003098 — `agent-lock.sh list` zeigt eine Session erst ab ihrem ERSTEN
 # COMMIT. Der main-checkout-Claim entsteht im pre-commit-Hook (.githooks/pre-commit),
 # also nicht ab Arbeitsbeginn. Wer `list` als Vorab-Check auf konkurrierende Arbeit
 # nutzt (dev-flow-chore Schritt 1), bekommt in genau dem Fenster ein
 # falsch-negatives Ergebnis und arbeitet inline im Haupt-Checkout weiter.
 #
-# ENTSCHEIDUNG (siehe openspec/changes/agent-lock-sid-detection-T003110/design.md):
-# Der Claim wird NICHT auf den Session-Start vorgezogen — software-factory.md
-# ("main-checkout lock is self-claimed on every commit") legt den Zeitpunkt
-# ausdrücklich fest, und ein früher Claim überlebt seine Session um bis zu
+# Der Claim wird NICHT auf den Session-Start vorgezogen ("main-checkout lock
+# is self-claimed on every commit") — ein früher Claim überlebt seine Session
+# um bis zu
 # AGENT_LOCK_TTL (30 min), in denen guard-precommit fremde Commits blockiert.
 # Statt Falsch-Negativen gegen Falsch-Positive zu tauschen, bekommt das Werkzeug
 # eine zweite, claim-unabhängige Evidenzquelle: laufende Prozesse, deren cwd im

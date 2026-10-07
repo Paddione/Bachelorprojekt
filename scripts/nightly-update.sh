@@ -40,7 +40,7 @@ log "=== Nightly Update Started ==="
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. System Package Manager (APT)
 # ─────────────────────────────────────────────────────────────────────────────
-log "--- [1/8] Updating WSL system packages (APT) ---"
+log "--- [1/9] Updating WSL system packages (APT) ---"
 if command -v apt-get >/dev/null 2>&1; then
   sudo apt-get update -q || log "WARNING: apt-get update failed"
   sudo DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y -q \
@@ -55,14 +55,14 @@ fi
 # 2. Snaps (if active)
 # ─────────────────────────────────────────────────────────────────────────────
 if command -v snap >/dev/null 2>&1; then
-  log "--- [2/8] Refreshing snap packages ---"
+  log "--- [2/9] Refreshing snap packages ---"
   sudo snap refresh 2>/dev/null || true
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. Node & JavaScript Runtimes / Package Managers (NPM, Bun, PNPM)
 # ─────────────────────────────────────────────────────────────────────────────
-log "--- [3/8] Updating npm, bun, pnpm packages & runtimes ---"
+log "--- [3/9] Updating npm, bun, pnpm packages & runtimes ---"
 if command -v npm >/dev/null 2>&1; then
   npm update -g || log "WARNING: npm update -g encountered issues"
 fi
@@ -79,7 +79,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. Python Ecosystem (UV & Pip User Packages)
 # ─────────────────────────────────────────────────────────────────────────────
-log "--- [4/8] Updating Python tools (uv & pip user packages) ---"
+log "--- [4/9] Updating Python tools (uv & pip user packages) ---"
 if command -v uv >/dev/null 2>&1; then
   uv self update 2>/dev/null || true
   uv tool upgrade --all 2>/dev/null || true
@@ -96,7 +96,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. Developer CLI Tools (Claude Code & OpenCode)
 # ─────────────────────────────────────────────────────────────────────────────
-log "--- [5/8] Updating Developer CLIs (claude, opencode) ---"
+log "--- [5/9] Updating Developer CLIs (claude, opencode) ---"
 if command -v claude >/dev/null 2>&1; then
   claude update 2>/dev/null || true
 fi
@@ -112,7 +112,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # 6. Claude Code Plugins & Marketplaces
 # ─────────────────────────────────────────────────────────────────────────────
-log "--- [6/8] Updating Claude Code plugin marketplaces & installed plugins ---"
+log "--- [6/9] Updating Claude Code plugin marketplaces & installed plugins ---"
 if command -v claude >/dev/null 2>&1; then
   claude plugin marketplace update 2>/dev/null || true
 
@@ -145,27 +145,29 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # 7. Agent Skills & Vendor Sync (Bachelorprojekt & Global)
 # ─────────────────────────────────────────────────────────────────────────────
-log "--- [7/8] Updating Agent Skills & Vendor Components (Project & Global) ---"
-if [ -d "$REPO_DIR" ]; then
-  cd "$REPO_DIR"
-  log "Updating project skills in Bachelorprojekt via skills CLI..."
-  npx -y skills update -y || log "WARNING: npx skills update in Bachelorprojekt failed"
-
-  if [ -f "scripts/vendor-sync.py" ]; then
-    log "Updating external vendor skills and plugins via vendor-sync.py..."
-    python3 scripts/vendor-sync.py update --report /tmp/vendor-report.json || log "WARNING: vendor-sync update reported findings"
-    python3 scripts/vendor-sync.py check || log "WARNING: vendor-sync check reported drift"
-  fi
-
-  if [ -f "scripts/agent-skills/project.mjs" ]; then
-    node scripts/agent-skills/project.mjs --check || log "WARNING: agent-skills projection drift detected"
-  fi
+log "--- [7/9] Updating Agent Skills & Vendor Components (Project & Global) ---"
+# [T900454] Die Projekt-Updater laufen in einem eigenen Worktree und reichen einen PR
+# ein. Im Hauptcheckout selbst wird nichts geschrieben.
+if [ -f "${REPO_DIR}/scripts/nightly-vendor-sync.sh" ]; then
+  REPO_DIR="$REPO_DIR" bash "${REPO_DIR}/scripts/nightly-vendor-sync.sh" || log "WARNING: nightly-vendor-sync failed"
 fi
 
 log "Updating global skills..."
 npx -y skills update -g -y || log "WARNING: npx skills update -g failed"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 8. Finished
+# 8. devflow-mcp Graph-Korpus (T900985)
+# ─────────────────────────────────────────────────────────────────────────────
+log "--- [8/9] Refreshing devflow-mcp graph corpus (codebase-memory + bge, sync to knowledge.*) ---"
+# Frischer codebase-memory-Index, nur geänderte Symbole einbetten, danach Sync nach knowledge.*
+# (SSOT) über den Port-Forward des Tasks. Der Erstlauf dauert Stunden (bge seriell) — das
+# Zeitbudget hält die Nacht ein, der nächste Lauf setzt am Checkpoint fort.
+if [ -f "${REPO_DIR}/scripts/devflow-mcp/graph-index.mjs" ]; then
+  task -d "$REPO_DIR" agents:devflow:graph:index MAX_MINUTES=240 SYNC_DB=1 \
+    || log "WARNING: devflow graph index failed"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9. Finished
 # ─────────────────────────────────────────────────────────────────────────────
 log "=== Nightly Update Completed Successfully ==="

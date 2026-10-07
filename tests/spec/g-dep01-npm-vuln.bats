@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/g-dep01-npm-vuln/
 # G-DEP01: npm Vulnerability Fix — pnpm audit clean gate.
 # Erzwingt 0 Vulnerabilities in components/website/pnpm-lock.yaml via pnpm.overrides.
 

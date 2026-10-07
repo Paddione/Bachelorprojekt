@@ -38,12 +38,12 @@ Shared-files-Regel für alle Partials: Vor dem Anfassen gemeinsam genutzter Date
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-module.md | impl | dotfiles/nvim/lua/config/comfyui-images.lua |  | 27b-local | 32000 |
-| p2 | tasks.d/p2-registration.md | impl | dotfiles/nvim/lua/config/dashboard.lua, dotfiles/nvim/runbooks/README.md | p1 | 4b-local | 16000 |
-| p3 | tasks.d/p3-runbook.md | impl | dotfiles/nvim/runbooks/comfyui-images.md | p1 | 4b-local | 16000 |
-| p4 | tasks.d/p4-tests.md | tests | tests/spec/neovim-dashboard.bats, components/website/src/data/test-inventory.json | p1,p2,p3 | 27b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-module.md | impl | dotfiles/nvim/lua/config/comfyui-images.lua |  |
+| p2 | tasks.d/p2-registration.md | impl | dotfiles/nvim/lua/config/dashboard.lua, dotfiles/nvim/runbooks/README.md | p1 |
+| p3 | tasks.d/p3-runbook.md | impl | dotfiles/nvim/runbooks/comfyui-images.md | p1 |
+| p4 | tasks.d/p4-tests.md | tests | tests/spec/neovim-dashboard.bats, components/website/src/data/test-inventory.json | p1,p2,p3 |
 
 Execution order honoring depends_on: p1 first, then p2 and p3 in any order, then p4, then Task 5. Each partial commits its own files as `feat(T900666): <subject> [T900666]` with explicit pathspecs (`git add -f` for dotfiles paths — dotfiles/ is gitignored, force-add per repo convention), never broad adds.
 

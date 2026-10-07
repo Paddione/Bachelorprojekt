@@ -27,7 +27,7 @@ import type { KiConfig } from './coaching-ki-config-db.ts';
 import type { EmbeddingIndexError, EmbeddingQueryError } from './embeddings';
 import { getActiveProvider } from './coaching-ki-config-db.ts';
 import { embedBatch } from './embeddings';
-import { createSessionAgent } from './session-agent-factory';
+import { createSessionAgent } from './session-agent-provider';
 
 /**
  * Fail-closed-Vertrag der Analyse: embedBatch wirft EmbeddingIndexError (Batch)

@@ -19,8 +19,9 @@ setup() {
 
 # ── 1. Frontmatter and Agent Routing ──────────────────────────────────────────
 
-@test "dev-flow-e2e: frontmatter assigns bachelorprojekt-test agent" {
-  run grep -n "^agent:[[:space:]]*bachelorprojekt-test" "$SKILL"
+# T900858: bachelorprojekt-test ist in bp-ship aufgegangen.
+@test "dev-flow-e2e: frontmatter assigns bp-ship agent" {
+  run grep -n "^agent:[[:space:]]*bp-ship" "$SKILL"
   [ "$status" -eq 0 ]
 }
 

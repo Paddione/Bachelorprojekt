@@ -1,7 +1,7 @@
 ---
 name: security-specialist
 description: 'Use for SealedSecrets lifecycle, key generation/rotation, Pocket ID OIDC client configuration, OIDC setup, SSO integration testing, DSGVO compliance checks, and credential management in the Bachelorprojekt platform. Triggers on: sealed-secret generate rotate, pocket-id oidc client create update, OIDC configure test, DSGVO audit, password rotation, certificate renewal.'
-agent: bachelorprojekt-security
+agent: bp-build
 ---
 
 ## Library
@@ -32,8 +32,8 @@ task workspace:deploy ENV=<env> # applies SealedSecret before manifests
 ## Fleet cluster topology
 
 The unified **`fleet`** context serves both brands:
-- **mentolder brand**: namespace `workspace`, ENV `mentolder`
-- **korczewski brand**: namespace `workspace-korczewski`, ENV `korczewski`
+- **mentolder brand**: namespace `workspace`, ENV `mentolder` — **active**
+- **korczewski brand**: namespace `workspace-korczewski`, ENV `korczewski` — **FROZEN since 2026-07-23 (T002479), scaled to 0, do not rotate secrets or deploy**
 
 Each brand has its own SealedSecrets, Pocket ID instance, and shared-db instance. Legacy standalone clusters (mentolder/korczewski contexts) are DECOMMISSIONED — use `fleet` for everything.
 

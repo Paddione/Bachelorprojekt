@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats
-# SSOT: openspec/specs/ci-cd.md
 #
 # T002671 (Befund 5): scripts/devflow-ci-watch.sh never checks whether the PR
 # it is polling has already been MERGED.

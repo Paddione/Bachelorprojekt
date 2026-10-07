@@ -128,7 +128,7 @@ export async function runPlanner({ variant, inputs, endpoints, workdir, recorder
     events.push({ kind: 'protocol_error' });
     return { outcome: 0, events, usage, artifacts, cleanup: null };
   }
-  const changeDir = join(workdir, 'openspec', 'changes', inputs.slug || 'bench-plan');
+  const changeDir = join(workdir, '.agents', 'plans', inputs.slug || 'bench-plan');
   mkdirSync(changeDir, { recursive: true });
   const tasksFile = join(changeDir, 'tasks.md');
   writeFileSync(tasksFile, wrote.tasks_md);

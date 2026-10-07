@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
-# Emit active staged-plan proposals (.agents/plans/, legacy: openspec/changes/)
-# as plan context, filtered by the supplied <role>, plus OpenSpec SSOT specs
-# for files touched vs main (when --with-openspec is passed; spec side dies in C7b).
-# Usage:
-#   scripts/plan-context.sh <role>
-#   scripts/plan-context.sh <role> --with-openspec [<file>...]
-#   scripts/plan-context.sh --vocab   # print the union domain vocabulary (tokens)
-# Output: markdown block ready to wrap in <active-plans>...</active-plans>
+# Emit active staged plans as context, filtered by role.
+# Usage: scripts/plan-context.sh <role>
 set -euo pipefail
 
 # Hardcoded role → domain-allowlist. SSOT: AGENTS.md lines 7-18
@@ -16,17 +10,23 @@ set -euo pipefail
 _role_allowlist() {
     case "$1" in
         bachelorprojekt-website)   echo "website frontend design ui svelte astro css brett" ;;
-        # llm-local-dev ist der Slug des SSOT-Specs openspec/specs/llm-local-dev.md.
         # Ohne ihn faellt jedes Proposal mit dieser Domain durch den Corpus-Guard
         # T002614 und faerbt damit main rot [T016598].
         bachelorprojekt-ops)       echo "ops llm llm-local-dev k8s observability monitoring factory-watchdog infra-monitoring" ;;
         bachelorprojekt-infra)     echo "infra deploy deployment k3d kustomize prod environments taskfile fleet-operations" ;;
-        # agent-skills ist der Slug des SSOT-Specs openspec/specs/agent-skills.md.
         # Gleiche Lehre wie llm-local-dev oben (T016598): ohne den Token faellt
         # jedes Proposal mit dieser Domain durch den Corpus-Guard T002614.
-        bachelorprojekt-test)      echo "test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills" ;;
+        # T901017: `agents`-Token aufgenommen (UNANCHORED worker-machine-format,
+        # domains: [agents]) — gleiche Lehre, bp-ship spiegelt die Test-Union.
+        bachelorprojekt-test)      echo "test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills agents" ;;
         bachelorprojekt-db)        echo "db postgres tracking timeline database" ;;
         bachelorprojekt-security)  echo "security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
+        # T900858: thin domain primaries over the OMO engine. Unions of the
+        # merged domains so `plan-context.sh bp-*` (AGENTS.md + agent files)
+        # filters instead of falling back to __ALL__.
+        bp-build)                  echo "infra deploy deployment k3d kustomize prod environments taskfile fleet-operations security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
+        bp-run)                    echo "ops llm llm-local-dev k8s observability monitoring factory-watchdog infra-monitoring db postgres tracking timeline database" ;;
+        bp-ship)                   echo "website frontend design ui svelte astro css brett test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills agents" ;;
         orchestrator)              echo "__ALL__" ;;
         *)
             printf 'WARN: unknown role "%s" — including all proposals as fail-soft\n' "$1" >&2
@@ -40,7 +40,8 @@ _role_allowlist() {
 # --vocab and by the dead-domains WARN (anchor check). SSOT: _role_allowlist.
 _domain_roles() {
     printf '%s\n' "bachelorprojekt-website" "bachelorprojekt-ops" "bachelorprojekt-infra" \
-        "bachelorprojekt-test" "bachelorprojekt-db" "bachelorprojekt-security"
+        "bachelorprojekt-test" "bachelorprojekt-db" "bachelorprojekt-security" \
+        "bp-build" "bp-run" "bp-ship"
 }
 
 _vocabulary_union() {
@@ -70,28 +71,12 @@ if [[ "${1:-}" == "--vocab" ]]; then
     _vocabulary_union
     exit 0
 fi
-ROLE="${1:?Usage: plan-context.sh <role> [--with-openspec [<file>...]]}"
+ROLE="${1:?Usage: plan-context.sh <role>}"
 shift
-WITH_OPENSPEC=0
-OPENSPEC_FILES=()
-SEMANTIC_QUERY=""
-
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --with-openspec) WITH_OPENSPEC=1; shift ;;
-        --semantic) SEMANTIC_QUERY="$2"; shift 2 ;;
-        *) OPENSPEC_FILES+=("$1"); shift ;;
-    esac
-done
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-# Canonical plan home since C7a; openspec/changes/ stays readable until the C7b teardown.
 PLANS_DIR="$REPO_ROOT/.agents/plans"
 CHANGES_DIR="$PLANS_DIR"
-if [[ ! -d "$CHANGES_DIR" && -d "$REPO_ROOT/openspec/changes" ]]; then
-  CHANGES_DIR="$REPO_ROOT/openspec/changes"
-fi
-
 # Parse the YAML frontmatter `domains:` field from a proposal (or its
 # adjacent tasks.md as a fallback). Returns space-separated domain
 # tokens, or empty string if no `domains:` field is present anywhere.
@@ -210,36 +195,6 @@ for proposal_file in "$CHANGES_DIR"/*/proposal.md; do
     found=$((found+1))
 done
 
-# Optional: append OpenSpec SSOT context for touched components
-if [[ $WITH_OPENSPEC -eq 1 ]]; then
-    openspec_out=""
-    if [[ ${#OPENSPEC_FILES[@]} -gt 0 ]]; then
-        openspec_out=$(bash "$REPO_ROOT/scripts/openspec-context.sh" "${OPENSPEC_FILES[@]}" 2>/dev/null || true)
-    else
-        openspec_out=$(bash "$REPO_ROOT/scripts/openspec-context.sh" 2>/dev/null || true)
-    fi
-    if [[ -n "$openspec_out" ]]; then
-        echo "### OpenSpec SSOT context"
-        echo
-        echo "$openspec_out"
-        found=$((found+1))
-    fi
-fi
-
 if [[ $found -eq 0 ]]; then
     exit 0
-fi
-
-# Optional: semantic neighbours via /api/openspec/search (fallback: grep-only).
-if [[ -n "$SEMANTIC_QUERY" ]]; then
-    base="${OPENSPEC_SEARCH_URL:-http://localhost:4321}"
-    resp="$(curl -fsS --max-time 5 -G "$base/api/openspec/search" \
-              --data-urlencode "q=$SEMANTIC_QUERY" --data-urlencode "limit=3" 2>/dev/null || true)"
-    if [[ -n "$resp" ]]; then
-        echo "### Semantically similar OpenSpec changes"
-        echo
-        echo "$resp" | jq -r '.results[]? | "- **\(.slug)** (\(.ticket_id // "no-ticket"), \(.file_type)): \(.snippet)"' 2>/dev/null || true
-        echo
-        found=$((found+1))
-    fi
 fi

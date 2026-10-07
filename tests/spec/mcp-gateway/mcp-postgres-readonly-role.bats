@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/mcp-postgres-readonly-role.bats
-# SSOT: openspec/specs/mcp-gateway.md (Delta: openspec/changes/mcp-postgres-readonly-role)
 # Ticket: T006335
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-orientiert. Jeder Test

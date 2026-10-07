@@ -82,8 +82,7 @@ NTFS-Hardlink. Das Runbook trägt die korrigierte Zahl seit diesem Change.
 
 Die Startskripte `start-gptoss-server.ps1` / `start-gemma-server.ps1` behaupten
 unbelegt „31–37k Tokens pro Prompt". `scripts/llm/measure-factory-context.mjs`
-misst offline, was die acht Eval-Fixtures unter `tests/factory-eval/fixtures/`
-hergeben.
+misst offline, was die acht Eval-Fixtures (seither entfernt) hergeben.
 
 **Erzeugender Befehl und Commit-Stand:**
 
@@ -114,10 +113,10 @@ Tokenisierung ist eine **deklarierte Näherung** `chars/4` mit Fehlerbalken ±30
 ### Was diese Zahl trägt — und was nicht
 
 **Sie ist eine Untergrenze eines einzelnen Bausteins, kein Vollbild.**
-`scripts/factory/eval-context.cjs` baut **keinen** Dispatch-Prompt — es liest
-`docs/factory-eval/latest.json` zurück. Der reale Dispatch-Kontext sind die
-`contextHints` aus `scripts/factory/provision.js:buildContextHints()`
-(Vorhaben-Pack, ticket spec, `touched_files`, target-code-Exzerpte), und deren
+Der Eval-Kontext-Cache baute **keinen** Dispatch-Prompt — er las eine
+zwischengespeicherte Datei zurück. Der reale Dispatch-Kontext sind die
+`contextHints` des Provisioners (`buildContextHints()`: Vorhaben-Pack,
+ticket spec, `touched_files`, target-code-Exzerpte), und deren
 Auflösung passiert zur Laufzeit im Workflow-Orchestrator — nicht in einem festen
 Skript, das man offline nachrechnen könnte. Die acht Fixtures liefern nur
 Rohmaterial für den `ticket spec`-Hint; sie haben keine Attachments, kein
@@ -359,6 +358,6 @@ Die Datei existiert; es ist ein Windows-Pfadproblem des Tests, kein
 Inhaltsfehler. Gegenprobe im sauberen Haupt-Checkout schlägt identisch fehl, und
 `git diff origin/main..HEAD -- scripts/llm/loadouts.json` ist leer.
 
-Der Archiv-Record unter `openspec/changes/archive/2026-09-04-freetoken-backend-evaluation/`
+Der Archiv-Record `2026-09-04-freetoken-backend-evaluation`
 bleibt unverändert: ein Archiv ist ein historischer Beleg und wird nicht
 rückwirkend geschönt. Diese Notiz hier ist die Korrektur.

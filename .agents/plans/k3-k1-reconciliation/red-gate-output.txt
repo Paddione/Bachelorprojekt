@@ -1,0 +1,32 @@
+1..8
+not ok 1 single JSON object with schema and verdict fields on stdout
+# (in test file tests/spec/cbm-reconcile.bats, line 98)
+#   `[ "$status" -eq 0 ]' failed
+# receipt-written
+not ok 2 fresh index + full coverage -> verdict fresh
+# (in test file tests/spec/cbm-reconcile.bats, line 114)
+#   `[ "$status" -eq 0 ]' failed
+# receipt-written
+not ok 3 tracked code file missing from graph -> diverged with code_unindexed
+# (in test file tests/spec/cbm-reconcile.bats, line 123)
+#   `[ "$status" -eq 0 ]' failed
+# receipt-written
+not ok 4 graph file not in git -> diverged with k3_untracked
+# (in test file tests/spec/cbm-reconcile.bats, line 139)
+#   `[ "$status" -eq 0 ]' failed
+# receipt-written
+not ok 5 k3 freshness unknown -> verdict unknown, exit 1, fail-closed
+# (in test file tests/spec/cbm-reconcile.bats, line 154)
+#   `[ "$status" -eq 1 ]' failed
+not ok 6 k1_evidence is unavailable with reasons and surfaces (fail-closed, no guessing)
+# (in test file tests/spec/cbm-reconcile.bats, line 168)
+#   `[ "$status" -eq 0 ]' failed
+# receipt-written
+not ok 7 paths with spaces survive via NUL-delimited git listing
+# (in test file tests/spec/cbm-reconcile.bats, line 187)
+#   `[ "$status" -eq 0 ]' failed
+# receipt-written
+not ok 8 query_graph garbage output -> fail-closed unknown, not silent fresh
+# (in test file tests/spec/cbm-reconcile.bats, line 202)
+#   `[ "$status" -eq 1 ]' failed
+# receipt-written

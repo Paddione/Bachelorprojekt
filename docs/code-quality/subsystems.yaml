@@ -50,7 +50,7 @@
   purpose: Node.js 3D systemic-constellation board + mayhem game.
 - id: openclaw
   name: OpenClaw WSL gateway config
-  paths: ["dotfiles/openclaw/**"]
+  paths: ["dotfiles/openclaw/**", "openclaw/**"]
   owner_agent: bachelorprojekt-infra
   test_location: dotfiles/openclaw/
   purpose: Local LLM gateway bootstrap config.

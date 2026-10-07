@@ -5,8 +5,6 @@
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   INGEST_SCRIPT="${REPO_ROOT}/scripts/vda/apply/ingest.sh"
-  source "${REPO_ROOT}/scripts/factory/lib.sh" 2>/dev/null || true
-  factory_resolve >/dev/null 2>&1 || true
   _skip_if_no_db
 
   TEST_RUN_ID="test-$$-$RANDOM"
@@ -21,11 +19,11 @@ teardown() {
 }
 
 _skip_if_no_db() {
-  if [[ -n "${FACTORY_PG_URL:-}" ]]; then
+  if [[ -n "${WORKSPACE_PG_URL:-}" ]]; then
     return 0
   fi
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  _pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then
@@ -35,13 +33,13 @@ _skip_if_no_db() {
 
 _query() {
   local sql="$1"
-  if [[ -n "${FACTORY_PG_URL:-}" ]]; then
-    psql "$FACTORY_PG_URL" -qtA -v ON_ERROR_STOP=1 -c "$sql"
+  if [[ -n "${WORKSPACE_PG_URL:-}" ]]; then
+    psql "$WORKSPACE_PG_URL" -qtA -v ON_ERROR_STOP=1 -c "$sql"
   else
     local pod
-    pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+    pod=$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
       -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
-    kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+    kubectl exec -i "$pod" -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
       -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 -c "$sql"
   fi
 }

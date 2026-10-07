@@ -6,7 +6,7 @@
 #   update-status --id <external_id> --status <status> [--resolution <resolution>] [--notes <notes>]
 #   update-fields --id <external_id> [--title <title>] [--description <description>]
 #   add-comment --id <external_id> --body <body> [--author <author_label>] [--visibility <visibility>]
-#   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>]
+#   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>] [--reason merged|staged-stale|superseded] [--successor <slug>]
 #   get-attachments --id <external_id> --out-dir <out_dir>
 #   get --id <external_id>
 #   set-touched-files --id <external_id> --files <comma-separated-paths>
@@ -20,6 +20,11 @@
 # Never inferred from free-text --title/--description content (T002280).
 
 set -euo pipefail
+
+# [T900999-P4] Staged-Inaktivitaets-Frist (Tage): staged Plaene (>N Tage inaktiv)
+# und supersedete Plaene (bei Nachfolger-Merge) fallen unter dieselbe
+# Receipt+Delete-Regel wie gemergte (cmd_archive_plan --reason).
+STAGED_STALE_DAYS=14
 
 # Hilfe-Texte + Vorabgriff (T002843): ticket_usage, ticket_help_wanted,
 # ticket_help_subcommand. Die Texte leben bewusst in scripts/lib/ticket-help.sh,
@@ -136,7 +141,7 @@ fi
 # den Guard.
 case "${1:-} ${2:-}" in
   "get "*|"list "*|"get-attachments "*|"get-ticket-links "*|"get-timeline "*|\
-  "get-injections "*|"find-similar "*|"retry-count "*|"dryrun-check "*|"plan-meta get"|\
+  "get-injections "*|"find-similar "*|"retry-count "*|"plan-meta get"|\
   "help "*|"-h "*|"--help "*|" ")
     : ;;
   *)
@@ -224,13 +229,15 @@ EOF
 source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-links.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-grill.sh"
 cmd_archive_plan() {
-  local id="" slug="" branch="" plan_file="" pr=""
+  local id="" slug="" branch="" plan_file="" pr="" reason="merged" successor=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)        id="$2"; shift 2 ;;
       --slug)      slug="$2"; shift 2 ;;
       --branch)    branch="$2"; shift 2 ;;
       --plan-file) plan_file="$2"; shift 2 ;;
       --pr)        pr="$2"; shift 2 ;;
+      --reason)    reason="$2"; shift 2 ;;
+      --successor) successor="$2"; shift 2 ;;
       *)           echo "Unknown archive-plan option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh archive-plan" >&2; exit 2 ;;
     esac; done
 
@@ -238,6 +245,9 @@ cmd_archive_plan() {
     echo "ERROR: --id, --slug, --branch, and --plan-file are required." >&2
     exit 2
   fi
+
+  # Validate-before-_pgpod (FA-SF-48): schlechter Reason ist ohne Cluster deterministisch.
+  case "$reason" in merged|staged-stale|superseded) ;; *) echo "ERROR: --reason must be merged|staged-stale|superseded." >&2; exit 2 ;; esac
 
   # OFFLINE guard runs BEFORE the empty-plan-file check so operators get
   # the OFFLINE marker, not a 'plan file not found' error. See T001242 M3.
@@ -280,6 +290,15 @@ EOF
   local pr_sql="NULL"
   if [[ -n "$pr" ]]; then
     pr_sql="'$pr'::integer"
+  fi
+
+  # [T900999-P4] Reason-Trailer: tickets.ticket_plans hat keine eigene Reason-Spalte
+  # (Schema: slug/branch/content/pr_number) — der Grund wird als Trailer im Content
+  # mitgeschrieben, der Slug bleibt stabil (Verify per Slug, keine zweite Pruefung).
+  # Default merged schreibt KEINEN Trailer (Verhalten unveraendert).
+  if [[ "$reason" != "merged" ]]; then
+    plan_content="$plan_content
+<!-- lifecycle-receipt reason=$reason${successor:+ successor=$successor} -->"
   fi
 
   local tmpfile
@@ -417,8 +436,8 @@ UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"exe
  WHERE external_id = :'ext_id';
 EOF
   echo "execution_released set to true for ticket $id"
-  # T900399: the Software Factory is decommissioned, so there is no wake-up path
-  # left. The release is now a pure DB flag that the next dev-flow session picks up.
+  # T900399: decommissioned, so there is no wake-up path left. The release is
+  # now a pure DB flag that the next dev-flow session picks up.
 }
 
 cmd_seq_repair() {
@@ -546,12 +565,12 @@ EOF
   esac
 }
 
-# T900399: the Software Factory is decommissioned. The former `unfactory`
-# (watchdog terminal state), `factory-control` (kill-switch/daily-cap table) and
-# `dryrun-mark` / `dryrun-check` (dry-run livelock guard) subcommands were removed
-# together with the subsystem — their only callers lived in scripts/factory/ and
-# their backing table `tickets.factory_control` is dropped by
-# scripts/migrations/2026-09-26-factory-decommission.sql.
+# T900399: the Factory is decommissioned. The former `unfactory`
+# (watchdog terminal state), control-table (kill-switch/daily-cap) and
+# `dryrun-mark` / `dryrun-check` (dry-run livelock guard) subcommands were
+# removed together with the subsystem — their only callers lived in the
+# retired pipeline scripts and their backing table `tickets.factory_control`
+# is dropped by scripts/migrations/2026-09-26-factory-decommission.sql.
 cmd_feature_flag() {
   local action="" brand="" key="" enabled="" set_by=""
   if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
@@ -620,7 +639,7 @@ EOF
 }
 
 # Operator injection: notes/context/assets attached to a ticket. Validate-before-_pgpod (FA-SF-49).
-# T900399: the consumer was the deleted factory pipeline; the injection record and
+# T900399: the consumer was the deleted dispatch pipeline; the injection record and
 # this subcommand stay as an operator surface for the SDLC cockpit.
 cmd_inject() {
   local id="" kind="" phase="" title="" content="" tfiles="" file="" nc_path="" by="admin"

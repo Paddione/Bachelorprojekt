@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/datev-export.bats
-# SSOT: openspec/specs/datev-export.md
+# Target: components/website/src/pages/api/admin/billing/datev-export.ts
 
 @test "datev-export spec covered" {
   run true

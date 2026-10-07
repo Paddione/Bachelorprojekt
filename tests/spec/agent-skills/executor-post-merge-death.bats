@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # tests/spec/agent-skills/executor-post-merge-death.bats
-# SSOT: openspec/specs/agent-skills.md (Delta: executor-post-merge-death, T006284)
 #
 # PRÜFMODUS: gemischt —
 #   (1) Tests 1–3: Source-Grep — dokumentierte Ausnahme von der

@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/repo-structure-reorg (T006999, Partial p3-components)
+# Checks: components/brett/package.json components/mediaviewer-widget/package.json
+
 # Prüfmodus: Dateisystem-Output-Verifikation über test -d auf den Arbeitsbaum
 # (T002448-M4) — das Ergebnis des Moves ist das Dateisystem, kein Source-Grep.
 # Positiv-Anker zuerst (T002356-M1): der gültige Fall (components/) muss durchlaufen,

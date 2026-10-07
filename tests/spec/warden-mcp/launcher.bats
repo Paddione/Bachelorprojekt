@@ -1,10 +1,11 @@
 #!/usr/bin/env bats
 # tests/spec/warden-mcp/launcher.bats
-# SSOT-Spec: openspec/specs/warden-mcp.md (REQ-WARDEN-MCP-001, REQ-WARDEN-MCP-004)
 #
 # Der Launcher darf warden-mcp nur mit vollstaendigen Credentials aus
 # ~/.config/warden-mcp/server.env starten und gibt nie einen Secret-Wert aus
 # (T900404). WARDEN_MCP_DRY_RUN=1 beendet ihn vor dem Spawn.
+# BW_PASSWORD ist seit T900991 optional: ohne Wert (und ohne Eintrag in der
+# Windows-Anmeldeinformationsverwaltung) laeuft er im Nur-Session-Modus.
 
 setup() {
   # T002820: Verfuegbarkeits-Guard — ohne node misst der Test die Runner-Ausstattung.
@@ -30,13 +31,33 @@ _write_env() {
   [[ "$output" == *".config/warden-mcp/server.env"* ]]
 }
 
-@test "launcher refuses to start when BW_PASSWORD is empty and names the key" {
+@test "launcher refuses to start when BW_CLIENTSECRET is empty and names the key" {
   _write_env "BW_HOST=https://vault.example.test" "BW_CLIENTID=user.dummy" \
-    "BW_CLIENTSECRET=dummy-secret-value" "BW_PASSWORD="
+    "BW_CLIENTSECRET=" "BW_PASSWORD='dummy-master-value'"
   run node "$LAUNCHER"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"BW_PASSWORD"* ]]
+  [[ "$output" == *"BW_CLIENTSECRET"* ]]
+  [[ "$output" != *"dummy-master-value"* ]]
+}
+
+@test "without BW_PASSWORD the launcher falls back to session-only mode" {
+  _write_env "BW_HOST=https://vault.example.test" "BW_CLIENTID=user.dummy" \
+    "BW_CLIENTSECRET=dummy-secret-value" "BW_BIN=/usr/bin/true"
+  WARDEN_MCP_DRY_RUN=1 run node "$LAUNCHER"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"passwort=Nur-Session"* ]]
   [[ "$output" != *"dummy-secret-value"* ]]
+}
+
+@test "a plaintext BW_PASSWORD still works but warns without leaking it" {
+  _write_env "BW_HOST=https://vault.example.test" "BW_CLIENTID=user.dummy" \
+    "BW_CLIENTSECRET=dummy-secret-value" "BW_PASSWORD='dummy-master-value'" \
+    "BW_BIN=/usr/bin/true"
+  WARDEN_MCP_DRY_RUN=1 run node "$LAUNCHER"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"BW_PASSWORD steht im Klartext"* ]]
+  [[ "$output" == *"passwort=server.env"* ]]
+  [[ "$output" != *"dummy-master-value"* ]]
 }
 
 @test "dry run resolves the pinned package without leaking secret values" {

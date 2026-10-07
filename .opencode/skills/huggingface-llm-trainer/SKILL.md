@@ -347,12 +347,13 @@ uvx trl-jobs sft \
 | Model Size | Recommended Hardware | Cost (approx/hr) | Use Case |
 |------------|---------------------|------------------|----------|
 | <1B params | `t4-small` | ~$0.75 | Demos, quick tests only without eval steps |
-| 1-3B params | `t4-medium`, `l4x1` | ~$1.50-2.50 | Development |
-| 3-7B params | `a10g-small`, `a10g-large` | ~$3.50-5.00 | Production training |
-| 7-13B params | `a10g-large`, `a100-large` | ~$5-10 | Large models (use LoRA) |
-| 13B+ params | `a100-large`, `a10g-largex2` | ~$10-20 | Very large (use LoRA) |
+| 1-3B params | `t4-medium`, `l4x1` | ~$1.50–2.50 | Development |
+| 3-7B params | `a10g-small`, `a10g-large` | ~$3.50–5.00 | Production training |
+| 7-13B params | `a10g-large`, `l40s` | ~$5–9 | Large models (use LoRA) |
+| 13-40B params | `l40s`, `a100-large` | ~$8–12 | Very large (use LoRA); l40s is best value |
+| 40B+ params | `a100-large`, `h100` | ~$12–20 | Largest models (LoRA required) |
 
-**GPU Flavors:** cpu-basic/upgrade/performance/xl, t4-small/medium, l4x1/x4, a10g-small/large/largex2/largex4, a100-large, h100/h100x8
+**GPU Flavors:** cpu-basic/upgrade/performance/xl, t4-small/medium, l4x1/x4, a10g-small/large/largex2/largex4, l40s/l40sx4/l40sx8, a100-large, h100/h100x8
 
 **Guidelines:**
 - Use **LoRA/PEFT** for models >7B to reduce memory

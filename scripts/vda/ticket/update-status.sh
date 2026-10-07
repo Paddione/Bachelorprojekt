@@ -26,9 +26,9 @@ main() {
   #    Bindung aendert. Vor T002906 wurde $id an zwei Stellen roh interpoliert; die
   #    zweite kam am 2026-08-09 per #3964 (T002876) dazu, ohne dass CI es bemerkte —
   #    der security-scan-Job prueft Image-Pinning und Secrets in k3d/*.yaml, nicht
-  #    Shell-SQL. Der Aufrufer ist scripts/ticket.sh, das in der Factory-Pipeline von
-  #    LLM-Agenten mit IDs aus Modellausgaben und Ticketinhalten gerufen wird — die
-  #    Eingabe ist also nicht per Konstruktion vertrauenswuerdig.
+  #    Shell-SQL. Der Aufrufer ist scripts/ticket.sh, das von LLM-Agenten mit IDs
+  #    aus Modellausgaben und Ticketinhalten gerufen wird — die Eingabe ist
+  #    also nicht per Konstruktion vertrauenswuerdig.
   # 2) Tippfehler. Ein vertipptes --id lief bisher bis zum UPDATE durch und traf
   #    schlicht keine Zeile. Jetzt scheitert es sofort mit klarer Meldung.
   #
@@ -76,8 +76,6 @@ main() {
   # Note: this guard is best-effort — the SELECT and UPDATE are separate autocommit
   # calls with no enclosing transaction, so a concurrent writer could race between
   # them (pre-existing architectural limitation; the TS side avoids it via FOR UPDATE).
-  # Note: scripts/factory/reconcile-ticket-status.sh bypasses this guard by writing
-  # SQL directly via kubectl exec — that's intentional for its watchdog patterns.
   local _cur_info _cur_status _cur_res _no_lifecycle
   # [T002906] $id per psql-Variable binden statt in den String zu interpolieren.
   # :'tid' quotet und escapet serverseitig — der Wert kann den String nicht verlassen.
@@ -108,8 +106,6 @@ main() {
   # strukturell unerreichbar, unabhaengig vom Aufrufer: nur stage-plan schreibt den
   # FACTORY-PLAN-REF-Kommentar (scripts/vda/ticket/stage-plan.sh), also ist ein Ticket
   # mit diesem Kommentar immer durch einen Plan gestaged.
-  # Hinweis: scripts/factory/reconcile-ticket-status.sh umgeht update-status.sh bewusst
-  # per direktem SQL (dort dokumentiert) — dieser Guard laeuft also NICHT im Watchdog-Pfad.
   if [[ "${status}" == "plan_staged" ]]; then
     local _plan_ref
     # [T002906] wie oben: :'tid' statt Interpolation von $id.
@@ -146,8 +142,8 @@ UPDATE tickets.tickets SET
   -- This mirrors components/website/src/lib/tickets/transition.ts:79, the other write path,
   -- which had it right all along: a resolution only means anything for a terminal
   -- status. So keep the existing value when none is supplied, let an explicit one
-  -- override, and still clear it on a non-terminal transition — `openspec.sh`
-  -- (→ planning) and `factory/pipeline.mjs` (→ backlog) rely on that clearing, so
+  -- override, and still clear it on a non-terminal transition — planning
+  -- and backlog transitions rely on that clearing, so
   -- a blanket COALESCE would strand a stale `fixed` on a reopened ticket.
   resolution = CASE
     WHEN :'status' IN ('done','archived') THEN COALESCE(NULLIF(:'res', ''), resolution)

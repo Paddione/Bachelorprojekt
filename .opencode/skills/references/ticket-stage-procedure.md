@@ -51,9 +51,7 @@ lebt in `scripts/vda/ticket/stage-plan.sh` — `scripts/ticket.sh` bleibt unber�
 
 **Embedding-Index (Hybrid-Kontext-Transfer Teil 2):** Direkt nach dem Stage, vor
 Commit/Push, den Change nach pgvector indizieren, damit die Execute-Phase
-ihn per Ähnlichkeitssuche (`openspec_find_similar`) abrufen kann — über den **fail-visible
-Wrapper** (NICHT das nackte `openspec-embed.mjs`, das skippt bei fehlender Env still):
-`bash scripts/openspec-embed-local.sh <slug> "$(pwd)"`
+ihn per Ähnlichkeitssuche (`plan_find_similar`) abrufen kann — über den **fail-visible
 (2. Argument = Worktree-Root, in dem `.agents/plans/<slug>/` liegt. Der Wrapper
 löst SESSIONS_DATABASE_URL selbst per kubectl/port-forward auf, probt das
 TEI-Backend vorab und bricht mit Remediation-Hinweis ab statt still zu skippen.

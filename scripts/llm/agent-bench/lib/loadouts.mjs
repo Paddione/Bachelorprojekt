@@ -25,9 +25,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const AGENT_BENCH_DIR = resolve(HERE, '..');
 const REPO_ROOT = resolve(AGENT_BENCH_DIR, '..', '..', '..');
 
+// Nur systemd-verwaltete Produktionsdienste. Die 4B-Rail (Qwen3.5-4B-MTP auf
+// :8080) ist Windows-nativ (Autostart via register-qwen35-4b-autostart.ps1)
+// und hat keine User-Unit — der Bench startet/stoppt sie nicht.
 export const PRODUCTION_SERVICES = Object.freeze([
-  'qwen38-gsq-iq2s.service',
-  'qwen35-mtp.service',
+  'qwen38-gsq-iq3xxs.service',
 ]);
 
 const SYSTEMCTL = process.env.AGENT_BENCH_SYSTEMCTL || 'systemctl';
@@ -336,7 +338,7 @@ export async function restoreProduction(pool) {
     await run(SYSTEMCTL, ['--user', 'start', service], { timeout: 300_000 });
   }
   for (const service of services) {
-    const port = { 'qwen38-gsq-iq2s.service': 1919, 'qwen35-mtp.service': 1920 }[service];
+    const port = { 'qwen38-gsq-iq3xxs.service': 1919, 'qwen38-gsq-iq2s.service': 1919 }[service];
     if (port) await waitForModels(`http://127.0.0.1:${port}`, 120_000);
   }
   const released = await releaseGpu();

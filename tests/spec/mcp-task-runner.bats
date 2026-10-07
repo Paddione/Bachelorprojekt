@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-task-runner.bats
-# SSOT: openspec/changes/mcp-task-runner/proposal.md
+# Targets: scripts/mcp-task-runner/server.mjs
 #
 # Integration tests for the mcp-task-runner MCP server.
 # Binary must be installed at /usr/local/bin/mcp-task-runner.

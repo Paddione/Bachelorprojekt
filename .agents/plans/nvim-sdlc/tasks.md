@@ -69,12 +69,12 @@ per `jq` `nicht-baselined`. Es kommen keine Baseline-Eintraege hinzu.
 
 ## Partials
 
-| id | plan | role | target_files | depends_on | min_tier | ctx_tokens |
-|----|------|------|--------------|------------|----------|------------|
-| p1 | tasks.d/p1-module.md | impl | dotfiles/nvim/lua/config/sdlc.lua |  | 27b-local | 32000 |
-| p2 | tasks.d/p2-registration.md | impl | dotfiles/nvim/lua/config/dashboard.lua | p1 | 27b-local | 16000 |
-| p3 | tasks.d/p3-runbook.md | impl | dotfiles/nvim/runbooks/sdlc.md, dotfiles/nvim/runbooks/README.md | p1, p2 | 4b-local | 16000 |
-| p4 | tasks.d/p4-tests.md | tests | tests/spec/neovim-dashboard.bats, components/website/src/data/test-inventory.json | p1, p2, p3 | 27b-local | 32000 |
+| id | plan | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-module.md | impl | dotfiles/nvim/lua/config/sdlc.lua |  |
+| p2 | tasks.d/p2-registration.md | impl | dotfiles/nvim/lua/config/dashboard.lua | p1 |
+| p3 | tasks.d/p3-runbook.md | impl | dotfiles/nvim/runbooks/sdlc.md, dotfiles/nvim/runbooks/README.md | p1, p2 |
+| p4 | tasks.d/p4-tests.md | tests | tests/spec/neovim-dashboard.bats, components/website/src/data/test-inventory.json | p1, p2, p3 |
 
 Execution order honoring depends_on: p1 first, then p2, then p3, then p4, then
 Task 5. Each partial commits only its own manifest files as

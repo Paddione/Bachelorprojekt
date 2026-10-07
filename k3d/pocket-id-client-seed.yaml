@@ -167,6 +167,8 @@ spec:
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_BRAIN_SECRET, optional: true } }
             - name: SECRET_terminal
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_TERMINAL_SECRET, optional: true } }
+            - name: SECRET_owner
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_OWNER_SECRET, optional: true } }
           command:
             - /bin/sh
             - -ec
@@ -259,6 +261,7 @@ spec:
               rustdesk-web|SECRET_rustdeskweb|POCKET_ID_RUSTDESK_WEB_SECRET|$${SCHEME}://remote.$${SUFFIX}/oauth2/callback
               brain|SECRET_brain|POCKET_ID_BRAIN_SECRET|$${SCHEME}://brain.$${SUFFIX}/oauth2/callback
               terminal-sidekick|SECRET_terminal|POCKET_ID_TERMINAL_SECRET|$${SCHEME}://terminal.$${SUFFIX}/oauth2/callback
+              owner|SECRET_owner|POCKET_ID_OWNER_SECRET|$${SCHEME}://web.$${SUFFIX}/api/owner/callback
               "
 
               # T900804: Lookup ueber das JSON-Objekt, nicht ueber benachbarte Felder.
@@ -425,6 +428,7 @@ spec:
                 fi
               }
               ensure_group "workspace-users" "Workspace Users"
+              ensure_group "workspace-owners" "Workspace Owners"
               
               echo "seed complete"
           resources:

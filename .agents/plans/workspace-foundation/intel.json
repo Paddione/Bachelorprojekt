@@ -1,0 +1,347 @@
+{
+ "meta": {
+  "slug": "workspace-foundation",
+  "ticket_id": "",
+  "generated_from": "main@fe7bf7c39",
+  "domains": [
+   "plan-authoring",
+   "dev-tooling",
+   "factory"
+  ],
+  "intel_sources": [
+   "grep",
+   "plan-lint",
+   "wc",
+   "-l"
+  ]
+ },
+ "impact_files": [
+  {
+   "path": "components/website/src/db/migrations/20261007_business_memberships.sql",
+   "language": "text",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/__tests__/business-memberships.test.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/__tests__/owner-guard.test.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/auth.ts",
+   "language": "javascript",
+   "loc": 340,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 560
+  },
+  {
+   "path": "components/website/src/lib/business-memberships.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/messaging-db.ts",
+   "language": "javascript",
+   "loc": 296,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 604
+  },
+  {
+   "path": "components/website/src/lib/owner-guard.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/lib/website-db.ts",
+   "language": "javascript",
+   "loc": 313,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": 587
+  },
+  {
+   "path": "components/website/src/pages/api/owner/me.ts",
+   "language": "javascript",
+   "loc": 0,
+   "s1_limit": 900,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/owner/anfragen.astro",
+   "language": "astro",
+   "loc": 0,
+   "s1_limit": 1000,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "components/website/src/pages/owner/index.astro",
+   "language": "astro",
+   "loc": 0,
+   "s1_limit": 1000,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "docs/runbooks/business-restore.md",
+   "language": "markdown",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "environments/sealed-secrets/dev.yaml",
+   "language": "config",
+   "loc": 254,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "k3d/pocket-id-client-seed.yaml",
+   "language": "config",
+   "loc": 432,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "scripts/backup-restore-db.sh",
+   "language": "bash",
+   "loc": 201,
+   "s1_limit": 800,
+   "s1_baseline": null,
+   "s1_budget": 599
+  },
+  {
+   "path": "tests/spec/workspace-foundation.bats",
+   "language": "bash",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  }
+ ],
+ "symbols": [
+  {
+   "qualified_name": "components/website/src/lib/auth.ts:43:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {",
+   "kind": "function",
+   "file": "components/website/src/lib/auth.ts",
+   "signature": "43:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {(...)",
+   "type_text": "43:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/auth.ts:55:function decodeRealmRoles(accessToken: string): string[] {",
+   "kind": "function",
+   "file": "components/website/src/lib/auth.ts",
+   "signature": "55:function decodeRealmRoles(accessToken: string): string[] {(...)",
+   "type_text": "55:function decodeRealmRoles(accessToken: string): string[] {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/auth.ts:87:function generateSessionId(): string {",
+   "kind": "function",
+   "file": "components/website/src/lib/auth.ts",
+   "signature": "87:function generateSessionId(): string {(...)",
+   "type_text": "87:function generateSessionId(): string {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/auth.ts:288:        clearProviderCache();",
+   "kind": "function",
+   "file": "components/website/src/lib/auth.ts",
+   "signature": "288:        clearProviderCache();(...)",
+   "type_text": "288:        clearProviderCache();(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/website-db.ts:88:initTicketsSchema().catch(() => { /* retried on first access via ensureSchemaOnce */ });",
+   "kind": "function",
+   "file": "components/website/src/lib/website-db.ts",
+   "signature": "88:initTicketsSchema().catch(() => { /* retried on first access via ensureSchemaOnce */ });(...)",
+   "type_text": "88:initTicketsSchema().catch(() => { /* retried on first access via ensureSchemaOnce */ });(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "components/website/src/lib/website-db.ts:273:function _getSeoForPageKey(brand: string, pageKey: string): { title: string | null; description: string | null; ogImage: string | null } {",
+   "kind": "function",
+   "file": "components/website/src/lib/website-db.ts",
+   "signature": "273:function _getSeoForPageKey(brand: string, pageKey: string): { title: string | null; description: string | null; ogImage: string | null } {(...)",
+   "type_text": "273:function _getSeoForPageKey(brand: string, pageKey: string): { title: string | null; description: string | null; ogImage: string | null } {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "k3d/pocket-id-client-seed.yaml:269:              id_by_name() {",
+   "kind": "function",
+   "file": "k3d/pocket-id-client-seed.yaml",
+   "signature": "269:              id_by_name() {(...)",
+   "type_text": "269:              id_by_name() {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "k3d/pocket-id-client-seed.yaml:284:              find_client_id() {",
+   "kind": "function",
+   "file": "k3d/pocket-id-client-seed.yaml",
+   "signature": "284:              find_client_id() {(...)",
+   "type_text": "284:              find_client_id() {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "k3d/pocket-id-client-seed.yaml:315:              patch_secret() {",
+   "kind": "function",
+   "file": "k3d/pocket-id-client-seed.yaml",
+   "signature": "315:              patch_secret() {(...)",
+   "type_text": "315:              patch_secret() {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "k3d/pocket-id-client-seed.yaml:350:              upsert() {",
+   "kind": "function",
+   "file": "k3d/pocket-id-client-seed.yaml",
+   "signature": "350:              upsert() {(...)",
+   "type_text": "350:              upsert() {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "k3d/pocket-id-client-seed.yaml:410:              find_group_id() {",
+   "kind": "function",
+   "file": "k3d/pocket-id-client-seed.yaml",
+   "signature": "410:              find_group_id() {(...)",
+   "type_text": "410:              find_group_id() {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "k3d/pocket-id-client-seed.yaml:415:              ensure_group() {",
+   "kind": "function",
+   "file": "k3d/pocket-id-client-seed.yaml",
+   "signature": "415:              ensure_group() {(...)",
+   "type_text": "415:              ensure_group() {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "scripts/backup-restore-db.sh:12:cmd_db_list() {",
+   "kind": "function",
+   "file": "scripts/backup-restore-db.sh",
+   "signature": "12:cmd_db_list() {(...)",
+   "type_text": "12:cmd_db_list() {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "scripts/backup-restore-db.sh:41:cmd_db_trigger() {",
+   "kind": "function",
+   "file": "scripts/backup-restore-db.sh",
+   "signature": "41:cmd_db_trigger() {(...)",
+   "type_text": "41:cmd_db_trigger() {(...)",
+   "source": "grep"
+  },
+  {
+   "qualified_name": "scripts/backup-restore-db.sh:59:cmd_db_restore() {",
+   "kind": "function",
+   "file": "scripts/backup-restore-db.sh",
+   "signature": "59:cmd_db_restore() {(...)",
+   "type_text": "59:cmd_db_restore() {(...)",
+   "source": "grep"
+  }
+ ],
+ "call_graph": {
+  "entrypoints": [],
+  "edges": []
+ },
+ "db_tables": [
+  {
+   "table": "web_sessions",
+   "source": "code-read src/lib/auth.ts getSession",
+   "notes": "server-side sessions, 8h TTL cookie workspace_session"
+  },
+  {
+   "table": "inbox_items",
+   "source": "code-read src/lib/messaging-db.ts",
+   "notes": "types registration|booking|contact|bug|meeting_finalize|user_message; NO tenant column (verified T901020)"
+  },
+  {
+   "table": "slot_whitelist",
+   "source": "code-read src/lib/appointments-db.ts",
+   "notes": "brand FK, claimSlot(brand,start)"
+  },
+  {
+   "table": "booking_project_links",
+   "source": "code-read src/lib/appointments-db.ts",
+   "notes": "PK(caldav_uid,brand), brand FK"
+  },
+  {
+   "table": "billing_invoices",
+   "source": "code-read src/lib/invoice-payments.ts",
+   "notes": "FOR UPDATE locking, manual methods sepa|cash|bank|other|legacy"
+  },
+  {
+   "table": "public.brands",
+   "source": "FK-target only, NO prod CREATE TABLE found",
+   "notes": "bootstrap path open - must be clarified in plan"
+  }
+ ],
+ "api_contracts": [
+  {
+   "route": "GET /api/auth/login",
+   "handler": "components/website/src/pages/api/auth/login.ts",
+   "contract": "302 to getLoginUrl(returnTo)"
+  },
+  {
+   "route": "GET /api/auth/callback",
+   "handler": "components/website/src/pages/api/auth/callback.ts",
+   "contract": "exchangeCode(code), set cookie, fail-closed resolveReturnTo, default isAdmin?/admin:/portal"
+  },
+  {
+   "route": "GET /api/auth/logout",
+   "handler": "components/website/src/pages/api/auth/logout.ts",
+   "contract": "session delete, clear cookie, 302 to end-session"
+  },
+  {
+   "route": "GET /api/auth/me",
+   "handler": "components/website/src/pages/api/auth/me.ts",
+   "contract": "session JSON {authenticated,user.isAdmin}, CORS for React SPA"
+  }
+ ],
+ "external_types": [],
+ "risks": [
+  {
+   "severity": "warn",
+   "note": "K3 project home-patrick-Bachelorprojekt generation 2026-10-04 cited by ticket but not re-verified (K3 not exposed here)."
+  },
+  {
+   "severity": "warn",
+   "note": "T901035 tenant-isolation implementation still blocked; plan must carry explicit assumptions + depends_on."
+  },
+  {
+   "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+   "severity": "warn"
+  },
+  {
+   "severity": "warn",
+   "note": "mcp-postgres unavailable in this session and no live DB read; db_tables come from code reads, not information_schema."
+  }
+ ]
+}

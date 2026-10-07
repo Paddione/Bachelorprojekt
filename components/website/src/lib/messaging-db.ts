@@ -22,6 +22,8 @@ export interface InboxItem {
   actioned_at: Date | null;
   actioned_by: string | null;
   is_test_data: boolean;
+  /** Optional business reference (T901022). NULL means unassigned. */
+  brand: string | null;
 }
 
 // ── Inbox ─────────────────────────────────────────────────────────────────────
@@ -38,10 +40,12 @@ export async function createInboxItem(params: {
    *  /api/portal/messages) when the request carries the X-E2E-Test header
    *  + valid X-Cron-Secret. Defaults to false. */
   isTestData?: boolean;
+  /** Optional business reference (T901022). NULL when omitted. */
+  brand?: string;
 }): Promise<InboxItem> {
   const { rows } = await pool.query<InboxItem>(
-    `INSERT INTO inbox_items (type, reference_id, reference_table, bug_ticket_id, payload, is_test_data)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO inbox_items (type, reference_id, reference_table, bug_ticket_id, payload, is_test_data, brand)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
     [
       params.type,
@@ -50,6 +54,7 @@ export async function createInboxItem(params: {
       params.bugTicketId ?? null,
       params.payload,
       params.isTestData === true,
+      params.brand ?? null,
     ],
   );
   return rows[0];
@@ -74,6 +79,8 @@ export async function listInboxItems(filter: {
   /** Include is_test_data=true rows. Only the E2E suite sets this (via
    *  /admin/inbox?includeTest=1) to verify the delete flow on a seeded row. */
   includeTest?: boolean;
+  /** Optional business filter (T901022). Unset means all businesses. */
+  brand?: string;
 }): Promise<InboxItem[]> {
   // Marked test rows exist transiently while an E2E run is in flight (the
   // teardown bracket purges them) — they must never surface in the admin
@@ -88,6 +95,10 @@ export async function listInboxItems(filter: {
   if (filter.type) {
     conditions.push(`type = $${values.length + 1}`);
     values.push(filter.type);
+  }
+  if (filter.brand) {
+    conditions.push(`brand = $${values.length + 1}`);
+    values.push(filter.brand);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';

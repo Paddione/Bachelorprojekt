@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-95 Services · 2020 Abhängigkeitskanten · 297 API-Endpoints
+95 Services · 2020 Abhängigkeitskanten · 298 API-Endpoints
 
 ## Service-Map
 
@@ -2450,6 +2450,7 @@ flowchart TB
 | `/api/newsletter/confirm` | GET | ❓ unclassified |
 | `/api/newsletter/subscribe` | POST | ❓ unclassified |
 | `/api/newsletter/unsubscribe` | GET | ❓ unclassified |
+| `/api/owner/me` | GET | ❓ session |
 | `/api/poll/{id}` | GET | ❓ unclassified |
 | `/api/poll/{id}/answer` | POST | ❓ unclassified |
 | `/api/poll/{id}/results` | GET | ❓ unclassified |

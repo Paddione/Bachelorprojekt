@@ -1,0 +1,26 @@
+---
+import { requireOwner } from '../../lib/owner-guard';
+import { getLoginUrl } from '../../lib/auth';
+const session = await requireOwner(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Anfragen — Owner-Bereich</title>
+  </head>
+  <body>
+    <main>
+      <h1>Anfragen</h1>
+      <p>Angemeldet als {session.name} ({session.email}).</p>
+      <ul>
+        <li>Noch keine Anfragen vorhanden.</li>
+      </ul>
+      <nav>
+        <a href="/owner">Zurück zur Übersicht</a>
+      </nav>
+    </main>
+  </body>
+</html>

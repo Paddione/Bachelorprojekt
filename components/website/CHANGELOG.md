@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.396.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.396.0...website-v1.396.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **security:** pocket-id-client-seed skip when secret unset [T901061] ([#6307](https://github.com/Paddione/Bachelorprojekt/issues/6307)) ([57d5cd5](https://github.com/Paddione/Bachelorprojekt/commit/57d5cd50e2635c52b8cf70991726728c7c0ab3c5))
+
 ## [1.396.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.395.3...website-v1.396.0) (2026-10-07)
 
 

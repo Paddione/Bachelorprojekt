@@ -19,6 +19,8 @@ setup() {
         ls-remote) printf "%s\trefs/heads/feature/wt-live-T012445\n" \
           "0000000000000000000000000000000000000001"; return 0 ;;
         worktree) printf "worktree /tmp/some-main\nHEAD 0000000\nbranch refs/heads/feature/wt-live-T012445\n\n"; return 0 ;;
+        # Kein echter Fetch gegen den flachen CI-Checkout (T901069).
+        fetch) return 0 ;;
         *) command git "$@" ;;
       esac
     }

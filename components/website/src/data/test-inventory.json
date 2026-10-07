@@ -1590,6 +1590,48 @@
     "kind": "shell"
   },
   {
+    "id": "T901023-1",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-2",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-3",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-4",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-5",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-6",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-7",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",

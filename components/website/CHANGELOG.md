@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.408.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.6...website-v1.408.0) (2026-10-08)
+
+
+### Features
+
+* **T901430:** preismodell basis x multiplier x dauer [T901430] ([#6419](https://github.com/Paddione/Bachelorprojekt/issues/6419)) ([7b35314](https://github.com/Paddione/Bachelorprojekt/commit/7b35314eb722b9f36f67ae9599028a3868c8a458))
+
 ## [1.407.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.5...website-v1.407.6) (2026-10-08)
 
 

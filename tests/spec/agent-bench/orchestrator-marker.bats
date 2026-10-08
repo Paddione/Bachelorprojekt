@@ -40,7 +40,7 @@ teardown() {
   rm -rf "$T"
 }
 
-@test "Sauberer Dispatch trägt kein protocol_error" {
+@test "Sauberer Dispatch traegt kein protocol_error" {
   start_fake '[{"tool_calls": [{"name": "dispatch_4b", "arguments": {"partial_id": "p1", "prompt": "go"}}]}, {"tool_calls": [{"name": "dispatch_4b", "arguments": {"partial_id": "p2", "prompt": "go"}}]}, {"tool_calls": [{"name": "wait_event", "arguments": {}}]}, {"tool_calls": [{"name": "mark", "arguments": {"partial_id": "p1", "status": "done"}}]}, {"tool_calls": [{"name": "dispatch_4b", "arguments": {"partial_id": "p3", "prompt": "go"}}]}, {"tool_calls": [{"name": "wait_event", "arguments": {}}]}, {"tool_calls": [{"name": "mark", "arguments": {"partial_id": "p2", "status": "done"}}]}, {"tool_calls": [{"name": "wait_event", "arguments": {}}]}, {"tool_calls": [{"name": "mark", "arguments": {"partial_id": "p3", "status": "done"}}]}, {"tool_calls": [{"name": "finish", "arguments": {"summary": "all dispatched"}}]}]'
   cat > "$T/variant.json" <<EOF
 {"checksDir": "$T/checks", "budget": {"tokens": 8000, "turns": 15}}

@@ -5,6 +5,26 @@ tasks:
   # ─────────────────────────────────────────────
   # Testing (no cluster required)
   # ─────────────────────────────────────────────
+  test:py:
+    desc: Run Pytest test suite (via uv or global pytest)
+    cmds:
+      - |
+        if command -v uv >/dev/null 2>&1; then
+          uv run --with pytest --with pyyaml pytest tests/py {{.CLI_ARGS}}
+        else
+          python3 -m pytest tests/py {{.CLI_ARGS}}
+        fi
+
+  test:py:smoke:
+    desc: Run Pytest smoke tests (harness verification)
+    cmds:
+      - |
+        if command -v uv >/dev/null 2>&1; then
+          uv run --with pytest --with pyyaml pytest tests/py/smoke {{.CLI_ARGS}}
+        else
+          python3 -m pytest tests/py/smoke {{.CLI_ARGS}}
+        fi
+
   test:unit:
     desc: Run BATS unit tests (assertion lib, scripts, configs) in parallel
     cmds:

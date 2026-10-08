@@ -209,7 +209,7 @@
             onclick={() => (activeMode = 'message')}
             data-testid="tab-nachricht" aria-label={journeyEnabled ? '03 – Nachricht senden' : '02 – Nachricht senden'}>
             <span class="ch-mode-num">{journeyEnabled ? '03 — Nachricht' : '02 — Nachricht'}</span>
-            <span class="ch-mode-title">Eine Frage stellen.</span>
+            <span class="ch-mode-title">{journeyEnabled ? 'Schriftliche Rückfrage stellen.' : 'Eine Frage stellen.'}</span>
             <span class="ch-mode-sub">Wenn Sie erst kurz schildern möchten, was Sie beschäftigt.</span>
           </button>
 
@@ -238,7 +238,7 @@
               <h2>Termin <em>vorschlagen.</em></h2>
               <span class="ch-panel-meta">Lüneburg · DE</span>
             {:else if activeMode === 'message'}
-              <h2>Eine Frage <em>stellen.</em></h2>
+              <h2>{journeyEnabled ? 'Schriftliche Rückfrage' : 'Eine Frage'} <em>stellen.</em></h2>
             {:else if activeMode === 'callback'}
               <h2>Rückruf <em>anfragen.</em></h2>
             {:else}

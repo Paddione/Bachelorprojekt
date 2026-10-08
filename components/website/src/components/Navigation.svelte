@@ -9,6 +9,7 @@
     links?: NavigationLink[];
     pathname?: string;
     locale?: Locale;
+    ctaLabel?: string;
   }
 
   let {
@@ -21,6 +22,7 @@
     ],
     pathname = '/',
     locale = 'de',
+    ctaLabel,
   }: Props = $props();
   const brandWord = siteTitle.replace(/\.de$/i, '').toLowerCase();
 
@@ -170,7 +172,7 @@
       {/if}
 
       <a href="/kontakt" class="nav-cta">
-        {t(locale, 'nav.cta-label')}
+        {ctaLabel ?? t(locale, 'nav.cta-label')}
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M2 7h10M8 3l4 4-4 4"/>
         </svg>

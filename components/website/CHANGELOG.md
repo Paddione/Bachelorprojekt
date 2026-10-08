@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.409.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.408.0...website-v1.409.0) (2026-10-08)
+
+
+### Features
+
+* **T901431:** header-cta termin anfragen + tab rueckfrage [T901431] ([#6421](https://github.com/Paddione/Bachelorprojekt/issues/6421)) ([245bdf6](https://github.com/Paddione/Bachelorprojekt/commit/245bdf60ae246a0a75e9bbde12c59b4432f312f3))
+
 ## [1.408.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.6...website-v1.408.0) (2026-10-08)
 
 

@@ -8,11 +8,11 @@ Konfigdatei (--config, JSON), nicht ueber kopierte Skriptvarianten.
 
   - Vorbedingungen: bricht ab, wenn der Messbericht aus measure_corpus.py fehlt oder der
     Template-Guard aus template_guard.py nicht bestanden wird.
-  - Assistant-only Loss ueber vorab tokenisierte Daten (input_ids + assistant_masks). TRLs
-    Collator honoriert `assistant_masks` selbststaendig. Der Weg ueber eine `tools`-Spalte ist
+  - Assistant-only Loss ueber vorab tokenisierte Daten (input_ids + attention_mask + labels
+    mit -100 ausserhalb der Assistant-Spanne). Der Weg ueber eine `tools`-Spalte ist
     NICHT gangbar: TRL nimmt Tools nur als globales Argument entgegen, nicht je Zeile — daher
     wird hier im Skript selbst vortokenisiert statt eine Spalte zu setzen.
-  - Zeilen ohne Lernsignal (assistant_masks komplett 0) werden nach der Kuerzung verworfen und
+  - Zeilen ohne Lernsignal (kein Assistant-Token) werden nach der Kuerzung verworfen und
     gezaehlt.
   - Der Anteil des Lernsignals wird vor dem ersten Trainingsschritt ausgegeben.
   - Das Hub-Template wird vor dem Speichern zurueckgeschrieben, damit der Adapter nicht das
@@ -183,11 +183,11 @@ def resolve_config(argv=None) -> dict:
 
 
 def tokenize_row_with_assistant_mask(tokenizer, messages: list[dict], max_seq_length: int) -> dict | None:
-    """Vortokenisiert eine Zeile mit input_ids + assistant_masks statt einer 'tools'-Spalte.
+    """Vortokenisiert eine Zeile mit input_ids + attention_mask + labels (assistant-only).
 
     TRL nimmt `tools` nur als globales SFTConfig-Argument entgegen, nicht je Zeile — der
     einzige gangbare Weg fuer assistant-only Loss ist, hier selbst zu tokenisieren und
-    `assistant_masks` mitzuliefern; TRLs Collator honoriert das Feld selbststaendig.
+    labels (-100 ausserhalb der Assistant-Spanne) zu materialisieren; TRLs Collator padden
     Gibt None zurueck, wenn die Zeile nach Kuerzung kein Lernsignal (assistant-Token) mehr hat.
     """
     # Notebook-Paritaet: transformers>=5.2 erwartet Block-Content
@@ -216,7 +216,8 @@ def tokenize_row_with_assistant_mask(tokenizer, messages: list[dict], max_seq_le
     flat = [x for m in assistant_masks for x in (m if isinstance(m, list) else [m])]
     if sum(flat) == 0:
         return None
-    return {"input_ids": input_ids, "assistant_masks": flat}
+    labels = [tok if m else -100 for tok, m in zip(input_ids, flat)]
+    return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids), "labels": labels}
 
 
 def run_training(config: dict, tracking: TrainingRun) -> int:
@@ -289,7 +290,7 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
         raise SystemExit("FEHLER: kein Korpuszeile mit Lernsignal nach Kuerzung uebrig.")
 
     total_tokens = sum(len(t["input_ids"]) for t in tokenized)
-    signal_tokens = sum(sum(t["assistant_masks"]) for t in tokenized)
+    signal_tokens = sum(sum(1 for lab in t["labels"] if lab != -100) for t in tokenized)
     signal_fraction = signal_tokens / total_tokens if total_tokens else 0.0
     print(f"Zeilen ohne Lernsignal verworfen: {dropped}/{len(rows)}")
     print(f"Anteil des Lernsignals (assistant-Tokens / Gesamt-Tokens): {signal_fraction:.4f}")
@@ -334,7 +335,7 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
             hub_model_id=config.get("hub_model_id"),
             # Notebook-Paritaet (Unsloth Qwen3.5-SFT): diese drei sind Pflicht,
             # sonst bereitet TRL das Dataset selbst auf und ignoriert
-            # vor-tokenisierte input_ids + assistant_masks.
+            # vor-tokenisierte input_ids + attention_mask + labels.
             remove_unused_columns=False,
             dataset_text_field="",
             dataset_kwargs={"skip_prepare_dataset": True},

@@ -155,13 +155,16 @@ jobs:
           fi
           bash scripts/tests/unit-coverage-guard.sh
 
+      - name: Expose vendored BATS for pytest spec wrappers
+        run: echo "$GITHUB_WORKSPACE/tests/unit/lib/bats-core/bin" >> "$GITHUB_PATH"
+
       - name: Pytest suite (pytest -n auto)
         run: |
           if command -v uv >/dev/null 2>&1; then
             uv run --with pytest --with pyyaml --with pytest-xdist --with jinja2 pytest -n auto tests/py
           else
-            python3 -m pip install --quiet --break-system-packages pytest pytest-xdist pyyaml jinja2 2>/dev/null || true
-            pytest -n auto tests/py 2>/dev/null || python3 -m pytest tests/py
+            python3 -m pip install --quiet --break-system-packages pytest pytest-xdist pyyaml jinja2
+            python3 -m pytest -n auto tests/py
           fi
 
       - name: Code-quality gates (always)

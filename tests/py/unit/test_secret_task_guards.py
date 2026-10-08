@@ -10,7 +10,7 @@ def test_ci_dummy_secrets_refuses_prod_brand_without_ci(repo_root: Path, run_cmd
     k3d_dir.mkdir(parents=True, exist_ok=True)
 
     env = os.environ.copy()
-    env.pop("CI", None)
+    env["CI"] = ""
     env["ENV"] = "mentolder"
 
     res = run_cmd(["bash", str(ci_dummy)], cwd=tmp_path, env=env)
@@ -25,7 +25,7 @@ def test_ci_dummy_secrets_refuses_korczewski_without_ci(repo_root: Path, run_cmd
     k3d_dir.mkdir(parents=True, exist_ok=True)
 
     env = os.environ.copy()
-    env.pop("CI", None)
+    env["CI"] = ""
     env["ENV"] = "korczewski"
 
     res = run_cmd(["bash", str(ci_dummy)], cwd=tmp_path, env=env)
@@ -52,7 +52,7 @@ def test_ci_dummy_secrets_proceeds_for_env_dev(repo_root: Path, run_cmd, tmp_pat
     k3d_dir.mkdir(parents=True, exist_ok=True)
 
     env = os.environ.copy()
-    env.pop("CI", None)
+    env["CI"] = ""
     env["ENV"] = "dev"
 
     res = run_cmd(["bash", str(ci_dummy)], cwd=tmp_path, env=env)

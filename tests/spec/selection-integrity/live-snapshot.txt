@@ -112,6 +112,7 @@ tests/spec/brain-k4-brain-wiki/retrieval-eval.bats
 tests/spec/brain-quality-goals.bats
 tests/spec/branch-reaper-netzausfall.bats
 tests/spec/brett.bats
+tests/spec/business-homepage.bats
 tests/spec/cbm-embed-store.bats
 tests/spec/cbm-embed-sync-A2.bats
 tests/spec/cbm-eval.bats
@@ -647,6 +648,7 @@ tests/spec/toolset-registry/tools-suppressed.bats
 tests/spec/toolset-registry/unreviewed-quarantine.bats
 tests/spec/traefik-access-log.bats
 tests/spec/ts-suppression.bats
+tests/spec/unsloth-eval-harness/clarify-question.bats
 tests/spec/unsloth-eval-harness/gguf-fixture-bridge.bats
 tests/spec/unsloth-eval-harness/regression-gate.bats
 tests/spec/unsloth-eval-harness/scoring-rules.bats

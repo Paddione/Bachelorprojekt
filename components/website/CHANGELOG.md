@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.407.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.1...website-v1.407.2) (2026-10-08)
+
+
+### Bug Fixes
+
+* **website:** contain mobile header overflow [T901310] ([#6396](https://github.com/Paddione/Bachelorprojekt/issues/6396)) ([b47aed6](https://github.com/Paddione/Bachelorprojekt/commit/b47aed62898138226c9af7ff2b6d2c9d59d049b8))
+
 ## [1.407.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.0...website-v1.407.1) (2026-10-08)
 
 

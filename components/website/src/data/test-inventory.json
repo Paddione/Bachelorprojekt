@@ -1998,6 +1998,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-bench/orchestrator-dispatch",
+    "file": "tests/spec/agent-bench/orchestrator-dispatch.bats",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
     "id": "agent-bench/recorder",
     "file": "tests/spec/agent-bench/recorder.bats",
     "category": "agent-bench",

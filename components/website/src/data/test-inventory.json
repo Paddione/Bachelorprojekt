@@ -948,6 +948,18 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-63",
+    "file": "tests/e2e/specs/fa-63-massage-mobile.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-64",
+    "file": "tests/e2e/specs/fa-64-massage-keyboard.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "HWS-1",
     "file": "tests/spec/harness-workflow-split.bats",
     "category": "HWS",

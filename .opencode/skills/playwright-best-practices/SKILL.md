@@ -7,6 +7,13 @@ metadata:
   version: "1.2"
 ---
 
+## Cross-framework best practices and audit routing
+
+Keep this skill focused on Playwright. For shared quality principles and a single audit covering every test environment, load [sota-testing](../sota-testing/SKILL.md) and its [repository audit workflow](../sota-testing/references/repository-audit.md). That workflow links Vitest, pytest and BATS checks without copying their implementation details here.
+
+Read [repository CI overrides](references/repository-ci-overrides.md) before applying upstream CI examples. Resolve current stable framework versions, match browser/container versions to the installed Playwright package, and track retries and quarantine rather than silently excluding flaky tests.
+
+
 # Playwright Best Practices
 
 This skill provides comprehensive guidance for all aspects of Playwright test development, from writing new tests to debugging and maintaining existing test suites.

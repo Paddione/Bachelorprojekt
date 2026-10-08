@@ -1189,3 +1189,69 @@ skills:
         path: .agents/skills/bachelorprojekt-vim
         sync: identical
     exclusions: {}
+
+  - id: sota-testing
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/sota-testing
+    harnesses:
+      codex:
+        path: .agents/skills/sota-testing
+        sync: identical
+      agy:
+        path: .agents/skills/sota-testing
+        sync: identical
+      opencode:
+        path: .opencode/skills/sota-testing
+        sync: identical
+      claude_code:
+        path: .claude/skills/sota-testing
+        sync: identical
+      muse:
+        path: .agents/skills/sota-testing
+        sync: identical
+    exclusions: {}
+
+  - id: vitest-testing
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/vitest-testing
+    harnesses:
+      codex:
+        path: .agents/skills/vitest-testing
+        sync: identical
+      agy:
+        path: .agents/skills/vitest-testing
+        sync: identical
+      opencode:
+        path: .opencode/skills/vitest-testing
+        sync: identical
+      claude_code:
+        path: .claude/skills/vitest-testing
+        sync: identical
+      muse:
+        path: .agents/skills/vitest-testing
+        sync: identical
+    exclusions: {}
+
+  - id: gh-fix-ci
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/gh-fix-ci
+    harnesses:
+      codex:
+        path: .agents/skills/gh-fix-ci
+        sync: identical
+      agy:
+        path: .agents/skills/gh-fix-ci
+        sync: identical
+      opencode:
+        path: .opencode/skills/gh-fix-ci
+        sync: identical
+      claude_code:
+        path: .claude/skills/gh-fix-ci
+        sync: identical
+      muse:
+        path: .agents/skills/gh-fix-ci
+        sync: identical
+    exclusions: {}

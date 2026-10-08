@@ -210,6 +210,30 @@
       "track": "branch",
       "ref": "e53a142a2420e8cd812cfe9ed0484ab01bc856aa",
       "version": null
+    },
+    "sota-testing": {
+      "repo": "martinholovsky/sota-skills",
+      "path": "skills/sota-testing",
+      "dest": ".opencode/skills/sota-testing",
+      "track": "branch",
+      "ref": "6f9bbf9c1ccb00359134ea643b8519f4222cf239",
+      "version": null
+    },
+    "vitest-testing": {
+      "repo": "axross/skills",
+      "path": "skills/vitest-testing",
+      "dest": ".opencode/skills/vitest-testing",
+      "track": "branch",
+      "ref": "67689e4673cc75494a3c47430d10fdde2116e7c4",
+      "version": null
+    },
+    "gh-fix-ci": {
+      "repo": "openai/skills",
+      "path": "skills/.curated/gh-fix-ci",
+      "dest": ".opencode/skills/gh-fix-ci",
+      "track": "branch",
+      "ref": "49f948faa9258a0c61caceaf225e179651397431",
+      "version": null
     }
   },
   "plugins": {

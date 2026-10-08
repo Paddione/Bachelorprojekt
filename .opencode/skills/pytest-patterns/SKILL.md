@@ -3,6 +3,13 @@ name: pytest-patterns
 description: Python testing with pytest covering fixtures, parametrization, mocking, and test organization for reliable test suites
 ---
 
+## Evidence-based review additions
+
+For reviews, first read [review-gates.md](references/review-gates.md). It supplements the existing fixture, parametrization and mocking examples with scope/evidence gates, await-specific assertions and modern asyncio-mode handling. It does not install a second pytest skill. Use [sota-testing](../sota-testing/SKILL.md) for a single audit across Python, JavaScript, browser, shell and CI lanes.
+
+Check installed Python, pytest and plugin versions before applying the historical examples below. Prefer current stable official documentation; do not replace the event-loop fixture from old examples without checking the installed pytest-asyncio lifecycle APIs.
+
+
 # Pytest Patterns - Comprehensive Testing Guide
 
 A comprehensive skill for mastering Python testing with pytest. This skill covers everything from basic test structure to advanced patterns including fixtures, parametrization, mocking, test organization, coverage analysis, and CI/CD integration.

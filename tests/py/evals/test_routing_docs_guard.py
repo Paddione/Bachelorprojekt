@@ -82,37 +82,54 @@ def test_c_retired_markers_are_present(repo_root: Path):
     assert "Mirror stillgelegt" in gesamt.read_text(encoding="utf-8")
 
 
-def _change_time(repo_root: Path, path: Path) -> float:
-    """Last change of a file: commit time when tracked and unmodified, else mtime.
+def _generated_views(repo_root: Path, tmp_path: Path) -> dict[str, str]:
+    """Regenerate into a temporary directory without touching tracked artifacts."""
+    registry = tmp_path / "docs" / "agent-guide" / "registry"
+    registry.parent.mkdir(parents=True)
+    registry.symlink_to(repo_root / "docs" / "agent-guide" / "registry", target_is_directory=True)
+    subprocess.run(["node", str(repo_root / "scripts/toolset/emit-map.mjs")],
+                   cwd=tmp_path, check=True, capture_output=True, text=True)
+    module = (repo_root / "scripts/agent-guide/emit-webapp.mjs").as_uri()
+    projection = subprocess.run(
+        ["node", "--input-type=module", "-e",
+         f'import {{ buildWebappData, serialize }} from "{module}"; '
+         'process.stdout.write(serialize(buildWebappData(process.argv[1])));',
+         str(repo_root / "docs/agent-guide/registry")],
+        cwd=repo_root, check=True, capture_output=True, text=True,
+    )
+    return {
+        "docs/agent-guide/maps/toolset-map.md":
+            (tmp_path / "docs/agent-guide/maps/toolset-map.md").read_text(encoding="utf-8"),
+        "components/website/src/lib/agent-guide.generated.json": projection.stdout,
+    }
 
-    A fresh checkout (CI) sets mtimes in checkout order, which says nothing about
-    which file was regenerated last; the commit history does. [T901432]"""
-    rel = str(path.relative_to(repo_root))
-    dirty = subprocess.run(["git", "-C", str(repo_root), "status", "--porcelain", "--", rel],
-                           capture_output=True, text=True, check=False).stdout.strip()
-    if not dirty:
-        ct = subprocess.run(["git", "-C", str(repo_root), "log", "-1", "--format=%ct", "--", rel],
-                            capture_output=True, text=True, check=False).stdout.strip()
-        if ct:
-            return float(ct)
-    return path.stat().st_mtime
+
+def _assert_generated_views_match(repo_root: Path, expected: dict[str, str]):
+    for rel, content in expected.items():
+        artifact = repo_root / rel
+        assert artifact.is_file(), f"KEEPER FEHLT: {rel}"
+        assert artifact.read_text(encoding="utf-8") == content, f"REGEN FEHLT: {rel}"
 
 
-def test_d_keepers_k3_target_exists_and_generated_files_not_older_than_registry(repo_root: Path):
-    """(d) keepers: k3 target exists, generated files not older than registry."""
-    k3 = repo_root / "docs" / "brain" / "k3-code-graph.md"
-    assert k3.is_file()
+def test_d_keepers_k3_target_exists_and_generated_files_match_registry(repo_root: Path, tmp_path: Path):
+    """Actual generator output is authoritative, not checkout or commit timestamps."""
+    assert (repo_root / "docs/brain/k3-code-graph.md").is_file()
+    _assert_generated_views_match(repo_root, _generated_views(repo_root, tmp_path))
 
-    reg = repo_root / "docs" / "agent-guide" / "registry" / "capabilities.yaml"
-    assert reg.is_file()
-    reg_mtime = _change_time(repo_root, reg)
 
-    keepers = [
-        "docs/agent-guide/maps/toolset-map.md",
-        "components/website/src/lib/agent-guide.generated.json",
-    ]
-    for g in keepers:
-        f = repo_root / g
-        assert f.is_file(), f"KEEPER FEHLT: {g}"
-        f_mtime = _change_time(repo_root, f)
-        assert int(f_mtime) >= int(reg_mtime), f"REGEN FEHLT: {g} ist aelter als capabilities.yaml"
+@pytest.mark.parametrize("stale", [
+    "docs/agent-guide/maps/toolset-map.md",
+    "components/website/src/lib/agent-guide.generated.json",
+])
+def test_generated_view_guard_rejects_stale_content_even_with_new_mtime(
+    repo_root: Path, tmp_path: Path, stale: str,
+):
+    expected = _generated_views(repo_root, tmp_path / "generated")
+    fixture = tmp_path / "stale-repo"
+    for rel, content in expected.items():
+        artifact = fixture / rel
+        artifact.parent.mkdir(parents=True, exist_ok=True)
+        artifact.write_text(content, encoding="utf-8")
+    (fixture / stale).write_text("stale content freshly written\n", encoding="utf-8")
+    with pytest.raises(AssertionError, match="REGEN FEHLT"):
+        _assert_generated_views_match(fixture, expected)

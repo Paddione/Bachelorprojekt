@@ -199,6 +199,30 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:update-dependencies`** — Status `suppressed`
   - _Grund:_ Archivierte Routine mit ueberholten Pfaden; nur explizit als historische Referenz nutzen.
 
+## Fähigkeit: `test-environment-audit`
+
+- **`skill:sota-testing`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Alle Testumgebungen gemeinsam auditieren: Vitest, pytest, Playwright, BATS, Integration und CI; Testqualitaet, Isolation, Coverage und Flakiness bewerten.
+  - _Nicht:_ Nur Runner-API nachschlagen oder ohne Auftrag Tests und CI-Gates veraendern.
+  - _Rollen:_ `orchestrator`, `bp-ship`, `bp-build`, `bp-run`
+  - _Tiefe:_ `.claude/skills/sota-testing/SKILL.md`
+
+## Fähigkeit: `vitest-runner-review`
+
+- **`skill:vitest-testing`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Vitest-Konfiguration, Testumgebungen, Worker, Cleanup, Coverage und CI-Aufrufe pruefen; aktuelle stabile Version vor versionsabhaengigen Empfehlungen verifizieren.
+  - _Nicht:_ Frameworkuebergreifender Qualitaetsaudit — sota-testing; reine API-Beispiele — vitest.
+  - _Rollen:_ `orchestrator`, `bp-ship`
+  - _Tiefe:_ `.claude/skills/vitest-testing/SKILL.md`
+
+## Fähigkeit: `github-actions-check-diagnosis`
+
+- **`skill:gh-fix-ci`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Fehlgeschlagene GitHub-Actions-PR-Checks und Logs diagnostizieren.
+  - _Nicht:_ Vollstaendiger Testumgebungs-Audit oder externe CI-Provider; Fixes folgen dem autorisierten dev-flow.
+  - _Rollen:_ `orchestrator`, `bp-build`, `bp-ship`
+  - _Tiefe:_ `.claude/skills/gh-fix-ci/SKILL.md`
+
 ## Fähigkeit: `vorfall-behandlung`
 
 - **`skill:incident-response`** — Status `canonical` · Tier `assisted`

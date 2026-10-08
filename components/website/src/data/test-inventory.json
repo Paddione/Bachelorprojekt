@@ -2004,6 +2004,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-bench/orchestrator-marker",
+    "file": "tests/spec/agent-bench/orchestrator-marker.bats",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
     "id": "agent-bench/recorder",
     "file": "tests/spec/agent-bench/recorder.bats",
     "category": "agent-bench",

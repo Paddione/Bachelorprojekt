@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1354,
+      "file_count": 1355,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -499,6 +499,7 @@
         "tests/spec/agent-bench/loadouts.bats",
         "tests/spec/agent-bench/matrix-cli.bats",
         "tests/spec/agent-bench/orchestrator-dispatch.bats",
+        "tests/spec/agent-bench/orchestrator-marker.bats",
         "tests/spec/agent-bench/recorder.bats",
         "tests/spec/agent-bench/report-corpus.bats",
         "tests/spec/agent-bench/scoring.bats",

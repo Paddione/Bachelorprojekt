@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.407.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.3...website-v1.407.4) (2026-10-08)
+
+
+### Bug Fixes
+
+* **website:** repair massage a11y contrast and mailto guards [T901312] ([#6405](https://github.com/Paddione/Bachelorprojekt/issues/6405)) ([3427e22](https://github.com/Paddione/Bachelorprojekt/commit/3427e228da73e7ad5aac7646144e1837112e3300))
+
 ## [1.407.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.2...website-v1.407.3) (2026-10-08)
 
 

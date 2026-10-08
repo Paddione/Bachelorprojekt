@@ -3,7 +3,7 @@
 #
 # Guards for T901026: client-directory (minimales Kundenverzeichnis mit
 # Terminhistorie, Owner-only). Style: tests/spec/notify-reminders.bats.
-# IDs T901026-1..5 feed components/website/src/data/test-inventory.json
+# IDs T901026-1..5 and T901263-1 feed components/website/src/data/test-inventory.json
 # via scripts/build-test-inventory.sh.
 
 LIB_TS="${BATS_TEST_DIRNAME}/../../components/website/src/lib/clients.ts"
@@ -68,4 +68,27 @@ ZUSAMMEN_TS="${BATS_TEST_DIRNAME}/../../components/website/src/pages/api/owner/k
   [ -n "$guard_line" ] || { echo "retention guard (retentionBlocked) missing from loeschen.ts"; return 1; }
   [ -n "$delete_line" ] || { echo "DELETE statement missing from loeschen.ts"; return 1; }
   [ "$guard_line" -lt "$delete_line" ] || { echo "retention guard must precede the DELETE in loeschen.ts"; return 1; }
+}
+
+# ── Case 6 (T901263): relative lib imports resolve to real files ───────────
+
+@test "T901263-1: relative lib imports in kunden routes resolve to existing files" {
+  fail=0
+  for f in "$LIST_ASTRO" "$DETAIL_ASTRO" "$KORRIGIEREN_TS" "$EXPORT_TS" "$LOESCHEN_TS" "$ZUSAMMEN_TS"; do
+    [ -f "$f" ] || { echo "missing route file: $f"; fail=1; continue; }
+    dir=$(dirname "$f")
+    while IFS= read -r spec; do
+      case "$spec" in
+        ../*) ;;
+        *) continue ;;
+      esac
+      if [ -f "$dir/$spec" ] || [ -f "$dir/$spec.ts" ]; then
+        :
+      else
+        echo "unresolvable import '$spec' in $f"
+        fail=1
+      fi
+    done < <(grep -oE "from '[^']+'" "$f" | sed -e "s/^from '//" -e "s/'$//")
+  done
+  [ "$fail" -eq 0 ]
 }

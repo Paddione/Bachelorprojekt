@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "slug": "kunden-detail-imports",
+    "ticket_id": "",
+    "generated_from": "main@94c402632",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6050,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/owner/kunden/[id].astro",
+      "language": "astro",
+      "loc": 149,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": 851
+    },
+    {
+      "path": "tests/spec/client-directory.bats",
+      "language": "bash",
+      "loc": 94,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/pages/owner/kunden/[id].astro:30:function slotLine(entry: ClientHistoryEntry): string {",
+      "kind": "function",
+      "file": "components/website/src/pages/owner/kunden/[id].astro",
+      "signature": "30:function slotLine(entry: ClientHistoryEntry): string {(...)",
+      "type_text": "30:function slotLine(entry: ClientHistoryEntry): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/owner/kunden/[id].astro:39:function reasonLabel(reason: string): string {",
+      "kind": "function",
+      "file": "components/website/src/pages/owner/kunden/[id].astro",
+      "signature": "39:function reasonLabel(reason: string): string {(...)",
+      "type_text": "39:function reasonLabel(reason: string): string {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

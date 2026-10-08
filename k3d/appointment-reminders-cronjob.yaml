@@ -1,0 +1,69 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: appointment-reminders
+  namespace: workspace
+  labels:
+    app: cronjobs
+spec:
+  # Hourly, offset by 15 minutes against top-of-hour load. Review note
+  # (T016592): notify-unread stays suspended, but reminders are
+  # transactional mails via sendEmail() and stay exempt from the
+  # EMAIL_NOTIFICATIONS_ENABLED kill-switch — hence not suspended here.
+  schedule: "15 * * * *"
+  timeZone: "Europe/Berlin"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: remind
+              image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  # Diagnose pattern from scheduled-publish: log the HTTP code
+                  # and print the body to stderr on failure (no silent curl).
+                  # The double-dollar keeps CRON_SECRET out of the envsubst
+                  # render list so only the in-container shell resolves it.
+                  code=$(curl -s -S -X POST \
+                    -o /tmp/reminders-response \
+                    -w '%{http_code}' \
+                    -H "Authorization: Bearer $${CRON_SECRET}" \
+                    -H "Content-Type: application/json" \
+                    "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/cron/appointment-reminders")
+                  echo "appointment-reminders: HTTP $code"
+                  if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+                    echo "appointment-reminders: response body follows" >&2
+                    head -c 2000 /tmp/reminders-response >&2
+                    exit 1
+                  fi
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              env:
+                - name: CRON_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: CRON_SECRET

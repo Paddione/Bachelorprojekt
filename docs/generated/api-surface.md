@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-10-08T00:37:04.439Z
+> Generated at 2026-10-08T01:43:33.539Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -245,6 +245,7 @@
 | `/api/brett/bot` | POST | ❓ unclassified | `components/website/src/pages/api/brett/bot.ts` |
 | `/api/calendar/slots` | GET | ❓ unclassified | `components/website/src/pages/api/calendar/slots.ts` |
 | `/api/contact` | POST | ❓ unclassified | `components/website/src/pages/api/contact.ts` |
+| `/api/cron/appointment-reminders` | POST | ⏰ cron | `components/website/src/pages/api/cron/appointment-reminders.ts` |
 | `/api/cron/error-log-retention` | POST | ⏰ cron | `components/website/src/pages/api/cron/error-log-retention.ts` |
 | `/api/cron/notify-unread` | POST | 🔐 admin | `components/website/src/pages/api/cron/notify-unread.ts` |
 | `/api/cron/scheduled-publish` | GET | ⏰ cron | `components/website/src/pages/api/cron/scheduled-publish.ts` |
@@ -270,6 +271,7 @@
 | `/api/newsletter/unsubscribe` | GET | ❓ unclassified | `components/website/src/pages/api/newsletter/unsubscribe.ts` |
 | `/api/owner/anfragen/{id}/ablehnen` | POST | 🔑 session | `components/website/src/pages/api/owner/anfragen/[id]/ablehnen.ts` |
 | `/api/owner/anfragen/{id}/annehmen` | POST | 🔑 session | `components/website/src/pages/api/owner/anfragen/[id]/annehmen.ts` |
+| `/api/owner/anfragen/{id}/resend` | POST | 🔑 session | `components/website/src/pages/api/owner/anfragen/[id]/resend.ts` |
 | `/api/owner/bookings/{uid}/cancel` | POST | 🔑 session | `components/website/src/pages/api/owner/bookings/[uid]/cancel.ts` |
 | `/api/owner/bookings/{uid}/reschedule` | POST | 🔑 session | `components/website/src/pages/api/owner/bookings/[uid]/reschedule.ts` |
 | `/api/owner/bookings/phone` | POST | 🔑 session | `components/website/src/pages/api/owner/bookings/phone.ts` |

@@ -8,7 +8,7 @@ import {
   type InboxRowLike,
 } from '../../../../../lib/appointment-requests';
 import { addSlotToWhitelist } from '../../../../../lib/website-db';
-import { sendEmail } from '../../../../../lib/email';
+import { appendNotifyLog, notifyEntryFromResult, readNotifyLog, sendNotify } from '../../../../../lib/appointment-notify';
 
 const BRAND_FALLBACK = process.env.BRAND || 'mentolder';
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
@@ -99,14 +99,20 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
       await addSlotToWhitelist(BRAND_FALLBACK, new Date(req.slotStart), new Date(req.slotEnd));
     }
 
-    const slotText = req.slotDisplay ?? req.slotStart ?? 'Rückruf';
-    const mailed = await sendEmail({
-      to: req.email,
-      subject: `Absage: Ihre Terminanfrage bei ${BRAND_NAME}`,
-      text: `Hallo ${req.name},\n\nleider können wir Ihre Terminanfrage (${req.serviceName ?? 'Termin'}, ${slotText}) nicht bestätigen.${note !== '' ? `\n\nNotiz:\n${note}` : ''}\n\nGerne finden wir gemeinsam einen anderen Termin.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
-    }, request);
-    if (!mailed) {
+    const manageUrl = `${new URL(request.url).origin}/anfrage/${req.token}`;
+    const rowPayload = rows.find((row) => row.id === req.id)?.payload ?? {};
+    const result = await sendNotify(
+      { request: req, kind: 'absage', manageUrl, note, brandName: BRAND_NAME },
+      { request, log: readNotifyLog(rowPayload) },
+    );
+    if (!result.ok) {
       locals.requestLogger.warn({ requestId: req.id }, '[owner/anfragen/ablehnen] rejection mail failed');
+    }
+    try {
+      const next = appendNotifyLog(rowPayload, notifyEntryFromResult(result));
+      await pool.query(`UPDATE inbox_items SET payload = payload || $1::jsonb WHERE id = $2`, [JSON.stringify({ notify: next.notify }), req.id]);
+    } catch (err) {
+      locals.requestLogger.warn({ err, requestId: req.id }, '[owner/anfragen/ablehnen] notify log persist failed');
     }
     return json({ success: true }, { status: 200 });
   } catch (err) {

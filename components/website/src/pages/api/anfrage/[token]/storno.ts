@@ -8,10 +8,12 @@ import {
   type InboxRowLike,
 } from '../../../../lib/appointment-requests';
 import { addSlotToWhitelist } from '../../../../lib/website-db';
+import { appendNotifyLog, notifyEntryFromResult, readNotifyLog, sendNotify } from '../../../../lib/appointment-notify';
 import { sendAdminNotification } from '../../../../lib/notifications';
 import { checkRateLimit, getClientIp } from '../../../../lib/rate-limit';
 
 const BRAND = process.env.BRAND || 'mentolder';
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const NOT_FOUND = { error: 'Nicht gefunden.' };
 
 /** Reads a JSON or HTML-form body into a plain object. */
@@ -97,6 +99,23 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
       text: `Storno einer Terminanfrage.\n\nName: ${req.name}\nE-Mail: ${req.email}\nTermin: ${slotInfo}${note !== '' ? `\n\nNotiz des Gastes:\n${note}` : ''}`,
       replyTo: req.email,
     }, request);
+
+    // Cancellation confirmation to the guest via the notify lib.
+    const manageUrl = `${new URL(request.url).origin}/anfrage/${req.token}`;
+    const rowPayload = rows.find((row) => row.payload.token === token)?.payload ?? {};
+    const result = await sendNotify(
+      { request: req, kind: 'storno', manageUrl, brandName: BRAND_NAME },
+      { request, log: readNotifyLog(rowPayload) },
+    );
+    if (!result.ok) {
+      locals.requestLogger.warn({ requestId: req.id }, '[anfrage/storno] guest confirmation mail failed');
+    }
+    try {
+      const next = appendNotifyLog(rowPayload, notifyEntryFromResult(result));
+      await pool.query(`UPDATE inbox_items SET payload = payload || $1::jsonb WHERE id = $2`, [JSON.stringify({ notify: next.notify }), req.id]);
+    } catch (err) {
+      locals.requestLogger.warn({ err, requestId: req.id }, '[anfrage/storno] notify log persist failed');
+    }
 
     return json({ success: true, status: 'storniert' }, { status: 200 });
   } catch (err) {

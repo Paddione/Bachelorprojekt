@@ -48,6 +48,7 @@ resources:
   - cronjob-scheduled-publish.yaml
   - error-log-retention-cronjob.yaml
   - llm-proxy-log-retention-cronjob.yaml
+  - appointment-reminders-cronjob.yaml
   # Abrechnung
   - admin-actions-cronjobs.yaml
   - cronjob-monthly-billing.yaml

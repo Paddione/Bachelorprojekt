@@ -15,7 +15,7 @@ import {
   isSlotWhitelisted,
 } from '../../../../../lib/website-db';
 import { createCalendarEvent, getAllBookings } from '../../../../../lib/caldav';
-import { sendEmail } from '../../../../../lib/email';
+import { appendNotifyLog, notifyEntryFromResult, readNotifyLog, sendNotify } from '../../../../../lib/appointment-notify';
 
 const BRAND_FALLBACK = process.env.BRAND || 'mentolder';
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
@@ -158,14 +158,20 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
       return json({ error: 'Diese Anfrage wurde bereits bearbeitet.' }, { status: 409 });
     }
 
-    const slotText = req.slotDisplay ?? req.slotStart ?? 'Rückruf';
-    const mailed = await sendEmail({
-      to: req.email,
-      subject: `Termin bestätigt: ${req.serviceName ?? 'Ihre Anfrage'} (${slotText})`,
-      text: `Hallo ${req.name},\n\nIhr Termin bei ${BRAND_NAME} ist bestätigt:\n\n  Leistung: ${req.serviceName ?? 'Termin'}\n  Termin:   ${slotText}\n\nWir freuen uns auf Sie!\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
-    }, request);
-    if (!mailed) {
+    const manageUrl = `${new URL(request.url).origin}/anfrage/${req.token}`;
+    const rowPayload = rows.find((row) => row.id === req.id)?.payload ?? {};
+    const result = await sendNotify(
+      { request: req, kind: 'bestaetigung', manageUrl, brandName: BRAND_NAME },
+      { request, log: readNotifyLog(rowPayload) },
+    );
+    if (!result.ok) {
       locals.requestLogger.warn({ requestId: req.id }, '[owner/anfragen/annehmen] confirmation mail failed');
+    }
+    try {
+      const next = appendNotifyLog(rowPayload, notifyEntryFromResult(result));
+      await pool.query(`UPDATE inbox_items SET payload = payload || $1::jsonb WHERE id = $2`, [JSON.stringify({ notify: next.notify }), req.id]);
+    } catch (err) {
+      locals.requestLogger.warn({ err, requestId: req.id }, '[owner/anfragen/annehmen] notify log persist failed');
     }
     return json({ success: true }, { status: 200 });
   } catch (err) {

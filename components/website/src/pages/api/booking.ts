@@ -5,8 +5,9 @@ import {
   IdempotencyKeyError,
   generateRequestToken,
   resolveIdempotencyKey,
+  toAppointmentRequest,
 } from '../../lib/appointment-requests';
-import { sendEmail } from '../../lib/email';
+import { appendNotifyLog, notifyEntryFromResult, readNotifyLog, sendNotify } from '../../lib/appointment-notify';
 import { sendAdminNotification } from '../../lib/notifications';
 import { isSlotInAnyWindow, isSlotWhitelisted, claimSlot } from '../../lib/website-db';
 import { berlinDayKey } from '../../lib/caldav-cache';
@@ -187,30 +188,39 @@ export const POST: APIRoute = async ({ request , locals }) => {
     const requestToken = generateRequestToken();
     const manageUrl = `${new URL(request.url).origin}/anfrage/${requestToken}`;
 
-    await createInboxItem({
+    const requestPayload: Record<string, unknown> = {
+      name, email, phone: phone ?? null, type, typeLabel,
+      slotStart: slotStart ?? null, slotEnd: slotEnd ?? null,
+      slotDisplay: slotDisplay ?? null, date: date ?? null,
+      serviceKey: serviceKey ?? null, serviceSnapshot,
+      message: message ?? null,
+      projectId: projectId ?? null, leistungKey: leistungKey ?? null,
+      token: requestToken, state: 'offen',
+      idempotencyKey: idempotencyKey ?? null, slotClaimed,
+    };
+    const created = await createInboxItem({
       type: 'booking',
       referenceId: requestToken,
-      payload: {
-        name, email, phone: phone ?? null, type, typeLabel,
-        slotStart: slotStart ?? null, slotEnd: slotEnd ?? null,
-        slotDisplay: slotDisplay ?? null, date: date ?? null,
-        serviceKey: serviceKey ?? null, serviceSnapshot,
-        message: message ?? null,
-        projectId: projectId ?? null, leistungKey: leistungKey ?? null,
-        token: requestToken, state: 'offen',
-        idempotencyKey: idempotencyKey ?? null, slotClaimed,
-      },
+      payload: requestPayload,
       isTestData: isE2ETestRequest(request),
     });
 
-    // Confirmation email to user
-    await sendEmail({
-      to: email,
-      subject: isCallback ? `Rückruf-Anfrage bei ${BRAND_NAME}` : `Terminanfrage: ${typeLabel} am ${dateFormatted}`,
-      text: isCallback
-        ? `Hallo ${name},\n\nvielen Dank für Ihre Rückruf-Anfrage bei ${BRAND_NAME}.\n\nWir melden uns in Kürze unter ${phone} bei Ihnen.\n\nIhren persönlichen Verwaltungs-Link (Status, Storno) finden Sie hier:\n${manageUrl}\nBitte bewahren Sie diesen Link auf.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`
-        : `Hallo ${name},\n\nvielen Dank für Ihre Terminanfrage bei ${BRAND_NAME}.\n\nIhr gewünschter Termin:\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}\n\nWir prüfen Ihre Anfrage und melden uns in Kürze mit einer Bestätigung.\n\nIhren persönlichen Verwaltungs-Link (Status, Umbuchung, Storno) finden Sie hier:\n${manageUrl}\nBitte bewahren Sie diesen Link auf.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
-    }, request);
+    // Receipt mail to the guest via the notify lib (dedupe + retry + log).
+    const guest = toAppointmentRequest({ id: created.id, brand: created.brand ?? null, payload: requestPayload });
+    if (guest === null) {
+      locals.requestLogger.warn('Booking notify skipped: unmappable row');
+    } else {
+      const result = await sendNotify(
+        { request: guest, kind: 'eingang', manageUrl, typeLabel, brandName: BRAND_NAME },
+        { request, log: readNotifyLog(requestPayload) },
+      );
+      const next = appendNotifyLog(requestPayload, notifyEntryFromResult(result));
+      try {
+        await pool.query(`UPDATE inbox_items SET payload = payload || $1::jsonb WHERE id = $2`, [JSON.stringify({ notify: next.notify }), created.id]);
+      } catch (err) {
+        locals.requestLogger.warn({ err }, 'Booking notify log persist failed');
+      }
+    }
 
     // Admin notification
     const phoneInfo = phone ? `\nTelefon: ${phone}` : '';

@@ -10,6 +10,7 @@ import {
   type AppointmentRequest,
   type InboxRowLike,
 } from '../../lib/appointment-requests';
+import { notifyStatusFor } from '../../lib/appointment-notify';
 
 const brand = ownerBusiness(session).brand ?? process.env.BRAND ?? 'mentolder';
 // Open requests of this brand (plus unassigned legacy rows with NULL brand),
@@ -24,6 +25,8 @@ const { rows } = await pool.query<InboxRowLike>(
 const requests: AppointmentRequest[] = rows
   .map((row) => toAppointmentRequest(row))
   .filter((req): req is AppointmentRequest => req !== null);
+// Notify send log per request (already-loaded payload, no extra query).
+const payloadById = new Map<number, Record<string, unknown>>(rows.map((row) => [row.id, row.payload]));
 
 function slotLine(req: AppointmentRequest): string {
   if (req.slotStart === null) return 'Rückruf';
@@ -67,6 +70,12 @@ function slotLine(req: AppointmentRequest): string {
                 <h2>{req.serviceName ?? 'Terminanfrage'}</h2>
                 <p><strong>Termin:</strong> {slotLine(req)}</p>
                 <p><strong>Gast:</strong> {req.name} · {req.email}{req.phone ? ` · ${req.phone}` : ''}</p>
+                <p><strong>Versandstatus:</strong> {notifyStatusFor(payloadById.get(req.id) ?? {})}</p>
+                {notifyStatusFor(payloadById.get(req.id) ?? {}) === 'fehlgeschlagen' && (
+                  <form method="post" action={`/api/owner/anfragen/${req.id}/resend`}>
+                    <button type="submit">Erneut senden</button>
+                  </form>
+                )}
                 {req.message !== null && req.message !== '' && (
                   <p><strong>Nachricht:</strong> {req.message}</p>
                 )}

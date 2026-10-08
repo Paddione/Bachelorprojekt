@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-10-08T01:43:33.539Z
+> Generated at 2026-10-08T02:22:31.709Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -276,6 +276,10 @@
 | `/api/owner/bookings/{uid}/reschedule` | POST | 🔑 session | `components/website/src/pages/api/owner/bookings/[uid]/reschedule.ts` |
 | `/api/owner/bookings/phone` | POST | 🔑 session | `components/website/src/pages/api/owner/bookings/phone.ts` |
 | `/api/owner/calendar/block` | POST | 🔑 session | `components/website/src/pages/api/owner/calendar/block.ts` |
+| `/api/owner/kunden/{id}/export` | GET | 🔑 session | `components/website/src/pages/api/owner/kunden/[id]/export.ts` |
+| `/api/owner/kunden/{id}/korrigieren` | POST | 🔑 session | `components/website/src/pages/api/owner/kunden/[id]/korrigieren.ts` |
+| `/api/owner/kunden/{id}/loeschen` | POST | 🔑 session | `components/website/src/pages/api/owner/kunden/[id]/loeschen.ts` |
+| `/api/owner/kunden/{id}/zusammenfuehren` | POST | 🔑 session | `components/website/src/pages/api/owner/kunden/[id]/zusammenfuehren.ts` |
 | `/api/owner/me` | GET | 🔑 session | `components/website/src/pages/api/owner/me.ts` |
 | `/api/poll/{id}` | GET | ❓ unclassified | `components/website/src/pages/api/poll/[id].ts` |
 | `/api/poll/{id}/answer` | POST | ❓ unclassified | `components/website/src/pages/api/poll/[id]/answer.ts` |

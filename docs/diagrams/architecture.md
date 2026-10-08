@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-96 Services · 2107 Abhängigkeitskanten · 308 API-Endpoints
+96 Services · 2107 Abhängigkeitskanten · 312 API-Endpoints
 
 ## Service-Map
 
@@ -2549,6 +2549,10 @@ flowchart TB
 | `/api/owner/bookings/{uid}/reschedule` | POST | ❓ session |
 | `/api/owner/bookings/phone` | POST | ❓ session |
 | `/api/owner/calendar/block` | POST | ❓ session |
+| `/api/owner/kunden/{id}/export` | GET | ❓ session |
+| `/api/owner/kunden/{id}/korrigieren` | POST | ❓ session |
+| `/api/owner/kunden/{id}/loeschen` | POST | ❓ session |
+| `/api/owner/kunden/{id}/zusammenfuehren` | POST | ❓ session |
 | `/api/owner/me` | GET | ❓ session |
 | `/api/poll/{id}` | GET | ❓ unclassified |
 | `/api/poll/{id}/answer` | POST | ❓ unclassified |

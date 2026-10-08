@@ -1692,6 +1692,36 @@
     "kind": "shell"
   },
   {
+    "id": "T901026-1",
+    "file": "tests/spec/client-directory.bats",
+    "category": "T901026",
+    "kind": "shell"
+  },
+  {
+    "id": "T901026-2",
+    "file": "tests/spec/client-directory.bats",
+    "category": "T901026",
+    "kind": "shell"
+  },
+  {
+    "id": "T901026-3",
+    "file": "tests/spec/client-directory.bats",
+    "category": "T901026",
+    "kind": "shell"
+  },
+  {
+    "id": "T901026-4",
+    "file": "tests/spec/client-directory.bats",
+    "category": "T901026",
+    "kind": "shell"
+  },
+  {
+    "id": "T901026-5",
+    "file": "tests/spec/client-directory.bats",
+    "category": "T901026",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",

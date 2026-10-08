@@ -1,0 +1,149 @@
+---
+import { requireOwner, ownerBusiness } from '../../../../lib/owner-guard';
+import { getLoginUrl } from '../../../../lib/auth';
+import { listInboxItems } from '../../../../lib/messaging-db';
+import { deriveClients, findDuplicateCandidates, type ClientHistoryEntry } from '../../../../lib/clients';
+
+const session = await requireOwner(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+
+const brand = ownerBusiness(session).brand ?? process.env.BRAND ?? 'mentolder';
+const rawId = Astro.params.id ?? '';
+let clientId = rawId;
+try {
+  if (rawId.includes('%')) clientId = decodeURIComponent(rawId);
+} catch {
+  clientId = rawId;
+}
+// Strict owner isolation: only this brand's booking rows; unknown, invalid
+// or foreign ids answer 404 without distinguishing the reason.
+const clients = deriveClients(await listInboxItems({ brand, type: 'booking' }));
+const client = clientId.startsWith('mail:')
+  ? (clients.find((entry) => entry.id === clientId) ?? null)
+  : null;
+if (client === null) return new Response('Kunde nicht gefunden.', { status: 404 });
+
+const duplicates = findDuplicateCandidates(clients).filter(
+  (candidate) => candidate.a.id === client.id || candidate.b.id === client.id,
+);
+
+function slotLine(entry: ClientHistoryEntry): string {
+  if (entry.slotStart === null) return 'Rückruf';
+  const day = new Date(entry.slotStart).toLocaleDateString('de-DE', {
+    weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+    timeZone: 'Europe/Berlin',
+  });
+  return entry.slotDisplay !== null ? `${day} · ${entry.slotDisplay}` : day;
+}
+
+function reasonLabel(reason: string): string {
+  if (reason === 'gleiche-telefonnummer') return 'Gleiche Telefonnummer';
+  return 'Gleicher Name';
+}
+
+const encodedId = encodeURIComponent(client.id);
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{client.name === '' ? client.email : client.name} — Kunden</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; padding: 32px 20px; color: #222; background: #fafafa; }
+      main { max-width: 760px; margin: 0 auto; }
+      section { background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; padding: 20px 24px; margin: 16px 0; }
+      ul { list-style: none; margin: 0; padding: 0; }
+      li { margin: 8px 0; }
+      form { display: block; margin: 12px 0; padding: 12px 0; border-top: 1px solid #eee; }
+      label { display: block; font-size: 14px; color: #555; margin: 8px 0; }
+      input[type="text"], input[type="email"], input[type="tel"] { display: block; font: inherit; padding: 8px; border: 1px solid #ccc; border-radius: 8px; width: 280px; max-width: 100%; }
+      button { margin-top: 8px; padding: 10px 20px; min-height: 44px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; font: inherit; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>{client.name === '' ? client.email : client.name}</h1>
+      <p>Angemeldet als {session.name} ({session.email}).</p>
+      <section>
+        <h2>Kontaktdaten</h2>
+        <p><strong>Name:</strong> {client.name === '' ? '—' : client.name}</p>
+        <p><strong>E-Mail:</strong> {client.email}</p>
+        <p><strong>Telefon:</strong> {client.phone ?? '—'}</p>
+        {client.nameVariants.length > 0 && (
+          <p><strong>Weitere Schreibweisen:</strong> {client.nameVariants.join(', ')}</p>
+        )}
+        <p>{client.requestCount} {client.requestCount === 1 ? 'Anfrage' : 'Anfragen'}{client.openCount > 0 ? ` (${client.openCount} offen)` : ''}</p>
+      </section>
+      <section>
+        <h2>Terminhistorie</h2>
+        {client.history.length === 0 ? (
+          <p>Noch keine Termine vorhanden.</p>
+        ) : (
+          <ul>
+            {client.history.map((entry) => (
+              <li>{slotLine(entry)} · {entry.serviceName ?? 'Terminanfrage'} · {entry.state}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section>
+        <h2>Mögliche Dubletten</h2>
+        {duplicates.length === 0 ? (
+          <p>Keine Dubletten-Vorschläge vorhanden.</p>
+        ) : (
+          <ul>
+            {duplicates.map((candidate) => {
+              const other = candidate.a.id === client.id ? candidate.b : candidate.a;
+              return (
+                <li>
+                  <a href={`/owner/kunden/${encodeURIComponent(other.id)}`}>{other.name === '' ? other.email : other.name}</a>
+                  {' '}({reasonLabel(candidate.reason)})
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+      <section>
+        <h2>Aktionen</h2>
+        <form method="post" action={`/api/owner/kunden/${encodedId}/korrigieren`}>
+          <h3>Kontaktdaten korrigieren</h3>
+          <label>Name
+            <input type="text" name="name" value={client.name} maxlength="200" />
+          </label>
+          <label>E-Mail
+            <input type="email" name="email" value={client.email} maxlength="254" />
+          </label>
+          <label>Telefon
+            <input type="tel" name="phone" value={client.phone ?? ''} maxlength="50" />
+          </label>
+          <button type="submit">Korrigieren</button>
+        </form>
+        <form method="post" action={`/api/owner/kunden/${encodedId}/zusammenfuehren`}>
+          <h3>Mit anderem Eintrag zusammenführen</h3>
+          <label>Quell-Eintrag (Kunden-ID, z. B. mail:beispiel@example.test)
+            <input type="text" name="dropId" maxlength="300" required />
+          </label>
+          <input type="hidden" name="confirm" value="true" />
+          <button type="submit">Zusammenführen</button>
+        </form>
+        <form method="get" action={`/api/owner/kunden/${encodedId}/export`}>
+          <h3>Exportieren</h3>
+          <button type="submit">Als CSV exportieren</button>
+        </form>
+        <form method="post" action={`/api/owner/kunden/${encodedId}/loeschen`}>
+          <h3>Löschen</h3>
+          <label>
+            <input type="checkbox" name="bestaetigen" value="ja" required />
+            Ich bestätige die Löschung dieses Kunden.
+          </label>
+          <button type="submit">Löschen</button>
+        </form>
+      </section>
+      <nav>
+        <a href="/owner/kunden">Zurück zu Kunden</a> · <a href="/owner">Zurück zur Übersicht</a>
+      </nav>
+    </main>
+  </body>
+</html>

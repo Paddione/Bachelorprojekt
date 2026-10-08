@@ -5814,6 +5814,12 @@
     "kind": "shell"
   },
   {
+    "id": "unsloth-eval-harness/clarify-question",
+    "file": "tests/spec/unsloth-eval-harness/clarify-question.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
     "id": "unsloth-eval-harness/gguf-fixture-bridge",
     "file": "tests/spec/unsloth-eval-harness/gguf-fixture-bridge.bats",
     "category": "unsloth-eval-harness",

@@ -12,8 +12,9 @@ Case classes:
     completeness, and absence of unknown params.
   - no_action: full score only if no action was emitted at all. An emitted
     action is the failure case this class exists to catch.
-  - clarify: full score only if no action was emitted (a clarifying
-    question is expected instead). An action with invented params scores 0.
+  - clarify: full score for silence or a clarifying-question marker
+    (a clarifying question is expected instead of an action). An action
+    with invented params scores 0.
 
 CLI:
     eval_scoring.py score < payload.json
@@ -36,6 +37,9 @@ from typing import Any
 CASE_CLASSES = ("action", "no_action", "clarify")
 LANGUAGES = ("en", "de")
 MIN_TESTSET_SIZE = 40
+# Mirror of eval_harness.QUESTION_ACTION_NAME (kept literal to avoid a
+# circular import: eval_harness imports this module).
+QUESTION_ACTION_NAME = "__question__"
 
 
 def _is_well_formed_action(action: Any) -> bool:
@@ -96,12 +100,15 @@ def score_no_action_case(case: dict, actual_actions: list) -> dict:
 
 
 def score_clarify_case(case: dict, actual_actions: list) -> dict:
-    if actual_actions:
-        return {
-            "score": 0.0,
-            "reasons": ["action emitted instead of a clarifying question"],
-        }
-    return {"score": 1.0, "reasons": []}
+    """Full score for silence or a clarifying question, otherwise 0.0."""
+    if actual_actions == [] or actual_actions == [
+        {"name": QUESTION_ACTION_NAME, "params": {}}
+    ]:
+        return {"score": 1.0, "reasons": []}
+    return {
+        "score": 0.0,
+        "reasons": ["action emitted instead of a clarifying question"],
+    }
 
 
 _SCORERS = {

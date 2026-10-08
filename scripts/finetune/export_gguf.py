@@ -101,11 +101,28 @@ def run_export(args: argparse.Namespace) -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Merge + GGUF-Export ({args.quantization}) nach {out_path} ...")
-    model.save_pretrained_gguf(
-        str(out_path.parent),
-        tokenizer,
-        quantization_method=args.quantization,
-    )
+    try:
+        model.save_pretrained_gguf(
+            str(out_path.parent),
+            tokenizer,
+            quantization_method=args.quantization,
+        )
+    except RuntimeError as exc:
+        # Unsloth stagt die Basis-safetensors per copy2 ins Output-Dir (read-only
+        # Rechte aus dem HF-Cache bleiben erhalten) und oeffnet sie danach r+b
+        # fuer den In-place-LoRA-Merge — EACCES beim ersten Lauf. Staging wird
+        # bei existierenden Dateien uebersprungen, daher: beschreibbar machen
+        # und genau einmal wiederholen.
+        if "Permission denied" not in str(exc):
+            raise
+        print("Unsloth-Staging ist read-only (HF-Cache-Rechte) — chmod + Retry ...")
+        for staged in out_path.parent.glob("*.safetensors*"):
+            staged.chmod(staged.stat().st_mode | 0o200)
+        model.save_pretrained_gguf(
+            str(out_path.parent),
+            tokenizer,
+            quantization_method=args.quantization,
+        )
 
     # Unsloth benennt die Ausgabedatei nach dem Basismodell — auf den erwarteten Slot-Namen
     # umbenennen, damit llm-proxy sie eindeutig findet.

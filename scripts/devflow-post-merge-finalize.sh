@@ -392,6 +392,7 @@ if [[ -d "$WORKTREE" ]]; then
 else
   # [T012256/B2] Widerspruch benennen statt verschweigen — Aufloesung in lib (T900096-P1.4).
   if _wt_holding_branch="$(finalize_holding_worktree "$REPO_DIR" "$BRANCH")"; then
+    CLEANUP_SAFE=0
     mark_warn "Schritt 10: aufgeloester Pfad $WORKTREE existiert nicht, aber $_wt_holding_branch haelt $BRANCH — nicht aufgeraeumt (Aufloesung lieferte den falschen Pfad)"
   else
     mark_skip "Schritt 10: Worktree bereits entfernt"
@@ -410,6 +411,7 @@ if git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
        && [[ "$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH")" == "$_CLEANUP_TIP" ]]; then  # merge-base --is-ancestor vs origin/main (T900096)
     git -C "$REPO_DIR" branch -D "$BRANCH" && mark_ok "Schritt 10: lokaler Branch $BRANCH entfernt" || { echo "ERROR: Schritt 10 — lokaler Branch $BRANCH nicht loeschbar." >&2; exit 1; }
   else
+    CLEANUP_SAFE=0
     mark_warn "Schritt 10: lokaler Branch $BRANCH traegt Commits ausserhalb origin/main — bleibt erhalten (Datenverlust-Risiko, T900096)"
     mark_skip "Schritt 10: lokaler Branch $BRANCH behalten (ungemergte Commits)"
   fi
@@ -420,7 +422,9 @@ fi
 # Remote-Delete via branch-reaper.sh (Kriterien: Ticket done, keine offenen PRs,
 # Blob-Gleichheit zu main — inkl. Sicherheitsnetz-Ref-Tag). Best-effort: der
 # Reaper entscheidet selbst, was geloescht wird; ein Fehlschlag ist kein Abbruch.
-if bash "$REPO_DIR/scripts/branch-reaper.sh" --ticket "$TICKET_ID" >/dev/null 2>&1; then
+if [[ "$CLEANUP_SAFE" != 1 ]]; then
+  mark_skip "Schritt 10: branch-reaper wegen blockiertem Cleanup uebersprungen"
+elif bash "$REPO_DIR/scripts/branch-reaper.sh" --ticket "$TICKET_ID" >/dev/null 2>&1; then
   mark_ok "Schritt 10: branch-reaper Lauf abgeschlossen"
 else
   mark_skip "Schritt 10: branch-reaper meldete Fehler (Best-effort — Remote-Branch manuell pruefen)"

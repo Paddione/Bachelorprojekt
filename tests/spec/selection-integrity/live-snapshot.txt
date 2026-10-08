@@ -460,7 +460,9 @@ tests/spec/neovim-dashboard.bats
 tests/spec/network-address-plan/networks-registry.bats
 tests/spec/newsletter-system.bats
 tests/spec/nextcloud-integration.bats
+tests/spec/notify-reminders.bats
 tests/spec/omp-harness.bats
+tests/spec/openclaw-harness.bats
 tests/spec/openclaw-ops-bot.bats
 tests/spec/opencode-config-ssot.bats
 tests/spec/opencode-local-model-runner.bats

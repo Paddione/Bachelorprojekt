@@ -139,10 +139,10 @@ jobs:
           KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
           IMAGE: ${{ needs.build-image.outputs.image }}
           SHA_TAG: ${{ needs.build-image.outputs.sha_tag }}
-          BRAND_ID: korczewski
+          BRAND_ID: massage
+          BRAND_NAME: Massagepraxis Vögelsen
           PROD_DOMAIN: korczewski.de
-          BRAND_NAME: KORE
-          CONTACT_EMAIL: info@korczewski.de
+          CONTACT_EMAIL: massage@korczewski.de
           CONTACT_PHONE: ${{ secrets.KORCZEWSKI_CONTACT_PHONE }}
           CONTACT_CITY: Lüneburg
           CONTACT_NAME: Patrick Korczewski
@@ -171,6 +171,11 @@ jobs:
           WEBSITE_IMAGE: website
           WEBSITE_NAMESPACE: website-korczewski
           WORKSPACE_NAMESPACE: workspace-korczewski
+          # T901440: zentrale DB-Koordinaten (identisch zu environments/fleet-korczewski.yaml)
+          WEBSITE_DB_NAMESPACE: workspace
+          WEBSITE_DB_NAME: website_massage
+          WEBSITE_DB_USER: website_massage
+          TLS_SECRET_NAME: korczewski-tls
           SYSTEMTEST_LOOP_ENABLED: "true"
           COMFY_HOST_IP: "10.13.14.10"
           COMFY_PORT: "8189"
@@ -242,38 +247,47 @@ jobs:
             grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED" | sort -u
             exit 1
           fi
+          # T901440: Pre-Rollout Secret-Check VOR apply gegen das effektiv
+          # gerenderte Overlay (k3d/website.yaml allein uebersieht den gepatchten
+          # WEBSITE_MASSAGE_DB_PASSWORD-Key). Alle nicht-optionalen Secret-Keys
+          # aller Container inkl. Initcontainern, je Dokument-Namespace; Werte
+          # werden nie ausgegeben.
+          echo "$SUBSTITUTED" > /tmp/website-korczewski-rendered.yaml
+          MISSING=""
+          for NS_KEY in $(python3 -c "
+          import yaml
+          seen = set()
+          with open('/tmp/website-korczewski-rendered.yaml') as f:
+              for doc in yaml.safe_load_all(f):
+                  if not doc: continue
+                  ns = ((doc.get('metadata') or {}).get('namespace')) or 'default'
+                  spec = (doc.get('spec') or {})
+                  tmpl = ((spec.get('template') or {}).get('spec')) or spec
+                  for c in (tmpl.get('containers', []) or []) + (tmpl.get('initContainers', []) or []):
+                      for e in (c.get('env', []) or []):
+                          v = (e.get('valueFrom') or {}).get('secretKeyRef') or {}
+                          if v.get('name') == 'website-secrets' and v.get('key') and not v.get('optional'):
+                              seen.add(ns + '/' + v['key'])
+          for item in sorted(seen):
+              print(item)
+          "); do
+            NS="${NS_KEY%%/*}"
+            KEY="${NS_KEY#*/}"
+            if ! kubectl get secret website-secrets -n "$NS" \
+                -o jsonpath="{.data.${KEY}}" 2>/dev/null | grep -q .; then
+              MISSING="$MISSING $NS/$KEY"
+            fi
+          done
+          if [[ -n "$MISSING" ]]; then
+            echo "::error::website-secrets missing required keys:$MISSING"
+            echo "Fix: task env:seal ENV=fleet-korczewski (Keys WEBSITE_MASSAGE_DB_PASSWORD etc.)"
+            exit 1
+          fi
           sed -E 's/\$\$([a-zA-Z0-9_\{])/$\1/g' <<<"$SUBSTITUTED" \
             | kubectl apply --server-side --force-conflicts -f -
 
           # Pin to the exact SHA-tagged image to guarantee the freshly built version rolls out.
           kubectl set image deployment/website website="${IMAGE}:${SHA_TAG}" -n website-korczewski
-
-      - name: Pre-Rollout Secret-Check (korczewski)
-        env:
-          NAMESPACE: website-korczewski
-        run: |
-          MISSING=""
-          for KEY in $(python3 -c "
-          import yaml
-          with open('k3d/website.yaml') as f:
-              for doc in yaml.safe_load_all(f):
-                  if not doc: continue
-                  for c in (doc.get('spec',{}).get('template',{}).get('spec',{}).get('containers',[]) or []):
-                      for e in (c.get('env',[]) or []):
-                          v = (e.get('valueFrom') or {}).get('secretKeyRef') or {}
-                          if v.get('name') == 'website-secrets' and v.get('key') and not v.get('optional'):
-                              print(v['key'])
-          "); do
-            if ! kubectl get secret website-secrets -n "$NAMESPACE" \
-                -o jsonpath="{.data.${KEY//_/\_}}" 2>/dev/null | grep -q .; then
-              MISSING="$MISSING $KEY"
-            fi
-          done
-          if [[ -n "$MISSING" ]]; then
-            echo "::error::website-secrets in $NAMESPACE is missing required keys:$MISSING"
-            echo "Fix: task env:seal ENV=korczewski && task env:deploy ENV=korczewski"
-            exit 1
-          fi
 
       - name: Wait for rollout (korczewski)
         env:

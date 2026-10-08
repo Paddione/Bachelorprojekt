@@ -8,3 +8,13 @@ spec:
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}@${WEBSITE_IMAGE_DIGEST}
+          env:
+            # T901440: zentrale Massage-DB (geonau dieser Key, kein Klartext-env)
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: WEBSITE_MASSAGE_DB_PASSWORD
+            # T901440: Guard-/DB-Schreibpfade lesen zuerst BRAND_ID — eindeutig massage
+            - name: BRAND_ID
+              value: massage

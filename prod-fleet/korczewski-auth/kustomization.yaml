@@ -1,0 +1,59 @@
+# T901440: eigene Pocket ID fuer den korczewski-Slot (ns workspace-korczewski).
+# Keine volle k3d-, prod-korczewski- oder fleet-common-Basis — Ressourcen einzeln.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: workspace-korczewski
+resources:
+  - ../../k3d/pocket-id.yaml
+  - ../../k3d/pocket-id-client-seed.yaml
+  - ../../k3d/pocket-id-client-seed-rbac.yaml
+  - ../../prod/wildcard-certificate.yaml
+  - ../../prod/reflector.yaml
+  - namespace.yaml
+configMapGenerator:
+  - name: domain-config
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - POCKET_ID_DOMAIN=${POCKET_ID_DOMAIN}
+patches:
+  # p1 verwaltet Rollen zentral — kein zweiter DB-Initializer, kein Superuser.
+  - patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: pocket-id-db-init
+  # Fleet-Platform besitzt tls-sync-ClusterRole/Binding bereits.
+  - patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: tls-sync
+  - patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: tls-sync
+  - target:
+      kind: Deployment
+      name: pocket-id
+    path: patch-pocket-id-db.yaml
+  - target:
+      kind: CronJob
+      name: tls-sync
+    path: patch-tls-reflect.yaml
+  # IngressRoute auf websecure + TLS; Host bleibt ${POCKET_ID_DOMAIN}.
+  - target:
+      kind: IngressRoute
+      name: pocket-id
+    patch: |-
+      - op: replace
+        path: /spec/entryPoints
+        value: [websecure]
+      - op: add
+        path: /spec/tls
+        value:
+          secretName: ${TLS_SECRET_NAME}

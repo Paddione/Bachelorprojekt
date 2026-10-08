@@ -158,3 +158,148 @@ Drosselung, 2026-10-08, informativ, nicht-gatend):**
 | `/kontakt`   | 56 ms | 143 ms | 17 | 293 KB |
 
 Alle fünf Seiten: axe 0 critical/serious gegen denselben Prod-Build.
+
+## 12. Go-live auf korczewski.de (T901440)
+
+Die Website läuft auf dem korczewski-Slot (`web.korczewski.de`), der Owner-Login über die eigene
+Pocket ID (`auth.korczewski.de`). Der übrige korczewski-Workspace bleibt eingefroren (T002479).
+Alle Schritte hier macht der Operator von Hand. Der Agent führt sie nicht aus.
+
+**Go-live bestätigt am:** ____-__-__ (Operator erst nach erfolgreichem Smoke-Test eintragen). Ein Merge allein belegt keinen Live-Betrieb.
+
+Reihenfolge einhalten, jeder Schritt hat einen Prüfbefehl.
+
+### 12.1 Secrets erzeugen und versiegeln
+
+1. Zuerst prüfen, ob die zwei Keys bereits vorhanden sind. Bei vorhandenen Keys die Werte erhalten und zwischen beiden Dateien sicher angleichen, keine Rotation. Nur fehlende Keys erzeugen. Zwei neue Passwörter erzeugen und in beide git-crypt-Dateien mit identischem Wert eintragen
+   (`environments/.secrets/fleet-mentolder.yaml` und `environments/.secrets/fleet-korczewski.yaml`,
+   Entsperr-Check siehe `docs/runbooks/credentials-finden.md` §2). `task env:generate` bricht bei
+   vorhandener Datei ab, deshalb von Hand anhängen:
+
+    ```bash
+    WEBSITE_PW=$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-32)
+    POCKET_PW=$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-32)
+    for f in fleet-mentolder fleet-korczewski; do
+      printf 'WEBSITE_MASSAGE_DB_PASSWORD: "%s"\nPOCKET_ID_KORCZEWSKI_DB_PASSWORD: "%s"\n' \
+        "$WEBSITE_PW" "$POCKET_PW" >> "environments/.secrets/${f}.yaml"
+    done
+    unset WEBSITE_PW POCKET_PW
+    ```
+
+2. Beide Umgebungen versiegeln (braucht `kubeseal` und Cluster-Zugriff auf `fleet`):
+
+    ```bash
+    task env:seal ENV=fleet-mentolder
+    task env:seal ENV=fleet-korczewski
+    ```
+
+3. Prüfen, dass die Keys in den SealedSecrets stehen, dann committen und mergen lassen. Flux
+   reconciled `flux-sealed-secrets-korczewski` automatisch:
+
+    ```bash
+    grep -c 'WEBSITE_MASSAGE_DB_PASSWORD' environments/sealed-secrets/fleet-mentolder.yaml environments/sealed-secrets/fleet-korczewski.yaml
+    # erwartet: jeweils > 0 (workspace-secrets plus website-secrets können denselben Key enthalten)
+    kubectl --context fleet -n workspace-korczewski get secret workspace-secrets -o jsonpath='{.data.POCKET_ID_KORCZEWSKI_DB_PASSWORD}' | wc -c
+    # erwartet: größer 0
+    ```
+
+Nach dem zentralen shared-db-Rollout und bevor Owner-Funktionen freigegeben werden, den in p1 erweiterten Bootstrap-/Migrations-Task ausführen:
+
+```bash
+task db:migrate ENV=fleet-korczewski
+```
+
+Er muss ausschließlich `website_massage` im zentralen Namespace `workspace` initialisieren. Den idempotenten zweiten Lauf und die vorgesehenen Owner-Rechte prüfen.
+
+### 12.2 DNS bei ipv64
+
+Der ipv64-Updater bleibt aus. Drei A-Records setzen, Ziel ist die öffentliche IP des
+fleet-Ingress (identisch zu den A-Records von `mentolder.de`):
+
+```bash
+INGRESS_IP=$(dig +short mentolder.de A | head -1); echo "$INGRESS_IP"
+```
+
+| Name | Typ | Wert | Prüfbefehl |
+|---|---|---|---|
+| `korczewski.de` | A | `$INGRESS_IP` | `dig +short korczewski.de A` |
+| `web.korczewski.de` | A | `$INGRESS_IP` | `dig +short web.korczewski.de A` |
+| `auth.korczewski.de` | A | `$INGRESS_IP` | `dig +short auth.korczewski.de A` |
+
+Jeder `dig`-Aufruf muss genau `$INGRESS_IP` liefern. Danach das Zertifikat prüfen (Wildcard
+`*.korczewski.de` plus Apex, `workspace-wildcard` in `workspace-korczewski`):
+
+```bash
+kubectl --context fleet -n workspace-korczewski get certificate workspace-wildcard
+# erwartet: READY True
+curl -sSI https://web.korczewski.de | head -1
+# erwartet: HTTP/2 200
+```
+
+Vor dem ersten Website-Aufruf den bestehenden `tls-sync`-CronJob einmal als Job ausführen und dessen Abschluss prüfen. Er spiegelt nur nach `website-korczewski`:
+
+```bash
+kubectl --context fleet -n workspace-korczewski create job tls-sync-massage-initial --from=cronjob/tls-sync
+kubectl --context fleet -n workspace-korczewski wait --for=condition=complete job/tls-sync-massage-initial --timeout=120s
+kubectl --context fleet -n website-korczewski get secret korczewski-tls
+```
+
+### 12.3 Pocket-ID-Admin-Bootstrap
+
+Einmalig nach `docs/runbooks/pocket-id-bootstrap.md`, mit diesen Abweichungen für korczewski:
+
+- Schritt 1 unter `https://auth.korczewski.de/setup` statt `auth.localhost` (Passkey, Chromium).
+- Schritt 3 und 4 mit `-n workspace-korczewski` und `--context fleet`
+  (`workspace-secrets`, Job `pocket-id-client-seed`).
+
+Der zentrale DB-Initializer legt keinen Pocket-ID-API-Key an. Den API-Key nach dem Bootstrap in der UI erstellen, sicher in der korczewski-Secret-Quelle unter `POCKET_ID_API_KEY` hinterlegen und über `env:seal` versiegeln. Keine Werte in Logs oder Tickets ausgeben. Anschließend den fehlgeschlagenen Seed-Job gezielt erneut erstellen (bestehender Bootstrap-Runbook-Pfad), ohne die suspendierte Workspace-Kustomization zu aktivieren.
+
+Prüfung, dass der Seed-Job lief und die Clients existieren:
+
+```bash
+kubectl --context fleet -n workspace-korczewski get job pocket-id-client-seed
+# erwartet: COMPLETIONS 1/1
+```
+
+### 12.4 Inhaberin-Konto und Gruppe
+
+1. In der Pocket-ID-UI (`https://auth.korczewski.de`) Benutzerkonto der Inhaberin anlegen.
+2. Gruppe `workspace-owners` anlegen (falls nicht vorhanden) und die Inhaberin zuordnen. Der
+   Owner-Bereich (`/owner/*`) lässt nur Sessions mit dieser Gruppe durch (`OWNER_GROUP`).
+3. Prüfung: Login unter `https://web.korczewski.de/owner/anfragen` führt über
+   `auth.korczewski.de` zurück in den Owner-Bereich. Ein Konto ohne Gruppe bekommt keinen Zugriff.
+
+Vor Freigabe außerdem rechtliche Angaben, Rechnungssteller und Steuerangaben der Praxis im Owner-Bereich pflegen und mit der bestehenden Massage-Brand-Konfiguration abgleichen. Keine korczewski-Workspace-Identität ungeprüft als Praxisdaten übernehmen.
+
+Vorhandene Apex-Routen mit demselben Host inventarisieren. Eine konkurrierende alte `workspace-ingress-apex` kontrolliert entfernen oder deaktivieren, ohne die eingefrorene Workspace-Kustomization zu aktivieren.
+
+### 12.5 Smoke-Test
+
+1. Auf `https://web.korczewski.de/kontakt` eine Test-Anfrage senden (Service, Slot, Kontakt).
+2. Als Inhaberin unter `/owner/anfragen` anmelden und die Anfrage annehmen. Die Bestätigung geht
+   an die Gast-Adresse.
+3. Unter `/owner/rechnungen` aus dem bestätigten Termin eine Rechnung erstellen
+   (Nummer fortlaufend, Pflichtangaben vorhanden).
+4. Test-Anfrage und Test-Rechnung per Storno/Neuausstellung bereinigen (§2, §5), nie überschreiben.
+5. Im nächsten erfolgreichen zentralen Backup die beiden verschlüsselten Archive für `website_massage` und `pocket_id_korczewski` nachweisen. Ein Log mit „unkonfiguriert/übersprungen“ genügt nach Go-live nicht.
+
+Schlägt Schritt 2 fehl, Pocket ID, Gruppenzuordnung, Seed-Clients, Callback und DB-Verbindung prüfen (§12.3, §12.4). Die öffentliche
+Seite samt Anfrageformular bleibt davon unberührt.
+
+### 12.6 Rollback
+
+Die Rollen und Datenbanken `website_massage` und `pocket_id_korczewski` bleiben erhalten.
+
+```bash
+flux suspend kustomization flux-website-korczewski -n flux-system
+flux suspend kustomization flux-korczewski-auth -n flux-system
+flux get kustomizations -n flux-system | grep -E 'korczewski'
+# erwartet: flux-website-korczewski und flux-korczewski-auth SUSPENDED True
+```
+
+Vor dem Go-live vorhandenen Flux-Inventarbesitz von Pocket ID, PVC und Certificate prüfen. Das alte `flux-korczewski` bleibt suspendiert. Bei späterem vollständigem Auftauen muss der Ressourcenbesitz separat geklärt werden, sonst konkurrieren Kustomizations.
+
+Dauerhaft zurückbauen: in `flux/clusters/fleet/ks-website-korczewski.yaml` und
+`flux/clusters/fleet/ks-korczewski-auth.yaml` `suspend: true` setzen (Revert-PR). Flux-Suspend per
+CLI wird beim nächsten Merge der Git-Quelle nicht zurückgesetzt, wenn die Datei `suspend: true`
+trägt.

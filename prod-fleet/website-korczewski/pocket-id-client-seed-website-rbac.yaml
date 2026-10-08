@@ -1,0 +1,38 @@
+# T901440: Website-RBAC des Pocket-ID-Client-Seeds (T001435).
+# Nachbildung von k3d/pocket-id-client-seed-website-rbac.yaml, explizit nach
+# website-korczewski gerichtet; Subject: workspace-korczewski/pocket-id-client-seed.
+# Liegt bewusst in DIESEM Overlay (nicht in korczewski-auth): der
+# Kustomize-namespace-Transformer laeuft nach den Patches (kustomize v5.8.1,
+# per Experiment belegt) — gezielte JSON-Patches koennten diese Ressourcen
+# nicht aus dem Auth-Namespace bewegen. Nur get+patch auf website-secrets.
+# Reihenfolge: Der Seed skippt den Website-Client ohne POCKET_ID_WEBSITE_SECRET;
+# nach Operator-Bootstrap + env:seal den Seed-Job gezielt neu erzeugen (Runbook
+# 12.3) — dann existieren beide RBACs (Workspace-Seite aus korczewski-auth).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pocket-id-client-seed-website-role
+  namespace: website-korczewski
+  labels:
+    app: pocket-id
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["website-secrets"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pocket-id-client-seed-website-rolebinding
+  namespace: website-korczewski
+  labels:
+    app: pocket-id
+subjects:
+  - kind: ServiceAccount
+    name: pocket-id-client-seed
+    namespace: workspace-korczewski
+roleRef:
+  kind: Role
+  name: pocket-id-client-seed-website-role
+  apiGroup: rbac.authorization.k8s.io

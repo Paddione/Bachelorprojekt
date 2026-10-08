@@ -1,0 +1,30 @@
+# T901440: eigene Pocket ID fuer den korczewski-Slot (Pfad ./korczewski-auth).
+# Aktiv — ausgenommen vom T002479-Freeze (Website + Pocket ID laufen auf dem
+# korczewski-Slot, Workspace bleibt eingefroren). wait:false + expliziter
+# Deployment-Healthcheck: niemals alle Jobs als Readiness-Gate, weil der
+# API-Key-Bootstrap manuell erfolgt (Runbook 12.3).
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-korczewski-auth
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  suspend: false
+  dependsOn:
+    - name: flux-infra-controllers
+    - name: flux-sealed-secrets-korczewski
+    - name: flux-mentolder
+  sourceRef:
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./korczewski-auth
+  prune: true
+  wait: false
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: pocket-id
+      namespace: workspace-korczewski

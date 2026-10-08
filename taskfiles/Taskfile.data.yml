@@ -205,7 +205,15 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         ctx_flag=""
         [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        # T901440: zentrale DB-Koordinaten aus env-resolve (Defaults = bisheriger
+        # Stand). Namespace des zentralen Service/Secrets aus der DB-Konfiguration
+        # ableiten, nicht aus dem Website-NS.
+        DB_NS="${WEBSITE_DB_NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
+        DB_NAME="${WEBSITE_DB_NAME:-website}"
+        DB_USER="${WEBSITE_DB_USER:-website}"
+        NS="$DB_NS"
+
+        echo "db:migrate target: namespace=$NS database=$DB_NAME user=$DB_USER (ENV={{.ENV}})"
 
         echo "Waiting for shared-db to be ready before running db migrations..."
         kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
@@ -230,8 +238,82 @@ tasks:
         trap 'kill $PF 2>/dev/null' EXIT
         sleep 3
 
-        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
-          node scripts/migrate-db.mjs
+        if [ "$DB_NAME" = "website_massage" ]; then
+          # ── T901440 Massage-Zweig: frische website_massage im zentralen NS ──
+          # WEBSITE_SCHEMA_DB gilt nur fuer diesen expliziten Zweig.
+          echo "Massage bootstrap: ensure-meetings against website_massage..."
+          kubectl $ctx_flag -n "$NS" exec deploy/shared-db -c postgres -- \
+            env WEBSITE_SCHEMA_DB=website_massage bash /scripts/ensure-meetings-schema.sh
+
+          echo "Massage bootstrap: seed brand 'massage'..."
+          kubectl $ctx_flag -n "$NS" exec -i deploy/shared-db -- \
+            psql -U postgres -d website_massage -v ON_ERROR_STOP=1 \
+            -c "INSERT INTO brands (id, name) VALUES ('massage', 'Massagepraxis Vögelsen') ON CONFLICT (id) DO NOTHING;"
+
+          echo "Massage bootstrap: website SQL runner as privileged migration user..."
+          DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website_massage" \
+            pnpm --dir components/website db:migrate
+
+          echo "Massage bootstrap: normalize ownership to website_massage..."
+          kubectl $ctx_flag -n "$NS" exec -i deploy/shared-db -- \
+            psql -U postgres -d website_massage -v ON_ERROR_STOP=1 <<'EOSQL'
+            DO $$DECLARE r record; BEGIN
+              FOR r IN
+                SELECT n.nspname FROM pg_namespace n
+                JOIN pg_roles o ON o.oid = n.nspowner
+                WHERE o.rolname IN ('postgres', 'website')
+                  AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+                  AND n.nspname NOT LIKE 'pg\_toast%'
+                  AND n.nspname NOT LIKE 'pg\_temp%'
+                  AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = n.oid AND d.deptype = 'e')
+              LOOP
+                EXECUTE format('ALTER SCHEMA %I OWNER TO website_massage', r.nspname);
+              END LOOP;
+            END$$;
+            DO $$DECLARE r record; BEGIN
+              FOR r IN
+                SELECT n.nspname, c.relname, c.relkind
+                FROM pg_class c
+                JOIN pg_namespace n ON n.oid = c.relnamespace
+                JOIN pg_roles o ON o.oid = c.relowner
+                WHERE o.rolname IN ('postgres', 'website')
+                  AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+                  AND n.nspname NOT LIKE 'pg\_toast%'
+                  AND n.nspname NOT LIKE 'pg\_temp%'
+                  AND c.relkind IN ('r', 'v', 'm', 'f', 'S')
+                  AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = c.oid AND d.deptype = 'e')
+              LOOP
+                IF r.relkind = 'S' THEN
+                  EXECUTE format('ALTER SEQUENCE %I.%I OWNER TO website_massage', r.nspname, r.relname);
+                ELSE
+                  EXECUTE format('ALTER TABLE %I.%I OWNER TO website_massage', r.nspname, r.relname);
+                END IF;
+              END LOOP;
+            END$$;
+            DO $$DECLARE r record; BEGIN
+              FOR r IN
+                SELECT n.nspname, p.proname, pg_get_function_identity_arguments(p.oid) AS args
+                FROM pg_proc p
+                JOIN pg_namespace n ON n.oid = p.pronamespace
+                JOIN pg_roles o ON o.oid = p.proowner
+                WHERE o.rolname IN ('postgres', 'website')
+                  AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+                  AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e')
+              LOOP
+                EXECUTE format('ALTER FUNCTION %I.%I(%s) OWNER TO website_massage', r.nspname, r.proname, r.args);
+              END LOOP;
+            END$$;
+            REVOKE ALL ON DATABASE website_massage FROM website;
+            REVOKE ALL ON SCHEMA public FROM website;
+            REVOKE ALL ON ALL TABLES IN SCHEMA public FROM website;
+            REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM website;
+            GRANT CREATE ON SCHEMA public TO website_massage;
+          EOSQL
+          echo "Massage bootstrap complete (idempotent — rerun is a no-op)."
+        else
+          DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+            node scripts/migrate-db.mjs
+        fi
 
   # ─────────────────────────────────────────────
   # Knowledge Base (pgvector RAG)

@@ -1,0 +1,105 @@
+# T901440: TLS-Spiegelung NUR nach website-korczewski.
+# Im Cluster existiert kein Reflector-Controller — prod/reflector.yaml bringt
+# SA, CronJob und globale RBAC. Die globalen ClusterRole/clusterRoleBinding
+# tls-sync werden gezielt geloescht (Fleet-Platform besitzt beide bereits und
+# bindet workspace-korczewski/tls-sync). CronJob-Args als vollstaendiger
+# Skriptblock (Funktionen unveraendert aus prod/reflector.yaml), beide
+# Zielschleifen ausschliesslich auf ${WEBSITE_NAMESPACE} begrenzt — sonst
+# wuerde korczewski das gemeinsame coturn-/workspace-office-Zertifikat
+# ueberschreiben. Quelle ${WORKSPACE_NAMESPACE}, Secret ${TLS_SECRET_NAME}.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tls-sync
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: sync
+              args:
+                - |
+                  set -e
+                  TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                  CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                  API=https://kubernetes.default.svc
+
+                  sync_secret() {
+                    SRC_NS="$1" SRC="$2" DST="$3" NS="$4"
+                    CRT=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$SRC_NS/secrets/$SRC" \
+                      | tr -d '\n' \
+                      | grep -o '"tls\.crt": *"[^"]*"' \
+                      | grep -o '"[^"]*"$' | tr -d '"')
+                    [ -n "$CRT" ] || { echo "skip: $SRC_NS/$SRC not found"; return; }
+                    KEY=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$SRC_NS/secrets/$SRC" \
+                      | tr -d '\n' \
+                      | grep -o '"tls\.key": *"[^"]*"' \
+                      | grep -o '"[^"]*"$' | tr -d '"')
+                    BODY="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"$DST\"},\"type\":\"kubernetes.io/tls\",\"data\":{\"tls.crt\":\"$CRT\",\"tls.key\":\"$KEY\"}}"
+                    STATUS=$(curl -s -o /dev/null -w "%{http_code}" --cacert "$CA" \
+                      -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$NS/secrets/$DST")
+                    if [ "$STATUS" = "200" ]; then
+                      curl -sf --cacert "$CA" -X PATCH \
+                        -H "Authorization: Bearer $TOKEN" \
+                        -H "Content-Type: application/strategic-merge-patch+json" \
+                        "$API/api/v1/namespaces/$NS/secrets/$DST" \
+                        -d "$BODY" > /dev/null
+                    else
+                      curl -sf --cacert "$CA" -X POST \
+                        -H "Authorization: Bearer $TOKEN" \
+                        -H "Content-Type: application/json" \
+                        "$API/api/v1/namespaces/$NS/secrets" \
+                        -d "$BODY" > /dev/null
+                    fi
+                    echo "synced $SRC_NS/$SRC -> $NS/$DST"
+                  }
+
+                  # Same shape as sync_secret, but for a docker-registry secret: one
+                  # .dockerconfigjson field and type kubernetes.io/dockerconfigjson.
+                  # sync_secret above reads tls.crt/tls.key and would copy an empty
+                  # secret here. [T900036]
+                  sync_dockerconfig() {
+                    SRC_NS="$1" SRC="$2" NS="$3"
+                    CFG=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$SRC_NS/secrets/$SRC" \
+                      | tr -d '\n' \
+                      | grep -o '"\.dockerconfigjson": *"[^"]*"' \
+                      | grep -o '"[^"]*"$' | tr -d '"')
+                    [ -n "$CFG" ] || { echo "skip: $SRC_NS/$SRC not found"; return; }
+                    BODY="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"$SRC\"},\"type\":\"kubernetes.io/dockerconfigjson\",\"data\":{\".dockerconfigjson\":\"$CFG\"}}"
+                    STATUS=$(curl -s -o /dev/null -w "%{http_code}" --cacert "$CA" \
+                      -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$NS/secrets/$SRC")
+                    if [ "$STATUS" = "200" ]; then
+                      curl -sf --cacert "$CA" -X PATCH \
+                        -H "Authorization: Bearer $TOKEN" \
+                        -H "Content-Type: application/strategic-merge-patch+json" \
+                        "$API/api/v1/namespaces/$NS/secrets/$SRC" \
+                        -d "$BODY" > /dev/null
+                    else
+                      curl -sf --cacert "$CA" -X POST \
+                        -H "Authorization: Bearer $TOKEN" \
+                        -H "Content-Type: application/json" \
+                        "$API/api/v1/namespaces/$NS/secrets" \
+                        -d "$BODY" > /dev/null
+                    fi
+                    echo "synced $SRC_NS/$SRC -> $NS/$SRC"
+                  }
+                  #
+                  # T901440: Wildcard-TLS-Zertifikat NUR in den Website-Namespace.
+                  # ${WORKSPACE_NAMESPACE}, ${WEBSITE_NAMESPACE} und ${TLS_SECRET_NAME}
+                  # werden per envsubst zur Renderzeit ersetzt.
+                  for NS in ${WEBSITE_NAMESPACE}; do
+                    sync_secret ${WORKSPACE_NAMESPACE} ${TLS_SECRET_NAME} ${TLS_SECRET_NAME} "$NS" || \
+                      echo "warn: tls sync to $NS failed or namespace absent - skipping"
+                  done
+                  #
+                  # ghcr-pull-secret: nur in den Website-Namespace (kein Shared-Service hier).
+                  for NS in ${WEBSITE_NAMESPACE}; do
+                    sync_dockerconfig ${WORKSPACE_NAMESPACE} ghcr-pull-secret "$NS" || \
+                      echo "warn: ghcr-pull-secret sync to $NS failed or namespace absent - skipping"
+                  done

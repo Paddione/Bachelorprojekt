@@ -28,6 +28,10 @@ env_vars:
   # (mentolder-web still serves react.mentolder.de either way).
   PRIMARY_FRONTEND: astro
   WORKSPACE_NAMESPACE: workspace
+  # T901440: zentrale DB-Koordinaten der Website (Defaults = bisheriger Stand)
+  WEBSITE_DB_NAMESPACE: workspace
+  WEBSITE_DB_NAME: website
+  WEBSITE_DB_USER: website
   INFRA_NAMESPACE: mentolder-infra
   TLS_SECRET_NAME: workspace-wildcard-tls
   SMTP_FROM: mentolder@mailbox.org

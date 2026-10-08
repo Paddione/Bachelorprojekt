@@ -7,8 +7,10 @@ spec:
   interval: 10m
   retryInterval: 5m
   timeout: 10m
-  # T002479: Bewusst suspendiert (2026-07-26, bestätigt 2026-07-31) — korczewski-Brand
+  # T002479: Bewusst suspendiert (2026-07-26, bestätigt 2026-07-31) — korczewski-Workspace
   # eingefroren (Kosten/Wartung). Folgt flux-korczewski, das ebenfalls suspendiert ist.
+  # Die Massage-Website auf dem korczewski-Slot (für Go-live vorbereitet durch T901440) braucht keine
+  # Jobs aus ./korczewski-jobs.
   suspend: true
   dependsOn:
     - name: flux-korczewski

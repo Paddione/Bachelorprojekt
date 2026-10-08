@@ -266,7 +266,7 @@ spec:
                   name: website-secrets
                   key: WEBSITE_DB_PASSWORD
             - name: SESSIONS_DATABASE_URL
-              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local:5432/website"
+              value: "postgresql://${WEBSITE_DB_USER}:$(WEBSITE_DB_PASSWORD)@shared-db.${WEBSITE_DB_NAMESPACE}.svc.cluster.local:5432/${WEBSITE_DB_NAME}"
             - name: REPO_ROOT
               value: /app
             - name: CRON_SECRET

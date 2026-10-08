@@ -1,0 +1,43 @@
+# T901440: Apex-Routing korczewski.de -> https://web.korczewski.de.
+# Uebernimmt das mentolder-Muster (Apex-Ingress mit Redirect-Middleware aus
+# prod/ingress.yaml bzw. prod/traefik-middlewares.yaml) lokal in den Website-
+# Namespace — ohne Ressourcen aus der vollen prod-Basis und ohne Abhaengigkeit
+# vom eingefrorenen Workspace (kein fremdes Backend, keine Cross-Namespace-Refs).
+# Regex/Replacement aus der bestehenden Middleware, nur ${PROD_DOMAIN}.
+# Der permanente Redirect deckt HTTP gleich mit ab (keine extra Middleware).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: website-redirect-apex-to-web
+  namespace: website-korczewski
+spec:
+  redirectRegex:
+    regex: "^https?://${PROD_DOMAIN}(.*)"
+    replacement: "https://web.${PROD_DOMAIN}$1"
+    permanent: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-ingress-apex
+  namespace: website-korczewski
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.middlewares: ${WEBSITE_NAMESPACE}-website-redirect-apex-to-web@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - ${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: ${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80

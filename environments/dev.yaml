@@ -17,6 +17,10 @@ env_vars:
   BRAND_NAME: "KORE"
   WEBSITE_IMAGE: website
   WEBSITE_NAMESPACE: workspace
+  # T901440: zentrale DB-Koordinaten der Website (Defaults = bisheriger Stand)
+  WEBSITE_DB_NAMESPACE: workspace
+  WEBSITE_DB_NAME: website
+  WEBSITE_DB_USER: website
   # devmesh: Profil und Basis-Domain; A-Records zeigen nur auf Tailnet-Adressen (D3).
   DEVMESH_DOMAIN: devmesh.mentolder.de
   DEVMESH_PROFILE: core

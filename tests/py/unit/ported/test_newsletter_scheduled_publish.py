@@ -54,10 +54,16 @@ def test_stale_sending_locks_are_reset_after_10_minutes(db):
     assert "INTERVAL '10 minutes'" in db
 
 
-# The BATS original was excluded from the offline gate (tests/unit/.coverage-allowlist) and
-# never ran; this case fails against the current korczewski patch. korczewski is frozen
-# (T002479), so the manifest is not changed here. strict=True surfaces a later fix.
-@pytest.mark.xfail(strict=True, reason="korczewski patch lacks the namespaced scheduled-publish URL (brand frozen, T002479)")
-def test_korczewski_patch_points_scheduled_publish_at_its_own_namespace(repo_root):
-    patch = repo_root / "prod-korczewski" / "patch-cronjob-urls.yaml"
-    assert "website.website-korczewski.svc.cluster.local/api/cron/scheduled-publish" in patch.read_text(encoding="utf-8")
+# [T901432] Seit T900035 setzt die Basis den Ziel-Host aus ${WEBSITE_NAMESPACE} zusammen;
+# das korczewski-Overlay patcht scheduled-publish bewusst NICHT mehr mit festem Host.
+# Geprueft wird deshalb die Aufloesung: Basis-URL + Namespace-Variable des Overlays.
+def test_korczewski_patch_points_scheduled_publish_at_its_own_namespace(repo_root, rendered, yaml_load):
+    assert "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/cron/scheduled-publish" in rendered
+    for env_file in ("korczewski.yaml", "fleet-korczewski.yaml"):
+        env = yaml_load(repo_root / "environments" / env_file)
+        assert env["env_vars"]["WEBSITE_NAMESPACE"] == "website-korczewski", env_file
+    patch = (repo_root / "prod-korczewski" / "patch-cronjob-urls.yaml").read_text(encoding="utf-8")
+    # Positiv-Anker: das Patch leitet andere CronJobs auf den korczewski-Namespace um ...
+    assert "website.website-korczewski.svc.cluster.local/api/cron/notify-unread" in patch
+    # ... aber nicht scheduled-publish, das loest ueber WEBSITE_NAMESPACE selbst auf.
+    assert "/api/cron/scheduled-publish" not in patch

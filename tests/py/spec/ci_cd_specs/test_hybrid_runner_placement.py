@@ -39,7 +39,7 @@ def test_local_llm_jobs_keep_capability(workflows):
 
 
 def test_required_check_names_stable(workflows):
-    expected = {"test-bats": "BATS Unit + Quality Gates", "test-manifests": "Manifest Validation", "test-spec": "Spec + Guards", "vitest-website": "Vitest (website)", "commit-lint": "Conventional Commits"}
+    expected = {"test-bats": "Unit + Quality Gates", "test-manifests": "Manifest Validation", "test-spec": "Spec + Guards", "vitest-website": "Vitest (website)", "commit-lint": "Conventional Commits"}
     for job, name in expected.items():
         assert workflows["ci"][job]["name"] == name
     assert workflows["e2e-pr"]["e2e-pr"]["name"] == "E2E PR"

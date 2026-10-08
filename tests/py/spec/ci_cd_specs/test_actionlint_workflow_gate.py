@@ -62,7 +62,7 @@ def test_task_lint_workflows_registered(run_cmd):
 
 def test_ci_calls_workflow_lint(repo_root):
     source = (repo_root / ".github/workflows/ci.yml").read_text()
-    assert "BATS Unit + Quality Gates" in source
+    assert "Unit + Quality Gates" in source
     assert "lint-workflows.sh" in source
 
 

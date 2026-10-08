@@ -1,5 +1,6 @@
 """tests/py/evals/test_routing_docs_guard.py — Migration of tests/evals/routing-docs-guard.bats."""
 import re
+import subprocess
 from pathlib import Path
 import pytest
 
@@ -81,6 +82,22 @@ def test_c_retired_markers_are_present(repo_root: Path):
     assert "Mirror stillgelegt" in gesamt.read_text(encoding="utf-8")
 
 
+def _change_time(repo_root: Path, path: Path) -> float:
+    """Last change of a file: commit time when tracked and unmodified, else mtime.
+
+    A fresh checkout (CI) sets mtimes in checkout order, which says nothing about
+    which file was regenerated last; the commit history does. [T901432]"""
+    rel = str(path.relative_to(repo_root))
+    dirty = subprocess.run(["git", "-C", str(repo_root), "status", "--porcelain", "--", rel],
+                           capture_output=True, text=True, check=False).stdout.strip()
+    if not dirty:
+        ct = subprocess.run(["git", "-C", str(repo_root), "log", "-1", "--format=%ct", "--", rel],
+                            capture_output=True, text=True, check=False).stdout.strip()
+        if ct:
+            return float(ct)
+    return path.stat().st_mtime
+
+
 def test_d_keepers_k3_target_exists_and_generated_files_not_older_than_registry(repo_root: Path):
     """(d) keepers: k3 target exists, generated files not older than registry."""
     k3 = repo_root / "docs" / "brain" / "k3-code-graph.md"
@@ -88,7 +105,7 @@ def test_d_keepers_k3_target_exists_and_generated_files_not_older_than_registry(
 
     reg = repo_root / "docs" / "agent-guide" / "registry" / "capabilities.yaml"
     assert reg.is_file()
-    reg_mtime = reg.stat().st_mtime
+    reg_mtime = _change_time(repo_root, reg)
 
     keepers = [
         "docs/agent-guide/maps/toolset-map.md",
@@ -97,5 +114,5 @@ def test_d_keepers_k3_target_exists_and_generated_files_not_older_than_registry(
     for g in keepers:
         f = repo_root / g
         assert f.is_file(), f"KEEPER FEHLT: {g}"
-        f_mtime = f.stat().st_mtime
+        f_mtime = _change_time(repo_root, f)
         assert int(f_mtime) >= int(reg_mtime), f"REGEN FEHLT: {g} ist aelter als capabilities.yaml"

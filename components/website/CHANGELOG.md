@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.405.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.0...website-v1.405.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **scripts:** clarify-Frage als 1.0 werten [T901271] ([#6380](https://github.com/Paddione/Bachelorprojekt/issues/6380)) ([80421ad](https://github.com/Paddione/Bachelorprojekt/commit/80421ad901630f17f5c39f36cf3a8ca630732068))
+
 ## [1.405.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.404.0...website-v1.405.0) (2026-10-08)
 
 

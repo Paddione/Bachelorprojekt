@@ -43,6 +43,9 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
+# Test seam (T901070): dirty snapshots default to the repo checkout; tests
+# point OMP_WORKTREE at an isolated temp git repo to ignore parallel writers.
+OMP_WORKTREE="${OMP_WORKTREE:-$REPO_ROOT}"
 
 LEVEL="L1"
 MODEL=""
@@ -142,9 +145,9 @@ discover_models() {
 # `<hash> <pfad>` je geaenderter oder neuer Datei. Der Vergleich vorher/nachher
 # zaehlt nur, was der Lauf selbst angefasst hat, nicht den Altbestand des Worktrees.
 dirty_snapshot() {
-  git -C "$REPO_ROOT" status --porcelain --untracked-files=all 2>/dev/null | cut -c4- \
+  git -C "$OMP_WORKTREE" status --porcelain --untracked-files=all 2>/dev/null | cut -c4- \
     | while IFS= read -r f; do
-        printf '%s %s\n' "$(git -C "$REPO_ROOT" hash-object "$f" 2>/dev/null || echo deleted)" "$f"
+        printf '%s %s\n' "$(git -C "$OMP_WORKTREE" hash-object "$f" 2>/dev/null || echo deleted)" "$f"
       done | sort
 }
 

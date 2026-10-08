@@ -147,6 +147,8 @@ printf '%s\n' "$@" > "${OMP_STUB_LOG}.args"
 cp "${PI_CODING_AGENT_DIR}/models.json" "${OMP_STUB_LOG}.models"
 echo "$PI_CODING_AGENT_DIR" > "${OMP_STUB_LOG}.dir"
 [ -z "${OMP_STUB_TOUCH:-}" ] || echo probe > "$OMP_STUB_TOUCH"
+[ -z "${OMP_STUB_STRAY:-}" ] || echo stray > "$OMP_STUB_STRAY"
+[ -z "${OMP_STUB_STRAY2:-}" ] || echo stray > "$OMP_STUB_STRAY2"
 echo '{"type":"agent_end"}'
 exit 0
 SHEOF
@@ -157,6 +159,8 @@ SHEOF
 
 teardown() {
   [ -z "${OMP_STUB_TOUCH:-}" ] || rm -f "$OMP_STUB_TOUCH"
+  [ -z "${OMP_STUB_STRAY:-}" ] || rm -f "$OMP_STUB_STRAY"
+  [ -z "${OMP_STUB_STRAY2:-}" ] || rm -f "$OMP_STUB_STRAY2"
   if [ -f "${BATS_TEST_TMPDIR}/pids" ]; then
     xargs kill < "${BATS_TEST_TMPDIR}/pids" 2>/dev/null || true
   fi
@@ -223,7 +227,27 @@ teardown() {
 @test "omp-harness: changed_files zaehlt nur, was der Lauf selbst geaendert hat" {
   _pool
   _stub_omp
-  export OMP_STUB_TOUCH="${REPO_ROOT}/omp-probe-${BATS_TEST_NUMBER}-$$.txt"
+  local wt="${BATS_TEST_TMPDIR}/worktree"
+  mkdir -p "$wt" && git init -q "$wt"
+  export OMP_WORKTREE="$wt"
+  export OMP_STUB_TOUCH="${wt}/omp-probe-${BATS_TEST_NUMBER}-$$.txt"
+  run bash "${REPO_ROOT}/scripts/omp-run.sh" "$PLAN" --level L0 --json --skip-tests
+  [ "$status" -eq 0 ]
+  run jq -r '.changed_files' <<<"$(printf '%s\n' "$output" | tail -n 1)"
+  [ "$output" = "1" ]
+}
+
+@test "omp-harness: changed_files ignoriert parallele Schreiber im echten Checkout (T901070)" {
+  _pool
+  _stub_omp
+  local wt="${BATS_TEST_TMPDIR}/worktree"
+  mkdir -p "$wt" && git init -q "$wt"
+  export OMP_WORKTREE="$wt"
+  export OMP_STUB_TOUCH="${wt}/omp-probe-${BATS_TEST_NUMBER}-$$.txt"
+  # Zwei Stray-Dateien im echten Checkout simulieren deterministisch parallele
+  # bats -j-Schreiber zwischen den dirty-Snapshots (kein Timing-Glueck noetig).
+  export OMP_STUB_STRAY="${REPO_ROOT}/omp-stray-${BATS_TEST_NUMBER}-$$.txt"
+  export OMP_STUB_STRAY2="${REPO_ROOT}/omp-stray2-${BATS_TEST_NUMBER}-$$.txt"
   run bash "${REPO_ROOT}/scripts/omp-run.sh" "$PLAN" --level L0 --json --skip-tests
   [ "$status" -eq 0 ]
   run jq -r '.changed_files' <<<"$(printf '%s\n' "$output" | tail -n 1)"

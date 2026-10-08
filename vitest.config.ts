@@ -20,7 +20,6 @@ export default defineConfig({
             'tests/unit/**/*.test.ts',
           ],
           exclude: [
-            'scripts/mailbox-mcp/**',
             '**/node_modules/**',
             '**/.worktrees/**',
           ],

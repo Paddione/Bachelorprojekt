@@ -2,17 +2,17 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-07: Website API & Inhalte', () => {
+test.describe('FA-07: Website API & Inhalte', { tag: ['@smoke', '@website'] }, () => {
   test('T1: /api/health returns ok', async ({ request }) => {
     const res = await request.get(`${BASE}/api/health`);
-    expect(res.status()).toBe(200);
+    await expect(res).toBeOK();
     const body = await res.json();
     expect(body.ok).toBe(true);
   });
 
   test('T2: /api/leistungen returns JSON list with expected shape', async ({ request }) => {
     const res = await request.get(`${BASE}/api/leistungen`);
-    expect(res.status()).toBe(200);
+    await expect(res).toBeOK();
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
     if (body.length > 0) {

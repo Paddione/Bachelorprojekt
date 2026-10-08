@@ -111,12 +111,12 @@ test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
       data: payload,
     });
 
-    // Give the session a moment to register
-    await new Promise(r => setTimeout(r, 500));
-
-    const health = await request.get(`${TRANSCRIBER_URL}/health`);
-    const body = await health.json();
-    // Session may have started or been rejected (no real Nextcloud), but structure must be valid
-    expect(Array.isArray(body.active)).toBeTruthy();
+    // Verify health reporting via polling without arbitrary timeouts
+    await expect.poll(async () => {
+      const health = await request.get(`${TRANSCRIBER_URL}/health`);
+      if (!health.ok()) return false;
+      const body = await health.json();
+      return Array.isArray(body.active);
+    }, { timeout: 10_000, intervals: [200, 500, 1000] }).toBe(true);
   });
 });

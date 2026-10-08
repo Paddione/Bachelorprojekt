@@ -29,9 +29,8 @@ test.describe('SA-21: Admin Aktionen Tab', { tag: ['@admin'] }, () => {
   test('SA-21.3: Redeploy website button is present per cluster', async ({ page }) => {
     await page.goto(`${ADMIN_URL}/admin/platform`);
     await aktionenTab(page).click();
-    await page.waitForTimeout(500);
     const releasesTab = page.getByTestId('aktionen-subtab-releases');
-    if (await releasesTab.isVisible()) {
+    if (await releasesTab.isVisible().catch(() => false)) {
       await releasesTab.click();
     }
     await expect(page.getByTestId('redeploy-website-mentolder')).toBeVisible();

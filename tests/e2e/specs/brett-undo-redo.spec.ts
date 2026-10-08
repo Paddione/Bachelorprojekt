@@ -10,7 +10,7 @@ const BRETT_URL = process.env.BRETT_URL
   ?? (process.env.PROD_DOMAIN ? `https://brett.${process.env.PROD_DOMAIN}` : 'http://brett.localhost');
 const BRETT_OIDC_SECRET = process.env.BRETT_OIDC_SECRET ?? '';
 
-test.describe('Brett undo/redo (session_undo / session_redo)', () => {
+test.describe('Brett undo/redo (session_undo / session_redo)', { tag: ['@brett'] }, () => {
   test.skip(!BRETT_OIDC_SECRET, 'BRETT_OIDC_SECRET required to mint distinct e2e identities');
 
   async function loginAs(context: BrowserContext, userId: string, name: string): Promise<void> {
@@ -112,11 +112,11 @@ test.describe('Brett undo/redo (session_undo / session_redo)', () => {
 
       await captureMessages(leiter, ['error']);
       await sendWs(leiter, { type: 'session_undo' });
-      await leiter.waitForTimeout(500);
 
-      const errors = await getCaptured(leiter);
-      expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0].reason).toBe('undo-stack-empty');
+      await expect.poll(async () => {
+        const errors = await getCaptured(leiter);
+        return errors.find((e) => e.reason === 'undo-stack-empty');
+      }, { timeout: 10_000, intervals: [100, 300, 500] }).toBeTruthy();
     } finally {
       await ctx.close();
     }

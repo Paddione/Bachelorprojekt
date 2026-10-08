@@ -155,6 +155,14 @@
       "ref": "b86532b77f16f1e27c7cffa32bb632aa3cd9a352",
       "version": null
     },
+    "playwright-best-practices": {
+      "repo": "currents-dev/playwright-best-practices-skill",
+      "path": "playwright-best-practices",
+      "dest": ".opencode/skills/playwright-best-practices",
+      "track": "branch",
+      "ref": "283d5cbc5d11aac1abda058b16ad22c317d54dc0",
+      "version": null
+    },
     "skill-creator": {
       "repo": "anthropics/skills",
       "path": "skills/skill-creator",

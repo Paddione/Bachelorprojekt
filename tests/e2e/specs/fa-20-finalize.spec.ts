@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-20: Meeting Finalization Pipeline', () => {
+test.describe('FA-20: Meeting Finalization Pipeline', { tag: ['@meeting'] }, () => {
   test('T1: POST /api/meeting/finalize without data returns 400', async ({ request }) => {
     const res = await request.post(`${BASE}/api/meeting/finalize`, {
       data: {},
@@ -32,7 +32,7 @@ test.describe('FA-20: Meeting Finalization Pipeline', () => {
         meetingDate: '03.04.2026',
       },
     });
-    expect(res.status()).toBe(200);
+    await expect(res).toBeOK();
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(Array.isArray(body.results)).toBe(true);

@@ -123,7 +123,6 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
       await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
-      await page.waitForTimeout(500);
       const step2Btn = page.locator('.progress-step').nth(1);
       await expect(step2Btn).toBeVisible();
       await step2Btn.click();
@@ -139,7 +138,6 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
       await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
-      await page.waitForTimeout(500);
       const step2Btn = page.locator('.progress-step').nth(1);
       await expect(step2Btn).toBeVisible();
       await step2Btn.click();
@@ -160,7 +158,6 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
       await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
-      await page.waitForTimeout(500);
 
       // Beat 1 — instruction / greeting: click Weiter
       await expect(page.getByText(/Beat\s+1/i)).toBeVisible({ timeout: 15_000 });

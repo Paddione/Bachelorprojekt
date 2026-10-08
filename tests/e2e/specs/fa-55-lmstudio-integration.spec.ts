@@ -237,7 +237,6 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
-    await page.waitForTimeout(500);
 
     // Beat 1 — instruction / greeting: click Weiter
     await expect(page.getByText(/Beat\s+1/i)).toBeVisible({ timeout: 15_000 });
@@ -282,7 +281,6 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
-    await page.waitForTimeout(500);
 
     // Beat 1 — instruction / greeting: click Weiter
     await expect(page.getByText(/Beat\s+1/i)).toBeVisible({ timeout: 15_000 });

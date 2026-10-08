@@ -39,8 +39,12 @@ export default defineConfig({
     ['json', { outputFile: '../results/.tmp-e2e-pr-results.json' }],
     ['github'],
   ],
+  expect: {
+    timeout: 5_000,
+  },
   use: {
     baseURL: websiteURL,
+    testIdAttribute: 'data-testid',
     ignoreHTTPSErrors: true,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',

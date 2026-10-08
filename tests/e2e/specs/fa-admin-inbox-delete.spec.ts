@@ -96,7 +96,6 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     const contactFilter = root.locator('[data-testid="inbox-sidebar-item"][data-type="contact"]');
     if (await contactFilter.isVisible().catch(() => false)) {
       await contactFilter.click();
-      await page.waitForTimeout(200);
     }
 
     const list = root.locator('[data-testid="inbox-list"]');
@@ -121,10 +120,9 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
 
     // 7. Click → row vanishes from the list. Track the row count by name
     //    so we don't false-positive on other unrelated contact rows.
-    const beforeCount = await list
-      .locator('[data-testid="inbox-list-row"]', { hasText: seedName })
-      .count();
-    expect(beforeCount).toBeGreaterThanOrEqual(1);
+    await expect(
+      list.locator('[data-testid="inbox-list-row"]', { hasText: seedName })
+    ).toBeVisible();
 
     await deleteBtn.evaluate((el: HTMLElement) => el.click());
     await expect(
@@ -141,7 +139,7 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     const res = await request.get(`${BASE}/api/admin/inbox?status=pending&includeTest=1`, {
       headers: { cookie: cookieHeader },
     });
-    expect(res.ok()).toBeTruthy();
+    await expect(res).toBeOK();
     const data = await res.json() as {
       items: Array<{ payload: Record<string, unknown> }>;
     };

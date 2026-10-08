@@ -1,4 +1,4 @@
-import type { Page, APIRequestContext } from '@playwright/test';
+import { expect, type Page, type APIRequestContext } from '@playwright/test';
 
 export function getAdminCredentials(): { user: string; pass: string } {
   const brand = process.env.E2E_BRAND ?? ((process.env.WEBSITE_URL ?? '').includes('korczewski.de') ? 'korczewski' : 'mentolder');
@@ -28,17 +28,9 @@ export async function loginViaE2E(
   const token = CRON_SECRET ? `&token=${encodeURIComponent(CRON_SECRET)}` : '';
   const url = `${cleanBase}/api/auth/e2e-login?username=${encodeURIComponent(user)}&returnTo=${encodeURIComponent(returnTo)}${token}`;
 
-  let attempts = 0;
-  while (attempts < 3) {
-    try {
-      attempts++;
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15_000 });
-      break;
-    } catch (err: any) {
-      if (attempts >= 3) throw err;
-      await page.waitForTimeout(1000);
-    }
-  }
+  await expect(async () => {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15_000 });
+  }).toPass({ timeout: 30_000, intervals: [1000] });
 
   if (page.url().includes('/404')) {
     // Retry with title-cased username variant (e.g. paddione -> Paddione)

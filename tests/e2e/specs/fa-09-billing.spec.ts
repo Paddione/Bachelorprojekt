@@ -2,18 +2,18 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://web.localhost';
 
-test.describe('FA-09: Service Catalog', () => {
+test.describe('FA-09: Service Catalog', { tag: ['@billing', '@website'] }, () => {
   test('T1: /leistungen page loads', async ({ page }) => {
     await page.goto(`${BASE}/leistungen`);
-    await expect(page.locator('h1')).toContainText('Leistungen');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Leistungen');
   });
 
   test('T2: All service categories visible', async ({ page }) => {
     await page.goto(`${BASE}/leistungen`);
     // Page should have multiple service sections (flexible matching)
-    await expect(page.locator('h1, h2, h3').filter({ hasText: /café|cafe|digital|coaching|beratung|leistung/i }).first()).toBeVisible({ timeout: 60_000 });
-    const headings = await page.locator('h2, h3').count();
-    expect(headings).toBeGreaterThan(0);
+    const categoryHeadings = page.locator('h1, h2, h3').filter({ hasText: /café|cafe|digital|coaching|beratung|leistung/i });
+    await expect(categoryHeadings.first()).toBeVisible({ timeout: 60_000 });
+    await expect(categoryHeadings).not.toHaveCount(0);
   });
 
   test('T3: Pricing displayed correctly', async ({ page }) => {

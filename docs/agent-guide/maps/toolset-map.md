@@ -172,6 +172,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `bp-ship`
   - _Tiefe:_ `.claude/skills/dev-flow-e2e/SKILL.md`
 
+## Fähigkeit: `playwright-best-practices`
+
+- **`skill:playwright-best-practices`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Best Practices beim Schreiben robuster Playwright-Tests: Locators, Auto-Waiting, Page Objects, Fixtures, Anti-Flakiness.
+  - _Nicht:_ Lifecycle, Deployment-Gates und Test-Inventory-Aktualisierung im Bachelorprojekt — dafür dev-flow-e2e.
+  - _Rollen:_ `bp-ship`
+  - _Tiefe:_ `.claude/skills/playwright-best-practices/SKILL.md`
+
 ## Fähigkeit: `unit-tests`
 
 - **`skill:vitest`** — Status `canonical` · Tier `safe`

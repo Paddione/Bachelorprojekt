@@ -672,6 +672,7 @@ tests/spec/workspace-deploy.bats
 tests/spec/workspace-deploy/flux-secrets-ordering.bats
 tests/spec/workspace-deploy/ntfy-token-escaping-T900059.bats
 tests/spec/workspace-foundation.bats
+tests/spec/workspace-staging-db-tables.bats
 tests/spec/workstation-cluster-iso/assign-identity.bats
 tests/spec/workstation-cluster-iso/build-node-iso-guards.bats
 tests/spec/workstation-cluster-iso/k3s-join-guards.bats

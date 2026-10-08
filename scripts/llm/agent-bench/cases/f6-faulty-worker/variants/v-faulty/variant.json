@@ -1,0 +1,1 @@
+{"budget": {"tokens": 9000, "turns": 14}, "budget_source": "Wie f5 v-clean plus ein Fehlversuch mit Neu-Delegation (ein zusaetzlicher Dispatch plus Notiz); kein Teacher-Probelauf (Offline-Fixture), TODO kalibrieren", "expected_decision": "execute", "perspective": "faulty-worker", "roles": ["orchestrator"], "slots4b": 2}

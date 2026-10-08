@@ -1,0 +1,1 @@
+{"budget": {"tokens": 8000, "turns": 12}, "budget_source": "Geschaetzt aus Referenzplan (3 Partials, je 1 Datei mit Ein-Zeilen-Aenderung, plus Dispatch-Overhead bei 2 Slots); kein Teacher-Probelauf (Offline-Fixture), TODO kalibrieren", "expected_decision": "execute", "perspective": "clean", "roles": ["orchestrator"], "slots4b": 2}

@@ -22,6 +22,7 @@ tests/spec/admin-ui-modal-drawer.bats
 tests/spec/agent-behavior/collision-own-worktree.bats
 tests/spec/agent-behavior/no-tools-allowlist.bats
 tests/spec/agent-bench/loadouts.bats
+tests/spec/agent-bench/orchestrator-dispatch.bats
 tests/spec/agent-bench/report-corpus.bats
 tests/spec/agent-bench/scoring.bats
 tests/spec/agent-collision-false-positives.bats

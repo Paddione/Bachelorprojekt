@@ -353,6 +353,8 @@ task: Available tasks for this project:
 * test:manifests:                               Validate kustomize output structure (no cluster needed)
 * test:mcp-tooling:                             Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)
 * test:menu-gate:                               Enforce admin-menu rules (R1, R2, R4, R5, R7)
+* test:py:                                      Run Pytest test suite (via uv or global pytest)
+* test:py:smoke:                                Run Pytest smoke tests (harness verification)
 * test:spec:                                    Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS laeuft nur die eigene Partition (siehe scripts/spec-shard.sh).
 * test:spec:build-mcp-runner:                   
 * test:spec:changed:                            Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]

@@ -85,6 +85,7 @@ export default defineConfig({
         '**/fa-56-admin-assets.spec.ts',             // central asset management auth gates
         '**/fa-59-*.spec.ts',                        // systemtest purge route preservation
         '**/fa-admin-backup-settings.spec.ts',       // admin backup settings auth gates
+        '**/fa-62-massage-pilot.spec.ts',              // FA-62: Massage-Pilot E2E (T901029, skippt ohne Massage-Brand)
       ],
       use: {
         ...devices['Desktop Chrome'],

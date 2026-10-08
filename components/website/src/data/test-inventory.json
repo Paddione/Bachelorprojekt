@@ -5802,6 +5802,12 @@
     "kind": "shell"
   },
   {
+    "id": "workspace-staging-db-tables",
+    "file": "tests/spec/workspace-staging-db-tables.bats",
+    "category": "workspace-staging-db-tables",
+    "kind": "shell"
+  },
+  {
     "id": "workstation-cluster-iso/assign-identity",
     "file": "tests/spec/workstation-cluster-iso/assign-identity.bats",
     "category": "workstation-cluster-iso",

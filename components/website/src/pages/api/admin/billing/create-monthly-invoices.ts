@@ -25,7 +25,13 @@ export const POST: APIRoute = async ({ request , locals }) => {
     month: 'long', year: 'numeric',
   });
 
-  const groups = await getUnbilledBillableEntriesByCustomer(year, month);
+  let groups: Awaited<ReturnType<typeof getUnbilledBillableEntriesByCustomer>>;
+  try {
+    groups = await getUnbilledBillableEntriesByCustomer(year, month);
+  } catch (err) {
+    locals.requestLogger.error({ err }, '[api/admin/billing/create-monthly-invoices] POST error:');
+    return Response.json({ error: 'monthly_invoices_failed' }, { status: 500 });
+  }
   if (groups.length === 0) {
     return Response.json({ created: 0, dryRun, message: 'Keine abrechenbaren Einträge gefunden.' });
   }

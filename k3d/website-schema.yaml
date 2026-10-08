@@ -1370,6 +1370,51 @@ data:
       CREATE INDEX IF NOT EXISTS idx_messages_is_test_data
         ON messages (is_test_data) WHERE is_test_data = true;
 
+      -- ── Admin Actions Audit Trail ───────────────────────────────────
+      -- Mirrors components/website/src/db/migrations/20260525_admin_actions.sql
+      -- so fresh/restored staging DBs gain the table on every boot without a
+      -- manual `pnpm db:migrate` (the admin-actions-cleanup CronJob UPDATEs /
+      -- DELETEs this table). Idempotent. [T900819]
+      CREATE TABLE IF NOT EXISTS public.admin_actions (
+        id            serial PRIMARY KEY,
+        actor         text NOT NULL,
+        action        text NOT NULL,
+        target        text,
+        cluster       text,
+        payload       jsonb,
+        status        text NOT NULL CHECK (status IN ('in_progress','success','failed','partial_success')),
+        error         text,
+        created_at    timestamptz NOT NULL DEFAULT now(),
+        completed_at  timestamptz
+      );
+      CREATE INDEX IF NOT EXISTS admin_actions_created_at_idx
+        ON public.admin_actions (created_at DESC);
+      CREATE INDEX IF NOT EXISTS admin_actions_concurrent_idx
+        ON public.admin_actions (action, target, status)
+        WHERE status = 'in_progress';
+      CREATE INDEX IF NOT EXISTS admin_actions_actor_idx
+        ON public.admin_actions (actor, created_at DESC);
+      ALTER TABLE public.admin_actions OWNER TO website;
+      GRANT SELECT, INSERT, UPDATE ON public.admin_actions TO website;
+      GRANT USAGE, SELECT ON SEQUENCE public.admin_actions_id_seq TO website;
+
+      -- ── Error Log ───────────────────────────────────────────────────
+      -- Mirrors components/website/src/db/migrations/20260703_create_error_log.sql
+      -- (T001594) so persistError() never hits a missing table. Idempotent. [T900819]
+      CREATE TABLE IF NOT EXISTS error_log (
+        id bigserial PRIMARY KEY,
+        ts timestamptz DEFAULT now(),
+        source text CHECK(source IN ('server', 'browser', 'pod')),
+        message text NOT NULL,
+        namespace text,
+        pod_name text,
+        meta jsonb DEFAULT '{}'::jsonb
+      );
+      ALTER TABLE error_log OWNER TO website;
+      CREATE INDEX IF NOT EXISTS error_log_ts_idx ON error_log (ts DESC);
+      GRANT SELECT, INSERT, DELETE ON error_log TO website;
+      GRANT USAGE, SELECT ON SEQUENCE error_log_id_seq TO website;
+
       CREATE TABLE IF NOT EXISTS chat_rooms (
         id                  SERIAL PRIMARY KEY,
         name                TEXT NOT NULL,

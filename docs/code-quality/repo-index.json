@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1352,
+      "file_count": 1353,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1185,6 +1185,7 @@
         "tests/spec/unsloth-eval-harness/scoring-rules.bats",
         "tests/spec/unsloth-eval-harness/tandem-candidates.bats",
         "tests/spec/unsloth-eval-harness/testset-shape.bats",
+        "tests/spec/unsloth-eval-harness/worker-testset.bats",
         "tests/spec/unsloth-training-env/agent-discovery.bats",
         "tests/spec/unsloth-training-env/measure-corpus.bats",
         "tests/spec/unsloth-training-env/template-guard.bats",
@@ -4153,7 +4154,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 877,
+      "file_count": 878,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4418,6 +4419,7 @@
         "scripts/finetune/template_guard.py",
         "scripts/finetune/testsets/README.md",
         "scripts/finetune/testsets/agent-actions.jsonl",
+        "scripts/finetune/testsets/instruct-worker.jsonl",
         "scripts/finetune/train.py",
         "scripts/finetune/train_vision.py",
         "scripts/finetune/windows-native/qwen35-4b-tooluse-sft_2026_08_24/README.md",

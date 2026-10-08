@@ -5856,6 +5856,12 @@
     "kind": "shell"
   },
   {
+    "id": "unsloth-eval-harness/worker-testset",
+    "file": "tests/spec/unsloth-eval-harness/worker-testset.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
     "id": "unsloth-training-env/agent-discovery",
     "file": "tests/spec/unsloth-training-env/agent-discovery.bats",
     "category": "unsloth-training-env",

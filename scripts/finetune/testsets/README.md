@@ -1,7 +1,17 @@
 # Testsets — Unsloth Eval Harness (T002606)
 
-`agent-actions.jsonl` is the default testset consumed by `scripts/finetune/eval_harness.py`
-and validated by `scripts/finetune/eval_scoring.py validate-testset`.
+Two testsets, split by role (T901286):
+
+- **`agent-actions.jsonl`** (default, consumed by `scripts/finetune/eval_harness.py`):
+  orchestrator set with all three partitions (`action`, `no_action`, `clarify`).
+- **`instruct-worker.jsonl`**: worker set for instruct models. Workers execute
+  plan steps and always emit actions — `clarify`/`no_action` behaviour belongs
+  to the thinking orchestrator, not the worker. Action-only (`class=action`
+  throughout), requests in plan-step style ("Step N of the work plan: …"),
+  including multi-action sets. Reachable without code change via
+  `eval-runner.sh --testset` (and `run_tuned_fixed.py <testset>`).
+
+Both are validated by `scripts/finetune/eval_scoring.py validate-testset`.
 
 ## Format
 
@@ -31,12 +41,19 @@ One JSON object per line:
 ## Requirements enforced by `validate-testset`
 
 - At least 40 cases total.
-- All three partitions (`action`, `no_action`, `clarify`) non-empty.
+- At least one partition (`action`, `no_action`, `clarify`) non-empty —
+  single-partition sets such as the action-only worker set are accepted.
+  The legacy orchestrator set keeps all three partitions populated.
 - Every `pair_id` has both an `en` and a `de` row.
 
 ## Adding a case
 
-Append one line per language to `agent-actions.jsonl` — no code change required. Use
+Append one line per language to the set that matches the role under test
+(`agent-actions.jsonl` for orchestrator behaviour, `instruct-worker.jsonl`
+for worker plan-step execution) — no code change required. Worker cases must
+use `class=action` with a plan-step request and entities disjoint from the
+training corpora and `agent-actions.jsonl` (exact request texts must not
+repeat). Use
 action names/schemas from this file's own domain (generic productivity actions), not brand
 or product literals, and route any example hostname through a placeholder rather than a real
 domain. Keep the `provenance` field honest: a case copied or adapted from a training corpus

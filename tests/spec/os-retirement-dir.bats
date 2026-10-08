@@ -17,10 +17,12 @@ setup() {
     ':!docs/superpowers' ':!docs/adr' ':!.agents/docs/reorg-phase2' ':!.agents/plans' ':!.agents/memory' \
     ':!scripts/migrations' ':!**/CHANGELOG.md' ':!CHANGELOG.md' ':!docs/generated' ':!docs/code-quality/repo-index.json' \
     ':!tests/spec/os-retirement-*.bats' ':!tests/fixtures/os-retirement' \
+    ':!tests/py/spec/native_ported/spec/test_os_retirement_*.py' \
     ':!tests/fixtures/sf-retirement' \
-    ':!tests/spec/neovim-dashboard.bats' \
+    ':!tests/spec/neovim-dashboard.bats' ':!tests/py/spec/native_ported/spec/test_neovim_dashboard.py' \
     ':!.opencode/skills/code-graph-interpretation/evals/results-*' \
     ':!docs/brain/corpus-freeze.json' ':!docs/brain/embed-eval-report.md' ':!tests/spec/p0min-freeze-embed.bats' \
+    ':!tests/py/spec/native_ported/spec/test_p0min_freeze_embed.py' \
     ':!ml/qwen35-planner-9b'
   # T901060: ml/qwen35-planner-9b liest historische openspec/changes/*-Plaene aus
   # der Git-Historie als Trainings-Gold — Datenquelle wie scripts/migrations,

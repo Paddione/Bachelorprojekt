@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.409.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.409.0...website-v1.409.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* massage tel link a11y T901448 ([#6425](https://github.com/Paddione/Bachelorprojekt/issues/6425)) ([66596b4](https://github.com/Paddione/Bachelorprojekt/commit/66596b47168a364a10b7e0c06e999f93fce55e0b))
+
 ## [1.409.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.408.0...website-v1.409.0) (2026-10-08)
 
 

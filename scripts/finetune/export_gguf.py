@@ -81,6 +81,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-dir", default="outputs/export", help="Zielverzeichnis fuer die GGUF-Datei")
     parser.add_argument("--slot-name", required=True, help="Slot-Name, unter dem llm-proxy die Datei aufnehmen soll")
     parser.add_argument("--quantization", default="q4_k_m", help="GGUF-Quantisierungsmethode (Default q4_k_m)")
+    # Trainings-Praezision spiegeln (vgl. train.py): Qwen3.5 nutzt 16-bit-LoRA;
+    # ein 4bit-Load beim Merge korrumpiert die Gewichte (Wortsalat trotz
+    # 40/42-Adapter, verifiziert 2026-10-08). Default 16bit ist allgemein sicher.
+    parser.add_argument("--precision", default="16bit", choices=("4bit", "16bit"),
+                        help="LoRA-Praezision aus dem Training (Default 16bit)")
     parser.add_argument("--dry-run", action="store_true", help="Nur Speichercheck + Pfadaufloesung, kein Import von unsloth/torch")
     return parser
 
@@ -112,7 +117,8 @@ def run_export(args: argparse.Namespace) -> int:
         model_name=args.adapter_dir,
         max_seq_length=8192,
         dtype=None,
-        load_in_4bit=True,
+        load_in_4bit=args.precision == "4bit",
+        load_in_16bit=args.precision == "16bit",
     )
 
     if args.hub_template:

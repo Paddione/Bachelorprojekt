@@ -88,6 +88,7 @@ export default defineConfig({
         '**/fa-62-massage-pilot.spec.ts',              // FA-62: Massage-Pilot E2E (T901029, skippt ohne Massage-Brand)
         '**/fa-63-massage-mobile.spec.ts',              // FA-63: Massage Mobile (T901306, skippt ohne Massage-Brand)
         '**/fa-64-massage-keyboard.spec.ts',            // FA-64: Massage Tastatur (T901306, skippt ohne Massage-Brand)
+        '**/fa-65-massage-audit.spec.ts',               // FA-65: Massage Audit (T901307, skippt ohne Massage-Brand)
       ],
       use: {
         ...devices['Desktop Chrome'],

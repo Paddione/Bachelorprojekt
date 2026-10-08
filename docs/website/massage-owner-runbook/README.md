@@ -105,6 +105,7 @@ Owner-Handover durch echte Inhalte ersetzt.
 - [ ] Erinnerungs-CronJob aktiv und verifiziert
 - [ ] Backup/Restore-Probe durchgeführt
 - [ ] Erreichbarkeit mobil + Tastatur geprüft
+- [ ] Budgets aus §11 vom Owner freigegeben (Fragebogen)
 - [ ] Live-Smoke mit Owner-Freigabe (Publish nur mit Autorisierung)
 
 ## 10. Pilot-Nachweis (Platzhalter-Inhalte)
@@ -114,3 +115,45 @@ Owner-Handover durch echte Inhalte ersetzt.
 - Abgedeckt: Homepage/Leistungen/FAQ, Slots, Anfrage + Idempotenz,
   Gleich-Tag-Abweisung, Token-Status, Storno, Cron/Owner-Guards,
   Umbuchung. Owner-Login-Flows brauchen die manuelle Owner-Probe.
+- E2E-Specs `fa-63-massage-mobile` + `fa-64-massage-keyboard`: 5/5 grün
+  gegen lokale Massage-Instanz (PR #6399). Mobile Darstellung ohne
+  Overflow, Menü per Tap, CTA per Tab mit sichtbarem Fokus,
+  Tastatur-Journey bis Kontakt.
+- E2E-Spec `fa-65-massage-audit`: 10/10 grün (5× axe 0 critical/serious,
+  5× Lade-Smoke) gegen lokale Massage-Instanz (PR vgl. T901307).
+
+## 11. Performance- und Accessibility-Budgets (T901307)
+
+Vorgeschlagene Budgets — der Owner gibt sie über den Fragebogen
+(T901308) frei. Öffentliche Seiten: `/`, `/leistungen`, `/faq`,
+`/ueber-mich`, `/kontakt`.
+
+**Barrierefreiheit (hart, enforced):**
+
+- axe-core 0 critical/serious (Tags wcag2a, wcag2aa, wcag21a, wcag21aa)
+  auf allen fünf Seiten — enforced durch FA-65 A1.
+- Tastatur: CTA per Tab mit sichtbarem Fokus, Journey per Tastatur —
+  enforced durch FA-64.
+
+**Performance Live-Ziele (Core Web Vitals „good", Prüfung nach Deploy
+auf der Live-Umgebung):**
+
+- LCP ≤ 2,5 s, INP ≤ 200 ms, CLS ≤ 0,1.
+
+**Lade-Smoke (Dev, großzügig, nur gegen Hänger):**
+
+- `loadEventEnd` < 20 s je Seite — enforced durch FA-65 P1.
+  Vite-Dev ist nicht produktiv optimiert; dieser Wert ist kein CWV-Budget.
+
+**Prod-Baseline (lokaler `astro build`, Stand T901370, localhost ohne
+Drosselung, 2026-10-08, informativ, nicht-gatend):**
+
+| Route        | DCL  | load | Reqs | Transfer |
+|--------------|------|------|------|----------|
+| `/`          | 166 ms | 178 ms | 11 | 412 KB |
+| `/leistungen` | 53 ms | 56 ms | 18 | 203 KB |
+| `/faq`       | 40 ms | 42 ms | 16 | 210 KB |
+| `/ueber-mich` | 58 ms | 58 ms | 15 | 201 KB |
+| `/kontakt`   | 56 ms | 143 ms | 17 | 293 KB |
+
+Alle fünf Seiten: axe 0 critical/serious gegen denselben Prod-Build.

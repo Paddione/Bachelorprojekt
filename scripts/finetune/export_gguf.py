@@ -17,6 +17,7 @@ damit `--dry-run` (nur Speichercheck + Pfadaufloesung) auch ohne GPU-Stack laeuf
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -85,6 +86,17 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 
 def run_export(args: argparse.Namespace) -> int:
+    import sys as _sys
+
+    # Unsloth shellt fuer die GGUF-Konvertierung `uv pip install ...` — ohne
+    # gesetztes VIRTUAL_ENV verweigert uv die Arbeit, obwohl wir bereits in
+    # einem venv-Python laufen. Venv dem Child-Prozess bekannt machen.
+    if _sys.prefix != _sys.base_prefix:
+        os.environ.setdefault("VIRTUAL_ENV", _sys.prefix)
+        bin_dir = os.path.join(_sys.prefix, "bin")
+        if not os.environ.get("PATH", "").split(os.pathsep).count(bin_dir):
+            os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
+
     from unsloth import FastLanguageModel
 
     model, tokenizer = FastLanguageModel.from_pretrained(

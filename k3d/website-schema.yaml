@@ -3,6 +3,9 @@
 # init-meetings-schema.sh  → mounted in docker-entrypoint-initdb.d (fresh DB only)
 # ensure-meetings-schema.sh → called from postStart on every startup (existing DB)
 # Both scripts are idempotent (IF NOT EXISTS / ADD COLUMN IF NOT EXISTS throughout).
+# T901440: das psql-Ziel beider Meetings-Skripte ist ueber WEBSITE_SCHEMA_DB mit
+# Laufzeitdefault 'website' parametriert (fuer den Massage-Bootstrap auf
+# website_massage gesetzt; normaler postStart bleibt bei website).
 # ─────────────────────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: ConfigMap
@@ -16,7 +19,7 @@ data:
     set -e
     echo "Initializing meetings schema..."
 
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "${WEBSITE_SCHEMA_DB:-website}" <<-'EOSQL'
       -- Customer number sequence (M0020, M0021, …)
       CREATE SEQUENCE IF NOT EXISTS customer_number_seq START 20;
 
@@ -780,11 +783,11 @@ data:
     set -e
     echo "Ensuring meetings schema is up to date..."
 
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "${WEBSITE_SCHEMA_DB:-website}" <<-'EOSQL'
       ALTER TABLE IF EXISTS chat_messages DROP COLUMN IF EXISTS sender_name;
     EOSQL
 
-    psql -v ON_ERROR_STOP=1 --username "postgres" --dbname website <<-'EOSQL'
+    psql -v ON_ERROR_STOP=1 --username "postgres" --dbname "${WEBSITE_SCHEMA_DB:-website}" <<-'EOSQL'
       -- staleness_reports was dropped 2026-05-08 (testing pipeline overhaul, Task A9).
       -- The table is no longer created by the init script; this DROP cleans up any
       -- existing copy on clusters that ran an older schema. Idempotent — safe to

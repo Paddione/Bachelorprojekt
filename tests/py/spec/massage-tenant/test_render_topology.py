@@ -91,6 +91,20 @@ def _secret_refs(deployment):
     return refs
 
 
+def _env_vars(repo_root: Path, env_name: str) -> dict:
+    """env_vars aus environments/<env>.yaml als flaches String-Dict."""
+    with open(repo_root / "environments" / f"{env_name}.yaml", encoding="utf-8") as fh:
+        data = yaml.safe_load(fh) or {}
+    return {k: str(v) for k, v in (data.get("env_vars") or {}).items()}
+
+
+def _substitute(rendered: str, variables: dict) -> str:
+    def repl(match):
+        return variables.get(match.group(1), match.group(0))
+
+    return re.sub(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}", repl, rendered)
+
+
 # ── Website korczewski (Massage) ────────────────────────────────────────────
 
 def test_website_korczewski_brand_is_massage(repo_root: Path):
@@ -100,28 +114,29 @@ def test_website_korczewski_brand_is_massage(repo_root: Path):
     deployment = index.get(("Deployment", "website-korczewski", "website"))
     assert deployment is not None, "website Deployment in website-korczewski fehlt"
 
-    config = index.get(("ConfigMap", "website-korczewski", "website-config"))
-    assert config is not None, "website-config ConfigMap fehlt"
-    data = config.get("data", {})
-    # Basis generiert BRAND aus BRAND_ID; nach Substitution muss massage stehen.
-    # Im Roh-Build steht hier noch der Platzhalter — der Patch setzt BRAND_ID.
-    assert data.get("BRAND") in ("${BRAND_ID}", "massage"), f"unerwartetes BRAND: {data.get('BRAND')}"
-
+    # Deployment-Patch setzt BRAND_ID literal (Guard-/DB-Pfade lesen BRAND_ID zuerst)
     env = _deployment_env(deployment)
-    assert env.get("BRAND_ID") == "massage", f"BRAND_ID ist {env.get('BRAND_ID')!r}, erwartet 'massage'"
+    assert env.get("BRAND_ID") == "massage", f"BRAND_ID ist {env.get('BRAND_ID')!r}"
+
+    # Effektiv nach Environment-Substitution: BRAND ebenfalls massage
+    substituted = _substitute(rendered, _env_vars(repo_root, "fleet-korczewski"))
+    sub_index = _index([d for d in _yaml_load_all(substituted) if d])
+    config = sub_index.get(("ConfigMap", "website-korczewski", "website-config"))
+    assert config is not None, "website-config ConfigMap fehlt"
+    assert config.get("data", {}).get("BRAND") == "massage"
 
 
 def test_website_korczewski_uses_central_massage_db(repo_root: Path):
     rendered = _kustomize_build(repo_root, "prod-fleet/website-korczewski")
-    docs = [d for d in _yaml_load_all(rendered) if d]
-    index = _index(docs)
+    substituted = _substitute(rendered, _env_vars(repo_root, "fleet-korczewski"))
+    index = _index([d for d in _yaml_load_all(substituted) if d])
     deployment = index.get(("Deployment", "website-korczewski", "website"))
     assert deployment is not None
     env = _deployment_env(deployment)
     db_url = env.get("SESSIONS_DATABASE_URL", "")
     assert "website_massage" in db_url, f"DB-Name fehlt in SESSIONS_DATABASE_URL: {db_url}"
     assert "shared-db.workspace.svc" in db_url, f"zentraler Host fehlt: {db_url}"
-    assert "sslmode=require" in db_url or "shared-db.workspace.svc" in db_url
+    # URL-SSL-Verhalten unveraendert (kein beilaeufiger sslmode-Wechsel, p1-Task 2)
     refs = dict((name, (secret, key)) for name, secret, key in _secret_refs(deployment))
     assert refs.get("WEBSITE_DB_PASSWORD") == (
         "website-secrets",
@@ -131,14 +146,15 @@ def test_website_korczewski_uses_central_massage_db(repo_root: Path):
 
 def test_website_mentolder_unchanged(repo_root: Path):
     rendered = _kustomize_build(repo_root, "prod-fleet/website-mentolder")
-    docs = [d for d in _yaml_load_all(rendered) if d]
-    index = _index(docs)
+    substituted = _substitute(rendered, _env_vars(repo_root, "fleet-mentolder"))
+    index = _index([d for d in _yaml_load_all(substituted) if d])
     deployment = index.get(("Deployment", "website", "website"))
     assert deployment is not None, "mentolder website Deployment fehlt"
     env = _deployment_env(deployment)
     db_url = env.get("SESSIONS_DATABASE_URL", "")
-    assert "/website" in db_url, f"mentolder DB-Name geaendert: {db_url}"
+    assert db_url.endswith("/website"), f"mentolder DB-Name geaendert: {db_url}"
     assert "website_massage" not in db_url, "mentolder darf nicht auf website_massage zeigen"
+    assert "shared-db.workspace.svc" in db_url, f"mentolder Host geaendert: {db_url}"
     refs = dict((name, (secret, key)) for name, secret, key in _secret_refs(deployment))
     assert refs.get("WEBSITE_DB_PASSWORD") == (
         "website-secrets",

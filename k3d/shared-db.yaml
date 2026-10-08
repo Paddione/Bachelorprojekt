@@ -39,6 +39,8 @@ data:
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'website') THEN CREATE USER website; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'pentest') THEN CREATE USER pentest; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'videovault') THEN CREATE USER videovault; END IF;
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'website_massage') THEN CREATE USER website_massage; END IF;
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'pocket_id_korczewski') THEN CREATE USER pocket_id_korczewski; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'mcp_readonly') THEN CREATE ROLE mcp_readonly LOGIN NOSUPERUSER; END IF;
       END $$;
     EOSQL
@@ -53,8 +55,23 @@ data:
       -c "ALTER ROLE mcp_readonly SET default_transaction_read_only = on;" \
       -c "GRANT pg_read_all_data TO mcp_readonly;" \
 
+    # T901440: neue Massage-Rollen nur bei nicht-leerem Secret synchronisieren.
+    # Fehlt der Key (optional:true), bleibt nur die neue Rolle unbenutzbar;
+    # bestehende DBs sind nicht betroffen (Leere aus 2026-07-27). Übergabe per
+    # psql-Variable mit SQL-Literal-Quoting (:'var'), keine Stringinterpolation.
+    if [ -n "$WEBSITE_MASSAGE_DB_PASSWORD" ]; then
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
+        -v newpw="$WEBSITE_MASSAGE_DB_PASSWORD" \
+        -c "ALTER USER website_massage WITH PASSWORD :'newpw';"
+    fi
+    if [ -n "$POCKET_ID_KORCZEWSKI_DB_PASSWORD" ]; then
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
+        -v newpw="$POCKET_ID_KORCZEWSKI_DB_PASSWORD" \
+        -c "ALTER USER pocket_id_korczewski WITH PASSWORD :'newpw';"
+    fi
+
     # Create databases if not exists
-    for db_user in nextcloud vaultwarden website pentest videovault; do
+    for db_user in nextcloud vaultwarden website pentest videovault website_massage pocket_id_korczewski; do
       psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
         SELECT 'CREATE DATABASE $${db_user} OWNER $${db_user}'
         WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$${db_user}')\gexec
@@ -192,6 +209,20 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: POCKET_ID_DB_PASSWORD
+            # T901440: neue Massage-Keys, optional — ein noch fehlender Key darf
+            # den bestehenden shared-db-Pod nicht am Start hindern.
+            - name: WEBSITE_MASSAGE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: WEBSITE_MASSAGE_DB_PASSWORD
+                  optional: true
+            - name: POCKET_ID_KORCZEWSKI_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: POCKET_ID_KORCZEWSKI_DB_PASSWORD
+                  optional: true
 
           lifecycle:
             postStart:
@@ -228,10 +259,12 @@ spec:
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='website')     THEN CREATE USER website;     END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='pentest')     THEN CREATE USER pentest;     END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='videovault') THEN CREATE USER videovault; END IF;
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='website_massage') THEN CREATE USER website_massage; END IF;
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='pocket_id_korczewski') THEN CREATE USER pocket_id_korczewski; END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='pocket_id')  THEN CREATE USER pocket_id;  END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='mcp_readonly') THEN CREATE ROLE mcp_readonly LOGIN NOSUPERUSER; END IF;
                     END $$;"
-                    for db in nextcloud vaultwarden website pentest videovault pocket_id; do
+                    for db in nextcloud vaultwarden website pentest videovault pocket_id website_massage pocket_id_korczewski; do
                       psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$$db'" | grep -q 1 \
                         || psql -U postgres -c "CREATE DATABASE \"$$db\" OWNER \"$$db\";"
                     done
@@ -243,6 +276,15 @@ spec:
                       -c "ALTER USER pocket_id WITH PASSWORD '$${POCKET_ID_DB_PASSWORD}';" \
                       -c "ALTER ROLE mcp_readonly SET default_transaction_read_only = on;" \
                       -c "GRANT pg_read_all_data TO mcp_readonly;" \
+                    # T901440: neue Rollen nur bei nicht-leerem Secret (s. init-Skript).
+                    if [ -n "$WEBSITE_MASSAGE_DB_PASSWORD" ]; then
+                      psql -U postgres -v newpw="$WEBSITE_MASSAGE_DB_PASSWORD" \
+                        -c "ALTER USER website_massage WITH PASSWORD :'newpw';"
+                    fi
+                    if [ -n "$POCKET_ID_KORCZEWSKI_DB_PASSWORD" ]; then
+                      psql -U postgres -v newpw="$POCKET_ID_KORCZEWSKI_DB_PASSWORD" \
+                        -c "ALTER USER pocket_id_korczewski WITH PASSWORD :'newpw';"
+                    fi
 
                     # Owner-Normalisierung [T900806]: die ensure-Skripte laufen mit
                     # SET ROLE website und brauchen REFERENCES auf public-Tabellen.

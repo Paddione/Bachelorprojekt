@@ -31,6 +31,10 @@ env_vars:
   BRETT_IMAGE_DIGEST: sha256:2222222222222222222222222222222222222222222222222222222222222222
   WEBSITE_NAMESPACE: website-staging
   WORKSPACE_NAMESPACE: workspace-staging
+  # T901440: zentrale DB-Koordinaten der Website (Defaults = bisheriger Stand)
+  WEBSITE_DB_NAMESPACE: workspace-staging
+  WEBSITE_DB_NAME: website
+  WEBSITE_DB_USER: website
   WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
   INFRA_NAMESPACE: staging-infra
   TLS_SECRET_NAME: staging-wildcard-tls

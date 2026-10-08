@@ -24,14 +24,29 @@ def test_shared_db_yaml_exists(paths):
 
 def test_post_start_self_heals_databases_create_database_loop(paths):
     text = paths["manifest"].read_text(encoding="utf-8")
-    assert re.search(r"for db in nextcloud vaultwarden website pentest videovault pocket_id; do", text)
+    # T901440: keine exakte Loop-Zeile mehr — Tokens strukturiert extrahieren.
+    loops = re.findall(r"for db in ([^;]+); do", text)
+    assert loops, "kein postStart DB-Loop gefunden"
+    tokens = set(loops[0].split())
+    for db in [
+        "nextcloud",
+        "vaultwarden",
+        "website",
+        "pentest",
+        "videovault",
+        "pocket_id",
+        "website_massage",
+        "pocket_id_korczewski",
+    ]:
+        assert db in tokens, f"DB {db} fehlt im postStart-Loop"
     assert re.search(r"CREATE DATABASE", text)
 
 
 def test_post_start_self_heals_roles_create_user_guarded_by_not_exists(paths):
     text = paths["manifest"].read_text(encoding="utf-8")
-    for role in ["nextcloud", "vaultwarden", "website", "pentest", "videovault"]:
-        first = re.search(rf"rolname='{role}'.*CREATE USER {role}", text)
+    for role in ["nextcloud", "vaultwarden", "website", "pentest", "videovault",
+                 "website_massage", "pocket_id_korczewski"]:
+        first = re.search(rf"rolname\s*=\s*'{role}'.*CREATE USER {role}", text)
         second = re.search(rf"rolname='{role}'\)    THEN CREATE USER {role}", text)
         assert first or second, f"role {role} not self-healed"
 

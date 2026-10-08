@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.407.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.2...website-v1.407.3) (2026-10-08)
+
+
+### Tests
+
+* **test:** add E2E tests for massage mobile+keyboard [T901306] ([#6399](https://github.com/Paddione/Bachelorprojekt/issues/6399)) ([9b24778](https://github.com/Paddione/Bachelorprojekt/commit/9b247789187640da9d4e4ff71cf12d34b2564bed))
+
 ## [1.407.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.1...website-v1.407.2) (2026-10-08)
 
 

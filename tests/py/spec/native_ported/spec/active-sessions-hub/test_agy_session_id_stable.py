@@ -10,6 +10,9 @@ def agy_env(repo_root, tmp_path, monkeypatch):
     """BATS setup(): isolated lock dir and a fresh git repo with one commit."""
     ald = tmp_path / "ald"
     ald.mkdir()
+    # env -i strips CI/GITHUB_ACTIONS, so claim's reaper would run a network
+    # `git fetch` (T002502); a fresh fetch marker makes the fetch not due.
+    (ald / ".last-fetch").touch()
     monkeypatch.setenv("AGENT_LOCK_DIR", str(ald))
     wt = tmp_path / "fake-repo"
     (wt / "sub").mkdir(parents=True)

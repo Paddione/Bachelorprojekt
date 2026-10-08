@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.407.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.4...website-v1.407.5) (2026-10-08)
+
+
+### Bug Fixes
+
+* **website:** brighten cookie banner text to AA [T901370] ([#6407](https://github.com/Paddione/Bachelorprojekt/issues/6407)) ([1cb6e38](https://github.com/Paddione/Bachelorprojekt/commit/1cb6e3852a6a657f8b375eb6e4bc8df168cf8ba3))
+
 ## [1.407.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.3...website-v1.407.4) (2026-10-08)
 
 

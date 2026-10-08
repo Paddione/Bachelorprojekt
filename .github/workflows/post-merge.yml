@@ -23,7 +23,7 @@ jobs:
   # Dev-Host liegt. Ersatz: der Branch-Reaper laeuft lokal ueber
   # scripts/branch-reaper.sh (Skill repo-hygiene), die Closure ueber den
   # lokalen GitHub-Poller. [T900399] Auch dieser Ersatz ist mit dem
-  # Factory-Abau entfallen — es gibt keinen automatischen Poller mehr; die
+  # Abbau entfallen — es gibt keinen automatischen Poller mehr; die
   # Ticket-Zuordnung nach dem Merge wird lokal ueber
   # scripts/agent-lock.sh check-merged aufgeloest.
   detect:
@@ -115,7 +115,7 @@ jobs:
       # Ersatz (damals): der lokale GitHub-Poller holte gemergte PRs aktiv
       # ab und schloss die Tickets lokal (Aufgabe "merges", delegiert an
       # auto-close-merged.sh), als systemd-User-Timer.
-      # [T900399] Auch dieser Ersatz ist mit dem Factory-Abau entfallen.
+      # [T900399] Auch dieser Ersatz ist mit dem Abbau entfallen.
       # ENTFERNT mit E3/T002626 (ADR-006): "Scout drift ratchet".
       # Die Messung schrieb in tickets.tickets. Seit dem Umzug der SDLC-Daten auf
       # den Dev-Host erreicht CI diese Datenbank nicht mehr. Die Drift-Messung

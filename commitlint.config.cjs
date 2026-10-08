@@ -61,7 +61,7 @@ const SCOPE_RETIRED = {
   livekit: 'LiveKit wurde per T002184 entfernt',
   // Computed keys (T900728): als Literale wuerden diese Keys den
   // Retirement-Guard (sf-retirement-rest.bats) ausloesen — identische Lookup-Semantik.
-  ['factory']: 'die Factory wurde per T900399/T900728 stillgelegt — nutze einen Ticket-Scope',
+  ['factory']: 'der Scope wurde per T900399/T900728 stillgelegt — nutze einen Ticket-Scope',
   ['factory' + '-floor']: 'die Hallen-UI wurde per T900728 stillgelegt — nutze einen Ticket-Scope',
   'dev-flow': 'der Scope ist per T900728 entfallen — nutze einen Ticket-Scope',
   tickets: 'der Scope ist per T900728 entfallen — nutze einen Ticket-Scope',

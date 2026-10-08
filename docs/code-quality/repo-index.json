@@ -3222,7 +3222,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 801,
+      "file_count": 804,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3576,6 +3576,9 @@
         ".opencode/skills/playwright-best-practices/testing-patterns/performance-testing.md",
         ".opencode/skills/playwright-best-practices/testing-patterns/security-testing.md",
         ".opencode/skills/playwright-best-practices/testing-patterns/visual-regression.md",
+        ".opencode/skills/pytest-patterns/EXAMPLES.md",
+        ".opencode/skills/pytest-patterns/README.md",
+        ".opencode/skills/pytest-patterns/SKILL.md",
         ".opencode/skills/references/SKILL.md",
         ".opencode/skills/references/agent-active-plans.md",
         ".opencode/skills/references/ci-fix-loop.md",

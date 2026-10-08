@@ -5,9 +5,11 @@ import {
   generateRequestToken,
   getAppointmentRequestByToken,
   isValidRequestTokenFormat,
+  toAppointmentRequest,
   transitionRequest,
   type InboxRowLike,
 } from '../../../../lib/appointment-requests';
+import { appendNotifyLog, notifyEntryFromResult, sendNotify } from '../../../../lib/appointment-notify';
 import { berlinDayKey, berlinWallMinutes } from '../../../../lib/caldav-cache';
 import {
   addSlotToWhitelist,
@@ -21,6 +23,7 @@ import { checkRateLimit, getClientIp } from '../../../../lib/rate-limit';
 import { isE2ETestRequest } from '../../../../lib/e2e-marker';
 
 const BRAND = process.env.BRAND || 'mentolder';
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const NOT_FOUND = { error: 'Nicht gefunden.' };
 const SLOT_TAKEN = { error: 'Dieser Termin ist leider nicht mehr verfügbar.' };
 
@@ -120,28 +123,29 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
     const oldRow = rows.find((row) => row.payload.token === token);
     const oldPayload: Record<string, unknown> = oldRow?.payload ?? {};
     const newDisplay = `${wallDisplay(berlinWallMinutes(start))} - ${wallDisplay(berlinWallMinutes(end))}`;
-    await createInboxItem({
+    const newPayload: Record<string, unknown> = {
+      name: req.name,
+      email: req.email,
+      phone: req.phone,
+      type: typeof oldPayload.type === 'string' ? oldPayload.type : 'termin',
+      typeLabel: typeof oldPayload.typeLabel === 'string' ? oldPayload.typeLabel : 'Termin vor Ort',
+      slotStart: start.toISOString(),
+      slotEnd: end.toISOString(),
+      slotDisplay: newDisplay,
+      date: berlinDayKey(start),
+      serviceKey: req.serviceKey,
+      serviceSnapshot: req.serviceSnapshot,
+      message: req.message,
+      token: newToken,
+      state: 'offen',
+      idempotencyKey: null,
+      slotClaimed: newSlotClaimed,
+      supersedesId: req.id,
+    };
+    const created = await createInboxItem({
       type: 'booking',
       referenceId: newToken,
-      payload: {
-        name: req.name,
-        email: req.email,
-        phone: req.phone,
-        type: typeof oldPayload.type === 'string' ? oldPayload.type : 'termin',
-        typeLabel: typeof oldPayload.typeLabel === 'string' ? oldPayload.typeLabel : 'Termin vor Ort',
-        slotStart: start.toISOString(),
-        slotEnd: end.toISOString(),
-        slotDisplay: newDisplay,
-        date: berlinDayKey(start),
-        serviceKey: req.serviceKey,
-        serviceSnapshot: req.serviceSnapshot,
-        message: req.message,
-        token: newToken,
-        state: 'offen',
-        idempotencyKey: null,
-        slotClaimed: newSlotClaimed,
-        supersedesId: req.id,
-      },
+      payload: newPayload,
       isTestData: isE2ETestRequest(request),
     });
 
@@ -168,6 +172,27 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
       text: `Umbuchung einer Terminanfrage (alte Anfrage #${req.id} ist storniert).\n\nName: ${req.name}\nE-Mail: ${req.email}\nAlter Termin: ${oldInfo}\nNeuer Termin: ${newDisplay} (${berlinDayKey(start)})`,
       replyTo: req.email,
     }, request);
+
+    // New-appointment notice to the guest via the notify lib.
+    const createdReq = toAppointmentRequest({ id: created.id, brand: created.brand ?? null, payload: newPayload });
+    if (createdReq === null) {
+      locals.requestLogger.warn({ requestId: req.id }, '[anfrage/umbuchung] guest notice skipped: unmappable row');
+    } else {
+      const newManageUrl = `${new URL(request.url).origin}/anfrage/${newToken}`;
+      const result = await sendNotify(
+        { request: createdReq, kind: 'umbuchung', manageUrl: newManageUrl, brandName: BRAND_NAME },
+        { request, log: [] },
+      );
+      if (!result.ok) {
+        locals.requestLogger.warn({ requestId: created.id }, '[anfrage/umbuchung] guest notice mail failed');
+      }
+      try {
+        const next = appendNotifyLog(newPayload, notifyEntryFromResult(result));
+        await pool.query(`UPDATE inbox_items SET payload = payload || $1::jsonb WHERE id = $2`, [JSON.stringify({ notify: next.notify }), created.id]);
+      } catch (err) {
+        locals.requestLogger.warn({ err, requestId: created.id }, '[anfrage/umbuchung] notify log persist failed');
+      }
+    }
 
     return json({ success: true, status: 'offen', requestToken: newToken }, { status: 200 });
   } catch (err) {

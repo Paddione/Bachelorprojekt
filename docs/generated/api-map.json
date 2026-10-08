@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T00:37:04.439Z",
+  "generatedAt": "2026-10-08T01:43:33.539Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1978,6 +1978,14 @@
       "file": "components/website/src/pages/api/contact.ts"
     },
     {
+      "path": "/api/cron/appointment-reminders",
+      "methods": [
+        "POST"
+      ],
+      "auth": "cron",
+      "file": "components/website/src/pages/api/cron/appointment-reminders.ts"
+    },
+    {
       "path": "/api/cron/error-log-retention",
       "methods": [
         "POST"
@@ -2177,6 +2185,14 @@
       ],
       "auth": "session",
       "file": "components/website/src/pages/api/owner/anfragen/[id]/annehmen.ts"
+    },
+    {
+      "path": "/api/owner/anfragen/{id}/resend",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/anfragen/[id]/resend.ts"
     },
     {
       "path": "/api/owner/bookings/{uid}/cancel",

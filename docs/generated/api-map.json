@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T01:43:33.539Z",
+  "generatedAt": "2026-10-08T03:01:48.867Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2227,12 +2227,76 @@
       "file": "components/website/src/pages/api/owner/calendar/block.ts"
     },
     {
+      "path": "/api/owner/kunden/{id}/export",
+      "methods": [
+        "GET"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/kunden/[id]/export.ts"
+    },
+    {
+      "path": "/api/owner/kunden/{id}/korrigieren",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/kunden/[id]/korrigieren.ts"
+    },
+    {
+      "path": "/api/owner/kunden/{id}/loeschen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/kunden/[id]/loeschen.ts"
+    },
+    {
+      "path": "/api/owner/kunden/{id}/zusammenfuehren",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/kunden/[id]/zusammenfuehren.ts"
+    },
+    {
       "path": "/api/owner/me",
       "methods": [
         "GET"
       ],
       "auth": "session",
       "file": "components/website/src/pages/api/owner/me.ts"
+    },
+    {
+      "path": "/api/owner/rechnungen/{id}/korrigieren",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/rechnungen/[id]/korrigieren.ts"
+    },
+    {
+      "path": "/api/owner/rechnungen/{id}/zahlungsstatus",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/rechnungen/[id]/zahlungsstatus.ts"
+    },
+    {
+      "path": "/api/owner/rechnungen/erstellen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/rechnungen/erstellen.ts"
+    },
+    {
+      "path": "/api/owner/rechnungen/export",
+      "methods": [
+        "GET"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/rechnungen/export.ts"
     },
     {
       "path": "/api/poll/{id}",

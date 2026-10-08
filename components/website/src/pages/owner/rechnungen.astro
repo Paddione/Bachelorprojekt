@@ -1,0 +1,76 @@
+---
+import { requireOwner, ownerBusiness } from '../../lib/owner-guard';
+import { getLoginUrl } from '../../lib/auth';
+import { listInvoices } from '../../lib/invoices';
+
+const session = await requireOwner(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+
+const brand = ownerBusiness(session).brand ?? process.env.BRAND ?? 'mentolder';
+// Strict owner isolation: only this brand's invoices, newest first.
+// No client-side JavaScript — plain links below.
+const invoices = await listInvoices(brand);
+
+function fmtDate(iso: string): string {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin' });
+}
+
+function fmtEur(cents: number): string {
+  return (cents / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+}
+
+const STATUS_LABEL: Record<string, string> = { offen: 'Offen', bezahlt: 'Bezahlt', storniert: 'Storniert' };
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rechnungen — Owner-Bereich</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; padding: 32px 20px; color: #222; background: #fafafa; }
+      main { max-width: 900px; margin: 0 auto; }
+      table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; overflow: hidden; }
+      th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #eee; }
+      th { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: #555; }
+      tr:last-child td { border-bottom: none; }
+      td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .empty { background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; padding: 20px 24px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Rechnungen</h1>
+      <p>Angemeldet als {session.name} ({session.email}).</p>
+      {invoices.length === 0 ? (
+        <p class="empty">Noch keine Rechnungen vorhanden.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Rechnungsnummer</th>
+              <th>Datum</th>
+              <th>Kunde</th>
+              <th>Betrag</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoices.map((inv) => (
+              <tr>
+                <td class="num"><a href={`/owner/rechnungen/${encodeURIComponent(inv.id)}`}>{inv.number}</a></td>
+                <td class="num">{fmtDate(inv.issueDate)}</td>
+                <td>{inv.customerName}</td>
+                <td class="num">{fmtEur(inv.grossAmountCents)}</td>
+                <td>{STATUS_LABEL[inv.status] ?? inv.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <nav>
+        <p><a href="/owner">Zurück zur Übersicht</a></p>
+      </nav>
+    </main>
+  </body>
+</html>

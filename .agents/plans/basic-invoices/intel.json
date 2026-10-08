@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "slug": "basic-invoices",
+    "ticket_id": "",
+    "generated_from": "main@6dd06c7b4",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/lib/invoices.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/db/migrations/20261008_invoices.sql",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/owner/rechnungen.astro",
+      "language": "astro",
+      "loc": 0,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/owner/rechnungen/[id].astro",
+      "language": "astro",
+      "loc": 0,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/api/owner/rechnungen/erstellen.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/api/owner/rechnungen/[id]/zahlungsstatus.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/api/owner/rechnungen/[id]/korrigieren.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/api/owner/rechnungen/export.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/basic-invoices.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/__tests__/invoices.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

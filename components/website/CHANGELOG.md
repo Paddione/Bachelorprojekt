@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.404.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.403.0...website-v1.404.0) (2026-10-08)
+
+
+### Features
+
+* **website:** basic invoices, payment status and export [T901027] ([#6367](https://github.com/Paddione/Bachelorprojekt/issues/6367)) ([6ed169b](https://github.com/Paddione/Bachelorprojekt/commit/6ed169b9d0db11fb28fd610145d773b6ae9785ab))
+
+## [1.403.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.402.0...website-v1.403.0) (2026-10-08)
+
+
+### Features
+
+* **website:** minimal client directory and appointment history [T901026] ([#6361](https://github.com/Paddione/Bachelorprojekt/issues/6361)) ([f52b4cc](https://github.com/Paddione/Bachelorprojekt/commit/f52b4ccdda7d9b78a64bed8264bd8a63c69243d9))
+
 ## [1.402.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.401.0...website-v1.402.0) (2026-10-08)
 
 

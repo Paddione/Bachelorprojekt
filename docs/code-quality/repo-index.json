@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1356,
+      "file_count": 1358,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -128,6 +128,8 @@
         "tests/e2e/specs/fa-60-realtime-ws.spec.ts",
         "tests/e2e/specs/fa-61-sdlc-leitstand-devonly-split.spec.ts",
         "tests/e2e/specs/fa-62-massage-pilot.spec.ts",
+        "tests/e2e/specs/fa-63-massage-mobile.spec.ts",
+        "tests/e2e/specs/fa-64-massage-keyboard.spec.ts",
         "tests/e2e/specs/fa-admin-backup-ops.spec.ts",
         "tests/e2e/specs/fa-admin-backup-settings.spec.ts",
         "tests/e2e/specs/fa-admin-billing-system.spec.ts",

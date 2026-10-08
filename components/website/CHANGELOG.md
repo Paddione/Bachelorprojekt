@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.410.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.410.0...website-v1.410.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **scripts:** secure squash merge worktree cleanup [T901525] ([#6435](https://github.com/Paddione/Bachelorprojekt/issues/6435)) ([b560824](https://github.com/Paddione/Bachelorprojekt/commit/b56082454a7d904207b2f70c313a1f37ccbb3802))
+
 ## [1.410.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.409.1...website-v1.410.0) (2026-10-08)
 
 

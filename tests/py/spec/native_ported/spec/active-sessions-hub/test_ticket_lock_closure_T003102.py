@@ -106,7 +106,11 @@ def test_claim_verifikation_plus_release_im_dev_flow_execute_sind_branch_scoped(
     skill = paths["exec_skill"].read_text(encoding="utf-8")
     assert 'check branch "$(git branch --show-current)"' in skill
     finalize = (repo_root / "scripts/devflow-post-merge-finalize.sh").read_text(encoding="utf-8")
-    assert 'release branch "$BRANCH"' in finalize
+    assert 'finalize_release_owned_claims "$_CLEANUP_ANCHOR" "$BRANCH" "$TICKET_ID"' in finalize
+    guards = (repo_root / "scripts/lib/finalize-step-guards.sh").read_text(encoding="utf-8")
+    assert 'for scope in branch ticket' in guards
+    assert 'release "$scope" "$id"' in guards
+    assert '(.owner_sid | tostring) == $sid' in guards
     assert "devflow-post-merge-finalize.sh" in skill
 
 

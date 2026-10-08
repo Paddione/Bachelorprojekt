@@ -69,29 +69,12 @@ def test_t900340_nicht_registrierter_pfad_wird_abgewiesen_und_bleibt_stehen(run_
 def test_t900340_finalize_schritt_10_entfernt_einen_gesperrten_worktree(run_cmd, paths, sandbox):
     wt = sandbox / ".worktrees/final1"
     _locked_wt(run_cmd, sandbox, wt, "b-final1")
-    lines = paths["finalize"].read_text(encoding="utf-8").splitlines()
-    block_lines = []
-    inside = False
-    for line in lines:
-        if re.match(r"^  if .*worktree[ _]remove", line):
-            inside = True
-        if inside:
-            block_lines.append(line)
-            if line == "  fi":
-                break
-    block = "\n".join(block_lines)
-    assert block != "", "Schritt-10-Block nicht gefunden"
-    script = (
-        "set -uo pipefail\n"
-        f"[ -f '{paths['lib']}' ] && source '{paths['lib']}'\n"
-        'mark_ok() { echo "OK: $*"; }\n'
-        f"REPO_DIR='{sandbox}' WORKTREE='{wt}'\n"
-        + block + "\n"
-    )
-    r = run_cmd(["bash", "-c", script])
+    helper = paths["repo_root"] / "scripts/lib/finalize-step-guards.sh"
+    assert 'finalize_remove_clean_worktree "$REPO_DIR" "$WORKTREE"' in paths["finalize"].read_text()
+    r = run_cmd(["bash", "-c", f"source '{helper}'; finalize_remove_clean_worktree '{sandbox}' '{wt}'"])
     assert r.returncode == 0, r.output
-    assert "Schritt 10: Worktree" in r.output
     assert not wt.exists()
+    assert not _registered(run_cmd, sandbox, wt)
 
 
 def test_t900340_aufrufer_entfernen_worktrees_nur_ueber_den_helper(paths):
@@ -103,7 +86,8 @@ def test_t900340_aufrufer_entfernen_worktrees_nur_ueber_den_helper(paths):
     ):
         text = (paths["repo_root"] / rel).read_text(encoding="utf-8")
         # Positiv-Anker: die Datei nutzt den Helper ueberhaupt.
-        assert "worktree_remove_managed" in text, rel
+        helper = "finalize_remove_clean_worktree" if rel.endswith("devflow-post-merge-finalize.sh") else "worktree_remove_managed"
+        assert helper in text, rel
         bare = []
         for n, line in enumerate(text.splitlines(), 1):
             if "worktree remove" not in line:

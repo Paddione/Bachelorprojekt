@@ -3,11 +3,12 @@ name: CI
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened]
     # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
     # still trigger this workflow so the branch-protection required checks
     # (SSOT: scripts/gh-branch-protection.sh — Unit + Quality Gates,
-    # Security Scan, Brett TypeScript, Conventional Commits, Spec + Guards) report success —
+    # Security Scan, Brett TypeScript, Spec + Guards) report success —
+    # Conventional Commits is published separately by pr-metadata.yml.
     # otherwise mergeStateStatus stays BLOCKED indefinitely and admin-merge is
     # required. See mishap T001149-M3.
     # [T900810] Manifest Validation, der Test-Aggregator und Vitest
@@ -47,7 +48,7 @@ concurrency:
   # Cancel superseded runs on the same PR (rapid iteration / stacked pushes);
   # never cancel push-to-main runs, which gate the deployable history.
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -64,7 +65,6 @@ jobs:
     # gates + API auth regression + freshness check. The core offline job
     # that most PRs hit. Does NOT need Go, kubectl, or pnpm. [T001860]
     name: Unit + Quality Gates
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -256,7 +256,6 @@ jobs:
     # Agent evals (tests/evals/): stability probes anyone may run and maintain.
     # (Human-only policy removed per owner decree [T900560-C5b].)
     name: Agent Evals
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -301,7 +300,6 @@ jobs:
     # kustomize manifest validation — the ONLY job that needs kubectl.
     # Very fast setup (~1 min) + ~5s test execution. [T001860]
     name: Manifest Validation
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -353,7 +351,6 @@ jobs:
     # Die billigen, hochsignalhaften Gates — laufen parallel zu den Shards und
     # melden nach ~30s statt nach ~400s.
     name: Spec fast guards
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -420,7 +417,6 @@ jobs:
     # (CI-safe). [T002182]
     # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
     name: Spec shard ${{ matrix.shard }}
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -541,7 +537,7 @@ jobs:
     # [T901066] Required Check (SSOT gh-branch-protection.sh): als advisory Check
     # liess Auto-Merge rote Spec-Laeufe nach main durch (#6280, #6287).
     name: Spec + Guards
-    if: always() && github.event.action != 'edited'
+    if: always()
     needs: [test-spec-fast, test-spec-shard]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -566,7 +562,6 @@ jobs:
 
   security-scan:
     name: Security Scan
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -666,7 +661,6 @@ jobs:
 
   brett-typescript:
     name: Brett TypeScript
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -698,7 +692,6 @@ jobs:
     # ~1s, a website-feature PR runs only the affected ones. The
     # coverage gate below treats the no-changes case as a pass.
     name: Vitest (website)
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -851,7 +844,7 @@ jobs:
     # ist der dort noch gar nicht deployt.
     # [T901067] Entkoppelt von vitest-website (laeuft parallel ab Minute 0)
     # und mit Pfadfilter versehen (ueberspringt Audit bei reinen Nicht-Website-PRs).
-    if: github.event.action != 'edited' && github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # LHCI posts an advisory commit status; the built-in GITHUB_TOKEN needs
@@ -912,124 +905,3 @@ jobs:
             echo "Status: advisory only (does not block CI); GitHub status check posted via LHCI_GITHUB_TOKEN" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-  commit-lint:
-    name: Conventional Commits
-    runs-on: ubuntu-latest
-    # 5min was too tight for the full-history checkout below on a repo with
-    # many short-lived feature/chore branches — observed cancellations
-    # ("The operation was canceled") mid-fetch on PR #3029 [T002049].
-    timeout-minutes: 15
-    if: github.event_name == 'pull_request'
-    steps:
-      # Checkout IS needed here despite the PR-title check above being pure
-      # API — the later "Validate individual commit messages" and
-      # "commit-vs-diff consistency" steps diff every commit in the PR range
-      # locally and need those commit objects present.
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: false
-          filter: blob:none
-      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50  # v7.1.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          # Mirror repo conventions — these are the types used in practice
-          types: |
-            feat
-            fix
-            chore
-            docs
-            refactor
-            test
-            build
-            ci
-            perf
-            revert
-          # Scopes are NOT enforced here — ticket-number scopes (Tdddddd) are
-          # always valid, and named-scope enforcement happens later via
-          # scripts/validate-commit-msg.sh range (individual commit messages).
-          # Ticket references like [T000436] can extend subject length
-          subjectPattern: ^.{1,200}$
-          subjectPatternError: |
-            The subject must be between 1 and 200 characters.
-            If your PR title includes ticket references like [T000436], that counts toward the limit.
-      - name: Validate ticket tag [T000XXX] in PR title (advisory)
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          echo "PR title: $PR_TITLE"
-          if echo "$PR_TITLE" | grep -qP '\[T\d+\]'; then
-            echo "✅ Ticket tag found"
-          else
-            echo "⚠️  PR title has no ticket tag — recommended format: feat(scope): add feature [T000123]"
-          fi
-      - name: Validate individual commit messages [T001356 / G-GIT02]
-        # amannn/action-semantic-pull-request (above) only validates the PR
-        # *title*. GitHub's default squash-merge message can still surface a
-        # non-conventional individual commit subject. This step catches that
-        # regression by validating every non-merge commit in the PR range with
-        # the same shared script used by the local pre-push hook
-        # (.githooks/pre-push), so a bypassed hook is still caught in CI.
-        # BASE_SHA/HEAD_SHA are commit SHAs (not free-text), but routed through
-        # env vars per repo convention to avoid interpolating event payload
-        # fields directly into the shell command.
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          BRANCH_BASE=$(git merge-base origin/main "$HEAD_SHA")
-          bash scripts/validate-commit-msg.sh range "${BRANCH_BASE}..${HEAD_SHA}"
-
-      # commit-vs-diff consistency guard (T001434-mishap). Catches any commit
-      # whose subject claims an implementation change but whose diff contains
-      # only test/spec/plan files. Mirrors the local .githooks/commit-msg hook
-      # so a bypassed hook (SKIP_COMMIT_VS_DIFF=1) is still caught in CI.
-      - name: commit-vs-diff consistency (T001434-mishap guard)
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          BRANCH_BASE=$(git merge-base origin/main "$HEAD_SHA")
-          fail=0
-          while IFS= read -r sha; do
-            [[ -z "$sha" ]] && continue
-            subject=$(git log -1 --format='%s' "$sha")
-            # Get the list of files changed by this commit (relative to its
-            # first parent, falling back to the merge-base for merge commits).
-            parent=$(git rev-parse "$sha^1" 2>/dev/null || echo "$BRANCH_BASE")
-            files=$(git diff --name-only "$parent" "$sha" 2>/dev/null || true)
-            # Build a temp commit-msg file and pass the commit SHA so
-            # the guard script uses per-commit diff (not cumulative).
-            tmp_msg=$(mktemp)
-            trap 'rm -f "$tmp_msg"' EXIT
-            printf '%s\n' "$subject" > "$tmp_msg"
-            if ! bash scripts/check-commit-vs-diff.sh "$tmp_msg" "$sha"; then
-              echo "✗ commit $sha fails commit-vs-diff guard: $subject" >&2
-              fail=1
-            fi
-            rm -f "$tmp_msg"
-          done < <(git rev-list "${BRANCH_BASE}..${HEAD_SHA}" --no-merges)
-          if [[ "$fail" -ne 0 ]]; then
-            echo "" >&2
-            echo "✗ commit-vs-diff consistency guard failed" >&2
-            echo "  One or more commits in this PR have an implementation-type" >&2
-            echo "  subject (fix/feat/refactor/perf) but a diff that contains" >&2
-            echo "  only test/spec/plan files. See T001434-mishap." >&2
-            exit 1
-          fi
-
-      # A squash merge folds every branch-commit subject into the BODY of the
-      # main commit, and GitHub reads its skip markers from the whole head-commit
-      # message. A `[skip ci]` written on a branch therefore silences ALL
-      # push-triggered workflows on main after the merge — with no failed run to
-      # notice. This belongs in the PR run, not a push run: on main the trigger
-      # is already suppressed and the finding would only be retrospective.
-      - name: No CI skip markers in branch commits [T002522]
-        env:
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          BRANCH_BASE=$(git merge-base origin/main "$HEAD_SHA")
-          bash scripts/check-skip-ci-marker.sh "$BRANCH_BASE" "$HEAD_SHA"

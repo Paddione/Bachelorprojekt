@@ -17,7 +17,7 @@ def paths(repo_root: Path):
         "hook": repo_root / ".githooks" / "commit-msg",
         "pre_push": repo_root / ".githooks" / "pre-push",
         "pre_commit": repo_root / ".githooks" / "pre-commit",
-        "ci": repo_root / ".github" / "workflows" / "ci.yml",
+        "ci": repo_root / ".github" / "workflows" / "pr-metadata.yml",
         "pr_auto_title": repo_root / ".github" / "workflows" / "pr-auto-title.yml",
         "mishap_skill": repo_root / ".claude" / "skills" / "mishap-tracker" / "SKILL.md",
         "register": repo_root / "scripts" / "register-scope.sh",
@@ -126,7 +126,7 @@ def test_scopes_output_matches_commitlint_config_named_scopes_exactly(run_cmd, p
     assert res.output == node.stdout.rstrip("\n")
 
 
-def test_ci_yml_commit_lint_job_loads_scopes_dynamically_instead_of_hardcoded_list(paths):
+def test_pr_metadata_commit_lint_job_loads_scopes_dynamically_instead_of_hardcoded_list(paths):
     assert "validate-commit-msg.sh range" in _text(paths["ci"])
 
 

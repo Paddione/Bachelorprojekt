@@ -201,9 +201,14 @@ def tokenize_row_with_assistant_mask(tokenizer, messages: list[dict], max_seq_le
     )
     input_ids = encoded["input_ids"]
     assistant_masks = encoded.get("assistant_masks")
-    if assistant_masks is None or sum(assistant_masks) == 0:
+    if assistant_masks is None:
         return None
-    return {"input_ids": input_ids, "assistant_masks": assistant_masks}
+    # Unsloth/transformers-v5 may return nested masks per assistant segment
+    # (e.g. reasoning spans) — flatten one level before summing.
+    flat = [x for m in assistant_masks for x in (m if isinstance(m, list) else [m])]
+    if sum(flat) == 0:
+        return None
+    return {"input_ids": input_ids, "assistant_masks": flat}
 
 
 def run_training(config: dict, tracking: TrainingRun) -> int:

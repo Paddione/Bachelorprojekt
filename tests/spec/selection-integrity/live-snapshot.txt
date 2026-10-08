@@ -654,6 +654,7 @@ tests/spec/unsloth-eval-harness/regression-gate.bats
 tests/spec/unsloth-eval-harness/scoring-rules.bats
 tests/spec/unsloth-eval-harness/tandem-candidates.bats
 tests/spec/unsloth-eval-harness/testset-shape.bats
+tests/spec/unsloth-eval-harness/worker-testset.bats
 tests/spec/unsloth-training-env/agent-discovery.bats
 tests/spec/unsloth-training-env/measure-corpus.bats
 tests/spec/unsloth-training-env/template-guard.bats

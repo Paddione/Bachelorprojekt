@@ -1,8 +1,8 @@
 ---
-import { requireOwner, ownerBusiness } from '../../../../lib/owner-guard';
-import { getLoginUrl } from '../../../../lib/auth';
-import { listInboxItems } from '../../../../lib/messaging-db';
-import { deriveClients, findDuplicateCandidates, type ClientHistoryEntry } from '../../../../lib/clients';
+import { requireOwner, ownerBusiness } from '../../../lib/owner-guard';
+import { getLoginUrl } from '../../../lib/auth';
+import { listInboxItems } from '../../../lib/messaging-db';
+import { deriveClients, findDuplicateCandidates, type ClientHistoryEntry } from '../../../lib/clients';
 
 const session = await requireOwner(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));

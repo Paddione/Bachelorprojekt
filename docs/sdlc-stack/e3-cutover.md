@@ -7,6 +7,10 @@ Dieser Vorgang verlagert die Datenhoheit über die SDLC-Daten von fleet auf den 
 Er ist **kein Skriptlauf**, sondern eine Abfolge einzeln nachprüfbarer Schritte. Jeder liefert
 seinen Nachweis selbst; keiner wird blind an den nächsten gereicht.
 
+> **Historisch (E3 abgeschlossen):** Dieser Cutover ist durchgeführt. Das hier als „Takt"
+> bezeichnete Hintergrund-Subsystem ist per T900399 stillgelegt und seine Units entfernt —
+> die `systemctl`-Zeilen unten sind Protokoll des damals Anghaltenen, keine Anleitung mehr.
+
 ## Vorbedingungen
 
 | Bedingung | Prüfung |
@@ -33,7 +37,7 @@ systemctl --user stop factory.timer
 systemctl --user stop factory.service   # falls ein Tick gerade läuft
 ```
 
-Solange die Factory läuft, schreibt sie in die fleet-Datenbank. Ein Dump währenddessen wäre
+Solange der Takt läuft, schreibt er in die fleet-Datenbank. Ein Dump währenddessen wäre
 schon beim Einspielen veraltet.
 
 ### 2. Dump ziehen
@@ -65,9 +69,9 @@ task sdlc:sdlc:migrate:seed-provider-config
 ```
 
 Legt die Tabelle mit der Struktur aus fleet an, **ohne** Inhalt zu kopieren. Die lokale Instanz
-steuert die Factory; die fleet-Instanz bedient Coaching. Sie sind bewusst unabhängig.
+steuert den Takt; die fleet-Instanz bedient Coaching. Sie sind bewusst unabhängig.
 
-Danach die aktiven Factory-Provider eintragen — welche das sind, steht in der fleet-Kopie:
+Danach die aktiven Provider eintragen — welche das sind, steht in der fleet-Kopie:
 
 ```bash
 kubectl exec -i "$(kubectl --context fleet get pod -n workspace -l app=shared-db -o name | head -1)" \
@@ -82,7 +86,7 @@ deshalb auf dem Branch durchgeführt und erst danach gemergt.**
 
 Der Grund: ab dem Merge trägt `main` einen Default, der einen laufenden lokalen Cluster
 voraussetzt. Würde erst gemergt und dann umgezogen, wäre in der Zwischenzeit jeder
-Ticket-Befehl im gesamten Repo tot — für die Factory, für `dev-flow-*` und für jede parallele
+Ticket-Befehl im gesamten Repo tot — für den Takt, für `dev-flow-*` und für jede parallele
 Session. Diese Reihenfolge vermeidet das Fenster vollständig.
 
 ```bash
@@ -90,7 +94,7 @@ cd .worktrees/e3-sdlc-tickets-lokal
 bash scripts/ticket.sh get --id T002626    # muss aus der LOKALEN DB antworten
 ```
 
-### 6. Factory wieder starten
+### 6. Takt wieder starten
 
 ```bash
 systemctl --user start factory.timer
@@ -173,7 +177,7 @@ eine Vermutung.
 
 ### 9. Erst jetzt mergen
 
-Wenn Schritt 1–8 durch sind und die Factory nachweislich lokal arbeitet, wird der PR gemergt.
+Wenn Schritt 1–8 durch sind und der Takt nachweislich lokal arbeitet, wird der PR gemergt.
 `main` trägt ab diesem Moment den lokalen Default — und der stimmt dann mit der Wirklichkeit
 überein.
 
@@ -194,11 +198,11 @@ Stunden ist das überschaubar, nach Tagen nicht mehr. Wer zurück will, entschei
 
 `coaching.sessions.ki_config_id` verweist mit 13 Zeilen auf `tickets.provider_config`, und
 Coaching bleibt laut ADR-006 auf fleet. Die Tabelle ist Konfiguration, keine SDLC-Historie:
-sie mitzunehmen nähme einer Geschäftsfunktion die referentielle Integrität, ohne dass die
-Factory etwas gewönne.
+sie mitzunehmen nähme einer Geschäftsfunktion die referentielle Integrität, ohne dass der
+Takt etwas gewönne.
 
 Der Preis ist bekannt und wird getragen: LLM-Provider-Konfiguration existiert danach an zwei
-Orten und kann auseinanderlaufen. **Zuständigkeit:** die lokale Instanz steuert die Factory,
+Orten und kann auseinanderlaufen. **Zuständigkeit:** die lokale Instanz steuert den Takt,
 die fleet-Instanz bedient ausschließlich Coaching. Wer eine ändert, ändert nicht die andere.
 
 ## Was auf fleet zurückbleibt

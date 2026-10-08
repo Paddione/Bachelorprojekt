@@ -27,7 +27,7 @@
 #
 # [T900061] Der Lock-Test faellt selbst unter 2: unter Git Bash auf Windows ist
 # er nicht durchfuehrbar (flock scheitert am fd-Redirect, und /tmp zeigt dort
-# ohnehin nicht auf die Lock-Datei der Factory unter WSL). Frueher lief dieser
+# ohnehin nicht auf die Lock-Datei des Ticks unter WSL). Frueher lief dieser
 # Fehler in denselben Zweig wie "Lock gehalten" und meldete auf jedem
 # Windows-Host dauerhaft einen laufenden Tick. Ein nicht durchfuehrbarer Test
 # ist kein Befund — er wird als solcher ausgewiesen. Ein echter Befund
@@ -51,7 +51,7 @@ snapshot() {
 }
 
 # [T012414] Pfad ueberschreibbar (wie scripts/repo-hygiene-cron.sh); der Default
-# bleibt der geteilte Pfad, an dem die Absprache mit der Factory haengt.
+# bleibt der geteilte Pfad, an dem die Erkennung eines laufenden Ticks haengt.
 REPO_HYGIENE_TICK_LOCK="${REPO_HYGIENE_TICK_LOCK:-/tmp/repo-hygiene-tick.lock}"
 
 # Ist der fd-Redirect-Lock-Test in DIESER Shell ueberhaupt durchfuehrbar?
@@ -133,7 +133,7 @@ case "$?" in
     echo "  'Bad file descriptor'), nicht am Lock-Zustand. Ob ein Tick laeuft, ist" >&2
     echo "  damit unbekannt — es wird KEIN Tick behauptet und keiner ausgeschlossen." >&2
     echo "  Hinzu kommt: Git Bash bildet /tmp auf ein eigenes Verzeichnis ab, dies" >&2
-    echo "  ist also ohnehin nicht die Lock-Datei, die die Factory unter WSL haelt." >&2
+    echo "  ist also ohnehin nicht die Lock-Datei, die der Hygiene-Tick unter WSL haelt." >&2
     echo "  Konsequenz fuers Runbook: die --porcelain-Pruefung unmittelbar vor jedem" >&2
     echo "  Remove wiederholen, statt sich auf diesen Vorcheck zu verlassen." >&2
     unknown=1

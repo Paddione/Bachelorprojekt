@@ -90,6 +90,7 @@ tests/spec/background-agents-fallback.bats
 tests/spec/backup-pipeline/filen-remote-retention.bats
 tests/spec/backup-pipeline/pvc-backup-multinode.bats
 tests/spec/backup-pipeline/render-escaping.bats
+tests/spec/basic-invoices.bats
 tests/spec/batch-git-worktree-integrity.bats
 tests/spec/batch-local-test-runner-fixes/runner-fixes.bats
 tests/spec/batch-repo-hygiene-ops-fixes.bats
@@ -191,6 +192,7 @@ tests/spec/ci-cd/windows-path-portability.bats
 tests/spec/ci-cd/workflow-self-trigger.bats
 tests/spec/ci-cd/worktrees-not-tracked.bats
 tests/spec/ci-red-intake-autoresolve.bats
+tests/spec/client-directory.bats
 tests/spec/coaching-sessions-polish-guide.bats
 tests/spec/coaching/questionnaire-insights.bats
 tests/spec/coaching/session-summaries.bats
@@ -460,7 +462,9 @@ tests/spec/neovim-dashboard.bats
 tests/spec/network-address-plan/networks-registry.bats
 tests/spec/newsletter-system.bats
 tests/spec/nextcloud-integration.bats
+tests/spec/notify-reminders.bats
 tests/spec/omp-harness.bats
+tests/spec/openclaw-harness.bats
 tests/spec/openclaw-ops-bot.bats
 tests/spec/opencode-config-ssot.bats
 tests/spec/opencode-local-model-runner.bats

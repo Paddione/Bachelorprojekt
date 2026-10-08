@@ -173,7 +173,7 @@ referenziert sie mit 13 Zeilen, und Coaching bleibt laut ADR-006 auf fleet.
 
 | Instanz | Zuständig für |
 |---|---|
-| lokal (`devmesh`) | LLM-Provider-Wahl der Factory |
+| lokal (`devmesh`) | LLM-Provider-Wahl für dev-flow |
 | fleet | ausschließlich Coaching |
 
 Sie sind bewusst unabhängig. **Wer eine ändert, ändert nicht die andere** — das ist der

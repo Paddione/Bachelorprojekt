@@ -57,7 +57,7 @@ main() {
       *)          echo "Unknown stage-plan option: $1" >&2
                   echo "  Gueltige Flags: --id <ext-id> --branch <branch> --plan|--plan-file <pfad> --partials <1..9> --hold|--no-hold [--allow-empty-touched]" >&2
                   echo "  --partials ist PFLICHT, auch fuer einen einzelnen, nicht aufgeteilten Plan." >&2
-                  echo "  stage-plan verlangt seit T003267 eine explizite Hold-Entscheidung: --hold = Operator gibt spaeter frei, --no-hold = Factory greift sofort zu." >&2
+                  echo "  stage-plan verlangt seit T003267 eine explizite Hold-Entscheidung: --hold = Operator gibt spaeter frei, --no-hold = Ausfuehrung sofort freigegeben." >&2
                   exit 2 ;;
     esac; done
   if [[ -z "$id"     ]]; then echo "ERROR: --id is required."     >&2; exit 2; fi
@@ -66,12 +66,12 @@ main() {
   case "$partials" in [1-9]) ;; *) echo "ERROR: --partials must be 1..9" >&2; exit 2 ;; esac
   if [[ -z "$hold" ]]; then
     echo "ERROR: stage-plan verlangt eine explizite Hold-Entscheidung." >&2
-    echo "  Ohne Flag kein Stage: --hold = Operator gibt spaeter frei, --no-hold = Factory greift sofort zu." >&2
+    echo "  Ohne Flag kein Stage: --hold = Operator gibt spaeter frei, --no-hold = Ausfuehrung sofort freigegeben." >&2
     exit 1
   fi
   # [T002471-M6] plan_file muss im Git-Tree von branch oder HEAD sein
   # Der reine -f-Check auf Disk akzeptierte Dateien, die nur im Staging-Bereich lagen,
-  # aber nicht committed waren. Die Factory findet sie dann nicht.
+  # aber nicht committed waren. Die Plan-Referenz liefe dann ins Leere.
   if ! git cat-file -e "${branch}:${plan}" 2>/dev/null \
     && ! git cat-file -e "HEAD:${plan}" 2>/dev/null; then
     echo "ERROR: Plan file '${plan}' does not exist on branch '${branch}' or in HEAD." >&2
@@ -160,16 +160,13 @@ ON CONFLICT (key, brand) DO UPDATE
   SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
 EOF
     then
-      echo "WARN: stage-plan: force-tick flag write failed — factory will tick on the next factory.timer interval" >&2
+      echo "WARN: stage-plan: force-tick flag write failed — write may have succeeded despite timeout" >&2
     fi
   fi
   if [[ "$hold" == "1" ]]; then
     echo "Ticket $id staged in Kommissionierung (status=plan_staged, execution held)"
   else
     echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
-  fi
-  if [[ "$hold" != "1" ]]; then
-    systemctl --user start --no-block factory.service 2>/dev/null || true
   fi
 }
 

@@ -20,8 +20,8 @@ BUDGETAPI="components/website/src/pages/sdlc/api/cockpit-budget.ts"
 }
 
 @test "D1: read-only consumers subscribe to the store" {
-  # [T003417] FactoryPhaseHeatmap und FactoryShippedBar sind aus dieser Liste
-  # entfernt: der Change "sdlc-dashboard-redesign" löscht sie (REMOVED
+  # [T003417] Die entfernten Analytics-Komponenten (Heatmap, ShippedBar) sind aus dieser Liste
+  # gestrichen: der Change "sdlc-dashboard-redesign" löscht sie (REMOVED
   # Requirement "Alte Analytics-KPIs"). Ohne die Streichung schlug der Test mit
   # `grep: … No such file or directory` fehl — also an einer fehlenden Datei
   # statt an einer fehlenden Store-Anbindung.

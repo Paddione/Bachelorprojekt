@@ -10,7 +10,7 @@ on:
     # Security Scan, Brett TypeScript, Conventional Commits, Spec + Guards) report success —
     # otherwise mergeStateStatus stays BLOCKED indefinitely and admin-merge is
     # required. See mishap T001149-M3.
-    # [T900810] Manifest Validation, der test-factory-Aggregator und Vitest
+    # [T900810] Manifest Validation, der Test-Aggregator und Vitest
     # (website) sind bewusst KEINE Required Checks (T900131), laufen hier aber
     # als advisory Gates auf jedem PR weiter.
   push:
@@ -44,7 +44,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  # Cancel superseded runs on the same PR (rapid iteration / stacked Factory pushes);
+  # Cancel superseded runs on the same PR (rapid iteration / stacked pushes);
   # never cancel push-to-main runs, which gate the deployable history.
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
@@ -198,7 +198,7 @@ jobs:
 
       # T002336: bis hierher lief diese Suite nirgends - weder in einem
       # Taskfile-Target noch in CI. "always", nicht selektiv: der Proxy ist
-      # Infrastruktur fuer Factory und dev-flow, ein Bruch faellt sonst erst
+      # Infrastruktur fuer dev-flow, ein Bruch faellt sonst erst
       # zur Laufzeit auf (und dann still, siehe /health-Vorfall 2026-07-27).
       # T002638: dasselbe Muster ein zweites Mal — exclusive-conflict, fixups und
       # strip-markers (zusammen 19 Tests) standen ebenfalls in keiner Zeile. Der
@@ -330,9 +330,8 @@ jobs:
   #      Mehr `bats -j` auf EINEM Runner war ausgereizt; der einzige Hebel
   #      sind mehr Runner. Details in scripts/spec-shard.sh.
   #
-  # Der Aggregator `test-factory` behaelt seinen stabilen Namen
-  # (Guard: hybrid-runner-placement.bats). Eine nackte Matrix haette ihn in
-  # "… (1)".."… (4)" umbenannt.
+  # Der Aggregator `test-spec` behaelt seinen stabilen Namen. Eine nackte
+  # Matrix haette ihn in "… (1)".."… (4)" umbenannt.
   # [T900810] Kein Required Check mehr (T900131, SSOT gh-branch-protection.sh) —
   # der Name bleibt trotzdem stabil, weil Tooling/Guards ihn referenzieren.
 
@@ -384,8 +383,8 @@ jobs:
       - name: Agent setup replay reminder
         run: |
           changed=$(git diff --name-only origin/main...HEAD || true)
-          # [T900399] Die Factory-Review-Prompts und provider-router.js sind mit
-          # dem Factory-Abbau entfallen; das Replay-Gate dafuer ist heute
+          # [T900399] Die Review-Prompts und provider-router.js sind mit
+          # dem Abbau entfallen; das Replay-Gate dafuer ist heute
           # 'task agents:toolset:check'.
           if echo "$changed" | grep -Eq '^(.opencode/agent-models.jsonc|AGENTS.md)$'; then
             echo "::warning::Agenten-Setup geändert — lokal 'task agents:toolset:check' ausführen"

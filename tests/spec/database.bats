@@ -7,7 +7,7 @@
 # `coaching.sessions.ki_config_id` und der FK `sessions_ki_config_id_fkey`
 # (→ tickets.provider_config) unverändert bleiben.
 #
-# Modell-Vorlage: _sf_common.bash (_skip_if_no_db) [T002503] — retired with the factory.
+# Modell-Vorlage: _sf_common.bash (_skip_if_no_db) [T002503] — per T900399 stillgelegt.
 # Offline/CI ohne Cluster: _skip_if_no_db überspringt die DB-Tests.
 
 setup() {

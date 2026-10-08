@@ -57,11 +57,11 @@ Keine Baseline-Einträge hinzufügen. Shared-Remove-Helper bleibt unverändert.
 ## Phase 4 — Verifikation und PR
 
 - [x] Neue Regression und bestehende Finalizer-/Guard-Suiten laufen lassen: `tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py` plus BATS.
-- [ ] Bash-Syntax, Plan-Lint und S1–S4 prüfen; keine fremden Worktrees entfernen.
-- [ ] task test:inventory ausführen.
-- [ ] task test:changed ausführen.
-- [ ] task freshness:regenerate ausführen, Artefakte committen.
-- [ ] task freshness:check ausführen.
+- [x] Bash-Syntax, Plan-Lint und S1–S4 prüfen; keine fremden Worktrees entfernen.
+- [x] task test:inventory ausführen.
+- [x] task test:changed ausführen (Gesamtsuite läuft, rote Alt-Fixtures werden separat berichtet).
+- [x] task freshness:regenerate ausführen, Artefakte committen.
+- [x] task freshness:check ausführen (Exit 0, keine neuen Baseline-Keys).
 - [ ] PR erstellen, Belege dokumentieren; Merge und Archivierung im regulären Flow.
 
 ## Implementierungsbelege

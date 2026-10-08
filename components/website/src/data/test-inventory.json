@@ -960,6 +960,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-65",
+    "file": "tests/e2e/specs/fa-65-massage-audit.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "HWS-1",
     "file": "tests/spec/harness-workflow-split.bats",
     "category": "HWS",

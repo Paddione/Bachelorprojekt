@@ -1,6 +1,7 @@
 """Drift gates for agent registry (migrated from tests/spec/agent-roster.bats)."""
 
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -54,7 +55,7 @@ def test_p4_4_claude_md_only_registry_agents(repo_root: Path):
 
 def test_p4_5_agents_map_fresh(repo_root: Path, tmp_path: Path):
     script = repo_root / "scripts" / "agent-guide" / "emit-maps.mjs"
-    env = {"AGENT_GUIDE_MAPS_OUT_DIR": str(tmp_path)}
+    env = {**os.environ, "AGENT_GUIDE_MAPS_OUT_DIR": str(tmp_path)}
     subprocess.run(["node", str(script)], cwd=repo_root, env=env, check=True)
 
     current_map = (repo_root / "docs" / "agent-guide" / "maps" / "agents-map.md").read_text()

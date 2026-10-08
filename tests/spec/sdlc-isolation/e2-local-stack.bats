@@ -96,7 +96,7 @@ _skip_unless_sdlc_console() {
 }
 
 @test "E2 DoD: bge-embed responds on health" {
-  if ! cluster_running; then skip "cluster devmesh not running"; fi
+  require_k8s_rollout devmesh workspace deploy bge-embed
   kubectl --context devmesh port-forward -n workspace svc/llm-gateway-embed 18081:8081 &
   PF_PID=$!
   sleep 2

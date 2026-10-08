@@ -10,9 +10,9 @@ tasks:
     cmds:
       - |
         if command -v uv >/dev/null 2>&1; then
-          uv run --with pytest --with pyyaml pytest tests/py {{.CLI_ARGS}}
+          uv run --with pytest --with pyyaml --with pytest-xdist --with jinja2 pytest -n auto tests/py {{.CLI_ARGS}}
         else
-          python3 -m pytest tests/py {{.CLI_ARGS}}
+          python3 -m pytest -n auto tests/py {{.CLI_ARGS}} 2>/dev/null || python3 -m pytest tests/py {{.CLI_ARGS}}
         fi
 
   test:py:smoke:
@@ -20,7 +20,7 @@ tasks:
     cmds:
       - |
         if command -v uv >/dev/null 2>&1; then
-          uv run --with pytest --with pyyaml pytest tests/py/smoke {{.CLI_ARGS}}
+          uv run --with pytest --with pyyaml --with jinja2 pytest tests/py/smoke {{.CLI_ARGS}}
         else
           python3 -m pytest tests/py/smoke {{.CLI_ARGS}}
         fi

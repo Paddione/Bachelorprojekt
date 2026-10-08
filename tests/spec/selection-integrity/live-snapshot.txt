@@ -22,6 +22,8 @@ tests/spec/admin-ui-modal-drawer.bats
 tests/spec/agent-behavior/collision-own-worktree.bats
 tests/spec/agent-behavior/no-tools-allowlist.bats
 tests/spec/agent-bench/loadouts.bats
+tests/spec/agent-bench/orchestrator-dispatch.bats
+tests/spec/agent-bench/orchestrator-marker.bats
 tests/spec/agent-bench/report-corpus.bats
 tests/spec/agent-bench/scoring.bats
 tests/spec/agent-collision-false-positives.bats
@@ -112,6 +114,7 @@ tests/spec/brain-k4-brain-wiki/retrieval-eval.bats
 tests/spec/brain-quality-goals.bats
 tests/spec/branch-reaper-netzausfall.bats
 tests/spec/brett.bats
+tests/spec/business-homepage.bats
 tests/spec/cbm-embed-store.bats
 tests/spec/cbm-embed-sync-A2.bats
 tests/spec/cbm-eval.bats
@@ -458,6 +461,7 @@ tests/spec/mishap-tracking/go-tests-registriert.bats
 tests/spec/monitoring-alerts.bats
 tests/spec/monitoring-alerts/backup-alerting.bats
 tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats
+tests/spec/navigation-responsive.bats
 tests/spec/neovim-dashboard.bats
 tests/spec/network-address-plan/networks-registry.bats
 tests/spec/newsletter-system.bats
@@ -647,11 +651,13 @@ tests/spec/toolset-registry/tools-suppressed.bats
 tests/spec/toolset-registry/unreviewed-quarantine.bats
 tests/spec/traefik-access-log.bats
 tests/spec/ts-suppression.bats
+tests/spec/unsloth-eval-harness/clarify-question.bats
 tests/spec/unsloth-eval-harness/gguf-fixture-bridge.bats
 tests/spec/unsloth-eval-harness/regression-gate.bats
 tests/spec/unsloth-eval-harness/scoring-rules.bats
 tests/spec/unsloth-eval-harness/tandem-candidates.bats
 tests/spec/unsloth-eval-harness/testset-shape.bats
+tests/spec/unsloth-eval-harness/worker-testset.bats
 tests/spec/unsloth-training-env/agent-discovery.bats
 tests/spec/unsloth-training-env/measure-corpus.bats
 tests/spec/unsloth-training-env/template-guard.bats

@@ -66,7 +66,7 @@ jobs:
     name: BATS Unit + Quality Gates
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
       contents: write
       pull-requests: read
@@ -154,6 +154,23 @@ jobs:
             bash tests/figure-pack-assets.test.sh
           fi
           bash scripts/tests/unit-coverage-guard.sh
+
+      - name: Install and verify MCP task runner for pytest specs
+        run: |
+          bash scripts/mcp-task-runner/install.sh
+          mcp-task-runner --help
+
+      - name: Expose vendored BATS for pytest spec wrappers
+        run: echo "$GITHUB_WORKSPACE/tests/unit/lib/bats-core/bin" >> "$GITHUB_PATH"
+
+      - name: Pytest suite (pytest -n auto)
+        run: |
+          if command -v uv >/dev/null 2>&1; then
+            uv run --with pytest --with pyyaml --with pytest-xdist --with jinja2 pytest -n auto --maxfail=1 tests/py
+          else
+            python3 -m pip install --quiet --break-system-packages pytest pytest-xdist pyyaml jinja2
+            python3 -m pytest -n auto --maxfail=1 tests/py
+          fi
 
       - name: Code-quality gates (always)
         run: node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs

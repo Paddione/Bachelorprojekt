@@ -19,11 +19,14 @@ import {
   getEffectiveNavigation,
   getEffectiveFooter,
   getEffectiveKoreFlags,
+  getEffectiveLeistungen,
+  getEffectiveKontakt,
   bundleSeo,
 } from '../lib/content';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
+const isMassage = BRAND_ID === 'massage';
 const layoutBrand = isKore ? 'korczewski-kore' : undefined;
 
 // T001490: SEO is now sourced from the build-time content bundle
@@ -41,13 +44,25 @@ const homeOgImage = !isKore ? (seo.ogImages.home ?? null) : null;
 const [homepage, faq, allServices, stammdaten, _effectiveNav, effectiveFooter, effectiveKoreFlags] = await Promise.all([
   getEffectiveHomepage(),
   getEffectiveFaq(),
-  getEffectiveServices(),
+  // Massage ships no services.json / kore-flags.json (T901028): fail-soft
+  // fallbacks keep the massage branch rendering; other brands unaffected.
+  getEffectiveServices().catch(() => []),
   getEffectiveStammdaten(),
   getEffectiveNavigation(),
   getEffectiveFooter(),
-  getEffectiveKoreFlags(),
+  getEffectiveKoreFlags().catch(() => ({ timeline: false })),
 ]);
 const services = allServices.filter((s) => !s.hidden);
+
+// Journey service keys (T901024, vgl. kontakt.astro + content/massage/leistungen.json):
+// ruecken-30, ganzkoerper-60 (Highlight), ganzkoerper-90 — Preise sind Platzhalter.
+const massageLeistungen = isMassage ? await getEffectiveLeistungen().catch(() => []) : [];
+const massageKontakt = isMassage ? await getEffectiveKontakt().catch(() => null) : null;
+const massageFaqTop = isMassage ? faq.slice(0, 3) : [];
+const massagePhone = stammdaten.phone ?? '';
+const massagePhoneHref = (massagePhone === '' || massagePhone.startsWith('slot:'))
+  ? null
+  : `tel:${massagePhone.replace(/\s+/g, '')}`;
 
 // Timeline is now a client island (TimelineIsland). We still read the
 // gate flag from the bundle so SSR/CSR agree on whether to render it.
@@ -70,6 +85,122 @@ const processSteps = homepage.processSteps ?? [];
       footerCopyright={effectiveFooter.copyright}
       wantsTimeline={wantsTimeline}
     />
+  ) : isMassage ? (
+    <Fragment>
+      <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />
+      {/* Hero */}
+      <section class="mg-hero" aria-labelledby="mg-hero-heading">
+        <div class="mg-wrap mg-hero-grid">
+          <div>
+            <p class="t-eyebrow">{homepage.hero.tagline}</p>
+            <h1 id="mg-hero-heading">{homepage.hero.title}</h1>
+            <p class="t-lede">{homepage.hero.subtitle}</p>
+            <div class="mg-cta-row">
+              <a class="mg-btn mg-btn-primary" href="/kontakt">Termin anfragen</a>
+              <a class="mg-btn" href="/leistungen">Leistungen ansehen</a>
+            </div>
+            <p class="mg-fallback">
+              Lieber anrufen?{' '}
+              {massagePhoneHref ? (
+                <a href={massagePhoneHref}>{massagePhone}</a>
+              ) : (
+                <span class="t-slot">Entwurf · slot:slot-telefon</span>
+              )}
+            </p>
+          </div>
+          <figure class="mg-photo" aria-label="Porträt der Inhaberin (Foto folgt)">
+            <span class="t-slot">Foto folgt · slot:slot-portrait-inhaberin</span>
+          </figure>
+        </div>
+      </section>
+
+      {/* Kennzahlen */}
+      <section class="mg-stats" aria-label="Kennzahlen">
+        <div class="mg-wrap mg-stats-row">
+          {homepage.stats.map((s) => (
+            <div>
+              <p class="t-stat">{s.value}</p>
+              <p class="t-small">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Leistungen kurz */}
+      <section class="mg-section section-alt" aria-labelledby="mg-offers-heading">
+        <div class="mg-wrap">
+          <p class="t-kicker">Anwendungen</p>
+          <h2 id="mg-offers-heading">{homepage.servicesHeadline}</h2>
+          <p class="t-lede">{homepage.servicesSubheadline}</p>
+          <ol class="mg-offer-list">
+            {(massageLeistungen[0]?.services ?? []).map((svc) => (
+              <li class="mg-offer">
+                <div>
+                  <h3 class="t-h3-serif">{svc.name} <span class="t-small">· {svc.unit}</span></h3>
+                  <p>{svc.desc}</p>
+                </div>
+                <div class="mg-offer-side">
+                  <p><span class="t-slot">Entwurf</span> <strong>{svc.price}</strong></p>
+                  <a class="mg-btn mg-btn-primary" href={`/kontakt?service=${svc.key}`}>Termin anfragen</a>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Vertrauen */}
+      <section class="mg-section" aria-labelledby="mg-why-heading">
+        <div class="mg-wrap mg-why-grid">
+          <div>
+            <p class="t-kicker">Vertrauen</p>
+            <h2 id="mg-why-heading">{homepage.whyMeHeadline}</h2>
+            <p class="t-lede">{homepage.whyMeIntro}</p>
+            {homepage.whyMePoints.map((pt) => (
+              <div class="mg-why-point">
+                <h3>{pt.title}</h3>
+                <p>{pt.text}</p>
+              </div>
+            ))}
+            <blockquote class="mg-quote">
+              <p>„{homepage.quote}“</p>
+              <cite>— {homepage.quoteName}</cite>
+            </blockquote>
+          </div>
+          <figure class="mg-photo" aria-label="Praxisraum (Foto folgt)">
+            <span class="t-slot">Foto folgt · slot:slot-praxis-raum</span>
+          </figure>
+        </div>
+      </section>
+
+      {/* Ablauf */}
+      <Process
+        steps={processSteps}
+        eyebrow={homepage.processEyebrow}
+        headline={homepage.processHeadline}
+      />
+
+      {/* FAQ-Auszug */}
+      <FAQ items={massageFaqTop.map((item) => ({
+        ...item,
+        answer: item.answer.replace('{city}', stammdaten.city),
+      }))} title="Häufige Fragen" client:visible />
+      <div class="mg-wrap mg-center">
+        <a class="mg-btn" href="/faq">Alle Fragen</a>
+      </div>
+
+      {/* CTA */}
+      <CallToAction
+        client:visible
+        eyebrow="Massagepraxis Vögelsen"
+        title={massageKontakt?.sidebarTitle ?? 'Termin anfragen'}
+        subtitle={massageKontakt?.sidebarText ?? homepage.servicesSubheadline}
+        primaryText="Termin anfragen"
+        primaryHref="/kontakt"
+        secondaryText={stammdaten.email}
+        secondaryHref={stammdaten.email ? `mailto:${stammdaten.email}` : ''}
+      />
+    </Fragment>
   ) : (
     <Fragment>
       <!-- Hero with Portrait -->
@@ -238,5 +369,63 @@ const processSteps = homepage.processSteps ?? [];
     .wrap {
       padding: 0 22px;
     }
+  }
+
+  /* Massage brand branch (T901028, Richtung A) — paper base, editorial rows. */
+  .mg-wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }
+  .mg-hero { padding: 96px 0 72px; }
+  .mg-hero-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: center; }
+  .mg-hero h1 { margin: 18px 0 20px; max-width: 16ch; }
+  .mg-hero .t-lede { margin-bottom: 32px; }
+  .mg-cta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+  .mg-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 48px; padding: 12px 28px; border-radius: var(--radius-pill);
+    border: 1px solid var(--fg); color: var(--fg); text-decoration: none;
+    font-weight: 600; font-size: 15px;
+  }
+  .mg-btn-primary { background: var(--brass-2); border-color: var(--brass-2); color: #FDFCF9; }
+  .mg-btn:focus-visible { outline: 2px solid var(--brass-2); outline-offset: 3px; }
+  .mg-fallback { font-size: 15px; color: var(--mute); }
+  .mg-fallback a { color: var(--brass-2); }
+  .mg-photo {
+    margin: 0; min-height: 320px; border-radius: var(--radius);
+    border: 1px dashed var(--line-2); background: var(--ink-850);
+    display: flex; align-items: center; justify-content: center; text-align: center;
+  }
+  .mg-stats { padding: 40px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .mg-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+  .mg-section { padding: 96px 0; }
+  .mg-section h2 { margin: 14px 0 16px; }
+  .mg-section .t-lede { margin-bottom: 48px; }
+  .mg-offer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .mg-offer {
+    display: flex; justify-content: space-between; align-items: center; gap: 32px;
+    padding: 32px 0; border-top: 1px solid var(--line-2);
+  }
+  .mg-offer:last-child { border-bottom: 1px solid var(--line-2); }
+  .mg-offer-side { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+  .mg-offer-side strong { font-size: 20px; color: var(--fg); margin-left: 8px; }
+  .mg-why-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: start; }
+  .mg-why-point { margin-top: 28px; max-width: 52ch; }
+  .mg-why-point h3 { margin-bottom: 6px; }
+  .mg-quote { margin: 40px 0 0; padding: 0; border: none; }
+  .mg-quote p { font-family: var(--serif); font-size: 24px; color: var(--fg); }
+  .mg-quote cite { font-style: normal; font-size: 14px; color: var(--mute); }
+  .mg-center { text-align: center; padding: 8px 0 72px; }
+
+  @media (max-width: 720px) {
+    .mg-wrap { padding: 0 22px; }
+    .mg-hero { padding: 64px 0 48px; }
+    .mg-hero-grid, .mg-why-grid { grid-template-columns: 1fr; gap: 36px; }
+    .mg-photo { min-height: 200px; }
+    .mg-stats-row { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .mg-section { padding: 64px 0; }
+    .mg-offer { flex-direction: column; align-items: stretch; }
+    .mg-offer-side { text-align: left; align-items: flex-start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mg-btn { transition: none; }
   }
 </style>

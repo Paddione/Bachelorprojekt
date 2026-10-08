@@ -1,0 +1,6 @@
+[
+  { "label": "Leistungen", "href": "/leistungen", "order": 0 },
+  { "label": "Über mich", "href": "/ueber-mich", "order": 1 },
+  { "label": "Häufige Fragen", "href": "/faq", "order": 2 },
+  { "label": "Kontakt", "href": "/kontakt", "order": 3 }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "id": "massage-anwendungen",
+    "title": "Massage-Anwendungen",
+    "icon": "💆",
+    "description": "Drei Zeitformate zur Auswahl. Zur Entspannung und für das Wohlbefinden — keine Behandlung von Krankheiten.",
+    "services": [
+      { "key": "ruecken-30", "name": "Rückenmassage", "price": "Preis folgt", "unit": "30 Min.", "desc": "Kurze Auszeit für Rücken und Schultern.", "durationMin": 30 },
+      { "key": "ganzkoerper-60", "name": "Ganzkörpermassage", "price": "Preis folgt", "unit": "60 Min.", "desc": "Tiefe Entspannung für den ganzen Körper.", "highlight": true, "durationMin": 60 },
+      { "key": "ganzkoerper-90", "name": "Ganzkörpermassage", "price": "Preis folgt", "unit": "90 Min.", "desc": "Die lange Auszeit — 90 Minuten Ruhe.", "durationMin": 90 }
+    ]
+  }
+]

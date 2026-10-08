@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.405.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.1...website-v1.405.2) (2026-10-08)
+
+
+### Tests
+
+* **test:** add E2E pilot spec for massage booking journey [T901029] ([#6384](https://github.com/Paddione/Bachelorprojekt/issues/6384)) ([d49bfb0](https://github.com/Paddione/Bachelorprojekt/commit/d49bfb0b0d4553927546aaad738ee2ceb5fdfb46))
+
+## [1.405.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.0...website-v1.405.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **scripts:** clarify-Frage als 1.0 werten [T901271] ([#6380](https://github.com/Paddione/Bachelorprojekt/issues/6380)) ([80421ad](https://github.com/Paddione/Bachelorprojekt/commit/80421ad901630f17f5c39f36cf3a8ca630732068))
+
+## [1.405.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.404.0...website-v1.405.0) (2026-10-08)
+
+
+### Features
+
+* **website:** massage business homepage and service pages [T901028] ([#6377](https://github.com/Paddione/Bachelorprojekt/issues/6377)) ([f17b91b](https://github.com/Paddione/Bachelorprojekt/commit/f17b91b745cf474307e3b3e1e1dde8a358dd0797))
+
 ## [1.404.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.403.0...website-v1.404.0) (2026-10-08)
 
 

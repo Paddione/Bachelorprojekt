@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 116,
+  "count": 117,
   "routes": [
     {
       "route": "/",
@@ -640,6 +640,14 @@
     },
     {
       "route": "/en/ueber-mich",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/faq",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

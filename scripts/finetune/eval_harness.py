@@ -29,6 +29,7 @@ from langfuse_tracking import publish_evaluation  # noqa: E402
 PARTITIONS = ("action", "no_action", "clarify")
 LANGUAGES = ("en", "de")
 MALFORMED_ACTION_NAME = "__malformed__"
+QUESTION_ACTION_NAME = "__question__"
 
 # T002634: war 512. Gemma 4 antwortet unter --jinja als Reasoning-Modell, und
 # der Denkteil geht aus DEMSELBEN Budget wie die Antwort. Gemessen am
@@ -48,7 +49,10 @@ def parse_action_output(raw_text: str) -> list:
     must be a JSON list of `{"name": str, "params": dict}` objects. Anything
     that fails to parse is reported back as a single malformed action so the
     scoring rules' well-formedness check fails it explicitly instead of the
-    parser silently dropping it.
+    parser silently dropping it. Question-like raw text (non-empty, not a
+    JSON list, ends with "?", does not start with "["/"{"/"```") is
+    reported as a single __question__ action so the clarify scorer can
+    reward it.
     """
     text = raw_text.strip()
     if not text:
@@ -56,10 +60,12 @@ def parse_action_output(raw_text: str) -> list:
     try:
         parsed = json.loads(text)
     except json.JSONDecodeError:
-        return [{"name": MALFORMED_ACTION_NAME, "params": {}}]
-    if not isinstance(parsed, list):
-        return [{"name": MALFORMED_ACTION_NAME, "params": {}}]
-    return parsed
+        parsed = None
+    if isinstance(parsed, list):
+        return parsed
+    if text.endswith("?") and not text.startswith(("[", "{", "```")):
+        return [{"name": QUESTION_ACTION_NAME, "params": {}}]
+    return [{"name": MALFORMED_ACTION_NAME, "params": {}}]
 
 
 def build_prompt(case: dict) -> str:

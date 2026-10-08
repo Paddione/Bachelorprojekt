@@ -1,0 +1,1 @@
+{"meta":{"ticket_id":"T901525","source":"read-only audit and real temporary Git fixtures"},"symbols":["finalize_branch_fully_merged","worktree_remove_managed"],"impact_files":["scripts/lib/finalize-step-guards.sh","scripts/devflow-post-merge-finalize.sh","tests/spec/agent-skills/post-merge-finalize-safety.bats"]}

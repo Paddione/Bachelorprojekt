@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.401.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.400.0...website-v1.401.0) (2026-10-08)
+
+
+### Features
+
+* **website:** confirmations, reminders and delivery status [T901025] ([#6353](https://github.com/Paddione/Bachelorprojekt/issues/6353)) ([8775c8e](https://github.com/Paddione/Bachelorprojekt/commit/8775c8e8162014292278840aa110458abb97ad68))
+
 ## [1.400.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.399.0...website-v1.400.0) (2026-10-08)
 
 

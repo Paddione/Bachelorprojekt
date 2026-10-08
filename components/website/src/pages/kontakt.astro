@@ -12,6 +12,16 @@ const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
 const layoutBrand = isKore ? 'korczewski-kore' : undefined;
 
+// Journey services (T901024): values read from content/massage/leistungen.json
+// (ruecken-30/30 Min., ganzkoerper-60/60 Min. Highlight, ganzkoerper-90/90 Min.);
+// prices are placeholder labels (Entwurf, owner input open) — never invented.
+const isMassage = BRAND_ID === 'massage';
+const massageServices = [
+  { key: 'ruecken-30', name: 'Rückenmassage 30 Min.', durationMin: 30, priceLabel: 'Preis folgt' },
+  { key: 'ganzkoerper-60', name: 'Ganzkörpermassage 60 Min.', durationMin: 60, priceLabel: 'Preis folgt', highlight: true },
+  { key: 'ganzkoerper-90', name: 'Ganzkörpermassage 90 Min.', durationMin: 90, priceLabel: 'Preis folgt' },
+];
+
 const kontakt = await getEffectiveKontakt();
 const stammdaten = await getEffectiveStammdaten().catch(() => null);
 
@@ -81,6 +91,8 @@ const seoOgImage = getSeoOgImage(BRAND_ID, 'kontakt');
     sidebarText={kontakt.sidebarText}
     sidebarCta={kontakt.sidebarCta}
     showSteps={kontakt.showSteps}
+    journeyEnabled={isMassage}
+    journeyServices={massageServices}
   />
 </Layout>
 

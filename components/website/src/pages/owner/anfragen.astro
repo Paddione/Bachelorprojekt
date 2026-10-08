@@ -3,6 +3,36 @@ import { requireOwner } from '../../lib/owner-guard';
 import { getLoginUrl } from '../../lib/auth';
 const session = await requireOwner(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+import { ownerBusiness } from '../../lib/owner-guard';
+import { pool } from '../../lib/messaging-db-pool';
+import {
+  toAppointmentRequest,
+  type AppointmentRequest,
+  type InboxRowLike,
+} from '../../lib/appointment-requests';
+
+const brand = ownerBusiness(session).brand ?? process.env.BRAND ?? 'mentolder';
+// Open requests of this brand (plus unassigned legacy rows with NULL brand),
+// oldest first. No client-side JavaScript — plain POST forms below.
+const { rows } = await pool.query<InboxRowLike>(
+  `SELECT id, brand, payload FROM inbox_items
+   WHERE type = 'booking' AND status = 'pending' AND payload->>'state' = 'offen'
+     AND (brand = $1 OR brand IS NULL)
+   ORDER BY id ASC`,
+  [brand],
+);
+const requests: AppointmentRequest[] = rows
+  .map((row) => toAppointmentRequest(row))
+  .filter((req): req is AppointmentRequest => req !== null);
+
+function slotLine(req: AppointmentRequest): string {
+  if (req.slotStart === null) return 'Rückruf';
+  const day = new Date(req.slotStart).toLocaleDateString('de-DE', {
+    weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+    timeZone: 'Europe/Berlin',
+  });
+  return req.slotDisplay !== null ? `${day} · ${req.slotDisplay}` : day;
+}
 ---
 <!doctype html>
 <html lang="de">
@@ -10,14 +40,50 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Anfragen — Owner-Bereich</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; padding: 32px 20px; color: #222; background: #fafafa; }
+      main { max-width: 760px; margin: 0 auto; }
+      article { background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; padding: 20px 24px; margin: 16px 0; }
+      ul { list-style: none; margin: 0; padding: 0; }
+      form { display: inline-block; margin: 8px 16px 0 0; vertical-align: top; }
+      label { display: block; font-size: 14px; color: #555; }
+      textarea { display: block; width: 280px; max-width: 100%; font: inherit; padding: 8px; border: 1px solid #ccc; border-radius: 8px; }
+      button { margin-top: 8px; padding: 10px 20px; min-height: 44px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; font: inherit; cursor: pointer; }
+    </style>
   </head>
   <body>
     <main>
       <h1>Anfragen</h1>
       <p>Angemeldet als {session.name} ({session.email}).</p>
-      <ul>
-        <li>Noch keine Anfragen vorhanden.</li>
-      </ul>
+      {requests.length === 0 ? (
+        <ul>
+          <li>Noch keine Anfragen vorhanden.</li>
+        </ul>
+      ) : (
+        <ul>
+          {requests.map((req) => (
+            <li>
+              <article>
+                <h2>{req.serviceName ?? 'Terminanfrage'}</h2>
+                <p><strong>Termin:</strong> {slotLine(req)}</p>
+                <p><strong>Gast:</strong> {req.name} · {req.email}{req.phone ? ` · ${req.phone}` : ''}</p>
+                {req.message !== null && req.message !== '' && (
+                  <p><strong>Nachricht:</strong> {req.message}</p>
+                )}
+                <form method="post" action={`/api/owner/anfragen/${req.id}/annehmen`}>
+                  <button type="submit">Annehmen</button>
+                </form>
+                <form method="post" action={`/api/owner/anfragen/${req.id}/ablehnen`}>
+                  <label>Notiz an den Gast (optional)
+                    <textarea name="note" rows="2" maxlength="1000"></textarea>
+                  </label>
+                  <button type="submit">Ablehnen</button>
+                </form>
+              </article>
+            </li>
+          ))}
+        </ul>
+      )}
       <nav>
         <a href="/owner">Zurück zur Übersicht</a>
       </nav>

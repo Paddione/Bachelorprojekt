@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-07T22:51:21.701Z",
+  "generatedAt": "2026-10-08T00:37:04.439Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1769,6 +1769,22 @@
       "file": "components/website/src/pages/api/admin/zeiterfassung/export.ts"
     },
     {
+      "path": "/api/anfrage/{token}/storno",
+      "methods": [
+        "POST"
+      ],
+      "auth": "unclassified",
+      "file": "components/website/src/pages/api/anfrage/[token]/storno.ts"
+    },
+    {
+      "path": "/api/anfrage/{token}/umbuchung",
+      "methods": [
+        "POST"
+      ],
+      "auth": "unclassified",
+      "file": "components/website/src/pages/api/anfrage/[token]/umbuchung.ts"
+    },
+    {
       "path": "/api/assets/{...path}",
       "methods": [
         "GET"
@@ -2145,6 +2161,22 @@
       ],
       "auth": "unclassified",
       "file": "components/website/src/pages/api/newsletter/unsubscribe.ts"
+    },
+    {
+      "path": "/api/owner/anfragen/{id}/ablehnen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/anfragen/[id]/ablehnen.ts"
+    },
+    {
+      "path": "/api/owner/anfragen/{id}/annehmen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/anfragen/[id]/annehmen.ts"
     },
     {
       "path": "/api/owner/bookings/{uid}/cancel",

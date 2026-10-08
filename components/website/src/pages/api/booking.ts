@@ -1,5 +1,11 @@
 import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
+import { pool } from '../../lib/messaging-db-pool';
+import {
+  IdempotencyKeyError,
+  generateRequestToken,
+  resolveIdempotencyKey,
+} from '../../lib/appointment-requests';
 import { sendEmail } from '../../lib/email';
 import { sendAdminNotification } from '../../lib/notifications';
 import { isSlotInAnyWindow, isSlotWhitelisted, claimSlot } from '../../lib/website-db';
@@ -26,7 +32,43 @@ export const POST: APIRoute = async ({ request , locals }) => {
     });
   }
   try {
-    const { name, email, phone, type, message, slotStart, slotEnd, slotDisplay, date, serviceKey, projectId, leistungKey } = await request.json();
+    const { name, email, phone, type, message, slotStart, slotEnd, slotDisplay, date, serviceKey, projectId, leistungKey, idempotencyKey: bodyKey } = await request.json();
+
+    // Idempotency-Key: header wins over body (T901024). Invalid keys fail
+    // with 400; a replay within 24h returns the original answer verbatim.
+    let idempotencyKey: string | null;
+    try {
+      idempotencyKey = resolveIdempotencyKey(request.headers.get('Idempotency-Key'), bodyKey);
+    } catch (err) {
+      if (!(err instanceof IdempotencyKeyError)) throw err;
+      return new Response(
+        JSON.stringify({ error: 'Der Idempotency-Key ist ungültig.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    if (idempotencyKey !== null) {
+      try {
+        const { rows } = await pool.query<{ payload: Record<string, unknown>; reference_id: string | null }>(
+          `SELECT payload, reference_id FROM inbox_items
+           WHERE type = 'booking' AND payload->>'idempotencyKey' = $1
+             AND created_at > now() - interval '24 hours'
+           ORDER BY created_at DESC LIMIT 1`,
+          [idempotencyKey],
+        );
+        const prev = rows[0];
+        const prevToken = prev !== undefined
+          ? (typeof prev.payload.token === 'string' ? prev.payload.token : prev.reference_id)
+          : null;
+        if (prev !== undefined && prevToken !== null) {
+          return new Response(
+            JSON.stringify({ success: true, requestToken: prevToken, state: 'offen' }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch {
+        // Dedupe lookup unavailable — proceed; the insert below fails loudly when the DB is down.
+      }
+    }
 
     const isCallback = type === 'callback';
 
@@ -65,6 +107,9 @@ export const POST: APIRoute = async ({ request , locals }) => {
 
     // Berlin previous-day rule: the Berlin slot date must be strictly after
     // the Berlin request date — same-day requests always fail with 409.
+    // NOTE (T901024): isLeadTimeOk() in lib/appointment-requests.ts encodes
+    // this same strict-after rule for new routes; the inline check stays
+    // because the committed T901023 spec guards assert it in this file.
     if (!isCallback && slotStart && slotEnd) {
       const slotDayKey = berlinDayKey(new Date(slotStart));
       const nowDayKey = berlinDayKey(new Date());
@@ -96,6 +141,8 @@ export const POST: APIRoute = async ({ request , locals }) => {
     // immediately before the inbox insert, so concurrent double bookings race
     // on DELETE…RETURNING and exactly one of them wins. Window-validated
     // slots without a whitelist row stay bookable (released implicitly).
+    // slotClaimed is stored in the payload so cancel paths can restore the row.
+    let slotClaimed = false;
     if (!isCallback && slotStart && slotEnd) {
       let released = false;
       try {
@@ -116,6 +163,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
             { status: 409, headers: { 'Content-Type': 'application/json' } }
           );
         }
+        slotClaimed = true;
       }
     }
 
@@ -133,8 +181,15 @@ export const POST: APIRoute = async ({ request , locals }) => {
         })
       : '';
 
+    // Request token (T901024): status/storno/umbuchung run through the
+    // token link; the state starts unconfirmed (`offen`). The brand column
+    // stays NULL like every other creation path (FK to public.brands).
+    const requestToken = generateRequestToken();
+    const manageUrl = `${new URL(request.url).origin}/anfrage/${requestToken}`;
+
     await createInboxItem({
       type: 'booking',
+      referenceId: requestToken,
       payload: {
         name, email, phone: phone ?? null, type, typeLabel,
         slotStart: slotStart ?? null, slotEnd: slotEnd ?? null,
@@ -142,6 +197,8 @@ export const POST: APIRoute = async ({ request , locals }) => {
         serviceKey: serviceKey ?? null, serviceSnapshot,
         message: message ?? null,
         projectId: projectId ?? null, leistungKey: leistungKey ?? null,
+        token: requestToken, state: 'offen',
+        idempotencyKey: idempotencyKey ?? null, slotClaimed,
       },
       isTestData: isE2ETestRequest(request),
     });
@@ -151,15 +208,15 @@ export const POST: APIRoute = async ({ request , locals }) => {
       to: email,
       subject: isCallback ? `Rückruf-Anfrage bei ${BRAND_NAME}` : `Terminanfrage: ${typeLabel} am ${dateFormatted}`,
       text: isCallback
-        ? `Hallo ${name},\n\nvielen Dank für Ihre Rückruf-Anfrage bei ${BRAND_NAME}.\n\nWir melden uns in Kürze unter ${phone} bei Ihnen.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`
-        : `Hallo ${name},\n\nvielen Dank für Ihre Terminanfrage bei ${BRAND_NAME}.\n\nIhr gewünschter Termin:\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}\n\nWir prüfen Ihre Anfrage und melden uns in Kürze mit einer Bestätigung.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
+        ? `Hallo ${name},\n\nvielen Dank für Ihre Rückruf-Anfrage bei ${BRAND_NAME}.\n\nWir melden uns in Kürze unter ${phone} bei Ihnen.\n\nIhren persönlichen Verwaltungs-Link (Status, Storno) finden Sie hier:\n${manageUrl}\nBitte bewahren Sie diesen Link auf.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`
+        : `Hallo ${name},\n\nvielen Dank für Ihre Terminanfrage bei ${BRAND_NAME}.\n\nIhr gewünschter Termin:\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}\n\nWir prüfen Ihre Anfrage und melden uns in Kürze mit einer Bestätigung.\n\nIhren persönlichen Verwaltungs-Link (Status, Umbuchung, Storno) finden Sie hier:\n${manageUrl}\nBitte bewahren Sie diesen Link auf.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
     }, request);
 
     // Admin notification
     const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
     const adminText = isCallback
-      ? `Neue Rückruf-Anfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
-      : `Neue Terminanfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${message ? `\n\nAnmerkungen:\n${message}` : ''}`;
+      ? `Neue Rückruf-Anfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}${message ? `\n\nAnmerkungen:\n${message}` : ''}\n\nAnfrage-Token: ${requestToken}\nStatus-Link: ${manageUrl}`
+      : `Neue Terminanfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${message ? `\n\nAnmerkungen:\n${message}` : ''}\n\nAnfrage-Token: ${requestToken}\nStatus-Link: ${manageUrl}`;
     await sendAdminNotification({
       type: 'booking',
       subject: isCallback ? `[Rückruf] Anfrage von ${name}` : `[Terminanfrage: ${typeLabel}] ${name} am ${dateFormatted}`,
@@ -169,7 +226,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
     }, request);
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, requestToken, state: 'offen' }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {

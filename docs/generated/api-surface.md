@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-10-07T22:51:21.701Z
+> Generated at 2026-10-08T00:37:04.439Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -219,6 +219,8 @@
 | `/api/admin/zeiterfassung/create` | POST | 🔐 admin | `components/website/src/pages/api/admin/zeiterfassung/create.ts` |
 | `/api/admin/zeiterfassung/delete` | POST | 🔐 admin | `components/website/src/pages/api/admin/zeiterfassung/delete.ts` |
 | `/api/admin/zeiterfassung/export` | GET | 🔐 admin | `components/website/src/pages/api/admin/zeiterfassung/export.ts` |
+| `/api/anfrage/{token}/storno` | POST | ❓ unclassified | `components/website/src/pages/api/anfrage/[token]/storno.ts` |
+| `/api/anfrage/{token}/umbuchung` | POST | ❓ unclassified | `components/website/src/pages/api/anfrage/[token]/umbuchung.ts` |
 | `/api/assets/{...path}` | GET | ❓ unclassified | `components/website/src/pages/api/assets/[...path].ts` |
 | `/api/assistant/chat` | POST | 🔐 admin | `components/website/src/pages/api/assistant/chat.ts` |
 | `/api/assistant/dismiss` | POST | 🔑 session | `components/website/src/pages/api/assistant/dismiss.ts` |
@@ -266,6 +268,8 @@
 | `/api/newsletter/confirm` | GET | ❓ unclassified | `components/website/src/pages/api/newsletter/confirm.ts` |
 | `/api/newsletter/subscribe` | POST | ❓ unclassified | `components/website/src/pages/api/newsletter/subscribe.ts` |
 | `/api/newsletter/unsubscribe` | GET | ❓ unclassified | `components/website/src/pages/api/newsletter/unsubscribe.ts` |
+| `/api/owner/anfragen/{id}/ablehnen` | POST | 🔑 session | `components/website/src/pages/api/owner/anfragen/[id]/ablehnen.ts` |
+| `/api/owner/anfragen/{id}/annehmen` | POST | 🔑 session | `components/website/src/pages/api/owner/anfragen/[id]/annehmen.ts` |
 | `/api/owner/bookings/{uid}/cancel` | POST | 🔑 session | `components/website/src/pages/api/owner/bookings/[uid]/cancel.ts` |
 | `/api/owner/bookings/{uid}/reschedule` | POST | 🔑 session | `components/website/src/pages/api/owner/bookings/[uid]/reschedule.ts` |
 | `/api/owner/bookings/phone` | POST | 🔑 session | `components/website/src/pages/api/owner/bookings/phone.ts` |

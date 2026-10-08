@@ -127,6 +127,9 @@ export interface BrandConfig {
   };
   /** Top-nav primary links (rendered by Navigation.svelte / Footer alike). */
   navigation: NavigationLink[];
+  /** Brand-spezifischer Header-CTA-Wortlaut. Wenn leer, fällt Navigation.svelte
+   *  auf den geteilten i18n-Schlüssel nav.cta-label zurück. */
+  navigationCta?: string;
   /** Footer columns + optional copyright. */
   footer: FooterConfig;
   homepage: {

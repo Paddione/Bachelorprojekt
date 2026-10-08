@@ -30,6 +30,7 @@ export const massageConfig: BrandConfig = {
     { label: 'Häufige Fragen',  href: '/faq' },
     { label: 'Kontakt',         href: '/kontakt' },
   ],
+  navigationCta: 'Termin anfragen',
   footer: {
     copyright: `© ${new Date().getFullYear()} Massagepraxis Vögelsen — Alle Rechte vorbehalten`,
     columns: [

@@ -25,6 +25,25 @@ describe('Navigation.svelte — brand link accessible name (WCAG 2.5.3, T002053)
   });
 });
 
+describe('Navigation.svelte — header CTA brand override (T901431)', () => {
+  it('renders the ctaLabel override in the /kontakt link when provided', () => {
+    const { container } = render(Navigation, {
+      props: { siteTitle: 'Massagepraxis Vögelsen', ctaLabel: 'Termin anfragen' },
+    });
+    const cta = container.querySelector('a.nav-cta');
+    expect(cta).toBeTruthy();
+    expect(cta!.getAttribute('href')).toBe('/kontakt');
+    expect(cta!.textContent).toContain('Termin anfragen');
+  });
+
+  it('renders the shared Erstgespräch wording without the override', () => {
+    const { container } = render(Navigation, { props: { siteTitle: 'mentolder.de' } });
+    const cta = container.querySelector('a.nav-cta');
+    expect(cta).toBeTruthy();
+    expect(cta!.textContent).toContain('Erstgespräch');
+  });
+});
+
 describe('NavMobile.svelte', () => {
   const baseProps = {
     open: true,

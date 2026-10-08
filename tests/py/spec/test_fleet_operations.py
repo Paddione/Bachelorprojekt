@@ -334,29 +334,35 @@ def test_monitoring_ready(repo_root: Path):
 
 # ── penpot-secret-keys.bats ────────────────────────────────────────────────
 
+_PENPOT_KEYS = [
+    "PENPOT_DB_PASSWORD",
+    "PENPOT_SECRET_KEY",
+    "PENPOT_MINIO_SECRET_KEY",
+    "POCKET_ID_PENPOT_SECRET",
+]
+
+
 def test_penpot_secret_keys_removed(repo_root: Path):
     secrets_dir = repo_root / "environments" / ".secrets"
-    sealed_dir = repo_root / "environments" / "sealed-secrets"
-    penpot_keys = [
-        "PENPOT_DB_PASSWORD",
-        "PENPOT_SECRET_KEY",
-        "PENPOT_MINIO_SECRET_KEY",
-        "POCKET_ID_PENPOT_SECRET",
-    ]
-
     for fname in ["fleet-mentolder.yaml", "fleet-staging.yaml"]:
         fpath = secrets_dir / fname
         if fpath.is_file():
-            text = fpath.read_text()
-            for k in penpot_keys:
+            raw = fpath.read_bytes()
+            if raw.startswith(b"\x00GITCRYPT\x00"):
+                pytest.skip("git-crypt secrets are locked; plaintext key checks require an unlocked checkout")
+            text = raw.decode("utf-8")
+            for k in _PENPOT_KEYS:
                 assert not re.search(rf"^{k}:", text, re.MULTILINE)
                 assert k.lower() not in text.lower()
 
+
+def test_penpot_sealed_secret_keys_removed(repo_root: Path):
+    sealed_dir = repo_root / "environments" / "sealed-secrets"
     for fname in ["fleet-mentolder.yaml", "staging.yaml", "mentolder.yaml"]:
         fpath = sealed_dir / fname
         if fpath.is_file():
             text = fpath.read_text()
-            for k in penpot_keys:
+            for k in _PENPOT_KEYS:
                 assert not re.search(rf"{k}:", text)
 
 

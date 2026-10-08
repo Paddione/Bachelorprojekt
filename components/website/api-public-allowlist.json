@@ -1,4 +1,6 @@
 [
+  { "path": "/api/anfrage/{token}/storno", "methods": ["POST"], "reason": "token capability — 128-bit request token from confirmation mail, generic 404, rate-limited 5/min, no session auth by design (T901024)" },
+  { "path": "/api/anfrage/{token}/umbuchung", "methods": ["POST"], "reason": "token capability — 128-bit request token from confirmation mail, generic 404, rate-limited 5/min, no session auth by design (T901024)" },
   { "path": "/api/assets/{...path}", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/auth/login", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/auth/logout", "methods": ["GET"], "reason": "baseline — not individually audited" },

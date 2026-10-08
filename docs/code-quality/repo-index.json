@@ -4138,7 +4138,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 909,
+      "file_count": 910,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4938,6 +4938,7 @@
         "scripts/tests/brainstorm-submit-smoke.sh",
         "scripts/tests/systembrett-template.test.sh",
         "scripts/ticket-attach.sh",
+        "scripts/ticket-db-schema.sql",
         "scripts/ticket-mcp-node/package.json",
         "scripts/ticket-mcp-node/runner.mjs",
         "scripts/ticket-mcp-node/server.mjs",

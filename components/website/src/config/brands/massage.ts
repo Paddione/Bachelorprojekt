@@ -168,8 +168,8 @@ export const massageConfig: BrandConfig = {
     pageHeadline: 'Über mich',
     subheadline: 'Massagepraxis Vögelsen',
     introParagraphs: [
-      'Ich bin [slot:slot-inhaberin-name] und begrüße Sie in meiner Massagepraxis in Vögelsen bei Lüneburg.',
-      'Meine Qualifikation: [slot:slot-inhaberin-qualifikation] — diese Angabe folgt mit Nachweis.',
+      'Ich bin Birgit Korczewski und begrüße Sie in meiner Massagepraxis in Vögelsen bei Lüneburg.',
+      'Meine Qualifikation: ausgebildete Masseurin.',
     ],
     sections: [],
     milestones: [
@@ -193,7 +193,7 @@ export const massageConfig: BrandConfig = {
     { question: 'Wann ist mein Termin fix?', answer: 'Ihr Termin ist erst nach meiner persönlichen Bestätigung fix. Auf jede Anfrage erhalten Sie eine Antwort.' },
     { question: 'Bieten Sie Hausbesuche an?', answer: 'Hausbesuche biete ich nur für bekannte Kunden an. Alle anderen begrüße ich gerne in der Praxis in Vögelsen bei Lüneburg.' },
     { question: 'Wie kann ich zahlen?', answer: 'Bequem vor Ort — Sie erhalten eine Rechnung.' },
-    { question: 'Was passiert bei einer Absage?', answer: 'Bitte sagen Sie so früh wie möglich ab. Es gilt: [slot:slot-storno-regel].' },
+    { question: 'Was passiert bei einer Absage?', answer: 'Bitte sagen Sie so früh wie möglich ab. Es gilt: Kostenfreier Storno bis 24 h vor Terminbeginn, danach 50 % des Preises.' },
   ],
   leistungenCta: {
     href: '/kontakt',

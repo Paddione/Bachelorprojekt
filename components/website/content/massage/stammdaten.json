@@ -1,12 +1,12 @@
 {
-  "name": "[slot:slot-inhaberin-name]",
+  "name": "Birgit Korczewski",
   "role": "Massagepraxis",
-  "email": "",
-  "phone": "slot:slot-telefon",
-  "street": "",
-  "zip": "",
+  "email": "massage@korczewski.de",
+  "phone": "+494131129934",
+  "street": "In der Twiet 4",
+  "zip": "21360",
   "city": "Vögelsen bei Lüneburg",
   "ustId": "",
   "website": "",
-  "avatarInitials": "M"
+  "avatarInitials": "BK"
 }

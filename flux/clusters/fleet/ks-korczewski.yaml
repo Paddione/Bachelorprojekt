@@ -7,8 +7,12 @@ spec:
   interval: 10m
   retryInterval: 2m
   timeout: 10m
-  # T002479: Bewusst suspendiert (2026-07-23, bestätigt 2026-07-31) — korczewski-Brand
-  # eingefroren (Kosten/Wartung). Alle Workloads stehen live auf 0/0 Replicas.
+  # T002479: Bewusst suspendiert (2026-07-23, bestätigt 2026-07-31) — der korczewski-Workspace
+  # (Nextcloud, Brett, Collabora, eigene shared-db, Jobs) bleibt eingefroren (Kosten/Wartung);
+  # seine Workloads stehen live auf 0/0 Replicas.
+  # Ausgenommen: Website (Massagepraxis Vögelsen, BRAND massage) und Pocket ID laufen seit
+  # T901440 auf dem korczewski-Slot über flux-website-korczewski und flux-korczewski-auth,
+  # für Go-live vorbereitet durch T901440. Diese Kustomization taut dafür NICHT auf.
   # Vor einem Re-Aktivieren die Suspension in einem separaten Change aufheben.
   suspend: true
   dependsOn:

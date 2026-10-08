@@ -35,7 +35,7 @@ For any work request, invoke **`dev-flow-plan`**, **`dev-flow-chore`**, or **`de
 
 Full topology: [`AGENTS.md` → „Architecture & Cluster Topology"](AGENTS.md). Short version:
 - **Workspace MVP**: self-hosted k8s collaboration platform (SSO via Pocket ID OIDC, Nextcloud+Talk, Collabora, Vaultwarden, Brett, Website, shared PostgreSQL 16).
-- **Brands**: `mentolder` live on the `fleet` cluster (`workspace` ns); `korczewski` **FROZEN per T002479** (`suspend: true`, 0 replicas — do not deploy).
+- **Brands**: `mentolder` live on the `fleet` cluster (`workspace` ns); `korczewski` workspace (Nextcloud, Brett, Collabora, own shared-db, jobs) **FROZEN per T002479** (`suspend: true`, 0 replicas — do not deploy). Exception: the Massagepraxis website (BRAND `massage`) and Pocket ID are configured on the korczewski slot, für Go-live vorbereitet durch T901440 (`flux-website-korczewski`, `flux-korczewski-auth`).
 - **Contexts**: `fleet` (prod), `devmesh` (dev, ADR-008); all others dead.
 - **Deploy**: pull-based FluxCD (`ghcr.io/paddione/fleet-manifests`); `task workspace:deploy` is break-glass only. Base `k3d/`, overlays `prod-fleet/<brand>/`, config `environments/`.
 

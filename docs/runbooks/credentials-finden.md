@@ -45,8 +45,8 @@ Deploy- und Plattform-Secrets. Welche Datei zaehlt:
 
 | Datei | Zweck |
 |---|---|
-| `fleet-mentolder.yaml` | Prod mentolder (aktiv) |
-| `fleet-korczewski.yaml` | Prod korczewski (eingefroren, T002479) |
+| `fleet-mentolder.yaml` | Prod mentolder (aktiv); enthält auch `WEBSITE_MASSAGE_DB_PASSWORD` und `POCKET_ID_KORCZEWSKI_DB_PASSWORD` (identisch zu `fleet-korczewski.yaml`, T901440) |
+| `fleet-korczewski.yaml` | Prod korczewski: Workspace eingefroren (T002479), aber aktiv für Massage-Website und Pocket ID (T901440): `WEBSITE_MASSAGE_DB_PASSWORD`, `POCKET_ID_KORCZEWSKI_DB_PASSWORD`, `flux-sealed-secrets-korczewski` bleibt aktiv |
 | `dev.yaml` | devmesh |
 | `dev-tools.yaml` | Entwickler-Werkzeuge (`GITHUB_PERSONAL_ACCESS_TOKEN`, `OPENCODE_API_KEY`, ...) |
 | `staging.yaml` | Staging |

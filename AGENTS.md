@@ -40,7 +40,7 @@ bash scripts/vda.sh oracle '<goal in plain English>'   # --dry-run/-n, --json, -
 ```
 
 ```bash
-task workspace:deploy ENV=mentolder              # Prod deploy (mentolder live; korczewski frozen per T002479)
+task workspace:deploy ENV=mentolder              # Prod deploy (mentolder live; korczewski-Workspace frozen per T002479)
 task test:changed                                # Smart test selection (pre-commit gate)
 task workspace:validate                          # Kustomize dry-run
 ```
@@ -64,7 +64,7 @@ task workspace:validate                          # Kustomize dry-run
 ## Architecture & Cluster Topology (Fleet Stage 3)
 
 - **mentolder (BRAND)**: Live production brand. DNS for `mentolder.de` routes to the **`fleet`** cluster. `ENV=mentolder` (alias `fleet-mentolder`), context `fleet`, namespace `workspace`.
-- **korczewski (BRAND — FROZEN per T002479)**: Standalone cluster torn down; hosts joined `fleet`. **FROZEN since 2026-07-23** (`ks-korczewski.yaml` `suspend: true`, brand namespaces scaled to 0). Do not deploy or scale up.
+- **korczewski (BRAND — Workspace FROZEN per T002479, Website vorbereitet)**: Standalone cluster torn down; hosts joined `fleet`. **Workspace FROZEN since 2026-07-23** (Nextcloud, Brett, Collabora, own shared-db, jobs: `ks-korczewski.yaml` / `ks-jobs-korczewski.yaml` `suspend: true`, namespaces scaled to 0). Do not deploy or scale these up. **Exception (T901440):** the Massagepraxis Vögelsen website (`BRAND=BRAND_ID=massage`, `flux-website-korczewski`, ns `website-korczewski`) and its own Pocket ID (`flux-korczewski-auth`, ns `workspace-korczewski`) are configured on the korczewski slot, für Go-live vorbereitet durch T901440. They use the central `shared-db` in ns `workspace` (DBs `website_massage`, `pocket_id_korczewski`).
 - **Contexts**: exactly two — `fleet` (prod), `devmesh` (local mesh, ADR-008). Dead: `mentolder`, `korczewski`, `k3s-1`, `hetzner`, `k3d-*`.
 - Manifests/overlays/GitOps: [`docs/agent-guide/reference.md`](docs/agent-guide/reference.md).
 

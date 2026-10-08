@@ -43,7 +43,7 @@
     <div class="max-w-6xl mx-auto px-6 py-4">
       <!-- Main row -->
       <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-        <div class="flex-1 text-sm text-muted">
+        <div class="flex-1 text-sm text-light">
           <span class="font-semibold text-gold">Cookies</span> — Diese Website verwendet ausschließlich technisch notwendige Cookies, die für den Betrieb der Website erforderlich sind.
         </div>
         <div class="flex flex-wrap gap-3 items-center shrink-0">
@@ -52,7 +52,7 @@
             onclick={() => (detailsOpen = !detailsOpen)}
             aria-expanded={detailsOpen}
             aria-controls="cookie-details"
-            class="text-xs text-muted hover:text-gold transition-colors underline underline-offset-2"
+            class="text-xs text-light hover:text-gold transition-colors underline underline-offset-2"
           >
             {detailsOpen ? 'Details ausblenden' : 'Details anzeigen'}
           </button>
@@ -77,10 +77,10 @@
       {#if detailsOpen}
         <div id="cookie-details" class="mt-4 pt-4 border-t border-dark-lighter">
           <h3 class="text-sm font-semibold text-gold mb-3">Notwendige Cookies</h3>
-          <p class="text-xs text-muted mb-3">
+          <p class="text-xs text-light mb-3">
             Diese Cookies sind für die Grundfunktionen der Website zwingend erforderlich und können nicht deaktiviert werden.
           </p>
-          <table class="w-full text-xs text-muted border-collapse">
+          <table class="w-full text-xs text-light border-collapse">
             <thead>
               <tr class="border-b border-dark-lighter">
                 <th class="text-left py-2 pr-4 font-semibold text-light">Name</th>

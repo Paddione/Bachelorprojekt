@@ -1854,6 +1854,12 @@
     "kind": "shell"
   },
   {
+    "id": "T901370-1",
+    "file": "tests/spec/cookie-consent.bats",
+    "category": "T901370",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",

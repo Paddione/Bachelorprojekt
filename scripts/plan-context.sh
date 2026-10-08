@@ -27,6 +27,9 @@ _role_allowlist() {
         bp-build)                  echo "infra deploy deployment k3d kustomize prod environments taskfile fleet-operations security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
         bp-run)                    echo "ops llm llm-local-dev k8s observability monitoring factory-watchdog infra-monitoring db postgres tracking timeline database" ;;
         bp-ship)                   echo "website frontend design ui svelte astro css brett test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling agent-skills agents" ;;
+        # T900794: schmale Ops-Rolle des OpenClaw-Harness (GPU-Host, Gateway/CLI).
+        # Kein db-Tracking (bleibt bp-run), kein Plan-Authoring (bleibt bp-ship).
+        openclaw-ops)              echo "ops llm llm-local-dev k8s observability monitoring" ;;
         orchestrator)              echo "__ALL__" ;;
         *)
             printf 'WARN: unknown role "%s" — including all proposals as fail-soft\n' "$1" >&2
@@ -41,7 +44,7 @@ _role_allowlist() {
 _domain_roles() {
     printf '%s\n' "bachelorprojekt-website" "bachelorprojekt-ops" "bachelorprojekt-infra" \
         "bachelorprojekt-test" "bachelorprojekt-db" "bachelorprojekt-security" \
-        "bp-build" "bp-run" "bp-ship"
+        "bp-build" "bp-run" "bp-ship" "openclaw-ops"
 }
 
 _vocabulary_union() {

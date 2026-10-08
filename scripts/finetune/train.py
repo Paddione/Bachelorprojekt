@@ -338,13 +338,42 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
             num_items_in_batch=num_items_in_batch,
         )
 
+    # Zaehler-Fix: Unsloths Forward-Walk findet auf dem geladenen
+    # (kompilierten/gepatchten) Qwen3.5-Forward kein **kwargs und zaehlt nie —
+    # dann laeuft _token_weighted_loss mit None auf mean-Fallback (altes Regime).
+    # Cache direkt seeden; laut abbrechen, falls Unsloth das umbaut.
+    import unsloth as _ul
+
+    if getattr(_ul, "__version__", None) != "2026.2.1":
+        raise SystemExit(
+            "FEHLER: Zaehler-Seed gegen unsloth 2026.2.1 geschrieben, aktiv ist "
+            f"{getattr(_ul, '__version__', 'unbekannt')}."
+        )
+    from unsloth_zoo import loss_utils as _lul
+
+    if not hasattr(_lul, "ALLOWED_NUM_ITEMS_IN_BATCH"):
+        raise SystemExit(
+            "FEHLER: unsloth_zoo.loss_utils.ALLOWED_NUM_ITEMS_IN_BATCH fehlt — "
+            "Zaehler-Seed nicht moeglich."
+        )
+    _seed_names = {"Qwen3_5ForConditionalGeneration", type(model).__name__}
+    _get_base = getattr(model, "get_base_model", None)
+    if callable(_get_base):
+        try:
+            _seed_names.add(type(_get_base()).__name__)
+        except Exception:
+            pass
+    for _name in _seed_names:
+        _lul.ALLOWED_NUM_ITEMS_IN_BATCH[_name] = (True, True)
+
     # Nach dem Fix ist die Eval-Warnung Fehlinformation (Eval akkumuliert nicht):
-    # exakt diese eine Meldung filtern, sonst nichts.
+    # exakt diese eine Meldung filtern, sonst nichts. Filter sitzt auf dem
+    # emittierenden Logger — Root-Filter greifen bei propagierten Records nicht.
     class _DropStaleNumItemsWarning(_logging.Filter):
         def filter(self, record):
             return "does not accept `num_items_in_batch`" not in record.getMessage()
 
-    _logging.getLogger().addFilter(_DropStaleNumItemsWarning())
+    _logging.getLogger("unsloth_zoo.log").addFilter(_DropStaleNumItemsWarning())
 
     rows = []
     with open(config["corpus"], "r", encoding="utf-8") as fh:

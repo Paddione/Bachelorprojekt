@@ -2880,6 +2880,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-red-intake-autoresolve",
+    "file": "tests/spec/ci-red-intake-autoresolve.bats",
+    "category": "ci-red-intake-autoresolve",
+    "kind": "shell"
+  },
+  {
     "id": "coaching-sessions-polish-guide",
     "file": "tests/spec/coaching-sessions-polish-guide.bats",
     "category": "coaching-sessions-polish-guide",

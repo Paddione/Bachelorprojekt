@@ -54,6 +54,11 @@ Vitest is a next-generation testing framework powered by Vite. It provides a Jes
 | Type Testing | Type-level testing with expectTypeOf and assertType | [advanced-type-testing](references/advanced-type-testing.md) |
 | Projects | Multi-project workspaces, different configs per project | [advanced-projects](references/advanced-projects.md) |
 
+## Repo & Code Graph Integration
+
+In this repository (Bachelorprojekt), Vitest tests integrate with the K3 codebase memory graph:
+- **Test Impact Analysis**: Use [`code-graph-interpretation`](../code-graph-interpretation/SKILL.md) (`trace_path --include-tests true` or `MATCH (t:File)-[:TESTS_FILE]->(f:File)`) to find affected Vitest specs before running test suites. See [test-impact-analysis](../code-graph-interpretation/references/test-impact-analysis.md).
+- **Config locations**: Root [`vitest.config.ts`](../../../vitest.config.ts) (scripts, unit) and [`components/website/vitest.config.ts`](../../../components/website/vitest.config.ts) (website unit/component tests).
 
 ## Framework mapping
 

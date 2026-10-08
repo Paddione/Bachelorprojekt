@@ -108,12 +108,13 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
 
       const canCheckMail = await mailpitReachable(request);
       if (canCheckMail) {
-        await page.waitForTimeout(2000);
-        const publicMail = await request.get(
-          `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${reporter} subject:${externalId}`)}`);
-        expect(publicMail.ok()).toBeTruthy();
-        const publicData = await publicMail.json() as MailpitSearchResult;
-        expect(publicData.messages.length).toBeGreaterThan(0);
+        await expect.poll(async () => {
+          const publicMail = await request.get(
+            `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${reporter} subject:${externalId}`)}`);
+          if (!publicMail.ok()) return 0;
+          const publicData = await publicMail.json() as MailpitSearchResult;
+          return publicData.messages.length;
+        }, { timeout: 10_000, intervals: [500, 1000] }).toBeGreaterThan(0);
       }
 
       // ── 6. Transition to done → close-mail ──
@@ -124,14 +125,19 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
       expect(transRes.ok()).toBeTruthy();
 
       if (canCheckMail) {
-        await page.waitForTimeout(2000);
-        const closeMail = await request.get(
-          `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${reporter}`)}`);
-        expect(closeMail.ok()).toBeTruthy();
-        const closeData = await closeMail.json() as MailpitSearchResult;
-        const closeMsg = closeData.messages.find(m =>
-          m.Subject.includes(externalId) && m.Subject.includes('bearbeitet'));
-        expect(closeMsg, `close-mail with subject containing ${externalId} not found`).toBeTruthy();
+        await expect.poll(async () => {
+          const closeMail = await request.get(
+            `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${reporter}`)}`);
+          if (!closeMail.ok()) return false;
+          const closeData = await closeMail.json() as MailpitSearchResult;
+          const closeMsg = closeData.messages.find(m =>
+            m.Subject.includes(externalId) && m.Subject.includes('bearbeitet'));
+          return !!closeMsg;
+        }, {
+          message: `close-mail with subject containing ${externalId} not found`,
+          timeout: 10_000,
+          intervals: [500, 1000],
+        }).toBe(true);
       }
 
       // ── 7. Reload detail and assert the timeline rendered all events ──

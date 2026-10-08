@@ -88,9 +88,8 @@ test('art tab is visible and renders art cards', async ({ browser }) => {
     const hasArtTab = await artBtn.isVisible({ timeout: 5_000 }).catch(() => false);
     if (!hasArtTab) { test.skip(); return; }
     await artBtn.click();
-    await page.waitForSelector('.art-grid', { timeout: 8_000 });
-    const cardCount = await page.locator('.art-card').count();
-    expect(cardCount).toBeGreaterThan(0);
+    await expect(page.locator('.art-grid')).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator('.art-card').first()).toBeVisible();
   } finally {
     await ctx.close();
   }
@@ -110,10 +109,10 @@ test('clicking a card opens the side panel with palette swatches', async ({ brow
     const hasArtTab = await artBtn.isVisible({ timeout: 5_000 }).catch(() => false);
     if (!hasArtTab) { test.skip(); return; }
     await artBtn.click();
-    await page.waitForSelector('.art-grid');
+    await expect(page.locator('.art-grid')).toBeVisible({ timeout: 8_000 });
     await page.locator('.art-card').nth(0).click();
-    await page.waitForSelector('.art-panel');
-    expect(await page.locator('.art-palette-row').count()).toBeGreaterThan(0);
+    await expect(page.locator('.art-panel')).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator('.art-palette-row').first()).toBeVisible();
   } finally {
     await ctx.close();
   }
@@ -133,8 +132,8 @@ test('mentolder context shows a populated art library', async ({ browser }) => {
     const hasArtTab = await artBtn.isVisible({ timeout: 5_000 }).catch(() => false);
     if (!hasArtTab) { test.skip(); return; }
     await artBtn.click();
-    await page.waitForSelector('.art-grid', { timeout: 8_000 });
-    expect(await page.locator('.art-card').count()).toBeGreaterThan(0);
+    await expect(page.locator('.art-grid')).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator('.art-card').first()).toBeVisible();
     await expect(page.locator('.art-empty')).toHaveCount(0);
   } finally {
     await ctx.close();

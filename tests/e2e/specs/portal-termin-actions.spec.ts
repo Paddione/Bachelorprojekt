@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const PORTAL_EMAIL = process.env.PORTAL_TEST_EMAIL || 'testuser@mentolder.de';
 const PORTAL_PASSWORD = process.env.PORTAL_TEST_PASSWORD || 'testpass';
 
-test.describe('Portal Terminbuchung Actions', () => {
+test.describe('Portal Terminbuchung Actions', { tag: ['@booking'] }, () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/portal');
     if (page.url().includes('/auth/')) {
@@ -40,7 +40,8 @@ test.describe('Portal Terminbuchung Actions', () => {
 
     await chatInput.fill('Welche Termine habe ich?');
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(5_000);
+    const firstResponse = page.locator('[data-testid="assistant-message"], .assistant-message, [class*="assistant"]').last();
+    await expect(firstResponse).toBeVisible({ timeout: 60_000 });
 
     await chatInput.fill('Sage meinen nächsten Termin ab');
     await page.keyboard.press('Enter');

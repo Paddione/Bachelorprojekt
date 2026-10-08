@@ -16,8 +16,8 @@ test.describe('FA-21: Service Catalog & Billing', { tag: ['@billing'] }, () => {
   test('T2: Service links point to booking page', async ({ page }) => {
     await page.goto(`${BASE}/leistungen`, { waitUntil: 'domcontentloaded' });
     const bookingLinks = page.locator('a[href*="/termin"]');
-    const count = await bookingLinks.count();
-    expect(count).toBeGreaterThan(0);
+    await expect(bookingLinks.first()).toBeVisible();
+    await expect(bookingLinks).not.toHaveCount(0);
   });
 
   test('T3: Billing API validates input', async ({ request }) => {

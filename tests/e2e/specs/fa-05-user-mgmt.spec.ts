@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-05: Nutzerverwaltung', () => {
+test.describe('FA-05: Nutzerverwaltung', { tag: ['@admin', '@website'] }, () => {
   test('T1: /api/admin/clients/create requires admin auth', async ({ request }) => {
     const res = await request.post(`${BASE}/api/admin/clients/create`, { data: {} });
     expect([401, 403]).toContain(res.status());

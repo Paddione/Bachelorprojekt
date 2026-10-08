@@ -142,25 +142,23 @@ test.describe('FA-bug-notify', () => {
     expect(resolveBody.ok).toBe(true);
 
     // ── Step 4: Confirm email in Mailpit ────────────────────────────
-    // Allow a short window for the email to be queued and delivered.
     if (await mailpitReachable(request)) {
-      await page.waitForTimeout(2000);
+      let closeMsg: MailpitMessage | undefined;
+      await expect.poll(async () => {
+        const mailRes = await request.get(
+          `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${reporter}`)}`
+        );
+        if (!mailRes.ok()) return false;
+        const mailData = await mailRes.json() as MailpitSearchResult;
+        closeMsg = mailData.messages.find(m =>
+          m.Subject.includes(ticketId) && m.Subject.includes('bearbeitet'));
+        return !!closeMsg;
+      }, {
+        message: `close-mail for ${reporter} with subject containing ${ticketId} not found in Mailpit`,
+        timeout: 10_000,
+        intervals: [500, 1000],
+      }).toBe(true);
 
-      const mailRes = await request.get(
-        `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${reporter}`)}`
-      );
-      expect(mailRes.ok(), `Mailpit search failed: ${mailRes.status()}`).toBeTruthy();
-
-      const mailData = await mailRes.json() as MailpitSearchResult;
-      // Filter on 'bearbeitet' so we don't confuse the close-mail with the
-      // public-comment mail or any BCC noise.
-      const closeMsg = mailData.messages.find(m =>
-        m.Subject.includes(ticketId) && m.Subject.includes('bearbeitet'));
-      expect(closeMsg,
-        `close-mail for ${reporter} with subject containing ${ticketId} not found in Mailpit`
-        + ` (got ${mailData.messages.length} message(s)`
-        + `; first subject: ${mailData.messages[0]?.Subject ?? '<none>'})`
-      ).toBeTruthy();
       // Must be addressed to the reporter (not only to the info@ BCC).
       expect(
         closeMsg!.To.some(t => t.Address === reporter),

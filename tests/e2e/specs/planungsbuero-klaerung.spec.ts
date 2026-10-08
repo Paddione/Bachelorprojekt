@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 
-test.describe('Planungsbüro: Inline-Klärungsrunde', () => {
+test.describe('Planungsbüro: Inline-Klärungsrunde', { tag: ['@planungsbuero', '@admin'] }, () => {
   test.beforeEach(({}, info) => {
     if (!process.env.E2E_ADMIN_PASS) info.skip(true, 'E2E_ADMIN_PASS not set');
   });
@@ -14,7 +14,7 @@ test.describe('Planungsbüro: Inline-Klärungsrunde', () => {
   test('expand a card, answer clarification fields, save, DoR increases', async ({ page }) => {
     await page.goto('/admin/planungsbuero');
 
-    await page.waitForSelector('[data-testid="office-root"]');
+    await expect(page.getByTestId('office-root')).toBeVisible();
 
     const cards = page.locator('[data-testid="office-card"]');
     const cardCount = await cards.count();
@@ -56,8 +56,9 @@ test.describe('Planungsbüro: Inline-Klärungsrunde', () => {
     ]);
 
     // DoR ist gestiegen.
-    await page.waitForTimeout(1000);
-    const dorNow = parseInt((await card.locator('[data-testid="office-dor"]').innerText()).split('/')[0], 10);
-    expect(dorNow).toBeGreaterThan(dorBefore);
+    await expect.poll(async () => {
+      const dorText = (await card.locator('[data-testid="office-dor"]').innerText()).trim();
+      return parseInt(dorText.split('/')[0], 10);
+    }, { timeout: 10_000, intervals: [200, 500, 1000] }).toBeGreaterThan(dorBefore);
   });
 });

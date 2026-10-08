@@ -27,8 +27,12 @@ export default defineConfig({
     ['json', { outputFile: '../results/.tmp-e2e-results.json', outputFolder: undefined }],
     ['junit', { outputFile: '../results/junit.xml' }],
   ],
+  expect: {
+    timeout: 5_000,
+  },
   use: {
     baseURL: websiteURL,
+    testIdAttribute: 'data-testid',
     ignoreHTTPSErrors: true,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',

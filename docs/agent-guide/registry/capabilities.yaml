@@ -252,6 +252,15 @@ capabilities:
       tier: caution
       deep_ref: ".claude/skills/dev-flow-e2e/SKILL.md"
 
+  playwright-best-practices:
+    skill:playwright-best-practices:
+      state: canonical
+      use_when: "Best Practices beim Schreiben robuster Playwright-Tests: Locators, Auto-Waiting, Page Objects, Fixtures, Anti-Flakiness."
+      avoid_when: "Lifecycle, Deployment-Gates und Test-Inventory-Aktualisierung im Bachelorprojekt — dafür dev-flow-e2e."
+      roles: [bp-ship]
+      tier: safe
+      deep_ref: ".claude/skills/playwright-best-practices/SKILL.md"
+
   unit-tests:
     skill:vitest:
       state: canonical

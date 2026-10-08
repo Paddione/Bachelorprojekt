@@ -29,7 +29,8 @@
   --ink:       #2A2620;        /* primary text ink */
   --sage:      #7D9B76;        /* secondary accent, calm */
   --brass:     #B98A3E;        /* primary accent (large shapes, borders) */
-  --brass-2:   #8A6526;        /* darkened brass for text on paper */
+  --brass-2:   #7D5F22;        /* darkened brass for text on paper (AA on paper/creme, T901312) */
+  --on-brass:  #2A2620;        /* text on brass fills: theme ink, 4.85 on #B98A3E (T901312) */
   --brass-d:   rgba(185, 138, 62, .14);   /* tinted fills */
   --brass-deep: #8a6a2a;       /* gradient base of brand mark (unused, kept for parity) */
   --brass-hex: #B98A3E;        /* approximate hex for non-OKLCH contexts (PDF, email) */
@@ -45,9 +46,38 @@
   /* ---------- Foreground / text -------------------------------------- */
   --fg:      #2A2620;        /* primary text */
   --fg-soft: #4A4438;        /* body / ledes */
-  --mute:    #7B7466;        /* captions, meta */
-  --mute-2:  #9A937F;        /* deep meta (footer bottom) */
-  --color-mute: #7B7466;     /* footer links (no fallback in Footer.astro) */
+  --mute:    #6B6455;        /* captions, meta (AA-darkened, same hue family, T901312) */
+  --mute-2:  #6E6858;        /* deep meta (footer bottom, AA-darkened, T901312) */
+  --color-mute: #6B6455;     /* footer links (no fallback in Footer.astro) */
+
+  /* ---------- @theme leak guards (T901312) ---------------------------- */
+  /* src/styles/global.css reads var(--color-…) directly (.t-h3-serif, body,
+     .prose, admin aliases). Without these, the dark mentolder @theme values
+     leak onto the light paper (e.g. #eef1f3 text, ratio 1.05). Every
+     --color-* used in global.css is mirrored here with a light-theme value;
+     text tokens are AA-darkened, hues kept. */
+  --color-ink-900: #FDFCF9;   /* page base (mirrors --ink-900) */
+  --color-ink-850: #F7F3EA;   /* elevated panels (mirrors --ink-850) */
+  --color-ink-800: #FFFFFF;   /* cards (mirrors --ink-800) */
+  --color-ink-750: #F1EAD9;   /* subtle alternate (mirrors --ink-750) */
+  --color-fg: #2A2620;        /* primary text (was leaking #eef1f3) */
+  --color-fg-soft: #4A4438;   /* ledes (mirrors --fg-soft) */
+  --color-mute-2: #6E6858;    /* deep meta (mirrors --mute-2) */
+  --color-brass: #7D5F22;     /* text-safe brass (focus ring, prose links) */
+  --color-brass-2: #7D5F22;   /* text brass (mirrors --brass-2) */
+  --color-brass-d: rgba(185, 138, 62, .14);   /* tinted fills */
+  --color-sage: #57704E;      /* AA-darkened sage for text contexts */
+  --color-danger: #A6483C;    /* mirrors --danger */
+  --color-success: #57704E;   /* AA-darkened, sage family */
+  --color-info: #3F6E96;      /* AA-darkened, mirrors --info hue */
+  --color-warning: #8A5A00;   /* dark amber for the light theme */
+  --color-surface: #F7F3EA;   /* elevated panel (mirrors --ink-850) */
+  --color-surface-hover: #FFFFFF;   /* hover surface (mirrors --ink-800) */
+  --color-border: rgba(42, 38, 32, 0.10);
+  --color-line: rgba(42, 38, 32, 0.12);    /* mirrors --line */
+  --color-line-2: rgba(42, 38, 32, 0.22);  /* mirrors --line-2 */
+  --color-dark: #2A2620;      /* darkest tone (admin alias target) */
+  --color-dark-light: #4A4438;
 
   /* ---------- Semantic ----------------------------------------------- */
   --success: #7D9B76;
@@ -57,7 +87,7 @@
   /* ---------- Print/Invoice palette (warm paper) --------------------- */
   --paper-ink: #2A2620;
   --paper-ink-soft: #4A4438;
-  --paper-mute: #7B7466;
+  --paper-mute: #6B6455;
   --paper-line: #DDD5C2;
 
   /* ---------- Hairlines / dividers ----------------------------------- */

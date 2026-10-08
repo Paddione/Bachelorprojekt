@@ -1824,6 +1824,36 @@
     "kind": "shell"
   },
   {
+    "id": "T901312-1",
+    "file": "tests/spec/massage-a11y.bats",
+    "category": "T901312",
+    "kind": "shell"
+  },
+  {
+    "id": "T901312-2",
+    "file": "tests/spec/massage-a11y.bats",
+    "category": "T901312",
+    "kind": "shell"
+  },
+  {
+    "id": "T901312-3",
+    "file": "tests/spec/massage-a11y.bats",
+    "category": "T901312",
+    "kind": "shell"
+  },
+  {
+    "id": "T901312-4",
+    "file": "tests/spec/massage-a11y.bats",
+    "category": "T901312",
+    "kind": "shell"
+  },
+  {
+    "id": "T901312-5",
+    "file": "tests/spec/massage-a11y.bats",
+    "category": "T901312",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",

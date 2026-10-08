@@ -371,11 +371,13 @@
                   <span class="ch-sub">Werktags 9–17 Uhr</span>
                 </li>
               {/if}
-              <li>
-                <span class="ch-key">E-Mail</span>
-                <a class="ch-val" href="mailto:{email}">{email}</a>
-                <span class="ch-sub">Antwort meist binnen 24 h</span>
-              </li>
+              {#if email}
+                <li>
+                  <span class="ch-key">E-Mail</span>
+                  <a class="ch-val" href="mailto:{email}">{email}</a>
+                  <span class="ch-sub">Antwort meist binnen 24 h</span>
+                </li>
+              {/if}
               <li>
                 <span class="ch-key">Standort</span>
                 <span class="ch-val">{city}</span>

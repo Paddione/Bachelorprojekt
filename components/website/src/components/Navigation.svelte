@@ -249,7 +249,7 @@
   .mark-m {
     position: absolute;
     inset: 1px;
-    color: var(--ink-900);
+    color: var(--on-brass);
     display: block;
   }
 
@@ -452,7 +452,7 @@
     font-family: var(--sans);
     font-size: 13px;
     font-weight: 600;
-    color: var(--ink-900);
+    color: var(--on-brass);
     background: var(--brass);
     padding: 10px 16px;
     border-radius: 999px;

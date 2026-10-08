@@ -415,6 +415,7 @@ tests/spec/local-llm-proxy/support-model-slots.bats
 tests/spec/local-llm-proxy/tools-runtime-sandbox.bats
 tests/spec/local-llm-proxy/ui-config-seed.bats
 tests/spec/lockfile-drift.bats
+tests/spec/massage-a11y.bats
 tests/spec/mcp-gateway.bats
 tests/spec/mcp-gateway/agy-token-expansion.bats
 tests/spec/mcp-gateway/authenticated-http-headers-isolation.bats

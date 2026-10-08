@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.410.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.409.1...website-v1.410.0) (2026-10-08)
+
+
+### Features
+
+* **website:** massage tenant on korczewski slot with own pocket id [T901440] ([#6427](https://github.com/Paddione/Bachelorprojekt/issues/6427)) ([8b72f8c](https://github.com/Paddione/Bachelorprojekt/commit/8b72f8cbcf45e235c74ad2418f07615610e1d166))
+
 ## [1.409.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.409.0...website-v1.409.1) (2026-10-08)
 
 

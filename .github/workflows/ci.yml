@@ -155,6 +155,11 @@ jobs:
           fi
           bash scripts/tests/unit-coverage-guard.sh
 
+      - name: Install and verify MCP task runner for pytest specs
+        run: |
+          bash scripts/mcp-task-runner/install.sh
+          mcp-task-runner --help
+
       - name: Expose vendored BATS for pytest spec wrappers
         run: echo "$GITHUB_WORKSPACE/tests/unit/lib/bats-core/bin" >> "$GITHUB_PATH"
 

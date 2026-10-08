@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.405.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.1...website-v1.405.2) (2026-10-08)
+
+
+### Tests
+
+* **test:** add E2E pilot spec for massage booking journey [T901029] ([#6384](https://github.com/Paddione/Bachelorprojekt/issues/6384)) ([d49bfb0](https://github.com/Paddione/Bachelorprojekt/commit/d49bfb0b0d4553927546aaad738ee2ceb5fdfb46))
+
 ## [1.405.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.0...website-v1.405.1) (2026-10-08)
 
 

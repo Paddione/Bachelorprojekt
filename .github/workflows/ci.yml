@@ -67,6 +67,9 @@ jobs:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      MCP_SERVERS_HOME: ${{ github.workspace }}/dotfiles/mcp-servers
+      TOOLSET_HOME: ${{ github.workspace }}/scripts/toolset
     permissions:
       contents: write
       pull-requests: read
@@ -75,6 +78,19 @@ jobs:
         with:
           fetch-depth: 1
           fetch-tags: false
+
+      - name: Checkout dotfiles (central MCP servers, T901492)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/dotfiles
+          ref: master
+          ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
+          path: dotfiles
+
+      - name: Install central MCP server deps (T901492)
+        run: |
+          npm ci --prefix dotfiles/mcp-servers/devflow --no-audit --no-fund
+          npm ci --prefix dotfiles/mcp-servers/task-runner --no-audit --no-fund
 
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
@@ -147,7 +163,7 @@ jobs:
 
       - name: Install and verify MCP task runner for pytest specs
         run: |
-          bash scripts/mcp-task-runner/install.sh
+          bash "${MCP_SERVERS_HOME:-/home/patrick/mcp-servers}/task-runner/install.sh"
           mcp-task-runner --help
 
       # [T901392] BATS ist deinstalliert. Dieser Job faehrt alles ausser
@@ -340,11 +356,21 @@ jobs:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      MCP_SERVERS_HOME: ${{ github.workspace }}/dotfiles/mcp-servers
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 1
           fetch-tags: false
+
+      - name: Checkout dotfiles (central MCP servers, T901492)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/dotfiles
+          ref: master
+          ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
+          path: dotfiles
 
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
@@ -397,6 +423,9 @@ jobs:
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      MCP_SERVERS_HOME: ${{ github.workspace }}/dotfiles/mcp-servers
+      TOOLSET_HOME: ${{ github.workspace }}/scripts/toolset
     strategy:
       # fail-fast: false ist Absicht. Bricht ein Shard ab, sollen die anderen
       # zu Ende laufen — sonst sieht man pro Lauf nur die Fehler EINES Shards
@@ -412,6 +441,19 @@ jobs:
         with:
           fetch-depth: 1
           fetch-tags: false
+
+      - name: Checkout dotfiles (central MCP servers, T901492)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/dotfiles
+          ref: master
+          ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
+          path: dotfiles
+
+      - name: Install central MCP server deps (T901492)
+        run: |
+          npm ci --prefix dotfiles/mcp-servers/devflow --no-audit --no-fund
+          npm ci --prefix dotfiles/mcp-servers/task-runner --no-audit --no-fund
 
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main

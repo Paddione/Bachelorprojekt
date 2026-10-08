@@ -8,6 +8,11 @@ from pathlib import Path
 import pytest
 
 
+def _central(*parts):
+    """Zentraler MCP-Server-Pfad (T901492; CI setzt MCP_SERVERS_HOME auf den Zweit-Checkout)."""
+    return Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers")).joinpath(*parts)
+
+
 class Devflow:
     """Port of tests/spec/devflow-mcp/helpers.bash (devflow_setup, devflow_index, devflow_call, json)."""
 
@@ -112,7 +117,7 @@ class Devflow:
 
     def index(self, extra_env=None, *args):
         """devflow_index: graph-index.mjs against the fixture repo."""
-        return self._exec(["node", str(self.repo_root / "scripts/devflow-mcp/graph-index.mjs"),
+        return self._exec(["node", str(_central("devflow", "graph-index.mjs")),
                            "--repo", str(self.frepo), *args], extra_env)
 
     def call(self, *args, extra_env=None):

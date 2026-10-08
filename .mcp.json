@@ -13,7 +13,7 @@
     "devflow-mcp": {
       "command": "node",
       "args": [
-        "scripts/devflow-mcp/server.mjs"
+        "/home/patrick/mcp-servers/devflow/server.mjs"
       ]
     },
     "mcp-kubernetes": {
@@ -23,7 +23,7 @@
     "mcp-task-runner": {
       "command": "node",
       "args": [
-        "scripts/mcp-task-runner/server.mjs",
+        "/home/patrick/mcp-servers/task-runner/server.mjs",
         "--otel-endpoint",
         "localhost:4317",
         "--taskfile",
@@ -40,7 +40,7 @@
     "ticket-mcp-node": {
       "command": "node",
       "args": [
-        "scripts/ticket-mcp-node/server.mjs"
+        "/home/patrick/mcp-servers/ticket/server.mjs"
       ]
     },
     "warden": {

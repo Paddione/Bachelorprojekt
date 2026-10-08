@@ -8,7 +8,8 @@ import path from 'node:path';
 
 const [repo, tool, argsJson = '{}'] = process.argv.slice(2);
 const { connectStdio, listTools } = await import(path.join(repo, 'scripts/toolset/lib/mcp-client.mjs'));
-const conn = await connectStdio({ command: 'node', args: [path.join(repo, 'scripts/devflow-mcp/server.mjs')], cwd: process.env.DEVFLOW_REPO_ROOT || repo, timeoutMs: 60000 });
+const central = process.env.MCP_SERVERS_HOME || '/home/patrick/mcp-servers';
+const conn = await connectStdio({ command: 'node', args: [path.join(central, 'devflow/server.mjs')], cwd: process.env.DEVFLOW_REPO_ROOT || repo, timeoutMs: 60000 });
 try {
   if (tool === 'list') {
     console.log((await listTools(conn)).map(t => t.name).sort().join(' '));

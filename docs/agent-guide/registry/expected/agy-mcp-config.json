@@ -34,7 +34,7 @@
     },
     "ticket-mcp": {
       "command": "node",
-      "args": ["/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"]
+      "args": ["/home/patrick/mcp-servers/ticket/server.mjs"]
     }
   }
 }

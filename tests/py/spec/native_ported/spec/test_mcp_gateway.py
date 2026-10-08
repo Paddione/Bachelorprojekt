@@ -237,7 +237,7 @@ def test_t002301_ticket_mcp_node_is_launched_via_the_path_resolved_node_binary(r
     assert idx is not None
     output = "\n".join(lines[idx:idx + 6])
     assert "command: node" in output, output
-    assert "scripts/ticket-mcp-node/server.mjs" in output, output
+    assert "mcp-servers/ticket/server.mjs" in output, output
 
 
 def test_t002301_ticket_mcp_build_installs_onto_the_path_like_mcp_task_runner(repo_root):

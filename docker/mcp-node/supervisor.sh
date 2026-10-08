@@ -126,8 +126,8 @@ if enabled github; then
 fi
 
 # ── Repo-eigene Server ───────────────────────────────────────────────
-enabled ticket-mcp      && gateway ticket-mcp    3003 "node $REPO/scripts/ticket-mcp-node/server.mjs"
-enabled task-runner     && gateway task-runner   3005 "node $REPO/scripts/mcp-task-runner/server.mjs --taskfile $REPO/Taskfile.yml"
+enabled ticket-mcp      && gateway ticket-mcp    3003 "node /home/patrick/mcp-servers/ticket/server.mjs"
+enabled task-runner     && gateway task-runner   3005 "node /home/patrick/mcp-servers/task-runner/server.mjs --taskfile $REPO/Taskfile.yml"
 enabled codebase-memory && gateway codebase-memory 3006 "codebase-memory-mcp"
 
 # ── bge-mcp (3007) ───────────────────────────────────────────────────

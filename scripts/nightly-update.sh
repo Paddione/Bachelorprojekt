@@ -162,7 +162,7 @@ log "--- [8/9] Refreshing devflow-mcp graph corpus (codebase-memory + bge, sync 
 # Frischer codebase-memory-Index, nur geänderte Symbole einbetten, danach Sync nach knowledge.*
 # (SSOT) über den Port-Forward des Tasks. Der Erstlauf dauert Stunden (bge seriell) — das
 # Zeitbudget hält die Nacht ein, der nächste Lauf setzt am Checkpoint fort.
-if [ -f "${REPO_DIR}/scripts/devflow-mcp/graph-index.mjs" ]; then
+if [ -f "/home/patrick/mcp-servers/devflow/graph-index.mjs" ]; then
   task -d "$REPO_DIR" agents:devflow:graph:index MAX_MINUTES=240 SYNC_DB=1 \
     || log "WARNING: devflow graph index failed"
 fi

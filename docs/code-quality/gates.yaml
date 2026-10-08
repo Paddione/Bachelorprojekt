@@ -35,10 +35,7 @@ scan:
     # or locked (CI), causing the LOC baseline to drift without tracked-file changes.
     # These are deployment secrets, not source code — exclude from the LOC budget.
     - "environments/.secrets/**"
-    # Vendored upstream mailbox-mcp-server (MIT, not on npm), in-tree since
-    # T900396. Upstream code is not subject to our size/orphan gates and must
-    # not perturb repo-index.json.
-    - "scripts/mailbox-mcp/**"
+    # (mailbox-mcp zog T901492 nach ~/mcp-servers/mailbox um; kein In-Tree-Code mehr.)
 
 s1:
   # Grosszuegige Anhebung auf ausdrueckliche Anweisung [T002452]. Ausloeser: zwei
@@ -108,12 +105,7 @@ s1:
     # path itself, not its target, so it needs its own ignore entry (T001686).
     - ".opencode/plugins/background-agents.ts"
     - ".opencode/plugins/worktree.ts"
-    # scripts/ticket-mcp-node/server.mjs is the single-file stdio MCP server holding
-    # all ~26 ticket tools as thin wrappers over runner.mjs (node-mcp-servers port of
-    # the former Go server). Every tool shares one readline/RPC dispatch surface, so
-    # splitting would duplicate the handler plumbing without reducing semantic bulk —
-    # the same rationale as the sanctioned scripts/ticket.sh single-file CLI entry.
-    - "scripts/ticket-mcp-node/server.mjs"
+    # (ticket-mcp-node/server.mjs zog T901492 nach ~/mcp-servers/ticket um.)
 
 s2:
   graphs:

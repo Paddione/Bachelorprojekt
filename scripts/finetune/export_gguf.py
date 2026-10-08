@@ -97,6 +97,15 @@ def run_export(args: argparse.Namespace) -> int:
         if not os.environ.get("PATH", "").split(os.pathsep).count(bin_dir):
             os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
 
+    # Unsloth laedt das llama.cpp-Konverterskript isoliert per importlib — dessen
+    # `from conversion import ...` (Upstream-Master-Layout) braucht das Clone-
+    # Verzeichnis auf sys.path. Unsloth klont relativ zum CWD nach llama.cpp/.
+    _clone = os.path.join(os.getcwd(), "llama.cpp", "conversion")
+    if os.path.isdir(_clone):
+        _root = os.path.dirname(_clone)
+        if _root not in _sys.path:
+            _sys.path.insert(0, _root)
+
     from unsloth import FastLanguageModel
 
     model, tokenizer = FastLanguageModel.from_pretrained(

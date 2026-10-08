@@ -95,6 +95,7 @@ def test_env_seal_dev_scan_guards(repo_root: Path, run_cmd, tmp_path: Path):
     bad.write_text('KEYCLOAK_DB_PASSWORD: "devkeycloakdb"\nNEXTCLOUD_DB_PASSWORD: "realpassword123"\n')
     res_bad = run_cmd(["bash", str(env_seal), "--_test-dev-scan", str(bad)])
     assert res_bad.returncode != 0
+    assert "KEYCLOAK_DB_PASSWORD" in res_bad.output
     assert "dev placeholder" in res_bad.stdout or "dev placeholder" in res_bad.stderr
 
     # passes with real values
@@ -102,6 +103,7 @@ def test_env_seal_dev_scan_guards(repo_root: Path, run_cmd, tmp_path: Path):
     good.write_text('KEYCLOAK_DB_PASSWORD: "xR7kP9mQ2nL5vB3h"\nNEXTCLOUD_DB_PASSWORD: "realpassword123"\n')
     res_good = run_cmd(["bash", str(env_seal), "--_test-dev-scan", str(good)])
     assert res_good.returncode == 0
+    assert "OK" in res_good.output
 
     # force bypasses and warns
     res_force = run_cmd(["bash", str(env_seal), "--_test-dev-scan", str(bad), "--force"])
@@ -116,12 +118,14 @@ def test_env_seal_duplicate_keys(repo_root: Path, run_cmd, tmp_path: Path):
     dup.write_text('KEYCLOAK_DB_PASSWORD: "1"\nNEXTCLOUD_DB_PASSWORD: "2"\nKEYCLOAK_DB_PASSWORD: "3"\n')
     res_dup = run_cmd(["bash", str(env_seal), "--_test-dup-check", str(dup)])
     assert res_dup.returncode != 0
+    assert "KEYCLOAK_DB_PASSWORD" in res_dup.output
     assert "Duplicate keys" in res_dup.stdout or "Duplicate keys" in res_dup.stderr
 
     nodup = tmp_path / "nodup.yaml"
     nodup.write_text('KEYCLOAK_DB_PASSWORD: "1"\nNEXTCLOUD_DB_PASSWORD: "2"\nSHARED_DB_PASSWORD: "3"\n')
     res_nodup = run_cmd(["bash", str(env_seal), "--_test-dup-check", str(nodup)])
     assert res_nodup.returncode == 0
+    assert "OK" in res_nodup.output
 
 
 def test_env_seal_completeness_check(repo_root: Path, run_cmd, tmp_path: Path):
@@ -151,6 +155,7 @@ def test_env_seal_completeness_check(repo_root: Path, run_cmd, tmp_path: Path):
         ]
     )
     assert res_miss.returncode != 0
+    assert "REQUIRED_SECRET" in res_miss.output
 
     # complete keys
     secrets_ok = tmp_path / "secrets_ok.yaml"
@@ -168,6 +173,7 @@ def test_env_seal_completeness_check(repo_root: Path, run_cmd, tmp_path: Path):
         ]
     )
     assert res_ok.returncode == 0
+    assert "OK" in res_ok.output
 
 
 def test_build_test_inventory(repo_root: Path, run_cmd, tmp_path: Path):

@@ -35,11 +35,12 @@ TICKET_DB_IDENTITY_EXPECTED="${TICKET_DB_IDENTITY_EXPECTED:-9f1d3c6e-4b2a-4f8a-9
 # `title=x, description=y` bug ticket on every suite run and produced ~130 rows
 # between 2026-07-03 and 2026-07-26 before anyone traced them back here.
 #
-# So under BATS we repoint CTX at a sentinel context that cannot resolve. A
+# So under BATS (and pytest, via PYTEST_CURRENT_TEST) we repoint CTX at a
+# sentinel context that cannot resolve. A
 # stubbed kubectl ignores the value (mocks answer regardless of --context) and
 # keeps passing; the real kubectl finds no pod and _pgpod exits 1 with its normal
 # error. Set TICKET_TEST_DB_OK=1 to opt a test back into real cluster access.
-if [[ -n "${BATS_TEST_NAME:-}${BATS_VERSION:-}" && "${TICKET_TEST_DB_OK:-0}" != "1" ]]; then
+if [[ -n "${BATS_TEST_NAME:-}${BATS_VERSION:-}${PYTEST_CURRENT_TEST:-}" && "${TICKET_TEST_DB_OK:-0}" != "1" ]]; then
   CTX="bats-no-cluster-t002224"
 fi
 
@@ -68,7 +69,7 @@ _TICKET_DB_IDENTITY_VERIFIED=""
 _assert_db_identity() {
   local pod="$1" got
   if [[ -n "$_TICKET_DB_IDENTITY_VERIFIED" ]]; then return 0; fi
-  if [[ -n "${BATS_TEST_NAME:-}${BATS_VERSION:-}" && "${TICKET_TEST_DB_OK:-0}" != "1" ]]; then
+  if [[ -n "${BATS_TEST_NAME:-}${BATS_VERSION:-}${PYTEST_CURRENT_TEST:-}" && "${TICKET_TEST_DB_OK:-0}" != "1" ]]; then
     return 0
   fi
   if [[ "${TICKET_ALLOW_UNVERIFIED_DB:-0}" == "1" ]]; then

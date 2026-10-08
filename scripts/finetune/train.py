@@ -309,66 +309,16 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
     # schalten — ohne for_training bleiben Inferenz-Pfade aktiv.
     FastLanguageModel.for_training(model)
 
-    # Qwen3.5 + transformers 5.2.0: ForConditionalGeneration.forward schluckt
-    # **kwargs, reicht num_items_in_batch aber NICHT an loss_function weiter
-    # (kein Unsloth-Forward-Patch fuer qwen3_5 vorhanden). Der Trainer haelt den
-    # Loss daher fuer fenster-normalisiert und teilt nicht durch 8 — Gradienten
-    # ca. 8x zu gross. compute_loss_func nutzt HFs eigene ForCausalLMLoss MIT
-    # Zaehler; labels werden vorher gepoppt, also kein Doppel-CE.
-    # Version-gepinnt: bei transformers-Bump erneut pruefen.
+    # Unsloth-Warnung "does not accept `num_items_in_batch`": stammt aus dem
+    # Eval-Pfad (prediction_step uebergibt nie einen Zaehler; Eval akkumuliert
+    # nicht). Der Trainings-Pfad ist korrekt: Unsloths Qwen3.5-Forward
+    # (unsloth_compiled_module_qwen3_5) faden den Zaehler in fused CE ein —
+    # verifiziert 2026-10-08. Exakt diese eine Meldung filtern, sonst nichts.
+    # Filter sitzt auf dem emittierenden Logger — Root-Filter greifen bei
+    # propagierten Records nicht.
     import logging as _logging
-    import transformers as _tf
 
-    if _tf.__version__ != "5.2.0":
-        raise SystemExit(
-            "FEHLER: Qwen3.5-Loss-Patch gegen transformers 5.2.0 geschrieben, "
-            f"aktiv ist {_tf.__version__}."
-        )
-    from transformers.loss.loss_utils import ForCausalLMLoss
 
-    _text_vocab = getattr(getattr(model.config, "text_config", None), "vocab_size", None)
-    if _text_vocab is None:
-        _text_vocab = model.config.vocab_size
-
-    def _token_weighted_loss(outputs, labels, num_items_in_batch=None):
-        return ForCausalLMLoss(
-            logits=outputs.logits,
-            labels=labels,
-            vocab_size=_text_vocab,
-            num_items_in_batch=num_items_in_batch,
-        )
-
-    # Zaehler-Fix: Unsloths Forward-Walk findet auf dem geladenen
-    # (kompilierten/gepatchten) Qwen3.5-Forward kein **kwargs und zaehlt nie —
-    # dann laeuft _token_weighted_loss mit None auf mean-Fallback (altes Regime).
-    # Cache direkt seeden; laut abbrechen, falls Unsloth das umbaut.
-    import unsloth as _ul
-
-    if getattr(_ul, "__version__", None) != "2026.2.1":
-        raise SystemExit(
-            "FEHLER: Zaehler-Seed gegen unsloth 2026.2.1 geschrieben, aktiv ist "
-            f"{getattr(_ul, '__version__', 'unbekannt')}."
-        )
-    from unsloth_zoo import loss_utils as _lul
-
-    if not hasattr(_lul, "ALLOWED_NUM_ITEMS_IN_BATCH"):
-        raise SystemExit(
-            "FEHLER: unsloth_zoo.loss_utils.ALLOWED_NUM_ITEMS_IN_BATCH fehlt — "
-            "Zaehler-Seed nicht moeglich."
-        )
-    _seed_names = {"Qwen3_5ForConditionalGeneration", type(model).__name__}
-    _get_base = getattr(model, "get_base_model", None)
-    if callable(_get_base):
-        try:
-            _seed_names.add(type(_get_base()).__name__)
-        except Exception:
-            pass
-    for _name in _seed_names:
-        _lul.ALLOWED_NUM_ITEMS_IN_BATCH[_name] = (True, True)
-
-    # Nach dem Fix ist die Eval-Warnung Fehlinformation (Eval akkumuliert nicht):
-    # exakt diese eine Meldung filtern, sonst nichts. Filter sitzt auf dem
-    # emittierenden Logger — Root-Filter greifen bei propagierten Records nicht.
     class _DropStaleNumItemsWarning(_logging.Filter):
         def filter(self, record):
             return "does not accept `num_items_in_batch`" not in record.getMessage()
@@ -424,9 +374,6 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
         train_dataset=dataset,
         eval_dataset=eval_dataset,
         data_collator=data_collator,
-        # Token-gewichteter Loss (siehe Qwen3.5-Loss-Patch oben): globaler
-        # Mittelwert uebers Akkumulationsfenster statt Mittel-von-Mitteln.
-        compute_loss_func=_token_weighted_loss,
         args=SFTConfig(
             max_length=max_seq_length,
             per_device_train_batch_size=1,

@@ -24,6 +24,7 @@ Gateway und fremde Worktrees bleiben außerhalb des Scopes.
 - `scripts/devflow-post-merge-finalize.sh` — Cleanup erst nach bestandenen Guards.
 - `tests/spec/agent-skills/post-merge-finalize-safety.bats` — echte Git-Fixtures.
 - `tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py` — native CI-Regression inkl. echter eigener/fremder Claims.
+- `tests/py/spec/native_ported/spec/agent-skills/test_worktree_remove_managed.py` — bestehender Locked-Worktree-Test aktualisiert für den strikten Finalizer-Helper.
 
 ## S1-Budgets
 
@@ -56,7 +57,7 @@ Keine Baseline-Einträge hinzufügen. Shared-Remove-Helper bleibt unverändert.
 
 ## Phase 4 — Verifikation und PR
 
-- [x] Neue Regression und bestehende Finalizer-/Guard-Suiten laufen lassen: `tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py` plus BATS.
+- [x] Neue Regression und bestehende Finalizer-/Guard-Suiten laufen lassen: `tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py` plus BATS und `tests/py/spec/native_ported/spec/agent-skills/test_worktree_remove_managed.py`.
 - [x] Bash-Syntax, Plan-Lint und S1–S4 prüfen; keine fremden Worktrees entfernen.
 - [x] task test:inventory ausführen.
 - [x] task test:changed ausführen (Gesamtsuite läuft, rote Alt-Fixtures werden separat berichtet).
@@ -74,3 +75,7 @@ Native CI-Regression zusätzlich nötig, da BP BATS seit T901392 nicht in CI fä
 Cleanup: Merge/Dirty/Ownership vor eigener SID-exakter Claimfreigabe; danach
 konservativer worktree-clean-check, Dirty/Tip-Recheck und Remove ohne force.
 Blockierter Cleanup endet mit Exit 1; fremde Claims bleiben erhalten.
+
+Fullsuite: 23 failed, 5070 passed, 206 skipped in 335.92s. Zwei obsolete
+force-helper-Vertragstests wurden auf den neuen strikten Helper aktualisiert;
+21 weitere Befunde benötigen Baseline-Abgleich (MCP/Host/Legacy/Dependencies).

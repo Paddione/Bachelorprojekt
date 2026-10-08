@@ -412,7 +412,7 @@ def cmd_status(args):
     fatal = {"repo-not-found", "head-unknown", "tool-missing", "probe-timeout",
              "probe-failed", "probe-malformed", "tool-error", "root-mismatch",
              "project-mismatch", "receipt-malformed", "receipt-identity-mismatch",
-             "db-changed", "attempt-in-progress", "attempt-failed", "attempt-malformed",
+             "attempt-in-progress", "attempt-failed", "attempt-malformed",
              "snapshot-incomplete", "fingerprint-failed", "git-missing", "git-timeout",
              "git-status-failed", "git-diff-failed", "git-ls-files-failed"}
     has_fatal = any(r in fatal for r in reasons)
@@ -441,6 +441,11 @@ def cmd_status(args):
         status = "unknown"
         if "initial-refresh" not in reasons:
             reasons.append("initial-refresh")
+        refresh_allowed = True
+    elif not has_fatal and not probe_failed and receipt is None and "db-changed" in reasons:
+        # T900996: DB-stat drift invalidates the receipt, but the single-flight
+        # wrapper refresh re-baselines it — allow refresh instead of deadlocking.
+        status = "unknown"
         refresh_allowed = True
     else:
         status = "unknown"

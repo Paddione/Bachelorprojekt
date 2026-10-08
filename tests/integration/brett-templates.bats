@@ -4,12 +4,12 @@
 # curl is skipped unless BRETT_BASE_URL points at a running server.
 
 @test "index.ts registers GET /api/templates route" {
-  run grep -F "app.get('/api/templates'" components/brett/src/server/index.ts
+  run grep -F "adminRouter.get('/api/templates'" components/brett/src/server/routes/admin.ts
   [ "$status" -eq 0 ]
 }
 
 @test "index.ts registers GET /api/templates/:id route" {
-  run grep -F "app.get('/api/templates/:id'" components/brett/src/server/index.ts
+  run grep -F "adminRouter.get('/api/templates/:id'" components/brett/src/server/routes/admin.ts
   [ "$status" -eq 0 ]
 }
 

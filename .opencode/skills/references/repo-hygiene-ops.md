@@ -328,6 +328,23 @@ allein hätte auch die einzige Kopie eines nie gemergten Deliverables gelöscht 
 > jede `external_id` unterhalb `T012401` leer beantwortet wird: der Sweep meldete 10 von 15
 > Branches als „nicht ermittelbar", 8 davon mit nachweislich gemergtem PR.
 
+### Zentraler Worktree-Hook verhindert Remote-Cleanup [T901525/T901533]
+
+Der zentrale `agent-workspace`-Pre-Push kann einen Push aus dem Hauptcheckout
+ablehnen. Beobachtet: Der Reaper meldete trotzdem Exit 0, während der Remote-Ref
+noch bestand. Deshalb die tatsächlichen Refs nachprüfen, keinen Hook umgehen und
+bei erhaltenem Branch den Cleanup als offen berichten.
+
+Für diesen Ausnahmefall einen eigenen temporären Control-Worktree mit dem
+offiziellen `~/scripts/agent-workspace.py` anlegen. Dort den exakt passenden
+`MERGED`-PR-Head und strukturierten Archiv-Receipt erneut prüfen, denselben Head
+unter `reaped/` archivieren und den Remote-Branch mit expliziter erwarteter SHA
+als Lease löschen. Archiv-Ref und Löschung positiv verifizieren; erst danach nur
+den eigenen sauberen Control-Worktree und dessen Branch entfernen. Fremde Claims
+und Änderungen bleiben erhalten. Den Defaultbranch aus GitHub beziehungsweise
+`origin/HEAD` bestimmen und frisch fetchen; neue Development-Branches darauf
+aufsetzen, statt das möglicherweise veraltete HEAD des Hauptcheckouts zu nehmen.
+
 ## 3. PR-Triage → verknüpftes Ticket schließen
 
 ### Grundregel: ein leeres Signal ist kein Urteil

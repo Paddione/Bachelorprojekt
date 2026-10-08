@@ -1,4 +1,5 @@
-"""Metadata edits cannot cancel or replace checks from a code-CI run."""
+"""Native migration of tests/spec/fix-ci-concurrency.bats."""
+# Metadata edits cannot cancel or replace checks from a code-CI run.
 import yaml
 
 

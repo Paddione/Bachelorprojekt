@@ -208,13 +208,26 @@ def tokenize_row_with_assistant_mask(tokenizer, messages: list[dict], max_seq_le
         truncation=True,
     )
     input_ids = encoded["input_ids"]
+    # Unsloth's tokenizer liefert gebatchte Ausgabe ([[ids]]) — Single-Batch unpacken.
+    if len(input_ids) == 1 and isinstance(input_ids[0], list):
+        input_ids = input_ids[0]
     assistant_masks = encoded.get("assistant_masks")
     if assistant_masks is None:
         return None
+    # Gebatchte Masken ([[m ...]]) ebenfalls unpacken, wenn die innere Liste
+    # die volle Sequenz abdeckt; sonst als Segmentliste eine Ebene flachklopfen.
+    if (
+        len(assistant_masks) == 1
+        and isinstance(assistant_masks[0], list)
+        and len(assistant_masks[0]) == len(input_ids)
+    ):
+        assistant_masks = assistant_masks[0]
     # Unsloth/transformers-v5 may return nested masks per assistant segment
     # (e.g. reasoning spans) — flatten one level before summing.
     flat = [x for m in assistant_masks for x in (m if isinstance(m, list) else [m])]
-    if sum(flat) == 0:
+    # Laengen-Mismatch (z.B. zip-Trucierung) wuerde still falsche Labels erzeugen —
+    # solche Zeilen zaehlen als ohne Lernsignal.
+    if len(flat) != len(input_ids) or sum(flat) == 0:
         return None
     labels = [tok if m else -100 for tok, m in zip(input_ids, flat)]
     return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids), "labels": labels}

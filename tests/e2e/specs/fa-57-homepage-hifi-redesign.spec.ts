@@ -33,7 +33,7 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
     await expect(strip).toBeVisible({ timeout: 60_000 });
     const stats = strip.locator('.stat');
     await expect(stats.first()).toBeVisible();
-    expect(await stats.count()).toBeGreaterThan(0);
+    await expect(stats).not.toHaveCount(0);
     // Jede Stat hat eine Zahl und ein Label
     const firstNum = strip.locator('.stat-num').first();
     await expect(firstNum).toBeVisible();
@@ -98,7 +98,8 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
     await expect(heading).toBeVisible();
 
     const steps = processSection.locator('[role="list"] [role="listitem"], .step');
-    expect(await steps.count()).toBeGreaterThan(0);
+    await expect(steps.first()).toBeVisible();
+    await expect(steps).not.toHaveCount(0);
   });
 
   test('T7: WhyMe-Sektion ist vorhanden', async ({ page }) => {
@@ -117,7 +118,8 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
 
     // Mindestens eine ServiceRow vorhanden (Svelte rendert .offer als Wrapper-Div)
     const rows = offersSection.locator('.offer');
-    expect(await rows.count()).toBeGreaterThan(0);
+    await expect(rows.first()).toBeVisible();
+    await expect(rows).not.toHaveCount(0);
   });
 
   test('T9: CallToAction-Sektion hat Link zur Kontaktseite', async ({ page }) => {

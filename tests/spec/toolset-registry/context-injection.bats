@@ -39,11 +39,11 @@ capabilities:
       reason: "Nicht projektrelevant."
       use_when: "Darf nie erscheinen"
       roles: [all]
-  demo-pi:
-    skill:pi-only-skill:
+  demo-omp:
+    skill:omp-only-skill:
       state: canonical
       use_when: "Nur fuer die minimale Harness-Rolle"
-      roles: [pi]
+      roles: [omp]
 EOF
 }
 
@@ -151,11 +151,11 @@ EOF
   [ "$output" -ge 1 ]
 }
 
-@test "context: Rolle pi erbt die Wildcard 'all' nicht" {
-  run_ctx pi
+@test "context: Rolle omp erbt die Wildcard 'all' nicht" {
+  run_ctx omp
   [ "$status" -eq 0 ]
-  # Positiv-Anker zuerst: die explizite Freigabe fuer pi ist da.
-  [[ "$output" == *"skill:pi-only-skill"* ]]
+  # Positiv-Anker zuerst: die explizite Freigabe fuer omp ist da.
+  [[ "$output" == *"skill:omp-only-skill"* ]]
   # Die Wildcard-Instanz aus demo-shared darf hier nicht auftauchen.
   [[ "$output" != *"mcp:everywhere-server"* ]]
 }

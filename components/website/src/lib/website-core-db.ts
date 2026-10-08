@@ -9,6 +9,15 @@ import { pool, ensureSchemaOnce } from './db-pool';
 import { initTicketsSchema } from './tickets-schema';
 import { transitionTicket } from './tickets/transition.ts';
 import type { Customer } from './customer-types';
+import {
+  parseOpeningHours,
+  parseBookingBuffers,
+  parseHolidays,
+  DEFAULT_OPENING_HOURS,
+  DEFAULT_BOOKING_BUFFERS,
+  DEFAULT_HOLIDAYS,
+} from './business-settings';
+import type { OpeningHours, BookingBuffers, Holidays } from './business-settings';
 
 export type { Customer } from './customer-types';
 
@@ -426,6 +435,41 @@ export async function getVacationPeriods(brand: string): Promise<VacationPeriod[
 
 export async function saveVacationPeriods(brand: string, periods: VacationPeriod[]): Promise<void> {
   await setSiteSetting(brand, 'vacation_periods', JSON.stringify(periods));
+}
+
+// ── Business Settings (T901023) ─────────────────────────────────────────────
+//
+// Opening hours, booking buffers and holidays per brand, stored as JSON blobs
+// in site_settings like vacation_periods. Getters fall back to defaults on
+// missing or corrupt data and never throw; setters validate strictly.
+export async function getOpeningHours(brand: string): Promise<OpeningHours> {
+  const raw = await getSiteSetting(brand, 'opening_hours');
+  if (!raw) return DEFAULT_OPENING_HOURS;
+  try { return parseOpeningHours(JSON.parse(raw)); } catch { return DEFAULT_OPENING_HOURS; }
+}
+
+export async function saveOpeningHours(brand: string, hours: OpeningHours): Promise<void> {
+  await setSiteSetting(brand, 'opening_hours', JSON.stringify(parseOpeningHours(hours)));
+}
+
+export async function getBookingBuffers(brand: string): Promise<BookingBuffers> {
+  const raw = await getSiteSetting(brand, 'booking_buffers');
+  if (!raw) return DEFAULT_BOOKING_BUFFERS;
+  try { return parseBookingBuffers(JSON.parse(raw)); } catch { return DEFAULT_BOOKING_BUFFERS; }
+}
+
+export async function saveBookingBuffers(brand: string, buffers: BookingBuffers): Promise<void> {
+  await setSiteSetting(brand, 'booking_buffers', JSON.stringify(parseBookingBuffers(buffers)));
+}
+
+export async function getHolidays(brand: string): Promise<Holidays> {
+  const raw = await getSiteSetting(brand, 'holidays');
+  if (!raw) return DEFAULT_HOLIDAYS;
+  try { return parseHolidays(JSON.parse(raw)); } catch { return DEFAULT_HOLIDAYS; }
+}
+
+export async function saveHolidays(brand: string, holidays: Holidays): Promise<void> {
+  await setSiteSetting(brand, 'holidays', JSON.stringify(parseHolidays(holidays)));
 }
 
 // ── Legal Pages (admin-editable HTML content) ────────────────────────────────

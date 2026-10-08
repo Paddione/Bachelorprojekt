@@ -2,24 +2,25 @@ import { defineConfig } from 'vitest/config';
 import path from 'path';
 
 // Shared modules are now inlined in shared/
-const sharedRoot = path.resolve(__dirname, 'shared');
+const currentDir = import.meta.dirname ?? path.resolve();
+const sharedRoot = path.resolve(currentDir, 'shared');
 
 export default defineConfig({
-  root: path.resolve(__dirname, 'client'),
+  root: path.resolve(currentDir, 'client'),
   esbuild: {
     jsx: 'automatic',
     jsxImportSource: 'react',
   },
   resolve: {
     alias: [
-      { find: '@', replacement: path.resolve(__dirname, 'client', 'src') },
+      { find: '@', replacement: path.resolve(currentDir, 'client', 'src') },
       { find: '@shared', replacement: path.resolve(sharedRoot, 'videovault') },
-      { find: '@assets', replacement: path.resolve(__dirname, 'attached_assets') },
+      { find: '@assets', replacement: path.resolve(currentDir, 'attached_assets') },
       // Stub heavy instant-search path during tests
       {
         find: '@/services/enhanced-filter-engine',
         replacement: path.resolve(
-          __dirname,
+          currentDir,
           'client',
           'src',
           'test',
@@ -31,7 +32,7 @@ export default defineConfig({
       {
         find: './adaptive-thumbnail-manager',
         replacement: path.resolve(
-          __dirname,
+          currentDir,
           'client',
           'src',
           'test',
@@ -42,7 +43,7 @@ export default defineConfig({
       {
         find: '@/services/adaptive-thumbnail-manager',
         replacement: path.resolve(
-          __dirname,
+          currentDir,
           'client',
           'src',
           'test',
@@ -53,7 +54,7 @@ export default defineConfig({
       {
         find: './webcodecs-thumbnail-service',
         replacement: path.resolve(
-          __dirname,
+          currentDir,
           'client',
           'src',
           'test',
@@ -64,7 +65,7 @@ export default defineConfig({
       {
         find: '@/services/webcodecs-thumbnail-service',
         replacement: path.resolve(
-          __dirname,
+          currentDir,
           'client',
           'src',
           'test',
@@ -75,7 +76,7 @@ export default defineConfig({
       {
         find: './enhanced-thumbnail-service',
         replacement: path.resolve(
-          __dirname,
+          currentDir,
           'client',
           'src',
           'test',
@@ -86,7 +87,7 @@ export default defineConfig({
       {
         find: '@/services/enhanced-thumbnail-service',
         replacement: path.resolve(
-          __dirname,
+          currentDir,
           'client',
           'src',
           'test',
@@ -97,7 +98,7 @@ export default defineConfig({
       {
         find: '@videovault-player',
         replacement: path.resolve(
-          __dirname,
+          currentDir,
           '..',
           'packages',
           'videovault-player',
@@ -106,15 +107,15 @@ export default defineConfig({
       },
       {
         find: 'react',
-        replacement: path.resolve(__dirname, 'node_modules', 'react'),
+        replacement: path.resolve(currentDir, 'node_modules', 'react'),
       },
       {
         find: 'react-dom',
-        replacement: path.resolve(__dirname, 'node_modules', 'react-dom'),
+        replacement: path.resolve(currentDir, 'node_modules', 'react-dom'),
       },
       {
         find: 'zod',
-        replacement: path.resolve(__dirname, 'node_modules', 'zod'),
+        replacement: path.resolve(currentDir, 'node_modules', 'zod'),
       },
     ],
   },
@@ -125,7 +126,6 @@ export default defineConfig({
     pool: 'threads',
     maxWorkers: 1,
     isolate: true,
-    bail: 1,
     testTimeout: 20000,
     hookTimeout: 10000,
     teardownTimeout: 10000,

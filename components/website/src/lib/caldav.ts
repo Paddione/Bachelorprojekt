@@ -8,14 +8,19 @@ import {
   SLOT_DURATION_MIN,
   WORK_DAYS,
   BOOKING_HORIZON_DAYS,
-  MIN_ADVANCE_HOURS,
+  SLOT_BUFFER_MIN,
+  BOOKING_LEADTIME_DAYS,
+  BERLIN_TZ,
   CALDAV_BASE,
   BRAND_NAME,
   CALDAV_TIMEOUT_MS,
   getAuthHeader,
   fetchEventsRaw,
   extractICalProp,
-  parseICalDate
+  parseICalDate,
+  berlinDayKey,
+  berlinWallMinutes,
+  berlinWeekdayIso
 } from './caldav-cache.ts';
 
 export interface CalEvent {
@@ -192,25 +197,85 @@ export async function getClientBookings(clientEmail: string): Promise<ClientBook
   return bookings;
 }
 
+// ── Berlin calendar arithmetic (T901023) ──────────────────────────────────
+// Pure day-key math on UTC-midnight instants plus Berlin wall-clock mapping.
+// DST-safe by construction: Europe/Berlin transitions never fall on midnight.
+
+function addDaysKey(dayKey: string, days: number): string {
+  const [y, m, d] = dayKey.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getUTCDate()).padStart(2, '0');
+  return `${dt.getUTCFullYear()}-${mm}-${dd}`;
+}
+
+function dayDiff(laterKey: string, earlierKey: string): number {
+  return Math.round((Date.parse(laterKey) - Date.parse(earlierKey)) / 86400000);
+}
+
+function expandDayRange(startKey: string, endKey: string): string[] {
+  const out: string[] = [];
+  const count = dayDiff(endKey, startKey);
+  if (!Number.isInteger(count) || count < 0) return out;
+  for (let i = 0; i <= count; i++) out.push(addDaysKey(startKey, i));
+  return out;
+}
+
+/** Berlin midnight of a day key as a UTC instant. */
+function berlinDayStartUtc(dayKey: string): Date {
+  const guess = new Date(`${dayKey}T00:00:00Z`);
+  return new Date(guess.getTime() - berlinWallMinutes(guess) * 60000);
+}
+
+/** Berlin wall minutes on a day key as a UTC instant. */
+function berlinWallToUtc(dayKey: string, minutes: number): Date {
+  return new Date(berlinDayStartUtc(dayKey).getTime() + minutes * 60000);
+}
+
+function formatMinutes(minutes: number): string {
+  const wrapped = ((minutes % 1440) + 1440) % 1440;
+  return `${String(Math.floor(wrapped / 60)).padStart(2, '0')}:${String(wrapped % 60).padStart(2, '0')}`;
+}
+
+/** Europe/Berlin wall time as iCal local time (YYYYMMDDTHHMMSS). */
+function formatBerlinWall(d: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BERLIN_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(d);
+  const out: Record<string, string> = {};
+  for (const part of parts) {
+    if (part.type !== 'literal') out[part.type] = part.value;
+  }
+  return `${out.year}${out.month}${out.day}T${out.hour}${out.minute}${out.second}`;
+}
+
 // Compute available booking slots for a range of days.
 // When brand is provided, slots are generated from admin-defined free time windows.
 // Without brand, all calendar-free slots in working hours are returned (admin overview).
+// Calendar arithmetic runs in Europe/Berlin; slot start/end stay UTC ISO instants.
 export async function getAvailableSlots(fromDate?: Date, brand?: string, slotDurationMin?: number): Promise<DaySlots[]> {
   const duration = slotDurationMin ?? SLOT_DURATION_MIN;
 
   // windowsMap: date string → array of {winStart, winEnd} (HH:MM strings)
   let windowsMap: Map<string, Array<{ winStart: string; winEnd: string }>> | null = null;
   const vacationDays: Set<string> = new Set();
+  const holidayDays: Set<string> = new Set();
+  let bufferPreMin = SLOT_BUFFER_MIN;
+  let bufferPostMin = SLOT_BUFFER_MIN;
   const effectiveBrand = brand || config.brand;
 
   if (brand) {
     try {
       const { getFreeTimeWindows } = await import('./website-db.js');
-      const fromStr = (fromDate || new Date()).toISOString().split('T')[0];
-      const horizonDate = new Date(fromDate || new Date());
-      horizonDate.setDate(horizonDate.getDate() + BOOKING_HORIZON_DAYS);
-      const toStr = horizonDate.toISOString().split('T')[0];
-      const windows = await getFreeTimeWindows(brand, fromStr, toStr);
+      const fromKey = berlinDayKey(fromDate || new Date());
+      const windows = await getFreeTimeWindows(brand, fromKey, addDaysKey(fromKey, BOOKING_HORIZON_DAYS));
       windowsMap = new Map();
       for (const w of windows) {
         if (!windowsMap.has(w.date)) windowsMap.set(w.date, []);
@@ -225,38 +290,45 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string, slotDur
     const { getVacationPeriods } = await import('./website-db.js');
     const periods = await getVacationPeriods(effectiveBrand);
     for (const p of periods) {
-      const cur = new Date(p.start);
-      const endDate = new Date(p.end);
-      while (cur <= endDate) {
-        vacationDays.add(cur.toISOString().split('T')[0]);
-        cur.setDate(cur.getDate() + 1);
-      }
+      for (const key of expandDayRange(p.start, p.end)) vacationDays.add(key);
     }
   } catch {
     // vacation periods unavailable — continue without them
   }
 
+  try {
+    const { getHolidays, getBookingBuffers } = await import('./website-core-db.js');
+    for (const day of await getHolidays(effectiveBrand)) holidayDays.add(day);
+    const buffers = await getBookingBuffers(effectiveBrand);
+    bufferPreMin = buffers.preMin;
+    bufferPostMin = buffers.postMin;
+  } catch {
+    // settings unavailable — continue with SLOT_BUFFER_MIN defaults and no holidays
+  }
+
   const now = new Date();
   const start = fromDate || now;
-  const end = new Date(start);
-  end.setDate(end.getDate() + BOOKING_HORIZON_DAYS);
+  const end = new Date(start.getTime() + BOOKING_HORIZON_DAYS * 86400000);
 
   const events = await fetchEvents(start, end);
+  const busy = events.map((ev) => ({
+    start: ev.start.getTime() - bufferPreMin * 60000,
+    end: ev.end.getTime() + bufferPostMin * 60000,
+  }));
 
   const result: DaySlots[] = [];
-  const cursor = new Date(start);
-  cursor.setHours(0, 0, 0, 0);
+  const requestKey = berlinDayKey(now);
+  const startKey = berlinDayKey(start);
 
-  while (cursor < end) {
-    const dayOfWeek = cursor.getDay();
-    const isoDay = dayOfWeek === 0 ? 7 : dayOfWeek;
-    const dayStr = cursor.toISOString().split('T')[0];
+  for (let i = 0; i < BOOKING_HORIZON_DAYS; i++) {
+    const dayStr = addDaysKey(startKey, i);
 
-    if (vacationDays.has(dayStr)) {
-      cursor.setDate(cursor.getDate() + 1);
-      continue;
-    }
+    // Lead time: the Berlin slot date must be BOOKING_LEADTIME_DAYS calendar
+    // days after the Berlin request date (default: previous-day rule).
+    if (dayDiff(dayStr, requestKey) < BOOKING_LEADTIME_DAYS) continue;
+    if (vacationDays.has(dayStr) || holidayDays.has(dayStr)) continue;
 
+    const isoDay = berlinWeekdayIso(berlinWallToUtc(dayStr, 720));
     const slots: TimeSlot[] = [];
 
     if (windowsMap !== null) {
@@ -269,51 +341,37 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string, slotDur
         const winEndMin = weh * 60 + wem;
 
         for (let t = winStartMin; t + duration <= winEndMin; t += duration) {
-          const slotStart = new Date(cursor);
-          slotStart.setHours(Math.floor(t / 60), t % 60, 0, 0);
+          const slotStart = berlinWallToUtc(dayStr, t);
           const slotEnd = new Date(slotStart.getTime() + duration * 60000);
 
-          if (slotStart.getTime() < now.getTime() + MIN_ADVANCE_HOURS * 3600000) continue;
-          if (events.some((ev) => ev.start < slotEnd && ev.end > slotStart)) continue;
+          if (busy.some((b) => b.start < slotEnd.getTime() && b.end > slotStart.getTime())) continue;
 
-          const startHH = slotStart.getHours().toString().padStart(2, '0');
-          const startMM = slotStart.getMinutes().toString().padStart(2, '0');
-          const endHH = slotEnd.getHours().toString().padStart(2, '0');
-          const endMM = slotEnd.getMinutes().toString().padStart(2, '0');
           slots.push({
             start: slotStart.toISOString(),
             end: slotEnd.toISOString(),
-            display: `${startHH}:${startMM} - ${endHH}:${endMM}`,
+            display: `${formatMinutes(t)} - ${formatMinutes(t + duration)}`,
           });
         }
       }
     } else if (WORK_DAYS.includes(isoDay)) {
       // Admin overview: all calendar-free slots in configured working hours
-      for (let hour = WORK_START_HOUR; hour < WORK_END_HOUR; hour += duration / 60) {
-        const slotStart = new Date(cursor);
-        slotStart.setHours(Math.floor(hour), (hour % 1) * 60, 0, 0);
+      for (let t = WORK_START_HOUR * 60; t + duration <= WORK_END_HOUR * 60; t += duration) {
+        const slotStart = berlinWallToUtc(dayStr, t);
         const slotEnd = new Date(slotStart.getTime() + duration * 60000);
 
-        if (slotStart.getTime() < now.getTime() + MIN_ADVANCE_HOURS * 3600000) continue;
-        if (events.some((ev) => ev.start < slotEnd && ev.end > slotStart)) continue;
+        if (busy.some((b) => b.start < slotEnd.getTime() && b.end > slotStart.getTime())) continue;
 
-        const startHH = slotStart.getHours().toString().padStart(2, '0');
-        const startMM = slotStart.getMinutes().toString().padStart(2, '0');
-        const endHH = slotEnd.getHours().toString().padStart(2, '0');
-        const endMM = slotEnd.getMinutes().toString().padStart(2, '0');
         slots.push({
           start: slotStart.toISOString(),
           end: slotEnd.toISOString(),
-          display: `${startHH}:${startMM} - ${endHH}:${endMM}`,
+          display: `${formatMinutes(t)} - ${formatMinutes(t + duration)}`,
         });
       }
     }
 
     if (slots.length > 0) {
-      result.push({ date: dayStr, weekday: WEEKDAYS_DE[dayOfWeek], slots });
+      result.push({ date: dayStr, weekday: WEEKDAYS_DE[isoDay % 7], slots });
     }
-
-    cursor.setDate(cursor.getDate() + 1);
   }
 
   return result;
@@ -385,8 +443,6 @@ export async function updateCalendarEventTime(
   const url = await findEventUrl(uid);
   if (!url) return false;
 
-  const formatDt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-
   try {
     const getRes = await fetch(url, {
       headers: { Authorization: getAuthHeader() },
@@ -395,8 +451,8 @@ export async function updateCalendarEventTime(
     if (!getRes.ok) return false;
     let ical = await getRes.text();
 
-    ical = ical.replace(/DTSTART[^\r\n]+/i, `DTSTART:${formatDt(newStart)}`);
-    ical = ical.replace(/DTEND[^\r\n]+/i, `DTEND:${formatDt(newEnd)}`);
+    ical = ical.replace(/DTSTART[^\r\n]+/i, `DTSTART;TZID=${BERLIN_TZ}:${formatBerlinWall(newStart)}`);
+    ical = ical.replace(/DTEND[^\r\n]+/i, `DTEND;TZID=${BERLIN_TZ}:${formatBerlinWall(newEnd)}`);
 
     const putRes = await fetch(url, {
       method: 'PUT',
@@ -424,7 +480,6 @@ export async function createCalendarEvent(params: {
   attendeeName?: string;
 }): Promise<{ uid: string } | null> {
   const uid = crypto.randomUUID();
-  const formatDt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
   let attendeeLine = '';
   if (params.attendeeEmail) {
@@ -438,8 +493,8 @@ export async function createCalendarEvent(params: {
     `PRODID:-//${BRAND_NAME}//Booking//DE`,
     'BEGIN:VEVENT',
     `UID:${uid}@${BRAND_NAME}`,
-    `DTSTART:${formatDt(params.start)}`,
-    `DTEND:${formatDt(params.end)}`,
+    `DTSTART;TZID=${BERLIN_TZ}:${formatBerlinWall(params.start)}`,
+    `DTEND;TZID=${BERLIN_TZ}:${formatBerlinWall(params.end)}`,
     `SUMMARY:${params.summary}`,
     `DESCRIPTION:${params.description.replace(/\n/g, '\\n')}`,
     ...(attendeeLine ? [attendeeLine] : []),

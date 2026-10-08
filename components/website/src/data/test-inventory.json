@@ -1590,6 +1590,48 @@
     "kind": "shell"
   },
   {
+    "id": "T901023-1",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-2",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-3",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-4",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-5",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-6",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
+    "id": "T901023-7",
+    "file": "tests/spec/services-calendar.bats",
+    "category": "T901023",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",
@@ -4470,6 +4512,12 @@
     "kind": "shell"
   },
   {
+    "id": "omp-harness",
+    "file": "tests/spec/omp-harness.bats",
+    "category": "omp-harness",
+    "kind": "shell"
+  },
+  {
     "id": "openclaw-ops-bot",
     "file": "tests/spec/openclaw-ops-bot.bats",
     "category": "openclaw-ops-bot",
@@ -4509,12 +4557,6 @@
     "id": "p0min-freeze-embed",
     "file": "tests/spec/p0min-freeze-embed.bats",
     "category": "p0min-freeze-embed",
-    "kind": "shell"
-  },
-  {
-    "id": "pi-harness",
-    "file": "tests/spec/pi-harness.bats",
-    "category": "pi-harness",
     "kind": "shell"
   },
   {

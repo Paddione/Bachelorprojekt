@@ -8,7 +8,25 @@ export default defineConfig({
   // self-contained scripts/tsconfig.json, which oxc resolves as the nearest
   // tsconfig for scripts/**/*.test.ts. [T001360, supersedes T001323's esbuild trick]
   test: {
-    include: ['scripts/**/*.test.ts', 'scripts/**/*.test.mjs', 'tests/e2e/lib/*.test.ts', 'tests/unit/**/*.test.ts'],
-    environment: 'node',
+    projects: [
+      {
+        test: {
+          name: 'unit',
+          include: [
+            'scripts/**/*.test.ts',
+            'scripts/llm-proxy/mcp-bridge.test.mjs',
+            'scripts/llm/ui-config-seed.test.mjs',
+            'tests/e2e/lib/*.test.ts',
+            'tests/unit/**/*.test.ts',
+          ],
+          exclude: [
+            'scripts/mailbox-mcp/**',
+            '**/node_modules/**',
+            '**/.worktrees/**',
+          ],
+          environment: 'node',
+        },
+      },
+    ],
   },
 })

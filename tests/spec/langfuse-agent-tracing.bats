@@ -60,7 +60,7 @@ _objects() {
 
 _stub_bin() {
   mkdir -p "$BATS_TEST_TMPDIR/bin"
-  for b in claude opencode pi codex; do
+  for b in claude opencode omp codex; do
     printf '#!/bin/sh\nexit 0\n' > "$BATS_TEST_TMPDIR/bin/$b"; chmod +x "$BATS_TEST_TMPDIR/bin/$b"
   done
 }
@@ -71,7 +71,7 @@ _stub_bin() {
   run env HOME="$BATS_TEST_TMPDIR/home" PATH="$BATS_TEST_TMPDIR/bin:/usr/bin:/bin" \
     bash "$REPO/scripts/langfuse/setup-harnesses.sh" --dry-run
   [ "$status" -eq 0 ]
-  for h in claude opencode pi codex; do
+  for h in claude opencode omp codex; do
     grep -q "^$h: " <<<"$output" || { echo "fehlt: $h"; return 1; }
   done
   [ -z "$(find "$BATS_TEST_TMPDIR/home" -type f)" ]
@@ -116,10 +116,10 @@ _run_setup() {
   [ -n "$output" ]
 }
 
-@test "T900690: pi-Setup scheitert laut, wenn das Plugin nach pi install fehlt" {
+@test "T900690: omp-Setup scheitert laut, wenn das Plugin nach omp install fehlt" {
   _setup_env
-  printf '#!/bin/sh\n[ "$1" = list ] && echo "No packages installed."\nexit 0\n' > "$BATS_TEST_TMPDIR/bin/pi"
-  chmod +x "$BATS_TEST_TMPDIR/bin/pi"
+  printf '#!/bin/sh\n[ "$1" = list ] && echo "No packages installed."\nexit 0\n' > "$BATS_TEST_TMPDIR/bin/omp"
+  chmod +x "$BATS_TEST_TMPDIR/bin/omp"
   _run_setup
   [ "$status" -ne 0 ]
   [[ "$output" == *"pi-observability-plugin"* ]]

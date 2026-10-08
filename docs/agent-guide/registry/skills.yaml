@@ -408,6 +408,27 @@ skills:
         path: .agents/skills/update-dependencies
         sync: identical
     exclusions: {}
+  - id: playwright-best-practices
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/playwright-best-practices
+    harnesses:
+      codex:
+        path: .agents/skills/playwright-best-practices
+        sync: identical
+      agy:
+        path: .agents/skills/playwright-best-practices
+        sync: identical
+      opencode:
+        path: .opencode/skills/playwright-best-practices
+        sync: identical
+      claude_code:
+        path: .claude/skills/playwright-best-practices
+        sync: identical
+      muse:
+        path: .agents/skills/playwright-best-practices
+        sync: identical
+    exclusions: {}
   - id: vitest
     provenance: vendor
     exposure: portable

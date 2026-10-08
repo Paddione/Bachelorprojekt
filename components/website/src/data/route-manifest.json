@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 110,
+  "count": 111,
   "routes": [
     {
       "route": "/",
@@ -731,6 +731,14 @@
     },
     {
       "route": "/owner/anfragen",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/owner/kalender",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

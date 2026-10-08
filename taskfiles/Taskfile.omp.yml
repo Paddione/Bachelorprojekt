@@ -1,0 +1,57 @@
+version: "3"
+
+# omp (oh-my-pi) — interaktiver Editor-Agent mit LSP/DAP, Refactor, /review (T900793).
+# Ersetzt pi-coding-agent (@mariozechner/pi-coding-agent, Binary `pi`, T900529):
+# Upstream-Fork `@oh-my-pi/pi-coding-agent` (Repo can1357/oh-my-pi), Binary `omp`.
+# Standardmodell Muse Spark 1.3 Contributor Free (Zen, Fallback Go) — siehe
+# docs/agent-guide/registry/capabilities.yaml, harnesses.omp.
+# Upstream ehrt PI_CONFIG_DIR und (Default-Profil) PI_CODING_AGENT_DIR als
+# Agent-Verzeichnis (docs/environment-variables.md) — deshalb bleibt der
+# PI_-Name als Env-Key, zeigt aber auf das omp-Harness-Verzeichnis.
+# OMP_*-Variablen steuern nur dieses Taskfile/das Runner-Skript.
+vars:
+  OMP_VERSION: '{{.OMP_VERSION | default "18.8.3"}}'
+  OMP_AGENT_DIR:
+    sh: 'echo "${XDG_STATE_HOME:-$HOME/.local/state}/omp-harness/agent"'
+  # Endpunkt-Verbund (Design D5): llama-server :1919 und LM Studio :1234, das die
+  # LM-Link-Geraete durchreicht. Tailnet-Hosts einfach anhaengen.
+  OMP_ENDPOINTS: '{{.ENDPOINTS | default "http://127.0.0.1:1919,http://127.0.0.1:1234"}}'
+
+env:
+  PI_CODING_AGENT_DIR: '{{.OMP_AGENT_DIR}}'
+  PI_OFFLINE: "1"
+  OMP_ENDPOINTS: '{{.OMP_ENDPOINTS}}'
+
+tasks:
+  install:
+    desc: "omp global installieren (gepinnte Version, Node >= 20.6)"
+    cmds:
+      - npm install -g @oh-my-pi/pi-coding-agent@{{.OMP_VERSION}}
+      - mkdir -p "{{.OMP_AGENT_DIR}}"
+      - omp --version
+
+  status:
+    desc: "omp-Version, Agent-Verzeichnis und Endpunkt-Verbund pruefen"
+    cmds:
+      - 'command -v omp >/dev/null && omp --version || echo "omp: nicht installiert (task omp:install)"'
+      - 'echo "agent dir: {{.OMP_AGENT_DIR}}"'
+      - 'echo "endpunkte: {{.OMP_ENDPOINTS}}"'
+      - 'bash scripts/omp-run.sh --list-models || echo "kein Endpunkt liefert ein Modell"'
+
+  models:
+    desc: "Chat-Modelle des Endpunkt-Verbunds auflisten (ENDPOINTS=<url,...> JSON=1)"
+    cmds:
+      - bash scripts/omp-run.sh --list-models {{if .JSON}}--json{{end}}
+
+  uninstall:
+    desc: "omp deinstallieren und das isolierte Agent-Verzeichnis entfernen"
+    cmds:
+      - npm uninstall -g @oh-my-pi/pi-coding-agent || true
+      - rm -rf "{{.OMP_AGENT_DIR}}"
+
+  run:
+    desc: "Gestagten Plan mit omp abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3 MODEL=<id> ENDPOINTS=<url,...> JSON=1)"
+    requires:
+      vars: [TARGET]
+    cmds:
+      - bash scripts/omp-run.sh "{{.TARGET}}" --level "{{.LEVEL | default "L1"}}" {{if .MODEL}}--model "{{.MODEL}}"{{end}} {{if .JSON}}--json{{end}}

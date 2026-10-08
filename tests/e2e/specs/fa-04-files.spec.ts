@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-04: Dateiablage (Projektanhänge)', () => {
+test.describe('FA-04: Dateiablage (Projektanhänge)', { tag: ['@admin'] }, () => {
   test('T1: /api/portal/projekte requires authentication', async ({ request }) => {
     const res = await request.get(`${BASE}/api/portal/projekte`);
     expect([401, 403]).toContain(res.status());

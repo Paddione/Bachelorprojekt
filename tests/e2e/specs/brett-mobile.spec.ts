@@ -229,9 +229,9 @@ test.describe('Brett Mobile (Android) @mobile', () => {
       const cdp = await ctx.newCDPSession(page);
       const startX = await page.evaluate(() => Math.round(window.innerWidth * 0.2));
       const y = await page.evaluate(() => Math.round(window.innerHeight * 0.3));
-      await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: startX, y, button: 'left', pointerType: 'touch' });
-      await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: startX + 120, y, pointerType: 'touch' });
-      await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: startX + 120, y, button: 'left', pointerType: 'touch' });
+      await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: startX, y, button: 'left', pointerType: 'touch' as any });
+      await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: startX + 120, y, pointerType: 'touch' as any });
+      await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: startX + 120, y, button: 'left', pointerType: 'touch' as any });
       await page.waitForTimeout(200);
 
       let after = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);

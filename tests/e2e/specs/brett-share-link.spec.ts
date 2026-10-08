@@ -4,10 +4,10 @@ const BRETT_URL = process.env.BRETT_URL
   ?? (process.env.PROD_DOMAIN ? `https://brett.${process.env.PROD_DOMAIN}` : 'http://brett.localhost');
 const BRETT_OIDC_SECRET = process.env.BRETT_OIDC_SECRET ?? '';
 
-test.describe('Brett share link (T000608)', () => {
+test.describe('Brett share link (T000608)', { tag: ['@brett'] }, () => {
   test.skip(!BRETT_OIDC_SECRET, 'BRETT_OIDC_SECRET required');
 
-  test('leader creates a share link; guest views the board read-only', async ({ page }) => {
+  test('leader creates a share link; guest views the board read-only', async ({ page, browser }) => {
     const room = `e2e-share-${Math.random().toString(36).slice(2, 8)}`;
 
     await page.goto(`${BRETT_URL}?room=${room}`);
@@ -17,7 +17,6 @@ test.describe('Brett share link (T000608)', () => {
     }, { timeout: 15000 });
 
     await page.evaluate(() => (window as any).__brettWS.send(JSON.stringify({ type: 'admin_session_create' })));
-    await page.waitForTimeout(500);
 
     const shareBtn = page.locator('#share-btn');
     await expect(shareBtn).toBeVisible({ timeout: 60_000 });
@@ -27,7 +26,6 @@ test.describe('Brett share link (T000608)', () => {
     const shareUrl = await page.evaluate(() => navigator.clipboard.readText());
     expect(shareUrl).toContain('/share/');
 
-    const browser = await chromium.launch();
     const guestCtx = await browser.newContext({ ignoreHTTPSErrors: true });
     const guest = await guestCtx.newPage();
     await guest.goto(shareUrl);
@@ -37,7 +35,6 @@ test.describe('Brett share link (T000608)', () => {
     await expect(guest.locator('#fig-panel-btn')).toHaveCount(0);
 
     await guestCtx.close();
-    await browser.close();
   });
 
   test('a disabled / invalid link shows an error', async ({ browser }) => {

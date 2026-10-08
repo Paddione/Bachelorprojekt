@@ -155,19 +155,14 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
         `[data-testid="inbox-sidebar-item"][data-type="${t}"]`,
       );
       await filterRow.click();
-      // Tiny settle for the $derived recomputation.
-      await page.waitForTimeout(150);
-      const filtered = await list.locator('[data-testid="inbox-list-row"]').count();
-      expect(filtered).toBeLessThanOrEqual(baselineRows);
+      await expect.poll(async () => list.locator('[data-testid="inbox-list-row"]').count()).toBeLessThanOrEqual(baselineRows);
     }
 
     // "Alle" restores the full set.
     await root
       .locator('[data-testid="inbox-sidebar-item"][data-type="all"]')
       .click();
-    await page.waitForTimeout(150);
-    const restored = await list.locator('[data-testid="inbox-list-row"]').count();
-    expect(restored).toBe(baselineRows);
+    await expect(list.locator('[data-testid="inbox-list-row"]')).toHaveCount(baselineRows);
   });
 
   // ── inbox-search ───────────────────────────────────────────────
@@ -190,16 +185,11 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
     // real inbox entry (name/subject/sub per spec §5.3). Filtering should
     // collapse the list — usually to zero.
     await search.fill('zzz-no-match-xyzzy');
-    // Spec §5.3 specifies a 150ms debounce.
-    await page.waitForTimeout(300);
-    const filtered = await list.locator('[data-testid="inbox-list-row"]').count();
-    expect(filtered).toBeLessThanOrEqual(baseline);
+    await expect.poll(async () => list.locator('[data-testid="inbox-list-row"]').count()).toBeLessThanOrEqual(baseline);
 
     // Clearing the input restores the unfiltered set.
     await search.fill('');
-    await page.waitForTimeout(300);
-    const restored = await list.locator('[data-testid="inbox-list-row"]').count();
-    expect(restored).toBe(baseline);
+    await expect(list.locator('[data-testid="inbox-list-row"]')).toHaveCount(baseline);
   });
 
   // ── inbox-keyboard-jk ──────────────────────────────────────────
@@ -230,20 +220,11 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
 
     // Press `j` → selection advances.
     await page.keyboard.press('j');
-    await page.waitForTimeout(100);
-    const afterJ = await list
-      .locator('[data-testid="inbox-list-row"][data-selected="true"]')
-      .getAttribute('data-id');
-    expect(afterJ).not.toBeNull();
-    expect(afterJ).not.toBe(firstId);
+    await expect(list.locator('[data-testid="inbox-list-row"][data-selected="true"]')).not.toHaveAttribute('data-id', firstId!);
 
     // Press `k` → selection reverses back.
     await page.keyboard.press('k');
-    await page.waitForTimeout(100);
-    const afterK = await list
-      .locator('[data-testid="inbox-list-row"][data-selected="true"]')
-      .getAttribute('data-id');
-    expect(afterK).toBe(firstId);
+    await expect(list.locator('[data-testid="inbox-list-row"][data-selected="true"]')).toHaveAttribute('data-id', firstId!);
   });
 
   // ── inbox-message-thread-load ──────────────────────────────────
@@ -262,7 +243,6 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
     const hasFilter = await filterRow.isVisible().catch(() => false);
     test.skip(!hasFilter, 'no user_message filter row in inbox');
     await filterRow.click();
-    await page.waitForTimeout(200);
 
     const userMsgRow = root
       .locator('[data-testid="inbox-list-row"]')
@@ -309,9 +289,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
     await expect(detail).toBeVisible({ timeout: 60_000 });
 
     // The list and sidebar are hidden in detail view on mobile (spec §9).
-    // Use isVisible() with no expectation timeout — we want a snapshot read.
-    const listVisibleAfterTap = await list.isVisible().catch(() => false);
-    expect(listVisibleAfterTap).toBeFalsy();
+    await expect(list).toBeHidden();
 
     // ← Zurück returns to list. Spec §9 places it top-left of the detail
     // header. There's no fixed data-testid for the back button in §10, so
@@ -326,7 +304,6 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
 
     // List is visible again; detail is hidden.
     await expect(list).toBeVisible({ timeout: 60_000 });
-    const detailVisibleAfterBack = await detail.isVisible().catch(() => false);
-    expect(detailVisibleAfterBack).toBeFalsy();
+    await expect(detail).toBeHidden();
   });
 });

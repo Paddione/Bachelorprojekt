@@ -26,8 +26,7 @@ test.describe('FA-14: User Registration Flow', { tag: ['@website'] }, () => {
         .or(page.locator(':invalid').first())
     ).toBeVisible({ timeout: 60_000 }).catch(async () => {
       // Browser native validation shows on first invalid field
-      const invalid = await page.locator('input:invalid').count();
-      expect(invalid).toBeGreaterThan(0);
+      await expect(page.locator('input:invalid').first()).toBeVisible();
     });
   });
 });

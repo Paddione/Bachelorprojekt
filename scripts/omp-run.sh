@@ -1,21 +1,34 @@
 #!/usr/bin/env bash
-# pi-run.sh — gestagten Plan mit dem Pi-Harness abarbeiten (T900529).
+# omp-run.sh — gestagten Plan mit dem omp-Harness abarbeiten (T900793).
+#
+# omp ist oh-my-pi (Upstream-Fork `@oh-my-pi/pi-coding-agent`, Repo
+# can1357/oh-my-pi, Binary `omp`) und ersetzt pi-coding-agent (T900529).
+# CLI-Referenz: Upstream docs/cli-reference.md — verifizierte Flags:
+# --mode/--no-session/--no-skills/--no-extensions/--tools/--append-system-prompt/
+# --provider/--model/-p. Abweichungen zu pi (T900529): `--no-context-files`
+# heisst `--no-rules` (Kontextdatei-Discovery), `--skill <pfad>` (mehrfach)
+# heisst `--skills <globs>` (Filter auf Discovery), `--no-prompt-templates`
+# und `--no-themes` entfallen (in omp 18.x nicht vorhanden — unbekannte Flags
+# brechen den Lauf fail-closed ab, daher weggelassen).
+# models.json im Lauf-Verzeichnis migriert omp automatisch nach models.yml
+# (docs/models.md); PI_CODING_AGENT_DIR als Agent-Verzeichnis und PI_*-Env
+# ehrt omp weiter (docs/environment-variables.md).
 #
 # Aufruf:
-#   scripts/pi-run.sh <target> [--level L0|L1|L2|L3] [--model <id>] [--dry-run]
+#   scripts/omp-run.sh <target> [--level L0|L1|L2|L3] [--model <id>] [--dry-run]
 #                     [--json] [--skip-tests]
-#   scripts/pi-run.sh --list-models [--json]
+#   scripts/omp-run.sh --list-models [--json]
 #
 # Modelle kommen aus dem Endpunkt-Verbund (Design D5): jede Basis-URL in
-# PI_ENDPOINTS (Default :1919 llama-server und :1234 LM Studio, das die
+# OMP_ENDPOINTS (Default :1919 llama-server und :1234 LM Studio, das die
 # LM-Link-Geraete durchreicht; Tailnet-Hosts sind gewoehnliche Eintraege).
-# PI_LOCAL_BASE_URL ersetzt den Verbund durch genau einen Endpunkt.
+# OMP_LOCAL_BASE_URL ersetzt den Verbund durch genau einen Endpunkt.
 #
 # Aufrufer-Vertrag (Design D6): Exit 0/1/2 wie unten, --json liefert den
 # Bericht als ein JSON-Objekt, jeder Lauf hat sein eigenes Agent-Verzeichnis.
 #   Exit 1  Bedienfehler (Argumente, Stufe)
-#   Exit 2  Umgebung (Plan, pi, kein Endpunkt, unbekanntes Modell)
-#   sonst   Exit-Code von pi
+#   Exit 2  Umgebung (Plan, omp, kein Endpunkt, unbekanntes Modell)
+#   sonst   Exit-Code von omp
 #
 # <target> ist entweder ein Plan-Pfad (tasks.md) oder eine Ticket-ID (T######).
 # Bei Ticket-ID wird der Plan-REF aus der Ticket-Datenbank geholt; ohne Plan-REF
@@ -23,13 +36,16 @@
 #
 # Stufen (Stufe = wie viel Kontext der Harness bekommt):
 #   L0  nur der Plan, keine Werkzeuge ausser read/write/edit/bash, kein Kontext-MD
-#   L1  L0 + .pi/context.md als System-Prompt-Anhang
+#   L1  L0 + .omp/context.md als System-Prompt-Anhang
 #   L2  L1 + grep/find/ls
-#   L3  L2 + die fuer Rolle `pi` kuratierten Skills aus der Toolset-Registry
+#   L3  L2 + Skill-Discovery gefiltert auf die fuer Rolle `omp` kuratierten Skills
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
+# Test seam (T901070): dirty snapshots default to the repo checkout; tests
+# point OMP_WORKTREE at an isolated temp git repo to ignore parallel writers.
+OMP_WORKTREE="${OMP_WORKTREE:-$REPO_ROOT}"
 
 LEVEL="L1"
 MODEL=""
@@ -40,7 +56,7 @@ JSON=0
 SKIP_TESTS=0
 
 usage() {
-  echo "Usage: scripts/pi-run.sh <target> [--level L0|L1|L2|L3] [--model <id>] [--dry-run]" >&2
+  echo "Usage: scripts/omp-run.sh <target> [--level L0|L1|L2|L3] [--model <id>] [--dry-run]" >&2
   echo "  <target>   Plan-Pfad (tasks.md) oder Ticket-ID (T######)" >&2
   echo "  --level    Kontextstufe, Default L1" >&2
   echo "  --model    Modell-ID, Default: erstes Modell des ersten erreichbaren Endpunkts" >&2
@@ -76,18 +92,19 @@ while [ "$#" -gt 0 ]; do
 done
 
 # ------------------------------------------------------------------- Umgebung
+# PI_OFFLINE/PI_CODING_AGENT_DIR ehrt omp weiter (Upstream-Doku, s. Kopf).
 export PI_OFFLINE=1
-AGENT_BASE="${XDG_STATE_HOME:-$HOME/.local/state}/pi-harness/agent"
+AGENT_BASE="${XDG_STATE_HOME:-$HOME/.local/state}/omp-harness/agent"
 # Skill-Wurzel uebersteuerbar, damit Tests und abweichende Checkouts ihre
 # eigenen Skills kuratieren koennen, ohne den Harness anzufassen.
-SKILLS_DIR="${PI_SKILLS_DIR:-$REPO_ROOT/.claude/skills}"
+SKILLS_DIR="${OMP_SKILLS_DIR:-$REPO_ROOT/.claude/skills}"
 
-# Endpunkt-Verbund (D5). PI_LOCAL_BASE_URL gewinnt, damit ein Aufrufer genau
+# Endpunkt-Verbund (D5). OMP_LOCAL_BASE_URL gewinnt, damit ein Aufrufer genau
 # einen Endpunkt erzwingen kann.
-if [ -n "${PI_LOCAL_BASE_URL:-}" ]; then
-  ENDPOINTS=("${PI_LOCAL_BASE_URL%/}")
+if [ -n "${OMP_LOCAL_BASE_URL:-}" ]; then
+  ENDPOINTS=("${OMP_LOCAL_BASE_URL%/}")
 else
-  read -r -a ENDPOINTS <<<"$(printf '%s' "${PI_ENDPOINTS:-http://127.0.0.1:1919,http://127.0.0.1:1234}" | tr ',' ' ')"
+  read -r -a ENDPOINTS <<<"$(printf '%s' "${OMP_ENDPOINTS:-http://127.0.0.1:1919,http://127.0.0.1:1234}" | tr ',' ' ')"
 fi
 
 # Schreibt je Chat-Modell eine Zeile `id<TAB>endpunkt<TAB>provider<TAB>n_ctx<TAB>info`
@@ -128,9 +145,9 @@ discover_models() {
 # `<hash> <pfad>` je geaenderter oder neuer Datei. Der Vergleich vorher/nachher
 # zaehlt nur, was der Lauf selbst angefasst hat, nicht den Altbestand des Worktrees.
 dirty_snapshot() {
-  git -C "$REPO_ROOT" status --porcelain --untracked-files=all 2>/dev/null | cut -c4- \
+  git -C "$OMP_WORKTREE" status --porcelain --untracked-files=all 2>/dev/null | cut -c4- \
     | while IFS= read -r f; do
-        printf '%s %s\n' "$(git -C "$REPO_ROOT" hash-object "$f" 2>/dev/null || echo deleted)" "$f"
+        printf '%s %s\n' "$(git -C "$OMP_WORKTREE" hash-object "$f" 2>/dev/null || echo deleted)" "$f"
       done | sort
 }
 
@@ -196,46 +213,57 @@ fi
 # ----------------------------------------------------------------- Argumente
 # Kein Cloud-Ausweg: --provider wird aus dem Endpunkt abgeleitet, der das Modell
 # serviert. Ein leerer Verbund ist ein Fehler, kein Anlass zum Wechsel.
+# Flag-Stand omp 18.x (Upstream cli-reference, s. Kopf): --no-context-files zu
+# --no-rules umbenannt; --no-prompt-templates/--no-themes ersatzlos entfallen.
 args=(
   --mode json
   --no-session
-  --no-context-files
-  --no-skills
+  --no-rules
   --no-extensions
-  --no-prompt-templates
-  --no-themes
 )
 
 case "$LEVEL" in
   L0|L1) TOOLS="read,write,edit,bash" ;;
   L2|L3) TOOLS="read,write,edit,bash,grep,find,ls" ;;
 esac
-# Ein Argument mit Kommas — Pi parst das selbst, wir also nicht zerlegen.
+# Ein Argument mit Kommas — omp parst das selbst, wir also nicht zerlegen.
 args+=(--tools "$TOOLS")
 
 if [ "$LEVEL" != "L0" ]; then
-  if [ ! -f "$REPO_ROOT/.pi/context.md" ]; then
-    echo "FEHLER: .pi/context.md fehlt — Stufe $LEVEL braucht es" >&2
+  if [ ! -f "$REPO_ROOT/.omp/context.md" ]; then
+    echo "FEHLER: .omp/context.md fehlt — Stufe $LEVEL braucht es" >&2
     exit 2
   fi
-  args+=(--append-system-prompt "$(cat "$REPO_ROOT/.pi/context.md")")
+  args+=(--append-system-prompt "$(cat "$REPO_ROOT/.omp/context.md")")
 fi
 
 skills_added=0
 if [ "$LEVEL" = "L3" ]; then
-  # Nur was die Registry fuer die Rolle `pi` kuratiert — der Harness erfindet
+  # Nur was die Registry fuer die Rolle `omp` kuratiert — der Harness erfindet
   # keine Skills. `skill:`-Prefix ist Teil des Instanz-Keys im Registry-Schema.
+  # omp kennt kein wiederholbares `--skill <pfad>` mehr, sondern filtert die
+  # Discovery mit `--skills <globs>` — deshalb ein Flag mit Komma-Liste statt
+  # N Pfad-Flags. `--no-skills` darf auf L3 NICHT stehen (wuerde den Filter
+  # ins Leere laufen lassen); L0–L2 behalten es.
+  skill_names=()
   while IFS= read -r skill_name; do
     [ -n "$skill_name" ] || continue
     skill_file="$SKILLS_DIR/$skill_name/SKILL.md"
     if [ -f "$skill_file" ]; then
-      args+=(--skill "$skill_file")
+      skill_names+=("$skill_name")
       skills_added=$((skills_added + 1))
     else
       echo "WARNUNG: kuratierter Skill '$skill_name' hat keine SKILL.md — uebersprungen" >&2
     fi
-  done < <(bash "$REPO_ROOT/scripts/toolset-context.sh" pi --json 2>/dev/null \
+  done < <(bash "$REPO_ROOT/scripts/toolset-context.sh" omp --json 2>/dev/null \
     | jq -r '.[] | select(.instance | startswith("skill:")) | .instance | sub("^skill:"; "")' 2>/dev/null || true)
+  if [ "${#skill_names[@]}" -gt 0 ]; then
+    args+=(--skills "$(IFS=,; printf '%s' "${skill_names[*]}")")
+  else
+    args+=(--no-skills)
+  fi
+else
+  args+=(--no-skills)
 fi
 
 if [ -n "$TICKET_ID" ]; then
@@ -247,9 +275,9 @@ fi
 
 # ------------------------------------------------------------------ Dry-Run
 if [ "$DRY_RUN" -eq 1 ]; then
-  printf 'pi'
+  printf 'omp'
   for a in "${args[@]}"; do
-    # printf %q escaped Kommata als read\,write\,... — das nimmt Pi so nicht an,
+    # printf %q escaped Kommata als read\,write\,... — das nimmt omp so nicht an,
     # also die Tool-Liste unveraendert zeigen.
     if [ "$a" = "$TOOLS" ]; then printf ' %s' "$a"; else printf ' %q' "$a"; fi
   done
@@ -265,8 +293,8 @@ if [ "$DRY_RUN" -eq 1 ]; then
 fi
 
 # --------------------------------------------------------------- Echter Lauf
-if ! command -v pi >/dev/null 2>&1; then
-  echo "FEHLER: pi nicht installiert — task pi:install" >&2
+if ! command -v omp >/dev/null 2>&1; then
+  echo "FEHLER: omp nicht installiert — task omp:install" >&2
   exit 2
 fi
 need_jq
@@ -291,7 +319,8 @@ fi
 IFS=$'\t' read -r selected_model selected_endpoint selected_provider _ <<<"$hit"
 
 # Eigenes Agent-Verzeichnis je Lauf: parallele Aufrufer teilen sich sonst
-# models.json und ueberschreiben sich gegenseitig den Katalog.
+# models.json und ueberschreiben sich gegenseitig den Katalog. omp migriert
+# models.json automatisch nach models.yml (Upstream docs/models.md).
 mkdir -p "$AGENT_BASE/runs"
 PI_CODING_AGENT_DIR="$(mktemp -d "$AGENT_BASE/runs/${label}-XXXXXX")"
 export PI_CODING_AGENT_DIR
@@ -309,14 +338,14 @@ printf '%s\n' "$pool" | jq -R -s '
     } })
   | { providers: from_entries }' > "$PI_CODING_AGENT_DIR/models.json"
 
-mkdir -p "$REPO_ROOT/.pi/runs"
-log="$REPO_ROOT/.pi/runs/${label}-${LEVEL}-$(date +%Y%m%dT%H%M%S).jsonl"
+mkdir -p "$REPO_ROOT/.omp/runs"
+log="$REPO_ROOT/.omp/runs/${label}-${LEVEL}-$(date +%Y%m%dT%H%M%S).jsonl"
 
 before="$(dirty_snapshot)"
 
 set +e
-pi "${args[@]}" --provider "$selected_provider" --model "$selected_model" -p "$(cat "$PLAN")" > "$log" 2>&1
-pi_exit=$?
+omp "${args[@]}" --provider "$selected_provider" --model "$selected_model" -p "$(cat "$PLAN")" > "$log" 2>&1
+omp_exit=$?
 set -e
 
 changed="$(comm -3 <(printf '%s\n' "$before") <(dirty_snapshot) | sed 's/^\t//' | cut -d' ' -f2- | sort -u | grep -c . || true)"
@@ -332,27 +361,27 @@ fi
 if [ "$JSON" -eq 1 ]; then
   jq -n -c --arg level "$LEVEL" --arg plan "$PLAN" --arg endpoint "$selected_endpoint" \
     --arg provider "$selected_provider" --arg model "$selected_model" --arg log "$log" \
-    --argjson pi_exit "$pi_exit" --argjson changed "$changed" --argjson test_exit "$test_exit" \
+    --argjson omp_exit "$omp_exit" --argjson changed "$changed" --argjson test_exit "$test_exit" \
     --argjson skills "$skills_added" \
     '{level: $level, plan: $plan, endpoint: $endpoint, provider: $provider, model: $model,
-      skills: $skills, pi_exit: $pi_exit, changed_files: $changed, test_exit: $test_exit, log: $log}'
+      skills: $skills, omp_exit: $omp_exit, changed_files: $changed, test_exit: $test_exit, log: $log}'
 else
-  echo "=== pi-run Bericht (T900529) ==="
+  echo "=== omp-run Bericht (T900793) ==="
   echo "stufe:         $LEVEL"
   echo "plan:          $PLAN"
   echo "endpunkt:      $selected_endpoint/v1 ($selected_provider)"
   echo "modell:        $selected_model"
   echo "skills:        $skills_added"
   echo "geaendert:     $changed Datei(en)"
-  echo "pi-exit:       $pi_exit"
+  echo "omp-exit:      $omp_exit"
   echo "test:changed:  exit $test_exit"
   echo "log:           $log"
 fi
 
 if [ -n "$TICKET_ID" ]; then
-  report="pi-run $LEVEL: Modell $selected_model @ $selected_endpoint, pi-Exit $pi_exit, $changed Datei(en), test:changed-Exit $test_exit, Log $log"
+  report="omp-run $LEVEL: Modell $selected_model @ $selected_endpoint, omp-Exit $omp_exit, $changed Datei(en), test:changed-Exit $test_exit, Log $log"
   bash scripts/ticket.sh add-comment --id "$TICKET_ID" --body "$report" >/dev/null 2>&1 \
     || echo "WARNUNG: Ticket-Kommentar fuer $TICKET_ID fehlgeschlagen" >&2
 fi
 
-exit "$pi_exit"
+exit "$omp_exit"

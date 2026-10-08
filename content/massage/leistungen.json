@@ -1,0 +1,43 @@
+[
+  {
+    "id": "ruecken",
+    "title": "Rücken",
+    "icon": "🌿",
+    "description": "Gezielte Entlastung für Nacken, Schultern und Rücken.",
+    "services": [
+      {
+        "key": "ruecken-30",
+        "name": "Rückenmassage 30 Min.",
+        "price": "Platzhalter",
+        "unit": "/ Einheit",
+        "desc": "Gezielte Rückenmassage zur Entlastung.",
+        "durationMin": 30
+      }
+    ]
+  },
+  {
+    "id": "ganzkoerper",
+    "title": "Ganzkörper",
+    "icon": "💆",
+    "description": "Ausgleichende Massage für den ganzen Körper.",
+    "services": [
+      {
+        "key": "ganzkoerper-60",
+        "name": "Ganzkörpermassage 60 Min.",
+        "price": "Platzhalter",
+        "unit": "/ Einheit",
+        "desc": "Ganzkörpermassage zum Ausgleich.",
+        "durationMin": 60,
+        "highlight": true
+      },
+      {
+        "key": "ganzkoerper-90",
+        "name": "Ganzkörpermassage 90 Min.",
+        "price": "Platzhalter",
+        "unit": "/ Einheit",
+        "desc": "Ausführliche Ganzkörpermassage.",
+        "durationMin": 90
+      }
+    ]
+  }
+]

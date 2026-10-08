@@ -51,6 +51,7 @@ Ermittle daraus:
 - **Welche URLs/Endpunkte** wurden neu erstellt oder verändert?
 - **Welches Playwright-Projekt** passt: `website` (web.*), `services` (brett.*, files.*, vault.*)?
 - **Ticket-ID** aus dem PR-Titel (Format `T######`)?
+- **K3-Codegraph-Abgleich:** Bei unklaren Abhängigkeiten geänderte Routen oder Helper via [`code-graph-interpretation`](../code-graph-interpretation/SKILL.md) prüfen (`trace_path --include-tests true`).
 
 ---
 
@@ -299,6 +300,8 @@ manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als re
 
 | Skill | Beziehung |
 |-------|-----------|
+| `playwright-best-practices` | Best Practices für robuste Locators, Fixtures & Anti-Flakiness |
+| `code-graph-interpretation` | Test Impact Analysis: Endpunkte & Helper über den K3-Codegraphen tracen |
 | `dev-flow-execute` | **Vorgänger im Kreislauf** — Feature muss deployt sein |
 | `git-workflow` | Commit/Push-Konventionen für Schritt 7 (Freshness Guard, Scope-Preflight) |
 | `infra-ops` | Querschnitt — Infrastruktur- und Service-Status |

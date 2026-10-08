@@ -12,9 +12,8 @@
 // `tickets.tickets` / `customers` / `meetings` shape appointments-db.ts
 // actually queries.
 
-// isSlotInAnyWindow reads local getHours()/getMinutes(); pin TZ=UTC so our
-// fixture Date objects (constructed from naive local-time strings) line up
-// deterministically with the HH:MM window boundaries stored in Postgres.
+// isSlotInAnyWindow derives Berlin wall time via Intl (T901023); pin TZ=UTC
+// so naive local-time fixtures map deterministically (09:30 naive = 11:30 CEST).
 process.env.TZ = 'UTC';
 
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
@@ -552,8 +551,9 @@ describe('free time windows', () => {
 
   it('isSlotInAnyWindow returns true for a slot fully inside a window', async () => {
     await addFreeTimeWindow('mentolder', '2026-07-10', '09:00', '12:00');
-    const slotStart = new Date('2026-07-10T09:30:00');
-    const slotEnd = new Date('2026-07-10T10:30:00');
+    // 07:30–08:30Z = 09:30–10:30 Berlin wall time (CEST, T901023).
+    const slotStart = new Date('2026-07-10T07:30:00Z');
+    const slotEnd = new Date('2026-07-10T08:30:00Z');
     expect(await isSlotInAnyWindow('mentolder', slotStart, slotEnd)).toBe(true);
   });
 

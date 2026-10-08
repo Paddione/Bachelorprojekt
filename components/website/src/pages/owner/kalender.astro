@@ -1,0 +1,260 @@
+---
+import { requireOwner, ownerBusiness } from '../../lib/owner-guard';
+import { getLoginUrl } from '../../lib/auth';
+import { getAllBookings } from '../../lib/caldav';
+import type { AdminBooking } from '../../lib/caldav';
+import { logger } from '../../lib/logger';
+import massageCatalogue from '../../../../../content/massage/leistungen.json';
+import type { LeistungCategory } from '../../content-schema';
+
+const session = await requireOwner(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+const brand = ownerBusiness(session).brand ?? '—';
+
+const now = new Date();
+const yearQ = parseInt(Astro.url.searchParams.get('year') ?? String(now.getFullYear()), 10);
+const monthQ = parseInt(Astro.url.searchParams.get('month') ?? String(now.getMonth() + 1), 10);
+const year = isNaN(yearQ) ? now.getFullYear() : yearQ;
+const month = isNaN(monthQ) ? now.getMonth() + 1 : Math.max(1, Math.min(12, monthQ));
+
+// Berlin calendar-day key (Europe/Berlin end-to-end, T901023).
+function berlinDayKey(d: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Berlin',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(d);
+  const out: Record<string, string> = {};
+  for (const part of parts) {
+    if (part.type !== 'literal') out[part.type] = part.value;
+  }
+  return `${out.year}-${out.month}-${out.day}`;
+}
+
+function berlinTime(d: Date): string {
+  return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' });
+}
+
+let bookings: AdminBooking[] = [];
+let loadError = '';
+try {
+  const all = await getAllBookings();
+  bookings = all.filter((b) => b.status !== 'CANCELLED');
+} catch (err) {
+  logger.error({ err }, '[owner/kalender]');
+  loadError = 'Termine konnten nicht geladen werden.';
+}
+
+const bookingsByDay = new Map<string, AdminBooking[]>();
+for (const b of bookings) {
+  const k = berlinDayKey(b.start);
+  if (!bookingsByDay.has(k)) bookingsByDay.set(k, []);
+  bookingsByDay.get(k)!.push(b);
+}
+
+const MONTH_NAMES = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+const DAY_NAMES = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+
+// Monday-anchored grid layout (mirrors the admin calendar pattern).
+const startWeekday = (new Date(year, month - 1, 1).getDay() + 6) % 7; // Mon=0
+const totalDays = new Date(year, month, 0).getDate();
+const trailing = (7 - ((startWeekday + totalDays) % 7)) % 7;
+
+function monthNavUrl(deltaMonths: number): string {
+  let y = year;
+  let m = month + deltaMonths;
+  while (m < 1) { y--; m += 12; }
+  while (m > 12) { y++; m -= 12; }
+  return `/owner/kalender?year=${y}&month=${m}`;
+}
+const todayUrl = `/owner/kalender?year=${now.getFullYear()}&month=${now.getMonth() + 1}`;
+
+const catalogue: LeistungCategory[] = massageCatalogue;
+const agendaDays = [...bookingsByDay.keys()].filter((k) => k.startsWith(monthKey)).sort();
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kalender — Owner-Bereich</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+    <main class="max-w-5xl mx-auto px-4 py-6">
+      <div class="mb-6 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 class="text-2xl font-bold">Kalender</h1>
+          <p class="text-sm text-gray-600">{MONTH_NAMES[month - 1]} {year} &mdash; Marke: {brand} &middot; {bookings.length} Termine</p>
+        </div>
+        <nav class="flex items-center gap-2" aria-label="Monat wechseln">
+          <a href={monthNavUrl(-1)} class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:border-gray-500">&larr; Zurück</a>
+          <a href={todayUrl} class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:border-gray-500">Heute</a>
+          <a href={monthNavUrl(1)} class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:border-gray-500">Vor &rarr;</a>
+        </nav>
+      </div>
+
+      {loadError && (
+        <div class="mb-6 p-4 bg-red-50 border border-red-300 rounded-xl text-red-800 text-sm">{loadError}</div>
+      )}
+
+      <!-- Month grid (tablet/desktop) -->
+      <div class="hidden md:block bg-white rounded-2xl border border-gray-200 overflow-hidden" data-testid="kalender-grid-month">
+        <div class="grid grid-cols-7 border-b border-gray-200">
+          {DAY_NAMES.map((d) => (
+            <div class="px-2 py-3 text-center text-xs font-semibold text-gray-500">{d}</div>
+          ))}
+        </div>
+        <div class="grid grid-cols-7">
+          {Array.from({ length: startWeekday }).map(() => (
+            <div class="min-h-[110px] border-b border-r border-gray-100 bg-gray-50/60"></div>
+          ))}
+          {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => {
+            const k = `${monthKey}-${String(d).padStart(2, '0')}`;
+            const isToday = berlinDayKey(now) === k;
+            const dayBookings = bookingsByDay.get(k) ?? [];
+            return (
+              <div class="min-h-[110px] border-b border-r border-gray-100 p-2" data-testid="kalender-cell" data-day={k}>
+                <div class={`text-xs font-semibold mb-1.5 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-gray-900 text-white' : 'text-gray-500'}`}>
+                  {d}
+                </div>
+                <div class="space-y-1">
+                  {dayBookings.slice(0, 3).map((b) => (
+                    <p class="rounded px-1.5 py-0.5 text-xs bg-blue-50 border border-blue-200 truncate" title={`${b.summary} — ${b.attendeeName}`}>
+                      {berlinTime(b.start)} {b.summary}
+                    </p>
+                  ))}
+                  {dayBookings.length > 3 && (
+                    <p class="text-xs text-gray-500 pl-1">+{dayBookings.length - 3} weitere</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {Array.from({ length: trailing }).map(() => (
+            <div class="min-h-[110px] border-b border-r border-gray-100 bg-gray-50/60"></div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Agenda list (mobile) with per-booking actions -->
+      <div class="md:hidden space-y-4">
+        {agendaDays.length === 0 && (
+          <p class="text-sm text-gray-500">Keine Termine in diesem Monat.</p>
+        )}
+        {agendaDays.map((k) => (
+          <section class="bg-white rounded-2xl border border-gray-200 p-4" data-testid="kalender-cell" data-day={k}>
+            <h2 class="font-semibold mb-3">{new Date(`${k}T12:00:00Z`).toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', timeZone: 'Europe/Berlin' })}</h2>
+            <div class="space-y-4">
+              {(bookingsByDay.get(k) ?? []).map((b) => (
+                <article class="border-t border-gray-100 pt-3">
+                  <p class="text-sm font-medium">{berlinTime(b.start)}&ndash;{berlinTime(b.end)} {b.summary}</p>
+                  <p class="text-xs text-gray-600 mb-2">{b.attendeeName} ({b.attendeeEmail})</p>
+                  <div class="flex gap-3 flex-wrap">
+                    <form method="post" action={`/api/owner/bookings/${b.uid}/reschedule`} class="flex gap-2 items-end flex-wrap text-xs">
+                      <label>Neu ab
+                        <input type="datetime-local" name="newStart" required class="block border border-gray-300 rounded px-2 py-1" />
+                      </label>
+                      <label>Neu bis
+                        <input type="datetime-local" name="newEnd" required class="block border border-gray-300 rounded px-2 py-1" />
+                      </label>
+                      <button type="submit" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:border-gray-500">Umbuchen</button>
+                    </form>
+                    <form method="post" action={`/api/owner/bookings/${b.uid}/cancel`} class="flex gap-2 items-end text-xs">
+                      <label>Notiz
+                        <input type="text" name="note" maxlength="500" placeholder="optional" class="block border border-gray-300 rounded px-2 py-1" />
+                      </label>
+                      <button type="submit" class="px-3 py-1.5 bg-white border border-red-300 text-red-700 rounded-lg hover:border-red-500">Stornieren</button>
+                    </form>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <!-- Desktop/tablet: actions per booking -->
+      <div class="hidden md:block mt-6 bg-white rounded-2xl border border-gray-200 p-4">
+        <h2 class="font-semibold mb-3">Termine verwalten</h2>
+        {agendaDays.length === 0 && (
+          <p class="text-sm text-gray-500">Keine Termine in diesem Monat.</p>
+        )}
+        <div class="space-y-3">
+          {agendaDays.flatMap((k) => bookingsByDay.get(k) ?? []).map((b) => (
+            <div class="flex gap-4 items-start border-t border-gray-100 pt-3 text-sm flex-wrap">
+              <p class="min-w-64"><span class="font-medium">{berlinTime(b.start)}&ndash;{berlinTime(b.end)}</span> {b.summary}<br />
+                <span class="text-xs text-gray-600">{b.attendeeName} ({b.attendeeEmail})</span>
+              </p>
+              <form method="post" action={`/api/owner/bookings/${b.uid}/reschedule`} class="flex gap-2 items-end text-xs">
+                <label>Neu ab
+                  <input type="datetime-local" name="newStart" required class="block border border-gray-300 rounded px-2 py-1" />
+                </label>
+                <label>Neu bis
+                  <input type="datetime-local" name="newEnd" required class="block border border-gray-300 rounded px-2 py-1" />
+                </label>
+                <button type="submit" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:border-gray-500">Umbuchen</button>
+              </form>
+              <form method="post" action={`/api/owner/bookings/${b.uid}/cancel`} class="flex gap-2 items-end text-xs">
+                <label>Notiz
+                  <input type="text" name="note" maxlength="500" placeholder="optional" class="block border border-gray-300 rounded px-2 py-1" />
+                </label>
+                <button type="submit" class="px-3 py-1.5 bg-white border border-red-300 text-red-700 rounded-lg hover:border-red-500">Stornieren</button>
+              </form>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Block time -->
+      <div class="mt-6 bg-white rounded-2xl border border-gray-200 p-4">
+        <h2 class="font-semibold mb-3">Zeit blocken</h2>
+        <form method="post" action="/api/owner/calendar/block" class="flex gap-2 items-end flex-wrap text-sm">
+          <label>Von
+            <input type="datetime-local" name="start" required class="block border border-gray-300 rounded px-2 py-1" />
+          </label>
+          <label>Bis
+            <input type="datetime-local" name="end" required class="block border border-gray-300 rounded px-2 py-1" />
+          </label>
+          <label>Grund
+            <input type="text" name="reason" maxlength="200" placeholder="optional" class="block border border-gray-300 rounded px-2 py-1" />
+          </label>
+          <button type="submit" class="px-3 py-1.5 bg-gray-900 text-white rounded-lg">Blocken</button>
+        </form>
+      </div>
+
+      <!-- Phone booking -->
+      <div class="mt-6 bg-white rounded-2xl border border-gray-200 p-4">
+        <h2 class="font-semibold mb-3">Telefon-Buchung nachtragen</h2>
+        <form method="post" action="/api/owner/bookings/phone" class="grid gap-3 text-sm sm:grid-cols-2">
+          <label>Name
+            <input type="text" name="name" required class="block w-full border border-gray-300 rounded px-2 py-1" />
+          </label>
+          <label>Telefon
+            <input type="tel" name="phone" class="block w-full border border-gray-300 rounded px-2 py-1" />
+          </label>
+          <label>E-Mail
+            <input type="email" name="attendeeEmail" class="block w-full border border-gray-300 rounded px-2 py-1" />
+          </label>
+          <label>Leistung
+            <select name="serviceKey" required class="block w-full border border-gray-300 rounded px-2 py-1">
+              {catalogue.flatMap((cat) => cat.services).map((s) => (
+                <option value={s.key}>{s.name} ({s.price})</option>
+              ))}
+            </select>
+          </label>
+          <label>Start
+            <input type="datetime-local" name="start" required class="block w-full border border-gray-300 rounded px-2 py-1" />
+          </label>
+          <label>Dauer (Minuten, leer = Katalogwert)
+            <input type="number" name="durationMin" min="1" step="1" class="block w-full border border-gray-300 rounded px-2 py-1" />
+          </label>
+          <p class="sm:col-span-2">
+            <button type="submit" class="px-3 py-1.5 bg-gray-900 text-white rounded-lg">Buchen</button>
+          </p>
+        </form>
+      </div>
+    </main>
+  </body>
+</html>

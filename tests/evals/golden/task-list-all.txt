@@ -232,6 +232,11 @@ task: Available tasks for this project:
 * monitoring:validate:                          Validate the monitoring base + prod overlays build cleanly.
 * networks:check:                               Verify the network address plan: no undeclared overlap between declared ranges (exit != 0 on violation; never writes)
 * networks:map:                                 Regenerate docs/agent-guide/maps/networks-map.md from the SSOT registry (docs/agent-guide/registry/networks.yaml)
+* omp:install:                                  omp global installieren (gepinnte Version, Node >= 20.6)
+* omp:models:                                   Chat-Modelle des Endpunkt-Verbunds auflisten (ENDPOINTS=<url,...> JSON=1)
+* omp:run:                                      Gestagten Plan mit omp abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3 MODEL=<id> ENDPOINTS=<url,...> JSON=1)
+* omp:status:                                   omp-Version, Agent-Verzeichnis und Endpunkt-Verbund pruefen
+* omp:uninstall:                                omp deinstallieren und das isolierte Agent-Verzeichnis entfernen
 * openclaw:backup:                              ~/.openclaw nach ~/.openclaw.bak.<YYYYMMDD> verschieben (Abbruch, wenn das Ziel existiert)
 * openclaw:configure:                           ~/.openclaw/.env, openclaw.json, Exec-Approvals, Workspace-Symlink AGENTS.md und systemd-Unit einrichten
 * openclaw:install:                             Node v24.21.0 (SHA-256-geprüft) und OpenClaw 2026.9.6 unter ~/.local/opt installieren
@@ -245,11 +250,6 @@ task: Available tasks for this project:
 * opencode:monitor:                             Observe opencode serve: sessions, status, SSE events, session details, todos
 * opencode:serve:                               Lifecycle management for opencode HTTP server (start/stop/restart/status/health)
 * opencode:sync-agents:                         Merge .opencode/agent-models.jsonc config into ~/.config/opencode/opencode.jsonc
-* pi:install:                                   Pi global installieren (gepinnte Version, Node >= 20.6)
-* pi:models:                                    Chat-Modelle des Endpunkt-Verbunds auflisten (ENDPOINTS=<url,...> JSON=1)
-* pi:run:                                       Gestagten Plan mit Pi abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3 MODEL=<id> ENDPOINTS=<url,...> JSON=1)
-* pi:status:                                    Pi-Version, Agent-Verzeichnis und Endpunkt-Verbund pruefen
-* pi:uninstall:                                 Pi deinstallieren und das isolierte Agent-Verzeichnis entfernen
 * plan:qa:                                      DeepSeek-QA-Check for an implementation plan (PLAN=<path>)
 * plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- .agents/plans/<slug>/tasks.md
 * plans:query:                                  Show active plan sections for a given role. Usage: task plans:query -- <role>

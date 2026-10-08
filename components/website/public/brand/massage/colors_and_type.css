@@ -1,0 +1,265 @@
+/* =====================================================================
+   Massage — Colors & Typography (Richtung A "Ruhige Wärme", T901028)
+   The single source of truth for the massage brand tokens. Structure
+   mirrors public/brand/mentolder/colors_and_type.css; values are the
+   Richtung-A set from T901021 §4 (paper #FDFCF9, ink #2A2620,
+   sage #7D9B76, brass #B98A3E, creme #F1EAD9 for alternating
+   section surfaces only — never full-page).
+   ===================================================================== */
+
+/* Fonts are self-hosted (Anschlussstelle, T901021 §8):
+   Fraunces (serif headlines) + Karla (sans body) as woff2 under /fonts/.
+   Until the files land, the Georgia/system-ui fallbacks below apply.
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/Fraunces-Variable.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Karla";
+  src: url("/fonts/Karla-Variable.woff2") format("woff2");
+  font-display: swap;
+}
+*/
+
+:root {
+  /* ---------- Richtung-A palette ------------------------------------- */
+  --paper:     #FDFCF9;        /* page base (body) */
+  --paper-2:   #F1EAD9;        /* alternating section surfaces only */
+  --ink:       #2A2620;        /* primary text ink */
+  --sage:      #7D9B76;        /* secondary accent, calm */
+  --brass:     #B98A3E;        /* primary accent (large shapes, borders) */
+  --brass-2:   #8A6526;        /* darkened brass for text on paper */
+  --brass-d:   rgba(185, 138, 62, .14);   /* tinted fills */
+  --brass-deep: #8a6a2a;       /* gradient base of brand mark (unused, kept for parity) */
+  --brass-hex: #B98A3E;        /* approximate hex for non-OKLCH contexts (PDF, email) */
+
+  /* ---------- Ink scale remapped to the light theme ------------------ */
+  /* Shared components (Layout body, Navigation, Footer, FAQ, CTA,
+     Process) read these vars; on massage pages they resolve to paper. */
+  --ink-900: #FDFCF9;        /* page base */
+  --ink-850: #F7F3EA;        /* elevated panels (footer) */
+  --ink-800: #FFFFFF;        /* cards, quote panel */
+  --ink-750: #F1EAD9;        /* subtle alternate */
+
+  /* ---------- Foreground / text -------------------------------------- */
+  --fg:      #2A2620;        /* primary text */
+  --fg-soft: #4A4438;        /* body / ledes */
+  --mute:    #7B7466;        /* captions, meta */
+  --mute-2:  #9A937F;        /* deep meta (footer bottom) */
+  --color-mute: #7B7466;     /* footer links (no fallback in Footer.astro) */
+
+  /* ---------- Semantic ----------------------------------------------- */
+  --success: #7D9B76;
+  --danger:  #A6483C;
+  --info:    #4E7FA6;
+
+  /* ---------- Print/Invoice palette (warm paper) --------------------- */
+  --paper-ink: #2A2620;
+  --paper-ink-soft: #4A4438;
+  --paper-mute: #7B7466;
+  --paper-line: #DDD5C2;
+
+  /* ---------- Hairlines / dividers ----------------------------------- */
+  --line:   rgba(42, 38, 32, 0.12);
+  --line-2: rgba(42, 38, 32, 0.22);
+
+  /* ---------- Kore-compat fallbacks (unused shells) ------------------ */
+  --copper: #B98A3E;
+  --copper-2: #8A6526;
+
+  /* ---------- Type families ------------------------------------------ */
+  --serif: "Fraunces", Georgia, serif;
+  --sans:  "Karla", ui-sans-serif, system-ui, sans-serif;
+  --mono:  "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* ---------- Type scale (semantic) ---------------------------------- */
+  --t-h1-size:   clamp(44px, 6.2vw, 88px);
+  --t-h1-weight: 350;
+  --t-h1-leading: 1.02;
+  --t-h1-tracking: -0.02em;
+
+  --t-h2-size:   clamp(32px, 3.6vw, 48px);
+  --t-h2-weight: 400;
+  --t-h2-leading: 1.1;
+  --t-h2-tracking: -0.02em;
+
+  --t-h3-size:   22px;        /* sans variant */
+  --t-h3-serif-size: 28px;    /* offer-row / editorial variant */
+  --t-h3-weight: 500;
+
+  --t-lede-size: 20px;
+  --t-body-size: 16px;
+  --t-small-size: 14px;
+  --t-eyebrow-size: 11px;
+  --t-eyebrow-tracking: 0.18em;
+
+  /* ---------- Radii --------------------------------------------------- */
+  --radius:    22px;          /* large cards, frames */
+  --radius-md: 12px;          /* fields, smaller cards */
+  --radius-sm: 8px;           /* brand mark, badges */
+  --radius-xs: 4px;           /* portrait frame */
+  --radius-pill: 999px;       /* buttons, pills, slot tags */
+
+  /* ---------- Spacing ------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 14px;
+  --space-4: 22px;
+  --space-5: 36px;
+  --space-6: 56px;
+  --space-7: 80px;
+  --space-8: 120px;          /* section vertical rhythm (desktop) */
+
+  /* ---------- Layout -------------------------------------------------- */
+  --maxw: 1240px;
+  --gutter: 40px;
+  --gutter-mobile: 22px;
+
+  /* ---------- Shadows ------------------------------------------------- */
+  /* Warm, shallow shadows for the light theme. */
+  --shadow-portrait:
+    0 40px 80px -30px rgba(42, 38, 32, .25),
+    0 2px 0 0 rgba(42, 38, 32, .04),
+    inset 0 0 0 1px var(--line-2);
+  --shadow-card:
+    0 1px 0 0 rgba(42,38,32,.03),
+    inset 0 0 0 1px var(--line);
+
+  /* ---------- Motion -------------------------------------------------- */
+  --ease-soft: cubic-bezier(.22, .61, .36, 1);
+  --ease-out:  cubic-bezier(.2, .8, .2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 500ms;
+  --dur-portrait: 800ms;
+}
+
+/* =====================================================================
+   Semantic typography (apply directly to elements where possible)
+   ===================================================================== */
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  background: #FDFCF9;
+  color: #2A2620;
+  font-family: var(--sans);
+  font-size: var(--t-body-size);
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+}
+
+/* Alternating section surface — creme ONLY via this class, never full-page. */
+.section-alt {
+  background: var(--paper-2);
+}
+
+h1, .t-h1 {
+  font-family: var(--serif);
+  font-size: var(--t-h1-size);
+  font-weight: var(--t-h1-weight);
+  line-height: var(--t-h1-leading);
+  letter-spacing: var(--t-h1-tracking);
+  color: var(--fg);
+  margin: 0;
+}
+/* Solid brass accent — never a gradient headline. */
+h1 em, .t-h1 em { font-style: italic; font-weight: 400; color: var(--brass-2); }
+
+h2, .t-h2 {
+  font-family: var(--serif);
+  font-size: var(--t-h2-size);
+  font-weight: var(--t-h2-weight);
+  line-height: var(--t-h2-leading);
+  letter-spacing: var(--t-h2-tracking);
+  color: var(--fg);
+  margin: 0;
+}
+h2 em, .t-h2 em { font-style: italic; font-weight: 400; color: var(--brass-2); }
+
+h3, .t-h3 {
+  font-family: var(--sans);
+  font-size: var(--t-h3-size);
+  font-weight: var(--t-h3-weight);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  margin: 0;
+}
+.t-h3-serif {
+  font-family: var(--serif);
+  font-size: var(--t-h3-serif-size);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.t-lede {
+  font-size: var(--t-lede-size);
+  line-height: 1.55;
+  color: var(--fg-soft);
+  max-width: 56ch;
+}
+
+p, .t-body { font-size: var(--t-body-size); color: var(--fg-soft); margin: 0; }
+
+.t-small  { font-size: var(--t-small-size); color: var(--mute); }
+
+.t-eyebrow {
+  font-family: var(--mono);
+  font-size: var(--t-eyebrow-size);
+  letter-spacing: var(--t-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--brass-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.t-eyebrow::before {
+  content: ""; width: 22px; height: 1px; background: currentColor; opacity: .8;
+}
+
+.t-kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.t-mono   { font-family: var(--mono); }
+.t-serif  { font-family: var(--serif); }
+.t-sans   { font-family: var(--sans);  }
+
+/* Stat number style */
+.t-stat {
+  font-family: var(--serif);
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.t-stat em { color: var(--brass-2); font-style: normal; }
+
+/* Slot badge: marks open owner inputs as visible Entwurf placeholders. */
+.t-slot {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--brass-2);
+  border: 1px dashed currentColor;
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+/* Reduced motion: same guard shape as the global website CSS. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .reveal, .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+}

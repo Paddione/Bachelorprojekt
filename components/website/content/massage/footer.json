@@ -1,0 +1,12 @@
+{
+  "columns": [
+    {
+      "heading": "Rechtliches",
+      "links": [
+        { "label": "Impressum", "href": "/impressum" },
+        { "label": "Datenschutz", "href": "/datenschutz" }
+      ]
+    }
+  ],
+  "copyright": "© 2026 Massagepraxis Vögelsen — Alle Rechte vorbehalten"
+}

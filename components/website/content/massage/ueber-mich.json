@@ -1,0 +1,16 @@
+{
+  "pageHeadline": "Über mich",
+  "subheadline": "Massagepraxis Vögelsen",
+  "introParagraphs": [
+    "Ich bin [slot:slot-inhaberin-name] und begrüße Sie in meiner Massagepraxis in Vögelsen bei Lüneburg.",
+    "Meine Qualifikation: [slot:slot-inhaberin-qualifikation] — diese Angabe folgt mit Nachweis."
+  ],
+  "sections": [],
+  "milestones": [
+    { "year": "Heute", "title": "Praxis in Vögelsen bei Lüneburg", "desc": "Massagepraxis in Vögelsen bei Lüneburg — Termine auf Anfrage." }
+  ],
+  "notDoing": [
+    { "title": "Keine Behandlung von Krankheiten", "text": "Massagen dienen der Entspannung und dem Wohlbefinden — sie ersetzen keine ärztliche Diagnose oder Behandlung." }
+  ],
+  "privateText": "Meine Praxis liegt in Vögelsen bei Lüneburg. Die genaue Anfahrt erhalten Sie nach bestätigter Buchung — persönlich und unkompliziert."
+}

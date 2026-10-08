@@ -9,9 +9,25 @@ import type { Stammdaten } from '../lib/website-db';
 const BRAND = process.env.BRAND || 'mentolder';
 const BRAND_ID = process.env.BRAND_ID ?? BRAND;
 const isKore = BRAND_ID === 'korczewski';
+const isMassage = BRAND_ID === 'massage';
 const sd = await getEffectiveStammdaten().catch(() => ({} as Stammdaten));
 const stored = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
-const contentHtml = resolveTokens(stored?.trim() ? stored : getDefaultDatenschutz(), sd);
+// Massage-Entwurf nach T901019 §3 (Art. 13/14, TTDSG): offene Felder sind sichtbare Platzhalter.
+const massageDatenschutz = `<h1>Datenschutzerklärung</h1>
+<p>Entwurf — Owner-Review und Fachberatung offen.</p>
+<h2>Verantwortliche</h2>
+<p>[Name der Inhaberin folgt]<br>[Ladungsfähige Anschrift folgt]<br>Vögelsen bei Lüneburg<br>E-Mail: {{stammdaten.email}} [E-Mail-Adresse folgt]</p>
+<h2>Verarbeitungszwecke und Rechtsgrundlagen</h2>
+<p>Terminanfragen und Buchungen verarbeiten wir zur Vertragsanbahnung und -erfüllung (DSGVO Art. 6 Abs. 1 lit. b). Rechnungsdaten bewahren wir für steuerliche Pflichten auf (Art. 6 Abs. 1 lit. c).</p>
+<h2>Speicherdauer</h2>
+<p>Anfragedaten löschen wir, sobald sie nicht mehr erforderlich sind. Für Rechnungsdaten gelten steuerliche Aufbewahrungsfristen [Details folgen mit Steuerberatung].</p>
+<h2>Ihre Rechte</h2>
+<p>Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch (DSGVO Art. 15–21) sowie Beschwerde bei einer Aufsichtsbehörde.</p>
+<h2>Cookies und Einwilligung</h2>
+<p>Nicht-notwendige Cookies und Tracker setzen wir nur mit Ihrer Einwilligung (TTDSG). Sie können sie jederzeit widerrufen.</p>
+<h2>Hosting</h2>
+<p>Diese Website wird gehostet bei: [Anbieter folgt].</p>`;
+const contentHtml = resolveTokens(stored?.trim() ? stored : (isMassage ? massageDatenschutz : getDefaultDatenschutz()), sd);
 ---
 
 {isKore ? (
@@ -25,6 +41,7 @@ const contentHtml = resolveTokens(stored?.trim() ? stored : getDefaultDatenschut
   </Layout>
 ) : (
   <Layout title="Datenschutzerklärung">
+    {isMassage && <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />}
     <section class="pt-28 pb-20">
       <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
         <div set:html={contentHtml} />

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1293,
+      "file_count": 1294,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -924,6 +924,7 @@
         "tests/spec/nextcloud-integration.bats",
         "tests/spec/notify-reminders.bats",
         "tests/spec/omp-harness.bats",
+        "tests/spec/openclaw-harness.bats",
         "tests/spec/openclaw-ops-bot.bats",
         "tests/spec/opencode-config-ssot.bats",
         "tests/spec/opencode-local-model-runner.bats",
@@ -4063,7 +4064,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 876,
+      "file_count": 877,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4869,6 +4870,7 @@
         "scripts/toolset/lib/adapters/adapters.test.mjs",
         "scripts/toolset/lib/adapters/claude.mjs",
         "scripts/toolset/lib/adapters/index.mjs",
+        "scripts/toolset/lib/adapters/openclaw.mjs",
         "scripts/toolset/lib/adapters/opencode.mjs",
         "scripts/toolset/lib/harness.mjs",
         "scripts/toolset/lib/mcp-client.mjs",

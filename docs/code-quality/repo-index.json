@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1348,
+      "file_count": 1349,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -392,6 +392,7 @@
         "tests/py/spec/test_flux_render_and_security.py",
         "tests/py/spec/test_pocket_id_client_seed.py",
         "tests/py/spec/test_pocket_id_migration.py",
+        "tests/py/spec/test_sdlc_cockpit.py",
         "tests/py/spec/test_website_core_and_interfaces.py",
         "tests/py/unit/test_art_library_manifest.py",
         "tests/py/unit/test_bats_runner_path.py",

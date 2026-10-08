@@ -114,14 +114,12 @@ describe('massage content bundles', () => {
 });
 
 describe('massage placeholder slots', () => {
+  // OQ-07 (Fotos) und OQ-05 (Preismodell → T901430) sind noch offen; alle
+  // übrigen Owner-Angaben (OQ-01/02/03/06/08) sind befüllt.
   const register = [
     'slot-portrait-inhaberin',
     'slot-praxis-raum',
     'slot-stimmung-01',
-    'slot-inhaberin-name',
-    'slot-inhaberin-qualifikation',
-    'slot-telefon',
-    'slot-storno-regel',
   ];
 
   it('references every register id at least once and no unknown id', () => {
@@ -132,17 +130,32 @@ describe('massage placeholder slots', () => {
     expect([...found].sort()).toEqual([...register].sort());
   });
 
-  it('marks open owner inputs explicitly instead of silent blanks', () => {
+  it('carries filled owner answers without slot tokens', () => {
     const stammdaten = loadDomain('massage', 'stammdaten');
-    expect(stammdaten.phone).toBe('slot:slot-telefon');
-    expect(stammdaten.name).toContain('[slot:slot-inhaberin-name]');
-    expect(loadDomain('massage', 'homepage').avatarSrc).toBe('slot:slot-portrait-inhaberin');
+    expect(stammdaten.phone).toBe('+494131129934');
+    expect(stammdaten.name).toBe('Birgit Korczewski');
+    expect(stammdaten.email).toBe('massage@korczewski.de');
+    const faq = loadDomain('massage', 'faq');
+    expect(faq.some((item) => item.answer.includes('Kostenfreier Storno bis 24 h vor Terminbeginn'))).toBe(true);
+    const uebermich = loadDomain('massage', 'ueber-mich');
+    const intro = uebermich.introParagraphs.join('\n');
+    expect(intro).toContain('Birgit Korczewski');
+    expect(intro).toContain('ausgebildete Masseurin');
+    for (const text of [JSON.stringify(stammdaten), JSON.stringify(faq), intro]) {
+      expect(text).not.toMatch(/slot:[a-z0-9-]+/);
+    }
+  });
+
+  it('marks still-open owner inputs explicitly instead of silent blanks', () => {
+    const homepage = loadDomain('massage', 'homepage');
+    expect(homepage.avatarSrc).toBe('slot:slot-portrait-inhaberin');
+    // Der `slots`-Block ist reines Roh-JSON (kein Schema-Feld) → raw prüfen.
+    const rawHomepage = readRaw('homepage.json');
+    expect(rawHomepage).toContain('"portraitInhaberin": "slot:slot-portrait-inhaberin"');
+    expect(rawHomepage).toContain('"praxisRaum": "slot:slot-praxis-raum"');
+    expect(rawHomepage).toContain('"stimmung": "slot:slot-stimmung-01"');
     for (const row of loadDomain('massage', 'leistungen').flatMap((c) => c.services)) {
       expect(row.price).toBe('Preis folgt');
     }
-    const faq = loadDomain('massage', 'faq');
-    expect(faq.some((item) => item.answer.includes('[slot:slot-storno-regel]'))).toBe(true);
-    const uebermich = loadDomain('massage', 'ueber-mich');
-    expect(uebermich.introParagraphs.join('\n')).toContain('[slot:slot-inhaberin-qualifikation]');
   });
 });

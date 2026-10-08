@@ -28,8 +28,8 @@ Owner-Handover durch echte Inhalte ersetzt.
 - **Gast will umbuchen**: Token-Link erzeugt eine neue, verknüpfte
   Anfrage; die alte wird geschlossen.
 - **Inhaberin storniert**: über `/owner/anfragen` bzw. Kalender mit
-  Notiz an den Gast. Stornoregel: `[PLATZHALTER: STORNO-REGEL]`
-  (z. B. kostenfrei bis 24 h vorher).
+  Notiz an den Gast. Stornoregel: Kostenfreier Storno bis 24 h vor
+  Terminbeginn, danach 50 % des Preises (OQ-06).
 - Nach Storno gehen **keine** Erinnerungen mehr raus.
 
 ## 3. Erinnerungen
@@ -62,21 +62,22 @@ Owner-Handover durch echte Inhalte ersetzt.
   Bar, Überweisung oder Sonstige.
 - **Korrektur** nur per Storno und Neuausstellung (Original bleibt).
 - **CSV-Export** über Zeitraum für die Steuerberatung.
-- Rechnungssteller-Daten setzen: `[PLATZHALTER: CREDITOR-NAME]`,
-  `[PLATZHALTER: CREDITOR-ADRESSE]`,
-  `[PLATZHALTER: STEUERNUMMER]`.
+- Rechnungssteller-Daten (OQ-08): Birgit Korczewski,
+  In der Twiet 4, 21360 Vögelsen;
+  `[PLATZHALTER: STEUERNUMMER]` (folgt). §19-UStG an.
 
 ## 6. Inhalte pflegen
 
 - Texte, Preise, Profil und FAQs liegen in
   `components/website/content/massage/*.json` und ersetzen die
   Platzhalter-Slots (IDs im Bundle).
-- Offene Slots: `[PLATZHALTER: PRAXIS-NAME]`,
-  `[PLATZHALTER: PREIS-RUECKEN-30]`,
+- Offene Slots: `[PLATZHALTER: PREIS-RUECKEN-30]`,
   `[PLATZHALTER: PREIS-GANZKOERPER-60]`,
-  `[PLATZHALTER: PREIS-GANZKOERPER-90]`,
-  `[PLATZHALTER: PROFILTEXT]`, `[PLATZHALTER: TELEFON]`,
-  Porträt- und Praxis-Fotos (lizensiert).
+  `[PLATZHALTER: PREIS-GANZKOERPER-90]` (alle → T901430),
+  `[PLATZHALTER: PROFILTEXT]`, `[PLATZHALTER: STEUERNUMMER]`,
+  Porträt- und Praxis-Fotos (folgen, OQ-07).
+  Erledigt (OQ-01/02/03/06/08): Praxis-Name, Inhaberin,
+  Telefon, E-Mail, Storno-Regel, Creditor-Daten.
 - Öffentlich steht nur der Ort; die genaue Anfahrt geht erst mit
   der Buchungsbestätigung raus.
 

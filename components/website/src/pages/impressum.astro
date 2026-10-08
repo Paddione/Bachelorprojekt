@@ -16,9 +16,9 @@ const stored = await getLegalPage(BRAND, 'impressum').catch(() => null);
 const massageImpressum = `<h1>Impressum</h1>
 <p>Angaben gemäß DDG §5 (Entwurf — Owner-Review offen).</p>
 <h2>Diensteanbieterin</h2>
-<p>[Name der Inhaberin folgt]<br>[Ladungsfähige Anschrift folgt — c/o-Entscheidung offen]<br>Vögelsen bei Lüneburg</p>
+<p>Birgit Korczewski<br>In der Twiet 4<br>21360 Vögelsen</p>
 <h2>Kontakt</h2>
-<p>E-Mail: {{stammdaten.email}} [E-Mail-Adresse folgt]</p>
+<p>E-Mail: {{stammdaten.email}}<br>Telefon: {{stammdaten.phone}}</p>
 <h2>Umsatzsteuer</h2>
 <p>USt-IdNr./Steuernummer: [falls vorhanden — Angabe folgt]</p>
 <h2>Aufsichtsbehörde</h2>

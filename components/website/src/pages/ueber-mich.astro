@@ -33,7 +33,6 @@ const seoOgImage = isMassage ? null : getSeoOgImage(BRAND_ID, 'ueber-mich');
         <div>
           <p class="t-kicker">{uebermich.subheadline}</p>
           <h1 id="mg-profile-heading">{uebermich.pageHeadline}</h1>
-          <p><span class="t-slot">Entwurf · Profiltext der Inhaberin folgt</span></p>
           {uebermich.introParagraphs.map((para) => (
             <p class="mg-para">{para}</p>
           ))}
@@ -46,7 +45,7 @@ const seoOgImage = isMassage ? null : getSeoOgImage(BRAND_ID, 'ueber-mich');
     <section class="mg-section section-alt" aria-label="Qualifikation, Weg und Besuchsinfos">
       <div class="mg-wrap">
         <h2>Qualifikation</h2>
-        <p><span class="t-slot">Entwurf · slot:slot-inhaberin-qualifikation</span></p>
+        <p>Ausgebildete Masseurin.</p>
         <h2>Mein Weg</h2>
         {uebermich.milestones.map((m) => (
           <p><strong>{m.year}</strong> — {m.title}: {m.desc}</p>

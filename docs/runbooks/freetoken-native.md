@@ -84,8 +84,8 @@ Scopes von T900087.
 
 Auswertung im Kontext der Backend-Entscheidung:
 `scripts/llm/measurements/2026-09-04-freetoken-vs-llamacpp.md`. Die dort
-verwendeten Messwerkzeuge sind `scripts/llm/measure-factory-context.mjs`
-(Kontextbedarf, offline), `scripts/llm/bench-engine-ab.sh` (Engine-Isolation
+verwendeten Messwerkzeuge sind ein Kontextbedarfs-Messskript (offline; das damals
+verwendete Skript ist mit dem Abbau per T900399 entfallen), `scripts/llm/bench-engine-ab.sh` (Engine-Isolation
 gpt-oss-20b auf beiden Engines) und `scripts/llm/bench-ifstruct.sh`
 (Schema-Treue gegen `LiquidAI/ifstruct-v1.0`).
 

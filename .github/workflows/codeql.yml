@@ -64,6 +64,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Checkout dotfiles (central MCP servers, T901492)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/dotfiles
+          ref: master
+          ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
+          path: dotfiles
+
       - name: Set up Go
         if: matrix.language == 'go'
         uses: actions/setup-go@v5
@@ -83,11 +91,12 @@ jobs:
               - '**/*.generated.*'
 
       # Die Go-Module liegen in Unterverzeichnissen; Autobuild findet sie nicht.
+      # T901492: ticket-mcp/go liegt zentral im Dotfiles-Zweit-Checkout.
       - name: Build Go modules
         if: matrix.language == 'go'
         run: |
           set -euo pipefail
-          for mod in scripts/ticket-mcp/go; do
+          for mod in dotfiles/mcp-servers/ticket/go; do
             echo "::group::go build $mod"
             (cd "$mod" && go build ./...)
             echo "::endgroup::"

@@ -286,16 +286,19 @@ fi
 # Idempotent: ein bereits archivierter Slug wird uebersprungen (kein Duplikat).
 # Fail-closed: archive-plan bricht bei DB-Schreibfehler mit Exit 1 ab (s. unten).
 # KEIN Delete hier — das ist P2 (branch-reaper.sh --plan-cleanup).
+_RECEIPT_READY=1
 if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
+  _RECEIPT_READY=0
   _receipt_done=0
   # Idempotenz-Vorabfrage: get-timeline meldet plan_archived-Events mit Slug.
   # Best-effort — scheitert die Abfrage, gilt "unbekannt" und es wird archiviert.
   if _receipt_tl="$(bash "$TICKET_SH" get-timeline --id "$TICKET_ID" 2>/dev/null)"; then
-    if grep -q "$SLUG" <<<"$_receipt_tl" 2>/dev/null; then
+    if finalize_receipt_archived "$_receipt_tl" "$SLUG" "$BRANCH"; then
       _receipt_done=1
     fi
   fi
   if [[ "$_receipt_done" -eq 1 ]]; then
+    _RECEIPT_READY=1
     mark_skip "Schritt 7: Plan-Slug $SLUG bereits in tickets.ticket_plans archiviert (Receipt idempotent)"
   else
   _plan_source="$WORKTREE/$PLAN_REL"
@@ -315,6 +318,7 @@ if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
       [[ -n "$PR_NUM" ]] && _receipt_sha="$(gh pr view "$PR_NUM" --json mergeCommit -q .mergeCommit.oid 2>/dev/null || true)"
       [[ -z "$_receipt_sha" ]] && _receipt_sha="$(git -C "$REPO_DIR" rev-parse origin/main 2>/dev/null || true)"
       _receipt_lint="$(bash "$REPO_DIR/scripts/plan-lint.sh" "$_plan_source" 2>/dev/null | tail -n 1 || true)"
+      _RECEIPT_READY=1
       mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert (Receipt slug=$SLUG merge=${_receipt_sha:-unbekannt} fm=[${_receipt_fm:-n/a}] lint=[${_receipt_lint:-n/a}])"
     else
       rm -f "$_plan_copy"
@@ -333,7 +337,7 @@ fi
 # Cleanup authorization precedes lock release, removal and the remote reaper.
 CLEANUP_SAFE=1
 _CLEANUP_TIP="$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH" 2>/dev/null || true)"
-if ! finalize_cleanup_safe "$REPO_DIR" "$BRANCH" "$WORKTREE" "$TICKET_ID" \
+if [[ "$_RECEIPT_READY" != 1 ]] || ! finalize_cleanup_safe "$REPO_DIR" "$BRANCH" "$WORKTREE" "$TICKET_ID" \
    || { git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH" \
         && ! finalize_branch_fully_merged "$REPO_DIR" "$BRANCH" "$PR_NUM"; } \
    || [[ "$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH" 2>/dev/null || true)" != "$_CLEANUP_TIP" ]]; then

@@ -26,6 +26,8 @@ Gateway und fremde Worktrees bleiben außerhalb des Scopes.
 - `tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py` — native CI-Regression inkl. echter eigener/fremder Claims.
 - `tests/py/spec/native_ported/spec/agent-skills/test_worktree_remove_managed.py` — bestehender Locked-Worktree-Test aktualisiert für den strikten Finalizer-Helper.
 
+- `tests/py/spec/native_ported/spec/active-sessions-hub/test_ticket_lock_closure_T003102.py` — Claim-Release-Vertrag folgt dem SID-geprüften Helper.
+
 ## S1-Budgets
 
 Budgets vor Implementierung mit plan-lint residual_budget erneut messen; beide bestehenden
@@ -55,9 +57,11 @@ Keine Baseline-Einträge hinzufügen. Shared-Remove-Helper bleibt unverändert.
       erhalten; destruktive Folgeschritte inklusive Reaper überspringen.
 - [x] cwd-Reanchor und Idempotenz bewahren; Branchdelete erst nach erfolgreichem Remove.
 
+- [x] Archive-Receipt nur für strukturiertes `plan_archived`-Event mit exakt passendem Slug und Branch akzeptieren; Kommentar mit Slug ist kein Archiv-Beleg.
+
 ## Phase 4 — Verifikation und PR
 
-- [x] Neue Regression und bestehende Finalizer-/Guard-Suiten laufen lassen: `tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py` plus BATS und `tests/py/spec/native_ported/spec/agent-skills/test_worktree_remove_managed.py`.
+- [x] Neue Regression und bestehende Finalizer-/Guard-Suiten laufen lassen: `tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py` plus `tests/py/spec/native_ported/spec/active-sessions-hub/test_ticket_lock_closure_T003102.py`, BATS und `tests/py/spec/native_ported/spec/agent-skills/test_worktree_remove_managed.py`.
 - [x] Bash-Syntax, Plan-Lint und S1–S4 prüfen; keine fremden Worktrees entfernen.
 - [x] task test:inventory ausführen.
 - [x] task test:changed ausführen (Gesamtsuite läuft, rote Alt-Fixtures werden separat berichtet).

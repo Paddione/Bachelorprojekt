@@ -122,3 +122,10 @@ finalize_release_owned_claims() {
     esac
   done
 }
+
+# Comments mentioning a slug are not durable archive receipts.
+finalize_receipt_archived() {
+  jq -e --arg slug "$2" --arg branch "$3" '
+    any(.events[]?; .source == "plan_archived" and
+      .detail.slug == $slug and .detail.branch == $branch)' <<<"$1" >/dev/null
+}

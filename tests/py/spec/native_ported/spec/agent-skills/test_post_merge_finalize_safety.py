@@ -115,3 +115,18 @@ def test_real_owned_claim_release_and_foreign_session(safety, repo_root, foreign
         assert not wt.exists()
     else:
         assert wt.exists()
+
+
+@pytest.mark.parametrize('source,branch,expected', [
+    ('comment', 'fix/example', False),
+    ('plan_archived', 'fix/example', True),
+    ('plan_archived', 'fix/foreign', False),
+])
+def test_archive_receipt_requires_event_not_slug_mention(safety, repo_root, source, branch, expected):
+    repo, _, _, _, env, _, _ = safety
+    lib = repo_root / 'scripts/lib/finalize-step-guards.sh'
+    timeline = json.dumps({'events': [dict(source=source, detail=dict(
+        slug='example', branch=branch, body='FACTORY-PLAN-REF plan=.agents/plans/example/tasks.md'))]})
+    result = subprocess.run(['bash', '-c', 'source "$1"; finalize_receipt_archived "$2" example fix/example',
+                             '_', str(lib), timeline], env=env, capture_output=True)
+    assert (result.returncode == 0) == expected

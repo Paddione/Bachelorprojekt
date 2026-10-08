@@ -49,7 +49,7 @@ eigene shared-db, Jobs) bleibt eingefroren (T002479).
 | DBs `website_massage`, `pocket_id_korczewski` | `workspace` (zentrale shared-db) | bestehende mentolder-Kustomization | neu im self-healing initdb |
 
 Datenfluss: Website und Pocket ID verbinden sich per TLS mit `shared-db.workspace.svc`.
-Eine NetworkPolicy in `workspace` erlaubt Port 5432 zusätzlich nur aus `website-korczewski`
+Die bestehende NetworkPolicy in `k3d/network-policies.yaml` wird um den Zugang auf Port 5432 aus `website-korczewski`
 und `workspace-korczewski`. Secrets kommen aus der aktiven `flux-sealed-secrets-korczewski`.
 
 ## Login und OIDC
@@ -85,9 +85,10 @@ und `workspace-korczewski`. Secrets kommen aus der aktiven `flux-sealed-secrets-
   neue Migration nimmt `massage` in die Brand-CHECKs der Tabellen auf, die der Massage-Fluss
   beschreibt (mindestens `free_time_windows`, `legal_pages`, `homepage_block_documents`,
   `homepage_block_versions`; die vollständige Liste kommt aus einem Audit der Schreibpfade
-  im Plan). Die mentolder-only-CHECKs auf `billing_*` bleiben; Massage-Rechnungen nutzen
+  im Plan). Der Audit umfasst auch `site_settings` für die aktive Homepage und Rechnungs-Konfiguration sowie einen `massage`-Seed in `brands`. Root-Migrationen unter `migrations/` und Website-Migrationen sind getrennte Runner und werden beide berücksichtigt. Die mentolder-only-CHECKs auf `billing_*` bleiben; Massage-Rechnungen nutzen
   `massage_invoices`.
-- Backup: beide DBs laufen im bestehenden täglichen shared-db-Backup mit.
+- Backup: den fest verdrahteten DB-Loop in `k3d/backup-cronjob.yaml` explizit um beide Datenbanken erweitern. Bestehende Backups bleiben enthalten.
+- Bootstrap: der bisherige Migrationspfad enthält fest verdrahtete Datenbanknamen und `OWNER`/`GRANT website`. Der Plan muss die frische Massage-Datenbank einschließlich Schema, Rollenbesitz und Runner-Rechten ausführbar initialisieren und prüfen.
 
 ## Domain, TLS und DNS
 
@@ -96,7 +97,7 @@ und `workspace-korczewski`. Secrets kommen aus der aktiven `flux-sealed-secrets-
 - Pocket ID unter `auth.korczewski.de` (Ingress aus der Pocket-ID-Basis).
 - Das Wildcard-Zertifikat (`prod/wildcard-certificate.yaml`, `*.korczewski.de` plus Apex,
   letsencrypt-prod) wandert in `korczewski-auth`; `korczewski-tls` wird nach
-  `website-korczewski` gespiegelt, mit demselben Mechanismus wie bei mentolder.
+  `website-korczewski` gespiegelt, mit dem bestehenden `prod/reflector.yaml`-CronJob wie bei mentolder. Seed-ServiceAccount benötigt explizite Rechte im Website-Namespace.
 - DNS: Der ipv64-Updater bleibt aus. Die A-Records für `korczewski.de`, `web.` und `auth.`
   müssen auf den fleet-Ingress zeigen. Externer, manueller Schritt mit `dig`-Prüfbefehl im
   Runbook.
@@ -122,7 +123,7 @@ suspendieren. Rollen und Datenbanken bleiben erhalten.
 
 Doku: Die Freeze-Aussagen in `AGENTS.md`, `CLAUDE.md`, `docs/runbooks/credentials-finden.md`
 und die T002479-Kommentare in den Flux-Dateien werden präzisiert: „korczewski-Workspace
-eingefroren; Website (Massagepraxis) und Pocket ID live seit …".
+eingefroren; Website (Massagepraxis) und Pocket ID für Go-live vorbereitet durch T901440; Live-Datum erst nach Operator-Smoke-Test eintragen".
 
 ## Tests
 

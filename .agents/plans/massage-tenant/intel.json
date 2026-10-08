@@ -41,6 +41,14 @@
       "s1_budget": null
     },
     {
+      "path": "components/website/src/db/migrations/20261008_massage_brand_checks.sql",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "docs/runbooks/credentials-finden.md",
       "language": "markdown",
       "loc": 106,
@@ -113,6 +121,22 @@
       "s1_budget": null
     },
     {
+      "path": "k3d/backup-cronjob.yaml",
+      "language": "config",
+      "loc": 340,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/network-policies.yaml",
+      "language": "config",
+      "loc": 629,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "k3d/shared-db-endpoint-policy.yaml",
       "language": "config",
       "loc": 32,
@@ -145,7 +169,31 @@
       "s1_budget": null
     },
     {
+      "path": "migrations/20261008-massage-brand-checks.sql",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/korczewski-auth/cross-namespace-seed-rbac.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "prod-fleet/korczewski-auth/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/korczewski-auth/namespace.yaml",
       "language": "config",
       "loc": 0,
       "s1_limit": 0,
@@ -177,6 +225,14 @@
       "s1_budget": null
     },
     {
+      "path": "prod-fleet/website-korczewski/website-apex.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "prod-fleet/website-korczewski/website-patch.yaml",
       "language": "config",
       "loc": 10,
@@ -191,6 +247,22 @@
       "s1_limit": 800,
       "s1_baseline": null,
       "s1_budget": 346
+    },
+    {
+      "path": "taskfiles/Taskfile.data.yml",
+      "language": "config",
+      "loc": 663,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/local/SA-22.sh",
+      "language": "bash",
+      "loc": 36,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 764
     },
     {
       "path": "tests/py/spec/massage-tenant/test_brand_migration.py",
@@ -231,6 +303,14 @@
       "s1_limit": 800,
       "s1_baseline": null,
       "s1_budget": null
+    },
+    {
+      "path": "tests/py/unit/ported/test_shared_db_initdb_selfheal.py",
+      "language": "python",
+      "loc": 62,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 738
     }
   ],
   "symbols": [
@@ -248,6 +328,22 @@
       "file": "scripts/flux-render-artifact.sh",
       "signature": "71:render_component() {(...)",
       "type_text": "71:render_component() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.data.yml:353:        kexec_psql() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.data.yml",
+      "signature": "353:        kexec_psql() {(...)",
+      "type_text": "353:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/local/SA-22.sh:20:probe() {  # probe <from-ns> <target-fqdn> <port>",
+      "kind": "function",
+      "file": "tests/local/SA-22.sh",
+      "signature": "20:probe() {  # probe <from-ns> <target-fqdn> <port>(...)",
+      "type_text": "20:probe() {  # probe <from-ns> <target-fqdn> <port>(...)",
       "source": "grep"
     }
   ],

@@ -17,13 +17,15 @@ Overlay `prod-fleet/korczewski-auth`, Datenbanken `website_massage` und
 
 | id | plan | role | target_files | depends_on |
 |---|---|---|---|---|
-| p1 | tasks.d/p1-db-layer.md | impl | `k3d/shared-db.yaml`, `k3d/website.yaml`, `k3d/website-schema.yaml`, `k3d/shared-db-endpoint-policy.yaml`, `environments/schema.yaml` | |
-| p2 | tasks.d/p2-auth-overlay.md | impl | `prod-fleet/korczewski-auth/kustomization.yaml`, `prod-fleet/korczewski-auth/patch-pocket-id-db.yaml`, `prod-fleet/korczewski-auth/patch-tls-reflect.yaml`, `flux/clusters/fleet/ks-korczewski-auth.yaml`, `scripts/flux-render-artifact.sh` | p1 |
-| p3 | tasks.d/p3-website-thaw.md | impl | `environments/korczewski.yaml`, `environments/fleet-korczewski.yaml`, `prod-fleet/website-korczewski/kustomization.yaml`, `prod-fleet/website-korczewski/website-patch.yaml`, `flux/clusters/fleet/ks-website-korczewski.yaml`, `.github/workflows/build-website.yml` | p1, p2 |
+| p1 | tasks.d/p1-db-layer.md | impl | `k3d/shared-db.yaml`, `k3d/website.yaml`, `k3d/website-schema.yaml`, `k3d/shared-db-endpoint-policy.yaml`, `environments/schema.yaml`, `k3d/network-policies.yaml`, `k3d/backup-cronjob.yaml`, `taskfiles/Taskfile.data.yml`, `migrations/20261008-massage-brand-checks.sql`, `components/website/src/db/migrations/20261008_massage_brand_checks.sql` | |
+| p2 | tasks.d/p2-auth-overlay.md | impl | `prod-fleet/korczewski-auth/kustomization.yaml`, `prod-fleet/korczewski-auth/patch-pocket-id-db.yaml`, `prod-fleet/korczewski-auth/patch-tls-reflect.yaml`, `prod-fleet/korczewski-auth/namespace.yaml`, `prod-fleet/korczewski-auth/cross-namespace-seed-rbac.yaml`, `flux/clusters/fleet/ks-korczewski-auth.yaml`, `scripts/flux-render-artifact.sh` | p1 |
+| p3 | tasks.d/p3-website-thaw.md | impl | `environments/korczewski.yaml`, `environments/fleet-korczewski.yaml`, `prod-fleet/website-korczewski/kustomization.yaml`, `prod-fleet/website-korczewski/website-patch.yaml`, `prod-fleet/website-korczewski/website-apex.yaml`, `flux/clusters/fleet/ks-website-korczewski.yaml`, `.github/workflows/build-website.yml` | p1, p2 |
 | p4 | tasks.d/p4-docs-runbook.md | impl | `AGENTS.md`, `CLAUDE.md`, `docs/runbooks/credentials-finden.md`, `docs/website/massage-owner-runbook/README.md`, `flux/clusters/fleet/ks-korczewski.yaml`, `flux/clusters/fleet/ks-jobs-korczewski.yaml` | p2, p3 |
-| p5 | tasks.d/p5-tests.md | tests | `tests/py/spec/massage-tenant/test_render_topology.py`, `tests/py/spec/massage-tenant/test_flux_freeze.py`, `tests/py/spec/massage-tenant/test_shared_db_roles.py`, `tests/py/spec/massage-tenant/test_brand_migration.py`, `tests/py/spec/massage-tenant/test_db_network_policy.py` | p1, p2, p3, p4 |
+| p5 | tasks.d/p5-tests.md | tests | `tests/py/spec/massage-tenant/test_render_topology.py`, `tests/py/spec/massage-tenant/test_flux_freeze.py`, `tests/py/spec/massage-tenant/test_shared_db_roles.py`, `tests/py/spec/massage-tenant/test_brand_migration.py`, `tests/py/spec/massage-tenant/test_db_network_policy.py`, `tests/local/SA-22.sh`, `tests/py/unit/ported/test_shared_db_initdb_selfheal.py` | p1, p2, p3, p4 |
 
 ## File Structure
+
+Zusätzliche bootstrap-, Backup- und Isolationstest-Dateien ergeben sich aus dem Repository-Audit. Details und wirksame Budgets stehen in den zugehörigen Teilplänen.
 
 | Datei | Ist-Zeilen | Budget |
 |---|---|---|
@@ -55,7 +57,26 @@ Overlay `prod-fleet/korczewski-auth`, Datenbanken `website_massage` und
 | `tests/py/spec/massage-tenant/test_brand_migration.py` | 0 (neu) | 800 |
 | `tests/py/spec/massage-tenant/test_db_network_policy.py` | 0 (neu) | 800 |
 
+| `k3d/network-policies.yaml` | 629 | n/a (YAML/SQL ohne S1-Limit) |
+| `k3d/backup-cronjob.yaml` | 340 | n/a (YAML/SQL ohne S1-Limit) |
+| `taskfiles/Taskfile.data.yml` | 663 | n/a (YAML/SQL ohne S1-Limit) |
+| `migrations/20261008-massage-brand-checks.sql` | 0 | n/a (YAML/SQL ohne S1-Limit) |
+| `components/website/src/db/migrations/20261008_massage_brand_checks.sql` | 0 | n/a (YAML/SQL ohne S1-Limit) |
+| `prod-fleet/korczewski-auth/namespace.yaml` | 0 | n/a (YAML/SQL ohne S1-Limit) |
+| `prod-fleet/korczewski-auth/cross-namespace-seed-rbac.yaml` | 0 | n/a (YAML/SQL ohne S1-Limit) |
+| `prod-fleet/website-korczewski/website-apex.yaml` | 0 | n/a (YAML/SQL ohne S1-Limit) |
+| `tests/local/SA-22.sh` | 36 | 764 |
+| `tests/py/unit/ported/test_shared_db_initdb_selfheal.py` | 62 | 738 |
+
 <!-- vitest: kein neuer Test nötig, weil keine Datei unter components/website/src geändert wird -->
+
+## Rot-Grün-Anker
+
+Den gezielten pytest-Rotlauf aus p5 vor der Umsetzung von p1–p4 sichern (`expected: FAIL`). Die Tests-Rolle bleibt die letzte Partial, muss dafür den Rot-Anker vorab bereitstellen.
+
+```bash
+bash scripts/pytest-run.sh tests/py/spec/massage-tenant/test_render_topology.py
+```
 
 ## Manuelle Operator-Schritte (nicht vom Agenten ausführbar)
 

@@ -208,14 +208,16 @@ def tokenize_row_with_assistant_mask(tokenizer, messages: list[dict], max_seq_le
         truncation=True,
     )
     input_ids = encoded["input_ids"]
-    # Unsloth's tokenizer liefert gebatchte Ausgabe ([[ids]]) — Single-Batch unpacken.
-    if len(input_ids) == 1 and isinstance(input_ids[0], list):
+    # Unsloth's tokenizer liefert gebatchte Ausgabe ([[ids]]) — Single-Batch
+    # rekursiv unpacken (einzelne Sequenz kann keine Liste als Element haben).
+    while len(input_ids) == 1 and isinstance(input_ids[0], list):
         input_ids = input_ids[0]
     assistant_masks = encoded.get("assistant_masks")
     if assistant_masks is None:
         return None
     # Gebatchte Masken ([[m ...]]) ebenfalls unpacken, wenn die innere Liste
-    # die volle Sequenz abdeckt; sonst als Segmentliste eine Ebene flachklopfen.
+    # die volle Sequenz abdeckt; sonst als Segmentliste vollstaendig flachklopfen
+    # (beliebig tief verschachtelt).
     if (
         len(assistant_masks) == 1
         and isinstance(assistant_masks[0], list)
@@ -224,10 +226,21 @@ def tokenize_row_with_assistant_mask(tokenizer, messages: list[dict], max_seq_le
         assistant_masks = assistant_masks[0]
     # Unsloth/transformers-v5 may return nested masks per assistant segment
     # (e.g. reasoning spans) — flatten one level before summing.
-    flat = [x for m in assistant_masks for x in (m if isinstance(m, list) else [m])]
-    # Laengen-Mismatch (z.B. zip-Trucierung) wuerde still falsche Labels erzeugen —
-    # solche Zeilen zaehlen als ohne Lernsignal.
-    if len(flat) != len(input_ids) or sum(flat) == 0:
+    def _flat(xs):
+        for x in xs:
+            if isinstance(x, list):
+                yield from _flat(x)
+            else:
+                yield x
+
+    flat = list(_flat(assistant_masks))
+    # Laengen-Mismatch oder Rest-Verschachtelung (z.B. zip-Trucierung) wuerde
+    # still falsche Labels erzeugen — solche Zeilen zaehlen als ohne Lernsignal.
+    if (
+        len(flat) != len(input_ids)
+        or any(isinstance(x, list) for x in input_ids)
+        or sum(flat) == 0
+    ):
         return None
     labels = [tok if m else -100 for tok, m in zip(input_ids, flat)]
     return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids), "labels": labels}

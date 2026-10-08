@@ -349,7 +349,10 @@ sleep 50m
 call llama#fim(1)
 let s:snapB = llama#request#snapshot(bufnr('%'))
 
-let s:ready = WaitUntil('len(prop_list(1)) > 0', 3000)
+" A streams AAA for 1.5 s; its first chunk may render before B starts (sleep runs
+" channel callbacks). The contract: once B's text is shown, A never overwrites it.
+let s:ready = WaitUntil('get(get(prop_list(1), 0, {}), "text", "") ==# "BBB"', 3000)
+sleep 400m
 let s:props = prop_list(1)
 let s:text = empty(s:props) ? '' : get(s:props[0], 'text', '')
 

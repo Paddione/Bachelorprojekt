@@ -948,6 +948,18 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-63",
+    "file": "tests/e2e/specs/fa-63-massage-mobile.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-64",
+    "file": "tests/e2e/specs/fa-64-massage-keyboard.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "HWS-1",
     "file": "tests/spec/harness-workflow-split.bats",
     "category": "HWS",
@@ -1800,6 +1812,18 @@
     "kind": "shell"
   },
   {
+    "id": "T901310-1",
+    "file": "tests/spec/navigation-responsive.bats",
+    "category": "T901310",
+    "kind": "shell"
+  },
+  {
+    "id": "T901310-2",
+    "file": "tests/spec/navigation-responsive.bats",
+    "category": "T901310",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",
@@ -2000,6 +2024,12 @@
   {
     "id": "agent-bench/orchestrator-dispatch",
     "file": "tests/spec/agent-bench/orchestrator-dispatch.bats",
+    "category": "agent-bench",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-bench/orchestrator-marker",
+    "file": "tests/spec/agent-bench/orchestrator-marker.bats",
     "category": "agent-bench",
     "kind": "shell"
   },

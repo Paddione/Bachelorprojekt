@@ -4,7 +4,7 @@
     "node": ">=22.13.0"
   },
   "type": "module",
-  "version": "1.407.0",
+  "version": "1.407.2",
   "private": true,
   "scripts": {
     "dev": "astro dev",

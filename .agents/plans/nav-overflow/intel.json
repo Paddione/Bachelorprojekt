@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "slug": "nav-overflow",
+    "ticket_id": "",
+    "generated_from": "main@f426770eb",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/components/Navigation.svelte",
+      "language": "svelte",
+      "loc": 511,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 589
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6062,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/navigation-responsive.bats",
+      "language": "bash",
+      "loc": 42,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/components/Navigation.svelte:43:    function handleOutside(e: MouseEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/Navigation.svelte",
+      "signature": "43:    function handleOutside(e: MouseEvent) {(...)",
+      "type_text": "43:    function handleOutside(e: MouseEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/Navigation.svelte:47:    return () => document.removeEventListener('mousedown', handleOutside);",
+      "kind": "function",
+      "file": "components/website/src/components/Navigation.svelte",
+      "signature": "47:    return () => document.removeEventListener('mousedown', handleOutside);(...)",
+      "type_text": "47:    return () => document.removeEventListener('mousedown', handleOutside);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/Navigation.svelte:50:  function initial(name: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/Navigation.svelte",
+      "signature": "50:  function initial(name: string) {(...)",
+      "type_text": "50:  function initial(name: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/navigation-responsive.bats:10:mobile_block() {",
+      "kind": "function",
+      "file": "tests/spec/navigation-responsive.bats",
+      "signature": "10:mobile_block() {(...)",
+      "type_text": "10:mobile_block() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

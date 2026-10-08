@@ -2,8 +2,10 @@
 // Referenz- oder Ketten-Plan und wertet state.json + Checks + Trace aus.
 import { cpSync, existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { RESULT_MARKER, statePath } from '../../../plan-runner/plan.mjs';
+import { statePath } from '../../../plan-runner/plan.mjs';
 import { REPO_ROOT, TOOL, emptyResult, prepareWorkdir, run, runChecks } from './_shared.mjs';
+
+const RUNNER_MARKER = 'PLAN-RUNNER:';
 
 export async function runOrchestrator({ variant, inputs, endpoints, workdir, recorderUrls, timeoutMs = 1_800_000 }) {
   const events = [];
@@ -35,7 +37,7 @@ export async function runOrchestrator({ variant, inputs, endpoints, workdir, rec
     timeout: timeoutMs,
   });
   if (![0, 1].includes(res.code)) events.push({ kind: 'protocol_error' });
-  if (!res.stdout.includes(RESULT_MARKER)) events.push({ kind: 'protocol_error' });
+  if (!res.stdout.includes(RUNNER_MARKER)) events.push({ kind: 'protocol_error' });
 
   const stateFile = statePath(changeDir);
   const state = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : { partials: {}, orchestrator: {} };

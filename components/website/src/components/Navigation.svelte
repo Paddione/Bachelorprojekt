@@ -507,5 +507,17 @@
     .wrap {
       padding: 0 22px;
     }
+    .nav-cta {
+      display: none;
+    }
+    .brand {
+      flex-shrink: 1;
+      min-width: 0;
+    }
+    .brand-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 </style>

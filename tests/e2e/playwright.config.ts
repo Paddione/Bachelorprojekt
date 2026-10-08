@@ -86,6 +86,8 @@ export default defineConfig({
         '**/fa-59-*.spec.ts',                        // systemtest purge route preservation
         '**/fa-admin-backup-settings.spec.ts',       // admin backup settings auth gates
         '**/fa-62-massage-pilot.spec.ts',              // FA-62: Massage-Pilot E2E (T901029, skippt ohne Massage-Brand)
+        '**/fa-63-massage-mobile.spec.ts',              // FA-63: Massage Mobile (T901306, skippt ohne Massage-Brand)
+        '**/fa-64-massage-keyboard.spec.ts',            // FA-64: Massage Tastatur (T901306, skippt ohne Massage-Brand)
       ],
       use: {
         ...devices['Desktop Chrome'],

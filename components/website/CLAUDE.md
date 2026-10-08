@@ -45,7 +45,7 @@ biegt die **ausgehenden** URLs deshalb zur Laufzeit auf `host.docker.internal` u
 > **Abgrenzung:** `components/website/Dockerfile` ist das **Produktions**-Image (`pnpm run build` →
 > `dist/server/entry.mjs`, Code zur Build-Zeit eingefroren). `components/website/Dockerfile.dev` ist
 > ausschließlich für lokale Entwicklung — kein Build, Quellcode per Bind-Mount. Guards:
-> `tests/py/spec/native_ported/unit/test_website_dev_container.py`.
+> `tests/py/unit/ported/test_website_dev_container.py`.
 
 ## Two-Group Content Model
 

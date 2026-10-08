@@ -6,7 +6,7 @@ metadata:
   # re-namespaced diese ConfigMap brand-korrekt. NICHT hinzufügen.
 data:
   # Muss exakt dem prod/configmap-domains.yaml-Ausdruck entsprechen (SSOT, drift-guarded
-  # durch tests/py/spec/native_ported/unit/test_website_domain_config_overlay.py). Wert wird via website:deploy-
+  # durch tests/py/unit/ported/test_website_domain_config_overlay.py). Wert wird via website:deploy-
   # envsubst gefüllt ($PROD_DOMAIN ist bereits in der Liste, Taskfile.yml Z.3564/3538).
   # Jeder neue required configMapKeyRef name: domain-config in k3d/website.yaml MUSS hier
   # ergänzt werden, sonst macht der bats-Guard CI rot.

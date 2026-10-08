@@ -78,7 +78,7 @@ CI-äquivalenten Kommandos:
 ```bash
 task test:spec
 bash scripts/pytest-run.sh tests/py --ignore=tests/py/spec
-bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_manifests_part1.py tests/py/spec/native_ported/unit/test_manifests_part2.py tests/py/spec/native_ported/unit/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
+bash scripts/pytest-run.sh tests/py/unit/ported/test_manifests_part1.py tests/py/unit/ported/test_manifests_part2.py tests/py/unit/ported/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
 ```
 
 **(c) Rote `test:e2e:website` sind auch MIT laufendem Dev-Server kein PR-Blocker** [T002691].

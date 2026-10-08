@@ -16,7 +16,7 @@ def test_unit_job_installs_website_dependencies(repo_root):
 
 def test_no_unit_dependency_skips(repo_root):
     files = list((repo_root / "tests/py/unit").rglob("test_*.py")) + list(
-        (repo_root / "tests/py/spec/native_ported/unit").rglob("test_*.py"))
+        (repo_root / "tests/py/unit/ported").rglob("test_*.py"))
     assert len(files) >= 50
     sources = [(f, f.read_text()) for f in files]
     assert any("pytest.skip" in source for _, source in sources)

@@ -314,7 +314,7 @@ jobs:
           kubectl version --client
 
       - name: Run manifest tests
-        run: bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_manifests_part1.py tests/py/spec/native_ported/unit/test_manifests_part2.py tests/py/spec/native_ported/unit/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
+        run: bash scripts/pytest-run.sh tests/py/unit/ported/test_manifests_part1.py tests/py/unit/ported/test_manifests_part2.py tests/py/unit/ported/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
 
   # ── Spec: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
   #

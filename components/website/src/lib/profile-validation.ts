@@ -1,6 +1,6 @@
 // Pure validation logic for the self-service customer profile API (T003144).
 // Import-free leaf module: no DB, no Vite/Astro APIs — must stay loadable under
-// plain tsx/node so tests/py/spec/native_ported/unit/test_portal_profile_update.py runs offline.
+// plain tsx/node so tests/py/unit/ported/test_portal_profile_update.py runs offline.
 // Re-exported from customer-crm-db.ts to keep that module's public API identical.
 
 export const CONTACT_CHANNELS = ['email', 'phone', 'portal'] as const;

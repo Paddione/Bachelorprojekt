@@ -28,78 +28,78 @@ tasks:
   test:unit:
     desc: Run the offline unit pytest modules (tests/py/unit + ported tests/unit specs) in parallel
     cmds:
-      - bash scripts/pytest-run.sh tests/py/unit tests/py/spec/native_ported/unit tests/py/spec/native_ported/spec/test_mcp_tooling.py
+      - bash scripts/pytest-run.sh tests/py/unit tests/py/unit/ported tests/py/spec/native_ported/spec/test_mcp_tooling.py
       - bash tests/figure-pack-assets.test.sh
 
   test:unit:agent-push:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_agent_push.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_agent_push.py
   test:unit:sessions-purge:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_sessions_purge.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_sessions_purge.py
   test:unit:build-graph:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_build_graph.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_build_graph.py
   test:unit:freshness-graph:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_freshness_graph.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_freshness_graph.py
   test:unit:ticket-graph:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_graph.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_ticket_graph.py
   test:unit:T000668-graph-api:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_t000668_graph_api.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_t000668_graph_api.py
   test:unit:readiness-webhook:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_readiness_webhook.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_readiness_webhook.py
   test:unit:api-auth-gate:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_api_auth_gate.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_api_auth_gate.py
   test:unit:changed-manifests:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_changed_manifests.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_changed_manifests.py
   test:unit:collabora-wopi-discovery:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_collabora_wopi_discovery.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_collabora_wopi_discovery.py
   test:unit:collabora-wopi-single-brand-guard:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_collabora_wopi_single_brand_guard.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_collabora_wopi_single_brand_guard.py
   test:unit:ticket-triage:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_triage.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_ticket_triage.py
   test:unit:website-ci-deploy:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_website_ci_deploy.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_website_ci_deploy.py
   test:unit:assert:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_assert_lib.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_assert_lib.py
   test:unit:scripts:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_scripts.py
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_session_hub.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_scripts.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_session_hub.py
   test:unit:secret-task-guards:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_secret_task_guards.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_secret_task_guards.py
   test:unit:agents:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_agent_ops_output_trust.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_agent_ops_output_trust.py
   test:unit:figure-pack:
     internal: true
     cmds:
@@ -108,55 +108,55 @@ tasks:
   test:unit:discover-versions:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_discover_versions.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_discover_versions.py
   test:unit:render-cloud-init:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_render_cloud_init.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_render_cloud_init.py
   test:unit:flux-render-runtime-vars:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_flux_render_runtime_vars.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_flux_render_runtime_vars.py
   test:unit:flux-healthchecks:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_flux_healthchecks.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_flux_healthchecks.py
   test:unit:fleet-phase2b:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_fleet_phase2b.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_fleet_phase2b.py
   test:unit:shared-db-initdb-selfheal:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_shared_db_initdb_selfheal.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_shared_db_initdb_selfheal.py
   test:unit:wg-mesh-fullmesh:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_wg_mesh_fullmesh.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_wg_mesh_fullmesh.py
   test:unit:recovery-domain-durability:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_recovery_domain_durability.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_recovery_domain_durability.py
   test:unit:mediaviewer-host-durability:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_mediaviewer_host_durability.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_mediaviewer_host_durability.py
   test:unit:agent-collision:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_agent_collision.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_agent_collision.py
   test:unit:agent-msg:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_agent_msg.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_agent_msg.py
   test:unit:website-domain-config-overlay:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_website_domain_config_overlay.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_website_domain_config_overlay.py
   test:unit:ticket-external-id:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_external_id_sequence.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_ticket_external_id_sequence.py
   test:unit:vda-frontmatter:
     internal: true
     cmds:
@@ -164,35 +164,35 @@ tasks:
   test:unit:check-commit-vs-diff:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_check_commit_vs_diff.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_check_commit_vs_diff.py
   test:unit:plan-lint:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_plan_lint.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_plan_lint.py
   test:unit:mishap-tracker:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_mishap_tracker.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_mishap_tracker.py
   test:unit:ticket-add-pr-link:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_add_pr_link.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_ticket_add_pr_link.py
   test:unit:ticket-create:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_create.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_ticket_create.py
   test:unit:ticket-grill:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_grill.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_ticket_grill.py
   test:unit:ticket-lastenheft:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_lastenheft.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_ticket_lastenheft.py
   test:unit:worktree-create:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_worktree_create.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_worktree_create.py
   test:unit:preflight-pr-scope:
     internal: true
     cmds:
@@ -200,10 +200,10 @@ tasks:
   test:unit:test-tasks-node-deps:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_test_tasks_node_deps.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_test_tasks_node_deps.py
   test:unit:quality-loop:
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_quality_loop.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_quality_loop.py
   test:unit:vda-core:
     internal: true
     cmds:
@@ -211,7 +211,7 @@ tasks:
   test:unit:oracle-task-vars:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_oracle_task_vars.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_oracle_task_vars.py
   test:unit:vda-ticket-smoke:
     internal: true
     cmds:
@@ -226,22 +226,22 @@ tasks:
     cmds:
       - >-
         bash scripts/pytest-run.sh
-        tests/py/spec/native_ported/unit/test_admin_nav.py
-        tests/py/spec/native_ported/unit/test_brainstorm_extract_choice.py
-        tests/py/spec/native_ported/unit/test_git_crypt_guard.py
-        tests/py/spec/native_ported/unit/test_openclaw_taskfile.py
-        tests/py/spec/native_ported/unit/test_purge_fn_gaps.py
-        tests/py/spec/native_ported/unit/test_skill_orchestrator.py
-        tests/py/spec/native_ported/unit/test_superpowers_collab_patch.py
-        tests/py/spec/native_ported/unit/test_superpowers_submit_patch.py
-        tests/py/spec/native_ported/unit/test_helper_collab_headless.py
-        tests/py/spec/native_ported/unit/test_tickets_plan_staged_migration.py
-        tests/py/spec/native_ported/unit/test_env_resolve.py
-        tests/py/spec/native_ported/unit/test_env_validate.py
-        tests/py/spec/native_ported/unit/test_planning_office.py
-        tests/py/spec/native_ported/unit/test_planungsbuero_stats.py
-        tests/py/spec/native_ported/unit/test_ticket_triage.py
-        tests/py/spec/native_ported/unit/test_t000617_alert_rules.py
+        tests/py/unit/ported/test_admin_nav.py
+        tests/py/unit/ported/test_brainstorm_extract_choice.py
+        tests/py/unit/ported/test_git_crypt_guard.py
+        tests/py/unit/ported/test_openclaw_taskfile.py
+        tests/py/unit/ported/test_purge_fn_gaps.py
+        tests/py/unit/ported/test_skill_orchestrator.py
+        tests/py/unit/ported/test_superpowers_collab_patch.py
+        tests/py/unit/ported/test_superpowers_submit_patch.py
+        tests/py/unit/ported/test_helper_collab_headless.py
+        tests/py/unit/ported/test_tickets_plan_staged_migration.py
+        tests/py/unit/ported/test_env_resolve.py
+        tests/py/unit/ported/test_env_validate.py
+        tests/py/unit/ported/test_planning_office.py
+        tests/py/unit/ported/test_planungsbuero_stats.py
+        tests/py/unit/ported/test_ticket_triage.py
+        tests/py/unit/ported/test_t000617_alert_rules.py
 
   test:unit:verification-block-order:
     internal: true
@@ -250,11 +250,11 @@ tasks:
   test:unit:scs-index:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_scs_index.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_scs_index.py
   test:unit:scs-search:
     internal: true
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_scs_search.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_scs_search.py
   test:art-library:
     desc: "Validate every assets/art-library/sets/* manifest"
     cmds:
@@ -263,7 +263,7 @@ tasks:
   test:manifests:
     desc: Validate kustomize output structure (no cluster needed)
     cmds:
-      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_manifests_part1.py tests/py/spec/native_ported/unit/test_manifests_part2.py
+      - bash scripts/pytest-run.sh tests/py/unit/ported/test_manifests_part1.py tests/py/unit/ported/test_manifests_part2.py
   test:menu-gate:
     desc: Enforce admin-menu rules (R1, R2, R4, R5, R7)
     cmds:
@@ -561,7 +561,7 @@ tasks:
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"
     cmds:
-      - bash scripts/pytest-run.sh tests/py/unit tests/py/spec/native_ported/unit
+      - bash scripts/pytest-run.sh tests/py/unit tests/py/unit/ported
 
   test:e2e:
     desc: "Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)"

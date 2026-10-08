@@ -276,6 +276,12 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
         dtype=None,
         **load_kwargs,
     )
+    # Qwen3.5 kommt als VL-Processor (ohne .pad): Text-only-SFT nutzt den inneren
+    # Tokenizer — sonst schaltet Unsloth auf _is_vlm und ersetzt unseren
+    # TRL-Collator durch transformers' LM-Collator (labels futsch, Eval-Crash).
+    # Dieselbe Bedingung wie in UnslothSFTTrainer (pad-Abfrage).
+    if not hasattr(tokenizer, "pad") and hasattr(tokenizer, "tokenizer"):
+        tokenizer = tokenizer.tokenizer
 
     if config.get("hub_template"):
         tokenizer.chat_template = Path(config["hub_template"]).read_text(encoding="utf-8")

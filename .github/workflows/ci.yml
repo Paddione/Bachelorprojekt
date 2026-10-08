@@ -419,9 +419,6 @@ jobs:
     name: Spec shard ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      MCP_SERVERS_HOME: ${{ github.workspace }}/dotfiles/mcp-servers
-      TOOLSET_HOME: ${{ github.workspace }}/scripts/toolset
     strategy:
       # fail-fast: false ist Absicht. Bricht ein Shard ab, sollen die anderen
       # zu Ende laufen — sonst sieht man pro Lauf nur die Fehler EINES Shards
@@ -432,6 +429,8 @@ jobs:
     env:
       SPEC_SHARD: ${{ matrix.shard }}
       SPEC_SHARDS: 4
+      MCP_SERVERS_HOME: ${{ github.workspace }}/dotfiles/mcp-servers
+      TOOLSET_HOME: ${{ github.workspace }}/scripts/toolset
     steps:
       - uses: actions/checkout@v7
         with:

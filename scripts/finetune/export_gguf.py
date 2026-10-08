@@ -17,6 +17,7 @@ damit `--dry-run` (nur Speichercheck + Pfadaufloesung) auch ohne GPU-Stack laeuf
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -80,18 +81,44 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-dir", default="outputs/export", help="Zielverzeichnis fuer die GGUF-Datei")
     parser.add_argument("--slot-name", required=True, help="Slot-Name, unter dem llm-proxy die Datei aufnehmen soll")
     parser.add_argument("--quantization", default="q4_k_m", help="GGUF-Quantisierungsmethode (Default q4_k_m)")
+    # Trainings-Praezision spiegeln (vgl. train.py): Qwen3.5 nutzt 16-bit-LoRA;
+    # ein 4bit-Load beim Merge korrumpiert die Gewichte (Wortsalat trotz
+    # 40/42-Adapter, verifiziert 2026-10-08). Default 16bit ist allgemein sicher.
+    parser.add_argument("--precision", default="16bit", choices=("4bit", "16bit"),
+                        help="LoRA-Praezision aus dem Training (Default 16bit)")
     parser.add_argument("--dry-run", action="store_true", help="Nur Speichercheck + Pfadaufloesung, kein Import von unsloth/torch")
     return parser
 
 
 def run_export(args: argparse.Namespace) -> int:
+    import sys as _sys
+
+    # Unsloth shellt fuer die GGUF-Konvertierung `uv pip install ...` — ohne
+    # gesetztes VIRTUAL_ENV verweigert uv die Arbeit, obwohl wir bereits in
+    # einem venv-Python laufen. Venv dem Child-Prozess bekannt machen.
+    if _sys.prefix != _sys.base_prefix:
+        os.environ.setdefault("VIRTUAL_ENV", _sys.prefix)
+        bin_dir = os.path.join(_sys.prefix, "bin")
+        if not os.environ.get("PATH", "").split(os.pathsep).count(bin_dir):
+            os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
+
+    # Unsloth laedt das llama.cpp-Konverterskript isoliert per importlib — dessen
+    # `from conversion import ...` (Upstream-Master-Layout) braucht das Clone-
+    # Verzeichnis auf sys.path. Unsloth klont relativ zum CWD nach llama.cpp/.
+    _clone = os.path.join(os.getcwd(), "llama.cpp", "conversion")
+    if os.path.isdir(_clone):
+        _root = os.path.dirname(_clone)
+        if _root not in _sys.path:
+            _sys.path.insert(0, _root)
+
     from unsloth import FastLanguageModel
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=args.adapter_dir,
         max_seq_length=8192,
         dtype=None,
-        load_in_4bit=True,
+        load_in_4bit=args.precision == "4bit",
+        load_in_16bit=args.precision == "16bit",
     )
 
     if args.hub_template:
@@ -101,17 +128,39 @@ def run_export(args: argparse.Namespace) -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Merge + GGUF-Export ({args.quantization}) nach {out_path} ...")
-    model.save_pretrained_gguf(
-        str(out_path.parent),
-        tokenizer,
-        quantization_method=args.quantization,
-    )
+    try:
+        model.save_pretrained_gguf(
+            str(out_path.parent),
+            tokenizer,
+            quantization_method=args.quantization,
+        )
+    except RuntimeError as exc:
+        # Unsloth stagt die Basis-safetensors per copy2 ins Output-Dir (read-only
+        # Rechte aus dem HF-Cache bleiben erhalten) und oeffnet sie danach r+b
+        # fuer den In-place-LoRA-Merge — EACCES beim ersten Lauf. Staging wird
+        # bei existierenden Dateien uebersprungen, daher: beschreibbar machen
+        # und genau einmal wiederholen.
+        if "Permission denied" not in str(exc):
+            raise
+        print("Unsloth-Staging ist read-only (HF-Cache-Rechte) — chmod + Retry ...")
+        for staged in out_path.parent.glob("*.safetensors*"):
+            staged.chmod(staged.stat().st_mode | 0o200)
+        model.save_pretrained_gguf(
+            str(out_path.parent),
+            tokenizer,
+            quantization_method=args.quantization,
+        )
 
     # Unsloth benennt die Ausgabedatei nach dem Basismodell — auf den erwarteten Slot-Namen
     # umbenennen, damit llm-proxy sie eindeutig findet.
     candidates = sorted(out_path.parent.glob("*.gguf"))
     if candidates and not out_path.exists():
         shutil.move(str(candidates[-1]), str(out_path))
+    if not out_path.exists():
+        raise SystemExit(
+            f"FEHLER: kein GGUF unter {out_path} gefunden "
+            f"(Kandidaten: {[c.name for c in candidates]})."
+        )
 
     print(f"GGUF-Export abgeschlossen: {out_path}")
     print("Slot-Registrierung ist manuell — siehe scripts/finetune/README.md.")

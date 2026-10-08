@@ -967,7 +967,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 }
 
 # ── T002182: CI-Gate — the spec-suite job invokes the full tests/spec glob ──
-# Regression guard: the factory job must NOT enumerate a hand-picked subset of
+# Regression guard: the spec-suite job must NOT enumerate a hand-picked subset of
 # spec files, because any file not in the list runs in no required check and
 # can rot on main undetected (observed: T002163, T002167, image-drift).
 #
@@ -997,7 +997,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   }
 }
 
-# ── T002245: the factory job may scope the spec suite to the diff, but a
+# ── T002245: the spec-shard job may scope the spec suite to the diff, but a
 # full-glob path MUST stay reachable. Without it, scoping reintroduces exactly
 # the T002182 failure mode: a spec file that no check ever runs, rotting on
 # main undetected.

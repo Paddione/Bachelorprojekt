@@ -289,8 +289,8 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   [ "$status" -eq 0 ]
   run grep -E "GITHUB_CONTENT_TOKEN:" "$f"
   [ "$status" -eq 0 ]
-  # 3. T900399: die Klassifizierung im Factory-Service-Registry entfällt mit dem
-  #    Factory-Subsystem — der Partial-Deploy läuft jetzt ueber die Kustomize-Overlays.
+  # 3. T900399: die Klassifizierung im Service-Registry entfällt mit dem
+  #    stillgelegten Subsystem — der Partial-Deploy läuft jetzt ueber die Kustomize-Overlays.
   # 4. Deployment references the secret via secretKeyRef.
   run grep -B1 -A4 "name: GITHUB_CONTENT_TOKEN" "$BATS_TEST_DIRNAME/../../k3d/website.yaml"
   [ "$status" -eq 0 ]

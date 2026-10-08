@@ -91,7 +91,7 @@ setup_file() {
   # .opencode/agent-models.jsonc ist die SSOT für die Modell-Zuordnung. Jede
   # runtime in agents.yaml muss denselben Modell-String tragen — Namens-Gleichheit
   # allein (P4.3) hat den Drift nicht gefangen (gemma zeigte auf gemma4,
-  # gemma26-primary/-vision auf gptoss-context statt gemma26-factory, T002851).
+  # gemma26-primary/-vision auf gptoss-context statt des dokumentierten Modell-Strings, T002851).
   local drift=""
   while IFS='|' read -r rt reg_model; do
     local json_model

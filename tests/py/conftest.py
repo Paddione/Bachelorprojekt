@@ -7,6 +7,38 @@ import pytest
 import yaml
 
 
+def pytest_configure(config):
+    # Tests assert on plain command output; a developer shell's FORCE_COLOR adds ANSI codes.
+    os.environ.pop("FORCE_COLOR", None)
+    config.addinivalue_line(
+        "markers",
+        "repo_lock(name): serialize tests sharing a fixed path in the repo across xdist workers",
+    )
+
+
+@pytest.fixture(autouse=True)
+def _repo_lock(request):
+    """Hold an exclusive file lock for tests marked repo_lock(name)."""
+    marker = request.node.get_closest_marker("repo_lock")
+    # A nested pytest started by a lock holder inherits the lock instead of deadlocking.
+    held_env = "PYTEST_REPO_LOCK_HELD"
+    if marker is None or os.environ.get(held_env) == marker.args[0]:
+        yield
+        return
+    import fcntl
+    import tempfile
+
+    lock_dir = Path(tempfile.gettempdir()) / "pytest-repo-locks"
+    lock_dir.mkdir(exist_ok=True)
+    with open(lock_dir / f"{marker.args[0]}.lock", "w") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        os.environ[held_env] = marker.args[0]
+        try:
+            yield
+        finally:
+            os.environ.pop(held_env, None)
+
+
 @pytest.fixture(scope="session")
 def repo_root() -> Path:
     """Return the absolute path to the repository root directory."""

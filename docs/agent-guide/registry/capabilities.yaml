@@ -269,6 +269,14 @@ capabilities:
       tier: safe
       deep_ref: ".claude/skills/vitest/SKILL.md"
 
+  pytest-patterns:
+    skill:pytest-patterns:
+      state: canonical
+      use_when: "Pytest-Tests, Fixtures, Parametrisierung und CLI/Subprocess-Testmuster fuer Python und DevOps."
+      roles: [bp-ship]
+      tier: safe
+      deep_ref: ".claude/skills/pytest-patterns/SKILL.md"
+
   abhaengigkeits-pflege:
     skill:update-dependencies:
       state: suppressed

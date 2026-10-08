@@ -25,6 +25,7 @@
   --brass-d: oklch(0.80 0.09 75 / .14);      /* tinted fills */
   --brass-deep: #8a6a2a;                     /* gradient base of brand mark */
   --brass-hex: #cda260;                      /* approximate hex for non-OKLCH contexts (PDF, email) */
+  --on-brass: #0b111c;                       /* CTA text on brass (was ink-900, render-identical, T901312) */
 
   /* ---------- Sage accent (secondary, calm) -------------------------- */
   --sage:    oklch(0.80 0.06 160);

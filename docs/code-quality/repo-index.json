@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1364,
+      "file_count": 1365,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -929,6 +929,7 @@
         "tests/spec/local-llm-proxy/tools-runtime-sandbox.bats",
         "tests/spec/local-llm-proxy/ui-config-seed.bats",
         "tests/spec/lockfile-drift.bats",
+        "tests/spec/massage-a11y.bats",
         "tests/spec/mcp-gateway.bats",
         "tests/spec/mcp-gateway/agy-mcp-permissions.bats",
         "tests/spec/mcp-gateway/agy-token-expansion.bats",

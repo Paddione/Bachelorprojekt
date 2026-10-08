@@ -176,7 +176,7 @@
 
   .btn-primary {
     background: var(--brass);
-    color: var(--ink-900);
+    color: var(--on-brass);
   }
 
   .btn-primary:hover {

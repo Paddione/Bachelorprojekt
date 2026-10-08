@@ -241,6 +241,7 @@ body.kore {
 
   /* Legacy mentolder-named accents → Kore Plasma Lime / Cyan */
   --brass:        var(--copper);
+  --on-brass:     #120D1C;   /* CTA text on lime (was ink-900, render-identical, T901312) */
   --brass-2:      var(--copper-2);
   --brass-d:      var(--copper-tint);
   --brass-deep:   var(--copper-deep);

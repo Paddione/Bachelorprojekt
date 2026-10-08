@@ -147,6 +147,7 @@
   --brass-2: var(--color-brass-2);
   --brass-d: var(--color-brass-d);
   --brass-deep: #4a3814; /* used via var(--brass-deep, ...) fallback in PortalLayout.astro */
+  --on-brass: var(--ink-900); /* default CTA text on brass; brands override (massage: #2A2620, T901312) */
   --sage: var(--color-sage);
   --danger: var(--color-danger);
   --line: var(--color-line);

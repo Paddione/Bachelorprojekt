@@ -1,7 +1,7 @@
 ---
 title: nvim-setup implementation plan
 ticket_id: T901043
-domains: [developer-experience, neovim]
+domains: [dev-tooling, neovim]
 status: plan_staged
 ---
 

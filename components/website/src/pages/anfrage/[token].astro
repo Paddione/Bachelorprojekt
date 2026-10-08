@@ -1,0 +1,112 @@
+---
+export const prerender = false;
+import { pool } from '../../lib/messaging-db-pool';
+import {
+  getAppointmentRequestByToken,
+  isValidRequestTokenFormat,
+  type InboxRowLike,
+} from '../../lib/appointment-requests';
+
+// Single generic 404 for every failure — missing, malformed and unknown
+// tokens are indistinguishable (no enumeration signal), and no DB lookup
+// happens before the format check passes.
+function notFound(): Response {
+  return new Response(
+    '<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Nicht gefunden</title></head><body><main><h1>Nicht gefunden</h1><p>Die angeforderte Seite existiert nicht.</p></main></body></html>',
+    { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+  );
+}
+
+const token = Astro.params.token;
+if (!isValidRequestTokenFormat(token)) return notFound();
+const { rows } = await pool.query<InboxRowLike>(
+  `SELECT id, brand, payload FROM inbox_items
+   WHERE type = 'booking' AND reference_id = $1 LIMIT 1`,
+  [token],
+);
+const req = getAppointmentRequestByToken(rows, token);
+if (req === null) return notFound();
+
+const BADGES = {
+  offen: 'angefragt',
+  bestaetigt: 'bestätigt',
+  abgelehnt: 'abgelehnt',
+  storniert: 'storniert',
+} as const;
+const badge = BADGES[req.state];
+const actionable = req.state === 'offen' || req.state === 'bestaetigt';
+const slotDate = req.slotStart !== null
+  ? new Date(req.slotStart).toLocaleDateString('de-DE', {
+      weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+      timeZone: 'Europe/Berlin',
+    })
+  : null;
+const duration = req.serviceSnapshot?.durationMin;
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Terminanfrage — {badge}</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; padding: 32px 20px; color: #222; background: #fafafa; }
+      main { max-width: 640px; margin: 0 auto; background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; padding: 32px; }
+      .badge { display: inline-block; padding: 4px 14px; border-radius: 999px; background: #eef; font-weight: 600; }
+      dl { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; margin: 24px 0; }
+      dt { color: #666; } dd { margin: 0; }
+      form { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee; }
+      label { display: block; margin: 12px 0 4px; font-weight: 600; }
+      input, textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font: inherit; }
+      button { margin-top: 16px; padding: 12px 24px; min-height: 44px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; font: inherit; cursor: pointer; }
+      .hint { color: #666; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><span class="badge">{badge}</span></p>
+      <h1>Ihre Terminanfrage</h1>
+      <dl>
+        <dt>Status</dt><dd>{badge}</dd>
+        {req.slotStart !== null ? (
+          <>
+            <dt>Wunschtermin</dt><dd>{slotDate}{req.slotDisplay ? ` · ${req.slotDisplay}` : ''}</dd>
+          </>
+        ) : (
+          <>
+            <dt>Anliegen</dt><dd>Rückruf</dd>
+          </>
+        )}
+        {req.serviceName !== null && (
+          <>
+            <dt>Leistung</dt>
+            <dd>{req.serviceName}{typeof duration === 'number' ? ` · ${duration} Min.` : ''}{req.serviceSnapshot ? ` · ${req.serviceSnapshot.price}` : ''}</dd>
+          </>
+        )}
+        <dt>Name</dt><dd>{req.name}</dd>
+      </dl>
+      <p class="hint">Bewahren Sie diesen Link auf — nur über ihn können Sie Ihre Anfrage verwalten.</p>
+
+      {actionable && (
+        <form method="post" action={`/api/anfrage/${token}/storno`}>
+          <h2>Anfrage stornieren</h2>
+          <label for="storno-note">Notiz an die Inhaberin (optional)</label>
+          <textarea id="storno-note" name="note" rows="3" maxlength="1000"></textarea>
+          <button type="submit">Anfrage stornieren</button>
+        </form>
+      )}
+
+      {actionable && req.slotStart !== null && (
+        <form method="post" action={`/api/anfrage/${token}/umbuchung`}>
+          <h2>Umbuchen</h2>
+          <p class="hint">Wählen Sie einen neuen Wunschtermin (frühestens morgen). Es entsteht eine neue Anfrage; die alte wird storniert.</p>
+          <label for="ub-start">Neuer Beginn</label>
+          <input id="ub-start" type="datetime-local" name="slotStart" required />
+          <label for="ub-end">Neues Ende</label>
+          <input id="ub-end" type="datetime-local" name="slotEnd" required />
+          <button type="submit">Umbuchung anfragen</button>
+        </form>
+      )}
+    </main>
+  </body>
+</html>

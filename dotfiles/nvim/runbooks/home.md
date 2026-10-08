@@ -1,8 +1,9 @@
 ---
 page: home
-ticket: T900655
+ticket: T901044
 status: complete
 actions:
+  - Editor
   - Files & Search
   - JavaScript / Frontend
   - GitHub
@@ -10,57 +11,59 @@ actions:
   - Repository & Code Knowledge
   - AI & Agents
   - Models & Inference
-  - Infrastructure
   - ComfyUI & Images
+  - ML & Training
+  - Infrastructure
+  - MCP Servers
+  - User Services
+  - Tests & Plans
   - Settings & Help
 ---
 
 ## Voraussetzungen
 
-- Neovim is installed and on `PATH` (verified target: v0.12.5).
-- The repo config has been installed via `dotfiles/install.sh` into
-  `~/.config/nvim` (see `../README.md`).
+- Neovim ist installiert und auf `PATH` (verifiziertes Ziel: v0.12.5).
+- Die Repo-Config ist via `dotfiles/install.sh` (Paragraph 5) nach
+  `~/.config/nvim` installiert (siehe `../README.md`).
 
 ## Geordnete Schritte
 
-1. Start Neovim.
-2. Open the Home page with `<leader>h` or `:Dashboard` if it is not
-   already showing.
-3. Read the chapter list: ten rows, one per chapter, in the order listed
-   in this file's `actions` header and in `../README.md`.
-4. Move the selection with `j` / `k` or the direct number key for a
-   chapter, then press Enter (or the direct key) to move to that
-   chapter's page. Selecting only focuses the page; nothing runs yet.
-5. On a chapter or sub-page, select an executable action the same way to
-   focus it, then run it as a separate, explicit step (the visible action
-   model's `effect`, with `cwd` resolved from the current buffer's Git
-   root).
-6. Press `<BS>` to go back to the previous page, or `0` to return to Home
-   from any page.
+1. **Editor**: Kapitel oeffnen — LSP/Treesitter/Completion-Faehigkeiten.
+2. **Files & Search**: Kapitel oeffnen — Datei finden, Repo-grep, Buffer.
+3. **JavaScript / Frontend**: Kapitel oeffnen — dev/test/lint/build je Komponente.
+4. **GitHub**: Kapitel oeffnen — PR-Anzeige, Checks, Logs, Release.
+5. **SDLC**: Kapitel oeffnen — Tickets, Claims, Nachrichten, CI-Gates.
+6. **Repository & Code Knowledge**: Kapitel oeffnen — Symbol-/Graph-Suche.
+7. **AI & Agents**: Kapitel oeffnen — Agent im Terminal starten.
+8. **Models & Inference**: Kapitel oeffnen — Loadout-Status/Start/Stopp.
+9. **ComfyUI & Images**: Kapitel oeffnen — Status, Start, Workflows.
+10. **ML & Training**: Kapitel oeffnen — Datensaetze, Laeufe, Boxen.
+11. **Infrastructure**: Kapitel oeffnen — Cluster-Status, Pods, Logs.
+12. **MCP Servers**: Kapitel oeffnen — Server-Status, Registry.
+13. **User Services**: Kapitel oeffnen — systemd-User-Units.
+14. **Tests & Plans**: Kapitel oeffnen — Test-zu-Datei, Plan-/Skill-Browser.
+15. **Settings & Help**: Kapitel oeffnen — Lazy, checkhealth, Recovery.
+
+Jeder Schritt oeffnet nur die Kapitelseite (Fokussieren). Ausfuehren ist
+auf jeder Seite ein zweiter, bestaetigter Schritt. `<BS>` geht zurueck,
+`0` zurueck zu Home.
 
 ## Erwartetes Ergebnis
 
-The Home page renders exactly the ten chapter rows above, each a link
-row ending in a `>` marker, with no Factory row. Selecting a chapter
-switches the same dashboard buffer to that chapter's page; opening the
-page itself performs no shell command, file write, or other state
-change.
+Home rendert genau die 15 Kapitelzeilen oben, in dieser Reihenfolge, jede
+als Linkzeile. Auswaehlen wechselt auf die Kapitelseite; das Oeffnen
+fuehrt keine Shell-Kommandos, Datei-Schreibzugriffe oder Statuswechsel aus.
 
 ## Troubleshooting
 
-- **Dashboard does not appear on `<leader>h` or `:Dashboard`.** Confirm
-  `snacks.nvim` loaded (`:Lazy` shows it as loaded); if not, check for a
-  startup error in `:messages`.
-- **Chapter list is empty or shorter than ten rows.** The dashboard
-  module failed to build its page table; check `:messages` for a Lua
-  error from `config.dashboard`, and confirm the config installed via
-  `dotfiles/install.sh` matches this repo's `dotfiles/nvim/`.
+- **Dashboard erscheint nicht auf `<leader>h` oder `:Dashboard`.**
+  `:messages` auf Lua-Fehler aus `core.dashboard` pruefen; Config-Abgleich
+  via `dotfiles/install.sh` sicherstellen.
+- **Kapitelliste kuerzer als 15 Zeilen.** Ein Kapitelmodul laedt nicht:
+  `nvim -l`-Probe je `chapters.*`-Modul einzeln fahren, Fehler in
+  `:messages` lesen.
 
 ## Recovery
 
-If the new config causes problems, roll back to the preserved prior
-config:
-
-```bash
-mv ~/.config/nvim.old-20260927 ~/.config/nvim
-```
+Keine: Home veraendert nichts. Bei defekter Darstellung `g:dashboard_startup = 0`
+setzen und Neovim ohne Dateiargumente neu starten.

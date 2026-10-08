@@ -1,9 +1,11 @@
--- Buffer-based Git-root resolution (T900655).
+-- Buffer-based Git-root resolution (T901043 p1, Neuaufbau).
 -- Never falls back to a foreign or stale directory, never changes CWD.
+-- Unbenannte Buffer und Dateien ausserhalb eines Checkouts melden klar
+-- statt zu raten (Epic-Querschnittsregel).
 local M = {}
 
 --- Resolve the repository top level for the current buffer.
---- @return string|nil
+--- @return string|nil toplevel, or nil with a vim.notify warning
 function M.root()
   local bufnr = 0
   local path = vim.api.nvim_buf_get_name(bufnr)
@@ -15,9 +17,8 @@ function M.root()
   end
 
   local dir = vim.fn.fnamemodify(path, ':p:h')
-  local cmd = { 'git', '-C', dir, 'rev-parse', '--show-toplevel' }
   local ok, result = pcall(function()
-    return vim.system(cmd, { text = true, timeout = 3000 }):wait()
+    return vim.system({ 'git', '-C', dir, 'rev-parse', '--show-toplevel' }, { text = true, timeout = 3000 }):wait()
   end)
 
   if not ok or result == nil or result.code ~= 0 then

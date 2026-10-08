@@ -26,7 +26,7 @@ if ok then
   -- lazy.nvim besitzt das runtimepath: setup() entfernt fremde Eintraege wieder
   -- (verifiziert mit nvim 0.12.3 unter Windows). Der Cache liegt nicht unter
   -- stdpath('config') und fliegt deshalb aus dem rtp heraus, wodurch jedes
-  -- require('config.*') danach scheitert und das Dashboard nicht startet.
+  -- require('core.*'/'chapters.*') danach scheitert und das Dashboard nicht startet.
   -- package.path fasst lazy nicht an, deshalb steht der Lua-Pfad zusaetzlich
   -- dort. Auf WSL ist das nicht noetig: dort ist die Config selbst
   -- stdpath('config') und damit dauerhaft im rtp.
@@ -35,8 +35,8 @@ if ok then
   -- Selbsttest: der Mirror gilt erst als geladen, wenn die Config-Module auch
   -- wirklich aufloesbar sind. package.loaded statt require, damit der Test
   -- keine Module nachlaedt und bei einem Fehler nicht selbst fehlschlaegt.
-  if l and package.loaded['config.dashboard'] == nil then
-    l, e = false, 'Config-Module nicht ladbar (config.dashboard fehlt)'
+  if l and package.loaded['core.dashboard'] == nil then
+    l, e = false, 'Config-Module nicht ladbar (core.dashboard fehlt)'
   end
   vim.g.wrapper_ok = l
   vim.g.wrapper_err = l and 'none' or tostring(e)

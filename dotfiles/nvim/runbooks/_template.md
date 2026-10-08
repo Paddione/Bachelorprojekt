@@ -15,8 +15,10 @@ verified, not what is merely assumed.
 ## Geordnete Schritte
 
 Walk through the page's usage in the exact order a person would perform
-it, one numbered step at a time: how to reach the page, how selection
-focuses an action versus executes it, and any inputs an action needs.
+it, one numbered step at a time: `1. **<action>**` — one step per action,
+same names and order as the `actions:` header and the dashboard page.
+How to reach the page, how selection focuses an action versus executes it,
+and any inputs an action needs.
 
 ## Erwartetes Ergebnis
 

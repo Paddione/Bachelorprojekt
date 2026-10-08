@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.398.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.398.0...website-v1.398.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **db:** ensure admin_actions/error_log + harden billing routes [T900819] ([#6342](https://github.com/Paddione/Bachelorprojekt/issues/6342)) ([0d8e2c8](https://github.com/Paddione/Bachelorprojekt/commit/0d8e2c8a70c2292fd6c3fc5d94dc55b34d0c324b))
+
 ## [1.398.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.397.0...website-v1.398.0) (2026-10-07)
 
 

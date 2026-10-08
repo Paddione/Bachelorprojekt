@@ -187,6 +187,13 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `bp-ship`
   - _Tiefe:_ `.claude/skills/vitest/SKILL.md`
 
+## Fähigkeit: `pytest-patterns`
+
+- **`skill:pytest-patterns`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Pytest-Tests, Fixtures, Parametrisierung und CLI/Subprocess-Testmuster fuer Python und DevOps.
+  - _Rollen:_ `bp-ship`
+  - _Tiefe:_ `.claude/skills/pytest-patterns/SKILL.md`
+
 ## Fähigkeit: `abhaengigkeits-pflege`
 
 - **`skill:update-dependencies`** — Status `suppressed`

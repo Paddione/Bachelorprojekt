@@ -188,6 +188,7 @@ alle Skills als projekteigen — das Gate wird dann strenger, nicht schwächer.
 | `gitops-repo-audit` | Flux CD / controlplane.io | GitOps-**Repo-Dateien** prüfen — Schema-Validierung, deprecated APIs, RBAC/Multi-Tenancy. Dispatched as subagent. |
 | `lavish` | Kun Chen (kunchenguid) | Komplexe oder visuelle Antworten als annotierbares HTML-Artefakt rendern (`lavish-axi`). Nur nach Zustimmung des Nutzers. |
 | `superpowers:using-git-worktrees` | Superpowers-Plugin | Hintergrund zur Worktree-Isolation (Detached-HEAD, git-crypt). Im dev-flow-Pfad ersetzt durch `scripts/worktree-create.sh`. |
+| `pytest-patterns` | Luxor / manutej | Pytest-Best-Practices, Fixtures, Parametrisierung und CLI-Testing. |
 | `vitest` | Anthony Fu (antfu/skills) | Vitest-Referenz — Mocking, Coverage-Konfiguration, Test-Filtering, Fixtures. |
 | `llama-cpp` | Orchestra-Research/AI-research-SKILLs | llama.cpp-Inferenz auf CPU/Edge-GPUs (opencode-only). |
 | `langfuse` | Langfuse (`langfuse/skills`) | Langfuse-Observability, Tracing, Evaluations und API-Dokumentation für alle Harnesses. |

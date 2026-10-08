@@ -1,0 +1,171 @@
+---
+import { requireOwner, ownerBusiness } from '../../../lib/owner-guard';
+import { getLoginUrl } from '../../../lib/auth';
+import { getInvoice, listInvoices } from '../../../lib/invoices';
+import { getSiteSetting } from '../../../lib/website-core-db';
+
+const session = await requireOwner(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+
+const brand = ownerBusiness(session).brand ?? process.env.BRAND ?? 'mentolder';
+const id = Astro.params.id ?? '';
+// Missing or foreign invoices behave identically: redirect, no data leak.
+const invoice = id === '' ? null : await getInvoice(id);
+if (!invoice || invoice.brand !== brand) return Astro.redirect('/owner/rechnungen');
+
+const [creditorName, creditorAddress, creditorTaxId] = await Promise.all([
+  getSiteSetting(brand, 'creditor_name'),
+  getSiteSetting(brand, 'creditor_address'),
+  getSiteSetting(brand, 'creditor_tax_id'),
+]);
+// Successor lookup for corrected (storniert) originals via the correction link.
+const successor = invoice.status === 'storniert'
+  ? (await listInvoices(brand)).find((entry) => entry.cancelsInvoiceId === invoice.id) ?? null
+  : null;
+
+function fmtDate(iso: string): string {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin' });
+}
+
+function fmtEur(cents: number): string {
+  return (cents / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+}
+
+const STATUS_LABEL: Record<string, string> = { offen: 'Offen', bezahlt: 'Bezahlt', storniert: 'Storniert' };
+const METHOD_LABEL: Record<string, string> = {
+  sepa: 'SEPA-Lastschrift', cash: 'Bar', bank: 'Überweisung', other: 'Sonstige',
+};
+const isKleinunternehmer = invoice.taxMode === 'kleinunternehmer';
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rechnung {invoice.number} — Owner-Bereich</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; padding: 32px 20px; color: #222; background: #fafafa; }
+      main { max-width: 760px; margin: 0 auto; }
+      .doc { background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; padding: 28px 32px; }
+      .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 20px 0; }
+      .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin: 20px 0; }
+      table.items { width: 100%; border-collapse: collapse; margin: 20px 0; }
+      table.items th, table.items td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eee; }
+      table.items td.num, table.items th.num { text-align: right; font-variant-numeric: tabular-nums; }
+      .totals { margin-left: auto; width: 280px; max-width: 100%; }
+      .totals .row { display: flex; justify-content: space-between; padding: 4px 0; }
+      .totals .grand { font-weight: 700; font-size: 1.2em; border-top: 1px solid #222; margin-top: 8px; padding-top: 8px; }
+      .taxnote { margin: 20px 0; padding: 12px 16px; background: #f4f4f4; border-radius: 8px; }
+      form { background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; padding: 16px 20px; margin: 16px 0; }
+      label { display: block; font-size: 14px; color: #555; margin: 8px 0; }
+      select, textarea { display: block; font: inherit; padding: 8px; border: 1px solid #ccc; border-radius: 8px; width: 280px; max-width: 100%; }
+      button { margin-top: 8px; padding: 10px 20px; min-height: 44px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; font: inherit; cursor: pointer; }
+      .no-print { display: flex; gap: 12px; margin-bottom: 16px; }
+      .no-print button, .no-print a {
+        padding: 10px 20px; min-height: 44px; border-radius: 8px; font: inherit; cursor: pointer; text-decoration: none;
+        border: 1px solid #333; background: #222; color: #fff; display: inline-block; line-height: 24px;
+      }
+      .no-print a { background: #fff; color: #222; }
+      @media print {
+        body { background: #fff; padding: 0; }
+        main { max-width: none; }
+        .doc { border: none; border-radius: 0; padding: 0; }
+        form, nav.actions { display: none !important; }
+        .no-print { display: none !important; }
+        @page { size: A4; margin: 18mm 15mm; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="no-print">
+        <button type="button" onclick="window.print()">Drucken</button>
+        <a href="/owner/rechnungen">Zurück zur Liste</a>
+      </div>
+      <article class="doc">
+        <h1>Rechnung {invoice.number}</h1>
+        <p>Status: <strong>{STATUS_LABEL[invoice.status] ?? invoice.status}</strong>
+          {invoice.status === 'bezahlt' && invoice.paymentMethod && (
+            <> ({METHOD_LABEL[invoice.paymentMethod] ?? invoice.paymentMethod})</>
+          )}
+        </p>
+        {invoice.cancelsInvoiceId && (
+          <p>Korrektur-Rechnung für Beleg <a href={`/owner/rechnungen/${encodeURIComponent(invoice.cancelsInvoiceId)}`}>ansehen</a>.</p>
+        )}
+        {successor && (
+          <p>Storniert, ersetzt durch Rechnung <a href={`/owner/rechnungen/${encodeURIComponent(successor.id)}`}>{successor.number}</a>.</p>
+        )}
+        <div class="parties">
+          <section>
+            <h2>Leistender</h2>
+            <p>{creditorName ?? '—'}<br />{creditorAddress ?? '—'}</p>
+            <p>Steuernummer / USt-IdNr.: {creditorTaxId ?? '—'}</p>
+          </section>
+          <section>
+            <h2>Empfänger</h2>
+            <p>{invoice.customerName}<br />{invoice.customerContact}</p>
+          </section>
+        </div>
+        <div class="meta">
+          <p><strong>Rechnungsnummer:</strong> {invoice.number}</p>
+          <p><strong>Rechnungsdatum:</strong> {fmtDate(invoice.issueDate)}</p>
+          <p><strong>Leistungsdatum:</strong> {fmtDate(invoice.serviceDate)}</p>
+        </div>
+        <table class="items">
+          <thead>
+            <tr><th>Leistung</th><th>Dauer</th><th class="num">Betrag</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{invoice.serviceName}</td>
+              <td>{invoice.serviceDurationMin} Min.</td>
+              <td class="num">{fmtEur(invoice.unitPriceCents)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="totals">
+          <div class="row"><span>Entgelt</span><span>{fmtEur(invoice.unitPriceCents)}</span></div>
+          {isKleinunternehmer ? (
+            <div class="row"><span>USt. (§ 19 UStG)</span><span>—</span></div>
+          ) : (
+            <div class="row"><span>USt. {invoice.taxRate} %</span><span>{fmtEur(invoice.taxAmountCents)}</span></div>
+          )}
+          <div class="row grand"><span>Gesamt</span><span>{fmtEur(invoice.grossAmountCents)}</span></div>
+        </div>
+        {isKleinunternehmer && (
+          <p class="taxnote">Der Rechnungssteller ist Kleinunternehmer gemäß § 19 Abs. 1 UStG. Es wird keine Umsatzsteuer ausgewiesen.</p>
+        )}
+        {invoice.notes && (
+          <p><strong>Notizen:</strong> {invoice.notes}</p>
+        )}
+      </article>
+      <nav class="actions">
+        {invoice.status === 'offen' && (
+          <form method="post" action={`/api/owner/rechnungen/${encodeURIComponent(invoice.id)}/zahlungsstatus`}>
+            <h2>Als bezahlt markieren</h2>
+            <input type="hidden" name="status" value="bezahlt" />
+            <label>Zahlungsmethode
+              <select name="method" required>
+                <option value="bank">Überweisung</option>
+                <option value="cash">Bar</option>
+                <option value="sepa">SEPA-Lastschrift</option>
+                <option value="other">Sonstige</option>
+              </select>
+            </label>
+            <button type="submit">Als bezahlt markieren</button>
+          </form>
+        )}
+        {invoice.status === 'offen' && (
+          <form method="post" action={`/api/owner/rechnungen/${encodeURIComponent(invoice.id)}/korrigieren`}>
+            <h2>Korrigieren (Storno und Neuausstellung)</h2>
+            <label>Begründung (Pflicht)
+              <textarea name="reason" rows="3" maxlength="1000" required></textarea>
+            </label>
+            <button type="submit">Korrigieren</button>
+          </form>
+        )}
+        <p><a href="/owner">Zurück zur Übersicht</a></p>
+      </nav>
+    </main>
+  </body>
+</html>

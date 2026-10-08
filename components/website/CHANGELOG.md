@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.403.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.402.0...website-v1.403.0) (2026-10-08)
+
+
+### Features
+
+* **website:** minimal client directory and appointment history [T901026] ([#6361](https://github.com/Paddione/Bachelorprojekt/issues/6361)) ([f52b4cc](https://github.com/Paddione/Bachelorprojekt/commit/f52b4ccdda7d9b78a64bed8264bd8a63c69243d9))
+
 ## [1.402.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.401.0...website-v1.402.0) (2026-10-08)
 
 

@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 112,
+  "count": 114,
   "routes": [
     {
       "route": "/",
@@ -750,6 +750,22 @@
       "authTier": "public",
       "brand": "both",
       "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/owner/kunden",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/owner/kunden/[id]",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
       "excludeFromSweep": false,
       "media": false
     },

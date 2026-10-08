@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T01:43:33.539Z",
+  "generatedAt": "2026-10-08T02:22:31.709Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2225,6 +2225,38 @@
       ],
       "auth": "session",
       "file": "components/website/src/pages/api/owner/calendar/block.ts"
+    },
+    {
+      "path": "/api/owner/kunden/{id}/export",
+      "methods": [
+        "GET"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/kunden/[id]/export.ts"
+    },
+    {
+      "path": "/api/owner/kunden/{id}/korrigieren",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/kunden/[id]/korrigieren.ts"
+    },
+    {
+      "path": "/api/owner/kunden/{id}/loeschen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/kunden/[id]/loeschen.ts"
+    },
+    {
+      "path": "/api/owner/kunden/{id}/zusammenfuehren",
+      "methods": [
+        "POST"
+      ],
+      "auth": "session",
+      "file": "components/website/src/pages/api/owner/kunden/[id]/zusammenfuehren.ts"
     },
     {
       "path": "/api/owner/me",

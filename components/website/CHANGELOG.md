@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.407.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.406.0...website-v1.407.0) (2026-10-08)
+
+
+### Features
+
+* **test:** planner dispatch/synthese cases f5-f7 + orchestrator-dispatch BATS [T901309] ([#6393](https://github.com/Paddione/Bachelorprojekt/issues/6393)) ([e8460cc](https://github.com/Paddione/Bachelorprojekt/commit/e8460ccb34a670ec1d4f5ce567f67a9344cd464a))
+
 ## [1.406.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.3...website-v1.406.0) (2026-10-08)
 
 

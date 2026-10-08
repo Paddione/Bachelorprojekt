@@ -283,6 +283,19 @@ clients:
   # CBM-Daemon-Single-Flight 30s -> `Request timed out`; nativ ~1s, v0.10.8).
   # Version via npm-global/~/.local/bin gepinnt (0.10.8). T002690: command UND
   # args ueber alle Harness-Eintraege + Top-Level identisch — alle nativ.
+  # Betrieb (Vorfall 2026-10-08): Der bare command wird von JEDEM Harness per
+  # PATH aufgeloest — WSL: ~/.local/bin (+ ~/.npm-global/bin), Windows:
+  # %LOCALAPPDATA%/Programs/codebase-memory-mcp. KEIN absoluter Linux-Pfad:
+  # der braeche Windows und die G-AGENTIC14-Paritaet (.mcp.json <->
+  # .opencode/opencode.jsonc). Sessions aus dem Repo-Checkout starten, NICHT
+  # aus $HOME oder /tmp (ausserhalb der erlaubten Roots -> watch skipped;
+  # $HOME-Index riesig). Host-Pin Stand 2026-10-08: 0.11.0 (manuell via
+  # npm i -g codebase-memory-mcp@0.11.0); Container-Pin: ARG in
+  # docker/mcp-node/Dockerfile. Stale-Status (`failed: ... exited with code 1`
+  # ohne frischen Spawn): kein Binary-Defekt — `opencode reload` (frischer
+  # Reconnect), Fallback `opencode service restart`. Belegt 2026-10-08: nach
+  # reload alle drei Verzeichnisse connected (tools=17), Binaer-Handshake
+  # solo exit 0.
   codebase-memory-mcp:
     transport: stdio
     command: codebase-memory-mcp

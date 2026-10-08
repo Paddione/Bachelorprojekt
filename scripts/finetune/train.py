@@ -334,11 +334,24 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
         print(f"Validierungszeilen ohne Lernsignal: {eval_dropped}/{len(eval_rows)}")
         eval_dataset = Dataset.from_list(eval_tokenized)
 
+    from trl.trainer.sft_trainer import DataCollatorForLanguageModeling
+
+    # Expliziter TRL-Collator (statt impliziter Wahl): Unsloth laedt Qwen3.5 als
+    # VL-Processor (_is_vlm=True), wodurch der Trainer sonst transformers'
+    # DataCollatorForLanguageModeling waehlt — der labels aus input_ids neu
+    # erzeugt (Maske futsch) und im Eval-Loop an ragged labels zerbricht.
+    # TRLs Collator padden unsere labels mit -100 und fasst sie nicht an.
+    pad_id = getattr(tokenizer, "pad_token_id", None) or tokenizer.eos_token_id
+    data_collator = DataCollatorForLanguageModeling(
+        pad_token_id=pad_id, completion_only_loss=False,
+    )
+
     trainer = SFTTrainer(
         model=model,
         processing_class=tokenizer,
         train_dataset=dataset,
         eval_dataset=eval_dataset,
+        data_collator=data_collator,
         args=SFTConfig(
             max_length=max_seq_length,
             per_device_train_batch_size=1,

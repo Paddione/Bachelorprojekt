@@ -178,7 +178,7 @@ HELP
       cat <<'HELP'
 Usage: ticket.sh release-hold --id <external_id>
   --id <external_id>      Ticket-ID (required)
-  Setzt readiness.execution_released=true und weckt factory.service.
+  Setzt readiness.execution_released=true (reiner DB-Flag; kein Wake-up-Pfad mehr).
 HELP
       ;;
     seq-repair)
@@ -318,8 +318,8 @@ HELP
       cat <<'HELP'
 Usage: ticket.sh enqueue --id <external_id> [--branch <branch>] [--plan <tasks.md>]
   --id <external_id>      Ticket-ID (required)
-  --branch <branch>       Optionaler Branch (FACTORY-PLAN-REF)
-  --plan <tasks.md>       Optionaler Plan-Pfad (FACTORY-PLAN-REF)
+  --branch <branch>       Optionaler Branch (Plan-Referenz)
+  --plan <tasks.md>       Optionaler Plan-Pfad (Plan-Referenz)
 HELP
       ;;
     stage-plan)
@@ -329,8 +329,8 @@ Usage: ticket.sh stage-plan --id <external_id> --branch <branch> --plan <tasks.m
   --branch <branch>       Feature/Fix-Branch (required)
   --plan|--plan-file <p>  Pfad zur Plan-Datei (required, muss im Git-Tree liegen)
   --partials <1..9>       Partial-Anzahl (required, auch fuer einen einzelnen Plan)
-  --hold                  Ticket NICHT sofort factory-greifbar machen (Operator gibt spaeter frei)
-  --no-hold               Factory greift sofort zu. Pflicht: genau eines von
+  --hold                  Ticket NICHT sofort zur Ausfuehrung freigeben (Operator gibt spaeter frei)
+  --no-hold               Ausfuehrung sofort freigegeben. Pflicht: genau eines von
                           --hold/--no-hold — ohne beide bricht stage-plan ab (T003267).
 HELP
       ;;

@@ -60,7 +60,7 @@ candidates="$(
 
 # Filtern. Die drei Regeln entstanden am realen Bestand, nicht am Reissbrett — ein Lauf gegen
 #   - blosse Extension-Tokens (`.sh`, `.md`) aus S1-Budget-Tabellen im selben Abschnitt,
-#   - Basenames aus Prosa (`queue.sh`, `factory.service`) ohne Verzeichnisanteil,
+#   - Basenames aus Prosa (`queue.sh`, Unit-Namen) ohne Verzeichnisanteil,
 # Deshalb reicht "hat eine Extension" nicht: ein neuer Pfad muss zusaetzlich einen
 # Verzeichnisanteil haben, dessen erster Bestandteil im Repo existiert.
 declare -A seen=()

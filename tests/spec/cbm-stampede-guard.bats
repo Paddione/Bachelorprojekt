@@ -505,3 +505,24 @@ STUBEOF
   printf '%s' "$output" | jq -e '.status == "would-refresh"' >/dev/null
   ! grep -q 'index_repository' "$STUB_LOG"
 }
+
+@test "T900996-status: db-changed reports unknown WITH refresh allowed (re-baseline via refresh)" {
+  isolate_home
+  local repo="$BATS_TEST_TMPDIR/repo"
+  make_repo "$repo"
+  local root
+  root="$(realpath "$repo")"
+  export STUB_ROOT="$root" STUB_MODE="ok"
+  stub_cli
+  # seed the graph DB so the receipt records a stat, then baseline via wrapper
+  echo "v1" > "$TEST_HOME/.cache/codebase-memory-mcp/home-patrick-Bachelorprojekt.db"
+  run bash "$WRAPPER" "{\"repo_path\": \"$root\", \"mode\": \"fast\", \"persistence\": true}"
+  [ "$status" -eq 0 ]
+  # simulate a frequent background DB writer (mtime/size change, cf. T900996)
+  echo "v2-moredata" > "$TEST_HOME/.cache/codebase-memory-mcp/home-patrick-Bachelorprojekt.db"
+  run python3 "$HELPER" status --repo "$root" --project home-patrick-Bachelorprojekt --timeout 10
+  printf '%s' "$output" | jq -e '.status == "unknown"' >/dev/null
+  printf '%s' "$output" | jq -e '.reasons | index("db-changed")' >/dev/null
+  printf '%s' "$output" | jq -e '.receipt == null' >/dev/null
+  printf '%s' "$output" | jq -e '.refresh_allowed == true' >/dev/null
+}

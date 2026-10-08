@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-10-08T02:22:31.709Z
+> Generated at 2026-10-08T03:01:48.867Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -281,6 +281,10 @@
 | `/api/owner/kunden/{id}/loeschen` | POST | 🔑 session | `components/website/src/pages/api/owner/kunden/[id]/loeschen.ts` |
 | `/api/owner/kunden/{id}/zusammenfuehren` | POST | 🔑 session | `components/website/src/pages/api/owner/kunden/[id]/zusammenfuehren.ts` |
 | `/api/owner/me` | GET | 🔑 session | `components/website/src/pages/api/owner/me.ts` |
+| `/api/owner/rechnungen/{id}/korrigieren` | POST | 🔑 session | `components/website/src/pages/api/owner/rechnungen/[id]/korrigieren.ts` |
+| `/api/owner/rechnungen/{id}/zahlungsstatus` | POST | 🔑 session | `components/website/src/pages/api/owner/rechnungen/[id]/zahlungsstatus.ts` |
+| `/api/owner/rechnungen/erstellen` | POST | 🔑 session | `components/website/src/pages/api/owner/rechnungen/erstellen.ts` |
+| `/api/owner/rechnungen/export` | GET | 🔑 session | `components/website/src/pages/api/owner/rechnungen/export.ts` |
 | `/api/poll/{id}` | GET | ❓ unclassified | `components/website/src/pages/api/poll/[id].ts` |
 | `/api/poll/{id}/answer` | POST | ❓ unclassified | `components/website/src/pages/api/poll/[id]/answer.ts` |
 | `/api/poll/{id}/results` | GET | ❓ unclassified | `components/website/src/pages/api/poll/[id]/results.ts` |

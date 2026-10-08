@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.405.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.2...website-v1.405.3) (2026-10-08)
+
+
+### Bug Fixes
+
+* **website:** correct kunden detail import depth [T901263] ([#6389](https://github.com/Paddione/Bachelorprojekt/issues/6389)) ([196795f](https://github.com/Paddione/Bachelorprojekt/commit/196795f9129b40f77907880d74f1930b42973936))
+
 ## [1.405.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.1...website-v1.405.2) (2026-10-08)
 
 

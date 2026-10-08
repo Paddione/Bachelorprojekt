@@ -1794,6 +1794,12 @@
     "kind": "shell"
   },
   {
+    "id": "T901263-1",
+    "file": "tests/spec/client-directory.bats",
+    "category": "T901263",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",
@@ -5852,6 +5858,12 @@
   {
     "id": "unsloth-eval-harness/testset-shape",
     "file": "tests/spec/unsloth-eval-harness/testset-shape.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-eval-harness/worker-testset",
+    "file": "tests/spec/unsloth-eval-harness/worker-testset.bats",
     "category": "unsloth-eval-harness",
     "kind": "shell"
   },

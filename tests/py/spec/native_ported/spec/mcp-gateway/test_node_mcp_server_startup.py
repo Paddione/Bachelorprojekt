@@ -33,7 +33,7 @@ def mcp_stdio(server: Path, *frames: str):
             proc.stdin.write(frame + "\n")
         proc.stdin.flush()
         time.sleep(3)
-        proc.stdin.close()
+        # communicate() closes stdin itself; closing it first breaks its flush on Python 3.12.
         out, _ = proc.communicate(timeout=25)
         return proc.returncode, out
     except subprocess.TimeoutExpired:

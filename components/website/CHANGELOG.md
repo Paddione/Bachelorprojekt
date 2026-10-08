@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.406.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.3...website-v1.406.0) (2026-10-08)
+
+
+### Features
+
+* **scripts:** instruct-worker testset [T901286] ([#6391](https://github.com/Paddione/Bachelorprojekt/issues/6391)) ([3ed300b](https://github.com/Paddione/Bachelorprojekt/commit/3ed300b8567a4d5a04fb9ec88127806b44302483))
+
 ## [1.405.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.405.2...website-v1.405.3) (2026-10-08)
 
 

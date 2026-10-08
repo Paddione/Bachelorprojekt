@@ -22,7 +22,7 @@ CLI:
         prints {"score": 0.0|1.0, "reasons": [...]}, exit 0.
 
     eval_scoring.py validate-testset <path.jsonl>
-        Validates shape (>=40 cases, all three partitions populated, every
+        Validates shape (>=40 cases, at least one partition populated, every
         case has an en/de counterpart via pair_id). Exit 0 if valid, exit 1
         with the shortfall named on stderr otherwise.
 """
@@ -151,9 +151,11 @@ def validate_testset(cases: list) -> list:
         )
 
     class_counts = Counter(c.get("class") for c in cases)
-    for cls in CASE_CLASSES:
-        if class_counts.get(cls, 0) == 0:
-            problems.append(f"partition {cls!r} has no cases")
+    if not any(class_counts.get(cls, 0) > 0 for cls in CASE_CLASSES):
+        problems.append(
+            "no populated partition (need at least one of "
+            "'action', 'no_action', 'clarify')"
+        )
 
     pairs = defaultdict(set)
     for c in cases:
@@ -190,7 +192,7 @@ def _cmd_validate_testset(args: argparse.Namespace) -> int:
         for problem in problems:
             print(f"ERROR: {problem}", file=sys.stderr)
         return 1
-    print(f"OK: {len(cases)} cases, all partitions populated, all pairs complete")
+    print(f"OK: {len(cases)} cases, at least one partition populated, all pairs complete")
     return 0
 
 

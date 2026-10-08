@@ -1800,6 +1800,18 @@
     "kind": "shell"
   },
   {
+    "id": "T901310-1",
+    "file": "tests/spec/navigation-responsive.bats",
+    "category": "T901310",
+    "kind": "shell"
+  },
+  {
+    "id": "T901310-2",
+    "file": "tests/spec/navigation-responsive.bats",
+    "category": "T901310",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",

@@ -277,7 +277,6 @@
                     </label>
                   {/each}
                 </fieldset>
-                <p class="j-hint">Preise sind Platzhalter — finale Preise folgen. (Entwurf)</p>
                 <button type="button" class="j-btn" disabled={selectedServiceKey === ''} onclick={goStep2}>
                   Weiter zu Schritt 2
                 </button>

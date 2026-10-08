@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ServiceOverride, LeistungCategoryOverride } from '../../../lib/website-db';
   import { deriveHeadlinePrice } from '../../../lib/content-projection';
+  import { massageRowPriceLabel } from '../../../lib/massage-pricing';
 
   let { initialServices, initialLeistungen, initialPriceListUrl, staticSlugs }: {
     initialServices: ServiceOverride[];
@@ -248,6 +249,10 @@
               <div><label class={labelCls}>Name</label><input type="text" bind:value={svc.name} class={inputCls} onchange={() => { leistungen = [...leistungen]; }} /></div>
               <div><label class={labelCls}>Preis</label><input type="text" bind:value={svc.price} class={inputCls} onchange={() => { leistungen = [...leistungen]; }} /></div>
               <div><label class={labelCls}>Einheit</label><input type="text" bind:value={svc.unit} class={inputCls} onchange={() => { leistungen = [...leistungen]; }} /></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class={labelCls}>Multiplier (Preismodell)</label><input type="number" min="0" step="0.05" value={svc.multiplier ?? 1} class={inputCls} oninput={(e) => { const v = e.currentTarget.valueAsNumber; svc.multiplier = Number.isFinite(v) && v > 0 ? v : 1; leistungen = [...leistungen]; }} /></div>
+              <div><label class={labelCls}>Vorschau (berechnet)</label><p class="px-3 py-2 font-mono text-sm text-gold">{massageRowPriceLabel(svc)}</p></div>
             </div>
             <div><label class={labelCls}>Beschreibung</label><textarea bind:value={svc.desc} rows={2} class="{inputCls} resize-none" onchange={() => { leistungen = [...leistungen]; }}></textarea></div>
           </div>

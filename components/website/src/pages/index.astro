@@ -23,6 +23,7 @@ import {
   getEffectiveKontakt,
   bundleSeo,
 } from '../lib/content';
+import { massageRowPriceLabel } from '../lib/massage-pricing';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
@@ -55,7 +56,7 @@ const [homepage, faq, allServices, stammdaten, _effectiveNav, effectiveFooter, e
 const services = allServices.filter((s) => !s.hidden);
 
 // Journey service keys (T901024, vgl. kontakt.astro + content/massage/leistungen.json):
-// ruecken-30, ganzkoerper-60 (Highlight), ganzkoerper-90 — Preise sind Platzhalter.
+// ruecken-30, ganzkoerper-60 (Highlight), ganzkoerper-90 — Preise aus dem OQ-05-Helper.
 const massageLeistungen = isMassage ? await getEffectiveLeistungen().catch(() => []) : [];
 const massageKontakt = isMassage ? await getEffectiveKontakt().catch(() => null) : null;
 const massageFaqTop = isMassage ? faq.slice(0, 3) : [];
@@ -140,7 +141,7 @@ const processSteps = homepage.processSteps ?? [];
                   <p>{svc.desc}</p>
                 </div>
                 <div class="mg-offer-side">
-                  <p><span class="t-slot">Entwurf</span> <strong>{svc.price}</strong></p>
+                  <p><span class="t-slot">Entwurf</span> <strong>{massageRowPriceLabel(svc)}</strong></p>
                   <a class="mg-btn mg-btn-primary" href={`/kontakt?service=${svc.key}`}>Termin anfragen</a>
                 </div>
               </li>

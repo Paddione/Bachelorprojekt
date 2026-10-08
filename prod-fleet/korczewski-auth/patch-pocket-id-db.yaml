@@ -1,0 +1,24 @@
+# T901440: Pocket ID auf die zentrale shared-db zeigen (p1-Rollen/DBs).
+# - initContainer wartet auf pocket_id_korczewski in der zentralen Instanz
+# - POCKET_ID_DB_PASSWORD liest den neuen korczewski-Key
+# - DB_CONNECTION_STRING mit TLS-Pflicht; $(...)-Expansion bleibt Kubernetes
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-id
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: wait-for-db
+          command: ['sh', '-c', 'until pg_isready -h shared-db.workspace.svc.cluster.local -p 5432 -U pocket_id_korczewski -d pocket_id_korczewski -q; do echo "waiting for shared-db..."; sleep 2; done']
+      containers:
+        - name: pocket-id
+          env:
+            - name: POCKET_ID_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: POCKET_ID_KORCZEWSKI_DB_PASSWORD
+            - name: DB_CONNECTION_STRING
+              value: "postgresql://pocket_id_korczewski:$(POCKET_ID_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/pocket_id_korczewski?sslmode=require"

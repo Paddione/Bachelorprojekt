@@ -1,0 +1,11 @@
+# T901440: eigene Pocket ID fuer den korczewski-Slot (ns workspace-korczewski).
+# Namespace-Manifest explizit — SealedSecrets allein garantieren keine
+# Namespace-Erzeugung.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: workspace-korczewski
+  labels:
+    app.kubernetes.io/part-of: workspace-mvp
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

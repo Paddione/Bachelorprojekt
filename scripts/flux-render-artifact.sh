@@ -329,6 +329,19 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   render_component prod-fleet/website-korczewski "${OUT_DIR}/website-korczewski/website-korczewski.yaml"
 )
 
+# 5a. Korczewski Auth (T901440) — eigene Pocket ID, Client-Seed und
+# Wildcard-Zertifikat im workspace-korczewski Namespace; DB/Rollen aus der
+# zentralen shared-db (p1). Produktive Domains erst nach Env-Substitution.
+(
+  set +u
+  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  apply_schema_defaults
+  if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
+  if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
+  mkdir -p "${OUT_DIR}/korczewski-auth"
+  render_component prod-fleet/korczewski-auth "${OUT_DIR}/korczewski-auth/korczewski-auth.yaml"
+)
+
 # 5b. Staging app stack (T015004) — workspace-staging via prod-fleet/staging.
 #     Verdrahtet den bislang GitOps-verwaisten Staging-Namespace (Ursache von
 #     T014538/SA-FC-02) in den Flux-Pfad.
@@ -376,7 +389,7 @@ find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clus
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

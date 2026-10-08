@@ -1,46 +1,16 @@
--- ============================================================================
--- Neovim Configuration — nvim-dashboard-foundation (T900655)
--- ============================================================================
-
--- ── Leaders (must be set before any plugin loads) ──────────────────────────
+-- Neovim-Konfiguration — Neuaufbau (T901043, nur Neovim).
+-- SSOT: Bachelorprojekt/dotfiles/nvim. Einziger Weg nach live:
+-- dotfiles/install.sh, Paragraph 5.
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- ── Plugin Manager: lazy.nvim (stable) ─────────────────────────────────────
-local lazy_path = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
-if not vim.loop.fs_stat(lazy_path) then
-  vim.fn.system({
-    'git',
-    'clone',
-    '--filter=blob:none',
-    'https://github.com/folke/lazy.nvim.git',
-    lazy_path,
-  })
-  vim.fn.system({
-    'git',
-    '-C',
-    lazy_path,
-    'checkout',
-    'stable',
-  })
-end
-vim.opt.rtp:prepend(lazy_path)
+-- lazy.nvim-Bootstrap (klont bei Bedarf, bleibt offline-fehlerfrei).
+require('core.lazy').bootstrap()
 
--- ── Plugin Spec ─────────────────────────────────────────────────────────────
-require('lazy').setup({
-  { import = 'plugins.core' },
-  { import = 'plugins.editor' },
-  { import = 'plugins.nodectl' },
-})
+-- Genau drei setup()-Aufrufe:
+require('core.options').setup() -- 1: Core-Defaults (Optionen + Keymaps)
+require('core.dashboard').setup() -- 2: Dashboard (Kommandos, Maps, Startscreen)
+require('core.dashboard').setup_chapters() -- 3: Kapitel-Registrierung (alle Seiten)
 
--- Use the theme already included in the shared plugin set.
-vim.cmd.colorscheme('tokyonight-night')
-
--- ── Shared editor defaults ──────────────────────────────────────────────────
-require('config.editor').setup()
-
--- ── Dashboard: registers :Dashboard and <leader>h ───────────────────────────
-require('config.dashboard').setup()
-
--- Nodectl: node-control layer (:Node* commands, <leader>N* keymaps)
-require('config.nodectl').setup()
+-- Theme aus dem konsolidierten Plugin-Set (fehlerfrei ohne Plugins).
+pcall(vim.cmd.colorscheme, 'tokyonight-night')

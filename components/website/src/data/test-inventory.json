@@ -1632,6 +1632,36 @@
     "kind": "shell"
   },
   {
+    "id": "T901024-1",
+    "file": "tests/spec/appointment-requests.bats",
+    "category": "T901024",
+    "kind": "shell"
+  },
+  {
+    "id": "T901024-2",
+    "file": "tests/spec/appointment-requests.bats",
+    "category": "T901024",
+    "kind": "shell"
+  },
+  {
+    "id": "T901024-3",
+    "file": "tests/spec/appointment-requests.bats",
+    "category": "T901024",
+    "kind": "shell"
+  },
+  {
+    "id": "T901024-4",
+    "file": "tests/spec/appointment-requests.bats",
+    "category": "T901024",
+    "kind": "shell"
+  },
+  {
+    "id": "T901024-5",
+    "file": "tests/spec/appointment-requests.bats",
+    "category": "T901024",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",
@@ -5799,6 +5829,12 @@
     "id": "workspace-foundation",
     "file": "tests/spec/workspace-foundation.bats",
     "category": "workspace-foundation",
+    "kind": "shell"
+  },
+  {
+    "id": "workspace-staging-db-tables",
+    "file": "tests/spec/workspace-staging-db-tables.bats",
+    "category": "workspace-staging-db-tables",
     "kind": "shell"
   },
   {

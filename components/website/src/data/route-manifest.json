@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 111,
+  "count": 112,
   "routes": [
     {
       "route": "/",
@@ -400,6 +400,14 @@
       "authTier": "public",
       "brand": "both",
       "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/anfrage/[token]",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
       "excludeFromSweep": false,
       "media": false
     },

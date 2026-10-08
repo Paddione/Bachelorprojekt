@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-95 Services · 2020 Abhängigkeitskanten · 302 API-Endpoints
+95 Services · 2020 Abhängigkeitskanten · 306 API-Endpoints
 
 ## Service-Map
 
@@ -2403,6 +2403,8 @@ flowchart TB
 | `/api/admin/zeiterfassung/create` | POST | 🔐 admin |
 | `/api/admin/zeiterfassung/delete` | POST | 🔐 admin |
 | `/api/admin/zeiterfassung/export` | GET | 🔐 admin |
+| `/api/anfrage/{token}/storno` | POST | ❓ unclassified |
+| `/api/anfrage/{token}/umbuchung` | POST | ❓ unclassified |
 | `/api/assets/{...path}` | GET | ❓ unclassified |
 | `/api/assistant/chat` | POST | 🔐 admin |
 | `/api/assistant/dismiss` | POST | ❓ session |
@@ -2450,6 +2452,8 @@ flowchart TB
 | `/api/newsletter/confirm` | GET | ❓ unclassified |
 | `/api/newsletter/subscribe` | POST | ❓ unclassified |
 | `/api/newsletter/unsubscribe` | GET | ❓ unclassified |
+| `/api/owner/anfragen/{id}/ablehnen` | POST | ❓ session |
+| `/api/owner/anfragen/{id}/annehmen` | POST | ❓ session |
 | `/api/owner/bookings/{uid}/cancel` | POST | ❓ session |
 | `/api/owner/bookings/{uid}/reschedule` | POST | ❓ session |
 | `/api/owner/bookings/phone` | POST | ❓ session |

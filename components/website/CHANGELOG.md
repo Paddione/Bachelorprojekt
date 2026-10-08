@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.399.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.398.1...website-v1.399.0) (2026-10-08)
+
+
+### Features
+
+* **website:** appointment requests with owner confirmation [T901024] ([#6343](https://github.com/Paddione/Bachelorprojekt/issues/6343)) ([91b573a](https://github.com/Paddione/Bachelorprojekt/commit/91b573a549245734da9288dbf4886610d579db71))
+
 ## [1.398.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.398.0...website-v1.398.1) (2026-10-08)
 
 

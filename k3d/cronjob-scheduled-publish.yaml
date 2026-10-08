@@ -55,7 +55,7 @@ spec:
                   # nimmt so markierte Variablen aus der envsubst-Liste heraus und
                   # unwrapped sie danach wieder, sodass erst die Shell im Container
                   # sie aufloest (T002306/T012907, siehe
-                  # tests/spec/flux-render-security/runtime-var-unwrapping.bats).
+                  # tests/py/spec/native_ported/spec/flux-render-security/test_runtime_var_unwrapping.py).
                   code=$(curl -s -S -X GET \
                     -o /tmp/publish-response \
                     -w '%{http_code}' \

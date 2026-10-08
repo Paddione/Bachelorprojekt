@@ -101,26 +101,30 @@ def test_quality_check_succeeds_without_madge_failure(repo_root: Path):
 
 # ── coverage-gate.bats ──────────────────────────────────────────────────────
 
+def _spec_port(repo_root: Path, source: str) -> bool:
+    # [T901392] Specs liegen als pytest-Module vor; der Docstring nennt die Originalquelle.
+    return any(source in p.read_text(encoding="utf-8")
+               for p in (repo_root / "tests" / "py" / "spec").rglob("test_*.py"))
+
+
 def test_g_rh03_secret_rotation_spec_bats_file(repo_root: Path):
-    assert (repo_root / "tests" / "spec" / "secret-rotation.bats").is_file()
+    assert _spec_port(repo_root, "tests/spec/secret-rotation.bats")
 
 
 def test_g_rh03_secrets_deploy_automation_spec_bats_file(repo_root: Path):
-    assert (repo_root / "tests" / "spec" / "secrets-deploy-automation.bats").is_file()
+    assert _spec_port(repo_root, "tests/spec/secrets-deploy-automation.bats")
 
 
 def test_g_rh03_backup_pipeline_spec_bats_file(repo_root: Path):
-    flat = repo_root / "tests" / "spec" / "backup-pipeline.bats"
-    nested = list((repo_root / "tests" / "spec" / "backup-pipeline").glob("*.bats"))
-    assert flat.is_file() or len(nested) > 0
+    assert _spec_port(repo_root, "tests/spec/backup-pipeline")
 
 
 def test_g_rh03_plan_coverage_at_least_23_percent(repo_root: Path):
-    """G-RH03: plan Coverage ist >= 23% (12+ BATS von 53 Specs)."""
+    """G-RH03: plan Coverage ist >= 23% (Spec-Testmodule je Spec-Dokument)."""
     spec_count = len(list((repo_root / "docs" / "superpowers" / "specs").glob("*.md")))
-    bats_count = len(list((repo_root / "tests" / "spec").glob("*.bats")))
+    module_count = len(list((repo_root / "tests" / "py" / "spec" / "native_ported" / "spec").glob("test_*.py")))
     assert spec_count > 0, "No spec files found"
-    ratio = (bats_count * 100) / spec_count
+    ratio = (module_count * 100) / spec_count
     assert int(ratio) >= 23, f"Coverage ratio {ratio:.2f}% is below 23%"
 
 

@@ -69,24 +69,36 @@ check_prereqs() {
 }
 
 # ── Run test files ───────────────────────────────────────────────
+_run_test_file() {
+  if [[ "$1" == *.py ]]; then
+    PYTEST_LOCAL=1 PYTEST_JOBS=0 bash "${SCRIPT_DIR}/../scripts/pytest-run.sh" -p no:cacheprovider -q "$1"
+  else
+    bash "$1"
+  fi
+}
+
 run_test_files() {
   local test_dir="$1"
   local all_files=()
 
+  # Tests are .sh scripts in the tier dir or native pytest modules under
+  # tests/py/<tier>/test_<id>.py (ported from .bats, T901392).
+  local py_dir="${SCRIPT_DIR}/py/$(basename "$test_dir")"
   if (( ${#SPECIFIC_TESTS[@]} > 0 )); then
     for test_id in "${SPECIFIC_TESTS[@]}"; do
-      # Support both .sh and .bats extensions
+      local py_name
+      py_name="test_$(echo "$test_id" | tr '[:upper:]' '[:lower:]' | tr -- '-.' '__').py"
       if [[ -f "${test_dir}/${test_id}.sh" ]]; then
         all_files+=("${test_dir}/${test_id}.sh")
-      elif [[ -f "${test_dir}/${test_id}.bats" ]]; then
-        all_files+=("${test_dir}/${test_id}.bats")
+      elif [[ -f "${py_dir}/${py_name}" ]]; then
+        all_files+=("${py_dir}/${py_name}")
       fi
     done
   else
-    # Find both .sh and .bats files
     while IFS= read -r -d '' f; do
       all_files+=("$f")
-    done < <(find "${test_dir}" -maxdepth 1 \( -name "*.sh" -o -name "*.bats" \) -print0 | sort -z)
+    done < <( { find "${test_dir}" -maxdepth 1 -name "*.sh" -print0
+                [[ -d "$py_dir" ]] && find "$py_dir" -maxdepth 1 -name "test_*.py" -print0; } | sort -z)
   fi
 
   local parallel_files=()
@@ -109,11 +121,7 @@ run_test_files() {
       local test_name
       test_name=$(basename "$f")
       (
-        if [[ "$f" == *.bats ]]; then
-          "${SCRIPT_DIR}/unit/lib/bats-core/bin/bats" "$f" > /dev/null 2>&1
-        else
-          bash "$f" > /dev/null 2>&1
-        fi
+        _run_test_file "$f" > /dev/null 2>&1
       ) &
       ((running++))
       if (( running >= JOBS )); then
@@ -147,11 +155,7 @@ run_test_files() {
       fi
     fi
     
-    if [[ "$f" == *.bats ]]; then
-      "${SCRIPT_DIR}/unit/lib/bats-core/bin/bats" "$f"
-    else
-      bash "$f"
-    fi
+    _run_test_file "$f"
   done
 }
 
@@ -167,7 +171,7 @@ if [[ "$TIER" == "report" ]]; then
 fi
 
 # ── Unit-only mode (no cluster required) ─────────────────────────
-# Runs tests/unit/ BATS files directly without k3d_wait or port-forwards.
+# Runs the offline unit pytest modules without k3d_wait or port-forwards.
 # Use for structural/offline tests that don't need a live cluster.
 if [[ "$TIER" == "unit" ]]; then
   check_prereqs
@@ -179,7 +183,7 @@ if [[ "$TIER" == "unit" ]]; then
   echo "  Workspace MVP — Test Runner (unit / offline)"
   echo "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
   echo "═══════════════════════════════════════════════════════════════"
-  run_test_files "${SCRIPT_DIR}/unit"
+  bash "${SCRIPT_DIR}/../scripts/pytest-run.sh" -q "${SCRIPT_DIR}/py/unit" "${SCRIPT_DIR}/py/spec/native_ported/unit"
   assert_summary
   rm -f "$RESULTS_FILE"
   exit 0
@@ -215,7 +219,7 @@ if [[ "$TIER" == "local" ]]; then
     fi
     # When the runner is invoked with specific test IDs we narrow Playwright
     # to the matching spec(s) so e.g. `runner.sh local FA-30` runs only the
-    # FA-30 Playwright suite (alongside the matching .sh/.bats file). If no
+    # FA-30 Playwright suite (alongside the matching .sh/pytest file). If no
     # spec matches the id, Playwright runs the full suite as before.
     PW_FILTERS=()
     if (( ${#SPECIFIC_TESTS[@]} > 0 )); then

@@ -16,6 +16,28 @@ def pytest_configure(config):
     )
 
 
+# Live-environment tests (ported from tests/local/*.bats) need a cluster; only
+# tests/runner.sh local opts in via PYTEST_LOCAL=1. [T901392]
+collect_ignore = [] if os.environ.get("PYTEST_LOCAL") == "1" else ["local"]
+
+
+def pytest_collection_modifyitems(config, items):
+    """Keep only this shard's modules when SPEC_SHARD/SPEC_SHARDS are set (CI matrix)."""
+    shards = int(os.environ.get("SPEC_SHARDS", "1") or "1")
+    if shards <= 1:
+        return
+    import zlib
+
+    shard = int(os.environ["SPEC_SHARD"])
+    keep, drop = [], []
+    for item in items:
+        module = item.nodeid.split("::", 1)[0]
+        (keep if zlib.crc32(module.encode()) % shards == shard - 1 else drop).append(item)
+    if drop:
+        config.hook.pytest_deselected(items=drop)
+        items[:] = keep
+
+
 @pytest.fixture(autouse=True)
 def _repo_lock(request):
     """Hold an exclusive file lock for tests marked repo_lock(name)."""

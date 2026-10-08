@@ -631,7 +631,7 @@
   },
   {
     "id": "G-TEST01",
-    "title": "BATS Debt-Skips",
+    "title": "Test Debt-Skips (pytest)",
     "category": "Test-Health",
     "priority": "C",
     "direction": "lower",
@@ -640,7 +640,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rniE \"skip [\\\"']\" tests --include=*.bats | grep -ciE \"pending|todo|WP-|disabled\"",
+    "measurement": "grep -rniE \"pytest\\.skip\\(|mark\\.skip\\(\" tests/py --include=*.py | grep -ciE \"pending|todo|WP-|disabled\"",
     "source": ".claude/lib/goals.md · G-TEST01",
     "measured_at": "2026-10-08"
   },

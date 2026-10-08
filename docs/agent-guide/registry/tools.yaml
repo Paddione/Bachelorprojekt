@@ -162,13 +162,13 @@
   name_de: "Test-Agent"
   kind: agent
   harness: both
-  summary_de: "Schreibt und führt Tests aus (BATS, Playwright, vitest)."
-  what_for_de: "Für FA-*, SA-*, NFA-*-Testfälle, BATS-Skripte und Playwright-E2E-Tests."
+  summary_de: "Schreibt und führt Tests aus (pytest, Playwright, vitest)."
+  what_for_de: "Für FA-*, SA-*, NFA-*-Testfälle, pytest-Module und Playwright-E2E-Tests."
   how_to_start_de: "Sage z. B. 'Schreib einen Test für Feature X' oder 'FA-05 schlägt fehl, bitte fixen'."
   what_could_go_wrong_de: "Test kann die falsche Umgebung treffen; Playwright braucht laufende Dienste."
   danger: caution
   theme: testen
-  aliases_de: [test, bats, playwright, vitest]
+  aliases_de: [test, pytest, playwright, vitest]
   guardrails: [G-ENV-EXPLICIT]
   related: [dev-flow-e2e]
   links: []

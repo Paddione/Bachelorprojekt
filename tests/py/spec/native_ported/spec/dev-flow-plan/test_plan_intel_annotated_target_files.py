@@ -54,6 +54,7 @@ def _run_intel(run_cmd, repo_root):
 def test_t008015_3_annotierte_zelle_toleriert_praefix_loeschungen_wird_kein_pfad(
     run_cmd, repo_root, change_dir, needs_jq
 ):
+    """T008015-3: annotierte Zelle toleriert — Praefix 'Loeschungen:' wird kein Pfad"""
     (change_dir / "tasks.md").write_text(_manifest(
         [
             "| p1 | tasks.d/p1.md | impl | scripts/keep.sh, Löschungen: scripts/delete-me.sh | |",
@@ -69,6 +70,7 @@ def test_t008015_3_annotierte_zelle_toleriert_praefix_loeschungen_wird_kein_pfad
 def test_t008015_3_brace_zelle_alternation_bleibt_literal_konvention_zellen_pfadrein(
     run_cmd, repo_root, change_dir, needs_jq
 ):
+    """T008015-3: Brace-Zelle — Alternation bleibt literal (Konvention: Zellen pfadrein)"""
     (change_dir / "tasks.md").write_text(_manifest(
         [
             "| p1 | tasks.d/p1.md | impl | scripts/{a,b}.sh | |",
@@ -84,6 +86,7 @@ def test_t008015_3_brace_zelle_alternation_bleibt_literal_konvention_zellen_pfad
 def test_t008015_3_backtick_quotierte_zellen_backticks_werden_entfernt_echtes_manifest_format(
     run_cmd, repo_root, change_dir, needs_jq
 ):
+    """T008015-3: Backtick-quotierte Zellen — Backticks werden entfernt (echtes Manifest-Format)"""
     (change_dir / "tasks.md").write_text(_manifest(
         [
             "| p1 | tasks.d/p1.md | impl | `scripts/keep.sh`, `scripts/tests/run.bats` | |",

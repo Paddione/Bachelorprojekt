@@ -77,10 +77,10 @@ def test_t002708_kein_konfigurierter_cockpit_port_liegt_im_hyper_v_reservierungs
         repo_root / ".lavish/kit/adapter.js",
         repo_root / ".lavish/kit/canvas-store.js",
     ]
-    cockpit_tests = repo_root / "tests/spec/sdlc-cockpit"
-    files += sorted(cockpit_tests.glob("*.bats"))
-    files += sorted(cockpit_tests.glob("*.bash"))
-    files = [f for f in files if f.name != "daemon-port-binding.bats"]
+    # [T901392] Die Cockpit-Tests sind pytest-Module.
+    cockpit_tests = repo_root / "tests/py/spec/native_ported/spec/sdlc-cockpit"
+    files += sorted(cockpit_tests.glob("test_*.py"))
+    files = [f for f in files if f.name != "test_daemon_port_binding.py"]
 
     # POSITIV-ANKER fuer den Scan: die Dateiliste ist nicht leer.
     assert len(files) > 3

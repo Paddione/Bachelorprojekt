@@ -30,7 +30,7 @@
 #   Inhalt nachweislich in main angekommen ist. Unverifizierbar (gh-Ausfall, kein MERGED-PR)
 #   heisst verschonen — der Blob-Check entscheidet dann wie bisher.
 #
-# Ausgabe (der Vertrag, auf den tests/spec/ci-cd/branch-reaper.bats zugreift):
+# Ausgabe (der Vertrag, auf den tests/py/spec/native_ported/spec/ci-cd/test_branch_reaper.py zugreift):
 #   REAP <branch>            — Kandidat, wird ohne --dry-run gelöscht
 #   KEEP <branch> — <grund>  — verschont, mit Begründung
 #   DELETED <branch> …       — Remote-Branch gelöscht; bei SHA-Gleichheit wird der lokale

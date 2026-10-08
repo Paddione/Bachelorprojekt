@@ -10,7 +10,7 @@ export const file = '~/.openclaw/openclaw.json';
 export const scope = 'user';
 
 // JSON5-light: volle `//`-Kommentarzeilen verwerfen (Format-Vertrag aus
-// tests/spec/openclaw-ops-bot.bats), Rest strikt parsen. `//` in Werten wie
+// tests/py/spec/native_ported/spec/test_openclaw_ops_bot.py), Rest strikt parsen. `//` in Werten wie
 // URLs bleibt erhalten, weil nur ganze Zeilen fallen.
 export function parse(text) {
   const stripped = String(text)

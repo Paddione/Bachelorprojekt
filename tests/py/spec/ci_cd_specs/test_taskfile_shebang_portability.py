@@ -14,11 +14,8 @@ def test_taskfile_command_scan_positive_anchor(lines):
 
 
 def test_runner_started_through_interpreter(lines):
-    assert any("bash tests/bats" in line for line in lines)
-
-
-def test_wrapper_calls_vendored_runner(repo_root):
-    assert "unit/lib/bats-core/bin/bats" in (repo_root / "tests/bats").read_text()
+    # [T901392] Der Test-Runner ist scripts/pytest-run.sh und wird ueber bash gestartet.
+    assert any("bash scripts/pytest-run.sh" in line for line in lines)
 
 
 def test_no_taskfile_shebang_invocation(lines):

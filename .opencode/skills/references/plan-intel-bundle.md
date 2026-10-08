@@ -10,7 +10,7 @@ und API-Contracts statt erfundener Typen.
 | File | Role |
 |------|------|
 | `schemas/plan-intel-bundle.schema.json` | Authoritative JSON-Schema (draft 2020-12). |
-| `schemas/plan-intel-bundle.d.ts` | Hand-maintained TS mirror; key parity guarded by BATS. |
+| `schemas/plan-intel-bundle.d.ts` | Hand-maintained TS mirror; key parity guarded by pytest. |
 | `schemas/plan-intel-bundle.example.json` | CI-validated fixture (`jq`-structural, no `ajv`). |
 
 ## Section → intel source mapping
@@ -41,5 +41,5 @@ jq . .agents/skills/references/schemas/plan-intel-bundle.schema.json    # schema
 jq . .agents/plans/<slug>/intel.json                                 # bundle parses
 ```
 
-The BATS gate `tests/spec/dev-flow-plan.bats` asserts the schema is valid, the fixture conforms,
+The pytest gate `tests/py/spec/native_ported/spec/test_dev_flow_plan.py` asserts the schema is valid, the fixture conforms,
 schema ↔ `.d.ts` key parity holds, and both skill wirings are present.

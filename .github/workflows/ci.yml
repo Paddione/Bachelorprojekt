@@ -60,7 +60,7 @@ jobs:
   # ── Scoped test jobs (replaces offline-tests monolith) ─────────────
 
   test-bats:
-    # BATS unit tests (scoped via find-changed-tests.sh) + code-quality
+    # Offline pytest suite (tests/py ohne tests/py/spec) + code-quality
     # gates + API auth regression + freshness check. The core offline job
     # that most PRs hit. Does NOT need Go, kubectl, or pnpm. [T001860]
     name: BATS Unit + Quality Gates
@@ -138,39 +138,23 @@ jobs:
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 
-      - name: Scoped unit BATS + coverage guard
+      - name: Figure-pack asset test (only when assets change)
         run: |
-          JOBS=$(nproc 2>/dev/null || echo 2)
-          CHANGED_FILES=$(bash scripts/find-changed-tests.sh unit)
-          if [ -n "$CHANGED_FILES" ]; then
-            echo "→ Running changed unit tests:"
-            echo "$CHANGED_FILES"
-            ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
-          else
-            echo "→ No matching unit tests for this PR"
-          fi
           CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || true)
           if echo "$CHANGED" | grep -qE "^(tests/figure-pack-assets|assets/)"; then
             bash tests/figure-pack-assets.test.sh
           fi
-          bash scripts/tests/unit-coverage-guard.sh
 
       - name: Install and verify MCP task runner for pytest specs
         run: |
           bash scripts/mcp-task-runner/install.sh
           mcp-task-runner --help
 
-      - name: Expose vendored BATS for pytest spec wrappers
-        run: echo "$GITHUB_WORKSPACE/tests/unit/lib/bats-core/bin" >> "$GITHUB_PATH"
-
-      - name: Pytest suite (pytest -n auto)
-        run: |
-          if command -v uv >/dev/null 2>&1; then
-            uv run --with pytest --with pyyaml --with pytest-xdist --with jinja2 pytest -n auto --maxfail=1 tests/py
-          else
-            python3 -m pip install --quiet --break-system-packages pytest pytest-xdist pyyaml jinja2
-            python3 -m pytest -n auto --maxfail=1 tests/py
-          fi
+      # [T901392] BATS ist deinstalliert. Dieser Job faehrt alles ausser
+      # tests/py/spec; die Spec-Module laufen geshardet in test-spec-shard
+      # (dort mit Cockpit-Daemon).
+      - name: Pytest suite without specs (pytest -n auto)
+        run: bash scripts/pytest-run.sh --maxfail=1 tests/py --ignore=tests/py/spec
 
       - name: Code-quality gates (always)
         run: node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
@@ -219,7 +203,7 @@ jobs:
       # zur Laufzeit auf (und dann still, siehe /health-Vorfall 2026-07-27).
       # T002638: dasselbe Muster ein zweites Mal — exclusive-conflict, fixups und
       # strip-markers (zusammen 19 Tests) standen ebenfalls in keiner Zeile. Der
-      # Guard tests/spec/local-llm-proxy/proxy-tests-registered.bats haelt diese
+      # Guard tests/py/spec/native_ported/spec/local-llm-proxy/test_proxy_tests_registered.py haelt diese
       # handgepflegte Liste ab jetzt gegen die vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - name: llm-proxy routing + readiness (always)
@@ -330,10 +314,7 @@ jobs:
           kubectl version --client
 
       - name: Run manifest tests
-        run: |
-          ./tests/unit/lib/bats-core/bin/bats \
-            tests/unit/manifests.bats tests/unit/changed-manifests.bats \
-            tests/unit/dead-node-affinity.bats
+        run: bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_manifests_part1.py tests/py/spec/native_ported/unit/test_manifests_part2.py tests/py/spec/native_ported/unit/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
 
   # ── Spec: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
   #
@@ -344,8 +325,8 @@ jobs:
   #      Eine kaputte Spec meldete sich also erst nach sechs Minuten — oder,
   #      wenn vorher ein Test rot wurde, ueberhaupt nicht.
   #   2. Die Suite ist durchsatz-, nicht tail-gebunden (~537s CPU-Arbeit).
-  #      Mehr `bats -j` auf EINEM Runner war ausgereizt; der einzige Hebel
-  #      sind mehr Runner. Details in scripts/spec-shard.sh.
+  #      Mehr Parallelitaet auf EINEM Runner war ausgereizt; der einzige Hebel
+  #      sind mehr Runner. Seit T901392 shardet tests/py/conftest.py die pytest-Module.
   #
   # Der Aggregator `test-spec` behaelt seinen stabilen Namen. Eine nackte
   # Matrix haette ihn in "… (1)".."… (4)" umbenannt.
@@ -408,7 +389,7 @@ jobs:
           fi
 
   test-spec-shard:
-    # tests/spec/*.bats + setup-go fuer den mcp-task-runner-Build (von test:spec
+    # tests/py/spec (pytest, geshardet) + setup-go fuer den mcp-task-runner-Build (von test:spec
     # gebraucht). Alle Spec-Tests ueberspringen Live-DB-Faelle ohne Cluster
     # (CI-safe). [T002182]
     # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
@@ -469,7 +450,7 @@ jobs:
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 
-      # PyYAML wird VON den G-CD01-Assertions gebraucht (tests/spec/ci-cd.bats
+      # PyYAML wird VON den G-CD01-Assertions gebraucht (tests/py/spec/native_ported/spec/test_ci_cd_part1.py
       # macht `import yaml`), muss also vor der Suite stehen. Bis T002500 stand
       # dieser Step dahinter und trug nichts bei — dass die Assertions trotzdem
       # liefen, lag allein daran, dass ubuntu-latest PyYAML vorinstalliert hat.
@@ -498,99 +479,17 @@ jobs:
           echo "COCKPIT_DAEMON_PORT=${COCKPIT_DAEMON_PORT}" >> "$GITHUB_ENV"
           task cockpit:daemon PORT="${COCKPIT_DAEMON_PORT}"
 
-      # [T002517] Diagnose: Auf Shard 1 konnte GNU parallel (von `bats -j`
-      # genutzt) keinen einzigen Ausgabepuffer nach /tmp schreiben — "Cannot
-      # append to buffer file in /tmp", 0 statt 454 Tests ausgefuehrt, waehrend
-      # die Shards 2-4 im selben Lauf sauber durchliefen. Ohne Zahlen ist nicht
-      # entscheidbar, ob /tmp wirklich voll ist, wer es fuellt, oder ob es ein
-      # Rechteproblem ist. Der Schritt schlaegt bewusst NIE fehl.
-      - name: Diagnose /tmp (shard ${{ matrix.shard }}/4)
-        if: always()
-        run: |
-          echo "── df ──"; df -h /tmp / || true
-          echo "── inodes ──"; df -i /tmp / || true
-          echo "── groesste Eintraege in /tmp ──"
-          du -sh /tmp/* 2>/dev/null | sort -rh | head -15 || true
-          echo "── Schreibprobe ──"
-          if head -c 10M /dev/zero > /tmp/.wtest 2>/dev/null; then
-            echo "10M schreibbar"; rm -f /tmp/.wtest
-          else
-            echo "SCHREIBEN FEHLGESCHLAGEN"
-          fi
-          echo "── TMPDIR=${TMPDIR:-<nicht gesetzt>} ──"
-
-      # Fail closed: ist der Diff-Bezugspunkt nicht ermittelbar, waere die
-      # Auswahl leer und wuerde still nichts ausfuehren — dann lieber alles
-      # laufen lassen.
-      #
-      # [T002780] Drei Pfade statt zwei. Vorher fuhr JEDER Merge auf main die
-      # volle Suite ein zweites Mal (~13 Runner-Minuten pro Merge, bei ~20
-      # Merges/Tag), obwohl der PR-Lauf dieselben Dateien Minuten vorher schon
-      # geprueft hatte. Der Merge-Delta-Pfad prueft stattdessen genau das, was
-      # der PR-Lauf NICHT gesehen haben kann: das Ergebnis des Squash-Commits.
-      # Das ist keine Formalie — `strict` ist in der Branch Protection false,
-      # PRs muessen also nicht aktuell zu main sein, und zwei gleichzeitig
-      # gruene PRs koennen sich auf main semantisch widersprechen.
-      #
-      # Die Vollabdeckung ist damit NICHT gestrichen, sondern verlegt: der
-      # nightly `schedule`-Trigger oben faehrt `task test:spec` ueber alles.
-      # Ohne ihn waere eine Spec-Datei, die kein Diff je beruehrt, in keinem
-      # Lauf mehr enthalten — genau die Verrottung, vor der T002245 warnt.
-      - name: Spec BATS suite (shard ${{ matrix.shard }}/4)
+      # [T901392] Spec-Module (tests/py/spec) geshardet ueber SPEC_SHARD/SPEC_SHARDS
+      # (Modul-Hash in tests/py/conftest.py). Pytest faehrt die volle Spec-Suite
+      # pro Shard in wenigen Minuten, daher entfaellt die BATS-Diff-Auswahl
+      # (find-changed-tests.sh) samt Merge-Delta-Pfad. Der Tracked-File-Guard
+      # [T002779] bleibt als nicht-fataler Befund.
+      - name: Spec pytest suite (shard ${{ matrix.shard }}/4)
         env:
-          IS_PR: ${{ github.event_name == 'pull_request' }}
-          IS_PUSH: ${{ github.event_name == 'push' }}
-          # Vorgaenger-Commit von main bei einem push-Event. Leer/Nullen bei
-          # Force-Push und beim allerersten Push — beides faellt auf die volle
-          # Suite zurueck.
-          BEFORE_SHA: ${{ github.event.before }}
           # Macht das Gate fail-closed: ein nicht erreichbarer Daemon laesst die
           # betroffenen Tests durchfallen, statt sie zu ueberspringen.
           COCKPIT_DAEMON_REQUIRED: '1'
-          # [T003025] junit-Report einschalten: Taskfile legt junit-report/ an
-          # und schreibt die Reporte dort hinein; der naechste Step laedt sie
-          # als Artifakt hoch. Aus den XMLs regeneriert scripts/spec-junit-weights.sh
-          # die Laufzeit-Gewichte (tests/spec/.spec-runtime.tsv) fuer spec-shard.sh.
-          BATS_JUNIT_DIR: junit-report
-        run: |
-          if [ "$IS_PR" = "true" ] && git rev-parse --verify -q refs/remotes/origin/main >/dev/null; then
-            task test:spec:changed
-            exit 0
-          fi
-
-          # Merge-Delta auf main. FIND_CHANGED_TESTS_FILES ist die dafuer
-          # vorgesehene Naht in scripts/find-changed-tests.sh: auf main ist
-          # HEAD == origin/main, dessen eigener Default-Diff also leer.
-          if [ "$IS_PUSH" = "true" ] \
-             && [ -n "$BEFORE_SHA" ] \
-             && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ] \
-             && git fetch --no-tags --depth=1 origin "$BEFORE_SHA" >/dev/null 2>&1 \
-             && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
-            DELTA=$(git diff --name-only "$BEFORE_SHA" HEAD || true)
-            if [ -n "$DELTA" ]; then
-              echo "→ Merge-Delta gegen ${BEFORE_SHA} ($(printf '%s\n' "$DELTA" | grep -c .) Dateien)"
-              FIND_CHANGED_TESTS_FILES="$DELTA" task test:spec:changed
-              exit 0
-            fi
-            echo "→ Merge-Delta leer — fahre die volle Suite"
-          fi
-
-          echo "→ Full spec suite (schedule / dispatch / force-push / Delta nicht ermittelbar)"
-          task test:spec
-
-      # [T003025] Timing-Diagnose: junit-Reporte jedes Shards als Artifakt, damit
-      # aus einem Full-Suite-Lauf die Laufzeit-Gewichte regeneriert werden koennen
-      # (scripts/spec-junit-weights.sh). Best-effort: scoped Laeufe liefern nur
-      # partielle Reporte, und bei ausgelassenen Dateien fehlt das XML — beides
-      # ist eine Warnung, kein Fehler.
-      - name: Upload spec junit report (timing diagnostics)
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: spec-junit-shard-${{ matrix.shard }}
-          path: junit-report/report.xml
-          if-no-files-found: warn
-          retention-days: 14
+        run: task test:spec
 
   test-spec:
     # Aggregator. Ist fail-closed: alles, was nicht exakt "success" ist, laesst

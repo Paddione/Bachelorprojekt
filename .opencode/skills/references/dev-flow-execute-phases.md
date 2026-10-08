@@ -351,16 +351,16 @@ git push origin --delete "<branch>"   # remote: der Merge löscht nicht mehr (T0
 
 ---
 
-## BATS — ein File pro Feature
+## Tests — ein pytest-Modul pro Vorgang
 
-  Neue `@test`-Einträge gehören in `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name).
+  Neue Tests sind pytest-Funktionen in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus Ticket-Titel/Feature-Name). BATS ist seit T901392 deinstalliert.
   Reihenfolge:
-  1. **Feature-Slug ermitteln:** Welcher Slug beschreibt das zu testende Verhalten? (Ticket-Titel, kein Spec-Verzeichnis mehr seit C7a.)
-  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<feature-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/ticket-system.bats`).
-  3. **Fallback:** Für übergreifende Tests ohne Feature-Zuordnung → passende Datei in `tests/unit/` erweitern.
+  1. **Bereich ermitteln:** Welcher Bereich beschreibt das zu testende Verhalten? (Ticket-Titel.)
+  2. **Modul prüfen/anlegen:** Existiert ein passendes Modul unter `tests/py/spec/`? Falls ja → Testfunktion ergänzen. Falls nein → neues Modul anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_ticket_system.py`, Konventionen: `tests/CLAUDE.md`).
+  3. **Fallback:** Für übergreifende Tests ohne Bereichszuordnung → passendes Modul in `tests/py/unit/` erweitern.
   ```bash
-  # Bestehende Slugs prüfen:
-  ls tests/spec/              # bereits konsolidierte Spec-Dateien
-  # @test in tests/spec/<slug>.bats einfügen, nicht neue tests/local/FA-XY-*.bats Datei
+  # Bestehende Module finden und gezielt ausfuehren:
+  ls tests/py/spec/native_ported/spec/
+  bash scripts/pytest-run.sh tests/py/spec/<pfad>/test_<slug>.py
   ```
-  **Ziel:** Die Gesamtzahl der `.bats`-Dateien in `tests/local/` sinkt oder bleibt konstant. Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy — nicht neu anlegen.
+  Live-Tests mit Clusterbedarf gehören nach `tests/py/local/test_<id>.py` (nur mit `PYTEST_LOCAL=1` gesammelt, gestartet über `tests/runner.sh local <ID>`). Ticket-nummerierte Dateinamen nicht neu anlegen.

@@ -11,7 +11,7 @@
 # Der Code liegt bewusst als Datei im Image statt als args[0] im Manifest:
 # ein Startkommando im Manifest laesst sich nicht ohne Rollout korrigieren
 # und ist nur ueber einen JSON-Extraktor testbar. Die Guards in
-# tests/spec/mcp-gateway.bats lesen jetzt diese Datei.
+# tests/py/spec/native_ported/spec/test_mcp_gateway.py lesen jetzt diese Datei.
 
 PROC_ROOT="${PROC_ROOT:-/proc}"
 MCP_PG_CHILD_MAX_AGE_SECONDS="${MCP_PG_CHILD_MAX_AGE_SECONDS:-300}"

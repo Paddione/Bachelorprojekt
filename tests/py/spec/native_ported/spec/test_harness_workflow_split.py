@@ -36,6 +36,7 @@ def repo(repo_root):
 
 
 def test_hws_1_flow_entries_are_registry_declared_projections_git_workflow_stays_native(run_cmd, repo):
+    """HWS-1: flow entries are registry-declared projections; git-workflow stays native"""
     for s in OC_FLOW_LINKS:
         p = repo / ".opencode/skills" / s
         assert p.is_dir()
@@ -60,6 +61,7 @@ def test_hws_1_flow_entries_are_registry_declared_projections_git_workflow_stays
 
 
 def test_hws_2_opencode_skills_carry_no_claude_only_tool_syntax(repo):
+    """HWS-2: opencode skills carry no Claude-only tool syntax"""
     for s in OC_SKILLS:
         skill = repo / ".opencode/skills" / s / "SKILL.md"
         assert skill.is_file() and skill.stat().st_size > 0
@@ -68,6 +70,7 @@ def test_hws_2_opencode_skills_carry_no_claude_only_tool_syntax(repo):
 
 
 def test_hws_3_shared_sources_reference_both_harness_primitives_collectively(repo):
+    """HWS-3: shared sources reference both harness primitives (collectively)"""
     assert "background-agents.ts" in _read(repo / ".claude/skills/dev-flow-plan/SKILL.md")
     assert "background-agents.ts" in _read(repo / ".claude/skills/dev-flow-execute/SKILL.md")
     found = False
@@ -82,15 +85,18 @@ def test_hws_3_shared_sources_reference_both_harness_primitives_collectively(rep
 
 
 def test_hws_4_opencode_git_workflow_uses_the_git_crypt_safe_worktree_wrapper(repo):
+    """HWS-4: opencode-git-workflow uses the git-crypt-safe worktree wrapper"""
     assert "scripts/worktree-create.sh" in _read(repo / ".opencode/skills/git-workflow/SKILL.md")
 
 
 def test_hws_5_flow_skill_sources_hand_over_to_git_workflow(repo):
+    """HWS-5: flow-skill sources hand over to git-workflow"""
     assert "git-workflow" in _read(repo / ".claude/skills/dev-flow-execute/SKILL.md")
     assert "git-workflow" in _read(repo / ".claude/skills/dev-flow-chore/SKILL.md")
 
 
 def test_hws_8_agents_md_skill_dispatch_protocol_is_opencode_native(repo, run_cmd):
+    """HWS-8: AGENTS.md Skill Dispatch Protocol is opencode-native"""
     section = _awk_dispatch_section(_read(repo / "AGENTS.md"))
     # Guard gegen die leere Extraktion.
     nonblank = [ln for ln in section.splitlines() if ln]
@@ -101,6 +107,7 @@ def test_hws_8_agents_md_skill_dispatch_protocol_is_opencode_native(repo, run_cm
 
 
 def test_hws_9_tools_yaml_has_a_harness_field_on_every_entry(repo):
+    """HWS-9: tools.yaml has a harness field on every entry"""
     lines = _read(repo / "docs/agent-guide/registry/tools.yaml").splitlines()
     ids = sum(1 for ln in lines if re.match(r"^- id:", ln))
     harnesses = sum(1 for ln in lines if re.match(r"^  harness:", ln))
@@ -108,20 +115,24 @@ def test_hws_9_tools_yaml_has_a_harness_field_on_every_entry(repo):
 
 
 def test_hws_10_tools_yaml_carries_at_least_one_opencode_tagged_entry(repo):
+    """HWS-10: tools.yaml carries at least one opencode-tagged entry"""
     text = _read(repo / "docs/agent-guide/registry/tools.yaml")
     assert re.search(r"^  harness:[ \t]*opencode", text, re.MULTILINE)
 
 
 def test_hws_11_tools_map_md_renders_a_harness_column(repo):
+    """HWS-11: tools-map.md renders a Harness column"""
     assert "| Harness |" in _read(repo / "docs/agent-guide/maps/tools-map.md")
 
 
 def test_hws_12_agent_guide_registry_validates_harness_schema_included(run_cmd, repo):
+    """HWS-12: agent-guide registry validates (harness schema included)"""
     res = run_cmd(["node", "scripts/agent-guide/validate.mjs"], cwd=repo)
     assert res.returncode == 0
 
 
 def test_hws_14_host_antigravity_cli_carries_no_shadowing_dirty_plan_copy(repo):
+    """HWS-14: host antigravity-cli carries no shadowing dirty plan-* copy"""
     ag = Path(os.path.expanduser("~")) / ".gemini/antigravity-cli"
     if not ag.is_dir():
         pytest.skip("antigravity-cli not installed on this machine")

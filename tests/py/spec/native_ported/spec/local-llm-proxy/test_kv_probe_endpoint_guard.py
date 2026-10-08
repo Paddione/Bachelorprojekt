@@ -1,4 +1,6 @@
-"""Native migration of tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats."""
+"""Native migration of tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats.
+
+[T901392] Die gepruefte Langkontext-Probe ist das pytest-Modul PROBE (vorher gemma-kv-quant.bats)."""
 
 import json
 import re
@@ -10,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+PROBE = "tests/py/spec/native_ported/spec/local-llm-proxy/test_gemma_kv_quant.py"
 PORT_OK = 19551
 PORT_500 = 19552
 
@@ -45,7 +48,7 @@ def _port_open(port):
 def test_kv_probe_endpoint_guard_t002579_die_langkontext_probe_zielt_auf_den_port_den_das_loadout_deklariert(run_cmd, repo_root):
     declared = _declared_port(repo_root)
     assert declared, "ANKER ROT: kein gemma26-factory-Loadout mit Port"
-    probe = repo_root / "tests/spec/local-llm-proxy/gemma-kv-quant.bats"
+    probe = repo_root / PROBE
     assert probe.is_file(), f"ANKER ROT: {probe} fehlt"
     text = probe.read_text(encoding="utf-8")
     from_registry = "loadouts.json" in text
@@ -56,9 +59,9 @@ def test_kv_probe_endpoint_guard_t002579_die_langkontext_probe_zielt_auf_den_por
 
 
 def test_kv_probe_endpoint_guard_t002579_die_langkontext_probe_belegt_ihre_kontextgroesse_am_server(repo_root):
-    probe = repo_root / "tests/spec/local-llm-proxy/gemma-kv-quant.bats"
+    probe = repo_root / PROBE
     text = probe.read_text(encoding="utf-8")
-    assert sum(1 for l in text.splitlines() if "T002535" in l) > 0, "ANKER ROT: kein T002535-Probe-Test vorhanden"
+    assert sum(1 for l in text.splitlines() if "t002535" in l.lower()) > 0, "ANKER ROT: kein T002535-Probe-Test vorhanden"
     assert sum(1 for l in text.splitlines() if "prompt_tokens" in l) > 0, "Probe prueft prompt_tokens nicht"
 
 

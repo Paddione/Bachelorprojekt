@@ -26,109 +26,80 @@ tasks:
         fi
 
   test:unit:
-    desc: Run BATS unit tests (assertion lib, scripts, configs) in parallel
+    desc: Run the offline unit pytest modules (tests/py/unit + ported tests/unit specs) in parallel
     cmds:
-      - |
-        JOBS=$(nproc 2>/dev/null || echo 2)
-        ALL_FILES=$(find tests/unit -maxdepth 1 -name "*.bats" | sort)
-        TEST_FILES=""
-        for f in $ALL_FILES; do
-          base=$(basename "$f" .bats)
-          if ! grep -q "^$base$" tests/unit/.coverage-allowlist; then
-            TEST_FILES="$TEST_FILES $f"
-          fi
-        done
-        TEST_FILES="$TEST_FILES tests/spec/mcp-tooling.bats"
-        bash tests/bats -j $JOBS --no-parallelize-within-files $TEST_FILES
+      - bash scripts/pytest-run.sh tests/py/unit tests/py/spec/native_ported/unit tests/py/spec/native_ported/spec/test_mcp_tooling.py
       - bash tests/figure-pack-assets.test.sh
-      - task: test:unit:coverage-guard
 
   test:unit:agent-push:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/agent-push.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_agent_push.py
   test:unit:sessions-purge:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/sessions-purge.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_sessions_purge.py
   test:unit:build-graph:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/build-graph.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_build_graph.py
   test:unit:freshness-graph:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/freshness-graph.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_freshness_graph.py
   test:unit:ticket-graph:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/ticket-graph.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_graph.py
   test:unit:T000668-graph-api:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/T000668-graph-api.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_t000668_graph_api.py
   test:unit:readiness-webhook:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/readiness-webhook.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_readiness_webhook.py
   test:unit:api-auth-gate:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/api-auth-gate.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_api_auth_gate.py
   test:unit:changed-manifests:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/changed-manifests.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_changed_manifests.py
   test:unit:collabora-wopi-discovery:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/collabora-wopi-discovery.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_collabora_wopi_discovery.py
   test:unit:collabora-wopi-single-brand-guard:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/collabora-wopi-single-brand-guard.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_collabora_wopi_single_brand_guard.py
   test:unit:ticket-triage:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/ticket-triage.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_triage.py
   test:unit:website-ci-deploy:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/website-ci-deploy.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_website_ci_deploy.py
   test:unit:assert:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/assert_lib.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_assert_lib.py
   test:unit:scripts:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/scripts.bats
-      - bash tests/bats tests/unit/session-hub.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_scripts.py
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_session_hub.py
   test:unit:secret-task-guards:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/secret-task-guards.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_secret_task_guards.py
   test:unit:agents:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/agent-ops-output-trust.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_agent_ops_output_trust.py
   test:unit:figure-pack:
     internal: true
     cmds:
@@ -137,208 +108,162 @@ tasks:
   test:unit:discover-versions:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/discover-versions.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_discover_versions.py
   test:unit:render-cloud-init:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/render-cloud-init.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_render_cloud_init.py
   test:unit:flux-render-runtime-vars:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/flux-render-runtime-vars.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_flux_render_runtime_vars.py
   test:unit:flux-healthchecks:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/flux-healthchecks.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_flux_healthchecks.py
   test:unit:fleet-phase2b:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/fleet-phase2b.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_fleet_phase2b.py
   test:unit:shared-db-initdb-selfheal:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/shared-db-initdb-selfheal.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_shared_db_initdb_selfheal.py
   test:unit:wg-mesh-fullmesh:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/wg-mesh-fullmesh.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_wg_mesh_fullmesh.py
   test:unit:recovery-domain-durability:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/recovery-domain-durability.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_recovery_domain_durability.py
   test:unit:mediaviewer-host-durability:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/mediaviewer-host-durability.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_mediaviewer_host_durability.py
   test:unit:agent-collision:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/agent-collision.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_agent_collision.py
   test:unit:agent-msg:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/agent-msg.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_agent_msg.py
   test:unit:website-domain-config-overlay:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/website-domain-config-overlay.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_website_domain_config_overlay.py
   test:unit:ticket-external-id:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/ticket-external-id-sequence.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_external_id_sequence.py
   test:unit:vda-frontmatter:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/vda-frontmatter.bats
-
+      - bash scripts/pytest-run.sh tests/py/unit/test_vda_frontmatter.py
   test:unit:check-commit-vs-diff:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/check-commit-vs-diff.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_check_commit_vs_diff.py
   test:unit:plan-lint:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/plan-lint.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_plan_lint.py
   test:unit:mishap-tracker:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/mishap-tracker.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_mishap_tracker.py
   test:unit:ticket-add-pr-link:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/ticket-add-pr-link.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_add_pr_link.py
   test:unit:ticket-create:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/ticket-create.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_create.py
   test:unit:ticket-grill:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/ticket-grill.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_grill.py
   test:unit:ticket-lastenheft:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/ticket-lastenheft.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_ticket_lastenheft.py
   test:unit:worktree-create:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/worktree-create.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_worktree_create.py
   test:unit:preflight-pr-scope:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/preflight-pr-scope.bats
-
+      - bash scripts/pytest-run.sh tests/py/unit/test_preflight_pr_scope.py
   test:unit:test-tasks-node-deps:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/test-tasks-node-deps.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_test_tasks_node_deps.py
   test:unit:quality-loop:
     cmds:
-      - bash tests/bats tests/unit/quality-loop.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_quality_loop.py
   test:unit:vda-core:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/vda-core.bats
-
+      - bash scripts/pytest-run.sh tests/py/unit/test_vda_core.py
   test:unit:oracle-task-vars:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/oracle-task-vars.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_oracle_task_vars.py
   test:unit:vda-ticket-smoke:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/vda-ticket-smoke.bats
-
+      - bash scripts/pytest-run.sh tests/py/unit/test_vda_ticket_smoke.py
   test:unit:vda-release-notes-smoke:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/vda-release-notes-smoke.bats
-
+      - bash scripts/pytest-run.sh tests/py/unit/test_vda_release_notes_smoke.py
   test:unit:offline-batch:
     internal: true
-    # Offline-safe unit bats wired in by the 2026-06-06 coverage audit (single bats call).
+    # Offline-safe unit tests wired in by the 2026-06-06 coverage audit (single pytest call).
     cmds:
       - >-
-        bash tests/bats
-        tests/unit/admin-nav.bats
-        tests/unit/brainstorm-extract-choice.bats
-        tests/unit/git-crypt-guard.bats
-        tests/unit/openclaw-taskfile.bats
-        tests/unit/purge-fn-gaps.bats
-        tests/unit/skill-orchestrator.bats
-        tests/unit/superpowers-collab-patch.bats
-        tests/unit/superpowers-submit-patch.bats
-        tests/unit/helper-collab-headless.bats
-        tests/unit/tickets-plan-staged-migration.bats
-        tests/unit/env-resolve.bats
-        tests/unit/env-validate.bats
-        tests/unit/planning-office.bats
-        tests/unit/planungsbuero-stats.bats
-        tests/unit/ticket-triage.bats
-        tests/unit/T000617-alert-rules.bats
-        tests/unit/vendored-bats.bats
-
-  test:unit:bats-runner-path:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/bats-runner-path.bats
+        bash scripts/pytest-run.sh
+        tests/py/spec/native_ported/unit/test_admin_nav.py
+        tests/py/spec/native_ported/unit/test_brainstorm_extract_choice.py
+        tests/py/spec/native_ported/unit/test_git_crypt_guard.py
+        tests/py/spec/native_ported/unit/test_openclaw_taskfile.py
+        tests/py/spec/native_ported/unit/test_purge_fn_gaps.py
+        tests/py/spec/native_ported/unit/test_skill_orchestrator.py
+        tests/py/spec/native_ported/unit/test_superpowers_collab_patch.py
+        tests/py/spec/native_ported/unit/test_superpowers_submit_patch.py
+        tests/py/spec/native_ported/unit/test_helper_collab_headless.py
+        tests/py/spec/native_ported/unit/test_tickets_plan_staged_migration.py
+        tests/py/spec/native_ported/unit/test_env_resolve.py
+        tests/py/spec/native_ported/unit/test_env_validate.py
+        tests/py/spec/native_ported/unit/test_planning_office.py
+        tests/py/spec/native_ported/unit/test_planungsbuero_stats.py
+        tests/py/spec/native_ported/unit/test_ticket_triage.py
+        tests/py/spec/native_ported/unit/test_t000617_alert_rules.py
 
   test:unit:verification-block-order:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/verification-block-order.bats
-
-  test:unit:coverage-guard:
-    internal: true
-    # Fail if any tests/unit/*.bats is neither run by a task nor allowlisted.
-    cmds:
-      - bash scripts/tests/unit-coverage-guard.sh
-
+      - bash scripts/pytest-run.sh tests/py/unit/test_verification_block_order.py
   test:unit:scs-index:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/scs-index.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_scs_index.py
   test:unit:scs-search:
     internal: true
     cmds:
-      - bash tests/bats tests/unit/scs-search.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_scs_search.py
   test:art-library:
     desc: "Validate every assets/art-library/sets/* manifest"
     cmds:
       - cd assets/art-library/_tooling && npm install --silent
-      - bash tests/bats tests/unit/test_art_library_manifest.bats
-
+      - bash scripts/pytest-run.sh tests/py/unit/test_art_library_manifest.py
   test:manifests:
     desc: Validate kustomize output structure (no cluster needed)
     cmds:
-      - bash tests/bats tests/unit/manifests.bats
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/unit/test_manifests_part1.py tests/py/spec/native_ported/unit/test_manifests_part2.py
   test:menu-gate:
     desc: Enforce admin-menu rules (R1, R2, R4, R5, R7)
     cmds:
@@ -409,14 +334,14 @@ tasks:
       # T002638: dasselbe Muster ein zweites Mal — exclusive-conflict, fixups und
       # strip-markers (zusammen 19 Tests) liefen ebenfalls in keinem Target. Diese
       # Liste ist handgepflegt und damit strukturell unvollstaendig; der Guard
-      # tests/spec/local-llm-proxy/proxy-tests-registered.bats haelt sie ab jetzt
+      # tests/py/spec/native_ported/spec/local-llm-proxy/test_proxy_tests_registered.py haelt sie ab jetzt
       # gegen die tatsaechlich vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs
       - node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/listeners.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
   test:decommission:
-    desc: "Run the offline-safe decommission regression bats (tests/spec/decommission/). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe decommission regression tests (tests/py/spec/native_ported/spec/decommission/). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
       # [T002427] Zeigte bis hierher auf tests/local/FA-SF-*.bats. Diese 41 Dateien waren
       # Duplikate der Sammeldatei, in die sie konsolidiert
@@ -427,187 +352,54 @@ tasks:
       # [T002503] Die Sammeldatei ist jetzt in tests/spec/decommission/ aufgeteilt und
       # ENTFERNT — dieselbe Lehre, diesmal beim Aufteilen statt beim Zusammenfuehren
       # beachtet. `-r` auf das Verzeichnis, damit kuenftige Dateien ohne Aenderung hier
-      # mitlaufen; ein Glob wuerde sie stillschweigend auslassen.
-      - bash -c "tests/bats -r tests/spec/decommission/"
+      # mitlaufen; ein Glob wuerde sie stillschweigend auslassen. Seit T901392 pytest.
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/decommission/
 
   test:spec:build-mcp-runner:
     cmds:
       - |
-        # tests/spec/mcp-task-runner.bats invokes /usr/local/bin/mcp-task-runner.
+        # The mcp-task-runner spec tests invoke /usr/local/bin/mcp-task-runner.
         # Install/update the Node.js runner wrapper script. [T006664]
         bash scripts/mcp-task-runner/install.sh
 
   test:spec:
-    desc: "Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS laeuft nur die eigene Partition (siehe scripts/spec-shard.sh)."
+    desc: "Run the offline-safe spec suite (pytest, tests/py/spec). Builds mcp-task-runner first. Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS runs only this shard's modules (tests/py/conftest.py). [T901392]"
     cmds:
       - task: test:spec:build-mcp-runner
       - |
-        # `find` statt `bats -r tests/spec/` [T002500]: die Shard-Aufteilung braucht eine
-        # explizite Dateiliste. Der rekursive Fang bleibt identisch zu `-r` — und damit
-        # auch die Eigenschaft aus T002416, dass Tests unter tests/spec/<spec-slug>/
-        # miterfasst werden. Ein flacher Glob wuerde sie stillschweigend auslassen, was
-        # schlimmer waere als ein roter Test.
-        FILES=$(find tests/spec -name '*.bats' -type f | LC_ALL=C sort)
-        if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
-          # [T004024] Seed aus HEAD-SHA: alle Matrix-Legs desselben Commits
-          # partitionieren identisch, aber die schwerste Datei rotiert je nach
-          # Commit ueber die Shards (statt immer auf Shard 1 zu landen).
-          SPEC_SHARD_SEED="$(git rev-parse HEAD 2>/dev/null | cut -c1-12 || true)"
-          FILES=$(printf '%s\n' "$FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS" --seed "${SPEC_SHARD_SEED:-}")
-          echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$FILES" | grep -c .) Dateien"
-        fi
-        # Leere Auswahl ist ein Fehler, kein No-op. Ein still gruener Leerlauf saehe
-        # aus wie eine bestandene Suite, obwohl nichts lief — genau die Klasse von
-        # Fehler, die das Sharding einfuehren kann und die niemand bemerkt.
-        if [ "$(printf '%s' "$FILES" | grep -c .)" -eq 0 ]; then
-          echo "test:spec: FEHLER — keine Spec-Dateien ausgewaehlt" >&2
-          exit 1
-        fi
-        # [T002779] spec-tracked-file-guard: Snapshot vor bats nehmen,
-        # nicht am Task-Anfang — test:spec:build-mcp-runner laeuft vorher
-        # und erzeugt legitime Ausgabe.
         GUARD_SNAP="$(mktemp)"
         bash scripts/spec-tracked-file-guard.sh snapshot "$GUARD_SNAP"
-
-        # [T003025] BATS_JUNIT_DIR schaltet den junit-Report an (CI laedt ihn als
-        # Artifakt hoch, scripts/spec-junit-weights.sh macht daraus die
-        # Laufzeit-Gewichte fuer spec-shard.sh). Ohne die Variable: exakt wie vorher.
-        BATS_EXTRA_ARGS=()
-        if [ -n "${BATS_JUNIT_DIR:-}" ]; then
-          mkdir -p "$BATS_JUNIT_DIR"
-          BATS_EXTRA_ARGS+=(--report-formatter junit -o "$BATS_JUNIT_DIR")
-        fi
-
         set +e
-        bash scripts/lib/run-bats.sh -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $FILES
-        BATS_STATUS=$?
+        bash scripts/pytest-run.sh tests/py/spec {{.CLI_ARGS}}
+        TEST_STATUS=$?
         bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
         GUARD_STATUS=$?
         set -e
-
         rm -f "$GUARD_SNAP"
-        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
-        # [T002779] Guard ist bei der initialen Ausrollung nicht-fatal:
-        # bestehende Spec-Tests (z.B. agent-roster P4.5: task agent-guide:maps)
-        # regenerieren getrackte Dateien; ihre Behebung ist ein eigener Vorgang.
-        # Sobald alle Fundstellen behoben sind, wird exit "$GUARD_STATUS" aktiv.
+        if [ "$TEST_STATUS" -ne 0 ]; then exit "$TEST_STATUS"; fi
         if [ "$GUARD_STATUS" -ne 0 ]; then
           echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
         fi
-        exit 0
-
-  test:spec:timing:
-    desc: "Run the full offline-safe spec suite and write tests/spec/.spec-runtime.tsv (measured seconds per file) — the runtime weights for spec-shard.sh. [T003025] Am besten auf einem CI-gleichen Host (kein Live-Cluster/keine DB), damit die Gewichte die CI-Realitaet abbilden. CI-Alternative: junit-Artifakte aus ci.yml herunterladen und scripts/spec-junit-weights.sh darauf laufen lassen."
-    cmds:
-      - task: test:spec:build-mcp-runner
-      - |
-        FILES=$(find tests/spec -name '*.bats' -type f | LC_ALL=C sort)
-        if [ "$(printf '%s' "$FILES" | grep -c .)" -eq 0 ]; then
-          echo "test:spec:timing: FEHLER — keine Spec-Dateien gefunden" >&2
-          exit 1
-        fi
-        REPORT_DIR="$(mktemp -d)"
-        echo "→ Full spec suite mit junit-Report ($(printf '%s' "$FILES" | grep -c .) Dateien) — kann >10 min dauern"
-        set +e
-        bash tests/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files --report-formatter junit -o "$REPORT_DIR" $FILES
-        BATS_STATUS=$?
-        set -e
-        bash scripts/spec-junit-weights.sh "$REPORT_DIR"/report.xml --to tests/spec/.spec-runtime.tsv
-        rm -rf "$REPORT_DIR"
-        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
-        echo "→ tests/spec/.spec-runtime.tsv geschrieben — Balance pruefen:"
-        find tests/spec -name '*.bats' -type f | bash scripts/spec-shard.sh --verify --of 4 | tail -8
         exit 0
 
   test:spec:changed:
-    desc: "Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]"
+    desc: "Alias for test:spec — the pytest spec suite runs in full in a few minutes, so there is no diff-scoped selection anymore. [T901392]"
     cmds:
-      - task: test:spec:build-mcp-runner
-      - |
-        CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
-        # [T003056] Ab hier ist die Variable verbraucht: sie steuert AUSSCHLIESSLICH
-        # die Auswahl oben. Bliebe sie in der Umgebung, erbte sie jeder von bats
-        # gestartete Test — und Tests, die find-changed-tests.sh in einem eigenen
-        # tmp-Repo gegen dessen Default-Diff pruefen, bekaemen stattdessen den
-        # override-Zweig mit den Dateien des aeusseren Repos. Genau das machte auf
-        # main sechs Guards rot (T002245/T002345/T002377), waehrend sie lokal und
-        # auf PRs gruen blieben: nur auf main setzt ci.yml die Variable.
-        unset FIND_CHANGED_TESTS_FILES
-        if [ -z "$CHANGED_FILES" ]; then
-          echo "→ No matching spec tests for this diff"
-          exit 0
-        fi
-        # [T002377] Anzahl nennen und den Vollauf benennen. Ohne das las sich der
-        # stille RUN_ALL-Fallback wie eine gezielte Auswahl; der Lauf dauert dann
-        # aber ueber zehn Minuten, und ein Timeout darauf sieht aus wie ein
-        # Testfehler ("exit 1, obwohl alle Untertests gruen").
-        SELECTED=$(echo "$CHANGED_FILES" | wc -l)
-        # find statt ls-Glob [T002416]: der Glob zaehlt nur die oberste Ebene. Zu kleines
-        # TOTAL laesst SELECTED >= TOTAL werden und meldet faelschlich "FULL spec suite".
-        TOTAL=$(find tests/spec -name '*.bats' -type f 2>/dev/null | wc -l)
-        if [ "$SELECTED" -ge "$TOTAL" ]; then
-          echo "→ FULL spec suite ($SELECTED files) — diff-scoped selection fell back to run-all; expect >10 min"
-        else
-          echo "→ Running changed spec tests ($SELECTED of $TOTAL):"
-        fi
-        echo "$CHANGED_FILES"
-        # [T002500] Sharding auch hier, denn der teure Fall laeuft ueber DIESEN Pfad:
-        # aendert ein PR ci.yml/Taskfile.yml oder ein geteiltes Harness, faellt
-        # find-changed-tests.sh fail-closed auf die volle Suite zurueck (~400s).
-        if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
-          # [T004024] Seed wie in test:spec — gleicher Commit, gleiche Partition;
-          # die schwerste geaenderte Datei rotiert ueber die Shards.
-          SPEC_SHARD_SEED="$(git rev-parse HEAD 2>/dev/null | cut -c1-12 || true)"
-          CHANGED_FILES=$(printf '%s\n' "$CHANGED_FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS" --seed "${SPEC_SHARD_SEED:-}")
-          # Anders als bei test:spec ist ein leerer Shard hier legitim: eine
-          # diff-gescopte Auswahl kann weniger Dateien haben als es Shards gibt.
-          if [ "$(printf '%s' "$CHANGED_FILES" | grep -c .)" -eq 0 ]; then
-            echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: keine Dateien in dieser Partition"
-            exit 0
-          fi
-          echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$CHANGED_FILES" | grep -c .) Dateien"
-        fi
-        # [T002779] spec-tracked-file-guard: Snapshot vor bats nehmen.
-        GUARD_SNAP="$(mktemp)"
-        bash scripts/spec-tracked-file-guard.sh snapshot "$GUARD_SNAP"
-
-        # [T003025] junit-Report wie in test:spec (siehe dort).
-        BATS_EXTRA_ARGS=()
-        if [ -n "${BATS_JUNIT_DIR:-}" ]; then
-          mkdir -p "$BATS_JUNIT_DIR"
-          BATS_EXTRA_ARGS+=(--report-formatter junit -o "$BATS_JUNIT_DIR")
-        fi
-
-        set +e
-        bash tests/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $CHANGED_FILES
-        BATS_STATUS=$?
-        bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
-        GUARD_STATUS=$?
-        set -e
-
-        rm -f "$GUARD_SNAP"
-        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
-        # [T002779] Guard nicht-fatal waehrend der initialen Ausrollung (siehe test:spec).
-        if [ "$GUARD_STATUS" -ne 0 ]; then
-          echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
-        fi
-        exit 0
+      - task: test:spec
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
     cmds:
-      - bash tests/bats tests/spec/mcp-tooling.bats
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/test_mcp_tooling.py
 
   test:agent-library:
     desc: "Guardrail: .claude/agents/*.md <-> AGENTS.md routing-table library assertions"
     cmds:
-      - bash tests/bats tests/spec/agent-library.bats
-
-
+      - bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/test_agent_library.py
   test:agent-lock:
-    desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
+    desc: "Run the offline agent-lock session-coordination tests (tests/py/local/test_agent_lock_*)."
     cmds:
-      - bash -c "tests/bats tests/local/AGENT-LOCK-*.bats"
+      - PYTEST_LOCAL=1 bash scripts/pytest-run.sh tests/py/local/test_agent_lock_01_core.py tests/py/local/test_agent_lock_02_reap.py tests/py/local/test_agent_lock_03_precommit.py
 
   test:all:
     desc: "Run tests for changed files only (smart selection) — delegates to test:changed"
@@ -615,7 +407,7 @@ tasks:
       - task: test:changed
 
   test:changed:
-    desc: "Run only tests relevant to changed files (smart selection: vitest --changed + domain BATS + quality)"
+    desc: "Run only tests relevant to changed files (smart selection: vitest --changed + pytest suite + quality)"
     cmds:
       - |
         set -e
@@ -629,13 +421,11 @@ tasks:
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
         echo "$CHANGED" | grep -qE "^scripts/" && RUN_SCRIPTS=true || true
         echo "$CHANGED" | grep -qE "^(tests/local/FA-)" && RUN_FACTORY=true || true
-        # scripts/*-Aenderungen muessen die spec-Suite erreichen koennen: der
-        # spec-Finder prueft per Pfad-Probe, welche spec-bats einen geaenderten
-        # Pfad referenziert. Ohne diesen Zweig wrde eine reine scripts/*-Aenderung
-        # nur RUN_SCRIPTS setzen und find-changed-tests.sh unit aufrufen. [T002345]
-        echo "$CHANGED" | grep -qE "^(tests/spec/|tests/lib/|scripts/)" && RUN_SPEC=true || true
-        echo "$CHANGED" | grep -qE "^(tests/unit/|tests/lib/|\.bats)" && RUN_UNIT=true || true
-        echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
+        # scripts/*-Aenderungen muessen die Spec-Tests erreichen [T002345]; seit
+        # T901392 laeuft dafuer die volle pytest-Suite.
+        echo "$CHANGED" | grep -qE "^(tests/py/|tests/spec/|tests/lib/|tests/fixtures/|scripts/)" && RUN_SPEC=true || true
+        echo "$CHANGED" | grep -qE "^(tests/py/|tests/unit/|tests/lib/)" && RUN_UNIT=true || true
+        echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
         echo "$CHANGED" | grep -qE "^\.github/workflows/" && RUN_WORKFLOWS=true || true
         echo "$CHANGED" | grep -qE "^components/website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true
@@ -670,29 +460,14 @@ tasks:
         echo "→ runtime drift check (skips without cluster)"
         bash scripts/runtime-drift-check.sh
 
-        JOBS=$(nproc 2>/dev/null || echo 2)
-        if [ "$RUN_SCRIPTS" = "true" ] || [ "$RUN_UNIT" = "true" ]; then
-          echo "→ running changed unit tests in parallel"
-          CHANGED_FILES=$(bash scripts/find-changed-tests.sh unit)
-          if [ -n "$CHANGED_FILES" ]; then
-            bash tests/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
-          else
-            echo "No matching unit tests found for changes."
-          fi
+        if [ "$RUN_SCRIPTS" = "true" ] || [ "$RUN_UNIT" = "true" ] || [ "$RUN_SPEC" = "true" ]; then
+          # [T901392] pytest replaces the BATS diff selection: the full suite runs
+          # in a few minutes in parallel and cannot miss an unmapped test.
+          echo "→ script/test changes: full pytest suite"
+          task test:spec:build-mcp-runner
+          bash scripts/pytest-run.sh tests/py
           if echo "$CHANGED" | grep -qE "^(tests/figure-pack-assets|assets/)"; then
             bash tests/figure-pack-assets.test.sh
-          fi
-          bash scripts/tests/unit-coverage-guard.sh
-        fi
-        
-        if [ "$RUN_SPEC" = "true" ]; then
-          echo "→ spec changes: running changed spec tests in parallel"
-          task test:spec:build-mcp-runner
-          CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
-          if [ -n "$CHANGED_FILES" ]; then
-            bash tests/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
-          else
-            echo "No matching spec tests found for changes."
           fi
         fi
 
@@ -711,7 +486,7 @@ tasks:
         # [T002375-p4] Erreichbarkeit pruefen, bevor die E2E-Gruppe laeuft. Bei jeder
         # k3d/-Aenderung lief sie bisher bedingungslos und schlug ohne Dev-Stack mit 13
         # ERR_CONNECTION_REFUSED fehl. Entscheidend: CI fuehrt fuer PRs nur
-        # test:spec:changed plus manifests.bats/changed-manifests.bats aus, NICHT das
+        # die pytest-Suite plus die Manifest-Tests aus, NICHT das
         # volle test:changed — der lokale Lauf war also strenger als das Gate, das er
         # simuliert. Ein Agent, der die Pflicht-Verifikation woertlich befolgt, stand vor
         # der Wahl: falsche Regression melden, blind weitermachen, oder Zeit an einem
@@ -771,7 +546,7 @@ tasks:
   test:evals:
     desc: "Run agent evals (tests/evals/, offline). See tests/evals/README.md."
     cmds:
-      - tests/unit/lib/bats-core/bin/bats tests/evals/*.bats
+      - bash scripts/pytest-run.sh tests/py/evals
 
   test:evals:update:
     desc: "Regenerate tests/evals/golden/task-list-all.txt (state the reason in the PR)."
@@ -786,7 +561,7 @@ tasks:
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"
     cmds:
-      - bash tests/bats --formatter tap tests/unit/
+      - bash scripts/pytest-run.sh tests/py/unit tests/py/spec/native_ported/unit
 
   test:e2e:
     desc: "Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)"

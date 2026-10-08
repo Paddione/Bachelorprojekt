@@ -1,6 +1,6 @@
 /**
  * Plan Intel Bundle — TypeScript mirror of plan-intel-bundle.schema.json.
- * Hand-maintained; the BATS drift-guard (tests/spec/dev-flow-plan.bats) asserts
+ * Hand-maintained; the pytest drift-guard (tests/py/spec/native_ported/spec/test_dev_flow_plan.py) asserts
  * top-level key parity with the JSON-Schema. Runtime path: .agents/plans/<slug>/intel.json
  */
 

@@ -36,13 +36,14 @@ Kompaktheits-Regeln: subagent-provisioning §3.
   kann `search_code` selbst nachfragen. Ohne erreichbaren Server: weiter mit dem Toolset-Block.
 - **Plan Intel Bundle (Optional):** `bash scripts/task-context.sh <slug>` liefert den Kern aus `intel.json` plus frische Signale. Format: [plan-intel-bundle](.agents/skills/references/plan-intel-bundle.md). Fehlt es, ist das kein Blocker.
 
-## BATS-Pflicht
+## Test-Pflicht (pytest)
 
-Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die plan-Spec, die das
-Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage: `tests/spec/ticket-system.bats`);
-ohne klare Spec-Zuordnung `tests/unit/` erweitern. Ticket-nummerierte Dateien (`FA-SF-42.bats`)
-sind Legacy und werden **nicht** neu angelegt.
-Details: [dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md) §BATS.
+Neue Tests sind pytest-Funktionen in `tests/py/spec/<bereich>/test_<kurz_slug>.py` — der Bereich,
+dessen Verhalten sie abdecken. Existiert das Modul nicht, anlegen (Vorlage:
+`tests/py/spec/native_ported/spec/test_ticket_system.py`, Konventionen in `tests/CLAUDE.md`);
+ohne klare Bereichszuordnung `tests/py/unit/` erweitern. Ticket-nummerierte Dateinamen werden
+**nicht** angelegt. BATS ist seit T901392 deinstalliert.
+Details: [dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md) §Tests.
 
 ## Auftrag (wörtlich Teil des Implementer-Prompts)
 

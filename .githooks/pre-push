@@ -6,7 +6,7 @@ if [[ ! -f "$(git rev-parse --show-toplevel 2>/dev/null)/node_modules/.bin/madge
   exit 0
 fi
 # pre-push: fast quality gate (blockierend) + Conventional-Commit-Gate (blockierend)
-#            + BATS-Konsistenz-Advisory (warn-only) + Branch/PR naming advisory.
+#            + Test-Inventar-Advisory (warn-only) + Branch/PR naming advisory.
 #
 # Blockierend (exit 1):
 #   task quality:check (S1-S4 Ratchet, ~3s)
@@ -14,7 +14,7 @@ fi
 #   Bypass: SKIP_CI_CHECK=1 git push
 #
 # Advisory (exit 0, nur Warnung):
-#   BATS-Dateien geändert aber repo-index.json/test-inventory.json fehlen im Push
+#   Testdateien geändert aber repo-index.json/test-inventory.json fehlen im Push
 #   Branch-Name ohne Ticket-ID (PR muss [T000XXX] enthalten) [T002093]
 set -uo pipefail
 
@@ -64,7 +64,7 @@ else
 fi
 
 # ── 2. Blocking: Conventional Commit validation [T001356 / G-GIT02] +
-#      Advisory: BATS changed without repo-index/test-inventory update ───────
+#      Advisory: tests changed without repo-index/test-inventory update ──────
 REMOTE="$1"
 URL="$2"
 _commit_msg_failed=0
@@ -129,15 +129,16 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
     fi
   fi
 
-  CHANGED_BATS=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep '\.bats$' || true)
-  [[ -z "$CHANGED_BATS" ]] && continue
+  CHANGED_TESTS=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null \
+    | grep -E '^tests/py/(local|spec)/.*\.py$|^tests/.*\.sh$|^tests/e2e/specs/.*\.spec\.ts$' || true)
+  [[ -z "$CHANGED_TESTS" ]] && continue
 
   # [T002672] Jedes generierte Artefakt EINZELN pruefen. Vorher lief das ueber
   # einen ODER-grep ueber beide Dateinamen: lag eines im Push, galt die Lage als
   # in Ordnung und der Warnblock wurde uebersprungen — auch wenn das andere
   # fehlte (real bei PR #3794, CI fiel darueber). Die Pruefung selbst liegt in
   # einem eigenen Skript, weil sie dort gegen ein temporaeres Git-Repo testbar
-  # ist; Guard: tests/spec/ci-cd/pre-push-artifact-guard.bats
+  # ist; Guard: tests/py/spec/native_ported/spec/ci-cd/test_pre_push_artifact_guard.py
   MISSING_ARTIFACTS=$(bash "$(resolve_guard "scripts/hooks/check-freshness-artifacts.sh")" "$BASE" "$LOCAL_SHA" 2>/dev/null || true)
   if [[ -n "$MISSING_ARTIFACTS" ]]; then
     # Only warn if freshness:regenerate would actually produce a diff — fehlt ein
@@ -149,7 +150,7 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
       _freshness_diff=$(cd "$repo_root" && task freshness:regenerate --quiet 2>/dev/null && git diff --stat -- $MISSING_ARTIFACTS 2>/dev/null || true)
     fi
     if [[ -n "$_freshness_diff" ]]; then
-      warn "BATS-Dateien geändert, aber diese generierten Artefakte fehlen im Push:"
+      warn "Testdateien geändert, aber diese generierten Artefakte fehlen im Push:"
       while IFS= read -r _artifact; do
         [[ -n "$_artifact" ]] && warn "  - $_artifact"
       done <<<"$MISSING_ARTIFACTS"

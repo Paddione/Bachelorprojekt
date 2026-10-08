@@ -393,7 +393,7 @@ spec:
 # previously aborted the whole deploy chain here. The real-client-IP
 # problem T001328 introduced this field for is already fixed by T001341
 # (Traefik hostPort DaemonSet, no SNAT hop), so no equivalent replacement is
-# needed. See tests/spec/pocket-id-proxy-ip.bats.
+# needed. See tests/py/spec/native_ported/spec/test_pocket_id_proxy_ip.py.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:

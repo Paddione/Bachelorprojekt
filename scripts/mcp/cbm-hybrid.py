@@ -9,7 +9,7 @@ Ticket T900993 (task A3). Stages:
     (4) small graph boost (existing apply_boost), capped last factor
 
 This module holds the pure, network-free layer (spec-tested in
-tests/spec/cbm-hybrid-search.bats) plus two thin stdlib-only IO helpers
+tests/py/spec/test_cbm_graph_rerank_and_hybrid.py) plus two thin stdlib-only IO helpers
 (fts_search over sqlite3, rerank_cross over urllib). It imports no sibling
 cbm-* module, so the BATS suite can load it in isolation. The CLI lives in
 cbm-graph-rerank.py (`hybrid` subcommand), which wires these helpers to the

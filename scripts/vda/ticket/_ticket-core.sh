@@ -21,15 +21,15 @@ source "$(dirname "${BASH_SOURCE[0]}")/_devmesh-guard.sh"
 # [T015168] Erwartete DB-Identitaet der SSOT. Geschrieben durch die Migration
 # migrations/20260824-db-identity-marker.sql; _assert_db_identity probt sie nach
 # der Pod-Aufloesung (fail-closed bei Fehlen/Abweichung). Die Paritaet dieses
-# Literals mit der Migration erzwingt tests/spec/db-guard/db-identity-guard.bats.
+# Literals mit der Migration erzwingt tests/py/spec/native_ported/spec/db-guard/test_db_identity_guard.py.
 TICKET_DB_IDENTITY_EXPECTED="${TICKET_DB_IDENTITY_EXPECTED:-9f1d3c6e-4b2a-4f8a-9c1d-7e5b3a2f1d00}"
 
 # [T002224] Fail-closed test guard. A BATS test that reaches this file must have
 # stubbed the cluster itself (the repo idiom: prepend a mock `kubectl` to PATH,
-# see tests/spec/feature-product-linking.bats). When it has not, the real
+# see tests/py/spec/native_ported/spec/test_feature_product_linking.py). When it has not, the real
 # kubectl is still on PATH and every write lands in the LIVE ticket database.
 #
-# That is not hypothetical: tests/spec/t001582-mishap-bundle.bats tried to block
+# That is not hypothetical: tests/py/spec/native_ported/spec/test_t001582_mishap_bundle.py tried to block
 # the cluster with PATH="/nonexistent-dir:$PATH" — which only *prepends* an empty
 # directory and leaves the real kubectl resolvable. The test wrote a real
 # `title=x, description=y` bug ticket on every suite run and produced ~130 rows

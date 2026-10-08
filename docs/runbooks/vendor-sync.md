@@ -9,10 +9,10 @@
 | Herkunfts-SSOT (Repo, Pfad, Tracking, gelockter Commit) | `docs/agent-guide/registry/vendor-lock.json` |
 | Werkzeug (`status` / `update` / `check`) | `scripts/vendor-sync.py` — Tasks `agents:vendor:status\|update\|check` |
 | Inventar (welche Skills `provenance: vendor` sind) | `docs/agent-guide/registry/skills.yaml` |
-| Guards | `tests/spec/agent-skills/vendor-sync.bats` |
+| Guards | `tests/py/spec/native_ported/spec/agent-skills/test_vendor_sync.py` |
 | Nächtlicher Runner (WSL Cron) | `scripts/nightly-update.sh` → Schritt 7 ruft `scripts/nightly-vendor-sync.sh` |
 
-**WSL-Cron-Lauf [T900454]:** `scripts/nightly-vendor-sync.sh` legt einen Worktree von `origin/main` unter `~/runs/nightly-vendor-sync` an, lässt dort die skills-CLI und `vendor-sync.py update` laufen und reicht das Ergebnis als PR auf `chore/nightly-vendor-sync-T900454-<YYYYMMDD>` ein. Der Hauptcheckout wird nicht beschrieben. Ohne Upstream-Änderung entsteht kein PR, ein noch offener Nightly-PR verhindert einen zweiten. Der Lauf ist rein mechanisch: Konfliktauflösung und Bruchanalyse aus dem Ablauf unten leistet er nicht, das Gate ist die CI des PRs. Guard: `tests/spec/agent-skills/nightly-vendor-sync.bats`.
+**WSL-Cron-Lauf [T900454]:** `scripts/nightly-vendor-sync.sh` legt einen Worktree von `origin/main` unter `~/runs/nightly-vendor-sync` an, lässt dort die skills-CLI und `vendor-sync.py update` laufen und reicht das Ergebnis als PR auf `chore/nightly-vendor-sync-T900454-<YYYYMMDD>` ein. Der Hauptcheckout wird nicht beschrieben. Ohne Upstream-Änderung entsteht kein PR, ein noch offener Nightly-PR verhindert einen zweiten. Der Lauf ist rein mechanisch: Konfliktauflösung und Bruchanalyse aus dem Ablauf unten leistet er nicht, das Gate ist die CI des PRs. Guard: `tests/py/spec/native_ported/spec/agent-skills/test_nightly_vendor_sync.py`.
 
 ## Was abgedeckt ist
 
@@ -45,7 +45,7 @@
 7. **Verifizieren** — alles muss grün sein:
    ```bash
    python3 scripts/vendor-sync.py check          # Referenzen, Konfliktmarker, Pins, Lock↔Inventar
-   tests/unit/lib/bats-core/bin/bats -r tests/spec/agent-skills
+   bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/agent-skills
    bash scripts/build-test-inventory.sh          # nur falls Tests hinzukamen/entfielen
    ```
 8. **PR.** Titel `chore(agents): vendor-sync <YYYY-MM-DD>`. Body: Tabelle alt → neu je Element, aufgelöste Konflikte, Bruchanalyse (was geprüft, was repariert, was zurückgehalten und warum). Die Repo-Regeln gelten unverändert (squash-merge, CI grün, Auto-Merge per Repo-Policy); den PR bis grün führen.
@@ -56,4 +56,4 @@ Eintrag in `skills.yaml` mit `provenance: vendor` **und** in `vendor-lock.json` 
 
 ## Ein Skill, ein Updater (lavish ist vendor-sync-owned) [T900520]
 
-`lavish` steht bewusst **nicht** in `skills-lock.json`: Die skills-CLI (`npx skills update`, nightly-update.sh Schritt 7) schreibt Upstream-Bytes stumpf über die Datei und verwirft dabei lokale Patches still — belegt 2026-09-27, als der Reload-Safety-Abschnitt (T001393) beim Anheben auf v0.1.79 verloren ging und `tests/spec/lavish.bats` rot färbte. `vendor-sync.py` dagegen mergt 3-wege gegen den gelockten Commit und erhält lokale Patches (Konflikte werden gemeldet, nicht still aufgelöst). Wer `lavish` je per `skills add` erneut einträgt, reaktiviert den stillen Verwerfer — der Guard `vendor-sync.bats` („allein vendor-sync-owned“) fängt das ab. Vor einer erneuten Anhebung manuell prüfen, dass der Reload-Safety-Abschnitt im Merge-Ergebnis erhalten blieb.
+`lavish` steht bewusst **nicht** in `skills-lock.json`: Die skills-CLI (`npx skills update`, nightly-update.sh Schritt 7) schreibt Upstream-Bytes stumpf über die Datei und verwirft dabei lokale Patches still — belegt 2026-09-27, als der Reload-Safety-Abschnitt (T001393) beim Anheben auf v0.1.79 verloren ging und `tests/py/spec/remaining_domain_specs/test_lavish.py` rot färbte. `vendor-sync.py` dagegen mergt 3-wege gegen den gelockten Commit und erhält lokale Patches (Konflikte werden gemeldet, nicht still aufgelöst). Wer `lavish` je per `skills add` erneut einträgt, reaktiviert den stillen Verwerfer — der Guard `vendor-sync.bats` („allein vendor-sync-owned“) fängt das ab. Vor einer erneuten Anhebung manuell prüfen, dass der Reload-Safety-Abschnitt im Merge-Ergebnis erhalten blieb.

@@ -19,7 +19,7 @@
 // `@hono/node-server`, und beide sind in keiner package.json des Repos
 // deklariert — er wird ad hoc per `npx tsx` gestartet. Ein Import haette diese
 // Suite in CI unlauffaehig gemacht. Die Route-Ebene deckt deshalb
-// tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats ab.
+// tests/py/spec/native_ported/spec/sdlc-cockpit/test_daemon_token_endpoint_removed.py ab.
 import { describe, it, expect } from 'vitest';
 import { exec } from '../../.lavish/kit/daemon/lib/exec';
 import { buildPodsArgs, isValidNamespace } from '../../.lavish/kit/daemon/sources/kubectl';

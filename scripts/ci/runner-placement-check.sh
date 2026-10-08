@@ -3,7 +3,7 @@
 # sie ueber ein Capability-Label adressieren, nie ueber den generischen Pool. [T012488]
 #
 # Warum universell statt namentlich: Der Guard aus T012446
-# (tests/spec/ci-cd/hybrid-runner-placement.bats) prueft eine Allowlist benannter
+# (tests/py/spec/ci_cd_specs/test_hybrid_runner_placement.py) prueft eine Allowlist benannter
 # Jobs. Ein NEU hinzugefuegter Job steht in keiner dieser Listen und passiert ihn
 # unbemerkt — genau so entstand der Zustand, den T012446 rueckgaengig machen musste.
 # Dieses Skript iteriert stattdessen ueber jeden Job jeder Workflow-Datei und kehrt

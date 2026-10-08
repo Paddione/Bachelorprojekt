@@ -54,5 +54,5 @@ vier liegen außerhalb des Audit-Scopes und sind unten nur als Klarstellung geli
 Messung, Anker-Fehler ⇒ `n/a` (`-` im Runner), nie `0` als Default. Grüne Ziele blieben byte-for-byte
 unverändert (REQ-005); G-LLM\* und G-WT\* sind FREEZE (T002442/T002443). Die verbleibenden 9 Familien
 wurden geprüft und sind ohne Befund. Permanenter Regressionsschutz: Fixture-Suite
-[`tests/spec/health-goals/zielfamilien-audit.bats`](../../tests/spec/health-goals/zielfamilien-audit.bats) —
+[`tests/py/spec/native_ported/spec/health-goals/test_zielfamilien_audit.py`](../../tests/py/spec/native_ported/spec/health-goals/test_zielfamilien_audit.py) —
 SKIP-forever und vakuos-grün machen die Suite rot.

@@ -25,7 +25,7 @@ components/brett/public/assets/game_assets_mentolder/sprites/*.png binary
 # kollidieren, wenn zwei PRs sie gleichzeitig aendern.
 # Register the driver once per machine: git config merge.ours.driver true
 # (also done by `task secrets:install-hooks`)
-# Guard gegen Drift in diesem Block: tests/spec/ci-cd/generated-artifacts-registry.bats
+# Guard gegen Drift in diesem Block: tests/py/spec/ci_cd_specs/test_generated_artifacts_registry.py
 # prueft per `git check-attr`, dass (a) jede vom freshness:check-Gate gepruefte
 # Datei hier steht und (b) kein Eintrag auf einen nicht existierenden Pfad zeigt.
 # Ein Eintrag mit falschem Pfad ist schlimmer als gar keiner: er sieht nach Schutz
@@ -60,7 +60,6 @@ docs/diagrams/architecture.md                 merge=ours linguist-generated=true
 
 # T016422: Windows-native Dev — Shell-/YAML-Sourcen strikt LF
 *.sh    text eol=lf
-*.bats  text eol=lf
 *.bash  text eol=lf
 # Linux-interpreted sources must stay LF — NTFS checkout (Windows-native dev,
 # ADR-007) would otherwise introduce CRLF and break bash/yaml parsing.

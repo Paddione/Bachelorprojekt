@@ -38,6 +38,7 @@ def _first_line(text: str, pred):
 # ── Case 1: every customer route is owner-guarded (fail-closed) ─────────────
 
 def test_t901026_1_all_kunden_routes_reference_the_owner_guard_requireowner(repo_root):
+    """T901026-1: all kunden routes reference the owner guard (requireOwner)"""
     for f in _routes(repo_root).values():
         assert f.is_file(), f"missing route file: {f}"
         text = f.read_text()
@@ -48,6 +49,7 @@ def test_t901026_1_all_kunden_routes_reference_the_owner_guard_requireowner(repo
 # ── Case 2: clients group by normalized email ──────────────────────────────
 
 def test_t901026_2_clients_ts_groups_customers_via_normalizeclientemail(repo_root):
+    """T901026-2: clients.ts groups customers via normalizeClientEmail"""
     lib = _lib(repo_root)
     assert lib.is_file(), f"missing lib file: {lib}"
     text = lib.read_text()
@@ -66,6 +68,7 @@ def test_t901026_2_clients_ts_groups_customers_via_normalizeclientemail(repo_roo
 # ── Case 3: merges are never silent (explicit confirm + both ids) ──────────
 
 def test_t901026_3_zusammenfuehren_ts_requires_confirm_plus_both_ids_before_merging(repo_root):
+    """T901026-3: zusammenfuehren.ts requires confirm plus both ids before merging"""
     zusammen = _routes(repo_root)["ZUSAMMEN_TS"]
     assert zusammen.is_file(), f"missing endpoint file: {zusammen}"
     text = zusammen.read_text()
@@ -82,6 +85,7 @@ def test_t901026_3_zusammenfuehren_ts_requires_confirm_plus_both_ids_before_merg
 # ── Case 4: CSV export format (contact + history sections) ─────────────────
 
 def test_t901026_4_export_ts_answers_text_csv_with_kontakt_and_historie_sections(repo_root):
+    """T901026-4: export.ts answers text/csv with Kontakt and Historie sections"""
     export = _routes(repo_root)["EXPORT_TS"]
     assert export.is_file(), f"missing endpoint file: {export}"
     text = export.read_text()
@@ -94,6 +98,7 @@ def test_t901026_4_export_ts_answers_text_csv_with_kontakt_and_historie_sections
 # ── Case 5: deletion honours statutory retention (Steuerfristen) ────────────
 
 def test_t901026_5_loeschen_ts_warns_about_aufbewahrung_and_guards_deletion(repo_root):
+    """T901026-5: loeschen.ts warns about Aufbewahrung and guards deletion"""
     loeschen = _routes(repo_root)["LOESCHEN_TS"]
     assert loeschen.is_file(), f"missing endpoint file: {loeschen}"
     text = loeschen.read_text()
@@ -108,6 +113,7 @@ def test_t901026_5_loeschen_ts_warns_about_aufbewahrung_and_guards_deletion(repo
 # ── Case 6 (T901263): relative lib imports resolve to real files ───────────
 
 def test_t901263_1_relative_lib_imports_in_kunden_routes_resolve_to_existing_files(repo_root):
+    """T901263-1: relative lib imports in kunden routes resolve to existing files"""
     failures = []
     for name, f in _routes(repo_root).items():
         if not f.is_file():

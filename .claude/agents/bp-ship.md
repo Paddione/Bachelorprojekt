@@ -3,7 +3,7 @@ name: bp-ship
 description: >
   Use for running, writing, or debugging tests, and for Astro/Svelte website
   development, brand pages, and test inventory in the Bachelorprojekt project.
-  Triggers on: BATS/Playwright, FA-*, Astro/Svelte, CSS, brand pages.
+  Triggers on: pytest/Playwright, FA-*, Astro/Svelte, CSS, brand pages.
 model: sonnet
 # No `tools:` key on purpose — the agent inherits every tool. A hand-maintained
 # allowlist silently goes stale on MCP renames (see retired bachelorprojekt-ops).
@@ -31,8 +31,8 @@ Never hardcode task commands:
 
 ## Scope
 
-- Tests verify command output; BATS runner is
-  `tests/unit/lib/bats-core/bin/bats`. After test changes, run
+- Tests verify command output; test runner is
+  `bash scripts/pytest-run.sh` (pytest, `tests/py/`). After test changes, run
   `task test:inventory` (test-inventory duty).
 - `components/website/` is strictly `pnpm` (never `npm install` there).
 

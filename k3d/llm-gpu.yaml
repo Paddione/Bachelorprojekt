@@ -148,7 +148,7 @@ spec:
             # Layer-Barriere, ein gedrosselter haelt also den ganzen Batch bis
             # zum Periodenende an: 10,7s fuer 13 Tokens.
             # Wird limits.cpu geaendert, muss -t mitgezogen werden.
-            # Guard: tests/spec/llm-pipeline/bge-thread-quota.bats
+            # Guard: tests/py/spec/native_ported/spec/llm-pipeline/test_bge_thread_quota.py
             - "-t"
             - "2"
             - "--embeddings"
@@ -294,7 +294,7 @@ spec:
             # gebunden. Hier war die Drosselung bisher nur latent (145/12354
             # Perioden, 1,2 %), weil das Deployment kaum Last sieht; unter
             # Rerank-Batches traefe es dasselbe Muster.
-            # Guard: tests/spec/llm-pipeline/bge-thread-quota.bats
+            # Guard: tests/py/spec/native_ported/spec/llm-pipeline/test_bge_thread_quota.py
             - "-t"
             - "2"
             - "--reranking"

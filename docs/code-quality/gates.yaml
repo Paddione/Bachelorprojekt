@@ -35,13 +35,9 @@ scan:
     # or locked (CI), causing the LOC baseline to drift without tracked-file changes.
     # These are deployment secrets, not source code — exclude from the LOC budget.
     - "environments/.secrets/**"
-    # Vendored third-party BATS libraries (bats-core/support/assert/file), checked
-    # in in-tree since T002135 (formerly git submodules). Upstream code is not
-    # subject to our size/orphan gates and must not perturb repo-index.json.
-    - "tests/unit/lib/**"
     # Vendored upstream mailbox-mcp-server (MIT, not on npm), in-tree since
-    # T900396. Same rationale as tests/unit/lib: upstream code is not subject to
-    # our size/orphan gates and must not perturb repo-index.json.
+    # T900396. Upstream code is not subject to our size/orphan gates and must
+    # not perturb repo-index.json.
     - "scripts/mailbox-mcp/**"
 
 s1:
@@ -202,10 +198,11 @@ s4:
     # agent-msg.sh, agent-escalate.sh). Added in T001049.
     - "AGENTS.md"
     - "CLAUDE.md"
-    # BATS unit tests under tests/unit/ document and exercise helper scripts
-    # (e.g. tests/unit/skill-orchestrator.bats, tickets-sunset.bats). Without this
-    # entry, those scripts are flagged as orphans. Added in T001170.
-    - "tests/**/*.bats"
+    # The pytest suite under tests/py/ documents and exercises helper scripts
+    # (e.g. the skill-orchestrator and tickets-sunset tests). Without this entry,
+    # those scripts are flagged as orphans. Added in T001170 for BATS; pytest
+    # since T901392.
+    - "tests/py/**/*.py"
     # Subagent prompt files under .opencode/prompts/ reference guard scripts and
     # other helper scripts (e.g. agent-lock.sh). Added in T002137.
     - ".opencode/prompts/**/*.md"

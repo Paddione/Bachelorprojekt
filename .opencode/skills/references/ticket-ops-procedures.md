@@ -566,7 +566,7 @@ Merge = Abschluss: each ticket closes on its own green auto-merge; the masterpla
 
 | Ticket Type | Primary Subagent | Validation Scope |
 |-------------|------------------|------------------|
-| test/FA-* / BATS | bachelorprojekt-test | Severity rubric, areas (ci/tests) |
+| test/FA-* / pytest | bachelorprojekt-test | Severity rubric, areas (ci/tests) |
 | infra/deploy/sealed-secret | bachelorprojekt-infra | Component mapping, severity |
 | security/OIDC/secrets | bachelorprojekt-security | Severity escalation threshold |
 | components/website/admin/frontend | bachelorprojekt-website | Areas extraction, component |

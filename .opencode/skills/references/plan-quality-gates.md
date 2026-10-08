@@ -69,7 +69,7 @@ Jedes neue `fleet/*.yaml` muss in einer `kustomization.yaml` referenziert sein, 
 
 ### CQ02 — Explizite `any`-Typen in `components/website/src` (Health-Goal)
 
-**Aktuelles Limit:** ≤ 200 explizite `any`-Verwendungen global (Gate: `tests/spec/g-cq02-any-types.bats`).
+**Aktuelles Limit:** ≤ 200 explizite `any`-Verwendungen global (Gate: `tests/py/spec/test_code_quality_and_gates.py`).
 
 Beim Plan-Schreiben für alle Dateien in `components/website/src/**`:
 
@@ -151,7 +151,7 @@ Ist eine Ad-hoc-Messung unvermeidbar:
 Der letzte Task jedes Plans MUSS diese Kommandos als Steps enthalten:
 
 ```bash
-task test:changed          # Gezielte Tests für geänderte Domains (vitest --changed + BATS-Selection + quality)
+task test:changed          # Gezielte Tests für geänderte Domains (vitest --changed + pytest-Suite + quality)
 task freshness:regenerate  # generierte Artefakte aktualisieren (test-inventory, repo-index, …)
 task freshness:check       # CI-Äquivalent: Freshness + quality:check (S1–S4-Ratchet) + Baseline-Assertion
 ```
@@ -161,7 +161,7 @@ Dazu:
   `components/website/src/data/test-inventory.json` mitcommitten (CI failt sonst).
 - **Baseline darf nicht wachsen:** CI vergleicht die Key-Anzahl von
   `docs/code-quality/baseline.json` gegen main — Pläne dürfen keine Baseline-Einträge hinzufügen.
-- **Bestehende Tests erweitern statt neue Dateien anlegen** (Vitest/Playwright/BATS zuerst suchen).
+- **Bestehende Tests erweitern statt neue Dateien anlegen** (Vitest/Playwright/pytest zuerst suchen).
 - **Manifest-Änderungen:** `task workspace:validate` + relevante `./tests/runner.sh local <TEST-ID>`.
 - **Image-Pins:** CI warnt bei `:latest` — Ausnahmen nur components/website/brett/docs (dokumentiert in CLAUDE.md).
 - **Shell-Snippet Sanity:** CLI-Befehle im Plan auf Argument-Fallen prüfen (z.B. `jq --args` wandelt alle Folgearags in Strings um -> Input-Dateien via Stdin `< file` umleiten).
@@ -177,6 +177,6 @@ gemergte Plaene bleiben nicht im Repo liegen.
   ueber `ticket.sh archive-plan --reason` (P4).
 - **Delete:** `branch-reaper.sh --sweep --plan-cleanup` entfernt Plan-Ordner per
   `git rm`, gebuendelt als Sammel-Cleanup-PR (P2) — nie direkt nach main.
-- **Fail-closed:** ohne verifizierten Record kein Delete (`tests/spec/plan-lifecycle.bats`, P3).
+- **Fail-closed:** ohne verifizierten Record kein Delete (`tests/py/spec/native_ported/spec/test_plan_lifecycle.py`, P3).
 - **Abgrenzung:** Generieren schreibt Plaene; Validieren (`plan-lint.sh`, Gates,
   Guards) prueft sie nur und schreibt nie.

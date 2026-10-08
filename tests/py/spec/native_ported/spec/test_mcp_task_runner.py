@@ -54,6 +54,7 @@ def _mcp(mtr, message: str):
 
 
 def test_mcp_task_runner_001_tools_list_returns_all_7_tools(mtr):
+    """MCP-TASK-RUNNER-001: tools/list returns all 7 tools (plan_tasks, run_task, execute_plan, get_task_graph, run_task_async, cancel_task, get_task_result)"""
     r = _mcp(mtr, '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}')
     assert r.returncode == 0
     data = json.loads(r.stdout)
@@ -65,6 +66,7 @@ def test_mcp_task_runner_001_tools_list_returns_all_7_tools(mtr):
 
 
 def test_mcp_task_runner_002_plan_tasks_with_two_same_named_tasks_groups_them_into_one_parallel_group(mtr):
+    """MCP-TASK-RUNNER-002: plan_tasks with two same-named tasks (different env) groups them into one parallel group"""
     req = ('{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"plan_tasks","arguments":'
            '{"tasks":[{"task":"workspace:deploy","env":"mentolder"},{"task":"workspace:deploy","env":"korczewski"}]}}}')
     r = _mcp(mtr, req)
@@ -77,6 +79,7 @@ def test_mcp_task_runner_002_plan_tasks_with_two_same_named_tasks_groups_them_in
 
 
 def test_mcp_task_runner_003_run_task_with_a_fake_task_that_exits_0_returns_exit_code_0_and_a_trace_id(mtr):
+    """MCP-TASK-RUNNER-003: run_task with a fake task that exits 0 returns exit_code 0 and a trace_id"""
     req = ('{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"run_task","arguments":'
            '{"task":"workspace:deploy","env":"mentolder"}}}')
     r = _mcp(mtr, req)
@@ -90,6 +93,7 @@ def test_mcp_task_runner_003_run_task_with_a_fake_task_that_exits_0_returns_exit
 
 
 def test_mcp_task_runner_004_binary_is_on_path_and_help_exits_0(mtr):
+    """MCP-TASK-RUNNER-004: binary is on PATH and --help exits 0"""
     found = shutil.which("mcp-task-runner", path=mtr["env"]["PATH"])
     assert found is not None
     assert __import__("os").access(found, __import__("os").X_OK)

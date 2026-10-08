@@ -201,7 +201,7 @@ jobs:
         # [T012489]: `--project=!korczewski` wird als Projektname gelesen, nicht als
         # Ausschluss, und der Lauf bricht mit "Project(s) not found" ab, bevor ein
         # einziger Test laeuft. Damit die Liste nicht still veraltet, prueft
-        # tests/spec/ci-cd/e2e-project-selection.bats, dass jedes Projekt aus
+        # tests/py/spec/ci_cd_specs/test_e2e_project_selection.py, dass jedes Projekt aus
         # playwright.config.ts hier entweder aufgezaehlt oder bewusst ausgeschlossen ist.
         run: |
           npx playwright test \

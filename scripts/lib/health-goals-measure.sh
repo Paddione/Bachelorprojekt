@@ -272,7 +272,7 @@ pnpm_measure() {
 # Bewusst KEIN %G?: das ruft pro Commit gpg auf — mit defektem gpg (Pinentry
 # ohne TTY) hing die Messung ewig und vergiftete per Eager-Eval jeden
 # --only-Lauf (T900652). cat-file ist deterministisch, keyring-unabhaengig
-# und terminiert (Prior Art: T001575, tests/spec/commit-signing.bats).
+# und terminiert (Prior Art: T001575, tests/py/spec/native_ported/spec/test_commit_signing.py).
 sec05_unsigned() {
   local sha ae unsigned=0
   while read -r sha ae; do

@@ -247,7 +247,7 @@ capabilities:
     skill:dev-flow-e2e:
       state: canonical
       use_when: "Playwright-Tests gegen die Live-Marken NACH Merge und Deploy."
-      avoid_when: "Unit- und BATS-Tests während der Implementierung."
+      avoid_when: "Unit- und pytest-Tests während der Implementierung."
       roles: [bp-ship]
       tier: caution
       deep_ref: ".claude/skills/dev-flow-e2e/SKILL.md"
@@ -715,7 +715,7 @@ capabilities:
   agent-test:
     agent:agent-test:
       state: canonical
-      use_when: "Tests schreiben, reparieren oder ausführen (BATS, Playwright, vitest)."
+      use_when: "Tests schreiben, reparieren oder ausführen (pytest, Playwright, vitest)."
       roles: [orchestrator]
       tier: caution
   agent-db:

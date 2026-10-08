@@ -256,7 +256,7 @@ task: Available tasks for this project:
 * plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- .agents/plans/<slug>/tasks.md
 * plans:query:                                  Show active plan sections for a given role. Usage: task plans:query -- <role>
 * pr:refresh:                                   Rebase konfliktbehaftete PRs auf origin/main und heilt Konflikte in generierten Artefakten. Usage: task pr:refresh -- [--dry-run] <pr-nummer>...
-* quality:ast:                                  Advisory AST scan with project rules (sgconfig.yml). No gate — BATS stays authoritative. See docs/agent-guide/ast-toolchain.md.
+* quality:ast:                                  Advisory AST scan with project rules (sgconfig.yml). No gate — the pytest suite stays authoritative. See docs/agent-guide/ast-toolchain.md.
 * quality:baseline:freeze:                      One-time: freeze the current code-quality violations into docs/code-quality/baseline.json
 * quality:baseline:refresh:                     Remove FIXED entries and lower improved metrics in docs/code-quality/baseline.json
 * quality:check:                                Run all code-quality gates (S1-S4) with the baseline ratchet (fails only on new/worsened)
@@ -327,16 +327,16 @@ task: Available tasks for this project:
 * systemtest:cycle:                             Fan out 3 parallel Playwright sessions, one per System-Test (CYCLE=1..4, ENV=mentolder|korczewski|dev)
 * test:agent-guide:                             Validate the AI-agent guide registry (unit tests + real registry + generated JSON freshness)
 * test:agent-library:                           Guardrail: .claude/agents/*.md <-> AGENTS.md routing-table library assertions
-* test:agent-lock:                              Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*).
+* test:agent-lock:                              Run the offline agent-lock session-coordination tests (tests/py/local/test_agent_lock_*).
 * test:all:                                     Run tests for changed files only (smart selection) — delegates to test:changed
 * test:api-auth:                                API auth coverage gate — every endpoint must be classified; public endpoints need an allowlist entry
 * test:api-auth:regression:                     API auth regression check against origin/main
 * test:art-library:                             Validate every assets/art-library/sets/* manifest
 * test:branch-protection:                       Prüft Branch Protection auf main (enforce_admins + PR-Pflicht) [T002889]
-* test:changed:                                 Run only tests relevant to changed files (smart selection: vitest --changed + domain BATS + quality)
+* test:changed:                                 Run only tests relevant to changed files (smart selection: vitest --changed + pytest suite + quality)
 * test:ci:                                      CI-friendly test suite (non-zero exit on failure)
 * test:code-quality:                            Run the code-quality gate + registry unit tests (node:test)
-* test:decommission:                            Run the offline-safe decommission regression bats (tests/spec/decommission/). Live-DB cases skip without a reachable cluster, so this is CI-safe.
+* test:decommission:                            Run the offline-safe decommission regression tests (tests/py/spec/native_ported/spec/decommission/). Live-DB cases skip without a reachable cluster, so this is CI-safe.
 * test:dry-run:                                 Dry-run key tasks to catch Taskfile syntax errors
 * test:e2e:                                     Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)
 * test:e2e:agent-guide:film:                    Filmable Agent-Anleitung walkthrough — headed, slowMo, video recorded (no auth required)
@@ -357,11 +357,10 @@ task: Available tasks for this project:
 * test:menu-gate:                               Enforce admin-menu rules (R1, R2, R4, R5, R7)
 * test:py:                                      Run Pytest test suite (via uv or global pytest)
 * test:py:smoke:                                Run Pytest smoke tests (harness verification)
-* test:spec:                                    Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS laeuft nur die eigene Partition (siehe scripts/spec-shard.sh).
+* test:spec:                                    Run the offline-safe spec suite (pytest, tests/py/spec). Builds mcp-task-runner first. Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS runs only this shard's modules (tests/py/conftest.py). [T901392]
 * test:spec:build-mcp-runner:                   
-* test:spec:changed:                            Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]
-* test:spec:timing:                             Run the full offline-safe spec suite and write tests/spec/.spec-runtime.tsv (measured seconds per file) — the runtime weights for spec-shard.sh. [T003025] Am besten auf einem CI-gleichen Host (kein Live-Cluster/keine DB), damit die Gewichte die CI-Realitaet abbilden. CI-Alternative: junit-Artifakte aus ci.yml herunterladen und scripts/spec-junit-weights.sh darauf laufen lassen.
-* test:unit:                                    Run BATS unit tests (assertion lib, scripts, configs) in parallel
+* test:spec:changed:                            Alias for test:spec — the pytest spec suite runs in full in a few minutes, so there is no diff-scoped selection anymore. [T901392]
+* test:unit:                                    Run the offline unit pytest modules (tests/py/unit + ported tests/unit specs) in parallel
 * test:unit:quality-loop:                       
 * ticket-mcp:build:                             Build the ticket-mcp Go binary and install it onto the PATH as ticket-mcp-go
 * ticket-mcp:test:                              Run the ticket-mcp Go test suite

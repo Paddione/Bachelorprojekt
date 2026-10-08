@@ -107,7 +107,7 @@ committet und gesichert werden kann.
 > **Ab hier trägt jeder Datei-Tool-Pfad den Worktree-Präfix [T002357].** `cd` und
 > `worktree-create.sh` wirken nur auf Bash; Read/Write/Edit nehmen absolute Pfade und haben
 > keinerlei Bezug zum Bash-cwd. Ein Pfad, der vor der Worktree-Anlage korrekt war
-> (`<repo>/tests/spec/<name>.bats`), bleibt danach syntaktisch gültig und trifft still den
+> (`<repo>/tests/py/spec/<bereich>/test_<name>.py`), bleibt danach syntaktisch gültig und trifft still den
 > Hauptcheckout — der Verstoß gegen "Mutierende Tasks nie im Hauptcheckout" fällt erst beim
 > `git status` auf (Mishap T002350, Ursprung T001880). Dieselbe Falle schlägt für Git-Aufrufe
 > in Bash zu: ohne `git -C <worktree>`/cd+Guard kann ein bare `git commit` im Haupt-Checkout
@@ -319,7 +319,7 @@ Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch
 kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
-**Wo:** In `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<feature-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/ticket-system.bats`).
+**Wo:** Als pytest-Funktion in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus Ticket-Titel/Feature-Name), nicht in ein ticket-nummeriertes Modul. Existiert das Modul noch nicht, anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_ticket_system.py`, Konventionen: `tests/CLAUDE.md`). Ausführen: `bash scripts/pytest-run.sh <modul>`.
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf (Superpowers-Plugin; opencode: das Äquivalent ist als inlinede Steps in diesem Skill) oder führe die Plan-Schreib-Schritte
 direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; schreibe den Plan nach

@@ -5,7 +5,7 @@
 #     (`task rustdesk:wake|deploy` — delete+apply, da eine Job-Spec
 #     immutabel ist). Sie darf NIE Teil eines Kustomize-Builds werden:
 #     ein GitOps-Reconcile würde das Scale-to-0 des Sleepers zurücknehmen.
-#     Der Guard-Test in tests/spec/rustdesk-server/on-demand-lifecycle.bats
+#     Der Guard-Test in tests/py/spec/native_ported/spec/rustdesk-server/test_on_demand_lifecycle.py
 #     ("on-demand.yaml bleibt außerhalb des Kustomize-Builds") sichert das ab.
 #
 # Ablauf: sleep 1800 (30 min TTL) → scale hbbs+hbbr auf replicas=0.

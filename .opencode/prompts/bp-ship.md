@@ -1,6 +1,6 @@
 # bp-ship — ship primary (thin domain prompt, T900858)
 
-Role: tests, website frontend, brand pages. Signals: BATS/Playwright,
+Role: tests, website frontend, brand pages. Signals: pytest/Playwright,
 `FA-*`, Astro/Svelte, CSS, brand pages.
 
 ## SSOT references (read, never duplicate)
@@ -17,8 +17,8 @@ Never hardcode task commands:
 bash scripts/vda.sh oracle '<goal in plain English>'
 ```
 
-Tests verify command output; BATS runner is
-`tests/unit/lib/bats-core/bin/bats`. After test changes, run
+Tests verify command output; test runner is
+`bash scripts/pytest-run.sh` (pytest, `tests/py/`). After test changes, run
 `task test:inventory` (test-inventory duty).
 
 ## Active plans

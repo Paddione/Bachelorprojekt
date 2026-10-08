@@ -2,7 +2,7 @@
 
 SSOT für die MCP-native Tool-Nutzung in Skills und Subagents. Skills verlinken hierher statt die
 Tabellen zu duplizieren. Pro Server: **Tools · Wann bevorzugen · Fallback**. Die mechanische
-CI-Guard `tests/spec/mcp-tooling.bats` prüft, dass (1) jeder skill-kritische `ticket.sh`-Verb einen
+CI-Guard `tests/py/spec/native_ported/spec/test_mcp_tooling.py` prüft, dass (1) jeder skill-kritische `ticket.sh`-Verb einen
 `ticket-mcp`-Wrapper hat und (2) **jedes** im Go-Quellcode exponierte `ticket-mcp`-Tool hier gelistet
 ist. Wer ein Tool ergänzt/entfernt, pflegt diese Datei mit — sonst wird CI rot.
 
@@ -298,7 +298,7 @@ curl -si -X POST http://localhost:13005/mcp \
 Diagnose zusammen — prüft `~/.config/bge-mcp/server.env` auf Existenz + `BGE_MCP_TOKEN`, probt
 den Endpunkt mit und ohne Token und unterscheidet die drei Zustände über Exit-Codes (`0` = ok,
 `1` = Token fehlt/stimmt nicht, `2` = Server nicht erreichbar). Der Token-Wert wird nie
-ausgegeben. BATS-Regressionsschutz: `tests/spec/mcp-gateway/client-env-check.bats`.
+ausgegeben. pytest-Regressionsschutz: `tests/py/spec/native_ported/spec/mcp-gateway/test_client_env_check.py`.
 
 ## `devflow-mcp` — Aufgabenkontext, Werkzeug-Empfehlung, Plan-Staging (T900985)
 

@@ -36,7 +36,7 @@ Auto-Merge wartet auf diese fünf required checks:
 
 | Check | Workflow |
 |-------|----------|
-| `BATS Unit + Quality Gates` | `ci.yml` → BATS-Unit-Suite + Quality Gates |
+| `BATS Unit + Quality Gates` | `ci.yml` → pytest-Suite (ohne Specs) + Quality Gates (Check-Name historisch, BATS seit T901392 deinstalliert) |
 | `Security Scan` | `ci.yml` → image-pin + hardcoded-secret detection |
 | `Brett TypeScript` | `ci.yml` → tsc in `components/brett/` |
 | `Conventional Commits` | `ci.yml` → commitlint PR-Titel |
@@ -89,7 +89,7 @@ Die Job-API liefert Step-Namen und Exit-Zeiten — damit klassifiziert ein Fix-S
 
 ## Häufige Fehlertypen & Fix-Routine
 
-Reihenfolge: Freshness → TypeScript → BATS → Kustomize → Commitlint
+Reihenfolge: Freshness → TypeScript → pytest → Kustomize → Commitlint
 
 ### 1. Freshness-Fehler (`stale artifact`)
 
@@ -108,10 +108,11 @@ git add components/website/src/ brett/src/
 git commit -m "fix(website): resolve type errors"
 ```
 
-### 3. BATS-Unit-Fehler
+### 3. pytest-Fehler
 
 ```bash
-./tests/runner.sh local <TEST-ID>
+bash scripts/pytest-run.sh <fehlschlagendes-modul>   # Pfad steht in der FAILED-Zeile des CI-Logs
+./tests/runner.sh local <TEST-ID>                     # Live-Tests (tests/py/local)
 # Fehlende Test-Inventory-Einträge:
 task test:inventory
 git add components/website/src/data/test-inventory.json
@@ -146,7 +147,7 @@ Aufgabe: Behebe den Fehler minimal. Commit + Push auf den Branch.
 Wichtig: git add <changed-paths> (kein git add -A — git-crypt-Schutz, T001210).
 ```
 
-Modell: `sonnet`, Effort: `low` für Freshness-Fehler, `medium` für TS/BATS.
+Modell: `sonnet`, Effort: `low` für Freshness-Fehler, `medium` für TS/pytest.
 
 ## PR-Merge-Wait-Loop
 

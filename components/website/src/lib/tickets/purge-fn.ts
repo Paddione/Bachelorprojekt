@@ -5,7 +5,7 @@
 // Bis T900381 hielt tickets/migrations.ts eine v6-Kopie und spielte sie bei jedem Website-Start
 // per CREATE OR REPLACE ein — das setzte die von Hand eingespielten v7/v8 auf fleet zurueck.
 // Neue Fassung: purge-fn-v<N>.sql anlegen UND diesen Rumpf ersetzen;
-// tests/spec/e2e-test-infrastructure/purge-fn-website-sync.bats haelt beides gleich.
+// tests/py/spec/native_ported/spec/e2e-test-infrastructure/test_purge_fn_website_sync.py haelt beides gleich.
 import type { Pool, PoolClient } from 'pg';
 
 export const PURGE_FN_VERSION = 'v8';

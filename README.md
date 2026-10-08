@@ -52,7 +52,7 @@ Die Architekturentscheidungen sind als [ADRs](docs/adr/) dokumentiert, zum Beisp
 
 1. **GitOps-Deployment.** Jeder Merge auf `main` rendert die Manifeste zu einem OCI-Artefakt, das Flux auf dem Cluster abgleicht. Ein manueller Deploy-Pfad existiert nur für Notfälle.
 2. **Secrets.** Klartext-Secrets liegen git-crypt-verschlüsselt im Repository und werden als SealedSecrets ausgerollt. gitleaks prüft jeden Commit.
-4. **Testabdeckung.** BATS-Tests für Skripte und Manifeste, Vitest für die Website und Playwright-E2E-Tests gegen die laufenden Umgebungen. Die CI blockiert jeden Merge ohne grüne Prüfungen.
+4. **Testabdeckung.** pytest-Tests für Skripte und Manifeste, Vitest für die Website und Playwright-E2E-Tests gegen die laufenden Umgebungen. Die CI blockiert jeden Merge ohne grüne Prüfungen.
 5. **KI-gestützter Entwicklungsprozess.** Ein Ticket-System steuert Coding-Agents durch Planung, Umsetzung, Review und Merge. Lokale LLMs übernehmen Routineaufgaben, Embedding und Reranking laufen auf eigener GPU.
 
 ## Kennzahlen
@@ -64,7 +64,7 @@ Stand September 2026.
 | Entwicklungszeitraum | seit März 2026 |
 | Commits | über 8.400 |
 | Gemergte Pull Requests | über 5.000 |
-| Testdateien | über 900 BATS, über 500 Vitest, über 150 Playwright |
+| Testdateien | über 800 pytest-Module, über 500 Vitest, über 150 Playwright |
 | GitHub-Actions-Workflows | 31 |
 
 ## Technologie
@@ -73,7 +73,7 @@ Stand September 2026.
 
 **Anwendungen:** Astro, Svelte 5, TypeScript, Node.js, React, Three.js, PostgreSQL 16, Redis
 
-**Qualität und Betrieb:** GitHub Actions, BATS, Vitest, Playwright, Lighthouse CI, Renovate, release-please, Prometheus, Grafana, Loki, OpenTelemetry
+**Qualität und Betrieb:** GitHub Actions, pytest, Vitest, Playwright, Lighthouse CI, Renovate, release-please, Prometheus, Grafana, Loki, OpenTelemetry
 
 ## Repository-Layout
 

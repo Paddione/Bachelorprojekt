@@ -204,11 +204,11 @@ Der Plan lässt sich annotierbar rendern und im Browser reviewen
 
 ## Fix-Pfad
 
-Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird. Der Test gehört
-nach `tests/spec/<feature-slug>.bats` (Slug aus Ticket-Titel/Feature-Name — kein Spec-Verzeichnis
-mehr seit C7a), nicht in eine neue ticket-nummerierte Datei. Setzt er ein externes Binary oder
+Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird. Der Test ist
+eine pytest-Funktion in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus
+Ticket-Titel/Feature-Name), nicht in einem ticket-nummerierten Modul. Setzt er ein externes Binary oder
 einen externen Dienst voraus, gehört
-der Verfügbarkeits-Guard (`command -v <binary> >/dev/null 2>&1 || skip "<binary> binary not installed"`)
+der Verfügbarkeits-Guard (`if shutil.which("<binary>") is None: pytest.skip("<binary> binary not installed")`)
 schon in die **Rotphase**. Vorher prüfen: `grep -rn '<binary>' .github/workflows/`; **0 Treffer
 heißt: in CI nicht vorhanden**. Begründung: T002820 in
 [dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md).

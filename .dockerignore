@@ -25,4 +25,3 @@ wireguard
 tests/e2e/node_modules      # runtime: npm install
 tests/e2e/test-results      # runtime: playwright test
 tests/results               # runtime: test run
-tests/unit/lib

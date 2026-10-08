@@ -86,7 +86,7 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
   if [ "$CURRENT_BRANCH" != "main" ] && ! $_unattended; then
     # [T900023] Der Guard war mit d60c3704 als "redundant" entfernt worden. Er ist es
-    # nicht: tests/spec/mishap-bundle-infra-testspec-ci.bats T002448-M1 fordert die
+    # nicht: tests/py/spec/native_ported/spec/test_mishap_bundle_infra_testspec_ci.py T002448-M1 fordert die
     # Ablehnung, und ohne sie erbt der neue Worktree stillschweigend die node_modules
     # und den git-crypt-Zustand eines fremden Branches.
     #

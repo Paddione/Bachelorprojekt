@@ -76,8 +76,8 @@ zurueckuebernehmen:
 - `taskfiles/Taskfile.platform.yml` (Task `gitlab-runner:render`)
 - `environments/schema.yaml` (`GITLAB_RUNNER_TOKEN`, `GITLAB_RUNNER_REGISTRATION_TOKEN`)
 - `docs/code-quality/gates.yaml`
-- `tests/spec/flux-render-security/runtime-var-unwrapping.bats`
-- `tests/spec/health-goals/korczewski-brand-pause.bats`
+- `tests/py/spec/native_ported/spec/flux-render-security/test_runtime_var_unwrapping.py`
+- `tests/py/spec/native_ported/spec/health-goals/test_korczewski_brand_pause.py`
 
 ## 5. Specs zurueckholen
 

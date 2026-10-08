@@ -31,7 +31,7 @@ COPY components/website/ .
 # Der Build-Kontext ist das Repo-Root (build-website.yml: `context: .`), .lavish/ ist
 # also verfuegbar. Die Kopien ueberschreiben die Symlinks an derselben Stelle, damit
 # beide Wege — lokal ueber den Symlink, im Image ueber die Kopie — denselben Pfad
-# bedienen. Guard: tests/spec/sdlc-cockpit/kit-assets-in-image.bats
+# bedienen. Guard: tests/py/spec/native_ported/spec/sdlc-cockpit/test_kit_assets_in_image.py
 COPY .lavish/kit ./public/cockpit/kit
 COPY .lavish/cockpit-shell.html ./public/cockpit/cockpit-shell.html
 COPY .lavish/reference-board.html ./public/cockpit/reference-board.html

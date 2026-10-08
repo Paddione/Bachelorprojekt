@@ -171,7 +171,7 @@ test('parseLoadouts: unbekannter managed-Wert wird verworfen (kein Fehler) — F
 
 // --- T003204: enabled-Feld (Abschalten ohne Loeschen) -----------------------
 // Hier NUR die Schema-Faelle. isLoadoutEnabled selbst wird in
-// tests/spec/local-llm-proxy/loadout-enabled-flag.bats geprueft — ein Ort pro
+// tests/py/spec/native_ported/spec/local-llm-proxy/test_loadout_enabled_flag.py geprueft — ein Ort pro
 // Aussage, sonst laufen zwei Formulierungen derselben Regel auseinander.
 
 test('T003204: enabled=false wird vom Schema akzeptiert', () => {

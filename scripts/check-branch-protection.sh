@@ -17,7 +17,7 @@
 #   scripts/check-branch-protection.sh --from-json <datei>   # Einstellungen aus Datei
 #
 # Der --from-json-Pfad ist der einzige, der ohne Admin-Scope funktioniert, und
-# der Pfad, den tests/spec/ci-cd/main-direct-push-guard.bats benutzt.
+# der Pfad, den tests/py/spec/ci_cd_specs/test_main_direct_push_guard.py benutzt.
 
 set -euo pipefail
 

@@ -3,7 +3,7 @@
 # whose paths[] glob matches a file owns that file. Owner_agent MUST be one of the
 # six routing agents. Do not edit repo-index.json by hand — run `task quality:index`.
 - id: tests
-  name: Test suites (BATS + Playwright + vitest)
+  name: Test suites (pytest + Playwright + vitest)
   paths: ["tests/**", "components/website/test/**", "components/website/tests/**"]
   owner_agent: bachelorprojekt-test
   test_location: tests/

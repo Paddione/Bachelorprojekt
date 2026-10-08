@@ -16,7 +16,7 @@ Before responding to any request, check these signals and delegate to the named 
 |---------|-------|
 | manifest, kustomize, overlay, Taskfile, deploy, environments, SealedSecret, OIDC, DSGVO | `bp-build` |
 | pod, logs, kubectl, crash, health, GPU, model, database, PostgreSQL, psql, query | `bp-run` |
-| website, Astro, Svelte, UI, frontend, mentolder brand, test, BATS, Playwright, runner.sh | `bp-ship` |
+| website, Astro, Svelte, UI, frontend, mentolder brand, test, pytest, Playwright, runner.sh | `bp-ship` |
 
 > **Subagent layout:** `.claude/agents/bp-*.md` is canonical (`.agents/agents` is a symlink). Claude Code dispatches via the native `task` tool. MCP servers: `mcp-kubernetes` (localhost:18080, Claude-Code-only), `ticket-mcp` + `mcp-postgres` (:13001, devmesh) — reachability SSOT `docs/agent-guide/registry/mcp.yaml`, usage [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
 > **gh-axi (T004612):** Anzeige via Wrapper; `--json`/`-q`/Polling/Mutationen immer `gh` direkt.
@@ -86,4 +86,4 @@ PRE=6a6d4c302c1afcb4a12a6c0b7c2401505f5fd602
 git grep -F -l 'Taskfile.' "$PRE" -- . ':!docs/superpowers/plans' | wc -l
 ```
 
-**Redaktioneller Hinweis, kein automatisierter Guard** — dieselbe Klasse wie der Deliverable-Check (M10, T002506). Maschinell geprüft wird ausschließlich, dass diese Regel im Repo steht (`tests/spec/agent-skills/messung-mit-befehl.bats`).
+**Redaktioneller Hinweis, kein automatisierter Guard** — dieselbe Klasse wie der Deliverable-Check (M10, T002506). Maschinell geprüft wird ausschließlich, dass diese Regel im Repo steht (`tests/py/spec/native_ported/spec/agent-skills/test_messung_mit_befehl.py`).

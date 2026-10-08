@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fake-ComfyUI fuer tests/spec/llm-local-dev/comfy-image-mcp.bats (T900379).
+"""Fake-ComfyUI fuer tests/py/spec/native_ported/spec/llm-local-dev/test_comfy_image_mcp.py (T900379).
 
 Bildet die HTTP-Endpunkte nach, die scripts/comfy-image-mcp/ nutzt:
 /system_stats, /prompt, /history/<id>, /view, /interrupt. Stdlib only.

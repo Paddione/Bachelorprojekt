@@ -28,7 +28,6 @@
     "(?i)package-lock\\.json",
     # Test fixtures with placeholder values
     "(?i)tests/.*fixtures/.*",
-    "(?i)tests/spec/brain-auto-memory\\.bats",
     # Docs with German compound words matching token patterns (e.g. "sk-Automatisierungstool")
     "(?i)docs/bereitstellungsdetails\\.md",
     # T900725/T900726: historical archive remains until the directory tranche;
@@ -87,7 +86,7 @@
     "(?i)^vaultwarden-import.*\\.json$",
   ]
   # Inhaltsbasierte Ausnahme, KEIN Pfad-Freifahrtschein: der Platzhalter
-  # `ghp_` + 36x "x" (Bench-Fixture tests/spec/agent-bench/recorder.bats, p9).
+  # `ghp_` + 36x "x" (Bench-Fixture tests/py/spec/remaining_domain_specs/agent-bench/test_recorder.py, p9).
   # Der pre-commit-Hook ruft gitleaks mit --no-git auf und scannt damit den
   # ARBEITSBAUM statt der Versionierung — eine untracked fremde Datei blockiert
   # jeden Commit im Worktree, auch wenn sie gar nicht gestaged ist. Dieselbe

@@ -4764,6 +4764,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/agent-skills/post_merge_finalize_safety",
+    "file": "tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "neovim-dashboard",
     "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard.py",
     "category": "neovim-dashboard",

@@ -286,16 +286,19 @@ fi
 # Idempotent: ein bereits archivierter Slug wird uebersprungen (kein Duplikat).
 # Fail-closed: archive-plan bricht bei DB-Schreibfehler mit Exit 1 ab (s. unten).
 # KEIN Delete hier — das ist P2 (branch-reaper.sh --plan-cleanup).
+_RECEIPT_READY=1
 if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
+  _RECEIPT_READY=0
   _receipt_done=0
   # Idempotenz-Vorabfrage: get-timeline meldet plan_archived-Events mit Slug.
   # Best-effort — scheitert die Abfrage, gilt "unbekannt" und es wird archiviert.
   if _receipt_tl="$(bash "$TICKET_SH" get-timeline --id "$TICKET_ID" 2>/dev/null)"; then
-    if grep -q "$SLUG" <<<"$_receipt_tl" 2>/dev/null; then
+    if finalize_receipt_archived "$_receipt_tl" "$SLUG" "$BRANCH"; then
       _receipt_done=1
     fi
   fi
   if [[ "$_receipt_done" -eq 1 ]]; then
+    _RECEIPT_READY=1
     mark_skip "Schritt 7: Plan-Slug $SLUG bereits in tickets.ticket_plans archiviert (Receipt idempotent)"
   else
   _plan_source="$WORKTREE/$PLAN_REL"
@@ -315,6 +318,7 @@ if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
       [[ -n "$PR_NUM" ]] && _receipt_sha="$(gh pr view "$PR_NUM" --json mergeCommit -q .mergeCommit.oid 2>/dev/null || true)"
       [[ -z "$_receipt_sha" ]] && _receipt_sha="$(git -C "$REPO_DIR" rev-parse origin/main 2>/dev/null || true)"
       _receipt_lint="$(bash "$REPO_DIR/scripts/plan-lint.sh" "$_plan_source" 2>/dev/null | tail -n 1 || true)"
+      _RECEIPT_READY=1
       mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert (Receipt slug=$SLUG merge=${_receipt_sha:-unbekannt} fm=[${_receipt_fm:-n/a}] lint=[${_receipt_lint:-n/a}])"
     else
       rm -f "$_plan_copy"
@@ -330,28 +334,27 @@ else
   mark_skip "Schritt 7: kein FACTORY-PLAN-REF mit Plan-Pfad"
 fi
 
-# Schritt 9 — Branch-Lock freigeben: nur wenn der Claim dieser Session gehoert
-# (agent-lock.sh check == mine); fremde/fehlende Claims bleiben liegen (T003102).
-LOCK_STATE="$(bash "$REPO_DIR/scripts/agent-lock.sh" check branch "$BRANCH" 2>/dev/null | head -1 || true)"
-case "$LOCK_STATE" in
-  mine*)
-    if bash "$REPO_DIR/scripts/agent-lock.sh" release branch "$BRANCH" >/dev/null 2>&1; then
-      mark_ok "Schritt 9: Branch-Lock freigegeben"
-    else
-      mark_skip "Schritt 9: Lock-Release fehlgeschlagen — Lock bleibt liegen (manuell pruefen)"
-    fi
-    ;;
-  free*)
-    mark_skip "Schritt 9: kein Branch-Lock vorhanden"
-    ;;
-  "")
-    mark_skip "Schritt 9: Lock-Zustand nicht ermittelbar (agent-lock.sh offline?)"
-    ;;
-  *)
-    mark_skip "Schritt 9: Lock gehoert nicht dieser Session — bleibt liegen (T003102)"
-    ;;
-esac
-
+# Cleanup authorization precedes lock release, removal and the remote reaper.
+CLEANUP_SAFE=1
+_CLEANUP_TIP="$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH" 2>/dev/null || true)"
+if [[ "$_RECEIPT_READY" != 1 ]] || ! finalize_cleanup_safe "$REPO_DIR" "$BRANCH" "$WORKTREE" "$TICKET_ID" \
+   || { git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH" \
+        && ! finalize_branch_fully_merged "$REPO_DIR" "$BRANCH" "$PR_NUM"; } \
+   || [[ "$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH" 2>/dev/null || true)" != "$_CLEANUP_TIP" ]]; then
+  CLEANUP_SAFE=0
+  mark_warn "Schritt 10: Cleanup nicht sicher belegbar — Worktree, Branch und Claims bleiben erhalten"
+fi
+if [[ "$CLEANUP_SAFE" == 1 ]]; then
+# Schritt 9: own claims can now be released, before the generic live guard.
+_CLEANUP_ANCHOR="$(dirname "$(git -C "$REPO_DIR" rev-parse --path-format=absolute --git-common-dir)")"
+if ! finalize_release_owned_claims "$_CLEANUP_ANCHOR" "$BRANCH" "$TICKET_ID" \
+   || { [[ -d "$WORKTREE" ]] && ! (cd "$_CLEANUP_ANCHOR" && bash "$_CLEANUP_ANCHOR/scripts/worktree-clean-check.sh" "$WORKTREE"); } \
+   || ! finalize_cleanup_safe "$REPO_DIR" "$BRANCH" "$WORKTREE" "$TICKET_ID" \
+   || [[ "$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH" 2>/dev/null || true)" != "$_CLEANUP_TIP" ]]; then
+  mark_warn "Schritt 9: Session/Claim- oder Dirty-Recheck blockiert Cleanup"
+  CLEANUP_SAFE=0
+fi
+if [[ "$CLEANUP_SAFE" == 1 ]]; then
 # Schritt 10 — Worktree und Branch bereinigen (Reihenfolge: erst Worktree, dann
 # lokaler Branch, dann Remote-Delete — der Merge loescht nicht mehr, T004612).
 if [[ -d "$WORKTREE" ]]; then
@@ -383,7 +386,8 @@ if [[ -d "$WORKTREE" ]]; then
   else
     mark_warn "Schritt 10: Haupt-Repo-Pfad nicht bestimmbar — Selbstloeschungs-Guard uebersprungen (T013315)"
   fi
-  if worktree_remove_managed "$REPO_DIR" "$WORKTREE"; then
+  if [[ "$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH" 2>/dev/null || true)" == "$_CLEANUP_TIP" ]] \
+     && finalize_remove_clean_worktree "$REPO_DIR" "$WORKTREE"; then
     mark_ok "Schritt 10: Worktree $WORKTREE entfernt"
   else
     echo "ERROR: Schritt 10 — git worktree remove fehlgeschlagen: $WORKTREE" >&2
@@ -392,6 +396,7 @@ if [[ -d "$WORKTREE" ]]; then
 else
   # [T012256/B2] Widerspruch benennen statt verschweigen — Aufloesung in lib (T900096-P1.4).
   if _wt_holding_branch="$(finalize_holding_worktree "$REPO_DIR" "$BRANCH")"; then
+    CLEANUP_SAFE=0
     mark_warn "Schritt 10: aufgeloester Pfad $WORKTREE existiert nicht, aber $_wt_holding_branch haelt $BRANCH — nicht aufgeraeumt (Aufloesung lieferte den falschen Pfad)"
   else
     mark_skip "Schritt 10: Worktree bereits entfernt"
@@ -406,9 +411,11 @@ if git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
     # Arbeitsbaum-Zustand erhalten; der Remote-Branch wird vom branch-reaper
     # unten entfernt (Code-Review PR #4586, Finding 2).
     mark_skip "Schritt 10: lokaler Branch $BRANCH ist im Haupt-Checkout ausgecheckt (Restore) — bleibt erhalten, Remote-Delete via branch-reaper"
-  elif finalize_branch_fully_merged "$REPO_DIR" "$BRANCH"; then  # merge-base --is-ancestor vs origin/main (T900096)
+  elif finalize_branch_fully_merged "$REPO_DIR" "$BRANCH" "$PR_NUM" \
+       && [[ "$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH")" == "$_CLEANUP_TIP" ]]; then  # merge-base --is-ancestor vs origin/main (T900096)
     git -C "$REPO_DIR" branch -D "$BRANCH" && mark_ok "Schritt 10: lokaler Branch $BRANCH entfernt" || { echo "ERROR: Schritt 10 — lokaler Branch $BRANCH nicht loeschbar." >&2; exit 1; }
   else
+    CLEANUP_SAFE=0
     mark_warn "Schritt 10: lokaler Branch $BRANCH traegt Commits ausserhalb origin/main — bleibt erhalten (Datenverlust-Risiko, T900096)"
     mark_skip "Schritt 10: lokaler Branch $BRANCH behalten (ungemergte Commits)"
   fi
@@ -419,12 +426,16 @@ fi
 # Remote-Delete via branch-reaper.sh (Kriterien: Ticket done, keine offenen PRs,
 # Blob-Gleichheit zu main — inkl. Sicherheitsnetz-Ref-Tag). Best-effort: der
 # Reaper entscheidet selbst, was geloescht wird; ein Fehlschlag ist kein Abbruch.
-if bash "$REPO_DIR/scripts/branch-reaper.sh" --ticket "$TICKET_ID" >/dev/null 2>&1; then
+if [[ "$CLEANUP_SAFE" != 1 ]]; then
+  mark_skip "Schritt 10: branch-reaper wegen blockiertem Cleanup uebersprungen"
+elif bash "$REPO_DIR/scripts/branch-reaper.sh" --ticket "$TICKET_ID" >/dev/null 2>&1; then
   mark_ok "Schritt 10: branch-reaper Lauf abgeschlossen"
 else
   mark_skip "Schritt 10: branch-reaper meldete Fehler (Best-effort — Remote-Branch manuell pruefen)"
 fi
 
+fi # post-release recheck
+fi # authorized cleanup
 echo ""
 if [[ "$WARN_COUNT" -gt 0 ]]; then
   echo "--- Finalize $TICKET_ID abgeschlossen: $DONE_COUNT erledigt, $SKIP_COUNT uebersprungen, $WARN_COUNT Warnung(en) ---"
@@ -441,4 +452,5 @@ if [[ "${#SKIP_STEPS[@]}" -gt 0 ]]; then
     echo "      - $_skipped" >&2
   done
 fi
+[[ "$CLEANUP_SAFE" == 1 ]] || exit 1
 exit 0

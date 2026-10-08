@@ -9,10 +9,22 @@ import type { Stammdaten } from '../lib/website-db';
 const BRAND = process.env.BRAND || 'mentolder';
 const BRAND_ID = process.env.BRAND_ID ?? BRAND;
 const isKore = BRAND_ID === 'korczewski';
+const isMassage = BRAND_ID === 'massage';
 const sd = await getEffectiveStammdaten().catch(() => ({} as Stammdaten));
 const stored = await getLegalPage(BRAND, 'impressum').catch(() => null);
+// Massage-Entwurf nach T901019 §3 (DDG §5): offene Felder sind sichtbare Platzhalter.
+const massageImpressum = `<h1>Impressum</h1>
+<p>Angaben gemäß DDG §5 (Entwurf — Owner-Review offen).</p>
+<h2>Diensteanbieterin</h2>
+<p>[Name der Inhaberin folgt]<br>[Ladungsfähige Anschrift folgt — c/o-Entscheidung offen]<br>Vögelsen bei Lüneburg</p>
+<h2>Kontakt</h2>
+<p>E-Mail: {{stammdaten.email}} [E-Mail-Adresse folgt]</p>
+<h2>Umsatzsteuer</h2>
+<p>USt-IdNr./Steuernummer: [falls vorhanden — Angabe folgt]</p>
+<h2>Aufsichtsbehörde</h2>
+<p>[Nur bei zulassungspflichtiger Tätigkeit: Angabe folgt]</p>`;
 // Admin: reset via admin panel Verlauf → SchemaEditor "Reset" button
-const contentHtml = resolveTokens(stored?.trim() ? stored : getDefaultImpressum(), sd);
+const contentHtml = resolveTokens(stored?.trim() ? stored : (isMassage ? massageImpressum : getDefaultImpressum()), sd);
 ---
 
 {isKore ? (
@@ -26,6 +38,7 @@ const contentHtml = resolveTokens(stored?.trim() ? stored : getDefaultImpressum(
   </Layout>
 ) : (
   <Layout title="Impressum">
+    {isMassage && <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />}
     <section class="pt-28 pb-20">
       <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
         <div set:html={contentHtml} />

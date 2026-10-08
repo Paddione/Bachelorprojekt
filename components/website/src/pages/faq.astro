@@ -1,0 +1,78 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FAQ from '../components/FAQ.svelte';
+import CallToAction from '../components/CallToAction.svelte';
+import { getEffectiveFaq, getEffectiveStammdaten, bundleSeo } from '../lib/content';
+
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const isMassage = BRAND_ID === 'massage';
+const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
+
+const faq = await getEffectiveFaq().catch(() => []);
+const stammdaten = await getEffectiveStammdaten().catch(() => null);
+const items = faq.map((item) => ({
+  ...item,
+  answer: item.answer.replace('{city}', stammdaten?.city ?? ''),
+}));
+let seoTitle = 'Häufige Fragen';
+let seoDesc = 'Häufige Fragen zu Terminen, Ablauf und Zahlung.';
+try {
+  const seo = bundleSeo(BRAND_ID);
+  seoTitle = seo.titles.faq ?? seoTitle;
+  seoDesc = seo.descriptions.faq ?? seoDesc;
+} catch {
+  // Entwurf-Fallbacks oben greifen, wenn das Brand kein seo.json liefert.
+}
+const mail = stammdaten?.email ?? '';
+---
+
+<Layout title={seoTitle} rawTitle={isMassage} description={seoDesc} brand={layoutBrand}>
+  {isMassage && <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />}
+  <section class="mg-faq" aria-labelledby="mg-faq-heading">
+    <div class="mg-wrap">
+      {isMassage && <p class="t-kicker">Massagepraxis Vögelsen</p>}
+      <h1 id="mg-faq-heading">Häufige Fragen</h1>
+      <p class="t-lede">
+        {isMassage
+          ? 'Antworten zu Terminen, Ablauf und Zahlung in der Massagepraxis Vögelsen.'
+          : 'Antworten auf häufige Fragen.'}
+      </p>
+    </div>
+  </section>
+
+  {items.length === 0 ? (
+    <div class="mg-wrap">
+      <p class="t-lede">Noch keine Fragen vorhanden — schreiben Sie mir einfach über das <a href="/kontakt">Kontaktformular</a>.</p>
+    </div>
+  ) : (
+    <FAQ items={items} title="Häufige Fragen" client:visible />
+  )}
+
+  <CallToAction
+    client:visible
+    eyebrow={isMassage ? 'Massagepraxis Vögelsen' : undefined}
+    title={isMassage ? 'Noch Fragen offen?' : undefined}
+    subtitle={isMassage ? 'Schreiben Sie mir — ich antworte persönlich.' : undefined}
+    primaryText={isMassage ? 'Termin anfragen' : undefined}
+    primaryHref="/kontakt"
+    secondaryText={isMassage ? mail : undefined}
+    secondaryHref={isMassage && mail ? `mailto:${mail}` : undefined}
+  />
+</Layout>
+
+<style>
+  .mg-wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }
+  .mg-faq { padding: 96px 0 24px; }
+  .mg-faq h1 { margin: 14px 0 16px; }
+  .mg-wrap a { color: var(--brass-2, var(--brass)); }
+  .mg-wrap a:focus-visible { outline: 2px solid var(--brass-2, var(--brass)); outline-offset: 3px; }
+
+  @media (max-width: 720px) {
+    .mg-wrap { padding: 0 22px; }
+    .mg-faq { padding: 64px 0 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mg-wrap a { transition: none; }
+  }
+</style>

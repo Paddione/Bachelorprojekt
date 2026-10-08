@@ -2,9 +2,26 @@
 import Layout from '../layouts/Layout.astro';
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const brand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
+const isMassage = BRAND_ID === 'massage';
 ---
 
-<Layout title="Wartungsarbeiten" brand={brand}>
+<Layout title={isMassage ? 'Seite nicht gefunden' : 'Wartungsarbeiten'} brand={brand}>
+  {isMassage ? (
+  <Fragment>
+    <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />
+    <section class="mg-missing" aria-labelledby="mg-missing-heading">
+      <div class="mg-wrap">
+        <p class="t-kicker">Massagepraxis Vögelsen</p>
+        <h1 id="mg-missing-heading">Seite nicht gefunden</h1>
+        <p class="t-lede">Diese Seite gibt es leider nicht — einer dieser Wege hilft Ihnen weiter.</p>
+        <div class="mg-cta-row">
+          <a class="mg-btn mg-btn-primary" href="/">Zur Startseite</a>
+          <a class="mg-btn" href="/kontakt">Termin anfragen</a>
+        </div>
+      </div>
+    </section>
+  </Fragment>
+  ) : (
   <section class="pt-28 pb-24">
     <div class="max-w-2xl mx-auto px-6 text-center">
       <p style="font-family:var(--mono); font-size:12px; letter-spacing:0.22em; text-transform:uppercase; color:var(--brass); margin:0 0 24px;">
@@ -21,4 +38,31 @@ const brand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
       </p>
     </div>
   </section>
+  )}
 </Layout>
+
+<style>
+  /* Massage brand branch (T901028, Richtung A) — quiet error page. */
+  .mg-wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }
+  .mg-missing { padding: 120px 0; }
+  .mg-missing h1 { margin: 14px 0 16px; }
+  .mg-missing .t-lede { margin-bottom: 32px; }
+  .mg-cta-row { display: flex; flex-wrap: wrap; gap: 14px; }
+  .mg-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 48px; min-width: 44px; padding: 12px 28px; border-radius: var(--radius-pill);
+    border: 1px solid var(--fg); color: var(--fg); text-decoration: none;
+    font-weight: 600; font-size: 15px;
+  }
+  .mg-btn-primary { background: var(--brass-2); border-color: var(--brass-2); color: #FDFCF9; }
+  .mg-btn:focus-visible { outline: 2px solid var(--brass-2); outline-offset: 3px; }
+
+  @media (max-width: 720px) {
+    .mg-wrap { padding: 0 22px; }
+    .mg-missing { padding: 80px 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mg-btn { transition: none; }
+  }
+</style>

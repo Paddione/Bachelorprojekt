@@ -1,0 +1,39 @@
+{
+  "hero": {
+    "title": "Massagepraxis Vögelsen — Auszeit für Rücken und Schultern.",
+    "subtitle": "Termine auf Anfrage in Vögelsen bei Lüneburg — mit persönlicher Bestätigung durch die Inhaberin.",
+    "tagline": "Entspannung und Wohlbefinden, mitten im Ort."
+  },
+  "stats": [
+    { "value": "30 Min.", "label": "Rückenmassage — kurze Auszeit" },
+    { "value": "60/90 Min.", "label": "Ganzkörpermassage — tief entspannen" },
+    { "value": "3 Schritte", "label": "Von der Anfrage bis zum Besuch" },
+    { "value": "Mo–Fr", "label": "Kernzeiten plus flexible Slots" }
+  ],
+  "servicesHeadline": "Massage-Anwendungen im Überblick",
+  "servicesSubheadline": "Zwei Anwendungen, drei Zeitformate — alle Termine auf Anfrage mit persönlicher Bestätigung durch die Inhaberin.",
+  "whyMeHeadline": "Warum hier?",
+  "whyMeIntro": "Eine kleine Praxis vor Ort: feste Hände, ruhige Atmosphäre und ein Ablauf in drei Schritten — Anfrage, Bestätigung, Besuch.",
+  "whyMePoints": [
+    { "title": "Praxis vor Ort", "text": "In Vögelsen bei Lüneburg — kurze Wege, bekannte Gesichter, keine anonyme Kette." },
+    { "title": "Feste Hände", "text": "Ruhige, erfahrene Griffe — abgestimmt auf Ihren Rücken, Ihre Schultern, Ihren Tag." },
+    { "title": "Ruhige Atmosphäre", "text": "Gedämpftes Licht, warme Liege, Zeit ohne Hektik — vom ersten Moment an." },
+    { "title": "Ablauf in drei Schritten", "text": "Anfrage stellen, Bestätigung erhalten, Besuch genießen — alles Weitere klären wir persönlich." }
+  ],
+  "avatarType": "image",
+  "avatarSrc": "slot:slot-portrait-inhaberin",
+  "quote": "Eine Auszeit für Rücken und Schultern — mitten in Vögelsen.",
+  "quoteName": "Massagepraxis Vögelsen",
+  "processSteps": [
+    { "num": "01 — Anfrage", "heading": "Wunschtermin senden", "description": "Sie schreiben mir mit Ihrem Wunschtermin — unkompliziert über das Formular." },
+    { "num": "02 — Bestätigung", "heading": "Persönliche Zusage", "description": "Ich melde mich bei Ihnen und bestätige Ihren Termin. Erst dann ist er fix." },
+    { "num": "03 — Besuch", "heading": "Auszeit genießen", "description": "Sie kommen in die Praxis in Vögelsen bei Lüneburg — Anfahrt erhalten Sie mit der Bestätigung." }
+  ],
+  "processEyebrow": "So einfach geht es",
+  "processHeadline": "Drei ruhige Schritte.",
+  "slots": {
+    "portraitInhaberin": "slot:slot-portrait-inhaberin",
+    "praxisRaum": "slot:slot-praxis-raum",
+    "stimmung": "slot:slot-stimmung-01"
+  }
+}

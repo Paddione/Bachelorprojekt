@@ -104,7 +104,7 @@ export interface FooterConfig {
 }
 
 export interface BrandConfig {
-  brand: 'mentolder' | 'korczewski';
+  brand: 'mentolder' | 'korczewski' | 'massage';
   meta: {
     siteTitle: string;
     siteDescription: string;

@@ -2,24 +2,77 @@
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
-import { getEffectiveUebermich, getEffectiveStammdaten } from '../lib/content';
+import { getEffectiveUebermich, getEffectiveStammdaten, bundleSeo } from '../lib/content';
 import { getSiteSetting, getSeoTitle, getSeoOgImage } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const isMassage = BRAND_ID === 'massage';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 
 const uebermich = await getEffectiveUebermich();
 const stammdaten = await getEffectiveStammdaten().catch(() => null);
 const sName = stammdaten?.name ?? config.contact.name;
+const massageMail = isMassage ? (stammdaten?.email ?? '') : '';
 
-const seoTitle = getSeoTitle(BRAND_ID, 'ueber-mich')
-  ?? `Gerald Korczewski – Coach, Mentor & KI-Pionier`;
-const seoDesc = await getSiteSetting(BRAND_ID, 'seo_meta_desc_ueber-mich').catch(() => null)
-  ?? `Über ${sName} – ${config.legal.tagline}`;
-const seoOgImage = getSeoOgImage(BRAND_ID, 'ueber-mich');
+const massageSeo = isMassage ? bundleSeo(BRAND_ID) : null;
+const seoTitle = isMassage
+  ? (massageSeo?.titles['ueber-mich'] ?? 'Über mich | Massagepraxis Vögelsen')
+  : (getSeoTitle(BRAND_ID, 'ueber-mich') ?? `Gerald Korczewski – Coach, Mentor & KI-Pionier`);
+const seoDesc = isMassage
+  ? (massageSeo?.descriptions['ueber-mich'] ?? 'Die Inhaberin der Massagepraxis Vögelsen stellt sich vor.')
+  : (await getSiteSetting(BRAND_ID, 'seo_meta_desc_ueber-mich').catch(() => null) ?? `Über ${sName} – ${config.legal.tagline}`);
+const seoOgImage = isMassage ? null : getSeoOgImage(BRAND_ID, 'ueber-mich');
 ---
 
 <Layout title={seoTitle} rawTitle={true} description={seoDesc} brand={layoutBrand} ogImage={seoOgImage ?? undefined}>
+  {isMassage ? (
+  <Fragment>
+    <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />
+    <section class="mg-profile" aria-labelledby="mg-profile-heading">
+      <div class="mg-wrap mg-profile-grid">
+        <div>
+          <p class="t-kicker">{uebermich.subheadline}</p>
+          <h1 id="mg-profile-heading">{uebermich.pageHeadline}</h1>
+          <p><span class="t-slot">Entwurf · Profiltext der Inhaberin folgt</span></p>
+          {uebermich.introParagraphs.map((para) => (
+            <p class="mg-para">{para}</p>
+          ))}
+        </div>
+        <figure class="mg-photo" aria-label="Porträt der Inhaberin (Foto folgt)">
+          <span class="t-slot">Foto folgt · slot:slot-portrait-inhaberin</span>
+        </figure>
+      </div>
+    </section>
+    <section class="mg-section section-alt" aria-label="Qualifikation, Weg und Besuchsinfos">
+      <div class="mg-wrap">
+        <h2>Qualifikation</h2>
+        <p><span class="t-slot">Entwurf · slot:slot-inhaberin-qualifikation</span></p>
+        <h2>Mein Weg</h2>
+        {uebermich.milestones.map((m) => (
+          <p><strong>{m.year}</strong> — {m.title}: {m.desc}</p>
+        ))}
+        <h2>Was ich nicht mache</h2>
+        {uebermich.notDoing.map((item) => (
+          <p><strong>{item.title}</strong> — {item.text}</p>
+        ))}
+        <h2>Besuchsinfos</h2>
+        <p>{uebermich.privateText}</p>
+        <p>Kernzeiten Mo–Fr plus flexible Slots.</p>
+      </div>
+    </section>
+    <CallToAction
+      client:visible
+      eyebrow="Massagepraxis Vögelsen"
+      title="Termin anfragen"
+      subtitle="Schreiben Sie mir Ihren Wunschtermin — ich melde mich persönlich."
+      primaryText="Termin anfragen"
+      primaryHref="/kontakt"
+      secondaryText={massageMail}
+      secondaryHref={massageMail ? `mailto:${massageMail}` : ''}
+    />
+  </Fragment>
+  ) : (
+  <Fragment>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
       <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">{uebermich.subheadline}</p>
@@ -89,4 +142,36 @@ const seoOgImage = getSeoOgImage(BRAND_ID, 'ueber-mich');
   {stammdaten && (
     <CallToAction client:visible secondaryText={stammdaten.email || config.contact.email} secondaryHref={`mailto:${stammdaten.email || config.contact.email}`} />
   )}
+  </Fragment>
+  )}
 </Layout>
+
+<style>
+  /* Massage brand branch (T901028, Richtung A) — paper base, profile editorial. */
+  .mg-wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }
+  .mg-profile { padding: 96px 0 72px; }
+  .mg-profile-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: start; }
+  .mg-profile h1 { margin: 14px 0 16px; }
+  .mg-para { margin-top: 16px; max-width: 60ch; }
+  .mg-photo {
+    margin: 0; min-height: 320px; border-radius: var(--radius);
+    border: 1px dashed var(--line-2); background: var(--ink-850);
+    display: flex; align-items: center; justify-content: center; text-align: center;
+  }
+  .mg-section { padding: 72px 0; }
+  .mg-section h2 { margin: 40px 0 12px; }
+  .mg-section h2:first-child { margin-top: 0; }
+  .mg-section p { max-width: 62ch; margin-bottom: 8px; }
+
+  @media (max-width: 720px) {
+    .mg-wrap { padding: 0 22px; }
+    .mg-profile { padding: 64px 0 48px; }
+    .mg-profile-grid { grid-template-columns: 1fr; gap: 36px; }
+    .mg-photo { min-height: 200px; }
+    .mg-section { padding: 48px 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mg-photo { transition: none; }
+  }
+</style>

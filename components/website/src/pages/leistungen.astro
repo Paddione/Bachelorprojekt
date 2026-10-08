@@ -2,9 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
-import { getEffectiveLeistungen, getPriceListUrl, getEffectiveStammdaten } from '../lib/content';
+import { getEffectiveLeistungen, getPriceListUrl, getEffectiveStammdaten, getEffectiveKontakt, bundleSeo } from '../lib/content';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const isMassage = BRAND_ID === 'massage';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 
 const { leistungenCta, contact } = config;
@@ -13,8 +14,72 @@ const [leistungen, priceListUrl, stammdaten] = await Promise.all([
   getPriceListUrl(),
   getEffectiveStammdaten().catch(() => null),
 ]);
+const massageSeo = isMassage ? bundleSeo(BRAND_ID) : null;
+const massageKontakt = isMassage ? await getEffectiveKontakt().catch(() => null) : null;
+const massageTitle = massageSeo?.titles.leistungen ?? 'Leistungen';
+const massageDesc = massageSeo?.descriptions.leistungen ?? 'Massage-Anwendungen auf Anfrage in Vögelsen bei Lüneburg.';
+const massageMail = stammdaten?.email ?? '';
+const massagePhone = stammdaten?.phone ?? '';
+const massagePhoneHref = (massagePhone === '' || massagePhone.startsWith('slot:'))
+  ? null
+  : `tel:${massagePhone.replace(/\s+/g, '')}`;
 ---
 
+{isMassage ? (
+<Layout title={massageTitle} rawTitle={true} description={massageDesc}>
+  <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />
+  <section class="mg-catalog" aria-labelledby="mg-cat-heading">
+    <div class="mg-wrap">
+      <p class="t-kicker">Massagepraxis Vögelsen</p>
+      <h1 id="mg-cat-heading">Leistungen & Preise</h1>
+      <p class="t-lede">Drei Zeitformate zur Auswahl — alle Termine auf Anfrage mit persönlicher Bestätigung durch die Inhaberin.</p>
+      {leistungen.map((cat) => (
+        <div class="mg-cat">
+          <h2>{cat.title}</h2>
+          <ol class="mg-offer-list">
+            {cat.services.map((svc) => (
+              <li class="mg-offer">
+                <div>
+                  <h3 class="t-h3-serif">{svc.name} <span class="t-small">· {svc.unit}</span>
+                    {svc.highlight && (<span class="t-slot">Beliebt</span>)}
+                  </h3>
+                  <p>{svc.desc}</p>
+                </div>
+                <div class="mg-offer-side">
+                  <p><span class="t-slot">Entwurf</span> <strong>{svc.price}</strong></p>
+                  <a class="mg-btn mg-btn-primary" href={`/kontakt?service=${svc.key}`}>Termin anfragen</a>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
+      <aside class="mg-note" aria-label="Hinweise zu Anwendungen und Absagen">
+        <p>Alle Anwendungen dienen der Entspannung und dem Wohlbefinden — keine Behandlung von Krankheiten.</p>
+        <p>Absagen: Bitte sagen Sie so früh wie möglich ab. <span class="t-slot">Storno-Regel folgt · slot:slot-storno-regel</span></p>
+        <p>
+          Lieber anrufen?{' '}
+          {massagePhoneHref ? (
+            <a href={massagePhoneHref}>{massagePhone}</a>
+          ) : (
+            <span class="t-slot">Entwurf · slot:slot-telefon</span>
+          )}
+        </p>
+      </aside>
+    </div>
+  </section>
+  <CallToAction
+    client:visible
+    eyebrow="Massagepraxis Vögelsen"
+    title={massageKontakt?.sidebarTitle ?? 'Termin anfragen'}
+    subtitle={massageKontakt?.sidebarText ?? massageDesc}
+    primaryText="Termin anfragen"
+    primaryHref="/kontakt"
+    secondaryText={massageMail}
+    secondaryHref={massageMail ? `mailto:${massageMail}` : ''}
+  />
+</Layout>
+) : (
 <Layout title="Leistungen & Preise" description="Alle Angebote und Preise auf einen Blick." brand={layoutBrand}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-5xl mx-auto px-6">
@@ -158,4 +223,43 @@ const [leistungen, priceListUrl, stammdaten] = await Promise.all([
 
   <CallToAction client:visible secondaryText={stammdaten?.email || contact.email} secondaryHref={`mailto:${stammdaten?.email || contact.email}`} />
 </Layout>
+)}
+
+<style>
+  /* Massage brand branch (T901028, Richtung A) — paper base, editorial rows. */
+  .mg-wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }
+  .mg-catalog { padding: 96px 0 72px; }
+  .mg-catalog h1 { margin: 14px 0 16px; }
+  .mg-catalog .t-lede { margin-bottom: 40px; }
+  .mg-cat { margin-bottom: 56px; }
+  .mg-cat h2 { margin-bottom: 8px; }
+  .mg-offer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .mg-offer {
+    display: flex; justify-content: space-between; align-items: center; gap: 32px;
+    padding: 32px 0; border-top: 1px solid var(--line-2);
+  }
+  .mg-offer:last-child { border-bottom: 1px solid var(--line-2); }
+  .mg-offer-side { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+  .mg-offer-side strong { font-size: 20px; color: var(--fg); margin-left: 8px; }
+  .mg-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 48px; padding: 12px 28px; border-radius: var(--radius-pill);
+    text-decoration: none; font-weight: 600; font-size: 15px;
+  }
+  .mg-btn-primary { background: var(--brass-2); color: #FDFCF9; }
+  .mg-btn:focus-visible { outline: 2px solid var(--brass-2); outline-offset: 3px; }
+  .mg-note { border-top: 1px solid var(--line-2); padding-top: 32px; display: flex; flex-direction: column; gap: 12px; }
+  .mg-note a { color: var(--brass-2); }
+
+  @media (max-width: 720px) {
+    .mg-wrap { padding: 0 22px; }
+    .mg-catalog { padding: 64px 0 48px; }
+    .mg-offer { flex-direction: column; align-items: stretch; }
+    .mg-offer-side { text-align: left; align-items: flex-start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mg-btn { transition: none; }
+  }
+</style>
 

@@ -179,6 +179,35 @@ projektbezogener Scope dokumentiert.
 Vorgeschlagen: `config: null` (kein Projekt-Ziel; ein künftiger User-Scope-Adapter
 könnte `~/.openclaw/openclaw.json` verwalten, außerhalb P1).
 
+## openclaw — Nachtrag T900794: User-Scope-Adapter und eigene Rolle
+
+Mess-Konvention T002717: `PRE=0cf8d0c95` (-branch `feature/openclaw-harness-revive-T900794`).
+Suchmuster:
+
+```bash
+node scripts/toolset/check.mjs                                  # grün
+bash scripts/toolset-context.sh openclaw-ops                    # nur der schmale Satz
+node scripts/toolset/sync.mjs --harness openclaw --dry-run      # SKIP, offline-fähig
+tests/unit/lib/bats-core/bin/bats tests/spec/openclaw-harness.bats  # grün
+```
+
+Stand:
+
+- Rolle `openclaw-ops` in `scripts/toolset/lib/roles.mjs` (`ROLES`, nicht in
+  `WILDCARD_ROLES` — schmaler Satz per Konstruktion). Allowlist in
+  `scripts/plan-context.sh` (`_role_allowlist`, `_domain_roles`).
+- Werkzeugsatz (direkte Treffer only): `mcp:mcp-kubernetes` (lesen, Logs inklusive),
+  `mcp:mcp-task-runner` (LLM-Tasks: Taskfile-Ziele inkl. `llm:*`),
+  `cli:openclaw-ask` (Ops-Broker).
+- Adapter `scripts/toolset/lib/adapters/openclaw.mjs`: User-Scope lesen/validieren
+  plus `openclaw mcp doctor --probe` (injizierbarer Spawner); verwaltet keinen
+  Repo-Zustand (`render` gibt den Text byte-identisch zurück, unparsebare Config
+  wirft). `config:` ist `~/.openclaw/openclaw.json` — sync/check lösen das Ziel
+  gegen den Repo-Root auf, finden es nie und springen per `SKIP` darüber; CI
+  schreibt nie ins Home.
+- Spike-Befund (p1, dev-seitig offline): Unit inactive, Gateway und lokales Modell
+  unerreichbar, Token fehlt — der Adapter setzt deshalb keine Erreichbarkeit voraus.
+
 ## Zusammenfassung
 
 | Harness    | Befund  | Quelle heute                          | Vorgeschlagenes `config:` |
@@ -187,7 +216,7 @@ könnte `~/.openclaw/openclaw.json` verwalten, außerhalb P1).
 | omp        | project | `.omp/mcp.json` (Doku)                | `.omp/mcp.json`           |
 | muse       | user    | `~/.config/muse/settings.json`        | `null`                    |
 | agy        | user    | `~/.gemini/config/mcp_config.json`    | `null`                    |
-| openclaw   | user    | `~/.openclaw/openclaw.json` (Doku)    | `null`                    |
+| openclaw   | user    | `~/.openclaw/openclaw.json` (Doku)    | `~/.openclaw/openclaw.json` (T900794: User-Scope-Adapter, Rolle `openclaw-ops`) |
 
 Konsequenz für die Registry: codex und omp sind Kandidaten für Projekt-Adapter
 in P3/P4 bzw. Folgetickets; muse, agy und openclaw brauchen einen User-Scope,

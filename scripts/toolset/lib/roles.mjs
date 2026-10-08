@@ -17,6 +17,9 @@ export const ROLES = Object.freeze([
   // [T900793] Harness-Rolle `omp` (oh-my-pi, ersetzt pi-coding-agent T900529) —
   // erbt die Wildcard bewusst nicht.
   'omp',
+  // [T900794] Harness-Rolle `openclaw-ops` (Always-on-GPU-Host, schmaler Satz) —
+  // erbt die Wildcard bewusst nicht (wie `omp`/`pi`).
+  'openclaw-ops',
   'all',
 ]);
 

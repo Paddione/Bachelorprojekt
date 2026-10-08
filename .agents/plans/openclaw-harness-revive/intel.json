@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "slug": "openclaw-harness-revive",
+    "ticket_id": "",
+    "generated_from": "main@ecf449331",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".agents/plans/openclaw-harness-revive/design.md",
+      "language": "markdown",
+      "loc": 25,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5822,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/capabilities.yaml",
+      "language": "config",
+      "loc": 1022,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/harness-config-targets.md",
+      "language": "markdown",
+      "loc": 195,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/openclaw-ops-bot.md",
+      "language": "markdown",
+      "loc": 148,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/plan-context.sh",
+      "language": "bash",
+      "loc": 200,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 600
+    },
+    {
+      "path": "scripts/toolset/lib/adapters/adapters.test.mjs",
+      "language": "javascript",
+      "loc": 77,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 723
+    },
+    {
+      "path": "scripts/toolset/lib/adapters/index.mjs",
+      "language": "javascript",
+      "loc": 5,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 795
+    },
+    {
+      "path": "scripts/toolset/lib/adapters/openclaw.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/toolset/lib/roles.mjs",
+      "language": "javascript",
+      "loc": 42,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 758
+    },
+    {
+      "path": "tests/spec/openclaw-harness.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/plan-context.sh:10:_role_allowlist() {",
+      "kind": "function",
+      "file": "scripts/plan-context.sh",
+      "signature": "10:_role_allowlist() {(...)",
+      "type_text": "10:_role_allowlist() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-context.sh:41:_domain_roles() {",
+      "kind": "function",
+      "file": "scripts/plan-context.sh",
+      "signature": "41:_domain_roles() {(...)",
+      "type_text": "41:_domain_roles() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-context.sh:47:_vocabulary_union() {",
+      "kind": "function",
+      "file": "scripts/plan-context.sh",
+      "signature": "47:_vocabulary_union() {(...)",
+      "type_text": "47:_vocabulary_union() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-context.sh:85:_parse_yaml_domains() {",
+      "kind": "function",
+      "file": "scripts/plan-context.sh",
+      "signature": "85:_parse_yaml_domains() {(...)",
+      "type_text": "85:_parse_yaml_domains() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

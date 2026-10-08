@@ -122,6 +122,28 @@ Default-Agent `task-runner`, Default-Timeout 300 s. Das Token kommt aus
 - Befunde kommen nicht an: `TELEGRAM_CHAT_ID` in `~/.openclaw/.env` fehlt, oder der Scratch ist
   leer. `openclaw cron scratch <jobId>` zeigt den eingespielten Inhalt.
 
+## Neovim-Anbindung (T900794)
+
+Neovim spricht ausschließlich über CLI und Gateway-HTTP mit OpenClaw —
+Terminal-Multiplexing (tmux/screen-Sessions, `:terminal`-Steuerung) ist
+explizit ausgeschlossen.
+
+- CLI (Broker): `scripts/openclaw-ask.sh [--agent <id>] "<aufgabe>"` — Exit-Codes
+  siehe „Broker für andere Agenten" oben.
+- Gateway-HTTP direkt (Health und Agent-Aufrufe):
+  ```bash
+  curl -fsS http://127.0.0.1:18789/healthz
+  curl -fsS -H "Authorization: Bearer ${OPENCLAW_GATEWAY_TOKEN}" \
+    -H 'Content-Type: application/json' \
+    -d '{"agent":"task-runner","message":"Welche Pods laufen nicht?"}' \
+    http://127.0.0.1:18789/v1/chat/completions
+  ```
+- Rolle und Werkzeugsatz der Harness: `openclaw-ops`
+  (`docs/agent-guide/registry/capabilities.yaml`, Harness `openclaw`) —
+  Kubernetes lesen, Taskfile-Ziele, OpenClaw-Broker. Adapter:
+  `scripts/toolset/lib/adapters/openclaw.mjs` (User-Scope lesen/validieren,
+  `openclaw mcp doctor --probe`, kein Schreiben in CI).
+
 ## Offene Nutzeraufgaben (R4, R5)
 
 - R4: OpenCode Go verlangt den Header `x-opencode-session` mit dem Wert aus

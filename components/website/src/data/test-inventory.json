@@ -4584,6 +4584,12 @@
     "kind": "shell"
   },
   {
+    "id": "openclaw-harness",
+    "file": "tests/spec/openclaw-harness.bats",
+    "category": "openclaw-harness",
+    "kind": "shell"
+  },
+  {
     "id": "openclaw-ops-bot",
     "file": "tests/spec/openclaw-ops-bot.bats",
     "category": "openclaw-ops-bot",

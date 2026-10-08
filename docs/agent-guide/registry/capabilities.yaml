@@ -28,7 +28,7 @@
 # harnesses: Aufgabe/Anbieter/Rollen je Harness (T900791), Messprotokoll: docs/agent-guide/registry/harness-config-targets.md
 #
 # Gültige Rollen:
-#   bp-build | bp-run | bp-ship | orchestrator | big-pickle | omp | all   (SSOT: scripts/toolset/lib/roles.mjs, T900980)
+#   bp-build | bp-run | bp-ship | orchestrator | big-pickle | omp | openclaw-ops | all   (SSOT: scripts/toolset/lib/roles.mjs, T900980)
 ---
 capabilities:
 
@@ -65,7 +65,7 @@ capabilities:
       use_when: "Pods, Logs, Events, Nodes und Ressourcen lesen — Status statt Mutation."
       avoid_when: "Jede Mutation: apply, rollout restart, scale, delete."
       fallback: "kubectl --context fleet get/logs (bei Portforward-Ausfall)"
-      roles: [bp-build, bp-run, orchestrator]
+      roles: [bp-build, bp-run, openclaw-ops, orchestrator]
       tier: safe
       # T900983: Mutationen einzeln hochgestuft (destructiveHint laut Probe + pods_run).
       tool_tiers:
@@ -190,7 +190,7 @@ capabilities:
       state: canonical
       use_when: "Taskfile-Ziele auflösen und ausführen, Task-Graph inspizieren."
       fallback: "bash scripts/vda.sh oracle '<ziel in klarem Deutsch>'"
-      roles: [orchestrator]
+      roles: [orchestrator, openclaw-ops]
       tier: caution
       # T900983: Inspektion safe; Ausführen (run_task*, execute_plan, cancel_task) erbt caution.
       tool_tiers:
@@ -324,7 +324,7 @@ capabilities:
       state: canonical
       use_when: "Vage Ops-Aufgabe synchron an OpenClaw task-runner geben: bash scripts/openclaw-ask.sh '<aufgabe>'."
       avoid_when: "mutierende Aktionen — OpenClaw empfiehlt nur"
-      roles: [orchestrator]
+      roles: [orchestrator, openclaw-ops]
       tier: safe
       deep_ref: "docs/runbooks/openclaw-ops-bot.md"
 
@@ -1031,9 +1031,9 @@ harnesses:
     roles: [bp-ship]
     config: null
   openclaw:
-    job: "Always-on-Assistent auf dem GPU-Host: Modell- und GPU-Betrieb"
+    job: "Always-on-Assistent auf dem GPU-Host: Modell- und GPU-Betrieb mit schmalem Satz (K8s lesen, Taskfile-Ziele, OpenClaw-Broker)"
     provider: local
     default_model: lmstudio
-    roles: [bp-run]
-    config: null
+    roles: [openclaw-ops]
+    config: ~/.openclaw/openclaw.json
 forbidden_providers: [deepseek]

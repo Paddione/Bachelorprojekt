@@ -34,7 +34,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Pods, Logs, Events, Nodes und Ressourcen lesen — Status statt Mutation.
   - _Nicht:_ Jede Mutation: apply, rollout restart, scale, delete.
   - _Fallback:_ `kubectl --context fleet get/logs (bei Portforward-Ausfall)`
-  - _Rollen:_ `bp-build`, `bp-run`, `orchestrator`
+  - _Rollen:_ `bp-build`, `bp-run`, `openclaw-ops`, `orchestrator`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
   - _Tools (19):_ dangerous: `pods_delete`, `pods_exec`, `resources_delete` · caution: `pods_run`, `resources_create_or_update`, `resources_scale` · 13 safe
 
@@ -122,7 +122,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`mcp:mcp-task-runner`** — Status `canonical` · Tier `caution`
   - _Wann:_ Taskfile-Ziele auflösen und ausführen, Task-Graph inspizieren.
   - _Fallback:_ `bash scripts/vda.sh oracle '<ziel in klarem Deutsch>'`
-  - _Rollen:_ `orchestrator`
+  - _Rollen:_ `orchestrator`, `openclaw-ops`
   - _Tools (7):_ caution: `cancel_task`, `execute_plan`, `run_task`, `run_task_async` · 3 safe
 
 ## Fähigkeit: `externes-task-management`
@@ -236,7 +236,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`cli:openclaw-ask`** — Status `canonical` · Tier `safe`
   - _Wann:_ Vage Ops-Aufgabe synchron an OpenClaw task-runner geben: bash scripts/openclaw-ask.sh '<aufgabe>'.
   - _Nicht:_ mutierende Aktionen — OpenClaw empfiehlt nur
-  - _Rollen:_ `orchestrator`
+  - _Rollen:_ `orchestrator`, `openclaw-ops`
   - _Tiefe:_ `docs/runbooks/openclaw-ops-bot.md`
 
 ## Fähigkeit: `gitops-wissen`

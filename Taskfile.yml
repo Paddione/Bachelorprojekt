@@ -90,6 +90,11 @@ includes:
     taskfile: ./taskfiles/Taskfile.brain.yaml
     dir: .
 
+  # CI-Rot-Intake mit Auto-Resolve (T900759). Siehe taskfiles/Taskfile.ci.yml.
+  ci:
+    taskfile: ./taskfiles/Taskfile.ci.yml
+    dir: .
+
   core-data:
     taskfile: ./taskfiles/Taskfile.data.yml
     dir: .

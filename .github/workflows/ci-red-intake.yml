@@ -1,0 +1,68 @@
+name: CI-Red Intake (Auto-Resolve)
+
+# T900759 — Scheduled-Poller fuer CI-Rot auf main: `ci:red-intake` legt bei
+# Rot sofort ein type=bug-Ticket an, `ci:green-resolve` schliesst offene
+# Rot-Tickets bei gruenem Beleg-Run als done/fixed (Konvention: AGENTS.md).
+#
+# Strikt fail-open: kein Required Check, keine Branch-Protection-Aenderung.
+# `ticket.sh` erreicht die DB via `kubectl exec … psql` in den shared-db-Pod;
+# ohne Cluster-Zugriff (Secret CI_REDISTAKE_KUBECONFIG nicht gesetzt) bleibt
+# KUBECONFIG leer und der Lauf meldet einen sichtbaren Skip statt stillem
+# Versagen — Vorbild: .github/workflows/arbitration.yml (scoped Secret,
+# continue-on-error, Aufraeumen per shred).
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CI_REDINTAKE_KUBECONFIG: ${{ secrets.CI_REDINTAKE_KUBECONFIG }}
+    steps:
+      - name: Checkout repository (main)
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup task runner
+        uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v5.0.0
+        continue-on-error: true
+        with:
+          version: 3.x
+
+      - name: Provide scoped kubeconfig for ticket.sh
+        continue-on-error: true
+        run: |
+          if [ -z "$CI_REDINTAKE_KUBECONFIG" ]; then
+            echo "::notice::SKIP ci-red-intake: kein Cluster-Zugriff (Secret CI_REDINTAKE_KUBECONFIG nicht gesetzt) — Intake/Resolve uebersprungen, kein Ticket angelegt."
+            echo "CI_REDINTAKE_SKIP=true" >> "$GITHUB_ENV"
+          else
+            install -m 600 /dev/null "${RUNNER_TEMP}/ci-redintake.kubeconfig"
+            printf '%s' "$CI_REDINTAKE_KUBECONFIG" > "${RUNNER_TEMP}/ci-redintake.kubeconfig"
+            echo "KUBECONFIG=${RUNNER_TEMP}/ci-redintake.kubeconfig" >> "$GITHUB_ENV"
+          fi
+
+      - name: CI red intake
+        if: env.CI_REDINTAKE_SKIP != 'true'
+        continue-on-error: true
+        run: task ci:red-intake
+
+      - name: CI green resolve
+        if: env.CI_REDINTAKE_SKIP != 'true'
+        continue-on-error: true
+        run: task ci:green-resolve
+
+      - name: Shred scoped kubeconfig
+        if: always()
+        continue-on-error: true
+        run: |
+          shred -u "${RUNNER_TEMP}/ci-redintake.kubeconfig" 2>/dev/null \
+            || rm -f "${RUNNER_TEMP}/ci-redintake.kubeconfig" \
+            || true

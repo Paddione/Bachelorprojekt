@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1284,
+      "file_count": 1285,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -610,6 +610,7 @@
         "tests/spec/ci-cd/windows-path-portability.bats",
         "tests/spec/ci-cd/workflow-self-trigger.bats",
         "tests/spec/ci-cd/worktrees-not-tracked.bats",
+        "tests/spec/ci-red-intake-autoresolve.bats",
         "tests/spec/coaching-sessions-polish-guide.bats",
         "tests/spec/coaching/questionnaire-insights.bats",
         "tests/spec/coaching/session-summaries.bats",
@@ -4049,7 +4050,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 875,
+      "file_count": 876,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4179,6 +4180,7 @@
         "scripts/check-updates.sh",
         "scripts/ci-dummy-secrets.sh",
         "scripts/ci-pr-health.sh",
+        "scripts/ci-red-intake.sh",
         "scripts/ci/provision-gh-runner.sh",
         "scripts/ci/runner-inventory-check.sh",
         "scripts/ci/runner-placement-check.sh",

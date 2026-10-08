@@ -71,7 +71,9 @@ task: Available tasks for this project:
 * cert:install:                                 Install cert-manager + lego DNS-01 webhook for wildcard certs (ENV=dev|mentolder|korczewski selects cluster context)
 * cert:secret:                                  Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml). ENV=dev|mentolder|korczewski selects target cluster + workspace ns.
 * cert:status:                                  Show wildcard certificate and ClusterIssuer status (ENV=dev|mentolder|korczewski)
+* ci:green-resolve:                             [ci] Auto-Resolve: offene Rot-Tickets bei gruenem Beleg-Run schliessen (T900759)
 * ci:local:                                     Run all CI steps locally (mirrors .github/workflows/ci.yml offline-tests job). Flags: FAST=1 (only test:all + quality:check, ~3s), SKIP_NETWORK=1 (skip api-auth + freshness:check). 
+* ci:red-intake:                                [ci] CI-Rot-Intake: bei Rot auf main sofort Ticket anlegen (T900759)
 * cicd:kubeconfig:                              Generate a minimal kubeconfig for the cicd-deploy ServiceAccount (delegates to scripts/cicd-kubeconfig-gen.sh)
 * clusters:status:                              Show status of both brands on the unified fleet cluster (mentolder + korczewski)
 * coaching:batch-ingest:                        Batch-ingest a directory of coaching PDFs/DOCs — Usage: task coaching:batch-ingest -- <dir> <kurs-slug> [--dry-run] [--yes] [--classify]

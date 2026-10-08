@@ -80,6 +80,7 @@ tests/spec/application-pipeline/match-scoring.bats
 tests/spec/application-pipeline/render-cli.bats
 tests/spec/application-pipeline/schema.bats
 tests/spec/application-pipeline/theme-validation.bats
+tests/spec/appointment-requests.bats
 tests/spec/art-library-webapp.bats
 tests/spec/ast-toolchain.bats
 tests/spec/astro-type-check.bats
@@ -189,6 +190,7 @@ tests/spec/ci-cd/website-fast-path.bats
 tests/spec/ci-cd/windows-path-portability.bats
 tests/spec/ci-cd/workflow-self-trigger.bats
 tests/spec/ci-cd/worktrees-not-tracked.bats
+tests/spec/ci-red-intake-autoresolve.bats
 tests/spec/coaching-sessions-polish-guide.bats
 tests/spec/coaching/questionnaire-insights.bats
 tests/spec/coaching/session-summaries.bats
@@ -671,6 +673,7 @@ tests/spec/workspace-deploy.bats
 tests/spec/workspace-deploy/flux-secrets-ordering.bats
 tests/spec/workspace-deploy/ntfy-token-escaping-T900059.bats
 tests/spec/workspace-foundation.bats
+tests/spec/workspace-staging-db-tables.bats
 tests/spec/workstation-cluster-iso/assign-identity.bats
 tests/spec/workstation-cluster-iso/build-node-iso-guards.bats
 tests/spec/workstation-cluster-iso/k3s-join-guards.bats

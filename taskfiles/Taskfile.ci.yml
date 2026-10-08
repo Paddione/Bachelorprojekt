@@ -1,0 +1,25 @@
+# Taskfile.ci.yml
+# ------------------------------------------------------------------------------
+# CI-Rot-Intake mit Auto-Resolve (T900759). Wrappt scripts/ci-red-intake.sh:
+# `ci:red-intake` legt bei Rot sofort ein type=bug-Ticket an (Dedupe per
+# Titel + Mishap-Buffer), `ci:green-resolve` schliesst offene Rot-Tickets bei
+# gruenem Beleg-Run als done/fixed. Siehe AGENTS.md (Auto-Resolve-Konvention).
+# ------------------------------------------------------------------------------
+version: "3"
+
+tasks:
+  red-intake:
+    desc: "[ci] CI-Rot-Intake: bei Rot auf main sofort Ticket anlegen (T900759)"
+    cmds:
+      - |
+        command -v gh >/dev/null 2>&1 || { echo "SKIP ci:red-intake: gh nicht verfuegbar — kein CI-Status bestimmbar (fail-closed, kein Ticket)."; exit 0; }
+        SHA="$(git rev-parse origin/main 2>/dev/null || git rev-parse HEAD)"
+        bash scripts/ci-red-intake.sh intake --sha "$SHA" --workflow ci
+
+  green-resolve:
+    desc: "[ci] Auto-Resolve: offene Rot-Tickets bei gruenem Beleg-Run schliessen (T900759)"
+    cmds:
+      - |
+        command -v gh >/dev/null 2>&1 || { echo "SKIP ci:green-resolve: gh nicht verfuegbar — kein Beleg-Run bestimmbar (fail-closed, nichts geschlossen)."; exit 0; }
+        SHA="$(git rev-parse origin/main 2>/dev/null || git rev-parse HEAD)"
+        bash scripts/ci-red-intake.sh resolve --sha "$SHA"

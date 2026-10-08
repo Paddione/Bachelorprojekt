@@ -2,6 +2,13 @@
 
 import os
 from pathlib import Path
+import yaml
+
+
+def _task(repo_root: Path, filename: str, name: str) -> str:
+    tasks = yaml.safe_load((repo_root / "taskfiles" / filename).read_text())["tasks"]
+    assert name in tasks, f"Missing task: {name}"
+    return yaml.safe_dump(tasks[name])
 
 
 def test_ci_dummy_secrets_refuses_prod_brand_without_ci(repo_root: Path, run_cmd, tmp_path: Path):
@@ -141,8 +148,7 @@ def test_backup_restore_guidance_mentions_sync_db_passwords(repo_root: Path):
 
 
 def test_db_restore_task_chains_workspace_sync_db_passwords(repo_root: Path):
-    taskfile = repo_root / "taskfiles" / "Taskfile.workspace.yml"
-    content = taskfile.read_text()
+    content = _task(repo_root, "Taskfile.workspace.yml", "workspace:db:restore")
     assert "workspace:sync-db-passwords" in content
 
 
@@ -153,19 +159,15 @@ def test_app_install_references_env_seal(repo_root: Path):
 
 
 def test_secrets_sync_emits_workload_reconcile_reminder(repo_root: Path):
-    taskfile = repo_root / "taskfiles" / "Taskfile.platform.yml"
-    content = taskfile.read_text()
+    content = _task(repo_root, "Taskfile.platform.yml", "secrets:sync")
     lower = content.lower()
     assert any(needle in lower for needle in ["sync-db-passwords", "rollout restart", "landmine", "latent"])
 
 
 def test_secrets_sync_full_task_exists(repo_root: Path):
-    taskfile = repo_root / "taskfiles" / "Taskfile.platform.yml"
-    content = taskfile.read_text()
-    assert "secrets:sync:full:" in content
+    _task(repo_root, "Taskfile.platform.yml", "secrets:sync:full")
 
 
 def test_env_seal_desc_notes_website_secrets(repo_root: Path):
-    taskfile = repo_root / "taskfiles" / "Taskfile.platform.yml"
-    content = taskfile.read_text()
+    content = _task(repo_root, "Taskfile.platform.yml", "env:seal")
     assert "website-secrets" in content or "WEBSITE_OIDC" in content

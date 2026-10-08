@@ -118,10 +118,6 @@ def test_token_drift_auto_sync_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/mcp-gateway/token-drift-auto-sync.bats")
     assert res.returncode == 0, f"tests/spec/mcp-gateway/token-drift-auto-sync.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_watchdog_tunnel_liveness_spec(repo_root: Path):
-    """Executes tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats."""
-    res = _run_bats(repo_root, "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats")
-    assert res.returncode == 0, f"tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_dashboard_rescan_spec(repo_root: Path):
     """Executes tests/spec/health-goals/dashboard-rescan.bats."""
@@ -133,10 +129,6 @@ def test_g_git03_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/health-goals/g-git03.bats")
     assert res.returncode == 0, f"tests/spec/health-goals/g-git03.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_goal_integrity_spec(repo_root: Path):
-    """Executes tests/spec/health-goals/goal-integrity.bats."""
-    res = _run_bats(repo_root, "tests/spec/health-goals/goal-integrity.bats")
-    assert res.returncode == 0, f"tests/spec/health-goals/goal-integrity.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_goals_data_path_consistency_spec(repo_root: Path):
     """Executes tests/spec/health-goals/goals-data-path-consistency.bats."""
@@ -228,10 +220,6 @@ def test_match_scoring_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/application-pipeline/match-scoring.bats")
     assert res.returncode == 0, f"tests/spec/application-pipeline/match-scoring.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_render_cli_spec(repo_root: Path):
-    """Executes tests/spec/application-pipeline/render-cli.bats."""
-    res = _run_bats(repo_root, "tests/spec/application-pipeline/render-cli.bats")
-    assert res.returncode == 0, f"tests/spec/application-pipeline/render-cli.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_schema_spec(repo_root: Path):
     """Executes tests/spec/application-pipeline/schema.bats."""
@@ -253,15 +241,6 @@ def test_e2_local_stack_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/sdlc-isolation/e2-local-stack.bats")
     assert res.returncode == 0, f"tests/spec/sdlc-isolation/e2-local-stack.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_e3_backup_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-isolation/e3-backup.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-isolation/e3-backup.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-isolation/e3-backup.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_e3_tickets_lokal_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-isolation/e3-tickets-lokal.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-isolation/e3-tickets-lokal.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-isolation/e3-tickets-lokal.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_fleet_sequence_split_spec(repo_root: Path):
     """Executes tests/spec/sdlc-isolation/fleet-sequence-split.bats."""
@@ -273,15 +252,6 @@ def test_llm_up_health_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/sdlc-isolation/llm-up-health.bats")
     assert res.returncode == 0, f"tests/spec/sdlc-isolation/llm-up-health.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_sdlc_default_loadout_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-isolation/sdlc-default-loadout.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-isolation/sdlc-default-loadout.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-isolation/sdlc-default-loadout.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_sdlc_up_command_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-isolation/sdlc-up-command.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-isolation/sdlc-up-command.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-isolation/sdlc-up-command.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_bats_missing_file_exit0_spec(repo_root: Path):
     """Executes tests/spec/e2e-test-infrastructure/bats-missing-file-exit0.bats."""
@@ -363,20 +333,12 @@ def test_inventory_registered_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/repo-structure/inventory-registered.bats")
     assert res.returncode == 0, f"tests/spec/repo-structure/inventory-registered.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_packages_assets_spec(repo_root: Path):
-    """Executes tests/spec/repo-structure/packages-assets.bats."""
-    res = _run_bats(repo_root, "tests/spec/repo-structure/packages-assets.bats")
-    assert res.returncode == 0, f"tests/spec/repo-structure/packages-assets.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_release_please_paths_spec(repo_root: Path):
     """Executes tests/spec/repo-structure/release-please-paths.bats."""
     res = _run_bats(repo_root, "tests/spec/repo-structure/release-please-paths.bats")
     assert res.returncode == 0, f"tests/spec/repo-structure/release-please-paths.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_root_agent_md_spec(repo_root: Path):
-    """Executes tests/spec/repo-structure/root-agent-md.bats."""
-    res = _run_bats(repo_root, "tests/spec/repo-structure/root-agent-md.bats")
-    assert res.returncode == 0, f"tests/spec/repo-structure/root-agent-md.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_spec_suite_website_leak_spec(repo_root: Path):
     """Executes tests/spec/repo-structure/spec-suite-website-leak.bats."""

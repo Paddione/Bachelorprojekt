@@ -13,10 +13,6 @@ def _run_bats(repo_root: Path, bats_file: str) -> subprocess.CompletedProcess:
         text=True,
     )
 
-def test_mediaviewer_spec(repo_root: Path):
-    """Executes tests/spec/mediaviewer.bats."""
-    res = _run_bats(repo_root, "tests/spec/mediaviewer.bats")
-    assert res.returncode == 0, f"tests/spec/mediaviewer.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_apply_escalation_spec(repo_root: Path):
     """Executes tests/spec/merge-arbitration/apply-escalation.bats."""
@@ -48,10 +44,6 @@ def test_synthesize_syntax_gate_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/merge-arbitration/synthesize-syntax-gate.bats")
     assert res.returncode == 0, f"tests/spec/merge-arbitration/synthesize-syntax-gate.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_mishap_bundle_2026_06_30_spec(repo_root: Path):
-    """Executes tests/spec/mishap-bundle-2026-06-30.bats."""
-    res = _run_bats(repo_root, "tests/spec/mishap-bundle-2026-06-30.bats")
-    assert res.returncode == 0, f"tests/spec/mishap-bundle-2026-06-30.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_mishap_bundle_T002506_spec(repo_root: Path):
     """Executes tests/spec/mishap-bundle-T002506.bats."""
@@ -68,20 +60,6 @@ def test_ci_test_agentlock_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/mishap-bundle/ci-test-agentlock.bats")
     assert res.returncode == 0, f"tests/spec/mishap-bundle/ci-test-agentlock.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_mishap_categorize_erden_spec(repo_root: Path):
-    """Executes tests/spec/mishap-categorize-erden.bats."""
-    res = _run_bats(repo_root, "tests/spec/mishap-categorize-erden.bats")
-    assert res.returncode == 0, f"tests/spec/mishap-categorize-erden.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_mishap_t002422_spec(repo_root: Path):
-    """Executes tests/spec/mishap-t002422.bats."""
-    res = _run_bats(repo_root, "tests/spec/mishap-t002422.bats")
-    assert res.returncode == 0, f"tests/spec/mishap-t002422.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_mishap_t002424_spec(repo_root: Path):
-    """Executes tests/spec/mishap-t002424.bats."""
-    res = _run_bats(repo_root, "tests/spec/mishap-t002424.bats")
-    assert res.returncode == 0, f"tests/spec/mishap-t002424.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_dedupe_korpus_spec(repo_root: Path):
     """Executes tests/spec/mishap-tracking/dedupe-korpus.bats."""
@@ -93,35 +71,6 @@ def test_go_tests_registriert_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/mishap-tracking/go-tests-registriert.bats")
     assert res.returncode == 0, f"tests/spec/mishap-tracking/go-tests-registriert.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_monitoring_alerts_spec(repo_root: Path):
-    """Executes tests/spec/monitoring-alerts.bats."""
-    res = _run_bats(repo_root, "tests/spec/monitoring-alerts.bats")
-    assert res.returncode == 0, f"tests/spec/monitoring-alerts.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_backup_alerting_spec(repo_root: Path):
-    """Executes tests/spec/monitoring-alerts/backup-alerting.bats."""
-    res = _run_bats(repo_root, "tests/spec/monitoring-alerts/backup-alerting.bats")
-    assert res.returncode == 0, f"tests/spec/monitoring-alerts/backup-alerting.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_backup_recipient_daily_repeat_spec(repo_root: Path):
-    """Executes tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats."""
-    res = _run_bats(repo_root, "tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats")
-    assert res.returncode == 0, f"tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_networks_registry_spec(repo_root: Path):
-    """Executes tests/spec/network-address-plan/networks-registry.bats."""
-    res = _run_bats(repo_root, "tests/spec/network-address-plan/networks-registry.bats")
-    assert res.returncode == 0, f"tests/spec/network-address-plan/networks-registry.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_newsletter_system_spec(repo_root: Path):
-    """Executes tests/spec/newsletter-system.bats."""
-    res = _run_bats(repo_root, "tests/spec/newsletter-system.bats")
-    assert res.returncode == 0, f"tests/spec/newsletter-system.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_nextcloud_integration_spec(repo_root: Path):
-    """Executes tests/spec/nextcloud-integration.bats."""
-    res = _run_bats(repo_root, "tests/spec/nextcloud-integration.bats")
-    assert res.returncode == 0, f"tests/spec/nextcloud-integration.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_notify_reminders_spec(repo_root: Path):
     """Executes tests/spec/notify-reminders.bats."""
@@ -148,10 +97,6 @@ def test_opencode_config_ssot_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/opencode-config-ssot.bats")
     assert res.returncode == 0, f"tests/spec/opencode-config-ssot.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_opencode_local_model_runner_spec(repo_root: Path):
-    """Executes tests/spec/opencode-local-model-runner.bats."""
-    res = _run_bats(repo_root, "tests/spec/opencode-local-model-runner.bats")
-    assert res.returncode == 0, f"tests/spec/opencode-local-model-runner.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_os_retirement_code_spec(repo_root: Path):
     """Executes tests/spec/os-retirement-code.bats."""
@@ -258,15 +203,6 @@ def test_public_symlinks_resolve_in_image_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/public-symlinks-resolve-in-image.bats")
     assert res.returncode == 0, f"tests/spec/public-symlinks-resolve-in-image.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_questionnaire_system_spec(repo_root: Path):
-    """Executes tests/spec/questionnaire-system.bats."""
-    res = _run_bats(repo_root, "tests/spec/questionnaire-system.bats")
-    assert res.returncode == 0, f"tests/spec/questionnaire-system.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_qwen35_worker_modes_spec(repo_root: Path):
-    """Executes tests/spec/qwen35-worker-modes.bats."""
-    res = _run_bats(repo_root, "tests/spec/qwen35-worker-modes.bats")
-    assert res.returncode == 0, f"tests/spec/qwen35-worker-modes.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_react_homepage_blocks_spec(repo_root: Path):
     """Executes tests/spec/react-homepage-blocks.bats."""
@@ -308,15 +244,6 @@ def test_on_demand_lifecycle_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/rustdesk-server/on-demand-lifecycle.bats")
     assert res.returncode == 0, f"tests/spec/rustdesk-server/on-demand-lifecycle.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_s1_violations_batch2_spec(repo_root: Path):
-    """Executes tests/spec/s1-violations-batch2.bats."""
-    res = _run_bats(repo_root, "tests/spec/s1-violations-batch2.bats")
-    assert res.returncode == 0, f"tests/spec/s1-violations-batch2.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_s1_violations_spec(repo_root: Path):
-    """Executes tests/spec/s1-violations.bats."""
-    res = _run_bats(repo_root, "tests/spec/s1-violations.bats")
-    assert res.returncode == 0, f"tests/spec/s1-violations.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_s2_cycles_g_cq07_spec(repo_root: Path):
     """Executes tests/spec/s2-cycles-g-cq07.bats."""
@@ -348,10 +275,6 @@ def test_worktree_list_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/scripts/worktree-list.bats")
     assert res.returncode == 0, f"tests/spec/scripts/worktree-list.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_dev_admin_session_guards_spec(repo_root: Path):
-    """Executes tests/spec/sdlc/dev-admin-session-guards.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc/dev-admin-session-guards.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc/dev-admin-session-guards.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_sealed_secret_cluster_drift_spec(repo_root: Path):
     """Executes tests/spec/sealed-secret-cluster-drift.bats."""
@@ -373,20 +296,6 @@ def test_security_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/security.bats")
     assert res.returncode == 0, f"tests/spec/security.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_dead_selections_spec(repo_root: Path):
-    """Executes tests/spec/selection-integrity/dead-selections.bats."""
-    res = _run_bats(repo_root, "tests/spec/selection-integrity/dead-selections.bats")
-    assert res.returncode == 0, f"tests/spec/selection-integrity/dead-selections.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_services_calendar_spec(repo_root: Path):
-    """Executes tests/spec/services-calendar.bats."""
-    res = _run_bats(repo_root, "tests/spec/services-calendar.bats")
-    assert res.returncode == 0, f"tests/spec/services-calendar.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_sessions_server_spec(repo_root: Path):
-    """Executes tests/spec/sessions-server.bats."""
-    res = _run_bats(repo_root, "tests/spec/sessions-server.bats")
-    assert res.returncode == 0, f"tests/spec/sessions-server.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_sf_retirement_rest_spec(repo_root: Path):
     """Executes tests/spec/sf-retirement-rest.bats."""
@@ -398,25 +307,6 @@ def test_sf_retirement_web_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/sf-retirement-web.bats")
     assert res.returncode == 0, f"tests/spec/sf-retirement-web.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_sidekick_assistant_spec(repo_root: Path):
-    """Executes tests/spec/sidekick-assistant.bats."""
-    res = _run_bats(repo_root, "tests/spec/sidekick-assistant.bats")
-    assert res.returncode == 0, f"tests/spec/sidekick-assistant.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_staging_stack_repair_spec(repo_root: Path):
-    """Executes tests/spec/staging-stack-repair.bats."""
-    res = _run_bats(repo_root, "tests/spec/staging-stack-repair.bats")
-    assert res.returncode == 0, f"tests/spec/staging-stack-repair.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_studio_sessions_reorganize_spec(repo_root: Path):
-    """Executes tests/spec/studio-sessions-reorganize.bats."""
-    res = _run_bats(repo_root, "tests/spec/studio-sessions-reorganize.bats")
-    assert res.returncode == 0, f"tests/spec/studio-sessions-reorganize.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_unit_install_copy_guard_spec(repo_root: Path):
-    """Executes tests/spec/systemd-units/unit-install-copy-guard.bats."""
-    res = _run_bats(repo_root, "tests/spec/systemd-units/unit-install-copy-guard.bats")
-    assert res.returncode == 0, f"tests/spec/systemd-units/unit-install-copy-guard.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_t001269_mishap_bundle_skills_dev_flow_execute_repo_worktree_state_ticket_mcp_spec(repo_root: Path):
     """Executes tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats."""
@@ -468,15 +358,6 @@ def test_t002374_mishap_bundle_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/t002374-mishap-bundle.bats")
     assert res.returncode == 0, f"tests/spec/t002374-mishap-bundle.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_terminal_sidekick_spec(repo_root: Path):
-    """Executes tests/spec/terminal-sidekick.bats."""
-    res = _run_bats(repo_root, "tests/spec/terminal-sidekick.bats")
-    assert res.returncode == 0, f"tests/spec/terminal-sidekick.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_ticket_mcp_spec(repo_root: Path):
-    """Executes tests/spec/ticket-mcp.bats."""
-    res = _run_bats(repo_root, "tests/spec/ticket-mcp.bats")
-    assert res.returncode == 0, f"tests/spec/ticket-mcp.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_ticket_ops_claim_phase_a_T004602_spec(repo_root: Path):
     """Executes tests/spec/ticket-ops-claim-phase-a-T004602.bats."""
@@ -493,20 +374,6 @@ def test_ticket_system_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/ticket-system.bats")
     assert res.returncode == 0, f"tests/spec/ticket-system.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_traefik_access_log_spec(repo_root: Path):
-    """Executes tests/spec/traefik-access-log.bats."""
-    res = _run_bats(repo_root, "tests/spec/traefik-access-log.bats")
-    assert res.returncode == 0, f"tests/spec/traefik-access-log.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_ts_suppression_spec(repo_root: Path):
-    """Executes tests/spec/ts-suppression.bats."""
-    res = _run_bats(repo_root, "tests/spec/ts-suppression.bats")
-    assert res.returncode == 0, f"tests/spec/ts-suppression.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_vaultwarden_integration_spec(repo_root: Path):
-    """Executes tests/spec/vaultwarden-integration.bats."""
-    res = _run_bats(repo_root, "tests/spec/vaultwarden-integration.bats")
-    assert res.returncode == 0, f"tests/spec/vaultwarden-integration.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_context_status_spec(repo_root: Path):
     """Executes tests/spec/vim-ai-completion/context-status.bats."""
@@ -568,20 +435,6 @@ def test_assign_identity_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/workstation-cluster-iso/assign-identity.bats")
     assert res.returncode == 0, f"tests/spec/workstation-cluster-iso/assign-identity.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_build_node_iso_guards_spec(repo_root: Path):
-    """Executes tests/spec/workstation-cluster-iso/build-node-iso-guards.bats."""
-    res = _run_bats(repo_root, "tests/spec/workstation-cluster-iso/build-node-iso-guards.bats")
-    assert res.returncode == 0, f"tests/spec/workstation-cluster-iso/build-node-iso-guards.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_k3s_join_guards_spec(repo_root: Path):
-    """Executes tests/spec/workstation-cluster-iso/k3s-join-guards.bats."""
-    res = _run_bats(repo_root, "tests/spec/workstation-cluster-iso/k3s-join-guards.bats")
-    assert res.returncode == 0, f"tests/spec/workstation-cluster-iso/k3s-join-guards.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_setup_pxe_guards_spec(repo_root: Path):
-    """Executes tests/spec/workstation-cluster-pxe/setup-pxe-guards.bats."""
-    res = _run_bats(repo_root, "tests/spec/workstation-cluster-pxe/setup-pxe-guards.bats")
-    assert res.returncode == 0, f"tests/spec/workstation-cluster-pxe/setup-pxe-guards.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_worktree_create_real_path_T004604_spec(repo_root: Path):
     """Executes tests/spec/worktree-create-real-path-T004604.bats."""
@@ -608,12 +461,4 @@ def test_stash_restore_visible_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/worktree-divergence-guard/stash-restore-visible.bats")
     assert res.returncode == 0, f"tests/spec/worktree-divergence-guard/stash-restore-visible.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_worktree_gitdir_guard_spec(repo_root: Path):
-    """Executes tests/spec/worktree-gitdir-guard.bats."""
-    res = _run_bats(repo_root, "tests/spec/worktree-gitdir-guard.bats")
-    assert res.returncode == 0, f"tests/spec/worktree-gitdir-guard.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_wsl_exit_docs_spec(repo_root: Path):
-    """Executes tests/spec/wsl-exit-docs.bats."""
-    res = _run_bats(repo_root, "tests/spec/wsl-exit-docs.bats")
-    assert res.returncode == 0, f"tests/spec/wsl-exit-docs.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"

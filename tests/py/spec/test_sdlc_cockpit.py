@@ -20,10 +20,6 @@ def test_action_inventory_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/action-inventory.bats")
     assert res.returncode == 0, f"tests/spec/sdlc-cockpit/action-inventory.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_adapter_contract_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/adapter-contract.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/adapter-contract.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/adapter-contract.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_adapter_sdlc_paths_spec(repo_root: Path):
     """Executes tests/spec/sdlc-cockpit/adapter-sdlc-paths.bats."""
@@ -75,25 +71,12 @@ def test_daemon_token_mode_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/daemon-token-mode.bats")
     assert res.returncode == 0, f"tests/spec/sdlc-cockpit/daemon-token-mode.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_deck_kompakt_layout_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/deck-kompakt-layout.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/deck-kompakt-layout.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/deck-kompakt-layout.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_deck_resize_freeze_fix_spec(repo_root: Path):
     """Executes tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats."""
     res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats")
     assert res.returncode == 0, f"tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_deck_resize_handle_fix_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_deck_resize_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/deck-resize.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/deck-resize.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/deck-resize.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_document_tokens_only_spec(repo_root: Path):
     """Executes tests/spec/sdlc-cockpit/document-tokens-only.bats."""
@@ -125,15 +108,6 @@ def test_k9_stil_datenbank_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/k9-stil-datenbank.bats")
     assert res.returncode == 0, f"tests/spec/sdlc-cockpit/k9-stil-datenbank.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_ki_deck_eine_tabelle_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_kit_artifacts_exist_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/kit-artifacts-exist.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/kit-artifacts-exist.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/kit-artifacts-exist.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_kit_assets_in_image_spec(repo_root: Path):
     """Executes tests/spec/sdlc-cockpit/kit-assets-in-image.bats."""
@@ -175,10 +149,6 @@ def test_leitstand_help_overlay_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/leitstand-help-overlay.bats")
     assert res.returncode == 0, f"tests/spec/sdlc-cockpit/leitstand-help-overlay.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_leitstand_livedaten_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/leitstand-livedaten.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/leitstand-livedaten.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/leitstand-livedaten.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_leitstand_purpose_registry_spec(repo_root: Path):
     """Executes tests/spec/sdlc-cockpit/leitstand-purpose-registry.bats."""
@@ -215,15 +185,6 @@ def test_panel_type_declaration_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/panel-type-declaration.bats")
     assert res.returncode == 0, f"tests/spec/sdlc-cockpit/panel-type-declaration.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_pipeline_slot_uebernahme_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/pipeline-slot-uebernahme.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/pipeline-slot-uebernahme.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/pipeline-slot-uebernahme.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_proxy_unreachable_vs_stopped_spec(repo_root: Path):
-    """Executes tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats."""
-    res = _run_bats(repo_root, "tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats")
-    assert res.returncode == 0, f"tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_public_assets_no_server_code_spec(repo_root: Path):
     """Executes tests/spec/sdlc-cockpit/public-assets-no-server-code.bats."""

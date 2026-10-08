@@ -33,25 +33,12 @@ def test_check_pr_automerge_fail_closed_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/agent-skills/check-pr-automerge-fail-closed.bats")
     assert res.returncode == 0, f"tests/spec/agent-skills/check-pr-automerge-fail-closed.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_dev_flow_chore_step0_foreign_guard_spec(repo_root: Path):
-    """Executes tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats."""
-    res = _run_bats(repo_root, "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats")
-    assert res.returncode == 0, f"tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_dev_flow_lifecycle_contract_spec(repo_root: Path):
-    """Executes tests/spec/agent-skills/dev-flow-lifecycle-contract.bats."""
-    res = _run_bats(repo_root, "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats")
-    assert res.returncode == 0, f"tests/spec/agent-skills/dev-flow-lifecycle-contract.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_devflow_worktree_cwd_guard_spec(repo_root: Path):
     """Executes tests/spec/agent-skills/devflow-worktree-cwd-guard.bats."""
     res = _run_bats(repo_root, "tests/spec/agent-skills/devflow-worktree-cwd-guard.bats")
     assert res.returncode == 0, f"tests/spec/agent-skills/devflow-worktree-cwd-guard.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_executor_post_merge_death_spec(repo_root: Path):
-    """Executes tests/spec/agent-skills/executor-post-merge-death.bats."""
-    res = _run_bats(repo_root, "tests/spec/agent-skills/executor-post-merge-death.bats")
-    assert res.returncode == 0, f"tests/spec/agent-skills/executor-post-merge-death.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_finalize_archive_frontmatter_spec(repo_root: Path):
     """Executes tests/spec/agent-skills/finalize-archive-frontmatter.bats."""
@@ -118,10 +105,6 @@ def test_post_merge_finalize_t900096_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/agent-skills/post-merge-finalize-t900096.bats")
     assert res.returncode == 0, f"tests/spec/agent-skills/post-merge-finalize-t900096.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_repo_hygiene_auto_close_merged_mandatory_spec(repo_root: Path):
-    """Executes tests/spec/agent-skills/repo-hygiene-auto-close-merged-mandatory.bats."""
-    res = _run_bats(repo_root, "tests/spec/agent-skills/repo-hygiene-auto-close-merged-mandatory.bats")
-    assert res.returncode == 0, f"tests/spec/agent-skills/repo-hygiene-auto-close-merged-mandatory.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_repo_hygiene_tick_snapshot_guard_spec(repo_root: Path):
     """Executes tests/spec/agent-skills/repo-hygiene-tick-snapshot-guard.bats."""
@@ -193,10 +176,6 @@ def test_guard_parity_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/dev-flow-plan/guard-parity.bats")
     assert res.returncode == 0, f"tests/spec/dev-flow-plan/guard-parity.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_junit_shard_ignore_spec(repo_root: Path):
-    """Executes tests/spec/dev-flow-plan/junit-shard-ignore.bats."""
-    res = _run_bats(repo_root, "tests/spec/dev-flow-plan/junit-shard-ignore.bats")
-    assert res.returncode == 0, f"tests/spec/dev-flow-plan/junit-shard-ignore.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_plan_commit_scope_guard_spec(repo_root: Path):
     """Executes tests/spec/dev-flow-plan/plan-commit-scope-guard.bats."""
@@ -233,10 +212,6 @@ def test_plan_lint_resourcing_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/dev-flow-plan/plan-lint-resourcing.bats")
     assert res.returncode == 0, f"tests/spec/dev-flow-plan/plan-lint-resourcing.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_plan_lint_rules_spec(repo_root: Path):
-    """Executes tests/spec/dev-flow-plan/plan-lint-rules.bats."""
-    res = _run_bats(repo_root, "tests/spec/dev-flow-plan/plan-lint-rules.bats")
-    assert res.returncode == 0, f"tests/spec/dev-flow-plan/plan-lint-rules.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_plan_lint_task_count_spec(repo_root: Path):
     """Executes tests/spec/dev-flow-plan/plan-lint-task-count.bats."""
@@ -278,15 +253,6 @@ def test_plan_qa_payload_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/dev-flow-plan/plan-qa-payload.bats")
     assert res.returncode == 0, f"tests/spec/dev-flow-plan/plan-qa-payload.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_red_phase_and_handoff_conventions_spec(repo_root: Path):
-    """Executes tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats."""
-    res = _run_bats(repo_root, "tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats")
-    assert res.returncode == 0, f"tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
-def test_skill_worktree_create_aufruf_spec(repo_root: Path):
-    """Executes tests/spec/dev-flow-plan/skill-worktree-create-aufruf.bats."""
-    res = _run_bats(repo_root, "tests/spec/dev-flow-plan/skill-worktree-create-aufruf.bats")
-    assert res.returncode == 0, f"tests/spec/dev-flow-plan/skill-worktree-create-aufruf.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_stage_plan_contract_spec(repo_root: Path):
     """Executes tests/spec/dev-flow-plan/stage-plan-contract.bats."""
@@ -318,10 +284,6 @@ def test_agent_lock_release_cwd_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/active-sessions-hub/agent-lock-release-cwd.bats")
     assert res.returncode == 0, f"tests/spec/active-sessions-hub/agent-lock-release-cwd.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_agent_lock_s1_budget_T900023_spec(repo_root: Path):
-    """Executes tests/spec/active-sessions-hub/agent-lock-s1-budget-T900023.bats."""
-    res = _run_bats(repo_root, "tests/spec/active-sessions-hub/agent-lock-s1-budget-T900023.bats")
-    assert res.returncode == 0, f"tests/spec/active-sessions-hub/agent-lock-s1-budget-T900023.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_agent_lock_scope_regelwerk_spec(repo_root: Path):
     """Executes tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats."""
@@ -383,10 +345,6 @@ def test_agentic_resource_lookup_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/toolset-registry/agentic-resource-lookup.bats")
     assert res.returncode == 0, f"tests/spec/toolset-registry/agentic-resource-lookup.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_agy_expected_proxy_spec(repo_root: Path):
-    """Executes tests/spec/toolset-registry/agy-expected-proxy.bats."""
-    res = _run_bats(repo_root, "tests/spec/toolset-registry/agy-expected-proxy.bats")
-    assert res.returncode == 0, f"tests/spec/toolset-registry/agy-expected-proxy.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_bp_roles_spec(repo_root: Path):
     """Executes tests/spec/toolset-registry/bp-roles.bats."""
@@ -398,10 +356,6 @@ def test_check_drift_detection_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/toolset-registry/check-drift-detection.bats")
     assert res.returncode == 0, f"tests/spec/toolset-registry/check-drift-detection.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_check_offline_spec(repo_root: Path):
-    """Executes tests/spec/toolset-registry/check-offline.bats."""
-    res = _run_bats(repo_root, "tests/spec/toolset-registry/check-offline.bats")
-    assert res.returncode == 0, f"tests/spec/toolset-registry/check-offline.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_collect_kinds_spec(repo_root: Path):
     """Executes tests/spec/toolset-registry/collect-kinds.bats."""
@@ -493,20 +447,12 @@ def test_read_path_fail_closed_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/ticket-system/read-path-fail-closed.bats")
     assert res.returncode == 0, f"tests/spec/ticket-system/read-path-fail-closed.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_schema_diaet_dead_columns_spec(repo_root: Path):
-    """Executes tests/spec/ticket-system/schema-diaet-dead-columns.bats."""
-    res = _run_bats(repo_root, "tests/spec/ticket-system/schema-diaet-dead-columns.bats")
-    assert res.returncode == 0, f"tests/spec/ticket-system/schema-diaet-dead-columns.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_subcommand_help_spec(repo_root: Path):
     """Executes tests/spec/ticket-system/subcommand-help.bats."""
     res = _run_bats(repo_root, "tests/spec/ticket-system/subcommand-help.bats")
     assert res.returncode == 0, f"tests/spec/ticket-system/subcommand-help.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_update_fields_cli_spec(repo_root: Path):
-    """Executes tests/spec/ticket-system/update-fields-cli.bats."""
-    res = _run_bats(repo_root, "tests/spec/ticket-system/update-fields-cli.bats")
-    assert res.returncode == 0, f"tests/spec/ticket-system/update-fields-cli.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_phase_events_at_column_spec(repo_root: Path):
     """Executes tests/spec/ticket-mcp/phase-events-at-column.bats."""

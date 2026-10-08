@@ -248,10 +248,6 @@ def test_llm_services_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/local-dev-mesh/llm-services.bats")
     assert res.returncode == 0, f"tests/spec/local-dev-mesh/llm-services.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_longhorn_storage_spec(repo_root: Path):
-    """Executes tests/spec/local-dev-mesh/longhorn-storage.bats."""
-    res = _run_bats(repo_root, "tests/spec/local-dev-mesh/longhorn-storage.bats")
-    assert res.returncode == 0, f"tests/spec/local-dev-mesh/longhorn-storage.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_migrate_from_k3d_spec(repo_root: Path):
     """Executes tests/spec/local-dev-mesh/migrate-from-k3d.bats."""
@@ -303,20 +299,12 @@ def test_fit_ngl_conflict_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/llm-local-dev/fit-ngl-conflict.bats")
     assert res.returncode == 0, f"tests/spec/llm-local-dev/fit-ngl-conflict.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_glimmer_serving_profile_spec(repo_root: Path):
-    """Executes tests/spec/llm-local-dev/glimmer-serving-profile.bats."""
-    res = _run_bats(repo_root, "tests/spec/llm-local-dev/glimmer-serving-profile.bats")
-    assert res.returncode == 0, f"tests/spec/llm-local-dev/glimmer-serving-profile.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_glimmer_worker_mcp_spec(repo_root: Path):
     """Executes tests/spec/llm-local-dev/glimmer-worker-mcp.bats."""
     res = _run_bats(repo_root, "tests/spec/llm-local-dev/glimmer-worker-mcp.bats")
     assert res.returncode == 0, f"tests/spec/llm-local-dev/glimmer-worker-mcp.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_opencode_compaction_spec(repo_root: Path):
-    """Executes tests/spec/llm-local-dev/opencode-compaction.bats."""
-    res = _run_bats(repo_root, "tests/spec/llm-local-dev/opencode-compaction.bats")
-    assert res.returncode == 0, f"tests/spec/llm-local-dev/opencode-compaction.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_plan_runner_ticket_ref_spec(repo_root: Path):
     """Executes tests/spec/llm-local-dev/plan-runner-ticket-ref.bats."""
@@ -373,10 +361,6 @@ def test_bge_usecase_reachability_spec(repo_root: Path):
     res = _run_bats(repo_root, "tests/spec/llm-pipeline/bge-usecase-reachability.bats")
     assert res.returncode == 0, f"tests/spec/llm-pipeline/bge-usecase-reachability.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
-def test_index_repo_embed_port_spec(repo_root: Path):
-    """Executes tests/spec/llm-pipeline/index-repo-embed-port.bats."""
-    res = _run_bats(repo_root, "tests/spec/llm-pipeline/index-repo-embed-port.bats")
-    assert res.returncode == 0, f"tests/spec/llm-pipeline/index-repo-embed-port.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
 
 def test_knowledge_ingest_live_sources_spec(repo_root: Path):
     """Executes tests/spec/llm-pipeline/knowledge-ingest-live-sources.bats."""

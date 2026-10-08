@@ -142,6 +142,7 @@ def test_namespace_consistency(repo_root: Path):
         ["kubectl", "kustomize", str(manifests_dir), "--load-restrictor=LoadRestrictionsNone"],
         capture_output=True,
         text=True,
+        check=True,
     )
     bad_ns = []
     for line in res.stdout.splitlines():
@@ -376,10 +377,20 @@ def test_pvc_backup_cronjob_invariants(repo_root: Path):
         if not line.strip().startswith("#"):
             assert 'CLONES="vaultwarden-data-backup-clone' not in line
 
-    assert "--wait=true --timeout=120s" in cronjob_yaml
+    delete_lines = [
+        line for line in cronjob_yaml.splitlines()
+        if not line.lstrip().startswith("#") and "delete pvc" in line
+        and "--wait=true" in line and "--timeout=120s" in line
+    ]
+    assert delete_lines, "Missing bounded, synchronous stale-clone deletion"
+    assert all("--ignore-not-found" in line for line in delete_lines)
+    assert all(not re.search(r"\|\|\s*true", line) for line in delete_lines)
     assert "stuck in Terminating" in cronjob_yaml
+    assert "exit 1" in cronjob_yaml
     assert "deletionTimestamp" in cronjob_yaml
+    assert "is being deleted" in cronjob_yaml
     assert "delete jobs -l app=pvc-backup,role=mounter" in cronjob_yaml
+    assert "Launching mounter Job" in cronjob_yaml
     assert "ttlSecondsAfterFinished: 86400" in cronjob_yaml
 
 

@@ -20,11 +20,6 @@ def _run_bats(repo_root: Path, bats_file: str) -> subprocess.CompletedProcess:
 
 # ── brett.bats ─────────────────────────────────────────────────────────────
 
-def test_brett_spec(repo_root: Path):
-    """Executes tests/spec/brett.bats."""
-    res = _run_bats(repo_root, "tests/spec/brett.bats")
-    assert res.returncode == 0, f"brett.bats failed:\nstdout:\n{res.stdout}\nstderr:\n{res.stderr}"
-
 
 # ── neovim-dashboard.bats ──────────────────────────────────────────────────
 

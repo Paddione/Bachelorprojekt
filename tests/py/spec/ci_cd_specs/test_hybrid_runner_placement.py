@@ -13,7 +13,7 @@ def workflows(repo_root):
 
 def test_portable_core_jobs_ubuntu(workflows):
     for job in PORTABLE:
-        assert workflows["ci"][job]["runs-on"] == "ubuntu-latest", job
+        assert workflows["pr-metadata" if job == "commit-lint" else "ci"][job]["runs-on"] == "ubuntu-latest", job
 
 
 def test_portable_pr_helpers_ubuntu(workflows):
@@ -23,7 +23,7 @@ def test_portable_pr_helpers_ubuntu(workflows):
 
 def test_portable_core_not_globally_fork_blocked(workflows):
     for job in PORTABLE:
-        assert "github.repository" not in str(workflows["ci"][job].get("if", "")), job
+        assert "github.repository" not in str(workflows["pr-metadata" if job == "commit-lint" else "ci"][job].get("if", "")), job
 
 
 def test_secret_write_helpers_keep_trust_guard(workflows):
@@ -41,5 +41,5 @@ def test_local_llm_jobs_keep_capability(workflows):
 def test_required_check_names_stable(workflows):
     expected = {"test-bats": "Unit + Quality Gates", "test-manifests": "Manifest Validation", "test-spec": "Spec + Guards", "vitest-website": "Vitest (website)", "commit-lint": "Conventional Commits"}
     for job, name in expected.items():
-        assert workflows["ci"][job]["name"] == name
+        assert workflows["pr-metadata" if job == "commit-lint" else "ci"][job]["name"] == name
     assert workflows["e2e-pr"]["e2e-pr"]["name"] == "E2E PR"

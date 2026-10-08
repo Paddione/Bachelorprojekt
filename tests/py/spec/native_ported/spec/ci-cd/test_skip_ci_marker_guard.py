@@ -117,8 +117,8 @@ def test_guard_ignores_markers_that_are_already_on_main_bot_commits(run_cmd, e):
     assert res.returncode == 0
 
 
-def test_ci_yml_invokes_the_skip_marker_guard(repo_root):
+def test_pr_metadata_invokes_the_skip_marker_guard(repo_root):
     # Quelltext-Pruefung ist hier korrekt: die Aussage betrifft die CI-Konfiguration selbst.
-    text = (repo_root / ".github/workflows/ci.yml").read_text()
+    text = (repo_root / ".github/workflows/pr-metadata.yml").read_text()
     count = sum(1 for ln in text.splitlines() if "check-skip-ci-marker.sh" in ln)
     assert count >= 1

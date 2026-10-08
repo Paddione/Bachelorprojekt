@@ -34,6 +34,7 @@ def _first_line(text: str, needle: str) -> int:
 
 
 def test_t901027_1_all_rechnungen_routes_reference_owner_guard(paths):
+    """T901027-1: all rechnungen routes reference the owner guard (requireOwner)"""
     for key in ("list", "detail", "erstellen", "status", "korrigieren", "export"):
         text = _require(paths[key])
         assert re.search(r"owner-guard|requireOwner|isOwnerSession", text), (
@@ -42,6 +43,7 @@ def test_t901027_1_all_rechnungen_routes_reference_owner_guard(paths):
 
 
 def test_t901027_2_migration_enforces_per_year_uniqueness_and_lib_formats_numbers(paths):
+    """T901027-2: migration enforces per-year uniqueness and lib formats numbers"""
     migration = _require(paths["migration"])
     lib = _require(paths["lib"])
     unique_lines = [line for line in migration.splitlines() if "UNIQUE" in line]
@@ -61,6 +63,7 @@ def test_t901027_2_migration_enforces_per_year_uniqueness_and_lib_formats_number
 
 
 def test_t901027_3_erstellen_dedupes_per_booking_before_inserting(paths):
+    """T901027-3: erstellen.ts dedupes per booking before inserting (409)"""
     text = _require(paths["erstellen"])
     assert "status: 409" in text, "409 response missing from erstellen.ts"
     lines = text.splitlines()
@@ -72,6 +75,7 @@ def test_t901027_3_erstellen_dedupes_per_booking_before_inserting(paths):
 
 
 def test_t901027_4_invoices_snapshot_carries_mandatory_fields(paths):
+    """T901027-4: invoices.ts snapshot carries number, date, service, amount, tax"""
     text = _require(paths["lib"])
     assert "formatInvoiceNumber" in text, "invoice number builder missing from invoices.ts"
     assert "issueDate" in text, "issueDate missing from invoices.ts"
@@ -81,6 +85,7 @@ def test_t901027_4_invoices_snapshot_carries_mandatory_fields(paths):
 
 
 def test_t901027_5_no_online_payment_path_and_manual_statuses_only(paths):
+    """T901027-5: no online-payment path in invoice files, manual statuses only"""
     files = [paths[k] for k in (
         "lib", "migration", "list", "detail", "erstellen", "status", "korrigieren", "export",
     )]

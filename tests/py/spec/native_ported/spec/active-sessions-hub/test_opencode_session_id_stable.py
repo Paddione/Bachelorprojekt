@@ -11,6 +11,9 @@ def oc_env(repo_root, tmp_path, monkeypatch):
     """BATS setup(): isolated AGENT_LOCK_DIR."""
     ald = tmp_path / "ald"
     ald.mkdir()
+    # env -i strips CI/GITHUB_ACTIONS, so claim's reaper would run a network
+    # `git fetch` (T002502); a fresh fetch marker makes the fetch not due.
+    (ald / ".last-fetch").touch()
     monkeypatch.setenv("AGENT_LOCK_DIR", str(ald))
     return {"repo": repo_root, "lock": str(repo_root / "scripts" / "agent-lock.sh"),
             "ald": ald, "path": os.environ["PATH"]}

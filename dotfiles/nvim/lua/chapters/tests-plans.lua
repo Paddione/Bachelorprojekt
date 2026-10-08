@@ -17,15 +17,18 @@ local function project_root()
 end
 
 --- Test-Datei zur aktuellen Datei: Namenskonvention (foo.lua ->
---- foo_spec.lua / foo.bats / foo.test.*) oder Graph-Kante.
+--- foo_spec.lua / test_foo.py / foo.test.*) oder Graph-Kante.
 function M.test_for(file)
   if file == nil or file == '' then
     return nil
   end
   local stem = file:gsub('%.lua$', ''):gsub('%.js$', ''):gsub('%.ts$', '')
+  local dir = vim.fn.fnamemodify(file, ':h')
+  local base = vim.fn.fnamemodify(file, ':t:r')
+  local py_base = base:gsub('[-.]', '_')
   local candidates = {
     stem .. '_spec.lua',
-    stem .. '.bats',
+    dir .. '/test_' .. py_base .. '.py',
     stem .. '.test.ts',
     stem .. '.test.js',
   }
@@ -34,8 +37,7 @@ function M.test_for(file)
       return c
     end
   end
-  local base = vim.fn.fnamemodify(file, ':t:r')
-  local glob = vim.fn.glob(project_root() .. '/tests/spec/' .. base .. '*.bats', false, true)
+  local glob = vim.fn.glob(project_root() .. '/tests/py/**/test_' .. py_base .. '*.py', false, true)
   if #glob > 0 then
     return glob[1]
   end
@@ -59,11 +61,12 @@ function M.test_single(cwd)
       return
     end
     local ok, sn = pcall(require, 'snacks.terminal')
-    local cmd = { 'bats', file, '--filter', filter }
+    local runner = project_root() .. '/scripts/pytest-run.sh'
+    local cmd = { 'bash', runner, file, '-k', filter }
     if ok and sn then
       sn.open(cmd, { cwd = cwd })
     else
-      vim.notify('tests-plans: run manually: bats ' .. file .. " --filter '" .. filter .. "' (quickfix: :cgetbuffer)")
+      vim.notify('tests-plans: run manually: bash ' .. runner .. ' ' .. file .. " -k '" .. filter .. "' (quickfix: :cgetbuffer)")
     end
   end)
 end

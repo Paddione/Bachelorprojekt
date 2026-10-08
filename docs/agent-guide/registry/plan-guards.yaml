@@ -1,6 +1,6 @@
 # plan-guards.yaml — Katalog der Prozess-Guards des Planungs-Flows. [T003267]
 #
-# Zweck: deklarative Pruefgrundlage fuer tests/spec/dev-flow-plan/guard-parity.bats.
+# Zweck: deklarative Pruefgrundlage fuer tests/py/spec/native_ported/spec/dev-flow-plan/test_guard_parity.py.
 # Jeder Guard MUSS in jeder applies_to-Datei per anchor-Substring auffindbar sein —
 # so kann die Skill-Prosa der Harnesse (Claude Code, opencode/agy) nicht mehr still
 # auseinanderdriften (Audit 2026-08-10: ~16 Drift-Punkte, nur der Claude-Pfad wurde

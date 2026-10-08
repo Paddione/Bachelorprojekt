@@ -188,7 +188,7 @@ Suchmuster:
 node scripts/toolset/check.mjs                                  # grün
 bash scripts/toolset-context.sh openclaw-ops                    # nur der schmale Satz
 node scripts/toolset/sync.mjs --harness openclaw --dry-run      # SKIP, offline-fähig
-tests/unit/lib/bats-core/bin/bats tests/spec/openclaw-harness.bats  # grün
+bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/test_openclaw_harness.py  # grün
 ```
 
 Stand:

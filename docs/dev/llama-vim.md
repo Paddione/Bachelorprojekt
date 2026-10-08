@@ -39,13 +39,13 @@ bash scripts/vim/install-llama.sh --remove
 Run the full offline BATS test suite:
 
 ```bash
-tests/unit/lib/bats-core/bin/bats -r tests/spec/vim-ai-completion/
+bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/vim-ai-completion/
 ```
 
 Individual test files:
-- `tests/spec/vim-ai-completion/request-stream.bats`
-- `tests/spec/vim-ai-completion/install-config.bats`
-- `tests/spec/vim-ai-completion/context-status.bats`
+- `tests/py/spec/native_ported/spec/vim-ai-completion/test_request_stream.py`
+- `tests/py/spec/native_ported/spec/vim-ai-completion/test_install_config.py`
+- `tests/py/spec/native_ported/spec/vim-ai-completion/test_context_status.py`
 
 Headless Vim verification:
 

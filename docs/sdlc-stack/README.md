@@ -135,7 +135,7 @@ task devmesh:delete
 - **k3d/sdlc-stack/sdlc-console.yaml** — Console-Deployment (website-sdlc-Image)
 - **k3d/sdlc-stack/sdlc-ingress.yaml** — Ingress (sdlc.localhost, auth.localhost)
 - **website/src/lib/auth/provider.ts** — fail-closed Provider-Auswahl
-- **tests/spec/sdlc-isolation/e2-local-stack.bats** — Struktur- + DoD-Guard
+- **tests/py/spec/native_ported/spec/sdlc-isolation/test_e2_local_stack.py** — Struktur- + DoD-Guard
 
 ## Datenhoheit: Fleet ist DB of record (ADR-007, loest E3/ADR-006 ab)
 

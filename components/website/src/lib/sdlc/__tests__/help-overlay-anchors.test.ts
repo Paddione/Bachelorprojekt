@@ -8,7 +8,7 @@ import { leitstandPurposes } from '../leitstand-purpose-registry';
 // hat einen data-purpose-id-Anker in den Komponentenquellen der Leitstand-Shell
 // und jeder Anker hat einen Registry-Eintrag. Beide Richtungen muessen bestehen,
 // leere Mengen failen (T002356-M1). Key-Ableitung identisch zum E3-Guard
-// (tests/spec/sdlc-cockpit/leitstand-purpose-registry.bats): PascalCase→kebab-case
+// (tests/py/spec/native_ported/spec/sdlc-cockpit/test_leitstand_purpose_registry.py): PascalCase→kebab-case
 // des Datei-Basenamens, `leitstand-`-Praefix-Strip NUR fuer Dateien direkt unter
 // components/leitstand/.
 

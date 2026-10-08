@@ -34,7 +34,7 @@ function setDocumentHidden(hidden: boolean) {
 }
 
 // D10 (refreshMs) hatte hier zwei Platzhalter, die auf
-// tests/spec/sdlc-cockpit/adapter-contract.bats verwiesen und selbst nichts
+// tests/py/spec/native_ported/spec/sdlc-cockpit/test_adapter_contract.py verwiesen und selbst nichts
 // prueften. Entfernt in T002508: die bats-Datei prueft den Kontrakt tatsaechlich,
 // eine zweite, per Konstruktion immer gruene Kopie schafft nur Doppelpflege.
 

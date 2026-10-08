@@ -19,7 +19,7 @@
 // Handlern: der Daemon zieht `hono`, das in keiner package.json deklariert ist
 // (siehe cockpit-daemon-injection.test.ts). Geprueft werden deshalb die reinen
 // Bau- und Parse-Funktionen; die Route-Ebene deckt
-// tests/spec/sdlc-cockpit/k5-epic-canvas.bats ab.
+// tests/py/spec/native_ported/spec/sdlc-cockpit/test_k5_epic_canvas.py ab.
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -107,7 +107,7 @@ describe('parseEpics — D13: kein stilles leeres Ergebnis', () => {
   it('wirft bei kaputtem JSON, statt [] zurueckzugeben', () => {
     // Die alte Fassung hatte `catch { return [] }`. Ein Datenbankausfall sah
     // damit exakt aus wie "es gibt keine Epics" — genau der stille Fallback,
-    // den D13 verbietet (tests/spec/sdlc-cockpit/no-silent-fallback.bats).
+    // den D13 verbietet (tests/py/spec/native_ported/spec/sdlc-cockpit/test_no_silent_fallback.py).
     expect(() => parseEpics('not json at all')).toThrow();
   });
 

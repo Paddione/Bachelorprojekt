@@ -2,7 +2,7 @@
 
 32 queries (10 route, 12 code, 10 doc) in `docs/brain/k3-retrieval-eval.jsonl`,
 one JSON object per line: `{id, query, kind, expected_paths, notes}`.
-Runner: `scripts/mcp/cbm-eval.py` (stdlib-only). Spec: `tests/spec/cbm-eval.bats`.
+Runner: `scripts/mcp/cbm-eval.py` (stdlib-only). Spec: `tests/py/spec/native_ported/spec/test_cbm_eval.py`.
 
 ## Why a new set (circularity disclaimer)
 

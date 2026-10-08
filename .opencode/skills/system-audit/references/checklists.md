@@ -68,7 +68,7 @@ Betrieb und Loadout-Wechsel: infra-ops `references/runbooks-operations.md` §5. 
    `bash scripts/runtime-drift-check.sh` im repo-Ziel).
 3. **GPU-Speicher** — belegter VRAM > 90 % im Ruhezustand ⇒ Warning (OOM-Risiko beim
    nächsten Loadout-Wechsel).
-4. **Roster-Konsistenz** — `tests/spec/agent-roster.bats` lokal laufen lassen: Fail
+4. **Roster-Konsistenz** — `tests/py/spec/native_ported/spec/test_agent_roster.py` lokal laufen lassen: Fail
    ⇒ Warning (Agent-Registry driftet gegen `.opencode/agent-models.jsonc`).
 5. **Gateway-Dienste** — LLM-Gateway-Services im Cluster nicht Ready (Überschneidung mit
    Checkliste §1) ⇒ wie dort, hier nur wenn nicht schon erfasst.

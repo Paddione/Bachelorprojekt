@@ -556,7 +556,7 @@ Verwaisung nur durch manuellen PID- und Heartbeat-Vergleich.
 die Ausgabe `n/a`. Der stärkste Anker ist der Lock der laufenden Session selbst: er ist
 nachweislich lebendig, obwohl seine `owner_pid` tot ist — klassifiziert das Verfahren ihn als
 verwaist, ist das Verfahren kaputt (Test `G-WT03 (stärkster Anker)` in
-`tests/spec/health-goals/worktree-hygiene-goals.bats`).
+`tests/py/spec/native_ported/spec/health-goals/test_worktree_hygiene_goals.py`).
 
 ```bash
 bash scripts/lib/wt-hygiene-measure.sh orphan-locks
@@ -682,7 +682,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-RH04** | Stale Remote Branches | 0 ✓ | 0 | `git for-each-ref ... refs/remotes/origin \| while IFS='|' read b ts; do [[ $ts -lt $CUTOFF ]] && echo $b; done \| wc -l` |
 | **G-RH06** | Sentinel-Issues >48h | 0 ✓ | 0 | `gh-axi issue list --label sentinel --state open --json createdAt` |
 | **G-RH07** | Freshness-Check grün | Exit 0 ✓ | Exit 0 | `task freshness:check` |
-| **G-TEST01** | BATS Debt-Skips | 0 ✓ | 0 | `grep -rniE "skip [\"']" tests --include=*.bats \| grep -ciE "pending\|todo\|WP-\|disabled"` |
+| **G-TEST01** | Test Debt-Skips (pytest) | 0 ✓ | 0 | `grep -rniE "pytest\.skip\(\|mark\.skip\(" tests/py --include=*.py \| grep -ciE "pending\|todo\|WP-\|disabled"` |
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | Positiv-Anker: `components/website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\.only\b' components/website/src --include='*.test.ts' \| wc -l` |
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 1 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" components/website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain components/website/src/data/test-inventory.json \| wc -l` |
@@ -797,7 +797,7 @@ Die vollständige Änderungshistorie ab dem Baseline-Stichtag steht in
 
 > **Kappungsregel [T002598].** Hier stehen höchstens **5** `Baseline-Update`-Einträge — die
 > jüngsten. Ältere werden in die Chronik-Datei verschoben. Erzwungen von
-> `tests/spec/health-goals/id-parity.bats`.
+> `tests/py/spec/native_ported/spec/health-goals/test_id_parity.py`.
 >
 > Warum die Trennung: Dieses Dokument ist das **Register** — es sagt, was gilt. Solange es auch
 > die Chronik führte, wuchs es monoton: jeder Fix hängte einen Absatz an, keiner räumte einen ab.

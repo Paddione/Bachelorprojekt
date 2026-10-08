@@ -69,7 +69,7 @@ The fleet cluster has brand workloads deployed (Phase 2a done). Remaining prereq
       (under `.subdomains`/`.domains`/`.record_info`). **Confirm the JSON path used by
       `capture_rollback_state()` in `scripts/fleet-dns-cutover.sh` matches this real
       response**; adjust the jq filter if the live shape differs, then re-run
-      `bats tests/unit/fleet-dns-cutover.bats`.
+      `bats tests/py/unit/ported/test_fleet_dns_cutover.py`.
 - [ ] Certs pre-warmed on fleet: `Certificate` for `*.mentolder.de` + `mentolder.de` and
       `*.korczewski.de`; wait `READY=True` (`kubectl --context fleet get certificate -A`).
 - [ ] Record current live A-records for both domains by hand (authoritative rollback

@@ -9,7 +9,7 @@
 // Bewusst KEIN Import von server.ts oder routes/styles.ts: der Daemon zieht
 // `hono`, das in keiner package.json des Repos deklariert ist (siehe
 // cockpit-daemon-injection.test.ts). Geprueft wird die Leseschicht; die
-// Route-Ebene deckt tests/spec/sdlc-cockpit/k9-stil-datenbank.bats ab.
+// Route-Ebene deckt tests/py/spec/native_ported/spec/sdlc-cockpit/test_k9_stil_datenbank.py ab.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

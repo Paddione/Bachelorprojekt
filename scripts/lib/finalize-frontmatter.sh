@@ -6,7 +6,7 @@
 # (wirksame Schwelle .sh = 800, docs/code-quality/gates.yaml). Wird vom
 # Hauptskript gesourct; die Status-Alternation `_PLAN_STATUS_ACTIVE_ALT`
 # definiert das Hauptskript (genau ein Vorkommen dort, siehe
-# tests/spec/agent-skills/finalize-archive-frontmatter.bats).
+# tests/py/spec/native_ported/spec/agent-skills/test_finalize_archive_frontmatter.py).
 #
 # Hintergrund T015916: Der alte Schritt-7-Sed lief im Haupt-Checkout-Arbeitsbaum,
 # waehrend Schritt 8 nach `git checkout -B <archiv-branch> origin/main` den

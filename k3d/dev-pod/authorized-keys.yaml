@@ -4,7 +4,7 @@
 # prod-fleet/dev-pod-Overlay bewusst platzhalterfrei ist.
 # Quelle: environments/mentolder.yaml (setup_vars.PATRICK_SSH_PUBLIC_KEY,
 # setup_vars.GEKKO_SSH_PUBLIC_KEY). Drift-Guard:
-# tests/spec/mcp-gateway/dev-shell-ssh.bats
+# tests/py/spec/native_ported/spec/mcp-gateway/test_dev_shell_ssh.py
 apiVersion: v1
 kind: ConfigMap
 metadata:

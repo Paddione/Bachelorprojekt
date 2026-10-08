@@ -2,30 +2,26 @@
 
 Diese Datei laedt automatisch, sobald an Dateien unter `tests/` gearbeitet wird. Sie war bis 2026-08-18 Teil der Wurzel-`CLAUDE.md` und wurde von dort ausgelagert, weil sie nur beim Schreiben und Aendern von Tests gebraucht wird.
 
-## BATS-Konventionen
+## Pytest-Konventionen [T901392]
 
-- **BATS convention (tests/spec/) [T002416]**: Neue `@test`-Blöcke gehören in eine **eigene Datei** unter `tests/spec/<spec-slug>/<kurz-slug>.bats` — ein Verzeichnis pro Bereich, eine Datei pro Vorgang. Nicht mehr an die Sammeldatei `tests/spec/<spec-slug>.bats` anhängen: genau das ließ Parallelarbeit strukturell am Dateiende kollidieren (`tests/spec/ci-cd.bats` lag am 2026-07-28 gleichzeitig in drei offenen PRs). Der Runner läuft seit T002416 mit `bats -r tests/spec/` und erfasst **beide** Formen, deshalb bleiben die Bestandsdateien auf der obersten Ebene unverändert liegen — sie werden nicht migriert, nur nicht mehr erweitert. Weiterhin gilt: keine ticket-nummerierten Dateien (`FA-SF-42.bats`); Fallback für Querschnittstests ohne klare Spec ist `tests/unit/`.
-  > `merge=union` für `.bats` ist **keine** Lösung für Append-Konflikte und darf nicht gesetzt werden: es merged zeilenweise ohne Blockstruktur, erzeugt syntaktisch kaputte Dateien und liefert dabei **keinen** Konfliktmarker — der Merge gilt als erfolgreich. Guard: `tests/spec/ci-cd/spec-dir-convention.bats`.
-  >
-  > **Lokal beide Formen prüfen [T002696]:** Weil Sammeldatei *und* Verzeichnis gleichzeitig gültig sind, findet eine gezielte Suche nach `tests/spec/<spec>.bats` nur die Hälfte. Immer beides erfassen:
-  > ```bash
-  > tests/unit/lib/bats-core/bin/bats -r tests/spec/<spec-slug>* 
-  > ```
-  > Am 2026-08-08 (T002657) prüfte ich `tests/spec/local-llm-proxy.bats` — grün. Der relevante Guard lag in `tests/spec/local-llm-proxy/proxy-tests-registered.bats` und fiel erst in CI. Der Befund war berechtigt (eine neue Proxy-Testdatei war in keinem Runner registriert); gefunden hat ihn nur CI statt der lokalen Prüfung.
-- **BATS `$output` matching**: never assert `[[ "$output" == *"<term>"* ]]` unqualified against a script's full stdout+stderr — if the script prints `$0` in its usage/help text (common; `grep -rl 'echo.*\$0\|Usage:.*\$0' scripts/*.sh` lists current offenders), the invoking worktree's directory name (itself usually derived from the change slug) can satisfy the match even when the feature being tested does not exist yet. Narrow the assertion to the relevant output line first (`... | grep '^Commands:' | grep -c 'term'`). One confirmed case fixed in `tests/spec/factory-reclaim-lock-respect.bats` (T002267/T002272); repo-wide scan found no further open occurrences, so this stays a documented convention rather than a CI lint for now — re-evaluate if more cases surface.
-- **Output- statt Source-Verifikation [T002448-M4]**: Tests prüfen command output und Resultate, nicht die Implementierungsquelle. Ein Test, der z.B. belegen will, dass `scripts/agent-lock.sh claim` den Lock schreibt, führt den Befehl AUS und prüft dessen output/result (Lock-Datei existiert, JSON-Feld korrekt) — er greppt nicht die Quelldatei. Source-Grep (z.B. `grep -q 'claim' scripts/agent-lock.sh`) belegt nur, dass Text existiert, nicht dass Verhalten stimmt — solche Assertions sind output verification widrig.
-- **BATS runner path**: Use `tests/unit/lib/bats-core/bin/bats` (vendored) — NOT `./tests/bats/bin/bats` (does not exist) or `which bats` (global npm version, may differ from CI). Example: `tests/unit/lib/bats-core/bin/bats tests/spec/my-test.bats`
-- **Positiv-Anker-Pflicht bei Negativtests [T002356-M1]**: Jeder Test der Form „X darf nicht vorkommen" braucht **im selben Test** einen Positiv-Anker, der bei fehlender Implementierung rot wird. Ohne ihn besteht der Test vakuos: fehlt die Funktion, ist die Kandidatenliste leer, und „1 ist nicht in []" gilt trivial. Reihenfolge: erst prüfen, dass der gültige Fall durchläuft, dann die Negativ-Aussage.
-- **Keine nackte '!'-Pipeline als Negativ-Assertion**: `! printf .. | grep -qF x` schlägt den Test NICHT fehl, wenn das Muster gefunden wird — bash nimmt `!`-Kommandos von `errexit` und dem ERR-Trap aus, nur der Status der letzten Testzeile surfacet, und die Fehlermeldung zeigt auf die falsche Zeile. Stattdessen explizit: `boilerplate="$(grep -r ... || true)"; [ -z "$boilerplate" ]`.
-- **CRLF-tolerante Anker bei `.ps1`-Dateien [T002338-M2]**: Die PowerShell-Dateien im Repo (`scripts/llm/*.ps1`) sind durchgehend CRLF. Ein Regex, der auf `$` ankert, matcht dort nicht — `\r` gehört zur POSIX-Klasse `[[:space:]]`, also `[[:space:]]*$` verwenden; sonst schlagen Guards gegen Windows-stämmige Skripte falsch-negativ fehl. Bemerkenswert und deshalb hier notiert: derselbe Ausdruck matchte in der interaktiven Shell, aber nicht unter BATS.
-- **`bash -n` taugt NICHT als Syntax-Check für `.bats` [T002351-M2]**: `@test "name" { … }` ist keine gültige Bash-Syntax; `bash -n` meldet einen irreführenden Fehler. Brauchbar ist `tests/unit/lib/bats-core/bin/bats --count <datei>`.
-- **Append-Konflikte in `tests/spec/*.bats` sind normal [T002351-M2]**: Die Konvention „eine `.bats`-Datei pro SSOT-Spec" führt dazu, dass Parallelarbeit an derselben Spec am **Dateiende** kollidiert. Die Auflösung ist nicht „eine Seite wählen", sondern **beide Blöcke behalten** und die geteilte schließende Klammer duplizieren.
+BATS ist seit T901392 deinstalliert. Alle Tests laufen nativ in pytest unter `tests/py/`.
+
+- **Ablage**: Ein Modul pro Vorgang unter `tests/py/spec/<bereich>/test_<kurz_slug>.py`; Offline-Querschnittstests ohne klaren Bereich unter `tests/py/unit/`. Live-Tests, die einen Cluster brauchen und von `tests/runner.sh local <ID>` gestartet werden, liegen unter `tests/py/local/test_<id>.py` und werden nur mit `PYTEST_LOCAL=1` gesammelt. Keine ticket-nummerierten Dateinamen. Module bleiben unter dem S1-Limit von 800 Zeilen; grosse Bereiche teilen sich in `_part1`/`_part2`.
+- **Ausfuehren**: `bash scripts/pytest-run.sh [pfade...]` (uv oder pip-Fallback, `-n auto`). Gezielt: `bash scripts/pytest-run.sh tests/py/spec/<bereich>`. `PYTEST_JOBS=0` laeuft seriell. Tasks: `task test:unit`, `task test:spec`, `task test:changed`.
+- **Fixtures** (`tests/py/conftest.py`): `repo_root`, `run_cmd(cmd, cwd=None, env=None, timeout=60)` mit `.returncode/.stdout/.stderr/.output/.check()`, `yaml_load`; dazu `tmp_path`, `monkeypatch`.
+- **Parallelitaet**: Die Suite laeuft unter `pytest -n auto`. Tests, die einen festen Pfad im Repo schreiben (z. B. Sandboxes unter `.agents/plans/`), tragen `pytestmark = pytest.mark.repo_lock("<name>")`; sonst loeschen sich parallele Worker gegenseitig die Fixtures. Alles andere schreibt nur unter `tmp_path`, getrackte Dateien werden nie veraendert.
+- **Testmodus in Produktionsskripten**: `ticket.sh`/`_ticket-core.sh` erkennen Testlaeufe ueber `PYTEST_CURRENT_TEST` (setzt pytest selbst) und leiten den Kontext auf den Sentinel `bats-no-cluster-t002224` um. `TICKET_TEST_DB_OK=1` holt echten Clusterzugriff gezielt zurueck.
+- **Hermetik**: `FORCE_COLOR` wird beim Start entfernt. Langsame Subprozesse (Prozess-Scans, viele Git-Refs, Cluster) bekommen `timeout=300`. Secret-artige Marker (`-----BEGIN ... PRIVATE KEY-----`) nie als Literal, sondern zusammengesetzt, sonst schlaegt gitleaks an.
+- **Output- statt Source-Verifikation [T002448-M4]**: Tests pruefen command output und Resultate, nicht die Implementierungsquelle. Ein Test, der z. B. belegen will, dass `scripts/agent-lock.sh claim` den Lock schreibt, fuehrt den Befehl AUS und prueft dessen Ergebnis (Lock-Datei existiert, JSON-Feld korrekt) — er durchsucht nicht die Quelldatei.
+- **`$0`-Falle bei Substring-Assertions**: Nie unqualifiziert `"<term>" in result.output` gegen die volle Ausgabe eines Skripts pruefen, das `$0` in seiner Usage ausgibt — der Worktree-Name (oft aus dem Change-Slug abgeleitet) kann den Treffer liefern, obwohl das Feature fehlt. Erst auf die relevante Zeile eingrenzen (T002267/T002272).
+- **Positiv-Anker-Pflicht bei Negativtests [T002356-M1]**: Jeder Test der Form „X darf nicht vorkommen" braucht **im selben Test** einen Positiv-Anker, der bei fehlender Implementierung rot wird. Ohne ihn besteht der Test vakuos: fehlt die Funktion, ist die Kandidatenliste leer, und „1 ist nicht in []" gilt trivial.
+- **CRLF-tolerante Anker bei `.ps1`-Dateien [T002338-M2]**: Die PowerShell-Dateien (`scripts/llm/*.ps1`) sind CRLF. Ein Regex mit `$`-Anker matcht dort nicht; `\s*$` bzw. `re.MULTILINE` mit `\r?$` verwenden.
 
 ### Test-Resultats-Konvention [T002448-M4]
 
-Tests MÜSSEN die tatsächlichen Ergebnisse/Outputs von Kommandos prüfen (`run`, `$output`, `$status`) — d.h. **command output verification** statt Implementierungsmuster im Quellcode (`grep` auf Script-Interna). Ein Test, der per `grep` einen Flag-Namen im Source sucht statt das tatsächliche Laufzeitverhalten zu messen, kann den falschen Erfolgsfall bestätigen, während die reale Operation fehlschlägt. Ausnahme: Querschnittstests, deren Ergebnis sich ausschließlich im Quelltext manifestiert (z. B. Dokumentationskonventionen, CI-Konfiguration) — hier ist `grep` das angemessene Mittel. Die Testdatei selbst dokumentiert im Header-Kommentar, welcher Prüfmodus verwendet wird.
+Tests MÜSSEN die tatsächlichen Ergebnisse/Outputs von Kommandos prüfen (`run_cmd(...)`, `.output`, `.returncode`) — d.h. **command output verification** statt Implementierungsmuster im Quellcode (`grep` auf Script-Interna). Ein Test, der per `grep` einen Flag-Namen im Source sucht statt das tatsächliche Laufzeitverhalten zu messen, kann den falschen Erfolgsfall bestätigen, während die reale Operation fehlschlägt. Ausnahme: Querschnittstests, deren Ergebnis sich ausschließlich im Quelltext manifestiert (z. B. Dokumentationskonventionen, CI-Konfiguration) — hier ist `grep` das angemessene Mittel. Die Testdatei selbst dokumentiert im Header-Kommentar, welcher Prüfmodus verwendet wird.
 
-**Semantik statt Darstellung [T002716]:** Output-Verifikation allein genügt nicht — die Zusicherung muss an der **Semantik** des Outputs hängen (Exit-Code, Vorhandensein eines Werts, Substring ohne Zeilenanker), nicht an dessen **Darstellung**. Ein Guard, der das Ausgabeformat eines Werkzeugs festschreibt (`task --list | grep '^\* llm:'`, Zeilenanker auf Tabellenspalten, der exakte Wortlaut einer Fehlermeldung), bricht, sobald das Werkzeug in einer anderen Version läuft oder die Meldung umformuliert wird — geprüft gehört das Ergebnis, nicht die Formulierung. Das ist lokal prinzipiell unsichtbar, weil dort nur eine Werkzeugversion existiert; rot wird der Test erst in CI, und er meldet dann einen Defekt, den es nicht gibt. Belastbar sind die Fehlersemantik des Werkzeugs (ein toter `includes:`-Pfad lässt `task --list` mit Exit 100 abbrechen — versionsübergreifend) und formatfreie Proben (`grep -qF` ohne Anker). Zweimal in Folge beobachtet: T002700 (`tests/spec/ci-cd/taskfiles-dir-convention.bats`, behoben in PR #3839) und T002701 (der `.dockerignore`-Guard aus T002688, der jeden PR rot färbte).
+**Semantik statt Darstellung [T002716]:** Output-Verifikation allein genügt nicht — die Zusicherung muss an der **Semantik** des Outputs hängen (Exit-Code, Vorhandensein eines Werts, Substring ohne Zeilenanker), nicht an dessen **Darstellung**. Ein Guard, der das Ausgabeformat eines Werkzeugs festschreibt (`task --list | grep '^\* llm:'`, Zeilenanker auf Tabellenspalten, der exakte Wortlaut einer Fehlermeldung), bricht, sobald das Werkzeug in einer anderen Version läuft oder die Meldung umformuliert wird — geprüft gehört das Ergebnis, nicht die Formulierung. Das ist lokal prinzipiell unsichtbar, weil dort nur eine Werkzeugversion existiert; rot wird der Test erst in CI, und er meldet dann einen Defekt, den es nicht gibt. Belastbar sind die Fehlersemantik des Werkzeugs (ein toter `includes:`-Pfad lässt `task --list` mit Exit 100 abbrechen — versionsübergreifend) und formatfreie Proben (`grep -qF` ohne Anker). Zweimal in Folge beobachtet: T002700 (`tests/py/spec/ci_cd_specs/test_taskfiles_dir_convention.py`, behoben in PR #3839) und T002701 (der `.dockerignore`-Guard aus T002688, der jeden PR rot färbte).
 
 Die Fehlerklasse umfasst vier Spielarten — jeweils mit Fehlermodus und der Form, die stattdessen trägt:
 
@@ -35,43 +31,3 @@ Die Fehlerklasse umfasst vier Spielarten — jeweils mit Fehlermodus und der For
 4. **Prozesslisten-Format [T003230]:** `ps -eo pid=` polstert rechtsbündig auf die Breite von `pid_max`. Ein Test, der das Format vorfindet statt es zu erzwingen, hängt an der Uptime der Maschine — lokal grün, auf frischem Runner rot. Format erzwingen (`tr -d '[:blank:]'`, blankes `read -r` ohne `IFS=`).
 
 Langfassungen der Fälle: `docs/superpowers/references/gotchas-footguns.md`.
-
-## Voraussetzung: GNU `parallel` [T900093]
-
-`task test:changed` und `task test:spec:changed` rufen `bats -j` auf, und `bats` delegiert
-das an **GNU `parallel`**. Fehlt es, brechen beide Tasks mit Exit 1 ab, **ohne einen
-einzigen Test auszuführen**:
-
-```
-parallel: command not found
-# bats warning: Executed 0 instead of expected 769 tests
-```
-
-**Das ist die teuerste Sorte Fehler, weil sie wie ein Testfehlschlag aussieht.** Wer den
-roten Exit für ein Ergebnis hält, sucht den Defekt im eigenen Branch — es lief aber nichts.
-Merkmal: die `Executed 0 instead of expected N`-Zeile, nicht ein einzelnes `not ok`.
-
-Auf Windows/Git-Bash über msys64-pacman installieren — kein Admin nötig, und
-`/c/msys64/usr/bin` liegt bereits im Git-Bash-PATH:
-
-```bash
-/c/msys64/usr/bin/bash -lc 'pacman -S --noconfirm parallel'
-```
-
-`choco` führt kein `parallel`-Paket. Nach der Installation verifizieren mit genau dem
-Aufruf, der vorher scheiterte:
-
-```bash
-tests/unit/lib/bats-core/bin/bats -j 4 --no-parallelize-within-files \
-  tests/spec/agent-skills/messung-mit-befehl.bats
-# -> 5/5 ok   (vorher: Executed 0 instead of expected 5)
-```
-
-Ohne `parallel` bleibt der Verify-Block trotzdem fahrbar, nur seriell: Dateiliste aus dem
-Task greifen und `bats` direkt aufrufen.
-
-```bash
-task test:spec:changed 2>&1 | grep -E '^tests/spec/.*\.bats$' > /tmp/f.txt
-tests/unit/lib/bats-core/bin/bats $(cat /tmp/f.txt | tr '\n' ' ')
-```
-

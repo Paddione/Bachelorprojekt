@@ -122,7 +122,7 @@ jobs:
           MAX_ATTEMPTS=7
           # [T012414] Jobeigenes Arbeitsverzeichnis statt fester /tmp-Pfade.
           # Der Kommentar unten setzte einen "ephemeral single-tenant runner"
-          # voraus — das gilt nicht mehr: tests/spec/ci-cd.bats fuehrt genau
+          # voraus — das gilt nicht mehr: tests/py/spec/native_ported/spec/test_ci_cd_part1.py fuehrt genau
           # diesen Schritt aus, und auf einem self-hosted Runner gehoerte
           # /tmp/renovate-cache bereits einem anderen User. Das `chmod` brach
           # dann mit "Operation not permitted" ab, bevor der erste

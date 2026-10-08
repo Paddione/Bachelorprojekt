@@ -1,15 +1,23 @@
-"""Native assertions from tests/spec/ci-cd/bats-no-live-branch-assertion.bats."""
+"""Guard from tests/spec/ci-cd/bats-no-live-branch-assertion.bats, retargeted to pytest modules [T901392].
+
+No test may assert on the branch of the live checkout (it differs per worktree and in CI).
+Branch queries belong in a temporary repository (`git -C <tmp_path>`)."""
 
 import re
 
+QUERY = re.compile(r"rev-parse['\",\s]+--abbrev-ref['\",\s]+HEAD|branch['\",\s]+--show-current")
+LIVE = re.compile(r"repo_root|REPO_ROOT")
 
-def test_no_bats_reads_live_checkout_branch(repo_root):
-    files = list((repo_root / "tests").rglob("*.bats"))
+
+def test_no_test_reads_live_checkout_branch(repo_root):
+    files = [f for f in (repo_root / "tests/py").rglob("test_*.py") if f.name != "test_bats_no_live_branch_assertion.py"]
     assert len(files) > 100
-    files = [file for file in files if file.name != "bats-no-live-branch-assertion.bats"]
-    assert any(re.search(r'git\s+-C\s+"?\$(TMP|TR)', file.read_text()) for file in files)
-    query = re.compile(r"rev-parse\s+--abbrev-ref\s+HEAD|branch\s+--show-current")
-    quoted_grep = re.compile(r"grep\s+-[a-zA-Z]+\s+['\"].*git\s+(branch|rev-parse)\s+--")
-    live = re.compile(r'git\s+-C\s+"?\$REPO_ROOT|git\s+(rev-parse|branch)\s+--')
-    bad = [f"{file}:{i}" for file in files for i, line in enumerate(file.read_text().splitlines(), 1) if query.search(line) and not re.match(r"\s*#", line) and not quoted_grep.search(line) and live.search(line)]
+    # Positive anchor: branch queries against temporary repositories exist.
+    assert any(QUERY.search(f.read_text()) and "tmp_path" in f.read_text() for f in files)
+    bad = [
+        f"{f.relative_to(repo_root)}:{i}"
+        for f in files
+        for i, line in enumerate(f.read_text().splitlines(), 1)
+        if QUERY.search(line) and LIVE.search(line) and not line.lstrip().startswith("#")
+    ]
     assert not bad, bad

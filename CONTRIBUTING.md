@@ -65,7 +65,7 @@ Befehle über den [Task-Oracle](CLAUDE.md#running-tasks) ermitteln. Weitere Eins
 
 `.github/workflows/ci.yml` läuft auf jeder PR:
 
-- `task test:all` — BATS-Unit-Tests, kustomize-Manifest-Struktur, Taskfile-Dry-Run
+- `task test:all` — pytest-Suite, kustomize-Manifest-Struktur, Taskfile-Dry-Run
 - **Test-Inventory-Check** — `components/website/src/data/test-inventory.json` muss zur Test-Liste passen
 - **Systembrett-Template-Validierung** (`scripts/tests/systembrett-template.test.sh`)
 - **Security-Scan** — Image-Pin-Hinweise + Hardcoded-Secret-Erkennung in `k3d/*.yaml`
@@ -122,4 +122,4 @@ Die antigravity-cli (eine Claude-Code-Instanz unter `~/.gemini/antigravity-cli/`
 }
 ```
 
-Bei einer JSON-Merge-Bearbeitung bestehende Keys bewahren — nur `permissions.allow` ergänzen. Der BATS-Guard `antigravity-cli settings.json pre-grants Bash(gh *) permission` in `tests/spec/mcp-tooling.bats` verifiziert diese Konfiguration (er `skip`t auf Maschinen ohne installierte antigravity-cli).
+Bei einer JSON-Merge-Bearbeitung bestehende Keys bewahren — nur `permissions.allow` ergänzen. Der pytest-Guard `antigravity-cli settings.json pre-grants Bash(gh *) permission` in `tests/py/spec/native_ported/spec/test_mcp_tooling.py` verifiziert diese Konfiguration (er `skip`t auf Maschinen ohne installierte antigravity-cli).

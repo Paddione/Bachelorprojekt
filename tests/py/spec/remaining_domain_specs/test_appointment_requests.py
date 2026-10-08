@@ -7,16 +7,19 @@ def src(repo_root, name):
 
 
 def test_same_day_reschedule_rejected(repo_root):
+    """T901024-1: umbuchung.ts rejects same-day targets via Berlin lead check (409)"""
     text = src(repo_root, 'pages/api/anfrage/[token]/umbuchung.ts')
     assert 'berlinDayKey' in text
     assert 'status: 409' in text
 
 
 def test_lead_check_strict_after(repo_root):
+    """T901024-2: umbuchung.ts lead check is strict-after (previous-day stays allowed)"""
     assert re.search(r'[A-Za-z]*DayKey <= [A-Za-z]*DayKey', src(repo_root, 'pages/api/anfrage/[token]/umbuchung.ts'))
 
 
 def test_token_lookup_generic_404(repo_root):
+    """T901024-3: token entries share one lookup and one generic 404"""
     for path in ['pages/anfrage/[token].astro', 'pages/api/anfrage/[token]/storno.ts', 'pages/api/anfrage/[token]/umbuchung.ts']:
         text = src(repo_root, path)
         for term in ['appointment-requests', 'reference_id', 'status: 404', 'Nicht gefunden']:
@@ -25,6 +28,7 @@ def test_token_lookup_generic_404(repo_root):
 
 
 def test_owner_claim_precedes_status_update(repo_root):
+    """T901024-4: annehmen.ts rechecks availability atomically before the status update"""
     text = src(repo_root, 'pages/api/owner/anfragen/[id]/annehmen.ts')
     assert re.search(r'claimSlot|isSlotInAnyWindow', text)
     lines = text.splitlines()
@@ -35,6 +39,7 @@ def test_owner_claim_precedes_status_update(repo_root):
 
 
 def test_booking_idempotency(repo_root):
+    """T901024-5: booking.ts dedupes on the idempotency key (single record)"""
     text = src(repo_root, 'pages/api/booking.ts')
     assert 'idempotency-key' in text.lower()
     assert "payload->>'idempotencyKey'" in text

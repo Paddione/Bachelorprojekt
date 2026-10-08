@@ -31,5 +31,5 @@ To synchronize with a new upstream release of `examples/llama.vim`:
 1. Fetch and review the upstream commit in its separate checkout.
 2. Generate a reviewed diff against the recorded SHA-256 revision: `85c62741...`.
 3. Port relevant bug fixes or features into the corresponding modular components under `editor/llama-vim/`.
-4. Run the full BATS verification suite: `tests/unit/lib/bats-core/bin/bats -r tests/spec/vim-ai-completion/`.
+4. Run the full pytest verification suite: `bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/vim-ai-completion/`.
 5. Update the recorded revision, date, and SHA-256 hash in this file in the same commit.

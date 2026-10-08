@@ -390,12 +390,13 @@ def test_g_commit_vs_diff_dev_flow_plan_skill_md_uses_chore_plans_for_stage_comm
 
 
 def test_g_commit_vs_diff_unit_tests_in_tests_unit_check_commit_vs_diff_bats_cover_all_branches(repo_root):
-    bats_file = repo_root / "tests/unit/check-commit-vs-diff.bats"
-    assert bats_file.is_file()
-    text = bats_file.read_text()
-    assert _grep_q(text, r"allows:.*real-code")
-    assert _grep_q(text, r"blocks:.*T001434")
-    assert _grep_q(text, r"blocks:.*plan-only")
+    # [T901392] Die Unit-Tests liegen seit der BATS-Deinstallation als pytest-Modul vor.
+    module = repo_root / "tests/py/unit/ported/test_check_commit_vs_diff.py"
+    assert module.is_file()
+    text = module.read_text()
+    assert _grep_q(text, r"def test_allows.*real_code")
+    assert _grep_q(text, r"def test_blocks.*t001434")
+    assert _grep_q(text, r"def test_blocks.*plan_only")
     assert _grep_q(text, r"SKIP_COMMIT_VS_DIFF", regex=False)
 
 

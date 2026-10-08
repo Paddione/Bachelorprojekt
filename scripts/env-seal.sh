@@ -27,7 +27,7 @@ REUSE_CERT=false; _TEST_CERT_A=""; _TEST_CERT_B=""
 # namespaces are emitted by env-seal only for the brand listed in the
 # schema's `owner_brand` field. Source of truth for the
 # `task workspace:deploy` defence-in-depth filter and the regression
-# test in tests/spec/workspace-deploy-secrets-scope.bats.
+# test in tests/py/spec/native_ported/spec/test_workspace_deploy_secrets_scope.py.
 SHARED_NAMESPACES=("rustdesk" "coturn")
 export SHARED_NAMESPACES
 # ── Helpers ──────────────────────────────────────────────────────

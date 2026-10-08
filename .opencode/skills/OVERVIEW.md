@@ -2,7 +2,7 @@
 
 52 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
-> **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/*` sind pro-Skill-Symlinks in die SSOT, `.agents/skills` ist ein Symlink auf das SSOT-Verzeichnis (T900236, Guard in `tests/spec/agent-skills/skill-symlink-targets.bats`); Inhalte sind pro Harness projiziert (Tool-Namen, Referenz-Pfade). Alle neuen Skills gehören unter `.opencode/skills/`.
+> **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/*` sind pro-Skill-Symlinks in die SSOT, `.agents/skills` ist ein Symlink auf das SSOT-Verzeichnis (T900236, Guard in `tests/py/spec/native_ported/spec/agent-skills/test_skill_symlink_targets.py`); Inhalte sind pro Harness projiziert (Tool-Namen, Referenz-Pfade). Alle neuen Skills gehören unter `.opencode/skills/`.
 
 > **Sharing:** Die getrackten Skills werden mit dem Repo geklont. Codex, agy und Muse lesen `.agents/skills`; OpenCode liest `.opencode/skills`; Claude Code liest die Symlinks in `.claude/skills`. Antigravity erzeugt seinen lokalen Spiegel mit `task agy:sync` nach dem Klonen (generierte `.gemini/skills` sind gitignored). `node scripts/agent-skills/project.mjs --check` prueft das Inventar. `llama-cpp` bleibt als dokumentierter OpenCode-only-Skill ausserhalb des Claude/Antigravity-Spiegels. Benutzerinstallierte Codex-Plugins unter `~/.codex/plugins` gehoeren nicht zum Repo und werden durch diesen Sync nicht verteilt.
 
@@ -10,7 +10,7 @@
 
 > **Wartung:** Diese Anzahl stimmt mit `git ls-files -- .opencode/skills | grep -c '/SKILL\.md$'` überein (nur **getrackte** Skills — lokal via market-cli installierte zählen nicht, Präzedenz T001783). Wenn ein Skill hinzukommt oder entfernt wird, hier nachziehen (Gate G-AGENTIC06).
 
-> **Projekteigen vs. Vendor (T002303):** Die Sektion [Vendor-Skills](#vendor-skills-upstream-gepflegt) unten ist die **maschinenlesbare Quelle** für diesen Schnitt. Ein getrackter Skill gilt als projekteigen, wenn sein Verzeichnisname dort **nicht** vorkommt. `G-AGENTIC09` (Zeilenbudget — die Schwelle steht in `scripts/health-goals-check.sh`, hier bewusst nicht dupliziert) und `tests/spec/agent-skills.bats` leiten ihren Scope daraus ab — der Marker-Block dort ist ein Kontrakt, kein Layout.
+> **Projekteigen vs. Vendor (T002303):** Die Sektion [Vendor-Skills](#vendor-skills-upstream-gepflegt) unten ist die **maschinenlesbare Quelle** für diesen Schnitt. Ein getrackter Skill gilt als projekteigen, wenn sein Verzeichnisname dort **nicht** vorkommt. `G-AGENTIC09` (Zeilenbudget — die Schwelle steht in `scripts/health-goals-check.sh`, hier bewusst nicht dupliziert) und `tests/py/spec/native_ported/spec/test_agent_skills.py` leiten ihren Scope daraus ab — der Marker-Block dort ist ein Kontrakt, kein Layout.
 
 > **Für Agenten:** Schnelle Routing-Karten (Intention → Weg → Tier → Guardrails) unter `docs/agent-guide/maps/` — `goals-map.md`, `tools-map.md`, `danger-map.md`. Generiert aus `docs/agent-guide/registry/`.
 
@@ -170,7 +170,7 @@ weder dem Zeilenbudget aus `G-AGENTIC09` noch dem projekteigenen description-Sta
 beim nächsten Upstream-Sync kollidieren.
 
 **Dieser Block ist ein Kontrakt.** `G-AGENTIC09` in `scripts/health-goals-check.sh` und
-`tests/spec/agent-skills.bats` extrahieren die Namen zwischen den Markern per
+`tests/py/spec/native_ported/spec/test_agent_skills.py` extrahieren die Namen zwischen den Markern per
 
 ```bash
 sed -n '/<!-- vendor-skills:begin -->/,/<!-- vendor-skills:end -->/p' .opencode/skills/OVERVIEW.md \

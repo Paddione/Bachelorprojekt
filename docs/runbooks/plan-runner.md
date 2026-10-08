@@ -74,9 +74,9 @@ erzwingt bei diesem Hybridmodell trotzdem ein volles Neu-Prefill und wird deshal
 
 ## Tests
 
-`tests/spec/llm-local-dev/plan-runner.bats` prüft die Szenarien der Spec gegen einen Fake-Orchestrator
+`tests/py/spec/native_ported/spec/llm-local-dev/test_plan_runner.py` prüft die Szenarien der Spec gegen einen Fake-Orchestrator
 und einen opencode-Stub (keine GPU nötig):
 
 ```bash
-tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/plan-runner.bats
+bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/llm-local-dev/test_plan_runner.py
 ```

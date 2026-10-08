@@ -10,7 +10,7 @@ zu duplizieren. Die Gate-*Mathematik* (S1–S4, Baseline-Ratchet) ist in
 
 ```bash
 task workspace:validate     # Kustomize-Manifeste (nur wenn k8s-Manifeste berührt)
-task test:changed           # Gezielte Tests für geänderte Domains (vitest --changed + BATS + quality)
+task test:changed           # Gezielte Tests für geänderte Domains (vitest --changed + pytest-Suite + quality)
 task freshness:regenerate   # Generierte Artefakte aktualisieren — sonst CI "stale artifact"
 # → Artefakte committen (git add + git commit), siehe Freshness-Artefakte unten
 task freshness:check        # CI-Äquivalent: Freshness + S1–S4-Ratchet + Baseline-Key-Count-Assertion
@@ -71,14 +71,14 @@ Gruppe `test:e2e:services` gegen `localhost:4321`. Ohne laufenden Dev-Stack sind
 `ERR_CONNECTION_REFUSED` das erwartete Ergebnis. Seit T002375-p4 überspringt `test:changed`
 die Gruppe mit sichtbarer Meldung, wenn der Port nicht antwortet.
 
-Der Grund, warum das kein Blocker ist: **CI führt für PRs nur `test:spec:changed` plus
-`tests/unit/manifests.bats` und `changed-manifests.bats` aus — nicht das volle
-`task test:changed`.** Der lokale Lauf ist damit strenger als das Gate, das er simuliert. Die
+Der Grund, warum das kein Blocker ist: **CI führt für PRs nur die pytest-Suite plus die
+Manifest-Tests aus — nicht das volle `task test:changed`.** Der lokale Lauf ist damit strenger als das Gate, das er simuliert. Die
 CI-äquivalenten Kommandos:
 
 ```bash
-task test:spec:changed
-tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/changed-manifests.bats
+task test:spec
+bash scripts/pytest-run.sh tests/py --ignore=tests/py/spec
+bash scripts/pytest-run.sh tests/py/unit/ported/test_manifests_part1.py tests/py/unit/ported/test_manifests_part2.py tests/py/unit/ported/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
 ```
 
 **(c) Rote `test:e2e:website` sind auch MIT laufendem Dev-Server kein PR-Blocker** [T002691].

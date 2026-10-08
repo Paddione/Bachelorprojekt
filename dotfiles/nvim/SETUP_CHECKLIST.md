@@ -11,7 +11,7 @@
    `%LOCALAPPDATA%\nvim-data\wsl-config` (robocopy) und laedt von dort.
 5. Verifizieren: `nvim --headless -u NONE -c "set rtp+=dotfiles/nvim"`
    `-c "lua print(#require('core.dashboard').pages())" -c "qa!"`
-   (Erwartung: `15`), dann `bats tests/spec/neovim-dashboard.bats`.
+   (Erwartung: `15`), dann `bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/test_neovim_dashboard.py`.
 6. Health: `:checkhealth` (Editor-Kapitel: `<leader>h`, Editor-Seite,
    `lsp-status`).
 

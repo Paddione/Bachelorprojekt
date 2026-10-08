@@ -1683,7 +1683,7 @@ setup_vars:
   #
   # Warum es so lange unbemerkt blieb (T012415): bis zur Umstellung der PR-Jobs
   # auf den self-hosted Runner fehlte dort `yq` — der Guard in
-  # tests/spec/fleet-operations.bats hat sich uebersprungen, statt zu pruefen.
+  # tests/py/spec/test_fleet_operations.py hat sich uebersprungen, statt zu pruefen.
   - name: WG_MESH_PKL1_PRIVATE_KEY
     required: false
     sealed: true

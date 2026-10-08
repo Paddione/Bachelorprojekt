@@ -27,6 +27,7 @@ def _first_line(text: str, needle: str, regex: bool = False):
 # ── Case 1: reminders only target confirmed requests ─────────────────────
 
 def test_t901025_1_cron_reminds_only_bestaetigt_requests_offen_abgelehnt_excluded(repo_root):
+    """T901025-1: cron reminds only bestaetigt requests (offen/abgelehnt excluded)"""
     _, cron = _paths(repo_root)
     text = cron.read_text()
     assert "bestaetigt" in text, "bestaetigt filter missing from appointment-reminders.ts"
@@ -39,6 +40,7 @@ def test_t901025_1_cron_reminds_only_bestaetigt_requests_offen_abgelehnt_exclude
 # ── Case 2: cancelled requests never reach the send path ─────────────────
 
 def test_t901025_2_storniert_requests_cannot_reach_sendnotify_guard_precedes_send(repo_root):
+    """T901025-2: storniert requests cannot reach sendNotify (guard precedes send)"""
     _, cron = _paths(repo_root)
     text = cron.read_text()
     assert "storniert" in text, "storniert exclusion missing from appointment-reminders.ts"
@@ -53,6 +55,7 @@ def test_t901025_2_storniert_requests_cannot_reach_sendnotify_guard_precedes_sen
 # ── Case 3: retry is capped at 3 attempts ─────────────────────────────────
 
 def test_t901025_3_notify_lib_retries_at_most_3_times(repo_root):
+    """T901025-3: notify lib retries at most 3 times"""
     lib, _ = _paths(repo_root)
     text = lib.read_text()
     assert "MAX_NOTIFY_ATTEMPTS = 3" in text, \
@@ -63,6 +66,7 @@ def test_t901025_3_notify_lib_retries_at_most_3_times(repo_root):
 # ── Case 4: dedupe lookup precedes every send ─────────────────────────────
 
 def test_t901025_4_dedupekey_check_precedes_the_mailer_call_in_sendnotify(repo_root):
+    """T901025-4: dedupeKey check precedes the mailer call in sendNotify"""
     lib, _ = _paths(repo_root)
     text = lib.read_text()
     key_line = _first_line(text, "dedupeKey(")
@@ -75,6 +79,7 @@ def test_t901025_4_dedupekey_check_precedes_the_mailer_call_in_sendnotify(repo_r
 # ── Case 5: cron endpoint is bearer-guarded (fail-closed 403) ─────────────
 
 def test_t901025_5_cron_endpoint_checks_the_bearer_secret_and_answers_403(repo_root):
+    """T901025-5: cron endpoint checks the bearer secret and answers 403"""
     _, cron = _paths(repo_root)
     text = cron.read_text()
     assert "authorization" in text.lower(), \

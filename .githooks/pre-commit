@@ -89,7 +89,7 @@ fi
 # seine acht file_count-Zaehler kollidieren zwischen parallelen PRs
 # zwangslaeufig. Es wird nirgends gelesen (quality:check scannt live) und von
 # freshness-regen.yml auf main aktuell gehalten.
-# Guard: tests/spec/ci-cd/generated-artifacts-registry.bats
+# Guard: tests/py/spec/ci_cd_specs/test_generated_artifacts_registry.py
 # Bypass: SKIP_FRESHNESS_REGEN=1 git commit ...
 _FRESHNESS_FILES=(
   components/website/src/data/test-inventory.json

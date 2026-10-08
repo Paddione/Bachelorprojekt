@@ -255,7 +255,7 @@ package.path = stage .. '/lua/?.lua;' .. stage .. '/lua/?/init.lua;' .. package.
 assert(pcall(require, 'chapters.tests-plans'))
 local tp = require('chapters.tests-plans')
 local f = io.open(outfile, 'w')
-local mapped = tp.test_for(root .. '/tests/spec/neovim-dashboard.bats')
+local mapped = tp.test_for(root .. '/neovim-dashboard.lua')
 f:write('mapped=' .. tostring(mapped ~= nil) .. '\n')
 f:write('unknown=' .. tostring(tp.test_for(root .. '/no-such-file.xyz') == nil) .. '\n')
 local captured = {}
@@ -700,10 +700,9 @@ def test_neovim_dashboard_test_file_maps_to_an_existing_test_plan_skill_browsers
     fix = nv.tmp / "tp-fixture"
     (fix / ".agents/plans/demo").mkdir(parents=True)
     (fix / ".agents/skills/demo").mkdir(parents=True)
-    (fix / "tests/spec").mkdir(parents=True)
     (fix / ".agents/plans/demo/tasks.md").touch()
     (fix / ".agents/skills/demo/SKILL.md").touch()
-    (fix / "tests/spec/neovim-dashboard.bats").touch()
+    # [T901392] test_for findet das pytest-Modul tests/py/**/test_neovim_dashboard*.py im Repo.
     out = nv.tmp / "tp.out"
     result = nv.nvim_l(script, str(nv.stage), str(fix), str(out))
     assert result.returncode == 0

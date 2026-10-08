@@ -29,6 +29,7 @@ def _age_lock(lock_file: Path):
 
 
 def test_t002785_dead_branch_lock_reaped_fast(repo_root: Path, reap_env):
+    """T002785-7: toter Branch-Lock (PID tot, Worktree weg, alter Claim) wird schnell geerntet"""
     lock_dir, env = reap_env
     script = repo_root / "scripts" / "agent-lock.sh"
 
@@ -60,6 +61,7 @@ def test_t002785_dead_branch_lock_reaped_fast(repo_root: Path, reap_env):
 
 
 def test_t002785_fresh_branch_lock_spared(repo_root: Path, reap_env):
+    """T002785-7: frischer Branch-Lock ohne Worktree bleibt verschont (Grace-Frist, T001384-D1) [Positiv-Anker]"""
     lock_dir, env = reap_env
     script = repo_root / "scripts" / "agent-lock.sh"
 
@@ -87,6 +89,7 @@ def test_t002785_fresh_branch_lock_spared(repo_root: Path, reap_env):
 
 
 def test_t002785_lock_with_living_worktree_kept(repo_root: Path, reap_env, tmp_path: Path):
+    """T002785-7: Lock mit lebendem Worktree bleibt unangetastet [Positiv-Anker]"""
     lock_dir, env = reap_env
     script = repo_root / "scripts" / "agent-lock.sh"
     wt = tmp_path / "living-wt"

@@ -1,4 +1,7 @@
-"""Native migration of tests/spec/ci-cd/test-inventory-coverage.bats."""
+"""Native migration of tests/spec/ci-cd/test-inventory-coverage.bats.
+
+[T901392] Seit der BATS-Deinstallation erfasst das Inventar pytest-Module (tests/py/local,
+tests/py/spec); IDs und Kategorien kommen aus der im Docstring deklarierten Originalquelle."""
 
 import json
 import os
@@ -8,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-STRAY_REL = "tests/spec/ci-cd/stray-ignored-test-T002664.bats"
-ANCHOR_REL = "tests/spec/ci-cd/anchor-visible-T002664.bats"
+STRAY_REL = "tests/py/spec/ci-cd/test_stray_ignored_t002664.py"
+ANCHOR_REL = "tests/py/spec/ci-cd/test_anchor_visible_t002664.py"
 
 
 @pytest.fixture(scope="module")
@@ -40,30 +43,33 @@ def test_inventory_ausgabepfad_ist_ueber_test_inventory_out_umlenkbar(run_cmd, s
 
 def test_inventory_datei_unter_der_t002416_verzeichniskonvention_erzeugt_einen_eintrag(run_cmd, sandbox):
     repo = sandbox["repo"]
-    assert (repo / "tests/spec/ci-cd/spec-dir-convention.bats").is_file()
-    jq = _jq(run_cmd, repo, "--arg", "p", "tests/spec/ci-cd/spec-dir-convention.bats",
-             "[.[] | select(.file == $p)] | length", str(sandbox["path"]))
-    assert jq.returncode == 0
-    assert int(jq.stdout.strip()) >= 1
+    module = "tests/py/spec/native_ported/spec/ci-cd/test_test_inventory_coverage.py"
+    assert (repo / module).is_file()
+    jq = _jq(run_cmd, repo, "-r", "--arg", "p", module,
+             r'.[] | select(.file == $p) | "\(.id) \(.category)"', str(sandbox["path"]))
+    assert jq.stdout.strip() == "ci-cd/test-inventory-coverage ci-cd"
 
 
 def test_inventory_bestandsdatei_auf_oberster_ebene_ohne_id_erzeugt_einen_eintrag(run_cmd, sandbox):
     repo = sandbox["repo"]
-    assert (repo / "tests/spec/ci-cd.bats").is_file()
-    jq = _jq(run_cmd, repo, "--arg", "p", "tests/spec/ci-cd.bats",
-             "[.[] | select(.file == $p)] | length", str(sandbox["path"]))
-    assert jq.returncode == 0
-    assert int(jq.stdout.strip()) >= 1
+    module = "tests/py/spec/native_ported/spec/test_ci_cd_part1.py"
+    assert (repo / module).is_file()
+    jq = _jq(run_cmd, repo, "-r", "--arg", "p", module,
+             r'.[] | select(.file == $p) | "\(.id) \(.category)"', str(sandbox["path"]))
+    assert jq.stdout.strip() == "ci-cd ci-cd"
 
 
 def test_inventory_jede_tests_spec_datei_ist_erfasst(run_cmd, sandbox):
     repo = sandbox["repo"]
-    found = sorted(str(p.relative_to(repo)) for p in (repo / "tests/spec").rglob("*.bats"))
+    found = sorted(str(p.relative_to(repo)) for p in (repo / "tests/py/spec").rglob("test_*.py"))
     # Positiv-Anker: es gibt ueberhaupt Dateien zu pruefen.
     assert len(found) >= 100
     jq = _jq(run_cmd, repo, "-r", ".[].file", str(sandbox["path"]))
     inventoried = set(jq.stdout.splitlines())
-    uncovered = [f for f in found if f not in inventoried]
+    # Geteilte Module (_partN) teilen sich eine ID; erfasst ist die erste Datei der Gruppe.
+    def covered(f):
+        return f in inventoried or re.sub(r"_part[0-9]+\.py$", "_part1.py", f) in inventoried
+    uncovered = [f for f in found if not covered(f)]
     if uncovered:
         print("nicht erfasst:\n" + "\n".join(uncovered))
     assert uncovered == []
@@ -71,14 +77,16 @@ def test_inventory_jede_tests_spec_datei_ist_erfasst(run_cmd, sandbox):
 
 def test_inventory_dateien_mit_strukturierten_ids_behalten_ihre_eintraege(run_cmd, sandbox):
     repo = sandbox["repo"]
-    jq = _jq(run_cmd, repo, '[.[] | select(.file | startswith("tests/spec/harness-workflow-split")) '
-                            '| select(.id | startswith("HWS-"))] | length', str(sandbox["path"]))
+    module = "tests/py/spec/native_ported/spec/test_harness_workflow_split.py"
+    jq = _jq(run_cmd, repo, "--arg", "p", module,
+             '[.[] | select(.file == $p) | select(.id | startswith("HWS-"))] | length', str(sandbox["path"]))
     assert jq.returncode == 0
-    text = (repo / "tests/spec/harness-workflow-split.bats").read_text()
-    expected = sum(1 for ln in text.splitlines() if re.match(r'^@test "HWS-[0-9]+:', ln))
+    text = (repo / module).read_text()
+    expected = len(set(re.findall(r'^\s+"""(HWS-[0-9]+):', text, re.M)))
+    assert expected >= 10
     assert int(jq.stdout.strip()) == expected
-    first = _jq(run_cmd, repo, "-r", '[.[] | select(.file | startswith("tests/spec/harness-workflow-split")) '
-                                     '| select(.id | startswith("HWS-")) | .id] | sort | first',
+    first = _jq(run_cmd, repo, "-r", "--arg", "p", module,
+                '[.[] | select(.file == $p) | select(.id | startswith("HWS-")) | .id] | sort | first',
                 str(sandbox["path"]))
     assert first.stdout.strip() == "HWS-1"
 
@@ -107,15 +115,15 @@ def test_t002664_inventory_builder_ignoriert_durch_gitignore_ausgeschlossene_tes
     # im Arbeitsbaum an. Das ist im Port verboten (Regel 7): der Test laeuft in einem
     # Wegwerf-Repo mit Kopie des Builders und einer identischen .gitignore-Zeile.
     repo = tmp_path / "repo"
-    (repo / "scripts").mkdir(parents=True)
-    (repo / "tests/spec/ci-cd").mkdir(parents=True)
-    builder_src = repo_root / "scripts/build-test-inventory.sh"
-    (repo / "scripts/build-test-inventory.sh").write_text(builder_src.read_text())
+    (repo / "scripts/lib").mkdir(parents=True)
+    (repo / "tests/py/spec/ci-cd").mkdir(parents=True)
+    for rel in ("scripts/build-test-inventory.sh", "scripts/lib/pytest-inventory.py"):
+        (repo / rel).write_text((repo_root / rel).read_text())
     original = (repo_root / ".gitignore").read_text() if (repo_root / ".gitignore").is_file() else ""
     (repo / ".gitignore").write_text(original + ("" if original.endswith("\n") or not original else "\n")
                                      + STRAY_REL + "\n")
-    (repo / ANCHOR_REL).write_text('@test "anchor" { true; }\n')
-    (repo / STRAY_REL).write_text('@test "stray" { true; }\n')
+    (repo / ANCHOR_REL).write_text('"""Anchor."""\n\n\ndef test_anchor():\n    pass\n')
+    (repo / STRAY_REL).write_text('"""Stray."""\n\n\ndef test_stray():\n    pass\n')
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
 
     out = tmp_path / "inventory-t002664.json"

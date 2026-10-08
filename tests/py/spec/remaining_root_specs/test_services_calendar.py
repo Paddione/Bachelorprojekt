@@ -15,14 +15,17 @@ def owner_routes(web):
     return [web / ('pages/api/owner/' + route) for route in ['calendar/block.ts', 'bookings/phone.ts', 'bookings/[uid]/reschedule.ts', 'bookings/[uid]/cancel.ts']]
 
 def test_same_day_rejected(web):
+    """T901023-1: booking.ts rejects same-day requests via Berlin lead check (409)"""
     text = (web / 'pages/api/booking.ts').read_text()
     assert 'berlinDayKey' in text
     assert 'status: 409' in text
 
 def test_strict_after_lead(web):
+    """T901023-2: booking.ts lead check is strict-after (previous-day requests stay allowed)"""
     assert re.search(r'[A-Za-z]*DayKey <= [A-Za-z]*DayKey', (web / 'pages/api/booking.ts').read_text())
 
 def test_available_slots_berlin(web):
+    """T901023-3a: getAvailableSlots derives calendar days in Europe/Berlin (March DST), no UTC mixing"""
     text = (web / 'lib/caldav.ts').read_text()
     assert 'berlinDayKey' in text
     body = function_body(text, 'getAvailableSlots')
@@ -30,6 +33,7 @@ def test_available_slots_berlin(web):
     assert not re.search(r'getHours\(|getDay\(|\.getDate\(', body)
 
 def test_slot_window_berlin(web):
+    """T901023-3b: isSlotInAnyWindow uses Berlin day bounds (October DST), no UTC mixing"""
     text = (web / 'lib/appointments-db.ts').read_text()
     assert 'berlinDayKey' in text
     body = function_body(text, 'isSlotInAnyWindow')
@@ -37,6 +41,7 @@ def test_slot_window_berlin(web):
     assert not re.search(r'getHours\(|getDay\(|\.getDate\(', body)
 
 def test_atomic_slot_before_inbox(web):
+    """T901023-4: booking.ts claims the slot atomically and returns 409 when taken"""
     booking = (web / 'pages/api/booking.ts').read_text()
     appointments = (web / 'lib/appointments-db.ts').read_text()
     assert 'claimSlot' in booking
@@ -48,6 +53,7 @@ def test_atomic_slot_before_inbox(web):
     assert claim < insert
 
 def test_buffers_holidays(web):
+    """T901023-5: slot computation applies buffers and holidays from site_settings JSON"""
     caldav = (web / 'lib/caldav.ts').read_text()
     core = (web / 'lib/website-core-db.ts').read_text()
     assert re.search(r'getBookingBuffers|getHolidays', caldav)
@@ -56,12 +62,14 @@ def test_buffers_holidays(web):
     assert 'holidays' in core
 
 def test_owner_auth(web):
+    """T901023-6: owner endpoints require an owner session (401 without)"""
     for path in owner_routes(web):
         text = path.read_text()
         assert 'requireOwner' in text
         assert 'status: 401' in text
 
 def test_session_brand(web):
+    """T901023-7: owner endpoints scope by session brand, never client input"""
     for path in owner_routes(web):
         text = path.read_text()
         assert 'ownerBusiness(session)' in text

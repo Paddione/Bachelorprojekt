@@ -80,7 +80,6 @@ jobs:
           config: |
             paths-ignore:
               - '**/node_modules/**'
-              - 'tests/unit/lib/**'
               - '**/*.generated.*'
 
       # Die Go-Module liegen in Unterverzeichnissen; Autobuild findet sie nicht.

@@ -168,7 +168,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`skill:dev-flow-e2e`** — Status `canonical` · Tier `caution`
   - _Wann:_ Playwright-Tests gegen die Live-Marken NACH Merge und Deploy.
-  - _Nicht:_ Unit- und BATS-Tests während der Implementierung.
+  - _Nicht:_ Unit- und pytest-Tests während der Implementierung.
   - _Rollen:_ `bp-ship`
   - _Tiefe:_ `.claude/skills/dev-flow-e2e/SKILL.md`
 
@@ -551,7 +551,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `agent-test`
 
 - **`agent:agent-test`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Tests schreiben, reparieren oder ausführen (BATS, Playwright, vitest).
+  - _Wann:_ Tests schreiben, reparieren oder ausführen (pytest, Playwright, vitest).
   - _Rollen:_ `orchestrator`
 
 ## Fähigkeit: `agent-db`

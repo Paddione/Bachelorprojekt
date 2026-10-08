@@ -8,7 +8,7 @@
 /coverage/
 /test-results/
 
-# ESLint --cache (tests/spec/ci-cd.bats runs eslint --cache)
+# ESLint --cache (tests/py/spec/native_ported/spec/test_ci_cd_part1.py runs eslint --cache)
 /.eslintcache
 
 # Lockfiles

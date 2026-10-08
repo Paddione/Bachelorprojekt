@@ -14,7 +14,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 |---------|-------|--------------------------|
 | `fleet/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup`, SealedSecret, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bp-build` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, database, PostgreSQL, psql, schema, query, timeline | `bp-run` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md`; `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) — Ticket-Reads → `ticket-mcp` mit `brand` |
-| BATS/Playwright, `FA-*`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bp-ship` | — |
+| pytest/Playwright, `FA-*`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bp-ship` | — |
 
 > **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `.opencode/opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `codebase-memory-mcp`, `context7`, `devflow-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `ticket-mcp-node`, `warden`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
 > **gh-axi (T004612):** Bevorzugt für Anzeige. Für maschinelles Parsen (`--json`, `-q`, `--jq`), Polling (`pr checks`) und Mutationen (`pr merge`, `gh api`) immer `gh` direkt verwenden. Siehe [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
@@ -70,7 +70,7 @@ task workspace:validate                          # Kustomize dry-run
 
 ## CI/CD, Testing Standards & Image Exclusions
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command output** (T002448-M4); runner `tests/unit/lib/bats-core/bin/bats`. Inventory check re-runs `task test:inventory`. Release notes: `bash scripts/vda.sh release-notes generate` (publish `publish-github` / `publish-changelog`).
+GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command output** (T002448-M4); runner `bash scripts/pytest-run.sh` (pytest, `tests/py/`; BATS deinstalliert seit T901392). Inventory check re-runs `task test:inventory`. Release notes: `bash scripts/vda.sh release-notes generate` (publish `publish-github` / `publish-changelog`).
 `:latest` digest-pinning exemptions: Website, Brett, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console, MCP-Node, Repo-Sync, Dev-Shell.
 
 ## Critical Footguns (must-know)

@@ -220,9 +220,9 @@ Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration.
 
 **Agent** · 🟡 **Vorsicht**
 
-Schreibt und führt Tests aus (BATS, Playwright, vitest).
+Schreibt und führt Tests aus (pytest, Playwright, vitest).
 
-**Wofür?** Für FA-*, SA-*, NFA-*-Testfälle, BATS-Skripte und Playwright-E2E-Tests.
+**Wofür?** Für FA-*, SA-*, NFA-*-Testfälle, pytest-Module und Playwright-E2E-Tests.
 
 **So startest du:** Sage z. B. 'Schreib einen Test für Feature X' oder 'FA-05 schlägt fehl, bitte fixen'.
 

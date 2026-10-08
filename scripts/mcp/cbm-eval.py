@@ -24,7 +24,7 @@ Stages: fts-only, dense-only, fused, +cross-encoder, +graph-boost.
 A ranker command may decline a stage by exiting 3 -> stage marked SKIPPED.
 
 Stdlib-only. Pure metric layer is spec-tested network-free
-(tests/spec/cbm-eval.bats); the CLI is a thin wrapper.
+(tests/py/spec/native_ported/spec/test_cbm_eval.py); the CLI is a thin wrapper.
 
 Usage:
     python3 scripts/mcp/cbm-eval.py run --eval docs/brain/k3-retrieval-eval.jsonl \\

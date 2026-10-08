@@ -18,7 +18,7 @@ OUT_DIR="$REPO_ROOT/components/website/public"
 
 # Seitenverhaeltnis des .portrait-Rahmens in Portrait.svelte.  Aendert sich das
 # dort, muss es hier mitgeaendert werden — der BATS-Test
-# tests/spec/website-core/portrait-derivate-crop.bats vergleicht beide.
+# tests/py/spec/native_ported/spec/website-core/test_portrait_derivate_crop.py vergleicht beide.
 RATIO_W=4
 RATIO_H=5
 

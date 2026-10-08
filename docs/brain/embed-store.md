@@ -5,7 +5,7 @@ Docstring, spaeter Sections/Klassen, A2) in einen dauerhaften,
 driftfesten Artefakt statt /tmp-Checkpoints. Skripte:
 `scripts/mcp/cbm-embed-store.py` (Store, stdlib-only),
 `scripts/mcp/cbm-embed-sync.py` (Sync-CLI), Specs
-`tests/spec/cbm-embed-store.bats` / `tests/spec/cbm-graph-rerank.bats`.
+`tests/py/spec/native_ported/spec/test_cbm_embed_store.py` / `tests/py/spec/test_cbm_graph_rerank_and_hybrid.py`.
 
 ## Artefakt-Paar (`.codebase-memory/`, gitignoriert)
 

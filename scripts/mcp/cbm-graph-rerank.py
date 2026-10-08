@@ -9,7 +9,7 @@ degree, TESTS_FILE — fetched via ONE query_graph call per feature kind.
 
 The boost itself is a pure function over (embed score, structural features):
 zero features degrade exactly to embed order. The pure layer is spec-tested
-network-free (tests/spec/cbm-graph-rerank.bats); the CLI is a thin wrapper.
+network-free (tests/py/spec/test_cbm_graph_rerank_and_hybrid.py); the CLI is a thin wrapper.
 
 Usage:
     python3 scripts/mcp/cbm-graph-rerank.py rerank --query TEXT \
@@ -21,7 +21,7 @@ Usage:
     parallel, RRF fusion (k=60), bge-reranker-v2-m3 cross-encoder rerank of
     the top-50 pool, then the graph boost below as a capped last factor.
     Pure stage logic lives in cbm-hybrid.py (spec-tested network-free in
-    tests/spec/cbm-hybrid-search.bats); here is only the IO wiring.
+    tests/py/spec/test_cbm_graph_rerank_and_hybrid.py); here is only the IO wiring.
 """
 
 import argparse

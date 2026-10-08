@@ -8,7 +8,7 @@ textual grep where structure matters. Advisory — BATS guards stay authoritativ
 - Config: [`sgconfig.yml`](../../sgconfig.yml), rules in [`ast-rules/`](../../ast-rules/).
 - Scan: `task quality:ast` (pinned `@ast-grep/cli@0.45.3` via npx; no install needed).
 - Rules mirror EXISTING conventions — never invent policy in a rule:
-  - `no-explicit-any` mirrors G-CQ02 (`tests/spec/g-cq02-any-types.bats`).
+  - `no-explicit-any` mirrors G-CQ02 (`tests/py/spec/test_code_quality_and_gates.py`).
 - Ad-hoc queries without writing a rule:
   `npx --yes -p @ast-grep/cli@0.45.3 ast-grep run -p '<pattern>' -l typescript <file>`
   (the `-p` form is required — the package ships two bins, bare `npx @ast-grep/cli`

@@ -16,7 +16,7 @@
 # und damit ein Token. Bei Fork-PRs gaebe es keines, der Job wuerde notwendig
 # scheitern oder uebersprungen — beides macht ihn als Gate wertlos. Fail-closed ist
 # stattdessen der netzfreie scripts/ci/runner-placement-check.sh, der in der
-# PR-CI ueber tests/spec/ci-cd/runner-role-assignment.bats laeuft.
+# PR-CI ueber tests/py/spec/ci_cd_specs/test_runner_role_assignment.py laeuft.
 #
 # Usage: scripts/ci/runner-inventory-check.sh
 # Exit:  0 = Inventar und Workflows decken sich

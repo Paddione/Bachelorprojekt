@@ -11,13 +11,13 @@ actions:
 
 ## Voraussetzungen
 
-- Projekt-Root mit `tests/spec/` (BATS), `.agents/plans/` (Plaene),
+- Projekt-Root mit `tests/py/` (pytest), `.agents/plans/` (Plaene),
   `.agents/skills/` (Skills).
 
 ## Geordnete Schritte
 
 1. **test-file**: Test zur aktuellen Datei oeffnen — per Namenskonvention
-   (`foo_spec.lua`, `foo.bats`, `foo.test.*`) oder Graph-Kante; ohne
+   (`foo_spec.lua`, `test_foo.py`, `foo.test.*`) oder Graph-Kante; ohne
    Treffer klare Meldung.
 2. **test-single**: Filter eingeben — Einzel-Test fahren, Ergebnis ins
    quickfix (`:cgetbuffer`).

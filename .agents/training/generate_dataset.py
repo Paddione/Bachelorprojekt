@@ -475,7 +475,7 @@ FACTS = [
     F("ci", [
         "Which CI system runs on PRs?",
         "Where is the pipeline defined?",
-    ], "GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command output** (T002448-M4); the BATS runner is `tests/unit/lib/bats-core/bin/bats`."),
+    ], "GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command output** (T002448-M4); the test runner is `bash scripts/pytest-run.sh` (pytest)."),
     F("ci", [
         "What does task test:inventory do?",
         "Why must the test inventory be re-run after adding tests?",

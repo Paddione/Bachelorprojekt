@@ -10,10 +10,40 @@ import yaml
 def pytest_configure(config):
     # Tests assert on plain command output; a developer shell's FORCE_COLOR adds ANSI codes.
     os.environ.pop("FORCE_COLOR", None)
+    # Read the CI shard once. Where tests run (xdist worker, or no xdist), drop it from
+    # the environment so nested pytest runs started by tests do not deselect their own
+    # target. An xdist controller keeps it so its workers inherit it.
+    config._spec_shard = (int(os.environ.get("SPEC_SHARD", "0") or "0"),
+                          int(os.environ.get("SPEC_SHARDS", "1") or "1"))
+    is_controller = bool(getattr(config.option, "numprocesses", None)) and not hasattr(config, "workerinput")
+    if not is_controller:
+        os.environ.pop("SPEC_SHARD", None)
+        os.environ.pop("SPEC_SHARDS", None)
     config.addinivalue_line(
         "markers",
         "repo_lock(name): serialize tests sharing a fixed path in the repo across xdist workers",
     )
+
+
+# Live-environment tests (ported from tests/local/*.bats) need a cluster; only
+# tests/runner.sh local opts in via PYTEST_LOCAL=1. [T901392]
+collect_ignore = [] if os.environ.get("PYTEST_LOCAL") == "1" else ["local"]
+
+
+def pytest_collection_modifyitems(config, items):
+    """Keep only this shard's modules when SPEC_SHARD/SPEC_SHARDS are set (CI matrix)."""
+    shard, shards = getattr(config, "_spec_shard", (0, 1))
+    if shards <= 1:
+        return
+    import zlib
+
+    keep, drop = [], []
+    for item in items:
+        module = item.nodeid.split("::", 1)[0]
+        (keep if zlib.crc32(module.encode()) % shards == shard - 1 else drop).append(item)
+    if drop:
+        config.hook.pytest_deselected(items=drop)
+        items[:] = keep
 
 
 @pytest.fixture(autouse=True)

@@ -3,7 +3,7 @@ import { parseLeitstandQuery, toLeitstandQuery, type LeitstandSelection } from '
 
 type Case = [string, string, Partial<LeitstandSelection>];
 
-// Dieselben 14 Kontrakt-B-Faelle wie tests/spec/sdlc-cockpit/leitstand-url-scheme.bats
+// Dieselben 14 Kontrakt-B-Faelle wie tests/py/spec/native_ported/spec/sdlc-cockpit/test_leitstand_url_scheme.py
 // (Vitest-Pflicht laut plan-quality-gates.md fuer jede neue lib-Datei).
 const parseCases: Case[] = [
   ['neue Parameter werden durchgereicht', 'station=implement&ticket=T007957&deck=ki', { station: 'implement', ticket: 'T007957', deck: 'ki' }],

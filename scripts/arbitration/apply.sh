@@ -36,7 +36,7 @@ syntax_check() {
     js | mjs) node --check "$file" >/dev/null 2>&1 ;;
     sh) bash -n "$file" >/dev/null 2>&1 ;;
     json) jq empty "$file" >/dev/null 2>&1 ;;
-    bats) bash tests/unit/lib/bats-core/bin/bats --count "$file" >/dev/null 2>&1 ;;
+    py) python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$file" >/dev/null 2>&1 ;;
     yaml | yml) python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" "$file" >/dev/null 2>&1 ;;
     *) return 0 ;; # unbekannter Typ: keine Prüfung möglich, gilt als bestanden
   esac

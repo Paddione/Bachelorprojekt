@@ -65,7 +65,7 @@ fi
 # und ohne Opt-out-Marker als "<datei>:<zeile>: <inhalt>" melden. Gemeldet wird die Zeilennummer,
 # an der die logische Zeile BEGINNT — dort steht die Selektion, die korrigiert werden muss.
 offenders="$(
-  find "${roots[@]}" -type f \( -name '*.sh' -o -name '*.bats' \) -print0 2>/dev/null \
+  find "${roots[@]}" -type f \( -name '*.sh' -o -name '*.py' \) -print0 2>/dev/null \
     | xargs -0 -r awk -v sel="$SELECTOR_PATTERN" -v filt="$PHASE_FILTER" -v opt="$OPT_OUT" '
       function flush(  trimmed) {
         if (buf == "") return
@@ -82,6 +82,12 @@ offenders="$(
         if (line ~ /\\[[:space:]]*$/) {    # Fortsetzung: Backslash weg, weitersammeln
           sub(/\\[[:space:]]*$/, " ", line)
           buf = buf line
+          next
+        }
+        # pytest-Module: Argumentlisten ueber mehrere Zeilen (Zeile endet auf ",")
+        # bilden einen Aufruf; der Filter steht oft in der Folgezeile. [T901392]
+        if (FILENAME ~ /\.py$/ && line ~ /,[[:space:]]*$/) {
+          buf = buf line " "
           next
         }
         buf = buf line

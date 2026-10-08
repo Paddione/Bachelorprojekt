@@ -59,7 +59,7 @@ bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
 
 Live-Floor-Telemetrie (best-effort): [phase-events](references/phase-events.md), Abschnitt "Implementierung gestartet".
 
-Delegiere die **gesamte Implementierung an EINEN frischen Subagenten**. Du behältst den Plan-Kontext und verifizierst danach unabhängig — kein Per-Task-Fan-out (verschachtelte Delegation sprengt den Kontext, 162k-Prompt-Lehre). Spawn-Matrix je Harness (opencode: `background-agents.ts`-Delegation; Worktree-`cd`-Pflicht und Effort-Formulierungen dort), Kontext-Injektion (Plan-Datei, Ticket-ID, `$ATTACHMENT_DIR`, Plan-Intel-Bundle aus `intel.json`), BATS-Pflicht und Auftrag (Ein-Ebenen-Regel, SID-Propagation T006365, Freshness-Pflicht vor PR-Erstellung, ENDE T002365): [implementer-handoff](references/implementer-handoff.md) — den Auftrag wörtlich in den Subagenten-Prompt übernehmen.
+Delegiere die **gesamte Implementierung an EINEN frischen Subagenten**. Du behältst den Plan-Kontext und verifizierst danach unabhängig — kein Per-Task-Fan-out (verschachtelte Delegation sprengt den Kontext, 162k-Prompt-Lehre). Spawn-Matrix je Harness (opencode: `background-agents.ts`-Delegation; Worktree-`cd`-Pflicht und Effort-Formulierungen dort), Kontext-Injektion (Plan-Datei, Ticket-ID, `$ATTACHMENT_DIR`, Plan-Intel-Bundle aus `intel.json`), Test-Pflicht (pytest) und Auftrag (Ein-Ebenen-Regel, SID-Propagation T006365, Freshness-Pflicht vor PR-Erstellung, ENDE T002365): [implementer-handoff](references/implementer-handoff.md) — den Auftrag wörtlich in den Subagenten-Prompt übernehmen.
 
 ### Wenn keine Delegation möglich ist [T002698]
 
@@ -189,7 +189,7 @@ Rufe `commit-commands:commit-push-pr` auf oder führe `gh pr create` manuell aus
 PR_URL=$(gh pr view --json url -q '.url')
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 ```
-Bei roten Checks: Logs aus dem Skript-Output an einen `sonnet`-Subagenten (Fix-Routine: Freshness → TS → BATS → Kustomize → Commitlint), nach dem Push Loop wiederholen.
+Bei roten Checks: Logs aus dem Skript-Output an einen `sonnet`-Subagenten (Fix-Routine: Freshness → TS → pytest → Kustomize → Commitlint), nach dem Push Loop wiederholen.
 `devflow-ci-watch.sh` rebased bei `DIRTY` gegen `origin/main` (T001408) und endet mit Exit-Code `3` bei Rebase-Konflikt bzw. `4` bei echtem `CONFLICTING`-Mergestatus (T001415) — dann gibt der **Orchestrator den Konflikt per `SendMessage` an den bereits gespawnten Implementer zurück** (kein neuer Spawn — Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` nach dessen Push erneut auf.
 
 ## Schritt 6: Phase-Chain-Gate & Merge-Wait

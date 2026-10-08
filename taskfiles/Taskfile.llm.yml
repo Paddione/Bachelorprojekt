@@ -198,7 +198,7 @@ tasks:
 
   # [T002582] 'start-bonsai' entfernt: der Task verwies auf
   # scripts/llm/start-bonsai-server.ps1, das im Repo nicht existiert. Guard
-  # dagegen: tests/spec/local-llm-proxy/gateway-consumer-lint.bats prüft, dass
+  # dagegen: tests/py/spec/native_ported/spec/local-llm-proxy/test_gateway_consumer_lint.py prüft, dass
   # jedes hier genannte .ps1-Skript vorhanden ist.
 
   lmstudio-preload:

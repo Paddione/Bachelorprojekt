@@ -17,7 +17,7 @@
 # tailnet_name  Geraetename im Tailnet (bei Servern per `tailscale up --hostname` gesetzt)
 #
 # Gelesen von scripts/devmesh/*.sh, taskfiles/Taskfile.devmesh.yml
-# und vom Policy-Guard tests/spec/local-dev-mesh/tailnet-policy.bats (gpu_endpoint).
+# und vom Policy-Guard tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py (gpu_endpoint).
 k3s_version: v1.36.1+k3s1
 gpu_endpoint:
   host: pk-desktop

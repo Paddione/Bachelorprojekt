@@ -5,11 +5,13 @@ import yaml
 
 
 def test_main_push_tests_merge_delta(repo_root):
+    # [T901392] Seit pytest faehrt jeder Lauf die volle geshardete Spec-Suite; damit
+    # ist das Squash-Ergebnis eines Merges auf main immer abgedeckt (vorher Merge-Delta).
     job = yaml.safe_load((repo_root / ".github/workflows/ci.yml").read_text())["jobs"]["test-spec-shard"]
     block = yaml.safe_dump(job)
     assert block
-    for needle in ["github.event.before", "FIND_CHANGED_TESTS_FILES", "0000000000000000000000000000000000000000"]:
-        assert needle in block
+    assert "task test:spec" in block
+    assert "test:spec:changed" not in block
 
 
 def test_lighthouse_runs_only_on_prs(repo_root):

@@ -40,17 +40,6 @@ def _g(run_cmd, cwd: Path, *args):
     return run_cmd(["git", "-c", "user.email=t@t", "-c", "user.name=t", *args], cwd=cwd).check()
 
 
-def _finder_repo(ci, tmp: Path) -> Path:
-    """cp finder into tmp/scripts (the caller creates the other directories)."""
-    (tmp / "scripts").mkdir(parents=True, exist_ok=True)
-    shutil.copy(ci["repo"] / "scripts/find-changed-tests.sh", tmp / "scripts/find-changed-tests.sh")
-    return tmp
-
-
-def _finder(run_cmd, tmp: Path, *args):
-    return run_cmd(["bash", "scripts/find-changed-tests.sh", *args], cwd=tmp)
-
-
 def _awk_range_text(text: str, start_re: str, end_re: str) -> str:
     """awk '/START/,/END/' : inclusive ranges (end may match on the start line)."""
     out = []
@@ -128,7 +117,6 @@ def _sed_range(text: str, start_re: str, end_re: str) -> str:
     return "\n".join(out)
 
 
-
 def test_t002249_a_renovate_yml_wiederholt_den_lauf_bei_repository_changed(ci):
     text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
     assert "repository-changed" in text, "renovate.yml wertet das Lauf-Ergebnis nicht aus"
@@ -136,11 +124,9 @@ def test_t002249_a_renovate_yml_wiederholt_den_lauf_bei_repository_changed(ci):
         "renovate.yml enthaelt keine Retry-Schleife"
 
 
-
 def test_t002249_b_renovate_yml_endet_rot_wenn_alle_versuche_repository_changed_liefern(ci):
     text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
     assert re.search(r"^\s*exit 1|::error", text, re.M), "renovate.yml kann nicht fehlschlagen"
-
 
 
 def test_t002249_c_renovate_yml_aktiviert_und_persistiert_den_repository_cache(ci):
@@ -151,14 +137,12 @@ def test_t002249_c_renovate_yml_aktiviert_und_persistiert_den_repository_cache(c
     assert re.search(r"uses: actions/cache@", text), "kein actions/cache-Step"
 
 
-
 def test_t002249_d_renovate_yml_ruft_das_renovate_image_digest_gepinnt_direkt_auf(ci):
     text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
     assert re.search(r"ghcr\.io/renovatebot/renovate:[^@\s]+@sha256:[0-9a-f]{64}", text), \
         "das Renovate-Image ist nicht digest-gepinnt aufgerufen"
     assert not re.search(r"uses: renovatebot/github-action@", text), \
         "renovatebot/github-action wird weiterhin verwendet"
-
 
 
 def test_t002249_e_retry_schleife_versucht_alle_versuche_und_endet_still_gruen_t002475(run_cmd, ci, tmp_path):
@@ -175,7 +159,6 @@ def test_t002249_e_retry_schleife_versucht_alle_versuche_und_endet_still_gruen_t
     assert "no attempts left" in result.output
 
 
-
 def test_t002249_e_erfolgreicher_zweitversuch_beendet_die_schleife_gruen(run_cmd, ci, tmp_path):
     mock = _setup_renovate_mock(ci, tmp_path)
     _write_docker_mock(Path(mock["MOCKDIR"]),
@@ -188,7 +171,6 @@ def test_t002249_e_erfolgreicher_zweitversuch_beendet_die_schleife_gruen(run_cmd
     assert "::error::" not in result.output
 
 
-
 def test_t002249_e_echter_renovate_fehler_wird_nicht_wiederholt(run_cmd, ci, tmp_path):
     mock = _setup_renovate_mock(ci, tmp_path)
     _write_docker_mock(Path(mock["MOCKDIR"]), 'echo "FATAL: authentication failed"; exit 42')
@@ -197,7 +179,6 @@ def test_t002249_e_echter_renovate_fehler_wird_nicht_wiederholt(run_cmd, ci, tmp
     # Nur repository-changed ist transient: der Exit-Code muss unveraendert durchgereicht werden.
     assert result.returncode == 42
     assert calls == 1
-
 
 
 def test_t002289_cache_verzeichnis_wird_vor_dem_docker_run_fuer_den_container_beschreibbar(ci):
@@ -211,14 +192,12 @@ def test_t002289_cache_verzeichnis_wird_vor_dem_docker_run_fuer_den_container_be
         f"die Rechteanpassung steht NACH dem docker run (Zeile {perm_line} vs {docker_line})"
 
 
-
 def test_t002289_der_post_lauf_chown_fuer_actions_cache_bleibt_erhalten(ci):
     steps = yaml.safe_load((ci["repo"] / ".github/workflows/renovate.yml").read_text())["jobs"]["renovate"]["steps"]
     names = [s.get("name", "") for s in steps]
     idx = next(i for i, n in enumerate(names) if n.startswith("Self-hosted Renovate"))
     after = [s for s in steps[idx + 1:] if "chown" in s.get("run", "")]
     assert after, "kein chown-Step NACH dem Renovate-Step (actions/cache kann nicht packen)"
-
 
 
 def test_t002328_die_scope_allowlist_umfasst_hoechstens_15_eintraege(run_cmd, ci):
@@ -228,19 +207,16 @@ def test_t002328_die_scope_allowlist_umfasst_hoechstens_15_eintraege(run_cmd, ci
     assert count <= 15
 
 
-
 def test_t002328_agents_ist_ein_gueltiger_scope(run_cmd, ci):
     result = _validate(run_cmd, ci, "scopes")
     assert result.returncode == 0
     assert "agents" in result.output.splitlines()
 
 
-
 def test_t002328_kein_synthetik_scope_cq0x_sec0x_dora0x_ist_mehr_registriert(run_cmd, ci):
     result = _validate(run_cmd, ci, "scopes")
     assert result.returncode == 0
     assert sum(1 for ln in result.output.splitlines() if re.search(r"^[a-z]+[0-9]{2}$", ln)) == 0
-
 
 
 def test_t002328_konsolidierter_scope_admin_nennt_sein_ziel_website_in_der_diagnose(run_cmd, ci, tmp_path):
@@ -251,7 +227,6 @@ def test_t002328_konsolidierter_scope_admin_nennt_sein_ziel_website_in_der_diagn
     assert "website" in result.output
 
 
-
 def test_t002328_t002374_skills_ist_wieder_ein_gueltiger_scope(run_cmd, ci, tmp_path):
     msg = tmp_path / "msg-skills"
     msg.write_text("chore(skills): tidy up\n")
@@ -260,14 +235,12 @@ def test_t002328_t002374_skills_ist_wieder_ein_gueltiger_scope(run_cmd, ci, tmp_
     assert "OK" in result.output
 
 
-
 def test_t002328_entfallener_scope_tracking_wird_als_entfernt_gemeldet_nicht_auf_ein_ziel_gemappt(run_cmd, ci, tmp_path):
     msg = tmp_path / "msg-tracking"
     msg.write_text("feat(tracking): add import\n")
     result = _validate(run_cmd, ci, "message", str(msg))
     assert result.returncode != 0
     assert "entfallen" in result.output
-
 
 
 def test_t002328_register_scope_sh_weigert_sich_einen_konsolidierten_scope_neu_anzulegen(run_cmd, ci, tmp_path):
@@ -279,11 +252,9 @@ def test_t002328_register_scope_sh_weigert_sich_einen_konsolidierten_scope_neu_a
     assert "website" in result.output
 
 
-
 def test_t002328_preflight_pr_scope_sh_bezieht_die_allowlist_nicht_mehr_aus_ci_yml(ci):
     text = (ci["repo"] / "scripts/preflight-pr-scope.sh").read_text()
     assert _count_lines(text, "CI_WORKFLOW") == 0
-
 
 
 def test_t002328_die_alias_struktur_erfuellt_ihre_invarianten(run_cmd, ci):
@@ -308,7 +279,6 @@ def test_t002328_die_alias_struktur_erfuellt_ihre_invarianten(run_cmd, ci):
     assert result.returncode == 0
 
 
-
 def test_t002328_jedes_alias_ziel_validiert_auch_tatsaechlich_als_commit_scope(run_cmd, ci, tmp_path):
     repo = ci["repo"]
     targets = run_cmd(["node", "-e",
@@ -320,7 +290,6 @@ def test_t002328_jedes_alias_ziel_validiert_auch_tatsaechlich_als_commit_scope(r
         probe.write_text(f"fix({t}): probe\n")
         result = _validate(run_cmd, ci, "message", str(probe))
         assert result.returncode == 0, f"Alias-Ziel '{t}' wird vom Guard abgelehnt"
-
 
 
 def test_t002282_m1_devflow_ci_watch_regeneriert_freshness_vor_dem_push_nach_auto_rebase(run_cmd, ci, tmp_path):
@@ -367,70 +336,11 @@ exit 0
     assert regen < push, f"freshness:regenerate lief NACH dem Push: {calls}"
 
 
-
-def test_t002377_find_changed_tests_sh_nennt_den_grund_wenn_es_auf_die_volle_suite_zurueckfaellt(run_cmd, ci, tmp_path):
-    tmp = tmp_path / "runall-repo"
-    (tmp / "tests/spec/helpers").mkdir(parents=True)
-    _finder_repo(ci, tmp)
-    (tmp / "tests/spec/alpha.bats").write_text("")
-    (tmp / "tests/spec/beta.bats").write_text("")
-    (tmp / "tests/spec/helpers/shared.bash").write_text("")
-    run_cmd(["git", "init", "-q", "-b", "main", "."], cwd=tmp).check()
-    _g(run_cmd, tmp, "commit", "-q", "--allow-empty", "-m", "base")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "tree")
-    _g(run_cmd, tmp, "update-ref", "refs/remotes/origin/main", "HEAD")
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic")
-    with open(tmp / "tests/spec/helpers/shared.bash", "a") as fh:
-        fh.write("change\n")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "harness")
-
-    # stdout bleibt die reine Dateiliste -- nachgelagerte Aufrufer parsen sie.
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert len(result.stdout.rstrip("\n").split("\n")) == 2
-
-    # Der Grund geht nach stderr und nennt die ausloesende Datei.
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert "tests/spec/helpers/shared.bash" in result.stderr, f"Note nennt die ausloesende Datei nicht: {result.stderr}"
-    assert "FULL spec suite" in result.stderr, f"Note benennt den Vollauf nicht: {result.stderr}"
-
-
-
-def test_t002377_der_run_all_hinweis_erscheint_genau_einmal_nicht_je_datei(run_cmd, ci, tmp_path):
-    tmp = tmp_path / "runall-once"
-    (tmp / "tests/spec/helpers").mkdir(parents=True)
-    (tmp / ".github/workflows").mkdir(parents=True)
-    _finder_repo(ci, tmp)
-    (tmp / "tests/spec/alpha.bats").write_text("")
-    (tmp / "tests/spec/helpers/shared.bash").write_text("")
-    (tmp / ".github/workflows/ci.yml").write_text("")
-    run_cmd(["git", "init", "-q", "-b", "main", "."], cwd=tmp).check()
-    _g(run_cmd, tmp, "commit", "-q", "--allow-empty", "-m", "base")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "tree")
-    _g(run_cmd, tmp, "update-ref", "refs/remotes/origin/main", "HEAD")
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic")
-    with open(tmp / "tests/spec/helpers/shared.bash", "a") as fh:
-        fh.write("a\n")
-    with open(tmp / ".github/workflows/ci.yml", "a") as fh:
-        fh.write("b\n")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "two-triggers")
-    result = _finder(run_cmd, tmp, "spec")
-    count = sum(1 for ln in result.stderr.splitlines() if "FULL spec suite" in ln)
-    assert str(count) == "1", f"erwartet genau 1 Hinweis, bekam: {count}"
-
-
-
 def test_t002375_p4_test_changed_prueft_die_erreichbarkeit_bevor_es_e2e_services_startet(ci):
     text = (ci["repo"] / "taskfiles/Taskfile.test.yml").read_text()
     assert _count_lines(text, "task test:e2e:services") >= 1, "der e2e:services-Aufruf ist ganz verschwunden"
     block = _awk_range_text(text, r"RUN_E2E_SERVICES.*=.*true.*npx", r"^        fi$")
     assert _count_lines(block, "4321") >= 1, "kein Erreichbarkeits-Check auf 4321 vor test:e2e:services"
-
 
 
 def test_t002375_p4_der_skip_nennt_sich_sichtbar_und_als_nicht_blocker(ci):
@@ -441,14 +351,12 @@ def test_t002375_p4_der_skip_nennt_sich_sichtbar_und_als_nicht_blocker(ci):
         "die Skip-Meldung sagt nicht, dass es kein PR-Blocker ist"
 
 
-
 def test_t002375_p4_freshness_check_unterscheidet_nicht_gestaged_von_nicht_committet(ci):
     text = (ci["repo"] / "taskfiles/Taskfile.quality.yml").read_text()
     assert _count_lines(text, "regenerated but not staged") == 1, "die 'nicht gestaged'-Meldung fehlt"
     assert _count_lines(text, "staged but not committed") == 1, "die 'nicht committet'-Meldung fehlt"
     assert _count_lines(text, "is stale — run 'task freshness:regenerate' locally and commit") == 0, \
         "die alte 'is stale'-Meldung steht noch da"
-
 
 
 def test_t002375_p4_das_scan_universum_zaehlt_untracked_aber_nicht_ignorierte_dateien_mit(run_cmd, ci):
@@ -471,7 +379,6 @@ def test_t002375_p4_das_scan_universum_zaehlt_untracked_aber_nicht_ignorierte_da
     assert "IN" in verdict, f"ungetrackte Datei fehlt im Scan-Universum: {verdict}"
 
 
-
 def test_t002341_m1_stage_plan_sh_definiert_exec_sql_with_timeout(ci):
     path = ci["repo"] / "scripts/vda/ticket/stage-plan.sh"
     if not path.is_file():
@@ -479,13 +386,11 @@ def test_t002341_m1_stage_plan_sh_definiert_exec_sql_with_timeout(ci):
     assert "_exec_sql_with_timeout" in path.read_text(), "MISSING _exec_sql_with_timeout function in stage-plan.sh"
 
 
-
 def test_t002341_m1_stage_plan_sh_timeout_wrapper_enthaelt_warn_message(ci):
     path = ci["repo"] / "scripts/vda/ticket/stage-plan.sh"
     if not path.is_file():
         pytest.skip("stage-plan.sh nicht gefunden")
     assert "timed out after" in path.read_text(), "MISSING timeout warning message in stage-plan.sh"
-
 
 
 def test_t002341_m2_agent_collision_sh_filtert_generierte_pfade_aus_einer_dateiliste(run_cmd, ci):
@@ -510,7 +415,6 @@ def test_t002341_m2_agent_collision_sh_filtert_generierte_pfade_aus_einer_dateil
         f"test-inventory.json haette gefiltert werden muessen: '{result.output}'"
 
 
-
 def test_t002341_m2_cmd_check_wendet_den_generated_filter_auf_beide_seiten_an(ci):
     path = ci["repo"] / "scripts/agent-collision.sh"
     if not path.is_file():
@@ -520,13 +424,11 @@ def test_t002341_m2_cmd_check_wendet_den_generated_filter_auf_beide_seiten_an(ci
     assert n >= 2, f"cmd_check ruft _drop_generated nur {n}x auf, erwartet >=2 (own + peer)"
 
 
-
 def test_t002341_m3_agent_lock_sh_cmd_claim_enthaelt_cmd_reap_call(ci):
     path = ci["repo"] / "scripts/agent-lock.sh"
     if not path.is_file():
         pytest.skip("agent-lock.sh nicht gefunden")
     assert "cmd_reap" in path.read_text(), "MISSING cmd_reap call in agent-lock.sh"
-
 
 
 def test_t002341_m3_agent_lock_sh_cmd_reap_entfernt_lock_dateien_mit_dead_sid(ci):
@@ -543,13 +445,11 @@ def test_t002341_m3_agent_lock_sh_cmd_reap_entfernt_lock_dateien_mit_dead_sid(ci
     assert found, "MISSING sid-dead reap path in agent-lock.sh"
 
 
-
 def test_t002341_m3_agent_lock_sh_pre_claim_reap_in_cmd_claim_hat_t002341_m3_kommentar(ci):
     path = ci["repo"] / "scripts/agent-lock.sh"
     if not path.is_file():
         pytest.skip("agent-lock.sh nicht gefunden")
     assert "T002341-M3" in path.read_text(), "MISSING T002341-M3 reference in agent-lock.sh"
-
 
 
 def test_t002374_m1_skills_ist_ein_gueltiger_scope_kein_alias_mehr(run_cmd, ci):
@@ -558,7 +458,6 @@ def test_t002374_m1_skills_ist_ein_gueltiger_scope_kein_alias_mehr(run_cmd, ci):
                       f"const cfg = require('{repo}/commitlint.config.cjs'); "
                       "process.stdout.write(cfg.scopeHint('skills') || '(empty)');"])
     assert "empty" in result.output, f"scopeHint fuer 'skills' soll leer sein: {result.output}"
-
 
 
 def test_t002374_m2_agent_lock_sh_release_mit_force_ueberschreibt_sid_mismatch(run_cmd, ci, tmp_path):

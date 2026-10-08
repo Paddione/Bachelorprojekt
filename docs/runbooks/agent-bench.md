@@ -126,7 +126,7 @@ for c in scripts/llm/agent-bench/cases/*/variants/*/checks/run.sh; do bash -n "$
    Jede `run.sh` muss gegen die Referenzloesung gruen und gegen den unveraenderten
    Ausgangszustand rot sein (einmal manuell geprueft, in `source.md` vermerkt).
 4. Neue Faelle brauchen keine Codeaenderung (Cases-as-Data); Tests pruefen das
-   (`tests/spec/agent-bench/scoring.bats`, "New case needs no code change").
+   (`tests/py/spec/native_ported/spec/agent-bench/test_scoring.py`, "New case needs no code change").
 
 ## Kernel-Check
 
@@ -141,7 +141,7 @@ Infra-Fehler, wenn er ablehnt. `--skip-capability` prueft nur das Log (ohne torc
 ## Tests
 
 ```bash
-tests/unit/lib/bats-core/bin/bats tests/spec/agent-bench/
+bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/agent-bench/
 task test:inventory   # nach neuen/faelligen Testdateien
 ```
 

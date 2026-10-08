@@ -3,6 +3,7 @@ import re
 import pytest
 
 def test_adr_supersession(repo_root):
+    """ADR-007 exists and supersedes ADR-006 in both directions"""
     adr7 = (repo_root / 'docs/adr/ADR-007-wsl-exit-fleet-native.md').read_text()
     adr6 = (repo_root / 'docs/adr/ADR-006-sdlc-isolation-dev-host.md').read_text()
     assert 'supersedes' in adr7.lower()
@@ -11,7 +12,7 @@ def test_adr_supersession(repo_root):
 
 def test_linux_line_endings(repo_root):
     text = (repo_root / '.gitattributes').read_text()
-    for suffix in ['sh', 'yaml', 'yml', 'bats', 'mjs']:
+    for suffix in ['sh', 'yaml', 'yml', 'mjs']:
         assert re.search(r'\*\.' + suffix + r' +text eol=lf', text)
 
 def test_windows_spike_checklists(repo_root):

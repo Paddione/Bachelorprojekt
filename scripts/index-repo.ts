@@ -74,7 +74,7 @@ async function resolveEmbedConfig(): Promise<void> {
   // dedicated llama-server, and LM Studio is gone. T002551: the host-local
   // llama-server port is decommissioned; the Service in k3d/llm-gpu.yaml is
   // `llm-gateway-embed` on port 8081. T002570 corrected the stale fallback
-  // references below to that port — guard: tests/spec/llm-pipeline/index-repo-embed-port.bats
+  // references below to that port — guard: tests/py/spec/native_ported/spec/llm-pipeline/test_index_repo_embed_port.py
   const clusterHost = 'llm-gateway-embed.workspace.svc.cluster.local';
   const localUrl = 'http://localhost:8081';
   const configured = process.env.LLM_EMBED_URL;

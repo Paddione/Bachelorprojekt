@@ -6,7 +6,7 @@ Erreichbarkeit. Enthält **keine** Credentials. Auth-Keys werden nie ins Repo ge
 Soll-Zustand im Repo:
 
 - `devmesh/inventory.yaml` — Peers mit Rolle, Tag, LAN-Adresse und Tailnet-Namen
-- `devmesh/tailnet-policy.hujson` — ACL-Soll (Guard: `tests/spec/local-dev-mesh/tailnet-policy.bats`)
+- `devmesh/tailnet-policy.hujson` — ACL-Soll (Guard: `tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py`)
 - `scripts/devmesh/tailnet-check.sh` — Prüfung, Aufruf `task devmesh:tailnet:check`
 
 Entscheidungen: ADR-008 (Nachtrag 2026-09-11), Design `2026-09-11-devmesh-tailnet`.

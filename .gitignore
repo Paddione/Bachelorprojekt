@@ -4,9 +4,6 @@ presentation/
 .taskmaster/state.json
 vitest-junit-report/
 scripts/deep.sh
-# bats junit-Reporte (BATS_JUNIT_DIR, [T003025]) — CI-artefakt, nie committen
-junit-report/
-spec-junit-shard-*/
 website-dist/
 # [T008015-9] Streu-Artefakt-Verzeichnis (Pre-Reorg website/) — ignorieren
 /website/
@@ -170,11 +167,6 @@ scripts/coaching/node_modules
 *:Zone.Identifier
 
 
-# ── BATS vendor library self-tests (not project tests) ──
-tests/unit/lib/bats-assert/test/
-tests/unit/lib/bats-core/test/
-tests/unit/lib/bats-file/test/
-tests/unit/lib/bats-support/test/
 # docs-to-html plugin output
 docs-html-bundles/
 .worktrees/

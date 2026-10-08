@@ -56,7 +56,7 @@ nicht.
 3. Prüfen:
 
 ```bash
-tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/k9-stil-datenbank.bats
+bash scripts/pytest-run.sh tests/py/spec/native_ported/spec/sdlc-cockpit/test_k9_stil_datenbank.py
 ```
 
 Die Prüfung deckt alle drei Regeln ab: Pflichtfelder, Token-Existenz gegen

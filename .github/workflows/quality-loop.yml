@@ -61,26 +61,26 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── BATS unit tests for loop.sh (retry on flaky tempdir/fd races) ──────────
-      - name: Quality-loop BATS unit tests
+      # ── Unit tests for loop.sh (pytest; retry on flaky tempdir/fd races) ────────
+      - name: Quality-loop unit tests
         env:
-          BATS_RETRY_DELAY: 10
+          TEST_RETRY_DELAY: 10
         run: |
           MAX_ATTEMPTS=3
           ATTEMPT=0
           while true; do
             ATTEMPT=$((ATTEMPT + 1))
-            echo "--- BATS attempt ${ATTEMPT}/${MAX_ATTEMPTS} ---"
+            echo "--- Test attempt ${ATTEMPT}/${MAX_ATTEMPTS} ---"
             if task test:unit:quality-loop 2>&1; then
-              echo "✅ BATS unit tests passed (attempt ${ATTEMPT})"
+              echo "✅ Unit tests passed (attempt ${ATTEMPT})"
               exit 0
             fi
             if [[ $ATTEMPT -ge $MAX_ATTEMPTS ]]; then
-              echo "❌ BATS unit tests failed after ${MAX_ATTEMPTS} attempts"
+              echo "❌ Unit tests failed after ${MAX_ATTEMPTS} attempts"
               exit 1
             fi
-            echo "⚠ BATS failed (attempt ${ATTEMPT}), retrying in ${BATS_RETRY_DELAY}s..."
-            sleep "${BATS_RETRY_DELAY}"
+            echo "⚠ Unit tests failed (attempt ${ATTEMPT}), retrying in ${TEST_RETRY_DELAY}s..."
+            sleep "${TEST_RETRY_DELAY}"
           done
 
       - name: Run quality loop

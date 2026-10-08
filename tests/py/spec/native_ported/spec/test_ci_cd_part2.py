@@ -1,7 +1,6 @@
 """Native migration of tests/spec/ci-cd.bats. (part 2/3)"""
 import os
 import re
-import shutil
 import stat
 from pathlib import Path
 import pytest
@@ -73,13 +72,6 @@ def _g(run_cmd, cwd: Path, *args):
     return run_cmd(["git", "-c", "user.email=t@t", "-c", "user.name=t", *args], cwd=cwd).check()
 
 
-def _finder_repo(ci, tmp: Path) -> Path:
-    """cp finder into tmp/scripts (the caller creates the other directories)."""
-    (tmp / "scripts").mkdir(parents=True, exist_ok=True)
-    shutil.copy(ci["repo"] / "scripts/find-changed-tests.sh", tmp / "scripts/find-changed-tests.sh")
-    return tmp
-
-
 def _init_base(run_cmd, tmp: Path, allow_empty_base: bool = True):
     run_cmd(["git", "init", "-q", "-b", "main", "."], cwd=tmp).check()
     if allow_empty_base:
@@ -87,10 +79,6 @@ def _init_base(run_cmd, tmp: Path, allow_empty_base: bool = True):
     _g(run_cmd, tmp, "add", "-A")
     _g(run_cmd, tmp, "commit", "-q", "-m", "tree")
     _g(run_cmd, tmp, "update-ref", "refs/remotes/origin/main", "HEAD")
-
-
-def _finder(run_cmd, tmp: Path, *args):
-    return run_cmd(["bash", "scripts/find-changed-tests.sh", *args], cwd=tmp)
 
 
 def _awk_range_text(text: str, start_re: str, end_re: str) -> str:
@@ -111,7 +99,6 @@ def _awk_range_text(text: str, start_re: str, end_re: str) -> str:
     return "\n".join(out)
 
 
-
 def test_t002626_post_merge_yml_hat_keine_unaufloesbaren_needs_kanten(ci):
     d = yaml.safe_load(ci["wf"].read_text())
     jobs = set(d["jobs"])
@@ -125,13 +112,11 @@ def test_t002626_post_merge_yml_hat_keine_unaufloesbaren_needs_kanten(ci):
     assert any(j.get("needs") for j in d["jobs"].values())
 
 
-
 def test_t002157_render_fleet_artifact_triggert_ohne_pfadfilter_auf_jedem_main_push(ci):
     text = (ci["repo"] / ".github/workflows/render-fleet-artifact.yml").read_text()
     assert re.search(r"^[^\S\n]+branches: \[main\]", text, re.M)
     # run grep -cE '^[[:space:]]+paths:' -> status 1 und output 0
     assert _count_lines(text, r"^[^\S\n]+paths:", regex=True) == 0
-
 
 
 def test_t002157_render_fleet_artifact_ist_manuell_ausloesbar(ci):
@@ -140,16 +125,13 @@ def test_t002157_render_fleet_artifact_ist_manuell_ausloesbar(ci):
         "kein workflow_dispatch — ein Artefakt-Rebuild laesst sich nicht gezielt ausloesen"
 
 
-
 def test_t002158_a_build_website_triggert_auf_die_repohealth_datenquelle_goals_md(ci):
     assert re.search(r"\.claude/lib/goals\.md", ci["build_wf"].read_text())
-
 
 
 def test_t002158_b_freshness_regen_setzt_skip_ci_nicht_unbedingt_im_bot_commit(ci):
     wf = ci["repo"] / ".github/workflows/freshness-regen.yml"
     assert not re.search(r'git commit -m "[^"]*\[skip ci\]"', wf.read_text())
-
 
 
 def test_t002158_b_freshness_regen_unterdrueckt_ci_ueberhaupt_nicht_mehr_t002889(ci):
@@ -161,12 +143,10 @@ def test_t002158_b_freshness_regen_unterdrueckt_ci_ueberhaupt_nicht_mehr_t002889
     assert sum(1 for ln in non_comment if "[skip ci]" in ln) == 0
 
 
-
 def test_t002161_a_renovate_yml_praegt_den_token_via_create_github_app_token_sha_gepinnt(ci):
     text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
     assert re.search(r"uses: actions/create-github-app-token@[0-9a-f]{40}", text), \
         "kein SHA-gepinnter actions/create-github-app-token-Step in renovate.yml"
-
 
 
 def test_t002161_a_renovate_yml_liest_die_app_identitaet_aus_renovate_app_id(ci):
@@ -177,19 +157,16 @@ def test_t002161_a_renovate_yml_liest_die_app_identitaet_aus_renovate_app_id(ci)
         "private-key liest nicht aus RENOVATE_APP_PRIVATE_KEY"
 
 
-
 def test_t002161_b_renovate_yml_uebergibt_den_gepraegten_app_token_nicht_ein_statisches_secret(ci):
     text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
     assert re.search(r"steps\.[a-z-]+\.outputs\.token", text), \
         "renovatebot/github-action bekommt keinen Token aus dem create-github-app-token-Step"
 
 
-
 def test_t002161_c_auto_enable_automerge_yml_nimmt_renovate_prs_dependencies_label_aus(ci):
     text = (ci["repo"] / ".github/workflows/auto-enable-automerge.yml").read_text()
     assert re.search(r"labels.\*.name", text) and "dependencies" in text, \
         "auto-enable-automerge.yml prueft das dependencies-Label nicht"
-
 
 
 def test_t002161_d_renovate_json5_labelt_seine_prs_und_setzt_platformautomerge(ci):
@@ -199,12 +176,10 @@ def test_t002161_d_renovate_json5_labelt_seine_prs_und_setzt_platformautomerge(c
         "renovate.json5 setzt platformAutomerge nicht explizit auf true"
 
 
-
 def test_t002165_renovate_yml_gibt_renovate_die_repo_arbeitsliste_explizit_mit(ci):
     text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
     assert re.search(r"RENOVATE_REPOSITORIES: \$\{\{ github\.repository \}\}", text), \
         "renovate.yml setzt RENOVATE_REPOSITORIES nicht auf github.repository"
-
 
 
 def test_t002165_renovate_json5_nutzt_kein_deprecated_matchpackagepatterns(ci):
@@ -213,12 +188,10 @@ def test_t002165_renovate_json5_nutzt_kein_deprecated_matchpackagepatterns(ci):
         "renovate.json5 verwendet noch matchPackagePatterns (deprecated)"
 
 
-
 def test_t002165_renovate_json5_hat_keine_keycloak_regel_mehr_plattform_nutzt_pocket_id(ci):
     cfg = (ci["repo"] / "renovate.json5").read_text()
     assert not re.search(r'"matchPackageNames".*keycloak|"matchPackagePatterns".*keycloak', cfg), \
         "renovate.json5 gruppiert noch keycloak-Images"
-
 
 
 def test_t002163_website_deploy_list_erfasst_alle_envsubst_aufrufe_des_tasks(ci):
@@ -227,12 +200,10 @@ def test_t002163_website_deploy_list_erfasst_alle_envsubst_aufrufe_des_tasks(ci)
         assert v in names, f"{v} fehlt in der extrahierten website:deploy-Allowlist"
 
 
-
 def test_t002163_ci_yml_fuehrt_alle_spec_tests_via_task_test_spec_in_einem_required_check(ci):
     text = (ci["repo"] / ".github/workflows/ci.yml").read_text()
     assert re.search(r"task test:spec|tests/spec/\*\.bats", text), \
         "ci.yml ruft task test:spec nicht auf (laedt alle spec-tests)"
-
 
 
 def test_t002182_ci_yml_test_spec_job_uses_task_test_spec_full_glob(ci):
@@ -243,7 +214,6 @@ def test_t002182_ci_yml_test_spec_job_uses_task_test_spec_full_glob(ci):
     non_comment = [ln for ln in block.splitlines() if not re.match(r"^[ \t]*#", ln)]
     assert not any(re.search(r"tests/spec/[a-z0-9_-]+\.bats", ln) for ln in non_comment), \
         "test-spec job still enumerates individual spec files"
-
 
 
 def test_t002245_t002780_gescopte_spec_suite_behaelt_einen_erreichbaren_vollauf(ci):
@@ -266,157 +236,10 @@ def test_t002245_t002780_gescopte_spec_suite_behaelt_einen_erreichbaren_vollauf(
         "test-spec does not fetch origin/main — a diff-scoped run would select nothing"
 
 
-
-def test_t002245_find_changed_tests_sh_spec_maps_plan_slugs_and_widens_on_harness_changes(run_cmd, ci, tmp_path):
-    tmp = tmp_path / "finder-repo"
-    (tmp / "tests/spec/helpers").mkdir(parents=True)
-    (tmp / "docs/superpowers/specs/alpha").mkdir(parents=True)
-    _finder_repo(ci, tmp)
-    (tmp / "tests/spec/alpha.bats").write_text("")
-    (tmp / "tests/spec/beta.bats").write_text("")
-    (tmp / "tests/spec/helpers/shared.bash").write_text("")
-    (tmp / "docs/superpowers/specs/alpha/spec.md").write_text("")
-    _init_base(run_cmd, tmp)
-
-    # docs/superpowers/specs/alpha/** -> tests/spec/alpha.bats, and nothing else
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic")
-    with open(tmp / "docs/superpowers/specs/alpha/spec.md", "a") as fh:
-        fh.write("change\n")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "plan")
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert result.stdout.rstrip("\n") == "tests/spec/alpha.bats"
-
-    # shared harness -> full suite (both files)
-    _g(run_cmd, tmp, "checkout", "-q", "main")
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic2")
-    with open(tmp / "tests/spec/helpers/shared.bash", "a") as fh:
-        fh.write("change\n")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "harness")
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert len(result.stdout.rstrip("\n").split("\n")) == 2
-
-
-
-def test_t002245_find_changed_tests_sh_spec_picks_the_deepest_path_referencing_spec(run_cmd, ci, tmp_path):
-    tmp = tmp_path / "probe-repo"
-    (tmp / "tests/spec").mkdir(parents=True)
-    (tmp / "components/website/src/pages/admin").mkdir(parents=True)
-    _finder_repo(ci, tmp)
-    (tmp / "tests/spec/deep.bats").write_text("# covers components/website/src/pages/admin\n")
-    (tmp / "tests/spec/shallow.bats").write_text("# covers components/website/src\n")
-    (tmp / "tests/spec/toplevel.bats").write_text("# covers website\n")
-    (tmp / "components/website/src/pages/admin/dora.astro").write_text("")
-    (tmp / "components/website/loose.txt").write_text("")
-    run_cmd(["git", "init", "-q", "-b", "main", "."], cwd=tmp).check()
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "tree")
-    _g(run_cmd, tmp, "update-ref", "refs/remotes/origin/main", "HEAD")
-
-    # Deepest match wins: the admin spec, not the broader components/website/src one.
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic")
-    with open(tmp / "components/website/src/pages/admin/dora.astro", "a") as fh:
-        fh.write("change\n")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "deep")
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert result.stdout.rstrip("\n") == "tests/spec/deep.bats"
-
-    # Floor: a top-level-only reference must not drag in the whole domain.
-    _g(run_cmd, tmp, "checkout", "-q", "main")
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic2")
-    with open(tmp / "components/website/loose.txt", "a") as fh:
-        fh.write("change\n")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "floor")
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert result.stdout.rstrip("\n") == ""
-
-
-
-def test_t002345_a_scripts_change_without_a_name_match_falls_through_to_the_path_probe(run_cmd, ci, tmp_path):
-    tmp = tmp_path / "scripts-probe-repo"
-    (tmp / "scripts/pipeline").mkdir(parents=True)
-    (tmp / "tests/spec").mkdir(parents=True)
-    _finder_repo(ci, tmp)
-    (tmp / "tests/spec/pipeline-queue.bats").write_text("# covers scripts/pipeline/queue.sh\n")
-    (tmp / "tests/spec/unrelated-one.bats").write_text("")
-    (tmp / "tests/spec/unrelated-two.bats").write_text("")
-    (tmp / "scripts/pipeline/queue.sh").write_text("")
-    run_cmd(["git", "init", "-q", "-b", "main", "."], cwd=tmp).check()
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "tree")
-    _g(run_cmd, tmp, "update-ref", "refs/remotes/origin/main", "HEAD")
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic")
-    with open(tmp / "scripts/pipeline/queue.sh", "a") as fh:
-        fh.write("change\n")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "scripts-change")
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert result.stdout.rstrip("\n") == "tests/spec/pipeline-queue.bats"
-
-
-
-def test_t002345_a_scripts_change_with_no_referencing_spec_still_widens_to_the_full_suite(run_cmd, ci, tmp_path):
-    tmp = tmp_path / "scripts-noprobe-repo"
-    (tmp / "scripts/orphan").mkdir(parents=True)
-    (tmp / "tests/spec").mkdir(parents=True)
-    _finder_repo(ci, tmp)
-    (tmp / "tests/spec/alpha.bats").write_text("")
-    (tmp / "tests/spec/beta.bats").write_text("")
-    (tmp / "scripts/orphan/nobody-tests-me.sh").write_text("")
-    run_cmd(["git", "init", "-q", "-b", "main", "."], cwd=tmp).check()
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "tree")
-    _g(run_cmd, tmp, "update-ref", "refs/remotes/origin/main", "HEAD")
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic")
-    with open(tmp / "scripts/orphan/nobody-tests-me.sh", "a") as fh:
-        fh.write("change\n")
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "orphan")
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert len(result.stdout.rstrip("\n").split("\n")) == 2
-
-
-
-def test_t900931_find_changed_tests_sh_ignores_removed_code_and_does_not_fall_back_to_run_all(run_cmd, ci, tmp_path):
-    tmp = tmp_path / "removed-code-repo"
-    (tmp / "scripts/obsolete").mkdir(parents=True)
-    (tmp / "tests/spec").mkdir(parents=True)
-    (tmp / "tests/unit").mkdir(parents=True)
-    _finder_repo(ci, tmp)
-    (tmp / "tests/spec/alpha.bats").write_text("")
-    (tmp / "tests/spec/beta.bats").write_text("")
-    (tmp / "scripts/obsolete/remove-me.sh").write_text("")
-    run_cmd(["git", "init", "-q", "-b", "main", "."], cwd=tmp).check()
-    _g(run_cmd, tmp, "add", "-A")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "tree")
-    _g(run_cmd, tmp, "update-ref", "refs/remotes/origin/main", "HEAD")
-    # Removing a script should not trigger RUN_ALL
-    _g(run_cmd, tmp, "checkout", "-q", "-b", "topic")
-    _g(run_cmd, tmp, "rm", "-q", "scripts/obsolete/remove-me.sh")
-    _g(run_cmd, tmp, "commit", "-q", "-m", "remove obsolete script")
-    result = _finder(run_cmd, tmp, "spec")
-    assert result.returncode == 0
-    assert result.stdout == "" or result.stdout.strip() == ""
-    result = _finder(run_cmd, tmp, "unit")
-    assert result.returncode == 0
-    assert result.stdout.strip() == ""
-
-
-
 def test_t002170_renovate_json5_nutzt_manager_file_patterns_statt_deprecated_file_match(ci):
     cfg = (ci["repo"] / "renovate.json5").read_text()
     assert not re.search(r'"fileMatch"', cfg), "renovate.json5 verwendet noch den deprecated Key fileMatch"
     assert re.search(r'"managerFilePatterns"', cfg), "kein managerFilePatterns im kubernetes-Manager"
-
 
 
 def test_t002170_kubernetes_manager_file_patterns_deckt_alle_vier_manifest_baeume_ab(ci):
@@ -426,13 +249,11 @@ def test_t002170_kubernetes_manager_file_patterns_deckt_alle_vier_manifest_baeum
             f"kein managerFilePatterns-Eintrag fuer '{tree}/'"
 
 
-
 def test_t002174_flux_render_implementiert_den_rigger_host_ip_auf_comfy_host_ip_fallback(ci):
     script = ci["repo"] / "scripts/flux-render-artifact.sh"
     assert script.is_file()
     assert re.search(r"RIGGER_HOST_IP=.*RIGGER_HOST_IP:-.*COMFY_HOST_IP", script.read_text()), \
         "kein Fallback RIGGER_HOST_IP -> COMFY_HOST_IP in flux-render-artifact.sh"
-
 
 
 def test_t002174_flux_render_rendert_den_dev_stack_nicht_wenn_dev_domain_leer_ist(ci):
@@ -445,14 +266,12 @@ def test_t002174_flux_render_rendert_den_dev_stack_nicht_wenn_dev_domain_leer_is
         "der dev-Renderblock hat keinen Leer-Guard auf DEV_DOMAIN"
 
 
-
 def test_t002174_der_dev_renderblock_verschluckt_env_resolve_fehler_nicht_per_or_true(ci):
     script = ci["repo"] / "scripts/flux-render-artifact.sh"
     assert script.is_file()
     block = _awk_range_text(script.read_text(), r"# 1b\. Dev", r"^\)")
     assert not re.search(r"env-resolve\.sh dev.*\|\| true", block), \
         "'source scripts/env-resolve.sh dev ... || true' im dev-Renderblock"
-
 
 
 def test_t002186_devflow_ci_watch_0_check_runs_exits_with_code_5(run_cmd, ci, tmp_path):
@@ -502,18 +321,15 @@ exit 0
     assert "Keine CI-Checks" in result.output
 
 
-
 def test_t002242_m1_devflow_ci_watch_sh_ruft_assert_phase_chain_vor_dem_gruenen_exit_auf(run_cmd, ci):
     result = run_cmd(["grep", "-n", "assert-phase-chain", str(ci["repo"] / "scripts/devflow-ci-watch.sh")])
     assert result.returncode == 0
-
 
 
 def test_t002242_m3_devflow_post_merge_deploy_sh_sammelt_exit_codes_und_schlaegt_fail_closed_fehl(run_cmd, ci):
     result = run_cmd(["grep", "-nE", r"\|\| FAILED_TASKS|deploy blocked|deploy failed",
                       str(ci["repo"] / "scripts/devflow-post-merge-deploy.sh")])
     assert result.returncode == 0
-
 
 
 def test_t002252_freshness_check_regeneriert_die_artefakte_vor_dem_diff_check(ci):

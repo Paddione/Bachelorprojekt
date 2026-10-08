@@ -459,14 +459,14 @@ row target G-WT06 "$(wt_measure phantom-scope-locks)" le 0 "Phantom-Scope-Locks 
 # noch rot). Ein Fallback auf 0 wäre falsches Grün und damit genau der Defekt, den
 # dieser Block behebt.
 #
-# Der bidirektionale Guard tests/spec/health-goals/id-parity.bats hält goals.md und
+# Der bidirektionale Guard tests/py/spec/native_ported/spec/health-goals/test_id_parity.py hält goals.md und
 # diese Datei ab jetzt deckungsgleich.
 
 
 # --- Offline + schnell (18) ---------------------------------------------------
 row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated' components/website/src --exclude='*.test.ts' 2>/dev/null | grep -v goals-data.generated.json | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in components/website/src"
 # Nur den Exit abfangen, nie die Ausgabe ersetzen (grep -c druckt bei null Treffern "0").
-row gate   G-TEST01 "$(grep -rniE "skip [\"']" tests --include='*.bats' 2>/dev/null | grep -ciE 'pending|todo|WP-|disabled' || true)" eq 0 "BATS Debt-Skips (pending/todo/WP-/disabled)"
+row gate   G-TEST01 "$(grep -rniE "pytest\.skip\(|mark\.skip\(" tests/py --include='*.py' 2>/dev/null | grep -ciE 'pending|todo|WP-|disabled' || true)" eq 0 "Test Debt-Skips (pytest; pending/todo/WP-/disabled)"
 row target G-TEST03 "$(anchor_dir components/website/src; grep -rnE '(describe|it|test)\.(skip|todo)\b' components/website/src --include='*.ts' 2>/dev/null | wc -l | tr -d ' ')" le 1 "Vitest Skipped/Todo-Suiten (Ist 1 bei Aufnahme T002598)"
 row gate   G-TEST04 "$(git status --porcelain components/website/src/data/test-inventory.json 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Test-Inventory-Drift (uncommitted)"
 row gate   G-SEC02 "$(exit_code_of_script scripts/git-crypt-guard.sh check-tracked)" eq 0 "git-crypt Guard (Exit)"

@@ -1,6 +1,6 @@
 // devmesh/tailnet-policy.hujson — Soll-Fassung der Tailnet-ACL fuer devmesh (T900116, ADR-008)
 // Eingespielt vom Operator in der Admin-Konsole (Access controls), siehe
-// docs/runbooks/devmesh-tailnet.md. Guard: tests/spec/local-dev-mesh/tailnet-policy.bats.
+// docs/runbooks/devmesh-tailnet.md. Guard: tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py.
 // Format-Regel fuer den Guard: Kommentare nur als ganze Zeilen, keine grants.
 {
 	"tagOwners": {

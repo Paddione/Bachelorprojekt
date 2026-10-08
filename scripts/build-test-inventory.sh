@@ -21,13 +21,13 @@ declare -a entries=()
 if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   _discover_tests() {
     git -C "$REPO_ROOT" ls-files -z --cached --others --exclude-standard "$1" \
-      | grep -z -E '\.(sh|bats)$' | sort -z
+      | grep -z -E '\.sh$' | sort -z
   }
 else
   # maxdepth 2 [T002416]: Spec-Tests liegen seit der Verzeichniskonvention auch
   # unter tests/spec/<spec-slug>/.
   _discover_tests() {
-    find "$1" -maxdepth 2 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z
+    find "$1" -maxdepth 2 -name '*.sh' -print0 | sort -z
   }
 fi
 
@@ -47,23 +47,11 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/te
     fi
     rel="${f#${REPO_ROOT}/}"
     if [[ "$id" == "$base" ]]; then
-      # BATS files whose name does not carry a number may contain @test lines with
-      # structured IDs (e.g. MCP-TASK-RUNNER.bats with "MCP-TASK-RUNNER-001: ...").
-      # Extract those IDs directly from the file; de-duplicate to a single
-      # entry per ID per file (tests group multiple @test lines under one ID).
-      found_structured_id=0
-      while IFS= read -r test_id; do
-        found_structured_id=1
-        entries+=("$(jq -nc --arg id "$test_id" --arg path "$rel" --arg category "${test_id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")
-      done < <(grep -oP '@test\s+"\K[A-Z][A-Z0-9]*(-[A-Z][A-Z0-9]*)*-[0-9]+(?=)' "$f" 2>/dev/null | sort -u || true)
-      if [[ "$found_structured_id" -eq 1 ]]; then
-        continue
-      fi
       # Path-derived fallback [T002445]: neither the filename nor the @test titles carry a
-      # structured ID. This is reached ONLY when both detection paths above found nothing —
+      # structured ID. This is reached ONLY when the filename path above found nothing —
       # they keep precedence. Derive id/category from the path relative to the tier
       # directory, extension stripped.
-      # T002416 convention: tests/spec/<ssot-spec-slug>/<short-slug>.bats — the directory
+      # T002416 convention: tests/spec/<ssot-spec-slug>/<short-slug>.sh — the directory
       # name is the SSOT spec slug, so category becomes that slug. Top-level files (no
       # subdirectory) use the bare filename for both id and category.
       rel_to_tier="${f#${dir}/}"
@@ -79,6 +67,11 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/te
     entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "${id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")
   done < <(_discover_tests "$dir")
 done
+
+# Native pytest modules (ported from BATS, T901392): tests/py/local + tests/py/spec.
+while IFS= read -r line; do
+  [[ -n "$line" ]] && entries+=("$line")
+done < <(python3 "${REPO_ROOT}/scripts/lib/pytest-inventory.py" "$REPO_ROOT")
 
 for f in "${REPO_ROOT}"/tests/e2e/specs/*.spec.ts; do
   [[ -e "$f" ]] || continue
@@ -99,7 +92,7 @@ if printf '%s\n' "${entries[@]}" | jq -s --argjson allowPlaywrightDupes false '
   . as $orig
   # Per-(id, kind, tier) duplicate check:
   #   - local + prod are distinct tiers, so the same id may have a shell test in each.
-  #   - shell/BATS may appear at most once per (id, tier).
+  #   - shell/pytest may appear at most once per (id, kind, tier).
   #   - playwright may appear at most once per (id, tier) — if a feature needs a second
   #     e2e file in the same tier, renumber to a fresh FA-/SA-/NFA-/AK-id.
   | (group_by({id: .id, kind: .kind, tier: .tier})

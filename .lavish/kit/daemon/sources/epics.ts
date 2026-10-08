@@ -78,7 +78,7 @@ export function buildEpicsArgs(q: EpicsQuery): string[] {
 /**
  * Parst die list.sh-Ausgabe. Wirft bei allem, was kein JSON-Array ist.
  *
- * D13 (tests/spec/sdlc-cockpit/no-silent-fallback.bats): ein Datenbankausfall
+ * D13 (tests/py/spec/native_ported/spec/sdlc-cockpit/test_no_silent_fallback.py): ein Datenbankausfall
  * darf nicht aussehen wie "es gibt keine Epics". Die Vorgaengerfassung hatte
  * `catch { return [] }` und machte genau diese beiden Faelle ununterscheidbar.
  * Eine echte leere Trefferliste bleibt dagegen ein gueltiges Ergebnis.

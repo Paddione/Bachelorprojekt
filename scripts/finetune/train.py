@@ -190,8 +190,16 @@ def tokenize_row_with_assistant_mask(tokenizer, messages: list[dict], max_seq_le
     `assistant_masks` mitzuliefern; TRLs Collator honoriert das Feld selbststaendig.
     Gibt None zurueck, wenn die Zeile nach Kuerzung kein Lernsignal (assistant-Token) mehr hat.
     """
+    # Notebook-Paritaet: transformers>=5.2 erwartet Block-Content
+    # ([{"type": "text", ...}]) — String-Content normalisieren, sonst bricht
+    # der multimodale Processor-Pfad mit `string indices must be integers` ab.
+    norm = [
+        m if isinstance(m.get("content"), list)
+        else {**m, "content": [{"type": "text", "text": m.get("content") or ""}]}
+        for m in messages
+    ]
     encoded = tokenizer.apply_chat_template(
-        messages,
+        norm,
         tokenize=True,
         add_generation_prompt=False,
         return_dict=True,

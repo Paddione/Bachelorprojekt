@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.407.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.5...website-v1.407.6) (2026-10-08)
+
+
+### Tests
+
+* **test:** add massage audit spec and budgets [T901307] ([#6410](https://github.com/Paddione/Bachelorprojekt/issues/6410)) ([5209203](https://github.com/Paddione/Bachelorprojekt/commit/52092039dcc8709a1485597f4a8fbf53b63a016b))
+
 ## [1.407.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.407.4...website-v1.407.5) (2026-10-08)
 
 

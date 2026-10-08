@@ -7,6 +7,11 @@ metadata:
   source: Generated from https://github.com/vitest-dev/vitest, scripts located at https://github.com/antfu/skills
 ---
 
+## Stable-version and audit routing
+
+Always resolve the latest stable Vitest release and follow [the stable-version policy](../vitest-testing/references/stable-version-policy.md). The generated version below is a reference snapshot, not a version ceiling. Use [vitest-testing](../vitest-testing/SKILL.md) for runner configuration, environment and CI review, and [sota-testing](../sota-testing/SKILL.md) for a combined quality audit across all test frameworks.
+
+
 Vitest is a next-generation testing framework powered by Vite. It provides a Jest-compatible API with native ESM, TypeScript, and JSX support out of the box. Vitest shares the same config, transformers, resolvers, and plugins with your Vite app.
 
 **Key Features:**

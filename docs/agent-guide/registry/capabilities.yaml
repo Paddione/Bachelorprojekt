@@ -282,6 +282,33 @@ capabilities:
       state: suppressed
       reason: "Archivierte Routine mit ueberholten Pfaden; nur explizit als historische Referenz nutzen."
 
+  test-environment-audit:
+    skill:sota-testing:
+      state: canonical
+      use_when: "Alle Testumgebungen gemeinsam auditieren: Vitest, pytest, Playwright, BATS, Integration und CI; Testqualitaet, Isolation, Coverage und Flakiness bewerten."
+      avoid_when: "Nur Runner-API nachschlagen oder ohne Auftrag Tests und CI-Gates veraendern."
+      roles: [orchestrator, bp-ship, bp-build, bp-run]
+      tier: safe
+      deep_ref: ".claude/skills/sota-testing/SKILL.md"
+
+  vitest-runner-review:
+    skill:vitest-testing:
+      state: canonical
+      use_when: "Vitest-Konfiguration, Testumgebungen, Worker, Cleanup, Coverage und CI-Aufrufe pruefen; aktuelle stabile Version vor versionsabhaengigen Empfehlungen verifizieren."
+      avoid_when: "Frameworkuebergreifender Qualitaetsaudit — sota-testing; reine API-Beispiele — vitest."
+      roles: [orchestrator, bp-ship]
+      tier: safe
+      deep_ref: ".claude/skills/vitest-testing/SKILL.md"
+
+  github-actions-check-diagnosis:
+    skill:gh-fix-ci:
+      state: canonical
+      use_when: "Fehlgeschlagene GitHub-Actions-PR-Checks und Logs diagnostizieren."
+      avoid_when: "Vollstaendiger Testumgebungs-Audit oder externe CI-Provider; Fixes folgen dem autorisierten dev-flow."
+      roles: [orchestrator, bp-build, bp-ship]
+      tier: safe
+      deep_ref: ".claude/skills/gh-fix-ci/SKILL.md"
+
   # ─── Betrieb & Infrastruktur ────────────────────────────────────────────────────────
   vorfall-behandlung:
     skill:incident-response:

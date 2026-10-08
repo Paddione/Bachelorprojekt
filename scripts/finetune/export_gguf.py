@@ -112,6 +112,11 @@ def run_export(args: argparse.Namespace) -> int:
     candidates = sorted(out_path.parent.glob("*.gguf"))
     if candidates and not out_path.exists():
         shutil.move(str(candidates[-1]), str(out_path))
+    if not out_path.exists():
+        raise SystemExit(
+            f"FEHLER: kein GGUF unter {out_path} gefunden "
+            f"(Kandidaten: {[c.name for c in candidates]})."
+        )
 
     print(f"GGUF-Export abgeschlossen: {out_path}")
     print("Slot-Registrierung ist manuell — siehe scripts/finetune/README.md.")

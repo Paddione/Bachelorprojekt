@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.400.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.399.0...website-v1.400.0) (2026-10-08)
+
+
+### Features
+
+* **ci:** CI-Rot-Intake entprellen per Auto-Resolve [T900759] ([#6341](https://github.com/Paddione/Bachelorprojekt/issues/6341)) ([0cf8d0c](https://github.com/Paddione/Bachelorprojekt/commit/0cf8d0c9519d49933b296182abc26aad126a112a))
+
 ## [1.399.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.398.1...website-v1.399.0) (2026-10-08)
 
 

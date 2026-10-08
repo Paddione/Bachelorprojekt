@@ -336,7 +336,7 @@ noch bestand. Deshalb die tatsächlichen Refs nachprüfen, keinen Hook umgehen u
 bei erhaltenem Branch den Cleanup als offen berichten.
 
 Für diesen Ausnahmefall einen eigenen temporären Control-Worktree mit dem
-offiziellen `~/scripts/agent-workspace.py` anlegen. Dort den exakt passenden
+offiziellen `/home/patrick/scripts/agent-workspace.py` anlegen. Dort den exakt passenden
 `MERGED`-PR-Head und strukturierten Archiv-Receipt erneut prüfen, denselben Head
 unter `reaped/` archivieren und den Remote-Branch mit expliziter erwarteter SHA
 als Lease löschen. Archiv-Ref und Löschung positiv verifizieren; erst danach nur

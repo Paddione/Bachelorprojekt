@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.402.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.401.0...website-v1.402.0) (2026-10-08)
+
+
+### Features
+
+* **openclaw:** Harness mit eigener Rolle und User-Scope-Adapter [T900794] ([#6354](https://github.com/Paddione/Bachelorprojekt/issues/6354)) ([f1b1d29](https://github.com/Paddione/Bachelorprojekt/commit/f1b1d294dd2b0a7d39ec3cb75907b72a5ed9af48))
+
 ## [1.401.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.400.0...website-v1.401.0) (2026-10-08)
 
 

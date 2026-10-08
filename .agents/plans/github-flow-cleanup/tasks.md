@@ -35,7 +35,7 @@ Keine Baseline-Einträge hinzufügen. Shared-Remove-Helper bleibt unverändert.
 - [ ] Squash-Merge mit identischen Trees und belegtem PR-Head reproduzieren.
 - [ ] Dirty tracked/untracked Arbeit, dirty Allowlist-Pfad, fremde branch/ticket Claims
       und unbekannten Claimstatus vor Remove reproduzieren.
-- [ ] Run `bats tests/spec/agent-skills/post-merge-finalize-safety.bats` and expect FAIL before implementation; RED dokumentieren.
+- [ ] Run `bats tests/spec/agent-skills/post-merge-finalize-safety.bats` Expected: FAIL before implementation; RED dokumentieren.
 
 ## Phase 2 — Merge-Evidenz
 

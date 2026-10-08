@@ -23,7 +23,8 @@ def test_t000423_consolidated_build_website_yml_exists(repo_root):
 
 def test_t001229_standalone_korczewski_workflow_removed_korczewski_deploy_folded_into_build_website_yml(repo_root):
     assert not (repo_root / ".github/workflows/build-website-korczewski.yml").exists()
-    assert _grep_lines(_lines(repo_root, WF), r"BRAND_ID:\s*korczewski")
+    # T901440: der korczewski-Slot faehrt BRAND massage (vorher korczewski).
+    assert _grep_lines(_lines(repo_root, WF), r"BRAND_ID:\s*(korczewski|massage)")
 
 
 def test_t000423_t900810_website_deploy_pins_the_fresh_image_via_render_artifact_digest_input_flux(repo_root):

@@ -50,11 +50,12 @@ def test_migrations_extend_exactly_the_audited_checks(repo_root: Path):
         # Alle drei Brands in den neuen CHECKs
         for brand in ALLOWED_BRANDS:
             assert f"'{brand}'" in text, f"{rel}: Brand {brand} fehlt"
-        # Unbekannte Brands duerfen nicht auftauchen
-        found = set(re.findall(r"'([a-z_*]+)'", text))
-        assert found <= ALLOWED_BRANDS | {"public"} or not (
-            found - ALLOWED_BRANDS - {"public"}
-        ), f"{rel}: unerwartete Literale {found - ALLOWED_BRANDS}"
+        # Unbekannte Brands duerfen nicht auftauchen (nur CHECK-Literale werten)
+        checks = re.findall(r"CHECK\s*\(\s*brand\s+IN\s*\(([^)]+)\)", text)
+        assert checks, f"{rel}: keine CHECK (brand IN ...) gefunden"
+        for check in checks:
+            found = set(re.findall(r"'([a-z]+)'", check))
+            assert found <= ALLOWED_BRANDS, f"{rel}: unerwartete Brands {found}"
 
 
 def test_migrations_do_not_touch_billing_checks(repo_root: Path):

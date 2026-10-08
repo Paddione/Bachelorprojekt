@@ -15,7 +15,6 @@ spec:
   suspend: false
   dependsOn:
     - name: flux-infra-controllers
-    - name: flux-platform
     - name: flux-sealed-secrets-korczewski
     - name: flux-mentolder
   sourceRef:

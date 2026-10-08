@@ -92,11 +92,11 @@ management, CI health, and what is *missing* (untested risk) all count.
 file:line | rule-id | severity | finding and concrete fix
 ```
 
-Example:
+Illustrative filenames, not repository paths:
 
 ```
-tests/orders_test.py:88 | 02-determinism | High | uses datetime.now(); inject a fixed clock so the test cannot fail at month boundaries
-tests/api/user.spec.ts:12 | 03-mock-boundary | High | mocks internal UserValidator; test the real validator, mock only the HTTP gateway
+orders_test.py:88 | 02-determinism | High | uses datetime.now(); inject a fixed clock so the test cannot fail at month boundaries
+user.spec.ts:12 | 03-mock-boundary | High | mocks internal UserValidator; test the real validator, mock only the HTTP gateway
 ```
 
 End every audit with: findings table, top-3 risks, and a prioritized fix list

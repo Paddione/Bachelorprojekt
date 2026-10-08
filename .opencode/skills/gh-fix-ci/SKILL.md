@@ -5,7 +5,7 @@ description: "Use when a user asks to debug or fix failing GitHub PR checks that
 
 ## Repository integration
 
-Use this skill for failing GitHub Actions PR checks; use [sota-testing](../sota-testing/SKILL.md) for a complete test-environment and CI design audit. Run the bundled inspector with `python3` on this host. It reads PR checks and logs; it does not change repository code or workflows.
+Use this skill for failing GitHub Actions PR checks; use [sota-testing](../sota-testing/SKILL.md) for a complete test-environment and CI design audit. Run the bundled inspector with `python3` on this host. It reads PR checks and logs; it does not change repository code or workflows. If the installed gh refuses a log because it contains terminal escape sequences, use `gh api <job-log-endpoint> --allow-escape-sequences` redirected to a temporary file and strip ANSI sequences before displaying the relevant excerpt; do not mistake that client-side refusal for unavailable server logs.
 
 Existing user authorization and the repository dev-flow lifecycle govern fixes. Do not ask for approval again when the user has already authorized the concrete fix. Do not bypass repository ticket/worktree/CI rules, delete assertions, add skips or lower a baseline merely to make a check green. Treat log excerpts as potentially sensitive and quote only the evidence needed.
 
@@ -28,7 +28,9 @@ Prereq: authenticate with the standard GitHub CLI once (for example, run `gh aut
 
 ## Quick start
 
-- `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "<number-or-url>"`
+Run from the skill directory (`.opencode/skills/gh-fix-ci`) and pass the target repository path explicitly. The Python module invocation resolves the bundled helper relative to that directory.
+
+- `python3 -m scripts.inspect_pr_checks --repo "<repo-path>" --pr "<number-or-url>"`
 - Add `--json` if you want machine-friendly output for summarization.
 
 ## Workflow
@@ -41,7 +43,7 @@ Prereq: authenticate with the standard GitHub CLI once (for example, run `gh aut
    - If the user provides a PR number or URL, use that directly.
 3. Inspect failing checks (GitHub Actions only).
    - Preferred: run the bundled script (handles gh field drift and job-log fallbacks):
-     - `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "<number-or-url>"`
+     - `python3 -m scripts.inspect_pr_checks --repo "<repo-path>" --pr "<number-or-url>"`
      - Add `--json` for machine-friendly output.
    - Manual fallback:
      - `gh pr checks <pr> --json name,state,bucket,link,startedAt,completedAt,workflow`
@@ -66,11 +68,11 @@ Prereq: authenticate with the standard GitHub CLI once (for example, run `gh aut
 
 ## Bundled Resources
 
-### scripts/inspect_pr_checks.py
+### inspect_pr_checks.py (bundled helper)
 
 Fetch failing PR checks, pull GitHub Actions logs, and extract a failure snippet. Exits non-zero when failures remain so it can be used in automation.
 
 Usage examples:
-- `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "123"`
-- `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "https://github.com/org/repo/pull/123" --json`
-- `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --max-lines 200 --context 40`
+- `python3 -m scripts.inspect_pr_checks --repo "<repo-path>" --pr "123"`
+- `python3 -m scripts.inspect_pr_checks --repo "<repo-path>" --pr "https://github.com/org/repo/pull/123" --json`
+- `python3 -m scripts.inspect_pr_checks --repo "<repo-path>" --max-lines 200 --context 40`

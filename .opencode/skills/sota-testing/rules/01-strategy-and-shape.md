@@ -215,7 +215,7 @@ If not doing strict TDD, keep the two load-bearing habits:
 ## Audit checklist
 
 - [ ] Is there a written statement of suite shape and unit/integration
-      boundary? (Look in CONTRIBUTING.md, docs/testing.md, test READMEs.
+      boundary? (Look in CONTRIBUTING.md, the project testing guide, test READMEs.
       Missing → Medium.)
 - [ ] Does the actual distribution match the architecture? Count tests per
       layer (`find . -path '*e2e*' -name '*test*' | wc -l` vs unit dirs).

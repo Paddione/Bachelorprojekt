@@ -7,9 +7,13 @@ resources:
   # Security-headers middleware in this namespace (allowCrossNamespace disabled on korczewski)
   - ../website-common/domain-config.yaml
   - website-security-headers.yaml
+  # Seed-RBAC: Website-Seite (get+patch website-secrets fuer pocket-id-client-seed)
+  - pocket-id-client-seed-website-rbac.yaml
   # T000251: bisher untracked Cluster-Drift — dieses Ingress gewinnt das Routing
   # gegen die IngressRoute, daher trägt es die compress/static-cache-Annotationen.
   - website-ingress-web.yaml
+  # T901440: Apex-Routing korczewski.de -> web (Middleware + Ingress, S4)
+  - website-apex.yaml
 patches:
   - target:
       kind: Deployment

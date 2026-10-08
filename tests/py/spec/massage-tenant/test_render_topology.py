@@ -203,6 +203,29 @@ def test_auth_overlay_topology(repo_root: Path):
     pod_labels = seed.get("spec", {}).get("template", {}).get("metadata", {}).get("labels", {})
     assert pod_labels.get("app") != "pocket-id", "Seed-Pod wuerde Pocket-ID-Service-Endpoint werden"
 
+    # Workspace-Seite der Seed-RBAC (get+patch workspace-secrets)
+    roles = [d for d in docs if d and d.get("kind") in ("Role", "RoleBinding")]
+    ws_role = [r for r in roles if (r.get("metadata", {}) or {}).get("name") == "pocket-id-client-seed-role"]
+    assert ws_role, "Workspace-Seed-Role fehlt im Auth-Overlay"
+
+
+def test_seed_website_rbac_in_website_overlay(repo_root: Path):
+    # Website-Seite liegt im Website-Overlay (Transformer-Grund, s. Dateikopf)
+    rendered = _kustomize_build(repo_root, "prod-fleet/website-korczewski")
+    docs = [d for d in _yaml_load_all(rendered) if d]
+    index = _index(docs)
+    role = index.get(("Role", "website-korczewski", "pocket-id-client-seed-website-role"))
+    assert role is not None, "Website-Seed-Role fehlt"
+    assert role.get("rules", [{}])[0].get("verbs") == ["get", "patch"]
+    binding = index.get(
+        ("RoleBinding", "website-korczewski", "pocket-id-client-seed-website-rolebinding")
+    )
+    assert binding is not None, "Website-Seed-RoleBinding fehlt"
+    subjects = binding.get("subjects", [])
+    assert subjects and subjects[0].get("namespace") == "workspace-korczewski", (
+        f"Subject-Namespace falsch: {subjects}"
+    )
+
 
 def test_auth_tls_sync_targets_only_website(repo_root: Path):
     rendered = _kustomize_build(repo_root, "prod-fleet/korczewski-auth")
@@ -211,9 +234,12 @@ def test_auth_tls_sync_targets_only_website(repo_root: Path):
     tls_sync = [c for c in cronjobs if (c.get("metadata", {}) or {}).get("name") == "tls-sync"]
     assert tls_sync, "tls-sync CronJob fehlt im Auth-Overlay"
     script = str(tls_sync[0])
-    assert "website-korczewski" in script or "WEBSITE_NAMESPACE" in script
-    assert "workspace-office" not in script, "Office-Ziel wuerde fremdes Zertifikat ueberschreiben"
-    assert "coturn" not in script, "coturn-Ziel wuerde fremdes Zertifikat ueberschreiben"
+    targets = re.findall(r"for NS in ([^;]+); do", script)
+    assert targets, "keine Zielschleife im tls-sync-Skript"
+    for target in targets:
+        assert target.strip() == "${WEBSITE_NAMESPACE}", (
+            f"tls-sync-Ziel ausserhalb website-korczewski: {target}"
+        )
 
 
 # ── Produktiver Renderer ─────────────────────────────────────────────────────

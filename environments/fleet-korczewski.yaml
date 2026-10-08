@@ -11,13 +11,13 @@ env_vars:
   BGE_RERANK_HOST: "bge-rerank.korczewski.de"
   PROD_DOMAIN: korczewski.de
   CLUSTER_ENV: fleet-korczewski
-  BRAND_NAME: "KORE"
-  BRAND_ID: korczewski
-  CONTACT_EMAIL: info@korczewski.de
+  BRAND_NAME: "Massagepraxis Vögelsen"
+  BRAND_ID: massage
+  CONTACT_EMAIL: massage@korczewski.de
   # Operator-Mailbox fuer Backup-Fail-Warnungen (Alertmanager backup-email)
   BACKUP_ALERT_EMAIL: patrick@korczewski.de
   CONTACT_PHONE: ""
-  CONTACT_CITY: "Lüneburg"
+  CONTACT_CITY: "Vögelsen bei Lüneburg"
   CONTACT_NAME: "Patrick Korczewski"
   LEGAL_STREET: "In der Twiet 4"
   LEGAL_ZIP: "21360"
@@ -30,6 +30,10 @@ env_vars:
   BRETT_IMAGE_DIGEST: sha256:2222222222222222222222222222222222222222222222222222222222222222
   WEBSITE_NAMESPACE: website-korczewski
   WORKSPACE_NAMESPACE: workspace-korczewski
+  # T901440: zentrale DB-Koordinaten (shared-db in ns workspace, ADR-012)
+  WEBSITE_DB_NAMESPACE: workspace
+  WEBSITE_DB_NAME: website_massage
+  WEBSITE_DB_USER: website_massage
   WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
   INFRA_NAMESPACE: korczewski-infra
   TLS_SECRET_NAME: korczewski-tls

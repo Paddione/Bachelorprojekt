@@ -6,7 +6,7 @@ on:
     types: [opened, synchronize, reopened, edited]
     # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
     # still trigger this workflow so the branch-protection required checks
-    # (SSOT: scripts/gh-branch-protection.sh — BATS Unit + Quality Gates,
+    # (SSOT: scripts/gh-branch-protection.sh — Unit + Quality Gates,
     # Security Scan, Brett TypeScript, Conventional Commits, Spec + Guards) report success —
     # otherwise mergeStateStatus stays BLOCKED indefinitely and admin-merge is
     # required. See mishap T001149-M3.
@@ -63,7 +63,7 @@ jobs:
     # Offline pytest suite (tests/py ohne tests/py/spec) + code-quality
     # gates + API auth regression + freshness check. The core offline job
     # that most PRs hit. Does NOT need Go, kubectl, or pnpm. [T001860]
-    name: BATS Unit + Quality Gates
+    name: Unit + Quality Gates
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 20

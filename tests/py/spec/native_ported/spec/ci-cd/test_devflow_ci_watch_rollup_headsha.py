@@ -123,7 +123,7 @@ def test_t012239_failure_run_auf_dem_pr_head_check_runs_fuehrt_zu_exit_ungleich_
     (m / "pr-state").write_text("OPEN\n")
     (m / "mock-rollup-pending").write_text("0\n")
     (m / "mock-total-checks").write_text("2\n")
-    (m / "mock-check-runs-failures").write_text('["BATS Unit + Quality Gates: https://example.invalid/run"]\n')
+    (m / "mock-check-runs-failures").write_text('["Unit + Quality Gates: https://example.invalid/run"]\n')
 
     sha = _head(ws)
     (m / "mock-head-ref-oid").write_text(sha + "\n")
@@ -134,7 +134,7 @@ def test_t012239_failure_run_auf_dem_pr_head_check_runs_fuehrt_zu_exit_ungleich_
     res = _run(run_cmd, ws, "T999999", "https://github.com/x/y/pull/1", extra={"MAX_CI_ATTEMPTS": "1"})
     assert res.returncode != 0, \
         f"Bug reproduziert: Script meldete 'alle grün' (exit 0) obwohl ein failure-Run auf dem PR-HEAD vorliegt: {res.output}"
-    assert "BATS Unit + Quality Gates" in res.output, \
+    assert "Unit + Quality Gates" in res.output, \
         "Der fehlgeschlagene Check erscheint nicht in der Eskalationsmeldung"
 
 

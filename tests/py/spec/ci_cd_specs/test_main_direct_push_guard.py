@@ -46,13 +46,13 @@ def test_branch_protection_enforced_for_admins(repo_root):
 
 def test_branch_protection_uses_current_unit_check_name(repo_root):
     text = source(repo_root)
-    assert '"BATS Unit + Quality Gates"' in text
+    assert '"Unit + Quality Gates"' in text
     assert "Offline Tests (Manifests, Configs, Unit)" not in text
 
 
 def test_all_five_baseline_checks_required(repo_root):
     text = source(repo_root)
-    for check in ["BATS Unit + Quality Gates", "Security Scan", "Brett TypeScript", "Conventional Commits", "Spec + Guards"]:
+    for check in ["Unit + Quality Gates", "Security Scan", "Brett TypeScript", "Conventional Commits", "Spec + Guards"]:
         assert f'"{check}"' in text
 
 

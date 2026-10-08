@@ -36,7 +36,7 @@ Auto-Merge wartet auf diese fünf required checks:
 
 | Check | Workflow |
 |-------|----------|
-| `BATS Unit + Quality Gates` | `ci.yml` → pytest-Suite (ohne Specs) + Quality Gates (Check-Name historisch, BATS seit T901392 deinstalliert) |
+| `Unit + Quality Gates` | `ci.yml` → pytest-Suite (ohne Specs) + Quality Gates |
 | `Security Scan` | `ci.yml` → image-pin + hardcoded-secret detection |
 | `Brett TypeScript` | `ci.yml` → tsc in `components/brett/` |
 | `Conventional Commits` | `ci.yml` → commitlint PR-Titel |

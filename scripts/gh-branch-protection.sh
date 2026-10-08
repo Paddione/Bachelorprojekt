@@ -2,7 +2,7 @@
 # gh-branch-protection.sh — Idempotentes Branch-Protection-Setup für main
 #
 # Setzt die required status checks für Paddione/Bachelorprojekt:main
-# auf: BATS Unit + Quality Gates, Security Scan, Brett TypeScript,
+# auf: Unit + Quality Gates, Security Scan, Brett TypeScript,
 #      Conventional Commits, Spec + Guards
 # (E2E PR ist NICHT enthalten — informativ, blockiert keinen Auto-Merge)
 #
@@ -24,7 +24,7 @@ MANUAL_URL="https://github.com/${REPO}/settings/branches"
 # Required checks ohne E2E (Normalzustand nach diesem Feature)
 # Namen sind die GitHub-status-check-Namen (name:-Feld der Job-Definition), nicht job-IDs.
 REQUIRED_CHECKS_BASE=(
-  "BATS Unit + Quality Gates"
+  "Unit + Quality Gates"
   "Security Scan"
   "Brett TypeScript"
 
@@ -35,7 +35,7 @@ REQUIRED_CHECKS_BASE=(
 
 # Required checks inkl. E2E (Emergency-Stop-Zustand)
 REQUIRED_CHECKS_WITH_E2E=(
-  "BATS Unit + Quality Gates"
+  "Unit + Quality Gates"
   "Security Scan"
   "Brett TypeScript"
 

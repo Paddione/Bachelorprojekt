@@ -7,7 +7,9 @@ const PROD_DOMAIN = process.env.PROD_DOMAIN ?? 'mentolder.de';
 const isKore = PROD_DOMAIN === 'korczewski.de';
 
 // Kern-Routen je Marke (Override per A11Y_ROUTES=kommagetrennt für Iterationen).
-const DEFAULT_ROUTES = isKore ? publicRoutes.korczewski : publicRoutes.mentolder;
+// Massage-Rerun: A11Y_BRAND=massage (Nightly ohne Env bleibt mentolder).
+const brandRoutes = process.env.A11Y_BRAND === 'massage' ? publicRoutes.massage : null;
+const DEFAULT_ROUTES = brandRoutes ?? (isKore ? publicRoutes.korczewski : publicRoutes.mentolder);
 const CORE_ROUTES = process.env.A11Y_ROUTES
   ? process.env.A11Y_ROUTES.split(',').map((r) => r.trim()).filter(Boolean)
   : DEFAULT_ROUTES;

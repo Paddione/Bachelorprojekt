@@ -264,6 +264,9 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
         use_rslora=config.get("use_rslora", False),
         loftq_config=None,
     )
+    # Notebook-Paritaet (Qwen3.5-SFT/GRPO): explizit in den Trainingsmodus
+    # schalten — ohne for_training bleiben Inferenz-Pfade aktiv.
+    FastLanguageModel.for_training(model)
 
     rows = []
     with open(config["corpus"], "r", encoding="utf-8") as fh:
@@ -314,13 +317,19 @@ def run_training(config: dict, tracking: TrainingRun) -> int:
             eval_strategy="steps" if eval_dataset is not None else "no",
             eval_steps=10 if eval_dataset is not None else None,
             optim="adamw_8bit",
-            weight_decay=0.01,
+            weight_decay=0.001,
             lr_scheduler_type="linear",
             seed=3407,
             output_dir=config["output_dir"],
             report_to=config.get("report_to") or "none",
             push_to_hub=bool(config.get("hub_model_id")),
             hub_model_id=config.get("hub_model_id"),
+            # Notebook-Paritaet (Unsloth Qwen3.5-SFT): diese drei sind Pflicht,
+            # sonst bereitet TRL das Dataset selbst auf und ignoriert
+            # vor-tokenisierte input_ids + assistant_masks.
+            remove_unused_columns=False,
+            dataset_text_field="",
+            dataset_kwargs={"skip_prepare_dataset": True},
         ),
     )
     trainer.add_callback(tracking.trainer_callback())

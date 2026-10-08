@@ -161,10 +161,10 @@ jobs:
       - name: Pytest suite (pytest -n auto)
         run: |
           if command -v uv >/dev/null 2>&1; then
-            uv run --with pytest --with pyyaml --with pytest-xdist --with jinja2 pytest -n auto tests/py
+            uv run --with pytest --with pyyaml --with pytest-xdist --with jinja2 pytest -n auto --maxfail=1 tests/py
           else
             python3 -m pip install --quiet --break-system-packages pytest pytest-xdist pyyaml jinja2
-            python3 -m pytest -n auto tests/py
+            python3 -m pytest -n auto --maxfail=1 tests/py
           fi
 
       - name: Code-quality gates (always)

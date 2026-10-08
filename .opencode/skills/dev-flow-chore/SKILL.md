@@ -154,13 +154,28 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 
 ## Schritt 6: Worktree & Branch bereinigen
 
-**`git-workflow` Schritt 7** (SSOT): Im Haupt-Repo zuerst den Agent-Lock freigeben
-([session-coordination](.agents/skills/references/session-coordination.md) —
-`release ticket` + `release branch`, ohne stderr-Unterdrückung, T006290), dann
-`git -C "$MAIN_REPO" worktree unlock .worktrees/<slug> 2>/dev/null || true && git -C "$MAIN_REPO" worktree remove .worktrees/<slug> --force && git -C "$MAIN_REPO" branch -D chore/<slug> && git -C "$MAIN_REPO" push origin --delete chore/<slug>` im Haupt-Repo.
+Nach bestätigtem Merge und tatsächlich erfolgreichen Required Checks den regulären
+Chore aus dem eigenen Worktree über die idempotente Einheit abschließen. Die
+bereits etablierte eigene `AGENT_LOCK_SID` stabil an den Finalizer weitergeben;
+keine fremde Session-ID übernehmen:
 
-Beim Test-only-Kurzpfad (Schritt 1) gibt es keinen Worktree zu entfernen — nur
-`bash scripts/agent-lock.sh release main-checkout`, `git -C "$MAIN_REPO" checkout main`, dann `git -C "$MAIN_REPO" branch -D chore/<slug>` und `git -C "$MAIN_REPO" push origin --delete chore/<slug>`.
+```bash
+export AGENT_LOCK_SID
+bash scripts/devflow-post-merge-finalize.sh "$TICKET_EXT_ID" --pr "$PR_NUM" --branch "$BRANCH"
+```
+
+Ein Chore ohne Plan hat keinen Plan-Receipt; keinen solchen Archiv-Beleg behaupten.
+Den tatsächlichen Endzustand prüfen: eigener Worktree, lokaler und Remote-Branch
+entfernt, eigene Claims freigegeben. Exit 0 allein reicht nicht. Die gemeinsame
+[repo-hygiene-ops §2](../references/repo-hygiene-ops.md#2-stale-branches) beschreibt
+die positive Prüfung und den Remote-Control-Ausnahmefall ohne Hook-Umgehung.
+
+Beim Test-only-Kurzpfad gibt es keinen Worktree zu entfernen. Nur SID-eigene Claims
+freigeben; einen fremd genutzten Hauptcheckout weder umschalten noch entfernen.
+Solange der Chore-Branch dort ausgecheckt ist, den lokalen Branch erhalten und den
+Cleanup als offen berichten. Für sichere Branch-/Remote-Nacharbeit dieselbe SSOT
+anwenden; ein eigener Control-Worktree berechtigt nicht zum Wechseln fremder
+Checkouts.
 
 ## Schritt 7: Deploy (falls nötig)
 

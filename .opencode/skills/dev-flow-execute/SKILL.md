@@ -159,6 +159,13 @@ Auftrag an den Finalizer (wörtlich Teil des Prompts):
   ```
 - **T001571-Standing-Direktive:** Bei Anzeichen von Kontext-Überlauf stoppen und einen
   strukturierten Handoff-Report liefern (erledigte Schritte, Git-Zustand, offene Schritte).
+- **Positiven Endzustand prüfen (T901525/T901533):** Zum tatsächlichen PR-Head müssen
+  die Required Checks `SUCCESS` belegen; `SKIPPED` genügt nicht. Das Archiv braucht
+  einen strukturierten Receipt für den exakten Slug/Branch. Danach unabhängig prüfen,
+  dass der eigene Worktree sowie lokaler und Remote-Branch tatsächlich fehlen;
+  Exit 0 des Finalizers/Reapers allein beweist keinen Abschluss. Bei verbleibenden
+  Refs/Worktrees offen berichten. Detailmechanik und Hook-Ausnahme:
+  [repo-hygiene-ops §2](../references/repo-hygiene-ops.md#2-stale-branches).
 - **Rückmeldung an den Auftraggeber (Pflicht):** Endzustand berichten — erledigt, offen.
 
 **Der Orchestrator endet hier** und führt 6.4–7.5 NICHT im eigenen Kontext aus. Er bleibt nur für

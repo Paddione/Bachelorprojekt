@@ -66,3 +66,17 @@ def test_obsolete_check_rejected(protection_script, run_cmd, tmp_path):
     result = run_cmd([str(protection_script), "--from-json", str(file)])
     result.check(1)
     assert "Offline Tests (Manifests, Configs, Unit)" in result.output
+
+
+def test_auto_merge_keeps_branch_for_verified_finalizer(repo_root):
+    import yaml
+    workflow = yaml.load((repo_root / '.github/workflows/auto-enable-automerge.yml').read_text(),
+                         Loader=yaml.BaseLoader)
+    merge_commands = [line.strip() for step in workflow['jobs']['enable-automerge']['steps']
+                      for line in step.get('run', '').splitlines()
+                      if re.search(r'gh\s+pr\s+merge', line)]
+    assert merge_commands
+    for command in merge_commands:
+        assert '--auto' in command
+        assert '--squash' in command
+        assert '--delete-branch' not in command

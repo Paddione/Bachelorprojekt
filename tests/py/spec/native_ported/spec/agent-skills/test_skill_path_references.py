@@ -16,9 +16,11 @@ EXCLUDED_SKILLS = [
 # sed -E 's#https?://[^][:space:])"'"'<>`]+##g'  (URLs vorab entfernen, T900835)
 URL_RE = re.compile(r"https?://[^\]\s)\"'<>`]+")
 
+# Repo-relative prefixes only: do not reinterpret a suffix of an absolute
+# host path as a repository file. Missing relative paths are still checked.
 # PATH_PATTERN (ERE, grep -oE)
 PATH_RE = re.compile(
-    r"\b((components/website)|(plan|scripts|tests|docs|website|k3d|environments|flux))"
+    r"(?<![\w./~-])(?:\./)?((components/website)|(plan|scripts|tests|docs|website|k3d|environments|flux))"
     r"/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*"
 )
 
@@ -59,7 +61,7 @@ def extract_paths(path):
     text = URL_RE.sub("", open(path, encoding="utf-8", errors="replace").read())
     raw = []
     for line in text.splitlines():
-        raw.extend(m.group(0) for m in PATH_RE.finditer(line))
+        raw.extend(m.group(0).removeprefix("./") for m in PATH_RE.finditer(line))
     for line in text.splitlines():
         raw.extend(m.group(0) for m in SKILL_RE.finditer(line))
     stripped = []
@@ -125,3 +127,22 @@ def test_url_pfade_gelten_nicht_als_repo_relative_verweise_t900835(tmp_path):
     result = extract_paths(f)
     # Positiv-Anker: der echte Verweis wird weiterhin extrahiert.
     assert "\n".join(result) == "tests/spec/agent-skills/skill-path-references.bats"
+
+
+def test_absolute_home_helper_is_not_a_repo_relative_path(tmp_path):
+    skill = tmp_path / 'SKILL.md'
+    skill.write_text('Use `/home/patrick/scripts/agent-workspace.py`; then run `scripts/local.sh`.')
+    assert extract_paths(skill) == ['scripts/local.sh']
+
+
+def test_missing_repo_relative_reference_remains_visible(tmp_path):
+    skill = tmp_path / 'SKILL.md'
+    skill.write_text('Use `scripts/missing-helper.py` and `docs/missing-guide.md`.')
+    assert extract_paths(skill) == ['docs/missing-guide.md', 'scripts/missing-helper.py']
+
+
+
+def test_dot_prefixed_relative_paths_remain_checked(tmp_path):
+    skill = tmp_path / 'SKILL.md'
+    skill.write_text('Use `./scripts/missing-helper.py` and `./docs/missing-guide.md`.')
+    assert extract_paths(skill) == ['docs/missing-guide.md', 'scripts/missing-helper.py']

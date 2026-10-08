@@ -46,6 +46,7 @@ jobs:
       pull-requests: write
       contents: read
     steps:
+      # Branch removal follows the verified archive/finalizer receipt.
       - name: Enable squash auto-merge
         # GITHUB_TOKEN darf enablePullRequestAutoMerge nicht ausführen
         # ("Resource not accessible by integration") — daher PAT.
@@ -53,4 +54,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
-        run: gh pr merge --auto --squash --delete-branch --repo "$REPO" "$PR_NUMBER"
+        run: gh pr merge --auto --squash --repo "$REPO" "$PR_NUMBER"

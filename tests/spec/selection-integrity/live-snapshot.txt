@@ -80,6 +80,7 @@ tests/spec/application-pipeline/match-scoring.bats
 tests/spec/application-pipeline/render-cli.bats
 tests/spec/application-pipeline/schema.bats
 tests/spec/application-pipeline/theme-validation.bats
+tests/spec/appointment-requests.bats
 tests/spec/art-library-webapp.bats
 tests/spec/ast-toolchain.bats
 tests/spec/astro-type-check.bats

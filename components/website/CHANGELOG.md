@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.405.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.404.0...website-v1.405.0) (2026-10-08)
+
+
+### Features
+
+* **website:** massage business homepage and service pages [T901028] ([#6377](https://github.com/Paddione/Bachelorprojekt/issues/6377)) ([f17b91b](https://github.com/Paddione/Bachelorprojekt/commit/f17b91b745cf474307e3b3e1e1dde8a358dd0797))
+
 ## [1.404.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.403.0...website-v1.404.0) (2026-10-08)
 
 

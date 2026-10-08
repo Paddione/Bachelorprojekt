@@ -111,7 +111,7 @@ export const ServicesSchema = z.array(ServiceSchema) satisfies z.ZodType<Homepag
 // ── Leistungen (pricing catalog) ───────────────────────────────────────────
 export interface LeistungServiceRow {
   key: string; name: string; price: string; unit: string; desc: string;
-  highlight?: boolean; stundensatz_cents?: number; durationMin?: number;
+  highlight?: boolean; stundensatz_cents?: number; durationMin?: number; multiplier?: number;
 }
 export interface LeistungCategory {
   id: string; title: string; icon: string; description?: string;
@@ -125,7 +125,7 @@ export const LeistungCategorySchema = z.object({
   services: z.array(z.object({
     key: z.string(), name: z.string(), price: z.string(), unit: z.string(), desc: z.string(),
     highlight: z.boolean().optional(), stundensatz_cents: z.number().optional(),
-    durationMin: z.number().optional(),
+    durationMin: z.number().optional(), multiplier: z.number().optional(),
   })),
 }) satisfies z.ZodType<LeistungCategory>;
 

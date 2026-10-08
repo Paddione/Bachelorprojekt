@@ -12,6 +12,7 @@ import { sendAdminNotification } from '../../lib/notifications';
 import { isSlotInAnyWindow, isSlotWhitelisted, claimSlot } from '../../lib/website-db';
 import { berlinDayKey } from '../../lib/caldav-cache';
 import { getEffectiveLeistungen } from '../../lib/content';
+import { massageRowPriceLabel } from '../../lib/massage-pricing';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 import { isE2ETestRequest } from '../../lib/e2e-marker';
 
@@ -101,7 +102,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       serviceSnapshot = {
         key: entry.key,
         name: entry.name,
-        price: entry.price,
+        price: massageRowPriceLabel(entry),
         durationMin: entry.durationMin ?? null,
       };
     }

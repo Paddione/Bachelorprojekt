@@ -116,6 +116,8 @@ export const POST: APIRoute = async ({ request, redirect, locals }) => {
     services: cat.services.map((svc) => {
       const stundensatzEuro = parseFloat((form.get(`lk_${cat.id}_${svc.key}_stundensatz`) as string) || '0');
       const stundensatz_cents = Number.isNaN(stundensatzEuro) ? 0 : Math.round(stundensatzEuro * 100);
+      const multiplierRaw = parseFloat((form.get(`lk_${cat.id}_${svc.key}_multiplier`) as string) || '');
+      const multiplier = Number.isNaN(multiplierRaw) || multiplierRaw <= 0 ? undefined : multiplierRaw;
       return {
         key: svc.key,
         name: (form.get(`lk_${cat.id}_${svc.key}_name`) as string) || svc.name,
@@ -124,6 +126,7 @@ export const POST: APIRoute = async ({ request, redirect, locals }) => {
         desc: (form.get(`lk_${cat.id}_${svc.key}_desc`) as string) || svc.desc,
         highlight: form.get(`lk_${cat.id}_${svc.key}_highlight`) === '1',
         ...(stundensatz_cents > 0 ? { stundensatz_cents } : {}),
+        ...(multiplier !== undefined ? { multiplier } : {}),
       };
     }),
   }));

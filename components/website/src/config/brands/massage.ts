@@ -1,4 +1,5 @@
 import type { BrandConfig } from '../types';
+import { massagePriceLabel } from '../../lib/massage-pricing';
 
 const DISCLAIMER = 'Zur Entspannung und für das Wohlbefinden — keine Behandlung von Krankheiten.';
 
@@ -92,7 +93,7 @@ export const massageConfig: BrandConfig = {
         'Termine auf Anfrage, Bestätigung durch die Inhaberin',
         'Zahlung vor Ort mit Rechnung',
       ],
-      price: 'Preis folgt',
+      price: massagePriceLabel(30),
       pageContent: {
         headline: 'Rückenmassage in 30 Minuten',
         intro: 'Eine kurze, wohltuende Auszeit für Rücken und Schultern — ideal in der Mittagspause oder nach einem langen Tag.',
@@ -106,7 +107,7 @@ export const massageConfig: BrandConfig = {
           { title: 'Gut zu wissen', items: ['Dauer: 30 Minuten', 'Zahlung vor Ort mit Rechnung', DISCLAIMER] },
         ],
         pricing: [
-          { label: 'Rückenmassage (30 Min.)', price: 'Preis folgt', highlight: true },
+          { label: 'Rückenmassage (30 Min.)', price: massagePriceLabel(30), highlight: true },
         ],
         faq: [
           { question: 'Wie schnell bekomme ich einen Termin?', answer: 'Bitte fragen Sie möglichst am Vortag an. Ihr Termin ist erst nach meiner Bestätigung fix.' },
@@ -124,7 +125,7 @@ export const massageConfig: BrandConfig = {
         'Termine auf Anfrage, Bestätigung durch die Inhaberin',
         'Zahlung vor Ort mit Rechnung',
       ],
-      price: 'Preis folgt',
+      price: massagePriceLabel(60),
       pageContent: {
         headline: 'Ganzkörpermassage in 60 oder 90 Minuten',
         intro: 'Zeit zum Abschalten: Eine Ganzkörpermassage in ruhiger Atmosphäre — wahlweise 60 oder 90 Minuten.',
@@ -138,8 +139,8 @@ export const massageConfig: BrandConfig = {
           { title: 'Gut zu wissen', items: ['Dauer: 60 oder 90 Minuten', 'Zahlung vor Ort mit Rechnung', DISCLAIMER] },
         ],
         pricing: [
-          { label: 'Ganzkörpermassage (60 Min.)', price: 'Preis folgt', highlight: true },
-          { label: 'Ganzkörpermassage (90 Min.)', price: 'Preis folgt' },
+          { label: 'Ganzkörpermassage (60 Min.)', price: massagePriceLabel(60), highlight: true },
+          { label: 'Ganzkörpermassage (90 Min.)', price: massagePriceLabel(90) },
         ],
         faq: [
           { question: 'Welche Dauer passt zu mir?', answer: '60 Minuten sind eine gute erste Auszeit; 90 Minuten lassen noch mehr Ruhe zu. Schreiben Sie Ihren Wunsch in die Anfrage.' },
@@ -155,14 +156,14 @@ export const massageConfig: BrandConfig = {
       icon: '💆',
       description: 'Drei Zeitformate zur Auswahl. Zur Entspannung und für das Wohlbefinden — keine Behandlung von Krankheiten.',
       services: [
-        { key: 'ruecken-30', name: 'Rückenmassage', price: 'Preis folgt', unit: '30 Min.', desc: 'Kurze Auszeit für Rücken und Schultern.', durationMin: 30 },
-        { key: 'ganzkoerper-60', name: 'Ganzkörpermassage', price: 'Preis folgt', unit: '60 Min.', desc: 'Tiefe Entspannung für den ganzen Körper.', highlight: true, durationMin: 60 },
-        { key: 'ganzkoerper-90', name: 'Ganzkörpermassage', price: 'Preis folgt', unit: '90 Min.', desc: 'Die lange Auszeit — 90 Minuten Ruhe.', durationMin: 90 },
+        { key: 'ruecken-30', name: 'Rückenmassage', price: massagePriceLabel(30), unit: '30 Min.', desc: 'Kurze Auszeit für Rücken und Schultern.', durationMin: 30, multiplier: 1 },
+        { key: 'ganzkoerper-60', name: 'Ganzkörpermassage', price: massagePriceLabel(60), unit: '60 Min.', desc: 'Tiefe Entspannung für den ganzen Körper.', highlight: true, durationMin: 60, multiplier: 1 },
+        { key: 'ganzkoerper-90', name: 'Ganzkörpermassage', price: massagePriceLabel(90), unit: '90 Min.', desc: 'Die lange Auszeit — 90 Minuten Ruhe.', durationMin: 90, multiplier: 1 },
       ],
     },
   ],
   leistungenPricingHighlight: [
-    { label: 'Zahlung vor Ort mit Rechnung', price: 'Preis folgt', note: 'Alle Preise folgen — Zahlung bequem vor Ort.', highlight: true },
+    { label: 'Ganzkörpermassage (60 Min.)', price: massagePriceLabel(60), note: 'Zahlung vor Ort mit Rechnung', highlight: true },
   ],
   uebermich: {
     pageHeadline: 'Über mich',

@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
 import { getEffectiveLeistungen, getPriceListUrl, getEffectiveStammdaten, getEffectiveKontakt, bundleSeo } from '../lib/content';
+import { massageRowPriceLabel } from '../lib/massage-pricing';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isMassage = BRAND_ID === 'massage';
@@ -46,7 +47,7 @@ const massagePhoneHref = (massagePhone === '' || massagePhone.startsWith('slot:'
                   <p>{svc.desc}</p>
                 </div>
                 <div class="mg-offer-side">
-                  <p><span class="t-slot">Entwurf</span> <strong>{svc.price}</strong></p>
+                  <p><span class="t-slot">Entwurf</span> <strong>{massageRowPriceLabel(svc)}</strong></p>
                   <a class="mg-btn mg-btn-primary" href={`/kontakt?service=${svc.key}`}>Termin anfragen</a>
                 </div>
               </li>

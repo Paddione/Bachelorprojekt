@@ -8,6 +8,12 @@ import { loadDomain } from '../content-bundle';
 const here = dirname(fileURLToPath(import.meta.url));
 const contentDir = join(here, '../../../content/massage');
 
+// Erwartete OQ-05-Labels, direkt aus dem Plattform-Formatter (unabhängig vom Helper).
+const eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+const EUR_30 = eur.format(30);
+const EUR_60 = eur.format(60);
+const EUR_90 = eur.format(90);
+
 const BUNDLE_FILES = [
   'seo.json',
   'homepage.json',
@@ -61,14 +67,21 @@ describe('massage BrandConfig', () => {
     expect(massageConfig.contact.city).toBe('Vögelsen bei Lüneburg');
   });
 
-  it('prices every service as placeholder and ships the disclaimer', () => {
+  it('prices every service from the OQ-05 formula and ships the disclaimer', () => {
+    const [ruecken, ganz] = massageConfig.services;
+    expect(ruecken.price).toBe(EUR_30);
+    expect(ganz.price).toBe(EUR_60);
+    expect(ruecken.pageContent.pricing.map((p) => p.price)).toEqual([EUR_30]);
+    expect(ganz.pageContent.pricing.map((p) => p.price)).toEqual([EUR_60, EUR_90]);
     for (const svc of massageConfig.services) {
-      expect(svc.price).toBe('Preis folgt');
       expect(svc.iconSpriteId).toBeUndefined();
       expect(svc.stripeServiceKey).toBeUndefined();
     }
-    for (const row of massageConfig.leistungen.flatMap((cat) => cat.services)) {
-      expect(row.price).toBe('Preis folgt');
+    const rows = massageConfig.leistungen.flatMap((cat) => cat.services);
+    expect(rows.map((row) => row.price)).toEqual([EUR_30, EUR_60, EUR_90]);
+    for (const row of rows) {
+      expect(row.durationMin).toBeGreaterThan(0);
+      expect(row.multiplier ?? 1).toBe(1);
     }
     expect(massageConfig.leistungen[0].description).toContain('keine Behandlung von Krankheiten');
   });
@@ -114,7 +127,7 @@ describe('massage content bundles', () => {
 });
 
 describe('massage placeholder slots', () => {
-  // OQ-07 (Fotos) und OQ-05 (Preismodell → T901430) sind noch offen; alle
+  // OQ-07 (Fotos) ist noch offen; OQ-05 (Preismodell → T901430) und alle
   // übrigen Owner-Angaben (OQ-01/02/03/06/08) sind befüllt.
   const register = [
     'slot-portrait-inhaberin',
@@ -154,8 +167,7 @@ describe('massage placeholder slots', () => {
     expect(rawHomepage).toContain('"portraitInhaberin": "slot:slot-portrait-inhaberin"');
     expect(rawHomepage).toContain('"praxisRaum": "slot:slot-praxis-raum"');
     expect(rawHomepage).toContain('"stimmung": "slot:slot-stimmung-01"');
-    for (const row of loadDomain('massage', 'leistungen').flatMap((c) => c.services)) {
-      expect(row.price).toBe('Preis folgt');
-    }
+    const rows = loadDomain('massage', 'leistungen').flatMap((c) => c.services);
+    expect(rows.map((row) => row.price)).toEqual([EUR_30, EUR_60, EUR_90]);
   });
 });

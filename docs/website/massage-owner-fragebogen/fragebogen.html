@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Owner-Fragebogen Massage-MVP (T901308)</title>
+<style>
+  :root {
+    --paper: #f1ead9;
+    --card: #faf6ec;
+    --ink: #2a2620;
+    --ink-soft: #57503f;
+    --brass: #8a6526;
+    --brass-soft: #b98a3e;
+    --line: #d8cdb2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1.55;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+  header.top { border-bottom: 2px solid var(--brass); padding-bottom: 16px; margin-bottom: 24px; }
+  header.top h1 { margin: 0 0 8px; font-size: 28px; }
+  header.top p { margin: 6px 0; color: var(--ink-soft); font-size: 15px; }
+  #progress { font-family: ui-monospace, monospace; font-size: 14px; color: var(--brass); }
+  h2.section { font-size: 20px; margin: 36px 0 12px; color: var(--brass); }
+  article.q {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  article.q h3 { margin: 0 0 8px; font-size: 18px; }
+  .qid {
+    display: inline-block;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    background: var(--brass);
+    color: #fdfcf9;
+    border-radius: 6px;
+    padding: 1px 8px;
+    margin-right: 8px;
+    vertical-align: 2px;
+  }
+  article.q dl { margin: 8px 0 0; font-size: 15px; }
+  article.q dt { font-weight: bold; margin-top: 6px; }
+  article.q dd { margin: 2px 0 0; color: var(--ink-soft); }
+  article.q dd code {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    background: #efe6d2;
+    padding: 0 5px;
+    border-radius: 4px;
+  }
+  label.ans { display: block; margin-top: 12px; font-weight: bold; font-size: 15px; }
+  input[type="text"], textarea {
+    width: 100%;
+    margin-top: 6px;
+    padding: 9px 11px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fffdf7;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  textarea { min-height: 84px; resize: vertical; }
+  input:focus, textarea:focus { outline: 2px solid var(--brass); outline-offset: 1px; }
+  footer.foot { margin-top: 32px; border-top: 2px solid var(--brass); padding-top: 16px; }
+  footer.foot .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  button {
+    font-size: 15px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--brass);
+    background: var(--brass);
+    color: #fdfcf9;
+    cursor: pointer;
+  }
+  button.ghost { background: transparent; color: var(--brass); }
+  #copy-status { font-size: 14px; color: var(--ink-soft); margin-top: 8px; min-height: 20px; }
+  footer.foot p { font-size: 14px; color: var(--ink-soft); }
+  @media print {
+    body { background: #fff; }
+    main { max-width: none; padding: 0; }
+    footer.foot .row, #copy-status { display: none; }
+    article.q { break-inside: avoid; box-shadow: none; }
+    input[type="text"], textarea { border: 1px solid #999; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <h1>Owner-Fragebogen Massage-MVP</h1>
+    <p>Alle offenen Owner-Entscheide für das Epic T901016. Unbeantwortete
+    Fragen blockieren den Launch der betreffenden Stelle (nicht das ganze Epic).</p>
+    <p>Antworten werden <strong>nur lokal im Browser</strong> zwischengespeichert.
+    Zum Abgeben unten auf <strong>„Antworten kopieren"</strong> klicken und den
+    Text als Kommentar an T901308 schicken (oder hier im Chat antworten).</p>
+    <p id="progress">Beantwortet: 0 / 12</p>
+  </header>
+
+  <h2 class="section">A. Identität und Kontakt</h2>
+
+  <article class="q" id="q-oq-01">
+    <h3><span class="qid">OQ-01</span>Praxis-Name (exakter Wortlaut)</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Header, Footer, SEO-Titel, Rechnungen. Aktuell rendert „Massagepraxis Vögelsen" (<code>PRAXIS-NAME</code>).</dd>
+      <dt>Empfehlung</dt>
+      <dd>„Massagepraxis Vögelsen" bestätigen (oder exakten Wunsch-Wortlaut nennen).</dd>
+    </dl>
+    <label class="ans" for="a-oq-01">Antwort</label>
+    <input type="text" id="a-oq-01" data-qid="OQ-01" placeholder="OQ-01: Massagepraxis Vögelsen">
+  </article>
+
+  <article class="q" id="q-oq-02">
+    <h3><span class="qid">OQ-02</span>Inhaberinnen-Name und Qualifikation</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Profilseite (<code>slot-inhaberin-name</code>, <code>slot-inhaberin-qualifikation</code>), Footer, E-Mail-Signatur.</dd>
+      <dt>Empfehlung</dt>
+      <dd>Voller Name + höchste relevante Qualifikation (z. B. „staatl. geprüfte Masseurin"), so wie sie öffentlich stehen darf.</dd>
+    </dl>
+    <label class="ans" for="a-oq-02">Antwort</label>
+    <input type="text" id="a-oq-02" data-qid="OQ-02" placeholder="OQ-02: &lt;Name&gt; / &lt;Qualifikation&gt;">
+  </article>
+
+  <article class="q" id="q-oq-03">
+    <h3><span class="qid">OQ-03</span>Telefonnummer und E-Mail-Adresse</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Kontaktseite, Footer, <code>mailto:</code>/<code>tel:</code>-Links (<code>slot-telefon</code>, <code>stammdaten.email</code> — E-Mail ist aktuell leer, daher rendert kein Mail-Link).</dd>
+      <dt>Empfehlung</dt>
+      <dd>Geschäftsnummer + -adresse nennen; beides wird öffentlich angezeigt.</dd>
+    </dl>
+    <label class="ans" for="a-oq-03">Antwort</label>
+    <input type="text" id="a-oq-03" data-qid="OQ-03" placeholder="OQ-03: &lt;Telefon&gt; / &lt;E-Mail&gt;">
+  </article>
+
+  <article class="q" id="q-oq-04">
+    <h3><span class="qid">OQ-04</span>Profiltext</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Seite „Über mich" (<code>PROFILTEXT</code>), ca. 600–900 Zeichen.</dd>
+      <dt>Empfehlung</dt>
+      <dd>3–5 Sätze: Werdegang, Schwerpunkte, Arbeitsweise. Stichpunkte genügen — Redaktion übernimmt Formulierung.</dd>
+    </dl>
+    <label class="ans" for="a-oq-04">Antwort</label>
+    <textarea id="a-oq-04" data-qid="OQ-04" placeholder="Freitext oder Stichpunkte …"></textarea>
+  </article>
+
+  <h2 class="section">B. Leistungen und Preise</h2>
+
+  <article class="q" id="q-oq-05">
+    <h3><span class="qid">OQ-05</span>Preise je Leistung</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Leistungsseite + Buchungs-Journey (<code>PREIS-RUECKEN-30</code>, <code>PREIS-GANZKOERPER-60</code>, <code>PREIS-GANZKOERPER-90</code>). Alle drei Leistungen sind aktiv.</dd>
+      <dt>Empfehlung</dt>
+      <dd>Endpreise inkl. MwSt.-Hinweis nennen (oder „Kleinunternehmer §19, keine MwSt." — siehe OQ-08).</dd>
+    </dl>
+    <label class="ans" for="a-oq-05">Antwort</label>
+    <input type="text" id="a-oq-05" data-qid="OQ-05" placeholder="OQ-05: Rücken-30=&lt;€&gt;, Ganzkörper-60=&lt;€&gt;, Ganzkörper-90=&lt;€&gt;">
+  </article>
+
+  <article class="q" id="q-oq-06">
+    <h3><span class="qid">OQ-06</span>Storno-Regel (Wortlaut)</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Buchungsstrecke, Bestätigungsmail, AGB-nah (<code>STORNO-REGEL</code>, <code>slot-storno-regel</code>). Aktuell nur Struktur, kein Regeltext.</dd>
+      <dt>Empfehlung (Beispiel, bitte bestätigen oder ändern)</dt>
+      <dd>„Kostenfreier Storno bis 24 h vor Terminbeginn, danach 50 % des Preises." Steuerberatung bei Bedarf einbeziehen.</dd>
+    </dl>
+    <label class="ans" for="a-oq-06">Antwort</label>
+    <textarea id="a-oq-06" data-qid="OQ-06" placeholder="Regeltext oder „Beispiel OK" …"></textarea>
+  </article>
+
+  <h2 class="section">C. Medien</h2>
+
+  <article class="q" id="q-oq-07">
+    <h3><span class="qid">OQ-07</span>Fotos (Portrait, Praxisraum, Stimmung)</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Profilseite, Homepage, Kontakt (<code>slot-portrait-inhaberin</code>, <code>slot-praxis-raum</code>, <code>slot-stimmung-*</code>). Aktuell Platzhalter-Markierungen.</dd>
+      <dt>Empfehlung</dt>
+      <dd>Eigene, lizenzsaubere Fotos liefern (Portrait Pflicht, Rest Kür). Alternative: lizenzfreie Stock-Fotos akzeptieren (Vorschlag folgt nach Freigabe).</dd>
+    </dl>
+    <label class="ans" for="a-oq-07">Antwort</label>
+    <input type="text" id="a-oq-07" data-qid="OQ-07" placeholder="OQ-07: eigene Fotos folgen / Stock OK">
+  </article>
+
+  <h2 class="section">D. Rechnungswesen</h2>
+
+  <article class="q" id="q-oq-08">
+    <h3><span class="qid">OQ-08</span>Rechnungsangaben und §19-Status</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Rechnungsdruck + Export (<code>CREDITOR-NAME</code>, <code>CREDITOR-ADRESSE</code>, <code>STEUERNUMMER</code>). §19-UStG ist konfigurierbar, Default: an (T901027).</dd>
+      <dt>Empfehlung</dt>
+      <dd>Name, Adresse, Steuernummer nennen; §19-Default bestätigen (oder „regelbesteuert" melden).</dd>
+    </dl>
+    <label class="ans" for="a-oq-08">Antwort</label>
+    <input type="text" id="a-oq-08" data-qid="OQ-08" placeholder="OQ-08: &lt;Name&gt; / &lt;Adresse&gt; / &lt;Steuernr.&gt; / §19 an|aus">
+  </article>
+
+  <h2 class="section">E. Freigaben</h2>
+
+  <article class="q" id="q-oq-09">
+    <h3><span class="qid">OQ-09</span>Performance- und Accessibility-Budgets freigeben?</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Runbook §11 (T901307): axe 0 critical/serious (enforced, grün), Tastatur-Journey (enforced, grün), CWV Live-Ziele LCP ≤ 2,5 s / INP ≤ 200 ms / CLS ≤ 0,1 (Prüfung nach Deploy).</dd>
+      <dt>Empfehlung</dt>
+      <dd>Freigeben („OK").</dd>
+    </dl>
+    <label class="ans" for="a-oq-09">Antwort</label>
+    <input type="text" id="a-oq-09" data-qid="OQ-09" placeholder="OQ-09: OK">
+  </article>
+
+  <article class="q" id="q-oq-10">
+    <h3><span class="qid">OQ-10</span>Header-CTA „Erstgespräch" oder „Termin anfragen"?</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Der Header-Button nutzt den geteilten String <code>nav.cta-label</code> („Erstgespräch", Coaching-Duktus). Die Massage-Seiten nutzen sonst „Termin anfragen".</dd>
+      <dt>Empfehlung</dt>
+      <dd>Massage-spezifisch „Termin anfragen" (einheitlicher Duktus, kleiner Folge-Change).</dd>
+    </dl>
+    <label class="ans" for="a-oq-10">Antwort</label>
+    <input type="text" id="a-oq-10" data-qid="OQ-10" placeholder="OQ-10: Termin anfragen | Erstgespräch OK">
+  </article>
+
+  <article class="q" id="q-oq-11">
+    <h3><span class="qid">OQ-11</span>Live-Smoke und Publish freigeben?</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Epic-Kriterium 3 (Besucherweg live getestet) und Runbook-Checkliste verlangen einen Live-Smoke mit Owner-Freigabe. Publish nur mit Autorisierung.</dd>
+      <dt>Empfehlung</dt>
+      <dd>Freigeben, sobald OQ-01–OQ-08 beantwortet sind (oder „später" mit Termin).</dd>
+    </dl>
+    <label class="ans" for="a-oq-11">Antwort</label>
+    <input type="text" id="a-oq-11" data-qid="OQ-11" placeholder="OQ-11: freigegeben | später (&lt;wann&gt;)">
+  </article>
+
+  <article class="q" id="q-oq-12">
+    <h3><span class="qid">OQ-12</span>Questionnaire-Hold formal aufheben?</h3>
+    <dl>
+      <dt>Kontext</dt>
+      <dd>Epic-Vorbehalt (T901016): Lieferarbeit wartet auf beantworteten Fragebogen. Dieses Dokument IST der Fragebogen; mit OQ-01–OQ-11 ist der Vorbehalt gegenstandslos.</dd>
+      <dt>Empfehlung</dt>
+      <dd>Mit Beantwortung automatisch aufgehoben („OK").</dd>
+    </dl>
+    <label class="ans" for="a-oq-12">Antwort</label>
+    <input type="text" id="a-oq-12" data-qid="OQ-12" placeholder="OQ-12: OK">
+  </article>
+
+  <footer class="foot">
+    <h2 class="section">Abgeben</h2>
+    <div class="row">
+      <button type="button" id="btn-copy">Antworten kopieren</button>
+      <button type="button" id="btn-clear" class="ghost">Alle Antworten löschen</button>
+    </div>
+    <p id="copy-status" role="status"></p>
+    <p>Nach dem Kopieren den Text als Kommentar an T901308 schicken. Danach:
+    Inhalte einpflegen → E2E wiederholen → Live-Smoke → Epic schließen
+    (siehe README, „Nach der Beantwortung"). Stand: T901308 + T901407.</p>
+  </footer>
+</main>
+<script>
+(function () {
+  'use strict';
+  var KEY = 'massage-fragebogen-v1';
+  var fields = Array.prototype.slice.call(document.querySelectorAll('[data-qid]'));
+  var progress = document.getElementById('progress');
+  var status = document.getElementById('copy-status');
+
+  function load() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+      fields.forEach(function (f) {
+        if (saved[f.getAttribute('data-qid')]) f.value = saved[f.getAttribute('data-qid')];
+      });
+    } catch (e) { /* privater Modus o.ä. — ohne Speicher weiter */ }
+  }
+  function save() {
+    try {
+      var data = {};
+      fields.forEach(function (f) { data[f.getAttribute('data-qid')] = f.value; });
+      localStorage.setItem(KEY, JSON.stringify(data));
+    } catch (e) { /* ignorieren */ }
+  }
+  function count() {
+    var n = fields.filter(function (f) { return f.value.trim() !== ''; }).length;
+    progress.textContent = 'Beantwortet: ' + n + ' / ' + fields.length;
+  }
+  fields.forEach(function (f) {
+    f.addEventListener('input', function () { save(); count(); });
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function () {
+    var lines = fields.map(function (f) {
+      var v = f.value.trim();
+      return f.getAttribute('data-qid') + ': ' + (v === '' ? '(offen)' : v);
+    });
+    var text = 'Fragebogen Massage-MVP (T901308)\n' + lines.join('\n');
+    function done(ok) {
+      status.textContent = ok
+        ? 'Kopiert — jetzt als Kommentar an T901308 schicken.'
+        : 'Kopieren fehlgeschlagen — Antworten manuell übertragen.';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { done(document.execCommand('copy')); } catch (e) { done(false); }
+      document.body.removeChild(ta);
+    }
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', function () {
+    fields.forEach(function (f) { f.value = ''; });
+    save(); count();
+    status.textContent = 'Alle Antworten gelöscht.';
+  });
+
+  load(); count();
+})();
+</script>
+</body>
+</html>

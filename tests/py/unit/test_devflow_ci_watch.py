@@ -1,20 +1,21 @@
 import os
 import sys
 from pathlib import Path
+import importlib.util
 import pytest
 
 _repo_root = Path(__file__).resolve().parents[3]
-if str(_repo_root) not in sys.path:
-    sys.path.insert(0, str(_repo_root))
+_script_path = _repo_root / "scripts" / "devflow_ci_watch.py"
+_spec = importlib.util.spec_from_file_location("devflow_ci_watch", _script_path)
+_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
 
-from scripts.devflow_ci_watch import (
-    extract_repo_from_url,
-    resolve_ticket_sh,
-    is_executable,
-    get_sleep_interval,
-    run_ci_watch,
-    main,
-)
+extract_repo_from_url = _mod.extract_repo_from_url
+resolve_ticket_sh = _mod.resolve_ticket_sh
+is_executable = _mod.is_executable
+get_sleep_interval = _mod.get_sleep_interval
+run_ci_watch = _mod.run_ci_watch
+main = _mod.main
 
 
 def test_extract_repo_from_url():

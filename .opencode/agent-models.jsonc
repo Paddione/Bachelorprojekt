@@ -80,6 +80,27 @@
         }
       }
     },
+    // Qwen3.5-2B-MTP UD-Q4_K_XL auf CPU :18199 (Ryzen 7 5800X3D, MTP Draft 2, 8k ctx).
+    // Dient der lokalen Ausfuehrung von Teilaufgaben / Plan-Partials rein auf CPU-Ressourcen.
+    "llamacpp-cpu-2b": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama.cpp CPU :18199 (Qwen3.5-2B-MTP UD-Q4_K_XL, Ryzen 7 5800X3D, 8k ctx)",
+      "options": {
+        "baseURL": "http://127.0.0.1:18199/v1",
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "models": {
+        "Qwen3.5-2B-MTP": {
+          "name": "Qwen3.5-2B-MTP UD-Q4_K_XL (CPU :18199)",
+          "limit": {
+            "context": 65536,
+            "input": 65536,
+            "output": 4096
+          }
+        }
+      }
+    },
     // OpenCode Zen/Go: "opencode-go" statt "opencode" (Zen) - Subscription-Tier
     // ($10/mo). Nur Modelle mit gemessener Bindung werden hier eingetragen
     // (verifiziert per `opencode run --model ...` IN-CLIENT — rohes curl wird
@@ -267,6 +288,16 @@
       "color": "#22D3EE",
       "temperature": 0.3,
       "steps": 40,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
+    },
+    "plan-worker-cpu2b": {
+      "description": "Primary plan partial worker on Qwen3.5-2B-MTP (CPU :18199, Ryzen 7 5800X3D). Text-only direct execution for assigned partials with write capability.",
+      "mode": "primary",
+      "model": "llamacpp-cpu-2b/Qwen3.5-2B-MTP",
+      "prompt": "{file:./prompts/qwen35-worker.md}",
+      "color": "#A78BFA",
+      "temperature": 0.2,
+      "steps": 30,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "plan-worker-self": {

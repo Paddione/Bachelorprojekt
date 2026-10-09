@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Ticket-Detail T901664</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#0a0c10}
+a{color:#4da3ff}a:hover{color:#8cc4ff}
+</style>
+</helmet>
+<div style="min-height: 1080px; background: #0a0c10; color: #e7ecf3; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column; box-sizing: border-box">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 10px 24px; background: #0e1117; border-bottom: 1px solid #232a35">
+<div style="display: flex; align-items: center; gap: 10px">
+<span aria-hidden="true" style="width: 10px; height: 10px; background: #22e06c; border-radius: 2px; display: block"></span>
+<strong style="font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase">SDLC Leitstand</strong>
+</div>
+<nav aria-label="Pfad" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #707b8a; display: flex; flex-wrap: wrap; gap: 8px">
+<a href="Main.dc.html">Übersicht</a><span aria-hidden="true">/</span><span>T901663</span><span aria-hidden="true">/</span><span style="color: #a9b2c0">T901664</span>
+</nav>
+</header>
+
+<main style="flex: 1 1 auto; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; box-sizing: border-box">
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #4da3ff">T901664</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #ffb020; background: #2a2210; border: 1px solid #4a3a14; border-radius: 3px; padding: 3px 8px">triage</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a9b2c0; border: 1px solid #232a35; border-radius: 3px; padding: 3px 8px">Priorität hoch</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a9b2c0; border: 1px solid #232a35; border-radius: 3px; padding: 3px 8px">feat</span>
+</div>
+<h1 style="margin: 0; font-size: 26px; font-weight: 600; line-height: 1.25">S1: Hook-Matrix analysieren + Brainstorming-Q&amp;A (welche SDLC-Flächen hooken, welche alten Interfaces auffrischen)</h1>
+<p style="margin: 0; color: #a9b2c0; font-size: 15px; line-height: 1.5">Subticket 1 von T901663. Schritt: Analyse, keine Implementierung. Schreiben nur ins Ticket als Kommentare.</p>
+</div>
+
+<section aria-label="Aufträge" style="background: #12161d; border: 1px solid #1d232c; border-radius: 4px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #a9b2c0; letter-spacing: 0.06em; text-transform: uppercase">Auftrag</h2>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{tasks}}" as="t" hint-placeholder-count="4">
+<li style="display: flex; gap: 14px">
+<span style="flex: none; width: 28px; height: 28px; border: 1px solid #232a35; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #a9b2c0">{{t.n}}</span>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<strong style="font-size: 15px">{{t.title}}</strong>
+<span style="font-size: 14px; color: #a9b2c0; line-height: 1.5">{{t.text}}</span>
+</div>
+</li>
+</sc-for>
+</ol>
+</section>
+
+<section aria-label="Kommentare" style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #a9b2c0; letter-spacing: 0.06em; text-transform: uppercase">Erwartete Kommentare (Definition of Done)</h2>
+<sc-for list="{{comments}}" as="c" hint-placeholder-count="3">
+<article style="background: #12161d; border: 1px dashed #232a35; border-radius: 4px; padding: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<strong style="font-size: 14px">{{c.title}}</strong>
+<span style="font-size: 13px; color: #707b8a">[Kommentar liegt noch nicht vor]</span>
+</div>
+<span style="display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #707b8a"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; border: 1px solid #707b8a; display: block"></span>offen</span>
+</article>
+</sc-for>
+</section>
+
+</div>
+
+<aside aria-label="Metadaten" style="flex: 1 1 280px; max-width: 360px; background: #12161d; border: 1px solid #1d232c; border-radius: 4px; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #a9b2c0; letter-spacing: 0.06em; text-transform: uppercase">Metadaten</h2>
+<dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; font-size: 14px">
+<sc-for list="{{meta}}" as="m" hint-placeholder-count="6">
+<dt style="color: #707b8a">{{m.k}}</dt>
+<dd style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e7ecf3; overflow-wrap: anywhere">{{m.v}}</dd>
+</sc-for>
+</dl>
+<div style="border-top: 1px solid #1d232c; padding-top: 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; color: #707b8a; letter-spacing: 0.06em; text-transform: uppercase">Abgrenzung</span>
+<span style="font-size: 14px; color: #a9b2c0; line-height: 1.5">Keine Code- oder Hook-Änderung. Folge-Subtickets S2 bis Sn erst nach Freigabe durch den Owner.</span>
+</div>
+</aside>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      tasks: [
+        { n: '1', title: 'Hook-Matrix erstellen', text: 'Pro Fläche und Kandidat: was hooken, wo, erwarteter SDLC-Gewinn, Kosten und Risiko, Priorität (Quick Win oder Fundament).' },
+        { n: '2', title: 'Alte Interfaces bewerten', text: 'nvim-SDLC-Bruch, llama-vim Sync, openclaw, dünne Harnesses, task-runner und remote-workspace. Je: behalten, auffrischen oder entfernen, mit Aufwand.' },
+        { n: '3', title: 'Brainstorming-Q&A mit dem Owner', text: 'Scope, Prioritäten, No-Gos und Reihenfolge klären. Protokoll als Kommentar an das Ticket.' },
+        { n: '4', title: 'Entscheidungsgrundlage', text: 'Priorisierte Folge-Subtickets S2 bis Sn als Vorschlag mit Titel und zwei Zeilen je Ticket.' }
+      ],
+      comments: [
+        { title: 'Hook-Matrix' },
+        { title: 'Alt-Interface-Bewertung' },
+        { title: 'Q&A-Protokoll' }
+      ],
+      meta: [
+        { k: 'Status', v: 'triage' },
+        { k: 'Priorität', v: 'hoch' },
+        { k: 'Typ', v: 'feat' },
+        { k: 'Marke', v: 'mentolder' },
+        { k: 'Epic', v: 'T901663' },
+        { k: 'Erstellt', v: '2026-10-09' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -17,6 +17,14 @@
   },
   "impact_files": [
     {
+      "path": ".github/workflows/ci.yml",
+      "language": "config",
+      "loc": 906,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "docs/code-quality/ci-map.yaml",
       "language": "config",
       "loc": 0,
@@ -92,6 +100,14 @@
       "path": "taskfiles/Taskfile.llm.yml",
       "language": "config",
       "loc": 217,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.test.yml",
+      "language": "config",
+      "loc": 767,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null

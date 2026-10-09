@@ -26,6 +26,8 @@ nach dem bge-Muster, Tasks mit Offline-Fallback. Details: `proposal.md`,
 | `taskfiles/Taskfile.llm.yml` | bestehend | `llm:devflow:*` Tasks mit Fallback |
 | `scripts/llm-proxy/devflow-tools.test.mjs` | neu | Routen-Tests (`node --test`) |
 | `tests/py/spec/native_ported/spec/local-llm-proxy/test_devflow_backend.py` | neu | Backend-Tests (pytest) |
+| `taskfiles/Taskfile.test.yml` | bestehend | Runner-Registrierung neuer Proxy-Test |
+| `.github/workflows/ci.yml` | bestehend | CI-Registrierung neuer Proxy-Test |
 
 ## Partials
 
@@ -34,4 +36,10 @@ nach dem bge-Muster, Tasks mit Offline-Fallback. Details: `proposal.md`,
 | p1 | tasks.d/p1-backend-core.md | impl | `scripts/devflow/__init__.py`, `scripts/devflow/cli.py`, `scripts/devflow/sandbox.py` |  |
 | p2 | tasks.d/p2-lint-ci.md | impl | `scripts/devflow/turbolint.py`, `scripts/devflow/instaci.py`, `docs/code-quality/ci-map.yaml` | p1 |
 | p3 | tasks.d/p3-proxy-frontend.md | impl | `scripts/llm-proxy/devflow-tools.mjs`, `scripts/llm-proxy/server.mjs`, `taskfiles/Taskfile.llm.yml` | p1 |
-| p4 | tasks.d/p4-tests.md | tests | `scripts/llm-proxy/devflow-tools.test.mjs`, `tests/py/spec/native_ported/spec/local-llm-proxy/test_devflow_backend.py` | p1, p2, p3 |
+| p4 | tasks.d/p4-tests.md | tests | `scripts/llm-proxy/devflow-tools.test.mjs`, `tests/py/spec/native_ported/spec/local-llm-proxy/test_devflow_backend.py`, `taskfiles/Taskfile.test.yml`, `.github/workflows/ci.yml` | p1, p2, p3 |
+
+## Task 5: Finale Verifikation
+
+- `task test:changed` — gezielte Tests für geänderte Domains
+- `task freshness:regenerate` — generierte Artefakte aktualisieren
+- `task freshness:check` — CI-Äquivalent (Freshness + S1–S4-Ratchet + Baseline-Assertion)

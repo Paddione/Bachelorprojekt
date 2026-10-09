@@ -3990,6 +3990,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/fixtures/plan-vector-routing-fake-retrieve",
+    "file": "tests/spec/llm-local-dev/fixtures/plan-vector-routing-fake-retrieve.sh",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/glimmer-serving-profile",
     "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_glimmer_serving_profile.py",
     "category": "llm-local-dev",

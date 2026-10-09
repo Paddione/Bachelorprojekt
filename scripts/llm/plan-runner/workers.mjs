@@ -10,7 +10,7 @@ import { EventEmitter } from 'node:events';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseResult } from './plan.mjs';
+import { parseResult, normalisePartialSize } from './plan.mjs';
 
 // Primaer-Agenten: opencode run ersetzt Subagenten still durch den Default-Agenten.
 export const AGENT_4B = 'plan-worker-qwen35';
@@ -60,10 +60,28 @@ export function buildAgentSpawn({ agent, prompt, worktree }) {
 // Dispatch-Policy (T901014 P1): genau eine Funktion entscheidet Self-vs-Worker.
 // Eingaben: ready (bereite Partial-IDs in Manifest-Reihenfolge), freeSlots (freie 4B-Slots).
 // Ausgabe: 'worker' (4B-Dispatch), 'self' (Selbstaufruf, nur wenn kein Slot frei), 'idle' (nichts bereit).
-export function decideTrack({ ready, freeSlots }) {
+// T901542 (plan-vector-routing): nimmt optional `sizes` ({ partialId: 's'|'m'|'l' })
+// entgegen — heute routing-neutral (Rueckgabe bleibt String-kompatibel: worker/self/idle).
+// Extension-Point: sobald ein schweres Modell (z. B. gpt-oss-20B) auf :1919 deployt ist,
+// wird size 'l' auf einen neuen Track 'heavy' geroutet, ohne decideTrack-Aufrufer
+// anzufassen. Kein Modell-Deploy in diesem Change (nur :1919 passt ein schweres Modell,
+// das verdraengt Qwen3.8-27B — eigene Entscheidung). CPU-Tier (0.8B/2B) bewusst nicht
+// verdrahtet: 4B ist Minimum fuer Tool-Loops.
+export function decideTrack({ ready, freeSlots, sizes = null }) {
+  void sizes; // routing-neutral bis ein Heavy-Modell auf :1919 deployt ist (T901542)
   if (!Array.isArray(ready) || ready.length === 0) return 'idle';
   if (Number(freeSlots) > 0) return 'worker';
   return 'self';
+}
+
+// Wie decideTrack, liefert zusaetzlich den Size-Hint des ersten bereiten Partials
+// (Default 'm' wenn fehlend/ungueltig). Der Track bleibt auf bestehenden Werten —
+// kein 'heavy' ohne deploytes Modell.
+export function decideTrackWithHint({ ready, freeSlots, sizes = {} }) {
+  const track = decideTrack({ ready, freeSlots, sizes });
+  const first = Array.isArray(ready) && ready.length ? ready[0] : null;
+  const raw = first && sizes && typeof sizes === 'object' ? sizes[first] : null;
+  return { track, sizeHint: normalisePartialSize(raw) };
 }
 
 // Startet `<bin> run --agent <agent> [--model <modell>] <prompt>` im Worktree und liefert

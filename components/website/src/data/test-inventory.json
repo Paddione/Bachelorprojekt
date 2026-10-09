@@ -4806,14 +4806,14 @@
     "kind": "pytest"
   },
   {
-    "id": "neovim-dashboard",
-    "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard.py",
-    "category": "neovim-dashboard",
+    "id": "native_ported/spec/neovim_dashboard_tui",
+    "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard_tui.py",
+    "category": "native_ported",
     "kind": "pytest"
   },
   {
-    "id": "neovim-dashboard-tui",
-    "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard_tui.py",
+    "id": "neovim-dashboard",
+    "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard.py",
     "category": "neovim-dashboard",
     "kind": "pytest"
   },

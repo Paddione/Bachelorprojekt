@@ -215,3 +215,51 @@ tasks:
     desc: "Bild-MCP (127.0.0.1:13008, ComfyUI bei Bedarf) installieren und in Muse Code (WSL + Windows) eintragen [T900379]"
     cmds:
       - bash scripts/comfy-image-mcp/install.sh
+
+  # T901630 — Devflow-Werkzeuge via llm-proxy. Erreichbarkeitsprobe gegen
+  # /livez, nicht /health (Muster proxy:status, T002336): antwortet /livez
+  # nicht, warnt der Task SICHTBAR und faellt auf direktes `python3 -m devflow`
+  # mit demselben Verb zurueck — nie still (Fail-closed, ADR-004).
+  devflow:turbolint:
+    desc: "Turbolint via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]"
+    cmds:
+      - |
+        PORT="${LLM_PROXY_PORT:-18235}"
+        BODY="$(jq -n --arg w "${WORKTREE:-.}" --arg s "${SCOPE:-changed}" '{worktree: $w, scope: $s}')"
+        if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
+          curl -fsS --max-time 300 -X POST "http://127.0.0.1:$PORT/tools/devflow/turbolint" \
+            -H 'Content-Type: application/json' -d "$BODY"
+        else
+          echo "::warning::llm-proxy offline (:$PORT/livez) — Fallback auf direktes python3 -m devflow" >&2
+          echo "$BODY" | PYTHONPATH=scripts python3 -m devflow turbolint {{.CLI_ARGS}}
+        fi
+
+  devflow:insta_ci:
+    desc: "Insta-CI via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]"
+    cmds:
+      - |
+        PORT="${LLM_PROXY_PORT:-18235}"
+        BODY="$(jq -n --arg w "${WORKTREE:-.}" --arg s "${SCOPE:-changed}" '{worktree: $w, scope: $s}')"
+        if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
+          curl -fsS --max-time 1500 -X POST "http://127.0.0.1:$PORT/tools/devflow/insta_ci" \
+            -H 'Content-Type: application/json' -d "$BODY"
+        else
+          echo "::warning::llm-proxy offline (:$PORT/livez) — Fallback auf direktes python3 -m devflow" >&2
+          echo "$BODY" | PYTHONPATH=scripts python3 -m devflow insta_ci {{.CLI_ARGS}}
+        fi
+
+  devflow:sandbox:
+    desc: "Sandbox via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]"
+    cmds:
+      - |
+        PORT="${LLM_PROXY_PORT:-18235}"
+        BODY="$(jq -n --arg w "${WORKTREE:-.}" --arg s "${SCOPE:-changed}" --arg a "${ACTION:-activate}" \
+          --arg t "${TICKET:-}" --arg b "${BRANCH:-}" --arg p "${PLAN:-}" --arg i "${INTEL_SNAPSHOT:-}" \
+          '{worktree: $w, scope: $s, action: $a, ticket: $t, branch: $b, plan: $p, "intel-snapshot": $i}')"
+        if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
+          curl -fsS --max-time 60 -X POST "http://127.0.0.1:$PORT/tools/devflow/sandbox" \
+            -H 'Content-Type: application/json' -d "$BODY"
+        else
+          echo "::warning::llm-proxy offline (:$PORT/livez) — Fallback auf direktes python3 -m devflow" >&2
+          echo "$BODY" | PYTHONPATH=scripts python3 -m devflow sandbox {{.CLI_ARGS}}
+        fi

@@ -5,6 +5,27 @@
 // textContains, textMatches, apiEquals.
 import { isDeepStrictEqual } from 'node:util';
 
+export const CHECK_TYPES = ['urlContains', 'urlMatches', 'textContains', 'textMatches', 'apiEquals'];
+
+// Schema-Pruefung der kuratierten Flows (pure Funktion, fail-fast vor dem ersten Browser).
+export function validateFlows(flows) {
+  if (!Array.isArray(flows) || !flows.length) throw new Error('flows muss ein nicht-leeres Array sein');
+  for (const f of flows) {
+    if (typeof f?.id !== 'string' || !f.id) throw new Error('Flow ohne id: Feld id fehlt oder ist leer');
+    if (typeof f.start_url !== 'string' || !f.start_url.startsWith('/')) {
+      throw new Error(`Flow ${f.id}: start_url muss relativ sein (fuehrendes /)`);
+    }
+    const checks = f.goal_checks ?? f.checks;
+    if (!Array.isArray(checks) || !checks.length) throw new Error(`Flow ${f.id}: goal_checks fehlt oder ist leer`);
+    for (const c of checks) {
+      if (!CHECK_TYPES.includes(c?.type)) throw new Error(`Flow ${f.id}: unbekannter Check-Typ ${c?.type}`);
+      if (!('value' in c)) throw new Error(`Flow ${f.id}: Check ${c.type} ohne value`);
+    }
+    if ('auth' in f && typeof f.auth !== 'boolean') throw new Error(`Flow ${f.id}: auth muss boolean sein`);
+  }
+  return flows;
+}
+
 const short = (v, n = 120) => {
   const s = typeof v === 'string' ? v : JSON.stringify(v) ?? String(v);
   return s.length > n ? s.slice(0, n) + '…' : s;

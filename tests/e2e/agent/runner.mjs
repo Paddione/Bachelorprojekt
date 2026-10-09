@@ -4,13 +4,12 @@
 // Vorbild CLI/JSONL/Reps: scripts/llm/bench-orchestration.mjs.
 import { writeFileSync, appendFileSync, readFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
-import { evaluateFlow, summarize } from './oracle.mjs';
+import { evaluateFlow, summarize, validateFlows } from './oracle.mjs';
 
 const PROMPT_VERSION = 1;
 const VIEWPORT = { width: 1280, height: 800 };
 const MAX_TOKENS = 800;
 const MAX_REPAIRS = 2;
-const CHECK_TYPES = ['urlContains', 'urlMatches', 'textContains', 'textMatches', 'apiEquals'];
 const ACTIONS = ['click', 'fill', 'goto', 'assert', 'done'];
 
 const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
@@ -21,6 +20,7 @@ const REPS = Number(arg('reps', '3'));
 const OUT = arg('out', 'agent-bench.jsonl');
 const OBS = arg('obs', 'screenshot');
 const MAX_TURNS = Number(arg('max-turns', '12'));
+const AUTH = arg('auth', process.env.AGENT_AUTH_STATE || '');
 
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
   console.log(`agent-runner (PROMPT_VERSION=${PROMPT_VERSION}) — Vision-Agent-Harness
@@ -31,7 +31,8 @@ Flags:
   --out <jsonl>      Ergebnisdatei, eine JSON-Zeile je Lauf (Default: ${OUT})
   --obs <mode>       screenshot|hybrid (Default: ${OBS})
   --max-turns <n>    Turn-Limit je Lauf (Default: ${MAX_TURNS})
-Env: AGENT_MODEL_URL, AGENT_BASE_URL (Default: ${BASE})`);
+  --auth <pfad>      Playwright-storageState (JSON) fuer Flows mit "auth": true (Default: keiner, anonym)
+Env: AGENT_MODEL_URL, AGENT_BASE_URL (Default: ${BASE}), AGENT_AUTH_STATE`);
   process.exit(0);
 }
 
@@ -43,6 +44,13 @@ if (!FLOWS_PATH) fail('--flows <pfad> fehlt (siehe --help)');
 if (!['screenshot', 'hybrid'].includes(OBS)) fail(`--obs muss screenshot|hybrid sein, ist ${OBS}`);
 if (!Number.isInteger(REPS) || REPS < 1) fail(`--reps muss >= 1 sein, ist ${REPS}`);
 if (!Number.isInteger(MAX_TURNS) || MAX_TURNS < 1) fail(`--max-turns muss >= 1 sein, ist ${MAX_TURNS}`);
+if (AUTH) {
+  try {
+    JSON.parse(readFileSync(AUTH, 'utf8'));
+  } catch (e) {
+    fail(`--auth ${AUTH} ist nicht lesbar oder kein gueltiges JSON: ${String(e.message ?? e).slice(0, 200)}`);
+  }
+}
 
 function loadFlows(path) {
   let doc;
@@ -53,19 +61,8 @@ function loadFlows(path) {
   }
   const flows = Array.isArray(doc) ? doc : doc.flows;
   if (!Array.isArray(flows) || !flows.length) throw new Error(`Flows-Datei ${path}: Array 'flows' fehlt oder ist leer`);
-  for (const f of flows) {
-    if (typeof f.id !== 'string' || !f.id) throw new Error(`Flow ohne id in ${path}`);
-    if (typeof f.start_url !== 'string' || !f.start_url.startsWith('/')) {
-      throw new Error(`Flow ${f.id}: start_url muss relativ sein (fuehrendes /)`);
-    }
-    const checks = f.goal_checks ?? f.checks;
-    if (!Array.isArray(checks) || !checks.length) throw new Error(`Flow ${f.id}: goal_checks fehlt oder ist leer`);
-    for (const c of checks) {
-      if (!CHECK_TYPES.includes(c.type)) throw new Error(`Flow ${f.id}: unbekannter Check-Typ ${c.type}`);
-      if (!('value' in c)) throw new Error(`Flow ${f.id}: Check ${c.type} ohne value`);
-    }
-    f.goal_checks = checks;
-  }
+  validateFlows(flows);
+  for (const f of flows) f.goal_checks = f.goal_checks ?? f.checks;
   return flows;
 }
 
@@ -178,12 +175,16 @@ async function execute(page, action) {
 
 async function runFlow(flow, rep) {
   const rec = { flow: flow.id, rep, pass: false, turns: 0, protocol_errors: 0,
-    wall_ms: 0, tokens: 0, error: null, oracle: null };
+    wall_ms: 0, tokens: 0, error: null, oracle: null, authUsed: Boolean(AUTH) };
+  if (flow.auth === true && !AUTH) {
+    rec.error = 'auth-required';
+    return rec;
+  }
   const t0 = Date.now();
   let browser;
   try {
     browser = await chromium.launch();
-    const ctx = await browser.newContext({ viewport: VIEWPORT });
+    const ctx = await browser.newContext({ viewport: VIEWPORT, ...(AUTH ? { storageState: AUTH } : {}) });
     await ctx.addInitScript(() => { window.localStorage.setItem('cookie_consent_v1', 'necessary'); });
     const page = await ctx.newPage();
     await page.goto(BASE + flow.start_url, { waitUntil: 'domcontentloaded', timeout: 30000 });

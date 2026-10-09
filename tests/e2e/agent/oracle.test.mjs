@@ -4,7 +4,7 @@
 // Fixture-Namen entsprechen den kuratierten Flows aus curated.json (p2).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateFlow, summarize } from './oracle.mjs';
+import { evaluateFlow, summarize, validateFlows } from './oracle.mjs';
 
 test('evaluateFlow: Login-Fixture mit erfuellten Checks besteht', () => {
   const flow = {
@@ -107,4 +107,35 @@ test('summarize: einzeilige stderr-Zeile mit Flow, Pass und Fail-Namen', () => {
   assert.equal(line, 'flow=smoke-home pass=false failed=textContains');
   const ok = summarize({ flow: 'smoke-home', pass: true, checks: [{ name: 'urlContains', pass: true }] });
   assert.equal(ok, 'flow=smoke-home pass=true failed=none');
+});
+
+const okFlow = (extra = {}) => ({ id: 'smoke-home', start_url: '/', goal_checks: [{ type: 'urlContains', value: '/' }], ...extra });
+
+test('validateFlows: gueltige Flows mit und ohne auth-Marker passieren unveraendert', () => {
+  const flows = [okFlow({ id: 'content-hub-editor', auth: true }), okFlow()];
+  assert.equal(validateFlows(flows), flows);
+});
+
+test('validateFlows: unbekannter Check-Typ nennt die Flow-ID', () => {
+  assert.throws(() => validateFlows([okFlow({ id: 'x1', goal_checks: [{ type: 'cssVisible', value: 'a' }] })]), /Flow x1.*cssVisible/);
+});
+
+test('validateFlows: auth ohne boolean nennt die Flow-ID', () => {
+  assert.throws(() => validateFlows([okFlow({ id: 'x2', auth: 'yes' })]), /Flow x2.*auth/);
+});
+
+test('validateFlows: leere Checks nennen die Flow-ID', () => {
+  assert.throws(() => validateFlows([okFlow({ id: 'x3', goal_checks: [] })]), /Flow x3/);
+});
+
+test('validateFlows: fehlende id wird benannt', () => {
+  const { id, ...ohneId } = okFlow();
+  assert.throws(() => validateFlows([ohneId]), /id/);
+});
+
+test('curated.json: genau die zwei Admin-Flows tragen den auth-Marker', async () => {
+  const { readFileSync } = await import('node:fs');
+  const doc = JSON.parse(readFileSync(new URL('./curated.json', import.meta.url), 'utf8'));
+  validateFlows(doc.flows);
+  assert.deepEqual(doc.flows.filter((f) => f.auth === true).map((f) => f.id), ['content-hub-editor', 'admin-inbox-renders']);
 });

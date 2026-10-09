@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "slug": "vision-api-state",
+    "ticket_id": "T901677",
+    "generated_from": "main@9864c1816da1cb4fdae856bc4733c1ff40713a2f",
+    "domains": [
+      "e2e",
+      "vision-agent"
+    ],
+    "intel_sources": [
+      "source-read",
+      "baseline.json",
+      "gates.yaml",
+      "wc-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "tests/e2e/agent/runner.mjs",
+      "language": "javascript",
+      "loc": 256,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 544
+    },
+    {
+      "path": "tests/e2e/agent/read-state.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 800
+    },
+    {
+      "path": "tests/py/spec/e2e-vision-agent/test_api_state.py",
+      "language": "python",
+      "loc": 129,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 671
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/e2e/agent/runner.mjs:readState",
+      "kind": "function",
+      "file": "tests/e2e/agent/runner.mjs",
+      "signature": "async readState(page)",
+      "type_text": "Promise<{url,text,apiState}>",
+      "source": "source-read"
+    },
+    {
+      "qualified_name": "tests/e2e/agent/oracle.mjs:evaluateFlow",
+      "kind": "function",
+      "file": "tests/e2e/agent/oracle.mjs",
+      "signature": "evaluateFlow(flow, state)",
+      "type_text": "{pass:boolean,checks:Array}",
+      "source": "source-read"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "runFlow"
+    ],
+    "edges": [
+      {
+        "from": "runFlow",
+        "to": "readState",
+        "kind": "calls"
+      },
+      {
+        "from": "runFlow",
+        "to": "evaluateFlow",
+        "kind": "calls"
+      }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "Graph/LSP/context7 not queried for this known-symbol fix; direct source reads verify local signatures. Admin GET /api/sessions/:room/snapshot requires auth.requireAdmin and returns {state,recordedAt} (components/brett/src/server/routes/admin.ts). No DB changes. Dev infrastructure gap remains independent T901678.",
+      "severity": "warn"
+    }
+  ]
+}

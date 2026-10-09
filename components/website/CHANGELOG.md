@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.413.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.412.1...website-v1.413.0) (2026-10-09)
+
+
+### Features
+
+* **scripts:** llm-proxy devflow tools MVP [T901630] ([#6459](https://github.com/Paddione/Bachelorprojekt/issues/6459)) ([a50133d](https://github.com/Paddione/Bachelorprojekt/commit/a50133d42f194b766fc3626c46ec075f48f59b34))
+
 ## [1.412.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.412.0...website-v1.412.1) (2026-10-09)
 
 

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Massagepraxis Vögelsen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Karla:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#f1ebe0}
+a{color:#2f4a3f}a:hover{color:#1c3027}
+</style>
+</helmet>
+<div style="min-height: 1500px; background: #f1ebe0; color: #2a2620; font-family: 'Karla', system-ui, sans-serif; display: flex; flex-direction: column; box-sizing: border-box">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px; padding: 20px 56px">
+<strong style="font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; color: {{accent}}">Massagepraxis Vögelsen</strong>
+<nav aria-label="Hauptnavigation" style="display: flex; flex-wrap: wrap; gap: 4px 28px; flex: 1 1 320px; justify-content: flex-end">
+<a href="#leistungen" style="color: #2a2620; text-decoration: none; font-size: 16px; min-height: 44px; display: inline-flex; align-items: center">Leistungen</a>
+<a href="#ueber-mich" style="color: #2a2620; text-decoration: none; font-size: 16px; min-height: 44px; display: inline-flex; align-items: center">Über mich</a>
+<a href="#faq" style="color: #2a2620; text-decoration: none; font-size: 16px; min-height: 44px; display: inline-flex; align-items: center">Häufige Fragen</a>
+<a href="#kontakt" style="color: #2a2620; text-decoration: none; font-size: 16px; min-height: 44px; display: inline-flex; align-items: center">Kontakt</a>
+</nav>
+<a href="#kontakt" style="background: {{accent}}; color: #f7f2e8; text-decoration: none; font-weight: 700; font-size: 16px; min-height: 44px; padding: 0 22px; border-radius: 999px; display: inline-flex; align-items: center">Termin anfragen</a>
+</header>
+
+<section style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center; padding: 56px 56px 72px">
+<div style="flex: 1 1 420px; display: flex; flex-direction: column; gap: 24px">
+<span style="font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: #6d6455">Vögelsen bei Lüneburg</span>
+<h1 style="margin: 0; font-family: 'Fraunces', serif; font-weight: 400; font-size: 56px; line-height: 1.1; color: #1c3027">Eine Auszeit für Rücken und Schultern.</h1>
+<p style="margin: 0; font-size: 19px; line-height: 1.6; max-width: 520px">Eine kleine Praxis vor Ort: feste Hände, ruhige Atmosphäre und ein Ablauf in drei Schritten. Anfrage, Bestätigung, Besuch.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="#kontakt" style="background: {{accent}}; color: #f7f2e8; text-decoration: none; font-weight: 700; min-height: 48px; padding: 0 28px; border-radius: 999px; display: inline-flex; align-items: center">Termin anfragen</a>
+<a href="#leistungen" style="border: 1.5px solid {{accent}}; color: {{accent}}; text-decoration: none; font-weight: 700; min-height: 48px; padding: 0 28px; border-radius: 999px; display: inline-flex; align-items: center">Leistungen ansehen</a>
+</div>
+</div>
+<div role="img" aria-label="Platzhalter: Porträt der Inhaberin, Foto folgt" style="flex: 1 1 360px; min-height: 420px; border-radius: 200px 200px 24px 24px; background: #d9cfbd; display: flex; align-items: flex-end; justify-content: center; padding: 24px; box-sizing: border-box">
+<span style="font-size: 14px; color: #6d6455">[Porträt der Inhaberin, Foto folgt]</span>
+</div>
+</section>
+
+<section id="leistungen" style="padding: 72px 56px; background: #e6decd; display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 640px">
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-weight: 400; font-size: 36px; color: #1c3027">Massage-Anwendungen im Überblick</h2>
+<p style="margin: 0; font-size: 17px; line-height: 1.6">Zwei Anwendungen, drei Zeitformate. Alle Termine auf Anfrage mit persönlicher Bestätigung durch die Inhaberin.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px">
+<sc-for list="{{services}}" as="s" hint-placeholder-count="2">
+<article style="background: #f7f2e8; border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 16px">
+<h3 style="margin: 0; font-family: 'Fraunces', serif; font-weight: 600; font-size: 26px; color: {{accent}}">{{s.title}}</h3>
+<p style="margin: 0; font-size: 16px; line-height: 1.6">{{s.text}}</p>
+<ul style="margin: 0; padding-left: 20px; line-height: 1.7; font-size: 16px">
+<li>{{s.f1}}</li>
+<li>Termine auf Anfrage, Bestätigung durch die Inhaberin</li>
+<li>Zahlung vor Ort mit Rechnung</li>
+</ul>
+<span style="font-weight: 700; font-size: 18px">[Preis]</span>
+</article>
+</sc-for>
+</div>
+</section>
+
+<section id="ueber-mich" style="padding: 72px 56px; display: flex; flex-direction: column; gap: 32px">
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-weight: 400; font-size: 36px; color: #1c3027">Ablauf in drei Schritten</h2>
+<ol style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px">
+<sc-for list="{{steps}}" as="p" hint-placeholder-count="3">
+<li style="display: flex; flex-direction: column; gap: 10px; border-top: 2px solid {{accent}}; padding-top: 16px">
+<span style="font-family: 'Fraunces', serif; font-size: 32px; color: {{accent}}">{{p.n}}</span>
+<strong style="font-size: 19px">{{p.title}}</strong>
+<span style="font-size: 16px; line-height: 1.6">{{p.text}}</span>
+</li>
+</sc-for>
+</ol>
+</section>
+
+<section id="faq" style="padding: 0 56px 72px; display: flex; flex-direction: column; gap: 16px; max-width: 880px">
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-weight: 400; font-size: 36px; color: #1c3027">Häufige Fragen</h2>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<strong style="font-size: 18px">Wie schnell bekomme ich einen Termin?</strong>
+<span style="font-size: 16px; line-height: 1.6">Bitte fragen Sie möglichst am Vortag an. Ihr Termin ist erst nach meiner Bestätigung fix.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<strong style="font-size: 18px">Wie kann ich zahlen?</strong>
+<span style="font-size: 16px; line-height: 1.6">Bequem vor Ort. Sie erhalten eine Rechnung.</span>
+</div>
+</section>
+
+<footer id="kontakt" style="margin-top: auto; background: #1c3027; color: #e9e2d2; padding: 40px 56px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<strong style="font-family: 'Fraunces', serif; font-size: 20px">Massagepraxis Vögelsen</strong>
+<span style="font-size: 14px; max-width: 480px; line-height: 1.5">Zur Entspannung und für das Wohlbefinden. Keine Behandlung von Krankheiten.</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; font-size: 14px">
+<a href="#" style="color: #e9e2d2">Impressum</a>
+<a href="#" style="color: #e9e2d2">Datenschutz</a>
+<span>[Kontakt]</span>
+</div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2f4a3f","options":["#2f4a3f","#7a4e3a","#3d5a73"]}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accent: this.props.accent ?? '#2f4a3f',
+      services: [
+        { title: 'Rückenmassage', text: '30 Minuten Auszeit für Rücken und Schultern, auf Anfrage in Vögelsen bei Lüneburg.', f1: '30 Minuten, gezielt für Rücken und Schultern' },
+        { title: 'Ganzkörpermassage', text: '60 oder 90 Minuten tiefe Entspannung für den ganzen Körper.', f1: '60 oder 90 Minuten, individuell abgestimmt' }
+      ],
+      steps: [
+        { n: '1', title: 'Anfrage stellen', text: 'Mit Wunschtermin und Dauer.' },
+        { n: '2', title: 'Bestätigung erhalten', text: 'Persönlich durch die Inhaberin.' },
+        { n: '3', title: 'Besuch genießen', text: 'In der Praxis in Vögelsen bei Lüneburg.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.412.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.411.0...website-v1.412.0) (2026-10-09)
+
+
+### Features
+
+* llm proxy embed mitte T901560 ([#6446](https://github.com/Paddione/Bachelorprojekt/issues/6446)) ([063ee18](https://github.com/Paddione/Bachelorprojekt/commit/063ee18a98caaa9686ddcd0c4849864ecd3d2681))
+
 ## [1.411.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.410.1...website-v1.411.0) (2026-10-09)
 
 

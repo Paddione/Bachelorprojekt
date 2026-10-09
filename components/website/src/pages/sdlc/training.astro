@@ -110,7 +110,7 @@ const OPEN = 'no_tool_direct bleibt offen: mit sichtbaren Tools ruft das feintun
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));
     gap: 1rem;
     padding-bottom: 2rem;
   }
@@ -159,6 +159,7 @@ const OPEN = 'no_tool_direct bleibt offen: mit sichtbaren Tools ruft das feintun
     font-weight: 600;
   }
   ol.steps code {
+    overflow-wrap: anywhere;
     font-size: 0.75rem;
     background: var(--admin-bg-subtle, rgba(127,127,127,0.12));
     padding: 0.125rem 0.375rem;

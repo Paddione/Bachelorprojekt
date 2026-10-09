@@ -972,6 +972,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-66",
+    "file": "tests/e2e/specs/fa-66-sdlc-frontend-sweep.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "HWS-1",
     "file": "tests/py/spec/native_ported/spec/test_harness_workflow_split.py",
     "category": "HWS",
@@ -4802,6 +4808,12 @@
   {
     "id": "native_ported/spec/local-llm-proxy/devflow_backend",
     "file": "tests/py/spec/native_ported/spec/local-llm-proxy/test_devflow_backend.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/neovim_dashboard_tui",
+    "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard_tui.py",
     "category": "native_ported",
     "kind": "pytest"
   },

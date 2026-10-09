@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Leitstand Übersicht</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#0a0c10}
+a{color:#4da3ff}a:hover{color:#8cc4ff}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 1080px; background: #0a0c10; color: #e7ecf3; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column; box-sizing: border-box">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 10px 24px; background: #0e1117; border-bottom: 1px solid #232a35">
+<div style="display: flex; align-items: center; gap: 10px">
+<span aria-hidden="true" style="width: 10px; height: 10px; background: {{accent}}; border-radius: 2px; display: block"></span>
+<strong style="font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase">SDLC Leitstand</strong>
+</div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a9b2c0; border: 1px solid #232a35; border-radius: 3px; padding: 4px 8px">massege.korczewski.de</span>
+<div style="flex: 1 1 200px"></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{signals}}" as="s" hint-placeholder-count="4">
+<span style="display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a9b2c0; background: #12161d; border: 1px solid #1d232c; border-radius: 3px; padding: 5px 10px">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: {{s.color}}; display: block"></span>{{s.label}}</span>
+</sc-for>
+</div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; flex: 1 1 auto">
+
+<nav aria-label="Hauptnavigation" style="flex: 1 1 220px; max-width: 240px; min-width: 200px; background: #0e1117; border-right: 1px solid #1d232c; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box">
+<span style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #707b8a; padding: 0 10px 8px">Ansichten</span>
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<button type="button" onClick="{{ n.pick }}" aria-pressed="{{ n.active }}" style="text-align: left; min-height: 44px; padding: 0 10px; border: 0; border-left: 2px solid {{n.bar}}; background: {{n.bg}}; color: {{n.fg}}; font-size: 14px; cursor: pointer; border-radius: 0 3px 3px 0">{{n.label}}</button>
+</sc-for>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 24px; box-sizing: border-box">
+
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600">{{viewTitle}}</h1>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #707b8a">EPIC T901663 · SDLC-Control + agentic orchestration hooks</span>
+</div>
+
+<section aria-label="Kennzahlen" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="background: #12161d; border: 1px solid #1d232c; border-radius: 4px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; color: #707b8a; letter-spacing: 0.06em; text-transform: uppercase">{{k.label}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 28px; color: #a9b2c0">[—]</span>
+<span style="font-size: 12px; color: #707b8a">{{k.note}}</span>
+</div>
+</sc-for>
+</section>
+
+<section aria-label="SDLC-Flächen" style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #a9b2c0; letter-spacing: 0.06em; text-transform: uppercase">Sieben SDLC-Flächen</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px">
+<sc-for list="{{surfaces}}" as="f" hint-placeholder-count="7">
+<article style="background: #12161d; border: 1px solid #1d232c; border-radius: 4px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+<strong style="font-size: 15px">{{f.name}}</strong>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #707b8a">{{f.code}}</span>
+</div>
+<span style="font-size: 13px; color: #a9b2c0; line-height: 1.45">{{f.hint}}</span>
+<div style="display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #707b8a">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; border: 1px solid #707b8a; display: block"></span>Hook-Status: [nicht erfasst]
+</div>
+</article>
+</sc-for>
+</div>
+</section>
+
+<section aria-label="Tickets" style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #a9b2c0; letter-spacing: 0.06em; text-transform: uppercase">Tickets im Epic</h2>
+<div style="background: #12161d; border: 1px solid #1d232c; border-radius: 4px; overflow-x: auto">
+<table style="width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px">
+<thead>
+<tr style="text-align: left; color: #707b8a; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase">
+<th scope="col" style="padding: 12px 16px; font-weight: 500">ID</th>
+<th scope="col" style="padding: 12px 16px; font-weight: 500">Titel</th>
+<th scope="col" style="padding: 12px 16px; font-weight: 500">Status</th>
+<th scope="col" style="padding: 12px 16px; font-weight: 500">Priorität</th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{tickets}}" as="t" hint-placeholder-count="2">
+<tr style="border-top: 1px solid #1d232c">
+<td style="padding: 12px 16px; font-family: 'JetBrains Mono', monospace; color: #4da3ff; white-space: nowrap"><a href="Ticket.dc.html" style="color: #4da3ff">{{t.id}}</a></td>
+<td style="padding: 12px 16px">{{t.title}}</td>
+<td style="padding: 12px 16px; white-space: nowrap"><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #ffb020; background: #2a2210; border: 1px solid #4a3a14; border-radius: 3px; padding: 3px 8px">{{t.status}}</span></td>
+<td style="padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a9b2c0">{{t.prio}}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#22e06c","options":["#22e06c","#4da3ff","#ffb020"]}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'overview' };
+  }
+  renderVals() {
+    const views = [
+      { id: 'overview', label: 'Übersicht' },
+      { id: 'surfaces', label: 'Flächen' },
+      { id: 'tickets', label: 'Tickets' },
+      { id: 'hooks', label: 'Hook-Matrix' },
+      { id: 'legacy', label: 'Alte Interfaces' }
+    ];
+    const cur = this.state.view;
+    const nav = views.map((v) => ({
+      label: v.label,
+      active: v.id === cur,
+      bar: v.id === cur ? '#22e06c' : 'transparent',
+      bg: v.id === cur ? '#12161d' : 'transparent',
+      fg: v.id === cur ? '#e7ecf3' : '#a9b2c0',
+      pick: () => this.setState({ view: v.id })
+    }));
+    const viewTitle = views.find((v) => v.id === cur).label;
+    return {
+      accent: this.props.accent ?? '#22e06c',
+      nav,
+      viewTitle,
+      signals: [
+        { label: 'Grün: [n]', color: '#22e06c' },
+        { label: 'Amber: [n]', color: '#ffb020' },
+        { label: 'Rot: [n]', color: '#ff4d4f' },
+        { label: 'Info: [n]', color: '#4da3ff' }
+      ],
+      kpis: [
+        { label: 'Offene Tickets', note: 'Quelle: Ticket-Hub' },
+        { label: 'Blockiert', note: 'Quelle: Ticket-Hub' },
+        { label: 'Aktive Agent-Worktrees', note: 'Quelle: ~/.worktrees' },
+        { label: 'Hooks aktiv', note: 'Quelle: Hook-Matrix (S1)' }
+      ],
+      surfaces: [
+        { code: 'F1', name: 'Git-Lifecycle', hint: 'Commit-, Push- und Merge-Punkte im Repo.' },
+        { code: 'F2', name: 'Agent-Worktrees', hint: 'Anlage, Freigabe und Cleanup unter ~/.worktrees.' },
+        { code: 'F3', name: 'Harness-Configs', hint: 'Claude, Codex, opencode und weitere Harnesses.' },
+        { code: 'F4', name: 'MCP-Server', hint: 'Registrierte Server und ihre Versionen.' },
+        { code: 'F5', name: 'Skills und Workflows', hint: 'dev-flow, Ticket-Ops, Repo-Hygiene.' },
+        { code: 'F6', name: 'Editor', hint: 'nvim-Aktionen und llama-vim.' },
+        { code: 'F7', name: 'Bootstrap und Rebuild', hint: 'Neuaufbau einer Entwicklungsumgebung.' }
+      ],
+      tickets: [
+        { id: 'T901663', title: 'EPIC: SDLC-Control + agentic orchestration hooks', status: '[Status]', prio: '[Prio]' },
+        { id: 'T901664', title: 'S1: Hook-Matrix analysieren + Brainstorming-Q&A', status: 'triage', prio: 'hoch' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

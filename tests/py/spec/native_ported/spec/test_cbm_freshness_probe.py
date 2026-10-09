@@ -1,4 +1,5 @@
 """Native migration of tests/spec/cbm-freshness-probe.bats."""
+import shutil
 from pathlib import Path
 
 import pytest
@@ -79,5 +80,55 @@ assert e5 == 'tool-error', e5
 env6 = {'content': [{'type': 'text', 'text': json.dumps({'error': 'boom'})}], 'isError': False}
 _, _, e6 = m.parse_probe_payload(env6, True)
 assert e6 == 'tool-error', e6
+""")
+    assert r.returncode == 0, r.output
+
+
+# Ticket T901558 — tool 0.11.0 changed probe defaults: index_status renders
+# tree text unless --format json is passed, and detect_changes assumes
+# base_branch=main. Both must be pinned or freshness fails closed forever.
+
+
+def test_index_status_cmd_requests_json_format(fresh_py):
+    r = fresh_py(r"""
+cmd = m.index_status_cmd('home-patrick')
+assert cmd[:5] == ['codebase-memory-mcp', 'cli', '--json', 'index_status', '--project'], cmd
+assert cmd[5] == 'home-patrick', cmd
+assert '--format' in cmd and cmd[cmd.index('--format') + 1] == 'json', cmd
+""")
+    assert r.returncode == 0, r.output
+
+
+def test_detect_changes_cmd_pins_given_base_branch(fresh_py):
+    r = fresh_py(r"""
+cmd = m.detect_changes_cmd('home-patrick', 'master')
+assert cmd[:5] == ['codebase-memory-mcp', 'cli', '--json', 'detect_changes', '--project'], cmd
+assert '--base-branch' in cmd and cmd[cmd.index('--base-branch') + 1] == 'master', cmd
+""")
+    assert r.returncode == 0, r.output
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git binary not installed")
+def test_default_base_branch_prefers_origin_head_then_main_master(fresh_py):
+    r = fresh_py(r"""
+import os, subprocess, tempfile
+def git(cwd, *args):
+    return subprocess.run(['git', *args], cwd=cwd, capture_output=True, text=True)
+with tempfile.TemporaryDirectory() as td:
+    r1 = os.path.join(td, 'r1'); os.mkdir(r1)
+    git(r1, 'init', '-b', 'dev', '-q')
+    git(r1, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'x')
+    git(r1, 'symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/released')
+    assert m.default_base_branch(r1) == 'released', m.default_base_branch(r1)
+    r2 = os.path.join(td, 'r2'); os.mkdir(r2)
+    git(r2, 'init', '-b', 'dev', '-q')
+    git(r2, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'x')
+    git(r2, 'branch', 'main'); git(r2, 'branch', 'master')
+    assert m.default_base_branch(r2) == 'main', m.default_base_branch(r2)
+    git(r2, 'branch', '-D', 'main')
+    assert m.default_base_branch(r2) == 'master', m.default_base_branch(r2)
+    git(r2, 'branch', '-D', 'master')
+    assert m.default_base_branch(r2) == 'main', m.default_base_branch(r2)
+    assert m.default_base_branch(os.path.join(td, 'nope')) == 'main'
 """)
     assert r.returncode == 0, r.output

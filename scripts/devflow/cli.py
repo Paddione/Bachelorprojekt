@@ -15,15 +15,16 @@ import importlib
 import json
 import sys
 
-VERBS = ("sandbox", "turbolint", "insta_ci")
+# Verb -> Modulname (Route/Kontrakt: insta_ci, Datei: instaci.py).
+VERBS = {"sandbox": "sandbox", "turbolint": "turbolint", "insta_ci": "instaci"}
 
 
 def available_verbs():
     """Verben, deren Modul importierbar ist (p1: nur sandbox)."""
     found = []
-    for verb in VERBS:
+    for verb, module in VERBS.items():
         try:
-            importlib.import_module(f"devflow.{verb}")
+            importlib.import_module(f"devflow.{module}")
         except ImportError:
             continue
         found.append(verb)
@@ -53,7 +54,7 @@ def main(argv=None):
         parser.print_help(sys.stderr)
         return 2
     try:
-        module = importlib.import_module(f"devflow.{ns.verb}")
+        module = importlib.import_module(f"devflow.{VERBS[ns.verb]}")
     except ImportError as exc:  # zwischen Help und Dispatch entfernt
         print(json.dumps(_envelope("devflow_env", f"verb module missing: {exc}")),
               file=sys.stderr)

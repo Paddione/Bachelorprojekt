@@ -1,0 +1,24 @@
+# docs/code-quality/ci-map.yaml — SSOT: CI-Jobname -> lokales Kommando (T901630).
+#
+# Format (flache Skalare only — kein Anchor, kein Multiline-String):
+#   version: 1
+#   checks:
+#     <job-id aus .github/workflows/ci.yml>:
+#       command: <exakt eine run:-Zeile desselben Jobs, wortgleich>
+#       timeout: <Sekunden, Pflicht>
+#       workdir: <optional, Default Repo-Root>
+# Leser: scripts/devflow/instaci.py mit Stdlib-Zeilenparser (kein PyYAML).
+version: 1
+checks:
+  test-bats:
+    command: bash scripts/pytest-run.sh --maxfail=1 tests/py --ignore=tests/py/spec
+    timeout: 1200
+  test-manifests:
+    command: bash scripts/pytest-run.sh tests/py/unit/ported/test_manifests_part1.py tests/py/unit/ported/test_manifests_part2.py tests/py/unit/ported/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
+    timeout: 600
+  brett-typescript:
+    command: npm run typecheck --prefix components/brett
+    timeout: 600
+  vitest-website:
+    command: cd components/website && pnpm lint
+    timeout: 900

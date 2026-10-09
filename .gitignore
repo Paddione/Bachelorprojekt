@@ -251,3 +251,6 @@ consideration.md
 
 # omp-run.sh: JSONL-Protokolle je Lauf (T900793)
 .omp/runs/
+
+# devflow-Backend: Sandbox-Manifest + Turbolint-Cache sind Laufzustand (T901630)
+.devflow/

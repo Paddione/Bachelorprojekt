@@ -972,6 +972,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-66",
+    "file": "tests/e2e/specs/fa-66-sdlc-frontend-sweep.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "HWS-1",
     "file": "tests/py/spec/native_ported/spec/test_harness_workflow_split.py",
     "category": "HWS",
@@ -4802,6 +4808,12 @@
   {
     "id": "neovim-dashboard",
     "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard.py",
+    "category": "neovim-dashboard",
+    "kind": "pytest"
+  },
+  {
+    "id": "neovim-dashboard-tui",
+    "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard_tui.py",
     "category": "neovim-dashboard",
     "kind": "pytest"
   },

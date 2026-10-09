@@ -48,6 +48,35 @@ Zielelement), Tokens pro Flow. Die JSONL-Records tragen je Lauf `flow`,
 `rep`, `pass`, `turns`, `protocol_errors`, `wall_ms`, `tokens`, `error` und
 das Orakel-Ergebnis.
 
+## Auth
+
+Der Runner loggt sich nie selbst ein und kennt keine Credentials. Flows mit
+`"auth": true` in `curated.json` (`content-hub-editor`, `admin-inbox-renders`)
+brauchen einen fertigen Playwright-`storageState`:
+
+```bash
+# 1. State erzeugen (bestehendes Setup-Projekt, braucht CRON_SECRET)
+cd tests/e2e && CRON_SECRET=... WEBSITE_URL=https://web.mentolder.de \
+  npx playwright test --project mentolder-setup
+# 2. Runner damit starten (Flag oder Env AGENT_AUTH_STATE)
+node tests/e2e/agent/runner.mjs --flows tests/e2e/agent/curated.json \
+  --auth tests/e2e/.auth/mentolder-website-admin.json --out bench-auth.jsonl
+```
+
+- Ohne `--auth` brechen Auth-Flows mit `error: "auth-required"` nach 0 Turns
+  ab (fail-closed, kein anonymes Herumwandern). Eine fehlende oder ungueltige
+  State-Datei bricht den Start ab, bevor ein Browser startet.
+- State-Dateien enthalten Session-Cookies und werden nie committet. Beleg:
+  `git check-ignore -v tests/e2e/.auth/user.json` (Regel `e2e/.auth/` in
+  `tests/.gitignore`).
+- Jede JSONL-Zeile traegt `authUsed`. Laeufe mit und ohne Auth getrennt
+  auswerten.
+- GitHub Actions: `e2e.yml` erzeugt den State bereits ueber das Secret
+  `CRON_SECRET` (Schritt `mentolder-setup`). Ein Agent-Lauf in CI braucht
+  keine neuen Secrets, aber einen erreichbaren VLM-Endpunkt (`AGENT_MODEL_URL`);
+  den gibt es auf GitHub-Runnern nicht. Deshalb laeuft der Agent weiter lokal
+  oder auf dem GPU-Host.
+
 ## Leitplanke
 
 Agenten-Läufe laufen nightly und advisory; die scripted Specs in

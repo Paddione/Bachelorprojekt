@@ -46,12 +46,12 @@ S1-Limit.
 
 ## Tasks
 
-- [ ] **0. Rotphase: Failing-Test-Step zuerst.** Die BATS-Guards aus p5 als
+- [x] **0. Rotphase: Failing-Test-Step zuerst.** Die BATS-Guards aus p5 als
   Skelett anlegen und gegen den leeren Stand laufen lassen,
   expected: FAIL. Befehl:
   `bats tests/spec/mentolder-parity-inventory.bats`.
   Erst danach beginnt die Inventur-Arbeit der Partials p1 bis p4.
-- [ ] **1. Partial p1 ausführen** (`tasks.d/p1-core-flows.md`): Kernpfade
+- [x] **1. Partial p1 ausführen** (`tasks.d/p1-core-flows.md`): Kernpfade
   Buchung bis Rechnung. Verify pro Partial-Plan.
 - [ ] **2. Partial p2 ausführen** (`tasks.d/p2-auth-isolation.md`): Auth,
   Tenant-Identität, Isolation. Verify pro Partial-Plan.

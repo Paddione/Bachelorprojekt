@@ -53,7 +53,7 @@ S1-Limit.
   Erst danach beginnt die Inventur-Arbeit der Partials p1 bis p4.
 - [x] **1. Partial p1 ausführen** (`tasks.d/p1-core-flows.md`): Kernpfade
   Buchung bis Rechnung. Verify pro Partial-Plan.
-- [ ] **2. Partial p2 ausführen** (`tasks.d/p2-auth-isolation.md`): Auth,
+- [x] **2. Partial p2 ausführen** (`tasks.d/p2-auth-isolation.md`): Auth,
   Tenant-Identität, Isolation. Verify pro Partial-Plan.
 - [ ] **3. Partial p3 ausführen** (`tasks.d/p3-remaining-flows.md`): Übrige
   Flows, Integrationen, Jobs. Verify pro Partial-Plan.

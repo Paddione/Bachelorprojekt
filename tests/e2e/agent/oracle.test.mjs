@@ -4,7 +4,7 @@
 // Fixture-Namen entsprechen den kuratierten Flows aus curated.json (p2).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateFlow, summarize } from './oracle.mjs';
+import { evaluateFlow, summarize, validateFlows } from './oracle.mjs';
 
 test('evaluateFlow: Login-Fixture mit erfuellten Checks besteht', () => {
   const flow = {
@@ -107,4 +107,43 @@ test('summarize: einzeilige stderr-Zeile mit Flow, Pass und Fail-Namen', () => {
   assert.equal(line, 'flow=smoke-home pass=false failed=textContains');
   const ok = summarize({ flow: 'smoke-home', pass: true, checks: [{ name: 'urlContains', pass: true }] });
   assert.equal(ok, 'flow=smoke-home pass=true failed=none');
+});
+
+test('validateFlows: gueltige Flows mit und ohne Auth-Marker passieren', () => {
+  const flows = [
+    { id: 'content-hub-editor', start_url: '/admin/inhalte', auth: true,
+      goal_checks: [{ type: 'urlContains', value: '/admin/inhalte' }] },
+    { id: 'smoke-home', start_url: '/',
+      goal_checks: [{ type: 'textContains', value: 'Kontakt' }] },
+  ];
+  assert.equal(validateFlows(flows), flows);
+});
+
+test('validateFlows: unbekannter Check-Typ wirft mit Flow-ID', () => {
+  assert.throws(
+    () => validateFlows([{ id: 'smoke-home', start_url: '/', checks: [{ type: 'cssVisible', value: 'h1' }] }]),
+    /smoke-home/,
+  );
+});
+
+test('validateFlows: nicht-booleaner Auth-Marker wirft mit Flow-ID', () => {
+  assert.throws(
+    () => validateFlows([{ id: 'content-hub-editor', start_url: '/admin/inhalte', auth: 'yes',
+      goal_checks: [{ type: 'urlContains', value: '/admin' }] }]),
+    /content-hub-editor/,
+  );
+});
+
+test('validateFlows: leere Checks werfen mit Flow-ID', () => {
+  assert.throws(
+    () => validateFlows([{ id: 'smoke-home', start_url: '/', checks: [] }]),
+    /smoke-home/,
+  );
+});
+
+test('validateFlows: fehlende Flow-ID wirft und nennt das Feld', () => {
+  assert.throws(
+    () => validateFlows([{ start_url: '/', checks: [{ type: 'urlContains', value: '/' }] }]),
+    /id fehlt/,
+  );
 });

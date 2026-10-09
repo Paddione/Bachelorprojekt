@@ -1,0 +1,59 @@
+{
+  "components": [
+    {
+      "name": "HyperUI",
+      "version": "2b5aebbc50d2",
+      "revision": "2b5aebbc50d2c9ac89650f51b554f53895b4803c",
+      "source": "https://github.com/markmead/hyperui",
+      "license": "MIT",
+      "notices": "https://github.com/markmead/hyperui/blob/main/LICENSE",
+      "transitive": false,
+      "policy_ref": "RP-3",
+      "verified": "2026-10-09"
+    },
+    {
+      "name": "shadcn-svelte",
+      "version": "1.7.0",
+      "revision": "33cd03e99e0066c446cb132c0a2294a1f553ba06",
+      "source": "https://github.com/huntabyte/shadcn-svelte",
+      "license": "MIT",
+      "notices": "https://github.com/huntabyte/shadcn-svelte/blob/main/LICENSE.md",
+      "transitive": false,
+      "policy_ref": "RP-3",
+      "verified": "2026-10-09"
+    },
+    {
+      "name": "bits-ui",
+      "version": "0.9.9",
+      "revision": "bbf7e4a0cab9003d7c1bf8b1fa976b1750448cda",
+      "source": "https://github.com/huntabyte/bits-ui",
+      "license": "MIT",
+      "notices": "https://github.com/huntabyte/bits-ui/blob/main/LICENSE",
+      "transitive": false,
+      "policy_ref": "RP-3",
+      "verified": "2026-10-09"
+    },
+    {
+      "name": "frontend-design-skill",
+      "version": "683bc88e56f3",
+      "revision": "683bc88e56f3e09ba94f7055977f3d3aa499f202",
+      "source": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+      "license": "Apache-2.0",
+      "notices": "https://github.com/anthropics/skills/blob/main/skills/frontend-design/LICENSE.txt",
+      "transitive": false,
+      "policy_ref": "RP-3",
+      "verified": "2026-10-09"
+    }
+  ],
+  "npm_closure": {
+    "method": "Ableitung aus dem Root-Lockfile (package-lock.json) plus `npm ls --all` im Repo-Root und in components/website; jede direkte und transitive Dependency wird mit exakt installierter Version und SPDX-Lizenz inventiert.",
+    "lockfiles": [
+      "package-lock.json"
+    ],
+    "lockfile_gaps": [
+      "components/website besitzt kein eigenes Lockfile; dort gilt die Inventur des installierten Baums zum Stichtag."
+    ],
+    "last_inventory": "2026-10-09",
+    "note": "Diese Datei pinnt die vier Design-/Skill-Upstreams exakt. Die volle transitive npm-Inventur wird nach dieser Methode zum Stichtag erhoben und bei jeder Dependency-Änderung neu datiert."
+  }
+}

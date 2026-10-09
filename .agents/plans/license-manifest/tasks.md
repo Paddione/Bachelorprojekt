@@ -54,7 +54,7 @@ Prior-Art: keine Lizenz-ADR, keine Lizenz-Guards im Repo.
   Erst danach beginnt die Implementierung der Partials p1 bis p4.
 - [x] **1. Partial p1 ausführen** (`tasks.d/p1-reuse-policy.md`): Policy-Dokument
   schreiben. Verify pro Partial-Plan.
-- [ ] **2. Partial p2 ausführen** (`tasks.d/p2-manifest-notice.md`): Manifest und
+- [x] **2. Partial p2 ausführen** (`tasks.d/p2-manifest-notice.md`): Manifest und
   NOTICE schreiben. Verify pro Partial-Plan.
 - [ ] **3. Partial p3 ausführen** (`tasks.d/p3-ci-enforcement.md`): Checker und
   Workflow schreiben. Verify pro Partial-Plan.

@@ -52,7 +52,7 @@ from datetime import datetime, timezone
 
 SCHEMA_VERSION = "k3-embed-sync/1"
 DEFAULT_PROJECT = "home-patrick-Bachelorprojekt"
-DEFAULT_EMBED_URL = "http://localhost:8081/v1/embeddings"
+DEFAULT_EMBED_URL = "http://127.0.0.1:18235/v1/embeddings"
 DEFAULT_MODEL = "bge-m3"
 DEFAULT_TIMEOUT_S = 60
 EMBED_TIMEOUT_S = 300

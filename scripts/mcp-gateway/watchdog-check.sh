@@ -7,8 +7,9 @@
 #
 # Drei Ketten werden getrennt geprueft:
 #   - Gateway-Kette:  18080 → mcp-gateway.service (fleet dev-pod)
-#   - devmesh-Kette:  13005 → devmesh-forward.service (devmesh llm-services, T900191)
-#     Derselbe kubectl-Prozess traegt auch 18235; 13005 steht stellvertretend.
+#   - devmesh-Kette:  13005 + 18235 → devmesh-forward.service (devmesh llm-services,
+#     T900191, T901560: ein kubectl-Prozess traegt 18235:18235 13005:13005;
+#     18235 ist der llm-proxy-HTTP-Health, 13005 der bge-mcp-MCP-initialize)
 #   - Postgres-Kette: 13001 → mcp-postgres-local.service (lokal, fleet-DB).
 #     :13001 kommt NICHT mehr aus dem devmesh-Forward (entfallen) — bei Ausfall
 #     wird der lokale Service neu gestartet, nicht der Forward.
@@ -29,6 +30,7 @@ PROBE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/probe.sh"
 
 gateway_failed=0
 devmesh_failed=0
+proxy_failed=0
 postgres_failed=0
 
 if ! "$PROBE" --port 18080 --timeout 5 >/dev/null 2>&1; then
@@ -36,6 +38,9 @@ if ! "$PROBE" --port 18080 --timeout 5 >/dev/null 2>&1; then
 fi
 if ! "$PROBE" --port 13005 --timeout 5 >/dev/null 2>&1; then
   devmesh_failed=1
+fi
+if ! "$PROBE" --port 18235 --timeout 5 >/dev/null 2>&1; then
+  proxy_failed=1
 fi
 if ! "$PROBE" --port 13001 --timeout 5 >/dev/null 2>&1; then
   postgres_failed=1
@@ -50,8 +55,8 @@ if [ -x "$HEAL_SCRIPT" ]; then
   fi
 fi
 
-if [ "$gateway_failed" -eq 0 ] && [ "$devmesh_failed" -eq 0 ] && [ "$postgres_failed" -eq 0 ]; then
-  echo "OK: alle verdrahteten MCP-Endpoints antworten (18080, 13005, 13001)"
+if [ "$gateway_failed" -eq 0 ] && [ "$devmesh_failed" -eq 0 ] && [ "$proxy_failed" -eq 0 ] && [ "$postgres_failed" -eq 0 ]; then
+  echo "OK: alle verdrahteten Endpoints antworten (18080, 13005, 13001, 18235)"
   exit 0
 fi
 
@@ -79,11 +84,11 @@ if [ "$gateway_failed" -eq 1 ]; then
     echo "SKIP Gateway-Restart: Monolith-Pod nicht Running (phase='${phase}')"
   fi
 fi
-if [ "$devmesh_failed" -eq 1 ]; then
+if [ "$devmesh_failed" -eq 1 ] || [ "$proxy_failed" -eq 1 ]; then
   phase=$(kubectl --context devmesh -n workspace get pod -l app=llm-services \
     -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
   if [ "$phase" = "Running" ]; then
-    echo "RESTART devmesh-forward.service (Probe 13005 fehlgeschlagen, Pod Running)"
+    echo "RESTART devmesh-forward.service (Probe 13005/18235 fehlgeschlagen, Pod Running)"
     systemctl --user restart devmesh-forward.service
     restarted=1
   else

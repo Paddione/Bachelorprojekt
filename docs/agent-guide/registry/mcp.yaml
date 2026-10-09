@@ -174,7 +174,7 @@ clients:
       Der Server haelt keine eigene Failover-Logik. Welches bge-Paar antwortet,
       entscheidet components/website/src/lib/bge-router.ts — dieselbe Stelle, die auch die
       HTTP-Endpunkte und die Bestandsclients benutzen. bge-mcp selbst laeuft seit
-      T900191 im devmesh-Pod llm-services, nicht mehr als lokaler Shim.
+      T900191 im devmesh-Pod llm-services, nicht mehr als lokaler Shim. Upstream sind seit T901560 die llm-proxy-Rollen-Ketten (:18235).
     windows_note: >-
       Windows: Port 13005 kommt seit T900191 aus dem devmesh-Cluster
       (svc/llm-services) — zwei Gateway-Units statt einer: mcp-gateway.service

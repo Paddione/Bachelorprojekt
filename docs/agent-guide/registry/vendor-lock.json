@@ -147,14 +147,6 @@
       "ref": "773a52944ba4747a18bd4ae9ade53fff041adcbc",
       "version": null
     },
-    "langfuse": {
-      "repo": "langfuse/skills",
-      "path": "skills/langfuse",
-      "dest": ".opencode/skills/langfuse",
-      "track": "branch",
-      "ref": "b86532b77f16f1e27c7cffa32bb632aa3cd9a352",
-      "version": null
-    },
     "playwright-best-practices": {
       "repo": "currents-dev/playwright-best-practices-skill",
       "path": "playwright-best-practices",

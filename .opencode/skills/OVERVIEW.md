@@ -1,6 +1,6 @@
 # Skills Overview
 
-52 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+56 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/*` sind pro-Skill-Symlinks in die SSOT, `.agents/skills` ist ein Symlink auf das SSOT-Verzeichnis (T900236, Guard in `tests/py/spec/native_ported/spec/agent-skills/test_skill_symlink_targets.py`); Inhalte sind pro Harness projiziert (Tool-Namen, Referenz-Pfade). Alle neuen Skills gehören unter `.opencode/skills/`.
 
@@ -191,7 +191,6 @@ alle Skills als projekteigen — das Gate wird dann strenger, nicht schwächer.
 | `pytest-patterns` | Luxor / manutej | Pytest-Best-Practices, Fixtures, Parametrisierung und CLI-Testing. |
 | `vitest` | Anthony Fu (antfu/skills) | Vitest-Referenz — Mocking, Coverage-Konfiguration, Test-Filtering, Fixtures. |
 | `llama-cpp` | Orchestra-Research/AI-research-SKILLs | llama.cpp-Inferenz auf CPU/Edge-GPUs (opencode-only). |
-| `langfuse` | Langfuse (`langfuse/skills`) | Langfuse-Observability, Tracing, Evaluations und API-Dokumentation für alle Harnesses. |
 | `hf-mem` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Hugging-Face-Modell-Speicherabschaetzung (CLI). |
 | `huggingface-best` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Modell-Empfehlungen und -Vergleiche. |
 | `huggingface-community-evals` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Community-Evals auf lokaler Hardware. |

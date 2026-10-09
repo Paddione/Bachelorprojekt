@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "slug": "design-asset-inventory",
+    "ticket_id": "T901038",
+    "generated_from": "main@10e35fb79",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "docs/design-assets/catalog.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/design-assets/consumer-map.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/design-assets/manifest.json",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/design-assets-inventory.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/design_assets/test_inventory.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "name": "extractTokens",
+      "path": "packages/design-system/build.mjs",
+      "line": 22,
+      "kind": "function",
+      "note": "reads website/public/brand/mentolder/colors_and_type.css, writes _tokens.css (consumer-source coupling)"
+    },
+    {
+      "name": "copyAssets",
+      "path": "packages/design-system/build.mjs",
+      "line": 30,
+      "kind": "function",
+      "note": "copies brand props/ and logos/ SVGs into design-system assets/ snapshot"
+    },
+    {
+      "name": "classify_type",
+      "path": "scripts/assets-index.sh",
+      "line": 17,
+      "kind": "function",
+      "note": "extension-to-type classifier for DB registry upserts; shows prior art is write-oriented, not a read-only inventory"
+    },
+    {
+      "name": "pytest-run.sh",
+      "path": "scripts/pytest-run.sh",
+      "line": 1,
+      "kind": "script",
+      "note": "repo pytest entrypoint used by the RED/GREEN guard steps"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "scripts/design-assets-inventory.sh",
+      "tests/py/spec/design_assets/test_inventory.py"
+    ],
+    "edges": [
+      {
+        "from": "tests/py/spec/design_assets/test_inventory.py",
+        "to": "scripts/design-assets-inventory.sh",
+        "via": "subprocess --out reproducibility check"
+      },
+      {
+        "from": "tests/py/spec/design_assets/test_inventory.py",
+        "to": "docs/design-assets/manifest.json",
+        "via": "schema and hygiene assertions"
+      }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "db_tables N/A: inventory is a read-only file scan; assets.registry (assets-index.sh) is write-oriented kubectl/DB tooling and is deliberately not reused.",
+      "severity": "info"
+    },
+    {
+      "note": "external_types N/A: new script uses only POSIX find/sha256sum/stat/file; pytest spec uses stdlib plus repo runner; no external type surface.",
+      "severity": "info"
+    },
+    {
+      "note": "api_contracts N/A: no API or endpoint touched; manifest JSON schema is defined by the new script and asserted by the new spec.",
+      "severity": "info"
+    },
+    {
+      "note": "Scope excludes ComfyUI paths (verified absent 2026-10-09) and secret/history/weight/cache patterns; inventory makes no exhaustiveness claim beyond the six fixed scope roots.",
+      "severity": "warn"
+    }
+  ]
+}

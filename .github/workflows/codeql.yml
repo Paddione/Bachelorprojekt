@@ -70,7 +70,7 @@ jobs:
           repository: Paddione/dotfiles
           ref: master
           ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
-          path: dotfiles
+          path: ci-dotfiles
 
       - name: Set up Go
         if: matrix.language == 'go'
@@ -96,7 +96,7 @@ jobs:
         if: matrix.language == 'go'
         run: |
           set -euo pipefail
-          for mod in dotfiles/mcp-servers/ticket/go; do
+          for mod in ci-dotfiles/mcp-servers/ticket/go; do
             echo "::group::go build $mod"
             (cd "$mod" && go build ./...)
             echo "::endgroup::"

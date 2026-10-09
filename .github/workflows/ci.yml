@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      MCP_SERVERS_HOME: ${{ github.workspace }}/dotfiles/mcp-servers
+      MCP_SERVERS_HOME: ${{ github.workspace }}/ci-dotfiles/mcp-servers
       TOOLSET_HOME: ${{ github.workspace }}/scripts/toolset
     permissions:
       contents: write
@@ -85,12 +85,12 @@ jobs:
           repository: Paddione/dotfiles
           ref: master
           ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
-          path: dotfiles
+          path: ci-dotfiles
 
       - name: Install central MCP server deps (T901492)
         run: |
-          npm ci --prefix dotfiles/mcp-servers/devflow --no-audit --no-fund
-          npm ci --prefix dotfiles/mcp-servers/task-runner --no-audit --no-fund
+          npm ci --prefix ci-dotfiles/mcp-servers/devflow --no-audit --no-fund
+          npm ci --prefix ci-dotfiles/mcp-servers/task-runner --no-audit --no-fund
 
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
@@ -354,7 +354,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      MCP_SERVERS_HOME: ${{ github.workspace }}/dotfiles/mcp-servers
+      MCP_SERVERS_HOME: ${{ github.workspace }}/ci-dotfiles/mcp-servers
     steps:
       - uses: actions/checkout@v7
         with:
@@ -367,7 +367,7 @@ jobs:
           repository: Paddione/dotfiles
           ref: master
           ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
-          path: dotfiles
+          path: ci-dotfiles
 
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
@@ -429,7 +429,7 @@ jobs:
     env:
       SPEC_SHARD: ${{ matrix.shard }}
       SPEC_SHARDS: 4
-      MCP_SERVERS_HOME: ${{ github.workspace }}/dotfiles/mcp-servers
+      MCP_SERVERS_HOME: ${{ github.workspace }}/ci-dotfiles/mcp-servers
       TOOLSET_HOME: ${{ github.workspace }}/scripts/toolset
     steps:
       - uses: actions/checkout@v7
@@ -443,12 +443,12 @@ jobs:
           repository: Paddione/dotfiles
           ref: master
           ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
-          path: dotfiles
+          path: ci-dotfiles
 
       - name: Install central MCP server deps (T901492)
         run: |
-          npm ci --prefix dotfiles/mcp-servers/devflow --no-audit --no-fund
-          npm ci --prefix dotfiles/mcp-servers/task-runner --no-audit --no-fund
+          npm ci --prefix ci-dotfiles/mcp-servers/devflow --no-audit --no-fund
+          npm ci --prefix ci-dotfiles/mcp-servers/task-runner --no-audit --no-fund
 
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main

@@ -135,13 +135,14 @@ def assistant_message(choice: dict) -> dict | None:
     if tool_calls:
         entry["tool_calls"] = [
             {
+                "id": tc.get("id") or f"call_{i}",
                 "type": "function",
                 "function": {
                     "name": tc["function"]["name"],
                     "arguments": tc["function"].get("arguments"),
                 },
             }
-            for tc in tool_calls
+            for i, tc in enumerate(tool_calls)
             if isinstance(tc, dict) and isinstance(tc.get("function"), dict)
         ]
     return entry
@@ -183,11 +184,14 @@ def run_episode(scenario: dict, base_url: str, model: str, api_key: str | None,
             break
 
         # Kannit-Ergebnisse einspeisen und weiterdrehen (Tool-Loop).
+        # tool_call_id ist Pflicht (OpenAI- wie Meta-API verlangen die
+        # Zuordnung zum Assistant-Call, sonst 400) — T901541.
         for tc in pending:
             name = tc["function"]["name"]
             result = tool_results[name]
             messages.append({
                 "role": "tool",
+                "tool_call_id": tc.get("id") or "call_0",
                 "content": result if isinstance(result, str) else json.dumps(result),
             })
         hops += 1

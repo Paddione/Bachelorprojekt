@@ -122,14 +122,13 @@ export function formatPartialRecord(partial) {
 }
 
 // Dispatch-Recall (T901542, plan-vector-routing): top-k Partial-Snippets fremder
-// Plaene aus der K1-Collection specs_plans (K1→K3-Recall). Rolle/Budget/Corpora wie
-// im Plan: --role bachelorprojekt-run --budget 1500 --corpora specs_plans.
-// HINWEIS: bachelorprojekt-run steht (noch) nicht in der context-retrieve-Allowlist
-// (agents.yaml: bp-build/bp-run/bp-ship/orchestrator) — bis dahin greift hier der
-// Fail-soft-Pfad. Rolle via PLAN_RUNNER_RECALL_ROLE korrigierbar (z. B. bp-run).
+// Plaene aus der K1-Collection specs_plans (K1→K3-Recall). Rolle/Budget/Corpora:
+// --role bp-run --budget 1500 --corpora specs_plans (T901559: bp-run steht in der
+// context-retrieve-Allowlist in agents.yaml; davor bachelorprojekt-run, das dort
+// fehlt und daher immer den Fail-soft-Pfad nahm).
 // Binary via PLAN_RUNNER_RECALL_BIN ersetzbar (Muster: PLAN_RUNNER_OPENCODE);
 // PLAN_RUNNER_RECALL=off schaltet den Recall ganz ab (z. B. agent-bench).
-export const RECALL_ROLE = 'bachelorprojekt-run';
+export const RECALL_ROLE = 'bp-run';
 export const RECALL_BUDGET = 1500;
 export const RECALL_CORPORA = 'specs_plans';
 export const RECALL_MAX_CHARS = 1500;

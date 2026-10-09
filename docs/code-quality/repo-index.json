@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1286,
+      "file_count": 1287,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1248,6 +1248,7 @@
         "tests/spec/local-llm-proxy/helpers/llm-endpoint.bash",
         "tests/spec/local-llm-proxy/lib/pick-small-model.sh",
         "tests/spec/mcp-gateway/http-security-boundary-server.mjs",
+        "tests/spec/mentolder-parity-inventory.bats",
         "tests/spec/network-address-plan/fixtures/declared-overlap.yaml",
         "tests/spec/network-address-plan/fixtures/duplicate-id.yaml",
         "tests/spec/network-address-plan/fixtures/prefix-span-overlap.yaml",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1288,
+      "file_count": 1289,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",

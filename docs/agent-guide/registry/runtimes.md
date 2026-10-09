@@ -15,6 +15,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `bp-ship` | `opencode-go/muse-spark-1.3-contributor` (1M ctx, primary, write; chat rail, auth.json) | Ship-Primary: BATS/Playwright, Website, Test-Inventar [T900858] |
 | `reviewer` | `llamacpp-local/Qwen3.8-27B` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
 | `plan-worker-qwen35` | `llamacpp-qwen3/Qwen3.5-4B-MTP` (primary, write; 3 Slots :8080, provisional 98304 shared) | plan-runner-Worker: führt ein plan-Partial aus; via `scripts/llm/plan-runner.mjs`, nicht interaktiv [T900504] |
+| `plan-worker-cpu2b` | `llamacpp-cpu-2b/Qwen3.5-2B-MTP` (primary, write; CPU :18199, Ryzen 7 5800X3D) | Text-only execution of assigned plan partials with the qwen35 worker prompt [T901668] |
 | `plan-worker-self` | `llamacpp-local/Qwen3.8-27B` (primary, write; :1919) | plan-runner-Fallback wenn alle 4B-Slots belegt; ein Partial in einem Lauf [T900504] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 

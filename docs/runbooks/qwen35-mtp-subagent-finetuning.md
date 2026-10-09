@@ -111,9 +111,7 @@ FINDINGS: Replaced incorrect port reference with 1920. Verified file structure i
 ### 3.2 Dataset Composition
 **Data source (T900750):** Agent traces from all harnesses are exported daily to
 `s3://langfuse/exports/observations/<YYYY-MM-DD>.jsonl` on devmesh (CronJob `langfuse-export`,
-one Langfuse observation per line with input and output). `task devmesh:langfuse:status` shows the
-current count of tool-using traces. Claude Code sessions announce at session start once 3,000 are
-reached.
+one Langfuse observation per line with input and output).
 Collect or synthesize **1,500 – 3,000 trajectories** with the following distribution:
 1. **MCP & Tool Calling (40%):** Valid tool JSON generation, multi-turn execution, handling tool error outputs (e.g. non-existent files, syntax error recovery).
 2. **Orchestrator Protocol & Status Reporting (25%):** Parsing orchestrator dispatch packets, respecting budgets, returning clean `STATUS / FILES_CHANGED / FINDINGS` summaries without conversational chatter.

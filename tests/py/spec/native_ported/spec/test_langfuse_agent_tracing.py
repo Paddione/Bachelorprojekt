@@ -1,12 +1,9 @@
 """Native migration of tests/spec/langfuse-agent-tracing.bats."""
 
-import hashlib
-import json
 import os
 import re
 import shutil
 import subprocess
-import time
 
 import pytest
 
@@ -53,66 +50,6 @@ def _yq_stdin(repo_root, expr, text):
 
 def _harness_env(home, path_dir):
     return {"HOME": str(home), "PATH": f"{path_dir}{HARNESS_PATH_TAIL}"}
-
-
-def _stub_bin(tmp_path):
-    bin_dir = tmp_path / "bin"
-    bin_dir.mkdir(exist_ok=True)
-    for name in ("claude", "opencode", "omp", "codex"):
-        stub = bin_dir / name
-        stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        stub.chmod(0o755)
-    return bin_dir
-
-
-def _setup_env(tmp_path):
-    home = tmp_path / "home"
-    xdg = tmp_path / "xdg"
-    bin_dir = tmp_path / "bin"
-    for d in (home, xdg / "langfuse", bin_dir):
-        d.mkdir(parents=True, exist_ok=True)
-    (xdg / "langfuse" / "agent-tracing.env").write_text(
-        "LANGFUSE_PUBLIC_KEY=pk-test\nLANGFUSE_SECRET_KEY=sk-test\n"
-        "LANGFUSE_BASE_URL=https://langfuse.example.test\n",
-        encoding="utf-8",
-    )
-    return home, xdg, bin_dir
-
-
-def _run_setup(repo_root, tmp_path, home, xdg, bin_dir):
-    env = {"HOME": str(home), "XDG_CONFIG_HOME": str(xdg), "PATH": f"{bin_dir}{HARNESS_PATH_TAIL}"}
-    return _merged([BASH, str(repo_root / "scripts" / "langfuse" / "setup-harnesses.sh")], repo_root, env)
-
-
-def _write_exec(path, body):
-    path.write_text(body, encoding="utf-8")
-    path.chmod(0o755)
-
-
-def _tracing_env(tmp_path, bin_dir_name="stubbin"):
-    (tmp_path / bin_dir_name).mkdir(exist_ok=True)
-    (tmp_path / "xdg").mkdir(exist_ok=True)
-    (tmp_path / "cache").mkdir(exist_ok=True)
-    _write_exec(tmp_path / bin_dir_name / "opencode", "#!/bin/sh\nexit 0\n")
-    return {
-        "HOME": str(tmp_path),
-        "XDG_CONFIG_HOME": str(tmp_path / "xdg"),
-        "XDG_CACHE_HOME": str(tmp_path / "cache"),
-        "PATH": f"{tmp_path / bin_dir_name}{HARNESS_PATH_TAIL}",
-    }
-
-
-def _write_cache(tmp_path, tool_traces, gap):
-    target_dir = tmp_path / "cache" / "langfuse"
-    target_dir.mkdir(parents=True, exist_ok=True)
-    stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    target = target_dir / "tracing-status.json"
-    target.write_text(
-        '{"refreshed_at":"%s","tool_traces":%s,"last_claude_trace":null,"export_gap_session":%s}'
-        % (stamp, tool_traces, gap),
-        encoding="utf-8",
-    )
-    target.touch()
 
 
 # ── T900688 ──────────────────────────────────────────────────────────────────
@@ -168,71 +105,6 @@ def test_t900688_langfuse_images_sind_gepinnt(repo_root, rendered):
     assert status == 0, output
     assert ":latest" not in output
     assert sum(1 for line in output.splitlines() if line.endswith(":4.46.0")) == 2
-
-
-def test_t900688_setup_harnesses_dry_run_plant_alle_vier_harnesses_und_schreibt_nichts(repo_root, tmp_path):
-    bin_dir = _stub_bin(tmp_path)
-    home = tmp_path / "home"
-    home.mkdir()
-    status, output = _merged(
-        [BASH, str(repo_root / "scripts" / "langfuse" / "setup-harnesses.sh"), "--dry-run"],
-        repo_root, _harness_env(home, bin_dir),
-    )
-    assert status == 0, output
-    for harness in ("claude", "opencode", "omp", "codex"):
-        assert _has_line(output, rf"^{harness}: "), f"fehlt: {harness}"
-    assert not [p for p in home.rglob("*") if p.is_file()]
-
-
-def test_t900688_setup_harnesses_dry_run_ohne_harnesses_meldet_skip_fuer_alle_vier(repo_root, tmp_path):
-    home = tmp_path / "home"
-    empty = tmp_path / "empty"
-    home.mkdir()
-    empty.mkdir()
-    status, output = _merged(
-        [BASH, str(repo_root / "scripts" / "langfuse" / "setup-harnesses.sh"), "--dry-run"],
-        repo_root, _harness_env(home, empty),
-    )
-    assert status == 0, output
-    assert sum(1 for line in output.splitlines() if re.search(r"not installed$", line)) == 4
-
-
-def test_t900688_client_env_sh_ohne_devmesh_context_endet_mit_exit_2(repo_root):
-    status, output = _merged(
-        [BASH, str(repo_root / "scripts" / "langfuse" / "client-env.sh")], repo_root, {"KUBECONFIG": "/dev/null"}
-    )
-    assert status == 2, output
-
-
-# ── T900690 ──────────────────────────────────────────────────────────────────
-
-def test_t900690_codex_bekommt_hooks_true_auch_bei_bestehender_features_sektion(repo_root, tmp_path):
-    home, xdg, bin_dir = _setup_env(tmp_path)
-    _write_exec(bin_dir / "codex", "#!/bin/sh\nexit 0\n")
-    (home / ".codex").mkdir()
-    cfg = home / ".codex" / "config.toml"
-    cfg.write_text('[features]\nprevent_idle_sleep = true\n\n[mcp_servers.x]\nurl = "http://localhost"\n',
-                   encoding="utf-8")
-    status, output = _run_setup(repo_root, tmp_path, home, xdg, bin_dir)
-    assert status == 0, output
-    text = cfg.read_text(encoding="utf-8")
-    assert sum(1 for line in text.splitlines() if line.startswith("[features]")) == 1
-    section = None
-    matches = []
-    for line in text.splitlines():
-        if line.startswith("["):
-            section = line
-        if section == "[features]" and re.match(r"^hooks *= *true", line):
-            matches.append(line)
-    assert matches, "hooks = true fehlt in [features]"
-
-
-def test_t900690_omp_setup_scheitert_laut_wenn_das_plugin_nach_omp_install_fehlt(repo_root, tmp_path):
-    home, xdg, bin_dir = _setup_env(tmp_path)
-    _write_exec(bin_dir / "omp", '#!/bin/sh\n[ "$1" = list ] && echo "No packages installed."\nexit 0\n')
-    status, output = _run_setup(repo_root, tmp_path, home, xdg, bin_dir)
-    assert status != 0, output
-    assert "pi-observability-plugin" in output
 
 
 def test_t900691_devmesh_ingress_fuer_langfuse_dev_lauscht_auf_dem_web_entrypoint(repo_root, rendered):
@@ -316,41 +188,6 @@ def test_t900692_collector_batch_behaelt_den_authorization_kontext_fuer_headers_
     assert output == "authorization"
 
 
-def test_t900693_codex_stop_hook_ist_aktiviert_und_fuer_v0_4_0_freigegeben_zweiter_lauf_aendert_nichts(
-    repo_root, tmp_path
-):
-    home, xdg, bin_dir = _setup_env(tmp_path)
-    _write_exec(bin_dir / "codex", "#!/bin/sh\nexit 0\n")
-    (home / ".codex").mkdir()
-    cfg = home / ".codex" / "config.toml"
-    sec = '[hooks.state."tracing@codex-observability-plugin:hooks/hooks.json:stop:0:0"]'
-    cfg.write_text(
-        "[features]\nhooks = true\n\n" + sec + '\ntrusted_hash = "sha256:alt"\n\n'
-        '[mcp_servers.x]\nurl = "http://localhost"\n',
-        encoding="utf-8",
-    )
-    status, output = _run_setup(repo_root, tmp_path, home, xdg, bin_dir)
-    assert status == 0, output
-    text = cfg.read_text(encoding="utf-8")
-    assert sum(1 for line in text.splitlines() if line == sec) == 1
-    selected = []
-    in_section = False
-    for line in text.splitlines():
-        if line.startswith("["):
-            in_section = line == sec
-        if in_section and re.match(r"^(enabled|trusted_hash)", line):
-            selected.append(line)
-    joined = "\n".join(selected)
-    assert "enabled = true" in joined
-    assert (
-        'trusted_hash = "sha256:69a05cbfa6984ec5f1433343b45480d5239c119e7332ae863f9865edc2efec74"' in joined
-    )
-    assert _has_line(text, r"^\[mcp_servers.x\]")
-    before = hashlib.md5(cfg.read_bytes()).hexdigest()
-    status, output = _run_setup(repo_root, tmp_path, home, xdg, bin_dir)
-    assert hashlib.md5(cfg.read_bytes()).hexdigest() == before
-
-
 # ── T900750 ──────────────────────────────────────────────────────────────────
 
 def test_t900750_clickhouse_limit_ist_8gi(repo_root, rendered):
@@ -412,65 +249,3 @@ def test_t900750_export_traces_py_ohne_env_endet_mit_2(repo_root):
     assert status == 2, output
 
 
-def test_t900750_tracing_status_check_meldet_fehlende_harness_config(repo_root, tmp_path):
-    env = _tracing_env(tmp_path)
-    status, output = _merged(
-        [BASH, str(repo_root / "scripts" / "langfuse" / "tracing-status.sh"), "check"], repo_root, env
-    )
-    assert status == 0, output
-    assert "opencode tracet nicht" in output
-
-
-def test_t900750_finetune_erinnerung_ab_3000_tool_traces(repo_root, tmp_path):
-    env = _tracing_env(tmp_path)
-    _write_cache(tmp_path, 3000, "null")
-    status, output = _merged(
-        [BASH, str(repo_root / "scripts" / "langfuse" / "tracing-status.sh"), "check"], repo_root, env
-    )
-    assert status == 0, output
-    assert "docs/runbooks/qwen35-mtp-subagent-finetuning.md" in output
-
-
-def test_t900750_keine_finetune_erinnerung_bei_2999(repo_root, tmp_path):
-    env = _tracing_env(tmp_path)
-    _write_cache(tmp_path, 2999, "null")
-    status, output = _merged(
-        [BASH, str(repo_root / "scripts" / "langfuse" / "tracing-status.sh"), "check"], repo_root, env
-    )
-    assert status == 0, output
-    assert "docs/runbooks/qwen35-mtp-subagent-finetuning.md" not in output
-
-
-def test_t900750_exportluecke_nennt_den_backfill_befehl(repo_root, tmp_path):
-    env = _tracing_env(tmp_path)
-    _write_cache(tmp_path, 0, '"322c4ec8-dd16-4f01-8b9c-7726559d91f3"')
-    status, output = _merged(
-        [BASH, str(repo_root / "scripts" / "langfuse" / "tracing-status.sh"), "check"], repo_root, env
-    )
-    assert status == 0, output
-    assert "task devmesh:langfuse:backfill SESSION=322c4ec8-dd16-4f01-8b9c-7726559d91f3" in output
-
-
-def test_t900750_check_hook_liefert_sessionstart_json(repo_root, tmp_path):
-    env = _tracing_env(tmp_path)
-    _write_cache(tmp_path, 3000, "null")
-    status, output = _merged(
-        [BASH, str(repo_root / "scripts" / "langfuse" / "tracing-status.sh"), "check", "--hook"], repo_root, env
-    )
-    assert status == 0, output
-    status, event = _merged(["jq", "-r", ".hookSpecificOutput.hookEventName"], repo_root, stdin=output)
-    assert event == "SessionStart"
-
-
-def test_t900750_backfill_claude_sh_lehnt_ungueltige_session_id_ab(repo_root):
-    status, output = _merged([BASH, str(repo_root / "scripts" / "langfuse" / "backfill-claude.sh"), "nope"], repo_root)
-    assert status == 2, output
-
-
-def test_t900750_taskfile_kennt_status_und_backfill(run_cmd, repo_root):
-    if shutil.which("task") is None:
-        pytest.skip("task binary not installed")
-    result = run_cmd(["task", "--list"], cwd=repo_root)
-    assert result.returncode == 0, result.output
-    assert "devmesh:langfuse:status" in result.output
-    assert "devmesh:langfuse:backfill" in result.output

@@ -1,0 +1,59 @@
+{
+  "$comment": "T901676 — SSOT der kuratierten Brett-Vision-Flows. Eigene Datei, weil der Runner genau eine AGENT_BASE_URL pro Lauf kennt (Brett-Host des Ziel-Envs). URLs relativ, Basis aus AGENT_BASE_URL. Anonyme Flows beobachten auf Prod das oauth2-Proxy-Auth-Gate (Pocket ID); Auth-Flows brauchen --auth aus brett-mentolder-setup. E4-Befund: der Runner befuellt apiState nicht (readState -> {}), daher sind apiEquals-Checks Runner-Faehigkeitsproben (rot bis Runner Snapshots laedt) — kein Edit an Runner/Orakel in diesem Ticket.",
+  "flows": [
+    {
+      "id": "brett-smoke-home",
+      "start_url": "/",
+      "goal": "Lade die Brett-Startseite ohne Sitzung und beobachte das Auth-Gate (Weiterleitung auf die Anmeldeseite).",
+      "goal_checks": [
+        { "type": "urlMatches", "value": "(authorize|login|interaction)" },
+        { "type": "textContains", "value": "Sign in" }
+      ],
+      "source_spec": "tests/e2e/specs/fa-27-brett.spec.ts"
+    },
+    {
+      "id": "brett-guest-share-link",
+      "start_url": "/share/this-token-does-not-exist",
+      "goal": "Rufe einen Gast-Share-Link ohne Sitzung auf und beobachte das Auth-Gate (Weiterleitung auf die Anmeldeseite).",
+      "goal_checks": [
+        { "type": "urlContains", "value": "interaction" },
+        { "type": "textContains", "value": "Sign in" }
+      ],
+      "source_spec": "tests/e2e/specs/brett-share-link.spec.ts"
+    },
+    {
+      "id": "brett-session-lifecycle",
+      "auth": true,
+      "start_url": "/?room=e2e-agent-lifecycle",
+      "goal": "Oeffne als angemeldeter Admin das Brett in einem neuen Raum und stelle sicher, dass das Board mit Figuren-UI laedt.",
+      "goal_checks": [
+        { "type": "urlContains", "value": "room=e2e-agent-lifecycle" },
+        { "type": "textMatches", "value": "Figur" }
+      ],
+      "source_spec": "tests/e2e/specs/brett-session-lifecycle.spec.ts"
+    },
+    {
+      "id": "brett-figure-place-move",
+      "auth": true,
+      "start_url": "/?room=e2e-agent-figures",
+      "goal": "Oeffne als angemeldeter Admin das Brett, platziere eine Figur und bewege sie an eine neue Position.",
+      "goal_checks": [
+        { "type": "apiEquals", "path": "state.figures", "value": [] },
+        { "type": "textContains", "value": "Figur" }
+      ],
+      "source_spec": "tests/e2e/specs/brett-undo-redo.spec.ts",
+      "notes": "apiEquals-Pfad spiegelt GET /api/sessions/:room/snapshot -> {state:{figures}} (p1-Audit L7, fa-27 T24). E4-Befund: Check rot bis der Runner REST-Snapshots in apiState laedt."
+    },
+    {
+      "id": "brett-undo-redo",
+      "auth": true,
+      "start_url": "/?room=e2e-agent-undoredo",
+      "goal": "Oeffne als angemeldeter Admin das Brett, bewege eine Figur und mache die Bewegung per Undo rueckgaengig, dann per Redo erneut.",
+      "goal_checks": [
+        { "type": "apiEquals", "path": "state.figures", "value": [] }
+      ],
+      "source_spec": "tests/e2e/specs/brett-undo-redo.spec.ts",
+      "notes": "Siehe brett-figure-place-move: Runner-Faehigkeitsprobe (apiState), kein Agenten-Skillmaß bis Runner-Support landet."
+    }
+  ]
+}

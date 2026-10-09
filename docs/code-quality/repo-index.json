@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1286,
+      "file_count": 1287,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -403,6 +403,7 @@
         "tests/py/spec/ci_cd_specs/test_windows_path_portability.py",
         "tests/py/spec/ci_cd_specs/test_workflow_self_trigger.py",
         "tests/py/spec/ci_cd_specs/test_worktrees_not_tracked.py",
+        "tests/py/spec/design_assets/test_inventory.py",
         "tests/py/spec/massage-tenant/test_brand_migration.py",
         "tests/py/spec/massage-tenant/test_db_network_policy.py",
         "tests/py/spec/massage-tenant/test_flux_freeze.py",
@@ -4143,7 +4144,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 872,
+      "file_count": 873,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4335,6 +4336,7 @@
         "scripts/comfy-image-mcp/workflow.json",
         "scripts/context-retrieve.mjs",
         "scripts/db-schema-diagram.py",
+        "scripts/design-assets-inventory.sh",
         "scripts/dev-admin-session.mjs",
         "scripts/dev-db-refresh.sh",
         "scripts/dev-host-units/README.md",

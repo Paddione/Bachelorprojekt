@@ -10,7 +10,11 @@
 # Kein Compiler, kein Paketmanager-Cache, kein Netzwerk zur Laufzeit (das setzt
 # tools-sandbox.sh mit --network none). Das Image ist bewusst klein: alles, was
 # hier liegt, ist auch das, was ein Modell mit exec_shell_command erreichen kann.
-FROM alpine:3.22
+# T901679: Basis ueber Googles Pull-Through-Cache statt Docker Hub direkt —
+# anonyme Docker-Hub-Pulls schlagen in CI mit 429 fehl (Shard-1-Flake).
+# Digest-gepinnt und verifiziert byte-identisch zu docker.io/library/alpine:3.22
+# (imagetools inspect beider Registries, 2026-10-09).
+FROM mirror.gcr.io/library/alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8
 
 # git fuer file_glob_search, grep fuer grep_search (busybox-grep kennt kein -r
 # mit denselben Schaltern), coreutils fuer ein vorhersagbares 'wc -c'.

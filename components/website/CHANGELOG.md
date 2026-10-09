@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.411.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.410.1...website-v1.411.0) (2026-10-09)
+
+
+### Features
+
+* plan-vector-routing — staged plans as K1 doctype with dispatch recall (T901542) ([#6443](https://github.com/Paddione/Bachelorprojekt/issues/6443)) ([f8e4945](https://github.com/Paddione/Bachelorprojekt/commit/f8e4945c15794e65e9926caea24d416eb4f18056))
+
 ## [1.410.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.410.0...website-v1.410.1) (2026-10-08)
 
 

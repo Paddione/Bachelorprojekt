@@ -3,7 +3,7 @@ title: "llm-proxy als Mitte für Embed/Rerank, bge-mcp als Fassade"
 ticket_id: T901560
 domains: [llm, embeddings, agents]
 status: active
-file_locks: [scripts/mcp-gateway/probe.sh, scripts/mcp-gateway/watchdog-check.sh, tests/spec/llm-proxy-embed-mitte.bats, environments/dev.yaml, environments/fleet-mentolder.yaml, environments/mentolder.yaml, environments/staging.yaml, environments/korczewski.yaml, environments/fleet-korczewski.yaml, scripts/knowledge/kalibrierung-retrieval.mjs, scripts/p0min-embed-run.py, scripts/mcp/cbm-embed-sync.py, scripts/mcp/cbm-hybrid.py, docs/agent-guide/registry/mcp.yaml, docs/runbooks/studio-embed-aktivierung.md]
+file_locks: [scripts/mcp-gateway/probe.sh, scripts/mcp-gateway/watchdog-check.sh, tests/py/spec/test_llm_proxy_embed_mitte.py, environments/dev.yaml, environments/fleet-mentolder.yaml, environments/mentolder.yaml, environments/staging.yaml, environments/korczewski.yaml, environments/fleet-korczewski.yaml, scripts/knowledge/kalibrierung-retrieval.mjs, scripts/p0min-embed-run.py, scripts/mcp/cbm-embed-sync.py, scripts/mcp/cbm-hybrid.py, docs/agent-guide/registry/mcp.yaml, docs/runbooks/studio-embed-aktivierung.md]
 shared_changes: false
 batch_id: null
 parent_feature: null
@@ -24,7 +24,7 @@ verworfene Optionen und Prior-Art stehen in `proposal.md` im selben Ordner.
 | p1 | tasks.d/p1-gateway-gesundheit.md | Gateway-Gesundheit | `scripts/mcp-gateway/probe.sh`, `scripts/mcp-gateway/watchdog-check.sh` |  |
 | p2 | tasks.d/p2-proxy-mitte.md | Proxy-Mitte | `environments/dev.yaml`, `environments/fleet-mentolder.yaml`, `environments/mentolder.yaml`, `environments/staging.yaml`, `environments/korczewski.yaml`, `environments/fleet-korczewski.yaml`, `scripts/knowledge/kalibrierung-retrieval.mjs`, `scripts/p0min-embed-run.py`, `scripts/mcp/cbm-embed-sync.py`, `scripts/mcp/cbm-hybrid.py`, `docs/agent-guide/registry/mcp.yaml` | p1 |
 | p3 | tasks.d/p3-studio-aktivierung.md | Studio-Aktivierung | `docs/runbooks/studio-embed-aktivierung.md` | p2 |
-| p4 | tasks.d/p4-tests.md | tests | `tests/spec/llm-proxy-embed-mitte.bats` | p1, p2 |
+| p4 | tasks.d/p4-tests.md | tests | `tests/py/spec/test_llm_proxy_embed_mitte.py` | p1, p2 |
 
 Reihenfolge bindend: p1 → p2 → p3 (p3 erst nach Smoke-Ende, Smoke-Gate im
 Partial); p4 trägt den RED→GREEN-Lebenszyklus der Spec (RED vor p1-Code,
@@ -40,7 +40,7 @@ GREEN nach p2). Partials teilen keine `target_files`.
 - `scripts/mcp-gateway/watchdog-check.sh` (111 Zeilen): `:18235`-Ausfall löst
   `devmesh-forward`-Neustart aus (gleiche Kette wie `:13005`, ein
   `kubectl`-Prozess trägt beide Ports).
-- `tests/spec/llm-proxy-embed-mitte.bats`: neu. Fälle: (a) alle
+- `tests/py/spec/test_llm_proxy_embed_mitte.py`: neu. Fälle: (a) alle
   `environments/*.yaml` setzen `LLM_EMBED_URL` und `LLM_RERANKER_URL` auf
   denselben Proxy-Basis-Host (eine Mitte, kein Split auf zwei
   Per-Rollen-Services); (b) `probe.sh` enthält `18235`;

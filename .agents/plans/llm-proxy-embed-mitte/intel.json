@@ -3,55 +3,236 @@
     "slug": "llm-proxy-embed-mitte",
     "ticket_id": "T901560",
     "generated_from": "origin/main@38da1960a",
-    "domains": ["llm", "embeddings", "agents"],
-    "intel_sources": ["grep", "wc -l", "mcp-studio-status", "systemd", "adr"]
+    "domains": [
+      "llm",
+      "embeddings",
+      "agents"
+    ],
+    "intel_sources": [
+      "grep",
+      "wc -l",
+      "mcp-studio-status",
+      "systemd",
+      "adr"
+    ]
   },
   "impact_files": [
-    {"path": "environments/dev.yaml", "language": "yaml", "loc": 70, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "environments/fleet-mentolder.yaml", "language": "yaml", "loc": 126, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "environments/mentolder.yaml", "language": "yaml", "loc": 140, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "environments/staging.yaml", "language": "yaml", "loc": 108, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "environments/korczewski.yaml", "language": "yaml", "loc": 116, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "environments/fleet-korczewski.yaml", "language": "yaml", "loc": 124, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "scripts/mcp-gateway/probe.sh", "language": "bash", "loc": 109, "s1_limit": 800, "s1_baseline": null, "s1_budget": 691},
-    {"path": "scripts/mcp-gateway/watchdog-check.sh", "language": "bash", "loc": 111, "s1_limit": 800, "s1_baseline": null, "s1_budget": 689},
-    {"path": "scripts/knowledge/kalibrierung-retrieval.mjs", "language": "javascript", "loc": 69, "s1_limit": 900, "s1_baseline": null, "s1_budget": 831},
-    {"path": "scripts/p0min-embed-run.py", "language": "python", "loc": 189, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "scripts/mcp/cbm-embed-sync.py", "language": "python", "loc": 715, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "scripts/mcp/cbm-hybrid.py", "language": "python", "loc": 347, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "docs/agent-guide/registry/mcp.yaml", "language": "yaml", "loc": 431, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "docs/runbooks/studio-embed-aktivierung.md", "language": "markdown", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": null},
-    {"path": "tests/spec/llm-proxy-embed-mitte.bats", "language": "bash", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": null}
+    {
+      "path": "environments/dev.yaml",
+      "language": "yaml",
+      "loc": 70,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/fleet-mentolder.yaml",
+      "language": "yaml",
+      "loc": 126,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/mentolder.yaml",
+      "language": "yaml",
+      "loc": 140,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/staging.yaml",
+      "language": "yaml",
+      "loc": 108,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/korczewski.yaml",
+      "language": "yaml",
+      "loc": 116,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/fleet-korczewski.yaml",
+      "language": "yaml",
+      "loc": 124,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/probe.sh",
+      "language": "bash",
+      "loc": 109,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 691
+    },
+    {
+      "path": "scripts/mcp-gateway/watchdog-check.sh",
+      "language": "bash",
+      "loc": 111,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 689
+    },
+    {
+      "path": "scripts/knowledge/kalibrierung-retrieval.mjs",
+      "language": "javascript",
+      "loc": 69,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 831
+    },
+    {
+      "path": "scripts/p0min-embed-run.py",
+      "language": "python",
+      "loc": 189,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp/cbm-embed-sync.py",
+      "language": "python",
+      "loc": 715,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp/cbm-hybrid.py",
+      "language": "python",
+      "loc": 347,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/mcp.yaml",
+      "language": "yaml",
+      "loc": 431,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/studio-embed-aktivierung.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/test_llm_proxy_embed_mitte.py",
+      "language": "python",
+      "loc": 70,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
   ],
   "symbols": [
-    {"name": "resolveEndpoint", "source": "components/website/src/lib/bge-router.ts:40-50", "note": "einzige Aufloesstelle pro Rolle (embed/rerank), fail-closed ohne Defaults"},
-    {"name": "routeRequest", "source": "scripts/llm-proxy/bge-routes.mjs:199-226", "note": "Ketten-Failover: ok/client_error sofort, server_error/timeout/unreachable weiter, erschoepft 503"},
-    {"name": "embed/bge_embed", "source": "scripts/bge-mcp/server.mjs:169-182", "note": "Shim ruft Upstream POST /v1/embeddings, Modell bge-m3"},
-    {"name": "rerank/bge_rerank", "source": "scripts/bge-mcp/server.mjs:184-202", "note": "Shim ruft Upstream POST /v1/rerank, Modell bge-reranker-v2-m3"}
+    {
+      "name": "resolveEndpoint",
+      "source": "components/website/src/lib/bge-router.ts:40-50",
+      "note": "einzige Aufloesstelle pro Rolle (embed/rerank), fail-closed ohne Defaults"
+    },
+    {
+      "name": "routeRequest",
+      "source": "scripts/llm-proxy/bge-routes.mjs:199-226",
+      "note": "Ketten-Failover: ok/client_error sofort, server_error/timeout/unreachable weiter, erschoepft 503"
+    },
+    {
+      "name": "embed/bge_embed",
+      "source": "scripts/bge-mcp/server.mjs:169-182",
+      "note": "Shim ruft Upstream POST /v1/embeddings, Modell bge-m3"
+    },
+    {
+      "name": "rerank/bge_rerank",
+      "source": "scripts/bge-mcp/server.mjs:184-202",
+      "note": "Shim ruft Upstream POST /v1/rerank, Modell bge-reranker-v2-m3"
+    }
   ],
   "call_graph": {
-    "entrypoints": ["tools/call bge_embed/bge_rerank (:13005)", "POST $LLM_EMBED_URL/v1/embeddings", "POST $LLM_RERANKER_URL/v1/rerank", "POST :18235/v1/embeddings|/v1/rerank (Proxy)"],
+    "entrypoints": [
+      "tools/call bge_embed/bge_rerank (:13005)",
+      "POST $LLM_EMBED_URL/v1/embeddings",
+      "POST $LLM_RERANKER_URL/v1/rerank",
+      "POST :18235/v1/embeddings|/v1/rerank (Proxy)"
+    ],
     "edges": [
-      {"from": "devflow backends.mjs makeBge", "to": ":13005 bge_embed/bge_rerank"},
-      {"from": ":13005 shim", "to": "$LLM_EMBED_URL/$LLM_RERANKER_URL"},
-      {"from": "lib-knowledge-pg.mjs embedViaBge", "to": "$LLM_EMBED_URL/v1/embeddings"},
-      {"from": "lib-context-retrieve.mjs embedQuery/rerankCandidates", "to": "$LLM_EMBED_URL/$LLM_RERANKER_URL"},
-      {"from": "cbm-embed-sync.py", "to": "$LLM_EMBED_URLS fan-out"},
-      {"from": "ZIEL: alle obigen", "to": "llm-proxy :18235 (Rollen-Ketten)"}
+      {
+        "from": "devflow backends.mjs makeBge",
+        "to": ":13005 bge_embed/bge_rerank"
+      },
+      {
+        "from": ":13005 shim",
+        "to": "$LLM_EMBED_URL/$LLM_RERANKER_URL"
+      },
+      {
+        "from": "lib-knowledge-pg.mjs embedViaBge",
+        "to": "$LLM_EMBED_URL/v1/embeddings"
+      },
+      {
+        "from": "lib-context-retrieve.mjs embedQuery/rerankCandidates",
+        "to": "$LLM_EMBED_URL/$LLM_RERANKER_URL"
+      },
+      {
+        "from": "cbm-embed-sync.py",
+        "to": "$LLM_EMBED_URLS fan-out"
+      },
+      {
+        "from": "ZIEL: alle obigen",
+        "to": "llm-proxy :18235 (Rollen-Ketten)"
+      }
     ]
   },
   "db_tables": [],
   "api_contracts": [
-    {"endpoint": "POST /v1/embeddings {model, input}", "provider": "llm-proxy :18235 / Upstreams", "note": "Rollen-Failover je Kette"},
-    {"endpoint": "POST /v1/rerank {model, query, documents}", "provider": "llm-proxy :18235 / Upstreams", "note": "Rollen-Failover je Kette"},
-    {"endpoint": "tools/call bge_embed {texts} / bge_rerank {query, documents, top_k}", "provider": "bge-mcp :13005", "note": "Fassade, Upstream kuenftig Proxy"}
+    {
+      "endpoint": "POST /v1/embeddings {model, input}",
+      "provider": "llm-proxy :18235 / Upstreams",
+      "note": "Rollen-Failover je Kette"
+    },
+    {
+      "endpoint": "POST /v1/rerank {model, query, documents}",
+      "provider": "llm-proxy :18235 / Upstreams",
+      "note": "Rollen-Failover je Kette"
+    },
+    {
+      "endpoint": "tools/call bge_embed {texts} / bge_rerank {query, documents, top_k}",
+      "provider": "bge-mcp :13005",
+      "note": "Fassade, Upstream kuenftig Proxy"
+    }
   ],
   "external_types": [],
   "risks": [
-    {"note": "devmesh-forward.service im Restart-Loop (:13005 tot): erst reparieren, sonst keine Verifikation moeglich.", "severity": "blocker"},
-    {"note": "GRPO-Smoke :8326 belegt GPU 0: Studio-Ladung (P3) erst nach Smoke-Ende (User-Entscheidung).", "severity": "blocker"},
-    {"note": "In-Cluster-Service-Namen fuer llm-proxy muessen zur Implementierungszeit per kubectl verifiziert werden (keine Annahmen in diesem Plan).", "severity": "warn"},
-    {"note": "Studio-MCP kennt kein Inference-Load: P3 enthaelt UI-Schritte, keine MCP-Automatisierung.", "severity": "warn"},
-    {"note": "codebase-memory/LSP nicht befragt; Symbole/Kanten aus grep + verifizierten Reads.", "severity": "warn"}
+    {
+      "note": "devmesh-forward.service im Restart-Loop (:13005 tot): erst reparieren, sonst keine Verifikation moeglich.",
+      "severity": "blocker"
+    },
+    {
+      "note": "GRPO-Smoke :8326 belegt GPU 0: Studio-Ladung (P3) erst nach Smoke-Ende (User-Entscheidung).",
+      "severity": "blocker"
+    },
+    {
+      "note": "In-Cluster-Service-Namen fuer llm-proxy muessen zur Implementierungszeit per kubectl verifiziert werden (keine Annahmen in diesem Plan).",
+      "severity": "warn"
+    },
+    {
+      "note": "Studio-MCP kennt kein Inference-Load: P3 enthaelt UI-Schritte, keine MCP-Automatisierung.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory/LSP nicht befragt; Symbole/Kanten aus grep + verifizierten Reads.",
+      "severity": "warn"
+    }
   ]
 }

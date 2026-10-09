@@ -3564,6 +3564,12 @@
     "kind": "pytest"
   },
   {
+    "id": "e2e-vision-agent/api_state",
+    "file": "tests/py/spec/e2e-vision-agent/test_api_state.py",
+    "category": "e2e-vision-agent",
+    "kind": "pytest"
+  },
+  {
     "id": "env-seal-empty-value-keys",
     "file": "tests/py/spec/native_ported/spec/test_env_seal_empty_value_keys.py",
     "category": "env-seal-empty-value-keys",

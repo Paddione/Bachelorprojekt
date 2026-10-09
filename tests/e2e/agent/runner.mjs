@@ -5,6 +5,7 @@
 import { writeFileSync, appendFileSync, readFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
 import { evaluateFlow, summarize, validateFlows } from './oracle.mjs';
+import { readState } from './read-state.mjs';
 
 const PROMPT_VERSION = 1;
 const VIEWPORT = { width: 1280, height: 800 };
@@ -115,11 +116,6 @@ async function observe(page, goal, first) {
   return parts;
 }
 
-async function readState(page) {
-  const text = await page.locator('body').innerText().catch(() => '');
-  return { url: page.url(), text, apiState: {} };
-}
-
 async function settle(page) {
   await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
 }
@@ -221,7 +217,7 @@ async function runFlow(flow, rep) {
       }
       if (outcome) messages.push({ role: 'user', content: outcome });
     }
-    rec.oracle = evaluateFlow({ id: flow.id, checks: flow.goal_checks }, await readState(page));
+    rec.oracle = evaluateFlow({ id: flow.id, checks: flow.goal_checks }, await readState(page, flow, BASE));
     rec.pass = rec.oracle.pass && done;
   } catch (e) {
     rec.error = String(e.message ?? e).slice(0, 300);

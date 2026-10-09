@@ -6,9 +6,10 @@
 #
 # Zuschnitt:
 #   - Sprachen mit echtem Nutzen: javascript-typescript (Website inkl. /api/*, Node-Skripte),
-#     go (scripts/ticket-mcp/go), actions (Workflow-Dateien selbst).
+#     go (mcp-servers/ticket/go aus dem Dotfiles-Zweit-Checkout, T901492),
+#     actions (Workflow-Dateien selbst).
 #     [T900399] Das zweite Go-Modul (mcp-go) ist mit dem Abbau entfallen —
-#     scripts/ticket-mcp/go ist damit das einzige.
+#     ticket/go ist damit das einzige.
 #     Kein Python/Shell — dort deckt CodeQL wenig ab.
 #   - PRs nur bei Code-Aenderungen (Pfadfilter); reine Plan-/Doku-PRs laufen nicht an.
 #   - Woechentlich komplett auf main, damit neue Regeln auch Bestandscode pruefen.

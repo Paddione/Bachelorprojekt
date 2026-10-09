@@ -77,7 +77,11 @@ AUDIT = "scripts/vda/ticket/readiness-audit.sh"
 MIGRATIONS_TS = "components/website/src/lib/tickets/migrations.ts"
 TABLES_TS = "components/website/src/lib/tickets/tables/tickets.ts"
 TYPE_VOCAB_TS = "components/website/src/lib/tickets/migrate-type-vocabulary.ts"
-MISHAP_GO = "scripts/ticket-mcp/go/internal/tools/mishap.go"
+# T901492: ticket-Quellen liegen zentral (CI: Zweit-Checkout via MCP_SERVERS_HOME).
+# Absolutpfad: Path.__truediv__ mit absolutem rechts gewinnt, _lines() bleibt unveraendert.
+_TICKET_GO = Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers")) / "ticket/go"
+MISHAP_GO = str(_TICKET_GO / "internal/tools/mishap.go")
+TRIAGE_GO = str(_TICKET_GO / "internal/tools/triage.go")
 
 
 # ── placeholder ──────────────────────────────────────────────────────────────
@@ -346,7 +350,7 @@ def test_t002329_notify_trigger_fires_for_feat_too(root):
 
 
 def test_t002329_ticket_mcp_validates_against_new_vocabulary(root):
-    assert _count(root, "scripts/ticket-mcp/go/internal/tools/triage.go", '"chore"') > 0
+    assert _count(root, TRIAGE_GO, '"chore"') > 0
 
 
 # ── [T002375-p3] CLI flag drift between stage-plan and archive-plan ─────────

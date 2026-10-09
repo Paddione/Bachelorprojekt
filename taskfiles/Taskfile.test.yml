@@ -426,7 +426,9 @@ tasks:
         # T901392 laeuft dafuer die volle pytest-Suite.
         echo "$CHANGED" | grep -qE "^(tests/py/|tests/spec/|tests/lib/|tests/fixtures/|scripts/)" && RUN_SPEC=true || true
         echo "$CHANGED" | grep -qE "^(tests/py/|tests/unit/|tests/lib/)" && RUN_UNIT=true || true
-        echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|scripts/ticket-mcp/)" && RUN_MCP=true || true
+        # T901492: scripts/ticket-mcp/ ist in die Dotfiles umgezogen (mcp-servers/ticket);
+        # der Guardrail-Trigger folgt jetzt der Registry als SSOT der Verdrahtung.
+        echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|docs/agent-guide/registry/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
         echo "$CHANGED" | grep -qE "^\.github/workflows/" && RUN_WORKFLOWS=true || true
         echo "$CHANGED" | grep -qE "^components/website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true

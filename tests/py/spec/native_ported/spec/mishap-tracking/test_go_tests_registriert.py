@@ -1,6 +1,8 @@
 """Native migration of tests/spec/mishap-tracking/go-tests-registriert.bats."""
 
+import os
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -9,7 +11,9 @@ def test_t003120_die_ticket_mcp_go_testsuite_laeuft_und_ist_gruen(repo_root, run
     """T003120: die ticket-mcp-Go-Testsuite laeuft und ist gruen"""
     if shutil.which("go") is None:
         pytest.skip("go toolchain not installed")
-    result = run_cmd(["make", "-C", str(repo_root / "scripts" / "ticket-mcp" / "go"), "test"], timeout=600)
+    # T901492: ticket-Quellen liegen zentral (CI: Zweit-Checkout via MCP_SERVERS_HOME).
+    central = Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers"))
+    result = run_cmd(["make", "-C", str(central / "ticket" / "go"), "test"], timeout=600)
     assert result.returncode == 0, result.output
 
 
@@ -24,5 +28,6 @@ def test_t003120_das_go_testziel_ist_aus_der_ci_konfiguration_erreichbar(repo_ro
     assert "ticket-mcp:build" in taskfile.read_text(encoding="utf-8")
 
     # Ein Taskfile-Ziel ruft die Go-Testsuite auf ... und CI ruft dieses Ziel auf.
-    assert "scripts/ticket-mcp/go test" in taskfile.read_text(encoding="utf-8")
+    # T901492: zentrale Quellen via MCP_SERVERS_HOME (make -C ".../ticket/go" test).
+    assert 'ticket/go" test' in taskfile.read_text(encoding="utf-8")
     assert "ticket-mcp:test" in ci.read_text(encoding="utf-8")

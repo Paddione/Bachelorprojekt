@@ -56,7 +56,7 @@ Prior-Art: keine Lizenz-ADR, keine Lizenz-Guards im Repo.
   schreiben. Verify pro Partial-Plan.
 - [x] **2. Partial p2 ausführen** (`tasks.d/p2-manifest-notice.md`): Manifest und
   NOTICE schreiben. Verify pro Partial-Plan.
-- [ ] **3. Partial p3 ausführen** (`tasks.d/p3-ci-enforcement.md`): Checker und
+- [x] **3. Partial p3 ausführen** (`tasks.d/p3-ci-enforcement.md`): Checker und
   Workflow schreiben. Verify pro Partial-Plan.
 - [ ] **4. Partial p4 ausführen** (`tasks.d/p4-assets-release.md`): Asset- und
   Release-Dokumente schreiben. Verify pro Partial-Plan.

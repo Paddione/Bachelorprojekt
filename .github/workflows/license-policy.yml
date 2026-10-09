@@ -1,0 +1,25 @@
+# .github/workflows/license-policy.yml
+# CI-Enforcement der Reuse-Policy [T901032]: Der fail-closed Checker
+# scripts/legal/license-check.sh validiert Manifest-Schema, exakte
+# Versions-Pins, AGPL/GPL-Denylist, NOTICE-Abdeckung und Policy-Anker.
+name: license-policy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  license-check:
+    name: License policy check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          fetch-depth: 1
+
+      - name: Run license policy check
+        run: bash scripts/legal/license-check.sh

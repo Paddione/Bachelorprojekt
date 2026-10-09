@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "slug": "brett-vision-training",
+    "ticket_id": "T901676",
+    "generated_from": "main@ea6e42179",
+    "domains": ["e2e", "brett"],
+    "intel_sources": ["codebase-read", "wc", "plan-lint-residual_budget", "ticket-db", "runbook"]
+  },
+  "impact_files": [
+    {
+      "path": "tests/e2e/specs/brett-replay.spec.ts",
+      "language": "typescript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": "neu, volles Limit 900, angepeilt unter 150"
+    },
+    {
+      "path": "tests/e2e/specs/fa-24-whiteboard.spec.ts",
+      "language": "typescript",
+      "loc": 18,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 882
+    },
+    {
+      "path": "tests/e2e/specs/brett-*.spec.ts",
+      "language": "typescript-audit-scope",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": "Audit-Umfang, je Datei residual_budget-Pruefung vor Edit"
+    },
+    {
+      "path": "tests/e2e/agent/curated-brett.json",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/e2e-vision-agents.md",
+      "language": "markdown",
+      "loc": 84,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "generated",
+      "loc": 6182,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": {
+    "runner_cli": "tests/e2e/agent/runner.mjs --flows/--model/--reps/--out/--obs/--max-turns/--auth",
+    "oracle_api": "validateFlows, evaluateFlow, summarize (CHECK_TYPES: urlContains, urlMatches, textContains, textMatches, apiEquals)",
+    "brett_flags": "window.__brettFeatures (replay dark-launch, sf-* und t000468 default-on)",
+    "setup_project": "brett-mentolder-setup (Playwright-Projekt, storageState-Quelle)"
+  },
+  "db_tables": "keine Schemaänderung, keine Abfrage nötig",
+  "external_types": "keine neuen externen Typen",
+  "risks": [
+    "LSP-Hover nicht abgefragt (Schnittstellen aus Specs/Runbook gelesen, für Daten-Plus-Specs ausreichend)",
+    "mcp-postgres nicht nötig (kein DB-Bezug)",
+    "context7 nicht nötig (keine neue Dependency)",
+    "Snapshot-Routenpfade für apiEquals verifiziert erst der p1-Audit am Spec-Text",
+    "qwen3.5-4b-quasar ohne mmproj-Nachweis (Fähigkeitsprobe in p3)",
+    "GPU-Host-Serve (Port 1931) und Env-Erreichbarkeit erst zur Execute-Zeit prüfbar"
+  ]
+}

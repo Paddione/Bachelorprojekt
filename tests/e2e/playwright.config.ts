@@ -161,6 +161,7 @@ export default defineConfig({
         '**/fa-24-*.spec.ts',    // Whiteboard
         '**/fa-25-*.spec.ts',    // Mailpit
         '**/fa-27-*.spec.ts',    // Systemisches Brett service
+        '**/brett-replay.spec.ts', // T901676: Replay-Flag/Timeline (flag-sensitiv, unauthenticated probe)
         // brett-mayhem now lives in its own authenticated project (brett-mentolder)
         '**/fa-30-einvoice.spec.ts', // E-Rechnung / XRechnung (einvoice-sidecar)
         '**/fa-35-*.spec.ts',    // LLM MixedEmbeddingModelError

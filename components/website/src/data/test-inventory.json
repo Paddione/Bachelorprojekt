@@ -102,6 +102,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-replay",
+    "file": "tests/e2e/specs/brett-replay.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:brett-roles",
     "file": "tests/e2e/specs/brett-roles.spec.ts",
     "category": "E2E",

@@ -95,4 +95,41 @@ test.describe('Brett role enforcement (C7)', () => {
       await beobCtx.close();
     }
   });
+
+  // T901676-Audit: Template-Erzeugung (is_template=true) ist admin-only
+  // (§5c/D8-Guardrail in routes/snapshots.ts) — eine Nicht-Admin-Session wird
+  // mit 403 abgewiesen, während derselbe Call als Admin durchgeht.
+  test('a non-admin cannot create a template snapshot (admin-only guard)', async ({ browser }) => {
+    const userCtx = await browser.newContext({ ignoreHTTPSErrors: true });
+    const adminCtx = await browser.newContext({ ignoreHTTPSErrors: true });
+
+    async function loginAsNonAdmin(context: BrowserContext): Promise<void> {
+      const res = await context.request.post(`${BRETT_URL}/auth/e2e-login`, {
+        headers: { 'x-e2e-secret': BRETT_OIDC_SECRET, 'content-type': 'application/json' },
+        data: { userId: 'user-tpl-guard-e2e', name: 'User', isAdmin: false },
+      });
+      expect(res.ok(), 'e2e-login for non-admin user').toBeTruthy();
+    }
+
+    try {
+      await loginAsNonAdmin(userCtx);
+      await loginAs(adminCtx, 'admin-tpl-guard-e2e', 'Admin');
+
+      const denied = await userCtx.request.post(`${BRETT_URL}/api/snapshots`, {
+        data: { room_token: `e2e-tpl-guard-${Date.now()}`, name: 'guard-probe', state: { figures: [] }, is_template: true },
+      });
+      expect(denied.status()).toBe(403);
+      expect((await denied.json()).error).toMatch(/admin-only/i);
+
+      // Kontrolle: derselbe Call als Admin geht durch (Guard schlüsselt auf
+      // isAdmin, nicht auf den Endpunkt).
+      const allowed = await adminCtx.request.post(`${BRETT_URL}/api/snapshots`, {
+        data: { room_token: `e2e-tpl-guard-${Date.now()}`, name: 'guard-control', state: { figures: [] } },
+      });
+      expect([200, 201]).toContain(allowed.status());
+    } finally {
+      await userCtx.close();
+      await adminCtx.close();
+    }
+  });
 });

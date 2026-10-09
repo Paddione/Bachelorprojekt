@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "slug": "e2e-agent-auth",
+    "ticket_id": "",
+    "generated_from": "main@b74a03c65",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "docs/runbooks/e2e-vision-agents.md",
+      "language": "markdown",
+      "loc": 55,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/e2e/agent/curated.json",
+      "language": "config",
+      "loc": 73,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/e2e/agent/oracle.mjs",
+      "language": "javascript",
+      "loc": 72,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 728
+    },
+    {
+      "path": "tests/e2e/agent/oracle.test.mjs",
+      "language": "javascript",
+      "loc": 110,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 690
+    },
+    {
+      "path": "tests/e2e/agent/runner.mjs",
+      "language": "javascript",
+      "loc": 255,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 545
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/e2e/agent/oracle.mjs:13:function atPath(obj, path) {",
+      "kind": "function",
+      "file": "tests/e2e/agent/oracle.mjs",
+      "signature": "13:function atPath(obj, path) {(...)",
+      "type_text": "13:function atPath(obj, path) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/agent/oracle.mjs:18:function matchRegex(pattern, haystack) {",
+      "kind": "function",
+      "file": "tests/e2e/agent/oracle.mjs",
+      "signature": "18:function matchRegex(pattern, haystack) {(...)",
+      "type_text": "18:function matchRegex(pattern, haystack) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/agent/oracle.mjs:26:function evaluateCheck(check, state) {",
+      "kind": "function",
+      "file": "tests/e2e/agent/oracle.mjs",
+      "signature": "26:function evaluateCheck(check, state) {(...)",
+      "type_text": "26:function evaluateCheck(check, state) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/agent/runner.mjs:38:function fail(msg) {",
+      "kind": "function",
+      "file": "tests/e2e/agent/runner.mjs",
+      "signature": "38:function fail(msg) {(...)",
+      "type_text": "38:function fail(msg) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/agent/runner.mjs:47:function loadFlows(path) {",
+      "kind": "function",
+      "file": "tests/e2e/agent/runner.mjs",
+      "signature": "47:function loadFlows(path) {(...)",
+      "type_text": "47:function loadFlows(path) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/agent/runner.mjs:96:function parseAction(text) {",
+      "kind": "function",
+      "file": "tests/e2e/agent/runner.mjs",
+      "signature": "96:function parseAction(text) {(...)",
+      "type_text": "96:function parseAction(text) {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

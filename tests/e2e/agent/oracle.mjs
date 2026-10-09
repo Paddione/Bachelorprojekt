@@ -61,6 +61,27 @@ function evaluateCheck(check, state) {
   }
 }
 
+const FLOW_CHECK_TYPES = ['urlContains', 'urlMatches', 'textContains', 'textMatches', 'apiEquals'];
+
+export function validateFlows(flows) {
+  if (!Array.isArray(flows) || !flows.length) throw new Error('Flow ?: flows muss ein nicht-leeres Array sein');
+  for (const flow of flows) {
+    const id = flow?.id;
+    if (typeof id !== 'string' || !id) throw new Error('Flow <unknown>: id fehlt oder ist kein nicht-leerer String');
+    if (typeof flow.start_url !== 'string' || !flow.start_url.startsWith('/')) {
+      throw new Error(`Flow ${id}: start_url muss relativ sein (fuehrendes /)`);
+    }
+    const checks = flow.goal_checks ?? flow.checks;
+    if (!Array.isArray(checks) || !checks.length) throw new Error(`Flow ${id}: goal_checks fehlt oder ist leer`);
+    for (const c of checks) {
+      if (!c || !FLOW_CHECK_TYPES.includes(c.type)) throw new Error(`Flow ${id}: unbekannter Check-Typ ${c?.type}`);
+      if (!('value' in c)) throw new Error(`Flow ${id}: Check ${c.type} ohne value`);
+    }
+    if ('auth' in flow && typeof flow.auth !== 'boolean') throw new Error(`Flow ${id}: auth muss boolean sein`);
+  }
+  return flows;
+}
+
 export function evaluateFlow(flow, state) {
   const checks = (flow.checks ?? []).map((c) => evaluateCheck(c, state ?? {}));
   return { pass: checks.every((c) => c.pass), checks };

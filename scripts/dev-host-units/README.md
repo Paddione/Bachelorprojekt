@@ -9,9 +9,12 @@ sind die repotrackte Wahrheit; die live installierten Kopien liegen unter
 |------|-------|-------|
 | `k3d-dev-ingress-bridge@.service` | System | socat `127.0.0.1:<port> → 10.0.33.1:<port>`; hält `*.localhost`-URLs gültig (RFC 6761 erzwingt 127.0.0.1, /etc/hosts greift nicht). Instanz: `@80`. |
 
-Seit T900191 entfallen: `llm-proxy-lan.service`, `k3d-postgres-forward.service` und
-`mcp-postgres-local.service` (alle T900191-alt). llm-proxy und mcp-postgres laufen im devmesh-Pod `llm-services`,
-lokal erreichbar über `scripts/mcp-gateway/devmesh-forward.service`.
+Seit T900191 entfallen: `llm-proxy-lan.service` und `k3d-postgres-forward.service`
+(T900191-alt). llm-proxy läuft im devmesh-Pod `llm-services`, lokal erreichbar über
+`scripts/mcp-gateway/devmesh-forward.service`. mcp-postgres läuft NICHT im devmesh-Pod:
+ihn bedient lokal `mcp-postgres-local.service` (`127.0.0.1:13001`, Datenquelle fleet-DB,
+Stand 2026-10-09 live verifiziert) — der `13001:13001`-Eintrag im devmesh-Forward ist
+entfallen.
 
 ## Installieren / Entfernen
 

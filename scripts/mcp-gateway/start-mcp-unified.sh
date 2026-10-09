@@ -5,7 +5,9 @@
 # Starts the two MCP infrastructure components the local clients depend on:
 #   1. mcp-gateway      (kubectl port-forward fleet dev-pod → :18080 mcp-kubernetes, :13002 github)
 #   2. devmesh-forward  (kubectl port-forward devmesh llm-services → :18235 llm-proxy,
-#                        :13001 mcp-postgres, :13005 bge-mcp) [T900191]
+#                        :13005 bge-mcp) [T900191]
+# mcp-postgres (:13001) wird NICHT geforwardet — ihn bedient lokal
+# mcp-postgres-local.service (127.0.0.1:13001, Datenquelle fleet-DB).
 # [T900728] Der dritte Eintrag (:13003) ist mit der Factory entfallen.
 # Not together with scripts/mcp-gateway/start-windows.ps1 (shared loopback under
 # networkingMode=mirrored → "address already in use").
@@ -149,12 +151,12 @@ start_devmesh() {
     return 0
   fi
   nohup kubectl --context devmesh port-forward -n workspace svc/llm-services \
-    18235:18235 13001:13001 13005:13005 \
+    18235:18235 13005:13005 \
     > /tmp/devmesh-forward.log 2>&1 &
   echo $! > "$(pid_file devmesh-forward)"
   wait_for_port 18235 30
   if port_in_use 18235; then
-    echo "    started (PID $(cat "$(pid_file devmesh-forward)")) — :18235 :13001 :13005"
+    echo "    started (PID $(cat "$(pid_file devmesh-forward)")) — :18235 :13005"
   else
     echo "    FAILED — check /tmp/devmesh-forward.log (kubectl/devmesh context, svc/llm-services)"
     return 1
@@ -176,7 +178,9 @@ status() {
     k8s_ok="OK"
   fi
 
-  if curl -s -m 2 -X POST http://localhost:13001/mcp \
+  # 127.0.0.1 statt localhost: ::1:13001 zeigt nach dem devmesh-Forward-Drop
+  # ins Leere (lokaler Service bindet nur 127.0.0.1).
+  if curl -s -m 2 -X POST http://127.0.0.1:13001/mcp \
     -H "Content-Type: application/json" \
     -H "Accept: application/json, text/event-stream" \
     -H "Authorization: Bearer ${MCP_POSTGRES_TOKEN:-}" \

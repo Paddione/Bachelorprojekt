@@ -1,6 +1,6 @@
 # Status: Aktiv — feuert den Gateway-Watchdog wiederkehrend (T002543).
-# Bewacht mcp-gateway.service (fleet) und devmesh-forward.service (devmesh) auf
-# WSL-Hosts. Auf Windows-Hosts nicht installieren: dort startet start-windows.ps1
+# Bewacht mcp-gateway.service (fleet), devmesh-forward.service (devmesh) und
+# mcp-postgres-local.service (lokal) auf WSL-Hosts. Auf Windows-Hosts nicht installieren: dort startet start-windows.ps1
 # beendete Forwards selbst neu (T900191).
 # scripts/mcp-gateway/mcp-gateway-watchdog.timer
 # T002543 — Wiederkehrender Timer für den MCP Gateway Watchdog.

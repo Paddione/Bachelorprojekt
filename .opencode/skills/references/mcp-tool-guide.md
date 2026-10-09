@@ -13,7 +13,7 @@ Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencod
 ## Globale Invarianten (gelten für ALLE Server)
 
 > **`mcp-postgres_query` ist READ-ONLY und nimmt NUR `sql`.** Kein `connectionString`-Argument
-> — die Verbindung ist serverseitig fest (`localhost:13001`, als `mcp_readonly`-User). INSERT/UPDATE/DELETE
+> — die Verbindung ist serverseitig fest (`127.0.0.1:13001`, als `mcp_readonly`-User). INSERT/UPDATE/DELETE
 > gehen NICHT über dieses Tool.
 
 > **Writes/DDL/Superuser bleiben kubectl.** Schreibende SQL (INSERT/UPDATE/DELETE/UPSERT), DDL als
@@ -46,7 +46,7 @@ Das MCP-Tool ist direkt verfügbar, wenn der Server läuft. Schneller Health-Che
 curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
   -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"hc","version":"1"}}}' \
-  http://localhost:13001/mcp
+  http://127.0.0.1:13001/mcp
 # 200 → MCP erreichbar; alles andere → Skript-/kubectl-Fallback nutzen.
 ```
 
@@ -74,16 +74,19 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 
 ## `mcp-postgres` — Read-only SQL
 
-- **Endpoint:** `http://localhost:13001/mcp`
+- **Endpoint:** `http://127.0.0.1:13001/mcp`
 - **Tool:** `mcp-postgres_query` (Param: **nur** `sql`)
-- **Verfügbarkeits-Check — vor jedem Zugriff prüfen:** Der Server läuft als Port-Forward auf
-  `workspace/shared-db` und ist nicht automatisch in jeder Session registriert. Vor dem ersten
+- **Verfügbarkeits-Check — vor jedem Zugriff prüfen:** Der Server läuft lokal als
+  `mcp-postgres-local.service` auf `127.0.0.1:13001` (Datenquelle: fleet-DB, siehe
+  `scripts/mcp-gateway/mcp-postgres-local.mjs`) und ist nicht automatisch in jeder
+  Session registriert. **Unbedingt `127.0.0.1` verwenden, nicht `localhost`:** `::1:13001`
+  zeigt ins Leere (der lokale Service bindet nur IPv4). Vor dem ersten
   `mcp-postgres_query`-Aufruf die Erreichbarkeit bestätigen:
   ```bash
   curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
     -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
     -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"hc","version":"1"}}}' \
-    http://localhost:13001/mcp
+    http://127.0.0.1:13001/mcp
   # 200 → MCP erreichbar; alles andere → psql()-Fallback (siehe unten).
   ```
   Schlägt der Check fehl oder das Tool ist als deferred Tool nicht registriert
@@ -95,7 +98,8 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   und legt fälschlich nahe, der Filter sei falsch). Ticket-Reads (`tickets.*`) gehören zu
   `ticket-mcp-node_*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
 - ⚠️ **Bedient die fleet-DB — seit ADR-007 die SSOT, keine Kopie mehr [T900013].** Port 13001
-  wird per `kubectl --context fleet port-forward` auf die **fleet**-Postgres bedient. Bis
+  bedient der lokale `mcp-postgres-local.service` (`127.0.0.1`, Datenquelle **fleet**-Postgres
+  via `DATABASE_URL`, Default `localhost:15432`) — **kein** `kubectl port-forward` mehr. Bis
   2026-08-30 stand hier die Warnung, das sei eine *eingefrorene* Kopie (ADR-006 E3: SELECT ja,
   Writes nein) und die eigentliche SSOT liege lokal. Das ist seit ADR-007 (Accepted
   2026-08-24, T016422) falsch herum: die Fleet-shared-db IST die "tickets-DB of record".

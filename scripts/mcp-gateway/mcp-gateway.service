@@ -3,8 +3,9 @@
 # mcp-gateway - systemd USER service. Long-running `kubectl port-forward` auf
 # svc/dev-pod (fleet, Namespace workspace-dev) [T900107]:
 #   mcp-kubernetes 127.0.0.1:18080, github 127.0.0.1:13002.
-# [T900191] 13001 (mcp-postgres) und 18235 (llm-proxy) kommen nicht mehr aus
-# fleet, sondern aus devmesh ueber devmesh-forward.service.
+# [T900191] 18235 (llm-proxy) kommt nicht mehr aus fleet, sondern aus devmesh
+# ueber devmesh-forward.service. 13001 (mcp-postgres) bedient lokal
+# mcp-postgres-local.service (Datenquelle fleet-DB) — kein Forward mehr.
 #
 # AUSSCHLUSS: nicht parallel zu scripts/mcp-gateway/start-windows.ps1 betreiben
 # (networkingMode=mirrored, gemeinsamer Loopback, "address already in use").

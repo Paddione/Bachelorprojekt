@@ -135,8 +135,10 @@ clients:
       Windows: Port 13001 kommt seit T900191 aus dem devmesh-Cluster:
       kubectl --context devmesh port-forward -n workspace svc/llm-services
       13001:13001 (zusammen mit 18235 und 13005, uebernommen von
-      scripts/mcp-gateway/start-windows.ps1 bzw. der WSL-Unit
-      scripts/mcp-gateway/devmesh-forward.service). Der frühere Fallback
+      scripts/mcp-gateway/start-windows.ps1). Unter WSL bedient :13001 der
+      lokale mcp-postgres-local.service (127.0.0.1, fleet-DB) — der
+      13001:13001-Eintrag in scripts/mcp-gateway/devmesh-forward.service ist
+      entfallen. Der frühere Fallback
       k3d-postgres-forward.service + mcp-postgres-local.mjs (T002767) ist mit
       T900191 entfallen.
 
@@ -373,7 +375,8 @@ cluster:
   #   (Flux-GitOps-Pipeline, KEIN manuelles kubectl apply)
   # Port-forward-Bruecke (systemd user unit / start-windows.ps1):
   #   scripts/mcp-gateway/mcp-gateway.service (fleet)
-  #   scripts/mcp-gateway/devmesh-forward.service (devmesh: 18235, 13001, 13005)
+  #   scripts/mcp-gateway/devmesh-forward.service (devmesh: 18235, 13005;
+  #     :13001 bedient lokal mcp-postgres-local.service)
   #   Taskfile.agents.yml -> mcp-gateway:start
   #   kubectl --context fleet port-forward -n workspace-dev svc/dev-pod 18080:8080 13002:3002
   #

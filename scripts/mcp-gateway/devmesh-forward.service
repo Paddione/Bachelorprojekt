@@ -1,11 +1,15 @@
-# Status: Aktiv (T900191) — haelt den lokalen Forward-Port auf svc/llm-services.
+# Status: Aktiv (T900191) — haelt die lokalen Forward-Ports auf svc/llm-services.
 # scripts/mcp-gateway/devmesh-forward.service
 # T900191 - systemd USER service. Long-running `kubectl port-forward` auf
 # svc/llm-services im devmesh-Cluster (Namespace workspace):
 #   llm-proxy     127.0.0.1:18235
-#   mcp-postgres  127.0.0.1:13001
 #   bge-mcp       127.0.0.1:13005
-# Die drei Dienste laufen seit T900191 ausschliesslich im devmesh-Pod llm-services.
+# mcp-postgres (:13001) kommt NICHT mehr aus diesem Forward, sondern aus dem
+# lokalen mcp-postgres-local.service (127.0.0.1:13001, Datenquelle fleet-DB).
+# Der 13001:13001-Eintrag ist entfallen: er hat den lokalen Bind auf
+# 127.0.0.1:13001 verdrängt (Split-Bind — ::1 antwortete aus dem devmesh-Pod
+# mit fremdem Token) und ist seit T900728 stale.
+# Die zwei verbleibenden Dienste laufen seit T900191 im devmesh-Pod llm-services.
 #
 # WARUM EINE EIGENE UNIT: kubectl port-forward bindet an einen Pod und endet bei
 # dessen Neustart. Als eigene Unit greift Restart=always genau auf diesen Prozess
@@ -18,9 +22,11 @@
 # Installation: task agents:mcp:install, oder manuell:
 #   systemctl --user enable --now "$PWD/scripts/mcp-gateway/devmesh-forward.service"
 # (Vollpfad-Enable, T900211 — der Bare-Name-Enable scheitert bei gelinkten Units.)
-# Liveness: mcp-gateway-watchdog.timer (Probe 13001, Neustart dieser Unit).
+# Liveness: mcp-gateway-watchdog.timer (Probes 18080/13005/13001 — Neustart
+# dieser Unit nur bei Ausfall der devmesh-Kette :13005; :13001 startet
+# mcp-postgres-local.service neu).
 [Unit]
-Description=Port-forward devmesh llm-services (llm-proxy :18235, mcp-postgres :13001, bge-mcp :13005)
+Description=Port-forward devmesh llm-services (llm-proxy :18235, bge-mcp :13005)
 Documentation=file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md
 After=network-online.target
 # Kein Ratenlimit-Abbruch: bei einem Rollout endet der Forward mehrfach in kurzer Folge.
@@ -28,7 +34,7 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/kubectl --context devmesh port-forward -n workspace svc/llm-services 18235:18235 13001:13001 13005:13005
+ExecStart=/usr/local/bin/kubectl --context devmesh port-forward -n workspace svc/llm-services 18235:18235 13005:13005
 Restart=always
 RestartSec=5
 

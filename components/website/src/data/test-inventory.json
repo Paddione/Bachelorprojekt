@@ -4098,6 +4098,12 @@
     "kind": "pytest"
   },
   {
+    "id": "llm-proxy-embed-mitte",
+    "file": "tests/py/spec/test_llm_proxy_embed_mitte.py",
+    "category": "llm-proxy-embed-mitte",
+    "kind": "pytest"
+  },
+  {
     "id": "local-dev-mesh/db-backup-retention",
     "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_db_backup_retention.py",
     "category": "local-dev-mesh",

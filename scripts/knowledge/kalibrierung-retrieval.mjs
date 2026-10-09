@@ -13,9 +13,9 @@
  * (design.md "Offene Parameter").
  *
  * Umgebung (dieselben Forwards wie die BATS-Tests):
- *   LLM_EMBED_URL (Default http://127.0.0.1:8081, fleet-Forward),
- *   LLM_RERANKER_URL (Default http://127.0.0.1:8093, fleet; lokal k3d-dev-Pod
- *   ueber 8094), PGURL aus dem k3d-Secret (context-retrieve-cli.bats
+ *   LLM_EMBED_URL (Default http://127.0.0.1:18235, Proxy-Forward),
+ *   LLM_RERANKER_URL (Default http://127.0.0.1:18235, Proxy; Pfad trennt die Rolle
+ *   statt per-Port-Forwards), PGURL aus dem k3d-Secret (context-retrieve-cli.bats
  *   _export_pgurl). CONTEXT_RETRIEVE_EMBED_TIMEOUT_MS=20000: der 5-s-Default
  *   ist fuer den fleet-WAN-Pfad zu knapp — 3 von 9 Kombinationen zeigten im
  *   Erstlauf rulefilter-Artefakte (Embed-Timeout), mit 20 s sind alle 9
@@ -35,8 +35,8 @@ const PGURL = `postgres://website:${Buffer.from(pw, 'base64').toString('utf8')}@
 const env = {
   ...process.env,
   PGURL,
-  LLM_EMBED_URL: process.env.LLM_EMBED_URL ?? 'http://127.0.0.1:8081',
-  LLM_RERANKER_URL: process.env.LLM_RERANKER_URL ?? 'http://127.0.0.1:8093',
+  LLM_EMBED_URL: process.env.LLM_EMBED_URL ?? 'http://127.0.0.1:18235',
+  LLM_RERANKER_URL: process.env.LLM_RERANKER_URL ?? 'http://127.0.0.1:18235',
   CONTEXT_RETRIEVE_EMBED_TIMEOUT_MS: process.env.CONTEXT_RETRIEVE_EMBED_TIMEOUT_MS ?? '20000',
 };
 

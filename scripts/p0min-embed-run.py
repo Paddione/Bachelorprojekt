@@ -12,7 +12,7 @@ lib/stripe-billing), which is the operative semantic signal. A bare id
 string only matches path-similar files (run 4: 1/3 top-5).
 Candidate text: handler repo path + file content (head-truncated).
 
-Env: LLM_EMBED_URL (default http://localhost:8081), LLM_EMBED_MODEL (bge-m3).
+Env: LLM_EMBED_URL (default http://127.0.0.1:18235, llm-proxy), LLM_EMBED_MODEL (bge-m3).
 """
 import hashlib
 import json
@@ -23,7 +23,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EMBED_URL = os.environ.get("LLM_EMBED_URL", "http://localhost:8081")
+EMBED_URL = os.environ.get("LLM_EMBED_URL", "http://127.0.0.1:18235")
 EMBED_MODEL = os.environ.get("LLM_EMBED_MODEL", "bge-m3")
 TOP_N = 10
 CONTENT_HEAD = 2500

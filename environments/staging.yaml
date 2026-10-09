@@ -81,8 +81,8 @@ env_vars:
   # addresses, never routed). ComfyUI/Rigger features are effectively disabled.
   COMFY_HOST_IP: "192.0.2.1"
   COMFY_PORT: "8189"
-  LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace-staging.svc.cluster.local:8081"
-  LLM_EMBED_URL: "http://llm-gateway-embed.workspace-staging.svc.cluster.local:8081"
+  LLM_RERANKER_URL: "http://llm-proxy.workspace-dev.svc.cluster.local:18235"
+  LLM_EMBED_URL: "http://llm-proxy.workspace-dev.svc.cluster.local:18235"
   # System-test failure loop disabled on staging
   SYSTEMTEST_LOOP_ENABLED: "false"
   STUDIO_DOMAIN: studio.staging.korczewski.de

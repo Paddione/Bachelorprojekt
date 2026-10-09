@@ -80,7 +80,7 @@ def test_root_taskfile_yml_includes_openclaw(repo_root):
 
 def test_gitignore_excludes_openclaw_env(run_cmd, repo_root):
     # Positive anchor: the template itself is NOT ignored.
-    res = run_cmd(["git", "check-ignore", "-q", "openclaw/.env.example"], cwd=repo_root, timeout=300)
+    res = run_cmd(["git", "check-ignore", "-q", ".env.example"], cwd=(repo_root / "openclaw").resolve(), timeout=300)
     assert res.returncode == 1
-    res = run_cmd(["git", "check-ignore", "-q", "openclaw/.env"], cwd=repo_root, timeout=300)
+    res = run_cmd(["git", "check-ignore", "-q", ".env"], cwd=(repo_root / "openclaw").resolve(), timeout=300)
     assert res.returncode == 0

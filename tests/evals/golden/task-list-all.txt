@@ -198,6 +198,9 @@ task: Available tasks for this project:
 * llm:bootstrap-host:                           Bootstrap the GPU host (ufw, wg-mesh reachability). HOST=<wg-mesh-ip>
 * llm:comfy-image:install:                      Bild-MCP (127.0.0.1:13008, ComfyUI bei Bedarf) installieren und in Muse Code (WSL + Windows) eintragen [T900379]
 * llm:deploy:                                   Apply bge Deployments + PVCs + Services (k3d/llm-gpu.yaml) to ENV=mentolder
+* llm:devflow:insta_ci:                         Insta-CI via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
+* llm:devflow:sandbox:                          Sandbox via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
+* llm:devflow:turbolint:                        Turbolint via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
 * llm:glimmer-worker:install:                   Glimmer-Worker-MCP (127.0.0.1:13007) installieren und in Muse Code (WSL + Windows) eintragen [T900373]
 * llm:lmstudio-preload:                         DEPRECATED — bge embed/rerank sind seit T002551 CPU-Deployments im Cluster.
 * llm:loadouts:check:                           Prueft loadouts.json auf die kanonische writeLoadouts()-Form (fail-closed, CI) [T002553]

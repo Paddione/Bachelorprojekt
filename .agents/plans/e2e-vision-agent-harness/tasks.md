@@ -28,3 +28,9 @@ Flows, Bench-Runbook. Details: `proposal.md`, `design.md`, Partials in
 | p1 | tasks.d/p1-agent-core.md | impl | `tests/e2e/agent/runner.mjs`, `tests/e2e/agent/oracle.mjs` |  |
 | p2 | tasks.d/p2-curated-data.md | impl | `tests/e2e/agent/curated.json`, `docs/runbooks/e2e-vision-agents.md` | p1 |
 | p3 | tasks.d/p3-tests.md | tests | `tests/e2e/agent/oracle.test.mjs` | p1, p2 |
+
+## Task 4: Finale Verifikation
+
+- `task test:changed` — gezielte Tests für geänderte Domains
+- `task freshness:regenerate` — generierte Artefakte aktualisieren
+- `task freshness:check` — CI-Äquivalent (Freshness + S1–S4-Ratchet + Baseline-Assertion)

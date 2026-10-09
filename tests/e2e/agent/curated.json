@@ -1,0 +1,73 @@
+{
+  "$comment": "T901645 — SSOT der kuratierten Vision-Agent-Flows. Jeder Flow nennt seine Quell-Spec (scripted Nachweis). URLs relativ, Basis aus AGENT_BASE_URL.",
+  "flows": [
+    {
+      "id": "smoke-home",
+      "start_url": "/",
+      "goal": "Lade die Startseite und stelle sicher, dass Navigation und Inhalte sichtbar sind.",
+      "goal_checks": [
+        { "type": "urlMatches", "value": "^https?://[^/]+/?$" },
+        { "type": "textContains", "value": "Kontakt" }
+      ],
+      "source_spec": "tests/e2e/specs/fa-10-website.spec.ts"
+    },
+    {
+      "id": "booking-termin-tab",
+      "start_url": "/termin",
+      "goal": "Folge der Weiterleitung von /termin und erreiche die Kontaktseite mit aktivem Termin-Tab.",
+      "goal_checks": [
+        { "type": "urlContains", "value": "/kontakt" },
+        { "type": "textContains", "value": "Termin" }
+      ],
+      "source_spec": "tests/e2e/specs/fa-16-booking.spec.ts"
+    },
+    {
+      "id": "billing-services",
+      "start_url": "/leistungen",
+      "goal": "Oeffne die Leistungsuebersicht und stelle sicher, dass die Services gelistet sind.",
+      "goal_checks": [
+        { "type": "urlContains", "value": "/leistungen" },
+        { "type": "textMatches", "value": "Leistungen|Services" }
+      ],
+      "source_spec": "tests/e2e/specs/fa-21-billing.spec.ts"
+    },
+    {
+      "id": "messaging-portal-gate",
+      "start_url": "/portal?section=nachrichten",
+      "goal": "Rufe den Portal-Nachrichtenbereich ohne Sitzung auf und beobachte das Auth-Gate (Weiterleitung zur Anmeldung).",
+      "goal_checks": [
+        { "type": "urlContains", "value": "authorize" }
+      ],
+      "source_spec": "tests/e2e/specs/fa-01-messaging.spec.ts"
+    },
+    {
+      "id": "content-hub-editor",
+      "start_url": "/admin/inhalte",
+      "goal": "Oeffne als angemeldeter Admin den Content-Hub-Editor.",
+      "goal_checks": [
+        { "type": "urlContains", "value": "/admin/inhalte" },
+        { "type": "textContains", "value": "Inhalte" }
+      ],
+      "source_spec": "tests/e2e/specs/fa-content-hub-editor.spec.ts"
+    },
+    {
+      "id": "admin-platform-gate",
+      "start_url": "/admin/platform",
+      "goal": "Rufe den Admin-Platform-Hub ohne Sitzung auf und beobachte das Auth-Gate (Weiterleitung zur Anmeldung).",
+      "goal_checks": [
+        { "type": "urlContains", "value": "authorize" }
+      ],
+      "source_spec": "tests/e2e/specs/fa-41-admin-hub.spec.ts"
+    },
+    {
+      "id": "admin-inbox-renders",
+      "start_url": "/admin/inbox",
+      "goal": "Oeffne als angemeldeter Admin die Inbox und stelle sicher, dass App und Sidebar rendern.",
+      "goal_checks": [
+        { "type": "urlContains", "value": "/admin/inbox" },
+        { "type": "textContains", "value": "Alle" }
+      ],
+      "source_spec": "tests/e2e/specs/fa-admin-inbox.spec.ts"
+    }
+  ]
+}

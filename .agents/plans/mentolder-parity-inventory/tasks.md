@@ -55,7 +55,7 @@ S1-Limit.
   Buchung bis Rechnung. Verify pro Partial-Plan.
 - [x] **2. Partial p2 ausführen** (`tasks.d/p2-auth-isolation.md`): Auth,
   Tenant-Identität, Isolation. Verify pro Partial-Plan.
-- [ ] **3. Partial p3 ausführen** (`tasks.d/p3-remaining-flows.md`): Übrige
+- [x] **3. Partial p3 ausführen** (`tasks.d/p3-remaining-flows.md`): Übrige
   Flows, Integrationen, Jobs. Verify pro Partial-Plan.
 - [ ] **4. Partial p4 ausführen** (`tasks.d/p4-parity-matrix.md`):
   Migrationen, Assets, Klassifikation, Mom-MVP, Baseline. Verify pro

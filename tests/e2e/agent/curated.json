@@ -43,6 +43,7 @@
     {
       "id": "content-hub-editor",
       "start_url": "/admin/inhalte",
+      "auth": true,
       "goal": "Oeffne als angemeldeter Admin den Content-Hub-Editor.",
       "goal_checks": [
         { "type": "urlContains", "value": "/admin/inhalte" },
@@ -62,6 +63,7 @@
     {
       "id": "admin-inbox-renders",
       "start_url": "/admin/inbox",
+      "auth": true,
       "goal": "Oeffne als angemeldeter Admin die Inbox und stelle sicher, dass App und Sidebar rendern.",
       "goal_checks": [
         { "type": "urlContains", "value": "/admin/inbox" },

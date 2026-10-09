@@ -1,0 +1,113 @@
+{
+ "meta": {
+  "slug": "license-manifest",
+  "ticket_id": "T901032",
+  "generated_from": "main@10e35fb79",
+  "domains": [
+   "plan-authoring",
+   "dev-tooling",
+   "factory"
+  ],
+  "intel_sources": [
+   "plan-lint",
+   "wc",
+   "-l"
+  ]
+ },
+ "impact_files": [
+  {
+   "path": ".github/workflows/license-policy.yml",
+   "language": "config",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "docs/legal/NOTICE.md",
+   "language": "markdown",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "docs/legal/asset-licensing.md",
+   "language": "markdown",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "docs/legal/release-attribution.md",
+   "language": "markdown",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "docs/legal/reuse-policy.md",
+   "language": "markdown",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "docs/legal/third-party-manifest.json",
+   "language": "config",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "scripts/legal/license-check.sh",
+   "language": "bash",
+   "loc": 0,
+   "s1_limit": 800,
+   "s1_baseline": null,
+   "s1_budget": null
+  },
+  {
+   "path": "tests/spec/license-manifest.bats",
+   "language": "bash",
+   "loc": 0,
+   "s1_limit": 0,
+   "s1_baseline": null,
+   "s1_budget": null
+  }
+ ],
+ "symbols": [],
+ "call_graph": {
+  "entrypoints": [],
+  "edges": []
+ },
+ "db_tables": [],
+ "api_contracts": [],
+ "external_types": [],
+ "risks": [
+  {
+   "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+   "severity": "warn"
+  },
+  {
+   "note": "N/A db_tables: docs/shell-only change, no database tables touched; section intentionally empty.",
+   "severity": "info"
+  },
+  {
+   "note": "N/A external_types: no upstream type imports; upstream license facts come from ticket-listed sources (Epicenter/HyperUI/shadcn-svelte/bits-ui/skills LICENSE pages checked 2026-10-04) re-verified at execution time.",
+   "severity": "info"
+  },
+  {
+   "note": "N/A api_contracts: no API surface changed; machine contract is the JSON manifest schema defined in p2.",
+   "severity": "info"
+  },
+  {
+   "note": "Exact upstream revisions (HyperUI, shadcn-svelte, bits-ui, frontend-design skill) must be re-verified from lockfiles/tags during execution; ticket sources date from 2026-10-04.",
+   "severity": "warn"
+  }
+ ]
+}

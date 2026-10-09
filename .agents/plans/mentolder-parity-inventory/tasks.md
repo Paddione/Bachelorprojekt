@@ -57,7 +57,7 @@ S1-Limit.
   Tenant-Identität, Isolation. Verify pro Partial-Plan.
 - [x] **3. Partial p3 ausführen** (`tasks.d/p3-remaining-flows.md`): Übrige
   Flows, Integrationen, Jobs. Verify pro Partial-Plan.
-- [ ] **4. Partial p4 ausführen** (`tasks.d/p4-parity-matrix.md`):
+- [x] **4. Partial p4 ausführen** (`tasks.d/p4-parity-matrix.md`):
   Migrationen, Assets, Klassifikation, Mom-MVP, Baseline. Verify pro
   Partial-Plan.
 - [ ] **5. Partial p5 ausführen** (`tasks.d/p5-tests.md`): Guards

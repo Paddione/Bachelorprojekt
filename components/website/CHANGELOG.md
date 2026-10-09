@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.412.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.412.0...website-v1.412.1) (2026-10-09)
+
+
+### Documentation
+
+* inventory and classify WSL design assets [T901038] ([#6451](https://github.com/Paddione/Bachelorprojekt/issues/6451)) ([5186fd7](https://github.com/Paddione/Bachelorprojekt/commit/5186fd7885b68cfcf80719e43e8f4160de9d01d9))
+
 ## [1.412.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.411.0...website-v1.412.0) (2026-10-09)
 
 

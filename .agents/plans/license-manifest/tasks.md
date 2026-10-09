@@ -48,11 +48,11 @@ Prior-Art: keine Lizenz-ADR, keine Lizenz-Guards im Repo.
 
 ## Tasks
 
-- [ ] **0. Rotphase: Failing-Test-Step zuerst.** Lege die BATS-Guards aus p5 als
+- [x] **0. Rotphase: Failing-Test-Step zuerst.** Lege die BATS-Guards aus p5 als
   Skelett an und lasse sie gegen den unimplementierten Stand laufen,
   expected: FAIL. Befehl: `bats tests/spec/license-manifest.bats`.
   Erst danach beginnt die Implementierung der Partials p1 bis p4.
-- [ ] **1. Partial p1 ausführen** (`tasks.d/p1-reuse-policy.md`): Policy-Dokument
+- [x] **1. Partial p1 ausführen** (`tasks.d/p1-reuse-policy.md`): Policy-Dokument
   schreiben. Verify pro Partial-Plan.
 - [ ] **2. Partial p2 ausführen** (`tasks.d/p2-manifest-notice.md`): Manifest und
   NOTICE schreiben. Verify pro Partial-Plan.

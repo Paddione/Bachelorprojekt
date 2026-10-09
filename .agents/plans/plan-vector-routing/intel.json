@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "slug": "plan-vector-routing",
+    "ticket_id": "",
+    "generated_from": "main@151cb4b57",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/llm/plan-runner/plan.mjs",
+      "language": "javascript",
+      "loc": 137,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 663
+    },
+    {
+      "path": "scripts/llm/plan-runner/workers.mjs",
+      "language": "javascript",
+      "loc": 170,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 630
+    },
+    {
+      "path": "scripts/llm/plan-stage-index.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/vda/ticket/stage-plan.sh",
+      "language": "bash",
+      "loc": 175,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 625
+    },
+    {
+      "path": "tests/spec/llm-local-dev/fixtures/plan-vector-routing-fake-retrieve.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/llm-local-dev/plan-vector-routing.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:116:    super();",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "116:    super();(...)",
+      "type_text": "116:    super();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:129:  free4b() { return this.slots4b - this.jobs.size; }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "129:  free4b() { return this.slots4b - this.jobs.size; }(...)",
+      "type_text": "129:  free4b() { return this.slots4b - this.jobs.size; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:131:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "131:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }(...)",
+      "type_text": "131:  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:161:  nextEvent() {",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "161:  nextEvent() {(...)",
+      "type_text": "161:  nextEvent() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:167:  drainEvents() { return this.done.splice(0); }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "167:  drainEvents() { return this.done.splice(0); }(...)",
+      "type_text": "167:  drainEvents() { return this.done.splice(0); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/plan-runner/workers.mjs:169:  pending() { return this.done.length; }",
+      "kind": "function",
+      "file": "scripts/llm/plan-runner/workers.mjs",
+      "signature": "169:  pending() { return this.done.length; }(...)",
+      "type_text": "169:  pending() { return this.done.length; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:14:_exec_sql_with_timeout() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "14:_exec_sql_with_timeout() {(...)",
+      "type_text": "14:_exec_sql_with_timeout() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:39:main() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "39:main() {(...)",
+      "type_text": "39:main() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

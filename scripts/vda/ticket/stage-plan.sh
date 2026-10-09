@@ -168,6 +168,21 @@ EOF
   else
     echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
   fi
+  # [T901542] Stage-time-Indexierung: Plan-Partials als Doctype plan_partial in
+  # die K1-Collection specs_plans (pre-merge Recall, ein Chunk pro Partial).
+  # Fail-soft — warnt statt abzubrechen; Staging scheitert nie am Embed-Gateway.
+  # stdout (Beleg-JSON) geht nach /dev/null, damit kein Aufrufer-Parsing bricht.
+  if command -v node >/dev/null 2>&1; then
+    local _stage_index_root
+    _stage_index_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+    if [[ -f "${_stage_index_root}/scripts/llm/plan-stage-index.mjs" && -f "${plan}" ]]; then
+      node "${_stage_index_root}/scripts/llm/plan-stage-index.mjs" --plan-dir "$(dirname "${plan}")" >/dev/null         || echo "WARN: stage-plan: plan-stage-index failed for '${plan}' — staging unaffected" >&2
+    else
+      echo "WARN: stage-plan: plan-stage-index skipped (plan not on disk: '${plan}')" >&2
+    fi
+  else
+    echo "WARN: stage-plan: plan-stage-index skipped (node not found)" >&2
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.0...website-v1.414.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **test:** load authenticated Brett snapshots for apiEquals [T901677] ([#6474](https://github.com/Paddione/Bachelorprojekt/issues/6474)) ([a58e8b4](https://github.com/Paddione/Bachelorprojekt/commit/a58e8b4707cbf71fcf9a83da9f36218e31b5a27a))
+
 ## [1.414.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.413.0...website-v1.414.0) (2026-10-09)
 
 

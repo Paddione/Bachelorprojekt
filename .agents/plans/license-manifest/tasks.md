@@ -62,7 +62,7 @@ Prior-Art: keine Lizenz-ADR, keine Lizenz-Guards im Repo.
   Release-Dokumente schreiben. Verify pro Partial-Plan.
 - [x] **5. Partial p5 ausführen** (`tasks.d/p5-tests.md`): BATS-Guards
   vervollständigen, alle grün.
-- [ ] **6. Finaler Verify-Task.** Alle Partials gemergt, keine Baseline-Einträge
+- [x] **6. Finaler Verify-Task.** Alle Partials gemergt, keine Baseline-Einträge
   hinzugefügt, keine Brand-Domain-Literale in Code-Snippets:
 
 ```bash

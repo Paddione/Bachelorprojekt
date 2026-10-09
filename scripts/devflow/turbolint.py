@@ -113,22 +113,32 @@ def _parse_findings(name, stdout):
 
 def _run_linter(name, root, plan):
     started = time.monotonic()
-    argv = _linter_argv(name, plan)
+
+    def _skip(warning):
+        return {
+            "name": name, "status": "skipped", "findings": [],
+            "warning": warning,
+            "duration_ms": int((time.monotonic() - started) * 1000),
+        }
+
+    try:
+        argv = _linter_argv(name, plan)
+    except ValueError as exc:
+        return _skip(f"bad linter command override: {exc}")
+    cwd = _linter_cwd(name, root)
+    if not Path(cwd).is_dir():
+        return _skip(f"workdir missing: {cwd}")
     try:
         proc = subprocess.run(
             argv,
-            cwd=_linter_cwd(name, root),
+            cwd=cwd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             timeout=LINTER_TIMEOUTS[name],
         )
     except FileNotFoundError:
-        return {
-            "name": name, "status": "skipped", "findings": [],
-            "warning": f"binary not found: {argv[0]}",
-            "duration_ms": int((time.monotonic() - started) * 1000),
-        }
+        return _skip(f"binary not found: {argv[0]}")
     except subprocess.TimeoutExpired:
         return {
             "name": name, "status": "fail",
@@ -136,11 +146,7 @@ def _run_linter(name, root, plan):
             "duration_ms": int((time.monotonic() - started) * 1000),
         }
     except OSError as exc:
-        return {
-            "name": name, "status": "skipped", "findings": [],
-            "warning": str(exc),
-            "duration_ms": int((time.monotonic() - started) * 1000),
-        }
+        return _skip(str(exc))
     return {
         "name": name,
         "status": "ok" if proc.returncode == 0 else "fail",
@@ -202,7 +208,12 @@ def run(plan=DEFAULT_PLAN, format="condensed", worktree=".", scope="changed"):
             else:
                 pending[name] = pool.submit(_run_linter, name, root, plan)
         for name, fut in pending.items():
-            fresh[name] = fut.result()
+            try:
+                fresh[name] = fut.result()
+            except Exception as exc:  # Worker darf den Lauf nie zerreissen
+                fresh[name] = {"name": name, "status": "fail",
+                               "findings": [f"linter crashed: {exc}"],
+                               "duration_ms": 0}
     results = [fresh[n] for n in names]
     for item in results:
         item.setdefault("verdict", item["status"])
@@ -235,6 +246,8 @@ def _print_condensed(report):
         elif item["status"] == "cached":
             print(f"[{item['name']}] CACHED: inputs unchanged")
     summary = report["summary"]
+    if summary.get("error"):
+        print(f"[turbolint] ERROR: {summary['error']}")
     print(f"turbolint: {summary.get('findings', 0)} finding(s), "
           f"{summary.get('ok', 0)} ok, {summary.get('failed', 0)} failed, "
           f"{summary.get('skipped', 0)} skipped, {summary.get('cached', 0)} cached")

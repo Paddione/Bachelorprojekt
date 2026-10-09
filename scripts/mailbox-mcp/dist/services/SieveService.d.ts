@@ -1,0 +1,35 @@
+import { type SieveCapabilities, type SieveConnection, type SieveScript } from "../types/sieve.types.js";
+export declare class SieveService {
+    private config;
+    private socket;
+    private connected;
+    private authenticated;
+    private capabilities;
+    private buffer;
+    private pendingCommand;
+    private logger;
+    constructor(config: SieveConnection);
+    connect(): Promise<void>;
+    authenticate(): Promise<void>;
+    disconnect(): Promise<void>;
+    listScripts(): Promise<SieveScript[]>;
+    getScript(name: string): Promise<string>;
+    putScript(name: string, content: string): Promise<void>;
+    deleteScript(name: string): Promise<void>;
+    setActiveScript(name: string): Promise<void>;
+    checkScript(content: string): Promise<void>;
+    getServerCapabilities(): SieveCapabilities | null;
+    isConnected(): boolean;
+    isAuthenticated(): boolean;
+    private setupSocketHandlers;
+    private waitForGreeting;
+    private getCapabilities;
+    private sendCommand;
+    private processBuffer;
+    private processResponseLine;
+    private resolveCommand;
+    private parseScriptList;
+    private parseCapabilities;
+    private upgradeToTLS;
+    private ensureAuthenticated;
+}

@@ -26,24 +26,24 @@ Neue Helper-Datei: Ist 0, wirksame Schwelle 800, geplantes Ziel unter 150. JSON-
 
 ## Task 1: Fehlerbeleg und Snapshot-Helper
 
-- [ ] RED vor Implementierung reproduzieren (expected: FAIL):
+- [x] RED vor Implementierung reproduzieren (expected: FAIL):
   ```bash
   PYTEST_JOBS=0 bash scripts/pytest-run.sh tests/py/spec/e2e-vision-agent/test_api_state.py -q --tb=short
   ```
   Auf HEAD 9864c1816 verifiziert: 14 failed, 1 passed; bestehende readState-Funktion liefert trotz erfolgreichem Snapshot leeren apiState.
-- [ ] Neuen pure Helper in `tests/e2e/agent/read-state.mjs` mit `readState(page, flow, base)` implementieren gemäß design.md: nur apiEquals triggert API, URL/Text unverändert.
-- [ ] Aktuelle Origin prüfen, aktuellen Raum priorisieren; bei fehlendem Raum gleichoriginigen Start-Raum nutzen, sonst vor Request verständlichen Fehler werfen.
-- [ ] URL-encoded Raum am Admin-Snapshot-Endpunkt mit authentifizierter Context-Request-Instanz laden; Timeout höchstens 10000 ms, maxRedirects 0.
-- [ ] Status, erwartete Response-URL, JSON und Snapshot-Hülle prüfen; bei Fehler werfen, niemals Erfolg aus Ersatzdaten ableiten.
-- [ ] Gesamte Hülle `{state, recordedAt}` als apiState liefern. Weder Oracle noch kuratierte Erwartungen ändern.
+- [x] Neuen pure Helper in `tests/e2e/agent/read-state.mjs` mit `readState(page, flow, base)` implementieren gemäß design.md: nur apiEquals triggert API, URL/Text unverändert.
+- [x] Aktuelle Origin prüfen, aktuellen Raum priorisieren; bei fehlendem Raum gleichoriginigen Start-Raum nutzen, sonst vor Request verständlichen Fehler werfen.
+- [x] URL-encoded Raum am Admin-Snapshot-Endpunkt mit authentifizierter Context-Request-Instanz laden; Timeout höchstens 10000 ms, maxRedirects 0.
+- [x] Status, erwartete Response-URL, JSON und Snapshot-Hülle prüfen; bei Fehler werfen, niemals Erfolg aus Ersatzdaten ableiten.
+- [x] Gesamte Hülle `{state, recordedAt}` als apiState liefern. Weder Oracle noch kuratierte Erwartungen ändern.
 
 ## Task 2: Runner anschließen und Tests grün machen
 
-- [ ] Helper importieren und alte lokale readState entfernen (extract/shrink).
-- [ ] Finalen Oracle-Aufruf auf `readState(page, flow, BASE)` umstellen. assert-Aktionen bleiben Beobachtungen ohne API-Request.
-- [ ] Bestehendes rec.error-Catch für Snapshotfehler nutzen; fehlende Admin-Authentifizierung bleibt sichtbarer Fehler und kein pass.
-- [ ] Node-Verfügbarkeits-Guard und direkte RED-Reproducer-Fallback im Test beibehalten; nach Helper-Erstellung werden alle API-Probes über den exportierten Helper ausgeführt.
-- [ ] Node-Probes einschließlich echter runFlow-Integration grün ausführen:
+- [x] Helper importieren und alte lokale readState entfernen (extract/shrink).
+- [x] Finalen Oracle-Aufruf auf `readState(page, flow, BASE)` umstellen. assert-Aktionen bleiben Beobachtungen ohne API-Request.
+- [x] Bestehendes rec.error-Catch für Snapshotfehler nutzen; fehlende Admin-Authentifizierung bleibt sichtbarer Fehler und kein pass.
+- [x] Node-Verfügbarkeits-Guard und direkte RED-Reproducer-Fallback im Test beibehalten; nach Helper-Erstellung werden alle API-Probes über den exportierten Helper ausgeführt.
+- [x] Node-Probes einschließlich echter runFlow-Integration grün ausführen:
   ```bash
   PYTEST_JOBS=0 bash scripts/pytest-run.sh tests/py/spec/e2e-vision-agent/test_api_state.py -q
   ```

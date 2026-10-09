@@ -76,7 +76,15 @@
     ]
   },
   "db_tables": [],
-  "api_contracts": [],
+  "api_contracts": [
+    {
+      "route": "/api/sessions/:room/snapshot",
+      "method": "GET",
+      "request_type": "req.params.room; auth.requireAdmin",
+      "response_type": "{ state: await db.readState(room), recordedAt: new Date().toISOString() }",
+      "file": "components/brett/src/server/routes/admin.ts"
+    }
+  ],
   "external_types": [],
   "risks": [
     {

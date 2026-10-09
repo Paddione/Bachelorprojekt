@@ -32,10 +32,14 @@ let responseUrl = base + '/api/sessions/current-room/snapshot';
 let payload = {{state:{{figures:[]}}, recordedAt:'2026-10-10T10:00:00.000Z'}};
 let status = 200;
 let malformed = false;
+let disposed = 0;
+let requestFails = false;
 const page = {{url:()=>pageUrl, locator:()=>({{innerText:async()=> 'Figur'}}),
   context:()=>({{request:{{get:async(url, options)=>{{
     calls.push({{url,options}});
-    return {{ok:()=>status===200,status:()=>status,url:()=>responseUrl,
+    if(requestFails) throw Error('cookie=SECRET request failed');
+    return {{ok:()=>status>=200 && status<300,status:()=>status,url:()=>responseUrl,
+      dispose:async()=>{{disposed++;}},
       json:async()=>{{if(malformed) throw Error('invalid JSON'); return payload;}}}};
   }}}}}})}};
 {body}
@@ -53,6 +57,7 @@ const state = await readState(page,flow,base);
 assert.equal(evaluateFlow({checks:flow.goal_checks},state).pass,true);
 assert.deepEqual(state,{url:pageUrl,text:'Figur',apiState:payload});
 assert.equal(calls.length,1);
+assert.equal(disposed,1);
 assert.equal(calls[0].url,base+'/api/sessions/current-room/snapshot');
 assert.equal(calls[0].options.maxRedirects,0);
 assert.ok(calls[0].options.timeout>0 && calls[0].options.timeout<=10000);
@@ -126,4 +131,44 @@ const failed=await run(flow,1);
 assert.equal(failed.pass,false);
 assert.equal(failed.error,'snapshot HTTP 401');
 assert.equal(failed.oracle,null);
+""")
+
+
+@pytest.mark.parametrize("scenario", [
+    "status=302;", "status=500;", "payload=[];",
+    "payload={state:[],recordedAt:'now'};",
+    "payload={state:{},recordedAt:'   '};",
+])
+def test_invalid_responses_are_disposed_even_on_error(scenario):
+    node_probe(scenario + """
+await assert.rejects(()=>readState(page,flow,base),/snapshot:/);
+assert.equal(disposed,1);
+""")
+
+
+def test_empty_current_room_does_not_use_start_room():
+    node_probe("""
+pageUrl=base+'/?room=';
+await assert.rejects(()=>readState(page,flow,base),/room/);
+assert.equal(calls.length,0);
+""")
+
+
+def test_request_errors_hide_credentials_and_checks_alias_works():
+    node_probe("""
+flow.checks=flow.goal_checks; delete flow.goal_checks;
+requestFails=true;
+await assert.rejects(()=>readState(page,flow,base),e=>e.message==='snapshot: request failed (network or timeout)');
+assert.equal(calls.length,1);
+assert.equal(disposed,0);
+""")
+
+
+def test_oracle_compares_real_snapshot_figures_without_replacement():
+    node_probe("""
+payload.state.figures=[{id:'existing-figure',x:7,y:11}];
+const state=await readState(page,flow,base);
+assert.equal(evaluateFlow({checks:flow.goal_checks},state).pass,false);
+flow.goal_checks[0].value=payload.state.figures;
+assert.equal(evaluateFlow({checks:flow.goal_checks},state).pass,true);
 """)

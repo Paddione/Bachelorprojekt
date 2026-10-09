@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.413.0...website-v1.414.0) (2026-10-09)
+
+
+### Features
+
+* **test:** brett-vision-training scripted gaps, flows, bench [T901676] ([#6471](https://github.com/Paddione/Bachelorprojekt/issues/6471)) ([47e6c1f](https://github.com/Paddione/Bachelorprojekt/commit/47e6c1f3ddd713d1886f7aaa03baeecf2fa13110))
+
 ## [1.413.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.412.1...website-v1.413.0) (2026-10-09)
 
 

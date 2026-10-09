@@ -60,7 +60,7 @@ S1-Limit.
 - [x] **4. Partial p4 ausführen** (`tasks.d/p4-parity-matrix.md`):
   Migrationen, Assets, Klassifikation, Mom-MVP, Baseline. Verify pro
   Partial-Plan.
-- [ ] **5. Partial p5 ausführen** (`tasks.d/p5-tests.md`): Guards
+- [x] **5. Partial p5 ausführen** (`tasks.d/p5-tests.md`): Guards
   vervollständigen, alle grün.
 - [ ] **6. Finaler Verify-Task.** Alle Partials gemergt, keine
   Baseline-Einträge hinzugefügt, keine Prod-Berührung, alle Aussagen belegt:

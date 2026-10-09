@@ -163,12 +163,18 @@ def test_t002398_llamacpp_block_an_einem_http_server_laesst_render_fehlschlagen(
 # ── Orphan Guard ───────────────────────────────────────────────────────
 
 def test_orphan_guard_every_scripts_side_mcp_server_source_is_registered_or_documented(repo_root):
-    patterns = ["scripts/*-mcp*/server.mjs", "scripts/llm-proxy/server.mjs", "scripts/ticket-mcp/go",
+    patterns = ["scripts/*-mcp*/server.mjs", "scripts/llm-proxy/server.mjs",
                 "scripts/hermes-mcp-*"]
     sources = []
     for pat in patterns:
         for p in sorted(glob.glob(pat, root_dir=str(repo_root))):
             sources.append(p)
+    # T901492: zentrale Quellen ausserhalb des Repos (CI: Zweit-Checkout via MCP_SERVERS_HOME).
+    central = Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers"))
+    assert central.is_dir(), f"central MCP servers not found: {central}"
+    for rel in ("devflow/server.mjs", "task-runner/server.mjs", "ticket/server.mjs", "ticket/go"):
+        assert (central / rel).exists(), f"central MCP source missing: {rel}"
+        sources.append(f"central/{rel}")
 
     reg_file = repo_root / REG_REL
     if not reg_file.is_file():
@@ -179,16 +185,18 @@ def test_orphan_guard_every_scripts_side_mcp_server_source_is_registered_or_docu
     for src in sources:
         if src == "scripts/bge-mcp/server.mjs":
             ok, msg = "bge-mcp:" in reg, "not in mcp.yaml"
-        elif src == "scripts/ticket-mcp-node/server.mjs":
-            ok, msg = "ticket-mcp-node:" in reg, "not in mcp.yaml"
-        elif src == "scripts/devflow-mcp/server.mjs":
-            ok, msg = "devflow-mcp:" in reg, "not in mcp.yaml"
+        elif src == "central/devflow/server.mjs":
+            ok, msg = ("devflow-mcp:" in reg and "mcp-servers/devflow/server.mjs" in reg), "not in mcp.yaml"
+        elif src == "central/ticket/server.mjs":
+            ok, msg = ("ticket-mcp-node:" in reg and "mcp-servers/ticket/server.mjs" in reg), "not in mcp.yaml"
+        elif src == "central/task-runner/server.mjs":
+            ok, msg = ("mcp-task-runner:" in reg and "mcp-servers/task-runner/server.mjs" in reg), "not in mcp.yaml"
         elif src == "scripts/llm-proxy/server.mjs":
             ok, msg = "llm-proxy" in reg, "not in mcp.yaml cluster"
         elif src in ("scripts/comfy-image-mcp/server.mjs", "scripts/glimmer-worker-mcp/server.mjs"):
             ok, msg = "User-Scope-Server" in reg, "not in user-scope note"
-        elif src == "scripts/ticket-mcp/go":
-            ok, msg = "scripts/ticket-mcp/go" in reg, "not documented in mcp.yaml"
+        elif src == "central/ticket/go":
+            ok, msg = "mcp-servers/ticket/go" in reg, "not documented in mcp.yaml"
         elif src in ("scripts/hermes-mcp-provision.sh", "scripts/hermes-mcp-servers.yaml"):
             ok, msg = (repo_root / "scripts" / "hermes-mcp-servers.yaml").is_file(), "missing hermes catalog"
         else:

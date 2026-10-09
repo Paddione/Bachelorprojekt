@@ -3,6 +3,7 @@
 import os
 import re
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -135,8 +136,10 @@ def test_ticket_mcp_node_runticket_create_gegen_devmesh_wird_mit_fleet_hinweis_a
     node = shutil.which("node")
     assert node is not None, "node not installed"
     repo = guard["repo"]
+    # T901492: ticket-Quellen liegen zentral (CI: Zweit-Checkout via MCP_SERVERS_HOME).
+    central = Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers"))
     script = (
-        "import { runTicket } from '" + str(repo / "scripts" / "ticket-mcp-node" / "runner.mjs") + "';\n"
+        "import { runTicket } from '" + str(central / "ticket" / "runner.mjs") + "';\n"
         "try {\n"
         "  await runTicket(['create', '--type', 'chore', '--title', 'x', '--description', 'y']);\n"
         "  console.log('RESOLVED');\n"

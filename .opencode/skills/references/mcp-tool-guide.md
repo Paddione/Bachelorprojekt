@@ -306,7 +306,7 @@ ausgegeben. pytest-Regressionsschutz: `tests/py/spec/native_ported/spec/mcp-gate
 
 ## `devflow-mcp` — Aufgabenkontext, Werkzeug-Empfehlung, Plan-Staging (T900985)
 
-Stdio-Server `scripts/devflow-mcp/server.mjs`. Design: `.agents/plans/devflow-mcp/design.md`.
+Stdio-Server `~/mcp-servers/devflow/server.mjs`. Design: `.agents/plans/devflow-mcp/design.md`.
 
 | Tool | Wofür | Tier |
 |---|---|---|
@@ -321,7 +321,7 @@ Stdio-Server `scripts/devflow-mcp/server.mjs`. Design: `.agents/plans/devflow-mc
 - **Backends:** bge-mcp :13005 (Bearer `BGE_MCP_TOKEN`), mcp-postgres :13001 (lesend, `knowledge.*`),
   lokaler Graph-Cache `~/.cache/devflow-mcp/<projekt>/`. Fällt eine Quelle aus, bleibt nur deren
   Sektion leer (`degraded`); Rerank-Ausfall liefert Vektor-Reihenfolge.
-- **Graph-Korpus:** `node scripts/devflow-mcp/graph-index.mjs --repo <pfad>` — frischer
+- **Graph-Korpus:** `node ~/mcp-servers/devflow/graph-index.mjs --repo <pfad>` — frischer
   codebase-memory-Index, ein Chunk je Symbol, nur Geändertes einbetten. Automatisch nach jedem
   Merge auf `main` (`.githooks/post-merge`, 20 min Budget) und nachts mit Sync nach
   `knowledge.*` (`task agents:devflow:graph:index SYNC_DB=1`). bge bettet seriell ein

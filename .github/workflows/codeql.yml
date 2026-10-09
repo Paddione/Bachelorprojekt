@@ -6,9 +6,10 @@
 #
 # Zuschnitt:
 #   - Sprachen mit echtem Nutzen: javascript-typescript (Website inkl. /api/*, Node-Skripte),
-#     go (scripts/ticket-mcp/go), actions (Workflow-Dateien selbst).
+#     go (mcp-servers/ticket/go aus dem Dotfiles-Zweit-Checkout, T901492),
+#     actions (Workflow-Dateien selbst).
 #     [T900399] Das zweite Go-Modul (mcp-go) ist mit dem Abbau entfallen —
-#     scripts/ticket-mcp/go ist damit das einzige.
+#     ticket/go ist damit das einzige.
 #     Kein Python/Shell — dort deckt CodeQL wenig ab.
 #   - PRs nur bei Code-Aenderungen (Pfadfilter); reine Plan-/Doku-PRs laufen nicht an.
 #   - Woechentlich komplett auf main, damit neue Regeln auch Bestandscode pruefen.
@@ -64,6 +65,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Checkout dotfiles (central MCP servers, T901492)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/dotfiles
+          ref: master
+          ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
+          path: ci-dotfiles
+
       - name: Set up Go
         if: matrix.language == 'go'
         uses: actions/setup-go@v5
@@ -83,11 +92,12 @@ jobs:
               - '**/*.generated.*'
 
       # Die Go-Module liegen in Unterverzeichnissen; Autobuild findet sie nicht.
+      # T901492: ticket-mcp/go liegt zentral im Dotfiles-Zweit-Checkout.
       - name: Build Go modules
         if: matrix.language == 'go'
         run: |
           set -euo pipefail
-          for mod in scripts/ticket-mcp/go; do
+          for mod in ci-dotfiles/mcp-servers/ticket/go; do
             echo "::group::go build $mod"
             (cd "$mod" && go build ./...)
             echo "::endgroup::"

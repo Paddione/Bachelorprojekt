@@ -30,7 +30,8 @@
 # User-Scope-Notiz:
 # User-Scope-Server installieren per Taskfile.llm.yml nach
 # ~/.config/muse/settings.json (User-Scope, nicht Registry-verwaltet);
-# mailbox-mcp ist vendored und unregistriert.
+# mailbox-mcp ist vendored und unregistriert (Quellen zentral unter
+# ~/mcp-servers/mailbox, T901492).
 clients:
   context7:
     transport: stdio
@@ -198,54 +199,55 @@ clients:
         httpUrl: http://localhost:13005/mcp
 
   # Node.js ports of the custom MCP servers — zero npm dependencies, stdlib only.
-  # Go-Quellen unter scripts/ticket-mcp/go bleiben Build- und Test-Artefakt (ticket-mcp:build/test, CodeQL, Doctor-Check); Harnesses nutzen den Node-Port.
-  # Pfad-Split (2026-08-30): claude_code + opencode nutzen den repo-relativen
-  # Pfad (portabel — beide Harnesses starten aus dem Repo-Root; G-AGENTIC14
-  # vergleicht genau diese beiden). top-level/agy/llamacpp behalten den
-  # absoluten Linux-Pfad: agy/llamacpp laufen nur auf dem Linux-Host.
+  # Go-Quellen unter mcp-servers/ticket/go (Dotfiles, T901492) bleiben Build- und
+  # Test-Artefakt (ticket-mcp:build/test, CodeQL, Doctor-Check); Harnesses nutzen den Node-Port.
+  # Zentral (T901492): alle Harnesses nutzen den absoluten Pfad unter
+  # ~/mcp-servers — die Server liegen ausserhalb des Repos, repo-relative Pfade
+  # sind tot. G-AGENTIC14-Paritaet (claude_code <-> opencode) bleibt gewahrt,
+  # beide fahren denselben absoluten Pfad.
   ticket-mcp-node:
     transport: stdio
     command: node
-    args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+    args: [/home/patrick/mcp-servers/ticket/server.mjs]
     harness:
       claude_code:
         command: node
-        args: [scripts/ticket-mcp-node/server.mjs]
+        args: [/home/patrick/mcp-servers/ticket/server.mjs]
       agy:
         command: node
-        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        args: [/home/patrick/mcp-servers/ticket/server.mjs]
       opencode:
         type: local
-        command: [node, scripts/ticket-mcp-node/server.mjs]
+        command: [node, /home/patrick/mcp-servers/ticket/server.mjs]
         enabled: true
       llamacpp:
         command: node
-        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        args: [/home/patrick/mcp-servers/ticket/server.mjs]
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 30000
 
   # devflow-mcp (T900985): Kontext, Werkzeug-Empfehlung und Plan-Staging fuer Subagenten.
   # Reines Node.js, oeffnet bge-mcp (:13005), mcp-postgres (:13001) und den lokalen
   # Graph-Cache (~/.cache/devflow-mcp) lazy — ohne diese Backends laufen die Wrapper-Tools
-  # (lock, plan_lint, plan_stage, ci_status) trotzdem. Pfad-Split wie ticket-mcp-node.
+  # (lock, plan_lint, plan_stage, ci_status) trotzdem. Zentral wie ticket-mcp-node (T901492).
   devflow-mcp:
     transport: stdio
     command: node
-    args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+    args: [/home/patrick/mcp-servers/devflow/server.mjs]
     harness:
       claude_code:
         command: node
-        args: [scripts/devflow-mcp/server.mjs]
+        args: [/home/patrick/mcp-servers/devflow/server.mjs]
       agy:
         command: node
-        args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+        args: [/home/patrick/mcp-servers/devflow/server.mjs]
       opencode:
         type: local
-        command: [node, scripts/devflow-mcp/server.mjs]
+        command: [node, /home/patrick/mcp-servers/devflow/server.mjs]
         enabled: true
       llamacpp:
         command: node
-        args: [/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs]
+        args: [/home/patrick/mcp-servers/devflow/server.mjs]
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 60000
 
@@ -264,13 +266,11 @@ clients:
     harness:
       claude_code:
         # T900039: /usr/local/bin/mcp-task-runner ist nur ein Bash-Wrapper um
-        # `node server.mjs` (scripts/mcp-task-runner/install.sh) — der Server
-        # selbst ist reines Node.js, ohne Plattformbindung. Repo-relativer
-        # Aufruf statt Wrapper-Binary, weil beide Harnesses (claude_code,
-        # opencode) aus dem Repo-Root starten (G-AGENTIC14 vergleicht genau
-        # diese beiden).
+        # `node server.mjs` (mcp-servers/task-runner/install.sh, T901492) — der
+        # Server selbst ist reines Node.js, ohne Plattformbindung. Zentraler
+        # absoluter Aufruf (G-AGENTIC14 vergleicht genau diese beiden).
         command: node
-        args: [scripts/mcp-task-runner/server.mjs, --otel-endpoint, localhost:4317, --taskfile, Taskfile.yml]
+        args: [/home/patrick/mcp-servers/task-runner/server.mjs, --otel-endpoint, localhost:4317, --taskfile, Taskfile.yml]
       agy:
         command: mcp-task-runner
         args: [--otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
@@ -278,7 +278,7 @@ clients:
         # T900039: kein mcp-task-runner-Binary auf dem Windows-PATH noetig —
         # der Server ist reines Node.js. Selbe Begruendung wie harness.claude_code.
         type: local
-        command: [node, scripts/mcp-task-runner/server.mjs, --otel-endpoint, localhost:4317, --taskfile, Taskfile.yml]
+        command: [node, /home/patrick/mcp-servers/task-runner/server.mjs, --otel-endpoint, localhost:4317, --taskfile, Taskfile.yml]
         enabled: true
 
   # codebase-memory-mcp: natives Binary (T900921: npx -y braucht ~39s +

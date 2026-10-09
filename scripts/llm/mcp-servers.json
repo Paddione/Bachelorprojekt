@@ -16,7 +16,7 @@
     "devflow-mcp": {
       "command": "node",
       "args": [
-        "/home/patrick/Bachelorprojekt/scripts/devflow-mcp/server.mjs"
+        "/home/patrick/mcp-servers/devflow/server.mjs"
       ],
       "cwd": "/home/patrick/Bachelorprojekt",
       "timeout_ms": 60000
@@ -24,7 +24,7 @@
     "ticket-mcp-node": {
       "command": "node",
       "args": [
-        "/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"
+        "/home/patrick/mcp-servers/ticket/server.mjs"
       ],
       "cwd": "/home/patrick/Bachelorprojekt",
       "timeout_ms": 30000

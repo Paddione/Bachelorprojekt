@@ -482,7 +482,7 @@ tasks:
       - |
         args=(--repo "$PWD")
         [ "{{.MAX_MINUTES}}" != "0" ] && args+=(--max-minutes "{{.MAX_MINUTES}}")
-        node scripts/devflow-mcp/graph-index.mjs "${args[@]}"
+        node /home/patrick/mcp-servers/devflow/graph-index.mjs "${args[@]}"
         [ "{{.SYNC_DB}}" = "1" ] || exit 0
         # Port-Forward erst nach dem (stundenlangen) Einbetten und nur fuer den Sync — lange
         # offene Forwards reissen ab (scripts/index-repo.ts, T002259).
@@ -501,7 +501,7 @@ tasks:
         trap 'kill $PF 2>/dev/null' EXIT
         for _ in 1 2 3 4 5 6 7 8; do nc -z 127.0.0.1 15499 2>/dev/null && break; sleep 1; done
         PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:15499/website" \
-          node scripts/devflow-mcp/sync-db.mjs --repo "$PWD"
+          node /home/patrick/mcp-servers/devflow/sync-db.mjs --repo "$PWD"
 
   devflow:graph:status:
     desc: "Show the devflow-mcp graph corpus state (commit, symbols, pending)"

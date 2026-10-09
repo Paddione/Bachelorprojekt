@@ -126,10 +126,11 @@ tasks:
         # ueber einen absoluten Repo-Pfad. Der Install-Schritt ist deshalb Teil des Builds.
         # Best-effort wie mcp-task-runner: ist /usr/local/bin nicht schreibbar, bleibt das
         # bereits installierte Binary in Kraft — kein Abbruch der Task-Kette.
-        make -C scripts/ticket-mcp/go build
-        if install -m 0755 scripts/ticket-mcp/ticket-mcp-go /usr/local/bin/ticket-mcp-go 2>/dev/null; then
+        TICKET_GO="${MCP_SERVERS_HOME:-/home/patrick/mcp-servers}/ticket/go"
+        make -C "$TICKET_GO" build
+        if install -m 0755 "$TICKET_GO/../ticket-mcp-go" /usr/local/bin/ticket-mcp-go 2>/dev/null; then
           echo "ticket-mcp: installed fresh build to /usr/local/bin"
-        elif sudo -n install -m 0755 scripts/ticket-mcp/ticket-mcp-go /usr/local/bin/ticket-mcp-go 2>/dev/null; then
+        elif sudo -n install -m 0755 "$TICKET_GO/../ticket-mcp-go" /usr/local/bin/ticket-mcp-go 2>/dev/null; then
           echo "ticket-mcp: installed fresh build to /usr/local/bin (sudo)"
         else
           echo "ticket-mcp: /usr/local/bin not writable — using pre-installed binary if present"
@@ -140,7 +141,7 @@ tasks:
     cmds:
       - |
         if command -v go >/dev/null 2>&1; then
-          make -C scripts/ticket-mcp/go test
+          make -C "${MCP_SERVERS_HOME:-/home/patrick/mcp-servers}/ticket/go" test
         else
           echo "ticket-mcp:test: Go toolchain not found — skipping (non-fatal)"
         fi

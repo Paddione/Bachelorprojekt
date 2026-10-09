@@ -133,7 +133,7 @@ bash scripts/hooks/mishap-tracker.sh --friction "<text>" --ticket "$TICKET_ID" -
 Ohne `--ticket` landet der Eintrag in `.mishaps.log` und auf stderr, und dort endet er.
 
 **Nichts entsteht direkt als `plan_staged` [T003027].** Mishap-Tickets
-(`scripts/ticket-mcp/go/internal/tools/mishap.go`) werden mit `status=triage` angelegt, weil
+(`~/mcp-servers/ticket/go/internal/tools/mishap.go`, zentral seit T901492) werden mit `status=triage` angelegt, weil
 `update-status.sh` `plan_staged` ohne `FACTORY-PLAN-REF` fail-closed ablehnt (T002876).
 
 `flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfuegbar:

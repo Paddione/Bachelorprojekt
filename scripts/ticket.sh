@@ -137,7 +137,7 @@ fi
 # [T900118] devmesh-Write-Guard. Anders als der T015008-Guard darunter laeuft er auch
 # unter BATS und TICKET_OFFLINE: devmesh ist nie die fuehrende Ticket-DB, kein Testfall
 # muss dort schreiben. Lesebefehle stehen in einer Positivliste, alles andere gilt als
-# Write (fail-closed). scripts/ticket-mcp-node/runner.mjs ruft dieses Skript und erbt
+# Write (fail-closed). ~/mcp-servers/ticket/runner.mjs ruft dieses Skript und erbt
 # den Guard.
 case "${1:-} ${2:-}" in
   "get "*|"list "*|"get-attachments "*|"get-ticket-links "*|"get-timeline "*|\

@@ -121,9 +121,10 @@ node -e "
 " || { echo "      Fix: task mcp:sync (loest Token aus ~/.config/*/server.env auf)"; FAIL=1; }
 
 echo "=== mcp:doctor — ticket-mcp (stdio) ==="
-if [ -f scripts/ticket-mcp-node/server.mjs ]; then
+TICKET_MCP_SERVER="${MCP_SERVERS_HOME:-/home/patrick/mcp-servers}/ticket/server.mjs"
+if [ -f "$TICKET_MCP_SERVER" ]; then
   if echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"mcp-doctor","version":"1"}}}' \
-    | timeout 20 node scripts/ticket-mcp-node/server.mjs 2>/dev/null | grep -q '"name":"ticket-mcp"'; then
+    | timeout 20 node "$TICKET_MCP_SERVER" 2>/dev/null | grep -q '"name":"ticket-mcp"'; then
     ok "ticket-mcp-node stdio antwortet (Repo-Root: $(pwd))"
   else
     fail "ticket-mcp-node stdio antwortet nicht" "ticket.sh-Backend pruefen: bash scripts/ticket.sh list --brand mentolder --limit 1"

@@ -243,6 +243,53 @@ def probe_json(cmd, timeout):
     return probe_graph(cmd, timeout, True)
 
 
+def default_base_branch(checkout_root):
+    """Resolve the integration branch for detect_changes (T901558).
+
+    Tool 0.11.0 defaults base_branch to "main", which fails closed on
+    master-based checkouts ("base_branch or HEAD is not a commit").
+    Prefer origin/HEAD, then a local main/master branch, then the tool
+    default. Never raises: worst case the probe itself fails closed
+    exactly as before this change.
+    """
+    try:
+        rc, out, _err, _to, missing = _STATE.run_bytes(
+            ["git", "-C", str(checkout_root), "symbolic-ref", "--short",
+             "refs/remotes/origin/HEAD"], timeout=10)
+        if not missing and rc == 0:
+            short = out.decode("utf-8", "surrogateescape").strip()
+            if short.startswith("origin/") and len(short) > len("origin/"):
+                return short[len("origin/"):]
+    except Exception:
+        pass
+    for name in ("main", "master"):
+        try:
+            rc, _out, _err, _to, missing = _STATE.run_bytes(
+                ["git", "-C", str(checkout_root), "show-ref", "--verify",
+                 "--quiet", "refs/heads/" + name], timeout=10)
+            if not missing and rc == 0:
+                return name
+        except Exception:
+            continue
+    return "main"
+
+
+def index_status_cmd(project):
+    """index_status probe with JSON output pinned (T901558).
+
+    Tool 0.11.0 renders tree text by default; the freshness contract
+    needs the JSON payload (project/root_path for identity checks).
+    """
+    return ["codebase-memory-mcp", "cli", "--json", "index_status",
+            "--project", project, "--format", "json"]
+
+
+def detect_changes_cmd(project, base):
+    """detect_changes probe with the repo default base pinned (T901558)."""
+    return ["codebase-memory-mcp", "cli", "--json", "detect_changes",
+            "--project", project, "--base-branch", base]
+
+
 def graph_identity(data):
     """Extract (project, canonical_root) from index_status payload if present."""
     if not isinstance(data, dict):
@@ -338,10 +385,10 @@ def cmd_status(args):
             reasons.append("snapshot-incomplete")
     ver, ver_err = tool_version(timeout=min(timeout, 10))
     status_data, status_err, _so, _se = probe_json(
-        ["codebase-memory-mcp", "cli", "--json", "index_status", "--project", project], timeout)
+        index_status_cmd(project), timeout)
+    base_branch = default_base_branch(checkout_root)
     changes_data, changes_err, _co, _ce = probe_graph(
-        ["codebase-memory-mcp", "cli", "--json", "detect_changes", "--project", project],
-        timeout, False)
+        detect_changes_cmd(project, base_branch), timeout, False)
     graph = {"tool_version": ver,
              "index_status": status_data,
              "detect_changes": changes_data}

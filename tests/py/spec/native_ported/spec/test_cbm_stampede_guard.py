@@ -238,6 +238,11 @@ def test_t900450_r1_runbook_enthaelt_index_status_detect_changes_wrapper_task_re
 
 
 def test_t900805_failed_graph_probe_reports_unknown_instead_of_fresh_skip(cbm):
+    # Isolate HOME so the exit-1 stub really shadows the tool: the cron
+    # script prepends $HOME/.local/bin to PATH, which would otherwise let
+    # the real tool answer the probes (T901558: this previously passed only
+    # because the real probes failed on the format drift this fix removes).
+    cbm.isolate_home()
     bindir = cbm.tmp / "bin"
     bindir.mkdir(parents=True, exist_ok=True)
     stub = bindir / "codebase-memory-mcp"

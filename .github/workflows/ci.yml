@@ -87,6 +87,12 @@ jobs:
           ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
           path: ci-dotfiles
 
+      - name: Link central local tool sources (T901648)
+        run: |
+          for asset in dotfiles editor openclaw ml tools; do
+            ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
+          done
+
       - name: Install central MCP server deps (T901492)
         run: |
           npm ci --prefix ci-dotfiles/mcp-servers/devflow --no-audit --no-fund
@@ -369,6 +375,12 @@ jobs:
           ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
           path: ci-dotfiles
 
+      - name: Link central local tool sources (T901648)
+        run: |
+          for asset in dotfiles editor openclaw ml tools; do
+            ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
+          done
+
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
@@ -444,6 +456,12 @@ jobs:
           ref: master
           ssh-key: ${{ secrets.DOTFILES_DEPLOY_KEY }}
           path: ci-dotfiles
+
+      - name: Link central local tool sources (T901648)
+        run: |
+          for asset in dotfiles editor openclaw ml tools; do
+            ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
+          done
 
       - name: Install central MCP server deps (T901492)
         run: |

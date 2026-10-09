@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# probe.sh — MCP Tunnel-Liveness Check für die Gateway- und Postgres-Kette
+# probe.sh — MCP Tunnel-Liveness Check für die Gateway-, devmesh- und Postgres-Kette
 #
 # T002543: Der kubectl port-forward hat einen Versagensmodus, in dem der Prozess
 # weiterlebt, waehrend die SPDY-Streams abgerissen sind. Ein TCP-Connect allein
@@ -11,16 +11,17 @@
 # gesunden Tunnel fehl ("not an MCP initialize response" auf allen Ports).
 #
 # Aufruf: probe.sh [--port N]... [--timeout SEK] [--help]
-# Ohne --port werden die verdrahteten Ports geprueft (18080, 13001).
+# Ohne --port werden die verdrahteten Ports geprueft (18080, 13005, 13001).
 # Exit 0 = alle geprueften Ports antworten mit gültigem MCP-initialize.
 # Exit 1 = mindestens ein Port ist tot oder antwortet nicht mit MCP.
 
 set -euo pipefail
 
 # T002767/T006996/T900191: nur die verdrahteten Endpoints pruefen. 18080 = fleet-forward
-# (mcp-kubernetes, mcp-gateway.service), 13001 = mcp-postgres im devmesh-Pod
-# llm-services (devmesh-forward.service).
-PORTS=(18080 13001)
+# (mcp-kubernetes, mcp-gateway.service), 13005 = bge-mcp im devmesh-Pod llm-services
+# (devmesh-forward.service), 13001 = lokaler mcp-postgres-local.service (fleet-DB,
+# KEIN Forward mehr — :13001 aus dem devmesh-Forward ist entfallen).
+PORTS=(18080 13005 13001)
 TIMEOUT=5
 SHOW_HELP=false
 
@@ -69,6 +70,15 @@ for PORT in "${PORTS[@]}"; do
     fi
     if [ -n "${MCP_POSTGRES_TOKEN:-}" ]; then
       AUTH_HEADER=(-H "Authorization: Bearer ${MCP_POSTGRES_TOKEN}")
+    fi
+  fi
+  if [ "$PORT" -eq 13005 ]; then
+    if [ -z "${BGE_MCP_TOKEN:-}" ] && [ -f "$HOME/.config/bge-mcp/server.env" ]; then
+      # shellcheck disable=SC1090
+      source "$HOME/.config/bge-mcp/server.env" 2>/dev/null || true
+    fi
+    if [ -n "${BGE_MCP_TOKEN:-}" ]; then
+      AUTH_HEADER=(-H "Authorization: Bearer ${BGE_MCP_TOKEN}")
     fi
   fi
 

@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "slug": "llm-proxy-devflow-tools",
+    "ticket_id": "",
+    "generated_from": "main@252305205",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "config",
+      "loc": 906,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/code-quality/ci-map.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow/cli.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow/instaci.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow/sandbox.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow/turbolint.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/devflow-tools.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/devflow-tools.test.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/server.mjs",
+      "language": "javascript",
+      "loc": 324,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 476
+    },
+    {
+      "path": "taskfiles/Taskfile.llm.yml",
+      "language": "config",
+      "loc": 217,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.test.yml",
+      "language": "config",
+      "loc": 767,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-llm-proxy/test_devflow_backend.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:24:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "24:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "type_text": "24:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:108:function sendJson(res, status, obj) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "108:function sendJson(res, status, obj) {(...)",
+      "type_text": "108:function sendJson(res, status, obj) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:317:  stopBridge();",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "317:  stopBridge();(...)",
+      "type_text": "317:  stopBridge();(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

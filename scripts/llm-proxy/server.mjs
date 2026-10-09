@@ -11,6 +11,7 @@ import { readLoadouts, DEFAULT_PATH } from './loadouts.mjs';
 import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
 import { enqueue, inflightOf, extractSlotId } from './slot-queue.mjs';
 import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, resolveRoleChain } from './bge-routes.mjs';
+import { handleDevflow } from './devflow-tools.mjs';
 import { respondBuffered, respondStreamed } from './respond.mjs';
 import { requestLog } from './request-log.mjs';
 
@@ -295,6 +296,9 @@ const requestHandler = (req, res) => {
         return sendJson(res, 503, { error: { code: 'bge_route_error', message: err.message } });
       }
     }
+
+    // T901630 — Devflow-Routen, Logik in devflow-tools.mjs, hier nur die Weiterleitung.
+    if (path.startsWith('/tools/devflow/') && method === 'POST') return handleDevflow(req, res, path, { readBody, sendJson });
 
     if (path.startsWith('/v1/') && method === 'POST') return proxyV1(req, res, path.slice(3));
     return sendJson(res, 404, { error: { code: 'not_found', message: path } });

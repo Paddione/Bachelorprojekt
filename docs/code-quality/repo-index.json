@@ -4138,7 +4138,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 879,
+      "file_count": 881,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4771,6 +4771,8 @@
         "scripts/llm/ui-config-seed.mjs",
         "scripts/llm/ui-config-seed.test.mjs",
         "scripts/llm/ui-config.template.json",
+        "scripts/mailbox-mcp/docs/concept.md",
+        "scripts/mailbox-mcp/docs/sieve-filter-concept.md",
         "scripts/mcp-cors-proxy/mcp-cors-proxy.service",
         "scripts/mcp-cors-proxy/proxy.mjs",
         "scripts/mcp-gateway/devmesh-forward.service",

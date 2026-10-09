@@ -31,7 +31,7 @@
       "path": "skills/hf-mem",
       "dest": ".opencode/skills/hf-mem",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-best": {
@@ -39,7 +39,7 @@
       "path": "skills/huggingface-best",
       "dest": ".opencode/skills/huggingface-best",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-community-evals": {
@@ -47,7 +47,7 @@
       "path": "skills/huggingface-community-evals",
       "dest": ".opencode/skills/huggingface-community-evals",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-datasets": {
@@ -55,7 +55,7 @@
       "path": "skills/huggingface-datasets",
       "dest": ".opencode/skills/huggingface-datasets",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-llm-trainer": {
@@ -63,7 +63,7 @@
       "path": "skills/huggingface-llm-trainer",
       "dest": ".opencode/skills/huggingface-llm-trainer",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-local-models": {
@@ -71,7 +71,7 @@
       "path": "skills/huggingface-local-models",
       "dest": ".opencode/skills/huggingface-local-models",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-lora-space-builder": {
@@ -79,7 +79,7 @@
       "path": "skills/huggingface-lora-space-builder",
       "dest": ".opencode/skills/huggingface-lora-space-builder",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-paper-publisher": {
@@ -87,7 +87,7 @@
       "path": "skills/huggingface-paper-publisher",
       "dest": ".opencode/skills/huggingface-paper-publisher",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-papers": {
@@ -95,7 +95,7 @@
       "path": "skills/huggingface-papers",
       "dest": ".opencode/skills/huggingface-papers",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-tool-builder": {
@@ -103,7 +103,7 @@
       "path": "skills/huggingface-tool-builder",
       "dest": ".opencode/skills/huggingface-tool-builder",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-trackio": {
@@ -111,7 +111,7 @@
       "path": "skills/huggingface-trackio",
       "dest": ".opencode/skills/huggingface-trackio",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-vision-trainer": {
@@ -119,7 +119,7 @@
       "path": "skills/huggingface-vision-trainer",
       "dest": ".opencode/skills/huggingface-vision-trainer",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "huggingface-zerogpu": {
@@ -127,7 +127,7 @@
       "path": "skills/huggingface-zerogpu",
       "dest": ".opencode/skills/huggingface-zerogpu",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "lavish": {
@@ -176,7 +176,7 @@
       "path": "skills/train-sentence-transformers",
       "dest": ".opencode/skills/train-sentence-transformers",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "transformers-js": {
@@ -184,7 +184,7 @@
       "path": "skills/transformers-js",
       "dest": ".opencode/skills/transformers-js",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "trl-training": {
@@ -192,7 +192,7 @@
       "path": "skills/trl-training",
       "dest": ".opencode/skills/trl-training",
       "track": "branch",
-      "ref": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
     "pytest-patterns": {
@@ -224,7 +224,7 @@
       "path": "skills/vitest-testing",
       "dest": ".opencode/skills/vitest-testing",
       "track": "branch",
-      "ref": "67689e4673cc75494a3c47430d10fdde2116e7c4",
+      "ref": "db4051715d39d869ac11ea16530609eda75c2869",
       "version": null
     },
     "gh-fix-ci": {

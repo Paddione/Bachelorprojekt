@@ -62,7 +62,7 @@ S1-Limit.
   Partial-Plan.
 - [x] **5. Partial p5 ausführen** (`tasks.d/p5-tests.md`): Guards
   vervollständigen, alle grün.
-- [ ] **6. Finaler Verify-Task.** Alle Partials gemergt, keine
+- [x] **6. Finaler Verify-Task.** Alle Partials gemergt, keine
   Baseline-Einträge hinzugefügt, keine Prod-Berührung, alle Aussagen belegt:
 
 ```bash

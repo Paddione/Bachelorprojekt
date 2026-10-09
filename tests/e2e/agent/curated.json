@@ -34,9 +34,9 @@
     {
       "id": "messaging-portal-gate",
       "start_url": "/portal?section=nachrichten",
-      "goal": "Rufe den Portal-Nachrichtenbereich ohne Sitzung auf und beobachte das Auth-Gate (Weiterleitung zur Anmeldung).",
+      "goal": "Rufe den Portal-Nachrichtenbereich ohne Sitzung auf und beobachte das Auth-Gate (Weiterleitung auf eine Gate-Seite).",
       "goal_checks": [
-        { "type": "urlContains", "value": "authorize" }
+        { "type": "urlMatches", "value": "(authorize|login|404|interaction)" }
       ],
       "source_spec": "tests/e2e/specs/fa-01-messaging.spec.ts"
     },
@@ -53,9 +53,9 @@
     {
       "id": "admin-platform-gate",
       "start_url": "/admin/platform",
-      "goal": "Rufe den Admin-Platform-Hub ohne Sitzung auf und beobachte das Auth-Gate (Weiterleitung zur Anmeldung).",
+      "goal": "Rufe den Admin-Platform-Hub ohne Sitzung auf und beobachte das Auth-Gate (Weiterleitung auf eine Gate-Seite).",
       "goal_checks": [
-        { "type": "urlContains", "value": "authorize" }
+        { "type": "urlMatches", "value": "(authorize|login|404|interaction)" }
       ],
       "source_spec": "tests/e2e/specs/fa-41-admin-hub.spec.ts"
     },

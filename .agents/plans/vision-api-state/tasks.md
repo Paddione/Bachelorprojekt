@@ -19,8 +19,8 @@ S1-Limits aus gates.yaml: mjs und py jeweils 800. Kein betroffener Pfad ist geba
 
 | Datei | Ist | Budget |
 |---|---:|---:|
-| `tests/e2e/agent/runner.mjs` | 256 | 544 |
-| `tests/py/spec/e2e-vision-agent/test_api_state.py` | 129 | 671 |
+| `tests/e2e/agent/runner.mjs` | 252 | 548 |
+| `tests/py/spec/e2e-vision-agent/test_api_state.py` | 174 | 626 |
 
 Neue Helper-Datei: Ist 0, wirksame Schwelle 800, geplantes Ziel unter 150. JSON-Inventar unterliegt keinem S1-Extension-Limit. Runner wird durch extract/shrink der lokalen Beobachtungsfunktion netto verkleinert. Keine Baseline- oder Ignore-Ausnahmen. Pure Helper ohne Rückimporte verhindert S2-Zyklen; Base aus Konfiguration statt Brand-Domain. Kein neues Skript unter scripts/, kein Manifest.
 

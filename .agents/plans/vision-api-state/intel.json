@@ -4,8 +4,7 @@
     "ticket_id": "T901677",
     "generated_from": "main@9864c1816da1cb4fdae856bc4733c1ff40713a2f",
     "domains": [
-      "e2e",
-      "vision-agent"
+      "test"
     ],
     "intel_sources": [
       "source-read",

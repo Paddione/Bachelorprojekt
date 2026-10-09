@@ -1,7 +1,7 @@
 ---
 title: Vision-Agent lädt authentifizierte Brett-Snapshots
 ticket_id: T901677
-domains: [e2e, vision-agent]
+domains: [test]
 status: staged
 ---
 # vision-api-state — Implementation Plan

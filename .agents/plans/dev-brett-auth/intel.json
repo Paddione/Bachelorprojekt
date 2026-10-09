@@ -19,7 +19,7 @@
     {
       "path": "k3d/dev-stack/brett-dev.yaml",
       "language": "yaml",
-      "loc": 101,
+      "loc": 119,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": 0
@@ -35,26 +35,26 @@
     {
       "path": "scripts/dev-brett-oidc-provision.py",
       "language": "py",
-      "loc": 0,
+      "loc": 383,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 800
+      "s1_budget": 417
     },
     {
       "path": "tests/py/spec/dev-brett-auth/test_oidc_provision.py",
       "language": "py",
-      "loc": 20,
+      "loc": 342,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 780
+      "s1_budget": 458
     },
     {
       "path": "tests/e2e/specs/brett-mentolder-auth-setup.spec.ts",
       "language": "ts",
-      "loc": 65,
+      "loc": 83,
       "s1_limit": 900,
       "s1_baseline": null,
-      "s1_budget": 835
+      "s1_budget": 817
     }
   ],
   "symbols": [

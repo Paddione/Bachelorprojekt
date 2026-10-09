@@ -15,16 +15,25 @@
 // fail-closed so the dependent `brett-mentolder` project is skipped rather than
 // run without a session (T002199).
 
-import { test as setup } from '@playwright/test';
+import { test as setup, expect } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
 import { oidcLoginAvailable, loginViaOIDC } from '../lib/oidc';
 import { assertReachable } from '../lib/health-assertions';
 
-const BRETT_URL = (process.env.BRETT_URL ?? 'https://brett.mentolder.de').replace(/\/$/, '');
+const DEFAULT_BRETT_URL = 'https://brett.mentolder.de';
+const BRETT_URL = (process.env.BRETT_URL ?? DEFAULT_BRETT_URL).replace(/\/$/, '');
 
 const AUTH_DIR    = path.join(__dirname, '..', '.auth');
-const ADMIN_STATE = path.join(AUTH_DIR, 'mentolder-brett.json');
+const ADMIN_STATE = process.env.BRETT_AUTH_STATE_PATH
+  ? path.resolve(process.env.BRETT_AUTH_STATE_PATH)
+  : path.join(AUTH_DIR, 'mentolder-brett.json');
+if (new URL(BRETT_URL).hostname !== new URL(DEFAULT_BRETT_URL).hostname && !process.env.BRETT_AUTH_STATE_PATH) {
+  throw new Error('BRETT_AUTH_STATE_PATH is required for a separate Dev session');
+}
+if (!ADMIN_STATE.startsWith(`${AUTH_DIR}${path.sep}`) || !ADMIN_STATE.endsWith('.json')) {
+  throw new Error('BRETT_AUTH_STATE_PATH must be a JSON file inside tests/e2e/.auth');
+}
 
 function ensureAuthDir(): void {
   if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
@@ -58,6 +67,15 @@ setup('authenticate mentolder brett admin', async ({ page, request }, testInfo) 
   //    /authorize (already authenticated) → back to brett.
   await page.goto(BRETT_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await page.waitForURL(new RegExp(`^${BRETT_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), { timeout: 60_000 });
+
+  // Confirm the application identity, not only an OIDC redirect landing URL.
+  await expect(page.locator('#brett-menu')).toBeVisible({ timeout: 30_000 });
+  const sessionResponse = await page.context().request.get(`${BRETT_URL}/auth/me`);
+  expect(sessionResponse.ok()).toBeTruthy();
+  const session = await sessionResponse.json();
+  expect(session.authenticated).toBe(true);
+  expect(session.userId).toBeTruthy();
+  expect(session.isAdmin).toBe(true);
 
   // 3. Persist the session so the `brett-mentolder` project can reuse it.
   await page.context().storageState({ path: ADMIN_STATE });

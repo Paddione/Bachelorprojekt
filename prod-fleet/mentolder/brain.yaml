@@ -46,9 +46,9 @@ data:
             if (!fs.existsSync(link)) {
               try {
                 fs.symlinkSync(target, link);
-                console.log(`[brain] Linked ${target} -> ${link}`);
+                console.log(`[brain] Linked $${target} -> $${link}`);
               } catch (e) {
-                console.error(`[brain] Failed to link ${target}:`, e);
+                console.error(`[brain] Failed to link $${target}:`, e);
               }
             }
           }
@@ -64,7 +64,7 @@ data:
       stdio: 'inherit'
     });
     daemon.on('exit', (code) => {
-      console.log(`[brain] Daemon start exited with code ${code}`);
+      console.log(`[brain] Daemon start exited with code $${code}`);
     });
 
     process.on('uncaughtException', (err) => {

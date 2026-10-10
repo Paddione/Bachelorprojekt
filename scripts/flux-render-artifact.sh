@@ -103,10 +103,18 @@ render_component() {
   #   ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';
   # wurde  ... PASSWORD '$';  — nextcloud, vaultwarden, videovault und pocket_id
   # waren aus ihrer eigenen Datenbank ausgesperrt, SSO plattformweit down.
-  # Die klammerlose Form $$VAR war nie betroffen, weil der Regex sie nicht sieht.
+  #
+  # T901780-Follow-up: Die klammerlose Form $$VAR galt als sicher ("der Regex
+  # sieht sie nicht") — das war falsch. Der Regex muss $$VAR gar nicht sehen:
+  # Es genuegt, dass der NAME via ein ${VAR} an ANDERER Stelle desselben
+  # Overlays in die Liste kommt. Genau so fraß brain.yaml (${code} in einem
+  # JS-Template-Literal) die CronJob-Checks: aus $$code wurde ueberall im
+  # mentolder-Overlay "$" (toter Check, leeres Echo). Der Schutz deckt daher
+  # seitdem BEIDE Formen ab: $${VAR} und $$VAR. $$(cmd), $$!, $$? und $$
+  # allein matchen nicht (kein Name nach den Dollars) und bleiben unberuehrt.
   local runtime_vars
-  runtime_vars="$(grep -oE '\$\$\{[A-Za-z_][A-Za-z0-9_]*\}' <<<"$rendered" \
-    | sed -E 's/^\$\$\{//; s/\}$//' | sort -u | tr '\n' ' ')" || true
+  runtime_vars="$(grep -oE '\$\$(\{)?[A-Za-z_][A-Za-z0-9_]*\}?' <<<"$rendered" \
+    | sed -E 's/^\$\$\{//; s/^\$\$//; s/\}$//' | sort -u | tr '\n' ' ')" || true
   local rv
   for rv in $runtime_vars; do
     vars="$(tr ' ' '\n' <<<"$vars" | sed "/^${rv}\$/d;/^\$/d" | tr '\n' ' ')"

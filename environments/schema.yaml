@@ -3,6 +3,36 @@
 # Every deployment target must satisfy this schema.
 version: 1
 
+# Deterministic derivation (derived-secrets-tooling, T901698): global HKDF
+# version for secrets derived via scripts/secret-derive.py. Per-key override
+# via `derive_version`, opt-out via `derived: false` (default follows
+# `generate`). Rotation = bump the version, both ends re-derive.
+derivation:
+  version: 1
+
+# Ordered grouping rules for the grouped Bitwarden export
+# (scripts/generate-bitwarden-export.py --format grouped) and the must-store
+# extra list. First matching rule wins; unmatched keys fall into "misc".
+# Families mirror get_secret_metadata in the exporter.
+groups:
+  - name: db
+    suffix: [_DB_PASSWORD]
+  - name: oidc
+    prefix: [POCKET_ID_]
+    suffix: [_OIDC_SECRET]
+  - name: api
+    suffix: [_API_KEY, _API_TOKEN, _TOKEN, _PAT, _SECRET_KEY]
+    contains: [API_KEY]
+  - name: mail
+    prefix: [SMTP_, MAILBOX_]
+  - name: network
+    prefix: [WG_MESH_]
+    suffix: [_COOKIE_SECRET, _JWT_SECRET]
+    exact: [SIGNALING_SECRET, TURN_SECRET, RECORDING_SECRET, TRANSCRIBER_SECRET, TRANSCRIBER_BOT_PASSWORD]
+  - name: ssh
+    suffix: [_SSH_PRIVATE_KEY, _SSH_PUBLIC_KEY, _ED25519, _ED25519_PUB, _AUTHORIZED_KEYS]
+  - name: misc
+
 env_vars:
   - name: PROD_DOMAIN
     required: true
@@ -870,6 +900,10 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  # Per-key derivation overrides (T901698): `derive_version` pins this key to a
+  # different HKDF version than `derivation.version`; `derived: false` opts a
+  # `generate: true` key out of derivation (stays must-store). This entry uses
+  # the defaults (global version, derived because `generate: true`).
   - name: POCKET_ID_KORCZEWSKI_DB_PASSWORD
     required: false
     generate: true

@@ -73,7 +73,7 @@ const value = 'hello'
 expectTypeOf(value).toBeString()
 
 const obj = { name: 'test', count: 42 }
-expectTypeOf(obj).toExtend<{ name: string }>()
+expectTypeOf(obj).toMatchTypeOf<{ name: string }>()
 expectTypeOf(obj).toHaveProperty('name')
 ```
 
@@ -105,19 +105,17 @@ expectTypeOf<User>().toHaveProperty('id')
 expectTypeOf<User>().toHaveProperty('name').toBeString()
 
 // Check shape
-expectTypeOf({ id: 1, name: 'test' }).toExtend<User>()
+expectTypeOf({ id: 1, name: 'test' }).toMatchTypeOf<User>()
 ```
 
 ## Equality vs Matching
-
-`toMatchTypeOf` is **deprecated** (expect-type v1.2+) — use `toExtend` for subset matching:
 
 ```ts
 interface A { x: number }
 interface B { x: number; y: string }
 
-// toExtend - subset matching (replaces toMatchTypeOf)
-expectTypeOf<B>().toExtend<A>()  // B extends A
+// toMatchTypeOf - subset matching
+expectTypeOf<B>().toMatchTypeOf<A>()  // B extends A
 
 // toEqualTypeOf - exact match
 expectTypeOf<A>().not.toEqualTypeOf<B>()  // Not exact match
@@ -218,7 +216,7 @@ describe('createUser', () => {
   })
 
   test('types: returns User type', () => {
-    expectTypeOf(createUser).returns.toExtend<{ name: string }>()
+    expectTypeOf(createUser).returns.toMatchTypeOf<{ name: string }>()
   })
 })
 ```
@@ -227,7 +225,7 @@ describe('createUser', () => {
 
 - Use `.test-d.ts` for type-only tests
 - `expectTypeOf` for type assertions
-- `toExtend` for subset matching (`toMatchTypeOf` is deprecated)
+- `toMatchTypeOf` for subset matching
 - `toEqualTypeOf` for exact type matching
 - Use `@ts-expect-error` to test type errors
 - Run with `vitest typecheck` or `--typecheck`

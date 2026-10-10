@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "slug": "website-migrate-portforward",
+    "ticket_id": "",
+    "generated_from": "main@24eda4aeb",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "taskfiles/Taskfile.web.yml",
+      "language": "config",
+      "loc": 720,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/post-merge.yml",
+      "language": "config",
+      "loc": 122,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/website-migrate/test_portforward_runner.py",
+      "language": "python",
+      "loc": 105,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 695
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

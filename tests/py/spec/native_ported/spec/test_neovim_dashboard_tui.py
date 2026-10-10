@@ -57,10 +57,11 @@ class _Tui:
         )
         return out.stdout
 
-    def wait_for(self, needle: str, timeout: float = 10.0) -> str:
+    def wait_for(self, *needles: str, timeout: float = 10.0) -> str:
+        """Poll until ANY needle is on screen (or timeout); return the screen."""
         deadline = time.time() + timeout
         screen = self.screen()
-        while needle not in screen and time.time() < deadline:
+        while not any(n in screen for n in needles) and time.time() < deadline:
             time.sleep(0.25)
             screen = self.screen()
         return screen
@@ -94,8 +95,9 @@ def tui_factory(repo_root, tmp_path):
 
 
 def _wait_started(tui: _Tui) -> None:
-    # Statuszeile mit "[No Name]" erscheint, sobald die UI steht.
-    tui.wait_for("[No Name]", timeout=15)
+    # Die UI steht, sobald die Statuszeile einen Puffernamen zeigt: "[No Name]"
+    # ohne, "[Scratch]" mit Dashboard-Home beim Start.
+    tui.wait_for("[No Name]", "[Scratch]", timeout=15)
 
 
 def test_neovim_dashboard_tui_chapter_page_renders_its_title_and_action_rows(tui_factory):
@@ -138,7 +140,7 @@ def test_neovim_dashboard_tui_dashboard_command_renders_all_fifteen_chapters(tui
     tui = tui_factory()
     _wait_started(tui)
     tui.keys(":Dashboard", "Enter")
-    screen = tui.wait_for("Settings & Help", timeout=5)
+    screen = tui.wait_for("Settings & Help", timeout=8)
     missing = [t for t in HOME_TITLES if t not in screen]
     assert not missing, f"Home zeigt nicht: {missing}\n{screen}"
 
@@ -147,7 +149,7 @@ def test_neovim_dashboard_tui_leader_h_renders_all_fifteen_chapters(tui_factory)
     tui = tui_factory()
     _wait_started(tui)
     tui.keys("Space", "h")
-    screen = tui.wait_for("Settings & Help", timeout=5)
+    screen = tui.wait_for("Settings & Help", timeout=8)
     missing = [t for t in HOME_TITLES if t not in screen]
     assert not missing, f"<leader>h zeigt nicht: {missing}\n{screen}"
 

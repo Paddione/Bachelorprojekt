@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.414.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.5...website-v1.414.6) (2026-10-10)
+
+
+### Bug Fixes
+
+* **infra:** pocket-id seed uses plural secrets endpoint ([#6506](https://github.com/Paddione/Bachelorprojekt/issues/6506)) ([ddcbf79](https://github.com/Paddione/Bachelorprojekt/commit/ddcbf7979e35a7563cbbdbbe2781b35a7edbfd03))
+
+## [1.414.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.4...website-v1.414.5) (2026-10-10)
+
+
+### Bug Fixes
+
+* harden website:migrate target safety T901750 ([#6504](https://github.com/Paddione/Bachelorprojekt/issues/6504)) ([5c507a9](https://github.com/Paddione/Bachelorprojekt/commit/5c507a9d8724e43a852fb2ce5485da66fa897d31))
+
 ## [1.414.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.3...website-v1.414.4) (2026-10-10)
 
 

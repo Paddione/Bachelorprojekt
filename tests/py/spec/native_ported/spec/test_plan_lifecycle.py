@@ -153,7 +153,11 @@ elif [[ "$input" == *"tp.content"* ]]; then
 elif [[ "$input" == *"count(*)"* && "$input" == *"IS NULL"* ]]; then
   echo "${KUBECTL_STAGED_COUNT:-0}"
 elif [[ "$input" == *"count(*)"* ]]; then
-  echo "1"
+  # T901749: Pre-Check und Verify sind textgleich (uuid+slug) — erster
+  # Count-Call antwortet TOTAL_COUNT, Folge-Calls immer 1.
+  _cnt_file="${KUBECTL_SQL_LOG}.count"
+  if [[ -f "$_cnt_file" ]]; then echo "1";
+  else touch "$_cnt_file"; echo "${KUBECTL_TOTAL_COUNT:-1}"; fi
 fi
 exit 0
 """
@@ -184,7 +188,9 @@ def _archive(run_cmd, pl, kube, *extra):
 
 def test_t901719_archive_ohne_staged_row_insertet(run_cmd, pl, kube):
     # Frische Archivierung (kein stage-plan zuvor): INSERT wie bisher.
-    kube["env"]["KUBECTL_STAGED_COUNT"] = "0"
+    # T901749: vereinheitlichter Check zahlt alle Rows — Frisch-Fall braucht
+    # explizit null (Verify-Count antwortet unabhangig mit 1).
+    kube["env"]["KUBECTL_TOTAL_COUNT"] = "0"
     r = _archive(run_cmd, pl, kube)
     assert r.returncode == 0, r.output
     sql = kube["log"].read_text(encoding="utf-8")
@@ -194,7 +200,7 @@ def test_t901719_archive_ohne_staged_row_insertet(run_cmd, pl, kube):
 
 def test_t901719_archive_mit_staged_row_updatet_statt_duplikat(run_cmd, pl, kube):
     # Staged-Row aus stage-plan vorhanden: UPDATE, kein zweites INSERT.
-    kube["env"]["KUBECTL_STAGED_COUNT"] = "1"
+    kube["env"]["KUBECTL_TOTAL_COUNT"] = "1"
     r = _archive(run_cmd, pl, kube, "--pr", "42")
     assert r.returncode == 0, r.output
     sql = kube["log"].read_text(encoding="utf-8")
@@ -226,3 +232,15 @@ def test_t901719_plan_get_ohne_row_exit_1(run_cmd, pl, kube):
                  "plan-get", "--id", "T009001"], env=kube["env"])
     assert r.returncode == 1
     assert "no staged plan" in r.output
+
+
+def test_t901749_archive_auf_archivierter_row_updatet_statt_duplikat(run_cmd, pl, kube):
+    # T901749(B): existiert bereits eine ARCHIVIERTE Row (pr gesetzt, keine
+    # Staged-Row), aktualisiert archive-plan sie statt ein Duplikat zu
+    # inserten (voller Upsert je Ticket+Slug).
+    kube["env"]["KUBECTL_TOTAL_COUNT"] = "1"
+    r = _archive(run_cmd, pl, kube, "--pr", "77")
+    assert r.returncode == 0, r.output
+    sql = kube["log"].read_text(encoding="utf-8")
+    assert "UPDATE tickets.ticket_plans" in sql
+    assert "INSERT INTO tickets.ticket_plans" not in sql

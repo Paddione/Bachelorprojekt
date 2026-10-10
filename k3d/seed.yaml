@@ -275,7 +275,7 @@ spec:
                     "${API}/api/oidc/clients" </dev/null)
                   new_id=$(echo "$created" | sed -E 's/.*"id":"([^"]+)".*/\1/')
                   gen=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
-                    "${API}/api/oidc/clients/${new_id}/secret" </dev/null)
+                    "${API}/api/oidc/clients/${new_id}/secrets" </dev/null)
                   plaintext=$(echo "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')
                   if [ -z "$plaintext" ] || [ "$plaintext" = "$gen" ]; then
                     echo "ERROR: could not parse generated secret for ${cid}: ${gen}" >&2

@@ -266,3 +266,41 @@ def test_retrieval_graph_status_meldet_einen_veralteten_index(indexed):
     indexed.call("graph_status", "{}")
     indexed.json("String(d.stale)")
     assert indexed.output == "true"
+
+
+def test_knowledge_candidates_exclude_unknown_embedding_model_before_limit(tmp_path):
+    """Model compatibility belongs to candidate selection, before vector ranking."""
+    import json
+    module = _central("devflow", "lib", "retrieve.mjs")
+    code = r"""
+const { searchKnowledge } = await import(process.argv[1]);
+let sql;
+await searchKnowledge({ query: 'current doctrine', queryVector: [1, 0],
+  bge: { async rerank() { return []; } },
+  pg: { async query(statement) { sql = statement; return []; } } });
+console.log(JSON.stringify(sql));
+"""
+    result = subprocess.run(["node", "--input-type=module", "-e", code, str(module)],
+                            text=True, capture_output=True, check=True)
+    sql = json.loads(result.stdout)
+    where = sql.lower().split("where", 1)[1].split("order by", 1)[0]
+    assert "embedding_model" in where and "bge-m3" in where, sql
+
+
+def test_knowledge_candidates_exclude_historical_openspec_before_limit(tmp_path):
+    """An abandoned corpus must not crowd current candidates out of top-k."""
+    import json
+    module = _central("devflow", "lib", "retrieve.mjs")
+    code = r"""
+const { searchKnowledge } = await import(process.argv[1]);
+let sql;
+await searchKnowledge({ query: 'current doctrine', queryVector: [1, 0],
+  bge: { async rerank() { return []; } },
+  pg: { async query(statement) { sql = statement; return []; } } });
+console.log(JSON.stringify(sql));
+"""
+    result = subprocess.run(["node", "--input-type=module", "-e", code, str(module)],
+                            text=True, capture_output=True, check=True)
+    sql = json.loads(result.stdout)
+    where = sql.lower().split("where", 1)[1].split("order by", 1)[0]
+    assert "openspec" in where and ("not" in where or "!=" in where or "<>" in where), sql

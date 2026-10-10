@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1312,
+      "file_count": 1313,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1261,6 +1261,7 @@
         "tests/spec/fixtures/make-partial-plan.sh",
         "tests/spec/fixtures/openclaw-fake-gateway.mjs",
         "tests/spec/helpers/agent-tools.py",
+        "tests/spec/home-nvim-ssot.bats",
         "tests/spec/license-manifest.bats",
         "tests/spec/llm-local-dev/fake-comfyui.py",
         "tests/spec/llm-local-dev/fixtures/plan-runner-fake-opencode.sh",

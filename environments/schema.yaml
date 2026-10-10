@@ -1498,25 +1498,7 @@ secrets:
     generate: false
     description: "Hetzner Cloud API token for the cluster's project. Used for node provisioning and automation via the Hetzner Cloud API."
 
-  - name: PUSHOVER_TOKEN
-    required: false
-    dev_absent: true
-    dev_absent_reason: "Not deployed to prod; dev hat kein Pushover-Backend."
-    generate: false
-    description: "Pushover API token for Alertmanager + deploy notifications. Not deployed to prod (prod overlay deletes the alertmanager-pushover Secret); scripts/lib/notify.sh handles absence gracefully."
-    extra_namespaces:
-      - namespace: monitoring
-        secret: alertmanager-pushover
-
-  - name: PUSHOVER_USER
-    required: false
-    dev_absent: true
-    dev_absent_reason: "Not deployed to prod; dev hat kein Pushover-Backend."
-    generate: false
-    description: "Pushover user key for Alertmanager + deploy notifications. Not deployed to prod (prod overlay deletes the alertmanager-pushover Secret); scripts/lib/notify.sh handles absence gracefully."
-    extra_namespaces:
-      - namespace: monitoring
-        secret: alertmanager-pushover
+  # PUSHOVER_TOKEN/PUSHOVER_USER removed — Pushover routing decommissioned (T014542), dead config removed (T901739).
 
   # GRAFANA_OIDC_SECRET removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 

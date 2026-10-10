@@ -87,8 +87,6 @@ env_vars:
   DEV_BRETT_HOST: brett.dev.korczewski.de
   DEV_SSH_ALLOWLIST: ""
   EMAIL_NOTIFICATIONS_ENABLED: "false"
-  PUSHOVER_TOKEN: ""
-  PUSHOVER_USER: ""
 
 overlay: prod-fleet/korczewski
 workspace_namespace: workspace-korczewski

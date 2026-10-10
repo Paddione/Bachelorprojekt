@@ -1,3 +1,4 @@
+# NUR VIA TASK DEPLOYEN [T901777]: Datei enthaelt Escapes/Platzhalter fuer den Task/Flux-Render-Pfad. Direktes 'kubectl apply -f' hinterlaesst Literale (siehe k3d/README.md).
 # ═══════════════════════════════════════════════════════════════════
 # Automated DB Backup Restore Verification — weekly G-DB05 evidence
 # T014544: Sundays 03:30 UTC, restores the newest encrypted dump set into

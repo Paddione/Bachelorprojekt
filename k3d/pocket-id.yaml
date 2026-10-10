@@ -1,3 +1,4 @@
+# NUR VIA TASK DEPLOYEN [T901777]: Datei enthaelt Escapes/Platzhalter fuer den Task/Flux-Render-Pfad. Direktes 'kubectl apply -f' hinterlaesst Literale (siehe k3d/README.md).
 # ═══════════════════════════════════════════════════════════════════
 # Pocket ID — passkey-first OIDC identity provider
 # Keycloak fully replaced — Pocket ID now owns the auth.* domain.

@@ -1,7 +1,7 @@
 ---
 title: nvim-ssot-umzug Implementation Plan
 ticket_id: T901212
-domains: [neovim, dotfiles, home-repo]
+domains: [neovim, dotfiles, home-repo, dev-tooling]
 status: staged
 ---
 

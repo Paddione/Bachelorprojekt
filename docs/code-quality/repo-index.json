@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1311,
+      "file_count": 1312,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -578,6 +578,7 @@
         "tests/py/spec/native_ported/spec/fleet-operations/test_wg_gpu_pod_cidr.py",
         "tests/py/spec/native_ported/spec/fleet-operations/test_wg_mesh_sync.py",
         "tests/py/spec/native_ported/spec/flux-render-security/test_bootstrap_envsubst.py",
+        "tests/py/spec/native_ported/spec/flux-render-security/test_envsubst_whitelist.py",
         "tests/py/spec/native_ported/spec/flux-render-security/test_immutable_image_refs.py",
         "tests/py/spec/native_ported/spec/flux-render-security/test_no_default_secrets.py",
         "tests/py/spec/native_ported/spec/flux-render-security/test_runtime_var_unwrapping.py",
@@ -4151,7 +4152,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 910,
+      "file_count": 911,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4545,6 +4546,7 @@
         "scripts/lib/post-deploy-watch.sh",
         "scripts/lib/promote-phases.sh",
         "scripts/lib/pytest-inventory.py",
+        "scripts/lib/render-subst-list.sh",
         "scripts/lib/route-manifest.mjs",
         "scripts/lib/route-manifest.test.mjs",
         "scripts/lib/running-chat-gpu.py",

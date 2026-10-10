@@ -1,0 +1,1 @@
+OK: 44 cases, at least one partition populated, all pairs complete

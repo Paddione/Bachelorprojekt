@@ -14,7 +14,7 @@
  *   INCLUDE_PATTERN Regex string for URL inclusion filter
  */
 
-import { sha256, chunkPlain, embedAll, upsertDocumentAndChunks, bumpCollectionStats } from './lib-knowledge-pg.mjs';
+import { sha256, chunkPlain, embedAllWithModel, upsertDocumentAndChunks, bumpCollectionStats } from './lib-knowledge-pg.mjs';
 import { load as cheerioLoad } from 'cheerio';
 import robotsParser from 'robots-parser';
 import pg from 'pg';
@@ -240,10 +240,13 @@ async function main() {
     console.log(`Embedding ${pages.length} pages…`);
     for (const page of pages) {
       const rawChunks = chunkPlain(page.text);
-      // T002570: embedAll() no longer takes a model param — it tries bge-m3
-      // first and falls back to Voyage automatically.
-      const embeddings = await embedAll(rawChunks.map(c => c.text));
-      const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
+      // T002570: embedAllWithModel tries bge-m3 first and falls back to Voyage automatically.
+      const { embeddings, model: embeddingModel } = await embedAllWithModel(rawChunks.map(c => c.text));
+      const chunks = rawChunks.map((c, i) => ({
+        ...c,
+        embedding: embeddings[i],
+        metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+      }));
 
       await upsertDocumentAndChunks(pool, {
         collectionId: COLLECTION_ID,

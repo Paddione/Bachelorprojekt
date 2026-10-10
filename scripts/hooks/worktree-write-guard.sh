@@ -113,10 +113,11 @@ MAIN_ROOT="$(dirname "$COMMON_DIR")"
 # Kanonisiert vergleichen (T900047): `git rev-parse` liefert je nach Plattform
 # Windows- (`C:/...`, teils mit Backslashes) oder POSIX-Form (`/c/...`, `/tmp/...`).
 MAIN_ROOT="$(_canon "$MAIN_ROOT")"
+REPO_ROOT="$(_canon "$REPO_ROOT")"
 
 # 1) Außerhalb des Repos -> nicht unsere Zuständigkeit.
 case "$TARGET" in
-  "$MAIN_ROOT"/*) ;;
+  "$MAIN_ROOT"/*|"$REPO_ROOT"/*) ;;
   *) _allow ;;
 esac
 

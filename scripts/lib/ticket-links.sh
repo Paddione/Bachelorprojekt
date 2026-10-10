@@ -131,11 +131,20 @@ SELECT jsonb_build_object(
       AND tl.kind = 'blocks'
   ), '[]'::jsonb),
   'blocked_by', COALESCE((
-    SELECT jsonb_agg(t2.external_id ORDER BY t2.external_id)
-    FROM tickets.ticket_links tl
-    JOIN tickets.tickets t2 ON t2.id = tl.from_id
-    WHERE tl.to_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
-      AND tl.kind = 'blocks'
+    SELECT jsonb_agg(DISTINCT dep.external_id ORDER BY dep.external_id)
+    FROM (
+      SELECT t2.external_id
+      FROM tickets.ticket_links tl
+      JOIN tickets.tickets t2 ON t2.id = tl.from_id
+      WHERE tl.to_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+        AND tl.kind = 'blocks'
+      UNION
+      SELECT t2.external_id
+      FROM tickets.ticket_links tl
+      JOIN tickets.tickets t2 ON t2.id = tl.to_id
+      WHERE tl.from_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+        AND tl.kind = 'blocked_by'
+    ) dep
   ), '[]'::jsonb),
   'relates', COALESCE((
     SELECT jsonb_agg(DISTINCT other.external_id ORDER BY other.external_id)
@@ -145,7 +154,7 @@ SELECT jsonb_build_object(
       WHEN tl.from_id = self.id THEN tl.to_id
       ELSE tl.from_id
     END
-    WHERE tl.kind = 'relates'
+    WHERE tl.kind IN ('relates', 'relates_to')
       AND (tl.from_id = self.id OR tl.to_id = self.id)
   ), '[]'::jsonb),
   'child_of', COALESCE((

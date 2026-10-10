@@ -234,3 +234,13 @@ def test_graph_index_ohne_erreichbares_bge_endet_der_lauf_mit_exit_0_und_schreib
     assert devflow.status == 0
     assert "bge" in devflow.output
     assert not (devflow.cache_dir / "meta.json").exists()
+
+
+def test_graph_sync_missing_cache_is_a_failure(tmp_path):
+    """Automation must distinguish no synchronization from successful synchronization."""
+    result = subprocess.run(
+        ["node", str(_central("devflow", "sync-db.mjs")), "--repo", str(tmp_path)],
+        env={**os.environ, "DEVFLOW_CACHE_DIR": str(tmp_path / "empty-cache")},
+        text=True, capture_output=True)
+    assert "kein Graph-Cache" in result.stdout + result.stderr
+    assert result.returncode != 0, "missing cache silently reported a successful sync"

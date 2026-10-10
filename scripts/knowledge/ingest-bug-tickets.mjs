@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAll, chunkPlain } from './lib-knowledge-pg.mjs';
+import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAllWithModel, chunkPlain } from './lib-knowledge-pg.mjs';
 
 const COLLECTION_NAME = 'Bug Tickets';
 const COLLECTION_SOURCE = 'bug_tickets';
@@ -55,8 +55,12 @@ async function main() {
       const hash = sha256(text);
       const sourceUri = `bug:${row.ticket_id}`;
       const rawChunks = chunkPlain(text);
-      const embeddings = await embedAll(rawChunks.map(c => c.text));
-      const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
+      const { embeddings, model: embeddingModel } = await embedAllWithModel(rawChunks.map(c => c.text));
+      const chunks = rawChunks.map((c, i) => ({
+        ...c,
+        embedding: embeddings[i],
+        metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+      }));
 
       await upsertDocumentAndChunks(pool, {
         collectionId,

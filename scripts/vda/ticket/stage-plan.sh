@@ -102,48 +102,8 @@ main() {
   fi
 
   local pod; pod=$(_pgpod)
-  _exec_sql_with_timeout "$pod" -v ext_id="$id" -v partials="$partials" -- status-update <<'EOF'
-UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer
- WHERE external_id = :'ext_id';
-EOF
 
-  if [[ -n "${derived//[[:space:]]/}" ]]; then
-    local csv; csv="$(printf '%s' "$derived" | paste -sd, -)"
-    _exec_sql "$pod" -v ext_id="$id" -v files="$csv" <<'EOF' >/dev/null
-UPDATE tickets.tickets
-   SET touched_files = ARRAY(
-         SELECT DISTINCT e FROM unnest(
-           COALESCE(touched_files, ARRAY[]::text[]) || string_to_array(:'files', ',')
-         ) AS e
-         WHERE e <> '' ORDER BY e)
- WHERE external_id = :'ext_id';
-EOF
-    echo "touched_files: $(printf '%s\n' "$derived" | grep -c .) Pfad(e) aus dem Plan uebernommen" >&2
-  else
-    echo "touched_files: --allow-empty-touched — Spalte unveraendert" >&2
-  fi
-  if [[ "$hold" == "1" ]]; then
-    _exec_sql_with_timeout "$pod" -v ext_id="$id" -- hold-flag <<'EOF'
-UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":false}'::jsonb
- WHERE external_id = :'ext_id';
-EOF
-  fi
-  _exec_sql_with_timeout "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" -- plan-ref <<'EOF'
-DELETE FROM tickets.ticket_comments c
- USING tickets.tickets t
- WHERE t.external_id = :'ext_id'
-   AND c.ticket_id = t.id
-   AND c.body LIKE 'FACTORY-PLAN-REF %';
-INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
-  FROM tickets.tickets t
- WHERE t.external_id = :'ext_id';
-EOF
-  # [T901719] Stage-Write: Plan-Body als Staged-Row nach tickets.ticket_plans
-  # (DB-SSOT; die Datei bleibt Authoring-Surface). Idempotent: UPDATE bei
-  # existierender Staged-Row (pr_number IS NULL), sonst INSERT. Fail-closed:
-  # ohne verifizierte Row kein Abschluss.
-  local _sw_body _sw_slug _sw_trailer _sw_sql _sw_existing _sw_count
+  local _sw_body _sw_slug _sw_trailer
   if git cat-file -e "${branch}:${plan}" 2>/dev/null; then
     _sw_body="$(git cat-file -p "${branch}:${plan}" 2>/dev/null)"
   else
@@ -154,39 +114,106 @@ EOF
     *\'*|*\"*|*\;*|*\\*) echo "ERROR: stage-plan DB write refused: unsafe chars in slug/branch/id." >&2; exit 1 ;;
   esac
   _sw_trailer="<!-- plan-stage branch=${branch} plan=${plan} -->"
+
+  local driver="${TICKET_PHASE_DRIVER:-devflow}"
+  case "$driver" in factory|devflow) ;; *) driver="devflow" ;; esac
+
+  local csv_arg=""
+  if [[ -n "${derived//[[:space:]]/}" ]]; then
+    csv_arg="$(printf '%s' "$derived" | paste -sd, -)"
+    echo "touched_files: $(printf '%s\n' "$derived" | grep -c .) Pfad(e) aus dem Plan uebernommen" >&2
+  else
+    echo "touched_files: --allow-empty-touched — Spalte unveraendert" >&2
+  fi
+
+  local rel_bool="true"
+  if [[ "$hold" == "1" ]]; then
+    rel_bool="false"
+  fi
+
+  local _sw_existing
   _sw_existing="$(_exec_sql "$pod" -v ext_id="$id" -v slug="$_sw_slug" <<'EOF'
 SELECT count(*) FROM tickets.ticket_plans tp JOIN tickets.tickets t ON t.id = tp.ticket_id
  WHERE t.external_id = :'ext_id' AND tp.slug = :'slug' AND tp.pr_number IS NULL;
 EOF
 )"
+
+  local _sw_sql_part
   if [[ "${_sw_existing//[[:space:]]/}" == "0" ]]; then
-    _sw_sql="$(printf 'INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nSELECT t.id, '\''%s'\'', '\''%s'\'', $plan$%s\n%s$plan$, NULL\nFROM tickets.tickets t WHERE t.external_id = '\''%s'\'';' "$_sw_slug" "$branch" "$_sw_body" "$_sw_trailer" "$id")"
+    _sw_sql_part="$(printf 'INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nSELECT t.id, '\''%s'\'', '\''%s'\'', $plan$%s\n%s$plan$, NULL\nFROM tickets.tickets t WHERE t.external_id = '\''%s'\'';' "$_sw_slug" "$branch" "$_sw_body" "$_sw_trailer" "$id")"
   else
-    _sw_sql="$(printf 'UPDATE tickets.ticket_plans tp SET content = $plan$%s\n%s$plan$, branch = '\''%s'\'', archived_at = now()\nFROM tickets.tickets t WHERE t.id = tp.ticket_id AND t.external_id = '\''%s'\'' AND tp.slug = '\''%s'\'' AND tp.pr_number IS NULL;' "$_sw_body" "$_sw_trailer" "$branch" "$id" "$_sw_slug")"
+    _sw_sql_part="$(printf 'UPDATE tickets.ticket_plans tp SET content = $plan$%s\n%s$plan$, branch = '\''%s'\'', archived_at = now()\nFROM tickets.tickets t WHERE t.id = tp.ticket_id AND t.external_id = '\''%s'\'' AND tp.slug = '\''%s'\'' AND tp.pr_number IS NULL;' "$_sw_body" "$_sw_trailer" "$branch" "$id" "$_sw_slug")"
   fi
-  printf '%s' "$_sw_sql" | _exec_sql_with_timeout "$pod" -- stage-write
-  _sw_count="$(_exec_sql "$pod" -v ext_id="$id" -v slug="$_sw_slug" <<'EOF'
-SELECT count(*) FROM tickets.ticket_plans tp JOIN tickets.tickets t ON t.id = tp.ticket_id
- WHERE t.external_id = :'ext_id' AND tp.slug = :'slug';
+
+  local sql_tx
+  sql_tx="$(cat <<EOF
+BEGIN;
+
+UPDATE tickets.tickets
+   SET status = 'plan_staged',
+       slot_count = :partials::integer,
+       readiness = COALESCE(readiness, '{}'::jsonb) || '{"execution_released":${rel_bool}}'::jsonb
+ WHERE external_id = :'ext_id';
+
+UPDATE tickets.tickets
+   SET touched_files = ARRAY(
+         SELECT DISTINCT e FROM unnest(
+           COALESCE(touched_files, ARRAY[]::text[]) || string_to_array(:'files', ',')
+         ) AS e
+         WHERE e <> '' ORDER BY e)
+ WHERE external_id = :'ext_id' AND :'files' <> '';
+
+DELETE FROM tickets.ticket_comments c
+ USING tickets.tickets t
+ WHERE t.external_id = :'ext_id'
+   AND c.ticket_id = t.id
+   AND c.body LIKE 'FACTORY-PLAN-REF %';
+
+INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
+  FROM tickets.tickets t
+ WHERE t.external_id = :'ext_id';
+
+${_sw_sql_part}
+
+INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver)
+SELECT t.id, 'plan', 'done', :'detail', :'driver'
+  FROM tickets.tickets t
+ WHERE t.external_id = :'ext_id'
+   AND NOT EXISTS (
+     SELECT 1 FROM tickets.factory_phase_events e
+      WHERE e.ticket_id = t.id AND e.phase = 'plan' AND e.state = 'done'
+   );
+
+COMMIT;
 EOF
 )"
-  if [[ "${_sw_count//[[:space:]]/}" -lt 1 ]]; then
-    echo "ERROR: stage-plan DB write failed - plan not found in database." >&2
+
+
+  if ! printf '%s' "$sql_tx" | _exec_sql_with_timeout "$pod" \
+    -v ext_id="$id" \
+    -v partials="$partials" \
+    -v files="$csv_arg" \
+    -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" \
+    -v slug="$_sw_slug" \
+    -v branch="$branch" \
+    -v driver="$driver" \
+    -v detail="auto: stage-plan" -- stage-tx; then
+    echo "ERROR: stage-plan transaction failed." >&2
     exit 1
   fi
-  local driver="${TICKET_PHASE_DRIVER:-devflow}"
-  case "$driver" in factory|devflow) ;; *) driver="devflow" ;; esac
-  _exec_sql_with_timeout "$pod" -v ext_id="$id" -v driver="$driver" -v detail="auto: stage-plan" -- phase-events <<'EOF'
-INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver)
-SELECT t.id, p.phase, 'done', :'detail', :'driver'
-FROM tickets.tickets t
-CROSS JOIN (VALUES ('scout'),('design'),('plan')) AS p(phase)
-WHERE t.external_id = :'ext_id'
-  AND NOT EXISTS (
-    SELECT 1 FROM tickets.factory_phase_events e
-     WHERE e.ticket_id = t.id AND e.phase = p.phase AND e.state = 'done'
-  );
+
+  # Verifizieren, dass das Ticket tatsächlich existierte und aktualisiert wurde
+  local _verify_staged
+  _verify_staged="$(_exec_sql "$pod" -v ext_id="$id" <<'EOF'
+SELECT count(*) FROM tickets.tickets WHERE external_id = :'ext_id' AND status = 'plan_staged';
 EOF
+)"
+  if [[ "${_verify_staged//[[:space:]]/}" -lt 1 ]]; then
+    echo "ERROR: stage-plan failed: Ticket $id not found or not staged." >&2
+    exit 1
+  fi
+
   if [[ "$hold" != "1" ]]; then
     if ! _exec_sql "$pod" -v setby='stage-plan' <<'EOF' >/dev/null 2>&1
 INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
@@ -198,6 +225,7 @@ EOF
       echo "WARN: stage-plan: force-tick flag write failed — write may have succeeded despite timeout" >&2
     fi
   fi
+
   if [[ "$hold" == "1" ]]; then
     echo "Ticket $id staged in Kommissionierung (status=plan_staged, execution held)"
   else

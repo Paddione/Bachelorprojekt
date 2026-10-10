@@ -136,8 +136,8 @@
       "dest": ".opencode/skills/lavish",
       "track": "release",
       "tag_prefix": "lavish-axi-v",
-      "ref": "8039751b60f5e3aadaf5fc0ee90864d6e667d70a",
-      "version": "lavish-axi-v0.1.84"
+      "ref": "fb12e17da12297b582092a80995cbd7498ee706f",
+      "version": "lavish-axi-v0.1.85"
     },
     "llama-cpp": {
       "repo": "Orchestra-Research/AI-research-SKILLs",
@@ -160,7 +160,7 @@
       "path": "skills/skill-creator",
       "dest": ".opencode/skills/skill-creator",
       "track": "branch",
-      "ref": "683bc88e56f3e09ba94f7055977f3d3aa499f202",
+      "ref": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
       "version": null
     },
     "train-sentence-transformers": {
@@ -200,7 +200,7 @@
       "path": "skills/vitest",
       "dest": ".opencode/skills/vitest",
       "track": "branch",
-      "ref": "e53a142a2420e8cd812cfe9ed0484ab01bc856aa",
+      "ref": "feb0f3aba6566426f12230e7fc7a10d97c1293bb",
       "version": null
     },
     "sota-testing": {
@@ -208,7 +208,7 @@
       "path": "skills/sota-testing",
       "dest": ".opencode/skills/sota-testing",
       "track": "branch",
-      "ref": "6f9bbf9c1ccb00359134ea643b8519f4222cf239",
+      "ref": "b807e3f27c4d04289923acf49364c0a2ce40f13c",
       "version": null
     },
     "vitest-testing": {
@@ -216,7 +216,7 @@
       "path": "skills/vitest-testing",
       "dest": ".opencode/skills/vitest-testing",
       "track": "branch",
-      "ref": "db4051715d39d869ac11ea16530609eda75c2869",
+      "ref": "3f35d65eb6e3a30d60fc65c59937be32fd4338b7",
       "version": null
     },
     "gh-fix-ci": {
@@ -240,8 +240,8 @@
           ".opencode/opencode.jsonc",
           ".opencode/package-lock.json"
         ],
-        "ref": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
-        "version": "v6.4.2"
+        "ref": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+        "version": "v7.0.0"
       }
     },
     "npm": {

@@ -69,10 +69,13 @@ def test_t900059_ntfy_tokens_survive_the_full_deploy_pipeline_as_literal(paths, 
     assert emptied == []
 
 
-def test_t900059_schema_yaml_provides_ntfy_token_and_pushover_verify_only(paths):
+def test_t900059_schema_yaml_provides_ntfy_token_and_pushover_stays_removed(paths):
     lines = paths["schema"].read_text(encoding="utf-8").splitlines()
-    for key in ("NTFY_TOKEN_OPENCODE", "NTFY_TOKEN_AGY", "PUSHOVER_USER", "PUSHOVER_TOKEN"):
+    for key in ("NTFY_TOKEN_OPENCODE", "NTFY_TOKEN_AGY"):
         assert any(re.match(rf"^[ \t]+- name: {key}$", l) for l in lines), f"FAIL: environments/schema.yaml misses entry: {key}"
+    # Pushover routing decommissioned (T014542), dead config removed (T901739).
+    for key in ("PUSHOVER_USER", "PUSHOVER_TOKEN"):
+        assert not any(re.match(rf"^[ \t]+- name: {key}$", l) for l in lines), f"FAIL: environments/schema.yaml reintroduces removed entry: {key}"
 
 
 def test_t900059_both_render_pipelines_keep_the_unescape_stage_escape_resolves(paths, run_cmd):

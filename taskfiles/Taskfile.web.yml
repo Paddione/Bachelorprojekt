@@ -43,9 +43,12 @@ tasks:
   # Website (Astro + Svelte)
   # ─────────────────────────────────────────────
   website:migrate:
-    desc: "Run components/website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski."
+    desc: "Run components/website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski|staging."
     vars:
       ENV: '{{.ENV | default "dev"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "staging" ]'
+        msg: "website:migrate requires ENV=dev|mentolder|korczewski|staging, got ENV={{.ENV}}"
     cmds:
       - |
         set -euo pipefail
@@ -53,6 +56,7 @@ tasks:
         ctx_flag=""
         [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
         NS="${WORKSPACE_NAMESPACE:-workspace}"
+        echo "Migrate target: context=${ENV_CONTEXT:-<current>} namespace=$NS"
 
         echo "Waiting for shared-db to be ready before running website migrations..."
         kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
@@ -70,14 +74,32 @@ tasks:
           echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
         fi
 
-        echo "Port-forwarding shared-db (5432) and running website migrations..."
-        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
-          >/tmp/website-migrate-pf.log 2>&1 &
+        echo "Port-forwarding shared-db on an ephemeral local port..."
+        PF_LOG=$(mktemp /tmp/website-migrate-pf.XXXXXX.log)
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db :5432 \
+          >"$PF_LOG" 2>&1 &
         PF=$!
-        trap 'kill $PF 2>/dev/null' EXIT
-        sleep 3
+        trap 'kill $PF 2>/dev/null; rm -f "$PF_LOG"' EXIT
+        # Fail closed unless OUR forward reports a port AND accepts TCP.
+        # A fixed port plus sleep (previous code) silently migrated whoever
+        # squatted localhost:5432 (T901750).
+        READY=""
+        for _ in $(seq 1 30); do
+          if ! kill -0 $PF 2>/dev/null; then
+            echo "ERROR: port-forward exited unexpectedly:"; tail -n 20 "$PF_LOG"; exit 1
+          fi
+          LOCAL_PORT=$(grep -oE 'Forwarding from 127\.0\.0\.1:[0-9]+' "$PF_LOG" 2>/dev/null | tail -n 1 | grep -oE '[0-9]+$' || true)
+          if [ -n "$LOCAL_PORT" ] && python3 -c "import socket; socket.create_connection(('127.0.0.1', $LOCAL_PORT), timeout=2).close()" 2>/dev/null; then
+            READY=1; break
+          fi
+          sleep 1
+        done
+        if [ -z "$READY" ]; then
+          echo "ERROR: port-forward to shared-db never became ready:"; tail -n 20 "$PF_LOG"; exit 1
+        fi
+        echo "Port-forward ready on 127.0.0.1:$LOCAL_PORT"
 
-        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+        DATABASE_URL="postgres://postgres:${PG_PW}@127.0.0.1:${LOCAL_PORT}/website" \
           pnpm --dir components/website db:migrate
 
   website:migrate:homepage-blocks:

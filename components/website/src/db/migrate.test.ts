@@ -13,6 +13,12 @@ vi.mock('node:fs', () => ({
   readFileSync: (path: string) => `-- sql body for ${String(path)}`,
 }));
 
+const { mockLoggerWarn } = vi.hoisted(() => ({ mockLoggerWarn: vi.fn() }));
+
+vi.mock('../lib/logger', () => ({
+  logger: { info: vi.fn(), warn: mockLoggerWarn, error: vi.fn() },
+}));
+
 import { runMigrations, ALREADY_EXISTS_SQLSTATES } from './migrate';
 
 type QueryCall = { sql: string; params?: unknown[] };
@@ -64,6 +70,7 @@ function createMockPool(opts: MockPoolOptions = {}) {
 
 beforeEach(() => {
   mockFiles = [];
+  mockLoggerWarn.mockClear();
 });
 
 describe('runMigrations', () => {
@@ -124,6 +131,20 @@ describe('runMigrations', () => {
       expect(insertedFiles).toContain('20260703_b.sql');
     },
   );
+
+  it('logs a warning (not info) when backfilling, naming file and code', async () => {
+    mockFiles = ['20260520_a.sql'];
+    const pool = createMockPool({
+      failOn: { '20260520_a.sql': { code: '42P07', message: 'already exists' } },
+    });
+
+    await runMigrations(pool);
+
+    expect(mockLoggerWarn).toHaveBeenCalledWith(
+      expect.objectContaining({ file: '20260520_a.sql', code: '42P07' }),
+      expect.stringContaining('backfill'),
+    );
+  });
 
   it('aborts the run on a real error outside the allowlist and does not track the file', async () => {
     mockFiles = ['20260520_a.sql', '20260703_b.sql'];

@@ -395,26 +395,12 @@ SECRET_MANIFEST="${TMPDIR}/secret.yaml"
   echo "type: Opaque"
   echo "stringData:"
 
-  # Read key-value pairs from the plaintext secrets file
-  while IFS= read -r line; do
-    # Skip comments and blank lines
-    [[ "$line" =~ ^[[:space:]]*# ]] && continue
-    [[ -z "${line// /}" ]] && continue
-
-    # Parse KEY: "value" format
-    # Use a more robust regex to handle keys with underscores and possible spaces
-    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.*)$ ]]; then
-      key="${BASH_REMATCH[1]}"
-      value="${BASH_REMATCH[2]}"
-      # Strip quotes from value
-      value="${value%\"}"
-      value="${value#\"}"
-      value="${value%\'}"
-      value="${value#\'}"
-
-      echo "  ${key}: \"${value}\""
-    fi
-  done < "$SECRETS_FILE"
+  # YAML-Parsing via Helper (T901721): Zeilen-Parsing kappte mehrzeilige
+  # Values still auf Zeile 1. Einzeiler byte-identisch, Mehrzeiler korrekt.
+  command -v python3 >/dev/null 2>&1 \
+    || die "python3 fehlt — Sealer braucht es seit T901721 (YAML-Parsing)"
+  python3 "${SCRIPT_DIR}/lib/parse-secrets-yaml.py" dump-stringdata "$SECRETS_FILE" \
+    || die "secrets-YAML unlesbar: $SECRETS_FILE"
 } > "$SECRET_MANIFEST"
 # ── Seal the secret ──────────────────────────────────────────────
 mkdir -p "$SEALED_DIR"

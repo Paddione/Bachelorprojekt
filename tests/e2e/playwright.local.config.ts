@@ -111,6 +111,18 @@ export default defineConfig({
       },
     },
 
+    // ── sdlc-sweep: Render-Sweep aller /sdlc/*-Seiten (FA-66) ────────
+    // Braucht keinen OIDC-Login: SDLC_E2E_URL zeigt auf einen Dev-Server mit
+    // Wegwerf-Sessions-DB, SDLC_E2E_SESSION ist dort eine Admin-Session.
+    // Ohne beide Variablen skippt die Spec komplett.
+    // Run: SDLC_E2E_URL=http://127.0.0.1:4321 SDLC_E2E_SESSION=<id> \
+    //      npx playwright test --config playwright.local.config.ts --project=sdlc-sweep
+    {
+      name: 'sdlc-sweep',
+      testMatch: ['**/fa-66-sdlc-frontend-sweep.spec.ts'],
+      use: { ...devices['Desktop Chrome'], ignoreHTTPSErrors: true },
+    },
+
     // ── llm-local: LLM-Router & GPU-Host-Specs ───────────────────────
     // T013329 F5/D4: Der Router sitzt auf dem GPU-Host im wg-mesh — von einem
     // GitHub-Runner unerreichbar (Netzwerk, kein Auth). Die Specs skippen

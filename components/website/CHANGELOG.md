@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.414.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.5...website-v1.414.6) (2026-10-10)
+
+
+### Bug Fixes
+
+* **infra:** pocket-id seed uses plural secrets endpoint ([#6506](https://github.com/Paddione/Bachelorprojekt/issues/6506)) ([ddcbf79](https://github.com/Paddione/Bachelorprojekt/commit/ddcbf7979e35a7563cbbdbbe2781b35a7edbfd03))
+
+## [1.414.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.4...website-v1.414.5) (2026-10-10)
+
+
+### Bug Fixes
+
+* harden website:migrate target safety T901750 ([#6504](https://github.com/Paddione/Bachelorprojekt/issues/6504)) ([5c507a9](https://github.com/Paddione/Bachelorprojekt/commit/5c507a9d8724e43a852fb2ce5485da66fa897d31))
+
+## [1.414.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.3...website-v1.414.4) (2026-10-10)
+
+
+### Bug Fixes
+
+* sealer multiline T901720 ([#6490](https://github.com/Paddione/Bachelorprojekt/issues/6490)) ([26c379d](https://github.com/Paddione/Bachelorprojekt/commit/26c379dd3d12f57be4af1207a0fa6a2e844cdf78))
+
+## [1.414.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.2...website-v1.414.3) (2026-10-10)
+
+
+### Bug Fixes
+
+* **website:** resolve massage catalogue from website content copy [T901440] ([#6486](https://github.com/Paddione/Bachelorprojekt/issues/6486)) ([3e54857](https://github.com/Paddione/Bachelorprojekt/commit/3e548570b33731cd91c69e59ef46e6582de12017))
+
+## [1.414.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.1...website-v1.414.2) (2026-10-10)
+
+
+### Tests
+
+* SDLC-Frontend-Sweep (FA-66) und nvim-TUI-Render-Test, Mobil-Overflow auf /sdlc/training behoben ([#6478](https://github.com/Paddione/Bachelorprojekt/issues/6478)) ([19d0dbb](https://github.com/Paddione/Bachelorprojekt/commit/19d0dbb07d0cf486c0b1a40e0da25b3cfe61c5cc))
+
+## [1.414.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.0...website-v1.414.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **test:** load authenticated Brett snapshots for apiEquals [T901677] ([#6474](https://github.com/Paddione/Bachelorprojekt/issues/6474)) ([a58e8b4](https://github.com/Paddione/Bachelorprojekt/commit/a58e8b4707cbf71fcf9a83da9f36218e31b5a27a))
+
 ## [1.414.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.413.0...website-v1.414.0) (2026-10-09)
 
 

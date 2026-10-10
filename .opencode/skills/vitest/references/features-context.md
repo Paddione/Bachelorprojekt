@@ -1,161 +1,236 @@
 ---
 name: test-context-fixtures
-description: Test context, custom fixtures with test.extend (builder pattern), scopes, and test.override
+description: Test context, custom fixtures with test.extend
 ---
 
 # Test Context & Fixtures
 
 ## Built-in Context
 
-Every test receives context as its first argument:
+Every test receives context as first argument:
 
 ```ts
-test('context', ({ task, expect, skip, signal, annotate }) => {
-  console.log(task.name)        // Test metadata (readonly)
-  expect(1).toBe(1)             // Expect bound to this test
-  skip(condition, 'reason')     // Skip dynamically
+test('context', ({ task, expect, skip }) => {
+  console.log(task.name)  // Test name
+  expect(1).toBe(1)       // Context-bound expect
+  skip()                  // Skip test dynamically
 })
 ```
 
-Properties:
-- `task` — test metadata (name, file, etc.)
-- `expect` — expect bound to this test (required for concurrent snapshot tests)
-- `skip(condition?, message?)` — skip the test
-- `signal` (3.2+) — `AbortSignal` aborted on timeout/cancel/bail
-- `annotate(message, type?, attachment?)` (3.2+) — attach reporter annotations
-- `onTestFinished(fn)` / `onTestFailed(fn)` — per-test cleanup/handlers
-- `bench` (v5) — benchmark fixture (only in `*.bench.ts` files)
+### Context Properties
 
-## Custom Fixtures — Builder Pattern (4.1+, recommended)
+- `task` - Test metadata (name, file, etc.)
+- `expect` - Expect bound to this test (important for concurrent tests)
+- `skip(condition?, message?)` - Skip the test
+- `onTestFinished(fn)` - Cleanup after test
+- `onTestFailed(fn)` - Run on failure only
 
-`.extend(name, options?, fixture)` infers types automatically. Use `onCleanup` for teardown:
+## Custom Fixtures with test.extend
 
-```ts
-import { test as baseTest } from 'vitest'
-
-export const test = baseTest
-  // Plain value — type inferred as { port: number; host: string }
-  .extend('config', { port: 3000, host: 'localhost' })
-  // Function fixture — can read previously defined fixtures
-  .extend('server', async ({ config }, { onCleanup }) => {
-    const server = await startServer(config)
-    onCleanup(() => server.close()) // runs after test/scope ends
-    return server
-  })
-
-test('uses server', ({ config, server }) => {
-  expect(server.url).toContain(String(config.port))
-})
-```
-
-> `onCleanup` can be called **once per fixture**. For multiple resources, split into separate fixtures.
-
-### Fixture Options
+Create reusable test utilities:
 
 ```ts
-const test = baseTest
-  .extend('metrics', { auto: true }, () => new Metrics())       // runs for every test
-  .extend('config', { scope: 'worker' }, () => loadConfig())    // once per worker
-  .extend('db', { scope: 'file' }, async ({ config }, { onCleanup }) => {
-    const db = await createDatabase(config)
-    onCleanup(() => db.close())
-    return db
-  })
-  .extend('baseUrl', { injected: true }, () => 'http://localhost:3000') // overridable via config
-```
+import { test as base } from 'vitest'
 
-## Object Syntax (Playwright-compatible)
+// Define fixture types
+interface Fixtures {
+  db: Database
+  user: User
+}
 
-Uses the `use()` callback; types must be declared manually:
-
-```ts
-const test = baseTest.extend<{ page: Page; baseUrl: string }>({
-  page: async ({}, use) => {
-    const page = await browser.newPage()
-    await use(page)        // test runs here
-    await page.close()     // cleanup after
+// Create extended test
+export const test = base.extend<Fixtures>({
+  // Fixture with setup/teardown
+  db: async ({}, use) => {
+    const db = await createDatabase()
+    await use(db)           // Provide to test
+    await db.close()        // Cleanup
   },
-  baseUrl: 'http://localhost:3000',
+  
+  // Fixture depending on another fixture
+  user: async ({ db }, use) => {
+    const user = await db.createUser({ name: 'Test' })
+    await use(user)
+    await db.deleteUser(user.id)
+  },
 })
 ```
 
-Tuple form sets options: `fixture: [async ({}, use) => {…}, { scope: 'file' }]`.
-
-## Fixture Scopes (3.2+)
-
-| Scope | Lifetime | Can access |
-|-------|----------|------------|
-| `test` (default) | each test | worker + file + test fixtures + built-in context |
-| `file` | once per file | worker + file fixtures |
-| `worker` | once per worker process | only worker fixtures |
-
-Only `test`-scoped fixtures can access the built-in context (`task`, `expect`, …). In file/worker fixtures use `expect.getState().testPath` for the file path. By default every file is its own worker, so `file` and `worker` behave the same unless [isolation is disabled](features-concurrency.md).
-
-## Injected Fixtures (per-project values)
+Using fixtures:
 
 ```ts
-// fixtures.ts
-const test = baseTest.extend('url', { injected: true }, '/default')
+test('query user', async ({ db, user }) => {
+  const found = await db.findUser(user.id)
+  expect(found).toEqual(user)
+})
+```
 
-// vitest.config.ts — provide per project
+## Fixture Initialization
+
+Fixtures only initialize when accessed:
+
+```ts
+const test = base.extend({
+  expensive: async ({}, use) => {
+    console.log('initializing')  // Only runs if test uses it
+    await use('value')
+  },
+})
+
+test('no fixture', () => {})           // expensive not called
+test('uses fixture', ({ expensive }) => {}) // expensive called
+```
+
+## Auto Fixtures
+
+Run fixture for every test:
+
+```ts
+const test = base.extend({
+  setup: [
+    async ({}, use) => {
+      await globalSetup()
+      await use()
+      await globalTeardown()
+    },
+    { auto: true }  // Always run
+  ],
+})
+```
+
+## Scoped Fixtures
+
+### File Scope
+
+Initialize once per file:
+
+```ts
+const test = base.extend({
+  connection: [
+    async ({}, use) => {
+      const conn = await connect()
+      await use(conn)
+      await conn.close()
+    },
+    { scope: 'file' }
+  ],
+})
+```
+
+### Worker Scope
+
+Initialize once per worker:
+
+```ts
+const test = base.extend({
+  sharedResource: [
+    async ({}, use) => {
+      await use(globalResource)
+    },
+    { scope: 'worker' }
+  ],
+})
+```
+
+## Injected Fixtures (from Config)
+
+Override fixtures per project:
+
+```ts
+// test file
+const test = base.extend({
+  apiUrl: ['/default', { injected: true }],
+})
+
+// vitest.config.ts
 defineConfig({
   test: {
     projects: [
-      { test: { name: 'prod', provide: { url: 'https://prod' } } },
+      {
+        test: {
+          name: 'prod',
+          provide: { apiUrl: 'https://api.prod.com' },
+        },
+      },
     ],
   },
 })
 ```
 
-Read raw provided values without fixtures via `import { inject } from 'vitest'`.
+## Scoped Values per Suite
 
-## Overriding Fixtures — test.override (4.1+)
-
-`test.override` replaces fixture values for a suite and its children (replaces the deprecated `test.scoped`):
+Override fixture for specific suite:
 
 ```ts
-describe('production', () => {
-  test
-    .override('config', { port: 8080, host: 'api.example.com' })
-    .override('debug', false)        // chainable
+const test = base.extend({
+  environment: 'development',
+})
 
-  test('uses prod config', ({ server }) => {
-    expect(server.url).toBe('http://api.example.com:8080')
+describe('production tests', () => {
+  test.scoped({ environment: 'production' })
+  
+  test('uses production', ({ environment }) => {
+    expect(environment).toBe('production')
   })
 })
 
-// Function override (reads other fixtures) with cleanup
-test.override('db', async ({ config }, { onCleanup }) => {
-  const db = await createTestDatabase(config)
-  onCleanup(() => db.drop())
-  return db
+test('uses default', ({ environment }) => {
+  expect(environment).toBe('development')
 })
 ```
 
-You cannot introduce new fixtures or change `scope`/`auto` via `override`; use `test.extend` for new fixtures.
+## Extended Test Hooks
 
-## Composing & Hooks
-
-Extend an already-extended test, and use type-aware hooks on the extended `test`:
+Type-aware hooks with fixtures:
 
 ```ts
-import { test as dbTest } from './db-test'
+const test = base.extend<{ db: Database }>({
+  db: async ({}, use) => {
+    const db = await createDb()
+    await use(db)
+    await db.close()
+  },
+})
 
-export const test = dbTest.extend('user', ({ db }) => db.createUser())
+// Hooks know about fixtures
+test.beforeEach(({ db }) => {
+  db.seed()
+})
 
-test.beforeEach(({ db }) => db.seed())            // sees fixtures
-test.beforeAll(({ db }) => db.migrate())          // file/worker fixtures only (4.1+)
-test.aroundAll(async (run, { db }) => db.tx(run))
+test.afterEach(({ db }) => {
+  db.clear()
+})
+```
+
+## Composing Fixtures
+
+Extend from another extended test:
+
+```ts
+// base-test.ts
+export const test = base.extend<{ db: Database }>({
+  db: async ({}, use) => { /* ... */ },
+})
+
+// admin-test.ts
+import { test as dbTest } from './base-test'
+
+export const test = dbTest.extend<{ admin: User }>({
+  admin: async ({ db }, use) => {
+    const admin = await db.createAdmin()
+    await use(admin)
+  },
+})
 ```
 
 ## Key Points
 
-- Prefer the **builder pattern** — types are inferred, cleanup via `onCleanup`
-- Fixtures are lazy — only initialized when destructured
-- Always destructure `{ db }` (not `context.db`)
-- Use `{ scope: 'file' | 'worker' }` for expensive shared resources
-- Use `test.override` (not `test.scoped`) to vary fixture values per suite
-- Use `{ injected: true }` + project `provide` for per-project values
+- Use `{ }` destructuring to access fixtures
+- Fixtures are lazy - only initialize when accessed
+- Return cleanup function from fixtures
+- Use `{ auto: true }` for setup fixtures
+- Use `{ scope: 'file' }` for expensive shared resources
+- Fixtures compose - extend from extended tests
 
 <!-- 
 Source references:

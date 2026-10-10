@@ -7,8 +7,11 @@ generate-bitwarden-export.py
    - Every secret with its variable NAME, secret type, reroll command, and 3rd-party links.
    - Separate web login entries with user/password and direct URLs for web consoles.
    - Bundled non-secret environment values in Secure Notes with searchable custom fields.
+   With --format grouped, writes environments/.export/<brand>.json instead:
+   must-store values grouped per schema, derivable keys as value-less refs.
 """
 
+import argparse
 import json
 import os
 import re
@@ -20,6 +23,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ENV_DIR = os.path.join(REPO_ROOT, "environments")
 SECRETS_DIR = os.path.join(ENV_DIR, ".secrets")
 OUTPUT_PATH = os.path.join(REPO_ROOT, "bitwarden.json")
+EXPORT_DIR = os.path.join(ENV_DIR, ".export")
 
 def load_yaml(path):
     if not os.path.exists(path):
@@ -319,42 +323,104 @@ def get_secret_metadata(key_name, schema_entry, domain):
     )
 
 
-def build_bitwarden_export():
-    schema = load_yaml(os.path.join(ENV_DIR, "schema.yaml"))
-    schema_secrets = {s["name"]: s for s in schema.get("secrets", [])}
-    schema_env_vars = {e["name"]: e for e in schema.get("env_vars", [])}
-    schema_setup_vars = {s["name"]: s for s in schema.get("setup_vars", [])}
-
-    tenants = [
+def tenants(env_dir=ENV_DIR, secrets_dir=SECRETS_DIR):
+    return [
         {
             "id": "mentolder",
             "name": "Mentolder",
             "folder_id": "11111111-1111-1111-1111-111111111111",
-            "env_file": os.path.join(ENV_DIR, "fleet-mentolder.yaml"),
-            "secret_file": os.path.join(SECRETS_DIR, "fleet-mentolder.yaml"),
+            "env_file": os.path.join(env_dir, "fleet-mentolder.yaml"),
+            "secret_file": os.path.join(secrets_dir, "fleet-mentolder.yaml"),
             "domain": "mentolder.de"
         },
         {
             "id": "korczewski",
             "name": "Korczewski",
             "folder_id": "22222222-2222-2222-2222-222222222222",
-            "env_file": os.path.join(ENV_DIR, "fleet-korczewski.yaml"),
-            "secret_file": os.path.join(SECRETS_DIR, "fleet-korczewski.yaml"),
+            "env_file": os.path.join(env_dir, "fleet-korczewski.yaml"),
+            "secret_file": os.path.join(secrets_dir, "fleet-korczewski.yaml"),
             "domain": "korczewski.de"
         }
     ]
 
+
+def match_group(key_name, groups):
+    """First matching group rule wins; fall back to 'misc' (T901698)."""
+    for rule in groups or []:
+        name = rule.get("name", "misc")
+        if key_name in (rule.get("exact") or []):
+            return name
+        if any(key_name.startswith(p) for p in (rule.get("prefix") or [])):
+            return name
+        if any(key_name.endswith(s) for s in (rule.get("suffix") or [])):
+            return name
+        if any(c in key_name for c in (rule.get("contains") or [])):
+            return name
+    return "misc"
+
+
+def is_derivable_entry(entry):
+    """Mirror of secret-derive.py: derivable unless opted out (T901698)."""
+    if (entry or {}).get("derived") is False:
+        return False
+    return bool((entry or {}).get("generate", False))
+
+
+def build_grouped_export(env_dir=ENV_DIR, secrets_dir=SECRETS_DIR, export_dir=EXPORT_DIR):
+    """Grouped JSON per tenant: must-store values in groups, derived as refs.
+
+    Derived keys are references ({derived: true, version}) WITHOUT values —
+    values are re-derived via scripts/secret-derive.py (T901698).
+    """
+    schema = load_yaml(os.path.join(env_dir, "schema.yaml"))
+    entries = {s["name"]: s for s in schema.get("secrets", [])}
+    groups = schema.get("groups", [])
+    global_version = (schema.get("derivation") or {}).get("version", 1)
+    os.makedirs(export_dir, exist_ok=True)
+    reports = {}
+    for t in tenants(env_dir, secrets_dir):
+        sec_data = load_yaml(t["secret_file"])
+        grouped = {"brand": t["id"], "tenant": t["name"],
+                   "derivation_version": global_version, "groups": {}, "derived": {}}
+        for key_name in sorted(sec_data.keys()):
+            entry = entries.get(key_name, {})
+            if is_derivable_entry(entry):
+                version = entry.get("derive_version") or global_version
+                grouped["derived"][key_name] = {
+                    "derived": True, "version": version,
+                    "group": match_group(key_name, groups)}
+            else:
+                group = match_group(key_name, groups)
+                grouped["groups"].setdefault(group, {})[key_name] = str(sec_data[key_name])
+        out = os.path.join(export_dir, f"{t['id']}.json")
+        with open(out, "w", encoding="utf-8") as f:
+            json.dump(grouped, f, indent=2)
+        reports[t["name"]] = {
+            "path": out, "groups": sorted(grouped["groups"].keys()),
+            "must_store": sum(len(v) for v in grouped["groups"].values()),
+            "derived": len(grouped["derived"])}
+    return reports
+
+
+def build_bitwarden_export(env_dir=ENV_DIR, secrets_dir=SECRETS_DIR, output_path=OUTPUT_PATH):
+    schema = load_yaml(os.path.join(env_dir, "schema.yaml"))
+    schema_secrets = {s["name"]: s for s in schema.get("secrets", [])}
+    schema_env_vars = {e["name"]: e for e in schema.get("env_vars", [])}
+    schema_setup_vars = {s["name"]: s for s in schema.get("setup_vars", [])}
+
+    tenants_list = tenants(env_dir, secrets_dir)
+
     export_data = {
         "encrypted": False,
         "folders": [
-            {"id": t["folder_id"], "name": t["name"]} for t in tenants
+            {"id": t["folder_id"], "name": t["name"]} for t in tenants_list
         ],
         "items": []
     }
 
     validation_reports = {}
 
-    for t in tenants:
+    for t in tenants_list:
         t_id = t["id"]
         t_name = t["name"]
         folder_id = t["folder_id"]
@@ -652,13 +718,28 @@ def build_bitwarden_export():
         })
 
     # Write output JSON
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(export_data, f, indent=2)
 
     return validation_reports, len(export_data["items"])
 
 
-if __name__ == "__main__":
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Generate Bitwarden/grouped JSON exports.")
+    parser.add_argument("--format", default="bitwarden", choices=["bitwarden", "grouped"],
+                        help="Export format (default: bitwarden)")
+    args = parser.parse_args(argv)
+    if args.format == "grouped":
+        reports = build_grouped_export()
+        print(f"Successfully generated grouped exports in {EXPORT_DIR}.")
+        print()
+        print("=== Grouped Summary ===")
+        for tenant, rep in reports.items():
+            print(f"\n[{tenant}] {rep['path']}")
+            print(f"  Groups: {', '.join(rep['groups'])}")
+            print(f"  Must-store keys: {rep['must_store']}")
+            print(f"  Derived references: {rep['derived']}")
+        return 0
     reports, total_items = build_bitwarden_export()
     print(f"Successfully generated {OUTPUT_PATH} with {total_items} total items.")
     print()
@@ -671,3 +752,8 @@ if __name__ == "__main__":
             print(f"    Missing: {rep['missing_required']}")
         print(f"  Missing Optional Secrets: {len(rep['missing_optional'])}")
         print(f"  Extra Secrets in file (e.g. WireGuard/SSH/legacy): {len(rep['extra_keys'])}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

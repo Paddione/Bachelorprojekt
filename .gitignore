@@ -54,6 +54,10 @@ bitwarden-*.json
 claude-code/*-export.settings.json
 k3d/vaultwarden-seed-credentials.yaml
 k3d/vaultwarden-seed-job.yaml
+# Derived-secrets tooling (T901698): brand master seeds + grouped JSON exports
+# are local-only and must never be committed.
+environments/.export/
+environments/.secrets/.seed-*
 # ── Runtime-Daten (Docker-Volumes, DB, Certs) ──
 data/
 !components/website/src/data/

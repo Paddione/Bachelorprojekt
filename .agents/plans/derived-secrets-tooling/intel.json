@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "slug": "derived-secrets-tooling",
+    "ticket_id": "",
+    "generated_from": "main@6ac112850",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".gitignore",
+      "language": "text",
+      "loc": 256,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/derived-secrets.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1796,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/generate-bitwarden-export.py",
+      "language": "python",
+      "loc": 673,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 127
+    },
+    {
+      "path": "scripts/secret-derive.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/unit/test_bitwarden_export.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/unit/test_secret_derive.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/generate-bitwarden-export.py:664:    print()",
+      "kind": "function",
+      "file": "scripts/generate-bitwarden-export.py",
+      "signature": "664:    print()(...)",
+      "type_text": "664:    print()(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

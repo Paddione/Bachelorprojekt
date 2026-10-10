@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.3...website-v1.414.4) (2026-10-10)
+
+
+### Bug Fixes
+
+* sealer multiline T901720 ([#6490](https://github.com/Paddione/Bachelorprojekt/issues/6490)) ([26c379d](https://github.com/Paddione/Bachelorprojekt/commit/26c379dd3d12f57be4af1207a0fa6a2e844cdf78))
+
 ## [1.414.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.2...website-v1.414.3) (2026-10-10)
 
 

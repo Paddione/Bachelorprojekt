@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1304,
+      "file_count": 1305,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -874,6 +874,7 @@
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_early_abort.py",
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_group_lookup.py",
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_pagination.py",
+        "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_secret_endpoint.py",
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_secret_writeback.py",
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_skip_secret.py",
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_timeout.py",
@@ -4145,7 +4146,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 882,
+      "file_count": 883,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4510,6 +4511,7 @@
         "scripts/lib/mcp-http-security.test.mjs",
         "scripts/lib/nextcloud-api.sh",
         "scripts/lib/notify.sh",
+        "scripts/lib/parse-secrets-yaml.py",
         "scripts/lib/pnpm-audit-count.py",
         "scripts/lib/pnpm-outdated-majors.py",
         "scripts/lib/post-deploy-watch.sh",

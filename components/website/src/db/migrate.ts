@@ -70,9 +70,9 @@ export async function runMigrations(pool: Pool): Promise<void> {
       } catch (e) {
         await client.query('ROLLBACK');
         if (isPgError(e) && ALREADY_EXISTS_SQLSTATES.has(e.code)) {
-          logger.info(
+          logger.warn(
             { file: f, code: e.code },
-            '[migrate] already applied (backfill) — tracking and continuing',
+            '[migrate] already applied (backfill) — tracking and continuing; verify the objects exist, the file may have been only partially applied before',
           );
           await client.query(
             'INSERT INTO schema_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',

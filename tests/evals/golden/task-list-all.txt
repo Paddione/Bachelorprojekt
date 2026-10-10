@@ -372,7 +372,7 @@ task: Available tasks for this project:
 * website:deploy:                               Deploy the Astro website to the website namespace (ENV=dev|mentolder|...)
 * website:dev:                                  Run Astro dev server locally (hot-reload)
 * website:logs:                                 Tail website logs (ENV=dev|mentolder|korczewski)
-* website:migrate:                              Run components/website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski.
+* website:migrate:                              Run components/website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski|staging.
 * website:migrate:homepage-blocks:              Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run).
 * website:portrait-derivatives:                 Rebuild the portrait derivatives from gerald.jpg — 4:5 crop anchored at y=0 so the head stays whole (T002507)
 * website:pull-secret:                          Create/update ghcr-pull-secret in website + workspace namespaces (ENV=dev|mentolder|korczewski)

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.2...website-v1.414.3) (2026-10-10)
+
+
+### Bug Fixes
+
+* **website:** resolve massage catalogue from website content copy [T901440] ([#6486](https://github.com/Paddione/Bachelorprojekt/issues/6486)) ([3e54857](https://github.com/Paddione/Bachelorprojekt/commit/3e548570b33731cd91c69e59ef46e6582de12017))
+
 ## [1.414.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.1...website-v1.414.2) (2026-10-10)
 
 

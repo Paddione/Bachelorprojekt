@@ -90,8 +90,6 @@ env_vars:
   STUDIO_IMAGE_DIGEST: sha256:3fb082d01ee1679ccbe75831e7badc66f51fae8995afa5283da03eb4d349e7f3
   # Dev stack omitted
   DEV_SSH_ALLOWLIST: ""
-  PUSHOVER_TOKEN: ""
-  PUSHOVER_USER: ""
   EMAIL_NOTIFICATIONS_ENABLED: "false"
   OTEL_AUTH_TOKEN: "staging-otel-auth-token-placeholder"
 

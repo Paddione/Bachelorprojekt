@@ -34,37 +34,65 @@ export async function ensureCollection(pool, { name, source, brand = null, descr
 export async function upsertDocumentAndChunks(pool, {
   collectionId, title, sourceUri, rawText, hash, metadata = {}, chunks,
 }) {
-  const docRes = await pool.query(
-    `INSERT INTO knowledge.documents (collection_id, title, source_uri, raw_text, sha256, metadata)
-     VALUES ($1, $2, $3, $4, $5, $6::jsonb)
-     ON CONFLICT (collection_id, source_uri) DO UPDATE
-       SET title = EXCLUDED.title,
-           raw_text = EXCLUDED.raw_text,
-           sha256 = EXCLUDED.sha256,
-           metadata = EXCLUDED.metadata
-     RETURNING id, sha256`,
-    [collectionId, title, sourceUri, rawText, hash, JSON.stringify(metadata)],
-  );
-  const docId = docRes.rows[0].id;
-  const prevHash = docRes.rows[0].sha256;
-  if (prevHash === hash && chunks === null) return { docId, reused: true };
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  await pool.query('DELETE FROM knowledge.chunks WHERE document_id = $1', [docId]);
-  for (const c of chunks) {
-    await pool.query(
-      `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding, metadata)
-       VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
-      [
-        docId,
-        collectionId,
-        c.position,
-        c.text,
-        `[${c.embedding.join(',')}]`,
-        JSON.stringify(c.metadata ?? {}),
-      ],
+    // Lock existing document row if present to check previous hash and serialize concurrent updates
+    const existingRes = await client.query(
+      `SELECT id, sha256 FROM knowledge.documents
+       WHERE collection_id = $1 AND source_uri = $2
+       FOR UPDATE`,
+      [collectionId, sourceUri],
     );
+
+    const prevDoc = existingRes.rows[0];
+    if (prevDoc && prevDoc.sha256 === hash && chunks === null) {
+      await client.query('COMMIT');
+      return { docId: prevDoc.id, reused: true };
+    }
+
+    if (chunks === null) {
+      throw new Error(`Cannot update document ${sourceUri} without chunks when hash differs`);
+    }
+
+    const docRes = await client.query(
+      `INSERT INTO knowledge.documents (collection_id, title, source_uri, raw_text, sha256, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+       ON CONFLICT (collection_id, source_uri) DO UPDATE
+         SET title = EXCLUDED.title,
+             raw_text = EXCLUDED.raw_text,
+             sha256 = EXCLUDED.sha256,
+             metadata = EXCLUDED.metadata
+       RETURNING id, sha256`,
+      [collectionId, title, sourceUri, rawText, hash, JSON.stringify(metadata)],
+    );
+    const docId = docRes.rows[0].id;
+
+    await client.query('DELETE FROM knowledge.chunks WHERE document_id = $1', [docId]);
+    for (const c of chunks) {
+      await client.query(
+        `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
+        [
+          docId,
+          collectionId,
+          c.position,
+          c.text,
+          `[${c.embedding.join(',')}]`,
+          JSON.stringify(c.metadata ?? {}),
+        ],
+      );
+    }
+
+    await client.query('COMMIT');
+    return { docId, reused: false };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
   }
-  return { docId, reused: false };
 }
 
 export async function bumpCollectionStats(pool, collectionId) {
@@ -72,6 +100,15 @@ export async function bumpCollectionStats(pool, collectionId) {
     `UPDATE knowledge.collections
         SET chunk_count = (SELECT COUNT(*) FROM knowledge.chunks WHERE collection_id = $1),
             last_indexed_at = now()
+      WHERE id = $1`,
+    [collectionId],
+  );
+}
+
+export async function updateCollectionChunkCount(pool, collectionId) {
+  await pool.query(
+    `UPDATE knowledge.collections
+        SET chunk_count = (SELECT COUNT(*) FROM knowledge.chunks WHERE collection_id = $1)
       WHERE id = $1`,
     [collectionId],
   );
@@ -113,7 +150,7 @@ async function embedViaBge(texts, url) {
 // kosten, bevor auf Voyage ausgewichen wird.
 let bgeDead = false;
 
-export async function embedAll(texts, batch = 128) {
+export async function embedAllWithModel(texts, batch = 128) {
   const bgeUrl = process.env.LLM_EMBED_URL;
   if (bgeUrl && !bgeDead) {
     try {
@@ -123,7 +160,7 @@ export async function embedAll(texts, batch = 128) {
         const r = await embedViaBge(texts.slice(i, i + bgeBatch), bgeUrl);
         out.push(...r.embeddings);
       }
-      return out;
+      return { embeddings: out, model: 'bge-m3' };
     } catch (err) {
       console.warn(
         `[embedAll] bge-m3 (${bgeUrl}) fehlgeschlagen — falle fuer den Rest `
@@ -140,7 +177,12 @@ export async function embedAll(texts, batch = 128) {
     const r = await callVoyage(texts.slice(i, i + batch), 'document');
     out.push(...r.embeddings);
   }
-  return out;
+  return { embeddings: out, model: 'voyage-multilingual-2' };
+}
+
+export async function embedAll(texts, batch = 128) {
+  const res = await embedAllWithModel(texts, batch);
+  return res.embeddings;
 }
 
 export function chunkPlain(text, target = 600, overlap = 100) {

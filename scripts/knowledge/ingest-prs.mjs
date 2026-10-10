@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAll, chunkPlain } from './lib-knowledge-pg.mjs';
+import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAllWithModel, chunkPlain } from './lib-knowledge-pg.mjs';
 
 const COLLECTION_NAME = 'PR History';
 const COLLECTION_SOURCE = 'pr_history';
@@ -48,8 +48,12 @@ async function main() {
       const chunks = chunkPlain(text).map(c => ({ ...c, embedding: null }));
 
       // Embed
-      const embeddings = await embedAll(chunks.map(c => c.text));
-      const chunksWithEmbed = chunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
+      const { embeddings, model: embeddingModel } = await embedAllWithModel(chunks.map(c => c.text));
+      const chunksWithEmbed = chunks.map((c, i) => ({
+        ...c,
+        embedding: embeddings[i],
+        metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+      }));
 
       await upsertDocumentAndChunks(pool, {
         collectionId,

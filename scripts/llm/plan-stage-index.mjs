@@ -132,7 +132,7 @@ async function main() {
     for (const p of partials) {
       const text = texts[p.id];
       const hash = pg.sha256(text);
-      const [embedding] = await pg.embedAll([text]);
+      const { embeddings: [embedding], model: embeddingModel } = await pg.embedAllWithModel([text]);
       const { docId } = await pg.upsertDocumentAndChunks(pool, {
         collectionId,
         title: `${planSlug}/${p.id}`,
@@ -144,7 +144,7 @@ async function main() {
           partial_id: p.id, depends_on: p.dependsOn,
         },
         // Genau ein Chunk pro Partial — nie der Vollplan.
-        chunks: [{ position: 0, text, embedding }],
+        chunks: [{ position: 0, text, embedding, metadata: { embedding_model: embeddingModel } }],
       });
       docs.push({ partial: p.id, docId, hash });
     }

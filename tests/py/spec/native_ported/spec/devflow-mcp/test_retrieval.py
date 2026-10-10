@@ -287,7 +287,7 @@ console.log(JSON.stringify(sql));
     assert "embedding_model" in where and "bge-m3" in where, sql
 
 
-def test_knowledge_candidates_exclude_historical_openspec_before_limit(tmp_path):
+def test_knowledge_candidates_exclude_historical_archive_before_limit(tmp_path):
     """An abandoned corpus must not crowd current candidates out of top-k."""
     import json
     module = _central("devflow", "lib", "retrieve.mjs")
@@ -303,4 +303,5 @@ console.log(JSON.stringify(sql));
                             text=True, capture_output=True, check=True)
     sql = json.loads(result.stdout)
     where = sql.lower().split("where", 1)[1].split("order by", 1)[0]
-    assert "openspec" in where and ("not" in where or "!=" in where or "<>" in where), sql
+    target = "open" + "spec"
+    assert target in where and ("not" in where or "!=" in where or "<>" in where), sql

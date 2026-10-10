@@ -13,7 +13,7 @@
  *   TOKENS          Max tokens to request from context7 (default 20000)
  */
 
-import { sha256, embedAll, upsertDocumentAndChunks, bumpCollectionStats } from './lib-knowledge-pg.mjs';
+import { sha256, embedAllWithModel, upsertDocumentAndChunks, bumpCollectionStats } from './lib-knowledge-pg.mjs';
 import pg from 'pg';
 
 const { Pool } = pg;
@@ -165,9 +165,13 @@ async function main() {
     console.log(`  Split into ${rawChunks.length} chunks`);
 
     console.log('  Embedding…');
-    const embeddings = await embedAll(rawChunks.map(c => c.text));
+    const { embeddings, model: embeddingModel } = await embedAllWithModel(rawChunks.map(c => c.text));
 
-    const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
+    const chunks = rawChunks.map((c, i) => ({
+      ...c,
+      embedding: embeddings[i],
+      metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+    }));
 
     const sourceUri = `https://context7.com${LIBRARY_ID}`;
 

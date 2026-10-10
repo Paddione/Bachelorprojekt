@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAll, chunkPlain } from './lib-knowledge-pg.mjs';
+import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAllWithModel, chunkPlain } from './lib-knowledge-pg.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, join, relative, basename } from 'node:path';
 
@@ -86,8 +86,12 @@ async function main() {
       const title = basename(filePath, '.md');
 
       const rawChunks = splitMarkdownChunks(text);
-      const embeddings = await embedAll(rawChunks.map(c => c.text));
-      const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
+      const { embeddings, model: embeddingModel } = await embedAllWithModel(rawChunks.map(c => c.text));
+      const chunks = rawChunks.map((c, i) => ({
+        ...c,
+        embedding: embeddings[i],
+        metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+      }));
 
       await upsertDocumentAndChunks(pool, {
         collectionId,

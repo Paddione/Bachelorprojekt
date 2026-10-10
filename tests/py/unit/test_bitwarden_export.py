@@ -155,11 +155,18 @@ def test_bitwarden_default_smoke_stable_counts(exporter, fixture_env, tmp_path):
     assert out2.read_bytes() == out.read_bytes()
 
 
+def _snapshot(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    if path.is_file():
+        return {str(path): path.stat().st_mtime_ns}
+    return {str(p): p.stat().st_mtime_ns for p in sorted(path.rglob("*"))}
+
+
 def test_no_writes_outside_fixture(exporter, fixture_env, tmp_path):
     repo_output = REPO_ROOT / "bitwarden.json"
     repo_export_dir = REPO_ROOT / "environments" / ".export"
-    assert not repo_output.exists()
-    assert not repo_export_dir.exists()
+    before = (_snapshot(repo_output), _snapshot(repo_export_dir))
     exporter.build_grouped_export(
         env_dir=str(fixture_env["env_dir"]),
         secrets_dir=str(fixture_env["secrets_dir"]),
@@ -170,8 +177,7 @@ def test_no_writes_outside_fixture(exporter, fixture_env, tmp_path):
         secrets_dir=str(fixture_env["secrets_dir"]),
         output_path=str(tmp_path / "bitwarden.json"),
     )
-    assert not repo_output.exists()
-    assert not repo_export_dir.exists()
+    assert (_snapshot(repo_output), _snapshot(repo_export_dir)) == before
 
 
 def test_real_schema_has_derivation_and_groups():

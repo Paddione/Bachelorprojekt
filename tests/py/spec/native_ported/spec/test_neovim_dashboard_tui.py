@@ -26,7 +26,6 @@ HOME_TITLES = [
     "User Services", "Tests & Plans", "Settings & Help",
 ]
 
-
 def _data_home() -> Path:
     return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share"))
 
@@ -109,6 +108,21 @@ def test_neovim_dashboard_tui_chapter_page_renders_its_title_and_action_rows(tui
     assert "SDLC" in screen, screen
     for row in ("Show Ticket", "Find Similar Tickets", "Lint Plan", "Run CI Gates"):
         assert row in screen, f"Zeile {row!r} fehlt auf dem Bildschirm:\n{screen}"
+
+
+def test_neovim_dashboard_tui_home_and_chapter_switch_back_and_forth(tui_factory):
+    # Regression: opening a second dashboard while one exists rendered an
+    # empty buffer (fresh buffer per open is single-shot per window).
+    tui = tui_factory()
+    _wait_started(tui)
+    tui.keys(":Dashboard sdlc", "Enter")
+    tui.wait_for("Show Ticket")
+    tui.keys(":Dashboard", "Enter")
+    screen = tui.wait_for("Settings & Help", timeout=10)
+    assert "SDLC" in screen, screen
+    tui.keys(":Dashboard sdlc", "Enter")
+    screen = tui.wait_for("Show Ticket", timeout=10)
+    assert "Show Ticket" in screen, screen
 
 
 def test_neovim_dashboard_tui_chapter_page_is_not_an_editable_file_buffer(tui_factory):

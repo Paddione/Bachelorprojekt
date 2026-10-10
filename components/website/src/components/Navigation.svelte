@@ -49,8 +49,8 @@
     return () => document.removeEventListener('mousedown', handleOutside);
   });
 
-  function initial(name: string) {
-    return name.charAt(0).toUpperCase();
+  function initial(name: string | undefined | null) {
+    return (name ?? '').charAt(0).toUpperCase();
   }
 </script>
 
@@ -92,7 +92,7 @@
               aria-label={t(locale, 'nav.user-menu')}
             >
               <span class="user-avatar">{initial(user.name)}</span>
-              <span class="user-pill-name">{user.name.split(' ')[0]}</span>
+              <span class="user-pill-name">{(user.name ?? '').split(' ')[0]}</span>
               <svg
                 class="user-chevron"
                 class:rotated={menuOpen}

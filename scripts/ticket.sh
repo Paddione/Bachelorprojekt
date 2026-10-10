@@ -6,7 +6,8 @@
 #   update-status --id <external_id> --status <status> [--resolution <resolution>] [--notes <notes>]
 #   update-fields --id <external_id> [--title <title>] [--description <description>]
 #   add-comment --id <external_id> --body <body> [--author <author_label>] [--visibility <visibility>]
-#   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>] [--reason merged|staged-stale|superseded] [--successor <slug>]
+#   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>] [--reason merged|staged-stale|superseded|staged-backfill] [--successor <slug>]
+#   plan-get --id <external_id>
 #   get-attachments --id <external_id> --out-dir <out_dir>
 #   get --id <external_id>
 #   set-touched-files --id <external_id> --files <comma-separated-paths>
@@ -142,6 +143,7 @@ fi
 case "${1:-} ${2:-}" in
   "get "*|"list "*|"get-attachments "*|"get-ticket-links "*|"get-timeline "*|\
   "get-injections "*|"find-similar "*|"retry-count "*|"plan-meta get"|\
+  "plan-get "*|\
   "help "*|"-h "*|"--help "*|" ")
     : ;;
   *)
@@ -247,7 +249,7 @@ cmd_archive_plan() {
   fi
 
   # Validate-before-_pgpod (FA-SF-48): schlechter Reason ist ohne Cluster deterministisch.
-  case "$reason" in merged|staged-stale|superseded) ;; *) echo "ERROR: --reason must be merged|staged-stale|superseded." >&2; exit 2 ;; esac
+  case "$reason" in merged|staged-stale|superseded|staged-backfill) ;; *) echo "ERROR: --reason must be merged|staged-stale|superseded|staged-backfill." >&2; exit 2 ;; esac
 
   # OFFLINE guard runs BEFORE the empty-plan-file check so operators get
   # the OFFLINE marker, not a 'plan file not found' error. See T001242 M3.
@@ -301,14 +303,34 @@ EOF
 <!-- lifecycle-receipt reason=$reason${successor:+ successor=$successor} -->"
   fi
 
+  case "${slug}/${branch}" in
+    *\'*|*\"*|*\;*|*\\*) echo "ERROR: archive-plan refused: unsafe chars in slug/branch." >&2; exit 1 ;;
+  esac
+
+  # [T901719] Upsert: existiert eine Staged-Row (pr_number IS NULL) aus
+  # stage-plan, wird sie aktualisiert statt eine zweite Row anzulegen.
+  local staged_existing
+  staged_existing=$(_exec_sql "$pod" -v t_uuid="$uuid" -v slug="$slug" <<'EOF'
+SELECT count(*) FROM tickets.ticket_plans WHERE ticket_id = :'t_uuid'::uuid AND slug = :'slug' AND pr_number IS NULL;
+EOF
+)
+
   local tmpfile
   tmpfile=$(mktemp)
-  {
-    printf "INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nVALUES (\n  '%s',\n  '%s',\n  '%s',\n  \$plan\$" \
-      "$uuid" "$slug" "$branch"
-    printf '%s' "$plan_content"
-    printf "\$plan\$,\n  %s\n);\n" "$pr_sql"
-  } > "$tmpfile"
+  if [[ "${staged_existing//[[:space:]]/}" == "0" ]]; then
+    {
+      printf "INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nVALUES (\n  '%s',\n  '%s',\n  '%s',\n  \$plan\$" \
+        "$uuid" "$slug" "$branch"
+      printf '%s' "$plan_content"
+      printf "\$plan\$,\n  %s\n);\n" "$pr_sql"
+    } > "$tmpfile"
+  else
+    {
+      printf "UPDATE tickets.ticket_plans SET branch = '%s', content = \$plan\$" "$branch"
+      printf '%s' "$plan_content"
+      printf "\$plan\$, pr_number = %s, archived_at = now()\nWHERE ticket_id = '%s' AND slug = '%s' AND pr_number IS NULL;\n" "$pr_sql" "$uuid" "$slug"
+    } > "$tmpfile"
+  fi
 
   # Run the insert via psql (stdin redirect)
   kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
@@ -404,6 +426,11 @@ EOF
 
 cmd_get() {
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/get.sh"
+  main "$@"
+}
+
+cmd_plan_get() {
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/plan-get.sh"
   main "$@"
 }
 
@@ -892,7 +919,7 @@ pr_links AS (
 ),
 plan_events AS (
   SELECT 'plan_archived' AS source, tp.archived_at AS ts,
-    jsonb_build_object('slug', tp.slug, 'branch', tp.branch) AS detail
+    jsonb_build_object('slug', tp.slug, 'branch', tp.branch, 'pr_number', tp.pr_number) AS detail
   FROM tickets.ticket_plans tp
   WHERE tp.ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
     AND tp.archived_at IS NOT NULL
@@ -979,6 +1006,7 @@ case "$cmd" in
   archive-plan)      cmd_archive_plan "$@" ;;
   get-attachments)   cmd_get_attachments "$@" ;;
   get)               cmd_get "$@" ;;
+  plan-get)          cmd_plan_get "$@" ;;
   set-touched-files) cmd_set_touched_files "$@" ;;
   set-scout-drift)   cmd_set_scout_drift "$@" ;;
   set-pipeline-slot) cmd_set_pipeline_slot "$@" ;;

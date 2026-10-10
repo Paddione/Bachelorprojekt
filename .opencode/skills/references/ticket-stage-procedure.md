@@ -124,3 +124,15 @@ bash scripts/ticket.sh stage-plan \
 | `--allow-empty-touched` | Override. Seit T003267 bricht `stage-plan` bei leerer `touched_files`-Ableitung hart ab (Exit 1) statt still zu melden. Leere Ableitung heißt fast immer: zu früh aufgerufen — siehe T002673 in [dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md). |
 
 **Reihenfolge:** `stage-plan` läuft **nach** `git commit` + `git push`, nicht in Schritt 4.5. Begründung: T002673 in den Gotchas.
+
+## DB-SSOT (T901719)
+
+`stage-plan` schreibt den Plan-Body zusätzlich als Staged-Row
+(`pr_number` NULL + `<!-- plan-stage -->`-Trailer) nach
+`tickets.ticket_plans` — die DB ist ab Stage SSOT, die Datei unter
+`.agents/plans/` bleibt Authoring-Surface für Lint/Review. Lesen per
+`ticket.sh plan-get --id <T-Id>` (fail-closed, neueste Row). `archive-plan`
+und Finalize-Schritt-7 arbeiten als Upsert: existiert die Staged-Row, wird
+sie aktualisiert (`pr_number`, Evidenz) statt eine zweite Row anzulegen;
+der Finalize-Skip greift erst bei archivierter Row. Backfill offener
+`plan_staged`-Tickets: `ticket.sh archive-plan --reason staged-backfill`.

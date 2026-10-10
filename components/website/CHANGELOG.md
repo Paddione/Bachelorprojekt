@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.6...website-v1.414.7) (2026-10-10)
+
+
+### Bug Fixes
+
+* **infra:** seed auth check reports clean codes (T901774) ([#6516](https://github.com/Paddione/Bachelorprojekt/issues/6516)) ([819b8cc](https://github.com/Paddione/Bachelorprojekt/commit/819b8cc36d6e97d9516725cc1f0bbf0b0911f8c8))
+
 ## [1.414.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.5...website-v1.414.6) (2026-10-10)
 
 

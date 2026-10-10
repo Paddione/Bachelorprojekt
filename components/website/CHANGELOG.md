@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.1...website-v1.414.2) (2026-10-10)
+
+
+### Tests
+
+* SDLC-Frontend-Sweep (FA-66) und nvim-TUI-Render-Test, Mobil-Overflow auf /sdlc/training behoben ([#6478](https://github.com/Paddione/Bachelorprojekt/issues/6478)) ([19d0dbb](https://github.com/Paddione/Bachelorprojekt/commit/19d0dbb07d0cf486c0b1a40e0da25b3cfe61c5cc))
+
 ## [1.414.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.0...website-v1.414.1) (2026-10-09)
 
 

@@ -7,22 +7,24 @@
 version: "3"
 
 vars:
-  CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
   CTX_PROD: '{{.CTX_PROD | default "fleet"}}'
-  NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
   NS_PROD: '{{.NS_PROD | default "workspace"}}'
-  CLUSTER_NAME: '{{.CLUSTER_NAME | default "mentolder-dev"}}'
-  ENV: '{{.ENV | default "mentolder"}}'
 
 tasks:
 
   logs:
     desc: "[dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)"
+    vars:
+      CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
+      NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
     cmds:
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} logs -l app={{.CLI_ARGS}} --tail 200 -f
 
   psql:
     desc: "[dev] Open psql shell to shared-db-dev"
+    vars:
+      CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
+      NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
     cmds:
       - |
         kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} exec -it statefulset/shared-db-dev -- \
@@ -30,6 +32,10 @@ tasks:
 
   secrets:
     desc: "[dev] Materialise plaintext secrets from environments/.secrets/{{.ENV}}.yaml into {{.NS_DEV}}"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+      CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
+      NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
     cmds:
       - |
         set -euo pipefail
@@ -80,18 +86,26 @@ tasks:
 
   redeploy:website:
     desc: "[dev] Roll website deployment (requires CI-built :dev image)"
+    vars:
+      CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
+      NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
     cmds:
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout restart deploy/website
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/website --timeout=180s
 
   redeploy:brett:
     desc: "[dev] Roll brett deployment (requires CI-built :dev image)"
+    vars:
+      CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
+      NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
     cmds:
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout restart deploy/brett
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/brett --timeout=120s
 
   db:refresh:
     desc: "[dev] Restore latest prod snapshot into shared-db-dev (drops + recreates DBs)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
         set -euo pipefail
@@ -134,6 +148,8 @@ tasks:
 
   tunnel:
     desc: "[dev] ssh -R wrapper. Usage: task dev:tunnel -- <name> <localport>"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -147,6 +163,8 @@ tasks:
 
   firewall:open:
     desc: "[dev] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules on $DEV_NODE"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"

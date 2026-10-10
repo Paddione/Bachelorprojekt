@@ -61,8 +61,10 @@ spec:
                     -w '%{http_code}' \
                     -H "Authorization: Bearer $${CRON_SECRET}" \
                     "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/cron/scheduled-publish")
-                  echo "scheduled-publish: HTTP $code"
-                  if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+                  # T901780: $$code -- single-$ wurde von envsubst beim
+                  # Rendern verschluckt (toter Check, leeres Echo).
+                  echo "scheduled-publish: HTTP $$code"
+                  if [ "$$code" -lt 200 ] || [ "$$code" -ge 300 ]; then
                     echo "scheduled-publish: response body follows" >&2
                     head -c 2000 /tmp/publish-response >&2
                     exit 1

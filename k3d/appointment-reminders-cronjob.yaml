@@ -41,16 +41,18 @@ spec:
                 - |
                   # Diagnose pattern from scheduled-publish: log the HTTP code
                   # and print the body to stderr on failure (no silent curl).
-                  # The double-dollar keeps CRON_SECRET out of the envsubst
-                  # render list so only the in-container shell resolves it.
+                  # The double-dollar keeps CRON_SECRET and the runtime $$code
+                  # out of the envsubst render list so only the in-container
+                  # shell resolves them (T901780: the single-$ form was eaten
+                  # at render, leaving a dead [ "" -lt 200 ] check).
                   code=$(curl -s -S -X POST \
                     -o /tmp/reminders-response \
                     -w '%{http_code}' \
                     -H "Authorization: Bearer $${CRON_SECRET}" \
                     -H "Content-Type: application/json" \
                     "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/cron/appointment-reminders")
-                  echo "appointment-reminders: HTTP $code"
-                  if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+                  echo "appointment-reminders: HTTP $$code"
+                  if [ "$$code" -lt 200 ] || [ "$$code" -ge 300 ]; then
                     echo "appointment-reminders: response body follows" >&2
                     head -c 2000 /tmp/reminders-response >&2
                     exit 1

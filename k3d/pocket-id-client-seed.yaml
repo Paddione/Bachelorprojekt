@@ -210,7 +210,13 @@ spec:
               # on every retry, each time adding more zombie oidc_clients
               # rows (T001992). $CURL_RETRY (incl. --retry-connrefused) still
               # covers transient connection refusals during pod startup (T001327).
-              auth_check_code=$(curl -fsS $CURL_RETRY -o /dev/null -w '%{http_code}' -H "$AUTH" "$${API}/api/oidc/clients" </dev/null 2>/dev/null || echo "000")
+              # T901774: KEIN -f hier -- curl -f druckt bei 401 den Code und
+              # exitt danach 22, sodass "401" + "000" zu "401000" verklebt
+              # und im falschen case-Branch landet. Ohne -f liefert -w den
+              # Code sauber; bei Verbindungsfehlern druckt -w selbst "000"
+              # (curl-Exit 7) -- ein || echo "000" wuerde zu "000000"
+              # verdoppeln, daher nur || true.
+              auth_check_code=$(curl -sS $CURL_RETRY -o /dev/null -w '%{http_code}' -H "$AUTH" "$${API}/api/oidc/clients" </dev/null 2>/dev/null || true)
               case "$auth_check_code" in
                 2??)
                   # API-Key akzeptiert -- weiter mit dem Client-Seeding.

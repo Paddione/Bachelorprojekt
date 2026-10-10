@@ -89,6 +89,27 @@ build_dockerconfigjson() {
 # secret_type defaults to Opaque.
 # If owner_brand_csv is non-empty, writes the annotation
 # `secrets.bachelorprojekt/owner-brand` on the Secret metadata.
+# _sealer_parse_helper — Pfad zum YAML-Parser-Helper (T901721).
+# Ueber BASH_SOURCE aufgeloest, damit es sowohl aus env-seal.sh als auch
+# beim direkten Sourcen der Lib (Tests) funktioniert.
+_sealer_parse_helper() {
+  local lib_file="${BASH_SOURCE[0]}"
+  local lib_dir
+  lib_dir="$(cd "$(dirname "$lib_file")" && pwd)"
+  printf '%s' "${lib_dir}/parse-secrets-yaml.py"
+}
+
+# emit_stringdata_entries <secrets_file> — stringData-Block fuer ein
+# K8s-Secret-Manifest (T901721). Einzeiler byte-identisch zum alten Sealer,
+# Mehrzeiler als Literal-Bloecke (roh: parse-secrets-yaml.py dump-stringdata).
+emit_stringdata_entries() {
+  local secrets_file="$1"
+  command -v python3 >/dev/null 2>&1 \
+    || die "python3 fehlt — Sealer braucht es seit T901721 (YAML-Parsing)"
+  python3 "$(_sealer_parse_helper)" dump-stringdata "$secrets_file" \
+    || die "secrets-YAML unlesbar: $secrets_file"
+}
+
 build_secret_manifest() {
   local tmp_manifest="$1"
   local ns="$2"
@@ -99,15 +120,17 @@ build_secret_manifest() {
   local secret_type="${7:-Opaque}"
 
   declare -A secret_vals
-  while IFS= read -r line; do
-    [[ "$line" =~ ^[[:space:]]*# ]] && continue
-    [[ -z "${line// /}" ]] && continue
-    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.*)$ ]]; then
-      local k="${BASH_REMATCH[1]}" v="${BASH_REMATCH[2]}"
-      v="${v%\"}"; v="${v#\"}"; v="${v%\'}"; v="${v#\'}"
-      secret_vals["$k"]="$v"
-    fi
-  done < "$secrets_file"
+  command -v python3 >/dev/null 2>&1 \
+    || die "python3 fehlt — Sealer braucht es seit T901721 (YAML-Parsing)"
+  local tsv_output
+  tsv_output="$(python3 "$(_sealer_parse_helper)" dump-tsv "$secrets_file")" \
+    || die "secrets-YAML unlesbar: $secrets_file"
+  # TSV ist key<TAB>base64(value) — newlines in Values ueberleben so.
+  while IFS=$'\t' read -r k b; do
+    [[ -z "$k" ]] && continue
+    secret_vals["$k"]="$(printf '%s' "$b" | base64 -d 2>/dev/null)" \
+      || die "base64-Dekodierung fehlgeschlagen ($secrets_file)"
+  done <<< "$tsv_output"
 
   DEST_LIST=""
   NONEMPTY_COUNT=0
@@ -123,6 +146,7 @@ build_secret_manifest() {
     fi
     echo "type: ${secret_type}"
     echo "stringData:"
+    local entries_tsv=""
     for m in $mappings; do
       # Mapping fields are `:=:`-joined and never contain whitespace, so
       # word-splitting is a safe decoder. `-` encodes an empty field. The
@@ -140,7 +164,9 @@ build_secret_manifest() {
       if [[ -n "$registry" && -n "$user_key" ]]; then
         local user_val="${secret_vals[$user_key]:-}"
         if [[ -n "$val" && -n "$user_val" ]]; then
-          echo "  ${dest}: '$(build_dockerconfigjson "$registry" "$user_val" "$val")'"
+          local dcj
+          dcj="$(build_dockerconfigjson "$registry" "$user_val" "$val")"
+          entries_tsv+="${dest}"$'\t'"$(printf '%s' "$dcj" | base64 -w0)"$'\n'
           DEST_LIST="${DEST_LIST} ${dest}"
           NONEMPTY_COUNT=$((NONEMPTY_COUNT + 1))
           continue
@@ -161,10 +187,14 @@ build_secret_manifest() {
             ;;
         esac
       fi
-      echo "  ${dest}: \"${val}\""
+      entries_tsv+="${dest}"$'\t'"$(printf '%s' "$val" | base64 -w0)"$'\n'
       DEST_LIST="${DEST_LIST} ${dest}"
       if [[ -n "$val" ]]; then NONEMPTY_COUNT=$((NONEMPTY_COUNT + 1)); fi
     done
+    # Ein Render-Aufruf: korrektes YAML-Quoting (T901721), inkl. Literal-
+    # Bloecke fuer mehrzeilige Values.
+    printf '%s' "$entries_tsv" | python3 "$(_sealer_parse_helper)" render-entries \
+      || die "Manifest-Rendering fehlgeschlagen ($secrets_file)" 
   } > "$tmp_manifest"
 }
 

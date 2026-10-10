@@ -156,7 +156,9 @@ def test_seal_lib_dockerconfigjson_is_assembled_from_username_and_token(run_cmd,
     result.check()
     text = out.read_text(encoding="utf-8")
     expect = base64.b64encode(b"test-user:test-token-42").decode("ascii")
-    assert '{"auths":{"ghcr.io":{"auth":"' + expect + '"}}}' in text
+    parsed = yaml.safe_load(text)
+    assert parsed["stringData"][".dockerconfigjson"] == \
+        '{"auths":{"ghcr.io":{"auth":"' + expect + '"}}}'
     # Counter-check: the raw token must not appear unwrapped in the manifest.
     assert "test-token-42" not in text
 
@@ -281,3 +283,71 @@ secrets:
     result = run_cmd(["bash", str(scripts["gen"]), "--env", "testenv", "--env-dir", str(env_dir)])
     assert result.returncode != 0
     assert "existing-value" in secrets_file.read_text(encoding="utf-8")
+
+
+# -- T901721: YAML-Parser statt Zeilen-Parsing --------------------------------
+
+PEM_BODY = ("-----BEGIN FAKE TEST KEY-----\n"
+            "FAKEBODY-line-1\n"
+            "FAKEBODY-line-2\n"
+            "-----END FAKE TEST KEY-----\n")
+
+
+def _manifest_via_lib(run_cmd, scripts, secrets: Path, out: Path, mappings: str):
+    body = ('build_secret_manifest "$1" "flux-system" "t721-secret" '
+            f"'{mappings}' " + '"$2" ""\n')
+    result = _lib_call(run_cmd, scripts["lib"], body, [str(out), str(secrets)])
+    result.check()
+    return out.read_text(encoding="utf-8")
+
+
+def test_seal_lib_multiline_pem_value_round_trips(run_cmd, scripts, tmp_path):
+    secrets = tmp_path / "s-pem.yaml"
+    secrets.write_text("SSH_KEY: |\n"
+                       "  -----BEGIN FAKE TEST KEY-----\n"
+                       "  FAKEBODY-line-1\n"
+                       "  FAKEBODY-line-2\n"
+                       "  -----END FAKE TEST KEY-----\n")
+    text = _manifest_via_lib(run_cmd, scripts, secrets, tmp_path / "m-pem.yaml",
+                             "SSH_KEY:=:ssh_key:=:false:=:-:=:-")
+    parsed = yaml.safe_load(text)
+    assert parsed["stringData"]["ssh_key"] == PEM_BODY, \
+        "PEM wurde gekappt oder veraendert (T901720-Regression)"
+
+
+def test_seal_lib_single_line_backslash_n_stays_literal(run_cmd, scripts, tmp_path):
+    secrets = tmp_path / "s-esc.yaml"
+    secrets.write_text('ESCAPED: "line1\\nline2"\n')
+    text = _manifest_via_lib(run_cmd, scripts, secrets, tmp_path / "m-esc.yaml",
+                             "ESCAPED:=:escaped:=:false:=:-:=:-")
+    assert 'escaped: "line1\\nline2"' in text
+    parsed = yaml.safe_load(text)
+    assert parsed["stringData"]["escaped"] == "line1\nline2", \
+        "T901720-Escape muss via YAML-Double-Quote-Semantik zu echtem Newline werden"
+
+
+def test_seal_lib_colon_quotes_unicode_round_trip(run_cmd, scripts, tmp_path):
+    secrets = tmp_path / "s-uni.yaml"
+    secrets.write_text('QUOTED: "has: colon and \'single\' plus Ünïcödé"\n')
+    text = _manifest_via_lib(run_cmd, scripts, secrets, tmp_path / "m-uni.yaml",
+                             "QUOTED:=:quoted:=:false:=:-:=:-")
+    parsed = yaml.safe_load(text)
+    assert parsed["stringData"]["quoted"] == "has: colon and 'single' plus Ünïcödé"
+
+
+def test_emit_stringdata_entries_multiline_round_trips(run_cmd, scripts, tmp_path):
+    secrets = tmp_path / "s-emit.yaml"
+    secrets.write_text('PLAIN_KEY: "plain-value"\n'
+                       "SSH_KEY: |\n"
+                       "  -----BEGIN FAKE TEST KEY-----\n"
+                       "  FAKEBODY-line-1\n"
+                       "  -----END FAKE TEST KEY-----\n")
+    body = 'emit_stringdata_entries "$1"\n'
+    result = _lib_call(run_cmd, scripts["lib"], body, [str(secrets)])
+    result.check()
+    # result.output ist gestrippt (Conftest) und wuerde die signifikante
+    # Erstzeilen-Einrueckung fressen — rohes stdout nehmen.
+    parsed = yaml.safe_load("stringData:\n" + result.stdout)
+    assert parsed["stringData"]["PLAIN_KEY"] == "plain-value"
+    assert parsed["stringData"]["SSH_KEY"].startswith("-----BEGIN FAKE TEST KEY-----\n")
+    assert "FAKEBODY-line-1" in parsed["stringData"]["SSH_KEY"]

@@ -50,7 +50,7 @@ echo "→ generiere neues Client-Secret fuer '${CLIENT}'"
 NEW_SECRET=$(kubectl --context "$CONTEXT" run "oidcsync-$$" -n "$NS" --rm -i --restart=Never \
   --image=curlimages/curl:8.21.0 --quiet --command -- \
   sh -c "curl -fsS -X POST -H 'X-API-KEY: ${API_KEY}' -H 'Content-Type: application/json' \
-    http://pocket-id:1411/api/oidc/clients/${CLIENT}/secret" 2>/dev/null \
+    http://pocket-id:1411/api/oidc/clients/${CLIENT}/secrets" 2>/dev/null \
   | sed -E 's/.*"secret":"([^"]+)".*/\1/')
 
 if [ -z "$NEW_SECRET" ] || [ ${#NEW_SECRET} -lt 8 ]; then

@@ -132,7 +132,7 @@ rotate_prod_client_secret() {
   # Entwickler-Client ist die Rotation folgenlos — er hat genau einen
   # Konsumenten, naemlich diese lokale Console.
   local gen
-  gen=$(api POST "/api/oidc/clients/${CLIENT}/secret")
+  gen=$(api POST "/api/oidc/clients/${CLIENT}/secrets")
   local plain
   plain=$(printf '%s' "$gen" | sed -E 's/.*"secret":"([^"]+)".*/\1/')
   if [ -z "$plain" ] || [ "$plain" = "$gen" ]; then

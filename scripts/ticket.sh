@@ -307,17 +307,19 @@ EOF
     *\'*|*\"*|*\;*|*\\*) echo "ERROR: archive-plan refused: unsafe chars in slug/branch." >&2; exit 1 ;;
   esac
 
-  # [T901719] Upsert: existiert eine Staged-Row (pr_number IS NULL) aus
-  # stage-plan, wird sie aktualisiert statt eine zweite Row anzulegen.
-  local staged_existing
-  staged_existing=$(_exec_sql "$pod" -v t_uuid="$uuid" -v slug="$slug" <<'EOF'
-SELECT count(*) FROM tickets.ticket_plans WHERE ticket_id = :'t_uuid'::uuid AND slug = :'slug' AND pr_number IS NULL;
+  # [T901719] Upsert, erweitert [T901749]: existiert bereits eine Row fur
+  # (Ticket, Slug) — Staged- oder archiviert —, wird sie aktualisiert statt
+  # ein Duplikat anzulegen. Konvergiert historische Duplikate auf identischen
+  # Content.
+  local existing_rows
+  existing_rows=$(_exec_sql "$pod" -v t_uuid="$uuid" -v slug="$slug" <<'EOF'
+SELECT count(*) FROM tickets.ticket_plans WHERE ticket_id = :'t_uuid'::uuid AND slug = :'slug';
 EOF
 )
 
   local tmpfile
   tmpfile=$(mktemp)
-  if [[ "${staged_existing//[[:space:]]/}" == "0" ]]; then
+  if [[ "${existing_rows//[[:space:]]/}" == "0" ]]; then
     {
       printf "INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nVALUES (\n  '%s',\n  '%s',\n  '%s',\n  \$plan\$" \
         "$uuid" "$slug" "$branch"
@@ -328,7 +330,7 @@ EOF
     {
       printf "UPDATE tickets.ticket_plans SET branch = '%s', content = \$plan\$" "$branch"
       printf '%s' "$plan_content"
-      printf "\$plan\$, pr_number = %s, archived_at = now()\nWHERE ticket_id = '%s' AND slug = '%s' AND pr_number IS NULL;\n" "$pr_sql" "$uuid" "$slug"
+      printf "\$plan\$, pr_number = %s, archived_at = now()\nWHERE ticket_id = '%s' AND slug = '%s';\n" "$pr_sql" "$uuid" "$slug"
     } > "$tmpfile"
   fi
 

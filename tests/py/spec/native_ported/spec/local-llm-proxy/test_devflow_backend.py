@@ -199,3 +199,18 @@ def test_devflow_ci_map_entries_name_runnable_commands(repo_root):
             command = rest.strip()
         binary = shlex.split(command)[0]
         assert shutil.which(binary) or (repo_root / binary).exists(), name
+
+
+def test_devflow_turbolint_ohne_plan_flag_verlangt_plan(repo_root, run_cmd, tmp_path):
+    # T901749(A): DEFAULT_PLAN zeigt auf geloschten Pfad — ohne --plan und
+    # ohne stdin-Plan verlangt turbolint explizit --plan (statt stale
+    # "plan file missing"-Meldung auf toten Default).
+    env = _env(repo_root, {"DEVFLOW_DIR": str(tmp_path / "devflow")})
+    res = run_cmd(
+        ["python3", "scripts/devflow/turbolint.py", "--format", "json"],
+        cwd=repo_root,
+        env=env,
+        timeout=120,
+    )
+    assert res.returncode == 2, res.output
+    assert "--plan is required" in res.output

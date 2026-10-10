@@ -29,7 +29,6 @@ import sys
 import time
 from pathlib import Path
 
-DEFAULT_PLAN = ".agents/plans/llm-proxy-devflow-tools/tasks.md"
 CACHE_REL = Path(".devflow") / "cache" / "turbolint.json"
 FINDING_CAP = 50
 TSC_GLOB_CAP = 1000
@@ -178,7 +177,7 @@ def _save_cache(path, doc):
         pass  # Cache ist Best-effort, nie ein Fail-Grund
 
 
-def run(plan=DEFAULT_PLAN, format="condensed", worktree=".", scope="changed"):
+def run(plan=None, format="condensed", worktree=".", scope="changed"):
     """Fuehrt die Linter aus; gibt das Ergebnis-Dict zurueck."""
     root = Path(worktree) if worktree else Path(".")
     plan_path = root / plan
@@ -259,13 +258,20 @@ def main(argv=None):
         prog="python3 -m devflow turbolint",
         description="Paralleler Lint-Aggregator (V1: plan-lint, ruff, tsc).",
     )
-    parser.add_argument("--plan", default=None)
+    parser.add_argument("--plan", default=None,
+                        help="Pfad zu tasks.md (Pflicht; kein Default mehr — T901749)")
     parser.add_argument("--format", choices=("condensed", "json"), default=None)
     parser.add_argument("--worktree", default=None)
     parser.add_argument("--scope", default=None)
     ns = parser.parse_args(list(sys.argv[1:] if argv is None else argv))
     stdin_data = _stdin_json()
-    plan = ns.plan or stdin_data.get("plan") or DEFAULT_PLAN
+    plan = ns.plan or stdin_data.get("plan")
+    if not plan:
+        # T901749: kein Default-Plan mehr (.agents/plans/ ist leer, SSOT ist
+        # die DB) — --plan ist Pflicht, fail-closed mit actionable Message.
+        print("--plan is required (default plan removed; staged plans live "
+              "in tickets.ticket_plans — use ticket.sh plan-get)", file=sys.stderr)
+        return 2
     fmt = ns.format or stdin_data.get("format") or "condensed"
     worktree = ns.worktree or stdin_data.get("worktree") or "."
     scope = ns.scope or stdin_data.get("scope") or "changed"

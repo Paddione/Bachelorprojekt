@@ -3954,6 +3954,12 @@
     "kind": "pytest"
   },
   {
+    "id": "k3d_netpol_cidrs",
+    "file": "tests/py/spec/test_k3d_netpol_cidrs.py",
+    "category": "k3d_netpol_cidrs",
+    "kind": "pytest"
+  },
+  {
     "id": "k4-surgery-guard",
     "file": "tests/py/spec/native_ported/spec/test_k4_surgery_guard.py",
     "category": "k4-surgery-guard",

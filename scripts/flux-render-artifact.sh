@@ -66,6 +66,13 @@ export WEBSITE_IMAGE_TAG
 apply_schema_defaults() {
   # schema.yaml:403 — "Defaults to COMFY_HOST_IP when empty."
   export RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}"
+  # T901777: Cluster-CIDRs fuer die NetworkPolicies (k3d/network-policies.yaml,
+  # k3d/website.yaml). Ohne Default wuerde envsubst hier "" einsetzen und ein
+  # `cidr: ""` ins Fleet-Artefakt schreiben (fail-open — der Leftover-Check
+  # unten faengt nur unsubstituierte ${VAR}, keine leer substituierten).
+  export POD_CIDR="${POD_CIDR:-10.42.0.0/16}"
+  export SERVICE_CIDR="${SERVICE_CIDR:-10.43.0.0/16}"
+  export POD_VTEP_IP="${POD_VTEP_IP:-${POD_CIDR%%/*}}"
 }
 
 render_component() {

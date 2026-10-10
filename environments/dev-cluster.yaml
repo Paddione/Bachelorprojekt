@@ -36,6 +36,9 @@ env_vars:
   PROD_DOMAIN: mentolder.de
   CONTACT_EMAIL: info@mentolder.de
   EMAIL_NOTIFICATIONS_ENABLED: "false"
+  # T901777: Fleet-Cluster-CIDRs (k3s-Defaults) fuer die NetworkPolicies.
+  POD_CIDR: "10.42.0.0/16"
+  SERVICE_CIDR: "10.43.0.0/16"
 
 # Ziel-Namespace des gerenderten Dev-Stacks (k3d/dev-stack + prod-fleet/dev).
 workspace_namespace: workspace-dev

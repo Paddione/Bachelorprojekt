@@ -43,6 +43,12 @@ done < <(yq -r '.gpu_endpoint.ports // [] | .[] | [.name, .port] | @tsv' "$INVEN
 export GPU_PORTS_JSON
 
 export GPU_ENDPOINT_ADDRESS GPU_ENDPOINT_PORT
+# T901777: Cluster-CIDRs fuer die NetworkPolicies in k3d/website.yaml.
+# devmesh-Werte kommen aus environments/dev.yaml (10.52/10.53); die Defaults
+# greifen nur, falls ein Env-File sie (noch) nicht definiert.
+export POD_CIDR="${POD_CIDR:-10.42.0.0/16}"
+export SERVICE_CIDR="${SERVICE_CIDR:-10.43.0.0/16}"
+export POD_VTEP_IP="${POD_VTEP_IP:-${POD_CIDR%%/*}}"
 export POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-auth.${DEVMESH_DOMAIN}}"
 export WORKSPACE_NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
 export COLLABORA_SERVER_NAME="${COLLABORA_SERVER_NAME:-office.${DEVMESH_DOMAIN}}"

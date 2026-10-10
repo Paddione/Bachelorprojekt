@@ -30,6 +30,9 @@ env_vars:
   BRETT_IMAGE_DIGEST: sha256:2222222222222222222222222222222222222222222222222222222222222222
   WEBSITE_NAMESPACE: website
   WORKSPACE_NAMESPACE: workspace
+  # T901777: Fleet-Cluster-CIDRs (k3s-Defaults) fuer die NetworkPolicies.
+  POD_CIDR: "10.42.0.0/16"
+  SERVICE_CIDR: "10.43.0.0/16"
   # T901440: zentrale DB-Koordinaten der Website (Defaults = bisheriger Stand)
   WEBSITE_DB_NAMESPACE: workspace
   WEBSITE_DB_NAME: website

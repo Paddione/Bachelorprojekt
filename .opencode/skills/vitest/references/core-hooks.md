@@ -188,26 +188,26 @@ test.concurrent('concurrent', ({ onTestFinished }) => {
 
 ## Extended Test Hooks
 
-With `test.extend`, hooks are type-aware and must be called on the extended `test`:
+With `test.extend`, hooks are type-aware:
 
 ```ts
-const test = base
-  .extend('db', { scope: 'file' }, async ({}, { onCleanup }) => {
+const test = base.extend<{ db: Database }>({
+  db: async ({}, use) => {
     const db = await createDb()
-    onCleanup(() => db.close())
-    return db
-  })
+    await use(db)
+    await db.close()
+  },
+})
 
-// Test-level hooks see fixtures
-test.beforeEach(({ db }) => db.seed())
-test.afterEach(({ db }) => db.clear())
+// These hooks know about `db` fixture
+test.beforeEach(({ db }) => {
+  db.seed()
+})
 
-// Suite-level hooks (4.1+) can access file/worker-scoped fixtures
-test.beforeAll(({ db }) => db.createUsers())
-test.aroundAll(async (runSuite, { db }) => db.transaction(runSuite))
+test.afterEach(({ db }) => {
+  db.clear()
+})
 ```
-
-Suite-level hooks (`beforeAll`/`afterAll`/`aroundAll`) only see **file/worker-scoped** fixtures, and the **global** `beforeAll`/`afterAll` cannot access custom fixtures — use `test.beforeAll` etc.
 
 ## Hook Execution Order
 

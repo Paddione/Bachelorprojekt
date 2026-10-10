@@ -60,16 +60,6 @@ vitest list --json             # Output as JSON
 vitest list --filesOnly        # List only test files
 ```
 
-> v5: `list` parses test files **statically** instead of running them. Pass `--no-static-parse` to run them; tune with `--static-parse-concurrency`.
-
-### `vitest doctor` (v5)
-
-Run the suite under alternative configs and recommend faster options (e.g. a different `pool`, `isolate: false`, `fsModuleCache`, lower `maxWorkers`). Needs a passing baseline; takes several times a normal run:
-
-```bash
-vitest doctor
-```
-
 ### `vitest init`
 
 Initialize project setup:
@@ -78,32 +68,21 @@ Initialize project setup:
 vitest init browser            # Set up browser testing
 ```
 
-### `vitest --list-tags`
-
-List tags defined in config without running tests:
-
-```bash
-vitest --list-tags             # Human-readable list
-vitest --list-tags=json        # JSON output
-```
-
 ## Common Options
 
 ```bash
 # Configuration
 --config <path>           # Path to config file
---project, -p <name>      # Run specific project (v5 adds the -p shorthand)
+--project <name>          # Run specific project
 
 # Filtering
 --testNamePattern, -t     # Run tests matching pattern
---tagsFilter <expr>       # Run tests by tag expression, e.g. "db && !flaky"
 --changed                 # Run tests for changed files
 --changed HEAD~1          # Tests for last commit changes
---dir <path>              # Limit test discovery to a directory
 
 # Reporters
---reporter <name>         # default, verbose, tree, dot, json, html, junit, minimal, blob
---reporter=json --outputFile=report.json
+--reporter <name>         # default, verbose, dot, json, html
+--reporter=html --outputFile=report.html
 
 # Coverage
 --coverage                # Enable coverage
@@ -114,13 +93,11 @@ vitest --list-tags=json        # JSON output
 --shard <index>/<count>   # Split tests across machines
 --bail <n>                # Stop after n failures
 --retry <n>               # Retry failed tests n times
---repeats <n>             # v5: repeat every test n times (hunt flaky tests)
---shuffle                 # Randomize test order
---no-file-parallelism     # Run test files one at a time
+--sequence.shuffle        # Randomize test order
 
 # Watch mode
 --no-watch                # Disable watch mode
---standalone              # Start without running (v4: runs matched files if a filter is passed)
+--standalone              # Start without running tests
 
 # Environment
 --environment <env>       # jsdom, happy-dom, node
@@ -150,17 +127,20 @@ vitest --list-tags=json        # JSON output
 
 ## Sharding for CI
 
-Split tests across multiple machines. The blob reporter writes to `.vitest/blob/` by default:
+Split tests across multiple machines:
 
 ```bash
 # Machine 1
-vitest run --shard=1/3 --reporter=blob --outputFile=reports/blob-1.json
+vitest run --shard=1/3 --reporter=blob
 
 # Machine 2
-vitest run --shard=2/3 --reporter=blob --outputFile=reports/blob-2.json
+vitest run --shard=2/3 --reporter=blob
 
-# Merge all blobs into a final report
-vitest --merge-reports=reports --reporter=junit --reporter=default
+# Machine 3
+vitest run --shard=3/3 --reporter=blob
+
+# Merge reports
+vitest --merge-reports --reporter=junit
 ```
 
 ## Watch Mode Keyboard Shortcuts
@@ -179,9 +159,6 @@ In watch mode, press:
 - Use `--run` flag to ensure single run (important for lint-staged)
 - Both camelCase (`--testTimeout`) and kebab-case (`--test-timeout`) work
 - Boolean options can be negated with `--no-` prefix
-- Filter tests by tag with `--tagsFilter` (tags must be declared in config) — see [features-test-tags](features-test-tags.md)
-- `--merge-reports` and `--reporter=blob` do not work in watch mode (`--merge-reports` now handles non-sharded multi-environment runs)
-- v5: use `-p` as shorthand for `--project`; `vitest doctor` suggests faster config
 
 <!-- 
 Source references:

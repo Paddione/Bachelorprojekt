@@ -19,7 +19,10 @@ import pytest
 
 
 def _dry_run(run_cmd, repo_root, env):
-    return run_cmd(["task", "-d", str(repo_root), "-n", "website:migrate", f"ENV={env}"])
+    return run_cmd(
+        ["task", "-d", str(repo_root), "-n", "website:migrate", f"ENV={env}"],
+        env={"ENV": env},
+    )
 
 
 def test_unknown_env_is_rejected_at_task_level(run_cmd, repo_root):

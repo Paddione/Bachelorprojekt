@@ -36,6 +36,7 @@ def test_runtime_var_unwrapping_dollar_dollar_bang_und_question_werden_zu_dollar
 def test_runtime_var_unwrapping_cronjob_auth_secrets_survive_fleet_envsubst_for_runtime_expansion(repo_root):
     manifests = [
         "k3d/cronjob-scheduled-publish.yaml",
+        "k3d/appointment-reminders-cronjob.yaml",
         "k3d/notify-unread-cronjob.yaml",
         "k3d/error-log-retention-cronjob.yaml",
     ]
@@ -43,3 +44,19 @@ def test_runtime_var_unwrapping_cronjob_auth_secrets_survive_fleet_envsubst_for_
         text = (repo_root / manifest).read_text(encoding="utf-8")
         assert text.count("Bearer $${CRON_SECRET}") == 1, manifest
         assert _unwrap(text).count("Bearer ${CRON_SECRET}") == 1, manifest
+
+
+def test_runtime_var_unwrapping_cronjob_exit_code_var_survives_fleet_envsubst(repo_root):
+    # T901780: single-$ $code wurde von envsubst beim Rendern weg
+    # expandiert (leeres Echo, toter [ "" -lt 200 ]-Check). Die
+    # Laufzeit-Variable muss $$-escaped sein wie CRON_SECRET.
+    manifests = [
+        "k3d/cronjob-scheduled-publish.yaml",
+        "k3d/appointment-reminders-cronjob.yaml",
+    ]
+    bare = re.compile(r"(?<!\$)\$code")
+    for manifest in manifests:
+        text = (repo_root / manifest).read_text(encoding="utf-8")
+        assert text.count("$$code") >= 3, manifest
+        assert not bare.search(text), manifest
+        assert _unwrap(text).count("$code") >= 3, manifest

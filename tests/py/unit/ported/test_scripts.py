@@ -126,6 +126,17 @@ def test_task_dry_parses_successfully(repo_root, run_cmd, task_name):
     assert result.returncode == 0, result.output
 
 
+def test_website_dev_task_points_at_package_with_dev_script(repo_root, yaml_load):
+    import json
+
+    taskfile = yaml_load(repo_root / "taskfiles" / "Taskfile.web.yml")
+    task = taskfile["tasks"]["website:dev"]
+    pkg_file = repo_root / task["dir"] / "package.json"
+    assert pkg_file.is_file(), f"website:dev dir has no package.json: {task['dir']}"
+    scripts = json.loads(pkg_file.read_text(encoding="utf-8")).get("scripts", {})
+    assert "dev" in scripts, f"website:dev dir package.json has no dev script: {pkg_file}"
+
+
 def test_k3d_secrets_yaml_workspace_secrets_has_environment_dev_label(repo_root, yaml_load):
     docs = yaml_load(repo_root / "k3d" / "secrets.yaml", all_docs=True)
     ws = next(

@@ -445,7 +445,7 @@ tasks:
 
   website:dev:
     desc: Run Astro dev server locally (hot-reload)
-    dir: website
+    dir: components/website
     cmds:
       - npm run dev
 

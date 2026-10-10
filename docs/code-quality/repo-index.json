@@ -4145,7 +4145,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 882,
+      "file_count": 883,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4510,6 +4510,7 @@
         "scripts/lib/mcp-http-security.test.mjs",
         "scripts/lib/nextcloud-api.sh",
         "scripts/lib/notify.sh",
+        "scripts/lib/parse-secrets-yaml.py",
         "scripts/lib/pnpm-audit-count.py",
         "scripts/lib/pnpm-outdated-majors.py",
         "scripts/lib/post-deploy-watch.sh",

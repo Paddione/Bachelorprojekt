@@ -3,7 +3,7 @@ import { requireOwner, ownerBusiness } from '../../../../lib/owner-guard';
 import { getAllBookings, createCalendarEvent } from '../../../../lib/caldav';
 import { isSlotInAnyWindow, isSlotWhitelisted, claimSlot } from '../../../../lib/website-db';
 import { berlinDayKey } from '../../../../lib/caldav-cache';
-import massageCatalogue from '../../../../../../../content/massage/leistungen.json';
+import massageCatalogue from '../../../../../content/massage/leistungen.json';
 import type { LeistungCategory } from '../../../../content-schema';
 
 const BRAND_FALLBACK = process.env.BRAND || 'mentolder';

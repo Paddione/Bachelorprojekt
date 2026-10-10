@@ -139,6 +139,41 @@ SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
   FROM tickets.tickets t
  WHERE t.external_id = :'ext_id';
 EOF
+  # [T901719] Stage-Write: Plan-Body als Staged-Row nach tickets.ticket_plans
+  # (DB-SSOT; die Datei bleibt Authoring-Surface). Idempotent: UPDATE bei
+  # existierender Staged-Row (pr_number IS NULL), sonst INSERT. Fail-closed:
+  # ohne verifizierte Row kein Abschluss.
+  local _sw_body _sw_slug _sw_trailer _sw_sql _sw_existing _sw_count
+  if git cat-file -e "${branch}:${plan}" 2>/dev/null; then
+    _sw_body="$(git cat-file -p "${branch}:${plan}" 2>/dev/null)"
+  else
+    _sw_body="$(git cat-file -p "HEAD:${plan}" 2>/dev/null)"
+  fi
+  _sw_slug="$(basename "$(dirname "${plan}")")"
+  case "${_sw_slug}/${branch}/${id}" in
+    *\'*|*\"*|*\;*|*\\*) echo "ERROR: stage-plan DB write refused: unsafe chars in slug/branch/id." >&2; exit 1 ;;
+  esac
+  _sw_trailer="<!-- plan-stage branch=${branch} plan=${plan} -->"
+  _sw_existing="$(_exec_sql "$pod" -v ext_id="$id" -v slug="$_sw_slug" <<'EOF'
+SELECT count(*) FROM tickets.ticket_plans tp JOIN tickets.tickets t ON t.id = tp.ticket_id
+ WHERE t.external_id = :'ext_id' AND tp.slug = :'slug' AND tp.pr_number IS NULL;
+EOF
+)"
+  if [[ "${_sw_existing//[[:space:]]/}" == "0" ]]; then
+    _sw_sql="$(printf 'INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nSELECT t.id, '\''%s'\'', '\''%s'\'', $plan$%s\n%s$plan$, NULL\nFROM tickets.tickets t WHERE t.external_id = '\''%s'\'';' "$_sw_slug" "$branch" "$_sw_body" "$_sw_trailer" "$id")"
+  else
+    _sw_sql="$(printf 'UPDATE tickets.ticket_plans tp SET content = $plan$%s\n%s$plan$, branch = '\''%s'\'', archived_at = now()\nFROM tickets.tickets t WHERE t.id = tp.ticket_id AND t.external_id = '\''%s'\'' AND tp.slug = '\''%s'\'' AND tp.pr_number IS NULL;' "$_sw_body" "$_sw_trailer" "$branch" "$id" "$_sw_slug")"
+  fi
+  printf '%s' "$_sw_sql" | _exec_sql_with_timeout "$pod" -- stage-write
+  _sw_count="$(_exec_sql "$pod" -v ext_id="$id" -v slug="$_sw_slug" <<'EOF'
+SELECT count(*) FROM tickets.ticket_plans tp JOIN tickets.tickets t ON t.id = tp.ticket_id
+ WHERE t.external_id = :'ext_id' AND tp.slug = :'slug';
+EOF
+)"
+  if [[ "${_sw_count//[[:space:]]/}" -lt 1 ]]; then
+    echo "ERROR: stage-plan DB write failed - plan not found in database." >&2
+    exit 1
+  fi
   local driver="${TICKET_PHASE_DRIVER:-devflow}"
   case "$driver" in factory|devflow) ;; *) driver="devflow" ;; esac
   _exec_sql_with_timeout "$pod" -v ext_id="$id" -v driver="$driver" -v detail="auto: stage-plan" -- phase-events <<'EOF'

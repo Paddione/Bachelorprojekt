@@ -16,8 +16,9 @@
 // Exit: 0 alle Partials done · 1 mindestens eine failed bzw. Lauf abgebrochen · 2 Konfigurationsfehler.
 // Runbook: docs/runbooks/plan-runner.md
 
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import {
   parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt,
@@ -112,16 +113,56 @@ function resolveTicketRef(opts) {
       m = line.match(/^branch\s+refs\/heads\/(\S.*)$/);
       if (m && cur && m[1].trim() === planRef.branch) { worktree = cur; break; }
     }
-    if (!worktree) fail(2, `--ticket ${opts.ticket}: branch '${planRef.branch}' is not checked out in any worktree (git worktree list)`);
+    if (!worktree) {
+      if (materializeDbPlan(opts)) return;
+      fail(2, `--ticket ${opts.ticket}: branch '${planRef.branch}' is not checked out in any worktree (git worktree list)`);
+    }
   }
   const planDir = planRef.plan.endsWith('/tasks.md') ? planRef.plan.slice(0, -'/tasks.md'.length) : planRef.plan;
   opts.changeDir = join(worktree, planDir);
   opts.worktree = worktree;
 }
 
+// ---------- DB-Fallback (T901719) ----------
+// Ohne ausgecheckten Branch wird tasks.md per `ticket.sh plan-get` aus
+// tickets.ticket_plans nach $TMPDIR materialisiert (nie in Worktrees
+// geschrieben). Partials (tasks.d/) und ein Implementierungs-Worktree bleiben
+// erforderlich — fehlen sie, bleibt der bisherige Fail (Exit 2); der Fallback
+// entkoppelt nur das Plan-Lesen vom Checkout.
+// Test-Seam: PLAN_RUNNER_PLAN_BODY ersetzt den ticket.sh-Aufruf.
+function dbPlanBody(ticket) {
+  if (process.env.PLAN_RUNNER_PLAN_BODY !== undefined) {
+    const seam = process.env.PLAN_RUNNER_PLAN_BODY;
+    return seam.trim() ? seam : null;
+  }
+  const scriptDir = new URL('.', import.meta.url).pathname;
+  const repoRoot = resolve(scriptDir, '..', '..');
+  try {
+    const out = execFileSync('bash', [join(repoRoot, 'scripts', 'ticket.sh'), 'plan-get', '--id', ticket],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return out.trim() ? out : null;
+  } catch {
+    return null;
+  }
+}
+
+function materializeDbPlan(opts) {
+  if (!opts.ticket || !/^T\d{6}$/.test(opts.ticket)) return false;
+  const body = dbPlanBody(opts.ticket);
+  if (!body) return false;
+  const dir = resolve(mkdtempSync(join(tmpdir(), `plan-runner-${opts.ticket}-`)));
+  writeFileSync(join(dir, 'tasks.md'), body.endsWith('\n') ? body : body + '\n');
+  opts.changeDir = dir;
+  return true;
+}
+
 function loadPlan(opts) {
-  const changeDir = resolve(opts.changeDir);
-  const tasksMd = join(changeDir, 'tasks.md');
+  let changeDir = resolve(opts.changeDir);
+  let tasksMd = join(changeDir, 'tasks.md');
+  if (!existsSync(tasksMd) && materializeDbPlan(opts)) {
+    changeDir = resolve(opts.changeDir);
+    tasksMd = join(changeDir, 'tasks.md');
+  }
   if (!existsSync(tasksMd)) fail(2, `no tasks.md in ${changeDir}`);
   let partials;
   try {

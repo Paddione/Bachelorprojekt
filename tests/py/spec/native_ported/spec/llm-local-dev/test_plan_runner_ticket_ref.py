@@ -28,6 +28,9 @@ def env_ctx(repo_root, tmp_path, monkeypatch):
     fix = repo_root / "tests" / "spec" / "llm-local-dev" / "fixtures"
     t = tmp_path
     monkeypatch.delenv("PLAN_RUNNER_TICKET_JSON", raising=False)
+    # T901719: DB-Fallback hermetisch aus — ohne Seam wuerde plan-get gegen
+    # die echte DB laufen und die Fail-closed-Tests flackern.
+    monkeypatch.setenv("PLAN_RUNNER_PLAN_BODY", "")
     monkeypatch.setenv("PLAN_RUNNER_OPENCODE", str(fix / "plan-runner-fake-opencode.sh"))
     monkeypatch.setenv("FAKE_OPENCODE_LOG", str(t / "opencode.log"))
     monkeypatch.setenv("FAKE_SLEEP_4B", "0")
@@ -125,6 +128,55 @@ def test_ohne_flag_disk_verhalten_unveraendert_kein_ticket_lookup(env_ctx, run_c
     empty = env_ctx["t"] / "empty"
     empty.mkdir()
     res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), str(empty), "--worktree", str(empty)],
+                  cwd=env_ctx["r"], timeout=90)
+    assert res.returncode == 2
+    assert "no tasks.md" in res.output
+
+
+DB_FALLBACK_BODY = (
+    "# Plan\n\n## Partials\n\n"
+    "| id | file | role | target_files | depends_on |\n"
+    "|----|------|------|--------------|------------|\n"
+    "| p1 | tasks.d/p1-work.md | impl | src/p1.txt | |\n"
+)
+
+DB_FALLBACK_REF = (
+    '{"external_id":"T009998","plan_ref":'
+    '"FACTORY-PLAN-REF branch=feat/nonexistent plan=.agents/plans/demo/tasks.md"}'
+)
+
+
+def test_db_fallback_branch_fehlend_manifest_aus_db_geparst(env_ctx, run_cmd):
+    # T901719: Branch nicht ausgecheckt, Body aus der DB (Seam) -> tasks.md
+    # wird materialisiert und das Manifest geparst; erst die fehlende
+    # Partial-Datei wirft (statt "not checked out").
+    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", DB_FALLBACK_REF)
+    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_PLAN_BODY", DB_FALLBACK_BODY)
+    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T009998"],
+                  cwd=env_ctx["r"], timeout=90)
+    assert res.returncode == 2
+    assert "not checked out in any worktree" not in res.output
+    assert "partial p1: plan file tasks.d/p1-work.md not found" in res.output
+
+
+def test_db_fallback_tasks_md_fehlend_wird_materialisiert(env_ctx, run_cmd):
+    # T901719: loadPlan-Haken — tasks.md fehlt unter --worktree, Body aus der
+    # DB (Seam) -> Manifest geparst, erst der Partial wirft.
+    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", DB_FALLBACK_REF)
+    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_PLAN_BODY", DB_FALLBACK_BODY)
+    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T009998",
+                   "--worktree", str(env_ctx["t"])],
+                  cwd=env_ctx["r"], timeout=90)
+    assert res.returncode == 2
+    assert "no tasks.md" not in res.output
+    assert "partial p1: plan file tasks.d/p1-work.md not found" in res.output
+
+
+def test_db_fallback_ohne_row_fail_closed_exit_2(env_ctx, run_cmd):
+    # T901719: keine DB-Row (leerer Seam) -> bisheriger Fail bleibt.
+    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", DB_FALLBACK_REF)
+    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T009998",
+                   "--worktree", str(env_ctx["t"])],
                   cwd=env_ctx["r"], timeout=90)
     assert res.returncode == 2
     assert "no tasks.md" in res.output

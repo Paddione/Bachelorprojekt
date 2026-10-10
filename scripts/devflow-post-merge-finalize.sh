@@ -293,7 +293,13 @@ if [[ -n "$PLAN_REL" && -n "$SLUG" ]]; then
   # Idempotenz-Vorabfrage: get-timeline meldet plan_archived-Events mit Slug.
   # Best-effort — scheitert die Abfrage, gilt "unbekannt" und es wird archiviert.
   if _receipt_tl="$(bash "$TICKET_SH" get-timeline --id "$TICKET_ID" 2>/dev/null)"; then
-    if finalize_receipt_archived "$_receipt_tl" "$SLUG" "$BRANCH"; then
+    # [T901719] Staged-Rows (pr_number NULL) aus stage-plan sind kein Receipt:
+    # erst eine archivierte Row (pr_number gesetzt) beendet Schritt 7 per Skip,
+    # sonst laeuft archive-plan als UPDATE auf der Staged-Row.
+    if finalize_receipt_archived "$_receipt_tl" "$SLUG" "$BRANCH" && jq -e --arg slug "$SLUG" --arg branch "$BRANCH" '
+      any(.events[]?; .source == "plan_archived" and
+        .detail.slug == $slug and .detail.branch == $branch and
+        .detail.pr_number != null)' <<<"$_receipt_tl" >/dev/null; then
       _receipt_done=1
     fi
   fi

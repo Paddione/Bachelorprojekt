@@ -79,7 +79,7 @@ import {
 import { POST as bookingPOST } from '../../pages/api/booking.js';
 import { createInboxItem } from '../messaging-db.js';
 import { getEffectiveLeistungen } from '../content.js';
-import massageCatalogue from '../../../../../content/massage/leistungen.json';
+import massageCatalogue from '../../../content/massage/leistungen.json';
 import { LeistungenSchema } from '../../content-schema';
 
 const mockedInbox = vi.mocked(createInboxItem);
@@ -303,7 +303,7 @@ describe('service snapshot', () => {
 });
 
 describe('massage catalogue', () => {
-  it('carries the three T901018 template services with placeholder prices', () => {
+  it('carries the three T901430 priced catalogue services', () => {
     const services = massageCatalogue.flatMap((c) => c.services);
     expect(services.map((s) => s.key).sort()).toEqual([
       'ganzkoerper-60',
@@ -313,8 +313,7 @@ describe('massage catalogue', () => {
     for (const service of services) {
       expect(Number.isInteger(service.durationMin)).toBe(true);
       expect(service.durationMin).toBeGreaterThan(0);
-      expect(service.price).toBe('Platzhalter');
-      expect(service.price).not.toMatch(/€|\d/);
+      expect(service.price).toMatch(/^\d+,\d{2}\s€$/);
     }
   });
 

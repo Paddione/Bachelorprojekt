@@ -4,7 +4,7 @@ import { getLoginUrl } from '../../lib/auth';
 import { getAllBookings } from '../../lib/caldav';
 import type { AdminBooking } from '../../lib/caldav';
 import { logger } from '../../lib/logger';
-import massageCatalogue from '../../../../../content/massage/leistungen.json';
+import massageCatalogue from '../../../content/massage/leistungen.json';
 import type { LeistungCategory } from '../../content-schema';
 
 const session = await requireOwner(Astro.request.headers.get('cookie'));

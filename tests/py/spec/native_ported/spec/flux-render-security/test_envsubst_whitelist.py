@@ -80,6 +80,19 @@ def test_runtime_escaped_vars_stay_excluded(run_cmd, repo_root):
     assert names == [], names
 
 
+def test_schema_known_unset_var_is_substituted_to_empty(run_cmd, repo_root, monkeypatch):
+    # T002174 legitim-leer: schema-bekannte Owned-Vars (hier MAIL_FROM_DOMAIN,
+    # realer Offline-Render-Fall) werden wie bisher zu "" substituiert, statt
+    # den Leftover-Check zu trippen. Unbekannte Namen (MISSING_OWNED) fallen
+    # raus und trippen ihn.
+    monkeypatch.delenv("MAIL_FROM_DOMAIN", raising=False)
+    schema = (repo_root / "environments/schema.yaml").read_text(encoding="utf-8")
+    assert "- name: MAIL_FROM_DOMAIN" in schema  # Anker: wirklich schema-bekannt
+    fixture = 'mail: "${MAIL_FROM_DOMAIN}"\ntypo: "${MISSING_OWNED}"\n'
+    names = _subst_list(run_cmd, repo_root, fixture, {"NS": "workspace"})
+    assert names == ["MAIL_FROM_DOMAIN"], names
+
+
 def test_datasource_survives_real_envsubst_e2e(run_cmd, repo_root, tmp_path, monkeypatch):
     # End-to-end with REAL envsubst: list from the lib, substitution over a
     # Grafana-flavoured fixture. ${datasource} survives, ${NS} is substituted

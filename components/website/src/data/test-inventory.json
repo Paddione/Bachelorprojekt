@@ -3222,6 +3222,12 @@
     "kind": "pytest"
   },
   {
+    "id": "dev-brett-auth/oidc_provision",
+    "file": "tests/py/spec/dev-brett-auth/test_oidc_provision.py",
+    "category": "dev-brett-auth",
+    "kind": "pytest"
+  },
+  {
     "id": "dev-flow-chore-ticket-ops-mishaps",
     "file": "tests/py/spec/native_ported/spec/test_dev_flow_chore_ticket_ops_mishaps.py",
     "category": "dev-flow-chore-ticket-ops-mishaps",
@@ -4826,12 +4832,6 @@
   {
     "id": "native_ported/spec/neovim_dashboard_tui",
     "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard_tui.py",
-    "category": "native_ported",
-    "kind": "pytest"
-  },
-  {
-    "id": "native_ported/spec/pocket_id_client_seed_secret_endpoint",
-    "file": "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_secret_endpoint.py",
     "category": "native_ported",
     "kind": "pytest"
   },

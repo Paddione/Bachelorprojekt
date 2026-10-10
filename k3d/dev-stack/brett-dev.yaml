@@ -38,6 +38,24 @@ spec:
               value: production
             - name: PORT
               value: "3000"
+            - name: POCKET_ID_URL
+              value: http://pocket-id.workspace.svc.cluster.local:1411
+            - name: POCKET_ID_PUBLIC_URL
+              value: https://auth.${PROD_DOMAIN}
+            - name: BRETT_CLIENT_ID
+              value: brett-dev
+            - name: BRETT_PUBLIC_URL
+              value: https://${DEV_BRETT_HOST}
+            - name: POCKET_ID_BRETT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dev-oidc-secrets
+                  key: POCKET_ID_BRETT_DEV_SECRET
+            - name: BRETT_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dev-oidc-secrets
+                  key: BRETT_SESSION_SECRET
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

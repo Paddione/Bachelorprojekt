@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "slug": "dev-brett-auth",
+    "ticket_id": "T901678",
+    "generated_from": "main@9864c1816da1cb4fdae856bc4733c1ff40713a2f",
+    "domains": [
+      "infra",
+      "security",
+      "test"
+    ],
+    "intel_sources": [
+      "read",
+      "baseline.json",
+      "kubectl",
+      "Pocket-ID Admin GET"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "k3d/dev-stack/brett-dev.yaml",
+      "language": "yaml",
+      "loc": 119,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/dev-stack/oauth2-proxy-dev.yaml",
+      "language": "yaml",
+      "loc": 170,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "scripts/dev-brett-oidc-provision.py",
+      "language": "py",
+      "loc": 383,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 417
+    },
+    {
+      "path": "tests/py/spec/dev-brett-auth/test_oidc_provision.py",
+      "language": "py",
+      "loc": 342,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 458
+    },
+    {
+      "path": "tests/e2e/specs/brett-mentolder-auth-setup.spec.ts",
+      "language": "ts",
+      "loc": 83,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 817
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/brett/src/server/auth.ts:resolveOidcEnv",
+      "kind": "function",
+      "file": "components/brett/src/server/auth.ts",
+      "signature": "resolveOidcEnv(env: NodeJS.ProcessEnv = process.env): OidcEnv",
+      "type_text": "(env?: NodeJS.ProcessEnv) => OidcEnv",
+      "source": "read"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "components/brett/src/server/auth.ts:getOidcClient"
+    ],
+    "edges": [
+      {
+        "from": "getOidcClient",
+        "to": "resolveOidcEnv",
+        "kind": "calls"
+      }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "MCP/codegraph/context7 unavailable (Session terminated); source reads and live read-only evidence used. Credential values never printed. Provider secret verification error semantics need fixture validation.",
+      "severity": "warn"
+    },
+    {
+      "note": "Central Provider mutations require explicit approval after reviewable draft; no merge with missing SealedSecret.",
+      "severity": "warn"
+    }
+  ]
+}

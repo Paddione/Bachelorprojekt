@@ -509,6 +509,36 @@
         "12288"
       ],
       "notes": "Uncensored Abliteration von HauhauCS (0/465 Refusals, imatrix-Quants), empfohlen gegen LuffyTheFox Genesis V10 (davon abgeleitet, unverifiziertes SVD-Verfahren). GGUF-only -> FreeToken kann Qwen3.6-GGUF nicht laden (nur Gemma-4), laeuft daher ueber llama.cpp. --n-cpu-moe 999 haelt alle Experten im RAM (~17 GB), Attention+KV auf der GPU; GDN-Hybrid macht KV guenstig (20 KiB/Token vollattention-only). Vision via mmproj-hauhau/mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf bewusst NICHT aktiviert (VRAM, Text-only-Nutzung) - bei Bedarf --mmproj in extraArgs ergaenzen. Download: huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive (Q4_K_M, 21 GB). Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/hauhau-qwen36/start. Noch nicht gemessen - ctx/Durchsatz nach Erststart kalibrieren. Ergaenzung T015175: --cache-ram 12288 (Hausmessung qwen38/T002753) rettet Hybrid-Agenten-Zustaende, sonst voller Re-Prefill je Agentenwechsel."
+    },
+    {
+      "slug": "qwen35-2b-worker",
+      "label": "Qwen3.5-2B BP Q4_K_M · Worker, GPU0 :8096, 32k Kontext",
+      "model": "qwen35-2b-bp/Qwen3.5-2B.Q4_K_M.gguf",
+      "port": 8096,
+      "enabled": true,
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": 0,
+        "minCtx": 32768
+      },
+      "args": {
+        "ctx": 32768,
+        "ngl": 99,
+        "parallel": 1,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [
+        "--alias",
+        "qwen35-2b-worker"
+      ],
+      "notes": "Eingehaengt 2026-10-10 (User): frischer 2B-BP-Quant als Worker-Modell auf GPU0 neben bge-embed (:8085). Text-Only: mmproj (Qwen3.5-2B.BF16-mmproj.gguf) liegt bei, wird aber nicht geladen. Manuell gestartet (setsid), keine systemd-Unit."
     }
   ],
   "roles": {

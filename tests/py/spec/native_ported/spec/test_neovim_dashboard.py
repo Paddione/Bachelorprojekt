@@ -613,14 +613,14 @@ def test_neovim_dashboard_js_frontend_detects_website_plus_a_previously_uncovere
         or any("packages/" in ln for ln in _out(out).splitlines()) or "packages/" in _out(out)
 
 
-# ── p5: github five without merge, sdlc seven read-only ─────────────────
+# ── p5: github five without merge, sdlc eight read-only ─────────────────
 
 def test_neovim_dashboard_github_page_lists_five_actions_and_no_merge(nv):
     result = nv.nvim_headless(
         "lua print(#require('chapters.github').actions(), #require('chapters.sdlc').actions())")
     assert result.returncode == 0
     assert "5" in result.output
-    assert "7" in result.output
+    assert "8" in result.output
     github = nv.stage / "lua/chapters/github.lua"
     assert github.is_file()
     assert "merge" not in github.read_text().lower()

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1305,
+      "file_count": 1306,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -870,6 +870,7 @@
         "tests/py/spec/native_ported/spec/test_pipeline_interface.py",
         "tests/py/spec/native_ported/spec/test_plan_context.py",
         "tests/py/spec/native_ported/spec/test_plan_lifecycle.py",
+        "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_auth_code.py",
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_auth_header.py",
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_early_abort.py",
         "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_group_lookup.py",
@@ -4146,7 +4147,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 883,
+      "file_count": 884,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4744,6 +4745,7 @@
         "scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md",
         "scripts/llm/measurements/2026-10-03-qwen38-iq2s-vs-iq3xxs.md",
         "scripts/llm/measurements/2026-10-09-e4b-vision-bench.md",
+        "scripts/llm/measurements/2026-10-10-vision-bench-p1-auth.md",
         "scripts/llm/measurements/agent-bench-gemma12-nvfp4.md",
         "scripts/llm/measurements/bench-qwen38-iq2s-mtp.json",
         "scripts/llm/measurements/bench-qwen38-iq3xxs-mtp.json",

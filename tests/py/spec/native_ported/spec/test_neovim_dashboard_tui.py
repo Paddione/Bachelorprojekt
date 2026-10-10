@@ -26,13 +26,6 @@ HOME_TITLES = [
     "User Services", "Tests & Plans", "Settings & Help",
 ]
 
-HOME_BUG = (
-    "core.dashboard.show('home') ist ein stiller No-op: 'home' ist keiner "
-    "Kapitelseite registriert (dashboard.lua: by_id[page] == nil -> return nil). "
-    ":Dashboard, <leader>h und der VimEnter-Start rendern deshalb nichts."
-)
-
-
 def _data_home() -> Path:
     return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share"))
 
@@ -115,6 +108,21 @@ def test_neovim_dashboard_tui_chapter_page_renders_its_title_and_action_rows(tui
         assert row in screen, f"Zeile {row!r} fehlt auf dem Bildschirm:\n{screen}"
 
 
+def test_neovim_dashboard_tui_home_and_chapter_switch_back_and_forth(tui_factory):
+    # Regression: opening a second dashboard while one exists rendered an
+    # empty buffer (fresh buffer per open is single-shot per window).
+    tui = tui_factory()
+    _wait_started(tui)
+    tui.keys(":Dashboard sdlc", "Enter")
+    tui.wait_for("Show Ticket")
+    tui.keys(":Dashboard", "Enter")
+    screen = tui.wait_for("Settings & Help", timeout=10)
+    assert "SDLC" in screen, screen
+    tui.keys(":Dashboard sdlc", "Enter")
+    screen = tui.wait_for("Show Ticket", timeout=10)
+    assert "Show Ticket" in screen, screen
+
+
 def test_neovim_dashboard_tui_chapter_page_is_not_an_editable_file_buffer(tui_factory):
     tui = tui_factory()
     _wait_started(tui)
@@ -126,7 +134,6 @@ def test_neovim_dashboard_tui_chapter_page_is_not_an_editable_file_buffer(tui_fa
     assert "snacks_dashboard|nofile" in screen, screen
 
 
-@pytest.mark.xfail(strict=True, reason=HOME_BUG)
 def test_neovim_dashboard_tui_dashboard_command_renders_all_fifteen_chapters(tui_factory):
     tui = tui_factory()
     _wait_started(tui)
@@ -136,7 +143,6 @@ def test_neovim_dashboard_tui_dashboard_command_renders_all_fifteen_chapters(tui
     assert not missing, f"Home zeigt nicht: {missing}\n{screen}"
 
 
-@pytest.mark.xfail(strict=True, reason=HOME_BUG)
 def test_neovim_dashboard_tui_leader_h_renders_all_fifteen_chapters(tui_factory):
     tui = tui_factory()
     _wait_started(tui)
@@ -146,7 +152,6 @@ def test_neovim_dashboard_tui_leader_h_renders_all_fifteen_chapters(tui_factory)
     assert not missing, f"<leader>h zeigt nicht: {missing}\n{screen}"
 
 
-@pytest.mark.xfail(strict=True, reason=HOME_BUG)
 def test_neovim_dashboard_tui_plain_startup_lands_on_the_dashboard_home(tui_factory):
     tui = tui_factory()
     screen = tui.wait_for("Settings & Help", timeout=8)

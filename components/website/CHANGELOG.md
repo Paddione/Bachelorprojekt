@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.9...website-v1.414.10) (2026-10-11)
+
+
+### Bug Fixes
+
+* **scripts:** suggest valid plans scope in commit guard [T901882] ([#6540](https://github.com/Paddione/Bachelorprojekt/issues/6540)) ([ffcda4e](https://github.com/Paddione/Bachelorprojekt/commit/ffcda4e4945ad2ce36967fca508024b085335c5d))
+
 ## [1.414.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.8...website-v1.414.9) (2026-10-11)
 
 

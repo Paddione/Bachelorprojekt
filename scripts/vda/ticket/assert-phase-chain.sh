@@ -1,6 +1,12 @@
 # scripts/vda/ticket/assert-phase-chain.sh — fail-closed phase-chain gate (T001444).
 # Sourced by ticket.sh. Verifies plan:done, implement:entered, verify:done exist
 # for a ticket (any driver). Exit 0 = complete, 1 = gap, 2 = bad args.
+#
+# Auto-vs-real-Semantik (T901881): auto-emittierte Events (stage-plan,
+# update-status) tragen ein `auto:`-Detail und koennen vor realen Events
+# liegen — gueltige Reihenfolge ist: auto plan:done aus stage-plan zaehlt als
+# Ordnungs-Anker (kein order_error, wenn implement:entered danach kommt),
+# die Vollstaendigkeit (missing[]) verlangt weiterhin reale Events.
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
@@ -20,13 +26,13 @@ SELECT e.id, e.phase, e.state, COALESCE(e.detail, '')
 FROM tickets.factory_phase_events e
 JOIN tickets.tickets t ON t.id = e.ticket_id
 WHERE t.external_id = :'ext_id'
-  AND NOT (e.phase IN ('scout', 'design', 'plan') AND e.detail = 'auto: stage-plan')
 ORDER BY e.at ASC, e.id ASC;
 EOF
 )
 
   # Validate sequential phase chain: plan:done -> implement:entered -> verify:done
-  local has_plan=false has_impl=false has_verify=false order_error=false
+  # (T901881: auto plan:done ist ein Ordnungs-Anker, Vollstaendigkeit braucht reale Events)
+  local has_plan=false has_plan_auto=false has_impl=false has_verify=false order_error=false
   local plan_id=0 impl_id=0 verify_id=0
   local missing=()
 
@@ -35,12 +41,17 @@ EOF
     ephase="${ephase//[[:space:]]/}"
     estate="${estate//[[:space:]]/}"
     [[ -z "$eid" ]] && continue
+    edetail="$(printf '%s' "$edetail" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
 
-    if [[ "$ephase" == "plan" && "$estate" == "done" && "$has_plan" == false ]]; then
-      has_plan=true; plan_id="$eid"
+    if [[ "$ephase" == "plan" && "$estate" == "done" ]]; then
+      if [[ "$edetail" == auto:* ]]; then
+        has_plan_auto=true
+      elif [[ "$has_plan" == false ]]; then
+        has_plan=true; plan_id="$eid"
+      fi
     elif [[ "$ephase" == "implement" && "$estate" == "entered" && "$has_impl" == false ]]; then
       has_impl=true; impl_id="$eid"
-      if [[ "$has_plan" == false ]]; then order_error=true; fi
+      if [[ "$has_plan" == false && "$has_plan_auto" == false ]]; then order_error=true; fi
     elif [[ "$ephase" == "verify" && "$estate" == "done" && "$has_verify" == false ]]; then
       has_verify=true; verify_id="$eid"
       if [[ "$has_impl" == false ]]; then order_error=true; fi

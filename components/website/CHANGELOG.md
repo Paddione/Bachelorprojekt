@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.7...website-v1.414.8) (2026-10-11)
+
+
+### Bug Fixes
+
+* **website:** repair website:migrate port-forward liveness [T901789] ([#6535](https://github.com/Paddione/Bachelorprojekt/issues/6535)) ([d3e5672](https://github.com/Paddione/Bachelorprojekt/commit/d3e56725f4a1e1cf19da705b9d03f2785af37ec8))
+
 ## [1.414.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.6...website-v1.414.7) (2026-10-10)
 
 

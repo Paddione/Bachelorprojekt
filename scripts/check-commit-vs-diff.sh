@@ -12,7 +12,7 @@
 #   - If the subject uses an implementation type (fix/feat/refactor/perf)
 #   - AND the staged diff contains ONLY test/spec/plan files
 #   - THEN reject with a clear error pointing the author to the right
-#     prefix (test(red): for RED-only test commits, chore(plan): for
+#     prefix (test(red): for RED-only test commits, chore(plans): for
 #     plan-only commits).
 #
 # Wired into:
@@ -210,7 +210,7 @@ and the bug lands in a follow-up commit instead of the same PR.
 
 Use one of these prefixes instead:
   test(red): …   for a RED-only test commit (the test is supposed to fail)
-  chore(plan): … for a plan-only commit (.agents/plans/, docs/superpowers/specs/)
+  chore(plans): … for a plan-only commit (.agents/plans/, docs/superpowers/specs/)
   test: …        for a test commit that is intentionally part of the fix
 
 If this really IS an implementation commit, your diff is missing the

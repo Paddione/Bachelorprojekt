@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1315,
+      "file_count": 1316,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -377,6 +377,7 @@
         "tests/py/spec/ci_cd_specs/test_branch_allowlist_ssot.py",
         "tests/py/spec/ci_cd_specs/test_cfr_trend_window.py",
         "tests/py/spec/ci_cd_specs/test_ci_wait_loop_nonempty_guard.py",
+        "tests/py/spec/ci_cd_specs/test_commit_vs_diff_scope.py",
         "tests/py/spec/ci_cd_specs/test_devflow_execute_hardening_t002365.py",
         "tests/py/spec/ci_cd_specs/test_e2e_project_selection.py",
         "tests/py/spec/ci_cd_specs/test_fetch_refspec_forced.py",

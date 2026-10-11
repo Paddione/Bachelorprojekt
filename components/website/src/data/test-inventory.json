@@ -5844,6 +5844,12 @@
     "kind": "pytest"
   },
   {
+    "id": "ticket-system/assert_phase_order",
+    "file": "tests/py/spec/ticket-system/test_assert_phase_order.py",
+    "category": "ticket-system",
+    "kind": "pytest"
+  },
+  {
     "id": "ticket-system/backfill-id-sequence",
     "file": "tests/py/spec/native_ported/spec/ticket-system/test_backfill_id_sequence.py",
     "category": "ticket-system",

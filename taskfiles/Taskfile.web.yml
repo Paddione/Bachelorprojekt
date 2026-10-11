@@ -78,15 +78,30 @@ tasks:
         PF_LOG=$(mktemp /tmp/website-migrate-pf.XXXXXX.log)
         kubectl $ctx_flag -n "$NS" port-forward svc/shared-db :5432 \
           >"$PF_LOG" 2>&1 &
-        PF=$!
-        trap 'kill $PF 2>/dev/null; rm -f "$PF_LOG"' EXIT
+        trap 'rm -f "$PF_LOG"' EXIT
         # Fail closed unless OUR forward reports a port AND accepts TCP.
         # A fixed port plus sleep (previous code) silently migrated whoever
         # squatted localhost:5432 (T901750).
+        # NOTE (T901789): no $!/kill/wait/jobs-based liveness here — go-task
+        # does not implement POSIX job control ($! expands to a job id like
+        # "g1", kill and jobs are unsupported), so `kill -0 $PF` failed on
+        # every run and declared the healthy forward dead within milliseconds
+        # (Runs 38070460176, 38094046122). Real kubectl failures always write
+        # to stderr, hence the log-error scan as fast-fail signal; the READY
+        # gate below stays the fail-closed enforcer.
         READY=""
         for _ in $(seq 1 30); do
-          if ! kill -0 $PF 2>/dev/null; then
-            echo "ERROR: port-forward exited unexpectedly:"; tail -n 20 "$PF_LOG"; exit 1
+          if grep -qiE 'error|unable to |failed|refused|forbidden|not found|no such|denied|invalid|could not|cannot|panic' "$PF_LOG" 2>/dev/null; then
+            echo "ERROR: port-forward exited unexpectedly:"
+            echo "port-forward exit code: unknown (go-task has no POSIX job control)"
+            echo "kubectl client version:"
+            kubectl $ctx_flag version --client 2>&1 || true
+            echo "port-forward log begin"
+            tail -n 20 "$PF_LOG"
+            echo "port-forward log end"
+            echo "Target service resolution:"
+            kubectl $ctx_flag -n "$NS" get svc shared-db 2>&1 || true
+            exit 1
           fi
           LOCAL_PORT=$(grep -oE 'Forwarding from 127\.0\.0\.1:[0-9]+' "$PF_LOG" 2>/dev/null | tail -n 1 | grep -oE '[0-9]+$' || true)
           if [ -n "$LOCAL_PORT" ] && python3 -c "import socket; socket.create_connection(('127.0.0.1', $LOCAL_PORT), timeout=2).close()" 2>/dev/null; then
@@ -95,7 +110,20 @@ tasks:
           sleep 1
         done
         if [ -z "$READY" ]; then
-          echo "ERROR: port-forward to shared-db never became ready:"; tail -n 20 "$PF_LOG"; exit 1
+          echo "ERROR: port-forward to shared-db never became ready:"
+          echo "port-forward exit code: unknown (go-task has no POSIX job control)"
+          echo "kubectl client version:"
+          kubectl $ctx_flag version --client 2>&1 || true
+          echo "port-forward log begin"
+          if [ -s "$PF_LOG" ]; then
+            tail -n 20 "$PF_LOG"
+          else
+            echo "port-forward log empty (no output before exit)"
+          fi
+          echo "port-forward log end"
+          echo "Target service resolution:"
+          kubectl $ctx_flag -n "$NS" get svc shared-db 2>&1 || true
+          exit 1
         fi
         echo "Port-forward ready on 127.0.0.1:$LOCAL_PORT"
 

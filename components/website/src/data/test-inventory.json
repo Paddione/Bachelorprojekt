@@ -6132,6 +6132,12 @@
     "kind": "pytest"
   },
   {
+    "id": "website-migrate/portforward_runner",
+    "file": "tests/py/spec/website-migrate/test_portforward_runner.py",
+    "category": "website-migrate",
+    "kind": "pytest"
+  },
+  {
     "id": "website-schema/fk-targets-unique",
     "file": "tests/py/spec/native_ported/spec/website-schema/test_fk_targets_unique.py",
     "category": "website-schema",

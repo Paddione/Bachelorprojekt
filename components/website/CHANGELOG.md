@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.414.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.8...website-v1.414.9) (2026-10-11)
+
+
+### Bug Fixes
+
+* **scripts:** assert-phase-chain accepts auto plan anchor [T901881] ([#6537](https://github.com/Paddione/Bachelorprojekt/issues/6537)) ([4e81b92](https://github.com/Paddione/Bachelorprojekt/commit/4e81b92caf7ded5b384b3fcb1edf9adfe5550191))
+
 ## [1.414.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.7...website-v1.414.8) (2026-10-11)
 
 

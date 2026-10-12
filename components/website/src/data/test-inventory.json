@@ -6114,6 +6114,12 @@
     "kind": "pytest"
   },
   {
+    "id": "videovault/no_star_routes",
+    "file": "tests/py/spec/videovault/test_no_star_routes.py",
+    "category": "videovault",
+    "kind": "pytest"
+  },
+  {
     "id": "videovault/picker_depth_guard",
     "file": "tests/py/spec/videovault/test_picker_depth_guard.py",
     "category": "videovault",

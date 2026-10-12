@@ -20,10 +20,13 @@ if [[ -z "$POD" ]]; then
 fi
 
 # 2. Prüfen ob Ticket existiert (zweite Quelle)
-UUID=$(kubectl exec "$POD" -n "$NS" --context "$CTX" -c postgres -- \
+# T901953: :'var'-Substitution greift nur via stdin, nicht via -c (psql 16) —
+# daher Heredoc + -i wie _exec_sql. `|| true` gegen set -e-Stillstand (T900239):
+# jeder Zweifel faellt fail-closed auf REJECTED.
+UUID=$(kubectl exec -i "$POD" -n "$NS" --context "$CTX" -c postgres -- \
   psql -U website -d website -qtA -v ON_ERROR_STOP=1 \
-  -v eid="$EXT_ID" -v brand="$BRAND" \
-  -c "SELECT uuid::text FROM tickets.tickets WHERE external_id = :'eid' LIMIT 1;" 2>/dev/null)
+  -v eid="$EXT_ID" -v brand="$BRAND" 2>/dev/null \
+  <<<"SELECT id::text FROM tickets.tickets WHERE external_id = :'eid' LIMIT 1;") || true
 
 if [[ -z "$UUID" ]]; then
   echo "verify-ticket-id: REJECTED — Ticket $EXT_ID ($BRAND) nicht gefunden" >&2

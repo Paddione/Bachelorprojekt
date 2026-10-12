@@ -5928,6 +5928,12 @@
     "kind": "pytest"
   },
   {
+    "id": "ticket-system/verify_ticket_id",
+    "file": "tests/py/spec/ticket-system/test_verify_ticket_id.py",
+    "category": "ticket-system",
+    "kind": "pytest"
+  },
+  {
     "id": "toolset-registry/agentic-resource-lookup",
     "file": "tests/py/spec/native_ported/spec/toolset-registry/test_agentic_resource_lookup.py",
     "category": "toolset-registry",

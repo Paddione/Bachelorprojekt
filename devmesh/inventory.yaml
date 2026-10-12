@@ -34,15 +34,16 @@ peers:
     role: server
     tag: "tag:devmesh"
     lan_ip: 10.1.0.101
+    # mac: DC:FE:07:10:B4:B3 (2026-10-12 per PXE neu installiert, tritt dem laufenden Cluster bei)
     tailnet_name: gpu-metal
-    k3s_role: server-init
+    k3s_role: server-join
     labels: []
   - name: gpu-cluster
     role: server
     tag: "tag:devmesh"
     lan_ip: 10.10.10.2
     tailnet_name: gpu-cluster
-    k3s_role: server-join
+    k3s_role: server-init
     labels: []
   - name: gpu-cluster2
     role: server

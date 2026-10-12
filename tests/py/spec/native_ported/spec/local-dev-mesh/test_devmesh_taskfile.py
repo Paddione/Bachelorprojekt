@@ -25,11 +25,11 @@ def test_t900116_devmesh_tailnet_check_ruft_scripts_devmesh_tailnet_check_sh_ueb
 
 
 def test_t900117_task_devmesh_install_reicht_host_und_dry_run_an_k3s_install_sh_durch(repo_root, run_cmd):
-    res = run_cmd(["task", "--dir", str(repo_root), "devmesh:install", "HOST=gpu-cluster", "DRY_RUN=1"])
+    res = run_cmd(["task", "--dir", str(repo_root), "devmesh:install", "HOST=gpu-metal", "DRY_RUN=1"])
     assert res.returncode == 0, res.output
     lines = [l for l in res.output.splitlines() if l.startswith("command: ")]
     line = "\n".join(lines)
-    assert "--node-ip 10.10.10.2" in line
+    assert "--node-ip 10.1.0.101" in line
     assert "INSTALL_K3S_VERSION=v" in line
     assert sum(1 for l in lines if "--cluster-init" in l) == 0
 
@@ -44,9 +44,9 @@ def test_t900117_inventar_mit_gpu_metal_server_init_zwei_server_join_agent_gpu_c
     repo_root, run_cmd
 ):
     inv = repo_root / "devmesh" / "inventory.yaml"
-    assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "server-init")] | map(.name) | join(",")', inv) == "gpu-metal"
+    assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "server-init")] | map(.name) | join(",")', inv) == "gpu-cluster"
     assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "server-join")] | map(.name) | sort | join(",")', inv) == \
-        "gpu-cluster,gpu-cluster2"
+        "gpu-cluster2,gpu-metal"
     assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "agent")] | map(.name) | sort | join(",")', inv) == \
         "gpu-cluster-3"
     assert _yq_r(run_cmd,

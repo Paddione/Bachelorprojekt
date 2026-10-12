@@ -4,7 +4,8 @@
 # Usage: lan-dns-deploy.sh
 #
 # Ablauf: pre-check (Node-DNS auf jedem k3s-Host) -> firewall -> label (lan-dns=true
-# fuer Inventar-Peers mit lan_dns, entfernt bei allen anderen) -> apply -> rollout
+# fuer Inventar-Peers mit lan_dns, entfernt bei allen anderen) -> secret (Web-UI-
+# Anmeldung adguard-admin, nur beim ersten Mal; braucht python3-bcrypt) -> apply -> rollout
 # -> post-check (Node-DNS auf jedem Host, dig auf jede lan_dns-IP).
 # Scheitert rollout oder post-check: rollback (kubectl delete -k) und erneute
 # Node-DNS-Pruefung. Hintergrund: ein LoadBalancer auf Port 53 hat beim ersten
@@ -69,6 +70,20 @@ for entry in "${HOSTS[@]}"; do
   echo "label: $name $label"
   [[ "$DRY" == 1 ]] || kc label node "$name" "$label" --overwrite >/dev/null
 done
+
+# Web-UI-Anmeldung: Zufallspasswort und bcrypt-Hash, nur im Cluster. Ein
+# vorhandenes Secret bleibt (Passwort aendert sich nicht bei jedem Deploy).
+echo "secret: lan-dns/adguard-admin (anlegen, falls es fehlt)"
+if [[ "$DRY" != 1 ]] && ! kc -n lan-dns get secret adguard-admin >/dev/null 2>&1; then
+  python3 -c 'import bcrypt' 2>/dev/null \
+    || { echo "Vorbedingung fehlt: python3-bcrypt (pip install bcrypt)" >&2; exit 2; }
+  kc create namespace lan-dns --dry-run=client -o yaml | kc apply -f - >/dev/null
+  pw="$(openssl rand -base64 24)"
+  hash="$(PW="$pw" python3 -c 'import bcrypt,os;print(bcrypt.hashpw(os.environ["PW"].encode(),bcrypt.gensalt()).decode())')"
+  kc -n lan-dns create secret generic adguard-admin \
+    --from-literal=username=admin --from-literal=password="$pw" --from-literal=bcrypt="$hash" >/dev/null
+  unset pw hash
+fi
 
 echo "apply: kubectl apply -k dev-local/lan-dns"
 [[ "$DRY" == 1 ]] || kc apply -k "$KUSTOMIZE_DIR"

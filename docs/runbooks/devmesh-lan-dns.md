@@ -134,12 +134,16 @@ freigeben). Test: Pi kurz vom Netz nehmen, von außerhalb `ping 10.0.0.1`.
 
 ```bash
 kubectl --context devmesh -n lan-dns port-forward ds/adguard 3000
+kubectl --context devmesh -n lan-dns get secret adguard-admin -o jsonpath='{.data.password}' | base64 -d; echo
 ```
 
-Dann `http://localhost:3000`. Die UI ist im Pod nur auf `127.0.0.1` gebunden:
-kein anderer Pod im Cluster erreicht sie, nur `kubectl port-forward`. Deshalb
-ohne Anmeldung. Nicht auf `0.0.0.0` umstellen, sonst könnte jeder Pod in devmesh
-die Upstreams für LAN und Tailnet umschreiben. Jede Replica hat eigene Statistik und eigenes Query-Log.
+Dann `http://localhost:3000`, Benutzer `admin`, Passwort aus dem Secret. Die UI
+lauscht nur auf `127.0.0.1` des Nodes (hostNetwork), ist dort aber für Prozesse
+und hostNetwork-Pods erreichbar, deshalb die Anmeldung. Das Secret legt
+`lan-dns-deploy.sh` beim ersten Deploy an (Zufallspasswort, bcrypt-Hash, braucht
+`python3-bcrypt`). Es steht nicht im Repo. Neues Passwort: Secret löschen,
+`task devmesh:dns:deploy`. Jede Instanz hat eigene Statistik und eigenes
+Query-Log. Änderungen in der UI gehen beim Neustart verloren.
 
 ## 7. Rückweg
 

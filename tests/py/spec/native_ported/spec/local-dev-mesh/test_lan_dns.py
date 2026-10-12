@@ -87,10 +87,13 @@ def test_init_container_setzt_die_node_ip_als_bind_adresse(rendered, run_cmd, tm
     cm = _one(rendered, "ConfigMap", "adguard-config")
     (tmp_path / "ro" / "AdGuardHome.yaml").write_text(cm["data"]["AdGuardHome.yaml"])
     import os
-    res = run_cmd(["sh", "-c", script], env={**os.environ, "HOST_IP": "10.10.10.2"})
+    fake_hash = "$2b$10$" + "abcdefghijklmnopqrstuv" + "/ABCDEFGHIJKLMNOPQRSTUVWXYZ0123."
+    res = run_cmd(["sh", "-c", script], env={**os.environ, "HOST_IP": "10.10.10.2", "ADMIN_HASH": fake_hash})
     res.check()
     cfg = yaml.safe_load((tmp_path / "conf" / "AdGuardHome.yaml").read_text())
     assert cfg["dns"]["bind_hosts"] == ["10.10.10.2"]
+    assert cfg["users"] == [{"name": "admin", "password": fake_hash}]
+    assert env["ADMIN_HASH"]["valueFrom"]["secretKeyRef"] == {"name": "adguard-admin", "key": "bcrypt"}
 
 
 def test_web_ui_nur_auf_localhost_im_pod(rendered):

@@ -39,7 +39,8 @@ spec:
           - 9.9.9.9
           - 1.1.1.1
       # AdGuard schreibt seine Konfiguration zurueck; die ConfigMap ist read-only.
-      # Der Platzhalter __HOST_IP__ wird durch die LAN-IP des Nodes ersetzt.
+      # Platzhalter: __HOST_IP__ -> LAN-IP des Nodes, __ADMIN_HASH__ -> bcrypt-Hash
+      # aus dem Secret adguard-admin (angelegt von scripts/devmesh/lan-dns-deploy.sh).
       initContainers:
         - name: seed-config
           image: busybox:1.37.0
@@ -48,10 +49,15 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: ADMIN_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: adguard-admin
+                  key: bcrypt
           command:
             - sh
             - -c
-            - sed "s/__HOST_IP__/${HOST_IP}/g" /config-ro/AdGuardHome.yaml > /opt/adguardhome/conf/AdGuardHome.yaml
+            - sed -e "s|__HOST_IP__|${HOST_IP}|g" -e "s|__ADMIN_HASH__|${ADMIN_HASH}|g" /config-ro/AdGuardHome.yaml > /opt/adguardhome/conf/AdGuardHome.yaml
           volumeMounts:
             - name: config-ro
               mountPath: /config-ro

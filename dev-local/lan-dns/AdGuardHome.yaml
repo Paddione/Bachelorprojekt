@@ -2,14 +2,16 @@
 # Quelle der Wahrheit ist diese Datei: Aenderungen in der Web-UI gehen beim
 # naechsten Pod-Start verloren. Design: .agents/plans/lan-dns-adguard/design.md
 # Web-UI nur auf localhost: der Pod laeuft mit hostNetwork, das ist der
-# localhost des Nodes. Kein Pod im Cluster erreicht sie, nur kubectl
-# port-forward (verbindet im Netz-Namespace des Pods). Deshalb ohne Benutzer.
-# Auf 0.0.0.0 koennte jeder Pod in devmesh die Upstreams fuer LAN und Tailnet
-# umschreiben.
+# localhost des Nodes. Erreichbar per kubectl port-forward, aber auch fuer
+# Prozesse und hostNetwork-Pods auf dem Node. Deshalb mit Anmeldung: der
+# initContainer setzt den bcrypt-Hash aus dem Secret adguard-admin ein, das
+# scripts/devmesh/lan-dns-deploy.sh anlegt (nicht im Repo).
 http:
   address: 127.0.0.1:3000
   session_ttl: 720h
-users: []
+users:
+  - name: admin
+    password: __ADMIN_HASH__
 dns:
   # Nur die LAN-IP des Nodes (initContainer ersetzt den Platzhalter).
   # 0.0.0.0 kollidiert mit dem systemd-resolved-Stub auf 127.0.0.53 (T016520).

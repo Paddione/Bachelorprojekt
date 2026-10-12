@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.415.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.1...website-v1.415.2) (2026-10-12)
+
+
+### Bug Fixes
+
+* **website:** forward-migrate VideoVault to installed majors, type gate green [T901943] ([#6552](https://github.com/Paddione/Bachelorprojekt/issues/6552)) ([92d3f57](https://github.com/Paddione/Bachelorprojekt/commit/92d3f5786f83bde5bb0306cb8ba6f0d624ca1147))
+
 ## [1.415.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.0...website-v1.415.1) (2026-10-12)
 
 

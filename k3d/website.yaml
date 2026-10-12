@@ -1,3 +1,7 @@
+# NUR VIA TASK DEPLOYEN [T901777]: VAR-Platzhalter brauchen den
+# Task/Flux-Render-Pfad (envsubst). Direktes 'kubectl apply -f' hinterlaesst
+# Literale. Cluster-CIDRs POD_CIDR/SERVICE_CIDR aus environments/schema.yaml
+# (k3s-Defaults 10.42/10.43, devmesh 10.52/10.53).
 # ── Namespace ─────────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: Namespace
@@ -618,7 +622,7 @@ spec:
     # IPSet for short-lived Job pods (see reference_kube_router_hostnet_gotcha).
     # Adding the pod-CIDR ipBlock makes :53 reachable regardless of selector race.
     - ipBlock:
-        cidr: 10.42.0.0/16
+        cidr: ${POD_CIDR}
     ports:
     - port: 53
       protocol: UDP
@@ -740,11 +744,11 @@ spec:
   ingress:
   - from:
     - ipBlock:
-        cidr: 10.42.0.0/16
+        cidr: ${POD_CIDR}
 ---
 
 # Service-CIDR Egress: pods must reach ClusterIP services.
-# podSelector: {} only covers pod IPs, not 10.43.x.x ClusterIPs.
+# podSelector: {} only covers pod IPs, not ${SERVICE_CIDR} ClusterIPs.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -759,7 +763,7 @@ spec:
   egress:
   - to:
     - ipBlock:
-        cidr: 10.43.0.0/16
+        cidr: ${SERVICE_CIDR}
 ---
 
 

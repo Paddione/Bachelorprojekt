@@ -7,6 +7,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
+# T901791: envsubst-Whitelist (Subst-Liste + Skip-Liste) — S4-Referenz, die
+# Tests pinnen dieses Sourcing (test_envsubst_whitelist.py).
+source "${SCRIPT_DIR}/lib/render-subst-list.sh"
+
 OUT_DIR="out"
 # WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
 # WEBSITE_IMAGE_TAG steuert den Image-Tag — getrennte Konzepte, nicht koppeln (T002209).
@@ -66,59 +70,49 @@ export WEBSITE_IMAGE_TAG
 apply_schema_defaults() {
   # schema.yaml:403 — "Defaults to COMFY_HOST_IP when empty."
   export RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}"
+  # T901777: Cluster-CIDRs fuer die NetworkPolicies (k3d/network-policies.yaml,
+  # k3d/website.yaml). Ohne Default wuerde envsubst hier "" einsetzen und ein
+  # `cidr: ""` ins Fleet-Artefakt schreiben (fail-open — der Leftover-Check
+  # unten faengt nur unsubstituierte ${VAR}, keine leer substituierten).
+  export POD_CIDR="${POD_CIDR:-10.42.0.0/16}"
+  export SERVICE_CIDR="${SERVICE_CIDR:-10.43.0.0/16}"
+  export POD_VTEP_IP="${POD_VTEP_IP:-${POD_CIDR%%/*}}"
 }
 
 render_component() {
   local overlay="$1" out="$2"
-  # Dynamically extract ALL ${VAR} references from kustomize output.
-  # This is the same proven pattern as .github/workflows/build-website.yml (lines ~184-192)
-  # and ensures the allowlist never drifts.
   local rendered
   rendered="$(kustomize build "$overlay" --load-restrictor=LoadRestrictionsNone)"
-  
-  # grep exits 1 when the overlay has no ${VAR} refs at all; that's a valid outcome
-  # (handled by the -z "$vars" branch below), not a script failure — || true keeps
-  # set -e from aborting on the "no matches" case.
+
+  # T901791: Die Subst-Liste kommt aus der Whitelist-Lib (nur gesetzte
+  # Owned-Vars, ohne $$-Runtime und Skip-Liste) statt Alles-Extraktion.
+  # Die Alles-Extraktion steht noch in .github/workflows/build-website.yml
+  # (eigener Render-Pfad, Follow-up-Kandidat) — hier ist sie ersetzt, weil
+  # sie fremde Platzhalter (Grafana ${datasource} u.a.) leer substituierte.
   local vars
-  vars="$(grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' <<<"$rendered" | tr -d '${}' | sort -u | tr '\n' ' ')" || true
+  vars="$(render_subst_list <<<"$rendered")"
 
   # T002156: WEBSITE_CONFIG_SHA wird NICHT aus der Umgebung substituiert — der
   # Wert entsteht erst aus dem fertig substituierten Manifest (siehe unten).
   # Ohne diese Ausnahme setzt envsubst den ungesetzten Wert auf "" und die
   # Annotation ist dauerhaft leer: genau so ging T002154 live kaputt.
+  # Erkennung am TEXT (nicht an $vars — die Lib schliesst den Namen
+  # grundsaetzlich aus, der Sonderpfad unten substituiert separat).
   local wants_config_sha=0
-  if [[ " $vars " == *" WEBSITE_CONFIG_SHA "* ]]; then
+  if grep -qE '\$\{WEBSITE_CONFIG_SHA\}' <<<"$rendered"; then
     wants_config_sha=1
-    vars="$(tr ' ' '\n' <<<"$vars" | sed '/^WEBSITE_CONFIG_SHA$/d;/^$/d' | tr '\n' ' ')"
   fi
 
   # T002306: Variablen, die im Manifest bewusst als $${VAR} geschrieben sind,
   # sind LAUFZEIT-Variablen — die Shell IM Container soll sie expandieren, nicht
-  # der Renderer. Der Extraktions-Regex oben sieht durch das $$ hindurch und
-  # nimmt sie sonst in ihre EIGENE Ersetzungsliste auf; envsubst macht aus einer
-  # nicht gesetzten Variable dann "" und uebrig bleibt das erste Dollarzeichen.
-  # Der fail-closed-Check unten faengt das nicht, weil substituiert ja WURDE.
-  #
-  # Genau so gingen am 2026-07-27 die shared-db-Passwoerter verloren: aus
-  #   ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';
-  # wurde  ... PASSWORD '$';  — nextcloud, vaultwarden, videovault und pocket_id
-  # waren aus ihrer eigenen Datenbank ausgesperrt, SSO plattformweit down.
-  #
-  # T901780-Follow-up: Die klammerlose Form $$VAR galt als sicher ("der Regex
-  # sieht sie nicht") — das war falsch. Der Regex muss $$VAR gar nicht sehen:
-  # Es genuegt, dass der NAME via ein ${VAR} an ANDERER Stelle desselben
-  # Overlays in die Liste kommt. Genau so fraß brain.yaml (${code} in einem
-  # JS-Template-Literal) die CronJob-Checks: aus $$code wurde ueberall im
-  # mentolder-Overlay "$" (toter Check, leeres Echo). Der Schutz deckt daher
-  # seitdem BEIDE Formen ab: $${VAR} und $$VAR. $$(cmd), $$!, $$? und $$
-  # allein matchen nicht (kein Name nach den Dollars) und bleiben unberuehrt.
+  # der Renderer. Siehe Lib-Kommentar zur Historie (2026-07-27 shared-db,
+  # T901780 klammerloses $$VAR). Die Lib schliesst sie von der Substitution
+  # aus; hier werden sie zusaetzlich fuer die Leftover-Ausnahme gesammelt.
+  # (Literal-identisch mit der Lib — der T901780-Kopplungstest pinnt beide.)
   local runtime_vars
   runtime_vars="$(grep -oE '\$\$(\{)?[A-Za-z_][A-Za-z0-9_]*\}?' <<<"$rendered" \
     | sed -E 's/^\$\$\{//; s/^\$\$//; s/\}$//' | sort -u | tr '\n' ' ')" || true
-  local rv
-  for rv in $runtime_vars; do
-    vars="$(tr ' ' '\n' <<<"$vars" | sed "/^${rv}\$/d;/^\$/d" | tr '\n' ' ')"
-  done
+  local rv sv
 
   if [[ -z "$vars" ]]; then
     # Nichts zu substituieren — aber das $$-Unwrapping muss trotzdem laufen,
@@ -184,17 +178,24 @@ render_component() {
   # T002306: Die als $${VAR} markierten Laufzeit-Variablen stehen nach dem
   # Unwrapping als ${VAR} im Manifest — genau so sollen sie dort stehen. Sie
   # sind hier deshalb ausgenommen; alles andere bleibt ein harter Fehler.
+  # T901791: RENDER_SKIP_VARS (fremde Platzhalter wie Grafana ${datasource})
+  # ueberleben gewollt und sind ebenfalls ausgenommen.
   local leftover
   leftover="$(grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$out" | sort -u)" || true
   for rv in $runtime_vars; do
     leftover="$(grep -vxF "\${${rv}}" <<<"$leftover" || true)"
   done
+  for sv in $RENDER_SKIP_VARS; do
+    leftover="$(grep -vxF "\${${sv}}" <<<"$leftover" || true)"
+  done
   if [[ -n "$leftover" ]]; then
     echo "ERROR: Unsubstituted variable references remain in $out after envsubst." >&2
     echo "       The following vars were not defined in the environment:" >&2
     echo "$leftover" >&2
-    echo "       Set them, add them to the allowlist, or — if the container shell" >&2
+    echo "       Set them, or — if the container shell" >&2
     echo "       is meant to expand them at runtime — write them as \$\${VAR}." >&2
+    echo "       Foreign placeholders (vendored content) belong in RENDER_SKIP_VARS" >&2
+    echo "       (scripts/lib/render-subst-list.sh), never in the subst list." >&2
     exit 1
   fi
 

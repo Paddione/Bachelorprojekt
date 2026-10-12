@@ -65,6 +65,38 @@ def test_check_forbidden_provider_fails(hf):
     assert "forbidden provider deepseek" in res.output
 
 
+def write_agent_models_jsonc(out_dir, content):
+    """agent-models.jsonc under out_dir/.opencode (T900792: Guard hängt an forbidden_providers)."""
+    (out_dir / ".opencode" / "agent-models.jsonc").write_text(content, encoding="utf-8")
+
+
+def test_check_agent_models_forbidden_provider_fails(hf):
+    write_harness_fixture(hf["out"], hf["registry"], "local", "orchestrator", "true")
+    write_agent_models_jsonc(
+        hf["out"],
+        '{ "provider": { "deepseek": { "models": {} } },\n'
+        '  "agent": { "helper": { "model": "opencode-go/deepseek-v4-flash" } } }\n',
+    )
+    res = hf["check"]()
+    assert res.returncode == 1
+    assert "forbidden provider deepseek in agent-models.jsonc provider 'deepseek'" in res.output
+    assert "forbidden provider deepseek in agent-models.jsonc agent 'helper'" in res.output
+
+
+def test_check_agent_models_comment_mention_passes(hf):
+    write_harness_fixture(hf["out"], hf["registry"], "local", "orchestrator", "true")
+    write_agent_models_jsonc(
+        hf["out"],
+        '{\n'
+        '  // Historie: DeepSeek-Schiene entfernt — Kommentar zaehlt nicht.\n'
+        '  "provider": { "opencode-go": { "models": { "muse-spark": {} } } },\n'
+        '  "agent": { "exe": { "model": "opencode-go/muse-spark" } }\n'
+        '}\n',
+    )
+    res = hf["check"]()
+    assert res.returncode == 0, res.output
+
+
 def test_check_unknown_harness_role_fails(hf):
     write_harness_fixture(hf["out"], hf["registry"], "local", "orchestrater", "true")
     res = hf["check"]()
@@ -80,6 +112,7 @@ def test_check_drift_fails(hf):
 
 
 def test_check_clean_fixture_passes(hf):
+    # Kein agent-models.jsonc in out_dir — deckt zugleich den Skip-Pfad (T900792) ab.
     write_harness_fixture(hf["out"], hf["registry"], "local", "orchestrator", "true")
     res = hf["check"]()
     assert res.returncode == 0, res.output

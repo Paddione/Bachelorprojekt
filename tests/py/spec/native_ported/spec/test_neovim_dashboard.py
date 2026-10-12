@@ -619,8 +619,7 @@ def test_neovim_dashboard_github_page_lists_five_actions_and_no_merge(nv):
     result = nv.nvim_headless(
         "lua print(#require('chapters.github').actions(), #require('chapters.sdlc').actions())")
     assert result.returncode == 0
-    assert "5" in result.output
-    assert "8" in result.output
+    assert "5 9" in " ".join(result.output.split())
     github = nv.stage / "lua/chapters/github.lua"
     assert github.is_file()
     assert "merge" not in github.read_text().lower()
@@ -671,8 +670,7 @@ def test_neovim_dashboard_infra_ml_mcp_settings_and_user_services_expose_actions
         "#require('chapters.settings-help').actions(), "
         "#require('chapters.user-services').actions())")
     assert result.returncode == 0
-    for needle in ("6", "4", "3", "5"):
-        assert needle in result.output
+    assert "9 4 3 4 5" in " ".join(result.output.split())
 
 
 def test_neovim_dashboard_mcp_servers_come_from_the_registry_no_hardcoded_sort_in_user_services(nv, repo_root):
@@ -711,3 +709,88 @@ def test_neovim_dashboard_test_file_maps_to_an_existing_test_plan_skill_browsers
     assert "unknown=true" in text
     assert "plans=1" in text
     assert "skills=1" in text
+
+
+# ── p8 batch-2 (T901793): enabled_filter, port_chain, nodes_lazygit ───
+# ── bats_runner, skill_dirs, ml_zones, mcp_probes, recovery_pattern ───
+
+def test_neovim_dashboard_models_enabled_filter_lists_only_enabled_loadouts(nv, repo_root):
+    all_loadouts = json.loads((repo_root / "scripts/llm/loadouts.json").read_text())["loadouts"]
+    want = sorted(l["slug"] for l in all_loadouts if l.get("enabled") is True)
+    assert 0 < len(want) < len(all_loadouts)
+    result = nv.nvim_headless(
+        "lua local s={} for _,l in ipairs(require('chapters.models-inference').loadouts()) do s[#s+1]=l.slug end print('slugs='..table.concat(s,','))")
+    assert result.returncode == 0
+    got = [ln.split("=", 1)[1] for ln in result.output.splitlines() if ln.startswith("slugs=")][0]
+    assert sorted(got.split(",")) == want
+
+
+def test_neovim_dashboard_comfyui_port_chain_names_service_or_environments_source(nv, repo_root, monkeypatch):
+    monkeypatch.setenv("COMFYUI_PORT", "")
+    host = re.search(r'COMFY_HOST_IP:\s*"([^"]+)"', (repo_root / "environments/mentolder.yaml").read_text()).group(1)
+    result = nv.nvim_headless(
+        "lua local m=require('chapters.comfyui-images') local p,s=m.port_source() print('port='..p..' src='..s..' host='..tostring(m.remote_host()))")
+    assert result.returncode == 0
+    assert "port=8189" in result.output
+    assert "service" in result.output or "environments" in result.output
+    assert f"host={host}" in result.output
+
+
+def test_neovim_dashboard_infra_nodes_lazygit_lists_nine_actions_in_order(nv):
+    result = nv.nvim_headless(
+        "lua print('infra='..table.concat(require('chapters.infrastructure').actions(),','))")
+    assert result.returncode == 0
+    assert "infra=cluster-status,nodes,pods,services,pod-logs,lazygit,kubectl-split,context-select,setup-checklist" in result.output
+
+
+def test_neovim_dashboard_tests_bats_runner_recognizes_bats_files(nv):
+    result = nv.nvim_headless(
+        "lua local r=require('chapters.tests-plans').runner_for('x.bats') print('type='..r.type..' cmd='..r.cmd()[1])")
+    assert result.returncode == 0
+    assert "type=bats cmd=bats" in result.output
+
+
+def test_neovim_dashboard_tests_skill_dirs_browser_lists_all_three_origins(nv):
+    fix = nv.tmp / "skill-dirs"
+    for d in (".agents/skills", ".claude/skills", ".opencode/skills"):
+        (fix / d / "demo").mkdir(parents=True)
+        (fix / d / "demo/SKILL.md").touch()
+    result = nv.nvim_headless(
+        f"lua local c={{}} vim.ui.select=function(i) c=i end require('chapters.tests-plans').skill_browser('/tmp','{fix}') print('skills='..table.concat(c,','))")
+    assert result.returncode == 0
+    assert "skills=.agents/skills: demo,.claude/skills: demo,.opencode/skills: demo" in result.output
+
+
+def test_neovim_dashboard_ml_zones_lists_repo_and_box_zones(nv, repo_root):
+    want = [z for z in ("ml", ".agents/training", "scripts/finetune") if (repo_root / z).is_dir()]
+    if (Path.home() / "unsloth-boxes").is_dir():
+        want.append("~/unsloth-boxes")
+    assert len(want) >= 3
+    result = nv.nvim_headless(
+        "lua print('zones='..table.concat(require('chapters.ml-training').zones(),','))")
+    assert result.returncode == 0
+    assert f"zones={','.join(want)}" in result.output
+
+
+def test_neovim_dashboard_mcp_probes_report_transport_results(nv):
+    result = nv.nvim_headless(
+        "lua local m=require('chapters.mcp-servers') for _,r in ipairs(m.server_records()) do print(r.name..'|'..(r.transport or '?')..'|'..m.probe(r)) end")
+    assert result.returncode == 0
+    rows = [ln for ln in result.output.splitlines() if "|stdio|" in ln or "|http|" in ln]
+    assert any("|stdio|" in ln for ln in rows) and any("|http|" in ln for ln in rows)
+    assert rows and all(ln.split("|", 2)[2].strip() for ln in rows)
+
+
+def test_neovim_dashboard_settings_recovery_pattern_finds_both_backup_kinds(nv):
+    tag = f"p8-{os.getpid()}"
+    legacy, live = Path(f"/tmp/opencode/nvim-backup-{tag}"), Path(f"/tmp/nvim-live-backup-{tag}")
+    for d in (legacy, live):
+        d.mkdir(parents=True, exist_ok=True)
+    try:
+        result = nv.nvim_headless(
+            "lua for _,p in ipairs(require('chapters.settings-help').backups()) do print('bk='..p) end")
+        assert result.returncode == 0
+        assert f"bk={legacy}" in result.output and f"bk={live}" in result.output
+    finally:
+        for d in (legacy, live):
+            d.rmdir()

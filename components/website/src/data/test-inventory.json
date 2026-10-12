@@ -3102,6 +3102,12 @@
     "kind": "pytest"
   },
   {
+    "id": "ci_cd_specs/commit_vs_diff_scope",
+    "file": "tests/py/spec/ci_cd_specs/test_commit_vs_diff_scope.py",
+    "category": "ci_cd_specs",
+    "kind": "pytest"
+  },
+  {
     "id": "coaching-sessions-polish-guide",
     "file": "tests/py/spec/native_ported/spec/test_coaching_sessions_polish_guide.py",
     "category": "coaching-sessions-polish-guide",
@@ -3951,6 +3957,12 @@
     "id": "image-drift",
     "file": "tests/py/spec/remaining_domain_specs/test_image_drift.py",
     "category": "image-drift",
+    "kind": "pytest"
+  },
+  {
+    "id": "k3d_netpol_cidrs",
+    "file": "tests/py/spec/test_k3d_netpol_cidrs.py",
+    "category": "k3d_netpol_cidrs",
     "kind": "pytest"
   },
   {
@@ -4812,6 +4824,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/flux-render-security/envsubst_whitelist",
+    "file": "tests/py/spec/native_ported/spec/flux-render-security/test_envsubst_whitelist.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/local-llm-proxy/devflow_backend",
     "file": "tests/py/spec/native_ported/spec/local-llm-proxy/test_devflow_backend.py",
     "category": "native_ported",
@@ -4838,6 +4856,12 @@
   {
     "id": "native_ported/spec/pocket_id_client_seed_secret_endpoint",
     "file": "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_secret_endpoint.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/sdlc_throughput",
+    "file": "tests/py/spec/native_ported/spec/test_sdlc_throughput.py",
     "category": "native_ported",
     "kind": "pytest"
   },
@@ -5832,6 +5856,12 @@
     "kind": "pytest"
   },
   {
+    "id": "ticket-system/assert_phase_order",
+    "file": "tests/py/spec/ticket-system/test_assert_phase_order.py",
+    "category": "ticket-system",
+    "kind": "pytest"
+  },
+  {
     "id": "ticket-system/backfill-id-sequence",
     "file": "tests/py/spec/native_ported/spec/ticket-system/test_backfill_id_sequence.py",
     "category": "ticket-system",
@@ -6117,6 +6147,12 @@
     "id": "website-core/web-audit",
     "file": "tests/py/spec/native_ported/spec/website-core/test_web_audit.py",
     "category": "website-core",
+    "kind": "pytest"
+  },
+  {
+    "id": "website-migrate/portforward_runner",
+    "file": "tests/py/spec/website-migrate/test_portforward_runner.py",
+    "category": "website-migrate",
     "kind": "pytest"
   },
   {

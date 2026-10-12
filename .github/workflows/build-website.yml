@@ -177,6 +177,10 @@ jobs:
           WEBSITE_DB_USER: website_massage
           TLS_SECRET_NAME: korczewski-tls
           SYSTEMTEST_LOOP_ENABLED: "true"
+          # T901777: Cluster-CIDRs fuer die NetworkPolicies in k3d/website.yaml
+          # (Fleet-Cluster = k3s-Defaults; vgl. environments/fleet-korczewski.yaml).
+          POD_CIDR: "10.42.0.0/16"
+          SERVICE_CIDR: "10.43.0.0/16"
           COMFY_HOST_IP: "10.13.14.10"
           COMFY_PORT: "8189"
           RIGGER_PORT: "8190"
@@ -205,11 +209,13 @@ jobs:
           POCKET_ID_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
           REACT_APP_ORIGIN="https://react.${PROD_DOMAIN}"
           RIGGER_HOST_IP="${COMFY_HOST_IP}"
+          # T901777: flannel-VTEP = Basisadresse von POD_CIDR (muss gesetzt sein, sonst bricht der MISSING-Check unten ab).
+          POD_VTEP_IP="${POD_VTEP_IP:-${POD_CIDR%%/*}}"
           case "${PRIMARY_FRONTEND}" in
             react) WEBSITE_PRIMARY_SERVICE="mentolder-web" ;;
             *)     WEBSITE_PRIMARY_SERVICE="website" ;;
           esac
-          export WEBSITE_HOST WEBSITE_SITE_URL POCKET_ID_FRONTEND_URL REACT_APP_ORIGIN RIGGER_HOST_IP WEBSITE_PRIMARY_SERVICE
+          export WEBSITE_HOST WEBSITE_SITE_URL POCKET_ID_FRONTEND_URL REACT_APP_ORIGIN RIGGER_HOST_IP WEBSITE_PRIMARY_SERVICE POD_VTEP_IP
 
           # Apply full website overlay (ConfigMap + networking + Deployment with :latest).
           # The sed step adds YAML string quotes around unquoted ${VAR} placeholders so

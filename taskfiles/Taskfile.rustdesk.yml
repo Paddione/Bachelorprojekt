@@ -16,15 +16,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3"
 
-vars:
-  # Informativ — der Kontext ist fest `fleet`; ENV wählt nur das Env-File,
-  # aus dem ${TURN_NODE} (Node-Pinning der Relay-Ports) stammt.
-  ENV: '{{.ENV | default "mentolder"}}'
-
 tasks:
 
   deploy:
     desc: "Full bring-up of the rustdesk relay stack on fleet (render pipeline like fleet:shared-services) + sleeper job. Usage: task rustdesk:deploy [ENV=mentolder]"
+    # ENV wählt nur das Env-File, aus dem ${TURN_NODE} (Node-Pinning der
+    # Relay-Ports) stammt; der Kontext ist fest `fleet`.
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     preconditions:
       - sh: kubectl --context fleet cluster-info --request-timeout=5s > /dev/null 2>&1
         msg: "fleet cluster not reachable."

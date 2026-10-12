@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "slug": "repohealth-live-db",
+    "ticket_id": "",
+    "generated_from": "main@74ab5dc99",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/migrations/2026-10-12-quality-schema-T016507.sql",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/sdlc/seed-quality-goals.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/sdlc/health-goals-daemon.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/goals-data-db.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/health-goals.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "language": "svelte",
+      "loc": 607,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 493
+    },
+    {
+      "path": "tests/py/spec/health-goals/test_quality_db_schema.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:32:  function toggleSelected(id: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "32:  function toggleSelected(id: string) {(...)",
+      "type_text": "32:  function toggleSelected(id: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:41:  function clearSelection() {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "41:  function clearSelection() {(...)",
+      "type_text": "41:  function clearSelection() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:98:  function outcomeLabel(o: TicketOutcome): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "98:  function outcomeLabel(o: TicketOutcome): string {(...)",
+      "type_text": "98:  function outcomeLabel(o: TicketOutcome): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:104:  function driftLabel(r: ScanResult, goal: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "104:  function driftLabel(r: ScanResult, goal: HealthGoal): string {(...)",
+      "type_text": "104:  function driftLabel(r: ScanResult, goal: HealthGoal): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:112:  function toggle(id: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "112:  function toggle(id: string) {(...)",
+      "type_text": "112:  function toggle(id: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:116:  function statusColor(g: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "116:  function statusColor(g: HealthGoal): string {(...)",
+      "type_text": "116:  function statusColor(g: HealthGoal): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:126:  function statusLabel(g: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "126:  function statusLabel(g: HealthGoal): string {(...)",
+      "type_text": "126:  function statusLabel(g: HealthGoal): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:136:  function barColor(pct: number | null): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "136:  function barColor(pct: number | null): string {(...)",
+      "type_text": "136:  function barColor(pct: number | null): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:144:  function formatValue(g: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "144:  function formatValue(g: HealthGoal): string {(...)",
+      "type_text": "144:  function formatValue(g: HealthGoal): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:149:  function formatTarget(g: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "149:  function formatTarget(g: HealthGoal): string {(...)",
+      "type_text": "149:  function formatTarget(g: HealthGoal): string {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

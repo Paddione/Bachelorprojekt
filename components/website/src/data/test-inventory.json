@@ -6114,6 +6114,12 @@
     "kind": "pytest"
   },
   {
+    "id": "videovault/picker_depth_guard",
+    "file": "tests/py/spec/videovault/test_picker_depth_guard.py",
+    "category": "videovault",
+    "kind": "pytest"
+  },
+  {
     "id": "warden-mcp/config-guards",
     "file": "tests/py/spec/native_ported/spec/warden-mcp/test_config_guards.py",
     "category": "warden-mcp",

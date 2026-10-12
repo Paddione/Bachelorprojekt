@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1321,
+      "file_count": 1322,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1094,6 +1094,7 @@
         "tests/py/spec/test_llm_proxy_embed_mitte.py",
         "tests/py/spec/test_pocket_id_client_seed.py",
         "tests/py/spec/ticket-system/test_assert_phase_order.py",
+        "tests/py/spec/videovault/test_picker_depth_guard.py",
         "tests/py/spec/website-migrate/test_portforward_runner.py",
         "tests/py/unit/ported/scripts/test_software_history_classify.py",
         "tests/py/unit/ported/scripts/test_stage_plan.py",

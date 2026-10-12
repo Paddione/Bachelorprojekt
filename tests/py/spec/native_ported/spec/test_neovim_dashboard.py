@@ -333,6 +333,13 @@ class _Nvim:
         self.stage.mkdir(parents=True, exist_ok=True)
         if config_src.is_dir():
             shutil.copytree(config_src, self.stage, dirs_exist_ok=True)
+        (self.xdg_data / "nvim").mkdir(parents=True, exist_ok=True)
+        shared_lazy = Path.home() / ".local/share/nvim/lazy"
+        if shared_lazy.is_dir() and not (self.xdg_data / "nvim/lazy").exists():
+            try:
+                os.symlink(shared_lazy, self.xdg_data / "nvim/lazy")
+            except OSError:
+                pass
         self.probes = tmp_path / "probes"
         self.probes.mkdir(parents=True, exist_ok=True)
 
@@ -352,6 +359,15 @@ class _Nvim:
             args += ["-c", part]
         args += ["-c", "qa!"]
         return self.run_cmd(args, env=self.env)
+
+    def nvim_live(self, *cmd_parts, cwd=None, env=None):
+        """nvim --headless -u STAGE/init.lua -c ... -c "qa!" 2>&1 with full real config."""
+        init_file = self.stage / "init.lua"
+        args = ["nvim", "--headless", "-u", str(init_file)]
+        for part in cmd_parts:
+            args += ["-c", part]
+        args += ["-c", "qa!"]
+        return self.run_cmd(args, env={**self.env, **(env or {})}, cwd=cwd)
 
 
 def _out(path: Path) -> str:
@@ -794,3 +810,58 @@ def test_neovim_dashboard_settings_recovery_pattern_finds_both_backup_kinds(nv):
     finally:
         for d in (legacy, live):
             d.rmdir()
+
+
+# ── Live Integration & Runtime Behavior ──────────────────────────────
+
+
+def test_neovim_live_startup_loads_without_errors(nv):
+    """Full init.lua loads plugins and starts up cleanly without Lua exceptions."""
+    result = nv.nvim_live("lua print('LIVE_STARTUP_OK')")
+    assert result.returncode == 0
+    assert "LIVE_STARTUP_OK" in result.output
+    assert "Error detected" not in result.output
+
+
+def test_neovim_live_dashboard_action_resolves_gitroot_from_cwd_without_spurious_warnings(nv, repo_root):
+    """Actions triggered from dashboard/unnamed buffer resolve the CWD repo root cleanly."""
+    out_file = nv.tmp / "dashboard_action_cwd.txt"
+    lua_code = (
+        f"lua local a = require('core.actions'); "
+        f"local act = a.new({{ name = 'pr-view', effect = function(c) "
+        f"local f = io.open('{out_file}', 'w'); f:write('CWD=' .. c); f:close() end }}); "
+        f"local c = a.resolve_cwd(act); "
+        f"if c then act.effect(c) end"
+    )
+    result = nv.nvim_live(lua_code, cwd=str(repo_root))
+    assert result.returncode == 0
+    assert out_file.exists()
+    assert f"CWD={repo_root}" == out_file.read_text().strip()
+    assert "gitroot: no project" not in result.output
+
+
+def test_neovim_live_checkhealth_verifies_plugin_setup(nv):
+    """Verify that core plugins like snacks and opencode are properly hooked up in checkhealth."""
+    out_file = nv.tmp / "checkhealth_output.txt"
+    lua_code = f"lua vim.cmd('checkhealth opencode snacks'); vim.cmd('w! {out_file}')"
+    result = nv.nvim_live(lua_code)
+    assert result.returncode == 0
+    content = out_file.read_text() if out_file.exists() else ""
+    assert "setup called" in content
+    assert "snacks.input enabled" in content
+    assert "snacks.picker enabled" in content
+
+
+def test_neovim_live_gitsigns_attaches_to_tracked_repo_file(nv, repo_root):
+    """Verify gitsigns attaches to open buffer in a git repo and exports git status."""
+    tracked_file = repo_root / "README.md"
+    out_file = nv.tmp / "gitsigns_status.txt"
+    lua_code = (
+        f"lua vim.wait(1000, function() return vim.b.gitsigns_status_dict ~= nil end); "
+        f"local root = vim.b.gitsigns_status_dict and vim.b.gitsigns_status_dict.root or 'NONE'; "
+        f"local f = io.open('{out_file}', 'w'); f:write(root); f:close()"
+    )
+    result = nv.nvim_live(f"edit {tracked_file}", lua_code, cwd=str(repo_root))
+    assert result.returncode == 0
+    assert out_file.exists()
+    assert out_file.read_text().strip() == str(repo_root)

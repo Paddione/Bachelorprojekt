@@ -1,6 +1,6 @@
-# T016529: Prod-only Kustomizations fuer den neuen gekko-fleet (Q16).
-# staging/dev/korczewski bleiben aussen vor (Ziel devmesh). Nach dem Merge
-# dieses Branches Quelle auf das OCI-Artefakt bzw. main umstellen.
+# T016529: Prod-only Kustomizations fuer den neuen gekko-fleet (Q16),
+# bezogen aus dem gerenderten OCI-Artefakt (task flux:render, CI).
+# staging/dev/korczewski bleiben aussen vor (Ziel devmesh).
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -11,9 +11,9 @@ spec:
   retryInterval: 2m
   timeout: 5m
   sourceRef:
-    kind: GitRepository
-    name: fleet-gekko-source
-  path: ./environments/sealed-secrets
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./sealed-secrets/mentolder
   prune: false
   wait: true
 ---
@@ -29,9 +29,9 @@ spec:
   dependsOn:
     - name: flux-sealed-secrets-mentolder
   sourceRef:
-    kind: GitRepository
-    name: fleet-gekko-source
-  path: ./prod-fleet/platform
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./platform
   prune: true
   wait: true
 ---
@@ -41,11 +41,6 @@ metadata:
   name: flux-mentolder
   namespace: flux-system
 spec:
-  # T016529: suspendiert bis der Branch gemergt ist und das CI-Render
-  # (task flux:render, OCI-Artefakt mit echten Digests + Whitelist-
-  # Substitution) die Workloads liefert. Direkt-Sync ab Git wuerde die
-  # Laufzeit-Variablen der eingebetteten Skripte mit substituieren.
-  suspend: true
   interval: 10m
   retryInterval: 2m
   timeout: 10m
@@ -53,13 +48,9 @@ spec:
     - name: flux-infra-controllers
     - name: flux-sealed-secrets-mentolder
   sourceRef:
-    kind: GitRepository
-    name: fleet-gekko-source
-  postBuild:
-    substituteFrom:
-      - kind: ConfigMap
-        name: flux-substitutes
-  path: ./prod-fleet/mentolder
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./mentolder
   prune: true
   wait: true
 ---
@@ -69,24 +60,15 @@ metadata:
   name: flux-website-mentolder
   namespace: flux-system
 spec:
-  # T016529: suspendiert bis der Branch gemergt ist und das CI-Render
-  # (task flux:render, OCI-Artefakt mit echten Digests + Whitelist-
-  # Substitution) die Workloads liefert. Direkt-Sync ab Git wuerde die
-  # Laufzeit-Variablen der eingebetteten Skripte mit substituieren.
-  suspend: true
   interval: 10m
   retryInterval: 2m
   timeout: 5m
   dependsOn:
     - name: flux-infra-controllers
   sourceRef:
-    kind: GitRepository
-    name: fleet-gekko-source
-  postBuild:
-    substituteFrom:
-      - kind: ConfigMap
-        name: flux-substitutes
-  path: ./prod-fleet/website-mentolder
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./website-mentolder
   prune: true
   wait: true
 ---
@@ -96,24 +78,15 @@ metadata:
   name: flux-mentolder-jobs
   namespace: flux-system
 spec:
-  # T016529: suspendiert bis der Branch gemergt ist und das CI-Render
-  # (task flux:render, OCI-Artefakt mit echten Digests + Whitelist-
-  # Substitution) die Workloads liefert. Direkt-Sync ab Git wuerde die
-  # Laufzeit-Variablen der eingebetteten Skripte mit substituieren.
-  suspend: true
   interval: 10m
   retryInterval: 5m
   timeout: 10m
   dependsOn:
     - name: flux-mentolder
   sourceRef:
-    kind: GitRepository
-    name: fleet-gekko-source
-  postBuild:
-    substituteFrom:
-      - kind: ConfigMap
-        name: flux-substitutes
-  path: ./prod-fleet/mentolder-jobs
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./mentolder-jobs
   prune: true
   force: true
   wait: false

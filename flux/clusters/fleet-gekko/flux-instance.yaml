@@ -19,9 +19,8 @@ spec:
   sync:
     kind: GitRepository
     url: https://github.com/Paddione/Bachelorprojekt
-    # T016529 UEBERGANG: bis zum Merge dieses Branches sync die kuratierte
-    # Prod-only-Auswahl aus dem Feature-Branch. Nach dem Merge auf
-    # refs/heads/main umstellen (Folge-Commit, siehe Ticket T016529).
+    # T016529: kuratierte Prod-only-Auswahl (Q16) aus main. Die Workload-
+    # Kustomizations beziehen das gerenderte OCI-Artefakt (fleet-manifests).
     ref: refs/heads/main
     path: flux/clusters/fleet-gekko
     interval: 10m

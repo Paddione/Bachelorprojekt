@@ -59,17 +59,18 @@ Ermittle daraus:
 
 | Geänderte Dateien | Live-URL | Playwright project |
 |---|---|---|
-| `components/website/src/**` | `https://web.mentolder.de` | `website` |
+| `components/website/src/**` (öffentlich) | `https://web.mentolder.de` | `website` |
+| `components/website/src/**` (authentifiziert) | `https://web.mentolder.de` | `mentolder` (nutzt `.auth/mentolder-website-admin.json`) |
 | `components/brett/**` | `https://brett.mentolder.de` | `services`, `brett-mentolder` |
 | `fleet/nextcloud*.yaml` | `https://files.mentolder.de` | `services` |
 | korczewski-spezifisch (fleet cluster) | `https://web.korczewski.de` | `korczewski` *(deaktiviert / frozen per T002602)* |
 | Übergreifender Smoke-Test | — | `smoke` |
-| System-Test (DB, Config, API) | — | `systemtest` |
-| Unit-Tests | — | `unit` |
 | Mobile/Responsive | — | `ios`, `android` |
 
+> Pure-Function Unit-Tests laufen über Vitest (`npx vitest run`), nicht über Playwright.
+
 ```bash
-# Live-URL für spätere Schritte festlegen
+# Live-URL für spätere Schritte festlegen (Default in configs ist http://localhost:4321)
 BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 ```
 
@@ -93,8 +94,9 @@ Verschaffe dir ein vollständiges Bild der implementierten Funktion: welche Seit
 # HTTP-Erreichbarkeit & Headers prüfen
 curl -sI "$BASE_URL/<pfad>"
 
-# Falls nötig HTML-Struktur / Selektoren sichten
+# Falls nötig HTML-Struktur / Selektoren sichten (data-testid, semantische Rollen)
 curl -sL "$BASE_URL/<pfad>" | head -n 50
+curl -sL "$BASE_URL/<pfad>" | grep -iE 'data-testid|role=|aria-label' | head -n 30
 ```
 
 ---
@@ -116,6 +118,11 @@ ls tests/e2e/specs/fa-[0-9]*.spec.ts | grep -oP 'fa-\K[0-9]+' | sort -n | tail -
 
 ### Test-Vorlage
 
+Implementierte Features erfordern echte Interaktionstests (Happy Path, Validierung, Zustandsänderungen) statt reiner URL-Gating-Checks. Folge den Locator- und Assertions-Mustern aus [`playwright-best-practices`](../playwright-best-practices/SKILL.md):
+- **Resistente Selektoren:** Nutzerorientierte Locators bevorzugen (`page.getByRole()`, `page.getByLabel()`, `page.getByTestId()`).
+- **Web-First Assertions:** Immer auto-retrying Assertions nutzen (`await expect(locator).toBeVisible()`).
+- **Keine harten Sleeps:** `page.waitForTimeout()` ist verboten; auf Web-Events oder Locator-Zustände warten.
+
 ```typescript
 import { test, expect } from '@playwright/test';
 
@@ -127,7 +134,21 @@ const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 //                  @booking @meeting @billing @messaging @brett @fragebogen @crm
 // Neue Feature-Tags können ergänzt werden (Branch-Mapping in e2e-pr.yml erweitern).
 test.describe('FA-<NN>: <Feature-Name>', { tag: ['@<feature-tag>'] }, () => {
-  test('T1: /<pfad> requires authentication', async ({ page }) => {
+  // Muster 1: Interaktives Feature-Verhalten (Happy Path & Benutzerinteraktion)
+  test('T1: <feature> performs intended action', async ({ page }) => {
+    await page.goto(`${BASE}/<pfad>`);
+
+    const submitBtn = page.getByRole('button', { name: /speichern|absenden/i });
+    await expect(submitBtn).toBeVisible();
+
+    await page.getByLabel('Titel').fill('Test-Eintrag');
+    await submitBtn.click();
+
+    await expect(page.getByText('Erfolgreich gespeichert')).toBeVisible();
+  });
+
+  // Muster 2: Auth-Gating & Absicherung
+  test('T2: /<pfad> requires authentication', async ({ page }) => {
     await page.goto(`${BASE}/<pfad>`);
     await expect(page).not.toHaveURL(`${BASE}/<pfad>`);
   });
@@ -141,7 +162,7 @@ test.describe('FA-<NN>: <Feature-Name>', { tag: ['@<feature-tag>'] }, () => {
 Trage die neue Datei in `tests/e2e/playwright.config.ts` ein falls nötig:
 
 ```typescript
-// Im passenden project-Block (z.B. 'website')
+// Im passenden project-Block (z.B. 'website' oder 'mentolder')
 testMatch: [
   '**/fa-<NN>-<slug>.spec.ts',
 ],
@@ -154,15 +175,21 @@ testMatch: [
 > **Wichtig — Setup-Details:**
 > - **Working directory:** alle Playwright-Aufrufe laufen aus `tests/e2e/` (dort liegen die Configs wie `playwright.config.ts`).
 > - **node_modules:** frische Worktrees haben kein `tests/e2e/node_modules` — deshalb `[[ -x ./node_modules/.bin/playwright ]] || npm ci` (siehe [T000245] in dev-flow-gotchas).
+> - **`WEBSITE_URL`:** Default in Configs ist `http://localhost:4321`. Bei Tests gegen Live zwingend `WEBSITE_URL="$BASE_URL"` mitgeben, sonst scheitern Tests an `net::ERR_CONNECTION_REFUSED`.
 > - **`SKIP_DB_PURGE=1`:** überspringt den Prod-DB-Purge im globalen Setup/Teardown (`tests/e2e/specs/global-db-cleanup.ts`) — nötig, wenn `CRON_SECRET` nicht gesetzt ist.
 > - **Playwright-Projekt-Zuordnung:** siehe [dev-flow-gotchas #t000418](.agents/skills/references/dev-flow-gotchas.md#t000418) (Playwright Project Assignment).
 
 ```bash
-# E2E Tests ausführen
+# E2E Tests ausführen (Full Run)
 cd tests/e2e/ && [[ -x ./node_modules/.bin/playwright ]] || npm ci
 SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" ./node_modules/.bin/playwright test \
   specs/<neu>.spec.ts \
   --project "$PLAYWRIGHT_PROJECT"
+
+# Schneller PR-E2E-Lauf (nur relevante getaggte Tests, ohne DB-Purge):
+WEBSITE_URL="$BASE_URL" ./node_modules/.bin/playwright test \
+  --config playwright.pr.config.ts \
+  --grep "@<feature-tag>|@smoke"
 ```
 
 ---

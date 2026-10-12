@@ -513,6 +513,19 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/health-goals",
+      "file": "health-goals.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/health-goals/rescan",
       "file": "health-goals/rescan.ts",
       "methods": [

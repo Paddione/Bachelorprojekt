@@ -38,7 +38,10 @@ Config-Aenderungen einen Rollout ausloesen).
 4. `Service adguard-dns`: `type: LoadBalancer`, Ports 53/UDP und 53/TCP,
    `externalTrafficPolicy: Local` NICHT setzen (ServiceLB leitet von jedem
    Node an eine gesunde Replica weiter).
-5. `Service adguard-ui`: `ClusterIP`, Port 3000. Kein Ingress.
+5. Auf `adguard-dns` zusaetzlich die Operator-Annotationen
+   `tailscale.com/expose: "true"`, `tailscale.com/hostname: lan-dns`,
+   `tailscale.com/tags: tag:lan-dns` (L3-Ingress, leitet UDP und TCP 53 weiter).
+6. `Service adguard-ui`: `ClusterIP`, Port 3000. Kein Ingress.
 
 ## Task 3 — AdGuardHome.yaml
 
@@ -47,8 +50,11 @@ Minimalkonfiguration mit `schema_version` passend zu v0.107.79:
 `dns.port: 53`, `upstream_dns` und `bootstrap_dns` nur IP-Literale
 (`tls://9.9.9.9`, `tls://149.112.112.112`, `https://1.1.1.1/dns-query`;
 Bootstrap `9.9.9.10`, `1.1.1.1`), `upstream_mode: parallel`, Standard-Filterliste
-AdGuard DNS filter. Lokale Namen (`fritz.box`, PTR fuer 10.0.0.0/8) per
-`private_networks`/`local_ptr_upstreams` an `10.0.0.1`
+AdGuard DNS filter. Zusaetzlich: `ratelimit: 0`, `enable_dnssec: true`,
+`cache_size: 4194304`, `cache_optimistic: true`, `refuse_any: true`,
+`edns_client_subnet.enabled: false`. Lokale Namen per Upstream-Regel
+`[/fritz.box/home/]10.0.0.1` und `local_ptr_upstreams: [10.0.0.1]`,
+`use_private_ptr_resolvers: true`
 (die Fritzbox kennt ihre DHCP-Namen; keine Schleife, weil die Fritzbox
 lokale Namen selbst beantwortet).
 Vor dem Commit Schemaversion gegen einen lokalen Lauf des Images pruefen

@@ -2,7 +2,7 @@
   "meta": {
     "slug": "lan-dns-adguard",
     "ticket_id": "",
-    "generated_from": "main@8814a9f30",
+    "generated_from": "main@996368ae7",
     "domains": [
       "plan-authoring",
       "dev-tooling",
@@ -41,6 +41,22 @@
       "s1_budget": null
     },
     {
+      "path": "devmesh/inventory.yaml",
+      "language": "config",
+      "loc": 79,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/tailnet-policy.hujson",
+      "language": "text",
+      "loc": 30,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "docs/runbooks/devmesh-lan-dns.md",
       "language": "markdown",
       "loc": 0,
@@ -65,6 +81,14 @@
       "s1_budget": null
     },
     {
+      "path": "scripts/devmesh/tailnet-subnet-routes.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "taskfiles/Taskfile.devmesh.yml",
       "language": "config",
       "loc": 142,
@@ -79,6 +103,14 @@
       "s1_limit": 800,
       "s1_baseline": null,
       "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py",
+      "language": "python",
+      "loc": 94,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 706
     }
   ],
   "symbols": [

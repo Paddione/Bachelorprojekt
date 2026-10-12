@@ -36,6 +36,7 @@ Im UFW-Block fuer alle Rollen zwei Zeilen fuer Port 53 (udp, tcp) aus
   `bash scripts/devmesh/lan-dns-firewall.sh`, dann
   `kubectl --context devmesh apply -k dev-local/lan-dns`,
   `rollout status deploy/adguard -n lan-dns --timeout=180s`.
+- `tailnet:routes`: ruft `bash scripts/devmesh/tailnet-subnet-routes.sh` (Skript aus p5).
 - `dns:check`: fuer jede `lan_ip` der k3s-Server `dig +time=3 +tries=1
   @<ip> <testname>` und Ausgabe ok/FEHLT je IP; Exit 1, wenn eine IP nicht
   antwortet, 2 wenn `dig` fehlt. Testname per `NAME=` (Default `quad9.net`).

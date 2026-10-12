@@ -33,7 +33,14 @@ Abschnitte:
 6. Rueckweg: Fritzbox auf "DNSv4-Server des Internetanbieters".
 7. Web-UI per `kubectl -n lan-dns port-forward svc/adguard-ui 3000`;
    Aenderungen dort sind fluechtig, Quelle ist `dev-local/lan-dns/AdGuardHome.yaml`.
-8. Optional IPv6 (DNSv6) und Abbau des Pi-AdGuard nach Cutover.
+8. Tailnet-Umstellung (Admin-Konsole -> DNS): Policy aus
+   `devmesh/tailnet-policy.hujson` einspielen, `lan-dns` als ersten globalen
+   Nameserver, `9.9.9.9` als zweiten, Split-Routen `fritz.box`/`home` -> 10.0.0.2
+   entfernen. Pruefung: `tailscale dns status`, Aufloesung von `gpu-metal.fritz.box`
+   von einem Tailnet-Geraet ausserhalb des LANs. Ausfalltest wie bei der Fritzbox.
+9. Subnet-Route: `task devmesh:tailnet:routes`, in `tailscale status` mehrere
+   Router fuer 10.0.0.0/24; Pi kurz vom Netz, Fritzbox per Tailnet erreichbar.
+10. Optional IPv6 (DNSv6) und Abbau des Pi-AdGuard nach Cutover.
 
 Akzeptanzkriterien:
 

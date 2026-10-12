@@ -1,0 +1,11 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: fleet-gekko-source
+  namespace: flux-system
+spec:
+  interval: 5m
+  url: https://github.com/Paddione/Bachelorprojekt
+  ref:
+    # T016529 UEBERGANG wie in flux-instance.yaml: nach Merge auf main.
+    branch: feature/fleet-gekko-ohne-wg-T016529

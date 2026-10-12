@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.415.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.2...website-v1.415.3) (2026-10-12)
+
+
+### Bug Fixes
+
+* **website:** drop express v5 star wildcards, restore VideoVault boot [T901951] ([#6554](https://github.com/Paddione/Bachelorprojekt/issues/6554)) ([fa2779f](https://github.com/Paddione/Bachelorprojekt/commit/fa2779f2ae9c9c2ee188115688d5e3b2c02a30d8))
+
 ## [1.415.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.1...website-v1.415.2) (2026-10-12)
 
 

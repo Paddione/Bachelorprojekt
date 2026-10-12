@@ -8,7 +8,7 @@
 # ist eingefroren. Derselbe Wert steht in scripts/ticket.sh (dort wird er vor
 # dem Sourcen dieser Datei fuer die Namespace-Ableitung gebraucht) — beide
 # Stellen zusammen aendern.
-: "${CTX:=${TICKET_CTX:-fleet}}"
+: "${CTX:=${TICKET_CTX:-devmesh}}"
 : "${DB:=website}"
 USER="website"
 

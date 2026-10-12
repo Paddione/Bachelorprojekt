@@ -22,6 +22,10 @@ SELECT setval(
       SELECT COALESCE(MAX((substring(external_id FROM 2))::bigint), 0)
       FROM tickets.tickets
       WHERE external_id ~ '^T[0-9]+$'
+        AND CASE
+          WHEN (SELECT last_value FROM tickets.external_id_seq) >= 900000 THEN TRUE
+          ELSE (substring(external_id FROM 2))::bigint < 900000
+        END
     )
   )
 ) AS repaired_value;

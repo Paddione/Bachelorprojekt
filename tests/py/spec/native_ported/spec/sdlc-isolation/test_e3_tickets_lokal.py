@@ -39,7 +39,7 @@ def test_e3_t002689_korczewski_loest_auf_denselben_sdlc_namespace_auf_wie_mentol
     assert res.output == "NS=workspace"
 
 
-def test_t900013_ohne_ticket_ctx_adressiert_der_ticket_pfad_den_fleet_cluster(run_cmd, repo_root, tmp_path):
+def test_t900013_ohne_ticket_ctx_adressiert_der_ticket_pfad_den_devmesh_cluster(run_cmd, repo_root, tmp_path):
     stubdir = tmp_path / "bin"
     stubdir.mkdir()
     stub = stubdir / "kubectl"
@@ -77,8 +77,8 @@ def test_t900013_ohne_ticket_ctx_adressiert_der_ticket_pfad_den_fleet_cluster(ru
     log = kubectl_log.read_text(encoding="utf-8")
     # Positive anchor first: the resolution path was entered at all.
     assert log.strip(), f"kubectl stub not called (exit {res.returncode}): {res.output}"
-    assert "CONTEXT=fleet" in log
-    assert log.count("CONTEXT=devmesh") == 0
+    assert "CONTEXT=devmesh" in log
+    assert log.count("CONTEXT=fleet") == 0
 
 
 def test_t900013_ein_expliziter_ticket_ctx_ueberschreibt_den_fleet_default(run_cmd, repo_root):

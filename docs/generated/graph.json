@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T01:43:33.464Z",
+  "generatedAt": "2026-10-09T22:30:14.442Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -13183,6 +13183,18 @@
       "from": "website",
       "to": "shared-db-dev",
       "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:dev-oidc-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
+      "to": "brett",
+      "via": "secret:dev-oidc-secrets",
       "kind": "secret"
     },
     {

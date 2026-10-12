@@ -17,6 +17,15 @@ import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
+# Paging contract (CLI 0.11.0): query_graph defaults to 200 visible rows plus
+# a small output-token budget, and both truncate silently from the caller's
+# view (total:/has_more:/next_cursor: stay in the envelope). Every fetch
+# helper must exhaust pages via snapshot cursor — a single page is never
+# the corpus.
+PAGE_ROWS = 2000
+PAGE_TOKENS = 100000
+MAX_PAGES = 1000
+
 
 class SyncError(Exception):
     """Raised on any fail-closed condition — CLI maps it to exit 1."""
@@ -129,24 +138,59 @@ def graph_rows(text, ncols):
     return rows
 
 
+def parse_page_meta(text):
+    """(has_more, next_cursor) from a query_graph tree envelope. A missing
+    has_more fails closed as None — callers treat unknown as an error."""
+    has_more, cursor = None, None
+    if not isinstance(text, str):
+        return None, None
+    for line in text.splitlines():
+        if line.startswith("has_more:"):
+            has_more = line.split(":", 1)[1].strip().lower() == "true"
+        elif line.startswith("next_cursor:"):
+            cursor = line.split(":", 1)[1].strip() or None
+    return has_more, cursor
+
+
+def paged_query_rows(project, timeout, query, ncols):
+    """Exhaust every snapshot page; fail closed on unknown truncation or
+    stalled progress. Returns concatenated graph_rows across pages."""
+    rows_all = []
+    cursor = None
+    for _ in range(MAX_PAGES):
+        cmd = ["codebase-memory-mcp", "cli", "--json", "query_graph",
+               "--project", project, "--query", query,
+               "--max-rows", str(PAGE_ROWS),
+               "--max-output-tokens", str(PAGE_TOKENS)]
+        if cursor:
+            cmd += ["--cursor", cursor]
+        data = run_cli_json(cmd, timeout)
+        text = envelope_text(data) or ""
+        page_rows = graph_rows(text, ncols)
+        rows_all.extend(page_rows)
+        has_more, cursor = parse_page_meta(text)
+        if has_more is None:
+            raise SyncError("cli-page-meta-missing")
+        if has_more and not page_rows:
+            raise SyncError("cli-page-no-progress")
+        if not has_more:
+            return rows_all
+        if not cursor:
+            raise SyncError("cli-page-cursor-missing")
+    raise SyncError("cli-page-limit:%d" % MAX_PAGES)
+
+
 def fetch_route_rows(project, timeout):
-    data = run_cli_json(["codebase-memory-mcp", "cli", "--json", "query_graph",
-                         "--project", project, "--query", ROUTE_QUERY], timeout)
-    return graph_rows(envelope_text(data) or "", 2)
+    return paged_query_rows(project, timeout, ROUTE_QUERY, 2)
 
 
 def fetch_function_rows(project, timeout):
-    data = run_cli_json(["codebase-memory-mcp", "cli", "--json", "query_graph",
-                         "--project", project, "--query", FUNCTION_QUERY],
-                        timeout)
-    rows = graph_rows(envelope_text(data) or "", 3)
+    rows = paged_query_rows(project, timeout, FUNCTION_QUERY, 3)
     return [(q, p, d) for q, p, d in rows if d]
 
 
 def query_rows(project, timeout, query, ncols):
-    data = run_cli_json(["codebase-memory-mcp", "cli", "--json", "query_graph",
-                         "--project", project, "--query", query], timeout)
-    return graph_rows(envelope_text(data) or "", ncols)
+    return paged_query_rows(project, timeout, query, ncols)
 
 
 def fetch_function_full_rows(project, timeout):

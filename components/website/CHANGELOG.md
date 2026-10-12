@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.415.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.10...website-v1.415.0) (2026-10-12)
+
+
+### Features
+
+* **scripts:** SDLC throughput dashboard + hold timestamps [T901790] ([#6546](https://github.com/Paddione/Bachelorprojekt/issues/6546)) ([d03cae2](https://github.com/Paddione/Bachelorprojekt/commit/d03cae24ec95013f6374a8ea7c0586892794aab3))
+
+
+### Bug Fixes
+
+* **infra:** prepare isolated Dev-Brett OIDC provisioning [T901678] ([#6475](https://github.com/Paddione/Bachelorprojekt/issues/6475)) ([9b6468c](https://github.com/Paddione/Bachelorprojekt/commit/9b6468cf29d0c4fe50d4f6e55693785bbc39171b))
+
 ## [1.414.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.9...website-v1.414.10) (2026-10-11)
 
 

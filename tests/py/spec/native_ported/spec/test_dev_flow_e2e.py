@@ -110,3 +110,22 @@ def test_dev_flow_e2e_contains_framework_mapping_section_for_claude_code_opencod
     _grep_ok(skill, "**Claude Code**", fixed=True)
     _grep_ok(skill, "**opencode**", fixed=True)
     _grep_ok(skill, "**agy**", fixed=True)
+
+
+# ── 7. Implemented Feature Testing & Locator Standards ────────────────────────
+
+def test_dev_flow_e2e_maps_authenticated_website_routes_to_mentolder_project(skill):
+    _grep_ok(skill, "mentolder", fixed=True)
+    _grep_ok(skill, ".auth/mentolder-website-admin.json", fixed=True)
+
+
+def test_dev_flow_e2e_references_playwright_best_practices_for_resilient_locators(skill):
+    _grep_ok(skill, "playwright-best-practices", fixed=True)
+    _grep_ok(skill, "getByRole", fixed=True)
+    _grep_ok(skill, "page.waitForTimeout", fixed=True)
+
+
+def test_dev_flow_e2e_documents_fast_pr_e2e_run_with_pr_config(skill):
+    _grep_ok(skill, "playwright.pr.config.ts", fixed=True)
+    _grep_ok(skill, r"--grep.*@smoke")
+

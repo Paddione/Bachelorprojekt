@@ -124,7 +124,10 @@ EOF
   fi
   if [[ "$hold" == "1" ]]; then
     _exec_sql_with_timeout "$pod" -v ext_id="$id" -- hold-flag <<'EOF'
-UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":false}'::jsonb
+UPDATE tickets.tickets
+   SET readiness = COALESCE(readiness,'{}'::jsonb)
+                 || '{"execution_released":false}'::jsonb
+                 || jsonb_build_object('execution_held_at', now()::text)
  WHERE external_id = :'ext_id';
 EOF
   fi

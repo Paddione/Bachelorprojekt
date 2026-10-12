@@ -75,7 +75,8 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
 
 
 def test_whisper_retains_fleet_placement(built_overlays: dict[str, Path]):
-    fleet_cps = {"pk-hetzner-4", "pk-hetzner-6", "pk-hetzner-8"}
+    # T016529: fleet-CPs sind die gekko-Server (pk hat fleet verlassen).
+    fleet_cps = {"gekko-hetzner-2", "gekko-hetzner-3", "gekko-hetzner-4"}
     out_file = built_overlays["prod-fleet/mentolder"]
     docs = list(yaml.safe_load_all(out_file.read_text()))
 

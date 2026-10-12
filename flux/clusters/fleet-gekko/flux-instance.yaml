@@ -1,0 +1,27 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.x"
+    registry: "ghcr.io/fluxcd"
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    networkPolicy: true
+    size: medium
+  sync:
+    kind: GitRepository
+    url: https://github.com/Paddione/Bachelorprojekt
+    # T016529 UEBERGANG: bis zum Merge dieses Branches sync die kuratierte
+    # Prod-only-Auswahl aus dem Feature-Branch. Nach dem Merge auf
+    # refs/heads/main umstellen (Folge-Commit, siehe Ticket T016529).
+    ref: refs/heads/main
+    path: flux/clusters/fleet-gekko
+    interval: 10m

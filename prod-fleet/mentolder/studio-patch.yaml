@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # Coaching Studio — prod overlay for mentolder brand on the fleet
 # cluster. Pins image-digest, prod-issuer, prod TLS, and node-affinity
-# for fleet pk nodes. (T001002)
+# for the gekko fleet nodes. (T001002)
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
@@ -21,7 +21,7 @@ spec:
               - matchExpressions:
                   - key: kubernetes.io/hostname
                     operator: In
-                    values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
+                    values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4]
       containers:
         - name: studio-server
           image: ${STUDIO_IMAGE}@${STUDIO_IMAGE_DIGEST}

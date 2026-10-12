@@ -39,7 +39,8 @@ def test_traefik_values(repo_root: Path):
         .get("matchExpressions", [{}])[0]
         .get("values", [])
     )
-    assert sorted(affinity) == ["pk-hetzner-4", "pk-hetzner-6", "pk-hetzner-8"]
+    # T016529: Traefik laeuft auf den gekko-Servern (pk hat fleet verlassen).
+    assert sorted(affinity) == ["gekko-hetzner-2", "gekko-hetzner-3", "gekko-hetzner-4"]
 
     # cloud-init
     cloud_init = (repo_root / "prod" / "cloud-init.yaml").read_text()

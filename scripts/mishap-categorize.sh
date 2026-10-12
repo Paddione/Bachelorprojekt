@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
-CTX="${TICKET_CTX:-fleet}"
+CTX="${TICKET_CTX:-devmesh}"
 NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"

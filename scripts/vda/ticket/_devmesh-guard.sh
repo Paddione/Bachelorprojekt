@@ -54,11 +54,8 @@ devmesh_sql_is_write() {
 }
 
 devmesh_refuse_write() {
-  local ctx="${1:-}"
-  devmesh_ctx_is_target "$ctx" || return 0
-  echo "ERROR [T900118] Ticket-Write gegen devmesh verweigert (Context '$ctx') — fuehrende Ticket-DB ist fleet." >&2
-  echo "  devmesh traegt nur Entwicklungsdaten. Writes mit TICKET_CTX=fleet bzw. WORKSPACE_CTX=fleet ausfuehren." >&2
-  return 3
+  # E3: devmesh ist jetzt fuehrende Ticket-DB. Writes gegen devmesh sind erlaubt.
+  return 0
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

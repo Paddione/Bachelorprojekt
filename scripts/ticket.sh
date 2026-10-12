@@ -52,7 +52,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-help.sh"
 # scripts/ticket-attach.sh und scripts/vda/ticket/readiness-audit.sh.
 # Alle sechs Stellen zusammen aendern — der frueher hier stehende Hinweis nannte
 # nur zwei, die uebrigen vier sind seither unbemerkt dazugekommen.
-CTX="${TICKET_CTX:-fleet}"
+CTX="${TICKET_CTX:-devmesh}"
 NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"

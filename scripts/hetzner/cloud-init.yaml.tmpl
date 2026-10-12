@@ -1,64 +1,66 @@
 #cloud-config
-# Hetzner worker node bootstrap — rendered by scripts/hetzner/render-cloud-init.sh
-# Variables: NODE_IP, K3S_VERSION, K3S_URL, K3S_TOKEN, SSH_PUBLIC_KEY, WG_CONF_B64
+# Hetzner AGENT (worker) bootstrap — fleet auf gekko, auf gekko (T016529, D1)
+# Rendered by: scripts/hetzner/render-cloud-init.sh
+#
+# Der fleet-Cluster besteht aus drei Servern mit embedded etcd (D2); dieses
+# Agent-Template bleibt fuer einen spaeteren Worker-Join bestehen. Netz wie
+# bei den Servern: node-ip aus dem privaten Netz (192.168.200.x), Flannel
+# ueber das private Interface, Admin ueber Tailscale
+# (fleet-Tag, Key-Ablauf in der Admin-Konsole deaktiviert), oeffentlich
+# nur 80/443.
+#
+# Variables: NODE_NAME, NODE_IP (privat), NODE_PUBLIC_IP, PRIVATE_IFACE,
+#            PRIVATE_SUBNET, TAILNET_NAME, TAILNET_IP, TAILSCALE_AUTH_KEY,
+#            K3S_VERSION, K3S_URL, K3S_TOKEN, SSH_PUBLIC_KEY
 
 package_update: true
 package_upgrade: false
 package_reboot_if_required: false
 
 packages:
-  - open-iscsi
-  - wireguard
   - ufw
   - curl
   - jq
   - apt-transport-https
 
+hostname: ${NODE_NAME}
+manage_etc_hosts: true
+
 ssh_authorized_keys:
   - ${SSH_PUBLIC_KEY}
 
 write_files:
-  # WireGuard config (base64-encoded to survive YAML embedding)
-  - path: /etc/wireguard/wg0.conf
-    encoding: b64
+  # Tailscale-Auth-Key ueber Datei uebergeben (nicht in der Prozessliste).
+  - path: /etc/tailscale/auth-key
     permissions: "0600"
-    content: ${WG_CONF_B64}
+    content: ${TAILSCALE_AUTH_KEY}
 
-  # k3s agent config — sets node IP and WireGuard interface for Flannel
+  # k3s agent config — private Node-IP, Flannel ueber das private Interface.
   - path: /etc/rancher/k3s/config.yaml
     content: |
+      node-name: "${NODE_NAME}"
       node-ip: "${NODE_IP}"
-      flannel-iface: "wg0"
+      flannel-iface: "${PRIVATE_IFACE}"
       node-label:
         - "node-role.kubernetes.io/worker=true"
 
 runcmd:
-  # iscsid — required by Longhorn for iSCSI volume attach
-  - systemctl enable iscsid
-  - systemctl start iscsid
+  # Tailscale installieren und mit fleet-Tag ins Tailnet bringen (Admin).
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --auth-key="file:/etc/tailscale/auth-key" --hostname="${NODE_NAME}" --advertise-tags=tag:fleet --ssh --accept-routes=false
 
-  # Firewall — default deny; allow management + cluster + LiveKit ports
+  # Firewall — default deny; oeffentlich nur 80/443, Rest privat/Tailnet.
   - ufw default deny incoming
   - ufw default allow outgoing
-  - ufw allow 22/tcp comment 'SSH'
   - ufw allow 80/tcp comment 'HTTP'
   - ufw allow 443/tcp comment 'HTTPS'
-  - ufw allow 6443/tcp comment 'k3s API'
-  - ufw allow 10250/tcp comment 'kubelet'
-  - ufw allow ${WG_LISTEN_PORT}/udp comment 'WireGuard mesh'
-  - ufw allow 8472/udp comment 'Flannel VXLAN'
-  - ufw allow 21115/tcp comment 'RustDesk hbbs NAT test'
-  - ufw allow 21116/tcp comment 'RustDesk hbbs ID/punch (TCP)'
-  - ufw allow 21116/udp comment 'RustDesk hbbs ID/heartbeat (UDP)'
-  - ufw allow 21117/tcp comment 'RustDesk hbbr relay'
-  - ufw allow from 10.20.0.0/16 to any port 21118,21119 proto tcp comment 'RustDesk web-client (hbbs/hbbr WS) — overlay only'
+  - ufw allow from ${PRIVATE_SUBNET} to any port 22 proto tcp comment 'SSH privat'
+  - ufw allow from ${PRIVATE_SUBNET} to any port 10250 proto tcp comment 'kubelet privat'
+  - ufw allow from ${PRIVATE_SUBNET} to any port 8472 proto udp comment 'Flannel VXLAN privat'
+  - ufw allow in on tailscale0 to any port 22 proto tcp comment 'SSH Tailnet'
   - ufw --force enable
 
-  # WireGuard — bring up mesh interface
-  - systemctl enable wg-quick@wg0
-  - systemctl start wg-quick@wg0
-
-  # k3s agent install — pinned version, joins cluster via WireGuard
+  # k3s agent install — pinned version, joins cluster via private CP address
   - >-
     INSTALL_K3S_VERSION="${K3S_VERSION}"
     K3S_URL="${K3S_URL}"
@@ -66,4 +68,4 @@ runcmd:
     curl -sfL https://get.k3s.io | sh -
 
 final_message: |
-  Worker node ${NODE_IP} bootstrapped. k3s agent registered against ${K3S_URL}.
+  Agent node ${NODE_NAME} (${NODE_IP}) bootstrapped. k3s agent registered against ${K3S_URL}.

@@ -1,5 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+# Prod-Monitoring auf gekko (T016529): schlankes kube-prometheus OHNE Loki
+# (Operator-Entscheid), kurze Retention, local-path statt Longhorn (D3),
+# Ressourcenlimits aufs gekko-RAM-Budget (R1). Die k3d-Basis bleibt
+# unveraendert; Loki/Promtail werden hier per $patch: delete entfernt.
 
 resources:
   - ../../k3d/monitoring
@@ -63,3 +67,95 @@ patches:
   - path: storage-class-patch.yaml
   - path: grafana-oidc-patch.yaml
   - path: resource-limits-patch.yaml
+  - path: slim-monitoring-patch.yaml
+  # Ohne Loki (T016529): Loki-Stack und Promtail aus der k3d-Basis loeschen.
+  - target: { kind: StatefulSet, name: loki, namespace: monitoring }
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata: { name: loki, namespace: monitoring }
+      $patch: delete
+  - target: { kind: DaemonSet, name: promtail, namespace: monitoring }
+    patch: |
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata: { name: promtail, namespace: monitoring }
+      $patch: delete
+  - target: { kind: Service, name: loki, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata: { name: loki, namespace: monitoring }
+      $patch: delete
+  - target: { kind: Service, name: loki-headless, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata: { name: loki-headless, namespace: monitoring }
+      $patch: delete
+  - target: { kind: Service, name: loki-memberlist, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata: { name: loki-memberlist, namespace: monitoring }
+      $patch: delete
+  - target: { kind: ConfigMap, name: loki, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: { name: loki, namespace: monitoring }
+      $patch: delete
+  - target: { kind: ConfigMap, name: loki-runtime, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: { name: loki-runtime, namespace: monitoring }
+      $patch: delete
+  - target: { kind: ConfigMap, name: loki-grafana-datasource, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: { name: loki-grafana-datasource, namespace: monitoring }
+      $patch: delete
+  - target: { kind: ServiceAccount, name: loki, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata: { name: loki, namespace: monitoring }
+      $patch: delete
+  - target: { kind: ServiceAccount, name: promtail, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata: { name: promtail, namespace: monitoring }
+      $patch: delete
+  - target: { kind: Secret, name: promtail, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata: { name: promtail, namespace: monitoring }
+      $patch: delete
+  - target: { kind: ClusterRole, name: loki-clusterrole }
+    patch: |
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata: { name: loki-clusterrole }
+      $patch: delete
+  - target: { kind: ClusterRoleBinding, name: loki-clusterrolebinding }
+    patch: |
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata: { name: loki-clusterrolebinding }
+      $patch: delete
+  - target: { kind: ClusterRole, name: promtail }
+    patch: |
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata: { name: promtail }
+      $patch: delete
+  - target: { kind: ClusterRoleBinding, name: promtail }
+    patch: |
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata: { name: promtail }
+      $patch: delete

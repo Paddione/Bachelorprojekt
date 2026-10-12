@@ -1,6 +1,7 @@
-# Patch the committed rendered YAML (dev values → local-path) to longhorn for prod.
-# Targets the Prometheus + Alertmanager CRs (which carry storage.volumeClaimTemplate)
-# and the Grafana PVC directly.
+# Patch the committed rendered YAML to local-path for prod (D3, T016529:
+# kein Longhorn im fleet-Cluster auf gekko). Targets the Prometheus +
+# Alertmanager CRs (storage.volumeClaimTemplate) and the Grafana PVC.
+# Volumes schlank fuer das gekko-RAM-/Disk-Budget (R1).
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: Alertmanager
@@ -11,11 +12,11 @@ spec:
   storage:
     volumeClaimTemplate:
       spec:
-        storageClassName: longhorn
+        storageClassName: local-path
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 2Gi
+            storage: 1Gi
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
@@ -26,11 +27,11 @@ spec:
   storage:
     volumeClaimTemplate:
       spec:
-        storageClassName: longhorn
+        storageClassName: local-path
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 20Gi
+            storage: 10Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -38,24 +39,8 @@ metadata:
   name: monitoring-grafana
   namespace: monitoring
 spec:
-  storageClassName: longhorn
+  storageClassName: local-path
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: 5Gi
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: loki
-  namespace: monitoring
-spec:
-  volumeClaimTemplates:
-    - metadata:
-        name: storage
-      spec:
-        storageClassName: longhorn
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 20Gi
+      storage: 2Gi

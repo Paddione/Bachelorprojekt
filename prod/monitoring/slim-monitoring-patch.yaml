@@ -1,0 +1,27 @@
+# Schlankes Monitoring fuer gekko (T016529, R1): kube-prometheus ohne Loki,
+# kurze Retention, Ressourcen aufs RAM-Budget zugeschnitten (nur Prod plus
+# Monitoring, ca. 7-8 GiB Pods gesamt). Prometheus-Daten 24h / max. 9 GiB,
+# Alertmanager-Verlauf 24h statt 120h.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: monitoring-prometheus
+  namespace: monitoring
+spec:
+  retention: "24h"
+  retentionSize: "9GB"
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 768Mi }
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: monitoring-alertmanager
+  namespace: monitoring
+spec:
+  retention: "24h"
+  resources:
+    requests: { cpu: 25m, memory: 64Mi }
+    limits: { cpu: 100m, memory: 128Mi }

@@ -1,6 +1,9 @@
 #cloud-config
 # Usage: paste as Hetzner server "User data" when adding a pure worker/agent node.
-# Before using: fill in K3S_URL and K3S_TOKEN below.
+# fleet auf gekko (T016529, D1): Der Cluster besteht aus 3 Servern (D2); ein
+# Worker-Join erfolgt ueber die private CP-Adresse (192.168.200.x), Flannel
+# ueber das private Interface, Admin ueber Tailscale (tag:fleet).
+# Before using: fill in K3S_URL and K3S_TOKEN below (alle REPLACEME_-Werte).
 # For a new cluster use prod/cloud-init.yaml (cluster-init: true).
 # For an additional control-plane use prod/cloud-init-join-cp.yaml.
 # See .claude/skills/hetzner-node/SKILL.md for the full provisioning runbook.
@@ -33,24 +36,16 @@ packages:
   - htop
   - unattended-upgrades
   - apt-transport-https
-  - open-iscsi
   - nfs-common
   - jq
   - fail2ban
   - ufw
-  - wireguard-tools
 
 write_files:
-  - path: /etc/wireguard/wg-mesh.conf
+  - path: /etc/tailscale/auth-key
     permissions: '0600'
     owner: root:root
-    content: |
-      [Interface]
-      PrivateKey = REPLACEME_WG_PRIVATE_KEY
-      Address = REPLACEME_WG_NODE_IP/24
-      ListenPort = 51820
-
-      REPLACEME_WG_PEERS_BLOCK
+    content: REPLACEME_TAILSCALE_AUTH_KEY
 
   - path: /etc/sysctl.d/99-k3s.conf
     content: |
@@ -89,7 +84,6 @@ runcmd:
   - ufw allow 443/tcp
   - ufw allow 10250/tcp
   - ufw allow 8472/udp
-  - ufw allow 51820/udp
   - ufw allow 3478/tcp
   - ufw allow 3478/udp
   - ufw allow 5349/tcp
@@ -108,15 +102,13 @@ runcmd:
   - systemctl restart ssh
   - systemctl enable unattended-upgrades
   - systemctl start unattended-upgrades
-  - systemctl enable --now iscsid
 
-  # WireGuard mesh — must be up before k3s agent so Flannel can bind flannel-iface=wg-mesh
-  - systemctl enable wg-quick@wg-mesh
-  - systemctl start wg-quick@wg-mesh
-  - until ip addr show wg-mesh 2>/dev/null | grep -q 'inet'; do sleep 2; done
+  # Tailscale (Admin, tag:fleet) vor dem k3s-Join.
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --auth-key="file:/etc/tailscale/auth-key" --hostname="REPLACEME_NODE_NAME" --advertise-tags=tag:fleet --ssh --accept-routes=false
 
-  # Install k3s agent — FILL IN K3S_URL and K3S_TOKEN before provisioning
-  - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable K3S_URL="https://EXISTING_CP_IP:6443" K3S_TOKEN="K3S_TOKEN_HERE" sh -s - agent --flannel-iface=wg-mesh
+  # Install k3s agent — FILL IN private CP address and K3S_TOKEN before provisioning
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable K3S_URL="https://REPLACEME_FIRST_CP_PRIVATE_IP:6443" K3S_TOKEN="K3S_TOKEN_HERE" sh -s - agent --node-name="REPLACEME_NODE_NAME" --node-ip="REPLACEME_NODE_IP" --flannel-iface="REPLACEME_PRIVATE_IFACE"
 
   # Install task
   - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin

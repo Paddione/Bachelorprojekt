@@ -1,7 +1,10 @@
 #cloud-config
-# Usage: paste as Hetzner server "User data" when adding a node that joins
-#        an existing k3s cluster as an additional control-plane (HA etcd member).
-# Before using: fill in SERVER_URL and K3S_TOKEN below.
+# Usage: paste as Hetzner server "User data" when adding a gekko node that joins
+#        the fleet cluster as an additional control-plane (HA etcd member).
+# fleet auf gekko (T016529, D1/D2): Join ueber die private IP des ersten
+# Servers (192.168.200.x), Flannel ueber das private Interface, Admin ueber
+# Tailscale (tag:fleet). Vor dem Provisionieren alle REPLACEME_-Werte setzen
+# (Node-Name/-IPs, privates Interface, Tailnet-Name/-IP, Auth-Key, Token).
 # For starting a new cluster use prod/cloud-init.yaml (cluster-init: true).
 # For a worker/agent node use prod/cloud-init-worker.yaml.
 # See .claude/skills/hetzner-node/SKILL.md for the full provisioning runbook.
@@ -34,34 +37,31 @@ packages:
   - htop
   - unattended-upgrades
   - apt-transport-https
-  - open-iscsi
   - nfs-common
   - jq
   - fail2ban
   - ufw
-  - wireguard-tools
 
 write_files:
-  - path: /etc/wireguard/wg-mesh.conf
+  - path: /etc/tailscale/auth-key
     permissions: '0600'
     owner: root:root
-    content: |
-      [Interface]
-      PrivateKey = REPLACEME_WG_PRIVATE_KEY
-      Address = REPLACEME_WG_NODE_IP/24
-      ListenPort = 51820
-
-      REPLACEME_WG_PEERS_BLOCK
+    content: REPLACEME_TAILSCALE_AUTH_KEY
 
   - path: /etc/rancher/k3s/config.yaml
     content: |
-      # FILL IN before provisioning:
-      server: "https://EXISTING_CP_IP:6443"
+      # FILL IN before provisioning (private Adresse des ersten Servers):
+      server: "https://REPLACEME_FIRST_CP_PRIVATE_IP:6443"
       token: "K3S_TOKEN_HERE"
+      node-name: "REPLACEME_NODE_NAME"
+      node-ip: "REPLACEME_NODE_IP"
       tls-san:
         - PROD_DOMAIN
         - "*.PROD_DOMAIN"
+        - REPLACEME_NODE_IP
         - REPLACEME_NODE_PUBLIC_IP
+        - REPLACEME_TAILNET_NAME
+        - REPLACEME_TAILNET_IP
       disable:
         - traefik
         - servicelb
@@ -72,7 +72,7 @@ write_files:
         - "default-unreachable-toleration-seconds=30"
       write-kubeconfig-mode: "0644"
       secrets-encryption: true
-      flannel-iface: wg-mesh
+      flannel-iface: REPLACEME_PRIVATE_IFACE
 
   - path: /etc/sysctl.d/99-k3s.conf
     content: |
@@ -112,7 +112,6 @@ runcmd:
   - ufw allow 6443/tcp
   - ufw allow 10250/tcp
   - ufw allow 8472/udp
-  - ufw allow 51820/udp
   - ufw allow 3478/tcp
   - ufw allow 3478/udp
   - ufw allow 5349/tcp
@@ -132,12 +131,10 @@ runcmd:
   - systemctl restart ssh
   - systemctl enable unattended-upgrades
   - systemctl start unattended-upgrades
-  - systemctl enable --now iscsid
 
-  # WireGuard mesh — must be up before k3s so Flannel can bind flannel-iface=wg-mesh
-  - systemctl enable wg-quick@wg-mesh
-  - systemctl start wg-quick@wg-mesh
-  - until ip addr show wg-mesh 2>/dev/null | grep -q 'inet'; do sleep 2; done
+  # Tailscale (Admin/kubectl, tag:fleet) vor dem k3s-Join.
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --auth-key="file:/etc/tailscale/auth-key" --hostname="REPLACEME_NODE_NAME" --advertise-tags=tag:fleet --ssh --accept-routes=false
 
   # Install k3s (joins cluster — server/token come from config.yaml above)
   - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -

@@ -1,10 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# mentolder brand on fleet — reuse the existing prod-mentolder overlay, then
+# mentolder brand on fleet (gekko) — reuse the existing prod-mentolder overlay, then
 # apply fleet-common (delete the cluster singletons now owned by
 # prod-fleet/platform). Namespace stays workspace (set by the prod-mentolder/k3d
-# base). Node-affinity repoints for fleet pk nodes are added to fleet-common at
-# deploy time (Task 8); website affinity comes from WEBSITE_NODE_AFFINITY in
+# base). Zielbild T016529 (D2/D3/Q16): nur Prod auf gekko-hetzner-2/3/4
+# (embedded etcd), kein Longhorn (local-path als Default-StorageClass);
+# staging-/dev-/korczewski-Pfade laufen nicht ueber diese Kustomization
+# (Ziel devmesh). Website affinity comes from WEBSITE_NODE_AFFINITY in
 # environments/fleet-mentolder.yaml.
 resources:
   - ../../prod-mentolder
@@ -16,7 +18,9 @@ resources:
   - brain.yaml
 components:
   - ../components/fleet-common
-  - ../components/llm-models-longhorn
+  # D3 (T016529): kein Longhorn mehr — die fruehere llm-models-longhorn-
+  # Komponente ist entfernt; bge-Modell-PVCs nutzen die Default-StorageClass
+  # (local-path) wie die k3d-Basis.
 
 # Exclude the dev.mentolder.de stack from fleet Phase 2a (dev migration is 2c).
 # prod-mentolder renders these dev resources; with DEV_* blanked in
@@ -60,9 +64,21 @@ patches:
       metadata:
         name: any-job
 
-  # whisper needs a GPU node on mentolder (k3s home workers); fleet pk nodes have
-  # no GPU, so transcription is best-effort here — repoint so the pod at least
-  # schedules instead of staying Pending (flag for Phase 2b capacity review).
+  # D3 (T016529): Vaultwarden-PVC von Longhorn (Basis-Patch in prod-mentolder)
+  # auf local-path zurueckstellen — im gekko-Cluster gibt es kein Longhorn.
+  - target: { kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: vaultwarden-data-pvc
+      spec:
+        storageClassName: local-path
+
+  # whisper needs a GPU node on mentolder (k3s home workers); the gekko fleet
+  # nodes have no GPU, so transcription is best-effort here — repoint to the
+  # gekko server nodes so the pod at least schedules instead of staying
+  # Pending (flag for Phase 2b capacity review).
   - patch: |-
       apiVersion: apps/v1
       kind: Deployment
@@ -78,4 +94,4 @@ patches:
                     - matchExpressions:
                         - key: kubernetes.io/hostname
                           operator: In
-                          values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
+                          values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4]

@@ -1,8 +1,25 @@
 <script lang="ts">
-  import { GOALS, ACTIVE_GOALS, GREEN_GATES, CATEGORIES, healthPercent } from '../../lib/sdlc/goals-data';
+  import { onMount } from 'svelte';
+  import { GOALS as INITIAL_GOALS, healthPercent } from '../../lib/sdlc/goals-data';
   import type { HealthGoal } from '../../lib/sdlc/goals-data';
   import type { ScanResult } from '../../lib/sdlc/health-scan';
   import type { TicketOutcome } from '../../lib/sdlc/health-goal-tickets';
+
+  let currentGoals: HealthGoal[] = INITIAL_GOALS;
+  let dataSource: 'db' | 'snapshot' = 'snapshot';
+
+  onMount(async () => {
+    try {
+      const res = await fetch('/sdlc/api/health-goals');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.goals && Array.isArray(data.goals) && data.goals.length > 0) {
+          currentGoals = data.goals;
+          dataSource = data.source || 'db';
+        }
+      }
+    } catch {}
+  });
 
   let selectedCategory = 'Alle';
   let expandedId: string | null = null;
@@ -17,11 +34,14 @@
   let scannedAt: string | null = null;
   let ticketOutcomes: TicketOutcome[] = [];
 
-  $: categoryList = ['Alle', ...CATEGORIES];
+  $: activeGoals = currentGoals.filter(g => g.priority !== 'C' || g.status !== 'achieved');
+  $: greenGates  = currentGoals.filter(g => g.priority === 'C' && g.status === 'achieved');
+  $: categories  = [...new Set(currentGoals.map(g => g.category))];
+  $: categoryList = ['Alle', ...categories];
 
   $: filtered = selectedCategory === 'Alle'
-    ? ACTIVE_GOALS
-    : ACTIVE_GOALS.filter(g => g.category === selectedCategory);
+    ? activeGoals
+    : activeGoals.filter(g => g.category === selectedCategory);
 
   // Gesamtzahl zählt übergreifend zum Filter — sonst verschickt der Button
   // mehr Ziele, als der Nutzer sieht.
@@ -157,10 +177,10 @@
   <header class="dashboard-header">
     <h2 class="dashboard-title">Repo Health Dashboard</h2>
     <p class="dashboard-subtitle">
-      Mess-Stichtag: <strong>{GOALS[0]?.measured_at ?? '2026-07-01'}</strong> ·
-      {ACTIVE_GOALS.filter(g => g.status === 'critical').length} kritisch ·
-      {ACTIVE_GOALS.filter(g => g.status === 'at_risk').length} gefährdet ·
-      {GREEN_GATES.length} Gates grün
+      Mess-Stichtag: <strong>{currentGoals[0]?.measured_at ?? '2026-07-01'}</strong> ({dataSource === 'db' ? 'Live-DB' : 'Snapshot'}) ·
+      {activeGoals.filter(g => g.status === 'critical').length} kritisch ·
+      {activeGoals.filter(g => g.status === 'at_risk').length} gefährdet ·
+      {greenGates.length} Gates grün
       {#if scannedAt}
         · <span class="scan-stamp">↻ Rescan: {new Date(scannedAt).toLocaleString('de-DE')}</span>
       {/if}
@@ -308,13 +328,13 @@
   </div>
 
   <!-- Green Gates -->
-  {#if GREEN_GATES.length > 0}
+  {#if greenGates.length > 0}
     <details class="green-gates">
       <summary class="gates-summary">
-        ✅ {GREEN_GATES.length} Green Gates — Policy-Ziele auf Target (klicken zum Ausklappen)
+        ✅ {greenGates.length} Green Gates — Policy-Ziele auf Target (klicken zum Ausklappen)
       </summary>
       <ul class="gates-list">
-        {#each GREEN_GATES as g}
+        {#each greenGates as g}
           <li class="gate-item">
             <input
               type="checkbox"

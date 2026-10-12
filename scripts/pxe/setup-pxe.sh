@@ -85,6 +85,8 @@ Flags:
   --foreground             dnsmasq im Vordergrund (Debug)
   --stop                   Dienste beenden
   --status                 Zustand anzeigen
+  --print-dnsmasq-conf     dnsmasq-Konfiguration ausgeben (braucht --iface,
+                           --server-ip; kein root, startet nichts)
   -h, --help
 EOF
   exit "${1:-0}"
@@ -114,6 +116,7 @@ while [[ $# -gt 0 ]]; do
     --foreground)        FOREGROUND=1;           shift ;;
     --stop)              ACTION="stop";          shift ;;
     --status)            ACTION="status";        shift ;;
+    --print-dnsmasq-conf) ACTION="print-dnsmasq-conf"; shift ;;
     -h|--help)           usage 0 ;;
     *) echo "Unbekanntes Flag: $1" >&2; usage 1 ;;
   esac
@@ -160,9 +163,60 @@ show_status() {
   [[ -d "$ROOT_DIR" ]] && du -sh "$ROOT_DIR" 2>/dev/null || echo "  (nicht vorhanden)"
 }
 
+# --- dnsmasq-Konfiguration --------------------------------------------------
+# Als Funktion, damit --print-dnsmasq-conf sie ohne root und ohne Boot-Baum
+# ausgeben kann.
+render_dnsmasq_conf() {
+  cat <<EOF
+# Generiert von scripts/pxe/setup-pxe.sh — Aenderungen gehen beim naechsten
+# Lauf verloren.
+
+# KEIN DNS: Port 0 schaltet den DNS-Teil ab. dnsmasq ist hier ausschliesslich
+# Proxy-DHCP und TFTP-Server; ein zweiter DNS im Netz waere unerwuenscht.
+port=0
+
+interface=${IFACE}
+# bind-dynamic statt bind-interfaces: ein DHCP-Server bindet sonst den
+# Wildcard-Socket 0.0.0.0:67, um Broadcasts zu sehen. Unter WSL mit
+# networkingMode=mirrored teilt sich Linux den Netzwerkstack mit Windows, und
+# dort haelt der Hyper-V-eigene DHCP (auf der vEthernet-Adresse) Port 67
+# bereits — der Start scheiterte mit "Address already in use".
+# bind-dynamic bindet nur an die Adressen des genannten Interfaces.
+bind-dynamic
+
+# Proxy-DHCP: beantwortet nur die Boot-Frage, vergibt KEINE Adressen. Der
+# vorhandene Router bleibt fuer DHCP zustaendig. Ein zweiter vollwertiger
+# DHCP-Server wuerde im selben Netz mit ihm konkurrieren.
+dhcp-range=${SERVER_IP},proxy
+
+# Client-Architektur unterscheiden: dieselbe Boot-Frage bekommt je nach
+# Firmware eine andere Antwort. Ohne die Fallunterscheidung bekaeme ein
+# UEFI-Client die BIOS-Datei und braeche mit einer nichtssagenden Meldung ab.
+dhcp-match=set:efi-x86_64,option:client-arch,7
+dhcp-match=set:efi-bc,option:client-arch,9
+dhcp-boot=tag:efi-x86_64,bootx64.efi,,${SERVER_IP}
+dhcp-boot=tag:efi-bc,bootx64.efi,,${SERVER_IP}
+# Im Proxy-Modus antwortet dnsmasq NUR ueber pxe-service; dhcp-boot allein
+# laesst den PXE-DISCOVER unbeantwortet (beobachtet an gpu-metal, T016505).
+pxe-service=tag:efi-x86_64,X86-64_EFI,"Cluster-Node UEFI",bootx64.efi
+pxe-service=tag:efi-bc,BC_EFI,"Cluster-Node UEFI",bootx64.efi
+
+enable-tftp
+tftp-root=${ROOT_DIR}/tftp
+# Die Blockgroessen-Aushandlung (RFC 2348) bleibt AN — sie ist Standard und
+# der Grund, warum die ~80 MB grosse initrd in ertraeglicher Zeit ankommt.
+# tftp-no-blocksize wuerde sie abschalten; die Option gehoert hier NICHT hin.
+log-dhcp
+EOF
+}
+
 case "$ACTION" in
   stop)   stop_services; exit 0 ;;
   status) show_status;   exit 0 ;;
+  print-dnsmasq-conf)
+    [[ -n "$IFACE" && -n "$SERVER_IP" ]] \
+      || die "--print-dnsmasq-conf braucht --iface und --server-ip"
+    render_dnsmasq_conf; exit 0 ;;
 esac
 
 # --- Argumente pruefen (vor dem Werkzeug-Check) -----------------------------
@@ -439,43 +493,7 @@ fi
 
 # --- dnsmasq-Konfiguration --------------------------------------------------
 DNSMASQ_CONF="${ROOT_DIR}/dnsmasq.conf"
-cat > "$DNSMASQ_CONF" <<EOF
-# Generiert von scripts/pxe/setup-pxe.sh — Aenderungen gehen beim naechsten
-# Lauf verloren.
-
-# KEIN DNS: Port 0 schaltet den DNS-Teil ab. dnsmasq ist hier ausschliesslich
-# Proxy-DHCP und TFTP-Server; ein zweiter DNS im Netz waere unerwuenscht.
-port=0
-
-interface=${IFACE}
-# bind-dynamic statt bind-interfaces: ein DHCP-Server bindet sonst den
-# Wildcard-Socket 0.0.0.0:67, um Broadcasts zu sehen. Unter WSL mit
-# networkingMode=mirrored teilt sich Linux den Netzwerkstack mit Windows, und
-# dort haelt der Hyper-V-eigene DHCP (auf der vEthernet-Adresse) Port 67
-# bereits — der Start scheiterte mit "Address already in use".
-# bind-dynamic bindet nur an die Adressen des genannten Interfaces.
-bind-dynamic
-
-# Proxy-DHCP: beantwortet nur die Boot-Frage, vergibt KEINE Adressen. Der
-# vorhandene Router bleibt fuer DHCP zustaendig. Ein zweiter vollwertiger
-# DHCP-Server wuerde im selben Netz mit ihm konkurrieren.
-dhcp-range=${SERVER_IP},proxy
-
-# Client-Architektur unterscheiden: dieselbe Boot-Frage bekommt je nach
-# Firmware eine andere Antwort. Ohne die Fallunterscheidung bekaeme ein
-# UEFI-Client die BIOS-Datei und braeche mit einer nichtssagenden Meldung ab.
-dhcp-match=set:efi-x86_64,option:client-arch,7
-dhcp-match=set:efi-bc,option:client-arch,9
-dhcp-boot=tag:efi-x86_64,bootx64.efi,,${SERVER_IP}
-dhcp-boot=tag:efi-bc,bootx64.efi,,${SERVER_IP}
-
-enable-tftp
-tftp-root=${TFTP_DIR}
-# Die Blockgroessen-Aushandlung (RFC 2348) bleibt AN — sie ist Standard und
-# der Grund, warum die ~80 MB grosse initrd in ertraeglicher Zeit ankommt.
-# tftp-no-blocksize wuerde sie abschalten; die Option gehoert hier NICHT hin.
-log-dhcp
-EOF
+render_dnsmasq_conf > "$DNSMASQ_CONF"
 
 # --- Dienste starten --------------------------------------------------------
 stop_services

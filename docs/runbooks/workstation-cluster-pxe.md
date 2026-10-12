@@ -163,7 +163,21 @@ etwa 6 GB wird es eng.
 Gigabit-Netz sind das wenige Minuten, über WLAN entsprechend länger.
 
 **Firewall auf dem Server.** TFTP (UDP 69), HTTP (TCP 8099) und Proxy-DHCP
-(UDP 67, 4011) müssen erreichbar sein.
+(UDP 67, 4011) müssen erreichbar sein. Für Port 67 reicht eine Regel mit
+Quellnetz nicht: ein PXE-DISCOVER hat die Quelladresse `0.0.0.0`, eine Regel
+`from 10.0.0.0/8` verwirft ihn. Mit ufw stattdessen ans Interface binden:
+
+```bash
+sudo ufw allow in on <iface> to any port 67 proto udp
+```
+
+Beobachtet am 2026-10-12 an gpu-metal: mit Quellnetz-Regel erreichte kein
+einziger DISCOVER dnsmasq.
+
+**Kein Angebot trotz ankommendem DISCOVER.** Im Proxy-Modus antwortet dnsmasq
+nur über `pxe-service`, `dhcp-boot` allein reicht nicht. Die erzeugte
+Konfiguration lässt sich ohne root prüfen:
+`bash scripts/pxe/setup-pxe.sh --print-dnsmasq-conf --iface <iface> --server-ip <ip>`.
 
 ---
 

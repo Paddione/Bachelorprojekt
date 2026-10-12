@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.415.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.0...website-v1.415.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **videovault:** picker depth cap 256 + traversal 400 mapping [T901942] ([#6550](https://github.com/Paddione/Bachelorprojekt/issues/6550)) ([ec0638e](https://github.com/Paddione/Bachelorprojekt/commit/ec0638e9ad395649b2e1d726fe08fc88c430c94f))
+
 ## [1.415.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.10...website-v1.415.0) (2026-10-12)
 
 

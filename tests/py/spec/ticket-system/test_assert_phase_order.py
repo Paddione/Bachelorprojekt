@@ -9,6 +9,12 @@ das als Violation — ein False Positive des Fail-Closed-Gates.
 Erwartung: Der Order-Check unterscheidet auto- von realen Events. Das
 auto plan:done aus stage-plan ist ein gültiger Ordnungs-Anker; die
 Vollständigkeit (missing[]) verlangt weiterhin reale Events.
+
+T901952: Incident-Direct-Flow ohne stage-plan hat keinen Anker — das auto
+implement:entered (update-status in_progress) steht vor allem Realen und
+vergiftet die Ordnung irreparabel (belegt an T901951). Erwartung: auto
+implement:entered ist nie Ordnungsbasis (erste REALE implement-Zeile zählt);
+für die Vollständigkeit zählt es weiter wie bisher.
 """
 
 import os
@@ -58,6 +64,30 @@ ROWS_SAUBER = """\
 401|plan|done|Plan geladen
 402|implement|entered|manuell
 403|verify|done|gate=ci result=pass
+"""
+
+# T901952-Signatur: Incident-Direct-Flow ohne stage-plan-Anker — auto
+# implement:entered steht vor der gesamten realen Kette.
+ROWS_INCIDENT_DIRECT_OHNE_ANKER = """\
+501|implement|entered|auto: update-status in_progress
+502|plan|done|Incident-Plan
+503|implement|entered|Fix umgesetzt
+504|verify|done|gate=ci result=pass
+"""
+
+# Fail-closed mit auto-Beteiligung: reales implement VOR realem plan.
+ROWS_ECHTE_VERLETZUNG_MIT_AUTO = """\
+701|implement|entered|auto: update-status in_progress
+702|implement|entered|Fix umgesetzt
+703|plan|done|Plan geladen
+704|verify|done|gate=ci result=pass
+"""
+
+# T901952-Nicht-Ziel-Pin: auto-implement erfuellt die Vollstaendigkeit.
+ROWS_AUTO_IMPL_VOLLSTAENDIG = """\
+801|plan|done|Plan geladen
+802|implement|entered|auto: update-status in_progress
+803|verify|done|gate=ci result=pass
 """
 
 
@@ -112,3 +142,24 @@ def test_saubere_reale_kette_bleibt_gruen(gate, run_cmd):
     """Positiv-Anker: geordnete reale Kette bleibt gruen."""
     res = gate["run"](ROWS_SAUBER, run_cmd)
     assert res.returncode == 0, res.output
+
+
+def test_incident_direct_flow_ohne_stage_plan_ist_gruen(gate, run_cmd):
+    """Kern-Regression T901952: auto-implement ohne Anker + reale Kette ist OK."""
+    res = gate["run"](ROWS_INCIDENT_DIRECT_OHNE_ANKER, run_cmd)
+    assert res.returncode == 0, res.output
+    assert "OK: phase chain complete and ordered" in res.output
+
+
+def test_echte_reale_verletzung_mit_auto_bleibt_violation(gate, run_cmd):
+    """Fail-closed: reales implement vor realem plan bleibt Fehler trotz auto."""
+    res = gate["run"](ROWS_ECHTE_VERLETZUNG_MIT_AUTO, run_cmd)
+    assert res.returncode == 1, res.output
+    assert "order violation" in res.output
+
+
+def test_auto_implement_zaehlt_fuer_vollstaendigkeit(gate, run_cmd):
+    """T901952-Nicht-Ziel-Pin: auto-implement erfuellt weiterhin die Kette."""
+    res = gate["run"](ROWS_AUTO_IMPL_VOLLSTAENDIG, run_cmd)
+    assert res.returncode == 0, res.output
+    assert "OK: phase chain complete and ordered" in res.output

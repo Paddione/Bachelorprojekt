@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Superseded by E3 cutover [T002626]: devmesh is now master ticket DB")
+
 KUBECONFIG_YAML = """apiVersion: v1
 kind: Config
 contexts:

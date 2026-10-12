@@ -280,3 +280,148 @@ describe('client secret guard (T001593)', () => {
     await expect(loadModule()).resolves.toBeDefined();
   });
 });
+
+describe('isAdmin PORTAL_ADMIN_USERNAME fallback', () => {
+  const ORIGINAL_ADMINS = process.env.PORTAL_ADMIN_USERNAME;
+
+  afterEach(() => {
+    if (ORIGINAL_ADMINS === undefined) delete process.env.PORTAL_ADMIN_USERNAME;
+    else process.env.PORTAL_ADMIN_USERNAME = ORIGINAL_ADMINS;
+  });
+
+  function sessionFor(username: string) {
+    return { sub: 'u', email: 'a@b', name: 'A', preferred_username: username, realmRoles: [], brand: null, access_token: '', refresh_token: '', expires_at: 0 };
+  }
+
+  it('treats the default admin username as admin even without the role', async () => {
+    delete process.env.PORTAL_ADMIN_USERNAME;
+    vi.resetModules();
+    const m = await loadModule();
+    expect(m.isAdmin(sessionFor('admin'))).toBe(true);
+  });
+
+  it('matches the fallback list case-insensitively', async () => {
+    delete process.env.PORTAL_ADMIN_USERNAME;
+    vi.resetModules();
+    const m = await loadModule();
+    expect(m.isAdmin(sessionFor('Admin'))).toBe(true);
+    expect(m.isAdmin(sessionFor('ADMIN'))).toBe(true);
+  });
+
+  it('honours a custom comma-separated admin list', async () => {
+    process.env.PORTAL_ADMIN_USERNAME = 'alice, bob';
+    vi.resetModules();
+    try {
+      const m = await loadModule();
+      expect(m.isAdmin(sessionFor('alice'))).toBe(true);
+      expect(m.isAdmin(sessionFor('bob'))).toBe(true);
+      expect(m.isAdmin(sessionFor('carol'))).toBe(false);
+    } finally {
+      if (ORIGINAL_ADMINS === undefined) delete process.env.PORTAL_ADMIN_USERNAME;
+      else process.env.PORTAL_ADMIN_USERNAME = ORIGINAL_ADMINS;
+      vi.resetModules();
+    }
+  });
+});
+
+describe('getSession refresh (T901934)', () => {
+  function jwt(payload: Record<string, unknown>): string {
+    const b64 = (v: unknown) => Buffer.from(JSON.stringify(v)).toString('base64url');
+    return `${b64({ alg: 'none' })}.${b64(payload)}.sig`;
+  }
+
+  function baseUser() {
+    return {
+      sub: 'refresh-id',
+      email: 'refresh@example.com',
+      name: 'Refresh User',
+      preferred_username: 'refresher',
+      realmRoles: [] as string[],
+      brand: null,
+    };
+  }
+
+  it('returns null for an unknown session id', async () => {
+    const m = await loadModule();
+    expect(await m.getSession('workspace_session=does-not-exist-1')).toBeNull();
+  });
+
+  it('refreshes an expired access token and persists the renewed session', async () => {
+    const freshAccess = jwt({ exp: Math.floor(Date.now() / 1000) + 3600, isAdmin: true, groups: ['g1', 42, 'g2'] });
+    let tokenCalls = 0;
+    globalThis.fetch = (async (url: unknown) => {
+      const u = String(url);
+      if (u.includes('openid-configuration')) return new Response('{}', { status: 200 });
+      if (u.includes('/api/oidc/token')) {
+        tokenCalls++;
+        return new Response(
+          JSON.stringify({ access_token: freshAccess, refresh_token: 'rt-2', expires_in: 300 }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+      return new Response('nope', { status: 500 });
+    }) as typeof fetch;
+
+    const m = await loadModule();
+    const sessionId = await m.issueSession({
+      ...baseUser(),
+      access_token: jwt({ exp: Math.floor(Date.now() / 1000) - 100 }),
+      refresh_token: 'rt-1',
+      expires_at: Date.now() + 3600000,
+    });
+
+    const session = await m.getSession(`workspace_session=${sessionId}`);
+    expect(session).not.toBeNull();
+    expect(session?.access_token).toBe(freshAccess);
+    expect(session?.refresh_token).toBe('rt-2');
+    expect(session?.realmRoles).toEqual(['admin']);
+    // Nicht-String-Einträge werden verworfen statt übernommen.
+    expect(session?.groups).toEqual(['g1', 'g2']);
+    expect(session?.expires_at).toBeGreaterThan(Date.now() + 7 * 3600 * 1000);
+
+    // Zweiter Abruf: Token ist jetzt frisch — kein weiterer Refresh.
+    const again = await m.getSession(`workspace_session=${sessionId}`);
+    expect(again?.access_token).toBe(freshAccess);
+    expect(tokenCalls).toBe(1);
+  });
+
+  it('returns null and deletes the session when the refresh fails', async () => {
+    globalThis.fetch = (async (url: unknown) => {
+      if (String(url).includes('openid-configuration')) return new Response('{}', { status: 200 });
+      return new Response('nope', { status: 500 });
+    }) as typeof fetch;
+
+    const m = await loadModule();
+    const sessionId = await m.issueSession({
+      ...baseUser(),
+      access_token: jwt({ exp: Math.floor(Date.now() / 1000) - 100 }),
+      refresh_token: 'rt-bad',
+      expires_at: Date.now() + 3600000,
+    });
+
+    expect(await m.getSession(`workspace_session=${sessionId}`)).toBeNull();
+    // Die Sitzung wurde gelöscht, nicht nur abgewiesen.
+    expect(await m.getSession(`workspace_session=${sessionId}`)).toBeNull();
+  });
+});
+
+describe('decodeGroupsClaim', () => {
+  function jwt(payload: Record<string, unknown>): string {
+    const b64 = (v: unknown) => Buffer.from(JSON.stringify(v)).toString('base64url');
+    return `${b64({ alg: 'none' })}.${b64(payload)}.sig`;
+  }
+
+  it('reads string groups from the access token', async () => {
+    const m = await loadModule();
+    expect(m.decodeGroupsClaim(jwt({ groups: ['a', 'b'] }))).toEqual(['a', 'b']);
+  });
+
+  it('fails closed on missing, malformed or non-string claims', async () => {
+    const m = await loadModule();
+    expect(m.decodeGroupsClaim(jwt({}))).toEqual([]);
+    expect(m.decodeGroupsClaim(jwt({ groups: 'nope' }))).toEqual([]);
+    expect(m.decodeGroupsClaim(jwt({ groups: ['a', 1, null, 'b'] }))).toEqual(['a', 'b']);
+    expect(m.decodeGroupsClaim('not-a-jwt')).toEqual([]);
+    expect(m.decodeGroupsClaim('')).toEqual([]);
+  });
+});

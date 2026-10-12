@@ -1,0 +1,5 @@
+# Code-Graph-Index-Ausschlüsse (T901934).
+# Generierte oder archivierte Artefakte, die der Parser nicht trägt und die
+# als Graph-Nodes keinen Navigationswert haben. Produktcode bleibt erfasst.
+scripts/ticket-db-schema.sql
+scripts/one-shot/archive/

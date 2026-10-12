@@ -1,6 +1,7 @@
 // routes/cluster.ts — Real data sources (p2)
 import type { Context } from 'hono';
 import { setCache } from '../lib/cache';
+import { cachedJson } from './_shared';
 import { getPods, getWarnings } from '../sources/kubectl';
 
 export async function podsListHandler(c: Context) {
@@ -16,11 +17,5 @@ export async function podsListHandler(c: Context) {
 }
 
 export async function warningsHandler(c: Context) {
-  try {
-    const warnings = await getWarnings();
-    const entry = setCache('warnings', warnings, 30_000);
-    return c.json({ warnings, fetchedAt: entry.fetchedAt });
-  } catch (e: any) {
-    return c.json({ error: e.message, fetchedAt: new Date().toISOString() });
-  }
+  return cachedJson(c, 'warnings', 30_000, 'warnings', getWarnings);
 }

@@ -245,20 +245,16 @@
       return null;
     }
 
-    function movePanelToWorkspace(el) {
-      if (el.parentNode !== workspaceEl) workspaceEl.appendChild(el);
+    // Einheitliche Panel-Platzierung: Ziel-Container + Modus (card/rail/
+    // fullscreen). Das Entfernen aller drei Modus-Klassen ist zu den zuvor je
+    // Stelle unterschiedlichen remove()-Mengen aequivalent (classList-Ops sind
+    // idempotent) — ein Helper statt drei gewachsenen Varianten.
+    function placePanel(el, targetEl, mode) {
+      if (el.parentNode !== targetEl) targetEl.appendChild(el);
       el.classList.remove('panel--rail', 'panel--card', 'panel--fullscreen');
-      el.classList.add('panel--card');
+      el.classList.add('panel--' + mode);
       var panel = window.Panel && window.Panel.get(el);
-      if (panel) panel.resize('card');
-    }
-
-    function movePanelToCatalog(el) {
-      if (el.parentNode !== catalogEl) catalogEl.appendChild(el);
-      el.classList.remove('panel--card', 'panel--fullscreen');
-      el.classList.add('panel--rail');
-      var panel = window.Panel && window.Panel.get(el);
-      if (panel) panel.resize('rail');
+      if (panel) panel.resize(mode);
     }
 
     function applyPlacement(computed) {
@@ -266,18 +262,14 @@
         var el = panelById(p.id);
         if (!el) return;
         if (p.size === 'fullscreen') {
-          if (el.parentNode !== workspaceEl) workspaceEl.appendChild(el);
-          el.classList.remove('panel--rail', 'panel--card');
-          el.classList.add('panel--fullscreen');
-          var panel = window.Panel && window.Panel.get(el);
-          if (panel) panel.resize('fullscreen');
+          placePanel(el, workspaceEl, 'fullscreen');
         } else {
-          movePanelToWorkspace(el);
+          placePanel(el, workspaceEl, 'card');
         }
       });
       computed.catalog.forEach(function (id) {
         var el = panelById(id);
-        if (el) movePanelToCatalog(el);
+        if (el) placePanel(el, catalogEl, 'rail');
       });
       computed.locked.forEach(function (l) {
         var el = panelById(l.id);
@@ -324,11 +316,11 @@
         // Anordnung anwenden: Workspace-Panels einordnen, Rest in Katalog.
         restored.workspace.forEach(function (id) {
           var el = panelById(id);
-          if (el) movePanelToWorkspace(el);
+          if (el) placePanel(el, workspaceEl, 'card');
         });
         restored.catalog.forEach(function (id) {
           var el = panelById(id);
-          if (el) movePanelToCatalog(el);
+          if (el) placePanel(el, catalogEl, 'rail');
         });
       }
       recompute();
@@ -403,7 +395,7 @@
       if (!panelEl) return;
       var panel = window.Panel && window.Panel.get(panelEl);
       if (panel) panel.destroy();
-      movePanelToCatalog(panelEl);
+      placePanel(panelEl, catalogEl, 'rail');
       var url = location.href.split('#')[0] + '#' + panelEl.id;
       window.open(url, '_blank', 'width=800,height=600');
       if (popChannel) {
@@ -419,7 +411,7 @@
           if (el) {
             var panel = window.Panel && window.Panel.adopt(el);
             if (panel) panel.resize('card');
-            movePanelToWorkspace(el);
+            placePanel(el, workspaceEl, 'card');
             persist();
             recompute();
           }
@@ -435,14 +427,10 @@
       if (!panelEl) return;
       if (panelEl.classList.contains('panel--fullscreen')) {
         placement.fullscreen = null;
-        movePanelToWorkspace(panelEl);
+        placePanel(panelEl, workspaceEl, 'card');
       } else {
         placement.fullscreen = panelEl.id;
-        if (panelEl.parentNode !== workspaceEl) workspaceEl.appendChild(panelEl);
-        panelEl.classList.remove('panel--rail', 'panel--card');
-        panelEl.classList.add('panel--fullscreen');
-        var panel = window.Panel && window.Panel.get(panelEl);
-        if (panel) panel.resize('fullscreen');
+        placePanel(panelEl, workspaceEl, 'fullscreen');
       }
       persist();
       recompute();

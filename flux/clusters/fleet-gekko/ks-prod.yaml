@@ -50,6 +50,10 @@ spec:
   sourceRef:
     kind: GitRepository
     name: fleet-gekko-source
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: flux-substitutes
   path: ./prod-fleet/mentolder
   prune: true
   wait: true
@@ -68,6 +72,10 @@ spec:
   sourceRef:
     kind: GitRepository
     name: fleet-gekko-source
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: flux-substitutes
   path: ./prod-fleet/website-mentolder
   prune: true
   wait: true
@@ -86,6 +94,10 @@ spec:
   sourceRef:
     kind: GitRepository
     name: fleet-gekko-source
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: flux-substitutes
   path: ./prod-fleet/mentolder-jobs
   prune: true
   force: true

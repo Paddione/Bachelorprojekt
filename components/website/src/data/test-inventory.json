@@ -3924,6 +3924,12 @@
     "kind": "pytest"
   },
   {
+    "id": "health-goals/quality_db_schema",
+    "file": "tests/py/spec/health-goals/test_quality_db_schema.py",
+    "category": "health-goals",
+    "kind": "pytest"
+  },
+  {
     "id": "health-goals/runtime-health-goals",
     "file": "tests/py/spec/native_ported/spec/health-goals/test_runtime_health_goals.py",
     "category": "health-goals",

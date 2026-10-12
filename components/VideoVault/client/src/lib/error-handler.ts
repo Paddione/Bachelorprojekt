@@ -10,6 +10,7 @@ export interface ErrorContext {
   operation?: string;
   fileName?: string;
   directoryName?: string;
+  [key: string]: unknown;
 }
 
 export class VideoVaultError extends Error {

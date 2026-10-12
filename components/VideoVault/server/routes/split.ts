@@ -40,7 +40,7 @@ export async function splitRouteHandler(req: Request, res: Response): Promise<vo
     return;
   }
 
-  const { id } = req.params;
+  const id = String(req.params.id);
   const { sourcePath, rootKey, splitTimeSeconds, first, second } = req.body ?? {};
 
   if (!sourcePath || typeof splitTimeSeconds !== 'number' || !first || !second) {

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { FixedSizeGrid as VirtualGrid } from 'react-window';
+import { Grid as VirtualGrid, useGridRef, type CellComponentProps } from 'react-window';
 import { Video } from '@/types/video';
 import { VideoCard } from '@/components/video/video-card';
 
@@ -40,6 +40,30 @@ const MemoizedVideoCard = React.memo(VideoCard, (prevProps, nextProps) => {
   );
 });
 
+type GridCellData = {
+  videos: Video[];
+  columns: number;
+  columnWidth: number;
+  cardHeight: number;
+  gridGap: number;
+  onVideoPlay: (video: Video) => void;
+  onVideoEditTags: (video: Video) => void;
+  onVideoRename: (video: Video) => void;
+  onVideoSplit?: (video: Video) => void;
+  onFocusMode?: (video: Video) => void;
+  onCategorize?: (video: Video) => void;
+  onPin?: (video: Video) => void;
+  onMove?: (video: Video) => void;
+  onDelete?: (video: Video) => void;
+  onRemoveCategory?: (videoId: string, categoryType: string, categoryValue: string) => void;
+  onUpdateCategories?: (videoId: string, categories: Partial<{ categories: any; customCategories: any }>) => void;
+  isSelected?: (videoId: string) => boolean;
+  onSelectionChange?: (videoId: string, selected: boolean) => void;
+  showSelection?: boolean;
+  onVideoCardClick?: (index: number) => void;
+  visibleRange: { start: number; end: number };
+};
+
 export function OptimizedVirtualGrid({
   videos,
   columns,
@@ -64,24 +88,39 @@ export function OptimizedVirtualGrid({
   showSelection,
   onVideoCardClick,
 }: OptimizedVirtualGridProps) {
-  const gridRef = useRef<VirtualGrid>(null);
+  const gridRef = useGridRef(null);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 0 });
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Calculate grid dimensions
   const rowCount = Math.ceil(videos.length / columns);
   const effectiveWidth = Math.max(200, containerWidth);
   const effectiveHeight = Math.max(200, containerHeight);
 
-  // Optimize item key generation
-  const getItemKey = useCallback(
-    ({ columnIndex, rowIndex }: { columnIndex: number; rowIndex: number }) => {
-      const idx = rowIndex * columns + columnIndex;
-      return videos[idx]?.id ?? `empty-${rowIndex}-${columnIndex}`;
+  // Stable per-cell keys from video ids (data arrives via key-callback args)
+  const getRowKey = useCallback(
+    ({ rowIndex, data }: { rowIndex: number; data: GridCellData }) => {
+      const idx = rowIndex * data.columns;
+      return data.videos[idx]?.id ?? `row-${rowIndex}`;
     },
-    [videos, columns],
+    [],
+  );
+  const getColumnKey = useCallback(
+    ({
+      columnIndex,
+      rowIndex,
+      data,
+    }: {
+      columnIndex: number;
+      rowIndex: number;
+      data: GridCellData;
+    }) => {
+      const idx = rowIndex * data.columns + columnIndex;
+      return data.videos[idx]?.id ?? `cell-${rowIndex}-${columnIndex}`;
+    },
+    [],
   );
 
   // Track visible range for viewport-aware resource management
@@ -155,13 +194,8 @@ export function OptimizedVirtualGrid({
       columnIndex,
       rowIndex,
       style,
-      data,
-    }: {
-      columnIndex: number;
-      rowIndex: number;
-      style: React.CSSProperties;
-      data: typeof itemData;
-    }) => {
+      ...data
+    }: CellComponentProps<GridCellData>) => {
       const idx = rowIndex * data.columns + columnIndex;
       const video = data.videos[idx];
 
@@ -211,7 +245,8 @@ export function OptimizedVirtualGrid({
 
   // Handle scroll events with optimized debouncing
   const handleScroll = useCallback(
-    ({ scrollTop }: { scrollTop: number }) => {
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const scrollTop = e.currentTarget.scrollTop;
       setScrollOffset(scrollTop);
       updateVisibleRange(scrollTop);
 
@@ -251,11 +286,10 @@ export function OptimizedVirtualGrid({
     (index: number) => {
       if (gridRef.current) {
         const rowIndex = Math.floor(index / columns);
-        const scrollTop = rowIndex * (cardHeight + gridGap);
-        gridRef.current.scrollTo({ scrollTop, scrollLeft: 0 });
+        gridRef.current.scrollToRow({ index: rowIndex, align: 'start' });
       }
     },
-    [columns, cardHeight, gridGap],
+    [columns],
   );
 
   // Expose scroll method for external use
@@ -270,34 +304,32 @@ export function OptimizedVirtualGrid({
     () => ({
       columnCount: columns,
       columnWidth: columnWidth + gridGap,
-      height: effectiveHeight,
       rowCount,
       rowHeight: cardHeight + gridGap,
-      width: effectiveWidth,
     }),
-    [columns, columnWidth, gridGap, effectiveHeight, rowCount, cardHeight, effectiveWidth],
+    [columns, columnWidth, gridGap, rowCount, cardHeight],
   );
 
   // Performance optimization: only re-render when essential props change
   const memoizedGrid = useMemo(
     () => (
       <VirtualGrid
-        ref={gridRef}
+        gridRef={gridRef}
         {...gridDimensions}
-        itemKey={getItemKey}
-        itemData={itemData}
+        rowKey={getRowKey}
+        columnKey={getColumnKey}
+        cellProps={itemData}
+        cellComponent={cellRenderer}
         onScroll={handleScroll}
-        overscanRowCount={3}
-        overscanColumnCount={1}
-        useIsScrolling={true}
+        overscanCount={3}
         style={{
+          height: effectiveHeight,
+          width: effectiveWidth,
           willChange: isScrolling ? 'transform' : 'auto',
         }}
-      >
-        {cellRenderer}
-      </VirtualGrid>
+      />
     ),
-    [gridDimensions, getItemKey, itemData, handleScroll, cellRenderer, isScrolling],
+    [gridDimensions, getRowKey, getColumnKey, itemData, handleScroll, cellRenderer, isScrolling],
   );
 
   return (

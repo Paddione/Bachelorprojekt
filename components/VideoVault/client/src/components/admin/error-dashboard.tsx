@@ -272,7 +272,10 @@ function ErrorList({ errors, onSelectError }: ErrorListProps) {
                 <p className="text-sm text-muted-foreground line-clamp-2">{error.message}</p>
                 <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                   <span>{new Date(error.timestamp).toLocaleString()}</span>
-                  {error.context?.component && <span>Component: {error.context.component}</span>}
+                  {(typeof error.context?.component === 'string' ||
+                    typeof error.context?.component === 'number') && (
+                    <span>Component: {String(error.context?.component)}</span>
+                  )}
                 </div>
               </div>
               <Button variant="ghost" size="sm">

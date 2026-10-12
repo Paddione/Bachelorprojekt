@@ -58,7 +58,7 @@ router.post(
 router.get(
   '/:jobId',
   asyncHandler(async (req: Request, res: Response) => {
-    const { jobId } = req.params;
+    const jobId = String(req.params.jobId);
 
     // @ts-ignore - jobQueue injected by server
     const jobQueue = req.app.locals.jobQueue;
@@ -178,7 +178,7 @@ router.post(
 router.delete(
   '/:jobId',
   asyncHandler(async (req: Request, res: Response) => {
-    const { jobId } = req.params;
+    const jobId = String(req.params.jobId);
 
     // @ts-ignore - db and jobQueue injected by server
     const db = req.app.locals.db;

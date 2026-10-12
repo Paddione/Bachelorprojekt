@@ -6120,6 +6120,12 @@
     "kind": "pytest"
   },
   {
+    "id": "videovault/type_gate_green",
+    "file": "tests/py/spec/videovault/test_type_gate_green.py",
+    "category": "videovault",
+    "kind": "pytest"
+  },
+  {
     "id": "warden-mcp/config-guards",
     "file": "tests/py/spec/native_ported/spec/warden-mcp/test_config_guards.py",
     "category": "warden-mcp",

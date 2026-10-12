@@ -11,6 +11,7 @@ import {
     PieChart,
     Pie,
     Cell,
+    type PieLabelRenderProps,
 } from 'recharts';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -211,7 +212,10 @@ export default function AnalyticsPage() {
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
-                                    label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}
+                                    label={({ name, percent }: PieLabelRenderProps) => {
+                                        const pct = percent ?? 0;
+                                        return pct > 0.05 ? `${name} ${(pct * 100).toFixed(0)}%` : '';
+                                    }}
                                     outerRadius={80}
                                     fill="#8884d8"
                                     dataKey="value"

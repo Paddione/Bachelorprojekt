@@ -7,7 +7,7 @@ import { syncVideoSidecar } from '../lib/sidecar';
 
 export async function renameTagRoute(req: Request, res: Response) {
   if (!db) return res.status(503).json({ error: 'Database not configured' });
-  const { id } = req.params;
+  const id = String(req.params.id);
   const { newName } = req.body as { newName: string };
 
   if (!newName) return res.status(400).json({ error: 'newName is required' });
@@ -151,7 +151,7 @@ export async function listSynonymsRoute(req: Request, res: Response) {
 
 export async function deleteSynonymRoute(req: Request, res: Response) {
   if (!db) return res.status(503).json({ error: 'Database not configured' });
-  const { source } = req.params;
+  const source = String(req.params.source);
   await db.delete(tagSynonyms).where(eq(tagSynonyms.source, source));
   res.json({ success: true });
 }

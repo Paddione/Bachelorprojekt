@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.415.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.3...website-v1.415.4) (2026-10-12)
+
+
+### Bug Fixes
+
+* **scripts:** verify-ticket-id queries id column via stdin [T901953] ([#6559](https://github.com/Paddione/Bachelorprojekt/issues/6559)) ([07bd1c7](https://github.com/Paddione/Bachelorprojekt/commit/07bd1c71c8a18360d74504b069c32b6cf12ab15f))
+
 ## [1.415.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.2...website-v1.415.3) (2026-10-12)
 
 

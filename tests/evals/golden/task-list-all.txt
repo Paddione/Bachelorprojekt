@@ -216,6 +216,7 @@ task: Available tasks for this project:
 * llm:tools-sandbox:down:                       Entfernt den Tool-Sandbox-Container
 * llm:tools-sandbox:status:                     Exit 0, wenn der Tool-Sandbox-Container laeuft — dieselbe Pruefung, die der Proxy vor dem Start macht
 * llm:tools-sandbox:up:                         Startet den Container, in dem die eingebauten llama-server-Tools laufen (--tools-runtime)
+* llm:workers:status:                           Lokale LLM-Worker: Prozess, CPU, RAM, Modell, GPU-Totals, Proxy-Backends
 * logs:debug-restart:                           Staging: Rollout-Restart aller Deployments, damit die Debug-Log-Patches greifen [T900018]
 * logs:debug-runtime:                           Staging: Log-Level fuer Container ohne Env-Schalter setzen (nextcloud/redis/postgres) [T900018]
 * logs:debug-scan:                              Staging: Debug-Logs aller Services sammeln und auf fehlende Implementierungen scannen [T900018]

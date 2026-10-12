@@ -512,9 +512,9 @@
     },
     {
       "slug": "qwen35-2b-worker",
-      "label": "Qwen3.5-2B BP Q4_K_M · Worker, GPU0 :8096, 32k Kontext",
+      "label": "Qwen3.5-2B BP Q4_K_M · Worker, GPU0 :8099, 32k Kontext",
       "model": "qwen35-2b-bp/Qwen3.5-2B.Q4_K_M.gguf",
-      "port": 8096,
+      "port": 8099,
       "enabled": true,
       "fit": {
         "enabled": false,

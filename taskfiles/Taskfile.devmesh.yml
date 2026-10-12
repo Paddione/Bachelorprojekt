@@ -48,17 +48,15 @@ tasks:
       - bash scripts/devmesh/tailnet-subnet-routes.sh
 
   dns:deploy:
-    desc: "devmesh: LAN-/Tailnet-DNS (AdGuard, Namespace lan-dns) deployen; oeffnet vorher Port 53 per ufw [T016515]"
+    desc: "devmesh: LAN-/Tailnet-DNS (AdGuard, Namespace lan-dns) ausrollen; prueft Node-DNS vor und nach dem Rollout und nimmt bei Fehler zurueck [T016515, T016520]"
     preconditions:
       - sh: kubectl config get-contexts -o name | grep -qx devmesh
         msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
     cmds:
-      - bash scripts/devmesh/lan-dns-firewall.sh
-      - kubectl --context devmesh apply -k dev-local/lan-dns
-      - kubectl --context devmesh -n lan-dns rollout status deploy/adguard --timeout=180s
+      - bash scripts/devmesh/lan-dns-deploy.sh
 
   dns:check:
-    desc: "devmesh: AdGuard auf jeder k3s-Server-IP per dig abfragen (NAME=<host>, Default quad9.net; Exit 1 = IP antwortet nicht, 2 = dig fehlt) [T016515]"
+    desc: "devmesh: AdGuard auf jedem Host mit lan_dns per dig abfragen (NAME=<host>, Default quad9.net; Exit 1 = IP antwortet nicht, 2 = dig fehlt) [T016515]"
     vars:
       NAME: '{{.NAME | default "quad9.net"}}'
     cmds:
@@ -66,7 +64,7 @@ tasks:
         set -euo pipefail
         command -v dig >/dev/null || { echo "Vorbedingung fehlt: dig" >&2; exit 2; }
         rc=0
-        for ip in $(yq -r '.peers[] | select(.k3s_role == "server-init" or .k3s_role == "server-join") | .lan_ip' devmesh/inventory.yaml); do
+        for ip in $(yq -r '.peers[] | select(.lan_dns == true) | .lan_ip' devmesh/inventory.yaml); do
           if [ -n "$(dig +time=3 +tries=1 +short @"$ip" {{.NAME}} 2>/dev/null)" ]; then echo "ok    $ip"; else echo "FEHLT $ip"; rc=1; fi
         done
         exit $rc

@@ -4173,7 +4173,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 919,
+      "file_count": 920,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4397,6 +4397,7 @@
         "scripts/devmesh/k3d-teardown.sh",
         "scripts/devmesh/k3s-install.sh",
         "scripts/devmesh/kubeconfig.sh",
+        "scripts/devmesh/lan-dns-deploy.sh",
         "scripts/devmesh/lan-dns-firewall.sh",
         "scripts/devmesh/longhorn-install.sh",
         "scripts/devmesh/longhorn-prereqs.sh",

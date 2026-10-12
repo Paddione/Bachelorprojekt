@@ -1,15 +1,17 @@
 # Runbook: LAN- und Tailnet-DNS auf devmesh (AdGuard Home)
 
-AdGuard Home läuft in devmesh (`dev-local/lan-dns/`, Namespace `lan-dns`) mit zwei
-Replicas auf verschiedenen Nodes. Es ersetzt den Raspberry Pi `raspberrypi`
+AdGuard Home läuft in devmesh (`dev-local/lan-dns/`, Namespace `lan-dns`) als
+DaemonSet mit `hostNetwork` auf den Nodes mit `lan_dns: true` im Inventar
+(gpu-cluster, gpu-cluster2). Jede Instanz bindet Port 53 direkt an die LAN-IP
+ihres Nodes. Es ersetzt den Raspberry Pi `raspberrypi`
 (10.0.0.2, Tailnet-Gerät `dns`) in drei Rollen: Upstream-DNS der Fritzbox,
 globaler Nameserver des Tailnets und Subnet-Router für `10.0.0.0/24`.
 Entscheidungen: `.agents/plans/lan-dns-adguard/design.md` (T016515).
 
 ```
-LAN-Gerät ──DHCP/DNS──► Fritzbox 10.0.0.1 ──► 10.10.10.2:53 (ServiceLB) ──► AdGuard ×2
+LAN-Gerät ──DHCP/DNS──► Fritzbox 10.0.0.1 ──► 10.10.10.2:53 (AdGuard auf gpu-cluster)
                                          └──► 9.9.9.9 (Ausweich)
-Tailnet-Gerät ──MagicDNS──► lan-dns (Operator-Proxy) ──► AdGuard ×2
+Tailnet-Gerät ──MagicDNS──► lan-dns (Operator-Proxy) ──► AdGuard (gpu-cluster, gpu-cluster2)
                        └──► 9.9.9.9 (Ausweich)
 ```
 
@@ -19,15 +21,26 @@ Adressvergabe. Geräte bekommen weiter 10.0.0.1 als DNS-Server.
 Die Konfiguration steht vollständig in `dev-local/lan-dns/AdGuardHome.yaml`.
 Änderungen in der Web-UI gehen beim nächsten Pod-Start verloren.
 
+**Kein LoadBalancer oder NodePort auf Port 53.** Die k3s-ServiceLB legt dafür
+hostPort-DNAT an, die auch den lokalen Resolver `127.0.0.53` jedes Nodes kapert.
+Am 2026-10-12 fiel dadurch die DNS-Auflösung aller devmesh-Nodes für vier Minuten
+aus (T016520). Ein Test verbietet das.
+
 ---
 
 ## 1. Deploy und Prüfung
 
 ```bash
-task devmesh:dns:deploy        # ufw Port 53 auf allen k3s-Hosts, dann apply + rollout
-task devmesh:dns:check         # jede Server-IP muss "ok" melden
-kubectl --context devmesh -n lan-dns get pods -o wide   # zwei Pods, zwei Nodes
+task devmesh:dns:deploy        # siehe unten
+task devmesh:dns:check         # jeder lan_dns-Host muss "ok" melden
+kubectl --context devmesh -n lan-dns get pods -o wide   # ein Pod je lan_dns-Node
 ```
+
+`dns:deploy` (`scripts/devmesh/lan-dns-deploy.sh`) prüft zuerst die Node-DNS auf
+jedem k3s-Host, setzt ufw-Regeln und Node-Labels, rollt aus und prüft danach
+Node-DNS und jede AdGuard-IP. Scheitert ein Schritt nach dem Apply, löscht es
+alles wieder (`kubectl delete -k dev-local/lan-dns`) und meldet Exit 1.
+`DRY_RUN=1` zeigt nur die Schritte.
 
 Tailnet-Gerät prüfen: in der Admin-Konsole unter Machines erscheint `lan-dns` mit
 Tag `tag:lan-dns`. Dafür muss die Policy aus Abschnitt 4 eingespielt sein, sonst
@@ -36,9 +49,22 @@ darf der Operator den Tag nicht vergeben.
 ## 2. Ausfalltest vor jeder Umstellung
 
 ```bash
-kubectl --context devmesh -n lan-dns delete pod -l app=adguard --wait=false \
-  --field-selector "spec.nodeName=$(kubectl --context devmesh -n lan-dns get pods -l app=adguard -o jsonpath='{.items[0].spec.nodeName}')"
-task devmesh:dns:check         # muss weiter "ok" melden (zweite Replica)
+kubectl --context devmesh -n lan-dns delete pod -l app=adguard \
+  --field-selector spec.nodeName=gpu-cluster
+task devmesh:dns:check         # gpu-cluster kurz FEHLT, gpu-cluster2 ok
+kubectl --context devmesh -n lan-dns rollout status ds/adguard   # Pod kommt zurück
+task devmesh:dns:check         # beide wieder ok
+```
+
+Die Fritzbox kennt nur `10.10.10.2`. Fällt AdGuard auf gpu-cluster aus, weicht
+sie auf `9.9.9.9` aus, nicht auf gpu-cluster2. Das Tailnet nutzt beide Instanzen
+über den Operator-Proxy.
+
+Komplett abschalten und wieder ausrollen (für die Ausfalltests unten):
+
+```bash
+kubectl --context devmesh delete -k dev-local/lan-dns    # AdGuard aus
+task devmesh:dns:deploy                                  # wieder an
 ```
 
 ## 3. Fritzbox umstellen
@@ -61,9 +87,9 @@ Danach im Query-Log der UI (Abschnitt 6) Anfragen von 10.0.0.1 sehen.
 das ist nicht dokumentiert, nur so belegbar):
 
 ```bash
-kubectl --context devmesh -n lan-dns scale deploy/adguard --replicas=0
+kubectl --context devmesh delete -k dev-local/lan-dns
 dig @10.0.0.1 quad9.net +short               # muss weiter antworten
-kubectl --context devmesh -n lan-dns scale deploy/adguard --replicas=2
+task devmesh:dns:deploy
 ```
 
 Antwortet die Fritzbox ohne AdGuard nicht, sofort zurückstellen (Abschnitt 7).
@@ -86,7 +112,7 @@ nslookup gpu-metal.fritz.box                  # lokaler Name über AdGuard → F
 nslookup quad9.net
 ```
 
-Ausfalltest wie in Abschnitt 3 (auf 0 skalieren, Auflösung muss weiter gehen).
+Ausfalltest wie in Abschnitt 3 (AdGuard abschalten, Auflösung muss weiter gehen).
 
 **Achtung:** Die devmesh-Nodes nutzen selbst Tailscale-DNS (`AcceptDNS=True`).
 Nach der Umstellung lösen sie über `lan-dns` auf, also über den eigenen Cluster.
@@ -107,7 +133,7 @@ freigeben). Test: Pi kurz vom Netz nehmen, von außerhalb `ping 10.0.0.1`.
 ## 6. Web-UI
 
 ```bash
-kubectl --context devmesh -n lan-dns port-forward deploy/adguard 3000
+kubectl --context devmesh -n lan-dns port-forward ds/adguard 3000
 ```
 
 Dann `http://localhost:3000`. Die UI ist im Pod nur auf `127.0.0.1` gebunden:

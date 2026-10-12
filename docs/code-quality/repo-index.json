@@ -1190,6 +1190,7 @@
         "tests/py/unit/test_agent_claims_health.py",
         "tests/py/unit/test_art_library_manifest.py",
         "tests/py/unit/test_bitwarden_export.py",
+        "tests/py/unit/test_cbm_sync_graph_pagination.py",
         "tests/py/unit/test_check_commit_vs_diff_package_drift.py",
         "tests/py/unit/test_dead_node_affinity.py",
         "tests/py/unit/test_devflow_ci_watch.py",

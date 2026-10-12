@@ -38,28 +38,62 @@ def _adguard_config(rendered):
     return yaml.safe_load(cm["data"]["AdGuardHome.yaml"])
 
 
-def test_deployment_zwei_replicas_auf_verschiedenen_nodes(rendered):
-    dep = _one(rendered, "Deployment", "adguard")
-    spec = dep["spec"]["template"]["spec"]
-    assert dep["metadata"]["namespace"] == "lan-dns"
-    assert dep["spec"]["replicas"] == 2
-    terms = spec["affinity"]["podAntiAffinity"]["requiredDuringSchedulingIgnoredDuringExecution"]
-    assert any(t["topologyKey"] == "kubernetes.io/hostname" for t in terms)
+def test_daemonset_mit_hostnetwork_nur_auf_lan_dns_nodes(rendered):
+    ds = _one(rendered, "DaemonSet", "adguard")
+    spec = ds["spec"]["template"]["spec"]
+    assert ds["metadata"]["namespace"] == "lan-dns"
+    # hostNetwork: AdGuard bindet die LAN-IP des Nodes selbst, keine hostPort-DNAT (T016520).
+    assert spec["hostNetwork"] is True
+    assert spec["nodeSelector"] == {"lan-dns": "true"}
     image = spec["containers"][0]["image"]
     assert re.fullmatch(r"adguard/adguardhome:v\d+\.\d+\.\d+", image), image
     assert spec["dnsPolicy"] == "None"
-    assert _one(rendered, "PodDisruptionBudget", "adguard")["spec"]["minAvailable"] == 1
+    assert not [n for (k, n) in rendered if k == "Deployment"]
 
 
-def test_dns_service_loadbalancer_udp_tcp_53_und_im_tailnet(rendered):
+def test_kein_service_bietet_port_53_ueber_node_ports_an(rendered):
+    # Positiv-Anker: der Tailnet-Service existiert als ClusterIP mit Port 53.
     svc = _one(rendered, "Service", "adguard-dns")
-    assert svc["spec"]["type"] == "LoadBalancer"
-    ports = {(p["port"], p["protocol"]) for p in svc["spec"]["ports"]}
-    assert {(53, "UDP"), (53, "TCP")} <= ports
+    assert svc["spec"].get("type", "ClusterIP") == "ClusterIP"
+    assert {(53, "UDP"), (53, "TCP")} <= {(p["port"], p["protocol"]) for p in svc["spec"]["ports"]}
     ann = svc["metadata"]["annotations"]
     assert ann["tailscale.com/expose"] == "true"
     assert ann["tailscale.com/hostname"] == "lan-dns"
     assert ann["tailscale.com/tags"] == "tag:lan-dns"
+    # ServiceLB/NodePort auf 53 setzt hostPort-DNAT, die auch 127.0.0.53 des Nodes kapert (T016520).
+    node_exposed = [
+        n for (k, n), d in rendered.items()
+        if k == "Service" and d["spec"].get("type") in ("LoadBalancer", "NodePort")
+        and any(p["port"] == 53 for p in d["spec"]["ports"])
+    ]
+    assert node_exposed == []
+    host_ports = [
+        p for c in _one(rendered, "DaemonSet", "adguard")["spec"]["template"]["spec"]["containers"]
+        for p in c.get("ports", []) if "hostPort" in p
+    ]
+    assert host_ports == []
+
+
+def test_init_container_setzt_die_node_ip_als_bind_adresse(rendered, run_cmd, tmp_path):
+    spec = _one(rendered, "DaemonSet", "adguard")["spec"]["template"]["spec"]
+    init = spec["initContainers"][0]
+    env = {e["name"]: e for e in init["env"]}
+    assert env["HOST_IP"]["valueFrom"]["fieldRef"]["fieldPath"] == "status.hostIP"
+    # Den Init-Befehl lokal ausfuehren, Pfade auf tmp_path umgebogen.
+    script = init["command"][-1].replace("/config-ro", str(tmp_path / "ro")).replace(
+        "/opt/adguardhome/conf", str(tmp_path / "conf"))
+    (tmp_path / "ro").mkdir()
+    (tmp_path / "conf").mkdir()
+    cm = _one(rendered, "ConfigMap", "adguard-config")
+    (tmp_path / "ro" / "AdGuardHome.yaml").write_text(cm["data"]["AdGuardHome.yaml"])
+    import os
+    fake_hash = "$2b$10$" + "abcdefghijklmnopqrstuv" + "/ABCDEFGHIJKLMNOPQRSTUVWXYZ0123."
+    res = run_cmd(["sh", "-c", script], env={**os.environ, "HOST_IP": "10.10.10.2", "ADMIN_HASH": fake_hash})
+    res.check()
+    cfg = yaml.safe_load((tmp_path / "conf" / "AdGuardHome.yaml").read_text())
+    assert cfg["dns"]["bind_hosts"] == ["10.10.10.2"]
+    assert cfg["users"] == [{"name": "admin", "password": fake_hash}]
+    assert env["ADMIN_HASH"]["valueFrom"]["secretKeyRef"] == {"name": "adguard-admin", "key": "bcrypt"}
 
 
 def test_web_ui_nur_auf_localhost_im_pod(rendered):
@@ -102,7 +136,7 @@ def inventory(tmp_path, monkeypatch):
         "k3s_version: v1.36.1+k3s1\n"
         "peers:\n"
         "  - {name: srv-a, role: server, lan_ip: 10.10.10.2, tailnet_name: srv-a, k3s_role: server-init,"
-        " subnet_routes: [10.0.0.0/24]}\n"
+        " subnet_routes: [10.0.0.0/24], lan_dns: true}\n"
         "  - {name: srv-b, role: server, lan_ip: 10.10.10.3, tailnet_name: srv-b, k3s_role: agent}\n"
         "  - {name: client-x, role: client, lan_ip: 10.10.0.3, tailnet_name: client-x}\n"
     )
@@ -129,7 +163,7 @@ def test_subnet_routes_dry_run_nur_fuer_peers_mit_subnet_routes(repo_root, run_c
     assert "10.10.10.2" in lines[0] and "--advertise-routes=10.0.0.0/24" in lines[0]
 
 
-def test_task_dns_deploy_setzt_firewall_vor_dem_apply(repo_root, run_cmd, tmp_path):
+def test_task_dns_deploy_ruft_das_deploy_skript(repo_root, run_cmd, tmp_path):
     if shutil.which("task") is None or shutil.which("kubectl") is None:
         pytest.skip("task or kubectl binary not installed")
     # Hermetisch: die Precondition verlangt einen Context devmesh, CI hat keinen.
@@ -144,6 +178,21 @@ def test_task_dns_deploy_setzt_firewall_vor_dem_apply(repo_root, run_cmd, tmp_pa
     env = {**os.environ, "KUBECONFIG": str(kubeconfig)}
     res = run_cmd(["task", "--dry", "devmesh:dns:deploy"], cwd=repo_root, env=env)
     assert res.returncode == 0, res.output
-    out = res.output
-    assert "lan-dns-firewall.sh" in out and "apply -k dev-local/lan-dns" in out
-    assert out.index("lan-dns-firewall.sh") < out.index("apply -k dev-local/lan-dns")
+    assert "scripts/devmesh/lan-dns-deploy.sh" in res.output
+
+
+def test_deploy_dry_run_prueft_node_dns_vor_und_nach_dem_rollout(repo_root, run_cmd, inventory):
+    res = run_cmd(["bash", str(repo_root / "scripts/devmesh/lan-dns-deploy.sh")])
+    assert res.returncode == 0, res.output
+    steps = [l.split(":", 1)[0] for l in res.stdout.splitlines() if ":" in l]
+    # Positiv-Anker und Reihenfolge: Vorpruefung, Firewall, Labels, Apply, Rollout, Nachpruefung.
+    order = ["pre-check", "firewall", "label", "apply", "rollout", "post-check"]
+    first = [steps.index(s) for s in order]
+    assert first == sorted(first), res.stdout
+    # Node-DNS wird auf jedem k3s-Host geprueft, gelabelt nur Hosts mit lan_dns.
+    pre = [l for l in res.stdout.splitlines() if l.startswith("pre-check:")]
+    assert any("10.10.10.2" in l for l in pre) and any("10.10.10.3" in l for l in pre)
+    labels = [l for l in res.stdout.splitlines() if l.startswith("label:")]
+    assert any("srv-a" in l and "lan-dns=true" in l for l in labels), res.stdout
+    assert any("srv-b" in l and "lan-dns-" in l for l in labels), res.stdout
+    assert "rollback:" in res.stdout

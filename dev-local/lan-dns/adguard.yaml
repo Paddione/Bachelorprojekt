@@ -1,32 +1,36 @@
-# AdGuard Home, zwei Replicas auf verschiedenen Nodes [T016515].
+# AdGuard Home auf den Nodes mit Label lan-dns=true (Inventarfeld lan_dns) [T016515, T016520].
+#
+# hostNetwork statt ServiceLB: ein LoadBalancer/NodePort auf Port 53 legt
+# hostPort-DNAT an, die auch den systemd-resolved-Stub 127.0.0.53 des Nodes
+# kapert. Beim ersten Deploy fiel dadurch die DNS-Aufloesung aller Nodes aus
+# (T016520). AdGuard bindet deshalb selbst an die LAN-IP des Nodes.
 apiVersion: v1
 kind: Namespace
 metadata:
   name: lan-dns
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: adguard
   labels:
     app: adguard
 spec:
-  replicas: 2
   selector:
     matchLabels:
       app: adguard
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   template:
     metadata:
       labels:
         app: adguard
     spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchLabels:
-                  app: adguard
+      hostNetwork: true
+      nodeSelector:
+        lan-dns: "true"
       # Keine Aufloesung ueber CoreDNS/Node/Fritzbox: die Fritzbox fragt AdGuard,
       # der Pod selbst darf nicht zurueck in diese Kette fragen.
       dnsPolicy: None
@@ -35,10 +39,25 @@ spec:
           - 9.9.9.9
           - 1.1.1.1
       # AdGuard schreibt seine Konfiguration zurueck; die ConfigMap ist read-only.
+      # Platzhalter: __HOST_IP__ -> LAN-IP des Nodes, __ADMIN_HASH__ -> bcrypt-Hash
+      # aus dem Secret adguard-admin (angelegt von scripts/devmesh/lan-dns-deploy.sh).
       initContainers:
         - name: seed-config
           image: busybox:1.37.0
-          command: ["sh", "-c", "cp /config-ro/AdGuardHome.yaml /opt/adguardhome/conf/AdGuardHome.yaml"]
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ADMIN_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: adguard-admin
+                  key: bcrypt
+          command:
+            - sh
+            - -c
+            - sed -e "s|__HOST_IP__|${HOST_IP}|g" -e "s|__ADMIN_HASH__|${ADMIN_HASH}|g" /config-ro/AdGuardHome.yaml > /opt/adguardhome/conf/AdGuardHome.yaml
           volumeMounts:
             - name: config-ro
               mountPath: /config-ro
@@ -47,13 +66,6 @@ spec:
       containers:
         - name: adguard
           image: adguard/adguardhome:v0.107.79
-          ports:
-            - name: dns-udp
-              containerPort: 53
-              protocol: UDP
-            - name: dns-tcp
-              containerPort: 53
-              protocol: TCP
           readinessProbe:
             tcpSocket:
               port: 53
@@ -83,19 +95,9 @@ spec:
         - name: work
           emptyDir: {}
 ---
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: adguard
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      app: adguard
----
-# LAN: die k3s-ServiceLB stellt Port 53 auf jeder Node-IP bereit und leitet an
-# eine gesunde Replica weiter. Tailnet: der Tailscale-Operator legt das Geraet
-# lan-dns an (L3-Ingress, UDP und TCP).
+# Nur fuer den Tailscale-Operator (Tailnet-Geraet lan-dns, L3-Ingress auf die
+# ClusterIP). Bewusst ClusterIP: kein LoadBalancer/NodePort auf Port 53 (T016520).
+# LAN-Clients (Fritzbox) fragen direkt die LAN-IP der lan-dns-Nodes.
 apiVersion: v1
 kind: Service
 metadata:
@@ -105,15 +107,15 @@ metadata:
     tailscale.com/hostname: lan-dns
     tailscale.com/tags: tag:lan-dns
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: adguard
   ports:
     - name: dns-udp
       port: 53
-      targetPort: dns-udp
+      targetPort: 53
       protocol: UDP
     - name: dns-tcp
       port: 53
-      targetPort: dns-tcp
+      targetPort: 53
       protocol: TCP

@@ -17,6 +17,8 @@
 # tailnet_name  Geraetename im Tailnet (bei Servern per `tailscale up --hostname` gesetzt)
 # subnet_routes Netze, die der Host ins Tailnet freigibt (scripts/devmesh/tailnet-subnet-routes.sh).
 #               Mehrere Hosts mit derselben Route: Tailscale schaltet bei Ausfall um [T016515].
+# lan_dns       true: Host traegt AdGuard (Label lan-dns=true, Bind an lan_ip:53). Die Fritzbox
+#               fragt den ersten dieser Hosts (docs/runbooks/devmesh-lan-dns.md) [T016520].
 #
 # Gelesen von scripts/devmesh/*.sh, taskfiles/Taskfile.devmesh.yml
 # und vom Policy-Guard tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py (gpu_endpoint).
@@ -47,6 +49,7 @@ peers:
     tailnet_name: gpu-cluster
     k3s_role: server-init
     subnet_routes: [10.0.0.0/24]
+    lan_dns: true
     labels: []
   - name: gpu-cluster2
     role: server
@@ -55,6 +58,7 @@ peers:
     tailnet_name: gpu-cluster2
     k3s_role: server-join
     subnet_routes: [10.0.0.0/24]
+    lan_dns: true
     labels:
       - storage=true
   - name: gpu-cluster-3

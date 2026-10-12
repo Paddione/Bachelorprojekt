@@ -116,8 +116,8 @@ task: Available tasks for this project:
 * devmesh:acceptance:                           Abnahme-Gate vor dem k3d-Abbau: Health, migration comparison, fresh dump [T900145]
 * devmesh:backup:run:                           shared-db-Backup auf devmesh sofort ausloesen (CronJob shared-db-backup) [T900118]
 * devmesh:deploy:                               devmesh-Stack aus der Arbeitskopie deployen (PROFILE=core|full, Default DEVMESH_PROFILE) [T900118]
-* devmesh:dns:check:                            devmesh: AdGuard auf jeder k3s-Server-IP per dig abfragen (NAME=<host>, Default quad9.net; Exit 1 = IP antwortet nicht, 2 = dig fehlt) [T016515]
-* devmesh:dns:deploy:                           devmesh: LAN-/Tailnet-DNS (AdGuard, Namespace lan-dns) deployen; oeffnet vorher Port 53 per ufw [T016515]
+* devmesh:dns:check:                            devmesh: AdGuard auf jedem Host mit lan_dns per dig abfragen (NAME=<host>, Default quad9.net; Exit 1 = IP antwortet nicht, 2 = dig fehlt) [T016515]
+* devmesh:dns:deploy:                           devmesh: LAN-/Tailnet-DNS (AdGuard, Namespace lan-dns) ausrollen; prueft Node-DNS vor und nach dem Rollout und nimmt bei Fehler zurueck [T016515, T016520]
 * devmesh:install:                              devmesh: k3s auf HOST in seiner Inventar-Rolle installieren (DRY_RUN=1 zeigt nur den Befehl)
 * devmesh:k3d:teardown:                         Operator-only: decommission the former k3d development cluster [T900145]
 * devmesh:kubeconfig:                           devmesh: Admin-Kubeconfig als Context devmesh mergen (SERVER=<name>, Default: server-init)

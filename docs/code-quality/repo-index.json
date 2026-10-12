@@ -4399,6 +4399,7 @@
         "scripts/devmesh/k3d-teardown.sh",
         "scripts/devmesh/k3s-install.sh",
         "scripts/devmesh/kubeconfig.sh",
+        "scripts/devmesh/lan-dns-deploy.sh",
         "scripts/devmesh/lan-dns-firewall.sh",
         "scripts/devmesh/longhorn-install.sh",
         "scripts/devmesh/longhorn-prereqs.sh",

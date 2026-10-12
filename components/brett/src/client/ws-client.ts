@@ -1,19 +1,17 @@
-import { STATE, activeLocks, getScene, currentUser, getWs, isWsReady } from './state';
-import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
+import { STATE, activeLocks } from './state';
+import { applyLineMessage } from './scene-lines';
 import type { ServerMessage } from '../types/messages';
 import type { Phase, Participant } from '../types/state';
 import { updateExportCache } from './ui/export';
-import * as mannequin from './mannequin';
-import { PRESETS } from './presets';
-import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
-import { applyOptikToScene } from './ui/optik';
-import * as groundObjects from './ground-objects';
+import { createLobbyState, type LobbyState } from './lobby-store';
 import { showExportToast } from './ui/export-toast';
 import { handleLobbyMessage } from './ws-lobby-handlers';
 import { setMessageHandler } from './ws-connection-client';
 import { applyUndoStateChange } from './ws-undo-state';
-import { toExportFig, toExportLine } from './ws-export-mappers';
+import { toExportLine } from './ws-export-mappers';
 import { handleGroundMessage } from './ws-message-ground';
+import { handleSnapshotMessage } from './ws-message-snapshot';
+import { handleFigureMessage } from './ws-message-figures';
 
 // ── Lobby/presence/session state (pure reducer) ─────────────────────────────
 let lobbyState: LobbyState = createLobbyState();
@@ -92,131 +90,23 @@ export function onWsMessage(evt: MessageEvent): void {
     return;
   }
 
-  const presets = PRESETS;
   const stiffSlider = document.getElementById('stiffness') as HTMLInputElement | null;
 
   switch (msg.type) {
-    case 'snapshot': {
-      // scene may not be initialized yet when main.ts connects the WS early
-      // (before bootBoard()/initScene()). Process lobby/phase parts regardless;
-      // skip scene-graph mutations until the scene is ready.
-      let sceneForSnapshot: ReturnType<typeof getScene> | null = null;
-      try { sceneForSnapshot = getScene(); } catch { /* pre-scene lobby snapshot */ }
-      // Reset world from server state
-      for (const f of STATE.figures) {
-        mannequin.disposeMannequin(f);
-        sceneForSnapshot?.scene.remove(f.root);
-      }
-      STATE.figures.length = 0;
-      STATE.selectedId = null;
-      for (const f of (msg.figures || [])) {
-        const fig = mannequin.makeMannequin(f.id, { x: f.x ?? 0, z: f.z ?? 0 });
-        fig.facingY = f.facingY ?? 0;
-        fig.root.rotation.y = fig.facingY;
-        if (f.preset && presets[f.preset]) {
-          for (const name of mannequin.BONE_NAMES) {
-            fig.bone[name].targetRot.x = presets[f.preset][name].x;
-            fig.bone[name].targetRot.z = presets[f.preset][name].z;
-          }
-        }
-        if (f.boneOverrides) {
-          fig.boneOverrides = { ...f.boneOverrides };
-        }
-        (fig as any)._serverPossessor = (f as any).possessor ?? null;
-        // Notizen aus Snapshot wiederherstellen (Slice 5, T000469)
-        if ((f as any).note !== undefined) {
-          (fig as any).note = (f as any).note;
-        }
-        // E9: hidden/opacity aus Snapshot übernehmen (nur der Leiter erhält
-        // hidden-Figuren überhaupt — der Server filtert sie sonst weg).
-        if ((f as any).hidden) (fig as any).hidden = true;
-        if (typeof (f as any).opacity === 'number') (fig as any).opacity = (f as any).opacity;
-        STATE.figures.push(fig);
-        if (f.appearance) {
-          applyAppearanceToFig(fig, f.appearance);
-        }
-        mannequin.updateHiddenBadge(fig);
-      }
-      if (typeof msg.stiffness === 'number') {
-        STATE.stiffness = msg.stiffness;
-        if (stiffSlider) {
-          stiffSlider.value = String(msg.stiffness);
-        }
-      }
-      if (STATE.figures[0]) {
-        (window as any).selectFigure(STATE.figures[0].id);
-      }
-
-      // Clear all visual lock badges first
-      for (const figId of activeLocks.keys()) {
-        clearFigureLockBadge(figId);
-      }
-      activeLocks.clear();
-      // Rehydrate locks
-      for (const l of (msg.locks || [])) {
-        activeLocks.set(l.figureId, { userId: l.userId, name: l.name, color: l.color });
-        setFigureLockBadge(l.figureId, l.name, l.color);
-      }
-      // Apply persisted board-optik on mount so late-joiners/reloads render the
-      // saved look (§4.1 dead seam closed end-to-end, D11).
-      if (msg.optik) applyOptikToScene(msg.optik);
-      // NEU T000468: Ground-Objects aus Snapshot initialisieren (DARK-LAUNCH)
-      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
-        groundObjects.initGroundObjectsFromSnapshot(msg.anchors ?? [], msg.zones ?? []);
-      }
-
-      initLinesFromSnapshot(msg.lines ?? []);  // T000467
-      // T000471: rehydrate moderation state from join snapshot
-      if ((msg as any).moderation) {
-        moderationState = {
-          spotlight: (msg as any).moderation.spotlight ?? null,
-          dim: (msg as any).moderation.dim ?? null,
-          freeze: (msg as any).moderation.freeze ?? false,
-        };
-        onModerationChange(moderationState);
-      }
-
-      // Billboard-Wiederherstellung für alle Figuren mit Notizen (Feature-Flag sf-t000469)
-      {
-        const feats: Record<string, boolean> =
-          (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
-        if (feats['sf-t000469']) {
-          import('./ui/hud').then(m => {
-            if (typeof (m as any).setFigureNoteBillboard === 'function') {
-              for (const f of STATE.figures) {
-                if ((f as any).note) {
-                  (m as any).setFigureNoteBillboard(f.id, (f as any).note);
-                }
-              }
-            }
-          }).catch(() => {});
-        }
-      }
-      // FE-2: the join snapshot is the FIRST (often ONLY) state a client gets on
-      // connect, and it carries the authoritative phase/sessionCode/roster. Route
-      // it through the lobby reducer and drive the view-machine on a phase change
-      // — exactly like the presence/session cases below — so a `?room=`/`/api/join`
-      // joiner into a `lobby`-phase session lands on the lobby screen instead of
-      // staring at empty board chrome.
-      {
-        const prevPhase = lobbyState.phase;
-        lobbyState = applyLobbyServerMessage(lobbyState, msg);
-        onLobbyChange(lobbyState);
-        if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
-      }
-      // Export-Cache aktualisieren:
-      updateExportCache({
-        phase: (msg as any).phase ?? 'lobby',
-        sessionCode: (msg as any).sessionCode ?? null,
-        stiffness: (msg as any).stiffness ?? STATE.stiffness,
-        figures: ((msg as any).figures ?? []).map(toExportFig),
-        lines: ((msg as any).lines ?? []).map(toExportLine),
-        anchors: [...((msg as any).anchors ?? [])],
-        zones: [...((msg as any).zones ?? [])],
-        optik: (msg as any).optik ?? null,
+    case 'snapshot':
+      handleSnapshotMessage(msg, {
+        getLobbyState: () => lobbyState,
+        setLobbyState: (s) => { lobbyState = s; },
+        onLobbyChange,
+        onPhaseChange,
+        setModerationState: (s) => { moderationState = s; },
+        onModerationChange,
+        applyAppearance: applyAppearanceToFig,
+        setLockBadge: setFigureLockBadge,
+        clearLockBadge: clearFigureLockBadge,
+        stiffSlider,
       });
       break;
-    }
 
     case 'stiffness':
       STATE.stiffness = msg.value;
@@ -226,43 +116,18 @@ export function onWsMessage(evt: MessageEvent): void {
       updateExportCache({ stiffness: msg.value ?? STATE.stiffness });
       break;
 
-    case 'add': {
-      if (STATE.figures.find(f => f.id === msg.figure.id)) break;
-      const fig = mannequin.makeMannequin(msg.figure.id, { x: msg.figure.x, z: msg.figure.z });
-      (fig as any)._serverPossessor = (msg.figure as any).possessor ?? null;
-      if (msg.figure.appearance) {
-        applyAppearanceToFig(fig, msg.figure.appearance);
-      }
-      STATE.figures.push(fig);
-      // Export-Cache mit aktuellen STATE.figures synchronisieren:
-      updateExportCache({ figures: STATE.figures.map(toExportFig) });
+    case 'add':
+    case 'update':
+    case 'move':
+    case 'jump':
+    case 'delete':
+    case 'figure_possessed':
+    case 'figure_released':
+    case 'figure_note_changed':
+    case 'figure_hidden_changed':
+      handleFigureMessage(msg, { applyAppearance: applyAppearanceToFig });
       break;
-    }
-    case 'update': {
-      const fig = STATE.figures.find(f => f.id === msg.id);
-      if (!fig) break;
-      const c = msg.changes || {};
-      if (c.preset && presets[c.preset]) {
-        for (const name of mannequin.BONE_NAMES) {
-          fig.bone[name].targetRot.x = presets[c.preset][name].x;
-          fig.bone[name].targetRot.z = presets[c.preset][name].z;
-        }
-      }
-      if (c.boneOverrides !== undefined) {
-        fig.boneOverrides = { ...c.boneOverrides };
-      }
-      if (c.appearance !== undefined) {
-        applyAppearanceToFig(fig, c.appearance);
-      }
-      // E2: Figuren-Opacity live übernehmen (Selektions-Dim berücksichtigen).
-      if ((c as any).opacity !== undefined) {
-        (fig as any).opacity = (c as any).opacity;
-        mannequin.applyFigureOpacity(fig, STATE.selectedId === fig.id ? 1.0 : 0.55);
-      }
-      // Export-Cache mit aktuellen STATE.figures synchronisieren:
-      updateExportCache({ figures: STATE.figures.map(toExportFig) });
-      break;
-    }
+
     case 'figure_locked': {
       activeLocks.set(msg.id, { userId: msg.userId, name: msg.name, color: msg.color });
       setFigureLockBadge(msg.id, msg.name, msg.color);
@@ -281,49 +146,6 @@ export function onWsMessage(evt: MessageEvent): void {
 
     case 'locks_released_for': {
       clearLockBadgesForUser(msg.userId);
-      break;
-    }
-
-    case 'move': {
-      const fig = STATE.figures.find(f => f.id === msg.id);
-      if (!fig) break;
-      fig.root.position.x = msg.x;
-      fig.root.position.z = msg.z;
-      if (typeof msg.facingY === 'number') {
-        fig.facingY = msg.facingY;
-        fig.root.rotation.y = fig.facingY;
-      }
-      mannequin.resolveCollisions(fig, mannequin.BOUNCE_K_DRAG);
-      // Export-Cache mit aktuellen STATE.figures synchronisieren:
-      updateExportCache({ figures: STATE.figures.map(toExportFig) });
-      break;
-    }
-
-    case 'jump': {
-      const fig = STATE.figures.find(f => f.id === msg.id);
-      if (fig && !fig.jumping) {
-        mannequin.startJump(fig);
-      }
-      break;
-    }
-
-    case 'delete': {
-      const idx = STATE.figures.findIndex(f => f.id === msg.id);
-      if (idx >= 0) {
-        try {
-          mannequin.disposeMannequin(STATE.figures[idx]);
-          getScene().scene.remove(STATE.figures[idx].root);
-        } catch { /* pre-scene */ }
-        // Billboard-Cleanup (Feature-Flag sf-t000469)
-        import('./ui/hud').then(m => {
-          if (typeof (m as any).clearFigureNoteBillboard === 'function') {
-            (m as any).clearFigureNoteBillboard(msg.id);
-          }
-        }).catch(() => {});
-        STATE.figures.splice(idx, 1);
-      }
-      // Export-Cache mit aktuellen STATE.figures synchronisieren:
-      updateExportCache({ figures: STATE.figures.map(toExportFig) });
       break;
     }
 
@@ -361,56 +183,6 @@ export function onWsMessage(evt: MessageEvent): void {
       // Routed/stored only in B — ownership badge apply lands in Phase C.
       break;
 
-    case 'figure_possessed': {
-      const fig = STATE.figures.find(f => f.id === msg.figureId);
-      if (fig) (fig as any)._serverPossessor = msg.playerId;
-      // Start POV if it's our own possession
-      if (msg.playerId === currentUser.userId) {
-        // E5: POV starten und Panel mit unserer Instanzwelt versorgen — das
-        // Panel darf state/pov-camera nicht selbst importieren (der Build
-        // dupliziert diese Module über die Multi-Entry-Chunks; eine
-        // Zweitinstanz sähe currentUser='anon' und leere Figuren).
-        Promise.all([import('./pov-camera'), import('./ui/pov-panel')]).then(([pov, panel]) => {
-          pov.startPov(msg.figureId);
-          panel.refreshPovPanelForOwnPossession(msg.figureId, msg.playerId, {
-            figures: () => STATE.figures.map(f => ({ id: f.id, label: (f as any).label, color: (f as any).color })),
-            sendRelease: (figureId: string) => {
-              const ws = getWs();
-              if (isWsReady() && ws) ws.send(JSON.stringify({ type: 'figure_release', figureId }));
-            },
-            switchPov: (figureId: string) => {
-              const prev = pov.getPovFigureId();
-              pov.switchPov(figureId);
-              const ws = getWs();
-              if (isWsReady() && ws && prev !== figureId) {
-                if (prev) ws.send(JSON.stringify({ type: 'figure_release', figureId: prev }));
-                ws.send(JSON.stringify({ type: 'figure_possess', figureId }));
-              }
-            },
-            setPovMode: pov.setPovMode,
-            isMeta: pov.isMeta,
-            getPovFigureId: pov.getPovFigureId,
-          });
-        });
-      }
-      break;
-    }
-    case 'figure_released': {
-      const fig = STATE.figures.find(f => f.id === msg.figureId);
-      if (fig) (fig as any)._serverPossessor = null;
-      // Stop POV if it was our possession — but only if the released figure
-      // is still the active POV figure (a switchPov releases the OLD figure
-      // after the new POV already started; that echo must not kill it).
-      if (msg.playerId === currentUser.userId) {
-        Promise.all([import('./pov-camera'), import('./ui/pov-panel')]).then(([pov, panel]) => {
-          if (pov.getPovFigureId() === msg.figureId || pov.getPovFigureId() === null) {
-            pov.stopPov();
-            panel.unmountPovPanel();
-          }
-        });
-      }
-      break;
-    }
     case 'figure_type_changed':
       // Figure type change — no local action needed (lobby roster re-renders from store)
       break;
@@ -418,41 +190,6 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'moderation_state': {
       moderationState = { spotlight: msg.spotlight, dim: msg.dim, freeze: msg.freeze };
       onModerationChange(moderationState);
-      break;
-    }
-
-    case 'figure_note_changed': {
-      const fig = STATE.figures.find(f => f.id === msg.figureId);
-      if (fig) {
-        (fig as any).note = msg.note;
-        // Panel aktualisieren wenn diese Figur gerade selektiert ist
-        if (STATE.selectedId === msg.figureId) {
-          const noteArea = document.getElementById('fig-note-textarea') as HTMLTextAreaElement | null;
-          if (noteArea) noteArea.value = msg.note;
-        }
-        // Billboard update (Feature-Flag sf-t000469)
-        const feats: Record<string, boolean> =
-          (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
-        if (feats['sf-t000469']) {
-          import('./ui/hud').then(m => {
-            if (typeof (m as any).setFigureNoteBillboard === 'function') {
-              (m as any).setFigureNoteBillboard(msg.figureId, msg.note);
-            }
-          }).catch(() => {});
-        }
-      }
-      break;
-    }
-
-    case 'figure_hidden_changed': {
-      // E9: NUR der Leiter erhält diese Message (Server übersetzt sie für
-      // Nicht-Leiter in add/delete). Lokalen hidden-State + Visuals aktualisieren.
-      const fig = STATE.figures.find(f => f.id === msg.figureId);
-      if (fig) {
-        (fig as any).hidden = msg.hidden;
-        mannequin.applyFigureOpacity(fig, STATE.selectedId === fig.id ? 1.0 : 0.55);
-        mannequin.updateHiddenBadge(fig);
-      }
       break;
     }
 
@@ -506,4 +243,3 @@ export {
   sendDelete, sendUndo, sendRedo, sendAddFigure, setWsOpenHandler, connectWS,
   buildSyncUrl,
 } from './ws-connection-client';
-

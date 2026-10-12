@@ -37,6 +37,44 @@ def setup_environment() -> None:
         os.environ.setdefault("HF_HUB_TOKEN", hf_token)
 
 
+def _append_common_flags(
+    cmd: list,
+    *,
+    output_dir: Optional[str],
+    max_samples: Optional[int],
+    trust_remote_code: bool,
+    use_chat_template: bool,
+    system_prompt: Optional[str],
+) -> None:
+    """Shared optional flags for both backends (same order as before)."""
+    if output_dir:
+        cmd.extend(["--output-dir", output_dir])
+
+    if max_samples:
+        cmd.extend(["--max-samples", str(max_samples)])
+
+    if trust_remote_code:
+        cmd.append("--trust-remote-code")
+
+    if use_chat_template:
+        cmd.append("--use-chat-template")
+
+    if system_prompt:
+        cmd.extend(["--system-prompt", system_prompt])
+
+
+def _run_eval(cmd: list) -> None:
+    """Shared runner: echo, execute, report (identical for both backends)."""
+    print(f"Running: {' '.join(cmd)}")
+
+    try:
+        subprocess.run(cmd, check=True)
+        print("Evaluation complete.")
+    except subprocess.CalledProcessError as exc:
+        print(f"Evaluation failed with exit code {exc.returncode}", file=sys.stderr)
+        sys.exit(exc.returncode)
+
+
 def run_lighteval_vllm(
     model_id: str,
     tasks: str,
@@ -80,29 +118,15 @@ def run_lighteval_vllm(
         "--dtype", dtype,
     ]
 
-    if output_dir:
-        cmd.extend(["--output-dir", output_dir])
-
-    if max_samples:
-        cmd.extend(["--max-samples", str(max_samples)])
-
-    if trust_remote_code:
-        cmd.append("--trust-remote-code")
-
-    if use_chat_template:
-        cmd.append("--use-chat-template")
-
-    if system_prompt:
-        cmd.extend(["--system-prompt", system_prompt])
-
-    print(f"Running: {' '.join(cmd)}")
-
-    try:
-        subprocess.run(cmd, check=True)
-        print("Evaluation complete.")
-    except subprocess.CalledProcessError as exc:
-        print(f"Evaluation failed with exit code {exc.returncode}", file=sys.stderr)
-        sys.exit(exc.returncode)
+    _append_common_flags(
+        cmd,
+        output_dir=output_dir,
+        max_samples=max_samples,
+        trust_remote_code=trust_remote_code,
+        use_chat_template=use_chat_template,
+        system_prompt=system_prompt,
+    )
+    _run_eval(cmd)
 
 
 def run_lighteval_accelerate(
@@ -144,29 +168,15 @@ def run_lighteval_accelerate(
         "--dtype", dtype,
     ]
 
-    if output_dir:
-        cmd.extend(["--output-dir", output_dir])
-
-    if max_samples:
-        cmd.extend(["--max-samples", str(max_samples)])
-
-    if trust_remote_code:
-        cmd.append("--trust-remote-code")
-
-    if use_chat_template:
-        cmd.append("--use-chat-template")
-
-    if system_prompt:
-        cmd.extend(["--system-prompt", system_prompt])
-
-    print(f"Running: {' '.join(cmd)}")
-
-    try:
-        subprocess.run(cmd, check=True)
-        print("Evaluation complete.")
-    except subprocess.CalledProcessError as exc:
-        print(f"Evaluation failed with exit code {exc.returncode}", file=sys.stderr)
-        sys.exit(exc.returncode)
+    _append_common_flags(
+        cmd,
+        output_dir=output_dir,
+        max_samples=max_samples,
+        trust_remote_code=trust_remote_code,
+        use_chat_template=use_chat_template,
+        system_prompt=system_prompt,
+    )
+    _run_eval(cmd)
 
 
 def main() -> None:

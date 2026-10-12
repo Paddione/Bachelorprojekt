@@ -371,7 +371,8 @@ def test_t900360_f_seed_from_template_reseeds_staged_lines_via_line_create_and_c
 def test_t900360_g_apply_template_to_room_snapshot_carries_lines(brett):
     assert _has(brett["src"] / "server" / "figures.ts", "lines: built.lines", fixed=True)
     assert _has(brett["src"] / "types" / "messages.ts", "lines?: BrettLine", fixed=True)
-    assert _has(brett["src"] / "client" / "ws-client.ts", "msg.lines", fixed=True)
+    # T901934: Snapshot-Case aus ws-client.ts nach ws-message-snapshot.ts extrahiert.
+    assert _has(brett["src"] / "client" / "ws-message-snapshot.ts", "msg.lines", fixed=True)
 
 
 # ── T900361: lobby preset selection applies the board template ───────────────
@@ -387,7 +388,8 @@ def test_t900361_b_main_ts_wires_on_set_board_template(brett):
 
 
 def test_t900361_c_unknown_template_id_sends_unknown_board_template_error(brett):
-    assert _has(brett["src"] / "server" / "ws-admin-commands.ts", "unknown-board-template", fixed=True)
+    # T901934: Template-Cases aus ws-admin-commands.ts nach ws-admin-templates.ts extrahiert.
+    assert _has(brett["src"] / "server" / "ws-admin-templates.ts", "unknown-board-template", fixed=True)
 
 
 def test_t900361_d_client_maps_unknown_board_template_to_toast(brett):

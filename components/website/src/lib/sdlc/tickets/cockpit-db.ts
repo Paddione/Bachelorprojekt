@@ -482,7 +482,9 @@ export async function stageTicketPlan(
     if (opts.hold) {
       await client.query(
         `UPDATE tickets.tickets
-            SET readiness = COALESCE(readiness, '{}'::jsonb) || '{"execution_released":false}'::jsonb
+            SET readiness = COALESCE(readiness, '{}'::jsonb)
+                          || '{"execution_released":false}'::jsonb
+                          || jsonb_build_object('execution_held_at', now()::text)
           WHERE id = $1 AND brand = $2`,
         [ticketId, brand],
       );
@@ -545,7 +547,9 @@ export async function releaseTicketHold(
     await client.query('BEGIN');
     await client.query(
       `UPDATE tickets.tickets
-          SET readiness = COALESCE(readiness, '{}'::jsonb) || '{"execution_released":true}'::jsonb,
+          SET readiness = COALESCE(readiness, '{}'::jsonb)
+                        || '{"execution_released":true}'::jsonb
+                        || jsonb_build_object('execution_released_at', now()::text),
               updated_at = now()
         WHERE id = $1 AND brand = $2`,
       [ticketId, brand],

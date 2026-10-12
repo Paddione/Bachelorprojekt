@@ -28,7 +28,7 @@ ticket_help_wanted() {
 
 ticket_usage() {
   echo "Usage: $0 <command> [options]"
-  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, seq-repair, assert-phase-chain, retry-count, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, find-similar"
+  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, dispatch-log, seq-repair, assert-phase-chain, retry-count, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, find-similar"
 }
 
 ticket_help_subcommand() {
@@ -179,6 +179,15 @@ HELP
 Usage: ticket.sh release-hold --id <external_id>
   --id <external_id>      Ticket-ID (required)
   Setzt readiness.execution_released=true (reiner DB-Flag; kein Wake-up-Pfad mehr).
+HELP
+      ;;
+    dispatch-log)
+      cat <<'HELP'
+Usage: ticket.sh dispatch-log --id <external_id> --event <event> [--detail <text>]
+  --id <external_id>      Ticket-ID (required)
+  --event <event>         request|approved|stale-skip (required)
+  --detail <text>         Freitext, z.B. Wave-Nr oder Stale-Grund (default: -)
+  Schreibt einen DISPATCH-Marker (kind=system) für Dispatch-Wartezeit und Stale-Skip-Rate.
 HELP
       ;;
     seq-repair)

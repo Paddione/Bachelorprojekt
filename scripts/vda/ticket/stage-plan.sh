@@ -126,9 +126,11 @@ main() {
     echo "touched_files: --allow-empty-touched — Spalte unveraendert" >&2
   fi
 
-  local rel_bool="true"
+  local rel_bool="true" held_at_sql=""
   if [[ "$hold" == "1" ]]; then
     rel_bool="false"
+    # T901790: Hold-Zeitpunkt persistieren, damit Hold-Dauer messbar wird.
+    held_at_sql=" || jsonb_build_object('execution_held_at', now()::text)"
   fi
 
   local _sw_existing
@@ -152,7 +154,7 @@ BEGIN;
 UPDATE tickets.tickets
    SET status = 'plan_staged',
        slot_count = :partials::integer,
-       readiness = COALESCE(readiness, '{}'::jsonb) || '{"execution_released":${rel_bool}}'::jsonb
+       readiness = COALESCE(readiness, '{}'::jsonb) || '{"execution_released":${rel_bool}}'::jsonb${held_at_sql}
  WHERE external_id = :'ext_id';
 
 UPDATE tickets.tickets

@@ -4860,6 +4860,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/sdlc_throughput",
+    "file": "tests/py/spec/native_ported/spec/test_sdlc_throughput.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "neovim-dashboard",
     "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard.py",
     "category": "neovim-dashboard",

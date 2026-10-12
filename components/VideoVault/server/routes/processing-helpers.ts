@@ -8,10 +8,19 @@ export function sanitizeName(name: string): string {
   return name.replace(/[<>:"/\\|?*]/g, '').trim();
 }
 
+export class TraversalError extends Error {}
+
+export function toRouteError(error: any): { status: number; message: string } {
+  if (error instanceof TraversalError) {
+    return { status: 400, message: error.message };
+  }
+  return { status: 500, message: error?.message ?? 'Internal error' };
+}
+
 export function resolveAndValidateMovieDir(movieDir: string): string {
   const resolved = path.resolve(MOVIES_DIR, movieDir);
   if (!resolved.startsWith(path.resolve(MOVIES_DIR))) {
-    throw new Error('Path traversal detected');
+    throw new TraversalError('Path traversal detected');
   }
   return resolved;
 }

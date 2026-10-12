@@ -5,52 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DirectoryDatabase } from '@/services/directory-database';
 import { ChevronRight, ChevronDown, Folder, Home } from 'lucide-react';
+import { buildTree, sortTree, type TreeNode } from './directory-tree';
 
 interface DirectoryPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (relativeDirPath: string) => void;
-}
-
-interface TreeNode {
-  name: string;
-  path: string; // normalized with trailing slash or empty for root
-  children: TreeNode[];
-}
-
-function buildTree(directories: string[]): TreeNode {
-  const root: TreeNode = { name: '', path: '', children: [] };
-  const pathToNode = new Map<string, TreeNode>([['', root]]);
-
-  const ensureNode = (parentPath: string, segment: string) => {
-    const childPath = parentPath ? `${parentPath}${segment}/` : `${segment}/`;
-    if (!pathToNode.has(childPath)) {
-      const node: TreeNode = { name: segment, path: childPath, children: [] };
-      const parent = pathToNode.get(parentPath)!;
-      parent.children.push(node);
-      pathToNode.set(childPath, node);
-    }
-    return pathToNode.get(childPath)!;
-  };
-
-  const normalized = Array.from(new Set(directories.map(DirectoryDatabase.normalizeDir)));
-  normalized.forEach((dir) => {
-    const segments = dir.split('/').filter(Boolean);
-    let parentPath = '';
-    for (const seg of segments) {
-      const node = ensureNode(parentPath, seg);
-      parentPath = node.path;
-    }
-  });
-
-  // Sort children alphabetically at each level for stable UI
-  const sortTree = (node: TreeNode) => {
-    node.children.sort((a, b) => a.name.localeCompare(b.name));
-    node.children.forEach(sortTree);
-  };
-  sortTree(root);
-
-  return root;
 }
 
 export function DirectoryPickerModal({ isOpen, onClose, onSelect }: DirectoryPickerModalProps) {
@@ -76,7 +36,11 @@ export function DirectoryPickerModal({ isOpen, onClose, onSelect }: DirectoryPic
     }
   }, [isOpen]);
 
-  const tree = useMemo(() => buildTree(directories), [directories]);
+  const tree = useMemo(() => {
+    const root = buildTree(directories, DirectoryDatabase.normalizeDir);
+    sortTree(root);
+    return root;
+  }, [directories]);
 
   const filteredPaths = useMemo(() => {
     const f = filter.trim().toLowerCase();

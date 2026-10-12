@@ -16,7 +16,7 @@ import { logger } from '../lib/logger';
 import { readSidecar, writeSidecar } from '../lib/sidecar';
 import { generateVideoIdSync } from '@shared/video-id';
 import { db } from '../db';
-import { MOVIES_DIR, sanitizeName, resolveAndValidateMovieDir } from './processing-helpers';
+import { MOVIES_DIR, sanitizeName, resolveAndValidateMovieDir, toRouteError } from './processing-helpers';
 
 export async function handleMoviesScan(req: Request, res: Response) {
   try {
@@ -227,7 +227,8 @@ export async function handleMoviesRename(req: Request, res: Response) {
     res.json({ success: true, oldPath: oldRelPath, newPath: newRelPath, thumbnailsGenerated });
   } catch (error: any) {
     logger.error('[Processing] Movie rename failed', { error: error.message });
-    res.status(500).json({ error: error.message });
+    const e = toRouteError(error);
+    res.status(e.status).json({ error: e.message });
   }
 }
 
@@ -279,7 +280,8 @@ export async function handleMoviesDelete(req: Request, res: Response) {
       return res.status(404).json({ error: 'Directory not found' });
     }
     logger.error('[Processing] Movie delete failed', { error: error.message });
-    res.status(500).json({ error: error.message });
+    const e = toRouteError(error);
+    res.status(e.status).json({ error: e.message });
   }
 }
 
@@ -371,7 +373,8 @@ export async function handleMoviesOrganizeInbox(req: Request, res: Response) {
     res.json({ success: true, processed, failed, cleaned, results });
   } catch (error: any) {
     logger.error('[Processing] Organize inbox failed', { error: error.message });
-    res.status(500).json({ error: error.message });
+    const e = toRouteError(error);
+    res.status(e.status).json({ error: e.message });
   }
 }
 
@@ -503,7 +506,8 @@ export async function handleMoviesIndex(req: Request, res: Response) {
     });
   } catch (error: any) {
     logger.error('[Processing] Movie index failed', { error: error.message });
-    res.status(500).json({ error: error.message });
+    const e = toRouteError(error);
+    res.status(e.status).json({ error: e.message });
   }
 }
 
@@ -516,6 +520,7 @@ export async function handleMoviesCleanup(req: Request, res: Response) {
     res.json({ success: true, removed });
   } catch (error: any) {
     logger.error('[Processing] Cleanup failed', { error: error.message });
-    res.status(500).json({ error: error.message });
+    const e = toRouteError(error);
+    res.status(e.status).json({ error: e.message });
   }
 }

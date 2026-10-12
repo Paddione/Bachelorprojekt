@@ -1,0 +1,51 @@
+name: AI Code Review (Local / Advisory)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ai-code-review-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Local AI Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true # Advisory: blockiert niemals den PR
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Tailscale (falls konfiguriert)
+        uses: tailscale/github-action@v2
+        if: ${{ env.TAILSCALE_AUTHKEY != '' }}
+        env:
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run AI Review
+        env:
+          BASE_REF: "origin/${{ github.base_ref }}"
+          LLM_ENDPOINT: "http://llm-services:18235"
+          LLM_TOKEN: "dev-llm-proxy-admin-token-12345"
+          REVIEW_OUTPUT_FILE: "review_summary.md"
+        run: |
+          python3 scripts/ci/run-ai-code-review.py
+
+      - name: Output Job Summary
+        if: always()
+        run: |
+          if [ -f review_summary.md ]; then
+            cat review_summary.md >> $GITHUB_STEP_SUMMARY
+          fi

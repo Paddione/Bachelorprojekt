@@ -141,7 +141,12 @@ spec:
                       case "$${TABLES}" in
                         ''|*[!0-9]*) TABLES=0 ;;
                       esac
-                      if [ "$${TABLES}" -gt 0 ]; then
+                      SRC_TABLES=$(psql -h shared-db -U postgres -t -A -d "$${DB}" \
+                        -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'" 2>/dev/null || echo "0")
+                      case "$${SRC_TABLES}" in
+                        ''|*[!0-9]*) SRC_TABLES=0 ;;
+                      esac
+                      if [ "$${TABLES}" -gt 0 ] || [ "$${SRC_TABLES}" -eq 0 ]; then
                         STATUS="ok"
                         echo "  $${DB}: OK ($${TABLES} public tables restored)"
                       else

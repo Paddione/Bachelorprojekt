@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.416.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.4...website-v1.416.0) (2026-10-12)
+
+
+### Features
+
+* **website:** feed repo health dashboard from live db with fallback [T016507] ([#6564](https://github.com/Paddione/Bachelorprojekt/issues/6564)) ([996368a](https://github.com/Paddione/Bachelorprojekt/commit/996368ae7c7755f0e8229d0884934b1e11d6a5dc))
+
 ## [1.415.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.3...website-v1.415.4) (2026-10-12)
 
 

@@ -54,3 +54,27 @@ def test_status(pxe):
 def test_stop(pxe):
     execute, _, tmp = pxe
     execute(['--stop', '--root', str(tmp / 'leer')]).check()
+
+# Prueft die generierte dnsmasq-Konfiguration ueber deren Ausgabe (--print-dnsmasq-conf), nicht den Quelltext.
+def test_print_dnsmasq_conf_beantwortet_uefi_im_proxy_modus(pxe, run_cmd):
+    execute, _, tmp = pxe
+    result = execute(['--print-dnsmasq-conf', '--iface', 'eth9', '--server-ip', '192.0.2.10', '--root', str(tmp / 'pxe')])
+    result.check()
+    lines = result.stdout.splitlines()
+    assert 'dhcp-range=192.0.2.10,proxy' in lines
+    services = [l for l in lines if l.startswith('pxe-service=')]
+    assert any(l.startswith('pxe-service=tag:efi-x86_64,X86-64_EFI,') and l.endswith(',bootx64.efi') for l in services), services
+    assert any(l.startswith('pxe-service=tag:efi-bc,BC_EFI,') and l.endswith(',bootx64.efi') for l in services), services
+    import shutil
+    if shutil.which('dnsmasq') is None:
+        pytest.skip('dnsmasq binary not installed')
+    conf = tmp / 'dnsmasq.conf'
+    conf.write_text(result.stdout)
+    run_cmd(['dnsmasq', '--test', f'--conf-file={conf}']).check()
+
+
+# Dokumentationskonvention: Quelltext-Pruefung ist hier das angemessene Mittel.
+def test_runbook_nennt_ufw_regel_fuer_dhcp_broadcast(repo_root):
+    text = (repo_root / 'docs/runbooks/workstation-cluster-pxe.md').read_text()
+    assert any('ufw allow in on' in l and 'port 67' in l for l in text.splitlines())
+    assert '0.0.0.0' in text

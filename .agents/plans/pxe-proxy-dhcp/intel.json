@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "slug": "pxe-proxy-dhcp",
+    "ticket_id": "",
+    "generated_from": "main@74ab5dc99",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "docs/runbooks/workstation-cluster-pxe.md",
+      "language": "markdown",
+      "loc": 179,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/pxe/setup-pxe.sh",
+      "language": "bash",
+      "loc": 599,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 201
+    },
+    {
+      "path": "tests/py/spec/remaining_root_specs/workstation_cluster_pxe/test_setup_pxe_guards.py",
+      "language": "python",
+      "loc": 80,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 720
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:57:usage() {",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "57:usage() {(...)",
+      "type_text": "57:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:122:die()  { echo \"ERROR: $*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "122:die()  { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "type_text": "122:die()  { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:123:info() { echo \"==> $*\" >&2; }",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "123:info() { echo \"==> $*\" >&2; }(...)",
+      "type_text": "123:info() { echo \"==> $*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:129:stop_services() {",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "129:stop_services() {(...)",
+      "type_text": "129:stop_services() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:144:show_status() {",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "144:show_status() {(...)",
+      "type_text": "144:show_status() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

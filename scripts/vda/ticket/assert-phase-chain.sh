@@ -7,6 +7,9 @@
 # liegen — gueltige Reihenfolge ist: auto plan:done aus stage-plan zaehlt als
 # Ordnungs-Anker (kein order_error, wenn implement:entered danach kommt),
 # die Vollstaendigkeit (missing[]) verlangt weiterhin reale Events.
+# (T901952): auto implement:entered ist nie Ordnungsbasis — nur das erste
+# reale implement:entered bestimmt die Ordnung; fuer die Vollstaendigkeit
+# zaehlt auto weiter wie bisher.
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
@@ -32,7 +35,8 @@ EOF
 
   # Validate sequential phase chain: plan:done -> implement:entered -> verify:done
   # (T901881: auto plan:done ist ein Ordnungs-Anker, Vollstaendigkeit braucht reale Events)
-  local has_plan=false has_plan_auto=false has_impl=false has_verify=false order_error=false
+  # (T901952: Ordnung aus erstem REALEM implement:entered, auto zaehlt nur Vollstaendigkeit)
+  local has_plan=false has_plan_auto=false has_impl=false has_impl_real=false has_verify=false order_error=false
   local plan_id=0 impl_id=0 verify_id=0
   local missing=()
 
@@ -49,9 +53,13 @@ EOF
       elif [[ "$has_plan" == false ]]; then
         has_plan=true; plan_id="$eid"
       fi
-    elif [[ "$ephase" == "implement" && "$estate" == "entered" && "$has_impl" == false ]]; then
-      has_impl=true; impl_id="$eid"
-      if [[ "$has_plan" == false && "$has_plan_auto" == false ]]; then order_error=true; fi
+    elif [[ "$ephase" == "implement" && "$estate" == "entered" ]]; then
+      if [[ "$edetail" == auto:* ]]; then
+        has_impl=true
+      elif [[ "$has_impl_real" == false ]]; then
+        has_impl=true; has_impl_real=true; impl_id="$eid"
+        if [[ "$has_plan" == false && "$has_plan_auto" == false ]]; then order_error=true; fi
+      fi
     elif [[ "$ephase" == "verify" && "$estate" == "done" && "$has_verify" == false ]]; then
       has_verify=true; verify_id="$eid"
       if [[ "$has_impl" == false ]]; then order_error=true; fi

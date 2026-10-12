@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# LAN- und Tailnet-DNS (AdGuard Home) auf devmesh [T016515].
+# Eigener Lebenszyklus, nicht Teil von devmesh:deploy: ein Neuaufbau des
+# App-Stacks darf das DNS des Heimnetzes nicht beruehren.
+# Deploy: task devmesh:dns:deploy. Runbook: docs/runbooks/devmesh-lan-dns.md
+namespace: lan-dns
+
+resources:
+  - adguard.yaml
+
+# Hash-Suffix bleibt an: eine Config-Aenderung erzeugt einen neuen Namen und
+# damit einen Rollout.
+configMapGenerator:
+  - name: adguard-config
+    files:
+      - AdGuardHome.yaml

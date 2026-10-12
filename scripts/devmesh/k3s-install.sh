@@ -122,6 +122,8 @@ ufw allow from 10.0.0.0/8    to any port 22        proto tcp comment 'devmesh ss
 ufw allow from 100.64.0.0/10 to any port 22        proto tcp comment 'devmesh ssh tailnet'
 ufw allow from 10.0.0.0/8    to any port 10250     proto tcp comment 'k3s kubelet'
 ufw allow from 10.0.0.0/8    to any port 51820     proto udp comment 'k3s flannel wireguard'
+ufw allow from 10.0.0.0/8    to any port 53        proto udp comment 'lan-dns'
+ufw allow from 10.0.0.0/8    to any port 53        proto tcp comment 'lan-dns'
 UFW
   printf "ufw allow from %s comment 'devmesh pods'\n" "$CLUSTER_CIDR"
   printf "ufw allow from %s comment 'devmesh services'\n" "$SERVICE_CIDR"

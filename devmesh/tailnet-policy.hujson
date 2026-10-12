@@ -6,6 +6,8 @@
 	"tagOwners": {
 		"tag:devmesh":   ["autogroup:admin"],
 		"tag:devclient": ["autogroup:admin"],
+		// Tailnet-Geraet lan-dns, angelegt vom Tailscale-Operator in devmesh (T016515).
+		"tag:lan-dns":   ["autogroup:admin", "tag:k8s-operator"],
 	},
 	"hosts": {
 		// Tailnet-Adresse von pk-desktop (gpu_endpoint.host in devmesh/inventory.yaml).
@@ -25,6 +27,14 @@
 			"gpu-host:8090",
 			"gpu-host:8094",
 		]},
+		// LAN-/Tailnet-DNS: globaler Nameserver des Tailnets (T016515).
+		{"action": "accept", "src": ["autogroup:member", "tag:devmesh", "tag:devclient"], "dst": ["tag:lan-dns:53"]},
 		// Bewusst keine Regel mit Ziel tag:devclient oder *: kein allgemeiner Pfad in die Arbeitsplaetze.
 	],
+	// Redundante Subnet-Route ins Heimnetz: Router aus devmesh/inventory.yaml subnet_routes (T016515).
+	"autoApprovers": {
+		"routes": {
+			"10.0.0.0/24": ["tag:devmesh"],
+		},
+	},
 }

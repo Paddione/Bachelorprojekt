@@ -1,0 +1,136 @@
+# AdGuard Home, zwei Replicas auf verschiedenen Nodes [T016515].
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lan-dns
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard
+  labels:
+    app: adguard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: adguard
+  template:
+    metadata:
+      labels:
+        app: adguard
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: adguard
+      # Keine Aufloesung ueber CoreDNS/Node/Fritzbox: die Fritzbox fragt AdGuard,
+      # der Pod selbst darf nicht zurueck in diese Kette fragen.
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 9.9.9.9
+          - 1.1.1.1
+      # AdGuard schreibt seine Konfiguration zurueck; die ConfigMap ist read-only.
+      initContainers:
+        - name: seed-config
+          image: busybox:1.37.0
+          command: ["sh", "-c", "cp /config-ro/AdGuardHome.yaml /opt/adguardhome/conf/AdGuardHome.yaml"]
+          volumeMounts:
+            - name: config-ro
+              mountPath: /config-ro
+            - name: conf
+              mountPath: /opt/adguardhome/conf
+      containers:
+        - name: adguard
+          image: adguard/adguardhome:v0.107.79
+          ports:
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 53
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 53
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: conf
+              mountPath: /opt/adguardhome/conf
+            - name: work
+              mountPath: /opt/adguardhome/work
+      volumes:
+        - name: config-ro
+          configMap:
+            name: adguard-config
+        - name: conf
+          emptyDir: {}
+        - name: work
+          emptyDir: {}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: adguard
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: adguard
+---
+# LAN: die k3s-ServiceLB stellt Port 53 auf jeder Node-IP bereit und leitet an
+# eine gesunde Replica weiter. Tailnet: der Tailscale-Operator legt das Geraet
+# lan-dns an (L3-Ingress, UDP und TCP).
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-dns
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: lan-dns
+    tailscale.com/tags: tag:lan-dns
+spec:
+  type: LoadBalancer
+  selector:
+    app: adguard
+  ports:
+    - name: dns-udp
+      port: 53
+      targetPort: dns-udp
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      targetPort: dns-tcp
+      protocol: TCP
+---
+# Web-UI nur clusterintern: kubectl -n lan-dns port-forward svc/adguard-ui 3000
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-ui
+spec:
+  type: ClusterIP
+  selector:
+    app: adguard
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

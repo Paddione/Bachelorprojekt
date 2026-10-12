@@ -24,9 +24,11 @@ for a in acls:
                 ports.update(d.split(":", 2)[2].split(","))
 mesh = any("tag:devmesh" in a.get("src", []) and "tag:devmesh:*" in a.get("dst", [])
            for a in acls)
+# tag:lan-dns ist Infrastruktur (DNS-Geraet des Operators, T016515), kein Client.
+infra = ("tag:devmesh", "tag:lan-dns")
 exc_rules = [a for a in acls if "tag:devmesh" in a.get("src", [])
-             and any(not d.startswith("tag:devmesh") for d in a.get("dst", []))]
-exc_dst = [d for a in exc_rules for d in a.get("dst", []) if not d.startswith("tag:devmesh")]
+             and any(not d.startswith(infra) for d in a.get("dst", []))]
+exc_dst = [d for a in exc_rules for d in a.get("dst", []) if not d.startswith(infra)]
 alias = int("gpu-host" in (policy.get("hosts") or {}))
 print(f"acls={len(acls)} grants={len(grants)} bad={bad} ports={','.join(sorted(ports))} mesh={int(mesh)}"
       f" exc={len(exc_rules)} excdst={','.join(exc_dst) or '-'} gpuports={','.join(gpu_ports) or '-'} alias={alias}")
@@ -92,3 +94,23 @@ def test_t900116_kein_tailscale_auth_key_in_versionierten_dateien(pol, run_cmd):
     assert re.search(pattern, fake), "Muster erkennt synthetischen Key nicht"
     res = run_cmd(["git", "grep", "-lE", pattern, "--", ".", ":!environments/.secrets/"], cwd=pol["repo"])
     assert res.stdout.strip() == "", f"Auth-Key-Muster gefunden in: {res.stdout}"
+
+
+def _policy(pol):
+    import json
+    raw = pol["policy"].read_text()
+    lines = [l for l in raw.splitlines() if not l.lstrip().startswith("//")]
+    return json.loads(re.sub(r",(\s*[}\]])", r"\1", "\n".join(lines)))
+
+
+def test_t016515_lan_dns_ist_fuer_das_tailnet_auf_port_53_erreichbar(pol):
+    policy = _policy(pol)
+    assert "tag:k8s-operator" in policy["tagOwners"]["tag:lan-dns"]
+    rules = [a for a in policy["acls"] if "tag:lan-dns:53" in a.get("dst", [])]
+    assert len(rules) == 1, rules
+    assert "autogroup:member" in rules[0]["src"]
+
+
+def test_t016515_subnet_route_wird_fuer_devmesh_server_automatisch_freigegeben(pol):
+    policy = _policy(pol)
+    assert policy["autoApprovers"]["routes"]["10.0.0.0/24"] == ["tag:devmesh"]

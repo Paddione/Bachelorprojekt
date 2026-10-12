@@ -46,7 +46,7 @@ guard_commit_vs_diff="$(resolve_guard "scripts/check-commit-vs-diff.sh")"
 if ! bash "$guard_commit_vs_diff" "$1"; then
   echo "" >&2
   echo "💡 Hint: use 'test(red):' for RED-only test commits or" >&2
-  echo "         'chore(plan):' for plan-only commits." >&2
+  echo "         'chore(plans):' for plan-only commits." >&2
   echo "" >&2
   echo "No commit was created — commit-msg hook rejected the message (commit-vs-diff check)." >&2
   exit 1

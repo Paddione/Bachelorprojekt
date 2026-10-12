@@ -130,6 +130,11 @@ bash scripts/plan-lint.sh .agents/plans/<slug>/tasks.md
 - **FAIL (Exit 1):** der Linter listet die Hard-Fails (F1/F2/STRUCT/P1/B1a). Erneut an einen
   Plan-Subagenten delegieren (Schritt 3.7) mit den Hard-Fails als Korrektur-Hinweis, bis PASS.
   KEIN Weitergehen mit rotem Linter.
+- **Retry-Cap (T901790):** nach dem **3. FAIL in Folge** für denselben Plan NICHT weiter
+  delegieren, sondern an den Operator eskalieren (Ticket-Kommentar mit den Hard-Fails +
+  `mishap-tracker`-Eintrag `plan-lint-retry-cap`). Unbegrenzte Rework-Schleifen ohne
+  Telemetrie sind ein Throughput-Leck — die Eskalation macht sie sichtbar statt sie zu
+  verbergen.
 
 ### Schritt 4: Plan prüfen & übernehmen
 Du behältst deinen vollen Brainstorming-Kontext: lies den zurückgegebenen Plan und prüfe ihn gegen

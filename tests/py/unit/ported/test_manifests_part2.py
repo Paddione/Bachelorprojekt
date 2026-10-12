@@ -283,7 +283,15 @@ def test_network_policies_grant_egress_to_the_kubernetes_apiserver(rendered):
         return False
 
     node_ok = any(egress_to(d, "10.20.0.0/24", 6443) for d in docs)
-    clusterip_ok = any(egress_to(d, "10.43.0.0/16", 443) for d in docs)
+    # T901777: the service CIDR is parametrized (${SERVICE_CIDR}) because devmesh
+    # runs 10.53/16, not the k3s default. The safety property stays: an egress
+    # rule to the cluster service CIDR on 443 must exist — literal (fleet render)
+    # or via the sanctioned variable (raw base render). The variable's values per
+    # cluster and its coverage in every render path are pinned by
+    # tests/py/spec/test_k3d_netpol_cidrs.py.
+    clusterip_ok = any(
+        egress_to(d, cidr, 443) for d in docs for cidr in ("10.43.0.0/16", "${SERVICE_CIDR}")
+    )
     assert node_ok and clusterip_ok, (
         f"MISSING apiserver egress: node_cidr_6443={node_ok} clusterip_443={clusterip_ok}")
 

@@ -8,11 +8,12 @@
 # mcp-kubernetes unauthentifiziert — er liest den gesamten Cluster.
 # mcp-postgres liegt seit T900191 in devmesh.
 #
-# Erreichbarkeit laeuft ueber das wg-Mesh. Das Service-Netz 10.43.0.0/16 wird
-# NICHT ueber den Tunnel geroutet (docs/agent-guide/maps/networks-map.md), das
-# Pod-Netz 10.42.0.0/16 dagegen schon; Arbeitsplatz-Clients erreichen die Ports
-# entsprechend ueber die Pod-Adresse bzw. weiterhin ueber kubectl port-forward
-# gegen diesen Service.
+# Erreichbarkeit laeuft ueber das wg-Mesh. Das Service-Netz (fleet/k3s-Default
+# 10.43.0.0/16, je Cluster SERVICE_CIDR aus environments/schema.yaml) wird
+# NICHT ueber den Tunnel geroutet (docs/agent-guide/maps/networks-map.md),
+# das Pod-Netz (Default 10.42.0.0/16, je Cluster POD_CIDR) dagegen schon;
+# Arbeitsplatz-Clients erreichen die Ports entsprechend ueber die Pod-Adresse
+# bzw. weiterhin ueber kubectl port-forward gegen diesen Service.
 apiVersion: v1
 kind: Service
 metadata:

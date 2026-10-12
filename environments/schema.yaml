@@ -359,6 +359,16 @@ env_vars:
     validate: "^[0-9./]+$"
     description: "wg-mesh source CIDR allowed on internal endpoints (fail-closed ipWhiteList, T016430)."
 
+  - name: POD_CIDR
+    required: false
+    validate: "^[0-9./]+$"
+    description: "Cluster Pod-CIDR fuer die NetworkPolicies (k3d/network-policies.yaml, k3d/website.yaml) [T901777]. k3s-Default 10.42.0.0/16 (alle Fleet-Cluster, lokales k3d); devmesh 10.52.0.0/16 (ADR-008). Bewusst kein default_dev: environments/dev.yaml (devmesh) und environments/dev-cluster.yaml (fleet) sind beide environment=dev mit verschiedenen Clustern. Render-Pfade fallen auf den k3s-Default zurueck."
+
+  - name: SERVICE_CIDR
+    required: false
+    validate: "^[0-9./]+$"
+    description: "Cluster Service-CIDR (ClusterIP) fuer die NetworkPolicies [T901777]. k3s-Default 10.43.0.0/16 (alle Fleet-Cluster, lokales k3d); devmesh 10.53.0.0/16 (ADR-008). Kein default_dev — siehe POD_CIDR."
+
   - name: BRETT_DOMAIN
     required: true
     default_dev: "brett.localhost"

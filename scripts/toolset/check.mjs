@@ -15,6 +15,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { loadRegistry } from './lib/registry.mjs';
 import { validateHarnesses, resolveToolset } from './lib/resolve.mjs';
+import { checkAgentModels } from './lib/agent-models.mjs';
 import { ADAPTERS } from './lib/adapters/index.mjs';
 import { readClaudeCodeConfig } from './lib/harness.mjs';
 import { collectInstances, withRegistryOnlyInstances } from './collect.mjs';
@@ -97,6 +98,19 @@ for (const [capName, instances] of Object.entries(registry.capabilities)) {
 for (const msg of validateHarnesses(registry.harnesses, registry.forbiddenProviders, VALID_ROLES)) {
   console.error(msg);
   hasError = true;
+}
+
+// 1d. agent-models.jsonc gegen forbidden_providers (T900792): 1c sieht nur den Registry-Wert
+//     `harnesses.opencode.provider`; die echten Modell-Bindungen stehen in der opencode-Config.
+//     Fehlende Datei → skip (Fixture-Registries ohne opencode-Config bleiben prüfbar).
+{
+  const agentModelsPath = path.join(outDir, '.opencode', 'agent-models.jsonc');
+  if (fs.existsSync(agentModelsPath)) {
+    for (const msg of checkAgentModels(fs.readFileSync(agentModelsPath, 'utf8'), registry.forbiddenProviders)) {
+      console.error(msg);
+      hasError = true;
+    }
+  }
 }
 
 // 2. Drift-Prüfung über Adapter (T900791): ersetzt den claude-suppressed-Vergleich.

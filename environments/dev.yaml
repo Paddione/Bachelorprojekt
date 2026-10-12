@@ -17,6 +17,9 @@ env_vars:
   BRAND_NAME: "KORE"
   WEBSITE_IMAGE: website
   WEBSITE_NAMESPACE: workspace
+  # T901777: devmesh-Cluster-CIDRs (ADR-008) — NICHT die k3s-Defaults.
+  POD_CIDR: "10.52.0.0/16"
+  SERVICE_CIDR: "10.53.0.0/16"
   # T901440: zentrale DB-Koordinaten der Website (Defaults = bisheriger Stand)
   WEBSITE_DB_NAMESPACE: workspace
   WEBSITE_DB_NAME: website

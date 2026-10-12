@@ -1,6 +1,12 @@
 # scripts/vda/ticket/assert-phase-chain.sh — fail-closed phase-chain gate (T001444).
 # Sourced by ticket.sh. Verifies plan:done, implement:entered, verify:done exist
 # for a ticket (any driver). Exit 0 = complete, 1 = gap, 2 = bad args.
+#
+# Auto-vs-real-Semantik (T901881): auto-emittierte Events (stage-plan,
+# update-status) tragen ein `auto:`-Detail und koennen vor realen Events
+# liegen — gueltige Reihenfolge ist: auto plan:done aus stage-plan zaehlt als
+# Ordnungs-Anker (kein order_error, wenn implement:entered danach kommt),
+# die Vollstaendigkeit (missing[]) verlangt weiterhin reale Events.
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
@@ -14,43 +20,80 @@ main() {
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
 
   local pod; pod=$(_pgpod)
-  local present
-  present=$(_exec_sql "$pod" -v ext_id="$id" <<'EOF'
-SELECT DISTINCT e.phase || ':' || e.state
+  local rows
+  rows=$(_exec_sql "$pod" -v ext_id="$id" <<'EOF'
+SELECT e.id, e.phase, e.state, COALESCE(e.detail, '')
 FROM tickets.factory_phase_events e
 JOIN tickets.tickets t ON t.id = e.ticket_id
 WHERE t.external_id = :'ext_id'
-  AND (e.phase, e.state) IN (('plan','done'),('implement','entered'),('verify','done'));
+ORDER BY e.at ASC, e.id ASC;
 EOF
 )
-  local required=(plan:done implement:entered verify:done)
-  local missing=() r
-  for r in "${required[@]}"; do
-    grep -qxF "$r" <<<"$present" || missing+=("$r")
-  done
+
+  # Validate sequential phase chain: plan:done -> implement:entered -> verify:done
+  # (T901881: auto plan:done ist ein Ordnungs-Anker, Vollstaendigkeit braucht reale Events)
+  local has_plan=false has_plan_auto=false has_impl=false has_verify=false order_error=false
+  local plan_id=0 impl_id=0 verify_id=0
+  local missing=()
+
+  while IFS='|' read -r eid ephase estate edetail; do
+    eid="${eid//[[:space:]]/}"
+    ephase="${ephase//[[:space:]]/}"
+    estate="${estate//[[:space:]]/}"
+    [[ -z "$eid" ]] && continue
+    edetail="$(printf '%s' "$edetail" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
+    if [[ "$ephase" == "plan" && "$estate" == "done" ]]; then
+      if [[ "$edetail" == auto:* ]]; then
+        has_plan_auto=true
+      elif [[ "$has_plan" == false ]]; then
+        has_plan=true; plan_id="$eid"
+      fi
+    elif [[ "$ephase" == "implement" && "$estate" == "entered" && "$has_impl" == false ]]; then
+      has_impl=true; impl_id="$eid"
+      if [[ "$has_plan" == false && "$has_plan_auto" == false ]]; then order_error=true; fi
+    elif [[ "$ephase" == "verify" && "$estate" == "done" && "$has_verify" == false ]]; then
+      has_verify=true; verify_id="$eid"
+      if [[ "$has_impl" == false ]]; then order_error=true; fi
+    fi
+  done <<<"$rows"
+
+  if [[ "$has_plan" == false ]]; then missing+=("plan:done"); fi
+  if [[ "$has_impl" == false ]]; then missing+=("implement:entered"); fi
+  if [[ "$has_verify" == false ]]; then missing+=("verify:done"); fi
+
+  local ok="true"
+  if [[ ${#missing[@]} -gt 0 || "$order_error" == true ]]; then
+    ok="false"
+  fi
 
   if [[ "$json" == true ]]; then
-    local ok="true" arr="" first=1 m
-    [[ ${#missing[@]} -gt 0 ]] && ok="false"
+    local arr="" first=1 m
     for m in "${missing[@]:-}"; do
       [[ -z "$m" ]] && continue
       [[ $first -eq 1 ]] || arr+=","
       arr+="\"$m\""; first=0
     done
-    echo "{\"ok\":$ok,\"missing\":[$arr]}"
-    [[ ${#missing[@]} -eq 0 ]]; exit $?
+    echo "{\"ok\":$ok,\"missing\":[$arr],\"order_error\":$order_error,\"run_evidence\":\"unknown\",\"commit_evidence\":\"unknown\"}"
+    if [[ "$ok" == "true" ]]; then
+      exit 0
+    else
+      exit 1
+    fi
   fi
 
-  if [[ ${#missing[@]} -eq 0 ]]; then
-    echo "OK: phase chain complete for $id (plan:done, implement:entered, verify:done)"
+  if [[ "$ok" == "true" ]]; then
+    echo "OK: phase chain complete and ordered for $id (plan:done -> implement:entered -> verify:done)"
     exit 0
   fi
 
-  echo "FAIL: phase chain incomplete for $id — missing: ${missing[*]}" >&2
-  echo "Backfill with:" >&2
-  for m in "${missing[@]}"; do
-    echo "  ./scripts/ticket.sh phase $id ${m%%:*} ${m##*:} --driver devflow --detail \"backfill: assert-phase-chain\"" >&2
-  done
+  if [[ "$order_error" == true ]]; then
+    echo "FAIL: phase chain order violation for $id (events out of chronological order)" >&2
+  fi
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "FAIL: phase chain incomplete for $id — missing real evidence for: ${missing[*]}" >&2
+    echo "Diagnose: fehlende Phase(n) in tickets.factory_phase_events ohne synthetische auto-Events." >&2
+  fi
   exit 1
 }
 

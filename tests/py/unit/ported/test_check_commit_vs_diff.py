@@ -137,7 +137,7 @@ def test_blocks_fix_red_only_test_the_t001434_pattern(ctx, run_cmd):
     assert r.returncode != 0
     assert "T001434 mishap pattern" in r.output
     assert "test(red):" in r.output
-    assert "chore(plan):" in r.output
+    assert "chore(plans):" in r.output
 
 
 def test_blocks_fix_plan_only(ctx, run_cmd):

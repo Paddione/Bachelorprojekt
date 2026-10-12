@@ -14,9 +14,6 @@
 version: "3"
 
 vars:
-  ENV: mentolder
-  CTX_DEV: fleet
-  NS_DEV: workspace-dev
   # The dev sish SSH endpoint is the k3d loadbalancer host port on $DEV_NODE.
   SSH_PORT: 2222
 
@@ -29,6 +26,9 @@ tasks:
 
   publish:
     desc: "[brainstorm] Publish a local port at https://brainstorm.${DEV_DOMAIN}. Usage: task brainstorm:publish -- <localport>"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+      CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
     cmds:
       - |
         set -euo pipefail
@@ -63,6 +63,8 @@ tasks:
 
   collab:
     desc: "[brainstorm] Apply the collab patch, then publish a local port + print the SSO link for gekko. Usage: task brainstorm:collab -- <localport>"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - bash scripts/superpowers-collab-patch.sh || true
       - |
@@ -93,6 +95,10 @@ tasks:
 
   status:
     desc: "[brainstorm] Show dev sish pod status and probe the public Ingress"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+      CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
+      NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
     cmds:
       - |
         set -euo pipefail

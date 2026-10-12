@@ -2,8 +2,9 @@
 # pytest-run.sh — single entry point for the native pytest suite (tests/py). [T901392]
 #
 # Replaces the BATS runners (tests/bats, scripts/lib/run-bats.sh). Uses uv when
-# available, otherwise a pip-installed pytest. Runs in parallel (-n auto) unless
-# PYTEST_JOBS overrides the worker count (PYTEST_JOBS=0 runs serially).
+# available, otherwise a pip-installed pytest. Runs in parallel (default from
+# scripts/pytest-default-jobs.sh: nproc/2 clamped to 1..4) unless PYTEST_JOBS
+# overrides the worker count (PYTEST_JOBS=0 runs serially).
 #
 # Usage:  scripts/pytest-run.sh [pytest args...] [paths...]
 #         (no paths -> the whole tests/py suite)
@@ -23,7 +24,11 @@ for arg in "$@"; do
 done
 [ "$has_path" -eq 1 ] || set -- "$@" tests/py
 
-jobs="${PYTEST_JOBS:-auto}"
+if [ -n "${PYTEST_JOBS:-}" ]; then
+  jobs="$PYTEST_JOBS"
+else
+  jobs="$(bash "${REPO_ROOT}/scripts/pytest-default-jobs.sh")"
+fi
 xdist_args=()
 [ "$jobs" = "0" ] || xdist_args=(-n "$jobs")
 

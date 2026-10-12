@@ -28,6 +28,9 @@ env_vars:
   # (mentolder-web still serves react.mentolder.de either way).
   PRIMARY_FRONTEND: astro
   WORKSPACE_NAMESPACE: workspace
+  # T901777: Fleet-Cluster-CIDRs (k3s-Defaults) fuer die NetworkPolicies.
+  POD_CIDR: "10.42.0.0/16"
+  SERVICE_CIDR: "10.43.0.0/16"
   # T901440: zentrale DB-Koordinaten der Website (Defaults = bisheriger Stand)
   WEBSITE_DB_NAMESPACE: workspace
   WEBSITE_DB_NAME: website

@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.414.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.9...website-v1.414.10) (2026-10-11)
+
+
+### Bug Fixes
+
+* **scripts:** suggest valid plans scope in commit guard [T901882] ([#6540](https://github.com/Paddione/Bachelorprojekt/issues/6540)) ([ffcda4e](https://github.com/Paddione/Bachelorprojekt/commit/ffcda4e4945ad2ce36967fca508024b085335c5d))
+
+## [1.414.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.8...website-v1.414.9) (2026-10-11)
+
+
+### Bug Fixes
+
+* **scripts:** assert-phase-chain accepts auto plan anchor [T901881] ([#6537](https://github.com/Paddione/Bachelorprojekt/issues/6537)) ([4e81b92](https://github.com/Paddione/Bachelorprojekt/commit/4e81b92caf7ded5b384b3fcb1edf9adfe5550191))
+
+## [1.414.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.7...website-v1.414.8) (2026-10-11)
+
+
+### Bug Fixes
+
+* **website:** repair website:migrate port-forward liveness [T901789] ([#6535](https://github.com/Paddione/Bachelorprojekt/issues/6535)) ([d3e5672](https://github.com/Paddione/Bachelorprojekt/commit/d3e56725f4a1e1cf19da705b9d03f2785af37ec8))
+
+## [1.414.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.6...website-v1.414.7) (2026-10-10)
+
+
+### Bug Fixes
+
+* **infra:** seed auth check reports clean codes (T901774) ([#6516](https://github.com/Paddione/Bachelorprojekt/issues/6516)) ([819b8cc](https://github.com/Paddione/Bachelorprojekt/commit/819b8cc36d6e97d9516725cc1f0bbf0b0911f8c8))
+* **infra:** whitelist fleet renderer envsubst vars, keep foreign placeholders [T901791] ([#6532](https://github.com/Paddione/Bachelorprojekt/issues/6532)) ([bb7013b](https://github.com/Paddione/Bachelorprojekt/commit/bb7013b93f23c4e3b6cc6056747634758a69e5a2))
+* **scripts:** nvim dashboard navigation, website nav null-safety and pytest default jobs ([#6513](https://github.com/Paddione/Bachelorprojekt/issues/6513)) ([adeae83](https://github.com/Paddione/Bachelorprojekt/commit/adeae83eccd2ff748a19ee617820ce59dfa5d17a))
+
 ## [1.414.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.414.5...website-v1.414.6) (2026-10-10)
 
 

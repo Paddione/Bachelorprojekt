@@ -16,8 +16,11 @@
 #   task devmesh:migrate                          # Migration aus k3d
 #   task devmesh:registry:migrate                 # llm-proxy-Registry seeden (aus deploy gerufen) [T900191]
 #   task devmesh:backup:run                       # Shared-DB Backup ausloesen
+#   task devmesh:dns:deploy                       # LAN-/Tailnet-DNS (AdGuard) deployen [T016515]
+#   task devmesh:dns:check [NAME=<host>]          # jede Server-IP per dig abfragen [T016515]
+#   task devmesh:tailnet:routes [DRY_RUN=1]       # Subnet-Routen aus dem Inventar freigeben [T016515]
 #
-# Runbook: docs/runbooks/devmesh-tailnet.md
+# Runbook: docs/runbooks/devmesh-tailnet.md, docs/runbooks/devmesh-lan-dns.md
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3"
 
@@ -36,6 +39,37 @@ tasks:
     desc: "devmesh: jeden Inventar-Server per tailscale ping pruefen und direct/relay melden (Exit 1 = Server unerreichbar, 2 = Vorbedingung fehlt)"
     cmds:
       - bash scripts/devmesh/tailnet-check.sh {{.CLI_ARGS}}
+
+  tailnet:routes:
+    desc: "devmesh: Subnet-Routen (Inventarfeld subnet_routes) per tailscale set freigeben (DRY_RUN=1 zeigt nur die Befehle) [T016515]"
+    env:
+      DRY_RUN: '{{.DRY_RUN | default "0"}}'
+    cmds:
+      - bash scripts/devmesh/tailnet-subnet-routes.sh
+
+  dns:deploy:
+    desc: "devmesh: LAN-/Tailnet-DNS (AdGuard, Namespace lan-dns) deployen; oeffnet vorher Port 53 per ufw [T016515]"
+    preconditions:
+      - sh: kubectl config get-contexts -o name | grep -qx devmesh
+        msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
+    cmds:
+      - bash scripts/devmesh/lan-dns-firewall.sh
+      - kubectl --context devmesh apply -k dev-local/lan-dns
+      - kubectl --context devmesh -n lan-dns rollout status deploy/adguard --timeout=180s
+
+  dns:check:
+    desc: "devmesh: AdGuard auf jeder k3s-Server-IP per dig abfragen (NAME=<host>, Default quad9.net; Exit 1 = IP antwortet nicht, 2 = dig fehlt) [T016515]"
+    vars:
+      NAME: '{{.NAME | default "quad9.net"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        command -v dig >/dev/null || { echo "Vorbedingung fehlt: dig" >&2; exit 2; }
+        rc=0
+        for ip in $(yq -r '.peers[] | select(.k3s_role == "server-init" or .k3s_role == "server-join") | .lan_ip' devmesh/inventory.yaml); do
+          if [ -n "$(dig +time=3 +tries=1 +short @"$ip" {{.NAME}} 2>/dev/null)" ]; then echo "ok    $ip"; else echo "FEHLT $ip"; rc=1; fi
+        done
+        exit $rc
 
   preflight:
     desc: "devmesh: Host vor der k3s-Installation pruefen (HOST=<name aus devmesh/inventory.yaml>; Exit 1 = Befund, 2 = Vorbedingung)"

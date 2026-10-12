@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "slug": "lan-dns-adguard",
+    "ticket_id": "",
+    "generated_from": "main@996368ae7",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "dev-local/lan-dns/AdGuardHome.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/lan-dns/adguard.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/lan-dns/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/inventory.yaml",
+      "language": "config",
+      "loc": 79,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/tailnet-policy.hujson",
+      "language": "text",
+      "loc": 30,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/devmesh-lan-dns.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devmesh/k3s-install.sh",
+      "language": "bash",
+      "loc": 156,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 644
+    },
+    {
+      "path": "scripts/devmesh/lan-dns-firewall.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devmesh/tailnet-subnet-routes.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.devmesh.yml",
+      "language": "config",
+      "loc": 142,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-dev-mesh/test_lan_dns.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py",
+      "language": "python",
+      "loc": 94,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 706
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/devmesh/k3s-install.sh:31:die()  { echo \"ERROR: $*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/devmesh/k3s-install.sh",
+      "signature": "31:die()  { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "type_text": "31:die()  { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devmesh/k3s-install.sh:32:need() { command -v \"$1\" >/dev/null 2>&1 || { echo \"Vorbedingung fehlt: $1 nicht im PATH\" >&2; exit 2; }; }",
+      "kind": "function",
+      "file": "scripts/devmesh/k3s-install.sh",
+      "signature": "32:need() { command -v \"$1\" >/dev/null 2>&1 || { echo \"Vorbedingung fehlt: $1 nicht im PATH\" >&2; exit 2; }; }(...)",
+      "type_text": "32:need() { command -v \"$1\" >/dev/null 2>&1 || { echo \"Vorbedingung fehlt: $1 nicht im PATH\" >&2; exit 2; }; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devmesh/k3s-install.sh:39:peer() { HOST=\"$HOST\" yq -r \".peers[] | select(.name == strenv(HOST)) | .$1 // \\\"\\\"\" \"$INVENTORY\"; }",
+      "kind": "function",
+      "file": "scripts/devmesh/k3s-install.sh",
+      "signature": "39:peer() { HOST=\"$HOST\" yq -r \".peers[] | select(.name == strenv(HOST)) | .$1 // \\\"\\\"\" \"$INVENTORY\"; }(...)",
+      "type_text": "39:peer() { HOST=\"$HOST\" yq -r \".peers[] | select(.name == strenv(HOST)) | .$1 // \\\"\\\"\" \"$INVENTORY\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devmesh/k3s-install.sh:92:remote() {",
+      "kind": "function",
+      "file": "scripts/devmesh/k3s-install.sh",
+      "signature": "92:remote() {(...)",
+      "type_text": "92:remote() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devmesh/k3s-install.sh:116:remote_body() {",
+      "kind": "function",
+      "file": "scripts/devmesh/k3s-install.sh",
+      "signature": "116:remote_body() {(...)",
+      "type_text": "116:remote_body() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

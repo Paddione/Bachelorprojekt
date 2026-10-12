@@ -39,7 +39,8 @@ export async function setupVite(app: Express, server: Server) {
   });
 
   app.use(vite.middlewares);
-  app.use('*', (req, res, next) => {
+  // Pfadloses Catch-all: express v5/path-to-regexp v8 wirft bei '*' (T901951).
+  app.use((req, res, next) => {
     void (async () => {
       const url = req.originalUrl;
 
@@ -71,7 +72,8 @@ export function serveStatic(app: Express) {
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist
-  app.use('*', (_req, res) => {
+  // Pfadloses Catch-all: express v5/path-to-regexp v8 wirft bei '*' (T901951).
+  app.use((_req, res) => {
     res.sendFile(path.resolve(distPath, 'index.html'));
   });
 }

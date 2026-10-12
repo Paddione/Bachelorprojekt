@@ -101,8 +101,12 @@ Antwortet die Fritzbox ohne AdGuard nicht, sofort zurückstellen (Abschnitt 7).
    `autoApprovers` übernehmen. Prüfen, dass der Operator-Tag dort `tag:k8s-operator` heißt.
 2. DNS → Global nameservers: `lan-dns` (dessen 100.x-Adresse) als ersten,
    `9.9.9.9` als zweiten Eintrag. Den Eintrag `100.79.93.76` (Pi) entfernen.
-3. Split DNS: die Routen `fritz.box` und `home` auf 10.0.0.2 entfernen. AdGuard
-   löst beide selbst über die Fritzbox auf.
+3. Split DNS: die Routen `fritz.box` und `home` auf `lan-dns` legen, nicht löschen.
+   Tailscale fragt bei mehreren globalen Nameservern nach kurzer Verzögerung auch den
+   zweiten; eine NXDOMAIN von `9.9.9.9` auf einen lokalen Namen könnte sonst gewinnen.
+
+Umgesetzt am 2026-10-12 per API (T016515/T016528): globale Nameserver
+`100.103.50.121` (lan-dns), `9.9.9.9`; Split DNS `fritz.box`, `home` → `100.103.50.121`.
 
 Prüfung von einem Tailnet-Gerät außerhalb des Heimnetzes (z. B. Hotspot):
 

@@ -9,8 +9,8 @@ damit fehlen `mcp-kubernetes` (:18080), `github` (:13002) und `warden`.
 
 ## Wie es funktioniert
 
-devmesh-Knoten sind Tailnet-Peers (`tag:devmesh`, `devmesh/inventory.yaml`). Die Cloud-Umgebung
-tritt als `tag:devclient` bei; die ACL (`devmesh/tailnet-policy.hujson`) erlaubt von dort 22, 443
+devmesh-Knoten sind Tailnet-Peers (`tag:gpu-server`, `devmesh/inventory.yaml`). Die Cloud-Umgebung
+tritt dem Tailnet bei; die Policy (`devmesh/tailnet-policy.hujson`, `grants * -> *`) erlaubt von dort u. a. 22, 443
 und 6443. `tailscaled` läuft im Userspace-Modus, `kubectl` geht über dessen SOCKS5-Proxy
 (`socks5h://127.0.0.1:1055`) an `https://<tailnet_name>:6443`. Dazu ein
 `kubectl port-forward` auf `svc/llm-services` (Namespace `workspace`), wie
@@ -25,7 +25,8 @@ und 6443. `tailscaled` läuft im Userspace-Modus, `kubectl` geht über dessen SO
    ```
    Das ist eine Admin-Kubeconfig. Besser ist ein ServiceAccount mit minimalen Rechten.
 2. **Tailscale-Auth-Key**: Admin-Konsole → Settings → Keys → Generate auth key, *Reusable*,
-   *Ephemeral*, Tag `tag:devclient`. Ohne Tag greift die ACL nicht, `kubectl` läuft in den Timeout.
+   *Ephemeral*, ohne Tag: die `grants` der Live-Policy erlauben den Zugriff (T016528). Erst eine
+   eingeschränkte Policy bräuchte wieder einen Tag.
 3. **MCP-Tokens** liegen lokal in `~/.config/mcp-postgres/server.env` (`MCP_POSTGRES_TOKEN`)
    und `~/.config/bge-mcp/server.env` (`BGE_MCP_TOKEN`). Nicht ausgeben, direkt kopieren.
 4. **Umgebung eintragen** (claude.ai/code → Umgebung bearbeiten):

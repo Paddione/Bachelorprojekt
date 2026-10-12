@@ -3,15 +3,15 @@
 # k3s_version   k3s-Version fuer alle Server im devmesh-Cluster (gepinnt, T900117)
 # k3s_role      server-init | server-join | agent (T900117, gelesen von scripts/devmesh/*.sh)
 # labels        Node-Labels für k3s (z. B. storage=true)
-# gpu_endpoint  GPU-Inferenz auf dem Windows-Arbeitsplatz; einziger erlaubter Pfad von
-#               tag:devmesh in einen Client (devmesh/tailnet-policy.hujson, Alias gpu-host).
+# gpu_endpoint  GPU-Inferenz auf dem Windows-Arbeitsplatz (Tailnet-Host gpu-host). Die Live-Policy
+#               erlaubt den Pfad per grants (devmesh/tailnet-policy.hujson, T016528).
 #   address     Tailnet-Adresse von host (identisch zu hosts.gpu-host in der Policy)
 #   port        Ziel des Service-Ports http (sdlc-console, LLM_PROXY_URL); bleibt 1234
 #   ports       ein Eintrag je Windows-GPU-Dienst [T900191]; name = IANA-Service-Name
 #               (klein, a-z0-9 und -, hoechstens 15 Zeichen). render-stack.sh macht daraus
 #               je einen benannten Port in llm-gateway-host, die Policy je ein Ziel.
-# role: server  -> tag: "tag:devmesh"   (k3s-Hosts)
-# role: client  -> tag: "tag:devclient" (Arbeitsplaetze; Tailscale laeuft im Windows-Host,
+# role: server  -> tag: "tag:gpu-server" (k3s-Hosts; Live-Tag, T016528)
+# role: client  -> tag: null             (Geraet unter dem Benutzerkonto; Tailscale laeuft im Windows-Host,
 #                                         WSL sieht das Tailnet ueber networkingMode = mirrored)
 # lan_ip        feste Heimnetz-Adresse; null fuer Clients mit DHCP
 # tailnet_name  Geraetename im Tailnet (bei Servern per `tailscale up --hostname` gesetzt)
@@ -36,7 +36,7 @@ gpu_endpoint:
 peers:
   - name: gpu-metal
     role: server
-    tag: "tag:devmesh"
+    tag: "tag:gpu-server"
     lan_ip: 10.1.0.101
     # mac: DC:FE:07:10:B4:B3 (2026-10-12 per PXE neu installiert, tritt dem laufenden Cluster bei)
     tailnet_name: gpu-metal
@@ -44,7 +44,7 @@ peers:
     labels: []
   - name: gpu-cluster
     role: server
-    tag: "tag:devmesh"
+    tag: "tag:gpu-server"
     lan_ip: 10.10.10.2
     tailnet_name: gpu-cluster
     k3s_role: server-init
@@ -53,7 +53,7 @@ peers:
     labels: []
   - name: gpu-cluster2
     role: server
-    tag: "tag:devmesh"
+    tag: "tag:gpu-server"
     lan_ip: 10.10.10.3
     tailnet_name: gpu-cluster2
     k3s_role: server-join
@@ -63,7 +63,7 @@ peers:
       - storage=true
   - name: gpu-cluster-3
     role: server
-    tag: "tag:devmesh"
+    tag: "tag:gpu-server"
     lan_ip: 10.10.10.4
     # mac: FC:34:97:A5:DA:60 (recorded 2026-09-16, for Wake-on-LAN)
     tailnet_name: gpu-cluster-3
@@ -72,16 +72,16 @@ peers:
       - storage=true
   - name: pk-desktop
     role: client
-    tag: "tag:devclient"
+    tag: null
     lan_ip: 10.10.0.3
     tailnet_name: pk-desktop
   - name: pk-l-1
     role: client
-    tag: "tag:devclient"
+    tag: null
     lan_ip: null
     tailnet_name: pk-l-1
   - name: pk-tablet
     role: client
-    tag: "tag:devclient"
+    tag: null
     lan_ip: null
     tailnet_name: pk-tablet

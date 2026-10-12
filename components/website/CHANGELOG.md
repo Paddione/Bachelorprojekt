@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.417.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.416.0...website-v1.417.0) (2026-10-12)
+
+
+### Features
+
+* lan dns adguard T016515 ([#6567](https://github.com/Paddione/Bachelorprojekt/issues/6567)) ([3cdd4e5](https://github.com/Paddione/Bachelorprojekt/commit/3cdd4e5aa5082b4d1290f03c125414fa35e94a22))
+
 ## [1.416.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.415.4...website-v1.416.0) (2026-10-12)
 
 

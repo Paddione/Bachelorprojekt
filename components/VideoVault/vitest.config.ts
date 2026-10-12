@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 import path from 'path';
 
 // Shared modules are now inlined in shared/
@@ -6,6 +7,7 @@ const currentDir = import.meta.dirname ?? path.resolve();
 const sharedRoot = path.resolve(currentDir, 'shared');
 
 export default defineConfig({
+  plugins: [react()],
   root: path.resolve(currentDir, 'client'),
   esbuild: {
     jsx: 'automatic',
@@ -99,6 +101,7 @@ export default defineConfig({
         find: '@videovault-player',
         replacement: path.resolve(
           currentDir,
+          '..',
           '..',
           'packages',
           'videovault-player',

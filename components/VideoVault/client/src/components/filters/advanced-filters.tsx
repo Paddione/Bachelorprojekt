@@ -146,7 +146,7 @@ export function AdvancedFiltersPanel({
                           : undefined
                       }
                       onSelect={(date) => updateDateRange('startDate', date)}
-                      initialFocus
+                      autoFocus
                     />
                   </PopoverContent>
                 </Popover>
@@ -178,7 +178,7 @@ export function AdvancedFiltersPanel({
                           : undefined
                       }
                       onSelect={(date) => updateDateRange('endDate', date)}
-                      initialFocus
+                      autoFocus
                     />
                   </PopoverContent>
                 </Popover>

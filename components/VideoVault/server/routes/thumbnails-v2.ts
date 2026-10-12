@@ -18,7 +18,7 @@ const router = Router();
 router.get(
   '/:videoId',
   asyncHandler(async (req: Request, res: Response) => {
-    const { videoId } = req.params;
+    const videoId = String(req.params.videoId);
     const { type = 'thumbnail' } = req.query;
 
     // @ts-ignore - db injected by server
@@ -83,7 +83,7 @@ router.get(
 router.get(
   '/:videoId/metadata',
   asyncHandler(async (req: Request, res: Response) => {
-    const { videoId } = req.params;
+    const videoId = String(req.params.videoId);
 
     // @ts-ignore - db injected by server
     const db = req.app.locals.db;
@@ -135,7 +135,7 @@ router.get(
 router.delete(
   '/:videoId',
   asyncHandler(async (req: Request, res: Response) => {
-    const { videoId } = req.params;
+    const videoId = String(req.params.videoId);
     const { type = 'all' } = req.query;
 
     // @ts-ignore - db injected by server

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -23,7 +23,7 @@ import {
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
 import { SortDirection, SortField, AdvancedFilters } from '@/types/video';
-import { FixedSizeList as VirtualList } from 'react-window';
+import { List as VirtualList, type RowComponentProps } from 'react-window';
 import { AdvancedFiltersPanel } from '@/components/filters/advanced-filters';
 import { BulkOperationsToolbar } from '@/components/bulk/bulk-operations-toolbar';
 import { BulkOperationsService } from '@/services/bulk-operations';
@@ -454,6 +454,75 @@ export function MainContent({
         ? 1
         : 0);
 
+  // react-window v2: row renderer as memoized component (data via closure),
+  // stable rowProps object; List re-renders rows when the component changes.
+  const listRowProps = useMemo(() => ({}), []);
+  const listRowKey = useCallback(
+    (index: number) => filteredVideos[index]?.id ?? `row-${index}`,
+    [filteredVideos],
+  );
+  const renderListRow = useCallback(
+    ({ index, style }: RowComponentProps) => {
+      const video = filteredVideos[index];
+      return (
+        <div style={style}>
+          <div style={{ marginBottom: listGap }}>
+            <VideoCard
+              key={video.id}
+              video={video}
+              onPlay={onVideoPlay}
+              onEditTags={onVideoEditTags}
+              onRename={onVideoRename}
+              onSplit={onVideoSplit}
+              onFocusMode={onFocusMode}
+              onCategorize={onCategorize}
+              onPin={onPin}
+              onMove={onRequestMove ? (v) => onRequestMove(v) : undefined}
+              onDelete={
+                onDeleteFile
+                  ? (v) => {
+                      if (
+                        confirm(
+                          'Delete this file from disk? You will have a short window to undo.',
+                        )
+                      )
+                        onDeleteFile(v);
+                    }
+                  : undefined
+              }
+              onRemoveCategory={onRemoveCategory}
+              onUpdateCategories={onUpdateCategories}
+              isSelected={selectedVideoIds.has(video.id)}
+              onSelectionChange={handleVideoSelectionChange}
+              showSelection={showSelection}
+              data-video-index={index}
+              onClick={() => handleVideoCardClick(index)}
+            />
+          </div>
+        </div>
+      );
+    },
+    [
+      filteredVideos,
+      listGap,
+      onVideoPlay,
+      onVideoEditTags,
+      onVideoRename,
+      onVideoSplit,
+      onFocusMode,
+      onCategorize,
+      onPin,
+      onRequestMove,
+      onDeleteFile,
+      onRemoveCategory,
+      onUpdateCategories,
+      selectedVideoIds,
+      handleVideoSelectionChange,
+      showSelection,
+      handleVideoCardClick,
+    ],
+  );
+
   return (
     <main
       className="flex-1 bg-background overflow-hidden flex flex-col"
@@ -649,53 +718,16 @@ export function MainContent({
           {/* Fallback to original virtualization for list view */}
           {filteredVideos.length > 0 && useVirtualization && viewMode === 'list' && (
             <VirtualList
-              height={Math.max(200, effectiveHeight)}
-              itemCount={filteredVideos.length}
-              itemSize={cardHeight + listGap}
-              width={Math.max(200, effectiveWidth)}
-              itemKey={(index: number) => filteredVideos[index]?.id ?? `row-${index}`}
-            >
-              {({ index, style }: { index: number; style: React.CSSProperties }) => {
-                const video = filteredVideos[index];
-                return (
-                  <div style={style}>
-                    <div style={{ marginBottom: listGap }}>
-                      <VideoCard
-                        key={video.id}
-                        video={video}
-                        onPlay={onVideoPlay}
-                        onEditTags={onVideoEditTags}
-                        onRename={onVideoRename}
-                        onSplit={onVideoSplit}
-                        onFocusMode={onFocusMode}
-                        onCategorize={onCategorize}
-                        onPin={onPin}
-                        onMove={onRequestMove ? (v) => onRequestMove(v) : undefined}
-                        onDelete={
-                          onDeleteFile
-                            ? (v) => {
-                                if (
-                                  confirm(
-                                    'Delete this file from disk? You will have a short window to undo.',
-                                  )
-                                )
-                                  onDeleteFile(v);
-                              }
-                            : undefined
-                        }
-                        onRemoveCategory={onRemoveCategory}
-                        onUpdateCategories={onUpdateCategories}
-                        isSelected={selectedVideoIds.has(video.id)}
-                        onSelectionChange={handleVideoSelectionChange}
-                        showSelection={showSelection}
-                        data-video-index={index}
-                        onClick={() => handleVideoCardClick(index)}
-                      />
-                    </div>
-                  </div>
-                );
+              rowComponent={renderListRow}
+              rowCount={filteredVideos.length}
+              rowHeight={cardHeight + listGap}
+              rowKey={listRowKey}
+              rowProps={listRowProps}
+              style={{
+                height: Math.max(200, effectiveHeight),
+                width: Math.max(200, effectiveWidth),
               }}
-            </VirtualList>
+            />
           )}
 
           {/* Fallback non-virtualized rendering for smaller lists or when disabled */}

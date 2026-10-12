@@ -18,7 +18,7 @@ export function globalErrorHandler(err: any, req: Request, res: Response, _next:
     if (err instanceof ZodError) {
         return res.status(400).json({
             error: 'Validation failed',
-            details: err.errors.map(e => ({
+            details: err.issues.map(e => ({
                 field: e.path.join('.'),
                 message: e.message,
             })),

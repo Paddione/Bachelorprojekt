@@ -1,5 +1,7 @@
 import { Router } from 'express';
-import { handleMovieProcessing, handleAudiobookProcessing, handleEbookProcessing } from '../handlers/movie-handler';
+import { handleMovieProcessing } from '../handlers/movie-handler';
+import { handleAudiobookProcessing } from '../handlers/audiobook-handler';
+import { handleEbookProcessing } from '../handlers/ebook-handler';
 import { jobQueue } from '../lib/job-queue';
 import { db } from '../db';
 import {

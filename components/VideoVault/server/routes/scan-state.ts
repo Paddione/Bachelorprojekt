@@ -13,7 +13,7 @@ const router = Router();
 router.get(
   '/:rootKey',
   asyncHandler(async (req: Request, res: Response) => {
-    const { rootKey } = req.params;
+    const rootKey = String(req.params.rootKey);
 
     // @ts-ignore - db injected by server
     const db = req.app.locals.db;
@@ -209,7 +209,7 @@ router.post(
 router.get(
   '/:rootKey/stats',
   asyncHandler(async (req: Request, res: Response) => {
-    const { rootKey } = req.params;
+    const rootKey = String(req.params.rootKey);
 
     // @ts-ignore - db injected by server
     const db = req.app.locals.db;
@@ -248,7 +248,7 @@ router.get(
 router.delete(
   '/:rootKey',
   asyncHandler(async (req: Request, res: Response) => {
-    const { rootKey } = req.params;
+    const rootKey = String(req.params.rootKey);
 
     // @ts-ignore - db injected by server
     const db = req.app.locals.db;

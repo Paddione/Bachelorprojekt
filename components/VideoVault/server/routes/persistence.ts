@@ -155,7 +155,7 @@ export async function bulkUpsertVideos(req: Request, res: Response) {
 
 export async function patchVideo(req: Request, res: Response) {
   if (!requireDb(res)) return;
-  const { id } = req.params;
+  const id = String(req.params.id);
   const patch = req.body || {};
   const set: any = {};
   const allowed = [
@@ -189,7 +189,7 @@ export async function patchVideo(req: Request, res: Response) {
 
 export async function deleteVideo(req: Request, res: Response) {
   if (!requireDb(res)) return;
-  const { id } = req.params;
+  const id = String(req.params.id);
   const result = await db!.delete(videos).where(eq(videos.id, id)).returning();
   res.json({ deleted: result.length });
 }
@@ -295,7 +295,7 @@ export async function removeDirectory(req: Request, res: Response) {
 
 export async function deleteRoot(req: Request, res: Response) {
   if (!requireDb(res)) return;
-  const { rootKey } = req.params;
+  const rootKey = String(req.params.rootKey);
   const result = await db!
     .delete(directoryRoots)
     .where(eq(directoryRoots.rootKey, rootKey))
@@ -353,7 +353,7 @@ export async function createPreset(req: Request, res: Response) {
 
 export async function updatePreset(req: Request, res: Response) {
   if (!requireDb(res)) return;
-  const { id } = req.params;
+  const id = String(req.params.id);
   const payload = req.body;
   const [updated] = await db!
     .update(filterPresets)
@@ -366,7 +366,7 @@ export async function updatePreset(req: Request, res: Response) {
 
 export async function deletePreset(req: Request, res: Response) {
   if (!requireDb(res)) return;
-  const { id } = req.params;
+  const id = String(req.params.id);
   const result = await db!.delete(filterPresets).where(eq(filterPresets.id, id)).returning();
   res.json({ deleted: result.length });
 }
@@ -385,7 +385,7 @@ export async function listTags(_req: Request, res: Response) {
 
 export async function updateTag(req: Request, res: Response) {
   if (!requireDb(res)) return;
-  const { id } = req.params;
+  const id = String(req.params.id);
   const { url, type } = req.body;
 
   const set: any = {};

@@ -1,7 +1,7 @@
 {
   "include": [
     "client/src/**/*",
-    "shared-infrastructure/shared/videovault/**/*",
+    "shared/videovault/**/*",
     "server/**/*",
     "scripts/**/*"
   ],
@@ -9,16 +9,7 @@
     "node_modules",
     "build",
     "dist",
-    "dist",
-    // Exclude experimental enhanced search modules from typecheck in tests
-    "client/src/services/enhanced-filter-engine.ts",
-    "client/src/services/instant-search.ts",
-    "client/src/services/enhanced-file-scanner.ts",
-    "client/src/services/scan-state-manager.ts",
-    "client/src/services/enhanced-thumbnail-service.ts",
-    "client/src/services/webcodecs-thumbnail-service.ts",
-    "client/src/services/adaptive-thumbnail-manager.ts",
-    "client/src/services/enhanced-thumbnail.test.ts"
+    "dist"
   ],
   "compilerOptions": {
     "incremental": true,
@@ -52,10 +43,10 @@
         "./shared/videovault/*"
       ],
       "@videovault-player": [
-        "../packages/videovault-player/src"
+        "../../packages/videovault-player/src"
       ],
       "@videovault-player/*": [
-        "../packages/videovault-player/src/*"
+        "../../packages/videovault-player/src/*"
       ]
     }
   }

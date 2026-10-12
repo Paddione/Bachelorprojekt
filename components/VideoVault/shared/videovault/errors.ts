@@ -45,7 +45,7 @@ export const storedErrorSchema = z.object({
     z.literal('high'),
     z.literal('critical'),
   ]),
-  context: z.record(z.any()).optional(),
+  context: z.record(z.string(), z.any()).optional(),
   userFriendly: z.object({
     title: z.string(),
     message: z.string(),
@@ -67,7 +67,7 @@ export const clientErrorReportSchema = z.object({
   message: z.string(),
   code: z.string(),
   severity: errorSeveritySchema,
-  context: z.record(z.any()).optional(),
+  context: z.record(z.string(), z.any()).optional(),
   userAgent: z.string().optional(),
   url: z.string().optional(),
   stack: z.string().optional(),

@@ -26,7 +26,7 @@ export default defineConfig({
       "@shared": path.resolve(sharedRoot, "videovault"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
       "@design-system": path.resolve(sharedRoot, "design-system"),
-      "@videovault-player": path.resolve(import.meta.dirname, "..", "packages", "videovault-player", "src"),
+      "@videovault-player": path.resolve(import.meta.dirname, "..", "..", "packages", "videovault-player", "src"),
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
@@ -35,12 +35,29 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks for better caching
-          'react-vendor': ['react', 'react-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge'],
-          'lucide-vendor': ['lucide-react'],
+        // Vendor chunks for better caching (rolldown requires function form)
+        manualChunks: (id) => {
+          if (!id.includes('node_modules')) return;
+          if (
+            id.includes('@radix-ui/react-dialog') ||
+            id.includes('@radix-ui/react-dropdown-menu') ||
+            id.includes('@radix-ui/react-select')
+          ) {
+            return 'ui-vendor';
+          }
+          if (
+            id.includes('node_modules/date-fns/') ||
+            id.includes('node_modules/clsx/') ||
+            id.includes('node_modules/tailwind-merge/')
+          ) {
+            return 'utils-vendor';
+          }
+          if (id.includes('node_modules/lucide-react/')) {
+            return 'lucide-vendor';
+          }
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor';
+          }
         },
         chunkFileNames: (chunkInfo) => {
           const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';

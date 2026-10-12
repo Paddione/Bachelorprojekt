@@ -117,6 +117,7 @@ const directoryRootsSchema = z
     lastRootKey: z.string().nullable().optional(),
     roots: z
       .record(
+        z.string(),
         z.object({
           name: z.string().optional(),
           directories: z.array(z.string()).default([]),
@@ -128,7 +129,9 @@ const directoryRootsSchema = z
 
 const watchStatesSchema = z
   .record(
+    z.string(),
     z.record(
+      z.string(),
       z.object({
         position: z.coerce.number().nonnegative(),
         duration: z.coerce.number().nonnegative().optional(),

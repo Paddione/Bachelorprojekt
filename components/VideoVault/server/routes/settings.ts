@@ -9,7 +9,7 @@ import { eq } from 'drizzle-orm';
 const MEM_STORE = new Map<string, string>();
 
 export async function getSetting(req: Request, res: Response) {
-  const key = req.params.key;
+  const key = String(req.params.key);
   try {
     if (!db) {
       const payload = { key, value: MEM_STORE.get(key) ?? null };
@@ -26,7 +26,7 @@ export async function getSetting(req: Request, res: Response) {
 }
 
 export async function setSetting(req: Request, res: Response) {
-  const key = req.params.key;
+  const key = String(req.params.key);
   let value: unknown;
   try {
     ({ value } = setSettingRequestSchema.parse(req.body ?? {}));
@@ -57,7 +57,7 @@ export async function setSetting(req: Request, res: Response) {
 }
 
 export async function deleteSetting(req: Request, res: Response) {
-  const key = req.params.key;
+  const key = String(req.params.key);
   try {
     if (!db) {
       MEM_STORE.delete(key);

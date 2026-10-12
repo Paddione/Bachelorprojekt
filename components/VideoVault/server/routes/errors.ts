@@ -136,7 +136,7 @@ export async function listClientErrors(req: Request, res: Response) {
 export async function getClientError(req: Request, res: Response) {
   try {
     if (!db) return res.status(503).json({ error: 'Database not configured' });
-    const { id } = req.params;
+    const id = String(req.params.id);
     const [row] = await db.select().from(clientErrors).where(eq(clientErrors.id, id)).limit(1);
     if (!row) return res.status(404).json({ error: 'Not found' });
     res.json(row);
@@ -149,7 +149,7 @@ export async function getClientError(req: Request, res: Response) {
 export async function deleteClientError(req: Request, res: Response) {
   try {
     if (!db) return res.status(503).json({ error: 'Database not configured' });
-    const { id } = req.params;
+    const id = String(req.params.id);
     const result = await db.delete(clientErrors).where(eq(clientErrors.id, id)).returning();
     res.json({ deleted: result.length });
   } catch (error) {

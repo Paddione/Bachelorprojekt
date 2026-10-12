@@ -8,4 +8,4 @@ spec:
   url: https://github.com/Paddione/Bachelorprojekt
   ref:
     # T016529 UEBERGANG wie in flux-instance.yaml: nach Merge auf main.
-    branch: feature/fleet-gekko-ohne-wg-T016529
+    branch: main

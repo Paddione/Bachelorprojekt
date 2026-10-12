@@ -26,8 +26,8 @@ existiert, `uuid` nicht) — vor dem Fix rot, danach grün.
 | `tests/py/spec/ticket-system/test_verify_ticket_id.py` | Neu: kubectl-Stub + 2 Tests (OK-Pfad RED, REJECTED-Pfad Pin) |
 | `components/website/src/data/test-inventory.json` | Regenerieren (neue Testdatei) |
 
-`scripts/verify-ticket-id.sh` hat Ist 30 bei Restbudget 766.
-`tests/py/spec/ticket-system/test_verify_ticket_id.py` ist neu (ca. 75) bei Restbudget 728.
+`scripts/verify-ticket-id.sh` hat Ist 33 bei Restbudget 763.
+`tests/py/spec/ticket-system/test_verify_ticket_id.py` ist neu (73) bei Restbudget 730.
 Beide Dateien liegen weit unter ihrer wirksamen Schwelle, kein Split nötig.
 
 ## Task 1 — RED-Bestätigung
@@ -37,14 +37,19 @@ Beide Dateien liegen weit unter ihrer wirksamen Schwelle, kein Split nötig.
   `test_unbekannte_id_ist_rejected` scheitert ebenfalls (Skript stirbt per
   `set -e` am psql-Fehler, bevor es REJECTED druckt — leere Ausgabe).
 
-## Task 2 — Spaltenname korrigieren
+## Task 2 — Spaltenname und Aufrufpfad korrigieren
 
 - In `scripts/verify-ticket-id.sh` die Abfrage auf `SELECT id::text ...`
-  korrigieren. Keine weiteren Änderungen (Meldungen, Exit-Codes bleiben).
+  korrigieren (Zweitbefund beim Live-Test: `:'var'`-Substitution greift in
+  psql 16 nicht via `-c` — daher SQL per Heredoc/stdin + `kubectl exec -i`
+  wie `_exec_sql`, plus `|| true` gegen `set -e`-Stillstand (T900239);
+  jeder Zweifel fällt fail-closed auf REJECTED). Meldungen und Exit-Codes
+  bleiben unverändert.
 - Acceptance: `bash -n scripts/verify-ticket-id.sh` ist grün,
   `python3 -m pytest tests/py/spec/ticket-system/test_verify_ticket_id.py -q`
-  meldet 2/2 grün, und `bash scripts/verify-ticket-id.sh T901952 mentolder`
-  meldet OK gegen den echten Cluster.
+  meldet 2/2 grün, und gegen den echten Cluster meldet
+  `bash scripts/verify-ticket-id.sh T901952 mentolder` OK (Exit 0) sowie
+  `bash scripts/verify-ticket-id.sh T000000 mentolder` REJECTED (Exit 1).
 
 ## Task 3 — Verifikation und Inventar
 

@@ -19,11 +19,9 @@ if [[ " $* " == *" get pod "* ]]; then
   echo "pod/shared-db-0"
   exit 0
 fi
-sql=""; eid=""; prev=""
+sql="$(cat)"; eid=""
 for a in "$@"; do
-  if [[ "$prev" == "-c" ]]; then sql="$a"; fi
   if [[ "$a" == eid=* ]]; then eid="${a#eid=}"; fi
-  prev="$a"
 done
 if [[ "$sql" == *"uuid::text"* ]]; then
   echo 'psql: ERROR: column "uuid" does not exist' >&2

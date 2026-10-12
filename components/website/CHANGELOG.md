@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.418.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.417.0...website-v1.418.0) (2026-10-12)
+
+
+### Features
+
+* **ci:** local AI code review workflow via llm-services [T016521] ([#6569](https://github.com/Paddione/Bachelorprojekt/issues/6569)) ([b8656b0](https://github.com/Paddione/Bachelorprojekt/commit/b8656b0acd12684f1354b77d4b74a96e7e5ded9f))
+
 ## [1.417.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.416.0...website-v1.417.0) (2026-10-12)
 
 

@@ -3102,6 +3102,12 @@
     "kind": "pytest"
   },
   {
+    "id": "ci/ai_code_review",
+    "file": "tests/py/spec/ci/test_ai_code_review.py",
+    "category": "ci",
+    "kind": "pytest"
+  },
+  {
     "id": "ci_cd_specs/commit_vs_diff_scope",
     "file": "tests/py/spec/ci_cd_specs/test_commit_vs_diff_scope.py",
     "category": "ci_cd_specs",

@@ -1,0 +1,7 @@
+{
+  "ticket": "T016521",
+  "slug": "local-ai-code-review",
+  "type": "feat",
+  "areas": ["ci", "llm"],
+  "component": "ci"
+}

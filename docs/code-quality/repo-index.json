@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1327,
+      "file_count": 1328,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -368,6 +368,7 @@
         "tests/py/scripts/test_admin_menu_gate.py",
         "tests/py/scripts/test_workers_status.py",
         "tests/py/smoke/test_harness.py",
+        "tests/py/spec/ci/test_ai_code_review.py",
         "tests/py/spec/ci_cd_specs/test_actionlint_workflow_gate.py",
         "tests/py/spec/ci_cd_specs/test_arbitration_scoped_kubeconfig.py",
         "tests/py/spec/ci_cd_specs/test_automerge_run_scope.py",
@@ -4173,7 +4174,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 919,
+      "file_count": 920,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4306,6 +4307,7 @@
         "scripts/ci-pr-health.sh",
         "scripts/ci-red-intake.sh",
         "scripts/ci/provision-gh-runner.sh",
+        "scripts/ci/run-ai-code-review.py",
         "scripts/ci/runner-inventory-check.sh",
         "scripts/ci/runner-placement-check.sh",
         "scripts/ci_red_intake.py",

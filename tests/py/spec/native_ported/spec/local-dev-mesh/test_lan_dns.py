@@ -163,10 +163,20 @@ def test_subnet_routes_dry_run_nur_fuer_peers_mit_subnet_routes(repo_root, run_c
     assert "10.10.10.2" in lines[0] and "--advertise-routes=10.0.0.0/24" in lines[0]
 
 
-def test_task_dns_deploy_ruft_das_deploy_skript(repo_root, run_cmd):
-    if shutil.which("task") is None:
-        pytest.skip("task binary not installed")
-    res = run_cmd(["task", "--dry", "devmesh:dns:deploy"], cwd=repo_root)
+def test_task_dns_deploy_ruft_das_deploy_skript(repo_root, run_cmd, tmp_path):
+    if shutil.which("task") is None or shutil.which("kubectl") is None:
+        pytest.skip("task or kubectl binary not installed")
+    # Hermetisch: die Precondition verlangt einen Context devmesh, CI hat keinen.
+    kubeconfig = tmp_path / "kubeconfig"
+    kubeconfig.write_text(
+        "apiVersion: v1\nkind: Config\n"
+        "clusters: [{name: devmesh, cluster: {server: 'https://127.0.0.1:6443'}}]\n"
+        "users: [{name: devmesh, user: {}}]\n"
+        "contexts: [{name: devmesh, context: {cluster: devmesh, user: devmesh}}]\n"
+    )
+    import os
+    env = {**os.environ, "KUBECONFIG": str(kubeconfig)}
+    res = run_cmd(["task", "--dry", "devmesh:dns:deploy"], cwd=repo_root, env=env)
     assert res.returncode == 0, res.output
     assert "scripts/devmesh/lan-dns-deploy.sh" in res.output
 

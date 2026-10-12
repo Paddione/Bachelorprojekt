@@ -4260,12 +4260,6 @@
     "kind": "pytest"
   },
   {
-    "id": "local-dev-mesh/tailnet-policy",
-    "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py",
-    "category": "local-dev-mesh",
-    "kind": "pytest"
-  },
-  {
     "id": "local-dev-mesh/ticket-devmesh-guard",
     "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_ticket_devmesh_guard.py",
     "category": "local-dev-mesh",
@@ -4850,6 +4844,12 @@
   {
     "id": "native_ported/spec/local-dev-mesh/lan_dns",
     "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_lan_dns.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/local-dev-mesh/tailnet_policy",
+    "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py",
     "category": "native_ported",
     "kind": "pytest"
   },

@@ -6,7 +6,7 @@ Erreichbarkeit. Enthält **keine** Credentials. Auth-Keys werden nie ins Repo ge
 Soll-Zustand im Repo:
 
 - `devmesh/inventory.yaml` — Peers mit Rolle, Tag, LAN-Adresse und Tailnet-Namen
-- `devmesh/tailnet-policy.hujson` — ACL-Soll (Guard: `tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py`)
+- `devmesh/tailnet-policy.hujson` — Spiegel der Live-Policy (Guard: `tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py`)
 - `scripts/devmesh/tailnet-check.sh` — Prüfung, Aufruf `task devmesh:tailnet:check`
 
 Entscheidungen: ADR-008 (Nachtrag 2026-09-11), Design `2026-09-11-devmesh-tailnet`.
@@ -15,57 +15,29 @@ Entscheidungen: ADR-008 (Nachtrag 2026-09-11), Design `2026-09-11-devmesh-tailne
 
 | Rolle | Tag | Geräte | Zugriff |
 |---|---|---|---|
-| Server | `tag:devmesh` | gpu-metal (10.1.0.101), gpu-cluster (10.10.10.2), gpu-cluster2 (10.10.10.3) | untereinander vollständig |
-| Client | `tag:devclient` | pk-desktop, pk-l-1, pk-tablet | auf Server tcp 22, 443, 6443 |
+| Server | `tag:gpu-server` | gpu-metal (10.1.0.101), gpu-cluster (10.10.10.2), gpu-cluster2 (10.10.10.3), gpu-cluster-3 (10.10.10.4) | alles (`grants`) |
+| Client | — (Gerät unter dem Benutzerkonto) | pk-desktop, pk-l-1, pk-tablet | alles (`grants`) |
 
-Kein allgemeiner Pfad von `tag:devmesh` nach `tag:devclient`. Einzige Ausnahme ist die
-GPU-Inferenz: `tag:devmesh` → `gpu-host` (pk-desktop, Tailnet-Adresse aus
-`gpu_endpoint.address`) — **eine ACL-Regel pro Eintrag in `gpu_endpoint.ports`** aus dem
-Inventar. T900191 erweitert das Feld von einem einzelnen `port` auf eine benannte Portliste,
-weil der llm-proxy jetzt fünf Windows-GPU-Backends über denselben Tailnet-Host erreicht, nicht
-nur den bisherigen `:1234`-Server: `1234` (bisheriger LLM-Endpunkt), `1919` (FreeToken-native,
-T014105), `8089`, `8090`, `8094` (weitere lokale Inferenz-/Werkzeugdienste — exakte Zuordnung
-in `devmesh/inventory.yaml`-Kommentaren, P1a-Zuständigkeit). Jeder Eintrag in `gpu_endpoint.ports`
-braucht eine eigene `acls`-Zeile in `devmesh/tailnet-policy.hujson`
-(`{"action": "accept", "src": ["tag:devmesh"], "dst": ["gpu-host:<port>"]}`, fünf Zeilen statt
-bisher einer) — Schritt 5 unten prüft das vor dem Einspielen.
-`ws-ubuntu-1` tritt erst in SP-5 (T900120) bei.
+**Stand T016528 (2026-10-12):** Die Live-Policy erlaubt per `grants` allen Verkehr im
+Tailnet (`* → *`). Die ursprünglich geplante restriktive ACL mit `tag:devmesh`/`tag:devclient`
+(T900116) wurde nie eingespielt; das Repo spiegelt jetzt den Live-Stand. Eine engere Policy
+ist ein eigener Change: vorher alle Pfade inventarisieren (u. a. `gpu-host`-Ports aus
+`gpu_endpoint.ports`, Zugriffe von Hetzner-Geräten auf `pk-desktop`).
+Weitere Tags: `tag:k8s-operator`/`tag:k8s` (Tailscale-Operator in devmesh), `tag:lan-dns`
+(AdGuard, `docs/runbooks/devmesh-lan-dns.md`), `tag:orchestrator` (pk-desktop-linux).
+Die Subnet-Route `10.0.0.0/24` geben gpu-cluster und gpu-cluster2 frei, genehmigt über
+`autoApprovers` für `tag:gpu-server`.
 k3s-Knotenverkehr läuft über das LAN, nicht über das Tailnet (SP-2).
 
-## Vorbedingungen
+## Schritt 1: Tag in der Live-Policy prüfen
 
-1. SSH als `patrick` mit `~/.ssh/patrick_ed25519` auf alle drei Server:
-
-   ```bash
-   for h in 10.1.0.101 10.10.10.2 10.10.10.3; do
-     ssh -i ~/.ssh/patrick_ed25519 -o BatchMode=yes -o ConnectTimeout=8 patrick@"$h" true \
-       && echo "OK $h" || echo "FEHLT $h"
-   done
-   ```
-
-   Jede Zeile muss `OK` zeigen. Fehlt eine, zuerst den SSH-Bootstrap erledigen.
-
-2. Tailscale läuft auf PK-Desktop:
-
-   ```bash
-   "/mnt/c/Program Files/Tailscale/tailscale.exe" status --json | tr -d '\r' \
-     | python3 -c 'import json,sys; print(json.load(sys.stdin)["BackendState"])'
-   ```
-
-   Erwartet: `Running`. Bei `NoState` oder `Stopped` den Tailscale-Dienst in Windows starten.
-
-3. Admin-Rechte in der Tailscale-Admin-Konsole.
-
-## Schritt 1: Tags in der Live-Policy anlegen
-
-Admin-Konsole → Access controls. Den `tagOwners`-Block aus `devmesh/tailnet-policy.hujson`
-übernehmen, die bestehenden `acls` **unverändert lassen**, speichern. Ohne `tagOwners` lassen sich
-keine getaggten Auth-Keys erzeugen.
+`tag:gpu-server` muss in den `tagOwners` der Live-Policy stehen (siehe
+`devmesh/tailnet-policy.hujson`). Ohne Eintrag lassen sich keine getaggten Auth-Keys erzeugen.
 
 ## Schritt 2: Server beitreten
 
 Pro Server einen Auth-Key erzeugen (Settings → Keys → Generate auth key): Reusable aus,
-Ephemeral aus, Pre-approved an, Tag `tag:devmesh`, Ablauf 1 Tag. Dann auf PK-Desktop (WSL):
+Ephemeral aus, Pre-approved an, Tag `tag:gpu-server`, Ablauf 1 Tag. Dann auf PK-Desktop (WSL):
 
 ```bash
 host=10.1.0.101; name=gpu-metal     # danach 10.10.10.2/gpu-cluster, 10.10.10.3/gpu-cluster2
@@ -76,19 +48,20 @@ read -rsp "Auth-Key fuer ${name}: " TS_KEY; echo
 printf '%s' "$TS_KEY" > "$keyfile"; unset TS_KEY
 scp -i ~/.ssh/patrick_ed25519 "$keyfile" patrick@"$host":.ts-authkey; rm -f "$keyfile"
 ssh -t -i ~/.ssh/patrick_ed25519 patrick@"$host" \
-  "chmod 600 ~/.ts-authkey; sudo tailscale up --auth-key=file:\$HOME/.ts-authkey --advertise-tags=tag:devmesh --hostname=${name}; rc=\$?; rm -f ~/.ts-authkey; exit \$rc"
+  "chmod 600 ~/.ts-authkey; sudo tailscale up --auth-key=file:\$HOME/.ts-authkey --advertise-tags=tag:gpu-server --hostname=${name}; rc=\$?; rm -f ~/.ts-authkey; exit \$rc"
 ```
 
 `--hostname` setzt den Tailnet-Namen auf den Wert aus `devmesh/inventory.yaml`. Der Key liegt nur
 in `/dev/shm` und kurz im Home des Servers, nie in einer Kommandozeile. Nach dem dritten Beitritt
 unter Settings → Keys prüfen, dass kein Auth-Key mehr aktiv ist, und übrige widerrufen.
 
-## Schritt 3: Clients taggen
+## Schritt 3: Clients anmelden
 
-- **PK-Desktop:** Admin-Konsole → Machines → `pk-desktop` → Edit ACL tags → `tag:devclient`.
+Clients bleiben Geräte unter dem Benutzerkonto, **ohne Tag** (`tailnet-check.sh` prüft das).
+
 - **PK-L-1, PK-Tablet:** Tailscale für Windows installieren und anmelden. In Machines den Namen auf
-  `pk-l-1` bzw. `pk-tablet` setzen (Wert aus dem Inventar) und `tag:devclient` vergeben. In der
-  WSL-Distro prüfen, dass das Tailnet sichtbar ist:
+  `pk-l-1` bzw. `pk-tablet` setzen (Wert aus dem Inventar). In der WSL-Distro prüfen, dass das
+  Tailnet sichtbar ist:
 
   ```bash
   grep -i networkingMode /mnt/c/Users/*/.wslconfig    # networkingMode = mirrored
@@ -112,24 +85,21 @@ Abnahme zu Hause auf PK-Desktop: alle drei Server `direct`, Exit 0. Abnahme unte
 einen Mobilfunk-Hotspot, alle Server `direct` oder `relay`, Exit 0. Meldet ein Server zu Hause
 `relay`, blockiert vermutlich eine Firewall UDP 41641: `tailscale.exe netcheck`.
 
-## Schritt 5: ACL einspielen
+## Schritt 5: Policy ändern
 
-Die Repo-Policy erlaubt nur devmesh-Pfade und die `gpu-host`-Ausnahme. Sie ersetzt die Live-`acls`
-erst nach einer Prüfung, weil heute andere Wege über das Tailnet laufen können. Bekannt sind
-Zugriffe von Geräten außerhalb devmesh auf `pk-desktop`: LLM-Endpunkt `:1234` und
-Brainstorm-Bridge `:47600`.
+`devmesh/tailnet-policy.hujson` ist ein Spiegel der Live-Policy und wird nicht automatisch
+eingespielt. Änderungen laufen in dieser Reihenfolge:
 
-```bash
-git grep -n "100\.102\.71\.114"      # Konsumenten der Tailnet-Adresse von pk-desktop
-```
+1. Live-Policy holen und mit der Repo-Datei vergleichen (Abweichungen zuerst klären):
+   ```bash
+   curl -s -u "$TS_API_KEY:" -H "Accept: application/hujson" -D /tmp/acl.h \
+     https://api.tailscale.com/api/v2/tailnet/-/acl > /tmp/acl-live.hujson
+   ```
+2. Änderung vornehmen, validieren (`POST …/acl/validate`) und mit dem ETag aus `/tmp/acl.h`
+   einspielen (`POST …/acl`, Header `If-Match`). Alternativ in der Admin-Konsole.
+3. Repo-Datei auf den neuen Live-Stand ziehen, Guard-Tests laufen lassen, PR.
 
-1. Live-Policy in der Admin-Konsole kopieren und mit `devmesh/tailnet-policy.hujson` vergleichen.
-2. Enthält die Live-Policy Regeln außerhalb der devmesh-Pfade (z. B. den Default `*` → `*:*`) und
-   nutzt ein Gerät außerhalb von devmesh (z. B. `pk-hetzner-8`) das Tailnet aktiv, **nicht
-   ersetzen**. Stattdessen einen Folge-Change anlegen, der Spec und Policy um eine enge Regel
-   ergänzt.
-3. Sonst die Live-Policy durch den Inhalt der Repo-Datei ersetzen, speichern und Schritt 4
-   wiederholen.
+Den API-Key nur als Umgebungsvariable nutzen und danach widerrufen.
 
 ## Schritt 6: Heimrouter
 

@@ -8,14 +8,14 @@
 #
 # Netzpfad: tailscaled im Userspace-Modus (kein TUN in der Cloud-Umgebung noetig). kubectl geht ueber
 # den SOCKS5-Proxy von tailscaled; der API-Server ist der Tailnet-Name aus der Kubeconfig
-# (scripts/devmesh/kubeconfig.sh). Erlaubt laut devmesh/tailnet-policy.hujson: tag:devclient -> 6443.
+# (scripts/devmesh/kubeconfig.sh). Erlaubt laut devmesh/tailnet-policy.hujson (grants * -> *, T016528).
 # Nur devmesh. fleet (Prod) liegt nicht im Tailnet und wird bewusst nicht angebunden.
 #
 # Port-Forward wie devmesh-forward.service: svc/llm-services im Namespace workspace
 #   18235 llm-proxy, 13001 mcp-postgres, 13005 bge-mcp
 #
 # Secrets ausschliesslich als Umgebungsvariablen der Cloud-Umgebung, nie im Repo:
-#   TS_AUTHKEY             ephemerer, getaggter Tailscale-Auth-Key (tag:devclient)
+#   TS_AUTHKEY             ephemerer Tailscale-Auth-Key (ohne Pflicht-Tag, T016528)
 #   DEVMESH_KUBECONFIG_B64 base64 einer Kubeconfig mit Context "devmesh" (base64 -w0 ~/.kube/devmesh.yaml)
 #   MCP_POSTGRES_TOKEN     Bearer fuer mcp-postgres
 #   BGE_MCP_TOKEN          Bearer fuer bge-mcp
@@ -150,7 +150,7 @@ start_tailscale() {
   as_root tailscale --socket="$STATE_DIR/tailscaled.sock" up \
     --auth-key="file:$keyfile" --hostname="cloud-env-$(hostname | cut -c1-20)" \
     --accept-dns=false --accept-routes=false --ssh=false \
-    || die "tailscale up fehlgeschlagen (Key abgelaufen oder ohne tag:devclient?)"
+    || die "tailscale up fehlgeschlagen (Key abgelaufen oder widerrufen?)"
   say "Tailscale verbunden"
 }
 

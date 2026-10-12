@@ -151,7 +151,7 @@ networks:
     owner: Tailnet (p.korczewski)
     purpose: >-
       NAT-durchdringendes Overlay für den Zugriff auf devmesh (ADR-008): Server mit
-      tag:devmesh, Dev-Clients mit tag:devclient
+      tag:gpu-server, Dev-Clients als Benutzergeraete ohne Tag (T016528)
     status: active
     source: >-
       Tailscale-Dienst auf den Geräten; Soll-Zustand devmesh/inventory.yaml und

@@ -9,17 +9,17 @@ import pytest
 INVENTORY = """peers:
   - name: srv-a
     role: server
-    tag: "tag:devmesh"
+    tag: "tag:gpu-server"
     lan_ip: 10.1.0.201
     tailnet_name: srv-a
   - name: srv-b
     role: server
-    tag: "tag:devmesh"
+    tag: "tag:gpu-server"
     lan_ip: 10.10.10.201
     tailnet_name: srv-b
   - name: cli-a
     role: client
-    tag: "tag:devclient"
+    tag: null
     lan_ip: null
     tailnet_name: cli-a
 """
@@ -128,23 +128,39 @@ def test_t900116_crlf_ausgabe_der_windows_cli_wird_korrekt_gelesen(tc, run_cmd):
     assert _has_line_with(res.output, "srv-b", "relay"), f"srv-b nicht relay: {res.output}"
 
 
-def test_t900116_server_mit_client_tag_inventar_ungueltig_exit_2_ohne_ping(tc, run_cmd):
+def test_t016528_server_ohne_gpu_server_tag_inventar_ungueltig_exit_2_ohne_ping(tc, run_cmd):
     bad = tc["tmp"] / "bad.yaml"
     bad.write_text(
         "peers:\n"
         "  - name: srv-x\n"
         "    role: server\n"
-        '    tag: "tag:devclient"\n'
+        '    tag: "tag:devmesh"\n'
         "    lan_ip: 10.1.0.202\n"
         "    tailnet_name: srv-x\n"
     )
     res = _run(run_cmd, tc, "--inventory", str(bad))
     assert res.returncode == 2, f"exit={res.returncode}, erwartet 2. output={res.output}"
-    assert _has_line_with(res.output, "srv-x", "tag:devmesh"), f"Tag-Fehler nicht benannt: {res.output}"
+    assert _has_line_with(res.output, "srv-x", "tag:gpu-server"), f"Tag-Fehler nicht benannt: {res.output}"
     assert not re.search(r"^ping", tc["log"].read_text(), re.M)
 
 
-def test_t900116_echtes_inventar_server_tragen_tag_devmesh_clients_tag_devclient(tc, run_cmd):
+def test_t016528_client_mit_tag_inventar_ungueltig(tc, run_cmd):
+    # Clients sind Geraete unter dem Benutzerkonto, live ohne Tag (T016528).
+    bad = tc["tmp"] / "bad-client.yaml"
+    bad.write_text(
+        "peers:\n"
+        "  - name: cli-x\n"
+        "    role: client\n"
+        '    tag: "tag:devclient"\n'
+        "    lan_ip: null\n"
+        "    tailnet_name: cli-x\n"
+    )
+    res = _run(run_cmd, tc, "--inventory", str(bad))
+    assert res.returncode == 2, f"exit={res.returncode}, erwartet 2. output={res.output}"
+    assert _has_line_with(res.output, "cli-x", "ohne Tag"), f"Tag-Fehler nicht benannt: {res.output}"
+
+
+def test_t016528_echtes_inventar_server_tragen_tag_gpu_server_clients_keinen_tag(tc, run_cmd):
     res = _run(run_cmd, tc, "--inventory", str(tc["repo"] / "devmesh" / "inventory.yaml"), "--list")
     assert res.returncode == 0, f"exit={res.returncode} output={res.output}"
     rows = [l.split("\t") for l in res.output.splitlines()]
@@ -154,7 +170,7 @@ def test_t900116_echtes_inventar_server_tragen_tag_devmesh_clients_tag_devclient
     assert servers >= 1 and clients >= 1, f"servers={servers} clients={clients}: {res.output}"
     wrong = [
         "\t".join(r) for r in rows
-        if len(r) > 2 and ((r[1] == "server" and r[2] != "tag:devmesh") or (r[1] == "client" and r[2] != "tag:devclient"))
+        if len(r) > 2 and ((r[1] == "server" and r[2] != "tag:gpu-server") or (r[1] == "client" and r[2] != "-"))
     ]
     assert wrong == [], f"falscher Tag: {wrong}"
     # --list braucht keine Tailscale-CLI.

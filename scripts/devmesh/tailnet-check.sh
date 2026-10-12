@@ -76,7 +76,8 @@ path = sys.argv[1]
 with open(path) as f:
     data = yaml.safe_load(f) or {}
 
-expected_tag = {"server": "tag:devmesh", "client": "tag:devclient"}
+# Live-Tags (T016528): Server tag:gpu-server, Clients sind Benutzergeraete ohne Tag.
+expected_tag = {"server": "tag:gpu-server", "client": None}
 fields = ("name", "role", "tag", "lan_ip", "tailnet_name")
 errors, seen = [], set()
 peers = data.get("peers") or []
@@ -93,6 +94,8 @@ for i, p in enumerate(peers):
     role = p.get("role")
     if role not in expected_tag:
         errors.append(f"{name}: role '{role}' ist weder server noch client")
+    elif role == "client" and p.get("tag") is not None:
+        errors.append(f"{name}: role client ist ein Benutzergeraet ohne Tag, gefunden {p.get('tag')}")
     elif p.get("tag") != expected_tag[role]:
         errors.append(f"{name}: role {role} verlangt tag {expected_tag[role]}, gefunden {p.get('tag')}")
     if role == "server" and not p.get("lan_ip"):

@@ -466,6 +466,12 @@ HYGIENE-EMPFEHLUNG: 5 stale Worktrees, 8 [gone]-Branches — `repo-hygiene` ausf
 - Age-Alert: Automatisch wenn Tickets >30 Tage ohne Update
 - Hygiene-Empfehlung: Wenn `repo-hygiene` seit >5 Tagen oder >10 stale Artifacts
 
+**Dispatch-Telemetrie (PFLICHT, T901790):** Beim Präsentieren des Masterplans für jedes
+Wave-1-Ticket einen Marker schreiben — das ist der Startzeitpunkt der Freigabe-Wartezeit:
+```bash
+bash scripts/ticket.sh dispatch-log --id <ext-id> --event request --detail "wave=1"
+```
+
 ### Step 3.6: Dispatch wave 1 (after the user approves)
 
 > **Claim-Timing bei unplanned Tickets [T004602]:** Für unplanned Tickets (`ai_ready`, kein Plan)
@@ -497,8 +503,11 @@ HYGIENE-EMPFEHLUNG: 5 stale Worktrees, 8 [gone]-Branches — `repo-hygiene` ausf
 > `STALE-STATE: T00XXXX (status=<aktuell>, erwartet=<snapshot>)` gemeldet, aus der Wave-Menge
 > entfernt und NICHT dispatched — sie gehören einer laufenden Parallelsession, deren Ergebnis
 > nicht überschrieben werden darf. Es werden nur Tickets dispatched, die seit dem Masterplan-Snapshot unveraendert sind.
+> Jede Entfernung wird als Marker persistiert (stille Drops sind nicht messbar, T901790):
+> `bash scripts/ticket.sh dispatch-log --id <ext-id> --event stale-skip --detail "status=<aktuell> expected=<snapshot>"`.
 
 For each remaining wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
+0. Freigabe-Marker schreiben (Endzeitpunkt der Wartezeit, T901790): `bash scripts/ticket.sh dispatch-log --id <ext-id> --event approved --detail "wave=1"`.
 1. `bash scripts/agent-lock.sh claim branch <branch> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it; bei unplanned Tickets erst nach Phase A claimen [T004602]). **Warum branch-scoped und nicht ticket-scoped (T003102):** der ticket-scoped Lock blockiert nicht den zweiten Bearbeiter, sondern den späteren Abschluss durch Subagent, `ticket-mcp` und `post-merge.yml` — der branch-scoped Claim hingegen schützt genau den Worktree, den `dev-flow-execute` betritt und ändert.
 
    Der Subagent soll zu Beginn im Worktree selbst claimen:

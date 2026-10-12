@@ -7,6 +7,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# T901777: Fail-closed — dieses Skript appliziert die k3d-Manifeste OHNE den
+# Task-Render-Pfad (envsubst + $$-Kollaps). ${VAR}-Platzhalter (u.a. POD_CIDR/
+# SERVICE_CIDR in den NetworkPolicies) und $${...}-Escapes in Seed-/CronJob-
+# Skripten kaemen literal in den Cluster: ungueltige cidr-Felder bzw. PID-
+# Expansion durch die Shell (Incidents T001673, T901777). Break-Glass nur mit
+# ALLOW_DEPLOY_SH=1 — danach manuell verifizieren (kein Render-Guard aktiv).
+if [ "${ALLOW_DEPLOY_SH:-0}" != "1" ]; then
+  echo "ERROR: k3d/deploy.sh ist abgeschaltet — Manifeste nur via Task deployen:" >&2
+  echo "  task workspace:deploy ENV=dev|mentolder|korczewski   (Stack)" >&2
+  echo "  task website:deploy ENV=...                           (Website)" >&2
+  echo "  task devmesh:deploy                                    (devmesh)" >&2
+  echo "Break-Glass: ALLOW_DEPLOY_SH=1 k3d/deploy.sh (unbedingt danach verifizieren)." >&2
+  exit 2
+fi
+
 echo "=== Workspace MVP — Deployment ==="
 echo ""
 

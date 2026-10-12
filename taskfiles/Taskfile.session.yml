@@ -7,9 +7,6 @@
 # ------------------------------------------------------------------------------
 version: "3"
 
-vars:
-  ENV: mentolder
-
 tasks:
   list:
     desc: "[session] Print the active-sessions JSON registry"
@@ -18,6 +15,8 @@ tasks:
 
   register:
     desc: "[session] Register a listening port. Usage: task session:register -- --name foo --port 8080 --type brainstorm --title 'Foo'"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -25,6 +24,8 @@ tasks:
 
   start-form:
     desc: "[session] Serve an HTML file + tunnel + register. Usage: task session:start-form -- --file /tmp/foo.html --name foo"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"

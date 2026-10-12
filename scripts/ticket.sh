@@ -162,7 +162,7 @@ esac
 # bevor irgendwer die Config anfasst. Dieselbe Bedingung wie T002224.
 if [[ "${TICKET_OFFLINE:-0}" != "1" && -z "${BATS_TEST_NAME:-}${BATS_VERSION:-}${PYTEST_CURRENT_TEST:-}" ]]; then
   case "${1:-}" in
-    create|update-status|update-fields|set-parent|add-comment|comment|archive-plan|enqueue|stage-plan|release-hold)
+    create|update-status|update-fields|set-parent|add-comment|comment|archive-plan|enqueue|stage-plan|release-hold|dispatch-log)
       bash "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ctx-guard.sh" "$CTX"
       ;;
   esac
@@ -451,6 +451,11 @@ cmd_assert_phase_chain() {
   main "$@"
 }
 
+cmd_dispatch_log() {
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/dispatch-log.sh"
+  main "$@"
+}
+
 cmd_release_hold() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
@@ -461,7 +466,10 @@ cmd_release_hold() {
   if _ticket_offline_skip "release-hold" "--id" "$id"; then return 0; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
-UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":true}'::jsonb
+UPDATE tickets.tickets
+   SET readiness = COALESCE(readiness,'{}'::jsonb)
+                 || '{"execution_released":true}'::jsonb
+                 || jsonb_build_object('execution_released_at', now()::text)
  WHERE external_id = :'ext_id';
 EOF
   echo "execution_released set to true for ticket $id"
@@ -1024,6 +1032,7 @@ case "$cmd" in
   enqueue)           cmd_enqueue "$@" ;;
   stage-plan)        cmd_stage_plan "$@" ;;
   release-hold)      cmd_release_hold "$@" ;;
+  dispatch-log)      cmd_dispatch_log "$@" ;;
   seq-repair)        cmd_seq_repair "$@" ;;
   assert-phase-chain) cmd_assert_phase_chain "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;

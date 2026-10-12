@@ -1,6 +1,10 @@
 # ═══════════════════════════════════════════════════════════════════
 # Kubernetes NetworkPolicies — Default-Deny + selektive Freigaben
 # Namespace: workspace (über kustomize namespace-Direktive gesetzt)
+# NUR VIA TASK DEPLOYEN [T901777]: VAR-Platzhalter brauchen den
+# Task/Flux-Render-Pfad (envsubst). Direktes 'kubectl apply -f' hinterlaesst
+# Literale. Cluster-CIDRs POD_CIDR/SERVICE_CIDR/POD_VTEP_IP aus
+# environments/schema.yaml (k3s-Defaults 10.42/10.43, devmesh 10.52/10.53).
 # ═══════════════════════════════════════════════════════════════════
 
 # Default: alle eingehenden Verbindungen blockieren
@@ -87,7 +91,8 @@ spec:
 # es eine gezielte Freigabe. WICHTIG: kube-router wertet Egress gegen den
 # POST-DNAT-Endpoint aus — der apiserver läuft hostNetwork, seine Endpoints
 # sind die CP-Node-IPs (10.20.0.0/24:6443), NICHT die ClusterIP. Eine reine
-# ClusterIP-Freigabe (10.43.0.0/16:443) reicht daher NICHT; die Node-CIDR auf
+# ClusterIP-Freigabe (${SERVICE_CIDR}:443, k3s-Default 10.43.0.0/16) reicht
+# daher NICHT; die Node-CIDR auf
 # 6443 ist die operative Regel (empirisch verifiziert: 12/12 + kubectl OK).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -108,7 +113,7 @@ spec:
   # ClusterIP der kubernetes.default Service (defense-in-depth / pre-DNAT-Match)
   - to:
     - ipBlock:
-        cidr: 10.43.0.0/16
+        cidr: ${SERVICE_CIDR}
     ports:
     - protocol: TCP
       port: 443
@@ -158,7 +163,7 @@ spec:
   # Kubernetes API Server (ClusterIP + Node-IPs)
   - to:
     - ipBlock:
-        cidr: 10.43.0.0/16
+        cidr: ${SERVICE_CIDR}
     - ipBlock:
         cidr: 10.20.0.0/24
     ports:
@@ -179,7 +184,7 @@ spec:
   # In-cluster Services (shared-db, etc.)
   - to:
     - ipBlock:
-        cidr: 10.42.0.0/16
+        cidr: ${POD_CIDR}
     ports:
     - protocol: TCP
       port: 5432
@@ -199,7 +204,8 @@ spec:
 ---
 # Traefik-Ingress aus kube-system erlauben.
 # Traefik läuft im hostNetwork-Modus (podIP = 192.168.100.1), sendet aber via
-# flannel.1 mit src-IP 10.42.0.0 (VTEP des Control-Plane-Nodes). Deshalb
+# flannel.1 mit src-IP ${POD_VTEP_IP} (VTEP des Control-Plane-Nodes,
+# k3s-Default 10.42.0.0 — Basisadresse von ${POD_CIDR}). Deshalb
 # muss neben dem namespaceSelector auch der ipBlock für den VTEP freigegeben werden.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -218,7 +224,7 @@ spec:
         matchLabels:
           app.kubernetes.io/name: traefik
     - ipBlock:
-        cidr: 10.42.0.0/32
+        cidr: ${POD_VTEP_IP}/32
 ---
 # workspace CronJobs → website API (billing, notify-unread)
 # Uses ipBlock for service CIDR (ClusterIP before DNAT) and pod CIDR (post-DNAT).
@@ -234,9 +240,9 @@ spec:
   egress:
   - to:
     - ipBlock:
-        cidr: 10.43.0.0/16   # service CIDR (ClusterIP before DNAT)
+        cidr: ${SERVICE_CIDR}   # service CIDR (ClusterIP before DNAT)
     - ipBlock:
-        cidr: 10.42.0.0/16   # pod CIDR (after DNAT)
+        cidr: ${POD_CIDR}   # pod CIDR (after DNAT)
     ports:
     - port: 80
       protocol: TCP
@@ -244,7 +250,7 @@ spec:
       protocol: TCP
 ---
 # talk-transcriber → website-Namespace (save-transcript API)
-# Uses ipBlock for the service CIDR (10.43.0.0/16) because namespaceSelector
+# Uses ipBlock for the service CIDR (${SERVICE_CIDR}) because namespaceSelector
 # alone doesn't match ClusterIP traffic before DNAT.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -259,9 +265,9 @@ spec:
   egress:
   - to:
     - ipBlock:
-        cidr: 10.43.0.0/16   # service CIDR
+        cidr: ${SERVICE_CIDR}   # service CIDR
     - ipBlock:
-        cidr: 10.42.0.0/16   # pod CIDR (post-DNAT)
+        cidr: ${POD_CIDR}   # pod CIDR (post-DNAT)
     ports:
     - port: 80
       protocol: TCP
@@ -325,7 +331,7 @@ spec:
       protocol: TCP
   - to:
     - ipBlock:
-        cidr: 10.43.0.0/16    # cluster service CIDR (Janus ClusterIP)
+        cidr: ${SERVICE_CIDR}    # cluster service CIDR (Janus ClusterIP)
     ports:
     - port: 8188
       protocol: TCP

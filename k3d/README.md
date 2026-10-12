@@ -47,7 +47,7 @@ bzw. User-Namespace-Sandboxing).
 ## Deployment
 
 ```bash
-# Deploy to dev (k3d)
+# Deploy to dev (devmesh)
 task workspace:deploy
 
 # Deploy to production (fleet cluster)
@@ -60,3 +60,37 @@ Validate manifests before committing:
 ```bash
 task workspace:validate
 ```
+
+## Nur via Task deployen (kein direktes `kubectl apply`)
+
+Die Manifeste in diesem Verzeichnis sind **keine** direkt applizierbaren Dateien.
+Sie enthalten zwei Platzhalter-Arten, die nur der Task/Flux-Render-Pfad
+(`kustomize build` → `envsubst` → `$$`-Kollaps, siehe `task workspace:deploy`,
+`task website:deploy`, `scripts/flux-render-artifact.sh`) korrekt aufloest:
+
+| Platzhalter | Bedeutung | Direktes `kubectl apply -f` |
+|-------------|-----------|------------------------------|
+| `${VAR}` | Deploy-Zeit-Variable (Namespaces, Domains, `POD_CIDR`/`SERVICE_CIDR`, Images) | bleibt literal stehen — ungueltige Felder wie `cidr: ${POD_CIDR}` |
+| `$${VAR}` / `$$VAR` | Laufzeit-Variable — die Shell **im Container** soll sie expandieren | `$$` bleibt stehen, die Shell expandiert zur PID (`$${HOST}` → `1API`-Muell, T901777; DB-Passwoerter → `<PID>{VAR}`, T001673) |
+
+Regeln:
+
+- Manifeste **nur** via `task workspace:deploy`, `task website:deploy`,
+  `task devmesh:deploy` oder den Flux-Render deployen. `k3d/deploy.sh`
+  (legacy, direktes `kubectl apply -k .`) ist fail-closed abgeschaltet.
+- Neue `$${...}`-Escapes nur in Dateien, die durch einen Render-Pfad mit
+  `$$`-Kollaps laufen (`workspace:deploy`, Flux, `devmesh:deploy`, Prod-Zweig
+  von `website:deploy`). Der Dev-Zweig von `website:deploy` hat **keinen**
+  Kollaps — `k3d/website.yaml` darf deshalb keine `$${...}`-Escapes enthalten
+  (Guard-Test: `tests/py/spec/test_k3d_netpol_cidrs.py`).
+- Dateien mit `$${...}`-Escapes tragen den Kopf-Kommentar `NUR VIA TASK
+  DEPLOYEN` — derselbe Guard-Test prueft das fail-closed.
+
+Cluster-CIDRs (`POD_CIDR`/`SERVICE_CIDR`/`POD_VTEP_IP`, [T901777]): Die
+NetworkPolicies in `network-policies.yaml` und `website.yaml` beziehen Pod-
+und Service-CIDR aus der Umgebung (`environments/schema.yaml`). k3s-Default
+ist `10.42.0.0/16`/`10.43.0.0/16` (alle Fleet-Cluster); devmesh nutzt
+`10.52.0.0/16`/`10.53.0.0/16` (ADR-008, `environments/dev.yaml`). Vor T901777
+waren die k3s-Werte hardcoded — ein Deploy auf devmesh haette den dortigen
+Live-Fix (Connection-Refused durch kube-router-REJECT bei default-deny)
+still ueberschrieben.

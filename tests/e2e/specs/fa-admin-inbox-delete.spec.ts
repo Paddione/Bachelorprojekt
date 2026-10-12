@@ -92,6 +92,15 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     const root = page.locator('[data-testid="inbox-app"]');
     await expect(root).toBeVisible({ timeout: 60_000 });
 
+    // Wait for InboxApp island hydration
+    await page.waitForFunction(
+      () => {
+        const island = document.querySelector('astro-island:has([data-testid="inbox-app"])');
+        return !island || !island.hasAttribute('ssr');
+      },
+      { timeout: 20_000 },
+    );
+
     // 3. Filter to `contact` if sidebar is present so we can locate the seeded row
     const contactFilter = root.locator('[data-testid="inbox-sidebar-item"][data-type="contact"]');
     if (await contactFilter.isVisible().catch(() => false)) {
@@ -111,6 +120,7 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     await expect(detail).toBeVisible({ timeout: 60_000 });
 
     // 5. Auto-accept any window.confirm() dialogs.
+    await page.evaluate(() => { window.confirm = () => true; });
     page.on('dialog', (d) => { void d.accept(); });
 
     // 6. The Löschen button must be present on every row regardless of status.
@@ -124,7 +134,7 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
       list.locator('[data-testid="inbox-list-row"]', { hasText: seedName })
     ).toBeVisible();
 
-    await deleteBtn.evaluate((el: HTMLElement) => el.click());
+    await deleteBtn.click();
     await expect(
       list.locator('[data-testid="inbox-list-row"]', { hasText: seedName }),
     ).toHaveCount(0, { timeout: 10_000 });

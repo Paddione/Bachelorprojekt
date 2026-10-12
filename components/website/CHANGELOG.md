@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.418.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.418.0...website-v1.418.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* tailnet policy live T016528 ([#6575](https://github.com/Paddione/Bachelorprojekt/issues/6575)) ([a3a1b0b](https://github.com/Paddione/Bachelorprojekt/commit/a3a1b0bcd80c47b5dac04af7a74637b9413bbbed))
+
 ## [1.418.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.417.0...website-v1.418.0) (2026-10-12)
 
 

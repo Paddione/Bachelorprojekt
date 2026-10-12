@@ -41,6 +41,11 @@ metadata:
   name: flux-mentolder
   namespace: flux-system
 spec:
+  # T016529: suspendiert bis der Branch gemergt ist und das CI-Render
+  # (task flux:render, OCI-Artefakt mit echten Digests + Whitelist-
+  # Substitution) die Workloads liefert. Direkt-Sync ab Git wuerde die
+  # Laufzeit-Variablen der eingebetteten Skripte mit substituieren.
+  suspend: true
   interval: 10m
   retryInterval: 2m
   timeout: 10m
@@ -64,6 +69,11 @@ metadata:
   name: flux-website-mentolder
   namespace: flux-system
 spec:
+  # T016529: suspendiert bis der Branch gemergt ist und das CI-Render
+  # (task flux:render, OCI-Artefakt mit echten Digests + Whitelist-
+  # Substitution) die Workloads liefert. Direkt-Sync ab Git wuerde die
+  # Laufzeit-Variablen der eingebetteten Skripte mit substituieren.
+  suspend: true
   interval: 10m
   retryInterval: 2m
   timeout: 5m
@@ -86,6 +96,11 @@ metadata:
   name: flux-mentolder-jobs
   namespace: flux-system
 spec:
+  # T016529: suspendiert bis der Branch gemergt ist und das CI-Render
+  # (task flux:render, OCI-Artefakt mit echten Digests + Whitelist-
+  # Substitution) die Workloads liefert. Direkt-Sync ab Git wuerde die
+  # Laufzeit-Variablen der eingebetteten Skripte mit substituieren.
+  suspend: true
   interval: 10m
   retryInterval: 5m
   timeout: 10m

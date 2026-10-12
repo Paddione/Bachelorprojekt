@@ -71,6 +71,11 @@ def _collect_hits(repo_root: Path) -> list[str]:
     return hits
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason="T016529 Uebergang: Alt-Referenzen fallen erst mit p4 (WG-Abbau). "
+    "Sobald der Guard gruen wird, XPASS-strict rot und der Marker muss raus.",
+)
 def test_fleet_prod_umfang_ist_frei_von_wireguard_altreferenzen(repo_root):
     candidates = _candidate_files(repo_root)
 

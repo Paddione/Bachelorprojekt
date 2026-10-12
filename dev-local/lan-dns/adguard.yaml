@@ -54,9 +54,6 @@ spec:
             - name: dns-tcp
               containerPort: 53
               protocol: TCP
-            - name: http
-              containerPort: 3000
-              protocol: TCP
           readinessProbe:
             tcpSocket:
               port: 53
@@ -120,17 +117,3 @@ spec:
       port: 53
       targetPort: dns-tcp
       protocol: TCP
----
-# Web-UI nur clusterintern: kubectl -n lan-dns port-forward svc/adguard-ui 3000
-apiVersion: v1
-kind: Service
-metadata:
-  name: adguard-ui
-spec:
-  type: ClusterIP
-  selector:
-    app: adguard
-  ports:
-    - name: http
-      port: 3000
-      targetPort: http

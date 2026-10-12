@@ -107,11 +107,13 @@ freigeben). Test: Pi kurz vom Netz nehmen, von außerhalb `ping 10.0.0.1`.
 ## 6. Web-UI
 
 ```bash
-kubectl --context devmesh -n lan-dns port-forward svc/adguard-ui 3000
+kubectl --context devmesh -n lan-dns port-forward deploy/adguard 3000
 ```
 
-Dann `http://localhost:3000`. Ohne Anmeldung, weil nur per Port-Forward
-erreichbar. Jede Replica hat eigene Statistik und eigenes Query-Log.
+Dann `http://localhost:3000`. Die UI ist im Pod nur auf `127.0.0.1` gebunden:
+kein anderer Pod im Cluster erreicht sie, nur `kubectl port-forward`. Deshalb
+ohne Anmeldung. Nicht auf `0.0.0.0` umstellen, sonst könnte jeder Pod in devmesh
+die Upstreams für LAN und Tailnet umschreiben. Jede Replica hat eigene Statistik und eigenes Query-Log.
 
 ## 7. Rückweg
 

@@ -62,14 +62,13 @@ def test_dns_service_loadbalancer_udp_tcp_53_und_im_tailnet(rendered):
     assert ann["tailscale.com/tags"] == "tag:lan-dns"
 
 
-def test_web_ui_nur_clusterintern(rendered):
-    ui = _one(rendered, "Service", "adguard-ui")
-    # Positiv-Anker: der UI-Service existiert und ist ClusterIP.
-    assert ui["spec"].get("type", "ClusterIP") == "ClusterIP"
+def test_web_ui_nur_auf_localhost_im_pod(rendered):
+    cfg = _adguard_config(rendered)
+    # Positiv-Anker: die UI ist konfiguriert, aber nur auf localhost gebunden.
+    assert cfg["http"]["address"] == "127.0.0.1:3000"
     exposed = [
         n for (k, n), d in rendered.items()
-        if k == "Service" and d["spec"].get("type") in ("LoadBalancer", "NodePort")
-        and any(p["port"] == 3000 for p in d["spec"]["ports"])
+        if k == "Service" and any(p["port"] == 3000 for p in d["spec"]["ports"])
     ]
     assert exposed == []
     assert not [n for (k, n) in rendered if k in ("Ingress", "IngressRoute")]

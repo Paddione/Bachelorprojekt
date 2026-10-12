@@ -1,10 +1,13 @@
 # AdGuard Home fuer LAN (Fritzbox-Upstream) und Tailnet (globaler Resolver) [T016515].
 # Quelle der Wahrheit ist diese Datei: Aenderungen in der Web-UI gehen beim
 # naechsten Pod-Start verloren. Design: .agents/plans/lan-dns-adguard/design.md
+# Web-UI nur auf localhost im Pod: kein anderer Pod im Cluster erreicht sie,
+# nur kubectl port-forward (verbindet im Netz-Namespace des Pods). Deshalb ohne
+# Benutzer. Auf 0.0.0.0 koennte jeder Pod in devmesh die Upstreams fuer LAN und
+# Tailnet umschreiben.
 http:
-  address: 0.0.0.0:3000
+  address: 127.0.0.1:3000
   session_ttl: 720h
-# Keine Benutzer: die UI ist nur per kubectl port-forward erreichbar.
 users: []
 dns:
   bind_hosts:

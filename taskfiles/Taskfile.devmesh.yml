@@ -17,7 +17,7 @@
 #   task devmesh:registry:migrate                 # llm-proxy-Registry seeden (aus deploy gerufen) [T900191]
 #   task devmesh:backup:run                       # Shared-DB Backup ausloesen
 #   task devmesh:dns:deploy                       # LAN-/Tailnet-DNS (AdGuard) deployen [T016515]
-#   task devmesh:dns:check [NAME=<host>]          # jede Server-IP per dig abfragen [T016515]
+#   task devmesh:dns:check [QUERY=<host>]         # jede Server-IP per dig abfragen [T016515]
 #   task devmesh:tailnet:routes [DRY_RUN=1]       # Subnet-Routen aus dem Inventar freigeben [T016515]
 #
 # Runbook: docs/runbooks/devmesh-tailnet.md, docs/runbooks/devmesh-lan-dns.md
@@ -56,16 +56,16 @@ tasks:
       - bash scripts/devmesh/lan-dns-deploy.sh
 
   dns:check:
-    desc: "devmesh: AdGuard auf jedem Host mit lan_dns per dig abfragen (NAME=<host>, Default quad9.net; Exit 1 = IP antwortet nicht, 2 = dig fehlt) [T016515]"
+    desc: "devmesh: AdGuard auf jedem Host mit lan_dns per dig abfragen (QUERY=<host>, Default quad9.net; Exit 1 = IP antwortet nicht, 2 = dig fehlt) [T016515]"
     vars:
-      NAME: '{{.NAME | default "quad9.net"}}'
+      QUERY: '{{.QUERY | default "quad9.net"}}'
     cmds:
       - |
         set -euo pipefail
         command -v dig >/dev/null || { echo "Vorbedingung fehlt: dig" >&2; exit 2; }
         rc=0
         for ip in $(yq -r '.peers[] | select(.lan_dns == true) | .lan_ip' devmesh/inventory.yaml); do
-          if [ -n "$(dig +time=3 +tries=1 +short @"$ip" {{.NAME}} 2>/dev/null)" ]; then echo "ok    $ip"; else echo "FEHLT $ip"; rc=1; fi
+          if [ -n "$(dig +time=3 +tries=1 +short @"$ip" {{.QUERY}} 2>/dev/null)" ]; then echo "ok    $ip"; else echo "FEHLT $ip"; rc=1; fi
         done
         exit $rc
 

@@ -196,3 +196,17 @@ def test_deploy_dry_run_prueft_node_dns_vor_und_nach_dem_rollout(repo_root, run_
     assert any("srv-a" in l and "lan-dns=true" in l for l in labels), res.stdout
     assert any("srv-b" in l and "lan-dns-" in l for l in labels), res.stdout
     assert "rollback:" in res.stdout
+
+
+def test_dns_check_fragt_den_testnamen_nicht_die_umgebungsvariable_name(repo_root, run_cmd):
+    # WSL erbt NAME=<Windows-Hostname>; eine Task-Variable NAME wird davon ueberschrieben (T016522).
+    if shutil.which("task") is None:
+        pytest.skip("task binary not installed")
+    import os
+    env = {**os.environ, "NAME": "kein-dns-name-t016522"}
+    res = run_cmd(["task", "--dry", "devmesh:dns:check"], cwd=repo_root, env=env)
+    assert res.returncode == 0, res.output
+    dig_lines = [l for l in res.output.splitlines() if "dig " in l]
+    # Positiv-Anker: der Task fragt per dig ab, mit dem Default-Testnamen.
+    assert dig_lines and any("quad9.net" in l for l in dig_lines), res.output
+    assert "kein-dns-name-t016522" not in res.output

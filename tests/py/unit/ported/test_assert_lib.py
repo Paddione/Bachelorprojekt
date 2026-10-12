@@ -204,7 +204,8 @@ def test_output_result_contains_all_required_fields(assert_lib):
     last = _last(results)
     # jq -e fails on null/false; "" is a present value.
     for field in ("req", "test", "desc", "status", "duration_ms", "detail"):
-        assert last.get(field) not in (None, False), f"missing field: {field}"
+        assert field in last, f"missing field: {field}"
+        assert last[field] is not None and last[field] is not False, f"invalid field value: {field}"
 
 
 def test_output_duration_ms_is_a_number(assert_lib):

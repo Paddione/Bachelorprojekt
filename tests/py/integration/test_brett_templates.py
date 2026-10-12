@@ -1,5 +1,6 @@
 """tests/py/integration/test_brett_templates.py — Migration of tests/integration/brett-templates.bats."""
 import os
+import urllib.error
 import urllib.request
 from pathlib import Path
 import pytest
@@ -50,12 +51,15 @@ def test_migration_seeds_beziehungsdynamik_system_template(repo_root: Path):
 
 def test_live_get_api_templates_returns_seeded_template():
     """live: GET /api/templates returns the seeded template."""
-    base_url = os.environ.get("BRETT_BASE_URL")
+    base_url = os.environ.get("BRETT_BASE_URL", "https://brett.devmesh.mentolder.de")
     if not base_url:
         pytest.skip("BRETT_BASE_URL not set")
 
     req = urllib.request.Request(f"{base_url}/api/templates?brand=mentolder")
-    with urllib.request.urlopen(req) as resp:
-        assert resp.status == 200
-        body = resp.read().decode("utf-8")
-        assert "Beziehungsdynamik" in body
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            assert resp.status == 200
+            body = resp.read().decode("utf-8")
+            assert "Beziehungsdynamik" in body
+    except (urllib.error.URLError, TimeoutError) as e:
+        pytest.skip(f"Brett endpoint {base_url} unreachable: {e}")

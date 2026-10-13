@@ -10,8 +10,11 @@
 // .agents/plans/<slug>/, davor .agents/plans/<slug>/).
 //
 // Aufruf:
-//   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N] [--vllm-slots N] [--max-turns N] [--timeout-min N]
+//   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N|auto] [--vllm-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]
 //   node scripts/llm/plan-runner.mjs --ticket <T-Id> [--worktree <pfad>] [--4b-slots N] ...  (Plan aus DB-Ref, T901015)
+// 'auto' leitet die Slots aus der maximalen Frontbreite des Partials-DAGs ab (4B zuerst,
+// vLLM nur fuer den Rest ueber der 4B-Kapazitaet); --print-slots gibt {width, slots4b,
+// slotsVllm, partials} als JSON aus und startet nichts (fuer Dashboard/Skripte).
 // Env: PLAN_RUNNER_ORCH_URL (Default http://127.0.0.1:1919), PLAN_RUNNER_ORCH_MODEL (optional),
 //      PLAN_RUNNER_VLLM_URL (Default http://127.0.0.1:8123; Preflight auf /v1/models, sonst vllm-slots=0),
 //      PLAN_RUNNER_OPENCODE (ersetzt das opencode-Binary).
@@ -23,7 +26,7 @@ import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import {
-  parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt,
+  parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt, autoSlots,
 } from './plan-runner/plan.mjs';
 import { WorkerPool, decideTrack, killAllWorkers } from './plan-runner/workers.mjs';
 
@@ -49,9 +52,17 @@ function fail(code, msg) {
 
 // ---------- CLI ----------
 function parseArgs(argv) {
-  const opts = { changeDir: null, worktree: null, ticket: null, slots4b: DEFAULT_4B_SLOTS, slotsVllm: DEFAULT_VLLM_SLOTS, maxTurns: 200, timeoutMin: 120 };
+  const opts = { changeDir: null, worktree: null, ticket: null, slots4b: DEFAULT_4B_SLOTS, slotsVllm: DEFAULT_VLLM_SLOTS, maxTurns: 200, timeoutMin: 120, printSlots: false };
   // --4b-slots 0 schaltet den 4B-Track ab (Selbstausfuehrung braucht zusaetzlich --vllm-slots 0,
   // z. B. wenn die Partial einen Worker-Server selbst umkonfiguriert).
+  // 'auto' (oder --auto-slots fuer beide Tracks) leitet die Slots aus der maximalen
+  // Frontbreite des Partials-DAGs ab (autoSlots aus plan.mjs); explizite Zahlen gewinnen je Track.
+  const numOrAuto = (k, v, min = 0) => {
+    if (v === 'auto') return v;
+    const n = Number(v);
+    if (!Number.isInteger(n) || n < min) fail(2, `--${k} needs an integer >= ${min} or 'auto', got ${v}`);
+    return n;
+  };
   const num = (k, v, min = 1) => {
     const n = Number(v);
     if (!Number.isInteger(n) || n < min) fail(2, `--${k} needs an integer >= ${min}, got ${v}`);
@@ -61,8 +72,10 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '--worktree') opts.worktree = argv[++i];
     else if (a === '--ticket') opts.ticket = argv[++i];
-    else if (a === '--4b-slots') opts.slots4b = num('4b-slots', argv[++i], 0);
-    else if (a === '--vllm-slots') opts.slotsVllm = num('vllm-slots', argv[++i], 0);
+    else if (a === '--4b-slots') opts.slots4b = numOrAuto('4b-slots', argv[++i], 0);
+    else if (a === '--vllm-slots') opts.slotsVllm = numOrAuto('vllm-slots', argv[++i], 0);
+    else if (a === '--auto-slots') { opts.slots4b = 'auto'; opts.slotsVllm = 'auto'; }
+    else if (a === '--print-slots') opts.printSlots = true;
     else if (a === '--max-turns') opts.maxTurns = num('max-turns', argv[++i]);
     else if (a === '--timeout-min') opts.timeoutMin = num('timeout-min', argv[++i]);
     else if (a.startsWith('--')) fail(2, `unknown option ${a}`);
@@ -73,7 +86,7 @@ function parseArgs(argv) {
     if (opts.changeDir) fail(2, '--ticket cannot be combined with a positional <change-dir>; the plan dir is derived from the FACTORY-PLAN-REF');
     resolveTicketRef(opts);
   } else if (!opts.changeDir) {
-    fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--4b-slots N] [--vllm-slots N] [--max-turns N] [--timeout-min N]');
+    fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--4b-slots N|auto] [--vllm-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]');
   }
   return opts;
 }
@@ -437,6 +450,21 @@ async function probeVllm(url, timeoutMs = 5000) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const plan = loadPlan(opts);
+  let suggestion = null;
+  if (opts.slots4b === 'auto' || opts.slotsVllm === 'auto' || opts.printSlots) {
+    try {
+      suggestion = autoSlots(plan.partials);
+    } catch (e) {
+      fail(2, e.message);
+    }
+    if (opts.slots4b === 'auto') opts.slots4b = suggestion.slots4b;
+    if (opts.slotsVllm === 'auto') opts.slotsVllm = suggestion.slotsVllm;
+    log(`auto-slots: ${plan.partials.length} partials, frontier width ${suggestion.width} -> 4b ${opts.slots4b}, vllm ${opts.slotsVllm}`);
+  }
+  if (opts.printSlots) {
+    process.stdout.write(`${JSON.stringify({ ...suggestion, partials: plan.partials.length })}\n`);
+    process.exit(0);
+  }
   const url = (process.env.PLAN_RUNNER_ORCH_URL || 'http://127.0.0.1:1919').replace(/\/$/, '');
   const vllmUrl = (process.env.PLAN_RUNNER_VLLM_URL || 'http://127.0.0.1:8123').replace(/\/$/, '');
   let slotsVllm = opts.slotsVllm;

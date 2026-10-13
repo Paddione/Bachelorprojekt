@@ -66,6 +66,39 @@ export function readyPartials(partials, state) {
     .map((p) => p.id);
 }
 
+// Hardware-Caps der Worker-Schienen (Single Source: workers.mjs-Dispatch,
+// serve-worker-vllm.service max-num-seqs). Gegenstueck im Leitstand:
+// components/website/src/lib/sdlc/plan-slots.ts (TS-Mirror, dort kommentiert).
+export const MAX_4B_SLOTS = 3;
+export const MAX_VLLM_SLOTS = 10;
+
+// Maximale Frontbreite des Abhaengigkeits-DAGs: simuliert Scheduling mit
+// unbegrenzten Slots und zaehlt die groesste Menge gleichzeitig bereiter
+// Partials. Wirft bei Zyklen (dann wuerde auch der Runner nie fertig).
+export function maxFrontierWidth(partials) {
+  const byId = Object.fromEntries(partials.map((p) => [p.id, p]));
+  const done = new Set();
+  const remaining = new Set(partials.map((p) => p.id));
+  let width = 0;
+  while (remaining.size) {
+    const ready = [...remaining].filter((id) => byId[id].dependsOn.every((d) => done.has(d)));
+    if (!ready.length) throw new Error('auto-slots: dependency cycle detected');
+    width = Math.max(width, ready.length);
+    for (const id of ready) { remaining.delete(id); done.add(id); }
+  }
+  return width;
+}
+
+// Slot-Vorschlag aus der Planform: 4B-Track fuellt zuerst (Hardware-Cap),
+// vLLM nimmt nur den Rest ueber der 4B-Kapazitaet (bleibt bei kleinen Plaenen
+// aus, Opt-in-Geist von --vllm-slots).
+export function autoSlots(partials) {
+  const width = maxFrontierWidth(partials);
+  const slots4b = Math.min(Math.max(width, 1), MAX_4B_SLOTS);
+  const slotsVllm = Math.min(Math.max(width - slots4b, 0), MAX_VLLM_SLOTS);
+  return { width, slots4b, slotsVllm };
+}
+
 export const statePath = (changeDir) => join(changeDir, '.plan-runner', 'state.json');
 
 const freshPartial = () => ({ status: 'open', owner: null, attempts: 0, result: null });

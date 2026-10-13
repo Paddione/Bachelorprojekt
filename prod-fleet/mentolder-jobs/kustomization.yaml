@@ -167,3 +167,14 @@ patches:
       kind: IngressRoute
       metadata:
         name: llm-gateway-rerank
+
+  # T016559-Nachzug: rate-limit-vault wird nur noch vom (geloeschten)
+  # workspace-ingress-vault referenziert, faellt aber nicht unter den
+  # kind-weiten Middleware-Delete (falsche Gruppe, vgl. T016558).
+  - target: { group: traefik.io, version: v1alpha1, kind: Middleware, name: rate-limit-vault }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: rate-limit-vault

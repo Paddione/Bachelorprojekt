@@ -91,3 +91,8 @@ def test_ingest_prs_filtert_aktualitaet_30_tage(repo_root):
 def test_rendered_configmaps_enthalten_rueckblick_filter(rendered):
     text = rendered.read_text(encoding="utf-8")
     assert text.count("INGEST_LOOKBACK_DAYS") >= 4, "Inline-Kopien im CronJob ohne Rueckblick-Filter"
+
+
+def test_inline_skripte_ohne_doppeldollar_escape(repo_root):
+    text = (repo_root / "k3d/knowledge-ingest-cronjob.yaml").read_text(encoding="utf-8")
+    assert "$${" not in text, "Doppeldollar in Inline-JS evaluiert zu $Wert (URL/URI-Bruch)"

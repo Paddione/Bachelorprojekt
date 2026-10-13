@@ -26,6 +26,12 @@
 #   ueber Runtime abgedeckt — hier zusaetzlich als Skip, falls ein Overlay
 #   sie ohne $$-Gegenstueck traegt):
 #   code link target
+# - knowledge-ingest-Inline-JS (T016563): k3d/knowledge-ingest-cronjob.yaml
+#   wird auch direkt per kubectl auf devmesh appliziert (ohne Renderer) —
+#   dort ueberlebt $${} literal und bricht das JS ($URL, $URIs). Deshalb
+#   plain ${} plus Skip, damit beide Pfade (direkt + Fleet-Render) dieselben
+#   korrekten Template-Literale erhalten:
+#   bgeUrl liveCount
 # - WEBSITE_CONFIG_SHA wird grundsaetzlich ausgeschlossen: der Wert entsteht
 #   erst aus dem fertig substituierten Manifest (T002156-Sonderpfad im
 #   Renderer, bleibt unveraendert).
@@ -36,7 +42,7 @@
 # Rein lesend, keine Seiteneffekte (S2: pures Helper-Modul).
 
 # Space-separierte Skip-Liste — niemals substituieren, auch nicht wenn gesetzt.
-RENDER_SKIP_VARS="datasource cluster namespace url DOMAIN IP IP_4 IP_6 IP_8 code link target"
+RENDER_SKIP_VARS="datasource cluster namespace url DOMAIN IP IP_4 IP_6 IP_8 code link target bgeUrl liveCount"
 
 # Schema-Namen-Cache (ein Render-Prozess sourct einmal, rendert N Overlays).
 _RENDER_SCHEMA_NAMES=""

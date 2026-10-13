@@ -9,6 +9,8 @@ const LLM_URL = process.env.LLM_ROUTER_URL
  *
  * Verifies that a mixed-model knowledge query (bge-m3 collection + voyage collection
  * in a single query) is explicitly rejected — no silent garbage retrieval.
+ * T016562: voyage-Collections entstehen nicht mehr (nur historischer Bestand);
+ * der Cross-Space-Schutz bleibt und wird hier weiter geprüft.
  *
  * T1: Verify MixedEmbeddingModelError class is present in the website source
  *     by probing the website's knowledge API with a deliberately mixed request.

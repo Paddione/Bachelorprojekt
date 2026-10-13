@@ -406,12 +406,6 @@ spec:
                   name: website-secrets
                   key: ANTHROPIC_API_KEY
                   optional: true
-            - name: VOYAGE_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: VOYAGE_API_KEY
-                  optional: true
             - name: LLM_ROUTER_API_KEY
               valueFrom:
                 secretKeyRef:

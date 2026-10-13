@@ -18,7 +18,9 @@ data:
   WEBSITE_HOST: ${DEV_WEBSITE_HOST}
   POCKET_ID_FRONTEND_URL: "https://auth.${PROD_DOMAIN}"
   CONTACT_EMAIL: ${CONTACT_EMAIL}
-  LLM_ENABLED: "false"
+  # T016562: lokale Embeddings (bge-m3 via Gateway) — Voyage ist entfernt.
+  LLM_ENABLED: "true"
+  LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
   LLM_RERANK_ENABLED: "false"
   # T016560: Vektor-Suche (Codesearch + Knowledge) nur in Dev bedienen.
   VECTOR_DB_ENABLED: "1"

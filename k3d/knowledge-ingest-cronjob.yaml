@@ -1,7 +1,7 @@
 # NUR VIA TASK DEPLOYEN [T901777]: Datei enthaelt Escapes/Platzhalter fuer den Task/Flux-Render-Pfad. Direktes 'kubectl apply -f' hinterlaesst Literale (siehe k3d/README.md).
 # ═══════════════════════════════════════════════════════════════════
 # Knowledge Ingestion CronJobs — embed PR history, markdown docs,
-# and bug tickets into knowledge.chunks via Voyage AI embeddings.
+# and bug tickets into knowledge.chunks via local bge-m3 embeddings (T016562).
 # Four schedules: prs (daily 2am), markdown (daily 2:30am),
 # bugs (daily 3am), reindex-all (weekly Sunday 4am).
 # ═══════════════════════════════════════════════════════════════════
@@ -85,24 +85,21 @@ data:
       );
     }
 
-    export async function callVoyage(inputs, inputType = 'document') {
-      const k = process.env.VOYAGE_API_KEY;
-      if (!k) throw new Error('VOYAGE_API_KEY unset');
-      const r = await fetch('https://api.voyageai.com/v1/embeddings', {
-        method: 'POST',
-        headers: { Authorization: `Bearer $${k}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: inputs, model: 'voyage-multilingual-2', input_type: inputType }),
-      });
-      if (!r.ok) throw new Error(`voyage $${r.status} $${await r.text()}`);
-      const j = await r.json();
-      return { embeddings: j.data.map(d => d.embedding), tokens: j.usage.total_tokens };
-    }
-
+    // T016562: Voyage entfernt — Einbettung immer ueber lokales bge-m3
+    // (LLM_EMBED_URL, fail-closed).
     export async function embedAll(texts, batch = 128) {
+      const bgeUrl = process.env.LLM_EMBED_URL;
+      if (!bgeUrl) throw new Error('LLM_EMBED_URL nicht konfiguriert');
       const out = [];
       for (let i = 0; i < texts.length; i += batch) {
-        const r = await callVoyage(texts.slice(i, i + batch), 'document');
-        out.push(...r.embeddings);
+        const r = await fetch(`$${bgeUrl}/v1/embeddings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'bge-m3', input: texts.slice(i, i + batch) }),
+        });
+        if (!r.ok) throw new Error(`bge $${r.status} $${await r.text()}`);
+        const j = await r.json();
+        out.push(...j.data.map(d => d.embedding));
       }
       return out;
     }
@@ -356,11 +353,6 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: WEBSITE_DB_PASSWORD
-                - name: VOYAGE_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: knowledge-secrets
-                      key: VOYAGE_API_KEY
                 - name: LLM_EMBED_URL
                   value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
               volumeMounts:
@@ -480,11 +472,6 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: WEBSITE_DB_PASSWORD
-                - name: VOYAGE_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: knowledge-secrets
-                      key: VOYAGE_API_KEY
                 - name: LLM_EMBED_URL
                   value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
                 - name: BRAND
@@ -564,11 +551,6 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: WEBSITE_DB_PASSWORD
-                - name: VOYAGE_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: knowledge-secrets
-                      key: VOYAGE_API_KEY
                 - name: BRAND
                   value: "mentolder"
               volumeMounts:

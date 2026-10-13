@@ -41,7 +41,7 @@ beforeAll(async () => {
       description text, source text NOT NULL, brand text REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
       chunk_count int NOT NULL DEFAULT 0,
       last_indexed_at timestamptz,
-      embedding_model text NOT NULL DEFAULT 'voyage-multilingual-2',
+      embedding_model text NOT NULL DEFAULT 'bge-m3',
       created_by uuid, created_at timestamptz DEFAULT now()
     );
     CREATE TABLE knowledge.chunks (

@@ -229,9 +229,10 @@ def test_t001853_k3d_secrets_yaml_provides_studio_db_url(repo_root):
 
 def test_t001853_website_dev_secrets_yaml_covers_all_website_referenced_keys(repo_root):
     text = (repo_root / "k3d" / "website-dev-secrets.yaml").read_text(encoding="utf-8")
+    # T016562: VOYAGE_API_KEY entfernt (lokale bge-Embeddings).
     keys = ["INTERNAL_API_TOKEN", "ANTHROPIC_API_KEY", "BRETT_OIDC_SECRET", "DEEPSEEK_API_KEY", "DEEPSEEK_API_KEY_PK",
             "IPV64_API_KEY", "LLM_ROUTER_API_KEY", "SEPA_CREDITOR_BIC", "SEPA_CREDITOR_IBAN", "SEPA_CREDITOR_ID",
-            "VOYAGE_API_KEY", "SESSIONS_CRON_TOKEN"]
+            "SESSIONS_CRON_TOKEN"]
     missing = [k for k in keys if not re.search(rf"^\s+{k}:", text, re.M)]
     assert missing == []
 

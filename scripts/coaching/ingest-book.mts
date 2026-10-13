@@ -38,8 +38,8 @@ async function main() {
     const chunks = chunkText(text, { mode: 'plain', targetTokens: 600, overlapTokens: 80 });
     console.log(`[ingest] embedding ${chunks.length} chunks…`);
 
-    // Voyage free-tier without payment method: 3 RPM / 10K TPM rolling window.
-    // 4 chunks ≈ 3K tokens, 30s pause = 2 RPM ≈ 6K TPM (safe headroom).
+    // T016562: Voyage entfernt — kein externes Rate-Limit mehr. THROTTLE=1
+    // schont nur noch den lokalen Embedder (4 Chunks/Slice, 30s Pause).
     // On 429 we sleep 70s and retry the same slice.
     const throttle = process.env.THROTTLE === '1' || process.env.THROTTLE === 'true';
     const sliceSize = throttle ? 4 : chunks.length;
@@ -54,13 +54,13 @@ async function main() {
       for (let attempt = 1; attempt <= 5; attempt++) {
         try {
           r = await embedBatch(slice, {
-            model: process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2',
+            model: 'bge-m3',
             purpose: 'index',
           });
           break;
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
-          if (msg.includes('voyage 429') && attempt < 5) {
+          if (msg.includes('429') && attempt < 5) {
             console.warn(`[ingest] 429 at chunk ${i} (attempt ${attempt}/5), sleeping ${recoveryMs / 1000}s before retry`);
             await new Promise((res) => setTimeout(res, recoveryMs));
             continue;

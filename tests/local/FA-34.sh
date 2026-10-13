@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# FA-34: With TEI down and model=bge-m3 + purpose=index, the router returns 5xx —
-#        it must NEVER silently fall back to Voyage.
+# FA-34: Mit kaputtem Backend liefert der Embed-Pfad KEINE Vektoren —
+#        fail-closed, kein externer Fallback (T016562: Voyage entfernt).
+# Vorgehen wie bisher: Endpoints von llm-gateway-embed auf eine tote IP
+# patchen, per port-forward + curl pruefen, per Trap wiederherstellen.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
 NS="${NS:-workspace}"
+PORT="${PORT:-18081}"
 
 _restore_endpoints() {
   if [[ -f /tmp/llm-gateway-embed.bak ]]; then
@@ -14,26 +17,27 @@ _restore_endpoints() {
 }
 trap _restore_endpoints EXIT
 
-# T1: bge-m3 + purpose=index fails closed when TEI Endpoints is empty
+# T1: gateway ohne Backend -> kein Embedding
 kubectl -n "$NS" get endpoints llm-gateway-embed -o yaml > /tmp/llm-gateway-embed.bak 2>/dev/null || true
 kubectl -n "$NS" patch endpoints llm-gateway-embed --type=json \
   -p='[{"op":"replace","path":"/subsets/0/addresses/0/ip","value":"127.0.0.42"}]' >/dev/null 2>&1 || true
 sleep 2
 
-STATUS=$(kubectl -n "$NS" exec deploy/llm-router -- \
-  curl -s -o /tmp/r.json -w '%{http_code}' \
-    -H 'Content-Type: application/json' -H 'X-LLM-Purpose: index' \
-    -d '{"model":"bge-m3","input":"hello"}' \
-    http://localhost:4000/v1/embeddings 2>/dev/null || echo "000")
-RESP=$(kubectl -n "$NS" exec deploy/llm-router -- cat /tmp/r.json 2>/dev/null || echo '{}')
+kubectl -n "$NS" port-forward "svc/llm-gateway-embed" "${PORT}:8081" >/dev/null 2>&1 &
+PF=$!
+sleep 3
+RESP=$(curl -fsS -m 15 -X POST "http://localhost:${PORT}/v1/embeddings" \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"bge-m3","input":"hello"}' 2>/dev/null || echo "CURL_FAIL")
+kill "$PF" 2>/dev/null
 
-if [[ "$STATUS" -ge 500 ]]; then
+if [[ "$RESP" == "CURL_FAIL" ]]; then
+  _log_result "FA-34" "T1" "embed path fails closed when backend is down (no external fallback)" "pass" "0"
+else
   HAS_EMBED=$(echo "$RESP" | jq 'has("data")' 2>/dev/null || echo "false")
   if [[ "$HAS_EMBED" == "true" ]]; then
-    _log_result "FA-34" "T1" "bge-m3 fails closed when TEI is down (no Voyage fallback)" "fail" "0" "router silently fell back to Voyage"
+    _log_result "FA-34" "T1" "embed path fails closed when backend is down (no external fallback)" "fail" "0" "got embedding data despite dead backend"
   else
-    _log_result "FA-34" "T1" "bge-m3 fails closed when TEI is down (no Voyage fallback)" "pass" "0"
+    _log_result "FA-34" "T1" "embed path fails closed when backend is down (no external fallback)" "pass" "0"
   fi
-else
-  _log_result "FA-34" "T1" "bge-m3 fails closed when TEI is down (no Voyage fallback)" "fail" "0" "expected 5xx got ${STATUS}"
 fi

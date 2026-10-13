@@ -256,9 +256,9 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_chunk_type_idx ON tickets.ticket_embeddings (chunk_type)`);
 
   // Phase 1: tag each embedding row with the model that
-  // produced it. bge-m3 (prod) and voyage-multilingual-2 (dev) are both
-  // 1024-dim but their vector spaces are NOT interchangeable — search MUST
-  // never compare across models (see findSimilarTickets / MixedEmbeddingModelError).
+  // produced it. T016562: nur noch bge-m3 (Voyage-Bestand wird per Reindex
+  // umgestellt). Vektor spaces sind NICHT mischbar — search MUST never
+  // compare across models (see findSimilarTickets / MixedEmbeddingModelError).
   await pool.query(`ALTER TABLE tickets.ticket_embeddings ADD COLUMN IF NOT EXISTS embedding_model TEXT`);
 
   // HNSW index for cosine similarity search. bge-m3 embeddings should be

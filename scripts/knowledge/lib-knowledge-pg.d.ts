@@ -44,11 +44,6 @@ export function upsertDocumentAndChunks(
 export function bumpCollectionStats(pool: PgPool, collectionId: string): Promise<void>;
 export function updateCollectionChunkCount(pool: PgPool, collectionId: string): Promise<void>;
 
-export function callVoyage(
-  inputs: string[],
-  inputType?: 'document' | 'query',
-): Promise<{ embeddings: number[][]; tokens: number }>;
-
 export function embedAllWithModel(
   texts: string[],
   batch?: number,

@@ -17,12 +17,13 @@ Leitsatz: **Korrektheit vor Kosten.** Im Zweifel eine Stufe höher.
 
 | Stufe | Worker | Modell / Rail | Kapazität | Wofür |
 |---|---|---|---|---|
+| Begrenzt | `qwen35-2b` (`plan-worker-qwen35-2b`) | Qwen3.5-2B-BP auf `:8096`, 4 Slots, ~65536 shared KV | XS/S-Dispatches | **Kleine begrenzte Partials**: Single-File-Edits, Config, Boilerplate mit exakten Ankern |
 | Standard | `qwen35-4b` (`plan-worker-qwen35`) | Qwen3.5-4B-MTP auf `:8080`, 3 Slots, ~98304 shared KV | S/M-Dispatches, parallele Slots | **Default für Implementierungs-Partials**: klar spezifizierte Multi-File-Änderungen, Testausführung/Reporting, Boilerplate, Doc-Sync |
 | Schwer | `local` (`plan-worker-self`) | Qwen3.8-27B auf `:1919`, 153600 ctx, 1 Slot (seriell, weitere Requests queuen) | L-Dispatches bis ~120k | **Review / Oracle / Design + übergroße Arbeit**: Debugging mit Urteil, adversariale Review, Reasoning-lastige Meta-Arbeit, Partials die auf `qwen35-4b` zweimal gescheitert sind |
 | Eskalation | `exe-muse` | Muse Spark 1.3 Contributor via OpenCode Go, 1M ctx | Cloud-Rail | Nur per Eskalationskette im Orchestrator-Prompt (lokal 2× gescheitert oder Bedarf über lokalem Fenster) |
 
 Die GPUs sind getrennt: `:1919` und `:8080` können je einen Request parallel
-bedienen; `:8080` selbst läuft 3 Slots parallel.
+bedienen; `:8080` selbst läuft 3 Slots parallel; `:8096` bedient bis zu 4 Sandbox-Slots parallel.
 
 ## 2. Geplant — provisorisch, NICHT live
 
@@ -31,11 +32,8 @@ Orchestrator mappt sie auf reale Agenten, sobald sie live sind):
 
 - **0.8B-Klasse** — nur triviale mechanische Partials (Rename, Lockfile-Bump,
   reine Doc-Syncs ohne Urteilsvermögen).
-- **2B-Klasse** — kleine begrenzte Partials (Single-File-Edits, Config,
-  Boilerplate mit exakten Ankern).
 
-Bis zur Inbetriebnahme bleibt `qwen35-4b` die Untergrenze für alles, was ein
-Worker anfasst.
+Bis zur Inbetriebnahme von 0.8B bleibt `qwen35-2b` die Untergrenze für begrenzte Partials und `qwen35-4b` der Standard.
 
 ## 3. Routing-Signale — nach Komplexitätsklasse, nie pro Partial annotiert
 

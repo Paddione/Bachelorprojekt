@@ -4,5 +4,7 @@ metadata:
   name: coturn
   labels:
     app.kubernetes.io/part-of: workspace-mvp
-    pod-security.kubernetes.io/enforce: baseline
-    pod-security.kubernetes.io/warn: restricted
+    # KEIN pod-security-enforce-Label: coturn/janus brauchen hostNetwork,
+    # NET_ADMIN/NET_RAW und Unconfined (TURN-Relay). Baseline/Restricted
+    # wuerde jeden Rollout per Admission ablehnen (T016533-Fund); der
+    # Namespace bleibt bewusst auf Cluster-Default (privileged).

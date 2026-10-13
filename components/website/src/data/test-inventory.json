@@ -4890,6 +4890,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_static/agent-skills/ticket_dispatch_docs_no_live_queue_refs",
+    "file": "tests/py/spec/native_static/agent-skills/test_ticket_dispatch_docs_no_live_queue_refs.py",
+    "category": "native_static",
+    "kind": "pytest"
+  },
+  {
     "id": "neovim-dashboard",
     "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard.py",
     "category": "neovim-dashboard",

@@ -93,3 +93,8 @@ runtimes:
     model: llamacpp-local/Qwen3.8-27B
     write_capable: true
     note: "plan-runner self-execution worker on the local Qwen3.8-27B IQ3_XXS-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs [T900504]."
+  plan-worker-vllm:
+    mode: primary
+    model: vllm-local/w4a4
+    write_capable: true
+    note: "Primary plan partial worker on Qwen3.5-4B-QUASAR-NVFP4-W4A4 (vLLM :8123, RTX 5070 Ti, 32k ctx, hermes tool parser). Opt-in Track (--vllm-slots, Preflight auf :8123/v1/models); started by scripts/llm/plan-runner.mjs via dispatch_vllm."

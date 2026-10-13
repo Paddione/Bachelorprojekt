@@ -17,6 +17,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `plan-worker-qwen35` | `llamacpp-qwen3/Qwen3.5-4B-MTP` (primary, write; 3 Slots :8080, provisional 98304 shared) | plan-runner-Worker: führt ein plan-Partial aus; via `scripts/llm/plan-runner.mjs`, nicht interaktiv [T900504] |
 | `plan-worker-cpu2b` | `llamacpp-cpu-2b/Qwen3.5-2B-MTP` (primary, write; CPU :18199, Ryzen 7 5800X3D) | Text-only execution of assigned plan partials with the qwen35 worker prompt [T901668] |
 | `plan-worker-self` | `llamacpp-local/Qwen3.8-27B` (primary, write; :1919) | plan-runner-Fallback wenn alle 4B-Slots belegt; ein Partial in einem Lauf [T900504] |
+| `plan-worker-vllm` | `vllm-local/w4a4` (primary, write; :8123, 32k ctx) | plan-runner-Track via `dispatch_vllm` (opt-in `--vllm-slots`, Preflight `:8123/v1/models`); ein Partial pro Slot |
 | `explore` / `general` | built-in | Read-only exploration / research |
 
 Dispatch: `task local` für lokale Implementation + `task exe-muse` für Cloud-Eskalation (T900751). Lokale: `write=deny` → Orchestrator erzeugt. SSOT `.opencode/agent-models.jsonc`; Historie `docs/agent-guide/registry/retired.md`.

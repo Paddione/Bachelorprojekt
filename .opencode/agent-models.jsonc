@@ -310,6 +310,20 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
+    // plan-worker-vllm: vLLM-Track des plan-runners (Qwen3.5-4B-QUASAR-NVFP4-W4A4,
+    // :8123, RTX 5070 Ti, max-num-seqs 10). Der Provider vllm-local lebt in der
+    // globalen opencode-Config (dotfiles); hier steht nur die Modell-Referenz,
+    // damit agentModel() sie an `opencode run --model` weiterreicht.
+    "plan-worker-vllm": {
+      "description": "Primary plan partial worker on Qwen3.5-4B-QUASAR-NVFP4-W4A4 (vLLM :8123, RTX 5070 Ti, 32k ctx). Direct mode by default, write-capable only for assigned partials. Used by scripts/llm/plan-runner.mjs via dispatch_vllm.",
+      "mode": "primary",
+      "model": "vllm-local/w4a4",
+      "prompt": "{file:./prompts/vllm-worker.md}",
+      "color": "#F472B6",
+      "temperature": 0.3,
+      "steps": 40,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
+    },
     "reviewer": {
       "description": "Reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",

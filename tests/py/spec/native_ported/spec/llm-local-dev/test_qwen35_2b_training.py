@@ -117,3 +117,46 @@ print("export-fixture OK")
     noargs = run_cmd(["python3", ".agents/training/export_model.py"], cwd=repo_root, env=train_env)
     assert noargs.returncode == 1
     assert "Train first" in noargs.output
+
+
+def test_p5_viability_gate_green_eval_results_pass_thresholds(repo_root, run_cmd, train_env):
+    import shutil
+    import pytest
+
+    if not shutil.which("nvidia-smi"):
+        pytest.skip("CUDA-Host required (nvidia-smi not found)")
+
+    code = '''
+import json
+import sys
+from pathlib import Path
+sys.path.insert(0, ".agents/training")
+import eval as e
+
+results_path = Path(".agents/training/eval_2b_results.json")
+assert results_path.exists(), f"Artefakt {results_path} fehlt — GPU-Run (Train + Eval) noch nicht ausgefuehrt"
+rows = json.loads(results_path.read_text(encoding="utf-8"))
+assert len(rows) > 0, "eval_2b_results.json enthaelt keine Zeilen"
+
+hit, scored, total, empty_n, leak_n = 0, 0, len(rows), 0, 0
+for r in rows:
+    ok = r.get("cmd_hit")
+    if ok is not None:
+        scored += 1
+        if ok:
+            hit += 1
+    if r.get("empty"):
+        empty_n += 1
+    if r.get("think_leak"):
+        leak_n += 1
+
+command_match = (hit / scored) if scored else 0.0
+empty_rate = empty_n / total
+leak_rate = leak_n / total
+
+passed, summary = e.check_thresholds(command_match, empty_rate, leak_rate, model_size="2b")
+assert passed, f"Viability Gate FAILED: {summary}"
+print("Viability Gate PASSED:", summary)
+'''
+    res = _py(run_cmd, repo_root, train_env, code)
+    assert res.returncode == 0, res.output

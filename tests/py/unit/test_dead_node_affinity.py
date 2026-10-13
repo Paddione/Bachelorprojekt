@@ -104,6 +104,19 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
         ('Ingress', 'workspace-ingress-vault'),
         ('NetworkPolicy', 'allow-website-to-vaultwarden-ingress'),
         ('Middleware', 'rate-limit-vault'),
+        # T016561: Videovault + Mediaviewer-Widget laufen nur noch in Dev.
+        ('Deployment', 'videovault'),
+        ('Service', 'videovault'),
+        ('PersistentVolumeClaim', 'videovault-uploads-pvc'),
+        ('Ingress', 'workspace-ingress-videovault'),
+        ('Deployment', 'oauth2-proxy-videovault'),
+        ('Service', 'oauth2-proxy-videovault'),
+        ('Deployment', 'mediaviewer-widget'),
+        ('Service', 'mediaviewer-widget'),
+        ('Ingress', 'workspace-ingress-mediaviewer'),
+        ('Middleware', 'mediaviewer-embed-headers'),
+        ('Deployment', 'oauth2-proxy-mediaviewer'),
+        ('Service', 'oauth2-proxy-mediaviewer'),
     }
     lost = sorted(base - union - intentionally_removed)
     assert not lost, f"Resources dropped by all consumers: {lost}"

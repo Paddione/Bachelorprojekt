@@ -281,6 +281,94 @@ patches:
       metadata:
         name: knowledge-reindex-all
 
+  # T016561: Videovault + Mediaviewer-Widget laufen nur noch in Dev
+  # (devmesh) — aus dem Fleet-Overlay entfernen (Deployments, Services,
+  # Ingresses, Middleware, Uploads-PVC, oauth2-Proxys).
+  - target: { group: apps, version: v1, kind: Deployment, name: videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: videovault
+  - target: { version: v1, kind: Service, name: videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: videovault
+  - target: { version: v1, kind: PersistentVolumeClaim, name: videovault-uploads-pvc }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: videovault-uploads-pvc
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-videovault
+  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: oauth2-proxy-videovault
+  - target: { version: v1, kind: Service, name: oauth2-proxy-videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: oauth2-proxy-videovault
+  - target: { group: apps, version: v1, kind: Deployment, name: mediaviewer-widget }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mediaviewer-widget
+  - target: { version: v1, kind: Service, name: mediaviewer-widget }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: mediaviewer-widget
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-mediaviewer }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-mediaviewer
+  - target: { group: traefik.io, version: v1alpha1, kind: Middleware, name: mediaviewer-embed-headers }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: mediaviewer-embed-headers
+  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-mediaviewer }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: oauth2-proxy-mediaviewer
+  - target: { version: v1, kind: Service, name: oauth2-proxy-mediaviewer }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: oauth2-proxy-mediaviewer
+
   # D3 (T016529): Vaultwarden-PVC von Longhorn (Basis-Patch in prod-mentolder)
   # auf local-path zurueckstellen — im gekko-Cluster gibt es kein Longhorn.
   - target: { kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }

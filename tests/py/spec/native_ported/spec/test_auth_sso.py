@@ -59,19 +59,22 @@ def test_prod_render_mentolder_every_email_domain_gate_is_group_restricted(rende
     assert wildcard == groups, f"FAIL: {wildcard} wildcard gates but {groups} allowed-group restrictions"
 
 
-def test_prod_render_mentolder_exactly_7_gates_carry_allowed_group_workspace_users(rendered):
+def test_prod_render_mentolder_exactly_5_gates_carry_allowed_group_workspace_users(rendered):
+    # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
     count = _count_lines(rendered["mentolder"], "- --allowed-group=workspace-users")
-    assert count == 7, f"FAIL: expected 7 allowed-group gates, got {count}"
+    assert count == 5, f"FAIL: expected 5 allowed-group gates, got {count}"
 
 
-def test_prod_render_mentolder_exactly_8_gates_carry_oidc_groups_claim_groups(rendered):
+def test_prod_render_mentolder_exactly_6_gates_carry_oidc_groups_claim_groups(rendered):
+    # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
     count = _count_lines(rendered["mentolder"], "- --oidc-groups-claim=groups")
-    assert count == 8, f"FAIL: expected 8 oidc-groups-claim gates, got {count}"
+    assert count == 6, f"FAIL: expected 6 oidc-groups-claim gates, got {count}"
 
 
-def test_prod_render_mentolder_exactly_8_gates_request_the_groups_scope(rendered):
+def test_prod_render_mentolder_exactly_6_gates_request_the_groups_scope(rendered):
+    # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
     count = _count_lines(rendered["mentolder"], "- --scope=openid email profile groups")
-    assert count == 8, f"FAIL: expected 8 gates with groups scope, got {count}"
+    assert count == 6, f"FAIL: expected 6 gates with groups scope, got {count}"
 
 
 def test_prod_render_mentolder_the_4_allowlist_gates_keep_authenticated_emails_file(rendered):

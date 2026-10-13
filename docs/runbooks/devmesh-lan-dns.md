@@ -10,7 +10,7 @@ Entscheidungen: `.agents/plans/lan-dns-adguard/design.md` (T016515).
 
 ```
 LAN-Gerät ──DHCP/DNS──► Fritzbox 10.0.0.1 ──► 10.10.10.2:53 (AdGuard auf gpu-cluster)
-                                         └──► 9.9.9.9 (Ausweich)
+                                         └──► 10.10.10.3:53 (Ausweich, AdGuard auf gpu-cluster2)
 Tailnet-Gerät ──MagicDNS──► lan-dns (Operator-Proxy) ──► AdGuard (gpu-cluster, gpu-cluster2)
                        └──► 9.9.9.9 (Ausweich)
 ```
@@ -56,9 +56,9 @@ kubectl --context devmesh -n lan-dns rollout status ds/adguard   # Pod kommt zur
 task devmesh:dns:check         # beide wieder ok
 ```
 
-Die Fritzbox kennt nur `10.10.10.2`. Fällt AdGuard auf gpu-cluster aus, weicht
-sie auf `9.9.9.9` aus, nicht auf gpu-cluster2. Das Tailnet nutzt beide Instanzen
-über den Operator-Proxy.
+Die Fritzbox kennt `10.10.10.2` (bevorzugt) und `10.10.10.3` (Ausweich, AdGuard
+auf gpu-cluster2). Fällt gpu-cluster aus, lösen lokale Namen weiter über
+gpu-cluster2 auf. Das Tailnet nutzt beide Instanzen über den Operator-Proxy.
 
 Komplett abschalten und wieder ausrollen (für die Ausfalltests unten):
 
@@ -72,7 +72,11 @@ task devmesh:dns:deploy                                  # wieder an
 Internet → Zugangsdaten → DNS-Server → „Andere DNSv4-Server verwenden“:
 
 - Bevorzugter DNSv4-Server: `10.10.10.2`
-- Alternativer DNSv4-Server: `9.9.9.9`
+- Alternativer DNSv4-Server: `10.10.10.3`
+
+Grund (T016529-Nebenbefund): Nach AdGuard-Totalausfall blieb die Fritzbox auch
+nach 21 min bei der Alternative. Zeigt die Alternative auf die zweite
+AdGuard-Instanz statt auf `9.9.9.9`, lösen lokale Namen in dieser Lage weiter auf.
 
 Prüfung von einem LAN-Gerät:
 
@@ -83,16 +87,19 @@ dig @10.0.0.1 gpu-metal.fritz.box +short     # lokale Namen über die Fritzbox
 
 Danach im Query-Log der UI (Abschnitt 6) Anfragen von 10.0.0.1 sehen.
 
-**Ausfalltest nach der Umstellung** (prüft, dass die Fritzbox auf 9.9.9.9 ausweicht —
-das ist nicht dokumentiert, nur so belegbar):
+**Ausfalltest nach der Umstellung** (prüft, dass die Fritzbox auf 10.10.10.3
+ausweicht — Fritzbox-Failover ist nicht dokumentiert, nur so belegbar):
 
 ```bash
-kubectl --context devmesh delete -k dev-local/lan-dns
-dig @10.0.0.1 quad9.net +short               # muss weiter antworten
-task devmesh:dns:deploy
+kubectl --context devmesh -n lan-dns delete pod -l app=adguard \
+  --field-selector spec.nodeName=gpu-cluster
+dig @10.0.0.1 quad9.net +short               # muss weiter antworten (über 10.10.10.3)
+dig @10.0.0.1 gpu-metal.fritz.box +short     # lokale Namen lösen weiter auf
+kubectl --context devmesh -n lan-dns rollout status ds/adguard   # Pod kommt zurück
 ```
 
-Antwortet die Fritzbox ohne AdGuard nicht, sofort zurückstellen (Abschnitt 7).
+Antwortet die Fritzbox bei ausgefallenem gpu-cluster nicht, Alternative zurück
+auf `9.9.9.9` stellen und den Befund melden.
 
 ## 4. Tailnet umstellen
 

@@ -4181,7 +4181,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 921,
+      "file_count": 922,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4428,6 +4428,7 @@
         "scripts/env-resolve.sh",
         "scripts/env-seal.sh",
         "scripts/env-validate.sh",
+        "scripts/export-mentolder-prod.sh",
         "scripts/export-site-content.mjs",
         "scripts/feature-promote.sh",
         "scripts/filter-generated.sh",

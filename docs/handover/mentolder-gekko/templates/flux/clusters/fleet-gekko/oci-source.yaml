@@ -1,0 +1,26 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: fleet-manifests
+  namespace: flux-system
+spec:
+  interval: 10m
+  # UEBERGABE-TODO: auf das Gekko-Artefakt zeigen lassen. Entweder das
+  # bestehende Artefakt weiter nutzen (dann unveraendert lassen) oder auf
+  # das eigene GHCR-Repo des neuen Repos umstellen.
+  url: __GEKKO_OCI_ARTIFACT_URL__
+  ref:
+    tag: latest
+  secretRef:
+    name: ghcr-auth
+  # Supply-chain verification: every artifact must carry a cosign signature
+  # from the render-fleet-artifact workflow (GitHub Actions OIDC identity,
+  # keyless signing). An unsigned or foreign-signed artifact is rejected.
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      # UEBERGABE-TODO: auf die Workflow-Identitaet des neuen Repos umstellen.
+      # Format: https://github.com/<OWNER>/<REPO>/.github/workflows/render-fleet-artifact.yml@refs/heads/main
+      # (Punkte escapen, wie im Original.)
+      - issuer: ^https://token\.actions\.githubusercontent\.com$
+        subject: ^__GEKKO_WORKFLOW_SUBJECT__$

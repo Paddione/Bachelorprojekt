@@ -19,7 +19,6 @@ scripts
 !scripts/knowledge
 components/brett
 docker
-wireguard
 
 # Exclude test artifacts that don't belong in the runtime image
 tests/e2e/node_modules      # runtime: npm install

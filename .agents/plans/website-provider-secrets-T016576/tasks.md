@@ -13,6 +13,12 @@ status: planning
 - `components/website/src/data/test-inventory.json`: mit `task test:inventory` generiertes Inventar.
 - Weitere von `task freshness:regenerate` tatsächlich erzeugte Änderungen prüfen und mitcommitten; keine manuellen Änderungen an generierten Dateien.
 
+## Partials
+
+| id | plan | role | target_files | depends_on |
+|---|---|---|---|---|
+| p1 | tasks.md | impl | k3d/website.yaml, tests/py/spec/native_ported/spec/test_sealed_secret_cluster_drift.py, components/website/src/data/test-inventory.json | |
+
 ## Umfang und Gates
 
 Source-Reads und echtes `kubectl kustomize` belegen die Ursache; der stale/degraded Graph liefert keine verlässliche Impact-Evidenz. `provider-config.ts` liest beide Schlüssel aus `process.env`; Routing, Endpoints, Modelle, Schemas und Secret-Werte bleiben außerhalb dieses Fixes. Keine Tokens lesen oder ausgeben, kein `envFrom` ergänzen.

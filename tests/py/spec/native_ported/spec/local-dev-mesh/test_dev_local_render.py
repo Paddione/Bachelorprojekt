@@ -80,7 +80,7 @@ def test_core_endpointslice_traegt_inventar_adresse_und_port_als_zahl_hosts_sind
     hosts = _yq(run_cmd, ["ea", "-r",
                           'select(.kind == "Ingress" and .metadata.name == "devmesh-core") | .spec.rules[].host',
                           str(manifest)]).splitlines()
-    assert "web.devmesh.mentolder.de" in hosts
+    assert "web.devmesh.korczewski.de" in hosts
     text = manifest.read_text()
     left = re.search(r"(^|[^$])\$\{(DEVMESH_DOMAIN|GPU_ENDPOINT_ADDRESS|GPU_ENDPOINT_PORT|POCKET_ID_DOMAIN)\}",
                      text, re.M)

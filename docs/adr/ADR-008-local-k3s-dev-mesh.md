@@ -78,7 +78,7 @@ dieser Nachtrag der Tabelle widerspricht, gilt der Nachtrag.
 
 Weitere Festlegungen: führende Ticket-DB bleibt fleet (388 Tickets, gemessen 2026-09-11); die
 devmesh-DB trägt Entwicklungsdaten, Ticket-Tooling verweigert dort Schreibzugriffe. Hostnamen
-`*.devmesh.mentolder.de`, eigene Pocket ID, Deploy per `task devmesh:deploy` aus der
+`*.devmesh.korczewski.de`, eigene Pocket ID, Deploy per `task devmesh:deploy` aus der
 Arbeitskopie. gekko erhält den symmetrischen git-crypt-Key; Clones auf PK-Desktop, PK-L-1 und
 PK-Tablet (je WSL). Die SP-5-Pfade heißen `openspec/specs/e2e-test-infrastructure.md` und
 `openspec/specs/nextcloud-integration.md`.

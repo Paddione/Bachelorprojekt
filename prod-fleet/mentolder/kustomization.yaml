@@ -14,7 +14,6 @@ resources:
   - sessions-server.yaml
   - oauth2-proxy-sessions.yaml
   - studio-ingress.yaml
-  - langfuse-dev-proxy.yaml
   - brain.yaml
 components:
   - ../components/fleet-common

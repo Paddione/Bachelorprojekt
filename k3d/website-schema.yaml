@@ -1857,7 +1857,7 @@ data:
         brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         chunk_count     INT NOT NULL DEFAULT 0,
         last_indexed_at TIMESTAMPTZ,
-        embedding_model TEXT NOT NULL DEFAULT 'voyage-multilingual-2',
+        embedding_model TEXT NOT NULL DEFAULT 'bge-m3',
         created_by      UUID,
         created_at      TIMESTAMPTZ DEFAULT now()
       );
@@ -1921,7 +1921,7 @@ data:
         brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         chunk_count     INT NOT NULL DEFAULT 0,
         last_indexed_at TIMESTAMPTZ,
-        embedding_model TEXT NOT NULL DEFAULT 'voyage-multilingual-2',
+        embedding_model TEXT NOT NULL DEFAULT 'bge-m3',
         created_by      UUID,
         created_at      TIMESTAMPTZ DEFAULT now()
       );

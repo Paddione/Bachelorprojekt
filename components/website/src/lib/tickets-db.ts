@@ -12,8 +12,8 @@ export {
   MixedEmbeddingModelError,
 } from './tickets-schema';
 
-/** The embedding model this environment writes/queries with. bge-m3 in prod
- *  (LLM_ENABLED=true), voyage-multilingual-2 in dev. Mirrors knowledge-db.ts. */
+/** The embedding model this environment writes/queries with. T016562: immer
+ *  bge-m3 (lokal, Voyage entfernt). Mirrors knowledge-db.ts. */
 export function ticketEmbeddingModel(): EmbeddingModel {
-  return process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2';
+  return 'bge-m3';
 }

@@ -476,7 +476,7 @@ env_vars:
   - name: LLM_ENABLED
     required: true
     default_dev: "false"
-    description: "If true, bge-m3 embeddings go to llm-gateway-embed (llama.cpp, port 8081) and rerank goes to llm-gateway-rerank (llama.cpp, port 8081). If false, embeddings.ts calls Voyage directly."
+    description: "If true, bge-m3 embeddings go to llm-gateway-embed (llama.cpp, port 8081) and rerank goes to llm-gateway-rerank (llama.cpp, port 8081). If false, embeddings fail closed (T016562: Voyage entfernt)."
     validate: "^(true|false)$"
 
   - name: LLM_RERANK_ENABLED

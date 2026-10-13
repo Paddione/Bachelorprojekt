@@ -7,7 +7,7 @@
  *   COLLECTION_ID   UUID of the target knowledge.collections row
  *   LIBRARY_ID      context7 library path (e.g. /withastro/docs)
  *   PGURL           Full postgres connection string
- *   VOYAGE_API_KEY  (or LLM_ENABLED=true + TEI running) for embeddings
+ *   LLM_EMBED_URL (lokales bge-m3, erforderlich) for embeddings
  *
  * Optional env vars:
  *   TOKENS          Max tokens to request from context7 (default 20000)

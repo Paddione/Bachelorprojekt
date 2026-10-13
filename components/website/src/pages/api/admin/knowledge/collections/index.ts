@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
     description?: string;
     brand?: string | null;
     source?: string;
-    embeddingModel?: 'voyage-multilingual-2' | 'bge-m3';
+    embeddingModel?: 'bge-m3';
     crawlConfig?: CrawlConfig;
   };
 

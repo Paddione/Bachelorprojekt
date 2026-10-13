@@ -138,9 +138,10 @@ async function ingestDual(
     return;
   }
 
+  // T016562: Voyage entfernt — immer lokales bge-m3.
   const { embeddings, tokens } = await embedBatch(
     chunks.map((c: any) => c.text),
-    { model: process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2', purpose: 'index' },
+    { model: 'bge-m3', purpose: 'index' },
   );
   console.log(`  embedded ${chunks.length} chunks (${tokens} tokens)`);
 

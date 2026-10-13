@@ -101,8 +101,8 @@ export async function createCollection(args: {
   createdBy?: string | null; embeddingModel?: EmbeddingModel; crawlConfig?: CrawlConfig | null;
 }): Promise<Collection> {
   assertVectorStoreEnabled();
-  const model: EmbeddingModel = args.embeddingModel
-    ?? (process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2');
+  // T016562: Voyage entfernt — neue Collections immer bge-m3 (lokal).
+  const model: EmbeddingModel = args.embeddingModel ?? 'bge-m3';
   const r = await p().query(
     `INSERT INTO knowledge.collections (name, source, description, brand, created_by, embedding_model, crawl_config)
      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)

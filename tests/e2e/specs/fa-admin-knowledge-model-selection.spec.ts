@@ -38,23 +38,10 @@ test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@ad
       return dialog.isVisible();
     }, { timeout: 15_000 }).toBe(true);
 
-    // Verify modal is open and label is present
-    const label = page.getByText('Einbettungsmodell');
-    await expect(label).toBeVisible({ timeout: 15_000 });
-
-    const select = page.locator('select').filter({ has: page.locator('option[value="bge-m3"]') }).first();
-    await expect(select).toBeAttached();
-
-    // Verify options
-    const options = select.locator('option');
-    await expect(options).toHaveCount(2);
-    await expect(options.nth(0)).toHaveAttribute('value', 'voyage-multilingual-2');
-    await expect(options.nth(0)).toHaveText('Voyage (Cloud)');
-    await expect(options.nth(1)).toHaveAttribute('value', 'bge-m3');
-    await expect(options.nth(1)).toHaveText('Lokal (bge-m3)');
-
-    // Select bge-m3
-    await select.selectOption('bge-m3');
+    // T016562: keine Modellauswahl mehr — Voyage entfernt, Collection läuft
+    // immer mit bge-m3. Es darf keine Voyage-Option mehr existieren.
+    const voyageOption = page.locator('option[value="voyage-multilingual-2"]');
+    await expect(voyageOption).toHaveCount(0);
 
     const stamp = `e2e-bgem3-${Date.now()}`;
     const dialog = page.locator('dialog[open]');

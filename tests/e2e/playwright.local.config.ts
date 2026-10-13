@@ -132,7 +132,7 @@ export default defineConfig({
       name: 'llm-local',
       testMatch: [
         '**/fa-32-*.spec.ts',    // LLM-Router bge-m3 Embeddings
-        '**/fa-33-*.spec.ts',    // LLM-Router voyage-multilingual-2
+        '**/fa-33-*.spec.ts',    // LLM-Router bge-m3 (T016562: Voyage entfernt)
         '**/fa-34-*.spec.ts',    // LLM-Router strict-fail (kein silent fallback)
         '**/fa-36-*.spec.ts',    // Rerank-Endpunkt
         '**/fa-37-*.spec.ts',    // workspace-chat Roundtrip

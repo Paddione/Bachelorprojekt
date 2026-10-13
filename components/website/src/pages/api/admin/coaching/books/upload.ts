@@ -88,8 +88,8 @@ export const POST: APIRoute = async ({ request , locals }) => {
     // Chunk
     const chunks = chunkText(text, { mode: 'plain', targetTokens: 600, overlapTokens: 80 });
 
-    // Embed
-    const model = process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2';
+    // Embed (T016562: Voyage entfernt — immer lokales bge-m3)
+    const model = 'bge-m3';
     const { embeddings } = await embedBatch(chunks.map((c) => c.text), { model, purpose: 'index' });
 
     // Page approximation
@@ -145,7 +145,8 @@ export const POST: APIRoute = async ({ request , locals }) => {
   } catch (err) {
     locals.requestLogger.error({ err }, '[upload] book ingestion failed:');
     const msg = err instanceof Error ? err.message : 'internal error';
-    if (msg.includes('voyage') && msg.includes('429')) {
+    // T016562: Voyage entfernt — 429 kommt jetzt vom lokalen bge-Router.
+    if (msg.includes('429')) {
       return json({ error: 'Embedding-Dienst überlastet — bitte in 60 Sekunden erneut versuchen.' }, 429);
     }
     return json({ error: msg }, 500);

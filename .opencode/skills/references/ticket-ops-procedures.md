@@ -414,7 +414,7 @@ The dev-flow contract splits the parallel unit, orchestrated by all available su
 Any subagent that lands a `type='feat'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and > **Wichtig [T002471-M3]:** Vor `lastenheft lock` muss `requirements_list` gefüllt sein:
 >   `bash scripts/ticket.sh plan-meta set --id <id> --requirements "req1|req2|req3"`
 >   Trennzeichen ist `|` (Pipe), nicht Komma. Bei leerer `requirements_list` schlägt `lastenheft lock` fehl.
- A ticket without the lock is invisible to `queue.sh`/`dispatcher-bridge.sh` and will silently never dispatch.
+ Without the lock, a `type=feat` ticket in `status=backlog` meets neither dispatch gate and will silently never dispatch (gates: `scripts/vda/ticket/enqueue.sh` [T003575]; `queue.sh`/`dispatcher-bridge.sh` no longer exist since the factory teardown [T900399]).
 
 All subagents report back with: ticket_id, decisions made, branch created, plan staged, **lastenheft locked (y/n)**. Consolidate for Phase 3 masterplan completion.
 

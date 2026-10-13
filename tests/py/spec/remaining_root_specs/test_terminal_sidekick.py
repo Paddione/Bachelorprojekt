@@ -33,7 +33,6 @@ def test_no_brand_domains(repo_root):
         assert not re.search(r'terminal\.(mentolder|korczewski)\.de', text)
 
 def test_overlay_registered(repo_root):
-    assert re.search(r'wg_ip:\s*"10\.20\.0\.10"', (repo_root / 'wireguard/wg-mesh-nodes.yaml').read_text())
     assert re.search(r'name:\s*TERMINAL_OVERLAY_IP', (repo_root / 'environments/schema.yaml').read_text())
 
 def test_prod_ingress_and_patch(repo_root):

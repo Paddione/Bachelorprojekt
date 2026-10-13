@@ -264,22 +264,6 @@ def get_secret_metadata(key_name, schema_entry, domain):
             True
         )
 
-    # WireGuard & SSH
-    if key_name.startswith("WG_MESH_"):
-        if "PRIVATE" in key_name:
-            return (
-                "WireGuard Mesh Private Key (Curve25519)",
-                "wg genkey | tee privatekey | wg pubkey > publickey",
-                None,
-                False
-            )
-        else:
-            return (
-                "WireGuard Mesh Public Key",
-                "echo '<privatekey>' | wg pubkey",
-                None,
-                False
-            )
     if "SSH_PRIVATE_KEY" in key_name or key_name == "RUSTDESK_ID_ED25519":
         return (
             "SSH / Asymmetric Private Key (Ed25519)",

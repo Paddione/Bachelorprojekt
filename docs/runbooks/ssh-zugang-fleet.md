@@ -63,27 +63,31 @@ zurueck (`SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519_hetzner}"`) und
 `.claude/settings.json` nennt `~/.ssh/gekko_id_ed25519`. Wer einen davon
 verwendet, weiss warum — Default ist `patrick_ed25519`.
 
-## Control-Plane-Nodes
+## Control-Plane-Nodes (gekko-hetzner-2/3/4)
+
+Seit ADR-014 (T016529) läuft die Control-Plane auf den drei Gekko-Nodes über Tailscale / private IPs:
 
 ```
-Host fleet-4
-  HostName 204.168.244.104
+Host gekko-2 fleet-server-2
+  HostName gekko-hetzner-2
   User patrick
   IdentityFile ~/.ssh/patrick_ed25519
   IdentitiesOnly yes
 
-Host fleet-6
-  HostName 37.27.251.38
+Host gekko-3 fleet-server-3
+  HostName gekko-hetzner-3
   User patrick
   IdentityFile ~/.ssh/patrick_ed25519
   IdentitiesOnly yes
 
-Host fleet-8
-  HostName 62.238.23.79
+Host gekko-4 fleet-server-4
+  HostName gekko-hetzner-4
   User patrick
   IdentityFile ~/.ssh/patrick_ed25519
   IdentitiesOnly yes
 ```
+
+*(Hinweis: Die alten Server pk-hetzner-4/6/8 sind dekommissioniert und wurden durch Gekko abgelöst.)*
 
 ## Verbindung pruefen, ohne etwas zu aendern
 
@@ -113,8 +117,7 @@ Status, Logs und Rollouts reicht:
 kubectl --context fleet -n workspace-dev get pods
 ```
 
-SSH braucht es nur fuer Node-Ebene: k3s-Dienst, WireGuard (`wg-fleet`), UFW,
-Disk.
+SSH braucht es nur fuer Node-Ebene: k3s-Dienst, UFW, Disk, Systemd.
 
 ## Aus einer Remote-/Web-Session heraus
 

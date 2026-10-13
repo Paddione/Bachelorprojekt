@@ -23,8 +23,8 @@ bei einem **frischen Cluster-Setup** oder **Node-Replacement** ausgeführt — i
 
 ```bash
 WG_KEY=$(grep WG_MESH_PK4_PRIVATE_KEY environments/.secrets/fleet-korczewski.yaml | awk '{print $2}')
-WG_CONF_B64=$(bash scripts/hetzner/generate-wg-conf.sh \
-  --env korczewski --node-name pk-hetzner-4 --private-key "$WG_KEY" | base64 -w0)
+# WG_CONF_B64: ehemals via generate-wg-conf.sh generiert (entfallen mit ADR-014, fleet ohne WireGuard)
+WG_CONF_B64=""
 
 bash scripts/hetzner/render-cloud-init.sh \
   --template scripts/hetzner/cloud-init-server.yaml.tmpl \
@@ -48,8 +48,8 @@ kubectl --context fleet get nodes -w
 K3S_TOKEN=$(ssh patrick@204.168.244.104 "sudo cat /var/lib/rancher/k3s/server/node-token")
 
 WG_KEY=$(grep WG_MESH_PK6_PRIVATE_KEY environments/.secrets/fleet-korczewski.yaml | awk '{print $2}')
-WG_CONF_B64=$(bash scripts/hetzner/generate-wg-conf.sh \
-  --env korczewski --node-name pk-hetzner-6 --private-key "$WG_KEY" | base64 -w0)
+# WG_CONF_B64: ehemals via generate-wg-conf.sh generiert (entfallen mit ADR-014)
+WG_CONF_B64=""
 
 bash scripts/hetzner/render-cloud-init.sh \
   --node-ip 37.27.251.38 --node-wg-ip 10.13.14.2 --wg-listen-port 51820 \

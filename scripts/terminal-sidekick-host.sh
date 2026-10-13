@@ -3,12 +3,11 @@
 # scripts/terminal-sidekick-host.sh
 # Idempotent host setup: install ttyd, create sidekick tmux session
 # with four agent windows, register systemd user unit binding only
-# the wg-fleet overlay IP (never 0.0.0.0).
+# the overlay IP (never 0.0.0.0).
 #
 # Prerequisites:
-#   - WireGuard tunnel to the fleet mesh is up (wg show wg-fleet)
-#   - WG_MESH_TERMINAL_PRIVATE_KEY + WG_MESH_TERMINAL_PUBLIC_KEY set
-#     in the env or provided by the fleet-provisioning workflow
+#   - Tailscale / overlay connection is established
+#   - TERMINAL_OVERLAY_IP set in environment or default
 #
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
@@ -18,8 +17,7 @@ SERVICE_NAME="terminal-sidekick"
 SYSTEMD_UNIT="${HOME}/.config/systemd/user/${SERVICE_NAME}.service"
 TMUX_SESSION="sidekick"
 TTYD_PORT="${TTYD_PORT:-7681}"
-WG_INTERFACE="${WG_INTERFACE:-wg-fleet}"
-OVERLAY_IP="${TERMINAL_OVERLAY_IP:-10.20.0.10}"
+OVERLAY_IP="${TERMINAL_OVERLAY_IP:-127.0.0.1}"
 
 # ── Install ttyd if missing ──────────────────────────────────────
 install_ttyd() {

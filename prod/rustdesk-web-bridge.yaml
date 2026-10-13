@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════
 # rustdesk-web bridge — selector-less Services → hbbs/hbbr web-client
-# ports on the wg-fleet overlay address of ${TURN_NODE}. hbbs/hbbr run
+# ports on the host address of ${TURN_NODE}. hbbs/hbbr run
 # hostNetwork on ${TURN_NODE}; there are no pod IPs to select, so we
 # point Endpoints straight at the overlay IP (${TURN_OVERLAY_IP}).
 # ═══════════════════════════════════════════════════════════════════

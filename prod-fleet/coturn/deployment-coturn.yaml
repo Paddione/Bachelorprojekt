@@ -27,10 +27,9 @@ spec:
           imagePullPolicy: Always
           command: ["turnserver"]
           args:
-            # T016533: --no-dtls und --no-cli existieren in coturn 4.18 nicht
-            # mehr (unrecognized option -> exit 255). DTLS ist dort opt-in
-            # (--dtls), CLI opt-in (--cli) — Weglassen erhaelt Verhalten.
-            - --ne=1
+            # T016533: --no-dtls/--no-cli/--ne existieren in coturn 4.18 nicht
+            # mehr (unrecognized/ambiguous -> exit 255). DTLS/CLI sind dort
+            # opt-in (--dtls/--cli), ne war intern — Weglassen erhaelt Verhalten.
             - --listening-port=3478
             - --tls-listening-port=5349
             - --cert=/etc/coturn-tls/tls.crt

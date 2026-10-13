@@ -178,3 +178,13 @@ patches:
       kind: Middleware
       metadata:
         name: rate-limit-vault
+
+  # T016561: mediaviewer-embed-headers faellt nicht unter den kind-weiten
+  # Middleware-Delete (Alt-Gruppe, vgl. T016558).
+  - target: { group: traefik.io, version: v1alpha1, kind: Middleware, name: mediaviewer-embed-headers }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: mediaviewer-embed-headers

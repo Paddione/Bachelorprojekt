@@ -84,12 +84,13 @@ class SandboxEngine:
     def __init__(
         self,
         bwrap_path: str | None = None,
-        python_bin: str = "python3",
+        python_bin: str | None = None,
         default_timeout_seconds: int = 15,
         default_memory_mb: int = 512,
     ) -> None:
+        import sys
         self.bwrap_path = bwrap_path or shutil.which("bwrap")
-        self.python_bin = python_bin
+        self.python_bin = python_bin or sys.executable or "python3"
         self.default_timeout_seconds = default_timeout_seconds
         self.default_memory_mb = default_memory_mb
 
@@ -208,19 +209,26 @@ class SandboxEngine:
             initial_files = {p.relative_to(ws_path) for p in ws_path.rglob("*") if p.is_file()}
 
             # Generate wrapper script enforcing resource limits
-            wrapper_code = f"""import resource, sys
+            wrapper_code = f"""import os, sys
 
-# Set virtual memory limit (RLIMIT_AS)
+# Set virtual memory limit (RLIMIT_AS on Unix)
 try:
+    import resource
     mem_bytes = {mem_mb} * 1024 * 1024
     resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))
-except Exception:
+except (ImportError, Exception):
     pass
 
-# Execute user script
-with open('/workspace/{entrypoint_filename}', 'rb') as f:
-    compiled = compile(f.read(), '/workspace/{entrypoint_filename}', 'exec')
-    exec(compiled, {{'__name__': '__main__', '__file__': '/workspace/{entrypoint_filename}'}})
+# Resolve entrypoint file path
+entry_rel = {repr(entrypoint_filename)}
+if os.path.exists(f"/workspace/{{entry_rel}}"):
+    entry_file = f"/workspace/{{entry_rel}}"
+else:
+    entry_file = os.path.join(os.getcwd(), entry_rel)
+
+with open(entry_file, 'rb') as f:
+    compiled = compile(f.read(), entry_file, 'exec')
+    exec(compiled, {{'__name__': '__main__', '__file__': entry_file}})
 """
             wrapper_path = ws_path / "__runner__.py"
             wrapper_path.write_text(wrapper_code, encoding="utf-8")
@@ -293,15 +301,18 @@ with open('/workspace/{entrypoint_filename}', 'rb') as f:
         files["test_suite.py"] = test_code
 
         # Use pytest runner script
-        runner_code = """import sys, pytest
-sys.path.insert(0, '/workspace')
-code = pytest.main(['-q', '--no-header', '--tb=short', '/workspace/test_suite.py'] + sys.argv[1:])
+        runner_code = """import os, sys, pytest
+ws = '/workspace' if os.path.exists('/workspace') else os.getcwd()
+sys.path.insert(0, ws)
+test_file = os.path.join(ws, 'test_suite.py')
+code = pytest.main(['-q', '--no-header', '--tb=short', test_file] + sys.argv[1:])
 sys.exit(code)
 """
         files["run_pytest_inner.py"] = runner_code
 
         extra_args = extra_pytest_args or []
-        inner_cmd = [self.python_bin, "/workspace/run_pytest_inner.py"] + extra_args
+        inner_script = "/workspace/run_pytest_inner.py" if self.is_bubblewrap_available else "run_pytest_inner.py"
+        inner_cmd = [self.python_bin, inner_script] + extra_args
 
         with tempfile.TemporaryDirectory(prefix="devmesh_pytest_") as ws_dir:
             ws_path = Path(ws_dir)

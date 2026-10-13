@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.420.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.419.2...website-v1.420.0) (2026-10-13)
+
+
+### Features
+
+* plan-runner auto-slots plus cockpit card ([#6630](https://github.com/Paddione/Bachelorprojekt/issues/6630)) ([72553af](https://github.com/Paddione/Bachelorprojekt/commit/72553af8e5b2bdc2c7cb56ea87f7956038c41d81))
+
 ## [1.419.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.419.1...website-v1.419.2) (2026-10-13)
 
 

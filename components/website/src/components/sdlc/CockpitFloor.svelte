@@ -22,6 +22,7 @@
   import AwaitingDeployLane from './cockpit/AwaitingDeployLane.svelte';
   import CockpitFloorLane from './CockpitFloorLane.svelte';
   import FloorControlCard from './cockpit/FloorControlCard.svelte';
+  import PlanRunnerCard from './cockpit/PlanRunnerCard.svelte';
   import type { QaItem } from '../../lib/qa-dal.ts';
   import type { CiRollup } from '../../lib/sdlc/cockpit-ci.ts';
   import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../../lib/sdlc/cockpit-floor-client.ts';
@@ -172,6 +173,7 @@
 
     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" data-testid="floor-leitstand">
       <FloorControlCard control={data.control} />
+      <div class="col-span-2"><PlanRunnerCard /></div>
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Slots</p><p class="text-xl font-bold" data-testid="floor-slots">{data.control.slotsUsed}/{data.control.slotsCap}</p></div>
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Daily-Cap</p><p class="text-xl font-bold">{data.control.dailyUsed}/{data.control.dailyCap}</p></div>
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Durchsatz heute</p><p class="text-xl font-bold">{data.metrics.shippedToday}</p></div>

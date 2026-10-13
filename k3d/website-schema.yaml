@@ -1842,7 +1842,7 @@ data:
     set -e
     echo "Initializing knowledge schema..."
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
-      CREATE EXTENSION IF NOT EXISTS vector;
+      -- T016560: pgvector lebt nur noch in Dev; Prod-Ensure/Init ohne Extension.
       CREATE SCHEMA IF NOT EXISTS knowledge AUTHORIZATION website;
       -- Switch to the application role so all objects are owned by website.
       SET ROLE website;
@@ -1886,13 +1886,10 @@ data:
         collection_id UUID NOT NULL REFERENCES knowledge.collections(id) ON DELETE CASCADE,
         position      INT  NOT NULL,
         text          TEXT NOT NULL,
-        embedding     VECTOR(1024),
         metadata      JSONB DEFAULT '{}',
         UNIQUE (document_id, position)
       );
 
-      CREATE INDEX IF NOT EXISTS chunks_embedding_hnsw ON knowledge.chunks
-        USING hnsw (embedding vector_cosine_ops);
       CREATE INDEX IF NOT EXISTS chunks_collection ON knowledge.chunks (collection_id);
 
       -- Revert to superuser to run GRANTs (website role cannot GRANT to itself).
@@ -1909,7 +1906,7 @@ data:
     #!/bin/bash
     set -e
     psql -v ON_ERROR_STOP=1 --username "postgres" --dbname website <<-'EOSQL'
-      CREATE EXTENSION IF NOT EXISTS vector;
+      -- T016560: pgvector lebt nur noch in Dev; Prod-Ensure/Init ohne Extension.
       CREATE SCHEMA IF NOT EXISTS knowledge AUTHORIZATION website;
       -- Switch to the application role so all objects are owned by website.
       SET ROLE website;
@@ -1953,13 +1950,10 @@ data:
         collection_id UUID NOT NULL REFERENCES knowledge.collections(id) ON DELETE CASCADE,
         position      INT  NOT NULL,
         text          TEXT NOT NULL,
-        embedding     VECTOR(1024),
         metadata      JSONB DEFAULT '{}',
         UNIQUE (document_id, position)
       );
 
-      CREATE INDEX IF NOT EXISTS chunks_embedding_hnsw ON knowledge.chunks
-        USING hnsw (embedding vector_cosine_ops);
       CREATE INDEX IF NOT EXISTS chunks_collection ON knowledge.chunks (collection_id);
 
       -- Revert to superuser to run GRANTs (website role cannot GRANT to itself).

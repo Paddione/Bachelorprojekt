@@ -93,6 +93,8 @@ spec:
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
+# T016558 Stufe 1 (Stilllegung): prune:false, damit das spaetere Entfernen
+# dieses Ks keine verwalteten Objekte (u.a. Namespace workspace) prunt.
 metadata:
   name: flux-mentolder-jobs
   namespace: flux-system
@@ -106,6 +108,6 @@ spec:
     kind: OCIRepository
     name: fleet-manifests
   path: ./mentolder-jobs
-  prune: true
+  prune: false
   force: true
   wait: false

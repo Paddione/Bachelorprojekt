@@ -14,4 +14,4 @@ Umgebung: geteilter Agent-Worktree, äußere Shell `AGENT_LOCK_SID=1382911`; kei
 - `task networks:check`: Exit 0, 12 Bereiche ohne unerklärte Überschneidung.
 - `task freshness:regenerate`: Exit 0; Inventar und alle Generatoren ausgeführt, zunächst keine generierten Diff-Änderungen.
 
-Die vollständigen Rohlogs liegen außerhalb Git unter `/tmp/T016576-*.log`. `verify/done` bleibt offen; abschließende Freshness- und PR-Evidenz folgen nach Commit. Beide Brands sind durch echte Render-Tests geprüft. Korczewski ist derzeit nicht live vorhanden; keine Aktivierung vorgenommen.
+Die vollständigen Rohlogs liegen außerhalb Git unter `/tmp/T016576-*.log`. `task freshness:check` nach Commit und normalem Historienmerge: Exit 0, Graph aktuell, Quality 0 blocking, Baseline unverändert 5 Keys, 117 Pages/124 Routes konsistent. Keine generierten Diff-Änderungen zu committen. `verify/done` bleibt offen; PR und tatsächliche CI-Evidenz übernimmt der Orchestrator. Beide Brands sind durch echte Render-Tests geprüft. Korczewski ist derzeit nicht live vorhanden; keine Aktivierung vorgenommen.

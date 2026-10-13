@@ -6,7 +6,7 @@
  *   QUERY      — search query text (required)
  *   SOURCE     — collection source filter (default: "specs_plans")
  *   LIMIT      — max results (default: 5)
- *   THRESHOLD  — minimum score 0..1 (default: 0.65)
+ *   THRESHOLD  — minimum score 0..1 (default: 0.35, bge-m3-Niveau, T016562)
  *   LLM_EMBED_URL — lokales bge-m3 (absent → graceful error JSON, exit 0)
  *   PGURL      — postgres connection string
  *
@@ -37,7 +37,8 @@ async function main() {
   const query     = cliArgs.query     ?? process.env.QUERY;
   const source    = cliArgs.source    ?? process.env.SOURCE    ?? 'specs_plans';
   const limit     = Number(cliArgs.limit     ?? process.env.LIMIT     ?? 5);
-  const threshold = Number(cliArgs.threshold ?? process.env.THRESHOLD ?? 0.65);
+  // T016562: bge-m3-Default (Voyage-0.65 filterte relevante Treffer ~0.45 weg).
+  const threshold = Number(cliArgs.threshold ?? process.env.THRESHOLD ?? 0.35);
 
   if (!query) {
     process.stderr.write('ERROR: QUERY is required\n');

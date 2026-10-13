@@ -44,6 +44,9 @@ class Runner:
         self.wt.mkdir()
         monkeypatch.setenv("PLAN_RUNNER_OPENCODE", str(self.fix / "plan-runner-fake-opencode.sh"))
         monkeypatch.setenv("FAKE_OPENCODE_LOG", str(tmp / "opencode.log"))
+        # Hermetisch: ohne Override degradiert der vLLM-Preflight auf 0 Slots
+        # (Port 9 ist praktisch nie offen); Tests mit vLLM setzen PLAN_RUNNER_VLLM_URL um.
+        monkeypatch.setenv("PLAN_RUNNER_VLLM_URL", "http://127.0.0.1:9")
         monkeypatch.setenv("FAKE_SLEEP_4B", "0")
         monkeypatch.setenv("FAKE_SLEEP_SELF", "0")
         (tmp / "opencode.log").write_text("")
@@ -383,3 +386,102 @@ def test_t901014_p3_plan_without_machine_readable_manifest_field_fails_validatio
     res = run_cmd(["bash", str(repo_root / "scripts" / "plan-lint.sh"), str(bad / "tasks.md")])
     assert res.returncode != 0
     assert "STRUCT-PARTIAL" in res.output
+
+
+def test_vllm_track_routing_prefers_4b_then_vllm_then_self(repo_root, run_cmd):
+    # Routing-Rangfolge 4B > vLLM > self; alte Signatur ohne freeVllm bleibt gueltig.
+    script = (
+        "import { decideTrack, decideTrackWithHint } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
+        "const eq = (got, want) => { if (got !== want) throw new Error(got + ' !== ' + want); };\n"
+        "eq(decideTrack({ ready: ['p1'], freeSlots: 1, freeVllm: 1 }), 'worker');\n"
+        "eq(decideTrack({ ready: ['p1'], freeSlots: 0, freeVllm: 2 }), 'vllm');\n"
+        "eq(decideTrack({ ready: ['p1'], freeSlots: 0, freeVllm: 0 }), 'self');\n"
+        "eq(decideTrack({ ready: [], freeSlots: 0, freeVllm: 2 }), 'idle');\n"
+        "eq(decideTrack({ ready: ['p1'], freeSlots: 0 }), 'self');\n"
+        "eq(decideTrackWithHint({ ready: ['p1'], freeSlots: 0, freeVllm: 1 }).track, 'vllm');\n"
+        "console.log('vllm-track-ok');\n"
+    )
+    res = run_cmd(["node", "--input-type=module", "-e", script])
+    assert res.returncode == 0, res.output
+    assert res.output == "vllm-track-ok"
+
+
+def test_worker_agents_include_vllm_primary(repo_root, run_cmd):
+    # plan-worker-vllm ist primaer (kein stiller Default-Fallback) und zeigt auf vllm-local/w4a4.
+    script = (
+        "import { readFileSync } from 'node:fs';\n"
+        "import { AGENT_VLLM } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
+        "const s = readFileSync('" + str(repo_root / ".opencode/agent-models.jsonc") + "', 'utf8');\n"
+        "const o = JSON.parse(s.replace(/^\\s*\\/\\/.*$/gm, '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, ''));\n"
+        "const a = (o.agent || {})[AGENT_VLLM];\n"
+        "if (!a) { console.log('missing ' + AGENT_VLLM); process.exit(1); }\n"
+        "if (a.mode !== 'primary') { console.log('mode ' + a.mode); process.exit(1); }\n"
+        "if (String(a.model) !== 'vllm-local/w4a4') { console.log('model ' + a.model); process.exit(1); }\n"
+        "console.log('ok ' + AGENT_VLLM);\n"
+    )
+    res = run_cmd(["node", "--input-type=module", "-e", script])
+    assert res.returncode == 0, res.output
+    assert res.output.startswith("ok ")
+
+
+def _fake_vllm_server():
+    # Minimaler /v1/models-Stub fuer den Preflight (hermetisch, kein echter :8123 noetig).
+    import http.server
+    import threading
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/v1/models":
+                body = b'{"data":[{"id":"w4a4"}]}'
+                self.send_response(200)
+                self.send_header("content-type", "application/json")
+                self.send_header("content-length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    return server
+
+
+def test_dispatch_vllm_runs_partial_on_vllm_agent(pr, run_cmd, monkeypatch):
+    pr.make_change("p1:")
+    server = _fake_vllm_server()
+    monkeypatch.setenv("PLAN_RUNNER_VLLM_URL", f"http://127.0.0.1:{server.server_port}")
+    try:
+        pr.start_orch(json.dumps([
+            {"name": "dispatch_vllm", "args": {"partial_id": "p1", "prompt": "go"}},
+            {"name": "wait_event", "args": {}},
+            {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
+            {"name": "finish", "args": {"summary": "done"}},
+        ]))
+        res = pr.run_runner(run_cmd, "--4b-slots", "0", "--vllm-slots", "1")
+    finally:
+        server.shutdown()
+    assert res.returncode == 0, res.output
+    # Positiv-Anker: genau ein vLLM-Lauf, kein 4B-/Selbstlauf.
+    assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-vllm p1"
+    assert pr.state_of("p1") == "done"
+
+
+def test_vllm_preflight_degrades_to_zero_when_unreachable(pr, run_cmd, monkeypatch):
+    pr.make_change("p1:")
+    # Port 9 (discard) ist praktisch nie offen: Preflight muss auf 0 degradieren,
+    # der Lauf faellt auf self zurueck statt zu scheitern.
+    monkeypatch.setenv("PLAN_RUNNER_VLLM_URL", "http://127.0.0.1:9")
+    pr.start_orch(json.dumps([
+        {"name": "execute_self", "args": {"partial_id": "p1", "prompt": "do it", "plan_notes": "vllm down"}},
+        {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
+        {"name": "finish", "args": {"summary": "done"}},
+    ]))
+    res = pr.run_runner(run_cmd, "--4b-slots", "0", "--vllm-slots", "2")
+    assert res.returncode == 0, res.output
+    assert "vllm slots 0" in res.output
+    assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-self p1"

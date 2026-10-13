@@ -1,7 +1,8 @@
 // workers.mjs — Worker-Pool des plan-runners (T900504): startet `opencode run` fuer 4B-Worker
-// (Agent plan-worker-qwen35 auf llamacpp-qwen3/Qwen3.5-4B-MTP, Windows-nativ :8080) und den
+// (Agent plan-worker-qwen35 auf llamacpp-qwen3/Qwen3.5-4B-MTP, Windows-nativ :8080), vLLM-Worker
+// (Agent plan-worker-vllm auf vllm-local/w4a4, :8123, RTX 5070 Ti) und den
 // Selbstaufruf des Orchestrators (Agent plan-worker-self auf llamacpp-local, :1919),
-// verwaltet die 4B-Slots und puffert beendete 4B-Ergebnisse.
+// verwaltet die 4B-/vLLM-Slots und puffert beendete Worker-Ergebnisse.
 // Aufrufer: scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.
 // Test-Override: PLAN_RUNNER_OPENCODE ersetzt das opencode-Binary.
 
@@ -14,6 +15,7 @@ import { parseResult, normalisePartialSize } from './plan.mjs';
 
 // Primaer-Agenten: opencode run ersetzt Subagenten still durch den Default-Agenten.
 export const AGENT_4B = 'plan-worker-qwen35';
+export const AGENT_VLLM = 'plan-worker-vllm';
 export const AGENT_SELF = 'plan-worker-self';
 const TAIL_CHARS = 4000;
 const live = new Set(); // laufende Kindprozesse, fuer killAllWorkers()
@@ -58,8 +60,10 @@ export function buildAgentSpawn({ agent, prompt, worktree }) {
 }
 
 // Dispatch-Policy (T901014 P1): genau eine Funktion entscheidet Self-vs-Worker.
-// Eingaben: ready (bereite Partial-IDs in Manifest-Reihenfolge), freeSlots (freie 4B-Slots).
-// Ausgabe: 'worker' (4B-Dispatch), 'self' (Selbstaufruf, nur wenn kein Slot frei), 'idle' (nichts bereit).
+// Eingaben: ready (bereite Partial-IDs in Manifest-Reihenfolge), freeSlots (freie 4B-Slots),
+// freeVllm (freie vLLM-Slots, Default 0 = vLLM-Track aus).
+// Ausgabe: 'worker' (4B-Dispatch), 'vllm' (vLLM-Dispatch), 'self' (Selbstaufruf, nur wenn kein
+// Slot frei), 'idle' (nichts bereit). Rangfolge: 4B vor vLLM vor self.
 // T901542 (plan-vector-routing): nimmt optional `sizes` ({ partialId: 's'|'m'|'l' })
 // entgegen — heute routing-neutral (Rueckgabe bleibt String-kompatibel: worker/self/idle).
 // Extension-Point: sobald ein schweres Modell (z. B. gpt-oss-20B) auf :1919 deployt ist,
@@ -67,18 +71,19 @@ export function buildAgentSpawn({ agent, prompt, worktree }) {
 // anzufassen. Kein Modell-Deploy in diesem Change (nur :1919 passt ein schweres Modell,
 // das verdraengt Qwen3.8-27B — eigene Entscheidung). CPU-Tier (0.8B/2B) bewusst nicht
 // verdrahtet: 4B ist Minimum fuer Tool-Loops.
-export function decideTrack({ ready, freeSlots, sizes = null }) {
+export function decideTrack({ ready, freeSlots, freeVllm = 0, sizes = null }) {
   void sizes; // routing-neutral bis ein Heavy-Modell auf :1919 deployt ist (T901542)
   if (!Array.isArray(ready) || ready.length === 0) return 'idle';
   if (Number(freeSlots) > 0) return 'worker';
+  if (Number(freeVllm) > 0) return 'vllm';
   return 'self';
 }
 
 // Wie decideTrack, liefert zusaetzlich den Size-Hint des ersten bereiten Partials
 // (Default 'm' wenn fehlend/ungueltig). Der Track bleibt auf bestehenden Werten —
 // kein 'heavy' ohne deploytes Modell.
-export function decideTrackWithHint({ ready, freeSlots, sizes = {} }) {
-  const track = decideTrack({ ready, freeSlots, sizes });
+export function decideTrackWithHint({ ready, freeSlots, freeVllm = 0, sizes = {} }) {
+  const track = decideTrack({ ready, freeSlots, freeVllm, sizes });
   const first = Array.isArray(ready) && ready.length ? ready[0] : null;
   const raw = first && sizes && typeof sizes === 'object' ? sizes[first] : null;
   return { track, sizeHint: normalisePartialSize(raw) };
@@ -128,41 +133,56 @@ export function runWorker({ agent, prompt, worktree, timeoutMs }) {
   });
 }
 
-// Slot-Verwaltung. Emittiert 'end' mit dem Ergebnis, sobald ein 4B-Job endet.
+// Slot-Verwaltung. Emittiert 'end' mit dem Ergebnis, sobald ein 4B- oder vLLM-Job endet.
 export class WorkerPool extends EventEmitter {
-  constructor({ slots4b, worktree, timeoutMs, run = runWorker }) {
+  constructor({ slots4b, slotsVllm = 0, worktree, timeoutMs, run = runWorker }) {
     super();
     if (!Number.isInteger(slots4b) || slots4b < 0) throw new Error('slots4b must be an integer >= 0');
+    if (!Number.isInteger(slotsVllm) || slotsVllm < 0) throw new Error('slotsVllm must be an integer >= 0');
     this.slots4b = slots4b;
+    this.slotsVllm = slotsVllm;
     this.worktree = worktree;
     this.timeoutMs = timeoutMs;
     this.run = run;
-    this.jobs = new Map(); // jobId -> { partialId, promise }
-    this.done = []; // beendete, noch nicht abgeholte 4B-Ergebnisse
+    this.jobs = new Map(); // jobId -> { partialId, promise, track }
+    this.done = []; // beendete, noch nicht abgeholte Worker-Ergebnisse
     this.waiters = [];
     this.self = null; // partialId des laufenden Selbstaufrufs
     this.seq = 0;
   }
 
-  free4b() { return this.slots4b - this.jobs.size; }
+  free4b() { return this.slots4b - [...this.jobs.values()].filter((j) => j.track === '4b').length; }
 
-  running4b() { return [...this.jobs.values()].map((j) => j.partialId); }
+  running4b() { return [...this.jobs.values()].filter((j) => j.track === '4b').map((j) => j.partialId); }
 
-  isActive(partialId) { return this.self === partialId || this.running4b().includes(partialId); }
+  freeVllm() { return this.slotsVllm - [...this.jobs.values()].filter((j) => j.track === 'vllm').length; }
 
-  start4b(partialId, prompt) {
-    if (this.free4b() <= 0) throw new Error('no free 4B slot');
-    const jobId = `4b-${++this.seq}`;
-    const promise = this.run({ agent: AGENT_4B, prompt, worktree: this.worktree, timeoutMs: this.timeoutMs })
+  runningVllm() { return [...this.jobs.values()].filter((j) => j.track === 'vllm').map((j) => j.partialId); }
+
+  isActive(partialId) { return this.self === partialId || [...this.jobs.values()].some((j) => j.partialId === partialId); }
+
+  _start(track, agent, partialId, prompt) {
+    const free = track === 'vllm' ? this.freeVllm() : this.free4b();
+    if (free <= 0) throw new Error(`no free ${track === 'vllm' ? 'vLLM' : '4B'} slot`);
+    const jobId = `${track === 'vllm' ? 'vllm' : '4b'}-${++this.seq}`;
+    const promise = this.run({ agent, prompt, worktree: this.worktree, timeoutMs: this.timeoutMs })
       .then((r) => {
         this.jobs.delete(jobId);
-        const ev = { partialId, ok: r.ok, summary: r.summary, tail: r.tail, ms: r.ms };
+        const ev = { partialId, ok: r.ok, summary: r.summary, tail: r.tail, ms: r.ms, owner: track };
         const w = this.waiters.shift();
         if (w) w(ev); else this.done.push(ev);
         this.emit('end', ev);
       });
-    this.jobs.set(jobId, { partialId, promise });
+    this.jobs.set(jobId, { partialId, promise, track });
     return jobId;
+  }
+
+  start4b(partialId, prompt) {
+    return this._start('4b', AGENT_4B, partialId, prompt);
+  }
+
+  startVllm(partialId, prompt) {
+    return this._start('vllm', AGENT_VLLM, partialId, prompt);
   }
 
   async runSelf(partialId, prompt) {
@@ -175,7 +195,7 @@ export class WorkerPool extends EventEmitter {
     }
   }
 
-  // Naechstes beendetes 4B-Ergebnis; gepufferte Ergebnisse in Reihenfolge ihres Endes.
+  // Naechstes beendetes Worker-Ergebnis; gepufferte Ergebnisse in Reihenfolge ihres Endes.
   nextEvent() {
     if (this.done.length) return Promise.resolve(this.done.shift());
     return new Promise((resolve) => this.waiters.push(resolve));

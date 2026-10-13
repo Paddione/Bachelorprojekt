@@ -2,16 +2,18 @@
 // plan-runner.mjs — fuehrt die Partials eines gestagten Plans mit lokalen Modellen aus (T900504).
 //
 // Der Orchestrator (llama-server :1919, Qwen3.8-27B IQ3_XXS-mtp) steuert per Tool-Loop; Partials laufen als
-// `opencode run --agent plan-worker-qwen35` (4B-Worker Qwen3.5-4B-MTP, Windows-nativ :8080) oder, wenn alle
-// 4B-Slots belegt sind, als Selbstaufruf `opencode run --agent plan-worker-self`. Waehrend des
-// Selbstaufrufs vergibt der Scheduler freie 4B-Slots selbst und meldet die Ergebnisse nach der Rueckkehr. Fortschritt:
+// `opencode run --agent plan-worker-qwen35` (4B-Worker Qwen3.5-4B-MTP, Windows-nativ :8080),
+// `opencode run --agent plan-worker-vllm` (vLLM-Worker Qwen3.5-4B-QUASAR-NVFP4, :8123, RTX 5070 Ti) oder,
+// wenn alle Worker-Slots belegt sind, als Selbstaufruf `opencode run --agent plan-worker-self`. Waehrend des
+// Selbstaufrufs vergibt der Scheduler freie Worker-Slots selbst und meldet die Ergebnisse nach der Rueckkehr. Fortschritt:
 // <plan-dir>/.plan-runner/state.json (atomar, Resume nach Abbruch; Plan-Heimat seit C7a:
 // .agents/plans/<slug>/, davor .agents/plans/<slug>/).
 //
 // Aufruf:
-//   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N] [--max-turns N] [--timeout-min N]
+//   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N] [--vllm-slots N] [--max-turns N] [--timeout-min N]
 //   node scripts/llm/plan-runner.mjs --ticket <T-Id> [--worktree <pfad>] [--4b-slots N] ...  (Plan aus DB-Ref, T901015)
 // Env: PLAN_RUNNER_ORCH_URL (Default http://127.0.0.1:1919), PLAN_RUNNER_ORCH_MODEL (optional),
+//      PLAN_RUNNER_VLLM_URL (Default http://127.0.0.1:8123; Preflight auf /v1/models, sonst vllm-slots=0),
 //      PLAN_RUNNER_OPENCODE (ersetzt das opencode-Binary).
 // Exit: 0 alle Partials done · 1 mindestens eine failed bzw. Lauf abgebrochen · 2 Konfigurationsfehler.
 // Runbook: docs/runbooks/plan-runner.md
@@ -28,6 +30,12 @@ import { WorkerPool, decideTrack, killAllWorkers } from './plan-runner/workers.m
 // 3 Slots des Windows-nativen Qwen3.5-4B-MTP-Pools (:8080, -np 3 -kvu -c 98304
 // seit 2026-10-03; davor -np 3 in qwen35-mtp.service auf :1920, T900504 p4).
 const DEFAULT_4B_SLOTS = 3;
+// vLLM auf der RTX 5070 Ti (max-num-seqs 10, teilt sich die GPU mit dem :1919-Orchestrator).
+// Default 0 (opt-in per --vllm-slots N): Eine volle opencode-Sitzung im Repo (globale +
+// Home- + Projekt-Config, Skills, MCPs) sprengt das 32k-Fenster von w4a4 schon beim Start
+// (compaction-Fehler, belegt per `opencode run --agent plan-worker-vllm` im Worktree vs. /tmp).
+// Erst einschalten, wenn der Worker-Kontext dankt (slimmere Config) oder das Fenster waechst.
+const DEFAULT_VLLM_SLOTS = 0;
 const IDLE_POLL_MS = 5000;
 const MAX_PROTOCOL_ERRORS = 3;
 const MAX_RETRIES = 2;
@@ -41,8 +49,9 @@ function fail(code, msg) {
 
 // ---------- CLI ----------
 function parseArgs(argv) {
-  const opts = { changeDir: null, worktree: null, ticket: null, slots4b: DEFAULT_4B_SLOTS, maxTurns: 200, timeoutMin: 120 };
-  // --4b-slots 0 = nur Selbstausfuehrung (z. B. wenn die Partial den 4B-Server selbst umkonfiguriert).
+  const opts = { changeDir: null, worktree: null, ticket: null, slots4b: DEFAULT_4B_SLOTS, slotsVllm: DEFAULT_VLLM_SLOTS, maxTurns: 200, timeoutMin: 120 };
+  // --4b-slots 0 schaltet den 4B-Track ab (Selbstausfuehrung braucht zusaetzlich --vllm-slots 0,
+  // z. B. wenn die Partial einen Worker-Server selbst umkonfiguriert).
   const num = (k, v, min = 1) => {
     const n = Number(v);
     if (!Number.isInteger(n) || n < min) fail(2, `--${k} needs an integer >= ${min}, got ${v}`);
@@ -53,6 +62,7 @@ function parseArgs(argv) {
     if (a === '--worktree') opts.worktree = argv[++i];
     else if (a === '--ticket') opts.ticket = argv[++i];
     else if (a === '--4b-slots') opts.slots4b = num('4b-slots', argv[++i], 0);
+    else if (a === '--vllm-slots') opts.slotsVllm = num('vllm-slots', argv[++i], 0);
     else if (a === '--max-turns') opts.maxTurns = num('max-turns', argv[++i]);
     else if (a === '--timeout-min') opts.timeoutMin = num('timeout-min', argv[++i]);
     else if (a.startsWith('--')) fail(2, `unknown option ${a}`);
@@ -63,7 +73,7 @@ function parseArgs(argv) {
     if (opts.changeDir) fail(2, '--ticket cannot be combined with a positional <change-dir>; the plan dir is derived from the FACTORY-PLAN-REF');
     resolveTicketRef(opts);
   } else if (!opts.changeDir) {
-    fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--4b-slots N] [--max-turns N] [--timeout-min N]');
+    fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--4b-slots N] [--vllm-slots N] [--max-turns N] [--timeout-min N]');
   }
   return opts;
 }
@@ -197,13 +207,13 @@ function loadPlan(opts) {
 
 // ---------- Orchestrator-Protokoll ----------
 const SYSTEM = `You are the orchestrator of a plan runner. You execute an staged plan that is split into partials.
-Each partial is implemented by a worker: a small 4B model (dispatch_4b) or, only when every 4B slot is busy, yourself (execute_self).
+Each partial is implemented by a worker: a small 4B model (dispatch_4b), a vLLM worker (dispatch_vllm) or, only when every worker slot is busy, yourself (execute_self).
 Rules:
-- Prefer the 4B workers. Call execute_self ONLY when plan_status shows free4b = 0 and a partial is ready.
+- Prefer the 4B workers, then vLLM. Call execute_self ONLY when plan_status shows free4b = 0 and freeVllm = 0 and a partial is ready.
 - Dispatch only partials listed as ready. Dependencies are enforced; a partial becomes ready when its dependencies are marked done.
 - A worker result is a claim, not a proof. Review every result (success/failure line and output tail) before you call mark(id, "done").
   If a result is wrong or incomplete, call mark(id, "open", note) so it can be retried, or mark(id, "failed", note).
-- Use wait_event to wait for a running 4B job. Write your plan_notes for execute_self so you can continue after the self-run.
+- Use wait_event to wait for a running worker job. Write your plan_notes for execute_self so you can continue after the self-run.
 - Every reply must be a tool call. Call finish(summary) when every partial is done or nothing more can be done.`;
 
 const fn = (name, description, properties = {}, required = []) => ({
@@ -211,13 +221,15 @@ const fn = (name, description, properties = {}, required = []) => ({
 });
 const S = { type: 'string' };
 const TOOLS = [
-  fn('plan_status', 'State of every partial, the ready partial ids and the number of free 4B slots.'),
+  fn('plan_status', 'State of every partial, the ready partial ids and the number of free 4B and vLLM slots.'),
   fn('dispatch_4b', 'Start a ready partial on a free 4B worker slot. Returns STARTED or BUSY immediately.',
     { partial_id: S, prompt: { type: 'string', description: 'Extra instructions for the worker.' } }, ['partial_id']),
-  fn('execute_self', 'Implement a ready partial yourself. Only allowed when all 4B slots are busy. Blocks until it returns.',
+  fn('dispatch_vllm', 'Start a ready partial on a free vLLM worker slot. Returns STARTED or BUSY immediately.',
+    { partial_id: S, prompt: { type: 'string', description: 'Extra instructions for the worker.' } }, ['partial_id']),
+  fn('execute_self', 'Implement a ready partial yourself. Only allowed when all 4B and vLLM slots are busy. Blocks until it returns.',
     { partial_id: S, prompt: S, plan_notes: { type: 'string', description: 'Your plan notes; saved before you sleep.' } },
     ['partial_id', 'plan_notes']),
-  fn('wait_event', 'Block until a 4B job ends and return its result.'),
+  fn('wait_event', 'Block until a 4B or vLLM job ends and return its result.'),
   fn('mark', 'Set the status of a partial after reviewing its result.',
     { partial_id: S, status: { type: 'string', enum: ['done', 'failed', 'open'] }, note: S }, ['partial_id', 'status']),
   fn('finish', 'End the run.', { summary: S }, ['summary']),
@@ -255,18 +267,29 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
     ready: ready(),
     free4b: pool.free4b(),
     running_4b: pool.running4b(),
+    freeVllm: pool.freeVllm(),
+    running_vllm: pool.runningVllm(),
     buffered_events: pool.pending(),
   });
 
-  const start4b = (id, extra = '') => {
+  const startWith = (track, id, extra = '') => {
     const prompt = buildWorkerPrompt({ partial: byId[id], partialText: texts[id], worktree, extra });
-    pool.start4b(id, prompt);
-    Object.assign(state.partials[id], { status: 'running', owner: '4b', result: null });
+    if (track === 'vllm') {
+      pool.startVllm(id, prompt);
+      Object.assign(state.partials[id], { status: 'running', owner: 'vllm', result: null });
+    } else {
+      pool.start4b(id, prompt);
+      Object.assign(state.partials[id], { status: 'running', owner: '4b', result: null });
+    }
     save();
-    log(`4b start ${id}`);
+    log(`${track} start ${id}`);
   };
 
-  // Freie 4B-Slots mit der naechsten bereiten Partial belegen (ohne die selbst ausgefuehrte).
+  const start4b = (id, extra = '') => startWith('4b', id, extra);
+  const startVllm = (id, extra = '') => startWith('vllm', id, extra);
+
+  // Freie Worker-Slots (erst 4B, dann vLLM) mit der naechsten bereiten Partial belegen
+  // (ohne die selbst ausgefuehrte).
   const idleDispatch = (exclude) => {
     for (const id of ready()) {
       if (pool.free4b() <= 0) break;
@@ -274,12 +297,18 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
       start4b(id);
       log(`idle-dispatch ${id}`);
     }
+    for (const id of ready()) {
+      if (pool.freeVllm() <= 0) break;
+      if (id === exclude || pool.isActive(id)) continue;
+      startVllm(id);
+      log(`idle-dispatch-vllm ${id}`);
+    }
   };
 
   pool.on('end', (ev) => {
     state.partials[ev.partialId].result = `${ev.ok ? 'success' : 'failure'}: ${ev.summary}`;
     save();
-    log(`4b end ${ev.partialId} ok=${ev.ok} ${ev.summary}`);
+    log(`${ev.owner} end ${ev.partialId} ok=${ev.ok} ${ev.summary}`);
   });
 
   const formatEvent = (ev) =>
@@ -302,16 +331,32 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
       const err = requireReady(id);
       if (err) return err;
       // Worker-Track: Dispatch-Policy (T901014 P1) — ein 4B-Dispatch braucht 'worker'.
-      if (decideTrack({ ready: ready(), freeSlots: pool.free4b() }) !== 'worker') return `BUSY: no free 4B slot (running: ${pool.running4b().join(',')})`;
+      if (decideTrack({ ready: ready(), freeSlots: pool.free4b(), freeVllm: pool.freeVllm() }) !== 'worker') return `BUSY: no free 4B slot (running: ${pool.running4b().join(',')})`;
       start4b(id, String(prompt));
+      return `STARTED ${id}`;
+    },
+
+    dispatch_vllm: ({ partial_id: id, prompt = '' }) => {
+      const err = requireReady(id);
+      if (err) return err;
+      // vLLM-Track: Dispatch-Policy — ein vLLM-Dispatch braucht 'vllm' (4B voll, vLLM frei).
+      if (decideTrack({ ready: ready(), freeSlots: pool.free4b(), freeVllm: pool.freeVllm() }) !== 'vllm') {
+        if (pool.free4b() > 0) return `BUSY: 4B slot(s) free - use dispatch_4b first`;
+        return `BUSY: no free vLLM slot (running: ${pool.runningVllm().join(',')})`;
+      }
+      startVllm(id, String(prompt));
       return `STARTED ${id}`;
     },
 
     execute_self: async ({ partial_id: id, prompt = '', plan_notes: notes = '' }) => {
       if (!byId[id]) return `ERROR: unknown partial ${id}`;
       // Self-Track: nur wenn die Dispatch-Policy 'self' liefert (kein freier Slot, Partial bereit).
-      if (decideTrack({ ready: ready(), freeSlots: pool.free4b() }) === 'worker') {
-        return `ERROR: ${pool.free4b()} 4B slot(s) free - use dispatch_4b. execute_self is only allowed when all 4B slots are busy.`;
+      const track = decideTrack({ ready: ready(), freeSlots: pool.free4b(), freeVllm: pool.freeVllm() });
+      if (track === 'worker') {
+        return `ERROR: ${pool.free4b()} 4B slot(s) free - use dispatch_4b. execute_self is only allowed when all worker slots are busy.`;
+      }
+      if (track === 'vllm') {
+        return `ERROR: ${pool.freeVllm()} vLLM slot(s) free - use dispatch_vllm. execute_self is only allowed when all worker slots are busy.`;
       }
       const err = requireReady(id);
       if (err) return err;
@@ -340,14 +385,18 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
       let reply = `${result.ok ? 'success' : 'failure'} ${result.summary}\n--- output tail ---\n${String(result.tail).slice(-1500)}`;
       const slept = pool.drainEvents();
       if (slept.length) {
-        reply += `\n\nWhile you were asleep, these 4B jobs finished (review each, then mark):\n${slept.map(formatEvent).join('\n\n')}`;
+        reply += `\n\nWhile you were asleep, these worker jobs finished (review each, then mark):\n${slept.map(formatEvent).join('\n\n')}`;
       }
-      if (pool.running4b().length) reply += `\n\nStill running on 4B: ${pool.running4b().join(',')}`;
+      const still4b = pool.running4b();
+      const stillVllm = pool.runningVllm();
+      if (still4b.length || stillVllm.length) {
+        reply += `\n\nStill running (4b: ${still4b.join(',') || 'none'}; vllm: ${stillVllm.join(',') || 'none'})`;
+      }
       return reply;
     },
 
     wait_event: async () => {
-      if (!pool.pending() && !pool.running4b().length) return 'NO_EVENT: no 4B job is running';
+      if (!pool.pending() && !pool.running4b().length && !pool.runningVllm().length) return 'NO_EVENT: no worker job is running';
       return `EVENT ${formatEvent(await pool.nextEvent())}`;
     },
 
@@ -374,15 +423,32 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
 }
 
 // ---------- Hauptlauf ----------
+// vLLM-Preflight: prueft /v1/models mit kurzem Timeout. Bei Fehler (Server down)
+// werden die vLLM-Slots still auf 0 degradiert — der Lauf nutzt dann nur 4B/self.
+async function probeVllm(url, timeoutMs = 5000) {
+  try {
+    const r = await fetch(`${url}/v1/models`, { signal: AbortSignal.timeout(timeoutMs) });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const plan = loadPlan(opts);
   const url = (process.env.PLAN_RUNNER_ORCH_URL || 'http://127.0.0.1:1919').replace(/\/$/, '');
-  const pool = new WorkerPool({ slots4b: opts.slots4b, worktree: plan.worktree, timeoutMs: opts.timeoutMin * 60_000 });
+  const vllmUrl = (process.env.PLAN_RUNNER_VLLM_URL || 'http://127.0.0.1:8123').replace(/\/$/, '');
+  let slotsVllm = opts.slotsVllm;
+  if (slotsVllm > 0 && !(await probeVllm(vllmUrl))) {
+    log(`vLLM at ${vllmUrl} unreachable - vllm slots disabled (0), 4B/self only`);
+    slotsVllm = 0;
+  }
+  const pool = new WorkerPool({ slots4b: opts.slots4b, slotsVllm, worktree: plan.worktree, timeoutMs: opts.timeoutMin * 60_000 });
   const sched = createScheduler(plan, pool);
   sched.save();
   process.on('SIGINT', () => { killAllWorkers(); fail(130, 'interrupted; state saved, restart resumes'); });
-  log(`change ${plan.changeDir} · worktree ${plan.worktree} · 4b slots ${opts.slots4b} · orchestrator ${url}`);
+  log(`change ${plan.changeDir} · worktree ${plan.worktree} · 4b slots ${opts.slots4b} · vllm slots ${slotsVllm} · orchestrator ${url}`);
 
   const messages = [
     { role: 'system', content: SYSTEM },

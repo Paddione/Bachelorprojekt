@@ -3,10 +3,11 @@
 `scripts/llm/plan-runner.mjs` führt die Partials eines gestagten Plans aus (T900504). Der
 Orchestrator (Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp, RTX 5070 Ti, `:1919`) steuert per Tool-Loop. Die Partials
 laufen als `opencode run --agent plan-worker-qwen35` auf dem 4B-Worker (Qwen3.5-4B-MTP UD-Q4_K_XL,
-Windows-nativ auf der RTX 3060 Ti, `:8080`).
-Sind alle 4B-Slots belegt, darf der Orchestrator eine Partial selbst ausführen
+Windows-nativ auf der RTX 3060 Ti, `:8080`) oder als `opencode run --agent plan-worker-vllm` auf dem
+vLLM-Worker (Qwen3.5-4B-QUASAR-NVFP4-W4A4, `:8123`, RTX 5070 Ti).
+Sind alle Worker-Slots belegt, darf der Orchestrator eine Partial selbst ausführen
 (`opencode run --agent plan-worker-self`). Während dieses Selbstaufrufs vergibt der Scheduler frei werdende
-4B-Slots selbst und meldet die Ergebnisse, sobald der Orchestrator zurückkehrt.
+Worker-Slots selbst und meldet die Ergebnisse, sobald der Orchestrator zurückkehrt.
 
 Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, Worker-Prompt) und
 `scripts/llm/plan-runner/workers.mjs` (opencode-Prozesse, Slot-Verwaltung). Nur Node-Standardbibliothek.
@@ -19,10 +20,20 @@ Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, 
   (`F:\tools\llama.cpp\start-qwen35-4b-service.ps1`, Autostart via
   `scripts/llm/register-qwen35-4b-autostart.ps1`). Die 4B-Slot-Zahl muss zu `--4b-slots`
   passen (Default 3, entspricht `-np 3 -kvu -c 98304`, max VRAM-sicher auf 8 GB).
-  `--4b-slots 0` schaltet den 4B ab: jede Partial laeuft dann als Selbstaufruf.
+  `--4b-slots 0` schaltet den 4B-Track ab (fuer reine Selbstausfuehrung zusaetzlich
+  `--vllm-slots 0`).
   Das braucht es, wenn eine Partial den Worker-Pool selbst stoppt oder umkonfiguriert.
-- `opencode` ist im `PATH`, und die Primaer-Agenten `plan-worker-qwen35` und `plan-worker-self` sind in
-  `.opencode/agent-models.jsonc` konfiguriert.
+- Der vLLM-Worker (Qwen3.5-4B-QUASAR-NVFP4-W4A4, `serve-worker-vllm.service` auf `:8123`,
+  RTX 5070 Ti, max-num-seqs 10) nimmt Partials an, wenn alle 4B-Slots belegt sind
+  (`--vllm-slots N`, Default 0 = Track aus, opt-in). Ist `:8123` beim Start nicht erreichbar,
+  degradiert der Preflight still auf 0 (nur 4B/self). Env `PLAN_RUNNER_VLLM_URL` ersetzt
+  `http://127.0.0.1:8123`.
+- Einschraenkung: Eine volle opencode-Sitzung im Repo (globale + Home- + Projekt-Config,
+  Skills, MCPs) sprengt das 32k-Fenster von w4a4 schon beim Start (compaction-Fehler beim
+  Spawn im Worktree; ausserhalb, z. B. /tmp, laeuft derselbe Agent). `--vllm-slots` daher
+  erst produktiv nutzen, wenn der Worker-Kontext passt.
+- `opencode` ist im `PATH`, und die Primaer-Agenten `plan-worker-qwen35`, `plan-worker-vllm`
+  und `plan-worker-self` sind in `.opencode/agent-models.jsonc` konfiguriert.
 - Der Change hat eine `## Partials`-Tabelle in `tasks.md` (`id | plan | role | target_files | depends_on`)
   und die Partial-Dateien unter `tasks.d/`. Die `target_files` der Partials sind disjunkt, weil 4B-Worker
   und Selbstaufruf gleichzeitig im selben Worktree arbeiten.
@@ -30,11 +41,12 @@ Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, 
 ## Aufruf
 
 ```bash
-node scripts/llm/plan-runner.mjs .agents/plans/<slug> [--worktree <pfad>] [--4b-slots N] [--max-turns N] [--timeout-min N]
+node scripts/llm/plan-runner.mjs .agents/plans/<slug> [--worktree <pfad>] [--4b-slots N] [--vllm-slots N] [--max-turns N] [--timeout-min N]
 ```
 
 - `--worktree`: Default ist das Git-Toplevel des Change-Ordners.
 - `--4b-slots`: gleichzeitige 4B-Worker (Default 3).
+- `--vllm-slots`: gleichzeitige vLLM-Worker (Default 0 = Track aus, opt-in).
 - `--max-turns`: Obergrenze der Orchestrator-Antworten (Default 200).
 - `--timeout-min`: Timeout je Worker-Lauf (Default 120). Danach wird die Prozessgruppe beendet und der
   Lauf gilt als `failure`.

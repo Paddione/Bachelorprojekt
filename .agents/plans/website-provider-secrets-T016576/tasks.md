@@ -82,3 +82,11 @@ task freshness:check
 ```
 
 Abnahme: vier gezielte Tests PASS, valide Manifeste und vollständige Check-Evidenz; S1–S4 und Baseline-Key-Anzahl bleiben gültig. Nach GitOps-Rollout beim Orchestrator nur Vorhandensein der zwei Variablennamen in beiden Website-Pods prüfen, niemals deren Werte; das bestätigt keine Provider-Entitlements. Receipt/Delete nach Merge über den bestehenden Plan-Lifecycle des Orchestrators.
+
+## Fortschritt
+
+- [x] M1: RED bestätigt: vier fehlende Env-Einträge, Exit 1.
+- [x] M2: Zwei optionale Secret-Referenzen ergänzt; unveränderte Render-Regression 4 PASS.
+- [ ] M3: Verifikation und Freshness vollständig belegt.
+
+Evidenz: `evidence/implementation.md`. Vollsuite vollständig rot (14/5327/205); verify/done bleibt für tatsächliche CI-Evidenz beim Orchestrator offen.

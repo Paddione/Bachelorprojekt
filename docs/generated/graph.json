@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T22:30:14.442Z",
+  "generatedAt": "2026-10-13T13:56:29.839Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -13195,42 +13195,6 @@
       "from": "oauth2-proxy-dev",
       "to": "brett",
       "via": "secret:dev-oidc-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:knowledge-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:knowledge-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
-      "to": "knowledge-reindex-all",
-      "via": "secret:knowledge-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:knowledge-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
-      "to": "knowledge-reindex-all",
-      "via": "secret:knowledge-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:knowledge-secrets",
       "kind": "secret"
     }
   ]

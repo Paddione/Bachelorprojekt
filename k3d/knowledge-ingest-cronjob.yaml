@@ -69,7 +69,7 @@ data:
         await pool.query(
           `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
            VALUES ($1, $2, $3, $4, $5)`,
-          [docId, collectionId, c.position, c.text, `[$${c.embedding.join(',')}]`],
+          [docId, collectionId, c.position, c.text, `[${c.embedding.join(',')}]`],
         );
       }
       return { docId, reused: false };
@@ -92,12 +92,12 @@ data:
       if (!bgeUrl) throw new Error('LLM_EMBED_URL nicht konfiguriert');
       const out = [];
       for (let i = 0; i < texts.length; i += batch) {
-        const r = await fetch(`$${bgeUrl}/v1/embeddings`, {
+        const r = await fetch(`${bgeUrl}/v1/embeddings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ model: 'bge-m3', input: texts.slice(i, i + batch) }),
         });
-        if (!r.ok) throw new Error(`bge $${r.status} $${await r.text()}`);
+        if (!r.ok) throw new Error(`bge ${r.status} ${await r.text()}`);
         const j = await r.json();
         out.push(...j.data.map(d => d.embedding));
       }
@@ -163,22 +163,22 @@ data:
           );
           const liveCount = Number(live[0]?.n ?? 0);
           if (liveCount > 0) {
-            console.error(`0 PRs, but live store has $${liveCount} — source misconfiguration?`);
+            console.error(`0 PRs, but live store has ${liveCount} — source misconfiguration?`);
             process.exit(1);
           }
           console.log('0 PRs (live store empty — nothing to ingest)');
         }
 
-        console.log(`Found $${rows.length} PRs to ingest`);
+        console.log(`Found ${rows.length} PRs to ingest`);
 
         for (const row of rows) {
           const text = [
-            `PR #$${row.pr_number}: $${row.title}`,
+            `PR #${row.pr_number}: ${row.title}`,
             row.description ?? '',
           ].filter(Boolean).join('\n\n');
 
           const hash = sha256(text);
-          const sourceUri = `pr:$${row.pr_number}`;
+          const sourceUri = `pr:${row.pr_number}`;
           const chunks = chunkPlain(text).map(c => ({ ...c, embedding: null }));
 
           const embeddings = await embedAll(chunks.map(c => c.text));
@@ -186,7 +186,7 @@ data:
 
           await upsertDocumentAndChunks(pool, {
             collectionId,
-            title: `PR #$${row.pr_number}: $${row.title}`,
+            title: `PR #${row.pr_number}: ${row.title}`,
             sourceUri,
             rawText: text,
             hash,
@@ -234,7 +234,7 @@ data:
           name: COLLECTION_NAME,
           source: COLLECTION_SOURCE,
           brand: BRAND,
-          description: `Bug tickets for brand: $${BRAND}`,
+          description: `Bug tickets for brand: ${BRAND}`,
         });
 
         const { rows } = await pool.query(
@@ -261,31 +261,31 @@ data:
           );
           const liveCount = Number(live[0]?.n ?? 0);
           if (liveCount > 0) {
-            console.error(`0 bug tickets, but live store has $${liveCount} — source misconfiguration?`);
+            console.error(`0 bug tickets, but live store has ${liveCount} — source misconfiguration?`);
             process.exit(1);
           }
           console.log('0 bug tickets (live store empty — nothing to ingest)');
         }
 
-        console.log(`Found $${rows.length} bug tickets for brand "$${BRAND}"`);
+        console.log(`Found ${rows.length} bug tickets for brand "${BRAND}"`);
 
         for (const row of rows) {
           const text = [
-            `$${row.ticket_id}: $${row.title}`,
-            `Status: $${row.status}`,
-            row.fixed_in_pr ? `Fixed in PR #$${row.fixed_in_pr}` : '',
+            `${row.ticket_id}: ${row.title}`,
+            `Status: ${row.status}`,
+            row.fixed_in_pr ? `Fixed in PR #${row.fixed_in_pr}` : '',
             row.description ?? '',
           ].filter(Boolean).join('\n\n');
 
           const hash = sha256(text);
-          const sourceUri = `bug:$${row.ticket_id}`;
+          const sourceUri = `bug:${row.ticket_id}`;
           const rawChunks = chunkPlain(text);
           const embeddings = await embedAll(rawChunks.map(c => c.text));
           const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
 
           await upsertDocumentAndChunks(pool, {
             collectionId,
-            title: `$${row.ticket_id}: $${row.title}`,
+            title: `${row.ticket_id}: ${row.title}`,
             sourceUri,
             rawText: text,
             hash,

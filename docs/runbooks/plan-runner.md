@@ -41,12 +41,18 @@ Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, 
 ## Aufruf
 
 ```bash
-node scripts/llm/plan-runner.mjs .agents/plans/<slug> [--worktree <pfad>] [--4b-slots N] [--vllm-slots N] [--max-turns N] [--timeout-min N]
+node scripts/llm/plan-runner.mjs .agents/plans/<slug> [--worktree <pfad>] [--4b-slots N|auto] [--vllm-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]
 ```
 
 - `--worktree`: Default ist das Git-Toplevel des Change-Ordners.
 - `--4b-slots`: gleichzeitige 4B-Worker (Default 3).
 - `--vllm-slots`: gleichzeitige vLLM-Worker (Default 0 = Track aus, opt-in).
+- `--auto-slots`: beide Slot-Zahlen aus der maximalen Frontbreite des
+  Partials-DAGs ableiten (4B zuerst bis Cap 3, vLLM nur für den Rest bis
+  Cap 10; kleine Pläne lassen vLLM aus). Explizite Zahlen je Track
+  gewinnen über `--auto-slots`.
+- `--print-slots`: gibt `{width, slots4b, slotsVllm, partials}` als JSON aus
+  und startet nichts — für Skripte und die Plan-Runner-Karte im Leitstand.
 - `--max-turns`: Obergrenze der Orchestrator-Antworten (Default 200).
 - `--timeout-min`: Timeout je Worker-Lauf (Default 120). Danach wird die Prozessgruppe beendet und der
   Lauf gilt als `failure`.

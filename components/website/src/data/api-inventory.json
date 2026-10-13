@@ -1072,6 +1072,19 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/plan-runner",
+      "file": "plan-runner.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "filesystem"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/planning-office",
       "file": "planning-office/index.ts",
       "methods": [

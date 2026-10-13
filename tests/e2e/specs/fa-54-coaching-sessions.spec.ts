@@ -18,6 +18,16 @@ async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/
   await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 
+async function waitForWizardHydration(page: import('@playwright/test').Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const island = document.querySelector('astro-island:has(.wizard)');
+      return !island || !island.hasAttribute('ssr');
+    },
+    { timeout: 20_000 },
+  );
+}
+
 test.describe('FA-54: Coaching-Sessions', () => {
 
   // ── Auth-Gating ─────────────────────────────────────────────────────────────
@@ -123,6 +133,7 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
       await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+      await waitForWizardHydration(page);
       const step2Btn = page.locator('.progress-step').nth(1);
       await expect(step2Btn).toBeVisible();
       await step2Btn.click();
@@ -138,6 +149,7 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
       await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+      await waitForWizardHydration(page);
       const step2Btn = page.locator('.progress-step').nth(1);
       await expect(step2Btn).toBeVisible();
       await step2Btn.click();
@@ -158,6 +170,7 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
       await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+      await waitForWizardHydration(page);
 
       // Beat 1 — instruction / greeting: click Weiter
       await expect(page.getByText(/Beat\s+1/i)).toBeVisible({ timeout: 15_000 });

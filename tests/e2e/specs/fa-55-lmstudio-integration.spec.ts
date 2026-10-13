@@ -33,6 +33,16 @@ async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/
   await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 
+async function waitForWizardHydration(page: import('@playwright/test').Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const island = document.querySelector('astro-island:has(.wizard)');
+      return !island || !island.hasAttribute('ssr');
+    },
+    { timeout: 20_000 },
+  );
+}
+
 // ── API-level tests (no browser needed) ─────────────────────────────────────
 
 test.describe('FA-55-LMStudio: KI provider config & generate API', () => {
@@ -237,6 +247,7 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+    await waitForWizardHydration(page);
 
     // Beat 1 — instruction / greeting: click Weiter
     await expect(page.getByText(/Beat\s+1/i)).toBeVisible({ timeout: 15_000 });
@@ -281,6 +292,7 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+    await waitForWizardHydration(page);
 
     // Beat 1 — instruction / greeting: click Weiter
     await expect(page.getByText(/Beat\s+1/i)).toBeVisible({ timeout: 15_000 });

@@ -1,5 +1,7 @@
 # Managed by scripts/discover-versions.sh — do not edit manually
-k3s: v1.36.1+k3s1
-sealed_secrets_chart: 2.18.6
-cert_manager: v1.20.2
+# T016533: k3s/sealed-secrets/cert-manager auf latest stable (longhorn bleibt
+# bewusst auf 1.11.2 — kein Longhorn auf fleet-new, Dev-Scope).
+k3s: v1.37.1+k3s1
+sealed_secrets_chart: 2.20.0
+cert_manager: v1.21.2
 longhorn_chart: 1.11.2

@@ -23,7 +23,7 @@ spec:
         kubernetes.io/hostname: ${TURN_NODE}
       containers:
         - name: coturn
-          image: coturn/coturn:4.9-alpine@sha256:229f87ef2428336ca2f4b4967a961cc6ad7aceb79277bc51f5a179606228d45f
+          image: coturn/coturn:4.18.0-alpine@sha256:c29135c08565810d37053f384584392b7c24b69570fc81a721b878d6fe63e04e
           imagePullPolicy: Always
           command: ["turnserver"]
           args:

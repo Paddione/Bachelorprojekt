@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.419.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.419.0...website-v1.419.1) (2026-10-13)
+
+
+### Bug Fixes
+
+* **T016562:** Retrieval-Threshold auf bge-m3-Niveau (0.35) ([#6609](https://github.com/Paddione/Bachelorprojekt/issues/6609)) ([7f7ca7e](https://github.com/Paddione/Bachelorprojekt/commit/7f7ca7e39d8384ea60357eeadc66fe6fc8f8767e))
+
 ## [1.419.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.418.1...website-v1.419.0) (2026-10-12)
 
 

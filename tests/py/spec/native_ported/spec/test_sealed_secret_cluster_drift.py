@@ -70,3 +70,35 @@ def test_mentolder_cluster_website_secrets_has_every_key_the_website_deployment_
 def test_korczewski_cluster_website_secrets_has_every_key_the_website_deployment_requires(repo_root, run_cmd):
     """korczewski: cluster website-secrets has every key the website Deployment requires"""
     _check_brand(run_cmd, repo_root, "korczewski")
+
+
+@pytest.mark.parametrize("brand", ["mentolder", "korczewski"])
+@pytest.mark.parametrize("key", ["OPENROUTER_API_KEY", "OPENCODE_API_KEY"])
+def test_rendered_website_receives_optional_provider_secret(repo_root, run_cmd, brand, key):
+    """Both production websites expose provider keys without requiring dev credentials."""
+    if shutil.which("kubectl") is None:
+        pytest.skip("kubectl binary not installed")
+
+    result = run_cmd(
+        ["kubectl", "kustomize", f"prod-fleet/website-{brand}",
+         "--load-restrictor=LoadRestrictionsNone"],
+        cwd=repo_root,
+    )
+    assert result.returncode == 0, result.stderr
+    deployments = [
+        doc for doc in yaml.safe_load_all(result.stdout)
+        if doc and doc.get("kind") == "Deployment"
+        and doc.get("metadata", {}).get("name") == "website"
+    ]
+    assert len(deployments) == 1, "render must contain exactly one website Deployment"
+    deployment = deployments[0]
+    assert deployment["metadata"]["namespace"] == (
+        "website" if brand == "mentolder" else "website-korczewski"
+    )
+    containers = deployment["spec"]["template"]["spec"]["containers"]
+    website = next(container for container in containers if container["name"] == "website")
+    matches = [entry for entry in website.get("env", []) if entry["name"] == key]
+    assert len(matches) == 1, f"{brand}: {key} must reach the website process exactly once"
+    assert matches[0].get("valueFrom", {}).get("secretKeyRef") == {
+        "name": "website-secrets", "key": key, "optional": True,
+    }

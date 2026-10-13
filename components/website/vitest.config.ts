@@ -32,6 +32,9 @@ export default defineConfig({
       VOYAGE_API_KEY: 'test-key',
       // auth.ts fails hard at import when no OIDC client secret is set (T001593)
       POCKET_ID_WEBSITE_SECRET: 'test-oidc-secret',
+      // Vector-Store-Gates (T016560) sind per Default an — Tests mocken den
+      // Pool per pg-mem; Gate-Verhalten wird explizit getestet.
+      VECTOR_DB_ENABLED: '1',
     },
     coverage: {
       provider: 'v8',

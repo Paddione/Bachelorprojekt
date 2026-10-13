@@ -127,7 +127,9 @@ spec:
         # TLS opportunistisch aus. NetworkPolicies (Default-Deny-Ingress)
         # bilden die primäre Vertrauensgrenze.
         - name: generate-tls-cert
-          image: pgvector/pgvector:0.8.7-pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+          # T016560: plain Postgres (Debian/glibc, passend zum bestehenden
+          # Datenverzeichnis) — pgvector entfaellt, Vektor-Suche lebt in Dev.
+          image: postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -157,7 +159,8 @@ spec:
               mountPath: /etc/postgresql/certs
       containers:
         - name: postgres
-          image: pgvector/pgvector:0.8.7-pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+          # T016560: plain Postgres, siehe Init-Container oben.
+          image: postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -322,9 +325,9 @@ spec:
             - name: tls-certs
               mountPath: /etc/postgresql/certs
               readOnly: true
-            # PG16 parallel index builds (pgvector HNSW) allocate dynamic shared
-            # memory under /dev/shm; the containerd default of 64Mi breaks
-            # pg_restore of the website dump (T002064).
+            # Parallel index builds allocate dynamic shared memory under
+            # /dev/shm; the containerd default of 64Mi breaks pg_restore of
+            # the website dump (T002064).
             - name: dev-shm
               mountPath: /dev/shm
           readinessProbe:

@@ -20,6 +20,8 @@ data:
   CONTACT_EMAIL: ${CONTACT_EMAIL}
   LLM_ENABLED: "false"
   LLM_RERANK_ENABLED: "false"
+  # T016560: Vektor-Suche (Codesearch + Knowledge) nur in Dev bedienen.
+  VECTOR_DB_ENABLED: "1"
   DB_HOST: shared-db-dev
   DB_PORT: "5432"
   DB_NAME: website

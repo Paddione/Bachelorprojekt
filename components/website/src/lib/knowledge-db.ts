@@ -10,6 +10,24 @@ export class MixedEmbeddingModelError extends Error {
   }
 }
 
+// T016560: Vektor-Store (pgvector) lebt nur noch in Dev. In Prod ist
+// VECTOR_DB_ENABLED != '1' — jede Funktion wirft dann VectorStoreDisabledError
+// (sauber 503 statt 500), statt gegen fehlende Tabellen/Extension zu laufen.
+export class VectorStoreDisabledError extends Error {
+  constructor() {
+    super('VectorStoreDisabledError: vector store is disabled here (VECTOR_DB_ENABLED != 1)');
+    this.name = 'VectorStoreDisabledError';
+  }
+}
+
+export function isVectorStoreEnabled(): boolean {
+  return process.env.VECTOR_DB_ENABLED === '1';
+}
+
+function assertVectorStoreEnabled(): void {
+  if (!isVectorStoreEnabled()) throw new VectorStoreDisabledError();
+}
+
 // Test-only escape hatch: tests in knowledge-db.test.ts mocken den Pool per pg-mem.
 // In Produktion wird ausschließlich `defaultPool` (aus db-pool.ts) verwendet — der
 // gehärtete Pool liefert nodeLookup DNS-Workaround + fail-soft Timeouts.
@@ -57,6 +75,7 @@ interface Document {
 interface ChunkInput { position: number; text: string; embedding: number[]; }
 
 export async function listCollections(): Promise<Collection[]> {
+  assertVectorStoreEnabled();
   const r = await p().query(
     `SELECT id, name, description, source, brand, chunk_count,
             last_indexed_at, embedding_model, created_at, crawl_config
@@ -67,6 +86,7 @@ export async function listCollections(): Promise<Collection[]> {
 }
 
 export async function getCollection(id: string): Promise<Collection | null> {
+  assertVectorStoreEnabled();
   const r = await p().query(
     `SELECT id, name, description, source, brand, chunk_count,
             last_indexed_at, embedding_model, created_at, crawl_config
@@ -80,6 +100,7 @@ export async function createCollection(args: {
   name: string; source: CollectionSource; description?: string; brand?: string | null;
   createdBy?: string | null; embeddingModel?: EmbeddingModel; crawlConfig?: CrawlConfig | null;
 }): Promise<Collection> {
+  assertVectorStoreEnabled();
   const model: EmbeddingModel = args.embeddingModel
     ?? (process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2');
   const r = await p().query(
@@ -97,6 +118,7 @@ export async function createCollection(args: {
 }
 
 export async function deleteCollection(id: string): Promise<void> {
+  assertVectorStoreEnabled();
   const c = await getCollection(id);
   if (!c) throw new Error('not_found');
   if (c.source !== 'custom' && c.source !== 'web_crawl' && c.source !== 'context7_docs')
@@ -105,6 +127,7 @@ export async function deleteCollection(id: string): Promise<void> {
 }
 
 export async function updateContext7Config(id: string, config: Context7Config): Promise<void> {
+  assertVectorStoreEnabled();
   const result = await p().query(
     `UPDATE knowledge.collections SET crawl_config = $2::jsonb WHERE id = $1`,
     [id, JSON.stringify(config)],
@@ -113,6 +136,7 @@ export async function updateContext7Config(id: string, config: Context7Config): 
 }
 
 export async function updateCrawlConfig(id: string, config: CrawlConfig): Promise<void> {
+  assertVectorStoreEnabled();
   const result = await p().query(
     `UPDATE knowledge.collections SET crawl_config = $2::jsonb WHERE id = $1`,
     [id, JSON.stringify(config)],
@@ -124,6 +148,7 @@ export async function addDocument(args: {
   collectionId: string; title: string; sourceUri: string | null; rawText: string;
   sha256?: string | null; metadata?: Record<string, unknown>;
 }): Promise<Document> {
+  assertVectorStoreEnabled();
   const r = await p().query(
     `INSERT INTO knowledge.documents (collection_id, title, source_uri, raw_text, sha256, metadata)
      VALUES ($1, $2, $3, $4, $5, $6::jsonb)
@@ -144,6 +169,7 @@ function vecLiteral(v: number[]): string {
 }
 
 export async function upsertChunks(collectionId: string, documentId: string, chunks: ChunkInput[]): Promise<void> {
+  assertVectorStoreEnabled();
   const client = p();
   await client.query('DELETE FROM knowledge.chunks WHERE document_id = $1', [documentId]);
   for (const ch of chunks) {
@@ -156,6 +182,7 @@ export async function upsertChunks(collectionId: string, documentId: string, chu
 }
 
 export async function recountChunks(collectionId: string): Promise<void> {
+  assertVectorStoreEnabled();
   await p().query(
     `UPDATE knowledge.collections
         SET chunk_count = (SELECT COUNT(*) FROM knowledge.chunks WHERE collection_id = $1),
@@ -179,6 +206,7 @@ interface NearestChunk {
 export async function queryNearest(args: {
   collectionIds: string[]; queryText: string; limit?: number; threshold?: number; signal?: AbortSignal;
 }): Promise<NearestChunk[]> {
+  assertVectorStoreEnabled();
   const limit  = args.limit     ?? 6;
   const thresh = args.threshold ?? 0.65;
 
@@ -240,6 +268,7 @@ export async function mergeCollections(args: {
   description?: string;
   brand?: string | null;
 }): Promise<Collection> {
+  assertVectorStoreEnabled();
   if (args.sourceIds.length < 2) throw new Error('mindestens 2 Quellen erforderlich');
   if (!args.name.trim()) throw new Error('name erforderlich');
 
@@ -339,6 +368,7 @@ interface SuggestSpec {
 }
 
 export async function clusterByEmbedding(threshold = 0.75): Promise<SuggestSpec[]> {
+  assertVectorStoreEnabled();
   const pairsRes = await p().query<{ id_a: string; id_b: string; name_a: string; name_b: string }>(
     `WITH centroids AS (
        SELECT kc.collection_id, avg(kc.embedding) AS centroid
@@ -403,6 +433,7 @@ export async function ensureCollection(args: {
   brand?: string | null;
   description?: string | null;
 }): Promise<Collection> {
+  assertVectorStoreEnabled();
   const all = await listCollections();
   const found = all.find((c) => c.name === args.name);
   if (found) return found;

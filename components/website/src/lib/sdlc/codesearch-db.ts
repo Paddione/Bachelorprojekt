@@ -5,6 +5,9 @@
 import pg from 'pg';
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { pool as defaultPool } from '../db-pool';
+import { isVectorStoreEnabled, VectorStoreDisabledError } from '../knowledge-db';
+
+export { isVectorStoreEnabled, VectorStoreDisabledError };
 
 // Test-only escape hatch: tests in codesearch-db.test.ts mocken den Pool per pg-mem.
 // In Produktion wird ausschließlich `defaultPool` (aus db-pool.ts) verwendet.
@@ -112,6 +115,7 @@ async function rerank(query: string, docs: string[]): Promise<number[] | null> {
 }
 
 export async function searchCode(query: string, limit = 5): Promise<CodeSearchResult[]> {
+  if (!isVectorStoreEnabled()) throw new VectorStoreDisabledError();
   const embedding = await embedQueryText(query);
   const candidates = Math.min(RERANK_MAX_CANDIDATES, limit * RERANK_CANDIDATE_FACTOR);
   const r = await p().query(

@@ -5,7 +5,7 @@
  * Required env vars:
  *   COLLECTION_ID   UUID of the target knowledge.collections row
  *   PGURL           Full postgres connection string (postgres://user:pass@host:port/db)
- *   VOYAGE_API_KEY  (or LLM_ENABLED=true + TEI running) for embeddings
+ *   LLM_EMBED_URL (lokales bge-m3, erforderlich) for embeddings
  *
  * Optional env vars (override crawl_config from DB):
  *   START_URL       Override the startUrl stored in crawl_config
@@ -240,7 +240,7 @@ async function main() {
     console.log(`Embedding ${pages.length} pages…`);
     for (const page of pages) {
       const rawChunks = chunkPlain(page.text);
-      // T002570: embedAllWithModel tries bge-m3 first and falls back to Voyage automatically.
+      // T016562: embedAllWithModel nutzt nur lokales bge-m3 (fail-closed).
       const { embeddings, model: embeddingModel } = await embedAllWithModel(rawChunks.map(c => c.text));
       const chunks = rawChunks.map((c, i) => ({
         ...c,

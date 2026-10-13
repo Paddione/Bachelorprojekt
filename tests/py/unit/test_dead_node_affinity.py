@@ -29,7 +29,7 @@ def built_overlays(repo_root: Path, tmp_path_factory) -> dict[str, Path]:
     overlays = [
         "prod-mentolder",
         "prod-fleet/mentolder",
-        "prod-fleet/mentolder-jobs",
+        # T016558: prod-fleet/mentolder-jobs entfiel (flux-mentolder-jobs aus Prod entfernt).
         "prod-fleet/platform",
         "prod-fleet/korczewski",
     ]
@@ -63,46 +63,80 @@ def test_built_brand_manifests_no_dead_nodes(built_overlays: dict[str, Path]):
 def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
     base = _ids(built_overlays["prod-mentolder"])
     w1 = _ids(built_overlays["prod-fleet/mentolder"])
-    w2 = _ids(built_overlays["prod-fleet/mentolder-jobs"])
     w3 = _ids(built_overlays["prod-fleet/platform"])
 
-    union = w1 | w2 | w3
+    union = w1 | w3
     assert base, "base overlay produced no resources"
     assert union, "consumer overlays produced no resources"
 
-    lost = sorted(base - union)
+    # T016544: KI-Workloads (whisper, bge-*, talk-*) wurden bewusst aus dem
+    # Fleet-Overlay entfernt — diese IDs duerfen bei allen Consumern fehlen.
+    intentionally_removed = {
+        ('Deployment', 'whisper'),
+        ('Deployment', 'bge-embed'),
+        ('Deployment', 'bge-embed-bulk'),
+        ('Deployment', 'bge-rerank'),
+        ('Deployment', 'talk-recording'),
+        ('Deployment', 'talk-transcriber'),
+        ('Service', 'whisper'),
+        ('Service', 'talk-recording'),
+        ('Service', 'talk-transcriber'),
+        ('Service', 'llm-gateway-embed'),
+        ('Service', 'llm-gateway-rerank'),
+        ('IngressRoute', 'llm-gateway-embed'),
+        ('IngressRoute', 'llm-gateway-rerank'),
+        ('NetworkPolicy', 'allow-llm-gateway-egress'),
+        ('NetworkPolicy', 'allow-transcriber-to-website-egress'),
+        ('NetworkPolicy', 'allow-website-to-bge-embed-ingress'),
+        ('NetworkPolicy', 'allow-website-to-bge-rerank-ingress'),
+        ('PersistentVolumeClaim', 'bge-embed-models'),
+        ('PersistentVolumeClaim', 'bge-rerank-models'),
+        # T016560: Knowledge-Ingest-CronJobs laufen nur noch in Dev (devmesh).
+        ('CronJob', 'knowledge-ingest-prs'),
+        ('CronJob', 'knowledge-ingest-markdown'),
+        ('CronJob', 'knowledge-ingest-bugs'),
+        ('CronJob', 'knowledge-reindex-all'),
+        # T016559: Vaultwarden-App aus dem Fleet-Overlay entfernt (DB bleibt).
+        ('Deployment', 'vaultwarden'),
+        ('Service', 'vaultwarden'),
+        ('PersistentVolumeClaim', 'vaultwarden-data-pvc'),
+        ('Ingress', 'workspace-ingress-vault'),
+        ('NetworkPolicy', 'allow-website-to-vaultwarden-ingress'),
+        ('Middleware', 'rate-limit-vault'),
+        # T016561: Videovault + Mediaviewer-Widget laufen nur noch in Dev.
+        ('Deployment', 'videovault'),
+        ('Service', 'videovault'),
+        ('PersistentVolumeClaim', 'videovault-uploads-pvc'),
+        ('Ingress', 'workspace-ingress-videovault'),
+        ('Deployment', 'oauth2-proxy-videovault'),
+        ('Service', 'oauth2-proxy-videovault'),
+        ('Deployment', 'mediaviewer-widget'),
+        ('Service', 'mediaviewer-widget'),
+        ('Ingress', 'workspace-ingress-mediaviewer'),
+        ('Middleware', 'mediaviewer-embed-headers'),
+        ('Deployment', 'oauth2-proxy-mediaviewer'),
+        ('Service', 'oauth2-proxy-mediaviewer'),
+        # T016558: flux-mentolder-jobs aus Prod entfernt — Seed-/Config-Jobs
+        # laufen nicht mehr via Flux (bei Bedarf manuell bzw. via k3d-Flow).
+        ('Job', 'pocket-id-client-seed'),
+        ('Job', 'pocket-id-db-init'),
+        ('Job', 'nextcloud-notification-config'),
+    }
+    lost = sorted(base - union - intentionally_removed)
     assert not lost, f"Resources dropped by all consumers: {lost}"
 
 
-def test_whisper_retains_fleet_placement(built_overlays: dict[str, Path]):
-    fleet_cps = {"pk-hetzner-4", "pk-hetzner-6", "pk-hetzner-8"}
+def test_whisper_absent_from_fleet(built_overlays: dict[str, Path]):
+    # T016544: whisper wurde aus dem Fleet-Overlay entfernt (Ressourcen
+    # freigeben) — Tripwire gegen stilles Wiederauftauchen. Wer whisper
+    # zurueckbringt, muss diesen Test bewusst anpassen.
     out_file = built_overlays["prod-fleet/mentolder"]
     docs = list(yaml.safe_load_all(out_file.read_text()))
 
-    dep = None
-    for d in docs:
-        if (
-            isinstance(d, dict)
-            and d.get("kind") == "Deployment"
-            and (d.get("metadata") or {}).get("name") == "whisper"
-        ):
-            dep = d
-            break
-
-    assert dep is not None, "whisper Deployment missing in prod-fleet/mentolder build"
-
-    terms = (
-        (((dep.get("spec") or {}).get("template") or {}).get("spec") or {})
-        .get("affinity", {})
-        .get("nodeAffinity", {})
-        .get("requiredDuringSchedulingIgnoredDuringExecution", {})
-        .get("nodeSelectorTerms", [])
-    )
-
-    values = set()
-    for t in terms:
-        for expr in t.get("matchExpressions", []):
-            if expr.get("key") == "kubernetes.io/hostname" and expr.get("operator") == "In":
-                values.update(expr.get("values", []))
-
-    assert values & fleet_cps, f"whisper does not require fleet CP node. Found: {values}"
+    present = [
+        (d.get("kind"), (d.get("metadata") or {}).get("name"))
+        for d in docs
+        if isinstance(d, dict)
+        and (d.get("metadata") or {}).get("name") == "whisper"
+    ]
+    assert not present, f"whisper zurueck im Fleet-Build: {present}"

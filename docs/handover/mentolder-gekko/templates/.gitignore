@@ -1,0 +1,18 @@
+# mentolder-prod — Gekko-Repo fuer die Mentolder-Produktionsumgebung.
+# Abgespalten aus Bachelorprojekt (Chore T016564, siehe docs/handover dort).
+# Platzhalter __GEKKO_*__ vor dem ersten Push/Deploy ersetzen (Checkliste in README).
+
+# Gerenderte Artefakte (lokal + CI)
+out/
+
+# Task-Cache
+.task/
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Lokale Kube-Konfiguration niemals committen
+kubeconfig*
+*.kubeconfig

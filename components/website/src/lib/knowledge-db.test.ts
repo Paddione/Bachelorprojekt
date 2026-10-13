@@ -36,7 +36,7 @@ beforeAll(async () => {
       description text, source text NOT NULL, brand text REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
       chunk_count int NOT NULL DEFAULT 0,
       last_indexed_at timestamptz,
-      embedding_model text NOT NULL DEFAULT 'voyage-multilingual-2',
+      embedding_model text NOT NULL DEFAULT 'bge-m3',
       created_by uuid, created_at timestamptz DEFAULT now(),
       crawl_config jsonb
     );
@@ -138,18 +138,24 @@ describe('knowledge-db — model-aware query path', () => {
 
   test('queryNearest throws MixedEmbeddingModelError when collectionIds disagree on model', async () => {
     const a = await kdb.createCollection({ name: 'kn-bge-x', source: 'custom', embeddingModel: 'bge-m3' });
-    const b = await kdb.createCollection({ name: 'kn-vy-x',  source: 'custom', embeddingModel: 'voyage-multilingual-2' });
-    await expect(kdb.queryNearest({ collectionIds: [a.id, b.id], queryText: 'q' }))
+    // T016562: voyage-Collections entstehen nicht mehr via API — historische
+    // Zeile direkt anlegen, um die Cross-Space-Ablehnung weiter zu prüfen.
+    const r = await pool.query(
+      `INSERT INTO knowledge.collections (name, source, embedding_model) VALUES ($1, $2, $3) RETURNING id`,
+      ['kn-vy-x', 'custom', 'voyage-multilingual-2'],
+    );
+    const bId = r.rows[0].id as string;
+    await expect(kdb.queryNearest({ collectionIds: [a.id, bId], queryText: 'q' }))
       .rejects.toThrow(/MixedEmbeddingModelError/);
   });
 
-  test('createCollection defaults to bge-m3 when LLM_ENABLED=true, voyage-multilingual-2 otherwise', async () => {
+  test('createCollection defaults to bge-m3 regardless of LLM_ENABLED (T016562)', async () => {
     process.env.LLM_ENABLED = 'true';
     const a = await kdb.createCollection({ name: 'kn-default-bge', source: 'custom' });
     expect(a.embedding_model).toBe('bge-m3');
     process.env.LLM_ENABLED = 'false';
-    const b = await kdb.createCollection({ name: 'kn-default-voyage', source: 'custom' });
-    expect(b.embedding_model).toBe('voyage-multilingual-2');
+    const b = await kdb.createCollection({ name: 'kn-default-bge-too', source: 'custom' });
+    expect(b.embedding_model).toBe('bge-m3');
   });
 });
 
@@ -308,5 +314,37 @@ describe('mergeCollections', () => {
     const b = await seedCollection('m-voy', 'custom', 1, 'voyage-multilingual-2');
     await expect(kdb.mergeCollections({ sourceIds: [a, b], name: 'fail' }))
       .rejects.toThrow(/MixedEmbeddingModelError/);
+  });
+});
+
+describe('vector store gate (T016560)', () => {
+  const ORIGINAL = process.env.VECTOR_DB_ENABLED;
+  afterAll(() => {
+    if (ORIGINAL === undefined) delete process.env.VECTOR_DB_ENABLED;
+    else process.env.VECTOR_DB_ENABLED = ORIGINAL;
+  });
+
+  test('isVectorStoreEnabled reflects the flag', () => {
+    process.env.VECTOR_DB_ENABLED = '1';
+    expect(kdb.isVectorStoreEnabled()).toBe(true);
+    process.env.VECTOR_DB_ENABLED = '0';
+    expect(kdb.isVectorStoreEnabled()).toBe(false);
+    delete process.env.VECTOR_DB_ENABLED;
+    expect(kdb.isVectorStoreEnabled()).toBe(false);
+    process.env.VECTOR_DB_ENABLED = '1';
+  });
+
+  test('reads throw VectorStoreDisabledError when disabled', async () => {
+    process.env.VECTOR_DB_ENABLED = '0';
+    await expect(kdb.listCollections()).rejects.toThrow(/VectorStoreDisabledError/);
+    await expect(kdb.queryNearest({ collectionIds: ['x'], queryText: 'y' }))
+      .rejects.toThrow(/VectorStoreDisabledError/);
+    process.env.VECTOR_DB_ENABLED = '1';
+  });
+
+  test('writes throw VectorStoreDisabledError when disabled', async () => {
+    process.env.VECTOR_DB_ENABLED = '0';
+    await expect(kdb.upsertChunks('c', 'd', [])).rejects.toThrow(/VectorStoreDisabledError/);
+    process.env.VECTOR_DB_ENABLED = '1';
   });
 });

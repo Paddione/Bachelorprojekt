@@ -1,15 +1,14 @@
 import { logAiCall } from './ai-metrics';
-import { logger } from './logger.ts';
 import { resolveEndpoint, BgeRoutingError } from './bge-router';
 
-const VOYAGE_URL = 'https://api.voyageai.com/v1/embeddings';
-const VOYAGE_MODEL = 'voyage-multilingual-2';
-const VOYAGE_BATCH = 128;
-const VOYAGE_DOLLARS_PER_M_TOKENS = 0.06;
+// T016562: Voyage AI ist entfernt — einziger Embedding-Pfad ist der lokale
+// bge-Router (llama.cpp, bge-m3). Ohne konfigurierte LLM_EMBED_URL wirft
+// resolveEndpoint BgeRoutingError; beide Entry points fallen fail-closed
+// durch. Es gibt keinen externen Fallback mehr.
 
-export const ANTHROPIC_FALLBACK_MODEL_DIM = 1024;
+const EMBED_BATCH = 128;
 
-export type EmbeddingModel = 'bge-m3' | 'voyage-multilingual-2';
+export type EmbeddingModel = 'bge-m3';
 type EmbeddingPurpose = 'index' | 'query';
 
 interface EmbedResult { embedding: number[]; tokens: number; }
@@ -29,14 +28,6 @@ export class EmbeddingQueryError extends Error {
   constructor(msg: string) { super(`EmbeddingQueryError: ${msg}`); this.name = 'EmbeddingQueryError'; }
 }
 
-const voyageKey = () => {
-  const k = process.env.VOYAGE_API_KEY;
-  if (!k) throw new Error('VOYAGE_API_KEY is unset');
-  return k;
-};
-
-const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
-
 // T002551: die Zieladresse kommt aus dem bge-Router, nicht mehr direkt aus der
 // Umgebung — damit gilt fuer den Embedding-Pfad dieselbe Aufloesung wie fuer
 // den MCP-Shim und die HTTP-Endpunkte, an genau einer Stelle.
@@ -45,11 +36,8 @@ const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
 
 // Maps internal model type to the actual model ID sent to the API.
 // llama.cpp accepts the model field (ignored in single-model mode).
-const MODEL_ID_MAP: Record<string, string> = {
-  'bge-m3': process.env.LLM_EMBED_MODEL ?? 'bge-m3',
-  'voyage-multilingual-2': 'voyage-multilingual-2',
-};
-const resolveModelId = (m: string) => MODEL_ID_MAP[m] ?? m;
+const resolveModelId = (m: string) =>
+  m === 'bge-m3' ? (process.env.LLM_EMBED_MODEL ?? 'bge-m3') : m;
 
 function isNetworkError(err: unknown, signal?: AbortSignal): boolean {
   if (!(err instanceof Error)) return false;
@@ -61,40 +49,13 @@ function isNetworkError(err: unknown, signal?: AbortSignal): boolean {
     /ECONNREFUSED|ETIMEDOUT|ECONNRESET|fetch failed/i.test(err.message);
 }
 
-async function callVoyageDirect(inputs: string[], inputType: 'query' | 'document', opts: EmbedOpts) {
-  const max = opts.maxAttempts ?? 4;
-  const base = opts.baseDelayMs ?? 250;
-  let lastErr: unknown;
-  for (let attempt = 1; attempt <= max; attempt++) {
-    const r = await fetch(VOYAGE_URL, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${voyageKey()}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ input: inputs, model: VOYAGE_MODEL, input_type: inputType }),
-      signal: opts.signal,
-    });
-    if (r.ok) {
-      const j = await r.clone().json() as { data: Array<{ embedding: number[] }>; usage: { total_tokens: number } };
-      return { embeddings: j.data.slice(0, inputs.length).map(d => d.embedding), tokens: j.usage.total_tokens };
-    }
-    if (r.status === 429 || r.status >= 500) {
-      lastErr = new Error(`voyage ${r.status} ${await r.clone().text().catch(() => '')}`);
-      await new Promise(res => setTimeout(res, base * 2 ** (attempt - 1)));
-      continue;
-    }
-    throw new Error(`voyage ${r.status} ${await r.clone().text().catch(() => '')}`);
-  }
-  throw lastErr instanceof Error ? lastErr : new Error('voyage retry exhausted');
-}
-
 async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'model' | 'purpose'>> & EmbedOpts) {
   const max = opts.maxAttempts ?? 4;
   const base = opts.baseDelayMs ?? 250;
   let lastErr: unknown;
   // Ein BgeRoutingError faellt hier bewusst UNVERPACKT durch: isNetworkError()
   // stuft ihn als Erreichbarkeitsproblem ein, damit die bestehende
-  // Fallunterscheidung greift — voyage-multilingual-2 weicht auf Voyage aus,
-  // bge-m3 faellt fail-closed durch. Ein vorzeitiges Umwandeln in
-  // Embedding*Error wuerde die Voyage-Ausweiche stillschweigend abschneiden.
+  // Fallunterscheidung greift — fail-closed als Embedding*Error.
   const target = resolveEndpoint('embed');
   for (let attempt = 1; attempt <= max; attempt++) {
     const r = await fetch(`${target}/v1/embeddings`, {
@@ -123,72 +84,43 @@ async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'mode
 
 export async function embedQuery(text: string, opts: EmbedOpts = {}): Promise<EmbedResult> {
   const purpose: EmbeddingPurpose = opts.purpose ?? 'query';
-  if (isLlmEnabled()) {
-    const model: EmbeddingModel = opts.model ?? 'bge-m3';
-    try {
-      const r = await callRouter([text], { ...opts, model, purpose });
-      return { embedding: r.embeddings[0], tokens: r.tokens };
-    } catch (err) {
-      if (isNetworkError(err, opts.signal)) {
-        if (model === 'voyage-multilingual-2') {
-          logger.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
-          const r = await callVoyageDirect([text], 'query', opts);
-          return { embedding: r.embeddings[0], tokens: r.tokens };
-        }
-        // bge-m3 and others: fail closed — re-wrap as EmbeddingQueryError
-        throw new EmbeddingQueryError(err instanceof Error ? err.message : 'GPU router unreachable');
-      }
-      throw err;
+  const model: EmbeddingModel = opts.model ?? 'bge-m3';
+  try {
+    const r = await callRouter([text], { ...opts, model, purpose });
+    return { embedding: r.embeddings[0], tokens: r.tokens };
+  } catch (err) {
+    if (isNetworkError(err, opts.signal)) {
+      throw new EmbeddingQueryError(err instanceof Error ? err.message : 'embed router unreachable');
     }
+    throw err;
   }
-  const r = await callVoyageDirect([text], 'query', opts);
-  return { embedding: r.embeddings[0], tokens: r.tokens };
 }
 
 export async function embedBatch(texts: string[], opts: EmbedOpts = {}): Promise<BatchResult> {
   const purpose: EmbeddingPurpose = opts.purpose ?? 'index';
+  const model: EmbeddingModel = opts.model ?? 'bge-m3';
   const _start = Date.now();
   const out: number[][] = [];
   let totalTokens = 0;
-  for (let i = 0; i < texts.length; i += VOYAGE_BATCH) {
-    const slice = texts.slice(i, i + VOYAGE_BATCH);
-    if (isLlmEnabled()) {
-      const model: EmbeddingModel = opts.model ?? 'bge-m3';
-      try {
-        const r = await callRouter(slice, { ...opts, model, purpose });
-        out.push(...r.embeddings);
-        totalTokens += r.tokens;
-      } catch (err) {
-        if (isNetworkError(err, opts.signal)) {
-          if (model === 'voyage-multilingual-2') {
-            logger.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
-            const r = await callVoyageDirect(slice, 'document', opts);
-            out.push(...r.embeddings);
-            totalTokens += r.tokens;
-          } else {
-            // bge-m3 and others: fail closed — re-wrap as EmbeddingIndexError
-            throw new EmbeddingIndexError(err instanceof Error ? err.message : 'GPU router unreachable');
-          }
-        } else {
-          throw err;
-        }
-      }
-    } else {
-      const r = await callVoyageDirect(slice, 'document', opts);
+  for (let i = 0; i < texts.length; i += EMBED_BATCH) {
+    const slice = texts.slice(i, i + EMBED_BATCH);
+    try {
+      const r = await callRouter(slice, { ...opts, model, purpose });
       out.push(...r.embeddings);
       totalTokens += r.tokens;
+    } catch (err) {
+      if (isNetworkError(err, opts.signal)) {
+        throw new EmbeddingIndexError(err instanceof Error ? err.message : 'embed router unreachable');
+      }
+      throw err;
     }
   }
   void logAiCall({
     workflow: 'embedding',
-    model: opts.model ?? 'bge-m3',
+    model,
     latencyMs: Date.now() - _start,
     promptTokens: totalTokens,
     metadata: { batch_size: texts.length },
   });
   return { embeddings: out, tokens: totalTokens };
-}
-
-export function costCentsForTokens(tokens: number): number {
-  return (tokens / 1_000_000) * VOYAGE_DOLLARS_PER_M_TOKENS * 100;
 }

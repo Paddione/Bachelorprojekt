@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-96 Services · 2109 Abhängigkeitskanten · 316 API-Endpoints
+96 Services · 2103 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 

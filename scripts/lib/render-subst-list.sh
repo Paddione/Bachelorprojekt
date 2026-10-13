@@ -15,9 +15,10 @@
 # tuiert (T002174 legitim-leer-Faelle: DEV_DOMAIN, MAIL_FROM_* u.a. — wuerden
 # sie ueberleben, bräche der Offline-Render und ggf. der CI-Render).
 #
-# Klassifikation (2026-10-11, alle 12 prod-fleet-Overlays, 169 Namen):
+# Klassifikation (2026-10-11, alle 12 prod-fleet-Overlays, 169 Namen;
+# T016533: +url aus kube-prometheus-stack 92.x Grafana-run.sh-Testskript):
 # - Grafana/vendored (Quelle k3d/monitoring, nicht am Source fixbar):
-#   datasource cluster namespace
+#   datasource cluster namespace url
 # - Shell-Runtime ohne $$-Escape (Quelle ddns-Skript im korczewski-Overlay,
 #   live heute leer-substituiert; $$-Migration als Follow-up offen):
 #   DOMAIN IP IP_4 IP_6 IP_8
@@ -25,6 +26,12 @@
 #   ueber Runtime abgedeckt — hier zusaetzlich als Skip, falls ein Overlay
 #   sie ohne $$-Gegenstueck traegt):
 #   code link target
+# - knowledge-ingest-Inline-JS (T016563): k3d/knowledge-ingest-cronjob.yaml
+#   wird auch direkt per kubectl auf devmesh appliziert (ohne Renderer) —
+#   dort ueberlebt $${} literal und bricht das JS ($URL, $URIs). Deshalb
+#   plain ${} plus Skip, damit beide Pfade (direkt + Fleet-Render) dieselben
+#   korrekten Template-Literale erhalten:
+#   bgeUrl liveCount
 # - WEBSITE_CONFIG_SHA wird grundsaetzlich ausgeschlossen: der Wert entsteht
 #   erst aus dem fertig substituierten Manifest (T002156-Sonderpfad im
 #   Renderer, bleibt unveraendert).
@@ -35,7 +42,7 @@
 # Rein lesend, keine Seiteneffekte (S2: pures Helper-Modul).
 
 # Space-separierte Skip-Liste — niemals substituieren, auch nicht wenn gesetzt.
-RENDER_SKIP_VARS="datasource cluster namespace DOMAIN IP IP_4 IP_6 IP_8 code link target"
+RENDER_SKIP_VARS="datasource cluster namespace url DOMAIN IP IP_4 IP_6 IP_8 code link target bgeUrl liveCount"
 
 # Schema-Namen-Cache (ein Render-Prozess sourct einmal, rendert N Overlays).
 _RENDER_SCHEMA_NAMES=""

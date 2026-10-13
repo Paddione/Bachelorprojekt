@@ -294,16 +294,8 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   render_component prod-fleet/korczewski "${OUT_DIR}/korczewski/korczewski.yaml"
 )
 
-# 3b. Mentolder Jobs (T002207)
-(
-  set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
-  apply_schema_defaults
-  if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
-  if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
-  mkdir -p "${OUT_DIR}/mentolder-jobs"
-  render_component prod-fleet/mentolder-jobs "${OUT_DIR}/mentolder-jobs/mentolder-jobs.yaml"
-)
+# 3b. Mentolder Jobs entfallen mit T016558 (Stufe 2): flux-mentolder-jobs
+# aus Prod entfernt; Seed-Jobs laufen bei Bedarf manuell bzw. via k3d-Flow.
 
 # 3c. Korczewski Jobs (T002207)
 (
@@ -376,6 +368,18 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   render_component prod-fleet/website-staging "${OUT_DIR}/website-staging/website-staging.yaml"
 )
 
+# 5d. Coturn/Janus (T016529) — Talk-HPB auf gekko-hetzner-2 (hostNetwork,
+#     ohne WG). TURN_* aus fleet-mentolder; Secrets kommen aus dem
+#     SealedSecrets-Pfad (./sealed-secrets/mentolder), TLS via eigenes
+#     Certificate im Overlay (keine stale Kopie).
+(
+  set +u
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
+  mkdir -p "${OUT_DIR}/coturn"
+  render_component prod-fleet/coturn "${OUT_DIR}/coturn/coturn.yaml"
+)
+
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
 # Nested per-brand: both files carry a SealedSecret for the shared
 # grafana-oidc secret (namespace monitoring), so a single flat kustomize
@@ -398,7 +402,7 @@ find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clus
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

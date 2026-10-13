@@ -6,8 +6,9 @@ import { EMBED_PRIMARY_KEY, EMBED_FALLBACK_KEY } from '../../../../lib/sdlc/ki-c
 export const prerender = false;
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
-const PRIMARY = ['bge-m3', 'voyage'] as const;
-const FALLBACK = ['voyage', null] as const;
+// T016562: Voyage entfernt — nur lokales bge-m3, kein Fallback-Anbieter mehr.
+const PRIMARY = ['bge-m3'] as const;
+const FALLBACK = [null] as const;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -45,10 +46,10 @@ export const PUT: APIRoute = async ({ request , locals }) => {
   const primary = body.primary;
   const fallback = body.fallback ?? null;
   if (!PRIMARY.includes(primary as (typeof PRIMARY)[number])) {
-    return json({ error: 'primary muss bge-m3 oder voyage sein' }, 400);
+    return json({ error: 'primary muss bge-m3 sein' }, 400);
   }
   if (!FALLBACK.includes(fallback as (typeof FALLBACK)[number])) {
-    return json({ error: 'fallback muss voyage oder null sein' }, 400);
+    return json({ error: 'fallback muss null sein' }, 400);
   }
   try {
     await setSiteSetting(BRAND, EMBED_PRIMARY_KEY, String(primary));

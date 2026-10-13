@@ -53,9 +53,9 @@ describe('ticketEmbeddingModel', () => {
     expect(ticketEmbeddingModel()).toBe('bge-m3');
   });
 
-  it('falls back to voyage-multilingual-2 when LLM is disabled', () => {
+  it('returns bge-m3 regardless of LLM flag (T016562: Voyage entfernt)', () => {
     process.env.LLM_ENABLED = 'false';
-    expect(ticketEmbeddingModel()).toBe('voyage-multilingual-2');
+    expect(ticketEmbeddingModel()).toBe('bge-m3');
   });
 });
 

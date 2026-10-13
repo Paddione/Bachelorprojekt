@@ -30,13 +30,18 @@ def script(repo_root):
 
 def _base_args(d: Path):
     # Mirrors the BATS helper `$(_base_args)`, whose unquoted expansion word-splits
-    # the --ssh-key value into three words.
+    # the --ssh-key value into three words. fleet ohne Tunnel (T016529, D1):
+    # private Node-IP, Tailnet-Name/-IP und Tailscale-Key statt WG-Parametern.
     text = (
         f"--versions-file {d / 'versions.yaml'} "
         f"--template {d / 'tpl.yaml'} "
-        "--node-ip 1.2.3.4 "
-        "--wg-listen-port 51820 "
-        "--k3s-url https://192.168.100.1:6443 "
+        "--node-name gekko-hetzner-2 "
+        "--node-ip 192.168.200.2 "
+        "--node-public-ip 1.2.3.4 "
+        "--tailnet-name gekko-hetzner-2 "
+        "--tailnet-ip 100.100.0.2 "
+        "--tailscale-auth-key tskey-test "
+        "--k3s-url https://192.168.200.2:6443 "
         "--k3s-token testtoken "
         "--ssh-key ssh-ed25519 AAAA testkey"
     )
@@ -46,7 +51,7 @@ def _base_args(d: Path):
 def test_substitutes_node_ip(run_cmd, script, tmpdir_files):
     r = run_cmd(["bash", script, *_base_args(tmpdir_files)])
     assert r.returncode == 0, r.output
-    assert "NODE_IP=1.2.3.4" in r.output
+    assert "NODE_IP=192.168.200.2" in r.output
 
 
 def test_substitutes_k3s_version_from_versions_yaml(run_cmd, script, tmpdir_files):
@@ -58,7 +63,7 @@ def test_substitutes_k3s_version_from_versions_yaml(run_cmd, script, tmpdir_file
 def test_substitutes_k3s_url(run_cmd, script, tmpdir_files):
     r = run_cmd(["bash", script, *_base_args(tmpdir_files)])
     assert r.returncode == 0, r.output
-    assert "K3S_URL=https://192.168.100.1:6443" in r.output
+    assert "K3S_URL=https://192.168.200.2:6443" in r.output
 
 
 def test_substitutes_ssh_public_key(run_cmd, script, tmpdir_files):
@@ -79,7 +84,12 @@ def test_fails_when_node_ip_is_missing(run_cmd, script, tmpdir_files):
         "bash", script,
         "--versions-file", str(d / "versions.yaml"),
         "--template", str(d / "tpl.yaml"),
-        "--k3s-url", "https://192.168.100.1:6443",
+        "--node-name", "gekko-hetzner-2",
+        "--node-public-ip", "1.2.3.4",
+        "--tailnet-name", "gekko-hetzner-2",
+        "--tailnet-ip", "100.100.0.2",
+        "--tailscale-auth-key", "tskey-test",
+        "--k3s-url", "https://192.168.200.2:6443",
         "--k3s-token", "testtoken",
         "--ssh-key", "ssh-ed25519 AAAA testkey",
     ])
@@ -93,9 +103,13 @@ def test_fails_when_versions_file_does_not_exist(run_cmd, script, tmpdir_files):
         "bash", script,
         "--versions-file", "/nonexistent/versions.yaml",
         "--template", str(d / "tpl.yaml"),
-        "--node-ip", "1.2.3.4",
-        "--wg-listen-port", "51820",
-        "--k3s-url", "https://192.168.100.1:6443",
+        "--node-name", "gekko-hetzner-2",
+        "--node-ip", "192.168.200.2",
+        "--node-public-ip", "1.2.3.4",
+        "--tailnet-name", "gekko-hetzner-2",
+        "--tailnet-ip", "100.100.0.2",
+        "--tailscale-auth-key", "tskey-test",
+        "--k3s-url", "https://192.168.200.2:6443",
         "--k3s-token", "testtoken",
         "--ssh-key", "ssh-ed25519 AAAA testkey",
     ])
@@ -109,9 +123,13 @@ def test_fails_when_template_does_not_exist(run_cmd, script, tmpdir_files):
         "bash", script,
         "--versions-file", str(d / "versions.yaml"),
         "--template", "/nonexistent/tpl.yaml",
-        "--node-ip", "1.2.3.4",
-        "--wg-listen-port", "51820",
-        "--k3s-url", "https://192.168.100.1:6443",
+        "--node-name", "gekko-hetzner-2",
+        "--node-ip", "192.168.200.2",
+        "--node-public-ip", "1.2.3.4",
+        "--tailnet-name", "gekko-hetzner-2",
+        "--tailnet-ip", "100.100.0.2",
+        "--tailscale-auth-key", "tskey-test",
+        "--k3s-url", "https://192.168.200.2:6443",
         "--k3s-token", "testtoken",
         "--ssh-key", "ssh-ed25519 AAAA testkey",
     ])

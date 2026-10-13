@@ -1,8 +1,33 @@
-# environments/fleet.yaml — unified consolidation cluster (Phase 1: empty 3-CP).
+# environments/fleet.yaml — fleet-Cluster auf gekko-hetzner (T016529, D1/D2).
+# Neuer Cluster-Kontext "fleet": 3 Server mit embedded etcd auf
+# gekko-hetzner-2/3/4, Knotenverkehr ueber das private Hetzner-Netz
+# (192.168.200.0/24), Admin/kubectl ueber Tailscale (tag:fleet).
+# Kein WireGuard, kein Longhorn (nur local-path, D3).
 environment: fleet
 context: fleet
+cluster: fleet-gekko
 domain: PLACEHOLDER-PHASE2   # both brands resolved in Phase 2 — not used by bootstrap
 overlay: prod-fleet          # created in Phase 2; no overlay applied in Phase 1
 workspace_namespace: workspace
+# Node-Inventar (Soll): private_ip = k3s node-ip (Flannel ueber das private
+# Interface); public_ip nur als TLS-SAN/Ingress-Ziel. Tailnet-Namen/-IPs
+# ergeben sich aus dem Tailscale-Login (tag:fleet, Key-Ablauf deaktiviert)
+# und werden beim Bootstrap per render-cloud-init.sh eingetragen.
+nodes:
+  - name: gekko-hetzner-2
+    role: server
+    etcd: embedded
+    private_ip: 192.168.200.2
+    public_ip: 178.104.169.206
+  - name: gekko-hetzner-3
+    role: server
+    etcd: embedded
+    private_ip: 192.168.200.3
+    public_ip: 46.225.125.59
+  - name: gekko-hetzner-4
+    role: server
+    etcd: embedded
+    private_ip: 192.168.200.4
+    public_ip: 178.104.159.79
 env_vars: {}
 setup_vars: {}

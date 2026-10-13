@@ -19,7 +19,6 @@ export const GET: APIRoute = async ({ request }) => {
   ]);
   const body = {
     ANTHROPIC_API_KEY: has('ANTHROPIC_API_KEY'),
-    VOYAGE_API_KEY: has('VOYAGE_API_KEY'),
     LLM_ENABLED: process.env.LLM_ENABLED === 'true',
     LLM_HOST_IP: process.env.LLM_HOST_IP?.trim() || null,
     localGpu: { lmstudio, ollama },

@@ -142,17 +142,20 @@ def test_rustdesk_web_dev_ingress_routes_remote_localhost_to_the_proxy(run_cmd, 
     assert _has(out, r"host:[ \t]*remote\.localhost")
 
 
-def test_rustdesk_web_every_ufw_21118_21119_rule_is_overlay_restricted_10_20_0_0_16(repo_root):
+def test_rustdesk_web_every_ufw_21118_21119_rule_is_private_net_restricted(repo_root):
+    # T016529 (D1): Knotenverkehr laeuft ueber das private Hetzner-Netz
+    # 192.168.200.0/24; der alte wg-fleet-Overlay 10.20.0.0/16 ist tot.
+    # Jede 21118/21119-Zeile muss ans private Netz gebunden sein (never
+    # public). Dateien ohne solche Zeilen (frische Node-Templates) sind
+    # konform, solange sie keine oeffentliche Regel einfuehren.
     for rel in ("prod/cloud-init.yaml",
                 "scripts/hetzner/cloud-init.yaml.tmpl",
                 "scripts/hetzner/cloud-init-server.yaml.tmpl"):
         path = repo_root / rel
         text = _read(path)
-        # Die Port-Regel muss existieren.
-        assert _has(text, r"2111[89]"), rel
-        # Keine 21118/21119-Zeile darf das Overlay-CIDR vermissen.
         lines = [line for line in text.splitlines() if re.search(r"2111[89]", line)]
-        assert not any(not re.search(r"10\.20\.0\.0/16", line) for line in lines), rel
+        assert not any(not re.search(r"192\.168\.200\.0/24", line) for line in lines), rel
+        assert not any(re.search(r"10\.20\.0\.0/16", line) for line in lines), rel
 
 
 def test_rustdesk_image_is_digest_pinned(run_cmd, rd):

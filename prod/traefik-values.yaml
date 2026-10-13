@@ -37,7 +37,7 @@ updateStrategy:
     maxSurge: 0
 
 # Restrict Traefik to the 3 public Hetzner nodes — these are the only nodes
-# DNS for *.${PROD_DOMAIN} ever resolves to (pk-hetzner-4/6/8). Running on
+# DNS for *.${PROD_DOMAIN} ever resolves to (gekko-hetzner-2/3/4). Running on
 # exactly these nodes keeps the DaemonSet's footprint aligned with where
 # ingress traffic actually arrives: since Traefik binds ports 80/443 via
 # hostPort directly (see ports.* below, T001341), the affinity MUST cover
@@ -51,9 +51,9 @@ affinity:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - pk-hetzner-4
-                - pk-hetzner-6
-                - pk-hetzner-8
+                - gekko-hetzner-2
+                - gekko-hetzner-3
+                - gekko-hetzner-4
 
 # T001341: removes k3s' ServiceLB (klipper-lb) for this Service entirely —
 # k3s' ServiceLB controller only manages Services of type: LoadBalancer.

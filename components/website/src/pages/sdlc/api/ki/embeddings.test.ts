@@ -42,8 +42,10 @@ it('PUT rejects invalid primary', async () => {
   expect(r.status).toBe(400);
 });
 
-it('PUT writes both keys', async () => {
-  const r = await PUT({ request: req({ primary: 'bge-m3', fallback: 'voyage' }) } as never);
-  expect(r.status).toBe(200);
+it('PUT writes bge-m3/null, rejects voyage (T016562)', async () => {
+  const ok = await PUT({ request: req({ primary: 'bge-m3', fallback: null }) } as never);
+  expect(ok.status).toBe(200);
   expect(setSiteSetting).toHaveBeenCalledTimes(2);
+  const bad = await PUT({ request: req({ primary: 'bge-m3', fallback: 'voyage' }) } as never);
+  expect(bad.status).toBe(400);
 });

@@ -2137,7 +2137,7 @@ CREATE TABLE knowledge.collections (
     brand text,
     chunk_count integer DEFAULT 0 NOT NULL,
     last_indexed_at timestamp with time zone,
-    embedding_model text DEFAULT 'voyage-multilingual-2'::text NOT NULL,
+    embedding_model text DEFAULT 'bge-m3'::text NOT NULL,
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT chk_brand_collections CHECK ((brand = 'mentolder'::text)),

@@ -4,24 +4,24 @@ const LLM_URL = process.env.LLM_ROUTER_URL
   ?? (process.env.LLM_HOST_IP ? `http://${process.env.LLM_HOST_IP}:4000` : null);
 
 /**
- * FA-33: LLM-Router voyage-multilingual-2
+ * FA-33: LLM-Router bge-m3 (T016562: Voyage entfernt)
  *
- * T1: POST /v1/embeddings with model "voyage-multilingual-2" → 1024-dim vector.
+ * T1: POST /v1/embeddings with model "bge-m3" → 1024-dim vector.
  * T2: Verify that the embedding is returned even when TEI is not required
- *     (Voyage uses Anthropic's API, not the local TEI service).
+ *     (local llama.cpp server, no external API).
  *
  * All tests skip unless LLM_ROUTER_URL or LLM_HOST_IP is set.
  */
 
-test.describe('FA-33: LLM-Router voyage-multilingual-2', () => {
+test.describe('FA-33: LLM-Router bge-m3', () => {
   test.skip(!LLM_URL, 'requires LLM_ROUTER_URL or LLM_HOST_IP');
   test.setTimeout(90_000);
 
-  // T1: voyage-multilingual-2 embedding request
-  test('T1: voyage-multilingual-2 embedding returns a 1024-dimensional vector', async ({ request }) => {
+  // T1: bge-m3 embedding request
+  test('T1: bge-m3 embedding returns a 1024-dimensional vector', async ({ request }) => {
     const res = await request.post(`${LLM_URL}/v1/embeddings`, {
       data: {
-        model: 'voyage-multilingual-2',
+        model: 'bge-m3',
         input: 'capital of germany',
       },
       headers: { 'Content-Type': 'application/json' },
@@ -39,12 +39,12 @@ test.describe('FA-33: LLM-Router voyage-multilingual-2', () => {
     expect(embedding.length).toBe(1024);
   });
 
-  // T2: Voyage works independently of TEI — second identical call confirms it
-  test('T2: voyage-multilingual-2 available independently of TEI status', async ({ request }) => {
+  // T2: local embed works independently of TEI — second identical call confirms it
+  test('T2: bge-m3 available independently of TEI status', async ({ request }) => {
     // Issue the same request a second time; if TEI were needed and broken, this would fail
     const res = await request.post(`${LLM_URL}/v1/embeddings`, {
       data: {
-        model: 'voyage-multilingual-2',
+        model: 'bge-m3',
         input: 'Hamburg ist eine Hafenstadt.',
       },
       headers: { 'Content-Type': 'application/json' },

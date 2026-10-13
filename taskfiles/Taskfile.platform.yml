@@ -269,7 +269,7 @@ tasks:
       ENV: '{{.ENV | default "mentolder"}}'
     preconditions:
       - sh: command -v kubeseal > /dev/null
-        msg: "kubeseal not found. Install: https://github.com/bitnami-labs/sealed-secrets#kubeseal"
+        msg: "kubeseal not found. Install: https://github.com/bitnami/sealed-secrets#kubeseal"
     cmds:
       - bash scripts/env-seal.sh --env {{.ENV}} --env-dir environments
 
@@ -707,7 +707,7 @@ tasks:
         else
           echo "WARNING: sealed_secrets_chart not found in environments/versions.yaml — installing latest (unpinned)"
         fi
-        helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+        helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
         helm repo update
         helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
           --namespace sealed-secrets --create-namespace \

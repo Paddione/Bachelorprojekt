@@ -72,7 +72,7 @@
 | FA-30 | E-Rechnung / XRechnung (einvoice-sidecar) | |
 | FA-31 | Admin-Monitoring Auth-Gate (Prod) | |
 | FA-32 | LLM-Router bge-m3 Embeddings | |
-| FA-33 | LLM-Router voyage-multilingual-2 | |
+| FA-33 | Lokale bge-m3-Embeddings (T016562, kein Voyage) | |
 | FA-34 | LLM-Router strict-fail (kein silent fallback) | |
 | FA-35 | LLM MixedEmbeddingModelError | |
 | FA-36 | Rerank-Endpunkt | |
@@ -609,16 +609,16 @@ Bemerkungen: ___________________________________________________________________
 
 ---
 
-### FA-33: LLM-Router voyage-multilingual-2
+### FA-33: Lokale bge-m3-Embeddings (T016562)
 
-> **Beschreibung:** Prüft, dass voyage-multilingual-2-Embeddings über den LLM-Router verfügbar sind, unabhängig vom TEI-Status.
+> **Beschreibung:** Prüft, dass bge-m3-Embeddings über llm-gateway-embed verfügbar sind (kein Voyage mehr).
 
-**Vorbedingungen:** llm-router deployed, Voyage-API-Key konfiguriert
+**Vorbedingungen:** bge-embed deployed, Port-Forward auf llm-gateway-embed möglich
 
 | Schritt | Aktion | Erwartetes Ergebnis |
 |---------|--------|---------------------|
-| T1 | Embedding-Anfrage: `POST http://localhost:4000/v1/embeddings` mit `{"model":"voyage-multilingual-2","input":"capital of germany"}` | Gibt 1024-dimensionalen Voyage-Vektor zurück |
-| T2 | Funktionalität auch bei deaktiviertem TEI prüfen | Voyage-Vektor wird trotzdem geliefert |
+| T1 | Embedding-Anfrage: `POST http://localhost:18081/v1/embeddings` (per `kubectl port-forward svc/llm-gateway-embed 18081:8081`) mit `{"model":"bge-m3","input":"capital of germany"}` | Gibt 1024-dimensionalen bge-m3-Vektor zurück |
+| T2 | Antwortobjekt prüfen | Gültiges Embedding-Objekt mit `data[0].embedding` |
 
 **Befund:**
 
@@ -632,15 +632,15 @@ Bemerkungen: ___________________________________________________________________
 
 ### FA-34: LLM-Router strict-fail (kein silent fallback)
 
-> **Beschreibung:** Prüft, dass der LLM-Router bei deaktiviertem TEI und Modell `bge-m3` einen 5xx-Fehler zurückgibt — kein stiller Fallback auf Voyage.
+> **Beschreibung:** Prüft, dass der Embed-Pfad bei totem Backend KEINE Vektoren liefert — fail-closed, kein externer Fallback (T016562: Voyage entfernt).
 
-**Vorbedingungen:** llm-router deployed, Simulierter TEI-Ausfall möglich
+**Vorbedingungen:** llm-gateway-embed deployed, Endpoints manipulierbar (Restore per Trap im Skript)
 
 | Schritt | Aktion | Erwartetes Ergebnis |
 |---------|--------|---------------------|
-| T1 | TEI-Service (llm-gateway-embed Endpoints) deaktivieren/leer setzen | Endpoints leer |
-| T2 | bge-m3-Embedding-Anfrage mit `purpose: index` senden | HTTP 5xx (kein 200, kein Voyage-Fallback) |
-| T3 | TEI-Endpoints wiederherstellen | Endpoints wieder vorhanden |
+| T1 | llm-gateway-embed Endpoints auf tote IP patchen | Endpoints zeigen ins Leere |
+| T2 | bge-m3-Embedding-Anfrage senden | Keine Antwort / kein `data`-Feld (kein Fallback) |
+| T3 | Endpoints wiederherstellen (automatisch per Trap) | Endpoints wieder vorhanden |
 
 **Befund:**
 

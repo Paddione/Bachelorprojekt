@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: coturn-wildcard
+  namespace: coturn
+  labels:
+    app: coturn
+spec:
+  secretName: ${TLS_SECRET_NAME}
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-prod
+  dnsNames:
+    - "*.${PROD_DOMAIN}"
+    - "${PROD_DOMAIN}"

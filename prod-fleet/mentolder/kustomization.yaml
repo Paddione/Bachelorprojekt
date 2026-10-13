@@ -1,10 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# mentolder brand on fleet — reuse the existing prod-mentolder overlay, then
+# mentolder brand on fleet (gekko) — reuse the existing prod-mentolder overlay, then
 # apply fleet-common (delete the cluster singletons now owned by
 # prod-fleet/platform). Namespace stays workspace (set by the prod-mentolder/k3d
-# base). Node-affinity repoints for fleet pk nodes are added to fleet-common at
-# deploy time (Task 8); website affinity comes from WEBSITE_NODE_AFFINITY in
+# base). Zielbild T016529 (D2/D3/Q16): nur Prod auf gekko-hetzner-2/3/4
+# (embedded etcd), kein Longhorn (local-path als Default-StorageClass);
+# staging-/dev-/korczewski-Pfade laufen nicht ueber diese Kustomization
+# (Ziel devmesh). Website affinity comes from WEBSITE_NODE_AFFINITY in
 # environments/fleet-mentolder.yaml.
 resources:
   - ../../prod-mentolder
@@ -16,7 +18,9 @@ resources:
   - brain.yaml
 components:
   - ../components/fleet-common
-  - ../components/llm-models-longhorn
+  # D3 (T016529): kein Longhorn mehr — die fruehere llm-models-longhorn-
+  # Komponente ist entfernt; bge-Modell-PVCs nutzen die Default-StorageClass
+  # (local-path) wie die k3d-Basis.
 
 # Exclude the dev.mentolder.de stack from fleet Phase 2a (dev migration is 2c).
 # prod-mentolder renders these dev resources; with DEV_* blanked in
@@ -27,9 +31,9 @@ components:
 # mentolder wrapper (NOT fleet-common — korczewski has no equivalents, so a shared
 # delete would error). The harmless *.localhost dev IngressRoutes are left intact.
 patches:
-  # BGE-Embed/Rerank IngressRoutes — interne MCP-Endpunkte (T016430).
-  # Ohne diesen Patch still ignoriert (YAML-Schlüssel-Ueberschreibung, T900009).
-  - path: bge-hosts-patch.yaml
+  # T016544: bge-hosts-patch.yaml ist entfallen — die llm-gateway-IngressRoutes
+  # sind per $patch:delete oben entfernt, ein Patch ohne Ziel wuerde den Build
+  # fehlschlagen lassen.
   # Coaching Studio — prod overlay for mentolder brand on the fleet
   # cluster. Pins image-digest, prod-issuer, prod TLS, and node-affinity
   # for fleet pk nodes. (T001002)
@@ -60,22 +64,322 @@ patches:
       metadata:
         name: any-job
 
-  # whisper needs a GPU node on mentolder (k3s home workers); fleet pk nodes have
-  # no GPU, so transcription is best-effort here — repoint so the pod at least
-  # schedules instead of staying Pending (flag for Phase 2b capacity review).
-  - patch: |-
+  # T016544: KI-Workloads aus fleet-new Prod entfernen (whisper, bge-embed,
+  # bge-embed-bulk, bge-rerank, talk-recording, talk-transcriber) inkl.
+  # Services, llm-gateway-IngressRoutes, zugehoeriger NetworkPolicies und
+  # Modell-PVCs. Flux prune:true raeumt den Live-Stand ab. Wirkt auf
+  # fleet-new UND pk-Fallback (beide syncen ./mentolder) — die Base
+  # (prod-mentolder, k3d, staging) bleibt unberuehrt.
+  - target: { group: apps, version: v1, kind: Deployment, name: whisper }
+    patch: |-
+      $patch: delete
       apiVersion: apps/v1
       kind: Deployment
       metadata:
         name: whisper
+  - target: { group: apps, version: v1, kind: Deployment, name: bge-embed }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: bge-embed
+  - target: { group: apps, version: v1, kind: Deployment, name: bge-embed-bulk }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: bge-embed-bulk
+  - target: { group: apps, version: v1, kind: Deployment, name: bge-rerank }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: bge-rerank
+  - target: { group: apps, version: v1, kind: Deployment, name: talk-recording }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: talk-recording
+  - target: { group: apps, version: v1, kind: Deployment, name: talk-transcriber }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: talk-transcriber
+  - target: { version: v1, kind: Service, name: whisper }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: whisper
+  - target: { version: v1, kind: Service, name: talk-recording }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: talk-recording
+  - target: { version: v1, kind: Service, name: talk-transcriber }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: talk-transcriber
+  - target: { version: v1, kind: Service, name: llm-gateway-embed }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: llm-gateway-embed
+  - target: { version: v1, kind: Service, name: llm-gateway-rerank }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: llm-gateway-rerank
+  - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: llm-gateway-embed }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: llm-gateway-embed
+  - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: llm-gateway-rerank }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: llm-gateway-rerank
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-llm-gateway-egress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-llm-gateway-egress
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-transcriber-to-website-egress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-transcriber-to-website-egress
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-website-to-bge-embed-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-website-to-bge-embed-ingress
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-website-to-bge-rerank-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-website-to-bge-rerank-ingress
+  - target: { version: v1, kind: PersistentVolumeClaim, name: bge-embed-models }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: bge-embed-models
+  - target: { version: v1, kind: PersistentVolumeClaim, name: bge-rerank-models }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: bge-rerank-models
+
+  # T016559: Vaultwarden-App aus fleet-new Prod entfernen (Deployment,
+  # Service, Ingress, NetPol, Daten-PVC, zugehoerige Middleware). Die DB
+  # 'vaultwarden' in shared-db bleibt erhalten (Backup unter /tmp/t016559-pg).
+  - target: { group: apps, version: v1, kind: Deployment, name: vaultwarden }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: vaultwarden
+  - target: { version: v1, kind: Service, name: vaultwarden }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: vaultwarden
+  - target: { version: v1, kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: vaultwarden-data-pvc
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-vault }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-vault
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-website-to-vaultwarden-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-website-to-vaultwarden-ingress
+  - target: { group: traefik.io, version: v1alpha1, kind: Middleware, name: rate-limit-vault }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: rate-limit-vault
+
+  # T016560: Knowledge-Ingest-CronJobs laufen nur noch in Dev (devmesh) —
+  # aus dem Fleet-Overlay entfernen (Datenbankziele zeigen nach Dev).
+  - target: { group: batch, version: v1, kind: CronJob, name: knowledge-ingest-prs }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: knowledge-ingest-prs
+  - target: { group: batch, version: v1, kind: CronJob, name: knowledge-ingest-markdown }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: knowledge-ingest-markdown
+  - target: { group: batch, version: v1, kind: CronJob, name: knowledge-ingest-bugs }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: knowledge-ingest-bugs
+  - target: { group: batch, version: v1, kind: CronJob, name: knowledge-reindex-all }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: knowledge-reindex-all
+
+  # T016561: Videovault + Mediaviewer-Widget laufen nur noch in Dev
+  # (devmesh) — aus dem Fleet-Overlay entfernen (Deployments, Services,
+  # Ingresses, Middleware, Uploads-PVC, oauth2-Proxys).
+  - target: { group: apps, version: v1, kind: Deployment, name: videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: videovault
+  - target: { version: v1, kind: Service, name: videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: videovault
+  - target: { version: v1, kind: PersistentVolumeClaim, name: videovault-uploads-pvc }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: videovault-uploads-pvc
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-videovault
+  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: oauth2-proxy-videovault
+  - target: { version: v1, kind: Service, name: oauth2-proxy-videovault }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: oauth2-proxy-videovault
+  - target: { group: apps, version: v1, kind: Deployment, name: mediaviewer-widget }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mediaviewer-widget
+  - target: { version: v1, kind: Service, name: mediaviewer-widget }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: mediaviewer-widget
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-mediaviewer }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-mediaviewer
+  - target: { group: traefik.io, version: v1alpha1, kind: Middleware, name: mediaviewer-embed-headers }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: mediaviewer-embed-headers
+  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-mediaviewer }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: oauth2-proxy-mediaviewer
+  - target: { version: v1, kind: Service, name: oauth2-proxy-mediaviewer }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: oauth2-proxy-mediaviewer
+
+  # D3 (T016529): Vaultwarden-PVC von Longhorn (Basis-Patch in prod-mentolder)
+  # auf local-path zurueckstellen — im gekko-Cluster gibt es kein Longhorn.
+  - target: { kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: vaultwarden-data-pvc
       spec:
-        template:
-          spec:
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                    - matchExpressions:
-                        - key: kubernetes.io/hostname
-                          operator: In
-                          values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
+        storageClassName: local-path
+
+  # T016544: whisper-Deployment ist per $patch:delete oben entfernt — der
+  # fruehere GPU-Affinitaets-Patch ist damit gegenstandslos (unmatched Patches
+  # lassen den Build fehlschlagen).

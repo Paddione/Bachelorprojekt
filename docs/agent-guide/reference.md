@@ -29,7 +29,7 @@ Moved from `AGENTS.md` (C1b diet, T900560) — read on-demand, do not frontload.
 - **`k3d/`**: Base Kubernetes manifests (Kustomize). Applied by pull-based FluxCD pipeline and break-glass deploy.
 - **`prod/`**: Shared production patches (TLS, replicas, resource limits).
 - **`prod-fleet/mentolder/`, `prod-fleet/korczewski/`**: Overlays applied in prod, referenced by `ENV_OVERLAY` in `environments/<brand>.yaml`. Wraps base overlay with `fleet-common` and node affinity.
-- **`prod-fleet/mentolder-jobs/`, `prod-fleet/korczewski-jobs/` (T002207)**: Isolated bootstrap/seed Job overlays (`flux-<brand>-jobs` Kustomizations in `flux/clusters/fleet/ks-jobs-*.yaml`) with `dependsOn`, `force: true`, `wait: false`.
+- **`prod-fleet/korczewski-jobs/` (T002207)**: Isolated bootstrap/seed Job overlay (`flux-korczewski-jobs` Kustomization in `flux/clusters/fleet/ks-jobs-*.yaml`) with `dependsOn`, `force: true`, `wait: false`. Das Mentolder-Pendant entfiel mit T016558 (flux-mentolder-jobs aus Prod entfernt).
 - **`prod-fleet/staging/`, `prod-fleet/website-staging/` (T015004)**: Staging stack wired into Flux (`workspace-staging`, `website-staging`). Env profile: `environments/staging.yaml`. CronJobs target `${WEBSITE_NAMESPACE}`.
 - **Flux GitOps Pipeline**: Pull-based deployment. `.github/workflows/render-fleet-artifact.yml` renders the OCI artifact `ghcr.io/paddione/fleet-manifests` on `main` push, reconciled by Flux (`flux/clusters/fleet/`). `task workspace:deploy` is break-glass fallback.
 - **`environments/` Config & Secrets Registry**:

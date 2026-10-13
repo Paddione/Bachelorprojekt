@@ -1,7 +1,7 @@
 # NUR VIA TASK DEPLOYEN [T901777]: Datei enthaelt Escapes/Platzhalter fuer den Task/Flux-Render-Pfad. Direktes 'kubectl apply -f' hinterlaesst Literale (siehe k3d/README.md).
 # ═══════════════════════════════════════════════════════════════════
 # Knowledge Ingestion CronJobs — embed PR history, markdown docs,
-# and bug tickets into knowledge.chunks via Voyage AI embeddings.
+# and bug tickets into knowledge.chunks via local bge-m3 embeddings (T016562).
 # Four schedules: prs (daily 2am), markdown (daily 2:30am),
 # bugs (daily 3am), reindex-all (weekly Sunday 4am).
 # ═══════════════════════════════════════════════════════════════════
@@ -69,7 +69,7 @@ data:
         await pool.query(
           `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
            VALUES ($1, $2, $3, $4, $5)`,
-          [docId, collectionId, c.position, c.text, `[$${c.embedding.join(',')}]`],
+          [docId, collectionId, c.position, c.text, `[${c.embedding.join(',')}]`],
         );
       }
       return { docId, reused: false };
@@ -85,24 +85,21 @@ data:
       );
     }
 
-    export async function callVoyage(inputs, inputType = 'document') {
-      const k = process.env.VOYAGE_API_KEY;
-      if (!k) throw new Error('VOYAGE_API_KEY unset');
-      const r = await fetch('https://api.voyageai.com/v1/embeddings', {
-        method: 'POST',
-        headers: { Authorization: `Bearer $${k}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: inputs, model: 'voyage-multilingual-2', input_type: inputType }),
-      });
-      if (!r.ok) throw new Error(`voyage $${r.status} $${await r.text()}`);
-      const j = await r.json();
-      return { embeddings: j.data.map(d => d.embedding), tokens: j.usage.total_tokens };
-    }
-
+    // T016562: Voyage entfernt — Einbettung immer ueber lokales bge-m3
+    // (LLM_EMBED_URL, fail-closed).
     export async function embedAll(texts, batch = 128) {
+      const bgeUrl = process.env.LLM_EMBED_URL;
+      if (!bgeUrl) throw new Error('LLM_EMBED_URL nicht konfiguriert');
       const out = [];
       for (let i = 0; i < texts.length; i += batch) {
-        const r = await callVoyage(texts.slice(i, i + batch), 'document');
-        out.push(...r.embeddings);
+        const r = await fetch(`${bgeUrl}/v1/embeddings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'bge-m3', input: texts.slice(i, i + batch) }),
+        });
+        if (!r.ok) throw new Error(`bge ${r.status} ${await r.text()}`);
+        const j = await r.json();
+        out.push(...j.data.map(d => d.embedding));
       }
       return out;
     }
@@ -134,6 +131,9 @@ data:
 
     const COLLECTION_NAME = 'PR History';
     const COLLECTION_SOURCE = 'pr_history';
+    // T016563: nur PRs mit Link-Aktivitaet im Rueckblick-Fenster
+    // (Default 30 Tage, via INGEST_LOOKBACK_DAYS konfigurierbar).
+    const LOOKBACK_DAYS = Number(process.env.INGEST_LOOKBACK_DAYS ?? 30);
 
     async function main() {
       const pool = makePool();
@@ -149,7 +149,9 @@ data:
              FROM tickets.ticket_links l
              JOIN tickets.tickets t ON t.id = l.from_id
             WHERE l.pr_number IS NOT NULL
+              AND l.created_at > now() - ($1 || ' days')::interval
             ORDER BY l.pr_number DESC`,
+          [LOOKBACK_DAYS],
         );
 
         if (rows.length === 0) {
@@ -161,22 +163,22 @@ data:
           );
           const liveCount = Number(live[0]?.n ?? 0);
           if (liveCount > 0) {
-            console.error(`0 PRs, but live store has $${liveCount} — source misconfiguration?`);
+            console.error(`0 PRs, but live store has ${liveCount} — source misconfiguration?`);
             process.exit(1);
           }
           console.log('0 PRs (live store empty — nothing to ingest)');
         }
 
-        console.log(`Found $${rows.length} PRs to ingest`);
+        console.log(`Found ${rows.length} PRs to ingest`);
 
         for (const row of rows) {
           const text = [
-            `PR #$${row.pr_number}: $${row.title}`,
+            `PR #${row.pr_number}: ${row.title}`,
             row.description ?? '',
           ].filter(Boolean).join('\n\n');
 
           const hash = sha256(text);
-          const sourceUri = `pr:$${row.pr_number}`;
+          const sourceUri = `pr:${row.pr_number}`;
           const chunks = chunkPlain(text).map(c => ({ ...c, embedding: null }));
 
           const embeddings = await embedAll(chunks.map(c => c.text));
@@ -184,7 +186,7 @@ data:
 
           await upsertDocumentAndChunks(pool, {
             collectionId,
-            title: `PR #$${row.pr_number}: $${row.title}`,
+            title: `PR #${row.pr_number}: ${row.title}`,
             sourceUri,
             rawText: text,
             hash,
@@ -221,6 +223,9 @@ data:
     const COLLECTION_NAME = 'Bug Tickets';
     const COLLECTION_SOURCE = 'bug_tickets';
     const BRAND = process.env.BRAND ?? 'mentolder';
+    // T016563: offene Tickets immer, erledigte nur im Rueckblick-Fenster
+    // (Default 30 Tage, via INGEST_LOOKBACK_DAYS konfigurierbar).
+    const LOOKBACK_DAYS = Number(process.env.INGEST_LOOKBACK_DAYS ?? 30);
 
     async function main() {
       const pool = makePool();
@@ -229,7 +234,7 @@ data:
           name: COLLECTION_NAME,
           source: COLLECTION_SOURCE,
           brand: BRAND,
-          description: `Bug tickets for brand: $${BRAND}`,
+          description: `Bug tickets for brand: ${BRAND}`,
         });
 
         const { rows } = await pool.query(
@@ -239,8 +244,11 @@ data:
                     ORDER BY l.created_at DESC LIMIT 1) AS fixed_in_pr
              FROM tickets.tickets t
             WHERE t.brand = $1 AND t.type IN ('bug','fix')
+              AND (t.status NOT IN ('done','archived')
+                   OR (t.status = 'done'
+                       AND t.updated_at > now() - ($2 || ' days')::interval))
             ORDER BY t.created_at DESC`,
-          [BRAND],
+          [BRAND, LOOKBACK_DAYS],
         );
 
         if (rows.length === 0) {
@@ -253,31 +261,31 @@ data:
           );
           const liveCount = Number(live[0]?.n ?? 0);
           if (liveCount > 0) {
-            console.error(`0 bug tickets, but live store has $${liveCount} — source misconfiguration?`);
+            console.error(`0 bug tickets, but live store has ${liveCount} — source misconfiguration?`);
             process.exit(1);
           }
           console.log('0 bug tickets (live store empty — nothing to ingest)');
         }
 
-        console.log(`Found $${rows.length} bug tickets for brand "$${BRAND}"`);
+        console.log(`Found ${rows.length} bug tickets for brand "${BRAND}"`);
 
         for (const row of rows) {
           const text = [
-            `$${row.ticket_id}: $${row.title}`,
-            `Status: $${row.status}`,
-            row.fixed_in_pr ? `Fixed in PR #$${row.fixed_in_pr}` : '',
+            `${row.ticket_id}: ${row.title}`,
+            `Status: ${row.status}`,
+            row.fixed_in_pr ? `Fixed in PR #${row.fixed_in_pr}` : '',
             row.description ?? '',
           ].filter(Boolean).join('\n\n');
 
           const hash = sha256(text);
-          const sourceUri = `bug:$${row.ticket_id}`;
+          const sourceUri = `bug:${row.ticket_id}`;
           const rawChunks = chunkPlain(text);
           const embeddings = await embedAll(rawChunks.map(c => c.text));
           const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
 
           await upsertDocumentAndChunks(pool, {
             collectionId,
-            title: `$${row.ticket_id}: $${row.title}`,
+            title: `${row.ticket_id}: ${row.title}`,
             sourceUri,
             rawText: text,
             hash,
@@ -325,7 +333,7 @@ spec:
           restartPolicy: OnFailure
           initContainers:
             - name: npm-install
-              image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
               imagePullPolicy: IfNotPresent
               command: [sh, -c, "npm install pg --no-package-lock --silent --prefix /tmp && cp -r /tmp/node_modules/* /scripts/node_modules/"]
               volumeMounts:
@@ -341,7 +349,7 @@ spec:
                   memory: 256Mi
           containers:
             - name: ingest
-              image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
               imagePullPolicy: IfNotPresent
               command: [node, /scripts/ingest-prs.mjs]
               env:
@@ -356,11 +364,6 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: WEBSITE_DB_PASSWORD
-                - name: VOYAGE_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: knowledge-secrets
-                      key: VOYAGE_API_KEY
                 - name: LLM_EMBED_URL
                   value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
               volumeMounts:
@@ -407,7 +410,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: ingest
-              image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
               imagePullPolicy: IfNotPresent
               command: [node, /scripts/ingest-markdown.mjs]
               env:
@@ -449,7 +452,7 @@ spec:
           restartPolicy: OnFailure
           initContainers:
             - name: npm-install
-              image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
               imagePullPolicy: IfNotPresent
               command: [sh, -c, "npm install pg --no-package-lock --silent --prefix /tmp && cp -r /tmp/node_modules/* /scripts/node_modules/"]
               volumeMounts:
@@ -465,7 +468,7 @@ spec:
                   memory: 256Mi
           containers:
             - name: ingest
-              image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
               imagePullPolicy: IfNotPresent
               command: [node, /scripts/ingest-bug-tickets.mjs]
               env:
@@ -480,11 +483,6 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: WEBSITE_DB_PASSWORD
-                - name: VOYAGE_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: knowledge-secrets
-                      key: VOYAGE_API_KEY
                 - name: LLM_EMBED_URL
                   value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
                 - name: BRAND
@@ -529,7 +527,7 @@ spec:
           restartPolicy: OnFailure
           initContainers:
             - name: npm-install
-              image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
               imagePullPolicy: IfNotPresent
               command: [sh, -c, "npm install pg --no-package-lock --silent --prefix /tmp && cp -r /tmp/node_modules/* /scripts/node_modules/"]
               volumeMounts:
@@ -545,7 +543,7 @@ spec:
                   memory: 256Mi
           containers:
             - name: ingest
-              image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
               imagePullPolicy: IfNotPresent
               command:
                 - sh
@@ -564,11 +562,6 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: WEBSITE_DB_PASSWORD
-                - name: VOYAGE_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: knowledge-secrets
-                      key: VOYAGE_API_KEY
                 - name: BRAND
                   value: "mentolder"
               volumeMounts:

@@ -6,7 +6,8 @@ import { chunkText } from '../../../../../../lib/chunking.ts';
 import { createHash } from 'node:crypto';
 
 // Hard cap for synchronous web uploads. Larger inputs (typically multi-hundred-page
-// books) need the throttled CLI path because Voyage's free tier rate-limits would
+// books) need the throttled CLI path because the local embedder is slow and
+// bursty HTTP indexing would saturate it (T016562: Voyage entfernt).
 // turn the request into a multi-minute hang. Caller gets 202 + clear instruction.
 const SYNC_CHUNK_CAP = 200;
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
@@ -91,8 +92,10 @@ export const POST: APIRoute = async ({ request, params }) => {
     }), { status: 202 });
   }
 
+  // T016562: Voyage entfernt — Index läuft immer mit bge-m3 (Bestand wird
+  // per Reindex umgestellt; Cross-Space-Queries wirft MixedEmbeddingModelError).
   const { embeddings } = await embedBatch(chunks.map(c => c.text), {
-    model: collection.embedding_model as 'bge-m3' | 'voyage-multilingual-2',
+    model: 'bge-m3',
     purpose: 'index',
   });
   await upsertChunks(collection.id, doc.id, chunks.map((c, i) => ({

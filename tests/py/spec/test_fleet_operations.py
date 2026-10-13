@@ -39,7 +39,8 @@ def test_traefik_values(repo_root: Path):
         .get("matchExpressions", [{}])[0]
         .get("values", [])
     )
-    assert sorted(affinity) == ["pk-hetzner-4", "pk-hetzner-6", "pk-hetzner-8"]
+    # T016529: Traefik laeuft auf den gekko-Servern (pk hat fleet verlassen).
+    assert sorted(affinity) == ["gekko-hetzner-2", "gekko-hetzner-3", "gekko-hetzner-4"]
 
     # cloud-init
     cloud_init = (repo_root / "prod" / "cloud-init.yaml").read_text()
@@ -192,7 +193,6 @@ def test_internal_endpoints(repo_root: Path):
     schema = repo_root / "environments" / "schema.yaml"
     cm = repo_root / "k3d" / "configmap-domains.yaml"
     fleet_m = repo_root / "environments" / "fleet-mentolder.yaml"
-    bge_patch = repo_root / "prod-fleet" / "mentolder" / "bge-hosts-patch.yaml"
     gateway_ing = repo_root / "k3d" / "llm-gateway-ingress.yaml"
 
     assert "name: BGE_EMBED_HOST" in schema.read_text()
@@ -200,10 +200,10 @@ def test_internal_endpoints(repo_root: Path):
     assert 'BGE_EMBED_HOST: "embed.localhost"' in cm.read_text()
     assert 'BGE_EMBED_HOST: "bge-embed.mentolder.de"' in fleet_m.read_text()
     assert 'BGE_RERANK_HOST: "bge-rerank.mentolder.de"' in fleet_m.read_text()
-    assert "bge-embed.mentolder.de" in bge_patch.read_text()
-    assert "bge-rerank.mentolder.de" in bge_patch.read_text()
+    # T016544: bge-hosts-patch.yaml ist entfallen (llm-gateway-Routen aus dem
+    # Fleet-Overlay entfernt) — die Datei darf nicht mehr existieren.
+    assert not (repo_root / "prod-fleet" / "mentolder" / "bge-hosts-patch.yaml").is_file()
 
-    assert "name: wg-only" in bge_patch.read_text()
     assert "ipWhiteList" in gateway_ing.read_text()
     assert "192.168.100.0/24" in gateway_ing.read_text()
 
@@ -491,7 +491,8 @@ def test_staging_flux_wiring(repo_root: Path):
 # ── vaultwarden-smtp-from.bats ─────────────────────────────────────────────
 
 def test_vaultwarden_smtp_from(repo_root: Path):
-    for brand in ["mentolder", "korczewski"]:
+    # T016559: mentolder rendert kein vaultwarden-Deployment mehr (entfernt).
+    for brand in ["korczewski"]:
         cmd = (
             f"source scripts/env-resolve.sh '{brand}' >/dev/null 2>&1 && "
             f"kubectl kustomize 'prod-fleet/{brand}' --load-restrictor=LoadRestrictionsNone 2>/dev/null | envsubst | awk '/^  name: vaultwarden$/,/^---$/'"
@@ -506,6 +507,15 @@ def test_vaultwarden_smtp_from(repo_root: Path):
         val = val_match.group(1).strip()
         assert "@" in val, f"{brand}: SMTP_FROM does not contain email: {val}"
         assert "${" not in val, f"{brand}: SMTP_FROM has unresolved placeholder: {val}"
+
+    # T016559: mentolder darf keinen vaultwarden-Block mehr rendern.
+    cmd_m = (
+        "source scripts/env-resolve.sh 'mentolder' >/dev/null 2>&1 && "
+        "kubectl kustomize 'prod-fleet/mentolder' --load-restrictor=LoadRestrictionsNone 2>/dev/null | envsubst | awk '/^  name: vaultwarden$/,/^---$/'"
+    )
+    res_m = subprocess.run(["bash", "-c", cmd_m], cwd=repo_root, capture_output=True, text=True)
+    assert res_m.returncode == 0
+    assert "SMTP_HOST" not in res_m.stdout, "mentolder rendert noch vaultwarden (T016559)"
 
     # Verify SMTP_FROM is in taskfiles
     taskfile_txt = (repo_root / "Taskfile.yml").read_text() + "\n" + (repo_root / "taskfiles" / "Taskfile.workspace.yml").read_text()

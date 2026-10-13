@@ -6,8 +6,8 @@
  *   QUERY      — search query text (required)
  *   SOURCE     — collection source filter (default: "specs_plans")
  *   LIMIT      — max results (default: 5)
- *   THRESHOLD  — minimum score 0..1 (default: 0.65)
- *   VOYAGE_API_KEY — Voyage AI API key (absent → graceful error JSON, exit 0)
+ *   THRESHOLD  — minimum score 0..1 (default: 0.35, bge-m3-Niveau, T016562)
+ *   LLM_EMBED_URL — lokales bge-m3 (absent → graceful error JSON, exit 0)
  *   PGURL      — postgres connection string
  *
  * CLI args (override env):
@@ -18,7 +18,7 @@
  * Logs  (stderr):  diagnostic messages only
  */
 
-import { makePool, callVoyage } from './lib-knowledge-pg.mjs';
+import { makePool, embedAllWithModel } from './lib-knowledge-pg.mjs';
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -37,22 +37,24 @@ async function main() {
   const query     = cliArgs.query     ?? process.env.QUERY;
   const source    = cliArgs.source    ?? process.env.SOURCE    ?? 'specs_plans';
   const limit     = Number(cliArgs.limit     ?? process.env.LIMIT     ?? 5);
-  const threshold = Number(cliArgs.threshold ?? process.env.THRESHOLD ?? 0.65);
+  // T016562: bge-m3-Default (Voyage-0.65 filterte relevante Treffer ~0.45 weg).
+  const threshold = Number(cliArgs.threshold ?? process.env.THRESHOLD ?? 0.35);
 
   if (!query) {
     process.stderr.write('ERROR: QUERY is required\n');
     process.exit(1);
   }
 
-  if (!process.env.VOYAGE_API_KEY) {
-    process.stdout.write(JSON.stringify({ error: 'VOYAGE_API_KEY not set', results: [] }) + '\n');
+  if (!process.env.LLM_EMBED_URL) {
+    process.stdout.write(JSON.stringify({ error: 'LLM_EMBED_URL not set', results: [] }) + '\n');
     process.exit(0);
   }
 
   const pool = makePool();
   try {
     process.stderr.write(`Embedding query: "${query}" (source=${source}, limit=${limit}, threshold=${threshold})\n`);
-    const { embeddings } = await callVoyage([query], 'query');
+    // T016562: Voyage entfernt — Query-Embedding immer ueber lokales bge-m3.
+    const { embeddings } = await embedAllWithModel([query]);
     const embedding = embeddings[0];
 
     const vectorLiteral = '[' + embedding.join(',') + ']';

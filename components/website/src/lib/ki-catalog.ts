@@ -136,15 +136,6 @@ export const KI_CATALOG: InterfaceDef[] = [
     supportsParams: COMMON_PARAMS,
   },
   {
-    id: 'voyage',
-    label: 'Voyage',
-    kinds: ['embed', 'rerank'],
-    suggestedModels: [
-      { id: 'voyage-multilingual-2', label: 'voyage-multilingual-2' },
-    ],
-    apiKeyEnv: 'VOYAGE_API_KEY',
-  },
-  {
     id: 'local-qwen35',
     label: 'Lokales qwen3.5 (LM Studio, Mesh)',
     kinds: ['chat'],

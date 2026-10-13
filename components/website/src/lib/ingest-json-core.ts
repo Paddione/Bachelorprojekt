@@ -28,7 +28,8 @@ export async function ingestJsonChunks(
   onProgress: (done: number, total: number) => void,
 ): Promise<{ collectionId: string; count: number }> {
   const { entries, slug, sourceUri, brand = null } = options;
-  const embeddingModel = process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2';
+  // T016562: Voyage entfernt — immer lokales bge-m3.
+  const embeddingModel = 'bge-m3';
 
   // Find or create collection by slug name
   const existingRes = await pool.query<{ id: string }>(

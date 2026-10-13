@@ -7,7 +7,7 @@ describe('KI_CATALOG (kuratierte angebotene Schnittstellen)', () => {
     expect(ids).toEqual(
       expect.arrayContaining([
         'anthropic', 'deepseek', 'local-cluster', 'local-lmstudio', 'local-ollama',
-        'openai', 'mistral', 'voyage', 'custom',
+        'openai', 'mistral', 'custom',
       ]),
     );
   });
@@ -56,8 +56,8 @@ describe('KI_CATALOG (kuratierte angebotene Schnittstellen)', () => {
     expect(anthropic.suggestedModels.length).toBeGreaterThan(0);
   });
 
-  it('voyage bedient embed + rerank', () => {
-    expect(interfaceById('voyage')!.kinds).toEqual(expect.arrayContaining(['embed', 'rerank']));
+  it('hat KEINEN voyage-Eintrag mehr (T016562 entfernt)', () => {
+    expect(interfaceById('voyage')).toBeUndefined();
   });
 });
 

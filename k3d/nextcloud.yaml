@@ -98,7 +98,7 @@ spec:
             - name: app
               mountPath: /var/www/html
         - name: copy-php-conf
-          image: nextcloud:34-apache@sha256:e93ccfc952c95f18175f3d297fb2f60c35070c05ca976050c250a9ddab793e75
+          image: nextcloud:35.0.1-apache@sha256:8f2f0e93aca5e9457019933936dea1f313052e72c696b4aecb31580a208b859f
           imagePullPolicy: Always
           securityContext:
             runAsNonRoot: true
@@ -118,7 +118,7 @@ spec:
               mountPath: /php-conf-d
       containers:
         - name: nextcloud
-          image: nextcloud:34-apache@sha256:e93ccfc952c95f18175f3d297fb2f60c35070c05ca976050c250a9ddab793e75
+          image: nextcloud:35.0.1-apache@sha256:8f2f0e93aca5e9457019933936dea1f313052e72c696b4aecb31580a208b859f
           imagePullPolicy: Always
           securityContext:
             readOnlyRootFilesystem: false
@@ -256,7 +256,7 @@ spec:
               cpu: "2"
         # ── Cron sidecar: runs php cron.php every 5 min ───────────────
         - name: nextcloud-cron
-          image: nextcloud:34-apache@sha256:e93ccfc952c95f18175f3d297fb2f60c35070c05ca976050c250a9ddab793e75
+          image: nextcloud:35.0.1-apache@sha256:8f2f0e93aca5e9457019933936dea1f313052e72c696b4aecb31580a208b859f
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -329,7 +329,7 @@ spec:
         # zz-db.config.php resolves dbpassword via getenv('POSTGRES_PASSWORD'),
         # so this sidecar needs the same DB env as the main/cron containers.
         - name: notify-push
-          image: nextcloud:34-apache@sha256:e93ccfc952c95f18175f3d297fb2f60c35070c05ca976050c250a9ddab793e75
+          image: nextcloud:35.0.1-apache@sha256:8f2f0e93aca5e9457019933936dea1f313052e72c696b4aecb31580a208b859f
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

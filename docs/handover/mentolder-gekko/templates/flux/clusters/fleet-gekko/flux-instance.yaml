@@ -1,0 +1,25 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.x"
+    registry: "ghcr.io/fluxcd"
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    networkPolicy: true
+    size: medium
+  sync:
+    kind: GitRepository
+    # UEBERGABE-TODO: auf das neue Gekko-Repo zeigen lassen.
+    url: __GEKKO_GIT_URL__
+    ref: refs/heads/main
+    path: flux/clusters/fleet-gekko
+    interval: 10m

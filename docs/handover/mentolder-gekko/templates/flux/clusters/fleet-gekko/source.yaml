@@ -1,0 +1,11 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: fleet-gekko-source
+  namespace: flux-system
+spec:
+  interval: 5m
+  # UEBERGABE-TODO: auf das neue Gekko-Repo zeigen lassen.
+  url: __GEKKO_GIT_URL__
+  ref:
+    branch: main

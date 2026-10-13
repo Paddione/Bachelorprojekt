@@ -1,0 +1,33 @@
+version: "3"
+
+# mentolder-prod — minimales Taskfile fuer den Gekko-Prod-Betrieb.
+# Abgeleitet aus Bachelorprojekt (Chore T016564). Nur die Targets, die das
+# Mentolder-Prod-Repo braucht; der Rest (Website-Build, Dev-Stack, zweite
+# Marke) lebt nicht in diesem Repo.
+
+tasks:
+  flux:render:
+    desc: "Render mentolder-prod Komponenten nach out/ (kein Apply)"
+    cmds:
+      - bash scripts/flux-render-artifact.sh --out "{{.OUT | default \"out\"}}"
+
+  manifests:validate:
+    desc: "Validate mentolder-prod overlays with kustomize + client dry-run"
+    cmds:
+      - |
+        set -euo pipefail
+        for overlay in prod-fleet/platform prod-fleet/mentolder prod-fleet/website-mentolder prod-fleet/coturn; do
+          kustomize build "$overlay" --load-restrictor=LoadRestrictionsNone > /dev/null
+          echo "OK: $overlay"
+        done
+
+  flux:push:
+    desc: "Render + flux push artifact (privates GHCR) — UEBERGABE-TODO: URL anpassen"
+    cmds:
+      - |
+        task flux:render OUT=out
+        flux push artifact \
+          oci://__GEKKO_GHCR_OWNER__/__GEKKO_ARTIFACT_NAME__:latest \
+          --path=out \
+          --source="$(git config --get remote.origin.url)" \
+          --revision="main@sha1:$(git rev-parse HEAD)"

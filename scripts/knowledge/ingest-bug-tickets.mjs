@@ -4,6 +4,9 @@ import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollec
 const COLLECTION_NAME = 'Bug Tickets';
 const COLLECTION_SOURCE = 'bug_tickets';
 const BRAND = process.env.BRAND ?? 'mentolder';
+// T016563: Aktualitaets-Filter — offene Tickets immer, erledigte nur im
+// Rueckblick-Fenster (archivierte nie). Hält erledigten Altbulk aus der Suche.
+const LOOKBACK_DAYS = Number(process.env.INGEST_LOOKBACK_DAYS ?? 30);
 
 async function main() {
   const pool = makePool();
@@ -22,8 +25,11 @@ async function main() {
                 ORDER BY l.created_at DESC LIMIT 1) AS fixed_in_pr
          FROM tickets.tickets t
         WHERE t.brand = $1 AND t.type IN ('bug','fix')
+          AND (t.status NOT IN ('done','archived')
+               OR (t.status = 'done'
+                   AND t.updated_at > now() - ($2 || ' days')::interval))
         ORDER BY t.created_at DESC`,
-      [BRAND],
+      [BRAND, LOOKBACK_DAYS],
     );
 
     if (rows.length === 0) {

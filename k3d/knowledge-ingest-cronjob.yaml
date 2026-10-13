@@ -131,6 +131,9 @@ data:
 
     const COLLECTION_NAME = 'PR History';
     const COLLECTION_SOURCE = 'pr_history';
+    // T016563: nur PRs mit Link-Aktivitaet im Rueckblick-Fenster
+    // (Default 30 Tage, via INGEST_LOOKBACK_DAYS konfigurierbar).
+    const LOOKBACK_DAYS = Number(process.env.INGEST_LOOKBACK_DAYS ?? 30);
 
     async function main() {
       const pool = makePool();
@@ -146,7 +149,9 @@ data:
              FROM tickets.ticket_links l
              JOIN tickets.tickets t ON t.id = l.from_id
             WHERE l.pr_number IS NOT NULL
+              AND l.created_at > now() - ($1 || ' days')::interval
             ORDER BY l.pr_number DESC`,
+          [LOOKBACK_DAYS],
         );
 
         if (rows.length === 0) {
@@ -218,6 +223,9 @@ data:
     const COLLECTION_NAME = 'Bug Tickets';
     const COLLECTION_SOURCE = 'bug_tickets';
     const BRAND = process.env.BRAND ?? 'mentolder';
+    // T016563: offene Tickets immer, erledigte nur im Rueckblick-Fenster
+    // (Default 30 Tage, via INGEST_LOOKBACK_DAYS konfigurierbar).
+    const LOOKBACK_DAYS = Number(process.env.INGEST_LOOKBACK_DAYS ?? 30);
 
     async function main() {
       const pool = makePool();
@@ -236,8 +244,11 @@ data:
                     ORDER BY l.created_at DESC LIMIT 1) AS fixed_in_pr
              FROM tickets.tickets t
             WHERE t.brand = $1 AND t.type IN ('bug','fix')
+              AND (t.status NOT IN ('done','archived')
+                   OR (t.status = 'done'
+                       AND t.updated_at > now() - ($2 || ' days')::interval))
             ORDER BY t.created_at DESC`,
-          [BRAND],
+          [BRAND, LOOKBACK_DAYS],
         );
 
         if (rows.length === 0) {

@@ -3,6 +3,9 @@ import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollec
 
 const COLLECTION_NAME = 'PR History';
 const COLLECTION_SOURCE = 'pr_history';
+// T016563: Aktualitaets-Filter — nur PRs mit Link-Aktivitaet im
+// Rueckblick-Fenster. Alt-PRs bleiben als ADRs/Specs erhalten, nicht im Index.
+const LOOKBACK_DAYS = Number(process.env.INGEST_LOOKBACK_DAYS ?? 30);
 
 async function main() {
   const pool = makePool();
@@ -18,7 +21,9 @@ async function main() {
          FROM tickets.ticket_links l
          JOIN tickets.tickets t ON t.id = l.from_id
         WHERE l.pr_number IS NOT NULL
+          AND l.created_at > now() - ($1 || ' days')::interval
         ORDER BY l.pr_number DESC`,
+      [LOOKBACK_DAYS],
     );
 
     if (rows.length === 0) {

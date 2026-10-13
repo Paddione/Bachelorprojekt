@@ -76,22 +76,20 @@ def check_block_count(actual, expected=EXPECTED_BLOCKS):
 
 
 def read_gguf_block_count(gguf_path):
-    """Best-effort block count from a GGUF file (llama metadata key)."""
+    """Best-effort block count from a GGUF file (qwen35 or llama metadata key)."""
     import struct
     with open(gguf_path, "rb") as f:
         if f.read(4) != b"GGUF":
             raise ValueError(f"not a GGUF file: {gguf_path}")
         f.read(4 + 8)  # version + tensor count + metadata kv count
-        # walk metadata: count occurrences of the block-count key
-        data = f.read()
-    key = b"llama.block_count"
-    i = data.find(key)
-    if i < 0:
-        raise ValueError(f"llama.block_count not found in {gguf_path}")
-    # value follows key bytes + type tag; u32 LE right after the key string
-    off = i + len(key) + 5
-    (count,) = struct.unpack_from("<I", data[off:off + 4])
-    return count
+        data = f.read(100_000)
+    for key in [b"qwen35.block_count", b"llama.block_count"]:
+        i = data.find(key)
+        if i >= 0:
+            off = i + len(key) + 4
+            (count,) = struct.unpack_from("<I", data[off:off + 4])
+            return count
+    raise ValueError(f"block_count key not found in {gguf_path}")
 
 
 def main():
@@ -149,6 +147,13 @@ def main():
             tokenizer,
             quantization_method=qm,
         )
+
+    gguf_alt_dir = gguf_dir.parent / f"{gguf_dir.name}_gguf"
+    if gguf_alt_dir.is_dir():
+        for f in gguf_alt_dir.glob("*.gguf"):
+            target = gguf_dir / f.name
+            if not target.exists():
+                f.rename(target)
 
     ggufs = sorted(gguf_dir.glob("*.gguf"))
     if not ggufs:

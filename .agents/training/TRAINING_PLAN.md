@@ -96,3 +96,18 @@ Teacher über :1919 + T3 Human-QC). Format: `messages`, System-Prompt
   Werkzeug-Stack mit Task-Targets; dieses Verzeichnis ist der leichtgewichtige
   BP-Assistent-Pfad.
 - `test_3_agents_parallel.py` ist der Deploy-Smoke-Test (nicht Training).
+
+## 9. Run-Protokoll — Qwen3.5-2B (T901041, 2026-10-13)
+- **Host:** RTX 5070 Ti (16 GB VRAM, `CUDA_VISIBLE_DEVICES=1`), WSL2.
+- **Konfiguration:** `unsloth/Qwen3.5-2B` 16-bit LoRA $r=32$, $\alpha=32$, P1 Slice (`dataset_2b_train.jsonl`, 137 Samples), 180 Steps, lr 2e-4.
+- **Train Loss:** 0.5145 (Runtime 294.8s).
+- **Eval-Ergebnis (`eval_2b_results.json`):**
+  - Command-Match: 3/3 = **1.000** (Schwelle $\ge 0.70$).
+  - Empty-Rate: **0.000** (Schwelle 0.000).
+  - Think-Leak-Rate: **0.000** (Schwelle 0.000).
+  - Gate-Urteil: **PASS** (Viability Gate erfüllt).
+- **Export & GGUF-Verifikation:**
+  - `qwen35_2b_bp_merged` (merged 16-bit) und `qwen35_2b_bp_gguf` (Q4_K_M, Q8_0).
+  - Block-Count: `qwen35.block_count = 25` (24 Layer + 1 Output Layer; GGUF qwen35-Architektur).
+  - Smoke-Test: `llama-cli` erzeugt gültigen Output mit ~120 tok/s.
+- **Leiter:** `qwen35-2b` (`plan-worker-qwen35-2b`) in Live-Leiter §1 aufgenommen.

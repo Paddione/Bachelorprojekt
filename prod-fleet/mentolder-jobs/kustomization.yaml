@@ -148,3 +148,22 @@ patches:
       kind: PersistentVolumeClaim
       metadata:
         name: delete-pvc
+
+  # T016544-Nachzug: die llm-gateway-IngressRoutes fallen nicht unter den
+  # kind-weiten IngressRoute-Delete oben (falsche Gruppe networking.k8s.io
+  # statt traefik.io — separater Fix) und muessen daher gezielt entfernt
+  # werden, sonst appliziert flux-mentolder-jobs sie weiter.
+  - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: llm-gateway-embed }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: llm-gateway-embed
+  - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: llm-gateway-rerank }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: llm-gateway-rerank

@@ -122,6 +122,23 @@ git commit -m "chore(T<ticket>): add git-crypt GPG user <person> [T<ticket>]"
 
 `--no-commit` hält den Commit in der eigenen Hand (Commit-Konventionen, PR-Pfad).
 
+## SSH-Key (age, T016594)
+
+Entsperren nur mit einem SSH-Key, ohne GPG und ohne Keyfile-Transport. Der `git-crypt`-Key liegt
+mit `age` für die SSH-Public-Keys `patrick_ed25519` und `gekko_ed25519` verschlüsselt im
+**privaten** Dotfiles-Repo (`git-crypt/bachelorprojekt.key.age`). In diesem öffentlichen Repo liegt
+absichtlich keine Kopie, auch keine verschlüsselte.
+
+```bash
+bash ~/scripts/git-crypt-unlock-ssh.sh [-i <ssh-private-key>] ~/Bachelorprojekt
+```
+
+Das Skript (Dotfiles-Repo, `scripts/git-crypt-unlock-ssh.sh`) entschlüsselt den Key nach tmpfs,
+ruft `git-crypt unlock` auf und löscht ihn per `shred`. Hat der SSH-Key eine Passphrase, fragt
+`age` danach. Empfänger ändern: Key mit `git-crypt export-key` auf tmpfs exportieren, mit
+`age -R <pub> ...` neu verschlüsseln, den Klartext sofort `shred`en. Ein Empfänger lässt sich
+dadurch nicht sperren, die alte Datei bleibt in der Dotfiles-Historie. Dafür gilt der Widerruf unten.
+
 ## Widerruf
 
 Ein symmetrischer Key lässt sich nicht für eine Person sperren. Wer den Key hatte, kann jeden
@@ -146,6 +163,7 @@ Pflichtschritte:
    SSH-Keys) wird ersetzt, danach `task env:seal ENV=<env>` pro Umgebung und Deploy. Ohne
    Rotation bleibt der widerrufene Halter über die Git-Historie lesefähig.
 
-Anschließend den neuen Key per Transport an alle verbleibenden Halter verteilen,
+Anschließend `git-crypt/bachelorprojekt.key.age` im Dotfiles-Repo mit dem neuen Key neu
+erzeugen (siehe „SSH-Key (age)“), den neuen Key per Transport an alle verbleibenden Halter verteilen,
 `.git/git-crypt.old-*` mit `shred -u` löschen und den widerrufenen Eintrag aus
 `devmesh/key-holders.yaml` entfernen.

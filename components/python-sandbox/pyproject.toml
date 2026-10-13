@@ -1,0 +1,22 @@
+[project]
+name = "devmesh-python-sandbox"
+version = "1.0.0"
+description = "Hardware-isolated, airgapped Python execution engine and service for Devmesh LLM agents"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.28.0",
+    "pydantic>=2.6.0",
+    "pytest>=8.0.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "httpx>=0.27.0",
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+devmesh-sandbox-server = "components.python_sandbox.src.server:app"
+devmesh-sandbox-mcp = "components.python_sandbox.src.mcp_server:main"

@@ -72,3 +72,22 @@ def test_lokale_kopie_ingest_bug_tickets_mjs_liest_ebenfalls_tickets_tickets(rep
 def test_lokale_kopie_ingest_prs_mjs_liest_ebenfalls_tickets_ticket_links(repo_root):
     matched, _out = _grep_after(repo_root / "scripts/knowledge/ingest-prs.mjs", "FROM tickets.ticket_links", 20)
     assert matched, "lokale Kopie liest nicht ticket_links"
+
+
+def test_ingest_bug_tickets_filtert_aktualitaet_30_tage(repo_root):
+    matched, _out = _grep_after(repo_root / "scripts/knowledge/ingest-bug-tickets.mjs", "INGEST_LOOKBACK_DAYS", 5)
+    assert matched, "kein Rueckblick-Filter in ingest-bug-tickets.mjs"
+    matched, _out = _grep_after(
+        repo_root / "scripts/knowledge/ingest-bug-tickets.mjs", "NOT IN ('done','archived')", 5
+    )
+    assert matched, "kein Status-Filter (done/archived) in ingest-bug-tickets.mjs"
+
+
+def test_ingest_prs_filtert_aktualitaet_30_tage(repo_root):
+    matched, _out = _grep_after(repo_root / "scripts/knowledge/ingest-prs.mjs", "INGEST_LOOKBACK_DAYS", 5)
+    assert matched, "kein Rueckblick-Filter in ingest-prs.mjs"
+
+
+def test_rendered_configmaps_enthalten_rueckblick_filter(rendered):
+    text = rendered.read_text(encoding="utf-8")
+    assert text.count("INGEST_LOOKBACK_DAYS") >= 4, "Inline-Kopien im CronJob ohne Rueckblick-Filter"

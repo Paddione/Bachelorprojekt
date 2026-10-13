@@ -1,4 +1,4 @@
-"""Tests for the FastAPI sandbox REST endpoints."""
+"""Tests for the FastAPI sandbox REST endpoints with worker pooling."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -16,7 +16,20 @@ def test_health_endpoint(client):
     data = res.json()
     assert data["status"] == "online"
     assert data["service"] == "devmesh-python-sandbox"
+    assert data["config"]["max_concurrent_workers"] == 4
+    assert data["config"]["max_buffered_jobs"] == 28
+    assert data["config"]["default_memory_mb"] == 512
     assert "capabilities" in data
+
+
+def test_status_endpoint(client):
+    res = client.get("/v1/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["max_concurrent_workers"] == 4
+    assert data["max_buffered_jobs"] == 28
+    assert "available_worker_slots" in data
+    assert "available_queue_slots" in data
 
 
 def test_execute_endpoint_success(client):
@@ -24,7 +37,7 @@ def test_execute_endpoint_success(client):
         "code": "print('FASTAPI_SANDBOX_SUCCESS')",
         "files": {"config.json": '{"mode": "test"}'},
         "timeout_seconds": 5,
-        "memory_limit_mb": 256,
+        "memory_limit_mb": 512,
     }
     res = client.post("/v1/execute", json=payload)
     assert res.status_code == 200

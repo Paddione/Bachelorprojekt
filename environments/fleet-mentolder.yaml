@@ -48,11 +48,11 @@ env_vars:
   PRIMARY_FRONTEND: astro
   # TURN_OVERLAY_IP: pk-hetzner-4 overlay IP (wg-fleet, same fleet mesh as gekko-4)
   TURN_OVERLAY_IP: "10.20.0.1"
-  # TURN_NODE repointed to a fleet node (gekko-hetzner-2 does not exist on fleet).
-  # TURN_PUBLIC_IP pinned to pk-hetzner-4's public IP — the fleet node TURN_NODE
-  # resolves to. Must stay in sync with the fleet-dns-cutover allowlist.
-  TURN_PUBLIC_IP: "204.168.244.104"
-  TURN_NODE: "pk-hetzner-4"
+  # T016529: coturn/Janus laufen auf gekko-hetzner-2 (hostNetwork, ohne WG).
+  # TURN_PUBLIC_IP ist die oeffentliche IP von gekko-hetzner-2 — zugleich
+  # external-ip/nat_1_1_mapping der Manifeste prod-fleet/coturn.
+  TURN_PUBLIC_IP: "178.104.169.206"
+  TURN_NODE: "gekko-hetzner-2"
   NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
   AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
   VAULT_EXTERNAL_URL: "https://vault.mentolder.de"

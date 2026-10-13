@@ -75,6 +75,25 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: flux-coturn
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  dependsOn:
+    - name: flux-infra-controllers
+    - name: flux-sealed-secrets-mentolder
+  sourceRef:
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./coturn
+  prune: true
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: flux-mentolder-jobs
   namespace: flux-system
 spec:

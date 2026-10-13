@@ -74,12 +74,14 @@ def cutover_script(repo_root):
     return str(repo_root / "scripts" / "fleet-dns-cutover.sh")
 
 
-def test_fleet_mentolder_env_pins_turn_public_ip_to_pk_hetzner_4(repo_root):
+def test_fleet_mentolder_env_pins_turn_public_ip_to_gekko_hetzner_2(repo_root):
+    # T016529: coturn/Janus laufen auf gekko-hetzner-2 (ohne WG) — der Pin
+    # zeigt auf dessen oeffentliche IP, nicht mehr auf pk-hetzner-4.
     out = _grep_e(repo_root / "environments" / "fleet-mentolder.yaml", "TURN_PUBLIC_IP")
     assert out != ""
-    assert "204.168.244.104" in out
+    assert "178.104.169.206" in out
+    assert "204.168.244.104" not in out
     assert "46.225.125.59" not in out
-    assert "178.104.169.206" not in out
 
 
 def test_plan_mentolder_change_set_is_a_records_only_allowlisted_prefixes_correct_ips(run_cmd, repo_root, cutover_script):

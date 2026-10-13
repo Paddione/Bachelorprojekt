@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: janus
+  namespace: coturn
+  labels:
+    app: janus
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: janus
+  template:
+    metadata:
+      labels:
+        app: janus
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: ${TURN_NODE}
+      containers:
+        - name: janus
+          image: canyan/janus-gateway:master_cefca79700bdadd32d759ce65ba3805552a4d312@sha256:cddf2da2dba7947c2a3aa7b2e77b363b1200cd6874dbebe32b5148fe187a0d89
+          imagePullPolicy: Always
+          command: ["/usr/local/bin/janus", "--configs-folder", "/etc/janus"]
+          ports:
+            - containerPort: 8188
+              hostPort: 8188
+              name: ws
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            successThreshold: 1
+            tcpSocket:
+              port: 8188
+            timeoutSeconds: 1
+          startupProbe:
+            failureThreshold: 30
+            periodSeconds: 5
+            successThreshold: 1
+            tcpSocket:
+              port: 8188
+            timeoutSeconds: 1
+          volumeMounts:
+            - mountPath: /etc/janus/janus.jcfg
+              name: config
+              subPath: janus.jcfg
+            - mountPath: /etc/janus/janus.transport.websockets.jcfg
+              name: config
+              subPath: janus.transport.websockets.jcfg
+            - mountPath: /etc/janus/janus.plugin.videoroom.jcfg
+              name: config
+              subPath: janus.plugin.videoroom.jcfg
+      volumes:
+        - name: config
+          configMap:
+            name: janus-config

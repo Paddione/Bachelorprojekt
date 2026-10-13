@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: coturn
+resources:
+  - namespace.yaml
+  - configmap-janus.yaml
+  - certificate.yaml
+  - deployment-coturn.yaml
+  - deployment-janus.yaml
+  - services.yaml

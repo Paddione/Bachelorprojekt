@@ -4836,6 +4836,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/fleet-operations/fleet_no_wireguard",
+    "file": "tests/py/spec/native_ported/spec/fleet-operations/test_fleet_no_wireguard.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/flux-render-security/envsubst_whitelist",
     "file": "tests/py/spec/native_ported/spec/flux-render-security/test_envsubst_whitelist.py",
     "category": "native_ported",

@@ -406,6 +406,18 @@ spec:
                   name: website-secrets
                   key: ANTHROPIC_API_KEY
                   optional: true
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: OPENROUTER_API_KEY
+                  optional: true
+            - name: OPENCODE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: OPENCODE_API_KEY
+                  optional: true
             - name: LLM_ROUTER_API_KEY
               valueFrom:
                 secretKeyRef:

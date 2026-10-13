@@ -92,6 +92,13 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
         ('NetworkPolicy', 'allow-website-to-bge-rerank-ingress'),
         ('PersistentVolumeClaim', 'bge-embed-models'),
         ('PersistentVolumeClaim', 'bge-rerank-models'),
+        # T016559: Vaultwarden-App aus dem Fleet-Overlay entfernt (DB bleibt).
+        ('Deployment', 'vaultwarden'),
+        ('Service', 'vaultwarden'),
+        ('PersistentVolumeClaim', 'vaultwarden-data-pvc'),
+        ('Ingress', 'workspace-ingress-vault'),
+        ('NetworkPolicy', 'allow-website-to-vaultwarden-ingress'),
+        ('Middleware', 'rate-limit-vault'),
     }
     lost = sorted(base - union - intentionally_removed)
     assert not lost, f"Resources dropped by all consumers: {lost}"

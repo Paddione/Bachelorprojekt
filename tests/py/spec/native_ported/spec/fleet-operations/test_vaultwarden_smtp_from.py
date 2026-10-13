@@ -30,7 +30,14 @@ def test_t900028_gerenderter_vaultwarden_deployment_traegt_smtp_from_neben_smtp_
     if shutil.which("envsubst") is None:
         pytest.skip("envsubst not installed")
 
-    for brand in ("mentolder", "korczewski"):
+    # T016559: mentolder rendert kein vaultwarden mehr — dort muss der
+    # Block leer sein. korczewski behaelt vaultwarden + SMTP-Guards.
+    res_m = run_cmd(["bash", "-c", RENDER_SCRIPT, "render", "mentolder"], cwd=repo_root, timeout=300)
+    if res_m.returncode != 0:
+        pytest.skip("env-resolve/kustomize unavailable for mentolder")
+    assert "SMTP_HOST" not in res_m.stdout, "mentolder rendert noch vaultwarden (T016559)"
+
+    for brand in ("korczewski",):
         res = run_cmd(["bash", "-c", RENDER_SCRIPT, "render", brand], cwd=repo_root, timeout=300)
         if res.returncode != 0:
             pytest.skip(f"env-resolve/kustomize unavailable for {brand}")

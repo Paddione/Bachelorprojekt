@@ -491,7 +491,8 @@ def test_staging_flux_wiring(repo_root: Path):
 # ── vaultwarden-smtp-from.bats ─────────────────────────────────────────────
 
 def test_vaultwarden_smtp_from(repo_root: Path):
-    for brand in ["mentolder", "korczewski"]:
+    # T016559: mentolder rendert kein vaultwarden-Deployment mehr (entfernt).
+    for brand in ["korczewski"]:
         cmd = (
             f"source scripts/env-resolve.sh '{brand}' >/dev/null 2>&1 && "
             f"kubectl kustomize 'prod-fleet/{brand}' --load-restrictor=LoadRestrictionsNone 2>/dev/null | envsubst | awk '/^  name: vaultwarden$/,/^---$/'"
@@ -506,6 +507,15 @@ def test_vaultwarden_smtp_from(repo_root: Path):
         val = val_match.group(1).strip()
         assert "@" in val, f"{brand}: SMTP_FROM does not contain email: {val}"
         assert "${" not in val, f"{brand}: SMTP_FROM has unresolved placeholder: {val}"
+
+    # T016559: mentolder darf keinen vaultwarden-Block mehr rendern.
+    cmd_m = (
+        "source scripts/env-resolve.sh 'mentolder' >/dev/null 2>&1 && "
+        "kubectl kustomize 'prod-fleet/mentolder' --load-restrictor=LoadRestrictionsNone 2>/dev/null | envsubst | awk '/^  name: vaultwarden$/,/^---$/'"
+    )
+    res_m = subprocess.run(["bash", "-c", cmd_m], cwd=repo_root, capture_output=True, text=True)
+    assert res_m.returncode == 0
+    assert "SMTP_HOST" not in res_m.stdout, "mentolder rendert noch vaultwarden (T016559)"
 
     # Verify SMTP_FROM is in taskfiles
     taskfile_txt = (repo_root / "Taskfile.yml").read_text() + "\n" + (repo_root / "taskfiles" / "Taskfile.workspace.yml").read_text()

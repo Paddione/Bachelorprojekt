@@ -204,6 +204,52 @@ patches:
       metadata:
         name: bge-rerank-models
 
+  # T016559: Vaultwarden-App aus fleet-new Prod entfernen (Deployment,
+  # Service, Ingress, NetPol, Daten-PVC, zugehoerige Middleware). Die DB
+  # 'vaultwarden' in shared-db bleibt erhalten (Backup unter /tmp/t016559-pg).
+  - target: { group: apps, version: v1, kind: Deployment, name: vaultwarden }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: vaultwarden
+  - target: { version: v1, kind: Service, name: vaultwarden }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: vaultwarden
+  - target: { version: v1, kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: vaultwarden-data-pvc
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-vault }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-vault
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-website-to-vaultwarden-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-website-to-vaultwarden-ingress
+  - target: { group: traefik.io, version: v1alpha1, kind: Middleware, name: rate-limit-vault }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: rate-limit-vault
+
   # D3 (T016529): Vaultwarden-PVC von Longhorn (Basis-Patch in prod-mentolder)
   # auf local-path zurueckstellen — im gekko-Cluster gibt es kein Longhorn.
   - target: { kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }

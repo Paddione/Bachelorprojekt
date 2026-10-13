@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "slug": "website-provider-secrets-T016576",
+    "ticket_id": "T016576",
+    "generated_from": "main@2ecf5cf457e0007010f94f4619759d2fc120f8ec",
+    "domains": [
+      "infra",
+      "secrets",
+      "website"
+    ],
+    "intel_sources": [
+      "source-read",
+      "baseline.json",
+      "kubectl-kustomize"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "k3d/website.yaml",
+      "language": "yaml",
+      "loc": 850,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/test_sealed_secret_cluster_drift.py",
+      "language": "py",
+      "loc": 104,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 696
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "json",
+      "loc": 6314,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "Graph context_for_task stale/degraded; manifest-only fix verified from source and real kustomize output; no changed code signatures or external types.",
+      "severity": "info"
+    }
+  ]
+}

@@ -310,3 +310,35 @@ describe('mergeCollections', () => {
       .rejects.toThrow(/MixedEmbeddingModelError/);
   });
 });
+
+describe('vector store gate (T016560)', () => {
+  const ORIGINAL = process.env.VECTOR_DB_ENABLED;
+  afterAll(() => {
+    if (ORIGINAL === undefined) delete process.env.VECTOR_DB_ENABLED;
+    else process.env.VECTOR_DB_ENABLED = ORIGINAL;
+  });
+
+  test('isVectorStoreEnabled reflects the flag', () => {
+    process.env.VECTOR_DB_ENABLED = '1';
+    expect(kdb.isVectorStoreEnabled()).toBe(true);
+    process.env.VECTOR_DB_ENABLED = '0';
+    expect(kdb.isVectorStoreEnabled()).toBe(false);
+    delete process.env.VECTOR_DB_ENABLED;
+    expect(kdb.isVectorStoreEnabled()).toBe(false);
+    process.env.VECTOR_DB_ENABLED = '1';
+  });
+
+  test('reads throw VectorStoreDisabledError when disabled', async () => {
+    process.env.VECTOR_DB_ENABLED = '0';
+    await expect(kdb.listCollections()).rejects.toThrow(/VectorStoreDisabledError/);
+    await expect(kdb.queryNearest({ collectionIds: ['x'], queryText: 'y' }))
+      .rejects.toThrow(/VectorStoreDisabledError/);
+    process.env.VECTOR_DB_ENABLED = '1';
+  });
+
+  test('writes throw VectorStoreDisabledError when disabled', async () => {
+    process.env.VECTOR_DB_ENABLED = '0';
+    await expect(kdb.upsertChunks('c', 'd', [])).rejects.toThrow(/VectorStoreDisabledError/);
+    process.env.VECTOR_DB_ENABLED = '1';
+  });
+});

@@ -347,6 +347,12 @@ env_vars:
     validate: "^[a-z0-9.-]+$"
     description: "Internal host of bge-embed (llm-gateway-embed) for wg-mesh consumers [T016430]. Dev: embed.localhost; prod: bge-embed.${PROD_DOMAIN}."
 
+  - name: VECTOR_DB_ENABLED
+    required: false
+    default_dev: "1"
+    validate: "^(0|1)$"
+    description: "Vektor-Suche (Codesearch + Knowledge, pgvector) nur in Dev bedienen [T016560]. Dev: 1; Prod: 0 (Extension wird gedroppt)."
+
   - name: BGE_RERANK_HOST
     required: false
     default_dev: "rerank.localhost"

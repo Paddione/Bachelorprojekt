@@ -186,3 +186,14 @@ describe('codesearch-db: reranking (T002317)', () => {
     delete process.env.LLM_EMBED_URL;
   });
 });
+
+describe('vector store gate (T016560)', () => {
+  it('searchCode throws VectorStoreDisabledError when disabled, without fetch', async () => {
+    const prev = process.env.VECTOR_DB_ENABLED;
+    process.env.VECTOR_DB_ENABLED = '0';
+    await expect(searchCode('auth')).rejects.toThrow(/VectorStoreDisabledError/);
+    expect(fetchMock).not.toHaveBeenCalled();
+    if (prev === undefined) delete process.env.VECTOR_DB_ENABLED;
+    else process.env.VECTOR_DB_ENABLED = prev;
+  });
+});

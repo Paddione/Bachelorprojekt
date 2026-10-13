@@ -92,6 +92,11 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
         ('NetworkPolicy', 'allow-website-to-bge-rerank-ingress'),
         ('PersistentVolumeClaim', 'bge-embed-models'),
         ('PersistentVolumeClaim', 'bge-rerank-models'),
+        # T016560: Knowledge-Ingest-CronJobs laufen nur noch in Dev (devmesh).
+        ('CronJob', 'knowledge-ingest-prs'),
+        ('CronJob', 'knowledge-ingest-markdown'),
+        ('CronJob', 'knowledge-ingest-bugs'),
+        ('CronJob', 'knowledge-reindex-all'),
         # T016559: Vaultwarden-App aus dem Fleet-Overlay entfernt (DB bleibt).
         ('Deployment', 'vaultwarden'),
         ('Service', 'vaultwarden'),

@@ -250,6 +250,37 @@ patches:
       metadata:
         name: rate-limit-vault
 
+  # T016560: Knowledge-Ingest-CronJobs laufen nur noch in Dev (devmesh) —
+  # aus dem Fleet-Overlay entfernen (Datenbankziele zeigen nach Dev).
+  - target: { group: batch, version: v1, kind: CronJob, name: knowledge-ingest-prs }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: knowledge-ingest-prs
+  - target: { group: batch, version: v1, kind: CronJob, name: knowledge-ingest-markdown }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: knowledge-ingest-markdown
+  - target: { group: batch, version: v1, kind: CronJob, name: knowledge-ingest-bugs }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: knowledge-ingest-bugs
+  - target: { group: batch, version: v1, kind: CronJob, name: knowledge-reindex-all }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: knowledge-reindex-all
+
   # D3 (T016529): Vaultwarden-PVC von Longhorn (Basis-Patch in prod-mentolder)
   # auf local-path zurueckstellen — im gekko-Cluster gibt es kein Longhorn.
   - target: { kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }

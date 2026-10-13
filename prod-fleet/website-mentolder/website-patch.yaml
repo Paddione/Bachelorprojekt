@@ -8,3 +8,8 @@ spec:
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}@${WEBSITE_IMAGE_DIGEST}
+          # T016560: Vektor-Suche (Codesearch + Knowledge) nur in Dev —
+          # Prod-Website bleibt ohne Vector-DB (Extension wird gedroppt).
+          env:
+            - name: VECTOR_DB_ENABLED
+              value: "0"

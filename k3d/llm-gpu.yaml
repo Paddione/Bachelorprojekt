@@ -80,7 +80,7 @@ spec:
         fsGroup: 101
       initContainers:
         - name: model-download
-          image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+          image: curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
           securityContext:
             runAsNonRoot: true
             runAsUser: 100
@@ -106,7 +106,7 @@ spec:
               memory: 256Mi
       containers:
         - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-b10223@sha256:2ab03529fa9ea9b7a0bcafad00b14619d733c255a9817232c450fe316e03f557
+          image: ghcr.io/ggml-org/llama.cpp:server-b11561@sha256:052888c603894ecfa08deb6714fdc2d7084e491e174d5ab41bfb36b49ee7151c
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001
@@ -244,7 +244,7 @@ spec:
         fsGroup: 101
       initContainers:
         - name: model-download
-          image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+          image: curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
           securityContext:
             runAsNonRoot: true
             runAsUser: 100
@@ -270,7 +270,7 @@ spec:
               memory: 256Mi
       containers:
         - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-b10223@sha256:2ab03529fa9ea9b7a0bcafad00b14619d733c255a9817232c450fe316e03f557
+          image: ghcr.io/ggml-org/llama.cpp:server-b11561@sha256:052888c603894ecfa08deb6714fdc2d7084e491e174d5ab41bfb36b49ee7151c
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001
@@ -376,7 +376,7 @@ spec:
         fsGroup: 101
       initContainers:
         - name: model-download
-          image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+          image: curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
           securityContext:
             runAsNonRoot: true
             runAsUser: 100
@@ -400,7 +400,7 @@ spec:
               memory: 256Mi
       containers:
         - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-b10223@sha256:2ab03529fa9ea9b7a0bcafad00b14619d733c255a9817232c450fe316e03f557
+          image: ghcr.io/ggml-org/llama.cpp:server-b11561@sha256:052888c603894ecfa08deb6714fdc2d7084e491e174d5ab41bfb36b49ee7151c
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001

@@ -7,5 +7,6 @@ spec:
   interval: 5m
   url: https://github.com/Paddione/Bachelorprojekt
   ref:
-    # T016529 UEBERGANG wie in flux-instance.yaml: nach Merge auf main.
+    # T016529: Git-Quelle fuer die kuratierte Auswahl (ks-prod/oci-source
+    # laufen ueber diese Source; Workloads kommen aus dem OCI-Artefakt).
     branch: main

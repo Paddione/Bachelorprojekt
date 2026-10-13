@@ -1418,15 +1418,9 @@ secrets:
       - namespace: website
         secret: website-secrets
 
-  - name: VOYAGE_API_KEY
-    required: false
-    generate: false
-    description: "Voyage AI API key for document embeddings (Coaching-Knowledge-Pipeline + knowledge-ingest CronJob + web-crawl API). Get from https://dashboard.voyageai.com/api-keys."
-    extra_namespaces:
-      - namespace: workspace
-        secret: knowledge-secrets
-      - namespace: website
-        secret: website-secrets
+  # T016562: VOYAGE_API_KEY-Definition entfernt (lokale bge-Embeddings).
+  # Die verschluesselten Karteileichen in sealed-secrets/* bleiben bis zur
+  # naechsten Seal-Rotation bestehen; kein Test fordert sie zurueck.
 
   - name: ANTHROPIC_API_KEY
     required: false

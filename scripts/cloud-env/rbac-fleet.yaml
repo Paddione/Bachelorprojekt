@@ -1,0 +1,31 @@
+# scripts/cloud-env/rbac-fleet.yaml - ServiceAccount fuer die Cloud-Umgebung "mentolder-prod" (fleet-Cluster)
+#
+# cloud-env-fleet-admin   cluster-admin (Entscheidung des Operators, 2026-10-13). Das Token ist ein
+#                         Generalschluessel fuer Prod: nur als Secret der Cloud-Umgebung / im Tresor halten.
+#
+# Es gibt bewusst KEIN dauerhaftes Token-Secret. Tokens sind kurzlebig (TokenRequest, Standard 24h)
+# und werden bei Bedarf ausgestellt. Wo man im Notfall eines herbekommt:
+# docs/runbooks/cloud-env-fleet.md, Abschnitt "Notfall: Token beschaffen".
+#
+# Anwenden:  kubectl --context fleet apply -f scripts/cloud-env/rbac-fleet.yaml
+# Kubeconfig: bash scripts/cloud-env/fleet-kubeconfig.sh   (stellt ein Token aus, schreibt die Kubeconfig)
+# Widerruf:  ServiceAccount loeschen und neu anwenden = alle ausgestellten Tokens ungueltig.
+# Pull-basiertes FluxCD bleibt Standardweg; kubectl apply per Cloud-Umgebung ist Break-Glass.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloud-env-fleet-admin
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cloud-env-fleet-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: cloud-env-fleet-admin
+    namespace: kube-system

@@ -29,7 +29,6 @@
     - "prod-mentolder/**"
     - "prod-korczewski/**"
     - "environments/**"
-    - "wireguard/**"
     - "docker/**"
     - ".opencode/**"
   owner_agent: bachelorprojekt-infra

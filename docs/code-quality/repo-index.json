@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1332,
+      "file_count": 1331,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -584,7 +584,6 @@
         "tests/py/spec/native_ported/spec/fleet-operations/test_staging_flux_wiring.py",
         "tests/py/spec/native_ported/spec/fleet-operations/test_vaultwarden_smtp_from.py",
         "tests/py/spec/native_ported/spec/fleet-operations/test_wg_gpu_pod_cidr.py",
-        "tests/py/spec/native_ported/spec/fleet-operations/test_wg_mesh_sync.py",
         "tests/py/spec/native_ported/spec/flux-render-security/test_bootstrap_envsubst.py",
         "tests/py/spec/native_ported/spec/flux-render-security/test_envsubst_whitelist.py",
         "tests/py/spec/native_ported/spec/flux-render-security/test_immutable_image_refs.py",
@@ -3329,7 +3328,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 848,
+      "file_count": 845,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -4175,17 +4174,14 @@
         "prod/traefik-middlewares.yaml",
         "prod/traefik-values.yaml",
         "prod/userinfo-proxy.conf",
-        "prod/wildcard-certificate.yaml",
-        "wireguard/wg-mesh-nodes.yaml",
-        "wireguard/wg0-hetzner.conf.tpl",
-        "wireguard/wg0-workstation.conf.tpl"
+        "prod/wildcard-certificate.yaml"
       ]
     },
     {
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 925,
+      "file_count": 923,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4517,7 +4513,6 @@
         "scripts/hermes-mcp-servers.yaml",
         "scripts/hetzner/cloud-init-server.yaml.tmpl",
         "scripts/hetzner/cloud-init.yaml.tmpl",
-        "scripts/hetzner/generate-wg-conf.sh",
         "scripts/hetzner/render-cloud-init.sh",
         "scripts/hetzner/snapshot-guide.md",
         "scripts/hooks/agent-running.sh",
@@ -5103,7 +5098,6 @@
         "scripts/web-audit.mjs",
         "scripts/website-config-sha.sh",
         "scripts/weekly-dep-schema-audit.sh",
-        "scripts/wg-mesh-sync.sh",
         "scripts/whiteboard-setup.sh",
         "scripts/wip-finish.sh",
         "scripts/wip-glance.sh",

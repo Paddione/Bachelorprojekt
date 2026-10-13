@@ -1,6 +1,6 @@
 # ADR-001: Fleet-Konsolidierung — Zusammenführung aller Marken-Cluster (Phase 3)
 
-**Status:** Accepted  
+**Status:** Superseded durch [ADR-014](ADR-014-fleet-gekko-ohne-wireguard.md) (2026-10-13, T016529)  
 **Datum:** 2026-05-31  
 **Ticket:** T001298
 

@@ -208,7 +208,9 @@ export async function queryNearest(args: {
 }): Promise<NearestChunk[]> {
   assertVectorStoreEnabled();
   const limit  = args.limit     ?? 6;
-  const thresh = args.threshold ?? 0.65;
+  // T016562: bge-m3 scored niedriger als Voyage (gemessen: relevante Treffer
+  // ~0.45) — Default 0.65 lieferte leere Ergebnisse. 0.35 mit Marge.
+  const thresh = args.threshold ?? 0.35;
 
   if (args.collectionIds.length === 0) return [];
   const _start = Date.now();

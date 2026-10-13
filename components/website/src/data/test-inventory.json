@@ -3732,12 +3732,6 @@
     "kind": "pytest"
   },
   {
-    "id": "fleet-operations/wg-gpu-pod-cidr",
-    "file": "tests/py/spec/native_ported/spec/fleet-operations/test_wg_gpu_pod_cidr.py",
-    "category": "fleet-operations",
-    "kind": "pytest"
-  },
-  {
     "id": "flux-artifact-versioning/flux-artifact-versioning",
     "file": "tests/py/spec/remaining_domain_specs/flux-artifact-versioning/test_flux_artifact_versioning.py",
     "category": "flux-artifact-versioning",

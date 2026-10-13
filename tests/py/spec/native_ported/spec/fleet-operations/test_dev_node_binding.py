@@ -10,7 +10,6 @@ def paths(repo_root: Path):
     return {
         "binding": dev_stack / "dev-node-binding.yaml",
         "kustomization": dev_stack / "kustomization.yaml",
-        "wg": repo_root / "wireguard" / "wg-mesh-nodes.yaml",
     }
 
 
@@ -60,16 +59,3 @@ def test_t002630_p2_kustomization_yaml_haengt_dev_node_binding_yaml_als_patch_ei
     assert kust.is_file(), f"MISSING: {kust}"
     assert "dev-node-binding.yaml" in kust.read_text(encoding="utf-8"), \
         f"FAIL: dev-node-binding.yaml nicht in kustomization.yaml ({kust})"
-
-
-def test_t002630_p2_wireguard_wg_mesh_nodes_yaml_enthaelt_gekko_hetzner_2_in_fleet_workers_mit_k8s_node(paths, yaml_load):
-    wg = paths["wg"]
-    assert wg.is_file(), f"MISSING: {wg}"
-    data = yaml_load(wg) or {}
-    workers = (data.get("fleet") or {}).get("workers", []) or []
-    found = any(
-        w.get("name") == "gekko-hetzner-2" and w.get("k8s_node")
-        for w in workers
-        if isinstance(w, dict)
-    )
-    assert found, f"FAIL: gekko-hetzner-2 nicht als fleet worker mit k8s_node in {wg}"

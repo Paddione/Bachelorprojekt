@@ -314,7 +314,7 @@ OUTPUT="${SEALED_DIR}/${SECRETS_ENV}.yaml"
 [[ ! -f "$ENV_FILE" ]] && die "Environment file not found: ${ENV_FILE}"
 [[ ! -f "$SECRETS_FILE" ]] && die "Plaintext secrets not found: ${SECRETS_FILE} — run 'task env:generate ENV=${ENV_NAME}' first"
 
-command -v kubeseal > /dev/null || die "kubeseal not found. Install: https://github.com/bitnami-labs/sealed-secrets#kubeseal"
+command -v kubeseal > /dev/null || die "kubeseal not found. Install: https://github.com/bitnami/sealed-secrets#kubeseal"
 
 # ── Read kubectl context from environment file ───────────────────
 

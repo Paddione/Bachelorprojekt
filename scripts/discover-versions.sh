@@ -26,7 +26,7 @@ done
 
 # Ensure helm repos are registered (idempotent)
 helm repo add longhorn       https://charts.longhorn.io                      2>/dev/null || true
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets   2>/dev/null || true
+helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets   2>/dev/null || true
 helm repo add jetstack       https://charts.jetstack.io                      2>/dev/null || true
 helm repo update >/dev/null 2>&1 || true
 

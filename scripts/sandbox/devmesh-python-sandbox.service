@@ -1,0 +1,15 @@
+[Unit]
+Description=Devmesh Python Sandbox Worker Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Bachelorprojekt
+ExecStart=%h/.local/bin/uv run --with fastapi,uvicorn,pydantic,pytest python3 -m uvicorn components.python_sandbox.src.server:app --host 0.0.0.0 --port 8088
+Restart=always
+RestartSec=5
+Environment=PYTHONPATH=%h/Bachelorprojekt:%h/Bachelorprojekt/components/python-sandbox
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

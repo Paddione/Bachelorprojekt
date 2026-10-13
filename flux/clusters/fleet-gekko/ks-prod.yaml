@@ -90,24 +90,3 @@ spec:
   path: ./coturn
   prune: true
   wait: true
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-# T016558 Stufe 1 (Stilllegung): prune:false, damit das spaetere Entfernen
-# dieses Ks keine verwalteten Objekte (u.a. Namespace workspace) prunt.
-metadata:
-  name: flux-mentolder-jobs
-  namespace: flux-system
-spec:
-  interval: 10m
-  retryInterval: 5m
-  timeout: 10m
-  dependsOn:
-    - name: flux-mentolder
-  sourceRef:
-    kind: OCIRepository
-    name: fleet-manifests
-  path: ./mentolder-jobs
-  prune: false
-  force: true
-  wait: false

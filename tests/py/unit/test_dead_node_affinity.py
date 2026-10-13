@@ -29,7 +29,7 @@ def built_overlays(repo_root: Path, tmp_path_factory) -> dict[str, Path]:
     overlays = [
         "prod-mentolder",
         "prod-fleet/mentolder",
-        "prod-fleet/mentolder-jobs",
+        # T016558: prod-fleet/mentolder-jobs entfiel (flux-mentolder-jobs aus Prod entfernt).
         "prod-fleet/platform",
         "prod-fleet/korczewski",
     ]
@@ -63,10 +63,9 @@ def test_built_brand_manifests_no_dead_nodes(built_overlays: dict[str, Path]):
 def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
     base = _ids(built_overlays["prod-mentolder"])
     w1 = _ids(built_overlays["prod-fleet/mentolder"])
-    w2 = _ids(built_overlays["prod-fleet/mentolder-jobs"])
     w3 = _ids(built_overlays["prod-fleet/platform"])
 
-    union = w1 | w2 | w3
+    union = w1 | w3
     assert base, "base overlay produced no resources"
     assert union, "consumer overlays produced no resources"
 
@@ -117,6 +116,11 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
         ('Middleware', 'mediaviewer-embed-headers'),
         ('Deployment', 'oauth2-proxy-mediaviewer'),
         ('Service', 'oauth2-proxy-mediaviewer'),
+        # T016558: flux-mentolder-jobs aus Prod entfernt — Seed-/Config-Jobs
+        # laufen nicht mehr via Flux (bei Bedarf manuell bzw. via k3d-Flow).
+        ('Job', 'pocket-id-client-seed'),
+        ('Job', 'pocket-id-db-init'),
+        ('Job', 'nextcloud-notification-config'),
     }
     lost = sorted(base - union - intentionally_removed)
     assert not lost, f"Resources dropped by all consumers: {lost}"

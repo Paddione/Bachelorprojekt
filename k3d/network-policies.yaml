@@ -358,7 +358,7 @@ spec:
       protocol: TCP
   - to:
     - ipBlock:
-        cidr: 192.168.200.0/24    # T016533: gekko privates Netz (Janus hostNetwork auf gekko-hetzner-2 nach DNAT)
+        cidr: 192.168.200.0/24    # T016533: Fleet-Privatnetz (Janus hostNetwork-CP nach DNAT)
     ports:
     - port: 8188
       protocol: TCP

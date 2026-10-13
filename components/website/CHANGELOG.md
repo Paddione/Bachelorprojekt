@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.419.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.419.1...website-v1.419.2) (2026-10-13)
+
+
+### Documentation
+
+* **skills:** dispatch reference no longer names removed queue scripts ([#6621](https://github.com/Paddione/Bachelorprojekt/issues/6621)) ([6abb08a](https://github.com/Paddione/Bachelorprojekt/commit/6abb08af67df3bb698c9094fff36b074dd745169))
+
 ## [1.419.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.419.0...website-v1.419.1) (2026-10-13)
 
 

@@ -443,7 +443,7 @@ spec:
             httpGet:
               path: /health
               port: 8080
-            scheme: HTTP
+              scheme: HTTP
             initialDelaySeconds: 30
           volumeMounts:
             - name: models

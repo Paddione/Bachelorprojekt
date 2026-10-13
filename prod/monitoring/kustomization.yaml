@@ -68,6 +68,26 @@ patches:
   - path: grafana-oidc-patch.yaml
   - path: resource-limits-patch.yaml
   - path: slim-monitoring-patch.yaml
+  # T016533: Chart-92.x-Grafana-Test-Hooks (helm.sh/hook=test) nie nach Prod —
+  # Flux-Dry-Run lehnt den Test-Pod ab (SA-Lookup), helm test laeuft nie.
+  - target: { kind: ServiceAccount, name: monitoring-grafana-test, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata: { name: monitoring-grafana-test, namespace: monitoring }
+      $patch: delete
+  - target: { kind: ConfigMap, name: monitoring-grafana-test, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: { name: monitoring-grafana-test, namespace: monitoring }
+      $patch: delete
+  - target: { kind: Pod, name: monitoring-grafana-test, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: Pod
+      metadata: { name: monitoring-grafana-test, namespace: monitoring }
+      $patch: delete
   # Ohne Loki (T016529): Loki-Stack und Promtail aus der k3d-Basis loeschen.
   - target: { kind: StatefulSet, name: loki, namespace: monitoring }
     patch: |

@@ -16,25 +16,23 @@ def test_bge_hosts_are_centrally_registered_schema_configmap_prod_overlay(repo_r
     fleet = _read(repo_root, "environments/fleet-mentolder.yaml")
     assert 'BGE_EMBED_HOST: "bge-embed.mentolder.de"' in fleet
     assert 'BGE_RERANK_HOST: "bge-rerank.mentolder.de"' in fleet
-    patch = _read(repo_root, "prod-fleet/mentolder/bge-hosts-patch.yaml")
-    assert "bge-embed.mentolder.de" in patch
-    assert "bge-rerank.mentolder.de" in patch
+    # T016544: Prod-Patch ist entfallen (llm-gateway-Routen aus dem
+    # Fleet-Overlay entfernt) — die Datei darf nicht mehr existieren.
+    assert not (repo_root / "prod-fleet/mentolder/bge-hosts-patch.yaml").is_file(), \
+        "bge-hosts-patch.yaml muss mit T016544 entfallen sein"
 
 
 def test_bge_ingress_routes_are_wg_whitelisted_in_dev_and_prod(repo_root):
-    # Base (k3d) definiert Middleware+Routes; Prod-Patch tauscht nur die Hosts.
-    for f in ("k3d/llm-gateway-ingress.yaml", "prod-fleet/mentolder/bge-hosts-patch.yaml"):
-        file = repo_root / f
-        assert file.is_file(), f"{f} fehlt"
-        text = file.read_text(encoding="utf-8")
-        if f == "prod-fleet/mentolder/bge-hosts-patch.yaml":
-            # Middleware 'wg-only' wird einmalig im k3d-Base definiert und hier nur referenziert.
-            assert "name: wg-only" in text, f"{f} missing wg-only ref"
-        else:
-            assert "ipWhiteList" in text, f"{f} missing ipWhiteList"
-            assert "192.168.100.0/24" in text, f"{f} missing wg CIDR"
-        assert "llm-gateway-embed" in text, f"{f} missing embed ref"
-        assert "llm-gateway-rerank" in text, f"{f} missing rerank ref"
+    # T016544: nur noch der Dev-Base (k3d) definiert Middleware+Routes; der
+    # Prod-Patch ist mit den llm-gateway-Routen entfallen.
+    f = "k3d/llm-gateway-ingress.yaml"
+    file = repo_root / f
+    assert file.is_file(), f"{f} fehlt"
+    text = file.read_text(encoding="utf-8")
+    assert "ipWhiteList" in text, f"{f} missing ipWhiteList"
+    assert "192.168.100.0/24" in text, f"{f} missing wg CIDR"
+    assert "llm-gateway-embed" in text, f"{f} missing embed ref"
+    assert "llm-gateway-rerank" in text, f"{f} missing rerank ref"
 
 
 def test_no_manifest_exposes_shared_db_5432_on_public_entrypoints_or_nodeport_lb(repo_root):

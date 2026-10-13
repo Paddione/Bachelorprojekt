@@ -193,7 +193,6 @@ def test_internal_endpoints(repo_root: Path):
     schema = repo_root / "environments" / "schema.yaml"
     cm = repo_root / "k3d" / "configmap-domains.yaml"
     fleet_m = repo_root / "environments" / "fleet-mentolder.yaml"
-    bge_patch = repo_root / "prod-fleet" / "mentolder" / "bge-hosts-patch.yaml"
     gateway_ing = repo_root / "k3d" / "llm-gateway-ingress.yaml"
 
     assert "name: BGE_EMBED_HOST" in schema.read_text()
@@ -201,10 +200,10 @@ def test_internal_endpoints(repo_root: Path):
     assert 'BGE_EMBED_HOST: "embed.localhost"' in cm.read_text()
     assert 'BGE_EMBED_HOST: "bge-embed.mentolder.de"' in fleet_m.read_text()
     assert 'BGE_RERANK_HOST: "bge-rerank.mentolder.de"' in fleet_m.read_text()
-    assert "bge-embed.mentolder.de" in bge_patch.read_text()
-    assert "bge-rerank.mentolder.de" in bge_patch.read_text()
+    # T016544: bge-hosts-patch.yaml ist entfallen (llm-gateway-Routen aus dem
+    # Fleet-Overlay entfernt) — die Datei darf nicht mehr existieren.
+    assert not (repo_root / "prod-fleet" / "mentolder" / "bge-hosts-patch.yaml").is_file()
 
-    assert "name: wg-only" in bge_patch.read_text()
     assert "ipWhiteList" in gateway_ing.read_text()
     assert "192.168.100.0/24" in gateway_ing.read_text()
 

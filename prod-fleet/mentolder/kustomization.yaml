@@ -31,9 +31,9 @@ components:
 # mentolder wrapper (NOT fleet-common — korczewski has no equivalents, so a shared
 # delete would error). The harmless *.localhost dev IngressRoutes are left intact.
 patches:
-  # BGE-Embed/Rerank IngressRoutes — interne MCP-Endpunkte (T016430).
-  # Ohne diesen Patch still ignoriert (YAML-Schlüssel-Ueberschreibung, T900009).
-  - path: bge-hosts-patch.yaml
+  # T016544: bge-hosts-patch.yaml ist entfallen — die llm-gateway-IngressRoutes
+  # sind per $patch:delete oben entfernt, ein Patch ohne Ziel wuerde den Build
+  # fehlschlagen lassen.
   # Coaching Studio — prod overlay for mentolder brand on the fleet
   # cluster. Pins image-digest, prod-issuer, prod TLS, and node-affinity
   # for fleet pk nodes. (T001002)
@@ -64,6 +64,146 @@ patches:
       metadata:
         name: any-job
 
+  # T016544: KI-Workloads aus fleet-new Prod entfernen (whisper, bge-embed,
+  # bge-embed-bulk, bge-rerank, talk-recording, talk-transcriber) inkl.
+  # Services, llm-gateway-IngressRoutes, zugehoeriger NetworkPolicies und
+  # Modell-PVCs. Flux prune:true raeumt den Live-Stand ab. Wirkt auf
+  # fleet-new UND pk-Fallback (beide syncen ./mentolder) — die Base
+  # (prod-mentolder, k3d, staging) bleibt unberuehrt.
+  - target: { group: apps, version: v1, kind: Deployment, name: whisper }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: whisper
+  - target: { group: apps, version: v1, kind: Deployment, name: bge-embed }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: bge-embed
+  - target: { group: apps, version: v1, kind: Deployment, name: bge-embed-bulk }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: bge-embed-bulk
+  - target: { group: apps, version: v1, kind: Deployment, name: bge-rerank }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: bge-rerank
+  - target: { group: apps, version: v1, kind: Deployment, name: talk-recording }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: talk-recording
+  - target: { group: apps, version: v1, kind: Deployment, name: talk-transcriber }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: talk-transcriber
+  - target: { version: v1, kind: Service, name: whisper }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: whisper
+  - target: { version: v1, kind: Service, name: talk-recording }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: talk-recording
+  - target: { version: v1, kind: Service, name: talk-transcriber }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: talk-transcriber
+  - target: { version: v1, kind: Service, name: llm-gateway-embed }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: llm-gateway-embed
+  - target: { version: v1, kind: Service, name: llm-gateway-rerank }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: llm-gateway-rerank
+  - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: llm-gateway-embed }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: llm-gateway-embed
+  - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: llm-gateway-rerank }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: llm-gateway-rerank
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-llm-gateway-egress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-llm-gateway-egress
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-transcriber-to-website-egress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-transcriber-to-website-egress
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-website-to-bge-embed-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-website-to-bge-embed-ingress
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-website-to-bge-rerank-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-website-to-bge-rerank-ingress
+  - target: { version: v1, kind: PersistentVolumeClaim, name: bge-embed-models }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: bge-embed-models
+  - target: { version: v1, kind: PersistentVolumeClaim, name: bge-rerank-models }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: bge-rerank-models
+
   # D3 (T016529): Vaultwarden-PVC von Longhorn (Basis-Patch in prod-mentolder)
   # auf local-path zurueckstellen — im gekko-Cluster gibt es kein Longhorn.
   - target: { kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }
@@ -75,23 +215,6 @@ patches:
       spec:
         storageClassName: local-path
 
-  # whisper needs a GPU node on mentolder (k3s home workers); the gekko fleet
-  # nodes have no GPU, so transcription is best-effort here — repoint to the
-  # gekko server nodes so the pod at least schedules instead of staying
-  # Pending (flag for Phase 2b capacity review).
-  - patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: whisper
-      spec:
-        template:
-          spec:
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                    - matchExpressions:
-                        - key: kubernetes.io/hostname
-                          operator: In
-                          values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4]
+  # T016544: whisper-Deployment ist per $patch:delete oben entfernt — der
+  # fruehere GPU-Affinitaets-Patch ist damit gegenstandslos (unmatched Patches
+  # lassen den Build fehlschlagen).

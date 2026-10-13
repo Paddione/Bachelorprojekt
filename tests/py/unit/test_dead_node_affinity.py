@@ -70,40 +70,44 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
     assert base, "base overlay produced no resources"
     assert union, "consumer overlays produced no resources"
 
-    lost = sorted(base - union)
+    # T016544: KI-Workloads (whisper, bge-*, talk-*) wurden bewusst aus dem
+    # Fleet-Overlay entfernt — diese IDs duerfen bei allen Consumern fehlen.
+    intentionally_removed = {
+        ('Deployment', 'whisper'),
+        ('Deployment', 'bge-embed'),
+        ('Deployment', 'bge-embed-bulk'),
+        ('Deployment', 'bge-rerank'),
+        ('Deployment', 'talk-recording'),
+        ('Deployment', 'talk-transcriber'),
+        ('Service', 'whisper'),
+        ('Service', 'talk-recording'),
+        ('Service', 'talk-transcriber'),
+        ('Service', 'llm-gateway-embed'),
+        ('Service', 'llm-gateway-rerank'),
+        ('IngressRoute', 'llm-gateway-embed'),
+        ('IngressRoute', 'llm-gateway-rerank'),
+        ('NetworkPolicy', 'allow-llm-gateway-egress'),
+        ('NetworkPolicy', 'allow-transcriber-to-website-egress'),
+        ('NetworkPolicy', 'allow-website-to-bge-embed-ingress'),
+        ('NetworkPolicy', 'allow-website-to-bge-rerank-ingress'),
+        ('PersistentVolumeClaim', 'bge-embed-models'),
+        ('PersistentVolumeClaim', 'bge-rerank-models'),
+    }
+    lost = sorted(base - union - intentionally_removed)
     assert not lost, f"Resources dropped by all consumers: {lost}"
 
 
-def test_whisper_retains_fleet_placement(built_overlays: dict[str, Path]):
-    # T016529: fleet-CPs sind die gekko-Server (pk hat fleet verlassen).
-    fleet_cps = {"gekko-hetzner-2", "gekko-hetzner-3", "gekko-hetzner-4"}
+def test_whisper_absent_from_fleet(built_overlays: dict[str, Path]):
+    # T016544: whisper wurde aus dem Fleet-Overlay entfernt (Ressourcen
+    # freigeben) — Tripwire gegen stilles Wiederauftauchen. Wer whisper
+    # zurueckbringt, muss diesen Test bewusst anpassen.
     out_file = built_overlays["prod-fleet/mentolder"]
     docs = list(yaml.safe_load_all(out_file.read_text()))
 
-    dep = None
-    for d in docs:
-        if (
-            isinstance(d, dict)
-            and d.get("kind") == "Deployment"
-            and (d.get("metadata") or {}).get("name") == "whisper"
-        ):
-            dep = d
-            break
-
-    assert dep is not None, "whisper Deployment missing in prod-fleet/mentolder build"
-
-    terms = (
-        (((dep.get("spec") or {}).get("template") or {}).get("spec") or {})
-        .get("affinity", {})
-        .get("nodeAffinity", {})
-        .get("requiredDuringSchedulingIgnoredDuringExecution", {})
-        .get("nodeSelectorTerms", [])
-    )
-
-    values = set()
-    for t in terms:
-        for expr in t.get("matchExpressions", []):
-            if expr.get("key") == "kubernetes.io/hostname" and expr.get("operator") == "In":
-                values.update(expr.get("values", []))
-
-    assert values & fleet_cps, f"whisper does not require fleet CP node. Found: {values}"
+    present = [
+        (d.get("kind"), (d.get("metadata") or {}).get("name"))
+        for d in docs
+        if isinstance(d, dict)
+        and (d.get("metadata") or {}).get("name") == "whisper"
+    ]
+    assert not present, f"whisper zurueck im Fleet-Build: {present}"

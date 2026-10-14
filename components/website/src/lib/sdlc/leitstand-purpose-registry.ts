@@ -15,7 +15,7 @@ export const leitstandPurposes: Record<string, LeitstandPurpose> = {
   // im Partial-Header. Harmlos, solange die Dateien noch nicht existieren: der p3-Guard
   // markiert nur FEHLENDE Eintraege als Fehler, nie ueberschuessige.
   'deck-leiste': {
-    zweck: 'Zwischen den Nebendomaenen-Decks Qualitaet, Plattform, KI und Wissen umschalten, ohne Z1-Z4 zu veraendern.',
+    zweck: 'Zwischen den Nebendomaenen-Decks Qualitaet, Plattform, KI, Wissen und Agents umschalten, ohne Z1-Z4 zu veraendern.',
     datenquelle: 'leitstand-url.ts (deck-Selektion)',
     aktionen: ['Deck wechseln'],
   },
@@ -38,6 +38,11 @@ export const leitstandPurposes: Record<string, LeitstandPurpose> = {
     zweck: 'API-Katalog und Prompt-Bibliothek als Nachschlage-Deck anbieten.',
     datenquelle: 'api-inventory.json, Prompt-Bibliothek',
     aktionen: [],
+  },
+  'deck-agents': {
+    zweck: 'Aktive Agents über lokale Backends und Public API mit Claims und Ticket-Verknüpfung als Live-Deck zeigen.',
+    datenquelle: '/sdlc/api/agents-overview (agents-overview.py + agent-lock-Claims, 25-s-Cache, 30-s-Polling)',
+    aktionen: ['Übersicht aktualisieren', 'Claim-Ticket in der Kontextzone zeigen'],
   },
   'kpi-grid': {
     zweck: 'Im Leerlauf der Kontextzone die DORA-KPIs (Deployment-Frequenz, Lead Time, CFR) plus Factory-Kennzahlen als Live-Raster zeigen.',

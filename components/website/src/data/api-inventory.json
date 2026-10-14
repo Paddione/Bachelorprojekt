@@ -1,6 +1,19 @@
 {
   "routes": [
     {
+      "path": "/sdlc/api/agents-overview",
+      "file": "agents-overview.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "filesystem"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/ai-quality",
       "file": "ai-quality.ts",
       "methods": [

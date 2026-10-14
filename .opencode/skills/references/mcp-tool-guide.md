@@ -323,8 +323,8 @@ Stdio-Server `~/mcp-servers/devflow/server.mjs`. Design: `.agents/plans/devflow-
   Sektion leer (`degraded`); Rerank-Ausfall liefert Vektor-Reihenfolge.
 - **Graph-Korpus:** `node ~/mcp-servers/devflow/graph-index.mjs --repo <pfad>` — frischer
   codebase-memory-Index, ein Chunk je Symbol, nur Geändertes einbetten. Automatisch nach jedem
-  Merge auf `main` (`.githooks/post-merge`, 20 min Budget) und nachts mit Sync nach
-  `knowledge.*` (`task agents:devflow:graph:index SYNC_DB=1`). bge bettet seriell ein
+  Merge auf `main` (`.githooks/post-merge`, 20 min Budget). Nur lokaler Cache, kein Sync nach
+  `knowledge.*`. bge bettet seriell ein
   (~2,2 ms/Zeichen): der Erstlauf dauert Stunden und setzt am Checkpoint fort.
 - **Nicht:** exakte Textsuche (grep / `search_code` von codebase-memory), Ticket-Status (ticket-mcp).
 

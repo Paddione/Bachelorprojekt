@@ -52,8 +52,9 @@ function forbiddenArg(prefix, args) {
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (!a.startsWith('-')) {
-      // Positionsargumente (Pfade, Node-IDs) bleiben im Worktree.
-      if (a.startsWith('/') || a.startsWith('~') || a.split(/[/\\]/).includes('..')) return a;
+      // Positionsargumente (Pfade, Node-IDs) bleiben im Worktree; `@datei` liest pytest als
+      // Argumentdatei und umginge so die Positivliste.
+      if (/^[/~@]/.test(a) || a.split(/[/\\]/).includes('..')) return a;
       continue;
     }
     if (flags.includes(a)) continue;

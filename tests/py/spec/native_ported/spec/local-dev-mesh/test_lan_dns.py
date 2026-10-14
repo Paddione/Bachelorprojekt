@@ -129,6 +129,24 @@ def test_konfiguration_passt_zu_fritzbox_und_tailnet(rendered):
     assert dns["local_ptr_upstreams"] == ["10.0.0.1"]
 
 
+def test_rewrites_fuehren_jeden_devmesh_host_auf_alle_lan_dns_knoten(rendered, repo_root):
+    env = dict(re.findall(r"^\s+([A-Z_]+):\s*(\S+)", (repo_root / "environments/dev.yaml").read_text(), re.M))
+    domain = env["DEVMESH_DOMAIN"]
+    ingress = yaml.safe_load(re.sub(
+        r"\$\{([A-Z_]+)\}", lambda m: env[m.group(1)], (repo_root / "dev-local/core/ingress.yaml").read_text()))
+    hosts = set(ingress["spec"]["tls"][0]["hosts"])
+    inv = yaml.safe_load((repo_root / "devmesh/inventory.yaml").read_text())
+    ips = {p["lan_ip"] for p in inv["peers"] if p.get("lan_dns")}
+    # Positiv-Anker: Console-Host und mindestens zwei Knoten fuer den Ausweich.
+    assert f"web.{domain}" in hosts and len(ips) >= 2
+    rewrites = _adguard_config(rendered)["filtering"]["rewrites"]
+    assert all(r["enabled"] is True for r in rewrites)
+    assert {(r["domain"], r["answer"]) for r in rewrites} == {(h, ip) for h in hosts for ip in ips}
+    # Kein Wildcard: AdGuard kuerzt Wildcard-Treffer auf eine Antwort (kein Ausweich)
+    # und wuerde auch _acme-challenge (cert-manager DNS-01) erfassen.
+    assert not [r for r in rewrites if r["domain"].startswith("*")]
+
+
 @pytest.fixture
 def inventory(tmp_path, monkeypatch):
     inv = tmp_path / "inventory.yaml"

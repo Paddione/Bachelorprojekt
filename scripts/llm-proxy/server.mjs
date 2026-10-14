@@ -2,7 +2,7 @@
 import http from 'node:http';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
-import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems } from './fixups.mjs';
+import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems, flattenForTokenEstimate, IMAGE_TOKEN_ESTIMATE } from './fixups.mjs';
 import { startListeners } from './listeners.mjs';
 // [T900107] Aus loadouts.mjs bleibt nur der Lesepfad: die Datei traegt neben den
 // (entfallenen) GPU-Loadouts auch den roles-Block, aus dem die bge-Routen ihre
@@ -72,7 +72,8 @@ async function getBackendCtx(backend) {
 
 async function countPromptTokens(backend, messages) {
   if (backend.kind !== 'llamacpp') return null;
-  const content = (messages || []).map((m) => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content))).join('\n');
+  const { text, images } = flattenForTokenEstimate(messages);
+  const content = text;
   try {
     const host = backend.baseUrl.replace(/\/v1\/?$/, '');
     const res = await fetch(`${host}/tokenize`, {
@@ -81,7 +82,7 @@ async function countPromptTokens(backend, messages) {
     });
     if (!res.ok) throw new Error(`status ${res.status}`);
     const body = await res.json();
-    return Array.isArray(body?.tokens) ? body.tokens.length : null;
+    return Array.isArray(body?.tokens) ? body.tokens.length + images * IMAGE_TOKEN_ESTIMATE : null;
   } catch {
     return null;
   }

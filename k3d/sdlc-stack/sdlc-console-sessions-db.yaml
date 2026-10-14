@@ -1,0 +1,13 @@
+# Connection-String der sdlc-console-Sessions-DB als Secret statt Literal im
+# Deployment. Die DB-Rolle `website` nutzt WEBSITE_DB_PASSWORD; ein fest
+# eingetragenes Passwort bricht den OIDC-Callback ("password authentication
+# failed for user website"), sobald das Secret vom Dev-Default abweicht.
+# Dev-k3d: Default-Passwort. Devmesh/Prod: Secret mit URL-kodiertem Passwort
+# aus WEBSITE_DB_PASSWORD anlegen.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sdlc-console-sessions-db
+type: Opaque
+stringData:
+  SESSIONS_DATABASE_URL: "postgresql://website:devwebsitedb@shared-db:5432/website"

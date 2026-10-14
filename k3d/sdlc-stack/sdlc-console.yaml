@@ -83,7 +83,10 @@ spec:
                 name: sdlc-console-config
           env:
             - name: SESSIONS_DATABASE_URL
-              value: "postgresql://website:devwebsitedb@shared-db:5432/website"
+              valueFrom:
+                secretKeyRef:
+                  name: sdlc-console-sessions-db
+                  key: SESSIONS_DATABASE_URL
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

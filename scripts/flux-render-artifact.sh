@@ -12,6 +12,11 @@ PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/lib/render-subst-list.sh"
 
 OUT_DIR="out"
+# --only a,b rendert nur die genannten Komponenten (platform, dev, dev-pod, mentolder,
+# korczewski, korczewski-jobs, website-mentolder, website-korczewski, korczewski-auth,
+# staging, website-staging, coturn, sealed-secrets-{mentolder,korczewski,staging}, clusters).
+# Leer = alles (Default).
+ONLY=""
 # WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
 # WEBSITE_IMAGE_TAG steuert den Image-Tag — getrennte Konzepte, nicht koppeln (T002209).
 # Siehe Task 2.2 fuer die Default-Werte des Tags.
@@ -22,6 +27,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --out)
       OUT_DIR="$2"
+      shift 2
+      ;;
+    --only)
+      ONLY="$2"
       shift 2
       ;;
     --website-image)
@@ -38,6 +47,9 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# want <komponente>: true, wenn kein --only gesetzt ist oder die Komponente darin steht.
+want() { [[ -z "$ONLY" || ",${ONLY}," == *",$1,"* ]]; }
 
 mkdir -p "${OUT_DIR}"
 OUT_DIR="$(cd "${OUT_DIR}" && pwd)"
@@ -209,6 +221,7 @@ render_component() {
 cd "$PROJECT_DIR"
 
 # 1. Platform
+if want platform; then
 (
   set +u
   source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
@@ -218,6 +231,7 @@ cd "$PROJECT_DIR"
   mkdir -p "${OUT_DIR}/platform"
   render_component prod-fleet/platform "${OUT_DIR}/platform/platform.yaml"
 )
+fi
 
 # 1b. Dev (workspace-dev namespace)
 #
@@ -233,6 +247,7 @@ cd "$PROJECT_DIR"
 # environments/dev.yaml beschreibt die lokale k3d-Umgebung (keine oeffentliche Domain)
 # und darf den Cluster-Dev-Stack nicht mehr abschalten. Siehe environments/schema.yaml
 # DEV_DOMAIN-Doku.
+if want dev; then
 (
   set +u
   # Kein `|| true`: schlug env-resolve fehl, lief der Render mit leerer Umgebung
@@ -260,6 +275,7 @@ EOF
     render_component prod-fleet/dev "${OUT_DIR}/dev/dev.yaml"
   fi
 )
+fi
 
 # 1d. dev-pod (T900107) — MCP-Server-Bundle + llm-proxy in workspace-dev.
 #
@@ -269,10 +285,13 @@ EOF
 # davon unabhaengig — er traegt keine Domain und keinen Ingress.
 #
 # Kein vorheriges env-resolve.sh: das Overlay enthaelt keinen ${VAR}-Platzhalter,
+if want dev-pod; then
 mkdir -p "${OUT_DIR}/dev-pod"
 render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
+fi
 
 # 2. Mentolder
+if want mentolder; then
 (
   set +u
   source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
@@ -282,8 +301,10 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/mentolder"
   render_component prod-fleet/mentolder "${OUT_DIR}/mentolder/mentolder.yaml"
 )
+fi
 
 # 3. Korczewski
+if want korczewski; then
 (
   set +u
   source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
@@ -293,11 +314,13 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/korczewski"
   render_component prod-fleet/korczewski "${OUT_DIR}/korczewski/korczewski.yaml"
 )
+fi
 
 # 3b. Mentolder Jobs entfallen mit T016558 (Stufe 2): flux-mentolder-jobs
 # aus Prod entfernt; Seed-Jobs laufen bei Bedarf manuell bzw. via k3d-Flow.
 
 # 3c. Korczewski Jobs (T002207)
+if want korczewski-jobs; then
 (
   set +u
   source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
@@ -307,8 +330,10 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/korczewski-jobs"
   render_component prod-fleet/korczewski-jobs "${OUT_DIR}/korczewski-jobs/korczewski-jobs.yaml"
 )
+fi
 
 # 4. Website Mentolder
+if want website-mentolder; then
 (
   set +u
   source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
@@ -318,8 +343,10 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/website-mentolder"
   render_component prod-fleet/website-mentolder "${OUT_DIR}/website-mentolder/website-mentolder.yaml"
 )
+fi
 
 # 5. Website Korczewski
+if want website-korczewski; then
 (
   set +u
   source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
@@ -329,10 +356,12 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/website-korczewski"
   render_component prod-fleet/website-korczewski "${OUT_DIR}/website-korczewski/website-korczewski.yaml"
 )
+fi
 
 # 5a. Korczewski Auth (T901440) — eigene Pocket ID, Client-Seed und
 # Wildcard-Zertifikat im workspace-korczewski Namespace; DB/Rollen aus der
 # zentralen shared-db (p1). Produktive Domains erst nach Env-Substitution.
+if want korczewski-auth; then
 (
   set +u
   source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
@@ -342,10 +371,12 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/korczewski-auth"
   render_component prod-fleet/korczewski-auth "${OUT_DIR}/korczewski-auth/korczewski-auth.yaml"
 )
+fi
 
 # 5b. Staging app stack (T015004) — workspace-staging via prod-fleet/staging.
 #     Verdrahtet den bislang GitOps-verwaisten Staging-Namespace (Ursache von
 #     T014538/SA-FC-02) in den Flux-Pfad.
+if want staging; then
 (
   set +u
   source scripts/env-resolve.sh staging 2>/dev/null
@@ -355,9 +386,11 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/staging"
   render_component prod-fleet/staging "${OUT_DIR}/staging/staging.yaml"
 )
+fi
 
 # 5c. Website Staging (T015004) — website-staging namespace, Ziel der
 #     Staging-CronJobs (website.website-staging.svc.cluster.local).
+if want website-staging; then
 (
   set +u
   source scripts/env-resolve.sh staging 2>/dev/null
@@ -367,11 +400,13 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/website-staging"
   render_component prod-fleet/website-staging "${OUT_DIR}/website-staging/website-staging.yaml"
 )
+fi
 
 # 5d. Coturn/Janus (T016529) — Talk-HPB auf gekko-hetzner-2 (hostNetwork,
 #     ohne WG). TURN_* aus fleet-mentolder; Secrets kommen aus dem
 #     SealedSecrets-Pfad (./sealed-secrets/mentolder), TLS via eigenes
 #     Certificate im Overlay (keine stale Kopie).
+if want coturn; then
 (
   set +u
   source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
@@ -379,22 +414,34 @@ render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
   mkdir -p "${OUT_DIR}/coturn"
   render_component prod-fleet/coturn "${OUT_DIR}/coturn/coturn.yaml"
 )
+fi
 
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
 # Nested per-brand: both files carry a SealedSecret for the shared
 # grafana-oidc secret (namespace monitoring), so a single flat kustomize
 # build across both would collide on that resource id. Separate
 # directories give kustomize-controller one independent build per brand.
-mkdir -p "${OUT_DIR}/sealed-secrets/mentolder" "${OUT_DIR}/sealed-secrets/korczewski" "${OUT_DIR}/sealed-secrets/staging"
-cp environments/sealed-secrets/fleet-mentolder.yaml "${OUT_DIR}/sealed-secrets/mentolder/fleet-mentolder.yaml"
-cp environments/sealed-secrets/fleet-korczewski.yaml "${OUT_DIR}/sealed-secrets/korczewski/fleet-korczewski.yaml"
+# Je Brand einzeln schaltbar (--only sealed-secrets-mentolder usw.).
+if want sealed-secrets-mentolder; then
+  mkdir -p "${OUT_DIR}/sealed-secrets/mentolder"
+  cp environments/sealed-secrets/fleet-mentolder.yaml "${OUT_DIR}/sealed-secrets/mentolder/fleet-mentolder.yaml"
+fi
+if want sealed-secrets-korczewski; then
+  mkdir -p "${OUT_DIR}/sealed-secrets/korczewski"
+  cp environments/sealed-secrets/fleet-korczewski.yaml "${OUT_DIR}/sealed-secrets/korczewski/fleet-korczewski.yaml"
+fi
 # T015004: Staging-SealedSecrets sind bereits auf workspace-staging/
 # website-staging/monitoring gesealed (environments/sealed-secrets/staging.yaml).
-cp environments/sealed-secrets/staging.yaml "${OUT_DIR}/sealed-secrets/staging/staging.yaml"
+if want sealed-secrets-staging; then
+  mkdir -p "${OUT_DIR}/sealed-secrets/staging"
+  cp environments/sealed-secrets/staging.yaml "${OUT_DIR}/sealed-secrets/staging/staging.yaml"
+fi
 
 # 7. Cluster CRs (top-level only under flux/clusters/fleet/, excluding bootstrap/)
+if want clusters; then
 mkdir -p "${OUT_DIR}/clusters/fleet"
 find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clusters/fleet/" \;
+fi
 
 # 8. Validation gate — check rendered YAML is parseable before the
 # artifact is pushed. Catches empty renders, envsubst-corrupted output,

@@ -165,14 +165,19 @@ einzelne (Preemption) — langsamer, nicht falsch. `--gpu-memory-utilization`
 bleibt bei 0.72, weil sich die 5070 Ti den VRAM mit dem Orchestrator `:1919`
 teilt.
 
-**Status:** Repo-Doku (Worker-Prompt, `agent-models.jsonc`, Registry,
-Provisioning, Lineup) steht auf „bis 64k je Anfrage". Die Umstellung am Host
-ist **noch nicht bestaetigt** — beim letzten Check (2026-10-14, ~22:00) stand
-in Zeile 18 der Unit noch `--max-model-len 32768`. Bestaetigt ist sie erst mit
-der KV-Zeile `Maximum concurrency for 65,536 tokens per request`. Der Hinweis
-in `docs/runbooks/plan-runner.md`, dass eine volle opencode-Sitzung das Fenster
+**Status:** umgestellt. Belegt durch die Umgebungsausgabe von
+`scripts/llm/harness-ctx-compare.sh` am 2026-10-14 auf dem PK-Desktop:
+
+```bash
+curl -sf http://127.0.0.1:8123/v1/models | jq -c '.data[] | {id, max_model_len}'
+# {"id":"w4a4","max_model_len":65536}
+```
+
+Die KV-Zeile des neuen Starts (`Maximum concurrency for 65,536 tokens per
+request`) ist noch nicht protokolliert. Der Hinweis in
+`docs/runbooks/plan-runner.md`, dass eine volle opencode-Sitzung das Fenster
 sprengt, bleibt stehen, bis eine Worker-Sitzung im Worktree nachweislich
-startet.
+startet (Harness-Vergleich, `2026-10-14-harness-ctx.md`).
 
 Umstellung auf dem Host (Service liegt nicht im Repo):
 

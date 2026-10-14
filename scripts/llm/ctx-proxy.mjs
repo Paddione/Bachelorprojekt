@@ -136,11 +136,13 @@ function serve() {
 function summarize() {
   const file = rest[0];
   const only = opt('label', null);
-  if (!file || !existsSync(file)) {
+  if (!file) {
     console.error('usage: ctx-proxy.mjs summarize <datei.jsonl> [--label <lauf>]');
     process.exit(1);
   }
-  const rows = readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+  // Noch keine Anfrage protokolliert (z. B. Harness startete gar nicht): leeres
+  // Ergebnis statt Fehler — der Aufrufer wertet "0 Anfragen" selbst aus.
+  const rows = !existsSync(file) ? [] : readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
   const byLabel = new Map();
   for (const r of rows) {
     if (only && r.label !== only) continue;

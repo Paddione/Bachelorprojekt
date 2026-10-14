@@ -30,27 +30,42 @@ export const COMMAND_ALLOWLIST = [
   ['git', 'status'],
 ];
 
-// Flags, die fremden Code/Config nachladen oder ausserhalb des Worktrees lesen/schreiben.
-// Exakte Treffer und `--flag=...`; die Kurzform `-p` von pytest laedt Plugins.
-const FORBIDDEN_FLAGS = {
-  python3: ['-p', '-c', '--config-file', '--rootdir', '--confcutdir', '--basetemp', '--import-mode'],
-  bash: ['-p', '-c', '--config-file', '--rootdir', '--confcutdir', '--basetemp', '--import-mode'],
-  node: ['--import', '--require', '-r', '--loader', '--experimental-loader', '--env-file', '--eval', '-e', '--print', '-p'],
-  npx: ['--config', '-c', '--root', '--dir', '--globalSetup', '--setupFiles', '--outputFile'],
-  git: ['--output', '--no-index', '--ext-diff', '--textconv', '-c', '--exec-path', '--git-dir', '--work-tree'],
+// Positivliste der Optionen je Befehlspraefix: `flags` stehen allein, `values` nehmen einen Wert
+// (`-k expr` oder `--tb=short`). Alles andere, was mit `-` beginnt, wird abgelehnt — eine
+// Sperrliste bliebe lueckenhaft (`--junitxml=/…`, `-o`, Plugins, Loader).
+const PYTEST_OPTS = { flags: ['-q', '-v', '-vv', '-x', '-s', '-l', '-rA', '--lf', '--ff', '--no-header'], values: ['-k', '-m', '--tb', '--maxfail', '-p'] };
+const COMMAND_OPTIONS = {
+  'python3 -m pytest': PYTEST_OPTS,
+  'bash scripts/pytest-run.sh': PYTEST_OPTS,
+  'node --test': { flags: [], values: ['--test-name-pattern'] },
+  'npx vitest run': { flags: ['--silent'], values: ['-t', '--testNamePattern'] },
+  'git diff': { flags: ['--stat', '--name-only', '--name-status', '--cached', '--staged', '--'], values: [] },
+  'git status': { flags: ['--short', '-s', '--porcelain', '--'], values: [] },
 };
 
 // Befehle sehen nur eine minimale Umgebung, keine Tokens/Keys des Runner-Prozesses.
 const ENV_PASSTHROUGH = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'TERM', 'TMPDIR', 'PYTEST_JOBS', 'PYTEST_LOCAL'];
 
-function forbiddenFlag(argv) {
-  const flags = FORBIDDEN_FLAGS[argv[0]] || [];
-  const pytest = argv[0] === 'python3' || argv[0] === 'bash';
-  return argv.slice(1).find((a, i, rest) => {
-    // `-p no:<plugin>` schaltet nur ab und bleibt erlaubt; `-pfoo` ist die Kurzform von `-p foo`.
-    if (pytest && (a === '-p' || /^-p[^-]/.test(a))) return !(a === '-p' ? rest[i + 1] || '' : a.slice(2)).startsWith('no:');
-    return flags.some((f) => a === f || a.startsWith(`${f}=`) || (f.startsWith('--') && a.startsWith(f)));
-  });
+// Liefert das erste unzulaessige Argument hinter dem Praefix, sonst undefined.
+function forbiddenArg(prefix, args) {
+  const { flags, values } = COMMAND_OPTIONS[prefix.join(' ')];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (!a.startsWith('-')) {
+      // Positionsargumente (Pfade, Node-IDs) bleiben im Worktree.
+      if (a.startsWith('/') || a.startsWith('~') || a.split(/[/\\]/).includes('..')) return a;
+      continue;
+    }
+    if (flags.includes(a)) continue;
+    const eq = a.indexOf('=');
+    const name = eq > 0 ? a.slice(0, eq) : a;
+    if (!values.includes(name)) return a;
+    const value = eq > 0 ? a.slice(eq + 1) : args[++i];
+    if (value === undefined) return a;
+    // `-p no:<plugin>` schaltet nur ab; `-p <modul>` wuerde Code nachladen.
+    if (name === '-p' && !value.startsWith('no:')) return `${a} ${value}`;
+  }
+  return undefined;
 }
 
 function commandEnv(worktree) {
@@ -144,12 +159,12 @@ function runCommand(worktree, argv) {
   if (!Array.isArray(argv) || !argv.length || argv.some((a) => typeof a !== 'string')) {
     return Promise.resolve('ERROR: argv must be a non-empty array of strings');
   }
-  const allowed = COMMAND_ALLOWLIST.some((p) => p.every((x, i) => argv[i] === x));
-  if (!allowed) {
+  const prefix = COMMAND_ALLOWLIST.find((p) => p.every((x, i) => argv[i] === x));
+  if (!prefix) {
     return Promise.resolve(`ERROR: command not allowed (allowed prefixes: ${COMMAND_ALLOWLIST.map((p) => p.join(' ')).join('; ')})`);
   }
-  const bad = forbiddenFlag(argv);
-  if (bad !== undefined) return Promise.resolve(`ERROR: command not allowed (forbidden flag: ${bad})`);
+  const bad = forbiddenArg(prefix, argv.slice(prefix.length));
+  if (bad !== undefined) return Promise.resolve(`ERROR: command not allowed (forbidden argument: ${bad})`);
   return new Promise((done) => {
     let out = '';
     let child;

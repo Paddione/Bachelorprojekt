@@ -182,13 +182,20 @@ def test_run_command_outside_the_allowlist_is_refused(dw):
     ["node", "--test", "--import", "./evil.mjs"],
     ["git", "diff", "--output=../leak.txt"],
     ["git", "diff", "--no-index", "/etc/hostname", "x"],
+    ["python3", "-m", "pytest", "-pevil_plugin", "test_ok.py"],
+    ["python3", "-m", "pytest", "-qp", "evil_plugin", "test_ok.py"],
+    ["python3", "-m", "pytest", "--junitxml=/tmp/leak.xml", "test_ok.py"],
+    ["python3", "-m", "pytest", "-o", "addopts=-p evil", "test_ok.py"],
+    ["python3", "-m", "pytest", "../outside/test_x.py"],
+    ["npx", "vitest", "run", "--outputFile=/tmp/x.json"],
 ])
-def test_allowed_prefix_with_a_forbidden_flag_is_refused(dw, argv):
+def test_allowed_prefix_with_a_forbidden_argument_is_refused(dw, argv):
+    (dw.wt / "test_ok.py").write_text("def test_ok():\n    assert True\n")
     dw.run([
         _step(_call("run_command", argv=argv)),
         _step(_call("finish", status="failure", summary="abgelehnt", changed_files=[])),
     ])
-    assert dw.tool_results()[0].startswith("ERROR: command not allowed (forbidden flag")
+    assert dw.tool_results()[0].startswith("ERROR: command not allowed (forbidden argument")
 
 
 def test_commands_do_not_inherit_secrets_from_the_runner_env(dw, monkeypatch):

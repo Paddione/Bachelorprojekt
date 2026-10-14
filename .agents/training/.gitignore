@@ -6,5 +6,6 @@ qwen35_*_bp_gguf/
 qwen35_*_bp_gguf_gguf/
 outputs/
 eval_*_results.json
+eval_results.json
 __pycache__/
 *.pyc

@@ -2,6 +2,7 @@
 name: update-dependencies
 description: 'Archived dependency-update routine retained for reference; invoke explicitly only when the scheduled biweekly workflow must be run manually.'
 archived: true
+disable-model-invocation: true
 # Manuell: Skill explizit mit /update-dependencies aufrufen, falls sofortige Ausführung nötig.
 ---
 

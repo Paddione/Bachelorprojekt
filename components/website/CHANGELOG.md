@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.423.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.423.0...website-v1.423.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **test:** heal 17 local test:changed failures [T016616] ([#6668](https://github.com/Paddione/Bachelorprojekt/issues/6668)) ([d16b895](https://github.com/Paddione/Bachelorprojekt/commit/d16b89518b97aefed891dbc8e2c88091c56bf280))
+
 ## [1.423.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.422.1...website-v1.423.0) (2026-10-14)
 
 

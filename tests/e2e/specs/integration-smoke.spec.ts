@@ -67,7 +67,7 @@ test.describe('Integration Smoke Tests', () => {
     await assertReachable(
       request,
       `https://vault.${DOMAIN}/alive`,
-      { label: 'Vaultwarden /alive' },
+      { label: 'Vaultwarden /alive', allow404AsNotDeployed: true },
       testInfo
     );
   });

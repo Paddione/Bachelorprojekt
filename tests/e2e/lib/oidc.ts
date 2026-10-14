@@ -36,7 +36,7 @@ const NS = process.env.POCKET_ID_NAMESPACE ?? 'workspace';
 export function oidcLoginAvailable(): boolean {
   if (process.env.POCKET_ID_OTAC_URL) return true;
   try {
-    execFileSync('kubectl', ['config', 'current-context'], { stdio: 'pipe', timeout: 10_000 });
+    execFileSync('kubectl', ['get', 'pod', '-n', NS, '-l', 'app=pocket-id', '--request-timeout=5s'], { stdio: 'pipe', timeout: 6_000 });
     return true;
   } catch {
     return false;

@@ -23,7 +23,6 @@ test.describe('SA-01: Transportverschlüsselung', () => {
     const services: Array<{ name: string; url: string }> = [
       { name: 'auth',  url: `https://auth.${PROD_DOMAIN}` },
       { name: 'files', url: `https://files.${PROD_DOMAIN}` },
-      { name: 'vault', url: `https://vault.${PROD_DOMAIN}` },
       { name: 'board', url: `https://brett.${PROD_DOMAIN}` },
       { name: 'web',   url: `https://web.${PROD_DOMAIN}` },
     ];

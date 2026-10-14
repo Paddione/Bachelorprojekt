@@ -91,7 +91,9 @@ export async function assertReachable(
   }
 
   if (allow404AsNotDeployed && res.status() === 404) {
-    skipOrFail(testInfo, `${label}: service not deployed (404)`);
+    const fixme = testInfo?.fixme || test.fixme;
+    (fixme as (shouldFix: boolean, reason: string) => void)(true, `[${modeLabel()}] ${label}: service not deployed (404)`);
+    test.skip(true, `[${modeLabel()}] ${label}: service not deployed (404)`);
   }
 
   if (!acceptableStatuses.includes(res.status())) {

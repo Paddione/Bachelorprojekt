@@ -46,6 +46,24 @@ dns:
 filtering:
   protection_enabled: true
   filtering_enabled: true
+  # devmesh-Hosts (DEVMESH_DOMAIN aus environments/dev.yaml) auf die LAN-IPs der
+  # lan_dns-Knoten; Traefik (ServiceLB) nimmt auf jedem Knoten an. Damit braucht
+  # kein Geraet im Heimnetz einen hosts-Eintrag fuer das SDLC-Cockpit.
+  # Exakte Namen statt *.devmesh...: AdGuard gibt bei Wildcard-Rewrites nur eine
+  # Antwort zurueck (kein Ausweich auf gpu-cluster2), und _acme-challenge-Abfragen
+  # von cert-manager (DNS-01) bleiben unberuehrt. Liste = TLS-Hosts in
+  # dev-local/core/ingress.yaml.
+  rewrites:
+    - {domain: web.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
+    - {domain: web.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
+    - {domain: auth.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
+    - {domain: auth.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
+    - {domain: site.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
+    - {domain: site.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
+    - {domain: brett.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
+    - {domain: brett.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
+    - {domain: mail.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
+    - {domain: mail.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
 filters:
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt

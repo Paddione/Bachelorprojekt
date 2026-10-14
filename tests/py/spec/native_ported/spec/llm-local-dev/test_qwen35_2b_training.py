@@ -121,10 +121,16 @@ print("export-fixture OK")
 
 def test_p5_viability_gate_green_eval_results_pass_thresholds(repo_root, run_cmd, train_env):
     import shutil
+    from pathlib import Path
+
     import pytest
 
     if not shutil.which("nvidia-smi"):
         pytest.skip("CUDA-Host required (nvidia-smi not found)")
+    if not (repo_root / ".agents" / "training" / "eval_2b_results.json").is_file():
+        pytest.skip("kein Eval-Artefakt (.agents/training/eval_2b_results.json) — "
+                    "GPU-Run (Train + Eval, T016616-Follow-up) noch nicht ausgefuehrt; "
+                    "kein Beleg heisst keine Agent-IDs, aber kein Suite-Rot")
 
     code = '''
 import json

@@ -112,11 +112,11 @@ def test_ssot_registry_mcp_yaml_exists_with_clients_and_cluster(repo_root):
     assert len(d["clients"]) >= 0 and len(d["cluster"]) >= 0
 
 
-def test_mcp_sync_sh_check_passes_registry_matches_generated_configs(run_cmd, repo_root, monkeypatch):
+def test_mcp_sync_sh_check_passes_registry_matches_generated_configs(run_cmd, repo_root, monkeypatch, mcp_sandbox):
     # Entruempelt das Aufrufer-Env, damit der Renderer deterministisch aufloest (T900922).
     monkeypatch.delenv("BGE_MCP_TOKEN", raising=False)
     monkeypatch.delenv("MCP_POSTGRES_TOKEN", raising=False)
-    r = run_cmd(["bash", str(repo_root / "scripts" / "mcp-sync.sh"), "check"])
+    r = run_cmd(["bash", str(repo_root / "scripts" / "mcp-sync.sh"), "check"], env=mcp_sandbox)
     assert r.returncode == 0, r.output
 
 

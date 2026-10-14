@@ -74,13 +74,13 @@ def test_generated_opencode_jsonc_carries_the_bge_mcp_authorization_header(repo_
 
 
 def test_mcp_sync_sh_check_stays_green_headers_are_generated_not_hand_edited(
-    sync, run_cmd, monkeypatch
+    sync, run_cmd, monkeypatch, mcp_sandbox
 ):
     """mcp-sync.sh check stays green — headers are generated, not hand-edited"""
     # Aufruf-Env entruempeln, damit der Renderer deterministisch aus server.env aufloest.
     monkeypatch.delenv("BGE_MCP_TOKEN", raising=False)
     monkeypatch.delenv("MCP_POSTGRES_TOKEN", raising=False)
-    result = run_cmd(["bash", sync, "check"])
+    result = run_cmd(["bash", sync, "check"], env=mcp_sandbox)
     assert result.returncode == 0, result.output
 
 

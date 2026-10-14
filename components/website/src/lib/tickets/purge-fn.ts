@@ -1,14 +1,14 @@
 // components/website/src/lib/tickets/purge-fn.ts
 // Laufzeit-Definition von tickets.fn_purge_test_data() — einzige Stelle in der Website (T900381).
 //
-// Der Rumpf ist wortgleich mit scripts/one-shot/purge-fn-v8.sql (zwischen 'AS $$' und '$$;').
+// Der Rumpf ist wortgleich mit scripts/one-shot/purge-fn-v9.sql (zwischen 'AS $$' und '$$;').
 // Bis T900381 hielt tickets/migrations.ts eine v6-Kopie und spielte sie bei jedem Website-Start
 // per CREATE OR REPLACE ein — das setzte die von Hand eingespielten v7/v8 auf fleet zurueck.
 // Neue Fassung: purge-fn-v<N>.sql anlegen UND diesen Rumpf ersetzen;
 // tests/py/spec/native_ported/spec/e2e-test-infrastructure/test_purge_fn_website_sync.py haelt beides gleich.
 import type { Pool, PoolClient } from 'pg';
 
-export const PURGE_FN_VERSION = 'v8';
+export const PURGE_FN_VERSION = 'v9';
 
 export const PURGE_FN_BODY = `DECLARE
   result            JSONB := '{}'::jsonb;
@@ -40,6 +40,14 @@ export const PURGE_FN_BODY = `DECLARE
   has_billing_dunnings  BOOLEAN;
   has_billing_payments  BOOLEAN;
   has_billing_lines BOOLEAN;
+  has_chat_members    BOOLEAN;
+  has_chat_messages   BOOLEAN;
+  has_chat_reads      BOOLEAN;
+  has_chat_rooms      BOOLEAN;
+  has_doc_assign      BOOLEAN;
+  has_msg_threads     BOOLEAN;
+  has_messages_tbl    BOOLEAN;
+  has_brett_snaps     BOOLEAN;
   cust_sql          TEXT;
   keep_emails       TEXT[] := ARRAY[
                        'patrick@korczewski.de',
@@ -127,6 +135,18 @@ BEGIN
                    AND table_name='sessions'
                    AND column_name='is_test_data')
     INTO has_coaching_flag;
+  -- v9 (T016616): customer-sweep guard tables. Jede NOT EXISTS-Klausel in
+  -- cust_sql wird nur angehaengt, wenn die Relation existiert — PostgreSQL
+  -- loest Namen beim Parsen auf, eine fehlende Chat-Tabelle liess den
+  -- customers-Sweep auf devmesh mit undefined_table scheitern.
+  SELECT to_regclass('public.chat_room_members') IS NOT NULL INTO has_chat_members;
+  SELECT to_regclass('public.chat_messages') IS NOT NULL INTO has_chat_messages;
+  SELECT to_regclass('public.chat_message_reads') IS NOT NULL INTO has_chat_reads;
+  SELECT to_regclass('public.chat_rooms') IS NOT NULL INTO has_chat_rooms;
+  SELECT to_regclass('public.document_assignments') IS NOT NULL INTO has_doc_assign;
+  SELECT to_regclass('public.message_threads') IS NOT NULL INTO has_msg_threads;
+  SELECT to_regclass('public.messages') IS NOT NULL INTO has_messages_tbl;
+  SELECT to_regclass('public.brett_snapshots') IS NOT NULL INTO has_brett_snaps;
 
   SELECT EXISTS(SELECT 1 FROM information_schema.columns
                  WHERE table_schema='tickets'
@@ -383,9 +403,17 @@ BEGIN
   --     Fix: sweep meetings by meeting_type LIKE '[TEST]%' before customers.
   ----------------------------------------------------------------------------
   IF has_meetings THEN
-    DELETE FROM meetings WHERE meeting_type LIKE '[TEST]%';
-    GET DIAGNOSTICS cnt = ROW_COUNT;
-    result := result || jsonb_build_object('meetings', cnt);
+    -- v9 (T016616): website has only SELECT on public.meetings on grant-drifted
+    -- DBs (devmesh) while fleet grants full rights. The SECURITY DEFINER
+    -- function runs as website — record the skip instead of aborting the
+    -- whole purge. drift_guard_v9
+    BEGIN
+      DELETE FROM meetings WHERE meeting_type LIKE '[TEST]%';
+      GET DIAGNOSTICS cnt = ROW_COUNT;
+      result := result || jsonb_build_object('meetings', cnt);
+    EXCEPTION WHEN insufficient_privilege THEN
+      result := result || jsonb_build_object('meetings_skipped_no_grant', true);
+    END;
   END IF;
 
   ----------------------------------------------------------------------------
@@ -488,16 +516,46 @@ BEGIN
   cust_sql :=
     'DELETE FROM customers c'
     || ' WHERE c.email <> ALL ($1)'
-    || '   AND NOT EXISTS (SELECT 1 FROM meetings m           WHERE m.customer_id      = c.id)'
-    || '   AND NOT EXISTS (SELECT 1 FROM chat_room_members    WHERE customer_id        = c.id)'
-    || '   AND NOT EXISTS (SELECT 1 FROM chat_messages        WHERE sender_customer_id = c.id)'
-    || '   AND NOT EXISTS (SELECT 1 FROM chat_message_reads   WHERE customer_id        = c.id)'
-    || '   AND NOT EXISTS (SELECT 1 FROM chat_rooms           WHERE direct_customer_id = c.id)'
-    || '   AND NOT EXISTS (SELECT 1 FROM document_assignments WHERE customer_id        = c.id)'
-    || '   AND NOT EXISTS (SELECT 1 FROM message_threads      WHERE customer_id        = c.id)'
-    || '   AND NOT EXISTS (SELECT 1 FROM messages             WHERE sender_customer_id = c.id)'
-    || '   AND NOT EXISTS (SELECT 1 FROM brett_snapshots      WHERE customer_id        = c.id)'
     || '   AND NOT EXISTS (SELECT 1 FROM tickets.tickets      WHERE customer_id        = c.id)';
+  -- v9 (T016616): optionale Klauseln nur bei existierender Relation (siehe
+  -- Proben oben). Fehlt die Tabelle, kann kein Kunde eine Zeile darin haben —
+  -- Weglassen ist semantisch exakt und verhindert undefined_table beim Parsen.
+  IF has_meetings THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM meetings m           WHERE m.customer_id      = c.id)';
+  END IF;
+  IF has_chat_members THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM chat_room_members    WHERE customer_id        = c.id)';
+  END IF;
+  IF has_chat_messages THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM chat_messages        WHERE sender_customer_id = c.id)';
+  END IF;
+  IF has_chat_reads THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM chat_message_reads   WHERE customer_id        = c.id)';
+  END IF;
+  IF has_chat_rooms THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM chat_rooms           WHERE direct_customer_id = c.id)';
+  END IF;
+  IF has_doc_assign THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM document_assignments WHERE customer_id        = c.id)';
+  END IF;
+  IF has_msg_threads THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM message_threads      WHERE customer_id        = c.id)';
+  END IF;
+  IF has_messages_tbl THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM messages             WHERE sender_customer_id = c.id)';
+  END IF;
+  IF has_brett_snaps THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM brett_snapshots      WHERE customer_id        = c.id)';
+  END IF;
 
   IF has_billing_inv AND has_billing_test THEN
     cust_sql := cust_sql
@@ -514,9 +572,15 @@ BEGIN
       || '   AND NOT EXISTS (SELECT 1 FROM questionnaire_assignments WHERE customer_id = c.id)';
   END IF;
 
-  EXECUTE cust_sql USING keep_emails;
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('customers', cnt);
+  -- v9 (T016616): same grant-drift guard as the meetings sweep — website may
+  -- lack DELETE on public.customers (devmesh) while fleet grants it.
+  BEGIN
+    EXECUTE cust_sql USING keep_emails;
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('customers', cnt);
+  EXCEPTION WHEN insufficient_privilege THEN
+    result := result || jsonb_build_object('customers_skipped_no_grant', true);
+  END;
 
   RETURN result;
 END;`;
@@ -531,7 +595,7 @@ export async function applyPurgeFunction(pool: Pool | PoolClient): Promise<void>
       'AS $$\n' + PURGE_FN_BODY + '\n$$',
   );
   await pool.query(
-    "COMMENT ON FUNCTION tickets.fn_purge_test_data() IS 'Idempotent test-data purge. v8 (2026-08-09, T002894): adds to_regclass guards for all tables absent on local k3d dev (questionnaire + systemtest schemas — 7 tables).'",
+    "COMMENT ON FUNCTION tickets.fn_purge_test_data() IS 'Idempotent test-data purge. v9 (2026-10-14, T016616): adds insufficient_privilege guards on the meetings/customers sweeps for grant-drifted DBs (devmesh grants website SELECT-only where fleet grants full rights).'",
   );
   await pool.query('GRANT EXECUTE ON FUNCTION tickets.fn_purge_test_data() TO website');
 }

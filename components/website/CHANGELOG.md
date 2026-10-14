@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.422.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.421.2...website-v1.422.0) (2026-10-14)
+
+
+### Features
+
+* **website:** serving metrics strip in SDLC cockpit ([#6660](https://github.com/Paddione/Bachelorprojekt/issues/6660)) ([793f5a6](https://github.com/Paddione/Bachelorprojekt/commit/793f5a69e80f3f6187fef6f2d028b5f853c2a7af))
+
 ## [1.421.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.421.1...website-v1.421.2) (2026-10-14)
 
 

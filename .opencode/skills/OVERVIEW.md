@@ -20,7 +20,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 - Skills with `agent:` → dispatched as a subagent via [`task`](https://github.com/Paddione/Bachelorprojekt/search?q=task&type=code) with `subagent_type: "general"` (isolated context window, own domain knowledge).
 - Skills without `agent:` → loaded inline in the main session (workflow/orchestrator skills that span multiple agents or hold state).
-- New skill: pick an agent from the routing table, add `agent: bachelorprojekt-<role>` to frontmatter, add a row to the AGENTS.md table.
+- New skill: pick an agent from the routing table, add `agent: bp-build`, `agent: bp-run` or `agent: bp-ship` to frontmatter, add a row to the AGENTS.md table.
 
 ---
 
@@ -54,6 +54,13 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 ---
 
+
+## CI and test runner diagnostics
+
+| Skill | When to use |
+|---|---|
+| [`gh-fix-ci`](gh-fix-ci/SKILL.md) | Diagnose failed GitHub PR checks and repair the reported CI failure within the active dev-flow CI fix loop. |
+| [`vitest-testing`](vitest-testing/SKILL.md) | Configure or debug the Vitest runner, pools, mocking API, coverage or Browser Mode while implementing or verifying tests. |
 
 ## Git Lifecycle
 

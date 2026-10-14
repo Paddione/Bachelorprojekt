@@ -298,6 +298,13 @@ k3_freshness_flag() {
   else
     local root
     root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+    local common
+    common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || { echo '-'; return; }
+    if [[ "$common" == */.git && "$root" != "${common%/.git}" ]]; then
+      # A canonical receipt does not attest unindexed changes in this worktree.
+      echo '-'; return
+    fi
+    root="${common%/.git}"
     out="$(python3 "$script" status --repo "$root" \
         --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" \
         --timeout "${CBM_FRESHNESS_TIMEOUT:-30}" 2>/dev/null)" || true
@@ -318,8 +325,8 @@ except Exception:
 k3_project_flag() {
   local out
   out="$(codebase-memory-mcp cli index_status \
-      --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" 2>/dev/null)" || { echo 0; return; }
-  [ -n "$out" ] || { echo 0; return; }
+      --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" --format json 2>/dev/null)" || { echo -; return; }
+  [ -n "$out" ] || { echo -; return; }
   printf '%s' "$out" | python3 -c '
 import json, sys
 try:
@@ -327,5 +334,24 @@ try:
     ready = d.get("status") == "ready"
     print(1 if ready and (d.get("nodes") or 0) > 0 and (d.get("edges") or 0) > 0 else 0)
 except Exception:
-    print(0)' 2>/dev/null || echo 0
+    print("-")' 2>/dev/null || echo -
+}
+
+# Domain roles and their dispatch bindings are defined in the agent registry.
+agent_dispatch_gaps() {
+  python3 - <<'PY' 2>/dev/null || echo '-'
+from pathlib import Path
+import yaml
+roles = yaml.safe_load(Path('docs/agent-guide/registry/agents.yaml').read_text())['roles']
+if not isinstance(roles, dict) or not roles:
+    raise ValueError('no domain roles')
+bound = set()
+for path in Path('.claude/skills').glob('*/SKILL.md'):
+    text = path.read_text()
+    if text.startswith('---'):
+        metadata = yaml.safe_load(text.split('---', 2)[1]) or {}
+        if isinstance(metadata, dict) and metadata.get('agent') in roles:
+            bound.add(metadata['agent'])
+print(len(set(roles) - bound))
+PY
 }

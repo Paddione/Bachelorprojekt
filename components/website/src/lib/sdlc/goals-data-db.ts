@@ -1,3 +1,4 @@
+import { evaluateGoal, directionComparison, finiteNumber, normalizeGoal, type GoalComparison } from './goal-evaluation';
 import { pool } from '../db-pool';
 import snapshotGoals from './goals-data.snapshot.json';
 import type { GoalPriority, GoalDirection, GoalStatus, HealthGoal } from './goals-data';
@@ -30,21 +31,8 @@ export function computeGoalStatus(
   direction: GoalDirection,
   rawStatus?: string
 ): GoalStatus {
-  if (rawStatus && rawStatus !== 'unknown') {
-    return rawStatus as GoalStatus;
-  }
-  if (current === null || target === null) return 'unknown';
-  const met = direction === 'lower' ? current <= target : current >= target;
-  if (met) return 'achieved';
-  if (baseline === null) return 'on_track';
-  const range = Math.abs(target - baseline);
-  if (range === 0) return 'achieved';
-  const progress = direction === 'lower'
-    ? (baseline - current) / range
-    : (current - baseline) / range;
-  if (progress >= 0.8) return 'on_track';
-  if (progress >= 0.3) return 'at_risk';
-  return progress < 0 ? 'critical' : 'at_risk';
+  void rawStatus;
+  return evaluateGoal(current, target, baseline, directionComparison(direction)).status;
 }
 
 /** Fetches live goals and latest measurements from Postgres with graceful fallback to snapshot. */
@@ -56,11 +44,15 @@ export async function getLiveRepoHealthGoals(): Promise<{ goals: HealthGoal[]; s
 
     if (res.rows && res.rows.length > 0) {
       const goals: HealthGoal[] = res.rows.map((row) => {
-        const cur = row.current !== null ? Number(row.current) : null;
-        const tgt = row.target !== null ? Number(row.target) : null;
-        const base = row.baseline !== null ? Number(row.baseline) : null;
+        const cur = row.current !== null ? finiteNumber(row.current) : null;
+        const definitionTarget = row.target !== null ? finiteNumber(row.target) : null;
+        const base = row.baseline !== null ? finiteNumber(row.baseline) : null;
         const dir = (row.direction as GoalDirection) || 'lower';
-        const st = computeGoalStatus(cur, tgt, base, dir, row.status);
+        const details = row.details as { cmp?: GoalComparison; target?: number } | null;
+        const cmp = details?.cmp;
+        const comparison = cmp === 'le' || cmp === 'ge' || cmp === 'eq' ? cmp : directionComparison(dir);
+        const tgt = (cmp === 'le' || cmp === 'ge' || cmp === 'eq') && details?.target !== undefined ? finiteNumber(details.target) : definitionTarget;
+        const st = evaluateGoal(cur, tgt, base, comparison).status;
 
         return {
           id: row.id,
@@ -68,6 +60,7 @@ export async function getLiveRepoHealthGoals(): Promise<{ goals: HealthGoal[]; s
           category: row.category,
           priority: row.priority as GoalPriority,
           direction: dir,
+          comparison,
           baseline: base,
           current: cur,
           target: tgt,
@@ -75,7 +68,7 @@ export async function getLiveRepoHealthGoals(): Promise<{ goals: HealthGoal[]; s
           status: st,
           measurement: row.measurement_cmd,
           source: `quality.repo_health_goals · ${row.id}`,
-          measured_at: row.measured_at ? new Date(row.measured_at).toISOString().split('T')[0] : '',
+          measured_at: row.measured_at ? new Date(row.measured_at).toISOString() : '',
         };
       });
 
@@ -85,5 +78,5 @@ export async function getLiveRepoHealthGoals(): Promise<{ goals: HealthGoal[]; s
     // Fail-soft: fallback to snapshot in isolated CI runner or when DB is not reachable
   }
 
-  return { goals: snapshotGoals as HealthGoal[], source: 'snapshot' };
+  return { goals: (snapshotGoals as HealthGoal[]).map(g => normalizeGoal(g)), source: 'snapshot' };
 }

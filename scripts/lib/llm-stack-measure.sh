@@ -106,11 +106,16 @@ PY
 # ── G-LLM02 — llm-proxy-Bereitschaft ─────────────────────────────────────────
 cmd_proxy_readiness() {
   python3 - "$LLM_PROXY_URL" <<'PY' || na
-import json, sys, urllib.request
+import json, sys, urllib.request, urllib.error
 url = sys.argv[1]
 try:
     req = urllib.request.Request(url + '/health')
-    resp = urllib.request.urlopen(req, timeout=5)
+    try:
+        resp = urllib.request.urlopen(req, timeout=5)
+    except urllib.error.HTTPError as error:
+        if error.code != 503:
+            raise
+        resp = error
     data = json.loads(resp.read())
 except Exception:
     print('n/a'); sys.exit(0)
@@ -202,6 +207,9 @@ cmd_autostart_coverage() {
   done
   # Messgrundlage: mindestens eine deklarierte Unit-Datei.
   [ -n "$units" ] || na
+  if [ -z "${LLM_MEASURE_UNIT_STATE_CMD:-}" ]; then
+    systemctl --user show-environment >/dev/null 2>&1 || na
+  fi
   n=0
   for f in $units; do
     u="$(basename "$f")"
@@ -211,8 +219,9 @@ cmd_autostart_coverage() {
     if [ -n "${LLM_MEASURE_UNIT_STATE_CMD:-}" ]; then
       state="$($LLM_MEASURE_UNIT_STATE_CMD "$u" 2>/dev/null)"
     else
-      state="$(systemctl --user is-enabled "$u" 2>/dev/null)"
+      state="$(systemctl --user is-enabled "$u" 2>/dev/null)" || true
     fi
+    case "$state" in enabled|disabled|masked|static|indirect|generated|linked|enabled-runtime|linked-runtime|not-found) ;; *) na; return ;; esac
     [ "$state" = "enabled" ] || n=$((n + 1))
   done
   echo "$n"

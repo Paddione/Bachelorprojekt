@@ -70,9 +70,9 @@ describe('goals-data: static exports', () => {
 });
 
 describe('healthPercent', () => {
-  it('returns 100 for status "achieved" regardless of current/target', () => {
+  it('returns unknown for cached achieved without numeric evidence', () => {
     const g = makeGoal({ status: 'achieved', current: null, target: null, baseline: null });
-    expect(healthPercent(g)).toBe(100);
+    expect(healthPercent(g)).toBeNull();
   });
 
   it('returns null when current, target, or baseline is missing', () => {
@@ -91,7 +91,7 @@ describe('healthPercent', () => {
     expect(healthPercent(g)).toBe(100);
   });
 
-  it('returns 100 when baseline equals target (zero range) even if not met', () => {
+  it('returns 100 when baseline equals target (zero range) when met', () => {
     const g = makeGoal({ direction: 'lower', current: 5, target: 5, baseline: 5 });
     expect(healthPercent(g)).toBe(100);
   });

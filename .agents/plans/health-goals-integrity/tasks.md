@@ -29,26 +29,41 @@ Tests:
 - `components/website/src/lib/sdlc/health-goals-rescan.test.ts`: API-Persistenz.
 - `components/website/src/data/test-inventory.json`: generiertes Inventar.
 
+Zusätzliche bei der Ursachenprüfung bestätigte Reparaturen und Testpfade:
+- `.claude/lib/goals.md`: PM-Fehlerzahl klar als Nullziel definieren, fachliches Ziel unverändert.
+- `.opencode/skills/OVERVIEW.md`: vorhandene CI-/Vitest-Skills mit tatsächlicher Einsatzroute referenzieren.
+- `components/website/src/components/sdlc/GoalsDashboard.svelte`: nach dauerhaftem Rescan Daten neu laden und Gleichheitsziele korrekt anzeigen.
+- `components/website/src/pages/sdlc/api/agents-overview.ts`: existierenden ungültigen Node-Import ersetzen, damit Astro-Prüfung und Laufzeit stimmen.
+- `components/website/src/lib/sdlc/tickets/cockpit-db.test.ts`: fehlerhafte Overflow-Fixtures reparieren und beide übersprungenen Grenztests aktivieren.
+- `components/website/src/lib/sdlc/goal-evaluation.test.ts`: reine Vergleichs-/Zahlengrenzen.
+- `scripts/lib/health-goals-record.py`: atomare Daemon-Speicherung und Validierung.
+- `scripts/lib/interface-catch-check.mjs`: Catch-Auswertung mit TypeScript-AST statt Brace-Regex.
+- `scripts/lib/cronjob-failures.py`: Fälligkeit erster Cron-Läufe und unbekannte Laufzustände unterscheiden.
+- `scripts/lib/manifest-drift-check.sh`: gerendertes Overlay und Namespace statt namensgleicher Dev-Basen vergleichen.
+- `tests/py/spec/health-goals/test_measurement_repairs.py`: ausführende CLI-/Prozessregressionen.
+- `tests/py/spec/native_ported/spec/test_cbm_health_goals.py`: nicht abrufbare Evidenz ausdrücklich unbekannt.
+- `components/website/src/data/api-inventory.json`, `components/website/src/lib/sdlc/goals-data.generated.json`, `docs/code-quality/repo-index.json`: deterministisch regenerierte Artefakte.
+
 ## S1 Budgets
 
-health-goals-check.sh besitzt einen eingefrorenen Baseline-Wert 592; plan-lint rechnet hier dennoch gegen das Shell-Limit 800. Deshalb ausdrücklich netto zeilenneutral beziehungsweise extract planen. Alle anderen folgenden Dateien sind nicht gebaselined; wirksame Schwellen: Shell/Python 800, TypeScript 900. Ermittelt auf Branch-Bestand am 14.10.2026 nach Rotphase.
+health-goals-check.sh besitzt einen eingefrorenen Baseline-Wert 592; plan-lint rechnet hier dennoch gegen das Shell-Limit 800. Deshalb ausdrücklich netto zeilenneutral beziehungsweise extract planen. Alle anderen folgenden Dateien sind nicht gebaselined; wirksame Schwellen: Shell/Python 800, TypeScript 900. Die Tabelle ist nach Umsetzung mit dem aktuellen Branch-Bestand abgeglichen; der ursprüngliche Planstand ist im Stage-Commit erhalten. Der strengere Checker-Ratchet bleibt zusätzlich verbindlich: Baseline 592, aktuelle Zeilenanzahl darunter; kein Netto-Zuwachs und keine Baseline-Ausnahme.
 
 | Datei | Ist | Budget |
 | --- | --- | --- |
-| `scripts/health-goals-check.sh` | 549 | 251 |
-| `scripts/lib/health-goals-measure.sh` | 331 | 469 |
-| `scripts/lib/cronjob-check.sh` | 57 | 743 |
-| `scripts/lib/llm-stack-measure.sh` | 290 | 510 |
-| `scripts/sdlc/health-goals-daemon.sh` | 75 | 725 |
-| `scripts/sdlc/seed-quality-goals.py` | 115 | 685 |
-| `scripts/health-goals-scan.sh` | 116 | 684 |
-| `components/website/src/lib/sdlc/goals-data.ts` | 61 | 839 |
-| `components/website/src/lib/sdlc/goals-data-db.ts` | 89 | 811 |
-| `components/website/src/lib/sdlc/health-scan.ts` | 84 | 816 |
-| `components/website/src/pages/sdlc/api/health-goals/rescan.ts` | 60 | 840 |
+| `scripts/health-goals-check.sh` | 538 | 262 |
+| `scripts/lib/health-goals-measure.sh` | 357 | 443 |
+| `scripts/lib/cronjob-check.sh` | 9 | 791 |
+| `scripts/lib/llm-stack-measure.sh` | 299 | 501 |
+| `scripts/sdlc/health-goals-daemon.sh` | 48 | 752 |
+| `scripts/sdlc/seed-quality-goals.py` | 139 | 661 |
+| `scripts/health-goals-scan.sh` | 129 | 671 |
+| `components/website/src/lib/sdlc/goals-data.ts` | 34 | 866 |
+| `components/website/src/lib/sdlc/goals-data-db.ts` | 82 | 818 |
+| `components/website/src/lib/sdlc/health-scan.ts` | 91 | 809 |
+| `components/website/src/pages/sdlc/api/health-goals/rescan.ts` | 63 | 837 |
 | `components/website/src/lib/sdlc/goals-data.test.ts` | 143 | 757 |
-| `components/website/src/lib/sdlc/goals-data-db.test.ts` | 28 | 872 |
-| `tests/py/spec/health-goals/test_health_pipeline_integrity.py` | 86 | 714 |
+| `components/website/src/lib/sdlc/goals-data-db.test.ts` | 38 | 862 |
+| `tests/py/spec/health-goals/test_health_pipeline_integrity.py` | 96 | 704 |
 
 Neue Tests und Helper bleiben weit unter 80 Prozent der Grenze. Keine Baseline- oder Ignore-Erweiterung. CQ02 Ausgangswert: 1 explizite any-Verwendung nach der vorgegebenen Messung; keine Erhöhung. Neue Exporte und Handler bleiben typisiert. Keine neuen Importzyklen oder Brand-Domainliterale; neue Shell-/MJS-Dateien werden über vorhandene Aufrufer erreichbar gemacht.
 
@@ -65,6 +80,8 @@ Neue Tests und Helper bleiben weit unter 80 Prozent der Grenze. Keine Baseline- 
 
 ## Task 2 — Einheitliche Bewertung und ehrliche Datenquelle
 
+- [ ] Reine Grenzen in `components/website/src/lib/sdlc/goal-evaluation.test.ts` prüfen; `components/website/src/components/sdlc/GoalsDashboard.svelte` nach Rescan neu laden und Gleichheitsoperator erhalten.
+
 - [ ] Pure Evaluation extrahieren, endliche Werte validieren, Nullziele und Vergleichsrichtung beachten. Gleichheit aus Scan-Ergebnis explizit behandeln; DB-Definitionen lower/higher nicht still umdeuten.
 - [ ] Gespeicherter Status überstimmt Zahlen nicht. Baseline=Ziel plus Regression ergibt critical/0. Fehlende Evidenz bleibt unknown/null.
 - [ ] DB, generierte Ziele und Snapshot denselben Regeln unterwerfen; ursprüngliche Messzeit und Quelle erhalten.
@@ -72,6 +89,8 @@ Neue Tests und Helper bleiben weit unter 80 Prozent der Grenze. Keine Baseline- 
 - [ ] Gezielte Vitest-Tests grün; zusätzlich le/ge/eq- und missing-baseline-Fälle am neuen Helper.
 
 ## Task 3 — Messung, Persistenz und Seed reparieren
+
+- [ ] Daemon-SQL nach `scripts/lib/health-goals-record.py` extrahieren und auf isoliertem PostgreSQL prüfen.
 
 - [ ] Daemon misst standardmäßig gesamte Zielmenge; optional begrenzte Modi müssen explizit sein. Nicht messbare Werte erzeugen kein erfundenes Grün.
 - [ ] Scanner-, Parser- und DB-Fehler propagieren; Erfolg nur nach erfolgreichem Speichern. SQL-Werte sicher binden beziehungsweise kontrolliert escapen.
@@ -81,16 +100,20 @@ Neue Tests und Helper bleiben weit unter 80 Prozent der Grenze. Keine Baseline- 
 
 ## Task 4 — Nachweislich fehlerhafte Zielmessungen korrigieren
 
+- [ ] `scripts/lib/interface-catch-check.mjs`, `scripts/lib/cronjob-failures.py` und `scripts/lib/manifest-drift-check.sh` an ihren CLI-Grenzen mit `tests/py/spec/health-goals/test_measurement_repairs.py` prüfen; `tests/py/spec/native_ported/spec/test_cbm_health_goals.py` erhält die explizite unknown-Semantik.
+
 - [ ] G-AGENTIC10 gegen aktuelle bp-run/bp-ship/bp-build Rollen messen, obsolete bachelorprojekt-Rollen entfernen; dispatchende Skills mit realem Routing abgleichen.
 - [ ] G-IF02 behandelt catch mit rethrow als sichtbaren Fehler statt stille Degradation; catch ohne Log und ohne throw bleibt Verstoß. Verschachtelte Blöcke sauber parsen statt Regex-Fragmente zählen.
-- [ ] G-CJ01 ignoriert suspendierte und noch nie geplante CronJobs bei Failed-Lauf-Zählung; tatsächlich fehlgeschlagene geplante Jobs bleiben sichtbar.
+- [ ] G-CJ01 unterscheidet Suspendierung, noch nicht fälligen ersten Termin, überfälligen ersten Termin und terminale Laufresultate. Laufende oder nicht auswertbare Jobs liefern unknown; tatsächlich fehlgeschlagene geplante Jobs bleiben sichtbar.
 - [ ] K3-Projektstatus liest tatsächliches CLI-Format robust; ready mit positiver node/edge-Anzahl erfüllt das Ziel. Kaputtes Format oder nicht erreichbarer Index bleibt unknown, keine erfundene Null.
-- [ ] K3-Freshness prüft den kanonischen Hauptcheckout statt zufälligen Agent-Worktree; alte Receipts bleiben stale, aktuelle Hauptcheckout-Receipts sind gültig.
+- [ ] K3-Freshness bleibt an den kanonischen Receipt gebunden; ein nicht indexierter Worktree liefert unknown und behauptet keine Indexfrische seiner Änderungen.
 - [ ] G-LLM04 bei fehlendem systemctl-Userbus liefert unknown statt drei vermeintlicher Autostart-Verstöße; erreichbarer Bus mit disabled Unit bleibt Verstoß.
 - [ ] Regressionen mit isolierten CLI/Dateifixtures in bestehende passende Pytest-Suites aufnehmen und expected: FAIL zunächst mit python3 -m pytest nachweisen. Grenzfälle positiv und negativ erhalten.
 - [ ] Checker-Logik in echte Helper extract beziehungsweise aufteilen; checker bleibt netto zeilenneutral oder schrumpft, keine Gate-Ausnahmen.
 
 ## Task 5 — Gesamtlage prüfen und Verify
+
+- [ ] Erforderlichen Node-Gatefix in `components/website/src/pages/sdlc/api/agents-overview.ts` prüfen; in `components/website/src/lib/sdlc/tickets/cockpit-db.test.ts` beide Portfolio-Grenztests mit gültigen Fixtures aktivieren und bestätigen.
 
 - [ ] Unveränderten Vollscan reproduzieren und vor/nach gegenüberstellen: 122 Ziele, keine weggefilterten Verstöße. Restliche SKIP-Gründe und Gate-Verstöße mit Messbefehl und Commitstand dokumentieren; Änderungen an Infrastruktur nur innerhalb vorhandener Autorisierung.
 - [ ] Test-Inventar regenerieren:

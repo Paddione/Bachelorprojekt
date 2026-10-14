@@ -45,27 +45,35 @@ if mode == "sealed":
     raise SystemExit
 
 import yaml
+class ManifestLoader(yaml.SafeLoader):
+    pass
+# Kustomize emits bare '=' in CEL rules; PyYAML's YAML 1.1 value tag has no
+# default constructor. Treat that scalar as text without allowing arbitrary tags.
+ManifestLoader.add_constructor('tag:yaml.org,2002:value', lambda loader, node: loader.construct_scalar(node))
 expected = {}
-for path in Path(root, "k3d").rglob("*.yaml"):
-    if path.name.endswith("-rendered.yaml"):
+manifest_fixture = os.environ.get("HG_DRIFT_MANIFEST")
+if manifest_fixture:
+    rendered = Path(manifest_fixture).read_text(encoding="utf-8")
+else:
+    overlay = os.environ.get("HG_DRIFT_OVERLAY", "prod-fleet/mentolder")
+    rendered = subprocess.check_output(["kubectl", "kustomize", str(Path(root, overlay))],
+                                       stderr=subprocess.DEVNULL, text=True)
+for doc in yaml.load_all(rendered, Loader=ManifestLoader):
+    if not isinstance(doc, dict) or doc.get("kind") != "Deployment":
         continue
-    try:
-        for doc in yaml.safe_load_all(path.read_text(encoding="utf-8")):
-            if not isinstance(doc, dict) or doc.get("kind") != "Deployment":
-                continue
-            name = (doc.get("metadata") or {}).get("name")
-            if name and "${" not in name:
-                expected[name] = doc.get("spec") or {}
-    except (OSError, yaml.YAMLError):
-        continue
+    metadata = doc.get("metadata") or {}
+    name, namespace = metadata.get("name"), metadata.get("namespace", "default")
+    if name and namespace == os.environ["NS"] and "${" not in name:
+        expected[(namespace, name)] = doc.get("spec") or {}
 if not expected:
     raise ValueError("no manifest basis")
 
-live_by_name = {item.get("metadata", {}).get("name"): item for item in items}
+live_by_name = {(item.get("metadata", {}).get("namespace", os.environ["NS"]), item.get("metadata", {}).get("name")): item for item in items}
 drift = 0
 for name, spec in expected.items():
     item = live_by_name.get(name)
     if item is None:
+        drift += 1
         continue
     live_spec = item.get("spec") or {}
     if mode == "replicas":

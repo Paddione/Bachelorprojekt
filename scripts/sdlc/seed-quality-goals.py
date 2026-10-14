@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """seed-quality-goals.py — Seeds quality schema from goals-data.generated.json and updates snapshot (T016507)."""
 
+import datetime
+import math
 import json
 import os
 import subprocess
@@ -44,6 +46,14 @@ def run_psql(sql: str) -> bool:
     return True
 
 
+def numeric(value):
+    if value is None:
+        return "NULL"
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value):
+        raise ValueError("seed values must be finite numbers")
+    return str(value)
+
+
 def main():
     repo_root = get_repo_root()
     gen_json = repo_root / "components/website/src/lib/sdlc/goals-data.generated.json"
@@ -71,11 +81,11 @@ def main():
         cat = g.get("category", "General").replace("'", "''")
         prio = g.get("priority", "B").replace("'", "''")
         direction = g.get("direction", "lower").replace("'", "''")
-        baseline = str(g["baseline"]) if g.get("baseline") is not None else "NULL"
-        target = str(g["target"]) if g.get("target") is not None else "NULL"
+        baseline = numeric(g.get("baseline"))
+        target = numeric(g.get("target"))
         unit = (g.get("unit") or "").replace("'", "''")
         cmd = (g.get("measurement") or "").replace("'", "''")
-        current = str(g["current"]) if g.get("current") is not None else "NULL"
+        current = numeric(g.get("current"))
         status = (g.get("status") or "unknown").replace("'", "''")
 
         sql_goal = f"""
@@ -94,10 +104,23 @@ def main():
         """
         statements.append(sql_goal)
 
-        if current != "NULL":
+        if current != "NULL" and g.get("measured_at"):
+            # Source timestamps identify historical seed evidence. No NOW relabeling.
+            measured_at = datetime.datetime.fromisoformat(g["measured_at"].replace("Z", "+00:00")).isoformat()
+            if not math.isfinite(float(current)):
+                raise ValueError(f"nonfinite historical value for {gid}")
+            details = json.dumps({"source": g.get("source", ""), "historical_seed": True}).replace("'", "''")
             sql_meas = f"""
-            INSERT INTO quality.repo_health_measurements (goal_id, current_value, status, git_sha, git_branch)
-            VALUES ('{gid}', {current}, '{status}', 'seed', 'main');
+            UPDATE quality.repo_health_measurements SET measured_at = '{measured_at}'::timestamptz,
+                details = details || '{details}'::jsonb
+            WHERE goal_id = '{gid}' AND git_sha = 'seed' AND git_branch = 'main'
+                AND current_value IS NOT DISTINCT FROM {current}
+                AND NOT (details ? 'historical_seed');
+            INSERT INTO quality.repo_health_measurements (goal_id, current_value, status, git_sha, git_branch, measured_at, details)
+            SELECT '{gid}', {current}, '{status}', 'seed', 'main', '{measured_at}'::timestamptz, '{details}'::jsonb
+            WHERE NOT EXISTS (SELECT 1 FROM quality.repo_health_measurements
+                WHERE goal_id = '{gid}' AND git_sha = 'seed' AND measured_at = '{measured_at}'::timestamptz
+                    AND current_value IS NOT DISTINCT FROM {current});
             """
             statements.append(sql_meas)
 
@@ -108,7 +131,8 @@ def main():
     if ok:
         print(f"Successfully seeded {len(goals_data)} goals into quality.repo_health_goals.")
     else:
-        print("Note: Seeding DB skipped or failed, snapshot remains available for offline use.")
+        print("ERROR: Seeding DB failed; snapshot remains available for offline use.", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

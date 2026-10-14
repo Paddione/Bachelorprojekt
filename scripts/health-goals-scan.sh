@@ -62,7 +62,8 @@ for id in "${IDS[@]}"; do
 done
 
 VALUES="$(mktemp)"
-trap 'rm -f "$VALUES"' EXIT
+COMPLETE="$(mktemp)"
+trap 'rm -f "$VALUES" "$COMPLETE"' EXIT
 
 ONLY_CSV="$(IFS=,; echo "${IDS[*]}")"
 FLAGS=(--quiet "--only=$ONLY_CSV")
@@ -73,13 +74,18 @@ FLAGS=(--quiet "--only=$ONLY_CSV")
 # Exit ungleich 0, und das ist hier kein Fehler. Fehlende Zeilen in der
 # Werte-Datei werden unten als measurable:false ausgewiesen (sichtbarer
 # stiller Ausfall, Lehre aus T002648).
-HG_VALUES_FILE="$VALUES" bash scripts/health-goals-check.sh "${FLAGS[@]}" >&2 || true
+HG_VALUES_FILE="$VALUES" HG_RUN_COMPLETE_FILE="$COMPLETE" bash scripts/health-goals-check.sh "${FLAGS[@]}" >&2
+CHECK_STATUS=$?
+if [ "$CHECK_STATUS" -gt 1 ] || [ "$(cat "$COMPLETE")" != complete ]; then
+  echo "health-goals-check.sh failed before completing its measurements (exit $CHECK_STATUS)" >&2
+  exit 1
+fi
 
 # HG_VALUES_FILE enthält Zeilen "<id> <actual> <cmp> <target>" — nur für
 # tatsächlich gemessene Ziele. Der dokumentierte Wert wird an dieser Stelle
 # bewusst NICHT eingesetzt.
-python3 - "$VALUES" "${IDS[@]}" <<'PY'
-import json, sys
+HG_SCAN_SHA="$(git rev-parse HEAD 2>/dev/null || true)" HG_SCAN_BRANCH="$(git branch --show-current 2>/dev/null || true)" python3 - "$VALUES" "${IDS[@]}" <<'PY'
+import json, math, os, sys
 
 values_path = sys.argv[1]
 ids = sys.argv[2:]
@@ -98,6 +104,8 @@ with open(values_path) as fh:
             target_num = float(target)
         except ValueError:
             continue
+        if not math.isfinite(actual_num) or not math.isfinite(target_num):
+            continue
         if actual_num.is_integer():
             actual_num = int(actual_num)
         if target_num.is_integer():
@@ -112,5 +120,10 @@ for gid in ids:
     else:
         out.append({"id": gid, "measurable": True, **m})
 
+for item in out:
+    if os.environ.get('HG_SCAN_SHA'):
+        item['git_sha'] = os.environ['HG_SCAN_SHA']
+    if os.environ.get('HG_SCAN_BRANCH'):
+        item['git_branch'] = os.environ['HG_SCAN_BRANCH']
 print(json.dumps(out))
 PY

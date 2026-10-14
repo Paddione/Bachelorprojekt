@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
-import { execFile } from 'node:child_process/promises';
+import { execFile as execFileCallback } from 'node:child_process';
+import { promisify } from 'node:util';
+const execFile = promisify(execFileCallback);
 import { existsSync, promises as fsp } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';

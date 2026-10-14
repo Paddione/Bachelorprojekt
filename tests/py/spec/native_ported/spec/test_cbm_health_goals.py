@@ -183,7 +183,7 @@ def test_g_k3proj_probe_failure_not_green_fail_closed(run_cmd, repo_root, tmp_pa
     bindir = tmp_path / "bin-broken"
     _write_exec(bindir / "codebase-memory-mcp", "#!/bin/sh\nexit 1\n")
     values = _run_row(run_cmd, repo_root, tmp_path, "G-K3PROJ", _path_env(bindir))
-    assert _has_line(values, r"^G-K3PROJ 0 eq 1$")
+    assert not _has_line(values, r"^G-K3PROJ")  # Missing index evidence remains unknown.
 
 
 def test_cbm_freshness_text_only_detect_changes_output_is_non_fatal_t002430(

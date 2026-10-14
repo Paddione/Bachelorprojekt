@@ -28,3 +28,20 @@ describe('rescan durable measurements', () => {
     expect(response.status).toBe(500);
   });
 });
+
+it('binds measurement values and records unknown without fabricated zero', async () => {
+  mocks.scan.mockResolvedValue([{ id: 'G-RH01', measurable: false }]);
+  const response = await POST(context());
+  expect(response.status).toBe(200);
+  const [sql, values] = mocks.query.mock.calls[0];
+  expect(sql).toContain('$1');
+  expect(values.slice(0, 3)).toEqual(['G-RH01', null, 'unknown']);
+});
+
+it('rejects unauthorized requests before scanning or writing measurements', async () => {
+  mocks.session.mockResolvedValue(null);
+  const response = await POST(context());
+  expect(response.status).toBe(401);
+  expect(mocks.scan).not.toHaveBeenCalled();
+  expect(mocks.query).not.toHaveBeenCalled();
+});

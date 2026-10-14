@@ -385,61 +385,34 @@ describe('Alle Tickets bucket (flat all-tickets view)', () => {
   });
 });
 
-describe.skip('PORTFOLIO_MAX_ROWS limit (B6)', () => {
-  it('getPortfolio limits containers to PORTFOLIO_MAX_ROWS', async () => {
-    // Seed more projects than PORTFOLIO_MAX_ROWS (1000) - use smaller batches for pg-mem compatibility
-    const batchSize = 50;
-    let count = 0;
-
-    while (count < 1005) {
-      const batchCount = Math.min(batchSize, 1005 - count);
-      
-      // Insert rows one by one to avoid pg-mem parameter limit issues
-      for (let i = 0; i < batchCount; i++) {
-        await pool.query(
-          `INSERT INTO tickets.tickets 
+describe('PORTFOLIO_MAX_ROWS limit (B6)', () => {
+  async function insertOverflowProjects() {
+    for (let index = 0; index < 1005; index++) {
+      await pool.query(
+        `INSERT INTO tickets.tickets
            (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
-           VALUES ($1,$1,'mentolder','project',$2,'Test Project', 'mittel','backlog',$3,0)`,
-          [`bulk-p-${count + i}`, `Bulk Project ${count + i}`, count + i],
-        );
-      }
-      
-      count += batchCount;
+         VALUES ($1,$1,'mentolder','project',$2,'Test Project','mittel','backlog',NULL,$3)`,
+        [`bulk-p-${index}`, `Bulk Project ${index}`, index + 10],
+      );
     }
+  }
 
+  it('limits the returned real project and feature containers to 1000', async () => {
+    await insertOverflowProjects();
     const out = await getPortfolio('mentolder');
-    // All products = synthetic buckets (Alle Tickets, Ohne Feature) + at most PORTFOLIO_MAX_ROWS
     const realProducts = out.products.filter(
       p => p.extId !== '__all_tickets__' && p.extId !== '__no_feature__',
     );
-    expect(realProducts.length).toBeLessThanOrEqual(1000);
+    const containers = realProducts.reduce((count, product) => count + 1 + product.features.length, 0);
+    expect(containers).toBe(1000);
+    expect(realProducts.some(product => product.extId === 'bulk-p-1004')).toBe(false);
   });
 
-  it('getPortfolio still returns the correct base fixture data alongside many others', async () => {
-    // Seed many extra rows, then verify the original fixture project is still found
-    const batchSize = 50;
-    let count = 0;
-
-    while (count < 1005) {
-      const batchCount = Math.min(batchSize, 1005 - count);
-      
-      for (let i = 0; i < batchCount; i++) {
-        await pool.query(
-          `INSERT INTO tickets.tickets 
-           (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
-           VALUES ($1,$1,'mentolder','project',$2,'Test Project', 'mittel','backlog',$3,0)`,
-          [`bulk-p-${count + i}`, `Bulk Project ${count + i}`, count + i + 100],
-        );
-      }
-      
-      count += batchCount;
-    }
-
+  it('keeps the original high-priority product and its two features with overflow data', async () => {
+    await insertOverflowProjects();
     const out = await getPortfolio('mentolder');
-    // Original project 'p1' should still appear if it falls within the limit (ordered by
-    // planning_rank, then created_at; original p1/P1 has rank 0 which sorts first)
-    const p = out.products.find((x) => x.extId === 'p1');
-    expect(p).toBeTruthy();
-    expect(p!.features).toHaveLength(2);
+    const product = out.products.find(item => item.extId === 'p1');
+    expect(product).toBeTruthy();
+    expect(product!.features.map(feature => feature.extId)).toEqual(['f1', 'f2']);
   });
 });

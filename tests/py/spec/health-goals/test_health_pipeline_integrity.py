@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[4]
 def daemon(tmp_path):
     scripts = tmp_path / 'scripts'
     (scripts / 'sdlc').mkdir(parents=True)
+    artifact = tmp_path / 'components/website/src/lib/sdlc'
+    artifact.mkdir(parents=True)
+    (artifact / 'goals-data.generated.json').write_text(json.dumps([{'id': f'G-TEST{i}'} for i in range(122)]))
     shutil.copy2(ROOT / 'scripts/sdlc/health-goals-daemon.sh', scripts / 'sdlc')
     # Copy optional extracted helpers as the implementation evolves.
     if (ROOT / 'scripts/lib').exists():
@@ -76,7 +79,7 @@ def test_daemon_propagates_external_failure(daemon, failure, code):
 def test_default_scan_does_not_hardcode_four_anchor_ids(daemon):
     result, _, args = daemon([])
     assert result.returncode == 0, result.stderr
-    assert args.splitlines() != ['G-RH01', 'G-CQ02', 'G-GIT01', 'G-SIZE03']
+    assert len(args.splitlines()) == 122
 
 
 def test_unmeasurable_sample_never_records_numeric_green(daemon):
@@ -84,3 +87,10 @@ def test_unmeasurable_sample_never_records_numeric_green(daemon):
                             ids=['G-TEST'])
     assert result.returncode == 0, result.stderr
     assert "'achieved'" not in sql
+
+@pytest.mark.parametrize('bad_value', [float('nan'), float('inf'), True])
+def test_daemon_rejects_nonfinite_or_boolean_measurements(daemon, bad_value):
+    result, _, _ = daemon([dict(id='G-TEST', measurable=True, actual=bad_value,
+                                target=0, cmp='le')], ids=['G-TEST'])
+    assert result.returncode != 0
+    assert 'measurements recorded' not in result.stdout

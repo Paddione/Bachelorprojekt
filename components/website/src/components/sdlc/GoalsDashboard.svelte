@@ -8,7 +8,7 @@
   let currentGoals: HealthGoal[] = INITIAL_GOALS;
   let dataSource: 'db' | 'snapshot' = 'snapshot';
 
-  onMount(async () => {
+  async function refreshGoals() {
     try {
       const res = await fetch('/sdlc/api/health-goals');
       if (res.ok) {
@@ -19,7 +19,8 @@
         }
       }
     } catch {}
-  });
+  }
+  onMount(refreshGoals);
 
   let selectedCategory = 'Alle';
   let expandedId: string | null = null;
@@ -83,6 +84,7 @@
         for (const r of body.results as ScanResult[]) map[r.id] = r;
         scanResults = map;
         scannedAt = body.scannedAt ?? null;
+        await refreshGoals();
       }
     } catch (err) {
       actionError = `Rescan fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`;
@@ -168,7 +170,7 @@
 
   function formatTarget(g: HealthGoal): string {
     if (g.target === null) return '—';
-    const prefix = g.direction === 'lower' ? '≤' : '≥';
+    const prefix = g.comparison === 'eq' ? '=' : (g.comparison ?? (g.direction === 'lower' ? 'le' : 'ge')) === 'le' ? '≤' : '≥';
     return `${prefix}${g.target}${g.unit !== 'Exit' && g.unit !== '%' ? ' ' + g.unit : g.unit === '%' ? '%' : ''}`;
   }
 </script>

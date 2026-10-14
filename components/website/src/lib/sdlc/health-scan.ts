@@ -3,6 +3,8 @@ import { findRepoRoot } from './repo-root';
 
 export interface ScanResult {
   id: string;
+  git_sha?: string;
+  git_branch?: string;
   measurable: boolean;
   actual?: number;
   cmp?: 'le' | 'ge' | 'eq';
@@ -76,6 +78,11 @@ export async function runHealthScan(ids: string[]): Promise<ScanResult[]> {
   const byId = new Map<string, ScanResult>();
   for (const item of parsed as ScanResult[]) {
     if (item && typeof item.id === 'string') {
+      if (typeof item.measurable !== 'boolean') throw new Error('Ungültige Messbarkeit im Scan');
+      if (item.measurable && (!Number.isFinite(item.actual) || !Number.isFinite(item.target)
+        || !['le', 'ge', 'eq'].includes(item.cmp ?? ''))) {
+        throw new Error(`Ungültige numerische Messung: ${item.id}`);
+      }
       byId.set(item.id, item);
     }
   }

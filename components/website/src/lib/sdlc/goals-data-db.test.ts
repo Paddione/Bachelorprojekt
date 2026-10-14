@@ -26,3 +26,13 @@ describe('health goal evidence integrity', () => {
     expect(measurable.some(g => g.status === 'unknown')).toBe(false);
   });
 });
+
+it('preserves timestamp and scanner comparison/target when definitions differ', async () => {
+  query.mockResolvedValueOnce({ rows: [{ id: 'G-TEST', title: 'Test', category: 'Test', priority: 'B',
+    direction: 'lower', baseline: 5, target: 0, current: 1, status: 'achieved',
+    measured_at: '2026-10-14T12:34:56Z', unit: '', measurement_cmd: '',
+    details: { cmp: 'eq', target: 1 } }] });
+  const result = await getLiveRepoHealthGoals();
+  expect(result.goals[0]).toMatchObject({ status: 'achieved', target: 1, comparison: 'eq',
+    measured_at: '2026-10-14T12:34:56.000Z' });
+});

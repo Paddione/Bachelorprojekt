@@ -17,7 +17,7 @@ _resolve_pod() {
 POD="$(_resolve_pod)"
 if [[ -z "$POD" ]]; then
   echo "WARN: shared-db pod not reachable in context '$CTX' ($NS) — measurement recording skipped." >&2
-  exit 0
+  exit 1
 fi
 
 GIT_SHA="$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
@@ -25,51 +25,24 @@ GIT_BRANCH="$(git -C "$REPO_ROOT" branch --show-current 2>/dev/null || echo 'det
 
 echo "Running health-goals measurement for commit ${GIT_SHA} (${GIT_BRANCH})..."
 
-# If arguments (goal IDs) are provided, scan those; otherwise run scan on active goals
+# Explicit IDs constrain a run; the default scans every defined goal.
 TMP_OUT="$(mktemp)"
 trap 'rm -f "$TMP_OUT"' EXIT
-
-if [[ $# -gt 0 ]]; then
-  bash "${REPO_ROOT}/scripts/health-goals-scan.sh" "$@" > "$TMP_OUT" 2>/dev/null || true
-else
-  # Default quick scan of anchor goals
-  bash "${REPO_ROOT}/scripts/health-goals-scan.sh" G-RH01 G-CQ02 G-GIT01 G-SIZE03 > "$TMP_OUT" 2>/dev/null || true
+IDS=("$@")
+if [[ ${#IDS[@]} -eq 0 ]]; then
+  ALL_IDS="$(python3 - "$REPO_ROOT/components/website/src/lib/sdlc/goals-data.generated.json" <<'PYIDS'
+import json, sys
+with open(sys.argv[1]) as stream:
+    goals = json.load(stream)
+ids = [goal['id'] for goal in goals]
+if not all(isinstance(gid, str) and gid for gid in ids):
+    raise ValueError('invalid goal IDs')
+print('\n'.join(ids))
+PYIDS
+  )"
+  mapfile -t IDS <<< "$ALL_IDS"
+  [[ ${#IDS[@]} -gt 0 ]] || { echo "ERROR: no valid goal IDs" >&2; exit 1; }
 fi
-
-# Insert measurements into Postgres
-python3 - "$TMP_OUT" "$GIT_SHA" "$GIT_BRANCH" "$POD" "$CTX" "$NS" <<'PY'
-import json
-import subprocess
-import sys
-
-out_file, sha, branch, pod, ctx, ns = sys.argv[1:7]
-try:
-    with open(out_file) as f:
-        data = json.load(f)
-except Exception as e:
-    sys.exit(0)
-
-if not data:
-    sys.exit(0)
-
-sql_lines = ["BEGIN;"]
-for item in data:
-    gid = item.get("id")
-    actual = item.get("actual")
-    if gid and actual is not None:
-        status = "achieved" if actual <= (item.get("target") or actual) else "at_risk"
-        sql_lines.append(f"""
-        INSERT INTO quality.repo_health_measurements (goal_id, current_value, status, git_sha, git_branch)
-        VALUES ('{gid}', {actual}, '{status}', '{sha}', '{branch}');
-        """)
-sql_lines.append("COMMIT;")
-
-full_sql = "\n".join(sql_lines)
-cmd = [
-    "kubectl", "--context", ctx, "-n", ns, "exec", "-i", pod,
-    "-c", "postgres", "--", "psql", "-U", "website", "-d", "website", "-q", "-v", "ON_ERROR_STOP=1"
-]
-subprocess.run(cmd, input=full_sql, text=True)
-PY
-
+bash "${REPO_ROOT}/scripts/health-goals-scan.sh" "${IDS[@]}" > "$TMP_OUT"
+python3 "$REPO_ROOT/scripts/lib/health-goals-record.py" "$TMP_OUT" "$GIT_SHA" "$GIT_BRANCH" "$POD" "$CTX" "$NS"
 echo "Health goals measurements recorded to quality.repo_health_measurements."

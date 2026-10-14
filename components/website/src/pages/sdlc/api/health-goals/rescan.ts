@@ -1,11 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { runHealthScan, HealthScanInputError } from '../../../../lib/sdlc/health-scan';
+import { recordGoalMeasurements } from '../../../../lib/sdlc/goal-measurements';
 import { GOALS } from '../../../../lib/sdlc/goals-data';
 
 export const prerender = false;
 
-/** Ein Vollscan über alle 103 Ziele wäre ein HTTP-Timeout, kein Rescan. */
+/** Ein Vollscan über alle Ziele wäre ein HTTP-Timeout, kein Rescan. */
 export const MAX_IDS_PER_REQUEST = 25;
 
 const json = (body: unknown, status: number) =>
@@ -47,7 +48,9 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const results = await runHealthScan(ids as string[]);
-    return json({ results, scannedAt: new Date().toISOString() }, 200);
+    const scannedAt = new Date().toISOString();
+    await recordGoalMeasurements(results, scannedAt);
+    return json({ results, scannedAt }, 200);
   } catch (err) {
     if (err instanceof HealthScanInputError) {
       return json({ error: err.message }, 400);

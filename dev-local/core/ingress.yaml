@@ -2,7 +2,7 @@
 # der Traefik-Default-TLSStore mit dem Wildcard aus dev-local/cluster/tls.yaml; der tls-Block
 # markiert die Hosts fuer websecure (Muster k3d/dev-stack/dev-ingress.yaml).
 # web.* ist die Console: der pocket-id-client-seed registriert den Callback als
-# web.<suffix>/api/auth/callback. Die Website (BUILD_TARGET unset) liegt auf site.*.
+# web.<suffix>/api/auth/callback. Die Massage-Website liegt auf WEBSITE_HOST.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -14,7 +14,7 @@ spec:
     - hosts:
         - "web.${DEVMESH_DOMAIN}"
         - "auth.${DEVMESH_DOMAIN}"
-        - "site.${DEVMESH_DOMAIN}"
+        - "${WEBSITE_HOST}"
         - "brett.${DEVMESH_DOMAIN}"
         - "mail.${DEVMESH_DOMAIN}"
   rules:
@@ -26,7 +26,7 @@ spec:
       http:
         paths:
           - {path: /, pathType: Prefix, backend: {service: {name: pocket-id, port: {number: 1411}}}}
-    - host: "site.${DEVMESH_DOMAIN}"
+    - host: "${WEBSITE_HOST}"
       http:
         paths:
           - {path: /, pathType: Prefix, backend: {service: {name: website, port: {number: 80}}}}

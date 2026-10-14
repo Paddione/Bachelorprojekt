@@ -1210,7 +1210,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 -c \"...catch-Blöcke ohne logger...\"",
+    "measurement": "python3 scripts/lib/health-goals-probes.py if02` — catch ohne Log und ohne Rethrow, Blöcke per Klammerzählung (T016657)",
     "source": ".claude/lib/goals.md · G-IF02",
     "measured_at": "2026-10-08"
   },
@@ -1255,7 +1255,7 @@
     "target": 1,
     "unit": "",
     "status": "unknown",
-    "measurement": "k3_project_flag` — `codebase-memory-mcp cli index_status`, Fail-closed ⇒ 0 (T002430)",
+    "measurement": "k3_project_flag` — `codebase-memory-mcp cli index_status` (MCP-Envelope via `health-goals-probes.py k3proj`); Index nicht erreichbar/Format kaputt ⇒ n/a, nie grün (T002430, T016657)",
     "source": ".claude/lib/goals.md · G-K3PROJ",
     "measured_at": "2026-10-08"
   },
@@ -1690,7 +1690,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent",
+    "measurement": "python3 scripts/lib/health-goals-probes.py agentic10` — je Agent aus `.claude/agents/*.md` eine SKILL.md mit `agent: <name>` (T016657)",
     "source": ".claude/lib/goals.md · G-AGENTIC10",
     "measured_at": "2026-10-08"
   },

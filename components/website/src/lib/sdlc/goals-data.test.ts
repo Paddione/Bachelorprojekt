@@ -70,9 +70,9 @@ describe('goals-data: static exports', () => {
 });
 
 describe('healthPercent', () => {
-  it('returns 100 for status "achieved" regardless of current/target', () => {
+  it('ignores a cached "achieved" status when current/target evidence is missing', () => {
     const g = makeGoal({ status: 'achieved', current: null, target: null, baseline: null });
-    expect(healthPercent(g)).toBe(100);
+    expect(healthPercent(g)).toBeNull();
   });
 
   it('returns null when current, target, or baseline is missing', () => {
@@ -91,9 +91,14 @@ describe('healthPercent', () => {
     expect(healthPercent(g)).toBe(100);
   });
 
-  it('returns 100 when baseline equals target (zero range) even if not met', () => {
+  it('returns 100 when baseline equals target (zero range) and the boundary holds', () => {
     const g = makeGoal({ direction: 'lower', current: 5, target: 5, baseline: 5 });
     expect(healthPercent(g)).toBe(100);
+  });
+
+  it('returns 0 when baseline equals target (zero range) and the boundary is violated', () => {
+    expect(healthPercent(makeGoal({ direction: 'lower', current: 6, target: 5, baseline: 5 }))).toBe(0);
+    expect(healthPercent(makeGoal({ direction: 'higher', current: 4, target: 5, baseline: 5 }))).toBe(0);
   });
 
   it('computes a partial percentage for an in-progress "lower" goal', () => {
@@ -127,5 +132,17 @@ describe('goals-data: generated JSON integration', () => {
     for (const g of GOALS) {
       expect(g.source.startsWith('.claude/lib/goals.md')).toBe(true);
     }
+  });
+});
+
+describe('healthPercent evidence regressions', () => {
+  it('returns zero for a regression from a satisfied zero baseline', () => {
+    expect(healthPercent(makeGoal({ current: 5, target: 0, baseline: 0 }))).toBe(0);
+  });
+  it('does not trust stale green over current numeric evidence', () => {
+    expect(healthPercent(makeGoal({ status: 'achieved', current: 5, target: 0, baseline: 0 }))).toBe(0);
+  });
+  it('does not report green for unknown current with cached achieved status', () => {
+    expect(healthPercent(makeGoal({ status: 'achieved', current: null }))).toBeNull();
   });
 });

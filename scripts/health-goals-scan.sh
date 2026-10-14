@@ -11,6 +11,7 @@
 # Ausgabe. Insbesondere wird scripts/health-goals-update.sh hier NICHT aufgerufen.
 #
 # Usage: bash scripts/health-goals-scan.sh [--fast] <GOAL-ID> [<GOAL-ID> ...]
+#        bash scripts/health-goals-scan.sh [--fast] --all   (alle Ziele des Artefakts)
 #
 # stdout: JSON-Array, ein Objekt je ANGEFORDERTER ID, Reihenfolge wie übergeben:
 #   [{"id":"G-CQ06","measurable":true,"actual":0,"cmp":"le","target":1},
@@ -25,17 +26,23 @@ set -uo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "kein git-Repo" >&2; exit 2; }
 
 FAST=0
+ALL=0
 IDS=()
 for a in "$@"; do
   case "$a" in
     --fast) FAST=1 ;;
+    --all)  ALL=1 ;;
     --*)    echo "unbekanntes Flag: $a" >&2; exit 2 ;;
     *)      IDS+=("$a") ;;
   esac
 done
 
-if [ "${#IDS[@]}" -eq 0 ]; then
-  echo "Usage: bash scripts/health-goals-scan.sh [--fast] <GOAL-ID> [<GOAL-ID> ...]" >&2
+if [ "${#IDS[@]}" -eq 0 ] && [ "$ALL" -eq 0 ]; then
+  echo "Usage: bash scripts/health-goals-scan.sh [--fast] (--all | <GOAL-ID> [<GOAL-ID> ...])" >&2
+  exit 2
+fi
+if [ "$ALL" -eq 1 ] && [ "${#IDS[@]}" -gt 0 ]; then
+  echo "--all und explizite Ziel-IDs schließen sich aus" >&2
   exit 2
 fi
 
@@ -53,6 +60,9 @@ if [ $? -ne 0 ]; then
   echo "Kann gültige Ziel-IDs nicht laden: $ARTIFACT" >&2
   exit 2
 fi
+
+# Vollscan: jede definierte ID wird angefordert — keine wird weggefiltert.
+[ "$ALL" -eq 1 ] && mapfile -t IDS <<< "$KNOWN"
 
 for id in "${IDS[@]}"; do
   printf '%s\n' "$KNOWN" | grep -qxF -- "$id" || {

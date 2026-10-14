@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.421.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.421.0...website-v1.421.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **website:** guard ticket embeddings and wissensquellen behind vector availability [T016607] ([#6652](https://github.com/Paddione/Bachelorprojekt/issues/6652)) ([ec44656](https://github.com/Paddione/Bachelorprojekt/commit/ec44656174276fa33871cb5a1f233d36b6c374a2))
+
 ## [1.421.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.420.0...website-v1.421.0) (2026-10-14)
 
 

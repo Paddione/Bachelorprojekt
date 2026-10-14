@@ -9,7 +9,7 @@ agent: bp-run
 
 # incident-response
 
-Production incident triage and recovery. Use when a core platform service is down or degraded. For ongoing ticket triage, repo hygiene, or PR management, see `ticket-ops`.
+Production incident triage and recovery. Use when a core platform service is down or degraded. For ongoing ticket triage, see `ticket-triage`; for repo hygiene or PR management, see `repo-hygiene`.
 
 ---
 
@@ -89,7 +89,7 @@ Invoke `mishap-tracker` with your accumulated `MISHAP_LOG`.
 
 | Skill | Relationship |
 |-------|--------------|
-| `ticket-ops` | Follow-up: PR management, ticket triage for human-fixable items |
+| `ticket-triage` | Follow-up: ticket triage for human-fixable items; PR management via `repo-hygiene` |
 | `mishap-tracker` | Converts execution mishaps to tickets |
 | `infra-ops` | Cross-brand incident handling and infrastructure deployment (Phase 5) |
 

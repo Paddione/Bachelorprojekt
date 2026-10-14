@@ -118,18 +118,11 @@ def test_t002398_kein_http_server_steht_in_der_llama_cpp_config(repo_root):
     assert not bad, "http in llama.cpp-Config: " + ",".join(bad)
 
 
-def test_t002398_mcp_check_erkennt_drift_in_der_llama_cpp_config(run_cmd, repo_root, tmp_path):
-    tmpd = tmp_path / "mcp-check"
-    (tmpd / "scripts" / "llm").mkdir(parents=True)
-    (tmpd / ".opencode").mkdir()
-    # Alle drei Ziel-Dateien kopieren; check vergleicht gegen alle Targets.
-    (tmpd / ".mcp.json").write_bytes((repo_root / ".mcp.json").read_bytes())
-    (tmpd / ".opencode" / "opencode.jsonc").write_bytes((repo_root / ".opencode" / "opencode.jsonc").read_bytes())
-    (tmpd / "scripts" / "llm" / "mcp-servers.json").write_bytes(
-        (repo_root / "scripts" / "llm" / "mcp-servers.json").read_bytes())
+def test_t002398_mcp_check_erkennt_drift_in_der_llama_cpp_config(run_cmd, repo_root, mcp_sandbox):
+    tmpd = Path(mcp_sandbox["MCP_OUT_DIR"])
 
     # Positiv-Anker: unmanipulierter Lauf muss gruen sein.
-    r = _run_env(run_cmd, repo_root, ["bash", "scripts/mcp-sync.sh", "check"], {"MCP_OUT_DIR": str(tmpd)})
+    r = _run_env(run_cmd, repo_root, ["bash", "scripts/mcp-sync.sh", "check"], mcp_sandbox)
     assert r.returncode == 0, r.stdout
 
     # Drift injizieren und pruefen, dass check ihn erkennt.
@@ -137,7 +130,7 @@ def test_t002398_mcp_check_erkennt_drift_in_der_llama_cpp_config(run_cmd, repo_r
     data = json.loads(fn.read_text(encoding="utf-8"))
     data["mcpServers"]["drift-probe"] = {"command": "nope"}
     fn.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    r = _run_env(run_cmd, repo_root, ["bash", "scripts/mcp-sync.sh", "check"], {"MCP_OUT_DIR": str(tmpd)})
+    r = _run_env(run_cmd, repo_root, ["bash", "scripts/mcp-sync.sh", "check"], mcp_sandbox)
     assert r.returncode != 0
 
 

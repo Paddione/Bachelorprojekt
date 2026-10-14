@@ -176,6 +176,30 @@ function freetokenThinking(body) {
   return { ...body, chat_template_kwargs: { ...(body.chat_template_kwargs || {}), enable_thinking: enable } };
 }
 
+/**
+ * [T016653] QUASAR-4B (vLLM, --reasoning-parser qwen3) denkt per Default und
+ * legt die Antwort in `reasoning` ab (`content: null`, finish `length`):
+ * gemessen frisst schon "Say ok." 64/64 Reasoning-Tokens ohne ein einziges
+ * Antwort-Token. Agenten, die `content` lesen, bekommen nichts und retryen —
+ * auf einem geteilten Worker der teuerste denkbare Fehler.
+ *
+ * Anders als bei freetoken gibt es hier keinen neutralen Engine-Default zu
+ * bewahren: Der Fixup laeuft nur auf der quasar-4b-Backend-Zeile, und dort ist
+ * thinking-fuer-alles falsch. Deshalb Default OFF, Opt-in per `-thinking`-Suffix
+ * oder explizitem Caller-Wert in chat_template_kwargs (explizit gewinnt gegen
+ * den Default, Suffix gewinnt gegen alles).
+ */
+function quasarThinking(body) {
+  const model = typeof body?.model === 'string' ? body.model : '';
+  const prev = body?.chat_template_kwargs && typeof body.chat_template_kwargs === 'object'
+    ? body.chat_template_kwargs : {};
+  let enable;
+  if (/-thinking$/.test(model)) enable = true;
+  else if (typeof prev.enable_thinking === 'boolean') enable = prev.enable_thinking;
+  else enable = false;
+  return { ...body, chat_template_kwargs: { ...prev, enable_thinking: enable } };
+}
+
 export const FIXUPS = {
   'bonsai-system-role-fixup': bonsaiSystemRoleFixup,
   'flatten-content-blocks': flattenContentBlocks,
@@ -183,6 +207,7 @@ export const FIXUPS = {
   'sanitize-tool-schema-patterns': sanitizeToolSchemaPatterns,
   'fill-missing-array-items': fillMissingArrayItems,
   'freetoken-thinking': freetokenThinking,
+  'quasar-thinking': quasarThinking,
 };
 
 /** @param {string[]} names @param {any} body */

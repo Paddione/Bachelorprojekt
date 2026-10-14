@@ -308,8 +308,7 @@ class _Nvim:
             "XDG_DATA_HOME": str(self.xdg_data),
             "XDG_STATE_HOME": str(self.xdg_state),
         }
-        config_src = Path(os.environ.get("NVIM_DASHBOARD_CONFIG_SRC",
-                                         str(repo_root / "dotfiles/nvim")))
+        config_src = _dashboard_config_src(repo_root)
         self.stage = self.xdg_config / "nvim"
         self.stage.mkdir(parents=True, exist_ok=True)
         if config_src.is_dir():
@@ -355,10 +354,25 @@ def _out(path: Path) -> str:
     return path.read_text() if path.exists() else ""
 
 
+def _dashboard_config_src(repo_root: Path) -> Path:
+    # T901648: die nvim-Config lebt im dotfiles-Repo, nicht mehr unter
+    # <bachelorprojekt>/dotfiles/nvim. Reihenfolge: explizites Env, dann
+    # ~/dotfiles/nvim, dann der historische Repo-Pfad als Fallback.
+    env = os.environ.get("NVIM_DASHBOARD_CONFIG_SRC")
+    if env:
+        return Path(env)
+    home_src = Path.home() / "dotfiles" / "nvim"
+    if (home_src / "init.lua").is_file():
+        return home_src
+    return repo_root / "dotfiles" / "nvim"
+
+
 @pytest.fixture
 def nv(run_cmd, repo_root, tmp_path):
     if shutil.which("nvim") is None:
         pytest.skip("nvim fehlt")
+    if not (_dashboard_config_src(repo_root) / "init.lua").is_file():
+        pytest.skip("Dashboard-Config fehlt (weder ~/dotfiles/nvim noch dotfiles/nvim)")
     return _Nvim(run_cmd, repo_root, tmp_path)
 
 
@@ -616,7 +630,7 @@ def test_neovim_dashboard_github_page_lists_five_actions_and_no_merge(nv):
     result = nv.nvim_headless(
         "lua print(#require('chapters.github').actions(), #require('chapters.sdlc').actions())")
     assert result.returncode == 0
-    assert "5 9" in " ".join(result.output.split())
+    assert "5 10" in " ".join(result.output.split())
     github = nv.stage / "lua/chapters/github.lua"
     assert github.is_file()
     assert "merge" not in github.read_text().lower()

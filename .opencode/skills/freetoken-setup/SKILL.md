@@ -2,6 +2,7 @@
 name: freetoken-setup
 description: Retired FreeToken setup retained for historical reference; invoke explicitly only when reviewing the former backend configuration.
 archived: true
+disable-model-invocation: true
 ---
 
 # FreeToken Setup

@@ -4524,6 +4524,12 @@
     "kind": "pytest"
   },
   {
+    "id": "massage_devmesh",
+    "file": "tests/py/spec/test_massage_devmesh.py",
+    "category": "massage_devmesh",
+    "kind": "pytest"
+  },
+  {
     "id": "mcp-gateway",
     "file": "tests/py/spec/native_ported/spec/test_mcp_gateway.py",
     "category": "mcp-gateway",
@@ -4850,6 +4856,12 @@
   {
     "id": "native_ported/spec/local-llm-proxy/devflow_backend",
     "file": "tests/py/spec/native_ported/spec/local-llm-proxy/test_devflow_backend.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/mcp-gateway/mcp_central_launcher",
+    "file": "tests/py/spec/native_ported/spec/mcp-gateway/test_mcp_central_launcher.py",
     "category": "native_ported",
     "kind": "pytest"
   },

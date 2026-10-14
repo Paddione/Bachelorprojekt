@@ -1,0 +1,71 @@
+# Disposable dev database; no production snapshots or credentials.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: massage-db-dev
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: massage-db-dev}
+  template:
+    metadata:
+      labels: {app: massage-db-dev}
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
+          env:
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+            - {name: POSTGRES_USER, value: website}
+            - {name: POSTGRES_DB, value: website}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: website-secrets, key: WEBSITE_DB_PASSWORD}
+          ports:
+            - {name: postgres, containerPort: 5432}
+          readinessProbe:
+            exec: {command: [pg_isready, -U, website, -d, website]}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql/data}
+            - name: brand
+              mountPath: /docker-entrypoint-initdb.d/20-massage-brand.sql
+              subPath: seed.sql
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: massage-db-dev-data}
+        - name: brand
+          configMap: {name: massage-brand-seed}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: massage-brand-seed
+data:
+  seed.sql: |
+    CREATE TABLE IF NOT EXISTS brands (id TEXT PRIMARY KEY, name TEXT NOT NULL);
+    INSERT INTO brands (id, name) VALUES ('massage', 'Massagepraxis Vögelsen')
+    ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: massage-db-dev-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests: {storage: 2Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: massage-db-dev
+spec:
+  selector: {app: massage-db-dev}
+  ports:
+    - {name: postgres, port: 5432, targetPort: postgres}

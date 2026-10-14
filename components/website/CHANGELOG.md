@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.423.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.423.0...website-v1.423.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **test:** heal 17 local test:changed failures [T016616] ([#6668](https://github.com/Paddione/Bachelorprojekt/issues/6668)) ([d16b895](https://github.com/Paddione/Bachelorprojekt/commit/d16b89518b97aefed891dbc8e2c88091c56bf280))
+
+## [1.423.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.422.1...website-v1.423.0) (2026-10-14)
+
+
+### Features
+
+* **infra:** deploy Massage dev website with isolated database [T016611] ([#6665](https://github.com/Paddione/Bachelorprojekt/issues/6665)) ([b25c801](https://github.com/Paddione/Bachelorprojekt/commit/b25c801aad1412d977aa785b9a80b1c2cacc90a5))
+
+## [1.422.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.422.0...website-v1.422.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **website:** install pnpm via npm, node26 has no corepack ([#6663](https://github.com/Paddione/Bachelorprojekt/issues/6663)) ([9c6db1f](https://github.com/Paddione/Bachelorprojekt/commit/9c6db1f03f39c54821ff1405337f61bcd55cd3b4))
+
+## [1.422.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.421.2...website-v1.422.0) (2026-10-14)
+
+
+### Features
+
+* **website:** serving metrics strip in SDLC cockpit ([#6660](https://github.com/Paddione/Bachelorprojekt/issues/6660)) ([793f5a6](https://github.com/Paddione/Bachelorprojekt/commit/793f5a69e80f3f6187fef6f2d028b5f853c2a7af))
+
 ## [1.421.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.421.1...website-v1.421.2) (2026-10-14)
 
 

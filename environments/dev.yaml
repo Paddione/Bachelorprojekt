@@ -8,6 +8,8 @@
 environment: dev
 context: devmesh
 domain: devmesh.korczewski.de
+workspace_namespace: workspace
+website_namespace: workspace
 
 env_vars:
   EINVOICE_SIDECAR_ENABLED: "true"
@@ -29,8 +31,8 @@ env_vars:
   DEVMESH_PROFILE: core
   PROD_DOMAIN: devmesh.korczewski.de
   # web.* ist die SDLC-Console (OIDC-Callback), die Website liegt auf site.*.
-  WEBSITE_HOST: site.devmesh.korczewski.de
-  WEBSITE_SITE_URL: "https://site.devmesh.korczewski.de"
+  WEBSITE_HOST: massage.devmesh.korczewski.de
+  WEBSITE_SITE_URL: "https://massage.devmesh.korczewski.de"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "true"
   LLM_RERANKER_URL: "http://llm-proxy.workspace-dev.svc.cluster.local:18235"

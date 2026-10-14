@@ -22,7 +22,7 @@ Do not dispatch work from this router. `ticket-dispatch` owns the single user-ap
 
 ## Routing invariants
 
-- Preserve the **Dedupe-Guard**: GitHub issue intake checks for an existing same-title/duplicate ticket before creating one (T001147).
+- Preserve the **Dedupe-Guard**: GitHub issue intake checks for an existing same-title/duplicate ticket before creating one.
 - **Pre-Check-Invariante [T002422]**: `ticket-dispatch` rechecks ticket and lock state before a claim.
 - A Claim starts only after dev-flow-plan **Phase A** / proposal work in the main checkout; a Claim must not block that Phase A work (T004602).
 

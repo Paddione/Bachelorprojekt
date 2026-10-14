@@ -15,6 +15,8 @@ resources:
   - ../../k3d/shared-db.yaml
   - ../../k3d/website-schema.yaml
   - ../../k3d/website.yaml
+  - massage-db-dev.yaml
+  - ../../k3d/website-seller-config.yaml
   - ../../k3d/pocket-id.yaml
   - ../../k3d/pocket-id-db-init-sql.yaml
   - ../../k3d/pocket-id-client-seed.yaml
@@ -42,6 +44,48 @@ generatorOptions:
   disableNameSuffixHash: true
 
 patches:
+  - target: {kind: ConfigMap, name: website-config}
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: {name: website-config}
+      data:
+        BRAND: massage
+        BRAND_ID: massage
+        BRAND_NAME: "Massagepraxis Vögelsen"
+        FROM_NAME: "Massagepraxis Vögelsen"
+  - target: {kind: Deployment, name: website}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: website}
+      spec:
+        template:
+          spec:
+            containers:
+              - name: website
+                env:
+                  - name: WEBSITE_DB_PASSWORD
+                    valueFrom:
+                      secretKeyRef: {name: website-secrets, key: WEBSITE_DB_PASSWORD}
+                  - name: SESSIONS_DATABASE_URL
+                    value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@massage-db-dev.workspace.svc.cluster.local:5432/website"
+                  - name: GITHUB_CONTENT_TOKEN
+                    valueFrom:
+                      secretKeyRef: {name: website-content-token, key: GITHUB_CONTENT_TOKEN, optional: true}
+  - target: {kind: Job, name: pocket-id-client-seed}
+    patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata: {name: pocket-id-client-seed}
+      spec:
+        template:
+          spec:
+            containers:
+              - name: seed
+                env:
+                  - name: WEBSITE_EXTRA_CALLBACK
+                    value: "https://${WEBSITE_HOST}/api/auth/callback"
   - target: {kind: ConfigMap, name: domain-config}
     patch: |-
       apiVersion: v1

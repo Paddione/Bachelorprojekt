@@ -34,5 +34,5 @@ spec:
 # entschlüsselt zu leeren Werten — der Prometheus Operator verwirft deshalb die
 # komplette AlertmanagerConfig ("mandatory field userKey is empty") und legt damit
 # auch das E-Mail-Routing lahm. Wiedereinführung NUR mit nicht-leeren Credentials:
-# über k3d/monitoring/alertmanager-secret-template.yaml gesealten
-# alertmanager-pushover-SealedSecret + pushoverConfigs-Receiver + critical-Route.
+# neues alertmanager-pushover-SealedSecret + pushoverConfigs-Receiver + critical-Route.
+# (Toter Secret-Template-Rest entfernt [T016575].)

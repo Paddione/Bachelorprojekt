@@ -375,6 +375,11 @@ env_vars:
     validate: "^[0-9./]+$"
     description: "Cluster Service-CIDR (ClusterIP) fuer die NetworkPolicies [T901777]. k3s-Default 10.43.0.0/16 (alle Fleet-Cluster, lokales k3d); devmesh 10.53.0.0/16 (ADR-008). Kein default_dev — siehe POD_CIDR."
 
+  - name: POD_VTEP_IP
+    required: false
+    validate: "^[0-9.]+$"
+    description: "Flannel-VTEP-Adresse des Control-Plane-Nodes fuer die NetworkPolicies (k3d/network-policies.yaml) [T901777]. Abgeleitet als Basisadresse von POD_CIDR (scripts/devmesh/render-stack.sh, Taskfile.workspace.yml, scripts/flux-render-artifact.sh). Bewusst kein default_dev — siehe POD_CIDR."
+
   - name: BRETT_DOMAIN
     required: true
     default_dev: "brett.localhost"

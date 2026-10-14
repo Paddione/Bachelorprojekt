@@ -119,3 +119,32 @@ def test_seed_reports_failed_database_write(repo_root, tmp_path, monkeypatch):
     with pytest.raises(SystemExit) as exc:
         seed.main()
     assert exc.value.code == 1
+
+
+def test_definitions_only_initializes_schema_without_importing_history(repo_root, tmp_path, monkeypatch):
+    import importlib.util
+    import shutil
+    spec = importlib.util.spec_from_file_location('quality_seed_definitions', repo_root / 'scripts/sdlc/seed-quality-goals.py')
+    seed = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(seed)
+    data_dir = tmp_path / 'components/website/src/lib/sdlc'
+    data_dir.mkdir(parents=True)
+    (data_dir / 'goals-data.generated.json').write_text(json.dumps([dict(
+        id='G-TEST', title='Definition', category='Test', current=5, baseline=10,
+        target=0, measured_at='2026-10-14', status='achieved')]))
+    snapshot = data_dir / 'goals-data.snapshot.json'
+    snapshot.write_text('historical snapshot remains untouched')
+    migrations = tmp_path / 'scripts/migrations'
+    migrations.mkdir(parents=True)
+    shutil.copy2(repo_root / 'scripts/migrations/2026-10-12-quality-schema-T016507.sql', migrations)
+    statements = []
+    monkeypatch.setattr(seed, 'get_repo_root', lambda: tmp_path)
+    monkeypatch.setattr(seed, 'run_psql', lambda sql: statements.append(sql) or True)
+    seed.main(['--definitions-only', '--initialize-schema'])
+    assert 'CREATE TABLE IF NOT EXISTS quality.repo_health_measurements' in statements[0]
+    assert 'INSERT INTO quality.repo_health_goals' in statements[0]
+    assert 'INSERT INTO quality.repo_health_measurements' not in statements[0]
+    assert snapshot.read_text() == 'historical snapshot remains untouched'
+    monkeypatch.setenv('DRY_RUN', '1')
+    seed.main(['--definitions-only', '--initialize-schema'])
+    assert len(statements) == 1

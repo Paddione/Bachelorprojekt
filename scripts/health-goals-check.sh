@@ -289,10 +289,7 @@ row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 wc -c 2>/dev/null |
 row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' --include='*.yaml' --include='*.yml' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|videovault|mediaviewer-widget|mentolder-web|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE|paddione' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images"
 row target G-DOC02 "$(anchor_file CLAUDE.md; wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"
 row target G-AGENTIC01 "$(bash scripts/lib/count-unresolved-agent-tools.sh)" le 0 "tools:-Eintraege, die ins Leere zeigen (leere Aufloesung oder unbekannter MCP-Server)"
-row target G-AGENTIC10 "$(
-  c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
-    grep -RlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
-)" le 0 "Agenten ohne dispatchende Skill (website/db/security)"
+row target G-AGENTIC10 "$(python3 scripts/lib/health-goals-probes.py agentic10 2>/dev/null || echo -)" le 0 "Agenten (.claude/agents) ohne dispatchende Skill (agent:-Frontmatter) — T016657"
 row target G-KNOW01 "$($KG docs-only)" le 0 "Registry-Regeln nur dokumentiert (enforced_by: docs-only)"
 row target G-KNOW03 "$($KG dangling)" le 0 "Registry-Verweise (enforced_by/where) ohne existierenden Pfad"
 row target G-KNOW04 "$($KG docs-md)" le 0 "Markdown unter docs/ ausser adr/ (Abbau)"
@@ -383,16 +380,7 @@ row target G-IF01 "$(python3 scripts/lib/mcp-endpoint-probe.py)" le 0 "MCP-Endpu
 row target G-K3FRESH "$(k3_freshness_flag)" eq 1 "K3-Index frisch laut cbm-freshness-Receipts"
 row target G-K3PROJ "$(k3_project_flag)" eq 1 "K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0)"
 
-row target G-IF02 "$(python3 -c "
-import os,re
-files = ['components/website/src/lib/embeddings.ts', 'components/website/src/lib/rerank.ts', 'components/website/src/lib/bge-router.ts']
-if not all(os.path.exists(f) for f in files): print('-'); exit(0)  # Positiv-Anker: Basis muss existieren
-c=0
-for f in files:
-    for b in re.findall(r'catch\s*\([^)]*\)\s*\{([^}]*)\}', open(f).read(), re.DOTALL):
-        if not re.search(r'(logger\.|console\.(error|warn))', b): c+=1
-print(c)
-" 2>/dev/null || echo "-")" le 0 "Stille Degradation (catch ohne logger.error in Schnittstellen)"
+row target G-IF02 "$(python3 scripts/lib/health-goals-probes.py if02 2>/dev/null || echo -)" le 0 "Stille Degradation (catch ohne Log und ohne Rethrow in Schnittstellen) — T016657"
 
 row target G-IF03 "$(kubectl get pods -n workspace --context fleet -o json 2>/dev/null \
   | python3 -c "

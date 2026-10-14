@@ -144,3 +144,80 @@ def test_g_dep02_ueberlebt_den_exit_1_von_pnpm_outdated_unter_pipefail_t002648(r
     # asserted, matching the original; only the single-token output is checked.
     _, output = _pipe(["python3", str(helper)], producer_json)
     assert output == "2", f"erwartet '2' (zwei Major-Spruenge), erhalten '{output}'"
+
+
+# ── T016657: Messgegenstände G-AGENTIC10 und G-IF02 ──────────────────────────
+
+def _probe(repo_root, *args):
+    return subprocess.run(["python3", str(repo_root / "scripts/lib/health-goals-probes.py"), *args],
+                          capture_output=True, text=True, timeout=30, check=False)
+
+
+def _agent_tree(tmp_path, agents, dispatched):
+    agents_dir, skills_dir = tmp_path / "agents", tmp_path / "skills"
+    agents_dir.mkdir()
+    for name in agents:
+        (agents_dir / f"{name}.md").write_text(f"---\nname: {name}\n---\n", encoding="utf-8")
+    for i, name in enumerate(dispatched):
+        skill = skills_dir / f"s{i}"
+        skill.mkdir(parents=True)
+        (skill / "SKILL.md").write_text(f"---\nname: s{i}\nagent: {name}\n---\n", encoding="utf-8")
+    skills_dir.mkdir(exist_ok=True)
+    return ["--agents", str(agents_dir), "--skills", str(skills_dir)]
+
+
+def test_g_agentic10_misst_die_aktuellen_domainrollen_t016657(repo_root, tmp_path):
+    args = _agent_tree(tmp_path, ["bp-build", "bp-run", "bp-ship"], ["bp-run", "bp-ship"])
+    result = _probe(repo_root, "agentic10", *args)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "1", "bp-build ohne dispatchende Skill muss zaehlen"
+
+
+def test_g_agentic10_ohne_agentendefinitionen_ist_nicht_messbar_t016657(repo_root, tmp_path):
+    result = _probe(repo_root, "agentic10", *_agent_tree(tmp_path, [], []))
+    assert result.stdout.strip() == "-"
+
+
+def test_g_agentic10_repo_zaehlt_keine_obsoleten_bachelorprojekt_rollen_t016657(repo_root):
+    result = _probe(repo_root, "agentic10")
+    assert result.returncode == 0, result.stderr
+    agents = sorted(p.stem for p in (repo_root / ".claude/agents").glob("*.md"))
+    assert agents and all(a.startswith("bp-") for a in agents)
+    assert int(result.stdout.strip()) <= len(agents)
+
+
+IF02_SOURCE = """
+export async function rethrows() {
+  try { await a(); } catch (err) {
+    if (isNetworkError(err)) { throw new QueryError(`x ${err}`); }
+    throw err;
+  }
+}
+export async function logs() {
+  try { await b(); } catch (err) {
+    if (err) { const o = { a: 1 }; }
+    logger.warn({ err }, 'degraded');
+    return null;
+  }
+}
+export async function silent() {
+  try { await c(); } catch {
+    if (x) { y = { z: '}' }; }
+    return null;
+  }
+}
+const ok = await r.text().catch(() => '');
+"""
+
+
+def test_g_if02_rethrow_ist_sichtbar_stiller_catch_bleibt_verstoss_t016657(repo_root, tmp_path):
+    src = tmp_path / "iface.ts"
+    src.write_text(IF02_SOURCE, encoding="utf-8")
+    result = _probe(repo_root, "if02", str(src))
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "1", "nur der stille catch {} ohne Log und ohne throw zaehlt"
+
+
+def test_g_if02_fehlende_basisdatei_ist_nicht_messbar_t016657(repo_root, tmp_path):
+    result = _probe(repo_root, "if02", str(tmp_path / "fehlt.ts"))
+    assert result.stdout.strip() == "-"

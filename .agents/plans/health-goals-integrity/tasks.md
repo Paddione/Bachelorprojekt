@@ -81,14 +81,14 @@ Neue Tests und Helper bleiben weit unter 80 Prozent der Grenze. Keine Baseline- 
 
 ## Task 4 — Nachweislich fehlerhafte Zielmessungen korrigieren
 
-- [ ] G-AGENTIC10 gegen aktuelle bp-run/bp-ship/bp-build Rollen messen, obsolete bachelorprojekt-Rollen entfernen; dispatchende Skills mit realem Routing abgleichen.
-- [ ] G-IF02 behandelt catch mit rethrow als sichtbaren Fehler statt stille Degradation; catch ohne Log und ohne throw bleibt Verstoß. Verschachtelte Blöcke sauber parsen statt Regex-Fragmente zählen.
-- [ ] G-CJ01 ignoriert suspendierte und noch nie geplante CronJobs bei Failed-Lauf-Zählung; tatsächlich fehlgeschlagene geplante Jobs bleiben sichtbar.
-- [ ] K3-Projektstatus liest tatsächliches CLI-Format robust; ready mit positiver node/edge-Anzahl erfüllt das Ziel. Kaputtes Format oder nicht erreichbarer Index bleibt unknown, keine erfundene Null.
-- [ ] K3-Freshness prüft den kanonischen Hauptcheckout statt zufälligen Agent-Worktree; alte Receipts bleiben stale, aktuelle Hauptcheckout-Receipts sind gültig.
-- [ ] G-LLM04 bei fehlendem systemctl-Userbus liefert unknown statt drei vermeintlicher Autostart-Verstöße; erreichbarer Bus mit disabled Unit bleibt Verstoß.
-- [ ] Regressionen mit isolierten CLI/Dateifixtures in bestehende passende Pytest-Suites aufnehmen und expected: FAIL zunächst mit python3 -m pytest nachweisen. Grenzfälle positiv und negativ erhalten.
-- [ ] Checker-Logik in echte Helper extract beziehungsweise aufteilen; checker bleibt netto zeilenneutral oder schrumpft, keine Gate-Ausnahmen.
+- [x] G-AGENTIC10 gegen aktuelle bp-run/bp-ship/bp-build Rollen messen, obsolete bachelorprojekt-Rollen entfernen; dispatchende Skills mit realem Routing abgleichen.
+- [x] G-IF02 behandelt catch mit rethrow als sichtbaren Fehler statt stille Degradation; catch ohne Log und ohne throw bleibt Verstoß. Verschachtelte Blöcke sauber parsen statt Regex-Fragmente zählen.
+- [x] G-CJ01 ignoriert suspendierte und noch nie geplante CronJobs bei Failed-Lauf-Zählung; tatsächlich fehlgeschlagene geplante Jobs bleiben sichtbar.
+- [x] K3-Projektstatus liest tatsächliches CLI-Format robust; ready mit positiver node/edge-Anzahl erfüllt das Ziel. Kaputtes Format oder nicht erreichbarer Index bleibt unknown, keine erfundene Null.
+- [x] K3-Freshness prüft den kanonischen Hauptcheckout statt zufälligen Agent-Worktree; alte Receipts bleiben stale, aktuelle Hauptcheckout-Receipts sind gültig.
+- [x] G-LLM04 bei fehlendem systemctl-Userbus liefert unknown statt drei vermeintlicher Autostart-Verstöße; erreichbarer Bus mit disabled Unit bleibt Verstoß.
+- [x] Regressionen mit isolierten CLI/Dateifixtures in bestehende passende Pytest-Suites aufnehmen und expected: FAIL zunächst mit python3 -m pytest nachweisen. Grenzfälle positiv und negativ erhalten.
+- [x] Checker-Logik in echte Helper extract beziehungsweise aufteilen; checker bleibt netto zeilenneutral oder schrumpft, keine Gate-Ausnahmen.
 
 ## Task 5 — Gesamtlage prüfen und Verify
 

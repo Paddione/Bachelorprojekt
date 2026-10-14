@@ -179,11 +179,60 @@ def test_g_k3proj_indexed_project_with_nodes_edges_green(run_cmd, repo_root, tmp
     assert _has_line(values, r"^G-K3PROJ 1 eq 1$")
 
 
-def test_g_k3proj_probe_failure_not_green_fail_closed(run_cmd, repo_root, tmp_path):
+def test_g_k3proj_probe_failure_not_green_unknown_t016657(run_cmd, repo_root, tmp_path):
+    # T016657: ein nicht erreichbarer Index ist unbekannt (SKIP), keine erfundene 0 —
+    # und weiterhin nie gruen.
     bindir = tmp_path / "bin-broken"
     _write_exec(bindir / "codebase-memory-mcp", "#!/bin/sh\nexit 1\n")
     values = _run_row(run_cmd, repo_root, tmp_path, "G-K3PROJ", _path_env(bindir))
-    assert _has_line(values, r"^G-K3PROJ 0 eq 1$")
+    assert not _has_line(values, r"^G-K3PROJ")
+
+
+def _stub_cli_envelope(tmp_path: Path, inner: str) -> dict:
+    bindir = tmp_path / "bin-envelope"
+    body = (
+        "#!/bin/sh\n"
+        'if [ "$1" = "cli" ]; then\n'
+        f"  jq -nc --arg t '{inner}' '{{content:[{{type:\"text\",text:$t}}]}}'\n"
+        "  exit 0\n"
+        "fi\n"
+        "exit 1\n")
+    _write_exec(bindir / "codebase-memory-mcp", body)
+    return _path_env(bindir)
+
+
+@pytest.mark.parametrize(("inner", "expected"), [
+    ('{"project":"p","nodes":10,"edges":20,"status":"ready"}', r"^G-K3PROJ 1 eq 1$"),
+    ('{"project":"p","nodes":0,"edges":20,"status":"ready"}', r"^G-K3PROJ 0 eq 1$"),
+    ('{"project":"p","nodes":10,"edges":20,"status":"indexing"}', r"^G-K3PROJ 0 eq 1$"),
+])
+def test_g_k3proj_reads_the_real_cli_envelope_format_t016657(
+        run_cmd, repo_root, tmp_path, inner, expected):
+    env = _stub_cli_envelope(tmp_path, inner)
+    values = _run_row(run_cmd, repo_root, tmp_path, "G-K3PROJ", env)
+    assert _has_line(values, expected), values.read_text() if values.exists() else "keine Werte"
+
+
+def test_g_k3proj_broken_format_is_unknown_not_zero_t016657(run_cmd, repo_root, tmp_path):
+    env = _stub_cli_envelope(tmp_path, "kein json")
+    values = _run_row(run_cmd, repo_root, tmp_path, "G-K3PROJ", env)
+    assert not _has_line(values, r"^G-K3PROJ")
+
+
+def test_g_k3fresh_probes_the_canonical_main_checkout_not_a_worktree_t016657(
+        run_cmd, repo_root, tmp_path):
+    main, wt = tmp_path / "main", tmp_path / "wt"
+    _make_repo(run_cmd, main)
+    run_cmd(["git", "-C", str(main), "worktree", "add", "-q", str(wt)]).check()
+    main_real = _real_toplevel(run_cmd, main)
+    stub = tmp_path / "stub-repo-aware.sh"
+    _write_exec(stub, "#!/bin/sh\n"
+                f'case " $* " in *" --repo {main_real} "*) s=fresh ;; *) s=stale ;; esac\n'
+                'printf \'{"status": "%s"}\\n\' "$s"\n')
+    measure = repo_root / "scripts/lib/health-goals-measure.sh"
+    result = run_cmd(["bash", "-c", f". '{measure}'; k3_freshness_flag"], cwd=wt,
+                     env={"CBM_FRESHNESS_BIN": str(stub)})
+    assert result.stdout.strip() == "1", result.stdout + result.stderr
 
 
 def test_cbm_freshness_text_only_detect_changes_output_is_non_fatal_t002430(

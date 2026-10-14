@@ -66,8 +66,16 @@ for v in $(grep -oE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' <<<"$rendered" | sed 
 done
 # Benannte Ports an Service und EndpointSlice llm-gateway-host anhaengen. Kustomize kann
 # ueber eine Liste nicht iterieren, deshalb geschieht das nach dem Rendern.
-envsubst "$vars" <<<"$rendered" | sed -E 's/\$\$(\{?[A-Za-z_])/$\1/g' | yq e '
+rendered="$(envsubst "$vars" <<<"$rendered" | sed -E 's/\$\$(\{?[A-Za-z_])/$\1/g')"
+# envFrom is captured at pod creation; config changes must trigger a rollout.
+WEBSITE_CONFIG_SHA="$(yq ea -o=json -I=0 'select(.kind == "ConfigMap" and .metadata.name == "website-config") | .data' <<<"$rendered" | sha256sum | cut -d' ' -f1)"
+export WEBSITE_CONFIG_SHA
+yq e '
+  (select(.kind == "ConfigMap") | .data[]) |= to_string |
+  (select(.kind == "Deployment" or .kind == "Job" or .kind == "StatefulSet") | .spec.template.spec.containers[]?.env[]? | select(has("value")) | .value) |= to_string |
+  (select(.kind == "Deployment" or .kind == "Job" or .kind == "StatefulSet") | .spec.template.spec.initContainers[]?.env[]? | select(has("value")) | .value) |= to_string |
+  (select(.kind == "Deployment" and .metadata.name == "website") | .spec.template.metadata.annotations."checksum/config") = strenv(WEBSITE_CONFIG_SHA) |
   (select(.kind == "Service" and .metadata.name == "llm-gateway-host") | .spec.ports) +=
     (env(GPU_PORTS_JSON) | map({"name": .name, "port": .port, "protocol": "TCP"})) |
   (select(.kind == "EndpointSlice" and .metadata.name == "llm-gateway-host") | .ports) +=
-    (env(GPU_PORTS_JSON) | map({"name": .name, "port": .port, "protocol": "TCP"}))' -
+    (env(GPU_PORTS_JSON) | map({"name": .name, "port": .port, "protocol": "TCP"}))' - <<<"$rendered"

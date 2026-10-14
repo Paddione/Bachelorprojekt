@@ -125,14 +125,22 @@ tasks:
         kubectl --context "$CTX" apply -f k3d/sealed-secrets-controller.yaml
         kubectl --context "$CTX" -n sealed-secrets rollout status deploy/sealed-secrets-controller --timeout=180s
         kubectl --context "$CTX" create namespace workspace --dry-run=client -o yaml | kubectl --context "$CTX" apply -f -
+        # Adopt a legacy placeholder so the controller can populate its keys.
+        if kubectl --context "$CTX" -n workspace get secret website-secrets >/dev/null 2>&1; then
+          kubectl --context "$CTX" -n workspace annotate secret website-secrets sealedsecrets.bitnami.com/managed=true --overwrite
+        fi
         kubectl --context "$CTX" apply -f environments/sealed-secrets/dev.yaml
-        for s in "workspace:workspace-secrets" "website:website-secrets" "cert-manager:ipv64-api-key"; do
+        for s in "workspace:workspace-secrets" "workspace:website-secrets" "cert-manager:ipv64-api-key"; do
           kubectl --context "$CTX" -n "${s%%:*}" wait --for=create "secret/${s##*:}" --timeout=120s
         done
         kubectl --context "$CTX" -n cert-manager set env deployment/cert-manager-lego-webhook --from=secret/ipv64-api-key
         envsubst '$DEVMESH_DOMAIN' < dev-local/cluster/tls.yaml | kubectl --context "$CTX" apply -f -
         # 4. Stack applizieren und auf jede Deployment-Rollout warten
         kubectl --context "$CTX" wait --for=create crd/ingressroutes.traefik.io --timeout=180s
+        # Job pod templates are immutable; rerun the rendered seed Jobs.
+        for j in $(printf '%s\n' "$rendered" | yq ea -r '[select(.kind == "Job") | .metadata.name] | .[]'); do
+          kubectl --context "$CTX" -n workspace delete job "$j" --ignore-not-found=true
+        done
         printf '%s\n' "$rendered" | kubectl --context "$CTX" apply -f -
         for d in $(printf '%s\n' "$rendered" | yq ea -r '[select(.kind == "Deployment") | .metadata.name] | .[]'); do
           kubectl --context "$CTX" -n workspace rollout status "deployment/$d" --timeout=600s

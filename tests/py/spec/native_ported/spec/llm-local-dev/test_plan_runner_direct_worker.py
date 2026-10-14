@@ -176,6 +176,34 @@ def test_run_command_outside_the_allowlist_is_refused(dw):
     assert not marker.exists()
 
 
+@pytest.mark.parametrize("argv", [
+    ["python3", "-m", "pytest", "-p", "evil_plugin", "test_ok.py"],
+    ["python3", "-m", "pytest", "--rootdir=/", "test_ok.py"],
+    ["node", "--test", "--import", "./evil.mjs"],
+    ["git", "diff", "--output=../leak.txt"],
+    ["git", "diff", "--no-index", "/etc/hostname", "x"],
+])
+def test_allowed_prefix_with_a_forbidden_flag_is_refused(dw, argv):
+    dw.run([
+        _step(_call("run_command", argv=argv)),
+        _step(_call("finish", status="failure", summary="abgelehnt", changed_files=[])),
+    ])
+    assert dw.tool_results()[0].startswith("ERROR: command not allowed (forbidden flag")
+
+
+def test_commands_do_not_inherit_secrets_from_the_runner_env(dw, monkeypatch):
+    monkeypatch.setenv("PLAN_RUNNER_TEST_SECRET", "geheim-123")
+    (dw.wt / "test_env.py").write_text(
+        "import os\n\ndef test_env():\n    assert 'PLAN_RUNNER_TEST_SECRET' not in os.environ\n"
+        "    assert os.environ.get('PATH')\n")
+    dw.run([
+        _step(_call("run_command", argv=["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "test_env.py"])),
+        _step(_call("finish", status="success", summary="gruen", changed_files=[])),
+    ])
+    out = dw.tool_results()[0]
+    assert "1 passed" in out, out
+
+
 def test_allowed_command_runs_with_cwd_in_the_worktree_and_without_a_shell(dw):
     (dw.wt / "test_ok.py").write_text("def test_ok():\n    assert 1 + 1 == 2\n")
     dw.run([

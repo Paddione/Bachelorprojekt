@@ -30,6 +30,35 @@ export const COMMAND_ALLOWLIST = [
   ['git', 'status'],
 ];
 
+// Flags, die fremden Code/Config nachladen oder ausserhalb des Worktrees lesen/schreiben.
+// Exakte Treffer und `--flag=...`; die Kurzform `-p` von pytest laedt Plugins.
+const FORBIDDEN_FLAGS = {
+  python3: ['-p', '-c', '--config-file', '--rootdir', '--confcutdir', '--basetemp', '--import-mode'],
+  bash: ['-p', '-c', '--config-file', '--rootdir', '--confcutdir', '--basetemp', '--import-mode'],
+  node: ['--import', '--require', '-r', '--loader', '--experimental-loader', '--env-file', '--eval', '-e', '--print', '-p'],
+  npx: ['--config', '-c', '--root', '--dir', '--globalSetup', '--setupFiles', '--outputFile'],
+  git: ['--output', '--no-index', '--ext-diff', '--textconv', '-c', '--exec-path', '--git-dir', '--work-tree'],
+};
+
+// Befehle sehen nur eine minimale Umgebung, keine Tokens/Keys des Runner-Prozesses.
+const ENV_PASSTHROUGH = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'TERM', 'TMPDIR', 'PYTEST_JOBS', 'PYTEST_LOCAL'];
+
+function forbiddenFlag(argv) {
+  const flags = FORBIDDEN_FLAGS[argv[0]] || [];
+  const pytest = argv[0] === 'python3' || argv[0] === 'bash';
+  return argv.slice(1).find((a, i, rest) => {
+    // `-p no:<plugin>` schaltet nur ab und bleibt erlaubt; `-pfoo` ist die Kurzform von `-p foo`.
+    if (pytest && (a === '-p' || /^-p[^-]/.test(a))) return !(a === '-p' ? rest[i + 1] || '' : a.slice(2)).startsWith('no:');
+    return flags.some((f) => a === f || a.startsWith(`${f}=`) || (f.startsWith('--') && a.startsWith(f)));
+  });
+}
+
+function commandEnv(worktree) {
+  const env = { PWD: worktree, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' };
+  for (const k of ENV_PASSTHROUGH) if (process.env[k] !== undefined) env[k] = process.env[k];
+  return env;
+}
+
 const SYSTEM = `You implement one plan partial inside a git worktree. Every reply must be a tool call.
 Read what you need with read_file, change ONLY the files listed after FILES: with write_file or replace_in_file,
 verify with run_command when the partial asks for it, then call finish(status, summary, changed_files).
@@ -116,15 +145,16 @@ function runCommand(worktree, argv) {
     return Promise.resolve('ERROR: argv must be a non-empty array of strings');
   }
   const allowed = COMMAND_ALLOWLIST.some((p) => p.every((x, i) => argv[i] === x));
-  // `git diff --output=<datei>` schriebe Dateien ausserhalb der target_files.
-  if (!allowed || (argv[0] === 'git' && argv.some((a) => a.startsWith('--output')))) {
+  if (!allowed) {
     return Promise.resolve(`ERROR: command not allowed (allowed prefixes: ${COMMAND_ALLOWLIST.map((p) => p.join(' ')).join('; ')})`);
   }
+  const bad = forbiddenFlag(argv);
+  if (bad !== undefined) return Promise.resolve(`ERROR: command not allowed (forbidden flag: ${bad})`);
   return new Promise((done) => {
     let out = '';
     let child;
     try {
-      child = spawn(argv[0], argv.slice(1), { cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, PWD: worktree } });
+      child = spawn(argv[0], argv.slice(1), { cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], env: commandEnv(worktree) });
     } catch (e) { done(`ERROR: spawn failed: ${e.message}`); return; }
     const collect = (d) => { out = (out + d).slice(-8 * MAX_TOOL_CHARS); };
     child.stdout.on('data', collect);

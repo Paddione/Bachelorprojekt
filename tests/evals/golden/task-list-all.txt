@@ -238,7 +238,7 @@ task: Available tasks for this project:
 * monitoring:validate:                          Validate the monitoring base + prod overlays build cleanly.
 * networks:check:                               Verify the network address plan: no undeclared overlap between declared ranges (exit != 0 on violation; never writes)
 * networks:map:                                 Regenerate docs/agent-guide/maps/networks-map.md from the SSOT registry (docs/agent-guide/registry/networks.yaml)
-* omp:install:                                  omp global installieren (gepinnte Version, Node >= 20.6)
+* omp:install:                                  omp global installieren (gepinnte Version, braucht Bun >= 1.3.14)
 * omp:models:                                   Chat-Modelle des Endpunkt-Verbunds auflisten (ENDPOINTS=<url,...> JSON=1)
 * omp:run:                                      Gestagten Plan mit omp abarbeiten (TARGET=<T-ID|tasks.md> LEVEL=L0..L3 MODEL=<id> ENDPOINTS=<url,...> JSON=1)
 * omp:status:                                   omp-Version, Agent-Verzeichnis und Endpunkt-Verbund pruefen

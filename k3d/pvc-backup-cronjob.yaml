@@ -75,7 +75,13 @@ spec:
                   # longhorn (cloned); korczewski has no Longhorn install, so its
                    # vaultwarden PVC stays on local-path and is tarred
                    # live. [T000403]
-                   VW_SC=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}')
+                   # Vaultwarden ist auf mentolder/fleet abgebaut [T016559]: fehlt die PVC,
+                   # wird sie uebersprungen statt den ganzen Lauf (inkl. nextcloud-data)
+                   # unter `set -e` abzubrechen.
+                   VW_PRESENT=0
+                   kubectl -n "$NS" get pvc vaultwarden-data-pvc >/dev/null 2>&1 && VW_PRESENT=1
+                   VW_SC=""
+                   [ "$VW_PRESENT" = "1" ] && VW_SC=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}')
 
                    CLONES=""
                    [ "$VW_SC" = "longhorn" ] && CLONES="$CLONES vaultwarden-data-backup-clone"
@@ -456,7 +462,11 @@ spec:
                   }
 
                   stream_volume nextcloud-data nextcloud-data-pvc nextcloud-files.tar.gz.enc
-                  stream_volume vaultwarden-data "$VW_CLAIM" vaultwarden-data.tar.gz.enc
+                  if [ "$VW_PRESENT" = "1" ]; then
+                    stream_volume vaultwarden-data "$VW_CLAIM" vaultwarden-data.tar.gz.enc
+                  else
+                    echo "  - vaultwarden-data: PVC not present, skipped"
+                  fi
 
                   kubectl -n "$NS" exec "$WPOD" -c backup -- sh -c "echo $FAILED > /staging/.streams-done"
 

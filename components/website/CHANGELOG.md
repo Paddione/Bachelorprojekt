@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.424.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.423.2...website-v1.424.0) (2026-10-14)
+
+
+### Features
+
+* **scripts:** plan-runner auf die laufende Fleet umstellen (Direkt-vLLM-Worker, Muse-Fallback, Endpunkt-Preflight) [T016656] ([#6680](https://github.com/Paddione/Bachelorprojekt/issues/6680)) ([ba5a3b0](https://github.com/Paddione/Bachelorprojekt/commit/ba5a3b0aa43caa83b071c9a8ed69cade07b8beb8))
+
 ## [1.423.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.423.1...website-v1.423.2) (2026-10-14)
 
 

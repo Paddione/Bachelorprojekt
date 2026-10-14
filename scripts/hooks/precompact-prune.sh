@@ -2,7 +2,7 @@
 # scripts/hooks/precompact-prune.sh — Claude Code PreCompact hook: prune obsolete
 # tool_result blocks before /compact to reduce context-bloat.
 #
-# Opt-in: add to .claude/settings.json (gitignored, per-machine):
+# Opt-in: add to .claude/settings.local.json (gitignored, per-machine):
 #   { "hooks": { "PreCompact": [{ "command": "bash scripts/hooks/precompact-prune.sh" }] } }
 # Env: PRUNE_MIN_AGE_TURNS (default 3)
 #

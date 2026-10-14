@@ -94,3 +94,74 @@ spec:
     namespaceSelector:
       matchLabels:
         kubernetes.io/metadata.name: gekko-mentolder
+---
+# Quelle und Vertrauenskette werden im Cluster festgeschrieben, nicht nur im externen Repo.
+# OCIRepository im Namespace gekko-mentolder: nur das Gekko-Artefakt, cosign, genau diese Identitaet.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: gekko-mentolder-ocirepository-source
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["source.toolkit.fluxcd.io"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["ocirepositories"]
+  validations:
+    - expression: "object.spec.url == 'oci://ghcr.io/gekko32/mentolder-manifests'"
+      message: "OCIRepository muss oci://ghcr.io/gekko32/mentolder-manifests nutzen."
+    - expression: "has(object.spec.verify) && object.spec.verify.provider == 'cosign'"
+      message: "spec.verify.provider muss cosign sein."
+    - expression: >-
+        has(object.spec.verify) && has(object.spec.verify.matchOIDCIdentity) &&
+        object.spec.verify.matchOIDCIdentity.size() == 1 &&
+        object.spec.verify.matchOIDCIdentity[0].issuer == '^https://token\\.actions\\.githubusercontent\\.com$' &&
+        object.spec.verify.matchOIDCIdentity[0].subject == '^https://github\\.com/gekko32/mentolder-prod/\\.github/workflows/render\\.yml@refs/heads/main$'
+      message: "matchOIDCIdentity muss genau die Identitaet des Gekko-Render-Workflows sein."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: gekko-mentolder-ocirepository-source
+spec:
+  policyName: gekko-mentolder-ocirepository-source
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: gekko-mentolder
+---
+# Kustomizations im Namespace duerfen nur die OCIRepository mentolder-manifests aus demselben
+# Namespace als Quelle nutzen (kein GitRepository, keine fremden Namespaces).
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: gekko-mentolder-kustomization-source
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["kustomizations"]
+  validations:
+    - expression: >-
+        object.spec.sourceRef.kind == 'OCIRepository' &&
+        object.spec.sourceRef.name == 'mentolder-manifests' &&
+        (!has(object.spec.sourceRef.namespace) || object.spec.sourceRef.namespace == 'gekko-mentolder')
+      message: "sourceRef muss OCIRepository mentolder-manifests im Namespace gekko-mentolder sein."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: gekko-mentolder-kustomization-source
+spec:
+  policyName: gekko-mentolder-kustomization-source
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: gekko-mentolder

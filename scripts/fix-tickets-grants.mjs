@@ -1,15 +1,13 @@
 // scripts/fix-tickets-grants.mjs
 //
-// Idempotent fix for the latent grant gap that surfaced after PR2 of the
-// unified-ticketing migration: the `website` PG role lacks SELECT/INSERT/
-// UPDATE/DELETE on most tables in the `tickets`, `bachelorprojekt`, and
-// `superpowers` schemas because the migration scripts (and parts of
-// bachelorprojekt's init.sql) were run as the `postgres` superuser, which
-// makes those tables postgres-owned. The website pod connects as `website`
-// and could not touch them — and pg_dump (running as website during
-// scheduled backups) failed with `permission denied for table tickets`,
-// and the tracking-import cron failed on `superpowers.plans` with
-// `permission denied for schema superpowers`.
+// Idempotent fix for the latent grant gap on the `bachelorprojekt` and
+// `superpowers` schemas: the `website` PG role lacks SELECT/INSERT/
+// UPDATE/DELETE on tables created as the `postgres` superuser (migration
+// scripts, parts of bachelorprojekt's init.sql). The website pod connects
+// as `website` and could not touch them — and the tracking-import cron
+// failed on `superpowers.plans` with `permission denied for schema
+// superpowers`. (The `tickets` schema entfiel mit dem Ticket-Retirement
+// 2026-10-14.)
 //
 // Run this once after a fresh cluster bootstrap, or any time you suspect
 // the `website` role is missing access to a table in either schema. It
@@ -25,14 +23,10 @@
 //      superuser (the `website` role can't grant on tables it doesn't own).
 import pg from 'pg';
 
-const SCHEMAS = ['tickets', 'bachelorprojekt', 'superpowers'];
+const SCHEMAS = ['bachelorprojekt', 'superpowers'];
 
 // Per schema, which privilege set we want on existing + future objects.
 const SCHEMA_GRANTS = {
-  tickets: {
-    tablePrivs: 'SELECT, INSERT, UPDATE, DELETE, REFERENCES, TRIGGER',
-    seqPrivs:   'USAGE, SELECT, UPDATE',
-  },
   bachelorprojekt: {
     tablePrivs: 'SELECT, INSERT, UPDATE, DELETE',
     seqPrivs:   'USAGE, SELECT, UPDATE',
@@ -68,10 +62,10 @@ async function audit(client) {
 }
 
 async function reownSchemas(client) {
-  // The tickets and superpowers schemas should be owned by website so the
+  // The superpowers schema should be owned by website so the
   // tracking-import cron can CREATE TABLE / CREATE INDEX without escalating
   // to postgres on every run.
-  for (const schema of ['tickets', 'superpowers']) {
+  for (const schema of ['superpowers']) {
     const ownerRow = (await client.query(
       `SELECT pg_get_userbyid(nspowner) AS owner FROM pg_namespace WHERE nspname = $1`,
       [schema]

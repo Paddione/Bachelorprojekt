@@ -39,13 +39,6 @@
         "@playwright/mcp@latest"
       ]
     },
-    "ticket-mcp-node": {
-      "command": "node",
-      "args": [
-        "scripts/mcp-central/launch.mjs",
-        "ticket/server.mjs"
-      ]
-    },
     "warden": {
       "command": "node",
       "args": [

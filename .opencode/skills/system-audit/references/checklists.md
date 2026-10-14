@@ -42,19 +42,17 @@ Fachprozeduren für Rotation/Seeding: infra-ops `references/runbooks-operations.
 ## 3. Datenbank (PostgreSQL)
 
 Backup-Audit und Restore-Prozedur: infra-ops `references/runbooks-operations.md` §7. Hier nur Prüfungen (read-only,
-`mcp-postgres`; nie `SELECT *` von `tickets.ticket_plans`):
+`mcp-postgres`; die `tickets.*`-Tabellen entfielen mit dem Retirement 2026-10-14):
 
 1. **Backup-Frische** — letzter erfolgreicher Backup-Lauf je Brand: älter als das
    Backup-Intervall ⇒ Critical. Kein Backup-Nachweis auffindbar ⇒ Critical.
 2. **Restore-Verifikation** — letzter verifizierter Restore (infra-ops `references/runbooks-operations.md` §7): älter als
    der Richtwert ⇒ Warning (ein Backup ohne Restore-Test ist eine Hypothese).
 3. **Schema-Gesundheit** — `invalid` Indizes (`pg_index.indisvalid = false`) ⇒ Warning;
-   Tabellen ohne Primärschlüssel in `tickets` ⇒ Warning.
+   Tabellen ohne Primärschlüssel (ohne System-Schemas) ⇒ Warning.
 4. **Wachstum/Laufzeit** — DB-Größen-Trend, langlebige Idle-In-Transaction-Verbindungen
    (> 30 min) ⇒ Warning.
-5. **Ticket-DB-Hygiene** — verwaiste Plan-Zeilen ohne Ticketbezug ⇒ Info/Warning je
-   Ausprägung. Tickets mit dem Titel `Mishap Rollup — fortlaufende Sammlung` sind Altlasten
-   des abgebauten Automaten [T014104] und dürfen geschlossen werden.
+5. ~~**Ticket-DB-Hygiene**~~ — entfiel mit dem Ticket-Retirement 2026-10-14 (Schema dropped).
 
 ## 4. llm-pipeline (GPU, Proxy, Loadouts)
 

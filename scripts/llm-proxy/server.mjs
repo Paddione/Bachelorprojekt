@@ -206,7 +206,11 @@ async function proxyV1(req, res, subpath) {
   };
   // capture wird bewusst NICHT awaited: der Mitschnitt darf den Transport
   // weder verzoegern noch mit einem Fehler beeinflussen.
-  const capture = (rec) => requestLog.capture({ ...rec, durationMs: Date.now() - startedAt });
+  // Retiriert 2026-10-14 (REQUEST_LOG_ENABLED unten): ohne Ticket-Backend
+  // (tickets.llm_proxy_request_log dropped) kein Mitschnitt.
+  const capture = REQUEST_LOG_ENABLED
+    ? (rec) => requestLog.capture({ ...rec, durationMs: Date.now() - startedAt })
+    : () => {};
 
   // T002609: Non-Streaming-Antworten werden gepuffert und vom Turn-Marker
   // befreit, den gemma2-tools.jinja im Klartextpfad im content stehen laesst.
@@ -309,7 +313,10 @@ const requestHandler = (req, res) => {
 await discovery.probeNow();
 // T003277 — Dispatch-Mitschnitt. Der Timer schreibt gebuendelt; ohne ihn
 // bliebe der Puffer bis zum Herunterfahren liegen.
-requestLog.start();
+// Retiriert 2026-10-14: tickets.llm_proxy_request_log ist dropped (fleet +
+// devmesh) — Opt-in per LLM_PROXY_REQUEST_LOG=1, sonst kein Timer, kein Spawn.
+const REQUEST_LOG_ENABLED = process.env.LLM_PROXY_REQUEST_LOG === '1';
+if (REQUEST_LOG_ENABLED) requestLog.start();
 const listeners = startListeners(requestHandler, PORT, {
   bindOverride: process.env.LLM_PROXY_HOST_BIND || null,
   token: process.env.LLM_PROXY_ADMIN_TOKEN || null,

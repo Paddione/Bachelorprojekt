@@ -728,7 +728,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-K3FRESH** | K3-Codegraph-Index frisch | 0 ⚠ | 1 | `k3_freshness_flag` (scripts/lib/health-goals-measure.sh) — `cbm-freshness.py status`, Fail-closed: nicht messbar ⇒ 0 (T002430) |
 | **G-K3PROJ** | K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0) | 0 ⚠ | 1 | `k3_project_flag` — `codebase-memory-mcp cli index_status` (MCP-Envelope via `health-goals-probes.py k3proj`); Index nicht erreichbar/Format kaputt ⇒ n/a, nie grün (T002430, T016657) |
 | **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 1 ⚠ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
-| **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
+| ~~**G-DB06**~~ | ~~Orphan-Rows (3 FK-Paare)~~ — retiriert mit dem Ticket-Retirement (2026-10-14, Schema dropped) | — | — | — |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 89 ✓ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 95 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
@@ -783,7 +783,7 @@ bash scripts/health-goals-llm-fill.sh --apply      # schreibt Prio-C-Aktuell mit
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
 - **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03, G-FLUX01, G-OBS01, G-CAP01, G-A11Y01, G-FE05, G-SLO01
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB08, G-DB09, G-DB10, G-SEC06, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-AGENTIC09, G-DB11
 - **Nur lokal (nicht in CI):** G-WT01–G-WT06, G-LLM01–G-LLM05. Diese Familien messen lokalen Maschinenzustand — Worktrees, Hauptcheckout-Branch, agent-locks, `main`-Divergenz sowie den Betrieb des lokalen LLM-Stacks (Modellserver, Proxy, Loadouts, Units, Backend-Endpunkte). Ein CI-Runner hat davon nichts; die Ziele wären dort strukturell immer grün und damit wertlos. Messort sind `task health:wt` und `task health:llm` (Ziel-IDs aus der Taskfile-Variable `HG_LOCAL_ONLY_GOALS`) sowie ein **nicht failender** Warn-Block in `task freshness:check`, der in CI mit sichtbarer Notiz übersprungen wird. [T002443] [T002442]
 

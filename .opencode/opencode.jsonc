@@ -118,8 +118,8 @@
       "dev-flow-e2e": "deny",
       // T900056: writing-plans/executing-plans are called as SUB-steps by
       // dev-flow-plan/dev-flow-execute. Allowing them as an entry point would
-      // let a repo work request skip ticket creation, worktree setup,
-      // plan-lint and stage-plan -- deny direct entry, dev-flow-* still
+      // let a repo work request skip worktree setup,
+      // plan-lint and review gates -- deny direct entry, dev-flow-* still
       // reaches them internally as skill invocations.
       "writing-plans": "deny",
       "executing-plans": "deny",
@@ -254,16 +254,6 @@
       "command": ["npx","-y","@playwright/mcp@latest"],
 
       "enabled": false
-
-    },
-
-    "ticket-mcp-node": {
-
-      "type": "local",
-
-      "command": ["node","scripts/mcp-central/launch.mjs","ticket/server.mjs"],
-
-      "enabled": true
 
     },
 

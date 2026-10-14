@@ -32,14 +32,9 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-chore`](dev-flow-chore/SKILL.md) | Maintenance with no behavior change (docs, dep bumps, config, CI) — executes and merges **inline**, no plan/execute handoff. |
 | [`dev-flow-execute`](dev-flow-execute/SKILL.md) | After [`dev-flow-plan`](dev-flow-plan/SKILL.md) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
 | [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
-| [`sdlc-autopilot`](sdlc-autopilot/SKILL.md) | Autonomous SDLC pipeline loop (opencode-only) — runs ticket-triage → dev-flow-plan → dev-flow-execute across backlog tickets. |
+| ~~[`sdlc-autopilot`](sdlc-autopilot/SKILL.md)~~ | Retiriert 2026-10-14 mit dem Ticket-System (Queue-Quelle `tickets.*` entfiel). |
 
-> **SSOT (T900070):** `.opencode/skills/` ist die Single Source of Truth — alle Skills unten liegen hier kanonisch. `.claude/skills/*` und `.agents/skills/*` sind echte Spiegel mit pro-Harness-Projektion (Registry: `docs/agent-guide/registry/skills.yaml`, Engine: `scripts/agent-skills/project.mjs --check`). Nur `opencode-git-workflow` und `sdlc-autopilot` waren schon immer opencode-eigen.
-
-> **Nur opencode (T900064):** `.opencode/skills/sdlc-autopilot/` faehrt die Pipeline
-> ticket-triage -> dev-flow-plan -> dev-flow-execute selbststaendig ab, bis das Queue-Material erschoepft
-> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 52 oben
-> (die misst `git ls-files -- .opencode/skills`), unterliegt aber denselben Konventionen.
+> **SSOT (T900070):** `.opencode/skills/` ist die Single Source of Truth — alle Skills unten liegen hier kanonisch. `.claude/skills/*` und `.agents/skills/*` sind echte Spiegel mit pro-Harness-Projektion (Registry: `docs/agent-guide/registry/skills.yaml`, Engine: `scripts/agent-skills/project.mjs --check`). Nur `opencode-git-workflow` war schon immer opencode-eigen (`sdlc-autopilot` retiriert 2026-10-14).
 
 ---
 
@@ -50,7 +45,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 | Command | When to use |
 |---|---|
-| `/feature-intake` | **Vor [`dev-flow-plan`](dev-flow-plan/SKILL.md)** — generiert ein frisches HTML-Formular, dedupliziert Feature-Kandidaten gegen den aktuellen Ticket-Backlog und liefert es via Session-Hub. Für Patrick oder gekko zum Ausfüllen auf einen Klick. Kein Teil der dev-flow-Pipeline; speist [`dev-flow-plan`](dev-flow-plan/SKILL.md). Assets unter `assets/feature-intake/`. |
+| `/feature-intake` | **Vor [`dev-flow-plan`](dev-flow-plan/SKILL.md)** — generiert ein frisches HTML-Formular, dedupliziert Feature-Kandidaten gegen offene GitHub-Issues und liefert es via Session-Hub. Für Patrick oder gekko zum Ausfüllen auf einen Klick. Kein Teil der dev-flow-Pipeline; speist [`dev-flow-plan`](dev-flow-plan/SKILL.md). Assets unter `assets/feature-intake/`. |
 
 ---
 
@@ -59,7 +54,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 | Skill | When to use |
 |---|---|
-| [`git-workflow`](git-workflow/SKILL.md) | **Immer beim Committen, Pushen oder PR-Erstellen** — vollständiger Lifecycle: pull-first, Conventional Commits + Ticket-ID, Freshness Guard, Commit-Verifikation (git-crypt), PR-Scope-Preflight, CI-Fix-Loop, Auto-Merge `--squash --delete-branch`, Worktree-Cleanup. |
+| [`git-workflow`](git-workflow/SKILL.md) | **Immer beim Committen, Pushen oder PR-Erstellen** — vollständiger Lifecycle: pull-first, Conventional Commits + Issue-Referenz, Freshness Guard, Commit-Verifikation (git-crypt), PR-Scope-Preflight, CI-Fix-Loop, Auto-Merge `--squash --delete-branch`, Worktree-Cleanup. |
 | [`opencode-git-workflow`](opencode-git-workflow/SKILL.md) | Pointer to the git-workflow SSOT for OpenCode sessions. |
 
 ---
@@ -150,14 +145,11 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 
 | Skill | When to use |
 |---|---|
-| [`operations-management`](operations-management/SKILL.md) | **Routing hub** — dispatches to [`incident-response`](incident-response/SKILL.md) (time-critical incidents) or [`ticket-ops`](ticket-ops/SKILL.md) (daily ops). Entry point for all operational work. |
+| [`operations-management`](operations-management/SKILL.md) | **Routing hub** — dispatches to [`incident-response`](incident-response/SKILL.md) (time-critical incidents), [`dev-flow-plan`](dev-flow-plan/SKILL.md) (plan/content work) or [`repo-hygiene`](repo-hygiene/SKILL.md) (repo state). Entry point for all operational work. |
 | [`incident-response`](incident-response/SKILL.md) | Production incident triage & recovery — scope, diagnose, fix/rollback, post-mortem. Use when a core service is down or degraded. |
-| [`ticket-ops`](ticket-ops/SKILL.md) | **Kompatibilitätsrouter** für Ticket-Inhalte — leitet zu Triage oder Wave-Dispatch weiter. |
-| [`ticket-triage`](ticket-triage/SKILL.md) | **Ticket-Vorbereitung** — Vollständigkeit, DoR, Rückfragen und Batch-Kandidaten; dispatcht nie Arbeit. |
-| [`ticket-dispatch`](ticket-dispatch/SKILL.md) | **Wellen & Freigabe** — Abhängigkeiten, Konflikte und nach expliziter Freigabe Wave 1 an dev-flow weitergeben. |
-| [`repo-hygiene`](repo-hygiene/SKILL.md) | **Repo-Zustand** — veraltete Branches und Worktrees, offene PRs mergen und schließen, GitHub-Issue-Intake. Nicht für Ticket-Inhalte — das ist [`ticket-ops`](ticket-ops/SKILL.md). |
-| [`system-audit`](system-audit/SKILL.md) | **Audit-Hub** — ein Einstiegspunkt für Audits aller Systeme (GitOps-Repo, Live-Cluster, Brand-Seiten, Repo-Zustand, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki). Delegiert an die Spezial-Skills, schließt deren Audit-Lücken per Checkliste; jeder Critical/Warning-Befund endet als Ticket mit angehängtem plan-Proposal im Backlog. Kein Merge-Gate. |
-| [`mishap-tracker`](mishap-tracker/SKILL.md) | **End-of-skill routine** — batches accumulated `MISHAP_LOG` entries from runbook skills into a single aggregate `tickets.tickets` row. Reuses an open "Mishap collection" ticket if one exists. |
+| [`repo-hygiene`](repo-hygiene/SKILL.md) | **Repo-Zustand** — veraltete Branches und Worktrees, offene PRs mergen und schließen, GitHub-Issue-Intake. |
+| [`system-audit`](system-audit/SKILL.md) | **Audit-Hub** — ein Einstiegspunkt für Audits aller Systeme (GitOps-Repo, Live-Cluster, Brand-Seiten, Repo-Zustand, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki). Delegiert an die Spezial-Skills, schließt deren Audit-Lücken per Checkliste; jeder Critical/Warning-Befund endet als GitHub-Issue mit angehängtem plan-Proposal. Kein Merge-Gate. |
+| [`mishap-tracker`](mishap-tracker/SKILL.md) | **End-of-skill routine** — logs accumulated `MISHAP_LOG` entries locally (stderr + `.mishaps.log`). |
 | [`freetoken-setup`](freetoken-setup/SKILL.md) | Retired FreeToken setup retained for historical reference (`archived: true`, invoke explicitly only). |
 | [`update-dependencies`](update-dependencies/SKILL.md) | Archivierte Dependency-Update-Routine (historisch — Pfade wie `website/`/pnpm sind überholt); läuft als biweekly Cloud-Routine. `archived: true`, Description sagt explizit "invoke explicitly only" (kein Auto-Trigger). |
 
@@ -233,7 +225,6 @@ graph TD
         MT[mishap-tracker]
         OM[operations-management]
         IR[incident-response]
-        TO[ticket-ops]
         RH[repo-hygiene]
     end
 
@@ -242,10 +233,8 @@ graph TD
     DEE --> IO
 
     OM --> IR
-    OM --> TO
+    OM --> RH
     IR --> MT
-    TO --> MT
-    TO -.->|Repo-Zustand| RH
     IO -.-> OM
 ```
 
@@ -266,12 +255,9 @@ graph TD
 | LLM / GPU | `infra-ops` §5 | GPU-Pipeline operativ |
 | Abhängigkeiten updaten | Biweekly Cloud-Routine (auto) | Aktualisierte Packages per PR |
 
-## Cross-Cutting: Grilling → Ticket
+## Cross-Cutting: Grilling (ohne Ticket-Backend)
 
-Jede Grilling-Session (Q/A-Interview: Coaching, Deep-Grilling, Klärung, Incident-Befragung)
-lässt sich mit **einem** geteilten Helper an ein Ticket senden:
-`scripts/ticket.sh grill --id <ext-id> (--json | --answers-file | --answer qid=text ...)`.
-Schreibt akkumulierend in `tickets.tickets.grilling_answers` (forward-kompatibel mit dem
-T000737-Panel) + optionalem Timeline-Kommentar. Vollständige How-to:
-`.opencode/skills/references/grilling-to-ticket.md`. Skill-Autoren: NICHT pro SKILL.md
-neu erfinden — die Referenz verlinken.
+Grilling-Sessions (Q/A-Interview: Coaching, Deep-Grilling, Klärung, Incident-Befragung)
+laufen im Rahmen von `dev-flow-plan` (Brainstorming) — die Antworten landen direkt im
+Plan (`tasks.md`), nicht mehr in `tickets.tickets.grilling_answers` (retiriert 2026-10-14
+mit `scripts/ticket.sh grill` und der Referenz `grilling-to-ticket.md`).

@@ -4,8 +4,8 @@ import re
 import pytest
 
 HGC = "scripts/health-goals-check.sh"
-DB_IDS = ["G-DB01", "G-DB03", "G-DB04", "G-DB06", "G-DB08"]
-ONLY_ARG = "--only=G-DB01,G-DB03,G-DB04,G-DB06,G-DB08"
+DB_IDS = ["G-DB01", "G-DB03", "G-DB04", "G-DB08"]
+ONLY_ARG = "--only=G-DB01,G-DB03,G-DB04,G-DB08"
 FK_BATCH2_MIGRATION = "components/website/src/db/migrations/20260719_add_missing_fk_indexes_batch2.sql"
 
 
@@ -22,14 +22,14 @@ def test_health_goals_check_sh_is_syntactically_valid_bash_n(run_cmd, repo_root)
     assert result.returncode == 0, result.output
 
 
-def test_health_goals_check_fast_only_renders_all_5_db_goals_without_crash(run_cmd, repo_root):
+def test_health_goals_check_fast_only_renders_all_4_db_goals_without_crash(run_cmd, repo_root):
     result = run_cmd(["bash", HGC, "--fast", ONLY_ARG], timeout=300)
     assert result.returncode in (0, 1), result.output
     for goal_id in DB_IDS:
         assert goal_id in result.output
 
 
-def test_no_of_the_5_db_goal_ids_is_missing_from_the_only_output(run_cmd, repo_root):
+def test_no_of_the_4_db_goal_ids_is_missing_from_the_only_output(run_cmd, repo_root):
     result = run_cmd(["bash", HGC, "--fast", ONLY_ARG], timeout=300)
     missing = [goal_id for goal_id in DB_IDS if goal_id not in result.output]
     assert len(missing) == 0, missing

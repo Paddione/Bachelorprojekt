@@ -99,7 +99,7 @@ residual_budget() {
 }
 
 # --- rule constants: single source for the check blocks AND --rules prose ---
-F1_KEYS="title ticket_id domains status"
+F1_KEYS="title domains status"
 STRUCT2_RUNNERS_RE='\b(bats|vitest|pytest|jest|mocha|go test|playwright test|node --test)\b'
 STRUCT3_CMDS="test:changed freshness:regenerate freshness:check"
 P1_RE='\b(TBD|TODO|FIXME)\b|\?\?\?|<ausfüllen>|similar to Task [0-9]'

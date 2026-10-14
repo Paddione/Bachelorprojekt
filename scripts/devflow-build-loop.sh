@@ -29,14 +29,12 @@ while [[ $ITER -lt $MAX_LOOP ]]; do
 
   case "$DECIDE_ACTION" in
     continue)
-      ./scripts/ticket.sh phase "$TICKET_ID" implement loop --driver devflow \
-        --detail "iter $((ITER+1))/$MAX_LOOP class=$CLASS" 2>/dev/null || true
+      # (Ticket-Phasen-Telemetrie retiriert 2026-10-14 mit scripts/ticket.sh.)
       ITER=$((ITER + 1))
       PREV_HASH="$DECIDE_HASH"
       ;;
     abort:no-progress|abort:max-iterations|abort:escalate-gate)
-      ./scripts/ticket.sh add-comment --id "$TICKET_ID" \
-        --body "Build-Loop aborted: $DECIDE_ACTION (class=$CLASS)" 2>/dev/null || true
+      echo "Build-Loop aborted: $DECIDE_ACTION (class=$CLASS)" >&2
       rm -f "$RESULT_FILE"
       exit 1
       ;;

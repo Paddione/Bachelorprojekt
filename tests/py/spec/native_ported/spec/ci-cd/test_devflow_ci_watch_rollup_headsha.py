@@ -1,4 +1,9 @@
-"""Native migration of tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats."""
+"""Native migration of tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats.
+
+Ticket-Argv entfiel mit dem Retirement (2026-10-14): Der Watch nimmt nur noch
+die PR-URL; der Phasen-Gate prueft die lokale phase-events.log (Slug aus dem
+PR-Branch). Fixture legt einen vollstaendigen Log an.
+"""
 
 import os
 import stat
@@ -6,13 +11,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
-TICKET_SH = """#!/usr/bin/env bash
-case "$1" in
-  assert-phase-chain) exit 0 ;;
-  *) exit 0 ;;
-esac
-"""
 
 GH_TEMPLATE = """#!/usr/bin/env bash
 args="$*"
@@ -36,7 +34,7 @@ case "$args" in
   *"--json statusCheckRollup"*)
     if [[ "$args" == *'"FAILURE"'* || "$args" == *'"TIMED_OUT"'* ]]; then
       cat "@MARKER@/mock-rollup-failures" 2>/dev/null || true
-    elif [[ "$args" == *'"COMPLETED"'* || "$args" == *'COMPLETED'* ]]; then
+    elif [[ "$args" == *'COMPLETED'* || "$args" == *'COMPLETED'* ]]; then
       cat "@MARKER@/mock-rollup-pending" 2>/dev/null || echo "0"
     else
       echo ""
@@ -76,9 +74,13 @@ def ws(repo_root, tmp_path):
     subprocess.run(["git", "-C", str(work), "-c", "user.email=t@example.invalid", "-c", "user.name=t",
                     "commit", "-q", "--allow-empty", "-m", "init"], check=True)
 
-    ticket = work / "scripts/ticket.sh"
-    ticket.write_text(TICKET_SH)
-    ticket.chmod(ticket.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    plan_dir = work / ".agents" / "plans" / "stub-branch"
+    plan_dir.mkdir(parents=True)
+    (plan_dir / "phase-events.log").write_text(
+        "plan done 2026-10-14T00:00:00Z plan-gestagt\n"
+        "implement entered 2026-10-14T00:01:00Z subagent-gestartet\n"
+        "verify done 2026-10-14T00:02:00Z tests-gruen\n"
+    )
 
     gh = work / "bin/gh"
     gh.write_text(GH_TEMPLATE.replace("@MARKER@", str(marker)).replace("@WORK@", str(work)))
@@ -90,7 +92,6 @@ def ws(repo_root, tmp_path):
         "script": repo_root / "scripts/devflow-ci-watch.sh",
         "env": {
             "MARKER_DIR": str(marker),
-            "TICKET_SH": str(ticket),
             "PATH": f"{work / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}",
         },
     }
@@ -112,7 +113,7 @@ def _run(run_cmd, w, *args, extra=None):
 def test_t012239_gruener_pr_head_keine_failure_runs_meldet_weiterhin_alle_gruen_mit_exit_0(run_cmd, ws):
     (ws["marker"] / "pr-state").write_text("OPEN\n")
     (ws["marker"] / "mock-check-runs-failures").write_text("")
-    res = _run(run_cmd, ws, "T999999", "https://github.com/x/y/pull/1")
+    res = _run(run_cmd, ws, "https://github.com/x/y/pull/1")
     assert res.returncode == 0, f"unerwarteter Exit {res.returncode}: {res.output}"
     assert "alle grün" in res.output, \
         "Positiv-Anker verletzt: gruener HEAD meldet nicht 'alle grün' - Testaufbau kaputt, nicht der Fix"
@@ -128,10 +129,10 @@ def test_t012239_failure_run_auf_dem_pr_head_check_runs_fuehrt_zu_exit_ungleich_
     sha = _head(ws)
     (m / "mock-head-ref-oid").write_text(sha + "\n")
     (m / "mock-run-list").write_text(
-        f'[{{"databaseId":42,"headSha":"{sha}","status":"completed","conclusion":"failure"}}]')
+        '[{"databaseId":42,"headSha":"' + sha + '","status":"completed","conclusion":"failure"}]')
     (m / "mock-jobs-failures").write_text("1\n")
 
-    res = _run(run_cmd, ws, "T999999", "https://github.com/x/y/pull/1", extra={"MAX_CI_ATTEMPTS": "1"})
+    res = _run(run_cmd, ws, "https://github.com/x/y/pull/1", extra={"MAX_CI_ATTEMPTS": "1"})
     assert res.returncode != 0, \
         f"Bug reproduziert: Script meldete 'alle grün' (exit 0) obwohl ein failure-Run auf dem PR-HEAD vorliegt: {res.output}"
     assert "Unit + Quality Gates" in res.output, \
@@ -148,10 +149,10 @@ def test_t012242_leeres_failed_checks_array_darf_bei_stale_failure_run_nicht_als
     sha = _head(ws)
     (m / "mock-head-ref-oid").write_text(sha + "\n")
     (m / "mock-run-list").write_text(
-        f'[{{"databaseId":43,"headSha":"{sha}","status":"completed","conclusion":"failure"}}]')
+        '[{"databaseId":43,"headSha":"' + sha + '","status":"completed","conclusion":"failure"}]')
     (m / "mock-jobs-failures").write_text("1\n")
 
-    res = _run(run_cmd, ws, "T999999", "https://github.com/x/y/pull/1", extra={"MAX_CI_ATTEMPTS": "1"})
+    res = _run(run_cmd, ws, "https://github.com/x/y/pull/1", extra={"MAX_CI_ATTEMPTS": "1"})
     assert res.returncode == 0, \
         f"Bug reproduziert: leeres [] eskalierte als rot (exit {res.returncode}): {res.output}"
     assert "alle grün" in res.output, f"Gruene Sachlage wurde nicht als grün gemeldet:\n{res.output}"

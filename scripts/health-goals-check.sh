@@ -257,10 +257,7 @@ row gate G-KNOW06 "$($KG adr-edits)" le 7 "ADR-Inhaltsaenderungen nach dem Anleg
 want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/dev/null 2>&1; echo $?)" eq 0 "Agent-Registry-Schema valide"
 
 # ── DB-Gesundheit — GATES ──
-want G-DB06 && row gate G-DB06 "$(db_scalar "SELECT
-  (SELECT count(*) FROM tickets.ticket_plans p    WHERE p.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=p.ticket_id))
-+ (SELECT count(*) FROM tickets.ticket_comments c WHERE c.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=c.ticket_id))
-+ (SELECT count(*) FROM tickets.ticket_links l    WHERE l.from_id  IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=l.from_id));")" eq 0 "Orphan-Rows (ticket_plans/comments/links → tickets)"
+# G-DB06 (Orphan-Rows tickets.*) retiriert mit dem Ticket-Retirement (2026-10-14) — Schema dropped.
 want G-DB04 && row gate G-DB04 "$(db_backup_age_h)" le 26 "Backup-Alter (h) seit letztem erfolgr. db-backup-Job — T001738"
 
 # ── Cluster-Runtime — GATES (G-OPS02/03; G-OPS01 ist Prio B → TARGET unten) ──

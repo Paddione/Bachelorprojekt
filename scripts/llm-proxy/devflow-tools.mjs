@@ -72,7 +72,7 @@ function mapExit(verb, code, stdout, stderr) {
 /**
  * Spawnt `python3 -m devflow <verb>` (Repo-Root, PYTHONPATH=scripts) und
  * uebergibt {worktree, scope, ...extra} als JSON auf stdin. `extra` traegt
- * verb-spezifische Felder (z. B. sandbox action/ticket) — ohne sie koennte
+ * verb-spezifische Felder (z. B. sandbox action/branch) — ohne sie koennte
  * die sandbox-Route nur worktree/scope uebergeben.
  *
  * @returns {Promise<{status:number, body:object}>}

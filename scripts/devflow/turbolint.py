@@ -267,10 +267,11 @@ def main(argv=None):
     stdin_data = _stdin_json()
     plan = ns.plan or stdin_data.get("plan")
     if not plan:
-        # T901749: kein Default-Plan mehr (.agents/plans/ ist leer, SSOT ist
-        # die DB) — --plan ist Pflicht, fail-closed mit actionable Message.
+        # T901749: kein Default-Plan mehr — --plan ist Pflicht, fail-closed
+        # mit actionable Message. (Ticket-Referenz retiriert 2026-10-14:
+        # gestagte Plaene liegen in .agents/plans/<slug>/.)
         print("--plan is required (default plan removed; staged plans live "
-              "in tickets.ticket_plans — use ticket.sh plan-get)", file=sys.stderr)
+              "in .agents/plans/<slug>/)", file=sys.stderr)
         return 2
     fmt = ns.format or stdin_data.get("format") or "condensed"
     worktree = ns.worktree or stdin_data.get("worktree") or "."

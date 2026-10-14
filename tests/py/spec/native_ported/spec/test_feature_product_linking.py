@@ -9,24 +9,6 @@ import pytest
 FIX_BRAND = "mentolder"
 FIX_FEATURE_ID = "T900901"
 
-MOCK_KUBECTL_TEMPLATE = """#!/usr/bin/env bash
-if [[ "$*" == *"config view"* ]]; then
-  if [[ "$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
-  exit 0
-fi
-if [[ "$*" == *"get pod"* ]]; then echo "pod/shared-db-0"; exit 0; fi
-if [[ "$*" == *"exec"* ]]; then
-  input="$(cat)"
-  echo "$input" >> "$CAP"
-  if [[ "$input" == *"SELECT type, brand, id FROM tickets.tickets"* ]]; then
-    echo "__ROW__"
-  else
-    echo "T000999|fake-uuid-1234"
-  fi
-  exit 0
-fi
-exit 0
-"""
 
 
 def _out(r):
@@ -141,45 +123,5 @@ def test_backfill_already_linked_features_are_never_overwritten(db):
     assert other_id in _out(r)
     db.psql(f"DELETE FROM tickets.tickets WHERE id = '{other_id}'", check=False)
 
-
-def _create_with_mock(run_cmd, repo, tmp_path, row, extra_args):
-    """Mock-kubectl wie im BATS-Heredoc; liefert (Ergebnis, captured-Datei)."""
-    mockdir = tmp_path / "mock"
-    mockdir.mkdir()
-    cap = mockdir / "captured.sql"
-    kubectl = mockdir / "kubectl"
-    kubectl.write_text(MOCK_KUBECTL_TEMPLATE.replace("__ROW__", row), encoding="utf-8")
-    kubectl.chmod(0o755)
-    env = {
-        "PATH": f"{mockdir}:{os.environ.get('PATH', '')}",
-        "CAP": str(cap),
-        # BATS-Laufzeit setzt BATS_TEST_NAME; _ticket-core.sh schaltet darueber das Sentinel-Regime ein.
-        "BATS_TEST_NAME": "feature-product-linking-native-port",
-    }
-    r = run_cmd(
-        ["bash", str(repo / "scripts/ticket.sh"), "create", "--type", "feature", "--title", "T",
-         "--description", "D", *extra_args],
-        env=env,
-    )
-    return r, cap
-
-
-def test_create_product_id_resolves_a_project_ticket_and_sets_parent_id_in_the_insert(run_cmd, repo_root, tmp_path):
-    r, cap = _create_with_mock(run_cmd, repo_root, tmp_path, "project|mentolder|prod-uuid-1",
-                               ["--product-id", "T000100"])
-    assert r.returncode == 0, _out(r)
-    assert "parent_id" in cap.read_text(encoding="utf-8")
-
-
-def test_create_product_id_fails_when_the_referenced_ticket_is_not_type_project(run_cmd, repo_root, tmp_path):
-    r, _cap = _create_with_mock(run_cmd, repo_root, tmp_path, "task|mentolder|prod-uuid-1",
-                                ["--product-id", "T000100"])
-    assert r.returncode != 0
-    assert "must reference a project ticket" in _out(r)
-
-
-def test_create_product_id_fails_on_brand_mismatch(run_cmd, repo_root, tmp_path):
-    r, _cap = _create_with_mock(run_cmd, repo_root, tmp_path, "project|korczewski|prod-uuid-1",
-                                ["--brand", "mentolder", "--product-id", "T000100"])
-    assert r.returncode != 0
-    assert "brand" in _out(r)
+# test_create_product_id_* retiriert 2026-10-14: sie riefen scripts/ticket.sh
+# create auf (mit dem Ticket-System entfernt). Die Backfill-Tests oben bleiben.

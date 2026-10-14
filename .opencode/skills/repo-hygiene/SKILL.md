@@ -1,6 +1,6 @@
 ---
 name: repo-hygiene
-description: 'Use for the state of the repository itself — stale branches and worktrees, open PRs to merge and close, GitHub issue intake, proactive hygiene recommendations, and scheduling guidance. Triggers on "clean branches", "merge PRs", "prune worktrees", "stale worktrees", "close resolved tickets", git worktree remove, gh pr merge, "repo health check", "hygiene recommendations", "what should I clean up". Not for the content of tickets — triage, missing information and parallel-work planning belong to ticket-ops.'
+description: 'Use for the state of the repository itself — stale branches and worktrees, open PRs to merge and close, GitHub issue intake, proactive hygiene recommendations, and scheduling guidance. Triggers on "clean branches", "merge PRs", "prune worktrees", "stale worktrees", git worktree remove, gh pr merge, "repo health check", "hygiene recommendations", "what should I clean up". Not for plan content — triage and missing information belong to dev-flow-plan.'
 ---
 
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
@@ -10,7 +10,7 @@ description: 'Use for the state of the repository itself — stale branches and 
 
 Day-to-day repository hygiene, PR merging and issue intake.
 
-Der interne Postgres-Tracker `tickets.tickets` ist die SSOT für Issues. DB-Zugriff (MCP-first,
+SSOT für Issues sind die GitHub-Issues des Repos (Ticket-DB retiriert 2026-10-14). DB-Zugriff für Nicht-Ticket-Tabellen (MCP-first,
 `psql()`-Helper): [`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md) §mcp-postgres.
 
 ---
@@ -24,14 +24,14 @@ die acht Abschnitte der Reihe nach ausführen:
 0. **Arbeitsbaum & Stashes** — §0
 1. **Stale Git Worktrees** — §1
 2. **Stale Branches** (inkl. squash-`[gone]`-Prune) — §2
-3. **PR-Triage → verknüpftes Ticket schließen** — §3
-4. **GitHub-Issue-Intake** (Dedupe-Guard: check for an existing same-title/duplicate ticket before creating one) — §4
+3. **PR-Triage** (verknüpfte GitHub-Issues referenzieren, keine Ticket-Close-Mechanik mehr) — §3
+4. **GitHub-Issue-Intake** (Dedupe-Guard: check for an existing same-title/duplicate issue before creating one) — §4
 5. *(entfallen, T900399)* — §5
 6. **Proactive Hygiene Recommendations** — §6 (nach jedem Lauf: Top-3-Empfehlungen, Aging-Report)
 7. **Scheduling & Trigger Guidance** — §7 (wann und wie oft Hygiene laufen sollte)
 
-Für Completeness-Triage, Klärungsrunden und Parallelisierungs-Masterplan (Phasen 1–4) →
-`ticket-triage`.
+Für Completeness-Triage und Klärungsrunden →
+`dev-flow-plan`.
 
 ---
 
@@ -62,8 +62,8 @@ After completing all steps in this skill, invoke `mishap-tracker` with your accu
 | Skill | Relationship |
 |-------|--------------|
 | `operations-management` | Routing hub that dispatches repository housekeeping |
-| `ticket-triage` | Handles completeness triage and human clarification (dispatch mechanics: `references/ticket-ops-procedures.md`) |
-| `mishap-tracker` | Converts execution mishaps to tickets |
+| `dev-flow-plan` | Handles completeness triage and human clarification |
+| `mishap-tracker` | Local mishap log (stderr + `.mishaps.log`) |
 
 
 ## Framework mapping

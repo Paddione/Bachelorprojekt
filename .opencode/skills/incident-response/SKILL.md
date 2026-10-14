@@ -9,20 +9,20 @@ agent: bp-run
 
 # incident-response
 
-Production incident triage and recovery. Use when a core platform service is down or degraded. For ongoing ticket triage, see `ticket-triage`; for repo hygiene or PR management, see `repo-hygiene`.
+Production incident triage and recovery. Use when a core platform service is down or degraded. For plan triage, see `dev-flow-plan`; for repo hygiene or PR management, see `repo-hygiene`.
 
 ---
 
-## Ticket model (shared preamble)
+## Issue model (shared preamble)
 
-Internal tickets live in `tickets.tickets` on the `mentolder` (`website` DB). Enum reference:
+Incidents are tracked as GitHub issues (Ticket-DB retiriert 2026-10-14):
+Titel `Incident: <service> — <symptom>`, Labels `incident` + Schwere (`critical|major|minor`),
+Body mit Service, Cluster, Onset, Blast-Radius, Root-Cause und Fix. Der Close-Kommentar
+hält Dauer und PR-Referenz fest.
 
-`priority ∈ {hoch,mittel,niedrig}` · `severity ∈ {critical,major,minor,trivial}` · `status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}` · `resolution ∈ {fixed,shipped,obsolete}`
-
-**DB-Zugriff:** Reads MCP-first via `mcp-postgres_query`; der `psql()`-Fallback-Helper
-(zugleich Pflichtweg für Writes wie das `INSERT` in Schritt 2) ist SSOT im
-[`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md) §mcp-postgres —
-die `psql -c`-Aufrufe unten setzen diesen Helper voraus.
+**DB-Zugriff:** Reads MCP-first via `mcp-postgres_query` (Nicht-Ticket-Tabellen);
+der `psql()`-Fallback-Helper ist SSOT im
+[`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md) §mcp-postgres.
 
 ---
 
@@ -34,14 +34,15 @@ Determine:
 3. **Onset Time:** Since when has it been failing? Check git log or deployment status.
 4. **Blast Radius:** All users or a subset of features?
 
-## Step 2 — Open an Incident Ticket
+## Step 2 — Open an Incident Issue
 
 ```bash
-# psql()-Helper aus dem MCP-Tool-Guide §mcp-postgres (siehe Preamble)
-psql -At -c \
-  "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
-   VALUES ('bug', 'mentolder', 'Incident: <desc>', 'Affected: <svc>\nCluster: <env>\nSymptoms: <symptoms>', 'in_progress', '<critical|major|minor>', 'hoch')
-   RETURNING external_id;"
+gh issue create --title "Incident: <svc> — <symptom>" \
+  --label "incident,<critical|major|minor>" \
+  --body "Affected: <svc>
+Cluster: <env>
+Symptoms: <symptoms>"
+# → ISSUE_NUM merken (für Step 5 Close-Kommentar)
 ```
 
 ## Step 3 — Diagnose
@@ -70,13 +71,8 @@ Fallback (mcp-kubernetes nicht erreichbar — Verfügbarkeits-Guard siehe [`MCP-
 Capture the fix PR number (`PR_NUM=$(gh pr view <branch-or-num> --json number -q '.number')`); for rollback-only, omit the comment.
 
 ```bash
-psql -c \
-  "UPDATE tickets.tickets SET status = 'done', resolution = 'fixed', done_at = now(), notes = COALESCE(notes || E'\n\n', '') || '[incident-response $(date +%Y-%m-%d)] Root cause: <cause>. Fix: <fix>. Duration: <X> min.' WHERE external_id = '<TICKET_EXT_ID>';
-
-   -- AUTHOR_LABEL: Set platform-agnostic. Claude Code → 'claude-code', opencode → 'opencode'
-   INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-   SELECT id, 'claude-code', 'Resolved by PR #<PR_NUM> (or rollback to <PREV_SHA>).', 'internal'
-   FROM tickets.tickets WHERE external_id = '<TICKET_EXT_ID>';"
+gh issue comment <ISSUE_NUM> --body "[incident-response $(date +%Y-%m-%d)] Root cause: <cause>. Fix: <fix>. Duration: <X> min. Resolved by PR #<PR_NUM> (or rollback to <PREV_SHA>)."
+gh issue close <ISSUE_NUM>
 ```
 
 ---
@@ -89,8 +85,8 @@ Invoke `mishap-tracker` with your accumulated `MISHAP_LOG`.
 
 | Skill | Relationship |
 |-------|--------------|
-| `ticket-triage` | Follow-up: ticket triage for human-fixable items; PR management via `repo-hygiene` |
-| `mishap-tracker` | Converts execution mishaps to tickets |
+| `dev-flow-plan` | Follow-up: plan human-fixable items; PR management via `repo-hygiene` |
+| `mishap-tracker` | Local mishap log (stderr + `.mishaps.log`) |
 | `infra-ops` | Cross-brand incident handling and infrastructure deployment (Phase 5) |
 
 

@@ -1,9 +1,9 @@
 # Repo-Hygiene-Mechanik (SSOT)
 
-Die operative Housekeeping-Mechanik — geteilt von `repo-hygiene` und `ticket-ops` (Phase 4).
-Beide Skills verlinken hierher; Änderungen NUR in dieser Datei.
+Die operative Housekeeping-Mechanik von `repo-hygiene` (`ticket-ops` retiriert
+2026-10-14). Änderungen NUR in dieser Datei.
 
-DB-Zugriff (MCP-first, `psql()`-Fallback, `ticket_plans`-Warnung): siehe
+DB-Zugriff (MCP-first, `psql()`-Fallback): siehe
 [`mcp-tool-guide.md`](mcp-tool-guide.md).
 
 ## 0. Arbeitsbaum & Stashes
@@ -57,9 +57,9 @@ Fremdsession oder etwas Drittes ihn überholt hat. Real beobachtet am 2026-08-22
 Branch-Bestände mutierten während desselben Laufs mehrfach.
 
 1. **Befund im Hauptcheckout.** `git status --porcelain` im Hauptcheckout — nicht leer ist ein
-   Befund, kein Rauschen. Pro Änderung entscheiden: gehört sie zu einem laufenden Ticket
-   (→ in dessen Worktree ziehen), oder ist es ein funktionaler Patch ohne Ticket
-   (→ Ticket anlegen und Worktree, **nicht** verwerfen)? Realer Auslöser: der ungetickte Patch
+   Befund, kein Rauschen. Pro Änderung entscheiden: gehört sie zu einer laufenden Arbeit
+   (→ in dessen Worktree ziehen), oder ist es ein funktionaler Patch ohne Issue
+   (→ GitHub-Issue anlegen und Worktree, **nicht** verwerfen)? Realer Auslöser: der ungetickte Patch
    an `scripts/bge-mcp/server.mjs` vom 2026-08-08.
 
 2. **Stash-Inventar.** `git stash list` — ohne Datum ist das Alter nicht sichtbar. Die
@@ -345,7 +345,7 @@ und Änderungen bleiben erhalten. Den Defaultbranch aus GitHub beziehungsweise
 `origin/HEAD` bestimmen und frisch fetchen; neue Development-Branches darauf
 aufsetzen, statt das möglicherweise veraltete HEAD des Hauptcheckouts zu nehmen.
 
-## 3. PR-Triage → verknüpftes Ticket schließen
+## 3. PR-Triage (Merge + verknüpfte Issues referenzieren)
 
 ### Grundregel: ein leeres Signal ist kein Urteil
 
@@ -368,7 +368,7 @@ Belegte Fundstellen, jede mit ihrer Gegenprobe unten im Detail:
 | leere Checkliste bei CONFLICTING PR [T002822] | Konflikt unterdrückt CI — Symptom identisch mit „noch nicht gestartet" | `mergeStateStatus` + lokaler Probe-Merge |
 | `all(...)`-Prädikat über der Check-Liste [T003109] | `all` über der leeren Menge ist per Definition `true` — die Warteschleife liest „keine Checks mehr pending" | Nichtleere zuerst prüfen (eigenständiger `length == 0`-Schritt), dann das Prädikat — gemeinsame Funktion `ci_checks_verdict` (scripts/lib/ci-checks.sh) |
 | Probe-Schleife mit `2>/dev/null` [T002847] | harter Fehler wurde zu stiller Leerzeile | stderr sichtbar lassen, Exit-Code getrennt messen |
-| Title-Dedupe-Guard (§4) [T002844] | prüft nur Tickets, nicht den Mishap-Buffer | zweite Quelle abfragen |
+| Title-Dedupe-Guard (§4) [T002844] | prüft nur Issues, nicht den Mishap-Buffer | zweite Quelle abfragen |
 
 Unterschied zu T002822: Dort handelt es sich um die MANUELLE Fehllesart einer leeren Checkliste — man sieht die leere Liste wenigstens; hier ist es das AUTOMATISIERTE `all(...)`-Prädikat — man sieht nur `true`. Verwandt, aber nicht deckend. Analog zur Positiv-Anker-Pflicht (CLAUDE.md T002356-M1): Ein Prädikat über einer womöglich leeren Menge braucht eine vorgeschaltete Nichtleere-Prüfung — anderer Gegenstand. Die Logik ist zentral in `ci_checks_verdict` (scripts/lib/ci-checks.sh) implementiert, um vakuose Zustände zu vermeiden.
 
@@ -376,12 +376,11 @@ Unterschied zu T002822: Dort handelt es sich um die MANUELLE Fehllesart einer le
 gh pr list --state open --json number,title,headRefName,statusCheckRollup,reviewDecision,isDraft,mergeStateStatus
 ```
 
-Pro PR zuerst das Ticket rekonstruieren (Soft-Link — Titel-Tag gewinnt, Branch-Name ist Fallback):
+Pro PR zuerst die verknüpften Issues ermitteln (GitHub-Relation, kein Titel-Parsing mehr —
+die Ticket-IDs entfielen mit dem Retirement 2026-10-14):
 
 ```bash
-TITLE=$(gh pr view <number> --json title -q '.title')
-BRANCH=$(gh pr view <number> --json headRefName -q '.headRefName')
-TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 | tr a-z A-Z)
+gh pr view <number> --json closingIssuesReferences -q '.closingIssuesReferences[].number'
 ```
 
 * **Merge (mergeable, CI grün, kein Draft):**
@@ -395,9 +394,6 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
   > ```bash
   > m=$(gh pr view <number> --json mergedAt -q '.mergedAt')  # leer = offen; Timestamp = gemergt
   > [ -n "$m" ] || { echo "FAIL: mergedAt leer (gh API-Ausfall?)"; exit 1; }
-  > # Offline-Anker als Alternative — Squash-Commit in origin/main via Ticket-Tag:
-  > # SQUASH=$(git log origin/main --grep="<TICKET_ID>" --format='%cI' -1)
-  > # [ -n "$SQUASH" ] || { echo "FAIL: kein Squash-Commit gefunden"; exit 1; }
   > ```
   > **Leere Antwort ist KEIN Urteil [T002498-M5]:** Der Timestamp-Verifikation fehlt der
   > Fall „Antwort fehlt ganz". Schlägt der vorangegangene `gh`-Aufruf fehl (z.B.
@@ -417,41 +413,21 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
   > ```
   Bei noch laufendem CI stattdessen `--auto` — GitHub mergt, sobald die Checks grün sind.
 
-* **Ticket schließen, sobald `mergedAt` gesetzt ist** (nur wenn `$TICKET_ID` gefunden;
-  `resolution`: `fixed` für `fix/*`, `shipped` für `feature/*`) — **MCP-first** (`ticket-mcp`;
-  die Wrapper schreiben via `ticket.sh`, nicht über das read-only `mcp-postgres`):
-  > `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "done", resolution: "<fixed|shipped>" })`
-  > `ticket-mcp-node_add_comment({ id: "$TICKET_ID", body: "PR #<number> merged." })`
-
-  Fallback (ticket-mcp nicht erreichbar — direkte Writes über `psql()`):
+* **Verknüpfte Issues kommentieren, sobald `mergedAt` gesetzt ist** (nur wenn Issues
+  gefunden; Merge-Keywords schließen sie automatisch, der Kommentar dokumentiert):
   ```bash
-  psql -c \
-    "UPDATE tickets.tickets SET status='done', resolution='fixed', done_at=now()
-     WHERE external_id='$TICKET_ID' AND status <> 'done';
-     INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-     SELECT id, 'claude-code', 'PR #<number> merged.', 'internal'
-     FROM tickets.tickets WHERE external_id='$TICKET_ID';"
+  gh issue comment <issue> --body "PR #<number> merged."
   ```
-  Kein `T000XXX` rekonstruierbar → PR ist unverknüpft: notieren, kein Ticket anfassen.
+  Keine Issues verknüpft → PR ist unverknüpft: notieren, nichts anfassen.
 
-### Sicherheitsnetz: gemergte PRs gegen offene Tickets abgleichen (T900103)
+### Sicherheitsnetz: gemergte PRs gegen offene Issues abgleichen (T900103)
 
-Dieser Abgleich ist **verbindlicher** Bestandteil jedes repo-hygiene-Laufs — kein optionaler
-Zusatzschritt. Er war als Skript (`auto-close-merged.sh` im Factory-Baum, eingehängt in den
-Factory-Wakeup) automatisiert und lief für beide Brands, aber nur solange der Wakeup-Tick lief; wenn
-der Wakeup ausfiel (Ausfall, manuell gestoppt), blieb das PR-Ticket-Delta unentdeckt — genau
-das Muster der sieben Fälle vom 2026-09-04 (T900103, Messung 2026-09-20: weder `gh`-Metadaten
-noch die Phasen-Kette unterscheiden dabei Auto-Merge von Hand-Merge — Punkt 1/2 der
-ursprünglichen ZU-KLAEREN-Liste bleiben deshalb offen und sind nicht Gegenstand dieses Schritts).
-
-> **T900399:** Mit dem Factory-Teardown ist das Skript entfallen. Der Abgleich bleibt
-> **verbindlich**, läuft jetzt aber als manueller Operator-Schritt — die `gh`-/SQL-Abfrage
-> oben ("Kein `T000XXX` rekonstruierbar …") ist der Ersatzweg. Ein Automationstragendes
-> Skript an anderer Stelle ist **nicht** Teil dieses Tickets; bis dahin ist der Abgleich
-> Pflichtbestandteil jedes Hygiene-Laufs und darf nicht übersprungen werden.
+> Retiriert 2026-10-14: Das PR-Ticket-Delta (auto-close-merged, Ticket-Backend) entfiel
+> mit dem Ticket-System. Übrig bleibt die Mess-Notiz: weder `gh`-Metadaten noch Reports
+> unterscheiden Auto-Merge von Hand-Merge — bei Unklarheit manuell gegenprüfen.
 
 * **CI-Failures:** `gh pr checks <number>` diagnostizieren. Rote PRs nie mergen. Bekannter Flake →
-  re-run; sonst PR offen lassen und (falls Ticket vorhanden) auf `in_progress` belassen.
+  re-run; sonst PR offen lassen und (falls Issue vorhanden) offen belassen.
 
   > **Rot gemeldet ≠ failure: cancelled/skipped gegenprüfen [T003224].** Ein aggregierter
   > Check (z.B. ein Workflow-Run) meldet `failure`, obwohl alle Jobs success/cancelled sind —
@@ -627,38 +603,30 @@ Für Ticketstatus ist der kanonische Weg ohnehin `ticket-mcp-node_get_ticket` /
 
 ## 4. GitHub-Issue-Intake (selten)
 
-Issues leben in Postgres, nicht auf GitHub. Falls `gh issue list --state open` etwas liefert:
+Falls `gh issue list --state open` etwas liefert (Retiriert 2026-10-14: kein
+Ticket-Backend mehr — Issues bleiben Issues, nichts wird nach Postgres gespiegelt):
 
-1. **Title-Dedupe-Guard [T001210]:** Vor dem Anlegen nach einem offenen Ticket mit gleichem
-   (case-insensitivem, whitespace-normalisiertem) Titel suchen. Existiert eines (z. B. kanonische
-   Referenz T001147, Mishap-Bundle T001148): KEIN Duplikat anlegen — `ticket_comments`-Zeile mit
-   der Re-Trigger-Quelle ans bestehende Ticket, dann
-   `gh issue close <n> --comment "Duplicate of <external_id>."`. (Die 4 Duplikate
+1. **Title-Dedupe-Guard [T001210]:** Vor dem Anlegen nach einem offenen Issue mit gleichem
+   (case-insensitivem, whitespace-normalisiertem) Titel suchen. Existiert eines:
+   KEIN Duplikat anlegen — Kommentar mit der Re-Trigger-Quelle ans bestehende Issue, dann
+   `gh issue close <n> --comment "Duplicate of #<m>."`. (Die 4 Duplikate
    T001196/T001197/T001201/T001202 entstanden 2026-06-27 genau, weil dieser Guard fehlte.)
    Dieselbe Dedupe-Vorbedingung gilt bei der Completeness-Triage vor Auto-Intake-Zeilen.
 
-   > **Der Guard braucht eine zweite Quelle: den Mishap-Buffer [T002844].** Die Ticket-Suche
+   > **Der Guard braucht eine zweite Quelle: `.mishaps.log` [T002844].** Die Issue-Suche
    > allein ist dieselbe Signallücke wie in §3 — sie meldet „kein Duplikat", ohne alle Orte
-   > geprüft zu haben, an denen ein Befund liegen kann. Am 2026-08-09 wurde derselbe Befund
-   > zweimal erfasst: 05:04 UTC als Mishap-Buffer-Eintrag, 05:35 UTC als Ticket T002830. Der
-   > Guard war korrekt angewandt und lieferte trotzdem grün, weil der frühere Befund als
-   > Eintrag in `.git/mishap-buffer.json` lag (Buffer-Stand 5/10) — **Buffer-Einträge tauchen
-   > in keiner Ticket-Query auf**. Zwischen „Befund erfasst" und „Befund als Ticket sichtbar"
-   > liegt ein Fenster von bis zu 10 Buffer-Einträgen bzw. 7 Tagen.
+   > geprüft zu haben, an denen ein Befund liegen kann. Die Lehre aus 2026-08-09 (Befund
+   > zweimal erfasst — einmal lokal, einmal im Tracker) gilt weiter: **lokale Einträge
+   > tauchen in keiner Issue-Query auf**.
    >
    > Vor dem Anlegen deshalb **beide** Quellen prüfen:
+   > ```bash
+   > gh issue list --state open --search "<stichworte>"   # offene Issues
+   > grep -i "<stichworte>" .mishaps.log                 # lokale Befunde (Datei fehlt = leer;
+   >                                                     # Lesefehler ist KEIN „leer" — Fail-Closed, §3)
    > ```
-   > ticket-mcp-node_list_tickets({ … })      # offene Tickets, wie gehabt
-   > ticket-mcp-node_get_mishap_buffer({})    # ungeflushte Befunde
-   > ```
-   > Fallback ohne MCP: `jq -r '.[].title' .git/mishap-buffer.json` (Datei fehlt = Buffer leer;
-   > ein Lesefehler ist **kein** „leer" — dann gilt Fail-Closed, siehe §3-Grundregel).
-   >
-   > Das bleibt vorerst eine Merkregel, ist aber ein Kandidat fürs Werkzeug: eine Regel, die
-   > zwei getrennte Quellen von Hand zusammenführt, ist genau die Form, die hier versagt hat.
-   > Der belastbare Zuschnitt wäre ein Dedupe, das beide Quellen in **einem** Aufruf abfragt.
-2. `tickets.tickets`-Zeile aus dem Issue anlegen (`type`, `brand`, `title`, `description`, `status='triage'`).
-3. `gh issue close <n> --comment "Tracked internally as <external_id>."`
+2. Neues Issue mit Labeln anlegen (`gh issue create --title … --label … --body …`).
+3. Altes Duplikat schließen: `gh issue close <n> --comment "Superseded by #<m>."`
 
 ## 5. (entfallen, T900399)
 

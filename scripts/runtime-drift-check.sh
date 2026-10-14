@@ -34,14 +34,9 @@ while [ $# -gt 0 ]; do
     --auto-kill) AUTO_KILL=true ;;
     --notify)
       shift
-      NOTIFY_TICKET="${1:-}"
-      if [ -z "$NOTIFY_TICKET" ]; then
-        echo "Usage: $0 [--auto-kill] [--notify <external_id>]" >&2
-        echo "--notify braucht eine Ticket-external_id (z.B. T003486)" >&2
-        exit 2
-      fi
+      NOTIFY_TICKET="${1:-notify}"
       ;;
-    *) echo "Usage: $0 [--auto-kill] [--notify <external_id>]" >&2; echo "Unbekanntes Argument: $1" >&2; exit 2 ;;
+    *) echo "Usage: $0 [--auto-kill] [--notify <label>]" >&2; echo "Unbekanntes Argument: $1" >&2; exit 2 ;;
   esac
   shift
 done
@@ -184,10 +179,10 @@ check_db() {
   done < <(find "$MIGRATIONS_DIR" -maxdepth 1 -name '*.sql' -print0)
 }
 
-# ── Notify: Befund als Ticket-Kommentar sichtbar machen [T014940] ─────────
+# ── Notify: Befund nach stdout sichtbar machen [T014940] ───────────────────
 # Der Detektor allein war das Problem: er lief nur in Hygiene-Läufen und der
 # Operator sah Drift erst, wenn etwas schon schiefging. Mit --notify landet
-# der Befund als Kommentar auf dem Tracking-Ticket — auch aus dem Daily-Cron.
+# der Befund auf stdout — auch aus dem Daily-Cron. (Ticket-Kommentar retiriert.)
 notify_ticket() {
   [ -n "$NOTIFY_TICKET" ] || return 0
   local heal_note=""
@@ -207,12 +202,8 @@ $heal_note
 
 _Gesendet von scripts/runtime-drift-check.sh (--auto-kill=$AUTO_KILL)._"
 
-  if bash "$REPO_ROOT/scripts/ticket.sh" add-comment \
-       --id "$NOTIFY_TICKET" --author "runtime-drift-guard" --body "$body" >/dev/null 2>&1; then
-    echo "runtime-drift-check: Befund an Ticket $NOTIFY_TICKET gemeldet."
-  else
-    echo "runtime-drift-check: WARNUNG — Ticket-Kommentar an $NOTIFY_TICKET fehlgeschlagen (DB unerreichbar?)." >&2
-  fi
+  printf '%s\n' "$body"
+  echo "runtime-drift-check: Befund nach stdout (Ticket-Kommentar-Pfad retiriert)."
 }
 
 # ── Hauptlauf ─────────────────────────────────────────────────────────────

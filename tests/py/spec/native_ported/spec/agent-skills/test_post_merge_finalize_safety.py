@@ -64,7 +64,7 @@ def test_squash_evidence(safety, mutation):
     assert (guard('finalize_branch_fully_merged', 'fix/example', '123').returncode == 0) == (mutation == 'none')
 
 
-@pytest.mark.parametrize('mutation', ['none', 'tracked', 'allowlist', 'foreign', 'unknown', 'ticket'])
+@pytest.mark.parametrize('mutation', ['none', 'tracked', 'allowlist', 'foreign', 'unknown'])
 def test_cleanup_retains_unproven_work(safety, mutation):
     _, wt, scripts, _, _, _, guard = safety
     if mutation == 'tracked':
@@ -75,9 +75,7 @@ def test_cleanup_retains_unproven_work(safety, mutation):
         (scripts / 'agent-lock.sh').write_text('echo held; exit 3\n')
     elif mutation == 'unknown':
         (scripts / 'agent-lock.sh').write_text('exit 2\n')
-    elif mutation == 'ticket':
-        (scripts / 'agent-lock.sh').write_text('[[ "$2" == ticket ]] && { echo held; exit 3; }; echo free\n')
-    assert (guard('finalize_cleanup_safe', 'fix/example', wt, 'T901525').returncode == 0) == (mutation == 'none')
+    assert (guard('finalize_cleanup_safe', 'fix/example', wt).returncode == 0) == (mutation == 'none')
     assert wt.is_dir()
 
 
@@ -96,17 +94,16 @@ def test_real_owned_claim_release_and_foreign_session(safety, repo_root, foreign
         shutil.copy(path, scripts / path.name)
     shutil.copy(repo_root / 'scripts/worktree-clean-check.sh', scripts / 'worktree-clean-check.sh')
     env['AGENT_LOCK_SID'] = 'fixture-owner'
-    for scope, identifier in [('branch', 'fix/example'), ('ticket', 'T901525')]:
-        subprocess.run(['bash', str(scripts / 'agent-lock.sh'), 'claim', scope, identifier,
-                        '--worktree', str(wt), '--branch', 'fix/example'],
-                       cwd=repo, env=env, check=True, capture_output=True)
+    subprocess.run(['bash', str(scripts / 'agent-lock.sh'), 'claim', 'branch', 'fix/example',
+                    '--worktree', str(wt), '--branch', 'fix/example'],
+                   cwd=repo, env=env, check=True, capture_output=True)
     if foreign:
         other_env = dict(env, AGENT_LOCK_SID='fixture-foreign')
         subprocess.run(['bash', str(scripts / 'agent-lock.sh'), 'claim', 'ticket', 'T-other',
                         '--worktree', str(wt), '--branch', 'fix/example'],
                        cwd=repo, env=other_env, check=True, capture_output=True)
-    assert guard('finalize_cleanup_safe', 'fix/example', wt, 'T901525').returncode == 0
-    assert guard('finalize_release_owned_claims', 'fix/example', 'T901525').returncode == 0
+    assert guard('finalize_cleanup_safe', 'fix/example', wt).returncode == 0
+    assert guard('finalize_release_owned_claims', 'fix/example').returncode == 0
     result = subprocess.run(['bash', str(scripts / 'worktree-clean-check.sh'), str(wt)],
                             cwd=repo, env=env, capture_output=True)
     assert (result.returncode == 0) == (not foreign)
@@ -117,16 +114,21 @@ def test_real_owned_claim_release_and_foreign_session(safety, repo_root, foreign
         assert wt.exists()
 
 
-@pytest.mark.parametrize('source,branch,expected', [
-    ('comment', 'fix/example', False),
-    ('plan_archived', 'fix/example', True),
-    ('plan_archived', 'fix/foreign', False),
-])
-def test_archive_receipt_requires_event_not_slug_mention(safety, repo_root, source, branch, expected):
-    repo, _, _, _, env, _, _ = safety
-    lib = repo_root / 'scripts/lib/finalize-step-guards.sh'
-    timeline = json.dumps({'events': [dict(source=source, detail=dict(
-        slug='example', branch=branch, body='FACTORY-PLAN-REF plan=.agents/plans/example/tasks.md'))]})
-    result = subprocess.run(['bash', '-c', 'source "$1"; finalize_receipt_archived "$2" example fix/example',
-                             '_', str(lib), timeline], env=env, capture_output=True)
-    assert (result.returncode == 0) == expected
+def test_completed_frontmatter_is_local_archive_receipt(safety, repo_root, tmp_path):
+    # Der lokale Receipt ist Frontmatter-`completed` im Plan-File (kein DB-Timeline-Event):
+    # anwenden -> completed gesetzt; zweites Anwenden idempotent (rc 0, Inhalt stabil).
+    plan = tmp_path / 'tasks.md'
+    plan.write_text('---\ntitle: x\ndomains: [ops]\nstatus: active\n---\n\n# Plan\n')
+    lib = repo_root / 'scripts/lib/finalize-frontmatter.sh'
+    # Die Lib erwartet _PLAN_STATUS_ACTIVE_ALT vom Aufrufer (setzt finalize.sh) —
+    # ohne sie matcht das Sed nichts (stille No-op per `|| true`).
+    setup = '_PLAN_STATUS_ACTIVE_ALT="(active|plan_staged|in_progress|planning)"; source "$1"'
+    first = subprocess.run(['bash', '-c', setup + '; _apply_completed_frontmatter_cli "$2"',
+                            '_', str(lib), str(plan)], capture_output=True, text=True)
+    assert first.returncode == 0, first.stderr
+    marked = plan.read_text()
+    assert 'status: completed' in marked
+    second = subprocess.run(['bash', '-c', setup + '; _apply_completed_frontmatter_cli "$2"',
+                             '_', str(lib), str(plan)], capture_output=True, text=True)
+    assert second.returncode == 0, second.stderr
+    assert plan.read_text() == marked

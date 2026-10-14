@@ -9,7 +9,6 @@ import urllib.request
 
 import pytest
 
-
 def _free_port() -> int:
     s = socket.socket()
     s.bind(("127.0.0.1", 0))
@@ -17,20 +16,10 @@ def _free_port() -> int:
     s.close()
     return port
 
-
-PLAN_REF_JSON = (
-    '{"external_id":"T901015","plan_ref":"FACTORY-PLAN-REF branch=feat/x plan=plans/demo/tasks.md"}'
-)
-
-
 @pytest.fixture
 def env_ctx(repo_root, tmp_path, monkeypatch):
     fix = repo_root / "tests" / "spec" / "llm-local-dev" / "fixtures"
     t = tmp_path
-    monkeypatch.delenv("PLAN_RUNNER_TICKET_JSON", raising=False)
-    # T901719: DB-Fallback hermetisch aus — ohne Seam wuerde plan-get gegen
-    # die echte DB laufen und die Fail-closed-Tests flackern.
-    monkeypatch.setenv("PLAN_RUNNER_PLAN_BODY", "")
     monkeypatch.setenv("PLAN_RUNNER_OPENCODE", str(fix / "plan-runner-fake-opencode.sh"))
     monkeypatch.setenv("FAKE_OPENCODE_LOG", str(t / "opencode.log"))
     monkeypatch.setenv("FAKE_SLEEP_CLOUD", "0")
@@ -54,7 +43,6 @@ def env_ctx(repo_root, tmp_path, monkeypatch):
         "| p1 | tasks.d/p1-work.md | impl | src/p1.txt | |\n"
         "\n## Verify\n"
     )
-    monkeypatch.setenv("PLAN_REF_JSON", PLAN_REF_JSON)
 
     state = {"proc": None}
 
@@ -88,44 +76,7 @@ def env_ctx(repo_root, tmp_path, monkeypatch):
         proc.kill()
         proc.wait()
 
-
-def test_ref_aufloesbar_ticket_flag_derives_changedir_from_worktree(env_ctx, run_cmd):
-    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", PLAN_REF_JSON)
-    env_ctx["start_orch"](json.dumps([
-        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
-        {"name": "wait_event", "args": {}},
-        {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
-        {"name": "finish", "args": {"summary": "all done"}},
-    ]))
-    res = run_cmd(
-        ["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T901015", "--direct-slots", "0", "--cloud-slots", "2"],
-        cwd=env_ctx["r"], timeout=90,
-    )
-    assert res.returncode == 0, res.output
-    state = json.loads((env_ctx["wt"] / "plans" / "demo" / ".plan-runner" / "state.json").read_text())
-    assert state["partials"]["p1"]["status"] == "done"
-
-
-def test_ref_fehlend_fail_closed_exit_2(env_ctx, run_cmd):
-    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", '{"external_id":"T901015","plan_ref":null}')
-    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T901015"],
-                  cwd=env_ctx["r"], timeout=90)
-    assert res.returncode == 2
-    assert "no FACTORY-PLAN-REF" in res.output
-
-
-def test_worktree_fehlend_fail_closed_exit_2(env_ctx, run_cmd):
-    env_ctx["monkeypatch"].setenv(
-        "PLAN_RUNNER_TICKET_JSON",
-        '{"external_id":"T901015","plan_ref":"FACTORY-PLAN-REF branch=feat/nonexistent plan=plans/demo/tasks.md"}',
-    )
-    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T901015"],
-                  cwd=env_ctx["r"], timeout=90)
-    assert res.returncode == 2
-    assert "not checked out in any worktree" in res.output
-
-
-def test_ohne_flag_disk_verhalten_unveraendert_kein_ticket_lookup(env_ctx, run_cmd):
+def test_ohne_flag_disk_verhalten_unveraendert(env_ctx, run_cmd):
     empty = env_ctx["t"] / "empty"
     empty.mkdir()
     res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), str(empty), "--worktree", str(empty)],
@@ -133,51 +84,9 @@ def test_ohne_flag_disk_verhalten_unveraendert_kein_ticket_lookup(env_ctx, run_c
     assert res.returncode == 2
     assert "no tasks.md" in res.output
 
-
-DB_FALLBACK_BODY = (
-    "# Plan\n\n## Partials\n\n"
-    "| id | file | role | target_files | depends_on |\n"
-    "|----|------|------|--------------|------------|\n"
-    "| p1 | tasks.d/p1-work.md | impl | src/p1.txt | |\n"
-)
-
-DB_FALLBACK_REF = (
-    '{"external_id":"T009998","plan_ref":'
-    '"FACTORY-PLAN-REF branch=feat/nonexistent plan=.agents/plans/demo/tasks.md"}'
-)
-
-
-def test_db_fallback_branch_fehlend_manifest_aus_db_geparst(env_ctx, run_cmd):
-    # T901719: Branch nicht ausgecheckt, Body aus der DB (Seam) -> tasks.md
-    # wird materialisiert und das Manifest geparst; erst die fehlende
-    # Partial-Datei wirft (statt "not checked out").
-    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", DB_FALLBACK_REF)
-    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_PLAN_BODY", DB_FALLBACK_BODY)
-    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T009998"],
+def test_ticket_flag_fail_closed_exit_2(env_ctx, run_cmd):
+    # --ticket retiriert: klarer Fail statt DB-Lookup.
+    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T901015"],
                   cwd=env_ctx["r"], timeout=90)
     assert res.returncode == 2
-    assert "not checked out in any worktree" not in res.output
-    assert "partial p1: plan file tasks.d/p1-work.md not found" in res.output
-
-
-def test_db_fallback_tasks_md_fehlend_wird_materialisiert(env_ctx, run_cmd):
-    # T901719: loadPlan-Haken — tasks.md fehlt unter --worktree, Body aus der
-    # DB (Seam) -> Manifest geparst, erst der Partial wirft.
-    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", DB_FALLBACK_REF)
-    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_PLAN_BODY", DB_FALLBACK_BODY)
-    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T009998",
-                   "--worktree", str(env_ctx["t"])],
-                  cwd=env_ctx["r"], timeout=90)
-    assert res.returncode == 2
-    assert "no tasks.md" not in res.output
-    assert "partial p1: plan file tasks.d/p1-work.md not found" in res.output
-
-
-def test_db_fallback_ohne_row_fail_closed_exit_2(env_ctx, run_cmd):
-    # T901719: keine DB-Row (leerer Seam) -> bisheriger Fail bleibt.
-    env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", DB_FALLBACK_REF)
-    res = run_cmd(["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T009998",
-                   "--worktree", str(env_ctx["t"])],
-                  cwd=env_ctx["r"], timeout=90)
-    assert res.returncode == 2
-    assert "no tasks.md" in res.output
+    assert "--ticket retiriert" in res.output

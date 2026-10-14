@@ -50,14 +50,11 @@ def test_scope_with_breaking_change_marker(repo_root: Path, run_cmd, pr_fixture_
     assert res.returncode == 0
 
 
-def test_ticket_branch_mismatch_suggests_rename(repo_root: Path, run_cmd, pr_fixture_repo: Path):
+def test_ticket_ids_in_title_no_longer_gate(repo_root: Path, run_cmd, pr_fixture_repo: Path):
+    # Ticket-IDs im Titel werden seit dem Retirement ignoriert (Titel↔Branch-Matching entfiel).
     helper = repo_root / "scripts" / "preflight-pr-scope.sh"
-    res = run_cmd(["bash", str(helper), "chore(dev-flow): some chore [T001901]"], cwd=pr_fixture_repo)
-    assert res.returncode != 0
-    out = res.stdout + res.stderr
-    assert "does not match current branch" in out
-    assert "git branch -m" in out
-    assert "T001917" in out
+    res = run_cmd(["bash", str(helper), "fix(ops): some fix [T001901]"], cwd=pr_fixture_repo)
+    assert res.returncode == 0
 
 
 def test_fix_branch_under_worktrees_accepted(repo_root: Path, run_cmd, pr_fixture_repo: Path):

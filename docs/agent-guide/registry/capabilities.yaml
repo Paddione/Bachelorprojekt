@@ -115,27 +115,11 @@ capabilities:
       tier: assisted
       deep_ref: ".claude/skills/database-specialist/SKILL.md"
 
-  # ─── Tickets und Pläne ──────────────────────────────────────────────────────────────
+  # ─── Tickets und Pläne (retiriert 2026-10-14 mit dem Ticket-System) ───────────────
   ticket-lebenszyklus:
     mcp:ticket-mcp-node:
-      state: canonical
-      use_when: "Tickets lesen, anlegen, Status setzen, Phasen-Events schreiben."
-      avoid_when: "Plan stagen — das macht devflow-mcp plan_stage (stage_plan ist unterdrückt)."
-      fallback: "scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)"
-      roles: [bp-run, bp-ship, orchestrator]
-      tier: caution
-      # T900983: Lesepfade safe, nicht rücknehmbare Mutationen dangerous; Rest erbt caution.
-      tool_tiers:
-        "get_*": safe
-        "list_*": safe
-        "export_*": safe
-        archive_plan: dangerous
-        flush_mishap_buffer: dangerous
-        backfill_ticket_id: dangerous
-      # T900985: einziger Weg zum Stagen ist devflow-mcp plan_stage (Worktree + Lint + Push +
-      # stage-plan --hold); stage_plan scheiterte im Worktree und übersprang den Lint.
-      tools_suppressed: [stage_plan]
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+      state: retired
+      reason: "Ticket-MCP + tickets.*-Schema retiriert 2026-10-14. Pläne werden per devflow-mcp plan_stage (Commit+Push) gestagt."
 
   devflow-kontext:
     mcp:devflow-mcp:
@@ -160,30 +144,18 @@ capabilities:
 
   ticket-inhalt:
     skill:ticket-ops:
-      state: canonical
-      use_when: "Kompatibilitäts-Einstieg für unklare Ticket-Inhaltsanfragen; routet zu Triage oder Dispatch."
-      avoid_when: "Repo-Zustand — Branches, Worktrees und PRs gehören zu repo-hygiene."
-      roles: [orchestrator]
-      tier: safe
-      deep_ref: ".claude/skills/ticket-ops/SKILL.md"
+      state: retired
+      reason: "Retiriert 2026-10-14 mit dem Ticket-System. Unklare Ops-Anfragen routet operations-management; Inhalte plant dev-flow-plan."
 
   ticket-triage:
     skill:ticket-triage:
-      state: canonical
-      use_when: "Triage, Definition of Readiness, fehlende Angaben, Klärungsrunde und Batch-Kandidaten ohne Dispatch."
-      avoid_when: "Wellen planen oder Arbeit dispatchen — dafür ticket-dispatch."
-      roles: [orchestrator]
-      tier: safe
-      deep_ref: ".claude/skills/ticket-triage/SKILL.md"
+      state: retired
+      reason: "Retiriert 2026-10-14 mit dem Ticket-System. Vollständigkeit prüft dev-flow-plan (plan-lint)."
 
   ticket-dispatch:
     skill:ticket-dispatch:
-      state: canonical
-      use_when: "Abhängigkeitswellen, Parallelisierungsplan, Konfliktprüfung und freigegebener Wave-1-Dispatch."
-      avoid_when: "Ticket-Fakten erheben oder menschliche Rückfragen klären — dafür ticket-triage."
-      roles: [orchestrator]
-      tier: assisted
-      deep_ref: ".claude/skills/ticket-dispatch/SKILL.md"
+      state: retired
+      reason: "Retiriert 2026-10-14 mit dem Ticket-System. Dispatch läuft über Worker-Sandboxes (task devflow:sandbox) nach expliziter Freigabe."
 
   repo-task-ausfuehrung:
     mcp:mcp-task-runner:
@@ -201,12 +173,12 @@ capabilities:
   externes-task-management:
     mcp:task-master-ai:
       state: suppressed
-      reason: "Kein erreichbarer Server: task-master-ai existiert weder in docs/agent-guide/registry/mcp.yaml noch in .opencode/opencode.jsonc. PRD-getriebene Task-Zerlegung laeuft ueber ticket-mcp und die dev-flow-Skills."
+      reason: "Kein erreichbarer Server: task-master-ai existiert weder in docs/agent-guide/registry/mcp.yaml noch in .opencode/opencode.jsonc. PRD-getriebene Task-Zerlegung laeuft ueber die dev-flow-Skills."
 
   mishap-erfassung:
     skill:mishap-tracker:
       state: canonical
-      use_when: "Am Ende jedes dev-flow-Skills die gesammelten Frictionen als ein Ticket melden."
+      use_when: "Am Ende jedes dev-flow-Skills die gesammelten Frictionen lokal melden (stderr + .mishaps.log)."
       fallback: "bash scripts/hooks/mishap-tracker.sh --friction '<text>'"
       roles: [all]
       tier: safe
@@ -907,8 +879,8 @@ capabilities:
   # ─── Skills (Triage T900479) ────────────────────────────────────────────────────────
   sdlc-autopilot:
     skill:sdlc-autopilot:
-      state: suppressed
-      reason: "Opencode-only (AGENTS.md); kein Claude-Pfad."
+      state: retired
+      reason: "Retiriert 2026-10-14 mit dem Ticket-System (Queue-Quelle tickets.* entfiel)."
 
   opencode-git-workflow:
     skill:opencode-git-workflow:

@@ -712,8 +712,8 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `sdlc-autopilot`
 
-- **`skill:sdlc-autopilot`** — Status `suppressed`
-  - _Grund:_ Opencode-only (AGENTS.md); kein Claude-Pfad.
+- **`skill:sdlc-autopilot`** — Status `retired`
+  - _Grund:_ Retiriert 2026-10-14 mit dem Ticket-System (Queue-Quelle `tickets.*` entfiel).
 
 ## Fähigkeit: `opencode-git-workflow`
 

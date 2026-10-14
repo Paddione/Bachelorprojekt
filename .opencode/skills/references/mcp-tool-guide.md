@@ -1,10 +1,10 @@
 # MCP-Tool-Guide
 
 SSOT für die MCP-native Tool-Nutzung in Skills und Subagents. Skills verlinken hierher statt die
-Tabellen zu duplizieren. Pro Server: **Tools · Wann bevorzugen · Fallback**. Die mechanische
-CI-Guard `tests/py/spec/native_ported/spec/test_mcp_tooling.py` prüft, dass (1) jeder skill-kritische `ticket.sh`-Verb einen
-`ticket-mcp`-Wrapper hat und (2) **jedes** im Go-Quellcode exponierte `ticket-mcp`-Tool hier gelistet
-ist. Wer ein Tool ergänzt/entfernt, pflegt diese Datei mit — sonst wird CI rot.
+Tabellen zu duplizieren. Pro Server: **Tools · Wann bevorzugen · Fallback**.
+(Ticket-Teil retiriert 2026-10-14: `ticket.sh` + `ticket-mcp` sind entfernt, der
+Ticket-Wrapper-Guard in `test_mcp_tooling.py` ebenfalls.) Wer ein Tool
+ergänzt/entfernt, pflegt diese Datei mit — sonst wird CI rot.
 
 Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencode).
 
@@ -19,8 +19,8 @@ Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencod
 > **Writes/DDL/Superuser bleiben kubectl.** Schreibende SQL (INSERT/UPDATE/DELETE/UPSERT), DDL als
 > `postgres`-Superuser und sämtliche Cluster-Mutationen (`kubectl apply`, `rollout restart`, scale,
 > delete, Sealed Secrets, RBAC) laufen über `kubectl exec … psql` bzw. `kubectl`, **nie** über ein
-> MCP-Read-Tool. Ticket-Lifecycle-Writes gehen über die `ticket-mcp`-Wrapper (die shellen zu
-> `ticket.sh`, dem sanktionierten Write-Pfad) — nicht über `mcp-postgres`.
+> MCP-Read-Tool. Schreibende SQL läuft über den `psql()`-Helper unten
+> (`kubectl exec … psql` als `postgres`) — nicht über `mcp-postgres`.
 >
 > **Konkret laufen dort auf [T002307, T006335]:** `ALTER USER`, `ALTER ROLE` und `GRANT` — sie scheitern mit
 > `ERROR: cannot execute ALTER ROLE in a read-only transaction`. Der lokale Adapter verbindet als
@@ -66,9 +66,10 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 > 2. **Ein Read, dessen Ergebnis eine Schreiboperation steuert, wird gegengeprüft** — die gelesene
 >    ID gegen eine zweite Quelle abgleichen, *bevor* geschrieben wird.
 >
-> **Skript-Fix [T002371]:** `scripts/verify-ticket-id.sh <external_id> [brand]` prüft vor einem
-> Write via kubectl exec (sicher), ob die gelesene ID existiert. Exit 0 = OK, Exit 1 = nicht
-> gefunden. Vor jedem Write einfügen, der auf einer port-forward-basierten Read-Flagge basiert.
+> **Regel [T002371]:** Vor jedem Write, der auf einer port-forward-basierten
+> Read-Flagge basiert, die gelesene ID gegen eine zweite Quelle (kubectl-exec-Read)
+> gegenprüfen. (Das frühere Skript `scripts/verify-ticket-id.sh` entfiel mit dem
+> Ticket-Retirement 2026-10-14.)
 
 ---
 
@@ -93,37 +94,25 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   (`ToolSearch({query: "select:mcp-postgres_query"})` liefert nichts) → sofort auf den
   `psql()`-Fallback umschwenken, nicht auf den MCP-Weg beharren.
 - **Brand-Bindung [T002278]:** dieser Server ist **brand-gebunden** an die **mentolder**-Datenbank.
-  `external_id` ist nur pro Brand eindeutig — eine Abfrage nach einer korczewski-ID liefert
-  **stillschweigend die gleichnamige mentolder-Zeile** (das brand-gefilterte Query liefert leer
-  und legt fälschlich nahe, der Filter sei falsch). Ticket-Reads (`tickets.*`) gehören zu
-  `ticket-mcp-node_*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
+  IDs sind nur pro Brand eindeutig — eine Abfrage nach einer korczewski-ID liefert
+  **stillschweigend die gleichnamige mentolder-Zeile**. Immer explizit nach `brand` filtern.
 - ⚠️ **Bedient die fleet-DB — seit ADR-007 die SSOT, keine Kopie mehr [T900013].** Port 13001
   bedient der lokale `mcp-postgres-local.service` (`127.0.0.1`, Datenquelle **fleet**-Postgres
-  via `DATABASE_URL`, Default `localhost:15432`) — **kein** `kubectl port-forward` mehr. Bis
-  2026-08-30 stand hier die Warnung, das sei eine *eingefrorene* Kopie (ADR-006 E3: SELECT ja,
-  Writes nein) und die eigentliche SSOT liege lokal. Das ist seit ADR-007 (Accepted
-  2026-08-24, T016422) falsch herum: die Fleet-shared-db IST die "tickets-DB of record".
-  Der damalige Fehlermodus — ein Triage-Lauf las drei bereits-done Tickets als offen und
-  loeste redundante Closure-Writes aus — kann aus dieser Richtung nicht mehr auftreten.
-- ⚠️ **Trotzdem nicht fuer Ticket-Zustand.** Der Grund ist jetzt ein anderer: `external_id`
-  ist nur pro Brand eindeutig (siehe Punkt oben). Fuer **Ticket-Zustand** (offen/geschlossen,
-  Status, `readiness`) IMMER `ticket-mcp-node_*` mit explizitem `brand` oder den
-  `psql()`-Fallback unten nutzen (zielt auf `fleet`/`workspace`, BRAND-Routing [T006285]);
-  `mcp-postgres` nur fuer Nicht-Ticket-Reads (`knowledge.*`, `v_timeline`).
+  via `DATABASE_URL`, Default `localhost:15432`) — **kein** `kubectl port-forward` mehr.
+  (Die `tickets.*`-Tabellen entfielen mit dem Ticket-Retirement 2026-10-14.)
 - **Wann bevorzugen:** Read-only SELECTs gegen `knowledge.*`, `v_timeline` oder andere
-  Nicht-Ticket-Tabellen. Für Ticket-Queries → `ticket-mcp-node_get_ticket` /
-  `ticket-mcp-node_list_tickets` mit gesetztem `brand`.
+  Nicht-Ticket-Tabellen. Ticket-Queries gibt es nicht mehr — ausstehende Arbeit steht in
+  GitHub-Issues, Pläne in `.agents/plans/`.
 - **Fallback (Reads) & Pflichtweg für Writes** — das MCP-Query-Tool ist read-only; schreibende
   Statements (INSERT/UPDATE/DELETE) laufen immer über diesen `psql()`-Helper (SSOT — Skills
   verlinken hierher statt ihn zu duplizieren):
   ```bash
   # --field-selector ist Pflicht [T002307]: ohne ihn kann ein Completed-Pod vorne einsortiert
   # werden und jeder folgende exec stirbt an "cannot exec into a container in a completed pod".
-  # BRAND-Routing wie scripts/ticket.sh [T002689]: die Ticket-SSOT ist seit ADR-007
-  # (loest ADR-006 E3 ab) die Fleet-shared-db — beide Brands liegen in dieser einen DB,
-  # korczewski eingeschlossen. Der frueher hier genannte Context `workspace-dev` existiert
-  # nicht (kubectl config get-contexts kennt nur fleet und hetzner) — der Helper war so
-  # nicht lauffaehig.
+  # DB-Routing [T002689]: SSOT ist seit ADR-007 die Fleet-shared-db — beide Brands liegen
+  # in dieser einen DB, korczewski eingeschlossen. Der frueher hier genannte Context
+  # `workspace-dev` existiert nicht (kubectl config get-contexts kennt nur fleet und
+  # hetzner) — der Helper war so nicht lauffaehig.
   PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db \
     --field-selector status.phase=Running -o name | head -1)
   psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
@@ -142,12 +131,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   (`mentolder`, `workspace-korczewski`) den Guard aufrufen:
   `bash scripts/prod-write-guard.sh check <namespace> "<SQL>"`. Subagenten werden automatisch
   blockiert; Main-Operatoren nutzen `--confirm-prod-write` für bewusste Overrides.
-- ⚠️ `tickets.ticket_plans`: nie `SELECT *` oder die `content`-Spalte über die ganze Tabelle (MB-Transfer
-  über `kubectl exec` → Timeout). Immer Metadaten (`id`, `ticket_id`, `slug`, `branch`, `pr_number`,
-  `archived_at`) oder gezielt nach `ticket_id`/`slug` filtern.
-- ⚠️ **`tickets.ticket_plans`-Schema:** Die Spalten sind `id` (UUID), `ticket_id` (FK→tickets.id),
-  `slug`, `branch`, `pr_number` (int), `content` (text, MB), `archived_at` (timestamptz).
-  Es gibt **kein** `status`-Feld — Status steht auf `tickets.tickets`, nicht auf `ticket_plans`.
+- ~~⚠️ `tickets.ticket_plans`-Hinweise~~ — entfiel mit dem Ticket-Retirement 2026-10-14 (Schema dropped).
 
 ## `mcp-kubernetes` — k8s-Status/Read
 
@@ -171,50 +155,15 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   ```
   Es wird bewusst **keine** RBAC-Regel ergänzt — Least Privilege ist hier die Absicht.
 
-## `ticket-mcp` — Ticket-Lifecycle (Go-Adapter über `ticket.sh`)
+## ~~`ticket-mcp` — Ticket-Lifecycle~~ (retiriert 2026-10-14)
 
-- **Transport:** lokales Go-Binary `scripts/ticket-mcp/ticket-mcp-go` (stdio; optional HTTP via
-  `TICKET_MCP_HTTP=1` auf `:13004`). Dünne Adapter — `ticket.sh` ist die Business-Logik-SSOT.
-- **Wann bevorzugen:** alle Ticket-Reads + Lifecycle-Writes (die Wrapper shellen zu `ticket.sh`).
-- **Fallback:** der jeweilige `./scripts/ticket.sh <verb>` / `./scripts/vda.sh ticket <verb>`-Aufruf.
+Server (`ticket-mcp-node`), Go-Quellen, `scripts/ticket.sh` und das `tickets.*`-Schema
+sind entfernt. Ersatzwege:
 
-**Alle Tools (Go-SSOT — diese Liste deckt den Guardrail ab):**
-
-| Gruppe | Tools |
-|---|---|
-| List/Get | `list_tickets`, `get_ticket`, `export_tickets`, `backfill_ticket_id` |
-| Triage/Planning | `triage_ticket`, `set_plan_meta`, `set_readiness_flag`, `prepare_feature` |
-| Lifecycle | `transition_status`, `add_comment`, `update_fields` |
-| Workflow | `record_phase_event`, `record_grill_answers`, `stage_plan`, `create_ticket`, `enqueue_ticket`, `set_touched_files`, `get_attachments`, `archive_plan`, `add_pr_link` |
-| Mishap | `report_mishap`, `get_mishap_buffer`, `flush_mishap_buffer` |
-| Links/Timeline | `link_tickets`, `get_ticket_links`, `export_ticket_timeline` |
-
-> `create_ticket` gibt `external_id|uuid` zurück (Skills parsen `cut -d'|' -f1`). `record_phase_event`
-> ist positional (`phase <id> <phase> <state>`); `get_attachments` braucht `out_dir`; `archive_plan`
-> braucht `slug`+`branch`+`plan_file`. `report_mishap` akzeptiert `type ∈ {broken, degraded,
-> suspicious, security, drift, process}`.
-
-> **⚠ `stage_plan` und `archive_plan` funktionieren NICHT aus einem Worktree (T002256).**
-> Beide lösen den Plan-Pfad relativ zum **Haupt-Checkout** auf, wo der Change-Ordner nur auf
-> dem Branch existiert — nicht im Arbeitsverzeichnis des Aufrufers. Symptome trotz
-> vorhandener, nicht-leerer Datei im Worktree:
->
-> | Tool | Fehlermeldung |
-> |---|---|
-> | `stage_plan` | `... does not exist in git` |
-> | `archive_plan` | `plan file does not exist or is empty: .agents/plans/<slug>/tasks.md` |
->
-> **Regelweg aus einem Worktree ist das Skript** — nicht den MCP-Call debuggen:
->
-> ```bash
-> bash scripts/ticket.sh stage-plan   --id "$TICKET_ID" --branch "$BRANCH" --plan "$PLAN_FILE"
-> bash scripts/ticket.sh archive-plan --id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" \
->   --plan-file "$PLAN_FILE" --pr "$PR_NUM"
-> ```
->
-> Da `dev-flow-plan` und `dev-flow-execute` praktisch immer in `.worktrees/*` laufen, ist der
-> Skript-Aufruf für diese beiden Tools der Normalfall und der MCP-Call die Ausnahme. Aus dem
-> Haupt-Checkout heraus funktionieren beide MCP-Tools regulär.
+- Pläne stagen → `devflow-mcp plan_stage` (Commit+Push).
+- Ausstehende Arbeit → GitHub-Issues (`gh issue list/create`).
+- Worker-Sandboxes → `task devflow:sandbox` (Ticket-Feld optional).
+- Mishaps → lokal (`mishap-tracker`: stderr + `.mishaps.log`).
 
 ## `mcp-task-runner` — go-task-Ausführung + OTel
 
@@ -228,7 +177,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 - **Transport:** lokales Binary (`task-master-ai`), stdio.
 - **Tools:** `task_manager`, `add_task`, `update_task`, `list_tasks`.
 - **Wann bevorzugen:** Aufgabenverwaltung mit KI-Kontextanalyse.
-- **Fallback:** manuelle Notiz / Ticketsystem.
+- **Fallback:** manuelle Notiz / dev-flow-Skills.
 
 ## `playwright` — Browser-Automatisierung
 
@@ -326,7 +275,7 @@ Stdio-Server `~/mcp-servers/devflow/server.mjs`. Design: `.agents/plans/devflow-
   Merge auf `main` (`.githooks/post-merge`, 20 min Budget). Nur lokaler Cache, kein Sync nach
   `knowledge.*`. bge bettet seriell ein
   (~2,2 ms/Zeichen): der Erstlauf dauert Stunden und setzt am Checkpoint fort.
-- **Nicht:** exakte Textsuche (grep / `search_code` von codebase-memory), Ticket-Status (ticket-mcp).
+- **Nicht:** exakte Textsuche (grep / `search_code` von codebase-memory).
 
 ## `context7` — Bibliotheks-Dokumentation (Upstream-Docs)
 

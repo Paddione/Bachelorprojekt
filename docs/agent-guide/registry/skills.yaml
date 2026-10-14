@@ -303,69 +303,6 @@ skills:
         path: .agents/skills/security-specialist
         sync: identical
     exclusions: {}
-  - id: ticket-dispatch
-    provenance: project
-    exposure: portable
-    source: .agents/skills/ticket-dispatch
-    harnesses:
-      codex:
-        path: .agents/skills/ticket-dispatch
-        sync: identical
-      agy:
-        path: .agents/skills/ticket-dispatch
-        sync: identical
-      opencode:
-        path: .opencode/skills/ticket-dispatch
-        sync: identical
-      claude_code:
-        path: .claude/skills/ticket-dispatch
-        sync: identical
-      muse:
-        path: .agents/skills/ticket-dispatch
-        sync: identical
-    exclusions: {}
-  - id: ticket-ops
-    provenance: project
-    exposure: portable
-    source: .agents/skills/ticket-ops
-    harnesses:
-      codex:
-        path: .agents/skills/ticket-ops
-        sync: identical
-      agy:
-        path: .agents/skills/ticket-ops
-        sync: identical
-      opencode:
-        path: .opencode/skills/ticket-ops
-        sync: identical
-      claude_code:
-        path: .claude/skills/ticket-ops
-        sync: identical
-      muse:
-        path: .agents/skills/ticket-ops
-        sync: identical
-    exclusions: {}
-  - id: ticket-triage
-    provenance: project
-    exposure: portable
-    source: .agents/skills/ticket-triage
-    harnesses:
-      codex:
-        path: .agents/skills/ticket-triage
-        sync: identical
-      agy:
-        path: .agents/skills/ticket-triage
-        sync: identical
-      opencode:
-        path: .opencode/skills/ticket-triage
-        sync: identical
-      claude_code:
-        path: .claude/skills/ticket-triage
-        sync: identical
-      muse:
-        path: .agents/skills/ticket-triage
-        sync: identical
-    exclusions: {}
   - id: toolset-curate
     provenance: project
     exposure: portable
@@ -1031,21 +968,6 @@ skills:
       codex: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
       agy: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
       muse: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
-  - id: sdlc-autopilot
-    provenance: project
-    exposure: native
-    source: .opencode/skills/sdlc-autopilot
-    harnesses:
-      opencode:
-        path: .opencode/skills/sdlc-autopilot
-        sync: identical
-      claude_code:
-        path: .claude/skills/sdlc-autopilot
-        sync: identical
-    exclusions:
-      codex: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
-      agy: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
-      muse: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
   - id: skill-craft
     provenance: project
     exposure: native

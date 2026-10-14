@@ -323,6 +323,9 @@ metadata:
     app: knowledge
 spec:
   schedule: "0 2 * * *"
+  # Retiriert 2026-10-14: ingest-prs.mjs liest tickets.ticket_links (Schema dropped
+  # auf fleet + devmesh). Suspendiert wie knowledge-ingest-markdown.
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
@@ -442,6 +445,9 @@ metadata:
     app: knowledge
 spec:
   schedule: "0 3 * * *"
+  # Retiriert 2026-10-14: ingest-bug-tickets.mjs liest tickets.tickets (Schema dropped
+  # auf fleet + devmesh). Suspendiert wie knowledge-ingest-markdown.
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
@@ -517,6 +523,9 @@ metadata:
     app: knowledge
 spec:
   schedule: "0 4 * * 0"
+  # Retiriert 2026-10-14: ruft ingest-prs.mjs + ingest-bug-tickets.mjs auf
+  # (tickets.*-Schema dropped). Nur markdown-Blöcke wären noch lauffähig.
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3

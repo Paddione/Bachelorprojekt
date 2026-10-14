@@ -4,7 +4,7 @@ export const LEITSTAND_STATIONS = [
   'triage', 'planung', 'scout', 'design', 'plan', 'implement', 'verify', 'deploy', 'ship',
 ] as const;
 export type LeitstandStation = (typeof LEITSTAND_STATIONS)[number];
-export const LEITSTAND_DECKS = ['qualitaet', 'plattform', 'ki', 'wissen'] as const;
+export const LEITSTAND_DECKS = ['qualitaet', 'plattform', 'ki', 'wissen', 'agents'] as const;
 export type LeitstandDeck = (typeof LEITSTAND_DECKS)[number];
 
 function isStation(v: string): v is LeitstandStation { return (LEITSTAND_STATIONS as readonly string[]).includes(v); }

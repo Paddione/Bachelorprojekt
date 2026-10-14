@@ -14,17 +14,19 @@
   import DeckPlattform from './decks/DeckPlattform.svelte';
   import DeckKi from './decks/DeckKi.svelte';
   import DeckWissen from './decks/DeckWissen.svelte';
+  import DeckAgents from './decks/DeckAgents.svelte';
 
-  type DeckId = 'qualitaet' | 'plattform' | 'ki' | 'wissen';
+  type DeckId = 'qualitaet' | 'plattform' | 'ki' | 'wissen' | 'agents';
   const DECKS: { id: DeckId; label: string }[] = [
     { id: 'qualitaet', label: 'Qualität' },
     { id: 'plattform', label: 'Plattform' },
     { id: 'ki',        label: 'KI' },
     { id: 'wissen',    label: 'Wissen' },
+    { id: 'agents',    label: 'Agents' },
   ];
   const DEFAULT_DECK: DeckId = 'qualitaet';
   const isDeckId = (v: string | undefined): v is DeckId =>
-    v === 'qualitaet' || v === 'plattform' || v === 'ki' || v === 'wissen';
+    v === 'qualitaet' || v === 'plattform' || v === 'ki' || v === 'wissen' || v === 'agents';
 
   let { initialDeck }: { initialDeck?: string } = $props();
   let active = $state<DeckId>(isDeckId(initialDeck) ? initialDeck : DEFAULT_DECK);
@@ -162,6 +164,8 @@
       <DeckPlattform />
     {:else if active === 'ki'}
       <DeckKi />
+    {:else if active === 'agents'}
+      <DeckAgents />
     {:else}
       <DeckWissen />
     {/if}

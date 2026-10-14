@@ -102,6 +102,19 @@ class CommandResult:
 
 
 @pytest.fixture
+def mcp_sandbox(repo_root, tmp_path, run_cmd):
+    """Render owned MCP targets without reading or writing personal harness state."""
+    output = tmp_path / "mcp-output"
+    home = tmp_path / "mcp-home"
+    home.mkdir()
+    env = {"MCP_OUT_DIR": str(output), "HOME": str(home),
+           "BGE_MCP_TOKEN": "", "MCP_POSTGRES_TOKEN": ""}
+    result = run_cmd(["bash", str(repo_root / "scripts/mcp-sync.sh"), "render"], env=env)
+    result.check()
+    return env
+
+
+@pytest.fixture
 def run_cmd(repo_root: Path):
     """Fixture providing a helper to execute shell commands reliably."""
 

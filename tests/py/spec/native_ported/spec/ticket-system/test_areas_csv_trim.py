@@ -11,8 +11,8 @@ TESTROW_TITLE = "T004894 areas-csv-trim testrow"
 
 @pytest.fixture
 def ctx(repo_root, monkeypatch):
-    # [T900250] CTX spiegelt die Kontext-Aufloesung von scripts/ticket.sh (TICKET_CTX:-fleet).
-    context = os.environ.get("TICKET_CTX", "fleet")
+    # [T900250] CTX spiegelt die Kontext-Aufloesung von scripts/ticket.sh (TICKET_CTX:-devmesh).
+    context = os.environ.get("TICKET_CTX", "devmesh")
     # [T002871] Opt-in: biegt den T002224-Guard in _ticket-core.sh auf den Dev-Kontext.
     monkeypatch.setenv("TICKET_TEST_DB_OK", "1")
     return {"repo": repo_root, "ctx": context}
@@ -107,7 +107,7 @@ def test_t004894_create_trims_comma_separated_areas_items(ctx, run_cmd):
 
 
 def test_t900250_teardown_actually_deletes_the_testrow_from_the_db_ticket_sh_wrote_to(ctx, run_cmd):
-    real_ctx = os.environ.get("TICKET_CTX", "fleet")
+    real_ctx = os.environ.get("TICKET_CTX", "devmesh")
     if run_cmd(["kubectl", "--context", real_ctx, "get", "nodes"]).returncode != 0:
         pytest.skip(f"k3d-Cluster nicht erreichbar ({real_ctx})")
     repo = ctx["repo"]

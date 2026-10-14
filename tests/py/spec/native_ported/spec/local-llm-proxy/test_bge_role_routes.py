@@ -57,13 +57,17 @@ def _header_lines(resp):
 
 def _assert_role_route(run_cmd, proxy_url, path, payload):
     res = run_cmd([
-        "curl", "-s", "-D", "-", "-o", "/dev/null", "--max-time", "60",
+        "curl", "-s", "-D", "-", "--max-time", "60",
         "-X", "POST", f"{proxy_url}{path}", "-H", "Content-Type: application/json", "-d", payload,
     ])
     assert res.returncode == 0
     resp = res.stdout
     http_lines = [l for l in _header_lines(resp) if re.match(r"(?i)^HTTP/", l)]
     assert http_lines, "keine HTTP-Statuszeile"
+    if " 503" in http_lines[-1] and "bge_chain_exhausted" in resp:
+        pytest.skip(
+            f"kein bge-Backend der Kette fuer {path} erreichbar (alle Glieder down) — "
+            "misst die Host-Ausstattung, nicht die Route")
     assert " 200" in http_lines[-1], http_lines[-1]
     upstream = []
     for line in _header_lines(resp):

@@ -18,12 +18,15 @@ def ctx(repo_root: Path, run_cmd, tmp_path):
         pytest.skip("repo-hygiene-precheck.sh fehlt")
     if not health.is_file():
         pytest.skip("git-worktree-health.sh fehlt")
-    yield {"repo": repo_root, "precheck": precheck, "health": health, "run": run_cmd, "tmp": tmp_path}
-    probe = repo_root / ".worktrees" / PROBE_DIR
-    try:
-        probe.rmdir()
-    except OSError:
-        pass
+    isolated = tmp_path / "repository"
+    isolated.mkdir()
+    run_cmd(["git", "init", str(isolated)]).check()
+    run_cmd(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+             "-c", "core.hooksPath=/dev/null", "commit", "--allow-empty", "-m", "test: fixture"],
+            cwd=isolated).check()
+    worktree = isolated / ".worktrees" / "registered"
+    run_cmd(["git", "worktree", "add", "--detach", str(worktree)], cwd=isolated).check()
+    yield {"repo": isolated, "precheck": precheck, "health": health, "run": run_cmd, "tmp": tmp_path}
 
 
 def _precheck_with_lock(c, lock: Path):
@@ -65,7 +68,7 @@ def test_t900061_registered_worktrees_are_not_reported_as_orphans(ctx):
     if registered == 0:
         pytest.skip("keine registrierten Worktrees unter .worktrees/")
 
-    res = ctx["run"](["bash", str(ctx["health"]), "orphans"])
+    res = ctx["run"](["bash", str(ctx["health"]), "orphans"], cwd=ctx["repo"])
     assert res.returncode == 0, res.output
     assert "keine Orphan-Worktrees gefunden" in res.output
 
@@ -73,7 +76,7 @@ def test_t900061_registered_worktrees_are_not_reported_as_orphans(ctx):
 def test_t900061_unregistered_directory_is_reported_as_orphan(ctx):
     probe = ctx["repo"] / ".worktrees" / PROBE_DIR
     probe.mkdir(parents=True, exist_ok=True)
-    res = ctx["run"](["bash", str(ctx["health"]), "orphans"])
+    res = ctx["run"](["bash", str(ctx["health"]), "orphans"], cwd=ctx["repo"])
     assert res.returncode == 1, res.output
     assert "ORPHAN-WORKTREE" in res.output
     assert PROBE_DIR in res.output

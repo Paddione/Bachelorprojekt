@@ -17,7 +17,7 @@ def bf(repo_root, monkeypatch):
         "repo": repo_root,
         "scripts": repo_root / "scripts" / "vda" / "ticket",
         "migrations": repo_root / "components" / "website" / "src" / "lib" / "tickets" / "migrations.ts",
-        "ctx": os.environ.get("TICKET_CTX", "fleet"),
+        "ctx": os.environ.get("TICKET_CTX", "devmesh"),
     }
 
 

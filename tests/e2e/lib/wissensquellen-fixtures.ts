@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { assertAuthenticatedReachable } from './health-assertions';
 
 export const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
@@ -38,6 +38,24 @@ export async function assertWissensquellenReachable(request: any, testInfo: any)
     { acceptableStatuses: [200, 302, 401], label: 'admin wissen' },
     testInfo
   );
+
+  // T016560: In Prod (plain Postgres without pgvector), vector store is disabled (VECTOR_DB_ENABLED != 1).
+  // Check if collections API returns 503, 404, or redirects to 404; skip tests gracefully if so.
+  const CRON_SECRET = process.env.CRON_SECRET ?? '';
+  const token = encodeURIComponent(CRON_SECRET);
+  const probe = await request.get(
+    `${BASE}/api/admin/knowledge/collections`,
+    { headers: { Authorization: `Bearer ${token}` }, maxRedirects: 0 }
+  ).catch(() => null);
+
+  if (
+    probe &&
+    (probe.status() === 503 ||
+      probe.status() === 404 ||
+      (probe.status() === 302 && probe.headers()['location']?.includes('404')))
+  ) {
+    test.skip(true, 'Wissensquellen / vector store is disabled on this environment (T016560)');
+  }
 }
 
 export class WissensquellenPage {

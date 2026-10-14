@@ -241,63 +241,71 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
   // search across ticket content. bge-m3 produces 1024-dimensional vectors.
   // chunk_type classifies the embedded content: summary (title+desc), spec
   // (design docs), decision (architectural choices), lesson (post-mortem).
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS tickets.ticket_embeddings (
-      id            BIGSERIAL PRIMARY KEY,
-      ticket_id     UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
-      chunk         TEXT NOT NULL,
-      chunk_type    TEXT NOT NULL DEFAULT 'summary'
-                    CHECK (chunk_type IN ('summary','spec','decision','lesson')),
-      embedding     VECTOR(1024),
-      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
-  await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_ticket_idx ON tickets.ticket_embeddings (ticket_id)`);
-  await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_chunk_type_idx ON tickets.ticket_embeddings (chunk_type)`);
+  // T016560: guarded by pgvector type existence because prod shared-db runs plain Postgres.
+  const hasVector = await pool
+    .query(`SELECT 1 FROM pg_type WHERE typname = 'vector'`)
+    .then((r) => (r.rowCount ?? 0) > 0)
+    .catch(() => false);
 
-  // Phase 1: tag each embedding row with the model that
-  // produced it. T016562: nur noch bge-m3 (Voyage-Bestand wird per Reindex
-  // umgestellt). Vektor spaces sind NICHT mischbar — search MUST never
-  // compare across models (see findSimilarTickets / MixedEmbeddingModelError).
-  await pool.query(`ALTER TABLE tickets.ticket_embeddings ADD COLUMN IF NOT EXISTS embedding_model TEXT`);
+  if (hasVector) {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tickets.ticket_embeddings (
+        id            BIGSERIAL PRIMARY KEY,
+        ticket_id     UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
+        chunk         TEXT NOT NULL,
+        chunk_type    TEXT NOT NULL DEFAULT 'summary'
+                      CHECK (chunk_type IN ('summary','spec','decision','lesson')),
+        embedding     VECTOR(1024),
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_ticket_idx ON tickets.ticket_embeddings (ticket_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_chunk_type_idx ON tickets.ticket_embeddings (chunk_type)`);
 
-  // HNSW index for cosine similarity search. bge-m3 embeddings should be
-  // normalized before storage so cosine distance is meaningful.
-  // m=16, ef_construction=64 are sane defaults for up to ~100k embeddings.
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS ticket_embeddings_hnsw_idx
-      ON tickets.ticket_embeddings
-      USING hnsw (embedding vector_cosine_ops)
-      WITH (m = 16, ef_construction = 64)
-  `);
+    // Phase 1: tag each embedding row with the model that
+    // produced it. T016562: nur noch bge-m3 (Voyage-Bestand wird per Reindex
+    // umgestellt). Vektor spaces sind NICHT mischbar — search MUST never
+    // compare across models (see findSimilarTickets / MixedEmbeddingModelError).
+    await pool.query(`ALTER TABLE tickets.ticket_embeddings ADD COLUMN IF NOT EXISTS embedding_model TEXT`);
 
-  // Helper function for semantic similarity search.
-  // Usage: SELECT * FROM tickets.fn_find_similar(query_embedding, 5);
-  await pool.query(`
-    CREATE OR REPLACE FUNCTION tickets.fn_find_similar(
-      query_embedding VECTOR(1024),
-      limit_count INTEGER DEFAULT 5
-    ) RETURNS TABLE(
-      ticket_id UUID,
-      external_id TEXT,
-      chunk TEXT,
-      chunk_type TEXT,
-      similarity DOUBLE PRECISION
-    ) AS $$
-    BEGIN
-      RETURN QUERY
-      SELECT
-        te.ticket_id,
-        t.external_id,
-        te.chunk,
-        te.chunk_type,
-        (1 - (te.embedding <=> query_embedding))::DOUBLE PRECISION AS similarity
-      FROM tickets.ticket_embeddings te
-      JOIN tickets.tickets t ON t.id = te.ticket_id
-      ORDER BY te.embedding <=> query_embedding
-      LIMIT limit_count;
-    END $$ LANGUAGE plpgsql STABLE
-  `);
+    // HNSW index for cosine similarity search. bge-m3 embeddings should be
+    // normalized before storage so cosine distance is meaningful.
+    // m=16, ef_construction=64 are sane defaults for up to ~100k embeddings.
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS ticket_embeddings_hnsw_idx
+        ON tickets.ticket_embeddings
+        USING hnsw (embedding vector_cosine_ops)
+        WITH (m = 16, ef_construction = 64)
+    `);
+
+    // Helper function for semantic similarity search.
+    // Usage: SELECT * FROM tickets.fn_find_similar(query_embedding, 5);
+    await pool.query(`
+      CREATE OR REPLACE FUNCTION tickets.fn_find_similar(
+        query_embedding VECTOR(1024),
+        limit_count INTEGER DEFAULT 5
+      ) RETURNS TABLE(
+        ticket_id UUID,
+        external_id TEXT,
+        chunk TEXT,
+        chunk_type TEXT,
+        similarity DOUBLE PRECISION
+      ) AS $$
+      BEGIN
+        RETURN QUERY
+        SELECT
+          te.ticket_id,
+          t.external_id,
+          te.chunk,
+          te.chunk_type,
+          (1 - (te.embedding <=> query_embedding))::DOUBLE PRECISION AS similarity
+        FROM tickets.ticket_embeddings te
+        JOIN tickets.tickets t ON t.id = te.ticket_id
+        ORDER BY te.embedding <=> query_embedding
+        LIMIT limit_count;
+      END $$ LANGUAGE plpgsql STABLE
+    `);
+  }
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.ticket_watchers (

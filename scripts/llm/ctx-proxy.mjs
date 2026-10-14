@@ -65,6 +65,7 @@ function serve() {
               system_chars: msgs.filter((m) => m.role === 'system').reduce((a, m) => a + text(m).length, 0),
               total_chars: msgs.reduce((a, m) => a + text(m).length, 0),
               tools: Array.isArray(j.tools) ? j.tools.length : 0,
+              max_tokens: j.max_tokens ?? j.max_completion_tokens ?? null,
               tools_chars: Array.isArray(j.tools) ? JSON.stringify(j.tools).length : 0,
             };
             body = Buffer.from(JSON.stringify(j));
@@ -118,6 +119,8 @@ function serve() {
                   completion_tokens: usage?.completion_tokens ?? null,
                   finish_reason: finish,
                   tool_calls: toolCalls,
+                  // Bei Fehlern die Antwort des Servers festhalten (z. B. Kontextueberlauf).
+                  error: ur.statusCode >= 400 ? buf.slice(0, 500) : undefined,
                 })}\n`,
               );
             });

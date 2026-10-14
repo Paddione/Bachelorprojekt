@@ -3,6 +3,10 @@
 # wie viel Kontext schickt jeder Harness, und loest er die Aufgabe?
 #
 # Varianten:
+#   pi-L0 .. pi-L2     pi (@mariozechner/pi-coding-agent, Node) direkt, gleiche
+#                      Stufen wie omp-run.sh: L0 read/write/edit/bash, L1 +
+#                      .omp/context.md, L2 + grep/find/ls; ohne Kontextdateien,
+#                      Skills, Extensions, Prompt-Templates
 #   omp-L0 .. omp-L3   scripts/omp-run.sh mit der jeweiligen Kontextstufe
 #   opencode           opencode run --agent plan-worker-vllm (wie der plan-runner)
 #
@@ -13,7 +17,7 @@
 # weichen sie von der Proxy-Summe ab, ist Verkehr am Proxy vorbeigegangen.
 #
 # Aufruf:
-#   scripts/llm/harness-ctx-compare.sh [--ref <git-ref>] [--variants omp-L0,omp-L1,omp-L2,opencode]
+#   scripts/llm/harness-ctx-compare.sh [--ref <git-ref>] [--variants pi-L0,pi-L1,pi-L2,opencode]
 #     [--reps 1] [--upstream http://127.0.0.1:8123] [--proxy-port 8124]
 #     [--timeout 900] [--out <verzeichnis>]
 #
@@ -23,7 +27,7 @@
 set -euo pipefail
 
 REF="HEAD"
-VARIANTS="omp-L0,omp-L1,omp-L2,opencode"
+VARIANTS="pi-L0,pi-L1,pi-L2,opencode"
 REPS=1
 UPSTREAM="http://127.0.0.1:8123"
 PROXY_PORT=8124
@@ -53,6 +57,11 @@ git cat-file -e "$SHA:$FIX/task.md" 2>/dev/null || { echo "FEHLER: $FIX/task.md 
 OUT="${OUT:-$HOME/harness-ctx-runs/$(date +%Y%m%dT%H%M%S)}"
 mkdir -p "$OUT"
 LOG="$OUT/requests.jsonl"
+# Ein schon benutztes Verzeichnis wuerde an alte Protokolle anhaengen und die
+# Zaehlung je Label verfaelschen (gleiche Labels aus einem frueheren Aufruf).
+if [ -e "$LOG" ] || [ -e "$OUT/results.jsonl" ]; then
+  echo "FEHLER: $OUT enthaelt schon eine Messung — neues --out waehlen" >&2; exit 1
+fi
 RESULTS="$OUT/results.jsonl"
 git show "$SHA:scripts/llm/ctx-proxy.mjs" > "$OUT/ctx-proxy.mjs"
 git show "$SHA:$FIX/task.md" > "$OUT/task.md"
@@ -69,6 +78,9 @@ running="$(curl -sf --max-time 5 "$UPSTREAM/metrics" | awk '/^vllm:num_requests_
 # Fehlende Harness-Binaries vor dem ersten Lauf melden, nicht als leere Messung
 # durchlaufen lassen.
 case ",$VARIANTS," in
+  *,pi-L*) command -v pi >/dev/null || { echo "FEHLER: pi fehlt (npm install -g @mariozechner/pi-coding-agent@0.73.1) — oder pi-Varianten aus --variants nehmen" >&2; exit 2; } ;;
+esac
+case ",$VARIANTS," in
   *,omp-L*) command -v omp >/dev/null || { echo "FEHLER: omp fehlt (task omp:install) — oder omp-Varianten aus --variants nehmen" >&2; exit 2; } ;;
 esac
 case ",$VARIANTS," in
@@ -79,6 +91,7 @@ esac
   echo "ref: $REF ($SHA)"
   echo "upstream: $UPSTREAM"
   curl -sf --max-time 5 "$UPSTREAM/v1/models" | jq -c '.data[] | {id, max_model_len}'
+  command -v pi >/dev/null && echo "pi: $(pi --version 2>&1 | head -1)" || echo "pi: nicht installiert"
   command -v omp >/dev/null && echo "omp: $(omp --version 2>&1 | head -1)" || echo "omp: nicht installiert"
   command -v opencode >/dev/null && echo "opencode: $(opencode --version 2>&1 | head -1)" || echo "opencode: nicht installiert"
 } | tee "$OUT/env.txt"
@@ -95,6 +108,21 @@ for _ in $(seq 1 50); do curl -sf --max-time 1 "$PROXY/v1/models" >/dev/null && 
 curl -sf --max-time 2 "$PROXY/v1/models" >/dev/null || { echo "FEHLER: Proxy startet nicht, siehe $OUT/proxy.err" >&2; exit 2; }
 
 TASK_PROMPT="$(cat "$OUT/task.md")"
+MODEL_ID="$(curl -sf --max-time 5 "$UPSTREAM/v1/models" | jq -r '.data[0].id')"
+MODEL_CTX="$(curl -sf --max-time 5 "$UPSTREAM/v1/models" | jq -r '.data[0].max_model_len // empty')"
+
+# pi bekommt je Lauf ein eigenes Agent-Verzeichnis mit genau einem Provider
+# (dem Proxy) — keine Nutzer-Config, keine Sessions, keine Update-Checks.
+pi_agent_dir() {
+  local dir; dir="$(mktemp -d "${TMPDIR:-/tmp}/harness-ctx-pi-XXXXXX")"
+  jq -n --arg base "$PROXY/v1" --arg id "$MODEL_ID" --arg ctx "$MODEL_CTX" '
+    { providers: { ctxproxy: {
+        baseUrl: $base, api: "openai-completions", apiKey: "local",
+        compat: { supportsDeveloperRole: false, supportsReasoningEffort: false },
+        models: [ { id: $id } + (if $ctx == "" then {} else { contextWindow: ($ctx | tonumber) } end) ] } } }' \
+    > "$dir/models.json"
+  printf '%s' "$dir"
+}
 
 for rep in $(seq 1 "$REPS"); do
   for variant in ${VARIANTS//,/ }; do
@@ -108,6 +136,18 @@ for rep in $(seq 1 "$REPS"); do
     t0="$(date +%s)"
     set +e
     case "$variant" in
+      pi-L[0-2])
+        level="${variant#pi-}"
+        tools="read,write,edit,bash"; [ "$level" = "L2" ] && tools="$tools,grep,find,ls"
+        extra=(); [ "$level" != "L0" ] && extra=(--append-system-prompt "$(cat "$wt/.omp/context.md")")
+        pidir="$(pi_agent_dir)"
+        ( cd "$wt" && PI_CODING_AGENT_DIR="$pidir" PI_OFFLINE=1 timeout "$TIMEOUT" \
+            pi --mode json --no-session --no-context-files --no-extensions --no-skills \
+              --no-prompt-templates --no-themes --tools "$tools" "${extra[@]}" \
+              --provider ctxproxy --model "$MODEL_ID" "$TASK_PROMPT" ) \
+          > "$OUT/$label.out" 2>&1
+        rm -rf "$pidir"
+        ;;
       omp-L[0-3])
         # omp-run.sh haengt /v1 selbst an — Basis-URL ohne /v1.
         ( cd "$wt" && OMP_LOCAL_BASE_URL="$PROXY" timeout "$TIMEOUT" \

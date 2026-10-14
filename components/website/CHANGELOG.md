@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.421.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.420.0...website-v1.421.0) (2026-10-14)
+
+
+### Features
+
+* **website:** agents deck panel with live agents overview [T016600] ([#6644](https://github.com/Paddione/Bachelorprojekt/issues/6644)) ([4149ae4](https://github.com/Paddione/Bachelorprojekt/commit/4149ae47590c04c0b643d5aafd6fac4f5709ba5e))
+
+
+### Bug Fixes
+
+* **test:** fix e2e test regressions and ticket_links constraint [T016607] ([#6649](https://github.com/Paddione/Bachelorprojekt/issues/6649)) ([1fd9972](https://github.com/Paddione/Bachelorprojekt/commit/1fd9972d0942ab5b4e306c18d0ed129c316bf7ac))
+
 ## [1.420.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.419.2...website-v1.420.0) (2026-10-13)
 
 

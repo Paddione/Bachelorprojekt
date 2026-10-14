@@ -54,22 +54,22 @@ Neue Tests und Helper bleiben weit unter 80 Prozent der Grenze. Keine Baseline- 
 
 ## Task 1 — Regressionen als Rotphase sichern
 
-- [ ] Ausführende Tests auf null target, le/ge/eq, unknown/nonfinite, gespeichertes Falschgrün, Snapshot und Prozessfehler überprüfen.
-- [ ] Rotphase wiederholen (expected: FAIL):
+- [x] Ausführende Tests auf null target, le/ge/eq, unknown/nonfinite, gespeichertes Falschgrün, Snapshot und Prozessfehler überprüfen.
+- [x] Rotphase wiederholen (expected: FAIL):
   ```bash
   python3 -m pytest tests/py/spec/health-goals/test_health_pipeline_integrity.py tests/py/spec/health-goals/test_quality_db_schema.py -q
   pnpm --dir components/website exec vitest run src/lib/sdlc/goals-data.test.ts src/lib/sdlc/goals-data-db.test.ts src/lib/sdlc/health-goals-rescan.test.ts
   ```
-- [ ] Belege: Daemon 8 failed/3 passed, Seed 1 failed/4 passed; Vitest 12 failed/15 passed. Assertions prüfen tatsächlich ausgeführte Ergebnisse und extern ausgegebenes SQL.
-- [ ] Breiten Defaultscan anhand vollständiger IDs verifizieren; Seed-Idempotenz durch zweimaliges Ausführen ergänzen. Historische Evidenz darf keine frische Messzeit bekommen. Keine beliebige TTL erfinden.
+- [x] Belege: Daemon 8 failed/3 passed, Seed 1 failed/4 passed; Vitest 12 failed/15 passed. Assertions prüfen tatsächlich ausgeführte Ergebnisse und extern ausgegebenes SQL.
+- [x] Breiten Defaultscan anhand vollständiger IDs verifizieren; Seed-Idempotenz durch zweimaliges Ausführen ergänzen. Historische Evidenz darf keine frische Messzeit bekommen. Keine beliebige TTL erfinden.
 
 ## Task 2 — Einheitliche Bewertung und ehrliche Datenquelle
 
-- [ ] Pure Evaluation extrahieren, endliche Werte validieren, Nullziele und Vergleichsrichtung beachten. Gleichheit aus Scan-Ergebnis explizit behandeln; DB-Definitionen lower/higher nicht still umdeuten.
-- [ ] Gespeicherter Status überstimmt Zahlen nicht. Baseline=Ziel plus Regression ergibt critical/0. Fehlende Evidenz bleibt unknown/null.
-- [ ] DB, generierte Ziele und Snapshot denselben Regeln unterwerfen; ursprüngliche Messzeit und Quelle erhalten.
-- [ ] Zwei bestehende Tests mit ungültiger Annahme „cached achieved ohne Zahlen=100“ gezielt korrigieren; gültige Grenzfälle erhalten.
-- [ ] Gezielte Vitest-Tests grün; zusätzlich le/ge/eq- und missing-baseline-Fälle am neuen Helper.
+- [x] Pure Evaluation extrahieren, endliche Werte validieren, Nullziele und Vergleichsrichtung beachten. Gleichheit aus Scan-Ergebnis explizit behandeln; DB-Definitionen lower/higher nicht still umdeuten.
+- [x] Gespeicherter Status überstimmt Zahlen nicht. Baseline=Ziel plus Regression ergibt critical/0. Fehlende Evidenz bleibt unknown/null.
+- [x] DB, generierte Ziele und Snapshot denselben Regeln unterwerfen; ursprüngliche Messzeit und Quelle erhalten.
+- [x] Zwei bestehende Tests mit ungültiger Annahme „cached achieved ohne Zahlen=100“ gezielt korrigieren; gültige Grenzfälle erhalten.
+- [x] Gezielte Vitest-Tests grün; zusätzlich le/ge/eq- und missing-baseline-Fälle am neuen Helper.
 
 ## Task 3 — Messung, Persistenz und Seed reparieren
 

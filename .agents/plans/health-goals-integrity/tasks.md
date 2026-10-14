@@ -92,12 +92,12 @@ Neue Tests und Helper bleiben weit unter 80 Prozent der Grenze. Keine Baseline- 
 
 ## Task 5 — Gesamtlage prüfen und Verify
 
-- [ ] Unveränderten Vollscan reproduzieren und vor/nach gegenüberstellen: 122 Ziele, keine weggefilterten Verstöße. Restliche SKIP-Gründe und Gate-Verstöße mit Messbefehl und Commitstand dokumentieren; Änderungen an Infrastruktur nur innerhalb vorhandener Autorisierung.
-- [ ] Test-Inventar regenerieren:
+- [x] Unveränderten Vollscan reproduzieren und vor/nach gegenüberstellen: 122 Ziele, keine weggefilterten Verstöße. Restliche SKIP-Gründe und Gate-Verstöße mit Messbefehl und Commitstand dokumentieren; Änderungen an Infrastruktur nur innerhalb vorhandener Autorisierung.
+- [x] Test-Inventar regenerieren:
   ```bash
   task test:inventory
   ```
-- [ ] Gezielte Tests und Pflichtgates:
+- [x] Gezielte Tests und Pflichtgates:
   ```bash
   python3 -m pytest tests/py/spec/health-goals/ -q
   pnpm --dir components/website exec vitest run src/lib/sdlc/goals-data.test.ts src/lib/sdlc/goals-data-db.test.ts src/lib/sdlc/health-goals-rescan.test.ts src/lib/sdlc/health-scan.test.ts

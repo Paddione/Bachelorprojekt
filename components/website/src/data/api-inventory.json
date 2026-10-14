@@ -250,6 +250,19 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/cockpit-serving",
+      "file": "cockpit-serving.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/cockpit/actions",
       "file": "cockpit/actions.ts",
       "methods": [

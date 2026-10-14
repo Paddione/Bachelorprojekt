@@ -129,3 +129,15 @@ describe('goals-data: generated JSON integration', () => {
     }
   });
 });
+
+describe('healthPercent evidence regressions', () => {
+  it('returns zero for a regression from a satisfied zero baseline', () => {
+    expect(healthPercent(makeGoal({ current: 5, target: 0, baseline: 0 }))).toBe(0);
+  });
+  it('does not trust stale green over current numeric evidence', () => {
+    expect(healthPercent(makeGoal({ status: 'achieved', current: 5, target: 0, baseline: 0 }))).toBe(0);
+  });
+  it('does not report green for unknown current with cached achieved status', () => {
+    expect(healthPercent(makeGoal({ status: 'achieved', current: null }))).toBeNull();
+  });
+});

@@ -4638,12 +4638,6 @@
     "kind": "pytest"
   },
   {
-    "id": "mcp-gateway/node-mcp-server-startup",
-    "file": "tests/py/spec/native_ported/spec/mcp-gateway/test_node_mcp_server_startup.py",
-    "category": "mcp-gateway",
-    "kind": "pytest"
-  },
-  {
     "id": "mcp-gateway/opencode-env-placeholder",
     "file": "tests/py/spec/native_ported/spec/mcp-gateway/test_opencode_env_placeholder.py",
     "category": "mcp-gateway",
@@ -4784,12 +4778,6 @@
   {
     "id": "mishap-tracking/dedupe-korpus",
     "file": "tests/py/spec/native_ported/spec/mishap-tracking/test_dedupe_korpus.py",
-    "category": "mishap-tracking",
-    "kind": "pytest"
-  },
-  {
-    "id": "mishap-tracking/go-tests-registriert",
-    "file": "tests/py/spec/native_ported/spec/mishap-tracking/test_go_tests_registriert.py",
     "category": "mishap-tracking",
     "kind": "pytest"
   },

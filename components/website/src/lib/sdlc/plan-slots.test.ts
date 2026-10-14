@@ -37,12 +37,12 @@ describe('maxFrontierWidth', () => {
 });
 
 describe('autoSlots', () => {
-  it('füllt 4B zuerst, vLLM bleibt bei schmalen Plänen aus', () => {
-    expect(autoSlots(parseManifestPartials(MANIFEST))).toEqual({ width: 3, slots4b: 3, slotsVllm: 0 });
+  it('füllt Direkt zuerst, Cloud bleibt bei schmalen Plänen aus', () => {
+    expect(autoSlots(parseManifestPartials(MANIFEST))).toEqual({ width: 3, slotsDirect: 3, slotsCloud: 0 });
   });
 
-  it('deckelt 4B bei 3 und gibt den Rest an vLLM (Cap 10)', () => {
+  it('deckelt Direkt bei 3 und gibt den Rest an Cloud (Cap 3)', () => {
     const rows = Array.from({ length: 25 }, (_, i) => ({ id: `w${i}`, dependsOn: [] as string[] }));
-    expect(autoSlots(rows)).toEqual({ width: 25, slots4b: 3, slotsVllm: 10 });
+    expect(autoSlots(rows)).toEqual({ width: 25, slotsDirect: 3, slotsCloud: 3 });
   });
 });

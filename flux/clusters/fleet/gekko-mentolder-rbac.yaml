@@ -1,0 +1,96 @@
+# Mandant fuer die aus gekko32/mentolder-prod synchronisierten Flux-Definitionen.
+#
+# - Namespace gekko-mentolder: dort liegen OCIRepository und Kustomizations des Gekko-Repos.
+# - gekko-mentolder-flux (flux-system): Identitaet der Stufe 1 (ks-gekko-mentolder). Darf nur
+#   OCIRepository und Kustomization im Namespace gekko-mentolder verwalten, nichts in flux-system.
+# - gekko-mentolder-deploy: Identitaet der Workload-Stufe, volle Rechte (cluster-admin). Das Artefakt
+#   enthaelt ClusterRoles, ClusterRoleBindings, CRDs, Webhooks und kube-system-Objekte, ein
+#   engerer Zuschnitt waere nur Schein. Die Rechte sind aber von den Controller-Rechten getrennt.
+# - ValidatingAdmissionPolicy: jede Kustomization im Namespace muss als gekko-mentolder-deploy laufen,
+#   nie als kustomize-controller (kein serviceAccountName = Controller-Rechte).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gekko-mentolder
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gekko-mentolder-flux
+  namespace: flux-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gekko-mentolder-flux
+  namespace: gekko-mentolder
+rules:
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["ocirepositories"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: ["kustomizations"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gekko-mentolder-flux
+  namespace: gekko-mentolder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gekko-mentolder-flux
+subjects:
+  - kind: ServiceAccount
+    name: gekko-mentolder-flux
+    namespace: flux-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gekko-mentolder-deploy
+  namespace: gekko-mentolder
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gekko-mentolder-deploy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: gekko-mentolder-deploy
+    namespace: gekko-mentolder
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: gekko-mentolder-kustomization-identity
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["kustomizations"]
+  validations:
+    - expression: "has(object.spec.serviceAccountName) && object.spec.serviceAccountName == 'gekko-mentolder-deploy'"
+      message: "Kustomizations in gekko-mentolder muessen spec.serviceAccountName=gekko-mentolder-deploy setzen."
+    - expression: "!has(object.spec.kubeConfig)"
+      message: "spec.kubeConfig ist in gekko-mentolder nicht erlaubt."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: gekko-mentolder-kustomization-identity
+spec:
+  policyName: gekko-mentolder-kustomization-identity
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: gekko-mentolder

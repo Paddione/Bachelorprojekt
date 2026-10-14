@@ -1,0 +1,20 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gekko-mentolder-flux
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  sourceRef:
+    kind: GitRepository
+    name: gekko-mentolder-prod
+  path: ./flux
+  # Legt OCIRepository/Kustomizations nur im Namespace gekko-mentolder an (gekko-mentolder-rbac.yaml).
+  targetNamespace: gekko-mentolder
+  serviceAccountName: gekko-mentolder-flux
+  # Kein Prune: ein versehentlich entferntes Objekt im Gekko-Repo darf keine Prod-Kustomization
+  # (und damit deren Workloads) loeschen.
+  prune: false
+  wait: false

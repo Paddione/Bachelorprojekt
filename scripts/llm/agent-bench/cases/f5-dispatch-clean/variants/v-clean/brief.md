@@ -6,7 +6,7 @@ Dateien sind unabhaengig — keine Reihenfolge noetig, keine Datei gehoert zu
 zwei Partials.
 
 Arbeite als Orchestrator mit zwei Worker-Slots: Delegiere jedes Partial an
-einen Worker (`dispatch_4b`). Fuehre nichts selbst aus, solange ein Slot frei
+einen Worker (`dispatch_cloud`). Fuehre nichts selbst aus, solange ein Slot frei
 ist. Markiere ein Partial erst `done`, wenn sein Ergebnis vorliegt, und
 schliesse erst ab, wenn alle drei `done` sind und die Checks gruen sind.
 

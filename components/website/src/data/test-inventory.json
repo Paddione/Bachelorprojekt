@@ -4848,6 +4848,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/llm-local-dev/plan_runner_direct_worker",
+    "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_plan_runner_direct_worker.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/local-dev-mesh/lan_dns",
     "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_lan_dns.py",
     "category": "native_ported",

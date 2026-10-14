@@ -1,4 +1,4 @@
-"""Native migration of tests/spec/llm-local-dev/plan-runner.bats."""
+"""Native migration of tests/spec/llm-local-dev/plan-runner.bats (T016656: Tracks direct/cloud/self)."""
 
 import json
 import socket
@@ -44,10 +44,12 @@ class Runner:
         self.wt.mkdir()
         monkeypatch.setenv("PLAN_RUNNER_OPENCODE", str(self.fix / "plan-runner-fake-opencode.sh"))
         monkeypatch.setenv("FAKE_OPENCODE_LOG", str(tmp / "opencode.log"))
-        # Hermetisch: ohne Override degradiert der vLLM-Preflight auf 0 Slots
-        # (Port 9 ist praktisch nie offen); Tests mit vLLM setzen PLAN_RUNNER_VLLM_URL um.
-        monkeypatch.setenv("PLAN_RUNNER_VLLM_URL", "http://127.0.0.1:9")
-        monkeypatch.setenv("FAKE_SLEEP_4B", "0")
+        # Hermetisch: ohne Override degradieren die Preflights auf 0 Slots bzw. "kein Self"
+        # (Port 9 ist praktisch nie offen); Tests mit Direkt-Worker setzen PLAN_RUNNER_DIRECT_URL um,
+        # start_orch zeigt PLAN_RUNNER_SELF_URL auf den Fake-Orchestrator (Self-Track verfuegbar).
+        monkeypatch.setenv("PLAN_RUNNER_DIRECT_URL", "http://127.0.0.1:9")
+        monkeypatch.setenv("PLAN_RUNNER_SELF_URL", "http://127.0.0.1:9")
+        monkeypatch.setenv("FAKE_SLEEP_CLOUD", "0")
         monkeypatch.setenv("FAKE_SLEEP_SELF", "0")
         (tmp / "opencode.log").write_text("")
         (tmp / "requests.log").write_text("")
@@ -82,6 +84,8 @@ class Runner:
         )
         url = f"http://127.0.0.1:{port}"
         self.monkeypatch.setenv("PLAN_RUNNER_ORCH_URL", url)
+        self.monkeypatch.setenv("PLAN_RUNNER_SELF_URL", url)
+        self.url = url
         for _ in range(50):
             try:
                 with urllib.request.urlopen(f"{url}/health", timeout=2) as resp:
@@ -119,22 +123,22 @@ def pr(repo_root, tmp_path, monkeypatch):
 def test_partials_run_in_dependency_order(pr, run_cmd):
     pr.make_change("p1:", "p2:p1")
     pr.start_orch(json.dumps([
-        {"name": "dispatch_4b", "args": {"partial_id": "p2", "prompt": "too early"}},
-        {"name": "dispatch_4b", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p2", "prompt": "too early"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
         {"name": "wait_event", "args": {}},
         {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
-        {"name": "dispatch_4b", "args": {"partial_id": "p2", "prompt": "go"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p2", "prompt": "go"}},
         {"name": "wait_event", "args": {}},
         {"name": "mark", "args": {"partial_id": "p2", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "all done"}},
     ]))
-    res = pr.run_runner(run_cmd, "--4b-slots", "2")
+    res = pr.run_runner(run_cmd, "--direct-slots", "0", "--cloud-slots", "2")
     assert res.returncode == 0, res.output
     # Positiv-Anker: beide Partials liefen genau einmal.
     assert _nlines(pr.opencode_log) == 2
-    assert _line(pr.opencode_log, 1) == "plan-worker-qwen35 p1"
-    assert _line(pr.opencode_log, 2) == "plan-worker-qwen35 p2"
-    # Der verfruehte dispatch_4b p2 wurde abgelehnt, nicht gestartet.
+    assert _line(pr.opencode_log, 1) == "plan-worker-muse p1"
+    assert _line(pr.opencode_log, 2) == "plan-worker-muse p2"
+    # Der verfruehte dispatch_cloud p2 wurde abgelehnt, nicht gestartet.
     content = json.loads(_line(pr.requests_log, 2))["messages"][-1]["content"]
     assert _count_lines(content, "not ready") == 1
     assert pr.state_of("p1") == "done"
@@ -149,12 +153,12 @@ def test_worker_inherits_the_worktree_as_pwd_out_of_repo_worktrees(pr, run_cmd, 
     pwd_log.write_text("")
     monkeypatch.setenv("FAKE_OPENCODE_PWD", str(pwd_log))
     pr.start_orch(json.dumps([
-        {"name": "dispatch_4b", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
         {"name": "wait_event", "args": {}},
         {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "done"}},
     ]))
-    res = pr.run_runner(run_cmd, "--4b-slots", "1")
+    res = pr.run_runner(run_cmd, "--direct-slots", "0", "--cloud-slots", "1")
     assert res.returncode == 0, res.output
     assert pwd_log.read_text().rstrip("\n") == str(pr.wt)
 
@@ -164,22 +168,22 @@ def test_progress_survives_a_restart(pr, run_cmd):
     (pr.ch / ".plan-runner").mkdir()
     (pr.ch / ".plan-runner" / "state.json").write_text(
         '{"slug":"change","partials":{\n'
-        ' "p1":{"status":"done","owner":"4b","attempts":0,"result":"earlier run"},\n'
-        ' "p2":{"status":"running","owner":"4b","attempts":0,"result":null}},\n'
+        ' "p1":{"status":"done","owner":"cloud","attempts":0,"result":"earlier run"},\n'
+        ' "p2":{"status":"running","owner":"cloud","attempts":0,"result":null}},\n'
         ' "orchestrator":{"notes":"","frozen_at":null}}\n'
     )
     pr.start_orch(json.dumps([
-        {"name": "dispatch_4b", "args": {"partial_id": "p1", "prompt": "again"}},
-        {"name": "dispatch_4b", "args": {"partial_id": "p2", "prompt": "go"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "again"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p2", "prompt": "go"}},
         {"name": "wait_event", "args": {}},
         {"name": "mark", "args": {"partial_id": "p2", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "resumed"}},
     ]))
-    res = pr.run_runner(run_cmd, "--4b-slots", "1")
+    res = pr.run_runner(run_cmd, "--direct-slots", "0", "--cloud-slots", "1")
     assert res.returncode == 0, res.output
     # Positiv-Anker: p2 lief nach dem Neustart.
     assert _nlines(pr.opencode_log) > 0
-    assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-qwen35 p2"
+    assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-muse p2"
     # Der erste Request zeigt p2 bereits zurueckgesetzt auf open.
     first = json.loads(_line(pr.requests_log, 1))["messages"][1]["content"]
     assert _count_lines(first, '"p2":{"status":"open"') == 1
@@ -193,32 +197,32 @@ def test_self_execution_is_refused_while_a_worker_slot_is_free(pr, run_cmd):
     pr.make_change("p1:")
     pr.start_orch(json.dumps([
         {"name": "execute_self", "args": {"partial_id": "p1", "prompt": "do it", "plan_notes": "n"}},
-        {"name": "dispatch_4b", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
         {"name": "wait_event", "args": {}},
         {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "done"}},
     ]))
-    res = pr.run_runner(run_cmd, "--4b-slots", "1")
+    res = pr.run_runner(run_cmd, "--direct-slots", "0", "--cloud-slots", "1")
     assert res.returncode == 0, res.output
-    # Positiv-Anker: der 4B-Lauf fand statt.
+    # Positiv-Anker: der Cloud-Lauf fand statt.
     assert _nlines(pr.opencode_log) > 0
-    assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-qwen35 p1"
+    assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-muse p1"
     # Die Anfrage nach execute_self enthaelt die Ablehnung.
     content = json.loads(_line(pr.requests_log, 2))["messages"][-1]["content"]
-    assert _count_lines(content, "use dispatch_4b") == 1
+    assert _count_lines(content, "use dispatch_cloud") == 1
     assert not any(l.startswith("plan-worker-self") for l in pr.opencode_log.read_text().splitlines())
 
 
-def test_zero_4b_slots_run_every_partial_as_self_execution(pr, run_cmd):
+def test_zero_worker_slots_run_every_partial_as_self_execution(pr, run_cmd):
     pr.make_change("p1:")
     pr.start_orch(json.dumps([
         {"name": "execute_self", "args": {"partial_id": "p1", "prompt": "do it", "plan_notes": "self-only run"}},
         {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "done"}},
     ]))
-    res = pr.run_runner(run_cmd, "--4b-slots", "0")
+    res = pr.run_runner(run_cmd, "--direct-slots", "0", "--cloud-slots", "0")
     assert res.returncode == 0, res.output
-    # Positiv-Anker: genau ein Selbstaufruf, kein 4B-Lauf.
+    # Positiv-Anker: genau ein Selbstaufruf, kein Worker-Lauf.
     assert _nlines(pr.opencode_log) > 0
     assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-self p1"
 
@@ -239,20 +243,20 @@ def test_an_echoed_result_template_is_not_counted_as_success(repo_root, run_cmd)
 def test_worker_agents_are_primary_agents_on_the_right_backends(repo_root, run_cmd):
     # opencode run faellt fuer mode=subagent still auf den Default-Agenten zurueck
     # ("is a subagent, not a primary agent. Falling back to default agent"): dann laeuft
-    # jeder 4B-Dispatch auf dem Orchestrator-Modell (:1919). Beobachtet im ersten Live-Lauf.
+    # jeder Cloud-Dispatch auf dem Orchestrator-Modell (:1919). Beobachtet im ersten Live-Lauf.
     script = (
         "import { readFileSync } from 'node:fs';\n"
-        "import { AGENT_4B, AGENT_SELF } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
+        "import { AGENT_CLOUD, AGENT_SELF } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
         "const s = readFileSync('" + str(repo_root / ".opencode/agent-models.jsonc") + "', 'utf8');\n"
         "const o = JSON.parse(s.replace(/^\\s*\\/\\/.*$/gm, '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, ''));\n"
-        "const want = { [AGENT_4B]: 'llamacpp-qwen3/', [AGENT_SELF]: 'llamacpp-local/' };\n"
+        "const want = { [AGENT_CLOUD]: 'opencode/', [AGENT_SELF]: 'llamacpp-local/' };\n"
         "for (const [name, prefix] of Object.entries(want)) {\n"
         "  const a = (o.agent || {})[name];\n"
         "  if (!a) { console.log('missing ' + name); process.exit(1); }\n"
         "  if (a.mode !== 'primary') { console.log(name + ' mode ' + a.mode); process.exit(1); }\n"
         "  if (!String(a.model).startsWith(prefix)) { console.log(name + ' model ' + a.model); process.exit(1); }\n"
         "}\n"
-        "console.log('ok ' + AGENT_4B + ' ' + AGENT_SELF);\n"
+        "console.log('ok ' + AGENT_CLOUD + ' ' + AGENT_SELF);\n"
     )
     res = run_cmd(["node", "--input-type=module", "-e", script])
     assert res.returncode == 0, res.output
@@ -261,23 +265,23 @@ def test_worker_agents_are_primary_agents_on_the_right_backends(repo_root, run_c
 
 def test_workers_keep_running_while_the_orchestrator_sleeps(pr, run_cmd, monkeypatch):
     pr.make_change("p1:", "p2:", "p3:")
-    monkeypatch.setenv("FAKE_SLEEP_4B", "1")
+    monkeypatch.setenv("FAKE_SLEEP_CLOUD", "1")
     monkeypatch.setenv("FAKE_SLEEP_SELF", "3")
     pr.start_orch(json.dumps([
-        {"name": "dispatch_4b", "args": {"partial_id": "p1", "prompt": "go"}},
-        {"name": "execute_self", "args": {"partial_id": "p2", "prompt": "do it yourself", "plan_notes": "p1 on 4b, p2 self"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "execute_self", "args": {"partial_id": "p2", "prompt": "do it yourself", "plan_notes": "p1 on cloud, p2 self"}},
         {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
         {"name": "mark", "args": {"partial_id": "p2", "status": "done", "note": "ok"}},
         {"name": "mark", "args": {"partial_id": "p3", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "done"}},
     ]))
-    res = pr.run_runner(run_cmd, "--4b-slots", "1")
+    res = pr.run_runner(run_cmd, "--direct-slots", "0", "--cloud-slots", "1")
     assert res.returncode == 0, res.output
     log_lines = pr.opencode_log.read_text().splitlines()
     # Positiv-Anker: alle drei Laeufe fanden statt.
     assert len(log_lines) == 3
     # p3 wurde waehrend des Selbstaufrufs vergeben und endete vor ihm.
-    p3 = [i for i, l in enumerate(log_lines, 1) if l == "plan-worker-qwen35 p3"]
+    p3 = [i for i, l in enumerate(log_lines, 1) if l == "plan-worker-muse p3"]
     self_ = [i for i, l in enumerate(log_lines, 1) if l == "plan-worker-self p2"]
     assert p3 and self_
     assert p3[0] < self_[0]
@@ -286,7 +290,7 @@ def test_workers_keep_running_while_the_orchestrator_sleeps(pr, run_cmd, monkeyp
     assert sum(1 for l in res_text.splitlines() if l.startswith("success")) == 1
     assert "p3" in res_text
     state = json.loads((pr.ch / ".plan-runner" / "state.json").read_text())
-    assert state["orchestrator"]["notes"] == "p1 on 4b, p2 self"
+    assert state["orchestrator"]["notes"] == "p1 on cloud, p2 self"
     assert pr.state_of("p3") == "done"
 
 
@@ -295,7 +299,7 @@ def test_t900729_worker_starten_ohne_dir_und_mit_dem_modell_ihres_agenten(pr, ru
     args_log = pr.t / "args.log"
     monkeypatch.setenv("FAKE_OPENCODE_ARGS", str(args_log))
     pr.start_orch(json.dumps([
-        {"name": "dispatch_4b", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
         {"name": "wait_event", "args": {}},
         {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "done"}},
@@ -304,21 +308,20 @@ def test_t900729_worker_starten_ohne_dir_und_mit_dem_modell_ihres_agenten(pr, ru
     assert pr.state_of("p1") == "done"
     output = args_log.read_text()
     assert "--dir" not in output
-    assert "run --agent plan-worker-qwen35 --model llamacpp-qwen3/" in output
+    assert "run --agent plan-worker-muse --model opencode/muse-spark-1.3-contributor-free" in output
 
 
 def test_t901014_p1_dispatch_policy_separates_worker_track_from_self_track(repo_root, run_cmd):
-    # Worker-Track-Trennung: genau eine Policy-Funktion entscheidet Self vs.
-    # 4B-Slots; Pool-Verwaltung bleibt davon unberuehrt ( Faithful gegen
-    # plan-runner-fake-opencode.sh: PWD=worktree-Vererbung erhalten).
+    # Worker-Track-Trennung: genau eine Policy-Funktion entscheidet Direkt/Cloud/Self;
+    # Pool-Verwaltung bleibt davon unberuehrt (PWD=worktree-Vererbung erhalten).
     script = (
         "import { decideTrack, buildAgentSpawn } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
         "const eq = (got, want) => { if (got !== want) throw new Error(got + ' !== ' + want); };\n"
-        "eq(decideTrack({ ready: ['p1'], freeSlots: 2 }), 'worker');\n"
-        "eq(decideTrack({ ready: ['p1'], freeSlots: 0 }), 'self');\n"
-        "eq(decideTrack({ ready: [], freeSlots: 2 }), 'idle');\n"
-        "eq(decideTrack({ ready: [], freeSlots: 0 }), 'idle');\n"
-        "const sp = buildAgentSpawn({ agent: 'plan-worker-qwen35', prompt: 'x', worktree: '/tmp/wt' });\n"
+        "eq(decideTrack({ ready: ['p1'], freeDirect: 2, freeCloud: 0, selfAvailable: true }), 'direct');\n"
+        "eq(decideTrack({ ready: ['p1'], freeDirect: 0, freeCloud: 0, selfAvailable: true }), 'self');\n"
+        "eq(decideTrack({ ready: [], freeDirect: 2, freeCloud: 1, selfAvailable: true }), 'idle');\n"
+        "eq(decideTrack({ ready: [], freeDirect: 0, freeCloud: 0, selfAvailable: true }), 'idle');\n"
+        "const sp = buildAgentSpawn({ agent: 'plan-worker-muse', prompt: 'x', worktree: '/tmp/wt' });\n"
         "if (sp.env.PWD !== '/tmp/wt') throw new Error('PWD not inherited');\n"
         "console.log('track-ok');\n"
     )
@@ -388,100 +391,171 @@ def test_t901014_p3_plan_without_machine_readable_manifest_field_fails_validatio
     assert "STRUCT-PARTIAL" in res.output
 
 
-def test_vllm_track_routing_prefers_4b_then_vllm_then_self(repo_root, run_cmd):
-    # Routing-Rangfolge 4B > vLLM > self; alte Signatur ohne freeVllm bleibt gueltig.
+def test_track_routing_prefers_direct_then_cloud_then_self(repo_root, run_cmd):
+    # Rangfolge direct > cloud > self; ohne erreichbaren Self-Endpunkt gibt es 'idle' statt 'self'.
     script = (
         "import { decideTrack, decideTrackWithHint } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
         "const eq = (got, want) => { if (got !== want) throw new Error(got + ' !== ' + want); };\n"
-        "eq(decideTrack({ ready: ['p1'], freeSlots: 1, freeVllm: 1 }), 'worker');\n"
-        "eq(decideTrack({ ready: ['p1'], freeSlots: 0, freeVllm: 2 }), 'vllm');\n"
-        "eq(decideTrack({ ready: ['p1'], freeSlots: 0, freeVllm: 0 }), 'self');\n"
-        "eq(decideTrack({ ready: [], freeSlots: 0, freeVllm: 2 }), 'idle');\n"
-        "eq(decideTrack({ ready: ['p1'], freeSlots: 0 }), 'self');\n"
-        "eq(decideTrackWithHint({ ready: ['p1'], freeSlots: 0, freeVllm: 1 }).track, 'vllm');\n"
-        "console.log('vllm-track-ok');\n"
+        "eq(decideTrack({ ready: ['p1'], freeDirect: 1, freeCloud: 1, selfAvailable: true }), 'direct');\n"
+        "eq(decideTrack({ ready: ['p1'], freeDirect: 0, freeCloud: 2, selfAvailable: true }), 'cloud');\n"
+        "eq(decideTrack({ ready: ['p1'], freeDirect: 0, freeCloud: 0, selfAvailable: true }), 'self');\n"
+        "eq(decideTrack({ ready: ['p1'], freeDirect: 0, freeCloud: 0, selfAvailable: false }), 'idle');\n"
+        "eq(decideTrack({ ready: ['p1'], freeDirect: 0, freeCloud: 0 }), 'idle');\n"
+        "eq(decideTrack({ ready: ['p1'], freeDirect: 0, freeCloud: 1, selfAvailable: false }), 'cloud');\n"
+        "eq(decideTrack({ ready: [], freeDirect: 0, freeCloud: 2, selfAvailable: true }), 'idle');\n"
+        "eq(decideTrackWithHint({ ready: ['p1'], freeDirect: 0, freeCloud: 1, selfAvailable: true }).track, 'cloud');\n"
+        "console.log('track-routing-ok');\n"
     )
     res = run_cmd(["node", "--input-type=module", "-e", script])
     assert res.returncode == 0, res.output
-    assert res.output == "vllm-track-ok"
+    assert res.output == "track-routing-ok"
 
 
-def test_worker_agents_include_vllm_primary(repo_root, run_cmd):
-    # plan-worker-vllm ist primaer (kein stiller Default-Fallback) und zeigt auf vllm-local/w4a4.
+def test_cloud_agent_is_a_primary_on_the_muse_model_and_dead_backends_are_gone(repo_root, run_cmd):
+    # plan-worker-muse ist primaer (kein stiller Default-Fallback). Die mit dotfiles #131 entfernten
+    # Agenten/Provider duerfen nicht mehr in der Quelle der globalen Config stehen (sonst spielt der
+    # naechste opencode-sync-agents.sh sie wieder ein).
     script = (
         "import { readFileSync } from 'node:fs';\n"
-        "import { AGENT_VLLM } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
+        "import { AGENT_CLOUD } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
         "const s = readFileSync('" + str(repo_root / ".opencode/agent-models.jsonc") + "', 'utf8');\n"
         "const o = JSON.parse(s.replace(/^\\s*\\/\\/.*$/gm, '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, ''));\n"
-        "const a = (o.agent || {})[AGENT_VLLM];\n"
-        "if (!a) { console.log('missing ' + AGENT_VLLM); process.exit(1); }\n"
+        "const a = (o.agent || {})[AGENT_CLOUD];\n"
+        "if (!a) { console.log('missing ' + AGENT_CLOUD); process.exit(1); }\n"
         "if (a.mode !== 'primary') { console.log('mode ' + a.mode); process.exit(1); }\n"
-        "if (String(a.model) !== 'vllm-local/w4a4') { console.log('model ' + a.model); process.exit(1); }\n"
-        "console.log('ok ' + AGENT_VLLM);\n"
+        "if (String(a.model) !== 'opencode/muse-spark-1.3-contributor-free') { console.log('model ' + a.model); process.exit(1); }\n"
+        "if (a.permission?.task !== 'deny') { console.log('task not denied'); process.exit(1); }\n"
+        "const gone = ['qwen35-4b', 'plan-worker-qwen35', 'plan-worker-cpu2b', 'plan-worker-vllm'].filter((k) => k in (o.agent || {}))\n"
+        "  .concat(['llamacpp-qwen3', 'llamacpp-cpu-2b'].filter((k) => k in (o.provider || {})));\n"
+        "if (gone.length) { console.log('still declared: ' + gone.join(',')); process.exit(1); }\n"
+        "console.log('ok ' + AGENT_CLOUD);\n"
     )
     res = run_cmd(["node", "--input-type=module", "-e", script])
     assert res.returncode == 0, res.output
     assert res.output.startswith("ok ")
 
 
-def _fake_vllm_server():
-    # Minimaler /v1/models-Stub fuer den Preflight (hermetisch, kein echter :8123 noetig).
-    import http.server
-    import threading
-
-    class Handler(http.server.BaseHTTPRequestHandler):
-        def do_GET(self):
-            if self.path == "/v1/models":
-                body = b'{"data":[{"id":"w4a4"}]}'
-                self.send_response(200)
-                self.send_header("content-type", "application/json")
-                self.send_header("content-length", str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
-            else:
-                self.send_response(404)
-                self.end_headers()
-
-        def log_message(self, *args):
-            pass
-
-    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    return server
-
-
-def test_dispatch_vllm_runs_partial_on_vllm_agent(pr, run_cmd, monkeypatch):
+def test_direct_track_runs_the_partial_in_process_against_the_direct_endpoint(pr, run_cmd, monkeypatch, tmp_path):
     pr.make_change("p1:")
-    server = _fake_vllm_server()
-    monkeypatch.setenv("PLAN_RUNNER_VLLM_URL", f"http://127.0.0.1:{server.server_port}")
+    fix = pr.fix / "plan-runner-fake-openai-worker.mjs"
+    worker_script = tmp_path / "worker.json"
+    worker_script.write_text(json.dumps([
+        {"tool_calls": [{"name": "write_file", "args": {"path": "src/p1.txt", "content": "direkt\n"}}]},
+        {"tool_calls": [{"name": "finish", "args": {"status": "success", "summary": "p1 geschrieben", "changed_files": ["src/p1.txt"]}}]},
+    ]))
+    port = _free_port()
+    worker = subprocess.Popen(["node", str(fix), str(port), str(worker_script), str(tmp_path / "worker.log")])
     try:
+        for _ in range(50):
+            try:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2):
+                    break
+            except (urllib.error.URLError, OSError):
+                time.sleep(0.1)
+        monkeypatch.setenv("PLAN_RUNNER_DIRECT_URL", f"http://127.0.0.1:{port}")
         pr.start_orch(json.dumps([
-            {"name": "dispatch_vllm", "args": {"partial_id": "p1", "prompt": "go"}},
+            {"name": "dispatch_direct", "args": {"partial_id": "p1", "prompt": "go"}},
             {"name": "wait_event", "args": {}},
             {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
             {"name": "finish", "args": {"summary": "done"}},
         ]))
-        res = pr.run_runner(run_cmd, "--4b-slots", "0", "--vllm-slots", "1")
+        res = pr.run_runner(run_cmd, "--direct-slots", "1", "--cloud-slots", "0")
     finally:
-        server.shutdown()
+        worker.kill()
+        worker.wait()
     assert res.returncode == 0, res.output
-    # Positiv-Anker: genau ein vLLM-Lauf, kein 4B-/Selbstlauf.
-    assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-vllm p1"
+    assert "PLAN-RUNNER: done=1/1" in res.output
+    assert (pr.wt / "src" / "p1.txt").read_text() == "direkt\n"
+    # Gegenprobe: opencode wurde nicht gestartet.
+    assert pr.opencode_log.read_text() == ""
     assert pr.state_of("p1") == "done"
 
 
-def test_vllm_preflight_degrades_to_zero_when_unreachable(pr, run_cmd, monkeypatch):
+def test_direct_preflight_degrades_to_zero_when_unreachable(pr, run_cmd):
     pr.make_change("p1:")
-    # Port 9 (discard) ist praktisch nie offen: Preflight muss auf 0 degradieren,
+    # Port 9 (discard) ist praktisch nie offen: der Preflight setzt die Direkt-Slots auf 0,
     # der Lauf faellt auf self zurueck statt zu scheitern.
-    monkeypatch.setenv("PLAN_RUNNER_VLLM_URL", "http://127.0.0.1:9")
     pr.start_orch(json.dumps([
-        {"name": "execute_self", "args": {"partial_id": "p1", "prompt": "do it", "plan_notes": "vllm down"}},
+        {"name": "execute_self", "args": {"partial_id": "p1", "prompt": "do it", "plan_notes": "direct down"}},
         {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "done"}},
     ]))
-    res = pr.run_runner(run_cmd, "--4b-slots", "0", "--vllm-slots", "2")
+    res = pr.run_runner(run_cmd, "--direct-slots", "2", "--cloud-slots", "0")
     assert res.returncode == 0, res.output
-    assert "vllm slots 0" in res.output
+    assert "direct slots 0" in res.output
+    assert "http://127.0.0.1:9" in res.output
     assert pr.opencode_log.read_text().rstrip("\n") == "plan-worker-self p1"
+
+
+def test_self_track_is_unavailable_when_the_self_endpoint_does_not_answer(pr, run_cmd, monkeypatch):
+    pr.make_change("p1:")
+    pr.start_orch(json.dumps([
+        {"name": "execute_self", "args": {"partial_id": "p1", "prompt": "do it", "plan_notes": "n"}},
+        {"name": "finish", "args": {"summary": "gave up"}},
+    ]))
+    monkeypatch.setenv("PLAN_RUNNER_SELF_URL", "http://127.0.0.1:9")
+    res = pr.run_runner(run_cmd, "--direct-slots", "0", "--cloud-slots", "0")
+    assert res.returncode == 1, res.output
+    content = json.loads(_line(pr.requests_log, 2))["messages"][-1]["content"]
+    assert _count_lines(content, "self track unavailable") == 1
+    # Positiv-Anker: der Lauf endete ohne Worker-Aufruf.
+    assert "PLAN-RUNNER: done=0/1" in res.output
+    assert pr.opencode_log.read_text() == ""
+
+
+def test_vllm_slots_flag_is_rejected_and_points_to_the_new_flags(pr, run_cmd):
+    pr.make_change("p1:")
+    res = pr.run_runner(run_cmd, "--vllm-slots", "1")
+    assert res.returncode == 2, res.output
+    assert "--cloud-slots" in res.output
+    assert "--direct-slots" in res.output
+
+
+def test_4b_slots_is_a_deprecated_alias_for_direct_slots(pr, run_cmd):
+    pr.make_change("p1:")
+    pr.start_orch(json.dumps([
+        {"name": "execute_self", "args": {"partial_id": "p1", "prompt": "do it", "plan_notes": "n"}},
+        {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
+        {"name": "finish", "args": {"summary": "done"}},
+    ]))
+    res = pr.run_runner(run_cmd, "--4b-slots", "0", "--cloud-slots", "0")
+    assert res.returncode == 0, res.output
+    warn = [ln for ln in res.output.splitlines() if "--4b-slots" in ln]
+    assert warn and "--direct-slots" in warn[0]
+    assert "direct slots 0" in res.output
+
+
+def test_manifest_header_row_must_start_with_id(pr, run_cmd):
+    pr.make_change("p1:")
+    (pr.ch / "tasks.md").write_text(
+        "# Plan\n\n## Partials\n\n"
+        "| Partial | plan | role | target_files | depends_on |\n"
+        "|---------|------|------|--------------|------------|\n"
+        "| p1 | tasks.d/p1-work.md | impl | src/p1.txt | |\n"
+    )
+    res = pr.run_runner(run_cmd)
+    assert res.returncode == 2, res.output
+    assert 'manifest: header must start with "id"' in res.output
+    assert "depends on unknown partial" not in res.output
+
+
+def test_orchestrator_falls_back_from_the_primary_to_the_vllm_endpoint(pr, run_cmd, monkeypatch):
+    pr.make_change("p1:")
+    pr.start_orch(json.dumps([
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "wait_event", "args": {}},
+        {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
+        {"name": "finish", "args": {"summary": "done"}},
+    ]))
+    # Ersatz-Orchestrator nur auf dem Fallback-Port; der Primaer-Port (:1919-Ersatz) ist zu.
+    monkeypatch.delenv("PLAN_RUNNER_ORCH_URL")
+    monkeypatch.delenv("PLAN_RUNNER_ORCH_MODEL", raising=False)
+    monkeypatch.setenv("PLAN_RUNNER_ORCH_FALLBACK_URL", pr.url)
+    monkeypatch.setenv("PLAN_RUNNER_ORCH_PRIMARY_URL", "http://127.0.0.1:9")
+    monkeypatch.setenv("PLAN_RUNNER_SELF_URL", "http://127.0.0.1:9")
+    res = pr.run_runner(run_cmd, "--direct-slots", "0", "--cloud-slots", "1")
+    assert res.returncode == 0, res.output
+    assert "orchestrator fallback" in res.output
+    assert pr.url in res.output
+    assert json.loads(_line(pr.requests_log, 1))["model"] == "w4a4"
+    assert pr.state_of("p1") == "done"

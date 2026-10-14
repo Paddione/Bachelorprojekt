@@ -6,7 +6,7 @@ vi.mock('../../../lib/auth', () => ({
 }));
 
 vi.mock('../../../lib/sdlc/plan-slots', () => ({
-  autoSlots: vi.fn(() => ({ width: 3, slots4b: 3, slotsVllm: 0 })),
+  autoSlots: vi.fn(() => ({ width: 3, slotsDirect: 3, slotsCloud: 0 })),
   parseManifestPartials: vi.fn(() => [
     { id: 'p1', dependsOn: [] },
     { id: 'p2', dependsOn: [] },

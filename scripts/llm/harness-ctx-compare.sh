@@ -3,7 +3,7 @@
 # wie viel Kontext schickt jeder Harness, und loest er die Aufgabe?
 #
 # Varianten:
-#   pi-L0 .. pi-L2     pi (@mariozechner/pi-coding-agent, Node) direkt, gleiche
+#   pi-L0 .. pi-L2     pi (@earendil-works/pi-coding-agent, Node >= 22.19) direkt, gleiche
 #                      Stufen wie omp-run.sh: L0 read/write/edit/bash, L1 +
 #                      .omp/context.md, L2 + grep/find/ls; ohne Kontextdateien,
 #                      Skills, Extensions, Prompt-Templates
@@ -78,7 +78,7 @@ running="$(curl -sf --max-time 5 "$UPSTREAM/metrics" | awk '/^vllm:num_requests_
 # Fehlende Harness-Binaries vor dem ersten Lauf melden, nicht als leere Messung
 # durchlaufen lassen.
 case ",$VARIANTS," in
-  *,pi-L*) command -v pi >/dev/null || { echo "FEHLER: pi fehlt (npm install -g @mariozechner/pi-coding-agent@0.73.1) — oder pi-Varianten aus --variants nehmen" >&2; exit 2; } ;;
+  *,pi-L*) command -v pi >/dev/null || { echo "FEHLER: pi fehlt (npm install -g @earendil-works/pi-coding-agent@1.2.0) — oder pi-Varianten aus --variants nehmen" >&2; exit 2; } ;;
 esac
 case ",$VARIANTS," in
   *,omp-L*) command -v omp >/dev/null || { echo "FEHLER: omp fehlt (task omp:install) — oder omp-Varianten aus --variants nehmen" >&2; exit 2; } ;;
@@ -143,7 +143,7 @@ for rep in $(seq 1 "$REPS"); do
         pidir="$(pi_agent_dir)"
         ( cd "$wt" && PI_CODING_AGENT_DIR="$pidir" PI_OFFLINE=1 timeout "$TIMEOUT" \
             pi --mode json --no-session --no-context-files --no-extensions --no-skills \
-              --no-prompt-templates --no-themes --tools "$tools" "${extra[@]}" \
+              --no-prompt-templates --no-themes --no-approve --tools "$tools" "${extra[@]}" \
               --provider ctxproxy --model "$MODEL_ID" "$TASK_PROMPT" ) \
           > "$OUT/$label.out" 2>&1
         rm -rf "$pidir"

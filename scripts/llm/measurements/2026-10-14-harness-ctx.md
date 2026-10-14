@@ -9,7 +9,8 @@ GPU-Host (PK-Desktop); die Cloud-Sitzung, die das angelegt hat, erreicht
 Welcher Harness soll Partials auf dem Quasar-Worker ausfuehren? Bekannt ist:
 eine volle opencode-Sitzung im Repo sprengt schon beim Start das Fenster
 (`docs/runbooks/plan-runner.md`). Kandidat ist **pi**
-(`@mariozechner/pi-coding-agent`, Node) als minimaler Harness. omp (oh-my-pi,
+(`@earendil-works/pi-coding-agent` 1.2.0, Node >= 22.19; Nachfolger des
+deprecateten `@mariozechner/pi-coding-agent`) als minimaler Harness. omp (oh-my-pi,
 `scripts/omp-run.sh`, T900793) ist der ausgebaute Fork und laeuft nur als
 Gegenprobe mit — der erste Lauf (unten) zeigt, dass omp schon auf L0 rund 17k
 Token Startkontext mitbringt. Entscheidungsgrundlage:
@@ -33,7 +34,7 @@ Varianten:
 
 | Variante | Aufruf im frischen Worktree |
 |---|---|
-| `pi-L0` | `pi --mode json --no-session --no-context-files --no-extensions --no-skills --no-prompt-templates --no-themes --tools read,write,edit,bash --provider ctxproxy --model <id> "<task.md>"`, eigenes `PI_CODING_AGENT_DIR` mit genau dem Proxy als Provider, `PI_OFFLINE=1` |
+| `pi-L0` | `pi --mode json --no-session --no-context-files --no-extensions --no-skills --no-prompt-templates --no-themes --no-approve --tools read,write,edit,bash --provider ctxproxy --model <id> "<task.md>"`, eigenes `PI_CODING_AGENT_DIR` mit genau dem Proxy als Provider, `PI_OFFLINE=1` |
 | `pi-L1` | pi-L0 + `--append-system-prompt "$(cat .omp/context.md)"` |
 | `pi-L2` | pi-L1 + `grep,find,ls` |
 | `omp-L0` | `scripts/omp-run.sh task.md --level L0 --skip-tests` — nur Plan, read/write/edit/bash |
@@ -60,7 +61,7 @@ kuratierte Skills existieren muessen; per `--variants ...,omp-L3` zuschaltbar.
 
 ```bash
 cd ~/Bachelorprojekt && git pull
-npm install -g @mariozechner/pi-coding-agent@0.73.1   # pi, Node >= 20.6
+npm install -g @earendil-works/pi-coding-agent@1.2.0   # pi, Node >= 22.19
 command -v pi opencode jq node
 pi --version; opencode --version
 systemctl --user cat serve-worker-vllm | grep -n -- '--max-model-len'   # 65536 erwartet

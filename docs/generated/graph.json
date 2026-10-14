@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-13T23:55:24.054Z",
+  "generatedAt": "2026-10-14T00:43:59.442Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -932,12 +932,6 @@
       "to": "recovery-browser",
       "via": "command",
       "kind": "command"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "shared-db",
-      "via": "env:SESSIONS_DATABASE_URL",
-      "kind": "env"
     },
     {
       "from": "shared-db",

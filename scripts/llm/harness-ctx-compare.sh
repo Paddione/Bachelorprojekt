@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+# harness-ctx-compare.sh — gleiche Aufgabe, gleiches Modell, verschiedene Harnesses:
+# wie viel Kontext schickt jeder Harness, und loest er die Aufgabe?
+#
+# Varianten:
+#   omp-L0 .. omp-L3   scripts/omp-run.sh mit der jeweiligen Kontextstufe
+#   opencode           opencode run --agent plan-worker-vllm (wie der plan-runner)
+#
+# Jede Variante laeuft in einem frischen, detachten Worktree von --ref, damit
+# kein Lauf den naechsten oder den Checkout des Aufrufers beeinflusst. Zwischen
+# Harness und vLLM sitzt scripts/llm/ctx-proxy.mjs und protokolliert je Anfrage
+# die Prompt-Tokens. Die Zaehler aus vLLMs /metrics laufen als Gegenprobe mit:
+# weichen sie von der Proxy-Summe ab, ist Verkehr am Proxy vorbeigegangen.
+#
+# Aufruf:
+#   scripts/llm/harness-ctx-compare.sh [--ref <git-ref>] [--variants omp-L0,omp-L1,omp-L2,opencode]
+#     [--reps 1] [--upstream http://127.0.0.1:8123] [--proxy-port 8124]
+#     [--timeout 900] [--out <verzeichnis>]
+#
+# --ref muss den Fixture-Ordner scripts/llm/measurements/2026-10-14-harness-ctx/
+# und scripts/llm/ctx-proxy.mjs enthalten. Proxy und Aufgabe werden aus --ref
+# gelesen, das Skript laesst sich also aus jedem Checkout starten.
+set -euo pipefail
+
+REF="HEAD"
+VARIANTS="omp-L0,omp-L1,omp-L2,opencode"
+REPS=1
+UPSTREAM="http://127.0.0.1:8123"
+PROXY_PORT=8124
+TIMEOUT=900
+OUT=""
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --ref) REF="$2"; shift 2 ;;
+    --variants) VARIANTS="$2"; shift 2 ;;
+    --reps) REPS="$2"; shift 2 ;;
+    --upstream) UPSTREAM="${2%/}"; shift 2 ;;
+    --proxy-port) PROXY_PORT="$2"; shift 2 ;;
+    --timeout) TIMEOUT="$2"; shift 2 ;;
+    --out) OUT="$2"; shift 2 ;;
+    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
+    *) echo "FEHLER: unbekannte Option '$1'" >&2; exit 1 ;;
+  esac
+done
+
+command -v jq >/dev/null || { echo "FEHLER: jq fehlt" >&2; exit 2; }
+git rev-parse --git-dir >/dev/null 2>&1 || { echo "FEHLER: aus einem Bachelorprojekt-Checkout starten" >&2; exit 2; }
+SHA="$(git rev-parse --verify "$REF^{commit}")" || { echo "FEHLER: --ref '$REF' unbekannt" >&2; exit 2; }
+FIX="scripts/llm/measurements/2026-10-14-harness-ctx"
+git cat-file -e "$SHA:$FIX/task.md" 2>/dev/null || { echo "FEHLER: $FIX/task.md fehlt in $REF" >&2; exit 2; }
+
+OUT="${OUT:-$HOME/harness-ctx-runs/$(date +%Y%m%dT%H%M%S)}"
+mkdir -p "$OUT"
+LOG="$OUT/requests.jsonl"
+RESULTS="$OUT/results.jsonl"
+git show "$SHA:scripts/llm/ctx-proxy.mjs" > "$OUT/ctx-proxy.mjs"
+git show "$SHA:$FIX/task.md" > "$OUT/task.md"
+PROXY="http://127.0.0.1:$PROXY_PORT"
+
+# Preflight: Upstream da und leer — sonst misst man fremde Last mit.
+curl -sf --max-time 5 "$UPSTREAM/v1/models" >/dev/null || { echo "FEHLER: $UPSTREAM antwortet nicht" >&2; exit 2; }
+metric() {  # Summe aller Serien einer Metrik
+  curl -sf --max-time 5 "$UPSTREAM/metrics" | awk -v m="$1" '$1 == m || index($1, m "{") == 1 { s += $NF } END { printf "%d", s }'
+}
+running="$(curl -sf --max-time 5 "$UPSTREAM/metrics" | awk '/^vllm:num_requests_running/ { s += $NF } END { printf "%d", s }')"
+[ "$running" = "0" ] || { echo "FEHLER: auf $UPSTREAM laufen $running Anfragen — Host nicht ruhig" >&2; exit 2; }
+
+{
+  echo "ref: $REF ($SHA)"
+  echo "upstream: $UPSTREAM"
+  curl -sf --max-time 5 "$UPSTREAM/v1/models" | jq -c '.data[] | {id, max_model_len}'
+  command -v omp >/dev/null && echo "omp: $(omp --version 2>&1 | head -1)" || echo "omp: nicht installiert"
+  command -v opencode >/dev/null && echo "opencode: $(opencode --version 2>&1 | head -1)" || echo "opencode: nicht installiert"
+} | tee "$OUT/env.txt"
+
+node "$OUT/ctx-proxy.mjs" serve --listen "$PROXY_PORT" --upstream "$UPSTREAM" --log "$LOG" 2>"$OUT/proxy.err" &
+PROXY_PID=$!
+WTS=()
+cleanup() {
+  kill "$PROXY_PID" 2>/dev/null || true
+  for wt in "${WTS[@]}"; do git worktree remove --force "$wt" 2>/dev/null || true; done
+}
+trap cleanup EXIT
+for _ in $(seq 1 50); do curl -sf --max-time 1 "$PROXY/v1/models" >/dev/null && break; sleep 0.2; done
+curl -sf --max-time 2 "$PROXY/v1/models" >/dev/null || { echo "FEHLER: Proxy startet nicht, siehe $OUT/proxy.err" >&2; exit 2; }
+
+TASK_PROMPT="$(cat "$OUT/task.md")"
+
+for rep in $(seq 1 "$REPS"); do
+  for variant in ${VARIANTS//,/ }; do
+    label="$variant-r$rep"
+    echo "$label" > "$LOG.label"
+    wt="$(mktemp -d "${TMPDIR:-/tmp}/harness-ctx-XXXXXX")/wt"
+    git worktree add --detach --quiet "$wt" "$SHA"
+    WTS+=("$wt")
+
+    p0="$(metric 'vllm:prompt_tokens_total')"; r0="$(metric 'vllm:request_success_total')"
+    t0="$(date +%s)"
+    set +e
+    case "$variant" in
+      omp-L[0-3])
+        # omp-run.sh haengt /v1 selbst an — Basis-URL ohne /v1.
+        ( cd "$wt" && OMP_LOCAL_BASE_URL="$PROXY" timeout "$TIMEOUT" \
+            bash scripts/omp-run.sh "$FIX/task.md" --level "${variant#omp-}" --skip-tests ) \
+          > "$OUT/$label.out" 2>&1
+        ;;
+      opencode)
+        # Provider vllm-local lebt in der globalen opencode-Config; nur die
+        # Basis-URL wird fuer diesen Lauf auf den Proxy umgebogen.
+        ( cd "$wt" && PWD="$wt" \
+            OPENCODE_CONFIG_CONTENT="{\"provider\":{\"vllm-local\":{\"options\":{\"baseURL\":\"$PROXY/v1\"}}}}" \
+            timeout "$TIMEOUT" opencode run --agent plan-worker-vllm --model vllm-local/w4a4 "$TASK_PROMPT" ) \
+          > "$OUT/$label.out" 2>&1
+        ;;
+      *) echo "WARNUNG: unbekannte Variante '$variant' — uebersprungen" >&2; set -e; continue ;;
+    esac
+    exit_code=$?
+    set -e
+    secs=$(( $(date +%s) - t0 ))
+    p1="$(metric 'vllm:prompt_tokens_total')"; r1="$(metric 'vllm:request_success_total')"
+
+    test_ok=false
+    node --test "$wt/$FIX/sandbox/slug.test.mjs" > "$OUT/$label.test.txt" 2>&1 && test_ok=true
+    test_touched=false
+    git -C "$wt" diff --quiet -- "$FIX/sandbox/slug.test.mjs" || test_touched=true
+    changed="$(git -C "$wt" status --porcelain --untracked-files=all | grep -vc '^?? .omp/runs/' || true)"
+    # omp-run.sh schreibt die omp-Ausgabe nach .omp/runs/ im Worktree, nicht auf stdout.
+    for f in "$wt"/.omp/runs/*.jsonl; do [ -f "$f" ] && cp "$f" "$OUT/$label.omp.jsonl"; done
+    result_line="$(cat "$OUT/$label.out" "$OUT/$label.omp.jsonl" 2>/dev/null \
+      | grep -o 'PLAN-RUNNER-RESULT: [a-z]*' | tail -1 | cut -d' ' -f2 || true)"
+    git -C "$wt" diff > "$OUT/$label.diff" || true
+
+    summary="$(node "$OUT/ctx-proxy.mjs" summarize "$LOG" --label "$label")"
+    [ "$summary" != "null" ] || summary='{}'
+    jq -n -c --arg label "$label" --arg variant "$variant" --argjson rep "$rep" \
+      --argjson exit "$exit_code" --argjson secs "$secs" --argjson test_ok "$test_ok" \
+      --argjson test_touched "$test_touched" --argjson changed "${changed:-0}" \
+      --arg result "${result_line:-none}" \
+      --argjson metrics_prompt "$(( p1 - p0 ))" --argjson metrics_requests "$(( r1 - r0 ))" \
+      --argjson proxy "$summary" \
+      '{label: $label, variant: $variant, rep: $rep, exit: $exit, secs: $secs,
+        test_ok: $test_ok, test_touched: $test_touched, changed_files: $changed, result_line: $result,
+        metrics_prompt_tokens: $metrics_prompt, metrics_requests: $metrics_requests} + $proxy' \
+      | tee -a "$RESULTS" \
+      | jq -r '"\(.label): start \(.first_prompt_tokens // "-") tok, max \(.max_prompt_tokens // "-") tok, " +
+               "\(.requests // 0) Anfragen (metrics \(.metrics_requests)), Test \(if .test_ok then "gruen" else "rot" end)" +
+               "\(if .test_touched then " [TEST VERAENDERT]" else "" end), Ergebnis \(.result_line), " +
+               "exit \(.exit), \(.secs) s"'
+
+    git worktree remove --force "$wt" 2>/dev/null || true
+  done
+done
+
+echo "Ergebnisse: $RESULTS"

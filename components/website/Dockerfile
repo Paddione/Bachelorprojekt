@@ -5,12 +5,12 @@ FROM node:26-alpine AS build
 WORKDIR /app
 
 # T001224/T001276: website migrated to pnpm — `components/website/package-lock.json` was
-# deleted, only `components/website/pnpm-lock.yaml` exists. Corepack is bundled with
-# node 24, so we enable pnpm@10 (matches `.github/workflows/ci.yml` +
-# `.github/workflows/build-mentolder-web.yml`).
+# deleted, only `components/website/pnpm-lock.yaml` exists. Node 25+ ships
+# without corepack, so pnpm@10 comes straight from npm (matches
+# `.github/workflows/ci.yml` + `.github/workflows/build-mentolder-web.yml`).
 ENV PNPM_HOME=/pnpm
 ENV PATH=/pnpm:$PATH
-RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
+RUN npm install -g pnpm@10.15.0 && pnpm --version
 
 # Copy ONLY the manifest + lockfile + workspace config first so dependency layer caches cleanly.
 # pnpm-workspace.yaml must be present alongside pnpm-lock.yaml — it contains the

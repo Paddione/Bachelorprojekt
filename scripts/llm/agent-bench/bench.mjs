@@ -227,7 +227,7 @@ async function runJob(ctx, job) {
       const wrapper = writeOpencodeWrapper(jobDir, workerUrl, workerModel, modelContext(pool, workerModel), faultScriptFor(jobDir, v));
       result = await runRole('orchestrator', {
         variant: v,
-        inputs: { case: rec, planDir, slots4b: ctx.slots4b, orchestratorModel: job.model, opencodeBin: wrapper },
+        inputs: { case: rec, planDir, slotsCloud: ctx.slots4b, orchestratorModel: job.model, opencodeBin: wrapper },
         endpoints: {}, workdir, recorderUrls: { orchestrator: orchUrl, codeWorker: workerUrl }, timeoutMs: ctx.timeoutMs,
       });
       result.planRef = planDir;

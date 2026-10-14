@@ -842,10 +842,8 @@ skills:
       opencode:
         path: .opencode/skills/hf-mem
         sync: identical
-      claude_code:
-        path: .claude/skills/hf-mem
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -857,10 +855,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-best
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-best
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -872,10 +868,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-community-evals
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-community-evals
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -887,10 +881,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-datasets
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-datasets
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -902,10 +894,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-llm-trainer
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-llm-trainer
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -917,10 +907,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-local-models
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-local-models
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -932,10 +920,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-lora-space-builder
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-lora-space-builder
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -947,10 +933,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-paper-publisher
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-paper-publisher
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -962,10 +946,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-papers
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-papers
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -977,10 +959,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-tool-builder
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-tool-builder
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -992,10 +972,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-trackio
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-trackio
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -1007,10 +985,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-vision-trainer
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-vision-trainer
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -1022,10 +998,8 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-zerogpu
         sync: identical
-      claude_code:
-        path: .claude/skills/huggingface-zerogpu
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -1110,10 +1084,8 @@ skills:
       opencode:
         path: .opencode/skills/train-sentence-transformers
         sync: identical
-      claude_code:
-        path: .claude/skills/train-sentence-transformers
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -1125,10 +1097,8 @@ skills:
       opencode:
         path: .opencode/skills/transformers-js
         sync: identical
-      claude_code:
-        path: .claude/skills/transformers-js
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
@@ -1140,10 +1110,8 @@ skills:
       opencode:
         path: .opencode/skills/trl-training
         sync: identical
-      claude_code:
-        path: .claude/skills/trl-training
-        sync: identical
     exclusions:
+      claude_code: "Suppressed in capabilities.yaml; Claude Code bezieht Hugging-Face-Faehigkeiten ueber plugin:huggingface-skills (canonical)."
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."

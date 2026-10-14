@@ -4860,6 +4860,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/mcp-gateway/mcp_central_launcher",
+    "file": "tests/py/spec/native_ported/spec/mcp-gateway/test_mcp_central_launcher.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/migrate_target_safety",
     "file": "tests/py/spec/native_ported/spec/test_migrate_target_safety.py",
     "category": "native_ported",

@@ -1,0 +1,97 @@
+---
+import { getSession, isAdmin } from '../../lib/auth';
+import { buildLoginRedirect } from '../../lib/login-redirect';
+import { collectLiveFloor } from '../../lib/sdlc/cockpit-live-source';
+
+export const prerender = false;
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session || !isAdmin(session)) return Astro.redirect(buildLoginRedirect(Astro.url));
+
+// Prototyp: Live-Lage ohne DB — gh + git + Plan-Frontmatter, kein Port-Forward.
+const floor = await collectLiveFloor();
+---
+
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SDLC Live-Lage (Prototyp)</title>
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0 auto; max-width: 72rem; padding: 1.5rem; color: #1a1a1a; background: #fff; }
+    h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
+    .meta { color: #555; font-size: 0.85rem; margin-bottom: 1.5rem; }
+    .banner { border: 1px solid #b45309; background: #fef3c7; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+    section { margin-bottom: 2rem; }
+    h2 { font-size: 1.05rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    .row { display: flex; gap: 0.75rem; align-items: baseline; flex-wrap: wrap; }
+    .label { font-weight: 600; }
+    .detail { color: #555; font-size: 0.85rem; }
+    .action { margin-left: auto; font-size: 0.85rem; font-weight: 600; color: #0f5132; white-space: nowrap; }
+    .badge { font-size: 0.75rem; font-weight: 700; padding: 0.1rem 0.45rem; border: 1px solid #999; }
+    .badge.rot { border-color: #b91c1c; color: #b91c1c; }
+    .badge.ok { border-color: #0f5132; color: #0f5132; }
+    .empty { color: #555; font-size: 0.9rem; }
+    nav { margin-bottom: 1rem; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <nav><a href="/sdlc/cockpit">← Zum Leitstand</a></nav>
+  <h1>SDLC Live-Lage</h1>
+  <p class="meta">Prototyp ohne Datenbank — Stand {floor.generatedAt} · Quellen: git, gh, Plandateien</p>
+
+  {floor.degraded.length > 0 && (
+    <div class="banner" role="status">
+      Eingeschränkte Daten: {floor.degraded.join(' · ')}
+    </div>
+  )}
+
+  <section>
+    <h2>1 · Offene Arbeit ({floor.openWork.length})</h2>
+    {floor.openWork.length === 0
+      ? <p class="empty">Nichts offen — keine Branches ohne PR, keine aktiven Pläne.</p>
+      : <ul>{floor.openWork.map((r) => (
+        <li><span class="row"><span class="label">{r.label}</span><span class="detail">{r.detail}</span><span class="action">{r.action}</span></span></li>
+      ))}</ul>}
+  </section>
+
+  <section>
+    <h2>2 · PR-Reife ({floor.prReady.length})</h2>
+    {floor.prReady.length === 0
+      ? <p class="empty">Keine offenen PRs.</p>
+      : <ul>{floor.prReady.map((r) => (
+        <li><span class="row"><span class="badge">{r.state}</span><span class="label">#{r.number} {r.title}</span><span class="detail">{r.detail}</span><span class="action">{r.action}</span></span></li>
+      ))}</ul>}
+  </section>
+
+  <section>
+    <h2>3 · CI-rot ({floor.ciRed.length})</h2>
+    {floor.ciRed.length === 0
+      ? <p class="empty">Keine fehlgeschlagenen Checks auf offenen PRs.</p>
+      : <ul>{floor.ciRed.map((r) => (
+        <li><span class="row"><span class="badge rot">ROT</span><span class="label">#{r.number} {r.title}</span><span class="detail">{r.failing.join(', ')}</span><span class="action">{r.action}</span></span></li>
+      ))}</ul>}
+  </section>
+
+  <section>
+    <h2>4 · Stale Branches ({floor.stale.length})</h2>
+    {floor.stale.length === 0
+      ? <p class="empty">Keine Branches älter als 14 Tage.</p>
+      : <ul>{floor.stale.map((r) => (
+        <li><span class="row"><span class="label">{r.branch}</span><span class="detail">{r.ageDays ?? '?'} Tage alt</span><span class="action">{r.action}</span></span></li>
+      ))}</ul>}
+  </section>
+
+  <section>
+    <h2>5 · Nächste Aktionen ({floor.nextActions.length})</h2>
+    {floor.nextActions.length === 0
+      ? <p class="empty">Nichts zu tun — alles gemergt oder gepflegt.</p>
+      : <ul>{floor.nextActions.map((a) => (
+        <li><span class="row"><span class="badge ok">{a.scope}</span><span class="label">{a.label}</span><span class="action">{a.action}</span></span></li>
+      ))}</ul>}
+  </section>
+</body>
+</html>

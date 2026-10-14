@@ -4,34 +4,16 @@
     "CHROME_WS_PORT": "9223",
     "TRACE_TO_BRAINTRUST": "true",
     "BRAINTRUST_API_URL": "https://api-eu.braintrust.dev",
-    "BRAINTRUST_CC_PROJECT": "claude-code",
-    "BRAINTRUST_CC_DEBUG": "true"
+    "BRAINTRUST_CC_PROJECT": "claude-code"
   },
   "permissions": {
     "allow": [
-      "Bash(set -e)",
-      "Bash(rm -f ~/.ssh/*:Zone.Identifier)",
-      "Bash(chmod 700 ~/.ssh)",
-      "Bash(chmod 600 ~/.ssh/id_ed25519 ~/.ssh/gekko_id_ed25519 ~/.ssh/config ~/.ssh/authorized_keys)",
-      "Bash(chmod 644 ~/.ssh/id_ed25519.pub ~/.ssh/gekko_id_ed25519.pub)",
-      "Bash(set +e)",
-      "Bash(ssh -o ConnectTimeout=8 -o BatchMode=yes gekko-hetzner-2 'hostname; whoami; uname -r; sudo -n test true && echo SUDO_OK || echo SUDO_PROMPT')",
-      "Bash(echo \"exit=$?\")",
-      "Bash(ssh -o ConnectTimeout=8 -o BatchMode=yes gekko-hetzner-3 'hostname; whoami')",
-      "Bash(ssh -o ConnectTimeout=8 -o BatchMode=yes pk-hetzner-4 'hostname; whoami; uname -r; sudo -n test true && echo SUDO_OK || echo SUDO_PROMPT')",
       "Bash(npm config *)",
-      "Bash(sudo npm install -g pnpm)",
       "Bash(pnpm --version)",
-      "Bash(kubectl --context mentolder get nodes -o wide)",
-      "Bash(kubectl --context korczewski get nodes -o wide)",
-      "Bash(curl -fsSL https://deb.nodesource.com/setup_22.x)",
-      "Bash(sudo -E bash -)",
-      "Bash(sudo apt-get install -y nodejs)",
       "Bash(npm --version)",
       "Bash(task --list)",
       "Bash(task env:validate ENV=korczewski)",
       "Bash(task -a)",
-      "Bash(ss -ltn 'sport = :__TRACKED_VAR__')",
       "Bash(task -l)",
       "Bash(dpkg -S /usr/bin/task)",
       "Bash(task --version)",
@@ -45,12 +27,9 @@
       "Bash(kubectl config *)",
       "Bash(timeout 25 kubectl --context fleet get ns flux-system)",
       "Bash(timeout 25 kubectl --context fleet get kustomizations.kustomize.toolkit.fluxcd.io -A)",
-      "Bash(timeout 20 kubectl --context fleet get ns argocd)",
       "Bash(timeout 25 kubectl --context fleet get ns)",
       "Bash(git fetch *)",
-      "Bash(git pull *)",
-      "Bash(git stash drop *)",
-      "Bash(git fetch origin main:main)"
+      "Bash(git pull *)"
     ],
     "defaultMode": "auto",
     "ask": [
@@ -107,6 +86,16 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash scripts/hooks/cloud-session-setup.sh",
+            "timeout": 120,
+            "statusMessage": "Cloud-Container einrichten (gh, gh-axi, brain, deps)..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "bash scripts/agent-lock.sh reap 2>/dev/null || true"
           }
         ]
@@ -122,11 +111,10 @@
         ]
       },
       {
-        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "gh-axi",
+            "command": "command -v gh-axi >/dev/null 2>&1 && gh-axi || true",
             "timeout": 10
           }
         ]
@@ -280,6 +268,5 @@
   "theme": "dark",
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
-  "agentPushNotifEnabled": true,
-  "voiceEnabled": true
+  "agentPushNotifEnabled": true
 }

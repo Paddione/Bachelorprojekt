@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.422.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.422.0...website-v1.422.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **website:** install pnpm via npm, node26 has no corepack ([#6663](https://github.com/Paddione/Bachelorprojekt/issues/6663)) ([9c6db1f](https://github.com/Paddione/Bachelorprojekt/commit/9c6db1f03f39c54821ff1405337f61bcd55cd3b4))
+
 ## [1.422.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.421.2...website-v1.422.0) (2026-10-14)
 
 

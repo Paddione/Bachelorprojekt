@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.423.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.423.1...website-v1.423.2) (2026-10-14)
+
+
+### Performance
+
+* **db:** tune postgresql server settings and resolve g-db01/g-db03 regressions ([#6661](https://github.com/Paddione/Bachelorprojekt/issues/6661)) ([cd9960f](https://github.com/Paddione/Bachelorprojekt/commit/cd9960fd6421e96f3f8f3aef08ae00486a21aa08))
+
 ## [1.423.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.423.0...website-v1.423.1) (2026-10-14)
 
 

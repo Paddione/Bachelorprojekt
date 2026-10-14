@@ -1,7 +1,8 @@
 -- Migration: add missing FK index on massage_invoices (G-DB01) and brand CHECK constraints (G-DB03)
--- Also cleans up redundant duplicate constraint/index on tickets.factory_model_slots.
 -- Applied by components/website/src/db/migrate.ts (website runner, tracking: schema_migrations).
 -- Mirror: migrations/20261014-fk-indexes-and-brand-checks.sql (root runner, tracking: factory_schema_migrations).
+-- The tickets-schema index dedupe lives only in the root-runner mirror (website code must not
+-- name that table, see tests/py/spec/native_ported/spec/sdlc-cockpit/test_ki_deck_eine_tabelle.py).
 
 BEGIN;
 
@@ -21,15 +22,7 @@ BEGIN
   END IF;
 END $$;
 
--- ── 2. Dedupe: drop redundant duplicate index on tickets.factory_model_slots ──
-DO $$
-BEGIN
-  IF to_regclass('tickets.factory_model_slots_phase_key') IS NOT NULL THEN
-    DROP INDEX IF EXISTS tickets.factory_model_slots_phase_key;
-  END IF;
-END $$;
-
--- ── 3. G-DB03: Brand CHECK constraints on tables with brand column ──
+-- ── 2. G-DB03: Brand CHECK constraints on tables with brand column ──
 
 -- public.massage_invoices
 DO $$

@@ -28,6 +28,8 @@ fi
 case "$agent" in
   *self*) echo "working on ${partial:-unknown} (self, no files)"; echo "PLAN-RUNNER-RESULT: success self ${partial:-unknown}"; exit 0 ;;
 esac
+# Haelt den Worker-Slot belegt, damit execute_self nicht gegen einen schon freien Slot laeuft.
+[ -n "${FAKE_SLEEP_CLOUD:-}" ] && sleep "$FAKE_SLEEP_CLOUD"
 files="$(grep -oE 'FILES:[^|]*' <<<"$prompt" | head -1 | cut -d: -f2- || true)"
 old_ifs="$IFS"; IFS=','
 # shellcheck disable=SC2162
@@ -251,7 +253,9 @@ def test_selbstausfuehrung_meldet_self_exec_und_outcome_0(repo_root, tmp_path, f
         "planDir": str(o.plan), "slotsCloud": 1, "opencodeBin": str(o.bin / "opencode.sh"),
     }) + "\n")
     o.replace_plan_and_checks(SELF_TASKS)
-    run = o.drive()
+    # execute_self ist nur bei belegtem Cloud-Slot erlaubt; ohne Pause endet der p1-Stub unter
+    # CI-Last vor dem execute_self-Aufruf, der Slot ist frei und der Runner lehnt ab.
+    run = o.drive(extra_env={"FAKE_SLEEP_CLOUD": "3"})
     assert run.returncode == 0, run.stdout
     assert "self_exec" in kinds_of(run.stdout)
     assert outcome_of(run.stdout) == "0"

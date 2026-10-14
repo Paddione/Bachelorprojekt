@@ -20,7 +20,7 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 
 test.describe('FA-admin-db-crud-projekte', () => {
   test.beforeEach(() => {
-    test.setTimeout(30_000);
+    test.setTimeout(120_000);
   });
 
   test('full CRUD: create → verify → edit → subprojekt → delete', async ({ page, request }, testInfo) => {

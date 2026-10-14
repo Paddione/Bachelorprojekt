@@ -83,9 +83,19 @@ export interface SimilarTicket {
  * spaces, and returns ranked tickets. Returns [] when nothing is embedded yet.
  */
 export async function findSimilarTickets(queryText: string, k = 5): Promise<SimilarTicket[]> {
-  const distinct = await pool.query<{ embedding_model: string | null }>(
-    `SELECT DISTINCT embedding_model FROM tickets.ticket_embeddings`,
-  );
+  let distinct: { rows: Array<{ embedding_model: string | null }> };
+  try {
+    distinct = await pool.query<{ embedding_model: string | null }>(
+      `SELECT DISTINCT embedding_model FROM tickets.ticket_embeddings`,
+    );
+  } catch (err: unknown) {
+    // Fail-soft when table does not exist (e.g. pgvector disabled in prod, T016560: 42P01 = undefined_table)
+    if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === '42P01') {
+      return [];
+    }
+    throw err;
+  }
+
   const models = distinct.rows.map(r => r.embedding_model).filter((m): m is string => !!m);
   if (models.length === 0) return []; // nothing embedded yet — Scout treats as "no similar tickets"
   if (models.length > 1) throw new MixedEmbeddingModelError(models);
@@ -118,16 +128,26 @@ export async function backfillTicketEmbeddings(
 
   // Candidates: tickets with NO embedding row for THIS model. Sequential pages.
   for (;;) {
-    const { rows } = await pool.query<{ id: string; title: string; description: string | null }>(
-      `SELECT t.id, t.title, t.description
-         FROM tickets.tickets t
-        WHERE NOT EXISTS (
-          SELECT 1 FROM tickets.ticket_embeddings te
-           WHERE te.ticket_id = t.id AND te.embedding_model = $1)
-        ORDER BY t.created_at
-        LIMIT $2`,
-      [model, batchSize],
-    );
+    let rows: Array<{ id: string; title: string; description: string | null }>;
+    try {
+      const res = await pool.query<{ id: string; title: string; description: string | null }>(
+        `SELECT t.id, t.title, t.description
+           FROM tickets.tickets t
+          WHERE NOT EXISTS (
+            SELECT 1 FROM tickets.ticket_embeddings te
+             WHERE te.ticket_id = t.id AND te.embedding_model = $1)
+          ORDER BY t.created_at
+          LIMIT $2`,
+        [model, batchSize],
+      );
+      rows = res.rows;
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === '42P01') {
+        return result;
+      }
+      throw err;
+    }
+
     if (rows.length === 0) break;
 
     for (const t of rows) {

@@ -1,8 +1,14 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { createCollection, listCollections, type CrawlConfig } from '../../../../../lib/knowledge-db';
+import { createCollection, listCollections, isVectorStoreEnabled, VectorStoreDisabledError, type CrawlConfig } from '../../../../../lib/knowledge-db';
 
 export const GET: APIRoute = async ({ request }) => {
+  if (!isVectorStoreEnabled()) {
+    return new Response(JSON.stringify({ error: 'vector store disabled' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   const cols = await listCollections();
@@ -10,6 +16,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  if (!isVectorStoreEnabled()) {
+    return new Response(JSON.stringify({ error: 'vector store disabled' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -64,6 +76,12 @@ export const POST: APIRoute = async ({ request }) => {
     });
     return new Response(JSON.stringify(c), { status: 201, headers: { 'Content-Type': 'application/json' } });
   } catch (err: unknown) {
+    if (err instanceof VectorStoreDisabledError) {
+      return new Response(JSON.stringify({ error: 'vector store disabled' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     if (err instanceof Error && err.message.includes('duplicate key')) {
       return new Response(JSON.stringify({ error: 'name bereits vergeben' }), { status: 409 });
     }

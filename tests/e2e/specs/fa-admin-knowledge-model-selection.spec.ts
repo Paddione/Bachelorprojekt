@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginViaE2E } from '../lib/auth';
-import { assertAuthenticatedReachable } from '../lib/health-assertions';
+import { assertWissensquellenReachable } from '../lib/wissensquellen-fixtures';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -12,12 +12,7 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 
 test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@admin'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/admin/wissen`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin wissen' },
-      testInfo
-    );
+    await assertWissensquellenReachable(request, testInfo);
   });
 
   test('verify embedding model selection in Web-Quelle modal and create bge-m3 collection', async ({ page }) => {

@@ -4194,7 +4194,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 928,
+      "file_count": 929,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4927,6 +4927,7 @@
         "scripts/one-shot/purge-fn-v6.sql",
         "scripts/one-shot/purge-fn-v7.sql",
         "scripts/one-shot/purge-fn-v8.sql",
+        "scripts/one-shot/purge-fn-v9.sql",
         "scripts/openclaw-ask.sh",
         "scripts/opencode-config-viz.sh",
         "scripts/opencode-monitor.sh",

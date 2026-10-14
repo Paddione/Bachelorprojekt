@@ -4,7 +4,8 @@
 // Beantwortet POST /v1/chat/completions nacheinander mit den Tool-Calls aus script.json
 // (Array von Schritten, jeder Schritt = { "name": "...", "args": { ... } }). Ist das Skript
 // aufgebraucht, antwortet er mit finish. Jeder Request landet als JSON-Zeile im Request-Log.
-// GET /health antwortet {"ok":true}, damit der Test auf die Bereitschaft warten kann.
+// GET /health antwortet {"ok":true}, damit der Test auf die Bereitschaft warten kann;
+// GET /v1/models antwortet fuer den Endpunkt-Preflight des Runners (T016656), ohne Request-Log.
 
 import { createServer } from 'node:http';
 import { readFileSync, appendFileSync } from 'node:fs';
@@ -17,6 +18,11 @@ createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/health') {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end('{"ok":true}');
+    return;
+  }
+  if (req.method === 'GET' && req.url === '/v1/models') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end('{"data":[{"id":"fake-orch"}]}');
     return;
   }
   let body = '';

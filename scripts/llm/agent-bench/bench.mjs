@@ -227,7 +227,7 @@ async function runJob(ctx, job) {
       const wrapper = writeOpencodeWrapper(jobDir, workerUrl, workerModel, modelContext(pool, workerModel), faultScriptFor(jobDir, v));
       result = await runRole('orchestrator', {
         variant: v,
-        inputs: { case: rec, planDir, slots4b: ctx.slots4b, orchestratorModel: job.model, opencodeBin: wrapper },
+        inputs: { case: rec, planDir, slotsCloud: ctx.slots4b, orchestratorModel: job.model, opencodeBin: wrapper },
         endpoints: {}, workdir, recorderUrls: { orchestrator: orchUrl, codeWorker: workerUrl }, timeoutMs: ctx.timeoutMs,
       });
       result.planRef = planDir;
@@ -539,7 +539,7 @@ async function cmdRun(flags) {
     runDir, runId, pool, scoring, caseMap, jobs: ordered, mode,
     endpoints: {}, state: { run_id: runId, status: 'running', jobs: ordered.map((j) => ({ key: j.key, dirName: j.dirName, status: 'open' })) },
     slots4b: Number(process.env.AGENT_BENCH_4B_SLOTS || 1),
-    workerAgent: process.env.AGENT_BENCH_WORKER_AGENT || 'plan-worker-qwen35',
+    workerAgent: process.env.AGENT_BENCH_WORKER_AGENT || 'plan-worker-muse',
     timeoutMs: process.env.AGENT_BENCH_TIMEOUT_MS ? Number(process.env.AGENT_BENCH_TIMEOUT_MS) : undefined,
   };
   saveState(runDir, ctx.state);
@@ -588,7 +588,7 @@ async function cmdResume(runId) {
     runDir, runId, pool, scoring, caseMap, jobs: ordered, mode: manifest.mode,
     endpoints: {}, state,
     slots4b: Number(process.env.AGENT_BENCH_4B_SLOTS || 1),
-    workerAgent: process.env.AGENT_BENCH_WORKER_AGENT || 'plan-worker-qwen35',
+    workerAgent: process.env.AGENT_BENCH_WORKER_AGENT || 'plan-worker-muse',
     timeoutMs: process.env.AGENT_BENCH_TIMEOUT_MS ? Number(process.env.AGENT_BENCH_TIMEOUT_MS) : undefined,
   };
   installRestoreHooks(() => restoreProduction(pool));

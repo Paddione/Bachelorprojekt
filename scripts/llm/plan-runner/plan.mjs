@@ -12,7 +12,7 @@ export const RESULT_MARKER = 'PLAN-RUNNER-RESULT:';
 
 const splitList = (cell) => cell.split(',').map((s) => s.trim()).filter(Boolean);
 
-// Size-Tier (T901542, plan-vector-routing): s = Microtask, m = Standard (4B-Worker),
+// Size-Tier (T901542, plan-vector-routing): s = Microtask, m = Standard (Direkt-Worker),
 // l = gross/unterspezifiziert (heute: Selbstaufruf, spaeter: Heavy-Track :1919).
 // Quelle: optionale 6. Manifest-Spalte oder `size:` im Partial-Frontmatter (Frontmatter gewinnt).
 export function normalisePartialSize(v) {
@@ -36,12 +36,20 @@ export function parseManifest(tasksMdText) {
   const start = lines.findIndex((l) => /^##\s+Partials\s*$/.test(l.trim()));
   if (start < 0) throw new Error('manifest: section "## Partials" not found');
   const rows = [];
+  let header = false;
   for (let i = start + 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (/^#{1,2}\s/.test(line)) break;
     if (!line.startsWith('|')) continue;
     const cells = line.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
-    if (/^-+$/.test(cells[0].replace(/:/g, '')) || cells[0].toLowerCase() === 'id') continue;
+    // Die erste Tabellenzeile ist die Kopfzeile und beginnt mit "id" (sonst wuerde sie als Partial
+    // gelesen und als "depends on unknown partial" gemeldet, T016656).
+    if (!header) {
+      if (cells[0].toLowerCase() !== 'id') throw new Error('manifest: header must start with "id"');
+      header = true;
+      continue;
+    }
+    if (/^-+$/.test(cells[0].replace(/:/g, ''))) continue;
     const [id, file = '', role = '', targets = '', deps = '', size = ''] = cells;
     if (!id) continue;
     rows.push({ id, file, role, targetFiles: splitList(targets), dependsOn: splitList(deps), size: normalisePartialSize(size) });
@@ -66,11 +74,11 @@ export function readyPartials(partials, state) {
     .map((p) => p.id);
 }
 
-// Hardware-Caps der Worker-Schienen (Single Source: workers.mjs-Dispatch,
-// serve-worker-vllm.service max-num-seqs). Gegenstueck im Leitstand:
+// Caps der Worker-Tracks (Single Source: workers.mjs-Dispatch). Direkt: vLLM :8123 mit 32k Kontext,
+// drei parallele Tool-Loops. Cloud: opencode-Agent plan-worker-muse. Gegenstueck im Leitstand:
 // components/website/src/lib/sdlc/plan-slots.ts (TS-Mirror, dort kommentiert).
-export const MAX_4B_SLOTS = 3;
-export const MAX_VLLM_SLOTS = 10;
+export const MAX_DIRECT_SLOTS = 3;
+export const MAX_CLOUD_SLOTS = 3;
 
 // Maximale Frontbreite des Abhaengigkeits-DAGs: simuliert Scheduling mit
 // unbegrenzten Slots und zaehlt die groesste Menge gleichzeitig bereiter
@@ -89,14 +97,14 @@ export function maxFrontierWidth(partials) {
   return width;
 }
 
-// Slot-Vorschlag aus der Planform: 4B-Track fuellt zuerst (Hardware-Cap),
-// vLLM nimmt nur den Rest ueber der 4B-Kapazitaet (bleibt bei kleinen Plaenen
-// aus, Opt-in-Geist von --vllm-slots).
+// Slot-Vorschlag aus der Planform: der Direkt-Track fuellt zuerst (Cap),
+// der Cloud-Track nimmt nur den Rest ueber der Direkt-Kapazitaet (bleibt bei
+// kleinen Plaenen aus).
 export function autoSlots(partials) {
   const width = maxFrontierWidth(partials);
-  const slots4b = Math.min(Math.max(width, 1), MAX_4B_SLOTS);
-  const slotsVllm = Math.min(Math.max(width - slots4b, 0), MAX_VLLM_SLOTS);
-  return { width, slots4b, slotsVllm };
+  const slotsDirect = Math.min(Math.max(width, 1), MAX_DIRECT_SLOTS);
+  const slotsCloud = Math.min(Math.max(width - slotsDirect, 0), MAX_CLOUD_SLOTS);
+  return { width, slotsDirect, slotsCloud };
 }
 
 export const statePath = (changeDir) => join(changeDir, '.plan-runner', 'state.json');
@@ -142,7 +150,7 @@ export function saveState(changeDir, state) {
 
 // Maschinenlesbares Partial-Schema (T901014 P2): Pflichtfelder zuerst, knappe
 // Feldnamen, feste Reihenfolge — kleine (low-quant) Modelle erhalten Struktur
-// statt Fliesstext. BODY ist auf MAX_PROMPT_BODY_CHARS gekuerzt (4B-Budget).
+// statt Fliesstext. BODY ist auf MAX_PROMPT_BODY_CHARS gekuerzt (Kontextbudget kleiner Modelle).
 export const PARTIAL_FIELDS = ['pid', 'role', 'files', 'deps'];
 export const MAX_PROMPT_BODY_CHARS = 12000;
 
@@ -189,7 +197,7 @@ export function recallSimilarPartials(partialText) {
   }
 }
 
-// Prompt fuer einen Worker (4B oder Selbstaufruf) im Maschinen-Format: eine
+// Prompt fuer einen Worker (Direkt, Cloud oder Selbstaufruf) im Maschinen-Format: eine
 // Record-Zeile + BODY-Block, kein Fliesstext-Ballast, keine .md-Reste.
 // `Partial-ID:` bleibt erste Zeile (Test-Stub parst sie, T900504).
 // recall=false unterdrueckt den Aehnliche-Partials-Abschnitt im Einzelfall.

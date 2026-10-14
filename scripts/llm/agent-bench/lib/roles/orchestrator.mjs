@@ -22,16 +22,20 @@ export async function runOrchestrator({ variant, inputs, endpoints, workdir, rec
     rmSync(changeDir, { recursive: true, force: true });
     cpSync(inputs.planDir, changeDir, { recursive: true });
   }
+  // Bench-Worker laufen ueber den Cloud-Track (opencode-Wrapper); slots4b bleibt als Legacy-Name im variant.json.
+  const slotsCloud = Number(inputs.slotsCloud ?? inputs.slots4b ?? 1);
   const orchUrl = recorderUrls?.orchestrator || endpoints?.orchestrator;
   const env = {
     PLAN_RUNNER_ORCH_URL: orchUrl || 'http://127.0.0.1:1919',
     AGENT_BENCH_WORKTREE: workdir,
   };
+  // Self-Preflight des Runners (T016656): der Bench-Orchestrator beantwortet /v1/models ebenfalls.
+  env.PLAN_RUNNER_SELF_URL = orchUrl || 'http://127.0.0.1:1919';
   if (inputs.orchestratorModel) env.PLAN_RUNNER_ORCH_MODEL = inputs.orchestratorModel;
   // Wrapper-Skript des Bench (setzt --model + OPENCODE_CONFIG_CONTENT), damit
   // die inneren Worker-Aufrufe durch den Code-Worker-Recorder laufen.
   if (inputs.opencodeBin) env.PLAN_RUNNER_OPENCODE = inputs.opencodeBin;
-  const res = await run(TOOL.node(), [TOOL.planRunner(), changeDir, '--worktree', workdir, '--4b-slots', String(inputs.slots4b ?? 1)], {
+  const res = await run(TOOL.node(), [TOOL.planRunner(), changeDir, '--worktree', workdir, '--direct-slots', '0', '--cloud-slots', String(slotsCloud)], {
     cwd: REPO_ROOT,
     env,
     timeout: timeoutMs,
@@ -43,7 +47,7 @@ export async function runOrchestrator({ variant, inputs, endpoints, workdir, rec
   const state = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : { partials: {}, orchestrator: {} };
   artifacts.state = stateFile;
   const partials = Object.entries(state.partials || {});
-  const slots = Number(inputs.slots4b ?? 0);
+  const slots = slotsCloud;
   for (const [, p] of partials) {
     if (p.status !== 'done') continue;
     if (p.owner === 'self' && slots > 0) events.push({ kind: 'self_exec' });

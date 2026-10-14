@@ -27,11 +27,11 @@ echo "PLAN-RUNNER-RESULT: success fake ${partial:-unknown}"
 '''
 
 SCRIPT = (
-    '[{"tool_calls": [{"name": "dispatch_4b", "arguments": {"partial_id": "p1", "prompt": "go"}}]}, '
-    '{"tool_calls": [{"name": "dispatch_4b", "arguments": {"partial_id": "p2", "prompt": "go"}}]}, '
+    '[{"tool_calls": [{"name": "dispatch_cloud", "arguments": {"partial_id": "p1", "prompt": "go"}}]}, '
+    '{"tool_calls": [{"name": "dispatch_cloud", "arguments": {"partial_id": "p2", "prompt": "go"}}]}, '
     '{"tool_calls": [{"name": "wait_event", "arguments": {}}]}, '
     '{"tool_calls": [{"name": "mark", "arguments": {"partial_id": "p1", "status": "done"}}]}, '
-    '{"tool_calls": [{"name": "dispatch_4b", "arguments": {"partial_id": "p3", "prompt": "go"}}]}, '
+    '{"tool_calls": [{"name": "dispatch_cloud", "arguments": {"partial_id": "p3", "prompt": "go"}}]}, '
     '{"tool_calls": [{"name": "wait_event", "arguments": {}}]}, '
     '{"tool_calls": [{"name": "mark", "arguments": {"partial_id": "p2", "status": "done"}}]}, '
     '{"tool_calls": [{"name": "wait_event", "arguments": {}}]}, '
@@ -96,7 +96,7 @@ def test_sauberer_dispatch_traegt_kein_protocol_error(repo_root, tmp_path, fakes
     inputs = tmp_path / "inputs.json"
     inputs.write_text(json.dumps({
         "case": {"id": "marker-clean", "base": str(base)},
-        "planDir": str(plan), "slots4b": 2, "opencodeBin": str(stub),
+        "planDir": str(plan), "slotsCloud": 2, "opencodeBin": str(stub),
     }) + "\n")
 
     run = subprocess.run(

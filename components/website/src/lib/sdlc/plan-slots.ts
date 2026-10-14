@@ -1,11 +1,11 @@
 // Slot-Vorschlag für den plan-runner aus der Planform.
 // TS-Mirror von scripts/llm/plan-runner/plan.mjs (maxFrontierWidth/autoSlots):
-// gleiche Caps, gleiche Aufteilung (4B-Track füllt zuerst, vLLM nur für den
-// Rest über der 4B-Kapazität). Bei Änderung dort hier spiegeln — der Runner
+// gleiche Caps, gleiche Aufteilung (Direkt-Track füllt zuerst, Cloud nur für den
+// Rest über der Direkt-Kapazität). Bei Änderung dort hier spiegeln — der Runner
 // bleibt die Single Source für das Live-Dispatch, dieses Modul versorgt nur
 // die Leitstand-Anzeige.
-export const MAX_4B_SLOTS = 3;
-export const MAX_VLLM_SLOTS = 10;
+export const MAX_DIRECT_SLOTS = 3;
+export const MAX_CLOUD_SLOTS = 3;
 
 export interface PlanPartial {
   id: string;
@@ -71,13 +71,13 @@ export function maxFrontierWidth(partials: PlanPartial[]): number {
 
 export interface SlotSuggestion {
   width: number;
-  slots4b: number;
-  slotsVllm: number;
+  slotsDirect: number;
+  slotsCloud: number;
 }
 
 export function autoSlots(partials: PlanPartial[]): SlotSuggestion {
   const width = maxFrontierWidth(partials);
-  const slots4b = Math.min(Math.max(width, 1), MAX_4B_SLOTS);
-  const slotsVllm = Math.min(Math.max(width - slots4b, 0), MAX_VLLM_SLOTS);
-  return { width, slots4b, slotsVllm };
+  const slotsDirect = Math.min(Math.max(width, 1), MAX_DIRECT_SLOTS);
+  const slotsCloud = Math.min(Math.max(width - slotsDirect, 0), MAX_CLOUD_SLOTS);
+  return { width, slotsDirect, slotsCloud };
 }

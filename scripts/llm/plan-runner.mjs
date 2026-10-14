@@ -1,22 +1,29 @@
 #!/usr/bin/env node
 // plan-runner.mjs — fuehrt die Partials eines gestagten Plans mit lokalen Modellen aus (T900504).
 //
-// Der Orchestrator (llama-server :1919, Qwen3.8-27B IQ3_XXS-mtp) steuert per Tool-Loop; Partials laufen als
-// `opencode run --agent plan-worker-qwen35` (4B-Worker Qwen3.5-4B-MTP, Windows-nativ :8080),
-// `opencode run --agent plan-worker-vllm` (vLLM-Worker Qwen3.5-4B-QUASAR-NVFP4, :8123, RTX 5070 Ti) oder,
-// wenn alle Worker-Slots belegt sind, als Selbstaufruf `opencode run --agent plan-worker-self`. Waehrend des
-// Selbstaufrufs vergibt der Scheduler freie Worker-Slots selbst und meldet die Ergebnisse nach der Rueckkehr. Fortschritt:
-// <plan-dir>/.plan-runner/state.json (atomar, Resume nach Abbruch; Plan-Heimat seit C7a:
-// .agents/plans/<slug>/, davor .agents/plans/<slug>/).
+// Der Orchestrator (llama-server :1919, Qwen3.8-27B IQ3_XXS-mtp; faellt auf vLLM :8123 w4a4 zurueck, wenn
+// :1919 nicht antwortet) steuert per Tool-Loop. Partials laufen auf drei Tracks (Rangfolge direct, cloud, self):
+//  - direct: In-Process-Tool-Loop gegen vLLM :8123 (w4a4, plan-runner/direct-worker.mjs), ohne opencode,
+//  - cloud:  `opencode run --agent plan-worker-muse` (Muse Spark 1.3 im Go-Abo),
+//  - self:   Selbstaufruf `opencode run --agent plan-worker-self` auf :1919, nur wenn :1919 beim Preflight
+//            antwortet und alle Worker-Slots belegt sind. Waehrend des Selbstaufrufs vergibt der Scheduler freie
+//            Worker-Slots selbst und meldet die Ergebnisse nach der Rueckkehr.
+// Fortschritt: <plan-dir>/.plan-runner/state.json (atomar, Resume nach Abbruch; Plan-Heimat seit C7a:
+// .agents/plans/<slug>/).
 //
 // Aufruf:
-//   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--4b-slots N|auto] [--vllm-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]
-//   node scripts/llm/plan-runner.mjs --ticket <T-Id> [--worktree <pfad>] [--4b-slots N] ...  (Plan aus DB-Ref, T901015)
-// 'auto' leitet die Slots aus der maximalen Frontbreite des Partials-DAGs ab (4B zuerst,
-// vLLM nur fuer den Rest ueber der 4B-Kapazitaet); --print-slots gibt {width, slots4b,
-// slotsVllm, partials} als JSON aus und startet nichts (fuer Dashboard/Skripte).
-// Env: PLAN_RUNNER_ORCH_URL (Default http://127.0.0.1:1919), PLAN_RUNNER_ORCH_MODEL (optional),
-//      PLAN_RUNNER_VLLM_URL (Default http://127.0.0.1:8123; Preflight auf /v1/models, sonst vllm-slots=0),
+//   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--direct-slots N|auto] [--cloud-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]
+//   node scripts/llm/plan-runner.mjs --ticket <T-Id> [--worktree <pfad>] [--direct-slots N] ...  (Plan aus DB-Ref, T901015)
+// 'auto' leitet die Slots aus der maximalen Frontbreite des Partials-DAGs ab (Direkt zuerst, Cloud nur fuer den
+// Rest ueber der Direkt-Kapazitaet); --print-slots gibt {width, slotsDirect, slotsCloud, partials} als JSON aus und
+// startet nichts (fuer Dashboard/Skripte). --4b-slots ist ein veralteter Alias fuer --direct-slots; --vllm-slots
+// wurde entfernt (Exit 2).
+// Preflight (GET /v1/models, 5 s): Orchestrator, Direkt-Endpunkt und Self-Endpunkt. Ein toter Track bekommt 0 Slots.
+// Env: PLAN_RUNNER_ORCH_URL (gewinnt; sonst :1919 proben, bei Ausfall :8123 mit Modell w4a4),
+//      PLAN_RUNNER_ORCH_MODEL (optional), PLAN_RUNNER_ORCH_PRIMARY_URL (Default http://127.0.0.1:1919),
+//      PLAN_RUNNER_ORCH_FALLBACK_URL (Default http://127.0.0.1:8123), PLAN_RUNNER_ORCH_FALLBACK_MODEL (Default w4a4),
+//      PLAN_RUNNER_DIRECT_URL (Default http://127.0.0.1:8123), PLAN_RUNNER_DIRECT_MODEL (Default w4a4),
+//      PLAN_RUNNER_SELF_URL (Self-Preflight, Default = Primaer-URL :1919),
 //      PLAN_RUNNER_OPENCODE (ersetzt das opencode-Binary).
 // Exit: 0 alle Partials done · 1 mindestens eine failed bzw. Lauf abgebrochen · 2 Konfigurationsfehler.
 // Runbook: docs/runbooks/plan-runner.md
@@ -29,16 +36,16 @@ import {
   parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt, autoSlots,
 } from './plan-runner/plan.mjs';
 import { WorkerPool, decideTrack, killAllWorkers } from './plan-runner/workers.mjs';
+import { DEFAULT_URL as DEFAULT_DIRECT_URL, DEFAULT_MODEL as DEFAULT_DIRECT_MODEL } from './plan-runner/direct-worker.mjs';
 
-// 3 Slots des Windows-nativen Qwen3.5-4B-MTP-Pools (:8080, -np 3 -kvu -c 98304
-// seit 2026-10-03; davor -np 3 in qwen35-mtp.service auf :1920, T900504 p4).
-const DEFAULT_4B_SLOTS = 3;
-// vLLM auf der RTX 5070 Ti (max-num-seqs 10, teilt sich die GPU mit dem :1919-Orchestrator).
-// Default 0 (opt-in per --vllm-slots N): Eine volle opencode-Sitzung im Repo (globale +
-// Home- + Projekt-Config, Skills, MCPs) sprengt das 32k-Fenster von w4a4 schon beim Start
-// (compaction-Fehler, belegt per `opencode run --agent plan-worker-vllm` im Worktree vs. /tmp).
-// Erst einschalten, wenn der Worker-Kontext dankt (slimmere Config) oder das Fenster waechst.
-const DEFAULT_VLLM_SLOTS = 0;
+// Direkt-Track: drei parallele Tool-Loops gegen vLLM :8123 (32k Kontext, max-num-seqs 10, teilt sich die
+// RTX 5070 Ti mit dem Orchestrator-Fallback). Cloud-Track: ein opencode-Agent plan-worker-muse (abschaltbar
+// mit --cloud-slots 0).
+const DEFAULT_DIRECT_SLOTS = 3;
+const DEFAULT_CLOUD_SLOTS = 1;
+const DEFAULT_ORCH_PRIMARY_URL = 'http://127.0.0.1:1919';
+const DEFAULT_ORCH_FALLBACK_URL = 'http://127.0.0.1:8123';
+const DEFAULT_ORCH_FALLBACK_MODEL = 'w4a4';
 const IDLE_POLL_MS = 5000;
 const MAX_PROTOCOL_ERRORS = 3;
 const MAX_RETRIES = 2;
@@ -52,9 +59,9 @@ function fail(code, msg) {
 
 // ---------- CLI ----------
 function parseArgs(argv) {
-  const opts = { changeDir: null, worktree: null, ticket: null, slots4b: DEFAULT_4B_SLOTS, slotsVllm: DEFAULT_VLLM_SLOTS, maxTurns: 200, timeoutMin: 120, printSlots: false };
-  // --4b-slots 0 schaltet den 4B-Track ab (Selbstausfuehrung braucht zusaetzlich --vllm-slots 0,
-  // z. B. wenn die Partial einen Worker-Server selbst umkonfiguriert).
+  const opts = { changeDir: null, worktree: null, ticket: null, slotsDirect: DEFAULT_DIRECT_SLOTS, slotsCloud: DEFAULT_CLOUD_SLOTS, maxTurns: 200, timeoutMin: 120, printSlots: false };
+  // --direct-slots 0 und --cloud-slots 0 schalten die Worker-Tracks ab (reine Selbstausfuehrung, z. B.
+  // wenn die Partial einen Worker-Server selbst umkonfiguriert).
   // 'auto' (oder --auto-slots fuer beide Tracks) leitet die Slots aus der maximalen
   // Frontbreite des Partials-DAGs ab (autoSlots aus plan.mjs); explizite Zahlen gewinnen je Track.
   const numOrAuto = (k, v, min = 0) => {
@@ -72,9 +79,13 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '--worktree') opts.worktree = argv[++i];
     else if (a === '--ticket') opts.ticket = argv[++i];
-    else if (a === '--4b-slots') opts.slots4b = numOrAuto('4b-slots', argv[++i], 0);
-    else if (a === '--vllm-slots') opts.slotsVllm = numOrAuto('vllm-slots', argv[++i], 0);
-    else if (a === '--auto-slots') { opts.slots4b = 'auto'; opts.slotsVllm = 'auto'; }
+    else if (a === '--direct-slots') opts.slotsDirect = numOrAuto('direct-slots', argv[++i], 0);
+    else if (a === '--4b-slots') {
+      log('--4b-slots is deprecated, use --direct-slots (the 4B pool :8080 is gone; the direct track runs on vLLM :8123)');
+      opts.slotsDirect = numOrAuto('4b-slots', argv[++i], 0);
+    } else if (a === '--cloud-slots') opts.slotsCloud = numOrAuto('cloud-slots', argv[++i], 0);
+    else if (a === '--vllm-slots') fail(2, '--vllm-slots was removed: use --cloud-slots N (opencode agent plan-worker-muse) or --direct-slots N (in-process worker on vLLM :8123)');
+    else if (a === '--auto-slots') { opts.slotsDirect = 'auto'; opts.slotsCloud = 'auto'; }
     else if (a === '--print-slots') opts.printSlots = true;
     else if (a === '--max-turns') opts.maxTurns = num('max-turns', argv[++i]);
     else if (a === '--timeout-min') opts.timeoutMin = num('timeout-min', argv[++i]);
@@ -86,7 +97,7 @@ function parseArgs(argv) {
     if (opts.changeDir) fail(2, '--ticket cannot be combined with a positional <change-dir>; the plan dir is derived from the FACTORY-PLAN-REF');
     resolveTicketRef(opts);
   } else if (!opts.changeDir) {
-    fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--4b-slots N|auto] [--vllm-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]');
+    fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--direct-slots N|auto] [--cloud-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]');
   }
   return opts;
 }
@@ -220,9 +231,9 @@ function loadPlan(opts) {
 
 // ---------- Orchestrator-Protokoll ----------
 const SYSTEM = `You are the orchestrator of a plan runner. You execute an staged plan that is split into partials.
-Each partial is implemented by a worker: a small 4B model (dispatch_4b), a vLLM worker (dispatch_vllm) or, only when every worker slot is busy, yourself (execute_self).
+Each partial is implemented by a worker: a direct worker (dispatch_direct, small local model with a short tool loop), a cloud worker (dispatch_cloud) or, only when every worker slot is busy and plan_status shows selfAvailable = true, yourself (execute_self).
 Rules:
-- Prefer the 4B workers, then vLLM. Call execute_self ONLY when plan_status shows free4b = 0 and freeVllm = 0 and a partial is ready.
+- Prefer the direct workers, then the cloud worker. Call execute_self ONLY when plan_status shows freeDirect = 0 and freeCloud = 0 and selfAvailable = true and a partial is ready.
 - Dispatch only partials listed as ready. Dependencies are enforced; a partial becomes ready when its dependencies are marked done.
 - A worker result is a claim, not a proof. Review every result (success/failure line and output tail) before you call mark(id, "done").
   If a result is wrong or incomplete, call mark(id, "open", note) so it can be retried, or mark(id, "failed", note).
@@ -234,23 +245,23 @@ const fn = (name, description, properties = {}, required = []) => ({
 });
 const S = { type: 'string' };
 const TOOLS = [
-  fn('plan_status', 'State of every partial, the ready partial ids and the number of free 4B and vLLM slots.'),
-  fn('dispatch_4b', 'Start a ready partial on a free 4B worker slot. Returns STARTED or BUSY immediately.',
+  fn('plan_status', 'State of every partial, the ready partial ids, the number of free direct and cloud slots and whether self-execution is available.'),
+  fn('dispatch_direct', 'Start a ready partial on a free direct worker slot. Returns STARTED or BUSY immediately.',
     { partial_id: S, prompt: { type: 'string', description: 'Extra instructions for the worker.' } }, ['partial_id']),
-  fn('dispatch_vllm', 'Start a ready partial on a free vLLM worker slot. Returns STARTED or BUSY immediately.',
+  fn('dispatch_cloud', 'Start a ready partial on a free cloud worker slot. Returns STARTED or BUSY immediately.',
     { partial_id: S, prompt: { type: 'string', description: 'Extra instructions for the worker.' } }, ['partial_id']),
-  fn('execute_self', 'Implement a ready partial yourself. Only allowed when all 4B and vLLM slots are busy. Blocks until it returns.',
+  fn('execute_self', 'Implement a ready partial yourself. Only allowed when all direct and cloud slots are busy and self-execution is available. Blocks until it returns.',
     { partial_id: S, prompt: S, plan_notes: { type: 'string', description: 'Your plan notes; saved before you sleep.' } },
     ['partial_id', 'plan_notes']),
-  fn('wait_event', 'Block until a 4B or vLLM job ends and return its result.'),
+  fn('wait_event', 'Block until a direct or cloud job ends and return its result.'),
   fn('mark', 'Set the status of a partial after reviewing its result.',
     { partial_id: S, status: { type: 'string', enum: ['done', 'failed', 'open'] }, note: S }, ['partial_id', 'status']),
   fn('finish', 'End the run.', { summary: S }, ['summary']),
 ];
 
-async function chat(url, messages) {
+async function chat({ url, model }, messages) {
   const body = { messages, tools: TOOLS, tool_choice: 'auto', max_tokens: 8192 };
-  if (process.env.PLAN_RUNNER_ORCH_MODEL) body.model = process.env.PLAN_RUNNER_ORCH_MODEL;
+  if (model) body.model = model;
   const r = await fetch(`${url}/v1/chat/completions`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body), signal: AbortSignal.timeout(30 * 60_000),
@@ -263,7 +274,7 @@ async function chat(url, messages) {
 }
 
 // ---------- Scheduler ----------
-function createScheduler({ changeDir, partials, texts, worktree, state }, pool) {
+function createScheduler({ changeDir, partials, texts, worktree, state }, pool, selfAvailable) {
   const byId = Object.fromEntries(partials.map((p) => [p.id, p]));
   const save = () => saveState(changeDir, state);
   const ready = () => readyPartials(partials, state);
@@ -278,43 +289,35 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
       }];
     })),
     ready: ready(),
-    free4b: pool.free4b(),
-    running_4b: pool.running4b(),
-    freeVllm: pool.freeVllm(),
-    running_vllm: pool.runningVllm(),
+    freeDirect: pool.freeDirect(),
+    running_direct: pool.runningDirect(),
+    freeCloud: pool.freeCloud(),
+    running_cloud: pool.runningCloud(),
+    selfAvailable,
     buffered_events: pool.pending(),
   });
 
   const startWith = (track, id, extra = '') => {
     const prompt = buildWorkerPrompt({ partial: byId[id], partialText: texts[id], worktree, extra });
-    if (track === 'vllm') {
-      pool.startVllm(id, prompt);
-      Object.assign(state.partials[id], { status: 'running', owner: 'vllm', result: null });
-    } else {
-      pool.start4b(id, prompt);
-      Object.assign(state.partials[id], { status: 'running', owner: '4b', result: null });
-    }
+    if (track === 'cloud') pool.startCloud(id, prompt);
+    else pool.startDirect(id, prompt, byId[id].targetFiles);
+    Object.assign(state.partials[id], { status: 'running', owner: track, result: null });
     save();
     log(`${track} start ${id}`);
   };
 
-  const start4b = (id, extra = '') => startWith('4b', id, extra);
-  const startVllm = (id, extra = '') => startWith('vllm', id, extra);
+  const policy = () => decideTrack({ ready: ready(), freeDirect: pool.freeDirect(), freeCloud: pool.freeCloud(), selfAvailable });
 
-  // Freie Worker-Slots (erst 4B, dann vLLM) mit der naechsten bereiten Partial belegen
+  // Freie Worker-Slots (erst direct, dann cloud) mit der naechsten bereiten Partial belegen
   // (ohne die selbst ausgefuehrte).
   const idleDispatch = (exclude) => {
-    for (const id of ready()) {
-      if (pool.free4b() <= 0) break;
-      if (id === exclude) continue;
-      start4b(id);
-      log(`idle-dispatch ${id}`);
-    }
-    for (const id of ready()) {
-      if (pool.freeVllm() <= 0) break;
-      if (id === exclude || pool.isActive(id)) continue;
-      startVllm(id);
-      log(`idle-dispatch-vllm ${id}`);
+    for (const track of ['direct', 'cloud']) {
+      for (const id of ready()) {
+        if ((track === 'direct' ? pool.freeDirect() : pool.freeCloud()) <= 0) break;
+        if (id === exclude || pool.isActive(id)) continue;
+        startWith(track, id);
+        log(`idle-dispatch-${track} ${id}`);
+      }
     }
   };
 
@@ -340,36 +343,39 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
   const tools = {
     plan_status: () => JSON.stringify(status()),
 
-    dispatch_4b: ({ partial_id: id, prompt = '' }) => {
+    dispatch_direct: ({ partial_id: id, prompt = '' }) => {
       const err = requireReady(id);
       if (err) return err;
-      // Worker-Track: Dispatch-Policy (T901014 P1) — ein 4B-Dispatch braucht 'worker'.
-      if (decideTrack({ ready: ready(), freeSlots: pool.free4b(), freeVllm: pool.freeVllm() }) !== 'worker') return `BUSY: no free 4B slot (running: ${pool.running4b().join(',')})`;
-      start4b(id, String(prompt));
+      // Direkt-Track: Dispatch-Policy (T901014 P1) — ein Direkt-Dispatch braucht 'direct'.
+      if (policy() !== 'direct') return `BUSY: no free direct slot (running: ${pool.runningDirect().join(',')})`;
+      startWith('direct', id, String(prompt));
       return `STARTED ${id}`;
     },
 
-    dispatch_vllm: ({ partial_id: id, prompt = '' }) => {
+    dispatch_cloud: ({ partial_id: id, prompt = '' }) => {
       const err = requireReady(id);
       if (err) return err;
-      // vLLM-Track: Dispatch-Policy — ein vLLM-Dispatch braucht 'vllm' (4B voll, vLLM frei).
-      if (decideTrack({ ready: ready(), freeSlots: pool.free4b(), freeVllm: pool.freeVllm() }) !== 'vllm') {
-        if (pool.free4b() > 0) return `BUSY: 4B slot(s) free - use dispatch_4b first`;
-        return `BUSY: no free vLLM slot (running: ${pool.runningVllm().join(',')})`;
+      // Cloud-Track: Dispatch-Policy — ein Cloud-Dispatch braucht 'cloud' (Direkt voll, Cloud frei).
+      if (policy() !== 'cloud') {
+        if (pool.freeDirect() > 0) return 'BUSY: direct slot(s) free - use dispatch_direct first';
+        return `BUSY: no free cloud slot (running: ${pool.runningCloud().join(',')})`;
       }
-      startVllm(id, String(prompt));
+      startWith('cloud', id, String(prompt));
       return `STARTED ${id}`;
     },
 
     execute_self: async ({ partial_id: id, prompt = '', plan_notes: notes = '' }) => {
       if (!byId[id]) return `ERROR: unknown partial ${id}`;
-      // Self-Track: nur wenn die Dispatch-Policy 'self' liefert (kein freier Slot, Partial bereit).
-      const track = decideTrack({ ready: ready(), freeSlots: pool.free4b(), freeVllm: pool.freeVllm() });
-      if (track === 'worker') {
-        return `ERROR: ${pool.free4b()} 4B slot(s) free - use dispatch_4b. execute_self is only allowed when all worker slots are busy.`;
+      // Self-Track: nur wenn die Dispatch-Policy 'self' liefert (kein freier Slot, Partial bereit, :1919 antwortet).
+      const track = policy();
+      if (track === 'direct') {
+        return `ERROR: ${pool.freeDirect()} direct slot(s) free - use dispatch_direct. execute_self is only allowed when all worker slots are busy.`;
       }
-      if (track === 'vllm') {
-        return `ERROR: ${pool.freeVllm()} vLLM slot(s) free - use dispatch_vllm. execute_self is only allowed when all worker slots are busy.`;
+      if (track === 'cloud') {
+        return `ERROR: ${pool.freeCloud()} cloud slot(s) free - use dispatch_cloud. execute_self is only allowed when all worker slots are busy.`;
+      }
+      if (!selfAvailable) {
+        return 'ERROR: self track unavailable (the self endpoint did not answer the preflight) - use wait_event for running workers or call finish';
       }
       const err = requireReady(id);
       if (err) return err;
@@ -400,16 +406,16 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
       if (slept.length) {
         reply += `\n\nWhile you were asleep, these worker jobs finished (review each, then mark):\n${slept.map(formatEvent).join('\n\n')}`;
       }
-      const still4b = pool.running4b();
-      const stillVllm = pool.runningVllm();
-      if (still4b.length || stillVllm.length) {
-        reply += `\n\nStill running (4b: ${still4b.join(',') || 'none'}; vllm: ${stillVllm.join(',') || 'none'})`;
+      const stillDirect = pool.runningDirect();
+      const stillCloud = pool.runningCloud();
+      if (stillDirect.length || stillCloud.length) {
+        reply += `\n\nStill running (direct: ${stillDirect.join(',') || 'none'}; cloud: ${stillCloud.join(',') || 'none'})`;
       }
       return reply;
     },
 
     wait_event: async () => {
-      if (!pool.pending() && !pool.running4b().length && !pool.runningVllm().length) return 'NO_EVENT: no worker job is running';
+      if (!pool.pending() && !pool.runningDirect().length && !pool.runningCloud().length) return 'NO_EVENT: no worker job is running';
       return `EVENT ${formatEvent(await pool.nextEvent())}`;
     },
 
@@ -436,9 +442,9 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool) 
 }
 
 // ---------- Hauptlauf ----------
-// vLLM-Preflight: prueft /v1/models mit kurzem Timeout. Bei Fehler (Server down)
-// werden die vLLM-Slots still auf 0 degradiert — der Lauf nutzt dann nur 4B/self.
-async function probeVllm(url, timeoutMs = 5000) {
+// Endpunkt-Preflight: prueft /v1/models mit kurzem Timeout (T016656). Ein toter Endpunkt degradiert
+// seinen Track still auf 0 Slots bzw. "kein Self" — der Lauf nutzt dann die uebrigen Tracks.
+async function probeEndpoint(url, timeoutMs = 5000) {
   try {
     const r = await fetch(`${url}/v1/models`, { signal: AbortSignal.timeout(timeoutMs) });
     return r.ok;
@@ -447,36 +453,55 @@ async function probeVllm(url, timeoutMs = 5000) {
   }
 }
 
+const urlEnv = (name, dflt) => (process.env[name] || dflt).replace(/\/$/, '');
+
+// Orchestrator-Endpunkt (D4): PLAN_RUNNER_ORCH_URL gewinnt ohne Probe. Sonst :1919, bei Ausfall vLLM :8123
+// (Tool-Parser qwen3_coder, Modell w4a4). Liefert { url, model, primary } oder bricht mit Exit 1 ab.
+async function resolveOrchestrator() {
+  const model = process.env.PLAN_RUNNER_ORCH_MODEL || null;
+  const primary = urlEnv('PLAN_RUNNER_ORCH_PRIMARY_URL', DEFAULT_ORCH_PRIMARY_URL);
+  if (process.env.PLAN_RUNNER_ORCH_URL) return { url: urlEnv('PLAN_RUNNER_ORCH_URL', ''), model, primary };
+  if (await probeEndpoint(primary)) return { url: primary, model, primary };
+  const fallback = urlEnv('PLAN_RUNNER_ORCH_FALLBACK_URL', DEFAULT_ORCH_FALLBACK_URL);
+  const fbModel = process.env.PLAN_RUNNER_ORCH_FALLBACK_MODEL || model || DEFAULT_ORCH_FALLBACK_MODEL;
+  if (!(await probeEndpoint(fallback))) fail(1, `orchestrator unreachable: ${primary} and fallback ${fallback} did not answer /v1/models`);
+  log(`orchestrator fallback: ${primary} unreachable, using ${fallback} (model ${fbModel})`);
+  return { url: fallback, model: fbModel, primary };
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const plan = loadPlan(opts);
   let suggestion = null;
-  if (opts.slots4b === 'auto' || opts.slotsVllm === 'auto' || opts.printSlots) {
+  if (opts.slotsDirect === 'auto' || opts.slotsCloud === 'auto' || opts.printSlots) {
     try {
       suggestion = autoSlots(plan.partials);
     } catch (e) {
       fail(2, e.message);
     }
-    if (opts.slots4b === 'auto') opts.slots4b = suggestion.slots4b;
-    if (opts.slotsVllm === 'auto') opts.slotsVllm = suggestion.slotsVllm;
-    log(`auto-slots: ${plan.partials.length} partials, frontier width ${suggestion.width} -> 4b ${opts.slots4b}, vllm ${opts.slotsVllm}`);
+    if (opts.slotsDirect === 'auto') opts.slotsDirect = suggestion.slotsDirect;
+    if (opts.slotsCloud === 'auto') opts.slotsCloud = suggestion.slotsCloud;
+    log(`auto-slots: ${plan.partials.length} partials, frontier width ${suggestion.width} -> direct ${opts.slotsDirect}, cloud ${opts.slotsCloud}`);
   }
   if (opts.printSlots) {
     process.stdout.write(`${JSON.stringify({ ...suggestion, partials: plan.partials.length })}\n`);
     process.exit(0);
   }
-  const url = (process.env.PLAN_RUNNER_ORCH_URL || 'http://127.0.0.1:1919').replace(/\/$/, '');
-  const vllmUrl = (process.env.PLAN_RUNNER_VLLM_URL || 'http://127.0.0.1:8123').replace(/\/$/, '');
-  let slotsVllm = opts.slotsVllm;
-  if (slotsVllm > 0 && !(await probeVllm(vllmUrl))) {
-    log(`vLLM at ${vllmUrl} unreachable - vllm slots disabled (0), 4B/self only`);
-    slotsVllm = 0;
+  const orch = await resolveOrchestrator();
+  const directUrl = urlEnv('PLAN_RUNNER_DIRECT_URL', DEFAULT_DIRECT_URL);
+  const selfUrl = urlEnv('PLAN_RUNNER_SELF_URL', orch.primary);
+  let slotsDirect = opts.slotsDirect;
+  if (slotsDirect > 0 && !(await probeEndpoint(directUrl))) {
+    log(`direct endpoint ${directUrl} unreachable - direct slots 0`);
+    slotsDirect = 0;
   }
-  const pool = new WorkerPool({ slots4b: opts.slots4b, slotsVllm, worktree: plan.worktree, timeoutMs: opts.timeoutMin * 60_000 });
-  const sched = createScheduler(plan, pool);
+  const selfAvailable = await probeEndpoint(selfUrl);
+  if (!selfAvailable) log(`self endpoint ${selfUrl} unreachable - self track off`);
+  const pool = new WorkerPool({ slotsDirect, slotsCloud: opts.slotsCloud, worktree: plan.worktree, timeoutMs: opts.timeoutMin * 60_000 });
+  const sched = createScheduler(plan, pool, selfAvailable);
   sched.save();
   process.on('SIGINT', () => { killAllWorkers(); fail(130, 'interrupted; state saved, restart resumes'); });
-  log(`change ${plan.changeDir} · worktree ${plan.worktree} · 4b slots ${opts.slots4b} · vllm slots ${slotsVllm} · orchestrator ${url}`);
+  log(`change ${plan.changeDir} · worktree ${plan.worktree} · direct slots ${slotsDirect} (${process.env.PLAN_RUNNER_DIRECT_MODEL || DEFAULT_DIRECT_MODEL} @ ${directUrl}) · cloud slots ${opts.slotsCloud} · self ${selfAvailable ? 'on' : 'off'} · orchestrator ${orch.url}`);
 
   const messages = [
     { role: 'system', content: SYSTEM },
@@ -487,7 +512,7 @@ async function main() {
   let protocolErrors = 0;
   try {
     for (let turn = 0; turn < opts.maxTurns && !finished; turn++) {
-      const msg = await chat(url, messages);
+      const msg = await chat(orch, messages);
       const calls = msg.tool_calls ?? [];
       messages.push({ role: 'assistant', content: msg.content ?? '', ...(calls.length ? { tool_calls: calls } : {}) });
       if (!calls.length) {
@@ -518,9 +543,11 @@ async function main() {
     aborted = e.message;
   }
 
-  // Nicht abgeschlossene 4B-Jobs beenden; loadState setzt sie beim naechsten Lauf auf open.
-  if (pool.running4b().length) {
-    log(`stopping running 4B jobs: ${pool.running4b().join(',')}`);
+  // Nicht abgeschlossene Worker-Jobs beenden; loadState setzt sie beim naechsten Lauf auf open.
+  // Direkt-Jobs laufen im Runner-Prozess und enden mit process.exit, opencode-Prozesse per killAllWorkers.
+  const stillRunning = [...pool.runningDirect(), ...pool.runningCloud()];
+  if (stillRunning.length) {
+    log(`stopping running worker jobs: ${stillRunning.join(',')}`);
     killAllWorkers();
   }
   sched.save();

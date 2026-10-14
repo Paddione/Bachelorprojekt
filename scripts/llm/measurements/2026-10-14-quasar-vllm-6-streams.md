@@ -1,8 +1,8 @@
-# Quasar-Worker (vLLM :8123): Gesamtdurchsatz bei 6 parallelen Stroemen — Messplan
+# Quasar-Worker (vLLM :8123): Gesamtdurchsatz bei 6 parallelen Stroemen
 
-Stand: 2026-10-14, **vorbereitet, noch nicht gemessen**. Der Lauf braucht den
-GPU-Host (PK-Desktop, RTX 5070 Ti); in der Cloud-Sitzung, die dieses Protokoll
-angelegt hat, gibt es keine GPU.
+Stand: 2026-10-14, **gemessen** auf dem PK-Desktop (RTX 5070 Ti). Ergebnis:
+**~678 tok/s gesamt bei 6 Stroemen**, 5,6x ein Strom (122 tok/s), je Strom nur
+~7 % langsamer. Bei 6 Stroemen noch keine Saettigung.
 
 ## Frage
 
@@ -73,20 +73,71 @@ und eine JSON-Zeile in `$OUT`.
 - **je Strom** = was ein einzelner Worker sieht.
 - **running max** = Spitze von `vllm:num_requests_running`; muss bei 6 Stroemen `6` sein, sonst liefen die Stroeme nicht gleichzeitig.
 
-## Ergebnisse
+## Ergebnisse (2026-10-14)
 
-Ausstehend.
+Gelaufen ist genau der Messbefehl oben, mit dem Skript aus Branch
+`claude/vigilant-hopper-y6hyht` @ `d00217635d93e7c0bf144d6c708dd99e97a17bf4`
+(per `git show FETCH_HEAD:scripts/llm/bench-vllm-concurrent.mjs` nach `/tmp`
+kopiert), `--out /tmp/quasar-6-streams.jsonl`. Von vLLM gemeldete Modell-ID:
+`w4a4`.
 
-| Stroeme | GESAMT tok/s (rep 1/2/3) | je Strom tok/s | TTFT median ms | running max |
-|---|---|---|---|---|
-| 1 | | | | |
-| 3 | | | | |
-| 6 | | | | |
+```bash
+cd ~/Bachelorprojekt
+git fetch origin claude/vigilant-hopper-y6hyht
+git show FETCH_HEAD:scripts/llm/bench-vllm-concurrent.mjs > /tmp/bench-vllm-concurrent.mjs
+node /tmp/bench-vllm-concurrent.mjs --port 8123 --streams 1,3,6 \
+  --tokens 512 --reps 3 --label quasar-w4a4 --out /tmp/quasar-6-streams.jsonl
+```
 
-Vergleich: 4B-MTP llama.cpp `-np 3 -kvu` auf der 3060 Ti = 162 t/s gesamt
-bei 3 Stroemen.
+| Stroeme | GESAMT tok/s (rep 1/2/3) | Mittel | je Strom tok/s | TTFT median ms (rep 1/2/3) | running max |
+|---|---|---|---|---|---|
+| 1 | 118 / 122 / 125 | **122** | 118–125 | 167 / 127 / 86 | 1 |
+| 3 | 351 / 349 / 355 | **352** | 117–119 | 197 / 180 / 166 | 3 |
+| 6 | 676 / 684 / 674 | **678** | 113–114 | 257 / 200 / 169 | 6 |
+
+Rohausgabe:
+
+```
+== quasar-w4a4 | http://127.0.0.1:8123 | Modell w4a4 | 512 Token je Strom | 3 Wiederholungen ==
+1x rep1: GESAMT 118 tok/s | je Strom 118 tok/s | TTFT med 167 ms / max 167 ms | running max 1
+1x rep2: GESAMT 122 tok/s | je Strom 122 tok/s | TTFT med 127 ms / max 127 ms | running max 1
+1x rep3: GESAMT 125 tok/s | je Strom 125 tok/s | TTFT med 86 ms / max 86 ms | running max 1
+3x rep1: GESAMT 351 tok/s | je Strom 118 tok/s | TTFT med 197 ms / max 197 ms | running max 3
+3x rep2: GESAMT 349 tok/s | je Strom 117 tok/s | TTFT med 180 ms / max 180 ms | running max 3
+3x rep3: GESAMT 355 tok/s | je Strom 119 tok/s | TTFT med 166 ms / max 166 ms | running max 3
+6x rep1: GESAMT 676 tok/s | je Strom 113 tok/s | TTFT med 257 ms / max 258 ms | running max 6
+6x rep2: GESAMT 684 tok/s | je Strom 114 tok/s | TTFT med 200 ms / max 201 ms | running max 6
+6x rep3: GESAMT 674 tok/s | je Strom 113 tok/s | TTFT med 169 ms / max 169 ms | running max 6
+```
+
+### Was die Zahlen tragen
+
+- **Batching wirkt fast linear:** 1 → 3 → 6 Stroeme = 122 → 352 → 678 tok/s
+  (Faktor 2,9 bzw. 5,6). Der einzelne Strom verliert dabei nur ~7 %
+  (122 → 113 tok/s).
+- **Echte Gleichzeitigkeit belegt:** `running max` entspricht in jedem
+  Durchgang der Stromzahl — keine Warteschlange.
+- **Reproduzierbar:** Streuung ueber drei Wiederholungen ≤ 1,5 % beim
+  Gesamtdurchsatz (anders als die gemma12-Slotmessung mit 43 %).
+- **TTFT bleibt klein** (≤ 258 ms), faellt je Stufe von rep 1 zu rep 3 —
+  vermutlich Prefix-Cache der gleichlautenden Prompt-Anfaenge, nicht belegt.
+- **Keine Saettigung bei 6:** der Knick liegt hoeher. Naechster Schritt:
+  `--streams 8,10` (`max-num-seqs` ist 10).
+
+### Was sie nicht tragen
+
+- Der Preflight wurde **nicht** protokolliert (GPU-Zustand, `:1919` idle,
+  `running`/`waiting` = 0 vor dem Start, Throttle-Gegenprobe). Die geringe
+  Streuung spricht gegen Fremdlast, belegt sie aber nicht.
+- Die JSONL liegt nur auf dem Host (`/tmp/quasar-6-streams.jsonl`), nicht im
+  Repo; die Tabelle stammt aus der Rohausgabe oben.
+- Last ist synthetisch (kurze Prompts, 512 Token erzwungene Ausgabe). Echte
+  plan-runner-Partials haben lange System-Prompts und Tool-Turns; dort duerften
+  Prefill und der 32k-Pool begrenzen, nicht der Decode (nicht gemessen).
+- Vergleich mit dem 4B-MTP-Worker (llama.cpp `-np 3 -kvu`, 162 t/s bei 3
+  Stroemen) ist **kein A/B**: andere GPU (3060 Ti statt 5070 Ti), anderer
+  Quant, MTP. Er zeigt nur die Groessenordnung des Unterschieds der Tracks.
 
 ## Nachher
 
-`serve-worker-vllm` und `qwen38-gsq-iq3xxs` muessen wieder `active` sein;
-Ergebnisse oben eintragen, die `.jsonl` daneben einchecken.
+`serve-worker-vllm` und `qwen38-gsq-iq3xxs` muessen wieder `active` sein.

@@ -1,0 +1,17 @@
+# mentolder-Prod wird von gekko32/mentolder-prod betrieben. Dieses Repo liefert die Flux-Definitionen
+# (OCIRepository + Kustomizations unter ./flux). Die Manifeste selbst kommen aus dem dort gebauten,
+# signierten Artefakt ghcr.io/gekko32/mentolder-manifests.
+#
+# Das Repo ist oeffentlich (Branch-Protection ohne bezahlten Plan), daher kein Lesegeheimnis.
+# Wirksam erst nach der Umstellung der flux-mentolder* Kustomizations (siehe README im Gekko-Repo,
+# Abschnitt "Flux-Definitionen").
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: gekko-mentolder-prod
+  namespace: flux-system
+spec:
+  interval: 10m
+  url: https://github.com/gekko32/mentolder-prod.git
+  ref:
+    branch: main

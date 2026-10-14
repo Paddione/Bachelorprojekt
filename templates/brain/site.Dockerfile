@@ -1,4 +1,4 @@
-FROM node:22-slim AS builder
+FROM node:26-slim AS builder
 RUN apt-get update -qq && apt-get install -y -qq git ca-certificates >/dev/null
 RUN git clone --depth 1 --branch v4.5.2 https://github.com/jackyzha0/quartz /q
 WORKDIR /q

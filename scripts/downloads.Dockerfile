@@ -1,4 +1,4 @@
-FROM joseluisq/static-web-server:2.36-alpine
+FROM joseluisq/static-web-server:2.44.1-alpine
 # static-web-server runs as uid 1000 and serves SERVER_ROOT (/public).
 # No org.opencontainers.image.source LABEL: avoids auto-linking this image to
 # the public source repo, which can make GHCR inherit the repo's (public)

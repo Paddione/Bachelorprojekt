@@ -13,8 +13,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["three"],
-    "baseUrl": ".",
-    "paths": { "@types/*": ["src/types/*"] }
+    "paths": { "@types/*": ["./src/types/*"], "*": ["./*"] }
   },
   "include": ["src/client/**/*", "src/types/**/*"]
 }

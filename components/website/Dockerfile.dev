@@ -13,7 +13,7 @@
 # auth.ts den Wert aber aus `process.env` liest. Docker kennt `env_file`, das die
 # Variablen direkt in die Prozessumgebung legt — damit verschwindet die
 # `set -a`-Falle strukturell statt bei jedem Start manuell umgangen zu werden.
-FROM node:24-alpine
+FROM node:26-alpine
 
 WORKDIR /app
 

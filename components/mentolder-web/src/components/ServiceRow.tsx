@@ -1,6 +1,6 @@
 import type { ComponentType, SVGProps } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion';
+import { motion } from 'motion/react';
 import { iconRegistry, iconLabels, type IconName } from './icons';
 
 export interface Service {

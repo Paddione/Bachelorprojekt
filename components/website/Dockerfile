@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # ── Build stage ───────────────────────────────────────────────────────────────
 # Build context is repo root so that tests/ can be copied into the runtime stage.
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 
 # T001224/T001276: website migrated to pnpm — `components/website/package-lock.json` was
@@ -54,7 +54,7 @@ RUN pnpm run build
 RUN pnpm install --prod
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
-FROM node:24-alpine AS runtime
+FROM node:26-alpine AS runtime
 WORKDIR /app
 
 # Tools needed by test runner scripts

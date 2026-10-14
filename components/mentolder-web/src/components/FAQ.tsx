@@ -1,5 +1,5 @@
 import { useState, useId } from 'react';
-import { AnimatePresence, motion } from 'motion';
+import { AnimatePresence, motion } from 'motion/react';
 
 export interface FAQItem {
   question: string;

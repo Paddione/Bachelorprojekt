@@ -9,7 +9,7 @@
 # supergateway und das github-Binary bei jedem Neustart nach. Jede Zeile hier
 # ist Bauzeit — die Erreichbarkeit eines Paket-Mirrors ist danach fuer den Start
 # des Pods bedeutungslos.
-FROM node:22-alpine
+FROM node:26-alpine
 
 # Versionen gepinnt: dieselben Pins, die der Monolith zur Laufzeit zog
 # (supergateway@3.4.3, @modelcontextprotocol/server-postgres@0.6.2) plus die

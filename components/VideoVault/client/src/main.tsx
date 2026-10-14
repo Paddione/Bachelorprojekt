@@ -10,7 +10,7 @@ async function enableMswIfRequested() {
   if (import.meta.env.VITE_E2E_MSW === 'true') {
     try {
       const { worker } = await import('./mocks/browser');
-      await worker.start({ onUnhandledRequest: 'bypass' });
+      await worker.start({ onUnhandledFrame: 'bypass' });
 
       console.log('[MSW] Worker started for E2E tests');
     } catch (err) {

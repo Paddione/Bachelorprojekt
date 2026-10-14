@@ -46,7 +46,7 @@ export function syncEdgeTab(): void {
   const tab = document.getElementById('fig-panel-edge-tab');
   const panel = document.getElementById('fig-panel');
   if (!tab || !panel) return;
-  tab.hidden = !edgeTabVisible(STATE.selectedId, panel.hidden);
+  tab.hidden = !edgeTabVisible(STATE.selectedId, panel.hidden !== false);
 }
 
 export function syncPanelToSelection(id: string | null): void {

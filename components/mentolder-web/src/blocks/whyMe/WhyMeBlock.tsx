@@ -1,4 +1,4 @@
-import { motion } from 'motion';
+import { motion } from 'motion/react';
 import type { WhyMeProps } from '@/blocks/schema';
 
 export function WhyMeBlock(props: WhyMeProps) {

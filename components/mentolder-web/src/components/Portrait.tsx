@@ -1,4 +1,4 @@
-import { motion } from 'motion';
+import { motion } from 'motion/react';
 
 interface PortraitProps {
   avatarType?: 'image' | 'initials';

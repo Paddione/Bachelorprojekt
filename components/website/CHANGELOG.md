@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.421.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.421.1...website-v1.421.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* **test:** fix auth order on collections API and stabilize brett ws and inbox delete [T016607] ([#6655](https://github.com/Paddione/Bachelorprojekt/issues/6655)) ([af1a9f6](https://github.com/Paddione/Bachelorprojekt/commit/af1a9f6c82e552bf5ac26645a6b3a3a0545db61b))
+
 ## [1.421.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.421.0...website-v1.421.1) (2026-10-14)
 
 

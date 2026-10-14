@@ -3882,6 +3882,12 @@
     "kind": "pytest"
   },
   {
+    "id": "health-goals/health_pipeline_integrity",
+    "file": "tests/py/spec/health-goals/test_health_pipeline_integrity.py",
+    "category": "health-goals",
+    "kind": "pytest"
+  },
+  {
     "id": "health-goals/id-parity",
     "file": "tests/py/spec/native_ported/spec/health-goals/test_id_parity.py",
     "category": "health-goals",
@@ -3914,6 +3920,12 @@
   {
     "id": "health-goals/measurement-integrity",
     "file": "tests/py/spec/native_ported/spec/health-goals/test_measurement_integrity.py",
+    "category": "health-goals",
+    "kind": "pytest"
+  },
+  {
+    "id": "health-goals/measurement_repairs",
+    "file": "tests/py/spec/health-goals/test_measurement_repairs.py",
     "category": "health-goals",
     "kind": "pytest"
   },

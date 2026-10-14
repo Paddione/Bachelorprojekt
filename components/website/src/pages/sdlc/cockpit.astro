@@ -8,6 +8,7 @@ import HelpOverlay from '../../components/leitstand/HelpOverlay.svelte';
 import Kontextzone from '../../components/leitstand/Kontextzone.svelte';
 import DeckLeiste from '../../components/leitstand/DeckLeiste.svelte';
 import AttentionStrip from '../../components/sdlc/cockpit/AttentionStrip.svelte';
+import ServingStrip from '../../components/sdlc/cockpit/ServingStrip.svelte';
 import ConveyorBelt from '../../components/sdlc/cockpit/ConveyorBelt.svelte';
 import { getFloor } from '../../lib/sdlc/cockpit-floor.ts';
 import { parseLeitstandQuery } from '../../lib/sdlc/leitstand-url.ts';
@@ -51,6 +52,7 @@ try { initial = await getFloor(slotsCap); } catch { initial = null; }
   <div class:list={['ls-shell', { report: reportMode }]} id="cockpit-root">
     <LeitstandStatusband client:load {brand} />
     <AttentionStrip client:load />
+    <ServingStrip client:load />
     <ConveyorBelt client:load compact stations={STATIONS} hallItems={[]} mobileColIndex={0} onSelect={() => {}} selectedStation={initialSelection.station} />
 
     <div class="ls-main">

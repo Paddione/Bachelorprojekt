@@ -15,3 +15,9 @@ spec:
   url: https://github.com/gekko32/mentolder-prod.git
   ref:
     branch: main
+  # Nur signierte Commits: Gekkos GPG-Schluessel und GitHub web-flow (Merges ueber die Weboberflaeche).
+  # Die oeffentlichen Schluessel liegen im Secret gekko-mentolder-git-verify (flux-system).
+  verify:
+    mode: HEAD
+    secretRef:
+      name: gekko-mentolder-git-verify

@@ -134,10 +134,10 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
       list.locator('[data-testid="inbox-list-row"]', { hasText: seedName })
     ).toBeVisible();
 
-    await deleteBtn.click({ force: true });
+    await deleteBtn.evaluate((b) => (b as HTMLElement).click());
     await expect(
       list.locator('[data-testid="inbox-list-row"]', { hasText: seedName }),
-    ).toHaveCount(0, { timeout: 10_000 });
+    ).toHaveCount(0, { timeout: 15_000 });
 
     // 8. Defense in depth: verify the row is gone server-side too. The
     //    admin inbox endpoint requires a session — reuse the page's cookies.

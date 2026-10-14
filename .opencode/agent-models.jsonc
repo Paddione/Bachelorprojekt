@@ -315,7 +315,7 @@
     // globalen opencode-Config (dotfiles); hier steht nur die Modell-Referenz,
     // damit agentModel() sie an `opencode run --model` weiterreicht.
     "plan-worker-vllm": {
-      "description": "Primary plan partial worker on Qwen3.5-4B-QUASAR-NVFP4-W4A4 (vLLM :8123, RTX 5070 Ti, 32k ctx). Direct mode by default, write-capable only for assigned partials. Used by scripts/llm/plan-runner.mjs via dispatch_vllm.",
+      "description": "Primary plan partial worker on Qwen3.5-4B-QUASAR-NVFP4-W4A4 (vLLM :8123, RTX 5070 Ti, up to 64k ctx per request). Direct mode by default, write-capable only for assigned partials. Used by scripts/llm/plan-runner.mjs via dispatch_vllm.",
       "mode": "primary",
       "model": "vllm-local/w4a4",
       "prompt": "{file:./prompts/vllm-worker.md}",

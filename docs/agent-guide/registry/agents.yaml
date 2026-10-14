@@ -97,4 +97,4 @@ runtimes:
     mode: primary
     model: vllm-local/w4a4
     write_capable: true
-    note: "Primary plan partial worker on Qwen3.5-4B-QUASAR-NVFP4-W4A4 (vLLM :8123, RTX 5070 Ti, 32k ctx, hermes tool parser). Opt-in Track (--vllm-slots, Preflight auf :8123/v1/models); started by scripts/llm/plan-runner.mjs via dispatch_vllm."
+    note: "Primary plan partial worker on Qwen3.5-4B-QUASAR-NVFP4-W4A4 (vLLM :8123, RTX 5070 Ti, up to 64k ctx per request, shared ~216k KV pool, hermes tool parser). Opt-in Track (--vllm-slots, Preflight auf :8123/v1/models); started by scripts/llm/plan-runner.mjs via dispatch_vllm."

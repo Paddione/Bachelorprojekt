@@ -165,12 +165,22 @@ einzelne (Preemption) — langsamer, nicht falsch. `--gpu-memory-utilization`
 bleibt bei 0.72, weil sich die 5070 Ti den VRAM mit dem Orchestrator `:1919`
 teilt.
 
+**Status:** Repo-Doku (Worker-Prompt, `agent-models.jsonc`, Registry,
+Provisioning, Lineup) steht auf „bis 64k je Anfrage". Die Umstellung am Host
+ist **noch nicht bestaetigt** — beim letzten Check (2026-10-14, ~22:00) stand
+in Zeile 18 der Unit noch `--max-model-len 32768`. Bestaetigt ist sie erst mit
+der KV-Zeile `Maximum concurrency for 65,536 tokens per request`. Der Hinweis
+in `docs/runbooks/plan-runner.md`, dass eine volle opencode-Sitzung das Fenster
+sprengt, bleibt stehen, bis eine Worker-Sitzung im Worktree nachweislich
+startet.
+
 Umstellung auf dem Host (Service liegt nicht im Repo):
 
 ```bash
-systemctl --user cat serve-worker-vllm | grep -n -- '--max-model-len'   # 32768 -> 65536
-systemctl --user edit --full serve-worker-vllm
-systemctl --user restart serve-worker-vllm
+sed -i 's/--max-model-len 32768/--max-model-len 65536/' ~/.config/systemd/user/serve-worker-vllm.service
+systemctl --user cat serve-worker-vllm | grep -n -- '--max-model-len'   # muss 65536 zeigen
+systemctl --user daemon-reload && systemctl --user restart serve-worker-vllm
+until curl -sf http://127.0.0.1:8123/v1/models >/dev/null; do sleep 5; done
 journalctl --user -u serve-worker-vllm --no-pager | grep -E "KV cache size|Maximum concurrency" | tail -1
 # erwartet: Maximum concurrency for 65,536 tokens per request: ~3.3x
 ```

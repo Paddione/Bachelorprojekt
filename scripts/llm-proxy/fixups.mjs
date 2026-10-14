@@ -210,6 +210,46 @@ export const FIXUPS = {
   'quasar-thinking': quasarThinking,
 };
 
+// Pauschale pro Bildanteil (T016666): gemessen ~1842 Prompt-Tokens fuer
+// Text + 90-kB-Screenshot am Studio-Backend. Der Text-Tokenizer sieht die
+// Bild-Tokens nicht; ohne Pauschale wuerde das Budget den Bildanteil
+// ignorieren und bei grossen Kontexten ueberlaufen.
+export const IMAGE_TOKEN_ESTIMATE = 1500;
+
+// Multimodale Prompts fuer die Token-Schaetzung normalisieren (T016666):
+// Bild-Data-URIs duerfen nicht als Text tokenisiert werden — ein einziger
+// Screenshot (~120 kB base64) wuerde sonst das komplette Kontext-Budget
+// verbrauchen und max_tokens auf MIN_OUTPUT_BUDGET kappen. Gibt { text,
+// images } zurueck; der Aufrufer tokenisiert nur text und addiert
+// images * IMAGE_TOKEN_ESTIMATE.
+export function flattenForTokenEstimate(messages) {
+  let images = 0;
+  const scrub = (node) => {
+    if (typeof node === 'string') {
+      return node.replace(/data:image\/[a-zA-Z+.-]+;base64,[A-Za-z0-9+/=]+/g, () => {
+        images += 1;
+        return '[image]';
+      });
+    }
+    if (Array.isArray(node)) return node.map(scrub);
+    if (node && typeof node === 'object') {
+      const url = node.type === 'image_url' ? node.image_url?.url : null;
+      if (typeof url === 'string' && url.startsWith('data:')) {
+        images += 1;
+        return { ...node, image_url: { ...node.image_url, url: '[image]' } };
+      }
+      const out = {};
+      for (const [k, v] of Object.entries(node)) out[k] = scrub(v);
+      return out;
+    }
+    return node;
+  };
+  const text = (messages || [])
+    .map((m) => (typeof m.content === 'string' ? scrub(m.content) : JSON.stringify(scrub(m.content))))
+    .join('\n');
+  return { text, images };
+}
+
 /** @param {string[]} names @param {any} body */
 export function applyFixups(names, body) {
   let out = body;

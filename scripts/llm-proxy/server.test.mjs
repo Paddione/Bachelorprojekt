@@ -199,3 +199,27 @@ test('enqueue: different slotIds create independent queues (no deadlock)', async
   const results = await Promise.all([r0, r1])
   assert.deepEqual(results, ['slot0', 'slot1'])
 })
+
+// ── Multimodal token estimate (T016666) ──────────────────────────────
+test('flattenForTokenEstimate: image data-URI is replaced, counted once', async () => {
+  const { flattenForTokenEstimate, IMAGE_TOKEN_ESTIMATE } = await import('./fixups.mjs')
+  const big = 'data:image/png;base64,' + 'A'.repeat(120000)
+  const messages = [{ role: 'user', content: [
+    { type: 'text', text: 'Describe this UI.' },
+    { type: 'image_url', image_url: { url: big } },
+  ] }]
+  const { text, images } = flattenForTokenEstimate(messages)
+  assert.equal(images, 1)
+  assert.ok(!text.includes('AAAA'), 'base64 payload must not reach the tokenizer')
+  assert.ok(text.includes('[image]'))
+  assert.ok(text.includes('Describe this UI.'))
+  assert.equal(IMAGE_TOKEN_ESTIMATE, 1500)
+})
+
+test('flattenForTokenEstimate: text-only prompts unchanged, zero images', async () => {
+  const { flattenForTokenEstimate } = await import('./fixups.mjs')
+  const messages = [{ role: 'user', content: 'Hello' }]
+  const { text, images } = flattenForTokenEstimate(messages)
+  assert.equal(images, 0)
+  assert.equal(text, 'Hello')
+})

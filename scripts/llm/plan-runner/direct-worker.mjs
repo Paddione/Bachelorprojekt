@@ -49,12 +49,15 @@ const ENV_PASSTHROUGH = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'TERM', 'TMPDIR', 'PY
 // Liefert das erste unzulaessige Argument hinter dem Praefix, sonst undefined.
 function forbiddenArg(prefix, args) {
   const { flags, values } = COMMAND_OPTIONS[prefix.join(' ')];
+  // `@datei` expandiert pytest (argparse) in jedem Token, auch als Optionswert (`-k @datei`),
+  // und umginge so die Positivliste.
+  const atFile = args.find((a) => a.startsWith('@'));
+  if (atFile !== undefined) return atFile;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (!a.startsWith('-')) {
-      // Positionsargumente (Pfade, Node-IDs) bleiben im Worktree; `@datei` liest pytest als
-      // Argumentdatei und umginge so die Positivliste.
-      if (/^[/~@]/.test(a) || a.split(/[/\\]/).includes('..')) return a;
+      // Positionsargumente (Pfade, Node-IDs) bleiben im Worktree.
+      if (/^[/~]/.test(a) || a.split(/[/\\]/).includes('..')) return a;
       continue;
     }
     if (flags.includes(a)) continue;

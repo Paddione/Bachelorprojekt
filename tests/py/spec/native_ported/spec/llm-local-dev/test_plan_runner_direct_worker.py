@@ -188,6 +188,7 @@ def test_run_command_outside_the_allowlist_is_refused(dw):
     ["python3", "-m", "pytest", "-o", "addopts=-p evil", "test_ok.py"],
     ["python3", "-m", "pytest", "../outside/test_x.py"],
     ["python3", "-m", "pytest", "@args.txt"],
+    ["python3", "-m", "pytest", "-k", "@args.txt", "test_ok.py"],
     ["npx", "vitest", "run", "--outputFile=/tmp/x.json"],
 ])
 def test_allowed_prefix_with_a_forbidden_argument_is_refused(dw, argv):

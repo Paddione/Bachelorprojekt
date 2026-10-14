@@ -13,11 +13,19 @@
 # echte Gleichzeitigkeit (running max), Warteschlange (waiting max, z. B. wenn
 # N > max-num-seqs), Speicherdruck (KV max, Preemptions).
 #
+# Sandbox: pi laeuft mit --no-approve und bash-Tool, deshalb jeder Agent in
+# einer bubblewrap-Sandbox (scripts/lib/agent-sandbox.sh): schreibbar nur der
+# eigene Worktree, $HOME und Umgebung leer, Netz offen. Ohne bwrap bricht das
+# Skript ab; AGENT_SANDBOX=off schaltet die Sandbox bewusst ab.
+#
 # Aufruf:
 #   scripts/llm/pi-swarm.sh [--n 10] [--level L0|L1|L2] [--ref HEAD]
 #     [--upstream http://127.0.0.1:8123] [--base-port 8130] [--timeout 900]
 #     [--out <verzeichnis>]
 set -euo pipefail
+
+# shellcheck source=scripts/lib/agent-sandbox.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/agent-sandbox.sh"
 
 N=10
 LEVEL="L0"
@@ -36,13 +44,14 @@ while [ "$#" -gt 0 ]; do
     --base-port) BASE_PORT="$2"; shift 2 ;;
     --timeout) TIMEOUT="$2"; shift 2 ;;
     --out) OUT="$2"; shift 2 ;;
-    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
     *) echo "FEHLER: unbekannte Option '$1'" >&2; exit 1 ;;
   esac
 done
 
 case "$LEVEL" in L0|L1|L2) ;; *) echo "FEHLER: --level L0|L1|L2" >&2; exit 1 ;; esac
 command -v jq >/dev/null || { echo "FEHLER: jq fehlt" >&2; exit 2; }
+agent_sandbox_check || exit 3
 command -v pi >/dev/null || { echo "FEHLER: pi fehlt (npm install -g @earendil-works/pi-coding-agent@1.2.0)" >&2; exit 2; }
 command -v setsid >/dev/null || { echo "FEHLER: setsid fehlt" >&2; exit 2; }
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "FEHLER: aus einem Bachelorprojekt-Checkout starten" >&2; exit 2; }
@@ -148,7 +157,9 @@ for i in $(seq 1 "$N"); do
   (
     s="$(date +%s%N)"
     set +e
-    cd "$wt" && PI_CODING_AGENT_DIR="${PIDIRS[$((i - 1))]}" PI_OFFLINE=1 timeout "$TIMEOUT" \
+    PI_CODING_AGENT_DIR="${PIDIRS[$((i - 1))]}" PI_OFFLINE=1 \
+      agent_sandbox_run "$wt" --rw "${PIDIRS[$((i - 1))]}" --env PI_CODING_AGENT_DIR --env PI_OFFLINE \
+        --timeout "$TIMEOUT" -- \
       pi --mode json --no-session --no-context-files --no-extensions --no-skills \
         --no-prompt-templates --no-themes --no-approve --tools "$tools" "${extra[@]}" \
         --provider ctxproxy --model "$MODEL_ID" "$TASK_PROMPT" > "$OUT/agent-$i.out" 2>&1

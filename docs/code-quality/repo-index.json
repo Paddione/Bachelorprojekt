@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1334,
+      "file_count": 1335,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -606,6 +606,7 @@
         "tests/py/spec/native_ported/spec/health-goals/test_service_health_goals.py",
         "tests/py/spec/native_ported/spec/health-goals/test_worktree_hygiene_goals.py",
         "tests/py/spec/native_ported/spec/health-goals/test_zielfamilien_audit.py",
+        "tests/py/spec/native_ported/spec/llm-local-dev/test_agent_sandbox.py",
         "tests/py/spec/native_ported/spec/llm-local-dev/test_comfy_image_mcp.py",
         "tests/py/spec/native_ported/spec/llm-local-dev/test_comfy_image_postprocess.py",
         "tests/py/spec/native_ported/spec/llm-local-dev/test_fit_ngl_conflict.py",
@@ -4203,7 +4204,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 943,
+      "file_count": 944,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4579,6 +4580,7 @@
         "scripts/knowledge/search-similar.mjs",
         "scripts/langfuse/export_traces.py",
         "scripts/legal/license-check.sh",
+        "scripts/lib/agent-sandbox.sh",
         "scripts/lib/application-pipeline-auto-sync.sh",
         "scripts/lib/application-pipeline-db.sh",
         "scripts/lib/application-pipeline-evidence.sh",

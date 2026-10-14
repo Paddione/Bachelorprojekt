@@ -207,7 +207,7 @@
 
       "type": "local",
 
-      "command": ["node","/home/patrick/mcp-servers/devflow/server.mjs"],
+      "command": ["node","scripts/mcp-central/launch.mjs","devflow/server.mjs"],
 
       "enabled": true
 
@@ -241,7 +241,7 @@
 
       "type": "local",
 
-      "command": ["node","/home/patrick/mcp-servers/task-runner/server.mjs","--otel-endpoint","localhost:4317","--taskfile","Taskfile.yml"],
+      "command": ["node","scripts/mcp-central/launch.mjs","task-runner/server.mjs","--otel-endpoint","localhost:4317","--taskfile","Taskfile.yml"],
 
       "enabled": true
 
@@ -261,7 +261,7 @@
 
       "type": "local",
 
-      "command": ["node","/home/patrick/mcp-servers/ticket/server.mjs"],
+      "command": ["node","scripts/mcp-central/launch.mjs","ticket/server.mjs"],
 
       "enabled": true
 

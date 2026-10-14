@@ -61,7 +61,13 @@ test.describe('FA content-hub: editability render-path', { tag: ['@content-hub']
   });
 
   test('Kore homepage honours the timeline flag (read-only)', async ({ request }) => {
-    const res = await request.get(`${KORE_BASE}/`);
+    let res;
+    try {
+      res = await request.get(`${KORE_BASE}/`, { timeout: 3_000 });
+    } catch {
+      test.skip(true, 'korczewski homepage not reachable from this runner');
+      return;
+    }
     test.skip(res.status() !== 200, 'korczewski homepage not reachable from this runner');
     const html = await res.text();
     // The flag drives whether the timeline section renders. We assert the page

@@ -149,7 +149,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
       id          BIGSERIAL PRIMARY KEY,
       from_id     UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
       to_id       UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
-      kind        TEXT NOT NULL CONSTRAINT ticket_links_kind_check CHECK (kind IN ('blocks','blocked_by','duplicate_of','relates_to','fixes','fixed_by','implements','pr')),
+      kind        TEXT NOT NULL CONSTRAINT ticket_links_kind_check CHECK (kind IN ('blocks','blocked_by','duplicate_of','relates_to','fixes','fixed_by','implements','pr','child_of')),
       pr_number   INTEGER,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       created_by  UUID REFERENCES customers(id),
@@ -159,21 +159,21 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_links_from_idx ON tickets.ticket_links (from_id, kind)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_links_to_idx   ON tickets.ticket_links (to_id, kind)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_links_pr_idx   ON tickets.ticket_links (pr_number) WHERE pr_number IS NOT NULL`);
-  // Extend kind CHECK constraint to include 'implements' and 'pr'.
+  // Extend kind CHECK constraint to include 'implements', 'pr', and 'child_of'.
   // 'implements': track-pr.mjs T-ref links; 'pr': dev-flow PR association links.
-  // Idempotent: only runs when 'pr' is not yet in the allowed values.
+  // Idempotent: only runs when 'pr', 'implements', or 'child_of' is not yet in the allowed values.
   await pool.query(`
     DO $$
     BEGIN
       IF EXISTS (
         SELECT 1 FROM information_schema.check_constraints
          WHERE constraint_schema = 'tickets'
-           AND constraint_name LIKE '%ticket_links%kind%'
-           AND check_clause NOT LIKE '%''pr''%'
+           AND constraint_name = 'ticket_links_kind_check'
+           AND (check_clause NOT LIKE '%''pr''%' OR check_clause NOT LIKE '%''child_of''%' OR check_clause NOT LIKE '%''implements''%')
       ) THEN
         ALTER TABLE tickets.ticket_links DROP CONSTRAINT ticket_links_kind_check;
         ALTER TABLE tickets.ticket_links ADD CONSTRAINT ticket_links_kind_check
-          CHECK (kind IN ('blocks','blocked_by','duplicate_of','relates_to','fixes','fixed_by','implements','pr'));
+          CHECK (kind IN ('blocks','blocked_by','duplicate_of','relates_to','fixes','fixed_by','implements','pr','child_of'));
       END IF;
     END $$
   `);

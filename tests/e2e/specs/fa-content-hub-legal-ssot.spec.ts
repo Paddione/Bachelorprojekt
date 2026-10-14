@@ -53,7 +53,13 @@ test.describe('FA content-hub: legal SSOT token resolution', { tag: ['@content-h
   });
 
   test('korczewski /impressum renders stammdaten email', async ({ request }) => {
-    const res = await request.get(`${KORCZEWSKI_BASE}/impressum`);
+    let res;
+    try {
+      res = await request.get(`${KORCZEWSKI_BASE}/impressum`, { timeout: 3_000 });
+    } catch {
+      test.skip(true, 'korczewski impressum not reachable');
+      return;
+    }
     test.skip(res.status() !== 200, 'korczewski impressum not reachable');
     const html = (await res.text()).replace(/\s+/g, ' ');
     expect(html, 'korczewski impressum contains stammdaten email').toMatch(EMAIL_RE);

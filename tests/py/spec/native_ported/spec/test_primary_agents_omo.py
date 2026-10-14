@@ -73,10 +73,11 @@ def test_t900858_legacy_opencode_primaries_are_retired_from_agent_models_jsonc(r
     script = f"""
     const d = require('json5').parse(require('fs').readFileSync('{omo["models"]}','utf8'));
     const a = d.agent || {{}};
-    for (const name of ['local', 'qwen35-4b', 'exe-muse', 'reviewer']) {{
+    for (const name of ['local', 'exe-muse', 'reviewer']) {{
       if (!(name in a)) {{ console.error('positive anchor failed: agent ' + name + ' fehlt'); process.exit(1); }}
     }}
-    const retired = ['glimmer-primary', 'big-pickle', 'ox-alpha', 'ox-alpha-free'];
+    // T016656: qwen35-4b (Pool :8080) ist entfernt; die bp-*-Primaries delegieren an vllm-4b.
+    const retired = ['glimmer-primary', 'big-pickle', 'ox-alpha', 'ox-alpha-free', 'qwen35-4b'];
     const bad = retired.filter(k => k in a);
     if (bad.length) {{ console.error('retired primaries still declared: ' + bad.join(',')); process.exit(1); }}
     process.exit(0);

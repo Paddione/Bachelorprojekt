@@ -33,7 +33,7 @@ def env_ctx(repo_root, tmp_path, monkeypatch):
     monkeypatch.setenv("PLAN_RUNNER_PLAN_BODY", "")
     monkeypatch.setenv("PLAN_RUNNER_OPENCODE", str(fix / "plan-runner-fake-opencode.sh"))
     monkeypatch.setenv("FAKE_OPENCODE_LOG", str(t / "opencode.log"))
-    monkeypatch.setenv("FAKE_SLEEP_4B", "0")
+    monkeypatch.setenv("FAKE_SLEEP_CLOUD", "0")
     monkeypatch.setenv("FAKE_SLEEP_SELF", "0")
     (t / "opencode.log").write_text("")
     (t / "requests.log").write_text("")
@@ -69,6 +69,7 @@ def env_ctx(repo_root, tmp_path, monkeypatch):
         )
         url = f"http://127.0.0.1:{port}"
         monkeypatch.setenv("PLAN_RUNNER_ORCH_URL", url)
+        monkeypatch.setenv("PLAN_RUNNER_SELF_URL", url)
         for _ in range(50):
             try:
                 with urllib.request.urlopen(f"{url}/health", timeout=2) as resp:
@@ -91,13 +92,13 @@ def env_ctx(repo_root, tmp_path, monkeypatch):
 def test_ref_aufloesbar_ticket_flag_derives_changedir_from_worktree(env_ctx, run_cmd):
     env_ctx["monkeypatch"].setenv("PLAN_RUNNER_TICKET_JSON", PLAN_REF_JSON)
     env_ctx["start_orch"](json.dumps([
-        {"name": "dispatch_4b", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
         {"name": "wait_event", "args": {}},
         {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
         {"name": "finish", "args": {"summary": "all done"}},
     ]))
     res = run_cmd(
-        ["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T901015", "--4b-slots", "2"],
+        ["timeout", "60", "node", str(env_ctx["runner"]), "--ticket", "T901015", "--direct-slots", "0", "--cloud-slots", "2"],
         cwd=env_ctx["r"], timeout=90,
     )
     assert res.returncode == 0, res.output

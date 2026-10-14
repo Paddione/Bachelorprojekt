@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """seed-quality-goals.py — Seeds quality schema from goals-data.generated.json and updates snapshot (T016507)."""
 
+import argparse
 import datetime
 import math
 import json
@@ -54,7 +55,14 @@ def numeric(value):
     return str(value)
 
 
-def main():
+def main(argv=()):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--definitions-only', action='store_true', help='Upsert definitions without importing historical measurements or rewriting snapshot')
+    parser.add_argument('--initialize-schema', action='store_true', help='Apply the existing idempotent quality migration in the same transaction')
+    args = parser.parse_args(argv)
+    if os.environ.get('DRY_RUN') == '1':
+        print('Dry run: quality database and snapshot remain unchanged.')
+        return
     repo_root = get_repo_root()
     gen_json = repo_root / "components/website/src/lib/sdlc/goals-data.generated.json"
     snapshot_json = repo_root / "components/website/src/lib/sdlc/goals-data.snapshot.json"
@@ -66,14 +74,19 @@ def main():
     goals_data = json.loads(gen_json.read_text(encoding="utf-8"))
 
     # 1. Update/write offline fallback snapshot
-    snapshot_json.write_text(json.dumps(goals_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Updated offline snapshot: {snapshot_json} ({len(goals_data)} goals)")
+    if not args.definitions_only:
+        snapshot_json.write_text(json.dumps(goals_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"Updated offline snapshot: {snapshot_json} ({len(goals_data)} goals)")
 
     # 2. Build SQL statements
     statements = [
         "BEGIN;",
         "CREATE SCHEMA IF NOT EXISTS quality;",
     ]
+
+    if args.initialize_schema:
+        migration = repo_root / 'scripts/migrations/2026-10-12-quality-schema-T016507.sql'
+        statements.append(migration.read_text(encoding='utf-8'))
 
     for g in goals_data:
         gid = g["id"].replace("'", "''")
@@ -85,7 +98,7 @@ def main():
         target = numeric(g.get("target"))
         unit = (g.get("unit") or "").replace("'", "''")
         cmd = (g.get("measurement") or "").replace("'", "''")
-        current = numeric(g.get("current"))
+        current = "NULL" if args.definitions_only else numeric(g.get("current"))
         status = (g.get("status") or "unknown").replace("'", "''")
 
         sql_goal = f"""
@@ -104,7 +117,7 @@ def main():
         """
         statements.append(sql_goal)
 
-        if current != "NULL" and g.get("measured_at"):
+        if not args.definitions_only and current != "NULL" and g.get("measured_at"):
             # Source timestamps identify historical seed evidence. No NOW relabeling.
             measured_at = datetime.datetime.fromisoformat(g["measured_at"].replace("Z", "+00:00")).isoformat()
             if not math.isfinite(float(current)):
@@ -136,4 +149,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

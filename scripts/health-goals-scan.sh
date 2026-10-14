@@ -26,11 +26,16 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "kein git-Repo" >&2;
 
 FAST=0
 IDS=()
-for a in "$@"; do
-  case "$a" in
-    --fast) FAST=1 ;;
-    --*)    echo "unbekanntes Flag: $a" >&2; exit 2 ;;
-    *)      IDS+=("$a") ;;
+REUSE_VALUES=""; REUSE_COMPLETE=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --fast) FAST=1; shift ;;
+    --values-file|--complete-file)
+      [ $# -ge 2 ] || { echo "fehlendes Argument: $1" >&2; exit 2; }
+      if [ "$1" = --values-file ]; then REUSE_VALUES="$2"; else REUSE_COMPLETE="$2"; fi
+      shift 2 ;;
+    --*) echo "unbekanntes Flag: $1" >&2; exit 2 ;;
+    *) IDS+=("$1"); shift ;;
   esac
 done
 
@@ -74,18 +79,25 @@ FLAGS=(--quiet "--only=$ONLY_CSV")
 # Exit ungleich 0, und das ist hier kein Fehler. Fehlende Zeilen in der
 # Werte-Datei werden unten als measurable:false ausgewiesen (sichtbarer
 # stiller Ausfall, Lehre aus T002648).
-HG_VALUES_FILE="$VALUES" HG_RUN_COMPLETE_FILE="$COMPLETE" bash scripts/health-goals-check.sh "${FLAGS[@]}" >&2
-CHECK_STATUS=$?
-if [ "$CHECK_STATUS" -gt 1 ] || [ "$(cat "$COMPLETE")" != complete ]; then
-  echo "health-goals-check.sh failed before completing its measurements (exit $CHECK_STATUS)" >&2
-  exit 1
+if [ -n "$REUSE_VALUES" ] || [ -n "$REUSE_COMPLETE" ]; then
+  if [ ! -f "$REUSE_VALUES" ] || [ ! -f "$REUSE_COMPLETE" ] || [ "$(cat "$REUSE_COMPLETE")" != complete ]; then
+    echo "existing measurement packet is missing or incomplete" >&2; exit 1
+  fi
+  cp "$REUSE_VALUES" "$VALUES"
+else
+  HG_VALUES_FILE="$VALUES" HG_RUN_COMPLETE_FILE="$COMPLETE" bash scripts/health-goals-check.sh "${FLAGS[@]}" >&2
+  CHECK_STATUS=$?
+  if [ "$CHECK_STATUS" -gt 1 ] || [ "$(cat "$COMPLETE")" != complete ]; then
+    echo "health-goals-check.sh failed before completing its measurements (exit $CHECK_STATUS)" >&2
+    exit 1
+  fi
 fi
 
 # HG_VALUES_FILE enthält Zeilen "<id> <actual> <cmp> <target>" — nur für
 # tatsächlich gemessene Ziele. Der dokumentierte Wert wird an dieser Stelle
 # bewusst NICHT eingesetzt.
-HG_SCAN_SHA="$(git rev-parse HEAD 2>/dev/null || true)" HG_SCAN_BRANCH="$(git branch --show-current 2>/dev/null || true)" python3 - "$VALUES" "${IDS[@]}" <<'PY'
-import json, math, os, sys
+HG_SCAN_COMPLETION_FILE="$REUSE_COMPLETE" HG_SCAN_SHA="$(git rev-parse HEAD 2>/dev/null || true)" HG_SCAN_BRANCH="$(git branch --show-current 2>/dev/null || true)" python3 - "$VALUES" "${IDS[@]}" <<'PY'
+import datetime, json, math, os, sys
 
 values_path = sys.argv[1]
 ids = sys.argv[2:]
@@ -120,7 +132,11 @@ for gid in ids:
     else:
         out.append({"id": gid, "measurable": True, **m})
 
+completion = os.environ.get('HG_SCAN_COMPLETION_FILE')
+measured_at = (datetime.datetime.fromtimestamp(os.stat(completion).st_mtime, datetime.timezone.utc)
+               if completion else datetime.datetime.now(datetime.timezone.utc)).isoformat()
 for item in out:
+    item['measured_at'] = measured_at
     if os.environ.get('HG_SCAN_SHA'):
         item['git_sha'] = os.environ['HG_SCAN_SHA']
     if os.environ.get('HG_SCAN_BRANCH'):

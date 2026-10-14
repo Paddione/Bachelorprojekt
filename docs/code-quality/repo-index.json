@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1330,
+      "file_count": 1331,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -694,6 +694,7 @@
         "tests/py/spec/native_ported/spec/mcp-gateway/test_dev_shell_ssh.py",
         "tests/py/spec/native_ported/spec/mcp-gateway/test_guarded_proxy_streaming.py",
         "tests/py/spec/native_ported/spec/mcp-gateway/test_http_security_boundary.py",
+        "tests/py/spec/native_ported/spec/mcp-gateway/test_mcp_central_launcher.py",
         "tests/py/spec/native_ported/spec/mcp-gateway/test_mcp_postgres_multistatement.py",
         "tests/py/spec/native_ported/spec/mcp-gateway/test_mcp_postgres_readonly_role.py",
         "tests/py/spec/native_ported/spec/mcp-gateway/test_mcp_sync_drift_no_secret_leak.py",
@@ -4193,7 +4194,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 929,
+      "file_count": 930,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4865,6 +4866,7 @@
         "scripts/llm/workers-status.sh",
         "scripts/mailbox-mcp/docs/concept.md",
         "scripts/mailbox-mcp/docs/sieve-filter-concept.md",
+        "scripts/mcp-central/launch.mjs",
         "scripts/mcp-cors-proxy/mcp-cors-proxy.service",
         "scripts/mcp-cors-proxy/proxy.mjs",
         "scripts/mcp-gateway/devmesh-forward.service",

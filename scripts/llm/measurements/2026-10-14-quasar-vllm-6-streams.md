@@ -192,6 +192,17 @@ journalctl --user -u serve-worker-vllm --since "10 min ago" --no-pager | grep "M
 # GPU KV cache size: 199,923 tokens, Maximum concurrency for 40,960 tokens per request: 4.88x
 ```
 
+Danach `--gpu-memory-utilization 0.72 -> 0.90`: `:1919` laeuft nicht mehr auf
+der 5070 Ti, der VRAM-Vorbehalt fuer den Orchestrator entfaellt. Der Wert
+bestimmt nur die Groesse des KV-Pools, nicht die Rechenleistung je Anfrage.
+
+```bash
+journalctl --user -u serve-worker-vllm --since "10 min ago" --no-pager | grep "Maximum concurrency"
+# GPU KV cache size: 308,175 tokens, Maximum concurrency for 40,960 tokens per request: 7.52x
+nvidia-smi --query-gpu=index,memory.used,memory.total --format=csv,noheader
+# 1, 14325 MiB, 16303 MiB
+```
+
 Umstellung auf dem Host (Service liegt nicht im Repo):
 
 ```bash

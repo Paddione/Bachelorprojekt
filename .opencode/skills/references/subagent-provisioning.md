@@ -23,7 +23,7 @@ Leitsatz: **Korrektheit vor Kosten.** Im Zweifel eine Stufe höher.
 | Schwer | `local` (`plan-worker-self`) | Qwen3.8-27B auf `:1919`, 153600 ctx, 1 Slot (seriell, weitere Requests queuen) | L-Dispatches bis ~120k | **Review / Oracle / Design + übergroße Arbeit**: Debugging mit Urteil, adversariale Review, Reasoning-lastige Meta-Arbeit, Partials die auf `vllm-4b` zweimal gescheitert sind |
 | Eskalation | `exe-muse` | Muse Spark 1.3 Contributor via OpenCode Go, 1M ctx | Cloud-Rail | Nur per Eskalationskette im Orchestrator-Prompt (lokal 2× gescheitert oder Bedarf über lokalem Fenster) |
 
-`:1919` (llama.cpp) und `:8123` (vLLM) teilen sich die RTX 5070 Ti; `:8096` bedient bis zu 4 Sandbox-Slots parallel.
+`:8123` (vLLM) belegt die RTX 5070 Ti allein (`--gpu-memory-utilization 0.90`), `:1919` läuft nicht mehr dort; `:8096` bedient bis zu 4 Sandbox-Slots parallel.
 Der Pool `:8080` (Windows-4B) und der CPU-Pool `:18199` sind abgeschaltet (dotfiles #131).
 
 ## 2. Geplant — provisorisch, NICHT live

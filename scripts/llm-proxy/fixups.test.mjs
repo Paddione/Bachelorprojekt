@@ -86,3 +86,30 @@ test('freetoken-thinking: vorhandene chat_template_kwargs bleiben erhalten', () 
   assert.equal(out.chat_template_kwargs.foo, 1)
   assert.equal(out.chat_template_kwargs.enable_thinking, true)
 })
+
+// [T016653] QUASAR-4B: Default OFF (sonst content:null, alles in reasoning),
+// Opt-in per -thinking-Suffix oder explizitem Caller-Wert.
+test('quasar-thinking: Default schaltet thinking ab', () => {
+  const out = FIXUPS['quasar-thinking']({ model: 'quasar-smart', messages: [] })
+  assert.equal(out.chat_template_kwargs.enable_thinking, false)
+})
+
+test('quasar-thinking: -thinking-Suffix schaltet thinking an', () => {
+  const out = FIXUPS['quasar-thinking']({ model: 'quasar-smart-thinking', messages: [] })
+  assert.equal(out.chat_template_kwargs.enable_thinking, true)
+})
+
+test('quasar-thinking: expliziter Caller-Wert gewinnt gegen den Default', () => {
+  const out = FIXUPS['quasar-thinking']({
+    model: 'w4a4', messages: [], chat_template_kwargs: { enable_thinking: true, foo: 1 },
+  })
+  assert.equal(out.chat_template_kwargs.enable_thinking, true)
+  assert.equal(out.chat_template_kwargs.foo, 1)
+})
+
+test('quasar-thinking: Suffix gewinnt gegen explizites false', () => {
+  const out = FIXUPS['quasar-thinking']({
+    model: 'quasar-smart-thinking', messages: [], chat_template_kwargs: { enable_thinking: false },
+  })
+  assert.equal(out.chat_template_kwargs.enable_thinking, true)
+})

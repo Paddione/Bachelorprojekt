@@ -85,6 +85,27 @@ def test_git_works_in_the_sandboxed_worktree(run_cmd, repo_root, box):
 
 
 @needs_bwrap
+def test_agent_cannot_tamper_with_git_metadata_used_by_host_git(run_cmd, repo_root, box):
+    """Eine umgebogene .git-Datei oder ein core.fsmonitor liefe beim naechsten
+    git-Aufruf des Betreibers ausserhalb der Sandbox."""
+    gitfile = (box["wt"] / ".git").read_text()
+    inner = ('echo "gitdir: /tmp/evil" > .git 2>/dev/null; '
+             'git config --worktree core.fsmonitor "touch /tmp/pwned" 2>/dev/null; '
+             'echo x > "$(git rev-parse --absolute-git-dir)/config.worktree" 2>/dev/null; '
+             'echo edited > inside.txt')
+    r = _run(run_cmd, repo_root, f'agent_sandbox_run "{box["wt"]}" -- bash -c \'{inner}\'', _env(box))
+    assert r.returncode == 0, r.output
+    assert (box["wt"] / ".git").read_text() == gitfile
+    gitdir = subprocess.run(["git", "-C", str(box["wt"]), "rev-parse", "--absolute-git-dir"],
+                            capture_output=True, text=True, check=True).stdout.strip()
+    assert not (Path(gitdir) / "config.worktree").exists()
+    fsmon = subprocess.run(["git", "-C", str(box["wt"]), "config", "core.fsmonitor"], capture_output=True, text=True)
+    assert fsmon.stdout.strip() == ""
+    # Positiv-Anker: normale Dateien im Worktree bleiben schreibbar.
+    assert (box["wt"] / "inside.txt").read_text() == "edited\n"
+
+
+@needs_bwrap
 def test_timeout_limits_the_agent(run_cmd, repo_root, box):
     r = _run(run_cmd, repo_root, f'agent_sandbox_run "{box["wt"]}" --timeout 1 -- sleep 30', _env(box))
     assert r.returncode == 124, r.output

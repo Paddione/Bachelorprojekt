@@ -201,7 +201,12 @@ for rep in $(seq 1 "$REPS"); do
     p1="$(metric 'vllm:prompt_tokens_total')"; r1="$(metric 'vllm:request_success_total')"
 
     test_ok=false
-    node --test "$wt/$FIX/sandbox/slug.test.mjs" > "$OUT/$label.test.txt" 2>&1 && test_ok=true
+    # Nach einem pi-Lauf ist der Worktree unvertrauenswuerdig: Tests nur in der Sandbox.
+    case "$variant" in
+      pi-*) agent_sandbox_run "$wt" --timeout 300 -- node --test "$FIX/sandbox/slug.test.mjs" \
+              > "$OUT/$label.test.txt" 2>&1 && test_ok=true ;;
+      *) node --test "$wt/$FIX/sandbox/slug.test.mjs" > "$OUT/$label.test.txt" 2>&1 && test_ok=true ;;
+    esac
     test_touched=false
     git -C "$wt" diff --quiet -- "$FIX/sandbox/slug.test.mjs" || test_touched=true
     changed="$(git -C "$wt" status --porcelain --untracked-files=all | grep -vc '^?? .omp/runs/' || true)"

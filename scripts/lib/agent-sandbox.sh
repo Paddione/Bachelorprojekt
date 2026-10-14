@@ -8,8 +8,10 @@
 #   agent_sandbox_run <arbeitsverzeichnis> [--rw <pfad>]... [--env <NAME>]... [--timeout <sek>] -- <befehl> [args...]
 #
 # Grenzen der Sandbox:
-#   - Dateisystem: alles read-only; schreibbar sind nur das Arbeitsverzeichnis,
-#     dessen Git-Verwaltungsverzeichnis und jedes --rw. /tmp ist leer und privat.
+#   - Dateisystem: alles read-only; schreibbar sind nur das Arbeitsverzeichnis
+#     (ohne dessen .git) und jedes --rw. /tmp ist leer und privat.
+#   - Alles, was der Agent geschrieben hat, ist danach unvertrauenswuerdig:
+#     Tests darauf ebenfalls per agent_sandbox_run ausfuehren, nie direkt.
 #   - $HOME ist ein leeres tmpfs (keine ~/.ssh, ~/.config, ~/.kube, Tokens).
 #     Laufzeit-Verzeichnisse unter $HOME, in denen der Befehl selbst, node oder
 #     bun liegen (z. B. ~/.bun, ~/.nvm), werden read-only zurueckgebunden;
@@ -56,7 +58,8 @@ agent_sandbox_run() {
   agent_sandbox_check || return
 
   local home="${HOME:-/root}" p top
-  local -a args=(--die-with-parent --unshare-all --share-net
+  # --new-session: kein Zugriff auf das Terminal des Aufrufers (TIOCSTI).
+  local -a args=(--die-with-parent --new-session --unshare-all --share-net
     --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp --tmpfs "$home")
 
   # Laufzeit unter $HOME (Befehl, node, bun) read-only zurueckbinden.
@@ -72,16 +75,23 @@ agent_sandbox_run() {
   for p in ${AGENT_SANDBOX_RO:-}; do [ -n "$p" ] && ro+=("$p"); done
   IFS="$IFS_OLD"
 
-  # Git-Worktree: Objektbestand lesbar, eigenes Verwaltungsverzeichnis schreibbar.
+  # Git-Worktree: Objektbestand und Verwaltungsdaten nur lesbar. Schreibbar waeren
+  # sie eine Hintertuer aus der Sandbox: eine umgebogene .git-Datei oder ein
+  # core.fsmonitor in der Worktree-Config liefe beim naechsten git-Aufruf des
+  # Betreibers ausserhalb der Sandbox. Der Agent kann lesen und diffen, aber nicht
+  # committen; der Index wird nicht aufgefrischt.
   local gitdir common
+  local -a ro_after=()
   if gitdir="$(git -C "$wd" rev-parse --absolute-git-dir 2>/dev/null)"; then
     common="$(cd "$wd" && realpath "$(git rev-parse --git-common-dir)")"
     ro+=("$common")
-    rw+=("$gitdir")
+    ro_after+=("$gitdir")
+    [ -e "$wd/.git" ] && ro_after+=("$wd/.git")
   fi
 
   for p in "${ro[@]}"; do [ -e "$p" ] && args+=(--ro-bind "$p" "$p"); done
   for p in "$wd" "${rw[@]}"; do args+=(--bind "$p" "$p"); done
+  for p in "${ro_after[@]}"; do args+=(--ro-bind "$p" "$p"); done
 
   args+=(--clearenv --setenv HOME "$home" --setenv TMPDIR /tmp --setenv PWD "$wd")
   for p in PATH LANG LC_ALL TERM "${envs[@]}"; do
@@ -89,5 +99,5 @@ agent_sandbox_run() {
   done
   args+=(--chdir "$wd")
 
-  bwrap "${args[@]}" -- "${limit[@]}" "$@"
+  bwrap "${args[@]}" -- "${limit[@]}" "$@" </dev/null
 }

@@ -181,7 +181,9 @@ for i in $(seq 1 "$N"); do
   port=$((BASE_PORT + i))
   read -r rc secs < "$OUT/agent-$i.exit"
   test_ok=false
-  node --test "$wt/$FIX/sandbox/slug.test.mjs" > "$OUT/agent-$i.test.txt" 2>&1 && test_ok=true
+  # Der Agent hat den Worktree beschrieben: Tests darauf nur in der Sandbox.
+  agent_sandbox_run "$wt" --timeout 300 -- node --test "$FIX/sandbox/slug.test.mjs" \
+    > "$OUT/agent-$i.test.txt" 2>&1 && test_ok=true
   test_touched=false
   git -C "$wt" diff --quiet -- "$FIX/sandbox/slug.test.mjs" || test_touched=true
   git -C "$wt" diff > "$OUT/agent-$i.diff" || true

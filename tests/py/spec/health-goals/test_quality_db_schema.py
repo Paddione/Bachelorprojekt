@@ -38,3 +38,25 @@ def test_offline_fallback_snapshot_exists(repo_root):
 def test_health_goals_daemon_script_exists(repo_root):
     daemon = repo_root / "scripts/sdlc/health-goals-daemon.sh"
     assert daemon.is_file(), f"Daemon script missing: {daemon}"
+
+
+def test_seed_preserves_historical_measurement_timestamp(repo_root, tmp_path, monkeypatch):
+    """Seeding metadata must not turn old evidence into today's observation."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('quality_seed', repo_root / 'scripts/sdlc/seed-quality-goals.py')
+    seed = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(seed)
+    data_dir = tmp_path / 'components/website/src/lib/sdlc'
+    data_dir.mkdir(parents=True)
+    goal = dict(id='G-TEST', title='History', category='Test', current=5,
+                baseline=10, target=0, measured_at='2026-10-08', status='unknown')
+    (data_dir / 'goals-data.generated.json').write_text(json.dumps([goal]))
+    statements = []
+    monkeypatch.setattr(seed, 'get_repo_root', lambda: tmp_path)
+    monkeypatch.setattr(seed, 'run_psql', lambda sql: statements.append(sql) or True)
+
+    seed.main()
+
+    measurement_sql = statements[0].split('INSERT INTO quality.repo_health_measurements', 1)[1]
+    assert 'measured_at' in measurement_sql
+    assert '2026-10-08' in measurement_sql

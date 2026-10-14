@@ -27,4 +27,23 @@ describe('rescan durable measurements', () => {
     const response = await POST(context());
     expect(response.status).toBe(500);
   });
+  it('binds values as parameters and stores unmeasurable goals as unknown without a number', async () => {
+    mocks.scan.mockResolvedValue([
+      { id: 'G-RH01', measurable: true, actual: 5, target: 0, cmp: 'le' },
+      { id: 'G-CQ02', measurable: false },
+    ]);
+    const response = await POST(context());
+    expect(response.status).toBe(200);
+    const [sql, params] = mocks.query.mock.calls[0];
+    expect(String(sql)).not.toContain('G-RH01');
+    expect(params[0]).toEqual(['G-RH01', 'G-CQ02']);
+    expect(params[1]).toEqual([5, null]);
+    expect(params[2][1]).toBe('unknown');
+    expect(params[2][0]).not.toBe('achieved');
+  });
+  it('keeps auth and validation ahead of any database write', async () => {
+    mocks.session.mockResolvedValue(null);
+    expect((await POST(context())).status).toBe(401);
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
 });

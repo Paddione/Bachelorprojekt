@@ -73,11 +73,11 @@ Neue Tests und Helper bleiben weit unter 80 Prozent der Grenze. Keine Baseline- 
 
 ## Task 3 — Messung, Persistenz und Seed reparieren
 
-- [ ] Daemon misst standardmäßig gesamte Zielmenge; optional begrenzte Modi müssen explizit sein. Nicht messbare Werte erzeugen kein erfundenes Grün.
-- [ ] Scanner-, Parser- und DB-Fehler propagieren; Erfolg nur nach erfolgreichem Speichern. SQL-Werte sicher binden beziehungsweise kontrolliert escapen.
-- [ ] API-Rescan speichert Ergebnisse atomar über vorhandenen Pool und parametrisierten SQL-Helper; 500 bei Persistenzfehler, Auth- und Validierungsverhalten erhalten.
-- [ ] Seed aktualisiert Zieldefinitionen idempotent; historische measured_at bleiben ehrlich, identische Historie verdoppelt sich nicht und überdeckt keine neueren Live-Messungen.
-- [ ] Pytest und Rescan-Vitest grün; bestehende Scanner-, Auth- und DB-Schema-Regressionen mitprüfen.
+- [x] Daemon misst standardmäßig gesamte Zielmenge; optional begrenzte Modi müssen explizit sein. Nicht messbare Werte erzeugen kein erfundenes Grün.
+- [x] Scanner-, Parser- und DB-Fehler propagieren; Erfolg nur nach erfolgreichem Speichern. SQL-Werte sicher binden beziehungsweise kontrolliert escapen.
+- [x] API-Rescan speichert Ergebnisse atomar über vorhandenen Pool und parametrisierten SQL-Helper; 500 bei Persistenzfehler, Auth- und Validierungsverhalten erhalten.
+- [x] Seed aktualisiert Zieldefinitionen idempotent; historische measured_at bleiben ehrlich, identische Historie verdoppelt sich nicht und überdeckt keine neueren Live-Messungen.
+- [x] Pytest und Rescan-Vitest grün; bestehende Scanner-, Auth- und DB-Schema-Regressionen mitprüfen.
 
 ## Task 4 — Nachweislich fehlerhafte Zielmessungen korrigieren
 

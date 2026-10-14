@@ -32,8 +32,6 @@ resources:
 # CPU-gebundene LLM- und DB-Dienste (T900191, design.md D4).
 components:
   - ../components/llm-services
-  # Self-hosted Langfuse fuer Agent-Tracing [T900688].
-  - ../components/langfuse
 
 configMapGenerator:
   - name: shared-db-backup-script
@@ -82,6 +80,20 @@ patches:
                   - {name: LLM_PROXY_URL, value: "http://llm-gateway-host"}
                 resources:
                   requests: {cpu: 100m, memory: 192Mi}
+  # Login-Callback und Branding folgen der lokalen Devmesh-Instanz.
+  - target: {kind: Deployment, name: brett}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: brett}
+      spec:
+        template:
+          spec:
+            containers:
+              - name: brett
+                env:
+                  - {name: BRETT_PUBLIC_URL, value: "https://brett.${DEVMESH_DOMAIN}"}
+                  - {name: BRETT_BRAND, value: "${BRAND_ID}"}
   # Zustandsbehaftete Workloads auf den storage=true-Knoten (SP-2 D4).
   - target: {kind: Deployment, name: shared-db}
     patch: |-

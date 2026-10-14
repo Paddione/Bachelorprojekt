@@ -51,7 +51,7 @@ def test_migration_seeds_beziehungsdynamik_system_template(repo_root: Path):
 
 def test_live_get_api_templates_returns_seeded_template():
     """live: GET /api/templates returns the seeded template."""
-    base_url = os.environ.get("BRETT_BASE_URL", "https://brett.devmesh.mentolder.de")
+    base_url = os.environ.get("BRETT_BASE_URL", "https://brett.devmesh.korczewski.de")
     if not base_url:
         pytest.skip("BRETT_BASE_URL not set")
 

@@ -3331,7 +3331,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 845,
+      "file_count": 844,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -4082,7 +4082,6 @@
         "prod-fleet/mentolder/brain.yaml",
         "prod-fleet/mentolder/brett-patch.yaml",
         "prod-fleet/mentolder/kustomization.yaml",
-        "prod-fleet/mentolder/langfuse-dev-proxy.yaml",
         "prod-fleet/mentolder/oauth2-proxy-sessions.yaml",
         "prod-fleet/mentolder/sessions-server.yaml",
         "prod-fleet/mentolder/studio-ingress.yaml",

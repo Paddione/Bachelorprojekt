@@ -3990,12 +3990,6 @@
     "kind": "pytest"
   },
   {
-    "id": "langfuse-agent-tracing",
-    "file": "tests/py/spec/native_ported/spec/test_langfuse_agent_tracing.py",
-    "category": "langfuse-agent-tracing",
-    "kind": "pytest"
-  },
-  {
     "id": "lavish",
     "file": "tests/py/spec/remaining_domain_specs/test_lavish.py",
     "category": "lavish",
@@ -4832,6 +4826,12 @@
   {
     "id": "native_ported/spec/flux-render-security/envsubst_whitelist",
     "file": "tests/py/spec/native_ported/spec/flux-render-security/test_envsubst_whitelist.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/langfuse_agent_tracing",
+    "file": "tests/py/spec/native_ported/spec/test_langfuse_agent_tracing.py",
     "category": "native_ported",
     "kind": "pytest"
   },

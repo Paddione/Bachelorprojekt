@@ -247,18 +247,6 @@ def test_t002240_mishap_tracker_never_derives_branch_name_from_lowercased_slug(p
     assert "chore/$slug" not in _text(paths["mishap_skill"])
 
 
-def test_t002240_mishap_tracker_defines_branch_variable_keeping_ticket_id_uppercase(paths):
-    text = _text(paths["mishap_skill"])
-    assert re.search(r'^\s*branch="chore/mishap-<ext-id>"', text, re.MULTILINE)
-    assert "tr '[:upper:]' '[:lower:]'" in text
-
-
-def test_t002240_mishap_tracker_spells_out_the_case_sensitivity_trap(paths):
-    text = _text(paths["mishap_skill"])
-    assert "pre-commit" in text
-    assert "T[0-9]{6,}" in text
-
-
 def test_t002240_branch_mishap_tracker_prescribes_satisfies_pre_commit_check(run_cmd):
     ext_id = "T002239"
     slug = "mishap-" + ext_id.lower()

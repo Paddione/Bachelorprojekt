@@ -32,7 +32,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-chore`](dev-flow-chore/SKILL.md) | Maintenance with no behavior change (docs, dep bumps, config, CI) — executes and merges **inline**, no plan/execute handoff. |
 | [`dev-flow-execute`](dev-flow-execute/SKILL.md) | After [`dev-flow-plan`](dev-flow-plan/SKILL.md) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
 | [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
-| ~~[`sdlc-autopilot`](sdlc-autopilot/SKILL.md)~~ | Retiriert 2026-10-14 mit dem Ticket-System (Queue-Quelle `tickets.*` entfiel). |
+| ~~`sdlc-autopilot`~~ | Retiriert 2026-10-14 mit dem Ticket-System (Queue-Quelle `tickets.*` entfiel). |
 
 > **SSOT (T900070):** `.opencode/skills/` ist die Single Source of Truth — alle Skills unten liegen hier kanonisch. `.claude/skills/*` und `.agents/skills/*` sind echte Spiegel mit pro-Harness-Projektion (Registry: `docs/agent-guide/registry/skills.yaml`, Engine: `scripts/agent-skills/project.mjs --check`). Nur `opencode-git-workflow` war schon immer opencode-eigen (`sdlc-autopilot` retiriert 2026-10-14).
 

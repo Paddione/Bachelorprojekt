@@ -231,15 +231,6 @@ def test_t002301_no_repo_built_mcp_server_is_referenced_by_an_absolute_home_path
     assert not failures, "\n".join(failures)
 
 
-def test_t002301_ticket_mcp_node_is_launched_via_the_path_resolved_node_binary(repo_root):
-    lines = _read(repo_root / "docs" / "agent-guide" / "registry" / "mcp.yaml").splitlines()
-    idx = next((i for i, line in enumerate(lines) if re.search(r"^  ticket-mcp-node:", line)), None)
-    assert idx is not None
-    output = "\n".join(lines[idx:idx + 6])
-    assert "command: node" in output, output
-    assert "mcp-servers/ticket/server.mjs" in output, output
-
-
 def test_t002301_ticket_mcp_build_installs_onto_the_path_like_mcp_task_runner(repo_root):
     lines = _read(repo_root / "taskfiles" / "Taskfile.tooling.yml").splitlines()
     idx = next((i for i, line in enumerate(lines) if re.search(r"^  ticket-mcp:build:", line)), None)

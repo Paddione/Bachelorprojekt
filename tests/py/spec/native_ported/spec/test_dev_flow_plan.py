@@ -291,17 +291,6 @@ def test_dev_flow_plan_mentions_frontmatter_keys(repo_root):
     assert "frontmatter" in _read(repo_root / ".claude/skills/dev-flow-plan/SKILL.md")
 
 
-def test_t002272_m1_stage_plan_accepts_hold(repo_root):
-    assert "--hold" in _read(repo_root / "scripts/vda/ticket/stage-plan.sh")
-
-
-def test_t002272_m1_ticket_sh_has_a_release_hold_subcommand(repo_root):
-    count = sum(
-        1 for line in _lines(repo_root / "scripts/ticket.sh") if re.search(r"^  release-hold\)", line)
-    )
-    assert count != 0
-
-
 def test_t002272_m1_dev_flow_plan_skill_md_and_ticket_stage_procedure_md_reference_stage_plan_hold(
     repo_root,
 ):

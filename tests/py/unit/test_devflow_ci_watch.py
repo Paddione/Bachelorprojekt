@@ -11,8 +11,8 @@ _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 
 extract_repo_from_url = _mod.extract_repo_from_url
-resolve_ticket_sh = _mod.resolve_ticket_sh
-is_executable = _mod.is_executable
+slug_from_branch = _mod.slug_from_branch
+assert_phase_log = _mod.assert_phase_log
 get_sleep_interval = _mod.get_sleep_interval
 run_ci_watch = _mod.run_ci_watch
 main = _mod.main
@@ -30,21 +30,32 @@ def test_extract_repo_from_url():
     assert extract_repo_from_url("") == "Paddione/Bachelorprojekt"
 
 
-def test_resolve_ticket_sh_env_var(monkeypatch, tmp_path):
-    custom_ticket = tmp_path / "custom-ticket.sh"
-    custom_ticket.write_text("#!/bin/sh\nexit 0\n")
-    monkeypatch.setenv("TICKET_SH", str(custom_ticket))
-    resolved = resolve_ticket_sh(tmp_path)
-    assert resolved == custom_ticket
+def test_slug_from_branch_strips_type_prefix():
+    assert slug_from_branch("feature/plan-runner-live") == "plan-runner-live"
+    assert slug_from_branch("fix/x-y") == "x-y"
+    assert slug_from_branch("no-prefix") == "no-prefix"
 
 
-def test_is_executable(tmp_path):
-    f = tmp_path / "test.sh"
-    f.write_text("#!/bin/sh\n")
-    assert not is_executable(f)
-    f.chmod(0o755)
-    assert is_executable(f)
-    assert not is_executable(tmp_path / "nonexistent.sh")
+def _phase_repo(monkeypatch, tmp_path, lines):
+    log = tmp_path / ".agents" / "plans" / "demo" / "phase-events.log"
+    if lines is not None:
+        log.parent.mkdir(parents=True)
+        log.write_text("".join(f"{line}\n" for line in lines))
+    answers = {"gh": "feature/demo\n", "git": f"{tmp_path}\n"}
+    monkeypatch.setattr(_mod, "run_cmd", lambda args, **_: _mod.subprocess.CompletedProcess(args, 0, answers[args[0]], ""))
+
+
+def test_assert_phase_log_complete_chain_is_green(monkeypatch, tmp_path):
+    _phase_repo(monkeypatch, tmp_path, ["plan done", "implement entered", "verify done"])
+    assert assert_phase_log("https://github.com/x/y/pull/1") == (True, 0)
+
+
+def test_assert_phase_log_missing_phase_or_log_is_exit_6(monkeypatch, tmp_path, capsys):
+    _phase_repo(monkeypatch, tmp_path, ["plan done", "implement entered"])
+    assert assert_phase_log("https://github.com/x/y/pull/1") == (False, 6)
+    assert "verify done" in capsys.readouterr().err
+    _phase_repo(monkeypatch, tmp_path / "other", None)
+    assert assert_phase_log("https://github.com/x/y/pull/1") == (False, 6)
 
 
 def test_get_sleep_interval(monkeypatch):

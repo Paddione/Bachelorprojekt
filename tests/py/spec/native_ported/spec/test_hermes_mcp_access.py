@@ -15,12 +15,11 @@ import pytest
 DENYLIST_MAP = """
 mcp-kubernetes:pods_delete,pods_exec,pods_run,resources_delete,resources_create_or_update,resources_scale
 codebase-memory-mcp:delete_project,index_repository,ingest_traces,manage_adr
-ticket-mcp:create_ticket,enqueue_ticket,transition_status,triage_ticket,update_fields,set_readiness_flag,set_touched_files,set_plan_meta,stage_plan,archive_plan,link_tickets,record_grill_answers,record_phase_event,report_mishap,flush_mishap_buffer,add_comment,add_pr_link,backfill_ticket_id
 mcp-task-runner:execute_plan,run_task,run_task_async,cancel_task
 warden:keychain_create_attachment,keychain_create_card,keychain_create_folder,keychain_create_identity,keychain_create_login,keychain_create_logins,keychain_create_note,keychain_create_org_collection,keychain_create_ssh_key,keychain_delete_attachment,keychain_delete_folder,keychain_delete_item,keychain_delete_items,keychain_delete_org_collection,keychain_edit_folder,keychain_edit_org_collection,keychain_move_item_to_organization,keychain_restore_item,keychain_send_create,keychain_send_create_encoded,keychain_send_delete,keychain_send_edit,keychain_send_remove_password,keychain_set_login_uris,keychain_update_item
 """
 
-EXPECTED_SERVERS = "mcp-postgres mcp-kubernetes codebase-memory-mcp mcp-task-runner ticket-mcp bge-mcp context7 warden".split()
+EXPECTED_SERVERS = "mcp-postgres mcp-kubernetes codebase-memory-mcp mcp-task-runner bge-mcp context7 warden".split()
 
 HERMES_STUB = """#!/bin/bash
 # Stub that prints its argv — empty args rendered as "" for grep matching
@@ -79,7 +78,7 @@ def test_registry_lists_all_catalog_servers(run_cmd, hx):
         res = run_cmd(["yq", f".{server}", str(hx["registry"])], cwd=hx["repo"])
         if res.returncode == 0:
             count += 1
-    assert count == 8, f"Found {count} servers (expected 8)"
+    assert count == len(EXPECTED_SERVERS), f"Found {count} servers (expected {len(EXPECTED_SERVERS)})"
 
     # Jeder Server hat mindestens url oder command.
     for server in EXPECTED_SERVERS:

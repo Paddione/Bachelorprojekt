@@ -77,18 +77,3 @@ def test_t900226_apply_completed_frontmatter_ist_idempotent_und_tastet_fremde_st
     r = run_cmd(["bash", str(finalize), "--apply-completed-frontmatter", str(tasks)], cwd=fix)
     assert r.returncode == 0
     assert tasks.read_text(encoding="utf-8") == before
-
-
-def test_t900226_completed_frontmatter_is_archived_directly_in_the_ticket_database(finalize):
-    lines = finalize.read_text(encoding="utf-8").splitlines()
-
-    def first_line(needle):
-        for n, line in enumerate(lines, start=1):
-            if needle in line:
-                return n
-        return None
-
-    ln_complete = first_line('_apply_plan_frontmatter_completed_path "$_plan_copy"')
-    ln_archive_plan = first_line('bash "$TICKET_SH" archive-plan')
-    assert ln_complete is not None and ln_archive_plan is not None
-    assert ln_complete < ln_archive_plan

@@ -53,27 +53,6 @@ def _precommit_block(paths):
     return "\n".join(out)
 
 
-def test_ticket_ops_step_3_6_schreibt_einen_branch_scoped_claim_vor(paths):
-    block = _step36_block(paths)
-    assert block, "Abschnitt Step 3.6 fehlt"
-    assert "agent-lock.sh claim" in block
-    assert "claim branch" in block
-
-
-def test_ticket_ops_step_3_6_schreibt_keinen_ticket_scoped_claim_mehr_vor(paths):
-    block = _step36_block(paths)
-    assert block
-    assert "claim branch" in block
-    assert "claim ticket" not in block
-
-
-def test_ticket_ops_step_3_6_sagt_dem_subagenten_welchen_scope_er_selbst_claimt(paths):
-    block = _step36_block(paths)
-    assert block
-    assert "claim branch" in block
-    assert "T003102" in block
-
-
 def test_dev_flow_plan_pre_commit_guard_akzeptiert_branch_slug_json_und_nennt_t003102(paths):
     block = _precommit_block(paths)
     assert block
@@ -113,25 +92,3 @@ def test_worktree_write_guard_benennt_die_herkunft_des_besitzes_sid_auch_andere_
     assert r.returncode == 2
     assert "SID" in r.output
     assert "subagent" in r.output.lower()
-
-
-def test_ticket_lock_guard_nennt_release_vor_ticket_lock_override(run_cmd, paths, tmp_path, monkeypatch):
-    lock_dir = tmp_path / "locks7"
-    lock_dir.mkdir()
-    (lock_dir / "ticket__T009999.json").write_text(
-        '{\n  "owner_sid": "fremde-sid-die-lebt",\n  "owner_pid": 1,\n  "worktree": "-",\n'
-        '  "branch": "fix/foo",\n  "label": "ticket-ops",\n  "tool": "claude"\n}\n'
-    )
-    monkeypatch.setenv("AGENT_LOCK_DIR", str(lock_dir))
-    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "meine-andere-sid")
-    r = run_cmd(
-        ["bash", "-c", f"cd '{paths['repo']}' && source '{paths['ticket_core']}' >/dev/null 2>&1; _ticket_lock_guard T009999 2>&1"]
-    )
-    assert r.returncode == 7
-    assert "TICKET_LOCK_OVERRIDE" in r.output
-    lines = r.output.splitlines()
-    rel = next((i for i, l in enumerate(lines, 1) if "release" in l), None)
-    ovr = next((i for i, l in enumerate(lines, 1) if "TICKET_LOCK_OVERRIDE" in l), None)
-    assert rel is not None
-    assert ovr is not None
-    assert rel < ovr

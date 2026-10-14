@@ -115,12 +115,6 @@ capabilities:
       tier: assisted
       deep_ref: ".claude/skills/database-specialist/SKILL.md"
 
-  # ─── Tickets und Pläne (retiriert 2026-10-14 mit dem Ticket-System) ───────────────
-  ticket-lebenszyklus:
-    mcp:ticket-mcp-node:
-      state: retired
-      reason: "Ticket-MCP + tickets.*-Schema retiriert 2026-10-14. Pläne werden per devflow-mcp plan_stage (Commit+Push) gestagt."
-
   devflow-kontext:
     mcp:devflow-mcp:
       state: canonical
@@ -141,21 +135,6 @@ capabilities:
         task_oracle: safe
         plan_stage: assisted
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
-
-  ticket-inhalt:
-    skill:ticket-ops:
-      state: retired
-      reason: "Retiriert 2026-10-14 mit dem Ticket-System. Unklare Ops-Anfragen routet operations-management; Inhalte plant dev-flow-plan."
-
-  ticket-triage:
-    skill:ticket-triage:
-      state: retired
-      reason: "Retiriert 2026-10-14 mit dem Ticket-System. Vollständigkeit prüft dev-flow-plan (plan-lint)."
-
-  ticket-dispatch:
-    skill:ticket-dispatch:
-      state: retired
-      reason: "Retiriert 2026-10-14 mit dem Ticket-System. Dispatch läuft über Worker-Sandboxes (task devflow:sandbox) nach expliziter Freigabe."
 
   repo-task-ausfuehrung:
     mcp:mcp-task-runner:
@@ -875,12 +854,6 @@ capabilities:
     plugin:oh-my-opencode-slim:acp_run@npm:
       state: suppressed
       reason: "Keine ACP-Agenten konfiguriert — das Tool wird nicht registriert (acpRunTools leer)."
-
-  # ─── Skills (Triage T900479) ────────────────────────────────────────────────────────
-  sdlc-autopilot:
-    skill:sdlc-autopilot:
-      state: retired
-      reason: "Retiriert 2026-10-14 mit dem Ticket-System (Queue-Quelle tickets.* entfiel)."
 
   opencode-git-workflow:
     skill:opencode-git-workflow:

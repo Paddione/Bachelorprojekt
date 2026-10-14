@@ -296,7 +296,7 @@ if git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
     mark_skip "Schritt 10: lokaler Branch $BRANCH ist im Haupt-Checkout ausgecheckt (Restore) — bleibt erhalten, Remote-Delete direkt"
   elif finalize_branch_fully_merged "$REPO_DIR" "$BRANCH" "$PR_NUM" \
        && [[ "$(git -C "$REPO_DIR" rev-parse --abbrev-ref HEAD)" != "$BRANCH" ]] \
-       && [[ "$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH")" == "$_CLEANUP_TIP" ]]; then
+       && [[ "$(git -C "$REPO_DIR" rev-parse "refs/heads/$BRANCH")" == "$_CLEANUP_TIP" ]]; then  # merge-base --is-ancestor vs origin/main (T900096)
     git -C "$REPO_DIR" branch -D "$BRANCH" && mark_ok "Schritt 10: lokaler Branch $BRANCH entfernt" || { echo "ERROR: Schritt 10 — lokaler Branch $BRANCH nicht loeschbar." >&2; exit 1; }
   else
     CLEANUP_SAFE=0

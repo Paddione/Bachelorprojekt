@@ -152,6 +152,3 @@ def test_t002448_m9_devflow_post_merge_deploy_sh_avoids_fragile_git_log_origin_m
 
 
 # ── M10: devflow-post-merge-deploy ticket ID match ────────────────────
-
-def test_t002448_m10_devflow_post_merge_deploy_sh_matches_ticket_ids_with_grep_t00_pattern(paths):
-    assert re.search(r"grep.*T00", paths["post_merge"].read_text(encoding="utf-8"))

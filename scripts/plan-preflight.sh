@@ -79,6 +79,8 @@ cmd_pre_commit() {
 cmd_pre_worktree() {
   local hits
   git fetch origin main --quiet 2>/dev/null || true
+  git rev-parse --verify --quiet origin/main >/dev/null \
+    || envfail "origin/main fehlt — Abhilfe: git fetch origin main und erneut ausfuehren."
   hits="$(git log origin/main --oneline --grep="$BRANCH" 2>/dev/null | head -5 || true)"
   if [ -n "$hits" ]; then
     echo "FEHLER: '$BRANCH' steht bereits auf main gemergt — KEINEN Worktree anlegen." >&2

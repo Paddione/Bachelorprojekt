@@ -130,9 +130,10 @@ def test_konfiguration_passt_zu_fritzbox_und_tailnet(rendered):
 
 
 def test_rewrites_fuehren_jeden_devmesh_host_auf_alle_lan_dns_knoten(rendered, repo_root):
-    domain = re.search(r"DEVMESH_DOMAIN:\s*(\S+)", (repo_root / "environments/dev.yaml").read_text()).group(1)
-    ingress = yaml.safe_load(
-        (repo_root / "dev-local/core/ingress.yaml").read_text().replace("${DEVMESH_DOMAIN}", domain))
+    env = dict(re.findall(r"^\s+([A-Z_]+):\s*(\S+)", (repo_root / "environments/dev.yaml").read_text(), re.M))
+    domain = env["DEVMESH_DOMAIN"]
+    ingress = yaml.safe_load(re.sub(
+        r"\$\{([A-Z_]+)\}", lambda m: env[m.group(1)], (repo_root / "dev-local/core/ingress.yaml").read_text()))
     hosts = set(ingress["spec"]["tls"][0]["hosts"])
     inv = yaml.safe_load((repo_root / "devmesh/inventory.yaml").read_text())
     ips = {p["lan_ip"] for p in inv["peers"] if p.get("lan_dns")}

@@ -58,8 +58,8 @@ filtering:
     - {domain: web.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: auth.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
     - {domain: auth.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
-    - {domain: site.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
-    - {domain: site.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
+    - {domain: massage.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
+    - {domain: massage.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: brett.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
     - {domain: brett.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: mail.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}

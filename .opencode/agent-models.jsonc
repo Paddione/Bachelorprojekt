@@ -46,61 +46,6 @@
         }
       }
     },
-    // Qwen3.5-4B-MTP UD-Q4_K_XL, Windows-nativ auf der RTX 3060 Ti:
-    // 3 Slots teilen provisional 98304 KV
-    // (-np 3 -kvu, Q4_0 Target/Draft-KV, MTP r4, Thinking per Request).
-    // Startskript scripts/llm/start-qwen35-4b-service.ps1 (Kopie nach
-    // F:\tools\llama.cpp). Binaries b11352+
-    // (0.3.0-dev kann opencode's task_reply-Grammatik nicht parsen).
-    // 98304 ist provisional: kurze Requests/Tool-Calls und 3-Strom-Direct-Smoke
-    // verifiziert, Long-Load/Stress noch offen. Keine Linux-era Speed-Claims.
-    // Qwen3.5-4B-MTP UD-Q4_K_XL, Windows-native :8080 on RTX 3060 Ti.
-    // Linux OpenCode V2 uses explicit model/variant body overlays.
-    // One resident checkpoint serves direct and thinking requests without reload.
-    // Provisional shared KV: 98304 / 3 slots, q4_0 target/draft KV, MTP r4.
-    // Windows b11352 short requests/tool calls and 3-stream direct smoke verified;
-    // long-context quality/concurrency stress still pending. No Linux-era speed claims.
-    // Reproducible launcher: scripts/llm/start-qwen35-4b-service.ps1.
-    "llamacpp-qwen3": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :8080 (Qwen3.5-4B-MTP, RTX 3060 Ti, 3 slots, provisional 98304 shared KV)",
-      "options": {
-        "baseURL": "http://127.0.0.1:8080/v1",
-        "timeout": 600000,
-        "chunkTimeout": 120000
-      },
-      "models": {
-        "Qwen3.5-4B-MTP": {
-          "name": "Qwen3.5-4B-MTP UD-Q4_K_XL (Windows-native :8080, RTX 3060 Ti)",
-          "limit": {
-            "context": 98304,
-            "input": 98304,
-            "output": 8192
-          }
-        }
-      }
-    },
-    // Qwen3.5-2B-MTP UD-Q4_K_XL auf CPU :18199 (Ryzen 7 5800X3D, MTP Draft 2, 8k ctx).
-    // Dient der lokalen Ausfuehrung von Teilaufgaben / Plan-Partials rein auf CPU-Ressourcen.
-    "llamacpp-cpu-2b": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp CPU :18199 (Qwen3.5-2B-MTP UD-Q4_K_XL, Ryzen 7 5800X3D, 8k ctx)",
-      "options": {
-        "baseURL": "http://127.0.0.1:18199/v1",
-        "timeout": 600000,
-        "chunkTimeout": 120000
-      },
-      "models": {
-        "Qwen3.5-2B-MTP": {
-          "name": "Qwen3.5-2B-MTP UD-Q4_K_XL (CPU :18199)",
-          "limit": {
-            "context": 65536,
-            "input": 65536,
-            "output": 4096
-          }
-        }
-      }
-    },
     // OpenCode Zen/Go: "opencode-go" statt "opencode" (Zen) - Subscription-Tier
     // ($10/mo). Nur Modelle mit gemessener Bindung werden hier eingetragen
     // (verifiziert per `opencode run --model ...` IN-CLIENT — rohes curl wird
@@ -265,41 +210,12 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "qwen35-4b": {
-      "description": "Text-only Qwen3.5-4B instruction worker on RTX 3060 Ti, Windows-native llama.cpp :8080. Three slots share provisional 98304 KV. Direct mode by default; thinking is a per-request variant on the same checkpoint. Use bounded research, summaries and straightforward implementation; primary verifies conclusions.",
-      "mode": "subagent",
-      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP",
-      "prompt": "{file:./prompts/qwen35-worker.md}",
-      "color": "#22D3EE",
-      "temperature": 0.3,
-      "steps": 40,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
     // plan-runner-Worker (T900504): opencode run akzeptiert nur Primaer-Agenten; ein
-    // Subagent (local, qwen35-4b) faellt dort still auf den Default-Agenten zurueck
-    // und laeuft dann mit dessen Modell und Werkzeugen auf :1919. Deshalb eigene
-    // primaere Worker mit schlankem Prompt; write ist erlaubt (Partials legen Dateien an),
-    // task nicht (kein Weiterdelegieren). Genutzt von scripts/llm/plan-runner/workers.mjs.
-    "plan-worker-qwen35": {
-      "description": "Primary plan partial worker on Qwen3.5-4B-MTP (:8080, RTX 3060 Ti, 3 slots / provisional 98304 shared KV). Direct mode by default, write-capable only for assigned partials. Used by scripts/llm/plan-runner.mjs.",
-      "mode": "primary",
-      "model": "llamacpp-qwen3/Qwen3.5-4B-MTP",
-      "prompt": "{file:./prompts/qwen35-worker.md}",
-      "color": "#22D3EE",
-      "temperature": 0.3,
-      "steps": 40,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
-    },
-    "plan-worker-cpu2b": {
-      "description": "Primary plan partial worker on Qwen3.5-2B-MTP (CPU :18199, Ryzen 7 5800X3D). Text-only direct execution for assigned partials with write capability.",
-      "mode": "primary",
-      "model": "llamacpp-cpu-2b/Qwen3.5-2B-MTP",
-      "prompt": "{file:./prompts/qwen35-worker.md}",
-      "color": "#A78BFA",
-      "temperature": 0.2,
-      "steps": 30,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
-    },
+    // Subagent (local) faellt dort still auf den Default-Agenten zurueck und laeuft dann mit
+    // dessen Modell und Werkzeugen auf :1919. Deshalb eigene primaere Worker mit schlankem
+    // Prompt; write ist erlaubt (Partials legen Dateien an), task nicht (kein Weiterdelegieren).
+    // Genutzt von scripts/llm/plan-runner/workers.mjs. Der Direkt-Track des Runners braucht
+    // keinen Agenten (In-Process-Tool-Loop gegen vLLM :8123, direct-worker.mjs).
     "plan-worker-self": {
       "description": "plan-runner self-execution worker on the local Qwen3.8-27B IQ3_XXS-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
@@ -310,14 +226,13 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
-    // plan-worker-vllm: vLLM-Track des plan-runners (Qwen3.5-4B-QUASAR-NVFP4-W4A4,
-    // :8123, RTX 5070 Ti, max-num-seqs 10). Der Provider vllm-local lebt in der
-    // globalen opencode-Config (dotfiles); hier steht nur die Modell-Referenz,
-    // damit agentModel() sie an `opencode run --model` weiterreicht.
-    "plan-worker-vllm": {
-      "description": "Primary plan partial worker on Qwen3.5-4B-QUASAR-NVFP4-W4A4 (vLLM :8123, RTX 5070 Ti, 32k ctx). Direct mode by default, write-capable only for assigned partials. Used by scripts/llm/plan-runner.mjs via dispatch_vllm.",
+    // plan-worker-muse (T016656): Cloud-Track des plan-runners (Muse Spark 1.3 im Go-Abo) fuer
+    // Partials, die der Direkt-Worker nicht schafft. Prompt wie der fruehere vLLM-Worker
+    // (schlank, kleines Kontextbudget); write erlaubt, task verboten.
+    "plan-worker-muse": {
+      "description": "Primary plan partial worker on Muse Spark 1.3 (opencode free/Go catalog). Cloud track of scripts/llm/plan-runner.mjs via dispatch_cloud; write-capable only for assigned partials.",
       "mode": "primary",
-      "model": "vllm-local/w4a4",
+      "model": "opencode/muse-spark-1.3-contributor-free",
       "prompt": "{file:./prompts/vllm-worker.md}",
       "color": "#F472B6",
       "temperature": 0.3,
@@ -338,7 +253,7 @@
     // Slims Orchestrator ist die einzige interaktive Orchestrierungs-Definition
     // (Modell-Pinning in .opencode/oh-my-opencode-slim.jsonc, Workflow-Regeln in
     // ~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md). `local`,
-    // `qwen35-4b`, `exe-muse` und `reviewer` bleiben als Worker verfuegbar.
+    // `vllm-4b`, `exe-muse` und `reviewer` bleiben als Worker verfuegbar.
     // exe-muse — Muse-Spark-Ausfuehrungs-Agent auf dem Go-Katalog
     // (Subscription, kein Training-Sharing wie Zen-free). Niedrige
     // Reasoning-Stufe (`low`) und `mode: subagent`: dispatchbar, bewusst NICHT
@@ -376,7 +291,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen35-4b": "allow",
+          "vllm-4b": "allow",
           "reviewer": "allow",
           "fixer": "allow",
           "oracle": "allow"
@@ -399,7 +314,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen35-4b": "allow",
+          "vllm-4b": "allow",
           "exe-muse": "allow",
           "oracle": "allow"
         }
@@ -422,7 +337,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "qwen35-4b": "allow",
+          "vllm-4b": "allow",
           "reviewer": "allow",
           "designer": "allow",
           "librarian": "allow"

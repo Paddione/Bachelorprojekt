@@ -13,13 +13,30 @@
 // `brett-mentolder`-Projekt, dessen Setup (brett-mentolder-auth-setup) seit
 // T003163 den echten Pocket-ID-Login per One-Time-Access-Code durchführt.
 import { test, expect } from '@playwright/test';
+import * as path from 'path';
+import * as fs from 'fs';
 
 const BRETT_URL = (process.env.BRETT_URL ?? 'https://brett.mentolder.de').replace(/\/$/, '');
+const AUTH_DIR = path.join(__dirname, '..', '.auth');
+const ADMIN_STATE = path.join(AUTH_DIR, 'mentolder-brett.json');
+
+function hasAuthState(): boolean {
+  try {
+    const data = JSON.parse(fs.readFileSync(ADMIN_STATE, 'utf-8'));
+    return Array.isArray(data.cookies) && data.cookies.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 test.describe('FA-60: Realtime WebSocket (brett /sync)', { tag: ['@brett'] }, () => {
   test.setTimeout(120_000);
 
-  test('T1: /sync WS stays open and delivers snapshot after join (authenticated)', async ({ page }) => {
+  test('T1: /sync WS stays open and delivers snapshot after join (authenticated)', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'brett-mentolder' || !hasAuthState(),
+      'requires brett-mentolder project with storageState (.auth/mentolder-brett.json)',
+    );
     await page.goto(BRETT_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
     // storageState trägt die oauth2-proxy-Session — wir dürfen nicht am Login hängen.
     await expect(page).not.toHaveURL(/oauth2|sign_in|login/, { timeout: 60_000 });

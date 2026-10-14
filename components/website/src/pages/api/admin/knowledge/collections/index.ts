@@ -3,27 +3,35 @@ import { getSession, isAdmin } from '../../../../../lib/auth';
 import { createCollection, listCollections, isVectorStoreEnabled, VectorStoreDisabledError, type CrawlConfig } from '../../../../../lib/knowledge-db';
 
 export const GET: APIRoute = async ({ request }) => {
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  const isCronAuth = !!(token && process.env.CRON_SECRET && token === process.env.CRON_SECRET);
+  const session = await getSession(request.headers.get('cookie'));
+  const authorized = isCronAuth || (session && isAdmin(session));
+  if (!authorized) return new Response('Unauthorized', { status: 401 });
+
   if (!isVectorStoreEnabled()) {
     return new Response(JSON.stringify({ error: 'vector store disabled' }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
   const cols = await listCollections();
   return new Response(JSON.stringify(cols), { headers: { 'Content-Type': 'application/json' } });
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  const isCronAuth = !!(token && process.env.CRON_SECRET && token === process.env.CRON_SECRET);
+  const session = await getSession(request.headers.get('cookie'));
+  const authorized = isCronAuth || (session && isAdmin(session));
+  if (!authorized) return new Response('Unauthorized', { status: 401 });
+
   if (!isVectorStoreEnabled()) {
     return new Response(JSON.stringify({ error: 'vector store disabled' }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
   const body = await request.json() as {
     name?: string;

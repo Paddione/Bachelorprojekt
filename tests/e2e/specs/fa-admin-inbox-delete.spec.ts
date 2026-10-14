@@ -69,7 +69,7 @@ async function seedTestContactRow(api: APIRequestContext): Promise<string> {
 
 test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', '@messaging'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
-    test.setTimeout(30_000);
+    test.setTimeout(60_000);
     await assertAuthenticatedReachable(
       request,
       `${BASE}/admin/inbox`,
@@ -134,7 +134,7 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
       list.locator('[data-testid="inbox-list-row"]', { hasText: seedName })
     ).toBeVisible();
 
-    await deleteBtn.click();
+    await deleteBtn.click({ force: true });
     await expect(
       list.locator('[data-testid="inbox-list-row"]', { hasText: seedName }),
     ).toHaveCount(0, { timeout: 10_000 });

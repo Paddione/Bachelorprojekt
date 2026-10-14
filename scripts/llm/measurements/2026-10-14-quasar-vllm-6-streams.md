@@ -19,7 +19,7 @@ Entscheidungsrelevant fuer: Default von `--vllm-slots` im plan-runner
 
 | | |
 |---|---|
-| Server | `serve-worker-vllm.service`, `:8123`, `max-num-seqs 10`, 32k Kontext |
+| Server | `serve-worker-vllm.service` (Docker), `:8123`, `max-num-seqs 10`, `--max-model-len 32768`, `--gpu-memory-utilization 0.72` |
 | Modell | Qwen3.5-4B-QUASAR-NVFP4-W4A4 (Modell-ID wird von `/v1/models` gelesen) |
 | GPU | RTX 5070 Ti — **geteilt mit dem Orchestrator `:1919`**. Waehrend der Messung darf dort nichts laufen, sonst misst man dessen Last mit. |
 | Last je Strom | 512 Token Ausgabe, erzwungen (`ignore_eos` + `min_tokens`), Thinking aus, `temperature 0`, verschiedene Prompts je Strom |
@@ -27,7 +27,7 @@ Entscheidungsrelevant fuer: Default von `--vllm-slots` im plan-runner
 | Stufen | 1, 3, 6 Stroeme |
 
 Speicherbedarf: 6 × (≈40 Prompt + 512 Ausgabe) ≈ 3.300 Token, deutlich unter
-dem 32k-Pool. Liegt `running max` trotzdem unter 6, ist das ein Befund
+dem KV-Pool von 216.078 Token (siehe unten). Liegt `running max` trotzdem unter 6, ist das ein Befund
 (Scheduler/Config), keine Messung des Batchings.
 
 ## Preflight (Ausgaben unten eintragen)
@@ -133,10 +133,51 @@ Rohausgabe:
   Repo; die Tabelle stammt aus der Rohausgabe oben.
 - Last ist synthetisch (kurze Prompts, 512 Token erzwungene Ausgabe). Echte
   plan-runner-Partials haben lange System-Prompts und Tool-Turns; dort duerften
-  Prefill und der 32k-Pool begrenzen, nicht der Decode (nicht gemessen).
+  Prefill und das Fenster je Anfrage begrenzen, nicht der Decode (nicht gemessen).
 - Vergleich mit dem 4B-MTP-Worker (llama.cpp `-np 3 -kvu`, 162 t/s bei 3
   Stroemen) ist **kein A/B**: andere GPU (3060 Ti statt 5070 Ti), anderer
   Quant, MTP. Er zeigt nur die Groessenordnung des Unterschieds der Tracks.
+
+## KV-Cache: 32k gelten je Anfrage, nicht fuer alle zusammen
+
+`--max-model-len` begrenzt **eine** Anfrage. Der gemeinsame Topf ist der
+KV-Cache, dessen Groesse aus `--gpu-memory-utilization` folgt; vLLM vergibt ihn
+blockweise nach Bedarf (PagedAttention), es gibt keine festen Scheiben wie bei
+llama.cpp `-np` ohne `-kvu`. Startlog des Servers (2026-10-14, 18:49):
+
+```bash
+journalctl --user -u serve-worker-vllm --no-pager | grep -E "KV cache size|Maximum concurrency" | tail -2
+# ... --gpu-memory-utilization=0.7200 is equivalent to --gpu-memory-utilization=0.7151 without CUDA graph memory profiling ...
+# GPU KV cache size: 216,078 tokens, Maximum concurrency for 32,768 tokens per request: 6.59x
+```
+
+Bei 32k je Anfrage passen also 6,6 volle Anfragen gleichzeitig: die 6 Stroeme
+haben ihr volles Fenster garantiert. Feste Teilung (216.078 ÷ 6 ≈ 36k) braechte
+nur ~3k mehr je Anfrage.
+
+### Entscheidung: bis 64k je Anfrage, Pool bleibt geteilt
+
+`--max-model-len 65536` — ein Task, der laenger braucht (z. B. eine volle
+opencode-Sitzung, die 32k schon beim Start reisst), bekommt bis 64k; kurze
+Tasks belegen nur, was sie brauchen. Garantiert voll gleichzeitig sind damit
+216.078 ÷ 65.536 ≈ 3,3 Anfragen. Sind mehr gleichzeitig lang, pausiert vLLM
+einzelne (Preemption) — langsamer, nicht falsch. `--gpu-memory-utilization`
+bleibt bei 0.72, weil sich die 5070 Ti den VRAM mit dem Orchestrator `:1919`
+teilt.
+
+Umstellung auf dem Host (Service liegt nicht im Repo):
+
+```bash
+systemctl --user cat serve-worker-vllm | grep -n -- '--max-model-len'   # 32768 -> 65536
+systemctl --user edit --full serve-worker-vllm
+systemctl --user restart serve-worker-vllm
+journalctl --user -u serve-worker-vllm --no-pager | grep -E "KV cache size|Maximum concurrency" | tail -1
+# erwartet: Maximum concurrency for 65,536 tokens per request: ~3.3x
+```
+
+Zusaetzlich muss das Kontextlimit des Providers `vllm-local` in der globalen
+opencode-Config (dotfiles, nicht im Repo) auf 65536 — sonst kompaktiert
+opencode weiter bei 32k.
 
 ## Nachher
 

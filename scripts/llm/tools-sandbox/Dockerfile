@@ -12,9 +12,9 @@
 # hier liegt, ist auch das, was ein Modell mit exec_shell_command erreichen kann.
 # T901679: Basis ueber Googles Pull-Through-Cache statt Docker Hub direkt —
 # anonyme Docker-Hub-Pulls schlagen in CI mit 429 fehl (Shard-1-Flake).
-# Digest-gepinnt und verifiziert byte-identisch zu docker.io/library/alpine:3.22
-# (imagetools inspect beider Registries, 2026-10-09).
-FROM mirror.gcr.io/library/alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8
+# Digest-gepinnt und verifiziert byte-identisch zu docker.io/library/alpine:3.24
+# (imagetools inspect beider Registries, 2026-10-14).
+FROM mirror.gcr.io/library/alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
 
 # git fuer file_glob_search, grep fuer grep_search (busybox-grep kennt kein -r
 # mit denselben Schaltern), coreutils fuer ein vorhersagbares 'wc -c'.

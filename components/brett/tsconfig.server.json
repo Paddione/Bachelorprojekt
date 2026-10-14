@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "outDir": "dist/server",
     "rootDir": "src",
     "strict": true,
@@ -13,8 +13,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": { "@types/*": ["src/types/*"] }
+    "paths": { "@types/*": ["./src/types/*"], "*": ["./*"] }
   },
   "include": ["src/server/**/*", "src/types/**/*"]
 }

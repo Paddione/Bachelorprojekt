@@ -1802,14 +1802,14 @@
       "format": "json",
       "id": "assets/art-library/_tooling/package-lock.json",
       "mime": "application/json",
-      "sha256": "6500bd9e6a3f345ce1fcff43f506c383413bce0e5367a2d4f6e35ad5de469836",
+      "sha256": "9114b9f9483cc3074b7660e833d38fa65b88d590e48a74b82fc7c83b687f2d83",
       "size": 14434
     },
     {
       "format": "json",
       "id": "assets/art-library/_tooling/package.json",
       "mime": "application/json",
-      "sha256": "5e014606d1da42507137f5490ccaf77d20ffc3fd6bbf8b8a231c097afdbae844",
+      "sha256": "7688291e43a1e95080b7f5eefcd5994f44b7f75ca3bbbbb004eb762056dee962",
       "size": 291
     },
     {

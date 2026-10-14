@@ -7,8 +7,8 @@
     "validate": "node validate-manifest.mjs"
   },
   "devDependencies": {
-    "ajv": "^8.17.1",
+    "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "cheerio": "^1.0.0"
+    "cheerio": "^1.2.0"
   }
 }

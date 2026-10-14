@@ -5,7 +5,7 @@
 #
 # git liegt im Image, nicht im Startkommando — dieselbe Regel wie fuer
 # mcp-node: keine Paketinstallation zur Laufzeit.
-FROM alpine:3.21
+FROM alpine:3.24
 
 RUN apk add --no-cache git ca-certificates openssh-client
 

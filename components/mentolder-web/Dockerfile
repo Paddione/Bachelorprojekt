@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # ── Build stage ───────────────────────────────────────────────────
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@10 --activate
@@ -22,7 +22,7 @@ ENV VITE_WEBSITE_ORIGIN=${VITE_WEBSITE_ORIGIN}
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile && pnpm run build
 
 # ── Runtime stage ─────────────────────────────────────────────────
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.30.5-alpine AS runtime
 
 COPY components/mentolder-web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html

@@ -2,10 +2,10 @@
 # VideoVault — Library (Vite-Client + Express-Server) for the Fleet platform.
 # Build-Context = Repo-Root (~/Bachelorprojekt), so that @videovault-player alias
 # can reach the vendored packages/videovault-player.
-# Base: node:20-bookworm-slim (native ffprobe + build-essential for canvas).
+# Base: node:26-bookworm-slim (native ffprobe + build-essential for canvas).
 
 # ── Build stage ───────────────────────────────────────────────
-FROM node:24-bookworm-slim AS build
+FROM node:26-bookworm-slim AS build
 WORKDIR /app
 
 RUN apt-get update \
@@ -36,7 +36,7 @@ COPY components/VideoVault/drizzle.config.ts ./
 RUN npm run build
 
 # ── Runtime stage ─────────────────────────────────────────────
-FROM node:24-bookworm-slim AS runtime
+FROM node:26-bookworm-slim AS runtime
 WORKDIR /app
 
 RUN apt-get update \

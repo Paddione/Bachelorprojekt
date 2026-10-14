@@ -1,5 +1,18 @@
 // Realistic File System Access API mocks for deterministic testing
 
+// TS7 lib.dom types File System iterators as disposable
+// (FileSystemDirectoryHandleAsyncIterator requires [Symbol.asyncDispose]).
+// Plain async generators lack it, so attach a no-op dispose.
+function withAsyncDispose<T>(
+  generator: AsyncGenerator<T>,
+): AsyncGenerator<T> & { [Symbol.asyncDispose](): Promise<void> } {
+  const disposable = generator as AsyncGenerator<T> & {
+    [Symbol.asyncDispose]?: () => Promise<void>;
+  };
+  disposable[Symbol.asyncDispose] = () => Promise.resolve();
+  return disposable as AsyncGenerator<T> & { [Symbol.asyncDispose](): Promise<void> };
+}
+
 export interface MockFileSystemEntry {
   name: string;
   type: 'file' | 'directory';
@@ -159,31 +172,58 @@ export class MockFileSystemDirectoryHandle implements FileSystemDirectoryHandle 
     private filesystem: MockFileSystem,
   ) {}
 
-  async *entries(): AsyncIterableIterator<[string, FileSystemHandle]> {
+  entries(): FileSystemDirectoryHandleAsyncIterator<
+    [string, FileSystemDirectoryHandle | FileSystemFileHandle]
+  > {
+    return withAsyncDispose(this.generateEntries());
+  }
+
+  private async *generateEntries(): AsyncGenerator<
+    [string, FileSystemDirectoryHandle | FileSystemFileHandle]
+  > {
     if (this.entry.type !== 'directory' || !this.entry.children) {
       return;
     }
 
     for (const [name, child] of Object.entries(this.entry.children)) {
-      yield [name, this.filesystem.createHandle(name, child)];
+      yield [
+        name,
+        this.filesystem.createHandle(name, child) as
+          | FileSystemDirectoryHandle
+          | FileSystemFileHandle,
+      ];
     }
   }
 
-  async *keys(): AsyncIterableIterator<string> {
+  keys(): FileSystemDirectoryHandleAsyncIterator<string> {
+    return withAsyncDispose(this.generateKeys());
+  }
+
+  private async *generateKeys(): AsyncGenerator<string> {
     const entriesIterator = this.entries();
     for await (const [key] of entriesIterator) {
       yield key;
     }
   }
 
-  async *values(): AsyncIterableIterator<FileSystemHandle> {
+  values(): FileSystemDirectoryHandleAsyncIterator<
+    FileSystemDirectoryHandle | FileSystemFileHandle
+  > {
+    return withAsyncDispose(this.generateValues());
+  }
+
+  private async *generateValues(): AsyncGenerator<
+    FileSystemDirectoryHandle | FileSystemFileHandle
+  > {
     const entriesIterator = this.entries();
     for await (const [, value] of entriesIterator) {
       yield value;
     }
   }
 
-  [Symbol.asyncIterator](): AsyncIterableIterator<[string, FileSystemHandle]> {
+  [Symbol.asyncIterator](): FileSystemDirectoryHandleAsyncIterator<
+    [string, FileSystemDirectoryHandle | FileSystemFileHandle]
+  > {
     return this.entries();
   }
 

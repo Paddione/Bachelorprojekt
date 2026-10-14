@@ -91,9 +91,25 @@ export async function assertReachable(
   }
 
   if (allow404AsNotDeployed && res.status() === 404) {
-    const fixme = testInfo?.fixme || test.fixme;
-    (fixme as (shouldFix: boolean, reason: string) => void)(true, `[${modeLabel()}] ${label}: service not deployed (404)`);
-    test.skip(true, `[${modeLabel()}] ${label}: service not deployed (404)`);
+    const message = `[${modeLabel()}] ${label}: service not deployed (404)`;
+    if (isProd()) {
+      throw new Error(`E2E HEALTH CHECK FAILED [prod]: ${message}`);
+    }
+    try {
+      const fixme = testInfo?.fixme || test.fixme;
+      (fixme as (shouldFix: boolean, reason: string) => void)(true, message);
+      test.skip(true, message);
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      // Outside the Playwright runner test.fixme/test.skip throw
+      // ("can only be called inside ..."); surface the standard marker.
+      if (testInfo?.fixme && /can only be called inside/.test(errMsg)) {
+        throw new Error(`__PLAYWRIGHT_FIXME__: ${message}`);
+      }
+      throw err;
+    }
+    // test.skip returned without aborting (unexpected) — surface marker.
+    throw new Error(`__PLAYWRIGHT_FIXME__: ${message}`);
   }
 
   if (!acceptableStatuses.includes(res.status())) {

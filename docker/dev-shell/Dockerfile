@@ -1,6 +1,6 @@
 # docker/dev-shell/Dockerfile — SSH-erreichbarer Dev-Container des dev-pod [T900108]
 # Alles zur Bauzeit (Requirement "Container images carry their dependencies").
-FROM node:22-bookworm-slim
+FROM node:26-bookworm-slim
 
 # Exakt gepinnte Werkzeugversionen; Binaerartefakte werden gegen die Pruefsummen
 # ihres Releases geprueft (keine Installer-Skripte, kein Fremd-apt-Repo).

@@ -36,12 +36,6 @@ import {
 
 const SPEED_OPTIONS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
-declare global {
-  interface HTMLVideoElement {
-    fastSeek?: (time: number) => void;
-  }
-}
-
 interface VideoPlayerModalProps {
   video: Video | null;
   isOpen: boolean;

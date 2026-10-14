@@ -66,6 +66,15 @@ metric() {  # Summe aller Serien einer Metrik
 running="$(curl -sf --max-time 5 "$UPSTREAM/metrics" | awk '/^vllm:num_requests_running/ { s += $NF } END { printf "%d", s }')"
 [ "$running" = "0" ] || { echo "FEHLER: auf $UPSTREAM laufen $running Anfragen — Host nicht ruhig" >&2; exit 2; }
 
+# Fehlende Harness-Binaries vor dem ersten Lauf melden, nicht als leere Messung
+# durchlaufen lassen.
+case ",$VARIANTS," in
+  *,omp-L*) command -v omp >/dev/null || { echo "FEHLER: omp fehlt (task omp:install) — oder omp-Varianten aus --variants nehmen" >&2; exit 2; } ;;
+esac
+case ",$VARIANTS," in
+  *,opencode,*) command -v opencode >/dev/null || { echo "FEHLER: opencode fehlt — oder 'opencode' aus --variants nehmen" >&2; exit 2; } ;;
+esac
+
 {
   echo "ref: $REF ($SHA)"
   echo "upstream: $UPSTREAM"
@@ -131,8 +140,8 @@ for rep in $(seq 1 "$REPS"); do
       | grep -o 'PLAN-RUNNER-RESULT: [a-z]*' | tail -1 | cut -d' ' -f2 || true)"
     git -C "$wt" diff > "$OUT/$label.diff" || true
 
-    summary="$(node "$OUT/ctx-proxy.mjs" summarize "$LOG" --label "$label")"
-    [ "$summary" != "null" ] || summary='{}'
+    summary="$(node "$OUT/ctx-proxy.mjs" summarize "$LOG" --label "$label" 2>/dev/null || true)"
+    case "$summary" in ''|null) summary='{}' ;; esac
     jq -n -c --arg label "$label" --arg variant "$variant" --argjson rep "$rep" \
       --argjson exit "$exit_code" --argjson secs "$secs" --argjson test_ok "$test_ok" \
       --argjson test_touched "$test_touched" --argjson changed "${changed:-0}" \

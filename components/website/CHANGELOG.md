@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.423.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.422.1...website-v1.423.0) (2026-10-14)
+
+
+### Features
+
+* **infra:** deploy Massage dev website with isolated database [T016611] ([#6665](https://github.com/Paddione/Bachelorprojekt/issues/6665)) ([b25c801](https://github.com/Paddione/Bachelorprojekt/commit/b25c801aad1412d977aa785b9a80b1c2cacc90a5))
+
 ## [1.422.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.422.0...website-v1.422.1) (2026-10-14)
 
 

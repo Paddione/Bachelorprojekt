@@ -38,3 +38,22 @@ def test_offline_fallback_snapshot_exists(repo_root):
 def test_health_goals_daemon_script_exists(repo_root):
     daemon = repo_root / "scripts/sdlc/health-goals-daemon.sh"
     assert daemon.is_file(), f"Daemon script missing: {daemon}"
+
+
+def test_health_goals_daemon_help_options(repo_root):
+    daemon = repo_root / "scripts/sdlc/health-goals-daemon.sh"
+    res = subprocess.run(["bash", str(daemon), "--help"], capture_output=True, text=True)
+    assert res.returncode == 0
+    assert "--all" in res.stdout
+    assert "--no-ticket" in res.stdout
+    assert "--no-wake" in res.stdout
+    assert "--dry-run" in res.stdout
+
+
+def test_dataset_generator_contains_repohealth_facts(repo_root):
+    gen = repo_root / ".agents/training/generate_dataset.py"
+    assert gen.is_file()
+    content = gen.read_text(encoding="utf-8")
+    assert "quality.repo_health_goals" in content
+    assert "health-goals-daemon.sh" in content
+    assert "plan-worker-qwen35" in content

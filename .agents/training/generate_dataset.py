@@ -424,6 +424,19 @@ FACTS = [
         "What does wip-finish.sh do by default?",
         "Is wip-finish allowed to commit on its own?",
     ], "Default run is **PLAN ONLY** — nothing is touched. The worker rail (:8080) only triages and recommends an action (`ACT=<aktion>|REASON=<kurz>`); it never writes repo content, commits or pushes."),
+    F("workflow", [
+        "Where are repository health goals persisted and updated live?",
+        "What is the SSOT for repo health goals after the live DB migration?",
+        "How do I record repo health measurements into the database?",
+    ], "Health goals live in PostgreSQL under the `quality` schema (`quality.repo_health_goals` and `quality.repo_health_measurements`). Measurements are recorded by running:\n\n```bash\nbash scripts/sdlc/health-goals-daemon.sh [--all]\n```\nThe latest measurement per goal is queried via `quality.v_repo_health_current`."),
+    F("workflow", [
+        "What happens when a repo health goal regresses or violates a gate?",
+        "How are health goal regressions reported and handled?",
+    ], "When `health-goals-daemon.sh` detects a failing goal (`status` is `critical` or `at_risk`), it checks for existing open tickets in `tickets.tickets`. If none exists, it automatically creates a fix ticket:\n\n```bash\nbash scripts/ticket.sh create --type fix --title \"fix(health): <ID> regressed...\" ...\n```\nIt then wakes the agent harness (`plan-runner.mjs` or `opencode run --agent plan-worker-qwen35`) with the ticket ID to diagnose and resolve the regression."),
+    F("workflow", [
+        "How do I trigger an on-demand scan of specific health goals?",
+        "What command rescans individual health goals?",
+    ], "Run `health-goals-scan.sh` with the target goal IDs:\n\n```bash\nbash scripts/health-goals-scan.sh G-RH01 G-CQ02\n```\nTo record them directly into Postgres without waking the harness, use `bash scripts/sdlc/health-goals-daemon.sh --no-wake G-RH01`."),
 
     # ================= agents =================
     F("agents", [

@@ -1,6 +1,6 @@
 {
-  "t1_raw": 283,
-  "t1_unique": 91,
+  "t1_raw": 290,
+  "t1_unique": 286,
   "corpus_worker_added": 0,
   "teacher_raw": 0,
   "teacher_unique_added": 0,
@@ -11,15 +11,15 @@
   },
   "grounding_sources": [],
   "system_mix": {
-    "bp": 63,
-    "worker": 11,
-    "none": 8,
-    "de": 9
+    "bp": 194,
+    "worker": 32,
+    "none": 28,
+    "de": 32
   },
-  "german_entries": 0,
-  "total_unique": 91,
-  "train": 86,
-  "val": 5,
+  "german_entries": 7,
+  "total_unique": 286,
+  "train": 272,
+  "val": 14,
   "target": 1100,
   "target_met": null,
   "near_dup_jaccard": 0.6,
@@ -32,8 +32,8 @@
       "runbooks",
       "workflow"
     ],
-    "slice_raw": 283,
-    "slice_kept": 144,
+    "slice_raw": 290,
+    "slice_kept": 151,
     "slice_dropped": 139
   },
   "slice_08b": {
@@ -48,9 +48,20 @@
   },
   "by_domain": {
     "cli": 61,
-    "gotchas": 30
+    "gotchas": 44,
+    "workflow": 37,
+    "llmstack": 29,
+    "arch": 25,
+    "agents": 22,
+    "stale": 13,
+    "deutsch": 12,
+    "ci": 10,
+    "runbooks": 10,
+    "refusal": 9,
+    "multiturn": 8,
+    "components": 6
   },
-  "dropped_exact": 0,
+  "dropped_exact": 4,
   "dropped_near": 0,
   "dropped_too_short": 0,
   "dropped_answer_cap": 0

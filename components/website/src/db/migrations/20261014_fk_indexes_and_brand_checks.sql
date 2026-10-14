@@ -21,16 +21,11 @@ BEGIN
   END IF;
 END $$;
 
--- ── 2. Dedupe: drop redundant duplicate constraint on tickets.factory_model_slots ──
+-- ── 2. Dedupe: drop redundant duplicate index on tickets.factory_model_slots ──
 DO $$
 BEGIN
-  IF to_regclass('tickets.factory_model_slots') IS NOT NULL THEN
-    IF EXISTS (
-      SELECT 1 FROM pg_constraint
-      WHERE conname = 'factory_model_slots_phase_key'
-    ) THEN
-      ALTER TABLE tickets.factory_model_slots DROP CONSTRAINT factory_model_slots_phase_key;
-    END IF;
+  IF to_regclass('tickets.factory_model_slots_phase_key') IS NOT NULL THEN
+    DROP INDEX IF EXISTS tickets.factory_model_slots_phase_key;
   END IF;
 END $$;
 

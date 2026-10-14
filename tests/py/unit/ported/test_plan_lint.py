@@ -207,7 +207,7 @@ def test_t002270_a_claimed_budget_on_an_s1_ignored_file_warns_w4_without_failing
     result = _lint(run_cmd, repo_root, lint, str(fix / "s1-ignored-with-budget.md"))
     assert result.returncode == 0, result.output
     assert "W4" in result.output
-    assert "scripts/ticket.sh" in result.output
+    assert "components/website/src/lib/billing-db.ts" in result.output
 
 def test_t002270_omitting_the_budget_on_an_s1_ignored_file_stays_silent_no_w4(run_cmd, repo_root, lint, fix):
     result = _lint(run_cmd, repo_root, lint, str(fix / "s1-ignored-file.md"))

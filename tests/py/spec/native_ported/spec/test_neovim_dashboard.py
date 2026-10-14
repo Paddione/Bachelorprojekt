@@ -689,7 +689,7 @@ def test_neovim_dashboard_mcp_servers_come_from_the_registry_no_hardcoded_sort_i
     out = nv.tmp / "mcp.out"
     result = nv.nvim_l(script, str(nv.stage), str(out), cwd=repo_root)
     assert result.returncode == 0
-    assert "ticket-mcp-node" in _out(out).splitlines()
+    assert "devflow-mcp" in _out(out).splitlines()
     user_services = nv.stage / "lua/chapters/user-services.lua"
     assert user_services.is_file()
     assert "qwen" not in user_services.read_text()

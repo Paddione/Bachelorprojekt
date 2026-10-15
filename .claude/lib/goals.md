@@ -723,10 +723,10 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-FE05** | Lighthouse Performance Score (schlechtere Brand) | 70 ⚠ | ≥ 90 | Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
 | **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` beider Brands, ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo` |
 | **G-IF01** | MCP-Endpunkte ohne Listener | 3 ⚠ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
-| **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
+| **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 scripts/lib/health-goals-probes.py if02` — catch ohne Log und ohne Rethrow, Blöcke per Klammerzählung (T016657) |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
 | **G-K3FRESH** | K3-Codegraph-Index frisch | 0 ⚠ | 1 | `k3_freshness_flag` (scripts/lib/health-goals-measure.sh) — `cbm-freshness.py status`, Fail-closed: nicht messbar ⇒ 0 (T002430) |
-| **G-K3PROJ** | K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0) | 0 ⚠ | 1 | `k3_project_flag` — `codebase-memory-mcp cli index_status`, Fail-closed ⇒ 0 (T002430) |
+| **G-K3PROJ** | K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0) | 0 ⚠ | 1 | `k3_project_flag` — `codebase-memory-mcp cli index_status` (MCP-Envelope via `health-goals-probes.py k3proj`); Index nicht erreichbar/Format kaputt ⇒ n/a, nie grün (T002430, T016657) |
 | **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 1 ⚠ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 89 ✓ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |
@@ -755,7 +755,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC14** | .mcp.json ↔ opencode Parity | 0 ✓ | 0 | `python3 <<'PY' ... load both, sig() for common keys, count mismatches` |
 | **G-AGENTIC17** | Command-Orphans via S4 | 0 ✓ | ≤ 0 | `S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99` |
 | **G-AGENTIC01** | Unaufgelöste `tools:`-Einträge bei Agenten | 0 ✓ | ≤ 0 | `bash scripts/lib/count-unresolved-agent-tools.sh` — Zählt zwei Schadensfälle: (a) `tools:`-Key existiert, resolvt aber zur leeren Menge; (b) MCP-Eintrag der Form `mcp__<server>__<tool>`, dessen Server nicht unter `clients:` in `mcp.yaml` steht. Ein fehlender `tools:`-Key zählt bewusst 0 (erbt alle Werkzeuge, vergleiche Test `T002221`). Wert am Repo-Bestand ist 0, da nur ein Agent einen `tools:`-Key hat und kein `mcp__*`-Eintrag existiert; das Ziel wirkt als Regressionsbremse gegen kaputte `tools:`-Listen. |
-| **G-AGENTIC10** | Agenten ohne dispatchende Skill | 6 ⚠ | ≤ 0 | `grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent` |
+| **G-AGENTIC10** | Agenten ohne dispatchende Skill | 6 ⚠ | ≤ 0 | `python3 scripts/lib/health-goals-probes.py agentic10` — je Agent aus `.claude/agents/*.md` eine SKILL.md mit `agent: <name>` (T016657) |
 | **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 7 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738; Fix T013037: Filen-Reroute auf korczewski-Account (2FA-Hang), Remote-Prune 9,9 GiB → 257 MiB` |
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 2 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 85 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |

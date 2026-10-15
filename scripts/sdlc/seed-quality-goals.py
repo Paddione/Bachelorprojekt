@@ -7,6 +7,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+import health_goals_record as hgr  # scripts/lib (T016657)
+
 
 def get_repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
@@ -44,6 +47,31 @@ def run_psql(sql: str) -> bool:
     return True
 
 
+def historical_measurement_sql(g: dict) -> str | None:
+    """Historische Evidenz mit ihrer ursprünglichen Messzeit, idempotent.
+
+    Ohne Zahl oder ohne belastbares measured_at wird nichts geschrieben — eine
+    alte Messung bekommt nie NOW() als Zeitstempel (T016657). Dieselbe
+    (Ziel, Messzeit, Wert)-Evidenz wird bei erneutem Seed nicht verdoppelt;
+    neuere Live-Messungen bleiben über measured_at DESC vorne.
+    """
+    current = hgr.finite(g.get("current"))
+    measured_at = hgr.iso_timestamp(g.get("measured_at"))
+    if current is None or measured_at is None:
+        return None
+    status = hgr.evaluate(current, g.get("target"), g.get("baseline"), direction=g.get("direction"))
+    details = {"source": "seed", "origin": g.get("source")}
+    gid, value, ts = hgr.sql_text(hgr.goal_id(g["id"])), hgr.sql_number(current), hgr.sql_text(measured_at)
+    return f"""
+            INSERT INTO quality.repo_health_measurements (goal_id, current_value, status, measured_at, git_sha, git_branch, details)
+            SELECT {gid}, {value}, {hgr.sql_text(status)}, {ts}::timestamptz, 'seed', 'main', {hgr.sql_text(json.dumps(details))}::jsonb
+            WHERE NOT EXISTS (
+                SELECT 1 FROM quality.repo_health_measurements
+                WHERE goal_id = {gid} AND measured_at = {ts}::timestamptz AND current_value = {value}
+            );
+            """
+
+
 def main():
     repo_root = get_repo_root()
     gen_json = repo_root / "components/website/src/lib/sdlc/goals-data.generated.json"
@@ -71,13 +99,10 @@ def main():
         cat = g.get("category", "General").replace("'", "''")
         prio = g.get("priority", "B").replace("'", "''")
         direction = g.get("direction", "lower").replace("'", "''")
-        baseline = str(g["baseline"]) if g.get("baseline") is not None else "NULL"
-        target = str(g["target"]) if g.get("target") is not None else "NULL"
+        baseline = hgr.sql_number(g.get("baseline"))
+        target = hgr.sql_number(g.get("target"))
         unit = (g.get("unit") or "").replace("'", "''")
         cmd = (g.get("measurement") or "").replace("'", "''")
-        current = str(g["current"]) if g.get("current") is not None else "NULL"
-        status = (g.get("status") or "unknown").replace("'", "''")
-
         sql_goal = f"""
         INSERT INTO quality.repo_health_goals (id, title, category, priority, direction, baseline, target, unit, measurement_cmd, active)
         VALUES ('{gid}', '{title}', '{cat}', '{prio}', '{direction}', {baseline}, {target}, '{unit}', '{cmd}', TRUE)
@@ -94,12 +119,9 @@ def main():
         """
         statements.append(sql_goal)
 
-        if current != "NULL":
-            sql_meas = f"""
-            INSERT INTO quality.repo_health_measurements (goal_id, current_value, status, git_sha, git_branch)
-            VALUES ('{gid}', {current}, '{status}', 'seed', 'main');
-            """
-            statements.append(sql_meas)
+        meas = historical_measurement_sql(g)
+        if meas:
+            statements.append(meas)
 
     statements.append("COMMIT;")
     full_sql = "\n".join(statements)
@@ -108,7 +130,8 @@ def main():
     if ok:
         print(f"Successfully seeded {len(goals_data)} goals into quality.repo_health_goals.")
     else:
-        print("Note: Seeding DB skipped or failed, snapshot remains available for offline use.")
+        print("ERROR: Seeding DB skipped or failed — snapshot remains available for offline use.", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -24,7 +24,15 @@
 # --ref muss den Fixture-Ordner scripts/llm/measurements/2026-10-14-harness-ctx/
 # und scripts/llm/ctx-proxy.mjs enthalten. Proxy und Aufgabe werden aus --ref
 # gelesen, das Skript laesst sich also aus jedem Checkout starten.
+#
+# Sandbox: pi laeuft mit --no-approve und bash-Tool, deshalb jeder Agent in
+# einer bubblewrap-Sandbox (scripts/lib/agent-sandbox.sh): schreibbar nur der
+# eigene Worktree, $HOME und Umgebung leer, Netz offen. Ohne bwrap bricht das
+# Skript ab; AGENT_SANDBOX=off schaltet die Sandbox bewusst ab.
 set -euo pipefail
+
+# shellcheck source=scripts/lib/agent-sandbox.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/agent-sandbox.sh"
 
 REF="HEAD"
 VARIANTS="pi-L0,pi-L1,pi-L2,opencode"
@@ -49,6 +57,8 @@ while [ "$#" -gt 0 ]; do
 done
 
 command -v jq >/dev/null || { echo "FEHLER: jq fehlt" >&2; exit 2; }
+# Nur pi-Varianten laufen in der Sandbox (omp/opencode brauchen ihre Config unter $HOME).
+case ",$VARIANTS," in *,pi-*) agent_sandbox_check || exit 3 ;; esac
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "FEHLER: aus einem Bachelorprojekt-Checkout starten" >&2; exit 2; }
 SHA="$(git rev-parse --verify "$REF^{commit}")" || { echo "FEHLER: --ref '$REF' unbekannt" >&2; exit 2; }
 FIX="scripts/llm/measurements/2026-10-14-harness-ctx"
@@ -156,7 +166,9 @@ for rep in $(seq 1 "$REPS"); do
         tools="read,write,edit,bash"; [ "$level" = "L2" ] && tools="$tools,grep,find,ls"
         extra=(); [ "$level" != "L0" ] && extra=(--append-system-prompt "$(cat "$wt/.omp/context.md")")
         pidir="$(pi_agent_dir)"
-        ( cd "$wt" && PI_CODING_AGENT_DIR="$pidir" PI_OFFLINE=1 timeout "$TIMEOUT" \
+        ( PI_CODING_AGENT_DIR="$pidir" PI_OFFLINE=1 \
+            agent_sandbox_run "$wt" --rw "$pidir" --env PI_CODING_AGENT_DIR --env PI_OFFLINE \
+              --timeout "$TIMEOUT" -- \
             pi --mode json --no-session --no-context-files --no-extensions --no-skills \
               --no-prompt-templates --no-themes --no-approve --tools "$tools" "${extra[@]}" \
               --provider ctxproxy --model "$MODEL_ID" "$TASK_PROMPT" ) \
@@ -189,7 +201,12 @@ for rep in $(seq 1 "$REPS"); do
     p1="$(metric 'vllm:prompt_tokens_total')"; r1="$(metric 'vllm:request_success_total')"
 
     test_ok=false
-    node --test "$wt/$FIX/sandbox/slug.test.mjs" > "$OUT/$label.test.txt" 2>&1 && test_ok=true
+    # Nach einem pi-Lauf ist der Worktree unvertrauenswuerdig: Tests nur in der Sandbox.
+    case "$variant" in
+      pi-*) agent_sandbox_run "$wt" --timeout 300 -- node --test "$FIX/sandbox/slug.test.mjs" \
+              > "$OUT/$label.test.txt" 2>&1 && test_ok=true ;;
+      *) node --test "$wt/$FIX/sandbox/slug.test.mjs" > "$OUT/$label.test.txt" 2>&1 && test_ok=true ;;
+    esac
     test_touched=false
     git -C "$wt" diff --quiet -- "$FIX/sandbox/slug.test.mjs" || test_touched=true
     changed="$(git -C "$wt" status --porcelain --untracked-files=all | grep -vc '^?? .omp/runs/' || true)"

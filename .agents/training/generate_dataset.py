@@ -432,11 +432,11 @@ FACTS = [
     F("workflow", [
         "What happens when a repo health goal regresses or violates a gate?",
         "How are health goal regressions reported and handled?",
-    ], "When `health-goals-daemon.sh` detects a failing goal (`status` is `critical` or `at_risk`), it checks for existing open tickets in `tickets.tickets`. If none exists, it automatically creates a fix ticket:\n\n```bash\nbash scripts/ticket.sh create --type fix --title \"fix(health): <ID> regressed...\" ...\n```\nIt then wakes the agent harness (`plan-runner.mjs` or `opencode run --agent plan-worker-qwen35`) with the ticket ID to diagnose and resolve the regression."),
+    ], "`health-goals-daemon.sh` records measurements and their evaluated status in `quality.repo_health_measurements`. It does not create tickets or wake an agent. The internal ticket system was retired; review regressions through the current health-goals view and the repository's GitHub workflow."),
     F("workflow", [
         "How do I trigger an on-demand scan of specific health goals?",
         "What command rescans individual health goals?",
-    ], "Run `health-goals-scan.sh` with the target goal IDs:\n\n```bash\nbash scripts/health-goals-scan.sh G-RH01 G-CQ02\n```\nTo record them directly into Postgres without waking the harness, use `bash scripts/sdlc/health-goals-daemon.sh --no-wake G-RH01`."),
+    ], "Run `health-goals-scan.sh` with the target goal IDs:\n\n```bash\nbash scripts/health-goals-scan.sh G-RH01 G-CQ02\n```\nTo record them directly into Postgres, use `bash scripts/sdlc/health-goals-daemon.sh G-RH01`. Without goal IDs, the daemon scans all defined goals. Scanner, evaluation and database errors return a nonzero exit status."),
 
     # ================= agents =================
     F("agents", [

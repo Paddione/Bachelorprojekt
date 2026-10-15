@@ -1,8 +1,9 @@
-// workers.mjs — Worker-Pool des plan-runners (T900504): startet `opencode run` fuer 4B-Worker
-// (Agent plan-worker-qwen35 auf llamacpp-qwen3/Qwen3.5-4B-MTP, Windows-nativ :8080), vLLM-Worker
-// (Agent plan-worker-vllm auf vllm-local/w4a4, :8123, RTX 5070 Ti) und den
-// Selbstaufruf des Orchestrators (Agent plan-worker-self auf llamacpp-local, :1919),
-// verwaltet die 4B-/vLLM-Slots und puffert beendete Worker-Ergebnisse.
+// workers.mjs — Worker-Pool des plan-runners (T900504, T016656): drei Tracks.
+//  - direct: In-Process-Tool-Loop gegen vLLM :8123 (w4a4, direct-worker.mjs), ohne opencode,
+//  - cloud:  `opencode run --agent plan-worker-muse` (Muse Spark 1.3 im Go-Abo),
+//  - self:   Selbstaufruf des Orchestrators (Agent plan-worker-self auf llamacpp-local, :1919),
+//            nur wenn :1919 beim Preflight antwortet.
+// Verwaltet die Direkt-/Cloud-Slots und puffert beendete Worker-Ergebnisse.
 // Aufrufer: scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.
 // Test-Override: PLAN_RUNNER_OPENCODE ersetzt das opencode-Binary.
 
@@ -12,10 +13,10 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseResult, normalisePartialSize } from './plan.mjs';
+import { runDirectWorker } from './direct-worker.mjs';
 
 // Primaer-Agenten: opencode run ersetzt Subagenten still durch den Default-Agenten.
-export const AGENT_4B = 'plan-worker-qwen35';
-export const AGENT_VLLM = 'plan-worker-vllm';
+export const AGENT_CLOUD = 'plan-worker-muse';
 export const AGENT_SELF = 'plan-worker-self';
 const TAIL_CHARS = 4000;
 const live = new Set(); // laufende Kindprozesse, fuer killAllWorkers()
@@ -59,31 +60,28 @@ export function buildAgentSpawn({ agent, prompt, worktree }) {
   };
 }
 
-// Dispatch-Policy (T901014 P1): genau eine Funktion entscheidet Self-vs-Worker.
-// Eingaben: ready (bereite Partial-IDs in Manifest-Reihenfolge), freeSlots (freie 4B-Slots),
-// freeVllm (freie vLLM-Slots, Default 0 = vLLM-Track aus).
-// Ausgabe: 'worker' (4B-Dispatch), 'vllm' (vLLM-Dispatch), 'self' (Selbstaufruf, nur wenn kein
-// Slot frei), 'idle' (nichts bereit). Rangfolge: 4B vor vLLM vor self.
-// T901542 (plan-vector-routing): nimmt optional `sizes` ({ partialId: 's'|'m'|'l' })
-// entgegen — heute routing-neutral (Rueckgabe bleibt String-kompatibel: worker/self/idle).
-// Extension-Point: sobald ein schweres Modell (z. B. gpt-oss-20B) auf :1919 deployt ist,
-// wird size 'l' auf einen neuen Track 'heavy' geroutet, ohne decideTrack-Aufrufer
-// anzufassen. Kein Modell-Deploy in diesem Change (nur :1919 passt ein schweres Modell,
-// das verdraengt Qwen3.8-27B — eigene Entscheidung). CPU-Tier (0.8B/2B) bewusst nicht
-// verdrahtet: 4B ist Minimum fuer Tool-Loops.
-export function decideTrack({ ready, freeSlots, freeVllm = 0, sizes = null }) {
+// Dispatch-Policy (T901014 P1, T016656): genau eine Funktion entscheidet Direkt/Cloud/Self.
+// Eingaben: ready (bereite Partial-IDs in Manifest-Reihenfolge), freeDirect/freeCloud (freie Slots,
+// Default 0), selfAvailable (Self-Endpunkt :1919 antwortete beim Preflight, Default false).
+// Ausgabe: 'direct', 'cloud', 'self' (nur wenn kein Slot frei und Self verfuegbar) oder 'idle'
+// (nichts bereit oder kein Track frei). Rangfolge: direct vor cloud vor self.
+// T901542 (plan-vector-routing): nimmt optional `sizes` ({ partialId: 's'|'m'|'l' }) entgegen —
+// heute routing-neutral. Extension-Point: sobald ein schweres Modell auf :1919 deployt ist, wird
+// size 'l' auf einen neuen Track 'heavy' geroutet, ohne decideTrack-Aufrufer anzufassen.
+// CPU-Tier (0.8B/2B) bewusst nicht verdrahtet: 4B ist Minimum fuer Tool-Loops.
+export function decideTrack({ ready, freeDirect = 0, freeCloud = 0, selfAvailable = false, sizes = null }) {
   void sizes; // routing-neutral bis ein Heavy-Modell auf :1919 deployt ist (T901542)
   if (!Array.isArray(ready) || ready.length === 0) return 'idle';
-  if (Number(freeSlots) > 0) return 'worker';
-  if (Number(freeVllm) > 0) return 'vllm';
-  return 'self';
+  if (Number(freeDirect) > 0) return 'direct';
+  if (Number(freeCloud) > 0) return 'cloud';
+  return selfAvailable ? 'self' : 'idle';
 }
 
 // Wie decideTrack, liefert zusaetzlich den Size-Hint des ersten bereiten Partials
 // (Default 'm' wenn fehlend/ungueltig). Der Track bleibt auf bestehenden Werten —
 // kein 'heavy' ohne deploytes Modell.
-export function decideTrackWithHint({ ready, freeSlots, freeVllm = 0, sizes = {} }) {
-  const track = decideTrack({ ready, freeSlots, freeVllm, sizes });
+export function decideTrackWithHint({ ready, freeDirect = 0, freeCloud = 0, selfAvailable = false, sizes = {} }) {
+  const track = decideTrack({ ready, freeDirect, freeCloud, selfAvailable, sizes });
   const first = Array.isArray(ready) && ready.length ? ready[0] : null;
   const raw = first && sizes && typeof sizes === 'object' ? sizes[first] : null;
   return { track, sizeHint: normalisePartialSize(raw) };
@@ -133,17 +131,19 @@ export function runWorker({ agent, prompt, worktree, timeoutMs }) {
   });
 }
 
-// Slot-Verwaltung. Emittiert 'end' mit dem Ergebnis, sobald ein 4B- oder vLLM-Job endet.
+// Slot-Verwaltung. Emittiert 'end' mit dem Ergebnis, sobald ein Direkt- oder Cloud-Job endet.
+// runDirect bekommt { prompt, worktree, targetFiles, timeoutMs }, run (opencode) { agent, prompt, worktree, timeoutMs }.
 export class WorkerPool extends EventEmitter {
-  constructor({ slots4b, slotsVllm = 0, worktree, timeoutMs, run = runWorker }) {
+  constructor({ slotsDirect = 0, slotsCloud = 0, worktree, timeoutMs, run = runWorker, runDirect = runDirectWorker }) {
     super();
-    if (!Number.isInteger(slots4b) || slots4b < 0) throw new Error('slots4b must be an integer >= 0');
-    if (!Number.isInteger(slotsVllm) || slotsVllm < 0) throw new Error('slotsVllm must be an integer >= 0');
-    this.slots4b = slots4b;
-    this.slotsVllm = slotsVllm;
+    if (!Number.isInteger(slotsDirect) || slotsDirect < 0) throw new Error('slotsDirect must be an integer >= 0');
+    if (!Number.isInteger(slotsCloud) || slotsCloud < 0) throw new Error('slotsCloud must be an integer >= 0');
+    this.slotsDirect = slotsDirect;
+    this.slotsCloud = slotsCloud;
     this.worktree = worktree;
     this.timeoutMs = timeoutMs;
     this.run = run;
+    this.runDirect = runDirect;
     this.jobs = new Map(); // jobId -> { partialId, promise, track }
     this.done = []; // beendete, noch nicht abgeholte Worker-Ergebnisse
     this.waiters = [];
@@ -151,21 +151,25 @@ export class WorkerPool extends EventEmitter {
     this.seq = 0;
   }
 
-  free4b() { return this.slots4b - [...this.jobs.values()].filter((j) => j.track === '4b').length; }
+  _count(track) { return [...this.jobs.values()].filter((j) => j.track === track).length; }
 
-  running4b() { return [...this.jobs.values()].filter((j) => j.track === '4b').map((j) => j.partialId); }
+  _running(track) { return [...this.jobs.values()].filter((j) => j.track === track).map((j) => j.partialId); }
 
-  freeVllm() { return this.slotsVllm - [...this.jobs.values()].filter((j) => j.track === 'vllm').length; }
+  freeDirect() { return this.slotsDirect - this._count('direct'); }
 
-  runningVllm() { return [...this.jobs.values()].filter((j) => j.track === 'vllm').map((j) => j.partialId); }
+  runningDirect() { return this._running('direct'); }
+
+  freeCloud() { return this.slotsCloud - this._count('cloud'); }
+
+  runningCloud() { return this._running('cloud'); }
 
   isActive(partialId) { return this.self === partialId || [...this.jobs.values()].some((j) => j.partialId === partialId); }
 
-  _start(track, agent, partialId, prompt) {
-    const free = track === 'vllm' ? this.freeVllm() : this.free4b();
-    if (free <= 0) throw new Error(`no free ${track === 'vllm' ? 'vLLM' : '4B'} slot`);
-    const jobId = `${track === 'vllm' ? 'vllm' : '4b'}-${++this.seq}`;
-    const promise = this.run({ agent, prompt, worktree: this.worktree, timeoutMs: this.timeoutMs })
+  _start(track, partialId, launch) {
+    const free = track === 'cloud' ? this.freeCloud() : this.freeDirect();
+    if (free <= 0) throw new Error(`no free ${track} slot`);
+    const jobId = `${track}-${++this.seq}`;
+    const promise = launch()
       .then((r) => {
         this.jobs.delete(jobId);
         const ev = { partialId, ok: r.ok, summary: r.summary, tail: r.tail, ms: r.ms, owner: track };
@@ -177,12 +181,16 @@ export class WorkerPool extends EventEmitter {
     return jobId;
   }
 
-  start4b(partialId, prompt) {
-    return this._start('4b', AGENT_4B, partialId, prompt);
+  startDirect(partialId, prompt, targetFiles = []) {
+    return this._start('direct', partialId, () => this.runDirect({
+      prompt, worktree: this.worktree, targetFiles, timeoutMs: this.timeoutMs,
+    }));
   }
 
-  startVllm(partialId, prompt) {
-    return this._start('vllm', AGENT_VLLM, partialId, prompt);
+  startCloud(partialId, prompt) {
+    return this._start('cloud', partialId, () => this.run({
+      agent: AGENT_CLOUD, prompt, worktree: this.worktree, timeoutMs: this.timeoutMs,
+    }));
   }
 
   async runSelf(partialId, prompt) {

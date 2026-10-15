@@ -1,6 +1,6 @@
 # Worktree-Cleanup (git-workflow Schritt 7 — Detail)
 
-Nur wenn in einem `.worktrees/*`-Worktree gearbeitet wurde:
+Nur wenn in einem Worktree unter `~/.worktrees/` gearbeitet wurde:
 
 ```bash
 WORKTREE_PATH="$(git rev-parse --show-toplevel)"
@@ -11,7 +11,6 @@ cd "$MAIN_REPO"
 # Agent-Lock freigeben (T006290): erst im Haupt-Repo — aus dem Worktree heraus verweigert
 # agent-lock.sh den Branch-Release. Ohne stderr-Unterdrückung, damit eine Verweigerung
 # sichtbar bleibt. Lebenszyklus-SSOT: .agents/skills/references/session-coordination.md
-bash scripts/agent-lock.sh release ticket "<T00XXXX>"
 bash scripts/agent-lock.sh release branch "$BRANCH_NAME"
 git worktree unlock "$WORKTREE_PATH" 2>/dev/null || true   # worktree-create.sh sperrt jeden Worktree (T900046) — sonst Exit 128 beim Remove (T900340)
 git worktree remove "$WORKTREE_PATH"
@@ -32,7 +31,7 @@ fi
    verwenden, wenn der Branch `environments/.secrets/**` beruehrt.
 
    ```bash
-   bash scripts/worktree-create.sh <branch> .worktrees/<slug>
+   bash scripts/worktree-create.sh <branch> "$HOME/.worktrees/Bachelorprojekt/<branch>"
    ```
 
 2. **opencode-Plugin `worktree_create` (`worktree.ts`):** `git worktree add` **ohne** die

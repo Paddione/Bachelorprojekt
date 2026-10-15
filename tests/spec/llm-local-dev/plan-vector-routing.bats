@@ -49,13 +49,14 @@ EOF
   [[ "$output" == *'"receipt": null'* ]]
 }
 
-@test "decideTrack stays backward compatible (worker/self/idle)" {
+@test "decideTrack routes direct/cloud/self/idle (T016656)" {
   run node --input-type=module -e '
 const m = await import(process.env.WORKERS_URL);
 const cases = [
-  [m.decideTrack({ ready: ["a"], freeSlots: 1 }), "worker"],
-  [m.decideTrack({ ready: ["a"], freeSlots: 0 }), "self"],
-  [m.decideTrack({ ready: [], freeSlots: 1 }), "idle"],
+  [m.decideTrack({ ready: ["a"], freeDirect: 1, freeCloud: 0, selfAvailable: true }), "direct"],
+  [m.decideTrack({ ready: ["a"], freeDirect: 0, freeCloud: 0, selfAvailable: true }), "self"],
+  [m.decideTrack({ ready: ["a"], freeDirect: 0, freeCloud: 0, selfAvailable: false }), "idle"],
+  [m.decideTrack({ ready: [], freeDirect: 1, freeCloud: 0, selfAvailable: true }), "idle"],
 ];
 for (const [got, want] of cases) {
   if (got !== want || typeof got !== "string") { console.error(`got ${String(got)} want ${want}`); process.exit(1); }
@@ -66,10 +67,10 @@ for (const [got, want] of cases) {
 @test "decideTrack with sizes l returns l hint but keeps routing on existing tracks" {
   run node --input-type=module -e '
 const m = await import(process.env.WORKERS_URL);
-const r = m.decideTrackWithHint({ ready: ["a"], freeSlots: 1, sizes: { a: "l" } });
-if (r.track !== "worker" || r.sizeHint !== "l") { console.error(JSON.stringify(r)); process.exit(1); }
+const r = m.decideTrackWithHint({ ready: ["a"], freeDirect: 1, sizes: { a: "l" } });
+if (r.track !== "direct" || r.sizeHint !== "l") { console.error(JSON.stringify(r)); process.exit(1); }
 if (r.track === "heavy") { console.error("no heavy track without a deployed model"); process.exit(1); }
-const d = m.decideTrackWithHint({ ready: ["a"], freeSlots: 1 });
+const d = m.decideTrackWithHint({ ready: ["a"], freeDirect: 1 });
 if (d.sizeHint !== "m") { console.error("default size must be m: " + JSON.stringify(d)); process.exit(1); }'
   [ "$status" -eq 0 ]
 }

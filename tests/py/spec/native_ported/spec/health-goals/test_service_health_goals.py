@@ -1,5 +1,7 @@
 """Native migration of tests/spec/health-goals/service-health-goals.bats."""
 
+import json
+import os
 import re
 
 import pytest
@@ -148,3 +150,40 @@ def test_goals_md_alle_13_neuen_goals_haben_was_beschreibung_und_messbefehl(goal
 def test_health_goals_check_sh_alle_13_neuen_goals_als_row_target_integriert_p5(check_sh):
     for goal_id in NEW_GOALS:
         assert f"row target {goal_id}" in check_sh, f"'row target {goal_id}' fehlt in health-goals-check.sh"
+
+
+# ── T016657: G-CJ01 bewertet nur tatsaechlich geplante, aktive CronJobs ──────
+
+def _cronjob(name, ls=None, lss=None, suspend=False):
+    status = {k: v for k, v in (("lastScheduleTime", ls), ("lastSuccessfulTime", lss)) if v}
+    return {"metadata": {"name": name}, "spec": {"suspend": suspend}, "status": status}
+
+
+def _run_cronjob_check(run_cmd, repo_root, tmp_path, items):
+    bindir = tmp_path / "bin"
+    bindir.mkdir(exist_ok=True)
+    (tmp_path / "cj.json").write_text(json.dumps({"items": items}), encoding="utf-8")
+    kubectl = bindir / "kubectl"
+    kubectl.write_text(f"#!/bin/sh\ncat {tmp_path / 'cj.json'}\n", encoding="utf-8")
+    kubectl.chmod(0o755)
+    return run_cmd(["bash", str(repo_root / "scripts/lib/cronjob-check.sh")],
+                   env={"PATH": f"{bindir}{os.pathsep}{os.environ['PATH']}"})
+
+
+def test_g_cj01_ignoriert_suspendierte_und_nie_geplante_cronjobs_t016657(run_cmd, repo_root, tmp_path):
+    items = [
+        _cronjob("suspended-failed", "2026-10-14T10:00:00Z", "2026-10-01T10:00:00Z", suspend=True),
+        _cronjob("never-scheduled"),
+        _cronjob("really-failed", "2026-10-14T10:00:00Z", "2026-10-13T10:00:00Z"),
+        _cronjob("never-succeeded", "2026-10-14T10:00:00Z"),
+        _cronjob("healthy", "2026-10-14T10:00:00Z", "2026-10-14T10:01:00Z"),
+    ]
+    result = _run_cronjob_check(run_cmd, repo_root, tmp_path, items)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "2", "nur real fehlgeschlagene geplante Jobs zaehlen"
+
+
+def test_g_cj01_ohne_bewertbaren_cronjob_ist_nicht_messbar_t016657(run_cmd, repo_root, tmp_path):
+    items = [_cronjob("never-scheduled"), _cronjob("paused", suspend=True)]
+    result = _run_cronjob_check(run_cmd, repo_root, tmp_path, items)
+    assert result.stdout.strip() == "-"

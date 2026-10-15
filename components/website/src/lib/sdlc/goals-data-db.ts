@@ -1,6 +1,7 @@
 import { pool } from '../db-pool';
 import snapshotGoals from './goals-data.snapshot.json';
-import type { GoalPriority, GoalDirection, GoalStatus, HealthGoal } from './goals-data';
+import { normalizeGoal, type GoalPriority, type GoalDirection, type GoalStatus, type HealthGoal } from './goals-data';
+import { evaluateGoal, toFiniteNumber } from './goal-evaluation';
 
 export type { GoalPriority, GoalDirection, GoalStatus, HealthGoal };
 
@@ -23,28 +24,47 @@ export interface DbGoalRow {
   details: unknown;
 }
 
+/**
+ * Status aus numerischer Evidenz. Der gespeicherte Status wird bewusst ignoriert:
+ * er darf aktuelle Zahlen weder überstimmen noch fehlende Evidenz ersetzen.
+ */
 export function computeGoalStatus(
   current: number | null,
   target: number | null,
   baseline: number | null,
   direction: GoalDirection,
-  rawStatus?: string
+  _storedStatus?: string
 ): GoalStatus {
-  if (rawStatus && rawStatus !== 'unknown') {
-    return rawStatus as GoalStatus;
-  }
-  if (current === null || target === null) return 'unknown';
-  const met = direction === 'lower' ? current <= target : current >= target;
-  if (met) return 'achieved';
-  if (baseline === null) return 'on_track';
-  const range = Math.abs(target - baseline);
-  if (range === 0) return 'achieved';
-  const progress = direction === 'lower'
-    ? (baseline - current) / range
-    : (current - baseline) / range;
-  if (progress >= 0.8) return 'on_track';
-  if (progress >= 0.3) return 'at_risk';
-  return progress < 0 ? 'critical' : 'at_risk';
+  return evaluateGoal({ current, target, baseline, direction }).status;
+}
+
+function directionOf(raw: string): GoalDirection {
+  return raw === 'higher' ? 'higher' : 'lower';
+}
+
+/** measured_at der Messung unverändert (ISO), leer wenn es keine Messung gibt. */
+function measuredAtOf(raw: string | Date | null): string {
+  if (!raw) return '';
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+}
+
+function fromDbRow(row: DbGoalRow): HealthGoal {
+  return normalizeGoal({
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    priority: row.priority as GoalPriority,
+    direction: directionOf(row.direction),
+    baseline: toFiniteNumber(row.baseline),
+    current: toFiniteNumber(row.current),
+    target: toFiniteNumber(row.target),
+    unit: row.unit || '',
+    status: 'unknown',
+    measurement: row.measurement_cmd,
+    source: `quality.repo_health_measurements · ${row.id}${row.git_sha ? ` @ ${row.git_sha}` : ''}`,
+    measured_at: measuredAtOf(row.measured_at),
+  });
 }
 
 /** Fetches live goals and latest measurements from Postgres with graceful fallback to snapshot. */
@@ -55,35 +75,11 @@ export async function getLiveRepoHealthGoals(): Promise<{ goals: HealthGoal[]; s
     `);
 
     if (res.rows && res.rows.length > 0) {
-      const goals: HealthGoal[] = res.rows.map((row) => {
-        const cur = row.current !== null ? Number(row.current) : null;
-        const tgt = row.target !== null ? Number(row.target) : null;
-        const base = row.baseline !== null ? Number(row.baseline) : null;
-        const dir = (row.direction as GoalDirection) || 'lower';
-        const st = computeGoalStatus(cur, tgt, base, dir, row.status);
-
-        return {
-          id: row.id,
-          title: row.title,
-          category: row.category,
-          priority: row.priority as GoalPriority,
-          direction: dir,
-          baseline: base,
-          current: cur,
-          target: tgt,
-          unit: row.unit || '',
-          status: st,
-          measurement: row.measurement_cmd,
-          source: `quality.repo_health_goals · ${row.id}`,
-          measured_at: row.measured_at ? new Date(row.measured_at).toISOString().split('T')[0] : '',
-        };
-      });
-
-      return { goals, source: 'db' };
+      return { goals: res.rows.map(fromDbRow), source: 'db' };
     }
   } catch {
     // Fail-soft: fallback to snapshot in isolated CI runner or when DB is not reachable
   }
 
-  return { goals: snapshotGoals as HealthGoal[], source: 'snapshot' };
+  return { goals: (snapshotGoals as HealthGoal[]).map(normalizeGoal), source: 'snapshot' };
 }

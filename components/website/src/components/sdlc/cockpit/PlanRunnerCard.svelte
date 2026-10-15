@@ -1,30 +1,30 @@
 <script lang="ts">
   import ControlCard from './ControlCard.svelte';
   import { Stepper, ToggleSwitch } from '../../ui';
-  import { MAX_4B_SLOTS, MAX_VLLM_SLOTS } from '../../../lib/sdlc/plan-slots';
+  import { MAX_DIRECT_SLOTS, MAX_CLOUD_SLOTS } from '../../../lib/sdlc/plan-slots';
 
   interface Suggestion {
     width: number;
-    slots4b: number;
-    slotsVllm: number;
+    slotsDirect: number;
+    slotsCloud: number;
     partials: number;
   }
 
   let slug = $state('');
   let auto = $state(true);
-  let slots4b = $state(MAX_4B_SLOTS);
-  let slotsVllm = $state(0);
+  let slotsDirect = $state(MAX_DIRECT_SLOTS);
+  let slotsCloud = $state(1);
   let suggestion = $state<Suggestion | null>(null);
   let loading = $state(false);
   let error = $state('');
   let copied = $state(false);
   let timer: ReturnType<typeof setTimeout> | null = null;
 
-  const effective4b = $derived(auto && suggestion ? suggestion.slots4b : slots4b);
-  const effectiveVllm = $derived(auto && suggestion ? suggestion.slotsVllm : slotsVllm);
+  const effectiveDirect = $derived(auto && suggestion ? suggestion.slotsDirect : slotsDirect);
+  const effectiveCloud = $derived(auto && suggestion ? suggestion.slotsCloud : slotsCloud);
   const command = $derived(
     `node scripts/llm/plan-runner.mjs .agents/plans/${slug.trim() || '<slug>'}` +
-      (auto ? ' --auto-slots' : ` --4b-slots ${effective4b} --vllm-slots ${effectiveVllm}`),
+      (auto ? ' --auto-slots' : ` --direct-slots ${effectiveDirect} --cloud-slots ${effectiveCloud}`),
   );
 
   async function fetchSuggestion(value: string) {
@@ -97,16 +97,16 @@
       <p class="text-amber-400/90 text-xs">{error}</p>
     {:else if auto && suggestion}
       <p class="text-muted text-xs">
-        {suggestion.partials} Partials, Frontbreite {suggestion.width} → 4B {suggestion.slots4b} · vLLM {suggestion.slotsVllm}
+        {suggestion.partials} Partials, Frontbreite {suggestion.width} → Direkt {suggestion.slotsDirect} · Cloud {suggestion.slotsCloud}
       </p>
     {/if}
     <div class="flex items-center gap-2">
-      <span class="text-muted text-xs w-10">4B</span>
-      <Stepper value={slots4b} min={0} max={MAX_4B_SLOTS} onchange={(v) => (slots4b = v)} />
+      <span class="text-muted text-xs w-10">Direkt</span>
+      <Stepper value={slotsDirect} min={0} max={MAX_DIRECT_SLOTS} onchange={(v) => (slotsDirect = v)} />
     </div>
     <div class="flex items-center gap-2">
-      <span class="text-muted text-xs w-10">vLLM</span>
-      <Stepper value={slotsVllm} min={0} max={MAX_VLLM_SLOTS} onchange={(v) => (slotsVllm = v)} />
+      <span class="text-muted text-xs w-10">Cloud</span>
+      <Stepper value={slotsCloud} min={0} max={MAX_CLOUD_SLOTS} onchange={(v) => (slotsCloud = v)} />
     </div>
     <code class="rounded bg-black/30 px-2 py-1 text-xs break-all">{command}</code>
     <button

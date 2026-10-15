@@ -77,11 +77,6 @@ AUDIT = "scripts/vda/ticket/readiness-audit.sh"
 MIGRATIONS_TS = "components/website/src/lib/tickets/migrations.ts"
 TABLES_TS = "components/website/src/lib/tickets/tables/tickets.ts"
 TYPE_VOCAB_TS = "components/website/src/lib/tickets/migrate-type-vocabulary.ts"
-# T901492: ticket-Quellen liegen zentral (CI: Zweit-Checkout via MCP_SERVERS_HOME).
-# Absolutpfad: Path.__truediv__ mit absolutem rechts gewinnt, _lines() bleibt unveraendert.
-_TICKET_GO = Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers")) / "ticket/go"
-MISHAP_GO = str(_TICKET_GO / "internal/tools/mishap.go")
-TRIAGE_GO = str(_TICKET_GO / "internal/tools/triage.go")
 
 
 # ── placeholder ──────────────────────────────────────────────────────────────
@@ -349,10 +344,6 @@ def test_t002329_notify_trigger_fires_for_feat_too(root):
     assert _count(root, MIGRATIONS_TS, r"NEW.type IN \('feature','feat'\)", fixed=False) > 0
 
 
-def test_t002329_ticket_mcp_validates_against_new_vocabulary(root):
-    assert _count(root, TRIAGE_GO, '"chore"') > 0
-
-
 # ── [T002375-p3] CLI flag drift between stage-plan and archive-plan ─────────
 
 def test_t002375_p3_stage_plan_accepts_plan_file_as_alias_of_plan(sh):
@@ -450,15 +441,6 @@ def test_t002407_m1d_cockpit_labels_has_type_labels_incident(root):
 
 
 # ── [T002407-M3] incident tickets have attention_mode=needs_human ───────────
-
-def test_t002407_m3a_mishap_go_treats_incident_as_immediate_ticket_type(root):
-    assert _has(root, MISHAP_GO, "isIncidentType(mtype)")
-    assert _has(root, MISHAP_GO, '"incident"')
-
-
-def test_t002407_m3b_mishap_go_recognises_broken_and_security_as_incident_aliases(root):
-    assert _has(root, MISHAP_GO, '"broken"')
-
 
 # ── [T003072] terminal-guard repair: invalid done is exempt ─────────────────
 

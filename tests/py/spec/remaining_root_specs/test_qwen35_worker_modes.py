@@ -4,17 +4,22 @@ import re
 
 def test_worker_routes(repo_root):
     cfg = json.loads(re.sub(r'^\s*//.*$', '', (repo_root / '.opencode/agent-models.jsonc').read_text(), flags=re.M))
-    for key in ['qwen35-4b', 'plan-worker-qwen35']:
-        assert cfg['agent'][key]['model'] == 'llamacpp-qwen3/Qwen3.5-4B-MTP'
-        assert cfg['agent'][key]['prompt'] == '{file:./prompts/qwen35-worker.md}'
-        assert cfg['agent'][key]['permission']['task'] == 'deny'
-    assert cfg['agent']['qwen35-4b']['permission']['write'] == 'deny'
-    assert cfg['agent']['plan-worker-qwen35']['permission']['write'] == 'allow'
+    # T016656: der 4B-Pool :8080 und der CPU-2B-Pool sind aus der Config entfernt (dotfiles #131);
+    # der Cloud-Worker des plan-runners ist plan-worker-muse.
+    muse = cfg['agent']['plan-worker-muse']
+    assert muse['model'] == 'opencode/muse-spark-1.3-contributor-free'
+    assert muse['mode'] == 'primary'
+    assert muse['prompt'] == '{file:./prompts/vllm-worker.md}'
+    assert muse['permission']['task'] == 'deny'
+    assert muse['permission']['write'] == 'allow'
+    for key in ['qwen35-4b', 'plan-worker-qwen35', 'plan-worker-cpu2b', 'plan-worker-vllm']:
+        assert key not in cfg['agent']
+    for key in ['llamacpp-qwen3', 'llamacpp-cpu-2b']:
+        assert key not in cfg['provider']
     assert cfg['agent']['local']['model'] == 'llamacpp-local/Qwen3.8-27B'
-    assert cfg['provider']['llamacpp-qwen3']['models']['Qwen3.5-4B-MTP']['limit']['context'] == 98304
     slim = json.loads(re.sub(r'^\s*//.*$', '', (repo_root / '.opencode/oh-my-opencode-slim.jsonc').read_text(), flags=re.M))
     for key in ['explorer', 'librarian']:
-        assert slim['agents'][key]['model'] == cfg['agent']['qwen35-4b']['model']
+        assert slim['agents'][key]['model'] == 'vllm-local/w4a4'
 
 def test_launcher(repo_root):
     data = (repo_root / 'scripts/llm/start-qwen35-4b-service.ps1').read_bytes()

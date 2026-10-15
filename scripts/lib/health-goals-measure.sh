@@ -288,20 +288,24 @@ sec05_unsigned() {
 # Fail-closed: eine gescheiterte Probe darf nie gruen sehen). "-" nur, wenn
 # der Helper selbst nicht ausfuehrbar/nicht parsebar ist (nicht messbar,
 # kein Fehlersignal — das unterscheidet Defekt von Zustand [T002648-Muster]).
-# CBM_FRESHNESS_BIN ueberschreibt den Helper (BATS-Fixture-Seam).
+# T016657: geprueft wird der kanonische Hauptcheckout (Elternverzeichnis des
+# gemeinsamen git-Dirs), nicht der zufaellige Agent-Worktree, aus dem der Check
+# laeuft. CBM_FRESHNESS_BIN ueberschreibt den Helper (Fixture-Seam) und bekommt
+# dieselben Argumente.
+k3_main_root() {
+  local common
+  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || common=""
+  case "$common" in
+    */.git) dirname "$common" ;;
+    *) git rev-parse --show-toplevel 2>/dev/null || pwd ;;
+  esac
+}
 k3_freshness_flag() {
-  local script
-  script="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/mcp/cbm-freshness.py"
-  local out
-  if [ -n "${CBM_FRESHNESS_BIN:-}" ]; then
-    out="$("$CBM_FRESHNESS_BIN" 2>/dev/null)" || true
-  else
-    local root
-    root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-    out="$(python3 "$script" status --repo "$root" \
-        --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" \
-        --timeout "${CBM_FRESHNESS_TIMEOUT:-30}" 2>/dev/null)" || true
-  fi
+  local out helper=("${CBM_FRESHNESS_BIN:-}")
+  [ -n "${CBM_FRESHNESS_BIN:-}" ] || helper=(python3 "$(dirname "${BASH_SOURCE[0]}")/../mcp/cbm-freshness.py")
+  out="$("${helper[@]}" status --repo "$(k3_main_root)" \
+      --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" \
+      --timeout "${CBM_FRESHNESS_TIMEOUT:-30}" 2>/dev/null)" || true
   [ -n "$out" ] || { echo '-'; return; }
   printf '%s' "$out" | python3 -c '
 import json, sys
@@ -313,19 +317,13 @@ except Exception:
 }
 
 # k3_project_flag — K3-Projekt im Codebase-Memory-Index vorhanden und bereit
-# (G-K3PROJ, T002430). 1 = index_status ready mit nodes/edges > 0, sonst 0
-# (Fail-closed: fehlender/defekter Tool-Aufruf ist ein rotes Signal, kein SKIP).
+# (G-K3PROJ, T002430). 1 = index_status ready mit nodes/edges > 0, 0 = Index
+# antwortet in einem anderen Zustand. T016657: das echte CLI-Format ist ein
+# MCP-Envelope; nicht erreichbarer Index oder kaputtes Format ist unbekannt
+# ("-"), keine erfundene 0 — und damit weiterhin nie gruen.
 k3_project_flag() {
   local out
   out="$(codebase-memory-mcp cli index_status \
-      --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" 2>/dev/null)" || { echo 0; return; }
-  [ -n "$out" ] || { echo 0; return; }
-  printf '%s' "$out" | python3 -c '
-import json, sys
-try:
-    d = json.load(sys.stdin)
-    ready = d.get("status") == "ready"
-    print(1 if ready and (d.get("nodes") or 0) > 0 and (d.get("edges") or 0) > 0 else 0)
-except Exception:
-    print(0)' 2>/dev/null || echo 0
+      --project "${CBM_PROJECT:-home-patrick-Bachelorprojekt}" 2>/dev/null)" || { echo '-'; return; }
+  printf '%s' "$out" | python3 "$(dirname "${BASH_SOURCE[0]}")/health-goals-probes.py" k3proj 2>/dev/null || echo '-'
 }

@@ -13,7 +13,7 @@
 //
 // Aufruf:
 //   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--direct-slots N|auto] [--cloud-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]
-//   node scripts/llm/plan-runner.mjs --ticket <T-Id> [--worktree <pfad>] [--direct-slots N] ...  (Plan aus DB-Ref, T901015)
+//   node scripts/llm/plan-runner.mjs --branch <feature|fix/slug> [--worktree <pfad>] [--direct-slots N] ...  (Plan aus Branch-Konvention)
 // 'auto' leitet die Slots aus der maximalen Frontbreite des Partials-DAGs ab (Direkt zuerst, Cloud nur fuer den
 // Rest ueber der Direkt-Kapazitaet); --print-slots gibt {width, slotsDirect, slotsCloud, partials} als JSON aus und
 // startet nichts (fuer Dashboard/Skripte). --4b-slots ist ein veralteter Alias fuer --direct-slots; --vllm-slots
@@ -28,9 +28,8 @@
 // Exit: 0 alle Partials done · 1 mindestens eine failed bzw. Lauf abgebrochen · 2 Konfigurationsfehler.
 // Runbook: docs/runbooks/plan-runner.md
 
-import { readFileSync, existsSync, statSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import {
   parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt, autoSlots,
@@ -59,7 +58,7 @@ function fail(code, msg) {
 
 // ---------- CLI ----------
 function parseArgs(argv) {
-  const opts = { changeDir: null, worktree: null, ticket: null, slotsDirect: DEFAULT_DIRECT_SLOTS, slotsCloud: DEFAULT_CLOUD_SLOTS, maxTurns: 200, timeoutMin: 120, printSlots: false };
+  const opts = { changeDir: null, worktree: null, branch: null, slotsDirect: DEFAULT_DIRECT_SLOTS, slotsCloud: DEFAULT_CLOUD_SLOTS, maxTurns: 200, timeoutMin: 120, printSlots: false };
   // --direct-slots 0 und --cloud-slots 0 schalten die Worker-Tracks ab (reine Selbstausfuehrung, z. B.
   // wenn die Partial einen Worker-Server selbst umkonfiguriert).
   // 'auto' (oder --auto-slots fuer beide Tracks) leitet die Slots aus der maximalen
@@ -78,7 +77,8 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--worktree') opts.worktree = argv[++i];
-    else if (a === '--ticket') opts.ticket = argv[++i];
+    else if (a === '--branch') opts.branch = argv[++i];
+    else if (a === '--ticket') fail(2, '--ticket was removed (ticket DB is gone): use --branch <feature|fix/slug>');
     else if (a === '--direct-slots') opts.slotsDirect = numOrAuto('direct-slots', argv[++i], 0);
     else if (a === '--4b-slots') {
       log('--4b-slots is deprecated, use --direct-slots (the 4B pool :8080 is gone; the direct track runs on vLLM :8123)');
@@ -93,110 +93,46 @@ function parseArgs(argv) {
     else if (!opts.changeDir) opts.changeDir = a;
     else fail(2, `unexpected argument ${a}`);
   }
-  if (opts.ticket) {
-    if (opts.changeDir) fail(2, '--ticket cannot be combined with a positional <change-dir>; the plan dir is derived from the FACTORY-PLAN-REF');
-    resolveTicketRef(opts);
+  if (opts.branch) {
+    if (opts.changeDir) fail(2, '--branch cannot be combined with a positional <change-dir>; the plan dir is derived from the branch name');
+    resolveBranchRef(opts);
   } else if (!opts.changeDir) {
     fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--direct-slots N|auto] [--cloud-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]');
   }
   return opts;
 }
 
-// ---------- Ticket-Ref-Aufloesung (T901015) ----------
-// Mit --ticket <T-Id> wird der Plan aus der DB gelesen statt von Disk:
-// `ticket.sh get` liefert plan_ref = "FACTORY-PLAN-REF branch=<b> plan=<pfad>",
-// der Branch wird per `git worktree list --porcelain` (Repo des CWD) einem
-// ausgecheckten Worktree zugeordnet, changeDir = <worktree>/<plan-dir>.
-// Fail-closed (exit 2, kein stiller Disk-Fallback), wenn Ref oder Worktree fehlen.
-// Test-Seam: PLAN_RUNNER_TICKET_JSON ersetzt den ticket.sh-Aufruf (BATS).
-function resolveTicketRef(opts) {
-  const scriptDir = new URL('.', import.meta.url).pathname;
-  const repoRoot = resolve(scriptDir, '..', '..');
-  let raw;
-  if (process.env.PLAN_RUNNER_TICKET_JSON) {
-    raw = process.env.PLAN_RUNNER_TICKET_JSON;
-  } else {
-    try {
-      raw = execFileSync('bash', [join(repoRoot, 'scripts', 'ticket.sh'), 'get', '--id', opts.ticket], { encoding: 'utf8' });
-    } catch (e) {
-      fail(2, `--ticket ${opts.ticket}: ticket.sh get failed (${(e.message || e).toString().split('\n')[0]})`);
-    }
-  }
-  let planRef = null;
-  try {
-    const row = JSON.parse(raw);
-    const body = typeof row === 'object' && row !== null ? row.plan_ref : null;
-    const m = typeof body === 'string' ? body.match(/FACTORY-PLAN-REF\s+branch=(\S+)\s+plan=(\S+)/) : null;
-    if (m) planRef = { branch: m[1], plan: m[2] };
-  } catch {
-    // kein valides JSON -> planRef bleibt null -> fail unten
-  }
-  if (!planRef) fail(2, `--ticket ${opts.ticket}: no FACTORY-PLAN-REF comment on ticket (stage the plan first)`);
+// ---------- Branch-Ref-Aufloesung ----------
+// Mit --branch <feature|fix/slug> liegt der Plan per Konvention unter
+// <worktree>/.agents/plans/<slug>. Der Worktree kommt aus --worktree oder aus
+// `git worktree list --porcelain` (Repo des CWD). Fail-closed (exit 2), wenn
+// kein Worktree den Branch ausgecheckt hat.
+function resolveBranchRef(opts) {
+  const slug = opts.branch.replace(/^(feature|fix)\//, '');
   let worktree = opts.worktree;
   if (!worktree) {
     let list;
     try {
       list = execFileSync('git', ['worktree', 'list', '--porcelain'], { encoding: 'utf8' });
     } catch {
-      fail(2, `--ticket ${opts.ticket}: 'git worktree list' failed; run inside the repo or pass --worktree`);
+      fail(2, `--branch ${opts.branch}: 'git worktree list' failed; run inside the repo or pass --worktree`);
     }
     let cur = null;
     for (const line of list.split('\n')) {
       let m = line.match(/^worktree\s+(\S.*)$/);
       if (m) { cur = m[1].trim(); continue; }
       m = line.match(/^branch\s+refs\/heads\/(\S.*)$/);
-      if (m && cur && m[1].trim() === planRef.branch) { worktree = cur; break; }
+      if (m && cur && m[1].trim() === opts.branch) { worktree = cur; break; }
     }
-    if (!worktree) {
-      if (materializeDbPlan(opts)) return;
-      fail(2, `--ticket ${opts.ticket}: branch '${planRef.branch}' is not checked out in any worktree (git worktree list)`);
-    }
+    if (!worktree) fail(2, `--branch ${opts.branch}: branch is not checked out in any worktree (git worktree list); pass --worktree <path>`);
   }
-  const planDir = planRef.plan.endsWith('/tasks.md') ? planRef.plan.slice(0, -'/tasks.md'.length) : planRef.plan;
-  opts.changeDir = join(worktree, planDir);
+  opts.changeDir = join(worktree, '.agents', 'plans', slug);
   opts.worktree = worktree;
 }
 
-// ---------- DB-Fallback (T901719) ----------
-// Ohne ausgecheckten Branch wird tasks.md per `ticket.sh plan-get` aus
-// tickets.ticket_plans nach $TMPDIR materialisiert (nie in Worktrees
-// geschrieben). Partials (tasks.d/) und ein Implementierungs-Worktree bleiben
-// erforderlich — fehlen sie, bleibt der bisherige Fail (Exit 2); der Fallback
-// entkoppelt nur das Plan-Lesen vom Checkout.
-// Test-Seam: PLAN_RUNNER_PLAN_BODY ersetzt den ticket.sh-Aufruf.
-function dbPlanBody(ticket) {
-  if (process.env.PLAN_RUNNER_PLAN_BODY !== undefined) {
-    const seam = process.env.PLAN_RUNNER_PLAN_BODY;
-    return seam.trim() ? seam : null;
-  }
-  const scriptDir = new URL('.', import.meta.url).pathname;
-  const repoRoot = resolve(scriptDir, '..', '..');
-  try {
-    const out = execFileSync('bash', [join(repoRoot, 'scripts', 'ticket.sh'), 'plan-get', '--id', ticket],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    return out.trim() ? out : null;
-  } catch {
-    return null;
-  }
-}
-
-function materializeDbPlan(opts) {
-  if (!opts.ticket || !/^T\d{6}$/.test(opts.ticket)) return false;
-  const body = dbPlanBody(opts.ticket);
-  if (!body) return false;
-  const dir = resolve(mkdtempSync(join(tmpdir(), `plan-runner-${opts.ticket}-`)));
-  writeFileSync(join(dir, 'tasks.md'), body.endsWith('\n') ? body : body + '\n');
-  opts.changeDir = dir;
-  return true;
-}
-
 function loadPlan(opts) {
-  let changeDir = resolve(opts.changeDir);
-  let tasksMd = join(changeDir, 'tasks.md');
-  if (!existsSync(tasksMd) && materializeDbPlan(opts)) {
-    changeDir = resolve(opts.changeDir);
-    tasksMd = join(changeDir, 'tasks.md');
-  }
+  const changeDir = resolve(opts.changeDir);
+  const tasksMd = join(changeDir, 'tasks.md');
   if (!existsSync(tasksMd)) fail(2, `no tasks.md in ${changeDir}`);
   let partials;
   try {

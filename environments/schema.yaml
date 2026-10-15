@@ -526,7 +526,10 @@ env_vars:
     default_dev: "8190"
     description: "Port the Rigger FastAPI service listens on. Default 8190."
 
-  # LLM_ROUTER_URL removed — kein Consumer im Produktionscode.
+  - name: LLM_ROUTER_URL
+    required: false
+    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+    description: "Cluster-internal OpenAI-compatible chat endpoint for studio-server (components/studio-server/src/config.ts, k3d/studio.yaml). Render-Pfade (Taskfile.workspace.yml) fallen auf den LM-Studio-Gateway-Default zurueck."
 
   - name: LLM_EMBED_URL
     required: true

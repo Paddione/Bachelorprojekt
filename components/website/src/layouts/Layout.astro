@@ -13,6 +13,7 @@ import { config } from '../config/index';
 import { getEffectiveNavigation } from '../lib/content';
 import { t, type Locale } from '../i18n/index';
 import { getLocaleFromUrl } from '../i18n/index';
+import { siteOrigin } from '../lib/site-origin';
 
 interface Props {
   title: string;
@@ -37,8 +38,7 @@ const pathname = Astro.url.pathname;
 const basePath = locale === 'en' ? pathname.replace(/^\/en/, '') || '/' : pathname;
 const enPath = basePath === '/' ? '/en/' : `/en${basePath}`;
 const dePath = basePath;
-const prodDomain = process.env.PUBLIC_PROD_DOMAIN ?? process.env.PROD_DOMAIN ?? '';
-const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
+const siteDomain = siteOrigin();
 ---
 
 <!doctype html>

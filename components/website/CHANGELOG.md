@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.425.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.0...website-v1.425.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **scripts:** reap ticketless branches whose merged PR has the same head ([#6713](https://github.com/Paddione/Bachelorprojekt/issues/6713)) ([7a2476e](https://github.com/Paddione/Bachelorprojekt/commit/7a2476ef6bfdae350b59966cdb291b043ef59750))
+
 ## [1.425.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.2...website-v1.425.0) (2026-10-15)
 
 

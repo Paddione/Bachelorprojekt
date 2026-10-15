@@ -40,6 +40,21 @@ def test_health_goals_daemon_script_exists(repo_root):
     assert daemon.is_file(), f"Daemon script missing: {daemon}"
 
 
+def test_health_goal_training_answers_match_retired_ticket_workflow(repo_root):
+    """New health-goal examples must not teach removed daemon actions."""
+    dataset = repo_root / ".agents/training/dataset.jsonl"
+    answers = [row["messages"][-1]["content"]
+               for line in dataset.read_text(encoding="utf-8").splitlines()
+               if (row := json.loads(line))
+               and "health-goals-daemon.sh" in row["messages"][-1]["content"]]
+    assert answers
+    assert any("quality.repo_health_measurements" in answer for answer in answers)
+    for answer in answers:
+        assert "scripts/ticket.sh create" not in answer
+        assert "--no-wake" not in answer
+        assert "--agent plan-worker-qwen35" not in answer
+
+
 def test_seed_preserves_historical_measurement_timestamp(repo_root, tmp_path, monkeypatch):
     """Seeding metadata must not turn old evidence into today's observation."""
     import importlib.util

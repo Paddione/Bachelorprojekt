@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.425.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.2...website-v1.425.3) (2026-10-15)
+
+
+### Bug Fixes
+
+* **website:** add /en/faq and redirect unknown /en slugs before streaming ([#6726](https://github.com/Paddione/Bachelorprojekt/issues/6726)) ([8014689](https://github.com/Paddione/Bachelorprojekt/commit/801468947f67559606eb13d539ddd418990e0145))
+
 ## [1.425.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.1...website-v1.425.2) (2026-10-15)
 
 

@@ -9,6 +9,8 @@
     helpContext = 'portal',
     pendingContainerCount = 0,
     aiErrorCount = 0,
+    hasTerminal = true,
+    hasMediaviewer = true,
   }: {
     onNavigate: (view: View) => void;
     onClose?: () => void;
@@ -17,6 +19,9 @@
     helpContext?: string;
     pendingContainerCount?: number;
     aiErrorCount?: number;
+    // Leerer Host in der Umgebung = Dienst laeuft dort nicht, Kachel ausblenden.
+    hasTerminal?: boolean;
+    hasMediaviewer?: boolean;
   } = $props();
 
   const isAdmin = $derived(helpContext === 'admin');
@@ -25,7 +30,7 @@
 
   const items = $derived<Item[]>(([
     { id: 'cockpit',      no: '01', title: 'Projekttickets', sub: 'Container & Features', badge: pendingContainerCount > 0 ? pendingContainerCount : undefined, show: isAdmin },
-    { id: 'terminal',      no: '02', title: 'Agentic Terminal',     sub: 'Live-Agenten-Terminal (ttyd)', show: isAdmin },
+    { id: 'terminal',      no: '02', title: 'Agentic Terminal',     sub: 'Live-Agenten-Terminal (ttyd)', show: isAdmin && hasTerminal },
     { id: 'ai-quality',    no: '03', title: 'KI-Qualität', sub: 'Latenz · Kosten · Fehler', badge: aiErrorCount > 0 ? aiErrorCount : undefined, show: isAdmin },
     { id: 'logs',          no: '04', title: 'Logs', sub: 'Server · Browser · Pods', show: isAdmin },
     { id: 'agent-settings', no: '05', title: 'Agenten-Einstellungen', sub: 'Token-Budget, Spawn Harness & Review', show: isAdmin },
@@ -33,7 +38,7 @@
     { id: 'questionnaire', no: isAdmin ? '07' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
     { id: 'support',       no: isAdmin ? '08' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
     { id: 'agent-guide',   no: isAdmin ? '09' : '03', title: 'Agent-Anleitung', sub: 'Lernen, wie alles funktioniert', show: true },
-    { id: 'mediaviewer',   no: isAdmin ? '10' : '04', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
+    { id: 'mediaviewer',   no: isAdmin ? '10' : '04', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: hasMediaviewer },
     { id: 'help',          no: isAdmin ? '11' : '05', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
   ] satisfies Item[]).filter(i => i.show));
 

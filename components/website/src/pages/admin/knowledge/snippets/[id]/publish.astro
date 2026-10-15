@@ -32,8 +32,8 @@ if (!book) return new Response('Book not found', { status: 404 });
   <div class="page">
     <header>
       <nav class="crumbs">
-        <a href="/admin/knowledge/books">Bücher</a> ›
-        <a href={`/admin/knowledge/books/${book.id}`}>{book.title}</a> ›
+        <a href="/admin/knowledge/drafts">Drafts</a> ›
+        {book.title} ›
         Veröffentlichen
       </nav>
     </header>

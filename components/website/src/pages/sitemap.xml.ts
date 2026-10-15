@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
 import { getEffectiveServices } from '../lib/content';
-import { listCustomSections } from '../lib/website-db';
 
 const PROD_DOMAIN = process.env.PROD_DOMAIN || 'localhost';
 const DOMAIN = `web.${PROD_DOMAIN}`;
@@ -9,15 +8,12 @@ const STATIC_PATHS = ['/', '/kontakt', '/ueber-mich', '/leistungen', '/referenze
 
 export const GET: APIRoute = async () => {
   const services = await getEffectiveServices().catch(() => []);
-  const customSections = await listCustomSections().catch(() => []);
 
   const servicePaths = services
     .filter((s) => !s.hidden)
     .map((s) => `/${s.slug}`);
 
-  const sectionPaths = customSections.map((cs) => `/${cs.slug}`);
-
-  const allPaths = [...STATIC_PATHS, ...servicePaths, ...sectionPaths];
+  const allPaths = [...STATIC_PATHS, ...servicePaths];
   const baseUrl = `https://${DOMAIN}`;
 
   const urls = allPaths.map((path) => {

@@ -24,7 +24,7 @@ const PRIO_CLS: Record<string, string> = { hoch: 'text-red-400', mittel: 'text-y
         {g.items.map(c => (
           <li class="flex items-center gap-3 text-sm" role="listitem">
             <span class="font-mono text-xs text-gold w-32 shrink-0">{c.externalId ?? c.id.slice(0, 8)}</span>
-            <a href={`/admin/tickets/${c.id}`} class="text-light hover:text-gold flex-1 truncate">{c.title}</a>
+            <a href={`/sdlc/tickets/${c.id}`} class="text-light hover:text-gold flex-1 truncate">{c.title}</a>
             <span class={`text-xs font-semibold ${PRIO_CLS[c.priority] ?? 'text-muted'}`}>{priorityLabel(c.priority)}</span>
           </li>
         ))}

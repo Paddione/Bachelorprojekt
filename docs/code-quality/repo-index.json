@@ -4,8 +4,8 @@
     {
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
-      "owner_agent": "bachelorprojekt-test",
-      "file_count": 1333,
+      "owner_agent": "bp-ship",
+      "file_count": 1331,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -378,14 +378,12 @@
         "tests/py/spec/ci_cd_specs/test_baseline_guard_read_pr_body.py",
         "tests/py/spec/ci_cd_specs/test_bats_no_live_branch_assertion.py",
         "tests/py/spec/ci_cd_specs/test_brainstorm_firewall_namespace.py",
-        "tests/py/spec/ci_cd_specs/test_branch_allowlist_ssot.py",
         "tests/py/spec/ci_cd_specs/test_cfr_trend_window.py",
         "tests/py/spec/ci_cd_specs/test_ci_wait_loop_nonempty_guard.py",
         "tests/py/spec/ci_cd_specs/test_commit_vs_diff_scope.py",
         "tests/py/spec/ci_cd_specs/test_devflow_execute_hardening_t002365.py",
         "tests/py/spec/ci_cd_specs/test_e2e_project_selection.py",
         "tests/py/spec/ci_cd_specs/test_fetch_refspec_forced.py",
-        "tests/py/spec/ci_cd_specs/test_fix_ticket_commit_guard.py",
         "tests/py/spec/ci_cd_specs/test_freshness_check_base_mismatch.py",
         "tests/py/spec/ci_cd_specs/test_freshness_paths_exist.py",
         "tests/py/spec/ci_cd_specs/test_freshness_regen_rebase_guard.py",
@@ -606,6 +604,7 @@
         "tests/py/spec/native_ported/spec/health-goals/test_service_health_goals.py",
         "tests/py/spec/native_ported/spec/health-goals/test_worktree_hygiene_goals.py",
         "tests/py/spec/native_ported/spec/health-goals/test_zielfamilien_audit.py",
+        "tests/py/spec/native_ported/spec/llm-local-dev/test_agent_sandbox.py",
         "tests/py/spec/native_ported/spec/llm-local-dev/test_comfy_image_mcp.py",
         "tests/py/spec/native_ported/spec/llm-local-dev/test_comfy_image_postprocess.py",
         "tests/py/spec/native_ported/spec/llm-local-dev/test_fit_ngl_conflict.py",
@@ -715,7 +714,6 @@
         "tests/py/spec/native_ported/spec/merge-arbitration/test_synthesize_syntax_gate.py",
         "tests/py/spec/native_ported/spec/mishap-bundle/test_ci_test_agentlock.py",
         "tests/py/spec/native_ported/spec/mishap-tracking/test_dedupe_korpus.py",
-        "tests/py/spec/native_ported/spec/mishap-tracking/test_go_tests_registriert.py",
         "tests/py/spec/native_ported/spec/plan-partials-embedding/test_size_gate.py",
         "tests/py/spec/native_ported/spec/planning-office/test_epic_lastenheft.py",
         "tests/py/spec/native_ported/spec/pocket-id-seed-label-isolation/test_client_seed_service_endpoint_isolation.py",
@@ -1345,7 +1343,7 @@
     {
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
-      "owner_agent": "bachelorprojekt-db",
+      "owner_agent": "bp-run",
       "file_count": 76,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
@@ -1429,7 +1427,7 @@
     {
       "id": "website",
       "name": "Astro + Svelte website",
-      "owner_agent": "bachelorprojekt-website",
+      "owner_agent": "bp-ship",
       "file_count": 1912,
       "files": [
         "components/website/.build-trigger",
@@ -3349,7 +3347,7 @@
     {
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
-      "owner_agent": "bachelorprojekt-infra",
+      "owner_agent": "bp-build",
       "file_count": 844,
       "files": [
         ".opencode/agent-models.jsonc",
@@ -4201,8 +4199,8 @@
     {
       "id": "scripts-infra",
       "name": "Operational + build scripts",
-      "owner_agent": "bachelorprojekt-infra",
-      "file_count": 943,
+      "owner_agent": "bp-build",
+      "file_count": 942,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4325,7 +4323,6 @@
         "scripts/check-bundle-size.mjs",
         "scripts/check-commit-vs-diff.sh",
         "scripts/check-connectivity.sh",
-        "scripts/check-fix-ticket-guard.sh",
         "scripts/check-hooks-path.sh",
         "scripts/check-pod-phase-filter.sh",
         "scripts/check-pr-automerge.sh",
@@ -4578,11 +4575,11 @@
         "scripts/knowledge/search-similar.mjs",
         "scripts/langfuse/export_traces.py",
         "scripts/legal/license-check.sh",
+        "scripts/lib/agent-sandbox.sh",
         "scripts/lib/application-pipeline-auto-sync.sh",
         "scripts/lib/application-pipeline-db.sh",
         "scripts/lib/application-pipeline-evidence.sh",
         "scripts/lib/application-pipeline-themes.sh",
-        "scripts/lib/branch-allowlist.sh",
         "scripts/lib/ci-checks.sh",
         "scripts/lib/count-unresolved-agent-tools.sh",
         "scripts/lib/cronjob-check.sh",
@@ -5152,7 +5149,7 @@
     {
       "id": "brett",
       "name": "Brett 3D board (CommonJS)",
-      "owner_agent": "bachelorprojekt-website",
+      "owner_agent": "bp-ship",
       "file_count": 378,
       "files": [
         "components/brett/.dockerignore",
@@ -5538,7 +5535,7 @@
     {
       "id": "openclaw",
       "name": "OpenClaw WSL gateway config",
-      "owner_agent": "bachelorprojekt-infra",
+      "owner_agent": "bp-build",
       "file_count": 1,
       "files": [
         "openclaw"
@@ -5547,7 +5544,7 @@
     {
       "id": "assets",
       "name": "Design + art-library assets",
-      "owner_agent": "bachelorprojekt-website",
+      "owner_agent": "bp-ship",
       "file_count": 588,
       "files": [
         "assets/Mentolder/INVENTORY.md",

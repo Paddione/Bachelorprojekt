@@ -70,9 +70,6 @@ def test_worktree_create_sh_locks_newly_created_worktree(run_cmd, sandbox):
     guard = root / "scripts" / "worktree-git-op-guard.sh"
     if guard.is_file():
         (main_repo / "scripts" / "worktree-git-op-guard.sh").write_bytes(guard.read_bytes())
-    allow = root / "scripts" / "lib" / "branch-allowlist.sh"
-    if allow.is_file():
-        (main_repo / "scripts" / "lib" / "branch-allowlist.sh").write_bytes(allow.read_bytes())
 
     wt_path = sandbox["sandbox"] / "created-wt"
     r = run_cmd(["bash", "-c", f"cd '{main_repo}' && WT_SKIP_NAME_CHECK=1 bash scripts/worktree-create.sh test-branch '{wt_path}' main"])

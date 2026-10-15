@@ -68,10 +68,10 @@ Falls S1 rot: Datei wirklich verkleinern, nicht kosmetisch Zeilen zusammenziehen
 ### Conventional Commits — Pflichtformat
 
 ```
-<type>(<scope>): <subject> [<TICKET_EXT_ID>]
+<type>(<scope>): <subject>
 ```
 
-Header ≤ 100 Zeichen, Ticket-ID immer anhängen. `type`/`scope`-Liste, Beispiele, PR-Body-Vorlage
+Header ≤ 100 Zeichen. Keine Ticket-ID (Ticket-DB entfernt). `type`/`scope`-Liste, Beispiele, PR-Body-Vorlage
 und das Vorgehen für einen **noch nicht registrierten Scope** (`scripts/register-scope.sh` +
 `commitlint.config.cjs` mitcommitten, T001364):
 [git-workflow-procedures](.agents/skills/references/git-workflow-procedures.md).
@@ -98,7 +98,7 @@ if git diff --cached --name-only | grep -q '^environments/.secrets/'; then
   exit 1
 fi
 
-git commit -m "<type>(<scope>): <subject> [<TICKET_EXT_ID>]"
+git commit -m "<type>(<scope>): <subject>"
 
 # Commit-Verifikation — git-crypt clean filter kann in Worktrees still scheitern [T000925]
 HEAD_SHA="$(git rev-parse HEAD)"
@@ -130,7 +130,7 @@ git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
 ### Scope-Preflight (Pflicht vor `gh pr create`) [T000925]
 
 ```bash
-bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]"
+bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject>"
 # Schlägt fehl bei ungültigem Scope → korrigieren, dann erneut prüfen
 ```
 
@@ -142,7 +142,7 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]
 
 ### PR anlegen
 
-`gh pr create --title "<type>(<scope>): <subject> [<TICKET_EXT_ID>]" --body ...` — Body-Vorlage
+`gh pr create --title "<type>(<scope>): <subject>" --body ...` — Body-Vorlage
 (Summary + Test Plan): [git-workflow-procedures](.agents/skills/references/git-workflow-procedures.md).
 
 ---
@@ -189,7 +189,7 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 ## Schritt 7 — Post-Merge Cleanup (Worktrees)
 
-Nur wenn in einem `.worktrees/*`-Worktree gearbeitet wurde: Lock releasen, Worktree entfernen, Remote-Branch löschen. Befehlsfolge + Worktree-Erstellung (git-crypt-sicher):
+Nur wenn in einem Worktree unter `~/.worktrees/` gearbeitet wurde: Lock releasen, Worktree entfernen, Remote-Branch löschen. Befehlsfolge + Worktree-Erstellung (git-crypt-sicher):
 [worktree-cleanup](references/worktree-cleanup.md).
 
 ---

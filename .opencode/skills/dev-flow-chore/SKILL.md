@@ -127,11 +127,17 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 
 ## Schritt 6: Worktree & Branch bereinigen
 
-Nach bestätigtem Merge (`gh pr view "$PR_NUM" --json state` = `MERGED`) aus dem Haupt-Repo
-aufräumen — Befehlsfolge: [worktree-cleanup](../git-workflow/references/worktree-cleanup.md)
-(Lock freigeben, `git worktree unlock` + `remove`, lokalen und Remote-Branch löschen).
-`devflow-post-merge-finalize.sh` braucht eine Ticket-ID und gilt für Chores nicht mehr.
+Nach bestätigtem Merge (`gh pr view "$PR_NUM" --json state` = `MERGED`) den Chore über die
+idempotente Einheit abschließen (Lock freigeben, Worktree und Branch entfernen). Die bereits
+etablierte eigene `AGENT_LOCK_SID` stabil weitergeben, keine fremde Session-ID übernehmen.
+Manuelle Befehlsfolge als Fallback: [worktree-cleanup](../git-workflow/references/worktree-cleanup.md).
 
+```bash
+export AGENT_LOCK_SID
+bash scripts/devflow-post-merge-finalize.sh --branch "$BRANCH" --no-plan --pr "$PR_NUM"
+```
+
+Ein Chore ohne Plan hat keinen Plan-Receipt; keinen solchen Archiv-Beleg behaupten.
 Den tatsächlichen Endzustand prüfen: eigener Worktree, lokaler und Remote-Branch
 entfernt, eigene Claims freigegeben. Die gemeinsame
 [repo-hygiene-ops §2](../references/repo-hygiene-ops.md#2-stale-branches) beschreibt

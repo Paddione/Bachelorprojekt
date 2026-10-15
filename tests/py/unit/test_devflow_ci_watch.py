@@ -81,3 +81,36 @@ def test_main_missing_args(monkeypatch, capsys):
     assert exit_code == 2
     captured = capsys.readouterr()
     assert "usage: devflow-ci-watch.sh" in captured.err
+
+
+def test_devflow_phase_writer_satisfies_gate(monkeypatch, tmp_path):
+    import subprocess
+    subprocess.run(["git", "init", "-q", "-b", "feature/demo", str(tmp_path)], check=True)
+    writer = _repo_root / "scripts" / "devflow-phase.sh"
+    for phase, state in (("plan", "done"), ("implement", "entered"), ("verify", "done")):
+        subprocess.run(["bash", str(writer), phase, state, "--detail", "zwei\nzeilen"], cwd=tmp_path, check=True, capture_output=True)
+    log = tmp_path / ".agents" / "plans" / "demo" / "phase-events.log"
+    assert len(log.read_text().splitlines()) == 3
+    _phase_repo(monkeypatch, tmp_path, None)
+    assert assert_phase_log("https://github.com/x/y/pull/1") == (True, 0)
+
+
+def test_devflow_phase_writer_rejects_unknown_phase(tmp_path):
+    import subprocess
+    subprocess.run(["git", "init", "-q", "-b", "feature/demo", str(tmp_path)], check=True)
+    res = subprocess.run(["bash", str(_repo_root / "scripts" / "devflow-phase.sh"), "ship", "done"], cwd=tmp_path, capture_output=True, text=True)
+    assert res.returncode == 2
+    assert not (tmp_path / ".agents").exists()
+
+
+def test_devflow_phase_check_mirrors_gate(tmp_path):
+    import subprocess
+    subprocess.run(["git", "init", "-q", "-b", "fix/demo", str(tmp_path)], check=True)
+    writer = ["bash", str(_repo_root / "scripts" / "devflow-phase.sh")]
+    run = lambda *a: subprocess.run(writer + list(a), cwd=tmp_path, capture_output=True, text=True)
+    assert run("check").returncode == 6
+    run("plan", "done"); run("implement", "entered")
+    res = run("check")
+    assert res.returncode == 6 and "verify done" in res.stderr
+    run("verify", "done")
+    assert run("check").returncode == 0

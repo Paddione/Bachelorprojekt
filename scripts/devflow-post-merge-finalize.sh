@@ -3,6 +3,7 @@
 #
 # Usage:
 #   bash scripts/devflow-post-merge-finalize.sh --branch <branch> --plan <plan-path> [--pr <n>]
+#   bash scripts/devflow-post-merge-finalize.sh --branch <branch> --no-plan [--pr <n>]   # Chore ohne Plan
 #
 # Deterministische Abschluss-Einheit nach einem gruenen Auto-Merge: Merge verifizieren,
 # Plan lokal als completed markieren + committen, Branch-Lock freigeben, Worktree und
@@ -21,7 +22,7 @@
 # Exit-Codes:
 #   0 = alle Schritte erledigt oder uebersprungen
 #   1 = Fehler (die meldende Zeile nennt den Schritt)
-#   2 = Usage-/Env-Fehler (kein --branch/--plan)
+#   2 = Usage-/Env-Fehler (kein --branch, weder --plan noch --no-plan)
 #
 # Reihenfolge-Garantie (T004612): Die Plan-Archivierung (Schritt 7) laeuft VOR der
 # Branch-Loeschung (Schritt 10); der Fix-PR-Merge loescht den Branch bewusst nicht
@@ -39,14 +40,15 @@ cd "$REPO_DIR"
 
 usage() {
   cat <<'EOF'
-Usage: devflow-post-merge-finalize.sh --branch <branch> --plan <plan-path> [--pr <n>]
+Usage: devflow-post-merge-finalize.sh --branch <branch> (--plan <plan-path> | --no-plan) [--pr <n>]
 
 Idempotente Post-Merge-Finalisierung (ohne Ticket-Backend):
   Merge verifizieren, Plan als completed markieren + committen, Branch-Lock
   freigeben, Worktree und Branch entfernen.
 
   --branch <b>    Branch (Pflicht)
-  --plan <p>      Plan-Pfad, relativ zum Repo oder absolut (Pflicht)
+  --plan <p>      Plan-Pfad, relativ zum Repo oder absolut (Pflicht ausser mit --no-plan)
+  --no-plan       Chore ohne Plan: Plan-Pruefung und -Markierung entfallen
   --pr <n>        PR-Nummer (sonst aus gh gegen den Branch aufgeloest)
 
   --frontmatter-state <slug> [--repo <dir>]  [T015916]
@@ -61,6 +63,7 @@ EOF
 
 BRANCH=""
 PLAN_REL=""
+NO_PLAN=0
 PR_NUM=""
 FRONTMATTER_STATE_SLUG=""
 APPLY_COMPLETED_FRONTMATTER_FILE=""
@@ -70,6 +73,7 @@ while [[ $# -gt 0 ]]; do case "$1" in
   --pr)      PR_NUM="$2"; shift 2 ;;
   --branch)  BRANCH="$2"; shift 2 ;;
   --plan)    PLAN_REL="$2"; shift 2 ;;
+  --no-plan) NO_PLAN=1; shift ;;
   --frontmatter-state) FRONTMATTER_STATE_SLUG="$2"; shift 2 ;;
   --apply-completed-frontmatter) APPLY_COMPLETED_FRONTMATTER_FILE="$2"; shift 2 ;;
   --repo)    REPO_DIR="$(cd "$2" && pwd)"; cd "$REPO_DIR"; shift 2 ;;
@@ -122,15 +126,22 @@ echo "--- devflow-post-merge-finalize: Branch $BRANCH ---"
 # muss als Datei oder im Git-Tree aufloesbar sein — sonst Abbruch (kein stiller Skip).
 PLAN_FILE="$PLAN_REL"
 [[ -n "$PLAN_FILE" && "$PLAN_FILE" != /* ]] && PLAN_FILE="$REPO_DIR/$PLAN_FILE"
-if [[ -z "$BRANCH" || -z "$PLAN_REL" ]]; then
-  echo "ERROR: Schritt 1 — --branch und --plan sind Pflicht." >&2
+if [[ -z "$BRANCH" ]] || [[ -z "$PLAN_REL" && "$NO_PLAN" != 1 ]]; then
+  echo "ERROR: Schritt 1 — --branch und --plan (oder --no-plan) sind Pflicht." >&2
   exit 2
 fi
-if [[ ! -s "$PLAN_FILE" ]] && ! git -C "$REPO_DIR" cat-file -e "HEAD:$PLAN_REL" 2>/dev/null; then
+if [[ -n "$PLAN_REL" && "$NO_PLAN" == 1 ]]; then
+  echo "ERROR: Schritt 1 — --plan und --no-plan schliessen sich aus." >&2
+  exit 2
+fi
+if [[ "$NO_PLAN" == 1 ]]; then
+  mark_ok "Schritt 1: Eingaben verifiziert (branch=$BRANCH, ohne Plan)"
+elif [[ ! -s "$PLAN_FILE" ]] && ! git -C "$REPO_DIR" cat-file -e "HEAD:$PLAN_REL" 2>/dev/null; then
   echo "ERROR: Schritt 1 — Plan-Pfad $PLAN_REL weder als Datei noch im Git-Tree aufloesbar." >&2
   exit 1
+else
+  mark_ok "Schritt 1: Eingaben verifiziert (branch=$BRANCH, plan=$PLAN_REL)"
 fi
-mark_ok "Schritt 1: Eingaben verifiziert (branch=$BRANCH, plan=$PLAN_REL)"
 
 # Schritt 2 — Slug + Worktree: Slug aus dem Plan-Pfad (.agents/plans/<slug>/tasks.md),
 # sonst aus dem Branch-Namen (Konvention feature|fix|chore/<slug>). Worktree
@@ -193,7 +204,9 @@ fi
 # Schritt 7 — Plan lokal als completed markieren + committen (statt DB-Archiv).
 # Idempotent: bereits completed → Skip. Der Commit landet auf dem Feature-Branch;
 # _CLEANUP_TIP wird DANACH gezogen, damit der Marker-Commit die Tip-Pruefung nicht bricht.
-if [[ -n "$SLUG" && -d "$WORKTREE" ]]; then
+if [[ "$NO_PLAN" == 1 ]]; then
+  mark_skip "Schritt 7: ohne Plan (--no-plan)"
+elif [[ -n "$SLUG" && -d "$WORKTREE" ]]; then
   _plan_in_wt=""
   _wt_top7="$(git -C "$WORKTREE" rev-parse --show-toplevel 2>/dev/null || true)"
   if [[ -n "$_wt_top7" && -f "$_wt_top7/.agents/plans/$SLUG/tasks.md" ]]; then

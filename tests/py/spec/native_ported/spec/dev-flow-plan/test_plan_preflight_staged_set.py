@@ -31,8 +31,8 @@ def stg(run_cmd, repo_root, tmp_path):
     (test_dir / "initial.txt").write_text("initial\n", encoding="utf-8")
     git("add", "initial.txt").check()
     git("commit", "-q", "-m", "initial commit").check()
-    git("checkout", "-q", "-b", "feature/px-T009999")
-    (lock_dir / "ticket__T009999.json").write_text('{"branch":"feature/px-T009999"}\n', encoding="utf-8")
+    git("checkout", "-q", "-b", "feature/px")
+    (lock_dir / "branch__feature-px.json").write_text('{"branch":"feature/px"}\n', encoding="utf-8")
     return {"dir": test_dir, "git": git, "sh": sh}
 
 
@@ -46,17 +46,17 @@ def test_t005114_pre_commit_akzeptiert_gestagte_plan_artefakte_und_lehnt_gestagt
     stg["git"]("add", ".agents/plans/xyz/tasks.md", "tests/spec/xyz/example.bats",
                ".agents/plans/xyz/tasks.md").check()
 
-    res = stg["sh"]("pre-commit", "--ticket", "T009999")
+    res = stg["sh"]("pre-commit")
     assert res.returncode == 0, res.output
 
     # Negative case (positive anchor above): a staged foreign file is still rejected.
     (d / "src-fremd.txt").write_text("fremd\n", encoding="utf-8")
     stg["git"]("add", "src-fremd.txt").check()
-    res = stg["sh"]("pre-commit", "--ticket", "T009999")
+    res = stg["sh"]("pre-commit")
     assert res.returncode == 1
     assert ("Fremd" in res.output) or ("fremd" in res.output)
 
     # Unstaged/untracked alone is irrelevant for the commit.
     stg["git"]("reset", "-q", "src-fremd.txt").check()
     (d / "unrelated.txt").write_text("unrelated\n", encoding="utf-8")
-    assert stg["sh"]("pre-commit", "--ticket", "T009999").returncode == 0
+    assert stg["sh"]("pre-commit").returncode == 0

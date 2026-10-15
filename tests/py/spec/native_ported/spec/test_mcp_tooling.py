@@ -165,6 +165,7 @@ def test_orphan_guard_every_scripts_side_mcp_server_source_is_registered_or_docu
     # T901492: zentrale Quellen ausserhalb des Repos (CI: Zweit-Checkout via MCP_SERVERS_HOME).
     central = Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers"))
     assert central.is_dir(), f"central MCP servers not found: {central}"
+    # ticket/ entfiel mit der Ticket-DB: ohne DB kein Ticket-MCP.
     for rel in ("devflow/server.mjs", "task-runner/server.mjs"):
         assert (central / rel).exists(), f"central MCP source missing: {rel}"
         sources.append(f"central/{rel}")

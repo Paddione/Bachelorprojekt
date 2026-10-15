@@ -17,7 +17,7 @@ Change vollständig (vLLM- und CPU-2B-Zeilen ergänzt).
 | `deep_worker` (thinking, ≤8192 Tok) | `:8123` vLLM w4a4 (5070 Ti) | Thinking läuft im WorkerPool immer auf der 5070 Ti; vLLM ist dort der Durchsatz-stärkste Thinking-Track | `:8080` 4B mit Thinking, dann `:1919` 27B |
 | `sandbox_exec` (Code-Shortcut) | Sandbox `/v1/execute`, `:8096` 4 Slots | Guard-geprüfte Snippets umgehen das LLM; `:8096` bedient bis zu 4 Sandbox-Slots parallel | LLM-Pfad (`simple_worker`) bei Guard-Alarm |
 | `ops_git` (Kommandos, ≤1024 Tok) | `:8096` Qwen3.5-2B | Mechanisch, klein, kein Urteil nötig — gleiche Klasse wie `simple_worker` | `:8080` 4B |
-| `web_research` (thinking, ≤4096 Tok) | `:8123` vLLM w4a4 | Thinking-Track mit großem Kontext-Fenster (bis 64k je Anfrage) für Quellenarbeit | `:8080` 4B, dann `local` `:1919` |
+| `web_research` (thinking, ≤4096 Tok) | `:8123` vLLM w4a4 | Thinking-Track mit großem Kontext-Fenster (bis 40k je Anfrage) für Quellenarbeit | `:8080` 4B, dann `local` `:1919` |
 
 ## Wo der Dispatch hängt
 

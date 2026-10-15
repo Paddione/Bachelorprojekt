@@ -30,7 +30,7 @@ KNOWN_BUILTINS = (
     " Agent Artifact Bash BashOutput Edit ExitPlanMode Glob Grep KillShell LS "
     "NotebookEdit NotebookRead Read Skill Task TodoWrite ToolSearch WebFetch WebSearch Write "
 )
-DOMAIN_AGENTS = ["bachelorprojekt-db", "bachelorprojekt-infra", "bachelorprojekt-security"]
+DOMAIN_AGENTS = ["bp-build", "bp-run", "bp-ship"]  # T900858: Nachfolger der sechs Domain-Agenten
 
 
 def _agents_dir(repo_root: Path) -> Path:

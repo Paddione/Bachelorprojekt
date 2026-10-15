@@ -1,12 +1,12 @@
 - id: a
   name: A
   paths: ["website/**"]
-  owner_agent: bachelorprojekt-website
+  owner_agent: bp-ship
   test_location: website/
   purpose: dup test a.
 - id: b
   name: B
   paths: ["website/**"]
-  owner_agent: bachelorprojekt-infra
+  owner_agent: bp-build
   test_location: website/
   purpose: dup test b.

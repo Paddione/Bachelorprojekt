@@ -57,18 +57,10 @@ einen Cron-Job ein. **STOPP hier.**
 
 ## Schritt 1: Worktree anlegen & claimen
 
-> **Ticket-vor-Branch-Check (T001917):** Bevor der Branch-Slug feststeht, prüfen ob für diese
-> Chore bereits ein Ticket existiert (`TICKET_EXT_ID` gesetzt oder in `./scripts/ticket.sh list`
-> auffindbar?). Existiert noch keines, **zuerst das Ticket anlegen** (Block in Schritt 1 unten)
-> und dessen ID sofort in den Branch-Slug aufnehmen (z.B. `chore/lighthouse-ci-token-T001913`
-> statt `chore/lighthouse-ci-token`) — nicht erst nach dem Worktree. Sonst schlägt
-> `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss
-> nachträglich umbenannt werden (Zeitverlust, siehe T001913).
-
 > **Test-only-Kurzpfad (kein Worktree):** Berührt die Chore **ausschließlich** Testdateien
 > (`tests/py/**/*.py`, `components/website/**/*.test.ts`, Playwright-Specs) — z.B. "schreib
-> einen Test für X" — dann entfällt `.worktrees/*` als Standardfall. Ein eigener Worktree pro Testdatei
-> erzeugt nur IDE-Clutter (jede offene `.worktrees/*`-Kopie erscheint als eigener Ordner) ohne
+> einen Test für X" — dann entfällt der Worktree als Standardfall. Ein eigener Worktree pro Testdatei
+> erzeugt nur IDE-Clutter (jede offene Worktree-Kopie erscheint als eigener Ordner) ohne
 > Isolationsgewinn, solange kein anderer Prozess konkurrierend im Haupt-Checkout schreibt. Prüfe das:
 > ```bash
 > bash scripts/agent-lock.sh activity   # Locks + laufende Prozesse in Worktree-Pfaden [T003098] — list allein zeigt Sessions erst nach ihrem ersten Commit
@@ -85,35 +77,19 @@ einen Cron-Job ein. **STOPP hier.**
 Regulärer Pfad (Default für alles außer dem Test-only-Kurzpfad oben):
 ```bash
 # git-crypt-safe: creates the worktree, handles git-crypt
-bash scripts/worktree-create.sh chore/<slug> .worktrees/<slug>
-cd .worktrees/<slug>
+WT="$HOME/.worktrees/Bachelorprojekt/chore/<slug>"   # globaler Agent-Guard: Worktrees nur unter ~/.worktrees
+bash scripts/worktree-create.sh chore/<slug> "$WT"
+cd "$WT"
 bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label dev-flow-chore
 ```
 
-> **Ab hier gilt die cwd-Regel oben:** Datei-Tool-Pfade tragen `.worktrees/<slug>/...`, sonst
+> **Ab hier gilt die cwd-Regel oben:** Datei-Tool-Pfade tragen `$WT/...`, sonst
 > trifft ein alter Hauptcheckout-Pfad still die falsche Arbeitskopie (T002350).
-
-> Enthält `<slug>` eine wiederverwendete `TICKET_EXT_ID` (z.B. `T001869`), sollte deren Ticketnummer
-> im Slug vorkommen (z.B. `doc-cleanup-T001869`) — `preflight-pr-scope.sh` prüft das PR-Titel↔Branch-
-> Matching case-insensitiv (T001873), Groß-/Kleinschreibung im Slug spielt also keine Rolle.
 
 Claim-Semantik, main-checkout-Sonderfall (`claim main-checkout`) und Release:
 [session-coordination](.agents/skills/references/session-coordination.md).
 
-Überspringe die Ticket-Erstellung, wenn bereits eine `TICKET_EXT_ID` gesetzt ist (z.B.
-bei Wiederverwendung eines bestehenden Tickets). Sonst lege ein minimales Audit-Ticket
-an (type=task, status=done — Chores haben keinen Plan, nur eine Audit-Spur):
-```bash
-if [[ -z "${TICKET_EXT_ID:-}" ]]; then
-  TICKET_RESULT=$(./scripts/ticket.sh create \
-    --type task \
-    --brand mentolder \
-    --title "chore: <slug>" \
-    --status done \
-    --description "Branch: chore/<slug>"$'\n'"Kein Plan — direktes Chore.")
-  TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
-fi
-```
+Kein Ticket: das Ticket-DB ist entfernt, Branch und PR sind die Audit-Spur.
 
 ## Schritt 2: Änderungen vornehmen
 
@@ -139,11 +115,8 @@ Läuft nach **`git-workflow` Schritt 2–4** (SSOT): git-crypt-Staging-Guard [T0
 `HEAD_SHA != BASE_SHA` [T000925], `preflight-pr-scope.sh` vor `gh pr create`,
 REST-Fallback für Titel-Edits.
 
-Chore-spezifisch: Titelformat `chore(<TICKET_EXT_ID>): <subject> [$TICKET_EXT_ID]`. Als
-Scope die Ticket-ID nehmen, nicht ein Thema-Wort: `validate-commit-msg.sh` prüft Scopes
-gegen eine Allowlist, ein Ticket-Scope umgeht sie. Die
-`[T000XXX]`-Referenz wird von `.github/workflows/post-merge.yml` gelesen — das Ticket ist
-bereits `done`, der Status-Update ist ein idempotenter No-op.
+Chore-spezifisch: Titelformat `chore(<scope>): <subject>`. Den Scope aus
+`bash scripts/validate-commit-msg.sh scopes` waehlen.
 
 Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führe `gh pr create` manuell aus (beide Frameworks).
 
@@ -154,19 +127,13 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 
 ## Schritt 6: Worktree & Branch bereinigen
 
-Nach bestätigtem Merge und tatsächlich erfolgreichen Required Checks den regulären
-Chore aus dem eigenen Worktree über die idempotente Einheit abschließen. Die
-bereits etablierte eigene `AGENT_LOCK_SID` stabil an den Finalizer weitergeben;
-keine fremde Session-ID übernehmen:
+Nach bestätigtem Merge (`gh pr view "$PR_NUM" --json state` = `MERGED`) aus dem Haupt-Repo
+aufräumen — Befehlsfolge: [worktree-cleanup](../git-workflow/references/worktree-cleanup.md)
+(Lock freigeben, `git worktree unlock` + `remove`, lokalen und Remote-Branch löschen).
+`devflow-post-merge-finalize.sh` braucht eine Ticket-ID und gilt für Chores nicht mehr.
 
-```bash
-export AGENT_LOCK_SID
-bash scripts/devflow-post-merge-finalize.sh "$TICKET_EXT_ID" --pr "$PR_NUM" --branch "$BRANCH"
-```
-
-Ein Chore ohne Plan hat keinen Plan-Receipt; keinen solchen Archiv-Beleg behaupten.
 Den tatsächlichen Endzustand prüfen: eigener Worktree, lokaler und Remote-Branch
-entfernt, eigene Claims freigegeben. Exit 0 allein reicht nicht. Die gemeinsame
+entfernt, eigene Claims freigegeben. Die gemeinsame
 [repo-hygiene-ops §2](../references/repo-hygiene-ops.md#2-stale-branches) beschreibt
 die positive Prüfung und den Remote-Control-Ausnahmefall ohne Hook-Umgehung.
 
@@ -188,8 +155,7 @@ Nur wenn die Chore deploybare Pfade berührt — Mapping in
 
 **Zustand nach Schritt 6:**
 - `main` enthält die gemergten Änderungen (squash commit)
-- Worktree `.worktrees/<slug>` gelöscht, Branch `chore/<slug>` gelöscht
-- Ticket status = `done` (wurde beim Anlegen bereits gesetzt)
+- Worktree `$WT` gelöscht, Branch `chore/<slug>` gelöscht
 - Branch-Lock freigegeben
 
 **Kreislauf zurück zu `main`** — nächste Arbeit startet mit `dev-flow-plan` oder erneutem `dev-flow-chore`.

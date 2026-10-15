@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.424.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.0...website-v1.424.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **scripts:** Health-Goals-Messung und Statusintegrität reparieren [T016657] ([#6682](https://github.com/Paddione/Bachelorprojekt/issues/6682)) ([5076fc2](https://github.com/Paddione/Bachelorprojekt/commit/5076fc22bbf5eae65f7b01c96fe97b7e17d863b9))
+* **scripts:** pi-Agenten in bubblewrap-Sandbox starten, Ticket-MCP-Prüfungen aus CI entfernen ([#6694](https://github.com/Paddione/Bachelorprojekt/issues/6694)) ([472ac22](https://github.com/Paddione/Bachelorprojekt/commit/472ac22a3d72f9a8bbb1247defeeaf08cbd5bdb9))
+
 ## [1.424.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.423.2...website-v1.424.0) (2026-10-14)
 
 

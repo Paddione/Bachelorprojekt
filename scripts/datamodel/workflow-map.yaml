@@ -122,63 +122,36 @@ steps:
     gaps: []
 
   # ── Sub-Agents family ─────────────────────────────────────────────────────
-  - id: bp-db
+  # T900858: die sechs bachelorprojekt-*-Agenten sind in drei bp-* aufgegangen;
+  # reads/writes sind die Vereinigung der jeweils zusammengelegten Agenten.
+  - id: bp-build
     family: agents
-    label: "bachelorprojekt-db"
-    description: "Sub-agent for PostgreSQL schema changes, queries, and backup/restore."
+    label: "bp-build"
+    description: "Sub-agent for Kubernetes manifests, Kustomize overlays, Taskfile deploys, SealedSecrets and OIDC (ex infra + security)."
+    writes:
+      files: ["k3d/**/*.yaml", "prod*/**/*.yaml", "environments/sealed-secrets/*.yaml"]
+    reads:
+      files: ["k3d/**/*.yaml", "Taskfile.yml", "environments/.secrets/*.yaml"]
+    gaps: []
+
+  - id: bp-run
+    family: agents
+    label: "bp-run"
+    description: "Sub-agent for live cluster operations and PostgreSQL schema, queries and backup/restore (ex ops + db)."
     writes:
       tables: ["tickets.tickets", "tickets.ticket_comments"]
     reads:
       tables: ["bachelorprojekt.features", "tickets.tickets"]
     gaps: []
 
-  - id: bp-infra
+  - id: bp-ship
     family: agents
-    label: "bachelorprojekt-infra"
-    description: "Sub-agent for Kubernetes manifest work, Kustomize overlays, and Taskfile deploy tasks."
+    label: "bp-ship"
+    description: "Sub-agent for the Astro/Svelte website, /api/* endpoints and BATS/Playwright tests (ex website + test)."
     writes:
-      files: ["k3d/**/*.yaml", "prod*/**/*.yaml"]
+      tables: ["public.site_settings", "public.assistant_conversations", "public.test_runs", "public.test_results", "public.playwright_reports"]
     reads:
-      files: ["k3d/**/*.yaml", "Taskfile.yml"]
-    gaps: []
-
-  - id: bp-ops
-    family: agents
-    label: "bachelorprojekt-ops"
-    description: "Sub-agent for live cluster operations: pod status, logs, restarts."
-    writes: {}
-    reads:
-      tables: ["tickets.tickets"]
-    gaps: []
-
-  - id: bp-website
-    family: agents
-    label: "bachelorprojekt-website"
-    description: "Sub-agent for Astro/Svelte frontend and /api/* backend endpoints."
-    writes:
-      tables: ["public.site_settings", "public.assistant_conversations"]
-    reads:
-      tables: ["bachelorprojekt.features", "public.web_sessions"]
-    gaps: []
-
-  - id: bp-test
-    family: agents
-    label: "bachelorprojekt-test"
-    description: "Sub-agent for writing, running, and debugging BATS and Playwright tests."
-    writes:
-      tables: ["public.test_runs", "public.test_results", "public.playwright_reports"]
-    reads:
-      tables: ["tickets.tickets"]
-    gaps: []
-
-  - id: bp-security
-    family: agents
-    label: "bachelorprojekt-security"
-    description: "Sub-agent for SealedSecrets, Keycloak realm config, and OIDC setup."
-    writes:
-      files: ["environments/sealed-secrets/*.yaml"]
-    reads:
-      files: ["environments/.secrets/*.yaml"]
+      tables: ["bachelorprojekt.features", "public.web_sessions", "tickets.tickets"]
     gaps: []
 
   # ── CI/CD Pipeline family ─────────────────────────────────────────────────

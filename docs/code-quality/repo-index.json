@@ -1384,7 +1384,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bp-ship",
-      "file_count": 1915,
+      "file_count": 1916,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",
@@ -3075,6 +3075,7 @@
         "components/website/src/pages/en/barrierefreiheit.astro",
         "components/website/src/pages/en/cookie-einstellungen.astro",
         "components/website/src/pages/en/datenschutz.astro",
+        "components/website/src/pages/en/faq.astro",
         "components/website/src/pages/en/impressum.astro",
         "components/website/src/pages/en/index.astro",
         "components/website/src/pages/en/kontakt.astro",

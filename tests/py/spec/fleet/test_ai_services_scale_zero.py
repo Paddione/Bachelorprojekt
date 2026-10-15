@@ -1,4 +1,8 @@
-"""Offline contract: AI services remain activatable while idle pods stay absent."""
+"""Offline contract: Talk-KI-Dienste bleiben aktivierbar, ohne im Leerlauf Pods zu starten.
+
+bge-embed/-bulk/-rerank laufen nicht auf mentolder (nur devmesh) und fehlen im
+Fleet-Overlay samt llm-gateway-Services, NetworkPolicies und Modell-PVCs.
+"""
 
 import os
 import shutil
@@ -8,14 +12,9 @@ import pytest
 import yaml
 
 
-AI_DEPLOYMENTS = {
-    "whisper", "talk-transcriber", "talk-recording",
-    "bge-embed", "bge-embed-bulk", "bge-rerank",
-}
-AI_SERVICES = {
-    "whisper", "talk-transcriber", "talk-recording",
-    "llm-gateway-embed", "llm-gateway-rerank",
-}
+AI_DEPLOYMENTS = {"whisper", "talk-transcriber", "talk-recording"}
+AI_SERVICES = set(AI_DEPLOYMENTS)
+BGE_DEPLOYMENTS = {"bge-embed", "bge-embed-bulk", "bge-rerank"}
 
 
 class ManifestLoader(yaml.SafeLoader):
@@ -66,19 +65,24 @@ def test_dormant_services_retain_internal_dependencies(fleet_resources):
             if selector.items() <= fleet_resources[("Deployment", deployment_name)]["spec"]
             ["template"]["metadata"]["labels"].items()
         }
-        expected = {"bge-embed", "bge-embed-bulk"} if name == "llm-gateway-embed" else {
-            "bge-rerank" if name == "llm-gateway-rerank" else name
-        }
-        assert matches == expected, f"{name}: selector targets {matches}"
-    for name in ("bge-embed-models", "bge-rerank-models"):
-        assert ("PersistentVolumeClaim", name) in fleet_resources
-    for name in (
-        "allow-llm-gateway-egress", "allow-transcriber-to-website-egress",
-        "allow-website-to-bge-embed-ingress", "allow-website-to-bge-rerank-ingress",
-    ):
-        assert ("NetworkPolicy", name) in fleet_resources
-    for name in ("llm-gateway-embed", "llm-gateway-rerank"):
-        assert ("IngressRoute", name) not in fleet_resources
+        assert matches == {name}, f"{name}: selector targets {matches}"
+    assert ("NetworkPolicy", "allow-transcriber-to-website-egress") in fleet_resources
+
+
+def test_bge_absent_from_mentolder(fleet_resources):
+    # Positiv-Anker: die Talk-Dienste sind im selben Build vorhanden.
+    assert ("Deployment", "whisper") in fleet_resources
+    absent = [("Deployment", n) for n in sorted(BGE_DEPLOYMENTS)] + [
+        ("Service", "llm-gateway-embed"), ("Service", "llm-gateway-rerank"),
+        ("IngressRoute", "llm-gateway-embed"), ("IngressRoute", "llm-gateway-rerank"),
+        ("PersistentVolumeClaim", "bge-embed-models"),
+        ("PersistentVolumeClaim", "bge-rerank-models"),
+        ("NetworkPolicy", "allow-llm-gateway-egress"),
+        ("NetworkPolicy", "allow-website-to-bge-embed-ingress"),
+        ("NetworkPolicy", "allow-website-to-bge-rerank-ingress"),
+    ]
+    present = [key for key in absent if key in fleet_resources]
+    assert not present, f"bge-Ressourcen im mentolder-Build: {present}"
 
 
 def test_gitops_override_can_activate_all_ai_deployments(repo_root, tmp_path):
@@ -95,6 +99,6 @@ def test_gitops_override_can_activate_all_ai_deployments(repo_root, tmp_path):
 
 def test_base_keeps_existing_ai_replica_defaults(repo_root):
     base = render(repo_root / "prod-mentolder")
-    for name in AI_DEPLOYMENTS - {"bge-embed-bulk"}:
+    for name in (AI_DEPLOYMENTS | BGE_DEPLOYMENTS) - {"bge-embed-bulk"}:
         assert base[("Deployment", name)]["spec"]["replicas"] == 1, name
     assert base[("Deployment", "bge-embed-bulk")]["spec"]["replicas"] == 0

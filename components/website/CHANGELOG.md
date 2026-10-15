@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.425.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.2...website-v1.425.0) (2026-10-15)
+
+
+### Features
+
+* **infra:** retain AI services at zero replicas by default ([#6707](https://github.com/Paddione/Bachelorprojekt/issues/6707)) ([2901b10](https://github.com/Paddione/Bachelorprojekt/commit/2901b10d578895ac176bbf06971c4c32de69c447))
+
 ## [1.424.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.1...website-v1.424.2) (2026-10-15)
 
 

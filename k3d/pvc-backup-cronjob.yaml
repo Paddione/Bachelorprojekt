@@ -79,9 +79,11 @@ spec:
                    # wird sie uebersprungen statt den ganzen Lauf (inkl. nextcloud-data)
                    # unter `set -e` abzubrechen.
                    VW_PRESENT=0
-                   kubectl -n "$NS" get pvc vaultwarden-data-pvc >/dev/null 2>&1 && VW_PRESENT=1
+                   # F6: unter `set -e` bricht `cmd && VAR=1` bei fehlender PVC
+                   # den ganzen Lauf ab (T016559-Abbau) — als if formulieren.
+                   if kubectl -n "$NS" get pvc vaultwarden-data-pvc >/dev/null 2>&1; then VW_PRESENT=1; fi
                    VW_SC=""
-                   [ "$VW_PRESENT" = "1" ] && VW_SC=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}')
+                   if [ "$VW_PRESENT" = "1" ]; then VW_SC=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}'); fi
 
                    CLONES=""
                    [ "$VW_SC" = "longhorn" ] && CLONES="$CLONES vaultwarden-data-backup-clone"

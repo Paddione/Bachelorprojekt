@@ -14,7 +14,8 @@ source "${SCRIPT_DIR}/lib/render-subst-list.sh"
 OUT_DIR="out"
 # --only a,b rendert nur die genannten Komponenten (platform, dev, dev-pod, mentolder,
 # korczewski, korczewski-jobs, website-mentolder, website-korczewski, korczewski-auth,
-# staging, website-staging, coturn, sealed-secrets-{mentolder,korczewski,staging}, clusters).
+# staging, website-staging, coturn, office, rustdesk,
+# sealed-secrets-{mentolder,korczewski,staging}, clusters).
 # Leer = alles (Default).
 ONLY=""
 # WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
@@ -416,6 +417,51 @@ if want coturn; then
 )
 fi
 
+# 5e. Office (Collabora, shared dual-brand) — F1/F3: GitOps statt
+#     task fleet:shared-services. COLLABORA_*-Exports 1:1 aus
+#     fleet:shared-services uebernommen (leere SERVER_NAME = eine Instanz
+#     fuer beide Brands, T000478); Zweitbrand-Werte aus fleet-korczewski.
+if want office; then
+(
+  set +u
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
+  export COLLABORA_HOST="office.${PROD_DOMAIN}"
+  export COLLABORA_SERVER_NAME=""
+  # Doppel-Backslash: kustomize serialisiert mit Doppelquotes — `\\.` ist dort
+  # der einzige valide Escape und landet im Pod als `\.` (coolwsd-Regex).
+  export COLLABORA_ALIASGROUP1="https://files\\\\.${PROD_DOMAIN}:443"
+  export COLLABORA_SSL_TERMINATION="true"
+  export COLLABORA_TLS_SECRET="workspace-wildcard-tls"
+  export COLLABORA_INGRESS_MIDDLEWARES="workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
+  # Zweitbrand (korczewski) ueber Temp-Datei statt Command-Substitution —
+  # env-resolve darf kein stdout in die Variable spuelen (Muster aus
+  # fleet:shared-services).
+  # T004041: Caller-set vars win — ohne unset kaeme hier mentolder erneut raus.
+  ( unset PROD_DOMAIN; source scripts/env-resolve.sh fleet-korczewski 2>/dev/null; echo "office.${PROD_DOMAIN}|https://files\\\\.${PROD_DOMAIN}:443" ) > "${OUT_DIR}/.kore_collabora.txt"
+  export COLLABORA_HOST_2="$(cut -d'|' -f1 "${OUT_DIR}/.kore_collabora.txt")"
+  export COLLABORA_ALIASGROUP2="$(cut -d'|' -f2 "${OUT_DIR}/.kore_collabora.txt")"
+  rm -f "${OUT_DIR}/.kore_collabora.txt"
+  export COLLABORA_TLS_SECRET_2="korczewski-tls"
+  export COLLABORA_INGRESS_MIDDLEWARES_2="workspace-korczewski-redirect-https@kubernetescrd,workspace-korczewski-hsts-headers@kubernetescrd"
+  mkdir -p "${OUT_DIR}/office"
+  render_component prod-fleet/office "${OUT_DIR}/office/office.yaml"
+)
+fi
+
+# 5f. RustDesk-Relay (hbbs/hbbr, shared) — F2/F4: GitOps statt
+#     task rustdesk:deploy. Nur ${TURN_NODE} wird substituiert (Muster aus
+#     fleet:shared-services); always-on, ohne On-demand-Sleeper (T015170).
+if want rustdesk; then
+(
+  set +u
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
+  mkdir -p "${OUT_DIR}/rustdesk"
+  render_component prod-fleet/rustdesk "${OUT_DIR}/rustdesk/rustdesk.yaml"
+)
+fi
+
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
 # Nested per-brand: both files carry a SealedSecret for the shared
 # grafana-oidc secret (namespace monitoring), so a single flat kustomize
@@ -449,7 +495,7 @@ fi
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn" "${OUT_DIR}/office" "${OUT_DIR}/rustdesk"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

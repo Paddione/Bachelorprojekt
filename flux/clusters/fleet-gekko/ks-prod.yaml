@@ -53,3 +53,48 @@ spec:
   path: ./coturn
   prune: true
   wait: true
+---
+# F1/F3: Shared Collabora office-stack (beide Brands, eine Instanz) aus dem
+# gerenderten OCI-Artefakt. Secrets aus ./sealed-secrets/mentolder (Adopt
+# via managed:true) bzw. tls-sync-CronJob — kein Secret im Repo.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-office
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  dependsOn:
+    - name: flux-infra-controllers
+    - name: flux-sealed-secrets-mentolder
+  sourceRef:
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./office
+  prune: true
+  wait: true
+---
+# F2/F4: Shared RustDesk-Relay (hbbs/hbbr) aus dem gerenderten OCI-Artefakt.
+# Always-on (replicas: 1) — ersetzt den On-demand-Sleeper (T015170) auf Fleet:
+# Flux wuerde ein imperatives Scale-to-0 zuruecknehmen. Secrets aus
+# ./sealed-secrets/mentolder (Adopt via managed:true).
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-rustdesk
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  dependsOn:
+    - name: flux-infra-controllers
+    - name: flux-sealed-secrets-mentolder
+  sourceRef:
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./rustdesk
+  prune: true
+  wait: true

@@ -423,14 +423,17 @@ tasks:
         # Empty server_name → coolwsd auto-derives the WOPI discovery urlsrc hostname
         # from the request Host header, making a single Collabora instance serve both brands.
         export COLLABORA_SERVER_NAME=""
-        export COLLABORA_ALIASGROUP1="https://files\\.${PROD_DOMAIN}:443"
+        # Doppel-Backslash: kustomize serialisiert mit Doppelquotes — `\\.` ist dort
+        # der einzige valide Escape und landet im Pod als `\.` (coolwsd-Regex).
+        export COLLABORA_ALIASGROUP1="https://files\\\\.${PROD_DOMAIN}:443"
         export COLLABORA_SSL_TERMINATION="true"
         export COLLABORA_TLS_SECRET="workspace-wildcard-tls"
         export COLLABORA_INGRESS_MIDDLEWARES="workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
         # Capture mentolder TURN vars BEFORE re-sourcing korczewski.
         MENTOLDER_TURN_NODE="$TURN_NODE"; MENTOLDER_TURN_PUBLIC_IP="${TURN_PUBLIC_IP}"
         MENTOLDER_TLS_SECRET_NAME="${TLS_SECRET_NAME:-workspace-tls}"; MENTOLDER_PROD_DOMAIN="$PROD_DOMAIN"
-        ( source scripts/env-resolve.sh fleet-korczewski; echo "office.${PROD_DOMAIN}|https://files\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
+        # T004041: Caller-set vars win — ohne unset kaeme hier die Mentolder-Domain erneut raus.
+        ( unset PROD_DOMAIN; source scripts/env-resolve.sh fleet-korczewski; echo "office.${PROD_DOMAIN}|https://files\\\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
         export COLLABORA_HOST_2="$(cut -d'|' -f1 /tmp/_kore_collabora.txt)"
         export COLLABORA_ALIASGROUP2="$(cut -d'|' -f2 /tmp/_kore_collabora.txt)"
         export COLLABORA_TLS_SECRET_2="korczewski-tls"

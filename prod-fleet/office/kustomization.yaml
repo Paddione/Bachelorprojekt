@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Shared Collabora office-stack for the fleet cluster (F1/F3: GitOps statt
+# imperativ). Rendert die primaere Brand (mentolder) aus k3d/office-stack
+# plus die Zweitbrand-Ingress (korczewski) — eine Collabora-Instanz fuer
+# beide Brands (leere COLLABORA_SERVER_NAME, T000478). Die Secrets
+# (collabora-secrets, ghcr-pull-secret) kommen aus dem SealedSecrets-Pfad
+# (./sealed-secrets/mentolder) bzw. dem tls-sync-CronJob, nicht aus dem Repo.
+resources:
+  - ../../k3d/office-stack
+  - ../../k3d/office-stack/ingress-korczewski.yaml

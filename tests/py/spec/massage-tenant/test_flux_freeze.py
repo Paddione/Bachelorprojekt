@@ -1,7 +1,8 @@
 """Massage-Tenant (T901440): Flux-Topologie + Freeze-Garantie.
 
-flux-korczewski und flux-jobs-korczewski bleiben suspendiert (T002479);
-flux-website-korczewski und flux-korczewski-auth sind aktiv.
+flux-korczewski und flux-jobs-korczewski bleiben suspendiert (T002479).
+flux-website-korczewski und flux-korczewski-auth sind ebenfalls suspendiert:
+massage wird nur lokal auf devmesh entwickelt, kein Prod-Go-live.
 Doku-Freeze-Formel aus p4 wird hier dauerhaft geprueft.
 """
 from pathlib import Path
@@ -31,13 +32,13 @@ def test_frozen_kustomizations_stay_suspended(repo_root: Path):
         )
 
 
-def test_thawed_kustomizations_are_active(repo_root: Path):
+def test_website_kustomizations_stay_suspended(repo_root: Path):
     docs = _flux_docs(repo_root)
     website = docs.get("flux-website-korczewski")
     assert website is not None, "flux-website-korczewski fehlt"
     _, website_doc = website
-    assert website_doc.get("spec", {}).get("suspend") in (False, None), (
-        "flux-website-korczewski muss aufgetaut sein"
+    assert website_doc.get("spec", {}).get("suspend") is True, (
+        "flux-website-korczewski darf nicht live gehen (massage nur auf devmesh)"
     )
     assert website_doc.get("spec", {}).get("path") == "./website-korczewski"
     assert website_doc.get("spec", {}).get("wait") is True
@@ -45,8 +46,8 @@ def test_thawed_kustomizations_are_active(repo_root: Path):
     auth = docs.get("flux-korczewski-auth")
     assert auth is not None, "flux-korczewski-auth fehlt"
     _, auth_doc = auth
-    assert auth_doc.get("spec", {}).get("suspend") in (False, None), (
-        "flux-korczewski-auth muss aktiv sein"
+    assert auth_doc.get("spec", {}).get("suspend") is True, (
+        "flux-korczewski-auth darf nicht live gehen (massage nur auf devmesh)"
     )
     assert auth_doc.get("spec", {}).get("path") == "./korczewski-auth"
     assert auth_doc.get("spec", {}).get("wait") is False
@@ -95,7 +96,7 @@ def test_website_apex_ingress_no_frozen_backend(repo_root: Path):
 
 
 def test_freeze_wording_in_docs(repo_root: Path):
-    formula = "für Go-live vorbereitet durch T901440"
+    formula = "massage nur lokal auf devmesh"
     for rel in (
         "AGENTS.md",
         "CLAUDE.md",

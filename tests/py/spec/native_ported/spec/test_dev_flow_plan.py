@@ -302,20 +302,21 @@ def test_t002272_m1_ticket_sh_has_a_release_hold_subcommand(repo_root):
     assert count != 0
 
 
-def test_t002272_m1_dev_flow_plan_skill_md_and_ticket_stage_procedure_md_reference_stage_plan_hold(
-    repo_root,
-):
-    files = [
-        repo_root / ".claude/skills/dev-flow-plan/SKILL.md",
-        repo_root / ".claude/skills/references/ticket-stage-procedure.md",
-    ]
-    assert any(
-        re.search(r"stage-plan.*--hold", line) for path in files for line in _lines(path)
-    )
+def test_dev_flow_plan_skill_claimt_den_branch_und_stagt_ohne_ticket_db(repo_root):
+    # Positiv-Anker: Branch-Claim und Pre-Commit-Guard stehen im Skill; Negativ: kein stage-plan.
+    text = _read(repo_root / ".claude/skills/dev-flow-plan/SKILL.md")
+    assert "agent-lock.sh claim branch" in text
+    assert "plan-preflight.sh pre-commit" in text
+    assert "stage-plan" not in text
+    assert "ticket.sh" not in text
 
 
-def test_t002272_m1_dev_flow_execute_skill_md_calls_release_hold(repo_root):
-    assert "release-hold" in _read(repo_root / ".agents/skills/dev-flow-execute/SKILL.md")
+def test_dev_flow_execute_skill_leitet_plan_aus_dem_branch_ab_ohne_ticket_db(repo_root):
+    text = _read(repo_root / ".agents/skills/dev-flow-execute/SKILL.md")
+    assert '.agents/plans/$SLUG/tasks.md' in text
+    assert "release-hold" not in text
+    assert "assert-phase-chain" not in text
+    assert "ticket.sh" not in text
 
 
 # ── [T002375-p2] Worktree-Schreibschutz als blockierender PreToolUse-Hook ──

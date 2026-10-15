@@ -171,9 +171,9 @@ gh pr checks "$PR_NUM" --watch
 Bei roten Checks: Logs aus dem Skript-Output an einen `sonnet`-Subagenten (Fix-Routine: Freshness → TS → pytest → Kustomize → Commitlint), nach dem Push Loop wiederholen.
 Meldet `gh pr view "$PR_NUM" --json mergeStateStatus` `DIRTY` oder `CONFLICTING`, rebased der Implementer gegen `origin/main` (T001408, T001415) — der **Orchestrator gibt den Konflikt per `SendMessage` an den bereits gespawnten Implementer zurück** (kein neuer Spawn — Doppel-Push-Risiko aus T001408) und startet die Schleife nach dessen Push erneut.
 
-## Schritt 6: Merge-Wait & Cleanup
+## Schritte 6.4–7.5 — Merge-Wait & Cleanup
 
-Zuständig ist der Finalizer aus Schritt 3.9. `gh pr merge --auto` kehrt sofort zurück; erst den
+Zuständig ist der Finalizer, den Schritt 3.9 als frischen Subagenten spawnt (Härtung T006284). `gh pr merge --auto` kehrt sofort zurück; erst den
 Merge abwarten ([ci-fix-loop](.agents/skills/references/ci-fix-loop.md) §"PR-Merge-Wait-Loop",
 T001149-M1), dann aufräumen (`git-workflow` Schritt 7). `E2E PR` ist kein required check (T000722).
 Befehlsfolgen: [dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md).

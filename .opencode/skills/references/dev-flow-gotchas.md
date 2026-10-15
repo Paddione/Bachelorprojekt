@@ -94,10 +94,6 @@ commit is about one specific goal ID, use that goal ID itself as the scope (e.g.
 generic `health` scope for this — `goals` already owns the domain and splitting it would only
 create ambiguity about which of the two to use for future health-goal work.
 
-### [T000344] Database row check before file deletion
-**Context**: Deleting plan markdown file before verifying database storage.
-**Rule**: Always verify that the plan exists in `tickets.ticket_plans` by checking that the row count is greater than 0 before running `rm` on the plan file.
-
 ### [T000388] tickets.ticket_plans Query Timeout
 **Context**: Querying the `tickets.ticket_plans` table over `kubectl exec`.
 **Rule**: Never run `SELECT *` or query the `content` column on the entire `tickets.ticket_plans` table. The `content` column contains large markdown plan files which will cause connection timeouts over the `kubectl exec` tunnel. Always query metadata columns (such as `id`, `ticket_id`, `slug`, `branch`, `pr_number`, `archived_at`) or filter explicitly by a specific `ticket_id` or `slug`.
@@ -125,10 +121,6 @@ Use the correct project name in `playwright.config.ts` depending on the targeted
 **Context**: Nach der sdlc/-Verschiebung (T002624) waren Testpfade in `tests/` nicht nachgezogen. Das kam über DREI CI-Runden einzeln hoch (dashboard.bats; dann G-CQ02 in zwei Kopien; dann pipeline-interface/plan-pgvector/brain-link-derivation), weil jeweils nur der gemeldete Fehler behoben wurde — statt einmal die Gesamtliste zu erheben. Ein Teil zeigte sogar auf eine ZWISCHENFORM der Verschiebung (`components/website/src/sdlc/components/`), die nie existierte.
 **Rule**: Bei einer Massenverschiebung VOR dem ersten Commit systematisch alle Referenzen auf die alten Pfade suchen (git grep über den ganzen Baum, inkl. tests/), NICHT CI-Runde für CI-Runde die gemeldeten Fehler abarbeiten. Erwartete Fehlerliste einmal vollständig erheben und abhaken.
 
-
-### [T002673] stage-plan läuft NACH dem Commit, nicht davor
-**Context**: `stage-plan` liest die Plandatei über `git cat-file -p "${branch}:${plan}"` aus dem **Branch-Commit**, nicht aus dem Arbeitsbaum (`scripts/vda/ticket/stage-plan.sh`). Wird es vor dem Commit aufgerufen, steht dort noch das `propose`-Skeleton; die `touched_files`-Ableitung meldet dann `keine Pfade ableitbar` und lässt die Spalte leer — ohne dass es auffällt, weil die Meldung nur auf stderr steht und der Stage trotzdem Erfolg meldet. Die Ableitung selbst funktioniert (`scripts/plan-touched-files.sh` liefert gegen die reale Datei die vollständige Liste).
-**Rule**: In dev-flow-plan Schritt 4.5 nur Ticket anlegen und claimen (der Claim muss vor dem Pre-Commit-Guard liegen), `stage-plan` erst in Schritt 5 nach `git commit`/`git push`. `stage-plan` ist idempotent und vereinigt `touched_files` in SQL — ein späterer Zweitaufruf ist unschädlich, die richtige Reihenfolge erspart ihn nur.
 
 ### [T002820] Externe Abhängigkeiten schon in der Rotphase absichern
 **Context**: Setzt ein failing Test ein externes Binary oder einen externen Dienst voraus (Drittanbieter-CLI, erreichbarer Cluster, laufende DB), ist er in CI ohne Guard dauerhaft rot und misst die Ausstattung des Runners statt den Zustand des Codes. Damit ist der Zweck der Rotphase zerstört: „rot, weil Implementierung fehlt" und „rot, weil das Binary fehlt" sind in der CI-Ausgabe nicht zu unterscheiden.

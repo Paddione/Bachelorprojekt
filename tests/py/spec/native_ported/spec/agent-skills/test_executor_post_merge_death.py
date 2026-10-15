@@ -39,8 +39,10 @@ def test_t006284_post_merge_abschnitt_weist_die_finalisierung_als_finalizer_dele
     assert "frischen" in section
 
 
-def test_t006284_skill_referenziert_scripts_devflow_post_merge_finalize_sh(repo_root):
-    assert "devflow-post-merge-finalize.sh" in _skill(repo_root).read_text(encoding="utf-8")
+def test_t006284_skill_raeumt_branch_scoped_auf_ohne_ticket_finalize(repo_root):
+    text = _skill(repo_root).read_text(encoding="utf-8")
+    assert "agent-lock.sh release branch" in text
+    assert "devflow-post-merge-finalize.sh" not in text
 
 
 def test_t006284_finalize_skript_existiert_und_help_endet_mit_exit_0(run_cmd, repo_root):

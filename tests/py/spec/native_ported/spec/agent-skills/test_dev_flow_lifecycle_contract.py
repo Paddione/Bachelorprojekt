@@ -31,14 +31,15 @@ def test_lifecycle_contract_declares_all_four_transitions_and_e2e_specialization
     assert "test-only Chore" in text
 
 
-def test_execute_orders_merge_gate_phase_chain_merge_then_finalizer(repo_root):
+def test_execute_orders_merge_gate_merge_then_finalizer(repo_root):
     lines = _exec_skill(repo_root).read_text(encoding="utf-8").splitlines()
     gate = _first_line(lines, lambda l: "Merge-Gate" in l and re.match(r"## Schritt 3.8", l))
-    phase = _first_line(lines, lambda l: "assert-phase-chain" in l)
     merge = _first_line(lines, lambda l: "gh pr merge --auto" in l)
     finalizer = _first_line(lines, lambda l: "frischen Finalizer" in l or "fresh Finalizer" in l)
-    assert gate and phase and merge and finalizer
-    assert gate < phase < merge < finalizer
+    assert gate and merge and finalizer
+    assert gate < merge < finalizer
+    # Ohne Ticket-DB entfaellt der Phase-Chain-Assert vor dem Merge.
+    assert not any("assert-phase-chain" in l for l in lines)
 
 
 def test_contract_keeps_exception_loop_active_until_merged_and_re_enters_gates(repo_root):

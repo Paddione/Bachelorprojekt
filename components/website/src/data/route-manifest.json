@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 117,
+  "count": 118,
   "routes": [
     {
       "route": "/",
@@ -907,6 +907,14 @@
     },
     {
       "route": "/sdlc/cockpit",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/cockpit-live",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

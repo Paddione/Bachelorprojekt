@@ -1,11 +1,13 @@
 # KI-Dienste standardmäßig deaktivieren und gezielt aktivieren
 
-Fleet-Mentolder hält `whisper`, `talk-transcriber`, `talk-recording`, `bge-embed`,
-`bge-embed-bulk` und `bge-rerank` mit `replicas: 0` vor. Es laufen keine Pods
-dieser Deployments. Services, NetworkPolicies und Modell-PVCs bleiben vorhanden;
-PVCs können auch bei null Replikas weiterhin Speicher belegen. Ohne Pods sind
-die internen Dienste nicht verfügbar und Talk-Transkriptionen werden nicht verarbeitet.
-Die externen `llm-gateway`-IngressRoutes bleiben entfernt.
+Fleet-Mentolder hält `whisper`, `talk-transcriber` und `talk-recording` mit
+`replicas: 0` vor. Es laufen keine Pods dieser Deployments; Services und
+NetworkPolicies bleiben vorhanden. Ohne Pods werden Talk-Transkriptionen nicht
+verarbeitet.
+
+`bge-embed`, `bge-embed-bulk` und `bge-rerank` laufen nicht auf mentolder, nur
+auf devmesh. Das Fleet-Overlay entfernt sie samt `llm-gateway`-Services und
+-IngressRoutes, zugehörigen NetworkPolicies und Modell-PVCs.
 
 ## Aktivierung über GitOps
 
@@ -21,10 +23,9 @@ Wenn Aufzeichnungen benötigt werden, zusätzlich `talk-recording` aktivieren.
 Vor `count: 1` die vorhandene Nextcloud-/Bot-Konfiguration und die benötigten
 Secret-Keys prüfen, ohne Secret-Werte auszugeben. Die bestehenden Website- und
 Secret-Abhängigkeiten gelten weiterhin.
-BGE-Pools nach Bedarf einzeln aktivieren. Beim ersten Start entstehen Kaltstarts
-für Image-Pulls, Modell-Downloads und das Laden der Modelle; der Dienst ist erst
-nach erfolgreicher Readiness verfügbar. Vorhandene Images, Secrets und
-Scheduling-Vorgaben bleiben unverändert.
+Beim ersten Start entstehen Kaltstarts für Image-Pulls und das Laden der
+Modelle; der Dienst ist erst nach erfolgreicher Readiness verfügbar. Vorhandene
+Images, Secrets und Scheduling-Vorgaben bleiben unverändert.
 
 ## Abschaltung und Grenzen
 
@@ -34,9 +35,7 @@ keine aktive Verarbeitung unterbricht. Manuelles `kubectl scale` ist nicht
 dauerhaft: Flux stellt den in Git definierten Zustand wieder her.
 
 Zugesichert ist das Umschalten **0 auf 1**. Beliebige horizontale Replikation
-braucht zusätzliche Architekturarbeit: Modell-PVCs mit ReadWriteOnce und
-local-path-Speicher begrenzen die Platzierung, Talk-Prozesse besitzen lokalen
-Zustand. Counts größer als 1 sind deshalb kein unterstützter Betriebsvertrag.
+braucht zusätzliche Architekturarbeit: Talk-Prozesse besitzen lokalen Zustand. Counts größer als 1 sind deshalb kein unterstützter Betriebsvertrag.
 
 Die Änderung betrifft ausschließlich Fleet-Mentolder. Devmesh bleibt unverändert;
 der eingefrorene Korczewski-Workspace darf nicht aktiviert oder hochskaliert werden.

@@ -69,10 +69,21 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
     assert base, "base overlay produced no resources"
     assert union, "consumer overlays produced no resources"
 
-    # Externe KI-Routen bleiben entfernt; interne Dienste sind bei null Replikas vorhanden.
+    # Externe KI-Routen bleiben entfernt; bge-* laufen nur auf devmesh.
+    # Talk-KI-Dienste sind bei null Replikas vorhanden.
     intentionally_removed = {
         ('IngressRoute', 'llm-gateway-embed'),
         ('IngressRoute', 'llm-gateway-rerank'),
+        ('Deployment', 'bge-embed'),
+        ('Deployment', 'bge-embed-bulk'),
+        ('Deployment', 'bge-rerank'),
+        ('Service', 'llm-gateway-embed'),
+        ('Service', 'llm-gateway-rerank'),
+        ('NetworkPolicy', 'allow-llm-gateway-egress'),
+        ('NetworkPolicy', 'allow-website-to-bge-embed-ingress'),
+        ('NetworkPolicy', 'allow-website-to-bge-rerank-ingress'),
+        ('PersistentVolumeClaim', 'bge-embed-models'),
+        ('PersistentVolumeClaim', 'bge-rerank-models'),
         # T016560: Knowledge-Ingest-CronJobs laufen nur noch in Dev (devmesh).
         ('CronJob', 'knowledge-ingest-prs'),
         ('CronJob', 'knowledge-ingest-markdown'),

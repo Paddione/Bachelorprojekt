@@ -242,12 +242,6 @@ def test_t002240_pre_push_empty_branch_guard_is_bypassable_and_documented(paths)
 
 # ── T002240 M3: mishap-tracker slug vs. pre-commit branch-name regex ─────────
 
-def test_t002240_pre_commit_branch_check_is_case_sensitive_on_the_ticket_id(paths):
-    assert "T[0-9]{6,}" in _text(paths["pre_commit"])
-    assert not re.search(r"T[0-9]{6,}", "chore/mishap-t002239")
-    assert re.search(r"T[0-9]{6,}", "chore/mishap-T002239")
-
-
 def test_t002240_mishap_tracker_never_derives_branch_name_from_lowercased_slug(paths):
     assert paths["mishap_skill"].is_file()
     assert "chore/$slug" not in _text(paths["mishap_skill"])

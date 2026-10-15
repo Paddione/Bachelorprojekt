@@ -13,7 +13,6 @@ SYMLINKS = [
     ("scripts/git-crypt-guard.sh", "scripts/git-crypt-guard.sh"),
     ("scripts/plan-half-archive-check.sh", "scripts/plan-half-archive-check.sh"),
     ("scripts/plan-main-staging-guard.sh", "scripts/plan-main-staging-guard.sh"),
-    ("scripts/lib/branch-allowlist.sh", "scripts/lib/branch-allowlist.sh"),
     (".gitleaks.toml", ".gitleaks.toml"),
     ("scripts/agent-lock-identity.sh", "scripts/agent-lock-identity.sh"),
     ("scripts/agent-lock-guards.sh", "scripts/agent-lock-guards.sh"),
@@ -85,4 +84,12 @@ def test_test_2_branch_feat_batch_demo_T003123_status_0(run_cmd, fixture_repo):
     if result.returncode != 0:
         print(f"DEBUG: status is {result.returncode}")
         print(f"DEBUG: output is: {result.output}")
+    assert result.returncode == 0, result.output
+
+
+def test_test_3_ticketloser_chore_branch_status_0(run_cmd, fixture_repo):
+    # Positiv-Anker fuer den Wegfall der Ticket-ID-Pflicht: Typ-Praefix genuegt.
+    _git(run_cmd, fixture_repo, "checkout", "-b", "chore/ohne-ticket")
+    result = run_cmd(["bash", str(fixture_repo / ".githooks/pre-commit")],
+                     cwd=fixture_repo, env=_hook_env(fixture_repo))
     assert result.returncode == 0, result.output

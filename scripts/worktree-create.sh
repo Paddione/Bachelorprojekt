@@ -37,15 +37,13 @@ set -euo pipefail
 if [[ "${1:-}" == "--help" ]]; then
   cat <<'HELP'
 Usage: scripts/worktree-create.sh [--unattended] [--no-main-sync] <branch> <path> [<base>]
-  --unattended    Skips main-checkout and ticket-ID guards for allowlisted
-                  branches. The allowlist lives in scripts/lib/branch-allowlist.sh
-                  (shared with the pre-commit and pre-push hooks).
-                  WT_SKIP_NAME_CHECK remains available as emergency bypass for any
-                  branch.
+  --unattended    Skips the main-checkout guard (run from any branch).
+                  WT_SKIP_NAME_CHECK remains available as emergency bypass for the
+                  branch-name guard.
   --no-main-sync  Skips synchronizing local main to origin/main when behind
                   (can also be enabled via DEVFLOW_NO_MAIN_SYNC=1).
   <branch>        branch name, e.g. fix/foo
-  <path>          worktree path, e.g. .worktrees/foo
+  <path>          worktree path, e.g. ~/.worktrees/Bachelorprojekt/fix/foo
   <base>          base ref for NEW branch (default: origin/main)
 HELP
   exit 0
@@ -62,13 +60,7 @@ if [[ "${1:-}" == "--no-main-sync" ]]; then
 fi
 
 # ── --unattended (T002783) ─────────────────────────────────────────────────
-# Die Allowlist selbst steht in scripts/lib/branch-allowlist.sh — derselben Quelle,
-# die .githooks/pre-commit und .githooks/pre-push lesen [T002817]. Bedingt sourcen:
-# fehlt die Datei, bleibt branch_is_ticketless undefiniert und der Guard laesst nichts
-# durch, was er vorher blockiert haette.
 _unattended=false
-[ -f "$(dirname "${BASH_SOURCE[0]}")/lib/branch-allowlist.sh" ] \
-  && . "$(dirname "${BASH_SOURCE[0]}")/lib/branch-allowlist.sh"
 if [[ "${1:-}" == "--unattended" ]]; then
   _unattended=true
   shift
@@ -98,95 +90,46 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
     echo "       Entweder:  git checkout main" >&2
     echo "       Oder:      scripts/worktree-create.sh --unattended <branch> <pfad>" >&2
     echo "                  (--unattended als ERSTES Argument; ueberspringt diesen" >&2
-    echo "                   Guard und die Ticket-ID-Pruefung fuer allowlistete" >&2
-    echo "                   Branches. Die git-crypt-Mechanik bleibt unangetastet.)" >&2
+    echo "                   Guard. Die git-crypt-Mechanik bleibt unangetastet.)" >&2
     exit 1
   fi
 fi
 
 # --- branch-name guard: fail fast before divergence guard [T002470] ---
 #
-# Background: T002240 (same bug, zuvor nur an einer Stelle gefixt),
-# T002409 Mishap 2 (repeat with feat/), and measured 2026-07-29:
-# 4 of 13 active worktrees had non-conforming branches.
-#
-# Die Ausnahmeliste fuer ticketlose Branches kommt aus scripts/lib/branch-allowlist.sh
-# [T002817]. Bis dahin fuehrte dieses Skript sie selbst — und lief gegen .githooks/pre-commit
-# auseinander: chore/mishap-incident-rollup war anlegbar, aber nicht committebar. Die frueher
-# hier genannten drift-tests verglichen die statischen Muster, nicht diese Allowlist, und
-# konnten den Drift deshalb nicht sehen.
-#
-# Die uebrigen Muster (Typ-Praefixe, Exemptions) sind weiterhin literale Kopien aus
-# .githooks/pre-commit.
+# Verlangt nur noch ein gueltiges Typ-Praefix. Die Ticket-ID-Pflicht ist mit dem
+# Ticket-DB entfallen; die Typ-Praefixe sind eine literale Kopie aus .githooks/pre-commit.
 if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
   _bn="${1:-}"
-  if [ -n "$_bn" ]; then
-    # T002783: --unattended schaltet die Allowlist frei. Nur exakt gelistete Branches,
-    # kein Wildcard-Muster. Der Emergency-Bypass WT_SKIP_NAME_CHECK bleibt bestehen.
-    if $_unattended && command -v branch_is_ticketless >/dev/null 2>&1; then
-      branch_is_ticketless "$_bn" && _bn=""
-    fi
-    case "$_bn" in
-      main|develop|master|release-please--*|dependabot/*|renovate/*|"") ;;
-      *)
-        _has_ticket=0
-        _has_type=0
-        [[ "$_bn" =~ ^feature/|^fix/|^chore/|^docs/ ]] && _has_type=1
-        [[ "$_bn" =~ T[0-9]{6,} ]] && _has_ticket=1
-        if [ "$_has_type" -eq 0 ] || [ "$_has_ticket" -eq 0 ]; then
-          echo "✗  worktree-create: branch '$_bn' does not follow naming convention." >&2
-          echo "" >&2
-          [ "$_has_type" -eq 0 ] && \
-            echo "  ✗ kein gueltiges Typ-Praefix. Erlaubt: feature/ fix/ chore/ docs/" >&2
-          if [ "$_has_ticket" -eq 0 ]; then
-            _found_lower=""
-            [[ "$_bn" =~ t([0-9]{6,}) ]] && _found_lower="${BASH_REMATCH[1]}"
-            echo "  ✗ keine Ticket-ID (T[0-9]{6,}) gefunden. Muss GROSS sein${_found_lower:+ — t$_found_lower → T$_found_lower}." >&2
-          fi
-          echo "" >&2
-          echo "  Required: type/<slug>-T000XXX" >&2
-          echo "  Examples:" >&2
-          echo "    feature/flux-gaps-brainless-T002093" >&2
-          echo "    fix/pocket-id-retry-T001234" >&2
-          echo "    chore/deps-bump-T001500" >&2
-          # Build suggested correction (lowercase ticket ID + Typ-Praefix-Abbildung)
-          _suggested="$_bn"
-          _suggested_changed=0
-          # Typ-Praefix-Abbildung [T002811]: gaengige Ticket-Typ-Praefixe, die NICHT in
-          # der Allowlist stehen, auf ihr konformes Gegenstueck abbilden.
-          #
-          # Die Allowlist bleibt bewusst bei vier Praefixen — hier wird nur die konforme
-          # Alternative GENANNT, nicht eine fuenfte zugelassen. Der Unterschied ist der
-          # Punkt des Vorgangs: bei T002627 wurde refactor/sdlc-routes-remove-T002627
-          # abgelehnt, woraufhin der Operator geraten auf feature/ auswich — also auf ein
-          # Praefix, das den Vorgang falsch einordnet. Eine breitere Allowlist liefe zudem
-          # am commit-msg-Hook auseinander, dessen Scope-Liste 'refactor' ebenfalls nicht
-          # kennt.
-          case "$_suggested" in
-            feat/*)     _suggested="feature/${_suggested#feat/}"   ; _suggested_changed=1 ;;
-            refactor/*) _suggested="chore/${_suggested#refactor/}" ; _suggested_changed=1 ;;
-            perf/*)     _suggested="chore/${_suggested#perf/}"     ; _suggested_changed=1 ;;
-            bug/*)      _suggested="fix/${_suggested#bug/}"        ; _suggested_changed=1 ;;
-          esac
-          if [[ "$_suggested" =~ (.*)t([0-9]{6,})(.*) ]]; then
-            _suggested="${BASH_REMATCH[1]}T${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
-            _suggested_changed=1
-          fi
-          if [ "$_suggested_changed" -eq 1 ]; then
-            echo "" >&2
-            echo "  Suggested: $_suggested" >&2
-          fi
-          echo "" >&2
-          echo "  Why: ticket ID links WIP to its ticket and subsequent PR." >&2
-          echo "  To bypass (emergency only): WT_SKIP_NAME_CHECK=1 bash $0 ..." >&2
-          exit 1
-        fi
-        ;;
-    esac
-  fi
+  case "$_bn" in
+    main|develop|master|release-please--*|dependabot/*|renovate/*|"") ;;
+    feature/*|fix/*|chore/*|docs/*) ;;
+    *)
+      echo "✗  worktree-create: branch '$_bn' does not follow naming convention." >&2
+      echo "" >&2
+      echo "  ✗ kein gueltiges Typ-Praefix. Erlaubt: feature/ fix/ chore/ docs/" >&2
+      # Typ-Praefix-Abbildung [T002811]: gaengige Praefixe, die NICHT erlaubt sind, auf
+      # ihr konformes Gegenstueck abbilden. Die Allowlist bleibt bei vier Praefixen.
+      _suggested=""
+      case "$_bn" in
+        feat/*)     _suggested="feature/${_bn#feat/}" ;;
+        refactor/*) _suggested="chore/${_bn#refactor/}" ;;
+        perf/*)     _suggested="chore/${_bn#perf/}" ;;
+        bug/*)      _suggested="fix/${_bn#bug/}" ;;
+      esac
+      if [ -n "$_suggested" ]; then
+        echo "" >&2
+        echo "  Suggested: $_suggested" >&2
+      fi
+      echo "" >&2
+      echo "  Required: type/<slug>, e.g. fix/pocket-id-retry" >&2
+      echo "  To bypass (emergency only): WT_SKIP_NAME_CHECK=1 bash $0 ..." >&2
+      exit 1
+      ;;
+  esac
 fi
 
-# [T002673] Spielt den Auto-Stash zurueck. Scheitert der Pop, wird das LAUT
+# [T002673] Spielt den Auto-Stash zurueck
 # gemeldet statt verschluckt — die uncommitteten Aenderungen des Aufrufers liegen
 # dann noch im Stash, und ohne Hinweis haelt er sie fuer wiederhergestellt.
 # Rueckgabe immer 0: der Worktree ist trotzdem nutzbar, und ein Abbruch waere
@@ -276,18 +219,17 @@ BRANCH="${1:?Usage: worktree-create.sh <branch> <path> [<base>]}"
 WT_PATH="${2:?Usage: worktree-create.sh <branch> <path> [<base>]}"
 BASE="${3:-origin/main}"
 
-# T001936: Enforce .worktrees/ path for feature/fix branches.
-# CLAUDE.local.md / Memory previously recommended tmp/ paths which conflict with
-# preflight-pr-scope.sh (lines 63-68). Auto-redirect non-conformant paths instead
-# of letting the PR flow fail with FATAL.
+# T001936: Enforce a worktrees/ path for feature/fix branches. Agent-Worktrees liegen
+# unter ${AGENT_WORKTREE_ROOT:-~/.worktrees}/<repo>/<branch> (globaler Agent-Guard);
+# nicht konforme Pfade werden dorthin umgeleitet statt spaeter im PR-Flow zu scheitern.
 # Skip in test mode (WT_PATH under /tmp or $TMP) — BATS tests create ephemeral
 # worktrees in temp dirs which are expected to be outside .worktrees/.
 if [[ "$BRANCH" =~ ^(feature|fix)/ ]] && [[ "$WT_PATH" != /tmp/* ]] && [[ "$WT_PATH" != "${TMP:-/nonexistent}"/* ]]; then
   ABS_WT="$(cd "$(dirname "$WT_PATH")" 2>/dev/null && pwd)/$(basename "$WT_PATH")" 2>/dev/null || ABS_WT="$WT_PATH"
   if [[ "$ABS_WT" != *"/worktrees/"* ]] && [[ "$ABS_WT" != *"/.worktrees/"* ]]; then
-    _wt_name="$(basename "$WT_PATH")"
-    WT_PATH=".worktrees/$_wt_name"
-    echo "worktree-create: T001936 — auto-redirected path to $WT_PATH (feature/fix branches require .worktrees/)" >&2
+    _repo_name="$(basename "$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd)")")"
+    WT_PATH="${AGENT_WORKTREE_ROOT:-$HOME/.worktrees}/$_repo_name/$BRANCH"
+    echo "worktree-create: T001936 — auto-redirected path to $WT_PATH (feature/fix branches require a worktrees/ path)" >&2
   fi
 fi
 

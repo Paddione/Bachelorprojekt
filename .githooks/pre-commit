@@ -159,60 +159,25 @@ if [ "${FRESHNESS_HOOK_DISABLED:-0}" != "1" ]; then
   fi
 fi
 
-# --- branch-naming: enforce type/slug-T000XXX convention [T002093] ---
-# Every feature/fix/chore branch must:
-#   1. Start with a valid type prefix: feature/, fix/, chore/, docs/
-#   2. Contain a ticket ID (T000XXX) to prevent WIP separation from its ticket
-# Format: type/<optional-scope>-<slug>-T000XXX
+# --- branch-naming: enforce type/<slug> convention [T002093] ---
+# Every branch must start with a valid type prefix: feature/, fix/, chore/, docs/
+# (plus feat/batch-*). Die Ticket-ID-Pflicht ist mit dem Ticket-DB entfallen.
 # Exemptions: main, develop, release-please--*, dependabot/*, renovate/*
-#   plus the persistent ticketless branches listed in scripts/lib/branch-allowlist.sh
-#   (SSOT, shared with pre-push and worktree-create.sh) [T002817]
 # Bypass: SKIP_BRANCH_CHECK=1 git commit ...
 if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
-  # Bedingt sourcen: fehlt die Datei, bleibt branch_is_ticketless undefiniert, die
-  # Abfrage unten ist falsch und der Guard verhaelt sich exakt wie vor T002817.
-  # Ein fehlendes SSOT kann so nie einen unerlaubten Branch durchlassen.
-  _allowlist_script="$(resolve_guard "scripts/lib/branch-allowlist.sh" 1 2>/dev/null || true)"
-  [ -n "$_allowlist_script" ] && [ -f "$_allowlist_script" ] \
-    && . "$_allowlist_script"
   _bn="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
   if [ -n "$_bn" ]; then
     case "$_bn" in
       main|develop|master|release-please--*|dependabot/*|renovate/*) ;;
+      feature/*|fix/*|chore/*|docs/*|feat/batch-*) ;;
       *)
-        _exempt=0
-        if command -v branch_is_ticketless >/dev/null 2>&1 && branch_is_ticketless "$_bn"; then
-          _exempt=1
-        fi
-        _has_ticket=0
-        _has_type=0
-        [[ "$_bn" =~ ^feature/|^fix/|^chore/|^docs/|^feat/batch- ]] && _has_type=1
-        [[ "$_bn" =~ T[0-9]{6,} ]] && _has_ticket=1
-        if [ "$_exempt" -eq 0 ] && { [ "$_has_type" -eq 0 ] || [ "$_has_ticket" -eq 0 ]; }; then
-          echo "✗  pre-commit: branch '$_bn' does not follow naming convention." >&2
-          echo "" >&2
-          # [T002375-p6] Sagen, WELCHE der beiden Bedingungen gerissen ist — die alte
-          # Meldung nannte nur "does not follow naming convention". Ein Branch wie
-          # `test-mishap-t002338` reisst beide: kein gueltiges Typ-Praefix UND ein
-          # kleingeschriebenes t. Die Grossschreibung ist nicht offensichtlich, weil der
-          # Guard `[[ =~ T[0-9]{6,} ]]` ohne `nocasematch` laeuft und damit
-          # case-sensitiv ist. Das bleibt so gewollt — nur erklaert wird es jetzt.
-          [ "$_has_type" -eq 0 ] && \
-            echo "  ✗ kein gueltiges Typ-Praefix. Erlaubt: feature/ fix/ chore/ docs/ feat/batch-*" >&2
-          [ "$_has_ticket" -eq 0 ] && \
-            echo "  ✗ keine Ticket-ID gefunden. Sie muss GROSS geschrieben sein: T002338, nicht t002338." >&2
-           echo "  Fix: git branch -m $(git rev-parse --abbrev-ref HEAD) $(git rev-parse --abbrev-ref HEAD | sed 's/t[0-9]\{6,\}/T&/')"
-          echo "" >&2
-          echo "  Required: type/<slug>-T000XXX" >&2
-          echo "  Examples:" >&2
-          echo "    feature/flux-gaps-brainless-T002093" >&2
-          echo "    fix/pocket-id-retry-T001234" >&2
-          echo "    chore/deps-bump-T001500" >&2
-          echo "" >&2
-          echo "  Why: ticket ID links WIP to its ticket and subsequent PR." >&2
-          echo "  To bypass (emergency only): SKIP_BRANCH_CHECK=1 git commit" >&2
-          exit 1
-        fi
+        echo "✗  pre-commit: branch '$_bn' does not follow naming convention." >&2
+        echo "" >&2
+        echo "  ✗ kein gueltiges Typ-Praefix. Erlaubt: feature/ fix/ chore/ docs/ feat/batch-*" >&2
+        echo "" >&2
+        echo "  Required: type/<slug>, e.g. fix/pocket-id-retry" >&2
+        echo "  To bypass (emergency only): SKIP_BRANCH_CHECK=1 git commit" >&2
+        exit 1
         ;;
     esac
   fi
@@ -220,7 +185,7 @@ fi
 
 # --- main-commit-guard: block commits on main/master [T002631] ---
 # Prevents agents from committing directly on main — they must use
-# the ticket → branch → worktree → PR workflow.
+# the branch → worktree → PR workflow.
 # Exemptions: CI runners (Freshness bot, Release-Please), emergency bypass.
 # Bypass: SKIP_MAIN_COMMIT_GUARD=1 git commit ...
 if [ "${SKIP_MAIN_COMMIT_GUARD:-0}" != "1" ]; then
@@ -229,11 +194,10 @@ if [ "${SKIP_MAIN_COMMIT_GUARD:-0}" != "1" ]; then
     if [ "$_bn" = "main" ] || [ "$_bn" = "master" ]; then
       echo "✗  pre-commit: commits on '$_bn' are blocked." >&2
       echo "" >&2
-      echo "  Agents must use the ticket → branch → worktree → PR workflow:" >&2
-      echo "    1. Create a ticket for your change" >&2
-      echo "    2. Create a feature/fix branch from main" >&2
-      echo "    3. Work in an isolated worktree (.worktrees/<slug>)" >&2
-      echo "    4. Open a PR — never commit directly to main" >&2
+      echo "  Agents must use the branch → worktree → PR workflow:" >&2
+      echo "    1. Create a feature/fix/chore branch from main" >&2
+      echo "    2. Work in an isolated worktree (~/.worktrees/<repo>/<branch>)" >&2
+      echo "    3. Open a PR — never commit directly to main" >&2
       echo "" >&2
       echo "  To bypass (emergency only): SKIP_MAIN_COMMIT_GUARD=1 git commit" >&2
       exit 1

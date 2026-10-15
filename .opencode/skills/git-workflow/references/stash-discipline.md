@@ -7,9 +7,9 @@ git fetch origin main
 if git diff --quiet HEAD; then
   git pull --rebase origin main
 else
-  git stash push -m "wip ${TICKET_EXT_ID}"
+  git stash push -m "wip ${BRANCH}"
   git pull --rebase origin main
-  bash scripts/git-stash-net.sh pop --by-message "wip ${TICKET_EXT_ID}"
+  bash scripts/git-stash-net.sh pop --by-message "wip ${BRANCH}"
   # Teil-Pop-Befund (Exit 1)? Eintrag liegt noch im Stash — NICHT als Erfolg
   # behandeln, Wiederherstellung unten. Kein Treffer (Exit 2) ist ebenfalls
   # kein Erfolg: git stash list prüfen und den Eintrag zurückspielen.
@@ -18,7 +18,7 @@ fi
 
 > **Stash-Pop positive Verifikation (T003069/T003070).** Nach dem Pop MUSS der eigene Eintrag
 > aus `git stash list` verschwunden sein
-> (`git stash list | grep -F "wip ${TICKET_EXT_ID}"` findet ihn bei Exit 1 noch). Ein
+> (`git stash list | grep -F "wip ${BRANCH}"` findet ihn bei Exit 1 noch). Ein
 > verbliebener Eintrag ist ein **Befund, kein Erfolg**: der post-rewrite-Hook hat ein gestashtes
 > Freshness-Artefakt schon neu erzeugt, der Pop wendet nur teilweise an. Wiederherstellung:
 > `git stash show --stat "stash@{0}"` gegen den Arbeitsbaum halten, fehlende Datei mit
@@ -27,7 +27,7 @@ fi
 > **Stash-Disziplin (T003070).** Der Stash-Stack ist über ALLE Worktrees geteilt, `stash@{0}`
 > verschiebt sich durch fremde pushes. Bei Parallelarbeit einen **Wegwerf-Commit auf dem eigenen
 > Branch** verwenden (`git commit -m wip`, später `git reset --soft HEAD~1`). Wo ein Stash nötig
-> bleibt: IMMER mit `-m` und Ticket-ID anlegen und über die Nachricht auflösen
+> bleibt: IMMER mit `-m` und Branch-Namen anlegen und über die Nachricht auflösen
 > (`bash scripts/git-stash-net.sh pop --by-message ...`), NIE über den Index `stash@{0}`.
 
 > **Branch-Switch + Stash Race (T001974 Mishap 2).** `git checkout -b <branch> && git stash pop`

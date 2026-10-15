@@ -2754,12 +2754,6 @@
     "kind": "pytest"
   },
   {
-    "id": "ci-cd/branch-allowlist-ssot",
-    "file": "tests/py/spec/ci_cd_specs/test_branch_allowlist_ssot.py",
-    "category": "ci-cd",
-    "kind": "pytest"
-  },
-  {
     "id": "ci-cd/branch-reaper",
     "file": "tests/py/spec/native_ported/spec/ci-cd/test_branch_reaper.py",
     "category": "ci-cd",
@@ -2864,12 +2858,6 @@
   {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/py/spec/ci_cd_specs/test_fetch_refspec_forced.py",
-    "category": "ci-cd",
-    "kind": "pytest"
-  },
-  {
-    "id": "ci-cd/fix-ticket-commit-guard",
-    "file": "tests/py/spec/ci_cd_specs/test_fix_ticket_commit_guard.py",
     "category": "ci-cd",
     "kind": "pytest"
   },

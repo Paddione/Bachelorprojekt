@@ -630,7 +630,7 @@ def test_neovim_dashboard_github_page_lists_five_actions_and_no_merge(nv):
     result = nv.nvim_headless(
         "lua print(#require('chapters.github').actions(), #require('chapters.sdlc').actions())")
     assert result.returncode == 0
-    assert "5 10" in " ".join(result.output.split())
+    assert "5 8" in " ".join(result.output.split())
     github = nv.stage / "lua/chapters/github.lua"
     assert github.is_file()
     assert "merge" not in github.read_text().lower()

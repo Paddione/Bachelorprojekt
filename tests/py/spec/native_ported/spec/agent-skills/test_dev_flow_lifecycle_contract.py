@@ -34,7 +34,7 @@ def test_lifecycle_contract_declares_all_four_transitions_and_e2e_specialization
 def test_execute_orders_merge_gate_phase_chain_merge_then_finalizer(repo_root):
     lines = _exec_skill(repo_root).read_text(encoding="utf-8").splitlines()
     gate = _first_line(lines, lambda l: "Merge-Gate" in l and re.match(r"## Schritt 3.8", l))
-    phase = _first_line(lines, lambda l: "assert-phase-chain" in l)
+    phase = _first_line(lines, lambda l: "devflow-phase.sh check" in l)
     merge = _first_line(lines, lambda l: "gh pr merge --auto" in l)
     finalizer = _first_line(lines, lambda l: "frischen Finalizer" in l or "fresh Finalizer" in l)
     assert gate and phase and merge and finalizer

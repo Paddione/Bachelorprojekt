@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.424.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.1...website-v1.424.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **scripts:** preserve K3 index preparation failure status ([#6704](https://github.com/Paddione/Bachelorprojekt/issues/6704)) ([785084d](https://github.com/Paddione/Bachelorprojekt/commit/785084d2b977c43f13684e3129d366e194f01d38))
+
 ## [1.424.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.0...website-v1.424.1) (2026-10-14)
 
 

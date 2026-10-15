@@ -3882,6 +3882,12 @@
     "kind": "pytest"
   },
   {
+    "id": "health-goals/health_pipeline_integrity",
+    "file": "tests/py/spec/health-goals/test_health_pipeline_integrity.py",
+    "category": "health-goals",
+    "kind": "pytest"
+  },
+  {
     "id": "health-goals/id-parity",
     "file": "tests/py/spec/native_ported/spec/health-goals/test_id_parity.py",
     "category": "health-goals",
@@ -4632,12 +4638,6 @@
     "kind": "pytest"
   },
   {
-    "id": "mcp-gateway/node-mcp-server-startup",
-    "file": "tests/py/spec/native_ported/spec/mcp-gateway/test_node_mcp_server_startup.py",
-    "category": "mcp-gateway",
-    "kind": "pytest"
-  },
-  {
     "id": "mcp-gateway/opencode-env-placeholder",
     "file": "tests/py/spec/native_ported/spec/mcp-gateway/test_opencode_env_placeholder.py",
     "category": "mcp-gateway",
@@ -4782,12 +4782,6 @@
     "kind": "pytest"
   },
   {
-    "id": "mishap-tracking/go-tests-registriert",
-    "file": "tests/py/spec/native_ported/spec/mishap-tracking/test_go_tests_registriert.py",
-    "category": "mishap-tracking",
-    "kind": "pytest"
-  },
-  {
     "id": "monitoring-alerts",
     "file": "tests/py/spec/remaining_root_specs/test_monitoring_alerts.py",
     "category": "monitoring-alerts",
@@ -4838,6 +4832,12 @@
   {
     "id": "native_ported/spec/langfuse_agent_tracing",
     "file": "tests/py/spec/native_ported/spec/test_langfuse_agent_tracing.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/llm-local-dev/agent_sandbox",
+    "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_agent_sandbox.py",
     "category": "native_ported",
     "kind": "pytest"
   },

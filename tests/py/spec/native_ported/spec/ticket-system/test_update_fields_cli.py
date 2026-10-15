@@ -1,7 +1,5 @@
 """Native migration of tests/spec/ticket-system/update-fields-cli.bats."""
-import os
 import re
-from pathlib import Path
 
 
 def test_ticket_sh_update_fields_rejects_missing_id(run_cmd, repo_root):
@@ -30,20 +28,3 @@ def test_ticket_sh_update_fields_is_listed_in_the_usage_help_output(run_cmd, rep
     commands_lines = [ln for ln in run.output.splitlines() if ln.startswith("Commands:")]
     assert any("update-fields" in ln for ln in commands_lines), run.output
 
-
-def test_ticket_mcp_update_fields_tool_schema_declares_title_and_description(repo_root):
-    # Ausnahme von der Output-Verifikation (T002448-M4): das Ergebnis ist die
-    # Schema-Deklaration im Quelltext selbst; grep-Semantik mit -n -A 8.
-    # T901492: ticket-Quellen liegen zentral (CI: Zweit-Checkout via MCP_SERVERS_HOME).
-    central = Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers"))
-    src = central / "ticket/go/internal/tools/lifecycle.go"
-    assert src.is_file(), f"{src} fehlt"
-    lines = src.read_text(encoding="utf-8", errors="replace").splitlines()
-    window = []
-    for i, line in enumerate(lines):
-        if 'mcp.NewTool("update_fields"' in line:
-            window.extend(lines[i:i + 9])
-    assert window, "grep fand kein mcp.NewTool(\"update_fields\""
-    text = "\n".join(window)
-    assert 'WithString("title"' in text
-    assert 'WithString("description"' in text

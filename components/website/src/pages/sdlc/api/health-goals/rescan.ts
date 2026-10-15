@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { runHealthScan, HealthScanInputError } from '../../../../lib/sdlc/health-scan';
 import { GOALS } from '../../../../lib/sdlc/goals-data';
+import { recordScanMeasurements } from '../../../../lib/sdlc/goal-measurements';
 
 export const prerender = false;
 
@@ -47,7 +48,14 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const results = await runHealthScan(ids as string[]);
-    return json({ results, scannedAt: new Date().toISOString() }, 200);
+    // Erfolg erst nach dauerhafter Speicherung; ein DB-Fehler landet unten als 500.
+    const recorded = await recordScanMeasurements(results, {
+      baselines: new Map(GOALS.map((g) => [g.id, g.baseline])),
+      gitSha: process.env.GIT_SHA || null,
+      gitBranch: null,
+      source: 'sdlc-rescan',
+    });
+    return json({ results, recorded, scannedAt: new Date().toISOString() }, 200);
   } catch (err) {
     if (err instanceof HealthScanInputError) {
       return json({ error: err.message }, 400);

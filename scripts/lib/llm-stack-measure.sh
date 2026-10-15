@@ -202,6 +202,11 @@ cmd_autostart_coverage() {
   done
   # Messgrundlage: mindestens eine deklarierte Unit-Datei.
   [ -n "$units" ] || na
+  # T016657: ohne erreichbaren systemctl-Userbus ist der Zustand unbekannt —
+  # nicht "alle Units disabled".
+  if [ -z "${LLM_MEASURE_UNIT_STATE_CMD:-}" ]; then
+    systemctl --user show-environment >/dev/null 2>&1 || na
+  fi
   n=0
   for f in $units; do
     u="$(basename "$f")"

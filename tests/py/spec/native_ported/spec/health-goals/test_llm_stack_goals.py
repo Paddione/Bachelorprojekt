@@ -1,6 +1,7 @@
 """Native migration of tests/spec/health-goals/llm-stack-goals.bats."""
 
 import json
+import os
 import re
 import shutil
 import socket
@@ -366,3 +367,39 @@ def test_llm_stack_measure_unbekanntes_subkommando_bricht_ab_statt_n_a_zu_melden
     result = fx.run("gibt-es-nicht")
     assert result.returncode != 0
     assert result.output != "n/a"
+
+
+# ── T016657: G-LLM04 ohne erreichbaren systemctl-Userbus ────────────────────
+
+def _fake_systemctl(fx, monkeypatch, bus_ok):
+    bindir = fx.dir / "bin"
+    bindir.mkdir(exist_ok=True)
+    script = bindir / "systemctl"
+    if bus_ok:
+        body = ("#!/usr/bin/env bash\n"
+                "case \"$*\" in *show-environment*) exit 0 ;; esac\n"
+                "echo disabled; exit 1\n")
+    else:
+        body = "#!/usr/bin/env bash\necho 'Failed to connect to bus: No medium found' >&2\nexit 1\n"
+    script.write_text(body, encoding="utf-8")
+    script.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{bindir}{os.pathsep}{os.environ['PATH']}")
+    units = fx.dir / "units"
+    units.mkdir(exist_ok=True)
+    for name in ("foo", "bar", "baz"):
+        (units / f"{name}.service").write_text(_unit(name), encoding="utf-8")
+    monkeypatch.setenv("LLM_MEASURE_UNIT_DIRS", str(units))
+
+
+def test_g_llm04_ohne_userbus_meldet_n_a_statt_drei_verstoessen_t016657(fx, monkeypatch):
+    _fake_systemctl(fx, monkeypatch, bus_ok=False)
+    result = fx.run("autostart-coverage")
+    assert result.returncode == 0, result.output
+    assert result.output == "n/a"
+
+
+def test_g_llm04_erreichbarer_bus_mit_disabled_unit_bleibt_verstoss_t016657(fx, monkeypatch):
+    _fake_systemctl(fx, monkeypatch, bus_ok=True)
+    result = fx.run("autostart-coverage")
+    assert result.returncode == 0, result.output
+    assert result.output == "3"

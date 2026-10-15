@@ -14,11 +14,11 @@
 #
 # Variablen: SOURCE_CONTEXT (default fleet), KUBECTL (default "kubectl --context $SOURCE_CONTEXT"),
 #            TOKEN_DURATION (default 24h, der API-Server kann es begrenzen),
-#            FLEET_API (default https://204.168.244.104:6443), KUBECONFIG_TARGET (default ~/.kube/fleet-cloud.yaml)
+#            FLEET_API (default https://gekko-hetzner-2.tail8a4425.ts.net:6443), KUBECONFIG_TARGET (default ~/.kube/fleet-cloud.yaml)
 set -euo pipefail
 
 SOURCE_CONTEXT="${SOURCE_CONTEXT:-fleet}"
-FLEET_API="${FLEET_API:-https://204.168.244.104:6443}"
+FLEET_API="${FLEET_API:-https://gekko-hetzner-2.tail8a4425.ts.net:6443}"
 TARGET="${KUBECONFIG_TARGET:-$HOME/.kube/fleet-cloud.yaml}"
 SA="cloud-env-fleet-admin"
 TOKEN_DURATION="${TOKEN_DURATION:-24h}"

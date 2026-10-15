@@ -6,8 +6,11 @@ Gegenstück für devmesh: `cloud-env-devmesh.md`.
 
 ## Wie es funktioniert
 
-Die drei fleet-Control-Plane-Nodes (`204.168.244.104`, `37.27.251.38`, `62.238.23.79`) nehmen `:6443`
-aus dem Internet an. Es gibt keinen Tailnet-Pfad. Zugang: ServiceAccount `cloud-env-fleet-admin`
+Netzpfad ist das Tailnet: Die Cloud-Umgebung tritt per Tailscale (Userspace, SOCKS5) bei und erreicht den
+API-Server unter seinem Tailnet-Namen (`https://gekko-hetzner-2.tail8a4425.ts.net:6443`). Dafür braucht die
+Umgebung zusätzlich `TS_AUTHKEY` (reusable, ephemeral, siehe `cloud-env-devmesh.md`, Schritt 2).
+Die öffentlichen IPs auf `:6443` sind aus manchen Netzen nicht erreichbar und kein vorgesehener Pfad.
+Zugang: ServiceAccount `cloud-env-fleet-admin`
 (Namespace `kube-system`, Binding auf `cluster-admin`), kurzlebiges Token (Standard 24h) in einer Kubeconfig.
 Es gibt kein dauerhaftes Token. Ein Token wird bei Bedarf ausgestellt, siehe Abschnitt Notfall.
 
@@ -45,20 +48,20 @@ nach oben begrenzen. Dann liefert `create token` die erlaubte Dauer, nicht die a
    ```
 2. **Kubeconfig mit frischem Token erzeugen** (eigene Datei, die normale bleibt unberührt):
    ```bash
-   bash scripts/cloud-env/fleet-kubeconfig.sh
+   FLEET_API=https://gekko-hetzner-2.tail8a4425.ts.net:6443 bash scripts/cloud-env/fleet-kubeconfig.sh
    base64 -w0 ~/.kube/fleet-cloud.yaml
    ```
-   Das Skript prüft die Datei gleich gegen den API-Server (auch, dass die IP im API-Zertifikat steht).
-   Schlägt das mit einem x509-Fehler fehl, `FLEET_API` auf einen Namen setzen, der im Zertifikat steht.
+   Das Skript prüft die Datei gleich gegen den API-Server (auch den Namen im API-Zertifikat).
 3. **Umgebung eintragen** (claude.ai/code → Umgebung `mentolder-prod` bearbeiten):
-   - Variable: `FLEET_KUBECONFIG_B64` = Ausgabe aus Schritt 2
+   - Variablen: `FLEET_KUBECONFIG_B64` = Ausgabe aus Schritt 2, `TS_AUTHKEY`
    - Setup-Skript: `bash scripts/cloud-env/setup-fleet.sh install`
-   - Netzwerkzugriff: „Full" oder Hostliste mit den drei IPs (Port 6443), `dl.k8s.io`, `github.com`
-4. **`connect` je Session** (nur bei `CLAUDE_CODE_REMOTE=true`), SessionStart-Hook in `.claude/settings.json`:
+   - Netzwerkzugriff: „Full" oder Hostliste mit `controlplane.tailscale.com`, DERP, `tailscale.com`, `dl.k8s.io`
+4. **`connect` je Session** (nur bei `CLAUDE_CODE_REMOTE=true`), SessionStart-Hook in `.claude/settings.json`
+   (bereits eingetragen, läuft nur wenn `FLEET_KUBECONFIG_B64` gesetzt ist):
    ```json
    { "type": "command",
-     "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && bash scripts/cloud-env/setup-fleet.sh connect || true",
-     "timeout": 60 }
+     "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && [ -n \"$FLEET_KUBECONFIG_B64\" ] && bash scripts/cloud-env/setup-fleet.sh connect || true",
+     "timeout": 120 }
    ```
 
 ## Prüfen

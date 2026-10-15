@@ -33,7 +33,7 @@ fehlendes Repository Code 1; der Wrapper gibt jeweils fälschlich 0 zurück.
 ## Task 1: Regression belegen
 
 - [x] `bash scripts/pytest-run.sh tests/py/spec/cbm/test_begin_exit_status.py -q`
-  ausführen. Erwartung: FAIL in beiden Fällen (`0 == 2`, `0 == 1`).
+  ausführen (pytest). Expected: FAIL in beiden Fällen (`0 == 2`, `0 == 1`).
 - [x] Test verwendet isoliertes HOME und prüft unveränderte stderr-Ausgabe,
   leeres stdout sowie fehlende Attempt-/Receipt-Dateien.
 

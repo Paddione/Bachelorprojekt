@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 118,
+  "count": 119,
   "routes": [
     {
       "route": "/",
@@ -520,6 +520,14 @@
     },
     {
       "route": "/en/datenschutz",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/faq",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

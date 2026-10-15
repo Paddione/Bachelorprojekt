@@ -14,10 +14,10 @@ test('real registry is valid', () => {
   assert.equal(res.ok, true, JSON.stringify(res.errors));
 });
 
-test('rejects an owner outside the six routing agents', () => {
+test('rejects an owner outside the bp-* routing agents, incl. retired bachelorprojekt-* names (T900858)', () => {
   const res = validateRegistry(fx('bad-owner'), repoRoot);
   assert.equal(res.ok, false);
-  assert.ok(res.errors.some((e) => /owner_agent/.test(e) && /bogus/.test(e)));
+  assert.ok(res.errors.some((e) => /owner_agent/.test(e) && /bachelorprojekt-website/.test(e)));
 });
 
 test('rejects an identical duplicate path glob', () => {

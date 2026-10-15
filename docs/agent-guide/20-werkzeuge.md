@@ -170,7 +170,7 @@ Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code.
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
 
-**Verwandt:** [[bachelorprojekt-infra]]
+**Verwandt:** [[bp-build]]
 
 ## Betriebs-Agent (ops)
 
@@ -192,7 +192,7 @@ Frag den Betriebs-Agenten: warum läuft <Dienst> nicht / ist alles grün?
 
 **Schutzregeln (Guardrails):** Namespace prüfen (Single-Cluster) (G-CONTEXT-CHECK)
 
-**Verwandt:** [[bachelorprojekt-infra]]
+**Verwandt:** [[bp-build]]
 
 ## Infrastruktur-Agent (infra)
 
@@ -214,7 +214,7 @@ Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration.
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Erst prüfen, dann anwenden (G-VALIDATE-FIRST), Bei Rot: stoppen und fragen (G-ASK-EXPERT)
 
-**Verwandt:** [[bachelorprojekt-ops]], [[bachelorprojekt-security]]
+**Verwandt:** [[bp-run]], [[bp-build]]
 
 ## Test-Agent
 
@@ -258,7 +258,7 @@ Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>.
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Bei Rot: stoppen und fragen (G-ASK-EXPERT)
 
-**Verwandt:** [[bachelorprojekt-infra]]
+**Verwandt:** [[bp-build]]
 
 ## Sicherheits-Agent (security)
 
@@ -280,7 +280,7 @@ Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets.
 
 **Schutzregeln (Guardrails):** Geheimnis-Reihenfolge einhalten (G-SECRET-ORDER), Bei Rot: stoppen und fragen (G-ASK-EXPERT), ENV immer explizit setzen (G-ENV-EXPLICIT)
 
-**Verwandt:** [[bachelorprojekt-infra]]
+**Verwandt:** [[bp-build]]
 
 ## OpenCode-Git-Workflow
 

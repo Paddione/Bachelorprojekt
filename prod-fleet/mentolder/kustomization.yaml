@@ -21,20 +21,16 @@ components:
   # Komponente ist entfernt; bge-Modell-PVCs nutzen die Default-StorageClass
   # (local-path) wie die k3d-Basis.
 
-# KI-Dienste bleiben intern vorhanden, starten standardmaessig aber keine Pods.
-# Aktivierung per GitOps: count von 0 auf 1; siehe docs/runbooks/ai-services-scale-zero.md.
+# Talk-KI-Dienste bleiben intern vorhanden, starten standardmaessig aber keine
+# Pods. Aktivierung per GitOps: count von 0 auf 1; siehe
+# docs/runbooks/ai-services-scale-zero.md. bge-* laufen nicht auf mentolder
+# (nur devmesh) und werden unten per $patch:delete entfernt.
 replicas:
   - name: whisper
     count: 0
   - name: talk-transcriber
     count: 0
   - name: talk-recording
-    count: 0
-  - name: bge-embed
-    count: 0
-  - name: bge-embed-bulk
-    count: 0
-  - name: bge-rerank
     count: 0
 
 # Exclude the dev.mentolder.de stack from fleet Phase 2a (dev migration is 2c).
@@ -94,6 +90,37 @@ patches:
       kind: IngressRoute
       metadata:
         name: llm-gateway-rerank
+
+  # bge-embed/-bulk/-rerank nur auf devmesh: Deployments, llm-gateway-Services,
+  # NetworkPolicies und Modell-PVCs fehlen im mentolder-Artefakt.
+  - target: { group: apps, version: v1, kind: Deployment, name: "^bge-(embed|embed-bulk|rerank)$" }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: bge
+  - target: { version: v1, kind: Service, name: "^llm-gateway-(embed|rerank)$" }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: llm-gateway
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: "^(allow-llm-gateway-egress|allow-website-to-bge-(embed|rerank)-ingress)$" }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: bge
+  - target: { version: v1, kind: PersistentVolumeClaim, name: "^bge-(embed|rerank)-models$" }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: bge-models
 
   # T016559: Vaultwarden-App aus fleet-new Prod entfernen (Deployment,
   # Service, Ingress, NetPol, Daten-PVC, zugehoerige Middleware). Die DB

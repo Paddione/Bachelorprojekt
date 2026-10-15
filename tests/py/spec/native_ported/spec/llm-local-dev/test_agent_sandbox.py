@@ -105,6 +105,36 @@ def test_agent_cannot_tamper_with_git_metadata_used_by_host_git(run_cmd, repo_ro
     assert (box["wt"] / "inside.txt").read_text() == "edited\n"
 
 
+
+def _resolver_run_dir() -> set:
+    """/run-Eintrag, auf den /etc/resolv.conf zeigt (systemd-resolved: /run/systemd)."""
+    target = Path("/etc/resolv.conf").resolve()
+    parts = target.parts
+    return {parts[2]} if len(parts) > 2 and parts[1] == "run" else set()
+
+
+@needs_bwrap
+def test_host_runtime_sockets_and_mounts_are_invisible(run_cmd, repo_root, box):
+    """Unter /run liegen Docker-API, D-Bus und /run/WSL, unter /mnt die
+    Windows-Laufwerke (WSL) — jeder davon ist ein Weg aus der Sandbox."""
+    inner = "ls -A /run; echo ---; ls -A /mnt 2>/dev/null; true"
+    r = _run(run_cmd, repo_root, f'agent_sandbox_run "{box["wt"]}" -- bash -c \'{inner}\'', _env(box))
+    assert r.returncode == 0, r.output
+    run_part, mnt_part = r.stdout.split("---\n")
+    assert set(run_part.split()) <= _resolver_run_dir(), run_part
+    assert mnt_part.strip() == "", mnt_part
+
+
+@needs_bwrap
+def test_resolver_config_stays_readable(run_cmd, repo_root, box):
+    """Positiv-Anker: /etc/resolv.conf zeigt oft nach /run — DNS darf nicht wegfallen."""
+    host = Path("/etc/resolv.conf")
+    if not host.exists():
+        pytest.skip("kein /etc/resolv.conf auf dem Host")
+    r = _run(run_cmd, repo_root, f'agent_sandbox_run "{box["wt"]}" -- cat /etc/resolv.conf', _env(box))
+    assert r.returncode == 0, r.output
+    assert r.stdout == host.read_text()
+
 @needs_bwrap
 def test_timeout_limits_the_agent(run_cmd, repo_root, box):
     r = _run(run_cmd, repo_root, f'agent_sandbox_run "{box["wt"]}" --timeout 1 -- sleep 30', _env(box))

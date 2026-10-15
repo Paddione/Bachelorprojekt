@@ -5,6 +5,7 @@ import socket
 import subprocess
 import time
 import urllib.error
+from pathlib import Path
 import urllib.request
 
 import pytest
@@ -222,6 +223,66 @@ def test_allowed_command_runs_with_cwd_in_the_worktree_and_without_a_shell(dw):
     out = dw.tool_results()[0]
     assert "1 passed" in out, out
 
+
+
+def _bwrap_works() -> bool:
+    import shutil
+    if not shutil.which("bwrap"):
+        return False
+    r = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "true"],
+                       capture_output=True)
+    return r.returncode == 0
+
+
+@pytest.mark.skipif(not _bwrap_works(), reason="bwrap fehlt oder darf keine Namespaces anlegen")
+def test_run_command_executes_model_written_code_inside_the_sandbox(dw, monkeypatch, tmp_path):
+    """pytest fuehrt Dateien aus, die das Modell geschrieben hat: die Allowlist
+    begrenzt nur den Befehl, nicht den Code. Er darf HOME und Host-Sockets nicht sehen."""
+    home = tmp_path / "home"
+    (home / ".ssh").mkdir(parents=True)
+    (home / ".ssh" / "id").write_text("topsecret\n")
+    # pytest liegt oft in der User-Site (~/.local): ueber einen Link erreichbar halten.
+    real_local = Path.home() / ".local"
+    if real_local.exists():
+        (home / ".local").symlink_to(real_local)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    (dw.wt / "test_escape.py").write_text(
+        "import pathlib\n\ndef test_escape():\n"
+        f"    assert not pathlib.Path('{home}/.ssh/id').exists()\n"
+        "    assert not pathlib.Path('/run/docker.sock').exists()\n"
+        "    try:\n"
+        f"        pathlib.Path('{outside}/leak').write_text('x')\n"
+        "    except OSError:\n"
+        "        pass\n")
+    dw.run([
+        _step(_call("run_command", argv=["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "test_escape.py"])),
+        _step(_call("finish", status="success", summary="gruen", changed_files=[])),
+    ])
+    out = dw.tool_results()[0]
+    assert "1 passed" in out, out
+    assert not (outside / "leak").exists()
+
+
+def test_run_command_refuses_to_run_without_a_working_sandbox(dw, monkeypatch, tmp_path):
+    fakebin = tmp_path / "fakebin"
+    fakebin.mkdir()
+    (fakebin / "bwrap").write_text("#!/bin/sh\nexit 1\n")
+    (fakebin / "bwrap").chmod(0o755)
+    import os
+    monkeypatch.setenv("PATH", f"{fakebin}:{os.environ['PATH']}")
+    monkeypatch.delenv("AGENT_SANDBOX", raising=False)
+    marker = tmp_path / "ran"
+    (dw.wt / "test_marker.py").write_text(
+        f"import pathlib\n\ndef test_marker():\n    pathlib.Path('{marker}').write_text('x')\n")
+    dw.run([
+        _step(_call("run_command", argv=["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "test_marker.py"])),
+        _step(_call("finish", status="failure", summary="keine Sandbox", changed_files=[])),
+    ])
+    out = dw.tool_results()[0]
+    assert "bwrap" in out, out
+    assert not marker.exists()
 
 def test_three_replies_without_a_tool_call_in_a_row_are_a_protocol_error(dw):
     r = dw.run([{"content": "ich denke nach"}, {"content": "noch mehr"}, {"content": "und mehr"}])

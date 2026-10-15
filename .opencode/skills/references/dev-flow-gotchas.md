@@ -127,7 +127,7 @@ Use the correct project name in `playwright.config.ts` depending on the targeted
 
 
 ### [T002673] stage-plan läuft NACH dem Commit, nicht davor
-**Context**: `stage-plan` liest die Plandatei über `git cat-file -p "${branch}:${plan}"` aus dem **Branch-Commit**, nicht aus dem Arbeitsbaum (`scripts/vda/ticket/stage-plan.sh`). Wird es vor dem Commit aufgerufen, steht dort noch das `propose`-Skeleton; die `touched_files`-Ableitung meldet dann `keine Pfade ableitbar` und lässt die Spalte leer — ohne dass es auffällt, weil die Meldung nur auf stderr steht und der Stage trotzdem Erfolg meldet. Die Ableitung selbst funktioniert (`scripts/plan-touched-files.sh` liefert gegen die reale Datei die vollständige Liste).
+**Context**: `stage-plan` liest die Plandatei über `git cat-file -p "${branch}:${plan}"` aus dem **Branch-Commit**, nicht aus dem Arbeitsbaum (`vda/ticket/stage-plan.sh`, retiriert 2026-10-14). Wird es vor dem Commit aufgerufen, steht dort noch das `propose`-Skeleton; die `touched_files`-Ableitung meldet dann `keine Pfade ableitbar` und lässt die Spalte leer — ohne dass es auffällt, weil die Meldung nur auf stderr steht und der Stage trotzdem Erfolg meldet. Die Ableitung selbst funktioniert (`scripts/plan-touched-files.sh` liefert gegen die reale Datei die vollständige Liste).
 **Rule**: In dev-flow-plan Schritt 4.5 nur Ticket anlegen und claimen (der Claim muss vor dem Pre-Commit-Guard liegen), `stage-plan` erst in Schritt 5 nach `git commit`/`git push`. `stage-plan` ist idempotent und vereinigt `touched_files` in SQL — ein späterer Zweitaufruf ist unschädlich, die richtige Reihenfolge erspart ihn nur.
 
 ### [T002820] Externe Abhängigkeiten schon in der Rotphase absichern

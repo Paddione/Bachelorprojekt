@@ -43,10 +43,12 @@
 #   Tag-Push fehl, wird NICHT gelöscht — das Netz ist Vorbedingung, nicht Beiwerk.
 #
 # Environment:
-#   TICKET_SH — Pfad zum ticket.sh-Aufruf (Default: <repo>/scripts/ticket.sh). Existiert für
-#               die Testbarkeit: der BATS-Test hängt hier einen Stub ein, statt einen Cluster
-#               zu brauchen.
-#   BRAND, TICKET_CTX — an ticket.sh durchgereicht.
+#   TICKET_SH — Pfad zum ticket.sh-Aufruf (Default: <repo>/scripts/ticket.sh — retiriert
+#               2026-10-14, Default trifft immer ins Leere). Existiert für die Testbarkeit:
+#               der Test hängt hier einen Stub ein, statt einen Cluster zu brauchen.
+#               Ohne Stub gilt jede Ticket-Abfrage als fehlende Messung (ticket_unknown=1,
+#               T012412) — der Reaper entscheidet dann nur über gh-Signale, fail-closed.
+#   BRAND, TICKET_CTX — an ticket.sh durchgereicht (nur mit Stub wirksam).
 #
 # Exit: 0 im Normalfall (auch wenn nichts zu tun war), 2 bei Argumentfehlern.
 set -euo pipefail

@@ -77,31 +77,24 @@ steps:
   - id: dev-flow-plan
     family: dev-flow
     label: "dev-flow-plan skill"
-    description: "Orchestrates path-choice, worktree setup, brainstorming, spec and plan, then creates a ticket."
+    description: "Orchestrates path-choice, worktree setup, brainstorming, spec and plan, then stages the plan (commit+push, no ticket backend since 2026-10-14)."
     writes:
-      tables: ["tickets.tickets", "tickets.ticket_comments"]
-      files: ["docs/superpowers/plans/*.md"]
-    reads:
-      tables: ["tickets.tickets"]
+      files: ["docs/superpowers/plans/*.md", ".agents/plans/*"]
+    reads: {}
     gaps: []
 
   - id: dev-flow-execute
     family: dev-flow
     label: "dev-flow-execute skill"
-    description: "Picks up a committed plan, implements it, opens a PR, merges, and archives the plan."
+    description: "Picks up a committed plan, implements it, opens a PR, merges, and marks the plan frontmatter completed."
     writes:
       tables:
-        - "tickets.tickets"
-        - "tickets.ticket_comments"
-        - "tickets.ticket_links"
-        - "tickets.ticket_plans"
         - "bachelorprojekt.features"
     reads:
-      tables: ["tickets.tickets"]
       files: ["docs/superpowers/plans/*.md"]
     gaps:
       - type: workflow-to-db
-        explanation: "ticket_plans table archived only on merge — in-flight execution state is invisible to the DB."
+        explanation: "Plan completion lives in frontmatter only — in-flight execution state is invisible to the DB (ticket_plans retiriert 2026-10-14)."
 
   - id: plan-context-sh
     family: dev-flow
@@ -138,10 +131,9 @@ steps:
     family: agents
     label: "bp-run"
     description: "Sub-agent for live cluster operations and PostgreSQL schema, queries and backup/restore (ex ops + db)."
-    writes:
-      tables: ["tickets.tickets", "tickets.ticket_comments"]
+    writes: {}
     reads:
-      tables: ["bachelorprojekt.features", "tickets.tickets"]
+      tables: ["bachelorprojekt.features"]
     gaps: []
 
   - id: bp-ship
@@ -151,7 +143,7 @@ steps:
     writes:
       tables: ["public.site_settings", "public.assistant_conversations", "public.test_runs", "public.test_results", "public.playwright_reports"]
     reads:
-      tables: ["bachelorprojekt.features", "public.web_sessions", "tickets.tickets"]
+      tables: ["bachelorprojekt.features", "public.web_sessions"]
     gaps: []
 
   # ── CI/CD Pipeline family ─────────────────────────────────────────────────
@@ -236,19 +228,6 @@ steps:
       tables: ["public.web_sessions", "public.chat_rooms"]
     gaps: []
 
-  - id: tickets-admin-create
-    family: app
-    label: "Tickets admin create"
-    description: "Platform admin creates a ticket via the admin web UI."
-    writes:
-      tables:
-        - "tickets.tickets"
-        - "tickets.ticket_activity"
-        - "tickets.ticket_comments"
-    reads:
-      tables: ["tickets.tickets"]
-    gaps: []
-
   - id: bug-report-submit
     family: app
     label: "Bug report submit"
@@ -258,7 +237,7 @@ steps:
     reads: {}
     gaps:
       - type: cross-skill
-        explanation: "bugs.bug_tickets and tickets.tickets are separate write paths — no automatic promotion from a user bug report to a triaged ticket."
+        explanation: "Retiriert 2026-10-14: die Triage-Seite (tickets-admin-create, tickets.*) entfiel — Bug-Reports landen in bugs.bug_tickets, die Weiterverarbeitung läuft über GitHub-Issues."
 
   - id: coaching-ingest
     family: app
@@ -285,8 +264,8 @@ steps:
 cross_skill_gaps:
   - from: dev-flow-plan
     to: tracking-import-cron
-    via: "tickets.tickets.external_id → bachelorprojekt.features (no ticket_id column today)"
-    explanation: "dev-flow-plan sets a ticket external_id on the plan, but tracking-import-cron only ingests PR metadata — it never joins ticket IDs into bachelorprojekt.features."
+    via: "plan slug/branch → bachelorprojekt.features (no plan column today)"
+    explanation: "dev-flow-plan stages plans per commit+push, but tracking-import-cron only ingests PR metadata — it never joins plan slugs into bachelorprojekt.features."
 
   - from: brainstorming
     to: tracking-import-cron
@@ -294,9 +273,9 @@ cross_skill_gaps:
     explanation: "Brainstorming session events stay in the local filesystem and are never ingested into any DB table, making session data invisible to all analytics queries."
 
   - from: bug-report-submit
-    to: tickets-admin-create
-    via: "bugs.bug_tickets vs tickets.tickets — two separate write paths"
-    explanation: "A user-submitted bug (public.bug_tickets) and a triaged ticket (tickets.tickets) are written by different flows with no automatic promotion or linking between them."
+    to: tracking-import-cron
+    via: "bugs.bug_tickets vs bachelorprojekt.features — two separate write paths"
+    explanation: "Retiriert 2026-10-14 (tickets-admin-create entfiel): ein User-Bug (bugs.bug_tickets) und ein getracktes Feature werden von verschiedenen Flows geschrieben, ohne automatische Promotion."
 
 heuristics:
   unbound_fk_candidates:

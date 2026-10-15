@@ -109,8 +109,8 @@ clients:
       Fest an die mentolder-DB gebunden (DATABASE_URL des mcp-node-Containers
       in devmesh, dev-local/components/llm-services). external_id ist nur pro
       Brand eindeutig — eine Abfrage nach einer korczewski-ID liefert still die
-      gleichnamige mentolder-Zeile statt einer leeren Menge. Ticket-Reads gehören
-      zu ticket-mcp mit explizitem brand-Argument.
+      gleichnamige mentolder-Zeile statt einer leeren Menge. Ticket-Reads entfielen
+      mit dem Retirement (2026-10-14).
       Seit T900191 ist die Quelle die **devmesh**-DB (Entwicklungsdaten, s.
       ADR-008-Nachtrag 2026-09-11: "die devmesh-DB trägt Entwicklungsdaten,
       Ticket-Tooling verweigert dort Schreibzugriffe") statt der fleet-DB — diese
@@ -199,8 +199,8 @@ clients:
         httpUrl: http://localhost:13005/mcp
 
   # Node.js ports of the custom MCP servers — zero npm dependencies, stdlib only.
-  # Go-Quellen unter mcp-servers/ticket/go (Dotfiles, T901492) bleiben Build- und
-  # Test-Artefakt (ticket-mcp:build/test, CodeQL, Doctor-Check); Harnesses nutzen den Node-Port.
+  # ticket-mcp-node retiriert 2026-10-14 mit dem Ticket-System (Server + Go-Quellen
+  # aus ~/mcp-servers/ticket entfernt).
   # Zentral (T901492): die Server liegen ausserhalb des Repos unter ~/mcp-servers.
   # claude_code und opencode starten sie ueber scripts/mcp-central/launch.mjs, der
   # $MCP_SERVERS_HOME (Default ~/mcp-servers) aufloest — ein fester
@@ -209,26 +209,6 @@ clients:
   # (Praezedenz: warden). agy und llamacpp behalten den absoluten Pfad, weil ihr
   # Arbeitsverzeichnis nicht das Repo ist. G-AGENTIC14-Paritaet
   # (claude_code <-> opencode) bleibt gewahrt, beide fahren denselben Aufruf.
-  ticket-mcp-node:
-    transport: stdio
-    command: node
-    args: [/home/patrick/mcp-servers/ticket/server.mjs]
-    harness:
-      claude_code:
-        command: node
-        args: [scripts/mcp-central/launch.mjs, ticket/server.mjs]
-      agy:
-        command: node
-        args: [/home/patrick/mcp-servers/ticket/server.mjs]
-      opencode:
-        type: local
-        command: [node, scripts/mcp-central/launch.mjs, ticket/server.mjs]
-        enabled: true
-      llamacpp:
-        command: node
-        args: [/home/patrick/mcp-servers/ticket/server.mjs]
-        cwd: /home/patrick/Bachelorprojekt
-        timeout_ms: 30000
 
   # devflow-mcp (T900985): Kontext, Werkzeug-Empfehlung und Plan-Staging fuer Subagenten.
   # Reines Node.js, oeffnet bge-mcp (:13005), mcp-postgres (:13001) und den lokalen

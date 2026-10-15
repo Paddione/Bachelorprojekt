@@ -44,43 +44,6 @@ def _section(text, start_re):
     return "\n".join(out)
 
 
-def test_closure_modus_fremder_ticket_lock_blockt_den_abschluss_nicht_exit_0_warnung(run_cmd, paths, tmp_path, monkeypatch):
-    locks = tmp_path / "locks"
-    _write_foreign_ticket_lock(locks, "T009901")
-    monkeypatch.setenv("AGENT_LOCK_DIR", str(locks))
-    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "meine-andere-sid")
-    r = _guard(run_cmd, paths, "T009901 closure")
-    assert r.returncode == 0
-    assert "T003102" in r.output
-    assert "release" in r.output
-
-
-def test_ohne_closure_fremder_ticket_lock_blockt_weiterhin_exit_7_schutz_bleibt(run_cmd, paths, tmp_path, monkeypatch):
-    locks = tmp_path / "locks2"
-    _write_foreign_ticket_lock(locks, "T009902")
-    monkeypatch.setenv("AGENT_LOCK_DIR", str(locks))
-    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "meine-andere-sid")
-    r = _guard(run_cmd, paths, "T009902")
-    assert r.returncode == 7
-    assert "verweigert" in r.output
-
-
-def test_eigene_sid_durchgelassen_in_beiden_modi_keine_warnung_kein_block(run_cmd, paths, tmp_path, monkeypatch):
-    locks = tmp_path / "locks3"
-    _write_foreign_ticket_lock(locks, "T009903", "eigene-sid")
-    monkeypatch.setenv("AGENT_LOCK_DIR", str(locks))
-    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "eigene-sid")
-    r = _guard(run_cmd, paths, "T009903 closure")
-    assert r.returncode == 0
-    assert "T003102" not in r.output, "eigene SID darf keine Warnung ausloesen"
-
-
-def test_update_status_sh_done_archived_rufen_den_guard_im_closure_modus(paths):
-    text = paths["update_status"].read_text(encoding="utf-8")
-    assert text.count("_ticket_lock_guard") >= 2
-    assert re.search(r'done\|archived\) _ticket_lock_guard "\$id" closure', text)
-
-
 def test_dev_flow_execute_opencode_minus_1_1_claimt_branch_scoped_kein_check_and_claim_ticket(paths):
     block = _section(paths["exec_skill"].read_text(encoding="utf-8"), r"^### Schritt −1\.1")
     assert block
@@ -106,10 +69,10 @@ def test_claim_verifikation_plus_release_im_dev_flow_execute_sind_branch_scoped(
     skill = paths["exec_skill"].read_text(encoding="utf-8")
     assert 'check branch "$(git branch --show-current)"' in skill
     finalize = (repo_root / "scripts/devflow-post-merge-finalize.sh").read_text(encoding="utf-8")
-    assert 'finalize_release_owned_claims "$_CLEANUP_ANCHOR" "$BRANCH" "$TICKET_ID"' in finalize
+    assert 'finalize_release_owned_claims "$_CLEANUP_ANCHOR" "$BRANCH"' in finalize
     guards = (repo_root / "scripts/lib/finalize-step-guards.sh").read_text(encoding="utf-8")
-    assert 'for scope in branch ticket' in guards
-    assert 'release "$scope" "$id"' in guards
+    assert 'for scope in branch ticket' not in guards
+    assert 'release branch "$branch"' in guards
     assert '(.owner_sid | tostring) == $sid' in guards
     assert "devflow-post-merge-finalize.sh" in skill
 

@@ -69,11 +69,3 @@ def test_t002847_probe_loops_must_not_suppress_stderr(ops):
     assert "T002847" in sec
     assert "stderr" in sec
     assert re.search(r"exit-code|PIPESTATUS|pipefail", sec, re.IGNORECASE)
-
-
-def test_t002844_dedupe_guard_in_s4_names_mishap_buffer_as_second_source(ops):
-    sec = _section(ops, r"^## 4[.]")
-    assert sec, "section 4 empty"
-    assert "T001210" in sec
-    assert "mishap-buffer" in sec
-    assert "T002844" in sec

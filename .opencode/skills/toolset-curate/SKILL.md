@@ -26,7 +26,7 @@ capabilities:
       state: canonical          # canonical | suppressed | unreviewed
       use_when: "Tickets lesen, anlegen, Status setzen, Plan stagen."
       avoid_when: "stage_plan im Worktree — schlägt dort immer fehl."
-      fallback: "scripts/ticket.sh (worktree-tauglich)"
+      fallback: "<cli-skript> (worktree-tauglich)"
       roles: [bp-run, bp-ship, orchestrator]
       tier: caution             # safe | caution | assisted | dangerous
       deep_ref: ".agents/skills/references/mcp-tool-guide.md"

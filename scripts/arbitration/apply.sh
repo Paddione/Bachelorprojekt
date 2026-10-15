@@ -18,14 +18,12 @@
 # Env overrides (für Tests/Fixtures):
 #   GH_AXI               - gh-CLI-Binary (Default: gh; gh-axi kann kein JSON
 #                          emittieren — siehe detect.sh)
-#   TICKET_SH            - Kommando für Ticket-Erstellung (Default: scripts/ticket.sh)
 #   SYNTHESIZE           - Pfad zu synthesize.mjs (Default: neben diesem Skript)
 #   SHARED_STATE         - Risiko-Pfadliste (Default: scripts/arbitration/shared-state-paths.txt)
 #   CONFIDENCE_THRESHOLD - Eskalationsschwelle (Default: 0.8)
 set -uo pipefail
 
 GH_AXI="${GH_AXI:-gh}"
-TICKET_SH="${TICKET_SH:-scripts/ticket.sh}"
 SYNTHESIZE="${SYNTHESIZE:-$(dirname "$0")/synthesize.mjs}"
 SHARED_STATE="${SHARED_STATE:-scripts/arbitration/shared-state-paths.txt}"
 CONFIDENCE_THRESHOLD="${CONFIDENCE_THRESHOLD:-0.8}"
@@ -84,15 +82,12 @@ Dateien: ${files}
 Beteiligte PRs: ${prs}
 
 Kein Code wurde generiert — manuelle Entscheidung nötig (Risiko-Pfad und/oder
-niedrige Confidence, siehe docs/superpowers/specs/2026-07-28-merge-arbitration-design.md)."
-
-  $TICKET_SH create --type task \
-    --title "Merge-Arbitrierung eskaliert: ${cluster_key:0:12}" \
-    --description "$briefing" >/dev/null 2>&1 || true
+niedrige Confidence, siehe docs/superpowers/specs/2026-07-28-merge-arbitration-design.md).
+(Ticket-Anlage retiriert 2026-10-14 mit scripts/ticket.sh — kein Ticket-Backend mehr.)"
 
   local n
   for n in $(jq -r '.eligible_prs[].number' <<< "$cluster" 2>/dev/null); do
-    "$GH_AXI" pr comment "$n" --body "Merge-Arbitrierung eskaliert (${reason}) für Cluster ${cluster_key}. Siehe Ticket." \
+    "$GH_AXI" pr comment "$n" --body "Merge-Arbitrierung eskaliert (${reason}) für Cluster ${cluster_key}. Manuelle Entscheidung nötig." \
       >/dev/null 2>&1 || true
   done
 }

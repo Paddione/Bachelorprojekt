@@ -19,7 +19,6 @@ guards:
     anchor: "T002673"
     applies_to:
       - .claude/skills/dev-flow-plan/SKILL.md
-      - .claude/skills/references/ticket-stage-procedure.md
       - .claude/skills/dev-flow-plan/SKILL.md
   - id: T002816
     title: "kein fertig aussehender PR aus dem Plan-Stand (Draft + [plan-only])"
@@ -63,7 +62,6 @@ guards:
     anchor: "--hold"
     applies_to:
       - .claude/skills/dev-flow-plan/SKILL.md
-      - .claude/skills/references/ticket-stage-procedure.md
       - .claude/skills/dev-flow-plan/SKILL.md
   - id: plan-preflight
     title: "Pre-Commit-/Worktree-Guards laufen ueber scripts/plan-preflight.sh, nicht als Inline-Snippet"

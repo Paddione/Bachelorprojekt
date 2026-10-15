@@ -1,6 +1,6 @@
 ---
 name: system-audit
-description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manifeste, Live-Flux-Cluster, Brand-Seiten, Repo-Zustand, Tool-Registry, Security & Secrets, Datenbank, LLM-Pipeline, Brain-Wiki. Critical/Warning-Befunde enden als Ticket mit plan-Proposal im Backlog. Triggers on system-audit, Systemaudit, Full-Audit, 'audit all systems', 'audit the cluster/repo/website/security/database/llm pipeline/toolset', 'audit report with tickets'."
+description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manifeste, Live-Flux-Cluster, Brand-Seiten, Repo-Zustand, Tool-Registry, Security & Secrets, Datenbank, LLM-Pipeline, Brain-Wiki. Critical/Warning-Befunde enden als GitHub-Issue mit plan-Proposal. Triggers on system-audit, Systemaudit, Full-Audit, 'audit all systems', 'audit the cluster/repo/website/security/database/llm pipeline/toolset', 'audit report with issues'."
 ---
 
 # system-audit
@@ -8,7 +8,7 @@ description: "Ein Audit-Einstiegspunkt fuer alle Systeme des Repos: GitOps-Manif
 Ein Einstiegspunkt für Audits über alle Systeme, die das Repo in separaten Skills pflegt.
 Der Skill ersetzt die Spezial-Skills nicht — er orchestriert sie und schließt deren
 Audit-Lücken. Ein Lauf ist **read-only bis Phase C**: es wird nichts repariert, nichts
-deployed, kein PR entschieden. Die Folgearbeit entsteht ausschließlich als Tickets mit
+deployed, kein PR entschieden. Die Folgearbeit entsteht ausschließlich als GitHub-Issues mit
 angehängten Proposals.
 
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
@@ -39,13 +39,13 @@ angehängten Proposals.
 
    | Severity | Bedeutung | Phase-C-Folge |
    |---|---|---|
-   | Critical | broken, Sicherheitsrisiko, Datenverlustrisiko, Prod ausgefallen/degradiert | Ticket + Proposal (Pflicht) |
-   | Warning | Drift, Verschleiß, fehlende Absicherung, Inkonsistenz | Ticket + Proposal (Pflicht) |
+   | Critical | broken, Sicherheitsrisiko, Datenverlustrisiko, Prod ausgefallen/degradiert | Issue + Proposal (Pflicht) |
+   | Warning | Drift, Verschleiß, fehlende Absicherung, Inkonsistenz | Issue + Proposal (Pflicht) |
    | Info | Hygiene, Kosmetik, Beobachtung | bleibt im Report |
 
 4. **Kein Merge-Gate.** Der Skill läuft manuell und entscheidet nicht über PRs.
-5. **Eine Ursache, ein Ticket.** Mehrere Befunde mit derselben Wurzel werden in Phase C
-   zu einem Ticket zusammengefasst — nicht zu fünf Duplikaten.
+5. **Eine Ursache, ein Issue.** Mehrere Befunde mit derselben Wurzel werden in Phase C
+   zu einem Issue zusammengefasst — nicht zu fünf Duplikaten.
 
 ## Phase A — Audits ausführen
 
@@ -103,7 +103,7 @@ Rotationsprozeduren selbst: infra-ops `references/runbooks-operations.md` §6.
 ### database → Checkliste §3
 
 Backup-Frische und Restore-Verifikation (infra-ops `references/runbooks-operations.md` §7 Audit), plus read-only SQL-Checks
-über `mcp-postgres`. Nie `SELECT *` von `tickets.ticket_plans` (Multi-MB-Content).
+über `mcp-postgres` (die `tickets.*`-Tabellen entfielen mit dem Retirement 2026-10-14).
 Details: [Checkliste §3](references/checklists.md#3-datenbank-postgresql).
 
 ### llm-pipeline → Checkliste §4
@@ -114,7 +114,7 @@ Betrieb und Loadout-Wechsel: infra-ops `references/runbooks-operations.md` §5.
 
 ## Phase B — Befunde normalisieren und Report schreiben
 
-Jeder Befund erhält dieses Format (im Report und später im Ticket):
+Jeder Befund erhält dieses Format (im Report und später im Issue):
 
 ```
 SA-<ZIEL>-<NN> | <severity> | <component>
@@ -130,15 +130,15 @@ Schreibe den Report nach `tmp/claude-scratch/system-audit-<ziel>-<YYYY-MM-DD>.md
 ## Zusammenfassung (<n> Critical, <n> Warning, <n> Info)
 ## Befunde
 ### SA-XXX-01 | critical | <component>
-Evidence / Vorschlag / (Phase-C: Ticket <T-ID>, Proposal <slug>)
+Evidence / Vorschlag / (Phase-C: Issue <#>, Proposal <slug>)
 ## Abgedeckte Quellen (welche Skills/Checklisten gelaufen sind, FAILED-Markierungen)
-## Info-Befunde (ohne Ticket)
+## Info-Befunde (ohne Issue)
 ```
 
 Die Zeile `(Phase-C: …)` wird in Phase C nachgetragen — so ist der Report die
-Rückverfolgbarkeit von Befund zu Ticket.
+Rückverfolgbarkeit von Befund zu Issue.
 
-## Phase C — Abschlussphase: jeder Befund wird Ticket + Proposal (Pflicht)
+## Phase C — Abschlussphase: jeder Befund wird Issue + Proposal (Pflicht)
 
 Ein Audit ohne Folge ist ein Bericht, den niemand liest. Deshalb ist diese Phase
 **Pflichtbestandteil jedes Laufs**, nicht optionaler Nachklapp. Scope: alle Critical-
@@ -155,20 +155,24 @@ git rev-parse --git-dir | grep -q 'worktrees/' && echo WORKTREE || echo MAIN
 ```
 
 - `WORKTREE` → voller Ablauf C1–C5.
-- `MAIN` → nur C1–C3 + C5; statt C4 bekommt jedes Ticket einen Kommentar
+- `MAIN` → nur C1–C3 + C5; statt C4 bekommt jedes Issue einen Kommentar
   „Proposal folgt in dev-flow-plan (Audit lief auf Main-Checkout)". Der Fallback ist
   im Report je Befund zu markieren.
 
-### C1 — Dedupe gegen offene Tickets
+### C1 — Dedupe gegen offene GitHub-Issues
 
-Suche je Befund nach einem bereits offenen Ticket (Stichworte aus Titel/Component,
-Status ≠ done/archived). Existiert eins: **kein neues Ticket** — stattdessen Kommentar
-mit Evidence + aktuellem Datum ans bestehende Ticket. Erst danach zählt der Befund als
+Suche je Befund nach einem bereits offenen Issue (Stichworte aus Titel/Component).
+Existiert eins: **kein neues Issue** — stattdessen Kommentar
+mit Evidence + aktuellem Datum ans bestehende Issue. Erst danach zählt der Befund als
 abgearbeitet.
 
-### C2–C5 — Ticket, DoR, Proposal, Enqueue
+### C2–C5 — Issue, Proposal, Rückverfolgbarkeit
 
-Ticket-Anlage (Typ-Mapping), DoR-Felder (`plan-meta`, Readiness-Flags), plan-Proposal (Plananlage, Artefakt-How-to) und Enqueue + Rückverfolgbarkeit: [phase-c-tickets](references/phase-c-tickets.md). C0-Worktree-Guard und C1-Dedupe oben gelten unverändert.
+> Retiriert 2026-10-14: Die Ticket-Anlage-Prozedur (`references/phase-c-tickets.md`,
+> `ticket.sh`, DoR-Felder, `stage_plan --hold`) entfiel mit dem Ticket-System.
+> Befunde werden als GitHub-Issue angelegt (Titel + Evidence + Component),
+> das plan-Proposal entsteht via `dev-flow-plan`. C0-Worktree-Guard und C1-Dedupe
+> oben gelten unverändert.
 
 ## Nachbereitung: Mishap Report
 
@@ -180,7 +184,7 @@ Ausgefallene Ziele (FAILED-Markierungen) sind Mishaps, keine stillen Auslassunge
 - **Kein Ersatz für die Spezial-Skills**: Tiefe (z. B. Flux-Feldindex, Lighthouse-Profile,
   Kurationsentscheidungen) bleibt bei `gitops-repo-audit`, `web-audit`, `toolset-curate`.
 - **Kein incident-response**: etwas läuft gerade heiß → `incident-response`, nicht Audit.
-- **Kein Auto-Fix**: Umsetzung läuft über die erzeugten Tickets in der normalen Pipeline.
+- **Kein Auto-Fix**: Umsetzung läuft über die erzeugten Issues in der normalen Pipeline.
 - **Kein CI-Job**: manueller Lauf, kein Merge-Gate.
 
 ## Verwandte Skills
@@ -188,8 +192,7 @@ Ausgefallene Ziele (FAILED-Markierungen) sind Mishaps, keine stillen Auslassunge
 | Skill | Beziehung |
 |-------|--------------|
 | `gitops-repo-audit`, `web-audit`, `repo-hygiene`, `toolset-curate` | delegierte Ziele dieses Skills |
-| `dev-flow-plan` | How-to für die Proposal-Artefakte in C4 |
-| `ticket-ops` | Weitertriage der erzeugten Tickets (Vollständigkeit, Klärung) |
+| `dev-flow-plan` | How-to für die Proposal-Artefakte in C4 (inkl. Vollständigkeit und Klärung) |
 | `incident-response` | wenn Befunde akut sind — sofortiger Wechsel erlaubt |
 | `infra-ops` §5–§7 | Fachprozeduren hinter den Checklisten security/database/llm-pipeline |
 | `mishap-tracker` | Pflicht-Nachbereitung |

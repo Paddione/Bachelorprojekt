@@ -37,10 +37,10 @@ def test_b_anchor_source_search_finds_provider_config_as_remaining_source(run_cm
 
 def test_b_no_tracked_path_names_factory_model_slots(run_cmd, repo_root):
     # scripts/migrations bleibt ausgenommen: historische Migrationen sind unveraenderliche Geschichte.
-    # scripts/ticket-db-schema.sql ebenso: generierter Schema-Snapshot, dokumentiert den Live-Stand
-    # (die Tabelle existiert in der DB noch) — kein Code, der sie liest oder schreibt [T901492].
+    # (Der Ticket-Schema-Snapshot scripts/ticket-db-schema.sql entfiel mit dem
+    # Ticket-Retirement 2026-10-14 — Schema dropped, kein Snapshot mehr noetig.)
     r = run_cmd(
-        ["git", "grep", "-l", "factory_model_slots", "--", "components/website/src", "scripts/", ":!scripts/migrations", ":!scripts/ticket-db-schema.sql"],
+        ["git", "grep", "-l", "factory_model_slots", "--", "components/website/src", "scripts/", ":!scripts/migrations"],
         cwd=repo_root,
     )
     assert r.returncode != 0

@@ -1,4 +1,9 @@
-"""Native migration of tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats."""
+"""Native migration of tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats.
+
+Ticket-Argv entfiel mit dem Retirement (2026-10-14): Der Watch nimmt nur noch
+die PR-URL; der Phasen-Gate prueft die lokale phase-events.log (Slug aus dem
+PR-Branch). Fixture legt einen vollstaendigen Log an.
+"""
 
 import os
 import stat
@@ -6,14 +11,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
-TICKET_SH = """#!/usr/bin/env bash
-echo "ticket.sh $*" >> "$MARKER_DIR/ticket-calls"
-case "$1" in
-  assert-phase-chain) exit 0 ;;
-  *) exit 0 ;;
-esac
-"""
 
 GH_TEMPLATE = """#!/usr/bin/env bash
 echo "gh $*" >> "@MARKER@/gh-calls"
@@ -47,7 +44,7 @@ case "$args" in
     # Route to the correct mock based on the jq query content
     if [[ "$args" == *'"FAILURE"'* || "$args" == *'"TIMED_OUT"'* ]]; then
       cat "@MARKER@/mock-rollup-failures" 2>/dev/null || true
-    elif [[ "$args" == *'"COMPLETED"'* || "$args" == *'COMPLETED'* ]]; then
+    elif [[ "$args" == *'COMPLETED'* || "$args" == *'COMPLETED'* ]]; then
       cat "@MARKER@/mock-rollup-pending" 2>/dev/null || echo "0"
     else
       # Generic statusCheckRollup query (no specific keyword) - assume empty
@@ -86,9 +83,13 @@ def ws(repo_root, tmp_path):
     subprocess.run(["git", "-C", str(work), "-c", "user.email=t@example.invalid", "-c", "user.name=t",
                     "commit", "-q", "--allow-empty", "-m", "init"], check=True)
 
-    ticket = work / "scripts/ticket.sh"
-    ticket.write_text(TICKET_SH)
-    ticket.chmod(ticket.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    plan_dir = work / ".agents" / "plans" / "stub-branch"
+    plan_dir.mkdir(parents=True)
+    (plan_dir / "phase-events.log").write_text(
+        "plan done 2026-10-14T00:00:00Z plan-gestagt\n"
+        "implement entered 2026-10-14T00:01:00Z subagent-gestartet\n"
+        "verify done 2026-10-14T00:02:00Z tests-gruen\n"
+    )
 
     gh = work / "bin/gh"
     gh.write_text(GH_TEMPLATE.replace("@MARKER@", str(marker)).replace("@WORK@", str(work)))
@@ -100,7 +101,6 @@ def ws(repo_root, tmp_path):
         "script": repo_root / "scripts/devflow-ci-watch.sh",
         "env": {
             "MARKER_DIR": str(marker),
-            "TICKET_SH": str(work / "scripts/ticket.sh"),
             "PATH": f"{work / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}",
         },
     }
@@ -115,7 +115,7 @@ def _run(run_cmd, w, *args):
 
 def test_t002671_an_open_not_yet_merged_pr_still_reaches_gh_pr_checks_watch_unchanged_happy_path(run_cmd, ws):
     (ws["marker"] / "pr-state").write_text("OPEN\n")
-    res = _run(run_cmd, ws, "T999999", "https://github.com/x/y/pull/1")
+    res = _run(run_cmd, ws, "https://github.com/x/y/pull/1")
     assert res.returncode == 0, f"unerwarteter Exit {res.returncode}: {res.output}"
     assert (ws["marker"] / "watch-called").exists(), \
         "Positiv-Anker verletzt: gh pr checks --watch wurde fuer eine offene PR NICHT aufgerufen"
@@ -123,7 +123,7 @@ def test_t002671_an_open_not_yet_merged_pr_still_reaches_gh_pr_checks_watch_unch
 
 def test_t002671_a_merged_pr_must_exit_0_without_ever_reaching_the_blocking_gh_pr_checks_watch_call(run_cmd, ws):
     (ws["marker"] / "pr-state").write_text("MERGED\n")
-    res = _run(run_cmd, ws, "T999999", "https://github.com/x/y/pull/1")
+    res = _run(run_cmd, ws, "https://github.com/x/y/pull/1")
     assert res.returncode == 0, f"unerwarteter Exit {res.returncode}: {res.output}"
     assert not (ws["marker"] / "watch-called").exists(), \
         "gh pr checks --watch WURDE fuer eine bereits gemergte PR aufgerufen"
@@ -131,7 +131,7 @@ def test_t002671_a_merged_pr_must_exit_0_without_ever_reaching_the_blocking_gh_p
 
 def test_t003612_a_gh_pr_checks_watch_receives_the_pr_url_argument_not_cwd_bare_call(run_cmd, ws):
     (ws["marker"] / "pr-state").write_text("OPEN\n")
-    res = _run(run_cmd, ws, "T999999", "https://github.com/x/y/pull/42")
+    res = _run(run_cmd, ws, "https://github.com/x/y/pull/42")
     assert res.returncode == 0, f"unerwarteter Exit {res.returncode}: {res.output}"
     urls = ws["marker"] / "pr-watch-urls"
     assert urls.exists() and "https://github.com/x/y/pull/42" in urls.read_text(), \
@@ -148,5 +148,5 @@ def test_t003612_b_in_progress_checks_must_not_trigger_false_green_exit(run_cmd,
     (m / "mock-head-ref-oid").write_text(
         subprocess.run(["git", "-C", str(ws["work"]), "rev-parse", "HEAD"],
                        capture_output=True, text=True, check=True).stdout)
-    res = _run(run_cmd, ws, "T999999", "https://github.com/x/y/pull/1")
+    res = _run(run_cmd, ws, "https://github.com/x/y/pull/1")
     assert res.returncode != 0, "Bug 3 reproduziert: Script meldete 'alle gruen' (exit 0) obwohl ein Check noch IN_PROGRESS war"

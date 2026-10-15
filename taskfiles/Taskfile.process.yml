@@ -70,7 +70,7 @@ tasks:
       - curl -s http://{{.REGISTRY}}/v2/_catalog | python3 -m json.tool 2>/dev/null || echo "Registry empty or unavailable"
 
   mishap:categorize:
-    desc: "Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback"
+    desc: "Kategorisiert einen Mishap-Text via Keyword-Matching + DeepSeek-Fallback (lokal, kein Ticket-Backend)"
     cmds:
       - bash scripts/mishap-categorize.sh {{.CLI_ARGS}}
 

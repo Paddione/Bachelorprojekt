@@ -82,7 +82,7 @@ export default defineConfig({
         '**/fa-admin-inbox-delete.spec.ts',
         '**/fa-admin-inhalte.spec.ts',
         '**/fa-admin-billing-system.spec.ts',
-        '**/fa-admin-tickets.spec.ts',
+        // fa-admin-tickets.spec.ts retiriert 2026-10-14 (Ticket-UI ohne Backend).
         '**/fa-admin-monitoring.spec.ts',
         '**/fa-admin-newsletter.spec.ts',
         '**/fa-public-pages.spec.ts',

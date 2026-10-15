@@ -70,15 +70,6 @@ def test_dev_flow_chore_skill_refuses_bare_git_add_a_mentions_git_crypt(repo_roo
     assert re.search(r"git.add.*-A|git add -A|git-crypt", text, re.IGNORECASE)
 
 
-def test_ticket_ops_skill_md_exists(repo_root):
-    assert (repo_root / ".claude/skills/ticket-ops/SKILL.md").is_file()
-
-
-def test_ticket_ops_skill_mentions_dedup_or_duplicate_check(repo_root):
-    text = _read(repo_root / ".claude/skills/ticket-ops/SKILL.md")
-    assert re.search(r"dedup|duplicate|same.*title|vorhanden.*Ticket", text, re.IGNORECASE)
-
-
 def test_agent_push_sh_exists_and_is_executable(repo_root):
     script = repo_root / "scripts/agent-push.sh"
     assert script.is_file()

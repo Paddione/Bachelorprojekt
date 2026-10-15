@@ -16,7 +16,7 @@ without failing the run (T002270).
 
 | File | Ist | Budget |
 |------|-----|--------|
-| `scripts/ticket.sh` | 866 | -366 |
+| `components/website/src/lib/billing-db.ts` | 866 | -366 |
 
 ## Task 1: Edit
 

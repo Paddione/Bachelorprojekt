@@ -5,48 +5,17 @@
 
 set -euo pipefail
 
-# Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
-CTX="${TICKET_CTX:-devmesh}"
-NS="${TICKET_NS:-workspace}"
-DB="website"
-USER="website"
-
+# Retiriert 2026-10-14: kein Ticket-Backend mehr (tickets.*-Schema dropped auf
+# fleet + devmesh). Die Kategorie wird nur noch gemeldet (stderr) — Persistenz
+# gibt es keine; die DB-Zugangsdaten (CTX/NS) entfielen mit.
 _db_update() {
   local ext_id="$1" category="$2"
-  local pod
-  # [T002386] Phase Running serverseitig filtern — sonst kann ein liegengebliebener
-  # Failed/Succeeded-Pod vor dem lebenden sortieren und `kubectl exec` scheitert.
-  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
-    --field-selector status.phase=Running -o name 2>/dev/null | head -1) || true
-  if [[ -z "$pod" ]]; then
-    echo "mishap-categorize: ERROR no shared-db pod found in namespace $NS (context $CTX)" >&2
-    return
-  fi
-  kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
-    psql -U "$USER" -d "$DB" -qtA -v ON_ERROR_STOP=1 \
-    -v ext_id="$ext_id" \
-    -v cat="$category" <<'SQL' 2>/dev/null || true
-INSERT INTO tickets.tags (name) VALUES ('kind:' || :'cat') ON CONFLICT (name) DO NOTHING;
-INSERT INTO tickets.ticket_tags (ticket_id, tag_id)
-SELECT id, (SELECT id FROM tickets.tags WHERE name = 'kind:' || :'cat')
-FROM tickets.tickets WHERE external_id = :'ext_id'
-ON CONFLICT DO NOTHING;
-SQL
-  echo "mishap-categorize: category='${category}' set for ${ext_id}" >&2
+  echo "mishap-categorize: category='${category}' computed for ${ext_id} (no ticket backend — not persisted)" >&2
 }
 
 _fetch_existing_categories() {
-  local pod
-  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
-    --field-selector status.phase=Running -o name 2>/dev/null | head -1) || true
-  if [[ -z "$pod" ]]; then
-    echo "mishap-categorize: WARN no shared-db pod for category fetch" >&2
-    return 1
-  fi
-  kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
-    psql -U "$USER" -d "$DB" -qtA -v ON_ERROR_STOP=1 <<'SQL' 2>/dev/null || true
-SELECT substring(name from 6) FROM tickets.tags WHERE name LIKE 'kind:%' ORDER BY name;
-SQL
+  # Keine DB mehr: direkt die statische Enum-Liste liefern.
+  _build_enum_fallback
 }
 
 _build_enum_fallback() {

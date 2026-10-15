@@ -77,18 +77,15 @@ finalize_holding_worktree() {
 # Check ownership from the stable main anchor: target cwd must never impersonate
 # the owner via agent-lock's worktree-containment fallback. Unknown is not free.
 finalize_cleanup_safe() {
-  local repo="$1" branch="$2" path="$3" ticket="$4" anchor state dirty scope id
+  local repo="$1" branch="$2" path="$3" anchor state dirty
   anchor="$(dirname "$(git -C "$repo" rev-parse --path-format=absolute --git-common-dir)")" || return 1
-  for scope in branch ticket; do
-    id="$branch"; [[ "$scope" == ticket ]] && id="$ticket"
-    state="$(cd "$anchor" && bash "$anchor/scripts/agent-lock.sh" check "$scope" "$id" 2>/dev/null)" || return 1
-    case "${state%%$'\n'*}" in
-      free) ;;
-      mine) [[ -n "${AGENT_LOCK_SID:-}" ]] &&
-        jq -e --arg sid "$AGENT_LOCK_SID" '(.owner_sid | tostring) == $sid' <<<"${state#*$'\n'}" >/dev/null || return 1 ;;
-      *) return 1 ;;
-    esac
-  done
+  state="$(cd "$anchor" && bash "$anchor/scripts/agent-lock.sh" check branch "$branch" 2>/dev/null)" || return 1
+  case "${state%%$'\n'*}" in
+    free) ;;
+    mine) [[ -n "${AGENT_LOCK_SID:-}" ]] &&
+      jq -e --arg sid "$AGENT_LOCK_SID" '(.owner_sid | tostring) == $sid' <<<"${state#*$'\n'}" >/dev/null || return 1 ;;
+    *) return 1 ;;
+  esac
   if [[ -d "$path" ]]; then
     [[ "$(finalize_holding_worktree "$repo" "$branch")" == "$path" ]] || return 1
     [[ "$path" != "$anchor" ]] || return 1
@@ -108,24 +105,14 @@ finalize_remove_clean_worktree() {
 
 # Release only exact SID-owned claims after merge/clean/ownership preflight.
 finalize_release_owned_claims() {
-  local anchor="$1" branch="$2" ticket="$3" scope id state
-  for scope in branch ticket; do
-    id="$branch"; [[ "$scope" == ticket ]] && id="$ticket"
-    state="$(cd "$anchor" && bash "$anchor/scripts/agent-lock.sh" check "$scope" "$id" 2>/dev/null)" || return 1
-    case "${state%%$'\n'*}" in
-      free) ;;
-      mine)
-        [[ -n "${AGENT_LOCK_SID:-}" ]] && jq -e --arg sid "$AGENT_LOCK_SID" \
-          '(.owner_sid | tostring) == $sid' <<<"${state#*$'\n'}" >/dev/null || return 1
-        (cd "$anchor" && bash "$anchor/scripts/agent-lock.sh" release "$scope" "$id") || return 1 ;;
-      *) return 1 ;;
-    esac
-  done
-}
-
-# Comments mentioning a slug are not durable archive receipts.
-finalize_receipt_archived() {
-  jq -e --arg slug "$2" --arg branch "$3" '
-    any(.events[]?; .source == "plan_archived" and
-      .detail.slug == $slug and .detail.branch == $branch)' <<<"$1" >/dev/null
+  local anchor="$1" branch="$2" state
+  state="$(cd "$anchor" && bash "$anchor/scripts/agent-lock.sh" check branch "$branch" 2>/dev/null)" || return 1
+  case "${state%%$'\n'*}" in
+    free) ;;
+    mine)
+      [[ -n "${AGENT_LOCK_SID:-}" ]] && jq -e --arg sid "$AGENT_LOCK_SID" \
+        '(.owner_sid | tostring) == $sid' <<<"${state#*$'\n'}" >/dev/null || return 1
+      (cd "$anchor" && bash "$anchor/scripts/agent-lock.sh" release branch "$branch") || return 1 ;;
+    *) return 1 ;;
+  esac
 }

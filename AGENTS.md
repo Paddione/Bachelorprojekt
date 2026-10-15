@@ -13,10 +13,10 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | Signals | Agent | MCP-Primär (Claude Code) |
 |---------|-------|--------------------------|
 | `fleet/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup`, SealedSecret, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bp-build` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, database, PostgreSQL, psql, schema, query, timeline | `bp-run` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md`; `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) — Ticket-Reads → `ticket-mcp` mit `brand` |
+| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, database, PostgreSQL, psql, schema, query, timeline | `bp-run` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md`; `mcp-postgres` (localhost:13001, **devmesh**-DB seit T900191, nur mentolder-Brand-Daten) |
 | pytest/Playwright, `FA-*`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bp-ship` | — |
 
-> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `.opencode/opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `codebase-memory-mcp`, `context7`, `devflow-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `ticket-mcp-node`, `warden`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
+> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `.opencode/opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `codebase-memory-mcp`, `context7`, `devflow-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `warden`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
 > **gh-axi (T004612):** Bevorzugt für Anzeige. Für maschinelles Parsen (`--json`, `-q`, `--jq`), Polling (`pr checks`) und Mutationen (`pr merge`, `gh api`) immer `gh` direkt verwenden. Siehe [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
 
 **Before dispatching any domain agent, inject active plan context & curated toolset:**
@@ -26,7 +26,7 @@ context=$(bash scripts/plan-context.sh <full-role-name>)
 tools=$(bash scripts/toolset-context.sh <full-role-name>) || { echo "toolset-context failed — not dispatching" >&2; exit 1; }
 [ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
 ```
-`<role>` muss ein voller Rollenname sein (`bp-build`/`bp-run`/`bp-ship`/`orchestrator`, SSOT `scripts/toolset/lib/roles.mjs`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle) — bei Exit ≠ 0 **nicht** ohne Block dispatchen (T900980). Aufgabenbezogener Kontext (Code-Symbole aus dem Graph-Index, Pläne/Bugs/PRs, per bge-Rerank empfohlene Werkzeuge) kommt über **devflow-mcp** `context_for_task(task, role)`; Pläne stagt `plan_stage` (T900985, [mcp-tool-guide](.claude/skills/references/mcp-tool-guide.md)). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
+`<role>` muss ein voller Rollenname sein (`bp-build`/`bp-run`/`bp-ship`/`orchestrator`, SSOT `scripts/toolset/lib/roles.mjs`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle) — bei Exit ≠ 0 **nicht** ohne Block dispatchen (T900980). Aufgabenbezogener Kontext (Code-Symbole aus dem Graph-Index, Pläne/Bugs/PRs, per bge-Rerank empfohlene Werkzeuge) kommt über **devflow-mcp** `context_for_task(task, role)` (der `plan_stage`-Ticket-Pfad entfiel mit dem Retirement — Pläne werden per Commit+Push gestagt). Nach Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
 
 ### Session Model & Delegation (T002153)
 
@@ -50,11 +50,11 @@ task workspace:validate                          # Kustomize dry-run
 - **Branching & PRs**: Branches `feature/*`, `fix/*`, `chore/*`, `docs/*`; PRs → squash-merge, never push directly to `main` (`preflight-pr-scope.sh` enforces worktrees).
 - **dev-flow**: `dev-flow-plan` → `dev-flow-execute` (Chores: `dev-flow-chore`); a staged plan is executed by `dev-flow-execute` (locally optional: `scripts/llm/plan-runner.mjs`).
 - **CI Gate vor PR**: `task test:changed` + `task freshness:check` + `task workspace:validate`.
-- **Merge = Abschluss (T001092)**: Ticket closes on green auto-merge to `main` (`done · resolution=shipped`). Prod deploy is decoupled push-based and does NOT change ticket status.
+- **Merge = Abschluss (T001092)**: Green auto-merge to `main` closes the work — no ticket to close anymore (retired 2026-10-14). Prod deploy is decoupled push-based.
 - **Deliverable-Check vor manuellem done/shipped (M10, T002506)**: Bei manuellen Closures (Epics über mehrere PRs) vor dem Setzen auf done/shipped prüfen, dass alle Deliverable-Dateien auf `origin/main` existieren (`git ls-tree -r --name-only origin/main | grep -qxF <pfad>`).
-- **Bug-Triage-Konvention (CFR-Gate G-DORA03)**: Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst (`bash scripts/ticket.sh create --type bug --title "..." --description "..."`) — kein stiller `fix()`-Commit ohne Ticket-Referenz. CFR wird gemessen via `bash scripts/vda.sh cfr` (Ziel ≤ 15 % über 8 Wochen).
-- **CI-Rot-Intake per Auto-Resolve (einzige Rot-Intake-Konvention, T900759)**: Rot auf `main` wird sofort als `type=bug`-Ticket (`areas=ci`, Titel `CI-Rot auf main: <workflow> @ <short-sha> (...)`) angelegt — per `bash scripts/ci-red-intake.sh intake --sha <sha> --workflow <name>` (Dedupe: gleiche SHA kommentiert das offene Ticket statt Duplikat, Mishap-Buffer-Eintrag blockt die Neuanlage). Bei grünem Beleg-Run schließt `bash scripts/ci-red-intake.sh resolve --sha <sha>` das Ticket als `done`/`fixed` mit Beleg-Kommentar (Run-URL + Head-SHA). Flake-Rot hinterlässt damit kein offenes Ticket, Dauer-Rot ist sofort sichtbar. Manuelle Funde außerhalb CI bleiben per Sofort-Erfassung (Bug-Triage-Konvention oben) abgedeckt.
-- **Mess-Konvention (T002717)**: Wer eine Messung als Entscheidungsgrundlage in ein Ticket schreibt, notiert den ausführbaren Befehl mit Suchmuster und Commit-Stand (`PRE=<sha>`) im Code-Block. Redaktioneller Hinweis.
+- **Bug-Triage-Konvention**: Jeder nach-Merge entdeckte Fehler wird als GitHub-Issue erfasst (Titel + Reproducer + betroffene Version) — kein stiller `fix()`-Commit ohne Referenz. Die CFR-Messung via Ticket-DB entfiel mit dem Retirement (2026-10-14).
+- **CI-Rot-Intake per Auto-Resolve (einzige Rot-Intake-Konvention, T900759)**: Rot auf `main` wird sofort als GitHub-Issue (Label `ci`, Titel `CI-Rot auf main: <workflow> @ <short-sha> (...)`) angelegt — per `bash scripts/ci-red-intake.sh intake --sha <sha> --workflow <name>` (Dedupe: gleiche SHA kommentiert das offene Issue statt Duplikat). Bei grünem Beleg-Run schließt `bash scripts/ci-red-intake.sh resolve --sha <sha>` das Issue mit Beleg-Kommentar (Run-URL + Head-SHA). Flake-Rot hinterlässt damit kein offenes Issue, Dauer-Rot ist sofort sichtbar. Manuelle Funde außerhalb CI bleiben per Sofort-Erfassung (Bug-Triage-Konvention oben) abgedeckt.
+- **Mess-Konvention (T002717)**: Wer eine Messung als Entscheidungsgrundlage in ein GitHub-Issue schreibt, notiert den ausführbaren Befehl mit Suchmuster und Commit-Stand (`PRE=<sha>`) im Code-Block. Redaktioneller Hinweis.
 - **PowerShell-Skripte (.ps1, T002495-M7)**: ASCII-Pflicht (kein BOM), Parser-Check vor Commit, `-Encoding ASCII` für generierte `.conf`-Dateien. Siehe [`scripts/llm/CLAUDE.md`](scripts/llm/CLAUDE.md).
 
 ## Project Overview
@@ -77,7 +77,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command 
 
 - Full reference: [`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
 - `scripts/env-resolve.sh` must be sourced, never executed directly.
-- Never run `SELECT *` from `tickets.ticket_plans` (large content bloats memory).
+- `tickets.ticket_plans` entfiel mit dem Retirement (2026-10-14) — kein `SELECT` mehr dorthin.
 - Pre-commit hooks block main checkout when another agent holds a lock → use worktrees.
 - `components/website/` is strictly `pnpm` (never `npm install` there); Root and `components/brett/` use `npm`.
 - `git-crypt` unlock without keyfile uses `gpg.program`; under WSL point to Windows `gpg.exe`. See `docs/runbooks/git-crypt-key-distribution.md`.
@@ -88,8 +88,8 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command 
 
 ```bash
 bash scripts/agent-lock.sh reap                  # Clean stale locks (start of session)
-bash scripts/agent-lock.sh claim ticket <id> --branch <b> --worktree <wt> --label <skill>
-bash scripts/agent-lock.sh release ticket <id>
+bash scripts/agent-lock.sh claim branch <b> --worktree <wt> --label <skill>
+bash scripts/agent-lock.sh release branch <b>
 ```
 Session messaging: `bash scripts/agent-msg.sh read --unread`. Worktrees (`.worktrees/<slug>`): `bash scripts/worktree-list.sh [--json]`.
 
@@ -105,7 +105,7 @@ Route recall by query type ([recall-routing](docs/brain/recall-routing.md)): kno
 
 ## Staged Plans & Dev Experience
 
-Plans live in `.agents/plans/<slug>/` (`tasks.md` + `tasks.d/` partials): staged by `dev-flow-plan`, tracked on the ticket, executed by `dev-flow-execute`. Purpose in German; tasks as checklists with gates. Merged plans are deleted (record survives in `tickets.ticket_plans`).
+Plans live in `.agents/plans/<slug>/` (`tasks.md` + `tasks.d/` partials): staged by `dev-flow-plan`, tracked by branch/PR, executed by `dev-flow-execute`. Purpose in German; tasks as checklists with gates. Merged plans are deleted (record survives in git history).
 
 ## Interaction Contract
 
@@ -113,7 +113,7 @@ Plans live in `.agents/plans/<slug>/` (`tasks.md` + `tasks.d/` partials): staged
 logical completion — including verification, commit and pull request where the
 assignment covers them — and only then return control. Never make continuation
 conditional on user confirmation for a step you recommended yourself. Never
-start a new task or pull a new ticket without being asked.
+start a new task or pull a new issue without being asked.
 
 **Stop only on these four triggers:**
 1. **Destructive or irreversible** — force-push, prod deploy, secret rotation, DB drop.
@@ -151,5 +151,5 @@ analyze the four values immediately after writing them:
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
 
 - Claude Code: Skill mit `agent:` → `background-agents.ts` (`delegate` read-only, `task` write-capable); ohne `agent:` inline. Map: `dev-flow-e2e`→ship, `incident-response`→run, `infra-ops`→build, `database-specialist`→run, `security-specialist`→build, `website-specialist`/`web-audit`→ship.
-- opencode: `dev-flow-*` = Shared Sources wie Claude Code (T014086, ex-T013724-Dualnamen); Domain-Skills via Agent-Routing (`deny` in `opencode.jsonc`); `sdlc-autopilot` (opencode-only): ticket-triage → dev-flow-plan → dev-flow-execute. `ticket-ops` bleibt der kompatible Router; agy folgt dem opencode-Pfad.
+- opencode: `dev-flow-*` = Shared Sources wie Claude Code (T014086, ex-T013724-Dualnamen); Domain-Skills via Agent-Routing (`deny` in `opencode.jsonc`); `sdlc-autopilot` (opencode-only): dev-flow-plan → dev-flow-execute (der `ticket-triage`-Einstieg entfiel mit dem Ticket-Retirement 2026-10-14). agy folgt dem opencode-Pfad.
 </details>

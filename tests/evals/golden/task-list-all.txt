@@ -233,7 +233,7 @@ task: Available tasks for this project:
 * mcp:doctor:                                   MCP-Auth-Gesundheitscheck fuer alle Harnesses: Units, Bearer-Probes (:13001/:13005), opencode-Plugins, aufgeloeste Harness-Configs, ticket-stdio (nie Token-Werte)
 * mcp:start-windows:                            T900039/T900191: Windows-Pendant zu mcp-gateway.service + devmesh-forward.service — Port-Forwards fleet (18080, 13002) und devmesh (18235, 13001, 13005); schliesst den WSL-Mechanismus aus
 * mcp:sync:                                     Regenerate .mcp.json, .opencode/opencode.jsonc, and ~/.gemini/config/mcp_config.json from the SSOT registry (docs/agent-guide/registry/mcp.yaml)
-* mishap:categorize:                            Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback
+* mishap:categorize:                            Kategorisiert einen Mishap-Text via Keyword-Matching + DeepSeek-Fallback (lokal, kein Ticket-Backend)
 * monitoring:render:                            Pre-render kube-prometheus-stack to committed YAML (re-run on Helm chart upgrade). Renders the DEV values baseline; prod layers patches via prod/monitoring.
 * monitoring:validate:                          Validate the monitoring base + prod overlays build cleanly.
 * networks:check:                               Verify the network address plan: no undeclared overlap between declared ranges (exit != 0 on violation; never writes)
@@ -366,8 +366,6 @@ task: Available tasks for this project:
 * test:spec:changed:                            Alias for test:spec — the pytest spec suite runs in full in a few minutes, so there is no diff-scoped selection anymore. [T901392]
 * test:unit:                                    Run the offline unit pytest modules (tests/py/unit + ported tests/unit specs) in parallel
 * test:unit:quality-loop:                       
-* ticket-mcp:build:                             Build the ticket-mcp Go binary and install it onto the PATH as ticket-mcp-go
-* ticket-mcp:test:                              Run the ticket-mcp Go test suite
 * toolset:lookup:                               On-demand MCP/agent resource discovery — find, inspect, and record curation decisions
 * web:audit:                                    Semantische Pruefung + Triage: axe, Lighthouse, LLM (T002612)
 * website:build:                                Build the Astro website Docker image (ENV=dev|mentolder|...)
@@ -406,7 +404,7 @@ task: Available tasks for this project:
 * workspace:deploy:                             Deploy workspace to any environment (ENV=dev|mentolder|korczewski|...)
 * workspace:deploy:all-prods:                   Run workspace:deploy on mentolder + korczewski
 * workspace:dsgvo-check:                        Run DSGVO compliance verification (NFA-01 data sovereignty proof)
-* workspace:fix-tickets-grants:                 Idempotent: GRANT website role on tickets+bachelorprojekt schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails on tickets.* with permission denied.
+* workspace:fix-tickets-grants:                 Idempotent: GRANT website role on bachelorprojekt+superpowers schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails with permission denied. (tickets-Schema retiriert 2026-10-14.)
 * workspace:import-users:                       Import users from CSV or LDIF into Keycloak
 * workspace:logs:                               Tail logs for a workspace service (usage: task workspace:logs -- <service>)
 * workspace:migrate:                            Interactive data migration assistant (import/export)

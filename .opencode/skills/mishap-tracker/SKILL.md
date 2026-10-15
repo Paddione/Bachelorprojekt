@@ -1,41 +1,19 @@
 ---
 name: mishap-tracker
-description: 'Use at the END of any runbook or dev-flow skill to file the frictions it accumulated — writes each MISHAP_LOG entry as a comment on the ticket being worked on. Without ticket context an entry is logged and discarded; no collection container and no follow-up ticket is created. Only incident types (incident, broken, security) create a ticket each. Triggers on mishap, MISHAP_LOG, friction report, "report what went wrong", scripts/hooks/mishap-tracker.sh, and the closing step of dev-flow-plan, dev-flow-execute, dev-flow-chore, infra-ops, incident-response and ticket-ops.'
+description: 'Use at the END of any runbook or dev-flow skill to record the frictions it accumulated — each MISHAP_LOG entry goes to stderr and .mishaps.log (local-only, no ticket backend since 2026-10-14). Incident types (incident, broken, security) additionally need a GitHub issue (manual). Triggers on mishap, MISHAP_LOG, friction report, "report what went wrong", scripts/hooks/mishap-tracker.sh, and the closing step of dev-flow-plan, dev-flow-execute, dev-flow-chore, infra-ops and incident-response.'
 ---
 
 # mishap-tracker
 
-Records execution mishaps **on the ticket that was being worked on** when they occurred. No
-collection container, no cycle, no carry-over.
+Records execution mishaps **locally** (stderr + `.mishaps.log`). No collection container, no
+cycle, no carry-over, no tickets — the Ticket-Backend (ticket-mcp, `ticket.sh`,
+`mishap-buffer.json`, Rollup-Automat) entfiel mit dem Ticket-Retirement 2026-10-14.
 
-Incident types (`incident`, `broken`, `security`) bypass the buffer entirely and still create one
-ticket each via `createIncidentTicket`.
-
-Without ticket context an entry is logged to stderr and `.mishaps.log` and then discarded — it
-does **not** produce a ticket. All three buffer drain paths behave identically: threshold,
-watchdog (`FlushStaleBuffer`) and the manual `flush_mishap_buffer` [T003553].
+Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 
 > **Der Rollup-Automat ist entfernt [T014104].** "Mishap Rollup — fortlaufende Sammlung",
 > `mishap-rollup.sh` und `ticket.sh rollup-container` in aelteren Plaenen oder Kommentaren sind
 > Altlasten, kein aktueller Weg.
-
-Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
-
-### Branch-Naming-Konvention (T002240 — Gross-/Kleinschreibung)
-
-Einzel-Mishap-Branch (mit Ticket-ID):
-
-```bash
-ext_id="<T-ID aus ticket.sh>"       # z.B. T002239 — bleibt GROSS (pre-commit: T[0-9]{6,})
-slug=$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')   # plan-Slug bleibt lowercase
-branch="chore/mishap-<ext-id>"      # Branch-Name mit GROSSEM Ticket-Suffix
-# Beispiel: branch="chore/mishap-T002239"
-```
-
-- Der **Branch** traegt die Ticket-ID GROSS (`T[0-9]{6,}`) — sonst schlaegt die pre-commit-Pruefung fehl.
-- Das **plan-Verzeichnis** (slug) bleibt lowercase (Konvention).
-
----
 
 ## Input
 
@@ -75,129 +53,36 @@ Before reporting any mishap, verify the claim with a concrete check:
 
 ## Step 1: Mishap-Typ Klassifikation
 
-| Mishap type | Severity | Priority | Attention mode | Verhalten |
-|---|---|---|---|---|---|
-| `incident` | `major` | `hoch` | `needs_human` | Sofort Ticket (kein Buffer) |
-| `broken` | `major` | `hoch` | `needs_human` | Alias für `incident` — sofort Ticket |
-| `security` | `critical` | `hoch` | `needs_human` | Alias für `incident` — sofort Ticket |
-| `degraded` | `minor` | `mittel` | `needs_human` | Buffer → protokolliert, verworfen |
-| `suspicious` | `minor` | `mittel` | `ai_ready` | Buffer → protokolliert, verworfen |
-| `drift` | `trivial` | `niedrig` | `ai_ready` | Buffer → protokolliert, verworfen |
+| Mishap type | Severity | Attention mode | Verhalten |
+|---|---|---|---|
+| `incident` | `major` | `needs_human` | Lokal loggen + manuell GitHub-Issue (Label `incident`) |
+| `broken` | `major` | `needs_human` | Alias für `incident` — lokal loggen + Issue bei Handlungsbedarf |
+| `security` | `critical` | `needs_human` | Alias für `incident` — lokal loggen + Issue bei Handlungsbedarf |
+| `degraded` | `minor` | `needs_human` | Lokal loggen, verwerfen |
+| `suspicious` | `minor` | `ai_ready` | Lokal loggen, verwerfen |
+| `drift` | `trivial` | `ai_ready` | Lokal loggen, verwerfen |
 
 ---
 
-## Step 2: Mishaps via ticket-mcp melden
+## Step 2: Mishaps lokal melden
 
 Für jeden verifizierten Mishap im MISHAP_LOG:
 
-```
-ticket-mcp-node_report_mishap({
-  title: "<titel>",
-  description: "<beschreibung>",
-  component: "<komponente>",
-  type: "<broken|degraded|suspicious|security|drift>",
-  brand: "<brand>"
-})
-```
-
-**Rückmeldung auswerten:**
-- `"Incident-Ticket angelegt: T000xxx"` → sofortiges Incident-Ticket für `incident`/`broken`/`security`, kein Buffer-Eintrag
-- `"Mishap gespeichert (3/10). Noch 7 bis zum Buffer-Flush."` → weiter melden, Buffer sammelt
-- `"10 Mishaps protokolliert und verworfen. Buffer geleert."` → Schwelle (10) erreicht, kein Ticket, kein Container. Was erhalten bleiben soll, gehoert als Kommentar an das bearbeitete Ticket (`mishap-tracker.sh --ticket`)
-
----
-
-## Step 3: Buffer am Session-Ende liegen lassen
-
-Nach dem letzten `report_mishap`-Aufruf den Buffer-Stand ansehen — **aber nicht flushen**:
-
-```
-ticket-mcp-node_get_mishap_buffer()
-```
-
-**Restliche Eintraege bleiben liegen. Das ist der Normalfall, kein Fehlerzustand.** Der Buffer ist
-dateibasiert (`mishap-buffer.json` im gemeinsamen Git-Verzeichnis, `git rev-parse --git-common-dir`)
-und ueberlebt Sessionwechsel, Worktrees und Neustarts.
-
-| Weg | Ausloeser | Ergebnis |
-|---|---|---|
-| Schwelle | `report_mishap` ab **10** Eintraegen | Eintraege protokolliert und verworfen, Buffer geleert |
-| Alters-Schnitt | manuell `ticket-mcp-go --flush-stale-mishaps` (automatischer Aufruf entfiel mit T900399) | dito, sobald der aelteste Eintrag ≥ 7 Tage alt ist |
-
-**Der Weg, auf dem ein Mishap erhalten bleibt, ist der Ticket-Kommentar** — nicht der Buffer:
-
 ```bash
-bash scripts/hooks/mishap-tracker.sh --friction "<text>" --ticket "$TICKET_ID" --severity minor
+bash scripts/hooks/mishap-tracker.sh --friction "<titel>: <beschreibung> [<komponente>]" --severity <minor|major|critical>
 ```
 
-Ohne `--ticket` landet der Eintrag in `.mishaps.log` und auf stderr, und dort endet er.
-
-**Nichts entsteht direkt als `plan_staged` [T003027].** Mishap-Tickets
-(`~/mcp-servers/ticket/go/internal/tools/mishap.go`, zentral seit T901492) werden mit `status=triage` angelegt, weil
-`update-status.sh` `plan_staged` ohne `FACTORY-PLAN-REF` fail-closed ablehnt (T002876).
-
-`flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfuegbar:
-
-```
-ticket-mcp-node_flush_mishap_buffer({ brand: "<brand>" })
-```
+Das Skript schreibt nach stderr und hängt an `./.mishaps.log` (gitignored) — Exit 0, kein
+Backend, kein Buffer. `--ticket` wird als Legacy-No-op mit Warnung akzeptiert.
 
 ---
 
-## Step 3.5: Mishap-Bundle automatisch planen
-
-Ein Mishap-**Bundle**-Ticket (`severity=minor`/`trivial`) wurde vom `triage`-Pfad automatisch nach
-`plan_staged` gehoben. Das erledigte bis **T900399** `auto-chore-plan.sh` im Factory-Baum [T002390]
-— der Hygiene-Tick rief es pro Marke auf.
-
-> **[T900399] Entfallen.** Mit dem Factory-Teardown gibt es keinen automatischen Hebepfad mehr:
-> ein Bundle-Ticket wandert manuell von `triage` nach `plan_staged`. Der Rest dieses Abschnitts
-> beschreibt die Gate-Regeln, die weiter gelten — `major`/`critical` tragen `broken`-/`security`-
-> Einträge und bleiben `triage`; es wird **kein** Ticket erzeugt und **kein** Container angelegt.
-> Ein Automationstragendes Skript an anderer Stelle ist nicht Teil von T900399.
-
-Das Gate laesst nur `minor`/`trivial` durch. `major`/`critical` tragen `broken`- oder
-`security`-Eintraege, gehoeren vor menschliche Augen und bleiben `triage`.
-
----
-
-## Step 4: Fallback — Kein ticket-mcp erreichbar
-
-Falls der MCP-Server nicht antwortet, einen formatierten Block ausgeben für manuelle Eingabe unter `https://web.mentolder.de/admin/bugs`.
-
-**Incident-Pfad:** `incident`-/`broken`-/`security`-Mishaps erfordern sofortige Aufmerksamkeit.
-Lege ein Incident-Ticket manuell an:
-
-```bash
-bash scripts/ticket.sh create --type incident --title "<titel>" \
-  --description "<beschreibung>" --brand <brand>
-```
-
-Setze `attention_mode=needs_human` und `status=triage`, damit das Ticket nicht automatisch
-dispatched wird. Nicht-kritische Mishaps (`degraded`/`suspicious`/`drift`) werden direkt am
-bearbeiteten Ticket vermerkt — dafuer braucht es den MCP-Server gar nicht:
-
-```bash
-bash scripts/hooks/mishap-tracker.sh --friction "<text>" --ticket "$TICKET_ID"
-```
-
-```
---- Mishap-Report ---
-Typ | Titel | Komponente | Beschreibung
-<type> | <title> | <component> | <description>
-...
-```
-
----
-
-## Step 5: Summary
+## Step 3: Summary
 
 Report:
 - Anzahl gemeldeter Mishaps
-- Ob ein Bundle-Ticket ausgelöst wurde (und welches `T000xxx`)
-- Wie viele Einträge im Buffer liegen bleiben (Normalfall — kein Flush)
-- An welchem Ticket die Eintraege vermerkt wurden (bzw. dass kein Ticket-Kontext vorlag und
-  sie verworfen wurden)
+- Ob ein GitHub-Issue angelegt wurde (manuell, nur bei `incident`/`broken`/`security` mit Handlungsbedarf)
+- Dass alle Einträge in `.mishaps.log` stehen und dort enden
 
 ---
 
@@ -205,7 +90,7 @@ Report:
 
 | Skill | Beziehung |
 |-------|-----------|
-| `operations-management` | Auftraggeber — erstellt Tickets aus Mishaps |
+| `operations-management` | Auftraggeber — routet Ops-Anfragen |
 | Alle Runbooks | Nutzer — jedes Skill schließt mit Mishap-Report ab |
 
 
@@ -216,4 +101,3 @@ Report:
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
-

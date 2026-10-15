@@ -77,7 +77,7 @@ gegen Doppel-Dispatch.
 
 ## `reclaim` ist der Notausstieg, nicht der Regelweg
 
-`bash scripts/ticket.sh reclaim` ist für **entgleiste** Ausführungen gedacht. Keine
+`ticket.sh reclaim` (retiriert 2026-10-14) war für **entgleiste** Ausführungen gedacht. Keine
 Automatik löst ihn aus. Dass er zeitweise zum Normalfall wurde, war ein Symptom der
 fehlenden Fortsetzungsfähigkeit — mit dieser ist er wieder das, was er sein sollte.
 

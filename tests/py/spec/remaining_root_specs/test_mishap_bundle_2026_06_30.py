@@ -13,5 +13,5 @@ def test_created_pr_url_verified(repo_root):
     assert 'gh pr create' in text
     assert "PR_URL=$(gh pr view --json url -q '.url')" in text
 
-def test_status_consistency(repo_root):
-    assert re.search(r'in_progress.*done_at|done_at IS NOT NULL.*in_progress|done.*done_at IS NULL', (repo_root / 'scripts/ticket-status-validate.sh').read_text())
+# test_status_consistency retiriert 2026-10-14: die Status/Done_at-Invariante
+# lebte in scripts/ticket-status-validate.sh (mit dem Ticket-System entfernt).

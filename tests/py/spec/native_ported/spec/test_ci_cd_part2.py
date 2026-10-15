@@ -321,11 +321,6 @@ exit 0
     assert "Keine CI-Checks" in result.output
 
 
-def test_t002242_m1_devflow_ci_watch_sh_ruft_assert_phase_chain_vor_dem_gruenen_exit_auf(run_cmd, ci):
-    result = run_cmd(["grep", "-n", "assert-phase-chain", str(ci["repo"] / "scripts/devflow-ci-watch.sh")])
-    assert result.returncode == 0
-
-
 def test_t002242_m3_devflow_post_merge_deploy_sh_sammelt_exit_codes_und_schlaegt_fail_closed_fehl(run_cmd, ci):
     result = run_cmd(["grep", "-nE", r"\|\| FAILED_TASKS|deploy blocked|deploy failed",
                       str(ci["repo"] / "scripts/devflow-post-merge-deploy.sh")])
@@ -356,4 +351,3 @@ def test_t002252_freshness_check_regeneriert_die_artefakte_vor_dem_diff_check(ci
     assert regen_line is not None
     assert diff_line is not None
     assert regen_line < diff_line
-

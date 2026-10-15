@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """scripts/ci_red_intake.py — CI-Rot-Intake mit Auto-Resolve (T900759).
 
-Migriert aus scripts/ci-red-intake.sh.
 Subcommands:
   intake --sha <sha> --workflow <name> [--dry-run]
   resolve --sha <sha> [--dry-run]
 
 intake: prüft die check-runs des Commits; bei Rot (failure/timed_out, cancelled
-ist kein Fehler) ein type=bug-Ticket (areas=ci) anlegen, bei Treffer im Titel-Dedupe
-(T001147) oder Mishap-Buffer (T002844) nur kommentieren.
-resolve: offene Rot-Tickets bei grünem Beleg-Run als done (resolution=fixed)
-schließen. Jeder unbestimmbare Zustand bricht ohne Schließung ab (fail-closed).
+ist kein Fehler) ein GitHub-Issue (Label `ci`) anlegen, bei Treffer im Titel-Dedupe
+(T001147) nur kommentieren.
+resolve: offene Rot-Issues bei grünem Beleg-Run schließen. Jeder unbestimmbare
+Zustand bricht ohne Schließung ab (fail-closed).
+
+Ticket-Pfad retiriert 2026-10-14: Tracking läuft über GitHub-Issues statt
+`tickets.tickets`. Der Mishap-Buffer-Dedupe entfiel mit ihm (kein JSON-Buffer mehr).
 """
 
 import argparse
@@ -27,42 +29,69 @@ def canon(text: str) -> str:
     return re.sub(r"\s+", " ", text.lower().strip())
 
 
-def get_repo_root() -> Path:
-    script_dir = Path(__file__).resolve().parent
-    return script_dir.parent
-
-
-def get_ticket_sh(repo_root: Path) -> Path:
-    env_ticket = os.environ.get("TICKET_SH")
-    if env_ticket:
-        return Path(env_ticket)
-    return repo_root / "scripts" / "ticket.sh"
-
-
 def get_gh_repo() -> str:
     return os.environ.get("CI_RED_INTAKE_REPO", "Paddione/Bachelorprojekt")
 
 
-def mishap_buffer_path(repo_root: Path) -> Path:
-    env_buf = os.environ.get("MISHAP_BUFFER")
-    if env_buf:
-        return Path(env_buf)
+def gh_issue_list_open(gh_repo: str) -> list | None:
+    """Offene Issues mit Rot-Prefix; fail-closed bei Fehler."""
     try:
         res = subprocess.run(
-            ["git", "-C", str(repo_root), "rev-parse", "--git-common-dir"],
+            ["gh", "issue", "list", "-R", gh_repo, "--state", "open",
+             "--search", "CI-Rot auf main:", "--json", "number,title", "--limit", "100"],
             capture_output=True,
             text=True,
             check=False,
         )
-        common = res.stdout.strip()
+        if res.returncode != 0:
+            sys.stderr.write("ci-red-intake: gh issue list fehlgeschlagen (fail-closed).\n")
+            return None
+        return json.loads(res.stdout) if res.stdout.strip() else []
     except Exception:
-        common = ""
+        sys.stderr.write("ci-red-intake: issue-liste nicht parsbar (fail-closed).\n")
+        return None
 
-    if not common:
-        return repo_root / ".git" / "mishap-buffer.json"
-    if common.startswith("/"):
-        return Path(common) / "mishap-buffer.json"
-    return repo_root / common / "mishap-buffer.json"
+
+def gh_issue_create(gh_repo: str, title: str, body: str) -> str | None:
+    """Legt ein Issue an; gibt die Nummer zurück (fail-closed)."""
+    try:
+        res = subprocess.run(
+            ["gh", "issue", "create", "-R", gh_repo, "--title", title,
+             "--body", body, "--label", "ci"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if res.returncode != 0:
+            return None
+        match = re.search(r"/issues/(\d+)", res.stdout)
+        return match.group(1) if match else "?"
+    except Exception:
+        return None
+
+
+def gh_issue_comment(gh_repo: str, number: str, body: str) -> bool:
+    try:
+        res = subprocess.run(
+            ["gh", "issue", "comment", str(number), "-R", gh_repo, "--body", body],
+            capture_output=True,
+            check=False,
+        )
+        return res.returncode == 0
+    except Exception:
+        return False
+
+
+def gh_issue_close(gh_repo: str, number: str) -> bool:
+    try:
+        res = subprocess.run(
+            ["gh", "issue", "close", str(number), "-R", gh_repo],
+            capture_output=True,
+            check=False,
+        )
+        return res.returncode == 0
+    except Exception:
+        return False
 
 
 def fetch_check_runs(sha: str, gh_repo: str) -> dict | None:
@@ -74,37 +103,23 @@ def fetch_check_runs(sha: str, gh_repo: str) -> dict | None:
             sys.stderr.write(f"ci-red-intake: gh api check-runs fuer {sha} fehlgeschlagen (fail-closed).\n")
             return None
         return json.loads(res.stdout)
-    except Exception as exc:
+    except Exception:
         sys.stderr.write(f"ci-red-intake: leere check-runs-Antwort fuer {sha} (fail-closed).\n")
         return None
 
 
-def open_rot_tickets(ticket_sh: Path) -> list | None:
-    """Gibt offene Rot-Tickets mit Titel-Prefix 'CI-Rot auf main:' zurück."""
-    try:
-        res = subprocess.run(
-            [str(ticket_sh), "list", "--status", "triage"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if res.returncode != 0:
-            sys.stderr.write("ci-red-intake: ticket.sh list fehlgeschlagen (fail-closed).\n")
-            return None
-        items = json.loads(res.stdout) if res.stdout.strip() else []
-        rot_tickets = [
-            t for t in items
-            if (t.get("title") or "").strip().lower().startswith("ci-rot auf main:")
-        ]
-        return rot_tickets
-    except Exception:
-        sys.stderr.write("ci-red-intake: ticket-liste nicht parsbar (fail-closed).\n")
+def open_rot_issues(gh_repo: str) -> list | None:
+    """Gibt offene Rot-Issues mit Titel-Prefix 'CI-Rot auf main:' zurück."""
+    items = gh_issue_list_open(gh_repo)
+    if items is None:
         return None
+    return [
+        t for t in items
+        if (t.get("title") or "").strip().lower().startswith("ci-rot auf main:")
+    ]
 
 
 def cmd_intake(sha: str, workflow: str, dry_run: bool = False) -> int:
-    repo_root = get_repo_root()
-    ticket_sh = get_ticket_sh(repo_root)
     gh_repo = get_gh_repo()
 
     checks_json = fetch_check_runs(sha, gh_repo)
@@ -123,7 +138,7 @@ def cmd_intake(sha: str, workflow: str, dry_run: bool = False) -> int:
     ]
 
     if not failed:
-        sys.stdout.write(f"ci-red-intake: {sha} gruen, kein Ticket noetig.\n")
+        sys.stdout.write(f"ci-red-intake: {sha} gruen, kein Issue noetig.\n")
         return 0
 
     failed_names = ", ".join(r.get("name") or "unknown" for r in failed)
@@ -133,67 +148,41 @@ def cmd_intake(sha: str, workflow: str, dry_run: bool = False) -> int:
     body = f"CI-Rot auf main (HEAD {sha}, Workflow {workflow}). Fehlgeschlagene Checks: {failed_names}. Runs: {failed_urls}"
     canon_title = canon(title)
 
-    # Dedupe 1: Offenes Ticket gleichen Titels oder gleicher SHA
-    rot_tickets = open_rot_tickets(ticket_sh)
-    if rot_tickets is None:
+    # Dedupe: Offenes Issue gleichen Titels oder gleicher SHA
+    rot_issues = open_rot_issues(gh_repo)
+    if rot_issues is None:
         return 1
 
-    hit_id = None
-    for t in rot_tickets:
+    hit_num = None
+    for t in rot_issues:
         t_title = t.get("title") or ""
         t_canon = canon(t_title)
         if t_canon == canon_title or short_sha.lower() in t_title.lower():
-            hit_id = t.get("external_id")
+            hit_num = t.get("number")
             break
 
-    if hit_id:
+    if hit_num:
         if dry_run:
-            sys.stdout.write(f"ci-red-intake [dry-run]: wuerde {hit_id} kommentieren (Dedupe, SHA {short_sha}).\n")
+            sys.stdout.write(f"ci-red-intake [dry-run]: wuerde #{hit_num} kommentieren (Dedupe, SHA {short_sha}).\n")
             return 0
         comment_body = f"Erneuter Rot-Befund gleiche SHA {short_sha} ({workflow}): {failed_names}. Runs: {failed_urls}"
-        subprocess.run(
-            [str(ticket_sh), "add-comment", "--id", str(hit_id), "--body", comment_body],
-            capture_output=True,
-            check=False,
-        )
-        sys.stdout.write(f"ci-red-intake: {hit_id} kommentiert (Dedupe, kein Duplikat).\n")
+        gh_issue_comment(gh_repo, hit_num, comment_body)
+        sys.stdout.write(f"ci-red-intake: #{hit_num} kommentiert (Dedupe, kein Duplikat).\n")
         return 0
-
-    # Dedupe 2: Mishap-Buffer
-    buf_path = mishap_buffer_path(repo_root)
-    if buf_path.is_file():
-        try:
-            buf_items = json.loads(buf_path.read_text())
-            if isinstance(buf_items, list):
-                for item in buf_items:
-                    item_title = item.get("title") or ""
-                    if canon(item_title) == canon_title or short_sha.lower() in item_title.lower():
-                        sys.stdout.write(f"ci-red-intake: Mishap-Buffer enthaelt {title} bereits — keine Neuanlage.\n")
-                        return 0
-        except Exception:
-            pass
 
     if dry_run:
-        sys.stdout.write(f"ci-red-intake [dry-run]: wuerde Ticket anlegen: {title}\n")
+        sys.stdout.write(f"ci-red-intake [dry-run]: wuerde Issue anlegen: {title}\n")
         return 0
 
-    subprocess.run(
-        [
-            str(ticket_sh), "create",
-            "--type", "bug",
-            "--title", title,
-            "--description", body,
-            "--areas", "ci",
-        ],
-        capture_output=True,
-        check=False,
-    )
+    num = gh_issue_create(gh_repo, title, body)
+    if num is None:
+        sys.stderr.write("ci-red-intake: gh issue create fehlgeschlagen (fail-closed).\n")
+        return 1
+    sys.stdout.write(f"ci-red-intake: Issue #{num} angelegt: {title}\n")
     return 0
 
 
 def cmd_resolve(sha: str, dry_run: bool = False) -> int:
-    repo_root = get_repo_root()
-    ticket_sh = get_ticket_sh(repo_root)
     gh_repo = get_gh_repo()
 
     checks_json = fetch_check_runs(sha, gh_repo)
@@ -224,48 +213,32 @@ def cmd_resolve(sha: str, dry_run: bool = False) -> int:
         return 1
 
     proof_url = success_runs[0].get("html_url") or ""
-    rot_tickets = open_rot_tickets(ticket_sh)
-    if rot_tickets is None:
+    rot_issues = open_rot_issues(gh_repo)
+    if rot_issues is None:
         return 1
 
-    if not rot_tickets:
-        sys.stdout.write("ci-red-intake: kein offenes Rot-Ticket — nichts zu schliessen.\n")
+    if not rot_issues:
+        sys.stdout.write("ci-red-intake: kein offenes Rot-Issue — nichts zu schliessen.\n")
         return 0
 
     proof_comment = f"Beleg-Run gruen: {proof_url} (HEAD {sha}, conclusion=success). Auto-Resolve per T900759."
     if dry_run:
-        for t in rot_tickets:
-            tid = t.get("external_id")
-            if tid:
-                sys.stdout.write(f"ci-red-intake [dry-run]: wuerde {tid} als done/fixed schliessen ({proof_url}).\n")
+        for t in rot_issues:
+            num = t.get("number")
+            if num:
+                sys.stdout.write(f"ci-red-intake [dry-run]: wuerde #{num} schliessen ({proof_url}).\n")
         return 0
 
     rc = 0
-    for t in rot_tickets:
-        tid = t.get("external_id")
-        if not tid:
+    for t in rot_issues:
+        num = t.get("number")
+        if not num:
             continue
-        c_res = subprocess.run(
-            [str(ticket_sh), "add-comment", "--id", str(tid), "--body", proof_comment],
-            capture_output=True,
-            check=False,
-        )
-        if c_res.returncode != 0:
+        if not gh_issue_comment(gh_repo, num, proof_comment):
             rc = 1
-        s_res = subprocess.run(
-            [
-                str(ticket_sh), "update-status",
-                "--id", str(tid),
-                "--status", "done",
-                "--resolution", "fixed",
-                "--notes", proof_comment,
-            ],
-            capture_output=True,
-            check=False,
-        )
-        if s_res.returncode != 0:
+        if not gh_issue_close(gh_repo, num):
             rc = 1
-        sys.stdout.write(f"ci-red-intake: {tid} als done/fixed geschlossen.\n")
+        sys.stdout.write(f"ci-red-intake: #{num} geschlossen.\n")
 
     return rc
 

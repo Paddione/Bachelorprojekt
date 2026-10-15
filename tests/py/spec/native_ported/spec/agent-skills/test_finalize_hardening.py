@@ -69,7 +69,7 @@ def test_b2_die_schlusszeile_nennt_die_warnungen(finalize):
     lines = finalize.read_text(encoding="utf-8").splitlines()
     assert any("WARN_COUNT" in line for line in lines)
     # Schlusszeile muss den Zaehler ausgeben.
-    matching = [line for line in lines if "Finalize $TICKET_ID abgeschlossen" in line]
+    matching = [line for line in lines if "Finalize $BRANCH abgeschlossen" in line]
     assert sum(1 for line in matching if "WARN_COUNT" in line) >= 1
 
 

@@ -44,7 +44,7 @@ export default defineConfig({
         '**/fa-admin-inbox-delete.spec.ts',
         '**/fa-admin-inhalte.spec.ts',
         '**/fa-admin-billing-system.spec.ts',
-        '**/fa-admin-tickets.spec.ts',
+        // fa-admin-tickets.spec.ts retiriert 2026-10-14 (Ticket-UI ohne Backend).
         '**/fa-admin-monitoring.spec.ts',
         '**/fa-admin-newsletter.spec.ts',
         '**/fa-41-admin-hub.spec.ts',
@@ -95,7 +95,7 @@ export default defineConfig({
       testMatch: [
         '**/dev-status-tabs.spec.ts',
         '**/fa-42-platform-assets.spec.ts',
-        '**/fa-43-ticket-widget.spec.ts',
+        // fa-43-ticket-widget.spec.ts retiriert 2026-10-14 (Ticket-UI ohne Backend).
         '**/fa-48-factory-devflow.spec.ts',
         '**/fa-53-systemtest-failure-loop.spec.ts',
         '**/fa-58-admin-cockpit.spec.ts',

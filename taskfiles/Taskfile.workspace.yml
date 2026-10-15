@@ -1142,7 +1142,7 @@ tasks:
         done
 
   workspace:fix-tickets-grants:
-    desc: "Idempotent: GRANT website role on tickets+bachelorprojekt schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails on tickets.* with permission denied."
+    desc: "Idempotent: GRANT website role on bachelorprojekt+superpowers schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails with permission denied. (tickets-Schema retiriert 2026-10-14.)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:

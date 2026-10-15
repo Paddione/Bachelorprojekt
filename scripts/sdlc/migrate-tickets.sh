@@ -57,8 +57,7 @@ usage() {
 }
 
 # --- Cluster-Zugriff ---------------------------------------------------------
-# Dieselbe Aufloesung wie scripts/vda/ticket/_ticket-core.sh::_pgpod: der
-# shared-db-Pod wird ueber sein app-Label gesucht, nicht ueber einen festen
+# Der shared-db-Pod wird ueber sein app-Label gesucht, nicht ueber einen festen
 # Namen (der traegt einen ReplicaSet-Hash).
 _pod() {
   local ctx="$1" ns="$2" pod

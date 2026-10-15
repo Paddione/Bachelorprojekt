@@ -129,7 +129,7 @@ export default defineConfig({
         '**/fa-51-*.spec.ts',             // sidekick navigation (T000965)
         '**/fa-admin-monitoring.spec.ts',       // admin monitoring page auth
         '**/fa-bugs-notifications.spec.ts',     // bug-report → admin resolve → reporter email (FA-bug-notify)
-        '**/fa-admin-tickets.spec.ts',          // unified admin /admin/tickets index + detail (PR4/5)
+        // fa-admin-tickets.spec.ts retiriert 2026-10-14 (Ticket-UI ohne Backend).
         '**/fa-admin-inbox.spec.ts',            // /admin/inbox two-pane rework (spec 2026-05-08)
         '**/fa-admin-inbox-delete.spec.ts',     // Löschen escape hatch (2026-05-09)
         '**/fa-29-*.spec.ts',                   // Projekt-Cockpit E2E (T000752)

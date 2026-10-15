@@ -6,7 +6,7 @@
 #
 #   standard (default): §0–§3 metric collection — worktrees, [gone] branches, open PRs.
 #     Outputs JSON metrics to stdout. If stale artifact count > STALE_THRESHOLD,
-#     posts a warning comment to HYGIENE_TRACKING_TICKET.
+#     posts a warning to stdout (Ticket-Kommentar retiriert).
 #
 #   deep: like standard, then also runs branch-reaper --dry-run and includes the
 #     reaper output in the JSON.
@@ -15,11 +15,11 @@
 #   0 8 * * * bash /home/patrick/Bachelorprojekt/scripts/repo-hygiene-cron.sh standard >> /tmp/repo-hygiene-cron.log 2>&1
 #
 # Environment:
-#   HYGIENE_TRACKING_TICKET  Ticket-ID for warning comments (default: T003486)
+#   HYGIENE_TRACKING_TICKET  Label für Warnungen (default: T003486, historisch)
 #   STALE_THRESHOLD          Warn if stale_total > this (default: 10)
 #   REPO_DIR                 Override repo root (default: two levels above this script)
 #
-# Dependencies: git, gh, jq, scripts/ticket.sh, scripts/agent-lock.sh
+# Dependencies: git, gh, jq, scripts/agent-lock.sh
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -209,9 +209,7 @@ $JSON
 \`\`\`
 "
 
-  bash "$HERE/ticket.sh" add-comment \
-    --id "$HYGIENE_TRACKING_TICKET" \
-    --body "$body" 2>/dev/null || log "ticket.sh add-comment failed (best-effort)"
+  log "WARNUNG: $stale_total stale artifacts ueber Threshold (Ticket-Kommentar-Pfad retiriert — Report oben)"
 else
   log "OK: $stale_total stale artifacts (threshold: $STALE_THRESHOLD)"
 fi

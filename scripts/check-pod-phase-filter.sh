@@ -14,8 +14,8 @@
 #      Der alte Guard-Testtext fuehrte den String selbst und entkam damit trotz
 #      vier ungefilterter Selektionen.
 #
-# Die Datei-Granularitaet war damals damit begruendet, dass die Selektion ueber mehrere Zeilen
-# umgebrochen sein darf (so steht sie in scripts/vda/ticket/_ticket-core.sh). Dieses Skript
+# Die Datei-Granularitaet war damals damit begruendet, dass eine Selektion ueber mehrere
+# Zeilen umgebrochen sein darf. Dieses Skript
 # faltet Backslash-Fortsetzungen zu logischen Zeilen zusammen und prueft dann pro Treffer —
 # damit ist der umgebrochene Fall abgedeckt, ohne die restliche Datei mitzuentschuldigen.
 #

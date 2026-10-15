@@ -239,7 +239,7 @@ Fallback (ticket-mcp nicht erreichbar; Live-Floor-Telemetrie ist best-effort und
 ```bash
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
 SLUG=$(basename "$PLAN_FILE" .md)
-./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
+bash scripts/devflow-phase.sh plan entered --detail "Plan: $SLUG · $TICKET_ID"
 ```
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.
 > **`touched_files` ist beim Stagen bereits gesetzt [T002446].** `stage-plan` leitet die Liste
@@ -257,9 +257,9 @@ Fallback:
 ```bash
 # ACHTUNG: set-touched-files ERSETZT die Liste. Erst den Ist-Stand lesen, dann die neuen
 # Pfade anhängen — sonst gehen die beim Stagen abgeleiteten Plan-Pfade verloren.
-./scripts/ticket.sh get --id "$TICKET_ID"        # aktuelle touched_files ablesen
-./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<bestehende>,<neue>"
-./scripts/ticket.sh phase "$TICKET_ID" plan done --driver devflow --detail "Plan geladen · Assets folgen" || true
+# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh get --id "$TICKET_ID"        # aktuelle touched_files ablesen
+# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh set-touched-files --id "$TICKET_ID" --files "<bestehende>,<neue>"
+bash scripts/devflow-phase.sh plan done --detail "Plan geladen · Assets folgen"
 ```
 
 ## Schritt 1.7: Visual & Textual Assets laden (Visual Handoff)
@@ -269,7 +269,7 @@ Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdate
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
 ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
-./scripts/ticket.sh get-attachments --id "$TICKET_ID" --out-dir "$ATTACHMENT_DIR"
+# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh get-attachments --id "$TICKET_ID" --out-dir "$ATTACHMENT_DIR"
 ```
 **⚠️ Pflicht für UI-Arbeiten:** Lies (mit dem `Read` Tool) alle heruntergeladenen Bilddateien und Textdateien in diesem Ordner ein, um ein pixelgenaues Verständnis des UI-Designs zu erlangen. Verlasse dich nicht auf Prose allein.
 
@@ -320,11 +320,11 @@ Abschluss-Lifecycle — **MCP-first** (`ticket-mcp`). Merge = Abschluss (T001092
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos. Das `verify:done`-Event bleibt Pflicht (Merge-Gate).
 Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Rest ist idempotent):
 ```bash
-./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
+# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
-./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "gate=ci result=pass" || true
-./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · done/shipped" || true
-./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
+bash scripts/devflow-phase.sh verify done --detail "gate=ci result=pass"
+bash scripts/devflow-phase.sh deploy done --detail "PR #$PR_NUM merged · done/shipped"
+# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 ```
 
 ## Schritt 7: Plan archivieren
@@ -356,7 +356,7 @@ git push origin --delete "<branch>"   # remote: der Merge löscht nicht mehr (T0
   Neue Tests sind pytest-Funktionen in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus Ticket-Titel/Feature-Name). BATS ist seit T901392 deinstalliert.
   Reihenfolge:
   1. **Bereich ermitteln:** Welcher Bereich beschreibt das zu testende Verhalten? (Ticket-Titel.)
-  2. **Modul prüfen/anlegen:** Existiert ein passendes Modul unter `tests/py/spec/`? Falls ja → Testfunktion ergänzen. Falls nein → neues Modul anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_ticket_system.py`, Konventionen: `tests/CLAUDE.md`).
+  2. **Modul prüfen/anlegen:** Existiert ein passendes Modul unter `tests/py/spec/`? Falls ja → Testfunktion ergänzen. Falls nein → neues Modul anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_mcp_tooling.py`, Konventionen: `tests/CLAUDE.md`).
   3. **Fallback:** Für übergreifende Tests ohne Bereichszuordnung → passendes Modul in `tests/py/unit/` erweitern.
   ```bash
   # Bestehende Module finden und gezielt ausfuehren:

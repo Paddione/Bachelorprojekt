@@ -23,14 +23,6 @@ def test_t006348_skript_ist_cwd_unabhaengig_cd_repo_dir_zu_skriptbeginn(finalize
     assert 'cd "$REPO_DIR"' in finalize_text
 
 
-def test_t006348_branch_reaper_aufruf_existiert_anker(finalize_text):
-    assert "branch-reaper.sh" in finalize_text
-
-
-def test_t006348_branch_reaper_aufruf_ist_cwd_unabhaengig_absoluter_skript_pfad(finalize_text):
-    assert 'bash "$REPO_DIR/scripts/branch-reaper.sh"' in finalize_text
-
-
 def test_t008014_worktree_aufloesung_nutzt_git_worktree_list_anker(finalize_text):
     assert "worktree list --porcelain" in finalize_text
 

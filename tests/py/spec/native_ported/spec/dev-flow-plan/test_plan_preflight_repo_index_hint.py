@@ -44,7 +44,7 @@ def test_repo_index_json_als_fremd_datei_meldung_nennt_git_restore_als_abhilfe(f
     (d / "docs" / "code-quality" / "repo-index.json").write_text('{"file_count":1}\n', encoding="utf-8")
     fixture_repo["git"]("add", "docs/code-quality/repo-index.json").check()
 
-    res = fixture_repo["sh"]("pre-commit", "--ticket", "T009999")
+    res = fixture_repo["sh"]("pre-commit", "--branch", "feature/px-T009999")
     # Positive anchor first: the guard detects the foreign file and fails.
     assert res.returncode == 1
     assert "Fremd-Datei im Staged-Set" in res.output

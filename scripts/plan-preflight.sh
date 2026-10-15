@@ -7,9 +7,11 @@
 # mit dokumentierter Guard-Drift im opencode-Pfad. Dieses Skript ist der eine
 # ausfuehrbare Ort; die Skill-Prosa erklaert das Warum, das Skript erzwingt das Was.
 #
+# Ticket-Pfad retiriert 2026-10-14: nur noch --branch, kein --ticket, kein stage-plan.
+#
 # Verwendung:
-#   plan-preflight.sh pre-commit   --ticket <TICKET_EXT_ID>
-#   plan-preflight.sh pre-worktree --ticket <TICKET_EXT_ID>
+#   plan-preflight.sh pre-commit   --branch <branch>
+#   plan-preflight.sh pre-worktree --branch <slug-oder-symptom>
 #
 # Exit: 0 = alle Checks gruen · 1 = Guard verletzt · 2 = Usage-/Umgebungsfehler.
 # Jede Fehlermeldung ist EINE Zeile: was fehlt + welcher Befehl es behebt.
@@ -18,7 +20,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
-  echo "Usage: ${0##*/} {pre-commit|pre-worktree} --ticket <TICKET_EXT_ID>" >&2
+  echo "Usage: ${0##*/} {pre-commit|pre-worktree} --branch <name>" >&2
   exit 2
 }
 
@@ -63,42 +65,42 @@ cmd_pre_commit() {
   esac
   lock_dir="${AGENT_LOCK_DIR:-$common/agent-locks}"
   slug="${branch//\//-}"
-  lock_file="$lock_dir/ticket__${TICKET}.json"
-  [ -f "$lock_file" ] || lock_file="$lock_dir/branch__${slug}.json"
+  lock_file="$lock_dir/branch__${slug}.json"
   [ -f "$lock_file" ] \
-    || fail "kein agent-lock-Claim fuer $TICKET (weder ticket__${TICKET}.json noch branch__${slug}.json in $lock_dir) — Abhilfe: bash scripts/agent-lock.sh claim ticket $TICKET --label dev-flow-plan --worktree . ."
+    || fail "kein agent-lock-Claim fuer branch $branch ($lock_file in $lock_dir fehlt) — Abhilfe: bash scripts/agent-lock.sh claim branch $branch --label dev-flow-plan --worktree . ."
   claimed="$(jq -r '.branch // empty' "$lock_file" 2>/dev/null || true)"
   [ "$claimed" = "$branch" ] \
-    || fail "Branch-Mismatch: Lock $(basename "$lock_file") traegt branch='$claimed', HEAD='$branch' — Abhilfe: bash scripts/agent-lock.sh claim ticket $TICKET --branch $branch (refresht den eigenen Claim mit korrektem Branch)."
-  echo "plan-preflight pre-commit: OK (branch=$branch, lock=$(basename "$lock_file"), ticket=$TICKET)"
+    || fail "Branch-Mismatch: Lock $(basename "$lock_file") traegt branch='$claimed', HEAD='$branch' — Abhilfe: bash scripts/agent-lock.sh claim branch $branch (refresht den eigenen Claim mit korrektem Branch)."
+  echo "plan-preflight pre-commit: OK (branch=$branch, lock=$(basename "$lock_file"))"
   exit 0
 }
 
-# === pre-worktree: check-merged-Wrapper [T002279] ===
+# === pre-worktree: merged-Check via Branch-Historie [T002279] ===
 cmd_pre_worktree() {
-  local rc=0
-  bash "$SCRIPT_DIR/agent-lock.sh" check-merged "$TICKET" || rc=$?
-  case "$rc" in
-    0) ;;  # nicht auf main — check-merged hat "safe to proceed" bereits gemeldet
-    1) echo "FEHLER: $TICKET ist bereits auf main gemergt — Abhilfe: bash scripts/ticket.sh update-status --id $TICKET --status done --resolution shipped und KEINEN Worktree anlegen." >&2 ;;
-    *) echo "FEHLER: check-merged Umgebungsfehler (rc=$rc, origin/main fehlt oder ID-Format) — Abhilfe: git fetch origin main und erneut ausfuehren." >&2 ;;
-  esac
-  exit "$rc"
+  local hits
+  git fetch origin main --quiet 2>/dev/null || true
+  git rev-parse --verify --quiet origin/main >/dev/null \
+    || envfail "origin/main fehlt — Abhilfe: git fetch origin main und erneut ausfuehren."
+  hits="$(git log origin/main --oneline --grep="$BRANCH" 2>/dev/null | head -5 || true)"
+  if [ -n "$hits" ]; then
+    echo "FEHLER: '$BRANCH' steht bereits auf main gemergt — KEINEN Worktree anlegen." >&2
+    printf '%s\n' "$hits" >&2
+    exit 1
+  fi
+  echo "pre-worktree: OK (kein Merge von '$BRANCH' auf origin/main gefunden)."
+  exit 0
 }
 
 # === main dispatch ===
 SUBCMD="${1:-}"; shift 2>/dev/null || true
-TICKET=""
+BRANCH=""
 while [ $# -gt 0 ]; do case "$1" in
-  --ticket) TICKET="${2:-}"; shift 2 2>/dev/null || usage;;
+  --branch) BRANCH="${2:-}"; shift 2 2>/dev/null || usage;;
+  --ticket) envfail "Ticket-System retiriert (2026-10-14) — nutze --branch <name> statt --ticket <id>.";;
   *) echo "FEHLER: unbekanntes Argument '$1'" >&2; usage;;
 esac; done
 
-[ -n "$TICKET" ] || usage
-case "$TICKET" in
-  T[0-9][0-9][0-9][0-9][0-9][0-9]) : ;;
-  *) envfail "Ticket-ID '$TICKET' hat nicht das Format T###### — Abhilfe: die external_id aus 'bash scripts/ticket.sh get --id <id>' verwenden." ;;
-esac
+[ -n "$BRANCH" ] || usage
 
 case "$SUBCMD" in
   pre-commit)   cmd_pre_commit ;;

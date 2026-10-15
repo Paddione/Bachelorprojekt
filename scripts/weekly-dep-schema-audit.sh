@@ -26,11 +26,7 @@ fi
 bash scripts/worktree-create.sh "$BRANCH" "$WORKTREE"
 cd "$WORKTREE"
 
-# Create audit ticket
-TICKET_RESULT=$(./scripts/ticket.sh create --type task --brand mentolder --title "$TICKET_TITLE" --status done --description "Branch: $BRANCH"$'\n'"Kein Plan — direktes Chore.")
-TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
-
-# === AUDIT ===
+# === AUDIT === (kein Audit-Ticket — Ticketsystem retiriert 2026-10-14)
 CHANGED=false
 
 # 1. Schema audit: check ${VAR} refs in manifests vs schema.yaml
@@ -69,7 +65,7 @@ fi
 BASE_SHA="$(git rev-parse "@{upstream}" 2>/dev/null || git rev-parse origin/main)"
 worktree_validate_gitdir --worktree "$REPO_ROOT/$WORKTREE" --command-name "commit weekly audit"
 git add -A
-git commit -m "chore(infra): $TICKET_TITLE [$TICKET_EXT_ID]"
+git commit -m "chore(infra): $TICKET_TITLE"
 HEAD_SHA="$(git rev-parse HEAD)"
 if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
   echo "FATAL: commit did not land"
@@ -78,9 +74,7 @@ fi
 git push origin "$BRANCH"
 
 # Create PR
-gh pr create --title "chore(infra): $TICKET_TITLE [$TICKET_EXT_ID]" --body "Weekly dep + schema audit (automated)
-
-Ticket: $TICKET_EXT_ID
+gh pr create --title "chore(infra): $TICKET_TITLE" --body "Weekly dep + schema audit (automated)
 
 Changes:
 - Schema drift fixes

@@ -34,11 +34,6 @@ case "$args" in
 esac
 """
 
-TICKET_STUB = """#!/usr/bin/env bash
-echo "ticket.sh $*" >> "$MARKER_DIR/ticket-calls"
-exit 0
-"""
-
 REAPER_GH_STUB = "#!/usr/bin/env bash\necho '[]'\n"
 TICKET_DONE_STUB = "#!/usr/bin/env bash\necho '{\"status\":\"done\"}'\n"
 TICKET_INPROGRESS_STUB = "#!/usr/bin/env bash\necho '{\"status\":\"in_progress\"}'\n"
@@ -197,14 +192,17 @@ def _setup_ciwatch(c, head_sha: str = "aaaa1111") -> None:
     run(["git", "-c", "user.email=t@example.invalid", "-c", "user.name=t",
          "commit", "-q", "--allow-empty", "-m", "init"], cwd=work).check(0)
     c["monkeypatch"].setenv("HEAD_SHA", head_sha)
-    _write_exec(work / "scripts" / "ticket.sh", TICKET_STUB)
     _write_exec(work / "bin" / "gh", GH_STUB_TEMPLATE.format(marker=c["markers"], work=work))
+    # Phase-Gate vor dem gruenen Exit: lokale phase-events.log des PR-Branches (feature/stub-branch).
+    phase_log = work / ".agents" / "plans" / "stub-branch" / "phase-events.log"
+    phase_log.parent.mkdir(parents=True, exist_ok=True)
+    phase_log.write_text("plan done\nimplement entered\nverify done\n", encoding="utf-8")
 
 
 def _ciwatch(c):
     work = c["work"]
     return c["run"](
-        ["bash", str(c["project"] / "scripts" / "devflow-ci-watch.sh"), "T999999",
+        ["bash", str(c["project"] / "scripts" / "devflow-ci-watch.sh"),
          "https://github.com/x/y/pull/1"],
         cwd=work,
         env={"PATH": f"{work / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}"},

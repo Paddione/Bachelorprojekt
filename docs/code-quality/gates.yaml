@@ -83,9 +83,6 @@ s1:
     # GLTFLoader.js is a vendored Three.js loader (MIT) shipped as a single
     # monolithic browser bundle. Cannot be reasonably split; vendor file.
     - "components/brett/public/lib/GLTFLoader.js"
-    # scripts/ticket.sh is a sanctioned single-file CLI (735 lines) — the plan
-    # explicitly lists it as "low priority, do not split" (G-RH01 Batch 1).
-    - "scripts/ticket.sh"
     # .opencode/skills/dev-flow/background-agents.ts is a monolithic OpenCode plugin unit
     # (based on oh-my-opencode, MIT). Plugin loading requires a single default export;
     # splitting across files would break the @opencode-ai/plugin registration contract.

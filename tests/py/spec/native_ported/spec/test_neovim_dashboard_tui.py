@@ -104,9 +104,9 @@ def test_neovim_dashboard_tui_chapter_page_renders_its_title_and_action_rows(tui
     tui = tui_factory()
     _wait_started(tui)
     tui.keys(":Dashboard sdlc", "Enter")
-    screen = tui.wait_for("Show Ticket")
+    screen = tui.wait_for("List My Claims")
     assert "SDLC" in screen, screen
-    for row in ("Show Ticket", "Find Similar Tickets", "Lint Plan", "Run CI Gates"):
+    for row in ("List My Claims", "Read Unread Messages", "Lint Plan", "Run CI Gates"):
         assert row in screen, f"Zeile {row!r} fehlt auf dem Bildschirm:\n{screen}"
 
 
@@ -116,20 +116,20 @@ def test_neovim_dashboard_tui_home_and_chapter_switch_back_and_forth(tui_factory
     tui = tui_factory()
     _wait_started(tui)
     tui.keys(":Dashboard sdlc", "Enter")
-    tui.wait_for("Show Ticket")
+    tui.wait_for("List My Claims")
     tui.keys(":Dashboard", "Enter")
     screen = tui.wait_for("Settings & Help", timeout=10)
     assert "SDLC" in screen, screen
     tui.keys(":Dashboard sdlc", "Enter")
-    screen = tui.wait_for("Show Ticket", timeout=10)
-    assert "Show Ticket" in screen, screen
+    screen = tui.wait_for("List My Claims", timeout=10)
+    assert "List My Claims" in screen, screen
 
 
 def test_neovim_dashboard_tui_chapter_page_is_not_an_editable_file_buffer(tui_factory):
     tui = tui_factory()
     _wait_started(tui)
     tui.keys(":Dashboard sdlc", "Enter")
-    tui.wait_for("Show Ticket")
+    tui.wait_for("List My Claims")
     tui.keys(":lua vim.g.probe_ft = vim.bo.filetype .. '|' .. vim.bo.buftype", "Enter")
     tui.keys(":echo g:probe_ft", "Enter")
     screen = tui.wait_for("snacks_dashboard")

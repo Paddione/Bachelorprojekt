@@ -48,7 +48,7 @@ Freigabe zurückgehalten. Ohne Hold ist der Aufruf ein No-op, daher `|| true`. `
 bleibt der **Default** [T002327].
 
 ```bash
-bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
+# retiriert 2026-10-14 (kein Ticket-Backend): bash ticket.sh release-hold --id "$TICKET_ID" || true
 ```
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
@@ -128,7 +128,7 @@ Code-Review ist **keine** Merge-Voraussetzung (D1).
 3. Fail-closed die Phase-Chain prüfen, dann Auto-Merge anfordern:
 
 ```bash
-./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
+bash scripts/devflow-phase.sh check
 ```
 
 ```bash
@@ -207,7 +207,7 @@ Bei roten Checks: Logs aus dem Skript-Output an einen `sonnet`-Subagenten (Fix-R
 Prüft `plan:done`, `implement:entered` und `verify:done`. Bei FAIL zuerst backfillen (insb.
 `verify done` nach grünem `task test:changed`).
 ```bash
-./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
+bash scripts/devflow-phase.sh check
 ```
 
 ## Schritte 6.4–7.5 — Merge-Wait, Ticket-Abschluss, Cleanup
@@ -245,7 +245,7 @@ bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
 **Deploy-Mapping (Single Source of Truth):** [deploy-routing](.agents/skills/references/deploy-routing.md) — nur dort pflegen.
 Danach `dev-flow-e2e` ausführen, um E2E-Tests gegen die Live-Umgebung zu schreiben.
 > **Mitten in der Umsetzung blockiert?** Nutzer mit `lavish` grillen (`.lavish/<slug>-grilling.html`),
-> Antworten ans Ticket: `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …`. Siehe
+> Antworten früher ans Ticket (`ticket.sh grill`, retiriert 2026-10-14), jetzt in den Plan bzw. PR. Siehe
 > `.agents/skills/references/grilling-to-ticket.md`.
 
 ## Übergabe — Kreislauf geschlossen

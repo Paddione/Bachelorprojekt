@@ -39,10 +39,10 @@ fehlendes Repository Code 1; der Wrapper gibt jeweils fälschlich 0 zurück.
 
 ## Task 2: Exit-Code erhalten
 
-- [ ] Negation entfernen und einen expliziten `else`-Zweig verwenden;
+- [x] Negation entfernen und einen expliziten `else`-Zweig verwenden;
   dort ursprünglichen Status sofort in `BEGIN_RC` sichern.
-- [ ] Bestehendes Cleanup und Fehlerausgabe erhalten.
-- [ ] Regression und bestehende Stampede-Suite müssen erfolgreich sein:
+- [x] Bestehendes Cleanup und Fehlerausgabe erhalten.
+- [x] Regression und bestehende Stampede-Suite müssen erfolgreich sein:
   `bash scripts/pytest-run.sh tests/py/spec/cbm/test_begin_exit_status.py tests/py/spec/native_ported/spec/test_cbm_stampede_guard.py -q`.
 
 ## Task 3: Verify und Lieferung

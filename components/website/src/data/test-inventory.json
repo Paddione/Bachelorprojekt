@@ -2694,6 +2694,12 @@
     "kind": "pytest"
   },
   {
+    "id": "cbm/begin_exit_status",
+    "file": "tests/py/spec/cbm/test_begin_exit_status.py",
+    "category": "cbm",
+    "kind": "pytest"
+  },
+  {
     "id": "centralized-logging",
     "file": "tests/py/spec/remaining_domain_specs/test_centralized_logging.py",
     "category": "centralized-logging",

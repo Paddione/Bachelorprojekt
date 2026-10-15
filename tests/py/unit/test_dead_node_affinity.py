@@ -69,28 +69,10 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
     assert base, "base overlay produced no resources"
     assert union, "consumer overlays produced no resources"
 
-    # T016544: KI-Workloads (whisper, bge-*, talk-*) wurden bewusst aus dem
-    # Fleet-Overlay entfernt — diese IDs duerfen bei allen Consumern fehlen.
+    # Externe KI-Routen bleiben entfernt; interne Dienste sind bei null Replikas vorhanden.
     intentionally_removed = {
-        ('Deployment', 'whisper'),
-        ('Deployment', 'bge-embed'),
-        ('Deployment', 'bge-embed-bulk'),
-        ('Deployment', 'bge-rerank'),
-        ('Deployment', 'talk-recording'),
-        ('Deployment', 'talk-transcriber'),
-        ('Service', 'whisper'),
-        ('Service', 'talk-recording'),
-        ('Service', 'talk-transcriber'),
-        ('Service', 'llm-gateway-embed'),
-        ('Service', 'llm-gateway-rerank'),
         ('IngressRoute', 'llm-gateway-embed'),
         ('IngressRoute', 'llm-gateway-rerank'),
-        ('NetworkPolicy', 'allow-llm-gateway-egress'),
-        ('NetworkPolicy', 'allow-transcriber-to-website-egress'),
-        ('NetworkPolicy', 'allow-website-to-bge-embed-ingress'),
-        ('NetworkPolicy', 'allow-website-to-bge-rerank-ingress'),
-        ('PersistentVolumeClaim', 'bge-embed-models'),
-        ('PersistentVolumeClaim', 'bge-rerank-models'),
         # T016560: Knowledge-Ingest-CronJobs laufen nur noch in Dev (devmesh).
         ('CronJob', 'knowledge-ingest-prs'),
         ('CronJob', 'knowledge-ingest-markdown'),
@@ -124,19 +106,3 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
     }
     lost = sorted(base - union - intentionally_removed)
     assert not lost, f"Resources dropped by all consumers: {lost}"
-
-
-def test_whisper_absent_from_fleet(built_overlays: dict[str, Path]):
-    # T016544: whisper wurde aus dem Fleet-Overlay entfernt (Ressourcen
-    # freigeben) — Tripwire gegen stilles Wiederauftauchen. Wer whisper
-    # zurueckbringt, muss diesen Test bewusst anpassen.
-    out_file = built_overlays["prod-fleet/mentolder"]
-    docs = list(yaml.safe_load_all(out_file.read_text()))
-
-    present = [
-        (d.get("kind"), (d.get("metadata") or {}).get("name"))
-        for d in docs
-        if isinstance(d, dict)
-        and (d.get("metadata") or {}).get("name") == "whisper"
-    ]
-    assert not present, f"whisper zurueck im Fleet-Build: {present}"

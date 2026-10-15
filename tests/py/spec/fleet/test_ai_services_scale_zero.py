@@ -1,5 +1,6 @@
 """Offline contract: AI services remain activatable while idle pods stay absent."""
 
+import os
 import shutil
 import subprocess
 
@@ -58,6 +59,17 @@ def test_dormant_services_retain_internal_dependencies(fleet_resources):
         service = fleet_resources.get(("Service", name))
         assert service is not None, f"missing Service {name}"
         assert service["spec"].get("type", "ClusterIP") == "ClusterIP"
+        selector = service["spec"].get("selector", {})
+        assert selector, f"{name}: missing selector"
+        matches = {
+            deployment_name for deployment_name in AI_DEPLOYMENTS
+            if selector.items() <= fleet_resources[("Deployment", deployment_name)]["spec"]
+            ["template"]["metadata"]["labels"].items()
+        }
+        expected = {"bge-embed", "bge-embed-bulk"} if name == "llm-gateway-embed" else {
+            "bge-rerank" if name == "llm-gateway-rerank" else name
+        }
+        assert matches == expected, f"{name}: selector targets {matches}"
     for name in ("bge-embed-models", "bge-rerank-models"):
         assert ("PersistentVolumeClaim", name) in fleet_resources
     for name in (
@@ -73,7 +85,7 @@ def test_gitops_override_can_activate_all_ai_deployments(repo_root, tmp_path):
     (tmp_path / "kustomization.yaml").write_text(yaml.safe_dump({
         "apiVersion": "kustomize.config.k8s.io/v1beta1",
         "kind": "Kustomization",
-        "resources": [str(repo_root / "prod-fleet/mentolder")],
+        "resources": [os.path.relpath(repo_root / "prod-fleet/mentolder", tmp_path)],
         "replicas": [{"name": name, "count": 1} for name in sorted(AI_DEPLOYMENTS)],
     }))
     activated = render(tmp_path)

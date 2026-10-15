@@ -1572,6 +1572,12 @@
     "kind": "shell"
   },
   {
+    "id": "SA-23",
+    "file": "tests/local/SA-23.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
     "id": "SA-SEC-01",
     "file": "tests/py/spec/native_ported/spec/fleet-operations/test_security_cert_hygiene.py",
     "category": "SA",
@@ -3723,6 +3729,12 @@
     "id": "fleet-operations/vaultwarden-smtp-from",
     "file": "tests/py/spec/native_ported/spec/fleet-operations/test_vaultwarden_smtp_from.py",
     "category": "fleet-operations",
+    "kind": "pytest"
+  },
+  {
+    "id": "fleet/ai_services_scale_zero",
+    "file": "tests/py/spec/fleet/test_ai_services_scale_zero.py",
+    "category": "fleet",
     "kind": "pytest"
   },
   {

@@ -54,15 +54,21 @@ ohne zusaetzliche Architekturarbeit nicht. PVCs/Services bestehen auch bei 0.
 
 ## Task 2: Manifest und Betriebsvertrag
 
-- [ ] Sechs Deployment-Deletes, fuenf Service-Deletes, vier NetworkPolicy-Deletes
+- [x] Sechs Deployment-Deletes, fuenf Service-Deletes, vier NetworkPolicy-Deletes
   und zwei PVC-Deletes aus dem T016544-Block entfernen.
-- [ ] Die zwei IngressRoute-Deletes behalten. Top-Level replicas mit sechs
+- [x] Die zwei IngressRoute-Deletes behalten. Top-Level replicas mit sechs
   expliziten count: 0 anlegen. Veraltete Kommentare ersetzen.
-- [ ] Unit-Guard: absichtliche KI-Abwesenheit nicht weiter erlauben und den
+- [x] Unit-Guard: absichtliche KI-Abwesenheit nicht weiter erlauben und den
   obsoleten Whisper-Abwesenheitstest durch die neue Rendering-Suite ersetzen.
-- [ ] Offline SA-23 anlegen und Betriebs-Runbook schreiben.
-- [ ] Neue Rendering-Suite, Dead-Node-Guard und vorhandene Endpunkt-Guards
+- [x] Offline SA-23 anlegen und Betriebs-Runbook schreiben.
+- [x] Neue Rendering-Suite, Dead-Node-Guard und vorhandene Endpunkt-Guards
   muessen bestehen. Test-Override muss alle sechs Deployments auf 1 rendern.
+
+Beleg Task 2: RED erneut 3 failed/1 passed. Danach Rendering-Suite,
+Dead-Node-Guard und Endpunkt-Guards: 10 passed. SA-23 direkt offline: 4 passed.
+Aktivierungs-Test korrigiert: relative Overlay-Ressource statt von Kustomize
+abgelehntem absolutem Pfad; Service-Selektoren gegen Pod-Labels mitgeprüft.
+Gesamt-Runner nicht ausgeführt: local initialisiert Stack/Testdaten vor SA-23.
 
 ## Task 3: Verify und Lieferung
 

@@ -188,17 +188,17 @@ def plan_env(devflow):
     calls = t / "calls.log"
     devflow.calls = calls
     devflow.env["CALLS"] = str(calls)
+    devflow.env["AGENT_WORKTREE_ROOT"] = str(t / "wt")
     _stub(devflow, "worktree-create.sh", WORKTREE_CREATE_BODY)
     _stub(devflow, "agent-lock.sh", "exit 0")
     _stub(devflow, "plan-preflight.sh", "exit 0")
-    _stub(devflow, "ticket.sh", 'echo "Ticket staged"')
     _stub(devflow, "plan-lint.sh", PLAN_LINT_BODY)
     return devflow
 
 
 def _stage(devflow, plan_markdown: str):
     devflow.call("plan_stage", (
-        '{"ticket":"T999001","slug":"demo","branch_type":"feature",'
+        '{"slug":"demo","branch_type":"feature",'
         f'"plan_markdown":"{plan_markdown}","design_markdown":"# design"}}'))
 
 
@@ -211,30 +211,26 @@ def test_plan_stage_legt_worktree_an_committet_den_plan_pusht_und_stagt(plan_env
     assert plan_env.status == 0
     plan_env.json('[d.ok, d.branch, d.lint.verdict, '
                   'd.steps.map(s => s.name + ":" + s.status).join(",")].join(" ")')
-    assert plan_env.output.startswith("true feature/demo-T999001 PASS ")
+    assert plan_env.output.startswith("true feature/demo PASS ")
     assert ":failed" not in plan_env.output
     remote = plan_env.run_cmd(["git", "-C", str(plan_env.frepo), "ls-remote", "origin",
-                               "refs/heads/feature/demo-T999001"])
+                               "refs/heads/feature/demo"])
     assert remote.output
     tasks = plan_env.run_cmd(["git", "--git-dir", str(plan_env.origin), "show",
-                              "feature/demo-T999001:.agents/plans/demo/tasks.md"])
+                              "feature/demo:.agents/plans/demo/tasks.md"])
     assert "demo — Implementation Plan" in tasks.output
     design = plan_env.run_cmd(["git", "--git-dir", str(plan_env.origin), "show",
-                               "feature/demo-T999001:.agents/plans/demo/design.md"])
+                               "feature/demo:.agents/plans/demo/design.md"])
     assert "# design" in design.output
 
 
-def test_plan_stage_aufrufreihenfolge_endet_mit_stage_plan_hold(plan_env):
+def test_plan_stage_aufrufreihenfolge_endet_mit_preflight_ohne_ticket(plan_env):
     _stage(plan_env, "# demo — Implementation Plan")
     assert plan_env.status == 0
     names = [ln.split(" ", 1)[0] for ln in _calls(plan_env)]
-    assert " ".join(names) + " " == \
-        "worktree-create.sh agent-lock.sh plan-lint.sh plan-preflight.sh ticket.sh "
-    ticket_lines = [ln for ln in _calls(plan_env) if ln.startswith("ticket.sh")]
-    output = "\n".join(ticket_lines)
-    assert "stage-plan" in output
-    assert "--id T999001" in output
-    assert "--hold" in output
+    assert names == ["worktree-create.sh", "agent-lock.sh", "plan-lint.sh", "plan-preflight.sh"]
+    lock = next(ln for ln in _calls(plan_env) if ln.startswith("agent-lock.sh"))
+    assert "claim branch feature/demo" in lock
 
 
 def test_plan_stage_roter_lint_bricht_vor_commit_und_push_ab_worktree_bleibt(plan_env):
@@ -243,10 +239,10 @@ def test_plan_stage_roter_lint_bricht_vor_commit_und_push_ab_worktree_bleibt(pla
     plan_env.json('[d.ok, d.lint.verdict, d.lint.hard[0]].join(" ")')
     assert plan_env.output.startswith("false FAIL STRUCT1")
     remote = plan_env.run_cmd(["git", "-C", str(plan_env.frepo), "ls-remote", "origin",
-                               "refs/heads/feature/demo-T999001"])
+                               "refs/heads/feature/demo"])
     assert remote.output == ""
-    assert sum(1 for ln in _calls(plan_env) if ln.startswith("ticket.sh")) == 0
-    assert (plan_env.frepo / ".worktrees" / "demo-T999001" / ".agents" / "plans" /
+    assert not any(ln.startswith("plan-preflight.sh") for ln in _calls(plan_env))
+    assert (plan_env.t / "wt" / "repo" / "feature" / "demo" / ".agents" / "plans" /
             "demo" / "tasks.md").is_file()
 
 

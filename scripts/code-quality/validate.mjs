@@ -6,14 +6,8 @@ import { loadSubsystems, loadGates } from './load.mjs';
 import { trackedFiles } from './scan.mjs';
 import { matchGlob } from './glob.mjs';
 
-export const ROUTING_AGENTS = new Set([
-  'bachelorprojekt-website',
-  'bachelorprojekt-infra',
-  'bachelorprojekt-test',
-  'bachelorprojekt-db',
-  'bachelorprojekt-ops',
-  'bachelorprojekt-security',
-]);
+// T900858: die drei Domain-Agenten (vorher sechs bachelorprojekt-*).
+export const ROUTING_AGENTS = new Set(['bp-build', 'bp-run', 'bp-ship']);
 
 /** Validate the registry+gates at cfgDir against the tracked tree at repoRoot. */
 export function validateRegistry(cfgDir, repoRoot) {
@@ -33,7 +27,7 @@ export function validateRegistry(cfgDir, repoRoot) {
     req(Array.isArray(s?.paths) && s.paths.length > 0,
       `subsystem[${s?.id}]: 'paths' must be a non-empty array`);
     req(ROUTING_AGENTS.has(s?.owner_agent),
-      `subsystem[${s?.id}]: owner_agent '${s?.owner_agent}' not one of the six routing agents`);
+      `subsystem[${s?.id}]: owner_agent '${s?.owner_agent}' not one of the routing agents (bp-build|bp-run|bp-ship)`);
     for (const g of s?.paths ?? []) {
       if (seenGlobs.has(g))
         errors.push(`subsystem[${s?.id}]: duplicate path glob '${g}' (also in '${seenGlobs.get(g)}')`);

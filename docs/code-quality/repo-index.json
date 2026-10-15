@@ -4,7 +4,7 @@
     {
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
-      "owner_agent": "bachelorprojekt-test",
+      "owner_agent": "bp-ship",
       "file_count": 1331,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
@@ -1343,7 +1343,7 @@
     {
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
-      "owner_agent": "bachelorprojekt-db",
+      "owner_agent": "bp-run",
       "file_count": 76,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
@@ -1427,7 +1427,7 @@
     {
       "id": "website",
       "name": "Astro + Svelte website",
-      "owner_agent": "bachelorprojekt-website",
+      "owner_agent": "bp-ship",
       "file_count": 1912,
       "files": [
         "components/website/.build-trigger",
@@ -3347,7 +3347,7 @@
     {
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
-      "owner_agent": "bachelorprojekt-infra",
+      "owner_agent": "bp-build",
       "file_count": 844,
       "files": [
         ".opencode/agent-models.jsonc",
@@ -4199,7 +4199,7 @@
     {
       "id": "scripts-infra",
       "name": "Operational + build scripts",
-      "owner_agent": "bachelorprojekt-infra",
+      "owner_agent": "bp-build",
       "file_count": 942,
       "files": [
         "scripts/README.md",
@@ -5149,7 +5149,7 @@
     {
       "id": "brett",
       "name": "Brett 3D board (CommonJS)",
-      "owner_agent": "bachelorprojekt-website",
+      "owner_agent": "bp-ship",
       "file_count": 378,
       "files": [
         "components/brett/.dockerignore",
@@ -5535,7 +5535,7 @@
     {
       "id": "openclaw",
       "name": "OpenClaw WSL gateway config",
-      "owner_agent": "bachelorprojekt-infra",
+      "owner_agent": "bp-build",
       "file_count": 1,
       "files": [
         "openclaw"
@@ -5544,7 +5544,7 @@
     {
       "id": "assets",
       "name": "Design + art-library assets",
-      "owner_agent": "bachelorprojekt-website",
+      "owner_agent": "bp-ship",
       "file_count": 588,
       "files": [
         "assets/Mentolder/INVENTORY.md",

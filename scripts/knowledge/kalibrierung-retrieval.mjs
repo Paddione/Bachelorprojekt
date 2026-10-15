@@ -50,7 +50,7 @@ for (const limit of limits) {
       const t = Date.now();
       let j;
       try {
-        const out = await execFileP('node', [resolve(REPO, 'scripts/context-retrieve.mjs'), '--task-prompt', entry.task, '--role', 'bachelorprojekt-infra', '--limit', String(limit), '--budget', String(budget), '--json'], { env, timeout: 120_000, maxBuffer: 20 * 1024 * 1024 });
+        const out = await execFileP('node', [resolve(REPO, 'scripts/context-retrieve.mjs'), '--task-prompt', entry.task, '--role', 'bp-build', '--limit', String(limit), '--budget', String(budget), '--json'], { env, timeout: 120_000, maxBuffer: 20 * 1024 * 1024 });
         j = JSON.parse(out.stdout);
       } catch (err) {
         failed++;

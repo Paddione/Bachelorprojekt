@@ -5,19 +5,19 @@
 - id: tests
   name: Test suites (pytest + Playwright + vitest)
   paths: ["tests/**", "components/website/test/**", "components/website/tests/**"]
-  owner_agent: bachelorprojekt-test
+  owner_agent: bp-ship
   test_location: tests/
   purpose: Offline + E2E + unit test harness and fixtures.
 - id: scripts-db
   name: Database scripts (migrations + datamodel)
   paths: ["scripts/migrations/**", "scripts/datamodel/**"]
-  owner_agent: bachelorprojekt-db
+  owner_agent: bp-run
   test_location: scripts/datamodel/tests/
   purpose: SQL migrations and the datamodel/ERD generator.
 - id: website
   name: Astro + Svelte website
   paths: ["components/website/**"]
-  owner_agent: bachelorprojekt-website
+  owner_agent: bp-ship
   test_location: components/website/test/
   purpose: Public site, admin portal, chat, billing, content hub.
 - id: infra-manifests
@@ -31,31 +31,31 @@
     - "environments/**"
     - "docker/**"
     - ".opencode/**"
-  owner_agent: bachelorprojekt-infra
+  owner_agent: bp-build
   test_location: tests/manifests/
   purpose: Kustomize bases/overlays, sealed secrets, sidecar images, MCP config.
 - id: scripts-infra
   name: Operational + build scripts
   paths: ["scripts/**"]
-  owner_agent: bachelorprojekt-infra
+  owner_agent: bp-build
   test_location: scripts/tests/
   purpose: Deploy/migration/build helpers (everything in scripts/ that is not DB).
 - id: brett
   name: Brett 3D board (CommonJS)
   paths: ["components/brett/**"]
-  owner_agent: bachelorprojekt-website
+  owner_agent: bp-ship
   test_location: components/brett/
   purpose: Node.js 3D systemic-constellation board + mayhem game.
 - id: openclaw
   name: OpenClaw WSL gateway config
   paths: ["openclaw"]
-  owner_agent: bachelorprojekt-infra
+  owner_agent: bp-build
   test_location: dotfiles/openclaw/
   purpose: Local LLM gateway bootstrap config.
 - id: assets
   name: Design + art-library assets
   paths: ["assets/**", "assets/art-library/**"]
-  owner_agent: bachelorprojekt-website
+  owner_agent: bp-ship
   test_location: assets/art-library/_tooling/
   purpose: Design overviews, game art, art-library tooling.
 

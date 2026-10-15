@@ -142,13 +142,14 @@ test('slugForToolId: spine skills keep their id (discoverable SKILL.md slug)', (
   }
 });
 
-test('slugForToolId: agents map agent-<x> -> bachelorprojekt-<x>', () => {
-  assert.equal(slugForToolId('agent-website'), 'bachelorprojekt-website');
-  assert.equal(slugForToolId('agent-ops'), 'bachelorprojekt-ops');
-  assert.equal(slugForToolId('agent-infra'), 'bachelorprojekt-infra');
-  assert.equal(slugForToolId('agent-test'), 'bachelorprojekt-test');
-  assert.equal(slugForToolId('agent-db'), 'bachelorprojekt-db');
-  assert.equal(slugForToolId('agent-security'), 'bachelorprojekt-security');
+test('slugForToolId: agent-<x> maps to the bp-* successor (T900858)', () => {
+  assert.equal(slugForToolId('agent-website'), 'bp-ship');
+  assert.equal(slugForToolId('agent-test'), 'bp-ship');
+  assert.equal(slugForToolId('agent-ops'), 'bp-run');
+  assert.equal(slugForToolId('agent-db'), 'bp-run');
+  assert.equal(slugForToolId('agent-infra'), 'bp-build');
+  assert.equal(slugForToolId('agent-security'), 'bp-build');
+  assert.equal(slugForToolId('agent-unknown'), null);
 });
 
 test('slugForToolId: task-oracle and unknown ids return null (no wikilink)', () => {
@@ -194,7 +195,7 @@ test('toolLink: wikilink for discoverable ids, plain link for task-oracle', () =
   try {
     loadRegistry(dir);
     assert.equal(toolLink('dev-flow-plan'), '[[dev-flow-plan]]');
-    assert.equal(toolLink('agent-website'), '[[bachelorprojekt-website]]');
+    assert.equal(toolLink('agent-website'), '[[bp-ship]]');
     // task-oracle has no discoverable page → plain [label](url) from its links.
     assert.equal(toolLink('task-oracle'), '[Task-Orakel](https://example.test/oracle)');
   } finally {
@@ -210,8 +211,7 @@ test('urlLink: renders a markdown link, empty string for blank url', () => {
 /** The set of slugs the docs generator WILL discover (for membership checks). */
 const DISCOVERABLE = new Set([
   'dev-flow-plan', 'dev-flow-execute', 'dev-flow-e2e',
-  'bachelorprojekt-website', 'bachelorprojekt-ops', 'bachelorprojekt-infra',
-  'bachelorprojekt-test', 'bachelorprojekt-db', 'bachelorprojekt-security',
+  'bp-build', 'bp-run', 'bp-ship',
   '00-anleitung', '10-ziele', '20-werkzeuge', '30-bausteine',
 ]);
 
@@ -235,7 +235,7 @@ test('renderZiele: fence-first, resolves ids, every wikilink target is discovera
     assert.ok(md.includes('Umgebung immer explizit angeben'), 'guardrail name resolved');
     // flow tools: dev-flow-plan → wikilink, agent-website → mapped wikilink, task-oracle → plain link
     assert.ok(md.includes('[[dev-flow-plan]]'), 'spine skill wikilinked');
-    assert.ok(md.includes('[[bachelorprojekt-website]]'), 'agent id mapped + wikilinked');
+    assert.ok(md.includes('[[bp-ship]]'), 'agent id mapped + wikilinked');
     assert.ok(md.includes('[Task-Orakel](https://example.test/oracle)'), 'task-oracle is a plain link');
     assert.ok(!md.includes('[[task-oracle]]'), 'task-oracle is NEVER a wikilink');
     assert.ok(!md.includes('[[agent-website]]'), 'raw agent id is NEVER emitted as a wikilink');
@@ -262,7 +262,7 @@ test('renderWerkzeuge: cards for every tool; task-oracle stays a plain link', ()
     assert.ok(md.includes('Skill'), 'kind pill rendered');
     assert.ok(md.includes('Nichts Schlimmes.'), 'what_could_go_wrong rendered');
     // related on dev-flow-plan points to agent-website → mapped wikilink
-    assert.ok(md.includes('[[bachelorprojekt-website]]'), 'related agent mapped');
+    assert.ok(md.includes('[[bp-ship]]'), 'related agent mapped');
     for (const t of wikilinkTargets(md)) {
       assert.ok(DISCOVERABLE.has(t), `wikilink [[${t}]] is discoverable`);
     }

@@ -41,6 +41,10 @@ _role_allowlist() {
 # Union of every role's allowlist plus the role names themselves —
 # the shared domain vocabulary. Excludes orchestrator/__ALL__. Used by
 # --vocab and by the dead-domains WARN (anchor check). SSOT: _role_allowlist.
+# Die bachelorprojekt-*-Namen bleiben bewusst: es sind Legacy-Aliase
+# (scripts/toolset/lib/roles.mjs LEGACY_ROLE_ALIASES), die Proposals mit
+# `domains: [bachelorprojekt-…]` gueltig halten; getestet in
+# test_domains_vocabulary.py und test_bp_roles.py.
 _domain_roles() {
     printf '%s\n' "bachelorprojekt-website" "bachelorprojekt-ops" "bachelorprojekt-infra" \
         "bachelorprojekt-test" "bachelorprojekt-db" "bachelorprojekt-security" \

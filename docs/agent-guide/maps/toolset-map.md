@@ -73,16 +73,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `bp-run`
   - _Tiefe:_ `.claude/skills/database-specialist/SKILL.md`
 
-## Fähigkeit: `ticket-lebenszyklus`
-
-- **`mcp:ticket-mcp-node`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Tickets lesen, anlegen, Status setzen, Phasen-Events schreiben.
-  - _Nicht:_ Plan stagen — das macht devflow-mcp plan_stage (stage_plan ist unterdrückt).
-  - _Fallback:_ `scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)`
-  - _Rollen:_ `bp-run`, `bp-ship`, `orchestrator`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
-  - _Tools (25):_ dangerous: `archive_plan`, `backfill_ticket_id`, `flush_mishap_buffer` · caution: `add_comment`, `add_pr_link`, `create_ticket`, `enqueue_ticket`, `link_tickets`, `prepare_feature`, `record_grill_answers`, `record_phase_event`, `report_mishap`, `set_plan_meta`, `set_readiness_flag`, `set_touched_files`, `transition_status`, `triage_ticket`, `update_fields` · 7 safe
-
 ## Fähigkeit: `devflow-kontext`
 
 - **`mcp:devflow-mcp`** — Status `canonical` · Tier `caution`
@@ -92,30 +82,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `bp-build`, `bp-run`, `bp-ship`, `orchestrator`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
   - _Tools (10):_ assisted: `plan_stage` · caution: `lock` · 8 safe
-
-## Fähigkeit: `ticket-inhalt`
-
-- **`skill:ticket-ops`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Kompatibilitäts-Einstieg für unklare Ticket-Inhaltsanfragen; routet zu Triage oder Dispatch.
-  - _Nicht:_ Repo-Zustand — Branches, Worktrees und PRs gehören zu repo-hygiene.
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/ticket-ops/SKILL.md`
-
-## Fähigkeit: `ticket-triage`
-
-- **`skill:ticket-triage`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Triage, Definition of Readiness, fehlende Angaben, Klärungsrunde und Batch-Kandidaten ohne Dispatch.
-  - _Nicht:_ Wellen planen oder Arbeit dispatchen — dafür ticket-dispatch.
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/ticket-triage/SKILL.md`
-
-## Fähigkeit: `ticket-dispatch`
-
-- **`skill:ticket-dispatch`** — Status `canonical` · Tier `assisted`
-  - _Wann:_ Abhängigkeitswellen, Parallelisierungsplan, Konfliktprüfung und freigegebener Wave-1-Dispatch.
-  - _Nicht:_ Ticket-Fakten erheben oder menschliche Rückfragen klären — dafür ticket-triage.
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/ticket-dispatch/SKILL.md`
 
 ## Fähigkeit: `repo-task-ausfuehrung`
 
@@ -128,12 +94,12 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `externes-task-management`
 
 - **`mcp:task-master-ai`** — Status `suppressed`
-  - _Grund:_ Kein erreichbarer Server: task-master-ai existiert weder in docs/agent-guide/registry/mcp.yaml noch in .opencode/opencode.jsonc. PRD-getriebene Task-Zerlegung laeuft ueber ticket-mcp und die dev-flow-Skills.
+  - _Grund:_ Kein erreichbarer Server: task-master-ai existiert weder in docs/agent-guide/registry/mcp.yaml noch in .opencode/opencode.jsonc. PRD-getriebene Task-Zerlegung laeuft ueber die dev-flow-Skills.
 
 ## Fähigkeit: `mishap-erfassung`
 
 - **`skill:mishap-tracker`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Am Ende jedes dev-flow-Skills die gesammelten Frictionen als ein Ticket melden.
+  - _Wann:_ Am Ende jedes dev-flow-Skills die gesammelten Frictionen lokal melden (stderr + .mishaps.log).
   - _Fallback:_ `bash scripts/hooks/mishap-tracker.sh --friction '<text>'`
   - _Rollen:_ `all`
   - _Tiefe:_ `.claude/skills/mishap-tracker/SKILL.md`
@@ -709,11 +675,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`plugin:oh-my-opencode-slim:acp_run@npm`** — Status `suppressed`
   - _Grund:_ Keine ACP-Agenten konfiguriert — das Tool wird nicht registriert (acpRunTools leer).
-
-## Fähigkeit: `sdlc-autopilot`
-
-- **`skill:sdlc-autopilot`** — Status `retired`
-  - _Grund:_ Retiriert 2026-10-14 mit dem Ticket-System (Queue-Quelle `tickets.*` entfiel).
 
 ## Fähigkeit: `opencode-git-workflow`
 

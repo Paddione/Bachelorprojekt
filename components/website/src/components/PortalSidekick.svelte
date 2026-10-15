@@ -272,6 +272,8 @@
         {helpContext}
         {pendingContainerCount}
         {aiErrorCount}
+        hasTerminal={!!terminalHost}
+        hasMediaviewer={!!mediaviewerHost}
       />
     {:else if view === 'support'}
       {#await import('./assistant/SupportView.svelte') then { default: V }}<V onCloseView={() => { view = 'home'; }} />{/await}

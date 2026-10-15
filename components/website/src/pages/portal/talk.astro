@@ -1,0 +1,9 @@
+---
+// /portal/talk?token=<room> leitet in den Nextcloud-Talk-Raum weiter (Links aus der Admin-Inbox).
+const NC_EXTERNAL_URL = process.env.NEXTCLOUD_EXTERNAL_URL || '';
+const token = Astro.url.searchParams.get('token') ?? '';
+if (!NC_EXTERNAL_URL || !/^[A-Za-z0-9]+$/.test(token)) {
+  return Astro.redirect('/404');
+}
+return Astro.redirect(`${NC_EXTERNAL_URL}/call/${token}`, 302);
+---

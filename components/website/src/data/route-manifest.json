@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 118,
+  "count": 119,
   "routes": [
     {
       "route": "/",
@@ -878,6 +878,14 @@
       "authTier": "portal",
       "brand": "both",
       "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/talk",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": false,
       "excludeFromSweep": false,
       "media": false
     },

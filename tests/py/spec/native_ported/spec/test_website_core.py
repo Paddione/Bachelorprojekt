@@ -147,8 +147,8 @@ def test_t001471_responsive_stylesheet_has_desktop_block_1024px_with_admin_form_
     assert ".admin-form-wide" in text
 
 
-def test_t001471_collapse_rechnungen_astro_stays_exactly_592_lines_budget_0(r):
-    assert _wc_l(r["web"] / "src/pages/admin/rechnungen.astro") == 592
+def test_t001471_collapse_rechnungen_astro_stays_exactly_586_lines_budget_0(r):
+    assert _wc_l(r["web"] / "src/pages/admin/rechnungen.astro") == 586
 
 
 def test_t001471_collapse_projekte_astro_stays_exactly_408_lines_budget_0(r):

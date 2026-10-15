@@ -31,7 +31,7 @@ const { ticket, timeline } = Astro.props;
           <span class="text-xs text-muted w-32 shrink-0">
             {l.direction === 'out' ? l.kind : `${l.kind} (← in)`}
           </span>
-          <a href={`/admin/tickets/${l.otherId}`} class="text-light hover:text-gold flex-1 truncate">
+          <a href={`/sdlc/tickets/${l.otherId}`} class="text-light hover:text-gold flex-1 truncate">
             {l.otherTitle}
           </a>
           {l.prNumber && (

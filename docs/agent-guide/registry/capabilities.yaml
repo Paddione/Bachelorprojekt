@@ -117,11 +117,11 @@ capabilities:
 
   # ─── Tickets und Pläne ──────────────────────────────────────────────────────────────
   ticket-lebenszyklus:
-    mcp:ticket-mcp-node:
+    cli:ticket-sh:
       state: canonical
-      use_when: "Tickets lesen, anlegen, Status setzen, Phasen-Events schreiben."
+      use_when: "Tickets lesen, anlegen, Status setzen, Phasen-Events schreiben (bash scripts/ticket.sh <command>)."
       avoid_when: "Plan stagen — das macht devflow-mcp plan_stage (stage_plan ist unterdrückt)."
-      fallback: "scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)"
+      fallback: "Kein MCP-Transport mehr (ticket-mcp-node retiriert, T900984 obsolet); Reads notfalls via psql()-Fallback im mcp-tool-guide."
       roles: [bp-run, bp-ship, orchestrator]
       tier: caution
       # T900983: Lesepfade safe, nicht rücknehmbare Mutationen dangerous; Rest erbt caution.

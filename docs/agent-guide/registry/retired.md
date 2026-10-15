@@ -44,3 +44,14 @@ static `qwen-200k` pool (200k KV / moe 4150) measured healthy
 
 - provider `deepseek` (direkte API, `https://api.deepseek.com/v1`)
 - `opencode-go/deepseek-v4-flash`, `opencode-go/deepseek-v4-pro`
+
+## Removed ticket MCP (T900984 obsolet, 2026-10-15)
+
+| Was | Warum |
+|---|---|
+| `ticket-mcp-node` (Node, `~/mcp-servers/ticket/server.mjs`, T901492) | Server in Dotfiles-Commit `dec49a8` retiriert; Verzeichnis gelöscht |
+| Registry-Eintrag `mcp.yaml`, Capability `ticket-lebenszyklus` (MCP) | auf `cli:ticket-sh` (`bash scripts/ticket.sh`) umgestellt |
+| `toolset.lock.yaml`-Probe, `skills.yaml`-Mappings | entfernt (kein Update auf nichtexistente Backends) |
+| Harness-Configs (`.mcp.json`, `opencode.jsonc`, `mcp_config.json`, Claude-Settings) | via `task mcp:sync` neu gerendert |
+
+Ticket-Reads/Writes laufen über `scripts/ticket.sh` (sanktionierter Pfad, worktree-tauglich).

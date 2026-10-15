@@ -8,12 +8,12 @@ description: 'Use at the END of any runbook or dev-flow skill to file the fricti
 Records execution mishaps **on the ticket that was being worked on** when they occurred. No
 collection container, no cycle, no carry-over.
 
-Incident types (`incident`, `broken`, `security`) bypass the buffer entirely and still create one
-ticket each via `createIncidentTicket`.
+Incident types (`incident`, `broken`, `security`) bypass any collection and still create one
+ticket each via `ticket.sh create` (s. Step 2).
 
 Without ticket context an entry is logged to stderr and `.mishaps.log` and then discarded — it
-does **not** produce a ticket. All three buffer drain paths behave identically: threshold,
-watchdog (`FlushStaleBuffer`) and the manual `flush_mishap_buffer` [T003553].
+does **not** produce a ticket. Es gibt keinen Sammel-Buffer mehr (`report_mishap`/`flush_mishap_buffer`
+retiriert mit ticket-mcp-node, T900984 obsolet).
 
 > **Der Rollup-Automat ist entfernt [T014104].** "Mishap Rollup — fortlaufende Sammlung",
 > `mishap-rollup.sh` und `ticket.sh rollup-container` in aelteren Plaenen oder Kommentaren sind
@@ -86,43 +86,29 @@ Before reporting any mishap, verify the claim with a concrete check:
 
 ---
 
-## Step 2: Mishaps via ticket-mcp melden
+## Step 2: Mishaps via Hook melden (kein MCP)
 
 Für jeden verifizierten Mishap im MISHAP_LOG:
 
-```
-ticket-mcp-node_report_mishap({
-  title: "<titel>",
-  description: "<beschreibung>",
-  component: "<komponente>",
-  type: "<broken|degraded|suspicious|security|drift>",
-  brand: "<brand>"
-})
+```bash
+bash scripts/hooks/mishap-tracker.sh --friction "<titel>: <beschreibung>" --ticket "$TICKET_ID" --severity <minor|major|critical>
 ```
 
 **Rückmeldung auswerten:**
-- `"Incident-Ticket angelegt: T000xxx"` → sofortiges Incident-Ticket für `incident`/`broken`/`security`, kein Buffer-Eintrag
-- `"Mishap gespeichert (3/10). Noch 7 bis zum Buffer-Flush."` → weiter melden, Buffer sammelt
-- `"10 Mishaps protokolliert und verworfen. Buffer geleert."` → Schwelle (10) erreicht, kein Ticket, kein Container. Was erhalten bleiben soll, gehoert als Kommentar an das bearbeitete Ticket (`mishap-tracker.sh --ticket`)
+- Mit `--ticket`: Kommentar am bearbeiteten Ticket (`ticket.sh add-comment`); dort bleibt erhalten, was erhalten bleiben soll.
+- Ohne Ticket-Kontext: Eintrag landet in `.mishaps.log`/stderr und wird verworfen — kein Sammel-Container, kein Follow-up-Ticket.
+- Incident-Typen (`incident`/`broken`/`security`) erzeugen je ein eigenes Ticket:
+```bash
+bash scripts/ticket.sh create --type bug --title "<titel>" --description "<beschreibung>" --severity <critical|major> --priority hoch
+```
 
 ---
 
-## Step 3: Buffer am Session-Ende liegen lassen
+## Step 3: Kein Buffer — nichts flushen
 
-Nach dem letzten `report_mishap`-Aufruf den Buffer-Stand ansehen — **aber nicht flushen**:
-
-```
-ticket-mcp-node_get_mishap_buffer()
-```
-
-**Restliche Eintraege bleiben liegen. Das ist der Normalfall, kein Fehlerzustand.** Der Buffer ist
-dateibasiert (`mishap-buffer.json` im gemeinsamen Git-Verzeichnis, `git rev-parse --git-common-dir`)
-und ueberlebt Sessionwechsel, Worktrees und Neustarts.
-
-| Weg | Ausloeser | Ergebnis |
-|---|---|---|
-| Schwelle | `report_mishap` ab **10** Eintraegen | Eintraege protokolliert und verworfen, Buffer geleert |
-| Alters-Schnitt | manuell `ticket-mcp-go --flush-stale-mishaps` (automatischer Aufruf entfiel mit T900399) | dito, sobald der aelteste Eintrag ≥ 7 Tage alt ist |
+Es gibt keinen Mishap-Buffer mehr (MCP-Transport retiriert). **Eintraege in `.mishaps.log` bleiben
+liegen. Das ist der Normalfall, kein Fehlerzustand.** Was erhalten bleiben soll, gehoert als
+Kommentar an das bearbeitete Ticket (`mishap-tracker.sh --ticket`).
 
 **Der Weg, auf dem ein Mishap erhalten bleibt, ist der Ticket-Kommentar** — nicht der Buffer:
 
@@ -132,15 +118,8 @@ bash scripts/hooks/mishap-tracker.sh --friction "<text>" --ticket "$TICKET_ID" -
 
 Ohne `--ticket` landet der Eintrag in `.mishaps.log` und auf stderr, und dort endet er.
 
-**Nichts entsteht direkt als `plan_staged` [T003027].** Mishap-Tickets
-(`~/mcp-servers/ticket/go/internal/tools/mishap.go`, zentral seit T901492) werden mit `status=triage` angelegt, weil
+**Nichts entsteht direkt als `plan_staged` [T003027].** Mishap-Tickets werden mit `status=triage` angelegt, weil
 `update-status.sh` `plan_staged` ohne `FACTORY-PLAN-REF` fail-closed ablehnt (T002876).
-
-`flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfuegbar:
-
-```
-ticket-mcp-node_flush_mishap_buffer({ brand: "<brand>" })
-```
 
 ---
 

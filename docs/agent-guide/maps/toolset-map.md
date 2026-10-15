@@ -75,13 +75,12 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `ticket-lebenszyklus`
 
-- **`mcp:ticket-mcp-node`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Tickets lesen, anlegen, Status setzen, Phasen-Events schreiben.
-  - _Nicht:_ Plan stagen — das macht devflow-mcp plan_stage (stage_plan ist unterdrückt).
-  - _Fallback:_ `scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)`
+- **`cli:ticket-sh`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Tickets lesen, anlegen, Status setzen, Phasen-Events schreiben (`bash scripts/ticket.sh <command>`).
+  - _Nicht:_ Plan stagen — das macht devflow-mcp plan_stage.
+  - _Kein MCP-Transport:_ `ticket-mcp-node` retiriert (T900984 obsolet); Reads notfalls via psql-Fallback.
   - _Rollen:_ `bp-run`, `bp-ship`, `orchestrator`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
-  - _Tools (25):_ dangerous: `archive_plan`, `backfill_ticket_id`, `flush_mishap_buffer` · caution: `add_comment`, `add_pr_link`, `create_ticket`, `enqueue_ticket`, `link_tickets`, `prepare_feature`, `record_grill_answers`, `record_phase_event`, `report_mishap`, `set_plan_meta`, `set_readiness_flag`, `set_touched_files`, `transition_status`, `triage_ticket`, `update_fields` · 7 safe
 
 ## Fähigkeit: `devflow-kontext`
 

@@ -86,7 +86,7 @@ do_install() {
   fi
 
   if [[ -f "$REPO_ROOT/package-lock.json" ]]; then
-    say "npm ci (stdio-MCPs: ticket-mcp-node, task-runner)"
+    say "npm ci (stdio-MCPs: task-runner)"
     (cd "$REPO_ROOT" && npm ci --no-audit --no-fund --ignore-scripts)
   fi
   say "install fertig"

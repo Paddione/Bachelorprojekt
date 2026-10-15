@@ -10,13 +10,12 @@
 
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
 Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
-**MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen (Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp).
-> `ticket-mcp-node_create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: .agents/plans/<slug>/tasks.md\nSpec: .agents/plans/<slug>/design.md\n<grilling-ref>" })`
-Bei vorhandenem Ticket stattdessen die UUID lesen: `ticket-mcp-node_get_ticket({ id: "$TICKET_EXT_ID" })` → `.id` ist die UUID.
-Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execute) — **MCP-first**:
-> `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: ".agents/plans/<slug>/tasks.md", hold: true })`
-`hold` ist **PFLICHT** (T003267): ohne das Feld defaultet der Go-Adapter auf `false` und
-ruft `--no-hold` auf — das Ticket gilt dann sofort als freigegeben, statt auf `dev-flow-execute` zu warten.
+Wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen:
+```bash
+TICKET_EXT_ID=$(./scripts/ticket.sh create --type task --brand mentolder --title "Plan: <slug>" --priority mittel --description "Branch: feature/<slug>")
+```
+Bei vorhandenem Ticket stattdessen die UUID lesen: `./scripts/ticket.sh get --id "$TICKET_EXT_ID"` → `.id` ist die UUID.
+Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execute):
 
 **Partial-Anzahl mitgeben (T002074):** Bei einem Multi-Partial-Plan die Slot-Zahl
 für das Gang-Gating durchreichen — MCP-seitig via `set_plan_meta`, sonst per Fallback

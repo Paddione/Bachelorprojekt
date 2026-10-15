@@ -232,10 +232,7 @@ bash scripts/check-pr-automerge.sh --branch "$BRANCH"
 
 ## Schritt 1.5 / 1.7 — Ticket auf in_progress, touched_files, Assets
 
-Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — **MCP-first** (`ticket-mcp`):
-> `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "in_progress" })`
-> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
-Fallback (ticket-mcp nicht erreichbar; Live-Floor-Telemetrie ist best-effort und darf den Flow nie stoppen):
+Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress (Live-Floor-Telemetrie ist best-effort und darf den Flow nie stoppen):
 ```bash
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
 SLUG=$(basename "$PLAN_FILE" .md)
@@ -250,10 +247,7 @@ SLUG=$(basename "$PLAN_FILE" .md)
 > und ein übersehener Fall genügt für eine unentdeckte Kollision.
 
 Berührt die Umsetzung Dateien, die im Plan **nicht** standen, ergänze sie für die Conflict-Gate
-(parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
-> `ticket-mcp-node_set_touched_files({ id: "$TICKET_ID", files: "<alle Pfade, inkl. der bereits gesetzten>" })`
-> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
-Fallback:
+(parallele Sessions sehen die Kollision via `agent-collision.sh`):
 ```bash
 # ACHTUNG: set-touched-files ERSETZT die Liste. Erst den Ist-Stand lesen, dann die neuen
 # Pfade anhängen — sonst gehen die beim Stagen abgeleiteten Plan-Pfade verloren.
@@ -264,9 +258,7 @@ Fallback:
 
 ## Schritt 1.7: Visual & Textual Assets laden (Visual Handoff)
 
-Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter — **MCP-first** (`ticket-mcp`):
-> `ticket-mcp-node_get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })`
-Fallback (ticket-mcp nicht erreichbar):
+Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter:
 ```bash
 ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 ./scripts/ticket.sh get-attachments --id "$TICKET_ID" --out-dir "$ATTACHMENT_DIR"
@@ -311,14 +303,8 @@ PR-Nummer ermitteln (falls nicht aus Schritt 6.4 bekannt):
 RESOLUTION="shipped" # oder "fixed" bei Fixes
 : "${PR_NUM:=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")}"
 ```
-Abschluss-Lifecycle — **MCP-first** (`ticket-mcp`). Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist; der Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
-> `ticket-mcp-node_add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })`
-> `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "done", resolution: "<shipped|fixed>" })`
-> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })`
-> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
-> `ticket-mcp-node_add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
+Abschluss-Lifecycle über `ticket.sh`. Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist; der Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos. Das `verify:done`-Event bleibt Pflicht (Merge-Gate).
-Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Rest ist idempotent):
 ```bash
 ./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"

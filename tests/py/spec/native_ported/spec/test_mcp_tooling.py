@@ -165,7 +165,7 @@ def test_orphan_guard_every_scripts_side_mcp_server_source_is_registered_or_docu
     # T901492: zentrale Quellen ausserhalb des Repos (CI: Zweit-Checkout via MCP_SERVERS_HOME).
     central = Path(os.environ.get("MCP_SERVERS_HOME", "/home/patrick/mcp-servers"))
     assert central.is_dir(), f"central MCP servers not found: {central}"
-    for rel in ("devflow/server.mjs", "task-runner/server.mjs", "ticket/server.mjs", "ticket/go"):
+    for rel in ("devflow/server.mjs", "task-runner/server.mjs"):
         assert (central / rel).exists(), f"central MCP source missing: {rel}"
         sources.append(f"central/{rel}")
 
@@ -180,16 +180,12 @@ def test_orphan_guard_every_scripts_side_mcp_server_source_is_registered_or_docu
             ok, msg = "bge-mcp:" in reg, "not in mcp.yaml"
         elif src == "central/devflow/server.mjs":
             ok, msg = ("devflow-mcp:" in reg and "mcp-servers/devflow/server.mjs" in reg), "not in mcp.yaml"
-        elif src == "central/ticket/server.mjs":
-            ok, msg = ("ticket-mcp-node:" in reg and "mcp-servers/ticket/server.mjs" in reg), "not in mcp.yaml"
         elif src == "central/task-runner/server.mjs":
             ok, msg = ("mcp-task-runner:" in reg and "mcp-servers/task-runner/server.mjs" in reg), "not in mcp.yaml"
         elif src == "scripts/llm-proxy/server.mjs":
             ok, msg = "llm-proxy" in reg, "not in mcp.yaml cluster"
         elif src in ("scripts/comfy-image-mcp/server.mjs", "scripts/glimmer-worker-mcp/server.mjs"):
             ok, msg = "User-Scope-Server" in reg, "not in user-scope note"
-        elif src == "central/ticket/go":
-            ok, msg = "mcp-servers/ticket/go" in reg, "not documented in mcp.yaml"
         elif src in ("scripts/hermes-mcp-provision.sh", "scripts/hermes-mcp-servers.yaml"):
             ok, msg = (repo_root / "scripts" / "hermes-mcp-servers.yaml").is_file(), "missing hermes catalog"
         else:

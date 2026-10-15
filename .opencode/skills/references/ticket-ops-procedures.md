@@ -176,30 +176,26 @@ Für jede gefundene Gruppe (≥2 Tickets):
 
 1. **Parent-Ticket anlegen:**
    ```bash
-   # Via ticket-mcp:
-   ticket-mcp-node_create_ticket({
-     type: "feat",
-     brand: "mentolder",
-     title: "Batch: <kurzer-gruppen-titel>",
-     description: "Batch-Gruppe aus N Tickets:\n- T000AAA: <titel>\n- T000BBB: <titel>\n...",
-     priority: "<höchste Prio der Kinder>",
-     severity: "<höchste Severity der Kinder>",
-     areas: "<Union aller Kinder-Areas>"
-   })
+   # Via ticket.sh:
+   ./scripts/ticket.sh create \
+     --type feat \
+     --brand mentolder \
+     --title "Batch: <kurzer-gruppen-titel>" \
+     --description "Batch-Gruppe aus N Tickets:\n- T000AAA: <titel>\n- T000BBB: <titel>\n..." \
+     --priority "<höchste Prio der Kinder>" \
+     --severity "<höchste Severity der Kinder>" \
+     --areas "<Union aller Kinder-Areas>"
    ```
    Die Rückgabe liefert `BATCH_PARENT_ID`.
 
 2. **`child_of`-Links setzen** (für jedes Kind-Ticket):
-   ```
-   ticket-mcp-node_link_tickets({ from: "<child_ext_id>", to: "<BATCH_PARENT_ID>", kind: "child_of" })
+   ```bash
+   ./scripts/ticket.sh link-tickets --from "<child_ext_id>" --to "<BATCH_PARENT_ID>" --kind child_of
    ```
 
 3. **Kind-Tickets markieren:**
-   ```
-   ticket-mcp-node_add_comment({
-     id: "<child_ext_id>",
-     body: "🔗 Batch-Gruppe: Parent <BATCH_PARENT_ID>. Wird gemeinsam mit N anderen Tickets geplant."
-   })
+   ```bash
+   ./scripts/ticket.sh add-comment --id "<child_ext_id>" --body "Batch-Gruppe: Parent <BATCH_PARENT_ID>. Wird gemeinsam mit N anderen Tickets geplant."
    ```
 
 ### Step 1.5.3: Batch-Map ausgeben
@@ -266,21 +262,17 @@ If you are running without an interactive question tool (e.g. dispatched as a su
 
 ### Step 2.5: Write answers back to the DB
 
-**MCP-first** (`ticket-mcp` lifecycle, where a wrapper exists — these shell out to `ticket.sh`, the sanctioned write path, NOT via the read-only `mcp-postgres`): set DoR flags via `set_readiness_flag` (one per flag) or `prepare_feature`; set effort/areas/depends_on via `set_plan_meta`; append the clarification comment via `add_comment`.
+**CLI-Weg** (`ticket.sh` ist der sanktionierte Write-Pfad, NOT via `mcp-postgres`): DoR-Flags via `plan-meta set --readiness` (eins pro Flag, komma-separiert); Effort/Areas/Depends-on via `plan-meta set`; Klärungs-Kommentar via `add-comment`:
 
-> `ticket-mcp-node_set_readiness_flag({ id: "T000XXX", flag: "spec_skizziert", value: true })`
-> `ticket-mcp-node_set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })`
-> `ticket-mcp-node_add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })`
-
-**CLI path** (ticket-mcp nicht erreichbar, oder im Worktree — `ticket.sh` ist dasselbe Backend, das auch der MCP-Wrapper ruft): Der korrekte Subcommand heisst `add-comment` (nicht `comment`):
-
-> ```bash
-> bash scripts/ticket.sh add-comment --id T000XXX --body "## Klärungsrunde …"
-> ```
+```bash
+bash scripts/ticket.sh plan-meta set --id T000XXX --readiness spec_skizziert=true
+bash scripts/ticket.sh plan-meta set --id T000XXX --effort mittel --depends-on T000YYY
+bash scripts/ticket.sh add-comment --id T000XXX --body "## Klärungsrunde …"
+```
 
 > ⚠️ `add-comment` ist der einzige CLI-Weg — `bash scripts/ticket.sh comment` existiert nicht und scheitert mit `Unknown command`.
 
-**psql-Fallback** (weder MCP noch `ticket.sh` verfügbar — nur für Bulk-Operationen oder Felder ohne Wrapper, z.B. ein direkter `priority`-Set + JSONB-Readiness-Merge). Der psql-Pfad erfordert manuelle `author_label`-Setzung und ist fehleranfälliger als die beiden vorigen Wege. Per ticket:
+**psql-Fallback** (wenn `ticket.sh` nicht verfügbar — nur für Bulk-Operationen oder Felder ohne Wrapper, z.B. ein direkter `priority`-Set + JSONB-Readiness-Merge). Der psql-Pfad erfordert manuelle `author_label`-Setzung und ist fehleranfälliger als der CLI-Weg. Per ticket:
 
 ```bash
 psql -c "
@@ -508,13 +500,13 @@ bash scripts/ticket.sh dispatch-log --id <ext-id> --event request --detail "wave
 
 For each remaining wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
 0. Freigabe-Marker schreiben (Endzeitpunkt der Wartezeit, T901790): `bash scripts/ticket.sh dispatch-log --id <ext-id> --event approved --detail "wave=1"`.
-1. `bash scripts/agent-lock.sh claim branch <branch> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it; bei unplanned Tickets erst nach Phase A claimen [T004602]). **Warum branch-scoped und nicht ticket-scoped (T003102):** der ticket-scoped Lock blockiert nicht den zweiten Bearbeiter, sondern den späteren Abschluss durch Subagent, `ticket-mcp` und `post-merge.yml` — der branch-scoped Claim hingegen schützt genau den Worktree, den `dev-flow-execute` betritt und ändert.
+1. `bash scripts/agent-lock.sh claim branch <branch> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it; bei unplanned Tickets erst nach Phase A claimen [T004602]). **Warum branch-scoped und nicht ticket-scoped (T003102):** der ticket-scoped Lock blockiert nicht den zweiten Bearbeiter, sondern den späteren Abschluss durch Subagent, `ticket.sh` und `post-merge.yml` — der branch-scoped Claim hingegen schützt genau den Worktree, den `dev-flow-execute` betritt und ändert.
 
    Der Subagent soll zu Beginn im Worktree selbst claimen:
    ```bash
    bash scripts/agent-lock.sh claim branch <branch> --worktree <pfad> --branch <branch>
    ```
-   Setze **keinen** ticket-scoped Lock (T003102 — blockiert den späteren Abschluss durch Subagent, ticket-mcp und post-merge.yml). Gib den Branch-Lock am Ende deiner Arbeit wieder frei.
+   Setze **keinen** ticket-scoped Lock (T003102 — blockiert den späteren Abschluss durch Subagent, ticket.sh und post-merge.yml). Gib den Branch-Lock am Ende deiner Arbeit wieder frei.
 
 2. Create the worktree: `bash scripts/worktree-create.sh <branch> .worktrees/<slug>`.
 3. Hand to `dev-flow-execute` (plan_staged) or `dev-flow-plan` (unplanned) inside that worktree.

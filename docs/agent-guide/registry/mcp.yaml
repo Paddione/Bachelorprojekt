@@ -199,9 +199,7 @@ clients:
         httpUrl: http://localhost:13005/mcp
 
   # Node.js ports of the custom MCP servers — zero npm dependencies, stdlib only.
-  # Go-Quellen unter mcp-servers/ticket/go (Dotfiles, T901492) bleiben Build- und
-  # Test-Artefakt (ticket-mcp:build/test, CodeQL, Doctor-Check); Harnesses nutzen den Node-Port.
-  # Zentral (T901492): die Server liegen ausserhalb des Repos unter ~/mcp-servers.
+  # Zentral: die Server liegen ausserhalb des Repos unter ~/mcp-servers.
   # claude_code und opencode starten sie ueber scripts/mcp-central/launch.mjs, der
   # $MCP_SERVERS_HOME (Default ~/mcp-servers) aufloest — ein fester
   # /home/patrick/-Pfad scheitert auf jedem anderen Host und in Cloud-Sessions
@@ -209,31 +207,11 @@ clients:
   # (Praezedenz: warden). agy und llamacpp behalten den absoluten Pfad, weil ihr
   # Arbeitsverzeichnis nicht das Repo ist. G-AGENTIC14-Paritaet
   # (claude_code <-> opencode) bleibt gewahrt, beide fahren denselben Aufruf.
-  ticket-mcp-node:
-    transport: stdio
-    command: node
-    args: [/home/patrick/mcp-servers/ticket/server.mjs]
-    harness:
-      claude_code:
-        command: node
-        args: [scripts/mcp-central/launch.mjs, ticket/server.mjs]
-      agy:
-        command: node
-        args: [/home/patrick/mcp-servers/ticket/server.mjs]
-      opencode:
-        type: local
-        command: [node, scripts/mcp-central/launch.mjs, ticket/server.mjs]
-        enabled: true
-      llamacpp:
-        command: node
-        args: [/home/patrick/mcp-servers/ticket/server.mjs]
-        cwd: /home/patrick/Bachelorprojekt
-        timeout_ms: 30000
 
   # devflow-mcp (T900985): Kontext, Werkzeug-Empfehlung und Plan-Staging fuer Subagenten.
   # Reines Node.js, oeffnet bge-mcp (:13005), mcp-postgres (:13001) und den lokalen
   # Graph-Cache (~/.cache/devflow-mcp) lazy — ohne diese Backends laufen die Wrapper-Tools
-  # (lock, plan_lint, plan_stage, ci_status) trotzdem. Zentral wie ticket-mcp-node (T901492).
+  # (lock, plan_lint, plan_stage, ci_status) trotzdem. Zentral unter ~/mcp-servers (Muster T901492).
   devflow-mcp:
     transport: stdio
     command: node

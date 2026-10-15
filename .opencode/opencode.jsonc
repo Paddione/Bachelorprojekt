@@ -257,16 +257,6 @@
 
     },
 
-    "ticket-mcp-node": {
-
-      "type": "local",
-
-      "command": ["node","scripts/mcp-central/launch.mjs","ticket/server.mjs"],
-
-      "enabled": true
-
-    },
-
     "warden": {
 
       "type": "local",

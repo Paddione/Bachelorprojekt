@@ -4740,6 +4740,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/ci-cd/branch_reaper_ticketless_merged_pr",
+    "file": "tests/py/spec/native_ported/spec/ci-cd/test_branch_reaper_ticketless_merged_pr.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/ci-cd/devflow_ciwatch_ticket_path",
     "file": "tests/py/spec/native_ported/spec/ci-cd/test_devflow_ciwatch_ticket_path.py",
     "category": "native_ported",

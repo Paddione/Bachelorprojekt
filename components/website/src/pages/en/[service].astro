@@ -1,7 +1,15 @@
 ---
 import DePage from '../[service].astro';
 import type { GetStaticPaths } from 'astro';
+import { getEffectiveServices } from '../../lib/content';
 Astro.locals.locale = 'en';
 export const getStaticPaths = (DePage as unknown as { getStaticPaths?: GetStaticPaths }).getStaticPaths;
+
+// Unbekannte Slugs hier umleiten: der Redirect in DePage greift als Kind-Komponente erst
+// nach Stream-Start und endete als HTTP 200 mit "Internal server error" (z. B. /en/faq).
+const services = await getEffectiveServices().catch(() => []);
+if (!services.some((s) => !s.hidden && s.slug === Astro.params.service)) {
+  return Astro.redirect('/404');
+}
 ---
 <DePage />

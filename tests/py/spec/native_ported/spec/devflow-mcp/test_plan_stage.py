@@ -188,7 +188,7 @@ def plan_env(devflow):
     calls = t / "calls.log"
     devflow.calls = calls
     devflow.env["CALLS"] = str(calls)
-    devflow.env["AGENT_WORKTREE_ROOT"] = str(t / "wt")
+    devflow.env["AGENT_WORKTREE_ROOT"] = str(t / "wt-root")
     _stub(devflow, "worktree-create.sh", WORKTREE_CREATE_BODY)
     _stub(devflow, "agent-lock.sh", "exit 0")
     _stub(devflow, "plan-preflight.sh", "exit 0")
@@ -206,7 +206,7 @@ def _calls(devflow) -> list:
     return devflow.calls.read_text().splitlines() if devflow.calls.exists() else []
 
 
-def test_plan_stage_legt_worktree_an_committet_den_plan_pusht_und_stagt(plan_env):
+def test_plan_stage_legt_worktree_an_committet_den_plan_und_pusht(plan_env):
     _stage(plan_env, "# demo — Implementation Plan")
     assert plan_env.status == 0
     plan_env.json('[d.ok, d.branch, d.lint.verdict, '
@@ -224,13 +224,21 @@ def test_plan_stage_legt_worktree_an_committet_den_plan_pusht_und_stagt(plan_env
     assert "# design" in design.output
 
 
-def test_plan_stage_aufrufreihenfolge_endet_mit_preflight_ohne_ticket(plan_env):
+def test_plan_stage_aufrufreihenfolge_ohne_ticket_sh(plan_env):
     _stage(plan_env, "# demo — Implementation Plan")
     assert plan_env.status == 0
     names = [ln.split(" ", 1)[0] for ln in _calls(plan_env)]
-    assert names == ["worktree-create.sh", "agent-lock.sh", "plan-lint.sh", "plan-preflight.sh"]
-    lock = next(ln for ln in _calls(plan_env) if ln.startswith("agent-lock.sh"))
+    assert " ".join(names) == "worktree-create.sh agent-lock.sh plan-lint.sh plan-preflight.sh"
+    lock = [ln for ln in _calls(plan_env) if ln.startswith("agent-lock.sh")][0]
     assert "claim branch feature/demo" in lock
+    preflight = [ln for ln in _calls(plan_env) if ln.startswith("plan-preflight.sh")][0]
+    assert preflight == "plan-preflight.sh pre-commit"
+
+
+def test_plan_stage_lehnt_ticket_parameter_ab(plan_env):
+    plan_env.call("plan_stage", '{"ticket":"T999001","slug":"demo","plan_markdown":"# demo"}')
+    assert "ticket ist entfernt" in plan_env.output
+    assert _calls(plan_env) == []
 
 
 def test_plan_stage_roter_lint_bricht_vor_commit_und_push_ab_worktree_bleibt(plan_env):
@@ -242,7 +250,7 @@ def test_plan_stage_roter_lint_bricht_vor_commit_und_push_ab_worktree_bleibt(pla
                                "refs/heads/feature/demo"])
     assert remote.output == ""
     assert not any(ln.startswith("plan-preflight.sh") for ln in _calls(plan_env))
-    assert (plan_env.t / "wt" / "repo" / "feature" / "demo" / ".agents" / "plans" /
+    assert (plan_env.t / "wt-root" / "repo" / "feature" / "demo" / ".agents" / "plans" /
             "demo" / "tasks.md").is_file()
 
 

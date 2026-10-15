@@ -1,20 +1,20 @@
 import type { APIRoute } from 'astro';
-import { getEffectiveServices } from '../lib/content';
+import { getEffectiveReferenzen, getEffectiveServices } from '../lib/content';
+import { siteOrigin } from '../lib/site-origin';
 
-const PROD_DOMAIN = process.env.PROD_DOMAIN || 'localhost';
-const DOMAIN = `web.${PROD_DOMAIN}`;
-
-const STATIC_PATHS = ['/', '/kontakt', '/ueber-mich', '/leistungen', '/referenzen'];
+const STATIC_PATHS = ['/', '/kontakt', '/ueber-mich', '/leistungen'];
 
 export const GET: APIRoute = async () => {
   const services = await getEffectiveServices().catch(() => []);
+  // /referenzen nur listen, wenn die Brand ein Referenzen-Bundle hat (massage hat keins).
+  const hasReferenzen = await getEffectiveReferenzen().then(() => true, () => false);
 
   const servicePaths = services
     .filter((s) => !s.hidden)
     .map((s) => `/${s.slug}`);
 
-  const allPaths = [...STATIC_PATHS, ...servicePaths];
-  const baseUrl = `https://${DOMAIN}`;
+  const allPaths = [...STATIC_PATHS, ...(hasReferenzen ? ['/referenzen'] : []), ...servicePaths];
+  const baseUrl = siteOrigin() || 'https://web.localhost';
 
   const urls = allPaths.map((path) => {
     const loc = path === '/' ? baseUrl : `${baseUrl}${path}`;

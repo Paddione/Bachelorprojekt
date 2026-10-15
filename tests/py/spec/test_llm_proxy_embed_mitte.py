@@ -14,8 +14,9 @@ import re
 from pathlib import Path
 from urllib.parse import urlparse
 
+# environments/dev.yaml fehlt bewusst: auf devmesh verlangt llm-services:18235 einen Key, den
+# die Website nicht sendet (401); sie spricht llm-gateway-embed/-rerank direkt an.
 ENV_FILES = [
-    "environments/dev.yaml",
     "environments/fleet-mentolder.yaml",
     "environments/mentolder.yaml",
     "environments/staging.yaml",

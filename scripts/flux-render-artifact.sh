@@ -14,7 +14,7 @@ source "${SCRIPT_DIR}/lib/render-subst-list.sh"
 OUT_DIR="out"
 # --only a,b rendert nur die genannten Komponenten (platform, dev, dev-pod, mentolder,
 # korczewski, korczewski-jobs, website-mentolder, website-korczewski, korczewski-auth,
-# staging, website-staging, coturn, sealed-secrets-{mentolder,korczewski,staging}, clusters).
+# staging, website-staging, coturn, office, sealed-secrets-{mentolder,korczewski,staging}, clusters).
 # Leer = alles (Default).
 ONLY=""
 # WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
@@ -416,6 +416,27 @@ if want coturn; then
 )
 fi
 
+# 5e. Collabora (office-stack) fuer mentolder. Die COLLABORA_*-Werte leitet
+#     sonst nur Taskfile.platform.yml (fleet:shared-services) ab; hier dieselbe
+#     Ableitung, aber nur fuer mentolder. aliasgroup1 ist ein Regex: `\\.`
+#     ergibt nach dem Quoten durch render_component ein literales `\.`.
+if want office; then
+(
+  set +u
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
+  export COLLABORA_HOST="office.${PROD_DOMAIN}"
+  export COLLABORA_SERVER_NAME=""
+  export COLLABORA_ALIASGROUP1='https://files\\.'"${PROD_DOMAIN}"':443'
+  export COLLABORA_ALIASGROUP2=""
+  export COLLABORA_SSL_TERMINATION="true"
+  export COLLABORA_TLS_SECRET="${TLS_SECRET_NAME:-workspace-wildcard-tls}"
+  export COLLABORA_INGRESS_MIDDLEWARES="workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
+  mkdir -p "${OUT_DIR}/office"
+  render_component prod-fleet/office "${OUT_DIR}/office/office.yaml"
+)
+fi
+
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
 # Nested per-brand: both files carry a SealedSecret for the shared
 # grafana-oidc secret (namespace monitoring), so a single flat kustomize
@@ -449,7 +470,7 @@ fi
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn" "${OUT_DIR}/office"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

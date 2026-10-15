@@ -54,6 +54,11 @@ patches:
         BRAND_ID: massage
         BRAND_NAME: "Massagepraxis Vögelsen"
         FROM_NAME: "Massagepraxis Vögelsen"
+        # core hat weder Nextcloud noch Vaultwarden noch Brain: leer blendet die
+        # Admin-/Portal-Kacheln aus statt auf *.localhost zu verlinken. full setzt sie neu.
+        NEXTCLOUD_EXTERNAL_URL: ""
+        VAULT_EXTERNAL_URL: ""
+        BRAIN_EXTERNAL_URL: ""
   - target: {kind: Deployment, name: website}
     patch: |-
       apiVersion: apps/v1

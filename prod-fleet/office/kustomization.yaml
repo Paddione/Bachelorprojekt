@@ -1,0 +1,20 @@
+# Collabora (office-stack) fuer mentolder auf dem fleet-Cluster, per Flux
+# (flux-office). Vorher nur per Task imperativ eingespielt und nach dem
+# Fleet-Neuaufbau verloren. Admin-Passwort (collabora-secrets) kommt aus dem
+# SealedSecret in sealed-secrets/mentolder, deshalb ohne
+# k3d/office-stack/secret.yaml (Platzhalter). TLS ueber eigenes Certificate
+# im Namespace wie bei coturn, keine Kopie aus workspace.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../k3d/office-stack/namespace.yaml
+  - ../../k3d/office-stack/collabora.yaml
+  - ../../k3d/office-stack/ingress.yaml
+  - certificate.yaml
+patches:
+  # Das Image ist oeffentlich; das Pull-Secret existiert nach einem
+  # Neuaufbau nicht und kaeme nur ueber den alten Task.
+  - target: { group: apps, version: v1, kind: Deployment, name: collabora }
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/imagePullSecrets

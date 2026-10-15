@@ -53,3 +53,25 @@ spec:
   path: ./coturn
   prune: true
   wait: true
+---
+# Collabora fuer mentolder (Nextcloud richdocuments). collabora-secrets kommt
+# aus flux-sealed-secrets-mentolder, das Certificate braucht den ClusterIssuer
+# aus flux-infra-controllers.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-office
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  dependsOn:
+    - name: flux-infra-controllers
+    - name: flux-sealed-secrets-mentolder
+  sourceRef:
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./office
+  prune: true
+  wait: true

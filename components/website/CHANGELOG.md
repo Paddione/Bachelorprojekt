@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.425.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.1...website-v1.425.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **infra:** Collabora fuer mentolder per Flux (flux-office) statt imperativem Task ([#6711](https://github.com/Paddione/Bachelorprojekt/issues/6711)) ([771205b](https://github.com/Paddione/Bachelorprojekt/commit/771205b4225d171dfb445415dd03510fc9a7f1fa))
+* **website:** massage service pages, sitemap and hreflang point to the live origin ([#6715](https://github.com/Paddione/Bachelorprojekt/issues/6715)) ([c0732c5](https://github.com/Paddione/Bachelorprojekt/commit/c0732c54d15c7cbb4b69ab268f669757cef978d4))
+
 ## [1.425.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.0...website-v1.425.1) (2026-10-15)
 
 

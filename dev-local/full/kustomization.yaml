@@ -16,6 +16,15 @@ components:
   - ../components/vaultwarden
 
 patches:
+  # core leert die Links, full bringt Nextcloud und Vaultwarden mit.
+  - target: {kind: ConfigMap, name: website-config}
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: {name: website-config}
+      data:
+        NEXTCLOUD_EXTERNAL_URL: "https://files.${DEVMESH_DOMAIN}"
+        VAULT_EXTERNAL_URL: "https://vault.${DEVMESH_DOMAIN}"
   - target: {kind: Deployment, name: nextcloud}
     patch: |-
       apiVersion: apps/v1

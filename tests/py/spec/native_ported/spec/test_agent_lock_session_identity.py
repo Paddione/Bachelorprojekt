@@ -161,7 +161,7 @@ def test_t001268_m2_dev_flow_plan_requires_staged_set_check_before_plan_commit(r
 # ── T001386: Feature-Pfad fehlt expliziter Ticket-Claim vor Pre-Commit-Guard ──
 
 
-def test_t001386_feature_path_step_b1_claims_ticket_when_ticket_id_known(repo):
+def test_t001386_feature_path_step_b1_claims_the_branch(repo):
     skill = repo / ".claude/skills/dev-flow-plan/SKILL.md"
     assert skill.is_file()
     assert "dev-flow-plan-phases" in skill.read_text(encoding="utf-8")
@@ -169,15 +169,15 @@ def test_t001386_feature_path_step_b1_claims_ticket_when_ticket_id_known(repo):
     assert phases_ref.is_file()
     lines = phases_ref.read_text(encoding="utf-8").splitlines()
     block = _awk_blocks(lines, re.compile(r"^#### Schritt B\.1:"), re.compile(r"^#### Schritt B\.2:"))
-    assert _any_line(block, r"agent-lock\.sh[[:space:]]+claim[[:space:]]+ticket")
+    assert _any_line(block, r"agent-lock\.sh[[:space:]]+claim[[:space:]]+branch")
 
 
-def test_t001386_feature_path_step_4_5_claims_ticket_before_step_5(repo):
+def test_t001386_feature_path_step_4_5_claims_branch_before_step_5(repo):
     skill = repo / ".claude/skills/dev-flow-plan/SKILL.md"
     assert skill.is_file()
     lines = skill.read_text(encoding="utf-8").splitlines()
     block = _awk_blocks(lines, re.compile(r"^### Schritt 4\.5:"), re.compile(r"^### Schritt 5:"))
-    assert _any_line(block, r"agent-lock\.sh[[:space:]]+claim[[:space:]]+ticket")
+    assert _any_line(block, r"agent-lock\.sh[[:space:]]+claim[[:space:]]+branch")
 
 
 def test_t001386_step_5_pre_commit_guard_checks_lock_file_existence_before_reading(repo):
@@ -187,7 +187,7 @@ def test_t001386_step_5_pre_commit_guard_checks_lock_file_existence_before_readi
     block = _awk_blocks(lines, re.compile(r"^### Schritt 5:"), re.compile(r"^### Schritt 6:"))
     assert _any_line(
         block,
-        r'\-f[[:space:]]+"?\$LOCK_FILE"?|kein[[:space:]]+ticket-scoped[[:space:]]+agent-lock',
+        r'branch__\$\{BRANCH_SLUG\}\.json.*fehlt|fehlt[[:space:]]+die[[:space:]]+Datei',
         re.IGNORECASE,
     )
 

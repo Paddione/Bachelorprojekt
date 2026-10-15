@@ -111,7 +111,7 @@ def test_claim_verifikation_plus_release_im_dev_flow_execute_sind_branch_scoped(
     assert 'for scope in branch ticket' in guards
     assert 'release "$scope" "$id"' in guards
     assert '(.owner_sid | tostring) == $sid' in guards
-    assert "devflow-post-merge-finalize.sh" in skill
+    assert 'agent-lock.sh release branch "$BRANCH"' in skill
 
 
 def test_agent_lock_sh_dokumentiert_ticket_vs_branch_scoped_semantik_mit_t003102(paths):

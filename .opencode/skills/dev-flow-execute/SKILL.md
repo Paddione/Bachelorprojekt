@@ -165,7 +165,8 @@ Rufe `commit-commands:commit-push-pr` auf oder führe `gh pr create` manuell aus
 
 **Orchestrator-Schritt, nie als Hintergrund-Monitor** [T001969 Mishap 1, T002351-M3]. Auto-Merge ist seit 3.8 angefordert und greift bei grünen Required Checks. Details/Required-Check-Liste: [ci-fix-loop](.agents/skills/references/ci-fix-loop.md).
 ```bash
-PR_NUM=$(gh pr view "$BRANCH" --json number -q '.number')
+PR_URL=$(gh pr view --json url -q '.url')
+PR_NUM=${PR_URL##*/}
 gh pr checks "$PR_NUM" --watch
 ```
 Bei roten Checks: Logs aus dem Skript-Output an einen `sonnet`-Subagenten (Fix-Routine: Freshness → TS → pytest → Kustomize → Commitlint), nach dem Push Loop wiederholen.

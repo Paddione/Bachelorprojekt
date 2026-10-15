@@ -175,7 +175,7 @@ def test_t002272_m2_dev_flow_execute_merge_gate_requests_auto_merge_before_the_c
     gate = _first_line_no(text, r"^## Schritt 3.8: Merge-Gate")
     assert gate is not None
     merge_line = _first_line_no(text, r"gh pr merge --auto", after=gate)
-    watch_line = _first_line_no(text, r"devflow-ci-watch\.sh", after=gate)
+    watch_line = _first_line_no(text, r"gh pr checks", after=gate)
     assert merge_line is not None and watch_line is not None
     assert merge_line < watch_line
 

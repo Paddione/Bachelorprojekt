@@ -22,7 +22,7 @@ def test_ci_loop_owned_by_orchestrator(skill):
 
 
 def test_conflict_handoff_uses_existing_implementer(skill):
-    assert "Exit-Code" in skill
+    assert "CONFLICTING" in skill
     assert skill.count("SendMessage") >= 2
     assert "kein neuer Spawn" in skill
 

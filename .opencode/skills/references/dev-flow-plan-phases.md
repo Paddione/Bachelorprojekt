@@ -190,8 +190,8 @@ bash scripts/plan-lint.sh .agents/plans/<slug>/tasks.md
 
 #### Schritt C.4: Stagen mit Hold
 ```bash
-bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "$(git branch --show-current)" \
-  --plan ".agents/plans/<slug>/tasks.md" --partials <N> --hold
+# retiriert 2026-10-14 (kein Ticket-Backend): bash ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "$(git branch --show-current)" \
+#   --plan ".agents/plans/<slug>/tasks.md" --partials <N> --hold
 ```
 Ausgeführt wird der Plan danach von `dev-flow-execute` (gibt den Hold frei) oder lokal per
 `node scripts/llm/plan-runner.mjs .agents/plans/<slug>`.
@@ -273,14 +273,14 @@ Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Tic
 > `ticket-mcp-node_create_ticket({ type: "bug", brand: "mentolder", title: "<titel>", description: "<beschreibung>", status: "triage", severity: "<critical|major|minor|trivial>", priority: "hoch" })`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
-TICKET_RESULT=$(./scripts/ticket.sh create \
-  --type bug \
-  --brand mentolder \
-  --title "<titel>" \
-  --description "<beschreibung>" \
-  --status triage \
-  --severity "<critical|major|minor|trivial>" \
-  --priority hoch)
+# retiriert 2026-10-14 (kein Ticket-Backend): TICKET_RESULT=$(./ticket.sh create \
+#   --type bug \
+#   --brand mentolder \
+#   --title "<titel>" \
+#   --description "<beschreibung>" \
+#   --status triage \
+#   --severity "<critical|major|minor|trivial>" \
+#   --priority hoch)
 TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 ```
@@ -319,7 +319,7 @@ Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch
 kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
-**Wo:** Als pytest-Funktion in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus Ticket-Titel/Feature-Name), nicht in ein ticket-nummeriertes Modul. Existiert das Modul noch nicht, anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_ticket_system.py`, Konventionen: `tests/CLAUDE.md`). Ausführen: `bash scripts/pytest-run.sh <modul>`.
+**Wo:** Als pytest-Funktion in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus Ticket-Titel/Feature-Name), nicht in ein ticket-nummeriertes Modul. Existiert das Modul noch nicht, anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_mcp_tooling.py`, Konventionen: `tests/CLAUDE.md`). Ausführen: `bash scripts/pytest-run.sh <modul>`.
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf (Superpowers-Plugin; opencode: das Äquivalent ist als inlinede Steps in diesem Skill) oder führe die Plan-Schreib-Schritte
 direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; schreibe den Plan nach
@@ -330,11 +330,11 @@ Wende das Frontmatter an und trage die Ticket-ID ein. **Erst committen und pushe
 > `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: ".agents/plans/<slug>/tasks.md", hold: true })`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
-./scripts/ticket.sh stage-plan \
-  --id "$TICKET_EXT_ID" \
-  --branch "fix/<slug>" \
-  --plan ".agents/plans/<slug>/tasks.md" \
-  --hold
+# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh stage-plan \
+#   --id "$TICKET_EXT_ID" \
+#   --branch "fix/<slug>" \
+#   --plan ".agents/plans/<slug>/tasks.md" \
+#   --hold
 ```
 Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flow-execute` bereit.
 ### Schritt 5: Commit & Push

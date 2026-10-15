@@ -40,7 +40,7 @@ Kompaktheits-Regeln: subagent-provisioning §3.
 
 Neue Tests sind pytest-Funktionen in `tests/py/spec/<bereich>/test_<kurz_slug>.py` — der Bereich,
 dessen Verhalten sie abdecken. Existiert das Modul nicht, anlegen (Vorlage:
-`tests/py/spec/native_ported/spec/test_ticket_system.py`, Konventionen in `tests/CLAUDE.md`);
+`tests/py/spec/native_ported/spec/test_mcp_tooling.py`, Konventionen in `tests/CLAUDE.md`);
 ohne klare Bereichszuordnung `tests/py/unit/` erweitern. Ticket-nummerierte Dateinamen werden
 **nicht** angelegt. BATS ist seit T901392 deinstalliert.
 Details: [dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md) §Tests.

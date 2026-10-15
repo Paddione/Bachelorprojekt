@@ -191,11 +191,11 @@ git -C "$WT" push -u origin "$(git -C "$WT" branch --show-current)"
 
 # ERST JETZT stagen — Flag-Semantik (--hold/--partials/--allow-empty-touched):
 # references/ticket-stage-procedure.md §Flag-Semantik
-bash scripts/ticket.sh stage-plan \
-  --id "$TICKET_EXT_ID" \
-  --branch "$(git -C "$WT" branch --show-current)" \
-  --plan ".agents/plans/<slug>/tasks.md" \
-  --partials <N> --hold
+# retiriert 2026-10-14 (kein Ticket-Backend): bash ticket.sh stage-plan \
+#   --id "$TICKET_EXT_ID" \
+#   --branch "$(git -C "$WT" branch --show-current)" \
+#   --plan ".agents/plans/<slug>/tasks.md" \
+#   --partials <N> --hold
 ```
 
 ### Schritt 6: Optionaler Plan-Review (interaktiv)

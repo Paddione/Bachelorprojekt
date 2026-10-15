@@ -565,19 +565,19 @@ Zustand über mehrere IDs abfragt. Real beobachtet beim Abfragen von acht Ticket
 ```bash
 # FALSCH — acht leere Zeilen, gelesen als "Tickets existieren nicht"
 for t in T00…; do
-  s=$(bash scripts/ticket.sh show "$t" 2>/dev/null | grep -iE '^(status|title)')
+  s=$(bash scripts/<probe>.sh show "$t" 2>/dev/null | grep -iE '^(status|title)')
   echo "$t: $s"
 done
 ```
 
-Tatsächlich kennt `ticket.sh` **kein** Subkommando `show`; es schrieb „Unknown command: show"
+Tatsächlich kannte das (2026-10-14 retirierte) `ticket.sh` **kein** Subkommando `show`; es schrieb „Unknown command: show"
 nach stderr und beendete mit Exit 1 — beides durch `2>/dev/null` und die Pipe unsichtbar. Der
 Fehlerfall war von acht leeren Messwerten nicht zu unterscheiden.
 
 Auch die naheliegende Gegenprobe misst das Falsche:
 
 ```bash
-bash scripts/ticket.sh show T00… 2>&1 | head -5; echo "exit=$?"   # FALSCH: Exit von head
+bash scripts/<probe>.sh show T00… 2>&1 | head -5; echo "exit=$?"   # FALSCH: Exit von head
 ```
 
 Regeln:
@@ -590,7 +590,7 @@ Regeln:
 
 ```bash
 for t in T00…; do
-  if ! out=$(bash scripts/ticket.sh <subkommando> "$t" 2>&1); then
+  if ! out=$(bash scripts/<probe>.sh <subkommando> "$t" 2>&1); then
     echo "$t: FEHLER — $(printf '%s' "$out" | head -1)"; continue
   fi
   echo "$t: $(printf '%s' "$out" | grep -iE '^(status|title)')"

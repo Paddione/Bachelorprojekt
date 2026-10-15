@@ -68,7 +68,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 >
 > **Regel [T002371]:** Vor jedem Write, der auf einer port-forward-basierten
 > Read-Flagge basiert, die gelesene ID gegen eine zweite Quelle (kubectl-exec-Read)
-> gegenprüfen. (Das frühere Skript `scripts/verify-ticket-id.sh` entfiel mit dem
+> gegenprüfen. (Das frühere Skript `verify-ticket-id.sh` entfiel mit dem
 > Ticket-Retirement 2026-10-14.)
 
 ---
@@ -157,7 +157,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 
 ## ~~`ticket-mcp` — Ticket-Lifecycle~~ (retiriert 2026-10-14)
 
-Server (`ticket-mcp-node`), Go-Quellen, `scripts/ticket.sh` und das `tickets.*`-Schema
+Server (`ticket-mcp-node`), Go-Quellen, `ticket.sh` und das `tickets.*`-Schema
 sind entfernt. Ersatzwege:
 
 - Pläne stagen → `devflow-mcp plan_stage` (Commit+Push).

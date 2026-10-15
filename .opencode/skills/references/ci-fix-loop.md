@@ -28,7 +28,7 @@ timeout 1800 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 - Bei Failure: `gh run view --log-failed` (Tail 200) → Diagnose an einen Fix-Subagenten
   delegieren (Prompt-Vorlage unten), nach erfolgreichem Fix Loop wiederholen.
 - `MAX_CI_ATTEMPTS` erreicht → `exit 1` mit Liste der roten Checks (Eskalation an den Skill).
-- Telemetrie: das Skript ruft `./scripts/ticket.sh phase … deploy …` best-effort auf (`|| true`).
+- Telemetrie: die frühere Ticket-Phase (`ticket.sh phase … deploy …`) ist seit 2026-10-14 retiriert; Phasen-Events schreibt `scripts/devflow-phase.sh` lokal.
 
 ## Required Checks (Branch-Protection)
 

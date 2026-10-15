@@ -4050,12 +4050,6 @@
     "kind": "pytest"
   },
   {
-    "id": "llm-local-dev/plan-runner-ticket-ref",
-    "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_plan_runner_ticket_ref.py",
-    "category": "llm-local-dev",
-    "kind": "pytest"
-  },
-  {
     "id": "llm-local-dev/qwen-tensor-split",
     "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_qwen_tensor_split.py",
     "category": "llm-local-dev",
@@ -4826,6 +4820,12 @@
   {
     "id": "native_ported/spec/llm-local-dev/agent_sandbox",
     "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_agent_sandbox.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/llm-local-dev/plan_runner_branch_ref",
+    "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_plan_runner_branch_ref.py",
     "category": "native_ported",
     "kind": "pytest"
   },

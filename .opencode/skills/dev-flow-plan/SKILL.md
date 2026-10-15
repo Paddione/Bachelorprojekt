@@ -26,14 +26,13 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will.
     └─► [chore direkt] ── dev-flow-chore ──────────────────────┘
 ```
 **EINSTIEG:** `main` — synchronisiert, sauberer Stand
-**AUSSTIEG:** Feature/Fix-Branch mit committiertem Plan auf Remote gepusht, Ticket `plan_staged`
-**Nächster Schritt:** `dev-flow-execute` — liest Plan aus DB und implementiert
+**AUSSTIEG:** Feature/Fix-Branch mit committiertem Plan `.agents/plans/<slug>/tasks.md` auf Remote gepusht
+**Nächster Schritt:** `dev-flow-execute` — leitet den Plan-Pfad aus dem Branch-Namen ab und implementiert
 
 ## Schritt −3: Deep Grilling (optional)
 Bei komplexem oder unklarem Feature den User nach einer Grilling-Session fragen. Fragenkatalog:
 [dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md). Q/A-Session über `lavish`
-(`.lavish/<slug>-grilling.html`, Input-Playbook). Ticket-Anlage, Attachments und das
-Persistieren der Antworten (`ticket.sh grill`): [grilling-to-ticket](.agents/skills/references/grilling-to-ticket.md).
+(`.lavish/<slug>-grilling.html`, Input-Playbook). Die Antworten gehören in die Design-Spec bzw. den Plan.
 
 ## Schritt −2: Main-Branch sync (Pull-First)
 ```bash
@@ -63,7 +62,7 @@ Bei rc 1 den Worktree stehen lassen, sonst
 ## Schritt 0: Pfad bestimmen
 Wähle einen Pfad und kläre ihn mit dem User ab:
 - **feature**: Neue Funktionen oder UI-Elemente. → diese Skill (Feature-Pfad unten).
-- **fix**: Fehlerbehebung (erfordert Ticket-ID). → diese Skill (Fix-Pfad unten).
+- **fix**: Fehlerbehebung (erfordert einen failing Test). → diese Skill (Fix-Pfad unten).
 - **chore**: Wartung, Doku, Dependency-Bumps (keine Verhaltensänderung). → **`dev-flow-chore`
   aufrufen und STOPP** — Chores werden dort direkt ausgeführt und gemergt, nicht hier geplant.
 
@@ -96,7 +95,7 @@ Die Planphase startet auf `main`; danach entsteht der Worktree.
 |---|---|---|
 | **A — Proposal** | `main` | Assets sammeln, Codebase erkunden, Plan Intel Bundle (`intel.json`) füllen, Design-Bundle co-lokalisieren, Lavish-Board, **Brainstorming**, Plan in `.agents/plans/<slug>/` anlegen — Design-Spec-Frontmatter per `scripts/vda.sh frontmatter` |
 | **B — Branch live** | Worktree | `scripts/worktree-create.sh <branch> <path>`, agent-lock claimen, Artefakte verschieben, Scaffold-Commit + Push |
-| **C — Partial-Pipeline** | Worktree | Decompose in Partials, pro Partial: Plan schreiben → committen → stagen → enqueuen; danach plan-lint, Embedding, finaler Push |
+| **C — Partial-Pipeline** | Worktree | Decompose in Partials, pro Partial: Plan schreiben → committen; danach plan-lint, finaler Push |
 
 Vollständige Schrittfolge samt Befehlen, Decompose-/Fan-out-Mechanik und Kontext-Injektion für
 Plan-Subagenten: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md).
@@ -104,8 +103,7 @@ Plan-Subagenten: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-
 **Intel-Quellen des Bundles** (Phase A.1.5) — jede Sektion ist an ihre Quelle gebunden: `symbols`/`signature`/`type_text`/`call_graph` aus **codebase-memory** + **LSP**-Hover; `db_tables` aus **mcp-postgres** (read-only); `external_types` aus **context7**; `impact_files`/`s1_*` aus `wc -l` + `docs/code-quality/baseline.json`. Unerreichbare Quelle → `risks[]`-Eintrag statt leerer Sektion. Format: [plan-intel-bundle](.agents/skills/references/plan-intel-bundle.md).
 
 ### Guards des Feature-Pfads
-- **Preflight: Check merged ticket** (T002279) — beide Pfade, vor der Worktree-Anlage: `bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"` (`rc=1` = auf `main` schon gefixt → Ticket `done`, abbrechen).
-- Alle weiteren Guards (Kollisions-Check T002444, Brainstorming-Pflicht, Ticket-vor-Branch, disjunkte Partials, Plan-Mutation, Slot-Gating, Design-Asset-Qualität): [feature-path-guards](references/feature-path-guards.md).
+- Alle weiteren Guards (Kollisions-Check T002444, Brainstorming-Pflicht, disjunkte Partials, Plan-Mutation, Slot-Gating, Design-Asset-Qualität): [feature-path-guards](references/feature-path-guards.md).
 
 ### Schritt 3.7: Plan-Erstellung — Decompose, dann paralleler Fan-out (T002074)
 Zweistufig aus `intel.json` (deterministisch via `scripts/plan-intel.sh`) in Partials mit disjunkten `target_files` decomposen (Tests separat, Obergrenze 9), dann schreiben **parallele Plan-Subagenten** je ihre `tasks.d/pX-<name>.md`; der Orchestrator schreibt den `tasks.md`-Index mit Partial-Manifest, `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und Provisionierung: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md).
@@ -131,7 +129,7 @@ bash scripts/plan-lint.sh .agents/plans/<slug>/tasks.md
   Plan-Subagenten delegieren (Schritt 3.7) mit den Hard-Fails als Korrektur-Hinweis, bis PASS.
   KEIN Weitergehen mit rotem Linter.
 - **Retry-Cap (T901790):** nach dem **3. FAIL in Folge** für denselben Plan NICHT weiter
-  delegieren, sondern an den Operator eskalieren (Ticket-Kommentar mit den Hard-Fails +
+  delegieren, sondern an den Operator eskalieren (Meldung mit den Hard-Fails +
   `mishap-tracker`-Eintrag `plan-lint-retry-cap`). Unbegrenzte Rework-Schleifen ohne
   Telemetrie sind ein Throughput-Leck — die Eskalation macht sie sichtbar statt sie zu
   verbergen.
@@ -146,25 +144,19 @@ Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifik
 Brand-Domain-Literale in den Code-Snippets? Bei Lücken erneut delegieren (Schritt 3.7) mit
 konkreten Korrektur-Hinweisen.
 
-### Schritt 4.5: Ticket anlegen oder wiederverwenden
-SSOT für Ticket-Anlage, Claim, Stage und Embedding: [ticket-stage-procedure](.agents/skills/references/ticket-stage-procedure.md).
-
-Hier werden **nur Ticket angelegt und geclaimt** — der Claim muss laufen, bevor der
-Pre-Commit-Guard aus Schritt 5 die Lock-Datei liest:
+### Schritt 4.5: Branch claimen
+Der Claim muss laufen, bevor der Pre-Commit-Guard aus Schritt 5 die Lock-Datei liest:
 ```bash
-bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
-  --branch "$(git -C "$WT" branch --show-current)" --worktree "$WT" --label dev-flow-plan
+bash scripts/agent-lock.sh claim branch "$(git -C "$WT" branch --show-current)" \
+  --worktree "$WT" --label dev-flow-plan
 ```
-`stage-plan` läuft dagegen **erst nach dem Commit** (Grund: T002673 in
-[dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md)).
 
-### Schritt 5: Commit & Push, dann stagen — dann STOPP
-> **Ein Aufruf statt der Sequenz unten (T900985):** devflow-mcp `plan_stage(ticket, slug,
-> branch_type, plan_markdown | plan_file, design_markdown?, partials)` legt Worktree + Branch von
-> `origin/main` an, claimt, schreibt Plan und Design, lässt `plan-lint` laufen (rot = Abbruch mit
-> strukturierten Befunden, Worktree bleibt), dann Preflight, Commit, Push und
-> `stage-plan --hold`. Die Rückgabe listet jeden Schritt. `ticket-mcp-node.stage_plan` ist
-> unterdrückt. Die Einzelschritte unten bleiben der Vertrag, den `plan_stage` umsetzt.
+### Schritt 5: Commit & Push — dann STOPP
+> **Ein Aufruf statt der Sequenz unten (T900985):** devflow-mcp `plan_stage(slug, branch_type,
+> plan_markdown | plan_file, design_markdown?)` legt Worktree + Branch von `origin/main` an,
+> claimt den Branch, schreibt Plan und Design, lässt `plan-lint` laufen (rot = Abbruch mit
+> strukturierten Befunden, Worktree bleibt), dann Preflight, Commit und Push. Die Rückgabe listet
+> jeden Schritt. Die Einzelschritte unten bleiben der Vertrag, den `plan_stage` umsetzt.
 
 **Pre-Commit Guard (PFLICHT) [T001268]:** `plan-preflight.sh` bündelt drei Checks; hier steht der
 Vertrag, den der Operator nachvollziehen können muss (Umsetzung: Skript +
@@ -176,26 +168,17 @@ Vertrag, den der Operator nachvollziehen können muss (Umsetzung: Skript +
    Pfade unter `tests/` und `.agents/plans/` sowie exakt
    `components/website/src/data/test-inventory.json`. Andere gestagte Dateien brechen den Guard ab
    (Abhilfe: `git restore --staged <pfad>`). Unstaged/untracked wird nicht geprüft.
-3. **Branch stimmt mit dem agent-lock-Claim überein [T003102 — akzeptiert ticket- UND
-   branch-scoped Claims]:** geprüft wird `agent-locks/ticket__${TICKET_EXT_ID}.json`, Fallback
-   `agent-locks/branch__${BRANCH_SLUG}.json`; fehlt auch der (`[ -f "$LOCK_FILE" ]` schlägt fehl —
-   kein ticket-scoped agent-lock), bricht der Guard ab.
+3. **Branch stimmt mit dem agent-lock-Claim überein [T003102]:** geprüft wird
+   `agent-locks/branch__${BRANCH_SLUG}.json` (`/` im Branch-Namen → `-`); fehlt die Datei oder
+   trägt sie einen anderen `branch`, bricht der Guard ab.
 
 ```bash
-bash scripts/plan-preflight.sh pre-commit --ticket "$TICKET_EXT_ID"
+bash scripts/plan-preflight.sh pre-commit
 # rc=0 alle Checks grün · rc=1 Guard verletzt · rc=2 Umgebungsfehler
 
 git -C "$WT" add .agents/plans/<slug>/
-git -C "$WT" commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
+git -C "$WT" commit -m "chore(plans): stage <slug> for execution"
 git -C "$WT" push -u origin "$(git -C "$WT" branch --show-current)"
-
-# ERST JETZT stagen — Flag-Semantik (--hold/--partials/--allow-empty-touched):
-# references/ticket-stage-procedure.md §Flag-Semantik
-bash scripts/ticket.sh stage-plan \
-  --id "$TICKET_EXT_ID" \
-  --branch "$(git -C "$WT" branch --show-current)" \
-  --plan ".agents/plans/<slug>/tasks.md" \
-  --partials <N> --hold
 ```
 
 ### Schritt 6: Optionaler Plan-Review (interaktiv)
@@ -203,15 +186,14 @@ Der Plan lässt sich annotierbar rendern und im Browser reviewen
 (`bash scripts/plan-review/plan-review.sh render .agents/plans/<slug>/tasks.md`). Details:
 [plan-review-ui](.agents/skills/references/plan-review-ui.md).
 
-**STOPP.** Branch, Spec und Plan sind committed und gepusht. Ticket ist per
-`execution_released=false` zurückgehalten, bis `dev-flow-execute` es mit
-`release-hold` freigibt.
+**STOPP.** Branch, Spec und Plan sind committed und gepusht. Der gepushte Branch ohne PR ist der
+Hold: erst `dev-flow-execute` öffnet den PR.
 
 ## Fix-Pfad
 
 Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird. Der Test ist
 eine pytest-Funktion in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus
-Ticket-Titel/Feature-Name), nicht in einem ticket-nummerierten Modul. Setzt er ein externes Binary oder
+Feature-Name), nicht in einem nummerierten Modul. Setzt er ein externes Binary oder
 einen externen Dienst voraus, gehört
 der Verfügbarkeits-Guard (`if shutil.which("<binary>") is None: pytest.skip("<binary> binary not installed")`)
 schon in die **Rotphase**. Vorher prüfen: `grep -rn '<binary>' .github/workflows/`; **0 Treffer
@@ -224,13 +206,13 @@ minimalen Reproducer oder Log-Evidenz belegt sein; die Trennung gehört ins Prop
 English: verify the bug cause during triage — distinguish observed symptom from assumed root cause,
 and validate the cause with evidence before designing the solution.
 
-Schritte 1–5 im Detail (Ticket, Worktree, Claims, Lavish-Board, Brainstorming mit
-Root-Cause-Fokus, failing Test, Plan, `stage-plan`, Commit):
+Schritte 1–5 im Detail (Worktree, Branch-Claim, Lavish-Board, Brainstorming mit
+Root-Cause-Fokus, failing Test, Plan, Commit):
 [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md) §Fix-Pfad. Der abschließende Stage-Commit:
 
 ```bash
 git -C "$WT" add tests/ .agents/plans/<slug>/tasks.md
-(cd "$WT" && git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]")
+(cd "$WT" && git commit -m "chore(plans): add failing test + stage plan")
 git -C "$WT" push -u origin "$(git -C "$WT" branch --show-current)"
 ```
 Der Commit enthält nur RED-Test und Plan-Artefakte, deshalb `chore(plans):` — nie `fix(`/`feat(`
@@ -244,13 +226,13 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 **Zustand bei STOPP:**
 - Branch `feature/<slug>` oder `fix/<slug>` auf Remote gepusht
 - Plan `.agents/plans/<slug>/tasks.md` committed
-- Ticket status = `plan_staged`
 - Branch-Lock aktiv (andere Sessions sehen diesen Branch als belegt)
 - **Kein PR** — der Plan-Stand ist ein gepushter Branch, nichts weiter. Wird aus anderem Grund
   früh einer gebraucht: `--draft` + Titel-Präfix `[plan-only]` (T002816 in den Gotchas).
 
-**Nächster Schritt:** `dev-flow-execute` aufrufen. Es liest den Plan automatisch aus der DB
-(`FACTORY-PLAN-REF`-Kommentar) — keine manuelle Pfad-Übergabe nötig.
+**Nächster Schritt:** `dev-flow-execute` im Worktree des Branches aufrufen. Es leitet den Plan-Pfad
+aus dem Branch-Namen ab (`feature|fix/<slug>` → `.agents/plans/<slug>/tasks.md`) — keine manuelle
+Pfad-Übergabe nötig.
 
 ## Verwandte Skills
 | Skill | Beziehung |

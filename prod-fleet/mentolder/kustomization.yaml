@@ -21,6 +21,22 @@ components:
   # Komponente ist entfernt; bge-Modell-PVCs nutzen die Default-StorageClass
   # (local-path) wie die k3d-Basis.
 
+# KI-Dienste bleiben intern vorhanden, starten standardmaessig aber keine Pods.
+# Aktivierung per GitOps: count von 0 auf 1; siehe docs/runbooks/ai-services-scale-zero.md.
+replicas:
+  - name: whisper
+    count: 0
+  - name: talk-transcriber
+    count: 0
+  - name: talk-recording
+    count: 0
+  - name: bge-embed
+    count: 0
+  - name: bge-embed-bulk
+    count: 0
+  - name: bge-rerank
+    count: 0
+
 # Exclude the dev.mentolder.de stack from fleet Phase 2a (dev migration is 2c).
 # prod-mentolder renders these dev resources; with DEV_* blanked in
 # environments/fleet-mentolder.yaml they would either be invalid (the dev
@@ -31,7 +47,7 @@ components:
 # delete would error). The harmless *.localhost dev IngressRoutes are left intact.
 patches:
   # T016544: bge-hosts-patch.yaml ist entfallen — die llm-gateway-IngressRoutes
-  # sind per $patch:delete oben entfernt, ein Patch ohne Ziel wuerde den Build
+  # werden per $patch:delete unten entfernt; ein Patch ohne Ziel wuerde den Build
   # fehlschlagen lassen.
   # Coaching Studio — prod overlay for mentolder brand on the fleet
   # cluster. Pins image-digest, prod-issuer, prod TLS, and node-affinity
@@ -63,89 +79,7 @@ patches:
       metadata:
         name: any-job
 
-  # T016544: KI-Workloads aus fleet-new Prod entfernen (whisper, bge-embed,
-  # bge-embed-bulk, bge-rerank, talk-recording, talk-transcriber) inkl.
-  # Services, llm-gateway-IngressRoutes, zugehoeriger NetworkPolicies und
-  # Modell-PVCs. Flux prune:true raeumt den Live-Stand ab. Wirkt auf
-  # fleet-new UND pk-Fallback (beide syncen ./mentolder) — die Base
-  # (prod-mentolder, k3d, staging) bleibt unberuehrt.
-  - target: { group: apps, version: v1, kind: Deployment, name: whisper }
-    patch: |-
-      $patch: delete
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: whisper
-  - target: { group: apps, version: v1, kind: Deployment, name: bge-embed }
-    patch: |-
-      $patch: delete
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: bge-embed
-  - target: { group: apps, version: v1, kind: Deployment, name: bge-embed-bulk }
-    patch: |-
-      $patch: delete
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: bge-embed-bulk
-  - target: { group: apps, version: v1, kind: Deployment, name: bge-rerank }
-    patch: |-
-      $patch: delete
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: bge-rerank
-  - target: { group: apps, version: v1, kind: Deployment, name: talk-recording }
-    patch: |-
-      $patch: delete
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: talk-recording
-  - target: { group: apps, version: v1, kind: Deployment, name: talk-transcriber }
-    patch: |-
-      $patch: delete
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: talk-transcriber
-  - target: { version: v1, kind: Service, name: whisper }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: whisper
-  - target: { version: v1, kind: Service, name: talk-recording }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: talk-recording
-  - target: { version: v1, kind: Service, name: talk-transcriber }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: talk-transcriber
-  - target: { version: v1, kind: Service, name: llm-gateway-embed }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: llm-gateway-embed
-  - target: { version: v1, kind: Service, name: llm-gateway-rerank }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: llm-gateway-rerank
+  # Externe llm-gateway-Routen bleiben deaktiviert (T016544).
   - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: llm-gateway-embed }
     patch: |-
       $patch: delete
@@ -160,48 +94,6 @@ patches:
       kind: IngressRoute
       metadata:
         name: llm-gateway-rerank
-  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-llm-gateway-egress }
-    patch: |-
-      $patch: delete
-      apiVersion: networking.k8s.io/v1
-      kind: NetworkPolicy
-      metadata:
-        name: allow-llm-gateway-egress
-  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-transcriber-to-website-egress }
-    patch: |-
-      $patch: delete
-      apiVersion: networking.k8s.io/v1
-      kind: NetworkPolicy
-      metadata:
-        name: allow-transcriber-to-website-egress
-  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-website-to-bge-embed-ingress }
-    patch: |-
-      $patch: delete
-      apiVersion: networking.k8s.io/v1
-      kind: NetworkPolicy
-      metadata:
-        name: allow-website-to-bge-embed-ingress
-  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-website-to-bge-rerank-ingress }
-    patch: |-
-      $patch: delete
-      apiVersion: networking.k8s.io/v1
-      kind: NetworkPolicy
-      metadata:
-        name: allow-website-to-bge-rerank-ingress
-  - target: { version: v1, kind: PersistentVolumeClaim, name: bge-embed-models }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: bge-embed-models
-  - target: { version: v1, kind: PersistentVolumeClaim, name: bge-rerank-models }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: bge-rerank-models
 
   # T016559: Vaultwarden-App aus fleet-new Prod entfernen (Deployment,
   # Service, Ingress, NetPol, Daten-PVC, zugehoerige Middleware). Die DB
@@ -378,7 +270,3 @@ patches:
         name: vaultwarden-data-pvc
       spec:
         storageClassName: local-path
-
-  # T016544: whisper-Deployment ist per $patch:delete oben entfernt — der
-  # fruehere GPU-Affinitaets-Patch ist damit gegenstandslos (unmatched Patches
-  # lassen den Build fehlschlagen).

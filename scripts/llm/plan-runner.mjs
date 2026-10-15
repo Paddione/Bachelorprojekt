@@ -38,7 +38,7 @@ import {
 import { WorkerPool, decideTrack, killAllWorkers } from './plan-runner/workers.mjs';
 import { DEFAULT_URL as DEFAULT_DIRECT_URL, DEFAULT_MODEL as DEFAULT_DIRECT_MODEL } from './plan-runner/direct-worker.mjs';
 
-// Direkt-Track: drei parallele Tool-Loops gegen vLLM :8123 (32k Kontext, max-num-seqs 10, teilt sich die
+// Direkt-Track: drei parallele Tool-Loops gegen vLLM :8123 (40k Kontext, max-num-seqs 10, teilt sich die
 // RTX 5070 Ti mit dem Orchestrator-Fallback). Cloud-Track: ein opencode-Agent plan-worker-muse (abschaltbar
 // mit --cloud-slots 0).
 const DEFAULT_DIRECT_SLOTS = 3;

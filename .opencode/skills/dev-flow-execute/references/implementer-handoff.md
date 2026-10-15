@@ -7,7 +7,7 @@ Abschnitt „Auftrag" wörtlich in den Subagenten-Prompt.
 
 Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](.agents/skills/references/subagent-provisioning.md):
 
-* **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
+* **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <BRANCH>"`, and `Workspace: "share"` (or `"inherit"`).
 * **Claude Code CLI:** nativer Subagenten-Dispatch, `general-purpose` — Modell nach Plan-Charakter (Default `sonnet`; mechanisch `haiku`, komplex/riskant `opus`), Effort per Prompt-Direktive.
 * **opencode:** `background-agents.ts`-Plugin: `delegate(prompt, agent="researcher")` für read-only Subagenten oder die native write-capable Delegation. Worktree-`cd`-Pflicht und Effort-Formulierungen: Reference (SSOT).
 
@@ -21,8 +21,7 @@ unabhängige Tasks den Einzel-Implementer ans Kontext-Limit bringen.
 
 Kompaktheits-Regeln: subagent-provisioning §3.
 
-- Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
-- Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
+- Plan-Datei `$PLAN_FILE` (aus Schritt 1, aus dem Branch-Namen abgeleitet) + Branch `$BRANCH`.
 - **Kuratierter Werkzeug-Block (PFLICHT, T900980):** Rolle aus den Plan-`domains` ableiten —
   infra/deploy/security/secrets → `bp-build`, ops/llm/k8s/db/postgres → `bp-run`,
   website/frontend/test/ci/scripts/agent-skills → `bp-ship`, gemischt → `orchestrator`.

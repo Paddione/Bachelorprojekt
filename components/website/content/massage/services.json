@@ -1,0 +1,118 @@
+[
+  {
+    "slug": "rueckenmassage",
+    "title": "Rückenmassage",
+    "description": "30 Minuten Auszeit für Rücken und Schultern — auf Anfrage in Vögelsen bei Lüneburg.",
+    "icon": "💆",
+    "features": [
+      "30 Minuten, gezielt für Rücken und Schultern",
+      "Termine auf Anfrage, Bestätigung durch die Inhaberin",
+      "Zahlung vor Ort mit Rechnung"
+    ],
+    "price": "30,00 €",
+    "pageContent": {
+      "headline": "Rückenmassage in 30 Minuten",
+      "intro": "Eine kurze, wohltuende Auszeit für Rücken und Schultern — ideal in der Mittagspause oder nach einem langen Tag.",
+      "forWhom": [
+        "Viel sitzen und sich eine Pause für den Rücken wünschen",
+        "Eine erste Anwendung in ruhiger Atmosphäre ausprobieren möchten",
+        "Regelmäßig eine kurze Auszeit suchen"
+      ],
+      "sections": [
+        {
+          "title": "Ablauf",
+          "items": [
+            "Anfrage mit Wunschtermin",
+            "Persönliche Bestätigung durch die Inhaberin",
+            "Besuch in der Praxis in Vögelsen bei Lüneburg"
+          ]
+        },
+        {
+          "title": "Gut zu wissen",
+          "items": [
+            "Dauer: 30 Minuten",
+            "Zahlung vor Ort mit Rechnung",
+            "Zur Entspannung und für das Wohlbefinden — keine Behandlung von Krankheiten."
+          ]
+        }
+      ],
+      "pricing": [
+        {
+          "label": "Rückenmassage (30 Min.)",
+          "price": "30,00 €",
+          "highlight": true
+        }
+      ],
+      "faq": [
+        {
+          "question": "Wie schnell bekomme ich einen Termin?",
+          "answer": "Bitte fragen Sie möglichst am Vortag an. Ihr Termin ist erst nach meiner Bestätigung fix."
+        },
+        {
+          "question": "Wie kann ich zahlen?",
+          "answer": "Bequem vor Ort — Sie erhalten eine Rechnung."
+        }
+      ]
+    }
+  },
+  {
+    "slug": "ganzkoerpermassage",
+    "title": "Ganzkörpermassage",
+    "description": "60 oder 90 Minuten tiefe Entspannung für den ganzen Körper — auf Anfrage in Vögelsen bei Lüneburg.",
+    "icon": "🌿",
+    "features": [
+      "60 oder 90 Minuten, individuell abgestimmt",
+      "Termine auf Anfrage, Bestätigung durch die Inhaberin",
+      "Zahlung vor Ort mit Rechnung"
+    ],
+    "price": "60,00 €",
+    "pageContent": {
+      "headline": "Ganzkörpermassage in 60 oder 90 Minuten",
+      "intro": "Zeit zum Abschalten: Eine Ganzkörpermassage in ruhiger Atmosphäre — wahlweise 60 oder 90 Minuten.",
+      "forWhom": [
+        "Sich eine längere Auszeit vom Alltag wünschen",
+        "Regelmäßige Entspannung suchen",
+        "Einfach einmal nichts tun möchten"
+      ],
+      "sections": [
+        {
+          "title": "Ablauf",
+          "items": [
+            "Anfrage mit Wunschtermin und Dauer",
+            "Persönliche Bestätigung durch die Inhaberin",
+            "Besuch in der Praxis in Vögelsen bei Lüneburg"
+          ]
+        },
+        {
+          "title": "Gut zu wissen",
+          "items": [
+            "Dauer: 60 oder 90 Minuten",
+            "Zahlung vor Ort mit Rechnung",
+            "Zur Entspannung und für das Wohlbefinden — keine Behandlung von Krankheiten."
+          ]
+        }
+      ],
+      "pricing": [
+        {
+          "label": "Ganzkörpermassage (60 Min.)",
+          "price": "60,00 €",
+          "highlight": true
+        },
+        {
+          "label": "Ganzkörpermassage (90 Min.)",
+          "price": "90,00 €"
+        }
+      ],
+      "faq": [
+        {
+          "question": "Welche Dauer passt zu mir?",
+          "answer": "60 Minuten sind eine gute erste Auszeit; 90 Minuten lassen noch mehr Ruhe zu. Schreiben Sie Ihren Wunsch in die Anfrage."
+        },
+        {
+          "question": "Wie kann ich zahlen?",
+          "answer": "Bequem vor Ort — Sie erhalten eine Rechnung."
+        }
+      ]
+    }
+  }
+]

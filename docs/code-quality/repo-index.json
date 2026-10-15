@@ -1384,7 +1384,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bp-ship",
-      "file_count": 1916,
+      "file_count": 1917,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",
@@ -3118,6 +3118,7 @@
         "components/website/src/pages/portal/loslernen.astro",
         "components/website/src/pages/portal/raum/[id].astro",
         "components/website/src/pages/portal/sign/[assignmentId].astro",
+        "components/website/src/pages/portal/talk.astro",
         "components/website/src/pages/referenzen.astro",
         "components/website/src/pages/registrieren.astro",
         "components/website/src/pages/robots.txt.ts",

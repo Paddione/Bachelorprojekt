@@ -49,13 +49,14 @@ jobs:
             ci
             perf
             revert
+            style
           # Scopes are NOT enforced here — ticket-number scopes (Tdddddd) are
           # always valid, and named-scope enforcement happens later via
           # scripts/validate-commit-msg.sh range (individual commit messages).
           # Ticket references like [T000436] can extend subject length
-          subjectPattern: ^.{1,200}$
+          subjectPattern: ^.{1,150}$
           subjectPatternError: |
-            The subject must be between 1 and 200 characters.
+            The subject must be between 1 and 150 characters (matches header-max-length in commitlint.config.cjs — the PR title becomes the squash-merge subject).
             If your PR title includes ticket references like [T000436], that counts toward the limit.
       - name: Validate ticket tag [T000XXX] in PR title (advisory)
         env:

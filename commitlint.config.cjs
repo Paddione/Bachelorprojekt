@@ -1,6 +1,7 @@
 // Sechs Domänen-Scopes, deckungsgleich mit den Agent-Rollen in CLAUDE.md
 // (.claude/agents/bachelorprojekt-*), plus acht Querschnitts-Scopes für das,
-// was keiner Domäne gehört. Konsolidiert von 95 auf 14 in T002328 — die
+// was keiner Domäne gehört. Konsolidiert von 95 auf 14 in T002328 (plus 'red'
+// als Workflow-Marker, s.u.) — die
 // vollständige Herleitung steht in
 const NAMED_SCOPES = [
   // Domänen
@@ -19,6 +20,9 @@ const NAMED_SCOPES = [
   'docs',
   'mcp',
   'deps',
+  // Workflow-Marker, keine Domaene: test(red) ist die dokumentierte
+  // RED-Phase-Konvention (check-commit-vs-diff.sh, .githooks/commit-msg).
+  'red',
 ];
 
 // DEPRECATED-ALIASE (NUR Diagnose-Hinweis, KEINE gueltigen Scopes!):

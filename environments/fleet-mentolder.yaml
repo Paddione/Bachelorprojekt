@@ -46,8 +46,10 @@ env_vars:
   SMTP_PORT: "587"
   SMTP_SECURE: "false"
   PRIMARY_FRONTEND: astro
-  # TURN_OVERLAY_IP: pk-hetzner-4 overlay IP (wg-fleet, same fleet mesh as gekko-4)
-  TURN_OVERLAY_IP: "10.20.0.1"
+  # TURN_OVERLAY_IP: InternalIP des TURN_NODE gekko-hetzner-2. Ziel der
+  # rustdesk-web-Bridge (hbbs/hbbr laufen dort hostNetwork). Der fruehere Wert
+  # 10.20.0.1 war die Overlay-IP des abgebauten pk-hetzner-4.
+  TURN_OVERLAY_IP: "192.168.200.2"
   # T016529: coturn/Janus laufen auf gekko-hetzner-2 (hostNetwork, ohne WG).
   # TURN_PUBLIC_IP ist die oeffentliche IP von gekko-hetzner-2 — zugleich
   # external-ip/nat_1_1_mapping der Manifeste prod-fleet/coturn.

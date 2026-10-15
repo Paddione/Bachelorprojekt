@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.425.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.3...website-v1.425.4) (2026-10-15)
+
+
+### Bug Fixes
+
+* **website:** repair dead internal links and hide unavailable sidekick tools ([#6717](https://github.com/Paddione/Bachelorprojekt/issues/6717)) ([f3ceec2](https://github.com/Paddione/Bachelorprojekt/commit/f3ceec26ab1289061b83223ad76f31c37e66cb8b))
+
 ## [1.425.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.2...website-v1.425.3) (2026-10-15)
 
 

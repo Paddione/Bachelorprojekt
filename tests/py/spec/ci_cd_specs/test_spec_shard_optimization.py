@@ -3,13 +3,14 @@
 import yaml
 
 
-def test_fast_spec_job_executes_ticket_mcp_tests(repo_root):
-    job = yaml.safe_load((repo_root / ".github/workflows/ci.yml").read_text())["jobs"]["test-spec-fast"]
-    assert any("ticket-mcp:test" in step.get("run", "") for step in job["steps"])
+def _jobs(repo_root):
+    return yaml.safe_load((repo_root / ".github/workflows/ci.yml").read_text())["jobs"]
 
 
-def test_sharded_spec_job_does_not_repeat_ticket_mcp_tests(repo_root):
-    test_fast_spec_job_executes_ticket_mcp_tests(repo_root)
-    job = yaml.safe_load((repo_root / ".github/workflows/ci.yml").read_text())["jobs"]["test-spec-shard"]
-    assert job["steps"]
-    assert not any("ticket-mcp:test" in step.get("run", "") for step in job["steps"])
+def test_no_spec_job_runs_the_removed_ticket_mcp_tests(repo_root):
+    """Der Ticket-MCP entfiel mit der Ticket-DB; kein Spec-Job darf ihn noch bauen oder testen."""
+    jobs = _jobs(repo_root)
+    for name in ("test-spec-fast", "test-spec-shard"):
+        # Positiv-Anker: die Jobs existieren und haben Schritte.
+        assert jobs[name]["steps"], name
+        assert not any("ticket-mcp:" in step.get("run", "") for step in jobs[name]["steps"]), name

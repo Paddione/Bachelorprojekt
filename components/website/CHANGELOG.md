@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.425.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.4...website-v1.425.5) (2026-10-15)
+
+
+### Bug Fixes
+
+* **infra:** RustDesk-Web-Bridge fuer mentolder auf gekko-hetzner-2 ([#6709](https://github.com/Paddione/Bachelorprojekt/issues/6709)) ([661eb78](https://github.com/Paddione/Bachelorprojekt/commit/661eb78c12abd4ba28bfa9be5fd46be44a2e050e))
+
 ## [1.425.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.3...website-v1.425.4) (2026-10-15)
 
 

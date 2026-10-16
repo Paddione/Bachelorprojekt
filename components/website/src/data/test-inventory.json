@@ -4656,6 +4656,12 @@
     "kind": "pytest"
   },
   {
+    "id": "mentolder-prod/rustdesk_flux",
+    "file": "tests/py/spec/mentolder-prod/test_rustdesk_flux.py",
+    "category": "mentolder-prod",
+    "kind": "pytest"
+  },
+  {
     "id": "merge-arbitration/apply-escalation",
     "file": "tests/py/spec/native_ported/spec/merge-arbitration/test_apply_escalation.py",
     "category": "merge-arbitration",

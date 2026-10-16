@@ -75,3 +75,24 @@ spec:
   path: ./office
   prune: true
   wait: true
+---
+# RustDesk-Relay (hbbs/hbbr, always-on, ohne On-demand-Sleeper). rustdesk-secrets
+# kommt aus flux-sealed-secrets-mentolder.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-rustdesk
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  dependsOn:
+    - name: flux-infra-controllers
+    - name: flux-sealed-secrets-mentolder
+  sourceRef:
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./rustdesk
+  prune: true
+  wait: true

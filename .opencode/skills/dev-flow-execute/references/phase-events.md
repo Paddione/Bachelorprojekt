@@ -2,8 +2,7 @@
 
 Alle Events schreibt `scripts/devflow-phase.sh` in die lokale, gitignorierte
 `.agents/plans/<slug>/phase-events.log` des Worktrees (Slug = Branch ohne Typ-Präfix).
-Das Ticket-Backend (`ticket.sh phase`, `ticket-mcp-node_record_phase_event`) ist seit
-2026-10-14 retiriert. `devflow-ci-watch.sh` und `devflow-post-merge-finalize.sh` lesen die Datei
+`devflow-ci-watch.sh` und `devflow-post-merge-finalize.sh` lesen die Datei
 aus dem Worktree. Beide deshalb im selben Worktree aufrufen, in dem die Events entstanden sind.
 
 Pflichtkette für den Merge: `plan done`, `implement entered`, `verify done`. Schritt 6 prüft sie

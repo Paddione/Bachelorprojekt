@@ -136,7 +136,7 @@ node scripts/toolset/probe.mjs --ack warden           # gemessenen Stand nach Pr
   `duplicate_names` zeigt Server, die einen Namen doppelt ausliefern (T900984).
 - **`tool_tiers`** an einer `mcp:`-Instanz: Glob → Tier, erste passende Zeile gewinnt; nicht
   genannte Tools erben `tier` der Instanz. Startwert für Mutationen ist der `destructiveHint`
-  aus dem Lock; Server ohne Annotations (ticket-mcp-node, task-runner) brauchen Handarbeit.
+  aus dem Lock; Server ohne Annotations (z.B. task-runner) brauchen Handarbeit.
 - **Gate:** `check.mjs` bricht bei ungültigem Tier, `tool_tiers` an Nicht-mcp-Instanzen und
   einem Glob ohne Treffer (veraltete Kuration). Neue, entfernte oder geänderte Tools und ein
   `destructiveHint` auf einem `safe`-Tool meldet es nur — erst prüfen, dann `--ack`.

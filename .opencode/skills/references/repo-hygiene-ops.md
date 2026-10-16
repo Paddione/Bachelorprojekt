@@ -597,9 +597,8 @@ for t in T00…; do
 done
 ```
 
-Für Ticketstatus ist der kanonische Weg ohnehin `ticket-mcp-node_get_ticket` /
-`ticket-mcp-node_list_tickets`, nicht ein geratenes CLI-Subkommando (siehe
-[`mcp-tool-guide.md`](mcp-tool-guide.md)).
+Für Issue-Status ist der kanonische Weg `gh issue view <n> --json state,title`, nicht ein
+geratenes CLI-Subkommando.
 
 ## 4. GitHub-Issue-Intake (selten)
 
@@ -748,8 +747,8 @@ Das Cron-Skript (`scripts/repo-hygiene-cron.sh`, seit T003486) ist ein schlanker
 1. `git fetch origin main --prune` ausführt
 2. `bash scripts/agent-lock.sh reap` (stale Locks)
 3. Die Hygiene-Metriken (Worktree/Branch/PR-Counts) als JSON nach stdout schreibt
-4. Oberhalb von `STALE_THRESHOLD` stale Artifacts eine Warnung per `ticket.sh add-comment`
-   an das Hygiene-Tracking-Ticket anhängt
+4. Oberhalb von `STALE_THRESHOLD` stale Artifacts eine Warnung ins Log schreibt (der frühere
+   Ticket-Kommentar-Pfad entfiel 2026-10-14)
 
 > **Es kennt zwei Modi — `standard` (default) und `deep`**, nicht die drei Tiefen aus §7.2.
 > `deep` ergänzt `branch-reaper.sh --dry-run` und zählt dessen Kandidaten mit. Die Zuordnung

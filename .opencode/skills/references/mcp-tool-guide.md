@@ -263,7 +263,7 @@ Stdio-Server `~/mcp-servers/devflow/server.mjs`. Design: `.agents/plans/devflow-
 | `recommend_tools(task, role, k, max_tier)` | Werkzeuge gefiltert nach Rolle, `tools_suppressed` und Tier (Default ≤ `assisted`) | safe |
 | `search_code(query, k, path_prefix)` | Semantische Suche über Function/Method/Class des Graphen | safe |
 | `graph_status()` | Index-Commit vs. HEAD, `partial`/`pending` beim Erstlauf | safe |
-| `plan_stage(...)` | Worktree → Plan → Lint → Commit → Push → `stage-plan --hold` | assisted |
+| `plan_stage(...)` | Worktree → Branch-Claim → Plan → Lint → Preflight → Commit → Push | assisted |
 | `plan_lint`, `collision_check`, `ci_status`, `task_oracle` | Strukturierte Wrapper (ein `ci_status`-Aufruf = ein Schnappschuss, kein Polling) | safe |
 | `lock(action, …)` | `agent-lock.sh`; SID aus Parameter oder Harness-Env | caution |
 

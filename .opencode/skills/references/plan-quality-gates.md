@@ -171,10 +171,9 @@ Dazu:
 Jeder ausgefuehrte Plan endet mit Receipt UND Delete — kein `.md`-Ueberhang:
 gemergte Plaene bleiben nicht im Repo liegen.
 
-- **Receipt:** `devflow-post-merge-finalize.sh` Schritt 7 schreibt Frontmatter +
-  Check-Evidenz + Merge-SHA nach `tickets.ticket_plans` (P1); staged
-  (> `STAGED_STALE_DAYS` inaktive) und supersedete Plaene (Nachfolger-Merge)
-  ueber `ticket.sh archive-plan --reason` (P4).
+- **Receipt:** `devflow-post-merge-finalize.sh` Schritt 7 markiert den Plan im Frontmatter als
+  `status: completed` und committet ihn (P1); die frühere Archivierung nach
+  `tickets.ticket_plans` entfiel 2026-10-14.
 - **Delete:** `branch-reaper.sh --sweep --plan-cleanup` entfernt Plan-Ordner per
   `git rm`, gebuendelt als Sammel-Cleanup-PR (P2) — nie direkt nach main.
 - **Fail-closed:** ohne verifizierten Record kein Delete (`tests/py/spec/native_ported/spec/test_plan_lifecycle.py`, P3).

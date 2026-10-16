@@ -13,7 +13,7 @@ Rollen- und Übergabevertrag: [dev-flow-lifecycle](.agents/skills/references/dev
 
 ## Wann diese Skill greift
 
-Feature/Fix-Branch mit `plan_staged` Ticket → PR gemergt zu `main`, Ticket `done/shipped`, plan archiviert.
+Gepushter Feature/Fix-Branch mit committiertem Plan `.agents/plans/<slug>/tasks.md` → PR gemergt zu `main`, Plan `completed`, Worktree und Branch aufgeräumt.
 
 ## Pre-Flight (Schritte −1 bis 1.7)
 
@@ -21,35 +21,25 @@ Befehlsfolgen: [dev-flow-execute-phases](.agents/skills/references/dev-flow-exec
 
 | Schritt | Leistet | Bricht ab, wenn |
 |---|---|---|
-| **−1 Pre-Flight-Lock** | Branch claimen (`agent-lock claim branch` — T003102, kein ticket-Scope), Broadcast an andere Sessions | eine lebende Session den Branch schon hält |
+| **−1 Pre-Flight-Lock** | Branch claimen (`agent-lock claim branch` — T003102), Broadcast an andere Sessions | eine lebende Session den Branch schon hält |
 | **0 Main-Sync** | Reaper, ungelesene Agent-Nachrichten, `git pull --rebase` im Haupt-Repo | — |
 | **0 Worktree-Konsistenz** | Branch-Guard [T000321]: gültiger Branch ausgecheckt **und** unter `.worktrees/*` gearbeitet; legt sonst per `scripts/worktree-create.sh` einen an [T001363] | detached HEAD, oder Worktree-Erstellung schlägt fehl |
 | **0.5 Rebase** | `git fetch origin main && git rebase origin/main` | Konflikt — dann manuell lösen |
-| **1 Plan-Pfad laden** | liest `FACTORY-PLAN-REF` aus der DB, prüft die Plan-Datei **im Git-Tree** | kein `plan_ref`, leerer Pfad, oder Datei nicht in `HEAD` |
-| **1.4–1.7** | Doppelarbeit-Guard, Pipeline-Modus (`slot_count`), Ticket auf `in_progress` (optional vorher `/dev-flow-execute <slug>`), `touched_files`, Ticket-Anhänge laden | Claim gehört nicht mehr dieser Session |
+| **1 Plan-Pfad laden** | leitet den Plan-Pfad aus dem Branch-Namen ab (`feature|fix/<slug>` → `.agents/plans/<slug>/tasks.md`), prüft die Plan-Datei **im Git-Tree** | kein `feature/`-/`fix/`-Branch, oder Datei nicht in `HEAD` |
+| **1.4–1.5** | Doppelarbeit-Guard, Auto-Merge-Zustand, `plan`-Phasen-Events, `touched_files` aus der File Structure des Plans | Claim gehört nicht mehr dieser Session |
 
-> **Der Plan-Pfad kommt aus der Datenbank, nie aus einem Glob** — `ticket.sh stage-plan` setzt
-> `FACTORY-PLAN-REF branch=<branch> plan=<pfad>`.
+> **Der Plan-Pfad kommt aus dem Branch-Namen, nie aus einem Glob** — devflow-mcp `plan_stage` legt
+> `<type>/<slug>` und `.agents/plans/<slug>/tasks.md` gemeinsam an.
 
 > **Worktree-Isolation ist Pflicht** [T001363]. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [resume-contract](.agents/skills/references/resume-contract.md).
 
 ### Schritt −1.1: Branch-Claim ist branch-scoped (T003102)
 
-Der Pre-Flight-Lock claimt **branch-scoped** — niemals über das Ticket:
+Der Pre-Flight-Lock claimt **branch-scoped**:
 `bash scripts/agent-lock.sh claim branch "$BRANCH"`. Verifikation:
 `bash scripts/agent-lock.sh check branch "$(git branch --show-current)"`. Der Release liegt in der
 idempotenten Finalize-Einheit (`scripts/devflow-post-merge-finalize.sh`, Schritt 3.9), ebenfalls
 branch-scoped (T003102, T006284).
-
-## Schritt 1.8: Ticket freigeben (release hold)
-
-Nach `stage-plan --hold` ist `readiness.execution_released=false` gesetzt; das Ticket bleibt bis zur
-Freigabe zurückgehalten. Ohne Hold ist der Aufruf ein No-op, daher `|| true`. `execution_released=false`
-bleibt der **Default** [T002327].
-
-```bash
-# retiriert 2026-10-14 (kein Ticket-Backend): bash ticket.sh release-hold --id "$TICKET_ID" || true
-```
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
@@ -59,7 +49,7 @@ bleibt der **Default** [T002327].
 
 Live-Floor-Telemetrie (best-effort): [phase-events](references/phase-events.md), Abschnitt "Implementierung gestartet".
 
-Delegiere die **gesamte Implementierung an EINEN frischen Subagenten**. Du behältst den Plan-Kontext und verifizierst danach unabhängig — kein Per-Task-Fan-out (verschachtelte Delegation sprengt den Kontext, 162k-Prompt-Lehre). Spawn-Matrix je Harness (opencode: `background-agents.ts`-Delegation; Worktree-`cd`-Pflicht und Effort-Formulierungen dort), Kontext-Injektion (Plan-Datei, Ticket-ID, `$ATTACHMENT_DIR`, Plan-Intel-Bundle aus `intel.json`), Test-Pflicht (pytest) und Auftrag (Ein-Ebenen-Regel, SID-Propagation T006365, Freshness-Pflicht vor PR-Erstellung, ENDE T002365): [implementer-handoff](references/implementer-handoff.md) — den Auftrag wörtlich in den Subagenten-Prompt übernehmen.
+Delegiere die **gesamte Implementierung an EINEN frischen Subagenten**. Du behältst den Plan-Kontext und verifizierst danach unabhängig — kein Per-Task-Fan-out (verschachtelte Delegation sprengt den Kontext, 162k-Prompt-Lehre). Spawn-Matrix je Harness (opencode: `background-agents.ts`-Delegation; Worktree-`cd`-Pflicht und Effort-Formulierungen dort), Kontext-Injektion (Plan-Datei, Branch, Plan-Intel-Bundle aus `intel.json`), Test-Pflicht (pytest) und Auftrag (Ein-Ebenen-Regel, SID-Propagation T006365, Freshness-Pflicht vor PR-Erstellung, ENDE T002365): [implementer-handoff](references/implementer-handoff.md) — den Auftrag wörtlich in den Subagenten-Prompt übernehmen.
 
 ### Wenn keine Delegation möglich ist [T002698]
 
@@ -71,11 +61,11 @@ sorgfältiger verifizieren.
 
 ## Schritt 2.5 — Lokaler Self-Correcting-Loop (optional)
 
-`bash scripts/devflow-build-loop.sh "$TICKET_ID"` — läuft lokal **vor** Verifikation und Push,
+`bash scripts/devflow-build-loop.sh` — läuft lokal **vor** Verifikation und Push,
 entlastet die CI-Retry-Schleife (5.5), ersetzt sie nicht. Default `MAX_LOOP=3`
 (`DEVFLOW_BUILD_LOOP_MAX`).
 
-> Bei `abort:escalate-gate|no-progress|max-iterations` eskalieren (Ticket-Kommentar) — **kein**
+> Bei `abort:escalate-gate|no-progress|max-iterations` eskalieren (PR-Kommentar bzw. Rückfrage an den User) — **kein**
 > blindes Weiter-Pushen.
 
 ## Schritt 3: Lokale Verifikation
@@ -122,8 +112,8 @@ Code-Review ist **keine** Merge-Voraussetzung (D1).
    `pr-review-toolkit:review-pr` oder ein Review-Subagent via `delegate()`). Findings vor dem
    Merge gehen per `SendMessage` an den **bereits gespawnten** Implementer (Muster Exit 3/4 aus
    T002365 — kein neuer Spawn, Doppel-Push-Risiko aus T001408); nach dessen Push erneut
-   reviewen. Findings, die erst nach dem Merge eintreffen, werden zum Folge-Ticket
-   (`type=bug` bei Defekten) mit eigenem Folge-PR (D4). Ohne ausdrücklichen Zuruf wird
+   reviewen. Findings, die erst nach dem Merge eintreffen, gehen in ein
+   GitHub-Issue (`bug`-Label bei Defekten) mit eigenem Folge-PR (D4). Ohne ausdrücklichen Zuruf wird
    kein Review-Subagent gestartet.
 3. Fail-closed die Phase-Chain prüfen, dann Auto-Merge anfordern:
 
@@ -145,17 +135,16 @@ bash scripts/devflow-phase.sh check
 > starb und Closure, Archiv und Cleanup liegen blieben.
 
 Spawne einen **frischen Finalizer-Subagenten** (nativer Dispatch, `general-purpose`; Modell
-`sonnet`, mechanisch `haiku`) und gib ihm alles explizit: Ticket-ID `$TICKET_ID`, PR-Nummer
-`$PR_NUM`, Branch `$BRANCH`, Worktree-Pfad `$MAIN_REPO/.worktrees/<slug>`, Plan-Pfad `$PLAN_FILE`,
-Resolution (`shipped`/`fixed`).
+`sonnet`, mechanisch `haiku`) und gib ihm alles explizit: PR-Nummer `$PR_NUM`, Branch `$BRANCH`,
+Worktree-Pfad `$MAIN_REPO/.worktrees/<slug>`, Plan-Pfad `$PLAN_FILE`.
 
 Auftrag an den Finalizer (wörtlich Teil des Prompts):
 - **Merge-Wait-Loop zuerst (T001149-M1):** [ci-fix-loop](.agents/skills/references/ci-fix-loop.md)
-  §"PR-Merge-Wait-Loop" lesen und von dort ausführen. Bei Timeout KEIN Ticket schließen
-  (Drift Ticket=done bei PR=OPEN), sondern strukturiert berichten.
+  §"PR-Merge-Wait-Loop" lesen und von dort ausführen. Bei Timeout nichts abschließen
+  (Drift Plan=completed bei PR=OPEN), sondern strukturiert berichten.
 - **Abschluss über die idempotente Einheit,** keine freie Rekonstruktion der Einzelschritte:
   ```bash
-  bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
+  bash scripts/devflow-post-merge-finalize.sh --branch "$BRANCH" --plan "$PLAN_FILE" --pr "$PR_NUM"
   ```
 - **T001571-Standing-Direktive:** Bei Anzeichen von Kontext-Überlauf stoppen und einen
   strukturierten Handoff-Report liefern (erledigte Schritte, Git-Zustand, offene Schritte).
@@ -182,11 +171,11 @@ Commit → Push → PR läuft nach **`git-workflow` Schritt 2–4** (SSOT): Scop
 Allowlist prüfen [T001395], explizite Pathspecs statt `git add -A` (git-crypt-Guard [T001210]),
 Commit-Verifikation `HEAD_SHA != BASE_SHA` [T000925], `preflight-pr-scope.sh` vor `gh pr create`,
 REST-Fallback für Titel-Edits.
-Execute-spezifisch: Ticket-ID `[$TICKET_ID]` im Subject (z.B. `feat(scope): implement feature [$TICKET_ID]`) und `Closes T000XXX` im Body bei Fixes.
+Execute-spezifisch: bei Fixes mit GitHub-Issue `Closes #<issue>` im PR-Body.
 Rufe `commit-commands:commit-push-pr` auf oder führe `gh pr create` manuell aus.
 
 > **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren —
-> Proposal-Commits könnten das Ticket sonst vorzeitig schließen. Der Auto-Merge folgt erst im
+> Proposal-Commits könnten sonst vorzeitig gemergt werden. Der Auto-Merge folgt erst im
 > Merge-Gate (3.8).
 
 ## Schritt 5.5: CI/CD-Fix-Schleife (Orchestrator-Zuständigkeit, T002365)
@@ -194,7 +183,7 @@ Rufe `commit-commands:commit-push-pr` auf oder führe `gh pr create` manuell aus
 **Orchestrator-Schritt, nie als Hintergrund-Monitor** [T001969 Mishap 1, T002351-M3]. Auto-Merge ist seit 3.8 angefordert und greift bei grünen Required Checks. Details/Required-Check-Liste: [ci-fix-loop](.agents/skills/references/ci-fix-loop.md).
 ```bash
 PR_URL=$(gh pr view --json url -q '.url')
-bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
+bash scripts/devflow-ci-watch.sh "$PR_URL"
 ```
 Bei roten Checks: Logs aus dem Skript-Output an einen `sonnet`-Subagenten (Fix-Routine: Freshness → TS → pytest → Kustomize → Commitlint), nach dem Push Loop wiederholen.
 `devflow-ci-watch.sh` rebased bei `DIRTY` gegen `origin/main` (T001408) und endet mit Exit-Code `3` bei Rebase-Konflikt bzw. `4` bei echtem `CONFLICTING`-Mergestatus (T001415) — dann gibt der **Orchestrator den Konflikt per `SendMessage` an den bereits gespawnten Implementer zurück** (kein neuer Spawn — Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` nach dessen Push erneut auf.
@@ -210,50 +199,44 @@ Prüft `plan:done`, `implement:entered` und `verify:done`. Bei FAIL zuerst backf
 bash scripts/devflow-phase.sh check
 ```
 
-## Schritte 6.4–7.5 — Merge-Wait, Ticket-Abschluss, Cleanup
+## Schritte 6.4–7.5 — Merge-Wait, Plan-Abschluss, Cleanup
 
 Zuständig ist der Finalizer, den Schritt 3.9 als frischen Subagenten spawnt. `gh pr merge --auto` kehrt sofort zurück; erst den
 Merge abwarten ([ci-fix-loop](.agents/skills/references/ci-fix-loop.md) §"PR-Merge-Wait-Loop",
 T001149-M1), dann abschließen:
 
 ```bash
-bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
+bash scripts/devflow-post-merge-finalize.sh --branch "$BRANCH" --plan "$PLAN_FILE" --pr "$PR_NUM"
 ```
 
-Das Skript führt idempotent aus: PR verlinken, Ticket auf `done` (`shipped`/`fixed`),
-`verify:done`-Phase-Event, Plan nach `tickets.ticket_plans` archivieren, Claims freigeben,
-Worktree und Branch entfernen. Jede Session kann offene
-Schritte mit einem Aufruf nachholen. Die Closure darin:
+Das Skript führt idempotent aus: Merge verifizieren, Plan als `completed` markieren und
+committen, Claims freigeben, Worktree und Branch entfernen. Jede Session kann offene
+Schritte mit einem Aufruf nachholen.
 
-```bash
-./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
-```
-
-Befehlsfolgen inkl. Poll-Loop und MCP-first-Aufrufen:
+Befehlsfolgen inkl. Poll-Loop:
 [dev-flow-execute-phases](.agents/skills/references/dev-flow-execute-phases.md).
-Plan-Archivierung: [plan-archive-steps](.agents/skills/references/plan-archive-steps.md).
+Plan-Abschluss: [plan-archive-steps](.agents/skills/references/plan-archive-steps.md).
 
-> **Merge = Abschluss (T001092)** — Regel in CLAUDE.md. `qa_review`/`awaiting_deploy` nicht als
-> Zwischenstatus setzen. **Reihenfolge (T004612):** Archivierung VOR der Branch-Löschung.
+> **Merge = Abschluss (T001092)** — Regel in CLAUDE.md. **Reihenfolge (T004612):** Plan-Abschluss VOR der
+> Branch-Löschung.
 > **Claims vor dem Worktree-Remove freigeben.**
 
 ## Schritt 8: Post-Merge Deploy & Verify
 
 ```bash
-bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
+bash scripts/devflow-post-merge-deploy.sh --pr "$PR_NUM"
 ```
 **Deploy-Mapping (Single Source of Truth):** [deploy-routing](.agents/skills/references/deploy-routing.md) — nur dort pflegen.
 Danach `dev-flow-e2e` ausführen, um E2E-Tests gegen die Live-Umgebung zu schreiben.
-> **Mitten in der Umsetzung blockiert?** Nutzer mit `lavish` grillen (`.lavish/<slug>-grilling.html`),
-> Antworten früher ans Ticket (`ticket.sh grill`, retiriert 2026-10-14), jetzt in den Plan bzw. PR. Siehe
-> `.agents/skills/references/grilling-to-ticket.md`.
+> **Mitten in der Umsetzung blockiert?** Nutzer mit `lavish` grillen (`.lavish/<slug>-grilling.html`)
+> und die Antworten in den Plan übernehmen (eigener `chore(plans):`-Commit).
 
 ## Übergabe — Kreislauf geschlossen
 
 **Zustand nach Schritt 8:**
 - `main` enthält die gemergten Änderungen (squash commit)
 - Worktree `.worktrees/<slug>` gelöscht, Branch `feature/<slug>` gelöscht
-- Ticket status = `done` (resolution=shipped)
+- Plan `.agents/plans/<slug>/tasks.md` mit `status: completed`
 - Branch-Lock freigegeben
 - Deployed (falls `devflow-post-merge-deploy.sh` Pfad-Treffer)
 **Kreislauf zurück zu `main`** — nächste Arbeit startet mit `dev-flow-plan` von einem frischen `git pull`.

@@ -136,8 +136,8 @@
       "dest": ".opencode/skills/lavish",
       "track": "release",
       "tag_prefix": "lavish-axi-v",
-      "ref": "224f40719d74c15897cfec0c3d67a0dce869ba5f",
-      "version": "lavish-axi-v0.1.88"
+      "ref": "3c9e0ec25d3fc1fe842dcb7da923f32e28e9009d",
+      "version": "lavish-axi-v0.1.89"
     },
     "llama-cpp": {
       "repo": "Orchestra-Research/AI-research-SKILLs",
@@ -208,7 +208,7 @@
       "path": "skills/sota-testing",
       "dest": ".opencode/skills/sota-testing",
       "track": "branch",
-      "ref": "73ef769754040ccaa191e84ac5d46fdb73a21269",
+      "ref": "199bbb2333129e63059987a236012210b1f9adac",
       "version": null
     },
     "vitest-testing": {

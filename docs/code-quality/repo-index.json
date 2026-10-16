@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1288,
+      "file_count": 1289,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -425,6 +425,7 @@
         "tests/py/spec/massage-tenant/test_shared_db_roles.py",
         "tests/py/spec/mentolder-prod/test_office_flux.py",
         "tests/py/spec/mentolder-prod/test_rustdesk_bridge.py",
+        "tests/py/spec/mentolder-prod/test_rustdesk_flux.py",
         "tests/py/spec/native_ported/scripts_tests/test_prod_write_guard.py",
         "tests/py/spec/native_ported/spec/active-sessions-hub/test_agent_lock_main_checkout_reclaim.py",
         "tests/py/spec/native_ported/spec/active-sessions-hub/test_agent_lock_release_cwd.py",
@@ -3310,7 +3311,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bp-build",
-      "file_count": 837,
+      "file_count": 838,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -4063,6 +4064,7 @@
         "prod-fleet/platform/ingressclass.yaml",
         "prod-fleet/platform/kustomization.yaml",
         "prod-fleet/platform/reflector-rbac.yaml",
+        "prod-fleet/rustdesk/kustomization.yaml",
         "prod-fleet/staging/kustomization.yaml",
         "prod-fleet/staging/wildcard-certificate.yaml",
         "prod-fleet/website-common/domain-config.yaml",

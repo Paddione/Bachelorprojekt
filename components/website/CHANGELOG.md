@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.426.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.5...website-v1.426.0) (2026-10-16)
+
+
+### Features
+
+* **infra:** manage rustdesk relay via Flux ([#6736](https://github.com/Paddione/Bachelorprojekt/issues/6736)) ([01fb13b](https://github.com/Paddione/Bachelorprojekt/commit/01fb13bbe39830ffcd0d2a2fef27885ca3658ae3))
+
 ## [1.425.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.4...website-v1.425.5) (2026-10-15)
 
 

@@ -27,9 +27,11 @@ def test_agent_lock_check_merged_accepts_valid_t_number_format(run_cmd, repo_roo
     assert r.returncode in (0, 2), r.output
 
 
-def test_skill_md_contains_preflight_check_for_merged_tickets(repo_root):
+def test_skill_md_has_no_ticket_merged_preflight_without_ticket_db(repo_root):
+    # Ohne Ticket-DB entfaellt check-merged; der Pre-Commit-Guard bleibt (Positiv-Anker).
     text = (repo_root / ".claude/skills/dev-flow-plan/SKILL.md").read_text(encoding="utf-8")
-    assert "Check merged ticket" in text
+    assert "plan-preflight.sh pre-commit" in text
+    assert "check-merged" not in text
 
 
 def test_post_merge_yml_contains_ticket_closure_scan_step(repo_root):

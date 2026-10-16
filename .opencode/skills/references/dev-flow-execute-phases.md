@@ -6,46 +6,32 @@ Befehlsfolgen der mechanischen Schritte.
 
 ---
 
-## Ticket-ID ermitteln
+## Plan-Branch ermitteln
 
-Falls `TICKET_ID` nicht bereits im Kontext gesetzt ist (z.B. vom User oder aus dem Branch-Namen ableitbar):
-Plan-Metadaten aus der DB holen — **MCP-first** (`mcp-postgres`, READ-ONLY, nimmt nur `sql`):
-> `mcp-postgres_query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })`
-Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe [`mcp-tool-guide.md`](.agents/skills/references/mcp-tool-guide.md)):
+`dev-flow-execute` arbeitet auf dem Branch, den `dev-flow-plan` (devflow-mcp `plan_stage`) angelegt
+und gepusht hat: `feature/<slug>` oder `fix/<slug>`. Ist der Branch nicht aus dem Kontext bekannt,
+offene Plan-Branches auflisten und bei mehreren den User via `AskUserQuestion` (Claude Code) oder
+`question` (opencode/agy) fragen:
 ```bash
-kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
-  "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;"
+git fetch origin --prune
+git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/feature/*' 'refs/remotes/origin/fix/*'
 ```
-Bei mehreren staged plans den User via `AskUserQuestion` (Claude Code) oder `question` (opencode/agy) nach der gewünschten Ticket-ID fragen.
 
 
 ---
 
 ## Schritt −1 bis 0.5 — Pre-Flight, Sync, Worktree-Konsistenz, Rebase
 
-Vor jeder Git-Operation MUSS das Ticket geclaimed werden (verhindert, dass zwei Sessions
-dasselbe Ticket bearbeiten — Claim VOR der ersten Git-Operation, [T002038]).
+Vor jeder Git-Operation MUSS der Branch geclaimed werden (verhindert, dass zwei Sessions
+denselben Plan bearbeiten — Claim VOR der ersten Git-Operation, [T002038]).
 
-**Status-Check vor dem Claim:** Ein bereits abgeschlossenes Ticket abbrechen lassen:
+**Bereits gemergt?** Hat der Branch schon einen gemergten PR, ist nichts mehr zu tun:
 ```bash
-TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID" 2>/dev/null || echo '{}')
-TICKET_STATUS=$(echo "$TICKET_JSON" | jq -r '.status // empty')
-case "$TICKET_STATUS" in
-  done|archived)
-    echo "🛑 Ticket $TICKET_ID ist bereits $TICKET_STATUS — kein dev-flow-execute nötig." >&2
-    exit 1
-    ;;
-  plan_staged)
-    echo "✅ Ticket $TICKET_ID ist plan_staged — fortfahren."
-    ;;
-esac
+gh pr list --head "$BRANCH" --state merged --json number -q '.[].number'   # nicht leer → Abbruch
 ```
 
-**Branch atomic claimen — [T003102] branch-scoped statt ticket-scoped:** ein ticket-scoped
-Lock der auftraggebenden Session blockt den späteren Abschluss durch Subagent/ticket-mcp/
-post-merge (je eigene SID). Der branch-scoped Claim schützt den Worktree, den diese Session
-betritt, und blockt den Status-Schreibpfad nicht. Der Status-Check oben ersetzt den
-atomaren Status-Check von `check-and-claim`.
+**Branch atomic claimen — [T003102] branch-scoped:** der Claim schützt den Worktree, den diese
+Session betritt.
 ```bash
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
 bash scripts/agent-lock.sh claim branch "$CURRENT_BRANCH" --worktree "$(pwd)" --label dev-flow-execute
@@ -63,8 +49,9 @@ esac
 
 **Ankündigung broadcasten:**
 ```bash
-bash scripts/agent-msg.sh post "dev-flow-execute startet Arbeit an Ticket $TICKET_ID (Branch $CURRENT_BRANCH)" --to all
+bash scripts/agent-msg.sh post "dev-flow-execute startet Arbeit an Branch $CURRENT_BRANCH" --to all
 ```
+
 
 
 ## Schritt 0: Main-Branch im Haupt-Repo synchronisieren (Pull-First)
@@ -131,87 +118,43 @@ git rebase origin/main
 
 ---
 
-## Schritt 1 — Plan-Pfad aus der Datenbank laden
+## Schritt 1 — Plan-Pfad aus dem Branch-Namen ableiten
 
-Der Plan-Pfad wird von `dev-flow-plan` via `ticket.sh stage-plan` in der Datenbank gespeichert
-(als `FACTORY-PLAN-REF branch=<branch> plan=<plan_path>` Kommentar im Ticket). **Niemals** per Glob raten —
-immer die DB als Quelle nutzen.
+Der Plan-Pfad folgt aus dem Branch (`<type>/<slug>` → `.agents/plans/<slug>/tasks.md`), wie
+devflow-mcp `plan_stage` ihn anlegt. **Niemals** per Glob raten.
 ```bash
-# TICKET_ID muss bekannt sein (aus Branch-Name, User-Input, oder ticket.sh get --branch <branch>)
-TICKET_ID="<T-######>"
+BRANCH=$(git branch --show-current)
+case "$BRANCH" in
+  feature/*|fix/*) ;;
+  *) echo "🛑 Kein Plan-Branch: '$BRANCH' — in den Worktree des Plan-Branches wechseln." >&2; exit 1 ;;
+esac
+SLUG=${BRANCH#*/}
+PLAN_FILE=".agents/plans/$SLUG/tasks.md"
 
-# Plan-Metadaten aus der Datenbank laden
-TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID")
-PLAN_REF=$(echo "$TICKET_JSON" | jq -r '.plan_ref // empty')
-
-if [[ -z "$PLAN_REF" ]]; then
-  echo "🛑 Kein FACTORY-PLAN-REF für Ticket $TICKET_ID gefunden."
-  echo "   → dev-flow-plan wurde nicht ausgeführt oder stage-plan fehlgeschlagen."
-  exit 1
-fi
-
-# Branch und Plan-Pfad aus dem FACTORY-PLAN-REF parsen
-# Format: "FACTORY-PLAN-REF branch=<branch> plan=<plan_path>"
-BRANCH=$(echo "$PLAN_REF" | sed -n 's/.*branch=\([^ ]*\).*/\1/p')
-PLAN_FILE=$(echo "$PLAN_REF" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
-
-if [[ -z "$PLAN_FILE" ]]; then
-  echo "🛑 Plan-Datei-Pfad leer im FACTORY-PLAN-REF für Ticket $TICKET_ID."
-  echo "   → Re-run dev-flow-plan für dieses Ticket."
-  exit 1
-fi
-
-# Validate the plan file exists in the current git tree (not just filesystem)
+# Plan muss im Git-Tree liegen (nicht nur im Dateisystem)
 if ! git cat-file -e "HEAD:$PLAN_FILE" 2>/dev/null; then
-  echo "🛑 Plan-Datei '$PLAN_FILE' existiert nicht im Git-Tree (Branch: $BRANCH)."
-  echo "   → Re-run dev-flow-plan für dieses Ticket, oder prüfe den Worktree: git worktree list"
+  echo "🛑 Plan-Datei '$PLAN_FILE' existiert nicht im Git-Tree (Branch: $BRANCH)." >&2
+  echo "   → dev-flow-plan erneut ausführen oder den Worktree prüfen: git worktree list" >&2
   exit 1
 fi
-
 echo "✅ Plan geladen: $PLAN_FILE (Branch: $BRANCH)"
-
-# Validate plan directory exists (sibling artifacts of tasks.md live here)
-SLUG=$(basename "$PLAN_FILE" .md)
-PLAN_DIR=".agents/plans/$SLUG"
-if [[ -d "$PLAN_DIR" ]]; then
-  if [[ ! -f "$PLAN_DIR/.ticket" ]]; then
-    echo "⚠️  $PLAN_DIR/.ticket fehlt — Ticket-Referenz sollte von dev-flow-plan gesetzt sein."
-  fi
-else
-  echo "⚠️  $PLAN_DIR/ fehlt — Plan-Verzeichnis wurde nicht von dev-flow-plan angelegt."
-fi
 ```
 
 
 ---
 
-## Schritt 1.4 / 1.4.5 / 1.4.6 — Doppelarbeit-Guard und Pipeline-Modus
+## Schritt 1.4 — Doppelarbeit-Guard
 
-Der Ticket-Claim wurde bereits in Schritt −1.2 atomisch platziert. Hier wird
-nur verifiziert, dass der Claim noch dieser Session gehört (z.B. nicht durch
-einen Reaper zwischenzeitlich gelöscht):
+Der Branch-Claim wurde in Schritt −1 atomisch platziert. Hier wird nur verifiziert, dass er noch
+dieser Session gehört (z.B. nicht durch einen Reaper zwischenzeitlich gelöscht):
 
 ```bash
-bash scripts/agent-lock.sh check ticket "$TICKET_ID" | head -1 | grep -q '^mine$' \
-  || { echo "🛑 Ticket $TICKET_ID nicht mehr von dieser Session geclaimed — Abbruch." >&2; exit 1; }
+bash scripts/agent-lock.sh check branch "$BRANCH" | head -1 | grep -q '^mine$' \
+  || { echo "🛑 Branch $BRANCH nicht mehr von dieser Session geclaimed — Abbruch." >&2; exit 1; }
 ```
 
 Prüfe zusätzlich den Registry-Overlap für geteilte Hochfrequenz-Dateien (SSOT:
-[session-coordination](.agents/skills/references/session-coordination.md)):
-
-## Schritt 1.4.5: Pipeline-Modus erkennen (T002110)
-
-Prüfe in der DB, ob das Ticket im Pipeline-Modus (Partial-Dispatch) gestaged wurde:
-
-```bash
-TICKET_STRUCT=$(./scripts/vda.sh ticket get --id "$TICKET_ID" 2>/dev/null || echo '{}')
-SLOT_COUNT=$(echo "$TICKET_STRUCT" | jq -r '.slot_count // 1')
-TICKET_STATUS=$(echo "$TICKET_STRUCT" | jq -r '.status // empty')
-echo "ℹ️  Ticket $TICKET_ID: status=$TICKET_STATUS, slot_count=$SLOT_COUNT"
-```
-
-- **slot_count > 1:** Multi-Partial-Plan — Partials in Manifest-Reihenfolge abarbeiten (siehe Schritt 2.1).
-- **slot_count = 1:** Single-Shot — normale sequentielle Ausführung.
+[session-coordination](.agents/skills/references/session-coordination.md)).
 
 
 ### Schritt 1.4.7: Auto-Merge-Zustand prüfen
@@ -230,114 +173,64 @@ bash scripts/check-pr-automerge.sh --branch "$BRANCH"
 
 ---
 
-## Schritt 1.5 / 1.7 — Ticket auf in_progress, touched_files, Assets
+## Schritt 1.5 — Phasen-Events, touched_files, Assets
 
-Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — **MCP-first** (`ticket-mcp`):
-> `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "in_progress" })`
-> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
-Fallback (ticket-mcp nicht erreichbar; Live-Floor-Telemetrie ist best-effort und darf den Flow nie stoppen):
+Phasen-Events schreibt `scripts/devflow-phase.sh` lokal nach `.agents/plans/<slug>/phase-events.log`;
+das Merge-Gate (`devflow-phase.sh check`) verlangt `plan:done`, `implement:entered` und `verify:done`:
 ```bash
-./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
-SLUG=$(basename "$PLAN_FILE" .md)
-bash scripts/devflow-phase.sh plan entered --detail "Plan: $SLUG · $TICKET_ID"
-```
-> `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.
-> **`touched_files` ist beim Stagen bereits gesetzt [T002446].** `stage-plan` leitet die Liste
-> aus dem `## File Structure`-Block des Plans ab — der Block ist plan-lint Hard Rule STRUCT1,
-> die Information existiert also zwingend. Dieser Schritt **ergänzt** deshalb nur noch, was der
-> Plan nicht kannte; er ist kein Erstschreiben mehr. Vorher hing die Befüllung an der Formulierung
-> „Falls der Plan die berührten Dateien kennt" — also an der Sorgfalt des ausführenden Agenten,
-> und ein übersehener Fall genügt für eine unentdeckte Kollision.
-
-Berührt die Umsetzung Dateien, die im Plan **nicht** standen, ergänze sie für die Conflict-Gate
-(parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
-> `ticket-mcp-node_set_touched_files({ id: "$TICKET_ID", files: "<alle Pfade, inkl. der bereits gesetzten>" })`
-> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
-Fallback:
-```bash
-# ACHTUNG: set-touched-files ERSETZT die Liste. Erst den Ist-Stand lesen, dann die neuen
-# Pfade anhängen — sonst gehen die beim Stagen abgeleiteten Plan-Pfade verloren.
-# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh get --id "$TICKET_ID"        # aktuelle touched_files ablesen
-# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh set-touched-files --id "$TICKET_ID" --files "<bestehende>,<neue>"
-bash scripts/devflow-phase.sh plan done --detail "Plan geladen · Assets folgen"
+bash scripts/devflow-phase.sh plan entered --detail "Plan: $SLUG"
+bash scripts/devflow-phase.sh plan done --detail "Plan geladen"
 ```
 
-## Schritt 1.7: Visual & Textual Assets laden (Visual Handoff)
+Die berührten Dateien stehen im `## File Structure`-Block des Plans (plan-lint Hard Rule STRUCT1).
+Sie sind die Grundlage für den Registry-Overlap-Check und den Scope-Preflight vor dem PR. Berührt
+die Umsetzung Dateien, die im Plan **nicht** standen, den Block im Plan ergänzen.
 
-Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter — **MCP-first** (`ticket-mcp`):
-> `ticket-mcp-node_get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })`
-Fallback (ticket-mcp nicht erreichbar):
-```bash
-ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
-# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh get-attachments --id "$TICKET_ID" --out-dir "$ATTACHMENT_DIR"
-```
-**⚠️ Pflicht für UI-Arbeiten:** Lies (mit dem `Read` Tool) alle heruntergeladenen Bilddateien und Textdateien in diesem Ordner ein, um ein pixelgenaues Verständnis des UI-Designs zu erlangen. Verlasse dich nicht auf Prose allein.
+**⚠️ Pflicht für UI-Arbeiten:** Liegen Mockups oder Screenshots im Plan-Ordner
+(`.agents/plans/<slug>/`), lies sie mit dem `Read` Tool ein, um ein pixelgenaues Verständnis des
+UI-Designs zu erlangen. Verlasse dich nicht auf Prose allein.
 
 
 ---
 
-## Schritt 6.4 bis 7.5 — Merge-Wait, Ticket-Abschluss, Archivierung, Cleanup
+## Schritt 6.4 bis 7.5 — Merge-Wait, Plan-Abschluss, Cleanup
 
 > **Finalizer-Zuständigkeit (T006284):** Diese Schritte laufen NICHT im Orchestrator — sie
 > sind an einen frischen Finalizer-Subagenten delegiert (SKILL.md Schritt 3.9). Der Finalizer
 > führt sie als eine idempotente Skript-Einheit aus:
 >
 > ```bash
-> bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
+> bash scripts/devflow-post-merge-finalize.sh --branch "$BRANCH" --plan "$PLAN_FILE" --pr "$PR_NUM"
 > ```
 >
 > Das Skript ist deterministisch und idempotent: Jeder Schritt überspringt bereits erledigte
-> Arbeit (Ticket schon `done`, Plan schon archiviert, Lock schon frei, Worktree schon
-> entfernt); ein zweiter Lauf setzt an der ersten offenen Stelle fort. Die Einzelschritte unten
-> bleiben als Referenz der Skript-Mechanik erhalten — der Finalizer rekonstruiert sie NICHT
-> frei, sondern ruft das Skript (Exit 0 = erledigt/übersprungen, Exit 1 = Fehler).
+> Arbeit (Plan schon `completed`, Lock schon frei, Worktree schon entfernt); ein zweiter Lauf
+> setzt an der ersten offenen Stelle fort. Die Einzelschritte unten bleiben als Referenz der
+> Skript-Mechanik erhalten — der Finalizer rekonstruiert sie NICHT frei, sondern ruft das Skript
+> (Exit 0 = erledigt/übersprungen, Exit 1 = Fehler).
 
-Vor dem Skript-Aufruf steht der Merge-Wait-Loop — erst warten, bis der PR
-tatsächlich durch ist, bevor das Ticket geschlossen wird (vermeidet Ticket=done bei
-PR=OPEN+CONFLICTING Drift, Mishap T001149-M1). Voller Poll-Loop mit Timeout/State-Handling
-(`MERGED`/`CLOSED`/Timeout-Exit-Codes): [ci-fix-loop](.agents/skills/references/ci-fix-loop.md)
-§"PR-Merge-Wait-Loop" — der Finalizer MUSS die Datei lesen und den Loop von dort ausführen
-(nicht aus dem Gedächtnis rekonstruieren). Bei Timeout KEIN Ticket schließen (T001149-M1) —
-strukturiert berichten; die offenen Schritte sind über das Skript nachholbar.
+Vor dem Skript-Aufruf steht der Merge-Wait-Loop — erst warten, bis der PR tatsächlich durch ist
+(vermeidet Abschluss bei PR=OPEN+CONFLICTING, Mishap T001149-M1). Voller Poll-Loop mit
+Timeout/State-Handling (`MERGED`/`CLOSED`/Timeout-Exit-Codes):
+[ci-fix-loop](.agents/skills/references/ci-fix-loop.md) §"PR-Merge-Wait-Loop" — der Finalizer MUSS
+die Datei lesen und den Loop von dort ausführen (nicht aus dem Gedächtnis rekonstruieren). Bei
+Timeout nichts abschließen, strukturiert berichten; die offenen Schritte sind über das Skript
+nachholbar.
 
+Merge = Abschluss (T001092); der Prod-Deploy (Schritt 8) ist entkoppelt.
 
-## Schritt 6.5: Ticket abschließen
+## Schritt 7: Plan abschließen
 
-> Läuft über `devflow-post-merge-finalize.sh` (Schritte 3–6 der Skript-Kette). Referenz:
-
-Falls eine Ticket-ID vorhanden ist, schließe das Ticket:
-PR-Nummer ermitteln (falls nicht aus Schritt 6.4 bekannt):
-```bash
-RESOLUTION="shipped" # oder "fixed" bei Fixes
-: "${PR_NUM:=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")}"
-```
-Abschluss-Lifecycle — **MCP-first** (`ticket-mcp`). Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist; der Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
-> `ticket-mcp-node_add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })`
-> `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "done", resolution: "<shipped|fixed>" })`
-> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })`
-> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
-> `ticket-mcp-node_add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
-> `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos. Das `verify:done`-Event bleibt Pflicht (Merge-Gate).
-Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Rest ist idempotent):
-```bash
-# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
-./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
-bash scripts/devflow-phase.sh verify done --detail "gate=ci result=pass"
-bash scripts/devflow-phase.sh deploy done --detail "PR #$PR_NUM merged · done/shipped"
-# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
-```
-
-## Schritt 7: Plan archivieren
-
-`devflow-post-merge-finalize.sh` archiviert den Plan in `tickets.ticket_plans` vor dem Branch-Cleanup. Details: [plan-archive-steps](plan-archive-steps.md).
+`devflow-post-merge-finalize.sh` markiert den Plan vor dem Branch-Cleanup als `completed`. Details:
+[plan-archive-steps](plan-archive-steps.md).
 
 ## Schritt 7.5: Worktree & Branch bereinigen
 
 > Läuft über `devflow-post-merge-finalize.sh` (Schritt 10 der Skript-Kette). Referenz:
 
-> **Reihenfolge (T004612):** Dieser Schritt läuft NACH Schritt 7 (Archiv) — der Fix-PR-Merge
+> **Reihenfolge (T004612):** Dieser Schritt läuft NACH Schritt 7 (Plan-Abschluss) — der Fix-PR-Merge
 > (Schritt 5) löscht den Branch bewusst NICHT mehr (`--delete-branch` entfernt,
-> `delete_branch_on_merge=false`), damit die Archivierung ihn noch vorfindet.
+> `delete_branch_on_merge=false`), damit der Plan-Abschluss ihn noch vorfindet.
 
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
 Claims freigeben VOR dem Worktree-Remove ([session-coordination](.agents/skills/references/session-coordination.md)), dann:
@@ -353,9 +246,9 @@ git push origin --delete "<branch>"   # remote: der Merge löscht nicht mehr (T0
 
 ## Tests — ein pytest-Modul pro Vorgang
 
-  Neue Tests sind pytest-Funktionen in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus Ticket-Titel/Feature-Name). BATS ist seit T901392 deinstalliert.
+  Neue Tests sind pytest-Funktionen in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus dem Feature-Namen). BATS ist seit T901392 deinstalliert.
   Reihenfolge:
-  1. **Bereich ermitteln:** Welcher Bereich beschreibt das zu testende Verhalten? (Ticket-Titel.)
+  1. **Bereich ermitteln:** Welcher Bereich beschreibt das zu testende Verhalten? (Feature-Name.)
   2. **Modul prüfen/anlegen:** Existiert ein passendes Modul unter `tests/py/spec/`? Falls ja → Testfunktion ergänzen. Falls nein → neues Modul anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_mcp_tooling.py`, Konventionen: `tests/CLAUDE.md`).
   3. **Fallback:** Für übergreifende Tests ohne Bereichszuordnung → passendes Modul in `tests/py/unit/` erweitern.
   ```bash

@@ -148,16 +148,13 @@ ins `.reap.log` geschrieben (im Lock-Verzeichnis).
 
 ## Pre-Flight Claim-Pattern [T002038]
 
-Ein Claim, der erst spät im Ablauf kommt, lässt eine parallele Session dasselbe Ticket
-bearbeiten. Seit [T002038] wird der Ticket-Claim + Status-Check **vor** jeder
-Git-Operation in einem dedizierten Pre-Flight-Schritt (−1) platziert:
+Ein Claim, der erst spät im Ablauf kommt, lässt eine parallele Session denselben Branch
+bearbeiten. Seit [T002038] liegt der Claim **vor** jeder Git-Operation in einem dedizierten
+Pre-Flight-Schritt (−1):
 
-1. **Ticket-Status prüfen** — `vda.sh ticket get --id $TICKET_ID` → wenn
-   `done`/`archived`/`merged`, sofort abbrechen.
-2. **Atomischer Claim** — `agent-lock.sh check-and-claim ticket $TICKET_ID`
-   (neues Kommando seit T002038, kombiniert Check + Claim unter flock).
-3. **Ankündigung broadcasten** — `agent-msg.sh post "dev-flow-execute startet
-   Arbeit an Ticket $TICKET_ID" --to all`
+1. **Branch-Claim** — `agent-lock.sh claim branch "$BRANCH"` (Exit 1 = lebende fremde Session).
+2. **Ankündigung broadcasten** — `agent-msg.sh post "dev-flow-execute startet
+   Arbeit an Branch $BRANCH" --to all`
 
 ### Aufbau der Pre-Flight-Schritte
 

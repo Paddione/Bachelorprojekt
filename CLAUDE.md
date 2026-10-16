@@ -72,7 +72,7 @@ ASCII-Pflicht (kein BOM), Parser-Check vor dem Commit und `-Encoding ASCII` fuer
 
 ### Bug-Triage-Konvention (CFR-Gate G-DORA03)
 
-Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst (`bash scripts/ticket.sh create --type bug --title "..." --description "..."`). CFR-Ziel ≤ 15 % über 8 Wochen via `bash scripts/vda.sh cfr`. Siehe [`AGENTS.md`](AGENTS.md).
+Jeder nach-Merge entdeckte Fehler wird als GitHub-Issue mit Label `bug` erfasst (`gh issue create --label bug --title "..." --body "..."`). CFR-Ziel ≤ 15 % über 8 Wochen via `bash scripts/vda.sh cfr`. Siehe [`AGENTS.md`](AGENTS.md).
 
 ### Mess-Konvention [T002717]
 

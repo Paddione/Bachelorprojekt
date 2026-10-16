@@ -34,8 +34,8 @@ was der Planner von Hand ergänzt hat. Fehlt eine Quelle, entsteht ein `risks[]`
 Das Bundle informiert bereits das Brainstorming (A.4).
 Liegt vor der Plananlage noch kein Change-Ordner vor, das Bundle erstellen und nach **B.2**
 verschieben: `mkdir -p .agents/plans/<slug> && bash scripts/plan-intel.sh <slug>`.
-#### Schritt A.2: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
-Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), lege die Assets
+#### Schritt A.2: Design-Bundle co-lokalisieren (nur Design-/UI-Aufträge)
+Wenn der Auftrag einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), lege die Assets
 **jetzt im main-Checkout** an — sie werden in Schritt B.2 in den Worktree verschoben:
 ```bash
 SLUG="<slug>"
@@ -75,7 +75,7 @@ Ergebnis: Design-Spec **im Plan-Ordner** unter `.agents/plans/<slug>/design.md`
 (`mkdir -p .agents/plans/<slug>` vorab — kein Scaffolder nötig).
 Nach dem Schreiben der Spec das Frontmatter setzen:
 `bash scripts/vda.sh frontmatter --spec .agents/plans/<slug>/design.md`
-und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
+und `plan_ref` ausfüllen, sobald der Plan-Pfad feststeht.
 
 > **Commit-Scope ist `plans`, nicht `specs` [T002425-M2].** Der naheliegende `docs(specs):`
 > wird von `validate-commit-msg` abgelehnt — `specs` wurde mit T002328 zu `plans`
@@ -100,7 +100,7 @@ Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (sie
 Der Branch und Worktree werden JETZT angelegt und gepusht, damit jeder Partial-Plan sofort
 committet und gesichert werden kann.
 
-> **Ticket-vor-Branch-Check (T001917, T002050):** Prüfe vor der Worktree-Anlage, ob bereits ein Ticket existiert oder in Schritt 4.5 ein neues angelegt wird. Ist `TICKET_EXT_ID` bekannt, benenne den Branch **immer** mit Ticket-ID-Suffix (z.B. `feature/<slug>-T002050` statt `feature/<slug>`). Falls noch kein Ticket existiert, erstelle das Ticket VOR der Worktree-Anlage (siehe Schritt 4.5), um dessen `TICKET_EXT_ID` direkt in den Branch-Namen aufzunehmen. Sonst schlägt `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss nachträglich umbenannt werden.
+> **Branch-Konvention:** Branch `feature/<slug>` und Plan-Ordner `.agents/plans/<slug>/` tragen denselben Slug — `dev-flow-execute` leitet den Plan-Pfad daraus ab.
 
 #### Schritt B.1: Worktree anlegen (git-crypt-safe)
 
@@ -115,20 +115,11 @@ committet und gesichert werden kann.
 > Hauptcheckout auszuführen: `git -C <repo-root> status --porcelain` muss leer bleiben.
 
 ```bash
-# Preflight: wurde das Ticket bereits auf main gemergt? [T002279]
-bash scripts/plan-preflight.sh pre-worktree --ticket "$TICKET_EXT_ID"
-# rc-Tabelle: 0 = fortfahren · 1 = bereits gemergt (Ticket done + abbrechen) · 2 = Umgebung reparieren
-
-bash scripts/worktree-create.sh feature/<slug>-T<id> .worktrees/<slug>
+bash scripts/worktree-create.sh feature/<slug> .worktrees/<slug>
 
 # Branch claimen (Session-Koordination [T000510])
-bash scripts/agent-lock.sh claim branch "feature/<slug>-T<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
+bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
   || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet."; exit 1; }
-
-# Ticket-Claim
-bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
-  --branch "feature/<slug>-T<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
-  || { echo "🛑 Ticket wird bereits von einer anderen Session bearbeitet."; exit 1; }
 ```
 
 #### Schritt B.2: Artefakte in den Worktree verschieben
@@ -155,7 +146,7 @@ cd "${WT}"
 # [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT absolut, s. B.2)
 cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
 git add .agents/plans/<slug>/
-git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
+git commit -m "chore(plans): scaffold <slug> branch"
 git push -u origin $(git branch --show-current)
 ```
 
@@ -165,7 +156,7 @@ git push -u origin $(git branch --show-current)
 Erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest** — Partials mit disjunkten
 `target_files`-Listen (`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> |`);
 das **letzte Partial ist IMMER die Tests-Rolle** (`tests`) und trägt den
-STRUCT2-Failing-Test-Step. Keine Datei in zwei Partials (D1). Obergrenze 9 (`--partials`-Cap).
+STRUCT2-Failing-Test-Step. Keine Datei in zwei Partials (D1). Obergrenze 9.
 Format-SSOT: [plan-quality-gates](./plan-quality-gates.md). Worker-Routing entscheidet der
 Orchestrator zur Dispatch-Zeit ([subagent-provisioning](./subagent-provisioning.md)) — keine
 Routing-Spalten im Manifest.
@@ -179,7 +170,7 @@ FOR each partial pX (p1, p2, ..., zuletzt Tests):
   └─► C.2c: Commit + Push
         cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
         git add .agents/plans/<slug>/
-        git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
+        git commit -m "chore(plans): add partial pX-<name> for <slug>"
         git push origin "$(git branch --show-current)"
 ```
 
@@ -188,12 +179,12 @@ FOR each partial pX (p1, p2, ..., zuletzt Tests):
 bash scripts/plan-lint.sh .agents/plans/<slug>/tasks.md
 ```
 
-#### Schritt C.4: Stagen mit Hold
+#### Schritt C.4: Pre-Commit-Guard und finaler Push
 ```bash
-# retiriert 2026-10-14 (kein Ticket-Backend): bash ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "$(git branch --show-current)" \
-#   --plan ".agents/plans/<slug>/tasks.md" --partials <N> --hold
+bash scripts/plan-preflight.sh pre-commit --branch "$(git branch --show-current)"
+git push origin "$(git branch --show-current)"
 ```
-Ausgeführt wird der Plan danach von `dev-flow-execute` (gibt den Hold frei) oder lokal per
+Ausgeführt wird der Plan danach von `dev-flow-execute` im Worktree des Branches oder lokal per
 `node scripts/llm/plan-runner.mjs .agents/plans/<slug>`.
 
 ---
@@ -252,7 +243,7 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        (z. B. unter `components/website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
        Guardrails (currentColor statt `<img>`, keine Stray-Hex, Export-Vollständigkeit) als
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
-     - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
+     - Grilling-Kontext aus der Design-Spec, falls vorhanden.
       - **CI-/Quality-Gates:** [plan-quality-gates](.agents/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
      - **Plan Intel Bundle (PFLICHT):** `.agents/plans/<slug>/intel.json` — der Plan-Subagent MUSS
        ausschließlich reale Signaturen/Typen aus `intel.json` referenzieren (keine erfundenen Typen),
@@ -268,28 +259,11 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
 
 ## Fix-Pfad — Schritte im Detail
 
-### Schritt 1: T-###### Ticket
-Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp):
-> `ticket-mcp-node_create_ticket({ type: "bug", brand: "mentolder", title: "<titel>", description: "<beschreibung>", status: "triage", severity: "<critical|major|minor|trivial>", priority: "hoch" })`
-Fallback (ticket-mcp nicht erreichbar):
-```bash
-# retiriert 2026-10-14 (kein Ticket-Backend): TICKET_RESULT=$(./ticket.sh create \
-#   --type bug \
-#   --brand mentolder \
-#   --title "<titel>" \
-#   --description "<beschreibung>" \
-#   --status triage \
-#   --severity "<critical|major|minor|trivial>" \
-#   --priority hoch)
-TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
-TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
-```
+### Schritt 1: Slug festlegen
+Kurzer kebab-case-Slug aus dem Fehlerbild; er wird Branch-Teil (`fix/<slug>`) und Plan-Ordner
+(`.agents/plans/<slug>/`).
 ### Schritt 2: Worktree anlegen
 ```bash
-# Preflight: wurde das Ticket bereits auf main gemergt? [T002279]
-bash scripts/plan-preflight.sh pre-worktree --ticket "$TICKET_EXT_ID"
-# rc=0 = fortfahren · rc=1 = bereits gemergt → Ticket done + abbrechen · rc=2 = Umgebung reparieren
-
 # git-crypt-safe: creates the worktree, handles git-crypt
 bash scripts/worktree-create.sh fix/<slug> .worktrees/<slug>
 WT="$(pwd)/.worktrees/<slug>"   # absoluter Worktree-Pfad [T006367] — Start ist der main-Checkout
@@ -299,10 +273,8 @@ cd .worktrees/<slug>
 > **Das `cd` wirkt nur auf Bash [T002357].** Read/Write/Edit nehmen absolute Pfade ohne Bezug
 > zum Bash-cwd — ab hier muss jeder Datei-Tool-Pfad explizit unter `.worktrees/<slug>/` liegen,
 > sonst trifft er still den Hauptcheckout (Mishap T002350).
-### Schritt 2.5: Ticket & Branch claimen (Session-Koordination [T000510])
+### Schritt 2.5: Branch claimen (Session-Koordination [T000510])
 ```bash
-bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
-  --branch "fix/<slug>" --worktree "$PWD" --label dev-flow-plan
 bash scripts/agent-lock.sh claim branch "fix/<slug>" --worktree "$PWD" --label dev-flow-plan
 ```
 Exit 1 = eine lebende Session arbeitet schon daran → koordinieren, nicht duplizieren.
@@ -319,31 +291,20 @@ Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch
 kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
-**Wo:** Als pytest-Funktion in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus Ticket-Titel/Feature-Name), nicht in ein ticket-nummeriertes Modul. Existiert das Modul noch nicht, anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_mcp_tooling.py`, Konventionen: `tests/CLAUDE.md`). Ausführen: `bash scripts/pytest-run.sh <modul>`.
+**Wo:** Als pytest-Funktion in `tests/py/spec/<bereich>/test_<kurz_slug>.py` (Bereich aus dem Feature-Namen), nicht in ein nummeriertes Modul. Existiert das Modul noch nicht, anlegen (Vorlage: `tests/py/spec/native_ported/spec/test_mcp_tooling.py`, Konventionen: `tests/CLAUDE.md`). Ausführen: `bash scripts/pytest-run.sh <modul>`.
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf (Superpowers-Plugin; opencode: das Äquivalent ist als inlinede Steps in diesem Skill) oder führe die Plan-Schreib-Schritte
 direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; schreibe den Plan nach
 `.agents/plans/<slug>/tasks.md` gemäß den plan-lint Hard Rules in Schritt 3.7).
-Wende das Frontmatter an und trage die Ticket-ID ein. **Erst committen und pushen, DANN stagen [T002673]:** `stage-plan` liest den Plan per `git cat-file -p "${branch}:${plan}"` aus dem Branch-Commit; vor dem Commit steht dort das propose-Skeleton, `touched_files` bliebe leer — seit T003267 bricht `stage-plan` dann mit Exit 1 ab (Override: `--allow-empty-touched`).
-### Schritt 4.5: Plan stagen (Fix 6)
-**MCP-first** (`ticket-mcp`):
-> `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: ".agents/plans/<slug>/tasks.md", hold: true })`
-Fallback (ticket-mcp nicht erreichbar):
-```bash
-# retiriert 2026-10-14 (kein Ticket-Backend): ./ticket.sh stage-plan \
-#   --id "$TICKET_EXT_ID" \
-#   --branch "fix/<slug>" \
-#   --plan ".agents/plans/<slug>/tasks.md" \
-#   --hold
-```
-Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flow-execute` bereit.
+Wende das Frontmatter an.
 ### Schritt 5: Commit & Push
 Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch:
 ```bash
 # [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT aus Fix-Schritt 2)
 cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
 git add tests/ .agents/plans/<slug>/tasks.md
-git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]"
+bash scripts/plan-preflight.sh pre-commit --branch "$(git branch --show-current)"
+git commit -m "chore(plans): add failing test + stage plan"
 git push -u origin $(git branch --show-current)
 ```
 > **Wichtig — Commit-Titel-Konvention für Plan-Stage-Commits:** Der Stage-Commit enthält NUR den RED-Test und Plan-Artefakte, KEINE Production-Code-Änderung. Verwende deshalb `chore(plans):` (analog zum Feature-Pfad oben) — **nicht** `fix(<scope>):` / `feat(<scope>):` / `refactor(<scope>):` / `perf(<scope>):`. Diese Implementierungs-Präfixe wären eine Lüge, weil der Diff keinen Production-Code enthält; der nachfolgende `dev-flow-execute`-Implementer würde dem Titel vertrauen und den eigentlichen Fix überspringen — exakt das ist bei T001434 (2026-07-02) passiert.
@@ -352,25 +313,3 @@ git push -u origin $(git branch --show-current)
 >
 > Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` blockiert jeden Commit mit Implementation-Type, dessen Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen Präfixe. Bypass: `SKIP_COMMIT_VS_DIFF=1 git commit ...` (Notfall).
 **STOPP.** Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
-
-## Preflight — Check merged ticket (T002279)
-
-Gilt in **beiden** Pfaden vor der Worktree-Anlage. Ein Bug wird häufig beiläufig in einem
-anderen Ticket mitgefixt; ohne diesen Check investiert die Planungs-Session Recherche in einen
-bereits erledigten Bug.
-
-```bash
-bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"
-```
-
-Exit-Codes:
-
-| rc | Bedeutung | Reaktion |
-|----|-----------|----------|
-| 0 | Ticket-ID nicht auf `main` gefunden | fortfahren |
-| 1 | Ticket-ID in gemergtem Commit oder Commit-Body auf `main` | Ticket auf `done` setzen, Session abbrechen |
-| 2 | ungültiges ID-Format oder `origin/main` fehlt | Aufruf korrigieren; kein Freibrief zum Fortfahren |
-
-Der Check kostet einen `git log`-Aufruf und fing beide Fundstellen der ursprünglichen Meldung
-ab (T002264, T002259). Er ersetzt **nicht** den Post-Merge-Scan aus T002279, sondern verhindert
-Doppelarbeit, bevor sie entsteht.

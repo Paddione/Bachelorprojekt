@@ -14,7 +14,8 @@ source "${SCRIPT_DIR}/lib/render-subst-list.sh"
 OUT_DIR="out"
 # --only a,b rendert nur die genannten Komponenten (platform, dev, dev-pod, mentolder,
 # korczewski, korczewski-jobs, website-mentolder, website-korczewski, korczewski-auth,
-# staging, website-staging, coturn, office, sealed-secrets-{mentolder,korczewski,staging}, clusters).
+# staging, website-staging, coturn, office, rustdesk,
+# sealed-secrets-{mentolder,korczewski,staging}, clusters).
 # Leer = alles (Default).
 ONLY=""
 # WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
@@ -437,6 +438,19 @@ if want office; then
 )
 fi
 
+# 5f. RustDesk-Relay (hbbs/hbbr) fuer mentolder. Substituiert wird nur
+#     ${TURN_NODE} (Knoten-Pin wie coturn); always-on, ohne den
+#     On-demand-Sleeper (T015170).
+if want rustdesk; then
+(
+  set +u
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
+  mkdir -p "${OUT_DIR}/rustdesk"
+  render_component prod-fleet/rustdesk "${OUT_DIR}/rustdesk/rustdesk.yaml"
+)
+fi
+
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
 # Nested per-brand: both files carry a SealedSecret for the shared
 # grafana-oidc secret (namespace monitoring), so a single flat kustomize
@@ -470,7 +484,7 @@ fi
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn" "${OUT_DIR}/office"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn" "${OUT_DIR}/office" "${OUT_DIR}/rustdesk"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

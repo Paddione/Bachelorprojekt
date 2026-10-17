@@ -208,7 +208,7 @@
       "path": "skills/sota-testing",
       "dest": ".opencode/skills/sota-testing",
       "track": "branch",
-      "ref": "199bbb2333129e63059987a236012210b1f9adac",
+      "ref": "052ca896d011562e700a8db25c03adf0997f1118",
       "version": null
     },
     "vitest-testing": {

@@ -208,7 +208,7 @@
       "path": "skills/sota-testing",
       "dest": ".opencode/skills/sota-testing",
       "track": "branch",
-      "ref": "052ca896d011562e700a8db25c03adf0997f1118",
+      "ref": "66d1d913ac70c1403a61ca961f49c5c8e4189e36",
       "version": null
     },
     "vitest-testing": {
@@ -216,7 +216,7 @@
       "path": "skills/vitest-testing",
       "dest": ".opencode/skills/vitest-testing",
       "track": "branch",
-      "ref": "d6d5f25df2a168144b3f0099c61ca69ee582023d",
+      "ref": "8b21d16c9809158869ecf1635f066a8ead3e8bef",
       "version": null
     },
     "gh-fix-ci": {

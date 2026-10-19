@@ -1,7 +1,6 @@
 {
   "files": [],
   "references": [
-    { "path": "./components/brett" },
     { "path": "./components/VideoVault" },
     { "path": "./components/website" },
     { "path": "./components/studio-server" },

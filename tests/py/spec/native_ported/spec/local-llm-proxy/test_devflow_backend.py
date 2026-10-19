@@ -14,7 +14,7 @@ import shlex
 import shutil
 from pathlib import Path
 
-EXPECTED_JOBS = {"test-bats", "test-manifests", "brett-typescript", "vitest-website"}
+EXPECTED_JOBS = {"test-bats", "test-manifests", "vitest-website"}
 
 
 def _env(repo_root, extra=None):
@@ -176,13 +176,11 @@ def test_devflow_turbolint_aggregates_stub_linters(repo_root, run_cmd, tmp_path)
     _write_stub(stubs / "plan-lint.sh",
                 "echo '{\"verdict\":\"FAIL\",\"hard\":[\"H1: stub finding\"],\"warn\":[]}'\nexit 1")
     _write_stub(stubs / "ruff", "exit 0")
-    _write_stub(stubs / "tsc", "echo 'src/a.ts(1,1): error TS0000: stub'\nexit 1")
     plan = tmp_path / "tasks.md"
     plan.write_text("# dummy plan\n", encoding="utf-8")
     env = _env(repo_root, {
         "PATH": f"{stubs}{os.pathsep}{os.environ['PATH']}",
         "DEVFLOW_PLAN_LINT": "plan-lint.sh",
-        "DEVFLOW_TSC_CMD": "tsc",
         "DEVFLOW_DIR": str(tmp_path / "devflow"),
     })
     res = run_cmd(
@@ -196,13 +194,11 @@ def test_devflow_turbolint_aggregates_stub_linters(repo_root, run_cmd, tmp_path)
     report = json.loads(res.stdout)
     assert set(report) >= {"results", "summary"}
     by_name = {r["name"]: r for r in report["results"]}
-    assert set(by_name) == {"plan-lint", "ruff", "tsc"}
+    assert set(by_name) == {"plan-lint", "ruff"}
     assert by_name["plan-lint"]["status"] == "fail"
     assert by_name["plan-lint"]["findings"] == ["H1: stub finding"]
     assert by_name["ruff"]["status"] == "ok"  # Positiv-Anker: gruen bleibt gruen
-    assert by_name["tsc"]["status"] == "fail"
-    assert any("TS0000" in f for f in by_name["tsc"]["findings"])
-    assert report["summary"]["failed"] == 2
+    assert report["summary"]["failed"] == 1
     assert report["summary"]["ok"] == 1
 
 

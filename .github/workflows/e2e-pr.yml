@@ -17,7 +17,6 @@ name: E2E (PR — gefiltert)
 #   feature/meeting-*      → @meeting
 #   feature/billing-*      → @billing
 #   feature/messaging-*    → @messaging
-#   feature/brett-*        → @brett
 #   feature/fragebogen-*   → @fragebogen
 #   feature/crm-*          → @crm
 #   fix/content-hub-*      → @content-hub
@@ -140,7 +139,6 @@ jobs:
             *meeting*)      TAG="meeting" ;;
             *billing*|*invoice*|*rechnun*) TAG="billing" ;;
             *messaging*|*chat*|*inbox*) TAG="messaging" ;;
-            *brett*)        TAG="brett" ;;
             *fragebogen*)   TAG="fragebogen" ;;
             *crm*)          TAG="crm" ;;
             *website*|*astro*|*landing*) TAG="website" ;;

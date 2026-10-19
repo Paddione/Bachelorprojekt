@@ -96,6 +96,15 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
         ('Ingress', 'workspace-ingress-vault'),
         ('NetworkPolicy', 'allow-website-to-vaultwarden-ingress'),
         ('Middleware', 'rate-limit-vault'),
+        # Brett-Entfernung: eigenes Brett entfallen (Prod-Brett laeuft ueber
+        # gekko32/mentolder-prod); lokale Overlays loeschen die Workloads.
+        ('Deployment', 'brett'),
+        ('Service', 'brett'),
+        ('Deployment', 'oauth2-proxy-brett'),
+        ('Service', 'oauth2-proxy-brett'),
+        ('Ingress', 'workspace-ingress-brett'),
+        ('NetworkPolicy', 'brett-ingress'),
+        ('NetworkPolicy', 'brett-egress'),
         # T016561: Videovault + Mediaviewer-Widget laufen nur noch in Dev.
         ('Deployment', 'videovault'),
         ('Service', 'videovault'),

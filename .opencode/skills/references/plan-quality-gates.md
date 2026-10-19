@@ -163,7 +163,7 @@ Dazu:
   `docs/code-quality/baseline.json` gegen main — Pläne dürfen keine Baseline-Einträge hinzufügen.
 - **Bestehende Tests erweitern statt neue Dateien anlegen** (Vitest/Playwright/pytest zuerst suchen).
 - **Manifest-Änderungen:** `task workspace:validate` + relevante `./tests/runner.sh local <TEST-ID>`.
-- **Image-Pins:** CI warnt bei `:latest` — Ausnahmen nur components/website/brett/docs (dokumentiert in CLAUDE.md).
+- **Image-Pins:** CI warnt bei `:latest` — Ausnahmen nur per Liste in CLAUDE.md (u.a. components/website/docs).
 - **Shell-Snippet Sanity:** CLI-Befehle im Plan auf Argument-Fallen prüfen (z.B. `jq --args` wandelt alle Folgearags in Strings um -> Input-Dateien via Stdin `< file` umleiten).
 
 ### Lifecycle Receipt + Delete [T900999]

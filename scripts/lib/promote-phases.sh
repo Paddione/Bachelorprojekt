@@ -19,14 +19,12 @@ svc_image_repo() {
       # Shared brand-neutral image since T001229 Phase 2 (WEBSITE_IMAGE=website,
       # PR #2167): both brands deploy the same ghcr.io/paddione/website.
       echo "ghcr.io/paddione/website" ;;
-    brett) echo "ghcr.io/paddione/workspace-brett" ;;
   esac
 }
 
 svc_deployment() {
   case "$1" in
     website) echo "website" ;;
-    brett)   echo "brett" ;;
   esac
 }
 
@@ -49,7 +47,6 @@ prod_ns() {
 default_smoke_grep() {
   case "$1" in
     website) echo 'fa-fragebogen|.*-auth-setup|fa-07-' ;;
-    brett)   echo 'brett-duel-mode|fa-27-brett' ;;
   esac
 }
 
@@ -166,7 +163,6 @@ promote_phase_build() {
   echo "▸ Build ${full}" >&2
   case "$svc" in
     website) run docker build -t "$full" "${REPO}/components/website/" >&2 ;;
-    brett)   run docker build -t "$full" "${REPO}/components/brett/" >&2 ;;
   esac
   echo "$full"
 }

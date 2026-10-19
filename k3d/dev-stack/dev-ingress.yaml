@@ -16,7 +16,7 @@ metadata:
     # Pin the SSO gate to the TLS (external) entrypoint ONLY. Without this a
     # wildcard Ingress binds to both `web` and `websecure`; since oauth2-proxy
     # loops its upstream back to the in-cluster Traefik `web` entrypoint, the
-    # *.dev wildcard would outrank the per-host website-dev/brett-dev Ingresses
+    # *.dev wildcard would outrank the per-host website-dev Ingress
     # (Traefik rule-length priority) on that loopback hop and bounce authed
     # traffic back to oauth2-proxy forever. Restricting to websecure means the
     # loopback `web` table is resolved purely by the per-host Ingresses. [T000363]

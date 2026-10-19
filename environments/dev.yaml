@@ -50,8 +50,7 @@ env_vars:
   VIDEOVAULT_DOMAIN: videovault.localhost
   # Pocket ID auf devmesh (D4); der Seed-Job leitet Callbacks aus der Frontend-URL ab.
   POCKET_ID_FRONTEND_URL: "https://auth.devmesh.korczewski.de"
-  # FQDN statt Kurzname: components/brett/src/server/auth.ts akzeptiert http nur für
-  # localhost/*.svc.cluster.local (T001933).
+  # FQDN statt Kurzname (T001933).
   POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
   # fail-closed Fallback auf die fleet-Pocket-ID ueber deren oeffentlichen Host (D4).
   POCKET_ID_FALLBACK_FRONTEND_URL: "https://auth.mentolder.de"

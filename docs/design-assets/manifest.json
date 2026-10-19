@@ -3,7 +3,6 @@
     {
       "members": [
         "assets/branding/mentolder/brett/characters/team-member-passive.svg",
-        "components/brett/public/assets/characters/team-member-passive.svg",
         "components/website/public/brand/mentolder/brett/characters/team-member-passive.svg"
       ],
       "sha256": "032bbb04101f0e00ff84fee8c5a0fc24c1450987439029cc5e26e16b73d646e9"
@@ -17,31 +16,10 @@
     },
     {
       "members": [
-        "assets/audio/bell-ui.ogg",
-        "components/brett/public/assets/sfx/bell-ui.ogg"
-      ],
-      "sha256": "03e4e6175cf22ac6c5d2cf17e5dc4a4c1560dd08098208ef31adabb7f6b6a0d7"
-    },
-    {
-      "members": [
         "assets/design-overviews/kore-design-system/arena/assets/renders/cover/pillar/pillar-00.png",
         "assets/design-overviews/kore-design-system/ui_kits/arena/arena-assets/pillar-00.png"
       ],
       "sha256": "04bb8e41c257474431e08634366f77032c34d41f523681eb99371711cb0e113d"
-    },
-    {
-      "members": [
-        "assets/audio/frostnova.ogg",
-        "components/brett/public/assets/sfx/frostnova.ogg"
-      ],
-      "sha256": "051b0eafc479695af4ca3607d41fd4be41bae7c21f4f9508d004722b09f1bd63"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/robe.png",
-        "components/brett/public/assets/figure-pack/accessories/robe.png"
-      ],
-      "sha256": "0523296047edb34da6e90033a0d9b409f615a869b18b1555d61ad4cb36781c69"
     },
     {
       "members": [
@@ -53,32 +31,11 @@
     },
     {
       "members": [
-        "assets/audio/handgun.ogg",
-        "components/brett/public/assets/sfx/handgun.ogg"
-      ],
-      "sha256": "05c263b59fe7bc609c9b1f1de5d32627c00848d5c9a2cbc00d83349df8a274e9"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/barefoot.png",
-        "components/brett/public/assets/figure-pack/accessories/barefoot.png"
-      ],
-      "sha256": "071b6db94c8e76089b53692cd47920a9e4a039ba6706c99b1b5b29526a80aeba"
-    },
-    {
-      "members": [
         "assets/art-library/sets/mentolder/portfolio/logos/brass-pulse.svg",
         "components/website/public/brand/mentolder/logos/brass-pulse.svg",
         "packages/design-system/assets/logos/brass-pulse.svg"
       ],
       "sha256": "078e89de62d657037559e11324d4f48d9688efa860ac245b37538d6638969558"
-    },
-    {
-      "members": [
-        "assets/audio/kill-confirmed.ogg",
-        "components/brett/public/assets/sfx/kill-confirmed.ogg"
-      ],
-      "sha256": "08e9832bf8069e9464efd45ba3e2e8d9d25f13abf69ca54a820d51f9ab91de11"
     },
     {
       "members": [
@@ -93,13 +50,6 @@
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/logo.html"
       ],
       "sha256": "0ba96eace1b378b244d99b786d4de916bdf2bd050565be57427126a780c42f63"
-    },
-    {
-      "members": [
-        "assets/audio/menu-open.ogg",
-        "components/brett/public/assets/sfx/menu-open.ogg"
-      ],
-      "sha256": "0cb37b8a37cad1ce52fb78af0eb86701154ecb882922c9eeed93599dd17fcffe"
     },
     {
       "members": [
@@ -122,20 +72,6 @@
     },
     {
       "members": [
-        "assets/game/respawn.mjs",
-        "components/brett/public/assets/combat/respawn.mjs"
-      ],
-      "sha256": "0f30e7144ae2a78cc4494e318277d262215a885f871f5f1ab1913717afb4543f"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/shawl.png",
-        "components/brett/public/assets/figure-pack/accessories/shawl.png"
-      ],
-      "sha256": "0fbf656a16afe696f2e957bad84078e989807f510bb0ac505fdb7e5aa1bdc1a6"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/preview/colors-secondary.html",
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/colors-secondary.html"
       ],
@@ -150,31 +86,10 @@
     },
     {
       "members": [
-        "assets/audio/hero-teleport.ogg",
-        "components/brett/public/assets/sfx/hero-teleport.ogg"
-      ],
-      "sha256": "12366490e9c610fb4191719440b49bd0a6167ce712713dd2aabca3cd4883c194"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/preview/topology.html",
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/topology.html"
       ],
       "sha256": "130fe43e9d31ab8941d0704e09edc1d5a45bde52ec2384bc7d0b5c23a6252632"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-concrete-02.ogg",
-        "components/brett/public/assets/sfx/footstep-concrete-02.ogg"
-      ],
-      "sha256": "137ccb1395e74d75f6ac34922f3f0e1c58cb63fd67c4b5b05cfebde100479627"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/_source/figure-pack-tokens.css",
-        "components/brett/public/assets/figure-pack/colors_and_type.css"
-      ],
-      "sha256": "13839fb5f88e4b01c2abb132427a9c602e7f844a6c469c42e9a58892fdaefbe1"
     },
     {
       "members": [
@@ -185,53 +100,10 @@
     },
     {
       "members": [
-        "assets/audio/vehicle-repair.ogg",
-        "components/brett/public/assets/sfx/vehicle-repair.ogg"
-      ],
-      "sha256": "142fd6c77f13d25f318265901163f70f8dfe12f87829169a570025be43de7011"
-    },
-    {
-      "members": [
-        "assets/audio/bell-gong.ogg",
-        "components/brett/public/assets/sfx/bell-gong.ogg"
-      ],
-      "sha256": "14b1a6e7c37ef44c60b8bdb50199c5e24d97c136436b4313ff0ca3fc5fea64c0"
-    },
-    {
-      "members": [
         "assets/branding/mentolder/brett/characters/saboteur.svg",
-        "components/brett/public/assets/characters/saboteur.svg",
         "components/website/public/brand/mentolder/brett/characters/saboteur.svg"
       ],
       "sha256": "17b632f01ed4f72f7443d655252b3c5cfa52d24b42db313cb0a6a41b3d9400df"
-    },
-    {
-      "members": [
-        "assets/audio/vehicle-crash.ogg",
-        "components/brett/public/assets/sfx/vehicle-crash.ogg"
-      ],
-      "sha256": "17cc809d5b60c9b1ab41171030b0068fd8df727f01870e58674f0679e00be1fb"
-    },
-    {
-      "members": [
-        "assets/audio/ko-stinger.ogg",
-        "components/brett/public/assets/sfx/ko-stinger.ogg"
-      ],
-      "sha256": "17ede5e74e005efbb4da6df5e69fa8af9b2002018f26c8d237402498b654570b"
-    },
-    {
-      "members": [
-        "assets/audio/ui-cancel.ogg",
-        "components/brett/public/assets/sfx/ui-cancel.ogg"
-      ],
-      "sha256": "17f434edf50e1bfdba14673ee724afb66ef1ad748e9ac83f4aa9686a324caff3"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/vest.png",
-        "components/brett/public/assets/figure-pack/accessories/vest.png"
-      ],
-      "sha256": "1960bcfab8d4ba88da62977b338487d4f8c75f4b3b783a7c8a1bc850b2c5aaf5"
     },
     {
       "members": [
@@ -243,25 +115,11 @@
     },
     {
       "members": [
-        "assets/audio/phase-gong.ogg",
-        "components/brett/public/assets/sfx/phase-gong.ogg"
-      ],
-      "sha256": "1d2127ccff344e5f35605a1c7217fc4f02e8593be725edff3bcada7bb5d2dbe3"
-    },
-    {
-      "members": [
         "assets/branding/korczewski/favicons/apple-touch-icon.png",
         "assets/design-overviews/kore-design-system/assets/apple-touch-icon.png",
         "components/website/public/brand/korczewski/favicons/apple-touch-icon.png"
       ],
       "sha256": "1d5a15c4afc1ee30cc4811ec9a5a0ed21d7cf71c0d259bc98bf869623b8a0370"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/yearning.png",
-        "components/brett/public/assets/figure-pack/faces/yearning.png"
-      ],
-      "sha256": "1d6e0610301148f38181eae7822889d708b5fa7c7112c064f864a355f0887467"
     },
     {
       "members": [
@@ -341,17 +199,9 @@
     {
       "members": [
         "assets/branding/mentolder/brett/props/prop-shield.svg",
-        "components/brett/public/assets/props/prop-shield.svg",
         "components/website/public/brand/mentolder/brett/props/prop-shield.svg"
       ],
       "sha256": "31564eb8f4d7c42d81e9bc5158dd2a5c46935b22491974f78a82c4fcb3cec0dd"
-    },
-    {
-      "members": [
-        "assets/audio/alert.ogg",
-        "components/brett/public/assets/sfx/alert.ogg"
-      ],
-      "sha256": "31a0c59da0f51179dc75ebc8fc1149a5a7cc83a2ea7c15437c7a68c5f8793af5"
     },
     {
       "members": [
@@ -360,13 +210,6 @@
         "packages/design-system/assets/props/briefcase.svg"
       ],
       "sha256": "31e3be51e8e1a312d2b66843b4d1111e20331f1ce27c2dcd649bb15faed03568"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/protective.png",
-        "components/brett/public/assets/figure-pack/faces/protective.png"
-      ],
-      "sha256": "322ae7af57673355a6cadf1459865c16fae46677e111f068e943a1d5e9d0f25b"
     },
     {
       "members": [
@@ -384,39 +227,11 @@
     },
     {
       "members": [
-        "assets/audio/piece-place.ogg",
-        "components/brett/public/assets/sfx/piece-place.ogg"
-      ],
-      "sha256": "354d8a6560cab9fb08d7b11f4e7c736d081448fb0d0a2ba5858eced796aadb04"
-    },
-    {
-      "members": [
         "assets/art-library/sets/mentolder/portfolio/logos/lockup-light.svg",
         "components/website/public/brand/mentolder/logos/lockup-light.svg",
         "packages/design-system/assets/logos/lockup-light.svg"
       ],
       "sha256": "35b6315039d2524907d3fe1ee11d47f99e37e57f167d7e29f753f0bee23a03fa"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/hair-curls.png",
-        "components/brett/public/assets/figure-pack/accessories/hair-curls.png"
-      ],
-      "sha256": "364772c1f07b353d8f9f40f7dfcd9244fa7e3cde2d3679e976d53ea72f4a57dc"
-    },
-    {
-      "members": [
-        "assets/audio/ui-click-alt.ogg",
-        "components/brett/public/assets/sfx/ui-click-alt.ogg"
-      ],
-      "sha256": "36d8406f2f2a96f3aa9090978ce30f0ba0a6146757231d3ee29fe711131713f5"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-concrete-03.ogg",
-        "components/brett/public/assets/sfx/footstep-concrete-03.ogg"
-      ],
-      "sha256": "38cebb0e7ddcd56f9630380bf56d85cb4e0b7ed85a850ce6a52c406492a42d68"
     },
     {
       "members": [
@@ -427,52 +242,10 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/apron.png",
-        "components/brett/public/assets/figure-pack/accessories/apron.png"
-      ],
-      "sha256": "39872f6ac68fa38fef8afc6acf36a7043bd3eac8887c24ae656641ad6ce63ade"
-    },
-    {
-      "members": [
-        "assets/audio/katana-swing.ogg",
-        "components/brett/public/assets/sfx/katana-swing.ogg"
-      ],
-      "sha256": "3a5eb793ff83ca584f2f0c8325c037c68f688feb7872123600e2cf35581dc274"
-    },
-    {
-      "members": [
         "assets/art-library/sets/mentolder/portfolio/terrain/sur-04.svg",
         "components/website/public/brand/mentolder/terrain/sur-04.svg"
       ],
       "sha256": "3a6a92914d6b3e6c96d30979bb0b861946958be1b75d1ee152bb948b12cb79d6"
-    },
-    {
-      "members": [
-        "assets/audio/crowd-cheer.ogg",
-        "components/brett/public/assets/sfx/crowd-cheer.ogg"
-      ],
-      "sha256": "3ad70ee3c0ce50a04c4955b81c4e3765e722a1d9c0f8c8e5a4e9779e8b6a1610"
-    },
-    {
-      "members": [
-        "assets/audio/chainlightning.ogg",
-        "components/brett/public/assets/sfx/chainlightning.ogg"
-      ],
-      "sha256": "3c7b3c9d856ee31fa1b92d29322f6ee472446627381595baeaba2af35c07135f"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-mud-02.ogg",
-        "components/brett/public/assets/sfx/footstep-mud-02.ogg"
-      ],
-      "sha256": "3f2295aede873a746ade678e53705e908db31c1198e07d4c0f848f4a0cd0fe4a"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/resolved.png",
-        "components/brett/public/assets/figure-pack/faces/resolved.png"
-      ],
-      "sha256": "4093af06cc8f3a89e66f9f852894b42c7c68a0aa2fa66dd0896837a99da4ba54"
     },
     {
       "members": [
@@ -485,31 +258,10 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/shoes-dress.png",
-        "components/brett/public/assets/figure-pack/accessories/shoes-dress.png"
-      ],
-      "sha256": "428debe58c19dfa454675a3e2fd79d50e4ce417def9b5f7839bc6420b86db786"
-    },
-    {
-      "members": [
-        "assets/audio/menu-hover.ogg",
-        "components/brett/public/assets/sfx/menu-hover.ogg"
-      ],
-      "sha256": "433194580f5f1018b5b586b5e87fe03a155e376e7f3d311d25ce4cf6d6d3af2e"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/ui_kits/documents/newsletter.html",
         "assets/brands/korczewski/uploads/Kore Design System (4)/ui_kits/documents/newsletter.html"
       ],
       "sha256": "43932e074c7a842b6aaff2fe19302ac6678f7ad79c4037d30d3eec1bcd588ff0"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-stone-02.ogg",
-        "components/brett/public/assets/sfx/footstep-stone-02.ogg"
-      ],
-      "sha256": "45bce65767841a16d30c3784930f3a3750a184aaad6323e03a54957282b62060"
     },
     {
       "members": [
@@ -524,20 +276,6 @@
         "components/website/public/brand/korczewski/brett/props/prop-firewall.svg"
       ],
       "sha256": "472ef2135199bd650a18a87b907f2dcd8e58f7436356c555504bc0bfe48e3b14"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/distant.png",
-        "components/brett/public/assets/figure-pack/faces/distant.png"
-      ],
-      "sha256": "48edfc93f2cdd7238b52c0496e97b7d8529672310ce0e1cd031be7f3803ec0c4"
-    },
-    {
-      "members": [
-        "assets/audio/katana-hit.ogg",
-        "components/brett/public/assets/sfx/katana-hit.ogg"
-      ],
-      "sha256": "48ef862ce456893fe5bc8d75be827693fe547182ee19d002446abd08d01017fd"
     },
     {
       "members": [
@@ -556,18 +294,9 @@
     {
       "members": [
         "assets/audio/footstep-mud-01.ogg",
-        "assets/audio/footstep-mud.ogg",
-        "components/brett/public/assets/sfx/footstep-mud-01.ogg",
-        "components/brett/public/assets/sfx/footstep-mud.ogg"
+        "assets/audio/footstep-mud.ogg"
       ],
       "sha256": "4e1acd551f9318ac3fb105404de106c4bbf854de78735eee36c8c21e48809eca"
-    },
-    {
-      "members": [
-        "assets/audio/hero-stealth.ogg",
-        "components/brett/public/assets/sfx/hero-stealth.ogg"
-      ],
-      "sha256": "4e6792a98c75d3ff187c0c55561c38c569e02c64757ebebb98831cfe84e3e172"
     },
     {
       "members": [
@@ -575,13 +304,6 @@
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/shadows.html"
       ],
       "sha256": "4f562aa469940986fb84c3262f93cc63f00e97366bd88ac99f0b7d9e09c15c43"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/coat.png",
-        "components/brett/public/assets/figure-pack/accessories/coat.png"
-      ],
-      "sha256": "4f7503b58f6ea24449f687f20dfa4a17ea60efa8a3886502a7eca7c1c913b828"
     },
     {
       "members": [
@@ -602,7 +324,6 @@
     {
       "members": [
         "assets/branding/mentolder/brett/characters/coachee.portrait.svg",
-        "components/brett/public/assets/characters/coachee.portrait.svg",
         "components/website/public/brand/mentolder/brett/characters/coachee.portrait.svg"
       ],
       "sha256": "53ffcb85de208aca7ede067e3131c4108fb68822b71e1079917162a42e725075"
@@ -626,31 +347,10 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/cap.png",
-        "components/brett/public/assets/figure-pack/accessories/cap.png"
-      ],
-      "sha256": "5644cf6986e4f7e44a8780571b7f108c865f746c1586c36fb55491f1703c4b49"
-    },
-    {
-      "members": [
-        "assets/game/weapons.mjs",
-        "components/brett/public/assets/combat/weapons.mjs"
-      ],
-      "sha256": "56e9fa4a2671433f40eb6944ffd4c7d164344a5f3a57f392d041fba1f0fb97bd"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/ui_kits/tweaks-panel.jsx",
         "assets/brands/korczewski/uploads/Kore Design System (4)/ui_kits/tweaks-panel.jsx"
       ],
       "sha256": "57fac7f3caf989845a3215a875d3b5e0140f7ee0b6b31165451bdea0b2532247"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-grass.ogg",
-        "components/brett/public/assets/sfx/footstep-grass.ogg"
-      ],
-      "sha256": "586426e22df608af5b63e0c6da3a5c8905a660db26947b52d7dfeadcfcd8ec2c"
     },
     {
       "members": [
@@ -661,24 +361,10 @@
     },
     {
       "members": [
-        "assets/game/damage.mjs",
-        "components/brett/public/assets/combat/damage.mjs"
-      ],
-      "sha256": "5b04df29473d29c72da63c573ad84481867d0d8f2c5f096683f6d11c0820f67f"
-    },
-    {
-      "members": [
         "assets/design-overviews/kore-design-system/arena/assets/renders/cover/crate/crate-00.png",
         "assets/design-overviews/kore-design-system/ui_kits/arena/arena-assets/crate-00.png"
       ],
       "sha256": "5bcb6edb4363e288bfb06ec345ae39aa3eb71ce9937107fca3895fc126427d29"
-    },
-    {
-      "members": [
-        "assets/audio/match-end.ogg",
-        "components/brett/public/assets/sfx/match-end.ogg"
-      ],
-      "sha256": "5bd3705a0a6b83eefd3b343e4075eee25a3f43154409c1091add953940e5f2f7"
     },
     {
       "members": [
@@ -690,7 +376,6 @@
     {
       "members": [
         "assets/branding/mentolder/brett/props/prop-balance.svg",
-        "components/brett/public/assets/props/prop-balance.svg",
         "components/website/public/brand/mentolder/brett/props/prop-balance.svg"
       ],
       "sha256": "6092fbf1609dec9ef98f905379464e545000f86c22b0dfaf0bcce36eed067b15"
@@ -704,27 +389,6 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/tunic.png",
-        "components/brett/public/assets/figure-pack/accessories/tunic.png"
-      ],
-      "sha256": "61e30cdcb8ddeb4eaffca2754a888cc11c4d911517e1ad378ac7a39cc09abce0"
-    },
-    {
-      "members": [
-        "assets/audio/duel-gong.ogg",
-        "components/brett/public/assets/sfx/duel-gong.ogg"
-      ],
-      "sha256": "63cef7b2a14f776c642b824bea2f9a41ad5a49119f3475659c11778f3af4ad25"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/cane.png",
-        "components/brett/public/assets/figure-pack/accessories/cane.png"
-      ],
-      "sha256": "645ee22917be0ba6566cd7990e4ace58b7e787345914991a831e53a14cb7e232"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/preview/section-head.html",
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/section-head.html"
       ],
@@ -732,24 +396,10 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/hair-bun.png",
-        "components/brett/public/assets/figure-pack/accessories/hair-bun.png"
-      ],
-      "sha256": "64e7985726ba44398bded1b4a7b78a4fe689001f5de7f86dbbfd0bdc21c65fde"
-    },
-    {
-      "members": [
         "assets/art-library/sets/mentolder/portfolio/characters/leadership.portrait.svg",
         "components/website/public/brand/mentolder/characters/leadership.portrait.svg"
       ],
       "sha256": "65cf7ef8381386fc1d6c8c0965dd5d9b678547250d8d877921bc1472c9db6436"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/curious.png",
-        "components/brett/public/assets/figure-pack/faces/curious.png"
-      ],
-      "sha256": "6667abb65a6feeb4708fa7466d9bfd049892fd46abb6fad6949607caae054680"
     },
     {
       "members": [
@@ -767,15 +417,7 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/hair-braid.png",
-        "components/brett/public/assets/figure-pack/accessories/hair-braid.png"
-      ],
-      "sha256": "6996af91dbd307a54c3b01e9fa8b5dc8075fc69ee31715a8f8f0860bc3e5fb4e"
-    },
-    {
-      "members": [
         "assets/branding/mentolder/brett/characters/coachee.figurine.svg",
-        "components/brett/public/assets/characters/coachee.figurine.svg",
         "components/website/public/brand/mentolder/brett/characters/coachee.figurine.svg"
       ],
       "sha256": "6a2384c57d60d95a621bf21fb13efa0aa3bda3260e3954515320e9a441f1c884"
@@ -786,13 +428,6 @@
         "components/website/public/brand/korczewski/logo-lockup-dark.svg"
       ],
       "sha256": "6aa5c419bfe540398f5fc252a156985b5481737d3de849703b679f811e8e35b8"
-    },
-    {
-      "members": [
-        "assets/audio/message-send.ogg",
-        "components/brett/public/assets/sfx/message-send.ogg"
-      ],
-      "sha256": "6d0052d5280db84314cdf66ba939f7bfd8bc08f6e8b3635d0ea8635133e91a46"
     },
     {
       "members": [
@@ -833,48 +468,6 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/overwhelmed.png",
-        "components/brett/public/assets/figure-pack/faces/overwhelmed.png"
-      ],
-      "sha256": "75a30ffbd0a9a0cb1c1d59e9e4a809ccc73a2cb13ee4c49b82d3101ad169d712"
-    },
-    {
-      "members": [
-        "assets/game/controller.mjs",
-        "components/brett/public/assets/combat/controller.mjs"
-      ],
-      "sha256": "76da456f20e3c738b6908b7adaf0f33e7cdb15ba925d882d94ad7787405993d6"
-    },
-    {
-      "members": [
-        "assets/audio/fire-burn-loop.ogg",
-        "components/brett/public/assets/sfx/fire-burn-loop.ogg"
-      ],
-      "sha256": "78b8a3d33e3db9b929f047c293f1f1137c997f721818d84f090c85abb4a50cac"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-mud-03.ogg",
-        "components/brett/public/assets/sfx/footstep-mud-03.ogg"
-      ],
-      "sha256": "7aa37ce1fab78161cd055a191025600e197fb0a5562af585a22804bd0849a746"
-    },
-    {
-      "members": [
-        "assets/audio/blood-splat.ogg",
-        "components/brett/public/assets/sfx/blood-splat.ogg"
-      ],
-      "sha256": "7acf0b7691de82a4ca239448bcbe9d0f294d3c90e9d8e88c45d8b4b2c228fca2"
-    },
-    {
-      "members": [
-        "assets/audio/ui-confirm.ogg",
-        "components/brett/public/assets/sfx/ui-confirm.ogg"
-      ],
-      "sha256": "7bde42f830544696ae1def5d0ef05b5440de777baf8ffa1b087f357cb5e6ea2d"
-    },
-    {
-      "members": [
         "assets/branding/korczewski/brett/props/prop-alert.svg",
         "components/website/public/brand/korczewski/brett/props/prop-alert.svg"
       ],
@@ -883,17 +476,9 @@
     {
       "members": [
         "assets/branding/mentolder/brett/terrain/fog-wash.svg",
-        "components/brett/public/assets/terrain/fog-wash.svg",
         "components/website/public/brand/mentolder/brett/terrain/fog-wash.svg"
       ],
       "sha256": "7e5572fca8d3504f49b60c698a7c6af8141887eeda45ad8dbfcfef72e8d44115"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-concrete-04.ogg",
-        "components/brett/public/assets/sfx/footstep-concrete-04.ogg"
-      ],
-      "sha256": "7fae422abda1c5108ff9b6a0133f45365116c30b06c04952c7d423e731d7a695"
     },
     {
       "members": [
@@ -901,20 +486,6 @@
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/stats.html"
       ],
       "sha256": "7ffa4f53485ea4641e0880c64603764970f93bbd508f85394c2518a3e0702175"
-    },
-    {
-      "members": [
-        "assets/audio/motorcycle-engine.ogg",
-        "components/brett/public/assets/sfx/motorcycle-engine.ogg"
-      ],
-      "sha256": "80297aa3e9f83a425cef0f8a2ff0696b56bd21463a1ae113ea79b6ffae8654d3"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/hair-long.png",
-        "components/brett/public/assets/figure-pack/accessories/hair-long.png"
-      ],
-      "sha256": "817722db90066944deb47557642da3e7f033d99b51c1427ba13a81aa5bae2285"
     },
     {
       "members": [
@@ -954,38 +525,10 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/mourning.png",
-        "components/brett/public/assets/figure-pack/faces/mourning.png"
-      ],
-      "sha256": "8569080fcb4131b7aef10cdbc09ce24409a9d5ef22bcb02ac8c93c4ad186f486"
-    },
-    {
-      "members": [
-        "assets/audio/user-join.ogg",
-        "components/brett/public/assets/sfx/user-join.ogg"
-      ],
-      "sha256": "85b216e3363c91311b54b8e97767ff48fb29e4da98d331a4646b3db6dd6d0428"
-    },
-    {
-      "members": [
-        "assets/audio/ui-error.ogg",
-        "components/brett/public/assets/sfx/ui-error.ogg"
-      ],
-      "sha256": "867cf5ff67c4818c2b3bdce5bd172fbc2ea5dd4bf16fa821607a0b1b41968b28"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/preview/booking.html",
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/booking.html"
       ],
       "sha256": "87c991357e2efbaa1e1a2f8d464a2d719de63eb26c5aa647a8a46752dde4c986"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/crown.png",
-        "components/brett/public/assets/figure-pack/accessories/crown.png"
-      ],
-      "sha256": "887d66fba9b0dc5d747e80ffd4bb0720e868485525150f95196ccc9c313dcbf1"
     },
     {
       "members": [
@@ -1032,13 +575,6 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/boots-work.png",
-        "components/brett/public/assets/figure-pack/accessories/boots-work.png"
-      ],
-      "sha256": "91bd6e342758818e5043966d9b838374fb33397d7f6550779cc8fbd578a67269"
-    },
-    {
-      "members": [
         "assets/branding/shared/identity/og-template-docs.svg",
         "components/website/public/brand/shared/identity/og-template-docs.svg"
       ],
@@ -1061,26 +597,12 @@
     },
     {
       "members": [
-        "assets/audio/unlock.ogg",
-        "components/brett/public/assets/sfx/unlock.ogg"
-      ],
-      "sha256": "970120244762419dbae52cdf1935e7db99b7fe007ec74914f1e2ba4ecfd8ad6e"
-    },
-    {
-      "members": [
         "assets/branding/korczewski/og-card.png",
         "assets/branding/korczewski/og-image.png",
         "components/website/public/brand/korczewski/og-card.png",
         "components/website/public/brand/korczewski/og-image.png"
       ],
       "sha256": "99f9e0ff764398046840e570f35b78f5c558ddeef16e378c1bbcdbd1fd430f8a"
-    },
-    {
-      "members": [
-        "assets/audio/node-degraded.ogg",
-        "components/brett/public/assets/sfx/node-degraded.ogg"
-      ],
-      "sha256": "9a482e66b5da891b183c7f6133611ae56256d28f8b94f14e4d2f2581e877134c"
     },
     {
       "members": [
@@ -1091,38 +613,10 @@
     },
     {
       "members": [
-        "assets/audio/message-receive.ogg",
-        "components/brett/public/assets/sfx/message-receive.ogg"
-      ],
-      "sha256": "9c396b87716d57f8c2ff0b84874c060795cf3c1eb25f2cfdafb6348ae9ee9d76"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/satchel.png",
-        "components/brett/public/assets/figure-pack/accessories/satchel.png"
-      ],
-      "sha256": "9dece98c417bc68aebc7b40ceeda8b0b49010a7cd2ef029c44391421666757f9"
-    },
-    {
-      "members": [
         "assets/branding/korczewski/brett/characters/security-officer.svg",
         "components/website/public/brand/korczewski/brett/characters/security-officer.svg"
       ],
       "sha256": "a0418bc77f9283293c08aa3a4aaee4e27270aa9414c63024ca17765556a85165"
-    },
-    {
-      "members": [
-        "assets/audio/explosion.ogg",
-        "components/brett/public/assets/sfx/explosion.ogg"
-      ],
-      "sha256": "a0856212ed8e6ab77b560435c40f346d83dd49113e2decccd893206e14f84adc"
-    },
-    {
-      "members": [
-        "assets/audio/club-hit.ogg",
-        "components/brett/public/assets/sfx/club-hit.ogg"
-      ],
-      "sha256": "a22f898c0b4418d0ec17313b14d7f2c6a36a1b71c28cce4cae21d4be53377a60"
     },
     {
       "members": [
@@ -1139,20 +633,6 @@
         "assets/art-library/sets/korczewski/portfolio_design/Portfolio.html"
       ],
       "sha256": "a28e70ec2397049e761eacebc772e297356d7be4eb81e6cb80ee4a3dc0a8dad2"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/blocked.png",
-        "components/brett/public/assets/figure-pack/faces/blocked.png"
-      ],
-      "sha256": "a2bd08858ceabb9ead075d0a8b9a6f5e1c572eb1d52f5136e6be70375319f5e1"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-stone-01.ogg",
-        "components/brett/public/assets/sfx/footstep-stone-01.ogg"
-      ],
-      "sha256": "a378979c774cbe71fb65852383214c3d8219d153711f98b93e0a3d031ef58bed"
     },
     {
       "members": [
@@ -1179,7 +659,6 @@
     {
       "members": [
         "assets/branding/mentolder/brett/characters/team-member-active.svg",
-        "components/brett/public/assets/characters/team-member-active.svg",
         "components/website/public/brand/mentolder/brett/characters/team-member-active.svg"
       ],
       "sha256": "a875970afe0041887c67e99358edccf40ce1d4805d4b53d35cb8c29382bb750e"
@@ -1202,24 +681,9 @@
     {
       "members": [
         "assets/branding/mentolder/brett/terrain/focus-circle.svg",
-        "components/brett/public/assets/terrain/focus-circle.svg",
         "components/website/public/brand/mentolder/brett/terrain/focus-circle.svg"
       ],
       "sha256": "abe61af3bd3a786ba4d504d2e06b00c4b58de81189f9a80b5a63b4d792c37adf"
-    },
-    {
-      "members": [
-        "assets/audio/shatter.ogg",
-        "components/brett/public/assets/sfx/shatter.ogg"
-      ],
-      "sha256": "abfb65588e5c6732c8914d6094ed7b0f8a82f013fbd0b62a70768b784f1d55eb"
-    },
-    {
-      "members": [
-        "assets/audio/match-start.ogg",
-        "components/brett/public/assets/sfx/match-start.ogg"
-      ],
-      "sha256": "acd192d1836a5093b4f2e7f26cb6fe4a7b16c42cfe9bc162a95654d47d6ba7d3"
     },
     {
       "members": [
@@ -1247,24 +711,10 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/withdrawn.png",
-        "components/brett/public/assets/figure-pack/faces/withdrawn.png"
-      ],
-      "sha256": "b7bbdaf1f1b7a458a4dbac8a45c33162ffd9493174bf0e10b38fa47d9de43fab"
-    },
-    {
-      "members": [
         "assets/branding/mentolder/identity/keycloak-bg-mentolder.svg",
         "components/website/public/brand/mentolder/identity/keycloak-bg-mentolder.svg"
       ],
       "sha256": "b7fa3fcd2e261606af547dd80b7db28330f006e4ccc43578dac1260c2ad71959"
-    },
-    {
-      "members": [
-        "assets/game/combat-hud.mjs",
-        "components/brett/public/assets/combat/combat-hud.mjs"
-      ],
-      "sha256": "b8952ff3ab3765881d020ba2a0d2a6e10bc8f2d6e4e36ad82b9dd3865d879da7"
     },
     {
       "members": [
@@ -1276,7 +726,6 @@
     {
       "members": [
         "assets/branding/mentolder/brett/props/prop-barrier.svg",
-        "components/brett/public/assets/props/prop-barrier.svg",
         "components/website/public/brand/mentolder/brett/props/prop-barrier.svg"
       ],
       "sha256": "bbb084676931efa7722a9fdee54c4051cc73d0106468ac2b6019f5f8df421d0c"
@@ -1306,20 +755,6 @@
     },
     {
       "members": [
-        "assets/audio/menu-close.ogg",
-        "components/brett/public/assets/sfx/menu-close.ogg"
-      ],
-      "sha256": "bdf0bfe4eb5400486d2248d2e657bc8a1e86b754d5658e7f75e920e90d5796d4"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/present.png",
-        "components/brett/public/assets/figure-pack/faces/present.png"
-      ],
-      "sha256": "be2518a98df779130b11ed1578cb87321927004eeaa8407de118bb16fa19eb02"
-    },
-    {
-      "members": [
         "assets/branding/korczewski/brett/props/prop-database.svg",
         "components/website/public/brand/korczewski/brett/props/prop-database.svg"
       ],
@@ -1327,31 +762,10 @@
     },
     {
       "members": [
-        "assets/audio/CREDITS.md",
-        "components/brett/public/assets/sfx/CREDITS.md"
-      ],
-      "sha256": "c04b8a26a8c160fd5e42710932ca8fcb0b66cdd3031b9d543be012ef60523aea"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/ui_kits/documents/questionnaire.html",
         "assets/brands/korczewski/uploads/Kore Design System (4)/ui_kits/documents/questionnaire.html"
       ],
       "sha256": "c15379a33e3072d5e98a1559558c6fcd278784cb44ea010355ddb685f13e5e4c"
-    },
-    {
-      "members": [
-        "assets/audio/shield-minion.ogg",
-        "components/brett/public/assets/sfx/shield-minion.ogg"
-      ],
-      "sha256": "c2916f2a062c8ddd1aca2826d134fe90847037db31342726ffb0f9097afe339c"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/hair-short.png",
-        "components/brett/public/assets/figure-pack/accessories/hair-short.png"
-      ],
-      "sha256": "c3203a7281f067341d0fcbc6ef2b1bdc0b533c4c85ac9b2e4fbeb05c0a0e04a8"
     },
     {
       "members": [
@@ -1376,20 +790,6 @@
     },
     {
       "members": [
-        "assets/audio/footstep-mud-04.ogg",
-        "components/brett/public/assets/sfx/footstep-mud-04.ogg"
-      ],
-      "sha256": "c8a77836650273cb65c2b0b22bcb13a105d1421cdbb908618c36101b47b75c55"
-    },
-    {
-      "members": [
-        "assets/audio/vehicle-switch.ogg",
-        "components/brett/public/assets/sfx/vehicle-switch.ogg"
-      ],
-      "sha256": "ca12dd32103f401481d5aff56d5e9831174e99bb577139c09b07d046eb8b837e"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/preview/tabs.html",
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/tabs.html"
       ],
@@ -1411,41 +811,6 @@
     },
     {
       "members": [
-        "assets/audio/footstep-stone-04.ogg",
-        "components/brett/public/assets/sfx/footstep-stone-04.ogg"
-      ],
-      "sha256": "cba8d73440a01a522ec6893385dbe83be5c35848d92d8e738eab2d6cdcb74678"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/blindfold.png",
-        "components/brett/public/assets/figure-pack/accessories/blindfold.png"
-      ],
-      "sha256": "ccd49da3c3e4a5e6c4b05d323cf5819fe51269a0ac5db47e305c284189f1d79d"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/sandals.png",
-        "components/brett/public/assets/figure-pack/accessories/sandals.png"
-      ],
-      "sha256": "ce1c71696f8dc2ddd343963021d259ab6777cd6e05ae05ec19b1b22ae7d3eeb1"
-    },
-    {
-      "members": [
-        "assets/audio/footstep-concrete-01.ogg",
-        "components/brett/public/assets/sfx/footstep-concrete-01.ogg"
-      ],
-      "sha256": "d33f13264a5092159f7bf912d3e57019348c36051845b68af7cc46b6747852a1"
-    },
-    {
-      "members": [
-        "assets/audio/frenzy-minion.ogg",
-        "components/brett/public/assets/sfx/frenzy-minion.ogg"
-      ],
-      "sha256": "d55e0c64aee9f1ab2ba9523d0e256ca76639c3ec2f230405e2ff25aff36020b3"
-    },
-    {
-      "members": [
         "assets/art-library/sets/mentolder/portfolio/props/compass.svg",
         "components/website/public/brand/mentolder/props/compass.svg",
         "packages/design-system/assets/props/compass.svg"
@@ -1458,13 +823,6 @@
         "components/website/public/brand/korczewski/icons.svg"
       ],
       "sha256": "d780a788a07464c03488921d99c3b51232e82f6081065bf6a3bd7d432a77e411"
-    },
-    {
-      "members": [
-        "assets/game/pickups.mjs",
-        "components/brett/public/assets/combat/pickups.mjs"
-      ],
-      "sha256": "d942c4d46b7e5bfe316d74669f4ba3b61a9711d85ca7a51b91144a84f7d55e71"
     },
     {
       "members": [
@@ -1503,13 +861,6 @@
     },
     {
       "members": [
-        "assets/audio/ui-click.ogg",
-        "components/brett/public/assets/sfx/ui-click.ogg"
-      ],
-      "sha256": "e0265a020303fd8b74357f27ecff8f01d84c67921a5e50d9bb12a56d7fb4481e"
-    },
-    {
-      "members": [
         "assets/art-library/sets/mentolder/portfolio/characters/digital50.figurine.svg",
         "components/website/public/brand/mentolder/characters/digital50.figurine.svg"
       ],
@@ -1524,20 +875,6 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/neutral.png",
-        "components/brett/public/assets/figure-pack/faces/neutral.png"
-      ],
-      "sha256": "e094241c8fcd0205b866d9d577f6e1a7120ff146ee6d520e54f4ad1dd64360fb"
-    },
-    {
-      "members": [
-        "assets/audio/hit-marker.ogg",
-        "components/brett/public/assets/sfx/hit-marker.ogg"
-      ],
-      "sha256": "e17afecb9af908edb1fdcfb3476ce9287fc3e1d9bf5e7782db9b61f5e8fc4e6b"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/preview/spacing.html",
         "assets/brands/korczewski/uploads/Kore Design System (4)/preview/spacing.html"
       ],
@@ -1549,13 +886,6 @@
         "assets/art-library/sets/korczewski/portfolio_design/assets.jsx"
       ],
       "sha256": "e2ec83823f7bcdc5d22262efeee7f2f1baa19b951d9699d22ae0a5e346d4986e"
-    },
-    {
-      "members": [
-        "assets/audio/reconcile-success.ogg",
-        "components/brett/public/assets/sfx/reconcile-success.ogg"
-      ],
-      "sha256": "e35e28aea2f064389111131e25cf21c2dd86d2d09182f2e2584f063674e1b5e1"
     },
     {
       "members": [
@@ -1574,38 +904,10 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/veil.png",
-        "components/brett/public/assets/figure-pack/accessories/veil.png"
-      ],
-      "sha256": "ec6943bef8ed17cba97c4657be06f3438f3e40d6199ed69aa54cd26c5d54d396"
-    },
-    {
-      "members": [
         "assets/art-library/sets/korczewski/design_handoff_artlibrary/characters.jsx",
         "assets/art-library/sets/korczewski/portfolio_design/characters.jsx"
       ],
       "sha256": "ec8f8ae00716c5dcf8a8c1d74611dc69eb66df0a0c4beb68ae070bfde567130d"
-    },
-    {
-      "members": [
-        "assets/audio/rifle.ogg",
-        "components/brett/public/assets/sfx/rifle.ogg"
-      ],
-      "sha256": "ed73c188dd9af679c8eddb0eb169a533fe730406cad23bc395ae5ab1f56324b3"
-    },
-    {
-      "members": [
-        "assets/game/fx.mjs",
-        "components/brett/public/assets/combat/fx.mjs"
-      ],
-      "sha256": "efe05429e136cb90beb4839a06ebb261776a5c22094d8dc312490549687232ca"
-    },
-    {
-      "members": [
-        "assets/audio/summon-minion.ogg",
-        "components/brett/public/assets/sfx/summon-minion.ogg"
-      ],
-      "sha256": "f050b3bb77cb0b901bc8df43d2cc1872c353aebae10b4030cf8ae681726ad343"
     },
     {
       "members": [
@@ -1624,22 +926,7 @@
     },
     {
       "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/accessories/swaddle.png",
-        "components/brett/public/assets/figure-pack/accessories/swaddle.png"
-      ],
-      "sha256": "f1bf33950cb7889f8e22b384f3e0ce85d14ed93718006bfe4efad2212b3baf6c"
-    },
-    {
-      "members": [
-        "assets/grilling-brett-admin-panel/Brett Design System/assets/figure-pack/faces/observing.png",
-        "components/brett/public/assets/figure-pack/faces/observing.png"
-      ],
-      "sha256": "f1fb6bb68acbc2854a0080af9bf7a90caa27308f8fd26c5db10c2b42168e2e1a"
-    },
-    {
-      "members": [
         "assets/branding/mentolder/brett/props/prop-target.svg",
-        "components/brett/public/assets/props/prop-target.svg",
         "components/website/public/brand/mentolder/brett/props/prop-target.svg"
       ],
       "sha256": "f3245b90e2de1b25d2a3bc451c2c121c22239ef131d7b8f8c5d8bb1e1271f06a"
@@ -1684,13 +971,6 @@
     },
     {
       "members": [
-        "assets/audio/footstep-stone-03.ogg",
-        "components/brett/public/assets/sfx/footstep-stone-03.ogg"
-      ],
-      "sha256": "f87641cd6dc5fdfabfe5f32751fa5374071ca1bd6a53a2ee2b1458a30772cb04"
-    },
-    {
-      "members": [
         "assets/branding/korczewski/brett/characters/product-owner.svg",
         "components/website/public/brand/korczewski/brett/characters/product-owner.svg"
       ],
@@ -1706,27 +986,13 @@
     },
     {
       "members": [
-        "assets/audio/spec/audio-sfx-spec.md",
-        "components/brett/public/assets/sfx/spec/audio-sfx-spec.md"
-      ],
-      "sha256": "fb97774b5bf7dedf9cc5d2bc891ea192f2cf98e5b9b61a45d97e50a0ced7ffbc"
-    },
-    {
-      "members": [
-        "assets/audio/bounce.ogg",
-        "components/brett/public/assets/sfx/bounce.ogg"
-      ],
-      "sha256": "fe38680491277b992657e77aeea794baf6c04d47be43e923879ef7fa22083ba8"
-    },
-    {
-      "members": [
         "assets/brands/mentolder/assets/favicon.ico",
         "assets/brands/mentolder/uploads/favicon.ico"
       ],
       "sha256": "fe8bd1736037c10e87ef1eba018c837f291592a346ab78ee3535a413e2843928"
     }
   ],
-  "file_count": 872,
+  "file_count": 737,
   "files": [
     {
       "format": "md",
@@ -5894,951 +5160,6 @@
       "size": 3675
     },
     {
-      "format": "svg",
-      "id": "components/brett/public/assets/characters/coachee.figurine.svg",
-      "mime": "image/svg+xml",
-      "sha256": "6a2384c57d60d95a621bf21fb13efa0aa3bda3260e3954515320e9a441f1c884",
-      "size": 1814
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/characters/coachee.portrait.svg",
-      "mime": "image/svg+xml",
-      "sha256": "53ffcb85de208aca7ede067e3131c4108fb68822b71e1079917162a42e725075",
-      "size": 1633
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/characters/saboteur.svg",
-      "mime": "image/svg+xml",
-      "sha256": "17b632f01ed4f72f7443d655252b3c5cfa52d24b42db313cb0a6a41b3d9400df",
-      "size": 1888
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/characters/team-member-active.svg",
-      "mime": "image/svg+xml",
-      "sha256": "a875970afe0041887c67e99358edccf40ce1d4805d4b53d35cb8c29382bb750e",
-      "size": 1891
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/characters/team-member-passive.svg",
-      "mime": "image/svg+xml",
-      "sha256": "032bbb04101f0e00ff84fee8c5a0fc24c1450987439029cc5e26e16b73d646e9",
-      "size": 1887
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/coaching/brand.mjs",
-      "mime": "application/javascript",
-      "sha256": "e310158ea439e16a2b356890c6bc61e223e98678f1903e06f3fc37d4364a3a4c",
-      "size": 290
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/coaching/hud-model.mjs",
-      "mime": "application/javascript",
-      "sha256": "a45cd98fca3aa26ed74db1275b90394bae9f7294371b59b4d033aff4b55c7235",
-      "size": 594
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/coaching/hud.mjs",
-      "mime": "application/javascript",
-      "sha256": "cd97655826dfbeec8ad37f0043d0f4432b32933bc971f8513d04b9b0f370c23e",
-      "size": 2746
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/coaching/join.mjs",
-      "mime": "application/javascript",
-      "sha256": "669fbf92f9c466fe19aa6f4084629d2194c9c511c2dc7981fffe1062cb814abd",
-      "size": 1811
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/coaching/locks.mjs",
-      "mime": "application/javascript",
-      "sha256": "56ad5fff10aef90f5f6ab7f2042b1cb58c76fd9e67c03ee95efc0fab4f416d72",
-      "size": 915
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/coaching/phases.mjs",
-      "mime": "application/javascript",
-      "sha256": "f1b56ba0f084f1a8394d51d453a0aa8d9ee1346b7d54c6c6a7d8659021784b8c",
-      "size": 1011
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/coaching/presence.mjs",
-      "mime": "application/javascript",
-      "sha256": "9ee90bbcd96ec78842f32f12f6e42714ca08b0caf51ab31ba00785962c29b360",
-      "size": 1012
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/coaching/wire.mjs",
-      "mime": "application/javascript",
-      "sha256": "e712e38ba43219924e3968f518d2681deb532dcfe3b8dfdf50edbc6880c22f4d",
-      "size": 763
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/combat/combat-hud.mjs",
-      "mime": "application/javascript",
-      "sha256": "b8952ff3ab3765881d020ba2a0d2a6e10bc8f2d6e4e36ad82b9dd3865d879da7",
-      "size": 1799
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/combat/controller.mjs",
-      "mime": "application/javascript",
-      "sha256": "76da456f20e3c738b6908b7adaf0f33e7cdb15ba925d882d94ad7787405993d6",
-      "size": 5190
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/combat/damage.mjs",
-      "mime": "application/javascript",
-      "sha256": "5b04df29473d29c72da63c573ad84481867d0d8f2c5f096683f6d11c0820f67f",
-      "size": 983
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/combat/fx.mjs",
-      "mime": "application/javascript",
-      "sha256": "efe05429e136cb90beb4839a06ebb261776a5c22094d8dc312490549687232ca",
-      "size": 2910
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/combat/pickups.mjs",
-      "mime": "application/javascript",
-      "sha256": "d942c4d46b7e5bfe316d74669f4ba3b61a9711d85ca7a51b91144a84f7d55e71",
-      "size": 749
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/combat/respawn.mjs",
-      "mime": "application/javascript",
-      "sha256": "0f30e7144ae2a78cc4494e318277d262215a885f871f5f1ab1913717afb4543f",
-      "size": 728
-    },
-    {
-      "format": "mjs",
-      "id": "components/brett/public/assets/combat/weapons.mjs",
-      "mime": "application/javascript",
-      "sha256": "56e9fa4a2671433f40eb6944ffd4c7d164344a5f3a57f392d041fba1f0fb97bd",
-      "size": 744
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/apron.png",
-      "mime": "image/png",
-      "sha256": "39872f6ac68fa38fef8afc6acf36a7043bd3eac8887c24ae656641ad6ce63ade",
-      "size": 6372
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/barefoot.png",
-      "mime": "image/png",
-      "sha256": "071b6db94c8e76089b53692cd47920a9e4a039ba6706c99b1b5b29526a80aeba",
-      "size": 6389
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/blindfold.png",
-      "mime": "image/png",
-      "sha256": "ccd49da3c3e4a5e6c4b05d323cf5819fe51269a0ac5db47e305c284189f1d79d",
-      "size": 3679
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/boots-work.png",
-      "mime": "image/png",
-      "sha256": "91bd6e342758818e5043966d9b838374fb33397d7f6550779cc8fbd578a67269",
-      "size": 4327
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/cane.png",
-      "mime": "image/png",
-      "sha256": "645ee22917be0ba6566cd7990e4ace58b7e787345914991a831e53a14cb7e232",
-      "size": 3685
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/cap.png",
-      "mime": "image/png",
-      "sha256": "5644cf6986e4f7e44a8780571b7f108c865f746c1586c36fb55491f1703c4b49",
-      "size": 6051
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/coat.png",
-      "mime": "image/png",
-      "sha256": "4f7503b58f6ea24449f687f20dfa4a17ea60efa8a3886502a7eca7c1c913b828",
-      "size": 5267
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/crown.png",
-      "mime": "image/png",
-      "sha256": "887d66fba9b0dc5d747e80ffd4bb0720e868485525150f95196ccc9c313dcbf1",
-      "size": 4894
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/hair-braid.png",
-      "mime": "image/png",
-      "sha256": "6996af91dbd307a54c3b01e9fa8b5dc8075fc69ee31715a8f8f0860bc3e5fb4e",
-      "size": 8233
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/hair-bun.png",
-      "mime": "image/png",
-      "sha256": "64e7985726ba44398bded1b4a7b78a4fe689001f5de7f86dbbfd0bdc21c65fde",
-      "size": 6704
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/hair-curls.png",
-      "mime": "image/png",
-      "sha256": "364772c1f07b353d8f9f40f7dfcd9244fa7e3cde2d3679e976d53ea72f4a57dc",
-      "size": 11780
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/hair-long.png",
-      "mime": "image/png",
-      "sha256": "817722db90066944deb47557642da3e7f033d99b51c1427ba13a81aa5bae2285",
-      "size": 6657
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/hair-short.png",
-      "mime": "image/png",
-      "sha256": "c3203a7281f067341d0fcbc6ef2b1bdc0b533c4c85ac9b2e4fbeb05c0a0e04a8",
-      "size": 5593
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/robe.png",
-      "mime": "image/png",
-      "sha256": "0523296047edb34da6e90033a0d9b409f615a869b18b1555d61ad4cb36781c69",
-      "size": 7740
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/sandals.png",
-      "mime": "image/png",
-      "sha256": "ce1c71696f8dc2ddd343963021d259ab6777cd6e05ae05ec19b1b22ae7d3eeb1",
-      "size": 7864
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/satchel.png",
-      "mime": "image/png",
-      "sha256": "9dece98c417bc68aebc7b40ceeda8b0b49010a7cd2ef029c44391421666757f9",
-      "size": 4477
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/scarf.png",
-      "mime": "image/png",
-      "sha256": "e11cb9e7ad76f880431f7bfb346bfd82b44542721332ea89f79d7f28fc424b1a",
-      "size": 4075
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/shawl.png",
-      "mime": "image/png",
-      "sha256": "0fbf656a16afe696f2e957bad84078e989807f510bb0ac505fdb7e5aa1bdc1a6",
-      "size": 7111
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/shoes-dress.png",
-      "mime": "image/png",
-      "sha256": "428debe58c19dfa454675a3e2fd79d50e4ce417def9b5f7839bc6420b86db786",
-      "size": 6319
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/spectacles.png",
-      "mime": "image/png",
-      "sha256": "0fee316396fe33fe210db2e4fbb5e6edd61f9484e004edf5aae99e6f467bc9c8",
-      "size": 4168
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/swaddle.png",
-      "mime": "image/png",
-      "sha256": "f1bf33950cb7889f8e22b384f3e0ce85d14ed93718006bfe4efad2212b3baf6c",
-      "size": 6936
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/tunic.png",
-      "mime": "image/png",
-      "sha256": "61e30cdcb8ddeb4eaffca2754a888cc11c4d911517e1ad378ac7a39cc09abce0",
-      "size": 6441
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/veil.png",
-      "mime": "image/png",
-      "sha256": "ec6943bef8ed17cba97c4657be06f3438f3e40d6199ed69aa54cd26c5d54d396",
-      "size": 12769
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/accessories/vest.png",
-      "mime": "image/png",
-      "sha256": "1960bcfab8d4ba88da62977b338487d4f8c75f4b3b783a7c8a1bc850b2c5aaf5",
-      "size": 6465
-    },
-    {
-      "format": "css",
-      "id": "components/brett/public/assets/figure-pack/colors_and_type.css",
-      "mime": "text/plain",
-      "sha256": "13839fb5f88e4b01c2abb132427a9c602e7f844a6c469c42e9a58892fdaefbe1",
-      "size": 5452
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/blocked.png",
-      "mime": "image/png",
-      "sha256": "a2bd08858ceabb9ead075d0a8b9a6f5e1c572eb1d52f5136e6be70375319f5e1",
-      "size": 8173
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/curious.png",
-      "mime": "image/png",
-      "sha256": "6667abb65a6feeb4708fa7466d9bfd049892fd46abb6fad6949607caae054680",
-      "size": 10117
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/defiant.png",
-      "mime": "image/png",
-      "sha256": "922f2f4acb8ec417e4edd1c080da3887917f8ecbc99e0855f275a60d7d471d67",
-      "size": 7346
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/distant.png",
-      "mime": "image/png",
-      "sha256": "48edfc93f2cdd7238b52c0496e97b7d8529672310ce0e1cd031be7f3803ec0c4",
-      "size": 8648
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/fearful.png",
-      "mime": "image/png",
-      "sha256": "a240eceea55170e84087b3f8aad38c019a516be9f02be248c1c3e09749146279",
-      "size": 9170
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/mourning.png",
-      "mime": "image/png",
-      "sha256": "8569080fcb4131b7aef10cdbc09ce24409a9d5ef22bcb02ac8c93c4ad186f486",
-      "size": 9783
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/neutral.png",
-      "mime": "image/png",
-      "sha256": "e094241c8fcd0205b866d9d577f6e1a7120ff146ee6d520e54f4ad1dd64360fb",
-      "size": 7950
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/observing.png",
-      "mime": "image/png",
-      "sha256": "f1fb6bb68acbc2854a0080af9bf7a90caa27308f8fd26c5db10c2b42168e2e1a",
-      "size": 7945
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/overwhelmed.png",
-      "mime": "image/png",
-      "sha256": "75a30ffbd0a9a0cb1c1d59e9e4a809ccc73a2cb13ee4c49b82d3101ad169d712",
-      "size": 10979
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/portrait-christina.png",
-      "mime": "image/png",
-      "sha256": "e527e6ccb5a177f8c2160b9d25f0e9c9fabd0982ec4c13ba44f08c1ecf9d7cca",
-      "size": 220355
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/portrait-martina.png",
-      "mime": "image/png",
-      "sha256": "dcfb5582fcbcdae78fc244e8e05c5a756f072f93fbc091b6e5393474fc954c73",
-      "size": 248591
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/portrait-oskar.png",
-      "mime": "image/png",
-      "sha256": "df74de740b7075c364877acb659098547dca5d7fd374d88cfbb6f66a83d6d321",
-      "size": 206897
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/portrait-papa.png",
-      "mime": "image/png",
-      "sha256": "ba8d3310ba5ab491a74c335d81a14b5926429a09dde46762ab724ccba52b4569",
-      "size": 190052
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/portrait-patrick.png",
-      "mime": "image/png",
-      "sha256": "b0ee037f80de4a6405d50a735dfee398cccba8c58ff8b067aa1aed5a7b3da280",
-      "size": 232235
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/present.png",
-      "mime": "image/png",
-      "sha256": "be2518a98df779130b11ed1578cb87321927004eeaa8407de118bb16fa19eb02",
-      "size": 9753
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/protective.png",
-      "mime": "image/png",
-      "sha256": "322ae7af57673355a6cadf1459865c16fae46677e111f068e943a1d5e9d0f25b",
-      "size": 9598
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/relieved.png",
-      "mime": "image/png",
-      "sha256": "c5de88983a8b770404cca2a071a0b331963209c7f90ffd5b77d074f5c7d26014",
-      "size": 7536
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/resolved.png",
-      "mime": "image/png",
-      "sha256": "4093af06cc8f3a89e66f9f852894b42c7c68a0aa2fa66dd0896837a99da4ba54",
-      "size": 8916
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/withdrawn.png",
-      "mime": "image/png",
-      "sha256": "b7bbdaf1f1b7a458a4dbac8a45c33162ffd9493174bf0e10b38fa47d9de43fab",
-      "size": 8610
-    },
-    {
-      "format": "png",
-      "id": "components/brett/public/assets/figure-pack/faces/yearning.png",
-      "mime": "image/png",
-      "sha256": "1d6e0610301148f38181eae7822889d708b5fa7c7112c064f864a355f0887467",
-      "size": 9121
-    },
-    {
-      "format": "json",
-      "id": "components/brett/public/assets/figure-pack/placement_spec.json",
-      "mime": "application/json",
-      "sha256": "eabe1aa3b5061216d209d6c67057943bf32fa8bb30df996eb4d4386427cc96bc",
-      "size": 19283
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/props/prop-balance.svg",
-      "mime": "image/svg+xml",
-      "sha256": "6092fbf1609dec9ef98f905379464e545000f86c22b0dfaf0bcce36eed067b15",
-      "size": 1851
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/props/prop-barrier.svg",
-      "mime": "image/svg+xml",
-      "sha256": "bbb084676931efa7722a9fdee54c4051cc73d0106468ac2b6019f5f8df421d0c",
-      "size": 1887
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/props/prop-shield.svg",
-      "mime": "image/svg+xml",
-      "sha256": "31564eb8f4d7c42d81e9bc5158dd2a5c46935b22491974f78a82c4fcb3cec0dd",
-      "size": 1300
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/props/prop-target.svg",
-      "mime": "image/svg+xml",
-      "sha256": "f3245b90e2de1b25d2a3bc451c2c121c22239ef131d7b8f8c5d8bb1e1271f06a",
-      "size": 1749
-    },
-    {
-      "format": "md",
-      "id": "components/brett/public/assets/sfx/CREDITS.md",
-      "mime": "text/plain",
-      "sha256": "c04b8a26a8c160fd5e42710932ca8fcb0b66cdd3031b9d543be012ef60523aea",
-      "size": 3697
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/alert.ogg",
-      "mime": "audio/ogg",
-      "sha256": "31a0c59da0f51179dc75ebc8fc1149a5a7cc83a2ea7c15437c7a68c5f8793af5",
-      "size": 16387
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/bell-gong.ogg",
-      "mime": "audio/ogg",
-      "sha256": "14b1a6e7c37ef44c60b8bdb50199c5e24d97c136436b4313ff0ca3fc5fea64c0",
-      "size": 15623
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/bell-ui.ogg",
-      "mime": "audio/ogg",
-      "sha256": "03e4e6175cf22ac6c5d2cf17e5dc4a4c1560dd08098208ef31adabb7f6b6a0d7",
-      "size": 12941
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/blood-splat.ogg",
-      "mime": "audio/ogg",
-      "sha256": "7acf0b7691de82a4ca239448bcbe9d0f294d3c90e9d8e88c45d8b4b2c228fca2",
-      "size": 2921
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/bounce.ogg",
-      "mime": "audio/ogg",
-      "sha256": "fe38680491277b992657e77aeea794baf6c04d47be43e923879ef7fa22083ba8",
-      "size": 16138
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/chainlightning.ogg",
-      "mime": "audio/ogg",
-      "sha256": "3c7b3c9d856ee31fa1b92d29322f6ee472446627381595baeaba2af35c07135f",
-      "size": 26104
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/club-hit.ogg",
-      "mime": "audio/ogg",
-      "sha256": "a22f898c0b4418d0ec17313b14d7f2c6a36a1b71c28cce4cae21d4be53377a60",
-      "size": 5351
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/crowd-cheer.ogg",
-      "mime": "audio/ogg",
-      "sha256": "3ad70ee3c0ce50a04c4955b81c4e3765e722a1d9c0f8c8e5a4e9779e8b6a1610",
-      "size": 57063
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/duel-gong.ogg",
-      "mime": "audio/ogg",
-      "sha256": "63cef7b2a14f776c642b824bea2f9a41ad5a49119f3475659c11778f3af4ad25",
-      "size": 15435
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/explosion.ogg",
-      "mime": "audio/ogg",
-      "sha256": "a0856212ed8e6ab77b560435c40f346d83dd49113e2decccd893206e14f84adc",
-      "size": 8295
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/fire-burn-loop.ogg",
-      "mime": "audio/ogg",
-      "sha256": "78b8a3d33e3db9b929f047c293f1f1137c997f721818d84f090c85abb4a50cac",
-      "size": 52728
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-concrete-01.ogg",
-      "mime": "audio/ogg",
-      "sha256": "d33f13264a5092159f7bf912d3e57019348c36051845b68af7cc46b6747852a1",
-      "size": 4649
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-concrete-02.ogg",
-      "mime": "audio/ogg",
-      "sha256": "137ccb1395e74d75f6ac34922f3f0e1c58cb63fd67c4b5b05cfebde100479627",
-      "size": 4369
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-concrete-03.ogg",
-      "mime": "audio/ogg",
-      "sha256": "38cebb0e7ddcd56f9630380bf56d85cb4e0b7ed85a850ce6a52c406492a42d68",
-      "size": 34725
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-concrete-04.ogg",
-      "mime": "audio/ogg",
-      "sha256": "7fae422abda1c5108ff9b6a0133f45365116c30b06c04952c7d423e731d7a695",
-      "size": 36963
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-grass.ogg",
-      "mime": "audio/ogg",
-      "sha256": "586426e22df608af5b63e0c6da3a5c8905a660db26947b52d7dfeadcfcd8ec2c",
-      "size": 7868
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-mud-01.ogg",
-      "mime": "audio/ogg",
-      "sha256": "4e1acd551f9318ac3fb105404de106c4bbf854de78735eee36c8c21e48809eca",
-      "size": 8355
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-mud-02.ogg",
-      "mime": "audio/ogg",
-      "sha256": "3f2295aede873a746ade678e53705e908db31c1198e07d4c0f848f4a0cd0fe4a",
-      "size": 10046
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-mud-03.ogg",
-      "mime": "audio/ogg",
-      "sha256": "7aa37ce1fab78161cd055a191025600e197fb0a5562af585a22804bd0849a746",
-      "size": 8018
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-mud-04.ogg",
-      "mime": "audio/ogg",
-      "sha256": "c8a77836650273cb65c2b0b22bcb13a105d1421cdbb908618c36101b47b75c55",
-      "size": 6804
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-mud.ogg",
-      "mime": "audio/ogg",
-      "sha256": "4e1acd551f9318ac3fb105404de106c4bbf854de78735eee36c8c21e48809eca",
-      "size": 8355
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-stone-01.ogg",
-      "mime": "audio/ogg",
-      "sha256": "a378979c774cbe71fb65852383214c3d8219d153711f98b93e0a3d031ef58bed",
-      "size": 6943
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-stone-02.ogg",
-      "mime": "audio/ogg",
-      "sha256": "45bce65767841a16d30c3784930f3a3750a184aaad6323e03a54957282b62060",
-      "size": 6764
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-stone-03.ogg",
-      "mime": "audio/ogg",
-      "sha256": "f87641cd6dc5fdfabfe5f32751fa5374071ca1bd6a53a2ee2b1458a30772cb04",
-      "size": 6683
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/footstep-stone-04.ogg",
-      "mime": "audio/ogg",
-      "sha256": "cba8d73440a01a522ec6893385dbe83be5c35848d92d8e738eab2d6cdcb74678",
-      "size": 6718
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/frenzy-minion.ogg",
-      "mime": "audio/ogg",
-      "sha256": "d55e0c64aee9f1ab2ba9523d0e256ca76639c3ec2f230405e2ff25aff36020b3",
-      "size": 4915
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/frostnova.ogg",
-      "mime": "audio/ogg",
-      "sha256": "051b0eafc479695af4ca3607d41fd4be41bae7c21f4f9508d004722b09f1bd63",
-      "size": 27647
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/handgun.ogg",
-      "mime": "audio/ogg",
-      "sha256": "05c263b59fe7bc609c9b1f1de5d32627c00848d5c9a2cbc00d83349df8a274e9",
-      "size": 3041
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/hero-stealth.ogg",
-      "mime": "audio/ogg",
-      "sha256": "4e6792a98c75d3ff187c0c55561c38c569e02c64757ebebb98831cfe84e3e172",
-      "size": 19501
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/hero-teleport.ogg",
-      "mime": "audio/ogg",
-      "sha256": "12366490e9c610fb4191719440b49bd0a6167ce712713dd2aabca3cd4883c194",
-      "size": 51567
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/hit-marker.ogg",
-      "mime": "audio/ogg",
-      "sha256": "e17afecb9af908edb1fdcfb3476ce9287fc3e1d9bf5e7782db9b61f5e8fc4e6b",
-      "size": 5351
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/katana-hit.ogg",
-      "mime": "audio/ogg",
-      "sha256": "48ef862ce456893fe5bc8d75be827693fe547182ee19d002446abd08d01017fd",
-      "size": 6615
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/katana-swing.ogg",
-      "mime": "audio/ogg",
-      "sha256": "3a5eb793ff83ca584f2f0c8325c037c68f688feb7872123600e2cf35581dc274",
-      "size": 4777
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/kill-confirmed.ogg",
-      "mime": "audio/ogg",
-      "sha256": "08e9832bf8069e9464efd45ba3e2e8d9d25f13abf69ca54a820d51f9ab91de11",
-      "size": 25408
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/ko-stinger.ogg",
-      "mime": "audio/ogg",
-      "sha256": "17ede5e74e005efbb4da6df5e69fa8af9b2002018f26c8d237402498b654570b",
-      "size": 8864
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/match-end.ogg",
-      "mime": "audio/ogg",
-      "sha256": "5bd3705a0a6b83eefd3b343e4075eee25a3f43154409c1091add953940e5f2f7",
-      "size": 18083
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/match-start.ogg",
-      "mime": "audio/ogg",
-      "sha256": "acd192d1836a5093b4f2e7f26cb6fe4a7b16c42cfe9bc162a95654d47d6ba7d3",
-      "size": 16981
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/menu-close.ogg",
-      "mime": "audio/ogg",
-      "sha256": "bdf0bfe4eb5400486d2248d2e657bc8a1e86b754d5658e7f75e920e90d5796d4",
-      "size": 17656
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/menu-hover.ogg",
-      "mime": "audio/ogg",
-      "sha256": "433194580f5f1018b5b586b5e87fe03a155e376e7f3d311d25ce4cf6d6d3af2e",
-      "size": 17554
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/menu-open.ogg",
-      "mime": "audio/ogg",
-      "sha256": "0cb37b8a37cad1ce52fb78af0eb86701154ecb882922c9eeed93599dd17fcffe",
-      "size": 5137
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/message-receive.ogg",
-      "mime": "audio/ogg",
-      "sha256": "9c396b87716d57f8c2ff0b84874c060795cf3c1eb25f2cfdafb6348ae9ee9d76",
-      "size": 6083
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/message-send.ogg",
-      "mime": "audio/ogg",
-      "sha256": "6d0052d5280db84314cdf66ba939f7bfd8bc08f6e8b3635d0ea8635133e91a46",
-      "size": 8856
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/motorcycle-engine.ogg",
-      "mime": "audio/ogg",
-      "sha256": "80297aa3e9f83a425cef0f8a2ff0696b56bd21463a1ae113ea79b6ffae8654d3",
-      "size": 70527
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/node-degraded.ogg",
-      "mime": "audio/ogg",
-      "sha256": "9a482e66b5da891b183c7f6133611ae56256d28f8b94f14e4d2f2581e877134c",
-      "size": 9630
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/phase-gong.ogg",
-      "mime": "audio/ogg",
-      "sha256": "1d2127ccff344e5f35605a1c7217fc4f02e8593be725edff3bcada7bb5d2dbe3",
-      "size": 13285
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/piece-place.ogg",
-      "mime": "audio/ogg",
-      "sha256": "354d8a6560cab9fb08d7b11f4e7c736d081448fb0d0a2ba5858eced796aadb04",
-      "size": 7135
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/reconcile-success.ogg",
-      "mime": "audio/ogg",
-      "sha256": "e35e28aea2f064389111131e25cf21c2dd86d2d09182f2e2584f063674e1b5e1",
-      "size": 6652
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/rifle.ogg",
-      "mime": "audio/ogg",
-      "sha256": "ed73c188dd9af679c8eddb0eb169a533fe730406cad23bc395ae5ab1f56324b3",
-      "size": 7041
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/shatter.ogg",
-      "mime": "audio/ogg",
-      "sha256": "abfb65588e5c6732c8914d6094ed7b0f8a82f013fbd0b62a70768b784f1d55eb",
-      "size": 7194
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/shield-minion.ogg",
-      "mime": "audio/ogg",
-      "sha256": "c2916f2a062c8ddd1aca2826d134fe90847037db31342726ffb0f9097afe339c",
-      "size": 25672
-    },
-    {
-      "format": "md",
-      "id": "components/brett/public/assets/sfx/spec/audio-sfx-spec.md",
-      "mime": "text/plain",
-      "sha256": "fb97774b5bf7dedf9cc5d2bc891ea192f2cf98e5b9b61a45d97e50a0ced7ffbc",
-      "size": 2234
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/summon-minion.ogg",
-      "mime": "audio/ogg",
-      "sha256": "f050b3bb77cb0b901bc8df43d2cc1872c353aebae10b4030cf8ae681726ad343",
-      "size": 11618
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/ui-cancel.ogg",
-      "mime": "audio/ogg",
-      "sha256": "17f434edf50e1bfdba14673ee724afb66ef1ad748e9ac83f4aa9686a324caff3",
-      "size": 19156
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/ui-click-alt.ogg",
-      "mime": "audio/ogg",
-      "sha256": "36d8406f2f2a96f3aa9090978ce30f0ba0a6146757231d3ee29fe711131713f5",
-      "size": 4574
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/ui-click.ogg",
-      "mime": "audio/ogg",
-      "sha256": "e0265a020303fd8b74357f27ecff8f01d84c67921a5e50d9bb12a56d7fb4481e",
-      "size": 4936
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/ui-confirm.ogg",
-      "mime": "audio/ogg",
-      "sha256": "7bde42f830544696ae1def5d0ef05b5440de777baf8ffa1b087f357cb5e6ea2d",
-      "size": 16857
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/ui-error.ogg",
-      "mime": "audio/ogg",
-      "sha256": "867cf5ff67c4818c2b3bdce5bd172fbc2ea5dd4bf16fa821607a0b1b41968b28",
-      "size": 5029
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/unlock.ogg",
-      "mime": "audio/ogg",
-      "sha256": "970120244762419dbae52cdf1935e7db99b7fe007ec74914f1e2ba4ecfd8ad6e",
-      "size": 7876
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/user-join.ogg",
-      "mime": "audio/ogg",
-      "sha256": "85b216e3363c91311b54b8e97767ff48fb29e4da98d331a4646b3db6dd6d0428",
-      "size": 7048
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/vehicle-crash.ogg",
-      "mime": "audio/ogg",
-      "sha256": "17cc809d5b60c9b1ab41171030b0068fd8df727f01870e58674f0679e00be1fb",
-      "size": 8841
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/vehicle-repair.ogg",
-      "mime": "audio/ogg",
-      "sha256": "142fd6c77f13d25f318265901163f70f8dfe12f87829169a570025be43de7011",
-      "size": 8713
-    },
-    {
-      "format": "ogg",
-      "id": "components/brett/public/assets/sfx/vehicle-switch.ogg",
-      "mime": "audio/ogg",
-      "sha256": "ca12dd32103f401481d5aff56d5e9831174e99bb577139c09b07d046eb8b837e",
-      "size": 9653
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/terrain/focus-circle.svg",
-      "mime": "image/svg+xml",
-      "sha256": "abe61af3bd3a786ba4d504d2e06b00c4b58de81189f9a80b5a63b4d792c37adf",
-      "size": 823
-    },
-    {
-      "format": "svg",
-      "id": "components/brett/public/assets/terrain/fog-wash.svg",
-      "mime": "image/svg+xml",
-      "sha256": "7e5572fca8d3504f49b60c698a7c6af8141887eeda45ad8dbfcfef72e8d44115",
-      "size": 1322
-    },
-    {
       "format": "css",
       "id": "components/website/public/brand/korczewski/app.css",
       "mime": "text/plain",
@@ -7839,8 +6160,7 @@
     ".design-sync/",
     "packages/design-system/",
     "design/leitstand-ds/",
-    "components/website/public/brand/",
-    "components/brett/public/assets/"
+    "components/website/public/brand/"
   ],
   "skip_patterns": [
     ".git/",
@@ -7854,5 +6174,5 @@
     "*cache*",
     "*backup*"
   ],
-  "total_bytes": 20924022
+  "total_bytes": 18581576
 }

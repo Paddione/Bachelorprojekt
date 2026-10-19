@@ -18,7 +18,6 @@ SCOPE_ROOTS=(
   packages/design-system
   design/leitstand-ds
   components/website/public/brand
-  components/brett/public/assets
 )
 
 usage() {
@@ -29,8 +28,8 @@ Bounded read-only inventory of the WSL design assets (T901038). Writes a
 byte-reproducible JSON manifest to stdout, or to MANIFEST.json with --out.
 
 Scope roots (fixed): assets/, .design-sync/, packages/design-system/,
-design/leitstand-ds/, components/website/public/brand/,
-components/brett/public/assets/. Symlinks are never followed; .git/,
+design/leitstand-ds/, components/website/public/brand/.
+Symlinks are never followed; .git/,
 node_modules/ and __pycache__/ are pruned; secret/history/weight/cache/
 backup-like file names are skipped. File contents are only hashed and
 mime-typed, never interpreted.
@@ -126,7 +125,6 @@ manifest = {
         "packages/design-system/",
         "design/leitstand-ds/",
         "components/website/public/brand/",
-        "components/brett/public/assets/",
     ],
     "skip_patterns": [
         ".git/", "node_modules/", "__pycache__/",

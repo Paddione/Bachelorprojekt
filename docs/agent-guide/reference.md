@@ -5,7 +5,7 @@ Moved from `AGENTS.md` (C1b diet, T900560) — read on-demand, do not frontload.
 ## Quality Gates (read when verifying before merge)
 
 - `task test:changed` (smart selection, vitest-Fallback) · `task freshness:check` (Artefakte committet) · `task test:code-quality` (file-size/import-cycle/hostname).
-- Brett: `npm run typecheck && npm test && npm run build --prefix components/brett` · Website: `pnpm test:unit` in `components/website` (vitest) · PR-Titel: Conventional Commits + `[T000XXX]` (advisory).
+- Website: `pnpm test:unit` in `components/website` (vitest) · PR-Titel: Conventional Commits + `[T000XXX]` (advisory).
 
 ## Project Overview — Services
 

@@ -29,7 +29,6 @@ tasks:
     desc: Run the offline unit pytest modules (tests/py/unit + ported tests/unit specs) in parallel
     cmds:
       - bash scripts/pytest-run.sh tests/py/unit tests/py/unit/ported tests/py/spec/native_ported/spec/test_mcp_tooling.py
-      - bash tests/figure-pack-assets.test.sh
 
   test:unit:agent-push:
     internal: true
@@ -100,11 +99,6 @@ tasks:
     internal: true
     cmds:
       - bash scripts/pytest-run.sh tests/py/unit/ported/test_agent_ops_output_trust.py
-  test:unit:figure-pack:
-    internal: true
-    cmds:
-      - bash tests/figure-pack-assets.test.sh
-
   test:unit:discover-versions:
     internal: true
     cmds:
@@ -432,7 +426,6 @@ tasks:
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
         echo "$CHANGED" | grep -qE "^\.github/workflows/" && RUN_WORKFLOWS=true || true
         echo "$CHANGED" | grep -qE "^components/website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true
-        echo "$CHANGED" | grep -qE "^components/brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|environments/|components/VideoVault/)" && RUN_E2E_SERVICES=true || true
         echo "$CHANGED" | grep -qE "(korczewski)" && RUN_E2E_KORCZEWSKI=true || true
         if [ "$RUN_WEBSITE" = "true" ]; then
@@ -469,9 +462,6 @@ tasks:
           echo "→ script/test changes: full pytest suite"
           task test:spec:build-mcp-runner
           bash scripts/pytest-run.sh tests/py
-          if echo "$CHANGED" | grep -qE "^(tests/figure-pack-assets|assets/)"; then
-            bash tests/figure-pack-assets.test.sh
-          fi
         fi
 
         if [ "$RUN_FACTORY" = "true" ]; then echo "→ FA changes: task test:decommission"; task test:decommission; fi
@@ -502,10 +492,9 @@ tasks:
             echo "→ e2e services uebersprungen: localhost:4321 antwortet nicht. Kein PR-Blocker — CI fuehrt diese Gruppe fuer PRs ohnehin nicht aus."
           fi
         fi
-        if [ "$RUN_E2E_BRETT" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e brett changes: task test:e2e:brett"; task test:e2e:brett; fi
         if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
 
-        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_WORKFLOWS" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
+        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_WORKFLOWS" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1 && (cd components/website && pnpm vitest --version </dev/null >/dev/null 2>&1); then
             echo "→ no domain-specific changes: vitest --changed"
             (cd components/website && pnpm vitest run --changed --reporter verbose)
@@ -745,15 +734,6 @@ tasks:
         [ -d node_modules ] || npm ci
         ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
         ./node_modules/.bin/playwright test --project=services {{.CLI_ARGS}}
-
-  test:e2e:brett:
-    desc: "Run Playwright brett-mentolder project against WEBSITE_URL"
-    dir: tests/e2e
-    cmds:
-      - |
-        [ -d node_modules ] || npm ci
-        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
-        ./node_modules/.bin/playwright test --project=brett-mentolder {{.CLI_ARGS}}
 
   test:e2e:korczewski:
     desc: "Run Playwright korczewski project against KORCZEWSKI_URL (default https://web.korczewski.de)"

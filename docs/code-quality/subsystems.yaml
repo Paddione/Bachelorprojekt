@@ -40,12 +40,6 @@
   owner_agent: bp-build
   test_location: scripts/tests/
   purpose: Deploy/migration/build helpers (everything in scripts/ that is not DB).
-- id: brett
-  name: Brett 3D board (CommonJS)
-  paths: ["components/brett/**"]
-  owner_agent: bp-ship
-  test_location: components/brett/
-  purpose: Node.js 3D systemic-constellation board + mayhem game.
 - id: openclaw
   name: OpenClaw WSL gateway config
   paths: ["openclaw"]

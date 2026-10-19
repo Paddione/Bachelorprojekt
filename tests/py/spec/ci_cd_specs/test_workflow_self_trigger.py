@@ -20,7 +20,7 @@ def test_fleet_render_runs_on_every_main_push(repo_root):
 
 def _pr_required_contexts(repo_root, action):
     import yaml
-    required = {'Unit + Quality Gates', 'Security Scan', 'Brett TypeScript',
+    required = {'Unit + Quality Gates', 'Security Scan',
                 'Conventional Commits', 'Spec + Guards'}
     published = []
     for file in (repo_root / '.github/workflows').glob('*.yml'):
@@ -39,8 +39,8 @@ def test_pr_edited_publishes_only_metadata_required_check(repo_root):
     assert _pr_required_contexts(repo_root, 'edited') == ['Conventional Commits']
 
 
-def test_code_events_preserve_all_five_required_contexts(repo_root):
-    expected = {'Unit + Quality Gates', 'Security Scan', 'Brett TypeScript',
+def test_code_events_preserve_all_four_required_contexts(repo_root):
+    expected = {'Unit + Quality Gates', 'Security Scan',
                 'Conventional Commits', 'Spec + Guards'}
     for action in ('opened', 'synchronize', 'reopened'):
         contexts = _pr_required_contexts(repo_root, action)

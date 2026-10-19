@@ -54,84 +54,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:brett-art",
-    "file": "tests/e2e/specs/brett-art.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-figure-ownership",
-    "file": "tests/e2e/specs/brett-figure-ownership.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-ground-annotations",
-    "file": "tests/e2e/specs/brett-ground-annotations.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-hidden-figures",
-    "file": "tests/e2e/specs/brett-hidden-figures.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-mannequin",
-    "file": "tests/e2e/specs/brett-mannequin.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-mentolder-auth-setup",
-    "file": "tests/e2e/specs/brett-mentolder-auth-setup.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-mobile",
-    "file": "tests/e2e/specs/brett-mobile.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-moderation",
-    "file": "tests/e2e/specs/brett-moderation.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-replay",
-    "file": "tests/e2e/specs/brett-replay.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-roles",
-    "file": "tests/e2e/specs/brett-roles.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-session-lifecycle",
-    "file": "tests/e2e/specs/brett-session-lifecycle.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-share-link",
-    "file": "tests/e2e/specs/brett-share-link.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-undo-redo",
-    "file": "tests/e2e/specs/brett-undo-redo.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",
@@ -720,18 +642,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-27",
-    "file": "tests/local/FA-27.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-27",
-    "file": "tests/e2e/specs/fa-27-brett.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-28",
     "file": "tests/local/FA-28.sh",
     "category": "FA",
@@ -858,12 +768,6 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-47",
-    "file": "tests/e2e/specs/fa-47-brett-figure-pack-assets.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-48",
     "file": "tests/e2e/specs/fa-48-factory-devflow.spec.ts",
     "category": "FA",
@@ -920,12 +824,6 @@
   {
     "id": "FA-59",
     "file": "tests/e2e/specs/fa-59-systemtest-purge-endpoint.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-60",
-    "file": "tests/e2e/specs/fa-60-realtime-ws.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -1306,12 +1204,6 @@
     "file": "tests/e2e/specs/nfa-12-brainstorm-tunnel.spec.ts",
     "category": "NFA",
     "kind": "playwright"
-  },
-  {
-    "id": "NFA-13",
-    "file": "tests/local/NFA-13.sh",
-    "category": "NFA",
-    "kind": "shell"
   },
   {
     "id": "NFA-14",
@@ -2610,12 +2502,6 @@
     "kind": "pytest"
   },
   {
-    "id": "brett",
-    "file": "tests/py/spec/native_ported/spec/test_brett.py",
-    "category": "brett",
-    "kind": "pytest"
-  },
-  {
     "id": "cbm-embed-store",
     "file": "tests/py/spec/native_ported/spec/test_cbm_embed_store.py",
     "category": "cbm-embed-store",
@@ -3183,12 +3069,6 @@
     "id": "design_assets/inventory",
     "file": "tests/py/spec/design_assets/test_inventory.py",
     "category": "design_assets",
-    "kind": "pytest"
-  },
-  {
-    "id": "dev-brett-auth/oidc_provision",
-    "file": "tests/py/spec/dev-brett-auth/test_oidc_provision.py",
-    "category": "dev-brett-auth",
     "kind": "pytest"
   },
   {

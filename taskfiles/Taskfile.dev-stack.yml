@@ -13,7 +13,7 @@ vars:
 tasks:
 
   logs:
-    desc: "[dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)"
+    desc: "[dev] Tail logs of a pod (usage: task dev:logs -- website|shared-db-dev|sish)"
     vars:
       CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
       NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
@@ -92,15 +92,6 @@ tasks:
     cmds:
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout restart deploy/website
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/website --timeout=180s
-
-  redeploy:brett:
-    desc: "[dev] Roll brett deployment (requires CI-built :dev image)"
-    vars:
-      CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
-      NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
-    cmds:
-      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout restart deploy/brett
-      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/brett --timeout=120s
 
   db:refresh:
     desc: "[dev] Restore latest prod snapshot into shared-db-dev (drops + recreates DBs)"

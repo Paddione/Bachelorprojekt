@@ -182,7 +182,7 @@ emit_dry_run() {
 }
 
 # ── Structured fast-path: skip LLM for "namespace:action [ENV=X]" input ──────
-# Matches e.g. "workspace:deploy ENV=mentolder", "feature:website", "brett:build ENV=both"
+# Matches e.g. "workspace:deploy ENV=mentolder", "feature:website"
 FASTPATH_REGEX='^([a-z][a-z0-9_-]*:[a-z][a-z0-9_:-]*)([[:space:]]+ENV=(dev|mentolder|korczewski|both))?[[:space:]]*$'
 if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
   FP_TASK="${BASH_REMATCH[1]}"
@@ -364,7 +364,7 @@ Goal: ${GOAL}"
   TASK_PROMPT="Output ONLY the single best matching task name (e.g. 'workspace:deploy'). /no_think
 If no task matches, output: NONE
 
-Note: For deploying a specific service image (brett, website, docs), prefer 'feature:<service>' tasks (e.g. 'feature:brett', 'feature:website') over 'workspace:deploy'. Use 'workspace:deploy' only for full cluster rollouts.
+Note: For deploying a specific service image (website, docs), prefer 'feature:<service>' tasks (e.g. 'feature:website') over 'workspace:deploy'. Use 'workspace:deploy' only for full cluster rollouts.
 
 ${TASK_LIST}
 

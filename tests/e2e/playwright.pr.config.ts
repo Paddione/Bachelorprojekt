@@ -23,7 +23,6 @@ import { defineConfig, devices } from '@playwright/test';
 //   @meeting       — meeting lifecycle
 //   @billing       — billing/invoices
 //   @messaging     — chat/messaging
-//   @brett         — Systemisches Brett
 //   @fragebogen    — questionnaire/fragebogen
 //   @crm           — CRM features
 

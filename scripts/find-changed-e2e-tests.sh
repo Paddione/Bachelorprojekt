@@ -41,7 +41,6 @@ path_to_category() {
   local path="$1"
   case "$path" in
     components/website/src/*|components/website/pages/*|components/website/components/*|components/website/layouts/*) echo "FA"; return ;;
-    components/brett/src/*|components/brett/app/*)    echo "FA"; return ;;
     k3d/*|environments/*)       echo "NFA"; return ;;
     components/VideoVault/*)               echo "AK"; return ;;
     *)                          echo ""; return ;;

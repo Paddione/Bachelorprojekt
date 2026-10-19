@@ -19,13 +19,6 @@ def test_dev_redeploy_website_triggers_rollout_restart_without_local_docker_buil
     assert not re.search(r"(docker build|k3d image import)", res.output)
 
 
-def test_dev_redeploy_brett_triggers_rollout_restart_without_local_docker_build(repo_root, run_cmd):
-    res = run_cmd(["task", "--dry", "dev:redeploy:brett"], cwd=repo_root)
-    assert res.returncode == 0, res.output
-    assert "rollout restart deploy/brett" in res.output
-    assert not re.search(r"(docker build|k3d image import)", res.output)
-
-
 def test_dev_secrets_is_present_and_targets_ns_dev(repo_root, run_cmd):
     res = run_cmd(["task", "--dry", "dev:secrets"], cwd=repo_root)
     assert res.returncode == 0, res.output

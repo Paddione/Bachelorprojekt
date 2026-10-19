@@ -59,22 +59,26 @@ def test_prod_render_mentolder_every_email_domain_gate_is_group_restricted(rende
     assert wildcard == groups, f"FAIL: {wildcard} wildcard gates but {groups} allowed-group restrictions"
 
 
-def test_prod_render_mentolder_exactly_5_gates_carry_allowed_group_workspace_users(rendered):
+def test_prod_render_mentolder_exactly_4_gates_carry_allowed_group_workspace_users(rendered):
     # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
+    # Brett-Entfernung: oauth2-proxy-brett ist aus dem lokalen mentolder-Overlay
+    # geloescht (Prod-Brett laeuft ueber gekko32/mentolder-prod) — 5 auf 4.
     count = _count_lines(rendered["mentolder"], "- --allowed-group=workspace-users")
-    assert count == 5, f"FAIL: expected 5 allowed-group gates, got {count}"
+    assert count == 4, f"FAIL: expected 4 allowed-group gates, got {count}"
 
 
-def test_prod_render_mentolder_exactly_6_gates_carry_oidc_groups_claim_groups(rendered):
+def test_prod_render_mentolder_exactly_5_gates_carry_oidc_groups_claim_groups(rendered):
     # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
+    # Brett-Entfernung: siehe oben — 6 auf 5.
     count = _count_lines(rendered["mentolder"], "- --oidc-groups-claim=groups")
-    assert count == 6, f"FAIL: expected 6 oidc-groups-claim gates, got {count}"
+    assert count == 5, f"FAIL: expected 5 oidc-groups-claim gates, got {count}"
 
 
-def test_prod_render_mentolder_exactly_6_gates_request_the_groups_scope(rendered):
+def test_prod_render_mentolder_exactly_5_gates_request_the_groups_scope(rendered):
     # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
+    # Brett-Entfernung: siehe oben — 6 auf 5.
     count = _count_lines(rendered["mentolder"], "- --scope=openid email profile groups")
-    assert count == 6, f"FAIL: expected 6 gates with groups scope, got {count}"
+    assert count == 5, f"FAIL: expected 5 gates with groups scope, got {count}"
 
 
 def test_prod_render_mentolder_the_4_allowlist_gates_keep_authenticated_emails_file(rendered):
@@ -120,9 +124,12 @@ def test_t002122_gerendertes_korczewski_overlay_nutzt_kein_skip_auth_routes(rend
     assert "--skip-auth-routes" not in rendered["korczewski"]
 
 
-def test_t002122_oauth2_proxy_brett_behaelt_den_healthz_bypass_singular(rendered):
+def test_prod_render_mentolder_no_local_brett_healthz_bypass_left(rendered):
+    # T002122-Nachfolger: der Healthz-Bypass lebte im oauth2-proxy-brett, das mit
+    # der Brett-Entfernung aus dem lokalen mentolder-Overlay geloescht ist.
+    # (Prod-Brett inkl. Bypass laeuft ueber gekko32/mentolder-prod.)
     assert rendered["mentolder"], "render produced no output"
-    assert "--skip-auth-route=GET=^/healthz" in rendered["mentolder"]
+    assert "--skip-auth-route=GET=^/healthz" not in rendered["mentolder"]
 
 
 # ── T002154 ───────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ kopieren, sondern verlinken.
 > **Pull-basiertes Deploy-Modell (Flux, T002083).** Prod wird auf dem fleet-Cluster von
 > FluxCD reconciled: `.github/workflows/render-fleet-artifact.yml` rendert bei jedem
 > `main`-Push das OCI-Artefakt `ghcr.io/paddione/fleet-manifests`, Flux zieht es. Container-
-> Images baut GitHub Actions (`build-website.yml`, `build-brett.yml`).
+> Images baut GitHub Actions (`build-website.yml`).
 > Die `task feature:*`-Tasks sind **Break-Glass-Fallback**, kein Regelweg.
 
 > **Generierte Artefakte lösen kein Deploy aus (T002255).** Pfade, die in `.gitattributes`
@@ -29,7 +29,6 @@ kopieren, sondern verlinken.
 | Geänderte Dateipfade | Weg |
 |---|---|
 | `components/website/**` | `.github/workflows/build-website.yml` (baut + rollt aus). Break-Glass: `task feature:website` — braucht GHCR-Login. |
-| `components/brett/**` | `.github/workflows/build-brett.yml`. Break-Glass: `task feature:brett`. |
 | `fleet/**`, `prod*/**`, `prod-fleet/**`, `environments/**` | Flux reconciled das OCI-Artefakt. Break-Glass: `task feature:deploy` (kein Registry-Login nötig). |
 | `fleet/sdlc-stack/**` | **kein Deploy** — Dev-Namespace auf Fleet (`workspace-dev`), existiert nicht als Prod-Overlay; wird vor dem `fleet/**`-Match aus `$CHANGED` gefiltert (T003982) |
 | `linguist-generated`-Pfade | **kein Deploy** — aus der Selektion gefiltert |
@@ -40,7 +39,6 @@ kopieren, sondern verlinken.
 MERGE_COMMIT=$(git log origin/main -1 --format="%H")
 CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh | sed '/^fleet\/sdlc-stack\//d')
 echo "$CHANGED" | grep -qE '^components/website/'  && echo "→ build-website.yml (kein lokaler Build)"
-echo "$CHANGED" | grep -qE '^components/brett/'    && echo "→ build-brett.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^(fleet/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' && task feature:deploy
 ```
 
@@ -59,7 +57,6 @@ kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
 | SURFACE | Redeploy-Task | Watched pods |
 |---------|--------------|--------------|
 | `website` | `task dev:redeploy:website ENV=$ENV` | `app=website` |
-| `brett` | `task dev:redeploy:brett ENV=$ENV` | `app=brett` |
 | `full` | Merge nach `main` (Flux reconciliert) | alle Pods in `workspace-dev` |
 
 ### Footguns
@@ -67,7 +64,7 @@ kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
 - `task feature:*` baut aus dem **Working Tree des aktuellen cwd** — aus einem frischen, mit
   `origin/main` synchronisierten Tree deployen, sonst landet alter Code (Memory:
   *Deploy from a fresh tree, not a stale main checkout*).
-- Die image-bauenden `task feature:website|feature:brett|docs:deploy` brauchen einen
+- Die image-bauenden `task feature:website|docs:deploy` brauchen einen
   **GHCR-Login**. Ein Agent hat den in der Regel nicht; ihr Fehlschlag ist deshalb kein
   Deploy-Fehler, sondern ein falsch gewählter Weg — den CI-Workflow prüfen statt lokal bauen.
 - Website-Deploys werden über `build-website*.yml` digest-gepinnt → ein bloßer `rollout restart`

@@ -61,7 +61,6 @@ def test_run_as_non_root_baseline_hardened_deployments_tragen_pod_level_sc(repo_
         ("k3d/coturn-stack/janus.yaml", "janus", True),
         # [T900107] Der dev-pod hat keine Root-Container mehr.
         ("k3d/dev-pod/deployment.yaml", "dev-pod", True),
-        ("k3d/dev-stack/brett-dev.yaml", "brett", True),
         ("k3d/dev-stack/website-dev.yaml", "website", True),
     ]
     fails = []
@@ -85,7 +84,6 @@ def test_run_as_non_root_baseline_gehardenede_container_level_sc(repo_root):
     targets = [
         ("k3d/coturn-stack/janus.yaml", "janus", "janus", False),
         ("k3d/dev-pod/deployment.yaml", "dev-pod", "mcp-node", False),
-        ("k3d/dev-stack/brett-dev.yaml", "brett", "brett", True),
         ("k3d/dev-stack/website-dev.yaml", "website", "website", False),
     ]
     fails = []

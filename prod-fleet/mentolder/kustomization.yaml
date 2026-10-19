@@ -49,11 +49,58 @@ patches:
   # cluster. Pins image-digest, prod-issuer, prod TLS, and node-affinity
   # for fleet pk nodes. (T001002)
   - path: studio-patch.yaml
-  # Brett prod patch
-  - target:
+  # Brett ist aus dem lokalen mentolder-Overlay entfernt (Prod-Brett laeuft ueber
+  # gekko32/mentolder-prod mit eigenem Image) — Workloads loeschen, Basen in k3d/
+  # und prod/ bleiben als Render-Input fuer mentolder-prod erhalten.
+  - target: { group: apps, version: v1, kind: Deployment, name: brett }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
       kind: Deployment
-      name: brett
-    path: brett-patch.yaml
+      metadata:
+        name: brett
+  - target: { version: v1, kind: Service, name: brett }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: brett
+  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-brett }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: oauth2-proxy-brett
+  - target: { version: v1, kind: Service, name: oauth2-proxy-brett }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: oauth2-proxy-brett
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-brett }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-brett
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: brett-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: brett-ingress
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: brett-egress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: brett-egress
   # NOTE: the dev SSO/TLS edge (workspace-ingress-dev, workspace-dev-wildcard-tls
   # Certificate, oauth2-proxy-dev Service/Deployment/Middleware) is no longer
   # rendered by prod-mentolder — it moved into the self-contained k3d dev stack

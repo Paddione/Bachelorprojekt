@@ -17,7 +17,6 @@ SCOPE_ROOTS = [
     "packages/design-system/",
     "design/leitstand-ds/",
     "components/website/public/brand/",
-    "components/brett/public/assets/",
 ]
 
 # NOTE: no bare "shadow" — it matches design vocabulary (shadows.html, elevation

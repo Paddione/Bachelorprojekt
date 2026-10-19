@@ -106,11 +106,13 @@ count() { grep -rEn "$1" $2 --include="*.ts" --include="*.svelte" --include="*.a
 # Upstream-gepflegte Skills sind ausgenommen: eine Änderung dort kollidiert beim nächsten Sync.
 # Fehlt der Marker-Block, ist die Vendor-Liste leer und ALLE Skills gelten als projekteigen —
 # das Gate wird dann strenger, nie schwächer.
-project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus (SSOT, T900070)
+project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus (SSOT: agentic-resources-Repo, lokal materialisiert)
   local vendor; vendor=$(sed -n '/<!-- vendor-skills:begin -->/,/<!-- vendor-skills:end -->/p' \
     .opencode/skills/OVERVIEW.md 2>/dev/null | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` ')
   local f d
-  for f in $(git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+  # On-disk statt git ls-files: Skills sind untracked Symlinks ins Repo.
+  for f in .opencode/skills/*/SKILL.md; do
+    [ -f "$f" ] || continue
     d="${f#.opencode/skills/}"; d="${d%/SKILL.md}"
     printf '%s\n' "$vendor" | grep -qx "$d" || echo "$d"
   done
@@ -177,23 +179,26 @@ row gate G-AGENTIC05 "$(
 row gate G-AGENTIC06 "$(
   # SSOT-Pfad (T900070): .claude/skills/* sind Symlinks — git ls-files fände dort
   # keine SKILL.md und das Gate wäre vakant (0=0). Gezählt wird die SSOT.
-  claimed=$(grep -oE '[0-9]+ tracked skills' .opencode/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
-  # nur getrackte SKILL.md zählen — lokal via market-cli installierte Skills sind
-  # nicht projekt-relevant und dürfen das Gate nicht kippen (Präzedenz T001783)
-  real=$(git ls-files -- .opencode/skills | grep -c '/SKILL\.md$')
+  claimed=$(grep -oE '[0-9]+ materialisierte Skills' .opencode/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
+  # nur materialisierte SKILL.md zählen (Links ins agentic-resources-Repo) —
+  # lokal via market-cli installierte Skills sind nicht projekt-relevant und
+  # dürfen das Gate nicht kippen (Präzedenz T001783)
+  real=$(find -L .opencode/skills -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')
   echo $(( claimed>real ? claimed-real : real-claimed ))
-)" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift, nur getrackte)"
+)" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift, nur materialisierte)"
 row gate G-AGENTIC07 "$(
   c=0
-  # SSOT-Pfad (T900070) — siehe G-AGENTIC06: .claude/skills ist ein Symlink-Spiegel.
-  for f in $(git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+  # SSOT: agentic-resources-Repo, lokal materialisiert — siehe G-AGENTIC06:
+  # .claude/skills ist ein Symlink-Spiegel. -R folgt den Skill-Links.
+  for f in .opencode/skills/*/SKILL.md; do
+    [ -f "$f" ] || continue
     d=$(echo "$f" | sed 's#.opencode/skills/##;s#/SKILL.md##'); base=$(basename "$d")
     awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^description:/{print 1;exit}' "$f" | grep -q 1 || continue
     n=$( { grep -rl -- "$base" CLAUDE.md AGENTS.md .opencode/skills/OVERVIEW.md 2>/dev/null
-           grep -rl --include=SKILL.md -- "$base" .opencode/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
+           grep -Rl --include=SKILL.md -- "$base" .opencode/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
     [ "$n" -eq 0 ] && c=$((c+1))
   done; echo $c
-)" eq 0 "Verwaiste aktive Skills (keine Referenzquelle, nur getrackte)"
+)" eq 0 "Verwaiste aktive Skills (keine Referenzquelle, nur materialisierte)"
 row gate G-AGENTIC08 "$(
   # Lookbehind verhindert False Positives, wenn "scripts/…" Teil eines längeren,
   # existierenden Pfads ist (z.B. .opencode/skills/<name>/scripts/foo.py)

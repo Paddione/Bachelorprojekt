@@ -1,11 +1,54 @@
 // scripts/code-quality/gates/s4-orphans.mjs
 // S4: manifests/scripts with no reference in the configured sources (incl.
 // transitive script sources). key=S4:<path>, metric=1.
-import { readFileSync } from 'node:fs';
-import { join, basename, dirname } from 'node:path';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, basename, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { trackedFiles } from '../scan.mjs';
 import { matchGlob } from '../glob.mjs';
+
+/** On-disk markdown under dir (folgt Verzeichnis-Symlinks einen Level tief).
+
+Skills sind untracked Symlinks ins agentic-resources-Repo (link-from-repo.py)
+und erscheinen nicht in git ls-files; ohne diesen Schritt verlöre der Corpus
+alle Skill-Referenzen. Rekursionstiefe ist unbegrenzt, Zyklen praxisfern
+(Repo-Baum ohne Link-Zyklen); doppelte Inhalte schaden dem Basename-Corpus nicht.
+*/
+function materializedSkillDocs(repoRoot, roots) {
+  const out = [];
+  const seen = new Set();
+  const walk = (abs) => {
+    let entries;
+    try {
+      entries = readdirSync(abs, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const p = join(abs, e.name);
+      if (e.isSymbolicLink()) {
+        let st;
+        try {
+          st = statSync(p);
+        } catch {
+          continue;
+        }
+        if (st.isDirectory()) {
+          if (seen.has(p)) continue;
+          seen.add(p);
+          walk(p);
+        } else if (st.isFile() && e.name.endsWith('.md')) {
+          out.push(relative(repoRoot, p));
+        }
+        continue;
+      }
+      if (e.isDirectory()) walk(p);
+      else if (e.isFile() && e.name.endsWith('.md')) out.push(relative(repoRoot, p));
+    }
+  };
+  for (const r of roots) walk(join(repoRoot, r));
+  return [...new Set(out)];
+}
 
 /** Candidate basenames absent from `corpus` → returned as orphan paths. */
 export function findOrphans(candidates, corpus) {
@@ -29,6 +72,9 @@ export function runS4(repoRoot, gates) {
     (f) => candGlobs.some((g) => matchGlob(f, g)) && !allow.some((g) => matchGlob(f, g)),
   );
   const sourceFiles = tracked.filter((f) => srcGlobs.some((g) => matchGlob(f, g)));
+  for (const f of materializedSkillDocs(repoRoot, ['.opencode/skills', '.claude/skills'])) {
+    if (!sourceFiles.includes(f)) sourceFiles.push(f);
+  }
 
   const loadedSources = sourceFiles.map((f) => {
     try {

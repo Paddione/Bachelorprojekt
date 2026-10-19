@@ -110,6 +110,10 @@ tmp/
 # ── OpenCode / Claude Code local state ──
 # Project-side opencode config (committed: opencode.jsonc, local overrides: opencode.local.jsonc)
 .opencode/opencode.local.jsonc
+# Skill-Links aus dem agentic-resources-Repo (materialisiert per
+# scripts/agent-skills/link-from-repo.py, nur OVERVIEW.md ist getrackt)
+.opencode/skills/*
+!.opencode/skills/OVERVIEW.md
 # Claude Code local state (settings + hookify rules)
 .claude/*.local.md
 .claude/settings.local.json

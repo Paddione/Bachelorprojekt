@@ -43,7 +43,8 @@ def skill_files(repo_root):
     for d in dirs:
         if not d.is_dir():
             continue
-        for dirpath, _dn, files in os.walk(d):
+        # followlinks: Skill-Verzeichnisse sind Symlinks ins agentic-resources-Repo.
+        for dirpath, _dn, files in os.walk(d, followlinks=True):
             for name in files:
                 if not name.endswith(".md"):
                     continue

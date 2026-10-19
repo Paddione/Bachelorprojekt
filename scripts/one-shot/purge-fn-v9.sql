@@ -10,7 +10,8 @@
 -- of aborting.Marker: drift_guard_v9.
 --
 -- All other steps are identical to v8.
--- RUNTIME-CHECK: function=tickets.fn_purge_test_data marker=drift_guard_v9
+-- RUNTIME-CHECK retired 2026-10-15: tickets schema dropped with the ticket
+-- system (2026-10-14) — no live function left to check.
 
 \set ON_ERROR_STOP on
 BEGIN;

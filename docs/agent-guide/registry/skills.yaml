@@ -366,25 +366,25 @@ skills:
         path: .agents/skills/playwright-best-practices
         sync: identical
     exclusions: {}
-  - id: pytest-patterns
+  - id: python-testing-patterns
     provenance: vendor
     exposure: portable
-    source: .agents/skills/pytest-patterns
+    source: .agents/skills/python-testing-patterns
     harnesses:
       codex:
-        path: .agents/skills/pytest-patterns
+        path: .agents/skills/python-testing-patterns
         sync: identical
       agy:
-        path: .agents/skills/pytest-patterns
+        path: .agents/skills/python-testing-patterns
         sync: identical
       opencode:
-        path: .opencode/skills/pytest-patterns
+        path: .opencode/skills/python-testing-patterns
         sync: identical
       claude_code:
-        path: .claude/skills/pytest-patterns
+        path: .claude/skills/python-testing-patterns
         sync: identical
       muse:
-        path: .agents/skills/pytest-patterns
+        path: .agents/skills/python-testing-patterns
         sync: identical
     exclusions: {}
   - id: vitest

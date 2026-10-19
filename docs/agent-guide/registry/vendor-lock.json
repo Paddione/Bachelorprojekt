@@ -187,12 +187,12 @@
       "ref": "c3ff942be3e07116b475253f0a8fc4f54682c1a8",
       "version": null
     },
-    "pytest-patterns": {
-      "repo": "manutej/luxor-claude-marketplace",
-      "path": "plugins/luxor-testing-essentials/skills/pytest-patterns",
-      "dest": ".opencode/skills/pytest-patterns",
+    "python-testing-patterns": {
+      "repo": "wshobson/agents",
+      "path": "plugins/python-development/skills/python-testing-patterns",
+      "dest": ".opencode/skills/python-testing-patterns",
       "track": "branch",
-      "ref": "1861cc9720d5656410415e5c19b06bef3e4609e8",
+      "ref": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
       "version": null
     },
     "vitest": {

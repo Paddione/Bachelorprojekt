@@ -5,16 +5,16 @@ The YAML files here feed: the platform hub DB (component descriptions), the futu
 in-app-help / repo-map surfaces, and the future enforcement layer. Edit the YAML, run the
 validator, commit. Narrative teaching prose lives in the surfaces, not here.
 
-## Files
-- `taxonomy.yaml` — the 4 danger tiers. The `id` of each tier is the value other files put in
+## Files (all under `registry/`)
+- `registry/taxonomy.yaml` — the 4 danger tiers. The `id` of each tier is the value other files put in
   their `danger` / `sensitivity` field, and the contract the enforcement layer consumes.
-- `guardrails.yaml` — reusable named guardrails. Tools/goals reference these by `id`.
-- `tools.yaml` — the beginner-spine skills + the 6 routing agents.
-- `goals.yaml` — the "Ich will …" intent catalog; each goal's `flow` references tool `id`s.
-- `components.yaml` — every platform component (matches `platform.software_assets` /
+- `registry/guardrails.yaml` — reusable named guardrails. Tools/goals reference these by `id`.
+- `registry/tools.yaml` — the beginner-spine skills + the 6 routing agents.
+- `registry/goals.yaml` — the "Ich will …" intent catalog; each goal's `flow` references tool `id`s.
+- `registry/components.yaml` — every platform component (matches `platform.software_assets` /
   `hardware_assets` by `slug`). `summary_de` is written into the hub `description` column.
 
-## Validate
+## Validate (from the Bachelorprojekt root)
 ```bash
 node scripts/agent-guide/validate.mjs      # validates the real registry, exit 1 on error
 task test:agent-guide                      # validator unit tests + real-registry validation + gen check

@@ -1,5 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findOrphans, runS4 } from './s4-orphans.mjs';
@@ -33,4 +36,36 @@ test('runS4 over real repo returns documented contract shape', () => {
   // allowlisted bootstrap manifests never appear:
   assert.ok(!res.violations.some((v) => v.path === 'k3d/sealed-secrets-controller.yaml'));
   assert.ok(!res.violations.some((v) => v.path.startsWith('k3d/office-stack/')));
+});
+
+test('runS4 liest materialisierte Skill-Links (untracked, ignoriert) in den Corpus', () => {
+  // Fixture: Skill-Verzeichnis als Symlink (wie link-from-repo.py), per
+  // .gitignore aus git ls-files ausgeschlossen — Referenzen darin muessen
+  // trotzdem zaehlen, sonst meldet S4 lebende Skripte als Waisen.
+  const dir = mkdtempSync(join(tmpdir(), 's4-links-'));
+  const git = (...a) => execFileSync('git', a, { cwd: dir, encoding: 'utf8' });
+  git('init', '-q', '-b', 'main');
+  git('config', 'user.email', 's4@example.invalid');
+  git('config', 'user.name', 'S4 Test');
+  mkdirSync(join(dir, 'scripts'), { recursive: true });
+  writeFileSync(join(dir, 'scripts', 'used.sh'), '#!/bin/sh\n');
+  writeFileSync(join(dir, 'scripts', 'orphan.sh'), '#!/bin/sh\n');
+  writeFileSync(join(dir, '.gitignore'), '.opencode/skills/*\n');
+  mkdirSync(join(dir, 'outside', 'demo'), { recursive: true });
+  writeFileSync(join(dir, 'outside', 'demo', 'SKILL.md'), 'run `bash scripts/used.sh`\n');
+  mkdirSync(join(dir, '.opencode', 'skills'), { recursive: true });
+  symlinkSync(join(dir, 'outside', 'demo'), join(dir, '.opencode', 'skills', 'demo'));
+  git('add', '-A');
+  git('commit', '-qm', 'fixture');
+  const gates = {
+    s4: {
+      manifest_globs: [],
+      script_globs: ['scripts/*.sh'],
+      command_globs: [],
+      allowlist_globs: [],
+      reference_sources: ['.opencode/skills/**/*.md'],
+    },
+  };
+  const res = runS4(dir, gates);
+  assert.deepEqual(res.violations.map((v) => v.key), ['S4:scripts/orphan.sh']);
 });

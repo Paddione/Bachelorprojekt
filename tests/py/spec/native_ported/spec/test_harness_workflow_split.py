@@ -57,7 +57,8 @@ def test_hws_1_flow_entries_are_registry_declared_projections_git_workflow_stays
                 if fnmatch.fnmatchcase(e.name, "opencode-flow-*")]
     assert leftover == []
     assert (repo / ".opencode/skills/opencode-git-workflow/SKILL.md").is_file()
-    assert not (repo / ".opencode/skills/opencode-git-workflow").is_symlink()
+    # Skills sind Symlinks ins agentic-resources-Repo (link-from-repo.py) — nativ ist das Ziel, nicht die Datei.
+    assert (repo / ".opencode/skills/opencode-git-workflow").is_symlink()
 
 
 def test_hws_2_opencode_skills_carry_no_claude_only_tool_syntax(repo):
@@ -74,7 +75,8 @@ def test_hws_3_shared_sources_reference_both_harness_primitives_collectively(rep
     assert "background-agents.ts" in _read(repo / ".claude/skills/dev-flow-plan/SKILL.md")
     assert "background-agents.ts" in _read(repo / ".claude/skills/dev-flow-execute/SKILL.md")
     found = False
-    for root, _dirs, files in os.walk(repo / ".opencode/skills"):
+    # followlinks: Skill-Verzeichnisse sind Symlinks ins agentic-resources-Repo.
+    for root, _dirs, files in os.walk(repo / ".opencode/skills", followlinks=True):
         for name in files:
             if "worktree.ts" in _read(Path(root) / name):
                 found = True
@@ -86,7 +88,8 @@ def test_hws_3_shared_sources_reference_both_harness_primitives_collectively(rep
 
 def test_hws_4_opencode_git_workflow_uses_the_git_crypt_safe_worktree_wrapper(repo):
     """HWS-4: opencode-git-workflow uses the git-crypt-safe worktree wrapper"""
-    assert "scripts/worktree-create.sh" in _read(repo / ".opencode/skills/git-workflow/SKILL.md")
+    # Der Shared-Skill nennt das Verfahren generisch (repo-eigen); der BP-pfad steht in den Refs.
+    assert "git-crypt-sicher" in _read(repo / ".opencode/skills/git-workflow/SKILL.md")
 
 
 def test_hws_5_flow_skill_sources_hand_over_to_git_workflow(repo):

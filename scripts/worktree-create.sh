@@ -551,3 +551,9 @@ else
     fi
     echo "worktree-create: $REAL_WT ready on branch $BRANCH (base $BASE)" # ready: $REAL_WT realer Pfad
 fi
+# Skill-Links aus dem agentic-resources-Repo materialisieren (warn-only: der
+# Repo-Checkout kann auf anderen Maschinen fehlen; Tests/Gates melden das dann).
+if [ -f "$REAL_WT/scripts/agent-skills/link-from-repo.py" ]; then
+    python3 "$REAL_WT/scripts/agent-skills/link-from-repo.py" --root "$REAL_WT" >&2 \
+        || echo "worktree-create: WARNUNG — Skill-Links fehlen (link-from-repo.py); Agent-Skills in diesem Worktree unvollständig." >&2
+fi

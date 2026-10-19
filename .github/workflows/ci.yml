@@ -93,6 +93,18 @@ jobs:
             ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
           done
 
+      - name: Checkout agentic-resources (public skill monorepo)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/agentic-resources
+          ref: main
+          path: ci-agentic-resources
+
+      - name: Materialize skill links from agentic-resources
+        run: |
+          AGENTIC_RESOURCES_DIR="$GITHUB_WORKSPACE/ci-agentic-resources" \
+            python3 scripts/agent-skills/link-from-repo.py --root "$GITHUB_WORKSPACE"
+
       - name: Install central MCP server deps (T901492)
         run: |
           npm ci --prefix ci-dotfiles/mcp-servers/devflow --no-audit --no-fund
@@ -374,6 +386,18 @@ jobs:
             ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
           done
 
+      - name: Checkout agentic-resources (public skill monorepo)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/agentic-resources
+          ref: main
+          path: ci-agentic-resources
+
+      - name: Materialize skill links from agentic-resources
+        run: |
+          AGENTIC_RESOURCES_DIR="$GITHUB_WORKSPACE/ci-agentic-resources" \
+            python3 scripts/agent-skills/link-from-repo.py --root "$GITHUB_WORKSPACE"
+
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
@@ -447,6 +471,18 @@ jobs:
           for asset in dotfiles editor openclaw ml tools; do
             ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
           done
+
+      - name: Checkout agentic-resources (public skill monorepo)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/agentic-resources
+          ref: main
+          path: ci-agentic-resources
+
+      - name: Materialize skill links from agentic-resources
+        run: |
+          AGENTIC_RESOURCES_DIR="$GITHUB_WORKSPACE/ci-agentic-resources" \
+            python3 scripts/agent-skills/link-from-repo.py --root "$GITHUB_WORKSPACE"
 
       - name: Install central MCP server deps (T901492)
         run: |

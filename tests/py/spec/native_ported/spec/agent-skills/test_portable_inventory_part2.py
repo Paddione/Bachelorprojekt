@@ -496,18 +496,18 @@ def test_live_jeder_git_getrackte_skill_id_ist_im_inventar_katalogisiert_oder_be
     registry_ids = {c.get("id") for c in (j.get("catalog") or [])}
     registry_ids |= {ig.get("id") for ig in (j.get("ignored") or [])}
 
-    ls = run_cmd(
-        [
-            "git", "-C", str(repo_root), "ls-files",
-            ".agents/skills/*/SKILL.md",
-            ".claude/skills/*/SKILL.md",
-            ".opencode/skills/*/SKILL.md",
-        ]
-    )
-    tracked = {line.split("/")[-2] for line in ls.stdout.splitlines() if line.strip()}
+    # Skills sind untracked Symlinks ins agentic-resources-Repo (link-from-repo.py):
+    # Live-Menge ist on-disk, nicht git ls-files.
+    from pathlib import Path as _Path
+
+    tracked = set()
+    for _root in (".agents/skills", ".claude/skills", ".opencode/skills"):
+        for _p in _Path(str(repo_root), _root).glob("*/SKILL.md"):
+            if _p.is_file():
+                tracked.add(_p.parent.name)
 
     # Positiv-Anker: die Suite prueft eine echte, nicht-leere Skill-Menge.
-    assert tracked, "tracked-ids leer"
+    assert tracked, "live skill-ids leer (Links via link-from-repo.py materialisieren)"
     missing = sorted(tracked - {x for x in registry_ids if x is not None})
     assert missing == [], "\n".join(missing)
 

@@ -7,7 +7,7 @@ import re
 import pytest
 
 EXCLUDED_SKILLS = [
-    "gitops-repo-audit", "gitops-knowledge", "gitops-cluster-debug", "pytest-patterns", "vitest",
+    "gitops-repo-audit", "gitops-knowledge", "gitops-cluster-debug", "python-testing-patterns", "vitest",
     "freetoken-setup", "huggingface-community-evals", "huggingface-llm-trainer",
     "huggingface-paper-publisher", "huggingface-trackio", "huggingface-vision-trainer",
     "train-sentence-transformers", "transformers-js", "playwright-best-practices",

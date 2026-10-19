@@ -456,7 +456,7 @@ if [ -d "$MAIN_ROOT/node_modules" ] && [ ! -e "$WT_PATH/node_modules" ]; then
     ln -s "$MAIN_ROOT/node_modules" "$WT_PATH/node_modules"
     echo "worktree-create: linked node_modules → $MAIN_ROOT/node_modules" >&2
 fi
-# Workspace packages (pnpm): each such package (components/website/, components/brett/, mentolder-web/,
+# Workspace packages (pnpm): each such package (components/website/, mentolder-web/,
 # ...) has its own pnpm-workspace.yaml AND its own node_modules, neither of which
 # is covered by the root symlink above. T002204: the old hardcoded website-only
 # symlink left every OTHER pnpm-managed package without deps in the worktree,

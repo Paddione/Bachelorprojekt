@@ -38,7 +38,7 @@ Auto-Merge wartet auf diese fünf required checks:
 |-------|----------|
 | `Unit + Quality Gates` | `ci.yml` → pytest-Suite (ohne Specs) + Quality Gates |
 | `Security Scan` | `ci.yml` → image-pin + hardcoded-secret detection |
-| `Brett TypeScript` | `ci.yml` → tsc in `components/brett/` |
+| `Vitest (website)` | `ci.yml` → vitest + eslint in `components/website/` |
 | `Conventional Commits` | `ci.yml` → commitlint PR-Titel |
 | `Spec + Guards` | `ci.yml` → Aggregator über Spec fast guards + Spec shards (T901066) |
 
@@ -99,12 +99,12 @@ git add docs/ components/website/src/data/ components/website/src/lib/
 git commit -m "chore: regenerate freshness artifacts"
 ```
 
-### 2. TypeScript-Fehler (website Vitest / Brett tsc)
+### 2. TypeScript-Fehler (website Vitest)
 
 ```bash
-cd website && pnpm type-check   # oder: cd brett && npx tsc --noEmit
+cd components/website && pnpm type-check
 # Fehler beheben, dann:
-git add components/website/src/ brett/src/
+git add components/website/src/
 git commit -m "fix(website): resolve type errors"
 ```
 

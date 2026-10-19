@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-94 Services · 2013 Abhängigkeitskanten · 316 API-Endpoints
+94 Services · 2002 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -177,7 +177,6 @@ flowchart LR
   ddns_updater -->|"command"| coturn
   ddns_updater -->|"command"| janus
   dev_db_refresh -->|"SOURCE_PGHOST"| shared_db
-  traefik -->|"ingress"| brett
   traefik -->|"ingress"| oauth2_proxy_dev
   traefik -->|"ingress"| llm_gateway_embed
   traefik -->|"ingress"| llm_gateway_rerank
@@ -2045,15 +2044,11 @@ flowchart LR
   sdlc_console -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| sdlc_console
-  dev_pod -->|"secret:shared-db-d…"| brett
-  brett -->|"secret:shared-db-d…"| dev_pod
   dev_pod -->|"secret:shared-db-d…"| sdlc_console
   sdlc_console -->|"secret:shared-db-d…"| dev_pod
   dev_pod -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| dev_pod
   website -->|"secret:shared-db-d…"| dev_pod
-  brett -->|"secret:shared-db-d…"| shared_db_dev
-  shared_db_dev -->|"secret:shared-db-d…"| brett
   sdlc_console -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| sdlc_console
   shared_db_dev -->|"secret:shared-db-d…"| website

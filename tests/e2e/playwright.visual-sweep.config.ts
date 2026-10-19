@@ -28,10 +28,9 @@ const BRAND_URLS = {
 const GLOBAL_SETUP = undefined;
 const GLOBAL_TEARDOWN = undefined;
 
-// Only the two website-auth setups are relevant to the sweep. The brett
-// setup (brett-mentolder-setup) seeds game auth state the sweep never
-// touches, so we whitelist by name rather than a broad
-// .endsWith('-setup') filter (which would pull all four).
+// Only the two website-auth setups are relevant to the sweep, so we
+// whitelist by name rather than a broad .endsWith('-setup') filter
+// (which would pull all setup projects).
 const WEBSITE_SETUP_NAMES = ['mentolder-setup', 'korczewski-setup'];
 
 const baseProjects = (baseConfig.projects ?? []) as Project[];

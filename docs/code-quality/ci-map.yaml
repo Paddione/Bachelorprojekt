@@ -16,9 +16,6 @@ checks:
   test-manifests:
     command: bash scripts/pytest-run.sh tests/py/unit/ported/test_manifests_part1.py tests/py/unit/ported/test_manifests_part2.py tests/py/unit/ported/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
     timeout: 600
-  brett-typescript:
-    command: npm run typecheck --prefix components/brett
-    timeout: 600
   vitest-website:
     command: cd components/website && pnpm lint
     timeout: 900

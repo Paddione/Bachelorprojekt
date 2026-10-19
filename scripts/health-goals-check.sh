@@ -141,7 +141,7 @@ row gate G-RH02 "$(anchor_dir components/website/src; count '@ts-ignore|@ts-expe
 row gate G-TEST02 "$(anchor_dir components/website/src components/mentolder-web/src; grep -rnE '\.only\b' components/website/src components/mentolder-web/src --include='*.test.ts' --include='*.test.tsx' --include='*.test.svelte' 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Vitest .only (Suiten-Killer)"
 # Target ≤4 deckt die bekannten Tooling-/Format-False-Positives ab (z.B. XXX-XXX Session-Code);
 # ein echt neuer FIXME/HACK/XXX schiebt über die Schwelle → rot (kein Netto-Zuwachs).
-row gate G-CQ04 "$(grep -rnE '\b(FIXME|HACK|XXX)\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 4 "FIXME/HACK/XXX (kein Netto-Zuwachs)"
+row gate G-CQ04 "$(grep -rnE '\b(FIXME|HACK|XXX)\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 4 "FIXME/HACK/XXX (kein Netto-Zuwachs)"
 row gate G-DEP04 "$(c=0; for p in components/website/package.json components/brett/package.json components/mentolder-web/package.json components/mediaviewer-widget/package.json components/VideoVault/package.json components/studio-server/package.json; do [ -f "$p" ] || continue; v=$(python3 -c "import json;print((json.load(open('$p')).get('engines') or {}).get('node','MISSING'))" 2>/dev/null); [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo $c)" eq 0 "package.json ohne engines>=22.13"
 row gate G-SEC01 "$(anchor_dir k3d; grep -rn 'password.*=.*[^$]' k3d/*.yaml 2>/dev/null | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}\|getenv(' | grep -iv '^\s*#' | wc -l | tr -d ' ')" eq 0 "Hardcoded Secrets in k3d/*.yaml"
 row gate G-GIT02 "$(anchor_ref origin/main; git log --format=%s --no-merges -30 origin/main 2>/dev/null | grep -vcE '^(feat|fix|chore|docs|refactor|test|ci|build|perf|revert|style)(\(|!|:)')" eq 0 "Non-conventional Commits (letzte 30, ohne Merge)"
@@ -267,7 +267,7 @@ want G-OPS03 && row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlauf
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
-row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
+row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
 # [T013916] 30 -> 5, Ist 0. Ratchet-Regel: .claude/lib/goals.md §Rueckbau.
 row target G-RH01 "$(n_baseline_gate ALL)" le 5 "Baselined Gate-Violations gesamt"
 row target G-CQ07 "$(n_baseline_gate S2)" le 0  "S2 Import-Zyklen"
@@ -291,7 +291,7 @@ row target G-KNOW01 "$($KG docs-only)" le 0 "Registry-Regeln nur dokumentiert (e
 row target G-KNOW03 "$($KG dangling)" le 0 "Registry-Verweise (enforced_by/where) ohne existierenden Pfad"
 row target G-KNOW04 "$($KG docs-md)" le 0 "Markdown unter docs/ ausser adr/ (Abbau)"
 row target G-KNOW05 "$($KG agent-ctx-bytes)" le 15000 "Bytes aller AGENTS.md/CLAUDE.md"
-row target G-DOC03 "$(c=0; for d in components/website components/brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
+row target G-DOC03 "$(c=0; for d in components/website scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 4 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; sec05_unsigned)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 
 # G-TEST05 — Vitest Line-Coverage (components/website/src/lib ≥ 60 %)

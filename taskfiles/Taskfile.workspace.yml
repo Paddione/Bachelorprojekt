@@ -1040,13 +1040,13 @@ tasks:
       - 'echo "  Next → task workspace:office:deploy ENV={{.ENV}}"'
 
   workspace:partial-deploy:
-    desc: "Nur geänderte Services deployen (ENV=mentolder PARTIAL_SERVICES=brett,docs)"
+    desc: "Nur geänderte Services deployen (ENV=mentolder PARTIAL_SERVICES=website,docs)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
         if [ -z "{{.PARTIAL_SERVICES}}" ]; then
-          echo "PARTIAL_SERVICES must be set (comma-separated app slugs), e.g. PARTIAL_SERVICES=brett,docs — aborting" >&2
+          echo "PARTIAL_SERVICES must be set (comma-separated app slugs), e.g. PARTIAL_SERVICES=website,docs — aborting" >&2
           exit 1
         fi
         source scripts/env-resolve.sh "{{.ENV}}"

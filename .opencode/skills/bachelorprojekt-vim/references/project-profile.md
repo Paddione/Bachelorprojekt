@@ -19,12 +19,10 @@ Do not assume JSONC is strict JSON. Do not introduce automatic whitespace cleanu
 
 - Root: npm (`package-lock.json`)
 - `components/website/`: pnpm (`pnpm-lock.yaml`); never run `npm install` there
-- `components/brett/`: npm (`components/brett/package-lock.json`)
 
 Useful scoped checks:
 
 - Website unit tests: `(cd components/website && pnpm test:unit)`
-- Brett: `npm run typecheck --prefix components/brett`, `npm test --prefix components/brett`, and `npm run build --prefix components/brett`
 
 ## Safe editor integrations
 

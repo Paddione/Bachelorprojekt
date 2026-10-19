@@ -15,7 +15,6 @@ spec:
         - "web.${DEVMESH_DOMAIN}"
         - "auth.${DEVMESH_DOMAIN}"
         - "${WEBSITE_HOST}"
-        - "brett.${DEVMESH_DOMAIN}"
         - "mail.${DEVMESH_DOMAIN}"
   rules:
     - host: "web.${DEVMESH_DOMAIN}"
@@ -30,10 +29,6 @@ spec:
       http:
         paths:
           - {path: /, pathType: Prefix, backend: {service: {name: website, port: {number: 80}}}}
-    - host: "brett.${DEVMESH_DOMAIN}"
-      http:
-        paths:
-          - {path: /, pathType: Prefix, backend: {service: {name: brett, port: {number: 3000}}}}
     - host: "mail.${DEVMESH_DOMAIN}"
       http:
         paths:

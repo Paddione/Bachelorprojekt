@@ -313,11 +313,10 @@ tasks:
         trap 'rm -f "$_WEB_RENDER"' EXIT
 
         # T002209: envsubst kennt kein \${VAR:-default}. Der Default stellt sicher,
-        # dass der image-Tag nie leer gerendert wird, wenn WEBSITE_IMAGE_TAG/
-        # BRETT_IMAGE_TAG nicht gesetzt sind (Dev/Break-glass-Pfad).
+        # dass der image-Tag nie leer gerendert wird, wenn WEBSITE_IMAGE_TAG
+        # nicht gesetzt ist (Dev/Break-glass-Pfad).
         : "${WEBSITE_IMAGE_TAG:=latest}"
-        : "${BRETT_IMAGE_TAG:=latest}"
-        export WEBSITE_IMAGE_TAG BRETT_IMAGE_TAG
+        export WEBSITE_IMAGE_TAG
         # T901777: Cluster-CIDRs fuer die NetworkPolicies in k3d/website.yaml.
         # Defaults = k3s-Defaults (Fleet-Cluster); devmesh ueberschreibt in
         # environments/dev.yaml. POD_VTEP_IP = Basisadresse von POD_CIDR.
@@ -475,7 +474,7 @@ tasks:
           echo "✓ Website deployed — URL: https://${PROD_DOMAIN}"
         fi
       - 'echo ""'
-      - 'echo "  Next → task brett:deploy ENV={{.ENV}}"'
+      - 'echo "  Next → task brett:bot-setup ENV={{.ENV}}"'
 
   website:dev:
     desc: Run Astro dev server locally (hot-reload)
@@ -621,80 +620,6 @@ tasks:
         kubectl $CTX delete namespace "$NS" --ignore-not-found --timeout=60s
         echo "✓ Namespace '$NS' deleted (ENV={{.ENV}})"
 
-  # ─────────────────────────────────────────────
-  # Brett (Systemisches Whiteboard)
-  # ─────────────────────────────────────────────
-  brett:build:
-    desc: "Build brett image locally"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    deps:
-      - assets:sync
-    cmds:
-      - docker build -t ghcr.io/paddione/workspace-brett:latest components/brett/
-      - echo "✓ brett image built locally (run 'task brett:push ENV={{.ENV}}' to publish)"
-
-  brett:push:
-    desc: "Build and push brett image to ghcr.io (for production)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - task: brett:build
-        vars: { ENV: "{{.ENV}}" }
-      - docker push ghcr.io/paddione/workspace-brett:latest
-      - echo "✓ Pushed ghcr.io/paddione/workspace-brett:latest"
-
-  brett:deploy:
-    desc: "Push and roll out brett (ENV=mentolder|korczewski); ENV=dev aborts — see error message"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        if [ "{{.ENV}}" = "dev" ]; then
-          echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a local build here cannot reach it." >&2
-          echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task workspace:deploy ENV=dev." >&2
-          exit 1
-        else
-          task brett:push ENV={{.ENV}}
-        fi
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX_FLAG=""
-        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        kubectl $CTX_FLAG rollout restart deploy/brett -n "$NS"
-        kubectl $CTX_FLAG rollout status  deploy/brett -n "$NS"
-      - 'echo ""'
-      - 'echo "  Next → task brett:bot-setup ENV={{.ENV}}"'
-
-  brett:sync:
-    desc: "Fast-sync brett source to the running pod and restart (ENV=dev|mentolder|...)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        POD=$(kubectl $CTX get pod -n "$NS" -l app=brett -o name | head -n 1 | cut -d'/' -f2)
-        if [[ -z "$POD" ]]; then echo "ERROR: No brett pod found in $NS" >&2; exit 1; fi
-        
-        echo "1/2 Syncing components/brett/src/ and components/brett/public/ to $POD..."
-        kubectl $CTX cp components/brett/src/ "$NS/$POD:/app/src/"
-        kubectl $CTX cp components/brett/public/ "$NS/$POD:/app/public/"
-
-        echo "2/2 Restarting node process..."
-        kubectl $CTX exec -n "$NS" "$POD" -- pkill node || true
-        echo "✓ Brett synced and restarted. Changes should be live in a few seconds."
-
-  brett:deploy:all-prods:
-    desc: "Build, push, and roll brett on mentolder + korczewski"
-    cmds:
-      - task: brett:deploy
-        vars: { ENV: "mentolder" }
-      - task: brett:deploy
-        vars: { ENV: "korczewski" }
-
   brett:bot-setup:
     desc: "Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)"
     cmds:
@@ -702,18 +627,6 @@ tasks:
     preconditions:
       - sh: '[[ -n "${ENV:-}" ]]'
         msg: "ENV= must be set (dev|mentolder|korczewski)"
-
-  brett:logs:
-    desc: "Tail brett logs (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX_FLAG=""
-        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        kubectl $CTX_FLAG logs -n "$NS" -l app=brett --tail=200 -f
 
   studio:build:
     desc: "Build studio-server image locally (T001002)"

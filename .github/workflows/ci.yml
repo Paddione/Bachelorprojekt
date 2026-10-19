@@ -7,7 +7,7 @@ on:
     # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
     # still trigger this workflow so the branch-protection required checks
     # (SSOT: scripts/gh-branch-protection.sh — Unit + Quality Gates,
-    # Security Scan, Brett TypeScript, Spec + Guards) report success —
+    # Security Scan, Spec + Guards) report success —
     # Conventional Commits is published separately by pr-metadata.yml.
     # otherwise mergeStateStatus stays BLOCKED indefinitely and admin-merge is
     # required. See mishap T001149-M3.
@@ -159,13 +159,6 @@ jobs:
 
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
-
-      - name: Figure-pack asset test (only when assets change)
-        run: |
-          CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || true)
-          if echo "$CHANGED" | grep -qE "^(tests/figure-pack-assets|assets/)"; then
-            bash tests/figure-pack-assets.test.sh
-          fi
 
       - name: Install and verify MCP task runner for pytest specs
         run: |
@@ -667,28 +660,6 @@ jobs:
           if [[ "$crit" -gt 0 ]]; then
             echo "::warning::Found $crit CRITICAL CVEs across pinned images"
           fi
-
-  brett-typescript:
-    name: Brett TypeScript
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-tags: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: 'npm'
-          cache-dependency-path: components/brett/package-lock.json
-      - run: npm ci --prefix components/brett
-      - name: Typecheck
-        run: npm run typecheck --prefix components/brett
-      - name: Unit tests
-        run: npm test --prefix components/brett
-        env:
-          MOCK_DB: 'true'
-      - run: npm run build --prefix components/brett
 
   vitest-website:
     # Always runs on every PR (no job-level path filter) so the advisory gate

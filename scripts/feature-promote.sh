@@ -6,7 +6,7 @@
 #   bash scripts/feature-promote.sh                  # prompts for SERVICE & TARGET
 #
 # Inputs:
-#   SERVICE             website | brett
+#   SERVICE             website
 #   TARGET              mentolder | korczewski | both
 #   PROMOTE_TAG         override the auto-generated image tag
 #   SMOKE_GREP          override the Playwright --grep pattern for this run
@@ -66,7 +66,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/promote-phases.sh"
 echo "═══ Promote ${SERVICE} → ${TARGET}  tag=${PROMOTE_TAG} ═══"
 
 # Phase 1 — build + push.
-# website builds per-brand; brett uses one shared image across clusters.
 declare -A IMG
 echo ""
 echo "▶ Phase 1/4 — build + push"

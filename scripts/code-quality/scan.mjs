@@ -20,7 +20,7 @@ import { matchGlob } from './glob.mjs';
  *
  * Zwei Dinge, die dabei nicht passieren koennen:
  *  - Selbstreferenz von `docs/code-quality/repo-index.json`: `docs` steht nicht in
- *    `scan.code_roots` (nur website, tests, scripts, brett, k3d, … ), die Datei liegt
+ *    `scan.code_roots` (nur website, tests, scripts, k3d, … ), die Datei liegt
  *    also ohnehin ausserhalb des Universums.
  *  - Ignorierte Dateien: `--exclude-standard` respektiert .gitignore, .git/info/exclude
  *    und die globale Excludes-Datei.

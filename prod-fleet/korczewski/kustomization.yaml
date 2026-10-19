@@ -13,10 +13,57 @@ components:
 # T002207: remove all one-shot Jobs from the brand overlay — they now
 # live in flux-<brand>-jobs Kustomization with force:true and wait:false.
 patches:
-  - target:
+  # korczewski braucht kein Brett (eigene Brett-Entwicklung liegt bei gekko32/brett,
+  # mentolder-Prod nutzt das gekko32-Image) — Workloads aus dem Brand-Overlay entfernen.
+  - target: { group: apps, version: v1, kind: Deployment, name: brett }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
       kind: Deployment
-      name: brett
-    path: brett-patch.yaml
+      metadata:
+        name: brett
+  - target: { version: v1, kind: Service, name: brett }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: brett
+  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-brett }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: oauth2-proxy-brett
+  - target: { version: v1, kind: Service, name: oauth2-proxy-brett }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: oauth2-proxy-brett
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-brett }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-brett
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: brett-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: brett-ingress
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: brett-egress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: brett-egress
   - target: { group: batch, version: v1, kind: Job }
     patch: |-
       $patch: delete

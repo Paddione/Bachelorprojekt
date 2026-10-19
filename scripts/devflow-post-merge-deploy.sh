@@ -84,15 +84,13 @@ CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" \
   | bash scripts/filter-generated.sh | sed '/^k3d\/sdlc-stack\//d')
 
 DEPLOY_WEBSITE=false
-DEPLOY_BRETT=false
 DEPLOY_K8S=false
 
 echo "$CHANGED" | grep -qE '^components/website/' && DEPLOY_WEBSITE=true
-echo "$CHANGED" | grep -qE '^components/brett/' && DEPLOY_BRETT=true
 echo "$CHANGED" | grep -qE '^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' \
   && DEPLOY_K8S=true
 
-if [[ "$DEPLOY_WEBSITE" == false && "$DEPLOY_BRETT" == false \
+if [[ "$DEPLOY_WEBSITE" == false \
       && "$DEPLOY_K8S" == false ]]; then
   echo "⚠ Keine bekannten Deploy-Trigger in den geänderten Dateien erkannt."
   echo "Geänderte Dateien:"; echo "$CHANGED"
@@ -110,9 +108,6 @@ FAILED_TASKS=()
 # — das verfaelschte die DORA-Auswertung (beobachtet: T002251 / PR #3300).
 if [[ "$DEPLOY_WEBSITE" == true ]]; then
   echo "ℹ Website-Image: .github/workflows/build-website.yml baut+rollt aus (pull-based via Flux) — kein lokaler Build."
-fi
-if [[ "$DEPLOY_BRETT" == true ]]; then
-  echo "ℹ Brett-Image: .github/workflows/build-brett.yml baut+rollt aus — kein lokaler Build."
 fi
 
 # Break-Glass bleibt: `kubectl apply` braucht keinen Registry-Login.

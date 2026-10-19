@@ -79,7 +79,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on PRs. Tests verify **command 
 - `scripts/env-resolve.sh` must be sourced, never executed directly.
 - `tickets.ticket_plans` entfiel mit dem Retirement (2026-10-14) — kein `SELECT` mehr dorthin.
 - Pre-commit hooks block main checkout when another agent holds a lock → use worktrees.
-- `components/website/` is strictly `pnpm` (never `npm install` there); Root and `components/brett/` use `npm`.
+- `components/website/` is strictly `pnpm` (never `npm install` there); Root uses `npm`.
 - `git-crypt` unlock without keyfile uses `gpg.program`; under WSL point to Windows `gpg.exe`. See `docs/runbooks/git-crypt-key-distribution.md`.
 - Missing credential: follow `docs/runbooks/credentials-finden.md` (fixed lookup order, never print or invent values, stop and ask if nothing is found).
 - After modifying manifests, run `./tests/runner.sh local <TEST-ID>`.

@@ -49,7 +49,6 @@ def test_removed_files_are_absent_while_the_production_kustomize_base_remains(re
 
 
 def test_no_task_imports_images_into_k3d(repo_root):
-    assert re.search(r"^  brett:build:", (repo_root / "taskfiles" / "Taskfile.web.yml").read_text(), re.M)
     paths = [repo_root / "Taskfile.yml"]
     paths += [p for p in (repo_root / "taskfiles").rglob("*") if p.is_file()]
     hits = [str(p) for p in paths if b"k3d image import" in p.read_bytes()]

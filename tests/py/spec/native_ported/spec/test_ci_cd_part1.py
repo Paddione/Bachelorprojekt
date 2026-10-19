@@ -597,14 +597,6 @@ def test_t002083_build_website_yml_wires_render_artifact_job_for_fluxcd(ci):
 
 
 
-def test_t002083_build_brett_yml_wires_render_artifact_job_for_fluxcd(ci):
-    brett = ci["repo"] / ".github/workflows/build-brett.yml"
-    assert brett.is_file()
-    assert re.search(r"uses:[^\S\n]*\./\.github/workflows/render-fleet-artifact\.yml",
-                     brett.read_text())
-
-
-
 def test_t002118_jeder_reusable_workflow_aufruf_deckt_die_permissions_des_callees(ci):
     wf_dir = ci["repo"] / ".github/workflows"
     rank = {"none": 0, "read": 1, "write": 2}

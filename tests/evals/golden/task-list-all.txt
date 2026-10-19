@@ -50,7 +50,7 @@ task: Available tasks for this project:
 * app:validate:                                 Validate an app manifest against the schema. Usage: task app:validate -- <app-name>
 * assets:index:                                 Index root /assets into assets.registry in the database (ENV=mentolder|korczewski)
 * assets:learning:                              Regenerate components/website/src/lib/learning-assets.generated.json from the SSOT manifest
-* assets:sync:                                  Sync root /assets to service public/ directories (run before website:build or brett:build)
+* assets:sync:                                  Sync root /assets to service public/ directories (run before website:build)
 * billing:validate-einvoice:                    Validate XML/PDF e-invoice(s) via Mustangproject. With no args, validates every fixture in components/website/test/fixtures/einvoice/. Pass `-- <file>` for a single file.
 * brain:brain:chunk:                            Run the section-aware chunker (T002679)
 * brain:chunk:                                  Zerlege eine Quelldatei an Abschnittsgrenzen in Chunks (TSV-Manifest auf stdout)
@@ -62,12 +62,6 @@ task: Available tasks for this project:
 * brainstorm:setup:                             [brainstorm] One-time setup: apply DEV_SSH_ALLOWLIST ufw rules on the dev node
 * brainstorm:status:                            [brainstorm] Show dev sish pod status and probe the public Ingress
 * brett:bot-setup:                              Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)
-* brett:build:                                  Build brett image locally
-* brett:deploy:                                 Push and roll out brett (ENV=mentolder|korczewski); ENV=dev aborts — see error message
-* brett:deploy:all-prods:                       Build, push, and roll brett on mentolder + korczewski
-* brett:logs:                                   Tail brett logs (ENV=dev|mentolder|korczewski)
-* brett:push:                                   Build and push brett image to ghcr.io (for production)
-* brett:sync:                                   Fast-sync brett source to the running pod and restart (ENV=dev|mentolder|...)
 * cert:install:                                 Install cert-manager + lego DNS-01 webhook for wildcard certs (ENV=dev|mentolder|korczewski selects cluster context)
 * cert:secret:                                  Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml). ENV=dev|mentolder|korczewski selects target cluster + workspace ns.
 * cert:status:                                  Show wildcard certificate and ClusterIssuer status (ENV=dev|mentolder|korczewski)
@@ -97,18 +91,16 @@ task: Available tasks for this project:
 * design:leitstand-ds-sync:                     Regenerate design/leitstand-ds artifacts (tokens verbatim copy, glyph assets, card assembly)
 * dev-korczewski:db:refresh:                    [dev] Restore latest prod snapshot into shared-db-dev (drops + recreates DBs)
 * dev-korczewski:firewall:open:                 [dev] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules on $DEV_NODE
-* dev-korczewski:logs:                          [dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)
+* dev-korczewski:logs:                          [dev] Tail logs of a pod (usage: task dev:logs -- website|shared-db-dev|sish)
 * dev-korczewski:psql:                          [dev] Open psql shell to shared-db-dev
-* dev-korczewski:redeploy:brett:                [dev] Roll brett deployment (requires CI-built :dev image)
 * dev-korczewski:redeploy:website:              [dev] Roll website deployment (requires CI-built :dev image)
 * dev-korczewski:secrets:                       [dev] Materialise plaintext secrets from environments/.secrets/korczewski.yaml into workspace-korczewski-dev
 * dev-korczewski:tunnel:                        [dev] ssh -R wrapper. Usage: task dev:tunnel -- <name> <localport>
 * dev:bootstrap:                                Install harness configs + inject secrets from SSOT (environments/.secrets/dev-tools.yaml)
 * dev:db:refresh:                               [dev] Restore latest prod snapshot into shared-db-dev (drops + recreates DBs)
 * dev:firewall:open:                            [dev] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules on $DEV_NODE
-* dev:logs:                                     [dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)
+* dev:logs:                                     [dev] Tail logs of a pod (usage: task dev:logs -- website|shared-db-dev|sish)
 * dev:psql:                                     [dev] Open psql shell to shared-db-dev
-* dev:redeploy:brett:                           [dev] Roll brett deployment (requires CI-built :dev image)
 * dev:redeploy:website:                         [dev] Roll website deployment (requires CI-built :dev image)
 * dev:secrets:                                  [dev] Materialise plaintext secrets from environments/.secrets/mentolder.yaml into workspace-dev
 * dev:setup-signing:                            Configure local commit/tag signing (SSH key, G-SEC05 gate) — one-time per developer checkout
@@ -140,9 +132,8 @@ task: Available tasks for this project:
 * env:seal:                                     Encrypt secrets into a SealedSecret manifest. NOTE: rotates workspace-secrets only — co-rotate website-secrets (WEBSITE_OIDC_SECRET) separately.
 * env:validate:                                 Validate environment config against schema
 * env:validate:all:                             Validate all environment configs (schema-only, no cluster needed)
-* feature:brett:                                Rebuild + redeploy brett on BOTH prod clusters
 * feature:deploy:                               Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)
-* feature:promote:                              Promote a service dev → prod with Playwright smoke gate (SERVICE=website|brett TARGET=mentolder|korczewski|both; prompts if unset)
+* feature:promote:                              Promote a service dev → prod with Playwright smoke gate (SERVICE=website TARGET=mentolder|korczewski|both; prompts if unset)
 * feature:website:                              Rebuild + redeploy the Astro website on BOTH prod clusters
 * finetune-eval:gate:                           Same as run, but quiet — exit code only. Use as an acceptance step before export.
 * finetune-eval:run:                            Run the base-vs-tuned eval harness against ADAPTER=<path>, print the JSON report.
@@ -345,7 +336,6 @@ task: Available tasks for this project:
 * test:e2e:                                     Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)
 * test:e2e:agent-guide:film:                    Filmable Agent-Anleitung walkthrough — headed, slowMo, video recorded (no auth required)
 * test:e2e:all-prods:                           Run Playwright e2e suite against mentolder + korczewski
-* test:e2e:brett:                               Run Playwright brett-mentolder project against WEBSITE_URL
 * test:e2e:korczewski:                          Run Playwright korczewski project against KORCZEWSKI_URL (default https://web.korczewski.de)
 * test:e2e:services:                            Run Playwright services project (infrastructure) against WEBSITE_URL
 * test:e2e:visual-sweep:                        Read-only full-route visual sweep (screenshots + nav/link-health) against ENV=mentolder|korczewski, VIEWPORT=desktop|mobile. NO prod-DB purge. VIDEO=1 records a per-tier webm; PUBLIC_ONLY=1 limits to anonymous public routes.
@@ -411,7 +401,7 @@ task: Available tasks for this project:
 * workspace:office:deploy:                      Deploy the office-stack (Collabora in a privileged workspace-office ns, ENV=dev|mentolder|...)
 * workspace:office:pull-secret:                 Create/update ghcr-pull-secret in workspace-office (for the custom collabora-code image, ENV=dev|mentolder|...)
 * workspace:office:sync-secret:                 Copy COLLABORA_ADMIN_PASSWORD from workspace-secrets into workspace-office/collabora-secrets (ENV=dev|mentolder|korczewski)
-* workspace:partial-deploy:                     Nur geänderte Services deployen (ENV=mentolder PARTIAL_SERVICES=brett,docs)
+* workspace:partial-deploy:                     Nur geänderte Services deployen (ENV=mentolder PARTIAL_SERVICES=website,docs)
 * workspace:port-forward:                       Forward shared-db to localhost:5432
 * workspace:post-setup:                         Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair)
 * workspace:post-setup:all-prods:               Run workspace:post-setup + talk-setup + recording-setup on mentolder + korczewski

@@ -49,7 +49,7 @@ gh pr view "$PR_NUM" --json files -q '.files[].path' | sort
 
 Ermittle daraus:
 - **Welche URLs/Endpunkte** wurden neu erstellt oder verändert?
-- **Welches Playwright-Projekt** passt: `website` (web.*), `services` (brett.*, files.*, vault.*)?
+- **Welches Playwright-Projekt** passt: `website` (web.*), `services` (files.*, vault.*)?
 - **Ticket-ID** aus dem PR-Titel (Format `T######`)?
 - **K3-Codegraph-Abgleich:** Bei unklaren Abhängigkeiten geänderte Routen oder Helper via [`code-graph-interpretation`](../code-graph-interpretation/SKILL.md) prüfen (`trace_path --include-tests true`).
 
@@ -61,11 +61,10 @@ Ermittle daraus:
 |---|---|---|
 | `components/website/src/**` (öffentlich) | `https://web.mentolder.de` | `website` |
 | `components/website/src/**` (authentifiziert) | `https://web.mentolder.de` | `mentolder` (nutzt `.auth/mentolder-website-admin.json`) |
-| `components/brett/**` | `https://brett.mentolder.de` | `services`, `brett-mentolder` |
 | `fleet/nextcloud*.yaml` | `https://files.mentolder.de` | `services` |
 | korczewski-spezifisch (fleet cluster) | `https://web.korczewski.de` | `korczewski` *(deaktiviert / frozen per T002602)* |
 | Übergreifender Smoke-Test | — | `smoke` |
-| Mobile/Responsive | — | `ios`, `android` |
+| Mobile/Responsive | — | `ios` |
 
 > Pure-Function Unit-Tests laufen über Vitest (`npx vitest run`), nicht über Playwright.
 
@@ -131,7 +130,7 @@ const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 // PFLICHT: Tag-Annotation für den PR-E2E-Workflow (e2e-pr.yml).
 // Der Tag steuert, welche Tests bei PRs mit diesem Feature-Scope laufen.
 // Verfügbare Tags: @smoke @website @content-hub @admin @factory @planungsbuero
-//                  @booking @meeting @billing @messaging @brett @fragebogen @crm
+//                  @booking @meeting @billing @messaging @fragebogen @crm
 // Neue Feature-Tags können ergänzt werden (Branch-Mapping in e2e-pr.yml erweitern).
 test.describe('FA-<NN>: <Feature-Name>', { tag: ['@<feature-tag>'] }, () => {
   // Muster 1: Interaktives Feature-Verhalten (Happy Path & Benutzerinteraktion)

@@ -37,10 +37,6 @@ def test_feature_fan_out_task_exists_feature_website(repo_root, run_cmd):
     _assert_task_listed(repo_root, run_cmd, "feature:website")
 
 
-def test_feature_fan_out_task_exists_feature_brett(repo_root, run_cmd):
-    _assert_task_listed(repo_root, run_cmd, "feature:brett")
-
-
 def test_feature_fan_out_task_exists_feature_deploy(repo_root, run_cmd):
     _assert_task_listed(repo_root, run_cmd, "feature:deploy")
 

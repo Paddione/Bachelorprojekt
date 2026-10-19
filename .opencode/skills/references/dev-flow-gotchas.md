@@ -31,7 +31,7 @@ The shared [dev-flow-lifecycle](.agents/skills/references/dev-flow-lifecycle.md)
 
 ### [T000245] fresh worktree node_modules missing
 **Context**: Node modules are not checked in, and worktrees are clean.
-**Rule**: Run `npm ci --prefix components/brett` before running tests or compilation within a fresh worktree.
+**Rule**: Run `npm ci` in the repo root before running tests or compilation within a fresh worktree.
 
 
 
@@ -105,7 +105,6 @@ Use the correct project name in `playwright.config.ts` depending on the targeted
 | `korczewski` | E2E-Tests für die Marke Korczewski |
 | `website` | Allgemeine Website E2E-Tests |
 | `services` | Testen von Hintergrund-Diensten |
-| `brett-mentolder` | Systembrett E2E-Tests auf Mentolder |
 | `smoke` | Smoke-Tests für den Live-Cluster |
 | `systemtest` | System-Integrationstests |
 

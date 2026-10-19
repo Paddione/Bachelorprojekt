@@ -70,15 +70,15 @@ def test_immutable_image_refs_website_image_is_pinned_by_digest_in_every_prod_tr
     assert not bad, "Website-Image ohne Digest im prod-Baum:\n" + "\n".join(bad)
 
 
-def test_immutable_image_refs_brett_image_is_pinned_by_digest_in_every_prod_tree(render):
+def test_immutable_image_refs_brett_image_absent_from_local_prod_trees(render):
+    # Brett-Entfernung: lokale prod-Baeume enthalten kein workspace-brett mehr
+    # (Prod-Brett mit gekko32-Image laeuft ueber gekko32/mentolder-prod, nicht
+    # ueber dieses Repo). Jede Referenz hier waere ein Regressions-Relikt.
     res, out = render()
     assert res.returncode == 0, res.output
     refs = _image_refs_for(out, "workspace-brett")
-    assert refs, "no brett image references in prod trees"
-    bad = [r for r in refs if "@sha256:" not in r]
-    assert not bad, (
-        "Brett-Image ohne Digest im prod-Baum:\n" + "\n".join(bad)
-        + "\nHinweis: BRETT_IMAGE_TAG erreicht kein Manifest"
+    assert not refs, (
+        "Unerwartete workspace-brett-Referenz im lokalen prod-Baum:\n" + "\n".join(refs)
     )
 
 

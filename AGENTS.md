@@ -153,3 +153,15 @@ analyze the four values immediately after writing them:
 - Claude Code: Skill mit `agent:` → `background-agents.ts` (`delegate` read-only, `task` write-capable); ohne `agent:` inline. Map: `dev-flow-e2e`→ship, `incident-response`→run, `infra-ops`→build, `database-specialist`→run, `security-specialist`→build, `website-specialist`/`web-audit`→ship.
 - opencode: `dev-flow-*` = Shared Sources wie Claude Code (T014086, ex-T013724-Dualnamen); Domain-Skills via Agent-Routing (`deny` in `opencode.jsonc`); `sdlc-autopilot` (opencode-only): dev-flow-plan → dev-flow-execute (der `ticket-triage`-Einstieg entfiel mit dem Ticket-Retirement 2026-10-14). agy folgt dem opencode-Pfad.
 </details>
+
+## Shared skill doctrine (agentic-resources)
+
+Die geteilten Skills (`dev-flow-*`, `git-workflow`, alle `domains/`-Packs)
+leben im [agentic-resources-Repo](../agentic-resources) und sind hierher
+verlinkt (`scripts/agent-skills/link-from-repo.py`; Registry-SSOT
+`docs/agent-guide/registry/skills.yaml` + dortige `registry.json`). Geteilte
+Doktrin (Layer-Modell, Skill-Konventionen, Consumer-Vertrag, Workflow-Lifecycle):
+[`../agentic-resources/AGENTS.md`](../agentic-resources/AGENTS.md) plus
+[`CLAUDE.md`](../agentic-resources/CLAUDE.md) für Claude-Hinweise. Diese Datei
+bleibt für Repo-Spezifika (Topologie, Brands, MCP, Guards) führend; im
+Zweifelsfall gilt hier die repo-spezifische Regel.

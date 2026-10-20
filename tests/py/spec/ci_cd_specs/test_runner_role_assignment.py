@@ -36,7 +36,7 @@ def test_new_job_detected_without_allowlist(repo_root, run_cmd, tmp_path):
 
 
 def test_declared_capability_passes(repo_root, run_cmd, tmp_path):
-    write_workflow(tmp_path, "gpu.yml", "gpu-job", ["self-hosted", "fleet-gpu"])
+    write_workflow(tmp_path, "gpu.yml", "gpu-job", ["self-hosted", "lan-gpu"])
     run_cmd(["bash", str(repo_root / "scripts/ci/runner-placement-check.sh"), str(tmp_path)]).check()
 
 
@@ -49,4 +49,4 @@ def test_arbitration_opencode_positive_capability_anchor(repo_root):
         workflow = yaml.safe_load((repo_root / f".github/workflows/{file}.yml").read_text())
         runners = [job["runs-on"] for job in workflow["jobs"].values()]
         assert any("self-hosted" in runner for runner in runners)
-        assert any("fleet-gpu" in runner for runner in runners)
+        assert any("lan-gpu" in runner for runner in runners)

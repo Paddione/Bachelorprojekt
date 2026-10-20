@@ -35,7 +35,7 @@ def test_local_llm_jobs_keep_capability(workflows):
     for file, job in [("opencode", "opencode"), ("arbitration", "arbitrate")]:
         runner = workflows[file][job]["runs-on"]
         assert "self-hosted" in runner
-        assert "fleet-gpu" in runner
+        assert "lan-gpu" in runner
 
 
 def test_required_check_names_stable(workflows):

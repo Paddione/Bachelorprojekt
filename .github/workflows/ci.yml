@@ -57,7 +57,7 @@ env:
 jobs:
   # [T012446] Portable Gates laufen GitHub-hosted. Dadurch koennen Fork-PRs
   # ihre secret-freien Validierungen ausfuehren, ohne eigenen Code auf unserer
-  # Hardware zu starten. Lokale LLM-Jobs bleiben separat auf fleet-gpu.
+  # Hardware zu starten. Lokale LLM-Jobs bleiben separat auf lan-gpu.
   # ── Scoped test jobs (replaces offline-tests monolith) ─────────────
 
   test-bats:

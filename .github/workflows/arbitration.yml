@@ -1,7 +1,7 @@
 name: Merge Arbitration
 
 # T002423 — kurative Auflösungsstufe für N-Wege-Dateikollisionen. Läuft auf
-# dem self-hosted fleet-gpu-Pool (derselbe wie opencode.yml): der llm-proxy
+# dem self-hosted lan-gpu-Pool (derselbe wie opencode.yml): der llm-proxy
 # ist an 127.0.0.1:18235 gebunden und von einem GitHub-hosted Runner nicht
 # erreichbar (siehe docs/superpowers/specs/2026-07-28-merge-arbitration-design.md).
 #
@@ -20,7 +20,7 @@ name: Merge Arbitration
 
 # [T900040] Auch der pull_request-Trigger ist entfernt. Die Begruendung von
 # T002927 (oben) galt einem Runner, der ZEITWEISE offline war; seit dem WSL-Exit
-# (T016422) ist er DAUERHAFT weg: der einzige Runner mit dem Label fleet-gpu
+# (T016422) ist er DAUERHAFT weg: der einzige Runner mit dem Label lan-gpu
 # hiess wsl-gpu-host und lebte in WSL. Jeder PR erzeugte damit einen Run, der
 # unbegrenzt in `queued` haengt — am 2026-09-02 waren 22 gleichzeitig offen.
 # Hinzu kommt, dass der Arbitration-Schritt den llm-proxy auf 127.0.0.1:18235
@@ -38,12 +38,12 @@ jobs:
     # pull_request-Event den PR-HEAD; die Schritte darunter führen daraus
     # scripts/arbitration/detect.sh und apply.sh aus. Ohne diesen Guard könnte
     # ein beliebiger Fork-PR fremden Code auf dem Runner-Host ausführen.
-    # opencode.yml (derselbe fleet-gpu-Pool) trägt den gleichen Guard; hier
+    # opencode.yml (derselbe lan-gpu-Pool) trägt den gleichen Guard; hier
     # fehlte er. Folgenlos blieb das nur, solange gar kein Runner online war.
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, fleet-gpu]
+    runs-on: [self-hosted, lan-gpu]
     permissions:
       contents: read
       pull-requests: write

@@ -48,8 +48,8 @@ def test_lint_rejects_secrets_in_step_if(lint, repo_root, run_cmd, tmp_path):
     assert "secrets" in result.output
 
 
-def test_lint_accepts_fleet_gpu_label(lint, repo_root, run_cmd, tmp_path):
-    fixture_repo(repo_root, run_cmd, tmp_path / "selfhosted", runner="[self-hosted, fleet-gpu]")
+def test_lint_accepts_lan_gpu_label(lint, repo_root, run_cmd, tmp_path):
+    fixture_repo(repo_root, run_cmd, tmp_path / "selfhosted", runner="[self-hosted, lan-gpu]")
     run_cmd(["bash", str(lint)], cwd=tmp_path / "selfhosted").check()
 
 

@@ -58,6 +58,11 @@ spec:
       containers:
         - name: nvidia-device-plugin-ctr
           image: nvcr.io/nvidia/k8s-device-plugin:v0.20.0@sha256:a61ba9fd8efb82f3a79f877f7580e02c1e8e7593f62473644bc9c79e315c3312
+          args:
+            # cdi-annotations statt envvar-Default: nur so injiziert containerd
+            # die Geraeteknoten (/dev/nvidia*) in die Pods (CDI-Spec aus
+            # /var/run/cdi, enabled via scripts/devmesh/gpu-cdi.sh).
+            - --device-list-strategy=cdi-annotations
           env:
             # true, nicht false: scheitert die Initialisierung (Runtime nicht
             # registriert, Treiber unlesbar), soll der Pod sichtbar crashen. Mit false
@@ -83,7 +88,27 @@ spec:
           volumeMounts:
             - name: device-plugin
               mountPath: /var/lib/kubelet/device-plugins
+            # Treibermount: das Plugin generiert die CDI-Spec aus den
+            # Host-Treiberdateien (ohne Mount: still keine Spec, keine GPUs).
+            - name: driver-root
+              mountPath: /driver-root
+              readOnly: true
+            # Spec-Ablage: containerd loest nur Specs aus gemounteten Pfaden auf.
+            - name: cdi
+              mountPath: /var/run/cdi
+            - name: config
+              mountPath: /etc/config
       volumes:
         - name: device-plugin
           hostPath:
             path: /var/lib/kubelet/device-plugins
+        - name: driver-root
+          hostPath:
+            path: /
+        - name: cdi
+          hostPath:
+            path: /var/run/cdi
+            type: DirectoryOrCreate
+        - name: config
+          configMap:
+            name: nvidia-plugin-configs

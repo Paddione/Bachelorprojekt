@@ -8,3 +8,4 @@ namespace: kube-system
 
 resources:
   - nvidia-device-plugin.yaml
+  - nvidia-plugin-configs.yaml

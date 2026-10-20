@@ -1,0 +1,90 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: voice-stt-code
+  namespace: workspace
+data:
+  stt.py: |
+    """STT service: faster-whisper large-v3-turbo (int8, CPU) behind REST."""
+    import os
+    import subprocess
+    import imageio_ffmpeg
+    import numpy as np
+    from fastapi import FastAPI, File, Form, UploadFile
+    from faster_whisper import WhisperModel
+    FF = imageio_ffmpeg.get_ffmpeg_exe()
+    MODEL_ID = os.environ.get("MODEL_ID", "large-v3-turbo")
+    CPU_THREADS = int(os.environ.get("CPU_THREADS", "4"))
+    model = WhisperModel(MODEL_ID, device="cpu", compute_type="int8",
+                         cpu_threads=CPU_THREADS)
+    app = FastAPI()
+    def decode(data: bytes) -> np.ndarray:
+        p = subprocess.run(
+            [FF, "-v", "error", "-i", "pipe:0",
+             "-ar", "16000", "-ac", "1", "-f", "f32le", "pipe:1"],
+            input=data, capture_output=True)
+        p.check_returncode()
+        return np.frombuffer(p.stdout, dtype=np.float32)
+    @app.get("/healthz")
+    def healthz():
+        return {"ok": True, "model": MODEL_ID}
+    @app.post("/stt")
+    async def stt(file: UploadFile = File(...), language: str = Form("de")):
+        audio = decode(await file.read())
+        if len(audio) > 16000 * 120:
+            return {"language": language, "text": "",
+                    "error": "audio too long (max 120s), send chunks"}
+        segments, _info = model.transcribe(audio, language=language, beam_size=5)
+        return {"language": language,
+                "text": "".join(s.text for s in segments).strip()}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voice-stt
+  namespace: workspace
+  labels: {app: voice-stt}
+spec:
+  # 4 Replikas: gemessen RTF ~0,33 pro Pod (30 s Audio = ~90 s auf 2 CPUs);
+  # fuer Live-Tempo (5-min-Datei in <= 300 s) mindestens 3, mit Reserve 4.
+  # Chunks: 30 s mit 2 s Ueberlappung, d.h. Schnitt alle 28 s Neuaudio.
+  replicas: 4
+  selector:
+    matchLabels: {app: voice-stt}
+  template:
+    metadata:
+      labels: {app: voice-stt}
+    spec:
+      nodeSelector: {kubernetes.io/hostname: gpu-metal}
+      containers:
+        - name: stt
+          image: python:3.12-slim
+          command: ["sh", "-c",
+            "pip install -q --no-cache-dir fastapi uvicorn python-multipart faster-whisper imageio-ffmpeg && exec uvicorn stt:app --host 0.0.0.0 --port 8000"]
+          workingDir: /app
+          env:
+            - {name: MODEL_ID, value: "large-v3-turbo"}
+            - {name: CPU_THREADS, value: "4"}
+          ports: [{containerPort: 8000}]
+          resources:
+            requests: {cpu: "1", memory: 1500Mi}
+            limits: {cpu: "2", memory: 3Gi}
+          volumeMounts:
+            - {name: code, mountPath: /app}
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8000}
+            initialDelaySeconds: 120
+            periodSeconds: 15
+      volumes:
+        - name: code
+          configMap: {name: voice-stt-code}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voice-stt
+  namespace: workspace
+spec:
+  selector: {app: voice-stt}
+  ports: [{port: 8000, targetPort: 8000}]

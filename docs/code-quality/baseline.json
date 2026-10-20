@@ -1,32 +1,30 @@
 {
-  "S1:.opencode/skills/huggingface-vision-trainer/scripts/dataset_inspector.py": {
-    "path": ".opencode/skills/huggingface-vision-trainer/scripts/dataset_inspector.py",
-    "metric": 814,
-    "detail": "814 lines > 800 limit (.py)",
-    "reason": "upstream huggingface/skills file (T015173) — nicht teilen, Original bleibt review-bar"
+  "S4:.opencode/commands/dev-flow-exe.md": {
+    "gate": "S4",
+    "path": ".opencode/commands/dev-flow-exe.md",
+    "metric": 1,
+    "detail": "no reference to 'dev-flow-exe.md' in any configured source",
+    "frozen_at": "95d42639e"
   },
-  "S1:.opencode/skills/ui-ux-pro-max/scripts/design_system.py": {
-    "path": ".opencode/skills/ui-ux-pro-max/scripts/design_system.py",
-    "metric": 1329,
-    "detail": "1329 lines > 800 limit (.py)",
-    "reason": "vendored ui-ux-pro-max upstream file (T900077) — byte-identisch mit der bereits vorhandenen Kopie unter .claude/skills; der SSOT-Flip verschiebt sie nur, teilen wuerde vom Upstream abweichen"
+  "S4:.opencode/commands/dev-flow-execute.md": {
+    "gate": "S4",
+    "path": ".opencode/commands/dev-flow-execute.md",
+    "metric": 1,
+    "detail": "no reference to 'dev-flow-execute.md' in any configured source",
+    "frozen_at": "95d42639e"
   },
-  "S1:.opencode/skills/unsloth-buddy/scripts/reflect.py": {
-    "path": ".opencode/skills/unsloth-buddy/scripts/reflect.py",
-    "metric": 1190,
-    "detail": "1190 lines > 800 limit (.py)",
-    "reason": "vendored unsloth-buddy upstream file (T900077) — byte-identisch mit der bereits vorhandenen Kopie unter .claude/skills; der SSOT-Flip verschiebt sie nur, teilen wuerde vom Upstream abweichen"
+  "S4:scripts/devflow-build-loop.sh": {
+    "gate": "S4",
+    "path": "scripts/devflow-build-loop.sh",
+    "metric": 1,
+    "detail": "no reference to 'devflow-build-loop.sh' in any configured source",
+    "frozen_at": "95d42639e"
   },
-  "S1:scripts/devflow-post-merge-finalize.sh": {
-    "path": "scripts/devflow-post-merge-finalize.sh",
-    "metric": 812,
-    "detail": "812 lines > 800 limit (.sh)",
-    "reason": "upstream growth past S1 .sh cap on origin/main; NOT from this PR (T016422 infra change) — separate chore to refactor"
-  },
-  "S1:scripts/health-goals-check.sh": {
-    "path": "scripts/health-goals-check.sh",
-    "metric": 592,
-    "detail": "592 lines (.sh, unter 800 limit)",
-    "reason": "T900380: Mess-Helfer (DB/Cluster/gh/DORA/k8s-audit/pnpm/LLM/WT) nach scripts/lib/health-goals-measure.sh ausgelagert, -245 Zeilen; +21 fuer den Nicht-numerisch-Guard in row() und die DORA01/03-Neudefinition. Der Checker behaelt nur Report + row()-Aufrufe; die S1-Budget-Historie bleibt lesbar (T005321 hatte zuvor 13 Service/Infra-Ziele = je eine row()-Zeile nach oben gesetzt)."
+  "S4:scripts/pr-health-check.sh": {
+    "gate": "S4",
+    "path": "scripts/pr-health-check.sh",
+    "metric": 1,
+    "detail": "no reference to 'pr-health-check.sh' in any configured source",
+    "frozen_at": "95d42639e"
   }
 }

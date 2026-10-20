@@ -192,7 +192,7 @@
       "path": "plugins/python-development/skills/python-testing-patterns",
       "dest": ".opencode/skills/python-testing-patterns",
       "track": "branch",
-      "ref": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
+      "ref": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
       "version": null
     },
     "vitest": {
@@ -208,7 +208,7 @@
       "path": "skills/sota-testing",
       "dest": ".opencode/skills/sota-testing",
       "track": "branch",
-      "ref": "f1ef90d81eeea9e11703718df96adb92ebc065a1",
+      "ref": "716a391a34a1f5ad0551a1d37e018c3a5901d03c",
       "version": null
     },
     "vitest-testing": {

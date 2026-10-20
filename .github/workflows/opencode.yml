@@ -22,7 +22,7 @@ jobs:
       ) && (
         github.event.issue.pull_request == null || github.event.issue.pull_request.head.repo.full_name == github.repository
       )
-    runs-on: [self-hosted, fleet-gpu]
+    runs-on: [self-hosted, lan-gpu]
     permissions:
       id-token: write        # OIDC -> Installation-Token der opencode GitHub App
       contents: read

@@ -5,7 +5,7 @@
 # Hintergrund [T012488]: Die Zuteilung wird nicht mehr ueber die Gleichheit der
 # Hosts geregelt, sondern ueber Capability-Labels. Ein Job, der lokale
 # Infrastruktur braucht, fordert das Label an, das diese Infrastruktur bezeichnet
-# (`fleet-gpu`), nie den generischen Pool `[self-hosted, linux, x64]`. Damit ist
+# (`lan-gpu`), nie den generischen Pool `[self-hosted, linux, x64]`. Damit ist
 # die Platzierung durch die Workflow-Definition bestimmt statt durch das
 # Runner-Inventar. Erzwungen von scripts/ci/runner-placement-check.sh; die Regel
 #

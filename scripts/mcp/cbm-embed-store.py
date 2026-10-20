@@ -165,16 +165,40 @@ def load_artifact(path):
     return store
 
 
+def _format_row(key, rec):
+    """Single JSONL row in canonical form; shared by dump and append so a
+    checkpointed artifact is byte-identical to a full rewrite of the same
+    rows in the same order."""
+    validate_record(key, rec)
+    vec = [round(float(x), VECTOR_DECIMALS) for x in rec["vector"]]
+    return json.dumps(
+        {"key": key, "hash": rec["hash"], "model": rec["model"],
+         "dim": rec["dim"], "vector": vec},
+        ensure_ascii=False, sort_keys=True)
+
+
 def dump_artifact(records):
-    lines = []
-    for key, rec in records.items():
-        validate_record(key, rec)
-        vec = [round(float(x), VECTOR_DECIMALS) for x in rec["vector"]]
-        lines.append(json.dumps(
-            {"key": key, "hash": rec["hash"], "model": rec["model"],
-             "dim": rec["dim"], "vector": vec},
-            ensure_ascii=False, sort_keys=True))
+    lines = [_format_row(key, rec) for key, rec in records.items()]
     return "\n".join(lines) + ("\n" if lines else "")
+
+
+def append_records(path, batch):
+    """Append (key, record) rows to the artifact; returns the row count.
+
+    Crash-resume checkpoint primitive: cheaper than a full rewrite per
+    batch, byte-identical to one for the same rows in the same order.
+    Duplicate keys are NOT deduplicated here — the next load fails closed
+    (artifact-duplicate-key), so a double checkpoint can never silently
+    double vectors. An empty batch is a no-op returning 0."""
+    rows = [_format_row(key, rec) for key, rec in batch]
+    if not rows:
+        return 0
+    parent = os.path.dirname(os.path.abspath(path))
+    os.makedirs(parent, exist_ok=True)
+    with open(path, "a", encoding="utf-8") as f:
+        for row in rows:
+            f.write(row + "\n")
+    return len(rows)
 
 
 def write_artifact(path, records):

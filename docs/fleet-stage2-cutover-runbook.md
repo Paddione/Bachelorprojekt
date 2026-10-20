@@ -151,3 +151,27 @@ Direct copy (standalone `backup-pvc` → fleet `backup-pvc`, both ns `workspace`
 
 Decommission mentolder gekko standalone, reclaim hardware, remove old envs /
 sealed-secrets, restore Filen cloud backups, final DNS TTL hardening.
+
+## Appendix B — post-merge CI runner cutover (LAN, 2026-10-20)
+
+GitHub-hosted runners lost Fleet-API access when the old endpoint
+(`204.168.244.104:6443`, runbook-declared DEAD) was decommissioned; the new
+API has no public endpoint. `post-merge → website:migrate` now runs on the
+self-hosted runner `gpu-cluster-3` (freest LAN node, label `lan-worker`).
+
+Rebuild checklist (Hetzner reset wipes all of this):
+
+1. Re-apply the least-privilege access (namespace `workspace`):
+   `ServiceAccount/ci-migrate` + `Role` (get/watch deployments, secrets,
+   pods; get services; create pods/exec + pods/portforward) + `RoleBinding`
+   + token `Secret` (`kubernetes.io/service-account.name: ci-migrate`).
+2. On `gpu-cluster-3`, rewrite `~/.kube/config-ci` (0600, user `patrick`):
+   server = new API endpoint, user token = new SA token secret.
+   The context MUST be named `fleet` (`task website:migrate` calls
+   `kubectl --context fleet`; any other name fails with
+   `context "fleet" does not exist`).
+3. Smoke test from the host:
+   `KUBECONFIG=~/.kube/config-ci kubectl -n workspace get svc shared-db`
+   plus a real port-forward probe.
+4. The `lan-gpu` runner (`wsl-gpu-host`, opencode/arbitration) is unaffected
+   by the rebuild but needs no cluster API — no action here.

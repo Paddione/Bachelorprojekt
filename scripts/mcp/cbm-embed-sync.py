@@ -590,7 +590,6 @@ def cmd_sync(args):
         keys = [e["key"] for e in plan["to_embed"]]
         text_by_key = dict(zip(keys, texts))
         urls = resolve_embed_urls(args)
-        interim = dict(store)
         pending = [0]
 
         def on_batch(pairs):
@@ -601,21 +600,22 @@ def cmd_sync(args):
                 pending[0] += len(pairs)
                 if pending[0] >= args.checkpoint_every:
                     pending[0] = 0
-                    fresh = [(keys[i], text_by_key[keys[i]], vectors_by_key[keys[i]])
-                             for i, _ in pairs]
-                    for key, text, vec in fresh:
-                        interim[key] = {
-                            "hash": content_hash(args.model, text),
-                            "model": args.model, "dim": len(vec),
-                            "vector": list(vec)}
-                    STORE.write_artifact(artifact_path(root), interim)
+                    fresh = [(keys[i], {
+                        "hash": content_hash(args.model, text_by_key[keys[i]]),
+                        "model": args.model,
+                        "dim": len(vectors_by_key[keys[i]]),
+                        "vector": list(vectors_by_key[keys[i]])})
+                        for i, _ in pairs]
+                    if not fresh:
+                        return
+                    STORE.append_records(artifact_path(root), fresh)
                     cp_manifest = STORE.make_manifest(
                         corpus_sha256=GRAPH.corpus_sha256(candidates),
                         receipt_id=receipt_id,
                         receipt_timestamp=receipt_id,
                         model=args.model,
-                        dim=next(iter(interim.values()))["dim"],
-                        vectors=len(interim),
+                        dim=fresh[0][1]["dim"],
+                        vectors=len(store) + len(vectors_by_key),
                         head_sha=head,
                         project=args.project,
                         freshness_status=status,

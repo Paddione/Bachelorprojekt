@@ -9,7 +9,6 @@ resources:
   - namespace.yaml
   - shared-db-dev.yaml
   - website-dev.yaml
-  - brett-dev.yaml
   - sish.yaml
   - traefik-wildcard-ingress.yaml
   - shared-db-dev-lb.yaml

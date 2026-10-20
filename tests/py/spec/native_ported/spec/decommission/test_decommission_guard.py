@@ -182,31 +182,6 @@ def test_decommission_the_drop_migration_keeps_the_devflow_phase_event_table(rep
     assert status != 0, "decommission migration drops tickets.factory_phase_events"
 
 
-def test_decommission_ticket_sh_exposes_no_factory_only_subcommands(repo_root):
-    text = (repo_root / "scripts/ticket.sh").read_text(encoding="utf-8", errors="replace")
-    for sub in ["unfactory", "factory-control", "dryrun-mark", "dryrun-check"]:
-        assert not re.search(rf"^  {re.escape(sub)}\)", text, re.M), (
-            f"ticket.sh still dispatches the removed subcommand: {sub}"
-        )
-
-
-def test_decommission_ticket_sh_no_longer_queries_the_dropped_factory_tables(repo_root):
-    rx = re.compile(r"tickets\.(factory_control|factory_run_budget|factory_model_slots)")
-    comment = re.compile(r"^\s*#")
-    hits = []
-    for i, line in enumerate((repo_root / "scripts/ticket.sh").read_text(encoding="utf-8").splitlines(), 1):
-        if rx.search(line) and not comment.search(line):
-            hits.append(f"{i}:{line}")
-    assert not hits, "ticket.sh still queries a dropped factory table:\n" + "\n".join(hits)
-
-
-def test_decommission_release_hold_no_longer_nudges_the_removed_factory_service(repo_root):
-    text = (repo_root / "scripts/ticket.sh").read_text(encoding="utf-8", errors="replace")
-    assert not re.search(r"systemctl --user start.*factory\.service", text), (
-        "ticket.sh release-hold still starts the decommissioned factory.service"
-    )
-
-
 def test_decommission_factory_mcp_node_sources_are_absent(repo_root):
     assert not (repo_root / "scripts/factory-mcp-node").exists()
 

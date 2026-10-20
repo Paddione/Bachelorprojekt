@@ -51,7 +51,9 @@ if [ ! -f "$HELPER" ]; then
 fi
 
 BEGIN_OUT=""
-if ! BEGIN_OUT=$(python3 "$HELPER" begin --args-json "$ARGS_JSON" 2>/tmp/cbm-begin-$$.err); then
+if BEGIN_OUT=$(python3 "$HELPER" begin --args-json "$ARGS_JSON" 2>/tmp/cbm-begin-$$.err); then
+  :
+else
   BEGIN_RC=$?
   cat /tmp/cbm-begin-$$.err >&2 || true
   rm -f /tmp/cbm-begin-$$.err

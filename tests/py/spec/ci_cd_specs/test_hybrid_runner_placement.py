@@ -3,7 +3,7 @@
 import pytest
 import yaml
 
-PORTABLE = ["test-bats", "test-manifests", "test-spec-fast", "test-spec-shard", "test-spec", "security-scan", "brett-typescript", "vitest-website", "lighthouse", "commit-lint"]
+PORTABLE = ["test-bats", "test-manifests", "test-spec-fast", "test-spec-shard", "test-spec", "security-scan", "vitest-website", "lighthouse", "commit-lint"]
 AUXILIARY = [("auto-enable-automerge", "enable-automerge"), ("e2e-pr", "e2e-pr"), ("pr-auto-title", "auto-title")]
 
 @pytest.fixture

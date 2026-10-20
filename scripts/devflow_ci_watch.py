@@ -5,6 +5,10 @@ Migriert aus scripts/devflow-ci-watch.sh (Chore T001007 / Python-Migration).
 Synchroner CI-Watcher mit automatischer DIRTY-Rebase-Selbstheilung,
 Gegenprobe auf Job-Ebene (T003224), dynamischer Repository-Erkennung
 und fail-closed Fehlerbehandlung (T014466).
+
+Ticket-Pfad retiriert 2026-10-14: Phasen-Gate prueft die lokale
+`phase-events.log` statt `ticket.sh assert-phase-chain`. Aufruf:
+`devflow-ci-watch.sh <PR_URL>`.
 """
 
 import json
@@ -16,6 +20,8 @@ import sys
 import time
 from pathlib import Path
 from urllib.parse import urlparse
+
+PHASE_REQUIRED = ("plan done", "implement entered", "verify done")
 
 
 def run_cmd(args, check=False, cwd=None, env=None, text=True, capture=True):
@@ -46,62 +52,48 @@ def extract_repo_from_url(pr_url: str) -> str:
     return "Paddione/Bachelorprojekt"
 
 
-def resolve_ticket_sh(script_dir: Path) -> Path:
-    """Findet ticket.sh aus der Umgebung oder Projektpfaden."""
-    env_ticket = os.environ.get("TICKET_SH")
-    if env_ticket:
-        return Path(env_ticket)
-    if Path("scripts/ticket.sh").is_file():
-        return Path("scripts/ticket.sh")
-    return script_dir / "ticket.sh"
+def slug_from_branch(branch: str) -> str:
+    """Leitet den Plan-Slug aus dem Branch-Namen ab (Praefix `feature/`/`fix/` weg)."""
+    return re.sub(r"^[A-Za-z]+/", "", branch.strip())
 
 
-def is_executable(path: Path) -> bool:
-    """Prüft, ob ein Pfad existiert und ausführbar ist."""
-    return path.is_file() and os.access(path, os.X_OK)
+def phase_log_path(slug: str) -> Path | None:
+    """Pfad der lokalen phase-events.log (Repo-Toplevel + Plan-Konvention)."""
+    if not slug:
+        return None
+    toplevel = run_cmd(["git", "rev-parse", "--show-toplevel"])
+    base = toplevel.stdout.strip() if toplevel.returncode == 0 else ""
+    if not base:
+        return None
+    return Path(base) / ".agents" / "plans" / slug / "phase-events.log"
 
 
-def record_phase(ticket_sh: Path, ticket_id: str, detail: str) -> None:
-    """Sendet Best-Effort Phasen-Telemetrie an ticket.sh."""
-    if not is_executable(ticket_sh):
-        return
+def assert_phase_log(pr_url: str) -> tuple[bool, int]:
+    """Verifiziert die Phase-Chain gegen die lokale phase-events.log.
+
+    Gibt (ok, exit_code) zurueck: 0 = vollständig, 6 = unvollständig/leer,
+    7 = nicht auswertbar (Branch oder Log-Pfad unbestimmbar).
+    """
+    branch_res = run_cmd(["gh", "pr", "view", pr_url, "--json", "headRefName", "-q", ".headRefName"])
+    branch = branch_res.stdout.strip() if branch_res.returncode == 0 else ""
+    if not branch:
+        sys.stderr.write("⚠ PR-Branch nicht bestimmbar — Phase-Chain kann nicht verifiziert werden.\n")
+        return False, 7
+    slug = slug_from_branch(branch)
+    log = phase_log_path(slug)
+    if log is None:
+        sys.stderr.write("⚠ Repo-Toplevel nicht bestimmbar — Phase-Chain kann nicht verifiziert werden.\n")
+        return False, 7
     try:
-        subprocess.run(
-            [
-                str(ticket_sh),
-                "phase",
-                ticket_id,
-                "deploy",
-                "entered",
-                "--driver",
-                "devflow",
-                "--detail",
-                detail,
-            ],
-            capture_output=True,
-            timeout=10,
-        )
-    except Exception:
-        pass
-
-
-def assert_phase_chain(ticket_sh: Path, ticket_id: str) -> bool:
-    """Verifiziert die Phase-Chain via ticket.sh."""
-    try:
-        res = subprocess.run(
-            [str(ticket_sh), "assert-phase-chain", "--id", ticket_id],
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-        if res.stdout:
-            sys.stdout.write(res.stdout)
-        if res.stderr:
-            sys.stderr.write(res.stderr)
-        return res.returncode == 0
-    except Exception as exc:
-        sys.stderr.write(f"Fehler bei assert-phase-chain: {exc}\n")
-        return False
+        lines = log.read_text().splitlines()
+    except OSError:
+        sys.stderr.write(f"❌ phase-events.log fehlt ({log}) — Phase-Chain nicht vollständig.\n")
+        return False, 6
+    missing = [p for p in PHASE_REQUIRED if not any(l.startswith(p) for l in lines)]
+    if missing:
+        sys.stderr.write(f"❌ Phase-Chain nicht vollständig — fehlt: {', '.join(missing)}.\n")
+        return False, 6
+    return True, 0
 
 
 def get_sleep_interval(default_seconds: int) -> float:
@@ -117,15 +109,8 @@ def get_sleep_interval(default_seconds: int) -> float:
     return float(default_seconds)
 
 
-def run_ci_watch(ticket_id: str, pr_url: str, max_attempts: int = 5) -> int:
-    script_dir = Path(__file__).resolve().parent
-    ticket_sh = resolve_ticket_sh(script_dir)
+def run_ci_watch(pr_url: str, max_attempts: int = 5) -> int:
     repo = extract_repo_from_url(pr_url)
-
-    # Initial-Telemetrie
-    pr_num_res = run_cmd(["gh", "pr", "view", "--json", "number", "-q", ".number"])
-    pr_num_telem = pr_num_res.stdout.strip() if pr_num_res.returncode == 0 else ""
-    record_phase(ticket_sh, ticket_id, f"PR #{pr_num_telem} · CI watch")
 
     # 1. Preflight: DIRTY (Rebase nötig)
     merge_state_res = run_cmd(["gh", "pr", "view", pr_url, "--json", "mergeStateStatus", "-q", ".mergeStateStatus"])
@@ -142,7 +127,7 @@ def run_ci_watch(ticket_id: str, pr_url: str, max_attempts: int = 5) -> int:
             status_res = run_cmd(["git", "status", "--porcelain"])
             if status_res.returncode == 0 and status_res.stdout.strip():
                 run_cmd(["git", "add", "-A"])
-                run_cmd(["git", "commit", "-m", f"chore(ci): regenerate freshness artifacts after auto-rebase [{ticket_id}]"])
+                run_cmd(["git", "commit", "-m", "chore(ci): regenerate freshness artifacts after auto-rebase"])
             push_res = run_cmd(["git", "push", "--force-with-lease"])
             if push_res.returncode != 0:
                 sys.stderr.write("❌ push nach Rebase fehlgeschlagen (force-with-lease abgelehnt oder Netzwerkfehler) — manuelles Eingreifen nötig.\n")
@@ -168,13 +153,8 @@ def run_ci_watch(ticket_id: str, pr_url: str, max_attempts: int = 5) -> int:
     pr_state = state_res.stdout.strip() if state_res.returncode == 0 else ""
     if pr_state == "MERGED":
         sys.stdout.write("✅ PR bereits gemergt (state=MERGED) — Checks waren per Branch-Protection bereits grün. Überspringe Poll-Loop.\n")
-        if not is_executable(ticket_sh):
-            sys.stderr.write(f"⚠ ticket.sh nicht erreichbar ({ticket_sh}) — Phase-Chain kann nicht verifiziert werden (Worktree entfernt?).\n")
-            return 7
-        if not assert_phase_chain(ticket_sh, ticket_id):
-            sys.stderr.write("❌ Phase-Chain nicht vollständig — siehe Meldungen oben.\n")
-            return 6
-        return 0
+        ok, code = assert_phase_log(pr_url)
+        return 0 if ok else code
 
     # 4. Polling-Schleife
     ci_attempt = 0
@@ -182,7 +162,6 @@ def run_ci_watch(ticket_id: str, pr_url: str, max_attempts: int = 5) -> int:
         ci_attempt += 1
         sys.stdout.write(f"⏳ CI-Check Versuch {ci_attempt}/{max_attempts} für {pr_url} ...\n")
         sys.stdout.flush()
-        record_phase(ticket_sh, ticket_id, f"CI attempt {ci_attempt}/{max_attempts}")
 
         # gh pr checks --watch blockiert bis zum nächsten Update
         run_cmd(["gh", "pr", "checks", pr_url, "--watch", "--interval", "15"])
@@ -285,13 +264,8 @@ def run_ci_watch(ticket_id: str, pr_url: str, max_attempts: int = 5) -> int:
         # Wenn keine echten Fehler verbleiben -> GRÜN!
         if not failed_checks_str:
             sys.stdout.write(f"✅ {total_checks} CI-Checks, alle grün.\n")
-            if not is_executable(ticket_sh):
-                sys.stderr.write(f"⚠ ticket.sh nicht erreichbar ({ticket_sh}) — Phase-Chain kann nicht verifiziert werden (Worktree entfernt?).\n")
-                return 7
-            if not assert_phase_chain(ticket_sh, ticket_id):
-                sys.stderr.write("❌ Phase-Chain nicht vollständig — siehe Meldungen oben.\n")
-                return 6
-            return 0
+            ok, code = assert_phase_log(pr_url)
+            return 0 if ok else code
 
         # Prüfe auf max_attempts
         if ci_attempt >= max_attempts:
@@ -342,19 +316,18 @@ def run_ci_watch(ticket_id: str, pr_url: str, max_attempts: int = 5) -> int:
 
 
 def main() -> int:
-    if len(sys.argv) < 3:
-        sys.stderr.write("usage: devflow-ci-watch.sh <TICKET_ID> <PR_URL>\n")
+    if len(sys.argv) < 2:
+        sys.stderr.write("usage: devflow-ci-watch.sh <PR_URL>\n")
         return 2
 
-    ticket_id = sys.argv[1]
-    pr_url = sys.argv[2]
+    pr_url = sys.argv[1]
     max_attempts_raw = os.environ.get("MAX_CI_ATTEMPTS", "5")
     try:
         max_attempts = int(max_attempts_raw)
     except ValueError:
         max_attempts = 5
 
-    return run_ci_watch(ticket_id, pr_url, max_attempts)
+    return run_ci_watch(pr_url, max_attempts)
 
 
 if __name__ == "__main__":

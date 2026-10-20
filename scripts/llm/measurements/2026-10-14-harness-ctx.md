@@ -64,7 +64,7 @@ cd ~/Bachelorprojekt && git pull
 npm install -g @earendil-works/pi-coding-agent@1.2.0   # pi, Node >= 22.19
 command -v pi opencode jq node
 pi --version; opencode --version
-systemctl --user cat serve-worker-vllm | grep -n -- '--max-model-len'   # 65536 erwartet
+systemctl --user cat serve-worker-vllm | grep -n -- '--max-model-len'   # 40960 erwartet (seit 2026-10-15; die Laeufe unten liefen mit 65536)
 curl -s http://127.0.0.1:8123/metrics | grep -E '^vllm:num_requests_(running|waiting)'   # beide 0
 bash scripts/agent-lock.sh list
 ```

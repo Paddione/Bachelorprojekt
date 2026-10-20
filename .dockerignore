@@ -17,7 +17,6 @@ prod-mentolder
 prod-korczewski
 scripts
 !scripts/knowledge
-components/brett
 docker
 
 # Exclude test artifacts that don't belong in the runtime image

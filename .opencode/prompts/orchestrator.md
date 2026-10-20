@@ -65,5 +65,4 @@ Use `codebase-memory-mcp` first (search_graph, trace_path, get_code_snippet, que
 - `task test:changed` — smart test selection
 - `task freshness:check` — committed generated artifacts
 - `task test:code-quality` — file-size caps, import-cycle, hardcoded-hostname scan
-- Brett: `npm run typecheck --prefix components/brett && npm test --prefix components/brett && npm run build --prefix components/brett`
-- Website: `(cd website && pnpm test:unit)`
+- Website: `(cd components/website && pnpm test:unit)`

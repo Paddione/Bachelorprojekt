@@ -24,6 +24,7 @@ const BUNDLE_FILES = [
   'footer.json',
   'stammdaten.json',
   'ueber-mich.json',
+  'services.json',
 ] as const;
 
 function readRaw(name: string): string {
@@ -123,6 +124,13 @@ describe('massage content bundles', () => {
     const kontakt = loadDomain('massage', 'kontakt');
     expect(kontakt.showPhone).toBe(false);
     expect(kontakt.footerCity).toBe('Vögelsen bei Lüneburg');
+  });
+
+  it('ships a services bundle for every linked service page', () => {
+    // Fehlte services.json, lieferten /rueckenmassage und /ganzkoerpermassage HTTP 500.
+    const services = loadDomain('massage', 'services');
+    expect(services.map((s) => s.slug)).toEqual(massageConfig.services.map((s) => s.slug));
+    expect(services).toEqual(JSON.parse(JSON.stringify(massageConfig.services)));
   });
 });
 

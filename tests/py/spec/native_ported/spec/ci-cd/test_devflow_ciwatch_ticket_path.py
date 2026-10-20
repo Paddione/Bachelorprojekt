@@ -1,4 +1,9 @@
-"""Native migration of tests/spec/ci-cd/devflow-ciwatch-ticket-path.bats."""
+"""Phase-Chain-Gate laeuft lokal gegen phase-events.log (retiriert 2026-10-14).
+
+Portiert aus devflow-ciwatch-ticket-path (TICKET_SH-Mechanik entfiel mit dem
+Ticket-System): Der Gate prueft `.agents/plans/<slug>/phase-events.log`
+(Slug aus dem PR-Branch), Exit 6 = unvollstaendig, 7 = nicht auswertbar.
+"""
 
 import os
 import stat
@@ -6,14 +11,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
-FAKE_TICKET = """#!/usr/bin/env bash
-echo "ticket.sh $*" >> "$MARKER_DIR/ticket-calls"
-if [[ "$1" == "assert-phase-chain" || "$2" == "assert-phase-chain" ]]; then
-  exit "${FAKE_ASSERT_EXIT:-0}"
-fi
-exit 0
-"""
 
 GH_STUB = """#!/usr/bin/env bash
 args="$*"
@@ -49,6 +46,12 @@ esac
 
 PR_URL = "https://github.com/Paddione/Bachelorprojekt/pull/4533"
 
+PHASE_LINES = (
+    "plan done 2026-10-14T00:00:00Z plan-gestagt\n"
+    "implement entered 2026-10-14T00:01:00Z subagent-gestartet\n"
+    "verify done 2026-10-14T00:02:00Z tests-gruen\n"
+)
+
 
 @pytest.fixture
 def ws(repo_root, tmp_path):
@@ -64,20 +67,19 @@ def ws(repo_root, tmp_path):
     subprocess.run(["git", "-C", str(work), "-c", "user.email=t@example.invalid", "-c", "user.name=t",
                     "commit", "-q", "--allow-empty", "-m", "init"], check=True)
 
-    fake = work / "fake-ticket.sh"
-    fake.write_text(FAKE_TICKET)
-    fake.chmod(fake.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    plan_dir = work / ".agents" / "plans" / "stub-branch"
+    plan_dir.mkdir(parents=True)
+    (plan_dir / "phase-events.log").write_text(PHASE_LINES)
 
     gh = work / "bin/gh"
     gh.write_text(GH_STUB)
     gh.chmod(gh.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-    (marker / "ticket-calls").unlink(missing_ok=True)
     return {
         "work": work,
         "marker": marker,
         "script": repo_root / "scripts/devflow-ci-watch.sh",
-        "fake": fake,
+        "plan_log": plan_dir / "phase-events.log",
         "env": {
             "MARKER_DIR": str(marker),
             "PATH": f"{work / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}",
@@ -85,39 +87,35 @@ def ws(repo_root, tmp_path):
     }
 
 
-def _run(run_cmd, w, ticket_sh, assert_exit=None):
-    env = dict(w["env"])
-    env["TICKET_SH"] = str(ticket_sh)
-    if assert_exit is not None:
-        env["FAKE_ASSERT_EXIT"] = str(assert_exit)
-    return run_cmd(["bash", "-c", '"$@" 2>&1', "run", "bash", str(w["script"]), "T006370", PR_URL],
-                   cwd=w["work"], env=env, timeout=900)
+def _run(run_cmd, w):
+    return run_cmd(["bash", "-c", '"$@" 2>&1', "run", "bash", str(w["script"]), PR_URL],
+                   cwd=w["work"], env=w["env"], timeout=900)
 
 
-def test_t006370_phase_chain_check_erreicht_ticket_sh_aus_cwd_ohne_scripts_merged_pfad(run_cmd, ws):
-    res = _run(run_cmd, ws, ws["fake"], assert_exit=0)
+def test_phase_gate_vollstaendiger_log_bei_merged_pr_exit_0(run_cmd, ws):
+    res = _run(run_cmd, ws)
     assert res.returncode == 0, f"unerwarteter Exit {res.returncode} (erwartet 0): {res.output}"
-    calls = ws["marker"] / "ticket-calls"
-    assert calls.exists() and "assert-phase-chain" in calls.read_text(), \
-        "assert-phase-chain wurde nie aufgerufen - Testaufbau kaputt, nicht der Fix"
-    assert "Phase-Chain nicht vollständig" not in res.output, \
-        "Skript behauptet 'Phase-Chain nicht vollständig', obwohl die Chain gar nicht geprueft werden konnte"
 
 
-def test_t006370_nachgewiesene_chain_verletzung_beendet_weiterhin_mit_exit_6(run_cmd, ws):
-    res = _run(run_cmd, ws, ws["fake"], assert_exit=1)
+def test_phase_gate_unvollstaendiger_log_beendet_mit_exit_6(run_cmd, ws):
+    ws["plan_log"].write_text(
+        "plan done 2026-10-14T00:00:00Z plan-gestagt\n"
+        "implement entered 2026-10-14T00:01:00Z subagent-gestartet\n"
+    )
+    res = _run(run_cmd, ws)
     assert res.returncode == 6, f"unerwarteter Exit {res.returncode} (erwartet 6): {res.output}"
     assert "Phase-Chain nicht vollständig" in res.output, \
         "Exit 6 ohne die zugehoerige Meldung - Gate-Ausgabe unvollstaendig"
 
 
-def test_t006370_nicht_erreichbares_ticket_sh_endet_mit_exit_7_und_klarer_meldung(run_cmd, ws):
-    res = _run(run_cmd, ws, ws["work"] / "does-not-exist/ticket.sh")
-    assert res.returncode == 7, f"unerwarteter Exit {res.returncode} (erwartet 7): {res.output}"
-    assert "nicht erreichbar" in res.output, "Exit 7 ohne klare 'nicht erreichbar'-Meldung"
+def test_phase_gate_fehlender_log_beendet_mit_exit_6_und_klarer_meldung(run_cmd, ws):
+    ws["plan_log"].unlink()
+    res = _run(run_cmd, ws)
+    assert res.returncode == 6, f"unerwarteter Exit {res.returncode} (erwartet 6): {res.output}"
+    assert "phase-events.log fehlt" in res.output, "Exit 6 ohne klare 'fehlt'-Meldung"
 
 
-def test_t006370_gruener_pfad_alle_checks_gruen_erreicht_assert_phase_chain_aus_cwd_ohne_scripts(run_cmd, ws):
+def test_gruener_pfand_alle_checks_gruen_mit_vollstaendigem_log_exit_0(run_cmd, ws):
     m = ws["marker"]
     (m / "pr-state").write_text("OPEN\n")
     (m / "mock-rollup-pending").write_text("0\n")
@@ -126,13 +124,10 @@ def test_t006370_gruener_pfad_alle_checks_gruen_erreicht_assert_phase_chain_aus_
                           capture_output=True, text=True, check=True).stdout
     (m / "mock-head-ref-oid").write_text(head)
 
-    res = _run(run_cmd, ws, ws["fake"], assert_exit=0)
+    res = _run(run_cmd, ws)
     assert res.returncode == 0, f"unerwarteter Exit {res.returncode} (erwartet 0): {res.output}"
-    calls = m / "ticket-calls"
-    assert calls.exists() and "assert-phase-chain" in calls.read_text(), \
-        "gruener Pfad erreicht assert-phase-chain nicht - Testaufbau kaputt, nicht der Fix"
 
 
-def test_t006370_skript_enthaelt_keinen_relativen_scripts_ticket_sh_aufruf_mehr(ws):
-    assert "./scripts/ticket.sh" not in ws["script"].read_text(), \
-        "relativer ./scripts/ticket.sh-Aufruf noch vorhanden - cwd-Abhaengigkeit besteht fort"
+def test_skript_enthaelt_keinen_ticket_phase_chain_aufruf_mehr(ws):
+    assert "assert-phase-chain" not in ws["script"].read_text(), \
+        "ticket-Phase-Chain-Aufruf noch vorhanden - Retirement unvollstaendig"

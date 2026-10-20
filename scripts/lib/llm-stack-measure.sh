@@ -266,9 +266,12 @@ PY
 }
 
 # Backend-Registry in Produktion: PG-Abfrage auf tickets.llm_proxy_backends.
+# (Tabelle mit dem Ticket-Retirement 2026-10-14 gedroppt — Query liefert leer,
+# Aufrufer behandeln das als uebersprungen. Der Live-Proxy nutzt
+# LLM_PROXY_BACKENDS_JSON aus der Unit-Umgebung und ist nicht betroffen.)
 pg_backends() {
   local pod
-  # Default seit ADR-007/T900145: Ticket-DB of record ist fleet (siehe scripts/ticket.sh).
+  # Default seit ADR-007/T900145: DB of record ist fleet.
   pod="$(kubectl get pod -n "${WORKSPACE_NS:-workspace}" --context "${WORKSPACE_CTX:-fleet}" \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
     -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | awk '{print $1}')"

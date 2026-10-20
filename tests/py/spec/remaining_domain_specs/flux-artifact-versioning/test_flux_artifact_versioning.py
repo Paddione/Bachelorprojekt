@@ -16,4 +16,6 @@ def test_website_digest_no_latest(rendered):
             assert not re.search(r'image: ghcr\.io/paddione/(website|workspace-brett):latest',path.read_text())
 
 def test_brett_digest(rendered):
-    assert 'sha256:9090909090909090909090909090909090909090909090909090909090909090' in (rendered/'mentolder/mentolder.yaml').read_text()
+    # Brett-Entfernung: kein workspace-brett mehr im lokalen mentolder-Render
+    # (Prod-Brett laeuft ueber gekko32/mentolder-prod mit eigenem Image).
+    assert 'workspace-brett' not in (rendered/'mentolder/mentolder.yaml').read_text()

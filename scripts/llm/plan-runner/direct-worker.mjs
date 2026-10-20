@@ -1,5 +1,5 @@
 // direct-worker.mjs — Direkt-Worker des plan-runners (T016656): schlanker Tool-Loop im Runner-Prozess
-// gegen einen OpenAI-kompatiblen Endpunkt (vLLM :8123, Modell w4a4, 32k Kontext), ohne opencode.
+// gegen einen OpenAI-kompatiblen Endpunkt (vLLM :8123, Modell w4a4, 40k Kontext), ohne opencode.
 // Der Kontext bleibt klein, weil weder opencode-System-Prompt noch MCP-Schemas oder Skills mitgehen.
 // Fuenf Tools: read_file, write_file, replace_in_file, run_command, finish. Schreiben nur auf die
 // target_files des Partials, Befehle per Allowlist und ohne Shell.
@@ -15,7 +15,7 @@ import { RESULT_MARKER } from './plan.mjs';
 export const DEFAULT_URL = 'http://127.0.0.1:8123';
 export const DEFAULT_MODEL = 'w4a4';
 const MAX_TOOL_CHARS = 4000;
-const CONTEXT_BUDGET_TOKENS = 28000; // vLLM-Fenster 32k, Rest fuer Antwort und Schema
+const CONTEXT_BUDGET_TOKENS = 28000; // vLLM-Fenster 40k, Rest fuer Antwort und Schema
 const MAX_PROTOCOL_ERRORS = 3;
 const COMMAND_TIMEOUT_MS = 300_000;
 const TAIL_CHARS = 4000;

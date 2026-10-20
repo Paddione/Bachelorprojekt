@@ -42,26 +42,8 @@ _get_last_tag() {
 }
 
 _ticket_context() {
-  # Extract ticket ID from PR title [T00XXXX] and look up type/areas/description
-  # from the database. Falls back to empty string on any failure.
-  local title="$1" tid
-  if [[ "$title" =~ \[(T[0-9]{6})\] ]]; then
-    tid="${BASH_REMATCH[1]}"
-    # Try vda ticket get first, then psql fallback
-    local ticket_json
-    if command -v vda.sh &>/dev/null; then
-      ticket_json=$("${SCRIPT_DIR}/vda.sh" ticket get --id "$tid" --json 2>/dev/null || true)
-    fi
-    if [[ -z "$ticket_json" ]] && command -v psql &>/dev/null; then
-      ticket_json=$(psql -t -A -h "${PGHOST:-localhost}" -p "${PGPORT:-5432}" \
-        -d "${PGDATABASE:-bachelorprojekt}" -U "${PGUSER:-postgres}" \
-        -c "SELECT json_build_object('type', type, 'areas', areas, 'description', left(description,200)) FROM tickets.tickets WHERE external_id='$tid'" 2>/dev/null || true)
-    fi
-    if [[ -n "$ticket_json" ]]; then
-      echo "$ticket_json"
-      return 0
-    fi
-  fi
+  # Retiriert 2026-10-14 (kein Ticket-Backend): immer leer, Aufrufer nutzen
+  # PR-Titel/Labels direkt. Stub bleibt, damit bestehende Aufrufe nicht brechen.
   return 1
 }
 

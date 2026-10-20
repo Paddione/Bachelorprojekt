@@ -1275,21 +1275,6 @@
     "measured_at": "2026-10-08"
   },
   {
-    "id": "G-DB06",
-    "title": "Orphan-Rows (3 FK-Paare)",
-    "category": "Datenbank",
-    "priority": "C",
-    "direction": "lower",
-    "baseline": null,
-    "current": 0,
-    "target": 0,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)",
-    "source": ".claude/lib/goals.md · G-DB06",
-    "measured_at": "2026-10-08"
-  },
-  {
     "id": "G-DOC02",
     "title": "Root-CLAUDE.md Zeilen",
     "category": "Dokumentation",

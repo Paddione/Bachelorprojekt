@@ -93,7 +93,7 @@
         {:else if e.kind === 'link_added'}
           <p>
             Verknüpfung: <strong>{LINK_KIND_LABEL[e.linkKind] ?? e.linkKind}</strong>
-            <a href={`/admin/tickets/${e.otherId}`}>{e.otherTitle}</a>
+            <a href={`/sdlc/tickets/${e.otherId}`}>{e.otherTitle}</a>
             {#if e.prNumber}
               <span class="ticket-timeline-pr">(PR #{e.prNumber})</span>
             {/if}

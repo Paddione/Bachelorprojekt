@@ -6,11 +6,8 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
-echo "→ Syncing assets/audio/ → components/brett/public/assets/sfx/"
-rsync -a --delete assets/audio/ components/brett/public/assets/sfx/
-
-echo "→ Syncing assets/game/ → components/brett/public/assets/combat/"
-rsync -a --delete assets/game/ components/brett/public/assets/combat/
+# Brett-Sync (assets/audio → brett sfx, assets/game → brett combat) entfallen —
+# components/brett entfernt, Entwicklung bei gekko32/brett.
 
 echo "→ Syncing assets/branding/ → components/website/public/brand/"
 # No --delete: only a subset of brand files live in assets/branding/

@@ -3,10 +3,7 @@ import { tierFor, toolById, guardrailById, goalById, loadRegistry } from './load
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-/** The six routing agents whose tools.yaml ids are agent-<x> but whose
- *  discovered page slug is bachelorprojekt-<x>. */
-const AGENT_SUFFIXES = new Set(['website', 'ops', 'infra', 'test', 'db', 'security']);
+import { LEGACY_ROLE_ALIASES } from '../toolset/lib/roles.mjs';
 
 /** The three beginner-spine skills whose ids equal their SKILL.md slug. */
 const SPINE_SKILLS = new Set([
@@ -21,8 +18,10 @@ const SPINE_SKILLS = new Set([
  */
 export function slugForToolId(id) {
   if (SPINE_SKILLS.has(id)) return id;
+  // tools.yaml keeps agent-<x> for the six former domain agents; their pages were
+  // merged into bp-build/bp-run/bp-ship (T900858). Role SSOT decides the target.
   const m = /^agent-([a-z]+)$/.exec(id || '');
-  if (m && AGENT_SUFFIXES.has(m[1])) return `bachelorprojekt-${m[1]}`;
+  if (m) return LEGACY_ROLE_ALIASES[`bachelorprojekt-${m[1]}`] ?? null;
   return null;
 }
 

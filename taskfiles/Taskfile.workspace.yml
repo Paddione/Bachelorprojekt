@@ -1040,13 +1040,13 @@ tasks:
       - 'echo "  Next → task workspace:office:deploy ENV={{.ENV}}"'
 
   workspace:partial-deploy:
-    desc: "Nur geänderte Services deployen (ENV=mentolder PARTIAL_SERVICES=brett,docs)"
+    desc: "Nur geänderte Services deployen (ENV=mentolder PARTIAL_SERVICES=website,docs)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
         if [ -z "{{.PARTIAL_SERVICES}}" ]; then
-          echo "PARTIAL_SERVICES must be set (comma-separated app slugs), e.g. PARTIAL_SERVICES=brett,docs — aborting" >&2
+          echo "PARTIAL_SERVICES must be set (comma-separated app slugs), e.g. PARTIAL_SERVICES=website,docs — aborting" >&2
           exit 1
         fi
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -1142,7 +1142,7 @@ tasks:
         done
 
   workspace:fix-tickets-grants:
-    desc: "Idempotent: GRANT website role on tickets+bachelorprojekt schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails on tickets.* with permission denied."
+    desc: "Idempotent: GRANT website role on bachelorprojekt+superpowers schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails with permission denied. (tickets-Schema retiriert 2026-10-14.)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:

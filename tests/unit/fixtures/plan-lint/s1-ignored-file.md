@@ -18,7 +18,7 @@ having been matched.
 
 | File | Ist | Budget |
 |------|-----|--------|
-| `scripts/ticket.sh` | 866 | n/a |
+| `components/website/src/lib/billing-db.ts` | 866 | n/a |
 
 ## Task 1: Edit
 

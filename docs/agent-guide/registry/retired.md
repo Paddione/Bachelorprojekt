@@ -44,3 +44,15 @@ static `qwen-200k` pool (200k KV / moe 4150) measured healthy
 
 - provider `deepseek` (direkte API, `https://api.deepseek.com/v1`)
 - `opencode-go/deepseek-v4-flash`, `opencode-go/deepseek-v4-pro`
+
+## Ticket system (retired 2026-10-14)
+
+Removed from `capabilities.yaml` together with their sources:
+
+| Capability | Instance | Replacement |
+|---|---|---|
+| `ticket-lebenszyklus` | `mcp:ticket-mcp-node` | Plans staged via devflow-mcp `plan_stage` (commit + push) |
+| `ticket-inhalt` | `skill:ticket-ops` | `operations-management` routes ops requests, `dev-flow-plan` plans content |
+| `ticket-triage` | `skill:ticket-triage` | completeness via `dev-flow-plan` (plan-lint) |
+| `ticket-dispatch` | `skill:ticket-dispatch` | worker sandboxes (`task devflow:sandbox`) after explicit approval |
+| `sdlc-autopilot` | `skill:sdlc-autopilot` | none (queue source `tickets.*` dropped) |

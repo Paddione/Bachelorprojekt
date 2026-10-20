@@ -18,7 +18,7 @@ generated_by: scripts/agent-guide/emit-docs.mjs
 
 **So gehst du vor:**
 
-1. [[bachelorprojekt-website]] — Beschreibe, welchen Text du ändern willst und was der neue Inhalt sein soll.
+1. [[bp-ship]] — Beschreibe, welchen Text du ändern willst und was der neue Inhalt sein soll.
 
 **Diesen Prompt kannst du der KI geben:**
 
@@ -38,7 +38,7 @@ Bitte ändere den Begrüßungstext auf der Startseite auf: 'Herzlich willkommen 
 
 **So gehst du vor:**
 
-1. [[bachelorprojekt-ops]] — Frag nach dem Status oder warum ein bestimmter Dienst nicht läuft.
+1. [[bp-run]] — Frag nach dem Status oder warum ein bestimmter Dienst nicht läuft.
 
 **Diesen Prompt kannst du der KI geben:**
 
@@ -98,7 +98,7 @@ Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt.
 
 **So gehst du vor:**
 
-1. [[bachelorprojekt-infra]] — Sage, welche Umgebung (mentolder / korczewski) betroffen ist und welche Änderung ausgerollt werden soll.
+1. [[bp-build]] — Sage, welche Umgebung (mentolder / korczewski) betroffen ist und welche Änderung ausgerollt werden soll.
 2. [[dev-flow-e2e]] — Verifiziere nach dem Deploy mit E2E-Tests, dass alles funktioniert.
 
 **Diesen Prompt kannst du der KI geben:**
@@ -120,7 +120,7 @@ Bitte rolle den letzten Merge für mentolder aus und prüfe, ob die Website läu
 **So gehst du vor:**
 
 1. [[dev-flow-plan]] — Erkläre die gewünschte Schema-Änderung; der Skill erstellt eine Migration.
-2. [[bachelorprojekt-db]] — Der DB-Agent prüft, ob die Migration beide Marken betrifft und sicher ist.
+2. [[bp-run]] — Der DB-Agent prüft, ob die Migration beide Marken betrifft und sicher ist.
 3. [[dev-flow-execute]] — Setzt die Migration um und testet sie.
 
 **Diesen Prompt kannst du der KI geben:**
@@ -141,7 +141,7 @@ Bitte füge eine Spalte 'invoice_number' zur Tabelle 'orders' hinzu.
 
 **So gehst du vor:**
 
-1. [[bachelorprojekt-security]] — 🔴 Diese Aufgabe hat eine strenge Reihenfolge. Falsch gemacht, werden Produktiv-Zugangsdaten überschrieben.
+1. [[bp-build]] — 🔴 Diese Aufgabe hat eine strenge Reihenfolge. Falsch gemacht, werden Produktiv-Zugangsdaten überschrieben.
 
 **Diesen Prompt kannst du der KI geben:**
 
@@ -159,8 +159,8 @@ Bitte NICHT allein ausführen – zuerst Patrick fragen. (Rotation des shared-db
 
 **So gehst du vor:**
 
-1. [[bachelorprojekt-infra]] — 🔴 Nur mit Patrick zusammen ausführen. Die SealedSecrets-Reihenfolge ist zwingend.
-2. [[bachelorprojekt-security]] — Stellt sicher, dass Secrets korrekt versiegelt und angewendet werden.
+1. [[bp-build]] — 🔴 Nur mit Patrick zusammen ausführen. Die SealedSecrets-Reihenfolge ist zwingend.
+2. [[bp-build]] — Stellt sicher, dass Secrets korrekt versiegelt und angewendet werden.
 
 **Diesen Prompt kannst du der KI geben:**
 
@@ -221,7 +221,7 @@ Bitte öffne einen Pull Request für diesen Branch und sag mir, ob die CI grün 
 
 **So gehst du vor:**
 
-1. [[bachelorprojekt-ops]] — Lässt Pod-Status und Logs prüfen, ob der neue Stand läuft.
+1. [[bp-run]] — Lässt Pod-Status und Logs prüfen, ob der neue Stand läuft.
 2. [[dev-flow-e2e]] — Verifiziert per E2E-Test gegen die Live-URL, dass das Feature funktioniert.
 
 **Diesen Prompt kannst du der KI geben:**

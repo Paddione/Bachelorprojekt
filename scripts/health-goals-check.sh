@@ -106,11 +106,13 @@ count() { grep -rEn "$1" $2 --include="*.ts" --include="*.svelte" --include="*.a
 # Upstream-gepflegte Skills sind ausgenommen: eine Änderung dort kollidiert beim nächsten Sync.
 # Fehlt der Marker-Block, ist die Vendor-Liste leer und ALLE Skills gelten als projekteigen —
 # das Gate wird dann strenger, nie schwächer.
-project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus (SSOT, T900070)
+project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus (SSOT: agentic-resources-Repo, lokal materialisiert)
   local vendor; vendor=$(sed -n '/<!-- vendor-skills:begin -->/,/<!-- vendor-skills:end -->/p' \
     .opencode/skills/OVERVIEW.md 2>/dev/null | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` ')
   local f d
-  for f in $(git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+  # On-disk statt git ls-files: Skills sind untracked Symlinks ins Repo.
+  for f in .opencode/skills/*/SKILL.md; do
+    [ -f "$f" ] || continue
     d="${f#.opencode/skills/}"; d="${d%/SKILL.md}"
     printf '%s\n' "$vendor" | grep -qx "$d" || echo "$d"
   done
@@ -141,10 +143,10 @@ row gate G-RH02 "$(anchor_dir components/website/src; count '@ts-ignore|@ts-expe
 row gate G-TEST02 "$(anchor_dir components/website/src components/mentolder-web/src; grep -rnE '\.only\b' components/website/src components/mentolder-web/src --include='*.test.ts' --include='*.test.tsx' --include='*.test.svelte' 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Vitest .only (Suiten-Killer)"
 # Target ≤4 deckt die bekannten Tooling-/Format-False-Positives ab (z.B. XXX-XXX Session-Code);
 # ein echt neuer FIXME/HACK/XXX schiebt über die Schwelle → rot (kein Netto-Zuwachs).
-row gate G-CQ04 "$(grep -rnE '\b(FIXME|HACK|XXX)\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 4 "FIXME/HACK/XXX (kein Netto-Zuwachs)"
+row gate G-CQ04 "$(grep -rnE '\b(FIXME|HACK|XXX)\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 4 "FIXME/HACK/XXX (kein Netto-Zuwachs)"
 row gate G-DEP04 "$(c=0; for p in components/website/package.json components/brett/package.json components/mentolder-web/package.json components/mediaviewer-widget/package.json components/VideoVault/package.json components/studio-server/package.json; do [ -f "$p" ] || continue; v=$(python3 -c "import json;print((json.load(open('$p')).get('engines') or {}).get('node','MISSING'))" 2>/dev/null); [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo $c)" eq 0 "package.json ohne engines>=22.13"
 row gate G-SEC01 "$(anchor_dir k3d; grep -rn 'password.*=.*[^$]' k3d/*.yaml 2>/dev/null | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}\|getenv(' | grep -iv '^\s*#' | wc -l | tr -d ' ')" eq 0 "Hardcoded Secrets in k3d/*.yaml"
-row gate G-GIT02 "$(anchor_ref origin/main; git log --format=%s --no-merges -30 origin/main 2>/dev/null | grep -vcE '^(feat|fix|chore|docs|refactor|test|ci|build|perf|style)(\(|!|:)')" eq 0 "Non-conventional Commits (letzte 30, ohne Merge)"
+row gate G-GIT02 "$(anchor_ref origin/main; git log --format=%s --no-merges -30 origin/main 2>/dev/null | grep -vcE '^(feat|fix|chore|docs|refactor|test|ci|build|perf|revert|style)(\(|!|:)')" eq 0 "Non-conventional Commits (letzte 30, ohne Merge)"
 if [ "$FAST" = 0 ] && want G-CFG01 && command -v task >/dev/null 2>&1; then
   timeout 90 task env:validate:all >/dev/null 2>&1; row gate G-CFG01 "$?" eq 0 "env:validate:all (Schema-Drift)"
 else row gate G-CFG01 "-" eq 0 "env:validate:all (--fast übersprungen)"; fi
@@ -177,23 +179,26 @@ row gate G-AGENTIC05 "$(
 row gate G-AGENTIC06 "$(
   # SSOT-Pfad (T900070): .claude/skills/* sind Symlinks — git ls-files fände dort
   # keine SKILL.md und das Gate wäre vakant (0=0). Gezählt wird die SSOT.
-  claimed=$(grep -oE '[0-9]+ tracked skills' .opencode/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
-  # nur getrackte SKILL.md zählen — lokal via market-cli installierte Skills sind
-  # nicht projekt-relevant und dürfen das Gate nicht kippen (Präzedenz T001783)
-  real=$(git ls-files -- .opencode/skills | grep -c '/SKILL\.md$')
+  claimed=$(grep -oE '[0-9]+ materialisierte Skills' .opencode/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
+  # nur materialisierte SKILL.md zählen (Links ins agentic-resources-Repo) —
+  # lokal via market-cli installierte Skills sind nicht projekt-relevant und
+  # dürfen das Gate nicht kippen (Präzedenz T001783)
+  real=$(find -L .opencode/skills -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')
   echo $(( claimed>real ? claimed-real : real-claimed ))
-)" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift, nur getrackte)"
+)" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift, nur materialisierte)"
 row gate G-AGENTIC07 "$(
   c=0
-  # SSOT-Pfad (T900070) — siehe G-AGENTIC06: .claude/skills ist ein Symlink-Spiegel.
-  for f in $(git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+  # SSOT: agentic-resources-Repo, lokal materialisiert — siehe G-AGENTIC06:
+  # .claude/skills ist ein Symlink-Spiegel. -R folgt den Skill-Links.
+  for f in .opencode/skills/*/SKILL.md; do
+    [ -f "$f" ] || continue
     d=$(echo "$f" | sed 's#.opencode/skills/##;s#/SKILL.md##'); base=$(basename "$d")
     awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^description:/{print 1;exit}' "$f" | grep -q 1 || continue
     n=$( { grep -rl -- "$base" CLAUDE.md AGENTS.md .opencode/skills/OVERVIEW.md 2>/dev/null
-           grep -rl --include=SKILL.md -- "$base" .opencode/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
+           grep -Rl --include=SKILL.md -- "$base" .opencode/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
     [ "$n" -eq 0 ] && c=$((c+1))
   done; echo $c
-)" eq 0 "Verwaiste aktive Skills (keine Referenzquelle, nur getrackte)"
+)" eq 0 "Verwaiste aktive Skills (keine Referenzquelle, nur materialisierte)"
 row gate G-AGENTIC08 "$(
   # Lookbehind verhindert False Positives, wenn "scripts/…" Teil eines längeren,
   # existierenden Pfads ist (z.B. .opencode/skills/<name>/scripts/foo.py)
@@ -257,10 +262,7 @@ row gate G-KNOW06 "$($KG adr-edits)" le 7 "ADR-Inhaltsaenderungen nach dem Anleg
 want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/dev/null 2>&1; echo $?)" eq 0 "Agent-Registry-Schema valide"
 
 # ── DB-Gesundheit — GATES ──
-want G-DB06 && row gate G-DB06 "$(db_scalar "SELECT
-  (SELECT count(*) FROM tickets.ticket_plans p    WHERE p.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=p.ticket_id))
-+ (SELECT count(*) FROM tickets.ticket_comments c WHERE c.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=c.ticket_id))
-+ (SELECT count(*) FROM tickets.ticket_links l    WHERE l.from_id  IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=l.from_id));")" eq 0 "Orphan-Rows (ticket_plans/comments/links → tickets)"
+# G-DB06 (Orphan-Rows tickets.*) retiriert mit dem Ticket-Retirement (2026-10-14) — Schema dropped.
 want G-DB04 && row gate G-DB04 "$(db_backup_age_h)" le 26 "Backup-Alter (h) seit letztem erfolgr. db-backup-Job — T001738"
 
 # ── Cluster-Runtime — GATES (G-OPS02/03; G-OPS01 ist Prio B → TARGET unten) ──
@@ -270,7 +272,7 @@ want G-OPS03 && row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlauf
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
-row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
+row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
 # [T013916] 30 -> 5, Ist 0. Ratchet-Regel: .claude/lib/goals.md §Rueckbau.
 row target G-RH01 "$(n_baseline_gate ALL)" le 5 "Baselined Gate-Violations gesamt"
 row target G-CQ07 "$(n_baseline_gate S2)" le 0  "S2 Import-Zyklen"
@@ -294,7 +296,7 @@ row target G-KNOW01 "$($KG docs-only)" le 0 "Registry-Regeln nur dokumentiert (e
 row target G-KNOW03 "$($KG dangling)" le 0 "Registry-Verweise (enforced_by/where) ohne existierenden Pfad"
 row target G-KNOW04 "$($KG docs-md)" le 0 "Markdown unter docs/ ausser adr/ (Abbau)"
 row target G-KNOW05 "$($KG agent-ctx-bytes)" le 15000 "Bytes aller AGENTS.md/CLAUDE.md"
-row target G-DOC03 "$(c=0; for d in components/website components/brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
+row target G-DOC03 "$(c=0; for d in components/website scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 4 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; sec05_unsigned)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 
 # G-TEST05 — Vitest Line-Coverage (components/website/src/lib ≥ 60 %)

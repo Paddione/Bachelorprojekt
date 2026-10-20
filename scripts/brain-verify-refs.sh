@@ -32,7 +32,7 @@ while [[ $# -gt 0 ]]; do
     --branch-diff)
       BRANCH_DIFF=1
       if [[ $# -ge 2 && "${2:0:1}" != "-" ]]; then DIFF_BASE="$2"; shift; fi ;;
-    --check-tickets) CHECK_TICKETS=1 ;;
+    --check-tickets) echo "ERROR: --check-tickets retiriert (Ticket-System 2026-10-14, kein ticket.sh)." >&2; exit 2 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift

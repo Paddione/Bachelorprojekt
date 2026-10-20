@@ -62,6 +62,17 @@ def repo(repo_root: Path) -> Path:
     return repo_root
 
 
+def _in_head_or_on_disk(repo: Path, resolved: str) -> bool:
+    """Git-Tree-Treffer ODER materialisierter Link (link-from-repo.py).
+
+    Skills sind untracked Symlinks ins agentic-resources-Repo: im Git-Tree
+    unauflösbar, auf der Platte vorhanden. Fehlt beides, hängt der Link.
+    """
+    if _git(repo, "cat-file", "-e", f"HEAD:{resolved}").returncode == 0:
+        return True
+    return (repo / resolved).exists()
+
+
 def test_t002688_dockerignore_declares_no_missing_literals(repo):
     missing = False
     offenders = []
@@ -92,7 +103,7 @@ def test_t900836_intermediate_symlinks_resolve_via_git_tree(repo):
     assert mode == "120000"
 
     resolved = _resolve_tracked_symlinks(repo, ".agents/skills/repo-hygiene/SKILL.md")
-    assert _git(repo, "cat-file", "-e", f"HEAD:{resolved}").returncode == 0, resolved
+    assert _in_head_or_on_disk(repo, resolved), resolved
 
     unchanged = _resolve_tracked_symlinks(repo, "tests/spec/repo-hygiene/dead-path-references.bats")
     assert unchanged == "tests/spec/repo-hygiene/dead-path-references.bats"
@@ -128,7 +139,7 @@ def test_t002688_no_tracked_symlink_dangles(repo):
         directory = posixpath.dirname(p)
         combined = target if directory == "." else f"{directory}/{target}"
         resolved = _resolve_tracked_symlinks(repo, _normalize_repo_relpath(combined))
-        if _git(repo, "cat-file", "-e", f"HEAD:{resolved}").returncode != 0:
+        if not _in_head_or_on_disk(repo, resolved):
             missing = True
             offenders.append(f"{p}->{target}")
 

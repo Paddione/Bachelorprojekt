@@ -57,6 +57,11 @@ def _require_db(run_cmd, pgurl: str):
         pytest.skip("No database available (set TRACKING_DB_URL)")
     if shutil.which(_tsx_cmd()[0]) is None:
         pytest.skip(f"{_tsx_cmd()[0]} not installed (TSX_BIN)")
+    schema = _psql_scalar(
+        run_cmd, pgurl,
+        "SELECT count(*) FROM information_schema.schemata WHERE schema_name='tickets'")
+    if schema != "1":
+        pytest.skip("tickets schema not present (retired 2026-10-14)")
 
 
 def _require_tsx():

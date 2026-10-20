@@ -1,7 +1,7 @@
 # k3d/dev-stack/sdlc-console.yaml [T016429]
 # Fleet-Heimat der SDLC-Console (Umzug aus dem lokalen k3d/sdlc-stack, ADR-007).
 # Anpassungen gegenüber dem alten Stand:
-#   * DB: shared-db-dev statt prod-shared-db (Dev-Stack-Konvention wie brett-dev)
+#   * DB: shared-db-dev statt prod-shared-db (Dev-Stack-Konvention)
 #   * LLM: bewusst deaktiviert (fail-closed) bis P0-Spike C
 #     (Fleet→Windows:1919 über wg/NAT, Runbook docs/windows-dev-setup.md) grün ist.
 #     Der Bridge-IP-Endpoints-Hack des alten lokalen Stacks wird damit nicht übernommen.

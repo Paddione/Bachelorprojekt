@@ -7,7 +7,7 @@ import re
 import pytest
 
 EXCLUDED_SKILLS = [
-    "gitops-repo-audit", "gitops-knowledge", "gitops-cluster-debug", "pytest-patterns", "vitest",
+    "gitops-repo-audit", "gitops-knowledge", "gitops-cluster-debug", "python-testing-patterns", "vitest",
     "freetoken-setup", "huggingface-community-evals", "huggingface-llm-trainer",
     "huggingface-paper-publisher", "huggingface-trackio", "huggingface-vision-trainer",
     "train-sentence-transformers", "transformers-js", "playwright-best-practices",
@@ -43,7 +43,8 @@ def skill_files(repo_root):
     for d in dirs:
         if not d.is_dir():
             continue
-        for dirpath, _dn, files in os.walk(d):
+        # followlinks: Skill-Verzeichnisse sind Symlinks ins agentic-resources-Repo.
+        for dirpath, _dn, files in os.walk(d, followlinks=True):
             for name in files:
                 if not name.endswith(".md"):
                     continue

@@ -1,0 +1,15 @@
+# RustDesk-Relay (hbbs/hbbr) fuer den fleet-Cluster, per Flux (flux-rustdesk)
+# statt imperativ ueber task rustdesk:deploy / fleet:shared-services.
+# Always-on (replicas: 1): der On-demand-Sleeper (k3d/rustdesk-stack/on-demand.yaml,
+# T015170) ist bewusst NICHT Teil des Flux-Pfads, Flux wuerde ein imperatives
+# Scale-to-0 zuruecknehmen. rustdesk-secrets (ed25519-Keypair) kommt aus dem
+# SealedSecret in sealed-secrets/mentolder, deshalb ohne
+# k3d/rustdesk-stack/secret.yaml (Platzhalter). Kein Ingress/TLS (hostNetwork,
+# rohe TCP/UDP-Ports), daher kein Certificate; das Image ist oeffentlich und
+# die Deployments tragen kein Pull-Secret.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../k3d/rustdesk-stack/namespace.yaml
+  - ../../k3d/rustdesk-stack/hbbs.yaml
+  - ../../k3d/rustdesk-stack/hbbr.yaml

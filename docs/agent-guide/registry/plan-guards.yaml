@@ -14,13 +14,6 @@
 # Design: .agents/plans/cross-harness-plan-guardrails/design.md (archiviert:
 # docs/superpowers/specs/dev-flow-plan.md).
 guards:
-  - id: T002673
-    title: "stage-plan erst NACH dem Plan-Commit (touched_files sonst still leer)"
-    anchor: "T002673"
-    applies_to:
-      - .claude/skills/dev-flow-plan/SKILL.md
-      - .claude/skills/references/ticket-stage-procedure.md
-      - .claude/skills/dev-flow-plan/SKILL.md
   - id: T002816
     title: "kein fertig aussehender PR aus dem Plan-Stand (Draft + [plan-only])"
     anchor: "T002816"
@@ -33,15 +26,8 @@ guards:
     applies_to:
       - .claude/skills/dev-flow-plan/SKILL.md
       - .claude/skills/dev-flow-plan/SKILL.md
-  - id: T002279
-    title: "check-merged-Preflight vor der Worktree-Anlage"
-    anchor: "T002279"
-    applies_to:
-      - .claude/skills/dev-flow-plan/SKILL.md
-      - .claude/skills/references/dev-flow-plan-phases.md
-      - .claude/skills/dev-flow-plan/SKILL.md
   - id: T003102
-    title: "Pre-Commit-Lock-Match akzeptiert ticket- UND branch-scoped Claims"
+    title: "Pre-Commit-Lock-Match prueft den branch-scoped Claim"
     anchor: "T003102"
     applies_to:
       - .claude/skills/dev-flow-plan/SKILL.md
@@ -58,15 +44,8 @@ guards:
     applies_to:
       - .claude/skills/dev-flow-plan/SKILL.md
       - .claude/skills/dev-flow-plan/SKILL.md
-  - id: hold-decision
-    title: "stage-plan: explizite Hold-Entscheidung (--hold interaktiv, --no-hold headless)"
-    anchor: "--hold"
-    applies_to:
-      - .claude/skills/dev-flow-plan/SKILL.md
-      - .claude/skills/references/ticket-stage-procedure.md
-      - .claude/skills/dev-flow-plan/SKILL.md
   - id: plan-preflight
-    title: "Pre-Commit-/Worktree-Guards laufen ueber scripts/plan-preflight.sh, nicht als Inline-Snippet"
+    title: "Pre-Commit-Guards laufen ueber scripts/plan-preflight.sh, nicht als Inline-Snippet"
     anchor: "plan-preflight.sh"
     applies_to:
       - .claude/skills/dev-flow-plan/SKILL.md

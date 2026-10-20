@@ -22,7 +22,6 @@ def P(repo_root):
         prod=repo_root / "prod",
         env=repo_root / "environments",
         website=repo_root / "components" / "website",
-        brett=repo_root / "components" / "brett",
         schema=repo_root / "environments" / "schema.yaml",
     )
 
@@ -446,23 +445,7 @@ def test_pocket_id_k3d_monitoring_grafana_oidc_secret_yaml_carries_pocket_id_gra
     assert _lit(P.k3d / "monitoring" / "grafana-oidc-secret.yaml", "POCKET_ID_GRAFANA_SECRET")
 
 
-# Welle 2: Brett auth.ts repointed to Pocket ID
-
-def test_pocket_id_components_brett_src_server_auth_ts_no_longer_references_keycloak(P):
-    assert not _lit(P.brett / "src" / "server" / "auth.ts", "keycloak")
-
-
-def test_pocket_id_components_brett_src_server_auth_ts_reads_pocket_id_url(P):
-    assert _lit(P.brett / "src" / "server" / "auth.ts", "POCKET_ID_URL")
-
-
-def test_pocket_id_brett_is_admin_from_claims_uses_is_admin_not_realm_access_roles(P):
-    f = P.brett / "src" / "server" / "auth.ts"
-    if _lit(f, "isAdminFromClaims"):
-        assert _lit(f, "isAdmin")
-    else:
-        pytest.skip("brett isAdminFromClaims not present in current revision")
-
+# Welle 2 (Brett auth.ts) entfallen — components/brett entfernt, Entwicklung bei gekko32/brett.
 
 # E2E specs reference Pocket ID endpoints
 

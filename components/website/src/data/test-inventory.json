@@ -54,84 +54,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:brett-art",
-    "file": "tests/e2e/specs/brett-art.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-figure-ownership",
-    "file": "tests/e2e/specs/brett-figure-ownership.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-ground-annotations",
-    "file": "tests/e2e/specs/brett-ground-annotations.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-hidden-figures",
-    "file": "tests/e2e/specs/brett-hidden-figures.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-mannequin",
-    "file": "tests/e2e/specs/brett-mannequin.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-mentolder-auth-setup",
-    "file": "tests/e2e/specs/brett-mentolder-auth-setup.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-mobile",
-    "file": "tests/e2e/specs/brett-mobile.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-moderation",
-    "file": "tests/e2e/specs/brett-moderation.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-replay",
-    "file": "tests/e2e/specs/brett-replay.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-roles",
-    "file": "tests/e2e/specs/brett-roles.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-session-lifecycle",
-    "file": "tests/e2e/specs/brett-session-lifecycle.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-share-link",
-    "file": "tests/e2e/specs/brett-share-link.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-undo-redo",
-    "file": "tests/e2e/specs/brett-undo-redo.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",
@@ -230,12 +152,6 @@
   {
     "id": "E2E:fa-admin-settings",
     "file": "tests/e2e/specs/fa-admin-settings.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:fa-admin-tickets",
-    "file": "tests/e2e/specs/fa-admin-tickets.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },
@@ -726,18 +642,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-27",
-    "file": "tests/local/FA-27.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-27",
-    "file": "tests/e2e/specs/fa-27-brett.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-28",
     "file": "tests/local/FA-28.sh",
     "category": "FA",
@@ -852,12 +756,6 @@
     "kind": "playwright"
   },
   {
-    "id": "FA-43",
-    "file": "tests/e2e/specs/fa-43-ticket-widget.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-44",
     "file": "tests/e2e/specs/fa-44-platform-health-integrity.spec.ts",
     "category": "FA",
@@ -866,12 +764,6 @@
   {
     "id": "FA-45",
     "file": "tests/e2e/specs/fa-45-authenticated-flows.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-47",
-    "file": "tests/e2e/specs/fa-47-brett-figure-pack-assets.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -932,12 +824,6 @@
   {
     "id": "FA-59",
     "file": "tests/e2e/specs/fa-59-systemtest-purge-endpoint.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-60",
-    "file": "tests/e2e/specs/fa-60-realtime-ws.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -1320,12 +1206,6 @@
     "kind": "playwright"
   },
   {
-    "id": "NFA-13",
-    "file": "tests/local/NFA-13.sh",
-    "category": "NFA",
-    "kind": "shell"
-  },
-  {
     "id": "NFA-14",
     "file": "tests/py/local/test_nfa_14_devcluster_ha.py",
     "category": "NFA",
@@ -1568,6 +1448,12 @@
   {
     "id": "SA-22",
     "file": "tests/local/SA-22.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-23",
+    "file": "tests/local/SA-23.sh",
     "category": "SA",
     "kind": "shell"
   },
@@ -2250,12 +2136,6 @@
     "kind": "pytest"
   },
   {
-    "id": "agent-skills/finalize-plan-ref-whitespace",
-    "file": "tests/py/spec/native_ported/spec/agent-skills/test_finalize_plan_ref_whitespace.py",
-    "category": "agent-skills",
-    "kind": "pytest"
-  },
-  {
     "id": "agent-skills/finalize-worktree-branch-validation",
     "file": "tests/py/spec/native_ported/spec/agent-skills/test_finalize_worktree_branch_validation.py",
     "category": "agent-skills",
@@ -2544,12 +2424,6 @@
     "kind": "pytest"
   },
   {
-    "id": "batch-worktree-guard-tooling-fixes/archive-plan-gitshow-fallback",
-    "file": "tests/py/spec/native_ported/spec/batch-worktree-guard-tooling-fixes/test_archive_plan_gitshow_fallback.py",
-    "category": "batch-worktree-guard-tooling-fixes",
-    "kind": "pytest"
-  },
-  {
     "id": "batch-worktree-guard-tooling-fixes/deploy-route-sdlc-exclusion",
     "file": "tests/py/spec/native_ported/spec/batch-worktree-guard-tooling-fixes/test_deploy_route_sdlc_exclusion.py",
     "category": "batch-worktree-guard-tooling-fixes",
@@ -2628,12 +2502,6 @@
     "kind": "pytest"
   },
   {
-    "id": "brett",
-    "file": "tests/py/spec/native_ported/spec/test_brett.py",
-    "category": "brett",
-    "kind": "pytest"
-  },
-  {
     "id": "cbm-embed-store",
     "file": "tests/py/spec/native_ported/spec/test_cbm_embed_store.py",
     "category": "cbm-embed-store",
@@ -2694,6 +2562,12 @@
     "kind": "pytest"
   },
   {
+    "id": "cbm/begin_exit_status",
+    "file": "tests/py/spec/cbm/test_begin_exit_status.py",
+    "category": "cbm",
+    "kind": "pytest"
+  },
+  {
     "id": "centralized-logging",
     "file": "tests/py/spec/remaining_domain_specs/test_centralized_logging.py",
     "category": "centralized-logging",
@@ -2750,12 +2624,6 @@
   {
     "id": "ci-cd/brainstorm-firewall-namespace",
     "file": "tests/py/spec/ci_cd_specs/test_brainstorm_firewall_namespace.py",
-    "category": "ci-cd",
-    "kind": "pytest"
-  },
-  {
-    "id": "ci-cd/branch-allowlist-ssot",
-    "file": "tests/py/spec/ci_cd_specs/test_branch_allowlist_ssot.py",
     "category": "ci-cd",
     "kind": "pytest"
   },
@@ -2844,12 +2712,6 @@
     "kind": "pytest"
   },
   {
-    "id": "ci-cd/devflow-ciwatch-ticket-path",
-    "file": "tests/py/spec/native_ported/spec/ci-cd/test_devflow_ciwatch_ticket_path.py",
-    "category": "ci-cd",
-    "kind": "pytest"
-  },
-  {
     "id": "ci-cd/devflow-execute-hardening-t002365",
     "file": "tests/py/spec/ci_cd_specs/test_devflow_execute_hardening_t002365.py",
     "category": "ci-cd",
@@ -2864,12 +2726,6 @@
   {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/py/spec/ci_cd_specs/test_fetch_refspec_forced.py",
-    "category": "ci-cd",
-    "kind": "pytest"
-  },
-  {
-    "id": "ci-cd/fix-ticket-commit-guard",
-    "file": "tests/py/spec/ci_cd_specs/test_fix_ticket_commit_guard.py",
     "category": "ci-cd",
     "kind": "pytest"
   },
@@ -3186,18 +3042,6 @@
     "kind": "pytest"
   },
   {
-    "id": "db-guard/db-identity-guard",
-    "file": "tests/py/spec/native_ported/spec/db-guard/test_db_identity_guard.py",
-    "category": "db-guard",
-    "kind": "pytest"
-  },
-  {
-    "id": "db-guard/kubeconfig-drift-guard",
-    "file": "tests/py/spec/remaining_domain_specs/db-guard/test_kubeconfig_drift_guard.py",
-    "category": "db-guard",
-    "kind": "pytest"
-  },
-  {
     "id": "db-quality-goals",
     "file": "tests/py/spec/native_ported/spec/test_db_quality_goals.py",
     "category": "db-quality-goals",
@@ -3216,12 +3060,6 @@
     "kind": "pytest"
   },
   {
-    "id": "db_guard",
-    "file": "tests/py/spec/test_db_guard.py",
-    "category": "db_guard",
-    "kind": "pytest"
-  },
-  {
     "id": "decommission/decommission-guard",
     "file": "tests/py/spec/native_ported/spec/decommission/test_decommission_guard.py",
     "category": "decommission",
@@ -3231,18 +3069,6 @@
     "id": "design_assets/inventory",
     "file": "tests/py/spec/design_assets/test_inventory.py",
     "category": "design_assets",
-    "kind": "pytest"
-  },
-  {
-    "id": "dev-brett-auth/oidc_provision",
-    "file": "tests/py/spec/dev-brett-auth/test_oidc_provision.py",
-    "category": "dev-brett-auth",
-    "kind": "pytest"
-  },
-  {
-    "id": "dev-flow-chore-ticket-ops-mishaps",
-    "file": "tests/py/spec/native_ported/spec/test_dev_flow_chore_ticket_ops_mishaps.py",
-    "category": "dev-flow-chore-ticket-ops-mishaps",
     "kind": "pytest"
   },
   {
@@ -3374,12 +3200,6 @@
   {
     "id": "dev-flow-plan/skill-worktree-create-aufruf",
     "file": "tests/py/spec/native_static/dev-flow-plan/test_skill_worktree_create_aufruf.py",
-    "category": "dev-flow-plan",
-    "kind": "pytest"
-  },
-  {
-    "id": "dev-flow-plan/stage-plan-contract",
-    "file": "tests/py/spec/native_ported/spec/dev-flow-plan/test_stage_plan_contract.py",
     "category": "dev-flow-plan",
     "kind": "pytest"
   },
@@ -3729,6 +3549,12 @@
     "id": "fleet-operations/vaultwarden-smtp-from",
     "file": "tests/py/spec/native_ported/spec/fleet-operations/test_vaultwarden_smtp_from.py",
     "category": "fleet-operations",
+    "kind": "pytest"
+  },
+  {
+    "id": "fleet/ai_services_scale_zero",
+    "file": "tests/py/spec/fleet/test_ai_services_scale_zero.py",
+    "category": "fleet",
     "kind": "pytest"
   },
   {
@@ -4698,6 +4524,24 @@
     "kind": "pytest"
   },
   {
+    "id": "mentolder-prod/office_flux",
+    "file": "tests/py/spec/mentolder-prod/test_office_flux.py",
+    "category": "mentolder-prod",
+    "kind": "pytest"
+  },
+  {
+    "id": "mentolder-prod/rustdesk_bridge",
+    "file": "tests/py/spec/mentolder-prod/test_rustdesk_bridge.py",
+    "category": "mentolder-prod",
+    "kind": "pytest"
+  },
+  {
+    "id": "mentolder-prod/rustdesk_flux",
+    "file": "tests/py/spec/mentolder-prod/test_rustdesk_flux.py",
+    "category": "mentolder-prod",
+    "kind": "pytest"
+  },
+  {
     "id": "merge-arbitration/apply-escalation",
     "file": "tests/py/spec/native_ported/spec/merge-arbitration/test_apply_escalation.py",
     "category": "merge-arbitration",
@@ -4764,24 +4608,6 @@
     "kind": "pytest"
   },
   {
-    "id": "mishap-t002422",
-    "file": "tests/py/spec/remaining_root_specs/test_mishap_t002422.py",
-    "category": "mishap-t002422",
-    "kind": "pytest"
-  },
-  {
-    "id": "mishap-t002424",
-    "file": "tests/py/spec/remaining_root_specs/test_mishap_t002424.py",
-    "category": "mishap-t002424",
-    "kind": "pytest"
-  },
-  {
-    "id": "mishap-tracking/dedupe-korpus",
-    "file": "tests/py/spec/native_ported/spec/mishap-tracking/test_dedupe_korpus.py",
-    "category": "mishap-tracking",
-    "kind": "pytest"
-  },
-  {
     "id": "monitoring-alerts",
     "file": "tests/py/spec/remaining_root_specs/test_monitoring_alerts.py",
     "category": "monitoring-alerts",
@@ -4808,6 +4634,18 @@
   {
     "id": "native_ported/spec/agent-skills/post_merge_finalize_safety",
     "file": "tests/py/spec/native_ported/spec/agent-skills/test_post_merge_finalize_safety.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/ci-cd/branch_reaper_ticketless_merged_pr",
+    "file": "tests/py/spec/native_ported/spec/ci-cd/test_branch_reaper_ticketless_merged_pr.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/ci-cd/devflow_ciwatch_ticket_path",
+    "file": "tests/py/spec/native_ported/spec/ci-cd/test_devflow_ciwatch_ticket_path.py",
     "category": "native_ported",
     "kind": "pytest"
   },
@@ -4899,18 +4737,6 @@
     "id": "native_ported/spec/pocket_id_client_seed_secret_endpoint",
     "file": "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_secret_endpoint.py",
     "category": "native_ported",
-    "kind": "pytest"
-  },
-  {
-    "id": "native_ported/spec/sdlc_throughput",
-    "file": "tests/py/spec/native_ported/spec/test_sdlc_throughput.py",
-    "category": "native_ported",
-    "kind": "pytest"
-  },
-  {
-    "id": "native_static/agent-skills/ticket_dispatch_docs_no_live_queue_refs",
-    "file": "tests/py/spec/native_static/agent-skills/test_ticket_dispatch_docs_no_live_queue_refs.py",
-    "category": "native_static",
     "kind": "pytest"
   },
   {
@@ -5010,12 +4836,6 @@
     "kind": "pytest"
   },
   {
-    "id": "planning-office/epic-lastenheft",
-    "file": "tests/py/spec/native_ported/spec/planning-office/test_epic_lastenheft.py",
-    "category": "planning-office",
-    "kind": "pytest"
-  },
-  {
     "id": "pocket-id-client-seed-auth-header",
     "file": "tests/py/spec/native_ported/spec/test_pocket_id_client_seed_auth_header.py",
     "category": "pocket-id-client-seed-auth-header",
@@ -5097,12 +4917,6 @@
     "id": "primary-agents-omo",
     "file": "tests/py/spec/native_ported/spec/test_primary_agents_omo.py",
     "category": "primary-agents-omo",
-    "kind": "pytest"
-  },
-  {
-    "id": "projekttickets-cockpit",
-    "file": "tests/py/spec/native_ported/spec/test_projekttickets_cockpit.py",
-    "category": "projekttickets-cockpit",
     "kind": "pytest"
   },
   {
@@ -5598,12 +5412,6 @@
     "kind": "pytest"
   },
   {
-    "id": "sdlc-isolation/e3-tickets-lokal",
-    "file": "tests/py/spec/native_ported/spec/sdlc-isolation/test_e3_tickets_lokal.py",
-    "category": "sdlc-isolation",
-    "kind": "pytest"
-  },
-  {
     "id": "sdlc-isolation/fleet-sequence-split",
     "file": "tests/py/spec/native_ported/spec/sdlc-isolation/test_fleet_sequence_split.py",
     "category": "sdlc-isolation",
@@ -5784,12 +5592,6 @@
     "kind": "pytest"
   },
   {
-    "id": "t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp",
-    "file": "tests/py/spec/native_ported/spec/test_t001269_mishap_bundle_skills_dev_flow_execute_repo_worktree_state_ticket_mcp.py",
-    "category": "t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp",
-    "kind": "pytest"
-  },
-  {
     "id": "t001353-mishap-bundle-ci-tickets",
     "file": "tests/py/spec/native_ported/spec/test_t001353_mishap_bundle_ci_tickets.py",
     "category": "t001353-mishap-bundle-ci-tickets",
@@ -5847,132 +5649,6 @@
     "id": "terminal-sidekick",
     "file": "tests/py/spec/remaining_root_specs/test_terminal_sidekick.py",
     "category": "terminal-sidekick",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-mcp",
-    "file": "tests/py/spec/remaining_root_specs/test_ticket_mcp.py",
-    "category": "ticket-mcp",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-mcp/phase-events-at-column",
-    "file": "tests/py/spec/native_ported/spec/ticket-mcp/test_phase_events_at_column.py",
-    "category": "ticket-mcp",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-mcp/triage-projection",
-    "file": "tests/py/spec/native_ported/spec/ticket-mcp/test_triage_projection.py",
-    "category": "ticket-mcp",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-ops-claim-phase-a-T004602",
-    "file": "tests/py/spec/native_ported/spec/test_ticket_ops_claim_phase_a_T004602.py",
-    "category": "ticket-ops-claim-phase-a-T004602",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-ops/triage-status-ssot",
-    "file": "tests/py/spec/native_ported/spec/ticket-ops/test_triage_status_ssot.py",
-    "category": "ticket-ops",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-ops/wave1-state-refetch",
-    "file": "tests/py/spec/native_ported/spec/ticket-ops/test_wave1_state_refetch.py",
-    "category": "ticket-ops",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-seq-integrity/seq-repair",
-    "file": "tests/py/spec/native_ported/spec/ticket-seq-integrity/test_seq_repair.py",
-    "category": "ticket-seq-integrity",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system",
-    "file": "tests/py/spec/native_ported/spec/test_ticket_system.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/areas-csv-trim",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_areas_csv_trim.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/assert_phase_order",
-    "file": "tests/py/spec/ticket-system/test_assert_phase_order.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/backfill-id-sequence",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_backfill_id_sequence.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/exec-sql-error-visibility-T900239",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_exec_sql_error_visibility_T900239.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/get-timeline-brand-flag-removed-T900246",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_get_timeline_brand_flag_removed_T900246.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/get-timeline-plan-brand-column-T900243",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_get_timeline_plan_brand_column_T900243.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/list-status-comma-list",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_list_status_comma_list.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/list-test-data-filter",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_list_test_data_filter.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/read-path-fail-closed",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_read_path_fail_closed.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/schema-diaet-dead-columns",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_schema_diaet_dead_columns.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/subcommand-help",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_subcommand_help.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/update-fields-cli",
-    "file": "tests/py/spec/native_ported/spec/ticket-system/test_update_fields_cli.py",
-    "category": "ticket-system",
-    "kind": "pytest"
-  },
-  {
-    "id": "ticket-system/verify_ticket_id",
-    "file": "tests/py/spec/ticket-system/test_verify_ticket_id.py",
-    "category": "ticket-system",
     "kind": "pytest"
   },
   {

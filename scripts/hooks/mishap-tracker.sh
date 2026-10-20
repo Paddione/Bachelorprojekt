@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # scripts/hooks/mishap-tracker.sh
 # Record a process friction encountered during a dev-flow run.
-#   mishap-tracker.sh --friction "<text>" [--ticket T000XXX] [--severity minor|major|critical]
-# With --ticket: appends an internal ticket comment via ticket.sh add-comment.
-# Without --ticket: logs to stderr and appends a line to ./.mishaps.log
-# (gitignored) — the entry is recorded, but NO ticket and NO collection container
-# is created [T014104]. The rollup automaton that used to build one was removed:
-# it recreated its own container on every tick and disposed of nothing.
-# Never hard-fails a caller's flow: a failed comment write degrades to the log.
+#   mishap-tracker.sh --friction "<text>" [--severity minor|major|critical]
+# Logs to stderr and appends a line to ./.mishaps.log (gitignored) — the entry
+# is recorded, but NO ticket and NO collection container is created [T014104].
+# --ticket is accepted as a legacy no-op (Ticket-Backend retiriert 2026-10-14).
+# Never hard-fails a caller's flow.
 set -euo pipefail
 
 TICKET_ID=""
@@ -33,21 +31,13 @@ case "$SEVERITY" in
   *) echo "WARNING: unknown severity '$SEVERITY' — defaulting to minor." >&2; SEVERITY="minor" ;;
 esac
 
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TICKET_SH="$HERE/../ticket.sh"
-
-if [[ -n "$TICKET_ID" ]] && [[ -x "$TICKET_SH" ]]; then
-  if bash "$TICKET_SH" add-comment --id "$TICKET_ID" \
-       --body "MISHAP [${SEVERITY}]: ${FRICTION}" >/dev/null 2>&1; then
-    echo "mishap recorded as comment on $TICKET_ID [${SEVERITY}]"
-    exit 0
-  fi
-  echo "WARNING: comment write failed — falling back to .mishaps.log" >&2
+if [[ -n "$TICKET_ID" ]]; then
+  echo "WARNING: --ticket is a legacy no-op (no ticket backend since 2026-10-14) — logging locally" >&2
 fi
 
-# Kein Ticket-Kontext: protokollieren und verwerfen. Exit 0 — ein Mishap ohne
-# Ticket darf den Lauf des Aufrufers nicht scheitern lassen [T014104].
-printf '[mishap] no ticket context — recorded and discarded [%s]: %s\n' "$SEVERITY" "$FRICTION" >&2
+# Protokollieren und verwerfen. Exit 0 — ein Mishap darf den Lauf des
+# Aufrufers nicht scheitern lassen [T014104].
+printf '[mishap] recorded locally [%s]: %s\n' "$SEVERITY" "$FRICTION" >&2
 printf '%s [%s] %s\n' "$(date -Iseconds)" "$SEVERITY" "$FRICTION" >> .mishaps.log
 echo "mishap appended to .mishaps.log [${SEVERITY}]"
 exit 0

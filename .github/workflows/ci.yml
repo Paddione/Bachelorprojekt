@@ -7,7 +7,7 @@ on:
     # No `paths-ignore` here: docs-only PRs (e.g. AGENTS.md/CLAUDE.md edits) must
     # still trigger this workflow so the branch-protection required checks
     # (SSOT: scripts/gh-branch-protection.sh — Unit + Quality Gates,
-    # Security Scan, Brett TypeScript, Spec + Guards) report success —
+    # Security Scan, Spec + Guards) report success —
     # Conventional Commits is published separately by pr-metadata.yml.
     # otherwise mergeStateStatus stays BLOCKED indefinitely and admin-merge is
     # required. See mishap T001149-M3.
@@ -93,6 +93,18 @@ jobs:
             ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
           done
 
+      - name: Checkout agentic-resources (public skill monorepo)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/agentic-resources
+          ref: main
+          path: ci-agentic-resources
+
+      - name: Materialize skill links from agentic-resources
+        run: |
+          AGENTIC_RESOURCES_DIR="$GITHUB_WORKSPACE/ci-agentic-resources" \
+            python3 scripts/agent-skills/link-from-repo.py --root "$GITHUB_WORKSPACE"
+
       - name: Install central MCP server deps (T901492)
         run: |
           npm ci --prefix ci-dotfiles/mcp-servers/devflow --no-audit --no-fund
@@ -159,13 +171,6 @@ jobs:
 
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
-
-      - name: Figure-pack asset test (only when assets change)
-        run: |
-          CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || true)
-          if echo "$CHANGED" | grep -qE "^(tests/figure-pack-assets|assets/)"; then
-            bash tests/figure-pack-assets.test.sh
-          fi
 
       - name: Install and verify MCP task runner for pytest specs
         run: |
@@ -271,6 +276,18 @@ jobs:
         with:
           fetch-depth: 1
           fetch-tags: false
+
+      - name: Checkout agentic-resources (public skill monorepo)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/agentic-resources
+          ref: main
+          path: ci-agentic-resources
+
+      - name: Materialize skill links from agentic-resources
+        run: |
+          AGENTIC_RESOURCES_DIR="$GITHUB_WORKSPACE/ci-agentic-resources" \
+            python3 scripts/agent-skills/link-from-repo.py --root "$GITHUB_WORKSPACE"
 
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v5.0.0
         with:
@@ -381,6 +398,18 @@ jobs:
             ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
           done
 
+      - name: Checkout agentic-resources (public skill monorepo)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/agentic-resources
+          ref: main
+          path: ci-agentic-resources
+
+      - name: Materialize skill links from agentic-resources
+        run: |
+          AGENTIC_RESOURCES_DIR="$GITHUB_WORKSPACE/ci-agentic-resources" \
+            python3 scripts/agent-skills/link-from-repo.py --root "$GITHUB_WORKSPACE"
+
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
@@ -454,6 +483,18 @@ jobs:
           for asset in dotfiles editor openclaw ml tools; do
             ln -s "$GITHUB_WORKSPACE/ci-dotfiles/$asset" "$GITHUB_WORKSPACE/../$asset"
           done
+
+      - name: Checkout agentic-resources (public skill monorepo)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/agentic-resources
+          ref: main
+          path: ci-agentic-resources
+
+      - name: Materialize skill links from agentic-resources
+        run: |
+          AGENTIC_RESOURCES_DIR="$GITHUB_WORKSPACE/ci-agentic-resources" \
+            python3 scripts/agent-skills/link-from-repo.py --root "$GITHUB_WORKSPACE"
 
       - name: Install central MCP server deps (T901492)
         run: |
@@ -667,28 +708,6 @@ jobs:
           if [[ "$crit" -gt 0 ]]; then
             echo "::warning::Found $crit CRITICAL CVEs across pinned images"
           fi
-
-  brett-typescript:
-    name: Brett TypeScript
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-tags: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: 'npm'
-          cache-dependency-path: components/brett/package-lock.json
-      - run: npm ci --prefix components/brett
-      - name: Typecheck
-        run: npm run typecheck --prefix components/brett
-      - name: Unit tests
-        run: npm test --prefix components/brett
-        env:
-          MOCK_DB: 'true'
-      - run: npm run build --prefix components/brett
 
   vitest-website:
     # Always runs on every PR (no job-level path filter) so the advisory gate

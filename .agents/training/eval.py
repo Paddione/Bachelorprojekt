@@ -95,8 +95,13 @@ def _generate(model, tokenizer, question: str) -> str:
                             "accurate technical answers, terminal commands, and architecture "
                             "guidance with minimal filler and zero hallucinations."})
     tok = getattr(tokenizer, "tokenizer", tokenizer)
-    prompt = tok.apply_chat_template(messages, tokenize=False,
-                                     add_generation_prompt=True)
+    try:
+        prompt = tok.apply_chat_template(messages, tokenize=False,
+                                         add_generation_prompt=True,
+                                         enable_thinking=False)
+    except TypeError:
+        prompt = tok.apply_chat_template(messages, tokenize=False,
+                                         add_generation_prompt=True)
     eos_id = tok.eos_token_id
     inputs = tok(prompt, return_tensors="pt").to("cuda")
     out = model.generate(
@@ -117,6 +122,8 @@ def _generate(model, tokenizer, question: str) -> str:
     elif "\nUser:" in text:
         text = text.split("\nUser:")[0]
     # strip any stray think block (defensive; direct mode should not emit one)
+    if "</think>" in text:
+        text = text.split("</think>")[-1]
     return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 

@@ -74,7 +74,7 @@ export function readyPartials(partials, state) {
     .map((p) => p.id);
 }
 
-// Caps der Worker-Tracks (Single Source: workers.mjs-Dispatch). Direkt: vLLM :8123 mit 32k Kontext,
+// Caps der Worker-Tracks (Single Source: workers.mjs-Dispatch). Direkt: vLLM :8123 mit 40k Kontext,
 // drei parallele Tool-Loops. Cloud: opencode-Agent plan-worker-muse. Gegenstueck im Leitstand:
 // components/website/src/lib/sdlc/plan-slots.ts (TS-Mirror, dort kommentiert).
 export const MAX_DIRECT_SLOTS = 3;

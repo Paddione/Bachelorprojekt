@@ -35,7 +35,7 @@ For any work request, invoke **`dev-flow-plan`**, **`dev-flow-chore`**, or **`de
 
 Full topology: [`AGENTS.md` → „Architecture & Cluster Topology"](AGENTS.md). Short version:
 - **Workspace MVP**: self-hosted k8s collaboration platform (SSO via Pocket ID OIDC, Nextcloud+Talk, Collabora, Vaultwarden, Brett, Website, shared PostgreSQL 16).
-- **Brands**: `mentolder` live on the `fleet` cluster (`workspace` ns); `korczewski` workspace (Nextcloud, Brett, Collabora, own shared-db, jobs) **FROZEN per T002479** (`suspend: true`, 0 replicas — do not deploy). Exception: the Massagepraxis website (BRAND `massage`) and Pocket ID are configured on the korczewski slot, für Go-live vorbereitet durch T901440 (`flux-website-korczewski`, `flux-korczewski-auth`).
+- **Brands**: `mentolder` live on the `fleet` cluster (`workspace` ns); `korczewski` workspace (Nextcloud, Brett, Collabora, own shared-db, jobs) **FROZEN per T002479** (`suspend: true`, 0 replicas — do not deploy). The Massagepraxis website (BRAND `massage`, T901440): massage nur lokal auf devmesh (`massage.devmesh.korczewski.de`, `task devmesh:deploy`). No prod go-live: `flux-website-korczewski` and `flux-korczewski-auth` are `suspend: true` as well.
 - **Contexts**: `fleet` (prod), `devmesh` (dev, ADR-008); all others dead.
 - **Deploy**: pull-based FluxCD (`ghcr.io/paddione/fleet-manifests`); `task workspace:deploy` is break-glass only. Base `k3d/`, overlays `prod-fleet/<brand>/`, config `environments/`.
 
@@ -72,7 +72,7 @@ ASCII-Pflicht (kein BOM), Parser-Check vor dem Commit und `-Encoding ASCII` fuer
 
 ### Bug-Triage-Konvention (CFR-Gate G-DORA03)
 
-Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst (`bash scripts/ticket.sh create --type bug --title "..." --description "..."`). CFR-Ziel ≤ 15 % über 8 Wochen via `bash scripts/vda.sh cfr`. Siehe [`AGENTS.md`](AGENTS.md).
+Jeder nach-Merge entdeckte Fehler wird als GitHub-Issue mit Label `bug` erfasst (`gh issue create --label bug --title "..." --body "..."`). CFR-Ziel ≤ 15 % über 8 Wochen via `bash scripts/vda.sh cfr`. Siehe [`AGENTS.md`](AGENTS.md).
 
 ### Mess-Konvention [T002717]
 

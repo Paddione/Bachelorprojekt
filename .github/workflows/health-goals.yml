@@ -57,6 +57,18 @@ jobs:
           fetch-tags: false
           token: ${{ secrets.GH_PAT }}
 
+      - name: Checkout agentic-resources (public skill monorepo)
+        uses: actions/checkout@v7
+        with:
+          repository: Paddione/agentic-resources
+          ref: main
+          path: ci-agentic-resources
+
+      - name: Materialize skill links from agentic-resources
+        run: |
+          AGENTIC_RESOURCES_DIR="$GITHUB_WORKSPACE/ci-agentic-resources" \
+            python3 scripts/agent-skills/link-from-repo.py --root "$GITHUB_WORKSPACE"
+
       - uses: actions/setup-node@v7
         with:
           node-version-file: ".nvmrc"

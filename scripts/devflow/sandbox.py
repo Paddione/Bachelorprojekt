@@ -1,8 +1,10 @@
 """Sandbox-Verb: create/activate/destroy plus Manifest (T901630).
 
-Das Manifest `.devflow/sandbox.json` haelt Ticket, Branch, Plan und
-Intel-Snapshot des Worktrees fest. Die Aktion steht im JSON-Feld `action`
-des stdin-Payloads; Antwort-JSON geht nach stdout, Fehler als
+Das Manifest `.devflow/sandbox.json` haelt Branch, Plan und Intel-Snapshot
+des Worktrees fest. `ticket` ist ein optionales Legacy-Feld (Ticket-Retirement
+2026-10-14): wird es uebergeben, wird es mitgeschrieben und zurueckgegeben,
+Pflicht ist es nicht mehr. Die Aktion steht im JSON-Feld `action` des
+stdin-Payloads; Antwort-JSON geht nach stdout, Fehler als
 {"error": {"code", "message"}} nach stderr. Exit 0 gruen, 1 Hard-Fail,
 2 Umgebung (Pfad fehlt, Manifest unlesbar). Stdlib-only.
 """
@@ -12,7 +14,7 @@ import json
 import sys
 from pathlib import Path
 
-MANIFEST_FIELDS = ("ticket", "branch", "plan", "intel-snapshot")
+REQUIRED_FIELDS = ("branch", "plan", "intel-snapshot")
 MANIFEST_REL = Path(".devflow") / "sandbox.json"
 
 
@@ -27,14 +29,20 @@ def _require_fields(data, fields):
 
 
 def create(worktree, ticket, branch, plan, intel_snapshot):
-    """Schreibt das Manifest; gibt das Antwort-Dict zurueck."""
+    """Schreibt das Manifest; gibt das Antwort-Dict zurueck.
+
+    `ticket` ist optional (Legacy): nur gesetzte Werte werden
+    mitgeschrieben, damit alte Aufrufer (Taskfile: leeres TICKET) und neue
+    (ganz ohne Ticket) funktionieren.
+    """
     manifest = {
-        "ticket": ticket,
         "branch": branch,
         "plan": plan,
         "intel-snapshot": intel_snapshot,
     }
-    _require_fields(manifest, MANIFEST_FIELDS)
+    if ticket:
+        manifest["ticket"] = ticket
+    _require_fields(manifest, REQUIRED_FIELDS)
     path = _manifest_path(worktree)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -52,7 +60,7 @@ def activate(worktree):
         raise ValueError(f"manifest unreadable at {path}: {exc}") from None
     if not isinstance(manifest, dict):
         raise ValueError(f"manifest at {path} is not a JSON object")
-    _require_fields(manifest, MANIFEST_FIELDS)
+    _require_fields(manifest, REQUIRED_FIELDS)
     return {"action": "activate", "worktree": str(worktree), "manifest": manifest}
 
 
@@ -95,8 +103,8 @@ def main(argv=None):
         return 2
     try:
         if action == "create":
-            _require_fields(data, MANIFEST_FIELDS)
-            result = create(worktree, data["ticket"], data["branch"],
+            _require_fields(data, REQUIRED_FIELDS)
+            result = create(worktree, data.get("ticket"), data["branch"],
                             data["plan"], data["intel-snapshot"])
         elif action == "activate":
             result = activate(worktree)

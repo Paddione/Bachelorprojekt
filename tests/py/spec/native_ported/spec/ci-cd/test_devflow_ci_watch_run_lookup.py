@@ -1,4 +1,9 @@
-"""Native migration of tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats."""
+"""Native migration of tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats.
+
+Ticket-Argv entfiel mit dem Retirement (2026-10-14): Der Watch nimmt nur noch
+die PR-URL; der Phasen-Gate prueft die lokale phase-events.log (Slug aus dem
+PR-Branch). Fixture legt einen vollstaendigen Log an.
+"""
 
 import os
 import stat
@@ -6,13 +11,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
-TICKET_SH = """#!/usr/bin/env bash
-case "$1" in
-  assert-phase-chain) exit 0 ;;
-  *) exit 0 ;;
-esac
-"""
 
 GH_TEMPLATE = """#!/usr/bin/env bash
 args="$*"
@@ -36,7 +34,7 @@ case "$args" in
   *"--json statusCheckRollup"*)
     if [[ "$args" == *'"FAILURE"'* || "$args" == *'"TIMED_OUT"'* ]]; then
       cat "@MARKER@/mock-rollup-failures" 2>/dev/null || true
-    elif [[ "$args" == *'"COMPLETED"'* || "$args" == *'COMPLETED'* ]]; then
+    elif [[ "$args" == *'COMPLETED'* || "$args" == *'COMPLETED'* ]]; then
       cat "@MARKER@/mock-rollup-pending" 2>/dev/null || echo "0"
     else
       echo ""
@@ -77,9 +75,13 @@ def ws(repo_root, tmp_path):
     subprocess.run(["git", "-C", str(work), "-c", "user.email=t@example.invalid", "-c", "user.name=t",
                     "commit", "-q", "--allow-empty", "-m", "init"], check=True)
 
-    ticket = work / "scripts/ticket.sh"
-    ticket.write_text(TICKET_SH)
-    ticket.chmod(ticket.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    plan_dir = work / ".agents" / "plans" / "stub-branch"
+    plan_dir.mkdir(parents=True)
+    (plan_dir / "phase-events.log").write_text(
+        "plan done 2026-10-14T00:00:00Z plan-gestagt\n"
+        "implement entered 2026-10-14T00:01:00Z subagent-gestartet\n"
+        "verify done 2026-10-14T00:02:00Z tests-gruen\n"
+    )
 
     gh = work / "bin/gh"
     gh.write_text(GH_TEMPLATE.replace("@MARKER@", str(marker)).replace("@WORK@", str(work)))
@@ -91,7 +93,6 @@ def ws(repo_root, tmp_path):
         "script": repo_root / "scripts/devflow-ci-watch.sh",
         "env": {
             "MARKER_DIR": str(marker),
-            "TICKET_SH": str(ticket),
             "PATH": f"{work / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}",
         },
     }
@@ -104,7 +105,7 @@ def _head(w) -> str:
 
 def _run(run_cmd, w):
     return run_cmd(["bash", "-c", '"$@" 2>&1', "run", "bash", str(w["script"]),
-                    "T999999", "https://github.com/x/y/pull/1"],
+                    "https://github.com/x/y/pull/1"],
                    cwd=w["work"], env=w["env"], timeout=900)
 
 
@@ -122,7 +123,7 @@ def test_anker_ein_echt_roter_job_wird_als_rot_gemeldet(run_cmd, ws):
     (m / "mock-check-runs-failures").write_text("Factory spec shard 2: https://example.invalid/1\n")
     sha = _head(ws)
     (m / "mock-run-list").write_text(
-        f'[{{"databaseId":42,"headSha":"{sha}","status":"completed","conclusion":"failure"}}]\n')
+        '[{"databaseId":42,"headSha":"' + sha + '","status":"completed","conclusion":"failure"}]\n')
     (m / "mock-jobs-failures").write_text("1\n")
     res = _run(run_cmd, ws)
     assert res.returncode != 0
@@ -155,7 +156,7 @@ def test_t014466_ein_nachweislich_harmloses_aggregat_bleibt_gruen(run_cmd, ws):
     (m / "mock-check-runs-failures").write_text("Aggregat: https://example.invalid/1\n")
     sha = _head(ws)
     (m / "mock-run-list").write_text(
-        f'[{{"databaseId":42,"headSha":"{sha}","status":"completed","conclusion":"failure"}}]\n')
+        '[{"databaseId":42,"headSha":"' + sha + '","status":"completed","conclusion":"failure"}]\n')
     (m / "mock-jobs-failures").write_text("0\n")
     res = _run(run_cmd, ws)
     assert res.returncode == 0, f"harmloses Aggregat faelschlich als rot behandelt: {res.output}"

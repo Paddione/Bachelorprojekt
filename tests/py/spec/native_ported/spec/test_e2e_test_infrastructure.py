@@ -98,7 +98,7 @@ def test_e2e_seed_ts_cleanup_uses_is_test_data_guard(e2e):
 def test_admin_auth_setup_specs_do_not_write_an_empty_state_for_the_admin_path(e2e):
     # Negativ-Aussage: kein writeEmptyState fuer den Admin-Pfad.
     pattern = r"writeEmptyState\((['\"])[a-z-]*(website-admin|brett)\.json\1\)"
-    for f in ("mentolder-auth-setup", "korczewski-auth-setup", "brett-mentolder-auth-setup"):
+    for f in ("mentolder-auth-setup", "korczewski-auth-setup"):
         text = _read(e2e["specs"] / f"{f}.spec.ts")
         m = re.search(pattern, text)
         assert m is None, f"{f}.spec.ts still degrades the admin path to an empty storageState: {m.group(0) if m else ''}"
@@ -111,12 +111,10 @@ def test_website_admin_auth_setups_gate_on_cron_secret_the_value_login_via_e2e_a
 
 
 def test_brett_auth_setups_mark_themselves_fixme_instead_of_returning_silently(e2e):
-    for f in ("brett-mentolder-auth-setup", "korczewski-auth-setup"):
-        text = _read(e2e["specs"] / f"{f}.spec.ts")
-        assert "testInfo.fixme(true" in text, f"{f}.spec.ts has no unconditional testInfo.fixme for the brett login"
-    # ... und kein Code-Pfad liest noch die Passwort-Variable.
-    text = _read(e2e["specs"] / "brett-mentolder-auth-setup.spec.ts")
-    assert not _has_line(text, r"process.env.E2E_ADMIN_PASS")
+    # Nur noch korczewski-auth-setup uebrig (brett-mentolder-auth-setup entfallen —
+    # Brett-Entwicklung liegt bei gekko32/brett).
+    text = _read(e2e["specs"] / "korczewski-auth-setup.spec.ts")
+    assert "testInfo.fixme(true" in text, "korczewski-auth-setup.spec.ts has no unconditional testInfo.fixme for the brett login"
 
 
 def test_mentolder_auth_setup_awaits_the_storagestate_write(e2e):

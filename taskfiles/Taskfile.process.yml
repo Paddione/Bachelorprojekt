@@ -7,7 +7,7 @@ tasks:
   # These fan out across BOTH prod clusters (mentolder + korczewski) so
   # every-day work is one command. Pass ENV=mentolder or ENV=korczewski to
   # target a single environment with the underlying `workspace:*` /
-  # `website:*` / `brett:*` tasks.
+  # `website:*` tasks.
 
   feature:deploy:
     desc: "Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)"
@@ -21,13 +21,8 @@ tasks:
     cmds:
       - task: website:redeploy:all-prods
 
-  feature:brett:
-    desc: "Rebuild + redeploy brett on BOTH prod clusters"
-    cmds:
-      - task: brett:deploy:all-prods
-
   feature:promote:
-    desc: "Promote a service dev → prod with Playwright smoke gate (SERVICE=website|brett TARGET=mentolder|korczewski|both; prompts if unset)"
+    desc: "Promote a service dev → prod with Playwright smoke gate (SERVICE=website TARGET=mentolder|korczewski|both; prompts if unset)"
     interactive: true
     cmds:
       - bash scripts/feature-promote.sh
@@ -70,7 +65,7 @@ tasks:
       - curl -s http://{{.REGISTRY}}/v2/_catalog | python3 -m json.tool 2>/dev/null || echo "Registry empty or unavailable"
 
   mishap:categorize:
-    desc: "Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback"
+    desc: "Kategorisiert einen Mishap-Text via Keyword-Matching + DeepSeek-Fallback (lokal, kein Ticket-Backend)"
     cmds:
       - bash scripts/mishap-categorize.sh {{.CLI_ARGS}}
 

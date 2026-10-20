@@ -16,7 +16,3 @@ def test_no_awk_interval_expressions(repo_root):
         for file in (repo_root / directory).rglob("*.sh"):
             bad.extend(f"{file}:{i}" for i, line in enumerate(file.read_text().splitlines(), 1) if pattern.search(line))
     assert not bad, bad
-
-
-def test_ticket_grill_header_regex_is_portable(repo_root):
-    assert "/^###?[" in (repo_root / "scripts/lib/ticket-grill.sh").read_text()

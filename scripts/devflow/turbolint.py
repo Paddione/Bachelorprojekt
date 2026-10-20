@@ -1,9 +1,8 @@
-"""Turbolint: paralleler Lint-Aggregator, V1 mit 3 Lintern (T901630).
+"""Turbolint: paralleler Lint-Aggregator, V1 mit 2 Lintern (T901630).
 
 Linter (je mit eigenem Timeout, parallel via ThreadPoolExecutor):
   plan-lint  scripts/plan-lint.sh --json <plan> (positional)
   ruff       ruff check scripts/devflow/
-  tsc        npx tsc --noEmit (cwd components/brett)
 Fehlt ein Linter-Binary, wird genau dieser als `skipped` mit Warnung
 markiert statt den Lauf zu failen. Exit 2 nur, wenn die Plan-Datei fehlt
 oder KEIN Linter lauffaehig ist.
@@ -13,7 +12,7 @@ unveraenderte Linter werden als `cached` uebersprungen.
 
 Formate: --format condensed (Default, eine Zeile pro Befund) oder json
 (Top-Level-Keys `results` und `summary`). Exit 0 gruen, 1 Hard-Fail,
-2 Umgebung. Test-Seams (Stubs im PATH): DEVFLOW_PLAN_LINT, DEVFLOW_TSC_CMD,
+2 Umgebung. Test-Seams (Stubs im PATH): DEVFLOW_PLAN_LINT,
 DEVFLOW_DIR. Aufruf aus dem Proxy: {worktree, scope} als JSON auf stdin.
 Stdlib-only, Ziel <= 300 Zeilen.
 """
@@ -31,9 +30,8 @@ from pathlib import Path
 
 CACHE_REL = Path(".devflow") / "cache" / "turbolint.json"
 FINDING_CAP = 50
-TSC_GLOB_CAP = 1000
 
-LINTER_TIMEOUTS = {"plan-lint": 180, "ruff": 180, "tsc": 300}
+LINTER_TIMEOUTS = {"plan-lint": 180, "ruff": 180}
 
 
 def _stdin_json():
@@ -59,15 +57,10 @@ def _linter_argv(name, plan):
         return base + ["--json", plan]
     if name == "ruff":
         return ["ruff", "check", "scripts/devflow/"]
-    if name == "tsc":
-        base = shlex.split(os.environ.get("DEVFLOW_TSC_CMD", "npx tsc"))
-        return base + ["--noEmit"]
     raise ValueError(f"unknown linter: {name}")
 
 
 def _linter_cwd(name, root):
-    if name == "tsc":
-        return str(Path(root) / "components" / "brett")
     return str(root)
 
 
@@ -77,12 +70,6 @@ def _linter_inputs(name, root, plan):
         return [root / plan]
     if name == "ruff":
         return sorted((root / "scripts" / "devflow").glob("*.py"))
-    if name == "tsc":
-        out = []
-        brett = root / "components" / "brett"
-        for ext in ("*.ts", "*.tsx"):
-            out.extend(sorted(brett.rglob(ext)))
-        return out[:TSC_GLOB_CAP]
     return []
 
 
@@ -186,7 +173,7 @@ def run(plan=None, format="condensed", worktree=".", scope="changed"):
             "results": [], "summary": {"error": f"plan file missing: {plan_path}"},
             "plan": plan, "scope": scope, "exit": 2,
         }
-    names = ("plan-lint", "ruff", "tsc")
+    names = ("plan-lint", "ruff")
     hashes = {n: _hash_inputs(_linter_inputs(n, root, plan)) for n in names}
     cache_file = _cache_path(root)
     cache = _load_cache(cache_file)
@@ -256,7 +243,7 @@ def main(argv=None):
     """CLI; gibt den Exit-Code zurueck."""
     parser = argparse.ArgumentParser(
         prog="python3 -m devflow turbolint",
-        description="Paralleler Lint-Aggregator (V1: plan-lint, ruff, tsc).",
+        description="Paralleler Lint-Aggregator (V1: plan-lint, ruff).",
     )
     parser.add_argument("--plan", default=None,
                         help="Pfad zu tasks.md (Pflicht; kein Default mehr — T901749)")
@@ -267,10 +254,11 @@ def main(argv=None):
     stdin_data = _stdin_json()
     plan = ns.plan or stdin_data.get("plan")
     if not plan:
-        # T901749: kein Default-Plan mehr (.agents/plans/ ist leer, SSOT ist
-        # die DB) — --plan ist Pflicht, fail-closed mit actionable Message.
+        # T901749: kein Default-Plan mehr — --plan ist Pflicht, fail-closed
+        # mit actionable Message. (Ticket-Referenz retiriert 2026-10-14:
+        # gestagte Plaene liegen in .agents/plans/<slug>/.)
         print("--plan is required (default plan removed; staged plans live "
-              "in tickets.ticket_plans — use ticket.sh plan-get)", file=sys.stderr)
+              "in .agents/plans/<slug>/)", file=sys.stderr)
         return 2
     fmt = ns.format or stdin_data.get("format") or "condensed"
     worktree = ns.worktree or stdin_data.get("worktree") or "."

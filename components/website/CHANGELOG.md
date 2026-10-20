@@ -1,5 +1,62 @@
 # Changelog
 
+## [1.426.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.5...website-v1.426.0) (2026-10-16)
+
+
+### Features
+
+* **infra:** manage rustdesk relay via Flux ([#6736](https://github.com/Paddione/Bachelorprojekt/issues/6736)) ([01fb13b](https://github.com/Paddione/Bachelorprojekt/commit/01fb13bbe39830ffcd0d2a2fef27885ca3658ae3))
+
+## [1.425.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.4...website-v1.425.5) (2026-10-15)
+
+
+### Bug Fixes
+
+* **infra:** RustDesk-Web-Bridge fuer mentolder auf gekko-hetzner-2 ([#6709](https://github.com/Paddione/Bachelorprojekt/issues/6709)) ([661eb78](https://github.com/Paddione/Bachelorprojekt/commit/661eb78c12abd4ba28bfa9be5fd46be44a2e050e))
+
+## [1.425.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.3...website-v1.425.4) (2026-10-15)
+
+
+### Bug Fixes
+
+* **website:** repair dead internal links and hide unavailable sidekick tools ([#6717](https://github.com/Paddione/Bachelorprojekt/issues/6717)) ([f3ceec2](https://github.com/Paddione/Bachelorprojekt/commit/f3ceec26ab1289061b83223ad76f31c37e66cb8b))
+
+## [1.425.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.2...website-v1.425.3) (2026-10-15)
+
+
+### Bug Fixes
+
+* **website:** add /en/faq and redirect unknown /en slugs before streaming ([#6726](https://github.com/Paddione/Bachelorprojekt/issues/6726)) ([8014689](https://github.com/Paddione/Bachelorprojekt/commit/801468947f67559606eb13d539ddd418990e0145))
+
+## [1.425.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.1...website-v1.425.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **infra:** Collabora fuer mentolder per Flux (flux-office) statt imperativem Task ([#6711](https://github.com/Paddione/Bachelorprojekt/issues/6711)) ([771205b](https://github.com/Paddione/Bachelorprojekt/commit/771205b4225d171dfb445415dd03510fc9a7f1fa))
+* **website:** massage service pages, sitemap and hreflang point to the live origin ([#6715](https://github.com/Paddione/Bachelorprojekt/issues/6715)) ([c0732c5](https://github.com/Paddione/Bachelorprojekt/commit/c0732c54d15c7cbb4b69ab268f669757cef978d4))
+
+## [1.425.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.0...website-v1.425.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **scripts:** reap ticketless branches whose merged PR has the same head ([#6713](https://github.com/Paddione/Bachelorprojekt/issues/6713)) ([7a2476e](https://github.com/Paddione/Bachelorprojekt/commit/7a2476ef6bfdae350b59966cdb291b043ef59750))
+
+## [1.425.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.2...website-v1.425.0) (2026-10-15)
+
+
+### Features
+
+* **infra:** retain AI services at zero replicas by default ([#6707](https://github.com/Paddione/Bachelorprojekt/issues/6707)) ([2901b10](https://github.com/Paddione/Bachelorprojekt/commit/2901b10d578895ac176bbf06971c4c32de69c447))
+
+## [1.424.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.1...website-v1.424.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **scripts:** preserve K3 index preparation failure status ([#6704](https://github.com/Paddione/Bachelorprojekt/issues/6704)) ([785084d](https://github.com/Paddione/Bachelorprojekt/commit/785084d2b977c43f13684e3129d366e194f01d38))
+
 ## [1.424.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.424.0...website-v1.424.1) (2026-10-14)
 
 

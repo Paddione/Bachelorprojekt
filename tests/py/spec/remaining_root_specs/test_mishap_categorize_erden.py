@@ -16,8 +16,10 @@ def test_categories_before_api(script):
     api = next(i for i, line in enumerate(lines) if not re.match(r'^\s*#', line) and 'DEEPSEEK_API_KEY' in line)
     assert cat < api
 
-@pytest.mark.parametrize('expected', ['[EXISTING_CATEGORIES]', '$(echo "$existing_categories"', 'existing_categories=$(_build_enum_fallback)', '<<< "$existing_categories"', "'kind:'"])
+@pytest.mark.parametrize('expected', ['[EXISTING_CATEGORIES]', '$(echo "$existing_categories"', 'existing_categories=$(_build_enum_fallback)', '<<< "$existing_categories"', 'no ticket backend'])
 def test_category_structure(script, expected):
+    # 'no ticket backend' (statt DB-Tag-Prefix 'kind:'): retiriert 2026-10-14 —
+    # Kategorien werden gemeldet, nicht persistiert.
     assert expected in script
 
 def test_canonical_fallback(script):

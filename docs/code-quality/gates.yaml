@@ -5,7 +5,6 @@ scan:
     - components/website
     - tests
     - scripts
-    - components/brett
     - assets
     - assets/art-library
     - k3d
@@ -80,12 +79,6 @@ s1:
     # (Tabelle = Datei-Abschnitt), nicht die Datei — analog zu
     # website-db.ts. Entstanden mit G-CQ07 (S2-Import-Zyklus #1).
     - "components/website/src/lib/tickets-schema.ts"
-    # GLTFLoader.js is a vendored Three.js loader (MIT) shipped as a single
-    # monolithic browser bundle. Cannot be reasonably split; vendor file.
-    - "components/brett/public/lib/GLTFLoader.js"
-    # scripts/ticket.sh is a sanctioned single-file CLI (735 lines) — the plan
-    # explicitly lists it as "low priority, do not split" (G-RH01 Batch 1).
-    - "scripts/ticket.sh"
     # .opencode/skills/dev-flow/background-agents.ts is a monolithic OpenCode plugin unit
     # (based on oh-my-opencode, MIT). Plugin loading requires a single default export;
     # splitting across files would break the @opencode-ai/plugin registration contract.
@@ -231,28 +224,6 @@ s5:
     - path: "components/website"
       allowed: ["pnpm-lock.yaml"]
       forbidden: ["package-lock.json"]
-    # components/brett: nur package-lock.json (Install-/CI-Quelle für npm ci —
-    # Dockerfile, ci.yml und build-brett.yml nutzen ausschließlich npm).
-    #
-    # Bis T002247 erlaubte diese Regel BEIDE Lockfiles, mit der Begründung
-    # pnpm-lock.yaml sei nötig, damit Renovate brett-Deps prüfen kann [T001224].
-    # Diese Begründung stammt aus PR #2183 — vor dem Renovate-Setup (T000898) —
-    # und wurde per Renovate-Extraktionslauf (platform=local, dry-run) widerlegt:
-    # mit und ohne pnpm-lock.yaml extrahiert Renovate identisch
-    # 12 npm-Dateien / 323 Deps inkl. components/brett/package.json. Der einzige
-    # Unterschied war, dass components/brett/package.json BEIDE Lockfiles
-    # zugeordnet bekam
-    # (npmLock + pnpmShrinkwrap) — genau der Auslöser der Repository-Problem-
-    # Warnung "Updating multiple npm lock files is deprecated".
-    #
-    # Hinweis: components/brett/pnpm-workspace.yaml existiert weiterhin und
-    # enthält reine
-    # pnpm-Settings (allowBuilds, minimumReleaseAgeExclude) für ein Projekt, das
-    # per npm installiert wird. Renovate extrahiert die Datei als Package-File.
-    # Ungeprüft, ob sie noch einen Zweck erfüllt — nicht Teil von T002247.
-    - path: "components/brett"
-      allowed: ["package-lock.json"]
-      forbidden: ["pnpm-lock.yaml"]
     - path: "components/mentolder-web"
       allowed: ["pnpm-lock.yaml"]
       forbidden: ["package-lock.json"]

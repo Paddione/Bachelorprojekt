@@ -14,7 +14,7 @@ import shlex
 import shutil
 from pathlib import Path
 
-EXPECTED_JOBS = {"test-bats", "test-manifests", "brett-typescript", "vitest-website"}
+EXPECTED_JOBS = {"test-bats", "test-manifests", "vitest-website"}
 
 
 def _env(repo_root, extra=None):
@@ -57,12 +57,14 @@ def test_devflow_cli_lists_all_verbs(repo_root, run_cmd):
 
 
 def test_devflow_sandbox_lifecycle(repo_root, run_cmd, tmp_path):
+    # Ticket-Retirement 2026-10-14: create kommt OHNE ticket aus — Pflicht
+    # sind nur branch/plan/intel-snapshot.
     worktree = tmp_path / "wt"
     worktree.mkdir()
     base = {"worktree": str(worktree)}
 
     create = _payload(tmp_path, "create.json", {
-        **base, "action": "create", "ticket": "T901630",
+        **base, "action": "create",
         "branch": "feature/x", "plan": "tasks.md", "intel-snapshot": "s123",
     })
     res = run_cmd(
@@ -73,7 +75,8 @@ def test_devflow_sandbox_lifecycle(repo_root, run_cmd, tmp_path):
     manifest_file = worktree / ".devflow" / "sandbox.json"
     assert manifest_file.is_file()
     manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
-    assert set(manifest) == {"ticket", "branch", "plan", "intel-snapshot"}
+    assert set(manifest) == {"branch", "plan", "intel-snapshot"}
+    assert "ticket" not in manifest
 
     activate = _payload(tmp_path, "activate.json", {**base, "action": "activate"})
     res = run_cmd(
@@ -81,7 +84,7 @@ def test_devflow_sandbox_lifecycle(repo_root, run_cmd, tmp_path):
         cwd=repo_root,
     )
     assert res.returncode == 0, res.output
-    assert json.loads(res.stdout)["manifest"]["ticket"] == "T901630"
+    assert json.loads(res.stdout)["manifest"]["branch"] == "feature/x"
 
     destroy = _payload(tmp_path, "destroy.json", {**base, "action": "destroy"})
     res = run_cmd(
@@ -100,6 +103,33 @@ def test_devflow_sandbox_lifecycle(repo_root, run_cmd, tmp_path):
     assert json.loads(res.stderr)["error"]["code"] == "devflow_env"
 
 
+def test_devflow_sandbox_legacy_ticket_roundtrip(repo_root, run_cmd, tmp_path):
+    # Back-compat: wer ein ticket mitschickt (alte Taskfile-Aufrufer, alte
+    # Manifeste), bekommt es unveraendert zurueck.
+    worktree = tmp_path / "wt"
+    worktree.mkdir()
+    create = _payload(tmp_path, "create.json", {
+        "worktree": str(worktree), "action": "create", "ticket": "T901630",
+        "branch": "feature/x", "plan": "tasks.md", "intel-snapshot": "s123",
+    })
+    res = run_cmd(
+        f"PYTHONPATH=scripts python3 -m devflow sandbox < {create}",
+        cwd=repo_root,
+    )
+    assert res.returncode == 0, res.output
+    manifest = json.loads((worktree / ".devflow" / "sandbox.json").read_text(encoding="utf-8"))
+    assert manifest["ticket"] == "T901630"
+
+    activate = _payload(tmp_path, "activate.json",
+                        {"worktree": str(worktree), "action": "activate"})
+    res = run_cmd(
+        f"PYTHONPATH=scripts python3 -m devflow sandbox < {activate}",
+        cwd=repo_root,
+    )
+    assert res.returncode == 0, res.output
+    assert json.loads(res.stdout)["manifest"]["ticket"] == "T901630"
+
+
 def test_devflow_sandbox_missing_fields_exit_2(repo_root, run_cmd, tmp_path):
     worktree = tmp_path / "wt"
     worktree.mkdir()
@@ -111,9 +141,21 @@ def test_devflow_sandbox_missing_fields_exit_2(repo_root, run_cmd, tmp_path):
     assert res.returncode == 2
     assert json.loads(res.stderr)["error"]["code"] == "devflow_env"
 
-    # Positiv-Anker im selben Test: gueltiges create bleibt Exit 0.
+    # Fail-closed bleibt: fehlendes branch (Pflichtfeld) -> Exit 2.
+    no_branch = _payload(tmp_path, "no-branch.json", {
+        "worktree": str(worktree), "action": "create",
+        "plan": "p", "intel-snapshot": "i",
+    })
+    res = run_cmd(
+        f"PYTHONPATH=scripts python3 -m devflow sandbox < {no_branch}",
+        cwd=repo_root,
+    )
+    assert res.returncode == 2
+    assert json.loads(res.stderr)["error"]["code"] == "devflow_env"
+
+    # Positiv-Anker im selben Test: gueltiges create OHNE ticket bleibt Exit 0.
     good = _payload(tmp_path, "good.json", {
-        "worktree": str(worktree), "action": "create", "ticket": "T901630",
+        "worktree": str(worktree), "action": "create",
         "branch": "b", "plan": "p", "intel-snapshot": "i",
     })
     res = run_cmd(
@@ -134,13 +176,11 @@ def test_devflow_turbolint_aggregates_stub_linters(repo_root, run_cmd, tmp_path)
     _write_stub(stubs / "plan-lint.sh",
                 "echo '{\"verdict\":\"FAIL\",\"hard\":[\"H1: stub finding\"],\"warn\":[]}'\nexit 1")
     _write_stub(stubs / "ruff", "exit 0")
-    _write_stub(stubs / "tsc", "echo 'src/a.ts(1,1): error TS0000: stub'\nexit 1")
     plan = tmp_path / "tasks.md"
     plan.write_text("# dummy plan\n", encoding="utf-8")
     env = _env(repo_root, {
         "PATH": f"{stubs}{os.pathsep}{os.environ['PATH']}",
         "DEVFLOW_PLAN_LINT": "plan-lint.sh",
-        "DEVFLOW_TSC_CMD": "tsc",
         "DEVFLOW_DIR": str(tmp_path / "devflow"),
     })
     res = run_cmd(
@@ -154,13 +194,11 @@ def test_devflow_turbolint_aggregates_stub_linters(repo_root, run_cmd, tmp_path)
     report = json.loads(res.stdout)
     assert set(report) >= {"results", "summary"}
     by_name = {r["name"]: r for r in report["results"]}
-    assert set(by_name) == {"plan-lint", "ruff", "tsc"}
+    assert set(by_name) == {"plan-lint", "ruff"}
     assert by_name["plan-lint"]["status"] == "fail"
     assert by_name["plan-lint"]["findings"] == ["H1: stub finding"]
     assert by_name["ruff"]["status"] == "ok"  # Positiv-Anker: gruen bleibt gruen
-    assert by_name["tsc"]["status"] == "fail"
-    assert any("TS0000" in f for f in by_name["tsc"]["findings"])
-    assert report["summary"]["failed"] == 2
+    assert report["summary"]["failed"] == 1
     assert report["summary"]["ok"] == 1
 
 

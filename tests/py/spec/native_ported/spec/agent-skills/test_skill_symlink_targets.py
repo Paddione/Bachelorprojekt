@@ -62,12 +62,31 @@ def _excluded_from_claude(repo_root):
 
 
 def _expected_symlink_names(run_cmd, repo_root):
-    """Soll-Menge: getrackte .opencode/skills/*/SKILL.md-Verzeichnisse plus OVERVIEW.md, minus Exklusionen."""
-    ls = run_cmd(["git", "-C", str(repo_root), "ls-files", "--", ".opencode/skills"]).stdout.splitlines()
+    """Soll-Menge: opencode-projizierte IDs aus skills.yaml plus OVERVIEW.md, minus Exklusionen.
+
+    Skills sind untracked Symlinks ins agentic-resources-Repo (link-from-repo.py),
+    daher ist die Registry-Projektion die Soll-Menge — nicht mehr git ls-files.
+    """
     names = set()
-    for path in ls:
-        if path.endswith("/SKILL.md"):
-            names.add(path[len(".opencode/skills/"):-len("/SKILL.md")] if path.startswith(".opencode/skills/") else path)
+    cur = None
+    in_opencode = False
+    text = (repo_root / "docs/agent-guide/registry/skills.yaml").read_text(encoding="utf-8")
+    for line in text.splitlines():
+        m = re.match(r"  - id: (\S+)", line)
+        if m:
+            cur = m.group(1)
+            in_opencode = False
+            continue
+        if line == "      opencode:":
+            in_opencode = True
+            continue
+        if re.match(r"      \S", line):
+            in_opencode = False
+            continue
+        if in_opencode:
+            m = re.match(r"        path: \.opencode/skills/([A-Za-z0-9_-]+)$", line)
+            if m and cur == m.group(1):
+                names.add(cur)
     names.add("OVERVIEW.md")
     return sorted(names - set(_excluded_from_claude(repo_root)))
 

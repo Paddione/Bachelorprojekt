@@ -126,17 +126,6 @@ def test_t002256_b3_mcp_tool_guide_documents_worktree_restriction(ctx):
     assert re.search(r"worktree", _text(ctx["mcp_guide"]), re.IGNORECASE)
 
 
-def test_t002256_b3_worktree_note_names_both_tools_stage_plan_and_archive_plan(ctx):
-    lines = _text(ctx["mcp_guide"]).split("\n")
-    hits = [i for i, l in enumerate(lines) if re.search("worktree", l, re.IGNORECASE)]
-    selected = set()
-    for i in hits:
-        selected.update(range(max(0, i - 4), min(len(lines), i + 5)))
-    block = "\n".join(lines[i] for i in sorted(selected))
-    assert "stage_plan" in block
-    assert "archive_plan" in block
-
-
 def test_t002256_b3_plan_archive_steps_no_longer_recommends_archive_plan_as_mcp_first(ctx):
     assert not re.search(r"^[^>]*MCP-first", _text(ctx["archive_ref"]), re.MULTILINE)
 

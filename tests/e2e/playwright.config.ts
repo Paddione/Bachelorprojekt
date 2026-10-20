@@ -129,7 +129,7 @@ export default defineConfig({
         '**/fa-51-*.spec.ts',             // sidekick navigation (T000965)
         '**/fa-admin-monitoring.spec.ts',       // admin monitoring page auth
         '**/fa-bugs-notifications.spec.ts',     // bug-report → admin resolve → reporter email (FA-bug-notify)
-        '**/fa-admin-tickets.spec.ts',          // unified admin /admin/tickets index + detail (PR4/5)
+        // fa-admin-tickets.spec.ts retiriert 2026-10-14 (Ticket-UI ohne Backend).
         '**/fa-admin-inbox.spec.ts',            // /admin/inbox two-pane rework (spec 2026-05-08)
         '**/fa-admin-inbox-delete.spec.ts',     // Löschen escape hatch (2026-05-09)
         '**/fa-29-*.spec.ts',                   // Projekt-Cockpit E2E (T000752)
@@ -160,9 +160,6 @@ export default defineConfig({
         '**/fa-23-*.spec.ts',    // Vaultwarden
         '**/fa-24-*.spec.ts',    // Whiteboard
         '**/fa-25-*.spec.ts',    // Mailpit
-        '**/fa-27-*.spec.ts',    // Systemisches Brett service
-        '**/brett-replay.spec.ts', // T901676: Replay-Flag/Timeline (flag-sensitiv, unauthenticated probe)
-        // brett-mayhem now lives in its own authenticated project (brett-mentolder)
         '**/fa-30-einvoice.spec.ts', // E-Rechnung / XRechnung (einvoice-sidecar)
         '**/fa-35-*.spec.ts',    // LLM MixedEmbeddingModelError
         // T013329 F3/D2: fa-32/33/34/36/37 (LLM-Router) und nfa-11 (GPU-VRAM)
@@ -201,41 +198,6 @@ export default defineConfig({
       },
     },
 
-    // ── brett-mentolder-setup: seeds mentolder brett auth state ─────
-    {
-      name: 'brett-mentolder-setup',
-      testMatch: '**/brett-mentolder-auth-setup.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        ignoreHTTPSErrors: true,
-      },
-    },
-
-    // ── brett-mentolder: Mayhem 1v3 AI mode (authenticated) ─────────
-    // Run: playwright test --project=brett-mentolder
-    {
-      name: 'brett-mentolder',
-      dependencies: ['brett-mentolder-setup'],
-      testMatch: [
-        '**/brett-mannequin.spec.ts',  // mannequin focus
-        '**/brett-roles.spec.ts',      // C7 role enforcement (opens its own contexts)
-        '**/brett-share-link.spec.ts', // T000608 public view-only share link
-        '**/brett-session-lifecycle.spec.ts', // session-active/round-phases/kick/handoff (opens its own contexts)
-        '**/brett-hidden-figures.spec.ts',    // E9 verdecktes Arbeiten — role-filter security test (opens its own contexts)
-        '**/brett-moderation.spec.ts',        // spotlight/dim/freeze (opens its own contexts)
-        '**/brett-undo-redo.spec.ts',         // session_undo/session_redo (opens its own contexts)
-        '**/brett-ground-annotations.spec.ts',// anchors/zones/lines incl. leiter-only gate (opens its own contexts)
-        '**/brett-figure-ownership.spec.ts',  // figure_type_set/admin_assign_figure/lobby settings (opens its own contexts)
-        '**/fa-27-brett.spec.ts',     // T002068: data API tests (authenticated subset)
-        '**/fa-60-realtime-ws.spec.ts', // FA-60: realtime WS /sync liveness (T003163 OIDC login)
-      ],
-      use: {
-        ...devices['Desktop Chrome'],
-        ignoreHTTPSErrors: true,
-        storageState: '.auth/mentolder-brett.json',
-      },
-    },
-
     // ── korczewski-setup: seeds auth state for korczewski tests ─────
     // Runs before `korczewski` via the `dependencies` field.
     // Performs real OIDC login and writes .auth/korczewski-*.json.
@@ -255,8 +217,6 @@ export default defineConfig({
       dependencies: ['korczewski-setup'],
       testMatch: [
         '**/korczewski-home.spec.ts',  // Kore brand homepage
-        '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
-        '**/fa-47-brett-figure-pack-assets.spec.ts', // figure-pack assets served (T000527/T000522)
         '**/dashboard-art.spec.ts',    // Dashboard art-library tab (web.korczewski.de/admin)
         '**/fa-content-hub-legal-ssot.spec.ts',
       ],
@@ -290,21 +250,6 @@ export default defineConfig({
         baseURL: websiteURL,
       },
     }] : []),
-
-    // ── android: Pixel 5 Chromium (mobile, touch, 393×851) ───────
-    // Run: playwright test --project=android
-    // Covers Brett mobile layout + tap-target compliance.
-    {
-      name: 'android',
-      dependencies: ['brett-mentolder-setup'],
-      testMatch: [
-        '**/brett-mobile.spec.ts',
-      ],
-      use: {
-        ...devices['Pixel 5'],
-        ignoreHTTPSErrors: true,
-      },
-    },
 
     // NOTE: Pure-function unit tests migrated to vitest. Run with: npx vitest run
   ],

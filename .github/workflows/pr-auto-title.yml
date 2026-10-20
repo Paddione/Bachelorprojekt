@@ -71,7 +71,7 @@ jobs:
           # ── 1. Check if the existing title is already valid ────────────────
           # Pattern: <type>[(<scope>)][!]: <subject>
           # PR_TITLE is passed as stdin to grep; the pattern is static.
-          if printf '%s' "$PR_TITLE" | grep -qP '^(feat|fix|chore|docs|refactor|test|build|ci|perf|revert)(\([a-z0-9][a-z0-9-]*\))?!?: .{1,}'; then
+          if printf '%s' "$PR_TITLE" | grep -qP '^(feat|fix|chore|docs|refactor|test|build|ci|perf|revert|style)(\([a-z0-9][a-z0-9-]*\))?!?: .{1,}'; then
             echo "✅ PR title already follows Conventional Commits — no rename needed."
             exit 0
           fi

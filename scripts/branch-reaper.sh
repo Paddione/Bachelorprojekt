@@ -43,10 +43,12 @@
 #   Tag-Push fehl, wird NICHT gelöscht — das Netz ist Vorbedingung, nicht Beiwerk.
 #
 # Environment:
-#   TICKET_SH — Pfad zum ticket.sh-Aufruf (Default: <repo>/scripts/ticket.sh). Existiert für
-#               die Testbarkeit: der BATS-Test hängt hier einen Stub ein, statt einen Cluster
-#               zu brauchen.
-#   BRAND, TICKET_CTX — an ticket.sh durchgereicht.
+#   TICKET_SH — Pfad zum ticket.sh-Aufruf (Default: <repo>/scripts/ticket.sh — retiriert
+#               2026-10-14, Default trifft immer ins Leere). Existiert für die Testbarkeit:
+#               der Test hängt hier einen Stub ein, statt einen Cluster zu brauchen.
+#               Ohne Stub gilt jede Ticket-Abfrage als fehlende Messung (ticket_unknown=1,
+#               T012412) — der Reaper entscheidet dann nur über gh-Signale, fail-closed.
+#   BRAND, TICKET_CTX — an ticket.sh durchgereicht (nur mit Stub wirksam).
 #
 # Exit: 0 im Normalfall (auch wenn nichts zu tun war), 2 bei Argumentfehlern.
 set -euo pipefail
@@ -365,9 +367,11 @@ for branch in "${CANDIDATES[@]}"; do
   fi
 
   # Im Sweep-Modus die Ticket-ID je Branch aus dem Branch-Namen ziehen. Trägt der
-  # Branch keine T######-ID im Namen: KEEP — nicht prüfbar, also verschonen.
+  # Branch keine T######-ID im Namen, entscheiden allein die Positiv-Signale (no_ticket=1):
+  # seit dem Wegfall der Ticket-DB (2026-10-14) tragen neue Branches keine ID mehr.
   branch_ticket_id="$TICKET_ID"
   freshness_decided=0
+  no_ticket=0
   if [ -z "$branch_ticket_id" ]; then
     branch_ticket_id="$(printf '%s' "$branch" | grep -o 'T[0-9]\{6\}' | head -1 || true)"
     if [ -z "$branch_ticket_id" ]; then
@@ -389,8 +393,7 @@ for branch in "${CANDIDATES[@]}"; do
         fi
         freshness_decided=1
       else
-        echo "KEEP $branch — keine Ticket-ID im Branch-Namen erkennbar"
-        continue
+        no_ticket=1
       fi
     fi
   fi
@@ -426,7 +429,9 @@ for branch in "${CANDIDATES[@]}"; do
   # unerreichbar. Ein GELESENER, nicht-terminaler Status (z.B. in_progress) bleibt dagegen ein
   # hartes KEEP: er ist eine Aussage, kein fehlender Messwert.
   ticket_unknown=0
-  if [ "$freshness_decided" -eq 0 ]; then
+  if [ "$no_ticket" -eq 1 ]; then
+    ticket_unknown=1
+  elif [ "$freshness_decided" -eq 0 ]; then
     ticket_json="$(bash "$TICKET_SH" get --id "$branch_ticket_id" 2>/dev/null || echo '{}')"
     status="$(printf '%s' "$ticket_json" \
       | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' \
@@ -485,6 +490,10 @@ for branch in "${CANDIDATES[@]}"; do
   #
   # Die Position ist bedeutungstragend: HINTER den Positiv-Signalen, sonst ist der Zustand vor
   # dem Fix wiederhergestellt — und VOR dem Allowlist-Check, sonst gibt dieser den Branch frei.
+  if [ "$no_ticket" -eq 1 ]; then
+    echo "KEEP $branch — keine Ticket-ID im Branch-Namen erkennbar und kein gemergter PR mit gleichem Head"
+    continue
+  fi
   if [ "$ticket_unknown" -eq 1 ]; then
     echo "KEEP $branch — Ticket-Status nicht ermittelbar"
     continue

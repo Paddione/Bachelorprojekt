@@ -20,14 +20,6 @@
       ],
       "cwd": "/home/patrick/Bachelorprojekt",
       "timeout_ms": 60000
-    },
-    "ticket-mcp-node": {
-      "command": "node",
-      "args": [
-        "/home/patrick/mcp-servers/ticket/server.mjs"
-      ],
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "timeout_ms": 30000
     }
   }
 }

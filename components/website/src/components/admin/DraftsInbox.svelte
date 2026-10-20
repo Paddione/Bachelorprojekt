@@ -168,7 +168,6 @@
       {#if books.length === 0}
         <p class="empty">
           Noch keine Bücher hochgeladen.
-          <a href="/admin/knowledge/books">Zur Bücher-Seite →</a>
         </p>
       {:else}
         <p class="empty">

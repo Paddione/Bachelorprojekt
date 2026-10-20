@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-14T00:43:59.442Z",
+  "generatedAt": "2026-10-19T20:06:55.807Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -198,12 +198,6 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "bge-embed-bulk"
-    },
-    {
-      "id": "llm-proxy-log-retention",
-      "namespace": "mentolder",
-      "type": "CronJob",
-      "name": "llm-proxy-log-retention"
     },
     {
       "id": "mailpit",
@@ -844,18 +838,6 @@
       "kind": "configmap"
     },
     {
-      "from": "llm-proxy-log-retention",
-      "to": "shared-db",
-      "via": "command",
-      "kind": "command"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "website",
-      "via": "command",
-      "kind": "command"
-    },
-    {
       "from": "nextcloud",
       "to": "mailpit",
       "via": "env:SMTP_HOST",
@@ -1130,12 +1112,6 @@
       "to": "shared-db",
       "via": "env:SOURCE_PGHOST",
       "kind": "env"
-    },
-    {
-      "from": "traefik",
-      "to": "brett",
-      "via": "ingress",
-      "kind": "ingress"
     },
     {
       "from": "traefik",
@@ -1769,18 +1745,6 @@
     },
     {
       "from": "admin-actions-cleanup",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "admin-actions-cleanup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-cleanup",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2273,18 +2237,6 @@
     },
     {
       "from": "admin-actions-prune",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "admin-actions-prune",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-prune",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2765,18 +2717,6 @@
     },
     {
       "from": "sessions-purge",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3245,18 +3185,6 @@
     },
     {
       "from": "appointment-reminders",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "appointment-reminders",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "appointment-reminders",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3713,18 +3641,6 @@
     },
     {
       "from": "db-backup",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "db-backup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-backup",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4169,18 +4085,6 @@
     },
     {
       "from": "db-restore-verify",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "db-restore-verify",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-restore-verify",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4613,18 +4517,6 @@
     },
     {
       "from": "brett",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5045,18 +4937,6 @@
     },
     {
       "from": "billing-dunning-detection",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "billing-dunning-detection",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "billing-dunning-detection",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5465,18 +5345,6 @@
     },
     {
       "from": "monthly-billing",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "monthly-billing",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "monthly-billing",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5873,18 +5741,6 @@
     },
     {
       "from": "scheduled-publish",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "scheduled-publish",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "scheduled-publish",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6269,18 +6125,6 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-brainstorm",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brainstorm",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6653,18 +6497,6 @@
     },
     {
       "from": "oauth2-proxy-dev",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-dev",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-dev",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7025,18 +6857,6 @@
     },
     {
       "from": "oauth2-proxy-session-hub",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-session-hub",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-session-hub",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7385,18 +7205,6 @@
     },
     {
       "from": "error-log-retention",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "error-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "error-log-retention",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7733,18 +7541,6 @@
     },
     {
       "from": "knowledge-ingest-prs",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8069,18 +7865,6 @@
     },
     {
       "from": "knowledge-ingest-bugs",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8393,18 +8177,6 @@
     },
     {
       "from": "knowledge-reindex-all",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "knowledge-reindex-all",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8712,318 +8484,6 @@
     {
       "from": "oauth2-proxy-brain",
       "to": "knowledge-reindex-all",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "nextcloud",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "nextcloud",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "notify-unread",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "notify-unread",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brett",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-comfy",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-comfy",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-downloads",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-downloads",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-mailpit",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mailpit",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-mediaviewer",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mediaviewer",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-rustdesk-web",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-rustdesk-web",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-studio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-studio",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-terminal",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-terminal",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-traefik",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-traefik",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-videovault",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "pocket-id",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "pocket-id",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-recovery",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-recovery",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "sdlc-console",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "shared-db",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "studio-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "studio-server",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "spreed-signaling",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "spreed-signaling",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "talk-recording",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-recording",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "vaultwarden",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "vaultwarden",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "videovault",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "whiteboard",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "whiteboard",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "talk-transcriber",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-transcriber",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "ddns-updater",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "ddns-updater",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "llm-proxy-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "llm-proxy-log-retention",
-      "to": "oauth2-proxy-brain",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brain",
-      "to": "llm-proxy-log-retention",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
@@ -13049,18 +12509,6 @@
     },
     {
       "from": "dev-pod",
-      "to": "brett",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
-      "to": "dev-pod",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-pod",
       "to": "sdlc-console",
       "via": "secret:shared-db-dev-secrets",
       "kind": "secret"
@@ -13096,42 +12544,6 @@
       "kind": "secret"
     },
     {
-      "from": "brett",
-      "to": "sdlc-console",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "brett",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
-      "to": "shared-db-dev",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db-dev",
-      "to": "brett",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
-      "to": "website",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "website",
-      "to": "brett",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
       "from": "sdlc-console",
       "to": "shared-db-dev",
       "via": "secret:shared-db-dev-secrets",
@@ -13165,18 +12577,6 @@
       "from": "website",
       "to": "shared-db-dev",
       "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
-      "to": "oauth2-proxy-dev",
-      "via": "secret:dev-oidc-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-dev",
-      "to": "brett",
-      "via": "secret:dev-oidc-secrets",
       "kind": "secret"
     }
   ]

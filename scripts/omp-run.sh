@@ -185,20 +185,11 @@ case "$LEVEL" in
 esac
 
 # ---------------------------------------------------------------- Plan aufloesen
-TICKET_ID=""
 PLAN=""
 case "$TARGET" in
   T[0-9]*)
-    TICKET_ID="$TARGET"
-    need_jq
-    plan_ref="$(bash scripts/ticket.sh get --id "$TICKET_ID" 2>/dev/null \
-      | jq -r '.plan_ref // empty' \
-      | sed -n 's/.*plan=\([^ ]*\).*/\1/p')" || true
-    if [ -z "$plan_ref" ]; then
-      echo "FEHLER: Ticket $TICKET_ID hat keinen FACTORY-PLAN-REF" >&2
-      exit 2
-    fi
-    PLAN="$plan_ref"
+    echo "FEHLER: Ticket-Ziele retiriert (Ticket-System 2026-10-14, kein ticket.sh) — Plan-Datei direkt übergeben." >&2
+    exit 2
     ;;
   *)
     PLAN="$TARGET"
@@ -266,12 +257,8 @@ else
   args+=(--no-skills)
 fi
 
-if [ -n "$TICKET_ID" ]; then
-  label="$TICKET_ID"
-else
-  label="$(basename "$(dirname "$PLAN")")"
-  [ -n "$label" ] && [ "$label" != "." ] || label="plan"
-fi
+label="$(basename "$(dirname "$PLAN")")"
+[ -n "$label" ] && [ "$label" != "." ] || label="plan"
 
 # ------------------------------------------------------------------ Dry-Run
 if [ "$DRY_RUN" -eq 1 ]; then
@@ -376,12 +363,6 @@ else
   echo "omp-exit:      $omp_exit"
   echo "test:changed:  exit $test_exit"
   echo "log:           $log"
-fi
-
-if [ -n "$TICKET_ID" ]; then
-  report="omp-run $LEVEL: Modell $selected_model @ $selected_endpoint, omp-Exit $omp_exit, $changed Datei(en), test:changed-Exit $test_exit, Log $log"
-  bash scripts/ticket.sh add-comment --id "$TICKET_ID" --body "$report" >/dev/null 2>&1 \
-    || echo "WARNUNG: Ticket-Kommentar fuer $TICKET_ID fehlgeschlagen" >&2
 fi
 
 exit "$omp_exit"

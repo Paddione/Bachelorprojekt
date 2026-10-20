@@ -14,7 +14,6 @@ show_help() {
   echo "  promote                    Promote service to environment"
   echo "  frontmatter                Plan/spec frontmatter hook (--spec: .agents/plans/<slug>/design.md)"
   echo "  backup                     Database backup operations"
-  echo "  ticket                     Ticket operations (CRUD / pipeline)"
   echo "  brainstorm                 Brainstorming bridge"
   echo "  release-notes              Release notes generator from merged PRs"
   echo "  cfr                        Change Failure Rate (fix()-Commits/Merges, letzte 8 Wochen, opt. CFR_WINDOW=<date>)"
@@ -45,8 +44,8 @@ main() {
       exec "${SCRIPT_DIR}/vda/backup.sh" "$@"
       ;;
     ticket)
-      shift
-      exec "${SCRIPT_DIR}/vda/ticket.sh" "$@"
+      echo "ERROR: Ticket-System retiriert (2026-10-14) — vda.sh ticket existiert nicht mehr." >&2
+      exit 2
       ;;
     brainstorm)
       shift

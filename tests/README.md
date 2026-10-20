@@ -10,7 +10,7 @@ shell-based tier tests, and Playwright end-to-end tests. BATS was removed in T90
 | `py/` | pytest suite: `py/spec/` per area, `py/unit/` cross-cutting, `py/local/` live tests (only with `PYTEST_LOCAL=1`) |
 | `spec/` | Fixtures and helpers used by the spec tests |
 | `unit/` | Vitest cockpit tests and unit fixtures |
-| `integration/` | Service integration tests (HTTP, SSO, DB) |
+| `py/integration/` | Service integration tests (HTTP, SSO, DB) |
 | `e2e/` | Playwright browser tests against live environments |
 | `manual/` | Manual test checklists (not automated) |
 | `fixtures/` | Shared test fixtures and seed data |

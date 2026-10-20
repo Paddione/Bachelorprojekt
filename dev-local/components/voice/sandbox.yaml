@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sandbox-cpu
+  namespace: workspace
+  labels: {app: sandbox-cpu}
+spec:
+  # 4 Slots: 3 Direkt-Loops aus dem Plan-Runner (MAX_DIRECT_SLOTS) + 1 Reserve.
+  replicas: 4
+  selector:
+    matchLabels: {app: sandbox-cpu}
+  template:
+    metadata:
+      labels: {app: sandbox-cpu}
+    spec:
+      nodeSelector: {kubernetes.io/hostname: gpu-metal}
+      containers:
+        - name: worker
+          image: alpine/git:latest
+          command: ["sleep", "infinity"]
+          resources:
+            requests: {cpu: 250m, memory: 256Mi}
+            limits: {cpu: "1", memory: 1Gi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sandbox-gpu
+  namespace: workspace
+  labels: {app: sandbox-gpu}
+spec:
+  # Genau 1 Slot: VRAM laesst sich nicht teilen; der Pod haelt die GTX 970
+  # exklusiv (nvidia.com/gpu: 1) mit 8-GiB-Limit als Arbeitsraum.
+  replicas: 1
+  selector:
+    matchLabels: {app: sandbox-gpu}
+  template:
+    metadata:
+      labels: {app: sandbox-gpu}
+    spec:
+      nodeSelector: {kubernetes.io/hostname: gpu-metal}
+      containers:
+        - name: worker
+          image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+          command: ["sleep", "infinity"]
+          resources:
+            requests: {cpu: "1", memory: 4Gi, nvidia.com/gpu: 1}
+            limits: {cpu: "4", memory: 8Gi, nvidia.com/gpu: 1}

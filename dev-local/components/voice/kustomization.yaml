@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+# dev-local/components/voice — STT/TTS-Dienste + Sandbox-Worker auf gpu-metal.
+#
+# Enthalten: voice-stt (Whisper large-v3-turbo, CPU), voice-tts (Piper de/en,
+# CPU), sandbox-cpu (4 generische Exec-Sandboxes), sandbox-gpu (1 CUDA-Sandbox
+# mit exklusiver GTX 970). Alle per nodeSelector auf gpu-metal gepinnt.
+#
+# Voraussetzungen auf dem Knoten (einmalig, siehe scripts/devmesh/gpu-enable.sh
+# plus scripts/devmesh/gpu-cdi.sh): nvidia-container-toolkit, CDI-Drop-in in
+# containerd, Device-Plugin mit cdi-annotations-Strategie (dev-local/gpu/).
+# Eingebunden in dev-local/core (Profil core UND full, da full auf core aufbaut).
+resources:
+  - stt.yaml
+  - tts.yaml
+  - sandbox.yaml
+

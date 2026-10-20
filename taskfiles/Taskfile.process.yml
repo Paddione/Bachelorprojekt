@@ -151,6 +151,16 @@ tasks:
     cmds:
       - bash scripts/plan-touched-files.sh {{.CLI_ARGS}}
 
+  plan:sandbox:
+    desc: "Sandbox-Slot (K8s) pro Plan vergeben/freigeben/zeigen. Aufruf: task plan:sandbox -- claim|release|status <slug>"
+    cmds:
+      - bash scripts/devflow-sandbox.sh {{.CLI_ARGS}}
+
+  plan:lifecycle-gate:
+    desc: "Fail-closed Lifecycle-Gate: Sandbox+Worktree+Branch, Partials in Reihenfolge, PR-Merge-Cleanup-Deploy-E2E. Aufruf: task plan:lifecycle-gate -- <slug>"
+    cmds:
+      - bash scripts/devflow-lifecycle-gate.sh {{.CLI_ARGS}}
+
   plan:qa:
     desc: "DeepSeek-QA-Check for an implementation plan (PLAN=<path>)"
     vars:

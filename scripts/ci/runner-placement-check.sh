@@ -38,11 +38,14 @@ set -euo pipefail
 #   Label      | bezeichnete lokale Abhaengigkeit        | adressierende Jobs
 #   -----------+-----------------------------------------+---------------------------
 #   fleet-gpu  | lokale GPU auf dem Host wsl-gpu-host     | opencode.yml, arbitration.yml
+#   lan-worker | Fleet-API-Zugang ab LAN-Runner-Host      | post-merge.yml
+#                gpu-cluster-3 (config-ci, SA ci-migrate)  |
 #
 # Format je Zeile: <label>|<lokale abhaengigkeit>|<adressierende jobs>
 _capability_declaration() {
   printf '%s\n' \
-    'fleet-gpu|lokale GPU auf dem Host wsl-gpu-host|opencode.yml, arbitration.yml'
+    'fleet-gpu|lokale GPU auf dem Host wsl-gpu-host|opencode.yml, arbitration.yml' \
+    'lan-worker|Fleet-API-Zugang ab LAN-Runner-Host gpu-cluster-3 (config-ci)|post-merge.yml'
 }
 
 # Labels, die keine Faehigkeit bezeichnen — sie beschreiben nur Plattform bzw.

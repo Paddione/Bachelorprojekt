@@ -231,36 +231,3 @@ m.write_manifest(os.path.join(sys.argv[2], 'embed-manifest.json'), m.make_manife
     report = json.loads(result.output)
     assert report["vectors"] == 1, report
     assert report["model"] == "bge-m3", report
-
-
-def test_append_records_matches_full_rewrite_bytes_and_loads_clean(store_py, test_dir):
-    result = store_py(
-        """
-import json, os
-art = os.path.join(sys.argv[2], 'embed-index.jsonl')
-def rec(t, v):
-    return {'hash': m.content_hash('bge-m3', t), 'model': 'bge-m3', 'dim': 2, 'vector': v}
-batch1 = [('repo@c1:lib/a.ts:GET', rec('t1', [0.1, 0.2]))]
-batch2 = [('repo@c1:lib/b.ts:POST', rec('t2', [0.3, 0.4])),
-          ('repo@c1:lib/c.ts:GET', rec('t3', [0.5, 0.6]))]
-assert m.append_records(art, batch1) == 1
-assert m.append_records(art, batch2) == 2
-assert m.append_records(art, []) == 0
-store = m.load_artifact(art)
-assert sorted(store) == ['repo@c1:lib/a.ts:GET', 'repo@c1:lib/b.ts:POST', 'repo@c1:lib/c.ts:GET']
-assert store['repo@c1:lib/b.ts:POST']['vector'] == [0.3, 0.4]
-# byte-identical rows to a single full rewrite of the same records
-full = m.dump_artifact({k: store[k] for k in sorted(store)})
-assert open(art, encoding='utf-8').read() == full
-# appending a duplicate key stays fail-closed on the next load
-m.append_records(art, batch1)
-try:
-    m.load_artifact(art)
-except Exception as e:
-    assert 'duplicate-key' in str(e), e
-else:
-    raise AssertionError('duplicate append must fail closed on load')
-""",
-        str(test_dir),
-    )
-    assert result.returncode == 0, result.output

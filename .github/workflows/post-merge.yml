@@ -2,6 +2,7 @@ name: post-merge
 on:
   push:
     branches: [main]
+  workflow_dispatch: {}
 
 concurrency:
   group: post-merge-${{ github.ref }}
@@ -69,9 +70,15 @@ jobs:
   # noch am Flux-Render — Erfolg heisst dort Manifest-Merge, Skip alles andere.
   post-deploy-imperative:
     name: Imperative post-steps (TRANSITIONAL)
-    runs-on: ubuntu-latest
+    # Self-hosted LAN-runner statt ubuntu-latest: kein Tailnet-/Public-Endpoint
+    # noetig (localhost-API gibt es auf Hetzner nicht mehr nach Cutover).
+    # Fork-Guard nach arbitration.yml-Muster (public Repo + self-hosted).
+    runs-on: [self-hosted, lan-worker]
     needs: [render-artifact]
-    if: always() && needs.render-artifact.result == 'success'
+    if: >-
+      always() && needs.render-artifact.result == 'success' &&
+      (github.event_name != 'pull_request' ||
+        github.event.pull_request.head.repo.full_name == github.repository)
     steps:
       - uses: actions/checkout@v7
         with: { fetch-tags: false }
@@ -94,14 +101,12 @@ jobs:
           cache-dependency-path: components/website/pnpm-lock.yaml
       - name: Install website dependencies
         run: cd components/website && pnpm install --frozen-lockfile
-      - name: Set up kubeconfig
-        env:
-          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
+      - name: Use runner kubeconfig (ci-migrate, least-privilege)
+        # config-ci liegt auf dem Runner-Host (~/.kube/config-ci, 0600):
+        # SA ci-migrate, Namespace workspace, kein Admin, kein Secret nötig.
         run: |
-          mkdir -p "$HOME/.kube"
-          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+          test -f "$HOME/.kube/config-ci" || { echo "config-ci missing on runner"; exit 1; }
+          echo "KUBECONFIG=$HOME/.kube/config-ci" >> "$GITHUB_ENV"
       - name: Run transitional imperative post-steps
         # [T900810] Nur mentolder: korczewski ist eingefroren (T002479), die
         # Migration lief trotzdem bei jedem Manifest-Merge auch dorthin.

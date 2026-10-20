@@ -224,6 +224,19 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/cockpit-live",
+      "file": "cockpit-live.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/cockpit-metrics",
       "file": "cockpit-metrics.ts",
       "methods": [

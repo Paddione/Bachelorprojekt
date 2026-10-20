@@ -3689,7 +3689,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 907,
+      "file_count": 908,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3911,6 +3911,7 @@
         "scripts/devflow_ci_watch.py",
         "scripts/devmesh/acceptance.sh",
         "scripts/devmesh/db-backup.sh",
+        "scripts/devmesh/gpu-cdi.sh",
         "scripts/devmesh/gpu-enable.sh",
         "scripts/devmesh/k3d-teardown.sh",
         "scripts/devmesh/k3s-install.sh",

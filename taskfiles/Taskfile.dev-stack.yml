@@ -67,13 +67,27 @@ tasks:
         fi
         OIDC=$(yq -r '.DEV_WORKSPACE_OIDC_SECRET // ""' "$SECRETS_FILE")
         COOKIE=$(yq -r '.DEV_OAUTH2_PROXY_COOKIE_SECRET // ""' "$SECRETS_FILE")
-        if [[ -n "$OIDC" && -n "$COOKIE" ]]; then
-          kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create secret generic workspace-secrets \
-            --from-literal=DEV_WORKSPACE_OIDC_SECRET="$OIDC" \
-            --from-literal=DEV_OAUTH2_PROXY_COOKIE_SECRET="$COOKIE" \
-            --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
-        else
+        OAUTH2_COOKIE=$(yq -r '.OAUTH2_PROXY_COOKIE_SECRET // ""' "$SECRETS_FILE")
+        BRAINSTORM_OIDC=$(yq -r '.POCKET_ID_BRAINSTORM_SECRET // ""' "$SECRETS_FILE")
+        SESSION_HUB_OIDC=$(yq -r '.POCKET_ID_SESSION_HUB_SECRET // ""' "$SECRETS_FILE")
+        if [[ -z "$OIDC" || -z "$COOKIE" ]]; then
           echo "DEV_WORKSPACE_OIDC_SECRET / DEV_OAUTH2_PROXY_COOKIE_SECRET missing from $SECRETS_FILE — oauth2-proxy-dev will crashloop." >&2
+        fi
+        if [[ -z "$OAUTH2_COOKIE" ]]; then
+          echo "OAUTH2_PROXY_COOKIE_SECRET missing from $SECRETS_FILE — oauth2-proxy-brainstorm/sessions will crashloop." >&2
+        fi
+        # Ein einziger Apply: kubectl apply ersetzt die data-Map, sequenzielle
+        # Applies wuerden sich gegenseitig die Keys loeschen.
+        SECRET_ARGS=()
+        if [[ -n "$OIDC" ]]; then SECRET_ARGS+=(--from-literal=DEV_WORKSPACE_OIDC_SECRET="$OIDC"); fi
+        if [[ -n "$COOKIE" ]]; then SECRET_ARGS+=(--from-literal=DEV_OAUTH2_PROXY_COOKIE_SECRET="$COOKIE"); fi
+        if [[ -n "$OAUTH2_COOKIE" ]]; then SECRET_ARGS+=(--from-literal=OAUTH2_PROXY_COOKIE_SECRET="$OAUTH2_COOKIE"); fi
+        if [[ -n "$BRAINSTORM_OIDC" ]]; then SECRET_ARGS+=(--from-literal=POCKET_ID_BRAINSTORM_SECRET="$BRAINSTORM_OIDC"); fi
+        if [[ -n "$SESSION_HUB_OIDC" ]]; then SECRET_ARGS+=(--from-literal=POCKET_ID_SESSION_HUB_SECRET="$SESSION_HUB_OIDC"); fi
+        if (( ${#SECRET_ARGS[@]} > 0 )); then
+          kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create secret generic workspace-secrets \
+            "${SECRET_ARGS[@]}" \
+            --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
         fi
         GHCR_PAT=$(yq -r '.GHCR_PAT // ""' "$SECRETS_FILE")
         if [[ -n "$GHCR_PAT" ]]; then

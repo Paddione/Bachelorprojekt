@@ -107,7 +107,7 @@ bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k dev_
 
 ## Task 3: Plattform als Manifeste und `--out`-Modus
 
-- [ ] `dev-local/platform/`: `HelmRepository` jetstack und
+- [x] `dev-local/platform/`: `HelmRepository` jetstack und
   cert-manager-lego-webhook, `HelmRelease` `cert-manager` (Namespace
   `cert-manager`, Werte aus `taskfiles/Taskfile.devmesh.yml` Task `deploy`:
   `crds.enabled=true`, `podDnsPolicy=Default`, Chartversion wie live
@@ -117,14 +117,14 @@ bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k dev_
   Ressource `../../k3d/sealed-secrets-controller.yaml`, Ressource
   `../cluster/tls.yaml`. Release-Namen und Namespaces identisch mit den
   bestehenden helm-Releases, damit die HelmReleases sie übernehmen.
-- [ ] `scripts/devmesh/render-stack.sh`: neue Option `--out <dir>`. Ohne
+- [x] `scripts/devmesh/render-stack.sh`: neue Option `--out <dir>`. Ohne
   `--out` unverändert stdout (Kompatibilität mit `task devmesh:deploy` und
   `test_massage_devmesh.py`). Mit `--out`: Workspace-Render nach
   `<dir>/workspace/stack.yaml`, `kubectl kustomize dev-local/platform` plus
   `envsubst '$DEVMESH_DOMAIN'` nach `<dir>/platform/platform.yaml`,
   `environments/sealed-secrets/dev.yaml` nach `<dir>/secrets/sealed-secrets.yaml`.
   Leeres Ergebnis oder `${`-Reste brechen mit Exit 1 ab.
-- [ ] Grün für `test_render_out_layout` und `test_no_mentolder_or_fleet_refs`:
+- [x] Grün für `test_render_out_layout` und `test_no_mentolder_or_fleet_refs`:
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k "out_layout or mentolder"
 bash scripts/pytest-run.sh tests/py/spec/test_massage_devmesh.py -q

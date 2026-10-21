@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - helm-repositories.yaml
+  - cert-manager-helmrelease.yaml
+  - lego-webhook-helmrelease.yaml
+  - ../../k3d/sealed-secrets-controller.yaml
+  - ../cluster/tls.yaml

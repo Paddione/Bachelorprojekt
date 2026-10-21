@@ -52,9 +52,9 @@ env_vars:
   POCKET_ID_FRONTEND_URL: "https://auth.devmesh.korczewski.de"
   # FQDN statt Kurzname (T001933).
   POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
-  # fail-closed Fallback auf die fleet-Pocket-ID ueber deren oeffentlichen Host (D4).
-  POCKET_ID_FALLBACK_FRONTEND_URL: "https://auth.mentolder.de"
-  POCKET_ID_FALLBACK_URL: "https://auth.mentolder.de"
+  # Kein externer Fallback (mentolder.de/fleet entfaellt mit ADR-015).
+  POCKET_ID_FALLBACK_FRONTEND_URL: ""
+  POCKET_ID_FALLBACK_URL: ""
   SDLC_CONSOLE_SITE_URL: "https://web.devmesh.korczewski.de"
   SDLC_CONSOLE_POCKET_ID_FRONTEND_URL: "https://auth.devmesh.korczewski.de"
   SDLC_CONSOLE_POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"

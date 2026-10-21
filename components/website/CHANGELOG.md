@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.429.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.1...website-v1.429.2) (2026-10-21)
+
+
+### Bug Fixes
+
+* **website:** codesearch meldet 503-Doktrin nach Auth-first ([#6777](https://github.com/Paddione/Bachelorprojekt/issues/6777)) ([c55edeb](https://github.com/Paddione/Bachelorprojekt/commit/c55edebab5267d9707156711de61f8beddde8514))
+
 ## [1.429.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.0...website-v1.429.1) (2026-10-21)
 
 

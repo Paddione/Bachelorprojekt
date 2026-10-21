@@ -1,8 +1,9 @@
 # Status: Aktiv — Gateway-Unit unter Watchdog-Aufsicht (T002543).
 # scripts/mcp-gateway/mcp-gateway.service
 # mcp-gateway - systemd USER service. Long-running `kubectl port-forward` auf
-# svc/dev-pod (fleet, Namespace workspace-dev) [T900107]:
+# svc/dev-pod (devmesh, Namespace workspace) [T900107]:
 #   mcp-kubernetes 127.0.0.1:18080, github 127.0.0.1:13002.
+# (fleet/workspace-dev existiert nicht mehr; dev-pod ist nach devmesh umgezogen.)
 # [T900191] 18235 (llm-proxy) kommt nicht mehr aus fleet, sondern aus devmesh
 # ueber devmesh-forward.service. 13001 (mcp-postgres) bedient lokal
 # mcp-postgres-local.service (Datenquelle fleet-DB) — kein Forward mehr.
@@ -11,14 +12,14 @@
 # (networkingMode=mirrored, gemeinsamer Loopback, "address already in use").
 # Installiert via `task agents:mcp-gateway:install` (Symlink nach ~/.config/systemd/user/).
 [Unit]
-Description=MCP gateway port-forward fleet dev-pod (mcp-kubernetes :18080, github :13002)
+Description=MCP gateway port-forward devmesh dev-pod (mcp-kubernetes :18080, github :13002)
 Documentation=file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md
 After=network-online.target
 
 [Service]
 Type=simple
 WorkingDirectory=/home/patrick/Bachelorprojekt
-ExecStart=/usr/local/bin/kubectl --context fleet port-forward -n workspace-dev svc/dev-pod 18080:8080 13002:3002
+ExecStart=/usr/local/bin/kubectl --context devmesh port-forward -n workspace svc/dev-pod 18080:8080 13002:3002
 Restart=always
 RestartSec=3
 

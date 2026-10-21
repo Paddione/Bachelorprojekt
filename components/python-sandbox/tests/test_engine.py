@@ -131,3 +131,12 @@ def test_add():
     assert res.success is False
     assert res.failed == 1
     assert res.exit_code != 0
+
+
+def test_bwrap_unavailable_raises_runtime_error():
+    engine = SandboxEngine(bwrap_path="/nonexistent/bwrap")
+    with pytest.raises(RuntimeError, match="Bubblewrap"):
+        engine.execute("print('fail')")
+    with pytest.raises(RuntimeError, match="Bubblewrap"):
+        engine.run_pytest("def test_x(): pass")
+

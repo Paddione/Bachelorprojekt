@@ -149,6 +149,13 @@ class SandboxEngine:
             cmd.extend(["--ro-bind", site_pkgs, "/opt/site-packages"])
             python_path = f"/opt/site-packages:/workspace"
 
+        # Mount active virtual environment / runtime prefix if outside /usr
+        import sys
+        if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            venv_path = sys.prefix
+            if os.path.isdir(venv_path) and not venv_path.startswith('/usr'):
+                cmd.extend(["--ro-bind", venv_path, venv_path])
+
         # Virtual filesystems
         cmd.extend([
             "--proc", "/proc",
@@ -173,7 +180,10 @@ class SandboxEngine:
         # Ensure python binary uses absolute path inside sandbox
         resolved_cmd = list(inner_cmd)
         if resolved_cmd and (resolved_cmd[0] == "python3" or resolved_cmd[0] == self.python_bin):
-            resolved_cmd[0] = "/usr/bin/python3"
+            if os.path.exists(self.python_bin):
+                resolved_cmd[0] = self.python_bin
+            else:
+                resolved_cmd[0] = "/usr/bin/python3"
 
         cmd.extend(resolved_cmd)
         return cmd
@@ -211,11 +221,14 @@ class SandboxEngine:
             # Generate wrapper script enforcing resource limits
             wrapper_code = f"""import os, sys
 
-# Set virtual memory limit (RLIMIT_AS on Unix)
+# Set memory limit (prefer RLIMIT_DATA to prevent RLIMIT_AS virtual address space crashes on 64-bit)
 try:
     import resource
     mem_bytes = {mem_mb} * 1024 * 1024
-    resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))
+    if hasattr(resource, 'RLIMIT_DATA'):
+        resource.setrlimit(resource.RLIMIT_DATA, (mem_bytes, mem_bytes))
+    else:
+        resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))
 except (ImportError, Exception):
     pass
 
@@ -233,12 +246,11 @@ with open(entry_file, 'rb') as f:
             wrapper_path = ws_path / "__runner__.py"
             wrapper_path.write_text(wrapper_code, encoding="utf-8")
 
-            # Build command
-            if self.is_bubblewrap_available:
-                cmd = self._build_bwrap_command(ws_dir, [self.python_bin, "/workspace/__runner__.py"])
-            else:
-                # Fallback on environments lacking bwrap
-                cmd = [self.python_bin, str(wrapper_path)]
+            # Build command - require bubblewrap for secure execution
+            if not self.is_bubblewrap_available:
+                raise RuntimeError("Bubblewrap (bwrap) ist nicht verfügbar oder fehlt. Ausführung auf dem Host verweigert.")
+
+            cmd = self._build_bwrap_command(ws_dir, [self.python_bin, "/workspace/__runner__.py"])
 
             start_t = time.perf_counter()
             timed_out = False
@@ -322,10 +334,10 @@ sys.exit(code)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(content, encoding="utf-8")
 
-            if self.is_bubblewrap_available:
-                cmd = self._build_bwrap_command(ws_dir, inner_cmd)
-            else:
-                cmd = [self.python_bin, str(ws_path / "run_pytest_inner.py")] + extra_args
+            if not self.is_bubblewrap_available:
+                raise RuntimeError("Bubblewrap (bwrap) ist nicht verfügbar oder fehlt. Ausführung auf dem Host verweigert.")
+
+            cmd = self._build_bwrap_command(ws_dir, inner_cmd)
 
             start_t = time.perf_counter()
             timed_out = False

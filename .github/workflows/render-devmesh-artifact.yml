@@ -11,6 +11,7 @@ on:
       - 'devmesh/**'
       - 'scripts/devmesh/**'
       - 'flux/clusters/devmesh/**'
+      - '.github/workflows/render-devmesh-artifact.yml'
   workflow_dispatch:
 
 concurrency:

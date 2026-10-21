@@ -3,6 +3,7 @@ import { createInboxItem } from '../../lib/messaging-db';
 import { sendAdminNotification } from '../../lib/notifications';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 import { isE2ETestRequest } from '../../lib/e2e-marker';
+import { sanitizeContactInput, escapeHtml } from '../../lib/contact-sanitize';
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -25,38 +26,38 @@ export const POST: APIRoute = async ({ request , locals }) => {
   }
   try {
     const body = await request.json();
-    const { name, email, phone, type, message } = body;
+    const sanitized = sanitizeContactInput(body);
 
-    if (!name?.trim() || !email?.trim() || !message?.trim()) {
+    if (sanitized.error || !sanitized.data) {
       return new Response(
-        JSON.stringify({ error: 'Bitte füllen Sie alle Pflichtfelder aus.' }),
+        JSON.stringify({ error: sanitized.error || 'Ungültige Eingabe.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return new Response(
-        JSON.stringify({ error: 'Bitte geben Sie eine gültige E-Mail-Adresse an.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
+    const { name, email, phone, type, message } = sanitized.data;
     const typeLabel = TYPE_LABELS[type] || 'Unbekannt';
 
     await createInboxItem({
       type: 'contact',
-      payload: { name, email, phone: phone ?? null, type, typeLabel, message },
+      payload: { name, email, phone, type, typeLabel, message },
       isTestData: isE2ETestRequest(request),
     });
 
     // Admin notification is best-effort — inbox item is the authoritative record
     const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safePhone = phone ? escapeHtml(phone) : '';
+    const safePhoneHtml = safePhone ? `<br>Telefon: ${safePhone}` : '';
+    const safeMessageHtml = escapeHtml(message).replace(/\n/g, '<br>');
+
     sendAdminNotification({
       type: 'contact',
       subject: `[${typeLabel}] Neue Anfrage von ${name}`,
       replyTo: email,
       text: `Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\n\nNachricht:\n${message}`,
-      html: `<p><strong>Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.</strong></p><p>Name: ${name}<br>E-Mail: <a href="mailto:${email}">${email}</a>${phone ? `<br>Telefon: ${phone}` : ''}<br>Typ: ${typeLabel}</p><p><strong>Nachricht:</strong><br>${message.replace(/\n/g, '<br>')}</p>`,
+      html: `<p><strong>Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.</strong></p><p>Name: ${safeName}<br>E-Mail: <a href="mailto:${safeEmail}">${safeEmail}</a>${safePhoneHtml}<br>Typ: ${typeLabel}</p><p><strong>Nachricht:</strong><br>${safeMessageHtml}</p>`,
     }, request).catch(err => locals.requestLogger.error({ err }, '[contact] Failed to send admin notification:'));
 
     return new Response(

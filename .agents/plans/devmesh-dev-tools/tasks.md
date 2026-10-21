@@ -42,7 +42,7 @@ Erst ausführen, wenn `devmesh-flux` gemergt ist (Flux auf devmesh, Muster
 
 ## Task 1: Rote Verträge (pytest)
 
-- [ ] `tests/py/spec/devmesh/test_devmesh_dev_tools.py` (Fixture `repo_root`,
+- [x] `tests/py/spec/devmesh/test_devmesh_dev_tools.py` (Fixture `repo_root`,
   Render über `bash scripts/devmesh/render-stack.sh core`, Muster
   `tests/py/spec/test_massage_devmesh.py`):
   - `test_brain_on_devmesh`: `Deployment/brain` und `Deployment/oauth2-proxy-brain`
@@ -56,61 +56,61 @@ Erst ausführen, wenn `devmesh-flux` gemergt ist (Flux auf devmesh, Muster
     (`kubectl kustomize prod-fleet/mentolder`) enthält kein `brain`, kein
     `sessions-server`, kein `oauth2-proxy-session-hub`; kein Workflow unter
     `.github/workflows/` heißt `k1-embed.yml`.
-- [ ] Rotbeleg (expected: FAIL, alle vier Tests):
+- [x] Rotbeleg (expected: FAIL, alle vier Tests):
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_dev_tools.py -q
 ```
-- [ ] Commit `test(red): devmesh-dev-tools contracts`.
+- [x] Commit `test(red): devmesh-dev-tools contracts`.
 
 ## Task 2: brain auf devmesh
 
-- [ ] `prod-fleet/mentolder/brain.yaml` nach `k3d/brain.yaml` verschieben
+- [x] `prod-fleet/mentolder/brain.yaml` nach `k3d/brain.yaml` verschieben
   (`git mv`), Host von `brain.${PROD_DOMAIN}` auf `brain.${DEVMESH_DOMAIN}`,
   oauth2-proxy-Issuer auf `auth.${DEVMESH_DOMAIN}`, Redirect und Whitelist-Domain
   entsprechend. Den Redirect auf `/?project=home-patrick-Bachelorprojekt` behalten.
-- [ ] `dev-local/components/brain/kustomization.yaml` (`kind: Component`,
+- [x] `dev-local/components/brain/kustomization.yaml` (`kind: Component`,
   Ressource `../../../k3d/brain.yaml`), in `dev-local/core/kustomization.yaml`
   unter `components:` eintragen.
-- [ ] Eintrag `brain.yaml` aus `prod-fleet/mentolder/kustomization.yaml` entfernen.
-- [ ] Grün für `test_brain_on_devmesh`:
+- [x] Eintrag `brain.yaml` aus `prod-fleet/mentolder/kustomization.yaml` entfernen.
+- [x] Grün für `test_brain_on_devmesh`:
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_dev_tools.py -q -k brain
 ```
 
 ## Task 3: sessions-server und Session-Hub auf devmesh
 
-- [ ] `dev-local/components/sessions/`: Ressource `../../../k3d/sessions-server.yaml`,
+- [x] `dev-local/components/sessions/`: Ressource `../../../k3d/sessions-server.yaml`,
   `sessions-ingress.yaml` (Certificate `sessions-wildcard` für
   `*.${SESSIONS_DOMAIN}` über den devmesh-Issuer, IngressRoute wie in
   `prod-fleet/mentolder/sessions-server.yaml`), `oauth2-proxy-session-hub.yaml`
   (aus `prod-fleet/mentolder/oauth2-proxy-sessions.yaml`, Issuer
   `auth.${DEVMESH_DOMAIN}`). In `dev-local/core/kustomization.yaml` eintragen.
-- [ ] `environments/dev.yaml`: `SESSIONS_DOMAIN: sessions.devmesh.korczewski.de`
+- [x] `environments/dev.yaml`: `SESSIONS_DOMAIN: sessions.devmesh.korczewski.de`
   und `BRAIN_EXTERNAL_URL: https://brain.devmesh.korczewski.de` (Schema in
   `environments/schema.yaml` prüfen, Variablen existieren dort bereits).
-- [ ] `prod-fleet/mentolder/sessions-server.yaml` und
+- [x] `prod-fleet/mentolder/sessions-server.yaml` und
   `prod-fleet/mentolder/oauth2-proxy-sessions.yaml` löschen, Einträge aus
   `prod-fleet/mentolder/kustomization.yaml` entfernen; `BRAIN_EXTERNAL_URL` und
   `SESSIONS_DOMAIN` aus `environments/fleet-mentolder.yaml` entfernen, wenn kein
   anderes mentolder-Manifest sie nutzt
   (`grep -rn 'SESSIONS_DOMAIN\|BRAIN_EXTERNAL_URL' prod-fleet/mentolder prod-mentolder k3d`).
-- [ ] Grün für `test_sessions_on_devmesh`:
+- [x] Grün für `test_sessions_on_devmesh`:
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_dev_tools.py -q -k sessions
 ```
 
 ## Task 4: k1-embed als CronJob auf devmesh
 
-- [ ] `dev-local/components/k1-embed/k1-embed-cronjob.yaml`: `CronJob` stündlich
+- [x] `dev-local/components/k1-embed/k1-embed-cronjob.yaml`: `CronJob` stündlich
   (`concurrencyPolicy: Forbid`), Pod-Template aus `k3d/k1-embed-job.yaml`.
   Statt `MERGE_SHA` aus dem Workflow: Init-Schritt klont `main`, liest den zuletzt
   eingebetteten Commit aus der DB (Tabelle und Spalte aus dem bestehenden
   k1-Embed-Code ermitteln, nicht neu erfinden), berechnet den Diff und übergibt
   die Dateiliste wie heute die ConfigMap `k1-embed-diff-*`. Ohne gespeicherten
   Commit: Full-Run.
-- [ ] Komponente in `dev-local/core/kustomization.yaml` eintragen.
-- [ ] `.github/workflows/k1-embed.yml` löschen.
-- [ ] Grün für `test_k1_embed_cronjob` und `test_mentolder_overlay_clean`:
+- [x] Komponente in `dev-local/core/kustomization.yaml` eintragen.
+- [x] `.github/workflows/k1-embed.yml` löschen.
+- [x] Grün für `test_k1_embed_cronjob` und `test_mentolder_overlay_clean`:
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_dev_tools.py -q
 ```
@@ -142,3 +142,12 @@ task freshness:check
 ```
 
 <!-- vitest: kein neuer Test nötig, weil kein Website-Code geändert wird; die Verträge laufen als pytest. -->
+
+## Umsetzung (Abweichungen vom Plan)
+
+- `brain` liegt unter `dev-local/components/brain/brain.yaml`, nicht unter `k3d/brain.yaml`: der Guard `test_k4d_cockpit_brain_wiring_and_brain_manifests_are_absent` verbietet Brain-Manifeste in `k3d/`.
+- `k1-embed` speichert keinen Commit-Stand: `index-repo.ts` überspringt unveränderte Dateien per `file_hash`, der CronJob lässt den Code-Index deshalb voll laufen. `ingest-markdown.mjs` läuft nur, wenn sich Pläne, ADRs oder Runbooks in den letzten zwei Stunden geändert haben (ermittelt im Init-Container, das Node-Image hat kein git).
+- `k3d/sessions-server.yaml` bleibt Basis, ist aber aus `k3d/kustomization.yaml` entfernt (sonst rendert jedes Overlay auf `k3d/` es mit).
+- Angepasste Bestandstests: `test_security_cert_hygiene` (beide Varianten) erwarten `SESSIONS_DOMAIN` jetzt in `environments/dev.yaml`; `test_wildcard_render_guard` und `test_runtime_var_unwrapping` lesen die neuen Pfade.
+- Live-Vorbedingung für Task 5: Der OIDC-Client `session-hub` der devmesh-Pocket-ID braucht zusätzlich die Redirect-URL `https://session-login.sessions.devmesh.korczewski.de/oauth2/callback`.
+

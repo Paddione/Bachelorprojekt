@@ -86,21 +86,21 @@ bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q
 
 ## Task 2: dev-pod als devmesh-Komponente
 
-- [ ] `dev-local/components/dev-pod/kustomization.yaml` (`kind: Component`):
+- [x] `dev-local/components/dev-pod/kustomization.yaml` (`kind: Component`):
   Ressource `../../../k3d/dev-pod`, Patch `dev-pod-devmesh-patch.yaml`, Ressource
   `ssh-tailnet-service.yaml`.
-- [ ] `dev-pod-devmesh-patch.yaml`: DB-Env von `shared-db-dev.workspace-dev...` auf
+- [x] `dev-pod-devmesh-patch.yaml`: DB-Env von `shared-db-dev.workspace-dev...` auf
   `shared-db.workspace.svc.cluster.local` umstellen, `secretKeyRef` von
   `shared-db-dev-secrets` auf das devmesh-Secret mit `WEBSITE_DB_PASSWORD`
   (Name aus `environments/sealed-secrets/dev.yaml` lesen, nicht raten),
   vorhandenen fleet-Service vom Typ LoadBalancer/NodePort per `$patch: delete`
   entfernen, Node-Binding und `DEV_SSH_ALLOWLIST`-Bezug entfernen.
-- [ ] `ssh-tailnet-service.yaml`: ClusterIP-Service `dev-pod-ssh` Port 22 mit
+- [x] `ssh-tailnet-service.yaml`: ClusterIP-Service `dev-pod-ssh` Port 22 mit
   Annotationen `tailscale.com/expose: "true"`, `tailscale.com/hostname: dev-pod`
   (Muster `dev-local/lan-dns/adguard.yaml`).
-- [ ] In `dev-local/core/kustomization.yaml` unter `components:` den Eintrag
+- [x] In `dev-local/core/kustomization.yaml` unter `components:` den Eintrag
   `../components/dev-pod` ergänzen (S4: Manifest referenziert).
-- [ ] Grün für `test_dev_pod_on_devmesh`:
+- [x] Grün für `test_dev_pod_on_devmesh`:
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k dev_pod
 ```

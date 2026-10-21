@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dev-pod-ssh
+  labels:
+    app: dev-pod
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: dev-pod
+spec:
+  type: ClusterIP
+  selector:
+    app: dev-pod
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP

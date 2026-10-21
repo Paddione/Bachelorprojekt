@@ -1,7 +1,7 @@
 // scripts/lib/wsl-paths.mjs — Pfad-Helfer fuer MCP-Server, die Muse Code auf WSL und Windows bedienen.
 //
-// Aus scripts/glimmer-worker-mcp/lib.mjs extrahiert (T900379), damit glimmer-worker-mcp und
-// comfy-image-mcp dieselbe Abbildung nutzen. Reine Funktionen, keine Seiteneffekte ausser git.
+// Pfad-Abbildung aus der Worker-MCP-Umsetzung extrahiert (T900379), gemeinsam
+// genutzt u.a. von comfy-image-mcp. Reine Funktionen, keine Seiteneffekte ausser git.
 
 import { spawnSync } from 'node:child_process';
 

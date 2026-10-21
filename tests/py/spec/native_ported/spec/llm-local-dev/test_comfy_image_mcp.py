@@ -304,7 +304,7 @@ def test_an_idle_server_stops_comfyui(ctx):
 def test_installer_registers_the_image_server_in_muse_settings_without_losing_entries(ctx, run_cmd):
     a = ctx.t_dir / "muse-a.json"
     b = ctx.t_dir / "muse-b.json"
-    a.write_text('{"schema_version":1,"mcpServers":{"glimmer-worker":{"type":"http","url":"http://127.0.0.1:13007/mcp"}}}\n')
+    a.write_text('{"schema_version":1,"mcpServers":{"bge-mcp":{"type":"http","url":"http://localhost:13005/mcp"}}}\n')
     b.write_text('{"schema_version":1,"provider":"meta"}\n')
     (ctx.t_dir / "cfg").mkdir()
     env_file = ctx.t_dir / "cfg" / "server.env"
@@ -322,7 +322,7 @@ def test_installer_registers_the_image_server_in_muse_settings_without_losing_en
         assert data["mcpServers"]["comfy-image"]["url"] == "http://127.0.0.1:13008/mcp"
         assert data["mcpServers"]["comfy-image"]["headers"]["Authorization"] == "Bearer tok456"
         assert (ctx.t_dir / (f.name + ".bak")).is_file()
-    assert json.loads(a.read_text())["mcpServers"]["glimmer-worker"]["url"] == "http://127.0.0.1:13007/mcp"
+    assert json.loads(a.read_text())["mcpServers"]["bge-mcp"]["url"] == "http://localhost:13005/mcp"
     assert "tok456" not in res.output
 
 

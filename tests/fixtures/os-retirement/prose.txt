@@ -24,7 +24,6 @@
 .opencode/plugins/opencode-review-src/.opencode/skills/openspec-archive-change/SKILL.md
 .opencode/plugins/opencode-review-src/.opencode/skills/openspec-explore/SKILL.md
 .opencode/plugins/opencode-review-src/.opencode/skills/openspec-propose/SKILL.md
-.opencode/prompts/glimmer-primary.md
 .opencode/prompts/orchestrator.md
 AGENTS.md
 CLAUDE.md
@@ -90,8 +89,6 @@ scripts/context-retrieve.mjs
 scripts/devflow-post-merge-deploy.sh
 scripts/filter-generated.sh
 scripts/gen-goals-data.mjs
-scripts/glimmer-worker-mcp/README.md
-scripts/glimmer-worker-mcp/server.mjs
 scripts/hermes-mcp-provision.sh
 scripts/index-repo.test.ts
 scripts/install-dev-tools.sh
@@ -99,7 +96,6 @@ scripts/lib/ci-checks.sh
 scripts/lib/worktree-set.sh
 scripts/llm/README-laptop-bge.md
 scripts/llm/bench-ifstruct.sh
-scripts/llm/glimmer.service
 scripts/llm/measurements/2026-09-04-freetoken-vs-llamacpp.md
 scripts/one-shot/purge-billing-testdata.sql
 scripts/openspec-atlas-groups.yaml
@@ -271,8 +267,6 @@ tests/spec/llm-local-dev.bats
 tests/spec/llm-local-dev/comfy-image-mcp.bats
 tests/spec/llm-local-dev/comfy-image-postprocess.bats
 tests/spec/llm-local-dev/fit-ngl-conflict.bats
-tests/spec/llm-local-dev/glimmer-serving-profile.bats
-tests/spec/llm-local-dev/glimmer-worker-mcp.bats
 tests/spec/llm-local-dev/opencode-compaction.bats
 tests/spec/llm-local-dev/plan-runner.bats
 tests/spec/llm-local-dev/qwen-tensor-split.bats

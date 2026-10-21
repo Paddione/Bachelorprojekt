@@ -14,7 +14,7 @@ This runbook documents the complete lifecycle to produce an optimized, specializ
 * **Target Hardware:** Dedicated NVIDIA RTX 3060 Ti (8 GB VRAM) running via `llama-server` on `127.0.0.1:1920`.
 * **Consumer Agents:**
   * Primary Cloud Orchestrator: `opencode-go-oai/muse-spark-1.3-contributor` (inside Meta Muse Code 1.4 / OpenCode).
-  * Local Orchestrators: `llamacpp-local/Muse-Glimmer-30B` (RTX 5070 Ti on `:1919`) and `ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF`.
+  * Local Orchestrators: `llamacpp-local/Qwen3.8-27B` (RTX 5070 Ti on `:1919`) and `ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF`.
   * CLI Dispatch: `bash scripts/vda.sh oracle '<goal>'` and autonomous autopilot loops.
 * **Subagent Purpose (`qwen35-mtp`):**
   * Fast, text-only subagent for bounded research, file examination, and structured implementation packets.

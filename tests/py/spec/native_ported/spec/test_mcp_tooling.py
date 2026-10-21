@@ -185,7 +185,7 @@ def test_orphan_guard_every_scripts_side_mcp_server_source_is_registered_or_docu
             ok, msg = ("mcp-task-runner:" in reg and "mcp-servers/task-runner/server.mjs" in reg), "not in mcp.yaml"
         elif src == "scripts/llm-proxy/server.mjs":
             ok, msg = "llm-proxy" in reg, "not in mcp.yaml cluster"
-        elif src in ("scripts/comfy-image-mcp/server.mjs", "scripts/glimmer-worker-mcp/server.mjs"):
+        elif src == "scripts/comfy-image-mcp/server.mjs":
             ok, msg = "User-Scope-Server" in reg, "not in user-scope note"
         elif src in ("scripts/hermes-mcp-provision.sh", "scripts/hermes-mcp-servers.yaml"):
             ok, msg = (repo_root / "scripts" / "hermes-mcp-servers.yaml").is_file(), "missing hermes catalog"

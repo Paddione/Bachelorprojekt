@@ -2,7 +2,6 @@
 
 MCP-Server, über den **Muse Code** (WSL und Windows) mit dem lokalen ComfyUI Bilder erzeugt: Qwen-Image 2.1
 (`Q4_K_M`-GGUF) auf der RTX 3060 Ti, Textencoder auf der CPU. Gedacht für Webgame-Assets. Ticket T900379.
-Vorbild: `scripts/glimmer-worker-mcp/`.
 
 ## Tools
 

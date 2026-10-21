@@ -44,7 +44,7 @@ def test_b_all_five_surfaces_reference_routing_page(repo_root: Path):
         ".opencode/skills/references/mcp-tool-guide.md",
         ".opencode/prompts/orchestrator.md",
         ".opencode/prompts/primary-agent.md",
-        ".opencode/prompts/glimmer-primary.md",
+        ".opencode/prompts/bp-run.md",
     ]
     for rel_path in surfaces:
         f = repo_root / rel_path

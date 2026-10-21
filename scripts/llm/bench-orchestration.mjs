@@ -11,7 +11,7 @@
 // Sie misst, ob der Orchestrator Worker-Ausgaben gegenprueft und neu delegiert.
 //
 // Aufruf:
-//   node scripts/llm/bench-orchestration.mjs --orch 1921 --label glimmer [--reps 3] [--worker 1920] [--worker-think] [--tasks csv,chain] [--orch-model <id>]
+//   node scripts/llm/bench-orchestration.mjs --orch 1921 --label qwen38 [--reps 3] [--worker 1920] [--worker-think] [--tasks csv,chain] [--orch-model <id>]
 // Ergebnis: eine JSON-Zeile pro Lauf auf stdout-Datei --out (Default: bench-orchestration-<label>.jsonl
 // im aktuellen Verzeichnis), Zusammenfassung auf stderr.
 

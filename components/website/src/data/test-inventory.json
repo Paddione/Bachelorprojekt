@@ -3864,18 +3864,6 @@
     "kind": "shell"
   },
   {
-    "id": "llm-local-dev/glimmer-serving-profile",
-    "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_glimmer_serving_profile.py",
-    "category": "llm-local-dev",
-    "kind": "pytest"
-  },
-  {
-    "id": "llm-local-dev/glimmer-worker-mcp",
-    "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_glimmer_worker_mcp.py",
-    "category": "llm-local-dev",
-    "kind": "pytest"
-  },
-  {
     "id": "llm-local-dev/opencode-compaction",
     "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_opencode_compaction.py",
     "category": "llm-local-dev",
@@ -4172,12 +4160,6 @@
   {
     "id": "local-llm-proxy/gemma-loadout-autorestart-queue",
     "file": "tests/py/spec/native_ported/spec/local-llm-proxy/test_gemma_loadout_autorestart_queue.py",
-    "category": "local-llm-proxy",
-    "kind": "pytest"
-  },
-  {
-    "id": "local-llm-proxy/glimmer-default-backend",
-    "file": "tests/py/spec/native_ported/spec/local-llm-proxy/test_glimmer_default_backend.py",
     "category": "local-llm-proxy",
     "kind": "pytest"
   },

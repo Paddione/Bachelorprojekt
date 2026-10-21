@@ -4,7 +4,7 @@
 // ComfyUI (Qwen-Image 2.1, RTX 3060 Ti) laeuft nur bei Bedarf: der erste Job startet die
 // User-Unit comfyui, nach COMFY_IMAGE_IDLE_MIN Minuten ohne Job stoppt der Server sie wieder.
 // Bilder landen nur in Git-Arbeitsbaeumen; optional freigestellt und verpixelt (postprocess.py).
-// Streamable HTTP auf 127.0.0.1, Bearer, Node-stdlib only — Aufbau wie glimmer-worker-mcp.
+// Streamable HTTP auf 127.0.0.1, Bearer, Node-stdlib only.
 
 import { createServer } from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
@@ -255,7 +255,7 @@ async function callTool(name, args) {
 }
 
 // ---------------------------------------------------------------------------
-// HTTP / JSON-RPC (Muster: glimmer-worker-mcp)
+// HTTP / JSON-RPC
 // ---------------------------------------------------------------------------
 
 function readBody(req) {

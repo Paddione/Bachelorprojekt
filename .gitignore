@@ -262,3 +262,5 @@ consideration.md
 
 # devflow-Backend: Sandbox-Manifest + Turbolint-Cache sind Laufzustand (T901630)
 .devflow/
+# dev-flow-plan: phase-events bleiben im Plan-Stand nachvollziehbar
+!.agents/plans/*/phase-events.log

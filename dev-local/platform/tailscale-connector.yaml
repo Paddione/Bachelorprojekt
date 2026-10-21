@@ -1,0 +1,11 @@
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: devmesh-subnet-router
+  namespace: tailscale
+spec:
+  hostname: devmesh-subnet-router
+  subnetRouter:
+    advertiseRoutes:
+      - "10.53.0.0/16"
+      - "10.52.0.0/16"

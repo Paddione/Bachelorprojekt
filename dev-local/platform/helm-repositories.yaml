@@ -20,3 +20,17 @@ metadata:
 spec:
   interval: 1h
   url: https://yxwuxuanl.github.io/cert-manager-lego-webhook/
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tailscale
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: tailscale
+  namespace: tailscale
+spec:
+  interval: 24h
+  url: https://pkgs.tailscale.com/helmcharts

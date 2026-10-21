@@ -5,5 +5,7 @@ resources:
   - helm-repositories.yaml
   - cert-manager-helmrelease.yaml
   - lego-webhook-helmrelease.yaml
+  - tailscale-helmrelease.yaml
+  - tailscale-connector.yaml
   - ../../k3d/sealed-secrets-controller.yaml
   - ../cluster/tls.yaml

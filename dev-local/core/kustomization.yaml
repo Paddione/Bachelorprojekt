@@ -175,3 +175,24 @@ patches:
       kind: Deployment
       metadata: {name: bge}
       spec: {template: {spec: {containers: [{name: llama-cpp, resources: {requests: {cpu: 250m, memory: 768Mi}}}]}}}
+  - target: {kind: PersistentVolumeClaim, name: bge-embed-models}
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata: {name: bge-embed-models}
+      spec:
+        storageClassName: longhorn
+  - target: {kind: PersistentVolumeClaim, name: bge-rerank-models}
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata: {name: bge-rerank-models}
+      spec:
+        storageClassName: longhorn
+  - target: {kind: PersistentVolumeClaim, name: massage-db-dev-data}
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata: {name: massage-db-dev-data}
+      spec:
+        storageClassName: longhorn

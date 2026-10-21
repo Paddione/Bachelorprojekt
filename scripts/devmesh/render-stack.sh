@@ -2,11 +2,11 @@
 # scripts/devmesh/render-stack.sh — rendert dev-local/<profil> fuer devmesh [T900118].
 # Arbeitskopie -> kustomize -> envsubst (nur gesetzte Variablen) -> stdout.
 #
-# Aufruf: render-stack.sh [core|full]   Default: DEVMESH_PROFILE aus environments/dev.yaml
+# Aufruf: render-stack.sh [core|full] [--out <dir>]   Default: DEVMESH_PROFILE aus environments/dev.yaml
 # Env:    DEVMESH_INVENTORY (Default devmesh/inventory.yaml) liefert gpu_endpoint
 #         (address, port, ports). Je Eintrag in gpu_endpoint.ports haengt das Skript
 #         einen benannten Port an Service und EndpointSlice llm-gateway-host an.
-# Exit:   0 Manifest auf stdout, 2 Vorbedingung fehlt (Werkzeug, Profil, Inventar)
+# Exit:   0 Manifest auf stdout bzw. Dateien unter --out, 1 Validierungsfehler (--out), 2 Vorbedingung fehlt
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -17,7 +17,31 @@ done
 
 # shellcheck source=scripts/env-resolve.sh
 source scripts/env-resolve.sh dev
-PROFILE="${1:-${DEVMESH_PROFILE:-core}}"
+# devmesh hat keine Abhängigkeit zu fleet/mentolder mehr (ADR-015)
+export POCKET_ID_FALLBACK_FRONTEND_URL=""
+export POCKET_ID_FALLBACK_URL=""
+
+PROFILE=""
+OUT_DIR=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --out)
+      [[ $# -ge 2 ]] || { echo "render-stack: --out erfordert ein Verzeichnis" >&2; exit 2; }
+      OUT_DIR="$2"
+      shift 2
+      ;;
+    core|full)
+      PROFILE="$1"
+      shift
+      ;;
+    *)
+      echo "render-stack: Argument '$1' unbekannt" >&2
+      exit 2
+      ;;
+  esac
+done
+
+PROFILE="${PROFILE:-${DEVMESH_PROFILE:-core}}"
 case "$PROFILE" in core|full) : ;; *) echo "render-stack: Profil '$PROFILE' unbekannt (core|full)" >&2; exit 2 ;; esac
 [[ -n "${DEVMESH_DOMAIN:-}" ]] || { echo "render-stack: DEVMESH_DOMAIN leer (environments/dev.yaml)" >&2; exit 2; }
 
@@ -70,7 +94,7 @@ rendered="$(envsubst "$vars" <<<"$rendered" | sed -E 's/\$\$(\{?[A-Za-z_])/$\1/g
 # envFrom is captured at pod creation; config changes must trigger a rollout.
 WEBSITE_CONFIG_SHA="$(yq ea -o=json -I=0 'select(.kind == "ConfigMap" and .metadata.name == "website-config") | .data' <<<"$rendered" | sha256sum | cut -d' ' -f1)"
 export WEBSITE_CONFIG_SHA
-yq e '
+workspace_rendered="$(yq e '
   (select(.kind == "ConfigMap") | .data[]) |= to_string |
   (select(.kind == "Deployment" or .kind == "Job" or .kind == "StatefulSet") | .spec.template.spec.containers[]?.env[]? | select(has("value")) | .value) |= to_string |
   (select(.kind == "Deployment" or .kind == "Job" or .kind == "StatefulSet") | .spec.template.spec.initContainers[]?.env[]? | select(has("value")) | .value) |= to_string |
@@ -78,4 +102,34 @@ yq e '
   (select(.kind == "Service" and .metadata.name == "llm-gateway-host") | .spec.ports) +=
     (env(GPU_PORTS_JSON) | map({"name": .name, "port": .port, "protocol": "TCP"})) |
   (select(.kind == "EndpointSlice" and .metadata.name == "llm-gateway-host") | .ports) +=
-    (env(GPU_PORTS_JSON) | map({"name": .name, "port": .port, "protocol": "TCP"}))' - <<<"$rendered"
+    (env(GPU_PORTS_JSON) | map({"name": .name, "port": .port, "protocol": "TCP"}))' - <<<"$rendered")"
+
+if [[ -z "$OUT_DIR" ]]; then
+  printf '%s\n' "$workspace_rendered"
+  exit 0
+fi
+
+mkdir -p "$OUT_DIR/workspace" "$OUT_DIR/platform" "$OUT_DIR/secrets"
+
+# 1. Workspace
+printf '%s\n' "$workspace_rendered" > "$OUT_DIR/workspace/stack.yaml"
+
+# 2. Platform
+platform_rendered="$(kubectl kustomize --load-restrictor=LoadRestrictionsNone dev-local/platform)"
+platform_rendered="$(envsubst '$DEVMESH_DOMAIN' <<<"$platform_rendered")"
+printf '%s\n' "$platform_rendered" > "$OUT_DIR/platform/platform.yaml"
+
+# 3. Secrets
+SECRETS_SRC="environments/sealed-secrets/dev.yaml"
+[[ -f "$SECRETS_SRC" ]] || { echo "render-stack: $SECRETS_SRC fehlt" >&2; exit 1; }
+cp "$SECRETS_SRC" "$OUT_DIR/secrets/sealed-secrets.yaml"
+
+# 4. Validierung (Exit 1 bei leerem Ergebnis oder ${-Resten)
+for f in "$OUT_DIR/workspace/stack.yaml" "$OUT_DIR/platform/platform.yaml" "$OUT_DIR/secrets/sealed-secrets.yaml"; do
+  [[ -s "$f" ]] || { echo "render-stack: Datei $f ist leer" >&2; exit 1; }
+done
+
+if grep -q '\${' "$OUT_DIR/platform/platform.yaml"; then
+  echo "render-stack: \${-Reste in $OUT_DIR/platform/platform.yaml gefunden" >&2
+  exit 1
+fi

@@ -11,6 +11,7 @@ EXCLUDED_SKILLS = [
     "freetoken-setup", "huggingface-community-evals", "huggingface-llm-trainer",
     "huggingface-paper-publisher", "huggingface-trackio", "huggingface-vision-trainer",
     "train-sentence-transformers", "transformers-js", "playwright-best-practices",
+    "update-dependencies",
 ]
 
 # sed -E 's#https?://[^][:space:])"'"'<>`]+##g'  (URLs vorab entfernen, T900835)

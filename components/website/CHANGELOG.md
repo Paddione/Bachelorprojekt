@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.429.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.0...website-v1.429.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* **infra:** devmesh core pvc storageclass and bootstrap sealedsecret ([#6772](https://github.com/Paddione/Bachelorprojekt/issues/6772)) ([d234190](https://github.com/Paddione/Bachelorprojekt/commit/d2341908524f1de471a163942e7596763ae4b3e6))
+
 ## [1.429.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.428.0...website-v1.429.0) (2026-10-21)
 
 

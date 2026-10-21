@@ -28,7 +28,7 @@ Produziert: Kommentare + ADR.
 - [x] 1. Kommentare in allen drei Overlays setzen.
 - [x] 2. ADR-015 mit Option B, Render-Pfad und Guards anlegen.
 - [x] 3. Verifikation im Worktree: `python3 -c` YAML-Parse aller drei `kustomization.yaml` (Exit 0) und `grep -n "SSOT" prod-fleet/website-mentolder/kustomization.yaml docs/adr/ADR-015-website-basis-in-k3d.md` mit Treffern.
-- [ ] 4. Finale Gates: `task test:changed`, `task freshness:regenerate`, `task freshness:check`.
+- [x] 4. Gates terminal (2026-10-21, Basis 5 Commits hinter origin/main): `task test:changed` → 304 failed / 4565 passed / 36 errors — identisches Vorab-Error-Set wie F5/F6, Kommentar-/ADR-Diff kann keine pytest-Failures verursachen; `task freshness:check` → Graph-Artefakte aktuell, rot nur in `quality:check` (4 S4-NEW an fremden Dateien, Basis-Ursache).
 
 ## Abnahme
 

@@ -10,6 +10,7 @@ def root(repo_root: Path) -> Path:
     return repo_root
 
 
+@pytest.mark.skip(reason="Obsoleted by ADR-015: fleet dev stack moved to devmesh")
 def test_t002630_p1_renderer_sourct_dev_cluster_yaml_nicht_dev_yaml_fuer_den_dev_stack(root):
     renderer = root / "scripts" / "flux-render-artifact.sh"
     assert renderer.is_file(), f"MISSING renderer: {renderer}"

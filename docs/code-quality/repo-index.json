@@ -3294,7 +3294,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bp-build",
-      "file_count": 384,
+      "file_count": 382,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3575,8 +3575,6 @@
         "prod-fleet/coturn/kustomization.yaml",
         "prod-fleet/coturn/namespace.yaml",
         "prod-fleet/coturn/services.yaml",
-        "prod-fleet/dev-pod/kustomization.yaml",
-        "prod-fleet/dev/kustomization.yaml",
         "prod-fleet/korczewski-auth/kustomization.yaml",
         "prod-fleet/korczewski-auth/namespace.yaml",
         "prod-fleet/korczewski-auth/patch-pocket-id-db.yaml",

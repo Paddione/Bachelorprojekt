@@ -94,6 +94,7 @@ def test_cronjob_hygiene(repo_root: Path):
 
 # ── dev-env-split.bats ─────────────────────────────────────────────────────
 
+@pytest.mark.skip(reason="Obsoleted by ADR-015: fleet dev stack moved to devmesh")
 def test_dev_env_split(repo_root: Path):
     renderer = repo_root / "scripts" / "flux-render-artifact.sh"
     dev_cluster_yml = repo_root / "environments" / "dev-cluster.yaml"

@@ -256,6 +256,7 @@ def test_t002174_flux_render_implementiert_den_rigger_host_ip_auf_comfy_host_ip_
         "kein Fallback RIGGER_HOST_IP -> COMFY_HOST_IP in flux-render-artifact.sh"
 
 
+@pytest.mark.skip(reason="Obsoleted by ADR-015: fleet dev stack moved to devmesh")
 def test_t002174_flux_render_rendert_den_dev_stack_nicht_wenn_dev_domain_leer_ist(ci):
     script = ci["repo"] / "scripts/flux-render-artifact.sh"
     assert script.is_file()
@@ -266,6 +267,7 @@ def test_t002174_flux_render_rendert_den_dev_stack_nicht_wenn_dev_domain_leer_is
         "der dev-Renderblock hat keinen Leer-Guard auf DEV_DOMAIN"
 
 
+@pytest.mark.skip(reason="Obsoleted by ADR-015: fleet dev stack moved to devmesh")
 def test_t002174_der_dev_renderblock_verschluckt_env_resolve_fehler_nicht_per_or_true(ci):
     script = ci["repo"] / "scripts/flux-render-artifact.sh"
     assert script.is_file()

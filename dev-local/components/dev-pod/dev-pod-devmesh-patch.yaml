@@ -36,6 +36,14 @@ spec:
               exec /usr/sbin/sshd -D -e -f /tmp/sshd_config
           ports:
             - { containerPort: 22, name: ssh, protocol: TCP }
+        - name: repo-sync
+          env:
+            - name: GIT_CONFIG_COUNT
+              value: "1"
+            - name: GIT_CONFIG_KEY_0
+              value: "safe.directory"
+            - name: GIT_CONFIG_VALUE_0
+              value: "*"
         - name: mcp-node
           env:
             - name: WEBSITE_DB_PASSWORD

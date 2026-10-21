@@ -3,13 +3,6 @@ from pathlib import Path
 import pytest
 
 
-def test_dev_overlay_is_renderable(run_cmd, repo_root: Path):
-    """Dev overlay is renderable via kustomize build."""
-    res = run_cmd("kustomize build prod-fleet/dev --load-restrictor=LoadRestrictionsNone")
-    res.check(0)
-    assert len(res.stdout) > 0
-
-
 def test_all_brand_kustomizations_depend_on_flux_infra_controllers(
     yaml_load, repo_root: Path
 ):
@@ -45,7 +38,6 @@ def test_brand_kustomizations_use_fleet_manifests_source(yaml_load, repo_root: P
             "korczewski",
             "website-mentolder",
             "website-korczewski",
-            "dev",
         ]
     ]
     for yaml_file in files:
@@ -159,14 +151,6 @@ def test_notifications_provider_and_alert_exist(repo_root: Path, yaml_load):
     kinds = [d.get("kind") for d in docs if isinstance(d, dict)]
     assert "Provider" in kinds
     assert "Alert" in kinds
-
-
-def test_dev_flux_kustomization_exists(repo_root: Path):
-    """Dev Flux Kustomization exists."""
-    dev_ks = repo_root / "flux" / "clusters" / "fleet" / "ks-dev.yaml"
-    assert dev_ks.is_file()
-    content = dev_ks.read_text(encoding="utf-8")
-    assert "flux-dev" in content
 
 
 def test_dependency_chain_sealed_secrets_to_infra_controllers(repo_root: Path):

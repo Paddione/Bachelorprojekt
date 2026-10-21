@@ -143,7 +143,6 @@ def test_flux_devmesh_sources_only(repo_root: Path):
             assert "clusters/fleet" not in text, f"clusters/fleet found in {yf}"
 
 
-@pytest.mark.skip(reason="Pending Task 9: fleet dev decommission")
 def test_fleet_dev_components_gone(repo_root: Path, tmp_path: Path):
     """flux-render-artifact.sh aborts on removed 'dev' component; fleet has no ks-dev*.yaml."""
     res = subprocess.run(

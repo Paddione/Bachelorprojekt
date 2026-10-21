@@ -40,7 +40,7 @@ export async function assertWissensquellenReachable(request: any, testInfo: any)
   );
 
   // T016560: In Prod (plain Postgres without pgvector), vector store is disabled (VECTOR_DB_ENABLED != 1).
-  // Check if collections API returns 503, 404, or redirects to 404; skip tests gracefully if so.
+  // F6: disabled meldet einheitlich 503 'vector store disabled'. Skip tests gracefully if so.
   const CRON_SECRET = process.env.CRON_SECRET ?? '';
   const token = encodeURIComponent(CRON_SECRET);
   const probe = await request.get(
@@ -48,12 +48,7 @@ export async function assertWissensquellenReachable(request: any, testInfo: any)
     { headers: { Authorization: `Bearer ${token}` }, maxRedirects: 0 }
   ).catch(() => null);
 
-  if (
-    probe &&
-    (probe.status() === 503 ||
-      probe.status() === 404 ||
-      (probe.status() === 302 && probe.headers()['location']?.includes('404')))
-  ) {
+  if (probe && probe.status() === 503) {
     test.skip(true, 'Wissensquellen / vector store is disabled on this environment (T016560)');
   }
 }

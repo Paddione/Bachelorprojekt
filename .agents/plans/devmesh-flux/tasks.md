@@ -155,16 +155,16 @@ bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k flux
 
 ## Task 5: Workflow `render-devmesh-artifact.yml`
 
-- [ ] Trigger: `push` auf `main` mit den Pfaden aus dem Design (Abschnitt 2),
+- [x] Trigger: `push` auf `main` mit den Pfaden aus dem Design (Abschnitt 2),
   `workflow_dispatch`. `permissions: contents: read, packages: write,
   id-token: write`. `concurrency: render-devmesh-artifact`.
-- [ ] Schritte: Checkout, Werkzeuge (kustomize, yq, flux CLI, cosign mit
+- [x] Schritte: Checkout, Werkzeuge (kustomize, yq, flux CLI, cosign mit
   SHA-256-Prüfung wie in `render-fleet-artifact.yml`), `bash scripts/ci-dummy-secrets.sh`,
   `bash scripts/devmesh/render-stack.sh core --out ./out`, Render-Gate
   (`grep -rn 'mentolder.de\|fleet-manifests' out/` muss leer sein), Login GHCR mit
   `GITHUB_TOKEN`, `flux push artifact oci://ghcr.io/paddione/devmesh-manifests:latest`
   mit `--source`/`--revision`, Tag `sha-<commit>`, `cosign sign --yes` auf den Digest.
-- [ ] `actionlint .github/workflows/render-devmesh-artifact.yml` ohne Befund.
+- [x] `actionlint .github/workflows/render-devmesh-artifact.yml` ohne Befund.
 
 ## Task 6: Taskfile
 

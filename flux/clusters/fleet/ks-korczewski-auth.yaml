@@ -9,17 +9,21 @@ metadata:
   name: flux-korczewski-auth
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   suspend: true
   dependsOn:
     - name: flux-infra-controllers
     - name: flux-sealed-secrets-korczewski
+    # Cross-Brand-Dep auf flux-mentolder ist Absicht (test_flux_freeze pinnt ihn):
+    # korczewski-auth nutzt die zentrale shared-db in ns workspace
+    # (DBs website_massage/pocket_id_korczewski) — ohne mentolder kein DB-Backend.
     - name: flux-mentolder
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-tenant-deploy
   path: ./korczewski-auth
   prune: true
   wait: false

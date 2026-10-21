@@ -25,6 +25,8 @@ metadata:
 addressType: IPv4
 ports:
   - name: http
+    # Integer-Vertrag: render-stack.sh prueft gpu_endpoint.port auf ^[0-9]+$,
+    # envsubst setzt die Zahl unquoted ein (EndpointSlice port ist int).
     port: ${GPU_ENDPOINT_PORT}
     protocol: TCP
 endpoints:

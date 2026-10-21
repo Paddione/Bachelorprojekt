@@ -34,4 +34,6 @@ endpoints:
     conditions:
       ready: true
 ports:
-  - port: 443
+  - name: https
+    port: 443
+    protocol: TCP

@@ -12,6 +12,7 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: devmesh-manifests
+  serviceAccountName: devmesh-tenant-deploy
   path: ./workspace
   prune: true
   wait: true

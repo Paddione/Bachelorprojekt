@@ -15,13 +15,18 @@ spec:
   cluster:
     type: kubernetes
     networkPolicy: true
+    # Security F2: Multitenant-Lockdown — Controller impersonieren Tenant-SAs
+    # statt mit eigenen Cluster-Rechten zu applizieren. Jede Kustomization
+    # setzt spec.serviceAccountName (siehe tenant-rbac.yaml im selben Verzeichnis).
+    multitenant: true
     # Vertical scaling profile: 5-node fleet with ~150 resources across 10
     # Kustomizations — medium raises controller concurrency/limits above the
     # small defaults. [audit 2026-08-15]
     size: medium
   sync:
     kind: GitRepository
+    provider: github
     url: https://github.com/Paddione/Bachelorprojekt
     ref: refs/heads/main
     path: flux/clusters/fleet
-    interval: 10m
+    interval: 30m

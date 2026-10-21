@@ -4,7 +4,7 @@ metadata:
   name: flux-website-korczewski
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   # T901440 hatte die Website (Massagepraxis Vögelsen, BRAND massage) für einen
@@ -19,6 +19,7 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-tenant-deploy
   path: ./website-korczewski
   prune: true
   wait: true

@@ -87,6 +87,10 @@ jobs:
           flux tag artifact \
             oci://ghcr.io/paddione/devmesh-manifests:latest \
             --tag "sha-${GITHUB_SHA}"
+          # Immutable Semver-Zeiger wie fleet (v0.0.<RUN_NUMBER>).
+          flux tag artifact \
+            oci://ghcr.io/paddione/devmesh-manifests:latest \
+            --tag "v0.0.${GITHUB_RUN_NUMBER}"
 
       - name: Sign OCI artifact (cosign keyless)
         run: |

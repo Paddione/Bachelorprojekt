@@ -433,6 +433,37 @@ if want sealed-secrets-staging; then
   cp environments/sealed-secrets/staging.yaml "${OUT_DIR}/sealed-secrets/staging/staging.yaml"
 fi
 
+# Security F4: DEV_*-Keys gehoeren nicht ins Prod-Artefakt (sie stammen aus dem
+# Secret-SSOT fuer lokale Entwicklung und wuerden sonst als versiegelte Blobs
+# auf GHCR landen). Nach dem Kopieren strippen — fail-closed per Python
+# (yq ist im Fleet-Workflow nicht installiert).
+for _sealed in "${OUT_DIR}"/sealed-secrets/*/*.yaml; do
+  [ -f "$_sealed" ] || continue
+  if python3 - "$_sealed" <<'PYEOF'
+import sys, yaml
+p = sys.argv[1]
+with open(p) as f:
+    docs = list(yaml.safe_load_all(f))
+stripped = 0
+for doc in docs:
+    if not isinstance(doc, dict):
+        continue
+    enc = (doc.get("spec") or {}).get("encryptedData") or {}
+    for k in [k for k in enc if k.startswith("DEV_")]:
+        del enc[k]
+        stripped += 1
+with open(p, "w") as f:
+    yaml.safe_dump_all(docs, f, default_flow_style=False)
+print(f"sealed-secret-filter: {stripped} DEV_*-Keys aus {p} entfernt")
+PYEOF
+  then
+    :
+  else
+    echo "ERROR: DEV_*-Filter fehlgeschlagen fuer ${_sealed}." >&2
+    exit 1
+  fi
+done
+
 # 7. Cluster CRs (top-level only under flux/clusters/fleet/, excluding bootstrap/)
 if want clusters; then
 mkdir -p "${OUT_DIR}/clusters/fleet"

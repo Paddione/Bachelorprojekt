@@ -15,9 +15,14 @@ spec:
   cluster:
     type: kubernetes
     networkPolicy: true
+    # Security F2: Multitenant-Lockdown — Controller impersonieren Tenant-SAs
+    # statt mit eigenen Cluster-Rechten zu applizieren. Jede Kustomization
+    # setzt spec.serviceAccountName (siehe tenant-rbac.yaml im selben Verzeichnis).
+    multitenant: true
     size: small
   sync:
     kind: GitRepository
+    provider: github
     url: https://github.com/Paddione/Bachelorprojekt
     ref: refs/heads/main
     path: flux/clusters/devmesh

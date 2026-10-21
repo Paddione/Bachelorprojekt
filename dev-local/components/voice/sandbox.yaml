@@ -17,7 +17,7 @@ spec:
       nodeSelector: {kubernetes.io/hostname: gpu-metal}
       containers:
         - name: worker
-          image: alpine/git:latest
+          image: alpine/git@sha256:03228d7ded483b0b3e7fa660d70d3e1bb432fa7021d29e192640de11aa
           command: ["sleep", "infinity"]
           resources:
             requests: {cpu: 250m, memory: 256Mi}
@@ -45,5 +45,5 @@ spec:
           image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
           command: ["sleep", "infinity"]
           resources:
-            requests: {cpu: "1", memory: 4Gi, nvidia.com/gpu: 1}
-            limits: {cpu: "4", memory: 8Gi, nvidia.com/gpu: 1}
+            requests: {cpu: "1", memory: 4Gi, nvidia.com/gpu: "1"}
+            limits: {cpu: "4", memory: 8Gi, nvidia.com/gpu: "1"}

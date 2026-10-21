@@ -6,6 +6,7 @@
 # - gekko-mentolder-deploy: Identitaet der Workload-Stufe, volle Rechte (cluster-admin). Das Artefakt
 #   enthaelt ClusterRoles, ClusterRoleBindings, CRDs, Webhooks und kube-system-Objekte, ein
 #   engerer Zuschnitt waere nur Schein. Die Rechte sind aber von den Controller-Rechten getrennt.
+#   Einengungs-Pfad wie fleet/tenant-rbac.yaml: pro Stufe eigene SAs nach Objekt-Inventarisierung.
 # - ValidatingAdmissionPolicy: jede Kustomization im Namespace muss als gekko-mentolder-deploy laufen,
 #   nie als kustomize-controller (kein serviceAccountName = Controller-Rechte).
 apiVersion: v1

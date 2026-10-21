@@ -99,10 +99,16 @@ jobs:
           flux tag artifact \
             oci://ghcr.io/paddione/fleet-manifests:latest \
             --tag "sha-${GITHUB_SHA}"
+          # Immutable Semver-Zeiger (vgl. flux/clusters/fleet/oci-source.yaml):
+          # monotoner v0.0.<RUN_NUMBER>-Tag pro Push, damit der Cluster einen
+          # unveraenderlichen Stream statt dem beweglichen :latest liest.
+          flux tag artifact \
+            oci://ghcr.io/paddione/fleet-manifests:latest \
+            --tag "v0.0.${GITHUB_RUN_NUMBER}"
 
       # Keyless supply-chain signing. The signature attaches to the pushed
-      # digest, so both `latest` and `sha-<GITSHA>` resolve to a verified
-      # artifact. The cluster verifies via OCIRepository spec.verify
+      # digest, so `latest`, `sha-<GITSHA>` and `v0.0-<RUN_NUMBER>` resolve to
+      # a verified artifact. The cluster verifies via OCIRepository spec.verify
       # (flux/clusters/fleet/oci-source.yaml) with the same OIDC identity.
       # NOTE: sign by DIGEST — cosign's `oci://` prefix is for local OCI
       # layouts and would resolve host "oci" (observed failure on 2026-08-15).
@@ -129,7 +135,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -z "${FLUX_WEBHOOK_URL:-}" ]]; then
-            echo "FLUX_WEBHOOK_URL not configured — skipping receiver ping (Flux will pick up on its 10m interval)."
+            echo "FLUX_WEBHOOK_URL not configured — skipping receiver ping (Flux will pick up on its interval)."
             exit 0
           fi
           payload='{}'

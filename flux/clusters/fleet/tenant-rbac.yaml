@@ -1,0 +1,30 @@
+# Tenant-Identitaeten fuer den Multitenant-Lockdown
+# (spec.cluster.multitenant: true in flux-instance.yaml, Security F2).
+#
+# - flux-tenant-deploy: Arbeitsidentitaet aller Kustomizations in diesem
+#   Verzeichnis (spec.serviceAccountName). Aktuell cluster-admin — bewusst als
+#   Uebergang: das Artefakt enthaelt ClusterRoles, ClusterRoleBindings, CRDs,
+#   Webhooks und kube-system-Objekte (vgl. gekko-mentolder-rbac.yaml), ein
+#   engerer Zuschnitt waere heute nur Schein. Einengungs-Pfad: pro Stufe
+#   (infra/workload/secrets) eigene SAs mit minimalen Roles, sobald die
+#   Objektmengen je Pfad inventarisiert sind.
+# - Die Trennung von der Controller-Identitaet bleibt bestehen: ohne
+#   serviceAccountName duerfte unter multitenant nichts appliziert werden.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flux-tenant-deploy
+  namespace: flux-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: flux-tenant-deploy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: flux-tenant-deploy
+    namespace: flux-system

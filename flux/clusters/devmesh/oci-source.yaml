@@ -7,7 +7,8 @@ spec:
   interval: 5m
   url: oci://ghcr.io/paddione/devmesh-manifests
   ref:
-    tag: latest
+    # Immutable Semver-Stream wie fleet (v0.0.<RUN_NUMBER> aus render-devmesh-artifact.yml).
+    semver: "v0.*"
   secretRef:
     name: ghcr-auth
   verify:

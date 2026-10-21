@@ -1,0 +1,9 @@
+# dev-local/components/sessions — statische Session-Seiten unter session-<slug>.${SESSIONS_DOMAIN}
+# auf devmesh, hinter dem Session-Hub (oauth2-proxy). Eingehaengt in dev-local/core.
+# Vorher in mentolder-Prod (prod-fleet/mentolder).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - ../../../k3d/sessions-server.yaml
+  - sessions-ingress.yaml
+  - oauth2-proxy-session-hub.yaml

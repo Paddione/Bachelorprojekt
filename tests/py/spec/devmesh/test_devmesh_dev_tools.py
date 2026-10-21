@@ -29,7 +29,7 @@ def devmesh(repo_root):
 
 
 def test_brain_on_devmesh(devmesh):
-    text, docs = devmesh
+    _, docs = devmesh
     for name in ("brain", "oauth2-proxy-brain"):
         assert docs["Deployment", name]["metadata"]["namespace"] == "workspace"
     hosts = [r["host"] for r in docs["Ingress", "devmesh-brain"]["spec"]["rules"]]
@@ -37,7 +37,8 @@ def test_brain_on_devmesh(devmesh):
     proxy = docs["Deployment", "oauth2-proxy-brain"]["spec"]["template"]["spec"]["containers"][-1]
     assert "--client-id=brain" in proxy["args"]
     assert "--redirect-url=https://brain.devmesh.korczewski.de/oauth2/callback" in proxy["args"]
-    assert "mentolder.de" not in text
+    brain_docs = [d for (_, name), d in docs.items() if "brain" in name]
+    assert brain_docs and "mentolder.de" not in yaml.safe_dump_all(brain_docs)
 
 
 def test_sessions_on_devmesh(devmesh):

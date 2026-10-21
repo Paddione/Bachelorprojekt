@@ -64,7 +64,6 @@ resources:
   - ntfy.yaml
   - oauth2-proxy-mediaviewer.yaml
   # Sessions Server (session-<slug>.sessions.mentolder.de)
-  - sessions-server.yaml
   # Website egress: allow Prometheus queries from factory-observability API
   - website-allow-egress-monitoring.yaml
   # VideoVault

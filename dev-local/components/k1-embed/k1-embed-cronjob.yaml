@@ -1,0 +1,154 @@
+# k1-embed — Repo-Embeddings (Code + Markdown) in die devmesh-shared-db, stuendlich.
+# Ersetzt den frueheren Job aus .github/workflows/k1-embed.yml, der per FLEET_KUBECONFIG
+# in mentolder-Prod lief; GitHub-Runner erreichen devmesh nicht.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k1-embed
+  labels:
+    app: k1-embed
+spec:
+  schedule: "17 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 1
+      activeDeadlineSeconds: 5400
+      template:
+        metadata:
+          labels:
+            app: k1-embed
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          initContainers:
+            - name: git-fetch
+              image: alpine/git@sha256:ae0f6f4bce38d2b8c40becc0d6241a08d9f57186ea03029de2189a2b5e722d94
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              # [T900810] safe.directory zuerst: /repo ist ein root-owned emptyDir-Mount,
+              # der Prozess laeuft als runAsUser 65534 — ohne die Ausnahme bricht JEDER
+              # git-Befehl nach `init` mit exit 128 "dubious ownership" ab (der Job lief
+              # dadurch nie ueber git-fetch hinaus). HOME=/tmp (unten) ist beschreibbar,
+              # die Config landet in /tmp/.gitconfig (readOnlyRootFilesystem-konform).
+              command: ["sh", "-c", "set -eu && git config --global --add safe.directory /repo && git init /repo && cd /repo && git remote add origin \"$REPO_URL\" && git fetch --depth 200 origin main && git checkout FETCH_HEAD && git rev-parse HEAD > /tmp/k1-head && { git log --since=\"2 hours ago\" --name-only --format= | grep -E \"^(\\.agents/plans/.*\\.md|docs/adr/.*\\.md|docs/runbooks/.*\\.md)$\" > /tmp/k1-markdown || true; }"]
+              env:
+                - name: REPO_URL
+                  value: "https://github.com/Paddione/Bachelorprojekt.git"
+                - name: HOME
+                  value: "/tmp"
+              volumeMounts:
+                - name: repo
+                  mountPath: /repo
+                - name: tmp
+                  mountPath: /tmp
+            - name: npm-deps
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              # [T900810] --legacy-peer-deps: npm 10.9.8 (im Node-Image) crasht beim
+              # Aufloesen des Repo-Dev-Baums in arborist (#loadPeerSet, "edgesOut",
+              # exit 1) — der Job kam dadurch nie ueber npm-deps hinaus. --no-save
+              # verhindert zusaetzlich den Schreibversuch auf package.json.
+              command: ["sh", "-c", "set -eu && cd /repo && npm install pg tsx --no-package-lock --legacy-peer-deps --no-save --silent"]
+              env:
+                - name: HOME
+                  value: "/tmp"
+                - name: NPM_CONFIG_CACHE
+                  value: "/tmp/.npm"
+              volumeMounts:
+                - name: repo
+                  mountPath: /repo
+                - name: tmp
+                  mountPath: /tmp
+          containers:
+            - name: embed
+              image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
+              imagePullPolicy: IfNotPresent
+              workingDir: /repo
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                # [T900810] workspace-secrets, nicht website-secrets: Letzteres existiert
+                # nur im Namespace website — der Job lief dadurch in
+                # CreateContainerConfigError (zweite k1-Root-Cause neben safe.directory).
+                # Muster wie alle anderen workspace-Workloads (admin-actions, backup).
+                - name: WEBSITE_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: WEBSITE_DB_PASSWORD
+                - name: SESSIONS_DATABASE_URL
+                  value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
+                - name: PGHOST
+                  value: "shared-db.workspace.svc.cluster.local"
+                - name: PGPORT
+                  value: "5432"
+                - name: PGDATABASE
+                  value: "website"
+                - name: PGUSER
+                  value: "website"
+                - name: PGPASSWORD
+                  value: "$(WEBSITE_DB_PASSWORD)"
+                - name: LLM_ENABLED
+                  value: "true"
+                - name: LLM_EMBED_MODEL
+                  value: "bge-m3"
+                - name: LLM_EMBED_URL
+                  value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
+                - name: HOME
+                  value: "/tmp"
+                - name: NPM_CONFIG_CACHE
+                  value: "/tmp/.npm"
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+              volumeMounts:
+                - name: repo
+                  mountPath: /repo
+                - name: tmp
+                  mountPath: /tmp
+              command: ["sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  head="$(cat /tmp/k1-head)"
+                  trap 'echo "k1-embed FAILED head=$head"' ERR
+                  echo "k1-embed start head=$head"
+                  # Code: index-repo.ts ueberspringt Dateien mit unveraendertem file_hash,
+                  # der volle Lauf bettet also nur Geaendertes neu ein.
+                  npx tsx scripts/index-repo.ts
+                  # Markdown: ingest-markdown.mjs bettet immer alles neu ein, deshalb nur bei
+                  # Aenderungen der letzten zwei Stunden (ermittelt im Init-Container git-fetch,
+                  # Lauf stuendlich, Ueberlappung unkritisch, der Upsert ist idempotent).
+                  if [ -s /tmp/k1-markdown ]; then
+                    node scripts/knowledge/ingest-markdown.mjs
+                  fi
+                  echo "k1-embed COMPLETE head=$head"
+          volumes:
+            - name: repo
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}

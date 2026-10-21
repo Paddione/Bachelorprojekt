@@ -28,6 +28,8 @@ env_vars:
   WEBSITE_DB_USER: website
   # devmesh: Profil und Basis-Domain; A-Records zeigen nur auf Tailnet-Adressen (D3).
   DEVMESH_DOMAIN: devmesh.korczewski.de
+  SESSIONS_DOMAIN: sessions.devmesh.korczewski.de
+  BRAIN_EXTERNAL_URL: "https://brain.devmesh.korczewski.de"
   DEVMESH_PROFILE: core
   PROD_DOMAIN: devmesh.korczewski.de
   # web.* ist die SDLC-Console (OIDC-Callback), die Website liegt auf site.*.

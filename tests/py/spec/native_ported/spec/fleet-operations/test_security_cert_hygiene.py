@@ -17,11 +17,11 @@ def root(repo_root: Path) -> Path:
     return repo_root
 
 
-def test_sa_sec_01_sessions_domain_ist_in_schema_yaml_und_mentolder_yaml_definiert(root):
+def test_sa_sec_01_sessions_domain_ist_in_schema_yaml_und_dev_yaml_definiert(root):
     # run grep -n ... ; assert_success
-    """SA-SEC-01: SESSIONS_DOMAIN ist in schema.yaml und mentolder.yaml definiert"""
+    """SA-SEC-01: SESSIONS_DOMAIN ist in schema.yaml und dev.yaml (devmesh) definiert"""
     assert _grep_status(root / "environments" / "schema.yaml", "name: SESSIONS_DOMAIN") == 0
-    assert _grep_status(root / "environments" / "mentolder.yaml", "SESSIONS_DOMAIN: sessions.mentolder.de") == 0
+    assert _grep_status(root / "environments" / "dev.yaml", "SESSIONS_DOMAIN: sessions.devmesh.korczewski.de") == 0
 
 
 def test_sa_sec_02_flux_webhook_certificate_enthaelt_keine_prod_domain_platzhalter(root):

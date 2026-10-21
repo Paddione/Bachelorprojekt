@@ -426,12 +426,12 @@ def test_sdlc_console_fleet(repo_root: Path):
 
 def test_security_cert_hygiene(repo_root: Path):
     schema = repo_root / "environments" / "schema.yaml"
-    mentolder = repo_root / "environments" / "mentolder.yaml"
+    dev = repo_root / "environments" / "dev.yaml"
     cert = repo_root / "flux" / "clusters" / "fleet" / "bootstrap" / "certificate-flux-webhook.yaml"
     ing = repo_root / "flux" / "clusters" / "fleet" / "bootstrap" / "ingressroute-flux-webhook.yaml"
 
     assert "name: SESSIONS_DOMAIN" in schema.read_text()
-    assert "SESSIONS_DOMAIN: sessions.mentolder.de" in mentolder.read_text()
+    assert "SESSIONS_DOMAIN: sessions.devmesh.korczewski.de" in dev.read_text()
 
     cert_text = cert.read_text()
     assert "${PROD_DOMAIN}" not in cert_text

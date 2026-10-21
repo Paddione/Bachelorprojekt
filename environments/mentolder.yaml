@@ -49,13 +49,11 @@ env_vars:
   NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
   AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
   VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
-  BRAIN_EXTERNAL_URL: "https://brain.mentolder.de"
+  BRAIN_EXTERNAL_URL: ""
   WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/apps/files"
   TRAEFIK_EXTERNAL_URL: "https://traefik.mentolder.de"
   MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   BRETT_DOMAIN: brett.mentolder.de
-  # Session-Subdomain fuer session-<slug>.<SESSIONS_DOMAIN> [T016251]
-  SESSIONS_DOMAIN: sessions.mentolder.de
   MEDIAVIEWER_HOST: mediaviewer.mentolder.de
   VIDEOVAULT_DOMAIN: videovault.mentolder.de
   OTEL_DOMAIN: otel.mentolder.de

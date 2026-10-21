@@ -34,6 +34,10 @@ resources:
 components:
   - ../components/llm-services
   - ../components/voice
+  - ../components/dev-pod
+  - ../components/brain
+  - ../components/sessions
+  - ../components/k1-embed
 
 configMapGenerator:
   - name: shared-db-backup-script
@@ -138,8 +142,12 @@ patches:
         template:
           spec:
             nodeSelector: {storage: "true"}
+            initContainers:
+              - name: generate-tls-cert
+                image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
             containers:
               - name: postgres
+                image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
                 resources:
                   requests: {cpu: 100m, memory: 256Mi}
   - target: {kind: Deployment, name: pocket-id}
@@ -174,3 +182,24 @@ patches:
       kind: Deployment
       metadata: {name: bge}
       spec: {template: {spec: {containers: [{name: llama-cpp, resources: {requests: {cpu: 250m, memory: 768Mi}}}]}}}
+  - target: {kind: PersistentVolumeClaim, name: bge-embed-models}
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata: {name: bge-embed-models}
+      spec:
+        storageClassName: longhorn
+  - target: {kind: PersistentVolumeClaim, name: bge-rerank-models}
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata: {name: bge-rerank-models}
+      spec:
+        storageClassName: longhorn
+  - target: {kind: PersistentVolumeClaim, name: massage-db-dev-data}
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata: {name: massage-db-dev-data}
+      spec:
+        storageClassName: longhorn

@@ -1,7 +1,8 @@
-# prod-fleet/mentolder/brain.yaml — K3 Code-Graph Webview [T900855]
+# dev-local/components/brain/brain.yaml — K3 Code-Graph Webview [T900855] auf devmesh
+# (Ingress in ingress.yaml daneben). Vorher prod-fleet/mentolder.
 #
 # Provides the interactive 3D code graph webview (codebase-memory-mcp)
-# at https://brain.mentolder.de, gated by Pocket ID SSO (oauth2-proxy).
+# at https://brain.${PROD_DOMAIN}, gated by Pocket ID SSO (oauth2-proxy).
 #
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -275,7 +276,7 @@ spec:
           args:
             - --config=/run/config/oauth2-extra.cfg
             - --provider=oidc
-            - --client-id=48197a8b-7920-484f-8bf5-f10ff65e7c91
+            - --client-id=brain
             - --client-secret=$(POCKET_ID_BRAIN_SECRET)
             - --redirect-url=https://brain.${PROD_DOMAIN}/oauth2/callback
             - --oidc-issuer-url=https://auth.${PROD_DOMAIN}
@@ -355,27 +356,3 @@ spec:
   ports:
     - port: 4180
       targetPort: 4180
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: workspace-ingress-brain
-  namespace: ${WORKSPACE_NAMESPACE}
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
-spec:
-  tls:
-    - hosts:
-        - brain.${PROD_DOMAIN}
-      secretName: ${TLS_SECRET_NAME}
-  rules:
-    - host: brain.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: oauth2-proxy-brain
-                port:
-                  number: 4180

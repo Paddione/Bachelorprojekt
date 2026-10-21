@@ -12,7 +12,10 @@
 #   task devmesh:install HOST=<name> [DRY_RUN=1]  # k3s in der Inventar-Rolle installieren
 #   task devmesh:kubeconfig [SERVER=<name>]       # Context devmesh mergen
 #   task devmesh:status                           # Knoten, etcd, juengster Snapshot
-#   task devmesh:deploy                           # Stack rendern & deployen
+#   task devmesh:flux:install                     # flux-operator per helm + FluxInstance deployen
+#   task devmesh:flux:suspend                     # alle Kustomizations auf devmesh pausieren
+#   task devmesh:flux:resume                      # alle Kustomizations auf devmesh fortsetzen
+#   task devmesh:deploy                           # Stack rendern & deployen (nur wenn Flux suspendiert)
 #   task devmesh:migrate                          # Migration aus k3d
 #   task devmesh:registry:migrate                 # llm-proxy-Registry seeden (aus deploy gerufen) [T900191]
 #   task devmesh:backup:run                       # Shared-DB Backup ausloesen
@@ -97,6 +100,37 @@ tasks:
       - kubectl --context devmesh -n workspace get deploy
       - kubectl --context devmesh -n kube-system get certificate devmesh-wildcard-tls -o jsonpath='{.metadata.name}{" Ready="}{.status.conditions[?(@.type=="Ready")].status}{" notAfter="}{.status.notAfter}{"\n"}'
 
+  flux:install:
+    desc: "devmesh: flux-operator per Helm installieren und FluxInstance anwenden"
+    preconditions:
+      - sh: kubectl config get-contexts -o name | grep -qx devmesh
+        msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
+    cmds:
+      - |
+        set -euo pipefail
+        helm upgrade --install flux-operator oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator \
+          --namespace flux-system --create-namespace --kube-context devmesh --wait --timeout=180s
+        if [ -d flux/clusters/devmesh/bootstrap ] && [ -n "$(find flux/clusters/devmesh/bootstrap -maxdepth 1 -name '*.yaml' 2>/dev/null)" ]; then
+          kubectl --context devmesh apply -f flux/clusters/devmesh/bootstrap/
+        fi
+        kubectl --context devmesh apply -f flux/clusters/devmesh/flux-instance.yaml
+
+  flux:suspend:
+    desc: "devmesh: alle Flux-Kustomizations auf devmesh suspendieren"
+    preconditions:
+      - sh: kubectl config get-contexts -o name | grep -qx devmesh
+        msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
+    cmds:
+      - flux suspend kustomization --all -n flux-system --context devmesh
+
+  flux:resume:
+    desc: "devmesh: alle Flux-Kustomizations auf devmesh fortsetzen"
+    preconditions:
+      - sh: kubectl config get-contexts -o name | grep -qx devmesh
+        msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
+    cmds:
+      - flux resume kustomization --all -n flux-system --context devmesh
+
   deploy:
     desc: "devmesh-Stack aus der Arbeitskopie deployen (PROFILE=core|full, Default DEVMESH_PROFILE) [T900118]"
     preconditions:
@@ -104,6 +138,8 @@ tasks:
         msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
       - sh: test -f environments/sealed-secrets/dev.yaml
         msg: "environments/sealed-secrets/dev.yaml fehlt — task env:seal ENV=dev"
+      - sh: '[ "{{.FORCE | default "0"}}" = "1" ] || [ -z "$(kubectl --context devmesh -n flux-system get kustomization -o jsonpath="{.items[?(@.spec.suspend!=true)].metadata.name}" 2>/dev/null)" ]'
+        msg: "Flux verwaltet devmesh bereits. Vor manuellem Deploy erst 'task devmesh:flux:suspend' ausfuehren (oder FORCE=1)."
     cmds:
       - |
         set -euo pipefail

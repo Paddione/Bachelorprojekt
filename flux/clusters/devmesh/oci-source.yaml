@@ -1,0 +1,17 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: devmesh-manifests
+  namespace: flux-system
+spec:
+  interval: 5m
+  url: oci://ghcr.io/paddione/devmesh-manifests
+  ref:
+    tag: latest
+  secretRef:
+    name: ghcr-auth
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: https://token.actions.githubusercontent.com
+        subject: ^https://github\.com/Paddione/Bachelorprojekt/\.github/workflows/render-devmesh-artifact\.yml@refs/heads/main$

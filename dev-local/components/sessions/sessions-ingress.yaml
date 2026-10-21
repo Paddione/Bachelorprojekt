@@ -1,15 +1,14 @@
-# sessions.mentolder.de — Wildcard-Cert + IngressRoute für session-<slug>.sessions.mentolder.de
-# Benutzer setzt: *.${SESSIONS_DOMAIN} CNAME mentolder.de (oder fleet-IP direkt).
-# Cert wird via DNS-01 (ipv64-Webhook) automatisch ausgestellt.
+# Wildcard-Cert + IngressRoute für session-<slug>.${SESSIONS_DOMAIN} auf devmesh.
+# Zwei Ebenen unter DEVMESH_DOMAIN, deshalb nicht vom Default-Wildcard abgedeckt:
+# eigenes Zertifikat per DNS-01 (ipv64-Webhook) über letsencrypt-devmesh.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: sessions-wildcard
-  namespace: workspace
 spec:
   secretName: sessions-wildcard-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-devmesh
     kind: ClusterIssuer
   dnsNames:
     - "*.${SESSIONS_DOMAIN}"
@@ -18,13 +17,12 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: sessions-server
-  namespace: workspace
 spec:
   entryPoints:
     - websecure
   routes:
     # T016251: /oauth2-Callback-Route VOR dem Board-Gate — sie bedient den
-    # OAuth2-Roundtrip (redirect_url=https://session-login.sessions.mentolder.de/
+    # OAuth2-Roundtrip (redirect_url=https://session-login.${SESSIONS_DOMAIN}/
     # oauth2/callback). Der Slug "login" ist damit reserviert.
     - kind: Rule
       match: HostRegexp(`^session-[a-z0-9-]+\.${SESSIONS_DOMAIN}$`) && PathPrefix(`/oauth2`)

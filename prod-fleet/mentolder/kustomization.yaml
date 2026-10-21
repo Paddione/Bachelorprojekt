@@ -11,10 +11,7 @@ kind: Kustomization
 resources:
   - ../../prod-mentolder
   - ../../prod/monitoring
-  - sessions-server.yaml
-  - oauth2-proxy-sessions.yaml
   - studio-ingress.yaml
-  - brain.yaml
 components:
   - ../components/fleet-common
   # D3 (T016529): kein Longhorn mehr — die fruehere llm-models-longhorn-

@@ -2,6 +2,13 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: website-korczewski
 resources:
+  # F9: ../../k3d/website.yaml + website-seller-config.yaml sind bewusst die SSOT —
+  # die Website-Basis-Manifeste leben einmalig im Local-Dev-Baum (k3d/) und werden
+  # hier nur referenziert, nicht kopiert. Aufgeloest wird zur Renderzeit in der CI
+  # (scripts/flux-render-artifact.sh, kustomize build mit LoadRestrictionsNone);
+  # der Cluster appliziert nur das gerenderte out/website-korczewski/. Plain
+  # `kustomize build` ohne LoadRestrictionsNone scheitert daher gewollt (siehe
+  # docs/adr/ADR-015-website-basis-in-k3d.md).
   - ../../k3d/website.yaml
   - ../../k3d/website-seller-config.yaml
   # Security-headers middleware in this namespace (allowCrossNamespace disabled on korczewski)

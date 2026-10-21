@@ -1,0 +1,16 @@
+# TLS liefert der Traefik-Default-TLSStore (Wildcard *.${DEVMESH_DOMAIN}), Muster dev-local/core/ingress.yaml.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devmesh-brain
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  tls:
+    - hosts:
+        - "brain.${DEVMESH_DOMAIN}"
+  rules:
+    - host: "brain.${DEVMESH_DOMAIN}"
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: oauth2-proxy-brain, port: {number: 4180}}}}

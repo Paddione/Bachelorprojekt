@@ -1,0 +1,24 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.x"
+    registry: "ghcr.io/fluxcd"
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    networkPolicy: true
+    size: small
+  sync:
+    kind: GitRepository
+    url: https://github.com/Paddione/Bachelorprojekt
+    ref: refs/heads/main
+    path: flux/clusters/devmesh
+    interval: 10m

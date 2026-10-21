@@ -2,7 +2,7 @@
 # OAuth2 Proxy — Pocket ID SSO gate für session-*.<SESSIONS_DOMAIN> [T016251]
 #
 # Port des etablierten Dev-Musters (k3d/dev-stack/oauth2-proxy-sessions.yaml)
-# auf die Prod-Wildcard-Hosts hinter dem sessions-server-Ingress:
+# auf die devmesh-Wildcard-Hosts hinter dem sessions-server-Ingress:
 #   browser -> Traefik (sessions-server IngressRoute, websecure)
 #           -> ForwardAuth-Middleware session-hub-auth
 #           -> oauth2-proxy-session-hub /oauth2/auth
@@ -12,12 +12,12 @@
 # keine Gruppen — das Gate läuft über --authenticated-emails-file
 # (ConfigMap oauth2-proxy-session-hub-allowed-emails, unten).
 #
-# Secrets: OAUTH2_PROXY_COOKIE_SECRET und POCKET_ID_SESSION_HUB_SECRET sind
-# bereits im fleet-mentolder-Sealed-Bestand vorhanden (environments/
-# sealed-secrets/fleet-mentolder.yaml) und landen als workspace-secrets.
-# Operator-Vorbedingung: OIDC-Client "session-hub" im PROD-Pocket-ID mit
-# redirect_url https://session-login.${SESSIONS_DOMAIN}/oauth2/callback
-# anlegen; der Slug "login" ist damit reserviert.
+# Secrets: OAUTH2_PROXY_COOKIE_SECRET und POCKET_ID_SESSION_HUB_SECRET liegen
+# in workspace-secrets (environments/sealed-secrets/dev.yaml).
+# Operator-Vorbedingung: Der OIDC-Client "session-hub" der devmesh-Pocket-ID
+# braucht zusaetzlich die redirect_url
+# https://session-login.${SESSIONS_DOMAIN}/oauth2/callback; der Slug "login"
+# ist damit reserviert.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: v1
 kind: ConfigMap

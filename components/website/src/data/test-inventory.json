@@ -4686,6 +4686,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/local-dev-mesh/devflow_lifecycle_gate",
+    "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_devflow_lifecycle_gate.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/local-dev-mesh/lan_dns",
     "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_lan_dns.py",
     "category": "native_ported",

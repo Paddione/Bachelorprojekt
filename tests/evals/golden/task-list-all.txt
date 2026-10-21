@@ -247,7 +247,9 @@ task: Available tasks for this project:
 * opencode:monitor:                             Observe opencode serve: sessions, status, SSE events, session details, todos
 * opencode:serve:                               Lifecycle management for opencode HTTP server (start/stop/restart/status/health)
 * opencode:sync-agents:                         Merge .opencode/agent-models.jsonc config into ~/.config/opencode/opencode.jsonc
+* plan:lifecycle-gate:                          Fail-closed Lifecycle-Gate: Sandbox+Worktree+Branch, Partials in Reihenfolge, PR-Merge-Cleanup-Deploy-E2E. Aufruf: task plan:lifecycle-gate -- <slug>
 * plan:qa:                                      DeepSeek-QA-Check for an implementation plan (PLAN=<path>)
+* plan:sandbox:                                 Sandbox-Slot (K8s) pro Plan vergeben/freigeben/zeigen. Aufruf: task plan:sandbox -- claim|release|status <slug>
 * plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- .agents/plans/<slug>/tasks.md
 * plans:query:                                  Show active plan sections for a given role. Usage: task plans:query -- <role>
 * pr:refresh:                                   Rebase konfliktbehaftete PRs auf origin/main und heilt Konflikte in generierten Artefakten. Usage: task pr:refresh -- [--dry-run] <pr-nummer>...

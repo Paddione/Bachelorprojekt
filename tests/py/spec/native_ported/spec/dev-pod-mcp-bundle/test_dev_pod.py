@@ -159,17 +159,17 @@ def test_no_ingress_ingressroute_or_loadbalancer_exposes_the_dev_pod(paths):
 
 
 def test_dev_pod_overlay_is_referenced_by_a_flux_kustomization(run_cmd, paths):
-    ks = paths["repo"] / "flux/clusters/fleet/ks-dev-pod.yaml"
-    assert ks.is_file(), "erwartet: flux/clusters/fleet/ks-dev-pod.yaml"
+    ks = paths["repo"] / "flux/clusters/devmesh/ks-workspace.yaml"
+    assert ks.is_file(), "erwartet: flux/clusters/devmesh/ks-workspace.yaml"
     res = _y(run_cmd, paths["repo"], ks, "d.kind+' '+d.spec.path")
-    assert res.output == "Kustomization ./dev-pod"
-    kust = paths["repo"] / "prod-fleet/dev-pod/kustomization.yaml"
-    assert kust.is_file(), "erwartet: prod-fleet/dev-pod/kustomization.yaml"
+    assert res.output == "Kustomization ./workspace"
+    kust = paths["repo"] / "dev-local/components/dev-pod/kustomization.yaml"
+    assert kust.is_file(), "erwartet: dev-local/components/dev-pod/kustomization.yaml"
     assert "k3d/dev-pod" in kust.read_text()
 
 
 def test_the_render_pipeline_emits_the_dev_pod_overlay_into_the_artifact_tree(paths):
-    assert "prod-fleet/dev-pod" in (paths["repo"] / "scripts/flux-render-artifact.sh").read_text()
+    assert "components/dev-pod" in (paths["repo"] / "dev-local/core/kustomization.yaml").read_text()
 
 
 def test_memory_requests_stay_well_below_the_monolith_s_960mi_declaration(run_cmd, paths):

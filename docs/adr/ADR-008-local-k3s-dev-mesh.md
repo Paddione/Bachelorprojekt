@@ -58,7 +58,7 @@ Entwicklung ist Windows-nativ" und „es gibt keinen lokalen Cluster".
 | # | Punkt |
 |---|---|
 | 1 | **Lokaler k3s-Dev-Cluster** — `gpu-metal` als Server (Control-Plane + etcd), `gpu-cluster` + `gpu-cluster2` als Agents. Der **WSL-GPU-Host tritt als GPU-Worker bei** (Node-Label `gpu=true`, Taint für GPU-Workloads). Neuer kubeconfig-Context **`devmesh`**. |
-| 2 | **Voller Dev-Stack lokal** — der `workspace-dev`-äquivalente Stack (Website, shared-db, Nextcloud, Pocket ID, Collabora, …) läuft auf `devmesh`. `dev.mentolder.de` / `workspace-dev` auf **fleet bleibt** als geteilte/öffentliche Referenz-Umgebung *(abgelöst durch [ADR-015](ADR-015-devmesh-eigenes-flux.md): kein Dev-Stack auf fleet, eigenes Flux auf devmesh)*. |
+| 2 | **Voller Dev-Stack lokal** — der `workspace-dev`-äquivalente Stack (Website, shared-db, Nextcloud, Pocket ID, Collabora, …) läuft auf `devmesh`. `dev.mentolder.de` / `workspace-dev` auf **fleet bleibt** als geteilte/öffentliche Referenz-Umgebung *(abgelöst durch [ADR-016](ADR-016-devmesh-eigenes-flux.md): kein Dev-Stack auf fleet, eigenes Flux auf devmesh)*. |
 | 3 | **WireGuard-Dev-Mesh** — erweitert das bestehende `192.168.100.0/24`-Mesh um die 3 Bare-Metal, den WSL-GPU-Host (`.10`, bereits drin) sowie PK-Tablet und PK-L-1 (gekko). LAN-Peers (Bare-Metal) direkt, mobile Peers als Roaming-Clients. Überbrückt beide Subnetze (`10.1.0.x` / `10.10.10.x`, beide Gateway `10.0.0.1`, flach routbar). |
 | 4 | **Repo pro Maschine** — jede Maschine hält einen eigenen, einmalig git-crypt-entsperrten Clone. **Kein** Shared-Clone wie in T900104 (pro Mensch genau eine physische Maschine). gekko wird auf PK-L-1 mit WSL + Clone + git-crypt-Key + `gh`-Auth aufgesetzt. |
 | 5 | **Factory-Runner bleibt fleet-primär** (ADR-007 A unangetastet). `devmesh` kann optional zusätzlich einen Runner gegen die lokale DB fahren (schnelle Iteration), ohne den fleet-Runner zu ersetzen. |
@@ -127,7 +127,7 @@ Jedes TP durchläuft einzeln spec → plan → execute.
 | **SP-0** | **Diese ADR + Programm-Doc + Ticket T900115.** Kein Code. |
 | **SP-1** | **WireGuard-Dev-Mesh** — Peer-Config für 3 Bare-Metal + WSL + PK-Tablet + PK-L-1, LAN vs. Roaming, DNS. Prior Art: `wireguard/wg-mesh-nodes.yaml`, `scripts/hetzner/generate-wg-conf.sh`. |
 | **SP-2** | **k3s-Provisionierung** — Server/Agent-Rollen, WSL als GPU-Worker, Context `devmesh`, Storage (local-path/longhorn), Traefik-Ingress, lokale TLS-CA. Neues `dev-local/`-Overlay auf `k3d/`-Basis. |
-| **SP-3** | **Dev-Stack auf `devmesh`** — voller Stack, Domain-Strategie, Secrets (sealed vs. plain für LAN), Pocket-ID lokal vs. geteilt, GitOps (flux-Branch vs. push-`task`) *(abgelöst durch [ADR-015](ADR-015-devmesh-eigenes-flux.md): Flux aus devmesh-manifests)*. |
+| **SP-3** | **Dev-Stack auf `devmesh`** — voller Stack, Domain-Strategie, Secrets (sealed vs. plain für LAN), Pocket-ID lokal vs. geteilt, GitOps (flux-Branch vs. push-`task`) *(abgelöst durch [ADR-016](ADR-016-devmesh-eigenes-flux.md): Flux aus devmesh-manifests)*. |
 | **SP-4** | **Repo pro Maschine + gekko-Onboarding** — Per-Maschine-Clone, git-crypt-Key-Verteilung, Hooks, Identität. Ersetzt `openspec/specs/work-vm-shared-dev.md` durch das Per-Maschine-Modell. |
 | **SP-5** | **k3d-Altlasten** — `FACTORY_CTX`, e2e, nextcloud-Deploy-Default, `work-vm-guards.bats`, CLAUDE.md-Regeln. Teilweise parallel zu SP-3/SP-4. |
 

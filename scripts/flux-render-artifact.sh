@@ -12,12 +12,13 @@ PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/lib/render-subst-list.sh"
 
 OUT_DIR="out"
-# --only a,b rendert nur die genannten Komponenten (platform, dev, dev-pod, mentolder,
+# --only a,b rendert nur die genannten Komponenten (platform, mentolder,
 # korczewski, korczewski-jobs, website-mentolder, website-korczewski, korczewski-auth,
 # staging, website-staging, coturn, office, rustdesk,
 # sealed-secrets-{mentolder,korczewski,staging}, clusters).
 # Leer = alles (Default).
 ONLY=""
+KNOWN_COMPONENTS="platform mentolder korczewski korczewski-jobs website-mentolder website-korczewski korczewski-auth staging website-staging coturn office rustdesk sealed-secrets-mentolder sealed-secrets-korczewski sealed-secrets-staging clusters"
 # WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
 # WEBSITE_IMAGE_TAG steuert den Image-Tag — getrennte Konzepte, nicht koppeln (T002209).
 # Siehe Task 2.2 fuer die Default-Werte des Tags.
@@ -48,6 +49,23 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ -n "$ONLY" ]]; then
+  IFS=',' read -ra _COMPS <<< "$ONLY"
+  for _comp in "${_COMPS[@]}"; do
+    _valid=0
+    for _known in $KNOWN_COMPONENTS; do
+      if [[ "$_comp" == "$_known" ]]; then
+        _valid=1
+        break
+      fi
+    done
+    if [[ $_valid -eq 0 ]]; then
+      echo "unbekannte Komponente: $_comp" >&2
+      exit 2
+    fi
+  done
+fi
 
 # want <komponente>: true, wenn kein --only gesetzt ist oder die Komponente darin steht.
 want() { [[ -z "$ONLY" || ",${ONLY}," == *",$1,"* ]]; }
@@ -232,63 +250,6 @@ if want platform; then
   mkdir -p "${OUT_DIR}/platform"
   render_component prod-fleet/platform "${OUT_DIR}/platform/platform.yaml"
 )
-fi
-
-# 1b. Dev (workspace-dev namespace)
-#
-# T002174: environments/schema.yaml:474 spezifiziert für DEV_DOMAIN
-# "Empty disables the dev stack." Der Renderer setzte den leeren Wert stattdessen
-# stumpf ein, wodurch k3d/dev-stack/dev-ingress.yaml als `host: "*."` und
-# `tls.hosts[0]: ""` im Artefakt landete. Beides ist für die Kubernetes-API ungültig,
-# die flux-dev-Kustomization scheiterte am Dry-Run — und Flux appliziert dann den
-# GESAMTEN Satz darin nicht mehr, nicht nur das kaputte Ingress.
-# Aus einer Abschaltung wurde so eine Fehlkonfiguration.
-#
-# T002630: DEV_DOMAIN kommt seit der Env-Entflechtung aus environments/dev-cluster.yaml.
-# environments/dev.yaml beschreibt die lokale k3d-Umgebung (keine oeffentliche Domain)
-# und darf den Cluster-Dev-Stack nicht mehr abschalten. Siehe environments/schema.yaml
-# DEV_DOMAIN-Doku.
-if want dev; then
-(
-  set +u
-  # Kein `|| true`: schlug env-resolve fehl, lief der Render mit leerer Umgebung
-  # weiter und schrieb ein Manifest voller leer substituierter Werte ins Artefakt.
-  if ! source scripts/env-resolve.sh dev-cluster 2>/dev/null; then
-    echo "ERROR: env-resolve.sh dev failed — refusing to render the dev stack with" >&2
-    echo "       an empty environment (would emit empty-substituted manifests)." >&2
-    exit 1
-  fi
-  mkdir -p "${OUT_DIR}/dev"
-  if [[ -z "${DEV_DOMAIN:-}" ]]; then
-    # Leeres, gültiges Kustomize-Verzeichnis statt gar keines: die flux-dev
-    # Kustomization zeigt fest auf path=./dev mit prune=true. Fehlte das Verzeichnis,
-    # scheiterte sie an "path not found" — also wieder rot, nur mit anderem Text.
-    # So wird sie Ready, appliziert nichts und prunt einen etwaigen Altbestand sauber weg.
-    echo "flux-render: DEV_DOMAIN is empty — rendering an empty dev stack (schema.yaml contract)."
-    cat > "${OUT_DIR}/dev/kustomization.yaml" <<'EOF'
-# Rendered empty by scripts/flux-render-artifact.sh: DEV_DOMAIN is unset for this
-# environment, and environments/schema.yaml defines that as "Empty disables the dev stack".
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources: []
-EOF
-  else
-    render_component prod-fleet/dev "${OUT_DIR}/dev/dev.yaml"
-  fi
-)
-fi
-
-# 1d. dev-pod (T900107) — MCP-Server-Bundle + llm-proxy in workspace-dev.
-#
-# Eigener Render-Schritt statt eines Eintrags in prod-fleet/dev: der Dev-Stack
-# haengt an DEV_DOMAIN ("Empty disables the dev stack", environments/schema.yaml)
-# und wird bei leerem Wert als leere Kustomization gerendert. Der dev-pod ist
-# davon unabhaengig — er traegt keine Domain und keinen Ingress.
-#
-# Kein vorheriges env-resolve.sh: das Overlay enthaelt keinen ${VAR}-Platzhalter,
-if want dev-pod; then
-mkdir -p "${OUT_DIR}/dev-pod"
-render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
 fi
 
 # 2. Mentolder

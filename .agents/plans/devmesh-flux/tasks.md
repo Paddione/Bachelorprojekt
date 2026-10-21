@@ -191,49 +191,49 @@ bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k flux
 
 ## Task 8: Rollout auf devmesh (live, nur nach Freigabe)
 
-- [ ] Freigabe des Nutzers für Installation von Flux auf devmesh einholen.
-- [ ] read:packages-Token für `ghcr-auth` beim Nutzer anfordern, mit dem
+- [x] Freigabe des Nutzers für Installation von Flux auf devmesh einholen.
+- [x] read:packages-Token für `ghcr-auth` beim Nutzer anfordern, mit dem
   devmesh-Controller versiegeln (`kubeseal --context devmesh --controller-namespace
   sealed-secrets`), als `flux/clusters/devmesh/bootstrap/ghcr-auth-sealedsecret.yaml`
   committen. Nie Klartext committen.
-- [ ] Nach Merge von Task 1–7: Workflow-Lauf abwarten, Artefakt vorhanden
+- [x] Nach Merge von Task 1–7: Workflow-Lauf abwarten, Artefakt vorhanden
   (`crane digest ghcr.io/paddione/devmesh-manifests:latest`), dann
   `task devmesh:flux:install`.
-- [ ] `flux --context devmesh get kustomizations -A`: `devmesh-platform`,
+- [x] `flux --context devmesh get kustomizations -A`: `devmesh-platform`,
   `devmesh-secrets`, `devmesh-workspace` Ready. Übernahme-Konflikte nach
   Design Abschnitt 6 behandeln (`task devmesh:flux:suspend`, bereinigen, `resume`).
-- [ ] Datenkopie: auf fleet `dev-pod` auf 0 skalieren, PVCs `dev-pod-home` und
+- [x] Datenkopie: auf fleet `dev-pod` auf 0 skalieren, PVCs `dev-pod-home` und
   `dev-pod-repo` per Hilfs-Pod als `tar` streamen
   (`kubectl --context fleet exec … tar -C /data -cf - . | kubectl --context devmesh exec … tar -C /data -xf -`),
   danach Dateiliste mit Prüfsummen auf beiden Seiten vergleichen.
-- [ ] Abnahme: `ssh` über das Tailnet auf `dev-pod` (Hostname `dev-pod`),
+- [x] Abnahme: `ssh` über das Tailnet auf `dev-pod` (Hostname `dev-pod`),
   Home-Inhalt vorhanden, `repo-sync` aktuell.
 
 ## Task 9: Abbau auf fleet
 
 Teil A (live, nur nach Freigabe und erfolgreicher Abnahme aus Task 8):
 
-- [ ] `kubectl --context fleet -n flux-system delete kustomization flux-dev flux-dev-pod`.
+- [x] `kubectl --context fleet -n flux-system delete kustomization flux-dev flux-dev-pod`.
   Beide haben `prune: true` und löschen ihre Workloads mit; die Daten sind seit
   Task 8 kopiert. Danach `kubectl --context fleet get ns workspace-dev` prüfen und
   verbleibende PVCs/Namespace nur mit Freigabe löschen.
 
 Teil B (Repo):
 
-- [ ] Vor dem Löschen Referenzen prüfen und jede Fundstelle anpassen:
+- [x] Vor dem Löschen Referenzen prüfen und jede Fundstelle anpassen:
 ```bash
 grep -rn 'k3d/dev-stack\|prod-fleet/dev\b\|prod-fleet/dev-pod\|ks-dev' --include=*.yml --include=*.yaml --include=*.sh --include=*.py . | grep -v '^./docs/'
 ```
-- [ ] `flux/clusters/fleet/ks-dev.yaml`, `flux/clusters/fleet/ks-dev-pod.yaml`,
+- [x] `flux/clusters/fleet/ks-dev.yaml`, `flux/clusters/fleet/ks-dev-pod.yaml`,
   `prod-fleet/dev/`, `prod-fleet/dev-pod/` löschen.
-- [ ] `scripts/flux-render-artifact.sh`: Blöcke `want dev` und `want dev-pod`
+- [x] `scripts/flux-render-artifact.sh`: Blöcke `want dev` und `want dev-pod`
   extrahieren bzw. entfernen (Datei wird kleiner) und die Komponentenliste im
   Kopf anpassen. `want()` (Zeile 53) prüft `--only` heute nicht gegen bekannte
   Namen: neue Validierung nach dem Argument-Parsing, unbekannte Namen brechen mit
   Exit 2 und Meldung „unbekannte Komponente: <name>“ ab.
-- [ ] `k3d/dev-stack/`: nur entfernen, was keine andere Stelle mehr nutzt
+- [x] `k3d/dev-stack/`: nur entfernen, was keine andere Stelle mehr nutzt
   (Ergebnis des grep oben). `k3d/dev-pod/` bleibt als Basis für Task 2.
-- [ ] Grün für `test_fleet_dev_components_gone` und den ganzen Vertrag:
+- [x] Grün für `test_fleet_dev_components_gone` und den ganzen Vertrag:
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q
 bash scripts/pytest-run.sh tests/py/spec/test_flux_render_and_security.py -q
@@ -241,7 +241,7 @@ bash scripts/pytest-run.sh tests/py/spec/test_flux_render_and_security.py -q
 
 ## Task 10: Finale Verifikation
 
-- [ ] Alle Verträge grün, Inventar aktualisiert, nur erwartete Dateien gestagt.
+- [x] Alle Verträge grün, Inventar aktualisiert, nur erwartete Dateien gestagt.
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py tests/py/spec/test_massage_devmesh.py tests/py/spec/test_flux_render_and_security.py -q
 task test:inventory
@@ -250,7 +250,7 @@ task test:changed
 task freshness:regenerate
 task freshness:check
 ```
-- [ ] Baseline-Key-Anzahl von `docs/code-quality/baseline.json` gegen `main`
+- [x] Baseline-Key-Anzahl von `docs/code-quality/baseline.json` gegen `main`
   unverändert.
 
 <!-- vitest: kein neuer Test nötig, weil kein Website-Code geändert wird; die Verträge laufen als pytest. -->

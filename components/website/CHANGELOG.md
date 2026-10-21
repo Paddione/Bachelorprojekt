@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.427.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.426.0...website-v1.427.0) (2026-10-20)
+
+
+### Features
+
+* **website:** SDLC Live-Lage ohne DB (gh+git+Plandateien) ([#6693](https://github.com/Paddione/Bachelorprojekt/issues/6693)) ([63c466f](https://github.com/Paddione/Bachelorprojekt/commit/63c466ffdb269d2f7146e0aec548c457b4ea4742))
+
 ## [1.426.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.425.5...website-v1.426.0) (2026-10-16)
 
 

@@ -168,7 +168,7 @@ bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k flux
 
 ## Task 6: Taskfile
 
-- [ ] `taskfiles/Taskfile.devmesh.yml`:
+- [x] `taskfiles/Taskfile.devmesh.yml`:
   - `flux:install`: flux-operator per helm (`oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator`)
     in `flux-system` auf Context `devmesh`, dann `kubectl apply -f flux/clusters/devmesh/bootstrap/`
     und `flux/clusters/devmesh/flux-instance.yaml`.
@@ -177,7 +177,7 @@ bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k flux
     Kustomization in `flux-system` existiert, Override `FORCE=1`; Meldung nennt
     `task devmesh:flux:suspend`.
   - Usage-Kopf um die drei neuen Tasks ergänzen.
-- [ ] `task --list | grep devmesh:flux` listet drei Tasks.
+- [x] `task --list | grep devmesh:flux` listet drei Tasks.
 
 ## Task 7: ADR
 

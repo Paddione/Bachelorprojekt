@@ -58,7 +58,7 @@ wächst um den `--out`-Modus, deutlich unter der Schwelle.
 
 ## Task 1: Rote Verträge (pytest)
 
-- [ ] `tests/py/spec/devmesh/test_devmesh_flux.py` anlegen (Fixture `repo_root`
+- [x] `tests/py/spec/devmesh/test_devmesh_flux.py` anlegen (Fixture `repo_root`
   wie in `tests/py/spec/test_massage_devmesh.py`). Tests rufen die Skripte auf und
   prüfen deren Ausgabe, nicht den Quelltext:
   - `test_render_out_layout`: `bash scripts/devmesh/render-stack.sh core --out <tmp>`
@@ -78,11 +78,11 @@ wächst um den `--out`-Modus, deutlich unter der Schwelle.
   - `test_fleet_dev_components_gone`: `bash scripts/flux-render-artifact.sh --out <tmp> --only dev`
     endet mit Exit 2 und Meldung „unbekannte Komponente: dev“, und `flux/clusters/fleet/` enthält
     keine `ks-dev*.yaml`.
-- [ ] Rotbeleg (expected: FAIL, alle fünf Tests):
+- [x] Rotbeleg (expected: FAIL, alle fünf Tests):
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q
 ```
-- [ ] Commit `test(red): devmesh-flux contracts`.
+- [x] Commit `test(red): devmesh-flux contracts`.
 
 ## Task 2: dev-pod als devmesh-Komponente
 

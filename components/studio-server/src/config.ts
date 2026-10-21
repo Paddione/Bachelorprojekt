@@ -4,6 +4,7 @@ export interface Config {
   issuers: { url: string; brand: 'mentolder' | 'korczewski' }[];
   llmRouterUrl: string;
   whisperUrl: string;
+  unslothStudioUrl: string;
   logLevel: string;
 }
 
@@ -22,6 +23,7 @@ export function loadConfig(env = process.env): Config {
     ],
     llmRouterUrl: env.LLM_ROUTER_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234',
     whisperUrl: env.WHISPER_URL ?? 'http://whisper.workspace.svc.cluster.local:8000',
+    unslothStudioUrl: env.UNSLOTH_STUDIO_URL ?? 'http://127.0.0.1:8888',
     logLevel: env.LOG_LEVEL ?? 'info',
   };
 }

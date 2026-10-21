@@ -8,12 +8,14 @@ import { makeAdminRouter } from './admin';
 import { makeLlmRouter } from './llm';
 import { makeTranscribeRouter } from './transcribe';
 import { makeExportRouter } from './export';
+import { makeGpuRouter } from './gpu';
 
 export interface ApiDeps {
   repo: Repo;
   auth: AuthMiddleware;
   llmRouterUrl: string;
   whisperUrl: string;
+  unslothStudioUrl?: string;
 }
 
 export function makeApiRouter(deps: ApiDeps): Router {
@@ -26,5 +28,6 @@ export function makeApiRouter(deps: ApiDeps): Router {
   r.use(makeLlmRouter(deps.repo, deps.llmRouterUrl));
   r.use(makeTranscribeRouter(deps.whisperUrl));
   r.use(makeExportRouter(deps.repo));
+  r.use(makeGpuRouter(deps.unslothStudioUrl));
   return r;
 }

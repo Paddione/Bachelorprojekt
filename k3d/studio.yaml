@@ -56,6 +56,8 @@ spec:
               value: "${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}"
             - name: WHISPER_URL
               value: "${WHISPER_URL:-http://whisper.workspace.svc.cluster.local:8000}"
+            - name: UNSLOTH_STUDIO_URL
+              value: "${UNSLOTH_STUDIO_URL:-http://host.k3d.internal:8888}"
             - name: LOG_LEVEL
               value: "info"
           ports:

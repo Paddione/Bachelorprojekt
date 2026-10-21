@@ -175,7 +175,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`studio.localhost`)
+    - match: Host(`studio.localhost`) || Host(`gpu.localhost`)
       kind: Rule
       services:
         - name: oauth2-proxy-studio

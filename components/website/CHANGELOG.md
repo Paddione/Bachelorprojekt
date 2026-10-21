@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.428.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.427.0...website-v1.428.0) (2026-10-21)
+
+
+### Features
+
+* **infra:** fail-closed lifecycle gate + sandbox claim per plan ([#6755](https://github.com/Paddione/Bachelorprojekt/issues/6755)) ([2c33e01](https://github.com/Paddione/Bachelorprojekt/commit/2c33e01fcfa8635aaed84d5fa737d1221ad4c552))
+
 ## [1.427.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.426.0...website-v1.427.0) (2026-10-20)
 
 

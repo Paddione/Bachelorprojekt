@@ -7,8 +7,6 @@ import threading
 
 import pytest
 
-STUB_PORT = 18778
-
 FAKE_PSQL = r'''#!/bin/bash
 LOG_FILE="__TMPD__/psql-calls.log"
 echo "$*" >> "$LOG_FILE"
@@ -71,11 +69,17 @@ class _StubHandler(http.server.BaseHTTPRequestHandler):
 
 @pytest.fixture
 def reg(repo_root, tmp_path):
-    """BATS setup: Fake-psql auf PATH, Stub-LLM-Server auf 127.0.0.1:18778."""
+    """BATS setup: Fake-psql auf PATH, Stub-LLM-Server auf einem freien Port.
+
+    Port 0 statt hartem 18778: die Spec-Suite laeuft parallel (xdist, bis zu 4
+    Worker); ein fester Port macht zwei gleichzeitige Fixture-Setups desselben
+    Modells zum Race (OSError: [Errno 98] Address already in use).
+    """
     psql = tmp_path / "psql"
     psql.write_text(FAKE_PSQL.replace("__TMPD__", str(tmp_path)), encoding="utf-8")
     psql.chmod(0o755)
-    server = http.server.HTTPServer(("127.0.0.1", STUB_PORT), _StubHandler)
+    server = http.server.HTTPServer(("127.0.0.1", 0), _StubHandler)
+    stub_port = server.server_address[1]
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     yield {
@@ -88,6 +92,7 @@ def reg(repo_root, tmp_path):
         "log": tmp_path / "psql-calls.log",
         "tmp": tmp_path,
         "repo": repo_root,
+        "stub_port": stub_port,
     }
     server.shutdown()
     server.server_close()
@@ -145,7 +150,8 @@ def test_register_mit_provenienz_ruft_upsert_provenance_auf(run_cmd, reg):
 
 
 def test_eval_ohne_dry_run_score_landet_in_upsert_eval_score_aufruf(run_cmd, reg):
-    r = run_cmd(["bash", reg["cli"], "eval", "my-adapter", "scout", "--endpoint", f"http://127.0.0.1:{STUB_PORT}/v1"],
+    r = run_cmd(["bash", reg["cli"], "eval", "my-adapter", "scout", "--endpoint",
+                 f"http://127.0.0.1:{reg['stub_port']}/v1"],
                 env=_env(reg))
     assert r.returncode == 0, r.output
     text = _log(reg)
@@ -156,7 +162,7 @@ def test_eval_ohne_dry_run_score_landet_in_upsert_eval_score_aufruf(run_cmd, reg
 
 def test_eval_mit_dry_run_macht_keine_db_calls(run_cmd, reg):
     r = run_cmd(["bash", reg["cli"], "eval", "my-adapter", "scout", "--dry-run",
-                 "--endpoint", f"http://127.0.0.1:{STUB_PORT}/v1"], env=_env(reg))
+                 "--endpoint", f"http://127.0.0.1:{reg['stub_port']}/v1"], env=_env(reg))
     assert r.returncode == 0, r.output
     assert _no_db_calls(reg)
 
@@ -206,5 +212,5 @@ def test_eval_runner_validiert_das_testset_zu_kurz_exit_1(run_cmd, reg):
     lines = (reg["repo"] / "scripts" / "finetune" / "testsets" / "agent-actions.jsonl").read_text(encoding="utf-8").splitlines(True)
     short.write_text("".join(lines[:10]), encoding="utf-8")
     r = run_cmd(["bash", reg["cli"], "eval", "my-adapter", "scout", "--testset", str(short), "--dry-run",
-                 "--endpoint", f"http://127.0.0.1:{STUB_PORT}/v1"], env=_env(reg))
+                 "--endpoint", f"http://127.0.0.1:{reg['stub_port']}/v1"], env=_env(reg))
     assert r.returncode == 1, r.output

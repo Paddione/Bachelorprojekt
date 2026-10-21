@@ -40,13 +40,18 @@ TOOLS = [
                     "description": "Virtual memory limit in MB (default 512).",
                     "default": 512,
                 },
+                "allow_network": {
+                    "type": "boolean",
+                    "description": "Allow outbound network access (default false for airgap isolation).",
+                    "default": False,
+                },
             },
             "required": ["code"],
         },
     },
     {
         "name": "sandbox_run_pytest",
-        "description": "Run a pytest test suite against source files inside an airgapped Bubblewrap sandbox.",
+        "description": "Run a pytest test suite against source files inside a Bubblewrap sandbox.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -63,6 +68,11 @@ TOOLS = [
                     "type": "integer",
                     "description": "Timeout in seconds (default 30).",
                     "default": 30,
+                },
+                "allow_network": {
+                    "type": "boolean",
+                    "description": "Allow outbound network access (default false for airgap isolation).",
+                    "default": False,
                 },
             },
             "required": ["test_code"],
@@ -109,12 +119,14 @@ def handle_request(req: dict[str, Any]) -> dict[str, Any] | None:
             files = args.get("files", {})
             timeout = args.get("timeout_seconds", 15)
             mem_mb = args.get("memory_limit_mb", 512)
+            allow_net = bool(args.get("allow_network", False))
 
             res = engine.execute(
                 code=code,
                 files=files,
                 timeout_seconds=timeout,
                 memory_limit_mb=mem_mb,
+                allow_network=allow_net,
             )
             return {
                 "jsonrpc": "2.0",
@@ -134,11 +146,13 @@ def handle_request(req: dict[str, Any]) -> dict[str, Any] | None:
             test_code = args.get("test_code", "")
             source_files = args.get("source_files", {})
             timeout = args.get("timeout_seconds", 30)
+            allow_net = bool(args.get("allow_network", False))
 
             res = engine.run_pytest(
                 test_code=test_code,
                 source_files=source_files,
                 timeout_seconds=timeout,
+                allow_network=allow_net,
             )
             return {
                 "jsonrpc": "2.0",

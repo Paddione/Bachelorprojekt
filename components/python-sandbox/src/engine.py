@@ -105,24 +105,32 @@ class SandboxEngine:
             raise ValueError(f"Path traversal detected or absolute path forbidden: {relative_path}")
         return p
 
-    def _find_site_packages(self) -> str | None:
-        """Find user or venv site-packages to mount read-only into sandbox."""
+    def _find_site_packages(self) -> list[str]:
+        """Find user, venv and system site-packages to mount read-only into sandbox."""
+        import sys
+        found: list[str] = []
+        seen: set[str] = set()
         candidates = [
+            Path.home() / f".local/lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages",
             Path.home() / ".local/lib/python3.12/site-packages",
             Path.home() / ".local/lib/python3.13/site-packages",
         ]
-        # Also check current sys.path
-        import sys
         for p in sys.path:
             if "site-packages" in p and os.path.isdir(p):
                 candidates.append(Path(p))
 
         for c in candidates:
-            if c.is_dir() and (c / "pytest").is_dir():
-                return str(c)
-        return None
+            if c.is_dir():
+                try:
+                    resolved = str(c.resolve())
+                    if resolved not in seen:
+                        seen.add(resolved)
+                        found.append(resolved)
+                except OSError:
+                    pass
+        return found
 
-    def _build_bwrap_command(self, ws_dir: str, inner_cmd: list[str]) -> list[str]:
+    def _build_bwrap_command(self, ws_dir: str, inner_cmd: list[str], allow_network: bool = False) -> list[str]:
         """Construct the bubblewrap command line with canonical UsrMerge and strict isolation."""
         assert self.bwrap_path is not None
 
@@ -143,11 +151,13 @@ class SandboxEngine:
             cmd.extend(["--ro-bind", "/etc/alternatives", "/etc/alternatives"])
 
         # Mount discovered site-packages read-only if present
-        site_pkgs = self._find_site_packages()
-        python_path = "/workspace"
-        if site_pkgs:
-            cmd.extend(["--ro-bind", site_pkgs, "/opt/site-packages"])
-            python_path = f"/opt/site-packages:/workspace"
+        site_paths = self._find_site_packages()
+        python_paths = ["/workspace"]
+        for idx, sp in enumerate(site_paths):
+            mount_point = f"/opt/site-packages-{idx}" if idx > 0 else "/opt/site-packages"
+            cmd.extend(["--ro-bind", sp, mount_point])
+            python_paths.append(mount_point)
+        python_path = ":".join(python_paths)
 
         # Mount active virtual environment / runtime prefix if outside /usr
         import sys
@@ -164,8 +174,6 @@ class SandboxEngine:
             # Isolated workspace mounted at /workspace
             "--bind", ws_dir, "/workspace",
             "--chdir", "/workspace",
-            # Complete namespace separation (PID, NET, IPC, UTS, USER, CGROUP)
-            "--unshare-all",
             "--die-with-parent",
             # Sanitized clean environment
             "--clearenv",
@@ -176,6 +184,23 @@ class SandboxEngine:
             "--setenv", "PYTHONDONTWRITEBYTECODE", "1",
             "--setenv", "HOME", "/tmp",
         ])
+
+        if allow_network:
+            cmd.extend([
+                "--unshare-user",
+                "--unshare-ipc",
+                "--unshare-pid",
+                "--unshare-uts",
+                "--unshare-cgroup",
+                "--share-net",
+            ])
+            if os.path.exists("/etc/resolv.conf"):
+                cmd.extend(["--ro-bind", "/etc/resolv.conf", "/etc/resolv.conf"])
+            if os.path.isdir("/run/systemd/resolve"):
+                cmd.extend(["--ro-bind", "/run/systemd/resolve", "/run/systemd/resolve"])
+        else:
+            # Complete namespace separation (PID, NET, IPC, UTS, USER, CGROUP)
+            cmd.append("--unshare-all")
 
         # Ensure python binary uses absolute path inside sandbox
         resolved_cmd = list(inner_cmd)
@@ -195,6 +220,7 @@ class SandboxEngine:
         timeout_seconds: int | None = None,
         memory_limit_mb: int | None = None,
         entrypoint_filename: str = "main.py",
+        allow_network: bool = False,
     ) -> SandboxResult:
         """Execute Python code in the sandbox."""
         timeout = timeout_seconds or self.default_timeout_seconds
@@ -250,7 +276,7 @@ with open(entry_file, 'rb') as f:
             if not self.is_bubblewrap_available:
                 raise RuntimeError("Bubblewrap (bwrap) ist nicht verfügbar oder fehlt. Ausführung auf dem Host verweigert.")
 
-            cmd = self._build_bwrap_command(ws_dir, [self.python_bin, "/workspace/__runner__.py"])
+            cmd = self._build_bwrap_command(ws_dir, [self.python_bin, "/workspace/__runner__.py"], allow_network=allow_network)
 
             start_t = time.perf_counter()
             timed_out = False
@@ -307,6 +333,7 @@ with open(entry_file, 'rb') as f:
         source_files: dict[str, str] | None = None,
         timeout_seconds: int = 30,
         extra_pytest_args: list[str] | None = None,
+        allow_network: bool = False,
     ) -> PytestResult:
         """Run a pytest suite inside the sandbox."""
         files = dict(source_files or {})
@@ -337,7 +364,7 @@ sys.exit(code)
             if not self.is_bubblewrap_available:
                 raise RuntimeError("Bubblewrap (bwrap) ist nicht verfügbar oder fehlt. Ausführung auf dem Host verweigert.")
 
-            cmd = self._build_bwrap_command(ws_dir, inner_cmd)
+            cmd = self._build_bwrap_command(ws_dir, inner_cmd, allow_network=allow_network)
 
             start_t = time.perf_counter()
             timed_out = False

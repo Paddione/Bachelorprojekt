@@ -140,3 +140,15 @@ def test_bwrap_unavailable_raises_runtime_error():
     with pytest.raises(RuntimeError, match="Bubblewrap"):
         engine.run_pytest("def test_x(): pass")
 
+
+def test_allow_network_toggle(engine):
+    code = """
+import socket
+ip = socket.gethostbyname('localhost')
+print('LOCALHOST_IP:', ip)
+"""
+    res = engine.execute(code, allow_network=True)
+    assert res.success is True
+    assert "LOCALHOST_IP: 127.0.0.1" in res.stdout
+
+

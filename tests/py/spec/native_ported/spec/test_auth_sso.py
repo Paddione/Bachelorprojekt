@@ -59,31 +59,33 @@ def test_prod_render_mentolder_every_email_domain_gate_is_group_restricted(rende
     assert wildcard == groups, f"FAIL: {wildcard} wildcard gates but {groups} allowed-group restrictions"
 
 
-def test_prod_render_mentolder_exactly_4_gates_carry_allowed_group_workspace_users(rendered):
+def test_prod_render_mentolder_exactly_3_gates_carry_allowed_group_workspace_users(rendered):
     # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
     # Brett-Entfernung: oauth2-proxy-brett ist aus dem lokalen mentolder-Overlay
     # geloescht (Prod-Brett laeuft ueber gekko32/mentolder-prod) — 5 auf 4.
+    # devmesh-dev-tools: oauth2-proxy-brain nach devmesh umgezogen — 4 auf 3.
     count = _count_lines(rendered["mentolder"], "- --allowed-group=workspace-users")
-    assert count == 4, f"FAIL: expected 4 allowed-group gates, got {count}"
+    assert count == 3, f"FAIL: expected 3 allowed-group gates, got {count}"
 
 
-def test_prod_render_mentolder_exactly_5_gates_carry_oidc_groups_claim_groups(rendered):
+def test_prod_render_mentolder_exactly_4_gates_carry_oidc_groups_claim_groups(rendered):
     # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
-    # Brett-Entfernung: siehe oben — 6 auf 5.
+    # Brett-Entfernung: siehe oben — 6 auf 5. devmesh-dev-tools: brain — 5 auf 4.
     count = _count_lines(rendered["mentolder"], "- --oidc-groups-claim=groups")
-    assert count == 5, f"FAIL: expected 5 oidc-groups-claim gates, got {count}"
+    assert count == 4, f"FAIL: expected 4 oidc-groups-claim gates, got {count}"
 
 
-def test_prod_render_mentolder_exactly_5_gates_request_the_groups_scope(rendered):
+def test_prod_render_mentolder_exactly_4_gates_request_the_groups_scope(rendered):
     # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
-    # Brett-Entfernung: siehe oben — 6 auf 5.
+    # Brett-Entfernung: siehe oben — 6 auf 5. devmesh-dev-tools: brain — 5 auf 4.
     count = _count_lines(rendered["mentolder"], "- --scope=openid email profile groups")
-    assert count == 5, f"FAIL: expected 5 gates with groups scope, got {count}"
+    assert count == 4, f"FAIL: expected 4 gates with groups scope, got {count}"
 
 
-def test_prod_render_mentolder_the_4_allowlist_gates_keep_authenticated_emails_file(rendered):
+def test_prod_render_mentolder_the_3_allowlist_gates_keep_authenticated_emails_file(rendered):
+    # devmesh-dev-tools: oauth2-proxy-session-hub nach devmesh umgezogen — 4 auf 3.
     count = _count_lines(rendered["mentolder"], "- --authenticated-emails-file")
-    assert count == 4, f"FAIL: expected 3 authenticated-emails-file gates, got {count}"
+    assert count == 3, f"FAIL: expected 3 authenticated-emails-file gates, got {count}"
 
 
 def test_prod_render_korczewski_no_insecure_flags_anywhere(rendered):

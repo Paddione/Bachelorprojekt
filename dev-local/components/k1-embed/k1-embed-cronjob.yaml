@@ -114,7 +114,7 @@ spec:
                 - name: LLM_EMBED_MODEL
                   value: "bge-m3"
                 - name: LLM_EMBED_URL
-                  value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
+                  value: "http://llm-services.workspace.svc.cluster.local:18235"  # llm-proxy routet bge (T900191)
                 - name: HOME
                   value: "/tmp"
                 - name: NPM_CONFIG_CACHE

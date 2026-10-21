@@ -42,7 +42,7 @@ done
 case "$MAX_PAIRS" in ''|*[!0-9]*) echo "error: --max-pairs must be a number" >&2; exit 2 ;; esac
 
 LM_URL="${LM_STUDIO_URL:-http://127.0.0.1:1919}"
-LM_MODEL="${LM_MODEL:-Muse-Glimmer-30B}"
+LM_MODEL="${LM_MODEL:-Qwen3.8-27B}"
 LM_TIMEOUT="${LM_TIMEOUT:-180}"
 # 2048, nicht 1024: Das Modell verbraucht auch mit abgeschaltetem Thinking noch
 # ~1k Token Reasoning; bei 1024 verhungert der Content mit finish_reason=length

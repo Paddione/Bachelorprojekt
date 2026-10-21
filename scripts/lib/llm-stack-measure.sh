@@ -158,8 +158,6 @@ for l in ports:
     s = expected.setdefault(p, set())
     if l.get('slug'):
         s.add(l['slug'])
-    if l.get('slug') == 'glimmer':
-        s.add('Muse-Glimmer-30B')
     model = l.get('model') or ''
     s.add(model.rsplit('/', 1)[-1])
 

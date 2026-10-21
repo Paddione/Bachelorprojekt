@@ -10,39 +10,6 @@
   },
   "loadouts": [
     {
-      "slug": "glimmer",
-      "label": "Muse Glimmer 30B UD-IQ3_XXS + DFlash2 - llama.cpp :1919, 131k Kontext",
-      "model": "models/Muse-Glimmer-30B/Muse-Glimmer-30B-UD-IQ3_XXS.gguf",
-      "port": 1919,
-      "enabled": true,
-      "fit": {
-        "enabled": false,
-        "targetMarginMib": 0,
-        "minCtx": 131072
-      },
-      "args": {
-        "ctx": 131072,
-        "ngl": 999,
-        "parallel": 1,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
-        "loadMode": "mmap",
-        "flashAttention": true,
-        "jinja": true
-      },
-      "speculative": {
-        "specType": "draft-dflash",
-        "draftModelPath": "models/Muse-Glimmer-30B/Muse-Glimmer-30B-DFlash2-Q4_K_M.gguf",
-        "draftNgl": null
-      },
-      "mcp": {
-        "serversConfig": null
-      },
-      "extraArgs": [],
-      "exclusiveGroup": "chat-gpu",
-      "notes": "Live Model Server auf :1919 via systemd user unit glimmer.service [T900365]. Draft-Modell MUSS auf derselben GPU liegen (DFlash2 teilt output.weight). Vorgaenger: qwen38-gsq.service (T900359)."
-    },
-    {
       "slug": "qwen38-220k",
       "label": "Qwen 3.8 27B UD-IQ4_XS - Dual-GPU-Split, ~205k Kontext (llama.cpp)",
       "model": "models--unsloth--Qwen3.8-27B-GGUF/snapshots/4ca720788d1e01f1bff70c033e0d0028fd02e502/Qwen3.8-27B-UD-IQ4_XS.gguf",

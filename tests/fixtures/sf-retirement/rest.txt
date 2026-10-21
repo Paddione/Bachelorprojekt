@@ -88,7 +88,6 @@ scripts/finetune/collect_factory_traces.py
 scripts/finetune/collect_teacher_traces.py
 scripts/finetune/export_gguf.py
 scripts/generate-bitwarden-export.py
-scripts/glimmer-worker-mcp/server.mjs
 scripts/hooks/mishap-tracker.sh
 scripts/hooks/precompact-prune.sh
 scripts/install-dev-tools.sh
@@ -250,8 +249,6 @@ tests/spec/harness-workflow-split/harness-enum.bats
 tests/spec/health-goals/goals-data-path-consistency.bats
 tests/spec/health-goals/llm-stack-goals.bats
 tests/spec/llm-local-dev/comfy-image-mcp.bats
-tests/spec/llm-local-dev/glimmer-serving-profile.bats
-tests/spec/llm-local-dev/glimmer-worker-mcp.bats
 tests/spec/llm-local-dev/opencode-compaction.bats
 tests/spec/local-llm-proxy.bats
 tests/spec/local-llm-proxy/dispatch-capture.bats

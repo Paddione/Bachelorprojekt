@@ -543,7 +543,7 @@ FACTS = [
     F("llmstack", [
         "Which MCP or services run on which ports?",
         "List the local LLM/infra ports.",
-    ], ":1919 27B primary · :8080 Qwen3.5-4B-MTP pool · :8094 27B UD-IQ4_XS (start-qwen-server.ps1, dual-GPU split) · :1234 LM Studio · :13001 mcp-postgres · :13005 bge-mcp · :13007 glimmer-worker-mcp · :18235 llm-proxy (devmesh-forward)."),
+    ], ":1919 27B primary · :8080 Qwen3.5-4B-MTP pool · :8094 27B UD-IQ4_XS (start-qwen-server.ps1, dual-GPU split) · :1234 LM Studio · :13001 mcp-postgres · :13005 bge-mcp · :18235 llm-proxy (devmesh-forward)."),
     F("llmstack", [
         "Where is the llama.cpp binary used by the services?",
         "Which build serves the local models?",

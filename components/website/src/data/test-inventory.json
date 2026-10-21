@@ -3288,6 +3288,12 @@
     "kind": "pytest"
   },
   {
+    "id": "devmesh/devmesh_dev_tools",
+    "file": "tests/py/spec/devmesh/test_devmesh_dev_tools.py",
+    "category": "devmesh",
+    "kind": "pytest"
+  },
+  {
     "id": "devmesh/devmesh_flux",
     "file": "tests/py/spec/devmesh/test_devmesh_flux.py",
     "category": "devmesh",

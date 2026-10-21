@@ -12,7 +12,7 @@ def ctx(repo_root, tmp_path):
     """BATS setup: guard script and sessions source manifest, plus temp-file helper."""
     return {
         "guard": str(repo_root / "scripts" / "render-guard.sh"),
-        "src": repo_root / "prod-fleet" / "mentolder" / "sessions-server.yaml",
+        "src": repo_root / "dev-local" / "components" / "sessions" / "sessions-ingress.yaml",
         "repo": repo_root,
         "tmp": tmp_path,
     }

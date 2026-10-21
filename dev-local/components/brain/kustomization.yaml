@@ -1,0 +1,7 @@
+# dev-local/components/brain — K3 Code-Graph-Webview auf devmesh (brain.${DEVMESH_DOMAIN}).
+# Eingehaengt in dev-local/core. Vorher in mentolder-Prod (prod-fleet/mentolder).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - brain.yaml
+  - ingress.yaml

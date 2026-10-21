@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.429.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.428.0...website-v1.429.0) (2026-10-21)
+
+
+### Features
+
+* **infra:** devmesh flux and dev-pod migration (Tasks 1-7) ([#6770](https://github.com/Paddione/Bachelorprojekt/issues/6770)) ([9e5cbbd](https://github.com/Paddione/Bachelorprojekt/commit/9e5cbbde0d77e36ee3ff8884c684d49d32c1046e))
+
+
+### Bug Fixes
+
+* **security:** harden python sandbox, studio gpu routing and contact form ([#6766](https://github.com/Paddione/Bachelorprojekt/issues/6766)) ([2c7039c](https://github.com/Paddione/Bachelorprojekt/commit/2c7039ccf225af1131163d5ecb624b9f9d413764))
+
 ## [1.428.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.427.0...website-v1.428.0) (2026-10-21)
 
 

@@ -31,7 +31,13 @@ async function main() {
   app.use(makeHealthRouter());
 
   const auth = makeAuthMiddleware({ issuers: cfg.issuers });
-  app.use('/api', makeApiRouter({ repo, auth, llmRouterUrl: cfg.llmRouterUrl, whisperUrl: cfg.whisperUrl }));
+  app.use('/api', makeApiRouter({
+    repo,
+    auth,
+    llmRouterUrl: cfg.llmRouterUrl,
+    whisperUrl: cfg.whisperUrl,
+    unslothStudioUrl: cfg.unslothStudioUrl,
+  }));
 
   app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     const status = typeof err.code === 'number' && err.code >= 400 && err.code < 600 ? err.code : 500;

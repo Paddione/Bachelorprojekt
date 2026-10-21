@@ -7,13 +7,15 @@ metadata:
   name: flux-sealed-secrets-mentolder
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-gekko-tenant-deploy
   path: ./sealed-secrets/mentolder
+  # prune:false — SealedSecrets nie per GC entfernen (vgl. fleet/ks-sealed-secrets.yaml).
   prune: false
   wait: true
 ---
@@ -23,7 +25,7 @@ metadata:
   name: flux-infra-controllers
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   dependsOn:
@@ -31,6 +33,7 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-gekko-tenant-deploy
   path: ./platform
   prune: true
   wait: true
@@ -41,7 +44,7 @@ metadata:
   name: flux-coturn
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   dependsOn:
@@ -50,6 +53,7 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-gekko-tenant-deploy
   path: ./coturn
   prune: true
   wait: true
@@ -63,7 +67,7 @@ metadata:
   name: flux-office
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   dependsOn:
@@ -72,6 +76,7 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-gekko-tenant-deploy
   path: ./office
   prune: true
   wait: true
@@ -84,7 +89,7 @@ metadata:
   name: flux-rustdesk
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   dependsOn:
@@ -93,6 +98,7 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-gekko-tenant-deploy
   path: ./rustdesk
   prune: true
   wait: true

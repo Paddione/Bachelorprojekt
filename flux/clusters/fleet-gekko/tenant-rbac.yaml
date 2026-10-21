@@ -1,0 +1,23 @@
+# Tenant-Identitaeten fuer den Multitenant-Lockdown
+# (spec.cluster.multitenant: true in flux-instance.yaml, Security F2).
+# Gleiches Muster wie fleet/tenant-rbac.yaml: Uebergangs-cluster-admin mit
+# dokumentiertem Einengungs-Pfad. Eigener SA-Name pro Verzeichnis, damit die
+# zukuenftige Einengung unabhaengig erfolgen kann.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flux-gekko-tenant-deploy
+  namespace: flux-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: flux-gekko-tenant-deploy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: flux-gekko-tenant-deploy
+    namespace: flux-system

@@ -15,12 +15,17 @@ spec:
   cluster:
     type: kubernetes
     networkPolicy: true
+    # Security F2: Multitenant-Lockdown — Controller impersonieren Tenant-SAs
+    # statt mit eigenen Cluster-Rechten zu applizieren. Jede Kustomization
+    # setzt spec.serviceAccountName (siehe tenant-rbac.yaml im selben Verzeichnis).
+    multitenant: true
     size: medium
   sync:
     kind: GitRepository
+    provider: github
     url: https://github.com/Paddione/Bachelorprojekt
     # T016529: kuratierte Prod-only-Auswahl (Q16) aus main. Die Workload-
     # Kustomizations beziehen das gerenderte OCI-Artefakt (fleet-manifests).
     ref: refs/heads/main
     path: flux/clusters/fleet-gekko
-    interval: 10m
+    interval: 30m

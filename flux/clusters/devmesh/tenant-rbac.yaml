@@ -1,0 +1,22 @@
+# Tenant-Identitaeten fuer den Multitenant-Lockdown
+# (spec.cluster.multitenant: true in flux-instance.yaml, Security F2).
+# Gleiches Muster wie fleet/tenant-rbac.yaml (Uebergangs-cluster-admin,
+# Einengung nach Inventarisierung der Objektmengen je Pfad).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devmesh-tenant-deploy
+  namespace: flux-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devmesh-tenant-deploy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: devmesh-tenant-deploy
+    namespace: flux-system

@@ -9,17 +9,20 @@ metadata:
   name: flux-korczewski-auth
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   suspend: true
   dependsOn:
     - name: flux-infra-controllers
     - name: flux-sealed-secrets-korczewski
-    - name: flux-mentolder
+    # Cross-Brand-Dep auf flux-mentolder gestrichen: korczewski-auth ist
+    # eigenstaendig (eigene Pocket ID); Fremd-Brand als Gate wuerde Reaktivierung
+    # an mentolder koppeln.
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-tenant-deploy
   path: ./korczewski-auth
   prune: true
   wait: false

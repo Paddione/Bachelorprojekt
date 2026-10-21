@@ -786,6 +786,11 @@ tasks:
           --path=out \
           --source="$(git config --get remote.origin.url)" \
           --revision="main@sha1:$(git rev-parse HEAD)"
+        # Immutable Semver-Zeiger wie im CI-Workflow (v0.0.<RUN_NUMBER> entfällt
+        # lokal; sha-Datum als monotoner Ersatz).
+        flux tag artifact \
+          oci://ghcr.io/paddione/fleet-manifests:latest \
+          --tag "sha-$(git rev-parse HEAD)"
 
   flux:stalled:
     desc: "Read-only: check for stalled (long-term Ready=False) Flux Kustomizations (T002207)"

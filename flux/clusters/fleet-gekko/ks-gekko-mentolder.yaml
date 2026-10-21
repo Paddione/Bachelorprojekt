@@ -4,7 +4,7 @@ metadata:
   name: gekko-mentolder-flux
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 5m
   sourceRef:

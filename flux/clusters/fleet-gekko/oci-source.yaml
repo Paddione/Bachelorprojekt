@@ -4,10 +4,13 @@ metadata:
   name: fleet-manifests
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   url: oci://ghcr.io/paddione/fleet-manifests
   ref:
-    tag: latest
+    # Immutable Semver-Stream: der Render-Workflow taggt jedes Artefakt zusaetzlich
+    # als v0.0.<RUN_NUMBER> (monoton); :latest bleibt als beweglicher Zeiger
+    # erhalten, wird hier aber nicht mehr gelesen. cosign-Verify gilt weiter.
+    semver: "v0.*"
   secretRef:
     name: ghcr-auth
   # Supply-chain verification: every artifact must carry a cosign signature

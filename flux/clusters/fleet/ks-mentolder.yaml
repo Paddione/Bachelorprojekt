@@ -4,7 +4,7 @@ metadata:
   name: flux-mentolder
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 30m
   retryInterval: 2m
   timeout: 10m
   dependsOn:
@@ -15,6 +15,7 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests
+  serviceAccountName: flux-tenant-deploy
   path: ./mentolder
   prune: true
   # T002313: Hier stehen NUR Workloads, die diese Kustomization selbst ausrollt.

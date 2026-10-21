@@ -9,6 +9,33 @@ spec:
         $patch: delete
       tolerations: []
       containers:
+        - name: dev-shell
+          command:
+            - /bin/sh
+            - -c
+            - |
+              sed 's/ListenAddress 127.0.0.1/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config > /tmp/sshd_config
+              HOSTKEY_DIR=/home/dev/.ssh-host
+              KEY_SRC=/etc/dev-shell/keys
+              KEY_DST=/var/lib/dev-shell/authorized_keys
+              if [ ! -f /home/dev/.bashrc ]; then
+                cp -Rn /etc/skel/. /home/dev/ 2>/dev/null || true
+              fi
+              mkdir -p "$HOSTKEY_DIR"
+              chmod 700 "$HOSTKEY_DIR"
+              if [ ! -s "$HOSTKEY_DIR/ssh_host_ed25519_key" ]; then
+                ssh-keygen -q -t ed25519 -N '' -f "$HOSTKEY_DIR/ssh_host_ed25519_key"
+              fi
+              chmod 600 "$HOSTKEY_DIR/ssh_host_ed25519_key"
+              for u in patrick gekko; do
+                if [ -s "$KEY_SRC/$u" ]; then
+                  cp "$KEY_SRC/$u" "$KEY_DST/$u"
+                  chmod 600 "$KEY_DST/$u"
+                fi
+              done
+              exec /usr/sbin/sshd -D -e -f /tmp/sshd_config
+          ports:
+            - { containerPort: 22, name: ssh, protocol: TCP }
         - name: mcp-node
           env:
             - name: WEBSITE_DB_PASSWORD

@@ -142,8 +142,12 @@ patches:
         template:
           spec:
             nodeSelector: {storage: "true"}
+            initContainers:
+              - name: generate-tls-cert
+                image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
             containers:
               - name: postgres
+                image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
                 resources:
                   requests: {cpu: 100m, memory: 256Mi}
   - target: {kind: Deployment, name: pocket-id}

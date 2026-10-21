@@ -35,6 +35,9 @@ components:
   - ../components/llm-services
   - ../components/voice
   - ../components/dev-pod
+  - ../components/brain
+  - ../components/sessions
+  - ../components/k1-embed
 
 configMapGenerator:
   - name: shared-db-backup-script

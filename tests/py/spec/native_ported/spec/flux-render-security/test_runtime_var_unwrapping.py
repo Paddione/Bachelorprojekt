@@ -159,7 +159,7 @@ def test_runtime_var_brain_yaml_js_literale_sind_runtime_escaped(repo_root):
     # Echte Render-Vars sind per Konvention GROSS; ${klein} in brain.yaml
     # kann nur JS sein und muss $${...}-escaped sein, sonst vergiftet es
     # die envsubst-Liste des ganzen mentolder-Overlays (T901780-Follow-up).
-    text = (repo_root / "prod-fleet/mentolder/brain.yaml").read_text(encoding="utf-8")
+    text = (repo_root / "dev-local/components/brain/brain.yaml").read_text(encoding="utf-8")
     unescaped = re.compile(r"(?<!\$)\$\{[a-z][A-Za-z0-9_]*\}")
     match = unescaped.search(text)
     assert match is None, f"unescaped JS literal: {match.group(0)}"

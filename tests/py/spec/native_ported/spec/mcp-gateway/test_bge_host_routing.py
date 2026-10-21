@@ -3,6 +3,7 @@
 import re
 
 import pytest
+import yaml
 
 
 def test_t900191_llm_services_deployment_pinnt_beide_bge_endpoint_urls_auf_den_pod_lokalen_llm_proxy(
@@ -12,15 +13,13 @@ def test_t900191_llm_services_deployment_pinnt_beide_bge_endpoint_urls_auf_den_p
     result = run_cmd(["bash", str(repo_root / "scripts" / "devmesh" / "render-stack.sh"), "core"])
     if result.returncode != 0:
         pytest.skip("render-stack.sh Vorbedingung fehlt")
-    lines = result.stdout.splitlines()
+    docs = [d for d in yaml.safe_load_all(result.stdout) if d]
+    deploy = next(d for d in docs if d["kind"] == "Deployment" and d["metadata"]["name"] == "llm-services")
+    env = [e for c in deploy["spec"]["template"]["spec"]["containers"] for e in c.get("env", [])]
 
     for var in ("LLM_EMBED_URL", "LLM_RERANKER_URL"):
-        # grep -A1 "- name: VAR" | grep 'value:'
-        urls = []
-        for i, line in enumerate(lines):
-            if f"- name: {var}" in line:
-                urls.extend(l for l in lines[i : i + 2] if "value:" in l)
-        # Positiv-Anker: die Variable existiert im Deployment-Stil.
+        urls = [e.get("value", "") for e in env if e["name"] == var]
+        # Positiv-Anker: die Variable existiert im llm-services-Deployment.
         assert urls, f"{var} nicht gefunden"
         # Jede Deklaration pinnt 127.0.0.1:18235.
         offenders = [u for u in urls if "127.0.0.1:18235" not in u]

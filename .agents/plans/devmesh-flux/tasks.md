@@ -181,12 +181,12 @@ bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k flux
 
 ## Task 7: ADR
 
-- [ ] `docs/adr/ADR-015-devmesh-eigenes-flux.md`: Kontext (fleet-Neuaufbau durch
+- [x] `docs/adr/ADR-015-devmesh-eigenes-flux.md`: Kontext (fleet-Neuaufbau durch
   Gekko, Trennung), Entscheidung (Flux auf devmesh aus `devmesh-manifests`, kein
   Dev-Stack auf fleet, nur Tailnet), Folgen (sish/brainstorm/Session-Hub
   entfallen bis zum Folge-Feature öffentlicher Zugang, `task devmesh:deploy` nur
   Notfallweg), ersetzt ADR-008 Punkt 2 und klärt SP-3 „GitOps“.
-- [ ] `docs/adr/ADR-008-local-k3s-dev-mesh.md`: bei Punkt 2 und in der
+- [x] `docs/adr/ADR-008-local-k3s-dev-mesh.md`: bei Punkt 2 und in der
   SP-3-Zeile Verweis „abgelöst durch ADR-015“.
 
 ## Task 8: Rollout auf devmesh (live, nur nach Freigabe)

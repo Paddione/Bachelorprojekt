@@ -73,7 +73,9 @@ alle Vektoren sind 1024-dimensional.
 
 ## Mixed-Embedding-Model-Check
 
-**Guard:** `components/website/src/lib/knowledge-db.ts` — `MixedEmbeddingModelError`
+**Guard:** `components/website/src/lib/knowledge-db.ts:6-11` — `MixedEmbeddingModelError`
+(Kanten: `queryNearest` knowledge-db.ts:219-224 → `embedQuery` mit `models[0]` knowledge-db.ts:227-231;
+`mergeCollections` knowledge-db.ts:294-295)
 
 ```typescript
 // queryNearest() prüft vor der Suche:
@@ -104,16 +106,23 @@ throw new MixedEmbeddingModelError(models)
 
 ## Modell-Routing
 
-Der zentrale Embedding-Router (`components/website/src/lib/embeddings.ts`) lenkt alle Aufrufe:
+Der zentrale Embedding-Pfad (`components/website/src/lib/embeddings.ts`) kennt seit
+T016562 genau ein Modell (`bge-m3`, kein Voyage-Fallback mehr). Alle Aufrufe gehen
+über den bge-Router (`components/website/src/lib/bge-router.ts:40-50`):
 
 ```
-embedQuery/embedBatch(model, purpose)
-  ├── bge-m3 ──► LLM_EMBED_URL (bge-mcp auf llama.cpp)
-  └── voyage-multilingual-2 ──► LLM_EMBED_URL (router) → fallback: api.voyageai.com
+embedQuery(embeddings.ts:85-97) / embedBatch(embeddings.ts:99-126)
+  └── model=bge-m3 ──► resolveEndpoint('embed') (bge-router.ts:40)
+        ├── ok ──► ${LLM_EMBED_URL}/v1/embeddings (embeddings.ts:59-61)
+        │           ├── ok ──► Embedding (embeddings.ts:67-69)
+        │           ├── 429/5xx ──► Retry (max 4) ──► erschöpft: EmbeddingIndexError/EmbeddingQueryError (embeddings.ts:71-82)
+        │           └── sonst ──► fail-closed EmbeddingIndexError (index) / EmbeddingQueryError (query) (embeddings.ts:76-78)
+        └── fehlende URL ──► BgeRoutingError (bge-router.ts:44-48)
+              ──► fail-closed EmbeddingQueryError (embeddings.ts:92-94) / EmbeddingIndexError (embeddings.ts:112-114)
 ```
 
-Der Router (`llm-proxy`) leitet `voyage`-Aufrufe an die VoyageAI-API weiter (mit API-Key).
-`bge-m3` läuft ausschließlich lokal auf dem llama.cpp-Server (port 8090 via bge-mcp).
+`bge-m3` läuft ausschließlich lokal auf dem llama.cpp-Server (bge-mcp).
+Fehlende URL und Router-Ausfälle fallen fail-closed durch (kein externer Fallback).
 `scripts/index-repo.ts` umgeht den Router und geht direkt zum bge-mcp.
 
 ## Fazit

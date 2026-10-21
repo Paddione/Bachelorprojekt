@@ -5,18 +5,19 @@ import { isVectorStoreEnabled, searchCode, searchCodeAugmented } from '../../../
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request, url , locals }) => {
-  // T016560: Vektor-Suche lebt nur noch in Dev — in Prod (Flag aus) 404
-  // vor Auth/DB, damit kein Pfad gegen fehlende Tabellen laeuft.
-  if (!isVectorStoreEnabled()) {
-    return new Response(JSON.stringify({ error: 'codesearch disabled' }), {
-      status: 404,
-      headers: { 'content-type': 'application/json' },
-    });
-  }
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+  // T016560: Vektor-Suche lebt nur noch in Dev — bei Flag aus einheitlich 503
+  // 'vector store disabled' (Doktrin aus knowledge-db.ts, wie collections).
+  // Auth-first, damit Unauthentifizierte keine Flag-Konfiguration ablesen.
+  if (!isVectorStoreEnabled()) {
+    return new Response(JSON.stringify({ error: 'vector store disabled' }), {
+      status: 503,
       headers: { 'content-type': 'application/json' },
     });
   }

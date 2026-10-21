@@ -132,23 +132,23 @@ bash scripts/pytest-run.sh tests/py/spec/test_massage_devmesh.py -q
 
 ## Task 4: Flux-Einstieg `flux/clusters/devmesh/`
 
-- [ ] `flux-instance.yaml`: `FluxInstance` nach Vorbild
+- [x] `flux-instance.yaml`: `FluxInstance` nach Vorbild
   `flux/clusters/fleet-gekko/flux-instance.yaml`, Sync `GitRepository`
   `https://github.com/Paddione/Bachelorprojekt`, `ref: refs/heads/main`,
   `path: flux/clusters/devmesh`, `interval: 10m`, `cluster.size: small`.
-- [ ] `oci-source.yaml`: `OCIRepository` `devmesh-manifests`, URL
+- [x] `oci-source.yaml`: `OCIRepository` `devmesh-manifests`, URL
   `oci://ghcr.io/paddione/devmesh-manifests`, `ref.tag: latest`, `interval: 5m`,
   `secretRef: ghcr-auth`, `verify.provider: cosign` mit `matchOIDCIdentity`
   Issuer `https://token.actions.githubusercontent.com`, Subject
   `^https://github\.com/Paddione/Bachelorprojekt/\.github/workflows/render-devmesh-artifact\.yml@refs/heads/main$`.
-- [ ] `ks-platform.yaml` (`path: ./platform`), `ks-secrets.yaml`
+- [x] `ks-platform.yaml` (`path: ./platform`), `ks-secrets.yaml`
   (`path: ./secrets`, `dependsOn: devmesh-platform`), `ks-workspace.yaml`
   (`path: ./workspace`, `dependsOn: devmesh-secrets`). Alle `prune: true`,
   `wait: true`, `timeout: 10m`, `sourceRef` `OCIRepository/devmesh-manifests`.
-- [ ] Prüfen, dass `scripts/flux-render-artifact.sh` (Schritt „Cluster CRs“)
+- [x] Prüfen, dass `scripts/flux-render-artifact.sh` (Schritt „Cluster CRs“)
   `flux/clusters/devmesh/` nicht in das fleet-Artefakt übernimmt; der Schritt
   liest nur `flux/clusters/fleet/`.
-- [ ] Grün für `test_flux_devmesh_sources_only`:
+- [x] Grün für `test_flux_devmesh_sources_only`:
 ```bash
 bash scripts/pytest-run.sh tests/py/spec/devmesh/test_devmesh_flux.py -q -k flux_devmesh
 ```

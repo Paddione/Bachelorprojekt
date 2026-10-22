@@ -3,8 +3,10 @@ kind: Component
 # dev-local/components/voice — STT/TTS-Dienste + Sandbox-Worker auf gpu-metal.
 #
 # Enthalten: voice-stt (Whisper large-v3-turbo, CPU), voice-tts (Piper de/en,
-# CPU), sandbox-cpu (4 generische Exec-Sandboxes), sandbox-gpu (1 CUDA-Sandbox
-# mit exklusiver GTX 970). Alle per nodeSelector auf gpu-metal gepinnt.
+# CPU), voice-web (mobiles Halten-zum-Sprechen per Tailnet), sandbox-cpu
+# (4 generische Exec-Sandboxes), sandbox-gpu (1 CUDA-Sandbox
+# mit exklusiver GTX 970). STT/TTS/Sandboxes per nodeSelector auf gpu-metal
+# gepinnt; voice-web (reiner Proxy) laeuft ortsungebunden.
 #
 # Voraussetzungen auf dem Knoten (einmalig, siehe scripts/devmesh/gpu-enable.sh
 # plus scripts/devmesh/gpu-cdi.sh): nvidia-container-toolkit, CDI-Drop-in in
@@ -13,5 +15,6 @@ kind: Component
 resources:
   - stt.yaml
   - tts.yaml
+  - web.yaml
   - sandbox.yaml
 

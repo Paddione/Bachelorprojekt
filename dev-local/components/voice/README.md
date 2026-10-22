@@ -3,6 +3,15 @@
 STT via faster-whisper large-v3-turbo (int8, CPU), TTS via Piper (Thorsten/de,
 Lessac/en). 4 CPU-Sandboxes, 1 GPU-Sandbox mit exklusiver GTX 970.
 
+## voice-web (Handy unterwegs)
+
+Mobiles Halten-zum-Sprechen: `web.yaml` (Deployment + Service +
+Tailscale-Ingress) serviert eine Seite, die Audio ans Cluster-STT schickt,
+die Antwort vom Qwen3.5-4B (llm-gateway-4b) holt und per Piper anspielt.
+URL nach Flux-Sync: https://voice-web.tail8a4425.ts.net (nur Tailnet;
+Tailscale-App auf dem Handy, gleicher Account). Max. 120 s pro Clip
+(STT-Limit, `error`-Feld beachten).
+
 ## Live-Chunks (5-min-Datei)
 
 Gemessen auf gpu-metal (2-CPU-Limit pro STT-Pod): 30 s Audio = ~90 s

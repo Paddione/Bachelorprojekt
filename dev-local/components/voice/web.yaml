@@ -1,0 +1,227 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: voice-web-code
+  namespace: workspace
+data:
+  web.py: |
+    """voice-web: mobiles Halten-zum-Sprechen (STT + LLM + TTS) hinter Tailnet-Ingress."""
+    import pathlib
+    import httpx
+    from fastapi import FastAPI, File, Form, UploadFile
+    from fastapi.responses import HTMLResponse, Response
+    STT = "http://voice-stt.workspace:8000"
+    LLM = "http://llm-gateway-4b.workspace:8080"
+    TTS = "http://voice-tts.workspace:8000"
+    MODEL = "qwen35-4b"
+    app = FastAPI()
+    client = httpx.AsyncClient(timeout=300.0)
+    INDEX = (pathlib.Path(__file__).parent / "index.html").read_text(encoding="utf-8")
+    @app.get("/")
+    def index():
+        return HTMLResponse(INDEX)
+    @app.get("/healthz")
+    def healthz():
+        return {"ok": True}
+    @app.post("/api/ask")
+    async def ask(file: UploadFile = File(...), language: str = Form("de")):
+        audio = await file.read()
+        r = await client.post(
+            f"{STT}/stt",
+            files={"file": (file.filename or "audio",
+                            audio, file.content_type or "application/octet-stream")},
+            data={"language": language})
+        r.raise_for_status()
+        text = (r.json().get("text") or "").strip()
+        if not text:
+            return {"text": "", "answer": ""}
+        r = await client.post(
+            f"{LLM}/v1/completions",
+            json={"model": MODEL,
+                  "prompt": ("Beantworte die folgende Frage kurz auf Deutsch in "
+                             "maximal 3 Sätzen.\n\nFrage: " + text + "\nAntwort:"),
+                  "max_tokens": 400, "temperature": 0.3})
+        r.raise_for_status()
+        answer = r.json()["choices"][0]["text"]
+        answer = answer.replace("<think>", "").replace("</think>", "").strip()
+        return {"text": text, "answer": answer}
+    @app.post("/api/tts")
+    async def tts(text: str = Form(...), language: str = Form("de")):
+        r = await client.post(f"{TTS}/tts", data={"text": text, "language": language})
+        r.raise_for_status()
+        return Response(content=r.content, media_type="audio/wav")
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Voice</title>
+    <style>
+      * { box-sizing: border-box; touch-action: manipulation; }
+      body { font-family: system-ui, sans-serif; margin: 0; padding: 16px;
+             background: #111; color: #eee; max-width: 560px; margin-inline: auto; }
+      h1 { font-size: 1.1rem; margin: 0 0 12px; }
+      #talk { width: 100%; aspect-ratio: 1/1; max-height: 46vh; border-radius: 50%;
+              border: none; font-size: 1.3rem; background: #1f6feb; color: #fff; }
+      #talk.rec { background: #c0392b; }
+      #meter { height: 8px; background: #333; border-radius: 4px; margin: 12px 0; }
+      #level { height: 100%; width: 0%; background: #2ecc71; border-radius: 4px; }
+      #status { min-height: 1.4em; color: #aaa; margin-bottom: 8px; }
+      .row { display: flex; gap: 8px; margin-bottom: 12px; }
+      .row button { flex: 1; padding: 10px; font-size: 1rem; border-radius: 8px;
+                    border: 1px solid #444; background: #222; color: #eee; }
+      .row button.on { background: #1f6feb; border-color: #1f6feb; }
+      .card { background: #1c1c1c; border: 1px solid #333; border-radius: 8px;
+              padding: 10px 12px; margin-bottom: 8px; white-space: pre-wrap; }
+      .lbl { font-size: .8rem; color: #888; margin-bottom: 2px; }
+    </style>
+    </head>
+    <body>
+    <h1>Voice — halten zum Sprechen</h1>
+    <div class="row">
+      <button id="de" class="on">DE</button>
+      <button id="en">EN</button>
+      <button id="spk" class="on">Ton an</button>
+    </div>
+    <button id="talk">HALTEN</button>
+    <div id="meter"><div id="level"></div></div>
+    <div id="status">Bereit.</div>
+    <div class="lbl">Du</div><div class="card" id="q">–</div>
+    <div class="lbl">Antwort</div><div class="card" id="a">–</div>
+    <script>
+    let lang = "de", speak = true, rec = null, chunks = [], stream = null,
+        actx = null, analyser = null, raf = 0;
+    const $ = (id) => document.getElementById(id);
+    const status = (t) => { $("status").textContent = t; };
+    $("de").onclick = () => { lang = "de"; $("de").className = "on"; $("en").className = ""; };
+    $("en").onclick = () => { lang = "en"; $("en").className = "on"; $("de").className = ""; };
+    $("spk").onclick = () => { speak = !speak; $("spk").className = speak ? "on" : ""; $("spk").textContent = speak ? "Ton an" : "Ton aus"; };
+    function meterLoop() {
+      const buf = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteTimeDomainData(buf);
+      let sum = 0;
+      for (const v of buf) { const d = (v - 128) / 128; sum += d * d; }
+      $("level").style.width = Math.min(100, Math.sqrt(sum / buf.length) * 300) + "%";
+      raf = requestAnimationFrame(meterLoop);
+    }
+    async function start(e) {
+      e.preventDefault();
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) { status("Mikro verweigert: " + err.name); return; }
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = actx.createAnalyser(); analyser.fftSize = 512;
+      actx.createMediaStreamSource(stream).connect(analyser);
+      meterLoop();
+      chunks = [];
+      const mt = ["audio/webm;codecs=opus", "audio/webm", ""].find(
+        (t) => t === "" || (window.MediaRecorder && MediaRecorder.isTypeSupported(t)));
+      rec = new MediaRecorder(stream, mt ? { mimeType: mt } : undefined);
+      rec.ondataavailable = (ev) => { if (ev.data.size) chunks.push(ev.data); };
+      rec.start();
+      $("talk").classList.add("rec"); $("talk").textContent = "LOS LASSEN";
+      status("Aufnahme …");
+    }
+    async function stop(e) {
+      if (e) e.preventDefault();
+      if (!rec) return;
+      $("talk").classList.remove("rec"); $("talk").textContent = "HALTEN";
+      cancelAnimationFrame(raf); $("level").style.width = "0%";
+      const done = new Promise((res) => { rec.onstop = res; });
+      rec.stop(); await done;
+      stream.getTracks().forEach((t) => t.stop());
+      actx.close(); rec = null;
+      const blob = new Blob(chunks, { type: "audio/webm" });
+      if (!blob.size) { status("Nichts aufgenommen."); return; }
+      status("Transkribiere …");
+      const fd = new FormData();
+      fd.append("file", blob, "audio.webm"); fd.append("language", lang);
+      try {
+        const r = await fetch("api/ask", { method: "POST", body: fd });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const j = await r.json();
+        if (!j.text) { status("Nichts erkannt."); return; }
+        $("q").textContent = j.text; $("a").textContent = j.answer || "–";
+        status("Fertig.");
+        if (speak && j.answer) {
+          status("Spricht …");
+          const f2 = new FormData();
+          f2.append("text", j.answer.slice(0, 280)); f2.append("language", lang);
+          const ra = await fetch("api/tts", { method: "POST", body: f2 });
+          if (ra.ok) { await new Audio(URL.createObjectURL(await ra.blob())).play().catch(() => {}); }
+          status("Fertig.");
+        }
+      } catch (err) { status("Fehler: " + err.message); }
+    }
+    const b = $("talk");
+    b.addEventListener("touchstart", start, { passive: false });
+    b.addEventListener("touchend", stop, { passive: false });
+    b.addEventListener("touchcancel", stop, { passive: false });
+    b.addEventListener("mousedown", start);
+    b.addEventListener("mouseup", stop);
+    b.addEventListener("mouseleave", () => { if (rec && rec.state === "recording") stop(); });
+    b.addEventListener("contextmenu", (e) => e.preventDefault());
+    </script>
+    </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voice-web
+  namespace: workspace
+  labels: {app: voice-web}
+spec:
+  # Reiner Proxy + statisches UI (STT/LLM/TTS laufen anderswo): 1 Replika reicht.
+  replicas: 1
+  selector:
+    matchLabels: {app: voice-web}
+  template:
+    metadata:
+      labels: {app: voice-web}
+    spec:
+      containers:
+        - name: web
+          image: python:3.12-slim
+          command: ["sh", "-c",
+            "pip install -q --no-cache-dir fastapi uvicorn httpx python-multipart && exec uvicorn web:app --host 0.0.0.0 --port 8000"]
+          workingDir: /app
+          ports: [{containerPort: 8000}]
+          resources:
+            requests: {cpu: 250m, memory: 256Mi}
+            limits: {cpu: "1", memory: 512Mi}
+          volumeMounts:
+            - {name: code, mountPath: /app}
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8000}
+            initialDelaySeconds: 60
+            periodSeconds: 15
+      volumes:
+        - name: code
+          configMap: {name: voice-web-code}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voice-web
+  namespace: workspace
+spec:
+  selector: {app: voice-web}
+  ports: [{port: 80, targetPort: 8000}]
+---
+# Erreichbarkeit unterwegs: Tailscale-Ingress (Muster vllm-serve, manuell
+# appliziert 2026-10-04). Ergibt https://voice-web.tail8a4425.ts.net (nur Tailnet).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: voice-web
+  namespace: workspace
+  annotations:
+    tailscale.com/hostname: voice-web
+spec:
+  defaultBackend:
+    service: {name: voice-web, port: {number: 80}}
+  ingressClassName: tailscale
+  tls: [{hosts: [voice-web]}]

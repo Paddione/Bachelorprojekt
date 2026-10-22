@@ -5,6 +5,7 @@ metadata:
   namespace: cert-manager
 spec:
   interval: 1h
+  serviceAccountName: devmesh-tenant-deploy
   chart:
     spec:
       chart: cert-manager

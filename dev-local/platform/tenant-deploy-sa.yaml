@@ -1,0 +1,44 @@
+# Tenant-Identitaeten je Plattform-Namespace fuer den Multitenant-Lockdown
+# (helm-controller --default-service-account=default, Security F2).
+# Ohne explizite spec.serviceAccountName laufen HelmReleases als
+# <namespace>:default und scheitern am Release-Storage
+# ("secrets is forbidden", siehe #6861). Gleiches Uebergangs-cluster-admin
+# wie devmesh-tenant-deploy in flux/clusters/devmesh/tenant-rbac.yaml;
+# Einengung nach Inventarisierung der Objektmengen je Pfad.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devmesh-tenant-deploy
+  namespace: cert-manager
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devmesh-tenant-deploy
+  namespace: tailscale
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-manager-tenant-deploy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: devmesh-tenant-deploy
+    namespace: cert-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tailscale-tenant-deploy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: devmesh-tenant-deploy
+    namespace: tailscale

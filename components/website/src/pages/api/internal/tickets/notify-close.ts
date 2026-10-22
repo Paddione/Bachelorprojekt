@@ -1,14 +1,20 @@
 import type { APIRoute } from 'astro';
 import { pool } from '../../../../lib/website-db';
 import { sendBugCloseEmail } from '../../../../lib/tickets/email-templates.ts';
-
-const TOKEN = process.env.INTERNAL_API_TOKEN ?? '';
+import { isAuthorized } from '../applications/auth';
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!TOKEN || request.headers.get('x-internal-token') !== TOKEN) {
+  // F7: derselbe Gate wie die Schwester-Routen (konstanter Zeitvergleich,
+  // zusaetzlich Admin-Session als Fallback).
+  if (!await isAuthorized(request)) {
     return new Response('forbidden', { status: 403 });
   }
-  const body = await request.json() as { externalId: string; resolution: string };
+  let body: { externalId: string; resolution: string };
+  try {
+    body = await request.json() as { externalId: string; resolution: string };
+  } catch {
+    return new Response('invalid json', { status: 400 });
+  }
   const r = await pool.query(
     `SELECT external_id, reporter_email FROM tickets.tickets
       WHERE type IN ('bug','fix') AND external_id = $1`, [body.externalId]);

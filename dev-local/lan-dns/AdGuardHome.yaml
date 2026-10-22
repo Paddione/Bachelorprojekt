@@ -55,12 +55,16 @@ filtering:
   # dev-local/core/ingress.yaml.
   rewrites:
     - {domain: web.devmesh.korczewski.de, answer: 10.10.10.4, enabled: true}
+    - {domain: web.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
     - {domain: web.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: auth.devmesh.korczewski.de, answer: 10.10.10.4, enabled: true}
+    - {domain: auth.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
     - {domain: auth.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: massage.devmesh.korczewski.de, answer: 10.10.10.4, enabled: true}
+    - {domain: massage.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
     - {domain: massage.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: mail.devmesh.korczewski.de, answer: 10.10.10.4, enabled: true}
+    - {domain: mail.devmesh.korczewski.de, answer: 10.10.10.2, enabled: true}
     - {domain: mail.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
 filters:
   - enabled: true

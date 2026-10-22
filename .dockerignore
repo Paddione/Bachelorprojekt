@@ -1,8 +1,11 @@
 # Exclude large directories not needed for Docker build
 components/website/node_modules
-components/mentolder-web/node_modules  # runtime: npm install
-components/website/dist                # runtime: astro build
-components/website/.env                # runtime: local env file
+# runtime: npm install
+components/mentolder-web/node_modules
+# runtime: astro build
+components/website/dist
+# runtime: local env file
+components/website/.env
 components/website/.env.*
 !components/website/.env.example
 
@@ -20,6 +23,9 @@ scripts
 docker
 
 # Exclude test artifacts that don't belong in the runtime image
-tests/e2e/node_modules      # runtime: npm install
-tests/e2e/test-results      # runtime: playwright test
-tests/results               # runtime: test run
+# runtime: npm install
+tests/e2e/node_modules
+# runtime: playwright test
+tests/e2e/test-results
+# runtime: test run
+tests/results

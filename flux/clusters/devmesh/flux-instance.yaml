@@ -22,7 +22,9 @@ spec:
     size: small
   sync:
     kind: GitRepository
-    provider: github
+    # Kein provider: Repo ist public — generischer anonymer Fetch.
+    # provider:github verlangt GitHub-App-Secrets (secretRef) und stallt
+    # sonst mit InvalidProviderConfiguration (siehe #6861).
     url: https://github.com/Paddione/Bachelorprojekt
     ref: refs/heads/main
     path: flux/clusters/devmesh

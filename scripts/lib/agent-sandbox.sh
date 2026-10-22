@@ -18,8 +18,15 @@
 #     weitere per AGENT_SANDBOX_RO="pfad1:pfad2".
 #   - Umgebung: geleert bis auf PATH, HOME, LANG, LC_ALL, TERM, TMPDIR und die
 #     per --env durchgereichten Namen.
+#   - /run und /mnt sind leere tmpfs: dort liegen Docker-API (/run/docker.sock),
+#     D-Bus, /run/WSL und die Windows-Laufwerke (/mnt/c) — read-only verhindert
+#     kein connect() auf einen Unix-Socket. Einzige Ausnahme ist das Verzeichnis,
+#     auf das /etc/resolv.conf zeigt (z. B. /run/systemd/resolve), read-only.
+#     Ein Worktree unter /mnt bleibt nutzbar (--bind legt den Mountpunkt neu an).
 #   - Netz: bleibt geteilt — der Agent muss den lokalen Modell-Proxy auf
-#     127.0.0.1 erreichen. Ausgehende Verbindungen sind NICHT gesperrt.
+#     127.0.0.1 erreichen. Ausgehende Verbindungen sind NICHT gesperrt. TCP-Dienste
+#     auf localhost und abstrakte Unix-Sockets (teilen den Netz-Namespace) bleiben
+#     erreichbar.
 #
 # Ohne lauffaehiges bwrap bricht der Aufruf ab (Exit 3). AGENT_SANDBOX=off
 # schaltet die Sandbox bewusst ab und warnt dabei auf stderr.
@@ -60,7 +67,7 @@ agent_sandbox_run() {
   local home="${HOME:-/root}" p top
   # --new-session: kein Zugriff auf das Terminal des Aufrufers (TIOCSTI).
   local -a args=(--die-with-parent --new-session --unshare-all --share-net
-    --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp --tmpfs "$home")
+    --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp --tmpfs /run --tmpfs /mnt --tmpfs "$home")
 
   # Laufzeit unter $HOME (Befehl, node, bun) read-only zurueckbinden.
   local -a ro=()
@@ -71,6 +78,20 @@ agent_sandbox_run() {
       "$home"/*) top="${p#"$home"/}"; ro+=("$home/${top%%/*}") ;;
     esac
   done
+  # DNS: /etc/resolv.conf zeigt oft nach /run (systemd-resolved); das tmpfs
+  # wuerde das Ziel verdecken, also dessen Verzeichnis read-only zurueckbinden.
+  p="$(realpath /etc/resolv.conf 2>/dev/null)" && case "$p" in
+    /run/*) ro+=("$(dirname "$p")") ;;
+  esac
+  # Python-User-Site (pip install --user) liegt unter $HOME und wuerde vom
+  # tmpfs verdeckt; ohne sie fehlt z. B. ein per --user installiertes pytest.
+  # Quelle ist der aufgeloeste Pfad, Ziel der Pfad, den python selbst erwartet.
+  local site="" site_real=""
+  case "$(basename "$1")" in
+    python|python3*)
+      site="$("$1" -c 'import site; print(site.getusersitepackages())' 2>/dev/null)" &&
+        site_real="$(realpath "$site" 2>/dev/null)" || site="" ;;
+  esac
   local IFS_OLD="$IFS"; IFS=':'
   for p in ${AGENT_SANDBOX_RO:-}; do [ -n "$p" ] && ro+=("$p"); done
   IFS="$IFS_OLD"
@@ -90,6 +111,7 @@ agent_sandbox_run() {
   fi
 
   for p in "${ro[@]}"; do [ -e "$p" ] && args+=(--ro-bind "$p" "$p"); done
+  [ -n "$site" ] && [ -d "$site_real" ] && args+=(--ro-bind "$site_real" "$site")
   for p in "$wd" "${rw[@]}"; do args+=(--bind "$p" "$p"); done
   for p in "${ro_after[@]}"; do args+=(--ro-bind "$p" "$p"); done
 

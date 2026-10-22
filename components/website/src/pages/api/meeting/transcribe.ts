@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { requireInternalToken } from '../../../lib/internal-auth';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 
 
@@ -7,6 +8,10 @@ import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 //
 // Multipart form: file (audio), channelId (optional), customerName (optional)
 export const POST: APIRoute = async ({ request , locals }) => {
+  // F4: kein offener Whisper-Proxy — nur interne Aufrufer mit Shared Secret.
+  const denied = requireInternalToken(request);
+  if (denied) return denied;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

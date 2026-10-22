@@ -278,6 +278,12 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: CRON_SECRET
+            # F4: Shared Secret fuer interne Meeting-Routen (finalize/save-transcript/transcribe).
+            - name: MEETING_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: MEETING_INTERNAL_TOKEN
             - name: SESSIONS_CRON_TOKEN
               valueFrom:
                 secretKeyRef:

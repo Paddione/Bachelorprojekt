@@ -1,10 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
+// F4: interne Routen brauchen den Shared Secret als Bearer-Token. Ohne Token
+// im Env kein Gate-Test moeglich (pre-Gate waere es 400/200, post-Gate 401) —
+const MEETING_TOKEN = process.env.MEETING_INTERNAL_TOKEN || '';
+const authHeaders = () =>
+  MEETING_TOKEN ? { Authorization: `Bearer ${MEETING_TOKEN}` } : {};
 
 test.describe('FA-20: Meeting Finalization Pipeline', { tag: ['@meeting'] }, () => {
   test('T1: POST /api/meeting/finalize without data returns 400', async ({ request }) => {
+    test.skip(!MEETING_TOKEN, 'MEETING_INTERNAL_TOKEN not set — gate behavior covered by unit tests');
     const res = await request.post(`${BASE}/api/meeting/finalize`, {
+      headers: authHeaders(),
       data: {},
     });
     expect(res.status()).toBe(400);
@@ -24,7 +31,9 @@ test.describe('FA-20: Meeting Finalization Pipeline', { tag: ['@meeting'] }, () 
     // The previous fixture ('Test Kunde' with a real-looking example.de
     // address and plain 'Erstgesprach') accumulated 309 unmarked finalized
     // meetings in prod that no sweep could touch (T001456).
+    test.skip(!MEETING_TOKEN, 'MEETING_INTERNAL_TOKEN not set — gate behavior covered by unit tests');
     const res = await request.post(`${BASE}/api/meeting/finalize`, {
+      headers: authHeaders(),
       data: {
         customerName: '[TEST] E2E Kunde',
         customerEmail: 'test-e2e@example.invalid',

@@ -8,6 +8,7 @@
 // Aufrufer: scripts/llm/plan-runner/workers.mjs. Runbook: docs/runbooks/plan-runner.md.
 
 import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync, mkdirSync, realpathSync, existsSync } from 'node:fs';
 import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
 import { RESULT_MARKER } from './plan.mjs';
@@ -18,6 +19,9 @@ const MAX_TOOL_CHARS = 4000;
 const CONTEXT_BUDGET_TOKENS = 28000; // vLLM-Fenster 40k, Rest fuer Antwort und Schema
 const MAX_PROTOCOL_ERRORS = 3;
 const COMMAND_TIMEOUT_MS = 300_000;
+const SANDBOX_LIB = fileURLToPath(new URL('../../lib/agent-sandbox.sh', import.meta.url));
+// Setzt agent_sandbox_run selbst; alle anderen Schluessel aus commandEnv werden per --env durchgereicht.
+const SANDBOX_OWN_ENV = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'TERM', 'TMPDIR', 'AGENT_SANDBOX'];
 const TAIL_CHARS = 4000;
 
 // Erlaubte Befehlspraefixe fuer run_command (kein Shell-Aufruf, argv-Array).
@@ -44,7 +48,7 @@ const COMMAND_OPTIONS = {
 };
 
 // Befehle sehen nur eine minimale Umgebung, keine Tokens/Keys des Runner-Prozesses.
-const ENV_PASSTHROUGH = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'TERM', 'TMPDIR', 'PYTEST_JOBS', 'PYTEST_LOCAL'];
+const ENV_PASSTHROUGH = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'TERM', 'TMPDIR', 'PYTEST_JOBS', 'PYTEST_LOCAL', 'AGENT_SANDBOX'];
 
 // Liefert das erste unzulaessige Argument hinter dem Praefix, sonst undefined.
 function forbiddenArg(prefix, args) {
@@ -172,13 +176,23 @@ function runCommand(worktree, argv) {
   return new Promise((done) => {
     let out = '';
     let child;
+    const env = commandEnv(worktree);
+    const envFlags = Object.keys(env).filter((k) => !SANDBOX_OWN_ENV.includes(k)).flatMap((k) => ['--env', k]);
+    // pytest fuehrt vom Modell geschriebene Dateien aus: der Befehl laeuft in der bwrap-Sandbox
+    // (scripts/lib/agent-sandbox.sh), nicht mit den Rechten des Runners.
+    const script = '. "$1"; shift; agent_sandbox_run "$@"';
     try {
-      child = spawn(argv[0], argv.slice(1), { cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], env: commandEnv(worktree) });
+      child = spawn('bash', ['-c', script, 'agent-sandbox', SANDBOX_LIB, worktree,
+        '--timeout', String(COMMAND_TIMEOUT_MS / 1000), ...envFlags, '--', ...argv],
+      { cwd: worktree, stdio: ['ignore', 'pipe', 'pipe'], env, detached: true });
     } catch (e) { done(`ERROR: spawn failed: ${e.message}`); return; }
     const collect = (d) => { out = (out + d).slice(-8 * MAX_TOOL_CHARS); };
     child.stdout.on('data', collect);
     child.stderr.on('data', collect);
-    const timer = setTimeout(() => { out += '\n[TIMEOUT]'; child.kill('SIGKILL'); }, COMMAND_TIMEOUT_MS);
+    const timer = setTimeout(() => {
+      out += '\n[TIMEOUT]';
+      try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); }
+    }, COMMAND_TIMEOUT_MS + 5000);
     child.on('error', (e) => { clearTimeout(timer); done(`ERROR: spawn failed: ${e.message}`); });
     child.on('close', (code) => {
       clearTimeout(timer);

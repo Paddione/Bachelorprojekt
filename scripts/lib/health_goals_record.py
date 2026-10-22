@@ -12,6 +12,8 @@ components/website/src/lib/sdlc/goal-evaluation.ts:
 
 CLI: health_goals_record.py daemon-sql <scan.json> <sha> <branch> [<goals.json>]
      schreibt das SQL auf stdout; Exit 1 bei kaputtem Scan-JSON.
+     health_goals_record.py ids <goals.json> [<Taskfile.yml>]
+     listet die Ziel-IDs; mit Taskfile ohne die lokal-only Ziele (HG_LOCAL_ONLY_GOALS).
 """
 from __future__ import annotations
 
@@ -100,11 +102,41 @@ def iso_timestamp(value):
     return value.strip()
 
 
-def measurement_values(gid, current, status, sha, branch, details):
+def goal_ids(artifact, taskfile=None):
+    """Alle Ziel-IDs des Artefakts; mit Taskfile ohne HG_LOCAL_ONLY_GOALS (CI-Runner)."""
+    with open(artifact, encoding="utf-8") as fh:
+        goals = json.load(fh)
+    ids = [goal_id(g.get("id")) for g in goals]
+    if not ids:
+        raise ValueError("keine Ziel-Definitionen")
+    if taskfile:
+        with open(taskfile, encoding="utf-8") as fh:
+            found = re.findall(r"^  HG_LOCAL_ONLY_GOALS:[ \t]+(G-[A-Z0-9,-]+)[ \t]*$", fh.read(), re.MULTILINE)
+        if len(found) != 1:
+            raise ValueError("lokal-only Ziel-Registry fehlt oder ist mehrdeutig")
+        excluded = set(found[0].split(","))
+        if not excluded <= set(ids):
+            raise ValueError("lokal-only Ziel-Registry enthaelt unbekannte IDs")
+        ids = [gid for gid in ids if gid not in excluded]
+    return ids
+
+
+def observed_at_sql(value):
+    """Messzeit eines wiederverwendeten Messpakets als SQL; ohne Angabe NOW()."""
+    stamp = iso_timestamp(value)
+    if stamp is None:
+        return "NOW()"
+    if _dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")).tzinfo is None:
+        raise ValueError("Messzeitpunkt braucht eine Zeitzone")
+    return sql_text(stamp) + "::timestamptz"
+
+
+def measurement_values(gid, current, status, sha, branch, details, measured_at="NOW()"):
     if status not in STATUSES:
         raise ValueError(f"ungültiger Status: {status!r}")
     return ", ".join([sql_text(goal_id(gid)), sql_number(current), sql_text(status),
-                      sql_text(sha), sql_text(branch), sql_text(json.dumps(details)) + "::jsonb"])
+                      sql_text(sha), sql_text(branch), sql_text(json.dumps(details)) + "::jsonb",
+                      measured_at])
 
 
 def daemon_sql(items, sha, branch, baselines):
@@ -123,12 +155,13 @@ def daemon_sql(items, sha, branch, baselines):
         status = evaluate(current, target, baselines.get(gid), cmp=cmp)
         details = {"source": "health-goals-daemon", "measurable": measurable,
                    "cmp": cmp, "target": target}
-        rows.append(f"({measurement_values(gid, current, status, sha, branch, details)})")
+        observed = observed_at_sql(item.get("measured_at"))
+        rows.append(f"({measurement_values(gid, current, status, sha, branch, details, observed)})")
     if not rows:
         return []
     return ["BEGIN;",
             "INSERT INTO quality.repo_health_measurements "
-            "(goal_id, current_value, status, git_sha, git_branch, details) VALUES\n  "
+            "(goal_id, current_value, status, git_sha, git_branch, details, measured_at) VALUES\n  "
             + ",\n  ".join(rows) + ";",
             "COMMIT;"]
 
@@ -145,6 +178,13 @@ def load_baselines(path):
 
 
 def main(argv):
+    if argv and argv[0] == "ids" and len(argv) in (2, 3):
+        try:
+            print("\n".join(goal_ids(argv[1], argv[2] if len(argv) > 2 else None)))
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"ERROR: Ziel-IDs unbrauchbar: {exc}", file=sys.stderr)
+            return 1
+        return 0
     if len(argv) < 4 or argv[0] != "daemon-sql":
         print(__doc__, file=sys.stderr)
         return 2

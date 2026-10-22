@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """seed-quality-goals.py — Seeds quality schema from goals-data.generated.json and updates snapshot (T016507)."""
 
+import argparse
 import json
 import os
 import subprocess
@@ -72,7 +73,16 @@ def historical_measurement_sql(g: dict) -> str | None:
             """
 
 
-def main():
+def main(argv=()):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--definitions-only", action="store_true",
+                        help="Definitionen upserten, ohne historische Messungen zu importieren oder den Snapshot zu schreiben")
+    parser.add_argument("--initialize-schema", action="store_true",
+                        help="idempotente Quality-Migration in derselben Transaktion anwenden")
+    args = parser.parse_args(argv)
+    if os.environ.get("DRY_RUN") == "1":
+        print("Dry run: quality database and snapshot remain unchanged.")
+        return
     repo_root = get_repo_root()
     gen_json = repo_root / "components/website/src/lib/sdlc/goals-data.generated.json"
     snapshot_json = repo_root / "components/website/src/lib/sdlc/goals-data.snapshot.json"
@@ -84,14 +94,19 @@ def main():
     goals_data = json.loads(gen_json.read_text(encoding="utf-8"))
 
     # 1. Update/write offline fallback snapshot
-    snapshot_json.write_text(json.dumps(goals_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Updated offline snapshot: {snapshot_json} ({len(goals_data)} goals)")
+    if not args.definitions_only:
+        snapshot_json.write_text(json.dumps(goals_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"Updated offline snapshot: {snapshot_json} ({len(goals_data)} goals)")
 
     # 2. Build SQL statements
     statements = [
         "BEGIN;",
         "CREATE SCHEMA IF NOT EXISTS quality;",
     ]
+
+    if args.initialize_schema:
+        migration = repo_root / "scripts/migrations/2026-10-12-quality-schema-T016507.sql"
+        statements.append(migration.read_text(encoding="utf-8"))
 
     for g in goals_data:
         gid = g["id"].replace("'", "''")
@@ -119,7 +134,7 @@ def main():
         """
         statements.append(sql_goal)
 
-        meas = historical_measurement_sql(g)
+        meas = None if args.definitions_only else historical_measurement_sql(g)
         if meas:
             statements.append(meas)
 
@@ -135,4 +150,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

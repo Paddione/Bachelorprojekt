@@ -78,8 +78,8 @@ jobs:
 
       - name: Install pinned browser and Lighthouse
         run: |
-          npx playwright install --with-deps chromium
-          timeout 60 npx --yes lighthouse@12.8.2 --version
+          npx playwright install --with-deps chromium || echo "::warning::browser installation failed; browser audits may remain unknown"
+          timeout 60 npx --yes lighthouse@12.8.2 --version || echo "::warning::Lighthouse setup failed; performance audits may remain unknown"
 
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
         with:
@@ -118,11 +118,25 @@ jobs:
       - name: Collect machine-readable browser measurements
         run: |
           mkdir -p "${RUNNER_TEMP}/health-goals"
-          node scripts/lib/runtime-browser-audit.mjs "${RUNNER_TEMP}/health-goals/axe.json"
-          timeout 120 npx --yes lighthouse@12.8.2 https://web.mentolder.de --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="${RUNNER_TEMP}/health-goals/lh-mentolder.json"
-          timeout 120 npx --yes lighthouse@12.8.2 https://web.korczewski.de --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="${RUNNER_TEMP}/health-goals/lh-korczewski.json"
-          jq -n --slurpfile mentolder "${RUNNER_TEMP}/health-goals/lh-mentolder.json" --slurpfile korczewski "${RUNNER_TEMP}/health-goals/lh-korczewski.json" \
-            '{reports:{mentolder:$mentolder[0],korczewski:$korczewski[0]}}' > "${RUNNER_TEMP}/health-goals/lighthouse.json"
+          if ! node scripts/lib/runtime-browser-audit.mjs "${RUNNER_TEMP}/health-goals/axe.json"; then
+            rm -f "${RUNNER_TEMP}/health-goals/axe.json"
+            echo "::warning::browser accessibility audit failed; its goals remain unknown"
+          fi
+          for brand in mentolder korczewski; do
+            report="${RUNNER_TEMP}/health-goals/lh-${brand}.json"
+            if ! timeout 120 npx --yes lighthouse@12.8.2 "https://web.${brand}.de" --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="$report"; then
+              rm -f "$report"
+              echo "::warning::Lighthouse audit failed for ${brand}; its goals remain unknown"
+            fi
+          done
+          if jq -e '.categories.performance.score | numbers' "${RUNNER_TEMP}/health-goals/lh-mentolder.json" >/dev/null 2>&1 \
+            && jq -e '.categories.performance.score | numbers' "${RUNNER_TEMP}/health-goals/lh-korczewski.json" >/dev/null 2>&1; then
+            jq -n --slurpfile mentolder "${RUNNER_TEMP}/health-goals/lh-mentolder.json" --slurpfile korczewski "${RUNNER_TEMP}/health-goals/lh-korczewski.json" \
+              '{reports:{mentolder:$mentolder[0],korczewski:$korczewski[0]}}' > "${RUNNER_TEMP}/health-goals/lighthouse.json"
+          else
+            rm -f "${RUNNER_TEMP}/health-goals/lighthouse.json"
+            echo "::warning::Lighthouse reports incomplete or invalid; performance goals remain unknown"
+          fi
 
       # Install Trivy (G-SEC06) — same pinned action as ci.yml [T002754]. Without it
       # health-goals-check.sh guards `command -v trivy` and skips the goal, so the
@@ -152,9 +166,26 @@ jobs:
           kubectl -n monitoring --context fleet port-forward svc/monitoring-prometheus 19090:9090 >"${RUNNER_TEMP}/prometheus-port-forward.log" 2>&1 &
           pf_pid=$!
           trap 'kill "$pf_pid" 2>/dev/null || true' EXIT
-          for _ in {1..20}; do curl -fsS http://127.0.0.1:19090/-/ready >/dev/null && break; sleep 1; done
-          curl -fsS http://127.0.0.1:19090/-/ready >/dev/null
-          export HG_PROMETHEUS_URL=http://127.0.0.1:19090
+          unset HG_PROMETHEUS_URL
+          for _ in {1..20}; do curl -fsS http://127.0.0.1:19090/-/ready >/dev/null 2>&1 && break; sleep 1; done
+          if curl -fsS http://127.0.0.1:19090/-/ready >/dev/null 2>&1; then
+            export HG_PROMETHEUS_URL=http://127.0.0.1:19090
+          else
+            echo "::warning::Prometheus is unavailable; only its dependent goals remain unknown"
+          fi
+          # One completed scan feeds both the authored artifact and PostgreSQL.
+          # Local host/worktree goals have no observable basis on this runner.
+          only_ids="$(python3 scripts/lib/health_goals_record.py ids components/website/src/lib/sdlc/goals-data.generated.json Taskfile.yml | paste -sd, -)"
+          export HG_VALUES_FILE="${RUNNER_TEMP}/health-goals/values.txt"
+          export HG_RUN_COMPLETE_FILE="${RUNNER_TEMP}/health-goals/complete.txt"
+          : > "$HG_VALUES_FILE"
+          : > "$HG_RUN_COMPLETE_FILE"
+          check_status=0
+          bash scripts/health-goals-check.sh --quiet "--only=$only_ids" || check_status=$?
+          if [[ "$check_status" -gt 1 || "$(cat "$HG_RUN_COMPLETE_FILE")" != complete ]]; then
+            echo "ERROR: measurement did not complete (exit $check_status)" >&2
+            exit 1
+          fi
           if [[ "$DRY_RUN" == "1" ]]; then
             task health:goals:update -- --full --dry-run
             echo "dry=true" >> "$GITHUB_OUTPUT"
@@ -170,6 +201,23 @@ jobs:
       - name: Regenerate the website artifact
         if: steps.measure.outputs.dry == 'false'
         run: task health:goals:emit
+
+      - name: Persist fresh measurements to the website database
+        if: steps.measure.outputs.dry == 'false'
+        env:
+          TICKET_CTX: fleet
+          TICKET_NS: workspace
+          DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+        run: |
+          if [[ ! -f "${RUNNER_TEMP}/health-goals/values.txt" || ! -f "${RUNNER_TEMP}/health-goals/complete.txt" \
+            || "$(cat "${RUNNER_TEMP}/health-goals/complete.txt")" != complete ]]; then
+            echo "ERROR: completed measurement packet required before database initialization" >&2
+            exit 1
+          fi
+          python3 scripts/sdlc/seed-quality-goals.py --definitions-only --initialize-schema
+          bash scripts/sdlc/health-goals-daemon.sh \
+            --values-file "${RUNNER_TEMP}/health-goals/values.txt" \
+            --complete-file "${RUNNER_TEMP}/health-goals/complete.txt"
 
       - name: Check for changes
         id: diff

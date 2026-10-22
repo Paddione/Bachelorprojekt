@@ -12,6 +12,7 @@
 #
 # Usage: bash scripts/health-goals-scan.sh [--fast] <GOAL-ID> [<GOAL-ID> ...]
 #        bash scripts/health-goals-scan.sh [--fast] --all   (alle Ziele des Artefakts)
+#        ... --values-file <values> --complete-file <marker>  (vorhandenes Messpaket übernehmen)
 #
 # stdout: JSON-Array, ein Objekt je ANGEFORDERTER ID, Reihenfolge wie übergeben:
 #   [{"id":"G-CQ06","measurable":true,"actual":0,"cmp":"le","target":1},
@@ -28,12 +29,17 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "kein git-Repo" >&2;
 FAST=0
 ALL=0
 IDS=()
-for a in "$@"; do
-  case "$a" in
-    --fast) FAST=1 ;;
-    --all)  ALL=1 ;;
-    --*)    echo "unbekanntes Flag: $a" >&2; exit 2 ;;
-    *)      IDS+=("$a") ;;
+REUSE_VALUES=""; REUSE_COMPLETE=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --fast) FAST=1; shift ;;
+    --all)  ALL=1; shift ;;
+    --values-file|--complete-file)
+      [ $# -ge 2 ] || { echo "fehlendes Argument: $1" >&2; exit 2; }
+      if [ "$1" = --values-file ]; then REUSE_VALUES="$2"; else REUSE_COMPLETE="$2"; fi
+      shift 2 ;;
+    --*)    echo "unbekanntes Flag: $1" >&2; exit 2 ;;
+    *)      IDS+=("$1"); shift ;;
   esac
 done
 
@@ -83,13 +89,24 @@ FLAGS=(--quiet "--only=$ONLY_CSV")
 # Exit ungleich 0, und das ist hier kein Fehler. Fehlende Zeilen in der
 # Werte-Datei werden unten als measurable:false ausgewiesen (sichtbarer
 # stiller Ausfall, Lehre aus T002648).
-HG_VALUES_FILE="$VALUES" bash scripts/health-goals-check.sh "${FLAGS[@]}" >&2 || true
+#
+# --values-file/--complete-file übernehmen ein bereits gemessenes Paket (Nightly-
+# Workflow): dann wird nicht erneut gemessen, aber nur ein vollständiges Paket
+# wird akzeptiert.
+if [ -n "$REUSE_VALUES" ] || [ -n "$REUSE_COMPLETE" ]; then
+  if [ ! -f "$REUSE_VALUES" ] || [ ! -f "$REUSE_COMPLETE" ] || [ "$(cat "$REUSE_COMPLETE")" != complete ]; then
+    echo "vorhandenes Messpaket fehlt oder ist unvollständig" >&2; exit 1
+  fi
+  cp "$REUSE_VALUES" "$VALUES"
+else
+  HG_VALUES_FILE="$VALUES" bash scripts/health-goals-check.sh "${FLAGS[@]}" >&2 || true
+fi
 
 # HG_VALUES_FILE enthält Zeilen "<id> <actual> <cmp> <target>" — nur für
 # tatsächlich gemessene Ziele. Der dokumentierte Wert wird an dieser Stelle
 # bewusst NICHT eingesetzt.
-python3 - "$VALUES" "${IDS[@]}" <<'PY'
-import json, sys
+HG_SCAN_COMPLETION_FILE="$REUSE_COMPLETE" python3 - "$VALUES" "${IDS[@]}" <<'PY'
+import datetime, json, os, sys
 
 values_path = sys.argv[1]
 ids = sys.argv[2:]
@@ -121,6 +138,13 @@ for gid in ids:
         out.append({"id": gid, "measurable": False})
     else:
         out.append({"id": gid, "measurable": True, **m})
+
+# Ein übernommenes Paket behält seine Beobachtungszeit (mtime der Marker-Datei).
+completion = os.environ.get("HG_SCAN_COMPLETION_FILE")
+if completion:
+    observed = datetime.datetime.fromtimestamp(os.stat(completion).st_mtime, datetime.timezone.utc).isoformat()
+    for item in out:
+        item["measured_at"] = observed
 
 print(json.dumps(out))
 PY

@@ -3762,6 +3762,12 @@
     "kind": "pytest"
   },
   {
+    "id": "health-goals/nightly_persistence",
+    "file": "tests/py/spec/health-goals/test_nightly_persistence.py",
+    "category": "health-goals",
+    "kind": "pytest"
+  },
+  {
     "id": "health-goals/quality_db_schema",
     "file": "tests/py/spec/health-goals/test_quality_db_schema.py",
     "category": "health-goals",

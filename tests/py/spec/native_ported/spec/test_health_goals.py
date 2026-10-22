@@ -119,12 +119,11 @@ def test_g_sec05_counts_unsigned_humans_excludes_signed_commits(tmp_path, run_cm
 
 
 def test_g_fe05_both_lighthouse_npx_calls_are_wrapped_in_a_timeout(repo_root):
-    wf = repo_root / ".github" / "workflows" / "health-goals.yml"
-    pattern = re.compile(
-        r"timeout [0-9]+ npx --yes lighthouse@[0-9.]+ https://web\.(mentolder|korczewski)\.de"
-    )
-    count = sum(1 for line in wf.read_text(encoding="utf-8").splitlines() if pattern.search(line))
-    assert count == 2
+    # Beide Marken laufen durch dieselbe Schleife; der einzelne Aufruf trägt das timeout.
+    text = (repo_root / ".github" / "workflows" / "health-goals.yml").read_text(encoding="utf-8")
+    assert re.search(r"for brand in mentolder korczewski; do", text)
+    pattern = re.compile(r'timeout [0-9]+ npx --yes lighthouse@[0-9.]+ "https://web\.\$\{brand\}\.de"')
+    assert sum(1 for line in text.splitlines() if pattern.search(line)) == 1
 
 
 def test_g_sec06_the_trivy_image_scan_and_its_kubectl_pod_list_are_wrapped_in_a_timeout(repo_root):

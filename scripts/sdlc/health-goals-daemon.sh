@@ -41,24 +41,25 @@ trap 'rm -f "$TMP_OUT" "$TMP_SQL"' EXIT
 
 # Dateiargumente von --values-file/--complete-file sind keine Ziel-IDs.
 has_ids=0
+has_packet=0
 skip_next=0
 for a in "$@"; do
   if [[ "$skip_next" -eq 1 ]]; then skip_next=0; continue; fi
   case "$a" in
-    --values-file|--complete-file) skip_next=1 ;;
+    --values-file|--complete-file) skip_next=1; has_packet=1 ;;
     --*) ;;
     *) has_ids=1 ;;
   esac
 done
 SCAN_CLI=("$@")
 if [[ "$has_ids" -eq 0 ]]; then
-  # Auf dem CI-Runner ohne lokal-only Ziele (Host/Worktree/LLM-Stack nicht beobachtbar).
-  ID_ARGS=("${REPO_ROOT}/components/website/src/lib/sdlc/goals-data.generated.json")
-  [[ "${CI:-}" != true ]] || ID_ARGS+=("${REPO_ROOT}/Taskfile.yml")
-  if [[ "${CI:-}" == true ]]; then
-    mapfile -t CI_IDS < <(python3 "${REPO_ROOT}/scripts/lib/health_goals_record.py" ids "${ID_ARGS[@]}")
-    [[ ${#CI_IDS[@]} -gt 0 ]] || { echo "ERROR: no valid goal IDs" >&2; exit 1; }
-    SCAN_CLI+=("${CI_IDS[@]}")
+  if [[ "$has_packet" -eq 1 ]]; then
+    # Übernommenes Runner-Messpaket: ohne lokal-only Ziele (Host/Worktree/LLM-Stack
+    # sind dort nicht beobachtbar und würden sonst als unknown gespeichert).
+    mapfile -t PACKET_IDS < <(python3 "${REPO_ROOT}/scripts/lib/health_goals_record.py" ids \
+      "${REPO_ROOT}/components/website/src/lib/sdlc/goals-data.generated.json" "${REPO_ROOT}/Taskfile.yml")
+    [[ ${#PACKET_IDS[@]} -gt 0 ]] || { echo "ERROR: no valid goal IDs" >&2; exit 1; }
+    SCAN_CLI+=("${PACKET_IDS[@]}")
   else
     SCAN_CLI+=(--all)
   fi

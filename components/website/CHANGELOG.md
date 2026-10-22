@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.431.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.430.1...website-v1.431.0) (2026-10-22)
+
+
+### Features
+
+* **infra:** watchdog gaps — inventory node diff plus hourly dns check ([#6834](https://github.com/Paddione/Bachelorprojekt/issues/6834)) ([20c8d69](https://github.com/Paddione/Bachelorprojekt/commit/20c8d69b51102ffe4181b2bbe6d2f1adc09da994))
+
 ## [1.430.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.430.0...website-v1.430.1) (2026-10-22)
 
 

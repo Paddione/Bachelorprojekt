@@ -46,4 +46,4 @@ spec:
           command: ["sleep", "infinity"]
           resources:
             requests: {cpu: "1", memory: 4Gi, nvidia.com/gpu: "1"}
-            limits: {cpu: "4", memory: 8Gi, nvidia.com/gpu: "1"}
+            limits: {cpu: "4", memory: 6Gi, nvidia.com/gpu: "1"}

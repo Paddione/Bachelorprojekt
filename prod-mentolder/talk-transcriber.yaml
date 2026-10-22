@@ -72,6 +72,13 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: TRANSCRIBER_SECRET
+            # Shared secret for the website's internal-only /api/meeting/*
+            # routes (F4). Present in workspace-secrets (environments/schema.yaml).
+            - name: INTERNAL_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: INTERNAL_API_TOKEN
             - name: CHUNK_SECONDS
               value: "5"
             - name: MAX_SESSIONS

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T03:01:48.867Z",
+  "generatedAt": "2026-10-22T10:15:07.275Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2111,7 +2111,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "internal",
       "file": "components/website/src/pages/api/meeting/finalize.ts"
     },
     {
@@ -2127,7 +2127,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "internal",
       "file": "components/website/src/pages/api/meeting/save-transcript.ts"
     },
     {
@@ -2135,7 +2135,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "internal",
       "file": "components/website/src/pages/api/meeting/transcribe.ts"
     },
     {

@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { matchesInternalToken, internalUnauthorized } from '../../../lib/internal-auth';
 import { getRecordingFile } from '../../../lib/talk';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whiteboard';
@@ -17,6 +18,12 @@ import { generateMeetingInsights } from '../../../lib/claude.ts';
 //   transcript?, artifacts?, roomToken?
 // }
 export const POST: APIRoute = async ({ request , locals }) => {
+  // F4: internal-only — the talk-transcriber calls with INTERNAL_API_TOKEN.
+  // Fail closed (401) when the secret is missing or the token mismatches.
+  if (!matchesInternalToken(request, process.env.INTERNAL_API_TOKEN ?? '')) {
+    return internalUnauthorized();
+  }
+
   let customerName = '';
   const errors: string[] = [];
   const results: string[] = [];

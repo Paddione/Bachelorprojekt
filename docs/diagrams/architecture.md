@@ -2345,10 +2345,10 @@ flowchart TB
 | `/api/internal/applications/timeline` | POST | ❓ internal |
 | `/api/internal/tickets/notify-close` | POST | ❓ internal |
 | `/api/leistungen` | GET | ❓ unclassified |
-| `/api/meeting/finalize` | POST | ❓ unclassified |
+| `/api/meeting/finalize` | POST | ❓ internal |
 | `/api/meeting/release` | POST | 🔐 admin |
-| `/api/meeting/save-transcript` | POST | ❓ unclassified |
-| `/api/meeting/transcribe` | POST | ❓ unclassified |
+| `/api/meeting/save-transcript` | POST | ❓ internal |
+| `/api/meeting/transcribe` | POST | ❓ internal |
 | `/api/meetings/{id}/project` | PATCH | 🔐 admin |
 | `/api/newsletter/confirm` | GET | ❓ unclassified |
 | `/api/newsletter/subscribe` | POST | ❓ unclassified |

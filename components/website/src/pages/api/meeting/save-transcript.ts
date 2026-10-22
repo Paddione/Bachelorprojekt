@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { matchesInternalToken, internalUnauthorized } from '../../../lib/internal-auth';
 import {
   getMeetingByRoomToken,
   upsertCustomer,
@@ -25,6 +26,13 @@ import { ensureFolder, uploadFile } from '../../../lib/nextcloud-files';
 //   resources?: Array<{ type, name, storagePath, timestamp }>  // files from meeting window
 // }
 export const POST: APIRoute = async ({ request, locals }) => {
+  // F4: internal-only — the talk-transcriber calls with INTERNAL_API_TOKEN.
+  // Fail closed (401) when the secret is missing or the token mismatches.
+  // Checked before parsing the body so unauthenticated callers pay no DB cost.
+  if (!matchesInternalToken(request, process.env.INTERNAL_API_TOKEN ?? '')) {
+    return internalUnauthorized();
+  }
+
   let body: {
     roomToken?: string;
     transcriptText?: string;

@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-10-08T03:01:48.867Z
+> Generated at 2026-10-22T10:15:07.275Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -261,10 +261,10 @@
 | `/api/internal/applications/timeline` | POST | 🔒 internal | `components/website/src/pages/api/internal/applications/timeline.ts` |
 | `/api/internal/tickets/notify-close` | POST | 🔒 internal | `components/website/src/pages/api/internal/tickets/notify-close.ts` |
 | `/api/leistungen` | GET | ❓ unclassified | `components/website/src/pages/api/leistungen.ts` |
-| `/api/meeting/finalize` | POST | ❓ unclassified | `components/website/src/pages/api/meeting/finalize.ts` |
+| `/api/meeting/finalize` | POST | 🔒 internal | `components/website/src/pages/api/meeting/finalize.ts` |
 | `/api/meeting/release` | POST | 🔐 admin | `components/website/src/pages/api/meeting/release.ts` |
-| `/api/meeting/save-transcript` | POST | ❓ unclassified | `components/website/src/pages/api/meeting/save-transcript.ts` |
-| `/api/meeting/transcribe` | POST | ❓ unclassified | `components/website/src/pages/api/meeting/transcribe.ts` |
+| `/api/meeting/save-transcript` | POST | 🔒 internal | `components/website/src/pages/api/meeting/save-transcript.ts` |
+| `/api/meeting/transcribe` | POST | 🔒 internal | `components/website/src/pages/api/meeting/transcribe.ts` |
 | `/api/meetings/{id}/project` | PATCH | 🔐 admin | `components/website/src/pages/api/meetings/[id]/project.ts` |
 | `/api/newsletter/confirm` | GET | ❓ unclassified | `components/website/src/pages/api/newsletter/confirm.ts` |
 | `/api/newsletter/subscribe` | POST | ❓ unclassified | `components/website/src/pages/api/newsletter/subscribe.ts` |

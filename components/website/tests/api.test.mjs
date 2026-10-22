@@ -411,18 +411,34 @@ async function run() {
     expect(body).toHaveProperty('error');
   });
 
-  // -- 12. POST /api/meeting/finalize --
+  // -- 12. POST /api/meeting/finalize (internal-only, F4) --
   section('Meeting API');
 
-  await assert('POST /api/meeting/finalize with empty body returns 400', async () => {
+  await assert('POST /api/meeting/finalize without token returns 401', async () => {
     const res = await post('/api/meeting/finalize', {});
+    expect(res.status).toBe(401);
+  });
+
+  await assert('POST /api/meeting/finalize with empty body returns 400', async () => {
+    const res = await fetch(`${BASE_URL}/api/meeting/finalize`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.INTERNAL_API_TOKEN || 'test-token'}`,
+      },
+      body: JSON.stringify({}),
+      redirect: 'manual',
+    });
     expect(res.status).toBe(400);
   });
 
   await assert('POST /api/meeting/finalize with transcript returns results', async () => {
     const res = await fetch(`${BASE_URL}/api/meeting/finalize`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.INTERNAL_API_TOKEN || 'test-token'}`,
+      },
       body: JSON.stringify({
         customerName: 'Test Insights',
         customerEmail: 'insights@test.local',

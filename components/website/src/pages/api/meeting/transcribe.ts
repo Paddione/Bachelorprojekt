@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { matchesInternalToken, internalUnauthorized } from '../../../lib/internal-auth';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 
 
@@ -7,6 +8,13 @@ import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 //
 // Multipart form: file (audio), channelId (optional), customerName (optional)
 export const POST: APIRoute = async ({ request , locals }) => {
+  // F4: internal-only — the talk-transcriber calls with INTERNAL_API_TOKEN.
+  // Fail closed (401) so this is not an open Whisper proxy. Checked before
+  // parsing the multipart body.
+  if (!matchesInternalToken(request, process.env.INTERNAL_API_TOKEN ?? '')) {
+    return internalUnauthorized();
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

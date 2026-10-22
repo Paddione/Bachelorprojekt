@@ -5928,6 +5928,12 @@
     "kind": "pytest"
   },
   {
+    "id": "website_db/fk_indexes_customer_children",
+    "file": "tests/py/spec/website_db/test_fk_indexes_customer_children.py",
+    "category": "website_db",
+    "kind": "pytest"
+  },
+  {
     "id": "workspace-deploy",
     "file": "tests/py/spec/native_ported/spec/test_workspace_deploy.py",
     "category": "workspace-deploy",

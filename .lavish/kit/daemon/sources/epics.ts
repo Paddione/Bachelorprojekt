@@ -6,16 +6,11 @@
 // gestartet). Ein Test, der die Route importiert, waere in CI nicht lauffaehig —
 // die reinen Funktionen hier sind es. Muster uebernommen von sources/kubectl.ts.
 //
-// Die erste Fassung dieser Logik stand in routes/epics.ts und rief
-//     exec('bash scripts/vda/ticket.sh list --type project,feat --json …', 10000)
-// auf. Das war auf vier Wegen gleichzeitig falsch:
-//   1. exec() nimmt seit T002505 `bin` + argv-ARRAY, keine Shell-Zeile mehr.
-//      Der ganze String landete als Programmname, die 10000 als argv.
-//   2. `--json` gibt es in scripts/vda/ticket/list.sh nicht — list.sh gibt
-//      ohnehin json_agg aus. Das Flag bricht mit Exit 2 ab.
-//   3. `--brand` ist dort Pflicht und fehlte.
-//   4. `--type` baut `AND type = :'type'`, eine Gleichheit. 'project,feat'
-//      matcht nichts und liefert stumm eine leere Liste.
+// Historie: die erste Fassung rief `bash scripts/vda/ticket.sh list …` ueber
+// eine Shell auf. T002505 stellte auf `bin` + argv-ARRAY um. #6688 (Ticket-
+// Retirement) entfernte ticket.sh endgueltig; seit #6796 kommen die Epics aus
+// GitHub Issues mit dem Label `epic` (die Retirees wurden dorthin portiert).
+// Quelle ist `gh issue list` — maschinell geparst, immer `gh` direkt.
 import { exec } from '../lib/exec';
 
 export interface EpicSummary {
@@ -33,10 +28,21 @@ export interface EpicsQuery {
   limit?: number;
 }
 
-/** Epics sind in tickets.tickets als type='project' gefuehrt (nicht 'epic'). */
-export const EPIC_TYPE = 'project';
+/** Epics sind GitHub Issues mit dem Label `epic` (Ticket-Retirement #6688). */
+export const EPIC_LABEL = 'epic';
 
-const TICKET_SCRIPT = 'scripts/ticket.sh';
+/** Limit-Obergrenze fuer `gh issue list --limit` (D13: keine stillen Kuertel). */
+const MAX_LIMIT = 500;
+
+/**
+ * Baut die argv fuer `gh issue list`. Jeder Wert ist ein EIGENES
+ * argv-Element — nie Teil eines zusammengesetzten Strings.
+ *
+ * Abbildung Query → gh: `type` ist ein Ticket-DB-Relikt und wird nur noch
+ * validiert (Defense in Depth, kein Filter); `status: 'closed'` waehlt
+ * `--state closed`, alles andere listet offene Issues; `limit` wird
+ * 1..MAX_LIMIT geprueft und als `--limit` gereicht.
+ */
 
 /**
  * Defense in Depth neben dem argv-Aufbau (T002505). exec() startet keine Shell,
@@ -50,10 +56,11 @@ function assertPlainToken(value: string, label: string): void {
 }
 
 /**
- * Baut die argv fuer `bash scripts/ticket.sh list`. Jeder Wert ist ein EIGENES
+ * Baut die argv fuer `gh issue list`. Jeder Wert ist ein EIGENES
  * argv-Element — nie Teil eines zusammengesetzten Strings.
  *
- * args[0] ist der Skriptpfad relativ zum Repo-Root; exec() setzt cwd dorthin.
+ * args[0]/args[1] sind `issue list`; exec() setzt cwd auf den Repo-Root,
+ * damit `gh` das richtige Repository findet.
  */
 export function buildEpicsArgs(q: EpicsQuery): string[] {
   assertPlainToken(q.brand, 'brand');
@@ -61,22 +68,22 @@ export function buildEpicsArgs(q: EpicsQuery): string[] {
   if (q.status !== undefined) assertPlainToken(q.status, 'status');
 
   const limit = q.limit ?? 50;
-  if (!Number.isInteger(limit) || limit < 1 || limit > 500) {
+  if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LIMIT) {
     throw new Error(`invalid limit: ${JSON.stringify(q.limit)}`);
   }
 
   return [
-    TICKET_SCRIPT,
+    'issue',
     'list',
-    '--brand', q.brand,
-    '--type', q.type,
-    ...(q.status ? ['--status', q.status] : []),
+    '--label', EPIC_LABEL,
+    '--state', q.status === 'closed' ? 'closed' : 'open',
     '--limit', String(limit),
+    '--json', 'number,title,state,labels,createdAt,updatedAt',
   ];
 }
 
 /**
- * Parst die list.sh-Ausgabe. Wirft bei allem, was kein JSON-Array ist.
+ * Parst die `gh issue list --json`-Ausgabe. Wirft bei allem, was kein JSON-Array ist.
  *
  * D13 (tests/py/spec/native_ported/spec/sdlc-cockpit/test_no_silent_fallback.py): ein Datenbankausfall
  * darf nicht aussehen wie "es gibt keine Epics". Die Vorgaengerfassung hatte
@@ -88,26 +95,26 @@ export function parseEpics(stdout: string): EpicSummary[] {
   try {
     raw = JSON.parse(stdout);
   } catch {
-    throw new Error(`ticket.sh list: Antwort ist kein JSON (${stdout.slice(0, 120)})`);
+    throw new Error(`gh issue list: Antwort ist kein JSON (${stdout.slice(0, 120)})`);
   }
   if (!Array.isArray(raw)) {
-    throw new Error(`ticket.sh list: Antwort ist kein Array (${stdout.slice(0, 120)})`);
+    throw new Error(`gh issue list: Antwort ist kein Array (${stdout.slice(0, 120)})`);
   }
   return raw.map((t: any) => ({
-    id: t.external_id || t.id || '',
+    id: t.external_id || (t.number !== undefined ? String(t.number) : '') || t.id || '',
     title: t.title || '',
-    status: t.status || 'unknown',
+    status: typeof t.state === 'string' ? t.state.toLowerCase() : (t.status || 'unknown'),
     priority: t.priority || 'mittel',
     childCount: 0,
   }));
 }
 
 /** Holt die Epic-Liste. Wirft bei Fehlschlag — der Handler macht daraus ein `error`-Feld. */
-export async function getEpics(brand: string): Promise<EpicSummary[]> {
-  const args = buildEpicsArgs({ brand, type: EPIC_TYPE });
-  const result = await exec('bash', args, 15000);
+export async function getEpics(_brand: string): Promise<EpicSummary[]> {
+  const args = buildEpicsArgs({ brand: _brand, type: 'project' });
+  const result = await exec('gh', args, 15000);
   if (!result.ok) {
-    throw new Error(`ticket.sh list: ${result.error || result.stderr || 'command failed'}`);
+    throw new Error(`gh issue list: ${result.error || result.stderr || 'command failed'}`);
   }
   return parseEpics(result.stdout);
 }

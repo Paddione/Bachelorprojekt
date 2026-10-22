@@ -9,11 +9,9 @@
 // geschrieben, die T002505 danach ersetzt hat. Sie rief
 //     exec('bash scripts/vda/ticket.sh list --type project,feat --json', 10000)
 // auf — also die alte Shell-String-Form. Nach T002505 nimmt exec() `bin` und ein
-// argv-ARRAY; der ganze Kommandostring landete damit als Programmname und die
-// 10000 dort, wo argv erwartet wird. Zusaetzlich existierte `--json` als Flag
-// gar nicht, `--brand` ist Pflicht, und `--type` vergleicht auf Gleichheit statt
-// eine Kommaliste zu akzeptieren. Die Route konnte also auf keinem der vier
-// Wege funktionieren.
+// argv-ARRAY. #6688 (Ticket-Retirement) entfernte ticket.sh endgueltig; seit
+// #6796 kommen die Epics aus GitHub Issues mit Label `epic` via `gh issue list`.
+// Die Bau-Tests pruefen deshalb die gh-argv-Form, nicht mehr einen Skriptpfad.
 //
 // Bewusst KEIN Import von server.ts oder routes/epics.ts als Modul-Ganzes mit
 // Handlern: der Daemon zieht `hono`, das in keiner package.json deklariert ist
@@ -21,8 +19,6 @@
 // Bau- und Parse-Funktionen; die Route-Ebene deckt
 // tests/py/spec/native_ported/spec/sdlc-cockpit/test_k5_epic_canvas.py ab.
 import { describe, it, expect } from 'vitest';
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
 import {
   buildEpicsArgs,
   parseEpics,
@@ -31,44 +27,41 @@ import {
   countChangedCommits,
 } from '../../.lavish/kit/daemon/sources/epics';
 
-const REPO = resolve(__dirname, '../..');
-
 describe('buildEpicsArgs — argv statt Shell-String', () => {
-  it('liefert ein argv-Array, dessen Programmpfad wirklich existiert', () => {
+  it('liefert ein gh-issue-list-argv mit Label, State, Limit und JSON-Feldern', () => {
     // POSITIV-ANKER: ohne ihn waere jede Negativ-Aussage unten trivial erfuellt,
     // falls die Funktion z.B. ein leeres Array zurueckgaebe.
     const args = buildEpicsArgs({ brand: 'mentolder', type: 'project' });
     expect(Array.isArray(args)).toBe(true);
-    expect(args.length).toBeGreaterThan(1);
-
-    // args[0] ist der Skriptpfad, den `bash` ausfuehrt. Er muss existieren —
-    // die alte Fassung nannte scripts/vda/ticket.sh mit einem `list`, das dort
-    // nur als Pass-Through existiert.
-    expect(existsSync(resolve(REPO, args[0]))).toBe(true);
+    expect(args.slice(0, 2)).toEqual(['issue', 'list']);
+    expect(args).toContain('--label');
+    expect(args[args.indexOf('--label') + 1]).toBe('epic');
+    expect(args).toContain('--state');
+    expect(args[args.indexOf('--state') + 1]).toBe('open');
+    expect(args).toContain('--limit');
+    expect(args[args.indexOf('--limit') + 1]).toBe('50');
+    expect(args).toContain('--json');
   });
 
-  it('setzt das von list.sh geforderte --brand', () => {
-    const args = buildEpicsArgs({ brand: 'mentolder', type: 'project' });
-    const i = args.indexOf('--brand');
-    expect(i).toBeGreaterThan(-1);
-    expect(args[i + 1]).toBe('mentolder');
+  it('listet mit status closed nur geschlossene Issues', () => {
+    const args = buildEpicsArgs({ brand: 'mentolder', type: 'project', status: 'closed' });
+    expect(args[args.indexOf('--state') + 1]).toBe('closed');
   });
 
-  it('verwendet kein --json (das Flag existiert in list.sh nicht)', () => {
-    // list.sh gibt bereits json_agg aus; ein --json bricht mit
-    // "Unknown list option: --json" ab, Exit 2.
+  it('fordert per --json genau die Felder an, die parseEpics liest', () => {
+    // Ohne --json liefert gh eine Tabelle, kein JSON — parseEpics wuerfe.
     const args = buildEpicsArgs({ brand: 'mentolder', type: 'project' });
-    expect(args).not.toContain('--json');
+    const fields = args[args.indexOf('--json') + 1].split(',');
+    expect(fields).toContain('number');
+    expect(fields).toContain('title');
+    expect(fields).toContain('state');
   });
 
-  it('uebergibt genau EINEN Typ, keine Kommaliste', () => {
-    // list.sh baut `AND type = :'type'` — eine Gleichheit. 'project,feat'
-    // matcht damit nichts und liefert stumm eine leere Liste.
-    const args = buildEpicsArgs({ brand: 'mentolder', type: 'project' });
-    const i = args.indexOf('--type');
-    expect(i).toBeGreaterThan(-1);
-    expect(args[i + 1]).toBe('project');
-    expect(args[i + 1]).not.toContain(',');
+  it('weist einen Typ mit Kommaliste ab (Ticket-Relikt, kein gh-Filter)', () => {
+    // `type` ist ein Ticket-DB-Konzept und wird gh-seitig nicht gefiltert —
+    // nur validiert. 'project,feat' scheiterte frueher stumm (Gleichheit
+    // matcht nichts); heute wirft der Guard sofort.
+    expect(() => buildEpicsArgs({ brand: 'mentolder', type: 'project,feat' })).toThrow();
   });
 
   it('reicht keine Shell-Syntax durch', () => {
@@ -86,21 +79,30 @@ describe('buildEpicsArgs — argv statt Shell-String', () => {
 });
 
 describe('parseEpics — D13: kein stilles leeres Ergebnis', () => {
-  const sample = JSON.stringify([
+  const ghSample = JSON.stringify([
     {
-      external_id: 'T002458',
-      title: 'EPIC: SDLC Cockpit',
-      status: 'in_progress',
-      type: 'project',
-      priority: 'hoch',
+      number: 6796,
+      title: 'K5 Epic-Canvas: sources/epics.ts referenziert retired scripts/ticket.sh',
+      state: 'OPEN',
+      labels: [{ name: 'bug' }, { name: 'epic' }],
+      createdAt: '2026-10-22T04:00:00Z',
+      updatedAt: '2026-10-22T05:00:00Z',
     },
   ]);
 
-  it('POSITIV-ANKER: parst die echte list.sh-Ausgabeform', () => {
-    const epics = parseEpics(sample);
+  it('POSITIV-ANKER: parst die echte gh-issue-list-Ausgabeform', () => {
+    const epics = parseEpics(ghSample);
     expect(epics).toHaveLength(1);
+    expect(epics[0].id).toBe('6796');
+    expect(epics[0].title).toContain('K5 Epic-Canvas');
+    expect(epics[0].status).toBe('open');
+  });
+
+  it('bleibt rueckwaertskompatibel zur alten Ticket-Form', () => {
+    const epics = parseEpics(JSON.stringify([
+      { external_id: 'T002458', title: 'EPIC: SDLC Cockpit', status: 'in_progress', priority: 'hoch' },
+    ]));
     expect(epics[0].id).toBe('T002458');
-    expect(epics[0].title).toBe('EPIC: SDLC Cockpit');
     expect(epics[0].status).toBe('in_progress');
   });
 

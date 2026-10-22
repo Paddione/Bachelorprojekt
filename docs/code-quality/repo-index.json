@@ -1367,7 +1367,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bp-ship",
-      "file_count": 1929,
+      "file_count": 1930,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",

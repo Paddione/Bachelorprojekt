@@ -28,7 +28,7 @@
     "(?i)package-lock\\.json",
     # Test fixtures with placeholder values
     "(?i)tests/.*fixtures/.*",
-    # Docs with German compound words matching token patterns (e.g. "sk-Automatisierungstool")
+    # Docs with German compound words matching token patterns (e.g. "sk-REDACTED-EXAMPLE")
     "(?i)docs/bereitstellungsdetails\\.md",
     # T900725/T900726: historical archive remains until the directory tranche;
     # this one file contains a known private-key test string.
@@ -55,15 +55,20 @@
     # nicht in einen Commit gelangen koennen (verifiziert per git check-ignore).
     # Die Funde stammten aus Drittanbieter-Testfixturen (dotenv, zod, prettier)
     # und aus Scratch-Dateien.
+    # F10: Anker Pflicht — ungeankerte Muster wie .*tmp.* trafen auch
+    # getrackte Dateien (*.tmpl mit Secret-PLATZHALTERN, cleanup-tmp.sh),
+    # in die echte Keys gelangen koennten. Nur echte tmp/-Verzeichnisse und
+    # *.tmp-Dateien sind ausgenommen.
     ".*node_modules.*",
-    ".*tmp.*",
+    "(^|/)tmp/",
+    "\\.tmp$",
     ".*\\.worktrees.*",
-    ".*\\.auth.*",
+    "(^|/)\\.auth/",
     ".*playwright-traces.*",
     ".gitattributes",
     ".gitignore",
     # [T002554] Diese Datei selbst. Eine Config, die Secret-MUSTER beschreibt,
-    # matcht sie zwangslaeufig: der Kommentar oben nennt "sk-Automatisierungstool"
+    # matcht sie zwangslaeufig: der Kommentar oben nennt "sk-REDACTED-EXAMPLE"
     # als Beispiel und loest damit die openai-api-key-Regel aus. Der Fund bestand
     # schon vorher, war aber unter den 85 node_modules-Fehlalarmen unsichtbar —
     # ein Guard, der staendig falsch anschlaegt, verbirgt genau das, was er

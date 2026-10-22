@@ -454,7 +454,7 @@ skills:
   # ── Shared adapters: portable core plus harness-runtime mappings ──
   - id: dev-flow-execute
     provenance: project
-    exposure: adapter
+    exposure: portable
     source: .agents/skills/dev-flow-execute
     harnesses:
       codex:
@@ -465,18 +465,10 @@ skills:
         sync: identical
       opencode:
         path: .opencode/skills/dev-flow-execute
-        sync: manual
-        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
-        maps:
-          - capability: "ticket.record-phase-event"
-            runtime_tool: "ticket-mcp-node_record_phase_event"
+        sync: identical
       claude_code:
         path: .claude/skills/dev-flow-execute
-        sync: manual
-        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
-        maps:
-          - capability: "ticket.record-phase-event"
-            runtime_tool: "mcp__ticket-mcp-node__record_phase_event"
+        sync: identical
       muse:
         path: .agents/skills/dev-flow-execute
         sync: identical
@@ -586,7 +578,7 @@ skills:
     exclusions: {}
   - id: mishap-tracker
     provenance: project
-    exposure: adapter
+    exposure: portable
     source: .agents/skills/mishap-tracker
     harnesses:
       codex:
@@ -597,26 +589,10 @@ skills:
         sync: identical
       opencode:
         path: .opencode/skills/mishap-tracker
-        sync: manual
-        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
-        maps:
-          - capability: "mishap.report"
-            runtime_tool: "ticket-mcp-node_report_mishap"
-          - capability: "mishap.get-buffer"
-            runtime_tool: "ticket-mcp-node_get_mishap_buffer"
-          - capability: "mishap.flush-buffer"
-            runtime_tool: "ticket-mcp-node_flush_mishap_buffer"
+        sync: identical
       claude_code:
         path: .claude/skills/mishap-tracker
-        sync: manual
-        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
-        maps:
-          - capability: "mishap.report"
-            runtime_tool: "mcp__ticket-mcp-node__report_mishap"
-          - capability: "mishap.get-buffer"
-            runtime_tool: "mcp__ticket-mcp-node__get_mishap_buffer"
-          - capability: "mishap.flush-buffer"
-            runtime_tool: "mcp__ticket-mcp-node__flush_mishap_buffer"
+        sync: identical
       muse:
         path: .agents/skills/mishap-tracker
         sync: identical
@@ -641,36 +617,6 @@ skills:
             runtime_tool: "mcp-postgres_query"
           - capability: "kubernetes.pod-list-in-namespace"
             runtime_tool: "mcp-kubernetes_pods_list_in_namespace"
-          - capability: "ticket.get"
-            runtime_tool: "ticket-mcp-node_get_ticket"
-          - capability: "ticket.list"
-            runtime_tool: "ticket-mcp-node_list_tickets"
-          - capability: "ticket.create"
-            runtime_tool: "ticket-mcp-node_create_ticket"
-          - capability: "ticket.transition-status"
-            runtime_tool: "ticket-mcp-node_transition_status"
-          - capability: "ticket.add-comment"
-            runtime_tool: "ticket-mcp-node_add_comment"
-          - capability: "ticket.add-pr-link"
-            runtime_tool: "ticket-mcp-node_add_pr_link"
-          - capability: "ticket.link"
-            runtime_tool: "ticket-mcp-node_link_tickets"
-          - capability: "ticket.get-attachments"
-            runtime_tool: "ticket-mcp-node_get_attachments"
-          - capability: "ticket.record-phase-event"
-            runtime_tool: "ticket-mcp-node_record_phase_event"
-          - capability: "ticket.set-plan-meta"
-            runtime_tool: "ticket-mcp-node_set_plan_meta"
-          - capability: "ticket.set-readiness-flag"
-            runtime_tool: "ticket-mcp-node_set_readiness_flag"
-          - capability: "ticket.set-touched-files"
-            runtime_tool: "ticket-mcp-node_set_touched_files"
-          - capability: "ticket.stage-plan"
-            runtime_tool: "ticket-mcp-node_stage_plan"
-          - capability: "ticket.archive-plan"
-            runtime_tool: "ticket-mcp-node_archive_plan"
-          - capability: "mishap.get-buffer"
-            runtime_tool: "ticket-mcp-node_get_mishap_buffer"
           - capability: "browser.automation"
             runtime_tool: "playwright_*"
       claude_code:
@@ -682,36 +628,6 @@ skills:
             runtime_tool: "mcp__mcp-postgres__query"
           - capability: "kubernetes.pod-list-in-namespace"
             runtime_tool: "mcp__mcp-kubernetes__pods_list_in_namespace"
-          - capability: "ticket.get"
-            runtime_tool: "mcp__ticket-mcp-node__get_ticket"
-          - capability: "ticket.list"
-            runtime_tool: "mcp__ticket-mcp-node__list_tickets"
-          - capability: "ticket.create"
-            runtime_tool: "mcp__ticket-mcp-node__create_ticket"
-          - capability: "ticket.transition-status"
-            runtime_tool: "mcp__ticket-mcp-node__transition_status"
-          - capability: "ticket.add-comment"
-            runtime_tool: "mcp__ticket-mcp-node__add_comment"
-          - capability: "ticket.add-pr-link"
-            runtime_tool: "mcp__ticket-mcp-node__add_pr_link"
-          - capability: "ticket.link"
-            runtime_tool: "mcp__ticket-mcp-node__link_tickets"
-          - capability: "ticket.get-attachments"
-            runtime_tool: "mcp__ticket-mcp-node__get_attachments"
-          - capability: "ticket.record-phase-event"
-            runtime_tool: "mcp__ticket-mcp-node__record_phase_event"
-          - capability: "ticket.set-plan-meta"
-            runtime_tool: "mcp__ticket-mcp-node__set_plan_meta"
-          - capability: "ticket.set-readiness-flag"
-            runtime_tool: "mcp__ticket-mcp-node__set_readiness_flag"
-          - capability: "ticket.set-touched-files"
-            runtime_tool: "mcp__ticket-mcp-node__set_touched_files"
-          - capability: "ticket.stage-plan"
-            runtime_tool: "mcp__ticket-mcp-node__stage_plan"
-          - capability: "ticket.archive-plan"
-            runtime_tool: "mcp__ticket-mcp-node__archive_plan"
-          - capability: "mishap.get-buffer"
-            runtime_tool: "mcp__ticket-mcp-node__get_mishap_buffer"
           - capability: "browser.automation"
             runtime_tool: "mcp__playwright__*"
       muse:
@@ -720,7 +636,7 @@ skills:
     exclusions: {}
   - id: system-audit
     provenance: project
-    exposure: adapter
+    exposure: portable
     source: .agents/skills/system-audit
     harnesses:
       codex:
@@ -731,26 +647,10 @@ skills:
         sync: identical
       opencode:
         path: .opencode/skills/system-audit
-        sync: manual
-        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
-        maps:
-          - capability: "ticket.create"
-            runtime_tool: "ticket-mcp-node_create_ticket"
-          - capability: "ticket.set-plan-meta"
-            runtime_tool: "ticket-mcp-node_set_plan_meta"
-          - capability: "ticket.set-readiness-flag"
-            runtime_tool: "ticket-mcp-node_set_readiness_flag"
+        sync: identical
       claude_code:
         path: .claude/skills/system-audit
-        sync: manual
-        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
-        maps:
-          - capability: "ticket.create"
-            runtime_tool: "mcp__ticket-mcp-node__create_ticket"
-          - capability: "ticket.set-plan-meta"
-            runtime_tool: "mcp__ticket-mcp-node__set_plan_meta"
-          - capability: "ticket.set-readiness-flag"
-            runtime_tool: "mcp__ticket-mcp-node__set_readiness_flag"
+        sync: identical
       muse:
         path: .agents/skills/system-audit
         sync: identical

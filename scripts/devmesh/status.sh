@@ -6,7 +6,11 @@
 #
 # etcd-Mitglieder = Knoten mit Label node-role.kubernetes.io/etcd=true. Snapshot-Alter aus
 # .status.creationTime der ETCDSnapshotFile-Ressourcen (k3s >= 1.27).
-# Exit 0 gesund, 1 Befund (Knoten nicht Ready, Snapshot fehlt oder zu alt), 2 Vorbedingung fehlt.
+# Zusaetzlich Inventar-Abgleich: jeder Peer mit k3s_role muss als Knoten im
+# Cluster stehen. Ein spurlos verschwundener Knoten (nicht NotReady, sondern
+# weg) kuerzte frueher nur den Nenner statt einen Befund zu melden.
+# Exit 0 gesund, 1 Befund (Knoten nicht Ready, Inventar-Knoten fehlt, Snapshot
+# fehlt oder zu alt), 2 Vorbedingung fehlt.
 set -euo pipefail
 
 CTX="${DEVMESH_CONTEXT:-devmesh}"
@@ -32,6 +36,39 @@ while read -r name st etcd; do
 done <<<"$nodes"
 echo "Knoten: $ready/$total Ready"
 echo "etcd-Mitglieder: $etcd_ready/$etcd_total Ready"
+
+# ── Inventar-Abgleich ──────────────────────────────────────────────────────────
+# Erwartete Knoten = Peers mit k3s_role (server-init|server-join|agent) aus
+# devmesh/inventory.yaml. Reines Bash/grep-Parsing (kein yq), damit der
+# Check mit derselben Minimal-PATH wie der Rest des Skripts auskommt.
+SCRIPT_DIR="${BASH_SOURCE[0]%/*}"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+INV="$REPO_ROOT/devmesh/inventory.yaml"
+inv_total=0; inv_found=0
+if [[ -f "$INV" ]]; then
+  cur=""; want=0; in_peers=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" == "peers:" ]]; then in_peers=1; continue; fi
+    if [[ "$in_peers" == 1 && "$line" =~ ^[^[:space:]] ]]; then in_peers=0; fi
+    if [[ "$in_peers" == 0 ]]; then continue; fi
+    if [[ "$line" =~ ^[[:space:]]*-[[:space:]]+name:[[:space:]]+([^[:space:]]+) ]]; then
+      if [[ -n "$cur" && "$want" == 1 ]]; then
+        inv_total=$((inv_total + 1))
+        if grep -q "^$cur " <<<"$nodes"; then inv_found=$((inv_found + 1)); else echo "FAIL Knoten $cur fehlt im Cluster (Inventar: k3s-Rolle gesetzt)"; FAIL=1; fi
+      fi
+      cur="${BASH_REMATCH[1]}"; want=0
+    elif [[ "$line" =~ ^[[:space:]]*k3s_role:[[:space:]]+(server-init|server-join|agent)[[:space:]]*$ ]]; then
+      want=1
+    fi
+  done < "$INV"
+  if [[ -n "$cur" && "$want" == 1 ]]; then
+    inv_total=$((inv_total + 1))
+    if grep -q "^$cur " <<<"$nodes"; then inv_found=$((inv_found + 1)); else echo "FAIL Knoten $cur fehlt im Cluster (Inventar: k3s-Rolle gesetzt)"; FAIL=1; fi
+  fi
+  echo "Inventar-Abgleich: $inv_found/$inv_total Inventar-Knoten im Cluster"
+else
+  echo "WARN Inventar $INV nicht lesbar — Abgleich uebersprungen" >&2
+fi
 # GPU-Sicht (T900179): jeder Knoten mit Zahl. "keine GPU" (kein Label, keine Ressource)
 # und "Karte markiert, aber nicht angeboten" (Label gpu=true, keine Ressource) sind zwei
 # verschiedene Befunde — der zweite bedeutet fehlendes Device-Plugin oder fehlende

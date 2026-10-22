@@ -224,7 +224,7 @@ def test_dns_check_fragt_den_testnamen_nicht_die_umgebungsvariable_name(repo_roo
     env = {**os.environ, "NAME": "kein-dns-name-t016522"}
     res = run_cmd(["task", "--dry", "devmesh:dns:check"], cwd=repo_root, env=env)
     assert res.returncode == 0, res.output
-    dig_lines = [l for l in res.output.splitlines() if "dig " in l]
-    # Positiv-Anker: der Task fragt per dig ab, mit dem Default-Testnamen.
-    assert dig_lines and any("quad9.net" in l for l in dig_lines), res.output
+    call_lines = [l for l in res.output.splitlines() if "lan-dns-check.sh" in l]
+    # Positiv-Anker: der Task ruft das Check-Skript mit dem Default-Testnamen auf.
+    assert call_lines and any("quad9.net" in l for l in call_lines), res.output
     assert "kein-dns-name-t016522" not in res.output

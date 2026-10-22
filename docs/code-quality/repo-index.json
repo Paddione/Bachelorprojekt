@@ -3047,6 +3047,7 @@
         "components/website/src/pages/api/portal/rooms/[id]/messages.ts",
         "components/website/src/pages/api/portal/rooms/[id]/share.ts",
         "components/website/src/pages/api/portal/rooms/ensure-direct.ts",
+        "components/website/src/pages/api/portal/sign/[assignmentId].test.ts",
         "components/website/src/pages/api/portal/sign/[assignmentId].ts",
         "components/website/src/pages/api/register.ts",
         "components/website/src/pages/api/signing/confirm.ts",

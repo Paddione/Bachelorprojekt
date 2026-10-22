@@ -24,7 +24,7 @@ vi.mock('../../../lib/auth', () => ({
   consumeReturnTo: vi.fn(() => undefined),
 }));
 
-import { GET } from './callback';
+import { GET, isAdminGatedPath } from './callback';
 
 const REACT = 'https://react.example.test';
 const SITE = 'https://web.example.test';
@@ -103,5 +103,53 @@ describe('callback returnTo allowlist', () => {
   it('still sets the session cookie on redirect', async () => {
     const res = await call(`${REACT}/admin/homepage`);
     expect(res.headers.get('Set-Cookie')).toContain('workspace_session=');
+  });
+});
+
+describe('callback non-admin loop protection', () => {
+  it('sends a non-admin away from /sdlc/cockpit to /portal', async () => {
+    mockIsAdmin = false;
+    const res = await call('/sdlc/cockpit');
+    expect(res.headers.get('Location')).toBe('/portal');
+  });
+
+  it('sends a non-admin away from /admin to /portal', async () => {
+    mockIsAdmin = false;
+    const res = await call('/admin');
+    expect(res.headers.get('Location')).toBe('/portal');
+  });
+
+  it('keeps an admin on /sdlc/cockpit', async () => {
+    mockIsAdmin = true;
+    const res = await call('/sdlc/cockpit');
+    expect(res.headers.get('Location')).toBe('/sdlc/cockpit');
+  });
+
+  it('sends a non-admin away from an allowlisted absolute /sdlc URL', async () => {
+    mockIsAdmin = false;
+    const res = await call(`${SITE}/sdlc/cockpit`);
+    expect(res.headers.get('Location')).toBe('/portal');
+  });
+
+  it('leaves a non-admin on /portal', async () => {
+    mockIsAdmin = false;
+    const res = await call('/portal/inbox');
+    expect(res.headers.get('Location')).toBe('/portal/inbox');
+  });
+});
+
+describe('isAdminGatedPath', () => {
+  it.each([
+    ['/admin', true],
+    ['/admin/content', true],
+    ['/sdlc', true],
+    ['/sdlc/cockpit', true],
+    ['https://web.example.test/sdlc/cockpit', true],
+    ['/portal', false],
+    ['/portal/inbox', false],
+    ['/', false],
+    ['/login', false],
+  ])('%s → %s', (target, expected) => {
+    expect(isAdminGatedPath(target)).toBe(expected);
   });
 });

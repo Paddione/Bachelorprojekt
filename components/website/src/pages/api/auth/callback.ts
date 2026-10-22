@@ -29,6 +29,27 @@ function allowedReturnOrigins(): string[] {
  * - Everything else (foreign origin, javascript:, protocol-relative, garbage)
  *   falls back to the safe default.
  */
+/**
+ * Admin-gated areas: pages here bounce non-admins back to the login
+ * (instead of to /portal like admin.astro does). Sending a non-admin back
+ * to one of these post-login loops them between callback and login until
+ * the browser gives up with ERR_TOO_MANY_REDIRECTS.
+ */
+export function isAdminGatedPath(target: string): boolean {
+  let path: string;
+  try {
+    path = new URL(target, 'http://placeholder.invalid').pathname;
+  } catch {
+    return false;
+  }
+  return (
+    path === '/admin' ||
+    path.startsWith('/admin/') ||
+    path === '/sdlc' ||
+    path.startsWith('/sdlc/')
+  );
+}
+
 export function resolveReturnTo(rawState: string, fallback: string): string {
   if (
     rawState.startsWith('/') &&
@@ -84,7 +105,15 @@ export const GET: APIRoute = async ({ url, locals }) => {
     });
   }
 
-  const destination = resolveReturnTo(resolvedReturnTo, isAdmin(result.user) ? '/admin' : '/portal');
+  const admin = isAdmin(result.user);
+  let destination = resolveReturnTo(resolvedReturnTo, admin ? '/admin' : '/portal');
+
+  // Loop-Schutz: Ein Nicht-Admin mit gueltiger Session wuerde auf einer
+  // Admin-Seite sofort wieder zum Login geschickt (SSO noch gueltig) und
+  // zwischen Callback und Login kreisen — stattdessen zum Portal.
+  if (!admin && isAdminGatedPath(destination)) {
+    destination = '/portal';
+  }
 
   return new Response(null, {
     status: 302,

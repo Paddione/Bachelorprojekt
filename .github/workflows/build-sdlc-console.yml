@@ -6,6 +6,10 @@ on:
     paths:
       - 'components/website/src/**/sdlc/**'
       - 'components/website/src/lib/**'
+      # Geteilter Auth-Code (Callback-Loop-Schutz u. a.) laeuft auch im
+      # sdlc-Image — ohne diese Pfade wuerde ein Fix unter pages/api/auth
+      # das website-Image, aber nie website-sdlc neu bauen.
+      - 'components/website/src/pages/api/auth/**'
       - 'components/website/src/components/**'
       - 'components/website/src/middleware/**'
       - 'components/website/src/integrations/**'

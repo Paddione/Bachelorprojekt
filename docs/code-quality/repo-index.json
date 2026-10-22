@@ -398,6 +398,7 @@
         "tests/py/spec/health-goals/test_health_pipeline_integrity.py",
         "tests/py/spec/health-goals/test_nightly_persistence.py",
         "tests/py/spec/health-goals/test_quality_db_schema.py",
+        "tests/py/spec/llm_proxy/test_registry_no_tickets_ref.py",
         "tests/py/spec/massage-tenant/test_brand_migration.py",
         "tests/py/spec/massage-tenant/test_db_network_policy.py",
         "tests/py/spec/massage-tenant/test_flux_freeze.py",

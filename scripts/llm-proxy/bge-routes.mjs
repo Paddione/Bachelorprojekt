@@ -76,7 +76,8 @@ export function loadRoles(doc) {
 }
 
 /**
- * Baut die Rollen-Ketten aus der Backend-Registry (tickets.llm_proxy_backends).
+ * Baut die Rollen-Ketten aus der Backend-Registry (LLM_PROXY_BACKENDS_JSON-Env,
+ * gesetzt in dev-local/components/llm-services/deployment.yaml).
  * - Zeilen mit enabled === false werden verworfen
  * - Sortierung nach priority aufsteigend
  * - jede Zeile wird zu { kind: 'url', baseUrl } — loadout_slug wird nicht mehr

@@ -44,11 +44,12 @@ Manifeste/Skripte (S4 sauber).
 
 ## Task 1 — GREEN: Env-Bypass befüllen
 
-- [ ] Rotphase wiederholen (expected: FAIL):
+- [x] Rotphase wiederholen (expected: FAIL):
   ```bash
   python3 -m pytest tests/py/spec/llm_proxy/test_registry_no_tickets_ref.py -q
   ```
-- [ ] Backend-JSON aus Migrationskette rekonstruieren
+  Belegt 2026-10-22: FAIL mit Funden in `backends.mjs` (2 Muster) + `bge-routes.mjs` (1 Muster).
+- [x] Backend-JSON aus Migrationskette rekonstruieren
   (`scripts/migrations/2026-09-16-devmesh-llm-proxy-backends.sql`,
   `2026-10-10-llm-proxy-qwen35-2b-worker.sql`,
   `2026-10-10-llm-proxy-tei-desktop-embed.sql`, abzüglich
@@ -56,18 +57,29 @@ Manifeste/Skripte (S4 sauber).
   nicht schon enthalten). Felder je `backends.mjs`-Typedef:
   `name, kind, baseUrl, apiKeyEnv (nur Env-NAME, kein Secret), enabled,
   priority, fixups[], modelAliases{}, maxInflight, roles[]`.
-- [ ] Als einzeiliges `LLM_PROXY_BACKENDS_JSON` in `deployment.yaml`
+  Stand 2026-10-22: 8 Eintraege aus dem Devmesh-Seed; die beiden
+  2026-10-10-Zeilen (fleet shared-db, 127.0.0.1-Loopback, im Pod nicht
+  erreichbar) bewusst NICHT uebernommen; disable-dead ist No-op fuer das
+  Devmesh-Set (`llamacpp-gemma` darin nicht enthalten).
+- [x] Als einzeiliges `LLM_PROXY_BACKENDS_JSON` in `deployment.yaml`
   (mcp-node-Container-env) eintragen; JSON vorher validieren:
   ```bash
   node -e "JSON.parse(process.env.V)" -- V='<json>'
   ```
-- [ ] `bge-routes.mjs:79`-Kommentar auf `LLM_PROXY_BACKENDS_JSON` umschreiben.
+  Stand 2026-10-22: eingetragen (single-quoted YAML-Scalar, 1707 Zeichen),
+  `yaml.safe_load` + `JSON.parse` + Typedef-Feldcheck gruen,
+  `task workspace:validate` gruen.
+- [x] `bge-routes.mjs:79`-Kommentar auf `LLM_PROXY_BACKENDS_JSON` umschreiben.
 - [ ] GREEN-Nachweis:
   ```bash
   python3 -m pytest tests/py/spec/llm_proxy/test_registry_no_tickets_ref.py -q
   task workspace:validate
   ```
   Erwartung: Test grün, Kustomize-Dry-Run grün.
+  BLOCKIERT 2026-10-22: Test weiter ROT — einzig verbleibender Fund ist das
+  `FROM tickets.llm_proxy_backends`-SQL-Literal in `backends.mjs:17`, das der
+  Plan explizit unveraendert laesst (DB-Fallback bleibt). Statischer Grep-Test
+  kann per Env-Bypass nicht gruen werden; siehe Report an Orchestrator.
 
 ## Task 2 — Verify: Deploy + 30-min-Fenster
 

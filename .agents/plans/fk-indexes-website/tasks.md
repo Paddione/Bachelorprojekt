@@ -87,7 +87,19 @@ den registrierten `db:migrate`-Pfad (kein Orphan); kein neues Skript.
   Beleg 2026-10-22: `tsx src/db/migrate.ts` via Port-Forward, Exit 0,
   Datei `20261022_fk_indexes_customer_children.sql` als „applying“ geloggt,
   6 Indizes in `pg_indexes` belegt.
-- [ ] CI-Gate: `task test:changed` + `task freshness:regenerate` + `task freshness:check` + `task workspace:validate`.
+- [x] CI-Gate: `task test:changed` + `task freshness:regenerate` + `task freshness:check` + `task workspace:validate`.
+  Beleg 2026-10-22:
+  - `workspace:validate` ✓, `freshness:regenerate` ✓ (2 Artefakte),
+    `freshness:check` ✓ EXIT=0 (Artefakte frisch, Graph aktuell,
+    quality ohne neue Violations, baseline ohne neue Keys).
+  - `task test:changed` (volle pytest-Suite, 2 Shards): ROT, aber
+    ausschließlich außerhalb des Plan-Scopes — 0 Treffer in
+    `website*|migrat*|fk_index*|customer*`. Stichprobe
+    `test_dashboard_rescan.py` failt identisch im Haupt-Checkout
+    (d4d65b435, 4 failed) → pre-existing, ans Orchestrator-Backlog.
+    Eigene Domain `tests/py/spec/website_db/` grün.
+    Zusatz: `task test:changed` hängt im Worktree bei intaktem Lauf
+    >25 min (Suite braucht pro Shard ~15–23 min); Shards einzeln belegt.
 
 ## Risiken
 

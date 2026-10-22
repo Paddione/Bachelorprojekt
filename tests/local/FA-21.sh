@@ -19,11 +19,12 @@ else
   skip_test "FA-21" "T1" "Leistungen" "Website nicht bereit"
 fi
 
-# ── T2: Billing API validates input ───────────────────────────────
+# ── T2: Billing API verlangt Admin-Session ───────────────────────────
+# F5: nur Admins duerfen Rechnungsentwuerfe anlegen (vgl. T5 invoice-payment-intent).
 if [[ "$WEB_READY" -gt 0 ]]; then
   BILL_CODE=$(kubectl exec -n "$WEB_NAMESPACE" deploy/website -- \
     node -e "fetch('http://localhost:4321/api/billing/create-invoice',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>console.log(r.status))" 2>/dev/null || echo "0")
-  assert_eq "$BILL_CODE" "400" "FA-21" "T2" "Billing-API validiert (400 bei leerem Body)"
+  assert_eq "$BILL_CODE" "401" "FA-21" "T2" "Billing-API verweigert unauthentifizierte Anfragen (401)"
 else
   skip_test "FA-21" "T2" "Billing API" "Website nicht bereit"
 fi

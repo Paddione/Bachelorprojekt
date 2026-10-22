@@ -2320,7 +2320,7 @@ flowchart TB
 | `/api/auth/me` | OPTIONS, GET | 🔐 admin |
 | `/api/bge/changes` | GET | 🔐 admin |
 | `/api/bge/retrieve` | GET | 🔐 admin |
-| `/api/billing/create-invoice` | POST | ❓ unclassified |
+| `/api/billing/create-invoice` | POST | 🔐 admin |
 | `/api/billing/invoice/{id}/pdf` | GET | 🔐 admin |
 | `/api/billing/invoice/{id}/xrechnung.xml` | GET | 🔐 admin |
 | `/api/billing/invoice/{id}/zugferd` | GET | 🔐 admin |

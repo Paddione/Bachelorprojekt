@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession } from '../../../../../lib/auth';
-import { getDocumentAssignmentById, getAssignmentPdf } from '../../../../../lib/documents-db';
+import { getOwnedAssignmentById, getAssignmentPdf } from '../../../../../lib/documents-db';
+import { getCustomerByEmail } from '../../../../../lib/project-portal-db';
 import { logSigningEvent } from '../../../../../lib/signing/audit';
 
 export const GET: APIRoute = async ({ params, request, url }) => {
@@ -12,7 +13,8 @@ export const GET: APIRoute = async ({ params, request, url }) => {
   const { assignmentId } = params;
   if (!assignmentId) return new Response('Missing assignmentId', { status: 400 });
 
-  const assignment = await getDocumentAssignmentById(assignmentId);
+  const customer = await getCustomerByEmail(session.email);
+  const assignment = customer ? await getOwnedAssignmentById(assignmentId, customer.id) : null;
   if (!assignment) return new Response('Not found', { status: 404 });
   if (assignment.status !== 'completed') {
     return new Response('Document not signed yet', { status: 409 });

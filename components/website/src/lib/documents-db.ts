@@ -239,6 +239,17 @@ export async function getDocumentAssignmentById(id: string): Promise<DocumentAss
   return rows[0] ?? null;
 }
 
+/** Ownership-guarded lookup for portal routes: null unless the assignment
+ *  belongs to the given customer (returns 404 either way, no existence oracle). */
+export async function getOwnedAssignmentById(
+  id: string,
+  customerId: string,
+): Promise<DocumentAssignment | null> {
+  const assignment = await getDocumentAssignmentById(id);
+  if (!assignment || assignment.customer_id !== customerId) return null;
+  return assignment;
+}
+
 export interface AdminAssignmentRow {
   id: string;
   customer_id: string;

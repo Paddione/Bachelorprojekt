@@ -65,6 +65,7 @@ import {
   revokeAssignment,
   extendAssignmentDeadline,
   getDocumentAssignmentById,
+  getOwnedAssignmentById,
   listAllAssignments,
 } from './documents-db';
 
@@ -180,6 +181,23 @@ describe('documents-db: assignments', () => {
 
   it('listAssignmentsForCustomer returns [] for a customer with none', async () => {
     expect(await listAssignmentsForCustomer('22222222-2222-4222-8222-222222222222')).toEqual([]);
+  });
+
+  it('getOwnedAssignmentById returns the assignment for its owner', async () => {
+    const templateId = await seedTemplate();
+    const created = await createDocumentAssignment({ customerId, templateId, status: 'pending' });
+    const found = await getOwnedAssignmentById(created.id, customerId);
+    expect(found?.id).toBe(created.id);
+  });
+
+  it('getOwnedAssignmentById returns null for a foreign customer (IDOR guard)', async () => {
+    const templateId = await seedTemplate();
+    const created = await createDocumentAssignment({ customerId, templateId, status: 'pending' });
+    expect(await getOwnedAssignmentById(created.id, '22222222-2222-4222-8222-222222222222')).toBeNull();
+  });
+
+  it('getOwnedAssignmentById returns null for an unknown id', async () => {
+    expect(await getOwnedAssignmentById('33333333-3333-4333-8333-333333333333', customerId)).toBeNull();
   });
 
   it('countPendingAssignmentsForCustomer counts only pending', async () => {

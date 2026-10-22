@@ -1,10 +1,11 @@
 import type { APIRoute } from 'astro';
 import { getSession } from '../../../../lib/auth';
 import {
-  getDocumentAssignmentById,
+  getOwnedAssignmentById,
   getDocumentTemplate,
   markAssignmentSigned,
 } from '../../../../lib/documents-db';
+import { getCustomerByEmail } from '../../../../lib/project-portal-db';
 import { renderTemplate, embedSignature } from '../../../../lib/signing/template-renderer';
 import { generatePdf } from '../../../../lib/signing/pdf-service';
 import { logSigningEvent } from '../../../../lib/signing/audit';
@@ -36,7 +37,8 @@ export const POST: APIRoute = async ({ params, request }) => {
     return new Response(JSON.stringify({ error: 'imageData required for canvas signature' }), { status: 400 });
   }
 
-  const assignment = await getDocumentAssignmentById(assignmentId);
+  const customer = await getCustomerByEmail(session.email);
+  const assignment = customer ? await getOwnedAssignmentById(assignmentId, customer.id) : null;
   if (!assignment) {
     return new Response(JSON.stringify({ error: 'Assignment not found' }), { status: 404 });
   }

@@ -17,7 +17,7 @@ spec:
       nodeSelector: {kubernetes.io/hostname: gpu-metal}
       containers:
         - name: worker
-          image: alpine/git@sha256:03228d7ded483b0b3e7fa660d70d3e1bb432fa7021d29e192640de11aa
+          image: alpine/git@sha256:03228d7ded483b0b3e55e1de7fa660d70d3e1bb432fa7021d29e192640de11aa
           command: ["sleep", "infinity"]
           resources:
             requests: {cpu: 250m, memory: 256Mi}

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1267,
+      "file_count": 1268,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1050,6 +1050,7 @@
         "tests/py/spec/videovault/test_picker_depth_guard.py",
         "tests/py/spec/videovault/test_type_gate_green.py",
         "tests/py/spec/website-migrate/test_portforward_runner.py",
+        "tests/py/spec/website_db/test_fk_indexes_customer_children.py",
         "tests/py/unit/ported/scripts/test_software_history_classify.py",
         "tests/py/unit/ported/test_admin_nav.py",
         "tests/py/unit/ported/test_agent_collision.py",
@@ -1364,7 +1365,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bp-ship",
-      "file_count": 1926,
+      "file_count": 1927,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",
@@ -1980,6 +1981,7 @@
         "components/website/src/db/migrations/20261008_invoices.sql",
         "components/website/src/db/migrations/20261008_massage_brand_checks.sql",
         "components/website/src/db/migrations/20261014_fk_indexes_and_brand_checks.sql",
+        "components/website/src/db/migrations/20261022_fk_indexes_customer_children.sql",
         "components/website/src/db/migrations/error-log-schema.test.ts",
         "components/website/src/env.d.ts",
         "components/website/src/i18n/de.ts",

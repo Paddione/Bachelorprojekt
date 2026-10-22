@@ -49,7 +49,6 @@ peers:
     tailnet_name: gpu-cluster
     k3s_role: server-init
     subnet_routes: [10.0.0.0/24]
-    lan_dns: true
     labels: []
   - name: gpu-cluster2
     role: server
@@ -68,6 +67,7 @@ peers:
     # mac: FC:34:97:A5:DA:60 (recorded 2026-09-16, for Wake-on-LAN)
     tailnet_name: gpu-cluster-3
     k3s_role: agent
+    lan_dns: true
     labels:
       - storage=true
   - name: pk-desktop

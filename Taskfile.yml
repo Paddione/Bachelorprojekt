@@ -144,15 +144,13 @@ vars:
 tasks:
 
   health:
-    desc: "Cross-cluster health check (status + connectivity + deployment verification)"
+    desc: "Health check mentolder prod (status + connectivity + deployment verification; korczewski frozen per T002479, excluded)"
     cmds:
       - task: clusters:status
       - 'echo ""'
       - 'echo "─── HTTPS reachability ───"'
       - task: workspace:check-connectivity
         vars: { ENV: "mentolder" }
-      - task: workspace:check-connectivity
-        vars: { ENV: "korczewski" }
       - 'echo ""'
       - 'echo "─── Pod-to-pod & credential verification ───"'
       - task: workspace:verify:all-prods

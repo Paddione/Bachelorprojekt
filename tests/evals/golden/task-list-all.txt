@@ -1,6 +1,6 @@
 task: Available tasks for this project:
 * clean:                                        Prune local Docker images and volumes
-* health:                                       Cross-cluster health check (status + connectivity + deployment verification)
+* health:                                       Health check mentolder prod (status + connectivity + deployment verification; korczewski frozen per T002479, excluded)
 * shell:                                        Open a debug shell in the cluster
 * a11y:axe:                                     axe-core a11y-Scan der Kern-Routen gegen ENV=mentolder|korczewski (G-FE01, T001361)
 * agent-guide:docs:                             Regenerate docs/agent-guide/{10-ziele,20-werkzeuge,30-bausteine}.md from the registry
@@ -435,5 +435,5 @@ task: Available tasks for this project:
 * workspace:vaultwarden:seed:                   Seed Vaultwarden with production secret templates (ENV=dev|mentolder|korczewski). Run once after first login — see vaultwarden-seed-credentials.yaml.
 * workspace:vaultwarden:seed-logs:              Show logs from the last Vaultwarden seed job run (ENV=dev|mentolder|korczewski)
 * workspace:verify:                             Post-deploy sanity check — cross-namespace netpol probes + credential state (ENV=mentolder|korczewski)
-* workspace:verify:all-prods:                   Run workspace:verify on mentolder + korczewski
+* workspace:verify:all-prods:                   Run workspace:verify on mentolder (korczewski frozen per T002479, excluded)
 * workspace:whiteboard-setup:                   Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)

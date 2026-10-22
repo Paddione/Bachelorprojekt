@@ -685,12 +685,10 @@ tasks:
         bash scripts/verify-deployment.sh
 
   workspace:verify:all-prods:
-    desc: "Run workspace:verify on mentolder + korczewski"
+    desc: "Run workspace:verify on mentolder (korczewski frozen per T002479, excluded)"
     cmds:
       - task: workspace:verify
         vars: { ENV: "mentolder" }
-      - task: workspace:verify
-        vars: { ENV: "korczewski" }
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run

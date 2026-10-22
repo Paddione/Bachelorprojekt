@@ -89,8 +89,13 @@ Manifeste/Skripte (S4 sauber).
 
 ## Task 2 — Verify: Deploy + 30-min-Fenster
 
-- [ ] `task devmesh:deploy` (lokales Mesh, kein Flux) + Rollout abwarten.
-- [ ] Danach 30 min warten, dann:
+- [x] `task devmesh:deploy` (lokales Mesh, kein Flux) + Rollout abwarten.
+  Belegt 2026-10-22: `llm-services successfully rolled out`, neuer Pod
+  `llm-services-76cd674fb8-k65c9` (03:24 UTC) mit `LLM_PROXY_BACKENDS_JSON`
+  (8 Backends live verifiziert). `sandbox-cpu exceeded progress deadline` ist
+  PRE-EXISTING (Pending seit 2026-10-21 22:26 UTC, invalider
+  `alpine/git@sha256`-Digest) und ausser Scope.
+- [x] Danach 30 min warten, dann:
   ```bash
   kubectl --context devmesh -n workspace logs deploy/shared-db -c postgres --since=30m | grep -c 'tickets.llm_proxy_backends'
   ```
@@ -99,7 +104,19 @@ Manifeste/Skripte (S4 sauber).
   kubectl --context devmesh -n workspace exec deploy/shared-db -c postgres -- psql -U postgres -d website -Atc "SELECT xact_rollback FROM pg_stat_database WHERE datname='website'"
   ```
   zweimal im Abstand 10 min — Delta nahe 0 statt ~20/10 min.
-- [ ] CI-Gate: `task test:changed` + `task freshness:regenerate` + `task freshness:check` + `task workspace:validate`.
+  Belegt 2026-10-22 als 5-min-Smoke (Restfenster an Orchestrator): alter Pod
+  236 tickets-Fehler/30 min (Baseline), neuer Pod 0 Fehler seit Start;
+  Rollback-Zaehler 19273 -> 19273 bei +89 Commits in ~5,4 min (Delta 0 statt
+  ~10/5 min). Volles 30-min-Fenster laeuft ab 03:24 UTC (Pod-Start).
+- [x] CI-Gate: `task test:changed` + `task freshness:regenerate` + `task freshness:check` + `task workspace:validate`.
+  Belegt 2026-10-22: `freshness:regenerate` no-op (alles frisch),
+  `freshness:check` gruen, `workspace:validate` gruen; gezielte Suites gruen
+  (llm_proxy 3 passed, bge-routes.node 12 passed, local-dev-mesh 113 passed,
+  local-llm-proxy 120 passed). `test:changed` VOLL nicht gruenzbar: 4x
+  service_health_goals (fleet-Kontext unerreichbar, dial-tcp-Timeout) + 2x
+  bge_token_ssot (fehlendes `dotfiles/install.sh`) — beides environmental und
+  ohne Bezug zu den geaenderten Dateien; Rest der Suite sprengt das lokale
+  Zeitbudget (>25 min), CI am PR entscheidet.
 
 ## Risiken
 

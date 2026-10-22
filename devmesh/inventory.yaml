@@ -49,6 +49,7 @@ peers:
     tailnet_name: gpu-cluster
     k3s_role: server-init
     subnet_routes: [10.0.0.0/24]
+    lan_dns: true
     labels: []
   - name: gpu-cluster2
     role: server

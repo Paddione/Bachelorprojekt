@@ -88,6 +88,10 @@ def test_t002688_dockerignore_declares_no_missing_literals(repo):
             continue
         if _git(repo, "check-ignore", "-q", line).returncode == 0:
             continue
+        # Verzeichnis-Literale (dist/, test-results/) matchen .gitignore-Muster
+        # mit Trailing-Slash nur in Verzeichnis-Form — auch diese probieren.
+        if not line.endswith("/") and _git(repo, "check-ignore", "-q", line + "/").returncode == 0:
+            continue
         candidates += 1
         if not (repo / line).exists():
             missing = True

@@ -142,6 +142,8 @@ components/website/.superpowers/
 .playwright-mcp/
 test-results/
 tests/e2e/results/outcomes/
+# Visual-Sweep-Galerie (RESULTS_ROOT = tests/results/visual-sweep) — generiert.
+tests/results/
 .worktrees/
 memory
 # T900560/C6: only the curated learning loop is versioned; other .agents/memory/ scratch stays ignored

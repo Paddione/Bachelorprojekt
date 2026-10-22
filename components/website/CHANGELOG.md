@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.431.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.1...website-v1.431.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* **website:** constant-time internal token check; hardened notify-close ([#6850](https://github.com/Paddione/Bachelorprojekt/issues/6850)) ([ca42cf0](https://github.com/Paddione/Bachelorprojekt/commit/ca42cf001401c761879f6b3142590bfe9b5b3e4d))
+
 ## [1.431.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.0...website-v1.431.1) (2026-10-22)
 
 

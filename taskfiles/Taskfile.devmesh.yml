@@ -209,8 +209,10 @@ tasks:
         printf "\\set pw '%s'\nALTER ROLE mcp_readonly PASSWORD :'pw';\n" "$pw" \
           | kubectl --context "$CTX" -n "$NS" exec -i deploy/shared-db -c postgres -- \
               psql -U postgres -d website -v ON_ERROR_STOP=1 -q
-        kubectl --context "$CTX" -n "$NS" exec deploy/shared-db -c postgres -- \
-          psql -U postgres -d website -Atc "select 'aktiv=' || count(*) filter (where enabled) || ' loopback=' || count(*) filter (where enabled and base_url ~ '127\.0\.0\.1|localhost') from tickets.llm_proxy_backends"
+        # Registry-Check gegen die effektive Registry (F2, #6804): LLM_PROXY_BACKENDS_JSON
+        # aus dem live Deployment zaehlen, nicht die retirte Tickets-Tabelle (#6814).
+        BACKENDS_JSON="$(kubectl --context "$CTX" -n "$NS" get deploy/llm-services -o json | python3 -c "import json,sys; d=json.load(sys.stdin); vs=[e.get('value') for c in d['spec']['template']['spec'].get('containers',[]) for e in (c.get('env',[]) or []) if e.get('name')=='LLM_PROXY_BACKENDS_JSON' and e.get('value')]; print(vs[0]) if vs else (print('ERROR: LLM_PROXY_BACKENDS_JSON fehlt in deploy/llm-services (alle Container geprueft)', file=sys.stderr) or sys.exit(2))")"
+        BACKENDS_JSON="$BACKENDS_JSON" python3 -c "import json,os,re; bs=json.loads(os.environ['BACKENDS_JSON']); a=[b for b in bs if b.get('enabled')]; print('aktiv=%d loopback=%d' % (len(a), len([b for b in a if re.search('127[.]0[.]0[.]1|localhost', b.get('baseUrl') or '')])))"
 
   backup:run:
     desc: "shared-db-Backup auf devmesh sofort ausloesen (CronJob shared-db-backup) [T900118]"

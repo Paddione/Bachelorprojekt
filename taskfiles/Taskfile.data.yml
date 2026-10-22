@@ -308,7 +308,7 @@ tasks:
             REVOKE ALL ON ALL TABLES IN SCHEMA public FROM website;
             REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM website;
             GRANT CREATE ON SCHEMA public TO website_massage;
-          EOSQL
+        EOSQL
           echo "Massage bootstrap complete (idempotent — rerun is a no-op)."
         else
           DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \

@@ -2970,6 +2970,12 @@
     "kind": "pytest"
   },
   {
+    "id": "ci_cd_specs/taskfile_registry_guards",
+    "file": "tests/py/spec/ci_cd_specs/test_taskfile_registry_guards.py",
+    "category": "ci_cd_specs",
+    "kind": "pytest"
+  },
+  {
     "id": "coaching-sessions-polish-guide",
     "file": "tests/py/spec/native_ported/spec/test_coaching_sessions_polish_guide.py",
     "category": "coaching-sessions-polish-guide",

@@ -12,6 +12,15 @@ URL nach Flux-Sync: https://voice-web.tail8a4425.ts.net (nur Tailnet;
 Tailscale-App auf dem Handy, gleicher Account). Max. 120 s pro Clip
 (STT-Limit, `error`-Feld beachten).
 
+## Dauer-Modus (Toggle)
+
+`DAUER: AN` hört fortlaufend zu und schneidet per Pegel-Erkennung
+(Sprechen > Pause 0,9 s, min. 1,2 s, max. 30 s) automatisch Päckchen, die
+als Mitschrift erscheinen. `FRAGEN` schickt die gesammelte Mitschrift an
+den LLM (`POST /api/chat`), `LEEREN` löscht. Direkt-Endpunkte für eigene
+Clients: `POST /api/stt` (nur Transkription), `POST /api/chat`
+(nur Antwort).
+
 ## Live-Chunks (5-min-Datei)
 
 Gemessen auf gpu-metal (2-CPU-Limit pro STT-Pod): 30 s Audio = ~90 s

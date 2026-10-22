@@ -24,11 +24,62 @@ data:
     @app.get("/healthz")
     def healthz():
         return {"ok": True}
+    PROMPTS = {
+        "de": "Beantworte die folgende Frage kurz auf Deutsch in maximal 3 Sätzen.\n\nFrage: ",
+        "en": "Answer the following question briefly in English, in at most 3 sentences.\n\nQuestion: ",
+    }
+    async def do_stt(audio: bytes, filename: str, content_type: str, language: str):
+        if len(audio) < 2000:
+            return {"text": "", "seconds": 0, "rms": 0, "error": "Clip zu kurz/leer"}
+        try:
+            r = await client.post(
+                f"{STT}/stt",
+                files={"file": (filename or "audio",
+                                audio, content_type or "application/octet-stream")},
+                data={"language": language})
+            r.raise_for_status()
+        except httpx.HTTPError as e:
+            return {"text": "", "seconds": 0, "rms": 0, "error": f"STT: {type(e).__name__}"}
+        j = r.json()
+        text = (j.get("text") or "").strip()
+        meta = {"seconds": j.get("seconds", 0), "rms": j.get("rms", 0)}
+        if not text:
+            return {"text": "", "error": j.get("error") or "nichts erkannt", **meta}
+        return {"text": text, **meta}
+    async def do_chat(text: str, language: str):
+        head = PROMPTS.get(language, PROMPTS["de"])
+        tail = "\nAntwort:" if language != "en" else "\nAnswer:"
+        try:
+            r = await client.post(
+                f"{LLM}/v1/completions",
+                json={"model": MODEL, "prompt": head + text + tail,
+                      "max_tokens": 400, "temperature": 0.3})
+            r.raise_for_status()
+        except httpx.HTTPError as e:
+            return {"answer": "", "error": f"LLM: {type(e).__name__}"}
+        answer = r.json()["choices"][0]["text"]
+        return {"answer": answer.replace("<think>", "").replace("</think>", "").strip()}
+    @app.post("/api/stt")
+    async def stt_only(file: UploadFile = File(...), language: str = Form("de")):
+        audio = await file.read()
+        return await do_stt(audio, file.filename, file.content_type, language)
+    @app.post("/api/chat")
+    async def chat(text: str = Form(...), language: str = Form("de")):
+        text = (text or "").strip()
+        if not text:
+            return {"answer": "", "error": "kein Text"}
+        out = await do_chat(text, language)
+        return {"answer": out.get("answer", ""), "error": out.get("error", "")}
     @app.post("/api/ask")
     async def ask(file: UploadFile = File(...), language: str = Form("de")):
         audio = await file.read()
-        if len(audio) < 2000:
-            return {"text": "", "answer": "", "error": "Clip zu kurz/leer"}
+        s = await do_stt(audio, file.filename, file.content_type, language)
+        if s.get("error"):
+            return {"text": s.get("text", ""), "answer": "", "error": s["error"],
+                    "seconds": s.get("seconds", 0), "rms": s.get("rms", 0)}
+        c = await do_chat(s["text"], language)
+        return {"text": s["text"], "answer": c.get("answer", ""), "error": c.get("error", ""),
+                "seconds": s.get("seconds", 0), "rms": s.get("rms", 0)}
         try:
             r = await client.post(
                 f"{STT}/stt",
@@ -38,23 +89,6 @@ data:
             r.raise_for_status()
         except httpx.HTTPError as e:
             return {"text": "", "answer": "", "error": f"STT: {type(e).__name__}"}
-        text = (r.json().get("text") or "").strip()
-        if not text:
-            return {"text": "", "answer": "",
-                    "error": r.json().get("error") or "nichts erkannt"}
-        try:
-            r = await client.post(
-                f"{LLM}/v1/completions",
-                json={"model": MODEL,
-                      "prompt": ("Beantworte die folgende Frage kurz auf Deutsch in "
-                                 "maximal 3 Sätzen.\n\nFrage: " + text + "\nAntwort:"),
-                      "max_tokens": 400, "temperature": 0.3})
-            r.raise_for_status()
-        except httpx.HTTPError as e:
-            return {"text": text, "answer": "", "error": f"LLM: {type(e).__name__}"}
-        answer = r.json()["choices"][0]["text"]
-        answer = answer.replace("<think>", "").replace("</think>", "").strip()
-        return {"text": text, "answer": answer}
     @app.post("/api/tts")
     async def tts(text: str = Form(...), language: str = Form("de")):
         r = await client.post(f"{TTS}/tts", data={"text": text, "language": language})
@@ -95,25 +129,40 @@ data:
       <button id="spk" class="on">Ton an</button>
     </div>
     <button id="talk">HALTEN</button>
+    <div class="row" style="margin-top:8px">
+      <button id="dauer">DAUER: AUS</button>
+      <button id="fragen">FRAGEN</button>
+      <button id="leeren">LEEREN</button>
+    </div>
     <div id="meter"><div id="level"></div></div>
     <div id="status">Bereit.</div>
+    <div class="lbl">Mitschrift (Dauer-Modus)</div><div class="card" id="log">–</div>
     <div class="lbl">Du</div><div class="card" id="q">–</div>
     <div class="lbl">Antwort</div><div class="card" id="a">–</div>
     <script>
     let lang = "de", speak = true, rec = null, chunks = [], stream = null,
         actx = null, analyser = null, raf = 0, t0 = 0;
+        let listening = false, dchunks = [], drec = null, dstream = null,
+            lastSpeech = 0, chunkStart = 0, speakShown = false, sendChain = Promise.resolve(), chunkHasSpeech = false;
+        const SPEAK_THR = 12, SILENCE_MS = 900, MIN_CHUNK_MS = 1200, MAX_CHUNK_MS = 30000;
+        let transcript = [];
     const MIN_HOLD_MS = 800;
     const $ = (id) => document.getElementById(id);
     const status = (t) => { $("status").textContent = t; };
     $("de").onclick = () => { lang = "de"; $("de").className = "on"; $("en").className = ""; };
     $("en").onclick = () => { lang = "en"; $("en").className = "on"; $("de").className = ""; };
     $("spk").onclick = () => { speak = !speak; $("spk").className = speak ? "on" : ""; $("spk").textContent = speak ? "Ton an" : "Ton aus"; };
-    function meterLoop() {
+    function micLevel() {
       const buf = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteTimeDomainData(buf);
       let sum = 0;
       for (const v of buf) { const d = (v - 128) / 128; sum += d * d; }
-      $("level").style.width = Math.min(100, Math.sqrt(sum / buf.length) * 300) + "%";
+      return Math.min(100, Math.sqrt(sum / buf.length) * 300);
+    }
+    function meterLoop() {
+      const lv = micLevel();
+      $("level").style.width = lv + "%";
+      if (listening) vadTick(lv);
       raf = requestAnimationFrame(meterLoop);
     }
     function cleanupRec() {
@@ -180,6 +229,101 @@ data:
         }
       } catch (err) { status("Fehler: " + err.message); }
     }
+    function vadTick(lv) {
+      const now = Date.now();
+      if (lv > SPEAK_THR) {
+        lastSpeech = now; chunkHasSpeech = true;
+        if (!speakShown) { speakShown = true; status("Spricht …"); }
+      } else if (speakShown && now - lastSpeech > 400) {
+        speakShown = false; status("Hört zu …");
+      }
+      const len = now - chunkStart;
+      if (drec && drec.state === "recording" && chunkHasSpeech &&
+          ((len > MIN_CHUNK_MS && now - lastSpeech > SILENCE_MS) || len > MAX_CHUNK_MS))
+        cutChunk();
+    }
+    function newDrec() {
+      const mt = ["audio/webm;codecs=opus", "audio/webm", ""].find(
+        (t) => t === "" || (window.MediaRecorder && MediaRecorder.isTypeSupported(t)));
+      drec = new MediaRecorder(dstream, mt ? { mimeType: mt } : undefined);
+      drec.ondataavailable = (ev) => { if (ev.data.size) dchunks.push(ev.data); };
+      drec.start();
+      chunkStart = Date.now(); chunkHasSpeech = false;
+    }
+    function cutChunk() {
+      if (!drec || drec.state !== "recording") return;
+      const done = new Promise((res) => { drec.onstop = res; });
+      const payload = dchunks; dchunks = [];
+      try { drec.stop(); } catch (_) {}
+      sendChain = sendChain.then(async () => {
+        await done;
+        const blob = new Blob(payload, { type: "audio/webm" });
+        if (blob.size < 2000) return;
+        const fd = new FormData();
+        fd.append("file", blob, "chunk.webm"); fd.append("language", lang);
+        try {
+          const r = await fetch("api/stt", { method: "POST", body: fd });
+          const j = await r.json().catch(() => ({}));
+          if (r.ok && j.text) {
+            const t = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            transcript.push(j.text);
+            $("log").textContent = transcript.map((x, i) => "[" + (i + 1) + "] " + x).join("\n");
+            status("Mitschrift: " + transcript.length + " Päckchen.");
+          }
+        } catch (_) {}
+      });
+      if (listening) { try { newDrec(); } catch (_) {} }
+    }
+    async function toggleDauer() {
+      if (listening) {
+        listening = false;
+        $("dauer").className = ""; $("dauer").textContent = "DAUER: AUS";
+        if (drec && drec.state === "recording") cutChunk();
+        await sendChain;
+        cancelAnimationFrame(raf); $("level").style.width = "0%";
+        try { dstream.getTracks().forEach((t) => t.stop()); } catch (_) {}
+        try { actx.close(); } catch (_) {}
+        drec = null; status("Bereit.");
+        return;
+      }
+      try {
+        dstream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) { status("Mikro verweigert: " + err.name); return; }
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = actx.createAnalyser(); analyser.fftSize = 512;
+      actx.createMediaStreamSource(dstream).connect(analyser);
+      meterLoop();
+      dchunks = []; transcript = [];
+      $("log").textContent = "–";
+      try { newDrec(); } catch (err) { status("Aufnahme startet nicht: " + err.message); return; }
+      lastSpeech = 0; speakShown = false;
+      listening = true;
+      $("dauer").className = "on"; $("dauer").textContent = "DAUER: AN";
+      status("Hört zu … (Stille schneidet Päckchen)");
+    }
+    async function fragen() {
+      const text = transcript.join(" ").trim();
+      if (!text) { status("Mitschrift leer."); return; }
+      status("Denke …");
+      const fd = new FormData();
+      fd.append("text", text); fd.append("language", lang);
+      try {
+        const r = await fetch("api/chat", { method: "POST", body: fd });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || j.error || !j.answer) { status("Server: " + (j.error || ("HTTP " + r.status))); return; }
+        $("a").textContent = j.answer;
+        status("Fertig.");
+        if (speak) {
+          const f2 = new FormData();
+          f2.append("text", j.answer.slice(0, 280)); f2.append("language", lang);
+          const ra = await fetch("api/tts", { method: "POST", body: f2 });
+          if (ra.ok) { await new Audio(URL.createObjectURL(await ra.blob())).play().catch(() => {}); }
+        }
+      } catch (err) { status("Fehler: " + err.message); }
+    }
+    $("dauer").onclick = toggleDauer;
+    $("fragen").onclick = fragen;
+    $("leeren").onclick = () => { transcript = []; $("log").textContent = "–"; status("Mitschrift gelöscht."); };
     const b = $("talk");
     b.addEventListener("touchstart", start, { passive: false });
     b.addEventListener("touchend", stop, { passive: false });

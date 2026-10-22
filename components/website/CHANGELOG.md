@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.431.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.0...website-v1.431.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **website:** enforce assignment ownership on portal pdf and sign routes ([#6838](https://github.com/Paddione/Bachelorprojekt/issues/6838)) ([ea0ff3c](https://github.com/Paddione/Bachelorprojekt/commit/ea0ff3cab2a3503c8b8c69270ec5706af8c3e3d7))
+* **website:** escape signing HTML and disable JS in PDF render ([#6839](https://github.com/Paddione/Bachelorprojekt/issues/6839)) ([83f6588](https://github.com/Paddione/Bachelorprojekt/commit/83f6588cf599b516b9b74b8006d32ae0c5cecdb4))
+
 ## [1.431.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.430.1...website-v1.431.0) (2026-10-22)
 
 

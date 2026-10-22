@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.431.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.2...website-v1.431.3) (2026-10-22)
+
+
+### Bug Fixes
+
+* **website:** gate anonymous comments on existing tickets ([#6847](https://github.com/Paddione/Bachelorprojekt/issues/6847)) ([a49391d](https://github.com/Paddione/Bachelorprojekt/commit/a49391d24a26201727b1ba2ee70f79b4cf8a5b4c))
+
+
+### Tests
+
+* **website:** add sign-route ownership regression tests (F2) ([#6848](https://github.com/Paddione/Bachelorprojekt/issues/6848)) ([0c8507c](https://github.com/Paddione/Bachelorprojekt/commit/0c8507cc325472ad0cd1dfbcb133c27ffd4d704d)), closes [#6819](https://github.com/Paddione/Bachelorprojekt/issues/6819)
+
 ## [1.431.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.1...website-v1.431.2) (2026-10-22)
 
 

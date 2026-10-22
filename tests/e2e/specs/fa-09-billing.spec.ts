@@ -23,10 +23,11 @@ test.describe('FA-09: Service Catalog', { tag: ['@billing', '@website'] }, () =>
     expect(bodyText).toMatch(/€|\d{2,}|Preis|Stunde|pauschal/i);
   });
 
-  test('T4: POST /api/billing/create-invoice without data returns 400', async ({ request }) => {
+  test('T4: POST /api/billing/create-invoice without session returns 401', async ({ request }) => {
+    // F5: nur Admins duerfen Rechnungsentwuerfe anlegen (vgl. T5 invoice-payment-intent).
     const res = await request.post(`${BASE}/api/billing/create-invoice`, {
       data: {},
     });
-    expect(res.status()).toBe(400);
+    expect(res.status()).toBe(401);
   });
 });

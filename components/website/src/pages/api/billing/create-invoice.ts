@@ -1,14 +1,23 @@
 import type { APIRoute } from 'astro';
+import { getSession, isAdmin } from '../../../lib/auth';
 import {
   getOrCreateCustomer,
   createBillingInvoice,
-  createBillingQuote,
   SERVICES,
 } from '../../../lib/stripe-billing';
 import type { ServiceKey } from '../../../lib/stripe-billing';
 import { isE2ETestRequest } from '../../../lib/e2e-marker';
 
 export const POST: APIRoute = async ({ request , locals }) => {
+  // F5: nur Admins duerfen Kunden und Rechnungsentwuerfe anlegen
+  // (anonyme Requests konnten Rechnungs-Mails ausloesen und Drafts fluten).
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     // T015362: Testkontext erkennen und auf den erzeugten Zeilen markieren,
     // damit der Purge-Pfad sie entfernen kann (fail-closed, siehe e2e-marker).
@@ -48,14 +57,11 @@ export const POST: APIRoute = async ({ request , locals }) => {
     const key = serviceKey as ServiceKey;
 
     if (asQuote) {
-      const quote = await createBillingQuote({
-        customerId: customer.id,
-        serviceKey: key,
-        quantity: quantity || 1,
-      });
+      // F5: createBillingQuote existiert nur noch als Stub, der immer wirft —
+      // statt 500 lieber ein klares 400 (Angebote laufen ueber native billing).
       return new Response(
-        JSON.stringify({ success: true, type: 'quote', data: quote }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Quotes werden ueber diese Route nicht unterstuetzt.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 

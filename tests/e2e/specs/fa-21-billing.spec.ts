@@ -20,11 +20,12 @@ test.describe('FA-21: Service Catalog & Billing', { tag: ['@billing'] }, () => {
     await expect(bookingLinks).not.toHaveCount(0);
   });
 
-  test('T3: Billing API validates input', async ({ request }) => {
+  test('T3: Billing API requires admin session', async ({ request }) => {
+    // F5: nur Admins duerfen Rechnungsentwuerfe anlegen (vgl. T5 invoice-payment-intent).
     const res = await request.post(`${BASE}/api/billing/create-invoice`, {
       data: {},
     });
-    expect(res.status()).toBe(400);
+    expect(res.status()).toBe(401);
   });
 
   test('T4: portal invoice section is auth-protected', async ({ browser }) => {

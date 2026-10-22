@@ -77,6 +77,15 @@ def test_t002688_dockerignore_declares_no_missing_literals(repo):
     missing = False
     offenders = []
     candidates = 0
+    # Build-Artefakte: entstehen erst durch Builds/Testläufe, fehlen im
+    # frischen Checkout. .dockerignore-Einträge dafür sind Absicht, keine
+    # toten Referenzen. (Der alte `"# runtime" in line`-Hack ist mit F9
+    # entfallen: Inline-Kommentare wurden auf eigene Zeilen gezogen.)
+    generated = {
+        "components/website/dist",
+        "tests/e2e/test-results",
+        "tests/results",
+    }
     for line in (repo / ".dockerignore").read_text(encoding="utf-8").split("\n"):
         if line == "":
             continue
@@ -84,7 +93,7 @@ def test_t002688_dockerignore_declares_no_missing_literals(repo):
             continue
         if "*" in line or "?" in line or "[" in line:
             continue
-        if "# runtime" in line:
+        if line in generated:
             continue
         if _git(repo, "check-ignore", "-q", line).returncode == 0:
             continue

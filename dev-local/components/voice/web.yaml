@@ -27,22 +27,31 @@ data:
     @app.post("/api/ask")
     async def ask(file: UploadFile = File(...), language: str = Form("de")):
         audio = await file.read()
-        r = await client.post(
-            f"{STT}/stt",
-            files={"file": (file.filename or "audio",
-                            audio, file.content_type or "application/octet-stream")},
-            data={"language": language})
-        r.raise_for_status()
+        if len(audio) < 2000:
+            return {"text": "", "answer": "", "error": "Clip zu kurz/leer"}
+        try:
+            r = await client.post(
+                f"{STT}/stt",
+                files={"file": (file.filename or "audio",
+                                audio, file.content_type or "application/octet-stream")},
+                data={"language": language})
+            r.raise_for_status()
+        except httpx.HTTPError as e:
+            return {"text": "", "answer": "", "error": f"STT: {type(e).__name__}"}
         text = (r.json().get("text") or "").strip()
         if not text:
-            return {"text": "", "answer": ""}
-        r = await client.post(
-            f"{LLM}/v1/completions",
-            json={"model": MODEL,
-                  "prompt": ("Beantworte die folgende Frage kurz auf Deutsch in "
-                             "maximal 3 Sätzen.\n\nFrage: " + text + "\nAntwort:"),
-                  "max_tokens": 400, "temperature": 0.3})
-        r.raise_for_status()
+            return {"text": "", "answer": "",
+                    "error": r.json().get("error") or "nichts erkannt"}
+        try:
+            r = await client.post(
+                f"{LLM}/v1/completions",
+                json={"model": MODEL,
+                      "prompt": ("Beantworte die folgende Frage kurz auf Deutsch in "
+                                 "maximal 3 Sätzen.\n\nFrage: " + text + "\nAntwort:"),
+                      "max_tokens": 400, "temperature": 0.3})
+            r.raise_for_status()
+        except httpx.HTTPError as e:
+            return {"text": text, "answer": "", "error": f"LLM: {type(e).__name__}"}
         answer = r.json()["choices"][0]["text"]
         answer = answer.replace("<think>", "").replace("</think>", "").strip()
         return {"text": text, "answer": answer}
@@ -92,7 +101,8 @@ data:
     <div class="lbl">Antwort</div><div class="card" id="a">–</div>
     <script>
     let lang = "de", speak = true, rec = null, chunks = [], stream = null,
-        actx = null, analyser = null, raf = 0;
+        actx = null, analyser = null, raf = 0, t0 = 0;
+    const MIN_HOLD_MS = 800;
     const $ = (id) => document.getElementById(id);
     const status = (t) => { $("status").textContent = t; };
     $("de").onclick = () => { lang = "de"; $("de").className = "on"; $("en").className = ""; };
@@ -106,42 +116,57 @@ data:
       $("level").style.width = Math.min(100, Math.sqrt(sum / buf.length) * 300) + "%";
       raf = requestAnimationFrame(meterLoop);
     }
+    function cleanupRec() {
+      cancelAnimationFrame(raf); $("level").style.width = "0%";
+      $("talk").classList.remove("rec"); $("talk").textContent = "HALTEN";
+      try { if (stream) stream.getTracks().forEach((t) => t.stop()); } catch (_) {}
+      try { if (actx) actx.close(); } catch (_) {}
+      rec = null; stream = null; actx = null; analyser = null;
+    }
     async function start(e) {
       e.preventDefault();
+      if (rec) return;
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch (err) { status("Mikro verweigert: " + err.name); return; }
-      actx = new (window.AudioContext || window.webkitAudioContext)();
-      analyser = actx.createAnalyser(); analyser.fftSize = 512;
-      actx.createMediaStreamSource(stream).connect(analyser);
-      meterLoop();
-      chunks = [];
-      const mt = ["audio/webm;codecs=opus", "audio/webm", ""].find(
-        (t) => t === "" || (window.MediaRecorder && MediaRecorder.isTypeSupported(t)));
-      rec = new MediaRecorder(stream, mt ? { mimeType: mt } : undefined);
-      rec.ondataavailable = (ev) => { if (ev.data.size) chunks.push(ev.data); };
-      rec.start();
+      try {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = actx.createAnalyser(); analyser.fftSize = 512;
+        actx.createMediaStreamSource(stream).connect(analyser);
+        meterLoop();
+        chunks = [];
+        const mt = ["audio/webm;codecs=opus", "audio/webm", ""].find(
+          (t) => t === "" || (window.MediaRecorder && MediaRecorder.isTypeSupported(t)));
+        rec = new MediaRecorder(stream, mt ? { mimeType: mt } : undefined);
+        rec.ondataavailable = (ev) => { if (ev.data.size) chunks.push(ev.data); };
+        rec.start();
+      } catch (err) {
+        status("Aufnahme startet nicht: " + err.message);
+        cleanupRec(); return;
+      }
+      t0 = Date.now();
       $("talk").classList.add("rec"); $("talk").textContent = "LOS LASSEN";
       status("Aufnahme …");
     }
     async function stop(e) {
       if (e) e.preventDefault();
       if (!rec) return;
-      $("talk").classList.remove("rec"); $("talk").textContent = "HALTEN";
-      cancelAnimationFrame(raf); $("level").style.width = "0%";
+      const dur = Date.now() - t0;
       const done = new Promise((res) => { rec.onstop = res; });
-      rec.stop(); await done;
-      stream.getTracks().forEach((t) => t.stop());
-      actx.close(); rec = null;
+      try { rec.stop(); } catch (_) {}
+      await done;
       const blob = new Blob(chunks, { type: "audio/webm" });
-      if (!blob.size) { status("Nichts aufgenommen."); return; }
+      cleanupRec();
+      if (dur < MIN_HOLD_MS || blob.size < 2000) {
+        status("Zu kurz — Knopf halten, nicht tippen."); return;
+      }
       status("Transkribiere …");
       const fd = new FormData();
       fd.append("file", blob, "audio.webm"); fd.append("language", lang);
       try {
         const r = await fetch("api/ask", { method: "POST", body: fd });
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const j = await r.json();
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || j.error) { status("Server: " + (j.error || ("HTTP " + r.status))); return; }
         if (!j.text) { status("Nichts erkannt."); return; }
         $("q").textContent = j.text; $("a").textContent = j.answer || "–";
         status("Fertig.");

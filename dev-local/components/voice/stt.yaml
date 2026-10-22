@@ -31,7 +31,11 @@ data:
         return {"ok": True, "model": MODEL_ID}
     @app.post("/stt")
     async def stt(file: UploadFile = File(...), language: str = Form("de")):
-        audio = decode(await file.read())
+        try:
+            audio = decode(await file.read())
+        except subprocess.CalledProcessError:
+            return {"language": language, "text": "",
+                    "error": "audio decode failed (leere/defekte Datei?)"}
         if len(audio) > 16000 * 120:
             return {"language": language, "text": "",
                     "error": "audio too long (max 120s), send chunks"}

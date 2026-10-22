@@ -1,0 +1,15 @@
+# scripts/devmesh/lan-dns-check.timer
+# Stuendlicher Trigger fuer lan-dns-check.service.
+[Unit]
+Description=Stuendlicher devmesh AdGuard-Check
+
+[Timer]
+OnCalendar=hourly
+# Die Workstation laeuft nicht durch. Ohne Persistent bliebe jeder Check aus,
+# dessen Zeitpunkt in eine Ausschaltphase fiel — genau der haeufige Fall.
+Persistent=true
+# Streuung gegen exakte Gleichzeitigkeit mit anderen Timern.
+RandomizedDelaySec=600
+
+[Install]
+WantedBy=timers.target

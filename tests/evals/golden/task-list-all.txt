@@ -109,6 +109,7 @@ task: Available tasks for this project:
 * devmesh:backup:run:                           shared-db-Backup auf devmesh sofort ausloesen (CronJob shared-db-backup) [T900118]
 * devmesh:deploy:                               devmesh-Stack aus der Arbeitskopie deployen (PROFILE=core|full, Default DEVMESH_PROFILE) [T900118]
 * devmesh:dns:check:                            devmesh: AdGuard auf jedem Host mit lan_dns per dig abfragen (QUERY=<host>, Default quad9.net; Exit 1 = IP antwortet nicht, 2 = dig fehlt) [T016515]
+* devmesh:dns:check:install:                    devmesh: stündlichen AdGuard-Check als systemd-User-Timer installieren
 * devmesh:dns:deploy:                           devmesh: LAN-/Tailnet-DNS (AdGuard, Namespace lan-dns) ausrollen; prueft Node-DNS vor und nach dem Rollout und nimmt bei Fehler zurueck [T016515, T016520]
 * devmesh:flux:install:                         devmesh: flux-operator per Helm installieren und FluxInstance anwenden
 * devmesh:flux:resume:                          devmesh: alle Flux-Kustomizations auf devmesh fortsetzen

@@ -63,14 +63,20 @@ tasks:
     vars:
       QUERY: '{{.QUERY | default "quad9.net"}}'
     cmds:
+      - bash scripts/devmesh/lan-dns-check.sh {{.QUERY}}
+
+  dns:check:install:
+    desc: "devmesh: stündlichen AdGuard-Check als systemd-User-Timer installieren"
+    cmds:
       - |
-        set -euo pipefail
-        command -v dig >/dev/null || { echo "Vorbedingung fehlt: dig" >&2; exit 2; }
-        rc=0
-        for ip in $(yq -r '.peers[] | select(.lan_dns == true) | .lan_ip' devmesh/inventory.yaml); do
-          if [ -n "$(dig +time=3 +tries=1 +short @"$ip" {{.QUERY}} 2>/dev/null)" ]; then echo "ok    $ip"; else echo "FEHLT $ip"; rc=1; fi
-        done
-        exit $rc
+        set -e
+        UNIT_DIR="$HOME/.config/systemd/user"
+        mkdir -p "$UNIT_DIR"
+        ln -sf "$PWD/scripts/devmesh/lan-dns-check.service" "$UNIT_DIR/lan-dns-check.service"
+        ln -sf "$PWD/scripts/devmesh/lan-dns-check.timer"   "$UNIT_DIR/lan-dns-check.timer"
+        systemctl --user daemon-reload
+        systemctl --user enable --now lan-dns-check.timer
+        systemctl --user list-timers lan-dns-check.timer --no-pager
 
   preflight:
     desc: "devmesh: Host vor der k3s-Installation pruefen (HOST=<name aus devmesh/inventory.yaml>; Exit 1 = Befund, 2 = Vorbedingung)"

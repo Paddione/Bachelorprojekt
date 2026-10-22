@@ -1,0 +1,18 @@
+# scripts/devmesh/lan-dns-check.service
+# Stuendlicher AdGuard-Check (Task devmesh:dns:check) — systemd USER service.
+# Gepaart mit lan-dns-check.timer. USER-Unit: dig Richtung Heimnetz/Tailnet
+# braucht keine Root-Rechte; bei Fehler steht der Befund im Journal, der
+# naechste Lauf ist eine Stunde entfernt, nicht verloren.
+[Unit]
+Description=AdGuard auf jedem devmesh lan_dns-Host per dig abfragen (stuendlich)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/patrick/Bachelorprojekt
+ExecStart=/home/patrick/Bachelorprojekt/scripts/devmesh/lan-dns-check.sh
+# 4 dig-Abfragen mit je 3s Timeout: 120s faengt Haenger ab, ohne echte
+# Befunde (alle Hosts down) zu treffen.
+RuntimeMaxSec=120
+TimeoutStartSec=150
+SuccessExitStatus=0

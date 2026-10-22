@@ -29,8 +29,8 @@ def st(repo_root, tmp_path, monkeypatch):
     nodes = tmp_path / "nodes"
     snaps = tmp_path / "snaps"
     gpus = tmp_path / "gpus"
-    nodes.write_text("gpu-metal True true\ngpu-cluster True true\ngpu-cluster2 True true\n")
-    gpus.write_text("gpu-metal true 1\ngpu-cluster - -\ngpu-cluster2 - -\n")
+    nodes.write_text("gpu-metal True true\ngpu-cluster True true\ngpu-cluster2 True true\ngpu-cluster-3 True \n")
+    gpus.write_text("gpu-metal true 1\ngpu-cluster - -\ngpu-cluster2 - -\ngpu-cluster-3 - -\n")
     kubectl = bin_dir / "kubectl"
     kubectl.write_text(KUBECTL_STUB)
     kubectl.chmod(0o755)
@@ -68,12 +68,13 @@ def _run(run_cmd, st, **env):
     return run_cmd([shutil.which("bash"), str(st["script"])], env=e)
 
 
-def test_gesunder_cluster_exit_0_drei_knoten_und_drei_etcd_mitglieder_ready_context_devmesh(st, run_cmd):
+def test_gesunder_cluster_exit_0_vier_knoten_und_drei_etcd_mitglieder_ready_context_devmesh(st, run_cmd):
     snapshot(st, 30, 1)
     res = _run(run_cmd, st)
     assert res.returncode == 0, res.output
-    assert "Knoten: 3/3 Ready" in res.output
+    assert "Knoten: 4/4 Ready" in res.output
     assert "etcd-Mitglieder: 3/3 Ready" in res.output
+    assert "Inventar-Abgleich: 4/4 Inventar-Knoten im Cluster" in res.output
     assert any(l.startswith("OK") and "1h" in l for l in res.output.splitlines())
     assert "--context devmesh" in st["argv"].read_text()
 
@@ -93,11 +94,19 @@ def test_kein_snapshot_exit_1(st, run_cmd):
 
 
 def test_knoten_nicht_ready_exit_1_knoten_wird_genannt(st, run_cmd):
-    st["nodes"].write_text("gpu-metal True true\ngpu-cluster Unknown true\ngpu-cluster2 True true\n")
+    st["nodes"].write_text("gpu-metal True true\ngpu-cluster Unknown true\ngpu-cluster2 True true\ngpu-cluster-3 True \n")
     res = _run(run_cmd, st)
     assert res.returncode == 1, res.output
     assert any(l.startswith("FAIL") and "gpu-cluster" in l for l in res.output.splitlines())
     assert "etcd-Mitglieder: 2/3 Ready" in res.output
+
+
+def test_inventar_knoten_fehlt_im_cluster_exit_1_knoten_wird_genannt(st, run_cmd):
+    st["nodes"].write_text("gpu-metal True true\ngpu-cluster2 True true\ngpu-cluster-3 True \n")
+    res = _run(run_cmd, st)
+    assert res.returncode == 1, res.output
+    assert any(l.startswith("FAIL") and "gpu-cluster" in l and "fehlt" in l for l in res.output.splitlines())
+    assert "Inventar-Abgleich: 3/4 Inventar-Knoten im Cluster" in res.output
 
 
 def test_kubectl_fehlt_exit_2(st, run_cmd):

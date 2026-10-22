@@ -26,14 +26,16 @@ unsloth_compiled_cache
 .env
 .env.*
 !.env.example
-!dotfiles/**/.env
 # ── Environment secrets — now TRACKED but git-crypt-encrypted (see .gitattributes) ──
 # (Was fully ignored; encryption makes it safe to commit into this public repo.)
 # prod/secrets.yaml and prod-korczewski/secrets.yaml committed as ArgoCD placeholders (Skip=true)
 # Real credentials are applied via: task workspace:prod:deploy / task korczewski:deploy
 # k3d/secrets.yaml committed intentionally — dev-only placeholder values, not real credentials
 deploy/mcp/openclaw-secrets.yaml
-# OpenClaw — runtime config has secrets; only template is committed
+# OpenClaw — runtime config has secrets; only the template is committed.
+# (F12: `dotfiles` is a symlink into the dotfiles repo, so this repo never
+# tracks below it anyway; the template lives under dotfiles-repo whitelist.
+# The old blanket negation `!dotfiles/**/.env` was dead and is gone.)
 dotfiles/openclaw/.env
 .openclaw/
 .openclaw/workspace/

@@ -22,9 +22,6 @@
         "resource-summary:script:size": ["error", {"maxNumericValue": 204800}],
         "network-dependency-tree-insight": "warn"
       }
-    },
-    "upload": {
-      "target": "temporary-public-storage"
     }
   }
 }

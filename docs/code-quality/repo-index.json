@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1268,
+      "file_count": 1269,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -382,6 +382,7 @@
         "tests/py/spec/ci_cd_specs/test_spec_test_no_fixed_sleep_polling.py",
         "tests/py/spec/ci_cd_specs/test_spec_test_no_tracked_file_mutation.py",
         "tests/py/spec/ci_cd_specs/test_taskfile_no_stale_website_root.py",
+        "tests/py/spec/ci_cd_specs/test_taskfile_registry_guards.py",
         "tests/py/spec/ci_cd_specs/test_taskfile_shebang_portability.py",
         "tests/py/spec/ci_cd_specs/test_taskfiles_dir_convention.py",
         "tests/py/spec/ci_cd_specs/test_unit_tests_no_dependency_skips.py",

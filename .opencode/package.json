@@ -5,7 +5,7 @@
     "jsonc-parser": "^3.3.1",
     "oh-my-opencode-slim": "^3.0.5",
     "opencode-agent-memory": "^0.3.0",
-    "superpowers": "git+https://github.com/obra/superpowers.git#bb92a77741419a4ab5f06e711a283343f1ada0c3",
+    "superpowers": "git+https://github.com/obra/superpowers.git#2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
     "unique-names-generator": "^4.7.1",
     "envsitter-guard": "^0.1.0"
   }

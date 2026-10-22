@@ -208,7 +208,7 @@
       "path": "skills/sota-testing",
       "dest": ".opencode/skills/sota-testing",
       "track": "branch",
-      "ref": "4ac7a8092451371b664809b7a2f76e19e29e9b47",
+      "ref": "10ba81f05652baf5d01254e5c11a90f5431d0ccb",
       "version": null
     },
     "vitest-testing": {
@@ -240,8 +240,8 @@
           ".opencode/opencode.jsonc",
           ".opencode/package-lock.json"
         ],
-        "ref": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
-        "version": "v7.0.0"
+        "ref": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+        "version": "v7.0.1"
       }
     },
     "npm": {

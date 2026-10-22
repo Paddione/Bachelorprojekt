@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.429.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.2...website-v1.429.3) (2026-10-22)
+
+
+### Bug Fixes
+
+* **scripts:** Nightly-Messung in Website-DB persistieren, fehlgeschlagene Audits bleiben unknown ([#6800](https://github.com/Paddione/Bachelorprojekt/issues/6800)) ([086c68f](https://github.com/Paddione/Bachelorprojekt/commit/086c68fbbb52fa00f44543cf4579f870b8646503))
+
 ## [1.429.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.1...website-v1.429.2) (2026-10-21)
 
 

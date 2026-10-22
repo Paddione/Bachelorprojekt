@@ -72,12 +72,14 @@ Manifeste/Skripte (S4 sauber).
   `yaml.safe_load` + `JSON.parse` + Typedef-Feldcheck gruen,
   `task workspace:validate` gruen.
 - [x] `bge-routes.mjs:79`-Kommentar auf `LLM_PROXY_BACKENDS_JSON` umschreiben.
-- [ ] GREEN-Nachweis:
+- [x] GREEN-Nachweis:
   ```bash
   python3 -m pytest tests/py/spec/llm_proxy/test_registry_no_tickets_ref.py -q
   task workspace:validate
   ```
   Erwartung: Test grün, Kustomize-Dry-Run grün.
+  Belegt 2026-10-22 (nach Test-Umstellung d6f9c4bff): 3 passed,
+  `task workspace:validate` gruen.
   Plan-Mutation 2026-10-22 (Orchestrator, Option 1 aus Implementer-Report):
   Der statische Grep-Test konnte per Env-Bypass nicht grün werden, solange das
   bewusst behaltene `FROM tickets.llm_proxy_backends`-Literal in

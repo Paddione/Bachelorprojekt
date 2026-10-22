@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.430.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.430.0...website-v1.430.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **infra:** stale Taskfile registry refs ([#6810](https://github.com/Paddione/Bachelorprojekt/issues/6810), [#6814](https://github.com/Paddione/Bachelorprojekt/issues/6814)) ([#6816](https://github.com/Paddione/Bachelorprojekt/issues/6816)) ([9fb1fe1](https://github.com/Paddione/Bachelorprojekt/commit/9fb1fe1a54baba20f188fefab7e38ebf36831240))
+
 ## [1.430.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.4...website-v1.430.0) (2026-10-22)
 
 

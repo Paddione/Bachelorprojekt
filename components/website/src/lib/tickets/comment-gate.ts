@@ -21,6 +21,14 @@ export const COMMENT_CORS_ORIGINS: RegExp[] = [
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
 ];
 
+/**
+ * Example session-form origin for tests and docs.
+ * Lives here (not in test files) so this S3-allowlisted module owns all
+ * brand-host literals of the comment gate.
+ */
+export const SESSION_FORM_ORIGIN_EXAMPLE =
+  'https://session-abc.sessions.mentolder.de';
+
 export type CommentVerdict = { allow: true } | { allow: false; status: 401 | 403 };
 
 export function checkCommentAccess(opts: {

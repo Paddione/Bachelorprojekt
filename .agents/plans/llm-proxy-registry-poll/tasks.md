@@ -23,8 +23,10 @@ Referenziert, nicht geändert:
   bereits (Zeilen 21–23), DB-Fallback bleibt für Pfade ohne Env.
 
 Tests:
-- `tests/py/spec/llm_proxy/test_registry_no_tickets_ref.py`: RED-Test
-  (Rotphase belegt, failt aktuell mit Fund in `backends.mjs` + `bge-routes.mjs`).
+- `tests/py/spec/llm_proxy/test_registry_no_tickets_ref.py`: RED-Test in
+  Laufzeit-Semantik (Rotphase alt: statischer Grep-Fund in `backends.mjs` +
+  `bge-routes.mjs`; nach Plan-Mutation 2026-10-22 prüft er Env-JSON im
+  Deployment + Bypass-Zweig statt des bewusst behaltenen DB-Fallback-Literals).
 
 ## S1 Budgets
 
@@ -76,10 +78,12 @@ Manifeste/Skripte (S4 sauber).
   task workspace:validate
   ```
   Erwartung: Test grün, Kustomize-Dry-Run grün.
-  BLOCKIERT 2026-10-22: Test weiter ROT — einzig verbleibender Fund ist das
-  `FROM tickets.llm_proxy_backends`-SQL-Literal in `backends.mjs:17`, das der
-  Plan explizit unveraendert laesst (DB-Fallback bleibt). Statischer Grep-Test
-  kann per Env-Bypass nicht gruen werden; siehe Report an Orchestrator.
+  Plan-Mutation 2026-10-22 (Orchestrator, Option 1 aus Implementer-Report):
+  Der statische Grep-Test konnte per Env-Bypass nicht grün werden, solange das
+  bewusst behaltene `FROM tickets.llm_proxy_backends`-Literal in
+  `backends.mjs:17` besteht. Test auf Laufzeit-Semantik umgestellt (Env-JSON
+  im Deployment + Bypass-Zweig + routen-kommentar-frei); DB-Fallback bleibt
+  per Design für Pfade ohne Env erhalten.
 
 ## Task 2 — Verify: Deploy + 30-min-Fenster
 

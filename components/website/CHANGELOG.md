@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.431.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.4...website-v1.431.5) (2026-10-22)
+
+
+### Bug Fixes
+
+* **website:** require admin session for invoice creation ([#6846](https://github.com/Paddione/Bachelorprojekt/issues/6846)) ([9e1c950](https://github.com/Paddione/Bachelorprojekt/commit/9e1c950048156bc66701aa57b1b32081041d2e00))
+
 ## [1.431.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.3...website-v1.431.4) (2026-10-22)
 
 

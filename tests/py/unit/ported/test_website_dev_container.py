@@ -193,3 +193,12 @@ def test_compose_liest_components_website_env_als_env_file(paths):
     # Der Kern der ganzen Uebung: env_file legt die Variablen in die
     # PROZESSUMGEBUNG, wo process.env sie sieht.
     assert "components/website/.env" in _text(paths["compose"])
+
+
+def test_compose_bindet_components_website_nach_app(paths):
+    # F8: ./website existiert nicht (pre-reorg-Artefakt) — Docker wuerde ein
+    # leeres Host-Verzeichnis ueber /app mounten und der Dev-Container ohne
+    # Quellcode starten.
+    text = _text(paths["compose"])
+    assert "./components/website:/app" in text
+    assert "./website:/app" not in text

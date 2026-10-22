@@ -44,7 +44,7 @@ services:
     volumes:
       # Quellcode als Bind-Mount — das ist der Unterschied zum Prod-Image, das den
       # Code zur Build-Zeit einfriert. Änderungen wirken hier sofort.
-      - ./website:/app
+      - ./components/website:/app
 
       # Anonymes Volume ÜBER dem Bind-Mount: es maskiert components/website/node_modules vom
       # Host. Die Pakete im Container sind für Alpine/musl gebaut, deine lokale

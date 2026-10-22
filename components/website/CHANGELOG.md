@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.430.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.4...website-v1.430.0) (2026-10-22)
+
+
+### Features
+
+* **db:** add FK indexes on customers children ([#6808](https://github.com/Paddione/Bachelorprojekt/issues/6808)) ([4b1f4d8](https://github.com/Paddione/Bachelorprojekt/commit/4b1f4d86527c581cc362b020d70164bb2c713cf6))
+
 ## [1.429.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.3...website-v1.429.4) (2026-10-22)
 
 

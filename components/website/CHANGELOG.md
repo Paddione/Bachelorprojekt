@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.429.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.3...website-v1.429.4) (2026-10-22)
+
+
+### Bug Fixes
+
+* **infra:** llm-proxy registry via LLM_PROXY_BACKENDS_JSON env bypass ([#6804](https://github.com/Paddione/Bachelorprojekt/issues/6804)) ([6549424](https://github.com/Paddione/Bachelorprojekt/commit/6549424126c5b25acc390c68383796171ab6d2b8))
+
 ## [1.429.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.429.2...website-v1.429.3) (2026-10-22)
 
 

@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-10-08T03:01:48.867Z
+> Generated at 2026-10-22T11:26:26.250Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -236,7 +236,7 @@
 | `/api/auth/me` | OPTIONS, GET | 🔐 admin | `components/website/src/pages/api/auth/me.ts` |
 | `/api/bge/changes` | GET | 🔐 admin | `components/website/src/pages/api/bge/changes.ts` |
 | `/api/bge/retrieve` | GET | 🔐 admin | `components/website/src/pages/api/bge/retrieve.ts` |
-| `/api/billing/create-invoice` | POST | ❓ unclassified | `components/website/src/pages/api/billing/create-invoice.ts` |
+| `/api/billing/create-invoice` | POST | 🔐 admin | `components/website/src/pages/api/billing/create-invoice.ts` |
 | `/api/billing/invoice/{id}/pdf` | GET | 🔐 admin | `components/website/src/pages/api/billing/invoice/[id]/pdf.ts` |
 | `/api/billing/invoice/{id}/xrechnung.xml` | GET | 🔐 admin | `components/website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts` |
 | `/api/billing/invoice/{id}/zugferd` | GET | 🔐 admin | `components/website/src/pages/api/billing/invoice/[id]/zugferd.ts` |

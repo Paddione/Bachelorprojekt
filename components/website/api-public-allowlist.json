@@ -5,7 +5,6 @@
   { "path": "/api/auth/login", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/auth/logout", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/auth/magic", "methods": ["GET"], "reason": "baseline — not individually audited" },
-  { "path": "/api/billing/create-invoice", "methods": ["POST"], "reason": "baseline — unauthenticated invoice creation; follow-up T000667" },
   { "path": "/api/booking", "methods": ["POST"], "reason": "baseline — not individually audited" },
   { "path": "/api/brett/bot", "methods": ["POST"], "reason": "baseline — not individually audited" },
   { "path": "/api/bug-report", "methods": ["POST"], "reason": "baseline — not individually audited" },

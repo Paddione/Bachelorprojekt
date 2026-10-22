@@ -1,14 +1,30 @@
 import type { APIRoute } from 'astro';
+import { getSession, isAdmin } from '../../../lib/auth';
 import {
   getOrCreateCustomer,
   createBillingInvoice,
-  createBillingQuote,
   SERVICES,
 } from '../../../lib/stripe-billing';
 import type { ServiceKey } from '../../../lib/stripe-billing';
 import { isE2ETestRequest } from '../../../lib/e2e-marker';
 
 export const POST: APIRoute = async ({ request , locals }) => {
+  // F5 (#6822): Admin-only — anonyme Requests dürfen weder Kunden anlegen
+  // noch Rechnungsentwürfe (ggf. mit E-Mail-Versand) erzeugen.
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  if (!isAdmin(session)) {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     // T015362: Testkontext erkennen und auf den erzeugten Zeilen markieren,
     // damit der Purge-Pfad sie entfernen kann (fail-closed, siehe e2e-marker).
@@ -18,6 +34,16 @@ export const POST: APIRoute = async ({ request , locals }) => {
       name, email, company,
       serviceKey, quantity, asQuote, sendEmail: shouldSendEmail,
     } = body;
+
+    if (asQuote) {
+      // Ehemals toter Zweig (createBillingQuote warf immer → 500):
+      // native-billing kennt keine Angebots-Entities. 410 statt 500,
+      // mit Hinweis auf die Admin-Route für freie Rechnungszeilen.
+      return new Response(
+        JSON.stringify({ error: 'Angebote werden nicht mehr unterstützt. Bitte /api/admin/billing/create-invoice verwenden.' }),
+        { status: 410, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!name || !email || !serviceKey) {
       return new Response(
@@ -46,18 +72,6 @@ export const POST: APIRoute = async ({ request , locals }) => {
     }
 
     const key = serviceKey as ServiceKey;
-
-    if (asQuote) {
-      const quote = await createBillingQuote({
-        customerId: customer.id,
-        serviceKey: key,
-        quantity: quantity || 1,
-      });
-      return new Response(
-        JSON.stringify({ success: true, type: 'quote', data: quote }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
 
     const invoice = await createBillingInvoice({
       customerId: customer.id,

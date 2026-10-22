@@ -19,7 +19,9 @@ async function getBrowser(): Promise<Browser> {
 
 export async function generatePdf(html: string): Promise<Buffer> {
   const browser = await getBrowser();
-  const page = await browser.newPage();
+  // F3: kein JavaScript im PDF-Rendering — Skripte in User-Inhalten laufen sonst
+  // im Website-Pod (SSRF-Risiko). Statisches HTML reicht fuers PDF.
+  const page = await browser.newPage({ javaScriptEnabled: false });
   try {
     await page.setContent(html, { waitUntil: 'networkidle' });
     const pdf = await page.pdf({

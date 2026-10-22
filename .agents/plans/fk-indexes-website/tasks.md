@@ -39,32 +39,54 @@ den registrierten `db:migrate`-Pfad (kein Orphan); kein neues Skript.
 
 ## Task 1 — GREEN: Migration schreiben
 
-- [ ] Rotphase wiederholen (expected: FAIL):
+- [x] Rotphase wiederholen (expected: FAIL):
   ```bash
   python3 -m pytest tests/py/spec/website_db/test_fk_indexes_customer_children.py -q
   ```
-- [ ] Laufweg zuerst verifizieren (F4-Frage): belegt lesen, ob `db:migrate`
+  (Beleg 2026-10-22: FAIL, `FileNotFoundError` Migrationsdatei fehlt.)
+- [x] Laufweg zuerst verifizieren (F4-Frage): belegt lesen, ob `db:migrate`
   (`components/website/src/db/migrate.ts`) auf devmesh läuft und wohin es
   trackt — der Katalog kennt weder `schema_migrations` noch
   `factory_schema_migrations`. Falls der Laufweg tot ist: hier stoppen und
   als Deploy-Mechanik-Befund zurückmelden statt Indizes zu schreiben.
-- [ ] Migrationsdatei nach Muster `20260717` schreiben (6 Indizes aus
+  Befund 2026-10-22: Laufweg LEBT. `migrate.ts:runMigrations` trackt
+  `public.schema_migrations` (Spalte `filename`) und bootstrapt die Tabelle
+  per `CREATE TABLE IF NOT EXISTS` vor dem ersten Lauf — das Fehlen im
+  Katalog (`count=0` auf devmesh-`website`) heißt nur „noch nie gelaufen“,
+  nicht „tot“. Runner-Skript `db:migrate` in `components/website/package.json:24`
+  vorhanden. Alle 6 Ziel-Spalten auf devmesh verifiziert, keine
+  Indexnamen-Kollision.
+- [x] Migrationsdatei nach Muster `20260717` schreiben (6 Indizes aus
   File Structure, ein `DO $$`-Block je Tabelle mit `to_regclass`-Guard).
-- [ ] GREEN-Nachweis:
+- [x] GREEN-Nachweis:
   ```bash
   python3 -m pytest tests/py/spec/website_db/test_fk_indexes_customer_children.py -q
   ```
-- [ ] Wirkungsprobe (bounded, read-only, Dev-Volumina — kein Speedup-Beleg
+  (Beleg 2026-10-22: 1 passed.)
+- [x] Wirkungsprobe (bounded, read-only, Dev-Volumina — kein Speedup-Beleg
   erwartet, nur Plan-Nutzung zeigen):
   ```bash
   kubectl --context devmesh -n workspace exec deploy/shared-db -c postgres -- psql -U postgres -d website -Atc "EXPLAIN SELECT 1 FROM public.messages WHERE sender_customer_id = '00000000-0000-0000-0000-000000000000' LIMIT 1"
   ```
   nach `db:migrate`-Lauf auf devmesh (führt der Execute aus).
+  Beleg 2026-10-22: `Index Only Scan using idx_messages_sender_customer_id`
+  (alle 6 Indizes in `pg_indexes` verifiziert). Hinweis: `task website:migrate`
+  scheiterte in diesem Worktree an `pnpm` („workspace hoist directory is not
+  a real directory“, node_modules-Symlink des Worktree-Setups) — stattdessen
+  derselbe Befehl manuell: Port-Forward + `tsx src/db/migrate.ts` mit
+  DATABASE_URL (Exit 0; Erstlauf auf devmesh, `schema_migrations`
+  gebotstrapt). Separater Vorbefund: `task db:migrate` (factory-Runner,
+  Taskfile.data.yml) ist auf main kaputt (`unclosed here-document EOSQL`,
+  T901440-Massage-Zweig) — betrifft diesen Plan nicht, ans
+  Orchestrator-Backlog melden.
 
 ## Task 2 — Verify: Migrate + Gates
 
-- [ ] `db:migrate`-Lauf gegen devmesh-`website` (führt der Execute aus;
+- [x] `db:migrate`-Lauf gegen devmesh-`website` (führt der Execute aus;
   reversibel via `DROP INDEX`, keine Datenänderung).
+  Beleg 2026-10-22: `tsx src/db/migrate.ts` via Port-Forward, Exit 0,
+  Datei `20261022_fk_indexes_customer_children.sql` als „applying“ geloggt,
+  6 Indizes in `pg_indexes` belegt.
 - [ ] CI-Gate: `task test:changed` + `task freshness:regenerate` + `task freshness:check` + `task workspace:validate`.
 
 ## Risiken

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.431.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.5...website-v1.431.6) (2026-10-22)
+
+
+### Bug Fixes
+
+* **security:** break post-login redirect loop for non-admins ([#6883](https://github.com/Paddione/Bachelorprojekt/issues/6883)) ([f06abd0](https://github.com/Paddione/Bachelorprojekt/commit/f06abd09c4a73957a44b12ed49684d3bb52d4254))
+
 ## [1.431.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.4...website-v1.431.5) (2026-10-22)
 
 

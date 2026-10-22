@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.431.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.3...website-v1.431.4) (2026-10-22)
+
+
+### Bug Fixes
+
+* **website:** gate internal meeting routes with shared secret ([#6843](https://github.com/Paddione/Bachelorprojekt/issues/6843)) ([9b55b6c](https://github.com/Paddione/Bachelorprojekt/commit/9b55b6cf52c1eafea26b6dac305f8ed8058ea665))
+
 ## [1.431.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.2...website-v1.431.3) (2026-10-22)
 
 

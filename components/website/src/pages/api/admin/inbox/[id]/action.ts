@@ -235,7 +235,13 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
         };
         const res = await fetch(`${SITE_URL}/api/meeting/finalize`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            // F4: Admin-Server ruft als interner Aufrufer mit Shared Secret auf.
+            ...(process.env.MEETING_INTERNAL_TOKEN
+              ? { Authorization: `Bearer ${process.env.MEETING_INTERNAL_TOKEN}` }
+              : {}),
+          },
           body: JSON.stringify({
             customerName: p.customerName, customerEmail: p.customerEmail,
             meetingType: p.meetingType, meetingDate: p.meetingDate,

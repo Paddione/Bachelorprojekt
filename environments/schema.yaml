@@ -951,6 +951,15 @@ secrets:
     generate: true
     length: 32
 
+  - name: MEETING_INTERNAL_TOKEN
+    required: true
+    generate: true
+    length: 48
+    description: "Shared secret for internal meeting routes (finalize/save-transcript/transcribe, F4). Talk-transcriber and admin inbox action send it as Bearer token."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
   - name: SMTP_PASSWORD
     required: true
     generate: false

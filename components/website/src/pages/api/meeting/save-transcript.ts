@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { requireInternalToken } from '../../../lib/internal-auth';
 import {
   getMeetingByRoomToken,
   upsertCustomer,
@@ -25,6 +26,10 @@ import { ensureFolder, uploadFile } from '../../../lib/nextcloud-files';
 //   resources?: Array<{ type, name, storagePath, timestamp }>  // files from meeting window
 // }
 export const POST: APIRoute = async ({ request, locals }) => {
+  // F4: nur interne Aufrufer (talk-transcriber) mit Shared Secret.
+  const denied = requireInternalToken(request);
+  if (denied) return denied;
+
   let body: {
     roomToken?: string;
     transcriptText?: string;

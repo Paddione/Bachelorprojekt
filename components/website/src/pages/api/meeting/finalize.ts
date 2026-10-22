@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { requireInternalToken } from '../../../lib/internal-auth';
 import { getRecordingFile } from '../../../lib/talk';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whiteboard';
@@ -17,6 +18,10 @@ import { generateMeetingInsights } from '../../../lib/claude.ts';
 //   transcript?, artifacts?, roomToken?
 // }
 export const POST: APIRoute = async ({ request , locals }) => {
+  // F4: nur interne Aufrufer (talk-transcriber, Admin-Inbox) mit Shared Secret.
+  const denied = requireInternalToken(request);
+  if (denied) return denied;
+
   let customerName = '';
   const errors: string[] = [];
   const results: string[] = [];

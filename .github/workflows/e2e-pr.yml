@@ -55,6 +55,7 @@ jobs:
       E2E_ADMIN_USER: paddione
       E2E_ADMIN_PASS: ${{ secrets.E2E_ADMIN_PASS }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      MEETING_INTERNAL_TOKEN: ${{ secrets.MEETING_INTERNAL_TOKEN }}
       MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
       MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
 

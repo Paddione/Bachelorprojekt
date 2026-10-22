@@ -72,6 +72,12 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: TRANSCRIBER_SECRET
+            # F4: Shared Secret fuer interne Meeting-Routen (save-transcript).
+            - name: MEETING_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: MEETING_INTERNAL_TOKEN
             - name: CHUNK_SECONDS
               value: "5"
             - name: MAX_SESSIONS

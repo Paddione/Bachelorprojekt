@@ -25,6 +25,15 @@ NC_ADMIN_USER = os.environ.get("NC_ADMIN_USER", "admin")
 NC_ADMIN_PASS = os.environ.get("NC_ADMIN_PASS", "")
 WHISPER      = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 WEBSITE_URL  = os.environ.get("WEBSITE_URL", "http://website.website.svc.cluster.local")
+# F4: Shared Secret fuer die internen Meeting-Routen (finalize/save-transcript/transcribe).
+MEETING_INTERNAL_TOKEN = os.environ.get("MEETING_INTERNAL_TOKEN", "")
+
+
+def _website_headers() -> dict:
+    headers = {}
+    if MEETING_INTERNAL_TOKEN:
+        headers["Authorization"] = f"Bearer {MEETING_INTERNAL_TOKEN}"
+    return headers
 CHUNK_S      = int(os.environ.get("CHUNK_SECONDS", "5"))
 MAX_SESSIONS = int(os.environ.get("MAX_SESSIONS", "3"))
 AUTO_JOIN_INTERVAL = 30   # re-check for new rooms every 30 seconds
@@ -621,6 +630,7 @@ async def _finalize_and_teardown(token: str, display_num: int | None = None) -> 
             async with httpx.AsyncClient(timeout=30) as wc:
                 resp = await wc.post(
                     f"{WEBSITE_URL}/api/meeting/save-transcript",
+                    headers=_website_headers(),
                     json={
                         "roomToken": token,
                         "transcriptText": full_text,

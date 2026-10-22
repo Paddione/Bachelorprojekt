@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { addComment, createAdminTicket } from '../../../../lib/tickets/admin.ts';
 import { checkRateLimit, getClientIp } from '../../../../lib/rate-limit';
+import { getSession, isAdmin } from '../../../../lib/auth';
+import { COMMENT_CORS_ORIGINS, checkCommentAccess } from '../../../../lib/tickets/comment-gate';
 import { config } from '../../../../config/index.js';
 import { pool } from '../../../../lib/website-db';
 import { autoTriage } from '../../../../lib/sdlc/ticket-triage';
@@ -8,12 +10,8 @@ import { autoTriage } from '../../../../lib/sdlc/ticket-triage';
 const BRAND = config.brand;
 const EXTERNAL_ID_RE = /^T\d{6}$/i;
 
-// Session-forms live on *.sessions.mentolder.de and POST here cross-origin.
-const CORS_ORIGINS = [
-  /^https?:\/\/session-[a-z0-9-]+\.sessions\.mentolder\.de$/,
-  /^http:\/\/localhost(:\d+)?$/,
-  /^http:\/\/127\.0\.0\.1(:\d+)?$/,
-];
+// Allowlist-Owner ist comment-gate (Single Source); CORS-Header bleiben hier.
+const CORS_ORIGINS = COMMENT_CORS_ORIGINS;
 
 function corsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get('origin') ?? '';
@@ -51,6 +49,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   const rawId = typeof body.ticketId === 'string' ? body.ticketId.trim().toUpperCase() : '';
   const ticketExternalId = EXTERNAL_ID_RE.test(rawId) ? rawId : undefined;
+
+  // F6: anonyme Kommentare an BELIEBIGEN Tickets sind zu — Admin-Session
+  // oder Herkunft aus den Session-Formularen ist Pflicht.
+  const session = await getSession(request.headers.get('cookie'));
+  const verdict = checkCommentAccess({
+    origin: request.headers.get('origin'),
+    referer: request.headers.get('referer'),
+    hasSession: !!session && isAdmin(session),
+    hasTicketId: !!ticketExternalId,
+  });
+  if (!verdict.allow) return err('Kommentieren ist nur aus den Session-Formularen moeglich.', verdict.status);
 
   try {
     if (ticketExternalId) {

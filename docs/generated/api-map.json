@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T03:01:48.867Z",
+  "generatedAt": "2026-10-22T11:06:18.444Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1910,7 +1910,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "unclassified",
+      "auth": "admin",
       "file": "components/website/src/pages/api/billing/create-invoice.ts"
     },
     {

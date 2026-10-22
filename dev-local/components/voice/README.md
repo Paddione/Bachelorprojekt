@@ -25,9 +25,11 @@ Clients: `POST /api/stt` (nur Transkription), `POST /api/chat`
 
 Gemessen auf gpu-metal (2-CPU-Limit pro STT-Pod): 30 s Audio = ~90 s
 Verarbeitung (RTF ~0,33). Faustregel: **30-s-Chunks mit 2 s Ueberlappung**,
-Schnitt alle **28 s** Neuaudio, Round-Robin ueber die 4 Replikas
+Schnitt alle **28 s** Neuaudio, Round-Robin ueber die 3 Replikas
 (`kubectl -n workspace get pods -l app=voice-stt`). Damit liegt eine
-5-min-Datei bei ~225 s Gesamtzeit — knapp live-tauglich.
+5-min-Datei bei ~300 s Gesamtzeit — an der Live-Grenze (mit 4 Replikas
+waren es ~225 s; die 4. Replica entfiel 2026-10-22 zugunsten des
+Cluster-LLM auf demselben Knoten).
 Der Server lehnt Clips ueber 120 s mit 413 ab (`error`-Feld).
 
 ## Voraussetzungen auf gpu-metal (einmalig)

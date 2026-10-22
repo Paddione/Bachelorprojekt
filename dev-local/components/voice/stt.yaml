@@ -50,10 +50,12 @@ metadata:
   namespace: workspace
   labels: {app: voice-stt}
 spec:
-  # 4 Replikas: gemessen RTF ~0,33 pro Pod (30 s Audio = ~90 s auf 2 CPUs);
-  # fuer Live-Tempo (5-min-Datei in <= 300 s) mindestens 3, mit Reserve 4.
+  # 3 Replikas: gemessen RTF ~0,33 pro Pod (30 s Audio = ~90 s auf 2 CPUs);
+  # fuer Live-Tempo (5-min-Datei in <= 300 s) mindestens 3; die fruehere
+  # Reserve (4) entfiel 2026-10-22, weil 4 Whisper-Pods die Prompt-Eval des
+  # Cluster-LLM (qwen35-4b, gleicher Knoten) verhungern liessen.
   # Chunks: 30 s mit 2 s Ueberlappung, d.h. Schnitt alle 28 s Neuaudio.
-  replicas: 4
+  replicas: 3
   selector:
     matchLabels: {app: voice-stt}
   template:

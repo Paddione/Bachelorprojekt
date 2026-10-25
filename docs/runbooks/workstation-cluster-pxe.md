@@ -80,6 +80,14 @@ sudo k3s-join.sh --role server --token "$T" --server https://<ip-node-1>:6443  #
 
 ---
 
+## Profil `inference` — Einzelgerät als LLM-Endpoint
+
+`--profile inference` installiert statt eines Cluster-Nodes ein minimales
+Ubuntu ohne k3s, auf dem nur llama.cpp läuft. Das Profil verlangt
+`--only-mac` und `--disk`: der Proxy-DHCP antwortet dann ausschließlich der
+genannten MAC, sodass keine andere Maschine im LAN versehentlich mitinstalliert
+wird. Ablauf für PK-Tablet: [`pk-tablet-inference.md`](pk-tablet-inference.md).
+
 ## Bekannte Stolperstellen
 
 **Port 67 ist unter WSL belegt.** Mit `networkingMode=mirrored` teilt Linux den

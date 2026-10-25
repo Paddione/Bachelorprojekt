@@ -1,0 +1,87 @@
+#cloud-config
+# Ubuntu Server minimal als llama.cpp-Inferenz-Endpoint (PXE, NoCloud-Net).
+# Gerendert von scripts/pxe/setup-pxe.sh --profile inference.
+#
+# Die Installation liefert nur Basis, SSH, den Dienstbenutzer llama, die
+# Verzeichnisse und die Energie-Einstellungen. Binary, Units, Modelle und
+# Firewall-Ports kommen per `task llm:tablet:apply` vom Dev-Rechner — ein
+# Loadout-Wechsel ist damit nie eine Neuinstallation.
+#
+# KEINE Secrets hier: der PXE-HTTP-Server ist im LAN ohne Anmeldung lesbar.
+# WireGuard-Config und Tailscale-Login kommen per `task llm:tablet:bootstrap`.
+autoinstall:
+  version: 1
+  interactive-sections: []
+${PXE_EARLY_COMMANDS}
+  locale: ${PXE_LOCALE}
+  keyboard:
+    layout: ${PXE_KEYBOARD_LAYOUT}
+  timezone: ${PXE_TIMEZONE}
+
+  # minimal statt server: kein snapd, kein cloud-init-Ballast im Zielsystem.
+  # Platte und RAM gehoeren dem Modell.
+  source:
+    id: ubuntu-server-minimal
+
+  identity:
+    hostname: ${PXE_HOSTNAME_FALLBACK}
+    realname: "Inference Node Admin"
+    username: ${PXE_ADMIN_USER}
+    password: "${PXE_ADMIN_PASSWORD_HASH}"
+
+  ssh:
+    install-server: true
+    allow-pw: ${PXE_SSH_ALLOW_PW}
+    authorized-keys:
+      - "${PXE_SSH_PUBLIC_KEY}"
+
+  storage:
+    layout:
+      name: direct
+      # --disk ist im Profil inference Pflicht (setup-pxe.sh bricht sonst ab).${PXE_DISK_MATCH}
+    swap:
+      size: 0
+
+  packages:
+    - mesa-vulkan-drivers
+    - vulkan-tools
+    - wireguard
+    - ufw
+    - curl
+    - jq
+    - unzip
+    - ca-certificates
+    - chrony
+
+  package_update: true
+  package_upgrade: ${PXE_PACKAGE_UPGRADE}
+
+  user-data:
+    disable_root: true
+
+  late-commands:
+    # Hostname aus der MAC-Tabelle setzen — derselbe Helfer wie im Cluster-Profil.
+    - curl -fsS -o /tmp/assign-identity.sh ${PXE_BASE_URL}/assets/assign-identity.sh
+    - curl -fsS -o /tmp/node-map ${PXE_BASE_URL}/assets/node-map
+    - NODE_MAP=/tmp/node-map /bin/bash /tmp/assign-identity.sh /target
+    # apply.sh arbeitet per SSH mit BatchMode und sudo. Ohne --admin-password
+    # hat der Admin kein Passwort, sudo waere damit unbenutzbar. Der Zugang
+    # selbst bleibt key-only (allow-pw folgt --admin-password).
+    - printf '%s ALL=(ALL) NOPASSWD:ALL\n' '${PXE_ADMIN_USER}' > /target/etc/sudoers.d/90-inference-admin
+    - chmod 0440 /target/etc/sudoers.d/90-inference-admin
+    # Dienstbenutzer: render/video fuer /dev/dri (Vulkan auf der iGPU).
+    - curtin in-target --target=/target -- useradd --system --home /var/lib/llama --shell /usr/sbin/nologin --groups render,video llama
+    - curtin in-target --target=/target -- install -d -o llama -g llama /var/lib/llama /var/lib/llama/models
+    - curtin in-target --target=/target -- install -d /opt/llama /etc/llama
+    # Dauerbetrieb: Deckel zu darf das Geraet nicht schlafen legen.
+    - mkdir -p /target/etc/systemd/logind.conf.d
+    - printf '[Login]\nHandleLidSwitch=ignore\nHandleLidSwitchExternalPower=ignore\nHandleLidSwitchDocked=ignore\nIdleAction=ignore\n' > /target/etc/systemd/logind.conf.d/10-inference.conf
+    - curtin in-target --target=/target -- systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+    - curtin in-target --target=/target -- systemctl enable chrony
+    # Firewall AN mit nur SSH. Die Inferenz-Ports oeffnet apply, gebunden an
+    # tailscale0/wg0 — nie ins LAN.
+    - curtin in-target --target=/target -- ufw default deny incoming
+    - curtin in-target --target=/target -- ufw allow 22/tcp
+    - curtin in-target --target=/target -- ufw --force enable
+
+  shutdown: ${PXE_SHUTDOWN_MODE}

@@ -1,0 +1,13 @@
+# scripts/llm/pk-tablet/cpu-performance.service — CPU-Governor auf
+# performance. Das Tablet laeuft am Netzteil als Server; powersave drosselt
+# Prompt-Verarbeitung und Sampling, die auf der CPU laufen.
+[Unit]
+Description=CPU-Governor performance (Inferenz-Endpoint)
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w "$g" ] && echo performance > "$g"; done; true'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

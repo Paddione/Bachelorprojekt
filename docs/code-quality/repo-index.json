@@ -3709,7 +3709,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 911,
+      "file_count": 913,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4406,6 +4406,8 @@
         "scripts/mcp-gateway/token-drift-heal.sh",
         "scripts/mcp-gateway/watchdog-check.sh",
         "scripts/mcp-sync.sh",
+        "scripts/mcp/cbm-embed-client.py",
+        "scripts/mcp/cbm-embed-enrich.py",
         "scripts/mcp/cbm-embed-store.py",
         "scripts/mcp/cbm-embed-sync.py",
         "scripts/mcp/cbm-eval.py",

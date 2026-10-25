@@ -186,6 +186,7 @@ task: Available tasks for this project:
 * iso:pxe:                                      PXE-Boot-Server starten — Netzweg statt USB (ISO_SSH_KEY=, ISO_NODE_MAP=). Braucht sudo.
 * iso:pxe:status:                               Zustand des PXE-Boot-Servers anzeigen
 * iso:pxe:stop:                                 PXE-Boot-Server beenden
+* iso:pxe:tablet:                               PXE-Server im Profil inference fuer PK-Tablet (TABLET_DISK= Pflicht, TABLET_MAC=). Braucht sudo. Runbook: docs/runbooks/pk-tablet-inference.md
 * knowledge:crawl:                              Crawl a web_crawl collection (COLLECTION_ID=<uuid>, ENV=dev|mentolder|korczewski)
 * knowledge:ingest-context7:                    Ingest a single context7 library (LIBRARY_ID=/org/repo COLLECTION_ID=<uuid> ENV=...)
 * knowledge:reindex:                            Re-index knowledge collections (SOURCE=prs|markdown|bugs|context7|all, ENV=dev|mentolder|korczewski)
@@ -200,7 +201,7 @@ task: Available tasks for this project:
 * llm:devflow:sandbox:                          Sandbox via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
 * llm:devflow:turbolint:                        Turbolint via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
 * llm:lmstudio-preload:                         DEPRECATED — bge embed/rerank sind seit T002551 CPU-Deployments im Cluster.
-* llm:loadouts:check:                           Prueft loadouts.json auf die kanonische writeLoadouts()-Form (fail-closed, CI) [T002553]
+* llm:loadouts:check:                           Prueft loadouts.json (und das PK-Tablet-Loadout) auf die kanonische writeLoadouts()-Form (fail-closed, CI) [T002553]
 * llm:loadouts:format:                          Normalisiert loadouts.json auf die kanonische Form — Reparatur fuer loadouts:check [T002553]
 * llm:measure-equivalence:                      Measure embedding equivalence between TEI and new llama.cpp endpoint
 * llm:proxy:logs:                               Tail the local LLM proxy log
@@ -209,6 +210,9 @@ task: Available tasks for this project:
 * llm:proxy:stop:                               Stop the local LLM proxy via PID file
 * llm:routing:check:                            Prueft, ob jede konfigurierte Modell-ID von einem erreichbaren Backend serviert wird [T002359]
 * llm:status:                                   Show LLM pipeline status (bge Deployments, gateway services, health). ENV=<env>
+* llm:tablet:apply:                             PK-Tablet: Loadout per SSH einspielen (Build, Modelle, Units, ufw, /health). Vorschau: task llm:tablet:apply -- --dry-run
+* llm:tablet:bootstrap:                         PK-Tablet einmalig: WireGuard-Config (WG_CONF=) einspielen und Tailscale anmelden
+* llm:tablet:render:                            PK-Tablet: argv/Modellliste aus devmesh/pk-tablet/loadouts.json rendern, ohne SSH (Ausgabe .tmp/pk-tablet)
 * llm:test:                                     Smoke-test the gateway Services directly (embed + rerank). ENV=<env>
 * llm:tools-sandbox:down:                       Entfernt den Tool-Sandbox-Container
 * llm:tools-sandbox:status:                     Exit 0, wenn der Tool-Sandbox-Container laeuft — dieselbe Pruefung, die der Proxy vor dem Start macht

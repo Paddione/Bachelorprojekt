@@ -332,3 +332,100 @@ def test_wt_hygiene_measure_unbekanntes_subkommando_bricht_ab_statt_n_a_zu_melde
     result = hy.measure("gibt-es-nicht")
     assert result.returncode != 0
     assert result.output != "n/a"
+
+
+# ── Multi-Repo-Unterstützung ─────────────────────────────────────────────────
+
+def test_multi_repo_main_checkout_counts_violations_across_repos(hy, monkeypatch):
+    hy.mk_repo()
+    r1 = hy.R
+    r2 = hy.FIX / "repo2"
+    r2.mkdir(parents=True, exist_ok=True)
+    hy.git("init", "-q", "-b", "master", cwd=r2)
+    hy.git("config", "user.email", "t@example.invalid", cwd=r2)
+    hy.git("config", "user.name", "t", cwd=r2)
+    (r2 / "seed.txt").write_text("seed2\n", encoding="utf-8")
+    hy.git("add", "seed.txt", cwd=r2)
+    hy.git("commit", "-qm", "init2", cwd=r2)
+
+    # Beide sauber auf ihrem jeweiligen Default-Branch (r1: main, r2: master)
+    monkeypatch.delenv("HG_REPO_ROOT", raising=False)
+    monkeypatch.setenv("HG_REPOS", f"{r1}:{r2}")
+    assert hy.measure("main-checkout").output == "0"
+
+    # r2 dirty machen
+    (r2 / "dirty.txt").write_text("dirty\n", encoding="utf-8")
+    assert hy.measure("main-checkout").output == "1"
+
+    # r1 auch auf fremden Branch setzen -> 2 Verletzungen
+    hy.git("checkout", "-q", "-b", "feat/test", cwd=r1)
+    assert hy.measure("main-checkout").output == "2"
+
+
+def test_multi_repo_stale_worktrees_across_repos(hy, monkeypatch):
+    hy.mk_repo()
+    r1 = hy.R
+    r2 = hy.FIX / "repo2"
+    r2.mkdir(parents=True, exist_ok=True)
+    hy.git("init", "-q", "-b", "main", cwd=r2)
+    hy.git("config", "user.email", "t@example.invalid", cwd=r2)
+    hy.git("config", "user.name", "t", cwd=r2)
+    (r2 / "seed.txt").write_text("seed2\n", encoding="utf-8")
+    hy.git("add", "seed.txt", cwd=r2)
+    hy.git("commit", "-qm", "init2", cwd=r2)
+    hy.git("update-ref", "refs/remotes/origin/main", "HEAD", cwd=r2)
+
+    monkeypatch.delenv("HG_REPO_ROOT", raising=False)
+    monkeypatch.setenv("HG_REPOS", f"{r1}:{r2}")
+
+    # Noch keine Worktrees in beiden Repos -> n/a
+    assert hy.measure("stale-worktrees").output == "n/a"
+
+    # In r1 einen gemergten Worktree anlegen -> 1
+    hy.git("worktree", "add", "-q", "-b", "wt-merged1", str(hy.FIX / "wt1"))
+    assert hy.measure("stale-worktrees").output == "1"
+
+    # In r2 einen gemergten Worktree anlegen -> 2
+    hy.git("worktree", "add", "-q", "-b", "wt-merged2", str(hy.FIX / "wt2"), cwd=r2)
+    assert hy.measure("stale-worktrees").output == "2"
+
+
+def test_multi_repo_orphan_locks_across_repos(hy, monkeypatch):
+    hy.mk_repo()
+    r1 = hy.R
+    r2 = hy.FIX / "repo2"
+    r2.mkdir(parents=True, exist_ok=True)
+    hy.git("init", "-q", "-b", "main", cwd=r2)
+    hy.git("config", "user.email", "t@example.invalid", cwd=r2)
+    hy.git("config", "user.name", "t", cwd=r2)
+    (r2 / "seed.txt").write_text("seed2\n", encoding="utf-8")
+    hy.git("add", "seed.txt", cwd=r2)
+    hy.git("commit", "-qm", "init2", cwd=r2)
+
+    l1 = r1 / ".git" / "agent-locks"
+    l2 = r2 / ".git" / "agent-locks"
+    l1.mkdir(parents=True, exist_ok=True)
+    l2.mkdir(parents=True, exist_ok=True)
+
+    monkeypatch.delenv("HG_REPO_ROOT", raising=False)
+    monkeypatch.delenv("AGENT_LOCK_DIR", raising=False)
+    monkeypatch.setenv("HG_REPOS", f"{r1}:{r2}")
+
+    # Noch keine Locks -> n/a
+    assert hy.measure("orphan-locks").output == "n/a"
+
+    # Lebender Lock in r1 -> 0
+    now = str(int(time.time()))
+    (l1 / "live.json").write_text(json.dumps({
+        "scope": "ticket", "id": "live", "owner_pid": str(os.getpid()),
+        "heartbeat_at": now, "created_at": now,
+    }) + "\n")
+    assert hy.measure("orphan-locks").output == "0"
+
+    # Toter Lock in r2 -> 1
+    (l2 / "dead.json").write_text(json.dumps({
+        "scope": "ticket", "id": "dead", "owner_pid": str(hy.dead_pid()),
+        "heartbeat_at": str(int(time.time()) - 7200), "created_at": str(int(time.time()) - 7200),
+    }) + "\n")
+    assert hy.measure("orphan-locks").output == "1"
+

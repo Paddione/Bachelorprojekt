@@ -78,3 +78,75 @@ def test_runbook_nennt_ufw_regel_fuer_dhcp_broadcast(repo_root):
     text = (repo_root / 'docs/runbooks/workstation-cluster-pxe.md').read_text()
     assert any('ufw allow in on' in l and 'port 67' in l for l in text.splitlines())
     assert '0.0.0.0' in text
+
+
+# --- Profil inference (pxe-inference-tablet) --------------------------------
+TABLET_MAC = '84:3A:5B:CB:12:89'
+
+
+def test_inference_ohne_only_mac_bricht_ab(pxe):
+    execute, key, _ = pxe
+    result = execute(['--ssh-key', str(key), '--profile', 'inference', '--disk', '/dev/sda'])
+    assert result.returncode != 0
+    assert 'only-mac' in result.output.lower()
+
+
+def test_inference_ohne_disk_bricht_ab(pxe):
+    execute, key, _ = pxe
+    result = execute(['--ssh-key', str(key), '--profile', 'inference', '--only-mac', TABLET_MAC])
+    assert result.returncode != 0
+    assert 'disk' in result.output.lower()
+
+
+def test_unbekanntes_profil(pxe):
+    execute, key, _ = pxe
+    result = execute(['--ssh-key', str(key), '--profile', 'foo'])
+    assert result.returncode != 0
+    assert 'profile' in result.output.lower()
+
+
+def test_only_mac_format(pxe):
+    execute, key, _ = pxe
+    result = execute(['--ssh-key', str(key), '--only-mac', 'zz'])
+    assert result.returncode != 0
+    assert 'only-mac' in result.output.lower()
+
+
+def test_print_user_data_inference(pxe):
+    import yaml
+    execute, key, _ = pxe
+    result = execute(['--print-user-data', '--ssh-key', str(key), '--profile', 'inference',
+                      '--only-mac', TABLET_MAC, '--disk', '/dev/sda'])
+    result.check()
+    out = result.stdout
+    for needle in ('ubuntu-server-minimal', 'mesa-vulkan-drivers', 'HandleLidSwitch=ignore', 'path: /dev/sda'):
+        assert needle in out, needle
+    assert 'k3s-join' not in out
+    assert 'autoinstall' in yaml.safe_load(out)
+
+
+def test_print_user_data_cluster_unveraendert(pxe):
+    execute, key, _ = pxe
+    result = execute(['--print-user-data', '--ssh-key', str(key)])
+    result.check()
+    assert 'k3s-join.sh' in result.stdout
+    assert 'ubuntu-server-minimal' not in result.stdout
+
+
+def test_dnsmasq_only_mac_filter(pxe):
+    execute, _, tmp = pxe
+    result = execute(['--print-dnsmasq-conf', '--iface', 'eth9', '--server-ip', '192.0.2.10',
+                      '--root', str(tmp / 'pxe'), '--only-mac', TABLET_MAC])
+    result.check()
+    lines = result.stdout.splitlines()
+    assert 'dhcp-mac=set:target,84:3a:5b:cb:12:89' in lines
+    services = [l for l in lines if l.startswith('pxe-service=')]
+    assert services and all('tag:target' in l for l in services), services
+
+
+def test_dnsmasq_ohne_filter_ohne_target_tag(pxe):
+    execute, _, tmp = pxe
+    result = execute(['--print-dnsmasq-conf', '--iface', 'eth9', '--server-ip', '192.0.2.10',
+                      '--root', str(tmp / 'pxe')])
+    result.check()
+    assert 'tag:target' not in result.stdout

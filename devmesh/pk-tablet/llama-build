@@ -1,0 +1,5 @@
+b11887 0b7dcf66cd9a17c5b06f123387d2e98b0a75eb7f62341485f5212f8bfe41f7d5
+# <build> <sha256 von llama-<build>-bin-ubuntu-vulkan-x64.tar.gz>
+# Nicht b11561 wie im Cluster (k3d/llm-gpu.yaml): ggml-org haelt nur die
+# neuesten ~100 Releases vor, b11561 war am 2026-10-25 nicht mehr abrufbar.
+# Neuer Pin: gh api repos/ggml-org/llama.cpp/releases/tags/<build> -q '.assets[] | select(.name|test("ubuntu-vulkan-x64")) | .digest'

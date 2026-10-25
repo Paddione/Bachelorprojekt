@@ -53,6 +53,22 @@ tasks:
         fi
         sudo bash scripts/pxe/setup-pxe.sh --ssh-key "{{.ISO_SSH_KEY}}" $map_arg
 
+  pxe:tablet:
+    desc: "PXE-Server im Profil inference fuer PK-Tablet (TABLET_DISK= Pflicht, TABLET_MAC=). Braucht sudo. Runbook: docs/runbooks/pk-tablet-inference.md"
+    vars:
+      TABLET_MAC: '{{.TABLET_MAC | default "84:3a:5b:cb:12:89"}}'
+    preconditions:
+      - sh: '[ -n "{{.TABLET_DISK}}" ]'
+        msg: "TABLET_DISK fehlt — Zielplatte im Live-System mit lsblk bestimmen, z. B. TABLET_DISK=/dev/nvme0n1"
+    cmds:
+      - |
+        map_arg=""
+        if [ -f "{{.ISO_NODE_MAP}}" ]; then
+          map_arg="--node-map {{.ISO_NODE_MAP}}"
+        fi
+        sudo bash scripts/pxe/setup-pxe.sh --ssh-key "{{.ISO_SSH_KEY}}" --profile inference \
+          --only-mac "{{.TABLET_MAC}}" --disk "{{.TABLET_DISK}}" $map_arg
+
   pxe:stop:
     desc: "PXE-Boot-Server beenden"
     cmds:

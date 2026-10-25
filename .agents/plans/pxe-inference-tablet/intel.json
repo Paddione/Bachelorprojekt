@@ -1,0 +1,227 @@
+{
+  "meta": {
+    "slug": "pxe-inference-tablet",
+    "ticket_id": "",
+    "generated_from": "main@369d348a5",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6044,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/pk-tablet/llama-build",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/pk-tablet/loadouts.json",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/pk-tablet/models.json",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/pk-tablet-inference.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/workstation-cluster-pxe.md",
+      "language": "markdown",
+      "loc": 193,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/pk-tablet/apply.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/pk-tablet/cpu-performance.service",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/pk-tablet/llama-server@.service",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/pk-tablet/render.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/pk-tablet/run-loadout.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/pxe/autoinstall/user-data-inference.tmpl",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/pxe/setup-pxe.sh",
+      "language": "bash",
+      "loc": 617,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 183
+    },
+    {
+      "path": "taskfiles/Taskfile.iso.yml",
+      "language": "config",
+      "loc": 73,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.llm.yml",
+      "language": "config",
+      "loc": 265,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/evals/golden/task-list-all.txt",
+      "language": "text",
+      "loc": 439,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-llm-proxy/test_pk_tablet_loadout.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/remaining_root_specs/workstation_cluster_pxe/test_setup_pxe_guards.py",
+      "language": "python",
+      "loc": 80,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 720
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:57:usage() {",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "57:usage() {(...)",
+      "type_text": "57:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:125:die()  { echo \"ERROR: $*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "125:die()  { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "type_text": "125:die()  { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:126:info() { echo \"==> $*\" >&2; }",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "126:info() { echo \"==> $*\" >&2; }(...)",
+      "type_text": "126:info() { echo \"==> $*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:132:stop_services() {",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "132:stop_services() {(...)",
+      "type_text": "132:stop_services() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:147:show_status() {",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "147:show_status() {(...)",
+      "type_text": "147:show_status() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pxe/setup-pxe.sh:169:render_dnsmasq_conf() {",
+      "kind": "function",
+      "file": "scripts/pxe/setup-pxe.sh",
+      "signature": "169:render_dnsmasq_conf() {(...)",
+      "type_text": "169:render_dnsmasq_conf() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

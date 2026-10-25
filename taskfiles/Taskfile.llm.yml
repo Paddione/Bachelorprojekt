@@ -172,9 +172,27 @@ tasks:
       - bash scripts/llm/routing-check.sh
 
   loadouts:check:
-    desc: "Prueft loadouts.json auf die kanonische writeLoadouts()-Form (fail-closed, CI) [T002553]"
+    desc: "Prueft loadouts.json (und das PK-Tablet-Loadout) auf die kanonische writeLoadouts()-Form (fail-closed, CI) [T002553]"
     cmds:
       - node scripts/llm/loadouts-format.mjs --check
+      - node scripts/llm/loadouts-format.mjs --check devmesh/pk-tablet/loadouts.json
+
+  tablet:render:
+    desc: "PK-Tablet: argv/Modellliste aus devmesh/pk-tablet/loadouts.json rendern, ohne SSH (Ausgabe .tmp/pk-tablet)"
+    cmds:
+      - node scripts/llm/pk-tablet/render.mjs --out .tmp/pk-tablet
+
+  tablet:apply:
+    desc: "PK-Tablet: Loadout per SSH einspielen (Build, Modelle, Units, ufw, /health). Vorschau: task llm:tablet:apply -- --dry-run"
+    cmds:
+      - bash scripts/llm/pk-tablet/apply.sh {{.CLI_ARGS}}
+
+  tablet:bootstrap:
+    desc: "PK-Tablet einmalig: WireGuard-Config (WG_CONF=) einspielen und Tailscale anmelden"
+    requires:
+      vars: [WG_CONF]
+    cmds:
+      - bash scripts/llm/pk-tablet/apply.sh --bootstrap --wg-conf "{{.WG_CONF}}"
 
   loadouts:format:
     desc: "Normalisiert loadouts.json auf die kanonische Form — Reparatur fuer loadouts:check [T002553]"

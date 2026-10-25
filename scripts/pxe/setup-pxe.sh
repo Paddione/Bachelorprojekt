@@ -53,6 +53,8 @@ DISK_PATH=""
 WIPE_DISKS=0
 ACTION="start"
 FOREGROUND=0
+PROFILE="cluster"
+ONLY_MAC=""
 
 usage() {
   grep -E '^# ' "$0" | sed 's/^# \{0,1\}//'
@@ -78,6 +80,10 @@ Flags:
                            Partitionieren ab" auf Maschinen mit Vorleben.
                            Betrifft JEDE nicht-wechselbare Platte der Zielmaschine,
                            nicht nur die Installationsziel-Platte.
+  --profile <cluster|inference>  default: cluster. inference installiert ein
+                           minimales Ubuntu als llama.cpp-Endpoint (ohne k3s)
+                           und verlangt --only-mac und --disk.
+  --only-mac <mac>         Proxy-DHCP antwortet nur dieser MAC
   --shutdown <poweroff|reboot>  default: poweroff
                            poweroff ist Absicht: bootet die Maschine nach der
                            Installation neu und steht die Boot-Reihenfolge noch
@@ -87,6 +93,8 @@ Flags:
   --status                 Zustand anzeigen
   --print-dnsmasq-conf     dnsmasq-Konfiguration ausgeben (braucht --iface,
                            --server-ip; kein root, startet nichts)
+  --print-user-data        Autoinstall-user-data ausgeben (braucht --ssh-key;
+                           kein root, kein ISO)
   -h, --help
 EOF
   exit "${1:-0}"
@@ -112,11 +120,14 @@ while [[ $# -gt 0 ]]; do
     --package-upgrade)   PACKAGE_UPGRADE="true"; shift ;;
     --shutdown)          SHUTDOWN_MODE="$2";     shift 2 ;;
     --disk)              DISK_PATH="$2";         shift 2 ;;
+    --profile)           PROFILE="$2";           shift 2 ;;
+    --only-mac)          ONLY_MAC="${2,,}";      shift 2 ;;
     --wipe-disks)        WIPE_DISKS=1;           shift ;;
     --foreground)        FOREGROUND=1;           shift ;;
     --stop)              ACTION="stop";          shift ;;
     --status)            ACTION="status";        shift ;;
     --print-dnsmasq-conf) ACTION="print-dnsmasq-conf"; shift ;;
+    --print-user-data)   ACTION="print-user-data";    shift ;;
     -h|--help)           usage 0 ;;
     *) echo "Unbekanntes Flag: $1" >&2; usage 1 ;;
   esac
@@ -194,12 +205,23 @@ dhcp-range=${SERVER_IP},proxy
 # UEFI-Client die BIOS-Datei und braeche mit einer nichtssagenden Meldung ab.
 dhcp-match=set:efi-x86_64,option:client-arch,7
 dhcp-match=set:efi-bc,option:client-arch,9
-dhcp-boot=tag:efi-x86_64,bootx64.efi,,${SERVER_IP}
-dhcp-boot=tag:efi-bc,bootx64.efi,,${SERVER_IP}
+EOF
+  # --only-mac: Proxy-DHCP antwortet sonst JEDEM PXE-Client im LAN. Im Profil
+  # inference wuerde sich so jede netzbootende Maschine als Inferenz-Geraet
+  # neu installieren. Der Tag macht jede Boot-Antwort von der MAC abhaengig.
+  local t="" label="Cluster-Node UEFI"
+  [[ "$PROFILE" == inference ]] && label="Inference UEFI"
+  if [[ -n "$ONLY_MAC" ]]; then
+    t=",tag:target"
+    echo "dhcp-mac=set:target,${ONLY_MAC}"
+  fi
+  cat <<EOF
+dhcp-boot=tag:efi-x86_64${t},bootx64.efi,,${SERVER_IP}
+dhcp-boot=tag:efi-bc${t},bootx64.efi,,${SERVER_IP}
 # Im Proxy-Modus antwortet dnsmasq NUR ueber pxe-service; dhcp-boot allein
 # laesst den PXE-DISCOVER unbeantwortet (beobachtet an gpu-metal, T016505).
-pxe-service=tag:efi-x86_64,X86-64_EFI,"Cluster-Node UEFI",bootx64.efi
-pxe-service=tag:efi-bc,BC_EFI,"Cluster-Node UEFI",bootx64.efi
+pxe-service=tag:efi-x86_64${t},X86-64_EFI,"${label}",bootx64.efi
+pxe-service=tag:efi-bc${t},BC_EFI,"${label}",bootx64.efi
 
 enable-tftp
 tftp-root=${ROOT_DIR}/tftp
@@ -209,6 +231,76 @@ tftp-root=${ROOT_DIR}/tftp
 log-dhcp
 EOF
 }
+
+# --- Autoinstall-Daten ------------------------------------------------------
+# Als Funktion, damit --print-user-data dieselbe Ausgabe ohne root und ohne
+# Boot-Baum liefert. Die Vorlage haengt am Profil.
+render_user_data() {
+  export PXE_LOCALE="$LOCALE" \
+         PXE_KEYBOARD_LAYOUT="$KEYBOARD_LAYOUT" \
+         PXE_TIMEZONE="$TIMEZONE" \
+         PXE_HOSTNAME_FALLBACK="$HOSTNAME_FALLBACK" \
+         PXE_ADMIN_USER="$ADMIN_USER" \
+         PXE_ADMIN_PASSWORD_HASH="$ADMIN_PASSWORD_HASH" \
+         PXE_SSH_ALLOW_PW="$([[ -n "$ADMIN_PASSWORD" ]] && echo true || echo false)" \
+         PXE_SSH_PUBLIC_KEY="$SSH_PUBLIC_KEY" \
+         PXE_PACKAGE_UPGRADE="$PACKAGE_UPGRADE" \
+         PXE_SHUTDOWN_MODE="$SHUTDOWN_MODE" \
+         PXE_BASE_URL="$BASE_URL"
+
+  # early-commands laufen VOR der Storage-Erkennung. Genau dort muessen alte
+  # Signaturen weg: curtin bricht beim Partitionieren ab, wenn ein LVM- oder
+  # mdadm-Superblock die Platte noch belegt ("Device or resource busy"). Das
+  # Symptom ist ein Abbruch in stage-partitioning, lange nach der Plattenwahl.
+  #
+  # Bewusst hinter einem Flag: das loescht die Platten der Zielmaschine
+  # vollstaendig und ohne Rueckfrage.
+  if [[ "$WIPE_DISKS" -eq 1 ]]; then
+    export PXE_EARLY_COMMANDS='
+  early-commands:
+    # Reihenfolge ist wesentlich: erst alles loesen, was die Geraete haelt,
+    # dann die Signaturen entfernen. Umgekehrt scheitert wipefs mit EBUSY.
+    - swapoff -a || true
+    - |
+      command -v vgchange >/dev/null 2>&1 && vgchange -an || true
+    - |
+      command -v mdadm >/dev/null 2>&1 && mdadm --stop --scan || true
+    - |
+      for d in /sys/block/*; do
+        n=$(basename "$d")
+        case "$n" in loop*|sr*|ram*|fd*|dm-*|md*) continue ;; esac
+        # Wechselmedien auslassen: der Installer selbst kann davon kommen.
+        [ "$(cat "$d/removable" 2>/dev/null)" = "1" ] && continue
+        echo "wipe: /dev/$n"
+        wipefs --all --force "/dev/$n" || true
+        command -v sgdisk >/dev/null 2>&1 && sgdisk --zap-all "/dev/$n" || true
+      done'
+    info "WARNUNG: --wipe-disks aktiv — alle eingebauten Platten der Zielmaschine werden geloescht"
+  else
+    export PXE_EARLY_COMMANDS=""
+  fi
+
+  # Der match-Block wird nur eingefuegt, wenn eine Platte ausdruecklich genannt
+  # wurde. Ohne --disk bleibt die Stelle leer und subiquity waehlt selbst.
+  if [[ -n "$DISK_PATH" ]]; then
+    export PXE_DISK_MATCH="
+      match:
+        path: ${DISK_PATH}"
+    info "Zielplatte festgelegt: ${DISK_PATH}"
+  else
+    export PXE_DISK_MATCH=""
+  fi
+
+  local tmpl="user-data-net.tmpl"
+  [[ "$PROFILE" == inference ]] && tmpl="user-data-inference.tmpl"
+  envsubst '${PXE_LOCALE} ${PXE_KEYBOARD_LAYOUT} ${PXE_TIMEZONE} ${PXE_HOSTNAME_FALLBACK} ${PXE_ADMIN_USER} ${PXE_ADMIN_PASSWORD_HASH} ${PXE_SSH_ALLOW_PW} ${PXE_SSH_PUBLIC_KEY} ${PXE_PACKAGE_UPGRADE} ${PXE_SHUTDOWN_MODE} ${PXE_BASE_URL} ${PXE_DISK_MATCH} ${PXE_EARLY_COMMANDS}' \
+    < "${SCRIPT_DIR}/autoinstall/${tmpl}"
+}
+
+case "$PROFILE" in cluster|inference) ;; *) die "--profile: cluster oder inference" ;; esac
+if [[ -n "$ONLY_MAC" && ! "$ONLY_MAC" =~ ^([0-9a-f]{2}:){5}[0-9a-f]{2}$ ]]; then
+  die "--only-mac erwartet eine MAC wie 84:3a:5b:cb:12:89, nicht: $ONLY_MAC"
+fi
 
 case "$ACTION" in
   stop)   stop_services; exit 0 ;;
@@ -238,6 +330,17 @@ fi
 [[ "$HTTP_PORT" =~ ^[0-9]+$ ]] || die "--http-port ist keine Zahl: $HTTP_PORT"
 if [[ -n "$NODE_MAP" ]]; then
   [[ -f "$NODE_MAP" ]] || die "--node-map nicht gefunden: $NODE_MAP"
+fi
+if [[ "$PROFILE" == inference ]]; then
+  [[ -n "$ONLY_MAC" ]] || die "--profile inference braucht --only-mac: sonst installiert sich jede netzbootende Maschine im LAN als Inferenz-Geraet"
+  [[ -n "$DISK_PATH" ]] || die "--profile inference braucht --disk: die Zielplatte des Geraets ausdruecklich nennen"
+fi
+
+if [[ "$ACTION" == print-user-data ]]; then
+  BASE_URL="http://${SERVER_IP:-<server-ip>}:${HTTP_PORT}"
+  ADMIN_PASSWORD_HASH='!'
+  [[ -n "$ADMIN_PASSWORD" ]] && ADMIN_PASSWORD_HASH="$(openssl passwd -6 "$ADMIN_PASSWORD")"
+  render_user_data; exit 0
 fi
 
 K3S_VERSION="$(awk -F': *' '/^k3s:/ {print $2; exit}' \
@@ -410,68 +513,12 @@ grep -qF 'ds=nocloud-net\;s=' "${TFTP_DIR}/grub/grub.cfg" \
   || die "grub.cfg enthaelt kein maskiertes Semikolon — der Installer wuerde interaktiv nachfragen"
 
 # --- Autoinstall-Daten ------------------------------------------------------
-info "Rendere user-data"
-export PXE_LOCALE="$LOCALE" \
-       PXE_KEYBOARD_LAYOUT="$KEYBOARD_LAYOUT" \
-       PXE_TIMEZONE="$TIMEZONE" \
-       PXE_HOSTNAME_FALLBACK="$HOSTNAME_FALLBACK" \
-       PXE_ADMIN_USER="$ADMIN_USER" \
-       PXE_ADMIN_PASSWORD_HASH="$ADMIN_PASSWORD_HASH" \
-       PXE_SSH_ALLOW_PW="$([[ -n "$ADMIN_PASSWORD" ]] && echo true || echo false)" \
-       PXE_SSH_PUBLIC_KEY="$SSH_PUBLIC_KEY" \
-       PXE_PACKAGE_UPGRADE="$PACKAGE_UPGRADE" \
-       PXE_SHUTDOWN_MODE="$SHUTDOWN_MODE" \
-       PXE_BASE_URL="$BASE_URL"
-
-# early-commands laufen VOR der Storage-Erkennung. Genau dort muessen alte
-# Signaturen weg: curtin bricht beim Partitionieren ab, wenn ein LVM- oder
-# mdadm-Superblock die Platte noch belegt ("Device or resource busy"). Das
-# Symptom ist ein Abbruch in stage-partitioning, lange nach der Plattenwahl.
-#
-# Bewusst hinter einem Flag: das loescht die Platten der Zielmaschine
-# vollstaendig und ohne Rueckfrage.
-if [[ "$WIPE_DISKS" -eq 1 ]]; then
-  export PXE_EARLY_COMMANDS='
-  early-commands:
-    # Reihenfolge ist wesentlich: erst alles loesen, was die Geraete haelt,
-    # dann die Signaturen entfernen. Umgekehrt scheitert wipefs mit EBUSY.
-    - swapoff -a || true
-    - |
-      command -v vgchange >/dev/null 2>&1 && vgchange -an || true
-    - |
-      command -v mdadm >/dev/null 2>&1 && mdadm --stop --scan || true
-    - |
-      for d in /sys/block/*; do
-        n=$(basename "$d")
-        case "$n" in loop*|sr*|ram*|fd*|dm-*|md*) continue ;; esac
-        # Wechselmedien auslassen: der Installer selbst kann davon kommen.
-        [ "$(cat "$d/removable" 2>/dev/null)" = "1" ] && continue
-        echo "wipe: /dev/$n"
-        wipefs --all --force "/dev/$n" || true
-        command -v sgdisk >/dev/null 2>&1 && sgdisk --zap-all "/dev/$n" || true
-      done'
-  info "WARNUNG: --wipe-disks aktiv — alle eingebauten Platten der Zielmaschine werden geloescht"
-else
-  export PXE_EARLY_COMMANDS=""
-fi
-
-# Der match-Block wird nur eingefuegt, wenn eine Platte ausdruecklich genannt
-# wurde. Ohne --disk bleibt die Stelle leer und subiquity waehlt selbst.
-if [[ -n "$DISK_PATH" ]]; then
-  export PXE_DISK_MATCH="
-      match:
-        path: ${DISK_PATH}"
-  info "Zielplatte festgelegt: ${DISK_PATH}"
-else
-  export PXE_DISK_MATCH=""
-fi
-
-envsubst '${PXE_LOCALE} ${PXE_KEYBOARD_LAYOUT} ${PXE_TIMEZONE} ${PXE_HOSTNAME_FALLBACK} ${PXE_ADMIN_USER} ${PXE_ADMIN_PASSWORD_HASH} ${PXE_SSH_ALLOW_PW} ${PXE_SSH_PUBLIC_KEY} ${PXE_PACKAGE_UPGRADE} ${PXE_SHUTDOWN_MODE} ${PXE_BASE_URL} ${PXE_DISK_MATCH} ${PXE_EARLY_COMMANDS}' \
-  < "${SCRIPT_DIR}/autoinstall/user-data-net.tmpl" > "${HTTP_DIR}/nocloud/user-data"
+info "Rendere user-data (Profil ${PROFILE})"
+render_user_data > "${HTTP_DIR}/nocloud/user-data"
 
 # instance-id muss vorhanden sein; ohne sie haelt cloud-init den Seed fuer
 # unvollstaendig und faellt auf interaktiv zurueck.
-printf 'instance-id: cluster-node\nlocal-hostname: %s\n' "$HOSTNAME_FALLBACK" \
+printf 'instance-id: %s-node\nlocal-hostname: %s\n' "$PROFILE" "$HOSTNAME_FALLBACK" \
   > "${HTTP_DIR}/nocloud/meta-data"
 : > "${HTTP_DIR}/nocloud/vendor-data"
 

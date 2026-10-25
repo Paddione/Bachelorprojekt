@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.432.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.6...website-v1.432.0) (2026-10-25)
+
+
+### Features
+
+* **website:** add presentation brand config and page templates ([#6887](https://github.com/Paddione/Bachelorprojekt/issues/6887)) ([166e9ad](https://github.com/Paddione/Bachelorprojekt/commit/166e9ad294e5aab5bfe4cd3baab389cf710a5918))
+
 ## [1.431.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.5...website-v1.431.6) (2026-10-22)
 
 

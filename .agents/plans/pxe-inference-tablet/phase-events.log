@@ -1,1 +1,5 @@
 plan done 2026-10-25T22:20:30Z plan-gestagt
+implement entered 2026-10-25T22:23:09Z in-context implementation
+implement done 2026-10-25T22:31:53Z implementierung fertig
+verify entered 2026-10-25T22:31:53Z test:changed + freshness
+verify done 2026-10-25T23:32:47Z neue Tests gruen (24), quality:check ok; volle Suite uebersprungen auf User-Wunsch

@@ -10,6 +10,7 @@ const BRAND = process.env.BRAND || 'mentolder';
 const BRAND_ID = process.env.BRAND_ID ?? BRAND;
 const isKore = BRAND_ID === 'korczewski';
 const isMassage = BRAND_ID === 'massage';
+const isPresentation = BRAND_ID === 'presentation';
 const sd = await getEffectiveStammdaten().catch(() => ({} as Stammdaten));
 const stored = await getLegalPage(BRAND, 'impressum').catch(() => null);
 // Massage-Entwurf nach T901019 §3 (DDG §5): offene Felder sind sichtbare Platzhalter.
@@ -38,7 +39,7 @@ const contentHtml = resolveTokens(stored?.trim() ? stored : (isMassage ? massage
   </Layout>
 ) : (
   <Layout title="Impressum">
-    {isMassage && <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />}
+    {(isMassage || isPresentation) && <link rel="stylesheet" href={`/brand/${BRAND_ID}/colors_and_type.css`} />}
     <section class="pt-28 pb-20">
       <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
         <div set:html={contentHtml} />

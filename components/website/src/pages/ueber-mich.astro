@@ -7,6 +7,7 @@ import { getSiteSetting, getSeoTitle, getSeoOgImage } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isMassage = BRAND_ID === 'massage';
+const isPresentation = BRAND_ID === 'presentation';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 
 const uebermich = await getEffectiveUebermich();
@@ -25,6 +26,7 @@ const seoOgImage = isMassage ? null : getSeoOgImage(BRAND_ID, 'ueber-mich');
 ---
 
 <Layout title={seoTitle} rawTitle={true} description={seoDesc} brand={layoutBrand} ogImage={seoOgImage ?? undefined}>
+  {isPresentation && <link rel="stylesheet" href="/brand/presentation/colors_and_type.css" />}
   {isMassage ? (
   <Fragment>
     <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />

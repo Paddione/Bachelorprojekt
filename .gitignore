@@ -1,6 +1,6 @@
 # ── Lokale Artefakte (nicht versioniert) ────────
 deep.sh
-presentation/
+/presentation/
 .taskmaster/state.json
 vitest-junit-report/
 scripts/deep.sh

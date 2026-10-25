@@ -16,6 +16,8 @@
 #   --quiet    nur die Zusammenfassung
 #   --only=…   nur die genannten Ziel-IDs prüfen (kommagetrennt, z.B. --only=G-RH01,G-CQ02)
 #
+# HG_RUN_COMPLETE_FILE=<path>  wenn gesetzt, wird nach dem letzten Messlauf "complete" geschrieben
+#                        (nur ein vollständig durchgelaufener Lauf ist ein gültiges Messpaket)
 # HG_VALUES_FILE=<path>  wenn gesetzt, hängt jede gemessene (nicht übersprungene) Zeile als
 #                        "<id> <actual> <cmp> <target>" an <path> an — Rohdaten für
 #                        scripts/health-goals-update.sh, ohne dieses Skripts Report-Verhalten
@@ -533,6 +535,7 @@ printf "\n%s──────────────────────�
 printf "%bZusammenfassung%b (%d geprüft): %s%d ✅ erreicht%s · %s%d 🟡 offen%s · %s%d 🔴 Gate-Verstoß%s · %s%d · übersprungen%s\n" \
   "$C_B" "$C_X" "$TOTAL" "$C_G" "$PASS" "$C_X" "$C_Y" "$OPEN" "$C_X" "$C_R" "$GATEFAIL" "$C_X" "$C_D" "$SKIP" "$C_X"
 
+[ -z "${HG_RUN_COMPLETE_FILE:-}" ] || printf 'complete\n' > "$HG_RUN_COMPLETE_FILE"
 if [ "$GATEFAIL" -gt 0 ]; then
   printf "%b✗ %d Gate-Ziel(e) verletzt — Repo-Health regrediert.%b\n" "$C_R" "$GATEFAIL" "$C_X"; exit 1
 fi

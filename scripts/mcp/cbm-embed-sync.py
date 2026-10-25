@@ -119,6 +119,31 @@ run_cli_json = GRAPH.run_cli_json
 envelope_text = GRAPH.envelope_text
 graph_rows = GRAPH.graph_rows
 
+CLIENT = _load_sibling("cbm_embed_client", "cbm-embed-client.py")
+CLIENT.SyncError = SyncError
+normalize_embed_url = CLIENT.normalize_embed_url
+probe_url_live = CLIENT.probe_url_live
+resolve_embed_urls = CLIENT.resolve_embed_urls
+select_live_urls = CLIENT.select_live_urls
+shard_batches = CLIENT.shard_batches
+DEFAULT_EMBED_URL = CLIENT.DEFAULT_EMBED_URL
+FALLBACK_EMBED_URLS = CLIENT.FALLBACK_EMBED_URLS
+
+
+def embed_batch(texts, url, model, timeout):
+    return CLIENT.embed_batch(texts, url, model, timeout)
+
+
+def embed_texts(texts, url_or_urls, model, timeout=EMBED_TIMEOUT_S, log=None,
+                on_batch=None):
+    return CLIENT.embed_texts(
+        texts, url_or_urls, model, timeout=timeout, log=log,
+        on_batch=on_batch, batch_fn=embed_batch, batch_size=EMBED_BATCH)
+
+ENRICH = _load_sibling("cbm_embed_enrich", "cbm-embed-enrich.py")
+parse_span = ENRICH.parse_span
+read_source_slice = ENRICH.read_source_slice
+
 
 def utc_now_iso():
     return datetime.now(timezone.utc).isoformat()
@@ -273,65 +298,6 @@ def is_test_path(path):
     return any(seg.lower() in _TEST_DIRNAMES for seg in p.split("/"))
 
 
-def parse_span(value):
-    """Graph start/end lines arrive as ints or numeric strings; anything
-    else (None, '-', unparseable) is no span."""
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value if value > 0 else None
-    if isinstance(value, str):
-        v = value.strip().strip('"').strip("'")
-        if v.isdigit():
-            n = int(v)
-            return n if n > 0 else None
-    return None
-
-
-def read_source_slice(root, path, start_line, end_line, max_chars=CODE_MAX,
-                      max_lines=BODY_LINES):
-    """Bounded source excerpt for a graph span, read from the checkout.
-
-    1-based inclusive [start_line, end_line], truncated to max_lines then
-    max_chars. Returns None (fail-safe, no exception) for missing files,
-    path traversal outside root, binary content, bad spans or empty excerpts.
-    Callers treat None as 'no body available' and keep the historic text."""
-    sl, el = parse_span(start_line), parse_span(end_line)
-    if sl is None or el is None or el < sl:
-        return None
-    if not isinstance(root, str) or not root:
-        return None
-    if not isinstance(path, str) or not path or path.startswith("<"):
-        return None
-    norm = os.path.normpath(path.replace("\\", "/")).lstrip("/")
-    if norm.startswith("..") or os.path.isabs(norm):
-        return None
-    try:
-        real_root = os.path.realpath(root)
-        full = os.path.realpath(os.path.join(real_root, norm))
-        if full != real_root and not full.startswith(real_root + os.sep):
-            return None
-        with open(full, "r", encoding="utf-8", errors="strict") as fh:
-            kept = []
-            for i, line in enumerate(fh, 1):
-                if i > el:
-                    break
-                if i >= sl:
-                    if "\x00" in line:
-                        return None
-                    kept.append(line.rstrip("\n"))
-                    if len(kept) >= max_lines:
-                        break
-    except (OSError, ValueError, UnicodeDecodeError):
-        return None
-    if not kept or sl > el:
-        return None
-    excerpt = "\n".join(kept).strip()
-    if not excerpt:
-        return None
-    return excerpt[:max_chars].strip() or None
-
-
 def build_candidates(route_rows, function_rows, repo, commit,
                      method_rows=(), class_rows=(), section_rows=()):
     """Deterministic candidate list from parsed graph rows.
@@ -462,94 +428,16 @@ def plan_sync(candidates, store, model):
 def enrich_candidates_with_source(root, candidates,
                                   code_chars=CODE_MAX,
                                   section_chars=SECTION_BODY_MAX):
-    """Attach checkout source bodies to span-carrying candidates.
-
-    For each candidate with a usable (path, start_line, end_line) the
-    excerpt is read via read_source_slice and the embedding input is
-    rebuilt through the matching composer: functions/methods gain the
-    code-start, classes the class-body start, sections the markdown prose.
-    Candidates without spans keep their historic text untouched, so their
-    content hashes (and vectors) are stable. Keys never change here —
-    overload disambiguation already happened in build_candidates.
-
-    Returns (enriched_candidates, coverage) with coverage
-    {"with_body": n, "no_span": n, "read_miss": n}; no_span counts
-    candidates the graph gave no usable span (historic shape kept),
-    read_miss counts spans the checkout could not serve (renamed/deleted
-    files, binary or empty excerpts). The input list is not mutated."""
-    out = []
-    with_body, no_span, read_miss = 0, 0, 0
-    for cand in candidates:
-        kind, path = cand.get("kind"), cand.get("path")
-        sl, el = cand.get("start_line"), cand.get("end_line")
-        body = None
-        if sl is None or el is None:
-            no_span += 1
-            out.append(dict(cand))
-            continue
-        limit = section_chars if kind == "section" else code_chars
-        body = read_source_slice(root, path, sl, el, max_chars=limit)
-        if body is None:
-            read_miss += 1
-            out.append(dict(cand))
-            continue
-        with_body += 1
-        text = cand.get("text", "")
-        if kind == "function":
-            text = _rebuild_function_text(cand, body)
-        elif kind == "method":
-            text = _rebuild_method_text(cand, body)
-        elif kind in ("class", "interface"):
-            text = _rebuild_class_text(cand, body)
-        elif kind == "section":
-            text = _rebuild_section_text(cand, body)
-        elif kind == "route":
-            text = route_text(path, cand.get("method"), body)
-        enriched = dict(cand)
-        enriched["text"] = text
-        enriched["body_chars"] = len(body)
-        out.append(enriched)
-    return out, {"with_body": with_body, "no_span": no_span,
-                 "read_miss": read_miss}
-
-
-def _rebuild_function_text(cand, body):
-    """Rebuild a function input from the stored raw parts plus body."""
-    qname = cand.get("symbol", "").split("#")[0]
-    return function_text(qname, cand.get("doc"), cand.get("sig"), body)
-
-
-def _rebuild_method_text(cand, body):
-    qname = cand.get("symbol", "").split("#")[0]
-    return method_text(qname, cand.get("doc"), cand.get("sig"),
-                       cand.get("parent"), body)
-
-
-def _rebuild_class_text(cand, body):
-    symbol = cand.get("symbol", "").split("#")[0]
-    qname = symbol
-    header = (cand.get("text", "").split("\n") or [""])[0]
-    if header.startswith("CLASS ") or header.startswith("INTERFACE "):
-        qname = header.split(" ", 1)[1].split("#")[0]
-    label = cand.get("label") or ("Interface"
-                                  if cand.get("kind") == "interface"
-                                  else "Class")
-    return class_text(qname, cand.get("doc"), cand.get("base"), label,
-                      body)
-
-
-def _rebuild_section_text(cand, body):
-    qname = cand.get("qname") or cand.get("symbol", "")
-    name = cand.get("name") or qname
-    path = cand.get("path", "")
-    start_line = cand.get("raw_start")
-    if start_line is None:
-        start_line = cand.get("start_line")
-    end_line = cand.get("raw_end")
-    if end_line is None:
-        end_line = cand.get("end_line")
-    return section_text(qname, name, path, start_line or "",
-                        end_line or "", body)
+    composers = {
+        "function_text": function_text,
+        "method_text": method_text,
+        "class_text": class_text,
+        "section_text": section_text,
+        "route_text": route_text,
+    }
+    return ENRICH.enrich_candidates_with_source(
+        root, candidates, code_chars=code_chars,
+        section_chars=section_chars, composers=composers)
 
 
 def apply_plan(candidates, store, model, vectors_by_key):
@@ -617,108 +505,7 @@ def git_head(root):
 
 
 
-# ── embed gateway (thin wrapper around the pure layer) ─────────────────────
-
-def normalize_embed_url(url):
-    url = (url or "").rstrip("/")
-    if url.endswith("/v1/embeddings"):
-        return url
-    if url.endswith("/v1"):
-        return url + "/embeddings"
-    return url + "/v1/embeddings"
-
-
-def embed_batch(texts, url, model, timeout):
-    body = json.dumps({"model": model, "input": list(texts)}).encode("utf-8")
-    req = urllib.request.Request(
-        url, data=body, headers={"Content-Type": "application/json"})
-    last = None
-    for attempt in range(EMBED_ATTEMPTS):
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = json.load(resp)
-            if not isinstance(data, dict) or not isinstance(data.get("data"), list):
-                raise SyncError("embed-envelope-malformed")
-            vecs = [None] * len(data["data"])
-            for item in data["data"]:
-                idx = item.get("index")
-                if isinstance(idx, int) and 0 <= idx < len(vecs):
-                    vecs[idx] = item.get("embedding")
-            if any(v is None for v in vecs):
-                raise SyncError("embed-index-gaps")
-            return vecs
-        except SyncError:
-            raise
-        except Exception as exc:  # transient 401/503/disconnect — retry
-            last = exc
-            if attempt < EMBED_ATTEMPTS - 1:
-                delay = EMBED_BACKOFF_S[min(attempt, len(EMBED_BACKOFF_S) - 1)]
-                eprint("  embed retry %d/%d in %ds: %r"
-                       % (attempt + 1, EMBED_ATTEMPTS, delay, exc))
-                time.sleep(delay)
-    raise SyncError("embed-failed-after-%d-attempts:%r"
-                    % (EMBED_ATTEMPTS, last))
-
-
-def embed_texts(texts, url_or_urls, model, timeout=EMBED_TIMEOUT_S, log=None,
-                on_batch=None):
-    """Embed texts in batches; returns one vector per input, input order.
-
-    url_or_urls: one endpoint string or a list (fan-out for bulk loads:
-    every idle box running llama-server --embeddings — spare CPU RAM or
-    VRAM — can join as an extra endpoint; batches shard round-robin,
-    results re-assemble in input order). A single endpoint preserves the
-    exact legacy sequential behavior. on_batch(pairs) fires after every
-    completed batch with [(text_index, vector)] — used for checkpointing."""
-    if isinstance(url_or_urls, (list, tuple)):
-        urls = [normalize_embed_url(u) for u in url_or_urls if u]
-    else:
-        urls = [normalize_embed_url(url_or_urls)]
-    if not urls:
-        raise SyncError("embed-no-endpoints")
-    chunks = [texts[i:i + EMBED_BATCH]
-              for i in range(0, len(texts), EMBED_BATCH)]
-    assignment = shard_batches(len(chunks), urls)
-    vecs_by_idx = [None] * len(chunks)
-    done = [0]
-
-    def finish(idx, vecs):
-        vecs_by_idx[idx] = vecs
-        done[0] += len(vecs)
-        if log:
-            log("  embedded %d/%d" % (done[0], len(texts)))
-        if on_batch:
-            base = idx * EMBED_BATCH
-            on_batch([(base + j, v) for j, v in enumerate(vecs)])
-
-    if len(urls) == 1:
-        for idx, chunk in enumerate(chunks):
-            finish(idx, embed_batch(chunk, urls[0], model, timeout))
-    else:
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-        with ThreadPoolExecutor(max_workers=len(urls),
-                               thread_name_prefix="embed-fanout") as ex:
-            futs = {ex.submit(embed_batch, chunk, url, model, timeout): idx
-                    for idx, (chunk, url) in enumerate(zip(chunks,
-                                                           assignment))}
-            for fut in as_completed(futs):
-                finish(futs[fut], fut.result())
-    out = []
-    for vecs in vecs_by_idx:
-        out.extend(vecs)
-    return out
-
-
-def shard_batches(n_chunks, urls):
-    """Pure: round-robin endpoint assignment per batch index.
-
-    Heterogeneous helpers (a 2-thread CPU pod next to a full-VRAM GPU box)
-    finish at different rates; chunks are uniform (EMBED_BATCH texts), so
-    static sharding stays fair and order re-assembly stays trivial."""
-    if not urls:
-        raise SyncError("embed-no-endpoints")
-    return [urls[i % len(urls)] for i in range(n_chunks)]
-
+# ── embed gateway (delegates to cbm-embed-client.py — S1 split) ───────────
 
 def merge_pairs(store, pairs, model):
     """Pure: fold freshly embedded (key, text, vector) triples into a copy
@@ -731,64 +518,6 @@ def merge_pairs(store, pairs, model):
         out[key] = {"hash": content_hash(model, text), "model": model,
                     "dim": len(vec), "vector": list(vec)}
     return out
-
-
-FALLBACK_EMBED_URLS = [
-    "http://127.0.0.1:8095/v1/embeddings",
-    "http://127.0.0.1:18235/v1/embeddings",
-]
-
-
-def probe_url_live(url, timeout=1.0):
-    """Probe if an embedding endpoint is live and responding."""
-    norm = normalize_embed_url(url)
-    base = norm.rsplit("/v1", 1)[0]
-    try:
-        req = urllib.request.Request(base + "/health", headers={"User-Agent": "cbm-probe"})
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            if resp.status == 200:
-                return True
-    except Exception:
-        pass
-    try:
-        body = json.dumps({"model": "test", "input": ["probe"]}).encode("utf-8")
-        req = urllib.request.Request(norm, data=body, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            if resp.status == 200:
-                return True
-    except Exception:
-        pass
-    return False
-
-
-def resolve_embed_urls(args):
-    """Precedence: --embed-urls (comma-separated) > $LLM_EMBED_URLS >
-    --embed-url / $LLM_EMBED_URL (legacy single)."""
-    raw = getattr(args, "embed_urls", None)
-    if not raw:
-        raw = os.environ.get("LLM_EMBED_URLS", "")
-    urls = [u.strip() for u in (raw or "").split(",") if u.strip()]
-    if urls:
-        return urls
-    return [args.embed_url]
-
-
-def select_live_urls(urls):
-    """Dynamically falls back to available live endpoints if configured targets are down."""
-    if not urls:
-        urls = [DEFAULT_EMBED_URL]
-
-    live_urls = [u for u in urls if probe_url_live(u)]
-    if live_urls:
-        return live_urls
-
-    for fb in FALLBACK_EMBED_URLS:
-        if fb not in urls and probe_url_live(fb):
-            eprint("  [warn] configured embedding endpoint %s unreachable, using live endpoint: %s"
-                   % (urls, fb))
-            return [fb]
-
-    return urls
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────

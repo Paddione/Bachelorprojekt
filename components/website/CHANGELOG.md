@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.433.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.432.0...website-v1.433.0) (2026-10-25)
+
+
+### Features
+
+* **infra:** PXE-Profil inference und austauschbares Loadout fuer PK-Tablet ([#6889](https://github.com/Paddione/Bachelorprojekt/issues/6889)) ([dac471e](https://github.com/Paddione/Bachelorprojekt/commit/dac471edca5c65d86bd2c1d3d15b2ddaba3f10ae))
+
 ## [1.432.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.431.6...website-v1.432.0) (2026-10-25)
 
 

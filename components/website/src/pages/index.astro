@@ -28,6 +28,7 @@ import { massageRowPriceLabel } from '../lib/massage-pricing';
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
 const isMassage = BRAND_ID === 'massage';
+const isPresentation = BRAND_ID === 'presentation';
 const layoutBrand = isKore ? 'korczewski-kore' : undefined;
 
 // T001490: SEO is now sourced from the build-time content bundle
@@ -75,6 +76,7 @@ const processSteps = homepage.processSteps ?? [];
 ---
 
 <Layout title={pageTitle} rawTitle={!isKore} description={metaDescription} brand={layoutBrand} ogImage={homeOgImage ?? undefined}>
+  {isPresentation && <link rel="stylesheet" href="/brand/presentation/colors_and_type.css" />}
   {isKore ? (
     <KoreHomepage
       client:load
@@ -256,6 +258,33 @@ const processSteps = homepage.processSteps ?? [];
       </section>
 
       <!-- Why Me + Quote -->
+      {isPresentation && (
+      <Fragment>
+      {/* Figma Frame-Rezept (Architecture Diagram Components, 101:867) */}
+      <section class="section" aria-labelledby="frames-heading">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Aus dem Figma-Kit</p>
+              <h2 id="frames-heading">Vier Farben, ein Rezept.</h2>
+            </div>
+            <p class="section-intro">Das Frame-Rezept aus den Architecture Diagram Components: 3px dashed, 10px Radius, 200er-Fläche, Label in Kapitälchen.</p>
+          </div>
+
+          <div class="pres-grid" role="list" aria-label="Frame-Varianten">
+            <div class="pres-frame" role="listitem"><span>Single</span><span class="pres-hex">#4A4F51</span></div>
+            <div class="pres-frame pres-frame-blue" role="listitem"><span>Service</span><span class="pres-hex">#074994</span></div>
+            <div class="pres-frame pres-frame-red" role="listitem"><span>Extern</span><span class="pres-hex">#941807</span></div>
+            <div class="pres-frame pres-frame-orange" role="listitem"><span>Multi-Node</span><span class="pres-hex">#915108</span></div>
+          </div>
+
+          <div class="pres-multi">
+            <span class="pres-multi-card">Gestapelt: Multi-Node-Rezept via --shadow-multi</span>
+          </div>
+        </div>
+      </section>
+      </Fragment>
+      )}
       <WhyMe
         client:visible
         headline={homepage.whyMeHeadline}
@@ -354,6 +383,49 @@ const processSteps = homepage.processSteps ?? [];
   .offers {
     display: flex;
     flex-direction: column;
+  }
+
+  .pres-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .pres-hex {
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    opacity: 0.75;
+  }
+
+  .pres-multi {
+    margin-top: 16px;
+  }
+
+  .pres-multi-card {
+    display: block;
+    max-width: 320px;
+    border: 2px solid var(--fig-gray-rigid, #333638);
+    border-radius: var(--radius-md);
+    background: var(--ink-800);
+    padding: 20px;
+    box-shadow: var(--shadow-multi);
+    font-family: var(--label, var(--sans));
+    font-size: 14px;
+    color: var(--fg);
+  }
+
+  @media (max-width: 1000px) {
+    .pres-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pres-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 720px) {

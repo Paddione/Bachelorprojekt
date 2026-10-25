@@ -6,6 +6,7 @@ import { getEffectiveFaq, getEffectiveStammdaten, bundleSeo } from '../lib/conte
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isMassage = BRAND_ID === 'massage';
+const isPresentation = BRAND_ID === 'presentation';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 
 const faq = await getEffectiveFaq().catch(() => []);
@@ -27,7 +28,7 @@ const mail = stammdaten?.email ?? '';
 ---
 
 <Layout title={seoTitle} rawTitle={isMassage} description={seoDesc} brand={layoutBrand}>
-  {isMassage && <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />}
+  {(isMassage || isPresentation) && <link rel="stylesheet" href={`/brand/${BRAND_ID}/colors_and_type.css`} />}
   <section class="mg-faq" aria-labelledby="mg-faq-heading">
     <div class="mg-wrap">
       {isMassage && <p class="t-kicker">Massagepraxis Vögelsen</p>}

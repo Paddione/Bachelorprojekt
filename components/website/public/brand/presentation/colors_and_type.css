@@ -1,0 +1,324 @@
+/* =====================================================================
+   Presentation — Colors & Typography
+   Token source: Figma "Architecture Diagram Components (Community)"
+   fileKey M2IbW9QQNlh8WtVgNhpKTK, node 101:195 "Components"
+   (extracted 2026-10-21 via get_variable_defs 101:867 + style
+   summaries of 101:196/209/222/248/283/884; no published variables
+   or text styles in the file — palette + Label style only).
+   Structure mirrors public/brand/mentolder/colors_and_type.css so the
+   shared pages (index, leistungen, ueber-mich, faq, kontakt, legal)
+   consume it without markup changes.
+   ===================================================================== */
+
+/* Fonts are self-hosted: Nunito SemiBold Italic is the file's only
+   text style (the node Label). Served from /fonts/*.woff2 (latin
+   subset) — zero external network dependency. */
+@font-face {
+  font-family: "Nunito";
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Nunito-SemiBoldItalic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/Nunito-Variable.woff2") format("woff2");
+}
+
+:root {
+  /* ---------- Figma palette (verbatim, do not retune) ----------------- */
+  --fig-gray-100:   #F9FAFA;   /* node fills, page base */
+  --fig-gray-200:   #F2F2F3;   /* Frame bg, subtle surfaces */
+  --fig-gray-600:   #4A4F51;   /* Frame label/side, secondary text */
+  --fig-gray-rigid: #333638;   /* node strokes, primary text */
+  --fig-red-200:    #F8EDED;
+  --fig-red-600:    #941807;
+  --fig-blue-200:   #EDF2F8;
+  --fig-blue-600:   #074994;   /* primary accent */
+  --fig-orange-200: #F8F3ED;   /* "Yellow" Frame variant */
+  --fig-orange-600: #915108;   /* secondary accent */
+
+  /* ---------- Ink scale remapped to the light theme ------------------ */
+  /* Shared components (Layout body, Navigation, Footer, FAQ, CTA)
+     read these vars; on presentation pages they resolve to paper. */
+  --ink-900: #F9FAFA;        /* page base (= 100/Gray) */
+  --ink-850: #FFFFFF;        /* elevated panels (footer) */
+  --ink-800: #FFFFFF;        /* cards, node fills */
+  --ink-750: #F2F2F3;        /* subtle alternate (= 200/Gray) */
+
+  /* ---------- Foreground / text -------------------------------------- */
+  --fg:      #333638;        /* primary text (= Rigid) */
+  --fg-soft: #4A4F51;        /* body / ledes (= 600/Gray) */
+  --mute:    #5C6264;        /* captions, meta (derived: lifted Rigid) */
+  --mute-2:  #767D7F;        /* decorative only, below AA on paper */
+
+  /* ---------- Primary accent (= 600/Blue, Figma has no gold) --------- */
+  --brass:   #074994;                   /* CTAs, eyebrows */
+  --brass-2: #053A75;                   /* hover on light (derived: darkened) */
+  --brass-d: rgba(7, 73, 148, .12);     /* tinted fills */
+  --brass-deep: #074994;
+  --brass-hex: #074994;
+  --on-brass:  #FFFFFF;                 /* CTA text on blue (contrast ~8.5) */
+
+  /* ---------- Secondary accent (= 600/Orange) ------------------------ */
+  --sage:    #915108;
+
+  /* ---------- Semantic (file-pure: no green exists in the kit) ------- */
+  --success: #074994;        /* shares the blue ramp; revisit if Figma adds green */
+  --danger:  #941807;        /* = 600/Red */
+  --info:    #074994;        /* = 600/Blue */
+
+  /* ---------- Print/Invoice palette (cool paper) --------------------- */
+  --paper:     #FFFFFF;
+  --paper-2:   #F2F2F3;
+  --paper-ink: #333638;
+  --paper-ink-soft: #4A4F51;
+  --paper-mute: #5C6264;
+  --paper-line: #E2E5E6;     /* derived hairline on white */
+
+  /* ---------- Hairlines / dividers ----------------------------------- */
+  --line:   rgba(51, 54, 56, 0.12);
+  --line-2: rgba(51, 54, 56, 0.22);
+
+  /* ---------- @theme leak guards ------------------------------------- */
+  /* src/styles/global.css reads var(--color-…) directly. Without these,
+     the dark mentolder @theme values leak onto the light paper. */
+  --color-ink-900: #F9FAFA;
+  --color-ink-850: #FFFFFF;
+  --color-ink-800: #FFFFFF;
+  --color-ink-750: #F2F2F3;
+  --color-fg: #333638;
+  --color-fg-soft: #4A4F51;
+  --color-mute: #5C6264;
+  --color-mute-2: #767D7F;
+  --color-brass: #074994;
+  --color-brass-2: #053A75;
+  --color-brass-d: rgba(7, 73, 148, .12);
+  --color-sage: #915108;
+  --color-danger: #941807;
+  --color-success: #074994;
+  --color-info: #074994;
+  --color-warning: #915108;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F2F2F3;
+  --color-border: rgba(51, 54, 56, 0.10);
+  --color-line: rgba(51, 54, 56, 0.12);
+  --color-line-2: rgba(51, 54, 56, 0.22);
+  --color-dark: #333638;
+  --color-dark-light: #4A4F51;
+
+  /* ---------- Type families ------------------------------------------ */
+  --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --sans:  "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:  "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* The file's only text style (node Label). Used by .pres-frame below. */
+  --label: "Nunito", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+
+  /* ---------- Type scale (semantic, mirrors mentolder) --------------- */
+  --t-h1-size:   clamp(44px, 6.2vw, 88px);
+  --t-h1-weight: 350;
+  --t-h1-leading: 1.02;
+  --t-h1-tracking: -0.02em;
+
+  --t-h2-size:   clamp(32px, 3.6vw, 48px);
+  --t-h2-weight: 400;
+  --t-h2-leading: 1.1;
+  --t-h2-tracking: -0.02em;
+
+  --t-h3-size:   22px;        /* sans variant */
+  --t-h3-serif-size: 28px;    /* offer-row / editorial variant */
+  --t-h3-weight: 500;
+
+  --t-lede-size: 20px;
+  --t-body-size: 16px;
+  --t-small-size: 14px;
+  --t-eyebrow-size: 11px;
+  --t-eyebrow-tracking: 0.18em;
+
+  /* ---------- Radii --------------------------------------------------- */
+  --radius:    22px;          /* large cards, frames */
+  --radius-md: 10px;          /* Frame recipe radius (Figma: 10px) */
+  --radius-sm: 8px;           /* brand mark, badges */
+  --radius-xs: 4px;           /* portrait frame */
+  --radius-pill: 999px;       /* buttons, pills, slot tags */
+
+  /* ---------- Spacing ------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 14px;
+  --space-4: 22px;
+  --space-5: 36px;
+  --space-6: 56px;
+  --space-7: 80px;
+  --space-8: 120px;          /* section vertical rhythm (desktop) */
+
+  /* ---------- Layout -------------------------------------------------- */
+  --maxw: 1240px;
+  --gutter: 40px;
+  --gutter-mobile: 22px;
+
+  /* ---------- Shadows ------------------------------------------------- */
+  --shadow-portrait:
+    0 40px 80px -30px rgba(51, 54, 56, .25),
+    0 2px 0 0 rgba(51, 54, 56, .04),
+    inset 0 0 0 1px var(--line-2);
+  --shadow-card:
+    0 1px 0 0 rgba(51,54,56,.03),
+    inset 0 0 0 1px var(--line);
+  /* Multi-node recipe (Figma: stacked offset copy). Usage:
+     box-shadow: var(--shadow-multi); on a bordered card. */
+  --shadow-multi:
+    6px 6px 0 0 var(--ink-800),
+    6px 6px 0 1px var(--fig-gray-rigid);
+
+  /* ---------- Motion -------------------------------------------------- */
+  --ease-soft: cubic-bezier(.22, .61, .36, 1);
+  --ease-out:  cubic-bezier(.2, .8, .2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 500ms;
+  --dur-portrait: 800ms;
+}
+
+/* =====================================================================
+   Semantic typography (mirrors mentolder skeleton)
+   ===================================================================== */
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  font-family: var(--sans);
+  font-size: var(--t-body-size);
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+  background: var(--ink-900);
+}
+
+h1, .t-h1 {
+  font-family: var(--serif);
+  font-size: var(--t-h1-size);
+  font-weight: var(--t-h1-weight);
+  line-height: var(--t-h1-leading);
+  letter-spacing: var(--t-h1-tracking);
+  color: var(--fg);
+  margin: 0;
+}
+h1 em, .t-h1 em { font-style: italic; font-weight: 400; color: var(--brass-2); }
+
+h2, .t-h2 {
+  font-family: var(--serif);
+  font-size: var(--t-h2-size);
+  font-weight: var(--t-h2-weight);
+  line-height: var(--t-h2-leading);
+  letter-spacing: var(--t-h2-tracking);
+  color: var(--fg);
+  margin: 0;
+}
+h2 em, .t-h2 em { font-style: italic; font-weight: 400; color: var(--brass-2); }
+
+h3, .t-h3 {
+  font-family: var(--sans);
+  font-size: var(--t-h3-size);
+  font-weight: var(--t-h3-weight);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  margin: 0;
+}
+.t-h3-serif {
+  font-family: var(--serif);
+  font-size: var(--t-h3-serif-size);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.t-lede {
+  font-size: var(--t-lede-size);
+  line-height: 1.55;
+  color: var(--fg-soft);
+  max-width: 56ch;
+}
+
+p, .t-body { font-size: var(--t-body-size); color: var(--fg-soft); margin: 0; }
+
+.t-small  { font-size: var(--t-small-size); color: var(--mute); }
+
+.t-eyebrow {
+  font-family: var(--mono);
+  font-size: var(--t-eyebrow-size);
+  letter-spacing: var(--t-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--brass);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.t-eyebrow::before {
+  content: ""; width: 22px; height: 1px; background: currentColor; opacity: .8;
+}
+
+.t-kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.t-mono   { font-family: var(--mono); }
+.t-serif  { font-family: var(--serif); }
+.t-sans   { font-family: var(--sans);  }
+
+/* Stat number style */
+.t-stat {
+  font-family: var(--serif);
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.t-stat em { color: var(--brass); font-style: normal; }
+
+/* =====================================================================
+   Figma Frame recipe (node 101:867 "Frame", variants Gray/Red/Blue/Yellow)
+   Dashed 3px container, 10px radius, 15px padding, 200-shade fill,
+   uppercase Nunito SemiBold Italic 15px label in the 600-shade.
+   Usage: <div class="pres-frame pres-frame-blue"><span>Label</span></div>
+   ===================================================================== */
+.pres-frame {
+  border: 3px dashed var(--fig-gray-600);
+  border-radius: var(--radius-md);
+  padding: 15px;
+  background: var(--fig-gray-200);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--label);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--fig-gray-600);
+}
+.pres-frame-red    { border-color: var(--fig-red-600);    background: var(--fig-red-200);    color: var(--fig-red-600); }
+.pres-frame-blue   { border-color: var(--fig-blue-600);   background: var(--fig-blue-200);   color: var(--fig-blue-600); }
+.pres-frame-orange { border-color: var(--fig-orange-600); background: var(--fig-orange-200); color: var(--fig-orange-600); }
+
+/* Reduced motion: same guard shape as the global website CSS. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .reveal, .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+}

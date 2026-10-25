@@ -3,9 +3,11 @@ import Layout from '../layouts/Layout.astro';
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const brand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 const isMassage = BRAND_ID === 'massage';
+const isPresentation = BRAND_ID === 'presentation';
 ---
 
 <Layout title={isMassage ? 'Seite nicht gefunden' : 'Wartungsarbeiten'} brand={brand}>
+  {isPresentation && <link rel="stylesheet" href="/brand/presentation/colors_and_type.css" />}
   {isMassage ? (
   <Fragment>
     <link rel="stylesheet" href="/brand/massage/colors_and_type.css" />

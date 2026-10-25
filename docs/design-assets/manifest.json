@@ -889,6 +889,14 @@
     },
     {
       "members": [
+        "assets/art-library/sets/.gitkeep",
+        "components/website/public/brand/presentation/logos/.gitkeep",
+        "components/website/public/brand/presentation/props/.gitkeep"
+      ],
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "members": [
         "assets/art-library/sets/mentolder/portfolio/terrain/sur-02.svg",
         "components/website/public/brand/mentolder/terrain/sur-02.svg"
       ],
@@ -992,7 +1000,7 @@
       "sha256": "fe8bd1736037c10e87ef1eba018c837f291592a346ab78ee3535a413e2843928"
     }
   ],
-  "file_count": 737,
+  "file_count": 742,
   "files": [
     {
       "format": "md",
@@ -5776,6 +5784,41 @@
       "size": 489
     },
     {
+      "format": "css",
+      "id": "components/website/public/brand/presentation/colors_and_type.css",
+      "mime": "text/plain",
+      "sha256": "1eb8657e61444bb6c794a245261748f6f6570103a6f1107fc7c0780f79cc764f",
+      "size": 11215
+    },
+    {
+      "format": "svg",
+      "id": "components/website/public/brand/presentation/favicon.svg",
+      "mime": "image/svg+xml",
+      "sha256": "3bca4c574e5416c8400ebd61c10ac1e2e6cf33729b2240e93cb9ba57cc1d89bb",
+      "size": 253
+    },
+    {
+      "format": "svg",
+      "id": "components/website/public/brand/presentation/icons.svg",
+      "mime": "image/svg+xml",
+      "sha256": "cbe6a89c418cab03e5add8a92a89dca99e1d214b81db6b396ef574d328c29b2a",
+      "size": 894
+    },
+    {
+      "format": "gitkeep",
+      "id": "components/website/public/brand/presentation/logos/.gitkeep",
+      "mime": "inode/x-empty",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "format": "gitkeep",
+      "id": "components/website/public/brand/presentation/props/.gitkeep",
+      "mime": "inode/x-empty",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
       "format": "svg",
       "id": "components/website/public/brand/shared/identity/og-template-docs.svg",
       "mime": "image/svg+xml",
@@ -6174,5 +6217,5 @@
     "*cache*",
     "*backup*"
   ],
-  "total_bytes": 18581576
+  "total_bytes": 18593938
 }

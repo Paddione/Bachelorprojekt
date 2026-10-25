@@ -733,6 +733,34 @@ def merge_pairs(store, pairs, model):
     return out
 
 
+FALLBACK_EMBED_URLS = [
+    "http://127.0.0.1:8095/v1/embeddings",
+    "http://127.0.0.1:18235/v1/embeddings",
+]
+
+
+def probe_url_live(url, timeout=1.0):
+    """Probe if an embedding endpoint is live and responding."""
+    norm = normalize_embed_url(url)
+    base = norm.rsplit("/v1", 1)[0]
+    try:
+        req = urllib.request.Request(base + "/health", headers={"User-Agent": "cbm-probe"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            if resp.status == 200:
+                return True
+    except Exception:
+        pass
+    try:
+        body = json.dumps({"model": "test", "input": ["probe"]}).encode("utf-8")
+        req = urllib.request.Request(norm, data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            if resp.status == 200:
+                return True
+    except Exception:
+        pass
+    return False
+
+
 def resolve_embed_urls(args):
     """Precedence: --embed-urls (comma-separated) > $LLM_EMBED_URLS >
     --embed-url / $LLM_EMBED_URL (legacy single)."""
@@ -743,6 +771,24 @@ def resolve_embed_urls(args):
     if urls:
         return urls
     return [args.embed_url]
+
+
+def select_live_urls(urls):
+    """Dynamically falls back to available live endpoints if configured targets are down."""
+    if not urls:
+        urls = [DEFAULT_EMBED_URL]
+
+    live_urls = [u for u in urls if probe_url_live(u)]
+    if live_urls:
+        return live_urls
+
+    for fb in FALLBACK_EMBED_URLS:
+        if fb not in urls and probe_url_live(fb):
+            eprint("  [warn] configured embedding endpoint %s unreachable, using live endpoint: %s"
+                   % (urls, fb))
+            return [fb]
+
+    return urls
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────
@@ -848,7 +894,7 @@ def cmd_sync(args):
         texts = [e["text"] for e in plan["to_embed"]]
         keys = [e["key"] for e in plan["to_embed"]]
         text_by_key = dict(zip(keys, texts))
-        urls = resolve_embed_urls(args)
+        urls = select_live_urls(resolve_embed_urls(args))
         pending = [0]
 
         def on_batch(pairs):

@@ -16,15 +16,15 @@
 #   --quiet    nur die Zusammenfassung
 #   --only=…   nur die genannten Ziel-IDs prüfen (kommagetrennt, z.B. --only=G-RH01,G-CQ02)
 #
-# HG_RUN_COMPLETE_FILE=<path>  wenn gesetzt, wird nach dem letzten Messlauf "complete" geschrieben
-#                        (nur ein vollständig durchgelaufener Lauf ist ein gültiges Messpaket)
 # HG_VALUES_FILE=<path>  wenn gesetzt, hängt jede gemessene (nicht übersprungene) Zeile als
 #                        "<id> <actual> <cmp> <target>" an <path> an — Rohdaten für
 #                        scripts/health-goals-update.sh, ohne dieses Skripts Report-Verhalten
 #                        zu ändern.
 set -uo pipefail
 
-cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "kein git-Repo" >&2; exit 2; }
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "$REPO_ROOT" || { echo "Bachelorprojekt-Root nicht auflösbar: $REPO_ROOT" >&2; exit 2; }
 
 STRICT=0; FAST=0; QUIET=0; ONLY=""
 for a in "$@"; do case "$a" in
@@ -381,12 +381,12 @@ row target G-IF01 "$(python3 scripts/lib/mcp-endpoint-probe.py)" le 0 "MCP-Endpu
 # Projekt-Praesenz im Index. Bewusst `target` (gelb) statt `gate`: eine
 # veraltete Index-Infrastruktur ist ein Betriebszustand, keine Codequalitaets-
 # Regression — aber nie unsichtbar (Fail-closed, 0 = nicht gruen).
-row target G-K3FRESH "$(k3_freshness_flag)" eq 1 "K3-Index frisch laut cbm-freshness-Receipts"
-row target G-K3PROJ "$(k3_project_flag)" eq 1 "K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0)"
+want G-K3FRESH && row target G-K3FRESH "$(k3_freshness_flag)" eq 1 "K3-Index frisch laut cbm-freshness-Receipts"
+want G-K3PROJ && row target G-K3PROJ "$(k3_project_flag)" eq 1 "K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0)"
 
-row target G-IF02 "$(python3 scripts/lib/health-goals-probes.py if02 2>/dev/null || echo -)" le 0 "Stille Degradation (catch ohne Log und ohne Rethrow in Schnittstellen) — T016657"
+want G-IF02 && row target G-IF02 "$(python3 scripts/lib/health-goals-probes.py if02 2>/dev/null || echo -)" le 0 "Stille Degradation (catch ohne Log und ohne Rethrow in Schnittstellen) — T016657"
 
-row target G-IF03 "$(kubectl get pods -n workspace --context fleet -o json 2>/dev/null \
+want G-IF03 && row target G-IF03 "$(kubectl get pods -n workspace --context fleet -o json 2>/dev/null \
   | python3 -c "
 import json, sys, yaml
 try:
@@ -432,12 +432,12 @@ want G-DRIFT02 && row target G-DRIFT02 "$(bash scripts/lib/manifest-drift-check.
 want G-DRIFT03 && row target G-DRIFT03 "$(bash scripts/lib/manifest-drift-check.sh sealed 2>/dev/null || echo -)" le 0 "SealedSecret-Decryption konsistent"
 
 
-row target G-WT01 "$(wt_measure main-checkout)"       le 0 "Hauptcheckout auf main und sauber (binär: 0=ok)"
-row target G-WT02 "$(wt_measure stale-worktrees)"     le 0 "Veraltete Worktrees (HEAD gemergt oder >14d inaktiv)"
-row target G-WT03 "$(wt_measure orphan-locks)"        le 0 "Verwaiste Agent-Locks (Heartbeat abgelaufen oder Halter weg)"
-row target G-WT04 "$(wt_measure unsafe-worktrees)"    le 0 "Löschbereite Worktrees mit ungesicherter Arbeit"
-row target G-WT05 "$(wt_measure main-divergence)"     le 0 "Lokaler main hinter origin/main (Commits)"
-row target G-WT06 "$(wt_measure phantom-scope-locks)" le 0 "Phantom-Scope-Locks (Scope leer oder mit '-' beginnend)"
+want G-WT01 && row target G-WT01 "$(wt_measure main-checkout)"       le 0 "Hauptcheckout auf main und sauber (binär: 0=ok)"
+want G-WT02 && row target G-WT02 "$(wt_measure stale-worktrees)"     le 0 "Veraltete Worktrees (HEAD gemergt oder >14d inaktiv)"
+want G-WT03 && row target G-WT03 "$(wt_measure orphan-locks)"        le 0 "Verwaiste Agent-Locks (Heartbeat abgelaufen oder Halter weg)"
+want G-WT04 && row target G-WT04 "$(wt_measure unsafe-worktrees)"    le 0 "Löschbereite Worktrees mit ungesicherter Arbeit"
+want G-WT05 && row target G-WT05 "$(wt_measure main-divergence)"     le 0 "Lokaler main hinter origin/main (Commits)"
+want G-WT06 && row target G-WT06 "$(wt_measure phantom-scope-locks)" le 0 "Phantom-Scope-Locks (Scope leer oder mit '-' beginnend)"
 
 # ── Bis T002598 nur dokumentiert, nie gemessen ────────────────────────────────
 #
@@ -473,24 +473,25 @@ row gate   G-K8S03 "$(k8s_audit security)"   eq 0 "Deployments ohne securityCont
 want G-K8S04 && row gate   G-K8S04 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task workspace:validate)" eq 0 "workspace:validate (Exit)"
 
 # --- Netzabhängig: gh mit Timeout, sonst SKIP (7) -----------------------------
-row target G-CI01 "$(wf_success_rate ci.yml 20)" ge 95 "main CI-Erfolgsrate (%, letzte 20)"
-row gate   G-CI02 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 run list --workflow ci.yml --branch main --limit 5 --json conclusion) && python3 -c "import json,sys; print(sum(1 for x in json.loads(sys.argv[1]) if x.get('conclusion')=='failure')) if sys.argv[1] else print('-')" "$o" 2>/dev/null || echo '-'; })" eq 0 "Rote main-HEAD-Laeufe (letzte 5)"
-row gate   G-GIT01 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 pr list --state open --json createdAt) && python3 -c "
+want G-CI01 && row target G-CI01 "$(wf_success_rate ci.yml 20)" ge 95 "main CI-Erfolgsrate (%, letzte 20)"
+want G-CI02 && row gate   G-CI02 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 run list --workflow ci.yml --branch main --limit 5 --json conclusion) && python3 -c "import json,sys; print(sum(1 for x in json.loads(sys.argv[1]) if x.get('conclusion')=='failure')) if sys.argv[1] else print('-')" "$o" 2>/dev/null || echo '-'; })" eq 0 "Rote main-HEAD-Laeufe (letzte 5)"
+want G-GIT01 && row gate   G-GIT01 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 pr list --state open --json createdAt) && python3 -c "
 import json,sys,datetime
 try:
+    now=datetime.timezone.utc
     now=datetime.datetime.now(datetime.timezone.utc)
     n=sum(1 for x in json.loads(sys.argv[1])
           if (now-datetime.datetime.fromisoformat(x['createdAt'].replace('Z','+00:00'))).days>7)
     print(n)
 except Exception: print('-')
 " "$o" || echo '-'; })" eq 0 "Offene PRs aelter als 7 Tage"
-row target G-DEP05 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 pr list --state open --json author) && python3 -c "
+want G-DEP05 && row target G-DEP05 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 pr list --state open --json author) && python3 -c "
 import json,sys
 try: print(sum(1 for x in json.loads(sys.argv[1]) if 'renovate' in (x.get('author') or {}).get('login','').lower()))
 except Exception: print('-')
 " "$o" || echo '-'; })" le 3 "Renovate-PR-Backlog"
 want G-CD02 && row target G-CD02 "$(wf_success_rate post-merge.yml 15)" ge 95 "post-merge.yml-Erfolgsrate (%, letzte 15)"
-row gate   G-RH06 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 issue list --label sentinel --state open --json createdAt) && python3 -c "
+want G-RH06 && row gate   G-RH06 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 issue list --label sentinel --state open --json createdAt) && python3 -c "
 import json,sys,datetime
 try:
     now=datetime.datetime.now(datetime.timezone.utc)
@@ -498,7 +499,7 @@ try:
           if (now-datetime.datetime.fromisoformat(x['createdAt'].replace('Z','+00:00'))).total_seconds()>48*3600))
 except Exception: print('-')
 " "$o" || echo '-'; })" eq 0 "Offene Sentinel-Issues aelter als 48h"
-row target G-DORA02 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 90 pr list --state merged --limit 30 --json createdAt,mergedAt) && python3 -c "
+want G-DORA02 && row target G-DORA02 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 90 pr list --state merged --limit 30 --json createdAt,mergedAt) && python3 -c "
 import json,sys,datetime,statistics
 def p(s): return datetime.datetime.fromisoformat(s.replace('Z','+00:00'))
 try:
@@ -532,7 +533,6 @@ printf "\n%s──────────────────────�
 printf "%bZusammenfassung%b (%d geprüft): %s%d ✅ erreicht%s · %s%d 🟡 offen%s · %s%d 🔴 Gate-Verstoß%s · %s%d · übersprungen%s\n" \
   "$C_B" "$C_X" "$TOTAL" "$C_G" "$PASS" "$C_X" "$C_Y" "$OPEN" "$C_X" "$C_R" "$GATEFAIL" "$C_X" "$C_D" "$SKIP" "$C_X"
 
-[ -z "${HG_RUN_COMPLETE_FILE:-}" ] || printf 'complete\n' > "$HG_RUN_COMPLETE_FILE"
 if [ "$GATEFAIL" -gt 0 ]; then
   printf "%b✗ %d Gate-Ziel(e) verletzt — Repo-Health regrediert.%b\n" "$C_R" "$GATEFAIL" "$C_X"; exit 1
 fi

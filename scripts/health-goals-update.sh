@@ -21,7 +21,9 @@
 #                      vs. frische Messung. Gruppenausgabe nach Priorität. Kein Schreiben.
 set -euo pipefail
 
-cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "kein git-Repo" >&2; exit 2; }
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${HG_REPO_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+cd "$REPO_ROOT" || { echo "Bachelorprojekt-Root nicht auflösbar: $REPO_ROOT" >&2; exit 2; }
 
 DRY_RUN=0
 SUGGEST_TICKETS=0

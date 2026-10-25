@@ -488,13 +488,13 @@ bash scripts/lib/manifest-drift-check.sh sealed
 
 ## G-WT01 — Hauptcheckout auf main und sauber: 1 → 0
 
-**Was:** Prüft, ob der Hauptcheckout (`~/Bachelorprojekt`) auf Branch `main` steht und keine
-uncommitteten Changes trägt. Die Regel existiert seit T001880, wurde aber mehrfach verletzt —
-zuletzt am 2026-07-28 mit 15 uncommitteten Dateien auf `chore/mishap-T002422`. Eine Verletzung
-gefährdet die Worktree-Erstellung (`scripts/worktree-create.sh` warnt, blockiert
-aber nicht). Binäres Ziel: 0 = ok, 1 = Verletzung.
+**Was:** Prüft, ob die Hauptcheckouts aller deklarierten Repositories (`repos.txt` + `$HOME`) auf
+ihrem jeweiligen Default-Branch (`main` bzw. `master`) stehen und keine uncommitteten Changes tragen.
+Die Regel existiert seit T001880, wurde aber mehrfach verletzt — zuletzt am 2026-07-28 mit 15 uncommitteten
+Dateien auf `chore/mishap-T002422`. Eine Verletzung gefährdet die Worktree-Erstellung (`scripts/worktree-create.sh`
+warnt, blockiert aber nicht). Zählt verletzende Repositories; Target: 0.
 
-**Positiv-Anker:** Lässt sich der Hauptcheckout nicht als Git-Repo auflösen oder schlägt
+**Positiv-Anker:** Lässt sich kein Hauptcheckout als Git-Repo auflösen oder schlägt
 `git status` fehl, ist die Ausgabe `n/a` — **nicht** `0` und auch nicht `1`. Ein nicht auflösbarer
 Pfad ist keine Verletzung, sondern eine nicht durchgeführte Messung.
 
@@ -506,16 +506,15 @@ bash scripts/lib/wt-hygiene-measure.sh main-checkout
 
 ## G-WT02 — Veraltete Worktrees (Branch gemergt oder >14d inaktiv): 0 → 0
 
-**Was:** Zählt registrierte Nebenworktrees, deren HEAD-Commit bereits in `origin/main` enthalten
-ist oder deren letzter Commit älter als 14 Tage ist. Aufgeräumte Worktrees verhindern
-versehentliches Arbeiten auf toten Branches und das Anwachsen des `.worktrees/`-Verzeichnisses
-(26 Stück am 2026-07-28).
+**Was:** Zählt registrierte Nebenworktrees über alle deklarierten Repositories, deren HEAD-Commit
+bereits im Remote-Default-Branch enthalten ist oder deren letzter Commit älter als 14 Tage ist. Aufgeräumte
+Worktrees verhindern versehentliches Arbeiten auf toten Branches und das Anwachsen des `.worktrees/`-Verzeichnisses.
 
-Die Merged-Erkennung läuft über `git merge-base --is-ancestor <worktree-head> origin/main`, nicht
+Die Merged-Erkennung läuft über `git merge-base --is-ancestor <worktree-head> origin/<default>`, nicht
 über `git branch -r --contains <branchname>`: der HEAD-Commit ist die Aussage, die interessiert,
 und ein Worktree mit detached HEAD hat gar keinen Branchnamen.
 
-**Positiv-Anker:** Ist kein Nebenworktree registriert oder lässt sich `origin/main` nicht
+**Positiv-Anker:** Ist repo-weit kein Nebenworktree registriert oder lässt sich kein Remote-Default-Branch
 auflösen, ist die Ausgabe `n/a`. Der frühere Messblock iterierte über den Glob `.worktrees/*/` und
 gab bei nicht greifendem Glob `0` aus — also trivial grün ohne Messgrundlage, exakt der vakuose
 Negativbefund, den T002356-M1 verbietet.
@@ -528,7 +527,7 @@ bash scripts/lib/wt-hygiene-measure.sh stale-worktrees
 
 ## G-WT03 — Verwaiste Agent-Locks (Heartbeat abgelaufen oder Halter nicht auffindbar): 0 → 0
 
-**Was:** Zählt Locks unter `<git-common-dir>/agent-locks/`, deren Halter nachweislich nicht mehr
+**Was:** Zählt Locks unter `<git-common-dir>/agent-locks/` über alle Repositories, deren Halter nachweislich nicht mehr
 lebt. Tote Locks blockieren still: `check ticket <id>` meldet durchgehend `held`, `list` zeigt sie
 als `live`, und `agent-lock.sh reap` räumt sie nicht, solange der Worktree noch steht.
 
@@ -552,7 +551,7 @@ Anlassfall (2026-08-02, T002570): ein Lock mit toter `owner_pid` **und** `heartb
 created_at`, älter als zweimal TTL, bei weiterhin existierendem Worktree. Erkennbar war die
 Verwaisung nur durch manuellen PID- und Heartbeat-Vergleich.
 
-**Positiv-Anker:** Fehlt das Lock-Verzeichnis oder enthält es keine wohlgeformte Lock-Datei, ist
+**Positiv-Anker:** Fehlt jedes Lock-Verzeichnis oder enthält keines eine wohlgeformte Lock-Datei, ist
 die Ausgabe `n/a`. Der stärkste Anker ist der Lock der laufenden Session selbst: er ist
 nachweislich lebendig, obwohl seine `owner_pid` tot ist — klassifiziert das Verfahren ihn als
 verwaist, ist das Verfahren kaputt (Test `G-WT03 (stärkster Anker)` in
@@ -566,16 +565,16 @@ bash scripts/lib/wt-hygiene-measure.sh orphan-locks
 
 ## G-WT04 — Löschbereite Worktrees mit ungesicherter Arbeit: 0 → 0
 
-**Was:** Zählt Nebenworktrees, die **gleichzeitig** löschbereit (HEAD bereits in `origin/main`) und
-dirty sind (`git status --porcelain` nicht leer). Genau diese Schnittmenge räumt der
+**Was:** Zählt Nebenworktrees über alle Repositories, die **gleichzeitig** löschbereit (HEAD bereits in
+`origin/<default>`) und dirty sind (`git status --porcelain` nicht leer). Genau diese Schnittmenge räumt der
 `repo-hygiene`-Cleanup weg, ohne hinzusehen: er prüft nur Commit-Ancestry, nicht ungetrackte
 Dateien (T002379). Ein Treffer bedeutet akut drohenden Datenverlust.
 
 Bewusst **nicht** „alle Worktrees mit dirty status": ungesicherte Arbeit ist im laufenden Betrieb
 normal — jede aktive Session hat sie. Ein Ziel darauf wäre dauerhaft rot und würde ignoriert.
 
-**Positiv-Anker:** Ist kein Nebenworktree registriert oder lässt sich `origin/main` nicht auflösen,
-ist die Ausgabe `n/a`.
+**Positiv-Anker:** Ist in keinem Repo ein Nebenworktree registriert oder lässt sich kein Remote-Default-Branch
+auflösen, ist die Ausgabe `n/a`.
 
 ```bash
 bash scripts/lib/wt-hygiene-measure.sh unsafe-worktrees
@@ -585,13 +584,12 @@ bash scripts/lib/wt-hygiene-measure.sh unsafe-worktrees
 
 ## G-WT05 — Lokaler main hinter origin/main (Commits): 0 → 0
 
-**Was:** Zählt Commits in `main..origin/main`. Ein zurückgefallener lokaler `main` ist die Ursache
-mehrerer Klassen von Folgefehlern: `scripts/worktree-create.sh` erzeugt Worktrees von einem alten
-Stand, `freshness:check` misst gegen einen anderen Base als CI (T002561), und lokale
-Backlog-Abfragen laufen gegen den falschen Branch.
+**Was:** Zählt Commits in `<default>..origin/<default>` über alle Repositories. Ein zurückgefallener
+lokaler Default-Branch ist die Ursache mehrerer Klassen von Folgefehlern: `scripts/worktree-create.sh`
+erzeugt Worktrees von einem alten Stand, `freshness:check` misst gegen einen anderen Base als CI (T002561),
+und lokale Backlog-Abfragen laufen gegen den falschen Branch.
 
-**Positiv-Anker:** Fehlt `refs/heads/main` oder `refs/remotes/origin/main`, ist die Ausgabe `n/a`.
-Zusätzlich gilt ein **veralteter Fetch** als fehlende Messgrundlage: ist `FETCH_HEAD` älter als
+**Positiv-Anker:** Fehlt der lokale oder Remote-Default-Branch oder ist `FETCH_HEAD` älter als
 24 h, misst die Zahl nicht die Divergenz, sondern das Alter des letzten Fetch — dann `n/a` statt
 einer beruhigenden `0`.
 
@@ -603,7 +601,7 @@ bash scripts/lib/wt-hygiene-measure.sh main-divergence
 
 ## G-WT06 — Phantom-Scope-Locks (Scope leer oder mit `-` beginnend): 0 → 0
 
-**Was:** Zählt Locks, deren `scope`-Feld leer ist oder mit `-` beginnt. Am 2026-08-02 zeigte
+**Was:** Zählt Locks über alle Repositories, deren `scope`-Feld leer ist oder mit `-` beginnt. Am 2026-08-02 zeigte
 `agent-lock.sh list` einen Lock mit `--label` als SCOPE-Wert — ein Flag wurde als
 Positionsargument gelesen. Der `_reject_arg`-Guard aus T002363 fängt nur unbekannte Flags **nach**
 dem Scope, nicht einen Scope, der selbst ein Flag ist. Solche Locks sind über
@@ -614,7 +612,7 @@ Gemessen wird **kein Allowlist-Match**: die Scope-Namen sind offen (`ticket`, `b
 Scope falsch alarmieren. Gemessen wird die Formfehler-Signatur — leer oder mit `-` beginnend kann
 nur aus einem als Positionsargument gelesenen Flag stammen.
 
-**Positiv-Anker:** Fehlt das Lock-Verzeichnis oder enthält es keine wohlgeformte Lock-Datei, ist
+**Positiv-Anker:** Fehlt jedes Lock-Verzeichnis oder enthält keines eine wohlgeformte Lock-Datei, ist
 die Ausgabe `n/a`.
 
 ```bash

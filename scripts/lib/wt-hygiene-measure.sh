@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # wt-hygiene-measure.sh — einzige Messquelle für die Zielfamilie G-WT01..G-WT06 [T002443]
 #
-# Worktree- und Session-Hygiene. Jedes Subkommando gibt GENAU EINEN Wert auf stdout aus:
+# Worktree- und Session-Hygiene über alle Repositories (repos.txt + dotfiles).
+# Jedes Subkommando gibt GENAU EINEN Wert auf stdout aus:
 # eine nicht-negative Ganzzahl oder `n/a`. Exit 0 auch bei `n/a` — der Aufrufer
 # unterscheidet über den WERT, nicht über den Status. Nur ein unbekanntes Subkommando
 # beendet mit Exit 2.
 #
-#   main-checkout        G-WT01  1 wenn Hauptcheckout nicht auf main oder dirty, sonst 0
-#   stale-worktrees      G-WT02  Worktrees mit nach main gemergtem HEAD oder >14d altem Commit
+#   main-checkout        G-WT01  Anzahl Hauptcheckouts nicht auf Default-Branch oder dirty
+#   stale-worktrees      G-WT02  Worktrees mit gemergtem HEAD oder >14d altem Commit
 #   orphan-locks         G-WT03  Locks mit toter owner_pid ODER heartbeat_at älter als 2×TTL
 #   unsafe-worktrees     G-WT04  Worktrees, die gleichzeitig löschbereit UND dirty sind
-#   main-divergence      G-WT05  Commits in main..origin/main
+#   main-divergence      G-WT05  Commits in Default-Branch..origin/Default-Branch
 #   phantom-scope-locks  G-WT06  Locks mit leerem Scope oder Scope beginnend mit "-"
 #
 # POSITIV-ANKER (T002356-M1): Jedes Subkommando prüft ZUERST seine Messgrundlage und
@@ -19,15 +20,15 @@
 # erreicht. Genau dieser Fehler (leerer Glob ⇒ 0 ⇒ trivial grün) war der Anlass für T002443.
 #
 # Umgebungsvariablen — dieselben Überschreibungen, die scripts/agent-lock.sh kennt:
-#   HG_REPO_ROOT          Hauptcheckout            (Vorgabe: $HOME/Bachelorprojekt)
-#   AGENT_LOCK_DIR        Lock-Verzeichnis         (Vorgabe: <git-common-dir>/agent-locks)
+#   HG_REPO_ROOT          Hauptcheckout-Override   (wenn gesetzt: Einzel-Repo-Modus)
+#   HG_REPOS              Kolon-getrennte Pfade    (Explizite Repo-Menge für Tests)
+#   AGENT_LOCK_DIR        Lock-Verzeichnis         (Override für Lock-Tests)
 #   AGENT_LOCK_TTL        Lock-TTL in Sekunden     (Vorgabe: 1800; angewandt mit Faktor 2)
 #   HG_WORKTREE_STALE_DAYS  Inaktivitätsschwelle   (Vorgabe: 14)
 #   HG_FETCH_MAX_AGE      max. Alter von FETCH_HEAD für G-WT05 (Vorgabe: 86400)
 
 set -uo pipefail
 
-REPO="${HG_REPO_ROOT:-$HOME/Bachelorprojekt}"
 TTL="${AGENT_LOCK_TTL:-1800}"
 STALE_DAYS="${HG_WORKTREE_STALE_DAYS:-14}"
 FETCH_MAX_AGE="${HG_FETCH_MAX_AGE:-86400}"
@@ -37,124 +38,195 @@ now() { date +%s; }
 
 # ── Gemeinsame Anker ──────────────────────────────────────────────────────────
 
-# Gibt den Toplevel des Hauptcheckouts aus, oder schlägt fehl.
-_repo_toplevel() {
-  git -C "$REPO" rev-parse --show-toplevel 2>/dev/null
+# Ermittelt alle zu prüfenden Repositories.
+_repos() {
+  if [ -n "${HG_REPO_ROOT:-}" ]; then
+    printf '%s\n' "$HG_REPO_ROOT"
+    return 0
+  fi
+  if [ -n "${HG_REPOS:-}" ]; then
+    local r
+    IFS=':' read -ra repos <<< "$HG_REPOS"
+    for r in "${repos[@]}"; do
+      [ -n "$r" ] && printf '%s\n' "$r"
+    done
+    return 0
+  fi
+
+  local home="${HOME:-/home/patrick}"
+  local repos_file="$home/repos.txt"
+  local found=()
+
+  # 1. $HOME (dotfiles repo, git-root ist $HOME)
+  if git -C "$home" rev-parse --show-toplevel >/dev/null 2>&1; then
+    found+=("$home")
+  fi
+
+  # 2. Deklarierte Klone aus repos.txt
+  if [ -f "$repos_file" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      line="$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+      [[ -z "$line" || "$line" == \#* ]] && continue
+      local rel
+      rel="$(echo "$line" | awk '{print $1}')"
+      local p="$home/$rel"
+      if [ -d "$p" ] && git -C "$p" rev-parse --show-toplevel >/dev/null 2>&1; then
+        found+=("$p")
+      fi
+    done < "$repos_file"
+  else
+    if [ -d "$home/Bachelorprojekt" ] && git -C "$home/Bachelorprojekt" rev-parse --show-toplevel >/dev/null 2>&1; then
+      found+=("$home/Bachelorprojekt")
+    fi
+  fi
+
+  if [ "${#found[@]}" -eq 0 ]; then
+    return 1
+  fi
+  printf '%s\n' "${found[@]}" | sort -u
 }
 
-# Lock-Verzeichnis auflösen — AGENT_LOCK_DIR hat Vorrang (Test-Override).
-_lock_dir() {
+# Default-Branch eines Repositories ermitteln (main_branch in repo.yaml, origin/HEAD oder main/master).
+_repo_default() {
+  local repo="$1"
+  local def=""
+  if [ -f "$repo/repo.yaml" ]; then
+    def="$(grep -E '^[[:space:]]*main_branch:' "$repo/repo.yaml" 2>/dev/null | awk '{print $2}' | tr -d '"'\''')"
+  fi
+  if [ -z "$def" ]; then
+    def="$(git -C "$repo" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || true)"
+  fi
+  if [ -z "$def" ]; then
+    if git -C "$repo" show-ref --verify --quiet refs/heads/main 2>/dev/null; then
+      def="main"
+    elif git -C "$repo" show-ref --verify --quiet refs/heads/master 2>/dev/null; then
+      def="master"
+    else
+      def="main"
+    fi
+  fi
+  printf '%s\n' "$def"
+}
+
+# Remote-Ref für den Default-Branch prüfen.
+_origin_remote() {
+  local repo="$1"
+  local def="$2"
+  git -C "$repo" rev-parse --verify --quiet "refs/remotes/origin/$def" 2>/dev/null
+}
+
+# Lock-Verzeichnisse auflösen — AGENT_LOCK_DIR hat Vorrang (Test-Override).
+_lock_dirs() {
   if [ -n "${AGENT_LOCK_DIR:-}" ]; then printf '%s\n' "$AGENT_LOCK_DIR"; return 0; fi
-  local top common
-  top="$(_repo_toplevel)" || return 1
-  common="$(cd "$top" && git rev-parse --git-common-dir 2>/dev/null)" || return 1
-  case "$common" in /*) : ;; *) common="$(cd "$top/$common" 2>/dev/null && pwd)" || return 1 ;; esac
-  printf '%s/agent-locks\n' "$common"
+  local repo top common
+  while IFS= read -r repo; do
+    [ -n "$repo" ] || continue
+    top="$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || continue
+    common="$(cd "$top" && git rev-parse --git-common-dir 2>/dev/null)" || continue
+    case "$common" in
+      /*) : ;;
+      *) common="$(cd "$top/$common" 2>/dev/null && pwd)" || continue ;;
+    esac
+    [ -d "$common/agent-locks" ] && printf '%s/agent-locks\n' "$common"
+  done < <(_repos)
 }
 
-# Ein Feld aus einer Lock-JSON lesen — identische Extraktion wie agent-lock.sh::_lock_field,
-# damit beide Seiten dieselbe Datei gleich lesen (und keine jq-Abhängigkeit entsteht).
+# Ein Feld aus einer Lock-JSON lesen.
 _lock_field() { sed -n "s/.*\"$2\": *\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | head -1; }
 
-# Alle Lock-Dateien auflisten. Rückgabe 1, wenn die Messgrundlage fehlt:
-# kein Verzeichnis, keine *.json, oder keine einzige wohlgeformte Datei (created_at lesbar).
+# Alle Lock-Dateien über alle Lock-Verzeichnisse auflisten.
 _locks() {
   local d f found=0
-  d="$(_lock_dir)" || return 1
-  [ -d "$d" ] || return 1
-  for f in "$d"/*.json; do
-    [ -f "$f" ] || continue
-    [ -n "$(_lock_field "$f" created_at)" ] || continue
-    printf '%s\n' "$f"
-    found=1
-  done
-  [ "$found" = 1 ] || return 1
+  while IFS= read -r d; do
+    [ -d "$d" ] || continue
+    for f in "$d"/*.json; do
+      [ -f "$f" ] || continue
+      [ -n "$(_lock_field "$f" created_at)" ] || continue
+      printf '%s\n' "$f"
+      found=1
+    done
+  done < <(_lock_dirs)
+  [ "$found" -eq 1 ] || return 1
 }
 
-# origin/main muss auflösbar sein — ohne die Referenz ist "gemergt" nicht entscheidbar.
-_origin_main() {
-  git -C "$REPO" rev-parse --verify --quiet refs/remotes/origin/main 2>/dev/null
-}
-
-# Alle Worktrees AUSSER dem Hauptcheckout, je Zeile "<pfad>\t<head-sha>".
+# Alle Nebenworktrees über alle Repositories auflisten, je Zeile "<repo>\t<default>\t<pfad>\t<head-sha>".
 # Rückgabe 1, wenn kein einziger Nebenworktree registriert ist.
 _worktrees() {
-  local top out path head found=0
-  top="$(_repo_toplevel)" || return 1
-  out="$(git -C "$REPO" worktree list --porcelain 2>/dev/null)" || return 1
-  path=""; head=""
-  while IFS= read -r line; do
-    case "$line" in
-      "worktree "*) path="${line#worktree }"; head="" ;;
-      "HEAD "*)     head="${line#HEAD }" ;;
-      "")
-        if [ -n "$path" ] && [ "$path" != "$top" ] && [ -n "$head" ]; then
-          printf '%s\t%s\n' "$path" "$head"; found=1
-        fi
-        path=""; head=""
-        ;;
-    esac
-  done <<< "$out"$'\n'
-  # Letzter Block ohne abschließende Leerzeile.
-  if [ -n "$path" ] && [ "$path" != "$top" ] && [ -n "$head" ]; then
-    printf '%s\t%s\n' "$path" "$head"; found=1
-  fi
-  [ "$found" = 1 ] || return 1
+  local repo top def out path head found=0
+  while IFS= read -r repo; do
+    [ -n "$repo" ] || continue
+    top="$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || continue
+    def="$(_repo_default "$repo")"
+    out="$(git -C "$repo" worktree list --porcelain 2>/dev/null)" || continue
+    path=""; head=""
+    while IFS= read -r line; do
+      case "$line" in
+        "worktree "*) path="${line#worktree }"; head="" ;;
+        "HEAD "*)     head="${line#HEAD }" ;;
+        "")
+          if [ -n "$path" ] && [ "$path" != "$top" ] && [ -n "$head" ]; then
+            printf '%s\t%s\t%s\t%s\n' "$repo" "$def" "$path" "$head"; found=1
+          fi
+          path=""; head=""
+          ;;
+      esac
+    done <<< "$out"$'\n'
+    if [ -n "$path" ] && [ "$path" != "$top" ] && [ -n "$head" ]; then
+      printf '%s\t%s\t%s\t%s\n' "$repo" "$def" "$path" "$head"; found=1
+    fi
+  done < <(_repos)
+  [ "$found" -eq 1 ] || return 1
 }
 
-# Ist der HEAD eines Worktrees bereits in origin/main enthalten?
-# merge-base --is-ancestor auf den COMMIT, nicht `branch -r --contains <name>`:
-# ein detached-HEAD-Worktree hat keinen Branchnamen, und der Commit ist die Aussage.
+# Ist der HEAD eines Worktrees bereits im Remote-Default-Branch enthalten?
 _is_merged() {
-  git -C "$REPO" merge-base --is-ancestor "$1" refs/remotes/origin/main 2>/dev/null
+  local repo="$1" head="$2" def="$3"
+  git -C "$repo" merge-base --is-ancestor "$head" "refs/remotes/origin/$def" 2>/dev/null
 }
 
-# ── G-WT01 — Hauptcheckout auf main und sauber ────────────────────────────────
+# ── G-WT01 — Hauptcheckout auf Default-Branch und sauber ──────────────────────
 cmd_main_checkout() {
-  local branch status_out
-  branch="$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null)" || na
-  [ -n "$branch" ] || na
-  [ "$branch" = "main" ] || { echo 1; return 0; }
-  # status separat auswerten: ein FEHLGESCHLAGENES status darf nicht als "sauber"
-  # durchgehen — sonst meldet eine kaputte Messung 0 statt n/a.
-  status_out="$(git -C "$REPO" status --porcelain 2>/dev/null)" || na
-  [ -z "$status_out" ] && echo 0 || echo 1
+  local repos repo branch status_out def violations=0 valid_count=0
+  repos="$(_repos)" || na
+  while IFS= read -r repo; do
+    [ -n "$repo" ] || continue
+    branch="$(git -C "$repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" || continue
+    [ -n "$branch" ] || continue
+    valid_count=$((valid_count + 1))
+    def="$(_repo_default "$repo")"
+    if [ "$branch" != "$def" ]; then
+      violations=$((violations + 1))
+      continue
+    fi
+    status_out="$(git -C "$repo" status --porcelain 2>/dev/null)" || continue
+    if [ -n "$status_out" ]; then
+      violations=$((violations + 1))
+    fi
+  done <<< "$repos"
+
+  [ "$valid_count" -gt 0 ] || na
+  echo "$violations"
 }
 
 # ── G-WT02 — Veraltete Worktrees ──────────────────────────────────────────────
 cmd_stale_worktrees() {
-  local wts n t path head last age_days
-  _origin_main >/dev/null || na
+  local wts n t repo def path head last age_days valid_origin_seen=0
   wts="$(_worktrees)" || na
   n=0; t="$(now)"
-  while IFS=$'\t' read -r path head; do
+  while IFS=$'\t' read -r repo def path head; do
     [ -n "$head" ] || continue
-    if _is_merged "$head"; then n=$((n + 1)); continue; fi
-    last="$(git -C "$REPO" log -1 --format='%ct' "$head" 2>/dev/null)"
+    _origin_remote "$repo" "$def" >/dev/null && valid_origin_seen=1
+    if _is_merged "$repo" "$head" "$def"; then n=$((n + 1)); continue; fi
+    last="$(git -C "$repo" log -1 --format='%ct' "$head" 2>/dev/null)"
     [ -n "$last" ] || continue
     age_days=$(( (t - last) / 86400 ))
     [ "$age_days" -gt "$STALE_DAYS" ] && n=$((n + 1))
   done <<< "$wts"
+  [ "$valid_origin_seen" -eq 1 ] || na
   echo "$n"
 }
 
 # ── G-WT03 — Verwaiste Agent-Locks ────────────────────────────────────────────
-#
-# ACHTUNG — `owner_pid` ist KEIN Lebendigkeits-Signal [T002443, belegt 2026-08-02].
-# `agent-lock.sh::_write_lock` schreibt `"owner_pid": "$$"` — die PID des kurzlebigen
-# `agent-lock.sh`-Bash-Prozesses, der Sekunden später beendet ist. Auf dem Hauptcheckout
-# meldeten deshalb ALLE fünf Locks eine tote `owner_pid`, darunter der Lock der gerade
-# laufenden Session. Eine Regel "tote PID ⇒ verwaist" stuft also jeden Lock als verwaist
-# ein und ist damit wertlos. `agent-lock.sh::_reapable` behandelt eine tote PID aus
-# demselben Grund nie allein als entscheidend: eine LEBENDE PID ist ein Positiv-Signal,
-# eine tote sagt nichts.
-#
-# Gemessen wird deshalb in dieser Reihenfolge:
-#   1. Heartbeat älter als 2×TTL  ⇒ verwaist. Eindeutig, und der einzige Indikator, der
-#      auch eine WIEDERVERWENDETE PID erwischt (der Anlassfall aus dem Proposal).
-#   2. Heartbeat frisch ⇒ lebendig, wenn der eingetragene Worktree noch existiert und
-#      auf dem eingetragenen Branch steht (agent-lock.sh::_reapable Pfad 0b) ODER die
-#      `owner_pid` tatsächlich läuft (Pfad 0c). Sonst verwaist.
 cmd_orphan_locks() {
   local locks n t f pid hb ct age wt br wt_branch
   locks="$(_locks)" || na
@@ -181,43 +253,46 @@ cmd_orphan_locks() {
 
 # ── G-WT04 — Löschbereite Worktrees mit ungesicherter Arbeit ──────────────────
 cmd_unsafe_worktrees() {
-  local wts n path head dirty
-  _origin_main >/dev/null || na
+  local wts n repo def path head dirty valid_origin_seen=0
   wts="$(_worktrees)" || na
   n=0
-  while IFS=$'\t' read -r path head; do
+  while IFS=$'\t' read -r repo def path head; do
     [ -n "$head" ] || continue
     [ -d "$path" ] || continue
-    # Schnittmenge, nicht Vereinigung: ungesicherte Arbeit ist im laufenden Betrieb
-    # normal. Akuter Datenverlust droht nur, wo repo-hygiene löschen WÜRDE (gemergt)
-    # und gleichzeitig ungesicherte Arbeit liegt (T002379).
-    _is_merged "$head" || continue
+    _origin_remote "$repo" "$def" >/dev/null && valid_origin_seen=1
+    _is_merged "$repo" "$head" "$def" || continue
     dirty="$(git -C "$path" status --porcelain 2>/dev/null)" || continue
     [ -n "$dirty" ] && n=$((n + 1))
   done <<< "$wts"
+  [ "$valid_origin_seen" -eq 1 ] || na
   echo "$n"
 }
 
-# ── G-WT05 — Lokaler main hinter origin/main ─────────────────────────────────
+# ── G-WT05 — Lokaler Default-Branch hinter origin ────────────────────────────
 cmd_main_divergence() {
-  local top fetch_head mtime count
-  git -C "$REPO" rev-parse --verify --quiet refs/heads/main >/dev/null 2>&1 || na
-  _origin_main >/dev/null || na
-  # Ein origin/main, das seit über 24 h nicht aktualisiert wurde, misst nicht die
-  # Divergenz, sondern das Alter des letzten Fetch. Dann lieber n/a als eine 0.
-  top="$(_repo_toplevel)" || na
-  # --git-common-dir liefert oft einen RELATIVEN Pfad; er ist gegen $top aufzulösen,
-  # nicht gegen das aktuelle Arbeitsverzeichnis des Aufrufers.
-  fetch_head="$(cd "$top" 2>/dev/null && git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || na
-  [ -n "$fetch_head" ] || na
-  fetch_head="$fetch_head/FETCH_HEAD"
-  [ -f "$fetch_head" ] || na
-  mtime="$(date -r "$fetch_head" +%s 2>/dev/null)" || na
-  [ -n "$mtime" ] || na
-  [ "$(( $(now) - mtime ))" -le "$FETCH_MAX_AGE" ] || na
-  count="$(git -C "$REPO" rev-list --count refs/heads/main..refs/remotes/origin/main 2>/dev/null)" || na
-  [ -n "$count" ] || na
-  echo "$count"
+  local repos repo def top fetch_head mtime count total=0 valid_repo_count=0
+  repos="$(_repos)" || na
+  while IFS= read -r repo; do
+    [ -n "$repo" ] || continue
+    def="$(_repo_default "$repo")"
+    git -C "$repo" rev-parse --verify --quiet "refs/heads/$def" >/dev/null 2>&1 || continue
+    _origin_remote "$repo" "$def" >/dev/null || continue
+    top="$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || continue
+    fetch_head="$(cd "$top" 2>/dev/null && git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || continue
+    [ -n "$fetch_head" ] || continue
+    fetch_head="$fetch_head/FETCH_HEAD"
+    [ -f "$fetch_head" ] || continue
+    mtime="$(date -r "$fetch_head" +%s 2>/dev/null)" || continue
+    [ -n "$mtime" ] || continue
+    [ "$(( $(now) - mtime ))" -le "$FETCH_MAX_AGE" ] || continue
+    count="$(git -C "$repo" rev-list --count "refs/heads/$def..refs/remotes/origin/$def" 2>/dev/null)" || continue
+    [ -n "$count" ] || continue
+    total=$((total + count))
+    valid_repo_count=$((valid_repo_count + 1))
+  done <<< "$repos"
+
+  [ "$valid_repo_count" -gt 0 ] || na
+  echo "$total"
 }
 
 # ── G-WT06 — Phantom-Scope-Locks ─────────────────────────────────────────────
@@ -228,9 +303,6 @@ cmd_phantom_scope_locks() {
   while IFS= read -r f; do
     [ -f "$f" ] || continue
     scope="$(_lock_field "$f" scope)"
-    # Keine Allowlist: Scope-Namen sind offen. Gemessen wird die Formfehler-Signatur —
-    # leer oder mit "-" beginnend kann nur aus einem als Positionsargument gelesenen
-    # Flag stammen (Vorfall 2026-08-02: `--label` stand als SCOPE in der Lock-Datei).
     case "$scope" in
       "" | -*) n=$((n + 1)) ;;
     esac

@@ -223,6 +223,123 @@ assert vecs1 == vecs and seen == ['http://solo/v1/embeddings'] * 3, seen
     assert run.returncode == 0, run.output
 
 
+def test_build_candidates_carries_spans_and_disambiguates_overloads(mod_py):
+    run = mod_py("""
+functions = [
+    ('proj.lib.fmtMoney', 'lib/web.ts', 'Formats money.', '(n: number)', '10', '20'),
+    ('proj.lib.fmtMoney', 'lib/web.ts', 'Formats money (opts).', '(n: number, o: object)', '30', '45'),
+    ('proj.lib.esc', 'lib/web.ts', 'Escape HTML.', '(s: str)', '50', '55'),
+]
+cands = m.build_candidates([], functions, 'repo', 'c1')
+by_symbol = {c['symbol']: c for c in cands}
+assert len(cands) == 3, [c['key'] for c in cands]
+assert len({c['key'] for c in cands}) == 3, 'overloads need distinct keys'
+esc = by_symbol['proj.lib.esc']
+assert esc['start_line'] == 50 and esc['end_line'] == 55, esc
+# legacy span-less rows keep working with the historic key shape
+legacy = m.build_candidates([], [('proj.lib.f', 'lib/a.ts', 'Does f.')], 'repo', 'c1')
+assert legacy[0]['key'] == 'repo@c1:lib/a.ts:proj.lib.f', legacy[0]
+assert legacy[0]['start_line'] is None, legacy[0]
+""")
+    assert run.returncode == 0, run.output
+
+
+def test_read_source_slice_returns_bounded_excerpt_and_fails_safe(mod_py):
+    run = mod_py("""
+import os, tempfile
+tmp = tempfile.mkdtemp()
+p = os.path.join(tmp, 'a.py')
+lines = ['line %d content here' % i for i in range(1, 101)]
+open(p, 'w').write('\\n'.join(lines) + '\\n')
+got = m.read_source_slice(tmp, 'a.py', 10, 15)
+assert got is not None and 'line 10' in got and 'line 15' in got, repr(got)
+assert 'line 16' not in got, repr(got)
+# line numbers arrive as graph strings
+got2 = m.read_source_slice(tmp, 'a.py', '10', '15')
+assert got2 == got, (got2, got)
+# truncation bounds the excerpt
+big = m.read_source_slice(tmp, 'a.py', 1, 100, max_chars=50, max_lines=3)
+assert len(big) <= 50 and big.count('\\n') <= 2, repr(big)
+# missing file, bad span and traversal fail safe with None
+assert m.read_source_slice(tmp, 'nope.py', 1, 5) is None
+assert m.read_source_slice(tmp, 'a.py', 20, 10) is None
+assert m.read_source_slice(tmp, '../escape.py', 1, 5) is None
+assert m.read_source_slice(tmp, 'a.py', 'xx', 5) is None
+""")
+    assert run.returncode == 0, run.output
+
+
+def test_composers_accept_optional_source_body_unchanged_without(mod_py):
+    run = mod_py("""
+ft0 = m.function_text('proj.pkg.fn', 'Does things.')
+assert ft0 == 'proj.pkg.fn\\nDoes things.', repr(ft0)
+ft1 = m.function_text('proj.pkg.fn', 'Does things.', '(a: int)', 'x = a + 1\\nreturn x')
+assert 'x = a + 1' in ft1 and 'Does things.' in ft1, repr(ft1)
+mt = m.method_text('proj.C.run', 'Runs it.', '(self)', 'proj.C', 'self.x += 1')
+assert 'self.x += 1' in mt and 'proj.C.run' in mt, repr(mt)
+assert m.method_text('proj.C.run', 'Runs it.', '(self)', 'proj.C') == \\
+    'proj.C.run (self)\\nclass proj.C\\nRuns it.', repr(m.method_text('proj.C.run', 'Runs it.', '(self)', 'proj.C'))
+ct = m.class_text('proj.lib.H', 'Serves.', '[Base]', 'Class', 'def serve(self): ...')
+assert 'def serve' in ct, repr(ct)
+st = m.section_text('proj.docs.g.Install', 'Install', 'docs/g.md', '3', '10',
+                    'Run `make setup` then open the app.')
+assert 'make setup' in st and 'Install' in st, repr(st)
+assert m.section_text('q', 'H', 'docs/g.md', '1', '2') == \\
+    m.section_text('q', 'H', 'docs/g.md', '1', '2', None)
+""")
+    assert run.returncode == 0, run.output
+
+
+def test_enrich_candidates_adds_source_body_keeps_stable_keys(mod_py):
+    run = mod_py("""
+import os, tempfile
+tmp = tempfile.mkdtemp()
+open(os.path.join(tmp, 'lib.ts'), 'w').write(
+    'export function fmtMoney(n: number) {\\n  return "$" + n;\\n}\\n')
+functions = [('proj.lib.fmtMoney', 'lib.ts', 'Formats money.', '(n: number)', 1, 3)]
+cands = m.build_candidates([], functions, 'repo', 'c1')
+assert cands[0]['key'] == 'repo@c1:lib.ts:proj.lib.fmtMoney', cands[0]
+enriched, cov = m.enrich_candidates_with_source(tmp, cands)
+assert enriched[0]['key'] == cands[0]['key'], 'keys stay stable for re-embed diffing'
+assert 'return' in enriched[0]['text'] and 'Formats money.' in enriched[0]['text'], repr(enriched[0]['text'])
+assert cov == {'with_body': 1, 'no_span': 0, 'read_miss': 0}, cov
+# candidates without spans keep their historic text untouched
+plain = m.build_candidates([], [('proj.lib.f', 'lib.ts', 'Does f.')], 'repo', 'c1')
+enriched2, cov2 = m.enrich_candidates_with_source(tmp, plain)
+assert enriched2[0]['text'] == plain[0]['text'], repr(enriched2[0]['text'])
+assert cov2 == {'with_body': 0, 'no_span': 1, 'read_miss': 0}, cov2
+# missing files are read_miss, not crashes
+ghost = m.build_candidates([], [('proj.lib.g', 'gone.ts', 'd', None, 1, 5)], 'repo', 'c1')
+_, cov3 = m.enrich_candidates_with_source(tmp, ghost)
+assert cov3 == {'with_body': 0, 'no_span': 0, 'read_miss': 1}, cov3
+# routes gain the handler body; identical verbs stay distinguishable
+open(os.path.join(tmp, 'api.ts'), 'w').write('GET /a\\nhandler A\\nGET /b\\nhandler B\\n')
+routes = m.build_candidates([('GET', 'api.ts', 1, 2), ('GET', 'api.ts', 3, 4)], [], 'repo', 'c1')
+assert len({c['key'] for c in routes}) == 2, [c['key'] for c in routes]
+renriched, _ = m.enrich_candidates_with_source(tmp, routes)
+assert 'handler A' in renriched[0]['text'] and 'handler B' in renriched[1]['text'], [c['text'] for c in renriched]
+assert m.route_text('api.ts', 'GET') == 'ROUTE GET api.ts', m.route_text('api.ts', 'GET')
+""")
+    assert run.returncode == 0, run.output
+
+
+def test_is_test_path_flags_specs_and_test_dirs(mod_py):
+    run = mod_py("""
+assert m.is_test_path('lib/a.test.ts')
+assert m.is_test_path('tests/test_embed.py')
+assert m.is_test_path('components/x/__tests__/y.ts')
+assert m.is_test_path('lib/foo.spec.js')
+assert not m.is_test_path('lib/web.ts')
+assert not m.is_test_path('docs/guide.md')
+assert not m.is_test_path('')
+cands = m.build_candidates([], [('proj.lib.f', 'lib/a.test.ts', 'd')], 'repo', 'c1')
+assert cands[0]['test'] is True, cands[0]
+cands2 = m.build_candidates([], [('proj.lib.f', 'lib/web.ts', 'd')], 'repo', 'c1')
+assert cands2[0]['test'] is False, cands2[0]
+""")
+    assert run.returncode == 0, run.output
+
+
 def test_sync_cli_resolves_freshness_state_via_single_graph_indirection_t900998_p3(mod_py):
     # Regression: cmd_status/cmd_sync called GRAPH.GRAPH.freshness_state, but the
     # loaded cbm-sync-graph module exposes freshness_state directly.

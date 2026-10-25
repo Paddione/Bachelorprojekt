@@ -9,19 +9,22 @@ content-hash-keyed store (cbm-embed-store.py), embeds only the deltas via the
 LLM gateway, and stamps the manifest with the current cbm-freshness receipt
 id.
 
-Graph-property notes (schema inspected 2026-10-04, project
-home-patrick-Bachelorprojekt):
-  * Function/Method carry signature + docstring, but NO code/content prop —
-    function/method texts embed name + signature + docstring (no code-start;
-    unavailable in the graph). The Cypher dialect rejects coalesce() and '+'
-    concatenation, and the table parser only supports ONE free-text column
-    (last), so signature and docstring are fetched by separate queries and
-    joined in Python on (qualified_name, file_path).
+Graph-property notes (schema inspected 2026-10-04, spans verified live;
+project home-patrick-Bachelorprojekt):
+  * Function/Method/Class/Interface/Section nodes carry file_path +
+    start_line/end_line but NO code/content prop. Embedding inputs are
+    therefore enriched from the checkout by enrich_candidates_with_source:
+    functions/methods gain a bounded code-start excerpt, classes the
+    class-body start, sections the markdown prose inside the heading span.
+    Pass --no-source-body to restore the legacy name + signature +
+    docstring-only texts (ablation baseline).
+  * The Cypher dialect rejects coalesce() and '+' concatenation, and the
+    table parser only supports ONE free-text column (last), so signature
+    and docstring travel in separate queries and are joined in Python on
+    (qualified_name, file_path, start_line) — the span disambiguates
+    overloads sharing a qualified name.
   * Class/Interface carry docstring + base_classes (no signature).
-  * Section carries NO body text — only name, qualified_name (which encodes
-    the document + heading-slug path), file_path, start/end_line. Section
-    texts therefore embed the heading path + file location, not prose.
-    The section symbol is `section:<qualified_name>#<start_line>` — the
+  * The section symbol is `section:<qualified_name>#<start_line>` — the
     qualified_name is already unique per heading, the line disambiguates
     duplicate headings and survives heading renames differently.
 
@@ -62,6 +65,8 @@ EMBED_BATCH = 16
 DOCSTRING_MAX = 1500
 SIG_MAX = 500
 CODE_MAX = 800
+SECTION_BODY_MAX = 1200
+BODY_LINES = 60
 TEXT_MAX = 1500
 GIT_TIMEOUT_S = 15
 ROUTE_SYMBOL_FALLBACK = "ANY"
@@ -138,11 +143,15 @@ manifest_path = STORE.manifest_path
 
 # ── pure candidate/plan layer (no network, no IO — spec-tested) ────────────
 
-def route_text(path, method):
-    """Embedding input for a Route candidate."""
+def route_text(path, method, body=None):
+    """Embedding input for a Route candidate: verb + file path, then an
+    optional handler-body excerpt. None keeps the historic shape."""
     verb = method if isinstance(method, str) and method.strip() \
         else ROUTE_SYMBOL_FALLBACK
-    return "ROUTE %s %s" % (verb.strip(), path)
+    text = "ROUTE %s %s" % (verb.strip(), path)
+    if isinstance(body, str) and body:
+        text = "%s\n%s" % (text, body[:CODE_MAX])
+    return text[:TEXT_MAX]
 
 
 def function_text(qname, docstring, signature=None, code=None):
@@ -167,9 +176,12 @@ def function_text(qname, docstring, signature=None, code=None):
     return "\n".join(parts)[:TEXT_MAX]
 
 
-def method_text(qname, docstring, signature=None, parent=None):
+def method_text(qname, docstring, signature=None, parent=None, code=None):
     """Embedding input for a Method candidate: qualified name + signature,
-    parent-class line for context, then docstring. Capped at TEXT_MAX."""
+    parent-class line for context, then docstring, then an optional
+    source-body excerpt. Capped at TEXT_MAX. `code` has no graph source
+    (Method nodes carry no content prop) and is filled from the checkout
+    by enrich_candidates_with_source; None keeps the historic shape."""
     header = qname
     if isinstance(signature, str) and signature.strip():
         header = "%s %s" % (qname, signature.strip()[:SIG_MAX])
@@ -179,13 +191,16 @@ def method_text(qname, docstring, signature=None, parent=None):
     parts = [header]
     if doc:
         parts.append(doc[:DOCSTRING_MAX])
+    if isinstance(code, str) and code:
+        parts.append(code[:CODE_MAX])
     return "\n".join(parts)[:TEXT_MAX]
 
 
-def class_text(qname, docstring, base=None, label="Class"):
+def class_text(qname, docstring, base=None, label="Class", body=None):
     """Embedding input for a Class/Interface candidate: KIND + qualified
-    name, base-class line, then docstring. Capped at TEXT_MAX. `base` is the
-    raw base_classes rendering from the graph (a string or None)."""
+    name, base-class line, then docstring, then an optional source-body
+    excerpt. Capped at TEXT_MAX. `base` is the raw base_classes rendering
+    from the graph (a string or None); `body` comes from the checkout."""
     kind_word = "INTERFACE" if label == "Interface" else "CLASS"
     header = "%s %s" % (kind_word, qname)
     if base is not None and str(base).strip() and str(base).strip() != "-":
@@ -194,6 +209,8 @@ def class_text(qname, docstring, base=None, label="Class"):
     parts = [header]
     if doc:
         parts.append(doc[:DOCSTRING_MAX])
+    if isinstance(body, str) and body:
+        parts.append(body[:CODE_MAX])
     return "\n".join(parts)[:TEXT_MAX]
 
 
@@ -206,13 +223,18 @@ def section_symbol(qname, start_line):
     return "section:%s#%s" % (qname, start_line)
 
 
-def section_text(qname, name, path, start_line, end_line):
+def section_text(qname, name, path, start_line, end_line, body=None):
     """Embedding input for a Section candidate: heading name + heading path
-    (the qualified_name) + file location. The graph carries no section body,
-    so this embeds structure, not prose. Capped at TEXT_MAX."""
+    (the qualified_name) + file location, then an optional prose excerpt.
+    The graph carries no section body, so prose is filled from the checkout
+    by enrich_candidates_with_source; None keeps the historic
+    structure-only shape. Capped at TEXT_MAX."""
     heading = name if isinstance(name, str) and name.strip() else qname
     loc = "%s:%s-%s" % (path, start_line, end_line)
-    return ("SECTION %s\n%s\n%s" % (heading, qname, loc))[:TEXT_MAX]
+    parts = ["SECTION %s\n%s\n%s" % (heading, qname, loc)]
+    if isinstance(body, str) and body:
+        parts.append(body[:SECTION_BODY_MAX])
+    return "\n".join(parts)[:TEXT_MAX]
 
 
 def is_excluded(path):
@@ -233,69 +255,189 @@ def is_excluded(path):
     return any(seg in segments for seg in EXCLUDED_SEGMENTS)
 
 
+_TEST_DIRNAMES = ("test", "tests", "__tests__", "e2e", "testing")
+
+
+def is_test_path(path):
+    """Heuristic test flag: spec/test suffixes or test directory segments.
+
+    Carried as candidate metadata for downstream filtering/rerank weighting.
+    It never enters the embedding input, so flagging changes no vector."""
+    if not isinstance(path, str) or not path:
+        return False
+    p = path.replace("\\", "/").strip("/")
+    base = p.rsplit("/", 1)[-1].lower()
+    if (".test." in base or ".spec." in base or base.startswith("test_")
+            or base.endswith("_test.py") or base.endswith("_test.go")):
+        return True
+    return any(seg.lower() in _TEST_DIRNAMES for seg in p.split("/"))
+
+
+def parse_span(value):
+    """Graph start/end lines arrive as ints or numeric strings; anything
+    else (None, '-', unparseable) is no span."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value > 0 else None
+    if isinstance(value, str):
+        v = value.strip().strip('"').strip("'")
+        if v.isdigit():
+            n = int(v)
+            return n if n > 0 else None
+    return None
+
+
+def read_source_slice(root, path, start_line, end_line, max_chars=CODE_MAX,
+                      max_lines=BODY_LINES):
+    """Bounded source excerpt for a graph span, read from the checkout.
+
+    1-based inclusive [start_line, end_line], truncated to max_lines then
+    max_chars. Returns None (fail-safe, no exception) for missing files,
+    path traversal outside root, binary content, bad spans or empty excerpts.
+    Callers treat None as 'no body available' and keep the historic text."""
+    sl, el = parse_span(start_line), parse_span(end_line)
+    if sl is None or el is None or el < sl:
+        return None
+    if not isinstance(root, str) or not root:
+        return None
+    if not isinstance(path, str) or not path or path.startswith("<"):
+        return None
+    norm = os.path.normpath(path.replace("\\", "/")).lstrip("/")
+    if norm.startswith("..") or os.path.isabs(norm):
+        return None
+    try:
+        real_root = os.path.realpath(root)
+        full = os.path.realpath(os.path.join(real_root, norm))
+        if full != real_root and not full.startswith(real_root + os.sep):
+            return None
+        with open(full, "r", encoding="utf-8", errors="strict") as fh:
+            kept = []
+            for i, line in enumerate(fh, 1):
+                if i > el:
+                    break
+                if i >= sl:
+                    if "\x00" in line:
+                        return None
+                    kept.append(line.rstrip("\n"))
+                    if len(kept) >= max_lines:
+                        break
+    except (OSError, ValueError, UnicodeDecodeError):
+        return None
+    if not kept or sl > el:
+        return None
+    excerpt = "\n".join(kept).strip()
+    if not excerpt:
+        return None
+    return excerpt[:max_chars].strip() or None
+
+
 def build_candidates(route_rows, function_rows, repo, commit,
                      method_rows=(), class_rows=(), section_rows=()):
     """Deterministic candidate list from parsed graph rows.
 
-    route_rows:     (method, file_path) pairs
-    function_rows:  (qualified_name, file_path, docstring[, signature])
+    route_rows:     (method, file_path[, start_line[, end_line]])
+    function_rows:  (qualified_name, file_path, docstring[, signature[,
+                    start_line[, end_line]]])
     method_rows:    (qualified_name, file_path, docstring[, signature[,
-                    parent_class]])
+                    parent_class[, start_line[, end_line]]]])
     class_rows:    (qualified_name, file_path, docstring[, base_classes[,
-                    label]]) — label "Class" (default) or "Interface"
+                    label[, start_line[, end_line]]]]) — label "Class"
+                    (default) or "Interface"
     section_rows:   (qualified_name, file_path, start_line, end_line, name)
                     in graph-column order (free-text name last)
     Keys follow the frozen-corpus scheme repo@commit:path:symbol; routes use
-    the HTTP verb as symbol, functions/methods the qualified name, classes
-    the qualified name, sections `section:<qname>#<line>`. Excluded paths
-    (minified bundles, root assets/, vendor/build dirs) are skipped."""
+    the HTTP verb as symbol, functions/methods/classes the qualified name,
+    sections `section:<qname>#<line>`. Overloads sharing a qualified name
+    are disambiguated as `symbol#<start_line>` so each keeps its own vector.
+    Span-less legacy rows keep their historic key shape. Excluded paths
+    (minified bundles, root assets/, vendor/build dirs) are skipped.
+    Candidates carry `start_line`/`end_line` (ints or None) for source
+    enrichment and a `test` flag that never enters the embedding input.
+    Overload disambiguation is first-seen-wins on the backend snapshot
+    order, which is stable across runs of the same generation; a genuinely
+    new overload therefore only ever adds keys, never renames old ones."""
     cands = {}
 
-    def add(kind, path, symbol, text):
+    def add(kind, path, symbol, text, start_line=None, end_line=None,
+            meta=None):
         if not path or not symbol or is_excluded(path):
             return
+        sl, el = parse_span(start_line), parse_span(end_line)
+        if symbol is not None and make_key(repo, commit, path, symbol) \
+                in cands and sl is not None:
+            symbol = "%s#%d" % (symbol, sl)
         key = make_key(repo, commit, path, symbol)
         if key in cands:
             return
-        cands[key] = {"key": key, "kind": kind, "path": path,
-                      "symbol": symbol, "text": text}
+        rec = {"key": key, "kind": kind, "path": path,
+               "symbol": symbol, "text": text, "start_line": sl,
+               "end_line": el, "test": is_test_path(path)}
+        if meta:
+            rec.update(meta)
+        cands[key] = rec
 
-    for method, path in route_rows:
+    for row in route_rows or ():
+        method, path = row[0], row[1]
+        sl = row[2] if len(row) > 2 else None
+        el = row[3] if len(row) > 3 else None
         if not path or not isinstance(path, str):
             continue
         symbol = method if isinstance(method, str) and method.strip() \
             else ROUTE_SYMBOL_FALLBACK
-        add("route", path, symbol, route_text(path, method))
+        add("route", path, symbol, route_text(path, method), sl, el,
+            meta={"method": method})
     for row in function_rows:
         qname, path, doc = row[0], row[1], row[2] if len(row) > 2 else None
         sig = row[3] if len(row) > 3 else None
+        sl = row[4] if len(row) > 4 else None
+        el = row[5] if len(row) > 5 else None
         if not qname or not path:
             continue
-        add("function", path, qname, function_text(qname, doc, sig))
+        add("function", path, qname, function_text(qname, doc, sig), sl,
+            el, meta={"doc": doc, "sig": sig})
     for row in method_rows or ():
         qname, path = row[0], row[1]
         doc = row[2] if len(row) > 2 else None
         sig = row[3] if len(row) > 3 else None
         parent = row[4] if len(row) > 4 else None
+        sl = row[5] if len(row) > 5 else None
+        el = row[6] if len(row) > 6 else None
         if not qname or not path:
             continue
-        add("method", path, qname, method_text(qname, doc, sig, parent))
+        add("method", path, qname, method_text(qname, doc, sig, parent),
+            sl, el, meta={"doc": doc, "sig": sig, "parent": parent})
     for row in class_rows or ():
         qname, path = row[0], row[1]
         doc = row[2] if len(row) > 2 else None
         base = row[3] if len(row) > 3 else None
         label = row[4] if len(row) > 4 else "Class"
+        sl = row[5] if len(row) > 5 else None
+        el = row[6] if len(row) > 6 else None
         if not qname or not path:
             continue
         kind = "interface" if label == "Interface" else "class"
-        add(kind, path, qname, class_text(qname, doc, base, label))
+        add(kind, path, qname, class_text(qname, doc, base, label), sl,
+            el, meta={"doc": doc, "base": base, "label": label})
     for row in section_rows or ():
         qname, path, start_line, end_line, name = row
-        if not qname or not path:
+        if not qname or not path or is_excluded(path):
             continue
         symbol = section_symbol(qname, start_line)
-        add("section", path, symbol,
-            section_text(qname, name, path, start_line, end_line))
+        sl, el = parse_span(start_line), parse_span(end_line)
+        if make_key(repo, commit, path, symbol) in cands and sl is not None:
+            symbol = "%s@%d" % (symbol, sl)
+        key = make_key(repo, commit, path, symbol)
+        if key in cands:
+            continue
+        cands[key] = {"key": key, "kind": "section", "path": path,
+                      "symbol": symbol,
+                      "text": section_text(qname, name, path, start_line,
+                                           end_line),
+                      "start_line": sl, "end_line": el,
+                      "test": is_test_path(path),
+                      "qname": qname, "name": name,
+                      "raw_start": start_line, "raw_end": end_line}
     return sorted(cands.values(), key=lambda c: (c["path"], c["symbol"]))
 
 
@@ -315,6 +457,99 @@ def plan_sync(candidates, store, model):
         "unchanged": diff["unchanged"],
         "to_prune": diff["to_prune"],
     }
+
+
+def enrich_candidates_with_source(root, candidates,
+                                  code_chars=CODE_MAX,
+                                  section_chars=SECTION_BODY_MAX):
+    """Attach checkout source bodies to span-carrying candidates.
+
+    For each candidate with a usable (path, start_line, end_line) the
+    excerpt is read via read_source_slice and the embedding input is
+    rebuilt through the matching composer: functions/methods gain the
+    code-start, classes the class-body start, sections the markdown prose.
+    Candidates without spans keep their historic text untouched, so their
+    content hashes (and vectors) are stable. Keys never change here —
+    overload disambiguation already happened in build_candidates.
+
+    Returns (enriched_candidates, coverage) with coverage
+    {"with_body": n, "no_span": n, "read_miss": n}; no_span counts
+    candidates the graph gave no usable span (historic shape kept),
+    read_miss counts spans the checkout could not serve (renamed/deleted
+    files, binary or empty excerpts). The input list is not mutated."""
+    out = []
+    with_body, no_span, read_miss = 0, 0, 0
+    for cand in candidates:
+        kind, path = cand.get("kind"), cand.get("path")
+        sl, el = cand.get("start_line"), cand.get("end_line")
+        body = None
+        if sl is None or el is None:
+            no_span += 1
+            out.append(dict(cand))
+            continue
+        limit = section_chars if kind == "section" else code_chars
+        body = read_source_slice(root, path, sl, el, max_chars=limit)
+        if body is None:
+            read_miss += 1
+            out.append(dict(cand))
+            continue
+        with_body += 1
+        text = cand.get("text", "")
+        if kind == "function":
+            text = _rebuild_function_text(cand, body)
+        elif kind == "method":
+            text = _rebuild_method_text(cand, body)
+        elif kind in ("class", "interface"):
+            text = _rebuild_class_text(cand, body)
+        elif kind == "section":
+            text = _rebuild_section_text(cand, body)
+        elif kind == "route":
+            text = route_text(path, cand.get("method"), body)
+        enriched = dict(cand)
+        enriched["text"] = text
+        enriched["body_chars"] = len(body)
+        out.append(enriched)
+    return out, {"with_body": with_body, "no_span": no_span,
+                 "read_miss": read_miss}
+
+
+def _rebuild_function_text(cand, body):
+    """Rebuild a function input from the stored raw parts plus body."""
+    qname = cand.get("symbol", "").split("#")[0]
+    return function_text(qname, cand.get("doc"), cand.get("sig"), body)
+
+
+def _rebuild_method_text(cand, body):
+    qname = cand.get("symbol", "").split("#")[0]
+    return method_text(qname, cand.get("doc"), cand.get("sig"),
+                       cand.get("parent"), body)
+
+
+def _rebuild_class_text(cand, body):
+    symbol = cand.get("symbol", "").split("#")[0]
+    qname = symbol
+    header = (cand.get("text", "").split("\n") or [""])[0]
+    if header.startswith("CLASS ") or header.startswith("INTERFACE "):
+        qname = header.split(" ", 1)[1].split("#")[0]
+    label = cand.get("label") or ("Interface"
+                                  if cand.get("kind") == "interface"
+                                  else "Class")
+    return class_text(qname, cand.get("doc"), cand.get("base"), label,
+                      body)
+
+
+def _rebuild_section_text(cand, body):
+    qname = cand.get("qname") or cand.get("symbol", "")
+    name = cand.get("name") or qname
+    path = cand.get("path", "")
+    start_line = cand.get("raw_start")
+    if start_line is None:
+        start_line = cand.get("start_line")
+    end_line = cand.get("raw_end")
+    if end_line is None:
+        end_line = cand.get("end_line")
+    return section_text(qname, name, path, start_line or "",
+                        end_line or "", body)
 
 
 def apply_plan(candidates, store, model, vectors_by_key):
@@ -528,8 +763,27 @@ def collect_candidates(args, root, head):
     class_rows += GRAPH.fetch_class_like_rows(args.project, args.timeout,
                                         "Interface")
     section_rows = GRAPH.fetch_section_rows(args.project, args.timeout)
-    return build_candidates(route_rows, function_rows, repo_name, head,
-                             method_rows, class_rows, section_rows)
+    candidates = build_candidates(route_rows, function_rows, repo_name, head,
+                                  method_rows, class_rows, section_rows)
+    if getattr(args, "no_source_body", False):
+        return candidates
+    enriched, _coverage = enrich_candidates_with_source(root, candidates)
+    return enriched
+
+
+def source_coverage(candidates, attempted=True):
+    """Status counters: how many candidates carry a source body.
+
+    attempted=False (the --no-source-body path) reports no bodies and no
+    read misses — no checkout read was tried, so nothing could miss."""
+    with_body = sum(1 for c in candidates if c.get("body_chars"))
+    spanned = sum(1 for c in candidates if c.get("start_line") is not None
+                  and c.get("end_line") is not None)
+    test = sum(1 for c in candidates if c.get("test"))
+    return {"with_body": with_body,
+            "no_span": len(candidates) - spanned,
+            "read_miss": spanned - with_body if attempted else 0,
+            "test_flagged": test}
 
 
 def kind_breakdown(candidates):
@@ -558,6 +812,11 @@ def cmd_status(args):
                       "receipt_id": (receipt or {}).get("timestamp")},
         "candidates": len(candidates),
         "candidate_kinds": kind_breakdown(candidates),
+        "source_body": source_coverage(
+            candidates,
+            attempted=not getattr(args, "no_source_body", False)),
+        "source_enrichment": "off" if getattr(
+            args, "no_source_body", False) else "on",
         "store": {"vectors": len(store), "manifest": manifest},
         "plan": {"to_embed": len(plan["to_embed"]),
                  "unchanged": len(plan["unchanged"]),
@@ -691,6 +950,11 @@ def main():
                              "stopped instead of losing hours.")
     common.add_argument("--allow-stale", action="store_true",
                         help="override the freshness fail-closed guard")
+    common.add_argument("--no-source-body", action="store_true",
+                        help="skip checkout source enrichment (code-start / "
+                             "section prose); restores the legacy "
+                             "name+signature+docstring-only texts. Useful "
+                             "for ablation against enriched vectors.")
     parser = argparse.ArgumentParser(description=__doc__, parents=[common])
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("status", help="store coverage vs candidates, no embed net",

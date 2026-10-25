@@ -9,19 +9,22 @@ content-hash-keyed store (cbm-embed-store.py), embeds only the deltas via the
 LLM gateway, and stamps the manifest with the current cbm-freshness receipt
 id.
 
-Graph-property notes (schema inspected 2026-10-04, project
-home-patrick-Bachelorprojekt):
-  * Function/Method carry signature + docstring, but NO code/content prop —
-    function/method texts embed name + signature + docstring (no code-start;
-    unavailable in the graph). The Cypher dialect rejects coalesce() and '+'
-    concatenation, and the table parser only supports ONE free-text column
-    (last), so signature and docstring are fetched by separate queries and
-    joined in Python on (qualified_name, file_path).
+Graph-property notes (schema inspected 2026-10-04, spans verified live;
+project home-patrick-Bachelorprojekt):
+  * Function/Method/Class/Interface/Section nodes carry file_path +
+    start_line/end_line but NO code/content prop. Embedding inputs are
+    therefore enriched from the checkout by enrich_candidates_with_source:
+    functions/methods gain a bounded code-start excerpt, classes the
+    class-body start, sections the markdown prose inside the heading span.
+    Pass --no-source-body to restore the legacy name + signature +
+    docstring-only texts (ablation baseline).
+  * The Cypher dialect rejects coalesce() and '+' concatenation, and the
+    table parser only supports ONE free-text column (last), so signature
+    and docstring travel in separate queries and are joined in Python on
+    (qualified_name, file_path, start_line) — the span disambiguates
+    overloads sharing a qualified name.
   * Class/Interface carry docstring + base_classes (no signature).
-  * Section carries NO body text — only name, qualified_name (which encodes
-    the document + heading-slug path), file_path, start/end_line. Section
-    texts therefore embed the heading path + file location, not prose.
-    The section symbol is `section:<qualified_name>#<start_line>` — the
+  * The section symbol is `section:<qualified_name>#<start_line>` — the
     qualified_name is already unique per heading, the line disambiguates
     duplicate headings and survives heading renames differently.
 
@@ -52,7 +55,7 @@ from datetime import datetime, timezone
 
 SCHEMA_VERSION = "k3-embed-sync/1"
 DEFAULT_PROJECT = "home-patrick-Bachelorprojekt"
-DEFAULT_EMBED_URL = "http://127.0.0.1:18235/v1/embeddings"
+DEFAULT_EMBED_URL = "http://127.0.0.1:8095/v1/embeddings"
 DEFAULT_MODEL = "bge-m3"
 DEFAULT_TIMEOUT_S = 60
 EMBED_TIMEOUT_S = 300
@@ -62,6 +65,8 @@ EMBED_BATCH = 16
 DOCSTRING_MAX = 1500
 SIG_MAX = 500
 CODE_MAX = 800
+SECTION_BODY_MAX = 1200
+BODY_LINES = 60
 TEXT_MAX = 1500
 GIT_TIMEOUT_S = 15
 ROUTE_SYMBOL_FALLBACK = "ANY"
@@ -114,6 +119,31 @@ run_cli_json = GRAPH.run_cli_json
 envelope_text = GRAPH.envelope_text
 graph_rows = GRAPH.graph_rows
 
+CLIENT = _load_sibling("cbm_embed_client", "cbm-embed-client.py")
+CLIENT.SyncError = SyncError
+normalize_embed_url = CLIENT.normalize_embed_url
+probe_url_live = CLIENT.probe_url_live
+resolve_embed_urls = CLIENT.resolve_embed_urls
+select_live_urls = CLIENT.select_live_urls
+shard_batches = CLIENT.shard_batches
+DEFAULT_EMBED_URL = CLIENT.DEFAULT_EMBED_URL
+FALLBACK_EMBED_URLS = CLIENT.FALLBACK_EMBED_URLS
+
+
+def embed_batch(texts, url, model, timeout):
+    return CLIENT.embed_batch(texts, url, model, timeout)
+
+
+def embed_texts(texts, url_or_urls, model, timeout=EMBED_TIMEOUT_S, log=None,
+                on_batch=None):
+    return CLIENT.embed_texts(
+        texts, url_or_urls, model, timeout=timeout, log=log,
+        on_batch=on_batch, batch_fn=embed_batch, batch_size=EMBED_BATCH)
+
+ENRICH = _load_sibling("cbm_embed_enrich", "cbm-embed-enrich.py")
+parse_span = ENRICH.parse_span
+read_source_slice = ENRICH.read_source_slice
+
 
 def utc_now_iso():
     return datetime.now(timezone.utc).isoformat()
@@ -138,11 +168,15 @@ manifest_path = STORE.manifest_path
 
 # ── pure candidate/plan layer (no network, no IO — spec-tested) ────────────
 
-def route_text(path, method):
-    """Embedding input for a Route candidate."""
+def route_text(path, method, body=None):
+    """Embedding input for a Route candidate: verb + file path, then an
+    optional handler-body excerpt. None keeps the historic shape."""
     verb = method if isinstance(method, str) and method.strip() \
         else ROUTE_SYMBOL_FALLBACK
-    return "ROUTE %s %s" % (verb.strip(), path)
+    text = "ROUTE %s %s" % (verb.strip(), path)
+    if isinstance(body, str) and body:
+        text = "%s\n%s" % (text, body[:CODE_MAX])
+    return text[:TEXT_MAX]
 
 
 def function_text(qname, docstring, signature=None, code=None):
@@ -167,9 +201,12 @@ def function_text(qname, docstring, signature=None, code=None):
     return "\n".join(parts)[:TEXT_MAX]
 
 
-def method_text(qname, docstring, signature=None, parent=None):
+def method_text(qname, docstring, signature=None, parent=None, code=None):
     """Embedding input for a Method candidate: qualified name + signature,
-    parent-class line for context, then docstring. Capped at TEXT_MAX."""
+    parent-class line for context, then docstring, then an optional
+    source-body excerpt. Capped at TEXT_MAX. `code` has no graph source
+    (Method nodes carry no content prop) and is filled from the checkout
+    by enrich_candidates_with_source; None keeps the historic shape."""
     header = qname
     if isinstance(signature, str) and signature.strip():
         header = "%s %s" % (qname, signature.strip()[:SIG_MAX])
@@ -179,13 +216,16 @@ def method_text(qname, docstring, signature=None, parent=None):
     parts = [header]
     if doc:
         parts.append(doc[:DOCSTRING_MAX])
+    if isinstance(code, str) and code:
+        parts.append(code[:CODE_MAX])
     return "\n".join(parts)[:TEXT_MAX]
 
 
-def class_text(qname, docstring, base=None, label="Class"):
+def class_text(qname, docstring, base=None, label="Class", body=None):
     """Embedding input for a Class/Interface candidate: KIND + qualified
-    name, base-class line, then docstring. Capped at TEXT_MAX. `base` is the
-    raw base_classes rendering from the graph (a string or None)."""
+    name, base-class line, then docstring, then an optional source-body
+    excerpt. Capped at TEXT_MAX. `base` is the raw base_classes rendering
+    from the graph (a string or None); `body` comes from the checkout."""
     kind_word = "INTERFACE" if label == "Interface" else "CLASS"
     header = "%s %s" % (kind_word, qname)
     if base is not None and str(base).strip() and str(base).strip() != "-":
@@ -194,6 +234,8 @@ def class_text(qname, docstring, base=None, label="Class"):
     parts = [header]
     if doc:
         parts.append(doc[:DOCSTRING_MAX])
+    if isinstance(body, str) and body:
+        parts.append(body[:CODE_MAX])
     return "\n".join(parts)[:TEXT_MAX]
 
 
@@ -206,13 +248,18 @@ def section_symbol(qname, start_line):
     return "section:%s#%s" % (qname, start_line)
 
 
-def section_text(qname, name, path, start_line, end_line):
+def section_text(qname, name, path, start_line, end_line, body=None):
     """Embedding input for a Section candidate: heading name + heading path
-    (the qualified_name) + file location. The graph carries no section body,
-    so this embeds structure, not prose. Capped at TEXT_MAX."""
+    (the qualified_name) + file location, then an optional prose excerpt.
+    The graph carries no section body, so prose is filled from the checkout
+    by enrich_candidates_with_source; None keeps the historic
+    structure-only shape. Capped at TEXT_MAX."""
     heading = name if isinstance(name, str) and name.strip() else qname
     loc = "%s:%s-%s" % (path, start_line, end_line)
-    return ("SECTION %s\n%s\n%s" % (heading, qname, loc))[:TEXT_MAX]
+    parts = ["SECTION %s\n%s\n%s" % (heading, qname, loc)]
+    if isinstance(body, str) and body:
+        parts.append(body[:SECTION_BODY_MAX])
+    return "\n".join(parts)[:TEXT_MAX]
 
 
 def is_excluded(path):
@@ -233,69 +280,130 @@ def is_excluded(path):
     return any(seg in segments for seg in EXCLUDED_SEGMENTS)
 
 
+_TEST_DIRNAMES = ("test", "tests", "__tests__", "e2e", "testing")
+
+
+def is_test_path(path):
+    """Heuristic test flag: spec/test suffixes or test directory segments.
+
+    Carried as candidate metadata for downstream filtering/rerank weighting.
+    It never enters the embedding input, so flagging changes no vector."""
+    if not isinstance(path, str) or not path:
+        return False
+    p = path.replace("\\", "/").strip("/")
+    base = p.rsplit("/", 1)[-1].lower()
+    if (".test." in base or ".spec." in base or base.startswith("test_")
+            or base.endswith("_test.py") or base.endswith("_test.go")):
+        return True
+    return any(seg.lower() in _TEST_DIRNAMES for seg in p.split("/"))
+
+
 def build_candidates(route_rows, function_rows, repo, commit,
                      method_rows=(), class_rows=(), section_rows=()):
     """Deterministic candidate list from parsed graph rows.
 
-    route_rows:     (method, file_path) pairs
-    function_rows:  (qualified_name, file_path, docstring[, signature])
+    route_rows:     (method, file_path[, start_line[, end_line]])
+    function_rows:  (qualified_name, file_path, docstring[, signature[,
+                    start_line[, end_line]]])
     method_rows:    (qualified_name, file_path, docstring[, signature[,
-                    parent_class]])
+                    parent_class[, start_line[, end_line]]]])
     class_rows:    (qualified_name, file_path, docstring[, base_classes[,
-                    label]]) — label "Class" (default) or "Interface"
+                    label[, start_line[, end_line]]]]) — label "Class"
+                    (default) or "Interface"
     section_rows:   (qualified_name, file_path, start_line, end_line, name)
                     in graph-column order (free-text name last)
     Keys follow the frozen-corpus scheme repo@commit:path:symbol; routes use
-    the HTTP verb as symbol, functions/methods the qualified name, classes
-    the qualified name, sections `section:<qname>#<line>`. Excluded paths
-    (minified bundles, root assets/, vendor/build dirs) are skipped."""
+    the HTTP verb as symbol, functions/methods/classes the qualified name,
+    sections `section:<qname>#<line>`. Overloads sharing a qualified name
+    are disambiguated as `symbol#<start_line>` so each keeps its own vector.
+    Span-less legacy rows keep their historic key shape. Excluded paths
+    (minified bundles, root assets/, vendor/build dirs) are skipped.
+    Candidates carry `start_line`/`end_line` (ints or None) for source
+    enrichment and a `test` flag that never enters the embedding input.
+    Overload disambiguation is first-seen-wins on the backend snapshot
+    order, which is stable across runs of the same generation; a genuinely
+    new overload therefore only ever adds keys, never renames old ones."""
     cands = {}
 
-    def add(kind, path, symbol, text):
+    def add(kind, path, symbol, text, start_line=None, end_line=None,
+            meta=None):
         if not path or not symbol or is_excluded(path):
             return
+        sl, el = parse_span(start_line), parse_span(end_line)
+        if symbol is not None and make_key(repo, commit, path, symbol) \
+                in cands and sl is not None:
+            symbol = "%s#%d" % (symbol, sl)
         key = make_key(repo, commit, path, symbol)
         if key in cands:
             return
-        cands[key] = {"key": key, "kind": kind, "path": path,
-                      "symbol": symbol, "text": text}
+        rec = {"key": key, "kind": kind, "path": path,
+               "symbol": symbol, "text": text, "start_line": sl,
+               "end_line": el, "test": is_test_path(path)}
+        if meta:
+            rec.update(meta)
+        cands[key] = rec
 
-    for method, path in route_rows:
+    for row in route_rows or ():
+        method, path = row[0], row[1]
+        sl = row[2] if len(row) > 2 else None
+        el = row[3] if len(row) > 3 else None
         if not path or not isinstance(path, str):
             continue
         symbol = method if isinstance(method, str) and method.strip() \
             else ROUTE_SYMBOL_FALLBACK
-        add("route", path, symbol, route_text(path, method))
+        add("route", path, symbol, route_text(path, method), sl, el,
+            meta={"method": method})
     for row in function_rows:
         qname, path, doc = row[0], row[1], row[2] if len(row) > 2 else None
         sig = row[3] if len(row) > 3 else None
+        sl = row[4] if len(row) > 4 else None
+        el = row[5] if len(row) > 5 else None
         if not qname or not path:
             continue
-        add("function", path, qname, function_text(qname, doc, sig))
+        add("function", path, qname, function_text(qname, doc, sig), sl,
+            el, meta={"doc": doc, "sig": sig})
     for row in method_rows or ():
         qname, path = row[0], row[1]
         doc = row[2] if len(row) > 2 else None
         sig = row[3] if len(row) > 3 else None
         parent = row[4] if len(row) > 4 else None
+        sl = row[5] if len(row) > 5 else None
+        el = row[6] if len(row) > 6 else None
         if not qname or not path:
             continue
-        add("method", path, qname, method_text(qname, doc, sig, parent))
+        add("method", path, qname, method_text(qname, doc, sig, parent),
+            sl, el, meta={"doc": doc, "sig": sig, "parent": parent})
     for row in class_rows or ():
         qname, path = row[0], row[1]
         doc = row[2] if len(row) > 2 else None
         base = row[3] if len(row) > 3 else None
         label = row[4] if len(row) > 4 else "Class"
+        sl = row[5] if len(row) > 5 else None
+        el = row[6] if len(row) > 6 else None
         if not qname or not path:
             continue
         kind = "interface" if label == "Interface" else "class"
-        add(kind, path, qname, class_text(qname, doc, base, label))
+        add(kind, path, qname, class_text(qname, doc, base, label), sl,
+            el, meta={"doc": doc, "base": base, "label": label})
     for row in section_rows or ():
         qname, path, start_line, end_line, name = row
-        if not qname or not path:
+        if not qname or not path or is_excluded(path):
             continue
         symbol = section_symbol(qname, start_line)
-        add("section", path, symbol,
-            section_text(qname, name, path, start_line, end_line))
+        sl, el = parse_span(start_line), parse_span(end_line)
+        if make_key(repo, commit, path, symbol) in cands and sl is not None:
+            symbol = "%s@%d" % (symbol, sl)
+        key = make_key(repo, commit, path, symbol)
+        if key in cands:
+            continue
+        cands[key] = {"key": key, "kind": "section", "path": path,
+                      "symbol": symbol,
+                      "text": section_text(qname, name, path, start_line,
+                                           end_line),
+                      "start_line": sl, "end_line": el,
+                      "test": is_test_path(path),
+                      "qname": qname, "name": name,
+                      "raw_start": start_line, "raw_end": end_line}
     return sorted(cands.values(), key=lambda c: (c["path"], c["symbol"]))
 
 
@@ -315,6 +423,21 @@ def plan_sync(candidates, store, model):
         "unchanged": diff["unchanged"],
         "to_prune": diff["to_prune"],
     }
+
+
+def enrich_candidates_with_source(root, candidates,
+                                  code_chars=CODE_MAX,
+                                  section_chars=SECTION_BODY_MAX):
+    composers = {
+        "function_text": function_text,
+        "method_text": method_text,
+        "class_text": class_text,
+        "section_text": section_text,
+        "route_text": route_text,
+    }
+    return ENRICH.enrich_candidates_with_source(
+        root, candidates, code_chars=code_chars,
+        section_chars=section_chars, composers=composers)
 
 
 def apply_plan(candidates, store, model, vectors_by_key):
@@ -382,108 +505,7 @@ def git_head(root):
 
 
 
-# ── embed gateway (thin wrapper around the pure layer) ─────────────────────
-
-def normalize_embed_url(url):
-    url = (url or "").rstrip("/")
-    if url.endswith("/v1/embeddings"):
-        return url
-    if url.endswith("/v1"):
-        return url + "/embeddings"
-    return url + "/v1/embeddings"
-
-
-def embed_batch(texts, url, model, timeout):
-    body = json.dumps({"model": model, "input": list(texts)}).encode("utf-8")
-    req = urllib.request.Request(
-        url, data=body, headers={"Content-Type": "application/json"})
-    last = None
-    for attempt in range(EMBED_ATTEMPTS):
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = json.load(resp)
-            if not isinstance(data, dict) or not isinstance(data.get("data"), list):
-                raise SyncError("embed-envelope-malformed")
-            vecs = [None] * len(data["data"])
-            for item in data["data"]:
-                idx = item.get("index")
-                if isinstance(idx, int) and 0 <= idx < len(vecs):
-                    vecs[idx] = item.get("embedding")
-            if any(v is None for v in vecs):
-                raise SyncError("embed-index-gaps")
-            return vecs
-        except SyncError:
-            raise
-        except Exception as exc:  # transient 401/503/disconnect — retry
-            last = exc
-            if attempt < EMBED_ATTEMPTS - 1:
-                delay = EMBED_BACKOFF_S[min(attempt, len(EMBED_BACKOFF_S) - 1)]
-                eprint("  embed retry %d/%d in %ds: %r"
-                       % (attempt + 1, EMBED_ATTEMPTS, delay, exc))
-                time.sleep(delay)
-    raise SyncError("embed-failed-after-%d-attempts:%r"
-                    % (EMBED_ATTEMPTS, last))
-
-
-def embed_texts(texts, url_or_urls, model, timeout=EMBED_TIMEOUT_S, log=None,
-                on_batch=None):
-    """Embed texts in batches; returns one vector per input, input order.
-
-    url_or_urls: one endpoint string or a list (fan-out for bulk loads:
-    every idle box running llama-server --embeddings — spare CPU RAM or
-    VRAM — can join as an extra endpoint; batches shard round-robin,
-    results re-assemble in input order). A single endpoint preserves the
-    exact legacy sequential behavior. on_batch(pairs) fires after every
-    completed batch with [(text_index, vector)] — used for checkpointing."""
-    if isinstance(url_or_urls, (list, tuple)):
-        urls = [normalize_embed_url(u) for u in url_or_urls if u]
-    else:
-        urls = [normalize_embed_url(url_or_urls)]
-    if not urls:
-        raise SyncError("embed-no-endpoints")
-    chunks = [texts[i:i + EMBED_BATCH]
-              for i in range(0, len(texts), EMBED_BATCH)]
-    assignment = shard_batches(len(chunks), urls)
-    vecs_by_idx = [None] * len(chunks)
-    done = [0]
-
-    def finish(idx, vecs):
-        vecs_by_idx[idx] = vecs
-        done[0] += len(vecs)
-        if log:
-            log("  embedded %d/%d" % (done[0], len(texts)))
-        if on_batch:
-            base = idx * EMBED_BATCH
-            on_batch([(base + j, v) for j, v in enumerate(vecs)])
-
-    if len(urls) == 1:
-        for idx, chunk in enumerate(chunks):
-            finish(idx, embed_batch(chunk, urls[0], model, timeout))
-    else:
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-        with ThreadPoolExecutor(max_workers=len(urls),
-                               thread_name_prefix="embed-fanout") as ex:
-            futs = {ex.submit(embed_batch, chunk, url, model, timeout): idx
-                    for idx, (chunk, url) in enumerate(zip(chunks,
-                                                           assignment))}
-            for fut in as_completed(futs):
-                finish(futs[fut], fut.result())
-    out = []
-    for vecs in vecs_by_idx:
-        out.extend(vecs)
-    return out
-
-
-def shard_batches(n_chunks, urls):
-    """Pure: round-robin endpoint assignment per batch index.
-
-    Heterogeneous helpers (a 2-thread CPU pod next to a full-VRAM GPU box)
-    finish at different rates; chunks are uniform (EMBED_BATCH texts), so
-    static sharding stays fair and order re-assembly stays trivial."""
-    if not urls:
-        raise SyncError("embed-no-endpoints")
-    return [urls[i % len(urls)] for i in range(n_chunks)]
-
+# ── embed gateway (delegates to cbm-embed-client.py — S1 split) ───────────
 
 def merge_pairs(store, pairs, model):
     """Pure: fold freshly embedded (key, text, vector) triples into a copy
@@ -496,18 +518,6 @@ def merge_pairs(store, pairs, model):
         out[key] = {"hash": content_hash(model, text), "model": model,
                     "dim": len(vec), "vector": list(vec)}
     return out
-
-
-def resolve_embed_urls(args):
-    """Precedence: --embed-urls (comma-separated) > $LLM_EMBED_URLS >
-    --embed-url / $LLM_EMBED_URL (legacy single)."""
-    raw = getattr(args, "embed_urls", None)
-    if not raw:
-        raw = os.environ.get("LLM_EMBED_URLS", "")
-    urls = [u.strip() for u in (raw or "").split(",") if u.strip()]
-    if urls:
-        return urls
-    return [args.embed_url]
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────
@@ -528,8 +538,27 @@ def collect_candidates(args, root, head):
     class_rows += GRAPH.fetch_class_like_rows(args.project, args.timeout,
                                         "Interface")
     section_rows = GRAPH.fetch_section_rows(args.project, args.timeout)
-    return build_candidates(route_rows, function_rows, repo_name, head,
-                             method_rows, class_rows, section_rows)
+    candidates = build_candidates(route_rows, function_rows, repo_name, head,
+                                  method_rows, class_rows, section_rows)
+    if getattr(args, "no_source_body", False):
+        return candidates
+    enriched, _coverage = enrich_candidates_with_source(root, candidates)
+    return enriched
+
+
+def source_coverage(candidates, attempted=True):
+    """Status counters: how many candidates carry a source body.
+
+    attempted=False (the --no-source-body path) reports no bodies and no
+    read misses — no checkout read was tried, so nothing could miss."""
+    with_body = sum(1 for c in candidates if c.get("body_chars"))
+    spanned = sum(1 for c in candidates if c.get("start_line") is not None
+                  and c.get("end_line") is not None)
+    test = sum(1 for c in candidates if c.get("test"))
+    return {"with_body": with_body,
+            "no_span": len(candidates) - spanned,
+            "read_miss": spanned - with_body if attempted else 0,
+            "test_flagged": test}
 
 
 def kind_breakdown(candidates):
@@ -558,6 +587,11 @@ def cmd_status(args):
                       "receipt_id": (receipt or {}).get("timestamp")},
         "candidates": len(candidates),
         "candidate_kinds": kind_breakdown(candidates),
+        "source_body": source_coverage(
+            candidates,
+            attempted=not getattr(args, "no_source_body", False)),
+        "source_enrichment": "off" if getattr(
+            args, "no_source_body", False) else "on",
         "store": {"vectors": len(store), "manifest": manifest},
         "plan": {"to_embed": len(plan["to_embed"]),
                  "unchanged": len(plan["unchanged"]),
@@ -589,7 +623,7 @@ def cmd_sync(args):
         texts = [e["text"] for e in plan["to_embed"]]
         keys = [e["key"] for e in plan["to_embed"]]
         text_by_key = dict(zip(keys, texts))
-        urls = resolve_embed_urls(args)
+        urls = select_live_urls(resolve_embed_urls(args))
         pending = [0]
 
         def on_batch(pairs):
@@ -691,6 +725,11 @@ def main():
                              "stopped instead of losing hours.")
     common.add_argument("--allow-stale", action="store_true",
                         help="override the freshness fail-closed guard")
+    common.add_argument("--no-source-body", action="store_true",
+                        help="skip checkout source enrichment (code-start / "
+                             "section prose); restores the legacy "
+                             "name+signature+docstring-only texts. Useful "
+                             "for ablation against enriched vectors.")
     parser = argparse.ArgumentParser(description=__doc__, parents=[common])
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("status", help="store coverage vs candidates, no embed net",

@@ -27,6 +27,27 @@ set -euo pipefail
 # Hourly-Refresh wird nie ausgefuehrt. Export vererbt sich an Helper + Wrapper.
 export PATH="$HOME/.local/bin:$PATH"
 
+# Dynamische Endpunkt-Erkennung abhängig davon, was live ist
+detect_live_embed_url() {
+  local candidates=(
+    "${LLM_EMBED_URL:-}"
+    "http://127.0.0.1:8095/v1/embeddings"
+    "http://127.0.0.1:18235/v1/embeddings"
+  )
+  for u in "${candidates[@]}"; do
+    [ -z "$u" ] && continue
+    local base="${u%/v1/embeddings}"
+    base="${base%/v1}"
+    if curl -s --max-time 1.5 "${base}/health" >/dev/null 2>&1; then
+      echo "$u"
+      return 0
+    fi
+  done
+  echo "${LLM_EMBED_URL:-http://127.0.0.1:8095/v1/embeddings}"
+}
+
+export LLM_EMBED_URL="$(detect_live_embed_url)"
+
 DRY_RUN=false
 REPO_ARG=""
 PROJECT="${CBM_PROJECT:-home-patrick-Bachelorprojekt}"

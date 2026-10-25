@@ -26,6 +26,7 @@ set -euo pipefail
 # Ohne das meldet cbm-freshness.py dauerhaft "tool-missing" (fatal) und der
 # Hourly-Refresh wird nie ausgefuehrt. Export vererbt sich an Helper + Wrapper.
 export PATH="$HOME/.local/bin:$PATH"
+export LLM_EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:8095/v1/embeddings}"
 
 DRY_RUN=false
 REPO_ARG=""

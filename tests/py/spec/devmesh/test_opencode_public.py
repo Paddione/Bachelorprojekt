@@ -195,6 +195,17 @@ def test_no_prod_touch(repo_root: Path):
     )
     assert res.returncode == 0, f"git diff failed:\n{res.stderr}"
     files = [l.strip() for l in res.stdout.splitlines() if l.strip()]
+    if not files:
+        # Push-Runs auf main selbst: HEAD ist in origin/main enthalten, Diff leer
+        # per Konstruktion. Es gibt keinen PR-Scope zu pruefen — skip statt
+        # false-red (leere PR-Diffs bleiben ein Fail, s. assert unten).
+        anc = subprocess.run(
+            ["git", "-C", str(repo_root), "merge-base", "--is-ancestor", "HEAD", "origin/main"],
+            capture_output=True,
+            text=True,
+        )
+        if anc.returncode == 0:
+            pytest.skip("HEAD in origin/main enthalten (push-run) — kein PR-Scope zu pruefen")
     assert files, "no diff vs origin/main — expected opencode component files"
     for f in files:
         assert not f.startswith("prod-"), f"prod touch: {f}"

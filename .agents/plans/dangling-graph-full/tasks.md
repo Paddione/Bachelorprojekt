@@ -1,7 +1,7 @@
 ---
 title: "dangling-graph-full — Alle Graph-Auswertungsarten, Scope als letzte Stufe"
 domains: [website, infra]
-status: staged
+status: completed
 ---
 
 # dangling-graph-full — Implementation Plan

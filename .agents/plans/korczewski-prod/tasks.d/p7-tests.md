@@ -259,3 +259,35 @@ Commit: `test(infra): Guards fuer korczewski-prod Lieferkette`
   einmal; beide Läufe liefern dieselben zehn grünen Tests.
 - **`render_tree` liefert `tmp_path_factory.mktemp(...)`, kein `tmp_path`-Kind.** Wie im Partial
   vorgegeben; die Fixture bleibt damit session-scoped und funktioniert unter xdist unverändert.
+
+## Gate-Beobachtung `task test:changed` (2026-10-26)
+
+Der Lauf ist auf diesem Host **nicht grün**, und zwar aus Gründen, die vor diesem Branch liegen. Die
+fünf klaren Umwelt-Rots wurden je einzeln auf `bc0772bf5` (Hauptcheckout `~/Bachelorprojekt`, exakt
+`origin/main`) nachgestellt und sind dort identisch rot:
+
+| Test | Ursache |
+| --- | --- |
+| `tests/py/scripts/test_workers_status.py` | Skript erwartet WSL-/`nvidia-smi`-Verhalten und erreichbare Proxy-Backends; hier rc=5 |
+| `devflow-mcp/test_graph_index.py::…bge…` | Fake-BGE-Pfad wird nicht benutzt, echter Embedding-Fallback schreibt 3 Symbole |
+| `native_ported/spec/test_website_svelte_check.py` | `svelte-check` im Worktree ohne `components/website/node_modules` |
+| `native_ported/spec/test_workspace_foundation.py` | braucht erreichbaren Cluster (Live-Endpoint) |
+| `native_ported/spec/health-goals/test_korczewski_brand_pause.py` | `kubectl --context fleet` gegen `gekko-hetzner-2.tail8a4425.ts.net`, DNS/Tailnet tot |
+
+Zwei weitere Rots sind Isolations- beziehungsweise Umgebungsartefakte, keine Manifest-Aussage: die
+beiden `test_plan_runner_direct_worker`-Tests (parallel unter `-n 4` rot, einzeln und auf
+`bc0772bf5` grün) und die beiden `test_nightly_persistence`-Tests (parallel rot mit „unbekannte
+Ziel-ID G-RH04", einzeln und als ganzes Verzeichnis unter `-n 4` grün — ein anderer Worker schreibt
+während des Kopierens `components/website/src/lib/sdlc/goals-data.generated.json`).
+
+**Ein Rot war echt und ist behoben:** `repo-structure/test_website_moved.py::test_t007909_…` las den
+Kommentar zu `WEBSITE_IMAGE_TAG` in `environments/korczewski-prod.yaml` als stale
+`website/`-Referenz (Commit `fix(infra): Website-Overlay im Env-Kommentar ohne Pfadform nennen`). Der
+Guard grept `environments/` nach `website/` und lässt nur Zeilen mit `components/website/` durch; die
+Pfadform im Kommentar war der einzige Treffer. Nach der Umformulierung ist der Test grün, auf
+`bc0772bf5` war er es immer.
+
+Alle übrigen Gates sind grün: `task freshness:regenerate` (nur `docs/code-quality/repo-index.json`
+ändert sich, und das ist laut T002687 bewusst nicht Teil der Commit-Menge), `task freshness:check`
+(rc=0), `task workspace:validate` (rc=0), `task test:inventory` (kein Diff nach dem p7-Commit) und
+die zehn neuen Tests (direkt und über `scripts/pytest-run.sh`).

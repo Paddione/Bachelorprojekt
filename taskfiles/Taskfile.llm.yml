@@ -188,11 +188,9 @@ tasks:
       - bash scripts/llm/pk-tablet/apply.sh {{.CLI_ARGS}}
 
   tablet:bootstrap:
-    desc: "PK-Tablet einmalig: WireGuard-Config (WG_CONF=) einspielen und Tailscale anmelden"
-    requires:
-      vars: [WG_CONF]
+    desc: "PK-Tablet einmalig: Tailscale installieren und als pk-tablet-linux anmelden (Optionen nach --, z. B. --host)"
     cmds:
-      - bash scripts/llm/pk-tablet/apply.sh --bootstrap --wg-conf "{{.WG_CONF}}"
+      - bash scripts/llm/pk-tablet/apply.sh --bootstrap {{.CLI_ARGS}}
 
   loadouts:format:
     desc: "Normalisiert loadouts.json auf die kanonische Form — Reparatur fuer loadouts:check [T002553]"

@@ -95,3 +95,15 @@ def test_loadouts_rueckfall_ohne_wireguard_adresse(run_cmd, repo_root):
     assert not any('192.168.100.' in u for u in urls), urls
     assert f'http://{TABLET_ADDRESS}:8080' in roles['rerank']['chain']
     assert f'http://{TABLET_ADDRESS}:8081' in roles['embed']['chain']
+
+
+def test_llm_proxy_darf_das_tablet_erreichen(rendered):
+    # default-deny-egress sperrt Tailnet-Ziele; ohne diese Freigabe antwortete das
+    # Tablet aus workspace mit ECONNREFUSED (2026-10-26).
+    pol = _get(rendered, 'NetworkPolicy', 'allow-llm-tablet-egress')
+    assert pol['spec']['podSelector'] == {'matchLabels': {'app': 'llm-services'}}
+    rules = pol['spec']['egress']
+    cidrs = [t['ipBlock']['cidr'] for r in rules for t in r['to']]
+    ports = sorted(p['port'] for r in rules for p in r['ports'])
+    assert cidrs == [f'{TABLET_ADDRESS}/32']
+    assert ports == [8080, 8081]

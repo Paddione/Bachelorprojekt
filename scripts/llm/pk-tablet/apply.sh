@@ -7,11 +7,12 @@
 # Runbook: docs/runbooks/pk-tablet-inference.md
 #
 #   apply.sh [--host pk-tablet] [--loadouts <pfad>] [--dry-run]
-#   apply.sh --bootstrap --wg-conf <datei> [--host pk-tablet]
+#   apply.sh --bootstrap [--ts-hostname pk-tablet-linux] [--host pk-tablet] [--dry-run]
 #
 # Ein Lauf ist idempotent: gepinnter llama.cpp-Build, fehlende Modelle laden
-# (sha256-geprueft), nicht mehr referenzierte Modelle loeschen (32-GB-Platte),
-# Units ein/aus, ufw-Ports nur auf tailscale0/wg0, dann /health je Loadout.
+# (sha256-geprueft), nicht mehr referenzierte Modelle loeschen (kleine Platte),
+# Units ein/aus, ufw-Ports nur auf tailscale0, dann /health je Loadout.
+# Kein WireGuard: das Mesh 192.168.100.0/24 ist seit ADR-014 abgeschaltet.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,7 +20,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
 HOST="pk-tablet"
 LOADOUTS=""
-WG_CONF=""
+TS_HOSTNAME="pk-tablet-linux"
 DRY_RUN=0
 BOOTSTRAP=0
 
@@ -29,7 +30,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --host)      HOST="$2";     shift 2 ;;
     --loadouts)  LOADOUTS="$2"; shift 2 ;;
-    --wg-conf)   WG_CONF="$2";  shift 2 ;;
+    --ts-hostname) TS_HOSTNAME="$2"; shift 2 ;;
     --dry-run)   DRY_RUN=1;     shift ;;
     --bootstrap) BOOTSTRAP=1;   shift ;;
     -h|--help)   sed -n '2,15p' "$0"; exit 0 ;;
@@ -39,19 +40,19 @@ done
 
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=10)
 
-# --- Bootstrap (einmalig): Netz, das nicht ueber PXE kommen darf -------------
-# Die WireGuard-Config enthaelt den privaten Schluessel. Der PXE-HTTP-Server
-# ist im LAN ohne Anmeldung lesbar, deshalb kommt sie nur hier per SSH.
+# --- Bootstrap (einmalig): Tailscale ---------------------------------------
+# Erreichbar ist das Tablet nur ueber das Tailnet; ufw oeffnet die Inferenz-Ports
+# ausschliesslich auf tailscale0. `tailscale up` gibt eine Login-URL aus.
 if [[ "$BOOTSTRAP" -eq 1 ]]; then
-  [[ -n "$WG_CONF" && -f "$WG_CONF" ]] || die "--bootstrap braucht --wg-conf <datei>"
-  scp -q "${SSH_OPTS[@]}" "$WG_CONF" "${HOST}:/tmp/pk-wg0.conf"
-  ssh -t "${SSH_OPTS[@]}" "$HOST" 'set -e
-    sudo install -m 0600 /tmp/pk-wg0.conf /etc/wireguard/wg0.conf
-    rm -f /tmp/pk-wg0.conf
-    sudo systemctl enable --now wg-quick@wg0
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "tailscale install"
+    echo "tailscale up --hostname ${TS_HOSTNAME}"
+    exit 0
+  fi
+  ssh -t "${SSH_OPTS[@]}" "$HOST" "set -e
     command -v tailscale >/dev/null || curl -fsSL https://tailscale.com/install.sh | sudo sh
-    sudo tailscale up --hostname pk-tablet'
-  echo "bootstrap ok: wg0 aktiv, tailscale angemeldet"
+    sudo tailscale up --hostname ${TS_HOSTNAME}"
+  echo "bootstrap ok: tailscale angemeldet als ${TS_HOSTNAME}"
   exit 0
 fi
 
@@ -79,6 +80,7 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "prune nicht referenzierte Modelle"
   for i in "${!SLUGS[@]}"; do echo "unit enable ${SLUGS[$i]} port ${PORTS[$i]}"; done
   echo "unit disable-others"
+  for i in "${!SLUGS[@]}"; do echo "ufw allow ${PORTS[$i]} on tailscale0"; done
   for i in "${!SLUGS[@]}"; do echo "health ${SLUGS[$i]} ${PORTS[$i]}"; done
   exit 0
 fi
@@ -157,14 +159,12 @@ while read -r slug; do
   echo "unit enable ${slug}"
 done < "$R/enabled.list"
 
-# 5. Firewall: Inferenz-Ports nur ueber Tailnet und WireGuard, nie ins LAN.
+# 5. Firewall: Inferenz-Ports nur ueber das Tailnet, nie ins LAN.
 while n=$(ufw status numbered | awk -F'[][]' '/# llama-/ {print $2; exit}' | tr -d ' '); [[ -n "$n" ]]; do
   ufw --force delete "$n" >/dev/null
 done
 while read -r slug port; do
-  for ifc in tailscale0 wg0; do
-    ufw allow in on "$ifc" to any port "$port" proto tcp comment "llama-${slug}" >/dev/null
-  done
+  ufw allow in on tailscale0 to any port "$port" proto tcp comment "llama-${slug}" >/dev/null
 done < "$R/ports.list"
 
 # 6. Health. Ein 6-GB-Modell von der eMMC laden dauert; 300 s Geduld.

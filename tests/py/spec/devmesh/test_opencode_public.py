@@ -172,11 +172,28 @@ def test_fritz_route(repo_root: Path, tmp_path: Path):
 
 
 def test_no_prod_touch(repo_root: Path):
-    res = subprocess.run(
-        ["git", "-C", str(repo_root), "diff", "--name-only", "origin/main...HEAD"],
+    # Shallow CI checkouts (fetch-depth: 1 plus a separate depth-1
+    # origin/main fetch) may share no history with HEAD — e.g. when main
+    # advanced after the PR merge-ref was created. Then there is no
+    # merge-base and the PR scope cannot be proven. Skip instead of
+    # false-red; a missing origin/main ref still fails the CI fetch step
+    # itself, and full checkouts always resolve a merge-base.
+    mb = subprocess.run(
+        ["git", "-C", str(repo_root), "merge-base", "origin/main", "HEAD"],
         capture_output=True,
         text=True,
     )
+    if mb.returncode != 0:
+        pytest.skip(
+            "no merge-base for origin/main..HEAD in this checkout — scope "
+            f"not provable: {mb.stderr.strip()}"
+        )
+    res = subprocess.run(
+        ["git", "-C", str(repo_root), "diff", "--name-only", mb.stdout.strip(), "HEAD"],
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0, f"git diff failed:\n{res.stderr}"
     files = [l.strip() for l in res.stdout.splitlines() if l.strip()]
     assert files, "no diff vs origin/main — expected opencode component files"
     for f in files:

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-26T03:49:42.048Z",
+  "generatedAt": "2026-10-26T11:44:52.875Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -180,6 +180,18 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "knowledge-reindex-all"
+    },
+    {
+      "id": "gemma-embed",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "gemma-embed"
+    },
+    {
+      "id": "gemma-embed-bulk",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "gemma-embed-bulk"
     },
     {
       "id": "bge-embed",
@@ -546,6 +558,12 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "shared-db-dev-lb"
+    },
+    {
+      "id": "llm-gateway-gemma-embed",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "llm-gateway-gemma-embed"
     },
     {
       "id": "llm-gateway-lfm-embed",
@@ -1410,6 +1428,18 @@
     {
       "from": "einvoice-sidecar",
       "to": "einvoice-sidecar",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "llm-gateway-gemma-embed",
+      "to": "gemma-embed",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "llm-gateway-gemma-embed",
+      "to": "gemma-embed-bulk",
       "via": "selector",
       "kind": "selector"
     },

@@ -3318,6 +3318,12 @@
     "kind": "pytest"
   },
   {
+    "id": "devmesh/opencode_android_paket",
+    "file": "tests/py/spec/devmesh/test_opencode_android_paket.py",
+    "category": "devmesh",
+    "kind": "pytest"
+  },
+  {
     "id": "devmesh/opencode_public",
     "file": "tests/py/spec/devmesh/test_opencode_public.py",
     "category": "devmesh",

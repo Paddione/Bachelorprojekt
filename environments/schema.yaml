@@ -768,6 +768,12 @@ secrets:
     generate: true
     length: 32
 
+  - name: OPENCODE_SERVER_PASSWORD
+    required: false # devmesh-only (opencode serve laeuft nur dort); kein Fleet-Key
+    generate: true
+    length: 32
+    description: "Basic-Auth-Passwort (User opencode) fuer opencode serve auf devmesh (Android via Tailscale, #6944-Follow-up). Retrieve via kubectl get secret workspace-secrets -n workspace -o jsonpath='{.data.OPENCODE_SERVER_PASSWORD}' | base64 -d."
+
   # KEYCLOAK_DB_PASSWORD and KEYCLOAK_ADMIN_PASSWORD removed — Keycloak decommissioned
   # (pocket-id-migration Welle 3, 2026-06-22). Point of no return reached — do NOT
   # re-seal or re-add. The keys were also purged from environments/.secrets/*.yaml and

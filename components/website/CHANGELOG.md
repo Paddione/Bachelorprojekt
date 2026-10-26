@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.433.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.433.1...website-v1.433.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **scripts:** label local k3 pipeline lfm25-embedding-350m, add qwen3 rebuild driver ([#6900](https://github.com/Paddione/Bachelorprojekt/issues/6900)) ([183af29](https://github.com/Paddione/Bachelorprojekt/commit/183af29b0e3f65f815ef0758138469243dbccdd3))
+
 ## [1.433.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.433.0...website-v1.433.1) (2026-10-26)
 
 

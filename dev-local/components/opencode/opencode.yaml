@@ -45,10 +45,11 @@ spec:
           # smanx/opencode war ein Rebuild derselben Version ohne Mehrwert.
           image: ghcr.io/anomalyco/opencode:2.1.4@sha256:6176a71bf7c1352d9aa9e7f112a4ef38443079a2f435789a33dd5ae809acea1a
           imagePullPolicy: IfNotPresent
-          # [Issue #6944] KEIN `serve` als Arg: der Image-Entrypoint hängt
-          # `serve` selbst an (`-> opencode serve`); ein weiteres `serve`
-          # bricht mit `Unexpected positional argument: "serve"` ab.
+          # [Issue #6949] Offizielles Image (anomalyco) braucht `serve` explizit:
+          # `opencode serve --hostname ... --port ...`. smanx prependete `serve`
+          # selbst (#6944) — das gilt hier NICHT.
           args:
+            - serve
             - --hostname
             - 0.0.0.0
             - --port
@@ -56,18 +57,19 @@ spec:
           ports:
             - containerPort: 4096
               name: http
+          # tcpSocket statt httpGet (#6949): mit OPENCODE_SERVER_PASSWORD
+          # beantwortet der Server / mit 401 (Basic-Auth), httpGet-Probes
+          # wuerden ewig failen.
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 4096
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 4096
             initialDelaySeconds: 30
-            periodSeconds: 30
+            periodSeconds: 10
           resources:
             requests:
               memory: 256Mi

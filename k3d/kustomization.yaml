@@ -91,11 +91,9 @@ resources:
   - llm-gpu.yaml
   # EmbeddingGemma-Dense (parallel zu BGE, Shadow-Reindex-Ziel)
   - llm-gemma-embed.yaml
-  # LFM2.5 Retrieval (Embedding + ColBERT) auf gpu-metal — Nachfolger der
-  # Desktop-Dienste :8095/:8097, Desktop sieht localhost via Port-Forward.
+  # LFM2.5 Embedding auf gpu-metal — Nachfolger des Desktop-Dienstes :8095,
+  # Desktop sieht localhost via Port-Forward.
   - llm-retrieval-gpu.yaml
-  # ColBERT-MaxSim-Rerank (CPU) ueber lfm-colbert — Rolle colbert-rerank.
-  - llm-retrieval-maxsim.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml
   # Pocket ID — passkey-first OIDC provider on auth.<domain>, sole OIDC

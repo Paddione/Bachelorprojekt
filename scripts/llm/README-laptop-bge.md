@@ -18,9 +18,9 @@ Runbook zum Design-Doc `2026-08-15-laptop-bge-topologie` (T006143).
 2. LM Studio installieren, per LM Link anbinden (Einstellungen → LM Link, Code vom Desktop-WSL übernehmen).
 3. Hardware-Settings: Vulkan/iGPU **explizit aktivieren** (seit 0.4.17 default-aus).
 4. Modelle laden: bge-reranker-v2-m3 (GGUF Q8_0), Gemma-4-12B (UD-IQ3_XXS).
-5. llama-server: `winget install llama.cpp`, dann
-   `powershell -ExecutionPolicy Bypass -File scripts/llm/start-tablet-rerank.ps1` (Pfad aufs Gerät kopiert).
-6. Scheduled Task registrieren (Befehl im Kopf von `start-tablet-rerank.ps1`).
+5. llama-server: `winget install llama.cpp`. Das fruehere Startskript
+   `start-tablet-rerank.ps1` ist entfernt (2026-10-26, Tablet-Rerank stillgelegt).
+6. (entfaellt)
 7. Firewall-Regel für den Rerank-Port, gescoped aufs Mesh-Subnetz (elevated):
 
    ```powershell

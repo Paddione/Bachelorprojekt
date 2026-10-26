@@ -11,21 +11,15 @@ Retrieval-Routen des LLM-Proxys (Port 18235): `/v1/embeddings`,
    - `/v1/embeddings` -> Rolle `embed` (bge-m3, 1024 Dimensionen)
    - `/v1/rerank` -> Rolle `rerank` (bge Cross-Encoder, unveraendert)
    - `/v1/lfm/embeddings` -> Rolle `lfm-embed` (LFM2.5-Embedding, eigener Raum)
-   - `/v1/colbert/embeddings` -> Rolle `colbert-embed` (LFM2.5-ColBERT,
-     Late-Interaction auf Token-Ebene)
-   - `/v1/colbert/rerank` -> Rolle `colbert-rerank` (MaxSim als eigener
-     Cluster-Dienst `llm-gateway-colbert-maxsim`, dient den kanonischen Pfad
-     nativ, kompatibel weiter `/v1/rerank`)
-   - Alle fuenf Routen sind strikt von der Chat-Modellaufloesung
+   - ColBERT-Rollen (`/v1/colbert/*`) entfernt 2026-10-26: Code-Suche mit
+     MaxSim MRR@10 0,495 gegen 0,552 ohne Rerank, kein Verbraucher mehr.
+   - Alle drei Routen sind strikt von der Chat-Modellaufloesung
      (`/v1/models`) getrennt. Die Rolle kommt aus dem PFAD, nie aus dem
      Modellfeld (`scripts/llm-proxy/bge-routes.mjs`, `roleForPath`).
    - Upstream-nativer Pfad: Der kanonische Pfad waehlt nur die Rolle;
      upstream geht der native Pfad raus (`forwardPathForRole`):
      `embed`/`lfm-embed` -> `/v1/embeddings` (OAI-Shape `{"input"}`),
-     `colbert-embed` -> `/embedding` (llama-nativ `{"content"}`,
-     Token-Ebene; OAI-Pfad lehnt Pooling-none mit 400 ab),
-     `rerank` -> `/v1/rerank`, `colbert-rerank` -> `/v1/colbert/rerank`
-     (eigener Dienst, kompatibel `/v1/rerank`). Unveraendertes
+     `rerank` -> `/v1/rerank`. Unveraendertes
      Durchreichen antwortete an llama.cpp mit 404 (belegt 2026-10-26).
    - Kein Quer-Fallback zwischen Vektorraeumen: ist eine Kette erschoepft,
      antwortet der Proxy 503 (`bge_chain_exhausted`) mit Grund je Glied.
@@ -46,14 +40,10 @@ Retrieval-Routen des LLM-Proxys (Port 18235): `/v1/embeddings`,
    - `embed`: Tablet (`llm-gateway-tablet:8081`, Prioritaet 5) vor Cluster
      (`llm-gateway-embed`, Prioritaet 10). Kein `lmstudio`-Glied mehr
      (entfernt in `5fe38fbbb`, siehe E5-Protokoll unten).
-   - `rerank`: Tablet (`llm-gateway-tablet:8080`, Prioritaet 5) vor Cluster
-     (`llm-gateway-rerank`, Prioritaet 10), unveraendert.
+   - `rerank`: nur Cluster (`llm-gateway-rerank`, Prioritaet 10). Tablet-Rerank
+     entfernt 2026-10-26 (40 Kandidaten x 400 Zeichen: 23,7 s auf dem Tablet).
    - `lfm-embed`: nur Cluster (`llm-gateway-lfm-embed:8081`, Prioritaet 10).
      Das Tablet traegt nur bge und entfaellt hier.
-   - `colbert-embed`: nur Cluster (`llm-gateway-lfm-colbert:8081`,
-     Prioritaet 10).
-   - `colbert-rerank`: nur Cluster (`llm-gateway-colbert-maxsim:8081`,
-     Prioritaet 10).
 
 4. **Anfragegetriebenes Failover (E1):**
    - Die Registry liefert nur Mitgliedschaft und Reihenfolge.

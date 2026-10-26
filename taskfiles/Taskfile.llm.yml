@@ -35,15 +35,14 @@ tasks:
         echo "✓ bge-embed + bge-rerank applied (ENV={{.ENV}})"
 
   deploy-retrieval:
-    desc: "Apply LFM2.5 retrieval Deployments + PVCs + Services (k3d/llm-retrieval-gpu.yaml + k3d/llm-retrieval-maxsim.yaml) to ENV={{.ENV}}"
+    desc: "Apply LFM2.5 Embedding Deployment + PVC + Service (k3d/llm-retrieval-gpu.yaml) to ENV={{.ENV}}"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f k3d/llm-retrieval-gpu.yaml
-        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f k3d/llm-retrieval-maxsim.yaml
-        echo "✓ lfm-embed + lfm-colbert + colbert-maxsim applied (ENV={{.ENV}})"
+        echo "✓ lfm-embed applied (ENV={{.ENV}})"
 
   status:
     desc: "Show LLM pipeline status (bge Deployments, gateway services, health). ENV=<env>"

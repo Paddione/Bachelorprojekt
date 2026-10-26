@@ -60,17 +60,22 @@ def _chain(run_cmd, repo_root, role, backends_json):
 def test_tablet_service_und_endpointslice(rendered):
     svc = _get(rendered, 'Service', 'llm-gateway-tablet')
     assert 'selector' not in svc['spec']
-    assert {p['name']: p['port'] for p in svc['spec']['ports']} == {'rerank': 8080, 'embed': 8081}
+    assert {p['name']: p['port'] for p in svc['spec']['ports']} == {'embed': 8081}
     eps = _get(rendered, 'EndpointSlice', 'llm-gateway-tablet')
     assert eps['metadata']['labels']['kubernetes.io/service-name'] == 'llm-gateway-tablet'
     assert [a for e in eps['endpoints'] for a in e['addresses']] == [TABLET_ADDRESS]
-    assert {p['name']: p['port'] for p in eps['ports']} == {'rerank': 8080, 'embed': 8081}
+    assert {p['name']: p['port'] for p in eps['ports']} == {'embed': 8081}
 
 
-def test_rerank_kette_tablet_zuerst(rendered, run_cmd, repo_root):
-    chain = _chain(run_cmd, repo_root, 'rerank', _backends(rendered))
-    assert chain[0] == 'http://llm-gateway-tablet:8080'
-    assert any('llm-gateway-rerank' in u for u in chain[1:])
+def test_rerank_kette_ohne_tablet(rendered, run_cmd, repo_root):
+    # User-Entscheidung 2026-10-26 (loest D3 fuer rerank ab): 40 Kandidaten x 400
+    # Zeichen brauchen auf dem Tablet 23,7 s (iGPU) bzw. 26,8 s (AVX-512) gegen
+    # 383 ms auf GPU — tablet-rerank ist aus Registry und Geraete-Loadout entfernt.
+    backends = _backends(rendered)
+    chain = _chain(run_cmd, repo_root, 'rerank', backends)
+    assert 'llm-gateway-rerank' in chain[0]
+    assert 'http://llm-gateway-tablet:8080' not in chain
+    assert 'tablet-rerank' not in {b['name'] for b in json.loads(backends)}
 
 
 def test_embed_kette_tablet_zuerst_cluster_als_rueckfall(rendered, run_cmd, repo_root):
@@ -99,7 +104,7 @@ def test_loadouts_rueckfall_ohne_wireguard_adresse(run_cmd, repo_root):
     # Dienst-DNS, nicht per IP-Literal. Die IP bleibt per EndpointSlice-
     # und NetworkPolicy-Test gepinnt (siehe oben).
     assert not any(TABLET_ADDRESS in u for u in urls), urls
-    assert 'http://llm-gateway-tablet:8080' in roles['rerank']['chain']
+    assert 'http://llm-gateway-tablet:8080' not in roles['rerank']['chain']
     assert 'http://llm-gateway-tablet:8081' in roles['embed']['chain']
 
 
@@ -112,4 +117,5 @@ def test_llm_proxy_darf_das_tablet_erreichen(rendered):
     cidrs = [t['ipBlock']['cidr'] for r in rules for t in r['to']]
     ports = sorted(p['port'] for r in rules for p in r['ports'])
     assert cidrs == [f'{TABLET_ADDRESS}/32']
-    assert ports == [8080, 8081]
+    # Nur noch Embedding (:8081); Tablet-Rerank (:8080) entfernt 2026-10-26.
+    assert ports == [8081]

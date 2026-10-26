@@ -377,12 +377,6 @@ def test_powershell_ascii_only(repo_root: Path):
         text = raw.decode("ascii")
         assert not re.search(r"Set-Content.*-Encoding\s+UTF8", text), f"{f.name} uses Set-Content -Encoding UTF8"
 
-    tablet_rerank = repo_root / "scripts" / "llm" / "start-tablet-rerank.ps1"
-    assert tablet_rerank.is_file()
-    t_text = tablet_rerank.read_text()
-    for flag in ["--reranking", "-ngl", "8080", "bge-reranker-v2-m3-Q8_0.gguf", r".lmstudio\models"]:
-        assert flag in t_text
-
 
 # ── reflector-annotations.bats ─────────────────────────────────────────────
 

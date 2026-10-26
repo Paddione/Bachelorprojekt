@@ -1,9 +1,9 @@
 """PK-Tablet in der llm-proxy-Registry des devmesh.
 
-Rerank laeuft primaer auf dem Tablet, Embedding primaer im Cluster mit dem Tablet
-als Rueckfall (User-Entscheidung 2026-10-26). Geprueft werden die gerenderten
-Manifeste (kubectl kustomize) und die Ketten, die der Proxy selbst daraus baut
-(resolveRoleChain), nicht der Quelltext.
+Rerank und Embedding laufen primaer auf dem Tablet, der Cluster ist Rueckfall
+(User-Entscheidung D3 2026-10-26: Tablet Prioritaet 5, Cluster Prioritaet 10).
+Geprueft werden die gerenderten Manifeste (kubectl kustomize) und die Ketten,
+die der Proxy selbst daraus baut (resolveRoleChain), nicht der Quelltext.
 """
 import json
 import shutil
@@ -73,10 +73,12 @@ def test_rerank_kette_tablet_zuerst(rendered, run_cmd, repo_root):
     assert any('llm-gateway-rerank' in u for u in chain[1:])
 
 
-def test_embed_kette_cluster_zuerst_tablet_als_rueckfall(rendered, run_cmd, repo_root):
+def test_embed_kette_tablet_zuerst_cluster_als_rueckfall(rendered, run_cmd, repo_root):
+    # D3 (User-Entscheidung 2026-10-26, Plan-Prioritaet 5): Tablet (Prioritaet 5)
+    # ist Erstglied der embed-Kette, der Cluster (Prioritaet 10) Rueckfall.
     chain = _chain(run_cmd, repo_root, 'embed', _backends(rendered))
-    assert 'llm-gateway-embed' in chain[0]
-    assert chain[1] == 'http://llm-gateway-tablet:8081'
+    assert chain[0] == 'http://llm-gateway-tablet:8081'
+    assert 'llm-gateway-embed' in chain[1]
 
 
 def test_loadouts_rueckfall_ohne_wireguard_adresse(run_cmd, repo_root):
@@ -93,8 +95,12 @@ def test_loadouts_rueckfall_ohne_wireguard_adresse(run_cmd, repo_root):
     urls = [u for r in roles.values() for u in r['chain']]
     # ADR-014: das WireGuard-Mesh 192.168.100.0/24 existiert nicht mehr.
     assert not any('192.168.100.' in u for u in urls), urls
-    assert f'http://{TABLET_ADDRESS}:8080' in roles['rerank']['chain']
-    assert f'http://{TABLET_ADDRESS}:8081' in roles['embed']['chain']
+    # D4 (User-Entscheidung 2026-10-26): der E3-Rueckfall fuehrt das Tablet per
+    # Dienst-DNS, nicht per IP-Literal. Die IP bleibt per EndpointSlice-
+    # und NetworkPolicy-Test gepinnt (siehe oben).
+    assert not any(TABLET_ADDRESS in u for u in urls), urls
+    assert 'http://llm-gateway-tablet:8080' in roles['rerank']['chain']
+    assert 'http://llm-gateway-tablet:8081' in roles['embed']['chain']
 
 
 def test_llm_proxy_darf_das_tablet_erreichen(rendered):

@@ -205,12 +205,15 @@ def test_retrieval_recommend_tools_mit_max_tier_dangerous_nimmt_pods_exec_auf(in
     assert indexed.output == "pods_exec dangerous"
 
 
-def test_retrieval_rerank_ausfall_degradiert_statt_zu_scheitern(indexed):
+def test_retrieval_search_code_ohne_rerank_ist_immun_gegen_rerank_ausfall(indexed):
+    # search_code rerankt seit dotfiles#259 nicht mehr (Gemma allein MRR@10 0,552,
+    # Reranker darunter/im Rauschen bei ~19 s Latenz) — ein Rerank-Ausfall kann
+    # diesen Pfad daher weder scheitern lassen noch degradieren.
     indexed.call("search_code", '{"query":"claim a lock for a worktree","k":1}',
                  extra_env={"FAKE_BGE_FAIL_RERANK": "1"})
     assert indexed.status == 0
-    indexed.json("d.results.length + ' ' + d.degraded.join(',')")
-    assert indexed.output == "1 rerank"
+    indexed.json("d.results.length + ' ' + d.degraded.length")
+    assert indexed.output == "1 0"
 
 
 def test_retrieval_ohne_rerank_sortiert_recommend_tools_lexikalisch_statt_in_registry_reihenfolge(

@@ -36,6 +36,32 @@ def check_measure(report_path: str) -> dict:
     return json.loads(Path(report_path).read_text(encoding="utf-8"))
 
 
+def _make_eval_callback(eval_corpus: str, sample: int = 30):
+    """Gemma-cookbook pattern: triplet acc/margin on a small eval sample per log step."""
+    from transformers import TrainerCallback
+
+    rows = [json.loads(l) for l in Path(eval_corpus).read_text(encoding="utf-8").splitlines() if l.strip()][:sample]
+
+    class _EvalCallback(TrainerCallback):
+        def on_log(self, args, state, control, model=None, **kwargs):
+            import numpy as np
+            try:
+                if model is None:
+                    return
+                ok, margins = 0, []
+                for r in rows:
+                    e = np.asarray(model.encode([r["anchor"], r["positive"], r["negative"]],
+                                                normalize_embeddings=True), dtype=np.float64)
+                    sp, sn = float(e[0] @ e[1]), float(e[0] @ e[2])
+                    ok += sp > sn
+                    margins.append(sp - sn)
+                print(f"[step {state.global_step}] eval-sample n={len(rows)} "
+                      f"acc={ok/len(rows):.3f} margin={float(np.mean(margins)):.3f}", flush=True)
+            except Exception as e:
+                print(f"[step {state.global_step}] eval-sample skipped: {e}", flush=True)
+
+    return _EvalCallback()
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--corpus", required=True)
@@ -99,6 +125,19 @@ def main() -> None:
         except Exception as e:
             print(f"torch.compile skipped: {e}")
     model.max_seq_length = seq_len
+
+    # Prompt parity (Gemma cookbook pattern): baked corpus prefixes must match the
+    # model's native prompts, otherwise train/serve drift silently. qa/fact-check
+    # have no native counterpart and are intentionally custom (GGUF serving uses
+    # baked text, llama-server has no prompt_name concept).
+    native = list(dict.fromkeys(model.prompts.values())) if hasattr(model, "prompts") else []
+    custom = ["task: question answering | query: ", "task: fact checking | query: "]
+    bad = [r["anchor"][:60] for r in rows
+           if not (any(r["anchor"].startswith(p) for p in native + custom)
+                   or (r["anchor"].startswith("title: ") and "| text: " in r["anchor"][:80]))]
+    if bad:
+        raise SystemExit(f"FEHLER: {len(bad)} anchor(s) ohne nativen/custom Prefix, z.B. {bad[0]!r}")
+    print(f"prompt-parity ok: {len(native)} native + {len(custom)} custom prefixes")
     ds = Dataset.from_list([{"anchor": r["anchor"], "positive": r["positive"], "negative": r["negative"]} for r in rows])
     inner = MultipleNegativesRankingLoss(model)
     loss = MatryoshkaLoss(model, inner, matryoshka_dims=[768, 512, 256, 128]) if args.matryoshka else inner
@@ -107,7 +146,8 @@ def main() -> None:
         per_device_train_batch_size=args.batch_size, learning_rate=float(args.lr),
         warmup_ratio=0.1, logging_steps=50, save_steps=200,
     )
-    trainer = SentenceTransformerTrainer(model=model, args=targs, train_dataset=ds, loss=loss)
+    trainer = SentenceTransformerTrainer(model=model, args=targs, train_dataset=ds, loss=loss,
+                                             callbacks=[_make_eval_callback(args.eval_corpus)] if args.eval_corpus else None)
     trainer.train()
     model.save_pretrained(args.output_dir)
     print(f"saved to {args.output_dir}")

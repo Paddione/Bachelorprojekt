@@ -67,10 +67,18 @@ def test_tablet_service_und_endpointslice(rendered):
     assert {p['name']: p['port'] for p in eps['ports']} == {'rerank': 8080, 'embed': 8081}
 
 
-def test_rerank_kette_tablet_zuerst(rendered, run_cmd, repo_root):
-    chain = _chain(run_cmd, repo_root, 'rerank', _backends(rendered))
-    assert chain[0] == 'http://llm-gateway-tablet:8080'
-    assert any('llm-gateway-rerank' in u for u in chain[1:])
+def test_rerank_kette_ohne_tablet(rendered, run_cmd, repo_root):
+    # User-Entscheidung 2026-10-26 (loest D3 fuer rerank ab): 40 Kandidaten x 400
+    # Zeichen brauchen auf dem Tablet 23,7 s (iGPU) bzw. 26,8 s (AVX-512) gegen
+    # 383 ms auf GPU — tablet-rerank steht hinter dem Cluster und ist deaktiviert.
+    backends = _backends(rendered)
+    chain = _chain(run_cmd, repo_root, 'rerank', backends)
+    assert 'llm-gateway-rerank' in chain[0]
+    assert 'http://llm-gateway-tablet:8080' not in chain
+    tablet = next(b for b in json.loads(backends) if b['name'] == 'tablet-rerank')
+    cluster = next(b for b in json.loads(backends) if b['name'] == 'cluster-rerank')
+    assert tablet['enabled'] is False
+    assert tablet['priority'] > cluster['priority']
 
 
 def test_embed_kette_tablet_zuerst_cluster_als_rueckfall(rendered, run_cmd, repo_root):

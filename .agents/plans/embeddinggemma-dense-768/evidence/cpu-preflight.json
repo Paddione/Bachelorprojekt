@@ -1,0 +1,45 @@
+{
+  "model": "unsloth/embeddinggemma-300m-GGUF",
+  "quant": "Q8_0",
+  "dimensions": 768,
+  "runtime": "llama.cpp b11561",
+  "node": "gpu-cluster2 i5-6500T",
+  "threads": 2,
+  "ngl": 0,
+  "smoke_passed": true,
+  "cases": [
+    {
+      "query": "Welcher Planet ist rot?",
+      "expected": 0,
+      "best": 0,
+      "seconds": 0.05924150999635458,
+      "scores": [
+        0.8093833704329809,
+        0.3310897072512383,
+        0.3767870743144658
+      ]
+    },
+    {
+      "query": "Where is the capital of France?",
+      "expected": 2,
+      "best": 2,
+      "seconds": 0.05550019799557049,
+      "scores": [
+        0.29195479147331377,
+        0.22141454463659674,
+        0.7344250184856024
+      ]
+    },
+    {
+      "query": "Wo werden Datensätze gespeichert?",
+      "expected": 1,
+      "best": 1,
+      "seconds": 0.06591058099729707,
+      "scores": [
+        0.34439790030986805,
+        0.6840273490783015,
+        0.36012369374772785
+      ]
+    }
+  ]
+}

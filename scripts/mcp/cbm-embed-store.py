@@ -36,7 +36,9 @@ from datetime import datetime, timezone
 SCHEMA_VERSION = "k3-embed-store/1"
 ARTIFACT_NAME = "embed-index.jsonl"
 MANIFEST_NAME = "embed-manifest.json"
-DEFAULT_MODEL = "bge-m3"
+# Must match the :8095 serving model (LFM2.5, see cbm-embed-sync.py) —
+# cluster-facing bge-m3 paths keep their own label.
+DEFAULT_MODEL = "lfm25-embedding-350m"
 VECTOR_DECIMALS = 6
 
 

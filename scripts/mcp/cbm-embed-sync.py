@@ -56,7 +56,12 @@ from datetime import datetime, timezone
 SCHEMA_VERSION = "k3-embed-sync/1"
 DEFAULT_PROJECT = "home-patrick-Bachelorprojekt"
 DEFAULT_EMBED_URL = "http://127.0.0.1:8095/v1/embeddings"
-DEFAULT_MODEL = "bge-m3"
+# Model label must match the serving endpoint: :8095 runs LFM2.5-Embedding
+# (ex-Qwen3-Embedding slot, swapped Oct 2026) — NOT bge-m3. The hash over
+# (model, text) re-embeds everything on rename by construction, so a wrong
+# label silently corrupts the store on the next endpoint swap. Cluster-facing
+# bge-m3 paths (knowledge pgvector, bge-mcp) keep their own label.
+DEFAULT_MODEL = "lfm25-embedding-350m"
 DEFAULT_TIMEOUT_S = 60
 EMBED_TIMEOUT_S = 300
 EMBED_ATTEMPTS = 4

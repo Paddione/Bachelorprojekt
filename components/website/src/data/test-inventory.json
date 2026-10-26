@@ -2568,6 +2568,12 @@
     "kind": "pytest"
   },
   {
+    "id": "cbm/k3_model_labels",
+    "file": "tests/py/spec/cbm/test_k3_model_labels.py",
+    "category": "cbm",
+    "kind": "pytest"
+  },
+  {
     "id": "cbm/multi_project_receipts",
     "file": "tests/py/spec/cbm/test_multi_project_receipts.py",
     "category": "cbm",

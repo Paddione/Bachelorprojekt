@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.436.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.435.0...website-v1.436.0) (2026-10-26)
+
+
+### Features
+
+* **infra:** korczewski-prod Lieferkette fuer Website und Pocket ID ([#6924](https://github.com/Paddione/Bachelorprojekt/issues/6924)) ([f7fee18](https://github.com/Paddione/Bachelorprojekt/commit/f7fee18aebe06816472884b3e438e7d7b25baef6))
+
 ## [1.435.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.434.0...website-v1.435.0) (2026-10-26)
 
 

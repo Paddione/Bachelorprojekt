@@ -241,3 +241,21 @@ nie `-u` über den Worktree. Kein PR: Staging per Push, Abschluss übernimmt `de
 Verify: `bash -c 'python3 -m pytest tests/py/spec/korczewski-prod -q --collect-only >/dev/null && python3 -m pytest tests/py/spec/korczewski-prod -q && bash scripts/pytest-run.sh tests/py/spec/korczewski-prod && echo OK'`
 
 Commit: `test(infra): Guards fuer korczewski-prod Lieferkette`
+
+## Abweichungen bei der Ausführung (2026-10-26)
+
+- **Der Rot-Beleg aus Task 1 ist auf diesem Branch nicht reproduzierbar.** Task 1 verlangt, die
+  Dateien „vor dem Abschluss von p2–p5" anzulegen, damit der Lauf rot ist. Die Ausführungsreihenfolge
+  dieses Plans ist aber p1 → p2 → p3 → p4 → p8 → p5 → p6 → p7 (p7 pinnt die Artefakte und ist der
+  letzte Manifest-Partial), also existierten alle Zielpfade beim Anlegen der Tests bereits. Die
+  Testinhalte sind unverändert die aus Task 2 und Task 3 — kein Platzhalter, keine abgeschwächte
+  Zwischenform —, und der Grünlauf ist das Gate. Der Rot-Beleg bleibt als Aussage über `main@bc0772bf5`
+  gültig (dort fehlen `tests/py/spec/korczewski-prod/`, `scripts/korczewski-prod/`,
+  `flux/clusters/korczewski-prod/`, `korczewski-prod/` und der Workflow).
+- **Der Repo-Runner rendert viermal, nicht einmal.** `bash scripts/pytest-run.sh` startet pytest mit
+  `-n 4` (xdist); eine session-scoped Fixture gilt je Worker, also rendert `render_tree` einmal pro
+  Worker. Das ist korrekt und ohne Semantik für die Assertions, widerspricht aber dem Satz „ein
+  einziger Render" aus Task 4. Der direkte Aufruf `python3 -m pytest …` (ohne xdist) rendert genau
+  einmal; beide Läufe liefern dieselben zehn grünen Tests.
+- **`render_tree` liefert `tmp_path_factory.mktemp(...)`, kein `tmp_path`-Kind.** Wie im Partial
+  vorgegeben; die Fixture bleibt damit session-scoped und funktioniert unter xdist unverändert.

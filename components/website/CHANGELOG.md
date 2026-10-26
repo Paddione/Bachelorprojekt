@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.438.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.1...website-v1.438.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **infra:** opencode args ohne doppeltes serve ([#6944](https://github.com/Paddione/Bachelorprojekt/issues/6944)) ([#6945](https://github.com/Paddione/Bachelorprojekt/issues/6945)) ([8a7f821](https://github.com/Paddione/Bachelorprojekt/commit/8a7f821f36f9822a2c2f8167eab90f4ef1127d51))
+
 ## [1.438.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.0...website-v1.438.1) (2026-10-26)
 
 

@@ -197,6 +197,7 @@ task: Available tasks for this project:
 * llm:bootstrap-host:                           Bootstrap the GPU host (ufw, wg-mesh reachability). HOST=<wg-mesh-ip>
 * llm:comfy-image:install:                      Bild-MCP (127.0.0.1:13008, ComfyUI bei Bedarf) installieren und in Muse Code (WSL + Windows) eintragen [T900379]
 * llm:deploy:                                   Apply bge Deployments + PVCs + Services (k3d/llm-gpu.yaml) to ENV=mentolder
+* llm:deploy-retrieval:                         Apply LFM2.5 retrieval Deployments + PVCs + Services (k3d/llm-retrieval-gpu.yaml) to ENV=dev
 * llm:devflow:insta_ci:                         Insta-CI via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
 * llm:devflow:sandbox:                          Sandbox via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
 * llm:devflow:turbolint:                        Turbolint via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]

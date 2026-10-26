@@ -7,6 +7,8 @@
 # The projection engine is scripts/agent-skills/project.mjs.
 # Upstream-Herkunft der `provenance: vendor`-Einträge (Repo, Pfad, gelockter Commit):
 # docs/agent-guide/registry/vendor-lock.json — gepflegt von scripts/vendor-sync.py.
+# `provenance: agentic-resources`: Upstream-Skills, die im agentic-resources-Repo liegen und
+# dort gelockt und nächtlich gemergt werden (vendor-lock.json + runtimes/scripts/vendor-sync.py).
 #
 # Scoping-Modell: Das Dateisystem ist bewusst geteilt (.agents/skills ist ein
 # Symlink auf die SSOT, .claude/skills/* sind pro-Skill-Symlinks) — alle Skills
@@ -157,7 +159,7 @@ skills:
         sync: identical
     exclusions: {}
   - id: gitops-cluster-debug
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/gitops-cluster-debug
     harnesses:
@@ -178,7 +180,7 @@ skills:
         sync: identical
     exclusions: {}
   - id: gitops-knowledge
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/gitops-knowledge
     harnesses:
@@ -199,7 +201,7 @@ skills:
         sync: identical
     exclusions: {}
   - id: gitops-repo-audit
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/gitops-repo-audit
     harnesses:
@@ -220,7 +222,7 @@ skills:
         sync: identical
     exclusions: {}
   - id: lavish
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/lavish
     harnesses:
@@ -346,7 +348,7 @@ skills:
         sync: identical
     exclusions: {}
   - id: playwright-best-practices
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/playwright-best-practices
     harnesses:
@@ -367,7 +369,7 @@ skills:
         sync: identical
     exclusions: {}
   - id: python-testing-patterns
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/python-testing-patterns
     harnesses:
@@ -388,7 +390,7 @@ skills:
         sync: identical
     exclusions: {}
   - id: vitest
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/vitest
     harnesses:
@@ -672,7 +674,7 @@ skills:
       agy: "OpenCode-only backend configuration for the local FreeToken host."
       muse: "OpenCode-only backend configuration for the local FreeToken host."
   - id: hf-mem
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/hf-mem
     harnesses:
@@ -685,7 +687,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-best
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-best
     harnesses:
@@ -698,7 +700,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-community-evals
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-community-evals
     harnesses:
@@ -711,7 +713,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-datasets
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-datasets
     harnesses:
@@ -724,7 +726,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-llm-trainer
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-llm-trainer
     harnesses:
@@ -737,7 +739,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-local-models
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-local-models
     harnesses:
@@ -750,7 +752,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-lora-space-builder
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-lora-space-builder
     harnesses:
@@ -763,7 +765,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-paper-publisher
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-paper-publisher
     harnesses:
@@ -776,7 +778,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-papers
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-papers
     harnesses:
@@ -789,7 +791,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-tool-builder
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-tool-builder
     harnesses:
@@ -802,7 +804,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-trackio
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-trackio
     harnesses:
@@ -815,7 +817,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-vision-trainer
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-vision-trainer
     harnesses:
@@ -828,7 +830,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-zerogpu
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/huggingface-zerogpu
     harnesses:
@@ -841,7 +843,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: llama-cpp
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/llama-cpp
     harnesses:
@@ -884,7 +886,7 @@ skills:
       agy: "OpenCode-native router for the locally installed skill-lifecycle helpers."
       muse: "OpenCode-native router for the locally installed skill-lifecycle helpers."
   - id: skill-creator
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/skill-creator
     harnesses:
@@ -899,7 +901,7 @@ skills:
       agy: "OpenCode-only upstream skill-authoring helper."
       muse: "OpenCode-only upstream skill-authoring helper."
   - id: train-sentence-transformers
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/train-sentence-transformers
     harnesses:
@@ -912,7 +914,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: transformers-js
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/transformers-js
     harnesses:
@@ -925,7 +927,7 @@ skills:
       agy: "OpenCode-only HuggingFace vendor skill pack."
       muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: trl-training
-    provenance: vendor
+    provenance: agentic-resources
     exposure: native
     source: .opencode/skills/trl-training
     harnesses:
@@ -960,7 +962,7 @@ skills:
     exclusions: {}
 
   - id: sota-testing
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/sota-testing
     harnesses:
@@ -982,7 +984,7 @@ skills:
     exclusions: {}
 
   - id: vitest-testing
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/vitest-testing
     harnesses:
@@ -1004,7 +1006,7 @@ skills:
     exclusions: {}
 
   - id: gh-fix-ci
-    provenance: vendor
+    provenance: agentic-resources
     exposure: portable
     source: .agents/skills/gh-fix-ci
     harnesses:

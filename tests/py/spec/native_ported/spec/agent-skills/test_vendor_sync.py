@@ -243,5 +243,7 @@ def test_repo_lavish_ist_allein_vendor_sync_owned_nicht_skills_cli_verwaltet_t90
     assert "lavish" not in skills_lock.get("skills", {}), (
         "lavish steht in skills-lock.json (skills-CLI wuerde lokale Patches verwerfen)"
     )
-    vendor_lock = json.loads((vs.repo / "docs/agent-guide/registry/vendor-lock.json").read_text(encoding="utf-8"))
-    assert "lavish" in vendor_lock.get("skills", {}), "lavish fehlt in vendor-lock.json"
+    # lavish liegt im agentic-resources-Repo und wird dort per 3-Wege-Merge gepflegt.
+    ar_root = (vs.repo / ".opencode/skills/lavish").resolve().parents[2]
+    vendor_lock = json.loads((ar_root / "vendor-lock.json").read_text(encoding="utf-8"))
+    assert "lavish" in vendor_lock.get("skills", {}), "lavish fehlt in agentic-resources/vendor-lock.json"

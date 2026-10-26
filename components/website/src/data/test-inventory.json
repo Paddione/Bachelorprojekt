@@ -3852,6 +3852,18 @@
     "kind": "pytest"
   },
   {
+    "id": "korczewski-prod/korczewski_prod_flux",
+    "file": "tests/py/spec/korczewski-prod/test_korczewski_prod_flux.py",
+    "category": "korczewski-prod",
+    "kind": "pytest"
+  },
+  {
+    "id": "korczewski-prod/render_guards",
+    "file": "tests/py/spec/korczewski-prod/test_render_guards.py",
+    "category": "korczewski-prod",
+    "kind": "pytest"
+  },
+  {
     "id": "kv-budget",
     "file": "tests/py/spec/remaining_domain_specs/test_kv_budget.py",
     "category": "kv-budget",

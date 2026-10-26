@@ -1,0 +1,14 @@
+# Platform-Pfad: HelmRepositories und HelmReleases.
+#
+# Kein namespace:-Feld, und das ist Absicht: die Objekte dieses Pfads liegen in
+# zwei verschiedenen Namespaces — die HelmRepositories in flux-system, die
+# HelmReleases in cert-manager. Ein Namespace-Transformer wuerde beide Gruppen
+# auf denselben Wert ziehen und die Cross-Namespace-sourceRef brechen. Jedes
+# Manifest traegt seinen Namespace explizit.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - helm-repositories.yaml
+  - cert-manager-helmrelease.yaml
+  - lego-webhook-helmrelease.yaml

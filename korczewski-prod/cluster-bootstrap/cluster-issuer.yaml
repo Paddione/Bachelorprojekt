@@ -1,0 +1,36 @@
+# ClusterIssuer fuer korczewski.de — DNS-01 ueber den lego-webhook (ipv64).
+#
+# Warum im bootstrap-Pfad: der Issuer ist das erste cluster-scoped Objekt, das
+# die cert-manager-CRDs benutzt. Dass diese CRDs beim allerersten Sync bereits
+# existieren, sichert Vorbedingung 4 des Bootstrap-Runbooks
+# (flux/clusters/korczewski-prod/bootstrap/README.md), nicht die dependsOn-Kette.
+#
+# Kontaktadresse wie devmesh und fleet uebernommen: das Env-File aus p1 sieht
+# kein eigenes E-Mail-Feld vor, ein zweiter Kontakt waere erfunden.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-korczewski-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: noreply-bachelorprojekt@mailbox.org
+    privateKeySecretRef:
+      name: letsencrypt-korczewski-prod-key
+    solvers:
+      - dns01:
+          webhook:
+            # cert-manager-lego-webhook — installiert der platform-Pfad (p3, Task 6/7).
+            groupName: lego.dns-solver
+            solverName: lego-solver
+            config:
+              provider: ipv64
+              env:
+                IPV64_API_KEY:
+                  # Der Secret selbst kommt aus dem SealedSecret in
+                  # environments/sealed-secrets/korczewski-prod.yaml (p1) und liegt
+                  # im Namespace cert-manager; der Issuer ist cluster-scoped und
+                  # traegt deshalb kein metadata.namespace.
+                  secretKeyRef:
+                    name: ipv64-api-key
+                    key: IPV64_API_KEY

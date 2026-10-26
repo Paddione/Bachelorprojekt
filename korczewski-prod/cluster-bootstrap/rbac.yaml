@@ -1,0 +1,98 @@
+# Bootstrap-RBAC mit resourceNames — die deklarative Zweitform der Rechte, die
+# flux/clusters/korczewski-prod/tenant-rbac.yaml (p2) dem Bootstrap-ServiceAccount
+# bereits einraeumt.
+#
+# Warum ueberhaupt doppelt: Kubernetes verhindert RBAC-Eskalation — ein
+# ServiceAccount kann keine Rolle anlegen, die Rechte verleiht, die er nicht
+# selbst hat. Die Regeln hier sind deshalb exakt die Vereinigungsmenge aus der
+# ClusterRole in p2; weichen sie ab, scheitert der erste Bootstrap-Lauf mit
+# Forbidden. Zugleich macht diese Datei einen Re-Bootstrap ohne Handarbeit gruen:
+# die Rechte stehen im Artefakt, nicht nur im GitOps-Verzeichnis.
+#
+# Keine breite Cluster-Rolle, keine leeren oder pauschalen resourceNames, und kein
+# Subjekt korczewski-prod-tenant oder korczewski-prod-platform: die bekommen
+# laut design D2 ausschliesslich namespaced Role/RoleBinding.
+#
+# Die namespaced Rechte fuer Certificate und das daraus entstehende Secret in
+# kube-system gehoeren nicht hierher — der Bootstrap-SA kann sich seine eigenen
+# Namespace-Rechte nicht selbst geben. Sie stehen in
+# flux/clusters/korczewski-prod/tenant-rbac.yaml (p2) und sind Vorbedingung fuer
+# den ersten Sync dieses Pfads.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: korczewski-prod-bootstrap-tls
+rules:
+  - apiGroups: ["cert-manager.io"]
+    resources: [clusterissuers]
+    resourceNames: [letsencrypt-korczewski-prod]
+    verbs: [get, list, watch, create, patch, update]
+  - apiGroups: ["traefik.io"]
+    resources: [tlsstores]
+    resourceNames: [default]
+    verbs: [get, list, watch, create, patch, update]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: korczewski-prod-bootstrap-tls
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: korczewski-prod-bootstrap-tls
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-bootstrap
+    namespace: flux-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: korczewski-prod-bootstrap-rbac
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: [clusterroles, clusterrolebindings]
+    resourceNames:
+      - korczewski-prod-bootstrap-tls
+      - korczewski-prod-bootstrap-rbac
+      - korczewski-prod-bootstrap-crd
+    verbs: [get, list, watch, create, patch, update, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: korczewski-prod-bootstrap-rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: korczewski-prod-bootstrap-rbac
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-bootstrap
+    namespace: flux-system
+---
+# Bewusst ohne resourceNames: CRD-Namen haengen an der Chart-Version, eine
+# Einengung waere bei jedem cert-manager-Upgrade zu brechen. Schreibzugriff auf
+# CRDs bleibt ausgeschlossen (nur get/list/watch), deshalb ist der Lesezugriff
+# auf alle CRDs keine Eskalation.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: korczewski-prod-bootstrap-crd
+rules:
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: [customresourcedefinitions]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: korczewski-prod-bootstrap-crd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: korczewski-prod-bootstrap-crd
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-bootstrap
+    namespace: flux-system

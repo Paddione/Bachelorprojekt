@@ -1,0 +1,50 @@
+# cert-manager-lego-webhook fuer den DNS-01-Solver (ipv64). Chart und Werte aus
+# dev-local/platform/lego-webhook-helmrelease.yaml, Remediation wie beim
+# cert-manager-Release auf strategy.name: RetryOnFailure umgestellt.
+#
+# Zwei Werte werden bewusst mitgenommen, weil sie im Vorbild wirklich stehen:
+# spec.values.certManager und spec.valuesFrom auf das Secret ipv64-api-key.
+# Die Secret-Referenz im ClusterIssuer deckt nur den ACME-Solver ab; der
+# Webhook-Pod braucht den Schluessel zusaetzlich als Umgebungsvariable. Ohne
+# diese zweite Referenz bliebe der DNS-01-Solver ohne Provider-Zugang.
+#
+# Das Secret selbst kommt aus dem SealedSecret in
+# environments/sealed-secrets/korczewski-prod.yaml (p1), nicht aus diesem Task.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager-lego-webhook
+  namespace: cert-manager
+spec:
+  interval: 1h
+  timeout: 5m
+  serviceAccountName: korczewski-prod-platform
+  chart:
+    spec:
+      chart: cert-manager-lego-webhook
+      version: 1.6.2
+      sourceRef:
+        kind: HelmRepository
+        name: cert-manager-lego-webhook
+        namespace: flux-system
+  targetNamespace: cert-manager
+  install:
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+  upgrade:
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+  driftDetection:
+    mode: enabled
+  values:
+    certManager:
+      namespace: cert-manager
+      serviceAccountName: cert-manager
+  valuesFrom:
+    - kind: Secret
+      name: ipv64-api-key
+      valuesKey: IPV64_API_KEY
+      targetPath: webhook.envs.IPV64_API_KEY
+      optional: false

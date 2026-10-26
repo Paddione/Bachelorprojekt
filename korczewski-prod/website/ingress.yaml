@@ -1,0 +1,69 @@
+# Zwei Ingress-Objekte fuer den Website-Host: / und /_astro/.
+# Der Apex-Host ${PROD_DOMAIN} kommt aus der Basis (website-apex.yaml) und wird
+# dort gepatcht, nicht hier dupliziert.
+#
+# Hosts kommen aus ${PROD_DOMAIN}, damit Ingress-Rule, TLS-Hosts und der
+# Apex-Redirect der Basis nicht auseinanderlaufen (WEBSITE_HOST in der
+# Env-Datei muss web.${PROD_DOMAIN} entsprechen).
+#
+# Kein TLS-Secret-Name: das Zertifikat liefert der Traefik-Default-TLSStore aus
+# korczewski-prod/cluster-bootstrap/tls.yaml (design D6). Damit entfallen die
+# korczewski-tls-Kopien des fleet-Overlays samt tls-sync-CronJob.
+#
+# Zwei Objekte, nicht eines: die Middleware-Kette haengt als Annotation am
+# Router, also am ganzen Ingress. /_astro/ braucht website-static-cache (ein
+# Jahr immutable), der Rest website-security-headers; ein Objekt mit beiden
+# Pfaden koennte nur eine der beiden Ketten tragen.
+#
+# Middleware-Namen mit Namespace-Praefix: allowCrossNamespace ist im
+# Brand-Overlay abgeschaltet, die Middlewares liegen deshalb in
+# website-korczewski. Die Objekte selbst kommen unveraendert aus der Basis.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-prod
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: >-
+      website-korczewski-website-compress@kubernetescrd,website-korczewski-website-security-headers@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - web.${PROD_DOMAIN}
+  rules:
+    - host: web.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-prod-astro
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: >-
+      website-korczewski-website-compress@kubernetescrd,website-korczewski-website-static-cache@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - web.${PROD_DOMAIN}
+  rules:
+    - host: web.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /_astro/
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80

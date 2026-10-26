@@ -1,0 +1,63 @@
+# korczewski-prod: Auth-Teilbaum (Pocket ID, Namespace workspace-korczewski).
+#
+# Basis sind die k3d-SSOT-Manifeste; prod/wildcard-certificate.yaml und
+# prod/reflector.yaml bleiben draussen (design §5, D6) — TLS kommt aus dem
+# Traefik-Default-TLSStore in kube-system.
+#
+# k3d/pocket-id-client-seed-website-rbac.yaml wird hier bewusst NICHT
+# referenziert: der Namespace-Transformer wuerde Role/RoleBinding in
+# workspace-korczewski ablegen (kustomize v5.8.1), wo sie niemandem helfen.
+# Die website-seitige Kopie liefert prod-fleet/website-korczewski.
+#
+# Plain `kustomize build` scheitert gewollt (ADR-015): die Basis liegt in k3d/,
+# jedes Verify braucht --load-restrictor=LoadRestrictionsNone.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: workspace-korczewski
+resources:
+  - ../../k3d/pocket-id.yaml
+  - ../../k3d/pocket-id-db-init-sql.yaml
+  - ../../k3d/pocket-id-client-seed.yaml
+  - ../../k3d/pocket-id-client-seed-rbac.yaml
+  - namespace.yaml
+configMapGenerator:
+  # k3d/pocket-id.yaml liest POCKET_ID_DOMAIN per configMapKeyRef aus
+  # domain-config. disableNameSuffixHash haelt den Namen stabil, weil die
+  # Referenz ihn namentlich nennt. Muster aus
+  # prod-fleet/korczewski-auth/kustomization.yaml.
+  - name: domain-config
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - POCKET_ID_DOMAIN=${POCKET_ID_DOMAIN}
+patches:
+  - target:
+      kind: Deployment
+      name: pocket-id
+    path: patch-pocket-id.yaml
+  # Vorbedingung 2 des Bootstrap-Runbooks: longhorn statt local-path.
+  # Ohne den Patch bliebe das PVC an eine Klasse gebunden, die der Ziel-Cluster
+  # nicht hat — der Pod waere dauerhaft Pending.
+  - target:
+      kind: PersistentVolumeClaim
+      name: pocket-id-data
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: pocket-id-data
+      spec:
+        storageClassName: longhorn
+  # Kein Secret-Name: der Traefik-Default-TLSStore deckt auth.${POCKET_ID_DOMAIN}
+  # ab. tls: {} aktiviert TLS ohne Secret-Referenz; der Host bleibt
+  # Host('${POCKET_ID_DOMAIN}') aus der Basis.
+  - target:
+      kind: IngressRoute
+      name: pocket-id
+    patch: |-
+      - op: replace
+        path: /spec/entryPoints
+        value: [websecure]
+      - op: add
+        path: /spec/tls
+        value: {}

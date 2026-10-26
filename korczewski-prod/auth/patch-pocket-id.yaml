@@ -1,0 +1,23 @@
+# Strategic-Merge-Patch am Pocket-ID-Deployment der k3d-Basis.
+#
+# Die Basis toleriert den Taint role=dev:NoSchedule (k3d/pocket-id.yaml,
+# dokumentiert als Notbremse: das PVC pocket-id-data lag als local-path-Volume
+# an einen als dev deklarierten Node gebunden, ohne die Toleranz blieb der Pod
+# nach dem Taint dauerhaft Pending). Auf dem Prod-Cluster gibt es diesen Taint
+# nicht; die Bindung loest ausserdem der StorageClass-Patch auf longhorn
+# (kustomization.yaml, Task 3). tolerations: null entfernt das Feld im
+# Strategic Merge.
+#
+# Bewusst kein nodeSelector und kein affinity-Block: belegt ist nur die
+# StorageClass-Vorbedingung (design §9.2) und die damit entfallende
+# Node-Bindung. Ein Node-Label zu erfinden, das der Bootstrap nicht setzt, waere
+# eine stille Annahme. Secret-Referenzen und der Rest des Pod-Templates bleiben
+# unveraendert.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-id
+spec:
+  template:
+    spec:
+      tolerations: null

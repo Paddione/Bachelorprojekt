@@ -1,0 +1,81 @@
+# korczewski-prod: Website-Teilbaum (Namespace website-korczewski).
+#
+# Basis ist das bestehende Brand-Overlay prod-fleet/website-korczewski, das
+# seinerseits ../../k3d/website.yaml + ../../k3d/website-seller-config.yaml als
+# SSOT referenziert (ADR-015). Plain `kustomize build` scheitert dadurch
+# gewollt; jedes Verify in diesem Partial braucht --load-restrictor=LoadRestrictionsNone.
+#
+# D6: kein ../../prod/wildcard-certificate.yaml und kein ../../prod/reflector.yaml.
+# TLS kommt aus dem Traefik-Default-TLSStore in kube-system (cluster-bootstrap).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: website-korczewski
+resources:
+  - ../../prod-fleet/website-korczewski
+  - ingress.yaml
+patches:
+  # Eine Routing-Ebene statt zwei: das Ingress gewinnt gegen die IngressRoute
+  # (T000251), in prod bleibt nur die Ingress-Ebene.
+  - target:
+      kind: IngressRoute
+      name: website
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: website
+  - target:
+      kind: Ingress
+      name: website-ingress-web
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: website-ingress-web
+  - target:
+      kind: Ingress
+      name: website-ingress-astro
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: website-ingress-astro
+  # Cluster-scoped Objekte ausschliesslich im Bootstrap-Pfad (Design §10).
+  # Form bewusst ohne target: der Name enthaelt ${WEBSITE_NAMESPACE}; kustomize
+  # matcht target.name als verankerten Regex, und das "$" darin trifft nie.
+  - patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: ${WEBSITE_NAMESPACE}-monitoring-reader
+  - patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: ${WEBSITE_NAMESPACE}-monitoring-reader
+  # Apex-Ingress aus der Basis: websecure + Default-TLSStore (kein Secret-Name).
+  # spec.tls hat keinen merge key, der Patch ersetzt die Liste — damit faellt
+  # secretName: ${TLS_SECRET_NAME} weg.
+  - target:
+      kind: Ingress
+      name: website-ingress-apex
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: website-ingress-apex
+        annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      spec:
+        tls:
+          - hosts:
+              - ${PROD_DOMAIN}
+  - target:
+      kind: Deployment
+      name: website
+    path: website-patch.yaml

@@ -81,7 +81,9 @@ def main() -> None:
 
     dtype = args.dtype
     if dtype == "auto":
-        dtype = "bfloat16" if torch.cuda.is_available() else "fp32"
+        dtype = "bfloat16" if torch.cuda.is_available() else "float32"
+    dtype = {"bfloat16": torch.bfloat16, "float32": torch.float32,
+             "fp32": torch.float32, "float16": torch.float16}[dtype]
     model = SentenceTransformer(args.model, model_kwargs={"torch_dtype": dtype})
     ds = Dataset.from_list([{"anchor": r["anchor"], "positive": r["positive"], "negative": r["negative"]} for r in rows])
     inner = MultipleNegativesRankingLoss(model)

@@ -48,16 +48,20 @@ export function roleForPath(path) {
 }
 
 // Upstream-nativer Pfad je Rolle: Der kanonische Pfad waehlt die Rolle,
-// aber llama.cpp dient nur seine eigenen Pfade (/v1/embeddings, /v1/rerank).
-// Ein unveraendert durchgereichtes '/v1/lfm/embeddings' antwortet dort 404
-// (belegt 2026-10-26, x-llm-proxy-bge-upstream gesetzt, Upstream-404).
-// Nur colbert-rerank bleibt kanonisch: der eigene MaxSim-Dienst dient
-// /v1/colbert/rerank nativ (kompatibel /v1/rerank).
+// upstream geht der native Pfad raus (belegt 2026-10-26: unveraendertes
+// Durchreichen antwortete an llama.cpp mit 404, Header
+// x-llm-proxy-bge-upstream gesetzt).
+//   embed/lfm-embed -> /v1/embeddings (OAI-Shape {"input"}),
+//   colbert-embed   -> /embedding (llama-nativ {"content"}, Token-Ebene;
+//                      der OAI-Pfad lehnt Pooling-none mit 400 ab),
+//   rerank          -> /v1/rerank,
+//   colbert-rerank  -> /v1/colbert/rerank (eigener MaxSim-Dienst,
+//                      kompatibel weiter /v1/rerank).
 const ROLE_FORWARD_PATH = new Map([
   ['embed', '/v1/embeddings'],
   ['rerank', '/v1/rerank'],
   ['lfm-embed', '/v1/embeddings'],
-  ['colbert-embed', '/v1/embeddings'],
+  ['colbert-embed', '/embedding'],
   ['colbert-rerank', '/v1/colbert/rerank'],
 ]);
 

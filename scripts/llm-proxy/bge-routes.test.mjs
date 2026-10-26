@@ -272,7 +272,7 @@ test('forwardPathForRole: kanonischer Pfad waehlt Rolle, Upstream-Pfad ist nativ
   assert.equal(forwardPathForRole('embed', '/v1/embeddings'), '/v1/embeddings')
   assert.equal(forwardPathForRole('rerank', '/v1/rerank'), '/v1/rerank')
   assert.equal(forwardPathForRole('lfm-embed', '/v1/lfm/embeddings'), '/v1/embeddings')
-  assert.equal(forwardPathForRole('colbert-embed', '/v1/colbert/embeddings'), '/v1/embeddings')
+  assert.equal(forwardPathForRole('colbert-embed', '/v1/colbert/embeddings'), '/embedding')
   assert.equal(forwardPathForRole('colbert-rerank', '/v1/colbert/rerank'), '/v1/colbert/rerank')
   // Unbekannte Rolle: angefragter Pfad unveraendert (kein Wissen, keine Magie).
   assert.equal(forwardPathForRole('unbekannt', '/v1/irgendwo'), '/v1/irgendwo')
@@ -296,7 +296,7 @@ test('routeRequest je Rolle: richtiges Erstglied, Upstream-Pfad ist nativ', asyn
     ['embed', '/v1/embeddings', '/v1/embeddings'],
     ['rerank', '/v1/rerank', '/v1/rerank'],
     ['lfm-embed', '/v1/lfm/embeddings', '/v1/embeddings'],
-    ['colbert-embed', '/v1/colbert/embeddings', '/v1/embeddings'],
+    ['colbert-embed', '/v1/colbert/embeddings', '/embedding'],
     ['colbert-rerank', '/v1/colbert/rerank', '/v1/colbert/rerank'],
   ];
   for (const [role, path, want] of cases) {
@@ -312,11 +312,12 @@ test('routeRequest je Rolle: richtiges Erstglied, Upstream-Pfad ist nativ', asyn
 })
 
 test('kein Quer-Fallback: llama.cpp-Stub dient nur native Pfade', async (t) => {
-  // Der Stub emuliert llama.cpp: nur /v1/embeddings existiert, alles andere
-  // ist 404 — exakt das Verhalten, das den kanonischen Durchreich-Fehler
-  // live belegte. Die Rolle colbert-embed muss deshalb nativ ankommen.
+  // Der Stub emuliert llama.cpp: nur /v1/embeddings und /embedding existieren,
+  // alles andere ist 404 — exakt das Verhalten, das den kanonischen
+  // Durchreich-Fehler live belegte. Die Rolle colbert-embed muss deshalb an
+  // /embedding ankommen (Token-Ebene, llama-natives {"content"}).
   const stub = await listen((req, res) => {
-    if (req.url === '/v1/embeddings') {
+    if (req.url === '/v1/embeddings' || req.url === '/embedding') {
       res.writeHead(200, { 'content-type': 'application/json' });
       res.end('{"ok":true}');
     } else {
@@ -327,7 +328,7 @@ test('kein Quer-Fallback: llama.cpp-Stub dient nur native Pfade', async (t) => {
   t.after(() => close(stub));
 
   const colbert = await routeRequest({
-    role: 'colbert-embed', path: '/v1/colbert/embeddings', body: { input: ['x'] },
+    role: 'colbert-embed', path: '/v1/colbert/embeddings', body: { content: 'x' },
     chain: [{ kind: 'url', baseUrl: baseOf(stub) }],
   });
   assert.equal(colbert.status, 200);

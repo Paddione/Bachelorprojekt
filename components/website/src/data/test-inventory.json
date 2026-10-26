@@ -4008,6 +4008,12 @@
     "kind": "pytest"
   },
   {
+    "id": "llm-pipeline/gemma_bulk_window",
+    "file": "tests/py/spec/llm-pipeline/test_gemma_bulk_window.py",
+    "category": "llm-pipeline",
+    "kind": "pytest"
+  },
+  {
     "id": "llm-pipeline/index-repo-embed-port",
     "file": "tests/py/spec/native_ported/spec/llm-pipeline/test_index_repo_embed_port.py",
     "category": "llm-pipeline",

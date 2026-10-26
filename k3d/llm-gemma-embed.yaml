@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# llm-gemma-embed: EmbeddingGemma-300M Dense-Embedding (llama.cpp, CPU-only)
+# llm-gemma-embed: EmbeddingGemma-300M Dense-Embedding (llama.cpp; Serving CPU, Bulk GPU)
 #
 # Paralleler Dense-Dienst fuer die BGE-M3 -> EmbeddingGemma-300M-Migration
 # (768 Dim, Q8_0). Spricht den Shadow-Reindex an; der laufende BGE-Dienst und
@@ -7,7 +7,7 @@
 # (kein Cutover aus diesem Partial).
 #
 #   - gemma-embed      (embeddinggemma-300m, --embeddings): Port 8080
-#   - gemma-embed-bulk (geparkt, replicas: 0, emptyDir): Port 8080
+#   - gemma-embed-bulk (geparkt, replicas: 0, emptyDir, GTX 970): Port 8080
 # Service llm-gateway-gemma-embed auf Port 8081 (Embedding-Service-Port),
 # targetPort ist der Container-Port 8080. Bulk-Pods tragen app: gemma-embed
 # und joinen den Service automatisch (Round-Robin), wie bge-embed-bulk.
@@ -23,7 +23,7 @@
 # Smoke unter realer 2048-Token-Last laeuft in p1.5 und kann das Limit noch
 # anheben — kein unverifiziertes 2Gi-Versprechen.
 #
-# Image-Pin vom CPU-Bestand aus k3d/llm-gpu.yaml uebernommen (kein Rolling-Tag).
+# Image-Pins: Serving CPU-Bestand aus k3d/llm-gpu.yaml, Bulk CUDA wie lfm-embed.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── gemma-embed: EmbeddingGemma-300M Embedding (llama.cpp, CPU-only) ──────
@@ -112,11 +112,10 @@ spec:
             - "0.0.0.0"
             - "--port"
             - "8080"
-            # GPU-Offload voll (Modell nur ~300 MB). Wirkt nur mit
-            # GPU-sichtbarer Node; ohne Passthrough warnt llama.cpp und
-            # faellt auf CPU zurueck (Apply + Benchmark erst am Cutover).
+            # CPU-only: storage=true-Nodes haben keine GPU. Bulk-Reindex
+            # laeuft auf der GTX 970 ueber gemma-embed-bulk.
             - "-ngl"
-            - "99"
+            - "0"
             # Kontext/Slots: 2 x 2048 (Prompt inkl.). -ub nimmt eine volle
             # Sequenz auf; kuersere Batches braechen lange Texte still.
             - "-c"
@@ -176,10 +175,12 @@ spec:
       targetPort: 8080
 ---
 # ── gemma-embed-bulk: geparkter Embedding-Pool fuer Shadow-Reindex ─────────
-# replicas: 0 im Ruhezustand (keine idle-Kosten). Vor einem Bulk-Reindex:
-#   kubectl -n workspace scale deploy/gemma-embed-bulk --replicas=<freie GPUs>
-# (kein GPU-Time-Slicing konfiguriert — mehr Replikas als GPU-Slots bleiben
-# Pending). Danach zurueck auf 0. Jede Replika laedt das Modell per InitContainer in
+# replicas: 0 im Ruhezustand (keine idle-Kosten). Laeuft auf der GTX 970
+# (gpu-metal, einziger GPU-Node; 4 Time-Slices, alle im Dauerbetrieb belegt).
+# Start/Stopp nur ueber `task llm:gemma-bulk:up` / `task llm:gemma-bulk:down`:
+# pausiert Flux (sonst setzt der Reconcile replicas zurueck), entlaedt
+# qwen35-4b-instruct (Slot + VRAM) und stellt danach alles wieder her.
+# Jede Replika laedt das Modell per InitContainer in
 # ein leeres emptyDir — kein shared RWO-PVC, deshalb kein
 # Recreate/Attach-Deadlock (T002604-Muster) und HPA-fest.
 apiVersion: apps/v1
@@ -203,10 +204,8 @@ spec:
         app: gemma-embed
         pool: bulk
     spec:
-      # Wie Hauptdeployment: nur Longhorn-Nodes (storage=true), auch wenn der
-      # Bulk-Pool mit emptyDir ohne PVC auskommt — einheitliches Placement.
-      nodeSelector:
-        storage: "true"
+      # Kein storage-NodeSelector: emptyDir statt PVC; der GPU-Request
+      # platziert den Pod auf gpu-metal.
       securityContext:
         runAsNonRoot: true
         fsGroup: 101
@@ -236,7 +235,8 @@ spec:
               memory: 256Mi
       containers:
         - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-b11561@sha256:052888c603894ecfa08deb6714fdc2d7084e491e174d5ab41bfb36b49ee7151c
+          # CUDA-Pin wie lfm-embed (llm-retrieval-gpu.yaml), laeuft auf Maxwell.
+          image: ghcr.io/ggml-org/llama.cpp:server-cuda@sha256:20c6e722e2fcc5ca9c15401d3fd8e35408aaf8f9c54a12f32920f637c57959bb
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001
@@ -250,7 +250,7 @@ spec:
             - "0.0.0.0"
             - "--port"
             - "8080"
-            # GPU-Offload voll (Modell nur ~300 MB) — siehe Hinweis am Hauptdeploy.
+            # GPU-Offload voll (Modell nur ~300 MB). KEIN -fa: Maxwell (GTX 970).
             - "-ngl"
             - "99"
             - "-c"
@@ -266,19 +266,20 @@ spec:
             - "-tb"
             - "2"
             - "--embeddings"
-          env:
-            - name: CUDA_VISIBLE_DEVICES
-              value: ""
           ports:
             - name: http
               containerPort: 8080
           resources:
             requests:
               memory: "1Gi"
-              cpu: "1000m"
+              # 500m wie lfm-embed: gpu-metal ist bei CPU-Requests ~93 % voll,
+              # 1000m blieb Pending (Insufficient cpu, gemessen 2026-10-26).
+              cpu: "500m"
+              nvidia.com/gpu: 1
             limits:
               memory: "4Gi"
               cpu: "2000m"
+              nvidia.com/gpu: 1
           readinessProbe:
             httpGet:
               path: /health

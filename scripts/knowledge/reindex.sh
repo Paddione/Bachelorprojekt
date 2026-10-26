@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Run the appropriate knowledge ingestion script.
 # Usage: SOURCE=prs|markdown|bugs|context7|all PGURL=... bash reindex.sh
+#
+# NOTE: SOURCE=all ist Quellen-Ingest, kein vollstaendiger Modell-Reindex:
+# Custom-/Web-/Coaching-Bestaende fehlen dort. Der additive 768D-Reindex
+# aller gespeicherten Chunktexte laeuft ueber den dense-migration-Pfad:
+#   SOURCE=dense PGURL=... bash reindex.sh prepare --run-id <id>
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,6 +35,10 @@ case "$SOURCE" in
   markdown) run markdown ;;
   bugs)     run bug-tickets ;;
   context7) run_context7 ;;
+  dense)
+    echo "[knowledge/reindex] running dense-migration.mjs $*..."
+    node "${SCRIPT_DIR}/dense-migration.mjs" "$@"
+    ;;
   all)
     run prs
     run markdown
@@ -37,7 +46,7 @@ case "$SOURCE" in
     run_context7
     ;;
   *)
-    echo "Unknown SOURCE='$SOURCE'. Use: prs|markdown|bugs|context7|all" >&2
+    echo "Unknown SOURCE='$SOURCE'. Use: prs|markdown|bugs|context7|all|dense" >&2
     exit 1
     ;;
 esac

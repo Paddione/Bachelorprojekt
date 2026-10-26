@@ -6,8 +6,8 @@
  *   QUERY      — search query text (required)
  *   SOURCE     — collection source filter (default: "specs_plans")
  *   LIMIT      — max results (default: 5)
- *   THRESHOLD  — minimum score 0..1 (default: 0.35, bge-m3-Niveau, T016562)
- *   LLM_EMBED_URL — lokales bge-m3 (absent → graceful error JSON, exit 0)
+ *   THRESHOLD  — minimum score 0..1 (default: 0.35)
+ *   LLM_EMBED_URL — aktives Gemma-Dense-Backend (absent → graceful error JSON, exit 0)
  *   PGURL      — postgres connection string
  *
  * CLI args (override env):
@@ -18,7 +18,8 @@
  * Logs  (stderr):  diagnostic messages only
  */
 
-import { makePool, embedAllWithModel } from './lib-knowledge-pg.mjs';
+import { makePool } from './lib-knowledge-pg.mjs';
+import { makeDenseClient } from './dense-client.mjs';
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -51,10 +52,11 @@ async function main() {
   }
 
   const pool = makePool();
+  const embedUrl = process.env.LLM_EMBED_URL;
   try {
     process.stderr.write(`Embedding query: "${query}" (source=${source}, limit=${limit}, threshold=${threshold})\n`);
-    // T016562: Voyage entfernt — Query-Embedding immer ueber lokales bge-m3.
-    const { embeddings } = await embedAllWithModel([query]);
+    // Query-Purpose ueber den gemeinsamen Vertrag (Gemma-Dense).
+    const { embeddings } = await makeDenseClient({ url: embedUrl }).embedQueries([query]);
     const embedding = embeddings[0];
 
     const vectorLiteral = '[' + embedding.join(',') + ']';

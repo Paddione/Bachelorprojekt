@@ -7,8 +7,9 @@
  * CLI- oder API-Schicht (S2-Gate: keine neuen Import-Zyklen); Ein-/Ausgabe
  * gehoert ausschliesslich scripts/context-retrieve.mjs.
  *
- * Pipeline: Query embedden (bge-m3) -> Kandidaten per pgvector <=> ziehen
- * (LIMIT, Vorgabe 40) -> Cross-Encoder-Rerank (bge-reranker-v2-m3) ->
+ * Pipeline: Query embedden (Default bge-m3; Gemma-Dense-Profil per
+ * LLM_EMBED_MODEL) -> Kandidaten per pgvector <=> ziehen (LIMIT, Vorgabe
+ * 40) -> Cross-Encoder-Rerank (bge-reranker-v2-m3, unveraendert) ->
  * Budget-Fuellung greedy nach Score.
  *
  * Kostenlage (gemessen nach T002661): Embedding 0,25 s, Rerank ueber 40
@@ -44,10 +45,18 @@
  */
 
 import { createHash } from 'node:crypto';
+import {
+  assertDenseVectors,
+  formatDenseInput,
+  DENSE_MODEL,
+} from '../lib/dense-embedding.mjs';
+
 const ACTIVE_STATUSES = ['planning', 'plan_staged'];
 const approxTokens = (text) => Math.ceil(text.length / 4);
 
-/** Modell des lokalen bge-Gateways (k3d/llm-gpu.yaml), konfigurierbar. */
+/** Modell des lokalen Embed-Gateways, konfigurierbar. Default bleibt 'bge-m3'
+ * (Cluster-Produktion, k3-Pin); das Gemma-Dense-Profil ist explizit per
+ * LLM_EMBED_MODEL waehlbar (Shadow-Migration; Cutover folgt koordiniert). */
 const embedModel = () => process.env.LLM_EMBED_MODEL ?? 'bge-m3';
 
 /**
@@ -103,14 +112,15 @@ export function buildPredicates({ role = null, corpora = null, status = null } =
 }
 
 /**
- * Genau ein bge_embed-Aufruf ueber denselben Gateway-Pfad, den
- * lib-knowledge-pg.mjs (embedViaBge) nutzt: POST {LLM_EMBED_URL}/v1/embeddings
- * mit { model: 'bge-m3', input: [text] }.
+ * Genau ein Query-Embed-Aufruf ueber denselben Gateway-Pfad, den
+ * lib-knowledge-pg.mjs nutzt: POST {LLM_EMBED_URL}/v1/embeddings mit dem
+ * aktiven Gemma-Modell und exakt einmal formatiertem Querytext.
  *
- * Ergebnis gecacht per sha256(text + model) in einer prozesslokalen Map. Keine
- * Dateiablage: nach T002661 kostet ein Query-Embedding 0,25 s, womit der Cache
- * eine Optimierung ist und die Invalidierungsfragen einer persistenten Ablage
- * nicht rechtfertigt (tasks.md Vorbedingung, Punkt 2).
+ * Ergebnis gecacht per sha256(Profil + formatiertem Querytext) in einer
+ * prozesslokalen Map. Keine Dateiablage: nach T002661 kostet ein
+ * Query-Embedding 0,25 s, womit der Cache eine Optimierung ist und die
+ * Invalidierungsfragen einer persistenten Ablage nicht rechtfertigt
+ * (tasks.md Vorbedingung, Punkt 2).
  *
  * Fehlerfaelle werfen (der Aufrufer entscheidet ueber die Fallback-Kette);
  * "Antwort erhalten und leer" (data: []) ist ein eigener Fehler, kein stiller
@@ -120,7 +130,9 @@ const queryEmbedCache = new Map();
 
 export async function embedQuery(text) {
   const model = embedModel();
-  const key = createHash('sha256').update(`${text}${model}`).digest('hex');
+  const gemma = model === DENSE_MODEL;
+  const formatted = gemma ? formatDenseInput(text, 'query') : text;
+  const key = createHash('sha256').update(`${model}\0${formatted}`).digest('hex');
   const cached = queryEmbedCache.get(key);
   if (cached) return cached;
 
@@ -129,12 +141,21 @@ export async function embedQuery(text) {
 
   const r = await fetch(`${url}/v1/embeddings`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, input: [text] }),
+    headers: gemma
+      ? { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'query' }
+      : { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, input: [formatted] }),
     signal: AbortSignal.timeout(embedTimeoutMs()),
   });
   if (!r.ok) throw new Error(`embed ${r.status} ${await r.text().catch(() => '')}`);
   const j = await r.json();
+  if (gemma) {
+    const embeddings = Array.isArray(j.data) ? j.data.map((d) => d.embedding) : [];
+    assertDenseVectors(embeddings, 1);
+    const vector = embeddings[0];
+    queryEmbedCache.set(key, vector);
+    return vector;
+  }
   const embeddings = Array.isArray(j.data) ? j.data : [];
   if (embeddings.length === 0) {
     throw new Error('embed endpoint antwortete leer (data: []) — nicht als Erfolg behandelt');

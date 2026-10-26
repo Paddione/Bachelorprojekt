@@ -1,0 +1,155 @@
+# environments/korczewski-prod.yaml
+# Ziel-Umgebung des host-agnostischen Prod-Clusters korczewski-prod
+# (design.md §1, §6, §7). Eigener Flux-Cluster, eigene Sealing-Keys, keine
+# Verbindung zum fleet-Cluster; der T002479-Freeze bleibt für fleet bestehen.
+#
+# Scope: Website (website-korczewski) + Pocket ID (workspace-korczewski).
+# Alle übrigen Schema-Pflichtvariablen stehen hier, weil
+# scripts/health-goals-check.sh (G-CFG01) und `task env:validate:all` jedes
+# environments/*.yaml gegen alle 40 Pflichtvariablen prüfen — sie sind im
+# korczewski-prod-Artefakt ungenutzt und darum als solche kommentiert.
+environment: korczewski-prod
+# Es gibt noch keinen Cluster: der Kontext entsteht im Bootstrap-Runbook
+# (flux/clusters/korczewski-prod/bootstrap/README.md). Bis dahin schlagen
+# Cluster-Zugriffe (kubeseal --fetch-cert, kubectl) bewusst fehl.
+context: korczewski-prod
+domain: korczewski.de
+secrets_env: korczewski-prod
+# Ziel-Namespaces des Sealing-Laufs: scripts/env-seal.sh liest sie top-level
+# (yaml_get workspace_namespace/website_namespace) und mappt die Schema-Paare
+# workspace/website darauf. Ohne diese zwei Zeilen landeten die SealedSecrets
+# in workspace/website, also in den fleet-Namespaces.
+workspace_namespace: workspace-korczewski
+website_namespace: website-korczewski
+
+env_vars:
+  PROD_DOMAIN: korczewski.de
+  CLUSTER_ENV: korczewski-prod
+  BRAND_NAME: "Massagepraxis Vögelsen"
+  BRAND_ID: massage
+  CONTACT_EMAIL: massage@korczewski.de
+  # Operator-Mailbox fuer Backup-Fail-Warnungen (Alertmanager backup-email)
+  BACKUP_ALERT_EMAIL: patrick@korczewski.de
+  CONTACT_PHONE: ""
+  CONTACT_CITY: "Vögelsen bei Lüneburg"
+  CONTACT_NAME: "Patrick Korczewski"
+  LEGAL_STREET: "In der Twiet 4"
+  LEGAL_ZIP: "21360"
+  LEGAL_JOBTITLE: "Software Engineer, IT-Security-Berater"
+  LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
+  LEGAL_WEBSITE: korczewski.de
+
+  # ── Website ────────────────────────────────────────────────────────────────
+  WEBSITE_IMAGE: website
+  # Einziger Ort, an dem der Website-Digest gepflegt wird (D7). Der Wert ist der
+  # Platzhalter der Render-Pipeline: .github/workflows/render-korczewski-prod-artifact.yml
+  # exportiert den echten Digest vor dem Render, gesetzte Variablen gewinnen
+  # gegen die Env-Datei (T004041, scripts/env-resolve.sh).
+  WEBSITE_IMAGE_DIGEST: sha256:1111111111111111111111111111111111111111111111111111111111111111
+  # WEBSITE_IMAGE_TAG bleibt bewusst ungesetzt: k3d/website.yaml rendert
+  # `:${WEBSITE_IMAGE_TAG}`, korczewski-prod/website/website-patch.yaml ersetzt
+  # das durch `@${WEBSITE_IMAGE_DIGEST}` (p4 Task 1). Bliebe der Tag im Baum,
+  # wäre das ein D7-Verstoß und der Render-Guard bricht ab.
+  WEBSITE_NAMESPACE: website-korczewski
+  WEBSITE_HOST: web.korczewski.de
+  WEBSITE_SITE_URL: "https://web.korczewski.de"
+  PRIMARY_FRONTEND: astro
+  WEBSITE_PRIMARY_SERVICE: website
+  # T002156-Sonderpfad: der Checksum entsteht erst aus dem gerenderten ConfigMap.
+  # Leer, damit envsubst die Annotation leert statt einen Platzhalter zu lassen.
+  WEBSITE_CONFIG_SHA: ""
+  # Kein WEBSITE_NODE_AFFINITY: der Ziel-Cluster ist host-agnostisch, es gibt
+  # keine pk-hetzner-Knoten. Fehlt der Wert, rendert der Affinity-Block nicht.
+  REACT_APP_ORIGIN: "https://react.korczewski.de"
+  ARENA_WS_URL: ""
+  EMAIL_NOTIFICATIONS_ENABLED: "false"
+  SYSTEMTEST_LOOP_ENABLED: "false"
+
+  # ── Datenbank ──────────────────────────────────────────────────────────────
+  # T901440: shared-db liegt wie die Website im Namespace der Website.
+  # k3d/website.yaml bildet den Host als shared-db.${WEBSITE_DB_NAMESPACE};
+  # WORKSPACE_NAMESPACE und WEBSITE_DB_NAMESPACE muessen deshalb beide
+  # workspace-korczewski sein (p4 Task 3, NetworkPolicies der Basis).
+  WEBSITE_DB_NAMESPACE: workspace-korczewski
+  WEBSITE_DB_NAME: website_massage
+  WEBSITE_DB_USER: website_massage
+
+  # ── Pocket ID (Auth) ───────────────────────────────────────────────────────
+  WORKSPACE_NAMESPACE: workspace-korczewski
+  POCKET_ID_FRONTEND_URL: "https://auth.korczewski.de"
+  POCKET_ID_DOMAIN: auth.korczewski.de
+  POCKET_ID_URL: "http://pocket-id.workspace-korczewski.svc.cluster.local:1411"
+  # Kein externer Fallback (ADR-015: kein fleet-Pfad als Rueckfall).
+  POCKET_ID_FALLBACK_FRONTEND_URL: ""
+  POCKET_ID_FALLBACK_URL: ""
+  # SMTP_PORT 587 → STARTTLS (docs/superpowers/specs/2026-07-01-pocket-id-smtp-wiring-design.md
+  # leitet denselben Wert im Taskfile ab).
+  POCKET_ID_SMTP_TLS: starttls
+
+  # ── Cluster-Schnittstellen ─────────────────────────────────────────────────
+  # k3s-Defaults. Der Bootstrap-Runbook (flux/clusters/korczewski-prod/bootstrap/README.md)
+  # muss pruefen, dass /etc/rancher/k3s/config.yaml sie nicht ueberschreibt:
+  # die NetworkPolicies haengen daran, ein geratener Wert waere fail-open
+  # (design.md §9, Risiko 1). Der Renderer bricht bei leeren Werten ab.
+  POD_CIDR: "10.42.0.0/16"
+  SERVICE_CIDR: "10.43.0.0/16"
+  # POD_VTEP_IP bleibt ungesetzt: der Renderer leitet sie aus POD_CIDR ab
+  # (p5 Task 1, Muster scripts/devmesh/render-stack.sh:75).
+  INFRA_NAMESPACE: korczewski-infra
+  # D6: das Wildcard-Zertifikat liegt als Traefik-TLSStore in kube-system, es
+  # gibt keine Secret-Kopie pro Namespace. Der Name dokumentiert nur den
+  # Erwartungswert des Bootstrap (p3) und wird in keinem Manifest referenziert.
+  TLS_SECRET_NAME: korczewski-prod-wildcard-tls
+
+  # ── Schema-Pflicht, im korczewski-prod-Artefakt ungenutzt ──────────────────
+  # Derselbe Betreiber, dieselben DNS-Namen wie environments/korczewski.yaml.
+  SMTP_FROM: korczewski@mailbox.org
+  SMTP_USER: korczewski@mailbox.org
+  SMTP_HOST: smtp.mailbox.org
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
+  TURN_PUBLIC_IP: "204.168.244.104"
+  TURN_NODE: "pk-hetzner-4"
+  TURN_OVERLAY_IP: "10.20.0.1"
+  TERMINAL_OVERLAY_IP: "10.20.0.10"
+  NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
+  NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
+  AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
+  VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
+  BRAIN_EXTERNAL_URL: "https://brain.korczewski.de"
+  WHITEBOARD_EXTERNAL_URL: "https://files.korczewski.de/apps/files"
+  TRAEFIK_EXTERNAL_URL: "https://traefik.korczewski.de"
+  MAIL_EXTERNAL_URL: "https://mail.korczewski.de"
+  BRETT_DOMAIN: brett.korczewski.de
+  MEDIAVIEWER_HOST: mediaviewer.korczewski.de
+  VIDEOVAULT_DOMAIN: videovault.korczewski.de
+  OTEL_DOMAIN: otel.korczewski.de
+  RECOVER_DOMAIN: recover.korczewski.de
+  STUDIO_DOMAIN: studio.korczewski.de
+  STUDIO_IMAGE: ghcr.io/paddione/studio-server
+  STUDIO_IMAGE_DIGEST: sha256:3fb082d01ee1679ccbe75831e7badc66f51fae8995afa5283da03eb4d349e7f3
+  # LLM ist ausserhalb des Scopes (Q1). Kein Cluster-Gegenstueck, deshalb
+  # Loopback statt eines erfundenen Cluster-DNS; im deaktivierten Zustand
+  # ungenutzt. LLM_RERANKER_URL wird von k3d/website.yaml referenziert und
+  # braucht darum ebenfalls einen Wert.
+  LLM_ENABLED: "false"
+  LLM_RERANK_ENABLED: "false"
+  LLM_EMBED_URL: "http://127.0.0.1:18235"
+  LLM_RERANKER_URL: "http://127.0.0.1:18235"
+  LLM_HOST_IP: "192.168.100.10"
+  COMFY_HOST_IP: "10.13.14.10"
+  COMFY_PORT: "8189"
+  # RIGGER_HOST_IP = COMFY_HOST_IP (scripts/flux-render-artifact.sh:103).
+  RIGGER_HOST_IP: "10.13.14.10"
+  RIGGER_PORT: "8190"
+
+overlay: korczewski-prod
+secrets_ref: sealed-secrets/korczewski-prod.yaml
+
+setup_vars:
+  KC_USER1_USERNAME: paddione
+  KC_USER1_EMAIL: patrick@korczewski.de
+  # Sentinel: der echte Wert liegt ausschliesslich in
+  # environments/.secrets/korczewski-prod.yaml und damit im SealedSecret
+  # workspace-korczewski/workspace-secrets.
+  KC_USER1_PASSWORD: SEALED

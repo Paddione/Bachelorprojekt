@@ -210,6 +210,13 @@ Aus p4 geerbte Cluster-Vorbedingung, die auch diesen Baum trägt: der Traefik-Re
 `ports.web.redirectTo=websecure`. Der Auth-Router hängt wie die Website-Router nur an `websecure`;
 ohne den Redirect ist `http://auth.korczewski.de` nicht erreichbar statt umgeleitet.
 
-Verify: `A=$(kustomize build korczewski-prod/auth --load-restrictor=LoadRestrictionsNone) && [ "$(grep -c 'secretName' <<<"$A")" -eq 0 ] && [ "$(grep -c ':latest' <<<"$A")" -eq 0 ] && ! grep -rqE '^[[:space:]]*-[[:space:]]+\.\./\.\./prod/' korczewski-prod/auth/kustomization.yaml && [ "$(grep -c '^kind: Namespace' <<<"$A")" -eq 1 ] && [ "$(yq -N 'select(.kind == "Namespace") | .metadata.name' <<<"$A")" = "workspace-korczewski" ] && [ "$(yq -N 'select(.kind | IN("ClusterRole","ClusterRoleBinding","ClusterIssuer","TLSStore","CustomResourceDefinition")) | .kind' <<<"$A" | wc -l)" -eq 0 ] && [ "$(grep -c '^kind: ' <<<"$A")" -ge 8 ]`
+Verify: `A=$(kustomize build korczewski-prod/auth --load-restrictor=LoadRestrictionsNone) && [ "$(grep -c 'secretName' <<<"$A")" -eq 0 ] && [ "$(grep -c ':latest' <<<"$A")" -eq 0 ] && ! grep -rqE '^[[:space:]]*-[[:space:]]+\.\./\.\./prod/' korczewski-prod/auth/kustomization.yaml && [ "$(grep -c '^kind: Namespace' <<<"$A")" -eq 1 ] && [ "$(yq -N 'select(.kind == "Namespace") | .metadata.name' <<<"$A")" = "workspace-korczewski" ] && [ "$(yq -N 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding" or .kind == "ClusterIssuer" or .kind == "TLSStore" or .kind == "CustomResourceDefinition") | .kind' <<<"$A" | wc -l)" -eq 0 ] && [ "$(grep -c '^kind: ' <<<"$A")" -ge 8 ]`
+
+Die Cluster-Scope-Prüfung steht bewusst als `or`-Kette und nicht als
+`IN(...)`: `IN` ist ein jq-Builtin, das die installierte `yq` (v4.53.3) nicht
+kennt — der Ausdruck bricht dann mit „lexer: invalid input" ab, die
+Befehls substitution liefert leer, und `wc -l` macht daraus einen stillen
+Treffer. Beim Ausführen am 2026-10-26 aufgefallen und ersetzt; die Absicht
+(keine cluster-scoped Ressource im Auth-Baum) ist unverändert.
 
 Commit: `feat(infra): Auth-Overlay für den Prod-Cluster anlegen`

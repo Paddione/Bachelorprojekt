@@ -1,0 +1,16 @@
+# Namespace der Auth-Seite (Pocket ID) — explizit, weil SealedSecrets keinen
+# Namespace erzeugen. Audit-Befund C3 bestand genau darin, dass vier
+# SealedSecrets fuer drei nicht existierende Namespaces ausgeliefert wurden;
+# p7 pinnt die Paritaet von erzeugten Namespaces und SealedSecret-Namespaces.
+#
+# Labels und PSS-Stufen aus prod-fleet/korczewski-auth/namespace.yaml
+# uebernommen, nicht neu gewaehlt. website-korczewski kommt aus der
+# Website-Basis (korczewski-prod/website, p4).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: workspace-korczewski
+  labels:
+    app.kubernetes.io/part-of: workspace-mvp
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

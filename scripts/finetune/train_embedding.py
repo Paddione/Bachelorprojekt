@@ -39,7 +39,11 @@ def check_measure(report_path: str) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--corpus", required=True)
-    ap.add_argument("--model", default="google/embeddinggemma-300m")
+    ap.add_argument("--model", default="google/embeddinggemma-300m-qat-q8_0-unquantized",
+                    help="QAT-unquantized default: weights start from a quantization-robust "
+                         "basin; our serving target is Q8_0 GGUF (bge-m3 precedent), so the "
+                         "fine-tune should survive re-quantization. Pure fp32/bf16 serving "
+                         "can use google/embeddinggemma-300m instead.")
     ap.add_argument("--measure-report", required=True)
     ap.add_argument("--eval-corpus", default=None)
     ap.add_argument("--max-seq-length", type=int, default=None)
@@ -48,6 +52,9 @@ def main() -> None:
     ap.add_argument("--lr", default="2e-5")
     ap.add_argument("--matryoshka", action="store_true", help="add Matryoshka loss 768/512/256/128")
     ap.add_argument("--output-dir", default="scripts/finetune/outputs/embed")
+    ap.add_argument("--dtype", default="auto", choices=["auto", "fp32", "bfloat16"],
+                    help="auto: bfloat16 on CUDA, fp32 on CPU (bf16 CPU training is slow). "
+                         "Note: EmbeddingGemma forbids float16; bf16/fp32 only.")
     ap.add_argument("--hub-model-id", default=None)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
@@ -70,8 +77,12 @@ def main() -> None:
     from datasets import Dataset
     from sentence_transformers import SentenceTransformer, SentenceTransformerTrainer, SentenceTransformerTrainingArguments
     from sentence_transformers.losses import MatryoshkaLoss, MultipleNegativesRankingLoss
+    import torch
 
-    model = SentenceTransformer(args.model, model_kwargs={"torch_dtype": "bfloat16"})
+    dtype = args.dtype
+    if dtype == "auto":
+        dtype = "bfloat16" if torch.cuda.is_available() else "fp32"
+    model = SentenceTransformer(args.model, model_kwargs={"torch_dtype": dtype})
     ds = Dataset.from_list([{"anchor": r["anchor"], "positive": r["positive"], "negative": r["negative"]} for r in rows])
     inner = MultipleNegativesRankingLoss(model)
     loss = MatryoshkaLoss(model, inner, matryoshka_dims=[768, 512, 256, 128]) if args.matryoshka else inner

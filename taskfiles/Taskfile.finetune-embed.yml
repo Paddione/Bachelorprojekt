@@ -50,7 +50,7 @@ tasks:
         {{if .EVAL_CORPUS}}cp -- "{{.EVAL_CORPUS}}" "$STAGE/eval.jsonl"{{end}}
         FLAVOR="{{.FLAVOR}}"
         [ -n "$FLAVOR" ] || FLAVOR=t4-small
-        set -- --corpus /data/corpus.jsonl --model "google/embeddinggemma-300m" \
+        set -- --corpus /data/corpus.jsonl --model "google/embeddinggemma-300m-qat-q8_0-unquantized" \
           --measure-report /data/report.json --hub-model-id "{{.HUB_MODEL_ID}}" \
           --output-dir /tmp/finetune-output
         {{if .MATRYOSHKA}}set -- "$@" --matryoshka{{end}}

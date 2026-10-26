@@ -21,6 +21,18 @@ RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY components/website/ .
 
+# [#6965] Dense-SSOT nachziehen. Elf Website-Module importieren
+# scripts/lib/dense-embedding.mjs per Tief-Relativpfad (z. B.
+# src/pages/sdlc/api/ki/embeddings.ts: ../../../../../../../scripts/...).
+# Das COPY oben kopiert nur den website-Teilbaum nach /app; alle Importe
+# klettern per POSIX-..-Klemmung an der Root auf /scripts/... hoch (lokal
+# loesen sie gegen das Repo-Root auf). Ohne diese Zeile bricht jeder
+# Image-Build mit [UNRESOLVED_IMPORT] ab, waehrend lokal alles gruene Tests
+# zeigt. Die Datei ist bewusst ableitungsfrei (nur node:crypto), daher
+# genuegt die einzelne Datei statt des ganzen scripts/-Baums.
+# Guard: tests/py/spec/native_ported/spec/test_website_imports_resolve_in_image.py
+COPY scripts/lib/dense-embedding.mjs /scripts/lib/dense-embedding.mjs
+
 # [T002466] Lavish-Kit-Assets als ECHTE Dateien nachziehen.
 # components/website/public/cockpit/{kit,cockpit-shell.html,reference-board.html} sind im Repo
 # Symlinks nach ../../../.lavish/ — .lavish/ ist die SSOT (K1-Kit + K2-Daemon), und

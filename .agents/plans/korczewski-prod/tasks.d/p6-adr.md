@@ -206,8 +206,16 @@ diesem Task. Sollte beim Ausführen inzwischen ein `docs/adr/README.md` existier
 die Zeile `- [ADR-017](ADR-017-korczewski-prod-flux.md) — korczewski-prod Lieferkette`
 in diesen Task und in denselben Commit.
 
-Verify: `for k in "## Abweichungen zu ADR-016" "## Abgrenzung zu T002479 und zur :latest-Ausnahme" "## Folgen" "## Risiken" "## Guards" "## Nicht entschieden"; do grep -qF "$k" docs/adr/ADR-017-korczewski-prod-flux.md || exit 1; done && [ "$(grep -cE '^### \((a-d)\) ' docs/adr/ADR-017-korczewski-prod-flux.md)" -eq 4 ] && grep -qF 'T002479' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'suspend: true' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'korczewski-prod/**' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'k3d/website.yaml' docs/adr/ADR-017-korczewski-prod-flux.md && echo ok`
+Verify: `for k in "## Abweichungen zu ADR-016" "## Abgrenzung zu T002479 und zur :latest-Ausnahme" "## Folgen" "## Risiken" "## Guards" "## Nicht entschieden"; do grep -qF "$k" docs/adr/ADR-017-korczewski-prod-flux.md || exit 1; done && [ "$(grep -cE '^### \([a-d]\) ' docs/adr/ADR-017-korczewski-prod-flux.md)" -eq 4 ] && grep -qF 'T002479' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'suspend: true' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'korczewski-prod/**' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'k3d/website.yaml' docs/adr/ADR-017-korczewski-prod-flux.md && echo ok`
 
 Verify: `for k in "## Kontext" "## Entscheidungen" "## Abweichungen zu ADR-016" "## Folgen" "## Nicht entschieden"; do grep -qF "$k" docs/adr/ADR-017-korczewski-prod-flux.md || exit 1; done; [ "$(grep -cE '^### \([a-d]\) ' docs/adr/ADR-017-korczewski-prod-flux.md)" -eq 4 ] && grep -qF 'matchOIDCIdentity' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'distribution.version' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'cluster-admin' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'TLSStore' docs/adr/ADR-017-korczewski-prod-flux.md && echo ok`
 
 Commit: `docs(infra): ADR-017 korczewski-prod Lieferkette`
+
+## Abweichung bei der Ausführung (2026-10-26)
+
+- **Das `### (a)`–`(d)`-Muster im ersten Verify war in ERE falsch geschrieben.** `grep -cE '^### \((a-d)\) '`
+  liest mit `-E` ein Literal-`(` gefolgt von der *Gruppe* `a-d` gefolgt von einem Literal-`)`, trifft
+  also nie und hätte den Verify unabhängig vom Dokument scheitern lassen (beim Ausführen aufgefallen).
+  Ersetzt durch `^### \([a-d]\) ` — dieselbe Absicht (genau vier Unterabschnitte), dieselbe Zahl 4.
+  Der zweite Verify in diesem Partial nutzte von Anfang an die korrekte Form.

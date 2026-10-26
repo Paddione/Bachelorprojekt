@@ -46,6 +46,12 @@ required for clients. No touch of prod `korczewski` (frozen workspace, T002479).
    `opencode.korczewski.de` if a true wildcard is wanted. Note: existing
    `llm.korczewski` CNAME → bare `tail8a4425.ts.net` cannot resolve to a device
    (needs full MagicDNS host, tailnet clients only) — unrelated to this path.
+   Verified 2026-10-26: `opencode` resolves via `CNAME → korczewski.de` to WAN
+   `159.48.35.222` + `2a04:6ec1:1:a::777e`; FritzBox remote admin on `:4433`
+   (no `443` conflict); static NAT `80/443` → `10.10.10.3` done — Traefik
+   answers `404` on v4 http+https with default `devmesh` wildcard cert (correct
+   pre-deploy state). IPv6 Freigabe `80/443` → Traefik host still pending
+   (v6 connect fails); until then clients use v4.
 2. FritzBox: DynDNS entry (Anbieter Benutzerdefiniert,
    `https://ipv64.net/nic/update?key=<Domain-Update-Key>&ip=<ipaddr>&ip6=<ip6addr>`,
    Domainname `opencode.<apex>`, user/pass `none`) + NAT `80/443` → Traefik LB

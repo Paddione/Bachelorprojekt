@@ -8,10 +8,10 @@
 #   - lfm-embed   (LFM2.5-Embedding-350M-Q8_0, --embeddings): Port 8080
 #   - lfm-colbert (LFM2.5-ColBERT-350M-Q8_0,  --embeddings): Port 8080
 #
-# Desktop sieht unveraendert localhost:8095/:8097 via Port-Forward
-# (devmesh-retrieval-forward.service) — kein Consumer-Umbau noetig.
-# Das :8093-Python-API (colbert_rerank.py, CPU-only) bleibt auf dem Desktop
-# und spricht weiter 127.0.0.1:8097.
+# MaxSim-Rerank lebt als eigener Cluster-Dienst (k3d/llm-retrieval-maxsim.yaml,
+# Rolle colbert-rerank, Upstream llm-gateway-lfm-colbert:8081). Die
+# Desktop-Dienste (:8093-Python-API colbert_rerank.py, :8095/:8097-Forwards)
+# entfallen mit dem Desktop-Rueckbau (Runbook docs/runbooks/bge-role-registry.md).
 #
 # Maxwell (GTX 970, sm_52): KEIN -fa (Flash-Attention wird nicht
 # unterstuetzt); sonst identische Flags wie lokal. Image-Pin ist der Digest

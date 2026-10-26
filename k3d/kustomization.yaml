@@ -92,6 +92,8 @@ resources:
   # LFM2.5 Retrieval (Embedding + ColBERT) auf gpu-metal — Nachfolger der
   # Desktop-Dienste :8095/:8097, Desktop sieht localhost via Port-Forward.
   - llm-retrieval-gpu.yaml
+  # ColBERT-MaxSim-Rerank (CPU) ueber lfm-colbert — Rolle colbert-rerank.
+  - llm-retrieval-maxsim.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml
   # Pocket ID — passkey-first OIDC provider on auth.<domain>, sole OIDC

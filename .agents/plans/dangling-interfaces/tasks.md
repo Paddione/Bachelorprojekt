@@ -1,7 +1,7 @@
 ---
 title: "dangling-interfaces — Dangling HTTP-Schnittstellen mit Embedding-Kanten sichtbar machen"
 domains: [website, infra]
-status: done
+status: completed
 ---
 
 # dangling-interfaces — Implementation Plan

@@ -5,9 +5,29 @@ vi.mock('./embeddings', () => ({
   embedBatch: (...a: unknown[]) => embedBatch(...a),
 }));
 
-import { validateJsonEntries, ingestJsonChunks } from './ingest-json-core';
+import { validateJsonEntries, ingestJsonChunks, presplitJsonText } from './ingest-json-core';
 
 beforeEach(() => embedBatch.mockReset());
+
+const VEC = () => Array(768).fill(0.01);
+
+function mockPool({ gate = true }: { gate?: boolean } = {}) {
+  const q = vi.fn(async (sql: string, _params?: unknown) => {
+    if (sql === 'BEGIN' || sql === 'COMMIT' || sql === 'ROLLBACK') return { rows: [] };
+    if (sql.includes('dense_embedding_migrations')) {
+      return gate
+        ? { rows: [{ writer_locked: false, phase: 'active', target_profile: 'embeddinggemma-300m:768:Q8_0:v1' }] }
+        : { rows: [] };
+    }
+    if (sql.includes('FROM knowledge.collections')) return { rows: [{ id: 'col-1' }] };
+    if (sql.includes('INSERT INTO knowledge.collections')) return { rows: [{ id: 'col-2' }] };
+    if (sql.includes('INSERT INTO knowledge.documents')) return { rows: [{ id: 'doc-1' }] };
+    return { rows: [] };
+  });
+  const client = { query: (...a: [string, unknown?]) => q(a[0], a[1]), release: vi.fn() };
+  const pool = { query: (...a: [string, unknown?]) => q(a[0], a[1]), connect: async () => client };
+  return { q, pool, client };
+}
 
 describe('ingest-json-core.validateJsonEntries', () => {
   it('accepts an empty array', () => {
@@ -41,22 +61,19 @@ describe('ingest-json-core.validateJsonEntries', () => {
   });
 });
 
+describe('ingest-json-core.presplitJsonText', () => {
+  it('keeps short text whole and never splits surrogates', () => {
+    expect(presplitJsonText('hi')).toEqual(['hi']);
+    const parts = presplitJsonText(`${'x'.repeat(2999)}😀rest`);
+    expect(parts.join('')).toBe(`${'x'.repeat(2999)}😀rest`);
+    for (const p of parts) expect(p).not.toMatch(/�/);
+  });
+});
+
 describe('ingest-json-core.ingestJsonChunks (db-mocked)', () => {
-  function mockPool() {
-    const q = vi.fn();
-    return { q, pool: { query: (...a: unknown[]) => q(...a) } };
-  }
-
-  it('reuses the existing collection when one matches the slug', async () => {
+  it('reuses the existing collection and sets the Gemma label only at commit', async () => {
     const { q, pool } = mockPool();
-    q
-      .mockResolvedValueOnce({ rows: [{ id: 'col-1' }] })                  // SELECT existing collection
-      .mockResolvedValueOnce({ rows: [] })                                  // UPDATE collection
-      .mockResolvedValueOnce({ rows: [{ id: 'doc-1' }] })                  // INSERT document
-      .mockResolvedValueOnce({ rows: [] })                                  // DELETE old chunks
-      .mockResolvedValueOnce({ rows: [] });                                 // UPDATE chunk_count
-
-    embedBatch.mockResolvedValueOnce({ embeddings: [[0.1, 0.2, 0.3]] });
+    embedBatch.mockResolvedValue({ embeddings: [VEC()] });
 
     const out = await ingestJsonChunks(
       pool as never,
@@ -64,48 +81,98 @@ describe('ingest-json-core.ingestJsonChunks (db-mocked)', () => {
       () => undefined,
     );
     expect(out).toEqual({ collectionId: 'col-1', count: 1 });
-    const updateSql = q.mock.calls[1][0] as string;
-    expect(updateSql).toMatch(/UPDATE knowledge\.collections/);
+    const calls = q.mock.calls.map((c) => String(c[0]));
+    expect(calls[0]).toMatch(/dense_embedding_migrations/);
+    expect(calls[1]).toBe('BEGIN');
+    expect(calls.at(-1)).toBe('COMMIT');
+    const labelCall = q.mock.calls.find((c) => String(c[0]).includes('embedding_model'));
+    expect(String(labelCall?.[0])).toMatch(/UPDATE knowledge\.collections/);
   });
 
-  it('creates a new collection when the slug does not exist yet', async () => {
-    const { q, pool } = mockPool();
-    q
-      .mockResolvedValueOnce({ rows: [] })                                  // SELECT existing (empty)
-      .mockResolvedValueOnce({ rows: [{ id: 'col-2' }] })                  // INSERT new collection
-      .mockResolvedValueOnce({ rows: [{ id: 'doc-2' }] })                  // INSERT document
-      .mockResolvedValueOnce({ rows: [] })                                  // DELETE old chunks
-      .mockResolvedValueOnce({ rows: [] });                                 // UPDATE chunk_count
+  it('creates a new collection with the Gemma label inside the transaction', async () => {
+    const q = vi.fn(async (sql: string) => {
+      if (sql === 'BEGIN' || sql === 'COMMIT' || sql === 'ROLLBACK') return { rows: [] };
+      if (sql.includes('dense_embedding_migrations')) {
+        return { rows: [{ writer_locked: false, phase: 'active', target_profile: 'embeddinggemma-300m:768:Q8_0:v1' }] };
+      }
+      if (sql.includes('FROM knowledge.collections')) return { rows: [] };
+      if (sql.includes('INSERT INTO knowledge.collections')) {
+        return { rows: [{ id: 'col-2' }] };
+      }
+      if (sql.includes('INSERT INTO knowledge.documents')) return { rows: [{ id: 'doc-2' }] };
+      return { rows: [] };
+    });
+    const client = { query: (...a: [string]) => q(...a), release: vi.fn() };
+    const pool = { query: (...a: [string]) => q(...a), connect: async () => client };
+    embedBatch.mockResolvedValue({ embeddings: [VEC()] });
 
-    embedBatch.mockResolvedValueOnce({ embeddings: [[0.4, 0.5]] });
     const out = await ingestJsonChunks(
       pool as never,
       { entries: [{ id: 'a', content: 'hi' }], slug: 'new', sourceUri: 'file://y' },
       () => undefined,
     );
     expect(out.collectionId).toBe('col-2');
-    expect(out.count).toBe(1);
-    const insertCol = q.mock.calls[1][0] as string;
-    expect(insertCol).toMatch(/INSERT INTO knowledge\.collections/);
+    const insertCall = q.mock.calls.find((c) => String(c[0]).includes('INSERT INTO knowledge.collections')) as
+      unknown as [string, unknown[]] | undefined;
+    expect(insertCall?.[1]).toMatchObject(['new', 'embeddinggemma-300m', null]);
   });
 
-  it('reports progress for every entry and returns the total count', async () => {
+  it('emits source_id/part provenance with consistent positions', async () => {
     const { q, pool } = mockPool();
-    q
-      .mockResolvedValueOnce({ rows: [{ id: 'col-3' }] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [{ id: 'doc-3' }] })
-      .mockResolvedValueOnce({ rows: [] });
+    embedBatch.mockResolvedValue({ embeddings: [VEC(), VEC()] });
 
-    embedBatch.mockResolvedValueOnce({ embeddings: [[0.1], [0.2]] });
-
-    const progress: Array<[number, number]> = [];
-    const out = await ingestJsonChunks(
+    await ingestJsonChunks(
       pool as never,
       { entries: [{ id: 'a', content: '1' }, { id: 'b', content: '2' }], slug: 's', sourceUri: 'u' },
-      (done, total) => progress.push([done, total]),
+      () => undefined,
     );
-    expect(out.count).toBe(2);
-    expect(progress.at(-1)).toEqual([2, 2]);
+    const inserts = q.mock.calls.filter((c) => String(c[0]).includes('INSERT INTO knowledge.chunks')) as
+      unknown as Array<[string, unknown[]]>;
+    expect(inserts).toHaveLength(2);
+    expect(JSON.parse(String(inserts[1][1][5]))).toMatchObject({ source_id: 'b', part_index: 0 });
+  });
+
+  it('rolls back fully on upstream errors, label untouched', async () => {
+    const seen: string[] = [];
+    const cq = vi.fn(async (sql: string) => {
+      seen.push(sql);
+      if (sql === 'BEGIN' || sql === 'COMMIT' || sql === 'ROLLBACK') return { rows: [] };
+      if (sql.includes('dense_embedding_migrations')) {
+        return { rows: [{ writer_locked: false, phase: 'active', target_profile: 'embeddinggemma-300m:768:Q8_0:v1' }] };
+      }
+      if (sql.includes('FROM knowledge.collections')) return { rows: [{ id: 'col-1' }] };
+      if (sql.includes('INSERT INTO knowledge.documents')) return { rows: [{ id: 'doc-1' }] };
+      return { rows: [] };
+    });
+    const cclient = { query: (s: string) => cq(s), release: () => undefined };
+    const cpool = { query: (s: string) => cq(s), connect: async () => cclient };
+    embedBatch.mockRejectedValueOnce(new Error('upstream 400'));
+
+    let caught: unknown = null;
+    try {
+      await ingestJsonChunks(
+        cpool as never,
+        { entries: [{ id: 'a', content: 'hi' }], slug: 's', sourceUri: 'u' },
+        () => undefined,
+      );
+    } catch (e) {
+      caught = e;
+    }
+    expect(String((caught as Error | null)?.message ?? '')).toMatch(/upstream 400/);
+    expect(seen).toContain('ROLLBACK');
+    expect(seen).not.toContain('COMMIT');
+    expect(seen.join('\n')).not.toMatch(/UPDATE knowledge\.collections/);
+  });
+
+  it('fail-closed ohne aktive Generation', async () => {
+    const { q, pool } = mockPool({ gate: false });
+    embedBatch.mockResolvedValue({ embeddings: [VEC()] });
+
+    await expect(ingestJsonChunks(
+      pool as never,
+      { entries: [{ id: 'a', content: 'hi' }], slug: 's', sourceUri: 'u' },
+      () => undefined,
+    )).rejects.toThrow(/DenseProfileError/);
+    expect(q.mock.calls.map((c) => String(c[0]))).not.toContain('BEGIN');
   });
 });

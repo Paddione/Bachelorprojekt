@@ -1,0 +1,286 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# llm-gemma-embed: EmbeddingGemma-300M Dense-Embedding (llama.cpp, CPU-only)
+#
+# Paralleler Dense-Dienst fuer die BGE-M3 -> EmbeddingGemma-300M-Migration
+# (768 Dim, Q8_0). Spricht den Shadow-Reindex an; der laufende BGE-Dienst und
+# seine Leser/Writer bleiben bis zur vollstaendigen Shadow-Abnahme unveraendert
+# (kein Cutover aus diesem Partial).
+#
+#   - gemma-embed      (embeddinggemma-300m, --embeddings): Port 8080
+#   - gemma-embed-bulk (geparkt, replicas: 0, emptyDir): Port 8080
+# Service llm-gateway-gemma-embed auf Port 8081 (Embedding-Service-Port),
+# targetPort ist der Container-Port 8080. Bulk-Pods tragen app: gemma-embed
+# und joinen den Service automatisch (Round-Robin), wie bge-embed-bulk.
+#
+# Modell: unsloth/embeddinggemma-300m-GGUF, Datei exakt case-sensitive
+#   embeddinggemma-300M-Q8_0.gguf, Alias embeddinggemma-300m.
+# Pooling aus den GGUF-Metadaten (kein erzwungenes --pooling-Flag).
+# Kontext: -c 4096 bei -np 2 Slots = 2048 pro Sequenz; -ub 2048 nimmt eine
+# volle bidirektionale Sequenz inkl. Prompt auf (kein stilles Splitten durch
+# llama.cpp). -t 2 / -tb 2 an limits.cpu 2000m gebunden (T002661-Muster).
+# Kein -fa (kein Flash-Attention-Zwang), keine FP16-Aktivierungen.
+# Speicher: 4Gi-Limit wie bge-embed (Peak-verified Muster); der Max-Input-
+# Smoke unter realer 2048-Token-Last laeuft in p1.5 und kann das Limit noch
+# anheben — kein unverifiziertes 2Gi-Versprechen.
+#
+# Image-Pin vom CPU-Bestand aus k3d/llm-gpu.yaml uebernommen (kein Rolling-Tag).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── gemma-embed: EmbeddingGemma-300M Embedding (llama.cpp, CPU-only) ──────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gemma-embed-models
+  labels:
+    app: gemma-embed
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gemma-embed
+  labels:
+    app: gemma-embed
+spec:
+  replicas: 1
+  # Recreate, nicht RollingUpdate: die models-PVC ist ReadWriteOnce (Longhorn).
+  # Mit maxSurge wartet der neue Pod auf ein Attach, das erst kommt, wenn er
+  # selbst weicht (T002604-Muster aus llm-gpu.yaml).
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gemma-embed
+  template:
+    metadata:
+      labels:
+        app: gemma-embed
+    spec:
+      # fsGroup 101: curlimages/curl laeuft als uid=100/gid=101 (curl_user),
+      # sonst scheitert der InitContainer auf Longhorn-RWO mit Permission denied.
+      # SA-GR-06: runAsNonRoot auf Pod-Ebene, explizite UIDs auf Container-Ebene.
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 101
+      initContainers:
+        - name: model-download
+          image: curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            allowPrivilegeEscalation: false
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              if [ ! -s /models/embeddinggemma-300M-Q8_0.gguf ]; then
+                echo "Downloading embeddinggemma-300M-Q8_0.gguf ..."
+                curl -fL --retry 3 --connect-timeout 10 \
+                  -o /models/embeddinggemma-300M-Q8_0.gguf \
+                  https://huggingface.co/unsloth/embeddinggemma-300m-GGUF/resolve/main/embeddinggemma-300M-Q8_0.gguf
+              fi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+          resources:
+            requests:
+              # [T003903] Kein BestEffort-QoS: Model-Download darf unter
+              # Node-Druck nicht als erster evictet werden.
+              cpu: 100m
+              memory: 256Mi
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server-b11561@sha256:052888c603894ecfa08deb6714fdc2d7084e491e174d5ab41bfb36b49ee7151c
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+          args:
+            - "-m"
+            - "/models/embeddinggemma-300M-Q8_0.gguf"
+            - "--alias"
+            - "embeddinggemma-300m"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            # GPU-Offload voll (Modell nur ~300 MB). Wirkt nur mit
+            # GPU-sichtbarer Node; ohne Passthrough warnt llama.cpp und
+            # faellt auf CPU zurueck (Apply + Benchmark erst am Cutover).
+            - "-ngl"
+            - "99"
+            # Kontext/Slots: 2 x 2048 (Prompt inkl.). -ub nimmt eine volle
+            # Sequenz auf; kuersere Batches braechen lange Texte still.
+            - "-c"
+            - "4096"
+            - "-b"
+            - "2048"
+            - "-ub"
+            - "2048"
+            # -np 2 Slots, -t 2 / -tb 2 Threads gegen limits.cpu 2000m
+            # (T002661/T002835 — Oversubscription friert an der Layer-Barriere).
+            - "-np"
+            - "2"
+            - "-t"
+            - "2"
+            - "-tb"
+            - "2"
+            - "--embeddings"
+          env:
+            - name: CUDA_VISIBLE_DEVICES
+              value: ""
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "1000m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: gemma-embed-models
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-gemma-embed
+  labels:
+    app: llm-gateway
+spec:
+  selector:
+    app: gemma-embed
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8080
+---
+# ── gemma-embed-bulk: geparkter Embedding-Pool fuer Shadow-Reindex ─────────
+# replicas: 0 im Ruhezustand (keine idle-Kosten). Vor einem Bulk-Reindex:
+#   kubectl -n workspace scale deploy/gemma-embed-bulk --replicas=<freie GPUs>
+# (kein GPU-Time-Slicing konfiguriert — mehr Replikas als GPU-Slots bleiben
+# Pending). Danach zurueck auf 0. Jede Replika laedt das Modell per InitContainer in
+# ein leeres emptyDir — kein shared RWO-PVC, deshalb kein
+# Recreate/Attach-Deadlock (T002604-Muster) und HPA-fest.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gemma-embed-bulk
+  labels:
+    app: gemma-embed
+    pool: bulk
+spec:
+  replicas: 0
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: gemma-embed
+      pool: bulk
+  template:
+    metadata:
+      labels:
+        app: gemma-embed
+        pool: bulk
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 101
+      initContainers:
+        - name: model-download
+          image: curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            allowPrivilegeEscalation: false
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              if [ ! -s /models/embeddinggemma-300M-Q8_0.gguf ]; then
+                echo "Downloading embeddinggemma-300M-Q8_0.gguf ..."
+                curl -fL --retry 3 --connect-timeout 10 \
+                  -o /models/embeddinggemma-300M-Q8_0.gguf \
+                  https://huggingface.co/unsloth/embeddinggemma-300m-GGUF/resolve/main/embeddinggemma-300M-Q8_0.gguf
+              fi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server-b11561@sha256:052888c603894ecfa08deb6714fdc2d7084e491e174d5ab41bfb36b49ee7151c
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+          args:
+            - "-m"
+            - "/models/embeddinggemma-300M-Q8_0.gguf"
+            - "--alias"
+            - "embeddinggemma-300m"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            # GPU-Offload voll (Modell nur ~300 MB) — siehe Hinweis am Hauptdeploy.
+            - "-ngl"
+            - "99"
+            - "-c"
+            - "4096"
+            - "-b"
+            - "2048"
+            - "-ub"
+            - "2048"
+            - "-np"
+            - "2"
+            - "-t"
+            - "2"
+            - "-tb"
+            - "2"
+            - "--embeddings"
+          env:
+            - name: CUDA_VISIBLE_DEVICES
+              value: ""
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "1000m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+      volumes:
+        - name: models
+          emptyDir: {}

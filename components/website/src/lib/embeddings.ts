@@ -1,14 +1,20 @@
 import { logAiCall } from './ai-metrics';
 import { resolveEndpoint, BgeRoutingError } from './bge-router';
+import {
+  assertDenseVectors,
+  formatDenseInput,
+  DENSE_MODEL,
+  DENSE_PROFILE,
+} from '../../../../scripts/lib/dense-embedding.mjs';
 
 // T016562: Voyage AI ist entfernt — einziger Embedding-Pfad ist der lokale
-// bge-Router (llama.cpp, bge-m3). Ohne konfigurierte LLM_EMBED_URL wirft
+// Router (llama.cpp, Gemma-Dense). Ohne konfigurierte LLM_EMBED_URL wirft
 // resolveEndpoint BgeRoutingError; beide Entry points fallen fail-closed
 // durch. Es gibt keinen externen Fallback mehr.
 
 const EMBED_BATCH = 128;
 
-export type EmbeddingModel = 'bge-m3';
+export type EmbeddingModel = typeof DENSE_MODEL;
 type EmbeddingPurpose = 'index' | 'query';
 
 interface EmbedResult { embedding: number[]; tokens: number; }
@@ -36,8 +42,18 @@ export class EmbeddingQueryError extends Error {
 
 // Maps internal model type to the actual model ID sent to the API.
 // llama.cpp accepts the model field (ignored in single-model mode).
-const resolveModelId = (m: string) =>
-  m === 'bge-m3' ? (process.env.LLM_EMBED_MODEL ?? 'bge-m3') : m;
+// Weder ein altes 'bge-m3' noch ein fremdes Label wird still auf das aktive
+// Profil umgebogen; LLM_EMBED_MODEL muss dem aktiven Profil entsprechen.
+const resolveModelId = (m: string) => {
+  if (m !== DENSE_MODEL) {
+    throw new Error(`unsupported embedding model '${m}' (active: '${DENSE_MODEL}')`);
+  }
+  const env = process.env.LLM_EMBED_MODEL ?? DENSE_MODEL;
+  if (env !== DENSE_MODEL) {
+    throw new Error(`LLM_EMBED_MODEL='${env}' does not match active profile '${DENSE_PROFILE}'`);
+  }
+  return env;
+};
 
 function isNetworkError(err: unknown, signal?: AbortSignal): boolean {
   if (!(err instanceof Error)) return false;
@@ -57,16 +73,29 @@ async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'mode
   // stuft ihn als Erreichbarkeitsproblem ein, damit die bestehende
   // Fallunterscheidung greift — fail-closed als Embedding*Error.
   const target = resolveEndpoint('embed');
+  // Rohe Texte werden genau einmal nach Purpose formatiert; der Proxy
+  // praefixiert nicht zusaetzlich. Ein Ergebnis pro Eingabetext — lange
+  // Texte werden hier nicht still in mehrere Ergebnisse verwandelt.
+  const formatted = inputs.map(t => formatDenseInput(t, opts.purpose));
   for (let attempt = 1; attempt <= max; attempt++) {
     const r = await fetch(`${target}/v1/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': opts.purpose },
-      body: JSON.stringify({ model: resolveModelId(opts.model), input: inputs }),
+      body: JSON.stringify({ model: resolveModelId(opts.model), input: formatted }),
       signal: opts.signal,
     });
     if (r.ok) {
       const j = await r.clone().json() as { data: Array<{ embedding: number[] }>; usage?: { total_tokens?: number } };
-      return { embeddings: j.data.slice(0, inputs.length).map(d => d.embedding), tokens: j.usage?.total_tokens ?? 0 };
+      const vecs = Array.isArray(j.data) ? j.data.map(d => d.embedding) : [];
+      // Fehlende/duplizierte/nichtnumerische/Null-Vektoren sind Index-/Query-Fehler.
+      try {
+        assertDenseVectors(vecs, inputs.length);
+      } catch (err) {
+        throw opts.purpose === 'index'
+          ? new EmbeddingIndexError(`invalid embedding payload: ${err instanceof Error ? err.message : err}`)
+          : new EmbeddingQueryError(`invalid embedding payload: ${err instanceof Error ? err.message : err}`);
+      }
+      return { embeddings: vecs, tokens: j.usage?.total_tokens ?? 0 };
     }
     if (r.status === 429 || r.status >= 500) {
       lastErr = new Error(`router ${r.status} ${await r.clone().text().catch(() => '')}`);
@@ -84,7 +113,7 @@ async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'mode
 
 export async function embedQuery(text: string, opts: EmbedOpts = {}): Promise<EmbedResult> {
   const purpose: EmbeddingPurpose = opts.purpose ?? 'query';
-  const model: EmbeddingModel = opts.model ?? 'bge-m3';
+  const model: EmbeddingModel = opts.model ?? DENSE_MODEL;
   try {
     const r = await callRouter([text], { ...opts, model, purpose });
     return { embedding: r.embeddings[0], tokens: r.tokens };
@@ -92,13 +121,16 @@ export async function embedQuery(text: string, opts: EmbedOpts = {}): Promise<Em
     if (isNetworkError(err, opts.signal)) {
       throw new EmbeddingQueryError(err instanceof Error ? err.message : 'embed router unreachable');
     }
+    if (err instanceof Error && /unsupported embedding model|does not match active profile/.test(err.message)) {
+      throw new EmbeddingQueryError(err.message);
+    }
     throw err;
   }
 }
 
 export async function embedBatch(texts: string[], opts: EmbedOpts = {}): Promise<BatchResult> {
   const purpose: EmbeddingPurpose = opts.purpose ?? 'index';
-  const model: EmbeddingModel = opts.model ?? 'bge-m3';
+  const model: EmbeddingModel = opts.model ?? DENSE_MODEL;
   const _start = Date.now();
   const out: number[][] = [];
   let totalTokens = 0;
@@ -111,6 +143,9 @@ export async function embedBatch(texts: string[], opts: EmbedOpts = {}): Promise
     } catch (err) {
       if (isNetworkError(err, opts.signal)) {
         throw new EmbeddingIndexError(err instanceof Error ? err.message : 'embed router unreachable');
+      }
+      if (err instanceof Error && /unsupported embedding model|does not match active profile/.test(err.message)) {
+        throw new EmbeddingIndexError(err.message);
       }
       throw err;
     }

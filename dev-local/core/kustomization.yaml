@@ -23,6 +23,7 @@ resources:
   - ../../k3d/pocket-id-client-seed-rbac.yaml
   - ../../k3d/pocket-id-client-seed-website-rbac.yaml
   - ../../k3d/llm-gpu.yaml
+  - ../../k3d/llm-gemma-embed.yaml
   - ../../k3d/mailpit.yaml
   - ../../k3d/sdlc-stack/sdlc-console.yaml
   - ../../k3d/sdlc-stack/sdlc-console-rbac.yaml

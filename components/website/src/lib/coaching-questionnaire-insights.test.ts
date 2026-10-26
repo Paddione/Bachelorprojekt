@@ -1,6 +1,6 @@
 // coaching-questionnaire-insights.test.ts — T002652
 //
-// Fragebogen-Insights: Embedding aller Antworten (bge-m3, fail-closed), DBSCAN-
+// Fragebogen-Insights: Embedding aller Antworten (Gemma-Dense, fail-closed), DBSCAN-
 // Clusterung (reine TS-Logik) und LLM-Labels ueber den DSGVO-geguardeten
 // Session-Agent-Pfad.
 //
@@ -168,17 +168,17 @@ describe('label', () => {
 describe('generateQuestionnaireInsights', () => {
   beforeEach(() => { mockEmbedBatch.mockReset(); mockCreateSessionAgent.mockReset(); });
 
-  it('antwortet mit Cluster-Struktur, embeddingModel bge-m3 und cached=false', async () => {
+  it('antwortet mit Cluster-Struktur, embeddingModel Gemma und cached=false', async () => {
     const pool = {
       query: vi.fn()
         .mockResolvedValueOnce({ rows: [{ id: '1', details_text: 'Thema Burnout' }] }) // cache check (leer)
         .mockResolvedValueOnce({ rows: [{ id: '1', details_text: 'Thema Burnout' }] }) // answers
         .mockResolvedValueOnce({ rows: [] }), // cache insert
     } as unknown as Pool;
-    mockEmbedBatch.mockResolvedValue({ embeddings: [[0.9, 0.1]], tokens: 1 });
+    mockEmbedBatch.mockResolvedValue({ embeddings: [Array(768).fill(0.01)], tokens: 1 });
 
     const result = await generateQuestionnaireInsights(pool, { brand: 'mentolder' });
-    expect(result.embeddingModel).toBe('bge-m3');
+    expect(result.embeddingModel).toBe('embeddinggemma-300m');
     expect(result.cached).toBe(false);
     expect(result.clusters).toHaveLength(0); // 1 Punkt + minPts 3 -> Rauschen
     expect(result.generatedAt).toBeTruthy();
@@ -187,13 +187,29 @@ describe('generateQuestionnaireInsights', () => {
   it('nutzt einen frischen Cache-Treffer (< 24h) und meldet cached=true', async () => {
     const pool = {
       query: vi.fn().mockResolvedValueOnce({
-        rows: [{ payload: { embeddingModel: 'bge-m3', cached: true, clusters: [] } }],
+        rows: [{ payload: { embeddingModel: 'embeddinggemma-300m', cached: true, clusters: [] } }],
       }),
     } as unknown as Pool;
 
     const result = await generateQuestionnaireInsights(pool, { brand: 'mentolder' });
     expect(result.cached).toBe(true);
     expect(mockEmbedBatch).not.toHaveBeenCalled();
+  });
+
+  it('verwirft Cache-Payloads mit fremdem Profil und rechnet neu', async () => {
+    const pool = {
+      query: vi.fn()
+        .mockResolvedValueOnce({
+          rows: [{ payload: { embeddingModel: 'bge-m3', cached: true, clusters: [{ id: 'alt' }] } }],
+        }) // veralteter BGE-Treffer
+        .mockResolvedValueOnce({ rows: [] }) // answers (leer -> Fehler? nein: leere Antworten)
+        .mockResolvedValueOnce({ rows: [] }), // cache insert
+    } as unknown as Pool;
+    mockEmbedBatch.mockResolvedValue({ embeddings: [], tokens: 0 });
+
+    const result = await generateQuestionnaireInsights(pool, { brand: 'mentolder' });
+    expect(result.cached).toBe(false);
+    expect(result.embeddingModel).toBe('embeddinggemma-300m');
   });
 
   it('force=true umgeht den Cache-Treffer', async () => {

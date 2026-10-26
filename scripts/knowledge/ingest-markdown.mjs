@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAllWithModel, chunkPlain } from './lib-knowledge-pg.mjs';
+import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, chunkPlain } from './lib-knowledge-pg.mjs';
+import { makeDenseClient, prepareDenseChunks } from './dense-client.mjs';
+import { DENSE_MODEL } from '../lib/dense-embedding.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, join, relative, basename } from 'node:path';
 
@@ -68,6 +70,7 @@ function splitMarkdownChunks(text) {
 
 async function main() {
   const pool = makePool();
+  const embedClient = makeDenseClient({ url: process.env.LLM_EMBED_URL });
   try {
     const collectionId = await ensureCollection(pool, {
       name: COLLECTION_NAME,
@@ -86,11 +89,13 @@ async function main() {
       const title = basename(filePath, '.md');
 
       const rawChunks = splitMarkdownChunks(text);
-      const { embeddings, model: embeddingModel } = await embedAllWithModel(rawChunks.map(c => c.text));
-      const chunks = rawChunks.map((c, i) => ({
-        ...c,
+      const subChunks = await prepareDenseChunks(rawChunks, embedClient);
+      const { embeddings } = await embedClient.embedDocuments(subChunks.map(c => c.text));
+      const chunks = subChunks.map((c, i) => ({
+        position: c.position,
+        text: c.text,
         embedding: embeddings[i],
-        metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+        metadata: { ...(c.metadata ?? {}), embedding_model: DENSE_MODEL },
       }));
 
       await upsertDocumentAndChunks(pool, {

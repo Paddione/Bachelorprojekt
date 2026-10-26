@@ -11,10 +11,12 @@ import { chunkText } from './chunking.ts';
 import { ticketEmbeddingModel, MixedEmbeddingModelError } from './tickets-db';
 import type { EmbeddingModel } from './embeddings.ts';
 import { logger } from './logger';
+import { DENSE_DIMENSIONS } from '../../../../scripts/lib/dense-embedding.mjs';
+import { DenseProfileError } from './dense-embedding-guard.ts';
 
 // ─── Shared helpers ─────────────────────────────────────────────────────────
 
-/** Bound a number[] into a VECTOR(1024) literal — mirrors knowledge-db.ts:157. */
+/** Bound a number[] into a VECTOR literal — mirrors knowledge-db.ts. */
 function vecLiteral(v: number[]): string { return `[${v.join(',')}]`; }
 
 const SYNC_CHUNK_CAP = 200; // mirror documents.ts — bound synchronous embed work
@@ -54,7 +56,7 @@ export async function embedTicket(ticketId: string, parts: TicketTextParts): Pro
     for (let i = 0; i < bounded.length; i++) {
       await pool.query(
         `INSERT INTO tickets.ticket_embeddings (ticket_id, chunk, chunk_type, embedding, embedding_model)
-         VALUES ($1, $2, $3, $4::vector(1024), $5)`,
+         VALUES ($1, $2, $3, $4::vector(${DENSE_DIMENSIONS}), $5)`,
         [ticketId, bounded[i].text, bounded[i].type, vecLiteral(embeddings[i]), model],
       );
       written++;
@@ -99,11 +101,15 @@ export async function findSimilarTickets(queryText: string, k = 5): Promise<Simi
   const models = distinct.rows.map(r => r.embedding_model).filter((m): m is string => !!m);
   if (models.length === 0) return []; // nothing embedded yet — Scout treats as "no similar tickets"
   if (models.length > 1) throw new MixedEmbeddingModelError(models);
+  // Alter Bestand scheitert geschlossen statt ueber zwei Vektorraeume zu suchen.
+  if (models[0] !== ticketEmbeddingModel()) {
+    throw new DenseProfileError(`ticket embeddings use '${models[0]}', active is '${ticketEmbeddingModel()}'`);
+  }
 
   const model = models[0] as EmbeddingModel;
   const { embedding } = await embedQuery(queryText, { model, purpose: 'query' });
   const res = await pool.query<SimilarTicket>(
-    `SELECT * FROM tickets.fn_find_similar($1::vector(1024), $2)`,
+    `SELECT * FROM tickets.fn_find_similar($1::vector(${DENSE_DIMENSIONS}), $2)`,
     [vecLiteral(embedding), k],
   );
   return res.rows;

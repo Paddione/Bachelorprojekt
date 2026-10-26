@@ -106,3 +106,12 @@ def test_bge_thread_quota_der_laufende_bge_embed_pod_traegt_t_in_seinen_args(rep
     assert args != ""
     assert "--embeddings" in args
     assert '"-t"' in args
+
+
+def test_gemma_embed_t_ist_gesetzt_und_ueberschreitet_die_cpu_quota_nicht(rendered):
+    _check_deployment(rendered, "gemma-embed", "--embeddings")
+
+
+def test_gemma_embed_reranker_unveraendert_bge_rerank_bleibt_2_threads(rendered):
+    # BGE-Reranker ist vom Dense-Wechsel ausgenommen: keine Dims-Aussage noetig.
+    _check_deployment(rendered, "bge-rerank", "--reranking")

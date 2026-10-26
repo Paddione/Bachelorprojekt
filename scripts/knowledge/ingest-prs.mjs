@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAllWithModel, chunkPlain } from './lib-knowledge-pg.mjs';
+import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, chunkPlain } from './lib-knowledge-pg.mjs';
+import { makeDenseClient, prepareDenseChunks } from './dense-client.mjs';
+import { DENSE_MODEL } from '../lib/dense-embedding.mjs';
 
 const COLLECTION_NAME = 'PR History';
 const COLLECTION_SOURCE = 'pr_history';
@@ -9,6 +11,7 @@ const LOOKBACK_DAYS = Number(process.env.INGEST_LOOKBACK_DAYS ?? 30);
 
 async function main() {
   const pool = makePool();
+  const embedClient = makeDenseClient({ url: process.env.LLM_EMBED_URL });
   try {
     const collectionId = await ensureCollection(pool, {
       name: COLLECTION_NAME,
@@ -50,14 +53,16 @@ async function main() {
 
       const hash = sha256(text);
       const sourceUri = `pr:${row.pr_number}`;
-      const chunks = chunkPlain(text).map(c => ({ ...c, embedding: null }));
+      const rawChunks = chunkPlain(text);
+      const subChunks = await prepareDenseChunks(rawChunks, embedClient);
 
       // Embed
-      const { embeddings, model: embeddingModel } = await embedAllWithModel(chunks.map(c => c.text));
-      const chunksWithEmbed = chunks.map((c, i) => ({
-        ...c,
+      const { embeddings } = await embedClient.embedDocuments(subChunks.map(c => c.text));
+      const chunksWithEmbed = subChunks.map((c, i) => ({
+        position: c.position,
+        text: c.text,
         embedding: embeddings[i],
-        metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+        metadata: { ...(c.metadata ?? {}), embedding_model: DENSE_MODEL },
       }));
 
       await upsertDocumentAndChunks(pool, {

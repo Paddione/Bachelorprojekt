@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 // .js-Endung fuer eine .ts-Datei — ESM-Konvention: ein '.ts'-Import
 // braucht allowImportingTsExtensions, das hier nicht gesetzt ist.
 import {
-  chunkCode, chunkSource, chunkYaml, estimateTokens, isInfrastructureError,
+  chunkCode, chunkSource, chunkYaml, estimateTokens, isInfrastructureError, ensureSchema,
 } from './index-repo.js';
 
 // T002266 — Regressionsschutz gegen uebergrosse Chunks.
@@ -193,4 +193,29 @@ describe('chunkCode gegen echte Repo-Dateien (T002266)', () => {
       assertAllBounded(chunkCode(content, abs), rel);
     });
   }
+});
+
+describe('ensureSchema (Dense-Profil)', () => {
+  function fakePool(columnType: string | null) {
+    const seen: string[] = [];
+    return {
+      seen,
+      query: async (sql: string) => {
+        seen.push(sql);
+        if (sql.includes('pg_attribute')) return { rows: columnType ? [{ t: columnType }] : [] };
+        return { rows: [{ n: 0 }] };
+      },
+    };
+  }
+
+  it('meldet eine vorhandene 1024D-Tabelle als Migrationsfehler mit CLI-Hinweis', async () => {
+    const db = fakePool('vector(1024)');
+    await expect(ensureSchema(db as never)).rejects.toThrow(/dense-migration/);
+  });
+
+  it('akzeptiert eine 768D-Tabelle und legt fehlende Strukturen an', async () => {
+    const db = fakePool('vector(768)');
+    await ensureSchema(db as never);
+    expect(db.seen.join('\n')).toMatch(/CREATE TABLE IF NOT EXISTS code_embeddings/);
+  });
 });

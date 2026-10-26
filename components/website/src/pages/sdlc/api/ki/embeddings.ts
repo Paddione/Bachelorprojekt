@@ -2,12 +2,13 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getSiteSetting, setSiteSetting } from '../../../../lib/website-db';
 import { EMBED_PRIMARY_KEY, EMBED_FALLBACK_KEY } from '../../../../lib/sdlc/ki-config-db';
+import { DENSE_MODEL } from '../../../../../../../scripts/lib/dense-embedding.mjs';
 
 export const prerender = false;
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
-// T016562: Voyage entfernt — nur lokales bge-m3, kein Fallback-Anbieter mehr.
-const PRIMARY = ['bge-m3'] as const;
+// Nur das aktive Gemma-Dense-Modell, kein Fallback-Anbieter mehr.
+const PRIMARY = [DENSE_MODEL] as const;
 const FALLBACK = [null] as const;
 
 const json = (body: unknown, status = 200) =>
@@ -24,12 +25,14 @@ export const GET: APIRoute = async ({ request , locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   try {
-    const [primary, fallback] = await Promise.all([
+    const [, fallback] = await Promise.all([
       getSiteSetting(BRAND, EMBED_PRIMARY_KEY),
       getSiteSetting(BRAND, EMBED_FALLBACK_KEY),
     ]);
     const rerankEnabled = process.env.LLM_RERANK_ENABLED === 'true';
-    return json({ primary: primary ?? 'bge-m3', fallback: fallback || null, rerankEnabled });
+    // BGE-Settings kontrolliert ersetzen: Anzeige kennt nur Gemma/null.
+    void fallback;
+    return json({ primary: DENSE_MODEL, fallback: null, rerankEnabled });
   } catch (err) {
     locals.requestLogger.error({ err }, '[api/admin/ki/embeddings] GET error:');
     return json({ error: 'fetch_failed' }, 500);
@@ -46,7 +49,7 @@ export const PUT: APIRoute = async ({ request , locals }) => {
   const primary = body.primary;
   const fallback = body.fallback ?? null;
   if (!PRIMARY.includes(primary as (typeof PRIMARY)[number])) {
-    return json({ error: 'primary muss bge-m3 sein' }, 400);
+    return json({ error: `primary muss ${DENSE_MODEL} sein` }, 400);
   }
   if (!FALLBACK.includes(fallback as (typeof FALLBACK)[number])) {
     return json({ error: 'fallback muss null sein' }, 400);

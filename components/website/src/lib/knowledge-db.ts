@@ -2,6 +2,12 @@ import { Pool } from 'pg';
 import { embedQuery, type EmbeddingModel } from './embeddings.ts';
 import { logAiCall } from './ai-metrics.ts';
 import { pool as defaultPool } from './db-pool';
+import {
+  assertActiveDenseProfile,
+  assertCollectionProfile,
+  withDenseWrite,
+} from './dense-embedding-guard.ts';
+import { assertDenseVectors } from '../../../../scripts/lib/dense-embedding.mjs';
 
 export class MixedEmbeddingModelError extends Error {
   constructor(models: string[]) {
@@ -101,8 +107,9 @@ export async function createCollection(args: {
   createdBy?: string | null; embeddingModel?: EmbeddingModel; crawlConfig?: CrawlConfig | null;
 }): Promise<Collection> {
   assertVectorStoreEnabled();
-  // T016562: Voyage entfernt — neue Collections immer bge-m3 (lokal).
-  const model: EmbeddingModel = args.embeddingModel ?? 'bge-m3';
+  // Neue Collections immer im aktiven Gemma-Profil; fremde Labels abweisen.
+  if (args.embeddingModel !== undefined) assertCollectionProfile(args.embeddingModel);
+  const model: EmbeddingModel = args.embeddingModel ?? (await assertActiveDenseProfile(p())).model;
   const r = await p().query(
     `INSERT INTO knowledge.collections (name, source, description, brand, created_by, embedding_model, crawl_config)
      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
@@ -170,15 +177,19 @@ function vecLiteral(v: number[]): string {
 
 export async function upsertChunks(collectionId: string, documentId: string, chunks: ChunkInput[]): Promise<void> {
   assertVectorStoreEnabled();
-  const client = p();
-  await client.query('DELETE FROM knowledge.chunks WHERE document_id = $1', [documentId]);
-  for (const ch of chunks) {
-    await client.query(
-      `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [documentId, collectionId, ch.position, ch.text, vecLiteral(ch.embedding)],
-    );
-  }
+  // Vektoren vor Ersetzen der alten vollstaendigen Chunks pruefen;
+  // Gate und Write laufen in derselben Transaktion.
+  assertDenseVectors(chunks.map((ch) => ch.embedding), chunks.length);
+  await withDenseWrite(p(), async (client) => {
+    await client.query('DELETE FROM knowledge.chunks WHERE document_id = $1', [documentId]);
+    for (const ch of chunks) {
+      await client.query(
+        `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [documentId, collectionId, ch.position, ch.text, vecLiteral(ch.embedding)],
+      );
+    }
+  });
 }
 
 export async function recountChunks(collectionId: string): Promise<void> {
@@ -223,6 +234,10 @@ export async function queryNearest(args: {
   const models = modelsRes.rows.map((r: { embedding_model: string }) => r.embedding_model);
   if (models.length > 1) throw new MixedEmbeddingModelError(models);
   if (models.length === 0) return [];
+  // Alte oder gemischte Collections werden nicht still umetikettiert;
+  // laufende Migration liefert einen expliziten voruebergehenden Fehler.
+  for (const m of models) assertCollectionProfile(m);
+  await assertActiveDenseProfile(p());
 
   const { embedding } = await embedQuery(args.queryText, {
     model: models[0] as EmbeddingModel,
@@ -293,6 +308,7 @@ export async function mergeCollections(args: {
 
     const models = [...new Set(srcRes.rows.map(r => r.embedding_model))];
     if (models.length > 1) throw new MixedEmbeddingModelError(models);
+    for (const m of models) assertCollectionProfile(m);
 
     const newColRes = await client.query<Collection>(
       `INSERT INTO knowledge.collections (name, source, description, brand, embedding_model)
@@ -371,6 +387,14 @@ interface SuggestSpec {
 
 export async function clusterByEmbedding(threshold = 0.75): Promise<SuggestSpec[]> {
   assertVectorStoreEnabled();
+  // Keine 1024D-Cluster mit 768D-Vektoren vermischen: ein Profil pro Lauf.
+  const modelRes = await p().query<{ embedding_model: string }>(
+    `SELECT DISTINCT embedding_model FROM knowledge.collections
+      WHERE source IN ('custom', 'web_crawl')`,
+  );
+  const activeModels = modelRes.rows.map((r) => r.embedding_model);
+  if (activeModels.length > 1) throw new MixedEmbeddingModelError(activeModels);
+  for (const m of activeModels) assertCollectionProfile(m);
   const pairsRes = await p().query<{ id_a: string; id_b: string; name_a: string; name_b: string }>(
     `WITH centroids AS (
        SELECT kc.collection_id, avg(kc.embedding) AS centroid

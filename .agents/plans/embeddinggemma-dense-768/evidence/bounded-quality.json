@@ -1,0 +1,69 @@
+{
+  "gemma": {
+    "summary": {
+      "recall": 0.9875,
+      "mrr": 0.9333333333333332,
+      "ndcg": 0.9301364908441604,
+      "k": 10,
+      "requests": 40,
+      "p50_seconds": 0.07194154700118816,
+      "p95_seconds": 0.10132320210432226
+    },
+    "document_seconds": 63.701079684986325,
+    "en": {
+      "recall": 0.984375,
+      "mrr": 0.9322916666666666,
+      "ndcg": 0.92475976378128,
+      "k": 10,
+      "requests": 32,
+      "p50_seconds": 0.06799397550275899,
+      "p95_seconds": 0.09279253264940053
+    },
+    "de": {
+      "recall": 1.0,
+      "mrr": 0.9375,
+      "ndcg": 0.9516433990956823,
+      "k": 10,
+      "requests": 8,
+      "p50_seconds": 0.09044047900169971,
+      "p95_seconds": 0.10733323030217434
+    }
+  },
+  "bge": {
+    "summary": {
+      "recall": 1.0,
+      "mrr": 0.9216666666666666,
+      "ndcg": 0.9201326307128543,
+      "k": 10,
+      "requests": 40,
+      "p50_seconds": 0.14429492250201292,
+      "p95_seconds": 0.20751498280005762
+    },
+    "en": {
+      "recall": 1.0,
+      "mrr": 0.928125,
+      "ndcg": 0.9334227223608147,
+      "k": 10,
+      "requests": 32,
+      "p50_seconds": 0.13825729599921033,
+      "p95_seconds": 0.19654988430265802
+    },
+    "de": {
+      "recall": 1.0,
+      "mrr": 0.8958333333333334,
+      "ndcg": 0.866972264121012,
+      "k": 10,
+      "requests": 8,
+      "p50_seconds": 0.17939679150367738,
+      "p95_seconds": 0.2327387207016727
+    },
+    "document_seconds": 174.31803187198966
+  },
+  "scope": "50 selected file prefixes, 32 existing EN queries + 8 DE translations, <=480 BGE/LFM tokens; serial warmed requests through kubectl port-forward, CPU i5-6500T 2-thread quota; not full production evaluation",
+  "artifacts": "/tmp/retrieval-ab-20261026",
+  "live_preflight_source_counts": {
+    "knowledge.chunks": 4954,
+    "code_embeddings": 25983,
+    "tickets.ticket_embeddings": 0
+  }
+}

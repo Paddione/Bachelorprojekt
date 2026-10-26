@@ -13,7 +13,9 @@
  *   TOKENS          Max tokens to request from context7 (default 20000)
  */
 
-import { sha256, embedAllWithModel, upsertDocumentAndChunks, bumpCollectionStats } from './lib-knowledge-pg.mjs';
+import { sha256, upsertDocumentAndChunks, bumpCollectionStats } from './lib-knowledge-pg.mjs';
+import { makeDenseClient, prepareDenseChunks } from './dense-client.mjs';
+import { DENSE_MODEL } from '../lib/dense-embedding.mjs';
 import pg from 'pg';
 
 const { Pool } = pg;
@@ -136,6 +138,7 @@ async function fetchContext7(libraryId, tokens) {
 
 async function main() {
   const pool = makePoolFromUrl(PGURL);
+  const embedClient = makeDenseClient({ url: process.env.LLM_EMBED_URL });
 
   try {
     // Verify collection exists
@@ -165,12 +168,14 @@ async function main() {
     console.log(`  Split into ${rawChunks.length} chunks`);
 
     console.log('  Embedding…');
-    const { embeddings, model: embeddingModel } = await embedAllWithModel(rawChunks.map(c => c.text));
+    const subChunks = await prepareDenseChunks(rawChunks, embedClient);
+    const { embeddings } = await embedClient.embedDocuments(subChunks.map(c => c.text));
 
-    const chunks = rawChunks.map((c, i) => ({
-      ...c,
+    const chunks = subChunks.map((c, i) => ({
+      position: c.position,
+      text: c.text,
       embedding: embeddings[i],
-      metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+      metadata: { ...(c.metadata ?? {}), embedding_model: DENSE_MODEL },
     }));
 
     const sourceUri = `https://context7.com${LIBRARY_ID}`;

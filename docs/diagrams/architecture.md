@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-98 Services · 1917 Abhängigkeitskanten · 316 API-Endpoints
+101 Services · 1919 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -41,6 +41,8 @@ flowchart LR
   knowledge_ingest_markdown["knowledge-ingest-markdown"]:::default
   knowledge_ingest_bugs["knowledge-ingest-bugs"]:::default
   knowledge_reindex_all["knowledge-reindex-all"]:::default
+  gemma_embed["gemma-embed"]:::default
+  gemma_embed_bulk["gemma-embed-bulk"]:::default
   bge_embed["bge-embed"]:::default
   bge_rerank["bge-rerank"]:::default
   bge_embed_bulk["bge-embed-bulk"]:::default
@@ -102,6 +104,7 @@ flowchart LR
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
+  llm_gateway_gemma_embed["llm-gateway-gemma-embed"]:::default
   llm_gateway_lfm_embed["llm-gateway-lfm-embed"]:::default
   llm_gateway_lfm_colbert["llm-gateway-lfm-colbert"]:::default
   llm_gateway_colbert_maxsim["llm-gateway-colbert-maxsim"]:::default
@@ -227,6 +230,8 @@ flowchart LR
   sish -->|"selector"| sish
   downloads -->|"selector"| downloads
   einvoice_sidecar -->|"selector"| einvoice_sidecar
+  llm_gateway_gemma_embed -->|"selector"| gemma_embed
+  llm_gateway_gemma_embed -->|"selector"| gemma_embed_bulk
   llm_gateway_embed -->|"selector"| bge_embed
   llm_gateway_embed -->|"selector"| bge_embed_bulk
   llm_gateway_rerank -->|"selector"| bge_rerank
@@ -2004,6 +2009,8 @@ flowchart TB
     knowledge_ingest_markdown(["knowledge-ingest-markdown"])
     knowledge_ingest_bugs(["knowledge-ingest-bugs"])
     knowledge_reindex_all(["knowledge-reindex-all"])
+    gemma_embed["gemma-embed"]
+    gemma_embed_bulk["gemma-embed-bulk"]
     bge_embed["bge-embed"]
     bge_rerank["bge-rerank"]
     bge_embed_bulk["bge-embed-bulk"]
@@ -2051,6 +2058,7 @@ flowchart TB
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
     shared_db_dev_lb["shared-db-dev-lb"]
+    llm_gateway_gemma_embed["llm-gateway-gemma-embed"]
     llm_gateway_lfm_embed["llm-gateway-lfm-embed"]
     llm_gateway_lfm_colbert["llm-gateway-lfm-colbert"]
     llm_gateway_colbert_maxsim["llm-gateway-colbert-maxsim"]

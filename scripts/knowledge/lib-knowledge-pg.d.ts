@@ -21,6 +21,8 @@ export interface EnsureCollectionArgs {
 }
 export function ensureCollection(pool: PgPool, args: EnsureCollectionArgs): Promise<string>;
 
+export function assertWriteAllowed(client: PgPool): Promise<void>;
+
 export interface UpsertChunk {
   position: number;
   text: string;

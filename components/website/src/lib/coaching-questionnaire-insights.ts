@@ -28,6 +28,7 @@ import type { EmbeddingIndexError, EmbeddingQueryError } from './embeddings';
 import { getActiveProvider } from './coaching-ki-config-db.ts';
 import { embedBatch } from './embeddings';
 import { createSessionAgent } from './session-agent-provider';
+import { DENSE_MODEL, DENSE_PROFILE } from '../../../../scripts/lib/dense-embedding.mjs';
 
 /**
  * Fail-closed-Vertrag der Analyse: embedBatch wirft EmbeddingIndexError (Batch)
@@ -36,8 +37,9 @@ import { createSessionAgent } from './session-agent-provider';
  */
 export type EmbeddingFailure = EmbeddingIndexError | EmbeddingQueryError;
 
-export const EMBEDDING_MODEL = 'bge-m3';
-export const INSIGHTS_CACHE_KEY = 'default';
+export const EMBEDDING_MODEL = DENSE_MODEL;
+// Profilqualifizierter Cache-Key: alte BGE-Ergebnisse werden nie ausgeliefert.
+export const INSIGHTS_CACHE_KEY = `${DENSE_PROFILE}:default`;
 export const INSIGHTS_CACHE_TTL_HOURS = 24;
 
 export interface EmbeddedAnswer {
@@ -85,11 +87,11 @@ function cosineDistance(a: number[], b: number[]): number {
 }
 
 /**
- * Liest alle Questionnaire-Antworten mit details_text und embedded sie per
- * bge-m3. Antworten ohne Text werden uebersprungen (kein sinnvoller Vektor,
- * kein Batch-Token). Fail-closed: EmbeddingIndexError/EmbeddingQueryError
- * schlagen durch — die Analyse wird nie mit einem Teil der Antworten
- * fortgesetzt.
+ * Liest alle Questionnaire-Antworten mit details_text und embedded sie mit
+ * dem aktiven Gemma-Profil. Antworten ohne Text werden uebersprungen (kein
+ * sinnvoller Vektor, kein Batch-Token). Fail-closed:
+ * EmbeddingIndexError/EmbeddingQueryError schlagen durch — die Analyse wird
+ * nie mit einem Teil der Antworten fortgesetzt.
  */
 export async function embed(pool: Pool): Promise<EmbeddedAnswer[]> {
   const res = await pool.query(
@@ -243,7 +245,9 @@ export async function generateQuestionnaireInsights(
       [INSIGHTS_CACHE_KEY],
     );
     const cached = cacheRes.rows[0]?.payload as QuestionnaireInsightsResult | undefined;
-    if (cached) return { ...cached, cached: true };
+    // Falsches Profil nie ausliefern: alte BGE-Payloads verfallen, auch wenn
+    // der Key je getroffen wurde.
+    if (cached && cached.embeddingModel === DENSE_MODEL) return { ...cached, cached: true };
   }
 
   const answers = await embed(pool);

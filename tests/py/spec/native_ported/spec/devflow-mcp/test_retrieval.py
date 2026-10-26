@@ -284,7 +284,7 @@ console.log(JSON.stringify(sql));
                             text=True, capture_output=True, check=True)
     sql = json.loads(result.stdout)
     where = sql.lower().split("where", 1)[1].split("order by", 1)[0]
-    assert "embedding_model" in where and "bge-m3" in where, sql
+    assert "embedding_model" in where and "embeddinggemma-300m" in where, sql
 
 
 def test_knowledge_candidates_exclude_historical_archive_before_limit(tmp_path):

@@ -8,11 +8,19 @@ import pg from 'pg';
 // scripts/index-repo.test.ts und andere Aufrufer ihren Importpfad behalten.
 import { chunkCode } from './lib/scs-chunking.js';
 export { estimateTokens, chunkCode, chunkYaml, chunkSource } from './lib/scs-chunking.js';
+import {
+  assertDenseVectors,
+  formatDenseInput,
+  profileContentHash,
+  DENSE_DIMENSIONS,
+  DENSE_MODEL,
+  DENSE_PROFILE,
+} from './lib/dense-embedding.mjs';
 
 const { Pool } = pg;
 
 const REPO_ROOT = resolve(import.meta.dirname ?? process.cwd(), '..');
-const EMBED_DIM = 1024;
+const EMBED_DIM = DENSE_DIMENSIONS;
 const BATCH_SIZE = 16;
 
 
@@ -94,8 +102,12 @@ async function resolveEmbedConfig(): Promise<void> {
   }
   // llama-server serves a single model and ignores the `model` field, so this
   // is cosmetic there — it still matters for any OpenAI-compatible router in
-  // front. Keep it aligned with components/website/src/lib/embeddings.ts ('bge-m3').
-  EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'bge-m3';
+  // front. Keep it aligned with components/website/src/lib/embeddings.ts.
+  const envModel = process.env.LLM_EMBED_MODEL ?? DENSE_MODEL;
+  if (envModel !== DENSE_MODEL) {
+    throw new Error(`LLM_EMBED_MODEL='${envModel}' does not match active profile '${DENSE_PROFILE}'`);
+  }
+  EMBED_MODEL = envModel;
 }
 
 async function makePool(): Promise<pg.Pool> {
@@ -200,23 +212,27 @@ function resolveImportPath(importSpec: string, fromFile: string): string | null 
 }
 
 async function embedTexts(texts: string[]): Promise<number[][]> {
+  const formatted = texts.map(t => formatDenseInput(t, 'index'));
   const r = await fetch(`${EMBED_URL}/v1/embeddings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'index' },
-    body: JSON.stringify({ model: EMBED_MODEL, input: texts }),
+    body: JSON.stringify({ model: EMBED_MODEL, input: formatted }),
   });
   if (!r.ok) {
     throw new Error(`embed ${r.status}: ${await r.text()}`);
   }
   const j = await r.json() as { data: Array<{ embedding: number[] }> };
-  return j.data.map(d => d.embedding);
+  const vecs = Array.isArray(j.data) ? j.data.map(d => d.embedding) : [];
+  // Genau ein Vektor pro Text; alles andere ist ein harter Index-Fehler.
+  assertDenseVectors(vecs, texts.length);
+  return vecs;
 }
 
 function vecLiteral(v: number[]): string {
   return `[${v.join(',')}]`;
 }
 
-async function ensureSchema(pool: pg.Pool): Promise<void> {
+export async function ensureSchema(pool: pg.Pool): Promise<void> {
   await pool.query(`CREATE EXTENSION IF NOT EXISTS vector`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS code_embeddings (
@@ -230,6 +246,20 @@ async function ensureSchema(pool: pg.Pool): Promise<void> {
       UNIQUE(file_path, chunk_index)
     )
   `);
+  // Vorhandene 1024D-Tabelle nicht als erfolgreich migriert ausgeben:
+  // expliziter Migrationsfehler mit CLI-Hinweis statt stillem Weitermachen.
+  const dimRes = await pool.query(
+    `SELECT format_type(atttypid, atttypmod) AS t
+       FROM pg_attribute
+      WHERE attrelid = 'code_embeddings'::regclass AND attname = 'embedding'`,
+  );
+  const actualType = dimRes.rows[0]?.t as string | undefined;
+  if (actualType !== `vector(${EMBED_DIM})`) {
+    throw new Error(
+      `code_embeddings uses ${actualType ?? 'unknown type'} — expected vector(${EMBED_DIM}); ` +
+      `run the dense migration (node scripts/knowledge/dense-migration.mjs) instead of indexing past it`,
+    );
+  }
   await pool.query(`
     CREATE TABLE IF NOT EXISTS file_dependencies (
       from_path TEXT NOT NULL,
@@ -309,7 +339,9 @@ async function indexFile(pool: pg.Pool, filePath: string, relPath: string): Prom
   // Vorher aussortieren statt sie am INSERT scheitern zu lassen: der Fehler ist
   // vorhersagbar und keine Diagnose wert.
   if (content.indexOf('\u0000') !== -1) return 0;
-  const fileHash = sha256(content);
+  // Profilgebundener Datei-Hash: nach Modell-/Promptwechsel ist kein stiller
+  // Hash-Skip erlaubt; identisches Profil + identischer Inhalt darf wiederverwenden.
+  const fileHash = profileContentHash(content);
 
   const existing = await pool.query(
     `SELECT file_hash FROM code_embeddings WHERE file_path = $1 LIMIT 1`,

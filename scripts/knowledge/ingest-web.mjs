@@ -14,7 +14,9 @@
  *   INCLUDE_PATTERN Regex string for URL inclusion filter
  */
 
-import { sha256, chunkPlain, embedAllWithModel, upsertDocumentAndChunks, bumpCollectionStats } from './lib-knowledge-pg.mjs';
+import { sha256, chunkPlain, upsertDocumentAndChunks, bumpCollectionStats } from './lib-knowledge-pg.mjs';
+import { makeDenseClient, prepareDenseChunks } from './dense-client.mjs';
+import { DENSE_MODEL } from '../lib/dense-embedding.mjs';
 import { load as cheerioLoad } from 'cheerio';
 import robotsParser from 'robots-parser';
 import pg from 'pg';
@@ -200,6 +202,7 @@ async function crawl({ startUrl, maxDepth, maxPages, includePattern, userAgent }
 
 async function main() {
   const pool = makePoolFromUrl(pgurl);
+  const embedClient = makeDenseClient({ url: process.env.LLM_EMBED_URL });
 
   try {
     const colRes = await pool.query(
@@ -240,12 +243,13 @@ async function main() {
     console.log(`Embedding ${pages.length} pages…`);
     for (const page of pages) {
       const rawChunks = chunkPlain(page.text);
-      // T016562: embedAllWithModel nutzt nur lokales bge-m3 (fail-closed).
-      const { embeddings, model: embeddingModel } = await embedAllWithModel(rawChunks.map(c => c.text));
-      const chunks = rawChunks.map((c, i) => ({
-        ...c,
+      const subChunks = await prepareDenseChunks(rawChunks, embedClient);
+      const { embeddings } = await embedClient.embedDocuments(subChunks.map(c => c.text));
+      const chunks = subChunks.map((c, i) => ({
+        position: c.position,
+        text: c.text,
         embedding: embeddings[i],
-        metadata: { ...(c.metadata ?? {}), embedding_model: embeddingModel },
+        metadata: { ...(c.metadata ?? {}), embedding_model: DENSE_MODEL },
       }));
 
       await upsertDocumentAndChunks(pool, {

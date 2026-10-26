@@ -46,6 +46,13 @@ import {
   corsHeadersFor,
   writeSecurityError,
 } from '../lib/mcp-http-security.mjs';
+import {
+  assertDenseVectors,
+  formatDenseInput,
+  DENSE_DIMENSIONS,
+  DENSE_MODEL,
+  DENSE_PROFILE,
+} from '../lib/dense-embedding.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROUTER_PATH = resolvePath(HERE, '../../components/website/src/lib/bge-router.ts');
@@ -75,12 +82,19 @@ const TOOLS = [
   {
     name: 'bge_embed',
     description:
-      'Embeds one or more texts with bge-m3 and returns the vectors. The caller passes plain text — '
-      + 'model name, vector dimension and the endpoint are resolved server-side.',
+      'Embeds one or more texts with the dense embedding model and returns the vectors. '
+      + 'The caller passes plain text plus an optional retrieval purpose '
+      + "('index' default, 'query' for queries) — model name, vector dimension "
+      + 'and the endpoint are resolved server-side.',
     inputSchema: {
       type: 'object',
       properties: {
         texts: { type: 'array', items: { type: 'string' }, description: 'Texts to embed.' },
+        purpose: {
+          type: 'string',
+          enum: ['index', 'query'],
+          description: "Retrieval purpose; compatibility default is 'index'.",
+        },
       },
       required: ['texts'],
     },
@@ -170,9 +184,38 @@ async function embed(args) {
   const texts = Array.isArray(args?.texts) ? args.texts.filter((t) => typeof t === 'string') : [];
   if (texts.length === 0) throw new Error('bge_embed: "texts" must be a non-empty array of strings');
   const url = target('embed');
+  // Cluster-Default bleibt bge-m3 (k3-Pin: Produktion folgt keinem Relabel).
+  // Das Gemma-Dense-Profil ist explizit per LLM_EMBED_MODEL waehlbar
+  // (Shadow-Migration; Cutover folgt koordiniert).
+  const model = process.env.LLM_EMBED_MODEL ?? 'bge-m3';
+  if (model === DENSE_MODEL) {
+    const purpose = args?.purpose ?? 'index';
+    if (purpose !== 'index' && purpose !== 'query') {
+      throw new Error("bge_embed: \"purpose\" must be 'index' | 'query'");
+    }
+    // Rohtexte genau einmal formatieren; Indexer splitten zu lange Texte vorab.
+    // Ein MCP-Call verspricht genau einen Vektor pro Text — zu lange Eingaben
+    // meldet der Upstream als Fehler, statt still zu kuerten oder zu mischen.
+    const formatted = texts.map((t) => formatDenseInput(t, purpose));
 
+    const body = await callUpstream('embed', url, '/v1/embeddings', {
+      model,
+      input: formatted,
+    });
+    const embeddings = (body.data ?? []).map((d) => d.embedding);
+    assertDenseVectors(embeddings, texts.length);
+    return {
+      dimensions: DENSE_DIMENSIONS,
+      embeddings,
+      model,
+      profile: DENSE_PROFILE,
+    };
+  }
+  if (args?.purpose !== undefined) {
+    throw new Error('bge_embed: "purpose" erfordert das Gemma-Dense-Profil (LLM_EMBED_MODEL) — kein stiller Raumwechsel');
+  }
   const body = await callUpstream('embed', url, '/v1/embeddings', {
-    model: process.env.LLM_EMBED_MODEL ?? 'bge-m3',
+    model,
     input: texts,
   });
   return {

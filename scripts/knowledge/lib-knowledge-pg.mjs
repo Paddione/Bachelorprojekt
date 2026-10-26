@@ -1,5 +1,11 @@
 import pg from 'pg';
 import { createHash } from 'node:crypto';
+import {
+  assertDenseVectors,
+  DENSE_MODEL,
+  DENSE_PROFILE,
+} from '../lib/dense-embedding.mjs';
+import { makeDenseClient } from './dense-client.mjs';
 
 const { Pool } = pg;
 
@@ -20,15 +26,52 @@ export function sha256(s) {
   return createHash('sha256').update(s).digest('hex');
 }
 
+/**
+ * Legt eine Collection bei Bedarf an. Neue Collections tragen das aktive
+ * Gemma-Profil; eine bestehende Collection wird waehrend des Shadow-Laufs
+ * NICHT auf Gemma umgeschrieben (kein stilles Umetikettieren).
+ */
 export async function ensureCollection(pool, { name, source, brand = null, description = null }) {
+  // embedding_model wird nie nachtraeglich umgeschrieben: Bestand bleibt
+  // bis zum Cutover unveraendert, neue Collections starten im Gemma-Profil.
   const r = await pool.query(
-    `INSERT INTO knowledge.collections (name, source, brand, description)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO knowledge.collections (name, source, brand, description, embedding_model)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (name) DO UPDATE SET description = COALESCE(EXCLUDED.description, knowledge.collections.description)
      RETURNING id`,
-    [name, source, brand, description],
+    [name, source, brand, description, DENSE_MODEL],
   );
   return r.rows[0].id;
+}
+
+/**
+ * Writer-Gate auf App-Ebene (DB-Trigger sind die harte Sperre): blockt
+ * Schreibvorgaenge waehrend einer laufenden Migration und ohne aktive
+ * Gemma-Generation. Fehlender Tracking-Stand ist ein Profilfehler.
+ */
+export async function assertWriteAllowed(client) {
+  let rows;
+  try {
+    const r = await client.query(
+      `SELECT writer_locked, phase, target_profile
+         FROM public.dense_embedding_migrations
+        WHERE active = true
+        LIMIT 1`,
+    );
+    rows = r.rows;
+  } catch {
+    throw new Error('dense write blocked: no active dense generation (run dense-migration prepare/cutover)');
+  }
+  const active = rows[0];
+  if (!active) {
+    throw new Error('dense write blocked: no active dense generation (run dense-migration prepare/cutover)');
+  }
+  if (active.writer_locked || active.phase !== 'active') {
+    throw new Error(`dense write blocked: migration running (phase=${active.phase})`);
+  }
+  if (active.target_profile !== DENSE_PROFILE) {
+    throw new Error(`dense write blocked: unexpected profile '${active.target_profile}'`);
+  }
 }
 
 export async function upsertDocumentAndChunks(pool, {
@@ -37,6 +80,13 @@ export async function upsertDocumentAndChunks(pool, {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+
+    // Writer-Gate in derselben Transaktion wie der Write; Vektoren vor
+    // Ersetzen der alten vollstaendigen Chunks pruefen.
+    await assertWriteAllowed(client);
+    if (chunks !== null) {
+      assertDenseVectors(chunks.map((c) => c.embedding), chunks.length);
+    }
 
     // Lock existing document row if present to check previous hash and serialize concurrent updates
     const existingRes = await client.query(
@@ -114,39 +164,16 @@ export async function updateCollectionChunkCount(pool, collectionId) {
   );
 }
 
-// T016562: Voyage AI ist entfernt — callVoyage ersatzlos gestrichen.
-// Einziger Embed-Pfad ist bge-m3 ueber LLM_EMBED_URL (fail-closed).
-
-// T002570: LLM_ROUTER_URL/llm-router.workspace.svc.cluster.local:4000 war toter
-// Code — dieser Service existiert im Cluster nicht. bge-m3 laeuft ueber
-// LLM_EMBED_URL, dieselbe Konvention wie components/website/src/lib/bge-router.ts
-// (http://llm-gateway-embed.workspace.svc.cluster.local:8081, k3d/llm-gpu.yaml).
-async function embedViaBge(texts, url) {
-  const r = await fetch(`${url}/v1/embeddings`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'bge-m3', input: texts }),
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!r.ok) throw new Error(`bge ${r.status} ${await r.text()}`);
-  const j = await r.json();
-  return { embeddings: j.data.map(d => d.embedding) };
-}
-
-// T016562: Voyage AI ist entfernt — bge-m3 ueber LLM_EMBED_URL ist der einzige
-// Embed-Pfad (fail-closed). Signatur bleibt (Rueckgabe inkl. Modellname), damit
-// alle Ingest-Skripte unveraendert weiterlaufen.
+// Einziger Embed-Pfad ist das aktive Gemma-Dense-Profil ueber LLM_EMBED_URL
+// (fail-closed). Signatur bleibt (Rueckgabe inkl. Modellname), damit alle
+// Ingest-Skripte weiterlaufen.
 export async function embedAllWithModel(texts, batch = 128) {
   void batch;
-  const bgeUrl = process.env.LLM_EMBED_URL;
-  if (!bgeUrl) throw new Error('LLM_EMBED_URL nicht konfiguriert — lokales bge-m3 erforderlich (T016562)');
-  const out = [];
-  const bgeBatch = 64;
-  for (let i = 0; i < texts.length; i += bgeBatch) {
-    const r = await embedViaBge(texts.slice(i, i + bgeBatch), bgeUrl);
-    out.push(...r.embeddings);
-  }
-  return { embeddings: out, model: 'bge-m3' };
+  const url = process.env.LLM_EMBED_URL;
+  if (!url) throw new Error('LLM_EMBED_URL nicht konfiguriert — aktives Gemma-Dense-Backend erforderlich');
+  const client = makeDenseClient({ url });
+  const { embeddings } = await client.embedDocuments(texts);
+  return { embeddings, model: DENSE_MODEL };
 }
 
 export async function embedAll(texts, batch = 128) {

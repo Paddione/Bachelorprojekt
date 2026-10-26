@@ -6,6 +6,15 @@ import pg from 'pg';
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { pool as defaultPool } from '../db-pool';
 import { isVectorStoreEnabled, VectorStoreDisabledError } from '../knowledge-db';
+import {
+  assertActiveDenseProfile,
+  DenseProfileError,
+} from '../dense-embedding-guard';
+import {
+  assertDenseVectors,
+  formatDenseInput,
+  DENSE_MODEL,
+} from '../../../../../scripts/lib/dense-embedding.mjs';
 
 export { isVectorStoreEnabled, VectorStoreDisabledError };
 
@@ -15,10 +24,11 @@ let _pool: pg.Pool | undefined;
 export function __setPoolForTests(testPool: pg.Pool): void { _pool = testPool; }
 function p(): pg.Pool { return _pool ?? defaultPool; }
 
-// T002317: war 'text-embedding-bge-m3'. Der Indexer schreibt mit 'bge-m3'
-// (scripts/index-repo.ts) — Query- und Index-Vektoren muessen aus demselben
-// Modell stammen, sonst vergleicht die Suche zwei verschiedene Vektorraeume.
-const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'bge-m3';
+// T002317: war 'text-embedding-bge-m3'. Der Indexer schreibt mit dem aktiven
+// Dense-Profil (scripts/index-repo.ts) — Query- und Index-Vektoren muessen
+// aus demselben Modell stammen, sonst vergleicht die Suche zwei verschiedene
+// Vektorraeume. Reranker bleibt unangetastet.
+const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? DENSE_MODEL;
 const RERANK_MODEL = process.env.LLM_RERANK_MODEL ?? 'bge-reranker-v2-m3';
 
 // T002317: zeigte auf llm-gateway-lmstudio:1234. Diesen Service gibt es nicht
@@ -54,11 +64,14 @@ function vecLiteral(v: number[]): string {
 }
 
 async function embedQueryText(text: string): Promise<number[]> {
+  if (EMBED_MODEL !== DENSE_MODEL) {
+    throw new DenseProfileError(`stale embed model '${EMBED_MODEL}', active is '${DENSE_MODEL}'`);
+  }
   const embedUrl = await resolveEmbedUrl();
   const r = await fetch(`${embedUrl}/v1/embeddings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'query' },
-    body: JSON.stringify({ model: EMBED_MODEL, input: [text] }),
+    body: JSON.stringify({ model: EMBED_MODEL, input: [formatDenseInput(text, 'query')] }),
   });
   if (!r.ok) {
     const err = new Error(`embedding service unavailable: ${r.status}`) as Error & { status?: number };
@@ -66,7 +79,9 @@ async function embedQueryText(text: string): Promise<number[]> {
     throw err;
   }
   const j = await r.json() as { data: Array<{ embedding: number[] }> };
-  return j.data[0].embedding;
+  const vecs = Array.isArray(j.data) ? j.data.map(d => d.embedding) : [];
+  assertDenseVectors(vecs, 1);
+  return vecs[0];
 }
 
 export interface CodeSearchResult {
@@ -116,6 +131,8 @@ async function rerank(query: string, docs: string[]): Promise<number[] | null> {
 
 export async function searchCode(query: string, limit = 5): Promise<CodeSearchResult[]> {
   if (!isVectorStoreEnabled()) throw new VectorStoreDisabledError();
+  // Indexer und Code-Query pruefen dieselbe aktive Generation.
+  await assertActiveDenseProfile(p());
   const embedding = await embedQueryText(query);
   const candidates = Math.min(RERANK_MAX_CANDIDATES, limit * RERANK_CANDIDATE_FACTOR);
   const r = await p().query(

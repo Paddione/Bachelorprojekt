@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-10-26T03:49:42.158Z
-> Nodes: 98 | Edges: 1917 | Isolated: 6
+> Generated: 2026-10-26T11:44:52.995Z
+> Nodes: 101 | Edges: 1919 | Isolated: 6
 
 ## Ranking (transitive Abhängige)
 
@@ -81,14 +81,16 @@
 | 73 | sealed-secrets-controller | 2 | 2 | 2 |
 | 74 | downloads | 1 | 1 | 1 |
 | 75 | einvoice-sidecar | 1 | 1 | 1 |
-| 76 | lfm-embed | 1 | 1 | 1 |
-| 77 | lfm-colbert | 1 | 1 | 1 |
-| 78 | colbert-maxsim | 1 | 1 | 1 |
-| 79 | mediaviewer-widget | 1 | 1 | 1 |
-| 80 | blackbox-exporter | 1 | 1 | 1 |
-| 81 | nextcloud-redis | 1 | 1 | 1 |
-| 82 | sessions-server | 1 | 1 | 1 |
-| 83 | whisper | 1 | 1 | 1 |
+| 76 | gemma-embed | 1 | 1 | 1 |
+| 77 | gemma-embed-bulk | 1 | 1 | 1 |
+| 78 | lfm-embed | 1 | 1 | 1 |
+| 79 | lfm-colbert | 1 | 1 | 1 |
+| 80 | colbert-maxsim | 1 | 1 | 1 |
+| 81 | mediaviewer-widget | 1 | 1 | 1 |
+| 82 | blackbox-exporter | 1 | 1 | 1 |
+| 83 | nextcloud-redis | 1 | 1 | 1 |
+| 84 | sessions-server | 1 | 1 | 1 |
+| 85 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -465,6 +467,16 @@
 ### einvoice-sidecar
 **Direkte Abhängige:** 1 — einvoice-sidecar
 **Transitive Abhängige:** 1 — einvoice-sidecar
+**Upstream (In-Degree):** 1
+
+### gemma-embed
+**Direkte Abhängige:** 1 — llm-gateway-gemma-embed
+**Transitive Abhängige:** 1 — llm-gateway-gemma-embed
+**Upstream (In-Degree):** 1
+
+### gemma-embed-bulk
+**Direkte Abhängige:** 1 — llm-gateway-gemma-embed
+**Transitive Abhängige:** 1 — llm-gateway-gemma-embed
 **Upstream (In-Degree):** 1
 
 ### lfm-embed

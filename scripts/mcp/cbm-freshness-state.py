@@ -232,6 +232,18 @@ def git_untracked_files(repo):
 
 
 
+def _is_tool_artifact_path(rel):
+    """True for paths under a `.codebase-memory` directory (any depth).
+
+    The indexer's own persistence output (graph.db.zst, artifact.json,
+    embed stores) lands there. Hashing it into the stability fingerprint
+    makes every persisting refresh trip its own unstable-repo guard, and
+    cross-invalidates other projects sharing the checkout. Tool output is
+    not external drift: ignore it (tracked-file diffs still count)."""
+    parts = rel.replace("\\", "/").split("/") if rel else []
+    return ".codebase-memory" in parts
+
+
 def fingerprint_state(canonical_root, head, diff_bytes, untracked_files):
     h = hashlib.sha256()
     h.update(b"cbm-freshness-v1\x00")
@@ -242,6 +254,8 @@ def fingerprint_state(canonical_root, head, diff_bytes, untracked_files):
     h.update(b"\x00")
     h.update(diff_bytes or b"")
     for rel in sorted(untracked_files or []):
+        if _is_tool_artifact_path(rel):
+            continue
         h.update(b"\x00untracked:")
         h.update(rel.encode("utf-8", "surrogateescape"))
         full = os.path.join(canonical_root, rel)

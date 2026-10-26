@@ -524,8 +524,17 @@ def merge_pairs(store, pairs, model):
 
 def resolve(args):
     repo_in = args.repo or os.getcwd()
-    root = git_toplevel(repo_in)
-    head = git_head(root)
+    top = git_toplevel(repo_in)
+    head = git_head(top)
+    if getattr(args, "repo", None) and os.path.isdir(repo_in):
+        # Explicit --repo pointing at a project subdirectory (subdir
+        # projects such as home-patrick-dotfiles): keep it as the store
+        # root instead of collapsing to the enclosing checkout. The
+        # freshness validator fail-closes unless the graph's root_path
+        # attests exactly this directory, so a wrong --repo cannot bind
+        # another project's vectors. Default (cwd) behavior is unchanged.
+        return os.path.realpath(repo_in), head
+    root = top
     return root, head
 
 

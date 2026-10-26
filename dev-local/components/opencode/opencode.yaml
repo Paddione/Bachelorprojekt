@@ -74,6 +74,11 @@ spec:
           volumeMounts:
             - name: workspace-data
               mountPath: /workspace
+            - name: tmp
+              mountPath: /tmp
+          env:
+            - name: HOME #6941: non-root (65534) braucht beschreibbares HOME statt /root
+              value: /tmp
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -86,6 +91,8 @@ spec:
         - name: workspace-data
           persistentVolumeClaim:
             claimName: opencode-data
+        - name: tmp #6941: beschreibbares HOME fuer UID 65534 (Praezedenz T900810)
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

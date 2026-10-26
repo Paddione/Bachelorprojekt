@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -19,12 +20,25 @@ EMBED_BATCH = 16
 EMBED_TIMEOUT_S = 300
 EMBED_ATTEMPTS = 4
 EMBED_BACKOFF_S = (2, 5, 10)
-DEFAULT_EMBED_URL = "http://127.0.0.1:8095/v1/embeddings"
+DEFAULT_EMBED_URL = "http://127.0.0.1:18235/v1/lfm/embeddings"
 
+# Ein Raum, ein Pfad: Der CBM-Index ist LFM-Raum (Modell-Label
+# lfm25-embedding-350m, siehe cbm-embed-sync.py). Der bge-Pfad
+# (/v1/embeddings) faellt hier bewusst raus — Quer-Fallback wuerde den
+# Index still beschaedigen; lieber 503 als falsche Vektoren.
 FALLBACK_EMBED_URLS = [
-    "http://127.0.0.1:8095/v1/embeddings",
-    "http://127.0.0.1:18235/v1/embeddings",
+    "http://127.0.0.1:18235/v1/lfm/embeddings",
 ]
+
+
+def _auth_headers(base=None):
+    # Optionaler Bearer wie in scripts/bge-mcp/server.mjs: direkte
+    # llama.cpp-Endpunkte ignorieren ihn, der Cluster-Proxy verlangt ihn.
+    headers = dict(base or {})
+    token = os.environ.get("LLM_PROXY_ADMIN_TOKEN", "")
+    if token:
+        headers["Authorization"] = "Bearer %s" % token
+    return headers
 
 if "cbm_sync_graph" in sys.modules:
     SyncError = sys.modules["cbm_sync_graph"].SyncError
@@ -41,6 +55,10 @@ def normalize_embed_url(url: str) -> str:
     url = (url or "").rstrip("/")
     if url.endswith("/v1/embeddings"):
         return url
+    # Rollen-Pfade des Proxy sind bereits vollständig (/v1/<rolle>/embeddings
+    # bzw. /v1/colbert/rerank); Anhaengen wuerde sie korrumpieren.
+    if re.search(r"/v1/[^/]+/(embeddings|rerank)$", url):
+        return url
     if url.endswith("/v1"):
         return url + "/embeddings"
     return url + "/v1/embeddings"
@@ -49,7 +67,7 @@ def normalize_embed_url(url: str) -> str:
 def embed_batch(texts, url, model, timeout):
     body = json.dumps({"model": model, "input": list(texts)}).encode("utf-8")
     req = urllib.request.Request(
-        url, data=body, headers={"Content-Type": "application/json"})
+        url, data=body, headers=_auth_headers({"Content-Type": "application/json"}))
     last = None
     for attempt in range(EMBED_ATTEMPTS):
         try:
@@ -129,19 +147,33 @@ def shard_batches(n_chunks, urls):
     return [urls[i % len(urls)] for i in range(n_chunks)]
 
 
-def probe_url_live(url, timeout=1.0):
+# Default-Timeout 10 s: Proxy-Ketten sind Tablet-first und brauchen beim
+# Kaltstart laenger als 1 s; ein zu knappes Default waere falsch-negativ.
+def probe_url_live(url, timeout=10.0, model=None):
     norm = normalize_embed_url(url)
     base = norm.rsplit("/v1", 1)[0]
+    # Stufe 1 — Prozess lebt: Proxy meldet /livez (reine Liveness),
+    # direktes llama.cpp nur /health. /health am Proxy meldet Readiness
+    # ueber ALLE Rollen (Chat-Backends eingeschlossen) und ist fuer die
+    # Embed-Kette die falsche Ampel — deshalb /livez zuerst.
+    alive = False
+    for probe_path in ("/livez", "/health"):
+        try:
+            req = urllib.request.Request(
+                base + probe_path, headers=_auth_headers({"User-Agent": "cbm-probe"}))
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                if resp.status == 200:
+                    alive = True
+                    break
+        except Exception:
+            continue
+    if not alive:
+        return False
     try:
-        req = urllib.request.Request(base + "/health", headers={"User-Agent": "cbm-probe"})
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            if resp.status == 200:
-                return True
-    except Exception:
-        pass
-    try:
-        body = json.dumps({"model": "test", "input": ["probe"]}).encode("utf-8")
-        req = urllib.request.Request(norm, data=body, headers={"Content-Type": "application/json"})
+        # Modell mitgeben: Upstreams lehnen unbekannte Modelle mit 400 ab
+        # (llama.cpp) — "test" waere falsch-negativ.
+        body = json.dumps({"model": model or "test", "input": ["probe"]}).encode("utf-8")
+        req = urllib.request.Request(norm, data=body, headers=_auth_headers({"Content-Type": "application/json"}))
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             if resp.status == 200:
                 return True
@@ -160,16 +192,16 @@ def resolve_embed_urls(args):
     return [getattr(args, "embed_url", DEFAULT_EMBED_URL)]
 
 
-def select_live_urls(urls):
+def select_live_urls(urls, model=None):
     if not urls:
         urls = [DEFAULT_EMBED_URL]
 
-    live_urls = [u for u in urls if probe_url_live(u)]
+    live_urls = [u for u in urls if probe_url_live(u, model=model)]
     if live_urls:
         return live_urls
 
     for fb in FALLBACK_EMBED_URLS:
-        if fb not in urls and probe_url_live(fb):
+        if fb not in urls and probe_url_live(fb, model=model):
             eprint("  [warn] configured embedding endpoint %s unreachable, using live endpoint: %s"
                    % (urls, fb))
             return [fb]

@@ -47,9 +47,9 @@ env_vars:
   # gegen die Env-Datei (T004041, scripts/env-resolve.sh).
   WEBSITE_IMAGE_DIGEST: sha256:1111111111111111111111111111111111111111111111111111111111111111
   # WEBSITE_IMAGE_TAG bleibt bewusst ungesetzt: k3d/website.yaml rendert
-  # `:${WEBSITE_IMAGE_TAG}`, korczewski-prod/website/website-patch.yaml ersetzt
-  # das durch `@${WEBSITE_IMAGE_DIGEST}` (p4 Task 1). Bliebe der Tag im Baum,
-  # wäre das ein D7-Verstoß und der Render-Guard bricht ab.
+  # `:${WEBSITE_IMAGE_TAG}`, das Overlay in korczewski-prod ersetzt den Tag durch
+  # `@${WEBSITE_IMAGE_DIGEST}` (p4 Task 1). Bliebe der Tag im Baum, wäre das ein
+  # D7-Verstoß und der Render-Guard bricht ab.
   WEBSITE_NAMESPACE: website-korczewski
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"

@@ -137,6 +137,26 @@ Drei weitere Abschnitte in dieselbe Datei, danach ist ADR-017 vollständig.
   korczewski-prod startet mit der engen Form, weil ein frisch gebootstrappter Cluster
   keine gewachsene Objektmenge hat, die eine breite Rolle rechtfertigen würde.
 
+`## Abgrenzung zu T002479 und zur :latest-Ausnahme` mit zwei Unterabschnitten
+(`### Freeze-Fortschreibung (T002479)` und `### Digest-Policy gegen die :latest-Ausnahme`):
+
+- **Freeze-Fortschreibung (T002479).** `AGENTS.md` führt den korczewski-Workspace als FROZEN und
+  die Prod-Verdrahtung aus T901440 (`flux-website-korczewski`, `flux-korczewski-auth`) als
+  „`suspend: true`, no go-live". ADR-017 schreibt davon genau eine Teilmenge fort: das
+  Go-live-Verbot für **Website + Pocket ID auf einem eigenen Ziel-Cluster**. Nicht berührt: der
+  Workspace-Stack (Nextcloud, Brett, Collabora, `ks-korczewski.yaml` /
+  `ks-jobs-korczewski.yaml`), die Namespaces `workspace` und `website` auf `fleet` und jede Datei
+  unter `flux/clusters/fleet/**` — dort bleibt alles `suspend: true`, dieser Pfad synct nichts in
+  den `fleet`-Cluster. Begründung: T002479 meint den fleet-Pfad; ein eigener, host-agnostischer
+  Cluster ist kein Wiederhochfahren des abgebauten Standorts.
+- **Digest-Policy gegen die `:latest`-Ausnahme.** `AGENTS.md` nennt die Website (neben Brett,
+  Mentolder-Web u. a.) unter den `:latest`-Digest-Ausnahmen. Die Ausnahme gilt unverändert für die
+  bestehenden Pfade (`k3d/*.yaml`, `dev-local/**`, `prod-fleet/**`); D7 verschärft ausschließlich
+  `korczewski-prod/**`. Begründung: der Grund der Ausnahme — schnelle Dev-Iteration gegen
+  `:latest` — existiert für einen frisch aufgesetzten Prod-Cluster nicht, und weil
+  `test_images_are_digest_pinned` nur den `korczewski-prod`-Baum prüft, bleibt ein `:latest` in
+  `k3d/website.yaml` policy-konform.
+
 `## Folgen` mit zwei Unterabschnitten. „Was einfacher wird": kein `kubectl apply` nötig,
 der Cluster baut sich aus `flux-instance.yaml` plus Artefakt; der C3-Fall
 (SealedSecret-Namespace ohne Namespace) fällt im Render-Gate auf statt als `False`-
@@ -179,6 +199,8 @@ ADR-008. Deshalb entfällt eine Index-Zeile und `docs/adr/README.md` gehört nic
 diesem Task. Sollte beim Ausführen inzwischen ein `docs/adr/README.md` existieren, kommt
 die Zeile `- [ADR-017](ADR-017-korczewski-prod-flux.md) — korczewski-prod Lieferkette`
 in diesen Task und in denselben Commit.
+
+Verify: `for k in "## Abweichungen zu ADR-016" "## Abgrenzung zu T002479 und zur :latest-Ausnahme" "## Folgen" "## Risiken" "## Guards" "## Nicht entschieden"; do grep -qF "$k" docs/adr/ADR-017-korczewski-prod-flux.md || exit 1; done && [ "$(grep -cE '^### \((a-d)\) ' docs/adr/ADR-017-korczewski-prod-flux.md)" -eq 4 ] && grep -qF 'T002479' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'suspend: true' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'korczewski-prod/**' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'k3d/website.yaml' docs/adr/ADR-017-korczewski-prod-flux.md && echo ok`
 
 Verify: `for k in "## Kontext" "## Entscheidungen" "## Abweichungen zu ADR-016" "## Folgen" "## Nicht entschieden"; do grep -qF "$k" docs/adr/ADR-017-korczewski-prod-flux.md || exit 1; done; [ "$(grep -cE '^### \([a-d]\) ' docs/adr/ADR-017-korczewski-prod-flux.md)" -eq 4 ] && grep -qF 'matchOIDCIdentity' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'distribution.version' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'cluster-admin' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'TLSStore' docs/adr/ADR-017-korczewski-prod-flux.md && echo ok`
 

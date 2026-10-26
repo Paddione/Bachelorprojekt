@@ -3,6 +3,12 @@ ticket_id: null
 plan_ref: null
 status: active
 date: 2026-10-26
+domains: [website, infra, ops, test, security]
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
 ---
 
 # Design: korczewski-prod — eigener Prod-Cluster für Website + Auth
@@ -280,6 +286,26 @@ Die Tests laufen offline (kein Cluster); `test_render_out_layout` und
 - Der tote `render-fleet-artifact.yml`, der weiterhin `fleet-manifests` pusht — eigener Aufräum-Task,
   hier nur als Risiko notiert.
 
+### 12. Verhältnis zur T002479-Sperre und zur `:latest`-Ausnahme
+
+Zwei Regeln aus `AGENTS.md` stehen scheinbar gegen diesen Plan. Beide werden hier bewusst und eng
+begrenzt fortgeschrieben, damit die Ausführung nicht gegen eine ungeschriebene Ausnahme läuft:
+
+- **T002479 (korczewski-Workspace FROZEN, „no go-live").** Die Sperre betrifft den *Workspace*
+  (Nextcloud, Brett, Collabora, eigene `shared-db`, Jobs `ks-korczewski.yaml` /
+  `ks-jobs-korczewski.yaml`) und den fleet-Verdrahtungspfad (`flux-website-korczewski`,
+  `flux-korczewski-auth` unter `flux/clusters/fleet/`). Dieser Plan reaktiviert nichts davon:
+  `flux/clusters/fleet/**` bleibt unangetastet und weiterhin `suspend: true`, es gibt keinen Sync
+  in den `fleet`-Cluster, und der Workspace-Stack ist ausdrücklich außerhalb des Scope (§11).
+  Fortgeschrieben wird ausschließlich das **Go-live-Verbot für Website + Pocket ID auf einem
+  eigenen, neuen Cluster** — genau der Pfad, den T002479 offen ließ, weil er nur den fleet-Pfad
+  meinte.
+- **`:latest`-Ausnahme für die Website.** `AGENTS.md` nennt die Website unter den
+  Digest-Pinning-Ausnahmen. Diese Ausnahme bleibt für alle bestehenden Pfade (`k3d/`,
+  `dev-local/`, `prod-fleet/`) in Kraft; D7 verschärft nur den neuen Pfad `korczewski-prod/**`.
+  Ein Guard-Fehler gegen `k3d/website.yaml` ist damit kein Fehler, sondern die Ausnahme —
+  `test_images_are_digest_pinned` prüft ausschließlich den gerenderten `korczewski-prod`-Baum.
+
 ## Risiken
 
 | Risiko | Wirkung | Gegenmaßnahme im Plan |
@@ -290,6 +316,7 @@ Die Tests laufen offline (kein Cluster); `test_render_out_layout` und
 | SealedSecrets mit fremdem Key | `secrets`-Kustomization bleibt `False` | `env-seal.sh` gegen Ziel-Cluster; Namespace-Paritätstest |
 | Öffentliches Artefakt trotz ADR-016 „privat" | Supply-Chain-Annahme falsch | cosign-Verify mit gepinnter Identität; ADR-017 hält die Abweichung fest |
 | Doppelte Render-Logik driftet | devmesh und prod rendern unterschiedlich | bewusst akzeptiert, Folge-Refactor `scripts/lib/render-stack-core.sh` notiert |
+| T002479 wird als Go-live-Verbot für den neuen Pfad gelesen | Ausführung blockiert oder Plan als Regelbruch behandelt | §12 grenzt Workspace/fleet ab; ADR-017 hält die Fortschreibung fest |
 
 ## Verifikation (Ende der Ausführung)
 

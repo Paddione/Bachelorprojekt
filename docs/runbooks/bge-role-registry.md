@@ -19,6 +19,11 @@ Retrieval-Routen des LLM-Proxys (Port 18235): `/v1/embeddings`,
    - Alle fuenf Routen sind strikt von der Chat-Modellaufloesung
      (`/v1/models`) getrennt. Die Rolle kommt aus dem PFAD, nie aus dem
      Modellfeld (`scripts/llm-proxy/bge-routes.mjs`, `roleForPath`).
+   - Upstream-nativer Pfad: Der kanonische Pfad waehlt nur die Rolle;
+     upstream geht der native Pfad raus (`forwardPathForRole`):
+     Embedding-Rollen -> `/v1/embeddings`, `colbert-rerank` ->
+     `/v1/colbert/rerank`. Unveraendertes Durchreichen antwortete an
+     llama.cpp-Upstreams mit 404 (belegt 2026-10-26).
    - Kein Quer-Fallback zwischen Vektorraeumen: ist eine Kette erschoepft,
      antwortet der Proxy 503 (`bge_chain_exhausted`) mit Grund je Glied.
 

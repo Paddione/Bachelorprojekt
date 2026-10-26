@@ -62,6 +62,8 @@ def main() -> None:
         for j, t in enumerate(tasks):
             if j == i or t != r["task"]:
                 continue
+            if rows[j]["positive"] == r["positive"]:
+                continue  # duplicate positive text across rows (same slice+handler) — false negative
             if sims[j] > best_s:
                 best_s, best_j = float(sims[j]), j
         if best_j >= 0 and best_s < args.sim_cap:

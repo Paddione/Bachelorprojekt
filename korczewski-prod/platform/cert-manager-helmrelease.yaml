@@ -1,0 +1,45 @@
+# cert-manager fuer korczewski-prod. Werte und Chart-Version aus
+# dev-local/platform/cert-manager-helmrelease.yaml.
+#
+# Bewusste Abweichung vom Vorbild: install.strategy.name / upgrade.strategy.name
+# statt install.remediation.retries / upgrade.remediation.retries (das Vorbild
+# nutzt noch das alte Remediation-Feld). RetryOnFailure ist zugleich der Grund,
+# warum dieser Pfad eine bereits extern installierte, gleichnamige Release aus
+# Vorbedingung 4 uebernehmen kann, statt beim ersten Fehlversuch stehen zu
+# bleiben.
+#
+# driftDetection.mode: enabled — Schema-Default ist disabled; ohne das Feld
+# korrigiert Flux keine Handaenderung. timeout: 5m ist der explizit
+# ausgeschriebene Flux-Default.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  interval: 1h
+  timeout: 5m
+  serviceAccountName: korczewski-prod-platform
+  chart:
+    spec:
+      chart: cert-manager
+      version: 1.21.2
+      sourceRef:
+        kind: HelmRepository
+        name: jetstack
+        namespace: flux-system
+  targetNamespace: cert-manager
+  install:
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+  upgrade:
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+  driftDetection:
+    mode: enabled
+  values:
+    crds:
+      enabled: true
+    podDnsPolicy: Default

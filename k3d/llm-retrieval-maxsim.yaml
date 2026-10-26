@@ -1,0 +1,231 @@
+# NUR VIA TASK DEPLOYEN [T901777]: Datei enthaelt Escapes/Platzhalter fuer den Task/Flux-Render-Pfad. Direktes 'kubectl apply -f' hinterlaesst Literale (siehe k3d/README.md).
+# ─────────────────────────────────────────────────────────────────────────────
+# llm-retrieval-maxsim: ColBERT-MaxSim-Rerank als Kubernetes-Dienst (CPU)
+#
+# Cluster-Nachfolger des Desktop-Python-APIs scripts/colbert_rerank.py
+# (:8093, Dotfiles-Repo): Der Proxy reicht den kanonischen Pfad
+# /v1/colbert/rerank unveraendert durch (kompatibel weiter /v1/rerank).
+# Upstream ist http://llm-gateway-lfm-colbert:8081, nie 127.0.0.1.
+# Die Einbettungen liefert der GPU-Dienst lfm-colbert; dieser Dienst braucht
+# deshalb keine GPU (reine MaxSim-Arithmetik auf Token-Vektoren).
+#
+# Image-Pin mit Digest (kein Rolling-Tag — derselbe node-Pin wie in
+# knowledge-ingest-cronjob.yaml u.a.). Strategie Recreate (T002604).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── MaxSim-Server (Node, ohne Dependencies — Logik-Port von colbert_rerank.py) ──
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: colbert-maxsim-server
+  labels:
+    app: colbert-maxsim
+data:
+  maxsim.mjs: |
+    // colbert-maxsim — MaxSim-Rerank ueber LFM2.5-ColBERT-Token (Cluster-Dienst).
+    // Logik-Port von scripts/colbert_rerank.py (Desktop-Stand, Dotfiles-Repo):
+    // gleiche Praefixe ("query: "/"document: "), gleiche Upstream-Form
+    // POST /embedding {"content"}, gleiche Antwortform
+    // {model, results:[{index, relevance_score, document:{text}}]}.
+    // Dient kanonisch POST /v1/colbert/rerank, kompatibel weiter /v1/rerank.
+    import http from 'node:http';
+
+    const PORT = Number(process.env.PORT || 8080);
+    const UPSTREAM = (process.env.COLBERT_UPSTREAM || 'http://llm-gateway-lfm-colbert:8081').replace(/\/+$/, '');
+    const MODEL = 'lfm25-colbert-350m';
+    const TIMEOUT_MS = Number(process.env.COLBERT_TIMEOUT_MS || 30000);
+    const BODY_LIMIT = 8 * 1024 * 1024;
+    const Q_PREFIX = 'query: ';
+    const D_PREFIX = 'document: ';
+
+    function sendJson(res, status, obj) {
+      const buf = Buffer.from(JSON.stringify(obj));
+      res.writeHead(status, { 'content-type': 'application/json', 'content-length': buf.length });
+      res.end(buf);
+    }
+
+    function readJson(req) {
+      return new Promise((resolve, reject) => {
+        const chunks = [];
+        let size = 0;
+        req.on('data', (c) => {
+          size += c.length;
+          if (size > BODY_LIMIT) { reject(new Error('body zu gross')); req.destroy(); }
+          else chunks.push(c);
+        });
+        req.on('end', () => {
+          try { resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {}); }
+          catch { reject(new Error('kein JSON-Body')); }
+        });
+        req.on('error', reject);
+      });
+    }
+
+    // Antwortformen des llama.cpp-Upstreams (identisch zu colbert_rerank.py):
+    // Liste mit [0].embedding, Dict mit .embedding oder Dict mit .data[0].
+    // Ergebnis: [N, D]-Matrix, Zeilen L2-normalisiert.
+    function toTokenMatrix(raw) {
+      let emb = null;
+      if (Array.isArray(raw) && raw.length > 0 && raw[0] && raw[0].embedding) emb = raw[0].embedding;
+      else if (raw && typeof raw === 'object' && raw.embedding) emb = raw.embedding;
+      else if (raw && typeof raw === 'object' && Array.isArray(raw.data) && raw.data.length > 0) {
+        emb = raw.data[0].embedding ?? raw.data[0];
+      } else emb = raw;
+      if (!Array.isArray(emb)) throw new Error('unerwartete Embedding-Antwortform');
+      const mat = Array.isArray(emb[0]) ? emb : [emb];
+      return mat.map((row) => {
+        if (!Array.isArray(row) || row.length === 0) throw new Error('leerer Token-Vektor');
+        let n = 0;
+        for (const v of row) n += v * v;
+        n = Math.sqrt(n) || 1;
+        return row.map((v) => v / n);
+      });
+    }
+
+    async function embedTokens(text) {
+      const res = await fetch(`$${UPSTREAM}/embedding`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ content: text }),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+      if (!res.ok) throw new Error(`upstream $${res.status}`);
+      return toTokenMatrix(await res.json());
+    }
+
+    // ColBERT MaxSim: Summe der maximalen inneren Produkte je Query-Token.
+    function maxsim(q, d) {
+      let s = 0;
+      for (const qt of q) {
+        let best = -Infinity;
+        for (const dt of d) {
+          let dot = 0;
+          for (let i = 0; i < qt.length; i++) dot += qt[i] * dt[i];
+          if (dot > best) best = dot;
+        }
+        s += best;
+      }
+      return s;
+    }
+
+    async function rerank(query, docs, topN) {
+      const q = await embedTokens(Q_PREFIX + query);
+      const scored = [];
+      for (let i = 0; i < docs.length; i++) {
+        const d = await embedTokens(D_PREFIX + docs[i]);
+        scored.push({ index: i, score: Math.round(maxsim(q, d) * 10000) / 10000, document: docs[i] });
+      }
+      scored.sort((a, b) => b.score - a.score);
+      return scored.slice(0, topN);
+    }
+
+    const server = http.createServer((req, res) => {
+      (async () => {
+        const path = (req.url || '/').split('?')[0];
+        if (req.method === 'GET' && (path === '/health' || path === '/healthz' || path === '/')) {
+          return sendJson(res, 200, { status: 'ok', model: MODEL });
+        }
+        // GET /models haelt den Discovery-Probe des Proxys gruenn; der Dienst
+        // traegt keine Chat-Modelle, nur seine Rerank-Identitaet.
+        if (req.method === 'GET' && (path === '/models' || path === '/v1/models')) {
+          return sendJson(res, 200, { data: [{ id: MODEL }] });
+        }
+        if (req.method === 'POST' && (path === '/v1/colbert/rerank' || path === '/v1/rerank')) {
+          const data = await readJson(req);
+          const query = typeof data.query === 'string' ? data.query : '';
+          const rawDocs = Array.isArray(data.documents) ? data.documents : [];
+          const docs = rawDocs.map((d) => (typeof d === 'string' ? d
+            : (d && typeof d.text === 'string' ? d.text : String(d))));
+          const topN = Number.isInteger(data.top_n) && data.top_n >= 0
+            ? Math.min(data.top_n, docs.length) : docs.length;
+          const ranked = await rerank(query, docs, topN);
+          return sendJson(res, 200, {
+            model: MODEL,
+            results: ranked.map((r) => ({
+              index: r.index, relevance_score: r.score, document: { text: r.document },
+            })),
+          });
+        }
+        return sendJson(res, 404, { error: { code: 'not_found', message: path } });
+      })().catch((err) => {
+        console.error(`[maxsim] $${err && err.message ? err.message : err}`);
+        sendJson(res, 500, { error: String(err && err.message ? err.message : err) });
+      });
+    });
+
+    server.listen(PORT, '0.0.0.0', () => console.error(`[maxsim] listening on :$${PORT} upstream=$${UPSTREAM}`));
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: colbert-maxsim
+  labels:
+    app: colbert-maxsim
+spec:
+  replicas: 1
+  # Recreate, nicht RollingUpdate: keine PVC, aber exakt eine Instanz soll
+  # dienen (siehe llm-gpu.yaml, T002604).
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: colbert-maxsim
+  template:
+    metadata:
+      labels:
+        app: colbert-maxsim
+    spec:
+      # SA-GR-06: runAsNonRoot auf Pod-Ebene, UIDs auf Container-Ebene.
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: maxsim
+          image: node:22.23.3-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+          command: [node, /app/maxsim.mjs]
+          env:
+            - {name: PORT, value: "8080"}
+            - {name: COLBERT_UPSTREAM, value: "http://llm-gateway-lfm-colbert:8081"}
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              # [T003903] Kein BestEffort-QoS (llm-gpu.yaml).
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "2000m"
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: server
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: server
+          configMap:
+            name: colbert-maxsim-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-colbert-maxsim
+  labels:
+    app: llm-gateway
+spec:
+  selector:
+    app: colbert-maxsim
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8080

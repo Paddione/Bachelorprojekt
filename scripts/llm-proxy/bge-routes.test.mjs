@@ -208,3 +208,127 @@ test('alle Glieder tot -> 503 mit einem Grund JE Glied', async (t) => {
 // [T900107] Die drei Loadout-Glied-Tests sind entfallen: routeRequest kennt
 // nur noch url-Glieder. Was sie sicherten — ein nicht startendes Glied darf
 // den Request nicht verschlucken — deckt der Failover-Block darueber ab.
+
+// ── Getrennte Retrieval-Rollen (retrieval-chains-split) ─────────────────
+test('roleForPath: LFM- und ColBERT-Pfade bilden eigene Rollen ab', () => {
+  assert.equal(roleForPath('/v1/lfm/embeddings'), 'lfm-embed')
+  assert.equal(roleForPath('/v1/colbert/embeddings'), 'colbert-embed')
+  assert.equal(roleForPath('/v1/colbert/rerank'), 'colbert-rerank')
+  // Unbekannte Pfade fallen weiter ins Chat-Fallback (proxyV1, server.mjs).
+  assert.equal(roleForPath('/v1/chat/completions'), null)
+})
+
+function retrievalBackends() {
+  return [
+    { name: 'tablet-embed', enabled: true, priority: 5, roles: ['embed'], baseUrl: 'http://llm-gateway-tablet:8081' },
+    { name: 'cluster-embed', enabled: true, priority: 10, roles: ['embed'], baseUrl: 'http://cluster-embed:8081' },
+    { name: 'tablet-rerank', enabled: true, priority: 5, roles: ['rerank'], baseUrl: 'http://llm-gateway-tablet:8080' },
+    { name: 'cluster-rerank', enabled: true, priority: 10, roles: ['rerank'], baseUrl: 'http://cluster-rerank:8081' },
+    { name: 'cluster-lfm-embed', enabled: true, priority: 10, roles: ['lfm-embed'], baseUrl: 'http://lfm-embed:8081' },
+    { name: 'cluster-lfm-colbert', enabled: true, priority: 10, roles: ['colbert-embed'], baseUrl: 'http://lfm-colbert:8081' },
+    { name: 'cluster-colbert-maxsim', enabled: true, priority: 10, roles: ['colbert-rerank'], baseUrl: 'http://maxsim:8081' },
+    // lmstudio traegt keine Rolle mehr (5fe38fbbb) — darf in keiner Kette landen.
+    { name: 'lmstudio', enabled: true, priority: 20, roles: [], baseUrl: 'http://lmstudio:1234/v1' },
+  ];
+}
+
+test('rolesFromRegistry: fuenf getrennte Ketten, Tablet vor Cluster, kein Quer-Glied', () => {
+  const roles = rolesFromRegistry(retrievalBackends());
+  assert.equal(roles.size, 5)
+  assert.deepEqual(roles.get('embed').map((e) => e.baseUrl),
+    ['http://llm-gateway-tablet:8081', 'http://cluster-embed:8081'])
+  assert.deepEqual(roles.get('rerank').map((e) => e.baseUrl),
+    ['http://llm-gateway-tablet:8080', 'http://cluster-rerank:8081'])
+  assert.deepEqual(roles.get('lfm-embed').map((e) => e.baseUrl), ['http://lfm-embed:8081'])
+  assert.deepEqual(roles.get('colbert-embed').map((e) => e.baseUrl), ['http://lfm-colbert:8081'])
+  assert.deepEqual(roles.get('colbert-rerank').map((e) => e.baseUrl), ['http://maxsim:8081'])
+  // Kein Glied steht in zwei Ketten — sonst gaebe es Quer-Fallback.
+  const all = [...roles.values()].flat().map((e) => e.baseUrl);
+  assert.equal(new Set(all).size, all.length)
+  assert.ok(!all.some((u) => u.includes('lmstudio')), 'lmstudio darf in keiner Kette stehen')
+})
+
+test('resolveRoleChain: jede neue Rolle faellt auf loadouts.json zurueck', () => {
+  const doc = {
+    roles: {
+      embed: { chain: ['http://t:8081', 'http://c:8081'] },
+      rerank: { chain: ['http://t:8080', 'http://c2:8081'] },
+      'lfm-embed': { chain: ['http://lfm:8081'] },
+      'colbert-embed': { chain: ['http://col:8081'] },
+      'colbert-rerank': { chain: ['http://max:8081'] },
+    },
+  };
+  for (const [role, want] of [
+    ['embed', 'http://t:8081'], ['rerank', 'http://t:8080'],
+    ['lfm-embed', 'http://lfm:8081'], ['colbert-embed', 'http://col:8081'],
+    ['colbert-rerank', 'http://max:8081'],
+  ]) {
+    const chain = resolveRoleChain(role, [], doc);
+    assert.equal(chain[0].baseUrl, want, `E3-Erstglied fuer ${role}`)
+  }
+})
+
+test('routeRequest je Rolle: richtiges Erstglied, kanonischer Pfad unveraendert', async (t) => {
+  const seen = [];
+  const stub = await listen((req, res) => {
+    seen.push(req.url);
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end('{"ok":true}');
+  });
+  t.after(() => close(stub));
+
+  const cases = [
+    ['embed', '/v1/embeddings'],
+    ['rerank', '/v1/rerank'],
+    ['lfm-embed', '/v1/lfm/embeddings'],
+    ['colbert-embed', '/v1/colbert/embeddings'],
+    ['colbert-rerank', '/v1/colbert/rerank'],
+  ];
+  for (const [role, path] of cases) {
+    seen.length = 0;
+    const result = await routeRequest({
+      role, path, body: { input: ['x'] },
+      chain: [{ kind: 'url', baseUrl: baseOf(stub) }],
+    });
+    assert.equal(result.status, 200, `Rolle ${role}`)
+    assert.equal(result.upstream, baseOf(stub), `Erstglied fuer ${role}`)
+    assert.deepEqual(seen, [path], `Pfad fuer ${role} unveraendert durchgereicht`)
+  }
+})
+
+test('kein Quer-Fallback: ColBERT-Stub antwortet nie auf bge-Anfragen', async (t) => {
+  // Der Stub dient nur seinen eigenen Raum: bge-Pfade beantwortet er mit
+  // 500 (wuerde Failover ausloesen), ColBERT-Pfade mit 200.
+  const stub = await listen((req, res) => {
+    if (req.url === '/v1/colbert/embeddings') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end('{"ok":true}');
+    } else {
+      res.writeHead(500, { 'content-type': 'application/json' });
+      res.end('{"error":"falscher Raum"}');
+    }
+  });
+  t.after(() => close(stub));
+
+  const colbert = await routeRequest({
+    role: 'colbert-embed', path: '/v1/colbert/embeddings', body: { input: ['x'] },
+    chain: [{ kind: 'url', baseUrl: baseOf(stub) }],
+  });
+  assert.equal(colbert.status, 200);
+})
+
+test('alle Glieder der colbert-rerank-Kette tot -> 503 mit Grund je Glied', async (t) => {
+  const hang = await listen(() => {})
+  t.after(() => close(hang))
+
+  const result = await routeRequest({
+    role: 'colbert-rerank', path: '/v1/colbert/rerank', body: { query: 'q', documents: ['d'] },
+    chain: [{ kind: 'url', baseUrl: baseOf(hang) }, { kind: 'url', baseUrl: 'http://127.0.0.1:1' }],
+    timeoutMs: 300,
+  })
+  assert.equal(result.status, 503)
+  const body = JSON.parse(result.body)
+  assert.equal(body.error.code, 'bge_chain_exhausted')
+  assert.equal(body.error.entries.length, 2)
+  assert.ok(body.error.message.includes('colbert-rerank'))
+})

@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-10-26T02:26:39.790Z
-> Nodes: 96 | Edges: 1916 | Isolated: 6
+> Generated: 2026-10-26T03:49:42.158Z
+> Nodes: 98 | Edges: 1917 | Isolated: 6
 
 ## Ranking (transitive Abhängige)
 
@@ -83,11 +83,12 @@
 | 75 | einvoice-sidecar | 1 | 1 | 1 |
 | 76 | lfm-embed | 1 | 1 | 1 |
 | 77 | lfm-colbert | 1 | 1 | 1 |
-| 78 | mediaviewer-widget | 1 | 1 | 1 |
-| 79 | blackbox-exporter | 1 | 1 | 1 |
-| 80 | nextcloud-redis | 1 | 1 | 1 |
-| 81 | sessions-server | 1 | 1 | 1 |
-| 82 | whisper | 1 | 1 | 1 |
+| 78 | colbert-maxsim | 1 | 1 | 1 |
+| 79 | mediaviewer-widget | 1 | 1 | 1 |
+| 80 | blackbox-exporter | 1 | 1 | 1 |
+| 81 | nextcloud-redis | 1 | 1 | 1 |
+| 82 | sessions-server | 1 | 1 | 1 |
+| 83 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -474,6 +475,11 @@
 ### lfm-colbert
 **Direkte Abhängige:** 1 — llm-gateway-lfm-colbert
 **Transitive Abhängige:** 1 — llm-gateway-lfm-colbert
+**Upstream (In-Degree):** 1
+
+### colbert-maxsim
+**Direkte Abhängige:** 1 — llm-gateway-colbert-maxsim
+**Transitive Abhängige:** 1 — llm-gateway-colbert-maxsim
 **Upstream (In-Degree):** 1
 
 ### mediaviewer-widget

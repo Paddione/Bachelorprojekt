@@ -1,4 +1,10 @@
-"""Native migration of tests/spec/local-llm-proxy/bge-chain-order.bats."""
+"""Neue Topologie: getrennte Retrieval-Ketten je Vektorraum.
+
+Registry (LLM_PROXY_BACKENDS_JSON) und E3-Rueckfall (loadouts.json, roles-Block)
+fuehren fuenf Rollen: embed/rerank (Tablet vor Cluster) sowie lfm-embed,
+colbert-embed und colbert-rerank (je nur Cluster). Kein Desktop-Loopback,
+kein lmstudio-Glied (entfernt in 5fe38fbbb).
+"""
 
 from pathlib import Path
 
@@ -6,42 +12,46 @@ import pytest
 
 HELPER = "tests/spec/local-llm-proxy/helpers/llm-endpoint.bash"
 
-EMBED_JS = """
+CHAINS_JS = """
     import { readFileSync } from 'node:fs';
     import { loadRoles } from './scripts/llm-proxy/bge-routes.mjs';
     const doc = JSON.parse(readFileSync('./scripts/llm/loadouts.json', 'utf8'));
-    const embed = loadRoles(doc).get('embed');
+    const roles = loadRoles(doc);
     const assert = (cond, msg) => { if (!cond) { console.error('FAIL: ' + msg); process.exit(1); } };
-    assert(embed.length === 4, 'embed chain must have exactly 4 entries');
-    assert(embed[0].kind === 'url' && embed[0].baseUrl === 'http://127.0.0.1:8085', 'embed[0] must be desktop :8085');
-    assert(embed[1].kind === 'url' && embed[1].baseUrl === 'http://127.0.0.1:8081', 'embed[1] must be cluster :8081');
-    assert(embed[2].kind === 'url' && embed[2].baseUrl === 'http://127.0.0.1:1234', 'embed[2] must be LM Studio :1234');
-    assert(embed[3].kind === 'url' && embed[3].baseUrl === 'http://100.94.91.65:8081', 'embed[3] must be tablet 100.94.91.65:8081 (pk-tablet-linux)');
-    console.log('embed chain OK');
+    assert(roles.size === 5, 'es muessen genau 5 Rollen sein, gefunden: ' + roles.size);
+    const urls = (name) => roles.get(name).map((e) => e.kind + ' ' + e.baseUrl);
+    assert(JSON.stringify(urls('embed')) === JSON.stringify([
+      'url http://llm-gateway-tablet:8081',
+      'url http://llm-gateway-embed.workspace.svc.cluster.local:8081',
+    ]), 'embed muss Tablet vor Cluster fuehren, gefunden: ' + JSON.stringify(urls('embed')));
+    assert(JSON.stringify(urls('rerank')) === JSON.stringify([
+      'url http://llm-gateway-tablet:8080',
+      'url http://llm-gateway-rerank.workspace.svc.cluster.local:8081',
+    ]), 'rerank muss Tablet vor Cluster fuehren, gefunden: ' + JSON.stringify(urls('rerank')));
+    assert(JSON.stringify(urls('lfm-embed')) === JSON.stringify([
+      'url http://llm-gateway-lfm-embed.workspace.svc.cluster.local:8081',
+    ]), 'lfm-embed-Kette falsch: ' + JSON.stringify(urls('lfm-embed')));
+    assert(JSON.stringify(urls('colbert-embed')) === JSON.stringify([
+      'url http://llm-gateway-lfm-colbert.workspace.svc.cluster.local:8081',
+    ]), 'colbert-embed-Kette falsch: ' + JSON.stringify(urls('colbert-embed')));
+    assert(JSON.stringify(urls('colbert-rerank')) === JSON.stringify([
+      'url http://llm-gateway-colbert-maxsim.workspace.svc.cluster.local:8081',
+    ]), 'colbert-rerank-Kette falsch: ' + JSON.stringify(urls('colbert-rerank')));
+    const all = [...roles.values()].flat().map((e) => e.baseUrl);
+    assert(!all.some((u) => u.includes('127.0.0.1') || u.includes('1234')),
+      'kein Desktop-Loopback und kein lmstudio in einer Kette: ' + JSON.stringify(all));
+    assert(new Set(all).size === all.length, 'kein Glied in zwei Ketten (kein Quer-Fallback)');
+    console.log('retrieval chains OK');
 """
 
-RERANK_JS = """
-    import { readFileSync } from 'node:fs';
-    import { loadRoles } from './scripts/llm-proxy/bge-routes.mjs';
-    const doc = JSON.parse(readFileSync('./scripts/llm/loadouts.json', 'utf8'));
-    const rerank = loadRoles(doc).get('rerank');
-    const assert = (cond, msg) => { if (!cond) { console.error('FAIL: ' + msg); process.exit(1); } };
-    assert(rerank.length === 3, 'rerank chain must have exactly 3 entries');
-    assert(rerank[0].kind === 'url' && rerank[0].baseUrl === 'http://127.0.0.1:8085', 'rerank[0] must be desktop :8085');
-    assert(rerank[1].kind === 'url' && rerank[1].baseUrl === 'http://127.0.0.1:8093', 'rerank[1] must be cluster :8093');
-    // ADR-014: das WireGuard-Mesh 192.168.100.0/24 ist abgeschaltet; das Tablet ist pk-tablet-linux im Tailnet.
-    assert(rerank[2].kind === 'url' && rerank[2].baseUrl === 'http://100.94.91.65:8080', 'rerank[2] must be tablet 100.94.91.65:8080');
-    console.log('rerank chain OK');
-"""
 
-
-def test_bge_chain_order_t006143_t900006_embed_kette_fuehrt_desktop_vor_cluster_vor_lm_studio(run_cmd, repo_root):
-    res = run_cmd(["node", "--input-type=module", "-e", EMBED_JS], cwd=repo_root)
+def test_bge_chain_order_fuenf_getrennte_ketten_tablet_vor_cluster(run_cmd, repo_root):
+    res = run_cmd(["node", "--input-type=module", "-e", CHAINS_JS], cwd=repo_root)
     assert res.returncode == 0, res.output
-    assert "embed chain OK" in res.output
+    assert "retrieval chains OK" in res.output
 
 
-def test_bge_chain_order_t006143_tablet_rerank_endpoint_live_erreichbar_skip_wenn_offline(run_cmd, repo_root):
+def test_bge_chain_order_tablet_rerank_endpoint_live_erreichbar_skip_wenn_offline(run_cmd, repo_root):
     res = run_cmd(
         ["bash", "-c", f'source "{repo_root / HELPER}"; llm_endpoint_healthy "http://100.94.91.65:8080/health" 5'],
         cwd=repo_root,
@@ -50,9 +60,3 @@ def test_bge_chain_order_t006143_tablet_rerank_endpoint_live_erreichbar_skip_wen
         code = res.stdout.strip() or "000"
         pytest.skip(f"PK-Tablet nicht erreichbar (HTTP {code}) — kein Aussagewert")
     assert res.stdout.strip() == "200"
-
-
-def test_bge_chain_order_t006143_t900006_rerank_kette_fuehrt_desktop_vor_cluster_vor_tablet(run_cmd, repo_root):
-    res = run_cmd(["node", "--input-type=module", "-e", RERANK_JS], cwd=repo_root)
-    assert res.returncode == 0, res.output
-    assert "rerank chain OK" in res.output

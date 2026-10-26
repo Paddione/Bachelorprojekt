@@ -116,6 +116,42 @@ def test_update_konflikt_wird_gemeldet_exit_1_und_von_check_als_befund_erkannt(v
     assert "unresolved-conflict: .opencode/skills/zq-demo/SKILL.md" in r.output
 
 
+
+def test_update_konflikt_haelt_den_lock_auf_dem_alten_stand(vs):
+    vs.upstream_release("s/^zeile-e$/zeile-e UPSTREAM-ANDERS/", "v1.1.0")
+    r = vs.py("update", "--root", str(vs.root), "--report", str(vs.t / "r.json"))
+    assert r.returncode == 1
+    entry = vs.lock()["skills"]["zq-demo"]
+    assert f"{entry['version']} {entry['ref']}" == f"v1.0.0 {vs.base_sha}"
+
+
+def _move_dest_outside_root(vs):
+    outside = vs.t / "fremdes-repo/zq-demo"
+    outside.parent.mkdir()
+    (vs.root / ".opencode/skills/zq-demo").rename(outside)
+    (vs.root / ".opencode/skills/zq-demo").symlink_to(outside)
+    return outside
+
+
+def test_update_schreibt_nicht_in_ziele_ausserhalb_des_roots(vs):
+    outside = _move_dest_outside_root(vs)
+    before = (outside / "SKILL.md").read_text(encoding="utf-8")
+    vs.upstream_release("s/^zeile-a$/zeile-a UPSTREAM-NEU/", "v1.1.0")
+    r = vs.py("update", "--root", str(vs.root), "--report", str(vs.t / "r.json"))
+    assert r.returncode == 0, r.output
+    assert (outside / "SKILL.md").read_text(encoding="utf-8") == before
+    assert vs.report()["skills"][0]["status"] == "external"
+    assert vs.lock()["skills"]["zq-demo"]["ref"] == vs.base_sha
+
+
+def test_update_allow_external_schreibt_bewusst_ausserhalb_des_roots(vs):
+    outside = _move_dest_outside_root(vs)
+    vs.upstream_release("s/^zeile-a$/zeile-a UPSTREAM-NEU/", "v1.1.0")
+    r = vs.py("update", "--root", str(vs.root), "--allow-external", "--report", str(vs.t / "r.json"))
+    assert r.returncode == 0, r.output
+    assert "zeile-a UPSTREAM-NEU" in (outside / "SKILL.md").read_text(encoding="utf-8")
+    assert vs.report()["skills"][0]["status"] == "updated"
+
 def test_release_tracking_hoechste_stabile_semver_gewinnt_prerelease_wird_ignoriert(vs):
     vs.upstream_release("s/^zeile-b$/zeile-b neun/", "v1.9.0")
     vs.upstream_release("s/^zeile-b neun$/zeile-b zehn/", "v1.10.0")

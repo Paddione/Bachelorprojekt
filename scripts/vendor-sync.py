@@ -22,6 +22,7 @@ Optionen
   --only ID       nur diesen Eintrag (mehrfach erlaubt)
   --report FILE   Maschinenlesbarer JSON-Report (update/status)
   --no-network    check: nur lokale Prüfungen (keine Plugin-Referenzauflösung)
+  --allow-external  update: auch Vendor-Ziele außerhalb von --root schreiben (Default: überspringen)
 
 Exit-Codes: 0 sauber, 1 Befund/Konflikt, 2 Nutzungs- oder Umgebungsfehler.
 Cache der Upstream-Klone: ${VENDOR_SYNC_CACHE:-${XDG_CACHE_HOME:-~/.cache}/vendor-sync}
@@ -381,9 +382,21 @@ def cmd_update(root, args, dry):
             report["skills"].append({"id": sid, "status": "available", "from": entry.get("version") or
                                      (entry.get("ref") or "")[:12], "to": version or sha[:12]})
             continue
+        span = {"from": entry.get("version") or (entry.get("ref") or "")[:12], "to": version or sha[:12]}
+        dest = os.path.realpath(os.path.join(root, entry["dest"]))
+        if not args.allow_external and os.path.commonpath([dest, os.path.realpath(root)]) != os.path.realpath(root):
+            # Ein Ziel außerhalb des Repos (z. B. Skill-Link ins agentic-resources-Repo)
+            # landete sonst uncommittet in fremdem Checkout und fehlte im PR.
+            report["skills"].append(dict(span, id=sid, status="external",
+                                         detail="Ziel %s liegt außerhalb des Repos — nicht geschrieben, "
+                                                "Lock unverändert (--allow-external)" % dest))
+            continue
         res = merge_skill(root, sid, entry, sha)
-        res.update({"from": entry.get("version") or (entry.get("ref") or "")[:12], "to": version or sha[:12]})
-        if res["status"] != "upstream-removed":
+        res.update(span)
+        # Nur ein konfliktfreier Merge darf den Lock anheben; sonst behauptet der Lock
+        # einen Stand, den die Kopie nicht hat. Nach dem Auflösen hebt ein erneutes
+        # `update --only <id>` ihn an.
+        if res["status"] == "updated":
             entry["ref"], entry["version"] = sha, version
         report["skills"].append(res)
 
@@ -544,6 +557,7 @@ def main():
     ap.add_argument("--only", action="append")
     ap.add_argument("--report")
     ap.add_argument("--no-network", action="store_true")
+    ap.add_argument("--allow-external", action="store_true")
     args = ap.parse_args()
     root = os.path.abspath(args.root)
     if args.command == "check":

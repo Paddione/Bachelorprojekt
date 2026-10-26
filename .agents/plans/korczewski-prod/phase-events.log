@@ -1,0 +1,15 @@
+2026-10-26T10:36Z plan-created slug=korczewski-prod branch=feature/korczewski-prod base=main@bc0772bf5
+2026-10-26T10:28Z vda-frontmatter ok (design.md)
+2026-10-26T09:58:36Z plan-lint PASS (0 hard, 1 warn: G2 task corridor, advisory)
+plan done 2026-10-26T09:58:36Z plan-gestagt
+implement entered 2026-10-26T10:05:24Z partial-kette-gestartet
+p1 done 2026-10-26T10:30:51Z partial-1-von-8-committed d64d190cc
+p2 done 2026-10-26T10:39:02Z flux-insel-und-tenant-rbac
+p3 done 2026-10-26T10:42:13Z cluster-bootstrap-und-platform
+p4 done 2026-10-26T10:47:21Z website-overlay
+p8 done 2026-10-26T10:48:52Z auth-overlay
+p5 done 2026-10-26T10:57:14Z render-und-artefakt-pipeline
+p6 done 2026-10-26T11:00:27Z adr-017
+p7 done 2026-10-26T11:04:02Z tests-und-guards
+verify entered 2026-10-26T12:30Z gates-starten
+verify done 2026-10-26T12:41Z freshness-check-workspace-validate-inventory-gruen-test-changed-mit-5-vorbestehenden-umwelt-rots

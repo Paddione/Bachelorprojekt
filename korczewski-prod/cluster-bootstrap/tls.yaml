@@ -1,0 +1,38 @@
+# Wildcard-TLS fuer korczewski.de als Traefik-Default (design D6).
+#
+# Dieser TLSStore ersetzt tls-sync-CronJob und reflector aus dem fleet-Overlay
+# (prod-fleet/korczewski-auth/patch-tls-reflect.yaml): es gibt keine
+# Secret-Kopie pro Namespace und damit auch keine ClusterRole, die clusterweit
+# `secrets` liest. Traefik bedient stattdessen jedes IngressRoute-Zertifikat aus
+# dem Default-Zertifikat dieses Stores.
+#
+# Die Domain steht hier literal, nicht als ${PROD_DOMAIN} wie im
+# devmesh-Overlay: dieses Overlay traegt genau eine Brand, und der Renderer (p5)
+# darf keine Platzhalter offen lassen. Damit das nicht driftet, muss PROD_DOMAIN
+# in environments/korczewski-prod.yaml (p1) ebenfalls korczewski.de sein.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: korczewski-prod-wildcard-tls
+  # kube-system explizit: ein Namespace-Transformer in der Flux-Kustomization
+  # wuerde den Wert auf den Ziel-Namespace umschreiben und das Default-Zertifikat
+  # verlieren. Deshalb traegt die kustomization.yaml dieses Pfads kein
+  # namespace:-Feld.
+  namespace: kube-system
+spec:
+  secretName: korczewski-prod-wildcard-tls
+  issuerRef:
+    name: letsencrypt-korczewski-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - korczewski.de
+    - "*.korczewski.de"
+---
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: kube-system
+spec:
+  defaultCertificate:
+    secretName: korczewski-prod-wildcard-tls

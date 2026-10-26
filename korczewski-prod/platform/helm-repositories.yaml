@@ -1,0 +1,31 @@
+# HelmRepositories fuer cert-manager und den lego-webhook.
+#
+# Ablage in flux-system, nicht in cert-manager: die HelmReleases der Tasks 6 und
+# 7 referenzieren sie cross-namespace per sourceRef. Deshalb braucht der
+# Platform-ServiceAccount laut design §3 zusaetzlich Leserechte in flux-system
+# (flux/clusters/korczewski-prod/tenant-rbac.yaml, p2).
+#
+# Kein Namespace cert-manager-Objekt hier: der platform-Pfad hat laut design
+# D1/D2 keine cluster-scoped Rechte. Den Namespace legt der Bootstrap-Commit
+# (tenant-rbac.yaml, p2) an.
+#
+# Namen und Quellen sind aus dev-local/platform/helm-repositories.yaml
+# uebernommen, nichts neu erfunden. lego.dns-solver ist die Solver-Gruppe, die
+# der ClusterIssuer anspricht — kein Chart- und kein Repository-Name.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: jetstack
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://charts.jetstack.io
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: cert-manager-lego-webhook
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://yxwuxuanl.github.io/cert-manager-lego-webhook/

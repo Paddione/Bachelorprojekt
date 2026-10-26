@@ -31,7 +31,9 @@ def test_massage_devmesh_runtime_configuration(repo_root):
     assert "'massage'" in docs["ConfigMap", "massage-brand-seed"]["data"]["seed.sql"]
     seed = docs["Job", "pocket-id-client-seed"]["spec"]["template"]["spec"]["containers"][0]
     assert next(e["value"] for e in seed["env"] if e["name"] == "WEBSITE_EXTRA_CALLBACK") == (
-        "https://massage.devmesh.korczewski.de/api/auth/callback"
+        "https://massage.devmesh.korczewski.de/api/auth/callback,"
+        "https://web.korczewski.de/api/auth/callback,"
+        "https://korczewski.de/api/auth/callback"
     )
     assert "web.${SUFFIX}/api/auth/callback" in seed["command"][-1]
     assert "${WEBSITE_EXTRA_CALLBACK}" in seed["command"][-1]

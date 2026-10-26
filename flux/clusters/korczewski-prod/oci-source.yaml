@@ -1,0 +1,31 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: korczewski-prod-manifests
+  namespace: flux-system
+spec:
+  interval: 5m
+  url: oci://ghcr.io/paddione/korczewski-prod-manifests
+  ref:
+    # Immutable Semver-Stream wie devmesh/fleet: der Workflow taggt zusaetzlich
+    # v0.0.<RUN_NUMBER> monoton (render-korczewski-prod-artifact.yml).
+    semver: "v0.*"
+  # Kein secretRef, bewusst: das Artefakt ist oeffentlich (Proposal), und ein
+  # frisch gebootstrappter Cluster hat kein ghcr-auth. devmesh bezieht seine
+  # Credentials aus flux/clusters/devmesh/bootstrap/ghcr-auth-sealedsecret.yaml,
+  # das mit dem alten Cluster-Key versiegelt ist und hier garantiert nicht
+  # entsiegelt. Ohne secretRef braucht der Pull keine Credentials — das ist die
+  # Design-Entscheidung "oeffentlich, aber identitaetsgebunden" (D8).
+  verify:
+    # provider ist Pflichtfeld der CRD; Enum ist cosign|notation.
+    provider: cosign
+    # Identitaetsanker statt Trust-Root: signaturberechtigt ist genau ein
+    # Workflow auf main. Ein Fremd-Signer (anderer Workflow, anderer Ref,
+    # Fork) laesst spec.verify fehlschlagen; das Artefakt wird verworfen und
+    # die Quelle bleibt source=False — es wird nichts appliziert.
+    matchOIDCIdentity:
+      - issuer: https://token.actions.githubusercontent.com
+        # Verankert (^...$): ein unverankerter Ausdruck wuerde jeden Workflow
+        # dieses Repositories akzeptieren, also auch einen PR-Workflow auf
+        # refs/pull/.../merge.
+        subject: ^https://github\.com/Paddione/Bachelorprojekt/\.github/workflows/render-korczewski-prod-artifact\.yml@refs/heads/main$

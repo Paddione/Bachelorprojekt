@@ -632,6 +632,47 @@ env_vars:
     validate: "^[a-z0-9.-]*$"
     description: "Public host of the devmesh Langfuse (T900691). fleet terminates TLS with the prod wildcard and proxies over Tailscale to the devmesh Traefik web entrypoint."
 
+  # opencode-devmesh-public (D4/D7): public hosts for the opencode web UI and
+  # the FritzBox SSO route. Declared here so env-resolve.sh exports them and
+  # render-stack.sh envsubst expands ${...} at deploy time.
+  - name: OPENCODE_PUBLIC_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Public host of the opencode web UI on devmesh (apex custom domain, e.g. opencode.korczewski.de), gated by Pocket ID SSO."
+
+  - name: FRITZ_BOX_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Public host of the FritzBox SSO route (CNAME to the opencode record so it follows DynDNS, D7)."
+
+  - name: FRITZ_BOX_URL
+    required: false
+    default_dev: ""
+    validate: "^https://[a-z0-9.:-]+$"
+    description: "Upstream URL of the FritzBox UI (box LAN IP + admin port, scheme https, e.g. https://192.168.178.1:4433). Box serves a self-signed cert; upstream verify is skipped (D7)."
+
+  # korczewski-prod on devmesh: public website + auth hosts. Declared here so
+  # env-resolve.sh exports them and render-stack.sh envsubst expands ${...}.
+  - name: KORCZEWSKI_PROD_WEB_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Public host of the korczewski.de website on devmesh (web.korczewski.de)."
+
+  - name: KORCZEWSKI_PROD_APEX_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Apex host of the korczewski.de website on devmesh (korczewski.de, serves the same website backend)."
+
+  - name: KORCZEWSKI_PROD_AUTH_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Public host of Pocket ID on devmesh for the korczewski.de login roundtrip (auth.korczewski.de)."
+
   - name: DEVMESH_PROFILE
     required: false
     default_dev: "core"
@@ -1155,6 +1196,18 @@ secrets:
     generate: true
     length: 40
     description: "OIDC client secret for the `terminal-sidekick` Pocket ID client (terminal oauth2-proxy)."
+
+  - name: POCKET_ID_OPENCODE_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `opencode` Pocket ID client (oauth2-proxy-opencode, opencode-devmesh-public D6)."
+
+  - name: POCKET_ID_FRITZBOX_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `fritz` Pocket ID client (oauth2-proxy-fritzbox, opencode-devmesh-public D7)."
 
   - name: SESSIONS_CRON_TOKEN
     required: false

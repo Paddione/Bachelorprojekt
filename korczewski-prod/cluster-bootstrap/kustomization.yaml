@@ -1,0 +1,16 @@
+# Bootstrap-Pfad: die einzigen cluster-scoped Objekte der Lieferkette.
+#
+# Kein namespace:-Feld, und das ist Absicht: ClusterIssuer, ClusterRole und
+# ClusterRoleBinding sind cluster-scoped und duerfen keinen Namespace-Transformer
+# bekommen; Certificate und TLSStore tragen namespace: kube-system explizit, ein
+# Transformer wuerde kube-system auf den Ziel-Namespace der Flux-Kustomization
+# umschreiben und damit das Default-Zertifikat verlieren.
+#
+# Reihenfolge = Abhaengigkeit: Issuer vor Certificate, TLSStore danach.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - cluster-issuer.yaml
+  - tls.yaml
+  - rbac.yaml

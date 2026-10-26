@@ -1,0 +1,37 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: korczewski-prod-apps
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 10m
+  dependsOn:
+    - name: korczewski-prod-secrets
+  sourceRef:
+    kind: OCIRepository
+    name: korczewski-prod-manifests
+  serviceAccountName: korczewski-prod-tenant
+  path: ./apps
+  prune: true
+  # wait: true OHNE healthChecks:
+  # Die CRD sagt zu spec.wait "When enabled, the HealthChecks are ignored."
+  # Ein healthChecks-Eintrag auf pocket-id-db-init waere damit wirkungslos, und
+  # wait: false wuerde die Deployments gar nicht gaten. Also wait: true plus
+  # Job-Semantik ueber healthCheckExprs.
+  #
+  # Die CRD verlangt je Eintrag nur apiVersion und current — name/namespace
+  # sind nicht vorgesehen, der Ausdruck gilt fuer JEDE batch/v1 Job im
+  # Inventar. In ./apps sind das genau pocket-id-db-init (k3d/pocket-id.yaml)
+  # und pocket-id-client-seed (k3d/pocket-id-client-seed.yaml). Beide tragen
+  # kein ttlSecondsAfterFinished, ein abgeschlossener Job bleibt also Complete
+  # und der Pfad flippt nicht zurueck. Ein spaeter hinzukommender dritter Job
+  # faellt automatisch unter dasselbe Gate.
+  wait: true
+  healthCheckExprs:
+    - apiVersion: batch/v1
+      kind: Job
+      current: status.conditions.filter(e, e.type == 'Complete').all(e, e.status == 'True')
+      failed: status.conditions.filter(e, e.type == 'Failed').all(e, e.status == 'True')
+      inProgress: status.conditions.filter(e, e.type == 'Complete').all(e, e.status == 'False')

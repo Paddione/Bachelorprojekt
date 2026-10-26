@@ -3318,6 +3318,12 @@
     "kind": "pytest"
   },
   {
+    "id": "devmesh/opencode_public",
+    "file": "tests/py/spec/devmesh/test_opencode_public.py",
+    "category": "devmesh",
+    "kind": "pytest"
+  },
+  {
     "id": "divergence-guard",
     "file": "tests/py/spec/remaining_domain_specs/test_divergence_guard.py",
     "category": "divergence-guard",
@@ -3849,6 +3855,18 @@
     "id": "k8-headed-tests/headed-verify-not-in-ci-path",
     "file": "tests/py/spec/remaining_domain_specs/k8-headed-tests/test_headed_verify_not_in_ci_path.py",
     "category": "k8-headed-tests",
+    "kind": "pytest"
+  },
+  {
+    "id": "korczewski-prod/korczewski_prod_flux",
+    "file": "tests/py/spec/korczewski-prod/test_korczewski_prod_flux.py",
+    "category": "korczewski-prod",
+    "kind": "pytest"
+  },
+  {
+    "id": "korczewski-prod/render_guards",
+    "file": "tests/py/spec/korczewski-prod/test_render_guards.py",
+    "category": "korczewski-prod",
     "kind": "pytest"
   },
   {

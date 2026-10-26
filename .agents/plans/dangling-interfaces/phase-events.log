@@ -1,1 +1,5 @@
 plan done 2026-10-26T19:26:49Z plan-gestagt
+implement entered 2026-10-26T20:03:32Z subagent-gestartet
+implement done 2026-10-26T20:03:32Z implementierung-fertig-pr6951
+verify entered 2026-10-26T20:03:32Z tests-changed-freshness-ok
+verify done 2026-10-26T20:04:14Z tests-gruen-freshness-ok-vit9-fresh0-any1

@@ -89,6 +89,8 @@ Vorbedingung statt zur stillen Annahme.
 | `flux/clusters/korczewski-prod/bootstrap/README.md` | neu | n/a (MD, S1-ungated) |
 | `environments/korczewski-prod.yaml` | neu | n/a (YAML, S1-ungated) |
 | `environments/sealed-secrets/korczewski-prod.yaml` | neu | n/a (YAML, S1-ungated) |
+| `environments/certs/korczewski-prod.pem` | neu | n/a (PEM, S1-ungated) — öffentliches Sealing-Zertifikat, D5-Abweichung |
+| `environments/.secrets/sealed-secrets-key.korczewski-prod.yaml` | neu | n/a (YAML, git-crypt) — privates Keypair-Backup, Importpflicht im Bootstrap |
 | `korczewski-prod/cluster-bootstrap/kustomization.yaml` | neu | n/a (YAML, S1-ungated) |
 | `korczewski-prod/cluster-bootstrap/cluster-issuer.yaml` | neu | n/a (YAML, S1-ungated) |
 | `korczewski-prod/cluster-bootstrap/tls.yaml` | neu | n/a (YAML, S1-ungated) |
@@ -121,7 +123,7 @@ baut. `scripts/korczewski-prod/render-stack.sh` plus der Workflow sind die Liefe
 
 | id | file | role | target_files | depends_on |
 |----|------|------|--------------|------------|
-| p1 | tasks.d/p1-env-secrets.md | impl | `environments/korczewski-prod.yaml`, `environments/sealed-secrets/korczewski-prod.yaml` |  |
+| p1 | tasks.d/p1-env-secrets.md | impl | `environments/korczewski-prod.yaml`, `environments/sealed-secrets/korczewski-prod.yaml`, `environments/certs/korczewski-prod.pem`, `environments/.secrets/sealed-secrets-key.korczewski-prod.yaml` |  |
 | p2 | tasks.d/p2-flux-cluster.md | impl | `flux/clusters/korczewski-prod/flux-instance.yaml`, `flux/clusters/korczewski-prod/oci-source.yaml`, `flux/clusters/korczewski-prod/ks-bootstrap.yaml`, `flux/clusters/korczewski-prod/ks-platform.yaml`, `flux/clusters/korczewski-prod/ks-secrets.yaml`, `flux/clusters/korczewski-prod/ks-apps.yaml`, `flux/clusters/korczewski-prod/tenant-rbac.yaml`, `flux/clusters/korczewski-prod/bootstrap/README.md` | p1 |
 | p3 | tasks.d/p3-overlay-bootstrap-platform.md | impl | `korczewski-prod/cluster-bootstrap/kustomization.yaml`, `korczewski-prod/cluster-bootstrap/cluster-issuer.yaml`, `korczewski-prod/cluster-bootstrap/tls.yaml`, `korczewski-prod/cluster-bootstrap/rbac.yaml`, `korczewski-prod/platform/kustomization.yaml`, `korczewski-prod/platform/helm-repositories.yaml`, `korczewski-prod/platform/cert-manager-helmrelease.yaml`, `korczewski-prod/platform/lego-webhook-helmrelease.yaml` | p1 |
 | p4 | tasks.d/p4-overlay-website.md | impl | `korczewski-prod/website/kustomization.yaml`, `korczewski-prod/website/website-patch.yaml`, `korczewski-prod/website/ingress.yaml` | p1, p3 |

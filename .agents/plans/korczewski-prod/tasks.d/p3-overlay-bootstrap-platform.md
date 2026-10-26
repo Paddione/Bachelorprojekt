@@ -201,4 +201,4 @@ Satz der acht in p3 verantworteten Dateien.
 
 Verify: `[ "$(kustomize build korczewski-prod/platform --load-restrictor=LoadRestrictionsNone | grep -c '^kind: HelmRelease')" -eq 2 ] && [ "$(kustomize build korczewski-prod/platform --load-restrictor=LoadRestrictionsNone | grep -c '^kind: HelmRepository')" -eq 2 ] && [ "$(kustomize build korczewski-prod/platform --load-restrictor=LoadRestrictionsNone | grep -c '^kind: Namespace')" -eq 0 ]`
 
-Commit: `feat(korczewski-prod): Bootstrap-Issuer, Wildcard-TLS und Platform-HelmReleases`
+Commit: `feat(infra): Bootstrap-Issuer, Wildcard-TLS und Platform-HelmReleases`

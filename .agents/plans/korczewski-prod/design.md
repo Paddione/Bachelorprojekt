@@ -206,6 +206,37 @@ Weil C3 genau darin bestand, dass SealedSecrets für nicht existierende Namespac
 werden, pinnt ein Test die Gleichheit von „Namespaces, die das Artefakt anlegt" und „Namespaces, für
 die SealedSecrets im Artefakt liegen".
 
+#### Abweichung von D5 (Nutzer-Entscheid bei der Ausführung, 2026-10-26)
+
+D5 setzt voraus, dass beim Versiegeln ein laufender Controller im Ziel-Cluster antwortet
+(`kubeseal --fetch-cert`). Bei der Ausführung existiert dieser Cluster noch nicht — der Bootstrap
+ist laut Q2 ein separates Runbook. Ohne Anpassung wäre p1 nicht lieferbar gewesen.
+
+Stattdessen wird das Keypair **vor** dem Cluster erzeugt:
+
+- `environments/certs/korczewski-prod.pem` — öffentliches Sealing-Zertifikat, RSA 4096, leeres
+  Subject/Issuer, 10 Jahre Laufzeit (Profil wie `environments/certs/fleet-korczewski.pem`),
+  committet. `scripts/env-seal.sh --env korczewski-prod --reuse-cert` versiegelt dagegen offline.
+- `environments/.secrets/sealed-secrets-key.korczewski-prod.yaml` — privater Schlüssel als
+  `kind: List` mit einem `kubernetes.io/tls`-Secret (`sealed-secrets/sealed-secrets-key<rand>`,
+  Label `sealedsecrets.bitnami.com/sealed-secrets-key: active`), git-crypt-verschlüsselt,
+  Muster `environments/.secrets/sealed-secrets-key.fleet.yaml`.
+
+Verbindlich daraus folgend:
+
+1. Der Bootstrap importiert dieses Secret **vor** dem ersten Apply der vier SealedSecrets
+   (`flux/clusters/korczewski-prod/bootstrap/README.md`, Schritt „Sealing-Key"). Ohne Import
+   erzeugt der Controller ein eigenes Keypair; die vier Dokumente sind dann unentschlüsselbar und
+   müssen neu versiegelt werden.
+2. Nach dem Import muss `kubeseal --fetch-cert` byte-gleich zu `environments/certs/korczewski-prod.pem`
+   sein. Diese Prüfung ist Teil des Bootstrap-Runbooks und zugleich die Drift-Prüfung, die
+   `env-seal.sh` ohne `--reuse-cert` automatisch fährt.
+3. `task env:fetch-cert ENV=korczewski-prod` darf erst nach dem Import laufen; vorher würde es das
+   committete Zertifikat mit einem fremden Keypair überschreiben und still umschlüsseln.
+
+Die Acceptance-Kriterien aus D5 („neu versiegelt, kein Key-Sharing dev↔prod") bleiben unverändert
+erfüllt; geändert ist nur der Zeitpunkt der Key-Erzeugung.
+
 Die DB selbst (`postgres`/pgvector, Datenbank `website_massage`) ist Vorbedingung des Ziel-Clusters
 und nicht Teil des Artefakts; sie wird im Bootstrap-Runbook als `shared-db`-Äquivalent beschrieben.
 Ein eigener `pocket-id-db-init`-Job bleibt im Auth-Pfad, weil Pocket ID seine Rolle zwingend selbst

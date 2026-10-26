@@ -77,11 +77,17 @@ Beschreibung und genau ein Begründungssatz. Inhalt aus `design.md` D1–D8:
    unmittelbarer Drift gegen die 2026-10-21 festgeschriebene SSOT.
 5. **D5 — Neuer SealedSecrets-Key, vier SealedSecrets:** `cert-manager/ipv64-api-key`,
    `workspace-korczewski/workspace-secrets`, `website-korczewski/website-secrets` und
-   `website-korczewski/website-content-token`, versiegelt mit
-   `scripts/env-seal.sh --env korczewski-prod` gegen den Controller des Ziel-Clusters.
+   `website-korczewski/website-content-token`. Das Keypair entsteht **vor** dem Cluster
+   (Abweichung zu D5, design §6): öffentliches Zertifikat
+   `environments/certs/korczewski-prod.pem`, privater Schlüssel git-crypt-verschlüsselt in
+   `environments/.secrets/sealed-secrets-key.korczewski-prod.yaml`, versiegelt offline mit
+   `scripts/env-seal.sh --env korczewski-prod --reuse-cert`. Der Bootstrap importiert das
+   Keypair vor dem ersten SealedSecret und prüft, dass `kubeseal --fetch-cert` byte-gleich zum
+   committeten Zertifikat ist; `task env:fetch-cert` davor würde still umschlüsseln.
    Begründung: geteilter Ciphertext zwischen devmesh und prod würde einen Schlüssel über
    zwei Brands spannen, und die Namespace-Parität ist genau der Punkt, an dem C3 still
-   gescheitert ist.
+   gescheitert ist. Die Vorab-Erzeugung ist nötig, weil der Ziel-Cluster bei der Ausführung
+   noch nicht existiert (Q2) und D5 sonst nicht lieferbar wäre.
 6. **D6 — Wildcard als Traefik-Default-TLSStore:** `Certificate
    korczewski-prod-wildcard-tls` und `TLSStore default` in `kube-system` (Muster
    `dev-local/cluster/tls.yaml`) ersetzen `tls-sync`-CronJob und `reflector` aus dem
@@ -204,4 +210,4 @@ Verify: `for k in "## Abweichungen zu ADR-016" "## Abgrenzung zu T002479 und zur
 
 Verify: `for k in "## Kontext" "## Entscheidungen" "## Abweichungen zu ADR-016" "## Folgen" "## Nicht entschieden"; do grep -qF "$k" docs/adr/ADR-017-korczewski-prod-flux.md || exit 1; done; [ "$(grep -cE '^### \([a-d]\) ' docs/adr/ADR-017-korczewski-prod-flux.md)" -eq 4 ] && grep -qF 'matchOIDCIdentity' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'distribution.version' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'cluster-admin' docs/adr/ADR-017-korczewski-prod-flux.md && grep -qF 'TLSStore' docs/adr/ADR-017-korczewski-prod-flux.md && echo ok`
 
-Commit: `docs(adr): ADR-017 korczewski-prod Lieferkette`
+Commit: `docs(infra): ADR-017 korczewski-prod Lieferkette`

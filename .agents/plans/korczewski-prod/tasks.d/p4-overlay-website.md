@@ -341,4 +341,4 @@ Zwei Vorbedingungen des Ziel-Clusters, die aus diesen Manifesten folgen und im B
 
 Verify: `W=$(kustomize build korczewski-prod/website --load-restrictor=LoadRestrictionsNone) && [ "$(grep -c '^kind: Ingress$' <<<"$W")" -eq 3 ] && [ "$(grep -cE '^kind: (IngressRoute|ClusterRole)' <<<"$W")" -eq 0 ] && [ "$(grep -c 'secretName' <<<"$W")" -eq 0 ] && [ "$(grep -c ':latest' <<<"$W")" -eq 0 ] && ! grep -rqE '^[[:space:]]*-[[:space:]]+\.\./\.\./prod/' korczewski-prod/website/kustomization.yaml && [ "$(grep -c '^kind: Namespace' <<<"$W")" -eq 1 ] && [ "$(yq -N 'select(.kind == "Namespace") | .metadata.name' <<<"$W")" = "website-korczewski" ]`
 
-Commit: `feat(korczewski-prod): Website-Overlay für den Prod-Cluster anlegen`
+Commit: `feat(infra): Website-Overlay für den Prod-Cluster anlegen`

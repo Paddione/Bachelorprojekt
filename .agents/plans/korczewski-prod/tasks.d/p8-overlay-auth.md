@@ -212,4 +212,4 @@ ohne den Redirect ist `http://auth.korczewski.de` nicht erreichbar statt umgelei
 
 Verify: `A=$(kustomize build korczewski-prod/auth --load-restrictor=LoadRestrictionsNone) && [ "$(grep -c 'secretName' <<<"$A")" -eq 0 ] && [ "$(grep -c ':latest' <<<"$A")" -eq 0 ] && ! grep -rqE '^[[:space:]]*-[[:space:]]+\.\./\.\./prod/' korczewski-prod/auth/kustomization.yaml && [ "$(grep -c '^kind: Namespace' <<<"$A")" -eq 1 ] && [ "$(yq -N 'select(.kind == "Namespace") | .metadata.name' <<<"$A")" = "workspace-korczewski" ] && [ "$(yq -N 'select(.kind | IN("ClusterRole","ClusterRoleBinding","ClusterIssuer","TLSStore","CustomResourceDefinition")) | .kind' <<<"$A" | wc -l)" -eq 0 ] && [ "$(grep -c '^kind: ' <<<"$A")" -ge 8 ]`
 
-Commit: `feat(korczewski-prod): Auth-Overlay für den Prod-Cluster anlegen`
+Commit: `feat(infra): Auth-Overlay für den Prod-Cluster anlegen`

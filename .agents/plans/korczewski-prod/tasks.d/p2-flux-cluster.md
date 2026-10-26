@@ -325,10 +325,19 @@ Prüfbefehl. Alle Befehle laufen gegen `--context korczewski-prod`; die Sollwert
    `kubectl --context korczewski-prod -n cert-manager get crd clusterissuers.cert-manager.io` und
    `kubectl --context korczewski-prod -n cert-manager get svc lego-webhook` plus
    `kubectl --context korczewski-prod -n cert-manager get deploy`.
-5. **sealed-secrets-Controller und Schlüsselbezug**: `kubectl --context korczewski-prod -n sealed-secrets get deploy sealed-secrets`
-   und `kubectl --context korczewski-prod -n sealed-secrets get svc sealed-secrets`; danach
-   `task env:fetch-cert ENV=korczewski-prod` und `task env:seal ENV=korczewski-prod` gegen **diesen**
-   Controller (der Ciphertext aus devmesh ist wertlos).
+5. **sealed-secrets-Controller und Schlüsselbezug** (Reihenfolge ist bindend, design §6
+   „Abweichung von D5"): zuerst `kubectl --context korczewski-prod -n sealed-secrets get deploy sealed-secrets`
+   und `kubectl --context korczewski-prod -n sealed-secrets get svc sealed-secrets`. Der Controller
+   erzeugt ohne Import ein eigenes Keypair, darum **vor** dem ersten SealedSecret das vorab erzeugte
+   Keypair einspielen: `git-crypt unlock` im Repo, dann
+   `kubectl --context korczewski-prod apply -f environments/.secrets/sealed-secrets-key.korczewski-prod.yaml`
+   und `kubectl --context korczewski-prod -n sealed-secrets rollout restart deploy sealed-secrets`.
+   Anschließend muss `kubeseal --controller-name=sealed-secrets --controller-namespace=sealed-secrets --context korczewski-prod --fetch-cert`
+   byte-gleich zu `environments/certs/korczewski-prod.pem` sein
+   (`diff <(kubeseal … --fetch-cert) environments/certs/korczewski-prod.pem`). Erst danach darf
+   `task env:fetch-cert ENV=korczewski-prod` laufen — vor dem Import überschreibt es das committete
+   Zertifikat mit einem fremden Keypair und schlüsselt die vier SealedSecrets still um; ein
+   erneutes `task env:seal ENV=korczewski-prod` ist nur nach bewusster Rotation nötig.
 6. **postgres mit Datenbank und Rolle `website_massage`**, erreichbar unter
    `shared-db.workspace-korczewski.svc.cluster.local:5432`:
    `kubectl --context korczewski-prod -n workspace-korczewski get svc shared-db` und ein Wegwerf-Probe
@@ -361,4 +370,4 @@ grep -c 'flux --context korczewski-prod' flux/clusters/korczewski-prod/bootstrap
 grep -c 'shared-db.workspace-korczewski.svc.cluster.local:5432' flux/clusters/korczewski-prod/bootstrap/README.md   # Erwartung: 1
 ```
 
-Commit: `feat(flux): add korczewski-prod flux island and tenant rbac`
+Commit: `feat(infra): add korczewski-prod flux island and tenant rbac`

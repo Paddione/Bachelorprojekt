@@ -32,9 +32,25 @@
       "s1_budget": null
     },
     {
+      "path": "environments/.secrets/sealed-secrets-key.korczewski-prod.yaml",
+      "language": "config",
+      "loc": 21,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/certs/korczewski-prod.pem",
+      "language": "text",
+      "loc": 29,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "environments/korczewski-prod.yaml",
       "language": "config",
-      "loc": 0,
+      "loc": 155,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -42,7 +58,7 @@
     {
       "path": "environments/sealed-secrets/korczewski-prod.yaml",
       "language": "config",
-      "loc": 0,
+      "loc": 155,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null

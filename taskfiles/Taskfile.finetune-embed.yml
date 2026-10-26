@@ -15,6 +15,16 @@ tasks:
     cmds:
       - python3 scripts/finetune/measure_embedding.py --corpus "{{.CORPUS}}" --out "{{.OUT}}"
 
+  eval:
+    desc: "Triplet eval (base vs tuned). EVAL_CORPUS=<jsonl> MODEL=<hf-id-or-dir> OUT=<report.json> [CHECK_ONLY=1]"
+    cmds:
+      - python3 scripts/finetune/eval_embedding.py --eval-corpus "{{.EVAL_CORPUS}}" {{if .MODEL}}--model "{{.MODEL}}" --out "{{.OUT}}"{{else}}--check-only{{end}}
+
+  suggest:
+    desc: "Retrain-Werte aus Reports. BASE_REPORT=<json> TUNED_REPORT=<json> [EPOCHS=3 LR=2e-5]"
+    cmds:
+      - python3 scripts/finetune/suggest_embedding_retrain.py --base-report "{{.BASE_REPORT}}" --tuned-report "{{.TUNED_REPORT}}" {{if .EPOCHS}}--epochs "{{.EPOCHS}}"{{end}} {{if .LR}}--lr "{{.LR}}"{{end}}
+
   train:
     desc: "One-go multitask finetune. CORPUS=<jsonl> MEASURE_REPORT=<json> [EVAL_CORPUS=<jsonl> MATRYOSHKA=1 DRY_RUN=1]"
     preconditions:
@@ -24,7 +34,7 @@ tasks:
       - python3 scripts/finetune/train_embedding.py --corpus "{{.CORPUS}}" --measure-report "{{.MEASURE_REPORT}}" {{if .EVAL_CORPUS}}--eval-corpus "{{.EVAL_CORPUS}}"{{end}} {{if .MATRYOSHKA}}--matryoshka{{end}} {{if .DRY_RUN}}--dry-run{{end}}
 
   hf-jobs:train-embed:
-    desc: "Embedding-multitask auf HF Jobs. CORPUS=<jsonl> MEASURE_REPORT=<json> HUB_MODEL_ID=<user/repo> [EVAL_CORPUS=<jsonl> MATRYOSHKA=1 FLAVOR=l4x1 DRY_RUN=1]"
+    desc: "Embedding-multitask auf HF Jobs. CORPUS=<jsonl> MEASURE_REPORT=<json> HUB_MODEL_ID=<user/repo> [EVAL_CORPUS=<jsonl> MATRYOSHKA=1 FLAVOR=t4-small DRY_RUN=1]"
     preconditions:
       - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MEASURE_REPORT}}" ] && [ -n "{{.HUB_MODEL_ID}}" ]'
         msg: "CORPUS=, MEASURE_REPORT= und HUB_MODEL_ID= sind erforderlich."
@@ -39,7 +49,7 @@ tasks:
         cp -- "{{.MEASURE_REPORT}}" "$STAGE/report.json"
         {{if .EVAL_CORPUS}}cp -- "{{.EVAL_CORPUS}}" "$STAGE/eval.jsonl"{{end}}
         FLAVOR="{{.FLAVOR}}"
-        [ -n "$FLAVOR" ] || FLAVOR=l4x1
+        [ -n "$FLAVOR" ] || FLAVOR=t4-small
         set -- --corpus /data/corpus.jsonl --model "google/embeddinggemma-300m" \
           --measure-report /data/report.json --hub-model-id "{{.HUB_MODEL_ID}}" \
           --output-dir /tmp/finetune-output

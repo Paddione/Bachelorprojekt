@@ -135,6 +135,50 @@ vier SealedSecrets. Alles Weitere ist Vorbedingung und **kein**
    `website-korczewski/website-secrets`,
    `website-korczewski/website-content-token`).
 
+## Zwei weitere Vorbedingungen ohne Nummer
+
+Diese beiden Punkte stehen bewusst **nicht** in der nummerierten Liste oben: die
+Nummerierung 1–8 ist der stabile Anker der Abschlussprüfung aus Punkt 8 und wird
+hier nicht verschoben. Beide folgen aus dem Website-Overlay
+(`korczewski-prod/website/`), nicht aus den Manifesten dieses Verzeichnisses.
+
+- **HTTP-Redirect `web` → `websecure` in Traefik (statische Konfiguration).**
+  Alle Router der Website hängen nur an `websecure` — `website-prod`,
+  `website-prod-astro` und der gepatchte Apex (`korczewski-prod/website/ingress.yaml`
+  und `korczewski-prod/website/kustomization.yaml`); derselbe Redirect trägt den
+  Auth-Router. Repo-weit existiert dafür keine Konfiguration (`grep -rn
+  "redirectTo"` liefert keinen Treffer), es ist also statische
+  Traefik-Konfiguration und **kein** Manifest dieses Artefakts. Bei k3s gehört
+  sie in die `HelmChartConfig traefik` (Namespace `kube-system`):
+
+  ```yaml
+  additionalArguments:
+    - --entrypoints.web.http.redirections.entrypoint.to=websecure
+    - --entrypoints.web.http.redirections.entrypoint.scheme=https
+    - --entrypoints.web.http.redirections.entrypoint.status=301
+    - --entrypoints.web.http.redirections.entrypoint.priority=2147483647
+  ```
+
+  Prüfen:
+
+  ```bash
+  kubectl --context korczewski-prod -n kube-system get helmchartconfig traefik -o yaml
+  ```
+
+  Ohne diese Zeilen ist `http://web.korczewski.de` nicht erreichbar statt
+  umgeleitet; `https://` funktioniert unabhängig davon.
+
+- **`ghcr-pull-secret` im Namespace `website-korczewski`.** `k3d/website.yaml`
+  behält `imagePullSecrets: [{name: ghcr-pull-secret}]`. Im fleet-Overlay deckte
+  der `tls-sync`-CronJob den Namen mit ab; der entfällt hier (design D6), also
+  muss der Secret beim Bootstrap entstehen — oder das Paket ist öffentlich
+  lesbar, dann bleibt der Eintrag wirkungslos. Fehlt beides, bleibt der Pod in
+  `ImagePullBackOff`.
+
+  ```bash
+  kubectl --context korczewski-prod -n website-korczewski get secret ghcr-pull-secret
+  ```
+
 ## Was ausdrücklich nicht hier entsteht
 
 `sealed-secrets` ist bewusst kein Artefakt-Inhalt: dort liegt kein SealedSecret,

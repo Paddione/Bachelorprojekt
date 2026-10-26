@@ -1,0 +1,36 @@
+# Strategic-Merge-Patch am Deployment website der Basis
+# (prod-fleet/website-korczewski -> k3d/website.yaml). Die Basis bleibt
+# unangetastet (design D4); hier steht nur, was fuer den Prod-Cluster abweicht.
+#
+# image mit @${WEBSITE_IMAGE_DIGEST} statt :${WEBSITE_IMAGE_TAG}: die Basis
+# rendert ghcr.io/paddione/${WEBSITE_IMAGE}:${WEBSITE_IMAGE_TAG}, also `latest`
+# oder einen Build-SHA — mutabel. design D7 verlangt Digest-Pinning fuer jeden
+# Prod-Pfad; WEBSITE_IMAGE_DIGEST ist der einzige Ort, an dem der Digest steht.
+#
+# Nur drei Env-Eintraege: WEBSITE_DB_*, POCKET_ID_* und der Rest kommen bereits
+# aus k3d/website.yaml und k3d/website-seller-config.yaml. Sie hier zu
+# wiederholen wuerde bei abweichendem Env-Wert zwei Wahrheiten erzeugen.
+# WEBSITE_DB_PASSWORD und BRAND_ID setzt schon
+# prod-fleet/website-korczewski/website-patch.yaml; BRAND_ID steht hier erneut,
+# weil der Merge-Key der Liste `name` ist und der letzte Patch gewinnt.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website
+spec:
+  template:
+    spec:
+      containers:
+        - name: website
+          image: ghcr.io/paddione/website@${WEBSITE_IMAGE_DIGEST}
+          env:
+            # Der Strategic-Merge-Key ist `name`; der Wert bleibt Platzhalter
+            # und wird vom Renderer (p5) gesetzt, genau wie in der Basis.
+            - name: WEBSITE_NAMESPACE
+              value: ${WEBSITE_NAMESPACE}
+            - name: WEBSITE_HOST
+              value: ${WEBSITE_HOST}
+            # environments/korczewski.yaml faehrt fuer die Massagepraxis
+            # BRAND_ID: massage; der Prod-Slot ist dieselbe Marke.
+            - name: BRAND_ID
+              value: massage

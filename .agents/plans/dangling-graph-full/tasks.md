@@ -39,9 +39,9 @@ Skripte sind vom Runbook aus erreichbar. CQ02: keine neuen `any`-Typen.
 
 ## Tasks
 
-- [ ] **0. Rotphase zuerst:** `npx vitest run scripts/dangling-graph-full.test.ts` auf ungeänderter Basis — expected: FAIL (Audit, Belegpfad, Rename-Korrelation und Scope-Matching fehlen; Beleg: 3 failed, rest passed).
-- [ ] **1. Partial p1** (`tasks.d/p1-handles-audit.md`): HANDLES-Lücken-Audit bauen.
-- [ ] **2. Partial p2** (`tasks.d/p2-caller-paths.md`): Aufrufer-Auflösung mit Belegpfad bauen.
-- [ ] **3. Partial p3** (`tasks.d/p3-rename-runtime.md`): Rename-plus-Laufzeit-Korrelation bauen.
-- [ ] **4. Partial p4** (`tasks.d/p4-scope-tests.md`): Scope-Ausweitung plus Tests grün plus Runbook-Anker.
+- [x] **0. Rotphase zuerst:** `npx vitest run scripts/dangling-graph-full.test.ts` auf ungeänderter Basis — expected: FAIL (Audit, Belegpfad, Rename-Korrelation und Scope-Matching fehlen; Beleg: 3 failed, rest passed).
+- [x] **1. Partial p1** (`tasks.d/p1-handles-audit.md`): HANDLES-Lücken-Audit bauen.
+- [x] **2. Partial p2** (`tasks.d/p2-caller-paths.md`): Aufrufer-Auflösung mit Belegpfad bauen.
+- [x] **3. Partial p3** (`tasks.d/p3-rename-runtime.md`): Rename-plus-Laufzeit-Korrelation bauen.
+- [x] **4. Partial p4** (`tasks.d/p4-scope-tests.md`): Scope-Ausweitung plus Tests grün plus Runbook-Anker.
 - [ ] **5. Finaler Verifikations-Task.** `task test:changed`, `task freshness:regenerate`, `task freshness:check`.

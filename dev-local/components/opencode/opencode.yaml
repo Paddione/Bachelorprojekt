@@ -43,8 +43,10 @@ spec:
         - name: opencode
           image: smanx/opencode:2.1.4@sha256:ee18fd6e480edaa13f2acf8bf54e2ef5daf8210f0baa1ff9b3f49f8390fc51f5
           imagePullPolicy: IfNotPresent
+          # [Issue #6944] KEIN `serve` als Arg: der Image-Entrypoint hängt
+          # `serve` selbst an (`-> opencode serve`); ein weiteres `serve`
+          # bricht mit `Unexpected positional argument: "serve"` ab.
           args:
-            - serve
             - --hostname
             - 0.0.0.0
             - --port

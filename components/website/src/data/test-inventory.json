@@ -3324,6 +3324,12 @@
     "kind": "pytest"
   },
   {
+    "id": "devmesh/opencode_serve_args",
+    "file": "tests/py/spec/devmesh/test_opencode_serve_args.py",
+    "category": "devmesh",
+    "kind": "pytest"
+  },
+  {
     "id": "devmesh/opencode_writable_home",
     "file": "tests/py/spec/devmesh/test_opencode_writable_home.py",
     "category": "devmesh",

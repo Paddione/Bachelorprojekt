@@ -3728,7 +3728,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 925,
+      "file_count": 928,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3924,6 +3924,9 @@
         "scripts/comfy-image-mcp/server.mjs",
         "scripts/comfy-image-mcp/workflow.json",
         "scripts/context-retrieve.mjs",
+        "scripts/dangling-interfaces-report.mjs",
+        "scripts/dangling-interfaces.mjs",
+        "scripts/dangling-interfaces.test.ts",
         "scripts/db-schema-diagram.py",
         "scripts/design-assets-inventory.sh",
         "scripts/dev-admin-session.mjs",

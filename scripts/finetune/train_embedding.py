@@ -48,6 +48,7 @@ def main() -> None:
     ap.add_argument("--lr", default="2e-5")
     ap.add_argument("--matryoshka", action="store_true", help="add Matryoshka loss 768/512/256/128")
     ap.add_argument("--output-dir", default="scripts/finetune/outputs/embed")
+    ap.add_argument("--hub-model-id", default=None)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -83,6 +84,9 @@ def main() -> None:
     trainer.train()
     model.save_pretrained(args.output_dir)
     print(f"saved to {args.output_dir}")
+    if args.hub_model_id:
+        model.push_to_hub(args.hub_model_id)
+        print(f"pushed to {args.hub_model_id}")
 
 
 if __name__ == "__main__":

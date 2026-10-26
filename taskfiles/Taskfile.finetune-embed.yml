@@ -22,3 +22,32 @@ tasks:
         msg: "CORPUS= und MEASURE_REPORT= sind erforderlich."
     cmds:
       - python3 scripts/finetune/train_embedding.py --corpus "{{.CORPUS}}" --measure-report "{{.MEASURE_REPORT}}" {{if .EVAL_CORPUS}}--eval-corpus "{{.EVAL_CORPUS}}"{{end}} {{if .MATRYOSHKA}}--matryoshka{{end}} {{if .DRY_RUN}}--dry-run{{end}}
+
+  hf-jobs:train-embed:
+    desc: "Embedding-multitask auf HF Jobs. CORPUS=<jsonl> MEASURE_REPORT=<json> HUB_MODEL_ID=<user/repo> [EVAL_CORPUS=<jsonl> MATRYOSHKA=1 FLAVOR=l4x1 DRY_RUN=1]"
+    preconditions:
+      - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MEASURE_REPORT}}" ] && [ -n "{{.HUB_MODEL_ID}}" ]'
+        msg: "CORPUS=, MEASURE_REPORT= und HUB_MODEL_ID= sind erforderlich."
+      - sh: '[ -n "${HF_TOKEN:-}" ]'
+        msg: "HF_TOKEN ist nicht gesetzt."
+    cmds:
+      - |
+        STAGE=$(mktemp -d)
+        trap 'rm -rf "$STAGE"' EXIT
+        cp scripts/finetune/{train_embedding.py,measure_embedding.py} "$STAGE/"
+        cp -- "{{.CORPUS}}" "$STAGE/corpus.jsonl"
+        cp -- "{{.MEASURE_REPORT}}" "$STAGE/report.json"
+        {{if .EVAL_CORPUS}}cp -- "{{.EVAL_CORPUS}}" "$STAGE/eval.jsonl"{{end}}
+        FLAVOR="{{.FLAVOR}}"
+        [ -n "$FLAVOR" ] || FLAVOR=l4x1
+        set -- --corpus /data/corpus.jsonl --model "google/embeddinggemma-300m" \
+          --measure-report /data/report.json --hub-model-id "{{.HUB_MODEL_ID}}" \
+          --output-dir /tmp/finetune-output
+        {{if .MATRYOSHKA}}set -- "$@" --matryoshka{{end}}
+        {{if .EVAL_CORPUS}}set -- "$@" --eval-corpus /data/eval.jsonl{{end}}
+        JOB_DRY_RUN=""
+        {{if .DRY_RUN}}JOB_DRY_RUN="--dry-run"{{end}}
+        uvx --from "huggingface_hub" hf jobs uv run \
+          --flavor "$FLAVOR" --timeout 2h --detach $JOB_DRY_RUN --secrets HF_TOKEN \
+          --with sentence-transformers --with datasets \
+          "$STAGE/train_embedding.py" "$@"

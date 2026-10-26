@@ -472,7 +472,9 @@ def main():
     parser.add_argument("--project", default=None,
                         help="graph project (default: $CBM_PROJECT or %s)"
                              % DEFAULT_PROJECT)
-    parser.add_argument("--model", default="bge-m3")
+    # Model label must match the embed endpoint (local :8095 serves LFM2.5,
+    # not bge-m3); the store comparison warns on mismatch either way.
+    parser.add_argument("--model", default="lfm25-embedding-350m")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--embed-url", default=os.environ.get(
         "LLM_EMBED_URL", SYNC.DEFAULT_EMBED_URL))

@@ -56,6 +56,11 @@ def main() -> None:
                     help="auto: bfloat16 on CUDA, fp32 on CPU (bf16 CPU training is slow). "
                          "Note: EmbeddingGemma forbids float16; bf16/fp32 only.")
     ap.add_argument("--hub-model-id", default=None)
+    ap.add_argument("--init-checkpoint", default=None,
+                    help="warm start: local dir (e.g. scripts/finetune/outputs/embed-run1) or Hub id. "
+                         "Phase-3 pattern: init from previous run + 1-2 epochs + low lr on hard negatives.")
+    ap.add_argument("--compile", action="store_true",
+                    help="torch.compile the encoder (~1.5x on CPU, first step slower).")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -70,7 +75,8 @@ def main() -> None:
     from collections import Counter
     print(f"corpus={len(rows)} tasks={dict(Counter(r['task'] for r in rows))} seq={seq_len} epochs={args.epochs}")
     if args.dry_run:
-        print(f"DRY-RUN OK: model={args.model} batch={args.batch_size} lr={args.lr} matryoshka={args.matryoshka}")
+        print(f"DRY-RUN OK: model={args.model} init={args.init_checkpoint or args.model} "
+              f"batch={args.batch_size} lr={args.lr} matryoshka={args.matryoshka} compile={args.compile}")
         return
 
     # Heavy imports only on GPU host.
@@ -84,7 +90,15 @@ def main() -> None:
         dtype = "bfloat16" if torch.cuda.is_available() else "float32"
     dtype = {"bfloat16": torch.bfloat16, "float32": torch.float32,
              "fp32": torch.float32, "float16": torch.float16}[dtype]
-    model = SentenceTransformer(args.model, model_kwargs={"torch_dtype": dtype})
+    init = args.init_checkpoint or args.model
+    model = SentenceTransformer(init, model_kwargs={"torch_dtype": dtype})
+    if args.compile:
+        try:
+            model._first_module().auto_model.compile()
+            print("torch.compile enabled on encoder")
+        except Exception as e:
+            print(f"torch.compile skipped: {e}")
+    model.max_seq_length = seq_len
     ds = Dataset.from_list([{"anchor": r["anchor"], "positive": r["positive"], "negative": r["negative"]} for r in rows])
     inner = MultipleNegativesRankingLoss(model)
     loss = MatryoshkaLoss(model, inner, matryoshka_dims=[768, 512, 256, 128]) if args.matryoshka else inner

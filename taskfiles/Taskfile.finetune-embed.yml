@@ -26,12 +26,12 @@ tasks:
       - python3 scripts/finetune/suggest_embedding_retrain.py --base-report "{{.BASE_REPORT}}" --tuned-report "{{.TUNED_REPORT}}" {{if .EPOCHS}}--epochs "{{.EPOCHS}}"{{end}} {{if .LR}}--lr "{{.LR}}"{{end}}
 
   train:
-    desc: "One-go multitask finetune. CORPUS=<jsonl> MEASURE_REPORT=<json> [EVAL_CORPUS=<jsonl> MATRYOSHKA=1 DRY_RUN=1]"
+    desc: "One-go multitask finetune. CORPUS=<jsonl> MEASURE_REPORT=<json> [EVAL_CORPUS=<jsonl> MATRYOSHKA=1 DRY_RUN=1 INIT_CHECKPOINT=<dir> COMPILE=1 MAX_SEQ_LENGTH=<n>]"
     preconditions:
       - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MEASURE_REPORT}}" ]'
         msg: "CORPUS= und MEASURE_REPORT= sind erforderlich."
     cmds:
-      - python3 scripts/finetune/train_embedding.py --corpus "{{.CORPUS}}" --measure-report "{{.MEASURE_REPORT}}" {{if .EVAL_CORPUS}}--eval-corpus "{{.EVAL_CORPUS}}"{{end}} {{if .MATRYOSHKA}}--matryoshka{{end}} {{if .DRY_RUN}}--dry-run{{end}}
+      - python3 scripts/finetune/train_embedding.py --corpus "{{.CORPUS}}" --measure-report "{{.MEASURE_REPORT}}" {{if .EVAL_CORPUS}}--eval-corpus "{{.EVAL_CORPUS}}"{{end}} {{if .MATRYOSHKA}}--matryoshka{{end}} {{if .DRY_RUN}}--dry-run{{end}} {{if .INIT_CHECKPOINT}}--init-checkpoint "{{.INIT_CHECKPOINT}}"{{end}} {{if .COMPILE}}--compile{{end}} {{if .MAX_SEQ_LENGTH}}--max-seq-length "{{.MAX_SEQ_LENGTH}}"{{end}}
 
   hf-jobs:train-embed:
     desc: "Embedding-multitask auf HF Jobs. CORPUS=<jsonl> MEASURE_REPORT=<json> HUB_MODEL_ID=<user/repo> [EVAL_CORPUS=<jsonl> MATRYOSHKA=1 FLAVOR=t4-small DRY_RUN=1]"

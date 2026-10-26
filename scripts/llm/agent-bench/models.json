@@ -8,21 +8,21 @@
     "3060ti": null
   },
   "production_services": [
-    "qwen38-gsq-iq3xxs.service"
+    "qwen38-gsq-iq2s.service"
   ],
   "models": [
     {
       "id": "qwen38-27b",
-      "label": "Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp (produktiver Orchestrator)",
+      "label": "Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp (produktiver Orchestrator)",
       "engine": "llamacpp",
       "gpu": "5070ti",
       "port": 1919,
-      "service": "qwen38-gsq-iq3xxs.service",
+      "service": "qwen38-gsq-iq2s.service",
       "start": null,
       "capabilities": [
         "tools"
       ],
-      "max_context": 196608,
+      "max_context": 139264,
       "enabled": true
     },
     {

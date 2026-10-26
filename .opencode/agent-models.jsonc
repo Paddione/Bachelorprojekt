@@ -6,9 +6,9 @@
     // und opencode-Default referenzieren ihn). Seit T900348 steht dahinter wieder
     // llama.cpp, seit 2026-10-26 Qwen3.8-27B GSQ-RCO IQ2_S-mtp (139264 served KV,
     // MTP n-max 4, -ub 512, -cram 12288) auf der RTX 5070 Ti allein
-    // (scripts/llm/qwen38-gsq-iq3xxs.service).
+    // (scripts/llm/qwen38-gsq-iq2s.service).
     // Die Modell-ID "Qwen3.8-27B" ist der opencode-seitige Name (llama-server ignoriert ihn;
-    // live-Alias: Qwen3.8-27B-gsq-iq3xxs; davor IQ2_S-mtp mit 196608 KV, davor
+    // live-Alias: Qwen3.8-27b-gsq-rco-iq2s; davor IQ3_XXS-mtp mit 153600 KV, davor
     // opencode-Alias "Muse-Glimmer-30B", T900365).
     // Davor opencode-Alias "Muse-Glimmer-30B" (T900365), Qwen3.8 GSQ-RCO IQ3_XXS ohne MTP (T900359), FreeToken (T900203).
     //
@@ -217,7 +217,7 @@
     // Genutzt von scripts/llm/plan-runner/workers.mjs. Der Direkt-Track des Runners braucht
     // keinen Agenten (In-Process-Tool-Loop gegen vLLM :8123, direct-worker.mjs).
     "plan-worker-self": {
-      "description": "plan-runner self-execution worker on the local Qwen3.8-27B IQ3_XXS-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
+      "description": "plan-runner self-execution worker on the local Qwen3.8-27B IQ2_S-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
       "mode": "primary",
       "model": "llamacpp-local/Qwen3.8-27B",
       "prompt": "{file:./prompts/local-subagent.md}",

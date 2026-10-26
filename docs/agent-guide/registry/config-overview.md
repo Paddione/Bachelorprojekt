@@ -19,7 +19,7 @@
 
 | Modell | Limit (ctx/output) | Messung | Status |
 |---|---|---|---|
-| Qwen3.8-27B | 153600/8192 | — | `ok` |
+| Qwen3.8-27B | 139264/8192 | — | `ok` |
 
 ### llamacpp-qwen3
 

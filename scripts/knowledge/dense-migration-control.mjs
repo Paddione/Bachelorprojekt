@@ -288,12 +288,12 @@ export async function verify(db, runId) {
   const fp = `k:${snap.knowledge.fingerprint}|c:${snap.code.fingerprint}|t:${snap.tickets.fingerprint}`;
   if (fp !== gen.source_fingerprint) problems.push('source drift: fingerprint differs from prepare snapshot');
 
-  for (const [label, srcSql, shadow, idCol] of [
-    ['knowledge', `SELECT id, text FROM knowledge.chunks ORDER BY id`, kShadow, 'source_chunk_id'],
-    ['code', `SELECT id, content AS text FROM code_embeddings ORDER BY id`, cShadow, 'source_row_id'],
+  for (const [label, srcSql, shadow, idCol, textCol] of [
+    ['knowledge', `SELECT id, text FROM knowledge.chunks ORDER BY id`, kShadow, 'source_chunk_id', 'text'],
+    ['code', `SELECT id, content AS text FROM code_embeddings ORDER BY id`, cShadow, 'source_row_id', 'content'],
   ]) {
     const src = await db.query(srcSql);
-    const sh = await db.query(`SELECT ${idCol} AS sid, part_index, text, embedding, profile FROM ${shadow} ORDER BY ${idCol}, part_index`);
+    const sh = await db.query(`SELECT ${idCol} AS sid, part_index, ${textCol} AS text, embedding, profile FROM ${shadow} ORDER BY ${idCol}, part_index`);
     const bySrc = new Map();
     for (const row of sh.rows) {
       const k = String(row.sid);

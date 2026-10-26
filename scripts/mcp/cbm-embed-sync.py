@@ -55,7 +55,7 @@ from datetime import datetime, timezone
 
 SCHEMA_VERSION = "k3-embed-sync/1"
 DEFAULT_PROJECT = "home-patrick-Bachelorprojekt"
-DEFAULT_EMBED_URL = "http://127.0.0.1:8095/v1/embeddings"
+DEFAULT_EMBED_URL = "http://127.0.0.1:18235/v1/lfm/embeddings"
 # Model label must match the serving endpoint: :8095 runs LFM2.5-Embedding
 # (ex-Qwen3-Embedding slot, swapped Oct 2026) — NOT bge-m3. The hash over
 # (model, text) re-embeds everything on rename by construction, so a wrong
@@ -637,7 +637,7 @@ def cmd_sync(args):
         texts = [e["text"] for e in plan["to_embed"]]
         keys = [e["key"] for e in plan["to_embed"]]
         text_by_key = dict(zip(keys, texts))
-        urls = select_live_urls(resolve_embed_urls(args))
+        urls = select_live_urls(resolve_embed_urls(args), model=args.model)
         pending = [0]
 
         def on_batch(pairs):

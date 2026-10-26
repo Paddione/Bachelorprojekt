@@ -29,7 +29,7 @@ const REPO_ROOT = resolve(AGENT_BENCH_DIR, '..', '..', '..');
 // :8080) ist Windows-nativ (Autostart via register-qwen35-4b-autostart.ps1)
 // und hat keine User-Unit — der Bench startet/stoppt sie nicht.
 export const PRODUCTION_SERVICES = Object.freeze([
-  'qwen38-gsq-iq3xxs.service',
+  'qwen38-gsq-iq2s.service',
 ]);
 
 const SYSTEMCTL = process.env.AGENT_BENCH_SYSTEMCTL || 'systemctl';

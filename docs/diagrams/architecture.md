@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-101 Services · 1919 Abhängigkeitskanten · 316 API-Endpoints
+97 Services · 1917 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -47,8 +47,6 @@ flowchart LR
   bge_rerank["bge-rerank"]:::default
   bge_embed_bulk["bge-embed-bulk"]:::default
   lfm_embed["lfm-embed"]:::default
-  lfm_colbert["lfm-colbert"]:::default
-  colbert_maxsim["colbert-maxsim"]:::default
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
   mentolder_web["mentolder-web"]:::default
@@ -106,8 +104,6 @@ flowchart LR
   shared_db_dev_lb["shared-db-dev-lb"]:::default
   llm_gateway_gemma_embed["llm-gateway-gemma-embed"]:::default
   llm_gateway_lfm_embed["llm-gateway-lfm-embed"]:::default
-  llm_gateway_lfm_colbert["llm-gateway-lfm-colbert"]:::default
-  llm_gateway_colbert_maxsim["llm-gateway-colbert-maxsim"]:::default
   sealed_secrets["sealed-secrets"]:::default
   keycloak["keycloak"]:::auth
   tracking["tracking"]:::default
@@ -236,8 +232,6 @@ flowchart LR
   llm_gateway_embed -->|"selector"| bge_embed_bulk
   llm_gateway_rerank -->|"selector"| bge_rerank
   llm_gateway_lfm_embed -->|"selector"| lfm_embed
-  llm_gateway_lfm_colbert -->|"selector"| lfm_colbert
-  llm_gateway_colbert_maxsim -->|"selector"| colbert_maxsim
   mailpit -->|"selector"| mailpit
   mediaviewer_widget -->|"selector"| mediaviewer_widget
   mentolder_web -->|"selector"| mentolder_web
@@ -2015,8 +2009,6 @@ flowchart TB
     bge_rerank["bge-rerank"]
     bge_embed_bulk["bge-embed-bulk"]
     lfm_embed["lfm-embed"]
-    lfm_colbert["lfm-colbert"]
-    colbert_maxsim["colbert-maxsim"]
     mailpit["mailpit"]
     mediaviewer_widget["mediaviewer-widget"]
     mentolder_web["mentolder-web"]
@@ -2060,8 +2052,6 @@ flowchart TB
     shared_db_dev_lb["shared-db-dev-lb"]
     llm_gateway_gemma_embed["llm-gateway-gemma-embed"]
     llm_gateway_lfm_embed["llm-gateway-lfm-embed"]
-    llm_gateway_lfm_colbert["llm-gateway-lfm-colbert"]
-    llm_gateway_colbert_maxsim["llm-gateway-colbert-maxsim"]
     sealed_secrets["sealed-secrets"]
     keycloak["keycloak"]
     tracking["tracking"]

@@ -36,19 +36,20 @@ def test_geraete_loadout_ist_kanonisch(repo_root, run_cmd):
 def test_render_schreibt_argv_je_aktivem_loadout(render):
     result, out = render()
     result.check()
-    assert (out / 'enabled.list').read_text().split() == ['bge-embed', 'bge-rerank']
+    # Rerank-Loadout entfernt 2026-10-26 (23,7 s je Suche auf dem Tablet, kein Qualitaetsgewinn).
+    assert (out / 'enabled.list').read_text().split() == ['bge-embed']
     argv = (out / 'bge-embed.argv').read_text().splitlines()
     assert argv[argv.index('-m') + 1] == EMBED_MODEL
     assert argv[argv.index('--port') + 1] == '8081'
     assert '--embeddings' in argv
-    assert '--reranking' in (out / 'bge-rerank.argv').read_text().splitlines()
+    assert not (out / 'bge-rerank.argv').exists()
 
 
 def test_models_list_hat_sha_und_url(render):
     result, out = render()
     result.check()
     rows = [l.split() for l in (out / 'models.list').read_text().splitlines() if l.strip()]
-    assert len(rows) == 2
+    assert len(rows) == 1
     for rel, sha, url, size in rows:
         assert int(size) > 0, rel
         assert re.fullmatch(r'[0-9a-f]{64}', sha), rel
@@ -58,15 +59,14 @@ def test_models_list_hat_sha_und_url(render):
 
 def test_deaktiviertes_loadout_faellt_raus(repo_root, render, tmp_path):
     doc = json.loads((repo_root / LOADOUTS).read_text())
-    for l in doc['loadouts']:
-        if l['slug'] == 'bge-rerank':
-            l['enabled'] = False
+    extra = dict(doc['loadouts'][0], slug='bge-embed-2', port=8082)
+    doc['loadouts'].append(dict(extra, enabled=False))
     copy = tmp_path / 'loadouts.json'
     copy.write_text(json.dumps(doc))
     result, out = render('--loadouts', str(copy))
     result.check()
-    assert not (out / 'bge-rerank.argv').exists()
-    assert 'bge-reranker' not in (out / 'models.list').read_text()
+    assert (out / 'bge-embed.argv').exists()
+    assert not (out / 'bge-embed-2.argv').exists()
     assert (out / 'ports.list').read_text().split() == ['bge-embed', '8081']
 
 
@@ -91,7 +91,7 @@ def test_apply_dry_run_ohne_ssh(repo_root, run_cmd, tmp_path):
     result = run_cmd(['bash', str(repo_root / APPLY), '--dry-run'], env={'PATH': str(bindir)})
     result.check()
     assert 'unit enable bge-embed port 8081' in result.output
-    assert 'health bge-rerank 8080' in result.output
+    assert 'bge-rerank' not in result.output
 
 
 def _dry_run_env(tmp_path):
@@ -109,7 +109,7 @@ def test_apply_dry_run_oeffnet_ports_nur_auf_tailscale(repo_root, run_cmd, tmp_p
     result = run_cmd(['bash', str(repo_root / APPLY), '--dry-run'], env=_dry_run_env(tmp_path))
     result.check()
     assert 'ufw allow 8081 on tailscale0' in result.output
-    assert 'ufw allow 8080 on tailscale0' in result.output
+    assert 'ufw allow 8080' not in result.output
     # ADR-014: kein WireGuard mehr
     assert 'wg0' not in result.output
 

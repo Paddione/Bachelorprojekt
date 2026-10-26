@@ -32,7 +32,7 @@ def _args(rendered, name):
     ).splitlines()
 
 
-@pytest.mark.parametrize("name", ["lfm-embed", "lfm-colbert"])
+@pytest.mark.parametrize("name", ["lfm-embed"])
 def test_retrieval_deployments_request_exactly_one_gpu(rendered, name):
     limits = _yq(
         rendered,
@@ -43,7 +43,7 @@ def test_retrieval_deployments_request_exactly_one_gpu(rendered, name):
     assert limits == "1", limits
 
 
-@pytest.mark.parametrize("name", ["lfm-embed", "lfm-colbert"])
+@pytest.mark.parametrize("name", ["lfm-embed"])
 def test_retrieval_no_flash_attention_maxwell(rendered, name):
     args = _args(rendered, name)
     assert "-fa" not in args, args
@@ -51,7 +51,7 @@ def test_retrieval_no_flash_attention_maxwell(rendered, name):
     assert "-ngl" in args
 
 
-@pytest.mark.parametrize("name", ["lfm-embed", "lfm-colbert"])
+@pytest.mark.parametrize("name", ["lfm-embed"])
 def test_retrieval_image_pinned_not_rolling(rendered, name):
     image = _yq(
         rendered,
@@ -62,8 +62,7 @@ def test_retrieval_image_pinned_not_rolling(rendered, name):
 
 
 @pytest.mark.parametrize(
-    "svc,deploy", [("llm-gateway-lfm-embed", "lfm-embed"),
-                   ("llm-gateway-lfm-colbert", "lfm-colbert")],
+    "svc,deploy", [("llm-gateway-lfm-embed", "lfm-embed")],
 )
 def test_retrieval_services_route_8081(rendered, svc, deploy):
     port = _yq(

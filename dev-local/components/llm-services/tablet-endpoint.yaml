@@ -1,4 +1,4 @@
-# llm-gateway-tablet — bge-Rerank/-Embedding auf PK-Tablet ueber dessen Tailnet-Adresse.
+# llm-gateway-tablet — bge-Embedding auf PK-Tablet ueber dessen Tailnet-Adresse.
 # Tailnet-Geraet pk-tablet-linux (Ubuntu-Teil des Tablets), Runbook
 # docs/runbooks/pk-tablet-inference.md. Selector-los wie llm-gateway-host
 # (dev-local/core/gpu-endpoint.yaml), aber mit fester Adresse: das Tablet ist kein
@@ -11,9 +11,6 @@ metadata:
   name: llm-gateway-tablet
 spec:
   ports:
-    - name: rerank
-      port: 8080
-      protocol: TCP
     - name: embed
       port: 8081
       protocol: TCP
@@ -26,9 +23,6 @@ metadata:
     kubernetes.io/service-name: llm-gateway-tablet
 addressType: IPv4
 ports:
-  - name: rerank
-    port: 8080
-    protocol: TCP
   - name: embed
     port: 8081
     protocol: TCP
@@ -53,5 +47,4 @@ spec:
         - ipBlock:
             cidr: 100.94.91.65/32
       ports:
-        - {port: 8080, protocol: TCP}
         - {port: 8081, protocol: TCP}

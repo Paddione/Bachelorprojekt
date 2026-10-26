@@ -1,17 +1,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# llm-retrieval-gpu: LFM2.5 Embedding + ColBERT als Kubernetes-Deployments
-# (GPU, gpu-metal) — Nachfolger der Desktop-Dienste :8095/:8097.
+# llm-retrieval-gpu: LFM2.5 Embedding als Kubernetes-Deployment
+# (GPU, gpu-metal) — Nachfolger des Desktop-Dienstes :8095.
 #
-# Zwei llama.cpp-Server auf den freien GTX-970-Karten von gpu-metal
-# (einziger GPU-Node in devmesh; qwen35-4b-instruct + sandbox-gpu belegen
-# je eine der vier Karten exklusiv via nvidia.com/gpu):
+# llama.cpp-Server auf einer GTX-970-Karte von gpu-metal (einziger GPU-Node
+# in devmesh):
 #   - lfm-embed   (LFM2.5-Embedding-350M-Q8_0, --embeddings): Port 8080
-#   - lfm-colbert (LFM2.5-ColBERT-350M-Q8_0,  --embeddings): Port 8080
 #
-# MaxSim-Rerank lebt als eigener Cluster-Dienst (k3d/llm-retrieval-maxsim.yaml,
-# Rolle colbert-rerank, Upstream llm-gateway-lfm-colbert:8081). Die
-# Desktop-Dienste (:8093-Python-API colbert_rerank.py, :8095/:8097-Forwards)
-# entfallen mit dem Desktop-Rueckbau (Runbook docs/runbooks/bge-role-registry.md).
+# LFM2.5-ColBERT + MaxSim-Rerank entfernt (Messung 2026-10-26, Code-Suche:
+# MRR@10 0,495 gegen 0,552 ohne Rerank; einziger Verbraucher war
+# colbert_rerank.py im Dotfiles-Repo).
 #
 # Maxwell (GTX 970, sm_52): KEIN -fa (Flash-Attention wird nicht
 # unterstuetzt); sonst identische Flags wie lokal. Image-Pin ist der Digest
@@ -19,8 +16,8 @@
 # Image: ghcr.io/ggml-org/llama.cpp:server-cuda (gepinnt, kein Rolling-Tag;
 # siehe llm-gpu.yaml zur Begruendung).
 #
-# Modell-Population: pro Deployment ein eigener PVC (RWO, Longhorn wie
-# bge-embed) + idempotenter curl-InitContainer. Strategie Recreate (T002604).
+# Modell-Population: eigener PVC (RWO, Longhorn wie bge-embed) +
+# idempotenter curl-InitContainer. Strategie Recreate (T002604).
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── lfm-embed: LFM2.5-Embedding (llama.cpp, GPU) ──────────────────────────
@@ -149,133 +146,6 @@ metadata:
 spec:
   selector:
     app: lfm-embed
-  ports:
-    - name: http
-      port: 8081
-      targetPort: 8080
-
-# ── lfm-colbert: LFM2.5-ColBERT Late-Interaction (llama.cpp, GPU) ─────────
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: lfm-colbert-models
-  labels:
-    app: lfm-colbert
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 2Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: lfm-colbert
-  labels:
-    app: lfm-colbert
-spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: lfm-colbert
-  template:
-    metadata:
-      labels:
-        app: lfm-colbert
-    spec:
-      securityContext:
-        runAsNonRoot: true
-        fsGroup: 101
-      initContainers:
-        - name: model-download
-          image: curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 100
-            allowPrivilegeEscalation: false
-          command: ["sh", "-c"]
-          args:
-            - |
-              set -e
-              if [ ! -s /models/LFM2.5-ColBERT-350M-Q8_0.gguf ]; then
-                echo "Downloading LFM2.5-ColBERT-350M-Q8_0.gguf ..."
-                curl -fL --retry 3 --connect-timeout 10 \
-                  -o /models/LFM2.5-ColBERT-350M-Q8_0.gguf \
-                  https://huggingface.co/LiquidAI/LFM2.5-ColBERT-350M-GGUF/resolve/main/LFM2.5-ColBERT-350M-Q8_0.gguf
-              fi
-          volumeMounts:
-            - name: models
-              mountPath: /models
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-      containers:
-        - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-cuda@sha256:20c6e722e2fcc5ca9c15401d3fd8e35408aaf8f9c54a12f32920f637c57959bb
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 10001
-            allowPrivilegeEscalation: false
-          args:
-            - "-m"
-            - "/models/LFM2.5-ColBERT-350M-Q8_0.gguf"
-            - "--alias"
-            - "lfm25-colbert-350m,colbert-reranker"
-            - "--host"
-            - "0.0.0.0"
-            - "--port"
-            - "8080"
-            - "-c"
-            - "8192"
-            - "-b"
-            - "2048"
-            - "-ub"
-            - "2048"
-            - "-ngl"
-            - "99"
-            # KEIN -fa: siehe lfm-embed.
-            - "-t"
-            - "2"
-            - "--embeddings"
-          ports:
-            - name: http
-              containerPort: 8080
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "500m"
-              nvidia.com/gpu: 1
-            limits:
-              memory: "4Gi"
-              cpu: "2000m"
-              nvidia.com/gpu: 1
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 60
-          volumeMounts:
-            - name: models
-              mountPath: /models
-              readOnly: true
-      volumes:
-        - name: models
-          persistentVolumeClaim:
-            claimName: lfm-colbert-models
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: llm-gateway-lfm-colbert
-  labels:
-    app: llm-gateway
-spec:
-  selector:
-    app: lfm-colbert
   ports:
     - name: http
       port: 8081

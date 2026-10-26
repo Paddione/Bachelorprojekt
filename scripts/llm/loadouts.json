@@ -517,23 +517,12 @@
     },
     "rerank": {
       "chain": [
-        "http://llm-gateway-tablet:8080",
         "http://llm-gateway-rerank.workspace.svc.cluster.local:8081"
       ]
     },
     "lfm-embed": {
       "chain": [
         "http://llm-gateway-lfm-embed.workspace.svc.cluster.local:8081"
-      ]
-    },
-    "colbert-embed": {
-      "chain": [
-        "http://llm-gateway-lfm-colbert.workspace.svc.cluster.local:8081"
-      ]
-    },
-    "colbert-rerank": {
-      "chain": [
-        "http://llm-gateway-colbert-maxsim.workspace.svc.cluster.local:8081"
       ]
     }
   }

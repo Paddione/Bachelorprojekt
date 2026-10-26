@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-26T11:44:52.875Z",
+  "generatedAt": "2026-10-26T19:31:57.980Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -216,18 +216,6 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "lfm-embed"
-    },
-    {
-      "id": "lfm-colbert",
-      "namespace": "mentolder",
-      "type": "Deployment",
-      "name": "lfm-colbert"
-    },
-    {
-      "id": "colbert-maxsim",
-      "namespace": "mentolder",
-      "type": "Deployment",
-      "name": "colbert-maxsim"
     },
     {
       "id": "mailpit",
@@ -570,18 +558,6 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "llm-gateway-lfm-embed"
-    },
-    {
-      "id": "llm-gateway-lfm-colbert",
-      "namespace": "mentolder",
-      "type": "Service",
-      "name": "llm-gateway-lfm-colbert"
-    },
-    {
-      "id": "llm-gateway-colbert-maxsim",
-      "namespace": "mentolder",
-      "type": "Service",
-      "name": "llm-gateway-colbert-maxsim"
     },
     {
       "id": "sealed-secrets",
@@ -1464,18 +1440,6 @@
     {
       "from": "llm-gateway-lfm-embed",
       "to": "lfm-embed",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "llm-gateway-lfm-colbert",
-      "to": "lfm-colbert",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "llm-gateway-colbert-maxsim",
-      "to": "colbert-maxsim",
       "via": "selector",
       "kind": "selector"
     },

@@ -40,8 +40,12 @@ required for clients. No touch of prod `korczewski` (frozen workspace, T002479).
 
 ## Operator prerequisites (no repo change, execute verifies only)
 
-1. ipv64: `A opencode` → FritzBox WAN IP (zone currently empty — records
-   deleted ~2026-10-26; recreate `opencode`, optional `CNAME *` → apex).
+1. ipv64 (verified 2026-10-26 — zone alive: apex has only `AAAA`
+   `2a04:6ec1:1:a::777e`, no `A`; mail/MX+TXT/DKIM intact): create `A opencode`
+   → FritzBox WAN IPv4 (then FritzBox DynDNS-managed), optionally `CNAME *` →
+   `opencode.korczewski.de` if a true wildcard is wanted. Note: existing
+   `llm.korczewski` CNAME → bare `tail8a4425.ts.net` cannot resolve to a device
+   (needs full MagicDNS host, tailnet clients only) — unrelated to this path.
 2. FritzBox: DynDNS entry (Anbieter Benutzerdefiniert,
    `https://ipv64.net/nic/update?key=<Domain-Update-Key>&ip=<ipaddr>&ip6=<ip6addr>`,
    Domainname `opencode.<apex>`, user/pass `none`) + NAT `80/443` → Traefik LB

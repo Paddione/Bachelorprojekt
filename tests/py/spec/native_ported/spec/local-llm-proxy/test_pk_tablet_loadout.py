@@ -13,7 +13,9 @@ import pytest
 LOADOUTS = 'devmesh/pk-tablet/loadouts.json'
 RENDER = 'scripts/llm/pk-tablet/render.mjs'
 APPLY = 'scripts/llm/pk-tablet/apply.sh'
-QWEN_MODEL = '/var/lib/llama/models/unsloth/Qwen3.5-9B-GGUF/Qwen3.5-9B-Q4_K_M.gguf'
+EMBED_MODEL = '/var/lib/llama/models/gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf'
+# 27-GB-Optane-Teil: OS + Reserve abgezogen bleiben fuer Modelle hoechstens ~20 GiB.
+MODEL_BUDGET_BYTES = 20 * 1024**3
 
 pytestmark = pytest.mark.skipif(shutil.which('node') is None, reason='node binary not installed')
 
@@ -34,10 +36,11 @@ def test_geraete_loadout_ist_kanonisch(repo_root, run_cmd):
 def test_render_schreibt_argv_je_aktivem_loadout(render):
     result, out = render()
     result.check()
-    assert (out / 'enabled.list').read_text().split() == ['bge-rerank', 'qwen35-9b-chat']
-    argv = (out / 'qwen35-9b-chat.argv').read_text().splitlines()
-    assert argv[argv.index('-m') + 1] == QWEN_MODEL
-    assert argv[argv.index('--port') + 1] == '1234'
+    assert (out / 'enabled.list').read_text().split() == ['bge-embed', 'bge-rerank']
+    argv = (out / 'bge-embed.argv').read_text().splitlines()
+    assert argv[argv.index('-m') + 1] == EMBED_MODEL
+    assert argv[argv.index('--port') + 1] == '8081'
+    assert '--embeddings' in argv
     assert '--reranking' in (out / 'bge-rerank.argv').read_text().splitlines()
 
 
@@ -50,6 +53,7 @@ def test_models_list_hat_sha_und_url(render):
         assert int(size) > 0, rel
         assert re.fullmatch(r'[0-9a-f]{64}', sha), rel
         assert url.startswith('https://huggingface.co/'), rel
+    assert sum(int(r[3]) for r in rows) < MODEL_BUDGET_BYTES
 
 
 def test_deaktiviertes_loadout_faellt_raus(repo_root, render, tmp_path):
@@ -63,7 +67,7 @@ def test_deaktiviertes_loadout_faellt_raus(repo_root, render, tmp_path):
     result.check()
     assert not (out / 'bge-rerank.argv').exists()
     assert 'bge-reranker' not in (out / 'models.list').read_text()
-    assert (out / 'ports.list').read_text().split() == ['qwen35-9b-chat', '1234']
+    assert (out / 'ports.list').read_text().split() == ['bge-embed', '8081']
 
 
 def test_render_fehlende_modellquelle_bricht_ab(render, tmp_path):
@@ -86,5 +90,5 @@ def test_apply_dry_run_ohne_ssh(repo_root, run_cmd, tmp_path):
             os.symlink(found, bindir / tool)
     result = run_cmd(['bash', str(repo_root / APPLY), '--dry-run'], env={'PATH': str(bindir)})
     result.check()
-    assert 'unit enable qwen35-9b-chat port 1234' in result.output
+    assert 'unit enable bge-embed port 8081' in result.output
     assert 'health bge-rerank 8080' in result.output

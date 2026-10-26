@@ -1,8 +1,9 @@
 # Runbook: PK-Tablet als Inferenz-Endpoint (Ubuntu minimal per PXE)
 
-PK-Tablet (Intel-Iris-iGPU, 16 GB RAM, 32-GB-SSD) wird per PXE mit Ubuntu
-Server minimal neu installiert und betreibt danach nur noch llama.cpp
-(Vulkan). Welche Modelle laufen, steht in
+PK-Tablet (Intel-Iris-iGPU, 16 GB RAM) wird per PXE mit Ubuntu Server minimal
+neu installiert und betreibt danach nur noch llama.cpp (Vulkan) für
+**Embedding und Reranking** (bge-m3 auf `:8081`, bge-reranker-v2-m3 auf
+`:8080`). Welche Modelle laufen, steht in
 [`devmesh/pk-tablet/loadouts.json`](../../devmesh/pk-tablet/loadouts.json) und
 wird vom Dev-Rechner aus eingespielt — ohne Neuinstallation.
 
@@ -11,30 +12,44 @@ wird vom Dev-Rechner aus eingespielt — ohne Neuinstallation.
 
 Boot läuft über den USB-Ethernet-Adapter `84:3a:5b:cb:12:89`. Die MAC gehört
 dem Adapter, nicht dem Tablet: steckt er an einem anderen Gerät, gilt der
-PXE-Filter für jenes.
+PXE-Filter für jenes. Den PXE-Server stellt `gpu-metal` im LAN (Port 67 ist dort
+frei, anders als unter WSL); das Tablet ist nur Client.
+
+## Die Platte: Intel Optane H10
+
+Die eingebaute „SSD" ist eine Optane Memory H10 (`HBRPEKNX0202`) — zwei Geräte
+auf einem Modul: 27 GB Optane und 477 GB QLC-NAND. Ubuntu kommt auf den
+**27-GB-Optane-Teil**; deshalb trägt das Tablet nur die kleinen bge-Modelle.
+Der QLC-Teil bleibt ungenutzt.
+
+Unter Windows hängen beide Teile am Intel-RST-Controller (`BusType RAID`). Der
+Ubuntu-Installer sieht sie erst, wenn im Firmware-Setup der Storage-Modus von
+**RST/RAID (bzw. VMD) auf AHCI** steht. Danach startet Windows nicht mehr — das
+ist der Punkt ohne Rückweg.
 
 ---
 
-## 0. Vorab prüfen (Live-USB, nichts wird installiert)
+## 0. Zielplatte bestimmen (Probe-Boot, nichts wird geschrieben)
 
-Ubuntu-Desktop-Live-Stick booten, dann:
-
-```bash
-cat /sys/firmware/efi/fw_platform_size   # muss 64 sein — bei 32 startet bootx64.efi nicht
-lsblk -o NAME,SIZE,TYPE,TRAN,MODEL       # Zielplatte (~32 GB) -> TABLET_DISK
-vulkaninfo --summary                     # Intel-Gerät mit Treiber ANV muss erscheinen
-```
-
-Leistung gegen Windows vergleichen, bevor Windows weg ist: das
-llama.cpp-Release `llama-<build>-bin-ubuntu-vulkan-x64.tar.gz` (Build aus
-[`devmesh/pk-tablet/llama-build`](../../devmesh/pk-tablet/llama-build))
-entpacken und
+Unter Linux heißen die beiden Teile `nvme0n1`/`nvme1n1` in nicht vorhersagbarer
+Reihenfolge. Deshalb einmal mit absichtlich ungültigem `--disk` booten:
 
 ```bash
-./llama-bench -m Qwen3.5-9B-Q4_K_M.gguf -ngl 99
+ssh gpu-metal 'cd ~/pxe-src && sudo bash scripts/pxe/setup-pxe.sh --profile inference --only-mac 84:3a:5b:cb:12:89 --disk /dev/disk-probe --ssh-key ~/pxe-src/tablet.pub --node-map ~/pxe-src/scripts/iso/node-map'
 ```
 
-Liegt der Wert deutlich unter dem Windows-Stand, hier abbrechen.
+Der Installer bricht vor dem Partitionieren mit „Failed to find matching
+device" ab und bietet eine Root-Shell an. Dort:
+
+```bash
+cat /sys/firmware/efi/fw_platform_size   # muss 64 sein
+lsblk -d -o NAME,SIZE,MODEL              # ~27 GB, Modell endet auf ...AHO -> TABLET_DISK
+cat /proc/mdstat                         # steht dort ein imsm-Container: --wipe-disks noetig
+```
+
+Steht in `/proc/mdstat` ein Container aus der RST-Zeit, hält er die Geräte
+fest und curtin scheitert mit `EBUSY`. Dann beim echten Lauf `--wipe-disks`
+mitgeben — das löscht **beide** Teile der H10.
 
 ## 1. Hostnamen eintragen
 
@@ -46,9 +61,15 @@ In die lokale `scripts/iso/node-map` (nicht im Git):
 
 ## 2. PXE-Server starten und installieren
 
+Auf `gpu-metal` (Quellen in `~/pxe-src`, Stand `origin/main`) den Probe-Lauf
+mit `--stop` beenden und mit der echten Platte neu starten:
+
 ```bash
-task iso:pxe:tablet TABLET_DISK=/dev/<platte-aus-schritt-0>
+ssh gpu-metal 'cd ~/pxe-src && sudo bash scripts/pxe/setup-pxe.sh --profile inference --only-mac 84:3a:5b:cb:12:89 --disk /dev/<platte-aus-schritt-0> --ssh-key ~/pxe-src/tablet.pub --node-map ~/pxe-src/scripts/iso/node-map'
 ```
+
+Von einem Linux-Host mit Repo-Checkout geht dasselbe mit
+`task iso:pxe:tablet TABLET_DISK=/dev/<platte>`.
 
 Am Tablet im Firmware-Bootmenü den USB-Adapter als Netzwerk-Boot wählen. Die
 Installation läuft unbeaufsichtigt und endet mit **Poweroff**. Danach
@@ -94,7 +115,8 @@ schaltet `llama-server@<slug>.service` ein bzw. aus, öffnet die Ports nur auf
 Prüfen:
 
 ```bash
-curl -fsS http://pk-tablet:1234/v1/models
+curl -fsS http://pk-tablet:8081/health
+curl -fsS http://pk-tablet:8081/v1/embeddings -H 'Content-Type: application/json' -d '{"input":"test"}' | head -c 200
 ```
 
 ## 5. Loadout tauschen
@@ -109,8 +131,9 @@ task llm:loadouts:check
 task llm:tablet:apply
 ```
 
-Die Platte hat 32 GB. Das Gesamtgewicht aller aktiven Modelle sollte unter
-etwa 20 GB bleiben; `apply` prüft vor dem Download den freien Platz.
+Ubuntu liegt auf dem 27-GB-Optane-Teil. Das Gesamtgewicht aller aktiven
+Modelle muss unter 20 GiB bleiben (der Test `test_models_list_hat_sha_und_url`
+prüft das); `apply` prüft zusätzlich vor dem Download den freien Platz.
 
 ## Was wo liegt (auf dem Gerät)
 

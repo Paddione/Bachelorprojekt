@@ -4722,6 +4722,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/local-dev-mesh/pk_tablet_registry",
+    "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_pk_tablet_registry.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/local-dev-mesh/tailnet_policy",
     "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py",
     "category": "native_ported",

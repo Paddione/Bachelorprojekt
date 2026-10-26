@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1273,
+      "file_count": 1274,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -623,6 +623,7 @@
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_longhorn_storage.py",
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_migrate_from_k3d.py",
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_no_k3d_context.py",
+        "tests/py/spec/native_ported/spec/local-dev-mesh/test_pk_tablet_registry.py",
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_preflight.py",
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_status.py",
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_check.py",

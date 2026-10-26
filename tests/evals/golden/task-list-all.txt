@@ -211,7 +211,7 @@ task: Available tasks for this project:
 * llm:routing:check:                            Prueft, ob jede konfigurierte Modell-ID von einem erreichbaren Backend serviert wird [T002359]
 * llm:status:                                   Show LLM pipeline status (bge Deployments, gateway services, health). ENV=<env>
 * llm:tablet:apply:                             PK-Tablet: Loadout per SSH einspielen (Build, Modelle, Units, ufw, /health). Vorschau: task llm:tablet:apply -- --dry-run
-* llm:tablet:bootstrap:                         PK-Tablet einmalig: WireGuard-Config (WG_CONF=) einspielen und Tailscale anmelden
+* llm:tablet:bootstrap:                         PK-Tablet einmalig: Tailscale installieren und als pk-tablet-linux anmelden (Optionen nach --, z. B. --host)
 * llm:tablet:render:                            PK-Tablet: argv/Modellliste aus devmesh/pk-tablet/loadouts.json rendern, ohne SSH (Ausgabe .tmp/pk-tablet)
 * llm:test:                                     Smoke-test the gateway Services directly (embed + rerank). ENV=<env>
 * llm:tools-sandbox:down:                       Entfernt den Tool-Sandbox-Container

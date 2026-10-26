@@ -27,9 +27,19 @@
 // Shim, damit die beiden Zeitschranken nicht gegeneinander laufen.
 export const ROLE_TIMEOUT_MS = Number(process.env.BGE_ROUTE_TIMEOUT_MS || 60_000);
 
+// Fuenf Rollen in getrennten Vektorraeumen — kein Quer-Fallback:
+//   embed          bge-m3   (1024 Dimensionen)
+//   rerank         bge      (Cross-Encoder, unveraendert)
+//   lfm-embed      LFM2.5-Embedding (eigener Raum, eigene Dimension)
+//   colbert-embed  LFM2.5-ColBERT   (Late-Interaction, Token-Ebene)
+//   colbert-rerank MaxSim ueber ColBERT-Token (eigener Cluster-Dienst)
+// Eine erschoepfte Kette meldet 503 mit Grund je Glied (routeRequest).
 const ROLE_PATHS = new Map([
   ['/v1/embeddings', 'embed'],
   ['/v1/rerank', 'rerank'],
+  ['/v1/lfm/embeddings', 'lfm-embed'],
+  ['/v1/colbert/embeddings', 'colbert-embed'],
+  ['/v1/colbert/rerank', 'colbert-rerank'],
 ]);
 
 /** Rolle aus dem PFAD ableiten — bewusst nicht aus dem model-Feld. */
@@ -115,7 +125,7 @@ let lastFallbackLogState = false;
  * oder leerer Kette ueber den Rueckfall in loadouts.json (E3).
  * Loggt genau eine Warnung pro Zustandswechsel.
  *
- * @param {string} role 'embed' | 'rerank'
+ * @param {string} role 'embed' | 'rerank' | 'lfm-embed' | 'colbert-embed' | 'colbert-rerank'
  * @param {Array<object>} backends Registry-Array (getBackends())
  * @param {object} doc geparstes loadouts.json-Dokument
  * @returns {Array<{kind:'url', baseUrl:string}>}

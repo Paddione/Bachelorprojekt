@@ -279,8 +279,11 @@ const requestHandler = (req, res) => {
 
     // T003205 — bge-Rollen-Routen, GETRENNT von der Chat-Modellaufloesung.
     // Die Rolle kommt aus dem PFAD; die gesamte Failover-Logik liegt in
-    // bge-routes.mjs, hier stehen nur die beiden Weiterleitungen.
-    if ((path === '/v1/embeddings' || path === '/v1/rerank') && method === 'POST') {
+    // bge-routes.mjs, hier stehen nur die fuenf Weiterleitungen (der
+    // kanonische Pfad wird unveraendert an den Upstream gereicht).
+    if ((path === '/v1/embeddings' || path === '/v1/rerank'
+      || path === '/v1/lfm/embeddings' || path === '/v1/colbert/embeddings'
+      || path === '/v1/colbert/rerank') && method === 'POST') {
       if (rolesError) {
         return sendJson(res, 503, { error: { code: 'bge_roles_unconfigured', message: rolesError.message } });
       }

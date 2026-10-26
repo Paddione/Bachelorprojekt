@@ -1,0 +1,44 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    # Gepinnt auf das Minor-Fenster 2.9: "2.x" oeffnete ein ungetestetes
+    # Major-Fenster, und die Verifikation dieses Plans laeuft gegen die lokal
+    # installierte CLI 2.9.3 (flux schema validate --schema-location default).
+    version: "2.9.x"
+    # Pflichtfeld der CRD — ohne Registry kein Pull der Distributions-Manifeste.
+    registry: "ghcr.io/fluxcd"
+  # Genau die vier Controller, die die Sync-Pfade dieses Clusters brauchen.
+  # image-reflector-controller und source-watcher bleiben weg: es gibt keine
+  # ImagePolicy/ImageUpdateAutomation und keinen zweiten Quelltyp.
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    networkPolicy: true
+    # Klammer um tenant-rbac.yaml: multitenant: true laesst den kustomize-
+    # controller ausschliesslich als der in spec.serviceAccountName genannte
+    # SA applizieren. Fehlt der Eintrag in einer Kind-Kustomization, verweigert
+    # der Controller das Applizieren — die RBAC-Einengung ist damit erzwungen
+    # und nicht bloss dokumentiert (design §3, C2).
+    multitenant: true
+    size: small
+  sync:
+    kind: GitRepository
+    # Kein provider: und kein pullSecret:
+    # provider: github verlangt GitHub-App-Secrets und endet ohne secretRef in
+    # InvalidProviderConfiguration. Das Repository ist oeffentlich, also genuegt
+    # der anonyme generische Fetch — dasselbe Muster wie devmesh.
+    url: https://github.com/Paddione/Bachelorprojekt
+    ref: refs/heads/main
+    # Diese Datei ist selbst Teil des Synchronisationspfads: die vom Operator
+    # erzeugte Root-Kustomization flux-system traegt denselben Pfad und wendet
+    # damit Source, Kind-Kustomizations und RBAC bei jeder Aenderung erneut an.
+    path: flux/clusters/korczewski-prod
+    interval: 10m

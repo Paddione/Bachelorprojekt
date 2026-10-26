@@ -1,0 +1,27 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: korczewski-prod-bootstrap
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 10m
+  # Erstes Glied der Kette bootstrap -> platform -> secrets -> apps.
+  # Kein dependsOn: es gibt keinen Vorgaenger. Eine leere Liste wird nicht
+  # geschrieben, weil die CRD pro Eintrag name verlangt.
+  sourceRef:
+    kind: OCIRepository
+    name: korczewski-prod-manifests
+  serviceAccountName: korczewski-prod-bootstrap
+  path: ./cluster-bootstrap
+  prune: true
+  # wait: true ist hier als einzigem Pfad berechtigt: er legt cluster-scoped
+  # Objekte an (ClusterIssuer letsencrypt-korczewski-prod, Certificate,
+  # TLSStore default, die drei ClusterRole/ClusterRoleBinding-Paare
+  # korczewski-prod-bootstrap-{tls,rbac,crd}). Ein false liesse die Kette
+  # weiterlaufen, bevor ClusterIssuer und TLSStore existieren.
+  # Folge: fehlt eine Vorbedingung (Traefik-CRDs, cert-manager-CRDs — README
+  # Punkt 3 und 4), bleibt dieser Pfad sichtbar rot statt den Fehler in einen
+  # spaeteren Pfad zu verschieben.
+  wait: true

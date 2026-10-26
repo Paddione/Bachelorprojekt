@@ -1,0 +1,310 @@
+# Tenant-Identitaeten, Namespaces und Rollen fuer korczewski-prod — ohne die
+# breite Cluster-Rolle, die devmesh und fleet noch als Uebergang tragen.
+#
+# Diese Datei liegt im Synchronisationspfad der vom Operator erzeugten
+# Root-Kustomization `flux-system` und wird mit deren Identitaet appliziert
+# (live auf devmesh: `serviceAccountName: kustomize-controller`), nicht mit der
+# eines Kind-Pfads. Genau deshalb stehen die cluster-scoped Objekte hier und
+# nicht in einem Kind-Pfad: kein Kind-SA erhaelt dadurch clusterweite Rechte,
+# die Namespaces existieren vor dem ersten Kind-Reconcile, und ein Kind-Lauf,
+# der SA oder Namespace noch nicht sieht, wird nach retryInterval 2m wiederholt.
+#
+# Abgrenzung zu devmesh/fleet (C2): dort bindet ein einzelner SA an die breite
+# Cluster-Rolle. Hier gibt es genau einen ClusterRoleBinding, sein Subjekt ist
+# ausschliesslich die Bootstrap-SA, und seine Regeln sind auf resourceNames
+# eingeengt. Tenant- und Platform-SA erscheinen nur in namespaced RoleBindings.
+---
+# Namespaces: Paritaetsanker zu den vier SealedSecrets. sealed-secrets fehlt
+# bewusst — dort liegt kein SealedSecret, und Controller samt Namespace gehoeren
+# zu Vorbedingung 5 (bootstrap/README.md). cert-manager ist im dokumentierten
+# Ablauf schon durch Vorbedingung 4 vorhanden; das Dokument ist dann ein
+# idempotenter Apply ohne Wirkung, wird aber deklariert, weil der
+# Paritaetstest (design §10) die SealedSecret-Namespaces gegen die im Artefakt
+# deklarierten Namespaces vergleicht — mit cert-manager ist Mengengleichheit
+# ohne Ausnahmeliste pruefbar.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: workspace-korczewski
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: website-korczewski
+---
+# ServiceAccounts: eine Identitaet je Sync-Pfad, damit die Rechte nicht
+# mitwachsen, wenn ein Pfad neue Objektarten bekommt.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: korczewski-prod-tenant
+  namespace: flux-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: korczewski-prod-bootstrap
+  namespace: flux-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: korczewski-prod-platform
+  namespace: flux-system
+---
+# Tenant-Rolle workspace-korczewski: alles, was der Apps-Pfad dort rendert.
+# secrets ohne resourceNames, weil der Apps-Pfad eigene Secrets anlegt
+# (pocket-id-client-seed schreibt workspace-secrets fort).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: korczewski-prod-tenant
+  namespace: workspace-korczewski
+rules:
+  - apiGroups: ["apps"]
+    resources: [deployments, statefulsets]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: ["batch"]
+    resources: [jobs, cronjobs]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: [""]
+    resources: [services, configmaps, secrets, serviceaccounts, persistentvolumeclaims]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: ["networking.k8s.io"]
+    resources: [ingresses, networkpolicies]
+    verbs: [get, list, watch, create, patch, update, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: korczewski-prod-tenant
+  namespace: workspace-korczewski
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: korczewski-prod-tenant
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-tenant
+    namespace: flux-system
+---
+# Tenant-Rolle website-korczewski: dieselbe Regelmenge plus Traefik. Die
+# Traefik-Regeln stehen ausschliesslich hier, damit der Auth-Pfad keine
+# IngressRoute-Hoheit bekommt — Namespace-Trennung aus design §3, namespaced
+# statt clusterweit.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: korczewski-prod-tenant
+  namespace: website-korczewski
+rules:
+  - apiGroups: ["apps"]
+    resources: [deployments, statefulsets]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: ["batch"]
+    resources: [jobs, cronjobs]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: [""]
+    resources: [services, configmaps, secrets, serviceaccounts, persistentvolumeclaims]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: ["networking.k8s.io"]
+    resources: [ingresses, networkpolicies]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: ["traefik.io"]
+    resources: [ingressroutes, middlewares]
+    verbs: [get, list, watch, create, patch, update, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: korczewski-prod-tenant
+  namespace: website-korczewski
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: korczewski-prod-tenant
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-tenant
+    namespace: flux-system
+---
+# Tenant-Rolle cert-manager: ausschliesslich SealedSecrets, weil der Pfad
+# ./secrets das Dokument ipv64-api-key dorthin schreibt. Erste begruendete
+# Abweichung von design §3: ohne diese Rolle scheitert der Apply garantiert und
+# zwar erst zur Laufzeit. Sie bleibt namespaced, oeffnet `secrets` nicht und ist
+# damit keine Eskalation.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: korczewski-prod-tenant
+  namespace: cert-manager
+rules:
+  - apiGroups: ["bitnami.com"]
+    resources: [sealedsecrets]
+    verbs: [get, list, watch, create, patch, update, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: korczewski-prod-tenant
+  namespace: cert-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: korczewski-prod-tenant
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-tenant
+    namespace: flux-system
+---
+# Bootstrap-Rechte: Vereinigungsmenge der drei ClusterRoles, die
+# korczewski-prod/cluster-bootstrap (p3) anlegt. Diese Vereinigung ist Pflicht,
+# nicht Bequemlichkeit: Kubernetes verweigert das Anlegen einer Rolle, die
+# Rechte verleiht, die der anlegende SA nicht selbst hat. Fehlt hier auch nur
+# eine Regel, scheitert der erste Bootstrap-Lauf mit Forbidden und die ganze
+# Kette bleibt rot. Die drei Namen sind damit der Vertrag zu p3 und duerfen dort
+# nicht abweichen.
+#
+# Hinweis zur Einengung: resourceNames wirkt nur auf die schreibenden Verben.
+# Bei list/watch ist es API-Server-Semantik, dass es nicht filtert — die
+# Lese-Verben bleiben fuer Inventar und Server-Side-Apply noetig.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: korczewski-prod-bootstrap
+rules:
+  - apiGroups: ["cert-manager.io"]
+    resources: [clusterissuers]
+    resourceNames: [letsencrypt-korczewski-prod]
+    verbs: [get, list, watch, create, patch, update]
+  - apiGroups: ["traefik.io"]
+    resources: [tlsstores]
+    resourceNames: [default]
+    verbs: [get, list, watch, create, patch, update]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: [clusterroles, clusterrolebindings]
+    resourceNames:
+      - korczewski-prod-bootstrap-tls
+      - korczewski-prod-bootstrap-rbac
+      - korczewski-prod-bootstrap-crd
+    verbs: [get, list, watch, create, patch, update, delete]
+  # CRDs ohne resourceNames: die Namen haengen an der Chart-Version.
+  # Schreibzugriff bleibt ausgeschlossen (kein create/patch/update/delete).
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: [customresourcedefinitions]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: korczewski-prod-bootstrap-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: korczewski-prod-bootstrap
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-bootstrap
+    namespace: flux-system
+---
+# kube-system-Nebenrolle des Bootstrap-Pfads: Certificate fuer die Wildcard und
+# lesender Zugriff auf genau dieses TLS-Secret. Diese Rechte koennen nicht in p3
+# stehen, weil ein SA sich seine Namespace-Rechte nicht selbst gibt.
+# Namespaced statt in der ClusterRole, weil RBAC `create` nicht ueber
+# resourceNames einengen kann: clusterweit waere create auf certificates
+# unbegrenzt, in kube-system bleibt es auf einen Namespace beschraenkt.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: korczewski-prod-bootstrap
+  namespace: kube-system
+rules:
+  - apiGroups: ["cert-manager.io"]
+    resources: [certificates]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [korczewski-prod-wildcard-tls]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: korczewski-prod-bootstrap
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: korczewski-prod-bootstrap
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-bootstrap
+    namespace: flux-system
+---
+# Platform-Rollen: HelmRepositories liegen in flux-system, HelmReleases in
+# cert-manager (p3). Die Aufteilung folgt den Objekten; ein
+# Namespace-Transformer darf das nicht verschieben.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: korczewski-prod-platform
+  namespace: flux-system
+rules:
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [helmreleases]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [helmrepositories]
+    verbs: [get, list, watch, create, patch, update, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: korczewski-prod-platform
+  namespace: flux-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: korczewski-prod-platform
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-platform
+    namespace: flux-system
+---
+# Schreibrechte auf secrets in cert-manager sind die zweite begruendete
+# Abweichung von design §3 (dort "Leserechte"): helm-controller legt den
+# Release-Datensatz als Secret sh.helm.release.v1.<release>.v<n> im
+# Ziel-Namespace ab, ohne Schreibrechte scheitert schon die Erstinstallation mit
+# Forbidden. Gelesen wird das Secret zusaetzlich ueber valuesFrom
+# (ipv64-api-key).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: korczewski-prod-platform
+  namespace: cert-manager
+rules:
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [helmreleases]
+    verbs: [get, list, watch, create, patch, update, delete]
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, list, watch, create, patch, update, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: korczewski-prod-platform
+  namespace: cert-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: korczewski-prod-platform
+subjects:
+  - kind: ServiceAccount
+    name: korczewski-prod-platform
+    namespace: flux-system

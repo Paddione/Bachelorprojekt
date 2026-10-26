@@ -5,6 +5,9 @@ apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 resources:
   - opencode.yaml
+  - opencode-config.yaml
+  - opencode-tailnet.yaml
+  - networkpolicy.yaml
   - certificate.yaml
   - ingressroute.yaml
   - oauth2-proxy-opencode.yaml

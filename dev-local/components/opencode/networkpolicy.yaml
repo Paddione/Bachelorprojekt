@@ -1,0 +1,66 @@
+# Default-deny-Ausnahmen fuer die opencode-Komponente (workspace hat
+# default-deny-ingress/-egress): sonst sind weder Traefik noch der
+# Tailscale-Proxy beim Pod willkommen und der Server erreicht kein Modell/DNS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: opencode
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: opencode
+spec:
+  podSelector:
+    matchLabels:
+      app: opencode
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: 4096
+          protocol: TCP
+  egress:
+    - ports: # DNS (CoreDNS)
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports: # HTTPS (models.dev, Registry, OIDC-Discovery)
+        - port: 443
+          protocol: TCP
+    - ports: # lokaler vLLM-Server (Provider devmesh-vllm, kein Cloud-Key)
+        - port: 8000
+          protocol: TCP
+---
+# Gleiches fuer oauth2-proxy (Browser-Pfad Pocket-ID): 4180 von Traefik,
+# Egress zu Pocket ID (intern 1411 + extern 443) und DNS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oauth2-proxy-opencode
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: oauth2-proxy-opencode
+spec:
+  podSelector:
+    matchLabels:
+      app: oauth2-proxy-opencode
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: 4180
+          protocol: TCP
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports:
+        - port: 443
+          protocol: TCP
+    - ports: # Pocket ID intern (POCKET_ID_URL, ClusterIP)
+        - port: 1411
+          protocol: TCP

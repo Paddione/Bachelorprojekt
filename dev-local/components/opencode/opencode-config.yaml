@@ -1,0 +1,35 @@
+# opencode Provider/Modell-Konfiguration: lokaler vLLM-Server im Cluster
+# (OpenAI-kompatibel, kein Cloud-Key noetig). Wird nach
+# /tmp/.config/opencode/opencode.json gemountet (HOME=/tmp, #6941).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opencode-config
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: opencode
+data:
+  opencode.json: |
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "model": "devmesh-vllm/unsloth/Qwen3.5-0.8B",
+      "small_model": "devmesh-vllm/unsloth/Qwen3.5-0.8B",
+      "provider": {
+        "devmesh-vllm": {
+          "npm": "@ai-sdk/openai-compatible",
+          "name": "devMesh vLLM (lokal)",
+          "options": {
+            "baseURL": "http://vllm-serve:8000/v1"
+          },
+          "models": {
+            "unsloth/Qwen3.5-0.8B": {
+              "name": "Qwen3.5 0.8B (vLLM, lokal)",
+              "limit": {
+                "context": 4096,
+                "output": 1024
+              }
+            }
+          }
+        }
+      }
+    }

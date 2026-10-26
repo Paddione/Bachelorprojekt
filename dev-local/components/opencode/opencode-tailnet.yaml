@@ -1,0 +1,24 @@
+# Tailscale-Expose fuer den dauerhaften Android-Zugang:
+# stabiler Tailnet-Name `opencode` (-> https://opencode.<tailnet>.ts.net),
+# Basic-Auth (User opencode + OPENCODE_SERVER_PASSWORD aus workspace-secrets).
+# Browser-Pfad (Pocket-ID via oauth2-proxy + IngressRoute) bleibt unveraendert.
+# Praezedenz: dev-pod-ssh / adguard (tailscale.com/expose + hostname).
+apiVersion: v1
+kind: Service
+metadata:
+  name: opencode-tailnet
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: opencode
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: opencode
+spec:
+  type: ClusterIP
+  selector:
+    app: opencode
+  ports:
+    - name: http
+      port: 4096
+      targetPort: 4096
+      protocol: TCP

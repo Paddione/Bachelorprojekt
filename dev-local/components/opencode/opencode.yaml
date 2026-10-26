@@ -41,7 +41,9 @@ spec:
           type: RuntimeDefault
       containers:
         - name: opencode
-          image: smanx/opencode:2.1.4@sha256:ee18fd6e480edaa13f2acf8bf54e2ef5daf8210f0baa1ff9b3f49f8390fc51f5
+          # Offizielles Upstream-Image (anomalyco/opencode, war sst/opencode).
+          # smanx/opencode war ein Rebuild derselben Version ohne Mehrwert.
+          image: ghcr.io/anomalyco/opencode:2.1.4@sha256:6176a71bf7c1352d9aa9e7f112a4ef38443079a2f435789a33dd5ae809acea1a
           imagePullPolicy: IfNotPresent
           # [Issue #6944] KEIN `serve` als Arg: der Image-Entrypoint hängt
           # `serve` selbst an (`-> opencode serve`); ein weiteres `serve`
@@ -78,9 +80,18 @@ spec:
               mountPath: /workspace
             - name: tmp
               mountPath: /tmp
+            - name: opencode-config # Provider/Modell (vLLM) aus ConfigMap
+              mountPath: /tmp/.config/opencode/opencode.json
+              subPath: opencode.json
+              readOnly: true
           env:
             - name: HOME #6941: non-root (65534) braucht beschreibbares HOME statt /root
               value: /tmp
+            - name: OPENCODE_SERVER_PASSWORD # Android/Tailnet-Basic-Auth (User opencode); Browser bleibt Pocket-ID via oauth2-proxy
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OPENCODE_SERVER_PASSWORD
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -95,6 +106,9 @@ spec:
             claimName: opencode-data
         - name: tmp #6941: beschreibbares HOME fuer UID 65534 (Praezedenz T900810)
           emptyDir: {}
+        - name: opencode-config # Provider/Modell-Konfiguration (vLLM, lokal)
+          configMap:
+            name: opencode-config
 ---
 apiVersion: v1
 kind: Service

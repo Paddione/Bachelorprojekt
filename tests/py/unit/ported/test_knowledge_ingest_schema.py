@@ -35,8 +35,14 @@ def test_document_replacement_rolls_back_failed_chunk_write(repo_root, tmp_path)
 
     source = (repo_root / "scripts/knowledge/lib-knowledge-pg.mjs").read_text()
     # Replace only the external driver boundary; execute the production writer unchanged.
-    module = tmp_path / "knowledge.mjs"
+    # The writer imports the shared dense profile + transport — mirror the layout.
+    scripts = tmp_path / "scripts"
+    (scripts / "knowledge").mkdir(parents=True)
+    (scripts / "lib").mkdir(parents=True)
+    module = scripts / "knowledge" / "knowledge.mjs"
     module.write_text(source.replace("import pg from 'pg';", "const pg = { Pool: class {} };"))
+    shutil.copy(repo_root / "scripts/knowledge/dense-client.mjs", scripts / "knowledge" / "dense-client.mjs")
+    shutil.copy(repo_root / "scripts/lib/dense-embedding.mjs", scripts / "lib" / "dense-embedding.mjs")
     code = r"""
 import { upsertDocumentAndChunks } from './knowledge.mjs';
 let state = { hash: 'old', chunks: ['old-complete'] }, snapshot, released = false;
@@ -44,6 +50,9 @@ const query = async (sql, values = []) => {
   if (/^BEGIN/i.test(sql.trim())) { snapshot = structuredClone(state); return { rows: [] }; }
   if (/^ROLLBACK/i.test(sql.trim())) { state = snapshot; return { rows: [] }; }
   if (/^COMMIT/i.test(sql.trim())) return { rows: [] };
+  if (/dense_embedding_migrations/.test(sql)) {
+    return { rows: [{ writer_locked: false, phase: 'active', target_profile: 'embeddinggemma-300m:768:Q8_0:v1' }] };
+  }
   if (/INSERT INTO knowledge.documents/.test(sql)) {
     state.hash = values[4]; return { rows: [{ id: 'doc', sha256: values[4] }] };
   }
@@ -56,12 +65,12 @@ const pool = { query, async connect() { return client; } };
 let error;
 try {
   await upsertDocumentAndChunks(pool, { collectionId: 'col', title: 'title', sourceUri: 'file:x',
-    rawText: 'new', hash: 'new', chunks: [{ position: 0, text: 'new', embedding: [1, 0] }] });
+    rawText: 'new', hash: 'new', chunks: [{ position: 0, text: 'new', embedding: Array(768).fill(0.1) }] });
 } catch (e) { error = e.message; }
 console.log(JSON.stringify({ state, released, error }));
 """
     result = subprocess.run(["node", "--input-type=module", "-e", code],
-                            cwd=tmp_path, text=True, capture_output=True, check=True)
+                            cwd=scripts / "knowledge", text=True, capture_output=True, check=True)
     data = json.loads(result.stdout)
     assert data["error"] == "injected chunk failure", "failure injection did not reach chunk write"
     assert data["state"] == {"hash": "old", "chunks": ["old-complete"]}

@@ -85,3 +85,55 @@ def test_bge_embed_bulk_emptydir_statt_rwo_pvc_t_passt_zur_cpu_quota(bulk):
     )
     assert threads == "2"
     assert limit == "2000m"
+
+
+@pytest.fixture(scope="module")
+def gemma_bulk(rendered, tmp_path_factory):
+    """select Deployment gemma-embed-bulk aus dem Rendering (als Datei fuer yq)."""
+    out = tmp_path_factory.mktemp("gemma-bulk-sel") / "gemma-bulk.yaml"
+    r = _proc([
+        "yq", "eval-all",
+        'select(.kind == "Deployment" and .metadata.name == "gemma-embed-bulk")',
+        str(rendered),
+    ])
+    out.write_text(r.stdout, encoding="utf-8")
+    return out
+
+
+def test_gemma_embed_bulk_existiert_parkt_bei_replicas_0(gemma_bulk):
+    assert gemma_bulk.read_text(encoding="utf-8").strip() != ""
+    assert _yq_eval(".spec.replicas", gemma_bulk) == "0"
+
+
+def test_gemma_embed_bulk_pods_tragen_app_gemma_embed_service_join(rendered, gemma_bulk):
+    assert _yq_eval(".spec.template.metadata.labels.app", gemma_bulk) == "gemma-embed"
+    svc = _proc([
+        "yq", "eval-all",
+        'select(.kind == "Service" and .metadata.name == "llm-gateway-gemma-embed") | .spec.selector.app',
+        str(rendered),
+    ]).stdout.strip()
+    assert svc == "gemma-embed"
+
+
+def test_gemma_embed_bulk_emptydir_statt_rwo_pvc_t_passt_zur_cpu_quota(gemma_bulk):
+    emptydir_type = _yq_eval(".spec.template.spec.volumes[0].emptyDir | type", gemma_bulk)
+    assert emptydir_type != "null"
+    pvc_count = _yq_eval(
+        "[.spec.template.spec.volumes[].persistentVolumeClaim] | map(select(. != null)) | length",
+        gemma_bulk,
+    )
+    assert pvc_count == "0"
+
+    args = _proc([
+        "yq", "eval",
+        '.spec.template.spec.containers[] | select(.name == "llama-cpp") | .args[]',
+        str(gemma_bulk),
+    ]).stdout.splitlines()
+    assert "-t" in args
+    assert args[args.index("-t") + 1] == "2"
+
+    limit = _yq_eval(
+        '.spec.template.spec.containers[] | select(.name == "llama-cpp") | .resources.limits.cpu',
+        gemma_bulk,
+    )
+    assert limit == "2000m"

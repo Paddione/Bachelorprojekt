@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(401); return res.end('unauthorized');
   }
   res.setHeader('content-type', 'application/json');
-  res.end(JSON.stringify({ data: [{ embedding: [0.1, 0.2] }] }));
+  res.end(JSON.stringify({ data: [{ embedding: Array.from({length: 768}, (_, i) => (i + 1) / 768) }] }));
 });
 server.listen(0, '127.0.0.1', () => fs.writeFileSync(out, String(server.address().port)));
 """
@@ -150,4 +150,4 @@ def test_bge_mcp_upstream_timeout_bge_embed_reicht_den_optionalen_llm_proxy_bear
         _kill(shim, stub)
 
     assert res.returncode == 0, res.output
-    assert 'dimensions\\":2' in res.output, f"Embedding kam nicht mit internem Bearer durch: {res.output}"
+    assert 'dimensions\\":768' in res.output, f"Embedding kam nicht mit internem Bearer durch: {res.output}"

@@ -28,10 +28,10 @@ beforeEach(() => {
   getSiteSetting.mockReset(); setSiteSetting.mockReset();
 });
 
-it('GET returns primary + fallback + rerankEnabled with bge-m3 default', async () => {
-  getSiteSetting.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+it('GET returns Gemma primary + null fallback + rerankEnabled (BGE ersetzt)', async () => {
+  getSiteSetting.mockResolvedValueOnce('bge-m3').mockResolvedValueOnce('voyage');
   const json = await (await GET({ request: req() } as never)).json();
-  expect(json.primary).toBe('bge-m3');
+  expect(json.primary).toBe('embeddinggemma-300m');
   expect(json.fallback).toBeNull();
   expect(json).toHaveProperty('rerankEnabled');
   expect(typeof json.rerankEnabled).toBe('boolean');
@@ -42,10 +42,12 @@ it('PUT rejects invalid primary', async () => {
   expect(r.status).toBe(400);
 });
 
-it('PUT writes bge-m3/null, rejects voyage (T016562)', async () => {
-  const ok = await PUT({ request: req({ primary: 'bge-m3', fallback: null }) } as never);
+it('PUT writes Gemma/null, rejects bge-m3 und voyage', async () => {
+  const ok = await PUT({ request: req({ primary: 'embeddinggemma-300m', fallback: null }) } as never);
   expect(ok.status).toBe(200);
   expect(setSiteSetting).toHaveBeenCalledTimes(2);
-  const bad = await PUT({ request: req({ primary: 'bge-m3', fallback: 'voyage' }) } as never);
-  expect(bad.status).toBe(400);
+  const badFallback = await PUT({ request: req({ primary: 'embeddinggemma-300m', fallback: 'voyage' }) } as never);
+  expect(badFallback.status).toBe(400);
+  const badPrimary = await PUT({ request: req({ primary: 'bge-m3', fallback: null }) } as never);
+  expect(badPrimary.status).toBe(400);
 });

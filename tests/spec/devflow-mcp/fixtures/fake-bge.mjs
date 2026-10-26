@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 // Fake bge-mcp (stdio) für die devflow-mcp-Tests [T900985].
-// bge_embed: deterministische Bag-of-Words-Vektoren (64 Dim., normiert) — ähnliche Texte liegen
-// nah beieinander, ohne Modell. bge_rerank: Score = Anzahl gemeinsamer Wörter.
+// bge_embed: deterministische Bag-of-Words-Vektoren (Standard 768 Dim., normiert) —
+// ähnliche Texte liegen nah beieinander, ohne Modell. bge_rerank: Score = Anzahl
+// gemeinsamer Wörter.
 // FAKE_BGE_LOG: Datei, an die je Embed-Aufruf "embed <n>" angehängt wird (Inkrementalitätstest).
+// FAKE_BGE_PURPOSE_LOG: Datei, an die je Embed-Aufruf "<name> <purpose>" angehängt wird
+// (Purpose-Vertrag: Index-Aufrufe liefern purpose=index, Queries purpose=query).
+// FAKE_BGE_DIM=n: abweichende Dimension (z. B. 64); Standard 768 (Gemma-Dense).
+// FAKE_BGE_BAD_DIM=1: liefert absichtlich 1024-dim-Vektoren (Schutztest).
 // FAKE_BGE_FAIL_RERANK=1: bge_rerank antwortet mit Fehler (degraded-Test).
 import readline from 'node:readline';
 import fs from 'node:fs';
 
-const DIM = 64;
+const DIM = process.env.FAKE_BGE_BAD_DIM === '1' ? 1024 : (Number(process.env.FAKE_BGE_DIM) || 768);
 let embedCalls = 0;
 const words = (s) => String(s).toLowerCase().match(/[a-z0-9_]+/g) ?? [];
 function hash(w) { let h = 2166136261; for (const c of w) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return Math.abs(h) % DIM; }
@@ -33,6 +38,7 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
     embedCalls++;
     if (process.env.FAKE_BGE_FAIL_AFTER && embedCalls > Number(process.env.FAKE_BGE_FAIL_AFTER)) return fail(m.id, 'upstream did not answer');
     if (process.env.FAKE_BGE_LOG) fs.appendFileSync(process.env.FAKE_BGE_LOG, `embed ${a.texts.length}\n`);
+    if (process.env.FAKE_BGE_PURPOSE_LOG) fs.appendFileSync(process.env.FAKE_BGE_PURPOSE_LOG, `${name} ${a.purpose ?? 'none'}\n`);
     return reply(m.id, text({ dimensions: DIM, embeddings: a.texts.map(embed) }));
   }
   if (name === 'bge_rerank') {

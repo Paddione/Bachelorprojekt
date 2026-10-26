@@ -349,3 +349,28 @@ test('alle Glieder der colbert-rerank-Kette tot -> 503 mit Grund je Glied', asyn
   assert.equal(body.error.entries.length, 2)
   assert.ok(body.error.message.includes('colbert-rerank'))
 })
+
+test('embed reicht bereits formatierte Eingaben byte-identisch durch (kein Prefix)', async (t) => {
+  // Der gemeinsame Vertrag formatiert genau einmal (embeddings.ts / MCP);
+  // der Proxy darf nichts praefixieren, kuerzen oder umschreiben.
+  let raw = '';
+  const stub = await listen((req, res) => {
+    req.on('data', (c) => { raw += c; });
+    req.on('end', () => {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end('{"data":[]}');
+    });
+  });
+  t.after(() => close(stub));
+
+  const formatted = ['task: search result | query: hallo', 'title: none | text: welt'];
+  const result = await routeRequest({
+    role: 'embed', path: '/v1/embeddings',
+    body: { model: 'embeddinggemma-300m', input: formatted },
+    chain: [{ kind: 'url', baseUrl: baseOf(stub) }],
+  });
+  assert.equal(result.status, 200);
+  assert.deepEqual(JSON.parse(raw).input, formatted);
+  assert.ok(!raw.includes('task: search result | query: task:'), 'kein doppelter Query-Prefix');
+  assert.ok(!raw.includes('title: none | text: title:'), 'kein doppelter Index-Prefix');
+});

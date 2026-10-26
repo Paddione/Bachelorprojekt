@@ -48,21 +48,21 @@ describe('ticketEmbeddingModel', () => {
   const prev = process.env.LLM_ENABLED;
   afterEach(() => { process.env.LLM_ENABLED = prev; });
 
-  it('returns bge-m3 when LLM is enabled', () => {
+  it('returns embeddinggemma-300m when LLM is enabled', () => {
     process.env.LLM_ENABLED = 'true';
-    expect(ticketEmbeddingModel()).toBe('bge-m3');
+    expect(ticketEmbeddingModel()).toBe('embeddinggemma-300m');
   });
 
-  it('returns bge-m3 regardless of LLM flag (T016562: Voyage entfernt)', () => {
+  it('returns embeddinggemma-300m regardless of LLM flag (kein Fremdanbieter)', () => {
     process.env.LLM_ENABLED = 'false';
-    expect(ticketEmbeddingModel()).toBe('bge-m3');
+    expect(ticketEmbeddingModel()).toBe('embeddinggemma-300m');
   });
 });
 
 // ─── T3: embedTicket ────────────────────────────────────────────────────────
 describe('embedTicket', () => {
   it('chunks, embeds and inserts one row per chunk tagged with model + chunk_type', async () => {
-    embedBatch.mockResolvedValueOnce({ embeddings: [Array(1024).fill(0.1)], tokens: 5 });
+    embedBatch.mockResolvedValueOnce({ embeddings: [Array(768).fill(0.1)], tokens: 5 });
     poolQuery.mockResolvedValue({ rows: [], rowCount: 1 });
 
     const n = await embedTicket('uuid-1', { title: 'Add X', description: 'Body of the ticket' });
@@ -72,8 +72,8 @@ describe('embedTicket', () => {
     const insert = poolQuery.mock.calls.find((c: unknown[]) => /INSERT INTO tickets\.ticket_embeddings/.test(c[0] as string));
     expect(insert).toBeTruthy();
     expect(insert![0]).toMatch(/embedding_model/);
-    // bound params include chunk_type 'summary' and model 'bge-m3'
-    expect(insert![1]).toEqual(expect.arrayContaining(['uuid-1', 'summary', 'bge-m3']));
+    // bound params include chunk_type 'summary' and model 'embeddinggemma-300m'
+    expect(insert![1]).toEqual(expect.arrayContaining(['uuid-1', 'summary', 'embeddinggemma-300m']));
   });
 
   it('is best-effort: an EmbeddingIndexError does not throw to the caller', async () => {
@@ -88,20 +88,27 @@ describe('embedTicket', () => {
 // ─── T4: findSimilarTickets ─────────────────────────────────────────────────
 describe('findSimilarTickets', () => {
   it('embeds the query and returns rows ranked by fn_find_similar', async () => {
-    poolQuery.mockResolvedValueOnce({ rows: [{ embedding_model: 'bge-m3' }] });       // DISTINCT model
-    embedQuery.mockResolvedValueOnce({ embedding: Array(1024).fill(0.2), tokens: 3 });
+    poolQuery.mockResolvedValueOnce({ rows: [{ embedding_model: 'embeddinggemma-300m' }] }); // DISTINCT model
+    embedQuery.mockResolvedValueOnce({ embedding: Array(768).fill(0.2), tokens: 3 });
     poolQuery.mockResolvedValueOnce({ rows: [
       { ticket_id: 'u1', external_id: 'T000100', chunk: 'x', chunk_type: 'summary', similarity: 0.91 },
     ] });
 
     const res = await findSimilarTickets('add feature X', 5);
-    expect(embedQuery).toHaveBeenCalledWith('add feature X', expect.objectContaining({ purpose: 'query', model: 'bge-m3' }));
+    expect(embedQuery).toHaveBeenCalledWith('add feature X', expect.objectContaining({ purpose: 'query', model: 'embeddinggemma-300m' }));
     expect(res[0].external_id).toBe('T000100');
   });
 
   it('throws MixedEmbeddingModelError when rows span >1 model', async () => {
-    poolQuery.mockResolvedValueOnce({ rows: [{ embedding_model: 'bge-m3' }, { embedding_model: 'voyage-multilingual-2' }] });
+    poolQuery.mockResolvedValueOnce({ rows: [{ embedding_model: 'embeddinggemma-300m' }, { embedding_model: 'bge-m3' }] });
     await expect(findSimilarTickets('q', 5)).rejects.toBeInstanceOf(MixedEmbeddingModelError);
+  });
+
+  it('fail-closed auf altem BGE-Einzelbestand statt Cross-Space-Suche', async () => {
+    const { DenseProfileError } = await import('./dense-embedding-guard.ts');
+    poolQuery.mockResolvedValueOnce({ rows: [{ embedding_model: 'bge-m3' }] });
+    await expect(findSimilarTickets('q', 5)).rejects.toBeInstanceOf(DenseProfileError);
+    expect(embedQuery).not.toHaveBeenCalled();
   });
 
   it('returns [] when there are no embeddings yet (fail-soft for Scout)', async () => {
@@ -119,7 +126,7 @@ describe('backfillTicketEmbeddings', () => {
       { id: 'u1', title: 'A', description: 'a' },
       { id: 'u2', title: 'B', description: 'b' },
     ] });
-    embedBatch.mockResolvedValue({ embeddings: [Array(1024).fill(0.1)], tokens: 1 });
+    embedBatch.mockResolvedValue({ embeddings: [Array(768).fill(0.1)], tokens: 1 });
     poolQuery.mockResolvedValue({ rows: [], rowCount: 1 }); // inserts
 
     const first = await backfillTicketEmbeddings({ batchSize: 50 });

@@ -7,11 +7,23 @@ const setPool = (__setPoolForTests as unknown as (p: unknown) => void);
 const ORIGINAL_FETCH = globalThis.fetch;
 let fetchMock: ReturnType<typeof vi.fn>;
 
+export const GEMMA_VEC = () => Array(768).fill(0.01);
+
 beforeEach(() => {
   queryMock.mockReset();
   fetchMock = vi.fn();
   globalThis.fetch = fetchMock as unknown as typeof fetch;
-  setPool({ query: (...a: unknown[]) => queryMock(...a) });
+  // Gate zuerst: aktive Gemma-Generation; sonst an den Test-Mock delegieren.
+  setPool({
+    query: (sql: unknown, ...rest: unknown[]) => {
+      if (typeof sql === 'string' && sql.includes('dense_embedding_migrations')) {
+        return Promise.resolve({
+          rows: [{ writer_locked: false, phase: 'active', target_profile: 'embeddinggemma-300m:768:Q8_0:v1' }],
+        });
+      }
+      return queryMock(sql, ...rest);
+    },
+  });
 });
 afterEach(() => {
   globalThis.fetch = ORIGINAL_FETCH;
@@ -21,7 +33,7 @@ describe('codesearch-db', () => {
   it('searchCode: embeds via /v1/embeddings + SELECT ORDER BY distance', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: [{ embedding: [0.1, 0.2, 0.3] }] }),
+      json: async () => ({ data: [{ embedding: GEMMA_VEC() }] }),
     });
     queryMock.mockResolvedValueOnce({
       rows: [
@@ -40,7 +52,7 @@ describe('codesearch-db', () => {
     expect(sql).toMatch(/FROM code_embeddings/);
     expect(sql).toMatch(/ORDER BY embedding <=> \$1/);
     expect((params[0] as string).startsWith('[')).toBe(true);
-    expect(params[0]).toContain('0.1,0.2,0.3');
+    expect((params[0] as string).split(',')).toHaveLength(768);
     // T002317: Die Vektorsuche holt bewusst MEHR als das angefragte Limit
     // (5 x RERANK_CANDIDATE_FACTOR = 40). Der Reranker kann nur umsortieren,
     // was die erste Stufe geliefert hat — ein zu enges SQL-LIMIT wuerde ihm
@@ -57,7 +69,7 @@ describe('codesearch-db', () => {
   it('searchCodeAugmented: returns the initial results when there are none', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: [{ embedding: [0.1] }] }),
+      json: async () => ({ data: [{ embedding: GEMMA_VEC() }] }),
     });
     queryMock.mockResolvedValueOnce({ rows: [] });
     // imported at top
@@ -68,7 +80,7 @@ describe('codesearch-db', () => {
   it('searchCodeAugmented: dedupes neighbor paths and caps at limit*2', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: [{ embedding: [0.1] }] }),
+      json: async () => ({ data: [{ embedding: GEMMA_VEC() }] }),
     });
     queryMock
       .mockResolvedValueOnce({ rows: [{ file_path: 'src/a.ts', chunk_index: 0, content: 'a', score: 0.9 }] })
@@ -103,7 +115,7 @@ describe('codesearch-db: reranking (T002317)', () => {
   it('sortiert die Vektor-Treffer nach dem Reranker-Score um', async () => {
     fetchMock.mockResolvedValueOnce({            // /v1/embeddings
       ok: true,
-      json: async () => ({ data: [{ embedding: [0.1, 0.2] }] }),
+      json: async () => ({ data: [{ embedding: GEMMA_VEC() }] }),
     });
     queryMock.mockResolvedValueOnce({
       rows: [
@@ -135,7 +147,7 @@ describe('codesearch-db: reranking (T002317)', () => {
   it('liefert das Vektor-Ranking, wenn der Reranker ausfaellt (fail-soft)', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: [{ embedding: [0.1] }] }),
+      json: async () => ({ data: [{ embedding: GEMMA_VEC() }] }),
     });
     queryMock.mockResolvedValueOnce({
       rows: [
@@ -153,7 +165,7 @@ describe('codesearch-db: reranking (T002317)', () => {
 
   it('respektiert das angefragte Limit nach dem Reranking', async () => {
     fetchMock.mockResolvedValueOnce({
-      ok: true, json: async () => ({ data: [{ embedding: [0.1] }] }),
+      ok: true, json: async () => ({ data: [{ embedding: GEMMA_VEC() }] }),
     });
     queryMock.mockResolvedValueOnce({
       rows: Array.from({ length: 10 }, (_, i) => ({
@@ -172,17 +184,20 @@ describe('codesearch-db: reranking (T002317)', () => {
     expect(out[0].path).toBe('src/f9.ts');
   });
 
-  it('nutzt llm-gateway-embed und das Modell bge-m3 (T002317)', async () => {
+  it('nutzt llm-gateway-embed mit Gemma-Modell, Query-Prompt und Purpose (T002317)', async () => {
     process.env.LLM_EMBED_URL = 'http://embed.test:8095';
     fetchMock.mockResolvedValueOnce({
-      ok: true, json: async () => ({ data: [{ embedding: [0.1] }] }),
+      ok: true, json: async () => ({ data: [{ embedding: GEMMA_VEC() }] }),
     });
     queryMock.mockResolvedValueOnce({ rows: [] });
 
     await searchCode('x', 1);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('http://embed.test:8095/v1/embeddings');
-    expect(JSON.parse((init as { body: string }).body).model).toBe('bge-m3');
+    const body = JSON.parse((init as { body: string }).body);
+    expect(body.model).toBe('embeddinggemma-300m');
+    expect(body.input).toEqual(['task: search result | query: x']);
+    expect((init as { headers: Record<string, string> }).headers).toMatchObject({ 'X-LLM-Purpose': 'query' });
     delete process.env.LLM_EMBED_URL;
   });
 });

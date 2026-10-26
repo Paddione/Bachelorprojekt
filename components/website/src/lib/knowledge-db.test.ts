@@ -29,6 +29,19 @@ beforeAll(async () => {
   });
   pgmem.public.none(`
     CREATE TABLE public.brands (id text PRIMARY KEY);
+    CREATE TABLE public.dense_embedding_migrations (
+      run_id TEXT PRIMARY KEY,
+      source_profile TEXT NOT NULL,
+      target_profile TEXT NOT NULL,
+      phase TEXT NOT NULL DEFAULT 'prepared',
+      writer_locked BOOLEAN NOT NULL DEFAULT true,
+      active BOOLEAN NOT NULL DEFAULT false,
+      source_fingerprint TEXT,
+      counters JSONB NOT NULL DEFAULT '{}',
+      manifest JSONB NOT NULL DEFAULT '{}',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
     CREATE SCHEMA knowledge;
     CREATE TABLE knowledge.collections (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -70,6 +83,11 @@ beforeAll(async () => {
   const { Pool } = pgmem.adapters.createPg();
   pool = new Pool();
   kdb.__setPoolForTests(pool as unknown as Pool);
+  await pool.query(
+    `INSERT INTO public.dense_embedding_migrations
+       (run_id, source_profile, target_profile, phase, writer_locked, active, source_fingerprint)
+     VALUES ('test-active', 'bge-m3:1024:Q8_0:v1', 'embeddinggemma-300m:768:Q8_0:v1', 'active', false, true, 'test')`,
+  );
 });
 
 afterAll(() => pool.end());
@@ -93,12 +111,28 @@ describe('knowledge-db', () => {
     const c = await kdb.createCollection({ name: 'test', source: 'custom' });
     const d = await kdb.addDocument({ collectionId: c.id, title: 't', sourceUri: 'paste:1', rawText: 'hi' });
     await kdb.upsertChunks(c.id, d.id, [
-      { position: 0, text: 'hi', embedding: Array(1024).fill(0) },
-      { position: 1, text: 'ho', embedding: Array(1024).fill(0) },
+      { position: 0, text: 'hi', embedding: Array(768).fill(0.01) },
+      { position: 1, text: 'ho', embedding: Array(768).fill(0.02) },
     ]);
     await kdb.recountChunks(c.id);
     const list = await kdb.listCollections();
     expect(list[0].chunk_count).toBe(2);
+  });
+
+  test('upsertChunks rejects 1024D/NaN/null/count-mismatch before SQL', async () => {
+    const c = await kdb.createCollection({ name: 'test-bad', source: 'custom' });
+    const d = await kdb.addDocument({ collectionId: c.id, title: 't', sourceUri: 'paste:2', rawText: 'hi' });
+    await expect(kdb.upsertChunks(c.id, d.id, [
+      { position: 0, text: 'hi', embedding: Array(1024).fill(0.01) },
+    ])).rejects.toThrow();
+    await expect(kdb.upsertChunks(c.id, d.id, [
+      { position: 0, text: 'hi', embedding: Array(768).fill(Number.NaN) },
+    ])).rejects.toThrow();
+    await expect(kdb.upsertChunks(c.id, d.id, [
+      { position: 0, text: 'hi', embedding: Array(768).fill(0) },
+    ])).rejects.toThrow();
+    const list = await kdb.listCollections();
+    expect(list.find(x => x.id === c.id)?.chunk_count).toBe(0);
   });
 
   test('deleteCollection refuses non-custom', async () => {
@@ -123,39 +157,53 @@ describe('knowledge-db — model-aware query path', () => {
   });
 
   test('queryNearest reads embedding_model from collection and passes to embedQuery', async () => {
-    const c = await kdb.createCollection({ name: 'kn-bge', source: 'custom', embeddingModel: 'bge-m3' });
+    const c = await kdb.createCollection({ name: 'kn-gemma', source: 'custom', embeddingModel: 'embeddinggemma-300m' });
     const calls: Array<{ text: string; model?: string; purpose?: string }> = [];
     const embedMod = await import('./embeddings.ts');
     vi.spyOn(embedMod, 'embedQuery').mockImplementationOnce(async (text, opts) => {
       calls.push({ text, model: opts?.model, purpose: opts?.purpose });
-      return { embedding: Array(1024).fill(0.01), tokens: 1 };
+      return { embedding: Array(768).fill(0.01), tokens: 1 };
     });
     await kdb.queryNearest({ collectionIds: [c.id], queryText: 'hallo' }).catch(() => {});
     expect(calls).toHaveLength(1);
-    expect(calls[0]).toMatchObject({ text: 'hallo', model: 'bge-m3', purpose: 'query' });
+    expect(calls[0]).toMatchObject({ text: 'hallo', model: 'embeddinggemma-300m', purpose: 'query' });
     vi.restoreAllMocks();
   });
 
-  test('queryNearest throws MixedEmbeddingModelError when collectionIds disagree on model', async () => {
-    const a = await kdb.createCollection({ name: 'kn-bge-x', source: 'custom', embeddingModel: 'bge-m3' });
-    // T016562: voyage-Collections entstehen nicht mehr via API — historische
-    // Zeile direkt anlegen, um die Cross-Space-Ablehnung weiter zu prüfen.
+  test('queryNearest fail-closed auf alter BGE-Collection', async () => {
     const r = await pool.query(
       `INSERT INTO knowledge.collections (name, source, embedding_model) VALUES ($1, $2, $3) RETURNING id`,
-      ['kn-vy-x', 'custom', 'voyage-multilingual-2'],
+      ['kn-old', 'custom', 'bge-m3'],
+    );
+    const oldId = r.rows[0].id as string;
+    await expect(kdb.queryNearest({ collectionIds: [oldId], queryText: 'hallo' }))
+      .rejects.toThrow(/DenseProfileError/);
+  });
+
+  test('queryNearest throws MixedEmbeddingModelError when collectionIds disagree on model', async () => {
+    const a = await kdb.createCollection({ name: 'kn-gemma-x', source: 'custom' });
+    // Historische BGE-Zeile direkt anlegen — API lehnt alte Labels laengst ab.
+    const r = await pool.query(
+      `INSERT INTO knowledge.collections (name, source, embedding_model) VALUES ($1, $2, $3) RETURNING id`,
+      ['kn-bge-x', 'custom', 'bge-m3'],
     );
     const bId = r.rows[0].id as string;
     await expect(kdb.queryNearest({ collectionIds: [a.id, bId], queryText: 'q' }))
       .rejects.toThrow(/MixedEmbeddingModelError/);
   });
 
-  test('createCollection defaults to bge-m3 regardless of LLM_ENABLED (T016562)', async () => {
+  test('createCollection defaults to Gemma regardless of LLM_ENABLED', async () => {
     process.env.LLM_ENABLED = 'true';
-    const a = await kdb.createCollection({ name: 'kn-default-bge', source: 'custom' });
-    expect(a.embedding_model).toBe('bge-m3');
+    const a = await kdb.createCollection({ name: 'kn-default-gemma', source: 'custom' });
+    expect(a.embedding_model).toBe('embeddinggemma-300m');
     process.env.LLM_ENABLED = 'false';
-    const b = await kdb.createCollection({ name: 'kn-default-bge-too', source: 'custom' });
-    expect(b.embedding_model).toBe('bge-m3');
+    const b = await kdb.createCollection({ name: 'kn-default-gemma-too', source: 'custom' });
+    expect(b.embedding_model).toBe('embeddinggemma-300m');
+  });
+
+  test('createCollection rejects foreign embeddingModel', async () => {
+    await expect(kdb.createCollection({ name: 'kn-foreign', source: 'custom', embeddingModel: 'bge-m3' as never }))
+      .rejects.toThrow(/DenseProfileError/);
   });
 });
 
@@ -223,7 +271,7 @@ describe('ensureCollection', () => {
 // which is out of scope for this in-memory DB test harness.
 
 describe('mergeCollections', () => {
-  async function seedCollection(name: string, source: 'custom' | 'web_crawl' | 'pr_history', chunks: number, model = 'voyage-multilingual-2') {
+  async function seedCollection(name: string, source: 'custom' | 'web_crawl' | 'pr_history', chunks: number, model = 'embeddinggemma-300m') {
     const r = await pool.query(
       `INSERT INTO knowledge.collections (name, source, chunk_count, embedding_model)
        VALUES ($1, $2, $3, $4) RETURNING id`,

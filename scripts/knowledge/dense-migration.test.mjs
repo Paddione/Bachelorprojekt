@@ -176,7 +176,7 @@ function makeFakeDb({ knowledge, code, failOn = null, extraFKs = [] } = {}) {
       }
       return { rows: [] };
     }
-    if (s.includes('AS sid, part_index, text, embedding, profile FROM')) {
+    if (s.includes('AS sid, part_index,') && s.includes(', embedding, profile FROM')) {
       const name = s.match(/FROM (\S+)/)[1];
       return { rows: (tables[name] ?? []).map((r) => ({ sid: r.source_chunk_id ?? r.source_row_id, part_index: r.part_index, text: r.text ?? r.content, embedding: r.embedding, profile: r.profile })) };
     }
@@ -305,6 +305,18 @@ test('verify verlangt Coverage, Rekonstruktion, 768D und Fingerprint', async () 
   db.tables['knowledge.chunks_gemma_v1'][0].profile = 'bge-m3:1024:Q8_0:v1';
   await setPhase(db, 'v1', 'indexing');
   await assert.rejects(verify(db, 'v1'), /Fremdprofil/);
+});
+
+test('verify liest Code-Shadow ueber content-Spalte (E2E: column text does not exist)', async () => {
+  const db = makeFakeDb();
+  await prepare(db, 'w1');
+  await reindexKnowledge({ pool: db, embedUrl: 'http://x', fetchImpl: makeFakeFetch(), runId: 'w1' });
+  await reindexCode({ pool: db, embedUrl: 'http://x', fetchImpl: makeFakeFetch(), runId: 'w1' });
+  db.log.length = 0;
+  await verify(db, 'w1');
+  const sel = db.log.filter((s) => s.includes('public.code_embeddings_gemma_w1') && s.includes('AS sid'));
+  assert.equal(sel.length, 1);
+  assert.match(sel[0].replace(/\s+/g, ' '), /content AS text/i);
 });
 
 test('verify erkennt Drift und Null-Vektoren', async () => {

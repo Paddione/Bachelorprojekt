@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.433.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.433.0...website-v1.433.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **scripts:** multi-project receipts, subdir roots, artifact-stable fingerprints ([#6895](https://github.com/Paddione/Bachelorprojekt/issues/6895)) ([2f17559](https://github.com/Paddione/Bachelorprojekt/commit/2f1755988b75460cd58208d1cfe145cbfbb7327a))
+
 ## [1.433.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.432.0...website-v1.433.0) (2026-10-25)
 
 

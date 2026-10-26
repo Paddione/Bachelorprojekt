@@ -37,6 +37,8 @@ def main() -> None:
     ap.add_argument("--out", default=None)
     ap.add_argument("--max-seq-length", type=int, default=512)
     ap.add_argument("--batch-size", type=int, default=32)
+    ap.add_argument("--dims", default="768,512,256,128",
+                    help="Comma-separated Matryoshka dims to score (truncate + renormalize).")
     ap.add_argument("--check-only", action="store_true")
     args = ap.parse_args()
 
@@ -53,25 +55,44 @@ def main() -> None:
                                 device="cpu" if not torch.cuda.is_available() else None)
     model.max_seq_length = args.max_seq_length
 
-    def sim(a: str, b: str) -> float:
+    import numpy as np
+
+    dims = [int(d) for d in args.dims.split(",") if d.strip()]
+
+    def trunc(e: np.ndarray, d: int) -> np.ndarray:
+        v = e[:d]
+        n = float((v * v).sum() ** 0.5) or 1.0
+        return v / n
+
+    def sim(a: str, b: str, d: int) -> float:
         e = model.encode([a, b], normalize_embeddings=True)
-        return float((e[0] * e[1]).sum())
+        ea, eb = trunc(np.asarray(e[0]), d), trunc(np.asarray(e[1]), d)
+        return float((ea * eb).sum())
 
-    per_task: dict[str, list[bool]] = {}
-    margins: list[float] = []
-    for r in rows:
-        sp = sim(r["anchor"], r["positive"])
-        sn = sim(r["anchor"], r["negative"])
-        ok = sp > sn
-        per_task.setdefault(r["task"], []).append(ok)
-        margins.append(sp - sn)
+    by_dim: dict[str, dict] = {}
+    for d in dims:
+        per_task: dict[str, list[bool]] = {}
+        margins: list[float] = []
+        for r in rows:
+            sp = sim(r["anchor"], r["positive"], d)
+            sn = sim(r["anchor"], r["negative"], d)
+            ok = sp > sn
+            per_task.setdefault(r["task"], []).append(ok)
+            margins.append(sp - sn)
+        by_dim[str(d)] = {
+            "accuracy": sum(v for vs in per_task.values() for v in vs) / len(rows),
+            "mean_margin": statistics.mean(margins),
+            "per_task": {t: sum(vs) / len(vs) for t, vs in per_task.items()},
+        }
 
+    full = by_dim[str(dims[0])]
     report = {
         "model": args.model,
         "rows": len(rows),
-        "accuracy": sum(v for vs in per_task.values() for v in vs) / len(rows),
-        "mean_margin": statistics.mean(margins),
-        "per_task": {t: sum(vs) / len(vs) for t, vs in per_task.items()},
+        "accuracy": full["accuracy"],
+        "mean_margin": full["mean_margin"],
+        "per_task": full["per_task"],
+        "by_dim": by_dim,
     }
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)

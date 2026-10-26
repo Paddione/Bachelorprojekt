@@ -1,6 +1,8 @@
-# NUR VIA TASK DEPLOYEN [T901777]: Datei enthaelt Escapes/Platzhalter fuer den Task/Flux-Render-Pfad. Direktes 'kubectl apply -f' hinterlaesst Literale (siehe k3d/README.md).
 # ─────────────────────────────────────────────────────────────────────────────
 # llm-retrieval-maxsim: ColBERT-MaxSim-Rerank als Kubernetes-Dienst (CPU)
+# Raw-apply-faehig wie llm-retrieval-gpu.yaml: JS ohne Template-Literale
+# (String-Verkettung), direkt per task llm:deploy-retrieval ausrollbar,
+# keine Render-Pipeline noetig.
 #
 # Cluster-Nachfolger des Desktop-Python-APIs scripts/colbert_rerank.py
 # (:8093, Dotfiles-Repo): Der Proxy reicht den kanonischen Pfad
@@ -83,13 +85,13 @@ data:
     }
 
     async function embedTokens(text) {
-      const res = await fetch(`$${UPSTREAM}/embedding`, {
+      const res = await fetch(UPSTREAM + '/embedding', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ content: text }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
-      if (!res.ok) throw new Error(`upstream $${res.status}`);
+      if (!res.ok) throw new Error('upstream ' + res.status);
       return toTokenMatrix(await res.json());
     }
 
@@ -148,12 +150,12 @@ data:
         }
         return sendJson(res, 404, { error: { code: 'not_found', message: path } });
       })().catch((err) => {
-        console.error(`[maxsim] $${err && err.message ? err.message : err}`);
+        console.error('[maxsim] ' + (err && err.message ? err.message : err));
         sendJson(res, 500, { error: String(err && err.message ? err.message : err) });
       });
     });
 
-    server.listen(PORT, '0.0.0.0', () => console.error(`[maxsim] listening on :$${PORT} upstream=$${UPSTREAM}`));
+    server.listen(PORT, '0.0.0.0', () => console.error('[maxsim] listening on :' + PORT + ' upstream=' + UPSTREAM));
 ---
 apiVersion: apps/v1
 kind: Deployment

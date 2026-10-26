@@ -92,10 +92,9 @@ export const POST: APIRoute = async ({ request, params }) => {
     }), { status: 202 });
   }
 
-  // T016562: Voyage entfernt — Index läuft immer mit bge-m3 (Bestand wird
-  // per Reindex umgestellt; Cross-Space-Queries wirft MixedEmbeddingModelError).
+  // Index laeuft immer im aktiven Gemma-Profil (Default); Bestand wird per
+  // dense-migration umgestellt, Cross-Space wirft Profilfehler.
   const { embeddings } = await embedBatch(chunks.map(c => c.text), {
-    model: 'bge-m3',
     purpose: 'index',
   });
   await upsertChunks(collection.id, doc.id, chunks.map((c, i) => ({

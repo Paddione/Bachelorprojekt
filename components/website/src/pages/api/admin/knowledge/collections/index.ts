@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { createCollection, listCollections, isVectorStoreEnabled, VectorStoreDisabledError, type CrawlConfig } from '../../../../../lib/knowledge-db';
+import type { EmbeddingModel } from '../../../../../lib/embeddings.ts';
+import { DENSE_MODEL } from '../../../../../../../../scripts/lib/dense-embedding.mjs';
 
 export const GET: APIRoute = async ({ request }) => {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
@@ -38,7 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
     description?: string;
     brand?: string | null;
     source?: string;
-    embeddingModel?: 'bge-m3';
+    embeddingModel?: EmbeddingModel;
     crawlConfig?: CrawlConfig;
   };
 
@@ -71,6 +73,13 @@ export const POST: APIRoute = async ({ request }) => {
         { status: 400 },
       );
     }
+  }
+
+  if (body.embeddingModel !== undefined && body.embeddingModel !== DENSE_MODEL) {
+    return new Response(
+      JSON.stringify({ error: `embeddingModel muss ${DENSE_MODEL} sein` }),
+      { status: 400 },
+    );
   }
 
   try {

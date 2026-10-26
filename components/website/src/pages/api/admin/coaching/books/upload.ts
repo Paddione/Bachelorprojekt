@@ -88,9 +88,8 @@ export const POST: APIRoute = async ({ request , locals }) => {
     // Chunk
     const chunks = chunkText(text, { mode: 'plain', targetTokens: 600, overlapTokens: 80 });
 
-    // Embed (T016562: Voyage entfernt — immer lokales bge-m3)
-    const model = 'bge-m3';
-    const { embeddings } = await embedBatch(chunks.map((c) => c.text), { model, purpose: 'index' });
+    // Embed im aktiven Gemma-Profil (Default); Writer-Gate und Count-Pruefung in upsertChunks.
+    const { embeddings } = await embedBatch(chunks.map((c) => c.text), { purpose: 'index' });
 
     // Page approximation
     const totalChunks = chunks.length;

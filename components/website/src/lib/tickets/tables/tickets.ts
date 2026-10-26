@@ -6,6 +6,7 @@
 // (G-RH01 Batch 2 — T001155).
 import type { Pool, PoolClient } from 'pg';
 import { ensureCockpitViews } from '../cockpit-schema';
+import { DENSE_DIMENSIONS } from '../../../../../../scripts/lib/dense-embedding.mjs';
 
 export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<void> {
   await pool.query(`
@@ -238,7 +239,8 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_attachments_ticket_idx ON tickets.ticket_attachments (ticket_id)`);
 
   // Phase 1: pgvector-backed embedding table for semantic
-  // search across ticket content. bge-m3 produces 1024-dimensional vectors.
+  // search across ticket content. Das aktive Gemma-Profil liefert
+  // DENSE_DIMENSIONS-dimensionale Vektoren (frueher BGE/bge-m3 mit 1024).
   // chunk_type classifies the embedded content: summary (title+desc), spec
   // (design docs), decision (architectural choices), lesson (post-mortem).
   // T016560: guarded by pgvector type existence because prod shared-db runs plain Postgres.
@@ -255,7 +257,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
         chunk         TEXT NOT NULL,
         chunk_type    TEXT NOT NULL DEFAULT 'summary'
                       CHECK (chunk_type IN ('summary','spec','decision','lesson')),
-        embedding     VECTOR(1024),
+        embedding     VECTOR(${DENSE_DIMENSIONS}),
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
       )
     `);
@@ -263,12 +265,13 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
     await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_chunk_type_idx ON tickets.ticket_embeddings (chunk_type)`);
 
     // Phase 1: tag each embedding row with the model that
-    // produced it. T016562: nur noch bge-m3 (Voyage-Bestand wird per Reindex
-    // umgestellt). Vektor spaces sind NICHT mischbar — search MUST never
-    // compare across models (see findSimilarTickets / MixedEmbeddingModelError).
+    // produced it. Nur noch das aktive Gemma-Profil (Bestand wird per
+    // dense-migration umgestellt). Vektor spaces sind NICHT mischbar — search
+    // MUST never compare across models (see findSimilarTickets /
+    // MixedEmbeddingModelError).
     await pool.query(`ALTER TABLE tickets.ticket_embeddings ADD COLUMN IF NOT EXISTS embedding_model TEXT`);
 
-    // HNSW index for cosine similarity search. bge-m3 embeddings should be
+    // HNSW index for cosine similarity search. Embeddings should be
     // normalized before storage so cosine distance is meaningful.
     // m=16, ef_construction=64 are sane defaults for up to ~100k embeddings.
     await pool.query(`
@@ -282,7 +285,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
     // Usage: SELECT * FROM tickets.fn_find_similar(query_embedding, 5);
     await pool.query(`
       CREATE OR REPLACE FUNCTION tickets.fn_find_similar(
-        query_embedding VECTOR(1024),
+        query_embedding VECTOR(${DENSE_DIMENSIONS}),
         limit_count INTEGER DEFAULT 5
       ) RETURNS TABLE(
         ticket_id UUID,

@@ -5,6 +5,7 @@
 // anpassen müssen. Der frühere Body von initTicketsSchema/isFeatureEnabled
 // lebt jetzt in tickets-schema.ts — siehe G-CQ07 (S2-Import-Zyklus #1).
 import type { EmbeddingModel } from './embeddings.ts';
+import { DENSE_MODEL } from '../../../../scripts/lib/dense-embedding.mjs';
 
 export {
   initTicketsSchema,
@@ -12,8 +13,8 @@ export {
   MixedEmbeddingModelError,
 } from './tickets-schema';
 
-/** The embedding model this environment writes/queries with. T016562: immer
- *  bge-m3 (lokal, Voyage entfernt). Mirrors knowledge-db.ts. */
+/** The embedding model this environment writes/queries with: das aktive
+ *  Gemma-Dense-Profil. Mirrors knowledge-db.ts. */
 export function ticketEmbeddingModel(): EmbeddingModel {
-  return 'bge-m3';
+  return DENSE_MODEL;
 }

@@ -1,0 +1,113 @@
+name: Render Korczewski Prod Artifact
+
+# Zweite Instanz des Render-Vertrags aus ADR-016 D3, strukturgleich zu
+# render-devmesh-artifact.yml. Der Workflow-Name und der Dateiname sind der
+# Anker, den flux/clusters/korczewski-prod/oci-source.yaml per
+# matchOIDCIdentity pinnt — hier nichts umbenennen.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'korczewski-prod/**'
+      - 'flux/clusters/korczewski-prod/**'
+      - 'k3d/**'
+      - 'prod-fleet/website-korczewski/**'
+      - 'prod-fleet/website-common/**'
+      - 'environments/korczewski-prod.yaml'
+      - 'environments/schema.yaml'
+      - 'environments/sealed-secrets/korczewski-prod.yaml'
+      - 'scripts/korczewski-prod/**'
+      - 'scripts/env-resolve.sh'
+      - 'scripts/lib/render-subst-list.sh'
+      - '.github/workflows/render-korczewski-prod-artifact.yml'
+  workflow_dispatch:
+
+concurrency:
+  # Ein abgebrochener Signatur-Lauf hinterlaesst ein unsigniertes Tag.
+  group: render-korczewski-prod-artifact
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  render-push-korczewski-prod:
+    name: Render, push, and sign korczewski-prod OCI artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-tags: false
+
+      - name: Install tools (kustomize, yq, flux CLI, cosign)
+        run: |
+          set -euo pipefail
+          rm -f /usr/local/bin/kustomize
+          curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
+            | bash -s -- 5.4.3 /usr/local/bin
+          if ! command -v yq >/dev/null 2>&1; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+          curl -sSL https://fluxcd.io/install.sh | sudo bash
+          COSIGN_VERSION=3.1.3
+          COSIGN_SHA256=4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71
+          curl -sSL "https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-amd64" \
+            -o /usr/local/bin/cosign
+          echo "${COSIGN_SHA256}  /usr/local/bin/cosign" | sha256sum -c -
+          chmod +x /usr/local/bin/cosign
+
+      # Bewusst kein scripts/ci-dummy-secrets.sh (anders als der devmesh-Workflow):
+      # das Skript erzeugt k3d/secrets.yaml und k3d/backup-secrets.yaml, und
+      # k3d/secrets.yaml wird ausschliesslich von k3d/kustomization.yaml
+      # referenziert — das liegt nicht in der Render-Huelle dieses Artefakts
+      # (grep -n 'secrets.yaml' prod-fleet/website-korczewski/kustomization.yaml
+      # liefert keinen Treffer). Der Prod-Render kommt ohne Klartext-Secrets aus;
+      # der Klartext-Secret-Guard im Renderer (Guard 6) wuerde ein Dummy ohnehin
+      # abweisen. Secrets sind hier nur die SealedSecrets-Kopie.
+      - name: Render korczewski-prod stack
+        run: bash scripts/korczewski-prod/render-stack.sh --out ./out
+
+      - name: Render-Gate (no foreign refs, no mutable tag)
+        run: |
+          set -euo pipefail
+          if grep -rnE 'mentolder\.de|fleet-manifests|workspace-dev|devmesh\.korczewski\.de|:latest' out/; then
+            echo "ERROR: Forbidden reference or mutable tag found in out/" >&2
+            exit 1
+          fi
+
+      - name: Log in to GHCR
+        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7  # v5
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push OCI artifact
+        id: push-artifact
+        run: |
+          set -euo pipefail
+          OUT="$(flux push artifact \
+            oci://ghcr.io/paddione/korczewski-prod-manifests:latest \
+            --path=./out \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="${GITHUB_REF_NAME}@sha1:${GITHUB_SHA}" \
+            --output json)"
+          echo "$OUT"
+          echo "digest=$(printf '%s' "$OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["digest"])')" >> "$GITHUB_OUTPUT"
+          flux tag artifact \
+            oci://ghcr.io/paddione/korczewski-prod-manifests:latest \
+            --tag "sha-${GITHUB_SHA}"
+          # Immutable Semver-Zeiger wie fleet (v0.0.<RUN_NUMBER>).
+          flux tag artifact \
+            oci://ghcr.io/paddione/korczewski-prod-manifests:latest \
+            --tag "v0.0.${GITHUB_RUN_NUMBER}"
+
+      - name: Sign OCI artifact (cosign keyless)
+        run: |
+          set -euo pipefail
+          cosign sign --yes \
+            "ghcr.io/paddione/korczewski-prod-manifests@${{ steps.push-artifact.outputs.digest }}"

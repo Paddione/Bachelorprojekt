@@ -248,3 +248,23 @@ Worktree parallel p1–p4 arbeiten. Danach der Commit.
 Verify: `bash -n scripts/korczewski-prod/render-stack.sh && [ "$(wc -l < scripts/korczewski-prod/render-stack.sh)" -le 800 ] && yq -e '.jobs' .github/workflows/render-korczewski-prod-artifact.yml >/dev/null && bash scripts/lint-workflows.sh >/dev/null && rm -rf /tmp/kp-out && bash scripts/korczewski-prod/render-stack.sh --out /tmp/kp-out && ! grep -rqE 'mentolder\.de|fleet-manifests|workspace-dev|devmesh\.korczewski\.de|cluster-admin|:latest' /tmp/kp-out && echo OK`
 
 Commit: `feat(infra): korczewski-prod Render- und Artefakt-Pipeline`
+
+## Abweichungen bei der Ausführung (2026-10-26)
+
+- **`flux/clusters/korczewski-prod/**` steht zusätzlich in den Triggern.** design §8 nennt den Pfad,
+  Task 5 zählt ihn nicht auf (dort nur `korczewski-prod/**`); eine Umbenennung der `path:`-Felder in
+  `ks-*.yaml` soll aber einen Re-Push auslösen. Die übrige Liste ist die Schnittmenge aus design §8
+  und den Abhängigkeiten, die der Renderer tatsächlich liest.
+- **Guard 1 und Guard 6 prüfen dateiweise, Guard 1 endet auf `.kind` statt auf einem String-Literal.**
+  `yq` v4.53.3 wertet ein String-Literal nach `select(...)` je Dokument unabhängig vom `select` aus:
+  `yq ea 'select(.apiVersion == "") | "doc ohne apiVersion"'` liefert auch für einen gesunden Baum
+  eine Zeile und hätte den Guard dauerhaft rot gemacht (beim Ausführen am 2026-10-26 aufgefallen).
+  Jetzt `select((.apiVersion // "") == "") | .kind`, also ein datenabhängiger Pfad; leere Ausgabe =
+  kein Befund. Nebeneffekt: der Befund nennt die Datei, was die Task-4-Vorgabe „plus den betroffenen
+  Dateien" für diesen Guard sonst nicht erfüllt hätte.
+- **stdout-Reihenfolge: Secrets zuletzt.** Der Partial nennt in einem Satz die Flux-Kette
+  (`cluster-bootstrap → platform → secrets → apps`) und direkt danach „Secrets zuletzt". Beides
+  zugleich geht nicht; die Kette steht in design §2 und gilt für `dependsOn`, die vier Teile liegen im
+  Artefakt aber in getrennten Dateien, die Reihenfolge im Strom hat dort keine Semantik. Der Renderer
+  folgt deshalb der Begründung des Partials und setzt den Ciphertext ans Ende; die Begründung steht
+  als Kommentar im Block, der den Strom schreibt.

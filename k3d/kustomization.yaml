@@ -89,6 +89,8 @@ resources:
   # See k3d/cronjob-systemtest-cleanup.yaml.
   # LLM-Gateway (GPU-Host via Docker-Bridge / wg-mesh)
   - llm-gpu.yaml
+  # EmbeddingGemma-Dense (parallel zu BGE, Shadow-Reindex-Ziel)
+  - llm-gemma-embed.yaml
   # LFM2.5 Retrieval (Embedding + ColBERT) auf gpu-metal — Nachfolger der
   # Desktop-Dienste :8095/:8097, Desktop sieht localhost via Port-Forward.
   - llm-retrieval-gpu.yaml

@@ -769,7 +769,7 @@ secrets:
     length: 32
 
   - name: OPENCODE_SERVER_PASSWORD
-    required: true
+    required: false # devmesh-only (opencode serve laeuft nur dort); kein Fleet-Key
     generate: true
     length: 32
     description: "Basic-Auth-Passwort (User opencode) fuer opencode serve auf devmesh (Android via Tailscale, #6944-Follow-up). Retrieve via kubectl get secret workspace-secrets -n workspace -o jsonpath='{.data.OPENCODE_SERVER_PASSWORD}' | base64 -d."

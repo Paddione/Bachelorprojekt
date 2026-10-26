@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.437.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.436.0...website-v1.437.0) (2026-10-26)
+
+
+### Features
+
+* **infra:** public opencode web UI on devmesh behind Pocket ID SSO ([#6931](https://github.com/Paddione/Bachelorprojekt/issues/6931)) ([caf3594](https://github.com/Paddione/Bachelorprojekt/commit/caf3594ed75f6504bf387dc9b2da3478167e1640))
+
 ## [1.436.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.435.0...website-v1.436.0) (2026-10-26)
 
 

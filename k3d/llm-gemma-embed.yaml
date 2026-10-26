@@ -60,6 +60,10 @@ spec:
       labels:
         app: gemma-embed
     spec:
+      # Nur Nodes mit Longhorn-Treiber (Label storage=true): gpu-cluster hat
+      # keinen CSI-Treiber, RWO-PVC waere dort nie attachbar (E2E-Fund p1.5).
+      nodeSelector:
+        storage: "true"
       # fsGroup 101: curlimages/curl laeuft als uid=100/gid=101 (curl_user),
       # sonst scheitert der InitContainer auf Longhorn-RWO mit Permission denied.
       # SA-GR-06: runAsNonRoot auf Pod-Ebene, explizite UIDs auf Container-Ebene.
@@ -199,6 +203,10 @@ spec:
         app: gemma-embed
         pool: bulk
     spec:
+      # Wie Hauptdeployment: nur Longhorn-Nodes (storage=true), auch wenn der
+      # Bulk-Pool mit emptyDir ohne PVC auskommt — einheitliches Placement.
+      nodeSelector:
+        storage: "true"
       securityContext:
         runAsNonRoot: true
         fsGroup: 101

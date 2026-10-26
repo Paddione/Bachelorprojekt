@@ -137,3 +137,16 @@ def test_gemma_embed_bulk_emptydir_statt_rwo_pvc_t_passt_zur_cpu_quota(gemma_bul
         gemma_bulk,
     )
     assert limit == "2000m"
+
+
+def test_gemma_embed_nodeselector_storage_true(rendered):
+    """E2E-Fund p1.5: gpu-cluster hat keinen Longhorn-Treiber — beide Gemma-Pools
+    duerfen nur auf storage=true-Nodes (sonst PVC nie attachbar)."""
+    for name in ("gemma-embed", "gemma-embed-bulk"):
+        sel = _proc([
+            "yq", "eval-all",
+            f'select(.kind == "Deployment" and .metadata.name == "{name}")'
+            " | .spec.template.spec.nodeSelector.storage",
+            str(rendered),
+        ]).stdout.strip()
+        assert sel == "true", name

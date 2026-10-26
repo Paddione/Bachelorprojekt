@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.438.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.3...website-v1.438.4) (2026-10-26)
+
+
+### Bug Fixes
+
+* **infra:** gemma-embed-bulk auf GTX 970, Serving ehrlich CPU-only ([#6953](https://github.com/Paddione/Bachelorprojekt/issues/6953)) ([63556e9](https://github.com/Paddione/Bachelorprojekt/commit/63556e95c0edef1920a0654a48919ef410b158ea))
+
 ## [1.438.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.2...website-v1.438.3) (2026-10-26)
 
 

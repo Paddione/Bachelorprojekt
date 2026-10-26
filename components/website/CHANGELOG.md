@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.435.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.434.0...website-v1.435.0) (2026-10-26)
+
+
+### Features
+
+* **infra:** getrennte Retrieval-Ketten je Vektorraum ([#6913](https://github.com/Paddione/Bachelorprojekt/issues/6913)) ([4cb1a6f](https://github.com/Paddione/Bachelorprojekt/commit/4cb1a6fed961de33f4cbd1917da79212b6de5416))
+
 ## [1.434.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.433.3...website-v1.434.0) (2026-10-26)
 
 

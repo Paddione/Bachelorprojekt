@@ -29,6 +29,11 @@ env_vars:
   # devmesh: Profil und Basis-Domain; A-Records zeigen nur auf Tailnet-Adressen (D3).
   DEVMESH_DOMAIN: devmesh.korczewski.de
   SESSIONS_DOMAIN: sessions.devmesh.korczewski.de
+  # opencode-devmesh-public (D4/D7): public hosts. FRITZ_BOX_URL default assumes
+  # the FritzBox default LAN IP + remote-admin port :4433 — operator to confirm.
+  OPENCODE_PUBLIC_HOST: opencode.korczewski.de
+  FRITZ_BOX_HOST: fritz.korczewski.de
+  FRITZ_BOX_URL: "https://192.168.178.1:4433"
   BRAIN_EXTERNAL_URL: "https://brain.devmesh.korczewski.de"
   DEVMESH_PROFILE: core
   PROD_DOMAIN: devmesh.korczewski.de

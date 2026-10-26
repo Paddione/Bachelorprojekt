@@ -1,0 +1,12 @@
+# dev-local/components/opencode — public opencode web UI on devmesh (opencode-devmesh-public).
+# Gated by Pocket ID SSO (oauth2-proxy-opencode + forwardAuth), TLS via letsencrypt-devmesh.
+# Template: dev-local/components/sessions/kustomization.yaml.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - opencode.yaml
+  - certificate.yaml
+  - ingressroute.yaml
+  - oauth2-proxy-opencode.yaml
+  - oauth2-proxy-fritzbox.yaml
+  - fritzbox-ingressroute.yaml

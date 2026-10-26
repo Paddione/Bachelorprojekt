@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.434.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.433.3...website-v1.434.0) (2026-10-26)
+
+
+### Features
+
+* **infra:** move retrieval embedding to gpu-metal ([#6905](https://github.com/Paddione/Bachelorprojekt/issues/6905)) ([a1b86d5](https://github.com/Paddione/Bachelorprojekt/commit/a1b86d54f7070f92b94d30550f327c7201ffaa85))
+
 ## [1.433.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.433.2...website-v1.433.3) (2026-10-26)
 
 

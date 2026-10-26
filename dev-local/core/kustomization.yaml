@@ -39,6 +39,7 @@ components:
   - ../components/k1-embed
   - ../components/opencode
   - ../components/sessions
+  - ../components/korczewski-prod
 
 configMapGenerator:
   - name: shared-db-backup-script
@@ -95,7 +96,7 @@ patches:
               - name: seed
                 env:
                   - name: WEBSITE_EXTRA_CALLBACK
-                    value: "https://${WEBSITE_HOST}/api/auth/callback"
+                    value: "https://${WEBSITE_HOST}/api/auth/callback,https://${KORCZEWSKI_PROD_WEB_HOST}/api/auth/callback,https://${KORCZEWSKI_PROD_APEX_HOST}/api/auth/callback"
                   # opencode-devmesh-public (D6/D7): callback URLs for the
                   # `opencode` and `fritz` Pocket ID clients. Consumed by the
                   # seed script's ROWS (k3d/pocket-id-client-seed.yaml) once

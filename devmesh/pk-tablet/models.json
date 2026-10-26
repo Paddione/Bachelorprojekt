@@ -1,8 +1,8 @@
 {
-  "unsloth/Qwen3.5-9B-GGUF/Qwen3.5-9B-Q4_K_M.gguf": {
-    "url": "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf",
-    "sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
-    "bytes": 5680522464
+  "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf": {
+    "url": "https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q8_0.gguf",
+    "sha256": "950f4a8e5e19477a6d3c26d2f162233c20002c601f75e4b002e3239997821167",
+    "bytes": 634553760
   },
   "gpustack/bge-reranker-v2-m3-GGUF/bge-reranker-v2-m3-Q8_0.gguf": {
     "url": "https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/resolve/main/bge-reranker-v2-m3-Q8_0.gguf",

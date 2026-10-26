@@ -8,29 +8,29 @@
   },
   "loadouts": [
     {
-      "slug": "qwen35-9b-chat",
-      "label": "Qwen3.5-9B Q4_K_M · Chat/Orchestrator, Iris-iGPU (Vulkan) :1234, 32k Kontext",
-      "model": "unsloth/Qwen3.5-9B-GGUF/Qwen3.5-9B-Q4_K_M.gguf",
-      "port": 1234,
+      "slug": "bge-embed",
+      "label": "bge-m3 Q8_0 · Embedding, Iris-iGPU (Vulkan) :8081",
+      "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",
+      "port": 8081,
       "enabled": true,
       "fit": {
         "enabled": false,
         "targetMarginMib": 0,
-        "minCtx": 32768
+        "minCtx": 8192
       },
       "args": {
-        "ctx": 32768,
+        "ctx": 8192,
         "ngl": 99,
-        "parallel": 1,
-        "cacheTypeK": "q4_0",
-        "cacheTypeV": "q4_0",
-        "flashAttention": true,
-        "jinja": true,
-        "chatTemplateKwargs": {
-          "enable_thinking": false
-        }
+        "parallel": 2
       },
-      "notes": "Uebernommen aus scripts/llm/pk-devices/pk-tablet-startup.ps1 (LM Studio): ctx 32768, KV q4_0, ohne Thinking-Overhead."
+      "extraArgs": [
+        "--embeddings",
+        "-b",
+        "8192",
+        "-ub",
+        "8192"
+      ],
+      "notes": "Tablet laeuft auf dem 27-GB-Optane-Teil der H10 und traegt nur Embedding + Rerank (User-Entscheidung 2026-10-26). Flags wie bge-embed-cpu in scripts/llm/loadouts.json, aber auf der iGPU."
     },
     {
       "slug": "bge-rerank",

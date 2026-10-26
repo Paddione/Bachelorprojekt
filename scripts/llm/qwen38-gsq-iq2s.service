@@ -19,10 +19,13 @@
 #   -ub > 512 bringt keinen Prefill-Gewinn und treibt den VRAM in den Spill (15,9 GB).
 #   -cram 12288: ein verdraengter Orchestrator-Slot (51k Token) kehrt in 2,9 s statt 48 s zurueck.
 #
+# Live 2026-10-26: ctx 139264 (KV gekuerzt, damit mmproj auf die 5070 Ti passt;
+# verifiziert: smoke/needle/reason exact, ~1,1 GB Reserve).
+#
 # Obergrenze: ab ~15,9 GB lagert CUDA unter WSL still in den Systemspeicher aus; llama-server meldet
 # trotzdem Erfolg, der Prefill faellt auf ~1 t/s. Kein zweites CUDA-Programm auf der 5070 Ti.
 [Unit]
-Description=llama-server Qwen3.8-27B GSQ-RCO IQ2_S-mtp (RTX 5070 Ti, 196k ctx) auf :1919
+Description=llama-server Qwen3.8-27B GSQ-RCO IQ2_S-mtp (RTX 5070 Ti, 139264 ctx) auf :1919
 After=network.target
 
 [Service]
@@ -32,7 +35,7 @@ Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
 ExecStart=%h/opt/llama-current/bin/llama-server \
   -m %h/models/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf \
   --alias Qwen3.8-27B-gsq-iq2s \
-  -c 196608 -np 1 -ub 512 \
+  -c 139264 -np 1 -ub 512 \
   -fit off -ngl 999 \
   -fa on -ctk q4_0 -ctv q4_0 \
   --spec-type draft-mtp --spec-draft-n-max 4 \

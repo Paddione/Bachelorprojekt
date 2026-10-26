@@ -90,8 +90,8 @@ def test_opencode_agent_model_drift_t002545_keine_llamacpp_local_kontextzahl_wid
       if (ctx === 262144) {{
         console.error(k + ' ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
       }}
-      if (ctx > 153600) {{
-        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
+      if (ctx > 139264) {{
+        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 139264 KV'); process.exit(1);
       }}
     }}
     process.exit(0);

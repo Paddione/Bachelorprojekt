@@ -18,7 +18,9 @@
 
 | Harness | Extern bezogen | Mechanik |
 |---|---|---|
-| alle vier (Claude Code, opencode, Codex, agy) | 24 Vendor-Skills unter `.opencode/skills/` (über `.claude/skills` / `.agents/skills` projiziert) | 3-Wege-Merge je Datei gegen den gelockten Upstream-Commit |
+| alle vier (Claude Code, opencode, Codex, agy) | Vendor-Skills unter `.opencode/skills/` (über `.claude/skills` / `.agents/skills` projiziert) | 3-Wege-Merge je Datei gegen den gelockten Upstream-Commit |
+
+**Upstream-Skills aus agentic-resources** (`provenance: agentic-resources` in `skills.yaml`, z. B. `lavish`, `sota-testing`, `vitest`, die `huggingface-*`-Skills): Sie sind per Skill-Link ins agentic-resources-Repo eingebunden und werden **dort** gelockt und gemergt (`vendor-lock.json`, `runtimes/scripts/vendor-sync.py`, nächtlicher Workflow `.github/workflows/vendor-sync.yml`). Konflikte und lokale Patches dieser Skills löst man in agentic-resources, nicht hier.
 | Claude Code + opencode | `superpowers` (Git-Pin in `.opencode/package.json`, `opencode.jsonc`, `package-lock.json`) | Pin auf neueste Release-Tag; Claude Code bezieht dieselbe Version über den Marketplace |
 | opencode | npm-Plugins in `.opencode/package.json` (dcp, envsitter-guard, oh-my-opencode-slim, opencode-agent-memory) | Range auf neueste Version, `package-lock.json` neu aufgelöst |
 

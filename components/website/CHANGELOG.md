@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.433.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.433.2...website-v1.433.3) (2026-10-26)
+
+
+### Bug Fixes
+
+* **infra:** PK-Tablet als Rerank-primaer im devmesh-llm-proxy, ohne WireGuard ([#6906](https://github.com/Paddione/Bachelorprojekt/issues/6906)) ([3f67dfe](https://github.com/Paddione/Bachelorprojekt/commit/3f67dfec56cdcc05f634b34021d640ac9a0b0377))
+
 ## [1.433.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.433.1...website-v1.433.2) (2026-10-26)
 
 

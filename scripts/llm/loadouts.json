@@ -511,17 +511,29 @@
   "roles": {
     "embed": {
       "chain": [
-        "http://127.0.0.1:8085",
-        "http://127.0.0.1:8081",
-        "http://127.0.0.1:1234",
-        "http://100.94.91.65:8081"
+        "http://llm-gateway-tablet:8081",
+        "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
       ]
     },
     "rerank": {
       "chain": [
-        "http://127.0.0.1:8085",
-        "http://127.0.0.1:8093",
-        "http://100.94.91.65:8080"
+        "http://llm-gateway-tablet:8080",
+        "http://llm-gateway-rerank.workspace.svc.cluster.local:8081"
+      ]
+    },
+    "lfm-embed": {
+      "chain": [
+        "http://llm-gateway-lfm-embed.workspace.svc.cluster.local:8081"
+      ]
+    },
+    "colbert-embed": {
+      "chain": [
+        "http://llm-gateway-lfm-colbert.workspace.svc.cluster.local:8081"
+      ]
+    },
+    "colbert-rerank": {
+      "chain": [
+        "http://llm-gateway-colbert-maxsim.workspace.svc.cluster.local:8081"
       ]
     }
   }

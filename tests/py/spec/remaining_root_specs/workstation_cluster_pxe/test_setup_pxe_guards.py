@@ -150,3 +150,16 @@ def test_dnsmasq_ohne_filter_ohne_target_tag(pxe):
                       '--root', str(tmp / 'pxe')])
     result.check()
     assert 'tag:target' not in result.stdout
+
+
+def test_print_user_data_inference_bringt_laufzeitpakete_mit(pxe):
+    # llama-server bricht ohne libgomp.so.1 ab (beobachtet 2026-10-26 auf PK-Tablet),
+    # iw braucht die udev-Regel, die den WLAN-Powersave abschaltet.
+    import yaml
+    execute, key, _ = pxe
+    result = execute(['--print-user-data', '--ssh-key', str(key), '--profile', 'inference',
+                      '--only-mac', TABLET_MAC, '--disk', '/dev/sda'])
+    result.check()
+    packages = yaml.safe_load(result.stdout)['autoinstall']['packages']
+    assert 'libgomp1' in packages
+    assert 'iw' in packages

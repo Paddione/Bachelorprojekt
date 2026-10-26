@@ -201,6 +201,9 @@ task: Available tasks for this project:
 * llm:devflow:insta_ci:                         Insta-CI via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
 * llm:devflow:sandbox:                          Sandbox via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
 * llm:devflow:turbolint:                        Turbolint via llm-proxy (Fallback: direkt python3 -m devflow) [T901630]
+* llm:gemma-bulk:down:                          Gemma-Bulk stoppen, qwen35-4b wiederherstellen, Flux fortsetzen
+* llm:gemma-bulk:status:                        Replikas von gemma-embed-bulk/qwen35-4b und Flux-Suspend anzeigen
+* llm:gemma-bulk:up:                            GPU-Fenster fuer Gemma-Bulk-Reindex: Flux pausieren, qwen35-4b entladen, gemma-embed-bulk auf der GTX 970 starten
 * llm:lmstudio-preload:                         DEPRECATED — bge embed/rerank sind seit T002551 CPU-Deployments im Cluster.
 * llm:loadouts:check:                           Prueft loadouts.json (und das PK-Tablet-Loadout) auf die kanonische writeLoadouts()-Form (fail-closed, CI) [T002553]
 * llm:loadouts:format:                          Normalisiert loadouts.json auf die kanonische Form — Reparatur fuer loadouts:check [T002553]

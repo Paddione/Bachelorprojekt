@@ -223,6 +223,21 @@ tasks:
     cmds:
       - bash scripts/llm/tools-sandbox.sh down
 
+  gemma-bulk:up:
+    desc: "GPU-Fenster fuer Gemma-Bulk-Reindex: Flux pausieren, qwen35-4b entladen, gemma-embed-bulk auf der GTX 970 starten"
+    cmds:
+      - bash scripts/llm/gemma-bulk.sh up {{.CLI_ARGS}}
+
+  gemma-bulk:down:
+    desc: "Gemma-Bulk stoppen, qwen35-4b wiederherstellen, Flux fortsetzen"
+    cmds:
+      - bash scripts/llm/gemma-bulk.sh down
+
+  gemma-bulk:status:
+    desc: "Replikas von gemma-embed-bulk/qwen35-4b und Flux-Suspend anzeigen"
+    cmds:
+      - bash scripts/llm/gemma-bulk.sh status
+
   measure-equivalence:
     desc: "Measure embedding equivalence between TEI and new llama.cpp endpoint"
     cmds:

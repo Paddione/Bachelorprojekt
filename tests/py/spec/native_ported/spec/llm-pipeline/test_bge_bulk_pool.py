@@ -140,13 +140,48 @@ def test_gemma_embed_bulk_emptydir_statt_rwo_pvc_t_passt_zur_cpu_quota(gemma_bul
 
 
 def test_gemma_embed_nodeselector_storage_true(rendered):
-    """E2E-Fund p1.5: gpu-cluster hat keinen Longhorn-Treiber — beide Gemma-Pools
-    duerfen nur auf storage=true-Nodes (sonst PVC nie attachbar)."""
-    for name in ("gemma-embed", "gemma-embed-bulk"):
-        sel = _proc([
-            "yq", "eval-all",
-            f'select(.kind == "Deployment" and .metadata.name == "{name}")'
-            " | .spec.template.spec.nodeSelector.storage",
-            str(rendered),
-        ]).stdout.strip()
-        assert sel == "true", name
+    """E2E-Fund p1.5: gpu-cluster hat keinen Longhorn-Treiber — der Serving-Pool
+    (RWO-PVC) darf nur auf storage=true-Nodes (sonst PVC nie attachbar)."""
+    sel = _proc([
+        "yq", "eval-all",
+        'select(.kind == "Deployment" and .metadata.name == "gemma-embed")'
+        " | .spec.template.spec.nodeSelector.storage",
+        str(rendered),
+    ]).stdout.strip()
+    assert sel == "true"
+
+
+def _llama(rendered, name, expr):
+    return _proc([
+        "yq", "eval-all",
+        f'select(.kind == "Deployment" and .metadata.name == "{name}")'
+        f' | .spec.template.spec.containers[] | select(.name == "llama-cpp") | {expr}',
+        str(rendered),
+    ]).stdout.strip()
+
+
+def test_gemma_embed_serving_ist_ehrlich_cpu_only(rendered):
+    """storage=true-Nodes haben keine GPU: Serving ohne GPU-Request und mit -ngl 0
+    (kein stiller llama.cpp-Fallback hinter -ngl 99)."""
+    args = _llama(rendered, "gemma-embed", ".args[]").splitlines()
+    assert args[args.index("-ngl") + 1] == "0"
+    assert _llama(rendered, "gemma-embed", '.resources.limits["nvidia.com/gpu"]') == "null"
+
+
+def test_gemma_embed_bulk_laeuft_auf_gpu(rendered):
+    """Bulk-Reindex auf der GTX 970 (gpu-metal): CUDA-Image, GPU-Slot, volles Offload,
+    kein -fa (Maxwell) und kein CUDA_VISIBLE_DEVICES-Override."""
+    assert "llama.cpp:server-cuda@sha256:" in _llama(rendered, "gemma-embed-bulk", ".image")
+    for side in ("requests", "limits"):
+        assert _llama(rendered, "gemma-embed-bulk", f'.resources.{side}["nvidia.com/gpu"]') == "1"
+    args = _llama(rendered, "gemma-embed-bulk", ".args[]").splitlines()
+    assert args[args.index("-ngl") + 1] == "99"
+    assert "-fa" not in args
+    assert _llama(rendered, "gemma-embed-bulk", '.env // [] | map(select(.name == "CUDA_VISIBLE_DEVICES")) | length') == "0"
+    sel = _proc([
+        "yq", "eval-all",
+        'select(.kind == "Deployment" and .metadata.name == "gemma-embed-bulk")'
+        " | .spec.template.spec.nodeSelector.storage",
+        str(rendered),
+    ]).stdout.strip()
+    assert sel == "null"

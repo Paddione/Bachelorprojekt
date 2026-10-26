@@ -1,0 +1,4 @@
+2026-10-26T10:36Z plan-created slug=korczewski-prod branch=feature/korczewski-prod base=main@bc0772bf5
+2026-10-26T10:28Z vda-frontmatter ok (design.md)
+2026-10-26T09:58:36ZZ plan-lint PASS (0 hard, 1 warn: G2 task corridor, advisory)
+plan done 2026-10-26T09:58:36Z plan-gestagt

@@ -14,7 +14,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { loadRoles, roleForPath, routeRequest, rolesFromRegistry, resolveRoleChain } from './bge-routes.mjs';
+import { loadRoles, roleForPath, routeRequest, rolesFromRegistry, resolveRoleChain, forwardPathForRole } from './bge-routes.mjs';
 
 function listen(handler) {
   return new Promise((resolve) => {
@@ -268,7 +268,21 @@ test('resolveRoleChain: jede neue Rolle faellt auf loadouts.json zurueck', () =>
   }
 })
 
-test('routeRequest je Rolle: richtiges Erstglied, kanonischer Pfad unveraendert', async (t) => {
+test('forwardPathForRole: kanonischer Pfad waehlt Rolle, Upstream-Pfad ist nativ', () => {
+  assert.equal(forwardPathForRole('embed', '/v1/embeddings'), '/v1/embeddings')
+  assert.equal(forwardPathForRole('rerank', '/v1/rerank'), '/v1/rerank')
+  assert.equal(forwardPathForRole('lfm-embed', '/v1/lfm/embeddings'), '/v1/embeddings')
+  assert.equal(forwardPathForRole('colbert-embed', '/v1/colbert/embeddings'), '/v1/embeddings')
+  assert.equal(forwardPathForRole('colbert-rerank', '/v1/colbert/rerank'), '/v1/colbert/rerank')
+  // Unbekannte Rolle: angefragter Pfad unveraendert (kein Wissen, keine Magie).
+  assert.equal(forwardPathForRole('unbekannt', '/v1/irgendwo'), '/v1/irgendwo')
+})
+
+// Korrigiert 2026-10-26: unveraendertes Durchreichen des kanonischen Pfads
+// antwortete an llama.cpp-Upstreams mit 404 (live belegt, Header
+// x-llm-proxy-bge-upstream gesetzt). Der kanonische Pfad waehlt nur die
+// Rolle; upstream geht der native Pfad raus.
+test('routeRequest je Rolle: richtiges Erstglied, Upstream-Pfad ist nativ', async (t) => {
   const seen = [];
   const stub = await listen((req, res) => {
     seen.push(req.url);
@@ -278,13 +292,14 @@ test('routeRequest je Rolle: richtiges Erstglied, kanonischer Pfad unveraendert'
   t.after(() => close(stub));
 
   const cases = [
-    ['embed', '/v1/embeddings'],
-    ['rerank', '/v1/rerank'],
-    ['lfm-embed', '/v1/lfm/embeddings'],
-    ['colbert-embed', '/v1/colbert/embeddings'],
-    ['colbert-rerank', '/v1/colbert/rerank'],
+    // [Rolle, kanonischer Pfad, erwarteter Upstream-Pfad]
+    ['embed', '/v1/embeddings', '/v1/embeddings'],
+    ['rerank', '/v1/rerank', '/v1/rerank'],
+    ['lfm-embed', '/v1/lfm/embeddings', '/v1/embeddings'],
+    ['colbert-embed', '/v1/colbert/embeddings', '/v1/embeddings'],
+    ['colbert-rerank', '/v1/colbert/rerank', '/v1/colbert/rerank'],
   ];
-  for (const [role, path] of cases) {
+  for (const [role, path, want] of cases) {
     seen.length = 0;
     const result = await routeRequest({
       role, path, body: { input: ['x'] },
@@ -292,20 +307,21 @@ test('routeRequest je Rolle: richtiges Erstglied, kanonischer Pfad unveraendert'
     });
     assert.equal(result.status, 200, `Rolle ${role}`)
     assert.equal(result.upstream, baseOf(stub), `Erstglied fuer ${role}`)
-    assert.deepEqual(seen, [path], `Pfad fuer ${role} unveraendert durchgereicht`)
+    assert.deepEqual(seen, [want], `Upstream-Pfad fuer ${role}`)
   }
 })
 
-test('kein Quer-Fallback: ColBERT-Stub antwortet nie auf bge-Anfragen', async (t) => {
-  // Der Stub dient nur seinen eigenen Raum: bge-Pfade beantwortet er mit
-  // 500 (wuerde Failover ausloesen), ColBERT-Pfade mit 200.
+test('kein Quer-Fallback: llama.cpp-Stub dient nur native Pfade', async (t) => {
+  // Der Stub emuliert llama.cpp: nur /v1/embeddings existiert, alles andere
+  // ist 404 — exakt das Verhalten, das den kanonischen Durchreich-Fehler
+  // live belegte. Die Rolle colbert-embed muss deshalb nativ ankommen.
   const stub = await listen((req, res) => {
-    if (req.url === '/v1/colbert/embeddings') {
+    if (req.url === '/v1/embeddings') {
       res.writeHead(200, { 'content-type': 'application/json' });
       res.end('{"ok":true}');
     } else {
-      res.writeHead(500, { 'content-type': 'application/json' });
-      res.end('{"error":"falscher Raum"}');
+      res.writeHead(404, { 'content-type': 'application/json' });
+      res.end('{"error":"File Not Found"}');
     }
   });
   t.after(() => close(stub));

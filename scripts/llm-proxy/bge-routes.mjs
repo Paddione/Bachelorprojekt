@@ -47,6 +47,25 @@ export function roleForPath(path) {
   return ROLE_PATHS.get(path) ?? null;
 }
 
+// Upstream-nativer Pfad je Rolle: Der kanonische Pfad waehlt die Rolle,
+// aber llama.cpp dient nur seine eigenen Pfade (/v1/embeddings, /v1/rerank).
+// Ein unveraendert durchgereichtes '/v1/lfm/embeddings' antwortet dort 404
+// (belegt 2026-10-26, x-llm-proxy-bge-upstream gesetzt, Upstream-404).
+// Nur colbert-rerank bleibt kanonisch: der eigene MaxSim-Dienst dient
+// /v1/colbert/rerank nativ (kompatibel /v1/rerank).
+const ROLE_FORWARD_PATH = new Map([
+  ['embed', '/v1/embeddings'],
+  ['rerank', '/v1/rerank'],
+  ['lfm-embed', '/v1/embeddings'],
+  ['colbert-embed', '/v1/embeddings'],
+  ['colbert-rerank', '/v1/colbert/rerank'],
+]);
+
+/** Upstream-nativen Pfad fuer eine Rolle liefern (Fallback: angefragter Pfad). */
+export function forwardPathForRole(role, path) {
+  return ROLE_FORWARD_PATH.get(role) ?? path;
+}
+
 /**
  * Liest die Rollen-Ketten aus dem bereits geparsten loadouts.json-Dokument.
  * Ein Eintrag ist {kind:'url', baseUrl}. Unbekannte Praefixe und leere Ketten werfen mit
@@ -212,11 +231,12 @@ export async function routeRequest({
   timeoutMs = ROLE_TIMEOUT_MS,
 }) {
   const failures = [];
+  const fwdPath = forwardPathForRole(role, path);
   for (const entry of chain) {
     const name = entry.baseUrl;
     const baseUrl = entry.baseUrl;
 
-    const r = await callEntry(baseUrl, path, body, timeoutMs);
+    const r = await callEntry(baseUrl, fwdPath, body, timeoutMs);
     if (r.kind === 'ok' || r.kind === 'client_error') {
       return { status: r.status, body: JSON.stringify(r.body), upstream: name, contentType: r.contentType };
     }

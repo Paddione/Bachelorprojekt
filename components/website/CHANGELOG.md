@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.438.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.2...website-v1.438.3) (2026-10-26)
+
+
+### Bug Fixes
+
+* **infra:** opencode dauerhaft via Tailscale erreichbar ([#6947](https://github.com/Paddione/Bachelorprojekt/issues/6947)) ([e2a9c78](https://github.com/Paddione/Bachelorprojekt/commit/e2a9c78faaf27a58aa8e18fa050ca5a7bb66f56f))
+
 ## [1.438.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.1...website-v1.438.2) (2026-10-26)
 
 

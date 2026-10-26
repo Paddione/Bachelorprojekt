@@ -85,3 +85,11 @@ peers:
     tag: null
     lan_ip: null
     tailnet_name: pk-tablet
+  # Ubuntu-Teil desselben Tablets (Dual-Boot, docs/runbooks/pk-tablet-inference.md):
+  # bge-Rerank/-Embedding, im devmesh als llm-gateway-tablet eingebunden. Der
+  # Windows-Teil bleibt pk-tablet.
+  - name: pk-tablet-linux
+    role: client
+    tag: null
+    lan_ip: null
+    tailnet_name: pk-tablet-linux

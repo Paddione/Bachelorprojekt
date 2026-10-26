@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "slug": "pk-tablet-inference-followup",
+    "ticket_id": "",
+    "generated_from": "main@183af29b0",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6056,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/llm-services/deployment.yaml",
+      "language": "config",
+      "loc": 101,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/llm-services/kustomization.yaml",
+      "language": "config",
+      "loc": 8,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/llm-services/tablet-endpoint.yaml",
+      "language": "config",
+      "loc": 57,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/inventory.yaml",
+      "language": "config",
+      "loc": 95,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/pk-tablet-inference.md",
+      "language": "markdown",
+      "loc": 196,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/loadouts.json",
+      "language": "config",
+      "loc": 528,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/pk-tablet/apply.sh",
+      "language": "bash",
+      "loc": 187,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 613
+    },
+    {
+      "path": "scripts/pxe/autoinstall/user-data-inference.tmpl",
+      "language": "text",
+      "loc": 95,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.llm.yml",
+      "language": "config",
+      "loc": 281,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-dev-mesh/test_pk_tablet_registry.py",
+      "language": "python",
+      "loc": 109,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 691
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-llm-proxy/test_bge_chain_order.py",
+      "language": "python",
+      "loc": 58,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 742
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-llm-proxy/test_pk_tablet_loadout.py",
+      "language": "python",
+      "loc": 121,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 679
+    },
+    {
+      "path": "tests/py/spec/remaining_root_specs/workstation_cluster_pxe/test_setup_pxe_guards.py",
+      "language": "python",
+      "loc": 165,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 635
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/llm/pk-tablet/apply.sh:27:die() { echo \"apply: $*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/llm/pk-tablet/apply.sh",
+      "signature": "27:die() { echo \"apply: $*\" >&2; exit 1; }(...)",
+      "type_text": "27:die() { echo \"apply: $*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm/pk-tablet/apply.sh:101:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/llm/pk-tablet/apply.sh",
+      "signature": "101:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }(...)",
+      "type_text": "101:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

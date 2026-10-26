@@ -1,0 +1,57 @@
+# llm-gateway-tablet — bge-Rerank/-Embedding auf PK-Tablet ueber dessen Tailnet-Adresse.
+# Tailnet-Geraet pk-tablet-linux (Ubuntu-Teil des Tablets), Runbook
+# docs/runbooks/pk-tablet-inference.md. Selector-los wie llm-gateway-host
+# (dev-local/core/gpu-endpoint.yaml), aber mit fester Adresse: das Tablet ist kein
+# devmesh-Knoten und steht nicht im gpu_endpoint-Inventar.
+# Ist das Tablet aus, scheitert die Anfrage mit Verbindungsfehler und der llm-proxy
+# nimmt das naechste Glied der Rollenkette (scripts/llm-proxy/bge-routes.mjs).
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-tablet
+spec:
+  ports:
+    - name: rerank
+      port: 8080
+      protocol: TCP
+    - name: embed
+      port: 8081
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: llm-gateway-tablet
+  labels:
+    kubernetes.io/service-name: llm-gateway-tablet
+addressType: IPv4
+ports:
+  - name: rerank
+    port: 8080
+    protocol: TCP
+  - name: embed
+    port: 8081
+    protocol: TCP
+endpoints:
+  - addresses:
+      - "100.94.91.65"
+---
+# default-deny-egress sperrt Tailnet-Ziele; allow-llm-egress oeffnet nur das seit
+# ADR-014 tote Mesh 192.168.100.0/24. Beobachtet 2026-10-26: aus workspace
+# ECONNREFUSED, aus einem Pod ohne Policy HTTP 200. Freigabe nur fuer den llm-proxy
+# und nur zum Tablet.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-llm-tablet-egress
+spec:
+  podSelector:
+    matchLabels: {app: llm-services}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 100.94.91.65/32
+      ports:
+        - {port: 8080, protocol: TCP}
+        - {port: 8081, protocol: TCP}

@@ -8,7 +8,7 @@
 # Loadout-Wechsel ist damit nie eine Neuinstallation.
 #
 # KEINE Secrets hier: der PXE-HTTP-Server ist im LAN ohne Anmeldung lesbar.
-# WireGuard-Config und Tailscale-Login kommen per `task llm:tablet:bootstrap`.
+# Der Tailscale-Login kommt per `task llm:tablet:bootstrap` (ADR-014: kein WireGuard).
 autoinstall:
   version: 1
   interactive-sections: []
@@ -45,7 +45,13 @@ ${PXE_EARLY_COMMANDS}
   packages:
     - mesa-vulkan-drivers
     - vulkan-tools
-    - wireguard
+    # Der llama.cpp-Linux-Build ist gegen OpenMP gelinkt; ohne libgomp1 bricht
+    # llama-server mit "libgomp.so.1: cannot open shared object file" ab
+    # (ubuntu-server-minimal bringt es nicht mit, beobachtet 2026-10-26).
+    - libgomp1
+    # iw setzt den WLAN-Powersave ab (udev-Regel unten). Mit Powersave lag die
+    # Latenz bei 100-300 ms und SSH lief in Timeouts.
+    - iw
     - ufw
     - curl
     - jq
@@ -78,8 +84,10 @@ ${PXE_EARLY_COMMANDS}
     - printf '[Login]\nHandleLidSwitch=ignore\nHandleLidSwitchExternalPower=ignore\nHandleLidSwitchDocked=ignore\nIdleAction=ignore\n' > /target/etc/systemd/logind.conf.d/10-inference.conf
     - curtin in-target --target=/target -- systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
     - curtin in-target --target=/target -- systemctl enable chrony
+    # Betrieb laeuft ueber das eingebaute WLAN (USB-NIC nur fuer PXE): Powersave aus.
+    - printf 'ACTION=="add", SUBSYSTEM=="net", KERNEL=="wlp*", RUN+="/usr/sbin/iw dev $name set power_save off"\n' > /target/etc/udev/rules.d/91-wlan-powersave-off.rules
     # Firewall AN mit nur SSH. Die Inferenz-Ports oeffnet apply, gebunden an
-    # tailscale0/wg0 — nie ins LAN.
+    # tailscale0 — nie ins LAN.
     - curtin in-target --target=/target -- ufw default deny incoming
     - curtin in-target --target=/target -- ufw allow 22/tcp
     - curtin in-target --target=/target -- ufw --force enable

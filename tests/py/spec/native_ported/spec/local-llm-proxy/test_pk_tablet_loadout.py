@@ -92,3 +92,30 @@ def test_apply_dry_run_ohne_ssh(repo_root, run_cmd, tmp_path):
     result.check()
     assert 'unit enable bge-embed port 8081' in result.output
     assert 'health bge-rerank 8080' in result.output
+
+
+def _dry_run_env(tmp_path):
+    # PATH ohne ssh/scp: ein Dry-Run, der doch eine Verbindung versucht, faellt auf.
+    bindir = tmp_path / 'bin'
+    bindir.mkdir(exist_ok=True)
+    for tool in ('node', 'bash', 'env', 'mktemp', 'rm', 'cat', 'dirname', 'sort', 'awk', 'tr'):
+        found = shutil.which(tool)
+        if found and not (bindir / tool).exists():
+            os.symlink(found, bindir / tool)
+    return {'PATH': str(bindir)}
+
+
+def test_apply_dry_run_oeffnet_ports_nur_auf_tailscale(repo_root, run_cmd, tmp_path):
+    result = run_cmd(['bash', str(repo_root / APPLY), '--dry-run'], env=_dry_run_env(tmp_path))
+    result.check()
+    assert 'ufw allow 8081 on tailscale0' in result.output
+    assert 'ufw allow 8080 on tailscale0' in result.output
+    # ADR-014: kein WireGuard mehr
+    assert 'wg0' not in result.output
+
+
+def test_apply_bootstrap_braucht_kein_wireguard(repo_root, run_cmd, tmp_path):
+    result = run_cmd(['bash', str(repo_root / APPLY), '--bootstrap', '--dry-run'], env=_dry_run_env(tmp_path))
+    result.check()
+    assert 'tailscale up --hostname pk-tablet-linux' in result.output
+    assert 'wg' not in result.output.lower()

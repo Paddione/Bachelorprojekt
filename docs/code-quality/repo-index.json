@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1283,
+      "file_count": 1284,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -408,6 +408,7 @@
         "tests/py/spec/korczewski-prod/conftest.py",
         "tests/py/spec/korczewski-prod/test_korczewski_prod_flux.py",
         "tests/py/spec/korczewski-prod/test_render_guards.py",
+        "tests/py/spec/llm-pipeline/test_gemma_bulk_window.py",
         "tests/py/spec/llm_proxy/test_registry_no_tickets_ref.py",
         "tests/py/spec/massage-tenant/test_brand_migration.py",
         "tests/py/spec/massage-tenant/test_db_network_policy.py",
@@ -3728,7 +3729,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 928,
+      "file_count": 929,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4344,6 +4345,7 @@
         "scripts/llm/ctx-proxy.mjs",
         "scripts/llm/freetoken-autostart.ps1",
         "scripts/llm/freetoken-kv-ladder.ps1",
+        "scripts/llm/gemma-bulk.sh",
         "scripts/llm/gguf-tensor-names.py",
         "scripts/llm/github-mcp-wrapper.sh",
         "scripts/llm/harden-gpu-firewall.ps1",

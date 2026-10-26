@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.438.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.0...website-v1.438.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **infra:** opencode HOME=/tmp mit tmp-emptyDir gegen EACCES /root ([#6941](https://github.com/Paddione/Bachelorprojekt/issues/6941)) ([#6942](https://github.com/Paddione/Bachelorprojekt/issues/6942)) ([30d2008](https://github.com/Paddione/Bachelorprojekt/commit/30d200854cecf523c5965cde1f263a704fd5b23c))
+
 ## [1.438.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.437.0...website-v1.438.0) (2026-10-26)
 
 

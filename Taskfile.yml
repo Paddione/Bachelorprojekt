@@ -28,6 +28,9 @@ includes:
   finetune-eval:
     taskfile: ./taskfiles/Taskfile.finetune-eval.yml
     dir: .
+  finetune-embed:
+    taskfile: ./taskfiles/Taskfile.finetune-embed.yml
+    dir: .
   # dev.mentolder.de — persistent staging stack on fleet (namespace workspace-dev).
   # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
   dev:

@@ -1,0 +1,24 @@
+# Taskfile.finetune-embed.yml — EmbeddingGemma multitask finetune (bge-stack replacement).
+# Separate file from Taskfile.finetune.yml on purpose: the LLM SFT pipeline
+# (messages + chat template + assistant masks) does NOT apply to embedding
+# triplets (anchor/positive/negative + baked task prefixes).
+version: "3"
+
+tasks:
+  build:
+    desc: "Multitask-Triplet-Korpus bauen. OUT=<train.jsonl> EVAL_OUT=<eval.jsonl>"
+    cmds:
+      - python3 scripts/finetune/build_embeddinggemma_corpus.py --out "{{.OUT}}" --eval-out "{{.EVAL_OUT}}"
+
+  measure:
+    desc: "Token/VRAM-Vorcheck. CORPUS=<jsonl> OUT=<report.json>"
+    cmds:
+      - python3 scripts/finetune/measure_embedding.py --corpus "{{.CORPUS}}" --out "{{.OUT}}"
+
+  train:
+    desc: "One-go multitask finetune. CORPUS=<jsonl> MEASURE_REPORT=<json> [EVAL_CORPUS=<jsonl> MATRYOSHKA=1 DRY_RUN=1]"
+    preconditions:
+      - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MEASURE_REPORT}}" ]'
+        msg: "CORPUS= und MEASURE_REPORT= sind erforderlich."
+    cmds:
+      - python3 scripts/finetune/train_embedding.py --corpus "{{.CORPUS}}" --measure-report "{{.MEASURE_REPORT}}" {{if .EVAL_CORPUS}}--eval-corpus "{{.EVAL_CORPUS}}"{{end}} {{if .MATRYOSHKA}}--matryoshka{{end}} {{if .DRY_RUN}}--dry-run{{end}}

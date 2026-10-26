@@ -14,7 +14,7 @@ Partial p3 (Tests-Rolle). Ziel-Dateien:
 
 S1: `test_setup_pxe_guards.py` Ist 165 · nicht gebaselined · Limit 800 → Budget 635.
 `test_pk_tablet_loadout.py` Ist 121 · nicht gebaselined · Limit 800 → Budget 679.
-`test_pk_tablet_registry.py` Ist 97 · nicht gebaselined · Limit 800 → Budget 703.
+`test_pk_tablet_registry.py` Ist 109 · nicht gebaselined · Limit 800 → Budget 691.
 
 ## Task 1 — Rotphase (liegt vor, mit dem Plan committet)
 
@@ -30,3 +30,7 @@ Bootstrap-Dry-Run, Pakete).
 Nach p1 und p2 derselbe Aufruf → alle grün. Dann `task test:inventory` und
 `test-inventory.json` committen. Zusätzlich `task test:evals:update`, falls sich Task-Namen
 ändern (hier nicht geplant).
+
+## Task 3 — Bestehender Ketten-Test
+
+`test_bge_chain_order.py`: Rerank-Rückfall `100.94.91.65:8080`, Embed-Kette 4 Glieder (`100.94.91.65:8081`), Live-Probe auf die Tailnet-Adresse.

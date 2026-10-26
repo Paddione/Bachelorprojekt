@@ -47,3 +47,7 @@ Akzeptanz: `test_loadouts_rueckfall_ohne_wireguard_adresse` grün.
 Windows-Teil bleibt `pk-tablet`). Vorher prüfen, dass die Guards, die das Inventar lesen
 (`git grep -l 'devmesh/inventory.yaml' tests/ scripts/`), einen Client-Peer ohne `k3s_role`
 akzeptieren.
+
+## Task 5 — Egress-Freigabe
+
+In `tablet-endpoint.yaml` NetworkPolicy `allow-llm-tablet-egress`: podSelector `app: llm-services`, Egress zu `100.94.91.65/32` auf 8080/8081.

@@ -44,3 +44,7 @@ Akzeptanz: `test_apply_dry_run_oeffnet_ports_nur_auf_tailscale`,
 - Probe-Boot-Variante mit `interactive-sections: [storage]` als Alternative zu `--disk`.
 - Tailscale-Name `pk-tablet-linux`, Endpunkte `100.94.91.65:8080/8081`; WireGuard-Schritte entfernen.
 - Installer legt bei interaktivem Storage `/swap.img` an → entfernen.
+
+## Task 4 — Taskfile
+
+`tablet:bootstrap` ohne `requires: WG_CONF`, ruft `apply.sh --bootstrap {{.CLI_ARGS}}`.

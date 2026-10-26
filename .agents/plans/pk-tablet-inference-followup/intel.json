@@ -35,7 +35,7 @@
     {
       "path": "dev-local/components/llm-services/kustomization.yaml",
       "language": "config",
-      "loc": 6,
+      "loc": 8,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -43,7 +43,7 @@
     {
       "path": "dev-local/components/llm-services/tablet-endpoint.yaml",
       "language": "config",
-      "loc": 0,
+      "loc": 57,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -51,7 +51,7 @@
     {
       "path": "devmesh/inventory.yaml",
       "language": "config",
-      "loc": 87,
+      "loc": 95,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -59,7 +59,7 @@
     {
       "path": "docs/runbooks/pk-tablet-inference.md",
       "language": "markdown",
-      "loc": 146,
+      "loc": 196,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -67,7 +67,7 @@
     {
       "path": "scripts/llm/loadouts.json",
       "language": "config",
-      "loc": 527,
+      "loc": 528,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -83,7 +83,15 @@
     {
       "path": "scripts/pxe/autoinstall/user-data-inference.tmpl",
       "language": "text",
-      "loc": 87,
+      "loc": 95,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.llm.yml",
+      "language": "config",
+      "loc": 281,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -91,10 +99,18 @@
     {
       "path": "tests/py/spec/native_ported/spec/local-dev-mesh/test_pk_tablet_registry.py",
       "language": "python",
-      "loc": 97,
+      "loc": 109,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 703
+      "s1_budget": 691
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/local-llm-proxy/test_bge_chain_order.py",
+      "language": "python",
+      "loc": 58,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 742
     },
     {
       "path": "tests/py/spec/native_ported/spec/local-llm-proxy/test_pk_tablet_loadout.py",
@@ -115,19 +131,19 @@
   ],
   "symbols": [
     {
-      "qualified_name": "scripts/llm/pk-tablet/apply.sh:26:die() { echo \"apply: $*\" >&2; exit 1; }",
+      "qualified_name": "scripts/llm/pk-tablet/apply.sh:27:die() { echo \"apply: $*\" >&2; exit 1; }",
       "kind": "function",
       "file": "scripts/llm/pk-tablet/apply.sh",
-      "signature": "26:die() { echo \"apply: $*\" >&2; exit 1; }(...)",
-      "type_text": "26:die() { echo \"apply: $*\" >&2; exit 1; }(...)",
+      "signature": "27:die() { echo \"apply: $*\" >&2; exit 1; }(...)",
+      "type_text": "27:die() { echo \"apply: $*\" >&2; exit 1; }(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/llm/pk-tablet/apply.sh:99:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }",
+      "qualified_name": "scripts/llm/pk-tablet/apply.sh:101:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }",
       "kind": "function",
       "file": "scripts/llm/pk-tablet/apply.sh",
-      "signature": "99:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }(...)",
-      "type_text": "99:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }(...)",
+      "signature": "101:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }(...)",
+      "type_text": "101:fail() { echo \"apply@tablet: $*\" >&2; exit 1; }(...)",
       "source": "grep"
     }
   ],

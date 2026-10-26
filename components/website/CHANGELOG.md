@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.438.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.437.0...website-v1.438.0) (2026-10-26)
+
+
+### Features
+
+* **infra:** Dense-BGE durch EmbeddingGemma-768 ersetzen ([#6935](https://github.com/Paddione/Bachelorprojekt/issues/6935)) ([0da4a42](https://github.com/Paddione/Bachelorprojekt/commit/0da4a42f3cf6cdaae5e0005a7380a01b463c4288))
+
 ## [1.437.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.436.0...website-v1.437.0) (2026-10-26)
 
 

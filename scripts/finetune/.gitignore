@@ -17,3 +17,6 @@ unsloth_compiled_cache/
 # Tokenizer-Konvertierungs-Tempdir (37 MB tokenizer.json/.model pro Lauf) [T002587]
 _unsloth_sentencepiece_temp/
 detect_*_result.json
+
+# Lokal erzeugte Trainings-/Eval-Korpora (Datenartefakte, kein Quellcode)
+corpora/

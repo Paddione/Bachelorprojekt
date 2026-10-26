@@ -1,7 +1,7 @@
 ---
 title: "dangling-interfaces — Dangling HTTP-Schnittstellen mit Embedding-Kanten sichtbar machen"
 domains: [website, infra]
-status: staged
+status: done
 ---
 
 # dangling-interfaces — Implementation Plan
@@ -36,7 +36,8 @@ neuen `any`-Typen (aktuelle Zählung im Verify-Task prüfen).
 
 ## Tasks
 
-- [ ] **0. Rotphase zuerst:** `npx vitest run scripts/dangling-interfaces.test.ts` auf ungeänderter Basis — expected: FAIL (Normalisierung und τ-Kalibrierung fehlen; Beleg: 2 failed, rest passed).
-- [ ] **1. Partial p1** (`tasks.d/p1-inventory-exact.md`): Inventar plus Exakt-Abgleich bauen.
-- [ ] **2. Partial p2** (`tasks.d/p2-embedding-report.md`): Embedding-Near-Miss, HTML-Report, Tests grün, Runbook-Anker.
-- [ ] **3. Finaler Verifikations-Task.** `task test:changed`, `task freshness:regenerate`, `task freshness:check`.
+- [x] **0. Rotphase zuerst:** `npx vitest run scripts/dangling-interfaces.test.ts` auf ungeänderter Basis — expected: FAIL (Normalisierung und τ-Kalibrierung fehlen; Beleg: 2 failed, rest passed).
+  - Abweichung: Die Testdatei existierte noch nicht; die Rotphase lief daher nach dem Anlegen der Tests. Beleg: `9 failed (9)`, `Cannot find module '…/scripts/dangling-interfaces.mjs'`.
+- [x] **1. Partial p1** (`tasks.d/p1-inventory-exact.md`): Inventar plus Exakt-Abgleich bauen.
+- [x] **2. Partial p2** (`tasks.d/p2-embedding-report.md`): Embedding-Near-Miss, HTML-Report, Tests grün, Runbook-Anker.
+- [x] **3. Finaler Verifikations-Task.** `task test:changed`, `task freshness:regenerate`, `task freshness:check`.

@@ -1,7 +1,7 @@
 ---
 title: "p1-inventory-exact — Anbieter-Inventar plus Exakt-Abgleich"
 domains: [infra]
-status: draft
+status: done
 ---
 
 # p1 — Inventar plus Exakt-Abgleich

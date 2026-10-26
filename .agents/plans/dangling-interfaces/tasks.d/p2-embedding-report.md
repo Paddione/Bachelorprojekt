@@ -1,7 +1,7 @@
 ---
 title: "p2-embedding-report — Near-Miss, HTML-Graph, Tests, Runbook"
 domains: [website]
-status: draft
+status: done
 ---
 
 # p2 — Embedding-Near-Miss, HTML-Report, Tests

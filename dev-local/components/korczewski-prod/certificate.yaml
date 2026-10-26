@@ -1,0 +1,16 @@
+# Public TLS cert for korczewski.de (web + apex) and auth.korczewski.de
+# via letsencrypt-devmesh (DNS-01).
+# Template: dev-local/components/opencode/certificate.yaml.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: korczewski-prod-tls
+spec:
+  secretName: korczewski-prod-tls
+  issuerRef:
+    name: letsencrypt-devmesh
+    kind: ClusterIssuer
+  dnsNames:
+    - "${KORCZEWSKI_PROD_WEB_HOST}"
+    - "${KORCZEWSKI_PROD_APEX_HOST}"
+    - "${KORCZEWSKI_PROD_AUTH_HOST}"

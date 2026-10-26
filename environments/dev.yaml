@@ -34,6 +34,10 @@ env_vars:
   OPENCODE_PUBLIC_HOST: opencode.korczewski.de
   FRITZ_BOX_HOST: fritz.korczewski.de
   FRITZ_BOX_URL: "https://192.168.178.1:4433"
+  # korczewski-prod on devmesh: public website + auth hosts (TLS via letsencrypt-devmesh DNS-01).
+  KORCZEWSKI_PROD_WEB_HOST: web.korczewski.de
+  KORCZEWSKI_PROD_APEX_HOST: korczewski.de
+  KORCZEWSKI_PROD_AUTH_HOST: auth.korczewski.de
   BRAIN_EXTERNAL_URL: "https://brain.devmesh.korczewski.de"
   DEVMESH_PROFILE: core
   PROD_DOMAIN: devmesh.korczewski.de

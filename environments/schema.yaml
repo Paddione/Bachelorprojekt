@@ -653,6 +653,26 @@ env_vars:
     validate: "^https://[a-z0-9.:-]+$"
     description: "Upstream URL of the FritzBox UI (box LAN IP + admin port, scheme https, e.g. https://192.168.178.1:4433). Box serves a self-signed cert; upstream verify is skipped (D7)."
 
+  # korczewski-prod on devmesh: public website + auth hosts. Declared here so
+  # env-resolve.sh exports them and render-stack.sh envsubst expands ${...}.
+  - name: KORCZEWSKI_PROD_WEB_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Public host of the korczewski.de website on devmesh (web.korczewski.de)."
+
+  - name: KORCZEWSKI_PROD_APEX_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Apex host of the korczewski.de website on devmesh (korczewski.de, serves the same website backend)."
+
+  - name: KORCZEWSKI_PROD_AUTH_HOST
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Public host of Pocket ID on devmesh for the korczewski.de login roundtrip (auth.korczewski.de)."
+
   - name: DEVMESH_PROFILE
     required: false
     default_dev: "core"

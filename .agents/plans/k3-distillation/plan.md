@@ -26,6 +26,17 @@ Dann `cbm-eval.py run --stages dense-only` für: bge-m3 (Repro ~0.56 erwartet),
 stock-EmbeddingGemma, run1. Akzeptanz: bge-m3-Zahl reproduziert den
 0.562/0.512-Pin — erst dann ist die Harness vertrauenswürdig.
 
+## P0b — Gemma-Full-Coverage-Receipt (Store, kein Bypass)
+
+P0 misst in-memory über den Frozen-Corpus — vergleichbar, aber kein Beweis dass
+der lebende Graph-Store vollständig auf Gemma läuft. Deshalb zusätzlich:
+`cbm-embed-sync.py` mit Gemma-Endpunkt (stock-Gemma, lokal via ST oder
+llama-server-GGUF) über `LLM_EMBED_URL[S]`; der Content-Hash enthält das Modell,
+also Full-Re-Embed der ~22k Chunks (Minuten auf 5070 Ti, Dim-Wechsel 1024→768
+wird gleich mit getestet). Akzeptanz: `sync status` meldet volle Coverage ohne
+`model_mismatch`/`receipt_drift` + `verify → ok`, Manifest pinnt Gemma-Modell/Dim.
+Macht P3 (Store-Swap) zum reinen Umschalten. Quelle: `docs/brain/embed-store.md`.
+
 ## P1 — Teacher-Mining (Distillations-Korpus)
 
 `scripts/finetune/build_distillation_corpus.py`:

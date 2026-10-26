@@ -31,8 +31,8 @@ if (!Number.isInteger(ctx) || ctx <= 0) {
 if (ctx === 262144) {
   console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
 }
-if (ctx > 153600) {
-  console.error('ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
+if (ctx > 139264) {
+  console.error('ctx ' + ctx + ' uebersteigt die served 139264 KV'); process.exit(1);
 }
 process.exit(0);
 """
@@ -76,8 +76,8 @@ if (!Number.isInteger(ctx) || ctx <= 0) {
 if (ctx === 262144) {
   console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
 }
-if (ctx > 153600) {
-  console.error('ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
+if (ctx > 139264) {
+  console.error('ctx ' + ctx + ' uebersteigt die served 139264 KV'); process.exit(1);
 }
 process.exit(0);
 """
@@ -251,7 +251,7 @@ def test_t016419_dead_checkpoint_catalog_entries_are_removed(repo_root):
 
 
 def test_t900348_t900365_catalog_context_matches_c_and_port_of_the_llama_cpp_unit(repo_root):
-    unit = repo_root / "scripts" / "llm" / "qwen38-gsq-iq3xxs.service"
+    unit = repo_root / "scripts" / "llm" / "qwen38-gsq-iq2s.service"
     text = unit.read_text(encoding="utf-8")
 
     def _second_fields(pattern):
@@ -263,11 +263,11 @@ def test_t900348_t900365_catalog_context_matches_c_and_port_of_the_llama_cpp_uni
 
     context_values = _second_fields(r"-c [0-9]+")
     assert context_values, "grep -oE '-c [0-9]+' liefert nichts"
-    assert "\n".join(context_values) == "153600"
+    assert "\n".join(context_values) == "139264"
     port_values = _second_fields(r"--port [0-9]+")
     assert "\n".join(port_values) == "1919"
     status, output = _node(repo_root, NODE_CONTEXT_VALUE)
-    assert output == "153600", output
+    assert output == "139264", output
 
 
 def test_t900051_freetoken_smoke_test_verifies_version_model_kv_and_concurrency(repo_root):

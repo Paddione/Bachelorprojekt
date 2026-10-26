@@ -93,8 +93,8 @@ def test_compaction_block_no_v1_preserve_recent_tokens_key(compaction_file):
 
 
 def test_compaction_block_threshold_math_comment(compaction_file):
-    assert "153600 − max(8192, 33600) = 120000" in compaction_file
-    assert "153600 − 33600 = 120000" in compaction_file
+    assert "139264 − max(8192, 33600) = 105664" in compaction_file
+    assert "139264 − 33600 = 105664" in compaction_file
 
 
 def test_dcp_allowsubagents_true_so_subagents_get_nudges_t900362(run_cmd, repo_root):
@@ -104,18 +104,18 @@ def test_dcp_allowsubagents_true_so_subagents_get_nudges_t900362(run_cmd, repo_r
     assert result.output == "true"
 
 
-def test_compaction_trigger_for_the_default_model_is_120000_on_v1_and_v2_t900350_t900362_t900365(run_cmd, repo_root):
+def test_compaction_trigger_for_the_default_model_is_105664_on_v1_and_v2_t900350_t900362_t900365(run_cmd, repo_root):
     _require_json5(run_cmd, repo_root)
     result = _node(run_cmd, repo_root, JS_TRIGGER)
     result.check()
-    assert result.output == "120000 120000"
+    assert result.output == "105664 105664"
 
 
 def test_dcp_local_limits_resolve_below_the_default_models_compaction_trigger_t900350_t900365(run_cmd, repo_root):
     _require_json5(run_cmd, repo_root)
     result = _node(run_cmd, repo_root, JS_DCP_LIMITS)
     result.check()
-    assert result.output == "61440 107520 true"
+    assert result.output == "55706 97485 true"
 
 
 def test_reviewer_role_edit_and_bash_denied_in_the_runtimes_mirror(repo_root):

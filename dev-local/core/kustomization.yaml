@@ -36,8 +36,9 @@ components:
   - ../components/voice
   - ../components/dev-pod
   - ../components/brain
-  - ../components/sessions
   - ../components/k1-embed
+  - ../components/opencode
+  - ../components/sessions
 
 configMapGenerator:
   - name: shared-db-backup-script
@@ -95,6 +96,15 @@ patches:
                 env:
                   - name: WEBSITE_EXTRA_CALLBACK
                     value: "https://${WEBSITE_HOST}/api/auth/callback"
+                  # opencode-devmesh-public (D6/D7): callback URLs for the
+                  # `opencode` and `fritz` Pocket ID clients. Consumed by the
+                  # seed script's ROWS (k3d/pocket-id-client-seed.yaml) once
+                  # the opencode/fritz rows land upstream; explicit envs keep
+                  # the public hosts out of the shared seed manifest.
+                  - name: OPENCODE_CALLBACK
+                    value: "https://${OPENCODE_PUBLIC_HOST}/oauth2/callback"
+                  - name: FRITZBOX_CALLBACK
+                    value: "https://${FRITZ_BOX_HOST}/oauth2/callback"
   - target: {kind: ConfigMap, name: domain-config}
     patch: |-
       apiVersion: v1

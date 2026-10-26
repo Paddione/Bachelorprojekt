@@ -3318,6 +3318,12 @@
     "kind": "pytest"
   },
   {
+    "id": "devmesh/opencode_public",
+    "file": "tests/py/spec/devmesh/test_opencode_public.py",
+    "category": "devmesh",
+    "kind": "pytest"
+  },
+  {
     "id": "divergence-guard",
     "file": "tests/py/spec/remaining_domain_specs/test_divergence_guard.py",
     "category": "divergence-guard",

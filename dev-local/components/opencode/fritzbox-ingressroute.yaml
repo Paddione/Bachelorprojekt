@@ -1,0 +1,27 @@
+# FritzBox SSO route (D7): public host ${FRITZ_BOX_HOST} (CNAME → opencode
+# record so it follows DynDNS) → Traefik IngressRoute with the forwardAuth
+# pattern. /oauth2 serves the roundtrip unauthenticated (priority 20); the
+# main route is gated by fritzbox-auth → oauth2-proxy-fritzbox:4180.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: fritzbox
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`${FRITZ_BOX_HOST}`) && PathPrefix(`/oauth2`)
+      priority: 20
+      services:
+        - name: oauth2-proxy-fritzbox
+          port: 4180
+    - kind: Rule
+      match: Host(`${FRITZ_BOX_HOST}`)
+      middlewares:
+        - name: fritzbox-auth
+      services:
+        - name: oauth2-proxy-fritzbox
+          port: 4180
+  tls:
+    secretName: fritzbox-public-tls

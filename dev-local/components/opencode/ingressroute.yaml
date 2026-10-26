@@ -1,0 +1,27 @@
+# Public IngressRoute for ${OPENCODE_PUBLIC_HOST} (entrypoint websecure).
+# /oauth2 serves the Pocket ID roundtrip unauthenticated (priority 20);
+# the main route is gated by forwardAuth (opencode-auth) — template:
+# dev-local/components/sessions/sessions-ingress.yaml.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: opencode
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`${OPENCODE_PUBLIC_HOST}`) && PathPrefix(`/oauth2`)
+      priority: 20
+      services:
+        - name: oauth2-proxy-opencode
+          port: 4180
+    - kind: Rule
+      match: Host(`${OPENCODE_PUBLIC_HOST}`)
+      middlewares:
+        - name: opencode-auth
+      services:
+        - name: opencode
+          port: 80
+  tls:
+    secretName: opencode-public-tls

@@ -1,0 +1,26 @@
+# Public TLS certs via letsencrypt-devmesh (ipv64 DNS-01).
+# Template: sessions-ingress.yaml head / dev-local/cluster/tls.yaml.
+# Apex host is not covered by devmesh-wildcard-tls (single-level wildcard only).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: opencode-public-tls
+spec:
+  secretName: opencode-public-tls
+  issuerRef:
+    name: letsencrypt-devmesh
+    kind: ClusterIssuer
+  dnsNames:
+    - "${OPENCODE_PUBLIC_HOST}"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: fritzbox-public-tls
+spec:
+  secretName: fritzbox-public-tls
+  issuerRef:
+    name: letsencrypt-devmesh
+    kind: ClusterIssuer
+  dnsNames:
+    - "${FRITZ_BOX_HOST}"

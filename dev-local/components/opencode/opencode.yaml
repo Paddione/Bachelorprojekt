@@ -1,0 +1,103 @@
+# opencode workload: PVC (workspace data, local-path, 5Gi) + Deployment + Service.
+# Image pinned by digest (D5): smanx/opencode tracks releases and defaults to
+# 0.0.0.0:4096. Auth lives in oauth2-proxy-opencode (forwardAuth) — no env
+# secrets in this Deployment.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opencode-data
+  namespace: ${WORKSPACE_NAMESPACE}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencode
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: opencode
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: opencode
+  template:
+    metadata:
+      labels:
+        app: opencode
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: opencode
+          image: smanx/opencode:2.1.4@sha256:ee18fd6e480edaa13f2acf8bf54e2ef5daf8210f0baa1ff9b3f49f8390fc51f5
+          imagePullPolicy: IfNotPresent
+          args:
+            - serve
+            - --hostname
+            - 0.0.0.0
+            - --port
+            - "4096"
+          ports:
+            - containerPort: 4096
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4096
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4096
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 1Gi
+              cpu: "1"
+          volumeMounts:
+            - name: workspace-data
+              mountPath: /workspace
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+      volumes:
+        - name: workspace-data
+          persistentVolumeClaim:
+            claimName: opencode-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opencode
+  namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: opencode
+spec:
+  selector:
+    app: opencode
+  ports:
+    - name: http
+      port: 80
+      targetPort: 4096

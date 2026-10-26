@@ -4116,12 +4116,6 @@
     "kind": "pytest"
   },
   {
-    "id": "local-llm-proxy/bge-chain-order",
-    "file": "tests/py/spec/native_ported/spec/local-llm-proxy/test_bge_chain_order.py",
-    "category": "local-llm-proxy",
-    "kind": "pytest"
-  },
-  {
     "id": "local-llm-proxy/bge-cpu-parallel-start",
     "file": "tests/py/spec/native_ported/spec/local-llm-proxy/test_bge_cpu_parallel_start.py",
     "category": "local-llm-proxy",
@@ -4742,6 +4736,12 @@
   {
     "id": "native_ported/spec/local-dev-mesh/tailnet_policy",
     "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
+    "id": "native_ported/spec/local-llm-proxy/bge_chain_order",
+    "file": "tests/py/spec/native_ported/spec/local-llm-proxy/test_bge_chain_order.py",
     "category": "native_ported",
     "kind": "pytest"
   },

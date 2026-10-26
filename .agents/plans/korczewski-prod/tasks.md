@@ -61,8 +61,11 @@ Vorbedingung statt zur stillen Annahme.
 - **D4 — Overlays referenzieren, nicht kopieren.** `korczewski-prod/website/` baut auf
   `prod-fleet/website-korczewski` (und damit über ADR-015 auf `k3d/`), `korczewski-prod/auth/`
   baut Pocket ID direkt aus `k3d/`. Kein zweiter Manifest-Baum.
-- **D5 — Neuer Key, vier SealedSecrets.** `scripts/env-seal.sh --env korczewski-prod` gegen den
-  Controller des Ziel-Clusters; Klartext-SSOT nur unter `environments/.secrets/` (gitignored).
+- **D5 — Neuer Key, vier SealedSecrets.** `scripts/env-seal.sh --env korczewski-prod --reuse-cert`
+  gegen ein **vorab** erzeugtes Keypair (Ziel-Cluster existiert bei der Ausführung nicht, siehe
+  Abweichung in `design.md` §6); das öffentliche Zertifikat liegt unter
+  `environments/certs/korczewski-prod.pem`, der private Schlüssel git-crypt-verschlüsselt unter
+  `environments/.secrets/`. Klartext-SSOT nur unter `environments/.secrets/` (gitignored).
   Kein Ciphertext wird zwischen devmesh und korczewski-prod geteilt.
 - **D6 — Wildcard als Traefik-Default, kein Secret-Kopierer.** `Certificate` +
   `TLSStore default` in `kube-system` (Muster `dev-local/cluster/tls.yaml`) ersetzen

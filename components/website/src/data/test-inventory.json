@@ -2568,6 +2568,12 @@
     "kind": "pytest"
   },
   {
+    "id": "cbm/multi_project_receipts",
+    "file": "tests/py/spec/cbm/test_multi_project_receipts.py",
+    "category": "cbm",
+    "kind": "pytest"
+  },
+  {
     "id": "centralized-logging",
     "file": "tests/py/spec/remaining_domain_specs/test_centralized_logging.py",
     "category": "centralized-logging",

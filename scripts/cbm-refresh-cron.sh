@@ -164,7 +164,10 @@ if [ "$REFRESH_ALLOWED" = "true" ]; then
   log "Starting fast refresh for project $PROJECT (repo=$REPO)"
   start_s=$(date +%s)
   set +e
-  bash "$WRAPPER" "{\"repo_path\": \"$REPO\", \"mode\": \"fast\", \"persistence\": true}" 1>&2 2>&2
+  # Multi-project receipts: the wrapper payload carries no project field, so
+  # begin/finish would file attempt+receipt under DEFAULT_PROJECT. Export the
+  # effective project so receipts bind to the refreshed project, not the default.
+  CBM_PROJECT="$PROJECT" bash "$WRAPPER" "{\"repo_path\": \"$REPO\", \"mode\": \"fast\", \"persistence\": true}" 1>&2 2>&2
   WRAP_EXIT=$?
   set -e
   end_s=$(date +%s)

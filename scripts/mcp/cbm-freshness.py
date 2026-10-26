@@ -405,7 +405,13 @@ def cmd_status(args):
             probe_failed = True
             if "project-mismatch" not in reasons:
                 reasons.append("project-mismatch")
-        if groot and groot != checkout_root and groot != main_root:
+        # Subdir projects (e.g. home-patrick-dotfiles rooted at a subdirectory
+        # of the home checkout) attest their project root via root_path. Accept
+        # the explicitly requested repo dir as the project root; receipts still
+        # bind (project, enclosing git root, db, fingerprint), so fail-closed
+        # validation below is unchanged.
+        repo_real = os.path.realpath(repo_in)
+        if groot and groot != checkout_root and groot != main_root and groot != repo_real:
             probe_failed = True
             if "root-mismatch" not in reasons:
                 reasons.append("root-mismatch")

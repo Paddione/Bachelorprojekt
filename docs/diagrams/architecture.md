@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1914 Abhängigkeitskanten · 316 API-Endpoints
+96 Services · 1916 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -44,6 +44,8 @@ flowchart LR
   bge_embed["bge-embed"]:::default
   bge_rerank["bge-rerank"]:::default
   bge_embed_bulk["bge-embed-bulk"]:::default
+  lfm_embed["lfm-embed"]:::default
+  lfm_colbert["lfm-colbert"]:::default
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
   mentolder_web["mentolder-web"]:::default
@@ -99,6 +101,8 @@ flowchart LR
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
+  llm_gateway_lfm_embed["llm-gateway-lfm-embed"]:::default
+  llm_gateway_lfm_colbert["llm-gateway-lfm-colbert"]:::default
   sealed_secrets["sealed-secrets"]:::default
   keycloak["keycloak"]:::auth
   tracking["tracking"]:::default
@@ -224,6 +228,8 @@ flowchart LR
   llm_gateway_embed -->|"selector"| bge_embed
   llm_gateway_embed -->|"selector"| bge_embed_bulk
   llm_gateway_rerank -->|"selector"| bge_rerank
+  llm_gateway_lfm_embed -->|"selector"| lfm_embed
+  llm_gateway_lfm_colbert -->|"selector"| lfm_colbert
   mailpit -->|"selector"| mailpit
   mediaviewer_widget -->|"selector"| mediaviewer_widget
   mentolder_web -->|"selector"| mentolder_web
@@ -1998,6 +2004,8 @@ flowchart TB
     bge_embed["bge-embed"]
     bge_rerank["bge-rerank"]
     bge_embed_bulk["bge-embed-bulk"]
+    lfm_embed["lfm-embed"]
+    lfm_colbert["lfm-colbert"]
     mailpit["mailpit"]
     mediaviewer_widget["mediaviewer-widget"]
     mentolder_web["mentolder-web"]
@@ -2039,6 +2047,8 @@ flowchart TB
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
     shared_db_dev_lb["shared-db-dev-lb"]
+    llm_gateway_lfm_embed["llm-gateway-lfm-embed"]
+    llm_gateway_lfm_colbert["llm-gateway-lfm-colbert"]
     sealed_secrets["sealed-secrets"]
     keycloak["keycloak"]
     tracking["tracking"]

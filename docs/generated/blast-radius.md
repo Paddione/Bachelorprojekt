@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-10-21T04:09:18.546Z
-> Nodes: 92 | Edges: 1914 | Isolated: 6
+> Generated: 2026-10-26T02:26:39.790Z
+> Nodes: 96 | Edges: 1916 | Isolated: 6
 
 ## Ranking (transitive Abhängige)
 
@@ -81,11 +81,13 @@
 | 73 | sealed-secrets-controller | 2 | 2 | 2 |
 | 74 | downloads | 1 | 1 | 1 |
 | 75 | einvoice-sidecar | 1 | 1 | 1 |
-| 76 | mediaviewer-widget | 1 | 1 | 1 |
-| 77 | blackbox-exporter | 1 | 1 | 1 |
-| 78 | nextcloud-redis | 1 | 1 | 1 |
-| 79 | sessions-server | 1 | 1 | 1 |
-| 80 | whisper | 1 | 1 | 1 |
+| 76 | lfm-embed | 1 | 1 | 1 |
+| 77 | lfm-colbert | 1 | 1 | 1 |
+| 78 | mediaviewer-widget | 1 | 1 | 1 |
+| 79 | blackbox-exporter | 1 | 1 | 1 |
+| 80 | nextcloud-redis | 1 | 1 | 1 |
+| 81 | sessions-server | 1 | 1 | 1 |
+| 82 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -462,6 +464,16 @@
 ### einvoice-sidecar
 **Direkte Abhängige:** 1 — einvoice-sidecar
 **Transitive Abhängige:** 1 — einvoice-sidecar
+**Upstream (In-Degree):** 1
+
+### lfm-embed
+**Direkte Abhängige:** 1 — llm-gateway-lfm-embed
+**Transitive Abhängige:** 1 — llm-gateway-lfm-embed
+**Upstream (In-Degree):** 1
+
+### lfm-colbert
+**Direkte Abhängige:** 1 — llm-gateway-lfm-colbert
+**Transitive Abhängige:** 1 — llm-gateway-lfm-colbert
 **Upstream (In-Degree):** 1
 
 ### mediaviewer-widget

@@ -37,6 +37,19 @@ required for clients. No touch of prod `korczewski` (frozen workspace, T002479).
   `POCKET_ID_OPENCODE_SECRET` in `workspace-secrets` via SealedSecret
   (`task env:seal`); client registered via `pocket-id-client-seed` patch
   (pattern: `dev-local/core/kustomization.yaml` `WEBSITE_EXTRA_CALLBACK`).
+- **D7 FritzBox login via SSO (2026-10-26 amendment).** Public host
+  `${FRITZ_BOX_HOST}` (`fritz.korczewski.de`, `CNAME → opencode` record so it
+  follows DynDNS) → Traefik IngressRoute with the same forwardAuth pattern,
+  but a second oauth2-proxy deployment (`oauth2-proxy-fritzbox`,
+  `client-id=fritz`) whose upstream is the box UI
+  (`${FRITZ_BOX_URL}`, box LAN IP + admin port, TLS with upstream verify
+  skipped — box serves a self-signed cert for foreign hosts). Pocket ID client
+  `fritz` + `POCKET_ID_FRITZBOX_SECRET` via the same seed/SealedSecret path as
+  D6. Security: box UI is internet-reachable only behind the SSO gate; keep the
+  box password strong and firmware auto-updates on. No separate wildcard.
+- **D8 Dualstack.** `AAAA` already DynDNS-managed; execute verifies v4+v6 end
+  to end. Missing IPv6 Freigabe on the box is an operator fix and does NOT
+  block the deploy (v4 carries production until v6 is green).
 
 ## Operator prerequisites (no repo change, execute verifies only)
 

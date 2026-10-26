@@ -28,6 +28,8 @@ approval in the execute session. All other tasks change only the repo.
 | `dev-local/components/opencode/certificate.yaml` | neu | n/a (YAML ohne S1-Limit) |
 | `dev-local/components/opencode/ingressroute.yaml` | neu | n/a (YAML ohne S1-Limit) |
 | `dev-local/components/opencode/oauth2-proxy-opencode.yaml` | neu | n/a (YAML ohne S1-Limit) |
+| `dev-local/components/opencode/oauth2-proxy-fritzbox.yaml` | neu | n/a (YAML ohne S1-Limit) |
+| `dev-local/components/opencode/fritzbox-ingressroute.yaml` | neu | n/a (YAML ohne S1-Limit) |
 | `dev-local/core/kustomization.yaml` | 176 | n/a (YAML ohne S1-Limit) |
 | `environments/dev.yaml` | 60+ | n/a (YAML ohne S1-Limit) |
 | `tests/py/spec/devmesh/test_opencode_public.py` | neu | Budget 800 (Limit `.py`) |
@@ -48,6 +50,20 @@ No brand-domain literals in snippets — `${OPENCODE_PUBLIC_HOST}`,
 - [ ] `certificate.yaml`: `Certificate opencode-public-tls`,
   `issuerRef: letsencrypt-devmesh`, `dnsNames: ["${OPENCODE_PUBLIC_HOST}"]`
   (template: `sessions-ingress.yaml` head / `dev-local/cluster/tls.yaml`).
+- [ ] FritzBox SSO route: `fritzbox-ingressroute.yaml` (Traefik IngressRoute,
+  `Host(`${FRITZ_BOX_HOST}`)`, `/oauth2` passthrough + forwardAuth main route
+  → `oauth2-proxy-fritzbox:4180`, own `tls.secretName: fritzbox-public-tls`)
+  + second `Certificate` doc (`fritzbox-public-tls`,
+  `dnsNames: ["${FRITZ_BOX_HOST}"]`) appended in `certificate.yaml`.
+  `oauth2-proxy-fritzbox.yaml`: mirror of the opencode proxy with
+  `client-id=fritz`,
+  `redirect-url=https://${FRITZ_BOX_HOST}/oauth2/callback`,
+  `--upstream=${FRITZ_BOX_URL}` (box LAN IP + admin port, scheme `https`),
+  `--ssl-upstream-insecure-skip-verify=true` (box self-signed cert),
+  cookie `_oauth2_proxy_fritzbox`, secret `$(POCKET_ID_FRITZBOX_SECRET)`.
+  Pocket ID seed patch registers client `fritz` (+ sealed
+  `POCKET_ID_FRITZBOX_SECRET`); DNS operator step: `CNAME fritz` →
+  `opencode` record so it follows DynDNS (design D7).
 - [ ] `ingressroute.yaml`: Traefik IngressRoute, entrypoint `websecure`,
   rule `Host(`${OPENCODE_PUBLIC_HOST}`)`, `/oauth2` route → oauth2-proxy
   (priority 20, unauthenticated, for the roundtrip) + main route with
@@ -70,7 +86,9 @@ No brand-domain literals in snippets — `${OPENCODE_PUBLIC_HOST}`,
   `../components/opencode` (alphabetical: after `k1-embed`, before `sessions`
   — current list `dev-local/core/kustomization.yaml:34-40`).
 - [ ] `environments/dev.yaml`: `OPENCODE_PUBLIC_HOST` var (pattern:
-  `WEBSITE_HOST`); render path (`task devmesh:deploy`) envsubst-covers it —
+  `WEBSITE_HOST`) + `FRITZ_BOX_HOST` / `FRITZ_BOX_URL` (box LAN-IP + admin
+  port, e.g. `https://<lan-ip>:4433` — operator fills the IP, never commit a
+  password); render path (`task devmesh:deploy`) envsubst-covers it —
   verify with `scripts/devmesh/render-stack.sh core --out <tmp>` containing
   `opencode-public-tls` and `Host(${OPENCODE_PUBLIC_HOST})` unexpanded-safe.
 
@@ -87,12 +105,18 @@ No brand-domain literals in snippets — `${OPENCODE_PUBLIC_HOST}`,
     `IngressRoute` mit `Host(`-Match und `tls.secretName: opencode-public-tls`.
   - `test_no_literal_host`: kein Manifest unter `dev-local/components/opencode/`
     enthält ein String-Literal `korczewski.de` (nur `${...}`-Referenzen).
+    Ausnahme: `FRITZ_BOX_URL` enthält eine LAN-IP (kein DNS-Name).
   - `test_oauth2_wiring`: oauth2-proxy Deployment args enthalten
     `client-id=opencode` und `redirect-url` mit `${OPENCODE_PUBLIC_HOST}`;
     Middleware zeigt auf `oauth2-proxy-opencode...:4180/oauth2/auth`.
   - `test_core_hook`: `dev-local/core/kustomization.yaml` listet
     `../components/opencode` genau einmal; keine `tailscale`-Klasse, kein
     `funnel`, kein Ingress mit Klasse `tailscale` für diesen Host.
+  - `test_fritz_route`: Render enthält `IngressRoute` mit
+    `Host(`${FRITZ_BOX_HOST}`)` und `tls.secretName: fritzbox-public-tls`,
+    `Certificate/fritzbox-public-tls` mit `dnsNames == ["${FRITZ_BOX_HOST}"]`,
+    oauth2-proxy Deployment mit `client-id=fritz` und upstream aus
+    `${FRITZ_BOX_URL}`; kein `korczewski.de`-Literal ausserhalb `${...}`.
   - `test_no_prod_touch`: kein Dokument im Diff berührt `prod-*`, `fleet/`,
     `mentolder`, `workspace-korczewski` oder `ks-korczewski`.
 
@@ -109,3 +133,9 @@ No brand-domain literals in snippets — `${OPENCODE_PUBLIC_HOST}`,
   Admin-Check `https://${OPENCODE_PUBLIC_HOST}/oauth2/callback` erreichbar
   (302 → `auth.${PROD_DOMAIN}`); Handy ohne Tailscale lädt Login, nach SSO das
   opencode-Web-UI.
+- [ ] Dualstack + FritzBox live (NUR nach Freigabe): `dig
+  ${OPENCODE_PUBLIC_HOST} AAAA +short` und `dig ${FRITZ_BOX_HOST} AAAA +short`
+  zeigen die Box-v6; `curl -6 https://...` auf beide Hosts (v6-Fehlschlag =
+  Operator-Freigabe fehlt → dokumentieren, v4 trägt, kein Block);
+  `https://${FRITZ_BOX_HOST}/` → 302 Pocket ID-Login → nach SSO Box-UI
+  (Kennwort-Ebene der Box bleibt als zweite Hürde bestehen).

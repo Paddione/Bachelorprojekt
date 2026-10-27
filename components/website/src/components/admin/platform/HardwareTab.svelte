@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { HardwareAsset } from '../../../lib/platform-db';
+  import ClusterTopologyRig from './ClusterTopologyRig.svelte';
 
   export let cluster: string;
 
@@ -29,6 +30,10 @@
 </script>
 
 <div class="space-y-6">
+  <div class="flex justify-center">
+    <ClusterTopologyRig />
+  </div>
+
   <div>
     <h3 class="text-xl font-bold text-white">Hardware Assets</h3>
     <p class="text-sm text-admin-text-mute">Physische Knoten und Standorte der Infrastruktur.</p>

@@ -4836,6 +4836,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/website_imports_resolve_in_image",
+    "file": "tests/py/spec/native_ported/spec/test_website_imports_resolve_in_image.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "neovim-dashboard",
     "file": "tests/py/spec/native_ported/spec/test_neovim_dashboard.py",
     "category": "neovim-dashboard",

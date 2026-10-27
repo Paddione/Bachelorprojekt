@@ -12,7 +12,7 @@
       "label": "bge-m3 Q8_0 · Embedding, Iris-iGPU (Vulkan) :8081",
       "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",
       "port": 8081,
-      "enabled": true,
+      "enabled": false,
       "fit": {
         "enabled": false,
         "targetMarginMib": 0,
@@ -31,6 +31,31 @@
         "8192"
       ],
       "notes": "Tablet laeuft auf dem 27-GB-Optane-Teil der H10 und traegt nur Embedding + Rerank (User-Entscheidung 2026-10-26). Flags wie bge-embed-cpu in scripts/llm/loadouts.json, aber auf der iGPU."
+    },
+    {
+      "slug": "gemma-embed",
+      "label": "embeddinggemma-300m Q8_0 · Embedding, Iris-iGPU (Vulkan) :8081",
+      "model": "unsloth/embeddinggemma-300m-GGUF/embeddinggemma-300M-Q8_0.gguf",
+      "port": 8081,
+      "enabled": true,
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": 0,
+        "minCtx": 8192
+      },
+      "args": {
+        "ctx": 8192,
+        "ngl": 99,
+        "parallel": 2
+      },
+      "extraArgs": [
+        "--embeddings",
+        "-b",
+        "8192",
+        "-ub",
+        "8192"
+      ],
+      "notes": "Cutover: Tablet bedient das Gemma-Dense-Profil (768) statt BGE (User-Entscheidung Cutover). Flags wie bge-embed zuvor (Gemma-300M ist schmaler als BGE-M3)."
     }
   ]
 }

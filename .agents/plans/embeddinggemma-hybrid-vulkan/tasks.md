@@ -9,11 +9,10 @@ status: staged
 
 | Datei | Aenderung |
 |---|---|
-| `k3d/llm-gemma-embed.yaml` | CPU-Profil: ein Slot, 2048 Kontext, reines CPU-Offload, 2Gi Limit, RWO-Node fixieren |
 | `k3d/llm-gemma-igpu.yaml` | Neuer gepinnter Vulkan-Worker mit Intel-Device-Plugin-Ressource und beschreibbarem Cache |
 | `k3d/kustomization.yaml` | Vulkan-Manifest geparkt registrieren |
 | `dev-local/core/kustomization.yaml` | Vulkan-Ressource und devmesh-Patch referenzieren |
-| `dev-local/core/gemma-hybrid.yaml` | Nur devmesh: iGPU aktivieren, beide Worker an RWO-Node binden |
+| `dev-local/core/gemma-hybrid.yaml` | Nur devmesh: CPU kalibrieren, iGPU aktivieren, beide Worker an RWO-Node binden |
 | `tests/py/spec/native_ported/spec/llm-pipeline/test_bge_bulk_pool.py` | Rendering-Vertrag fuer Hybrid-Pool erweitern |
 | `docs/runbooks/embeddinggemma-hybrid.md` | Betrieb, Messgrenzen und Rollback |
 
@@ -30,7 +29,8 @@ gebunden. Der immutable CPU-Deployment-Selektor bleibt unveraendert; der neue
 Worker verwendet den etablierten Bulk-Ansatz mit eigenem Pool-Selektor.
 Das bereits laufende Intel-Device-Plugin ist Voraussetzung, wird nicht ersetzt.
 Die gemeinsame k3d-Basis parkt die iGPU bei null Replikaten; dev-local/core
-aktiviert sie. Der devmesh-Renderer konsumiert dieses Profil direkt und nicht
+aktiviert sie. Auch CPU-Argumente und Speicherlimits bleiben in der
+Basis unveraendert und werden nur im devmesh-Patch kalibriert. Der devmesh-Renderer konsumiert dieses Profil direkt und nicht
 k3d/kustomization.yaml; beide Ressourcenlisten muessen deshalb referenzieren.
 
 S1: Die bestehenden YAML-Dateien und Markdown sind nicht zeilenbegrenzt.

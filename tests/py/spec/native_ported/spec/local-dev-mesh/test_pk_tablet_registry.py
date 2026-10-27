@@ -83,7 +83,9 @@ def test_embed_kette_tablet_zuerst_cluster_als_rueckfall(rendered, run_cmd, repo
     # ist Erstglied der embed-Kette, der Cluster (Prioritaet 10) Rueckfall.
     chain = _chain(run_cmd, repo_root, 'embed', _backends(rendered))
     assert chain[0] == 'http://llm-gateway-tablet:8081'
-    assert 'llm-gateway-embed' in chain[1]
+    # Cutover: Cluster-Rueckfall zeigt auf das Gemma-Gateway (BGE retiriert);
+    # Ordnung (Tablet zuerst, Cluster als Rueckfall) unveraendert.
+    assert 'llm-gateway-gemma-embed' in chain[1]
 
 
 def test_loadouts_rueckfall_ohne_wireguard_adresse(run_cmd, repo_root):

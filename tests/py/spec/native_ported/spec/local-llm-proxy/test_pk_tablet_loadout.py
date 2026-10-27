@@ -13,7 +13,7 @@ import pytest
 LOADOUTS = 'devmesh/pk-tablet/loadouts.json'
 RENDER = 'scripts/llm/pk-tablet/render.mjs'
 APPLY = 'scripts/llm/pk-tablet/apply.sh'
-EMBED_MODEL = '/var/lib/llama/models/gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf'
+EMBED_MODEL = '/var/lib/llama/models/unsloth/embeddinggemma-300m-GGUF/embeddinggemma-300M-Q8_0.gguf'
 # 27-GB-Optane-Teil: OS + Reserve abgezogen bleiben fuer Modelle hoechstens ~20 GiB.
 MODEL_BUDGET_BYTES = 20 * 1024**3
 
@@ -37,8 +37,8 @@ def test_render_schreibt_argv_je_aktivem_loadout(render):
     result, out = render()
     result.check()
     # Rerank-Loadout entfernt 2026-10-26 (23,7 s je Suche auf dem Tablet, kein Qualitaetsgewinn).
-    assert (out / 'enabled.list').read_text().split() == ['bge-embed']
-    argv = (out / 'bge-embed.argv').read_text().splitlines()
+    assert (out / 'enabled.list').read_text().split() == ['gemma-embed']
+    argv = (out / 'gemma-embed.argv').read_text().splitlines()
     assert argv[argv.index('-m') + 1] == EMBED_MODEL
     assert argv[argv.index('--port') + 1] == '8081'
     assert '--embeddings' in argv
@@ -59,15 +59,15 @@ def test_models_list_hat_sha_und_url(render):
 
 def test_deaktiviertes_loadout_faellt_raus(repo_root, render, tmp_path):
     doc = json.loads((repo_root / LOADOUTS).read_text())
-    extra = dict(doc['loadouts'][0], slug='bge-embed-2', port=8082)
+    extra = dict(doc['loadouts'][0], slug='gemma-embed-2', port=8082)
     doc['loadouts'].append(dict(extra, enabled=False))
     copy = tmp_path / 'loadouts.json'
     copy.write_text(json.dumps(doc))
     result, out = render('--loadouts', str(copy))
     result.check()
-    assert (out / 'bge-embed.argv').exists()
-    assert not (out / 'bge-embed-2.argv').exists()
-    assert (out / 'ports.list').read_text().split() == ['bge-embed', '8081']
+    assert (out / 'gemma-embed.argv').exists()
+    assert not (out / 'gemma-embed-2.argv').exists()
+    assert (out / 'ports.list').read_text().split() == ['gemma-embed', '8081']
 
 
 def test_render_fehlende_modellquelle_bricht_ab(render, tmp_path):
@@ -90,7 +90,7 @@ def test_apply_dry_run_ohne_ssh(repo_root, run_cmd, tmp_path):
             os.symlink(found, bindir / tool)
     result = run_cmd(['bash', str(repo_root / APPLY), '--dry-run'], env={'PATH': str(bindir)})
     result.check()
-    assert 'unit enable bge-embed port 8081' in result.output
+    assert 'unit enable gemma-embed port 8081' in result.output
     assert 'bge-rerank' not in result.output
 
 

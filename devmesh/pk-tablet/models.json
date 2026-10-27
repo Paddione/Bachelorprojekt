@@ -3,5 +3,10 @@
     "url": "https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q8_0.gguf",
     "sha256": "950f4a8e5e19477a6d3c26d2f162233c20002c601f75e4b002e3239997821167",
     "bytes": 634553760
+  },
+  "unsloth/embeddinggemma-300m-GGUF/embeddinggemma-300M-Q8_0.gguf": {
+    "url": "https://huggingface.co/unsloth/embeddinggemma-300m-GGUF/resolve/main/embeddinggemma-300M-Q8_0.gguf",
+    "sha256": "a0f7b4e13c397a6e1b32c2de75b1f65a14c92ec524d5f674d94a4290a1c4969b",
+    "bytes": 328577056
   }
 }

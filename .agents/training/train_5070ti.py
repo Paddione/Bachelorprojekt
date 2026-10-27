@@ -19,8 +19,8 @@ GPU-PREFLIGHT: the 5070 Ti also hosts the Qwen3.8-27B orchestrator rail
 (systemctl --user stop qwen38-gsq-iq3xxs), restore it after training.
 The script aborts if free VRAM is insufficient; override with --force.
 
-Cloud alternative (ADR-007 primary path): task finetune:hf-jobs:train with the
-same dataset (see scripts/finetune/README.md).
+Cloud alternative (ADR-007 primary path): HF Jobs training in
+unsloth-boxes/decision-train with the same dataset (see FINETUNE.md there).
 """
 
 import argparse

@@ -187,10 +187,10 @@ def test_neovim_dashboard_tests_skill_dirs_browser_lists_all_three_origins(nv):
 
 
 def test_neovim_dashboard_ml_zones_lists_repo_and_box_zones(nv, repo_root):
-    want = [z for z in ("ml", ".agents/training", "scripts/finetune") if (repo_root / z).is_dir()]
+    want = [z for z in ("ml", ".agents/training") if (repo_root / z).is_dir()]
     if (Path.home() / "unsloth-boxes").is_dir():
         want.append("~/unsloth-boxes")
-    assert len(want) >= 3
+    assert len(want) >= 2
     result = nv.nvim_headless(
         "lua print('zones='..table.concat(require('chapters.ml-training').zones(),','))")
     assert result.returncode == 0

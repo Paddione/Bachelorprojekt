@@ -139,15 +139,6 @@ task: Available tasks for this project:
 * feature:deploy:                               Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)
 * feature:promote:                              Promote a service dev → prod with Playwright smoke gate (SERVICE=website TARGET=mentolder|korczewski|both; prompts if unset)
 * feature:website:                              Rebuild + redeploy the Astro website on BOTH prod clusters
-* finetune-eval:gate:                           Same as run, but quiet — exit code only. Use as an acceptance step before export.
-* finetune-eval:run:                            Run the base-vs-tuned eval harness against ADAPTER=<path>, print the JSON report.
-* finetune:export:                              GGUF-Export mit Template-Korrektur. ADAPTER_DIR=<dir> SLOT_NAME=<name> [HUB_TEMPLATE=<datei>] [DRY_RUN=1]
-* finetune:guard:                               Byte-Gleichheit Hub- vs. gepatchtes Chat-Template. HUB_TEMPLATE=<datei> PATCHED_TEMPLATE=<datei> CORPUS=<jsonl>
-* finetune:hf-jobs:export:                      GGUF-Export als HF Job. ADAPTER_REPO=<hf-id> GGUF_REPO=<hf-id> [FLAVOR=l4x1]
-* finetune:hf-jobs:train:                       Trainingslauf auf HF Jobs Cloud. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> HUB_MODEL_ID=<hf-id> [FLAVOR=l4x1]
-* finetune:measure:                             Token-Laengenverteilung + VRAM-Machbarkeitsmatrix. CORPUS=<jsonl> MODEL=<label> [TEMPLATE_FILE=<jinja>]
-* finetune:train:                               Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> [PRECISION=auto|4bit|16bit] [GPU_MODE=single|balanced] [EVAL_CORPUS=<jsonl>]
-* finetune:train-vision:                        Qwen3-VL image/screenshot QLoRA. CORPUS=<jsonl> MODEL=<hf-id-or-snapshot> MAX_SEQ_LENGTH=<n> [EVAL_CORPUS=<jsonl>] [DRY_RUN=1]
 * fleet:deploy:                                 Full Phase 2b deploy: platform → both brands' core → shared office/coturn → both brands' talk-setup. Brings up the COMPLETE stack for both brands on the fleet cluster.
 * fleet:deploy:brand:                           Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski
 * fleet:dns:cutover:                            Flip a brand's cluster A-records onto the fleet nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task fleet:dns:cutover ENV=fleet-mentolder [ACTION=cutover]

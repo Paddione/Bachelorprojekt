@@ -20,14 +20,6 @@ includes:
   dsh:
     taskfile: ./taskfiles/Taskfile.dsh.yml
     dir: .
-  finetune:
-    taskfile: ./taskfiles/Taskfile.finetune.yml
-    dir: .
-  # Base-vs-Tuned regression gate for Unsloth finetunes (T002606).
-  # See Taskfile.finetune-eval.yml.
-  finetune-eval:
-    taskfile: ./taskfiles/Taskfile.finetune-eval.yml
-    dir: .
   # dev.mentolder.de — persistent staging stack on fleet (namespace workspace-dev).
   # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
   dev:

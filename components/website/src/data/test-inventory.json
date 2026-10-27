@@ -3480,18 +3480,6 @@
     "kind": "pytest"
   },
   {
-    "id": "finetune-hf-jobs",
-    "file": "tests/py/spec/remaining_domain_specs/test_finetune_hf_jobs.py",
-    "category": "finetune-hf-jobs",
-    "kind": "pytest"
-  },
-  {
-    "id": "finetune/model-registry",
-    "file": "tests/py/spec/native_ported/spec/finetune/test_model_registry.py",
-    "category": "finetune",
-    "kind": "pytest"
-  },
-  {
     "id": "fix-ci-concurrency",
     "file": "tests/py/spec/remaining_domain_specs/test_fix_ci_concurrency.py",
     "category": "fix-ci-concurrency",
@@ -5856,74 +5844,14 @@
     "kind": "pytest"
   },
   {
-    "id": "unsloth-eval-harness/clarify-question",
-    "file": "tests/py/spec/native_ported/spec/unsloth-eval-harness/test_clarify_question.py",
-    "category": "unsloth-eval-harness",
-    "kind": "pytest"
-  },
-  {
-    "id": "unsloth-eval-harness/gguf-fixture-bridge",
-    "file": "tests/py/spec/native_ported/spec/unsloth-eval-harness/test_gguf_fixture_bridge.py",
-    "category": "unsloth-eval-harness",
-    "kind": "pytest"
-  },
-  {
-    "id": "unsloth-eval-harness/regression-gate",
-    "file": "tests/py/spec/native_ported/spec/unsloth-eval-harness/test_regression_gate.py",
-    "category": "unsloth-eval-harness",
-    "kind": "pytest"
-  },
-  {
-    "id": "unsloth-eval-harness/scoring-rules",
-    "file": "tests/py/spec/native_ported/spec/unsloth-eval-harness/test_scoring_rules.py",
-    "category": "unsloth-eval-harness",
-    "kind": "pytest"
-  },
-  {
     "id": "unsloth-eval-harness/tandem-candidates",
     "file": "tests/py/spec/native_ported/spec/unsloth-eval-harness/test_tandem_candidates.py",
     "category": "unsloth-eval-harness",
     "kind": "pytest"
   },
   {
-    "id": "unsloth-eval-harness/testset-shape",
-    "file": "tests/py/spec/native_ported/spec/unsloth-eval-harness/test_testset_shape.py",
-    "category": "unsloth-eval-harness",
-    "kind": "pytest"
-  },
-  {
-    "id": "unsloth-eval-harness/worker-testset",
-    "file": "tests/py/spec/native_ported/spec/unsloth-eval-harness/test_worker_testset.py",
-    "category": "unsloth-eval-harness",
-    "kind": "pytest"
-  },
-  {
     "id": "unsloth-training-env/agent-discovery",
     "file": "tests/py/spec/native_ported/spec/unsloth-training-env/test_agent_discovery.py",
-    "category": "unsloth-training-env",
-    "kind": "pytest"
-  },
-  {
-    "id": "unsloth-training-env/measure-corpus",
-    "file": "tests/py/spec/native_ported/spec/unsloth-training-env/test_measure_corpus.py",
-    "category": "unsloth-training-env",
-    "kind": "pytest"
-  },
-  {
-    "id": "unsloth-training-env/template-guard",
-    "file": "tests/py/spec/native_ported/spec/unsloth-training-env/test_template_guard.py",
-    "category": "unsloth-training-env",
-    "kind": "pytest"
-  },
-  {
-    "id": "unsloth-training-env/train-config",
-    "file": "tests/py/spec/native_ported/spec/unsloth-training-env/test_train_config.py",
-    "category": "unsloth-training-env",
-    "kind": "pytest"
-  },
-  {
-    "id": "unsloth-training-env/vision-route",
-    "file": "tests/py/spec/native_ported/spec/unsloth-training-env/test_vision_route.py",
     "category": "unsloth-training-env",
     "kind": "pytest"
   },

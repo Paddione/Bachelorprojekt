@@ -549,21 +549,6 @@ capabilities:
   # Faehigkeit ist eine Routing-Entscheidung und wird nicht mitgesettet.
   modell-finetuning: {}
 
-  # Eigene Faehigkeit statt einer zweiten canonical-Instanz unter modell-finetuning: das
-  # Registry-Schema erlaubt maximal eine canonical-Instanz je Faehigkeit (siehe
-  # scripts/toolset/lib/registry.mjs). modell-finetuning deckt die generische
-  # Unsloth/TRL-API-Faehigkeit ab; diese hier ist die Repo-eigene
-  # Orchestrierung darueber (Vorbedingungs-Gates, Taskfile.finetune.yml) — dasselbe Muster
-  # wie die Trennung von huggingface-hub-operationen von modell-finetuning (T002596).
-  finetune-pipeline:
-    cli:scripts/finetune:
-      state: canonical
-      use_when: "Repo-Trainingslauf durchfuehren: Messschritt (measure_corpus.py) vor jeder Modellwahl, Template-Guard vor jedem Training, dann finetune:train/export ueber Taskfile.finetune.yml."
-      avoid_when: "Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer die Unsloth/TRL-Upstream-Referenz direkt."
-      fallback: "Upstream-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist."
-      roles: [bp-run, orchestrator]
-      tier: assisted
-
   # huggingface-skills lag bis T002596 unter `modell-finetuning` und war dort suppressed,
   # weil der damalige Vendor-Trainings-Skill die kanonische Instanz war. Der Schnitt war
   # falsch: das Paket liefert Hub-Operationen (hf-cli, Spaces, Datasets, Papers,
@@ -574,7 +559,7 @@ capabilities:
     plugin:huggingface-skills@claude-plugins-official:
       state: canonical
       use_when: "Hugging-Face-Hub bedienen: hf-CLI, Modelle/Datasets suchen, Spaces, GGUF-Auswahl."
-      avoid_when: "Reines lokales Finetuning — dafür finetune-pipeline/cli:scripts/finetune."
+      avoid_when: "Reines lokales Finetuning — dafür unsloth-boxes/decision-train (./box up decision-train sft)."
       fallback: "hf CLI direkt (huggingface_hub), sofern installiert."
       roles: [orchestrator]
       tier: safe
@@ -885,62 +870,62 @@ capabilities:
   huggingface-best:
     skill:huggingface-best:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-community-evals:
     skill:huggingface-community-evals:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-datasets:
     skill:huggingface-datasets:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-llm-trainer:
     skill:huggingface-llm-trainer:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-local-models:
     skill:huggingface-local-models:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-lora-space-builder:
     skill:huggingface-lora-space-builder:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-paper-publisher:
     skill:huggingface-paper-publisher:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-papers:
     skill:huggingface-papers:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-tool-builder:
     skill:huggingface-tool-builder:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-trackio:
     skill:huggingface-trackio:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-vision-trainer:
     skill:huggingface-vision-trainer:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   huggingface-zerogpu:
     skill:huggingface-zerogpu:
       state: suppressed
-      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren."
 
   train-sentence-transformers:
     skill:train-sentence-transformers:

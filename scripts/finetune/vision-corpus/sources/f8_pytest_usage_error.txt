@@ -1,5 +1,0 @@
-ERROR: usage: python -m pytest [options] [file_or_dir] [file_or_dir] [...]
-python -m pytest: error: unrecognized arguments: --bogus-flag
-  inifile: /home/patrick/Bachelorprojekt/tests/py/pytest.ini
-  rootdir: /home/patrick/Bachelorprojekt/tests/py
-

@@ -425,19 +425,11 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `modell-finetuning`
 
 
-## Fähigkeit: `finetune-pipeline`
-
-- **`cli:scripts/finetune`** — Status `canonical` · Tier `assisted`
-  - _Wann:_ Repo-Trainingslauf durchfuehren: Messschritt (measure_corpus.py) vor jeder Modellwahl, Template-Guard vor jedem Training, dann finetune:train/export ueber Taskfile.finetune.yml.
-  - _Nicht:_ Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer die Unsloth/TRL-Upstream-Referenz direkt.
-  - _Fallback:_ `Upstream-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist.`
-  - _Rollen:_ `bp-run`, `orchestrator`
-
 ## Fähigkeit: `huggingface-hub-operationen`
 
 - **`plugin:huggingface-skills@claude-plugins-official`** — Status `canonical` · Tier `safe`
   - _Wann:_ Hugging-Face-Hub bedienen: hf-CLI, Modelle/Datasets suchen, Spaces, GGUF-Auswahl.
-  - _Nicht:_ Reines lokales Finetuning — dafür finetune-pipeline/cli:scripts/finetune.
+  - _Nicht:_ Reines lokales Finetuning — dafür unsloth-boxes/decision-train (./box up decision-train sft).
   - _Fallback:_ `hf CLI direkt (huggingface_hub), sofern installiert.`
   - _Rollen:_ `orchestrator`
 
@@ -705,62 +697,62 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `huggingface-best`
 
 - **`skill:huggingface-best`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-community-evals`
 
 - **`skill:huggingface-community-evals`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-datasets`
 
 - **`skill:huggingface-datasets`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-llm-trainer`
 
 - **`skill:huggingface-llm-trainer`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-local-models`
 
 - **`skill:huggingface-local-models`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-lora-space-builder`
 
 - **`skill:huggingface-lora-space-builder`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-paper-publisher`
 
 - **`skill:huggingface-paper-publisher`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-papers`
 
 - **`skill:huggingface-papers`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-tool-builder`
 
 - **`skill:huggingface-tool-builder`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-trackio`
 
 - **`skill:huggingface-trackio`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-vision-trainer`
 
 - **`skill:huggingface-vision-trainer`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `huggingface-zerogpu`
 
 - **`skill:huggingface-zerogpu`** — Status `suppressed`
-  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (unsloth-boxes/decision-train/) einzeln kuratieren.
 
 ## Fähigkeit: `train-sentence-transformers`
 

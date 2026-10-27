@@ -6,7 +6,7 @@ import re
 def test_task_resolves_included_namespaces(run_cmd):
     result = run_cmd(["task", "--list"])
     result.check()
-    for namespace in ["llm:", "finetune:", "dev:", "brain:"]:
+    for namespace in ["llm:", "dev:", "brain:"]:
         assert namespace in result.output
 
 

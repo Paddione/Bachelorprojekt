@@ -1,8 +1,0 @@
-24eda4aeb chore: auto-regenerate freshness artifacts (#6525)
-adeae83ec fix(scripts): nvim dashboard navigation, website nav null-safety and pytest default jobs (#6513)
-64242988c fix(scripts): bestehende Integritätsgrenzen reparieren [T901697] (#6521)
-4c2c02403 feat(scripts): migrate devflow-ci-watch to python [T901696] (#6470)
-4f4166973 fix(infra): protect bare runtime vars from list poisoning (T901780) (#6522)
-458c60466 chore: auto-regenerate freshness artifacts (#6520)
-421da8d49 fix(infra): escape cronjob code var for renderer (T901780) (#6517)
-819b8cc36 fix(infra): seed auth check reports clean codes (T901774) (#6516)

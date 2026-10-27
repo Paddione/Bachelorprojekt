@@ -1,3 +1,0 @@
-index, name, memory.total [MiB], memory.free [MiB]
-0, NVIDIA GeForce RTX 3060 Ti, 8192 MiB, 3382 MiB
-1, NVIDIA GeForce RTX 5070 Ti, 16303 MiB, 591 MiB

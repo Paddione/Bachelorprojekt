@@ -59,8 +59,8 @@ Teacher über :1919 + T3 Human-QC). Format: `messages`, System-Prompt
   stoppen** (`systemctl --user stop qwen38-gsq-iq3xxs`), danach wieder starten.
   Das TrainingScript erzwingt strikten Preflight: bricht ab, wenn < 13 GB frei sind
   (13.000 MiB für 16bit, 9.000 MiB für 4bit; `--force` overrides nur für Test/Debug).
-- ADR-007: primärer Cloud-Pfad ist HF Jobs (`task finetune:hf-jobs:train`) —
-  der Datensatz ist dafür direkt verwendbar (`CORPUS=<dataset_train.jsonl>`).
+- ADR-007: primaerer Cloud-Pfad sind HF Jobs aus unsloth-boxes/decision-train —
+  der Datensatz ist dafuer direkt verwendbar (`CORPUS=<dataset_train.jsonl>`).
 
 ## 6. Hyperparameter (Stand T900930-Training)
 | Parameter | Wert | Warum |
@@ -92,9 +92,9 @@ Teacher über :1919 + T3 Human-QC). Format: `messages`, System-Prompt
 9. Deploy-Smoke: `test_3_agents_parallel.py` (3 Slots, Domänen-Fragen)
 
 ## 8. Abgrenzungen
-- `scripts/finetune/` (Tandem-Projekt Qwen3.5-4B/27B/Gemma) bleibt separater
-  Werkzeug-Stack mit Task-Targets; dieses Verzeichnis ist der leichtgewichtige
-  BP-Assistent-Pfad.
+- Trainings-Stack: `~/unsloth-boxes/decision-train/` (Box-Suite, SSOT seit Cutover
+  2026-10-27) statt entferntem `scripts/finetune/`; dieses Verzeichnis bleibt der
+  leichtgewichtige BP-Assistent-Pfad.
 - `test_3_agents_parallel.py` ist der Deploy-Smoke-Test (nicht Training).
 
 ## 9. Run-Protokoll — Qwen3.5-2B (T901041, 2026-10-13)

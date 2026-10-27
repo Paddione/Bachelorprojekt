@@ -1,0 +1,106 @@
+# Shared base parks this local Intel pool. dev-local/core activates it and pins
+# both workers to the node holding their ReadWriteOnce model volume.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gemma-embed-igpu
+  labels:
+    app: gemma-embed
+    pool: igpu
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gemma-embed
+      pool: igpu
+  template:
+    metadata:
+      labels:
+        app: gemma-embed
+        pool: igpu
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        intel-igpu: "true"
+        storage: "true"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        supplementalGroupsPolicy: Strict
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server-vulkan@sha256:c2b2c5ab208f47299b7c696e1e41439ffc8f9ecc3a5821e463f8dd2f7df3ab87
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          args:
+            - "-m"
+            - "/models/embeddinggemma-300M-Q8_0.gguf"
+            - "--alias"
+            - "embeddinggemma-300m"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            - "-ngl"
+            - "99"
+            - "-np"
+            - "1"
+            - "-c"
+            - "2048"
+            - "-b"
+            - "2048"
+            - "-ub"
+            - "2048"
+            - "-t"
+            - "2"
+            - "-tb"
+            - "2"
+            - "--embeddings"
+          env:
+            - name: XDG_CACHE_HOME
+              value: /tmp/.cache
+            - name: MESA_SHADER_CACHE_DIR
+              value: /tmp/mesa-cache
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+              gpu.intel.com/i915: 1
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+              gpu.intel.com/i915: 1
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+            - name: cache
+              mountPath: /tmp
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: gemma-embed-models
+            readOnly: true
+        - name: cache
+          emptyDir:
+            sizeLimit: 128Mi

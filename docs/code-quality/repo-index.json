@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1284,
+      "file_count": 1285,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -907,6 +907,7 @@
         "tests/py/spec/native_ported/spec/test_t002374_mishap_bundle.py",
         "tests/py/spec/native_ported/spec/test_vda_frontmatter.py",
         "tests/py/spec/native_ported/spec/test_website_core.py",
+        "tests/py/spec/native_ported/spec/test_website_imports_resolve_in_image.py",
         "tests/py/spec/native_ported/spec/test_website_interfaces.py",
         "tests/py/spec/native_ported/spec/test_website_svelte_check.py",
         "tests/py/spec/native_ported/spec/test_workspace_deploy.py",

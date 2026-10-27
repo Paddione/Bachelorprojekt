@@ -20,6 +20,7 @@ prod-mentolder
 prod-korczewski
 scripts
 !scripts/knowledge
+!scripts/lib/dense-embedding.mjs
 docker
 
 # Exclude test artifacts that don't belong in the runtime image

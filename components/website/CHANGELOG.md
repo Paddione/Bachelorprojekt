@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.439.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.5...website-v1.439.0) (2026-10-27)
+
+
+### Features
+
+* **website:** add presentation brand content json files ([#6982](https://github.com/Paddione/Bachelorprojekt/issues/6982)) ([8858766](https://github.com/Paddione/Bachelorprojekt/commit/88587660639898650187f26e176d9307f58b01ff))
+
 ## [1.438.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.4...website-v1.438.5) (2026-10-27)
 
 

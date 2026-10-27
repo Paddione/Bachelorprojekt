@@ -60,6 +60,8 @@ spec:
             - {name: BGE_MCP_PORT, value: "3007"}
             # bge-mcp spricht den Proxy im selben Pod an (kein Registry-Eintrag).
             - {name: LLM_EMBED_URL, value: "http://127.0.0.1:18235"}
+            # Cutover-Flip: bge-mcp-Shim bettet im Gemma-Dense-Profil ein (Shadow ok).
+            - {name: LLM_EMBED_MODEL, value: "embeddinggemma-300m"}
             - {name: LLM_RERANKER_URL, value: "http://127.0.0.1:18235"}
             - {name: DEV_POD_REPO, value: /workspace/repo}
             - name: WEBSITE_DB_PASSWORD

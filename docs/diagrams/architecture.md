@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-97 Services · 1917 Abhängigkeitskanten · 316 API-Endpoints
+98 Services · 1918 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -43,6 +43,7 @@ flowchart LR
   knowledge_reindex_all["knowledge-reindex-all"]:::default
   gemma_embed["gemma-embed"]:::default
   gemma_embed_bulk["gemma-embed-bulk"]:::default
+  gemma_embed_igpu["gemma-embed-igpu"]:::default
   bge_embed["bge-embed"]:::default
   bge_rerank["bge-rerank"]:::default
   bge_embed_bulk["bge-embed-bulk"]:::default
@@ -228,6 +229,7 @@ flowchart LR
   einvoice_sidecar -->|"selector"| einvoice_sidecar
   llm_gateway_gemma_embed -->|"selector"| gemma_embed
   llm_gateway_gemma_embed -->|"selector"| gemma_embed_bulk
+  llm_gateway_gemma_embed -->|"selector"| gemma_embed_igpu
   llm_gateway_embed -->|"selector"| bge_embed
   llm_gateway_embed -->|"selector"| bge_embed_bulk
   llm_gateway_rerank -->|"selector"| bge_rerank
@@ -2005,6 +2007,7 @@ flowchart TB
     knowledge_reindex_all(["knowledge-reindex-all"])
     gemma_embed["gemma-embed"]
     gemma_embed_bulk["gemma-embed-bulk"]
+    gemma_embed_igpu["gemma-embed-igpu"]
     bge_embed["bge-embed"]
     bge_rerank["bge-rerank"]
     bge_embed_bulk["bge-embed-bulk"]

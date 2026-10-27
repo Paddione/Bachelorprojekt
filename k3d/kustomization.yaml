@@ -91,6 +91,7 @@ resources:
   - llm-gpu.yaml
   # EmbeddingGemma-Dense (parallel zu BGE, Shadow-Reindex-Ziel)
   - llm-gemma-embed.yaml
+  - llm-gemma-igpu.yaml
   # LFM2.5 Embedding auf gpu-metal — Nachfolger des Desktop-Dienstes :8095,
   # Desktop sieht localhost via Port-Forward.
   - llm-retrieval-gpu.yaml

@@ -3,6 +3,7 @@
 import subprocess
 
 import pytest
+import yaml
 
 
 def _proc(args, cwd=None):
@@ -185,3 +186,84 @@ def test_gemma_embed_bulk_laeuft_auf_gpu(rendered):
         str(rendered),
     ]).stdout.strip()
     assert sel == "null"
+
+
+@pytest.fixture(scope="module")
+def gemma_workers(repo_root):
+    result = _proc(["kubectl", "kustomize", "--load-restrictor=LoadRestrictionsNone",
+                    str(repo_root / "dev-local/core")])
+    assert result.returncode == 0, result.stderr
+    return {
+        doc["metadata"]["name"]: doc
+        for doc in yaml.safe_load_all(result.stdout)
+        if doc and doc.get("kind") == "Deployment"
+        and doc["metadata"]["name"] in {"gemma-embed", "gemma-embed-igpu"}
+    }
+
+
+def test_gemma_hybrid_activation_is_devmesh_only(rendered, gemma_workers):
+    deployments = {
+        doc["metadata"]["name"]: doc for doc in yaml.safe_load_all(rendered.read_text())
+        if doc and doc.get("kind") == "Deployment"
+    }
+    assert deployments["gemma-embed-igpu"]["spec"]["replicas"] == 0
+    assert gemma_workers["gemma-embed-igpu"]["spec"]["replicas"] == 1
+    base = deployments["gemma-embed"]["spec"]["template"]["spec"]
+    assert "kubernetes.io/hostname" not in base["nodeSelector"]
+    args = base["containers"][0]["args"]
+    assert args[args.index("-np") + 1] == "2"
+    assert args[args.index("-c") + 1] == "4096"
+    assert base["containers"][0]["resources"]["limits"]["memory"] == "4Gi"
+
+
+def test_gemma_hybrid_workers_share_service_and_rwo_node(gemma_workers):
+    assert set(gemma_workers) == {"gemma-embed", "gemma-embed-igpu"}
+    for deployment in gemma_workers.values():
+        pod = deployment["spec"]["template"]
+        assert pod["metadata"]["labels"]["app"] == "gemma-embed"
+        assert pod["spec"]["nodeSelector"]["kubernetes.io/hostname"] == "gpu-cluster2"
+        models = next(v for v in pod["spec"]["volumes"] if v["name"] == "models")
+        assert models["persistentVolumeClaim"]["claimName"] == "gemma-embed-models"
+    # Existing immutable CPU selector is preserved; the new pool is independently owned.
+    assert gemma_workers["gemma-embed"]["spec"]["selector"]["matchLabels"] == {"app": "gemma-embed"}
+    assert gemma_workers["gemma-embed-igpu"]["spec"]["selector"]["matchLabels"] == {
+        "app": "gemma-embed", "pool": "igpu"
+    }
+
+
+@pytest.mark.parametrize("worker,offload", [("gemma-embed", "0"), ("gemma-embed-igpu", "99")])
+def test_gemma_hybrid_calibrated_profile(gemma_workers, worker, offload):
+    container = gemma_workers[worker]["spec"]["template"]["spec"]["containers"][0]
+    args = container["args"]
+    for flag, value in {"-ngl": offload, "-np": "1", "-c": "2048", "-b": "2048",
+                        "-ub": "2048", "-t": "2", "-tb": "2"}.items():
+        assert args[args.index(flag) + 1] == value
+    assert container["resources"]["requests"]["memory"] == "1Gi"
+    assert container["resources"]["limits"]["memory"] == "2Gi"
+    assert container["resources"]["limits"]["cpu"] == "2000m"
+    assert "--embeddings" in args
+    if worker == "gemma-embed":
+        assert args[args.index("--device") + 1] == "none"
+        assert "--no-op-offload" in args and "--no-kv-offload" in args
+
+
+def test_gemma_igpu_uses_pinned_vulkan_and_unprivileged_device_plugin(gemma_workers):
+    pod = gemma_workers["gemma-embed-igpu"]["spec"]["template"]["spec"]
+    container = pod["containers"][0]
+    assert container["image"] == (
+        "ghcr.io/ggml-org/llama.cpp:server-vulkan@sha256:"
+        "c2b2c5ab208f47299b7c696e1e41439ffc8f9ecc3a5821e463f8dd2f7df3ab87"
+    )
+    for side in ("requests", "limits"):
+        assert str(container["resources"][side]["gpu.intel.com/i915"]) == "1"
+        assert "nvidia.com/gpu" not in container["resources"][side]
+    assert pod["securityContext"]["runAsUser"] == 10001
+    assert pod["securityContext"]["runAsGroup"] == 10001
+    assert pod["securityContext"]["runAsNonRoot"] is True
+    assert pod["securityContext"]["seccompProfile"]["type"] == "RuntimeDefault"
+    assert container["securityContext"]["allowPrivilegeEscalation"] is False
+    assert container["securityContext"]["capabilities"]["drop"] == ["ALL"]
+    assert not any("hostPath" in volume for volume in pod["volumes"])
+    env = {item["name"]: item["value"] for item in container["env"]}
+    assert env["XDG_CACHE_HOME"] == "/tmp/.cache"
+    assert env["MESA_SHADER_CACHE_DIR"] == "/tmp/mesa-cache"

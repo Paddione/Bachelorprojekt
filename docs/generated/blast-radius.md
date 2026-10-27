@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-10-26T19:31:58.105Z
-> Nodes: 97 | Edges: 1917 | Isolated: 6
+> Generated: 2026-10-27T01:33:10.119Z
+> Nodes: 98 | Edges: 1918 | Isolated: 6
 
 ## Ranking (transitive Abhängige)
 
@@ -83,12 +83,13 @@
 | 75 | einvoice-sidecar | 1 | 1 | 1 |
 | 76 | gemma-embed | 1 | 1 | 1 |
 | 77 | gemma-embed-bulk | 1 | 1 | 1 |
-| 78 | lfm-embed | 1 | 1 | 1 |
-| 79 | mediaviewer-widget | 1 | 1 | 1 |
-| 80 | blackbox-exporter | 1 | 1 | 1 |
-| 81 | nextcloud-redis | 1 | 1 | 1 |
-| 82 | sessions-server | 1 | 1 | 1 |
-| 83 | whisper | 1 | 1 | 1 |
+| 78 | gemma-embed-igpu | 1 | 1 | 1 |
+| 79 | lfm-embed | 1 | 1 | 1 |
+| 80 | mediaviewer-widget | 1 | 1 | 1 |
+| 81 | blackbox-exporter | 1 | 1 | 1 |
+| 82 | nextcloud-redis | 1 | 1 | 1 |
+| 83 | sessions-server | 1 | 1 | 1 |
+| 84 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -473,6 +474,11 @@
 **Upstream (In-Degree):** 1
 
 ### gemma-embed-bulk
+**Direkte Abhängige:** 1 — llm-gateway-gemma-embed
+**Transitive Abhängige:** 1 — llm-gateway-gemma-embed
+**Upstream (In-Degree):** 1
+
+### gemma-embed-igpu
 **Direkte Abhängige:** 1 — llm-gateway-gemma-embed
 **Transitive Abhängige:** 1 — llm-gateway-gemma-embed
 **Upstream (In-Degree):** 1

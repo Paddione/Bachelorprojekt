@@ -2,10 +2,10 @@
   import { onMount } from 'svelte';
   import type { HardwareAsset } from '../../../lib/platform-db';
   import ClusterTopologyRig from './ClusterTopologyRig.svelte';
+  import GpuSensorDeck from './GpuSensorDeck.svelte';
 
   export let cluster: string;
 
-  // Enriched server-side with live k8s node status — see GET /api/admin/platform/hardware.
   type EnrichedHardwareAsset = HardwareAsset & { live_status: string; ready_status: string };
 
   let assets: EnrichedHardwareAsset[] = [];
@@ -29,72 +29,255 @@
   onMount(loadAssets);
 </script>
 
-<div class="space-y-6">
-  <div class="flex justify-center">
+<div class="hardware-container">
+  <!-- 1. Primary Isometric Dual-Bay Cluster Rig -->
+  <div class="flex justify-center w-full">
     <ClusterTopologyRig />
   </div>
 
-  <div>
-    <h3 class="text-xl font-bold text-white">Hardware Assets</h3>
-    <p class="text-sm text-admin-text-mute">Physische Knoten und Standorte der Infrastruktur.</p>
+  <!-- 2. Bare-Metal GPU & Model Sensor Deck -->
+  <div class="w-full">
+    <GpuSensorDeck />
   </div>
 
-  {#if loading}
-    <div class="space-y-3 animate-pulse">
-      {#each Array(4) as _}
-        <div class="h-16 bg-admin-surface rounded-2xl border border-admin-border"></div>
-      {/each}
+  <!-- 3. Bare-Metal Hardware Inventory Manifest -->
+  <div class="inventory-card">
+    <div class="inventory-header">
+      <div class="inventory-title-group">
+        <span class="screw-dot"></span>
+        <span class="inventory-tag">REGISTER 04 // BARE-METAL NODE LEDGER</span>
+      </div>
+      <span class="inventory-sub">12 ACTIVE BARE-METAL & EDGE KNOTEN · TAILNET 100.64.0.0/10</span>
     </div>
-  {:else if error}
-    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm">
-      {error}
-    </div>
-  {:else}
-    <div class="bg-admin-surface rounded-2xl border border-admin-border overflow-hidden">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-admin-bg/50 border-b border-admin-border">
-          <tr>
-            <th class="px-6 py-4 font-bold text-admin-text-mute uppercase tracking-wider text-[10px]">Status</th>
-            <th class="px-6 py-4 font-bold text-admin-text-mute uppercase tracking-wider text-[10px]">Name</th>
-            <th class="px-6 py-4 font-bold text-admin-text-mute uppercase tracking-wider text-[10px]">Rolle</th>
-            <th class="px-6 py-4 font-bold text-admin-text-mute uppercase tracking-wider text-[10px]">Standort</th>
-            <th class="px-6 py-4 font-bold text-admin-text-mute uppercase tracking-wider text-[10px]">IP / OS</th>
-            <th class="px-6 py-4 font-bold text-admin-text-mute uppercase tracking-wider text-[10px]">K8s Node</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-admin-border">
-          {#each assets as asset}
-            <tr class="hover:bg-admin-primary/5 transition-all">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <div class="w-2 h-2 rounded-full {asset.live_status === 'ready' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-red-500'}"></div>
-                  <span class="text-[10px] font-bold uppercase {asset.live_status === 'ready' ? 'text-green-500' : 'text-red-500'}">
-                    {asset.ready_status}
-                  </span>
-                </div>
-              </td>
-              <td class="px-6 py-4 font-bold text-white">{asset.name}</td>
-              <td class="px-6 py-4">
-                <span class="px-2 py-0.5 rounded-lg bg-admin-bg border border-admin-border text-[10px] font-bold text-admin-text-mute">
-                  {asset.role}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-admin-text-mute">{asset.location || '—'}</td>
-              <td class="px-6 py-4">
-                <div class="flex flex-col">
-                  <span class="text-xs text-white font-mono">{asset.ip || '—'}</span>
-                  <span class="text-[10px] text-admin-text-mute">{asset.os || '—'}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <code class="text-[10px] bg-admin-bg px-2 py-1 rounded border border-admin-border text-admin-primary">
-                  {asset.k8s_node_name}
-                </code>
-              </td>
+
+    {#if loading}
+      <div class="inventory-skeleton">
+        {#each Array(4) as _}
+          <div class="skeleton-row"></div>
+        {/each}
+      </div>
+    {:else if error}
+      <div class="inventory-error">
+        <span>{error}</span>
+      </div>
+    {:else}
+      <div class="inventory-table-wrapper">
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th>STATUS</th>
+              <th>NODE IDENTIFIER</th>
+              <th>CLUSTER ROLLE</th>
+              <th>STANDORT / BUCHT</th>
+              <th>TAILNET IP & OS</th>
+              <th>K8S NODE NAME</th>
             </tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
-  {/if}
+          </thead>
+          <tbody>
+            {#each assets as asset}
+              <tr class="node-row">
+                <td>
+                  <div class="status-cell">
+                    <span class="node-led {asset.live_status === 'ready' ? 'led-ok' : 'led-err'}"></span>
+                    <span class="status-text {asset.live_status === 'ready' ? 'text-ok' : 'text-err'}">
+                      {asset.ready_status}
+                    </span>
+                  </div>
+                </td>
+                <td class="node-name">{asset.name}</td>
+                <td>
+                  <span class="role-badge">{asset.role}</span>
+                </td>
+                <td class="location-text">{asset.location || 'Bay 1 (Devmesh Core)'}</td>
+                <td>
+                  <div class="ip-block">
+                    <span class="ip-code">{asset.ip || '—'}</span>
+                    <span class="os-label">{asset.os || 'Linux (k3s)'}</span>
+                  </div>
+                </td>
+                <td>
+                  <code class="k8s-badge">
+                    {asset.k8s_node_name}
+                  </code>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+  </div>
 </div>
+
+<style>
+  .hardware-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    color: #E6EDF3;
+  }
+
+  .inventory-card {
+    background: #0E131B;
+    border: 1px solid #1E2634;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .inventory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1E2634;
+    padding-bottom: 14px;
+  }
+
+  .inventory-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .screw-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #475569;
+    border: 1px solid #64748B;
+  }
+
+  .inventory-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #58A6FF;
+    letter-spacing: 0.08em;
+  }
+
+  .inventory-sub {
+    font-size: 9.5px;
+    color: #8B949E;
+  }
+
+  .inventory-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    text-align: left;
+  }
+
+  .inventory-table th {
+    background: #111722;
+    color: #8B949E;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 10px 14px;
+    border-bottom: 1px solid #1E2634;
+  }
+
+  .inventory-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    vertical-align: middle;
+  }
+
+  .node-row:hover {
+    background: rgba(88, 166, 255, 0.04);
+  }
+
+  .status-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .node-led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .led-ok { background: #3FB950; box-shadow: 0 0 6px #3FB950; }
+  .led-err { background: #F85149; box-shadow: 0 0 6px #F85149; }
+
+  .status-text {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .text-ok { color: #3FB950; }
+  .text-err { color: #F85149; }
+
+  .node-name {
+    font-weight: 700;
+    color: #F0F6FC;
+  }
+
+  .role-badge {
+    background: #151D2A;
+    border: 1px solid #243044;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 9.5px;
+    color: #93C5FD;
+  }
+
+  .location-text {
+    color: #8B949E;
+  }
+
+  .ip-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ip-code {
+    font-family: monospace;
+    color: #58A6FF;
+    font-size: 10.5px;
+  }
+
+  .os-label {
+    font-size: 9px;
+    color: #8B949E;
+  }
+
+  .k8s-badge {
+    background: #111722;
+    border: 1px solid #243044;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 9.5px;
+    color: #38BDF8;
+  }
+
+  .inventory-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .skeleton-row {
+    height: 40px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+  }
+
+  .inventory-error {
+    font-size: 11px;
+    color: #F85149;
+    padding: 12px;
+    text-align: center;
+  }
+</style>

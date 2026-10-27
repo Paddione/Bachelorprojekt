@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface CartridgeItem {
     id: string;
     name: string;
@@ -39,17 +41,17 @@
 
   let {
     title = "Fig. 1 // Bare-Metal Devmesh & GPU Rig (12 Nodes / Tailscale Overlay)",
-    commitHash = "0588ed7"
+    commitHash = "351afdcf5"
   }: Props = $props();
 
-  const kustomizations: KustomizationItem[] = [
+  const initialKustomizations: KustomizationItem[] = [
   {
     "id": "ks-mentolder",
     "name": "ks-mentolder",
     "target": "apps/mentolder",
     "status": "Ready",
-    "rev": "0588ed7",
-    "sync": "1m ago",
+    "rev": "351afdcf5",
+    "sync": "reconciled",
     "drift": "0"
   },
   {
@@ -57,8 +59,8 @@
     "name": "ks-infra-controllers",
     "target": "infra/controllers",
     "status": "Ready",
-    "rev": "0588ed7",
-    "sync": "3m ago",
+    "rev": "351afdcf5",
+    "sync": "reconciled",
     "drift": "0"
   },
   {
@@ -66,8 +68,8 @@
     "name": "ks-website-mentolder",
     "target": "apps/website",
     "status": "Ready",
-    "rev": "0588ed7",
-    "sync": "1m ago",
+    "rev": "351afdcf5",
+    "sync": "reconciled",
     "drift": "0"
   },
   {
@@ -75,13 +77,13 @@
     "name": "ks-sealed-secrets",
     "target": "infra/security",
     "status": "Ready",
-    "rev": "0588ed7",
-    "sync": "6m ago",
+    "rev": "351afdcf5",
+    "sync": "reconciled",
     "drift": "0"
   }
 ];
 
-  const nodes: Record<string, NodeItem> = {
+  const initialNodes: Record<string, NodeItem> = {
     "node-01": {"id":"node-01","name":"gpu-cluster","site":"Bay 1 (Devmesh Core)","role":"server-init, control-plane, ingress","ip":"100.64.10.2","cpu":32,"ram":54,"status":"Healthy","cartridges":[{"id":"c1","name":"etcd-quorum-01","ns":"kube-system","ready":true,"restarts":0,"cpu":4,"ram":"320MiB","img":"rancher/k3s:v1.36.1"},{"id":"c2","name":"k3s-api-server","ns":"kube-system","ready":true,"restarts":0,"cpu":9,"ram":"512MiB","img":"rancher/k3s:v1.36.1"},{"id":"c3","name":"traefik-ingress","ns":"kube-system","ready":true,"restarts":0,"cpu":5,"ram":"180MiB","img":"traefik:v3.1.2"},{"id":"c4","name":"coredns-primary","ns":"kube-system","ready":true,"restarts":0,"cpu":1,"ram":"64MiB","img":"coredns/coredns:1.11.3"}]},
     "node-02": {"id":"node-02","name":"gpu-cluster2","site":"Bay 1 (Devmesh Core)","role":"server-join, etcd, storage, lan-dns","ip":"100.64.10.3","cpu":28,"ram":51,"status":"Healthy","cartridges":[{"id":"c1","name":"etcd-quorum-02","ns":"kube-system","ready":true,"restarts":0,"cpu":4,"ram":"310MiB","img":"rancher/k3s:v1.36.1"},{"id":"c2","name":"adguard-lan-dns","ns":"dns","ready":true,"restarts":0,"cpu":2,"ram":"128MiB","img":"adguard/adguardhome:v0.107"},{"id":"c3","name":"local-storage-ctl","ns":"kube-system","ready":true,"restarts":0,"cpu":3,"ram":"115MiB","img":"rancher/local-path:v0.0.28"},{"id":"c4","name":"coredns-secondary","ns":"kube-system","ready":true,"restarts":0,"cpu":1,"ram":"64MiB","img":"coredns/coredns:1.11.3"}]},
     "node-03": {"id":"node-03","name":"gpu-metal","site":"Bay 1 (Devmesh Core)","role":"server-join, etcd, apps","ip":"100.64.1.101","cpu":35,"ram":58,"status":"Healthy","cartridges":[{"id":"c1","name":"etcd-quorum-03","ns":"kube-system","ready":true,"restarts":0,"cpu":5,"ram":"330MiB","img":"rancher/k3s:v1.36.1"},{"id":"c2","name":"flux-notification-ctl","ns":"flux-system","ready":true,"restarts":0,"cpu":1,"ram":"90MiB","img":"fluxcd/notification-controller:v1.3.0"},{"id":"c3","name":"sealed-secrets-ctl","ns":"kube-system","ready":true,"restarts":0,"cpu":2,"ram":"115MiB","img":"bitnami/sealed-secrets:v0.27.1"},{"id":"c4","name":"flux-source-ctl","ns":"flux-system","ready":true,"restarts":0,"cpu":3,"ram":"195MiB","img":"fluxcd/source-controller:v1.3.0"}]},
@@ -96,8 +98,43 @@
     "node-12": {"id":"node-12","name":"tailscale-derp-03","site":"Bay 2 (Compute & Edge)","role":"worker, derp-relay, node-exporter","ip":"100.64.20.26","cpu":18,"ram":36,"status":"Healthy","cartridges":[{"id":"c1","name":"tailscale-derp-relay","ns":"tailscale","ready":true,"restarts":0,"cpu":6,"ram":"128MiB","img":"tailscale/derp:v1.74"},{"id":"c2","name":"node-exporter-prom","ns":"monitoring","ready":true,"restarts":0,"cpu":4,"ram":"96MiB","img":"prom/node-exporter:v1.8.1"}]},
   };
 
+  let kustomizations = $state<KustomizationItem[]>(initialKustomizations);
+  let nodes = $state<Record<string, NodeItem>>(initialNodes);
+  let isLive = $state<boolean>(false);
+  let lastChecked = $state<string>("init");
+
   let selectedId = $state<string>("node-01");
   let selected = $derived(nodes[selectedId] || nodes["node-01"]);
+
+  async function fetchTelemetry() {
+    try {
+      const res = await fetch('/sdlc/api/platform/rig-telemetry');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.nodes && Array.isArray(data.nodes)) {
+          const map: Record<string, NodeItem> = {};
+          for (const n of data.nodes) {
+            map[n.id] = n;
+          }
+          nodes = map;
+        }
+        if (data.kustomizations && Array.isArray(data.kustomizations)) {
+          kustomizations = data.kustomizations;
+        }
+        isLive = true;
+        lastChecked = new Date().toLocaleTimeString();
+      }
+    } catch {
+      // Graceful fallback to cached state on transient network issues
+      isLive = false;
+    }
+  }
+
+  onMount(() => {
+    fetchTelemetry();
+    const interval = setInterval(fetchTelemetry, 6000);
+    return () => clearInterval(interval);
+  });
 
   function selectNode(e: MouseEvent | KeyboardEvent) {
     const target = (e.target as Element).closest("[data-node-id]");
@@ -118,6 +155,11 @@
       <span class="rig-sub">ISOMETRIC 30° / MECHANICAL RIG ENCLOSURE / TAILSCALE OVERLAY</span>
     </div>
     <div class="rig-badges">
+      <div class="rig-badge live">
+        <span class="badge-dot {isLive ? 'pulse-live' : 'pulse-offline'}"></span>
+        <span class="badge-label">TELEMETRY</span>
+        <span class="badge-val">{isLive ? 'LIVE (' + lastChecked + ')' : 'POLLING'}</span>
+      </div>
       <div class="rig-badge mesh">
         <span class="badge-dot pulse-ts"></span>
         <span class="badge-label">TAILSCALE MESH</span>
@@ -570,6 +612,21 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
+  }
+
+  .rig-badge.live {
+    border-color: rgba(56, 189, 248, 0.3);
+    background: rgba(56, 189, 248, 0.08);
+  }
+
+  .pulse-live {
+    background: #38bdf8;
+    box-shadow: 0 0 8px #38bdf8;
+  }
+
+  .pulse-offline {
+    background: #f59e0b;
+    box-shadow: 0 0 6px #f59e0b;
   }
 
   .pulse-ts {

@@ -1,0 +1,14 @@
+{
+  "pageHeadline": "Über mich",
+  "subheadline": "Presentation",
+  "introParagraphs": [
+    "Willkommen bei Presentation — Folien, die wirken.",
+    "Platzhalter: eigene Vorstellung hier eintragen."
+  ],
+  "sections": [],
+  "milestones": [
+    { "year": "Heute", "title": "Presentation", "desc": "Folien-Design — Termine auf Anfrage." }
+  ],
+  "notDoing": [],
+  "privateText": ""
+}

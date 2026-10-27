@@ -1,0 +1,12 @@
+[
+  {
+    "id": "folien",
+    "title": "Folien & Decks",
+    "icon": "📊",
+    "description": "Zwei Formate zur Auswahl — jedes mit persönlicher Betreuung.",
+    "services": [
+      { "key": "folien-20", "name": "Foliensatz", "price": "auf Anfrage", "unit": "bis 20 Folien", "desc": "Foliensätze mit klarer Struktur.", "highlight": true, "durationMin": 0, "multiplier": 1 },
+      { "key": "pitch-12", "name": "Pitch-Deck", "price": "auf Anfrage", "unit": "bis 12 Folien", "desc": "Kompakte Decks für den entscheidenden Moment.", "durationMin": 0, "multiplier": 1 }
+    ]
+  }
+]

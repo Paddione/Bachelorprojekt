@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.438.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.4...website-v1.438.5) (2026-10-27)
+
+
+### Bug Fixes
+
+* **website:** dense-SSOT explizit ins Website-Image kopieren ([#6968](https://github.com/Paddione/Bachelorprojekt/issues/6968)) ([964a586](https://github.com/Paddione/Bachelorprojekt/commit/964a586dc59beefac1fe3372e1233c8357bc512e))
+
 ## [1.438.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.3...website-v1.438.4) (2026-10-26)
 
 

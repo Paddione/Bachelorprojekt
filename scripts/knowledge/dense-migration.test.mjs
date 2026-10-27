@@ -16,7 +16,7 @@ import {
 } from './dense-migration-control.mjs';
 import { reindexKnowledge } from './dense-reindex-knowledge.mjs';
 import { reindexCode } from './dense-reindex-code.mjs';
-import { DENSE_PROFILE } from '../lib/dense-embedding.mjs';
+import { DENSE_MODEL, DENSE_PROFILE } from '../lib/dense-embedding.mjs';
 
 const VEC = () => new Array(768).fill(0.1);
 
@@ -271,6 +271,21 @@ test('knowledge-Reindex zerlegt >2048-Quellen verlustfrei mit Herkunft', async (
   assert.equal(k2.map((r) => r.text).join(''), BIG);
   assert.ok(k2.every((r) => r.profile === DENSE_PROFILE && r.embedding.length === 768));
   assert.deepEqual(k2.map((r) => r.part_index), [...k2.keys()]);
+});
+
+test('Reindex taggt embedding_model kurz (DENSE_MODEL), Profil bleibt voll', async () => {
+  const db = makeFakeDb();
+  await prepare(db, 't9');
+  await reindexKnowledge({ pool: db, embedUrl: 'http://x', fetchImpl: makeFakeFetch(), runId: 't9' });
+  await reindexCode({ pool: db, embedUrl: 'http://x', fetchImpl: makeFakeFetch(), runId: 't9' });
+  for (const r of db.tables['knowledge.chunks_gemma_t9']) {
+    assert.equal(r.metadata.embedding_model, DENSE_MODEL);
+    assert.equal(r.profile, DENSE_PROFILE);
+  }
+  for (const r of db.tables['public.code_embeddings_gemma_t9']) {
+    assert.equal(r.metadata.embedding_model, DENSE_MODEL);
+    assert.equal(r.profile, DENSE_PROFILE);
+  }
 });
 
 test('Resume nutzt nur fertige profilidentische Eintraege, ohne Luecken', async () => {

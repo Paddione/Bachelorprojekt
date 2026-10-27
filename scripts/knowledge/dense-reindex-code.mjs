@@ -17,6 +17,7 @@ import {
 import {
   assertDenseVectors,
   profileContentHash,
+  DENSE_MODEL,
   DENSE_PROFILE,
 } from '../lib/dense-embedding.mjs';
 
@@ -79,7 +80,7 @@ export async function reindexCode({ pool, embedUrl, fetchImpl, runId, fileBatch 
                 source_row_id, source_chunk_index, part_index, profile)
              VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10)`,
             [filePath, chunkIndex++, x.text, fileHash,
-              `[${x.embedding.join(',')}]`, JSON.stringify({ embedding_model: DENSE_PROFILE }),
+              `[${x.embedding.join(',')}]`, JSON.stringify({ embedding_model: DENSE_MODEL }),
               x.row.id, x.row.chunk_index, x.partIndex, DENSE_PROFILE],
           );
           embedded++;

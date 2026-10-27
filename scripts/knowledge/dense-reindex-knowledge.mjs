@@ -19,6 +19,7 @@ import {
 import {
   assertDenseVectors,
   profileContentHash,
+  DENSE_MODEL,
   DENSE_PROFILE,
 } from '../lib/dense-embedding.mjs';
 
@@ -73,7 +74,7 @@ export async function reindexKnowledge({ pool, embedUrl, fetchImpl, runId, sourc
              VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10)`,
             [row.document_id, row.collection_id, p, subs[p].text,
               `[${embeddings[p].join(',')}]`,
-              JSON.stringify({ ...(row.metadata ?? {}), embedding_model: DENSE_PROFILE }),
+              JSON.stringify({ ...(row.metadata ?? {}), embedding_model: DENSE_MODEL }),
               row.id, p, profileContentHash(row.text), DENSE_PROFILE],
           );
         }

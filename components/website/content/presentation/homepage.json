@@ -1,0 +1,35 @@
+{
+  "hero": {
+    "title": "Presentation — Folien, die wirken.",
+    "subtitle": "Termine auf Anfrage — mit persönlicher Bestätigung.",
+    "tagline": "Klar. Ruhig. Auf den Punkt."
+  },
+  "stats": [
+    { "value": "16:9", "label": "Folienformat — Bühne frei" },
+    { "value": "3 Schritte", "label": "Von der Anfrage bis zum Auftritt" },
+    { "value": "1 Stil", "label": "Eine Handschrift, jede Folie" },
+    { "value": "Mo–Fr", "label": "Kernzeiten plus flexible Slots" }
+  ],
+  "servicesHeadline": "Formate im Überblick",
+  "servicesSubheadline": "Zwei Formate, ein Anspruch — jede Folie sitzt.",
+  "whyMeHeadline": "Warum hier?",
+  "whyMeIntro": "Wenige Folien, klare Botschaft, ruhiger Auftritt — vom ersten Entwurf bis zur finalen Datei.",
+  "whyMePoints": [
+    { "title": "Klare Struktur", "text": "Eine Botschaft pro Folie — kein Textfriedhof." },
+    { "title": "Ruhige Optik", "text": "Großzügige Flächen, lesbare Typografie, ein Akzent." },
+    { "title": "Pünktlich fertig", "text": "Entwurf, Feedback, Finale — in drei Schritten." },
+    { "title": "Ablauf in drei Schritten", "text": "Anfrage stellen, Bestätigung erhalten, Präsentation erhalten." }
+  ],
+  "avatarType": "initials",
+  "avatarInitials": "P",
+  "quote": "Weniger Folien. Mehr Wirkung.",
+  "quoteName": "Presentation",
+  "processSteps": [
+    { "num": "01 — Anfrage", "heading": "Wunsch senden", "description": "Sie schreiben mit Thema und Termin." },
+    { "num": "02 — Bestätigung", "heading": "Persönliche Zusage", "description": "Sie erhalten eine Bestätigung. Erst dann ist der Slot fix." },
+    { "num": "03 — Lieferung", "heading": "Fertig genießen", "description": "Sie erhalten die fertige Präsentation — pünktlich zum Termin." }
+  ],
+  "processEyebrow": "So einfach geht es",
+  "processHeadline": "Drei ruhige Schritte.",
+  "slots": {}
+}

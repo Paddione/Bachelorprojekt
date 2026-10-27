@@ -1,0 +1,66 @@
+[
+  {
+    "slug": "folien-design",
+    "title": "Folien-Design",
+    "description": "Foliensätze mit klarer Struktur — auf Anfrage.",
+    "icon": "📊",
+    "iconSpriteId": "prop-slide",
+    "features": [
+      "Bis 20 Folien, eine Botschaft pro Folie",
+      "Termine auf Anfrage, Bestätigung inklusive",
+      "Lieferung als PDF und editierbare Datei"
+    ],
+    "price": "auf Anfrage",
+    "pageContent": {
+      "headline": "Foliensätze mit klarer Struktur",
+      "intro": "Weniger Text, mehr Wirkung — Foliensätze, die Ihren Auftritt tragen.",
+      "forWhom": [
+        "Einen Vortrag ohne Textfriedhof halten möchten",
+        "Einheitliche Folien für das Team brauchen",
+        "Pünktlich zum Termin fertig sein müssen"
+      ],
+      "sections": [
+        { "title": "Ablauf", "items": ["Anfrage mit Thema und Termin", "Persönliche Bestätigung", "Entwurf, Feedback, Finale"] },
+        { "title": "Gut zu wissen", "items": ["Bis 20 Folien pro Satz", "Lieferung als PDF und editierbare Datei"] }
+      ],
+      "pricing": [
+        { "label": "Foliensatz (bis 20 Folien)", "price": "auf Anfrage", "highlight": true }
+      ],
+      "faq": [
+        { "question": "Wie schnell geht es?", "answer": "Bitte fragen Sie möglichst eine Woche vorher an. Ihr Slot ist erst nach meiner Bestätigung fix." }
+      ]
+    }
+  },
+  {
+    "slug": "pitch-deck",
+    "title": "Pitch-Deck",
+    "description": "Kompakte Decks für den entscheidenden Moment — auf Anfrage.",
+    "icon": "✨",
+    "iconSpriteId": "prop-spark",
+    "features": [
+      "Bis 12 Folien, zugespitzt auf eine Entscheidung",
+      "Termine auf Anfrage, Bestätigung inklusive",
+      "Lieferung als PDF und editierbare Datei"
+    ],
+    "price": "auf Anfrage",
+    "pageContent": {
+      "headline": "Pitch-Decks für den entscheidenden Moment",
+      "intro": "Zwölf Folien, ein Ziel: Ihre Botschaft landet.",
+      "forWhom": [
+        "Eine Idee in kurzer Zeit überzeugend vorstellen möchten",
+        "Investoren, Kunden oder Gremien ansprechen",
+        "Sicher auftreten wollen"
+      ],
+      "sections": [
+        { "title": "Ablauf", "items": ["Anfrage mit Thema und Termin", "Persönliche Bestätigung", "Entwurf, Feedback, Finale"] },
+        { "title": "Gut zu wissen", "items": ["Bis 12 Folien pro Deck", "Lieferung als PDF und editierbare Datei"] }
+      ],
+      "pricing": [
+        { "label": "Pitch-Deck (bis 12 Folien)", "price": "auf Anfrage", "highlight": true }
+      ],
+      "faq": [
+        { "question": "Was brauchen Sie von mir?", "answer": "Thema, Zielgruppe, Termin — den Rest erarbeiten wir gemeinsam." }
+      ]
+    }
+  }
+]

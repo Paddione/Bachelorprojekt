@@ -181,7 +181,7 @@
           <div class="gw-body">
             <div class="gw-info-row">
               <span class="gw-key">ENDPOINT:</span>
-              <span class="gw-val code">llm.devmesh.korczewski.de</span>
+              <span class="gw-val code">{telemetry.router.url}</span>
             </div>
             <div class="gw-info-row">
               <span class="gw-key">ROUTING POLICY:</span>

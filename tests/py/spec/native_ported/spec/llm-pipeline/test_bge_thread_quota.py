@@ -115,3 +115,20 @@ def test_gemma_embed_t_ist_gesetzt_und_ueberschreitet_die_cpu_quota_nicht(render
 def test_gemma_embed_reranker_unveraendert_bge_rerank_bleibt_2_threads(rendered):
     # BGE-Reranker ist vom Dense-Wechsel ausgenommen: keine Dims-Aussage noetig.
     _check_deployment(rendered, "bge-rerank", "--reranking")
+
+
+def test_bge_rerank_np_und_memory_quota(rendered):
+    """T002923 (#6923): bge-rerank Slot- und Speicherkontingente prüfen."""
+    args = _llama_args(rendered, "bge-rerank")
+    assert "-np" in args
+    np_idx = args.index("-np")
+    assert args[np_idx + 1] == "2"
+
+    r = _proc([
+        "yq", "eval-all",
+        'select(.kind == "Deployment" and .metadata.name == "bge-rerank") '
+        '| .spec.template.spec.containers[] | select(.name == "llama-cpp") | .resources.limits.memory',
+        str(rendered),
+    ])
+    assert r.stdout.strip() == "4Gi"
+

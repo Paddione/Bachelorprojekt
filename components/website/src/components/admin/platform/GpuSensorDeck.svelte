@@ -31,6 +31,14 @@
       status: 'online' | 'standby' | 'offline';
       latencyMs: number;
     };
+    router?: {
+      name: string;
+      port: number;
+      url: string;
+      status: 'online' | 'degraded' | 'offline';
+      gpu1Leased: boolean;
+      policy: string;
+    };
     checkedAt: string;
   }
 
@@ -156,6 +164,36 @@
           </div>
         </div>
       </div>
+
+      <!-- Devmesh Unified LLM Router Module -->
+      {#if telemetry.router}
+        <div class="router-gateway-card">
+          <div class="gw-header">
+            <div class="gw-title-group">
+              <span class="gw-tag router-tag">OPENAI UNIFIED ROUTER</span>
+              <span class="gw-title">Devmesh Inference Gateway</span>
+            </div>
+            <span class="gw-status-badge {telemetry.router.gpu1Leased ? 'badge-leased' : 'badge-online'}">
+              {telemetry.router.gpu1Leased ? 'VRAM LEASED' : 'ONLINE :18235'}
+            </span>
+          </div>
+
+          <div class="gw-body">
+            <div class="gw-info-row">
+              <span class="gw-key">ENDPOINT:</span>
+              <span class="gw-val code">llm.devmesh.korczewski.de</span>
+            </div>
+            <div class="gw-info-row">
+              <span class="gw-key">ROUTING POLICY:</span>
+              <span class="gw-val">{telemetry.router.policy}</span>
+            </div>
+            <div class="gw-info-row">
+              <span class="gw-key">TAILNET HTTPS:</span>
+              <span class="gw-val latency">PORT :18443</span>
+            </div>
+          </div>
+        </div>
+      {/if}
     </div>
 
     <!-- Bottom Row: Active Model Inferenz-Slots -->
@@ -298,8 +336,14 @@
 
   .telemetry-gauges-row {
     display: grid;
-    grid-template-columns: 1.6fr 1fr;
+    grid-template-columns: 1.4fr 1fr 1fr;
     gap: 16px;
+  }
+
+  @media (max-width: 1024px) {
+    .telemetry-gauges-row {
+      grid-template-columns: 1fr;
+    }
   }
 
   .vram-gauge-card {
@@ -398,7 +442,8 @@
   .m-val { font-weight: 600; color: #E2E8F0; }
   .m-val.highlight { color: #3FB950; font-weight: 700; }
 
-  .embedding-gateway-card {
+  .embedding-gateway-card,
+  .router-gateway-card {
     background: #111722;
     border: 1px solid #1E283A;
     border-radius: 8px;
@@ -406,6 +451,22 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+  }
+
+  .router-tag {
+    color: #3FB950;
+  }
+
+  .badge-leased {
+    background: rgba(227, 179, 65, 0.15);
+    border: 1px solid rgba(227, 179, 65, 0.4);
+    color: #E3B341;
+  }
+
+  .badge-online {
+    background: rgba(63, 185, 80, 0.12);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+    color: #3FB950;
   }
 
   .gw-header {

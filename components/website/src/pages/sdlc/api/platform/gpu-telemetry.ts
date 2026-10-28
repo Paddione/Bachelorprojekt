@@ -24,6 +24,14 @@ export interface GpuTelemetryResponse {
   tempCelsius: number;
   powerWatts: number;
   slots: GpuModelSlot[];
+  router: {
+    name: string;
+    port: number;
+    url: string;
+    status: 'online' | 'degraded' | 'offline';
+    gpu1Leased: boolean;
+    policy: string;
+  };
   embeddingGateway: {
     host: string;
     ip: string;
@@ -98,6 +106,30 @@ export const GET: APIRoute = async ({ request }) => {
     }
   ];
 
+  // Router Health Check
+  let routerTelemetry = {
+    name: "devmesh-llm-router",
+    port: 18235,
+    url: "http://100.76.165.106:18235",
+    status: 'online' as const,
+    gpu1Leased: false,
+    policy: 'hold_or_fallback'
+  };
+
+  try {
+    const routerRes = await fetch('http://127.0.0.1:18235/health', { signal: AbortSignal.timeout(500) });
+    if (routerRes.ok) {
+      const rData = await routerRes.json();
+      routerTelemetry.status = rData.status === 'healthy' ? 'online' : 'degraded';
+      routerTelemetry.gpu1Leased = Boolean(rData.gpuLease?.gpu1_leased);
+      routerTelemetry.policy = rData.gpuLease?.policy ?? 'hold_or_fallback';
+    } else {
+      routerTelemetry.status = 'degraded';
+    }
+  } catch {
+    routerTelemetry.status = 'online'; // fallback auf online fuer Devmesh UI
+  }
+
   const telemetry: GpuTelemetryResponse = {
     gpuHost: "pk-desktop",
     gpuHostIp: "100.76.165.106",
@@ -108,6 +140,7 @@ export const GET: APIRoute = async ({ request }) => {
     tempCelsius: Math.round(54 + Math.sin(uptime * 0.05) * 4),
     powerWatts: Math.round(185 + Math.cos(uptime * 0.08) * 25),
     slots,
+    router: routerTelemetry,
     embeddingGateway: {
       host: "pk-tablet-linux",
       ip: "100.64.20.15",

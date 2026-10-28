@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1274,
+      "file_count": 1275,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -617,6 +617,7 @@
         "tests/py/spec/native_ported/spec/llm-pipeline/test_knowledge_ingest_live_sources.py",
         "tests/py/spec/native_ported/spec/llm-pipeline/test_kv_offload.py",
         "tests/py/spec/native_ported/spec/llm-pipeline/test_lfm_retrieval_gpu.py",
+        "tests/py/spec/native_ported/spec/local-dev-mesh/test_cloud_access.py",
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_db_backup_retention.py",
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_dev_local_render.py",
         "tests/py/spec/native_ported/spec/local-dev-mesh/test_dev_stack_tasks.py",
@@ -3733,7 +3734,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 885,
+      "file_count": 886,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3876,6 +3877,7 @@
         "scripts/cloud-env/rbac.yaml",
         "scripts/cloud-env/setup-fleet.sh",
         "scripts/cloud-env/setup.sh",
+        "scripts/cloud/cloud-tailnet.sh",
         "scripts/coaching/batch-ingest-dir.mts",
         "scripts/coaching/batch-ingest-dir.test.mts",
         "scripts/coaching/classify-book.mts",

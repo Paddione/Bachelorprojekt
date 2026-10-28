@@ -16,13 +16,13 @@
 
   const tabs = [
     { id: 'software', label: 'Software', premium: true },
-    { id: 'hardware', label: 'Hardware' },
+    { id: 'hardware', label: 'Hardware', premium: true },
     { id: 'health', label: 'Integrität', premium: true },
-    { id: 'dienste', label: 'Dienste' },
+    { id: 'dienste', label: 'Dienste', premium: true },
     { id: 'aktionen', label: 'Aktionen' },
-    { id: 'logs', label: 'Observability' },
-    { id: 'db', label: 'Datenbank' },
-    { id: 'dns', label: 'Netzwerk' }
+    { id: 'logs', label: 'Observability', premium: true },
+    { id: 'db', label: 'Datenbank', premium: true },
+    { id: 'dns', label: 'Netzwerk', premium: true }
   ];
 </script>
 
@@ -52,9 +52,7 @@
     {:else if activeTab === 'health'}
       <HealthTab {cluster} />
     {:else if activeTab === 'dienste'}
-      <div class="admin-card">
-        <DienstTab {cluster} />
-      </div>
+      <DienstTab {cluster} />
     {:else if activeTab === 'aktionen'}
       <div class="admin-card">
         <AktionenTab {cluster} />
@@ -62,13 +60,9 @@
     {:else if activeTab === 'logs'}
       <ObservabilityTab {cluster} {grafanaUrl} />
     {:else if activeTab === 'db'}
-      <div class="admin-card">
-        <DatenbankTab {cluster} />
-      </div>
+      <DatenbankTab {cluster} />
     {:else if activeTab === 'dns'}
-      <div class="admin-card">
-        <DnsZertTab />
-      </div>
+      <DnsZertTab />
     {/if}
   </main>
   

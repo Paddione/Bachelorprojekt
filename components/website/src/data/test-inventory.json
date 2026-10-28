@@ -42,6 +42,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:agent-board-frontends",
+    "file": "tests/e2e/specs/agent-board-frontends.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:agent-guide-walkthrough",
     "file": "tests/e2e/specs/agent-guide-walkthrough.spec.ts",
     "category": "E2E",

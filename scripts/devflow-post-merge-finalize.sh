@@ -221,7 +221,7 @@ elif [[ -n "$SLUG" && -d "$WORKTREE" ]]; then
     else
       _plan_copy="$(mktemp)"
       cp "$_plan_in_wt" "$_plan_copy"
-      _apply_completed_frontmatter_cli "$_plan_copy" >/dev/null 2>&1 || true
+      _apply_plan_frontmatter_completed_path "$_plan_copy"
       cp "$_plan_copy" "$_plan_in_wt"
       rm -f "$_plan_copy"
       _rel_path="${_plan_in_wt#$_wt_top7/}"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.440.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.439.0...website-v1.440.0) (2026-10-28)
+
+
+### Features
+
+* **platform:** integrate mechatronic secondary tabs, rig telemetry and gpu sensor deck ([#6985](https://github.com/Paddione/Bachelorprojekt/issues/6985)) ([8b9fae0](https://github.com/Paddione/Bachelorprojekt/commit/8b9fae04b882c9787ffd8a9bed0a45b54fc54bbb))
+
 ## [1.439.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.438.5...website-v1.439.0) (2026-10-27)
 
 

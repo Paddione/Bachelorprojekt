@@ -1,32 +1,21 @@
 # .github/workflows/post-merge-e2e.yml
-# E2E-Trigger nach verhaltensrelevanten Merges auf main. [T000730, T900810]
+# DEAKTIVIERT (Zielbild E2E-Entpflichtung, 2026-10-28, Eigner-Abnahme):
+# kein push-Trigger mehr — kein automatischer E2E-Lauf nach Merges.
+# Nur noch manueller Start; nightly e2e.yml deckt Regressionen ab.
+# Datei bleibt bis zum Ablauf der 14-Tage-Grace-Period (frühestens 2026-11-11,
+# mit Beleg dass niemand sie manuell brauchte) bestehen, erst dann löschen.
 #
-# T900810: frueher traf der Scope per T######-Ticket-Kuerzel in der Merge-Message
-# praktisch JEDEN Merge (bis zu ~14 E2E-Laeufe/Tag gegen Prod). Scope ist
-# seit T900399 der paths-Filter unten: nur Merges, die Prod-Verhalten aendern koennen
-# (Service-Code, Images, Manifeste, E2E-Suite selbst), loesen die Suite aus.
-# Reine Doku-/Script-/Plan-Merges bleiben still.
+# COOLDOWN (T002155): bleibt für manuelle Dispatches erhalten — überspringt
+# den Dispatch, wenn innerhalb der letzten 15 min bereits ein e2e.yml-Lauf
+# auf main gestartet wurde.
 #
-# COOLDOWN (T002155): verhindert Sekundentakt-E2E-Läufe gegen Produktion bei
-# raschen Merges. Prüft vor Dispatch, ob eine e2e.yml-Run innerhalb der
-# letzten 15 min auf main gestartet wurde — überspringt den Dispatch, wenn der
-# Cooldown noch aktiv ist. Damit feuert die Suite maximal 4×/h statt bei jedem
-# Push (beobachtet: bis zu 15 s zwischen Merges).
+# Historie: früher feuerte dieser Workflow per push-Trigger auf main mit
+# Pfadfilter (T900399; davor per Ticket-Kürzel in der Merge-Message, T900810 —
+# bis zu ~14 Läufe/Tag gegen Prod).
 name: Post-Merge E2E
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'components/**'
-      - 'packages/**'
-      - 'tests/e2e/**'
-      - 'k3d/**'
-      - 'docker/**'
-      - 'flux/**'
-      - 'prod-fleet/**'
-      - 'environments/**'
-      - '.github/workflows/post-merge-e2e.yml'
+  workflow_dispatch:
 
 concurrency:
   group: post-merge-e2e
@@ -34,7 +23,7 @@ concurrency:
 
 jobs:
   trigger-e2e:
-    name: Trigger E2E on behavior-relevant merge
+    name: Trigger E2E (manual)
     runs-on: ubuntu-latest
     permissions:
       actions: write   # gh workflow run + gh run list brauchen write

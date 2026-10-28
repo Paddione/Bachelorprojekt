@@ -1,33 +1,40 @@
-name: E2E (PR — gefiltert)
+name: E2E (manuell — gefiltert)
 
-# Läuft bei jedem PR auf main. Prüft zuerst ob E2E-relevante Dateien
-# (components/website/**, tests/e2e/**) geändert wurden. Falls nicht, wird der Job
-# übersprungen — meldet aber grün als advisory Gate "E2E PR".
-# [T900810] Bewusst KEIN Required Check (SSOT: scripts/gh-branch-protection.sh).
+# NUR manueller Start (Zielbild E2E-Entpflichtung, 2026-10-28, Eigner-Abnahme):
+# kein pull_request-Trigger mehr — PRs warten nicht auf E2E, Auto-Merge wird
+# nicht blockiert. Nightly e2e.yml testet weiterhin die gesamte Suite gegen Fleet.
+# Manueller Lauf via Actions-Tab ("Run workflow") mit Tag-Auswahl; Standard @smoke.
+# Job-Name "E2E PR" bleibt stabil (Guards/Tooling referenzieren ihn).
 #
-# Ziel:  Regressionsschutz im eigenen Scope, schnell (<5 min).
-# Nightly e2e.yml testet weiterhin die gesamte Suite gegen Fleet.
-#
-# Tag-Mapping (Branch-Name → Playwright --grep):
-#   feature/content-hub-*  → @content-hub
-#   feature/brainstorm-*   → @admin
-#   feature/factory-*      → @factory
-#   feature/planungsbuero* → @planungsbuero
-#   feature/booking-*      → @booking
-#   feature/meeting-*      → @meeting
-#   feature/billing-*      → @billing
-#   feature/messaging-*    → @messaging
-#   feature/fragebogen-*   → @fragebogen
-#   feature/crm-*          → @crm
-#   fix/content-hub-*      → @content-hub
-#   (sonstige)             → nur @smoke
+# Tag-Mapping (manuelle Auswahl → Playwright --grep):
+#   content-hub  → @content-hub (+ @smoke)
+#   (weitere Tags analog; siehe workflow_dispatch.inputs.tag)
+#   smoke        → nur @smoke
 #
 # Neue Tests MÜSSEN ein @-Tag im test.describe-Header haben:
 #   test.describe('...', { tag: ['@feature-name'] }, () => { ... })
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Feature-Tag (Playwright --grep @<tag>|@smoke)"
+        required: false
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - content-hub
+          - planungsbuero
+          - factory
+          - admin
+          - booking
+          - meeting
+          - billing
+          - messaging
+          - fragebogen
+          - crm
+          - website
 
 concurrency:
   group: e2e-pr-${{ github.ref }}
@@ -41,10 +48,10 @@ jobs:
     # Static name — the "E2E PR" context must stay stable (referenced by
     # guards and tooling); a dynamic name (with branch) never matches.
     # [T900810] Advisory, kein Required Check (SSOT gh-branch-protection.sh).
+    # Nur manuell dispatchbar (kein PR-Trigger) — workflow_dispatch setzt
+    # Schreibrechte voraus, der Fork-Guard bleibt als defense-in-depth.
     name: E2E PR
-    # [T012414] Fork-Guard: self-hosted Runner duerfen keinen Fork-Code
-    # ausfuehren (actions/checkout holt bei pull_request den PR-HEAD).
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -71,14 +78,9 @@ jobs:
       - name: Check if E2E-relevant files changed
         id: filter
         run: |
-          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || echo "")
-          if echo "$CHANGED" | grep -qE '^(components/website/|tests/e2e/|\.github/workflows/e2e-pr\.yml)'; then
-            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
-            echo "E2E-relevant files changed, running tests"
-          else
-            echo "run_e2e=false" >> "$GITHUB_OUTPUT"
-            echo "No E2E-relevant files changed, skipping tests"
-          fi
+          # Manueller Lauf: immer ausführen (kein PR-Diff als Filter verfügbar).
+          echo "run_e2e=true" >> "$GITHUB_OUTPUT"
+          echo "Manual dispatch — running tests"
 
       - uses: actions/setup-node@v7
         if: steps.filter.outputs.run_e2e == 'true'
@@ -119,51 +121,33 @@ jobs:
         working-directory: tests/e2e
         run: npx playwright install chromium
 
-      - name: Leite Feature-Tag aus Branch-Name ab
+      - name: Feature-Tag aus Dispatch-Input
         if: steps.filter.outputs.run_e2e == 'true'
         id: tag
         env:
-          BRANCH: ${{ github.head_ref }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          echo "Branch: $BRANCH"
+          echo "Input-Tag: $INPUT_TAG"
 
-          # Normalisiere: feature/content-hub-xyz → content-hub
-          SEGMENT=$(echo "$BRANCH" | sed 's|^feature/||;s|^fix/||;s|^chore/||' | cut -d'-' -f1-2)
-
-          TAG=""
-          case "$BRANCH" in
-            *content-hub*)  TAG="content-hub" ;;
-            *planungsbuero*|*planning-office*) TAG="planungsbuero" ;;
-            *factory*|*dev-status*) TAG="factory" ;;
-            *brainstorm*|*admin-hub*) TAG="admin" ;;
-            *booking*)      TAG="booking" ;;
-            *meeting*)      TAG="meeting" ;;
-            *billing*|*invoice*|*rechnun*) TAG="billing" ;;
-            *messaging*|*chat*|*inbox*) TAG="messaging" ;;
-            *fragebogen*)   TAG="fragebogen" ;;
-            *crm*)          TAG="crm" ;;
-            *website*|*astro*|*landing*) TAG="website" ;;
-            *)              TAG="" ;;
-          esac
-
-          if [ -n "$TAG" ]; then
+          TAG="$INPUT_TAG"
+          if [ "$TAG" = "smoke" ]; then
+            GREP_PATTERN="@smoke"
+            echo "Nur @smoke"
+          else
             GREP_PATTERN="@${TAG}|@smoke"
             echo "Feature-Tag: @${TAG} → grep: $GREP_PATTERN"
-          else
-            GREP_PATTERN="@smoke"
-            echo "Kein Feature-Tag erkannt → nur @smoke"
           fi
 
           echo "grep_pattern=$GREP_PATTERN" >> "$GITHUB_OUTPUT"
           echo "feature_tag=$TAG"          >> "$GITHUB_OUTPUT"
 
       - name: Detect changed E2E spec files
-        # Mirrors the local `task test:changed` smart selection: if a
-        # spec file under tests/e2e/specs/ was touched in this PR, add
-        # it to the run as a positional arg (in addition to the
-        # tag-grep filter above). Working dir is the repo root, so
-        # strip the `tests/e2e/` prefix to match Playwright's --config
-        # testDir (./specs). [T001651]
+        # Mirrors the local `task test:changed` smart selection: if the
+        # dispatched ref differs from origin/main and a spec file under
+        # tests/e2e/specs/ is among the diff, add it to the run as a
+        # positional arg (in addition to the tag-grep filter above).
+        # Working dir is the repo root, so strip the `tests/e2e/` prefix
+        # to match Playwright's --config testDir (./specs). [T001651]
         if: steps.filter.outputs.run_e2e == 'true'
         id: specs
         run: |
@@ -181,7 +165,7 @@ jobs:
           fi
           echo "changed_specs=$CHANGED_SPECS" >> "$GITHUB_OUTPUT"
 
-      - name: E2E — ${{ steps.tag.outputs.feature_tag || 'smoke' }} + @smoke gegen web.mentolder.de
+      - name: E2E gefiltert (${{ steps.tag.outputs.grep_pattern }}) gegen web.mentolder.de
         if: steps.filter.outputs.run_e2e == 'true'
         id: playwright
         working-directory: tests/e2e
@@ -214,16 +198,3 @@ jobs:
           path: tests/results
           retention-days: 7
           if-no-files-found: ignore
-
-      - name: Kommentar bei Fehler
-        if: failure() && steps.playwright.outcome == 'failure'
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const tag = '${{ steps.tag.outputs.feature_tag }}' || 'smoke';
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## ❌ E2E-Tests fehlgeschlagen\n\nGetesteter Bereich: \`@${tag}\` + \`@smoke\`\n\n[Artifact herunterladen](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
-            });

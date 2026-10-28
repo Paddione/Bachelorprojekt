@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.441.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.440.0...website-v1.441.0) (2026-10-28)
+
+
+### Features
+
+* **infra:** add cloud-tailnet access for devmesh k3s api ([#6994](https://github.com/Paddione/Bachelorprojekt/issues/6994)) ([75f48ec](https://github.com/Paddione/Bachelorprojekt/commit/75f48ec05c4f9bc21285d0e6d3f82b2e79675afe))
+
 ## [1.440.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.439.0...website-v1.440.0) (2026-10-28)
 
 

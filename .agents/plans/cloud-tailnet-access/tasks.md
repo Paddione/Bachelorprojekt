@@ -1,8 +1,8 @@
 ---
 title: "cloud-tailnet-access — Implementation Plan"
-ticket_id: T-PENDING
+ticket_id: null
 domains: [infra, devmesh, security, test]
-status: draft
+status: in_progress
 file_locks: []
 shared_changes: false
 batch_id: null
@@ -63,60 +63,60 @@ reviewbar, ihr Merge wartet aber auf dessen Ergebnis.
 
 ## Task 2: ACL für tag:cloud (rot, dann grün)
 
-**Dateien:** `tests/spec/local-dev-mesh/tailnet-policy.bats`, `devmesh/tailnet-policy.hujson`
+**Dateien:** `tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py`, `devmesh/tailnet-policy.hujson`
 
-- [ ] Failing Test ergänzen. Vier Tests, jeweils mit `policy_facts`-Muster aus dem bestehenden
+- [x] Failing Test ergänzen. Vier Tests, jeweils mit `policy_facts`-Muster aus dem bestehenden
       Guard: (a) `tagOwners` enthält `tag:cloud` mit `autogroup:admin`; (b) genau eine Regel mit
       Quelle `tag:cloud`, Ziel ausschließlich `tag:devmesh:6443`; (c) keine Regel mit Quelle
       `tag:cloud` und Ziel `*`, `tag:devclient` oder `gpu-host`; (d) kein Port 22 oder 443 für
       `tag:cloud`. Positiv-Anker: die Regel aus (b) existiert, bevor (c) und (d) etwas verneinen.
-- [ ] Rot beweisen:
+- [x] Rot beweisen:
 
 ```bash
-bats tests/spec/local-dev-mesh/tailnet-policy.bats
+pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py -k test_cloud_tailnet_acl_and_ownership
 # expected: FAIL — tag:cloud fehlt in tagOwners und acls
 ```
 
-- [ ] `devmesh/tailnet-policy.hujson` ändern: in `tagOwners` den Eintrag
+- [x] `devmesh/tailnet-policy.hujson` ändern: in `tagOwners` den Eintrag
       `"tag:cloud": ["autogroup:admin"]`, in `acls` die Regel
       `{"action": "accept", "src": ["tag:cloud"], "dst": ["tag:devmesh:6443"]}` mit einer
       ganzzeiligen Kommentarzeile darüber (Format-Regel des Guards: keine grants).
-- [ ] Grün: `bats tests/spec/local-dev-mesh/tailnet-policy.bats`. Die bestehenden Tests
+- [x] Grün: `pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py`. Die bestehenden Tests
       (genau eine Ausnahme von `tag:devmesh`, `bad=0`, `grants=0`) müssen unverändert bestehen.
 
 ## Task 3: ServiceAccount mit Namespace-Role (rot, dann grün)
 
-**Dateien:** `tests/spec/local-dev-mesh/cloud-access.bats`,
+**Dateien:** `tests/py/spec/native_ported/spec/local-dev-mesh/test_cloud_access.py`,
 `dev-local/components/cloud-access/rbac.yaml`,
 `dev-local/components/cloud-access/kustomization.yaml`, `dev-local/core/kustomization.yaml`
 
-- [ ] Failing Test: der gerenderte Output von `kubectl kustomize dev-local/core` (Befehlsausgabe,
+- [x] Failing Test: der gerenderte Output von `kubectl kustomize dev-local/core` (Befehlsausgabe,
       nicht Quelltext) enthält ServiceAccount `cloud-session` im Namespace `workspace`, eine Role
       mit ausschließlich `get`/`list` auf `pods`, `pods/log`, `services`, `endpoints` und `create`
       auf `pods/portforward`, ein RoleBinding und ein Secret vom Typ
       `kubernetes.io/service-account-token`. Negativ-Anker nach dem Positiv-Anker: keine
       ClusterRole, kein `*` in `verbs` oder `resources`, kein `secrets`. Skip-Guard:
       `command -v kubectl >/dev/null 2>&1 || skip "kubectl not installed"`.
-- [ ] Rot beweisen:
+- [x] Rot beweisen:
 
 ```bash
-bats tests/spec/local-dev-mesh/cloud-access.bats
+pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_cloud_access.py
 # expected: FAIL — Komponente cloud-access existiert noch nicht
 ```
 
-- [ ] `rbac.yaml` und `kustomization.yaml` anlegen, die Komponente in
+- [x] `rbac.yaml` und `kustomization.yaml` anlegen, die Komponente in
       `dev-local/core/kustomization.yaml` neben `../components/llm-services` einhängen (S4).
-- [ ] Grün: `bats tests/spec/local-dev-mesh/cloud-access.bats` und
+- [x] Grün: `pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_cloud_access.py` und
       `task workspace:validate` für den devmesh-Render, soweit lokal verfügbar.
 
 ## Task 4: Setup-Skript `scripts/cloud/cloud-tailnet.sh` (rot, dann grün)
 
-**Dateien:** `tests/spec/local-dev-mesh/cloud-access.bats`, `scripts/cloud/cloud-tailnet.sh`
+**Dateien:** `tests/py/spec/native_ported/spec/local-dev-mesh/test_cloud_access.py`, `scripts/cloud/cloud-tailnet.sh`
 
 Unterbefehle: `up` (Eintrag für das Setup script der Umgebung), `forward`, `status`,
 `kubeconfig` (nur Operator, schreibt nach stdout bzw. `/dev/shm`, nie ins Repo).
 
-- [ ] Failing Tests ergänzen, jeweils gegen die Befehlsausgabe mit `DRY_RUN=1`:
+- [x] Failing Tests ergänzen, jeweils gegen die Befehlsausgabe mit `DRY_RUN=1`:
       (a) `up` ohne `TS_AUTHKEY` endet mit Exit 2 und nennt die Variable beim Namen, aber nie
       ihren Wert; (b) `up` übergibt den Key über `--auth-key=file:` aus einer Datei mit Modus 600
       in `/dev/shm` und löscht sie danach, kein Key in der Kommandozeile; (c) fehlt
@@ -124,53 +124,54 @@ Unterbefehle: `up` (Eintrag für das Setup script der Umgebung), `forward`, `sta
       `svc/llm-services` Ports `18235`, `13001`, `13005` mit `--context devmesh` und
       `-n workspace` weiter; (e) der Kontext ist `devmesh`, nie `fleet`.
       Positiv-Anker zuerst: `status` im Dry-Run nennt den Kontext und die drei Ports.
-- [ ] Rot beweisen:
+- [x] Rot beweisen:
 
 ```bash
-bats tests/spec/local-dev-mesh/cloud-access.bats
+pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_cloud_access.py -k test_cloud_tailnet_script_behavior
 # expected: FAIL — scripts/cloud/cloud-tailnet.sh existiert noch nicht
 ```
 
-- [ ] Skript schreiben: `set -euo pipefail`, Installation von `tailscale` und `kubectl` nur wenn
+- [x] Skript schreiben: `set -euo pipefail`, Installation von `tailscale` und `kubectl` nur wenn
       nicht im PATH (Version gepinnt, Prüfsumme verifiziert), `tailscaled` im Hintergrund,
       `tailscale up --hostname=claude-cloud --advertise-tags=tag:cloud`, Kubeconfig aus
       `DEVMESH_KUBECONFIG_B64` nach `~/.kube/config` (Modus 600), `forward` als Hintergrundprozess
       mit Neustart-Schleife. Setzt `TICKET_CTX=devmesh` für `ticket.sh` (Fehlerbild:
       `no shared-db pod found in namespace workspace (context fleet)`).
-- [ ] Grün: `bats tests/spec/local-dev-mesh/cloud-access.bats`.
+- [x] Grün: `pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_cloud_access.py`.
 
 ## Task 5: Taskfile-Einstieg für den Operator
 
-**Dateien:** `taskfiles/Taskfile.devmesh.yml`, `tests/spec/local-dev-mesh/devmesh-taskfile.bats`
+**Dateien:** `taskfiles/Taskfile.devmesh.yml`, `tests/py/spec/native_ported/spec/local-dev-mesh/test_devmesh_taskfile.py`
 
-- [ ] Failing Test: `task --list` (Ausgabe) nennt `devmesh:cloud:kubeconfig` und
+- [x] Failing Test: `task --list` (Ausgabe) nennt `devmesh:cloud:kubeconfig` und
       `devmesh:cloud:status`; Skip-Guard `command -v task`.
-- [ ] Rot beweisen:
+- [x] Rot beweisen:
 
 ```bash
-bats tests/spec/local-dev-mesh/devmesh-taskfile.bats
+pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_devmesh_taskfile.py -k test_cloud_tailnet_tasks_listed
 # expected: FAIL — Einträge fehlen
 ```
 
-- [ ] Zwei Tasks ergänzen: `cloud:kubeconfig` ruft `cloud-tailnet.sh kubeconfig` (erzeugt aus dem
+- [x] Zwei Tasks ergänzen: `cloud:kubeconfig` ruft `cloud-tailnet.sh kubeconfig` (erzeugt aus dem
       Token des ServiceAccounts eine base64-Kubeconfig für `DEVMESH_KUBECONFIG_B64`, Ausgabe nur
       nach stdout), `cloud:status` ruft `cloud-tailnet.sh status`. Damit ist das Skript für S4
       erreichbar.
-- [ ] Grün: `bats tests/spec/local-dev-mesh/devmesh-taskfile.bats`.
+- [x] Grün: `pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_devmesh_taskfile.py`.
 
 ## Task 6: Runbook und ADR-Nachtrag
 
 **Dateien:** `docs/runbooks/devmesh-tailnet.md`, `docs/adr/ADR-008-local-k3s-dev-mesh.md`
 
-- [ ] Runbook: neuer Schritt 8 „Cloud-Session-Zugang" mit Auth-Key-Erzeugung (Tag `tag:cloud`,
+- [x] Runbook: neuer Schritt 8 „Cloud-Session-Zugang" mit Auth-Key-Erzeugung (Tag `tag:cloud`,
       ephemeral, reusable), ACL-Einspielung (Schritt 5 gilt weiter), `task devmesh:cloud:kubeconfig`,
       den beiden Environment-Secrets `TS_AUTHKEY` und `DEVMESH_KUBECONFIG_B64`, dem Setup-Script-
       Eintrag `bash scripts/cloud/cloud-tailnet.sh up` und der Abnahme (`mcp-kubernetes` und
       `ticket-mcp-node` melden sich in einer neuen Session). Rollen-Tabelle um die Zeile
       `tag:cloud` ergänzen; Hinweis, dass der Peer flüchtig ist und nicht im Inventar steht.
-- [ ] ADR-008: Nachtrag mit Datum, Entscheidung D1 bis D3 und dem Ausschluss von fleet.
-- [ ] Prüfen, dass das Runbook keinen Auth-Key im Klartext enthält:
-      `bats tests/spec/local-dev-mesh/tailnet-policy.bats` (Test „kein Tailscale-Auth-Key").
+- [x] ADR-008: Nachtrag mit Datum, Entscheidung D1 bis D3 und dem Ausschluss von fleet.
+- [x] Prüfen, dass das Runbook keinen Auth-Key im Klartext enthält:
+      `pytest tests/py/spec/native_ported/spec/local-dev-mesh/test_tailnet_policy.py -k test_t900116_kein_tailscale_auth_key_in_versionierten_dateien`.
+
 
 ## Task 7: Verifikation und Operator-Abnahme
 

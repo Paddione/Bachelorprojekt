@@ -43,6 +43,17 @@ tasks:
     cmds:
       - bash scripts/devmesh/tailnet-check.sh {{.CLI_ARGS}}
 
+  cloud:kubeconfig:
+    desc: "devmesh: Kubeconfig fuer Cloud-Sessions (ServiceAccount cloud-session) auf stdout ausgeben"
+    cmds:
+      - bash scripts/cloud/cloud-tailnet.sh kubeconfig {{.CLI_ARGS}}
+
+  cloud:status:
+    desc: "devmesh: Status der Cloud-Tailnet-Verbindung und der Port-Forwards anzeigen"
+    cmds:
+      - bash scripts/cloud/cloud-tailnet.sh status
+
+
   tailnet:routes:
     desc: "devmesh: Subnet-Routen (Inventarfeld subnet_routes) per tailscale set freigeben (DRY_RUN=1 zeigt nur die Befehle) [T016515]"
     env:

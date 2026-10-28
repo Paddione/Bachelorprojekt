@@ -209,6 +209,7 @@ _write_lock() { # <file>  (reads SCOPE/ID/LABEL/WT/BRANCH/TICKET/CREATED)
     printf '  "worktree": "%s",\n' "${WT:-}"
     printf '  "branch": "%s",\n' "${BRANCH:-}"
     printf '  "ticket": "%s",\n' "${TICKET:-}"
+    printf '  "goal": "%s",\n' "${GOAL:-}"
     # [T900024] Kooperative Partial-Claims: komma-getrennte Dateiliste. LEER =
     # exakt die bisherige Bedeutung (der ganze Worktree ist geclaimt) -- das ist
     # die Rueckfallebene fuer jeden Claim, der nicht aus einem Partial-Plan
@@ -302,11 +303,12 @@ HELP
     _reject_arg claim "$SCOPE"
     return 2
   fi
-  LABEL=""; WT=""; BRANCH=""; TICKET=""; FORCE=""; FILES=""
+  LABEL=""; WT=""; BRANCH=""; TICKET=""; GOAL=""; FORCE=""; FILES=""
   local PLAN_FILE="" PARTIAL_ID=""
   while [ $# -gt 0 ]; do case "$1" in
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;
     --branch) BRANCH="$2"; shift 2;; --ticket) TICKET="$2"; shift 2;;
+    --goal) GOAL="$2"; shift 2;;
     --files) FILES="$2"; shift 2;;
     --files-from-plan) PLAN_FILE="$2"; shift 2;;
     --partial-id) PARTIAL_ID="$2"; shift 2;;
@@ -406,6 +408,7 @@ cmd_refresh() {
   _lock_is_mine "$f" || return 1
   LABEL="$(_lock_field "$f" label)"; WT="$(_lock_field "$f" worktree)"
   BRANCH="$(_lock_field "$f" branch)"; TICKET="$(_lock_field "$f" ticket)"
+  GOAL="$(_lock_field "$f" goal)"
   # [T900024] Ohne dieses Feld wuerde ein Refresh die Dateiliste stillschweigend
   # loeschen und den Partial-Claim auf den ganzen Worktree ausweiten.
   FILES="$(_lock_field "$f" target_files)"
@@ -505,11 +508,12 @@ cmd_check_and_claim() {
   local scope="$1" id="${2:-}"; shift 2 2>/dev/null || shift $#
   # --status-check <path> is optional: point to a script that returns 0 iff the
   # ticket is still live (plan_staged) and not yet done/merged.
-  local status_check_script="" LABEL="" WT="" BRANCH="" TICKET=""
+  local status_check_script="" LABEL="" WT="" BRANCH="" TICKET="" GOAL=""
   while [ $# -gt 0 ]; do case "$1" in
     --status-check) status_check_script="$2"; shift 2;;
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;
     --branch) BRANCH="$2"; shift 2;; --ticket) TICKET="$2"; shift 2;;
+    --goal) GOAL="$2"; shift 2;;
     *) _reject_arg check-and-claim "$1"; return 2;; esac; done
 
   # 1) Optional external status-check (e.g. ticket.sh get --id + jq).
@@ -534,7 +538,7 @@ cmd_check_and_claim() {
 
   # 3) Atomic claim under flock. Only cmd_claim acquires the registry lock, so
   #    two concurrent check-and-claim calls serialize here.
-  cmd_claim "$scope" "$id" --label "$LABEL" --worktree "$WT" --branch "$BRANCH" --ticket "$TICKET"
+  cmd_claim "$scope" "$id" --label "$LABEL" --worktree "$WT" --branch "$BRANCH" --ticket "$TICKET" --goal "$GOAL"
 }
 
 # [T002896] Oeffentlicher Wrapper um _branch_is_live_claimed — erlaubt

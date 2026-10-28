@@ -99,10 +99,19 @@ def probe_cli_json(cmd, timeout):
     stderr = err.decode("utf-8", "surrogateescape")
     if rc != 0:
         return None, "probe-failed", stdout, stderr
+    raw = stdout.strip()
     try:
-        data = json.loads(stdout) if stdout.strip() else None
+        data = json.loads(raw) if raw else None
     except json.JSONDecodeError:
-        return None, "probe-malformed", stdout, stderr
+        first_brace = raw.find("{")
+        last_brace = raw.rfind("}")
+        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+            try:
+                data = json.loads(raw[first_brace:last_brace + 1])
+            except json.JSONDecodeError:
+                return None, "probe-malformed", stdout, stderr
+        else:
+            return None, "probe-malformed", stdout, stderr
     if not isinstance(data, dict):
         return None, "probe-malformed", stdout, stderr
     if "error" in data or "isError" in data and data.get("isError"):
@@ -136,9 +145,51 @@ def parse_query_rows(text):
             break
         if line.startswith("  ") and not line.startswith("   "):
             value = line.strip()
+            if value.startswith('"') and value.endswith('"') and len(value) >= 2:
+                value = value[1:-1]
             if value:
                 rows.add(value.replace("\\", "/"))
     return rows if rows or "rows:" in text else None
+
+
+def parse_schema_labels(text):
+    if not isinstance(text, str) or "node_labels:" not in text:
+        return set()
+    in_labels = False
+    labels = set()
+    for line in text.splitlines():
+        if line.startswith("node_labels:"):
+            in_labels = True
+            continue
+        if in_labels:
+            if line.startswith("edge_types:") or line.startswith("total:"):
+                break
+            if line.startswith("  ") and not line.startswith("   "):
+                parts = line.strip().split()
+                if parts:
+                    labels.add(parts[0])
+    return labels
+
+
+def parse_index_tree(text):
+    if not isinstance(text, str):
+        return None
+    body = {}
+    for line in text.splitlines():
+        if line.startswith("  "):
+            continue
+        k, sep, v = line.partition(":")
+        if sep:
+            k = k.strip()
+            v = v.strip()
+            if k in ("nodes", "edges"):
+                try:
+                    body[k] = int(v)
+                except ValueError:
+                    pass
+            elif k in ("status", "root_path", "project"):
+                body[k] = v
+    return body if body.get("status") else None
 
 
 def k3_symbol_files(project, timeout, reasons):
@@ -154,13 +205,32 @@ def k3_symbol_files(project, timeout, reasons):
     if text is None:
         reasons.append("k3-schema-probe-failed")
         return None
+    schema_body = None
     try:
         schema_body = json.loads(text)
     except json.JSONDecodeError:
-        reasons.append("k3-schema-probe-failed")
-        return None
-    labels = [lbl.get("label") for lbl in schema_body.get("node_labels", [])
-              if isinstance(lbl, dict) and "file_path" in (lbl.get("properties") or [])]
+        pass
+
+    labels = []
+    if isinstance(schema_body, dict):
+        labels = [lbl.get("label") for lbl in schema_body.get("node_labels", [])
+                  if isinstance(lbl, dict) and "file_path" in (lbl.get("properties") or [])]
+        if not labels:
+            all_labels = {lbl.get("label") for lbl in schema_body.get("node_labels", [])
+                          if isinstance(lbl, dict) and lbl.get("label")}
+            known_file_labels = [
+                "File", "Function", "Variable", "Module", "Class", "Method",
+                "Interface", "Route", "Type", "Resource", "Section"
+            ]
+            labels = [l for l in known_file_labels if l in all_labels]
+    else:
+        all_labels = parse_schema_labels(text)
+        known_file_labels = [
+            "File", "Function", "Variable", "Module", "Class", "Method",
+            "Interface", "Route", "Type", "Resource", "Section"
+        ]
+        labels = [l for l in known_file_labels if l in all_labels]
+
     if not labels:
         reasons.append("k3-schema-no-file-labels")
         return None
@@ -197,8 +267,7 @@ def k3_index_info(project, timeout, reasons):
     try:
         body = json.loads(text)
     except json.JSONDecodeError:
-        reasons.append("k3-index-probe-failed")
-        return None
+        body = parse_index_tree(text)
     if not isinstance(body, dict):
         reasons.append("k3-index-probe-failed")
         return None

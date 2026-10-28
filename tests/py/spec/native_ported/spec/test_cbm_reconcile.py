@@ -17,7 +17,14 @@ json_escape() {
   printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'
 }
 emit_envelope() {
+  if [ "${STUB_MODE:-}" = "cbm-012" ]; then
+    echo "Preparing one-shot local CBM command..."
+    echo "Running command locally..."
+  fi
   printf '{"content":[{"type":"text","text":"%s"}],"isError":false}\n' "$(json_escape "$1")"
+  if [ "${STUB_MODE:-}" = "cbm-012" ]; then
+    echo "Completed command (15 ms)"
+  fi
 }
 case "$1" in
   --version) echo "stub-cbm 0.0.0-test"; exit 0;;
@@ -32,7 +39,15 @@ case "$1" in
         if [ -n "$use_json" ]; then emit_envelope "$inner"; else echo "$inner"; fi
         exit 0;;
       get_graph_schema)
-        echo '{"content":[{"type":"text","text":"{\"node_labels\":[{\"label\":\"Function\",\"count\":2,\"properties\":[\"name\",\"file_path\"]}]}"}]}'; exit 0;;
+        if [ "${STUB_MODE:-}" = "cbm-012" ]; then
+          emit_envelope "node_labels: 1
+  Function 2
+edge_types: 1
+  CALLS 1"
+        else
+          echo '{"content":[{"type":"text","text":"{\"node_labels\":[{\"label\":\"Function\",\"count\":2,\"properties\":[\"name\",\"file_path\"]}]}"}]}';
+        fi
+        exit 0;;
       query_graph)
         if [ -n "${STUB_QUERY_GARBAGE:-}" ]; then printf '{"content":[{"type":"text","text":"total garbage <|>"}]}'; exit 0; fi
         { echo "rows: 0  (cols: file)"
@@ -237,6 +252,19 @@ def test_query_graph_garbage_output_fail_closed_unknown_not_silent_fresh(
     assert result.returncode == 1
     d = json.loads(result.output)
     assert d["verdict"] == "unknown", d["verdict"]
+
+
+def test_cbm_012_banner_and_tree_format_compatibility(run_cmd, repo_root, tmp_path):
+    env, repo = _fixture(run_cmd, repo_root, tmp_path)
+    env["STUB_MODE"] = "cbm-012"
+    env["STUB_K3_FILES"] = "lib/a.ts lib/b.ts README.md"
+    result = _reconcile(run_cmd, repo_root, env, repo)
+    assert result.returncode == 0
+    d = json.loads(result.output)
+    assert d["verdict"] == "fresh", d["verdict"]
+    assert d["k3_index"]["nodes"] == 10
+    assert d["k3_index"]["edges"] == 20
+    assert d["k3_index"]["status"] == "ready"
 
 
 def _fixture_plain(run_cmd, repo_root, tmp_path):

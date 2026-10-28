@@ -227,10 +227,19 @@ def probe_graph(cmd, timeout, expect_json):
         return None, "probe-malformed", "", ""
     if rc != 0:
         return None, "probe-failed", stdout, stderr
+    raw = stdout.strip()
     try:
-        data = json.loads(stdout) if stdout.strip() else None
+        data = json.loads(raw) if raw else None
     except json.JSONDecodeError:
-        return None, "probe-malformed", stdout, stderr
+        first_brace = raw.find("{")
+        last_brace = raw.rfind("}")
+        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+            try:
+                data = json.loads(raw[first_brace:last_brace + 1])
+            except json.JSONDecodeError:
+                return None, "probe-malformed", stdout, stderr
+        else:
+            return None, "probe-malformed", stdout, stderr
     payload, _raw, perr = parse_probe_payload(data, expect_json)
     if perr:
         return payload, perr, stdout, stderr

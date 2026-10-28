@@ -64,6 +64,9 @@ Flags:
   --ssh-key <datei|"ssh-ed25519 ...">  Public Key (Pflicht beim Start)
   --node-map <datei>       MAC->Hostname-Tabelle (empfohlen)
   --admin-password <pw>    Konsolen-Passwort; ohne es nur SSH-Key-Login
+  --admin-user <name>      Login-User (default: clusteradmin). Ohne
+                           --admin-password bekommt er sudo ohne Passwort,
+                           sonst waere sudo bei gesperrtem Passwort unmoeglich.
   --iface <name>           LAN-Interface (default: das der Default-Route)
   --server-ip <ip>         IP, unter der die Nodes den Server sehen
   --http-port <port>       default: 8099
@@ -106,6 +109,7 @@ while [[ $# -gt 0 ]]; do
                          if [[ -f "$a" ]]; then SSH_KEY_FILE="$a"; else SSH_KEY_LITERAL="$a"; fi ;;
     --node-map)          NODE_MAP="$2";          shift 2 ;;
     --admin-password)    ADMIN_PASSWORD="$2";    shift 2 ;;
+    --admin-user)        ADMIN_USER="$2";        shift 2 ;;
     --iface)             IFACE="$2";             shift 2 ;;
     --server-ip)         SERVER_IP="$2";         shift 2 ;;
     --http-port)         HTTP_PORT="$2";         shift 2 ;;
@@ -322,6 +326,7 @@ fi
 [[ "$SSH_PUBLIC_KEY" =~ ^(ssh-(rsa|ed25519)|ecdsa-sha2-) ]] \
   || die "--ssh-key sieht nicht wie ein Public Key aus: ${SSH_PUBLIC_KEY:0:40}..."
 [[ "$SSH_PUBLIC_KEY" == *PRIVATE* ]] && die "--ssh-key zeigt auf einen PRIVATEN Schluessel."
+[[ "$ADMIN_USER" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] || die "--admin-user ist kein gueltiger Login-Name: $ADMIN_USER"
 
 case "$SHUTDOWN_MODE" in poweroff|reboot) ;; *) die "--shutdown: poweroff oder reboot" ;; esac
 if [[ -n "$DISK_PATH" ]]; then

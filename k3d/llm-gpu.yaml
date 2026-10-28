@@ -288,8 +288,13 @@ spec:
             - "8192"
             - "-ub"
             - "8192"
+            # T002923 (#6923): -np 4 -> 2 analog zu bge-embed (T002835). Der
+            # Speicherbedarf skaliert mit -np x -ub; vier Slots erzeugten Peak-RSS
+            # >2Gi unter seriellen Benchmark-Bursts, was zu OOMKill (Exit 137)
+            # führte. Bei limits.cpu 2000m / -t 2 stehen hinter vier Slots ohnehin
+            # nur zwei Threads. -ub bleibt bei 8192 (XLM-RoBERTa, nicht-kausal).
             - "-np"
-            - "4"
+            - "2"
             # T002661: analog zu bge-embed — -t an limits.cpu (2000m = 2 Kerne)
             # gebunden. Hier war die Drosselung bisher nur latent (145/12354
             # Perioden, 1,2 %), weil das Deployment kaum Last sieht; unter
@@ -309,7 +314,10 @@ spec:
               memory: "1Gi"
               cpu: "1000m"
             limits:
-              memory: "2Gi"
+              # T002923 (#6923): limits.memory 2Gi -> 4Gi analog zu bge-embed (T002835).
+              # Bei kubectl top wurden 2041Mi gemessen kurz vor OOMKill. Zusammen
+              # mit -np 2 gibt dies sicheren Kopfraum über dem Peak-RSS.
+              memory: "4Gi"
               cpu: "2000m"
           readinessProbe:
             httpGet:

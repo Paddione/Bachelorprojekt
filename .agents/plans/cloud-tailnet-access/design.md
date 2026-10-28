@@ -1,7 +1,7 @@
 ---
 title: "cloud-tailnet-access — Design"
-ticket_id: T-PENDING
-status: draft
+ticket_id: null
+status: in_progress
 ---
 
 # cloud-tailnet-access — Design

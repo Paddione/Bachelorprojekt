@@ -65,3 +65,31 @@ def test_t900116_kein_tailscale_auth_key_in_versionierten_dateien(pol, run_cmd):
     assert re.search(pattern, fake), "Muster erkennt synthetischen Key nicht"
     res = run_cmd(["git", "grep", "-lE", pattern, "--", ".", ":!environments/.secrets/"], cwd=pol["repo"])
     assert res.stdout.strip() == "", f"Auth-Key-Muster gefunden in: {res.stdout}"
+
+
+def test_cloud_tailnet_acl_and_ownership(pol):
+    policy = pol["policy"]
+    owners = policy.get("tagOwners", {})
+    # (a) tagOwners enthält tag:cloud mit autogroup:admin
+    assert "tag:cloud" in owners, "tag:cloud fehlt in tagOwners"
+    assert owners["tag:cloud"] == ["autogroup:admin"], f"Unerwarteter Owner: {owners.get('tag:cloud')}"
+
+    # (b) genau eine Regel mit Quelle tag:cloud, Ziel ausschließlich tag:devmesh:6443
+    cloud_acls = [a for a in policy.get("acls", []) if "tag:cloud" in a.get("src", [])]
+    assert len(cloud_acls) == 1, f"Erwartet genau 1 ACL-Regel für tag:cloud, gefunden: {len(cloud_acls)}"
+    rule = cloud_acls[0]
+    assert rule.get("action") == "accept"
+    assert rule.get("src") == ["tag:cloud"]
+    assert rule.get("dst") == ["tag:devmesh:6443"]
+
+    # (c) keine Regel mit Quelle tag:cloud und Ziel *, tag:devclient oder gpu-host
+    for a in cloud_acls:
+        dsts = a.get("dst", [])
+        for dst in dsts:
+            assert "*" not in dst
+            assert "tag:devclient" not in dst
+            assert "gpu-host" not in dst
+            # (d) kein Port 22 oder 443 für tag:cloud
+            assert not dst.endswith(":22")
+            assert not dst.endswith(":443")
+

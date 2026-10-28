@@ -17,6 +17,7 @@ Entscheidungen: ADR-008 (Nachtrag 2026-09-11), Design `2026-09-11-devmesh-tailne
 |---|---|---|---|
 | Server | `tag:gpu-server` | gpu-metal (10.1.0.101), gpu-cluster (10.10.10.2), gpu-cluster2 (10.10.10.3), gpu-cluster-3 (10.10.10.4) | alles (`grants`) |
 | Client | — (Gerät unter dem Benutzerkonto) | pk-desktop, pk-l-1, pk-tablet | alles (`grants`) |
+| Cloud | `tag:cloud` | Ephemerer Cloud-Container (Claude Code web) | nur k3s-API tcp 6443 (`tag:devmesh:6443`), flüchtig |
 
 **Stand T016528 (2026-10-12):** Die Live-Policy erlaubt per `grants` allen Verkehr im
 Tailnet (`* → *`). Die ursprünglich geplante restriktive ACL mit `tag:devmesh`/`tag:devclient`
@@ -171,3 +172,33 @@ dieses Change (`dev-local/components/llm-services`, Migration) sind bereits geme
      'k3d-postgres-forward*' --no-legend | wc -l   # erwartet: 0
    systemctl --user is-active devmesh-forward.service   # erwartet: active
    ```
+
+## Schritt 8: Cloud-Session-Zugang (cloud-tailnet-access)
+
+Ermöglicht Cloud-Sessions (z. B. Claude Code on the web) den kontrollierten Zugriff auf den devmesh-Cluster:
+
+1. **Auth-Key erzeugen:** In der Tailscale Admin-Konsole (Settings → Keys → Generate auth key) einen Key erzeugen:
+   - Tag: `tag:cloud`
+   - Reusable: an
+   - Ephemeral: an
+   - Ablauf: 90 Tage
+   - Den Key in den Umgebungseinstellungen der Cloud-Session als Secret `TS_AUTHKEY` hinterlegen (nie im Git committen!).
+2. **Kubeconfig generieren:** Auf dem Desktop ausführen:
+   ```bash
+   task devmesh:cloud:kubeconfig > kubeconfig.yaml
+   base64 -w0 kubeconfig.yaml
+   ```
+   Den Base64-String als Environment-Secret `DEVMESH_KUBECONFIG_B64` in der Cloud-Session hinterlegen.
+3. **Setup-Skript in der Cloud-Umgebung:**
+   Im Session-Startup der Cloud-Umgebung:
+   ```bash
+   bash scripts/cloud/cloud-tailnet.sh up
+   bash scripts/cloud/cloud-tailnet.sh forward &
+   ```
+4. **Abnahme:**
+   In der Cloud-Session:
+   ```bash
+   bash scripts/cloud/cloud-tailnet.sh status
+   ```
+   `mcp-kubernetes` und die Port-Forwards auf die devmesh-Dienste (`:18235`, `:13001`, `:13005`) verbinden sich fehlerfrei.
+

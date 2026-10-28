@@ -158,4 +158,13 @@ VRAM-Dienste (llama.cpp, LM Studio, FreeToken) und `kubectl port-forward`-Client
 ... jetzt als Container des `dev-pod` gegen Remote-Backends" gilt ab T900191 nicht mehr — der
 Proxy läuft nicht mehr im fleet-`dev-pod`, sondern in devmesh. Siehe Ergänzung in ADR-007 unten.
 
+### Nachtrag 2026-10-28: Cloud-Session-Zugang via Tailnet (cloud-tailnet-access)
+
+Cloud-Sessions (z. B. Claude Code on the web) erhalten kontrollierten Zugriff auf devmesh:
+- **D1 (Scope):** Nur devmesh, kein fleet (fleet ist Prod und bleibt isoliert).
+- **D2 (Pfad):** Direkter Zugriff auf das k3s-API (tcp 6443) statt über den pk-desktop-Gateway; Dienste in `llm-services` werden per `kubectl port-forward` erreicht.
+- **D3 (ACL):** Eigenes Tag `tag:cloud`, genau ein ACL-Eintrag `tag:cloud` → `tag:devmesh:6443`. Kein SSH (22), kein Ingress (443), keine Rechte auf devclient.
+- **D4 (RBAC):** Eigener ServiceAccount `cloud-session` mit Namespace-Role (nur Lese- und Port-Forward-Rechte, keine Schreibrechte oder Secrets-Zugriff).
+
+
 Details: `openspec/changes/devmesh-llm-services/design.md` (Decisions D1–D7).

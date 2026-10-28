@@ -36,12 +36,17 @@
 		"users":  ["patrick"],
 	}],
 	"nodeAttrs": [{"target": ["autogroup:member"], "attr": ["funnel"]}],
+	// Cloud-Session-Zugang zum k3s-API von devmesh (cloud-tailnet-access, D3)
+	"acls": [
+		{"action": "accept", "src": ["tag:cloud"], "dst": ["tag:devmesh:6443"]},
+	],
 	"tagOwners": {
 		"tag:gpu-server":   ["autogroup:admin"],
 		"tag:orchestrator": ["autogroup:admin"],
 		"tag:k8s-operator": ["autogroup:admin"],
 		"tag:k8s":          ["autogroup:admin"],
 		"tag:home-dns":     ["autogroup:admin"],
+		"tag:cloud":        ["autogroup:admin"],
 		// LAN-/Tailnet-DNS (AdGuard in devmesh), Geraet vom Tailscale-Operator (T016515).
 		"tag:lan-dns": ["autogroup:admin", "tag:k8s-operator"],
 	},

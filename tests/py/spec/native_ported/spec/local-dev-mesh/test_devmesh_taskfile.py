@@ -63,3 +63,11 @@ def test_t900117_kein_client_traegt_eine_k3s_rolle_pk_desktop_ist_kein_knoten(re
     roles = [r for r in _yq_r(run_cmd, '.peers[] | select(.role == "client") | .k3s_role // ""', inv).splitlines()
              if r]
     assert roles == []
+
+
+def test_cloud_tailnet_tasks_listed(repo_root, run_cmd):
+    res = run_cmd(["task", "--list"], cwd=repo_root)
+    assert res.returncode == 0
+    assert "devmesh:cloud:kubeconfig" in res.output, "devmesh:cloud:kubeconfig fehlt in task --list"
+    assert "devmesh:cloud:status" in res.output, "devmesh:cloud:status fehlt in task --list"
+

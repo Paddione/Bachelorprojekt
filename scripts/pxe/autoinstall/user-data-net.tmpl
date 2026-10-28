@@ -71,6 +71,9 @@ ${PXE_EARLY_COMMANDS}
     # Hostname aus der MAC-Tabelle setzen. NODE_MAP zeigt auf die eben
     # geladene Kopie, weil es hier keinen /cdrom-Pfad gibt.
     - NODE_MAP=/tmp/node-map /bin/bash /tmp/assign-identity.sh /target
+    # Gesperrtes Passwort ('!') heisst: Login nur per Key, sudo fragt aber
+    # trotzdem nach einem Passwort. Dann sudo ohne Passwort freigeben.
+    - if [ '${PXE_ADMIN_PASSWORD_HASH}' = '!' ]; then echo '${PXE_ADMIN_USER} ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/90-${PXE_ADMIN_USER} && chmod 0440 /target/etc/sudoers.d/90-${PXE_ADMIN_USER}; fi
     - curtin in-target --target=/target -- systemctl enable iscsid
     - curtin in-target --target=/target -- systemctl enable chrony
     # Regeln anlegen, Firewall aber AUS lassen bis zum Join.

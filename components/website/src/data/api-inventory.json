@@ -1217,6 +1217,19 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/platform/gpu-telemetry",
+      "file": "platform/gpu-telemetry.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/platform/hardware",
       "file": "platform/hardware.ts",
       "methods": [
@@ -1225,6 +1238,19 @@
       "backend": [
         "k8s-rest",
         "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/platform/rig-telemetry",
+      "file": "platform/rig-telemetry.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
       ],
       "description": null,
       "tier": null,

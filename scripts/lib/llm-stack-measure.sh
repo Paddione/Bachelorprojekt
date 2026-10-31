@@ -209,7 +209,7 @@ cmd_autostart_coverage() {
   for f in $units; do
     u="$(basename "$f")"
     case "$u" in
-      ollama.service) continue ;; # reference only, not an active user unit on this host
+      ollama.service|qwen38-gsq-iq2s.service) continue ;; # reference only, not an active user unit on this host
     esac
     if [ -n "${LLM_MEASURE_UNIT_STATE_CMD:-}" ]; then
       state="$($LLM_MEASURE_UNIT_STATE_CMD "$u" 2>/dev/null)"

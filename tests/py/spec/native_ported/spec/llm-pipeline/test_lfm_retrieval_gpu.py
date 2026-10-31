@@ -40,7 +40,7 @@ def _args(rendered, name):
     ).splitlines()
 
 
-@pytest.mark.parametrize("name", ["lfm-embed"])
+@pytest.mark.parametrize("name", ["lfm-embed", "lfm-colbert"])
 def test_retrieval_deployments_request_exactly_one_igpu(rendered, name):
     limits = _yq(
         rendered,
@@ -70,7 +70,7 @@ def test_nvidia_sharing_is_timeslicing_replicas_2(rendered_gpu):
     assert "mps:" not in sharing, sharing
 
 
-@pytest.mark.parametrize("name", ["lfm-embed"])
+@pytest.mark.parametrize("name", ["lfm-embed", "lfm-colbert"])
 def test_retrieval_uses_vulkan_image_and_igpu_selector(rendered, name):
     image = _yq(
         rendered,
@@ -87,7 +87,7 @@ def test_retrieval_uses_vulkan_image_and_igpu_selector(rendered, name):
     assert selector == "true", selector
 
 
-@pytest.mark.parametrize("name", ["lfm-embed"])
+@pytest.mark.parametrize("name", ["lfm-embed", "lfm-colbert"])
 def test_retrieval_no_flash_attention_vulkan(rendered, name):
     args = _args(rendered, name)
     assert "-fa" not in args, args
@@ -95,7 +95,7 @@ def test_retrieval_no_flash_attention_vulkan(rendered, name):
     assert "-ngl" in args
 
 
-@pytest.mark.parametrize("name", ["lfm-embed"])
+@pytest.mark.parametrize("name", ["lfm-embed", "lfm-colbert"])
 def test_retrieval_image_pinned_not_rolling(rendered, name):
     image = _yq(
         rendered,
@@ -106,7 +106,8 @@ def test_retrieval_image_pinned_not_rolling(rendered, name):
 
 
 @pytest.mark.parametrize(
-    "svc,deploy", [("llm-gateway-lfm-embed", "lfm-embed")],
+    "svc,deploy",
+    [("llm-gateway-lfm-embed", "lfm-embed"), ("llm-gateway-lfm-colbert", "lfm-colbert")],
 )
 def test_retrieval_services_route_8081(rendered, svc, deploy):
     port = _yq(

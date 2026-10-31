@@ -24,7 +24,8 @@ def _opencode_container(repo_root: Path) -> dict:
         if d.get("kind") == "Deployment" and d.get("metadata", {}).get("name") == "opencode"
     ]
     assert len(deps) == 1, "Deployment/opencode not found exactly once"
-    containers = deps[0]["spec"]["template"]["spec"]["containers"]
+    containers = [c for c in deps[0]["spec"]["template"]["spec"]["containers"]
+                  if c.get("name") == "opencode"]
     assert len(containers) == 1
     return containers[0]
 

@@ -31,8 +31,9 @@ def _deployment(repo_root: Path) -> dict:
 
 def _container(repo_root: Path) -> dict:
     containers = _deployment(repo_root)["spec"]["template"]["spec"]["containers"]
-    assert len(containers) == 1
-    return containers[0]
+    main = [c for c in containers if c.get("name") == "opencode"]
+    assert len(main) == 1, f"opencode-Container nicht genau einmal: {[c.get('name') for c in containers]}"
+    return main[0]
 
 
 def test_official_image_pinned(repo_root: Path):
@@ -135,6 +136,29 @@ def test_vllm_provider_config(repo_root: Path):
         m.get("mountPath") == "/tmp/.config/opencode/opencode.json" and m.get("subPath") == "opencode.json"
         for m in mounts
     ), f"Config-Mount fehlt: {mounts}"
+
+
+def test_repo_sync_sidecar(repo_root: Path):
+    containers = _deployment(repo_root)["spec"]["template"]["spec"]["containers"]
+    sync = [c for c in containers if c.get("name") == "repo-sync"]
+    assert len(sync) == 1, f"repo-sync-Sidecar fehlt: {[c.get('name') for c in containers]}"
+    sync = sync[0]
+    image = sync["image"]
+    assert image.startswith("alpine/git@sha256:"), f"unerwartetes Sync-Image: {image}"
+    digest = image.split("alpine/git@", 1)[1]
+    assert digest.startswith("sha256:") and len(digest) > 20, f"Digest-Pin erwartet: {image}"
+    env = {e["name"]: e for e in sync.get("env", []) if isinstance(e, dict)}
+    assert "REPOS" in env, f"REPOS-Env fehlt: {sorted(env)}"
+    for repo in ("Paddione/dotfiles", "Paddione/Bachelorprojekt", "Paddione/news-agent",
+                 "Paddione/agentic-resources", "Paddione/unsloth-boxes"):
+        assert repo in env["REPOS"].get("value", ""), f"{repo} fehlt in REPOS"
+    tok = env.get("GITHUB_TOKEN", {})
+    ref = (tok.get("valueFrom") or {}).get("secretKeyRef", {})
+    assert ref.get("name") == "workspace-secrets" and ref.get("key") == "GHCR_PAT", (
+        f"Token-Ref unerwartet: {ref}")
+    mounts = {m.get("mountPath") for m in sync.get("volumeMounts", [])}
+    assert "/workspace" in mounts, f"/workspace-Mount fehlt im Sidecar: {mounts}"
+    assert sync.get("resources", {}).get("limits"), "Sidecar braucht Resource-Limits"
 
 
 def test_component_kustomization_lists_new_resources(repo_root: Path):

@@ -102,6 +102,90 @@ spec:
               drop: [ALL]
             seccompProfile:
               type: RuntimeDefault
+        # Repo-Sync-Sidecar: haelt die Projekt-Repos in /workspace aktuell
+        # (opencode-data PVC, shallow --depth 50: Bachelorprojekt-.git allein
+        # ist 1,9G, Vollklone wuerden das 5Gi-Volume sprengen). Zielpfade:
+        # /workspace/<owner>/<repo>. Token aus workspace-secrets (GHCR_PAT,
+        # optional: public Repos gehen auch anonym); die gespeicherte
+        # Remote-URL bleibt tokenfrei, Auth laeuft per http.extraHeader.
+        - name: repo-sync
+          image: alpine/git@sha256:ae0f6f4bce38d2b8c40becc0d6241a08d9f57186ea03029de2189a2b5e722d94
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              sync_one() {
+                repo="$1"
+                dir="/workspace/$repo"
+                auth=""
+                if [ -n "${GITHUB_TOKEN:-}" ]; then
+                  auth_header="-c http.extraHeader=AUTHORIZATION: Bearer $GITHUB_TOKEN"
+                else
+                  auth_header=""
+                fi
+                if [ ! -d "$dir/.git" ]; then
+                  rm -rf "$dir"
+                  # shellcheck disable=SC2086
+                  git clone --depth 50 $auth_header "https://github.com/$repo.git" "$dir" \
+                    || { echo "clone failed: $repo"; return 0; }
+                  git -C "$dir" remote set-url origin "https://github.com/$repo.git"
+                else
+                  # shellcheck disable=SC2086
+                  git -C "$dir" $auth_header fetch --depth 50 origin \
+                    || { echo "fetch failed: $repo"; return 0; }
+                  git -C "$dir" reset --hard '@{u}' \
+                    || { echo "reset failed: $repo"; return 0; }
+                fi
+              }
+              sync_all() {
+                for repo in $REPOS; do sync_one "$repo"; done
+              }
+              sync_all
+              while true; do
+                sleep "${SYNC_INTERVAL_SECONDS:-300}"
+                sync_all
+              done
+          env:
+            - name: HOME # wie opencode-Container: beschreibbares HOME fuer UID 65534
+              value: /tmp
+            - name: GIT_CONFIG_COUNT # wie dev-pod repo-sync: fremde UIDs dulden
+              value: "1"
+            - name: GIT_CONFIG_KEY_0
+              value: safe.directory
+            - name: GIT_CONFIG_VALUE_0
+              value: "*"
+            - name: REPOS
+              value: "Paddione/dotfiles Paddione/Bachelorprojekt Paddione/news-agent Paddione/agentic-resources Paddione/unsloth-boxes"
+            - name: SYNC_INTERVAL_SECONDS
+              value: "300"
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: GHCR_PAT
+                  optional: true
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+          volumeMounts:
+            - name: workspace-data
+              mountPath: /workspace
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: workspace-data
           persistentVolumeClaim:

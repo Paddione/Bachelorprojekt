@@ -1,0 +1,13 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: dotfiles
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  ref:
+    branch: master
+  secretRef:
+    name: dotfiles-auth
+  url: ssh://git@github.com/Paddione/dotfiles.git

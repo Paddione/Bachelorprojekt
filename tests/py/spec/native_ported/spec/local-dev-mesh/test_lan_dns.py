@@ -135,6 +135,9 @@ def test_rewrites_fuehren_jeden_devmesh_host_auf_alle_lan_dns_knoten(rendered, r
     ingress = yaml.safe_load(re.sub(
         r"\$\{([A-Z_]+)\}", lambda m: env[m.group(1)], (repo_root / "dev-local/core/ingress.yaml").read_text()))
     hosts = set(ingress["spec"]["tls"][0]["hosts"])
+    # opencode-Public-Host (eigene IngressRoute + eigenes Zertifikat, kein Eintrag
+    # in core/ingress.yaml) braucht denselben Split-DNS-Rewrite (TLS-Host).
+    hosts.add(env["OPENCODE_PUBLIC_HOST"])
     inv = yaml.safe_load((repo_root / "devmesh/inventory.yaml").read_text())
     ips = {p["lan_ip"] for p in inv["peers"] if p.get("lan_dns")}
     # Positiv-Anker: Console-Host und mindestens zwei Knoten fuer den Ausweich.

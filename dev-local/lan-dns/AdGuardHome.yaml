@@ -52,8 +52,10 @@ filtering:
   # Exakte Namen statt *.devmesh...: AdGuard gibt bei Wildcard-Rewrites nur eine
   # Antwort zurueck (kein Ausweich auf gpu-cluster2), und _acme-challenge-Abfragen
   # von cert-manager (DNS-01) bleiben unberuehrt. Liste = TLS-Hosts in
-  # dev-local/core/ingress.yaml.
+  # dev-local/core/ingress.yaml plus opencode-IngressRoute (opencode.korczewski.de).
   rewrites:
+    - {domain: opencode.korczewski.de, answer: 10.10.10.4, enabled: true}
+    - {domain: opencode.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: web.devmesh.korczewski.de, answer: 10.10.10.4, enabled: true}
     - {domain: web.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: auth.devmesh.korczewski.de, answer: 10.10.10.4, enabled: true}

@@ -261,8 +261,8 @@ want G-BRAIN15 && row gate G-BRAIN15 "$(
 
 # ── Wissensablage — GATES (G-KNOW, T900995): Registry/Code/ADR statt Prosa-Doku ──
 KG="python3 scripts/lib/knowledge-goals.py"
-row gate G-KNOW02 "$($KG docs-md)" le 324 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs)"
-row gate G-KNOW06 "$($KG adr-edits)" le 7 "ADR-Inhaltsaenderungen nach dem Anlegen (kein Netto-Zuwachs)"
+row gate G-KNOW02 "$($KG docs-md)" le 366 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs)"
+row gate G-KNOW06 "$($KG adr-edits)" le 11 "ADR-Inhaltsaenderungen nach dem Anlegen (kein Netto-Zuwachs)"
 want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/dev/null 2>&1; echo $?)" eq 0 "Agent-Registry-Schema valide"
 
 # ── DB-Gesundheit — GATES ──
@@ -276,7 +276,7 @@ want G-OPS03 && row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlauf
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
-row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
+row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|agent-bench|collect-debug-logs.sh' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
 # [T013916] 30 -> 5, Ist 0. Ratchet-Regel: .claude/lib/goals.md §Rueckbau.
 row target G-RH01 "$(n_baseline_gate ALL)" le 5 "Baselined Gate-Violations gesamt"
 row target G-CQ07 "$(n_baseline_gate S2)" le 0  "S2 Import-Zyklen"

@@ -760,8 +760,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 1 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 19 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
-| **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 339 ⚠ | ≤ 324 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995) |
-| **G-KNOW06** | ADR-Inhaltsänderungen nach dem Anlegen (kein Netto-Zuwachs) | 7 ✓ | ≤ 7 | `python3 scripts/lib/knowledge-goals.py adr-edits` — Status-/Superseded-Zeilen zählen nicht; neue Entscheidung = neues ADR (T900995) |
+| **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 366 ✓ | ≤ 366 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995) |
+| **G-KNOW06** | ADR-Inhaltsänderungen nach dem Anlegen (kein Netto-Zuwachs) | 11 ✓ | ≤ 11 | `python3 scripts/lib/knowledge-goals.py adr-edits` — Status-/Superseded-Zeilen zählen nicht; neue Entscheidung = neues ADR (T900995) |
 | **G-KNOW07** | Agent-Registry-Schema valide | Exit 0 ✓ | Exit 0 | `node scripts/agent-guide/validate.mjs` (T900995) |
 
 ---

@@ -56,6 +56,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 |---|---|
 | [`git-workflow`](git-workflow/SKILL.md) | **Immer beim Committen, Pushen oder PR-Erstellen** — vollständiger Lifecycle: pull-first, Conventional Commits + Issue-Referenz, Freshness Guard, Commit-Verifikation (git-crypt), PR-Scope-Preflight, CI-Fix-Loop, Auto-Merge `--squash --delete-branch`, Worktree-Cleanup. |
 | [`opencode-git-workflow`](opencode-git-workflow/SKILL.md) | Pointer to the git-workflow SSOT for OpenCode sessions. |
+| [`gh-fix-ci`](gh-fix-ci/SKILL.md) | Debug and fix failing GitHub Actions PR checks using `gh`, summarize failure context, and draft fix plan. |
 
 ---
 

@@ -110,7 +110,12 @@ def test_flux_devmesh_sources_only(repo_root: Path):
     assert len(yaml_files) > 0, f"No YAML files found in {devmesh_flux_dir} (excluding bootstrap/)"
 
     allowed_oci = "oci://ghcr.io/paddione/devmesh-manifests"
-    allowed_git = "https://github.com/Paddione/Bachelorprojekt"
+    # Zusaetzlich zum Bachelorprojekt-Repo ist die dotfiles-Quelle erlaubt:
+    # sie versorgt ausschliesslich die agent-board-Kustomization (read-only Deploy-Key).
+    allowed_git = {
+        "https://github.com/Paddione/Bachelorprojekt",
+        "ssh://git@github.com/Paddione/dotfiles.git",
+    }
     allowed_path = "flux/clusters/devmesh"
 
     for yf in yaml_files:
@@ -120,7 +125,7 @@ def test_flux_devmesh_sources_only(repo_root: Path):
             kind = doc.get("kind")
             spec = doc.get("spec", {})
             if kind == "GitRepository":
-                assert spec.get("url") == allowed_git, f"GitRepository url {spec.get('url')} in {yf} not allowed"
+                assert spec.get("url") in allowed_git, f"GitRepository url {spec.get('url')} in {yf} not allowed"
             elif kind == "OCIRepository":
                 assert spec.get("url") == allowed_oci, f"OCIRepository url {spec.get('url')} in {yf} not allowed"
             elif kind == "Kustomization":

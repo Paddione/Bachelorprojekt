@@ -159,6 +159,11 @@ def test_repo_sync_sidecar(repo_root: Path):
     mounts = {m.get("mountPath") for m in sync.get("volumeMounts", [])}
     assert "/workspace" in mounts, f"/workspace-Mount fehlt im Sidecar: {mounts}"
     assert sync.get("resources", {}).get("limits"), "Sidecar braucht Resource-Limits"
+    cmd = " ".join(str(c) for c in sync.get("command", []))
+    # Token-Hygiene: Auth nur via x-access-token-URL, Remote wird danach
+    # immer auf die tokenfreie URL zurueckgesetzt.
+    assert "x-access-token" in cmd, "kein Token-Clone in Sidecar-Command"
+    assert cmd.count('remote set-url origin') >= 2, "Remote-URL wird nicht tokenfrei zurueckgesetzt"
 
 
 def test_component_kustomization_lists_new_resources(repo_root: Path):

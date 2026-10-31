@@ -112,7 +112,7 @@ spec:
                 - name: LLM_ENABLED
                   value: "true"
                 - name: LLM_EMBED_MODEL
-                  value: "bge-m3"
+                  value: "embeddinggemma-300m"
                 - name: LLM_EMBED_URL
                   value: "http://llm-services.workspace.svc.cluster.local:18235"  # llm-proxy routet bge (T900191)
                 - name: HOME

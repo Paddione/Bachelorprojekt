@@ -33,7 +33,8 @@ def _opencode_deployment(repo_root: Path) -> dict:
 
 def test_home_env_set_and_not_root(repo_root: Path):
     dep = _opencode_deployment(repo_root)
-    containers = dep["spec"]["template"]["spec"]["containers"]
+    containers = [c for c in dep["spec"]["template"]["spec"]["containers"]
+                  if c.get("name") == "opencode"]
     assert len(containers) == 1
     env = {e["name"]: e.get("value", "") for e in containers[0].get("env", [])}
     assert "HOME" in env, "container env HOME missing (EACCES /root, siehe #6941)"

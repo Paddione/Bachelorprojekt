@@ -30,9 +30,10 @@ metadata:
   namespace: workspace
   labels: {app: sandbox-gpu}
 spec:
-  # Genau 1 Slot: VRAM laesst sich nicht teilen; der Pod haelt die GTX 970
-  # exklusiv (nvidia.com/gpu: 1) mit 8-GiB-Limit als Arbeitsraum.
-  replicas: 1
+  # Parkposition: 0 Slots, bis die serving-Staffel (Flux, Namespace serving)
+  # eine freie GPU braucht. Reaktivieren = replicas zurueck auf 1.
+  # Der Pod hielt exklusiv 1 GPU (nvidia.com/gpu: 1) als Arbeitsraum.
+  replicas: 0
   selector:
     matchLabels: {app: sandbox-gpu}
   template:

@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-10-27T01:33:10.119Z
-> Nodes: 98 | Edges: 1918 | Isolated: 6
+> Generated: 2026-10-31T13:41:47.326Z
+> Nodes: 100 | Edges: 1919 | Isolated: 6
 
 ## Ranking (transitive Abhängige)
 
@@ -85,11 +85,12 @@
 | 77 | gemma-embed-bulk | 1 | 1 | 1 |
 | 78 | gemma-embed-igpu | 1 | 1 | 1 |
 | 79 | lfm-embed | 1 | 1 | 1 |
-| 80 | mediaviewer-widget | 1 | 1 | 1 |
-| 81 | blackbox-exporter | 1 | 1 | 1 |
-| 82 | nextcloud-redis | 1 | 1 | 1 |
-| 83 | sessions-server | 1 | 1 | 1 |
-| 84 | whisper | 1 | 1 | 1 |
+| 80 | lfm-colbert | 1 | 1 | 1 |
+| 81 | mediaviewer-widget | 1 | 1 | 1 |
+| 82 | blackbox-exporter | 1 | 1 | 1 |
+| 83 | nextcloud-redis | 1 | 1 | 1 |
+| 84 | sessions-server | 1 | 1 | 1 |
+| 85 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -486,6 +487,11 @@
 ### lfm-embed
 **Direkte Abhängige:** 1 — llm-gateway-lfm-embed
 **Transitive Abhängige:** 1 — llm-gateway-lfm-embed
+**Upstream (In-Degree):** 1
+
+### lfm-colbert
+**Direkte Abhängige:** 1 — llm-gateway-lfm-colbert
+**Transitive Abhängige:** 1 — llm-gateway-lfm-colbert
 **Upstream (In-Degree):** 1
 
 ### mediaviewer-widget

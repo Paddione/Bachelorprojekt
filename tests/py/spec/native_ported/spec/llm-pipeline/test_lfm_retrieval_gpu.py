@@ -1,4 +1,4 @@
-"""LFM2.5 retrieval on gpu-metal: GPU scheduling, Maxwell-safe flags, pins."""
+"""LFM2.5 retrieval on Intel iGPU plus NVIDIA MPS sharing."""
 
 import os
 import subprocess
@@ -19,6 +19,14 @@ def rendered(repo_root, tmp_path_factory):
     return out
 
 
+@pytest.fixture(scope="module")
+def rendered_gpu(repo_root, tmp_path_factory):
+    out = tmp_path_factory.mktemp("gpu-sharing") / "gpu-rendered.yaml"
+    r = _proc(["kubectl", "kustomize", str(repo_root / "dev-local" / "gpu")])
+    out.write_text(r.stdout if r.returncode == 0 else "", encoding="utf-8")
+    return out
+
+
 def _yq(rendered, expr):
     r = _proc(["yq", "eval-all", expr, str(rendered)])
     return r.stdout
@@ -33,18 +41,53 @@ def _args(rendered, name):
 
 
 @pytest.mark.parametrize("name", ["lfm-embed"])
-def test_retrieval_deployments_request_exactly_one_gpu(rendered, name):
+def test_retrieval_deployments_request_exactly_one_igpu(rendered, name):
     limits = _yq(
+        rendered,
+        f'select(.kind == "Deployment" and .metadata.name == "{name}") '
+        '| .spec.template.spec.containers[] | select(.name == "llama-cpp") '
+        '| .resources.limits."gpu.intel.com/i915"',
+    ).strip()
+    assert limits == "1", limits
+    nvidia = _yq(
         rendered,
         f'select(.kind == "Deployment" and .metadata.name == "{name}") '
         '| .spec.template.spec.containers[] | select(.name == "llama-cpp") '
         '| .resources.limits."nvidia.com/gpu"',
     ).strip()
-    assert limits == "1", limits
+    assert nvidia in ("", "null"), nvidia
+
+
+def test_nvidia_sharing_is_mps_replicas_2(rendered_gpu):
+    sharing = _yq(
+        rendered_gpu,
+        'select(.kind == "ConfigMap" and .metadata.name == "nvidia-plugin-configs") '
+        '| .data."config.yaml"',
+    )
+    assert "mps:" in sharing, sharing
+    assert "replicas: 2" in sharing, sharing
+    assert "timeSlicing" not in sharing, sharing
 
 
 @pytest.mark.parametrize("name", ["lfm-embed"])
-def test_retrieval_no_flash_attention_maxwell(rendered, name):
+def test_retrieval_uses_vulkan_image_and_igpu_selector(rendered, name):
+    image = _yq(
+        rendered,
+        f'select(.kind == "Deployment" and .metadata.name == "{name}") '
+        '| .spec.template.spec.containers[] | select(.name == "llama-cpp") | .image',
+    ).strip()
+    assert "server-vulkan" in image, image
+    assert "@sha256:" in image, image
+    selector = _yq(
+        rendered,
+        f'select(.kind == "Deployment" and .metadata.name == "{name}") '
+        '| .spec.template.spec.nodeSelector."intel-igpu"',
+    ).strip()
+    assert selector == "true", selector
+
+
+@pytest.mark.parametrize("name", ["lfm-embed"])
+def test_retrieval_no_flash_attention_vulkan(rendered, name):
     args = _args(rendered, name)
     assert "-fa" not in args, args
     assert "--embeddings" in args

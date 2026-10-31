@@ -1,26 +1,25 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # llm-retrieval-gpu: LFM2.5 Embedding als Kubernetes-Deployment
-# (GPU, gpu-metal) — Nachfolger des Desktop-Dienstes :8095.
+# (Intel iGPU, Vulkan) — Nachfolger des Desktop-Dienstes :8095.
 #
-# llama.cpp-Server auf einer GTX-970-Karte von gpu-metal (einziger GPU-Node
-# in devmesh):
+# llama.cpp-Server auf Intel-iGPU-Nodes (intel-igpu=true):
 #   - lfm-embed   (LFM2.5-Embedding-350M-Q8_0, --embeddings): Port 8080
 #
 # LFM2.5-ColBERT + MaxSim-Rerank entfernt (Messung 2026-10-26, Code-Suche:
 # MRR@10 0,495 gegen 0,552 ohne Rerank; einziger Verbraucher war
 # colbert_rerank.py im Dotfiles-Repo).
 #
-# Maxwell (GTX 970, sm_52): KEIN -fa (Flash-Attention wird nicht
-# unterstuetzt); sonst identische Flags wie lokal. Image-Pin ist der Digest
-# des laufenden qwen35-Pods — auf genau diesen Karten verifiziert.
-# Image: ghcr.io/ggml-org/llama.cpp:server-cuda (gepinnt, kein Rolling-Tag;
+# Vulkan (server-vulkan, Muster gemma-embed-igpu): KEIN -fa, -ngl 99 laeuft
+# ueber Vulkan auf i915. Image-Pin ist der Digest des laufenden
+# gemma-embed-igpu-Pods — auf genau diesen Karten verifiziert.
+# Image: ghcr.io/ggml-org/llama.cpp:server-vulkan (gepinnt, kein Rolling-Tag;
 # siehe llm-gpu.yaml zur Begruendung).
 #
 # Modell-Population: eigener PVC (RWO, Longhorn wie bge-embed) +
 # idempotenter curl-InitContainer. Strategie Recreate (T002604).
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── lfm-embed: LFM2.5-Embedding (llama.cpp, GPU) ──────────────────────────
+# ── lfm-embed: LFM2.5-Embedding (llama.cpp, Intel iGPU Vulkan) ──────────
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -52,6 +51,8 @@ spec:
       labels:
         app: lfm-embed
     spec:
+      nodeSelector:
+        intel-igpu: "true"
       # fsGroup 101: curlimages/curl als uid=100/gid=101 (llm-gpu.yaml).
       # SA-GR-06: runAsNonRoot auf Pod-Ebene, UIDs auf Container-Ebene.
       securityContext:
@@ -84,11 +85,13 @@ spec:
               memory: 256Mi
       containers:
         - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-cuda@sha256:20c6e722e2fcc5ca9c15401d3fd8e35408aaf8f9c54a12f32920f637c57959bb
+          image: ghcr.io/ggml-org/llama.cpp:server-vulkan@sha256:c2b2c5ab208f47299b7c696e1e41439ffc8f9ecc3a5821e463f8dd2f7df3ab87
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001
             allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           args:
             - "-m"
             - "/models/LFM2.5-Embedding-350M-Q8_0.gguf"
@@ -106,23 +109,34 @@ spec:
             - "2048"
             - "-ngl"
             - "99"
-            # KEIN -fa: Maxwell (GTX 970) ohne Flash-Attention-Support.
+            # KEIN -fa: Vulkan-Pfad ohne Flash-Attention.
             # -t an limits.cpu gebunden (T002661, llm-gpu.yaml).
             - "-t"
             - "2"
             - "--embeddings"
+          env:
+            - name: XDG_CACHE_HOME
+              value: /tmp/.cache
+            - name: MESA_SHADER_CACHE_DIR
+              value: /tmp/mesa-cache
           ports:
             - name: http
               containerPort: 8080
           resources:
             requests:
               memory: "1Gi"
-              cpu: "500m"
-              nvidia.com/gpu: 1
+              cpu: "250m"
+              gpu.intel.com/i915: 1
             limits:
-              memory: "4Gi"
+              memory: "2Gi"
               cpu: "2000m"
-              nvidia.com/gpu: 1
+              gpu.intel.com/i915: 1
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /health
@@ -132,10 +146,15 @@ spec:
             - name: models
               mountPath: /models
               readOnly: true
+            - name: cache
+              mountPath: /tmp
       volumes:
         - name: models
           persistentVolumeClaim:
             claimName: lfm-embed-models
+        - name: cache
+          emptyDir:
+            sizeLimit: 128Mi
 ---
 apiVersion: v1
 kind: Service

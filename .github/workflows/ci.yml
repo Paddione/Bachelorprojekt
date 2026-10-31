@@ -568,7 +568,7 @@ jobs:
           task cockpit:daemon PORT="${COCKPIT_DAEMON_PORT}"
 
       # [T901392] Spec-Module (tests/py/spec) geshardet ueber SPEC_SHARD/SPEC_SHARDS
-      # (Modul-Hash in tests/py/conftest.py). Pytest faehrt die volle Spec-Suite
+      # (LPT-Bin-Packing in tests/py/conftest.py). Pytest faehrt die volle Spec-Suite
       # pro Shard in wenigen Minuten, daher entfaellt die BATS-Diff-Auswahl
       # (find-changed-tests.sh) samt Merge-Delta-Pfad. Der Tracked-File-Guard
       # [T002779] bleibt als nicht-fataler Befund.

@@ -35,12 +35,28 @@ def pytest_collection_modifyitems(config, items):
     shard, shards = getattr(config, "_spec_shard", (0, 1))
     if shards <= 1:
         return
-    import zlib
+    from collections import defaultdict
 
+    module_items = defaultdict(list)
+    for item in items:
+        module = item.nodeid.split("::", 1)[0]
+        module_items[module].append(item)
+
+    # Deterministic greedy LPT bin-packing: heaviest module first, alphabetical tie-break.
+    # Distributes both heavy modules and test counts evenly across all shards.
+    sorted_modules = sorted(module_items.items(), key=lambda x: (-len(x[1]), x[0]))
+    shard_weights = [0] * shards
+    shard_assignment = {}
+    for mod, mod_items in sorted_modules:
+        best_shard = min(range(shards), key=lambda i: (shard_weights[i], i))
+        shard_weights[best_shard] += len(mod_items)
+        shard_assignment[mod] = best_shard
+
+    target_shard = shard - 1
     keep, drop = [], []
     for item in items:
         module = item.nodeid.split("::", 1)[0]
-        (keep if zlib.crc32(module.encode()) % shards == shard - 1 else drop).append(item)
+        (keep if shard_assignment.get(module) == target_shard else drop).append(item)
     if drop:
         config.hook.pytest_deselected(items=drop)
         items[:] = keep

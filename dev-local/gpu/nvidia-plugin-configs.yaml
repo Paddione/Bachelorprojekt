@@ -9,7 +9,7 @@ data:
     flags:
       failOnInitError: true
     sharing:
-      mps:
+      timeSlicing:
         resources:
           - name: nvidia.com/gpu
             replicas: 2

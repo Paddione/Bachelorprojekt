@@ -1,4 +1,4 @@
-"""LFM2.5 retrieval on Intel iGPU plus NVIDIA MPS sharing."""
+"""LFM2.5 retrieval on Intel iGPU plus NVIDIA timeSlicing sharing."""
 
 import os
 import subprocess
@@ -58,15 +58,16 @@ def test_retrieval_deployments_request_exactly_one_igpu(rendered, name):
     assert nvidia in ("", "null"), nvidia
 
 
-def test_nvidia_sharing_is_mps_replicas_2(rendered_gpu):
+def test_nvidia_sharing_is_timeslicing_replicas_2(rendered_gpu):
     sharing = _yq(
         rendered_gpu,
         'select(.kind == "ConfigMap" and .metadata.name == "nvidia-plugin-configs") '
         '| .data."config.yaml"',
     )
-    assert "mps:" in sharing, sharing
+    assert "timeSlicing:" in sharing, sharing
     assert "replicas: 2" in sharing, sharing
-    assert "timeSlicing" not in sharing, sharing
+    # MPS braucht --mps-root plus Daemon und startet auf k3s nicht, belegt 2026-10-31.
+    assert "mps:" not in sharing, sharing
 
 
 @pytest.mark.parametrize("name", ["lfm-embed"])

@@ -114,7 +114,7 @@ spec:
                 - name: LLM_EMBED_MODEL
                   value: "embeddinggemma-300m"
                 - name: LLM_EMBED_URL
-                  value: "http://llm-services.workspace.svc.cluster.local:18235"  # llm-proxy routet bge (T900191)
+                  value: "http://llm-gateway-gemma-embed.workspace.svc.cluster.local:8081"
                 - name: HOME
                   value: "/tmp"
                 - name: NPM_CONFIG_CACHE
@@ -140,12 +140,7 @@ spec:
                   # Code: index-repo.ts ueberspringt Dateien mit unveraendertem file_hash,
                   # der volle Lauf bettet also nur Geaendertes neu ein.
                   npx tsx scripts/index-repo.ts
-                  # Markdown: ingest-markdown.mjs bettet immer alles neu ein, deshalb nur bei
-                  # Aenderungen der letzten zwei Stunden (ermittelt im Init-Container git-fetch,
-                  # Lauf stuendlich, Ueberlappung unkritisch, der Upsert ist idempotent).
-                  if [ -s /tmp/k1-markdown ]; then
-                    node scripts/knowledge/ingest-markdown.mjs
-                  fi
+                  # Markdown-Ingest deaktiviert (Fokus liegt auf K3 CBM AST-Embeddings).
                   echo "k1-embed COMPLETE head=$head"
           volumes:
             - name: repo

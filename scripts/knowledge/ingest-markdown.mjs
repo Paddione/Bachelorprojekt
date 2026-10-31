@@ -16,7 +16,6 @@ function findMarkdownFiles() {
   // flat (no subdirs as of 2026-10-04); keep flat here so the script and
   // the job trigger can never drift apart silently.
   const flatDirs = [
-    join(REPO_ROOT, 'docs/superpowers/specs'),
     join(REPO_ROOT, 'docs/adr'),
     join(REPO_ROOT, 'docs/runbooks'),
     join(REPO_ROOT, 'docs/brain'),
@@ -28,11 +27,11 @@ function findMarkdownFiles() {
       }
     } catch { /* dir may not exist yet */ }
   }
-  // Staged plans are part of the searchable planning corpus.
+  // Staged plans are part of the searchable planning corpus (skip archive).
   const plansDir = join(REPO_ROOT, '.agents/plans');
   try {
     for (const entry of readdirSync(plansDir, { withFileTypes: true })) {
-      if (!entry.isDirectory()) continue;
+      if (!entry.isDirectory() || entry.name === 'archive') continue;
       const planDir = join(plansDir, entry.name);
       for (const f of readdirSync(planDir)) {
         if (f.endsWith('.md')) files.push(join(planDir, f));

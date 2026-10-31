@@ -11,8 +11,8 @@
 #   deep: like standard, then also runs branch-reaper --dry-run and includes the
 #     reaper output in the JSON.
 #
-# Cron entry (as user patrick):
-#   0 8 * * * bash /home/patrick/Bachelorprojekt/scripts/repo-hygiene-cron.sh standard >> /tmp/repo-hygiene-cron.log 2>&1
+# Systemd unit (as user patrick):
+#   ~/.config/systemd/user/repo-hygiene.timer (08:00 CET) -> repo-hygiene.service
 #
 # Environment:
 #   HYGIENE_TRACKING_TICKET  Label für Warnungen (default: T003486, historisch)
@@ -25,6 +25,11 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${REPO_DIR:-$(cd "$HERE/.." && pwd)}"
 
+MAIN="$(yq '.repo.main_branch' "$REPO_DIR/repo.yaml" 2>/dev/null || true)"
+if [ -z "$MAIN" ] || [ "$MAIN" = "null" ]; then
+  MAIN="main"
+fi
+
 MODE="${1:-standard}"
 HYGIENE_TRACKING_TICKET="${HYGIENE_TRACKING_TICKET:-T003486}"
 STALE_THRESHOLD="${STALE_THRESHOLD:-10}"
@@ -32,8 +37,8 @@ STALE_THRESHOLD="${STALE_THRESHOLD:-10}"
 log() { echo "[repo-hygiene-cron] $(date -u +%Y-%m-%dT%H:%M:%SZ) $*" >&2; }
 
 # ── Step 1: Fetch & prune remote ────────────────────────────────────────
-log "fetch origin main --prune"
-git -C "$REPO_DIR" fetch origin main --prune 2>/dev/null || true
+log "fetch origin $MAIN --prune"
+git -C "$REPO_DIR" fetch origin "$MAIN" --prune 2>/dev/null || true
 
 # ── Step 2: Reap stale agent locks ──────────────────────────────────────
 log "agent-lock reap"
@@ -131,7 +136,7 @@ gone_count="${gone_count// /}"
 # unter set -o pipefail wuerde das die ganze Pipeline auf 1 setzen und der
 # Assignment-Exit (set -e) den Cron abbrechen. || true schuetzt dagegen.
 remote_branch_count=$(git -C "$REPO_DIR" ls-remote --heads origin 2>/dev/null \
-  | grep -v 'refs/heads/main$' | wc -l || true)
+  | grep -v "refs/heads/${MAIN}\$" | wc -l || true)
 remote_branch_count="${remote_branch_count// /}"
 
 # 3d: Open PRs (use standard gh CLI — gh-axi doesn't support --json)

@@ -28,8 +28,10 @@ spec:
     - ports: # HTTPS (models.dev, Registry, OIDC-Discovery)
         - port: 443
           protocol: TCP
-    - ports: # lokaler vLLM-Server (Provider devmesh-vllm, kein Cloud-Key)
-        - port: 8000
+    - ports: # lokale LLM-Server (devmesh-vllm-4b auf 8001, devmesh-llamacpp-2b auf 8080)
+        - port: 8001
+          protocol: TCP
+        - port: 8080
           protocol: TCP
 ---
 # Gleiches fuer oauth2-proxy (Browser-Pfad Pocket-ID): 4180 von Traefik,

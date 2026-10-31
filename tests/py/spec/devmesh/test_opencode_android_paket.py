@@ -4,7 +4,7 @@ Vertrag (RED ohne die Paket-Aenderungen):
 - offizielles Image ghcr.io/anomalyco/opencode mit Versionstag + Digest-Pin
 - OPENCODE_SERVER_PASSWORD aus workspace-secrets (Basic-Auth, User opencode)
 - Tailscale-Service opencode-tailnet (expose + hostname opencode, Port 4096)
-- NetworkPolicies fuer app=opencode (4096 in; DNS/443/vLLM out) und
+- NetworkPolicies fuer app=opencode (4096 in; DNS/443/8001/8080 out) und
   app=oauth2-proxy-opencode (4180 in; DNS/443/1411 out)
 - vLLM-Provider-Konfig (ConfigMap, gueltiges JSON, baseURL + Modell) und Mount
 """
@@ -87,7 +87,7 @@ def test_networkpolicies(repo_root: Path):
     ingress_ports = {p.get("port") for r in op["spec"].get("ingress", []) for p in r.get("ports", [])}
     assert 4096 in ingress_ports, f"Ingress 4096 fehlt: {ingress_ports}"
     egress_ports = {p.get("port") for r in op["spec"].get("egress", []) for p in r.get("ports", [])}
-    for needed in (53, 443, 8000):
+    for needed in (53, 443, 8001, 8080):
         assert needed in egress_ports, f"Egress {needed} fehlt: {egress_ports}"
 
     proxy = _policy_for(docs, "oauth2-proxy-opencode")
@@ -102,17 +102,33 @@ def test_vllm_provider_config(repo_root: Path):
     raw = cms[0]["data"]["opencode.json"]
     cfg = json.loads(raw)
     providers = cfg.get("provider", {})
-    vllm = None
-    for pid, p in providers.items():
-        if p.get("options", {}).get("baseURL") == "http://vllm-serve:8000/v1":
-            vllm = (pid, p)
-    assert vllm is not None, "kein Provider mit baseURL http://vllm-serve:8000/v1"
-    pid, p = vllm
-    assert p.get("npm") == "@ai-sdk/openai-compatible", f"Provider-npm unerwartet: {p.get('npm')}"
-    assert p.get("models"), "Provider hat keine Modelle"
-    model_id = next(iter(p["models"]))
-    for key in ("model", "small_model"):
-        assert cfg.get(key) == f"{pid}/{model_id}", f"{key} zeigt nicht auf {pid}/{model_id}"
+    # Live Backends (Stand 2026-10-31, verifiziert im Cluster):
+    # - devmesh-vllm-4b: vllm-w4a4.serving:8001 (Qwen3.5-4B QUASAR W4A4)
+    # - devmesh-llamacpp-2b: llm-gateway-2b:8080 (qwen35-2b-worker)
+    # vllm-serve:8000 ist skaliert auf 0 (keine Endpoints) und darf nicht
+    # referenziert sein.
+    assert not any(
+        p.get("options", {}).get("baseURL", "").startswith("http://vllm-serve:")
+        for p in providers.values()
+    ), "toter vllm-serve-Backend referenziert"
+    expected = {
+        "devmesh-vllm-4b": "http://vllm-w4a4.serving.svc.cluster.local:8001/v1",
+        "devmesh-llamacpp-2b": "http://llm-gateway-2b:8080/v1",
+    }
+    for pid, base_url in expected.items():
+        assert pid in providers, f"Provider {pid} fehlt: {sorted(providers)}"
+        p = providers[pid]
+        assert p.get("options", {}).get("baseURL") == base_url, (
+            f"baseURL von {pid} unerwartet: {p.get('options', {}).get('baseURL')}"
+        )
+        assert p.get("npm") == "@ai-sdk/openai-compatible", f"Provider-npm unerwartet: {p.get('npm')}"
+        assert p.get("models"), f"Provider {pid} hat keine Modelle"
+    assert cfg.get("model", "").startswith("devmesh-vllm-4b/"), (
+        f"model zeigt nicht auf devmesh-vllm-4b: {cfg.get('model')}"
+    )
+    assert cfg.get("small_model", "").startswith("devmesh-llamacpp-2b/"), (
+        f"small_model zeigt nicht auf devmesh-llamacpp-2b: {cfg.get('small_model')}"
+    )
 
     mounts = _container(repo_root).get("volumeMounts", [])
     assert any(

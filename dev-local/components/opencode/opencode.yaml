@@ -43,7 +43,7 @@ spec:
         - name: opencode
           # Offizielles Upstream-Image (anomalyco/opencode, war sst/opencode).
           # smanx/opencode war ein Rebuild derselben Version ohne Mehrwert.
-          image: ghcr.io/anomalyco/opencode:2.1.4@sha256:6176a71bf7c1352d9aa9e7f112a4ef38443079a2f435789a33dd5ae809acea1a
+          image: ghcr.io/anomalyco/opencode:2.2.5@sha256:1690aad69864d2f6714772d1e040918feebc6df5286d2bd7e181fbb35d12d4a9
           imagePullPolicy: IfNotPresent
           # [Issue #6949] Offizielles Image (anomalyco) braucht `serve` explizit:
           # `opencode serve --hostname ... --port ...`. smanx prependete `serve`

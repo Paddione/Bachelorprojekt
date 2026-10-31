@@ -1,6 +1,9 @@
-# opencode Provider/Modell-Konfiguration: lokaler vLLM-Server im Cluster
+# opencode Provider/Modell-Konfiguration: lokale LLM-Server im Cluster
 # (OpenAI-kompatibel, kein Cloud-Key noetig). Wird nach
 # /tmp/.config/opencode/opencode.json gemountet (HOME=/tmp, #6941).
+# Stand 2026-10-31: vllm-serve (0 Replicas, keine Endpoints) + Qwen3.5-0.8B
+# ersetzt durch vllm-w4a4 (serving, Qwen3.5-4B QUASAR W4A4) und
+# llm-gateway-2b (qwen35-2b-worker, llama.cpp, ctx 32768).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -12,21 +15,37 @@ data:
   opencode.json: |
     {
       "$schema": "https://opencode.ai/config.json",
-      "model": "devmesh-vllm/unsloth/Qwen3.5-0.8B",
-      "small_model": "devmesh-vllm/unsloth/Qwen3.5-0.8B",
+      "model": "devmesh-vllm-4b/QUASAR-QAT/Qwen3.5-4B-QUASAR-NVFP4-W4A4",
+      "small_model": "devmesh-llamacpp-2b/qwen35-2b-worker",
       "provider": {
-        "devmesh-vllm": {
+        "devmesh-vllm-4b": {
           "npm": "@ai-sdk/openai-compatible",
-          "name": "devMesh vLLM (lokal)",
+          "name": "devMesh vLLM 4B (lokal)",
           "options": {
-            "baseURL": "http://vllm-serve:8000/v1"
+            "baseURL": "http://vllm-w4a4.serving.svc.cluster.local:8001/v1"
           },
           "models": {
-            "unsloth/Qwen3.5-0.8B": {
-              "name": "Qwen3.5 0.8B (vLLM, lokal)",
+            "QUASAR-QAT/Qwen3.5-4B-QUASAR-NVFP4-W4A4": {
+              "name": "Qwen3.5 4B QUASAR W4A4 (vLLM, lokal)",
               "limit": {
-                "context": 4096,
-                "output": 1024
+                "context": 8192,
+                "output": 2048
+              }
+            }
+          }
+        },
+        "devmesh-llamacpp-2b": {
+          "npm": "@ai-sdk/openai-compatible",
+          "name": "devMesh llama.cpp 2B (lokal)",
+          "options": {
+            "baseURL": "http://llm-gateway-2b:8080/v1"
+          },
+          "models": {
+            "qwen35-2b-worker": {
+              "name": "Qwen3.5 2B (llama.cpp, lokal)",
+              "limit": {
+                "context": 32768,
+                "output": 4096
               }
             }
           }

@@ -218,3 +218,9 @@ $JSON
 else
   log "OK: $stale_total stale artifacts (threshold: $STALE_THRESHOLD)"
 fi
+
+# ── Step 8: Sync Health-Goals & Agent-Board Health Report ───────────────
+if [ -z "${SKIP_HEALTH_SYNC:-}" ] && [ -f "$HOME/scripts/repo_health_collect.py" ] && [ "$REPO_DIR" = "$HOME/Bachelorprojekt" ]; then
+  log "repo_health_collect.py --quiet"
+  python3 "$HOME/scripts/repo_health_collect.py" --quiet >&2 2>/dev/null || true
+fi

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-27T01:33:09.993Z",
+  "generatedAt": "2026-10-31T13:41:47.201Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -222,6 +222,12 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "lfm-embed"
+    },
+    {
+      "id": "lfm-colbert",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "lfm-colbert"
     },
     {
       "id": "mailpit",
@@ -564,6 +570,12 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "llm-gateway-lfm-embed"
+    },
+    {
+      "id": "llm-gateway-lfm-colbert",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "llm-gateway-lfm-colbert"
     },
     {
       "id": "sealed-secrets",
@@ -1452,6 +1464,12 @@
     {
       "from": "llm-gateway-lfm-embed",
       "to": "lfm-embed",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "llm-gateway-lfm-colbert",
+      "to": "lfm-colbert",
       "via": "selector",
       "kind": "selector"
     },

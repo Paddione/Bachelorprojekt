@@ -169,3 +169,154 @@ spec:
     - name: http
       port: 8081
       targetPort: 8080
+---
+# ── lfm-colbert: LFM2.5-ColBERT (llama.cpp, Intel iGPU Vulkan) ──────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lfm-colbert-models
+  labels:
+    app: lfm-colbert
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lfm-colbert
+  labels:
+    app: lfm-colbert
+spec:
+  replicas: 1
+  # Recreate, nicht RollingUpdate: RWO-PVC (siehe llm-gpu.yaml, T002604).
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lfm-colbert
+  template:
+    metadata:
+      labels:
+        app: lfm-colbert
+    spec:
+      nodeSelector:
+        intel-igpu: "true"
+      # fsGroup 101: curlimages/curl als uid=100/gid=101 (llm-gpu.yaml).
+      # SA-GR-06: runAsNonRoot auf Pod-Ebene, UIDs auf Container-Ebene.
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 101
+      initContainers:
+        - name: model-download
+          image: curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            allowPrivilegeEscalation: false
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              if [ ! -s /models/LFM2.5-ColBERT-350M-Q8_0.gguf ]; then
+                echo "Downloading LFM2.5-ColBERT-350M-Q8_0.gguf ..."
+                curl -fL --retry 3 --connect-timeout 10 \
+                  -o /models/LFM2.5-ColBERT-350M-Q8_0.gguf \
+                  https://huggingface.co/LiquidAI/LFM2.5-ColBERT-350M-GGUF/resolve/main/LFM2.5-ColBERT-350M-Q8_0.gguf
+              fi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+          resources:
+            requests:
+              # [T003903] Kein BestEffort-QoS (llm-gpu.yaml).
+              cpu: 100m
+              memory: 256Mi
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server-vulkan@sha256:c2b2c5ab208f47299b7c696e1e41439ffc8f9ecc3a5821e463f8dd2f7df3ab87
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          args:
+            - "-m"
+            - "/models/LFM2.5-ColBERT-350M-Q8_0.gguf"
+            - "--alias"
+            - "lfm25-colbert-350m,colbert-reranker"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            - "-c"
+            - "8192"
+            - "-b"
+            - "2048"
+            - "-ub"
+            - "2048"
+            - "-ngl"
+            - "99"
+            # KEIN -fa: Vulkan-Pfad ohne Flash-Attention.
+            # -t an limits.cpu gebunden (T002661, llm-gpu.yaml).
+            - "-t"
+            - "2"
+            - "--embeddings"
+          env:
+            - name: XDG_CACHE_HOME
+              value: /tmp/.cache
+            - name: MESA_SHADER_CACHE_DIR
+              value: /tmp/mesa-cache
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "250m"
+              gpu.intel.com/i915: 1
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
+              gpu.intel.com/i915: 1
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 60
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+            - name: cache
+              mountPath: /tmp
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: lfm-colbert-models
+        - name: cache
+          emptyDir:
+            sizeLimit: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-lfm-colbert
+  labels:
+    app: llm-gateway
+spec:
+  selector:
+    app: lfm-colbert
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8080

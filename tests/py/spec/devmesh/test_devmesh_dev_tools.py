@@ -61,6 +61,8 @@ def test_k1_embed_cronjob(devmesh):
     env = {e["name"]: e.get("value") for e in pod["containers"][0]["env"]}
     assert env["PGHOST"] == "shared-db.workspace.svc.cluster.local"
     assert all("$JOB_ID" not in str(v) and "$MERGE_SHA" not in str(v) for v in env.values())
+    # [#7006] SSOT scripts/lib/dense-embedding.mjs ist embeddinggemma-300m, kein bge-m3.
+    assert env["LLM_EMBED_MODEL"] == "embeddinggemma-300m", env.get("LLM_EMBED_MODEL")
 
 
 def test_mentolder_overlay_clean(repo_root):

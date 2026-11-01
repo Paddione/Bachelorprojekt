@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 // FA-66: SDLC-Frontend-Sweep — jede /sdlc/*-Seite rendert für einen Admin
 // ohne Login-Redirect, ohne Seitenfehler, ohne horizontalen Overflow und ohne
@@ -37,6 +38,33 @@ const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
   mobile: { width: 390, height: 844 },
 } as const;
+
+// axe-Befund-Helfer (Vorbild a11y-axe.spec.ts:17-44, gekürzt): nur
+// critical/serious blockieren, Ausgabe mit Route + IDs + Targets für B3.
+const SERIOUS = new Set(['critical', 'serious']);
+
+interface AxeNodeSummary {
+  target: string[];
+  failureSummary: string;
+}
+
+interface AxeViolationSummary {
+  id: string;
+  impact?: string | null;
+  help: string;
+  helpUrl: string;
+  nodes: AxeNodeSummary[];
+}
+
+function describeViolations(violations: AxeViolationSummary[]): string {
+  return violations
+    .map((v) => [
+      `· ${v.id} (${v.impact ?? 'unknown'}) — ${v.help}`,
+      `  ${v.helpUrl}`,
+      ...v.nodes.map((n) => `  - ${n.target.join(' ')} :: ${n.failureSummary.replace(/\n/g, ' | ')}`),
+    ].join('\n'))
+    .join('\n');
+}
 
 test.describe('FA-66: SDLC-Frontend-Sweep', { tag: ['@website', '@sdlc'] }, () => {
   test.skip(!BASE || !SESSION, 'SDLC_E2E_URL und SDLC_E2E_SESSION nötig (Dev-Server mit Wegwerf-Sessions-DB)');
@@ -81,6 +109,20 @@ test.describe('FA-66: SDLC-Frontend-Sweep', { tag: ['@website', '@sdlc'] }, () =
         const body = await page.evaluate(() => document.body.innerText);
         const bad = [...new Set([...body.matchAll(/\b(undefined|NaN|\[object Object\])\b/g)].map((m) => m[0]))];
         expect(bad, 'Platzhalter-Texte im Inhalt').toEqual([]);
+
+        // T6 (axe, nur Desktop — Aufwand begrenzen): 0 critical/serious
+        // (wcag2a/wcag2aa/wcag21a/wcag21aa). Befunde über Triviales hinaus
+        // werden NICHT hier gefixt (B3), sondern landen mit Route + IDs +
+        // Screenshot-Pfad in phase-events.log für den PR-Body.
+        if (vpName === 'desktop') {
+          await page.emulateMedia({ reducedMotion: 'reduce' });
+          const results = await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+            .analyze();
+          const blocking = results.violations.filter((v) => SERIOUS.has(v.impact ?? '')) as AxeViolationSummary[];
+          const summary = blocking.map((v) => `${v.id} (${v.impact}) x${v.nodes.length}`).join('\n');
+          expect(blocking.length, `${route.path}\n${summary}\n\n${describeViolations(blocking)}`).toBe(0);
+        }
 
         if (backendFailures.length) {
           testInfo.annotations.push({ type: 'backend-failures', description: [...new Set(backendFailures)].join(', ') });

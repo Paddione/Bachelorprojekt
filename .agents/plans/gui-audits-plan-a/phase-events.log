@@ -1,0 +1,11 @@
+plan done 2026-11-01T16:32:50Z plan-gestagt
+implement entered 2026-11-01T16:33:43Z subagent-gestartet
+baseline-a11y-live 2026-11-01 p4-rotphase: a11y-axe vs https://web.mentolder.de (local config, website project) — Erstlauf 4 failed ( Details verworfen, Browser-Binary-Race chromium_headless_shell-1248 fehlte), nach `npx playwright install chromium` 2x 4 passed. Stand: gruen, kein B3-Befund.
+p1-done 2026-11-01 fa-66 T6-axe (desktop-only, wcag2a/wcag2aa/wcag21a/wcag21aa, 0 critical/serious), tsc fa-66-clean, 138 Zeilen
+p2-befund 2026-11-01 fa-24 T-axe vs https://board.mentolder.de (Upstream Nextcloud Whiteboard): 2 serious — document-title (kein <title>), html-has-lang (kein lang-Attribut). B3: NICHT gefixt (Fremd-UI), Folge-Entscheidung im PR-Body. T1-T5 gruen.
+p2-done 2026-11-01 fa-24 T-axe-Test hinzugefuegt (T1-T5 unangetastet), tsc fa-24-clean, 73 Zeilen
+p2-befund-version 2026-11-01 board-status: version 2.0.0, status running (/status, https://board.mentolder.de)
+p3-done 2026-11-01 docs-smoke.spec.ts neu (51 Zeilen, 12 Routen, Render-200 + Platzhalter-Smoke + interne Links max20) + 1 Match-Zeile website-Projekt; tsc clean; 12/12 gruen lokal (astro dev :4322) + 12/12 gruen live
+p1-befund 2026-11-01 fa-66-Sweep vs lokaler SDLC-Dev-Server (:4323, BUILD_TARGET=sdlc, Wegwerf-DB sdlc_e2e_gui_a in Docker-Container, Admin-Session via scripts/dev-admin-session.mjs): 9/9 Mobil-Render (T1-T5) GRUEN; 9/9 Desktop FAILAusschliesslich T6-axe: color-contrast (serious) auf allen 9 Routen — Admin-Sidebar (.sidebar-label, .sidebar-group-label, 3.65:1 statt 4.5:1) + Leitstand-Goal-Cards (.goal-category 2.35:1, .goal-id/.val-target/.bar-label 3.75:1). B3: Design-System-Kontrast, kein Trivial-Fix → Folge-PR, kein Fix hier.
+p4-done 2026-11-01 website-Belege live gruen (a11y-axe 4/4, docs-smoke 12/12, fa-public-pages 13/13, Lighthouse perf 0.96/a11y 1.0) + fa-66/fa-24-Befunde B3 + Evidenz-Doc + inventory E2E:docs-smoke; test:changed 68 pre-existing Fails (fremde Domains, auch ohne Diff), freshness+validate ok
+verify done 2026-11-01T16:58:56Z rebase-sauber-diff-7-dateien

@@ -72,7 +72,7 @@ S4: Script, Task und Workflow sind jeweils voneinander aus erreichbar
 - [x] **2. Partial p2** (`tasks.d/p2-expect-schema.md`): `expect`-Blöcke für alle
   18 live Einträge (Startwerte Live-Proben 2026-10-28, per Live-Lauf verifiziert)
   + Expect-Pflicht in `domains-check.mjs`.
-- [ ] **3. Partial p3** (`tasks.d/p3-task-workflow.md`): `task domains:probe` +
+- [x] **3. Partial p3** (`tasks.d/p3-task-workflow.md`): `task domains:probe` +
   `.github/workflows/domains-probe.yml` (Cron + Dispatch).
 - [ ] **4. Partial p4** (`tasks.d/p4-tests-evidence.md`): Offline-Tests grün,
   Golden + Inventory regeneriert, **Live-Beleg**: `task domains:probe`-Voll-Lauf

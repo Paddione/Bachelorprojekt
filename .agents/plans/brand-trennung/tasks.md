@@ -79,6 +79,7 @@ cutover-State, Guard-Läufe).
 | p5 | tasks.d/p5-mentolder-infra-weg.md | impl | `prod-fleet/website-mentolder/kustomization.yaml`, `prod-fleet/website-mentolder/website-ingress-web.yaml`, `prod-fleet/website-mentolder/website-patch.yaml`, `prod-fleet/website-mentolder/website-security-headers.yaml`, `prod-fleet/mentolder/kustomization.yaml`, `prod-fleet/mentolder/studio-ingress.yaml`, `prod-fleet/mentolder/studio-patch.yaml`, `flux/clusters/fleet/ks-mentolder.yaml`, `flux/clusters/fleet/ks-jobs-mentolder.yaml`, `flux/clusters/fleet/ks-website-mentolder.yaml`, `environments/fleet-mentolder.yaml`, `environments/mentolder.yaml` | p4 |
 | p6 | tasks.d/p6-mentolder-code-weg.md | impl | `components/mentolder-web/package.json`, `components/mentolder-web/Dockerfile`, `components/mentolder-web/nginx.conf`, `components/website/content/mentolder/faq.json`, `components/website/content/mentolder/footer.json`, `components/website/content/mentolder/homepage-blocks.json`, `components/website/content/mentolder/homepage.json`, `components/website/content/mentolder/leistungen.json`, `components/website/content/mentolder/kontakt.json`, `components/website/content/mentolder/kore-flags.json`, `components/website/content/mentolder/navigation.json`, `components/website/content/mentolder/referenzen.json`, `components/website/content/mentolder/seo.json`, `components/website/content/mentolder/services.json`, `components/website/content/mentolder/stammdaten.json`, `components/website/content/mentolder/ueber-mich.json` | p5 |
 | p7 | tasks.d/p7-registry-verify.md | tests | `docs/agent-guide/registry/domains.yaml`, `docs/agent-guide/maps/domains-map.md` | p6 |
+| p8 | tasks.d/p8-render-raus.md | tests | `scripts/flux-render-artifact.sh`, `tests/py/spec/test_flux_render_and_security.py` | p5 |
 
 ## Tasks
 
@@ -89,5 +90,6 @@ cutover-State, Guard-Läufe).
 - [x] **5. Partial p5** (`tasks.d/p5-mentolder-infra-weg.md`): mentolder-Manifeste/Envs raus (mit Prune-STOPP).
 - [x] **6. Partial p6** (`tasks.d/p6-mentolder-code-weg.md`): mentolder-web + Content raus.
 - [x] **7. Partial p7** (`tasks.d/p7-registry-verify.md`): Registry-Umschreibung + Guards grün + Belege.
-- [ ] **8. Finaler Verifikations-Task.** `task test:changed`,
+- [ ] **8. Partial p8** (`tasks.d/p8-render-raus.md`): Render-Skript mentolder-frei + Render-Tests grün (Nachtrag, CI-Gate für diesen PR).
+- [ ] **9. Finaler Verifikations-Task.** `task test:changed`,
   `task freshness:regenerate`, `task freshness:check`.

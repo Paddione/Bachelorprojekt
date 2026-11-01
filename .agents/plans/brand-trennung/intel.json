@@ -1,1 +1,404 @@
-{"call_graph":{"edges":[],"entrypoints":[]},"db_tables":[],"external_types":[],"impact_files":[{"language":"markdown","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"docs/agent-guide/brand-separation-inventory.md"},{"language":"yaml","loc":40,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"flux/clusters/fleet/ks-korczewski.yaml"},{"language":"yaml","loc":24,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"flux/clusters/fleet/ks-jobs-korczewski.yaml"},{"language":"yaml","loc":25,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"flux/clusters/fleet/ks-website-korczewski.yaml"},{"language":"yaml","loc":34,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"flux/clusters/fleet/ks-korczewski-auth.yaml"},{"language":"yaml","loc":125,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"environments/fleet-korczewski.yaml"},{"language":"yaml","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"environments/korczewski-prod.yaml"},{"language":"yaml","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/website-korczewski/kustomization.yaml"},{"language":"yaml","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/website-korczewski/website-patch.yaml"},{"language":"yaml","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/website-korczewski/website-ingress-web.yaml"},{"language":"yaml","loc":283,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":".github/workflows/e2e.yml"},{"language":"yaml","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"lighthouserc.json"},{"language":"yaml","loc":23,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/website-mentolder/kustomization.yaml"},{"language":"yaml","loc":25,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/website-mentolder/website-ingress-web.yaml"},{"language":"yaml","loc":15,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/website-mentolder/website-patch.yaml"},{"language":"yaml","loc":19,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/website-mentolder/website-security-headers.yaml"},{"language":"yaml","loc":343,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/mentolder/kustomization.yaml"},{"language":"yaml","loc":23,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/mentolder/studio-ingress.yaml"},{"language":"yaml","loc":27,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"prod-fleet/mentolder/studio-patch.yaml"},{"language":"yaml","loc":42,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"flux/clusters/fleet/ks-mentolder.yaml"},{"language":"yaml","loc":19,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"flux/clusters/fleet/ks-jobs-mentolder.yaml"},{"language":"yaml","loc":18,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"flux/clusters/fleet/ks-website-mentolder.yaml"},{"language":"yaml","loc":127,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"environments/fleet-mentolder.yaml"},{"language":"yaml","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"environments/mentolder.yaml"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/mentolder-web/package.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/mentolder-web/Dockerfile"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/mentolder-web/nginx.conf"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/faq.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/footer.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/homepage-blocks.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/homepage.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/leistungen.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/kontakt.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/kore-flags.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/navigation.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/referenzen.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/seo.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/services.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/stammdaten.json"},{"language":"json","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"components/website/content/mentolder/ueber-mich.json"},{"language":"yaml","loc":301,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"docs/agent-guide/registry/domains.yaml"},{"language":"markdown","loc":0,"s1_baseline":null,"s1_budget":null,"s1_limit":0,"path":"docs/agent-guide/maps/domains-map.md"}],"intel_sources":["wc -l","prod-fleet/website-korczewski/","prod-fleet/mentolder/","components/website/content/","flux/clusters/fleet/","environments/","prod-fleet/website-korczewski/website-apex.yaml"],"meta":{"domains":["infra","website"],"generated_from":"main@a46daf83f","ticket_id":"","slug":"brand-trennung"},"risks":[{"id":"R1","mitigation":"Aufbau-zuerst per depends_on (p4 vor p5/p6); Prune-Feld prüfen + Eigner-STOPP vor Delete-Push.","text":"Flux-Prune löscht Cluster-Workloads beim Git-Abriss."},{"id":"R2","mitigation":"Eigner-STOPP vor ACTION=cutover; Rollback-State sichern; erst cutover-plan-Beleg.","text":"DNS-Cutover ist Prod-Mutation mit Downtime-Risiko."},{"id":"R3","mitigation":"Nur Namen zählen, Inhalte nie öffnen; credentials-finden-Prozedur; ohne Fund STOPP.","text":"Sealed-Secrets korczewski evtl. ohne Key/Zertifikat nicht prüfbar."},{"id":"R4","mitigation":"Daten-Grenze in p5/p6 (kein Löschen von Cluster-Daten); Übergabe seine Entscheidung.","text":"Pod-Daten mentolder (Nextcloud/Postgres) — keine voreilige Löschung."}],"symbols":[],"type_text":""}
+{
+  "call_graph": {
+    "edges": [],
+    "entrypoints": []
+  },
+  "db_tables": [],
+  "external_types": [],
+  "impact_files": [
+    {
+      "language": "markdown",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "docs/agent-guide/brand-separation-inventory.md"
+    },
+    {
+      "language": "yaml",
+      "loc": 40,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "flux/clusters/fleet/ks-korczewski.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 24,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "flux/clusters/fleet/ks-jobs-korczewski.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 25,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "flux/clusters/fleet/ks-website-korczewski.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 34,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "flux/clusters/fleet/ks-korczewski-auth.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 125,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "environments/fleet-korczewski.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "environments/korczewski-prod.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/website-korczewski/kustomization.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/website-korczewski/website-patch.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/website-korczewski/website-ingress-web.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 283,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": ".github/workflows/e2e.yml"
+    },
+    {
+      "language": "yaml",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "lighthouserc.json"
+    },
+    {
+      "language": "yaml",
+      "loc": 23,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/website-mentolder/kustomization.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 25,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/website-mentolder/website-ingress-web.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 15,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/website-mentolder/website-patch.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 19,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/website-mentolder/website-security-headers.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 343,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/mentolder/kustomization.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 23,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/mentolder/studio-ingress.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 27,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "prod-fleet/mentolder/studio-patch.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 42,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "flux/clusters/fleet/ks-mentolder.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 19,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "flux/clusters/fleet/ks-jobs-mentolder.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 18,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "flux/clusters/fleet/ks-website-mentolder.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 127,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "environments/fleet-mentolder.yaml"
+    },
+    {
+      "language": "yaml",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "environments/mentolder.yaml"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/mentolder-web/package.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/mentolder-web/Dockerfile"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/mentolder-web/nginx.conf"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/faq.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/footer.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/homepage-blocks.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/homepage.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/leistungen.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/kontakt.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/kore-flags.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/navigation.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/referenzen.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/seo.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/services.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/stammdaten.json"
+    },
+    {
+      "language": "json",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "components/website/content/mentolder/ueber-mich.json"
+    },
+    {
+      "language": "yaml",
+      "loc": 301,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "docs/agent-guide/registry/domains.yaml"
+    },
+    {
+      "language": "markdown",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "docs/agent-guide/maps/domains-map.md"
+    },
+    {
+      "path": "scripts/flux-render-artifact.sh",
+      "language": "shell",
+      "loc": 554,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/test_flux_render_and_security.py",
+      "language": "python",
+      "loc": 143,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    }
+  ],
+  "intel_sources": [
+    "wc -l",
+    "prod-fleet/website-korczewski/",
+    "prod-fleet/mentolder/",
+    "components/website/content/",
+    "flux/clusters/fleet/",
+    "environments/",
+    "prod-fleet/website-korczewski/website-apex.yaml"
+  ],
+  "meta": {
+    "domains": [
+      "infra",
+      "website"
+    ],
+    "generated_from": "main@a46daf83f",
+    "ticket_id": "",
+    "slug": "brand-trennung"
+  },
+  "risks": [
+    {
+      "id": "R1",
+      "mitigation": "Aufbau-zuerst per depends_on (p4 vor p5/p6); Prune-Feld prüfen + Eigner-STOPP vor Delete-Push.",
+      "text": "Flux-Prune löscht Cluster-Workloads beim Git-Abriss."
+    },
+    {
+      "id": "R2",
+      "mitigation": "Eigner-STOPP vor ACTION=cutover; Rollback-State sichern; erst cutover-plan-Beleg.",
+      "text": "DNS-Cutover ist Prod-Mutation mit Downtime-Risiko."
+    },
+    {
+      "id": "R3",
+      "mitigation": "Nur Namen zählen, Inhalte nie öffnen; credentials-finden-Prozedur; ohne Fund STOPP.",
+      "text": "Sealed-Secrets korczewski evtl. ohne Key/Zertifikat nicht prüfbar."
+    },
+    {
+      "id": "R4",
+      "mitigation": "Daten-Grenze in p5/p6 (kein Löschen von Cluster-Daten); Übergabe seine Entscheidung.",
+      "text": "Pod-Daten mentolder (Nextcloud/Postgres) — keine voreilige Löschung."
+    }
+  ],
+  "symbols": [],
+  "type_text": ""
+}

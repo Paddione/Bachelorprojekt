@@ -58,5 +58,5 @@ wirkte. Disjunkt zu allen anderen Partials (D1 ok).
 - [x] **1. Partial p1** (`tasks.d/p1-smoke-axe.md`): Smoke + axe Spec bauen.
 - [x] **2. Partial p2** (`tasks.d/p2-evidence.md`): D4 + Beleg-Tabellen +
   Golden/Inventory-Hygiene.
-- [ ] **3. Finaler Verifikations-Task.** `task test:changed`,
+- [x] **3. Finaler Verifikations-Task.** `task test:changed`,
   `task freshness:regenerate`, `task freshness:check`.

@@ -17,3 +17,13 @@ axe (AxeBuilder wcag2a/wcag2aa/wcag21a/wcag21aa, reducedMotion): 5/5 FAIL, alle 
   /impressum + /barrierefreiheit: color-contrast (serious) x3 (CTA 1.66 + mute-2 3.65 x2); label-content-name-mismatch (.brand)
 screenshots/traces: tests/results/playwright-traces/mentolder-web-smoke-* (nicht im Repo, PR-Anhang)
 tsc: neue Spec sauber (0 Treffer auf mentolder-web-smoke); fa-20-finalize.spec.ts-Fehler pre-existing, Datei unangetastet
+final-verify 2026-11-01T19:15Z gates
+- spec live: 4/10 gruen, 6 B3-Befunde (s.o.), kein Fix per B3.
+- task test:changed: alle Diff-Gates + quality/networks/domains PASS; RUNTIME-DRIFT-CHECK rot
+  (10 Befunde: stale Playwright/chrome-devtools-MCP-Prozesse 1956149/50/359/371/407 mit
+  ersetzter /usr/bin/node + shared-db unerreichbar->skip). Umwelt, nicht Diff-bedingt;
+  fremde Prozesse bewusst NICHT gekillt (aktive Browser-Session moeglich).
+- task freshness:check: erst rot (test-inventory.json + repo-index.json durch neue Spec
+  veraltet) -> regeneriert + committet (191130914), Re-Run GRUEN (exit 0).
+- task workspace:validate: GRUEN (Manifests valid).
+- tsc e2e: neue Spec sauber; fa-20-pre-existing-Fehler unberuehrt.

@@ -74,13 +74,13 @@ jobs:
       contents: write
       pull-requests: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           fetch-tags: false
 
       - name: Checkout dotfiles (central MCP servers, T901492)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: Paddione/dotfiles
           ref: master
@@ -94,7 +94,7 @@ jobs:
           done
 
       - name: Checkout agentic-resources (public skill monorepo)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: Paddione/agentic-resources
           ref: main
@@ -113,7 +113,7 @@ jobs:
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '22'
           cache: 'npm'
@@ -129,7 +129,7 @@ jobs:
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -140,14 +140,14 @@ jobs:
 
       - name: Cache website node modules
         id: website-node-modules-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: components/website/node_modules
           key: website-node-modules-${{ runner.os }}-${{ hashFiles('components/website/pnpm-lock.yaml') }}
 
       - name: Cache pnpm store
         if: steps.website-node-modules-cache.outputs.cache-hit != 'true'
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('components/website/pnpm-lock.yaml') }}
@@ -160,7 +160,7 @@ jobs:
 
       - name: Cache art-library tooling dependencies
         id: art-library-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: assets/art-library/_tooling/node_modules
           key: art-tooling-${{ runner.os }}-${{ hashFiles('assets/art-library/_tooling/package-lock.json') }}
@@ -188,7 +188,7 @@ jobs:
 
       - name: Cache actionlint binary
         id: cache-actionlint
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.local/bin/actionlint
           key: actionlint-1.7.7-linux-amd64
@@ -272,13 +272,13 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           fetch-tags: false
 
       - name: Checkout agentic-resources (public skill monorepo)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: Paddione/agentic-resources
           ref: main
@@ -294,14 +294,14 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '22'
           cache: 'npm'
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -326,7 +326,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-tags: false
 
@@ -379,13 +379,13 @@ jobs:
     env:
       MCP_SERVERS_HOME: ${{ github.workspace }}/ci-dotfiles/mcp-servers
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           fetch-tags: false
 
       - name: Checkout dotfiles (central MCP servers, T901492)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: Paddione/dotfiles
           ref: master
@@ -399,7 +399,7 @@ jobs:
           done
 
       - name: Checkout agentic-resources (public skill monorepo)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: Paddione/agentic-resources
           ref: main
@@ -413,14 +413,14 @@ jobs:
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '22'
           cache: 'npm'
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -465,13 +465,13 @@ jobs:
       MCP_SERVERS_HOME: ${{ github.workspace }}/ci-dotfiles/mcp-servers
       TOOLSET_HOME: ${{ github.workspace }}/scripts/toolset
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           fetch-tags: false
 
       - name: Checkout dotfiles (central MCP servers, T901492)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: Paddione/dotfiles
           ref: master
@@ -485,7 +485,7 @@ jobs:
           done
 
       - name: Checkout agentic-resources (public skill monorepo)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: Paddione/agentic-resources
           ref: main
@@ -504,7 +504,7 @@ jobs:
       - name: Fetch origin/main for diffing (shallow)
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '22'
           cache: 'npm'
@@ -514,7 +514,7 @@ jobs:
         with:
           version: 10
 
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version: 'stable'
           cache: false
@@ -526,7 +526,7 @@ jobs:
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -615,7 +615,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-tags: false
 
@@ -723,7 +723,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           fetch-tags: false
@@ -749,7 +749,7 @@ jobs:
         with:
           version: 10
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         if: steps.filter.outputs.run_website == 'true'
         with:
           node-version: '24'
@@ -812,7 +812,7 @@ jobs:
         # Runs even if the tests above failed, so a red PR still gets a
         # downloadable per-test breakdown (not just the raw log).
         if: always() && steps.filter.outputs.run_website == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: vitest-junit-report
           path: components/website/test-results/junit.xml
@@ -857,7 +857,7 @@ jobs:
 
       - name: Upload website dist artifact
         if: steps.filter.outputs.run_website == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: website-dist
           path: components/website/dist
@@ -881,7 +881,7 @@ jobs:
       contents: read
       statuses: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           fetch-tags: false
@@ -901,7 +901,7 @@ jobs:
             echo "::notice::No components/website/ or lighthouse changes — skipping live audit"
           fi
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         if: steps.filter.outputs.run_audit == 'true'
         with:
           node-version: '24'

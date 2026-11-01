@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # Full clone. This does NOT prevent the "Repository has changed during
           # renovation" abort — that was the original rationale here and the logs
@@ -87,7 +87,7 @@ jobs:
           private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
 
       - name: Restore Renovate cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ runner.temp }}/renovate-cache
           # Rolling key: every run writes a new entry, restore-keys pulls the most
@@ -221,7 +221,7 @@ jobs:
       - name: Upload Renovate reports
         # Debug material only — the gate is the log grep above, not these files.
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: renovate-reports
           path: |

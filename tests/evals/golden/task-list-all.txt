@@ -126,6 +126,8 @@ task: Available tasks for this project:
 * devmesh:tailnet:check:                        devmesh: jeden Inventar-Server per tailscale ping pruefen und direct/relay melden (Exit 1 = Server unerreichbar, 2 = Vorbedingung fehlt)
 * devmesh:tailnet:routes:                       devmesh: Subnet-Routen (Inventarfeld subnet_routes) per tailscale set freigeben (DRY_RUN=1 zeigt nur die Befehle) [T016515]
 * docs:refresh-diagrams:                        Regenerate all auto-generated diagrams (DB schema, …)
+* domains:check:                                Validate domain registry against SSOT
+* domains:map:                                  Regenerate docs/agent-guide/maps/domains-map.md from domain registry
 * dsh:dsh:build:                                Build deepseek-harness (pnpm install + build)
 * dsh:dsh:doctor:                               Check DSH prerequisites (clone, build, CLI)
 * dsh:dsh:web:                                  Start the DSH Web UI on port 3080

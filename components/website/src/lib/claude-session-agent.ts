@@ -96,9 +96,8 @@ export class ClaudeSessionAgent implements SessionAgent {
         model,
         max_tokens: kiConfig.maxTokens ?? 600,
         system: effectiveSystemPrompt,
-        temperature: kiConfig.temperature ?? undefined,
-        top_p: kiConfig.topP ?? undefined,
-        top_k: kiConfig.topK ?? undefined,
+        // Anthropic SDK v1 removed temperature/top_p/top_k (server-side sampling
+        // defaults apply; kiConfig sampling fields kept for compat but not sent).
         tools: SESSION_TOOLS,
         messages,
       });
@@ -142,9 +141,7 @@ export class ClaudeSessionAgent implements SessionAgent {
       model,
       max_tokens: kiConfig.maxTokens ?? 600,
       system: effectiveSystemPrompt,
-      temperature: kiConfig.temperature ?? undefined,
-      top_p: kiConfig.topP ?? undefined,
-      top_k: kiConfig.topK ?? undefined,
+      // See above: SDK v1 has no temperature/top_p/top_k.
       tools: SESSION_TOOLS,
       messages,
     });

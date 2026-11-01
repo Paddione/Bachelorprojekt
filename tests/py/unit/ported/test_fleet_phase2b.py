@@ -128,10 +128,12 @@ def test_fleet_deploy_brand_passes_skip_talk_setup_true_so_brand_core_skips_talk
     assert "SKIP_TALK_SETUP" in block
 
 
-def test_fleet_mentolder_env_uses_mentolder_de_as_prod_domain_not_staging_fleet_m_infix(repo_root):
-    lines = [l for l in _read(repo_root / "environments" / "fleet-mentolder.yaml") if "PROD_DOMAIN" in l]
-    assert _grep_q(lines, "mentolder.de")
-    assert not _grep_q(lines, "fleet-m.korczewski.de")
+def test_fleet_mentolder_env_entfernt_brand_trennung_p5(repo_root):
+    # brand-trennung p5: environments/fleet-mentolder.yaml geloescht —
+    # Negativ-Anker; PROD_DOMAIN-Aequivalent korczewski.de steht im
+    # korczewski-Test unten (Wert per grep-Lauf verifiziert).
+    assert not (repo_root / "environments" / "fleet-mentolder.yaml").exists(), \
+        "environments/fleet-mentolder.yaml existiert noch (brand-trennung p5)"
 
 
 def test_fleet_korczewski_env_uses_korczewski_de_as_prod_domain_not_staging_fleet_infix(repo_root):
@@ -140,9 +142,11 @@ def test_fleet_korczewski_env_uses_korczewski_de_as_prod_domain_not_staging_flee
     assert not _grep_q(lines, r"fleet\.korczewski\.de")
 
 
-def test_fleet_mentolder_env_has_no_remaining_fleet_m_korczewski_de_references(repo_root):
-    lines = _read(repo_root / "environments" / "fleet-mentolder.yaml")
-    assert not _grep_q(lines, r"fleet-m\.korczewski\.de")
+def test_fleet_mentolder_env_entfaellt_kein_fleet_m_infix_mehr_zu_pruefen(repo_root):
+    # Pendant-Test unten deckt fleet-korczewski.yaml ab; hier nur Anker, dass
+    # die geloschte Datei nicht wiederaufersteht.
+    assert not (repo_root / "environments" / "fleet-mentolder.yaml").exists(), \
+        "environments/fleet-mentolder.yaml existiert noch (brand-trennung p5)"
 
 
 def test_fleet_korczewski_env_has_no_remaining_fleet_korczewski_de_references(repo_root):

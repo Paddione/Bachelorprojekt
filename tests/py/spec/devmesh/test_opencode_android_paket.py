@@ -165,6 +165,8 @@ def test_repo_sync_sidecar(repo_root: Path):
     assert "x-access-token" in cmd, "keine Token-Auth in Sidecar-Command"
     assert 'x-access-token:${GITHUB_TOKEN}@' not in cmd, "Token darf nicht in der Remote-URL stehen"
     assert 'extraHeader' in cmd, "Auth muss per http.extraHeader laufen"
+    assert 'fetch_mirror --git-dir=' in cmd, "Token-Fetch muss ins private Bare-Repo gehen"
+    assert '/sync' in mounts, f"/sync-Mount fehlt im Sidecar: {mounts}"
 
 
 def test_component_kustomization_lists_new_resources(repo_root: Path):

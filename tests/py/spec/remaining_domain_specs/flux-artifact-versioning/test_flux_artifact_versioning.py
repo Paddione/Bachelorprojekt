@@ -10,12 +10,13 @@ def rendered(repo_root,run_cmd,tmp_path):
 
 def test_website_digest_no_latest(rendered):
     assert any('@sha256:' in p.read_text() for p in rendered.rglob('*') if p.is_file())
-    for name in ['website-mentolder','website-korczewski','mentolder','korczewski']:
+    for name in ['website-korczewski','korczewski']:
         path=rendered/name/(name+'.yaml')
         if path.is_file():
             assert not re.search(r'image: ghcr\.io/paddione/(website|workspace-brett):latest',path.read_text())
 
 def test_brett_digest(rendered):
-    # Brett-Entfernung: kein workspace-brett mehr im lokalen mentolder-Render
-    # (Prod-Brett laeuft ueber gekko32/mentolder-prod mit eigenem Image).
-    assert 'workspace-brett' not in (rendered/'mentolder/mentolder.yaml').read_text()
+    # korczewski-only seit brand-trennung p8: prod-fleet/mentolder ist
+    # geloescht, der korczewski-Wrapper entfernt brett per $patch:delete —
+    # kein workspace-brett im korczewski-Artefakt (Render-Evidenz p8).
+    assert 'workspace-brett' not in (rendered/'korczewski/korczewski.yaml').read_text()

@@ -90,6 +90,6 @@ cutover-State, Guard-Läufe).
 - [x] **5. Partial p5** (`tasks.d/p5-mentolder-infra-weg.md`): mentolder-Manifeste/Envs raus (mit Prune-STOPP).
 - [x] **6. Partial p6** (`tasks.d/p6-mentolder-code-weg.md`): mentolder-web + Content raus.
 - [x] **7. Partial p7** (`tasks.d/p7-registry-verify.md`): Registry-Umschreibung + Guards grün + Belege.
-- [ ] **8. Partial p8** (`tasks.d/p8-render-raus.md`): Render-Skript mentolder-frei + Render-Tests grün (Nachtrag, CI-Gate für diesen PR).
+- [x] **8. Partial p8** (`tasks.d/p8-render-raus.md`): Render-Skript mentolder-frei + Render-Tests grün (Nachtrag, CI-Gate für diesen PR).
 - [ ] **9. Finaler Verifikations-Task.** `task test:changed`,
   `task freshness:regenerate`, `task freshness:check`.

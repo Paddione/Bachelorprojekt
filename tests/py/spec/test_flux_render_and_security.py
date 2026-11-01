@@ -101,13 +101,13 @@ def test_flux_render_artifact_and_security(repo_root: Path, flux_env, tmp_path: 
     )
     assert res.returncode == 0, f"Render failed: {res.stdout}\n{res.stderr}"
 
-    # Prod trees check
-    prod_trees = [out_dir / "mentolder", out_dir / "korczewski", out_dir / "website-mentolder", out_dir / "website-korczewski"]
+    # Prod trees check (korczewski-only seit brand-trennung p8)
+    prod_trees = [out_dir / "korczewski", out_dir / "website-korczewski"]
     for t in prod_trees:
         assert t.is_dir(), f"Expected prod tree {t} not found"
 
     # Website pinned by digest
-    website_yaml = out_dir / "website-mentolder" / "website-mentolder.yaml"
+    website_yaml = out_dir / "website-korczewski" / "website-korczewski.yaml"
     assert website_yaml.is_file()
     assert "ghcr.io/paddione/website@sha256:565e7cecafd4d792620b4c68a168046481567dec53c4f61545f62f3edd1c7d41" in website_yaml.read_text()
     assert "sha256:1111111111111111111111111111111111111111111111111111111111111111" not in website_yaml.read_text()
@@ -119,7 +119,7 @@ def test_flux_render_artifact_and_security(repo_root: Path, flux_env, tmp_path: 
             assert not re.search(r"image:\s*ghcr\.io/paddione/(website|workspace-brett):latest", text), f":latest tag in {yf}"
 
     # No hardcoded admin/admin grafana secrets in prod trees
-    for t in [out_dir / "mentolder", out_dir / "korczewski"]:
+    for t in [out_dir / "korczewski"]:
         for yf in t.rglob("*.yaml"):
             text = yf.read_text()
             assert not ("key: admin-user" in text or "key: admin-password" in text)

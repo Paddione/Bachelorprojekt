@@ -16,9 +16,14 @@
   // Base recommended configuration from Renovate.
   "extends": ["config:recommended"],
 
-  // Weekly schedule: Monday morning (Berlin time).
-  "schedule": ["before 9am on monday"],
-  "timezone": "Europe/Berlin",
+  // No "schedule" here: the workflow cron in renovate.yml sets the cadence. GitHub
+  // starts scheduled runs hours late (07:00 UTC cron, 14:00 UTC actual), so a
+  // time window in this file silently excluded every run.
+
+  // npm is handled by scripts/context7_updater.py (user timer context7-updater):
+  // one consolidated PR per day plus the major report in the maintenance issue.
+  // Renovate keeps Kubernetes images and GitHub Actions.
+  "npm": { "enabled": false },
 
   // Require releases to be at least 3 days old before proposing an update.
   // This prevents same-day merges of potentially broken releases.
@@ -75,48 +80,12 @@
   // the App slug depends on the freely chosen App name.
   "labels": ["dependencies"],
 
-  // Renovate sets the GitHub auto-merge flag itself — but only on PRs its own
-  // packageRules release for automerge (patch + devDependencies). major, prod
-  // minor and kubernetes major stay open as review PRs.
+  // Renovate sets the GitHub auto-merge flag itself, but only on PRs its own
+  // packageRules release for automerge. No rule does so at the moment, so all
+  // image and action updates stay open as review PRs.
   "platformAutomerge": true,
 
   "packageRules": [
-    // ── npm (pnpm workspaces) ─────────────────────────────────────────────
-
-    // npm minor/patch: grouped per package directory, no automerge.
-    // (patch gets automerge below via a more specific rule.)
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "npm minor/patch ({{packageFileDir}})",
-      "automerge": false
-    },
-
-    // npm patch (all dep types): automerge.
-    // Overrides the group rule above for patch-only updates.
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["patch"],
-      "automerge": true
-    },
-
-    // npm devDependencies minor + patch: automerge.
-    // Non-production code — safe to automerge non-major.
-    {
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true
-    },
-
-    // npm major: never automerge, separate group for review.
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["major"],
-      "groupName": "npm major updates",
-      "automerge": false
-    },
-
     // ── Kubernetes / Docker images ─────────────────────────────────────────
     // Docker base images are managed via the kubernetes manager (reads image
     // references in k3d/prod manifests).

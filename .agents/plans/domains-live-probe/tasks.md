@@ -74,7 +74,7 @@ S4: Script, Task und Workflow sind jeweils voneinander aus erreichbar
   + Expect-Pflicht in `domains-check.mjs`.
 - [x] **3. Partial p3** (`tasks.d/p3-task-workflow.md`): `task domains:probe` +
   `.github/workflows/domains-probe.yml` (Cron + Dispatch).
-- [ ] **4. Partial p4** (`tasks.d/p4-tests-evidence.md`): Offline-Tests grün,
+- [x] **4. Partial p4** (`tasks.d/p4-tests-evidence.md`): Offline-Tests grün,
   Golden + Inventory regeneriert, **Live-Beleg**: `task domains:probe`-Voll-Lauf
   ab Tailnet-Host, Ausgabe in den PR-Body.
 - [ ] **5. Finaler Verifikations-Task.** `task test:changed`,

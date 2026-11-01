@@ -5058,6 +5058,12 @@
     "kind": "pytest"
   },
   {
+    "id": "remaining_root_specs/domain_registry/domains_probe",
+    "file": "tests/py/spec/remaining_root_specs/domain_registry/test_domains_probe.py",
+    "category": "remaining_root_specs",
+    "kind": "pytest"
+  },
+  {
     "id": "remaining_root_specs/domain_registry/domains_registry",
     "file": "tests/py/spec/remaining_root_specs/domain_registry/test_domains_registry.py",
     "category": "remaining_root_specs",

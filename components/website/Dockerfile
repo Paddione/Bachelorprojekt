@@ -7,7 +7,7 @@ WORKDIR /app
 # T001224/T001276: website migrated to pnpm — `components/website/package-lock.json` was
 # deleted, only `components/website/pnpm-lock.yaml` exists. Node 25+ ships
 # without corepack, so pnpm@10 comes straight from npm (matches
-# `.github/workflows/ci.yml` + `.github/workflows/build-mentolder-web.yml`).
+# `.github/workflows/ci.yml` + `.github/workflows/build-website.yml`).
 ENV PNPM_HOME=/pnpm
 ENV PATH=/pnpm:$PATH
 RUN npm install -g pnpm@10.15.0 && pnpm --version

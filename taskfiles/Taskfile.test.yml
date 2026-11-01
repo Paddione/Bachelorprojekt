@@ -508,6 +508,12 @@ tasks:
         # Datei des anderen nicht mit — eine Diff-Auswahl wuerde den Guard genau in
         # dem Fall ueberspringen, fuer den es ihn gibt. Der Lauf kostet Millisekunden.
         echo "→ network address plan (always)"; task networks:check
+        # Frontend-Domain-SSOT (Kriterium 2): gleiche Begruendung wie networks:check —
+        # ein unregistrierter Manifest-Host entsteht durch das Zusammenspiel aus
+        # Manifest-Aenderung und Registry, eine Diff-Auswahl wuerde den Guard genau
+        # dann ueberspringen, wenn er gebraucht wird. In CI laeuft derselbe Check
+        # zusaetzlich ueber tests/py/spec/remaining_root_specs/domain_registry/.
+        echo "→ frontend domain registry (always)"; task domains:check
 
   test:api-auth:
     desc: "API auth coverage gate — every endpoint must be classified; public endpoints need an allowlist entry"

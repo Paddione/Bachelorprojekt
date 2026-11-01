@@ -1,7 +1,6 @@
 # Exclude large directories not needed for Docker build
 components/website/node_modules
 # runtime: npm install
-components/mentolder-web/node_modules
 # runtime: astro build
 components/website/dist
 # runtime: local env file

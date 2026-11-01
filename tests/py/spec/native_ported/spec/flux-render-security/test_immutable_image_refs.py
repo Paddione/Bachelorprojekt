@@ -23,7 +23,7 @@ PLACEHOLDER_BRETT = "sha256:2222222222222222222222222222222222222222222222222222
 
 
 def _prod_trees(out: Path):
-    return [out / "mentolder", out / "korczewski", out / "website-mentolder", out / "website-korczewski"]
+    return [out / "korczewski", out / "website-korczewski"]
 
 
 def _image_refs_for(out: Path, needle: str) -> list:
@@ -58,7 +58,7 @@ def test_immutable_image_refs_renderer_produces_the_prod_trees_offline_positive_
     res, out = render()
     assert res.returncode == 0, res.output
     found = sum(1 for t in _prod_trees(out) if t.is_dir())
-    assert found == 4
+    assert found == 2
 
 
 def test_immutable_image_refs_website_image_is_pinned_by_digest_in_every_prod_tree(render):
@@ -94,7 +94,7 @@ def test_immutable_image_refs_no_movable_latest_tag_survives_for_website_or_bret
 def test_immutable_image_refs_caller_provided_website_digest_survives_into_the_rendered_artifact(render):
     res, out = render()
     assert res.returncode == 0, res.output
-    manifest = out / "website-mentolder" / "website-mentolder.yaml"
+    manifest = out / "website-korczewski" / "website-korczewski.yaml"
     assert manifest.is_file()
     text = manifest.read_text(encoding="utf-8")
     assert "ghcr.io/paddione/website@sha256:565e7cecafd4d792620b4c68a168046481567dec53c4f61545f62f3edd1c7d41" in text

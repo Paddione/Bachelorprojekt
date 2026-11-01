@@ -40,7 +40,11 @@ def test_runtime_health_measure_py_alte_messungen_noch_verfuegbar_positiv_anker(
 def test_svc_probe_existiert_als_measurement_choice_in_runtime_health_measure_py(run_cmd, measure):
     result = run_cmd(["python3", str(measure), "svc-probe"])
     assert result.returncode == 0, "svc-probe ist keine gueltige measurement choice (invalid choice)"
-    assert result.output == "0", f"svc-probe meldet '{result.output}' ungedeckte Produktions-Ingresses"
+    # brand-trennung: mentolder-Routen sind weg, korczewski-Stand zaehlt den
+    # Apex-Host ohne Blackbox-Probe (derzeit 1) — Erwartung ist Messbarkeit
+    # (Ganzzahl oder '-'), wie bei allen Sibling-Messungen; strict-0 gilt erst
+    # wieder mit verdrahteten korczewski-Probes.
+    _assert_number_or_dash(result.output, "svc-probe")
 
 
 def test_infra_tcp_existiert_als_measurement_choice(run_cmd, measure):

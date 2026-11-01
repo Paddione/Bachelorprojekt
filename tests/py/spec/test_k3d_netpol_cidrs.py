@@ -16,13 +16,13 @@ CIDR_FILES = ["k3d/network-policies.yaml", "k3d/website.yaml"]
 
 # environments/<name>.yaml -> (POD_CIDR, SERVICE_CIDR). dev runs on devmesh
 # (ADR-008), everything else on a k3s-default Fleet-Cluster.
+# brand-trennung p5: mentolder.yaml + fleet-mentolder.yaml geloescht —
+# korczewski-Pendants (gleiche CIDRs, per grep/env-resolve-Lauf verifiziert).
 ENV_FILES = {
     "dev": ("10.52.0.0/16", "10.53.0.0/16"),
     "dev-cluster": ("10.42.0.0/16", "10.43.0.0/16"),
-    "mentolder": ("10.42.0.0/16", "10.43.0.0/16"),
     "korczewski": ("10.42.0.0/16", "10.43.0.0/16"),
     "staging": ("10.42.0.0/16", "10.43.0.0/16"),
-    "fleet-mentolder": ("10.42.0.0/16", "10.43.0.0/16"),
     "fleet-korczewski": ("10.42.0.0/16", "10.43.0.0/16"),
 }
 

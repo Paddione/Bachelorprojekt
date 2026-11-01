@@ -59,7 +59,7 @@ interface BundleState {
 const state: BundleState = (() => {
   const data = new Map<string, Map<Domain, unknown>>();
   for (const [path, mod] of Object.entries(RAW_BUNDLES)) {
-    // path looks like '/content/mentolder/homepage.json'
+    // path looks like '/content/massage/homepage.json'
     const match = path.match(/^\/content\/([^/]+)\/([^/]+)\.json$/);
     if (!match) continue;
     const brand = match[1];

@@ -3,11 +3,20 @@
 import yaml
 import pytest
 
+# brand-trennung p5: ks-mentolder.yaml geloescht — korczewski-Pendant
+# (bereits in der Liste) ist der Brand-Anker; staging bleibt.
 BRANDS = [
-    ("ks-mentolder.yaml", "flux-sealed-secrets-mentolder"),
     ("ks-korczewski.yaml", "flux-sealed-secrets-korczewski"),
     ("ks-staging.yaml", "flux-sealed-secrets-staging"),
 ]
+
+
+def test_t900014_ks_mentolder_entfernt_brand_trennung_p5(flux_dir):
+    # Negativ-Anker gegen Wiederauferstehung des geloschten Brand-Stacks.
+    assert not (flux_dir / "ks-mentolder.yaml").exists(), \
+        "ks-mentolder.yaml existiert noch (brand-trennung p5)"
+    assert not (flux_dir / "ks-jobs-mentolder.yaml").exists(), \
+        "ks-jobs-mentolder.yaml existiert noch (brand-trennung p5)"
 
 
 @pytest.fixture

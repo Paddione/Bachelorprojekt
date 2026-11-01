@@ -139,7 +139,9 @@ def svc_probe(data):
     # behind it.  Comparing service names with probe URLs (the previous
     # implementation) can never establish coverage.
     ingress_hosts = set()
-    manifest_dirs = ["prod-fleet/mentolder", "prod-fleet/korczewski"]
+    # brand-trennung: prod-fleet/mentolder geloescht (p5) — korczewski-Stand
+    # sind der Brand-Overlay plus website-korczewski (Prod-Ingresses).
+    manifest_dirs = ["prod-fleet/korczewski", "prod-fleet/website-korczewski"]
     for d in manifest_dirs:
         for path in sorted(glob_mod.glob(f"{d}/**/*.yaml", recursive=True)) + sorted(glob_mod.glob(f"{d}/**/*.yml", recursive=True)):
             try:

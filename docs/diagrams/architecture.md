@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-102 Services · 1920 Abhängigkeitskanten · 316 API-Endpoints
+102 Services · 1921 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -253,6 +253,7 @@ flowchart LR
   sealed_secrets_controller -->|"selector"| sealed_secrets_controller
   sealed_secrets -->|"selector"| sealed_secrets_controller
   sessions_server -->|"selector"| sessions_server
+  studio_server -->|"selector"| studio_server
   nats -->|"selector"| nats
   spreed_signaling -->|"selector"| spreed_signaling
   talk_recording -->|"selector"| talk_recording

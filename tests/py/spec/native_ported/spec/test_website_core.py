@@ -48,6 +48,8 @@ def r(repo_root):
         "perf_layout": web / "src/layouts/Layout.astro",
         "perf_mentolder_ing": repo_root / "prod-fleet/website-mentolder/website-ingress-web.yaml",
         "perf_korczewski_kust": repo_root / "prod-fleet/website-korczewski/kustomization.yaml",
+        "perf_korczewski_ing": repo_root / "prod-fleet/website-korczewski/website-ingress-web.yaml",
+        "korczewski_sec_headers": repo_root / "prod-fleet/website-korczewski/website-security-headers.yaml",
         "mentolder_sec_headers": repo_root / "prod-fleet/website-mentolder/website-security-headers.yaml",
         "mentolder_kust": repo_root / "prod-fleet/website-mentolder/kustomization.yaml",
         "shared_middlewares": repo_root / "prod/traefik-middlewares.yaml",
@@ -193,7 +195,7 @@ DOMAINS = ["homepage", "homepage-blocks", "seo", "faq", "kontakt", "ueber-mich",
 
 def test_t001490_content_bundle_every_brand_has_all_13_domain_json_files(r):
     base = r["web"] / "content"
-    for brand in ("mentolder", "korczewski"):
+    for brand in ("korczewski",):
         assert (base / brand).is_dir(), f"missing brand dir {brand}"
         for d in DOMAINS:
             assert (base / brand / f"{d}.json").is_file(), f"missing {brand}/{d}.json"
@@ -235,8 +237,8 @@ def test_t001490_primary_frontend_schema_declared_with_astro_react_pattern_and_b
     start = next(i for i, l in enumerate(lines) if re.match(r"^  - name: PRIMARY_FRONTEND$", l))
     validate = next((l for l in lines[start + 1:] if "validate:" in l), "")
     assert re.search(r'validate:[ \t]*"\^\(astro\|react\)\$"', validate), validate
-    for brand in ("mentolder", "korczewski"):
-        assert _has(_txt(r["root"] / f"environments/{brand}.yaml"), r"^[ \t]+PRIMARY_FRONTEND:[ \t]*(astro|react)$")
+    for env in ("fleet-korczewski", "korczewski"):
+        assert _has(_txt(r["root"] / f"environments/{env}.yaml"), r"^[ \t]+PRIMARY_FRONTEND:[ \t]*(astro|react)$")
     assert _has(_txt(r["root"] / "k3d/website.yaml"), r"name:[ \t]*\$\{WEBSITE_PRIMARY_SERVICE\}")
     files = [r["root"] / "Taskfile.yml"] + [p for p in sorted((r["root"] / "taskfiles").rglob("*")) if p.is_file()]
     for needle in ("WEBSITE_PRIMARY_SERVICE", "PRIMARY_FRONTEND"):
@@ -307,39 +309,29 @@ def test_t001922_perf_layout_astro_hydrates_cookie_consent_client_idle(r):
     assert "<CookieConsent client:load" not in text
 
 
-def test_t001922_perf_mentolder_prod_ingress_binds_website_compress(r):
-    assert "website-compress" in _txt(r["perf_mentolder_ing"])
-
-
 def test_t001922_perf_korczewski_overlay_binds_website_compress_to_the_ingress_route(r):
     assert "website-compress" in _txt(r["perf_korczewski_kust"])
 
 
-def test_t001929_perf_mentolder_content_bundle_avatar_src_references_gerald_webp_live_source(r):
-    text = _txt(r["web"] / "content/mentolder/homepage.json")
-    assert '"avatarSrc": "/gerald.webp"' in text
-    assert "gerald.jpg" not in text
-
-
 # ── T002052: crawlability ──
 
-def test_t002052_crawlable_mentolder_website_ingress_does_not_reference_shared_noindex_security_headers(r):
-    assert "workspace-security-headers@kubernetescrd" not in _txt(r["perf_mentolder_ing"])
+def test_t002052_crawlable_korczewski_website_ingress_does_not_reference_shared_noindex_security_headers(r):
+    assert "workspace-security-headers@kubernetescrd" not in _txt(r["perf_korczewski_ing"])
 
 
-def test_t002052_crawlable_mentolder_website_ingress_references_its_own_website_scoped_security_headers(r):
-    assert "website-website-security-headers@kubernetescrd" in _txt(r["perf_mentolder_ing"])
+def test_t002052_crawlable_korczewski_website_ingress_references_its_own_website_scoped_security_headers(r):
+    assert "website-korczewski-website-security-headers@kubernetescrd" in _txt(r["perf_korczewski_ing"])
 
 
-def test_t002052_crawlable_mentolder_has_website_scoped_security_headers_middleware_without_noindex(r):
-    assert r["mentolder_sec_headers"].is_file()
-    text = _txt(r["mentolder_sec_headers"])
+def test_t002052_crawlable_korczewski_has_website_scoped_security_headers_middleware_without_noindex(r):
+    assert r["korczewski_sec_headers"].is_file()
+    text = _txt(r["korczewski_sec_headers"])
     assert _has(text, r"name: website-security-headers")
     assert not _has(text, r"^[ \t]*X-Robots-Tag:", re.M | re.I)
 
 
-def test_t002052_crawlable_mentolder_kustomization_wires_the_website_security_headers_middleware(r):
-    assert "website-security-headers.yaml" in _txt(r["mentolder_kust"])
+def test_t002052_crawlable_korczewski_kustomization_wires_the_website_security_headers_middleware(r):
+    assert "website-security-headers.yaml" in _txt(r["perf_korczewski_kust"])
 
 
 def test_t002052_drift_guard_shared_security_headers_explicitly_sets_x_robots_tag_noindex(r):

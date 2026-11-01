@@ -1,7 +1,11 @@
-"""Offline contract: Talk-KI-Dienste bleiben aktivierbar, ohne im Leerlauf Pods zu starten.
+"""Offline contract: Talk-KI-Dienste sind im korczewski-Fleet-Overlay vorhanden
+und korrekt verdrahtet.
 
-bge-embed/-bulk/-rerank laufen nicht auf mentolder (nur devmesh) und fehlen im
-Fleet-Overlay samt llm-gateway-Services, NetworkPolicies und Modell-PVCs.
+brand-trennung p8: prod-fleet/mentolder ist geloescht (korczewski-only Repo).
+Anders als das alte mentolder-Overlay (scale-zero: replicas 0, bge nur auf
+devmesh — siehe docs/runbooks/ai-services-scale-zero.md) faehrt korczewski
+die Talk-Dienste AKTIV (replicas 1) und enthaelt den bge-Stapel. Die
+Belegung steht im p8-Commit (Render-Evidenz); nichts erfunden.
 """
 
 import os
@@ -43,17 +47,18 @@ def render(path):
 
 @pytest.fixture(scope="module")
 def fleet_resources(repo_root):
-    return render(repo_root / "prod-fleet/mentolder")
+    return render(repo_root / "prod-fleet/korczewski")
 
 
-def test_ai_deployments_exist_with_zero_replicas(fleet_resources):
+def test_ai_deployments_exist_active(fleet_resources):
+    # korczewski faehrt die Talk-Dienste aktiv (kein scale-zero wie mentolder).
     for name in sorted(AI_DEPLOYMENTS):
         deployment = fleet_resources.get(("Deployment", name))
-        assert deployment is not None, f"{name}: removed instead of dormant"
-        assert deployment["spec"]["replicas"] == 0, name
+        assert deployment is not None, f"{name}: missing from korczewski overlay"
+        assert deployment["spec"]["replicas"] == 1, name
 
 
-def test_dormant_services_retain_internal_dependencies(fleet_resources):
+def test_active_services_retain_internal_dependencies(fleet_resources):
     for name in AI_SERVICES:
         service = fleet_resources.get(("Service", name))
         assert service is not None, f"missing Service {name}"
@@ -69,10 +74,12 @@ def test_dormant_services_retain_internal_dependencies(fleet_resources):
     assert ("NetworkPolicy", "allow-transcriber-to-website-egress") in fleet_resources
 
 
-def test_bge_absent_from_mentolder(fleet_resources):
-    # Positiv-Anker: die Talk-Dienste sind im selben Build vorhanden.
+def test_bge_present_in_korczewski(fleet_resources):
+    # Gegenstueck zum alten mentolder-Negativ-Anker: korczewski enthaelt den
+    # bge-Stapel (Render-Evidenz im p8-Commit). Positiv-Anker: Talk-Dienste
+    # sind im selben Build vorhanden.
     assert ("Deployment", "whisper") in fleet_resources
-    absent = [("Deployment", n) for n in sorted(BGE_DEPLOYMENTS)] + [
+    expected = [("Deployment", n) for n in sorted(BGE_DEPLOYMENTS)] + [
         ("Service", "llm-gateway-embed"), ("Service", "llm-gateway-rerank"),
         ("IngressRoute", "llm-gateway-embed"), ("IngressRoute", "llm-gateway-rerank"),
         ("PersistentVolumeClaim", "bge-embed-models"),
@@ -81,15 +88,15 @@ def test_bge_absent_from_mentolder(fleet_resources):
         ("NetworkPolicy", "allow-website-to-bge-embed-ingress"),
         ("NetworkPolicy", "allow-website-to-bge-rerank-ingress"),
     ]
-    present = [key for key in absent if key in fleet_resources]
-    assert not present, f"bge-Ressourcen im mentolder-Build: {present}"
+    missing = [key for key in expected if key not in fleet_resources]
+    assert not missing, f"bge-Ressourcen fehlen im korczewski-Build: {missing}"
 
 
 def test_gitops_override_can_activate_all_ai_deployments(repo_root, tmp_path):
     (tmp_path / "kustomization.yaml").write_text(yaml.safe_dump({
         "apiVersion": "kustomize.config.k8s.io/v1beta1",
         "kind": "Kustomization",
-        "resources": [os.path.relpath(repo_root / "prod-fleet/mentolder", tmp_path)],
+        "resources": [os.path.relpath(repo_root / "prod-fleet/korczewski", tmp_path)],
         "replicas": [{"name": name, "count": 1} for name in sorted(AI_DEPLOYMENTS)],
     }))
     activated = render(tmp_path)

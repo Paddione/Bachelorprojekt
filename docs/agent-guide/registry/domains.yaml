@@ -23,24 +23,11 @@
 # FUNKTIONS-MATRIX: Beanspruchen zwei status:live-Einträge desselben Clusters
 # denselben Funktions-String, muss mindestens einer der beiden ein decision-
 # Feld tragen, das den Split/Redirect erklärt — sonst ist der Guard rot.
-# Einen Eintrag nie löschen (retired/frozen stehen lassen).
+# Einen Eintrag nie löschen (retired/frozen stehen lassen) — einzige Ausnahme:
+# Marken-Abriss (brand-trennung 2026-11-01): mentolder-Einträge sind ersatzlos
+# entfallen, weil ihre manifest_source-Dateien aus dem Repo gelöscht wurden.
 ---
 domains:
-  - id: website-mentolder
-    host: web.${PROD_DOMAIN}
-    cluster: fleet
-    namespace: website
-    paths: ["/", "/_astro/"]
-    service: website:80
-    auth: open
-    owner_frontend: bp-ship
-    functions: [frontend]
-    status: live
-    expect:
-      status: [200]
-    manifest_source: prod-fleet/website-mentolder/website-ingress-web.yaml
-    decision: "D1: web.mentolder.de (Astro) ist die kanonische oeffentliche Seite; react.mentolder.de ist sekundaer/Redirect."
-
   - id: website-korczewski
     host: web.${PROD_DOMAIN}
     cluster: fleet
@@ -52,6 +39,7 @@ domains:
     functions: [frontend]
     status: frozen
     manifest_source: prod-fleet/website-korczewski/website-ingress-web.yaml
+    decision: "D1: frozen bis Deploy-Freigabe (Backend derzeit 404); nach verifiziertem 200 auf live + expect heben."
 
   - id: website-staging
     host: web.${PROD_DOMAIN}
@@ -62,11 +50,9 @@ domains:
     auth: open
     owner_frontend: bp-ship
     functions: [frontend]
-    status: live
-    expect:
-      status: [200]
+    status: frozen
     manifest_source: prod-fleet/website-staging/website-ingress-web.yaml
-    decision: "D1: Staging-Spiegel der kanonischen Astro-Seite; nur QA, kein Index."
+    decision: "D1: Staging-Spiegel; frozen seit brand-trennung (realer Host web.staging.korczewski.de derzeit 000, unter fleet-korczewski-Env waere web.korczewski.de 404). Reaktivieren erst mit Staging-Backend + eigenem expect."
 
   - id: apex-korczewski
     host: ${PROD_DOMAIN}
@@ -77,26 +63,9 @@ domains:
     auth: open
     owner_frontend: bp-ship
     functions: [redirect]
-    status: live
-    expect:
-      status: [301]
-      redirect_to_contains: "web."
+    status: frozen
     manifest_source: prod-fleet/website-korczewski/website-apex.yaml
-    decision: "D1: Apex leitet auf den kanonischen web-Host weiter."
-
-  - id: studio-mentolder
-    host: studio.${PROD_DOMAIN}
-    cluster: fleet
-    namespace: workspace
-    paths: ["/"]
-    service: oauth2-proxy-studio:4180
-    auth: oidc
-    owner_frontend: bp-ship
-    functions: [websocket]
-    status: live
-    expect:
-      status: [302]
-    manifest_source: prod-fleet/mentolder/studio-ingress.yaml
+    decision: "D1: Apex leitet auf den kanonischen web-Host weiter — aktiv erst nach DNS-Cutover + Deploy (derzeit korczewski.de 404). Dann live + expect 301."
 
   - id: devmesh-web
     host: web.${DEVMESH_DOMAIN}

@@ -5,7 +5,9 @@ def test_backup_email_declared_and_set(repo_root):
     lines = (repo_root / 'environments/schema.yaml').read_text().splitlines()
     index = next(i for i, line in enumerate(lines) if 'name: BACKUP_ALERT_EMAIL' in line)
     assert 'required: true' in '\n'.join(lines[index:index+4])
-    for env in ['mentolder', 'korczewski', 'fleet-mentolder', 'fleet-korczewski', 'staging']:
+    # brand-trennung p5: environments/mentolder.yaml + fleet-mentolder.yaml
+    # geloescht — Restliste der existierenden Envs (alle mit gleichem Wert).
+    for env in ['korczewski', 'fleet-korczewski', 'staging']:
         assert 'BACKUP_ALERT_EMAIL: patrick@korczewski.de' in (repo_root / f'environments/{env}.yaml').read_text()
 
 def test_alertmanager_no_backup_mailbox(repo_root):

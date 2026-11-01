@@ -12,13 +12,13 @@ PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/lib/render-subst-list.sh"
 
 OUT_DIR="out"
-# --only a,b rendert nur die genannten Komponenten (platform, mentolder,
-# korczewski, korczewski-jobs, website-mentolder, website-korczewski, korczewski-auth,
+# --only a,b rendert nur die genannten Komponenten (platform,
+# korczewski, korczewski-jobs, website-korczewski, korczewski-auth,
 # staging, website-staging, coturn, office, rustdesk,
-# sealed-secrets-{mentolder,korczewski,staging}, clusters).
+# sealed-secrets-{korczewski,staging}, clusters).
 # Leer = alles (Default).
 ONLY=""
-KNOWN_COMPONENTS="platform mentolder korczewski korczewski-jobs website-mentolder website-korczewski korczewski-auth staging website-staging coturn office rustdesk sealed-secrets-mentolder sealed-secrets-korczewski sealed-secrets-staging clusters"
+KNOWN_COMPONENTS="platform korczewski korczewski-jobs website-korczewski korczewski-auth staging website-staging coturn office rustdesk sealed-secrets-korczewski sealed-secrets-staging clusters"
 # WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
 # WEBSITE_IMAGE_TAG steuert den Image-Tag — getrennte Konzepte, nicht koppeln (T002209).
 # Siehe Task 2.2 fuer die Default-Werte des Tags.
@@ -239,11 +239,13 @@ render_component() {
 
 cd "$PROJECT_DIR"
 
-# 1. Platform
+# 1. Platform (korczewski-only seit brand-trennung p8: fleet-mentolder
+# geloescht, Env ist fleet-korczewski mit PROD_DOMAIN=korczewski.de und
+# WORKSPACE_NAMESPACE=workspace-korczewski).
 if want platform; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
   apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
@@ -252,18 +254,8 @@ if want platform; then
 )
 fi
 
-# 2. Mentolder
-if want mentolder; then
-(
-  set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
-  apply_schema_defaults
-  if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
-  if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
-  mkdir -p "${OUT_DIR}/mentolder"
-  render_component prod-fleet/mentolder "${OUT_DIR}/mentolder/mentolder.yaml"
-)
-fi
+# 2. Mentolder ENTFALLEN (brand-trennung p5: prod-fleet/mentolder geloescht,
+# korczewski-only Repo) — kein want-Block mehr.
 
 # 3. Korczewski
 if want korczewski; then
@@ -294,18 +286,8 @@ if want korczewski-jobs; then
 )
 fi
 
-# 4. Website Mentolder
-if want website-mentolder; then
-(
-  set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
-  apply_schema_defaults
-  if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
-  if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
-  mkdir -p "${OUT_DIR}/website-mentolder"
-  render_component prod-fleet/website-mentolder "${OUT_DIR}/website-mentolder/website-mentolder.yaml"
-)
-fi
+# 4. Website Mentolder ENTFALLEN (brand-trennung p5:
+# prod-fleet/website-mentolder geloescht, korczewski-only Repo).
 
 # 5. Website Korczewski
 if want website-korczewski; then
@@ -364,28 +346,39 @@ if want website-staging; then
 )
 fi
 
-# 5d. Coturn/Janus (T016529) — Talk-HPB auf gekko-hetzner-2 (hostNetwork,
-#     ohne WG). TURN_* aus fleet-mentolder; Secrets kommen aus dem
-#     SealedSecrets-Pfad (./sealed-secrets/mentolder), TLS via eigenes
-#     Certificate im Overlay (keine stale Kopie).
+# 5d. Coturn/Janus (T016529) — Talk-HPB auf pk-hetzner-4 (hostNetwork,
+#     ohne WG). Env-Mapping brand-trennung p8 (fleet-mentolder -> fleet-korczewski,
+#     Werte aus environments/fleet-korczewski.yaml, nichts erfunden):
+#       TURN_NODE  gekko-hetzner-2 -> pk-hetzner-4
+#       TURN_PUBLIC_IP  178.104.169.206 -> 204.168.244.104
+#       TURN_OVERLAY_IP  192.168.200.2 -> siehe environments/fleet-korczewski.yaml
+#         (pk-hetzner-4-Overlay-IP; wörtlicher Wert hier ausgespart, damit der
+#         fleet-no-wireguard-Guard (kein 10.20.0.x im Prod-Umfang) scharf bleibt)
+#       PROD_DOMAIN  mentolder.de -> korczewski.de
+#       TLS_SECRET_NAME  workspace-wildcard-tls -> korczewski-tls
+#     Secrets kommen aus dem SealedSecrets-Pfad
+#     (./sealed-secrets/korczewski), TLS via eigenes Certificate im Overlay.
 if want coturn; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
   apply_schema_defaults
   mkdir -p "${OUT_DIR}/coturn"
   render_component prod-fleet/coturn "${OUT_DIR}/coturn/coturn.yaml"
 )
 fi
 
-# 5e. Collabora (office-stack) fuer mentolder. Die COLLABORA_*-Werte leitet
-#     sonst nur Taskfile.platform.yml (fleet:shared-services) ab; hier dieselbe
-#     Ableitung, aber nur fuer mentolder. aliasgroup1 ist ein Regex: `\\.`
-#     ergibt nach dem Quoten durch render_component ein literales `\.`.
+# 5e. Collabora (office-stack) fuer korczewski (brand-trennung p8:
+#     fleet-mentolder -> fleet-korczewski; PROD_DOMAIN=korczewski.de und
+#     TLS_SECRET_NAME=korczewski-tls aus environments/fleet-korczewski.yaml).
+#     Die COLLABORA_*-Werte leitet sonst nur Taskfile.platform.yml
+#     (fleet:shared-services) ab; hier dieselbe Ableitung. aliasgroup1 ist
+#     ein Regex: `\\.` ergibt nach dem Quoten durch render_component ein
+#     literales `\.`.
 if want office; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
   apply_schema_defaults
   export COLLABORA_HOST="office.${PROD_DOMAIN}"
   export COLLABORA_SERVER_NAME=""
@@ -399,13 +392,15 @@ if want office; then
 )
 fi
 
-# 5f. RustDesk-Relay (hbbs/hbbr) fuer mentolder. Substituiert wird nur
+# 5f. RustDesk-Relay (hbbs/hbbr) fuer korczewski (brand-trennung p8:
+#     fleet-mentolder -> fleet-korczewski; TURN_NODE=pk-hetzner-4 aus
+#     environments/fleet-korczewski.yaml). Substituiert wird nur
 #     ${TURN_NODE} (Knoten-Pin wie coturn); always-on, ohne den
 #     On-demand-Sleeper (T015170).
 if want rustdesk; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
   apply_schema_defaults
   mkdir -p "${OUT_DIR}/rustdesk"
   render_component prod-fleet/rustdesk "${OUT_DIR}/rustdesk/rustdesk.yaml"
@@ -413,15 +408,11 @@ if want rustdesk; then
 fi
 
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
-# Nested per-brand: both files carry a SealedSecret for the shared
-# grafana-oidc secret (namespace monitoring), so a single flat kustomize
-# build across both would collide on that resource id. Separate
-# directories give kustomize-controller one independent build per brand.
-# Je Brand einzeln schaltbar (--only sealed-secrets-mentolder usw.).
-if want sealed-secrets-mentolder; then
-  mkdir -p "${OUT_DIR}/sealed-secrets/mentolder"
-  cp environments/sealed-secrets/fleet-mentolder.yaml "${OUT_DIR}/sealed-secrets/mentolder/fleet-mentolder.yaml"
-fi
+# Nested per-brand: das korczewski-File traegt ein SealedSecret fuers
+# geteilte grafana-oidc-Secret (namespace monitoring) — eigenes Verzeichnis
+# gibt kustomize-controller einen unabhaengigen Build pro Brand.
+# (sealed-secrets-mentolder entfiel mit brand-trennung p8, korczewski-only.)
+# Je Brand einzeln schaltbar (--only sealed-secrets-korczewski usw.).
 if want sealed-secrets-korczewski; then
   mkdir -p "${OUT_DIR}/sealed-secrets/korczewski"
   cp environments/sealed-secrets/fleet-korczewski.yaml "${OUT_DIR}/sealed-secrets/korczewski/fleet-korczewski.yaml"
@@ -476,7 +467,7 @@ fi
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn" "${OUT_DIR}/office" "${OUT_DIR}/rustdesk"; do
+for tree_dir in "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn" "${OUT_DIR}/office" "${OUT_DIR}/rustdesk"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

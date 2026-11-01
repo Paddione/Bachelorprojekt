@@ -61,13 +61,14 @@ def _env(dep: dict) -> dict:
     return {e["name"]: e.get("value") for e in dep["spec"]["template"]["spec"]["containers"][0]["env"]}
 
 
-def test_collabora_deployment_for_mentolder(office_docs):
+def test_collabora_deployment_for_korczewski(office_docs):
     dep = _find(office_docs, "Deployment", "collabora")
     assert dep is not None
     assert dep["metadata"]["namespace"] == NS
     env = _env(dep)
     # Regex-Alias fuer den WOPI-Host: der Punkt bleibt escaped.
-    assert env["aliasgroup1"] == r"https://files\.mentolder.de:443"
+    # brand-trennung p8: office-Stack rendert korczewski-Werte.
+    assert env["aliasgroup1"] == r"https://files\.korczewski.de:443"
     assert "--o:ssl.termination=true" in env["extra_params"]
     # Image ist oeffentlich — kein Pull-Secret, das nach einem Neuaufbau fehlt.
     assert not dep["spec"]["template"]["spec"].get("imagePullSecrets")
@@ -76,13 +77,13 @@ def test_collabora_deployment_for_mentolder(office_docs):
 def test_office_ingress_and_own_certificate(office_docs):
     ing = _find(office_docs, "Ingress", "office-ingress")
     assert ing is not None
-    assert [r["host"] for r in ing["spec"]["rules"]] == ["office.mentolder.de"]
+    assert [r["host"] for r in ing["spec"]["rules"]] == ["office.korczewski.de"]
     secret = ing["spec"]["tls"][0]["secretName"]
     cert = next((d for d in office_docs if d.get("kind") == "Certificate"), None)
     assert cert is not None, "eigenes Certificate fehlt (keine stale TLS-Kopie)"
     assert cert["metadata"]["namespace"] == NS
     assert cert["spec"]["secretName"] == secret
-    assert "*.mentolder.de" in cert["spec"]["dnsNames"]
+    assert "*.korczewski.de" in cert["spec"]["dnsNames"]
 
 
 def test_admin_secret_not_in_artifact(office_docs):

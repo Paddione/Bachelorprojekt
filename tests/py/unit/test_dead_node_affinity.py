@@ -28,7 +28,8 @@ def built_overlays(repo_root: Path, tmp_path_factory) -> dict[str, Path]:
     tmp_dir = tmp_path_factory.mktemp("manifests_build")
     overlays = [
         "prod-mentolder",
-        "prod-fleet/mentolder",
+        # brand-trennung p5: prod-fleet/mentolder geloescht — korczewski-
+        # Pendant (bereits in der Liste) ist der Fleet-Verbraucher.
         # T016558: prod-fleet/mentolder-jobs entfiel (flux-mentolder-jobs aus Prod entfernt).
         "prod-fleet/platform",
         "prod-fleet/korczewski",
@@ -50,7 +51,7 @@ def built_overlays(repo_root: Path, tmp_path_factory) -> dict[str, Path]:
 
 def test_built_brand_manifests_no_dead_nodes(built_overlays: dict[str, Path]):
     dead_nodes = ["k3s-1", "k3s-2", "k3s-3", "k3w-1", "k3w-2", "k3w-3"]
-    for brand in ["prod-fleet/mentolder", "prod-fleet/korczewski"]:
+    for brand in ["prod-fleet/korczewski"]:
         out_file = built_overlays[brand]
         content = out_file.read_text()
         kind_count = sum(1 for line in content.splitlines() if line.startswith("kind:"))
@@ -62,7 +63,7 @@ def test_built_brand_manifests_no_dead_nodes(built_overlays: dict[str, Path]):
 
 def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
     base = _ids(built_overlays["prod-mentolder"])
-    w1 = _ids(built_overlays["prod-fleet/mentolder"])
+    w1 = _ids(built_overlays["prod-fleet/korczewski"])
     w3 = _ids(built_overlays["prod-fleet/platform"])
 
     union = w1 | w3
@@ -123,6 +124,15 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
         ('Job', 'pocket-id-client-seed'),
         ('Job', 'pocket-id-db-init'),
         ('Job', 'nextcloud-notification-config'),
+        # brand-trennung: korczewski-Overlay behält nur korczewski-Ressourcen —
+        # Belege in prod-korczewski/kustomization.yaml ($patch: delete):
+        # pvc-backup referenziert vaultwarden/nextcloud-Pods (in korczewski
+        # auf 0 skaliert, T012964); error-log-retention targetet den
+        # Website-Pod (in korczewski auf 0); Namespace workspace heisst in
+        # der Brand workspace-korczewski (Rename, kein Drop).
+        ('CronJob', 'pvc-backup'),
+        ('CronJob', 'error-log-retention'),
+        ('Namespace', 'workspace'),
     }
     lost = sorted(base - union - intentionally_removed)
     assert not lost, f"Resources dropped by all consumers: {lost}"

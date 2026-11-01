@@ -6,7 +6,6 @@
     { "path": "./components/studio-server" },
     { "path": "./packages/videovault-player" },
     { "path": "./components/mediaviewer-widget" },
-    { "path": "./components/mentolder-web" },
     { "path": "./tests/e2e" },
     { "path": "./.lavish/kit/daemon" }
   ]

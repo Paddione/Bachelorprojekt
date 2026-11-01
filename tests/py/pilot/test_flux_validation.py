@@ -11,9 +11,7 @@ def test_all_brand_kustomizations_depend_on_flux_infra_controllers(
     brand_files = [
         fleet_dir / f"ks-{brand}.yaml"
         for brand in [
-            "mentolder",
             "korczewski",
-            "website-mentolder",
             "website-korczewski",
         ]
     ]
@@ -34,9 +32,7 @@ def test_brand_kustomizations_use_fleet_manifests_source(yaml_load, repo_root: P
     files = [
         fleet_dir / f"ks-{brand}.yaml"
         for brand in [
-            "mentolder",
             "korczewski",
-            "website-mentolder",
             "website-korczewski",
         ]
     ]
@@ -173,8 +169,9 @@ def test_sealed_secrets_rendered_into_separate_per_brand_directories(repo_root: 
     script_file = repo_root / "scripts" / "flux-render-artifact.sh"
     assert script_file.is_file()
     content = script_file.read_text(encoding="utf-8")
-    assert "sealed-secrets/mentolder" in content
     assert "sealed-secrets/korczewski" in content
+    # brand-trennung p8: sealed-secrets-mentolder entfiel (korczewski-only Render).
+    assert "sealed-secrets/mentolder" not in content
 
 
 def test_flux_sealed_secrets_kustomizations_point_at_separate_per_brand_paths(

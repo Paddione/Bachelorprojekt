@@ -29,7 +29,8 @@ on:
         # Job-Matrix unten nicht mehr vorkommt [T002602]. Bliebe die Option
         # stehen, startete eine Auswahl einen Lauf ohne einen einzigen Job —
         # ein stiller Erfolg, der wie ein bestandener Test aussieht.
-        options: [both, mentolder]
+        # [brand-trennung p4]: korczewski reaktiviert (Unfreeze p2).
+        options: [both, mentolder, korczewski]
   schedule:
     - cron: "0 3 * * *"  # 03:00 UTC nightly
 
@@ -55,26 +56,15 @@ jobs:
             contact_email: info@mentolder.de
             contact_phone: "+49 151 508 32 601"
             service_pages: /coaching,/beratung
-          # [T002602] korczewski deaktiviert, solange der Brand eingefroren ist.
-          # Seit 2026-07-23 sind die Flux-Kustomizations ks-korczewski /
-          # ks-website-korczewski / ks-jobs-korczewski auf suspend: true (T002479,
-          # Commit 9667b24ef, Grund: Kosten/Wartung) und saemtliche Deployments in
-          # workspace-korczewski und website-korczewski stehen live auf 0/0.
-          # web.korczewski.de hat damit keinen Backend-Pod; Traefik antwortet mit
-          # 503 "no available server", woran schon der global-db-cleanup-Setup
-          # scheitert. Folge war ein dauerhaft roter nightly-Lauf (0 von 8
-          # abgeschlossenen Laeufen gruen) — ein Rot, das nichts ueber die
-          # Testsuite aussagt und echte Regressionen bei mentolder ueberdeckt.
-          #
-          # Beim Aufheben der Suspension in flux/clusters/fleet/ks-korczewski.yaml
-          # diesen Block UND die korczewski-Option unter workflow_dispatch.inputs
-          # wieder aktivieren.
-          # - cluster: korczewski
-          #   website_url: https://web.korczewski.de
-          #   prod_domain: korczewski.de
-          #   contact_email: info@korczewski.de
-          #   contact_phone: ""
-          #   service_pages: /ki-beratung,/software-dev,/deployment
+          # [brand-trennung p4] korczewski reaktiviert (Unfreeze p2, Eigner-Entscheidung
+          # 2026-11-01). T002602-Kommentar aufgehoben; bei erneutem Freeze diesen
+          # Block + die korczewski-Option oben wieder deaktivieren.
+          - cluster: korczewski
+            website_url: https://web.korczewski.de
+            prod_domain: korczewski.de
+            contact_email: info@korczewski.de
+            contact_phone: ""
+            service_pages: /ki-beratung,/software-dev,/deployment
     env:
       SELECTED_CLUSTER: ${{ inputs.cluster }}
       EVENT_NAME: ${{ github.event_name }}
@@ -190,10 +180,8 @@ jobs:
           # SKIP_DB_PURGE mehr: fehlt das Secret, soll der Run laut scheitern.
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           PLAYWRIGHT_WORKERS: "4"
-        # Exclude korczewski projects — brand is frozen (T002602), web.korczewski.de returns 503.
-        # Without this filter, every nightly run fails on the korczewski health check before
-        # any mentolder test executes.
-        #
+        # Exclude korczewski projects on the mentolder job and vice versa — each
+        # brand runs its own setup/auth chain (T002602, brand-trennung p4).
         # Die Auswahl steht positiv, weil Playwright KEINE Negation in --project kennt
         # [T012489]: `--project=!korczewski` wird als Projektname gelesen, nicht als
         # Ausschluss, und der Lauf bricht mit "Project(s) not found" ab, bevor ein
@@ -201,13 +189,23 @@ jobs:
         # tests/py/spec/ci_cd_specs/test_e2e_project_selection.py, dass jedes Projekt aus
         # playwright.config.ts hier entweder aufgezaehlt oder bewusst ausgeschlossen ist.
         run: |
-          npx playwright test \
-            --project website \
-            --project mentolder-setup \
-            --project mentolder \
-            --project services \
-            --project smoke \
-            --project ios
+          if [ "${{ matrix.cluster }}" = "korczewski" ]; then
+            npx playwright test \
+              --project website \
+              --project korczewski-setup \
+              --project korczewski \
+              --project services \
+              --project smoke \
+              --project ios
+          else
+            npx playwright test \
+              --project website \
+              --project mentolder-setup \
+              --project mentolder \
+              --project services \
+              --project smoke \
+              --project ios
+          fi
 
       # G-E2E02 / T002096: defense-in-depth post-run purge (covers timeout kill)
       - name: Post-run test-data purge (defense-in-depth)

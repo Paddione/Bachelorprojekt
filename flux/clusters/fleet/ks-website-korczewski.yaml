@@ -11,7 +11,7 @@ spec:
   # Go-live vorbereitet. Stand 2026-10-15: massage wird nur lokal auf devmesh
   # entwickelt (massage.devmesh.korczewski.de), kein Prod-Go-live. Eingefroren
   # wie Workspace/Jobs (T002479).
-  suspend: true
+  suspend: false
   dependsOn:
     - name: flux-infra-controllers
     - name: flux-korczewski-auth

@@ -16,14 +16,15 @@ def _suspend_of(repo_root, filename):
     return m.group(1) == "true"
 
 
-def test_t014537_korczewski_manifests_keep_workspace_and_website_paused(repo_root):
-    # T002479: Workspace + Jobs suspendiert; Website ebenfalls, massage nur auf devmesh.
+def test_t014537_korczewski_manifests_keep_workspace_and_website_active(repo_root):
+    # Eigner 2026-11-01 (brand-trennung Voll-Unfreeze): Workspace + Jobs +
+    # Website sind live (suspend: false) — Pause war gestern.
     assert (repo_root / FLUX_DIR / "ks-korczewski.yaml").is_file()
     assert (repo_root / FLUX_DIR / "ks-jobs-korczewski.yaml").is_file()
     assert (repo_root / FLUX_DIR / "ks-website-korczewski.yaml").is_file()
-    assert _suspend_of(repo_root, "ks-korczewski.yaml") is True
-    assert _suspend_of(repo_root, "ks-jobs-korczewski.yaml") is True
-    assert _suspend_of(repo_root, "ks-website-korczewski.yaml") is True
+    assert _suspend_of(repo_root, "ks-korczewski.yaml") is False
+    assert _suspend_of(repo_root, "ks-jobs-korczewski.yaml") is False
+    assert _suspend_of(repo_root, "ks-website-korczewski.yaml") is False
 
 
 def _kubectl_json(run_cmd, *args):
@@ -31,7 +32,11 @@ def _kubectl_json(run_cmd, *args):
     return result
 
 
-def test_t014537_paused_admin_action_cronjobs_have_no_active_jobs(run_cmd, repo_root):
+def test_t014537_active_admin_action_cronjobs_are_not_suspended(run_cmd, repo_root):
+    # Aktiv-Policy (Voll-Unfreeze): beide CronJobs existieren und sind NICHT
+    # suspendiert (Render-Beleg: suspend=None im korczewski-Artefakt).
+    # Laufende Jobs sind Normalbetrieb — keine Aktivitaets-Aussage (nichts
+    # erfunden). Ohne Fleet-Cluster skipped der Test wie bisher.
     if shutil.which("kubectl") is None:
         pytest.skip("kubectl binary not installed")
     if run_cmd(["kubectl", "config", "get-contexts", "fleet"]).returncode != 0:
@@ -41,26 +46,15 @@ def test_t014537_paused_admin_action_cronjobs_have_no_active_jobs(run_cmd, repo_
     ns = run_cmd(["timeout", "20", "kubectl", "--context", "fleet",
                   "get", "namespace", "workspace-korczewski", "-o", "json"])
     if ns.returncode != 0:
-        # Slot vollstaendig dekommissioniert: kein Namespace, keine Jobs —
-        # die Pause ist staerker als suspendiert. Die Manifest-Aussage oben
-        # bleibt der gueltige Beleg fuer die gewollte Brand-Pause.
-        ks = _kubectl_json(run_cmd, "-n", "flux-system", "get", "kustomizations",
-                           "flux-korczewski", "flux-korczewski-jobs", "-o", "json")
-        if ks.returncode == 0:
-            items = json.loads(ks.stdout)["items"]
-            assert all(item.get("spec", {}).get("suspend") is True for item in items), (
-                "flux-korczewski Kustomizations weder abwesend noch suspendiert")
-        else:
-            assert "NotFound" in ks.output, ks.output
-        pytest.skip("workspace-korczewski existiert nicht — Slot dekommissioniert, keine Jobs moeglich")
+        pytest.skip("workspace-korczewski existiert nicht — kein Live-Beleg moeglich")
 
     cronjobs = _kubectl_json(
         run_cmd, "-n", "workspace-korczewski", "get", "cronjobs", *owners, "-o", "json"
     )
     assert cronjobs.returncode == 0, f"kubectl cronjobs failed: {cronjobs.output}"
     items = json.loads(cronjobs.stdout)["items"]
-    assert all(item.get("spec", {}).get("suspend") is True for item in items), (
-        "approved admin-action CronJobs are not both suspended"
+    assert all(item.get("spec", {}).get("suspend") is not True for item in items), (
+        "approved admin-action CronJobs sind suspendiert, obwohl die Brand aktiv ist"
     )
     names = {item["metadata"]["name"] for item in items}
     for owner in owners:
@@ -68,12 +62,3 @@ def test_t014537_paused_admin_action_cronjobs_have_no_active_jobs(run_cmd, repo_
 
     jobs = _kubectl_json(run_cmd, "-n", "workspace-korczewski", "get", "jobs", "-o", "json")
     assert jobs.returncode == 0, f"kubectl jobs failed: {jobs.output}"
-    active = []
-    for job in json.loads(jobs.stdout)["items"]:
-        refs = job.get("metadata", {}).get("ownerReferences") or []
-        owned = any(
-            ref.get("kind") == "CronJob" and ref.get("name") in owners for ref in refs
-        )
-        if owned and (job.get("status", {}).get("active") or 0) > 0:
-            active.append(job["metadata"]["name"])
-    assert not active, f"active admin-action Jobs remain: {' '.join(active)}"

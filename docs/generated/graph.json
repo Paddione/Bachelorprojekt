@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T13:10:12.317Z",
+  "generatedAt": "2026-11-01T18:35:13.864Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1566,6 +1566,12 @@
     {
       "from": "sessions-server",
       "to": "sessions-server",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "studio-server",
+      "to": "studio-server",
       "via": "selector",
       "kind": "selector"
     },

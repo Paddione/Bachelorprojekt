@@ -1,9 +1,10 @@
 """Native migration of tests/spec/repo-structure/components-group.bats."""
 
-def test_repo_structure_vier_komponenten_unter_components_keine_top_level_ordner(repo_root):
-    # Positiv-Anker: der gueltige Fall (Brett entfallen — Entwicklung bei gekko32/brett)
+def test_repo_structure_drei_komponenten_unter_components_keine_top_level_ordner(repo_root):
+    # Positiv-Anker: der gueltige Fall (Brett entfallen — Entwicklung bei gekko32/brett;
+    # mentolder-web entfallen — brand-trennung p6, nur ignorierte node_modules-Reste).
     assert (repo_root / "components").is_dir()
-    components = ["studio-server", "mentolder-web", "mediaviewer-widget", "VideoVault"]
+    components = ["studio-server", "mediaviewer-widget", "VideoVault"]
     for c in components:
         assert (repo_root / "components" / c).is_dir(), c
     # Negativ-Aussage: kein Top-Level-Verzeichnis mehr

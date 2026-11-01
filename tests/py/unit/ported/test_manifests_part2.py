@@ -246,7 +246,7 @@ def test_taskfile_yml_does_not_corrupt_native_kubernetes_expansions_with_sed(rep
 def test_website_overlay_allows_egress_to_workspace_office_collabora_health_probe(run_cmd, repo_root):
     if shutil.which("kubectl") is None:
         pytest.skip("kubectl not installed")
-    overlay = str(repo_root / "prod-fleet" / "website-mentolder")
+    overlay = str(repo_root / "prod-fleet" / "website-korczewski")
     r = _kustomize_docs(run_cmd, overlay)
 
     def allows_office(doc):

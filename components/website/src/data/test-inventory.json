@@ -5052,12 +5052,6 @@
     "kind": "pytest"
   },
   {
-    "id": "react-homepage-blocks",
-    "file": "tests/py/spec/native_ported/spec/test_react_homepage_blocks.py",
-    "category": "react-homepage-blocks",
-    "kind": "pytest"
-  },
-  {
     "id": "react-login-edit-homepage",
     "file": "tests/py/spec/native_ported/spec/test_react_login_edit_homepage.py",
     "category": "react-login-edit-homepage",

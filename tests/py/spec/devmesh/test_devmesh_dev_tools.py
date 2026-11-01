@@ -63,14 +63,3 @@ def test_k1_embed_cronjob(devmesh):
     assert all("$JOB_ID" not in str(v) and "$MERGE_SHA" not in str(v) for v in env.values())
     # [#7006] SSOT scripts/lib/dense-embedding.mjs ist embeddinggemma-300m, kein bge-m3.
     assert env["LLM_EMBED_MODEL"] == "embeddinggemma-300m", env.get("LLM_EMBED_MODEL")
-
-
-def test_mentolder_overlay_clean(repo_root):
-    result = subprocess.run(
-        ["kubectl", "kustomize", "--load-restrictor=LoadRestrictionsNone", "prod-fleet/mentolder"],
-        cwd=repo_root, capture_output=True, text=True, check=True,
-    )
-    names = {name for _, name in _docs(result.stdout)}
-    assert "mentolder-web" in names  # Positiv-Anker: der Render liefert das mentolder-Overlay
-    assert not names & {"brain", "oauth2-proxy-brain", "sessions-server", "oauth2-proxy-session-hub"}
-    assert not (repo_root / ".github/workflows/k1-embed.yml").exists()

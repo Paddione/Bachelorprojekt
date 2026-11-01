@@ -85,9 +85,9 @@ cutover-State, Guard-Läufe).
 - [x] **1. Partial p1** (`tasks.d/p1-inventar.md`): Voll-Inventar mentolder-Oberfläche.
 - [x] **2. Partial p2** (`tasks.d/p2-unfreeze.md`): korczewski-Flux-Suspend lösen.
 - [x] **3. Partial p3** (`tasks.d/p3-envs-dns.md`): Envs/Secrets + DNS-Cutover (mit Eigner-STOPP).
-- [ ] **4. Partial p4** (`tasks.d/p4-website-live.md`): Website korczewski live + CI-Refs.
-- [ ] **5. Partial p5** (`tasks.d/p5-mentolder-infra-weg.md`): mentolder-Manifeste/Envs raus (mit Prune-STOPP).
-- [ ] **6. Partial p6** (`tasks.d/p6-mentolder-code-weg.md`): mentolder-web + Content raus.
-- [ ] **7. Partial p7** (`tasks.d/p7-registry-verify.md`): Registry-Umschreibung + Guards grün + Belege.
+- [x] **4. Partial p4** (`tasks.d/p4-website-live.md`): Website korczewski live + CI-Refs.
+- [x] **5. Partial p5** (`tasks.d/p5-mentolder-infra-weg.md`): mentolder-Manifeste/Envs raus (mit Prune-STOPP).
+- [x] **6. Partial p6** (`tasks.d/p6-mentolder-code-weg.md`): mentolder-web + Content raus.
+- [x] **7. Partial p7** (`tasks.d/p7-registry-verify.md`): Registry-Umschreibung + Guards grün + Belege.
 - [ ] **8. Finaler Verifikations-Task.** `task test:changed`,
   `task freshness:regenerate`, `task freshness:check`.

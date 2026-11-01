@@ -144,24 +144,6 @@ def test_website_korczewski_uses_central_massage_db(repo_root: Path):
     ), f"WEBSITE_DB_PASSWORD-Referenz falsch: {refs.get('WEBSITE_DB_PASSWORD')}"
 
 
-def test_website_mentolder_unchanged(repo_root: Path):
-    rendered = _kustomize_build(repo_root, "prod-fleet/website-mentolder")
-    substituted = _substitute(rendered, _env_vars(repo_root, "fleet-mentolder"))
-    index = _index([d for d in _yaml_load_all(substituted) if d])
-    deployment = index.get(("Deployment", "website", "website"))
-    assert deployment is not None, "mentolder website Deployment fehlt"
-    env = _deployment_env(deployment)
-    db_url = env.get("SESSIONS_DATABASE_URL", "")
-    assert db_url.endswith("/website"), f"mentolder DB-Name geaendert: {db_url}"
-    assert "website_massage" not in db_url, "mentolder darf nicht auf website_massage zeigen"
-    assert "shared-db.workspace.svc" in db_url, f"mentolder Host geaendert: {db_url}"
-    refs = dict((name, (secret, key)) for name, secret, key in _secret_refs(deployment))
-    assert refs.get("WEBSITE_DB_PASSWORD") == (
-        "website-secrets",
-        "WEBSITE_DB_PASSWORD",
-    ), f"mentolder Secret-Key geaendert: {refs.get('WEBSITE_DB_PASSWORD')}"
-
-
 # ── Auth-Overlay ─────────────────────────────────────────────────────────────
 
 def test_auth_overlay_topology(repo_root: Path):

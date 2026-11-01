@@ -59,11 +59,6 @@ def test_p1_transcriber_pip_layer_has_cache_mount_and_no_no_cache_dir(root):
     assert "no-cache-dir" not in text
 
 
-def test_p1_mentolder_web_dockerfile_has_pnpm_store_cache_mount(root):
-    text = _read(root, "components/mentolder-web/Dockerfile")
-    assert "mount=type=cache,target=/root/.local/share/pnpm/store" in text
-
-
 # ── Phase 2: Website slim + Konsolidierung ─────────────────────────────────
 
 def test_p2_website_dockerfile_prunes_dev_dependencies(root):
@@ -80,7 +75,7 @@ def test_p2_korczewski_website_workflow_is_removed(root):
 
 def test_p2_all_env_files_point_website_image_at_shared_name(root):
     rx = re.compile(r"^[ \t]*WEBSITE_IMAGE:[ \t]*website[ \t]*$", re.MULTILINE)
-    for brand in ("mentolder", "korczewski", "fleet-mentolder", "fleet-korczewski", "staging", "dev"):
+    for brand in ("korczewski", "fleet-korczewski", "staging", "dev"):
         text = _read(root, f"environments/{brand}.yaml")
         assert rx.search(text), f"WEBSITE_IMAGE not set to 'website' in environments/{brand}.yaml"
 

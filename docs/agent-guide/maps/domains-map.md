@@ -8,10 +8,6 @@ Jeder oeffentlich erreichbare Host, gruppiert nach Cluster und Frontend-Team.
 ```mermaid
 flowchart LR
     subgraph fleet["fleet"]
-        website_mentolder["web.${PROD_DOMAIN}"]
-        website_staging["web.${PROD_DOMAIN}"]
-        apex_korczewski["${PROD_DOMAIN}"]
-        studio_mentolder["studio.${PROD_DOMAIN}"]
     end
     subgraph devmesh["devmesh"]
         devmesh_web["web.${DEVMESH_DOMAIN}"]
@@ -30,10 +26,6 @@ flowchart LR
         korczewski_auth_mirror["${KORCZEWSKI_PROD_AUTH_HOST}"]
     end
     owner_bp_ship["bp-ship"]
-    website_mentolder --> owner_bp_ship
-    website_staging --> owner_bp_ship
-    apex_korczewski --> owner_bp_ship
-    studio_mentolder --> owner_bp_ship
     devmesh_web --> owner_bp_ship
     devmesh_website_alias --> owner_bp_ship
     devmesh_auth --> owner_bp_ship
@@ -56,16 +48,16 @@ flowchart LR
 |---|---|---|---|
 | backend | bp-ship | `web.${DEVMESH_DOMAIN}` | live |
 | files | bp-ship | `files.${DEVMESH_DOMAIN}` | live |
-| frontend | bp-ship | `web.${PROD_DOMAIN}`<br>`web.${PROD_DOMAIN}`<br>`web.${PROD_DOMAIN}`<br>`web.${DEVMESH_DOMAIN}`<br>`${WEBSITE_HOST}`<br>`${KORCZEWSKI_PROD_WEB_HOST}`<br>`${KORCZEWSKI_PROD_APEX_HOST}` | frozen/live |
+| frontend | bp-ship | `web.${PROD_DOMAIN}`<br>`web.${PROD_DOMAIN}`<br>`web.${DEVMESH_DOMAIN}`<br>`${WEBSITE_HOST}`<br>`${KORCZEWSKI_PROD_WEB_HOST}`<br>`${KORCZEWSKI_PROD_APEX_HOST}` | frozen/live |
 | mail | bp-ship | `mail.${DEVMESH_DOMAIN}` | live |
 | middleware | bp-ship | `auth.${DEVMESH_DOMAIN}` | live |
 | office | bp-ship | `office.${DEVMESH_DOMAIN}` | live |
 | ops-access | bp-ship | `${OPENCODE_PUBLIC_HOST}`<br>`${FRITZ_BOX_HOST}` | live |
-| redirect | bp-ship | `${PROD_DOMAIN}` | live |
+| redirect | bp-ship | `${PROD_DOMAIN}` | frozen |
 | secrets | bp-ship | `vault.${DEVMESH_DOMAIN}` | live |
 | signaling | bp-ship | `signaling.${DEVMESH_DOMAIN}` | live |
 | sso | bp-ship | `${KORCZEWSKI_PROD_AUTH_HOST}` | live |
-| websocket | bp-ship | `studio.${PROD_DOMAIN}`<br>`brain.${DEVMESH_DOMAIN}` | live |
+| websocket | bp-ship | `brain.${DEVMESH_DOMAIN}` | live |
 
 ## Entscheidungen (D1-D3)
 
@@ -77,9 +69,9 @@ flowchart LR
 
 ### Begruendete Splits im Register
 
-- **`website-mentolder`** (web.${PROD_DOMAIN}) — D1: web.mentolder.de (Astro) ist die kanonische oeffentliche Seite; react.mentolder.de ist sekundaer/Redirect.
-- **`website-staging`** (web.${PROD_DOMAIN}) — D1: Staging-Spiegel der kanonischen Astro-Seite; nur QA, kein Index.
-- **`apex-korczewski`** (${PROD_DOMAIN}) — D1: Apex leitet auf den kanonischen web-Host weiter.
+- **`website-korczewski`** (web.${PROD_DOMAIN}) — D1: frozen bis Deploy-Freigabe (Backend derzeit 404); nach verifiziertem 200 auf live + expect heben.
+- **`website-staging`** (web.${PROD_DOMAIN}) — D1: Staging-Spiegel; frozen seit brand-trennung (realer Host web.staging.korczewski.de derzeit 000, unter fleet-korczewski-Env waere web.korczewski.de 404). Reaktivieren erst mit Staging-Backend + eigenem expect.
+- **`apex-korczewski`** (${PROD_DOMAIN}) — D1: Apex leitet auf den kanonischen web-Host weiter — aktiv erst nach DNS-Cutover + Deploy (derzeit korczewski.de 404). Dann live + expect 301.
 - **`devmesh-web`** (web.${DEVMESH_DOMAIN}) — D2: agent-board ist das kanonische devmesh-Ops-Cockpit; web.devmesh/sdlc sind Tickets/Pipeline.
 - **`devmesh-website-alias`** (${WEBSITE_HOST}) — D2: Kompat-Alias auf denselben Website-Service; kanonisch bleibt web.
 - **`devmesh-opencode`** (${OPENCODE_PUBLIC_HOST}) — Ops-Einstieg hinter oauth2-proxy; eigener Host, kein FritzBox-Zugang.
@@ -96,7 +88,7 @@ flowchart LR
 | `${KORCZEWSKI_PROD_AUTH_HOST}` | devmesh | components | pocket-id:1411 | oidc | bp-ship | sso | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${KORCZEWSKI_PROD_WEB_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${OPENCODE_PUBLIC_HOST}` | devmesh | components | opencode:80 | oidc | bp-ship | ops-access | live | dev-local/components/opencode/ingressroute.yaml |
-| `${PROD_DOMAIN}` | fleet | website-korczewski | website:80 | open | bp-ship | redirect | live | prod-fleet/website-korczewski/website-apex.yaml |
+| `${PROD_DOMAIN}` | fleet | website-korczewski | website:80 | open | bp-ship | redirect | frozen | prod-fleet/website-korczewski/website-apex.yaml |
 | `${WEBSITE_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/core/ingress.yaml |
 | `auth.${DEVMESH_DOMAIN}` | devmesh | core | pocket-id:1411 | oidc | bp-ship | middleware | live | dev-local/core/ingress.yaml |
 | `brain.${DEVMESH_DOMAIN}` | devmesh | components | oauth2-proxy-brain:4180 | oidc | bp-ship | websocket | live | dev-local/components/brain/ingress.yaml |
@@ -104,9 +96,7 @@ flowchart LR
 | `mail.${DEVMESH_DOMAIN}` | devmesh | components | mailpit:8025 | token | bp-ship | mail | live | dev-local/core/ingress.yaml |
 | `office.${DEVMESH_DOMAIN}` | devmesh | components | collabora:9980 | open | bp-ship | office | live | dev-local/components/collabora/ingress.yaml |
 | `signaling.${DEVMESH_DOMAIN}` | devmesh | components | spreed-signaling:8080 | token | bp-ship | signaling | live | dev-local/components/talk/ingress.yaml |
-| `studio.${PROD_DOMAIN}` | fleet | workspace | oauth2-proxy-studio:4180 | oidc | bp-ship | websocket | live | prod-fleet/mentolder/studio-ingress.yaml |
 | `vault.${DEVMESH_DOMAIN}` | devmesh | components | vaultwarden:80 | open | bp-ship | secrets | live | dev-local/components/vaultwarden/ingress.yaml |
 | `web.${DEVMESH_DOMAIN}` | devmesh | components | sdlc-console:8080 | oidc | bp-ship | frontend, backend | live | dev-local/core/ingress.yaml |
-| `web.${PROD_DOMAIN}` | fleet | website | website:80 | open | bp-ship | frontend | live | prod-fleet/website-mentolder/website-ingress-web.yaml |
 | `web.${PROD_DOMAIN}` | fleet | website-korczewski | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-korczewski/website-ingress-web.yaml |
-| `web.${PROD_DOMAIN}` | fleet | website-staging | website:80 | open | bp-ship | frontend | live | prod-fleet/website-staging/website-ingress-web.yaml |
+| `web.${PROD_DOMAIN}` | fleet | website-staging | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-staging/website-ingress-web.yaml |

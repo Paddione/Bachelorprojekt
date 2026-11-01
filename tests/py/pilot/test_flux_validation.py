@@ -11,9 +11,7 @@ def test_all_brand_kustomizations_depend_on_flux_infra_controllers(
     brand_files = [
         fleet_dir / f"ks-{brand}.yaml"
         for brand in [
-            "mentolder",
             "korczewski",
-            "website-mentolder",
             "website-korczewski",
         ]
     ]
@@ -34,9 +32,7 @@ def test_brand_kustomizations_use_fleet_manifests_source(yaml_load, repo_root: P
     files = [
         fleet_dir / f"ks-{brand}.yaml"
         for brand in [
-            "mentolder",
             "korczewski",
-            "website-mentolder",
             "website-korczewski",
         ]
     ]

@@ -24,7 +24,6 @@ def paths(repo_root: Path):
         "website": repo_root / "k3d" / "website.yaml",
         "shared_cm": repo_root / "prod-fleet" / "website-common" / "domain-config.yaml",
         "prod_domains": repo_root / "prod" / "configmap-domains.yaml",
-        "kust_mentolder": repo_root / "prod-fleet" / "website-mentolder" / "kustomization.yaml",
         "kust_korczewski": repo_root / "prod-fleet" / "website-korczewski" / "kustomization.yaml",
     }
 
@@ -86,10 +85,6 @@ def test_parity_every_domain_config_configmapkeyref_key_in_website_yaml_is_in_th
         if not key:
             continue
         assert _has_line(shared, r"^\s+" + re.escape(key) + ":"), f"FEHLT in shared domain-config: {key}"
-
-
-def test_presence_mentolder_overlay_references_the_shared_domain_config(paths):
-    assert "../website-common/domain-config.yaml" in _text(paths["kust_mentolder"])
 
 
 def test_presence_korczewski_overlay_references_the_shared_domain_config(paths):

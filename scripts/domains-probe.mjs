@@ -11,7 +11,7 @@
 //   node scripts/domains-probe.mjs --registry <pfad> ...  # gegen Fixture laufen
 //
 // Je status:live-Eintrag: ${VAR}-Platzhalter aus der festen Env-Datei je
-// Cluster aufloesen (fleet -> environments/fleet-mentolder.yaml, devmesh ->
+// Cluster aufloesen (fleet -> environments/fleet-korczewski.yaml, devmesh ->
 // environments/dev.yaml, jeweils env_vars-Sektion; unaufloesbar -> FAIL),
 // dann DNS -> TLS (Port 443, rejectUnauthorized) -> HTTP-Status/Redirect
 // (immer GET https://<host>/, Redirects folgen NICHT, Timeout 15 s).
@@ -31,7 +31,7 @@ import { parse as parseYaml } from 'yaml';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_REGISTRY = join(REPO, 'docs/agent-guide/registry/domains.yaml');
 const CLUSTER_ENV_FILE = {
-  fleet: 'environments/fleet-mentolder.yaml',
+  fleet: 'environments/fleet-korczewski.yaml',
   devmesh: 'environments/dev.yaml',
 };
 const ALLOWED_CLUSTER = new Set(['fleet', 'devmesh', 'both']);

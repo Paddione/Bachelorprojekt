@@ -19,7 +19,8 @@ FIXTURE_ENV = {
 
 
 def _prod_trees(out: Path):
-    return [out / "mentolder", out / "korczewski"]
+    # brand-trennung p8: mentolder-Tree gestrichen (korczewski-only Render).
+    return [out / "korczewski"]
 
 
 def _yaml_files(trees):
@@ -82,7 +83,7 @@ def test_no_default_secrets_keine_base64_ywrtaw3_admin_in_gerenderten_secrets(re
 def test_no_default_secrets_gf_security_admin_user_verwendet_value_admin_statt_secretkeyref_zu_monitoring_grafana(render):
     res, out = render
     assert res.returncode == 0, res.output
-    manifest = out / "mentolder" / "mentolder.yaml"
+    manifest = out / "korczewski" / "korczewski.yaml"
     assert manifest.is_file()
     lines = manifest.read_text(encoding="utf-8").splitlines()
     assert any("GF_SECURITY_ADMIN_USER" in l for l in lines)
@@ -97,7 +98,7 @@ def test_no_default_secrets_gf_security_admin_user_verwendet_value_admin_statt_s
 def test_no_default_secrets_sidecar_req_username_verwendet_value_admin_statt_secretkeyref_zu_monitoring_grafana(render):
     res, out = render
     assert res.returncode == 0, res.output
-    manifest = out / "mentolder" / "mentolder.yaml"
+    manifest = out / "korczewski" / "korczewski.yaml"
     assert manifest.is_file()
     lines = manifest.read_text(encoding="utf-8").splitlines()
     assert any("REQ_USERNAME" in l for l in lines)

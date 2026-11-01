@@ -10,10 +10,11 @@ packages/, Major-Spruenge ins Issue, Patch/Minor als ein PR mit Auto-Merge. Der
 Lauf arbeitet nie im Live-Checkout.
 
 Regeln, die hier stehen, weil sie nicht aus dem Code folgen:
-- Release-Age: pnpm lehnt junge Versionen nicht ab, sondern traegt sie selbst in
-  minimumReleaseAgeExclude ein. Das Gate greift also nur, wenn der Scan sie gar
-  nicht erst waehlt. Zieht ein Update trotzdem eine junge transitive Abhaengigkeit
-  nach, wird der Workspace verworfen und am Folgetag neu versucht.
+- Release-Age: gilt auch fuer transitive Abhaengigkeiten. npm bekommt --before,
+  pnpm --config.minimum-release-age (die camelCase-Form ignoriert pnpm still, und
+  der Default auf dem Host ist 0). Ohne Grenze tragen die Cloud-Laeufe junge
+  Versionen in minimumReleaseAgeExclude ein, statt sie abzulehnen. Legt pnpm
+  trotzdem eine Ausnahme an, wird der Workspace verworfen und spaeter neu versucht.
 - 0.x: dort darf ein Minor brechen, deshalb zaehlt es hier als Major.
 - Exit 1 ist das Alarmsignal: repo-hygiene-audit.py prueft das Service-Ergebnis.
   Ein offener Update-PR blockiert alle Folgelaeufe, darum endet ein festhaengender
@@ -178,10 +179,12 @@ def refresh_lockfile(workspace, run=run_cmd):
     """Nur Lockfile, keine Installation: --ignore-scripts haelt Paketcode vom Host fern."""
     if (workspace / "pnpm-lock.yaml").exists():
         lockfile = "pnpm-lock.yaml"
-        rc, out = run(["pnpm", "install", "--no-frozen-lockfile", "--lockfile-only", "--ignore-scripts"], workspace)
+        rc, out = run(["pnpm", "install", "--no-frozen-lockfile", "--lockfile-only", "--ignore-scripts",
+                       f"--config.minimum-release-age={MIN_RELEASE_AGE_DAYS * 24 * 60}"], workspace)
     elif (workspace / "package-lock.json").exists():
         lockfile = "package-lock.json"
-        npm = ["npm", "install", "--package-lock-only", "--ignore-scripts"]
+        cutoff = (datetime.now(timezone.utc) - MIN_RELEASE_AGE).isoformat(timespec="seconds")
+        npm = ["npm", "install", "--package-lock-only", "--ignore-scripts", f"--before={cutoff}"]
         rc, out = run(npm, workspace)
         if rc and "ERESOLVE" in out:  # VideoVault: typescript 7 gegen @typescript-eslint
             rc, out = run([*npm, "--legacy-peer-deps"], workspace)

@@ -3338,7 +3338,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bp-build",
-      "file_count": 388,
+      "file_count": 389,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3495,6 +3495,7 @@
         "k3d/knowledge-ingest-cronjob.yaml",
         "k3d/kustomization.yaml",
         "k3d/llm-gateway-ingress.yaml",
+        "k3d/llm-gemma-embed-scale.yaml",
         "k3d/llm-gemma-embed.yaml",
         "k3d/llm-gemma-igpu.yaml",
         "k3d/llm-gpu.yaml",

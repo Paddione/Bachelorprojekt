@@ -25,7 +25,7 @@ jobs:
       CI_REDINTAKE_KUBECONFIG: ${{ secrets.CI_REDINTAKE_KUBECONFIG }}
     steps:
       - name: Checkout repository (main)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         continue-on-error: true
         with:
           ref: main

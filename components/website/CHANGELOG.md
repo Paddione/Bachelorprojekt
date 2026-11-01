@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.444.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.443.0...website-v1.444.0) (2026-11-01)
+
+
+### Features
+
+* **e2e:** K6-Staffel-A — sdlc/brett-axe, docs-Smoke, Website-Belege ([#7047](https://github.com/Paddione/Bachelorprojekt/issues/7047)) ([999969a](https://github.com/Paddione/Bachelorprojekt/commit/999969a1d29691e57713aaf9678cd71bf93fde6b))
+
 ## [1.443.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.442.0...website-v1.443.0) (2026-11-01)
 
 

@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "url": [
-        "https://web.mentolder.de"
+        "https://web.korczewski.de"
       ],
       "numberOfRuns": 3,
       "settings": {

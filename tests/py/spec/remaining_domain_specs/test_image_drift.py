@@ -17,8 +17,8 @@ def test_busybox_canonical(repo_root):
     assert all(re.search(r'busybox:1\.38\.0(@sha256|\s|$|")',line) for line in refs(repo_root,'busybox'))
 
 def test_curl_canonical(repo_root):
-    # T016533: canonical curl bumped 8.21.0 -> 8.22.0 (latest stable).
-    assert all(re.search(r'curlimages/curl:8\.22\.0(@sha256|\s|$|")',line) for line in refs(repo_root,'curlimages/curl'))
+    # Watchdog #7050: canonical curl bumped 8.22.0 -> 8.23.0 (latest stable).
+    assert all(re.search(r'curlimages/curl:8\.23\.0(@sha256|\s|$|")',line) for line in refs(repo_root,'curlimages/curl'))
 
 def normalized(line):
     value=re.sub(r'.*image:\s*','',line).replace('"','').replace("'",'')

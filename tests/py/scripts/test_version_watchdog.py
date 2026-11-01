@@ -55,27 +55,32 @@ def test_parse_action_ref(uses, expected):
 def test_select_candidate_nimmt_neuestes_altes_update():
     assert vw.select_candidate((1, 2, 3),
                                [cand("1.2.4", 5), cand("1.2.9", 4)],
-                               NOW, MIN_AGE) == ("update", (1, 2, 9), 4)
+                               NOW, MIN_AGE) == ("update", (1, 2, 9), 4, "1.2.9")
 
 
 def test_select_candidate_haelt_zu_junges_update_zurueck():
     assert vw.select_candidate((1, 2, 3), [cand("1.2.4", 1)],
-                               NOW, MIN_AGE) == ("held", (1, 2, 4), 1)
+                               NOW, MIN_AGE) == ("held", (1, 2, 4), 1, "1.2.4")
 
 
 def test_select_candidate_meldet_datumsfrei_neu_statt_zu_verwerfen():
     assert vw.select_candidate((1, 2, 3), [cand("1.2.4")],
-                               NOW, MIN_AGE) == ("update", (1, 2, 4), None)
+                               NOW, MIN_AGE) == ("update", (1, 2, 4), None, "1.2.4")
+
+
+def test_select_candidate_behaelt_v_praefix_fuer_registry():
+    assert vw.select_candidate((2, 30, 0), [cand("v2.34.0", 7)],
+                               NOW, MIN_AGE) == ("update", (2, 34, 0), 7, "v2.34.0")
 
 
 def test_select_candidate_ignoriert_nicht_semver_tags():
     assert vw.select_candidate((1, 2, 3), [cand("latest", 9), cand("edge", 9)],
-                               NOW, MIN_AGE) == ("none", None, None)
+                               NOW, MIN_AGE) == ("none", None, None, None)
 
 
 def test_select_candidate_ignoriert_aeltere_tags():
     assert vw.select_candidate((1, 2, 3), [cand("1.2.0", 9)],
-                               NOW, MIN_AGE) == ("none", None, None)
+                               NOW, MIN_AGE) == ("none", None, None, None)
 
 
 def test_render_issue_body_traegt_marker_und_abschnitte():

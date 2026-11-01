@@ -9,10 +9,9 @@ metadata:
     helm.sh/chart: promtail-6.17.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: promtail
-    app.kubernetes.io/version: "3.5.1"
+    app.kubernetes.io/version: "3.6.11"
     app.kubernetes.io/managed-by: Helm
 automountServiceAccountToken: true
-
 ---
 # Source: promtail/templates/secret.yaml
 apiVersion: v1
@@ -24,7 +23,7 @@ metadata:
     helm.sh/chart: promtail-6.17.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: promtail
-    app.kubernetes.io/version: "3.5.1"
+    app.kubernetes.io/version: "3.6.11"
     app.kubernetes.io/managed-by: Helm
 stringData:
   promtail.yaml: |
@@ -47,6 +46,10 @@ stringData:
           - json:
               expressions:
                 level: level
+          - template:
+              source: level
+              template: '{{ if eq .Value "50" }}error{{ else if eq .Value "40" }}warn{{ else
+                if eq .Value "30" }}info{{ else }}{{ .Value }}{{ end }}'
           - labels:
               level: null
           - match:
@@ -124,7 +127,7 @@ stringData:
             source_labels:
             - namespace
             target_label: brand
-          - regex: .*
+          - regex: workspace
             replacement: mentolder
             source_labels:
             - namespace
@@ -137,8 +140,6 @@ stringData:
     
     tracing:
       enabled: false
-    
-
 ---
 # Source: promtail/templates/clusterrole.yaml
 kind: ClusterRole
@@ -149,7 +150,7 @@ metadata:
     helm.sh/chart: promtail-6.17.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: promtail
-    app.kubernetes.io/version: "3.5.1"
+    app.kubernetes.io/version: "3.6.11"
     app.kubernetes.io/managed-by: Helm
 rules:
   - apiGroups:
@@ -164,7 +165,6 @@ rules:
       - get
       - watch
       - list
-
 ---
 # Source: promtail/templates/clusterrolebinding.yaml
 kind: ClusterRoleBinding
@@ -175,7 +175,7 @@ metadata:
     helm.sh/chart: promtail-6.17.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: promtail
-    app.kubernetes.io/version: "3.5.1"
+    app.kubernetes.io/version: "3.6.11"
     app.kubernetes.io/managed-by: Helm
 subjects:
   - kind: ServiceAccount
@@ -185,7 +185,6 @@ roleRef:
   kind: ClusterRole
   name: promtail
   apiGroup: rbac.authorization.k8s.io
-
 ---
 # Source: promtail/templates/daemonset.yaml
 apiVersion: apps/v1
@@ -197,7 +196,7 @@ metadata:
     helm.sh/chart: promtail-6.17.1
     app.kubernetes.io/name: promtail
     app.kubernetes.io/instance: promtail
-    app.kubernetes.io/version: "3.5.1"
+    app.kubernetes.io/version: "3.6.11"
     app.kubernetes.io/managed-by: Helm
 spec:
   selector:
@@ -212,7 +211,7 @@ spec:
         app.kubernetes.io/name: promtail
         app.kubernetes.io/instance: promtail
       annotations:
-        checksum/config: 7c49ec33413df356b96e3d96fa53d4900190b49de9581a39f4a34f1147346ee0
+        checksum/config: 4bdba43d21fdc5640c5789fe18e1059555f575af58e84410abd3631157256967
     spec:
       serviceAccountName: promtail
       automountServiceAccountToken: true
@@ -222,7 +221,7 @@ spec:
         runAsUser: 0
       containers:
         - name: promtail
-          image: "docker.io/grafana/promtail:3.5.1@sha256:65bfae480b572854180c78f7dc567a4ad2ba548b0c410e696baa1e0fa6381299"
+          image: "docker.io/grafana/promtail:3.6.11"
           imagePullPolicy: IfNotPresent
           args:
             - "-config.file=/etc/promtail/promtail.yaml"

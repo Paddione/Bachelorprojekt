@@ -64,7 +64,7 @@ S4: Script, Task und Workflow sind jeweils voneinander aus erreichbar
 
 ## Tasks
 
-- [ ] **0. Rotphase zuerst:** `test_domains_probe.py` aus p4 vorab schreiben und
+- [x] **0. Rotphase zuerst:** `test_domains_probe.py` aus p4 vorab schreiben und
   laufen lassen → expected FAIL (`domains-probe.mjs` fehlt: `test_validate_only_passes`
   mit Exit ≠ 0 wegen fehlendem Script; Beleg im phase-events.log).
 - [ ] **1. Partial p1** (`tasks.d/p1-probe-script.md`): Probe-Script bauen

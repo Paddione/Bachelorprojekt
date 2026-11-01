@@ -1,1 +1,3 @@
 plan done 2026-11-01T15:35:24Z plan-gestagt
+implement entered 2026-11-01T15:52:49Z subagent-gestartet
+rotphase 2026-11-01T16:05Z test_domains_probe.py vorab geschrieben, lauf ohne Script: 2 failed 1 passed (test_validate_only_passes FAIL MODULE_NOT_FOUND, test_devmesh_skip_semantik FAIL MODULE_NOT_FOUND; test_invalid_fixtures_fail pass-vakuoes durch fehlendes Script -> Exit!=0)

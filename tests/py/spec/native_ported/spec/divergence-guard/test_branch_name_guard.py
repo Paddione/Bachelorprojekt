@@ -96,13 +96,6 @@ def test_t002470_ein_name_mit_ticket_id_legt_weiterhin_einen_worktree_an(run_cmd
     assert wt.is_dir()
 
 
-def test_t002470_renovate_ist_vom_guard_ausgenommen(run_cmd, guard_env):
-    wt = guard_env["tmp"] / "wt-ren"
-    r = _helper(run_cmd, guard_env, "renovate/npm-lodash", wt)
-    assert r.returncode == 0
-    assert wt.is_dir()
-
-
 def test_t002470_worktree_create_skip_name_check_1_laesst_einen_verletzenden_namen_durch(run_cmd, guard_env):
     wt = guard_env["tmp"] / "wt-bypass"
     r = _helper(run_cmd, guard_env, "experiment/foo", wt, extra_env={"WT_SKIP_NAME_CHECK": "1"})

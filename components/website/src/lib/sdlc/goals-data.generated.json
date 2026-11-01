@@ -885,21 +885,6 @@
     "measured_at": "2026-10-08"
   },
   {
-    "id": "G-DEP05",
-    "title": "Renovate-PR-Backlog",
-    "category": "Dependencies",
-    "priority": "C",
-    "direction": "lower",
-    "baseline": null,
-    "current": 0,
-    "target": 3,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "gh pr list --state open --json author,labels | python3 -c \"..renovate..\"",
-    "source": ".claude/lib/goals.md · G-DEP05",
-    "measured_at": "2026-10-08"
-  },
-  {
     "id": "G-IMG01",
     "title": "Fremd-Image-Versions-Drift",
     "category": "Dependencies",

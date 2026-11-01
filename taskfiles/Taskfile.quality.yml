@@ -85,9 +85,8 @@ tasks:
       #   task quality:index && task freshness:check -> exit 201 (drift caught)
       # Consequence of the blind gate: nearly every PR left stale artifacts on
       # main and freshness-regen.yml healed them with a bot commit afterwards
-      # (21 such commits on 2026-07-26 alone), which keeps main moving and is one
-      # of the reasons Renovate's ~150s run aborts with repository-changed
-      # (T002249).
+      # (21 such commits on 2026-07-26 alone), which keeps main moving — the same
+      # churn that aborts long automated runs with repository-changed (T002249).
       #
       # Yes, this makes a "check" mutate the working tree — it rewrites exactly
       # the generated files the error message below already tells you to

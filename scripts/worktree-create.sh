@@ -102,7 +102,7 @@ fi
 if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
   _bn="${1:-}"
   case "$_bn" in
-    main|develop|master|release-please--*|dependabot/*|renovate/*|"") ;;
+    main|develop|master|release-please--*|dependabot/*|"") ;;
     feature/*|fix/*|chore/*|docs/*) ;;
     *)
       echo "✗  worktree-create: branch '$_bn' does not follow naming convention." >&2

@@ -7,7 +7,6 @@ import stat
 import tempfile
 from pathlib import Path
 import pytest
-import yaml
 
 
 def _count_lines(text: str, pattern: str, regex: bool = False) -> int:
@@ -58,45 +57,6 @@ def _awk_range_text(text: str, start_re: str, end_re: str) -> str:
     return "\n".join(out)
 
 
-def _extract_renovate_step(wf: Path) -> str:
-    steps = yaml.safe_load(wf.read_text())["jobs"]["renovate"]["steps"]
-    return next(s["run"] for s in steps if s.get("name", "").startswith("Self-hosted Renovate"))
-
-
-def _write_docker_mock(mockdir: Path, body: str):
-    """Schreibt bin/docker: protokolliert jeden Aufruf in $MOCK_CALLS, dann BODY."""
-    _write_exec(mockdir / "bin" / "docker",
-                "#!/usr/bin/env bash\n"
-                'echo "call" >> "$MOCK_CALLS"\n'
-                f"{body}\n")
-
-
-def _setup_renovate_mock(ci, tmp_path: Path) -> dict:
-    mockdir = Path(tempfile.mkdtemp(dir=tmp_path))
-    (mockdir / "bin").mkdir(parents=True)
-    (mockdir / "step.sh").write_text(_extract_renovate_step(ci["repo"] / ".github/workflows/renovate.yml"))
-    calls = mockdir / "calls.txt"
-    calls.write_text("")
-    _write_exec(mockdir / "bin" / "sleep", "#!/usr/bin/env bash\nexit 0\n")
-    return {
-        "MOCKDIR": str(mockdir),
-        "MOCK_CALLS": str(calls),
-        "GITHUB_WORKSPACE": str(mockdir),
-        "RENOVATE_TOKEN": "x",
-        "RENOVATE_REPOSITORIES": "x",
-        "LOG_LEVEL": "info",
-    }
-
-
-def _run_step(run_cmd, mock: dict, timeout: str):
-    env = {**mock, "PATH": f"{mock['MOCKDIR']}/bin{os.pathsep}{os.environ.get('PATH', '')}"}
-    return run_cmd(["timeout", timeout, "bash", f"{mock['MOCKDIR']}/step.sh"], env=env)
-
-
-def _count_lines_file(path: str) -> int:
-    return len(Path(path).read_text().splitlines())
-
-
 def _validate(run_cmd, ci, *args):
     return run_cmd(["bash", str(ci["repo"] / "scripts/validate-commit-msg.sh"), *args])
 
@@ -115,89 +75,6 @@ def _sed_range(text: str, start_re: str, end_re: str) -> str:
         if re.search(end_re, line):
             break
     return "\n".join(out)
-
-
-def test_t002249_a_renovate_yml_wiederholt_den_lauf_bei_repository_changed(ci):
-    text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
-    assert "repository-changed" in text, "renovate.yml wertet das Lauf-Ergebnis nicht aus"
-    assert re.search(r"for attempt|while .*attempt|RENOVATE_MAX_ATTEMPTS", text), \
-        "renovate.yml enthaelt keine Retry-Schleife"
-
-
-def test_t002249_b_renovate_yml_endet_rot_wenn_alle_versuche_repository_changed_liefern(ci):
-    text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
-    assert re.search(r"^\s*exit 1|::error", text, re.M), "renovate.yml kann nicht fehlschlagen"
-
-
-def test_t002249_c_renovate_yml_aktiviert_und_persistiert_den_repository_cache(ci):
-    text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
-    assert re.search(r"RENOVATE_REPOSITORY_CACHE.*enabled", text), \
-        "RENOVATE_REPOSITORY_CACHE ist nicht auf 'enabled' gesetzt"
-    assert "RENOVATE_CACHE_DIR" in text, "RENOVATE_CACHE_DIR ist nicht gesetzt"
-    assert re.search(r"uses: actions/cache@", text), "kein actions/cache-Step"
-
-
-def test_t002249_d_renovate_yml_ruft_das_renovate_image_digest_gepinnt_direkt_auf(ci):
-    text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
-    assert re.search(r"ghcr\.io/renovatebot/renovate:[^@\s]+@sha256:[0-9a-f]{64}", text), \
-        "das Renovate-Image ist nicht digest-gepinnt aufgerufen"
-    assert not re.search(r"uses: renovatebot/github-action@", text), \
-        "renovatebot/github-action wird weiterhin verwendet"
-
-
-def test_t002249_e_retry_schleife_versucht_alle_versuche_und_endet_still_gruen_t002475(run_cmd, ci, tmp_path):
-    mock = _setup_renovate_mock(ci, tmp_path)
-    _write_docker_mock(Path(mock["MOCKDIR"]),
-                       'echo "        \\"result\\": \\"repository-changed\\","; exit 0')
-    result = _run_step(run_cmd, mock, "120")
-    calls = _count_lines_file(mock["MOCK_CALLS"])
-    assert result.returncode == 0          # T002475: exit 0, kein Fehler wenn alle Versuche exhausted
-    assert calls == 7                      # MAX_ATTEMPTS=7 ausgeschoepft
-    assert "::error::" not in result.output  # ::warning:: statt ::error::
-    assert "no repository was processed" in result.output
-    # Die Meldung des letzten Versuchs darf kein Retry versprechen, das nicht kommt.
-    assert "no attempts left" in result.output
-
-
-def test_t002249_e_erfolgreicher_zweitversuch_beendet_die_schleife_gruen(run_cmd, ci, tmp_path):
-    mock = _setup_renovate_mock(ci, tmp_path)
-    _write_docker_mock(Path(mock["MOCKDIR"]),
-                       'if [ "$(wc -l < "$MOCK_CALLS")" -eq 1 ]; then echo "        \\"result\\": \\"repository-changed\\","; '
-                       'else echo "        \\"result\\": \\"done\\","; fi; exit 0')
-    result = _run_step(run_cmd, mock, "60")
-    calls = _count_lines_file(mock["MOCK_CALLS"])
-    assert result.returncode == 0
-    assert calls == 2                      # bricht ab, sobald es geklappt hat
-    assert "::error::" not in result.output
-
-
-def test_t002249_e_echter_renovate_fehler_wird_nicht_wiederholt(run_cmd, ci, tmp_path):
-    mock = _setup_renovate_mock(ci, tmp_path)
-    _write_docker_mock(Path(mock["MOCKDIR"]), 'echo "FATAL: authentication failed"; exit 42')
-    result = _run_step(run_cmd, mock, "60")
-    calls = _count_lines_file(mock["MOCK_CALLS"])
-    # Nur repository-changed ist transient: der Exit-Code muss unveraendert durchgereicht werden.
-    assert result.returncode == 42
-    assert calls == 1
-
-
-def test_t002289_cache_verzeichnis_wird_vor_dem_docker_run_fuer_den_container_beschreibbar(ci):
-    body = _extract_renovate_step(ci["repo"] / ".github/workflows/renovate.yml")
-    perm_line = next((i for i, ln in enumerate(body.splitlines(), 1)
-                      if re.search(r"chown|chmod", ln)), None)
-    assert perm_line is not None, "der Renovate-Step passt die Rechte auf dem Cache-Verzeichnis nicht an"
-    docker_line = next((i for i, ln in enumerate(body.splitlines(), 1) if "docker run" in ln), None)
-    assert docker_line is not None
-    assert perm_line < docker_line, \
-        f"die Rechteanpassung steht NACH dem docker run (Zeile {perm_line} vs {docker_line})"
-
-
-def test_t002289_der_post_lauf_chown_fuer_actions_cache_bleibt_erhalten(ci):
-    steps = yaml.safe_load((ci["repo"] / ".github/workflows/renovate.yml").read_text())["jobs"]["renovate"]["steps"]
-    names = [s.get("name", "") for s in steps]
-    idx = next(i for i, n in enumerate(names) if n.startswith("Self-hosted Renovate"))
-    after = [s for s in steps[idx + 1:] if "chown" in s.get("run", "")]
-    assert after, "kein chown-Step NACH dem Renovate-Step (actions/cache kann nicht packen)"
 
 
 def test_t002328_die_scope_allowlist_umfasst_hoechstens_15_eintraege(run_cmd, ci):

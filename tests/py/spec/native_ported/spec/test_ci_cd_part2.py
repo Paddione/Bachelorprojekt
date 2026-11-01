@@ -143,57 +143,6 @@ def test_t002158_b_freshness_regen_unterdrueckt_ci_ueberhaupt_nicht_mehr_t002889
     assert sum(1 for ln in non_comment if "[skip ci]" in ln) == 0
 
 
-def test_t002161_a_renovate_yml_praegt_den_token_via_create_github_app_token_sha_gepinnt(ci):
-    text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
-    assert re.search(r"uses: actions/create-github-app-token@[0-9a-f]{40}", text), \
-        "kein SHA-gepinnter actions/create-github-app-token-Step in renovate.yml"
-
-
-def test_t002161_a_renovate_yml_liest_die_app_identitaet_aus_renovate_app_id(ci):
-    text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
-    assert re.search(r"^\s+client-id: \$\{\{ secrets\.RENOVATE_APP_ID \}\}", text, re.M), \
-        "create-github-app-token wird nicht mit client-id aus RENOVATE_APP_ID aufgerufen"
-    assert re.search(r"^\s+private-key: \$\{\{ secrets\.RENOVATE_APP_PRIVATE_KEY \}\}", text, re.M), \
-        "private-key liest nicht aus RENOVATE_APP_PRIVATE_KEY"
-
-
-def test_t002161_b_renovate_yml_uebergibt_den_gepraegten_app_token_nicht_ein_statisches_secret(ci):
-    text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
-    assert re.search(r"steps\.[a-z-]+\.outputs\.token", text), \
-        "renovatebot/github-action bekommt keinen Token aus dem create-github-app-token-Step"
-
-
-def test_t002161_c_auto_enable_automerge_yml_nimmt_renovate_prs_dependencies_label_aus(ci):
-    text = (ci["repo"] / ".github/workflows/auto-enable-automerge.yml").read_text()
-    assert re.search(r"labels.\*.name", text) and "dependencies" in text, \
-        "auto-enable-automerge.yml prueft das dependencies-Label nicht"
-
-
-def test_t002161_d_renovate_json5_labelt_seine_prs_und_setzt_platformautomerge(ci):
-    cfg = (ci["repo"] / "renovate.json5").read_text()
-    assert re.search(r'"labels"\s*:\s*\[', cfg), "renovate.json5 setzt kein labels: [...]"
-    assert re.search(r'"platformAutomerge"\s*:\s*true', cfg), \
-        "renovate.json5 setzt platformAutomerge nicht explizit auf true"
-
-
-def test_t002165_renovate_yml_gibt_renovate_die_repo_arbeitsliste_explizit_mit(ci):
-    text = (ci["repo"] / ".github/workflows/renovate.yml").read_text()
-    assert re.search(r"RENOVATE_REPOSITORIES: \$\{\{ github\.repository \}\}", text), \
-        "renovate.yml setzt RENOVATE_REPOSITORIES nicht auf github.repository"
-
-
-def test_t002165_renovate_json5_nutzt_kein_deprecated_matchpackagepatterns(ci):
-    cfg = (ci["repo"] / "renovate.json5").read_text()
-    assert not re.search(r'"matchPackagePatterns"', cfg), \
-        "renovate.json5 verwendet noch matchPackagePatterns (deprecated)"
-
-
-def test_t002165_renovate_json5_hat_keine_keycloak_regel_mehr_plattform_nutzt_pocket_id(ci):
-    cfg = (ci["repo"] / "renovate.json5").read_text()
-    assert not re.search(r'"matchPackageNames".*keycloak|"matchPackagePatterns".*keycloak', cfg), \
-        "renovate.json5 gruppiert noch keycloak-Images"
-
-
 def test_t002163_website_deploy_list_erfasst_alle_envsubst_aufrufe_des_tasks(ci):
     names = _website_deploy_list(ci["repo"])
     for v in ("WEBSITE_IMAGE", "WEBSITE_CONFIG_SHA", "WEBSITE_NAMESPACE"):
@@ -234,19 +183,6 @@ def test_t002245_t002780_gescopte_spec_suite_behaelt_einen_erreichbaren_vollauf(
 
     assert re.search(r"origin \+?main:refs/remotes/origin/main", block), \
         "test-spec does not fetch origin/main — a diff-scoped run would select nothing"
-
-
-def test_t002170_renovate_json5_nutzt_manager_file_patterns_statt_deprecated_file_match(ci):
-    cfg = (ci["repo"] / "renovate.json5").read_text()
-    assert not re.search(r'"fileMatch"', cfg), "renovate.json5 verwendet noch den deprecated Key fileMatch"
-    assert re.search(r'"managerFilePatterns"', cfg), "kein managerFilePatterns im kubernetes-Manager"
-
-
-def test_t002170_kubernetes_manager_file_patterns_deckt_alle_vier_manifest_baeume_ab(ci):
-    cfg = (ci["repo"] / "renovate.json5").read_text()
-    for tree in ("k3d", "prod", "prod-mentolder", "prod-korczewski", "prod-fleet"):
-        assert re.search(r'"/\^' + re.escape(tree) + "/", cfg), \
-            f"kein managerFilePatterns-Eintrag fuer '{tree}/'"
 
 
 def test_t002174_flux_render_implementiert_den_rigger_host_ip_auf_comfy_host_ip_fallback(ci):

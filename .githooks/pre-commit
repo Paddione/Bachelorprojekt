@@ -162,13 +162,13 @@ fi
 # --- branch-naming: enforce type/<slug> convention [T002093] ---
 # Every branch must start with a valid type prefix: feature/, fix/, chore/, docs/
 # (plus feat/batch-*). Die Ticket-ID-Pflicht ist mit dem Ticket-DB entfallen.
-# Exemptions: main, develop, release-please--*, dependabot/*, renovate/*
+# Exemptions: main, develop, release-please--*, dependabot/*
 # Bypass: SKIP_BRANCH_CHECK=1 git commit ...
 if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
   _bn="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
   if [ -n "$_bn" ]; then
     case "$_bn" in
-      main|develop|master|release-please--*|dependabot/*|renovate/*) ;;
+      main|develop|master|release-please--*|dependabot/*) ;;
       feature/*|fix/*|chore/*|docs/*|feat/batch-*) ;;
       *)
         echo "✗  pre-commit: branch '$_bn' does not follow naming convention." >&2

@@ -28,9 +28,8 @@ jobs:
     name: Auto-title PR from branch name
     runs-on: ubuntu-latest
     timeout-minutes: 3
-    # Skip bots (renovate, release-please) — they set correct titles already.
+    # Skip bots (release-please) — they set correct titles already.
     if: >
-      github.actor != 'renovate[bot]' &&
       github.actor != 'github-actions[bot]' &&
       github.actor != 'release-please[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository

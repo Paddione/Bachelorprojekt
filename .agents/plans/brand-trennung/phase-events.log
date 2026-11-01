@@ -1,1 +1,3 @@
 plan done 2026-11-01T18:23:22Z plan-gestagt
+implement entered 2026-11-01T18:25:44Z subagent-gestartet
+p2 2026-11-01: suspend 4x false, validate gruen; Skalierung: keine replicas-Felder im Repo (0/0 ist Live-State) — kein erfundenes Feld, Scale-up via Flux-Reconcile nach Apply (p3/p4 mit Freigabe)

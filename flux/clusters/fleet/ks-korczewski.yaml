@@ -14,7 +14,7 @@ spec:
   # (flux-website-korczewski, flux-korczewski-auth) sind ebenfalls suspendiert:
   # massage nur lokal auf devmesh, kein Prod-Go-live.
   # Vor einem Re-Aktivieren die Suspension in einem separaten Change aufheben.
-  suspend: true
+  suspend: false
   dependsOn:
     - name: flux-infra-controllers
     # T900014: Secrets VOR dem Brand-Stack reconcilen (Race-Schutz, siehe ks-mentolder.yaml).

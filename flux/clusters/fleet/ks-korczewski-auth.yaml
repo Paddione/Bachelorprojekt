@@ -12,7 +12,7 @@ spec:
   interval: 30m
   retryInterval: 2m
   timeout: 5m
-  suspend: true
+  suspend: false
   dependsOn:
     - name: flux-infra-controllers
     - name: flux-sealed-secrets-korczewski

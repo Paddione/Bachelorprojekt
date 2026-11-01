@@ -326,7 +326,9 @@ def publish(root, result, applied, today):
     for path, lockfile in applied.applied.items():
         git(root, "add", "--", path, str(Path(path).parent / lockfile))
     git(root, "-c", f"user.name={GIT_NAME}", "-c", f"user.email={GIT_EMAIL}", "commit", "-q", "-m", title)
-    git(root, "push", "-q", "-u", "origin", branch)
+    # Der Namensraum gehoert diesem Job, und run_update hat offene PRs ausgeschlossen:
+    # was hier schon liegt, stammt von einem geschlossenen PR desselben Tages.
+    git(root, "push", "-q", "-u", "--force", "origin", branch)
     url = gh("pr", "create", "--repo", REPO, "--base", BASE_BRANCH, "--head", branch,
              "--title", title, "--body", pr_body(result, applied)).strip()
     print("opened", url)

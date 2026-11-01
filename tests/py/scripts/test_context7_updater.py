@@ -377,6 +377,26 @@ def test_run_pushes_branch_and_opens_ready_pr(checkout, monkeypatch):
     assert "--auto" in merge and "--squash" in merge
 
 
+def test_rerun_after_closed_pr_replaces_the_stale_branch(checkout, monkeypatch):
+    root, origin = checkout
+    branch = "chore/context7-updates-2026-11-01"
+    subprocess.run(["git", "checkout", "-q", "-b", "stale"], cwd=root, check=True)
+    (root / "stale.txt").write_text("from the closed PR\n")
+    subprocess.run(["git", "add", "stale.txt"], cwd=root, check=True)
+    subprocess.run(["git", "commit", "-qm", "stale"], cwd=root, check=True)
+    subprocess.run(["git", "push", "-q", "origin", f"stale:{branch}"], cwd=root, check=True)
+    subprocess.run(["git", "checkout", "-q", "main"], cwd=root, check=True)
+
+    gh = FakeGh()
+    monkeypatch.setattr(c7, "gh", gh)
+    assert run_update(root) == 0
+    assert ("pr", "create") in gh.verbs()
+    files = subprocess.run(["git", "diff", "--name-only", "main", branch], cwd=origin, check=True,
+                           capture_output=True, text=True).stdout.split()
+    assert "components/a/package.json" in files
+    assert "stale.txt" not in files
+
+
 def test_run_commits_only_manifest_and_lockfile(checkout, monkeypatch):
     root, origin = checkout
     monkeypatch.setattr(c7, "gh", FakeGh())

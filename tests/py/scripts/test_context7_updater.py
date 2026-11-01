@@ -156,6 +156,27 @@ def test_npm_retries_with_legacy_peer_deps_on_eresolve(tmp_path):
     assert all("--ignore-scripts" in call for call in run.calls)
 
 
+def before_flag(call):
+    return next(arg for arg in call if arg.startswith("--before="))
+
+
+def test_pnpm_gets_the_release_age_explicitly(tmp_path):
+    (tmp_path / "pnpm-lock.yaml").write_text("")
+    run = FakeRun((0, ""))
+    c7.refresh_lockfile(tmp_path, run)
+    assert f"--config.minimum-release-age={c7.MIN_RELEASE_AGE_DAYS * 24 * 60}" in run.calls[0]
+
+
+def test_npm_resolves_only_releases_older_than_the_cutoff(tmp_path):
+    (tmp_path / "package-lock.json").write_text("{}")
+    run = FakeRun((1, "npm error code ERESOLVE"), (0, ""))
+    c7.refresh_lockfile(tmp_path, run)
+    for call in run.calls:
+        cutoff = datetime.fromisoformat(before_flag(call).split("=", 1)[1])
+        age = datetime.now(timezone.utc) - cutoff
+        assert timedelta(days=c7.MIN_RELEASE_AGE_DAYS) <= age < timedelta(days=c7.MIN_RELEASE_AGE_DAYS, minutes=1)
+
+
 def test_npm_does_not_retry_on_other_errors(tmp_path):
     (tmp_path / "package-lock.json").write_text("{}")
     run = FakeRun((1, "npm error code E404"))

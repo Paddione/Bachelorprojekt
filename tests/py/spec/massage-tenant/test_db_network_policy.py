@@ -26,8 +26,9 @@ ALLOWED_EXTRA_PEERS = {"website-korczewski", "workspace-korczewski"}
 
 
 def _rendered_policies(repo_root: Path):
+    # brand-trennung p5: prod-fleet/mentolder geloescht — korczewski-Pendant.
     res = subprocess.run(
-        ["kustomize", "build", "prod-fleet/mentolder", "--load-restrictor=LoadRestrictionsNone"],
+        ["kustomize", "build", "prod-fleet/korczewski", "--load-restrictor=LoadRestrictionsNone"],
         cwd=repo_root,
         capture_output=True,
         text=True,
@@ -69,7 +70,7 @@ def test_shared_db_allows_massage_namespaces(repo_root: Path):
         assert ns in combined, f"Namespace {ns} darf shared-db:5432 nicht erreichen"
 
 
-def test_shared_db_keeps_existing_mentolder_peers(repo_root: Path):
+def test_shared_db_keeps_existing_website_peers(repo_root: Path):
     policies = _shared_db_ingress_policies(_rendered_policies(repo_root))
     combined = set()
     for policy in policies:
@@ -105,7 +106,7 @@ def test_shared_db_clusterip_only(repo_root: Path):
 
 def test_no_public_5432_endpoint(repo_root: Path):
     res = subprocess.run(
-        ["kustomize", "build", "prod-fleet/mentolder", "--load-restrictor=LoadRestrictionsNone"],
+        ["kustomize", "build", "prod-fleet/korczewski", "--load-restrictor=LoadRestrictionsNone"],
         cwd=repo_root,
         capture_output=True,
         text=True,

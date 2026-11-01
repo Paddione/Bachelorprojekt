@@ -87,7 +87,7 @@ def _write_stubs(tmp_path, port_forward_mode="fatal"):
 
 def _run_migrate(run_cmd, repo_root, env):
     return run_cmd(
-        ["task", "--silent", "-d", str(repo_root), "website:migrate", "ENV=mentolder"],
+        ["task", "--silent", "-d", str(repo_root), "website:migrate", "ENV=korczewski"],
         env=env,
         timeout=120,
     )
@@ -144,7 +144,7 @@ def test_portforward_death_reports_actionable_diagnostics(run_cmd, repo_root, tm
     # ... at the port-forward stage. Positive anchors (all true today): they
     # prove the run reached the failing stage instead of dying earlier, which
     # keeps the RED assertions below from passing vacuously.
-    assert "Migrate target: context=fleet namespace=workspace" in result.output
+    assert "Migrate target: context=fleet namespace=workspace-korczewski" in result.output
     assert "port-forward exited unexpectedly" in result.output
     assert "port-forward" in call_log.read_text()
     # RED (T901789): the failure must name the forward's exit code ...

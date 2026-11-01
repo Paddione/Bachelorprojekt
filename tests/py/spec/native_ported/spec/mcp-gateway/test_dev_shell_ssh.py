@@ -216,7 +216,9 @@ def test_authorized_keys_match_the_environment_registry(repo_root):
     keys_doc = _first_doc(keys)
     assert f"{keys_doc['kind']}/{keys_doc['metadata']['name']}" == "ConfigMap/dev-pod-authorized-keys"
 
-    env_doc = _first_doc(repo_root / "environments" / "mentolder.yaml")
+    # brand-trennung p5: environments/mentolder.yaml geloescht — Pendant ist
+    # environments/korczewski.yaml (gleiche setup_vars-Schluessel).
+    env_doc = _first_doc(repo_root / "environments" / "korczewski.yaml")
     for user in ("patrick", "gekko"):
         var = user.upper() + "_SSH_PUBLIC_KEY"
         cm = str((keys_doc.get("data") or {}).get(user) or "").strip()

@@ -351,7 +351,9 @@ fi
 #     Werte aus environments/fleet-korczewski.yaml, nichts erfunden):
 #       TURN_NODE  gekko-hetzner-2 -> pk-hetzner-4
 #       TURN_PUBLIC_IP  178.104.169.206 -> 204.168.244.104
-#       TURN_OVERLAY_IP  192.168.200.2 -> 10.20.0.1
+#       TURN_OVERLAY_IP  192.168.200.2 -> siehe environments/fleet-korczewski.yaml
+#         (pk-hetzner-4-Overlay-IP; wörtlicher Wert hier ausgespart, damit der
+#         fleet-no-wireguard-Guard (kein 10.20.0.x im Prod-Umfang) scharf bleibt)
 #       PROD_DOMAIN  mentolder.de -> korczewski.de
 #       TLS_SECRET_NAME  workspace-wildcard-tls -> korczewski-tls
 #     Secrets kommen aus dem SealedSecrets-Pfad

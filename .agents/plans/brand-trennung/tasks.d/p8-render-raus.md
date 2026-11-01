@@ -36,3 +36,30 @@ die drei Mit-Reparatur-Specs grün. Beleg in phase-events.log.
 ## Gates
 - Render-Lauf `--out` ohne mentolder-Fehler, korczewski-Artefakte vorhanden.
 - Alle vier Spec-Dateien grün; `.sh`-Limit 800 eingehalten.
+
+## v3 — native_ported-Mit-Reparatur (Nachtrag 2, CI-Gate)
+`grep -rln "prod-fleet/mentolder|website-mentolder|fleet-mentolder"
+tests/py/spec/native_ported/` trifft 8 Dateien, die in CI-Shards laufen und
+ohne Reparatur rot gehen (gelöschte Overlays/Envs). Alle 8 in DIESER Partial
+mit-reparieren (kein neues Partial — D1-Scope bleibt eine Zeile):
+- `test_langfuse_agent_tracing.py` (25): kustomize-Pfad mentolder →
+  korczewski-Pendant (aus p1-Inventar; keins → Test auf korczewski umschreiben).
+- `flux-render-security/test_immutable_image_refs.py` (109): Out-Dir-Liste
+  ohne mentolder-Einträge (korczewski behalten).
+- `fleet-operations/test_internal_endpoints.py` (61): liest
+  `fleet-mentolder.yaml` → `fleet-korczewski.yaml` + Assertions anpassen.
+- `test_workspace_deploy.py` (643): kustomize-build-Pfade mentolder →
+  korczewski (nur Pfad-Swaps + erwartete Outputs; kein Redesign).
+- `fleet-operations/test_legacy_secrets_fleet.py` (80): `secrets_env_for`-
+  Assertions auf korczewski-Mapping (Helper-Verhalten per Lauf verifizieren).
+- `fleet-operations/test_penpot_secret_keys.py` (55): Datei-Listen ohne
+  mentolder-Einträge (Listen entsprechen Repo-Stand nach p5/p6).
+- `test_pocket_id_migration.py` (523): mentolder-Env-Assertions →
+  korczewski-Äquivalente (POCKET_ID_FRONTEND_URL o. Ä. aus
+  fleet-korczewski.yaml; fehlt der Wert → STOPP statt erfinden).
+- `test_ci_cd_part1.py` (685): `_assert_no_config_drift`-Pfade mentolder →
+  korczewski-Pendants.
+Regel: Pfad-Swaps + Assertion-Updates; braucht eine Datei ein Redesign
+(neue Fixtures, neue Logik) → STOPP + Bericht (kein stilles Umdeuten von
+Gates in No-Ops — jeder geänderte Assert bleibt scharf und begründet im
+Commit-Body). Danach alle 8 Dateien per pytest-runner grün.

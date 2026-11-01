@@ -381,6 +381,70 @@
       "s1_baseline": null,
       "s1_budget": null,
       "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/test_langfuse_agent_tracing.py",
+      "language": "python",
+      "loc": 25,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/flux-render-security/test_immutable_image_refs.py",
+      "language": "python",
+      "loc": 109,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/fleet-operations/test_internal_endpoints.py",
+      "language": "python",
+      "loc": 61,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/test_workspace_deploy.py",
+      "language": "python",
+      "loc": 643,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/fleet-operations/test_legacy_secrets_fleet.py",
+      "language": "python",
+      "loc": 80,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/fleet-operations/test_penpot_secret_keys.py",
+      "language": "python",
+      "loc": 55,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/test_pocket_id_migration.py",
+      "language": "python",
+      "loc": 523,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/test_ci_cd_part1.py",
+      "language": "python",
+      "loc": 685,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
     }
   ],
   "intel_sources": [

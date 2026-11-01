@@ -232,6 +232,7 @@ export default defineConfig({
       name: 'smoke',
       testMatch: [
         '**/integration-smoke.spec.ts',
+        '**/mentolder-web-smoke.spec.ts', // K6-Staffel-B: mentolder-web Smoke+axe live (D4, read-only)
       ],
       use: {
         ...devices['Desktop Chrome'],

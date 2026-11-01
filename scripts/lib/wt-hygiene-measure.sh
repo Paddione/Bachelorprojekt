@@ -69,6 +69,10 @@ _repos() {
       [[ -z "$line" || "$line" == \#* ]] && continue
       local rel
       rel="$(echo "$line" | awk '{print $1}')"
+      # Upstream-Checkouts (opt/*) sind kein Workspace-Hygiene-Scope: Pins
+      # (z.B. llama.cpp b11963) bleiben unangetastet. Spiegelt den opt/-
+      # Ausschluss in scripts/repo_health_collect.py (Dotfiles).
+      case "$rel" in opt/*) continue ;; esac
       local p="$home/$rel"
       if [ -d "$p" ] && git -C "$p" rev-parse --show-toplevel >/dev/null 2>&1; then
         found+=("$p")

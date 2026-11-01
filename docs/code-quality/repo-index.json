@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1275,
+      "file_count": 1276,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -344,6 +344,7 @@
         "tests/py/pytest.ini",
         "tests/py/requirements-test.txt",
         "tests/py/scripts/test_admin_menu_gate.py",
+        "tests/py/scripts/test_context7_updater.py",
         "tests/py/scripts/test_workers_status.py",
         "tests/py/smoke/test_harness.py",
         "tests/py/smoke/test_runtime_services.py",
@@ -3735,7 +3736,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 886,
+      "file_count": 887,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3932,6 +3933,7 @@
         "scripts/comfy-image-mcp/server.mjs",
         "scripts/comfy-image-mcp/workflow.json",
         "scripts/context-retrieve.mjs",
+        "scripts/context7_updater.py",
         "scripts/dangling-callers.mjs",
         "scripts/dangling-graph-full.test.ts",
         "scripts/dangling-handles-audit.mjs",

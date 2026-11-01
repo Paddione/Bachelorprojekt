@@ -11,7 +11,8 @@ import pytest
 
 @pytest.fixture(scope="module")
 def rendered(repo_root):
-    """Render both prod overlays once (mirrors setup_file). Output kept even on kubectl error."""
+    """Render the korczewski prod overlay once (brand-trennung p5: mentolder
+    overlay geloescht — korczewski-only Repo). Output kept even on kubectl error."""
     if shutil.which("kubectl") is None:
         pytest.skip("kubectl not available")
 
@@ -23,7 +24,7 @@ def rendered(repo_root):
         )
         return res.stdout
 
-    return {"mentolder": _render("mentolder"), "korczewski": _render("korczewski")}
+    return {"korczewski": _render("korczewski")}
 
 
 def _count_lines(text: str, needle: str) -> int:
@@ -36,55 +37,53 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
 
 
-# ── prod render (mentolder / korczewski) ──────────────────────────────────
+# ── prod render (korczewski-only seit brand-trennung p5) ────────────────
 
-def test_prod_render_mentolder_no_ssl_insecure_skip_verify_anywhere(rendered):
-    assert "--ssl-insecure-skip-verify" not in rendered["mentolder"], (
+def test_prod_render_korczewski_no_ssl_insecure_skip_verify_anywhere(rendered):
+    assert "--ssl-insecure-skip-verify" not in rendered["korczewski"], (
         "FAIL: ssl-insecure-skip-verify still rendered"
     )
 
 
-def test_prod_render_mentolder_no_insecure_oidc_allow_unverified_email_anywhere(rendered):
-    assert "--insecure-oidc-allow-unverified-email" not in rendered["mentolder"], (
+def test_prod_render_korczewski_no_insecure_oidc_allow_unverified_email_anywhere(rendered):
+    assert "--insecure-oidc-allow-unverified-email" not in rendered["korczewski"], (
         "FAIL: insecure-oidc-allow-unverified-email still rendered"
     )
 
 
-def test_prod_render_mentolder_every_email_domain_gate_is_group_restricted(rendered):
+def test_prod_render_korczewski_every_email_domain_gate_is_group_restricted(rendered):
     # T001851: --email-domain=* is deliberate; authorization comes from --allowed-group.
-    render = rendered["mentolder"]
+    # brand-trennung p8-Runde 6: 6 Wildcard-Gates == 6 Group-Restriktionen
+    # (per kubectl-kustomize-Lauf verifiziert, nichts erfunden).
+    render = rendered["korczewski"]
     wildcard = _count_lines(render, "--email-domain=*")
     groups = _count_lines(render, "- --allowed-group=")
     assert wildcard >= 1, "FAIL: expected wildcard email-domain gates (v7.9.0 startup requirement), got 0"
     assert wildcard == groups, f"FAIL: {wildcard} wildcard gates but {groups} allowed-group restrictions"
 
 
-def test_prod_render_mentolder_exactly_3_gates_carry_allowed_group_workspace_users(rendered):
-    # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
-    # Brett-Entfernung: oauth2-proxy-brett ist aus dem lokalen mentolder-Overlay
-    # geloescht (Prod-Brett laeuft ueber gekko32/mentolder-prod) — 5 auf 4.
-    # devmesh-dev-tools: oauth2-proxy-brain nach devmesh umgezogen — 4 auf 3.
-    count = _count_lines(rendered["mentolder"], "- --allowed-group=workspace-users")
-    assert count == 3, f"FAIL: expected 3 allowed-group gates, got {count}"
+def test_prod_render_korczewski_exactly_5_gates_carry_allowed_group_workspace_users(rendered):
+    # Zaehl-Evolution: mentolder 3 (T016561-Dev-Umzug, Brett-Entfernung,
+    # devmesh-Umzug) — korczewski-Render hat 5 (per Lauf verifiziert).
+    count = _count_lines(rendered["korczewski"], "- --allowed-group=workspace-users")
+    assert count == 5, f"FAIL: expected 5 allowed-group gates, got {count}"
 
 
-def test_prod_render_mentolder_exactly_4_gates_carry_oidc_groups_claim_groups(rendered):
-    # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
-    # Brett-Entfernung: siehe oben — 6 auf 5. devmesh-dev-tools: brain — 5 auf 4.
-    count = _count_lines(rendered["mentolder"], "- --oidc-groups-claim=groups")
-    assert count == 4, f"FAIL: expected 4 oidc-groups-claim gates, got {count}"
+def test_prod_render_korczewski_exactly_6_gates_carry_oidc_groups_claim_groups(rendered):
+    # Zaehl-Evolution: mentolder 4 — korczewski-Render hat 6 (per Lauf verifiziert).
+    count = _count_lines(rendered["korczewski"], "- --oidc-groups-claim=groups")
+    assert count == 6, f"FAIL: expected 6 oidc-groups-claim gates, got {count}"
 
 
-def test_prod_render_mentolder_exactly_4_gates_request_the_groups_scope(rendered):
-    # T016561: videovault-auth-gate + mediaviewer-auth mit nach Dev umgezogen.
-    # Brett-Entfernung: siehe oben — 6 auf 5. devmesh-dev-tools: brain — 5 auf 4.
-    count = _count_lines(rendered["mentolder"], "- --scope=openid email profile groups")
-    assert count == 4, f"FAIL: expected 4 gates with groups scope, got {count}"
+def test_prod_render_korczewski_exactly_6_gates_request_the_groups_scope(rendered):
+    # Zaehl-Evolution: mentolder 4 — korczewski-Render hat 6 (per Lauf verifiziert).
+    count = _count_lines(rendered["korczewski"], "- --scope=openid email profile groups")
+    assert count == 6, f"FAIL: expected 6 gates with groups scope, got {count}"
 
 
-def test_prod_render_mentolder_the_3_allowlist_gates_keep_authenticated_emails_file(rendered):
-    # devmesh-dev-tools: oauth2-proxy-session-hub nach devmesh umgezogen — 4 auf 3.
-    count = _count_lines(rendered["mentolder"], "- --authenticated-emails-file")
+def test_prod_render_korczewski_the_3_allowlist_gates_keep_authenticated_emails_file(rendered):
+    # korczewski-Render hat 3 authenticated-emails-file-Gates (per Lauf verifiziert).
+    count = _count_lines(rendered["korczewski"], "- --authenticated-emails-file")
     assert count == 3, f"FAIL: expected 3 authenticated-emails-file gates, got {count}"
 
 
@@ -115,10 +114,10 @@ def test_orphaned_templates_brain_prod_korczewski_subtree_is_gone(repo_root):
 
 # ── T002122 ───────────────────────────────────────────────────────────────
 
-def test_t002122_gerendertes_mentolder_overlay_nutzt_kein_skip_auth_routes(rendered):
-    # The BATS case also required the render to succeed (status 0).
-    assert rendered["mentolder"], "render produced no output"
-    assert "--skip-auth-routes" not in rendered["mentolder"]
+# T002122-mentolder-Variante ENTFALLEN (brand-trennung p8-Runde 6):
+# test_t002122_gerendertes_korczewski_overlay_nutzt_kein_skip_auth_routes
+# deckt denselben Render mit derselben Nadel ab (Render-Erfolg + Absenz) —
+# ein korczewski-Duplikat waere No-Op, kein zusaetzlicher Schutz.
 
 
 def test_t002122_gerendertes_korczewski_overlay_nutzt_kein_skip_auth_routes(rendered):
@@ -126,12 +125,13 @@ def test_t002122_gerendertes_korczewski_overlay_nutzt_kein_skip_auth_routes(rend
     assert "--skip-auth-routes" not in rendered["korczewski"]
 
 
-def test_prod_render_mentolder_no_local_brett_healthz_bypass_left(rendered):
+def test_prod_render_korczewski_no_local_brett_healthz_bypass_left(rendered):
     # T002122-Nachfolger: der Healthz-Bypass lebte im oauth2-proxy-brett, das mit
-    # der Brett-Entfernung aus dem lokalen mentolder-Overlay geloescht ist.
+    # der Brett-Entfernung aus den lokalen Overlays geloescht ist.
     # (Prod-Brett inkl. Bypass laeuft ueber gekko32/mentolder-prod.)
-    assert rendered["mentolder"], "render produced no output"
-    assert "--skip-auth-route=GET=^/healthz" not in rendered["mentolder"]
+    # korczewski-Render enthaelt ihn nicht (per Lauf verifiziert: 0 Treffer).
+    assert rendered["korczewski"], "render produced no output"
+    assert "--skip-auth-route=GET=^/healthz" not in rendered["korczewski"]
 
 
 # ── T002154 ───────────────────────────────────────────────────────────────

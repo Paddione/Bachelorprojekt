@@ -1,9 +1,10 @@
-"""Massage-Tenant (T901440): Flux-Topologie + Freeze-Garantie.
+"""Massage-Tenant (T901440): Flux-Topologie + Live-Garantie.
 
-flux-korczewski und flux-jobs-korczewski bleiben suspendiert (T002479).
-flux-website-korczewski und flux-korczewski-auth sind ebenfalls suspendiert:
-massage wird nur lokal auf devmesh entwickelt, kein Prod-Go-live.
-Doku-Freeze-Formel aus p4 wird hier dauerhaft geprueft.
+Eigner-Entscheidung 2026-11-01 (Epic brand-trennung, korczewski-Voll-Unfreeze):
+flux-korczewski, flux-jobs-korczewski, flux-website-korczewski und
+flux-korczewski-auth sind ABSICHTLICH live (suspend: false). Die alte
+T002479-Freeze-Formel (massage nur lokal auf devmesh, kein Prod-Go-live)
+gilt nicht mehr fuer den korczewski-Stack.
 """
 from pathlib import Path
 
@@ -22,23 +23,25 @@ def _flux_docs(repo_root: Path):
     return docs
 
 
-def test_frozen_kustomizations_stay_suspended(repo_root: Path):
+def test_unfrozen_kustomizations_are_live(repo_root: Path):
+    # Eigner 2026-11-01 (brand-trennung Voll-Unfreeze): suspendiert war
+    # gestern — heute ist live der gewollte Zustand, scharf geprueft.
     docs = _flux_docs(repo_root)
     for name in ("flux-korczewski", "flux-korczewski-jobs"):
         assert name in docs, f"{name} fehlt in flux/clusters/fleet"
         path, doc = docs[name]
-        assert doc.get("spec", {}).get("suspend") is True, (
-            f"{name} ({path.name}) ist nicht mehr suspendiert — T002479 verletzt"
+        assert doc.get("spec", {}).get("suspend") is False, (
+            f"{name} ({path.name}) ist nicht live — Voll-Unfreeze verletzt"
         )
 
 
-def test_website_kustomizations_stay_suspended(repo_root: Path):
+def test_website_kustomizations_are_live(repo_root: Path):
     docs = _flux_docs(repo_root)
     website = docs.get("flux-website-korczewski")
     assert website is not None, "flux-website-korczewski fehlt"
     _, website_doc = website
-    assert website_doc.get("spec", {}).get("suspend") is True, (
-        "flux-website-korczewski darf nicht live gehen (massage nur auf devmesh)"
+    assert website_doc.get("spec", {}).get("suspend") is False, (
+        "flux-website-korczewski ist nicht live (Voll-Unfreeze 2026-11-01)"
     )
     assert website_doc.get("spec", {}).get("path") == "./website-korczewski"
     assert website_doc.get("spec", {}).get("wait") is True
@@ -46,8 +49,8 @@ def test_website_kustomizations_stay_suspended(repo_root: Path):
     auth = docs.get("flux-korczewski-auth")
     assert auth is not None, "flux-korczewski-auth fehlt"
     _, auth_doc = auth
-    assert auth_doc.get("spec", {}).get("suspend") is True, (
-        "flux-korczewski-auth darf nicht live gehen (massage nur auf devmesh)"
+    assert auth_doc.get("spec", {}).get("suspend") is False, (
+        "flux-korczewski-auth ist nicht live (Voll-Unfreeze 2026-11-01)"
     )
     assert auth_doc.get("spec", {}).get("path") == "./korczewski-auth"
     assert auth_doc.get("spec", {}).get("wait") is False

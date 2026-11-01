@@ -197,6 +197,15 @@ patches:
       kind: Deployment
       metadata: {name: bge}
       spec: {template: {spec: {containers: [{name: llama-cpp, resources: {requests: {cpu: 250m, memory: 768Mi}}}]}}}
+  # bge-rerank auf devmesh geparkt (kein Verbraucher: Router hat keine
+  # Rerank-Route, kein Code-Caller, 2 Req/Tag; vgl. lfm2-vision): 0 = entladen.
+  # NUR devmesh-Overlay — k3d-Basis (prod-mentolder) bleibt bei replicas: 1.
+  - target: {kind: Deployment, name: bge-rerank}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: bge-rerank}
+      spec: {replicas: 0}
   - target: {kind: PersistentVolumeClaim, name: bge-embed-models}
     patch: |-
       apiVersion: v1

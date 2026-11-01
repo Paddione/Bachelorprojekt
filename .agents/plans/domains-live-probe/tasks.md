@@ -77,5 +77,5 @@ S4: Script, Task und Workflow sind jeweils voneinander aus erreichbar
 - [x] **4. Partial p4** (`tasks.d/p4-tests-evidence.md`): Offline-Tests grün,
   Golden + Inventory regeneriert, **Live-Beleg**: `task domains:probe`-Voll-Lauf
   ab Tailnet-Host, Ausgabe in den PR-Body.
-- [ ] **5. Finaler Verifikations-Task.** `task test:changed`,
+- [x] **5. Finaler Verifikations-Task.** `task test:changed`,
   `task freshness:regenerate`, `task freshness:check`, `task workspace:validate`.

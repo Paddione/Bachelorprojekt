@@ -40,6 +40,14 @@ MAX_HEADER_LEN=150
 is_exempt_subject() {
   case "$1" in
     "Merge "*|"Revert \""*) return 0 ;;
+    # GitHub squash-merge subjects ("<title> (#NNNN)"): the title already
+    # passed the PR-title gate; the suffixed merge subject is GitHub-generated.
+    # Branch commits were validated individually in-PR (T001356). Without this
+    # exemption a strict-titled main HEAD (e.g. an unscoped squash subject)
+    # reds main CI — see #7037.
+    *" (#"*)
+      if [[ "$1" =~ \ \(#[0-9]+\)$ ]]; then return 0; fi
+      return 1 ;;
     *) return 1 ;;
   esac
 }

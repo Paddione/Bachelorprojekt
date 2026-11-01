@@ -33,6 +33,16 @@ tasks:
     cmds:
       - node scripts/networks-check.mjs --emit-map
 
+  domains:check:
+    desc: "Validate domain registry against SSOT"
+    cmds:
+      - node scripts/domains-check.mjs
+
+  domains:map:
+    desc: "Regenerate docs/agent-guide/maps/domains-map.md from domain registry"
+    cmds:
+      - node scripts/domains-check.mjs --emit-map
+
   secrets:sync:
     desc: "Apply SealedSecrets to both prod clusters without touching workloads. Run after env:seal ENV=<env>."
     cmds:

@@ -1,0 +1,264 @@
+# docs/agent-guide/registry/domains.yaml
+# SSOT Frontend-Domain-Registry — jeder öffentlich erreichbare Host dieses
+# Projekts, erhoben aus den Ingress/IngressRoute-Manifesten unter prod-fleet/
+# und dev-local/. Prüfen mit:
+#
+#     task domains:check            # fail-closed: unbekannter Manifest-Host -> Exit != 0
+#     task domains:map              # erzeugt docs/agent-guide/maps/domains-map.md
+#
+# Felder je Eintrag:
+#   id              eindeutiger Bezeichner
+#   host            Host wie im Manifest (Template-Platzhalter ${...} bleiben wörtlich)
+#   cluster         fleet | devmesh
+#   namespace       Kubernetes-Namespace des Ingress
+#   paths           Liste der Pfade (z. B. ["/"])
+#   service         Backend als name:port
+#   auth            oidc | open | basic | token
+#   owner_frontend  verantwortliches Frontend-Team
+#   functions       Liste der Funktions-Strings (Funktions-Matrix)
+#   status          live | frozen | retired
+#   manifest_source repo-relative YAML-Datei, die den Host deklariert
+#   decision        optional: erklärt Split/Redirect bei doppelter Live-Funktion
+#
+# FUNKTIONS-MATRIX: Beanspruchen zwei status:live-Einträge desselben Clusters
+# denselben Funktions-String, muss mindestens einer der beiden ein decision-
+# Feld tragen, das den Split/Redirect erklärt — sonst ist der Guard rot.
+# Einen Eintrag nie löschen (retired/frozen stehen lassen).
+---
+domains:
+  - id: website-mentolder
+    host: web.${PROD_DOMAIN}
+    cluster: fleet
+    namespace: website
+    paths: ["/", "/_astro/"]
+    service: website:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [frontend]
+    status: live
+    manifest_source: prod-fleet/website-mentolder/website-ingress-web.yaml
+    decision: "D1: web.mentolder.de (Astro) ist die kanonische oeffentliche Seite; react.mentolder.de ist sekundaer/Redirect."
+
+  - id: website-korczewski
+    host: web.${PROD_DOMAIN}
+    cluster: fleet
+    namespace: website-korczewski
+    paths: ["/", "/_astro/"]
+    service: website:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [frontend]
+    status: frozen
+    manifest_source: prod-fleet/website-korczewski/website-ingress-web.yaml
+
+  - id: website-staging
+    host: web.${PROD_DOMAIN}
+    cluster: fleet
+    namespace: website-staging
+    paths: ["/", "/_astro/"]
+    service: website:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [frontend]
+    status: live
+    manifest_source: prod-fleet/website-staging/website-ingress-web.yaml
+    decision: "D1: Staging-Spiegel der kanonischen Astro-Seite; nur QA, kein Index."
+
+  - id: apex-korczewski
+    host: ${PROD_DOMAIN}
+    cluster: fleet
+    namespace: website-korczewski
+    paths: ["/"]
+    service: website:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [redirect]
+    status: live
+    manifest_source: prod-fleet/website-korczewski/website-apex.yaml
+    decision: "D1: Apex leitet auf den kanonischen web-Host weiter."
+
+  - id: studio-mentolder
+    host: studio.${PROD_DOMAIN}
+    cluster: fleet
+    namespace: workspace
+    paths: ["/"]
+    service: oauth2-proxy-studio:4180
+    auth: oidc
+    owner_frontend: bp-ship
+    functions: [websocket]
+    status: live
+    manifest_source: prod-fleet/mentolder/studio-ingress.yaml
+
+  - id: devmesh-web
+    host: web.${DEVMESH_DOMAIN}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: sdlc-console:8080
+    auth: oidc
+    owner_frontend: bp-ship
+    functions: [frontend, backend]
+    status: live
+    manifest_source: dev-local/core/ingress.yaml
+    decision: "D2: agent-board ist das kanonische devmesh-Ops-Cockpit; web.devmesh/sdlc sind Tickets/Pipeline."
+
+  - id: devmesh-website-alias
+    host: ${WEBSITE_HOST}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: website:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [frontend]
+    status: live
+    manifest_source: dev-local/core/ingress.yaml
+    decision: "D2: Kompat-Alias auf denselben Website-Service; kanonisch bleibt web."
+
+  - id: devmesh-auth
+    host: auth.${DEVMESH_DOMAIN}
+    cluster: devmesh
+    namespace: core
+    paths: ["/"]
+    service: pocket-id:1411
+    auth: oidc
+    owner_frontend: bp-ship
+    functions: [middleware]
+    status: live
+    manifest_source: dev-local/core/ingress.yaml
+
+  - id: devmesh-mail
+    host: mail.${DEVMESH_DOMAIN}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: mailpit:8025
+    auth: token
+    owner_frontend: bp-ship
+    functions: [mail]
+    status: live
+    manifest_source: dev-local/core/ingress.yaml
+
+  - id: devmesh-brain
+    host: brain.${DEVMESH_DOMAIN}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: oauth2-proxy-brain:4180
+    auth: oidc
+    owner_frontend: bp-ship
+    functions: [websocket]
+    status: live
+    manifest_source: dev-local/components/brain/ingress.yaml
+
+  - id: devmesh-files
+    host: files.${DEVMESH_DOMAIN}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: nextcloud:80
+    auth: oidc
+    owner_frontend: bp-ship
+    functions: [files]
+    status: live
+    manifest_source: dev-local/components/nextcloud/ingress.yaml
+
+  - id: devmesh-office
+    host: office.${DEVMESH_DOMAIN}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: collabora:9980
+    auth: open
+    owner_frontend: bp-ship
+    functions: [office]
+    status: live
+    manifest_source: dev-local/components/collabora/ingress.yaml
+
+  - id: devmesh-signaling
+    host: signaling.${DEVMESH_DOMAIN}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: spreed-signaling:8080
+    auth: token
+    owner_frontend: bp-ship
+    functions: [signaling]
+    status: live
+    manifest_source: dev-local/components/talk/ingress.yaml
+
+  - id: devmesh-vault
+    host: vault.${DEVMESH_DOMAIN}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: vaultwarden:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [secrets]
+    status: live
+    manifest_source: dev-local/components/vaultwarden/ingress.yaml
+
+  - id: devmesh-opencode
+    host: ${OPENCODE_PUBLIC_HOST}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: opencode:80
+    auth: oidc
+    owner_frontend: bp-ship
+    functions: [ops-access]
+    status: live
+    manifest_source: dev-local/components/opencode/ingressroute.yaml
+    decision: "Ops-Einstieg hinter oauth2-proxy; eigener Host, kein FritzBox-Zugang."
+
+  - id: devmesh-fritzbox
+    host: ${FRITZ_BOX_HOST}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: oauth2-proxy-fritzbox:4180
+    auth: oidc
+    owner_frontend: bp-ship
+    functions: [ops-access]
+    status: live
+    manifest_source: dev-local/components/opencode/fritzbox-ingressroute.yaml
+    decision: "FritzBox-Lokalzugang; eigener Host, kein Redirect auf den Public-Host."
+
+  - id: korczewski-web-mirror
+    host: ${KORCZEWSKI_PROD_WEB_HOST}
+    cluster: devmesh
+    namespace: components
+    paths: ["/", "/_astro/"]
+    service: website:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [frontend]
+    status: live
+    manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
+    decision: "Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt fleet."
+
+  - id: korczewski-apex-mirror
+    host: ${KORCZEWSKI_PROD_APEX_HOST}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: website:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [frontend]
+    status: live
+    manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
+    decision: "Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt fleet."
+
+  - id: korczewski-auth-mirror
+    host: ${KORCZEWSKI_PROD_AUTH_HOST}
+    cluster: devmesh
+    namespace: components
+    paths: ["/"]
+    service: pocket-id:1411
+    auth: oidc
+    owner_frontend: bp-ship
+    functions: [sso]
+    status: live
+    manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml

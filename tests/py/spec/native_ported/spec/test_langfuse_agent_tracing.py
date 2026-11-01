@@ -17,7 +17,7 @@ def test_devmesh_does_not_deploy_langfuse(repo_root, profile):
 
 def test_fleet_does_not_expose_retired_langfuse_proxy(repo_root):
     result = subprocess.run(
-        ["kubectl", "kustomize", str(repo_root / "prod-fleet/mentolder")],
+        ["kubectl", "kustomize", str(repo_root / "prod-fleet/korczewski")],
         cwd=repo_root, capture_output=True, text=True, timeout=120,
     )
     assert result.returncode == 0, result.stderr

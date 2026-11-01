@@ -510,8 +510,11 @@ def test_t001994_taskfile_extraktion_liefert_nicht_leere_allowlists_guard_selbst
 
 
 
-def test_t001994_workspace_deploy_allowlist_deckt_prod_fleet_mentolder_ab(run_cmd, ci):
-    _assert_no_config_drift(run_cmd, ci["repo"], "prod-fleet/mentolder",
+def test_t001994_workspace_deploy_allowlist_deckt_prod_fleet_korczewski_ab_p8_pendant(run_cmd, ci):
+    # brand-trennung p8-v3: ex-mentolder-Zeile auf korczewski-Pendant (kein
+    # Skip-Schlupf ueber geloescht-es Overlay; Sibling-Test deckt denselben
+    # Overlay mit derselben Allowlist — Doppelabdeckung als No-Drift-Beleg).
+    _assert_no_config_drift(run_cmd, ci["repo"], "prod-fleet/korczewski",
                             _taskfile_envsubst_list(ci["repo"], "workspace:deploy"))
 
 
@@ -522,8 +525,9 @@ def test_t001994_workspace_deploy_allowlist_deckt_prod_fleet_korczewski_ab(run_c
 
 
 
-def test_t001994_workspace_partial_deploy_allowlist_deckt_prod_fleet_mentolder_ab(run_cmd, ci):
-    _assert_no_config_drift(run_cmd, ci["repo"], "prod-fleet/mentolder",
+def test_t001994_workspace_partial_deploy_allowlist_deckt_prod_fleet_korczewski_ab_p8_pendant(run_cmd, ci):
+    # brand-trennung p8-v3: ex-mentolder-Zeile auf korczewski-Pendant (s. oben).
+    _assert_no_config_drift(run_cmd, ci["repo"], "prod-fleet/korczewski",
                             _taskfile_envsubst_list(ci["repo"], "workspace:partial-deploy"))
 
 
@@ -534,8 +538,9 @@ def test_t001994_workspace_partial_deploy_allowlist_deckt_prod_fleet_korczewski_
 
 
 
-def test_t001994_website_deploy_allowlist_deckt_prod_fleet_website_mentolder_ab(run_cmd, ci):
-    _assert_no_config_drift(run_cmd, ci["repo"], "prod-fleet/website-mentolder",
+def test_t001994_website_deploy_allowlist_deckt_prod_fleet_website_korczewski_ab_p8_pendant(run_cmd, ci):
+    # brand-trennung p8-v3: ex-website-mentolder-Zeile auf korczewski-Pendant (s. oben).
+    _assert_no_config_drift(run_cmd, ci["repo"], "prod-fleet/website-korczewski",
                             _website_deploy_list(ci["repo"]))
 
 

@@ -189,10 +189,11 @@ def test_pocket_id_dev_env_file_sets_pocket_id_frontend_url_pocket_id_url(P):
     assert _has(P.env / "dev.yaml", r"^\s*POCKET_ID_URL:")
 
 
-def test_pocket_id_mentolder_env_file_sets_pocket_id_frontend_url_https_auth_mentolder_de(P):
-    f = P.env / "mentolder.yaml"
-    assert _has(f, r'^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.mentolder\.de"')
-    assert _has(f, r"^\s*POCKET_ID_URL:")
+def test_pocket_id_mentolder_env_file_entfernt_brand_trennung_p5(P):
+    # brand-trennung p5: environments/mentolder.yaml geloescht — Negativ-Anker
+    # gegen Wiederauferstehung; Positiv-Fall ist der korczewski-Test unten.
+    assert not (P.env / "mentolder.yaml").exists(), \
+        "environments/mentolder.yaml existiert noch (brand-trennung p5)"
 
 
 def test_pocket_id_korczewski_env_file_sets_pocket_id_frontend_url_https_auth_korczewski_de(P):
@@ -201,8 +202,13 @@ def test_pocket_id_korczewski_env_file_sets_pocket_id_frontend_url_https_auth_ko
     assert _has(f, r"^\s*POCKET_ID_URL:")
 
 
-def test_pocket_id_fleet_mentolder_env_file_sets_pocket_id_frontend_url_https_auth_mentolder_de(P):
-    assert _has(P.env / "fleet-mentolder.yaml", r'^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.mentolder\.de"')
+def test_pocket_id_fleet_mentolder_env_file_entfernt_brand_trennung_p5(P):
+    # brand-trennung p5: environments/fleet-mentolder.yaml geloescht —
+    # Negativ-Anker; POCKET_ID_FRONTEND_URL-Aequivalent aus
+    # environments/fleet-korczewski.yaml (dort verifiziert vorhanden).
+    assert not (P.env / "fleet-mentolder.yaml").exists(), \
+        "environments/fleet-mentolder.yaml existiert noch (brand-trennung p5)"
+    assert _has(P.env / "fleet-korczewski.yaml", r'^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.korczewski\.de"')
 
 
 def test_pocket_id_fleet_korczewski_env_file_sets_pocket_id_frontend_url_https_auth_korczewski_de(P):

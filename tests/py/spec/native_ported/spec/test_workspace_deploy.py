@@ -118,7 +118,7 @@ def test_workspace_deploy_prod_branch_re_quotes_kustomize_stripped_var_placehold
     assert REQUOTE_SED in block
 
 
-def test_prod_fleet_mentolder_overlay_renders_pocket_id_smtp_port_as_a_quoted_string_after_the_full_deploy_pipeline_t001411(run_cmd, repo_root):
+def test_prod_fleet_korczewski_overlay_renders_pocket_id_smtp_port_as_a_quoted_string_after_the_full_deploy_pipeline_t001411(run_cmd, repo_root):
     if shutil.which("kustomize") is None or shutil.which("envsubst") is None:
         pytest.skip("kustomize/envsubst nicht verfuegbar")
     env = {
@@ -127,7 +127,7 @@ def test_prod_fleet_mentolder_overlay_renders_pocket_id_smtp_port_as_a_quoted_st
         "POCKET_ID_DOMAIN": "id.example",
     }
     script = (
-        f"set -o pipefail; kustomize build '{repo_root}/prod-fleet/mentolder' --load-restrictor=LoadRestrictionsNone"
+        f"set -o pipefail; kustomize build '{repo_root}/prod-fleet/korczewski' --load-restrictor=LoadRestrictionsNone"
         f" | sed -E '{REQUOTE_SED}'"
         " | envsubst '$SMTP_PORT $SMTP_HOST $SMTP_USER $POCKET_ID_SMTP_TLS $POCKET_ID_FRONTEND_URL $POCKET_ID_URL $POCKET_ID_DOMAIN'"
         " | grep -A1 'name: SMTP_PORT'"
@@ -509,24 +509,33 @@ def test_the_tag_placeholder_always_has_a_value_so_it_never_renders_empty(repo_r
 # ── Blast-Radius-Eingrenzung (T002207) ──
 
 def test_t002207_brand_kustomization_does_not_set_bare_wait_true_requires_health_checks(flux):
-    for ks in ("ks-mentolder.yaml", "ks-korczewski.yaml"):
+    # brand-trennung p5: ks-mentolder.yaml geloescht (korczewski-only Repo) —
+    # der Negativ-Anker ist die Nichtexistenz, die Health-Checks gelten fuer korczewski.
+    assert not (flux["cluster"] / "ks-mentolder.yaml").is_file(), \
+        "FAIL: ks-mentolder.yaml existiert noch (brand-trennung p5)"
+    for ks in ("ks-korczewski.yaml",):
         text = (flux["cluster"] / ks).read_text(encoding="utf-8")
         assert not re.search(r"^\s*wait:\s*true$", text, re.M), f"FAIL: {ks} still sets bare wait:true without healthChecks"
 
 
 def test_t002207_brand_kustomization_declares_health_checks_list(flux):
-    for ks in ("ks-mentolder.yaml", "ks-korczewski.yaml"):
+    assert not (flux["cluster"] / "ks-mentolder.yaml").is_file(), \
+        "FAIL: ks-mentolder.yaml existiert noch (brand-trennung p5)"
+    for ks in ("ks-korczewski.yaml",):
         text = (flux["cluster"] / ks).read_text(encoding="utf-8")
         assert "healthChecks:" in text, f"FAIL: {ks} has no healthChecks"
 
 
 def test_t002207_jobs_kustomization_exists_for_each_brand(flux):
-    for ks in ("ks-jobs-mentolder.yaml", "ks-jobs-korczewski.yaml"):
+    # brand-trennung p5: ks-jobs-mentolder.yaml geloescht — Anker plus korczewski-Positiv.
+    assert not (flux["cluster"] / "ks-jobs-mentolder.yaml").is_file(), \
+        "FAIL: ks-jobs-mentolder.yaml existiert noch (brand-trennung p5)"
+    for ks in ("ks-jobs-korczewski.yaml",):
         assert (flux["cluster"] / ks).is_file(), f"FAIL: {flux['cluster'] / ks} does not exist"
 
 
 def test_t002207_jobs_kustomization_has_depends_on_flux_brand_and_force_true(flux):
-    for brand in ("mentolder", "korczewski"):
+    for brand in ("korczewski",):
         ks = flux["cluster"] / f"ks-jobs-{brand}.yaml"
         if not ks.is_file():
             continue  # BATS: skip if not yet created
@@ -544,7 +553,7 @@ def test_t002207_no_kind_job_in_rendered_brand_component_trees(run_cmd, flux, tm
     out = tmp_path / "render"
     out.mkdir()
     _render(run_cmd, flux, out)
-    for brand in ("mentolder", "korczewski"):
+    for brand in ("korczewski",):
         manifest = out / brand / f"{brand}.yaml"
         if manifest.is_file():
             count = sum(1 for l in manifest.read_text(encoding="utf-8").splitlines() if l.startswith("kind: Job"))
@@ -555,7 +564,7 @@ def test_t002207_rendered_jobs_component_trees_contain_kind_job(run_cmd, flux, t
     out = tmp_path / "render"
     out.mkdir()
     _render(run_cmd, flux, out)
-    for brand in ("mentolder", "korczewski"):
+    for brand in ("korczewski",):
         manifest = out / f"{brand}-jobs" / f"{brand}-jobs.yaml"
         if manifest.is_file():
             count = sum(1 for l in manifest.read_text(encoding="utf-8").splitlines() if l.startswith("kind: Job"))

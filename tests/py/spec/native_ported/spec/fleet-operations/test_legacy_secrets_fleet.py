@@ -20,9 +20,13 @@ def _secrets_env_for(run_cmd, repo_root: Path, helper: Path, args: str):
 
 def test_t900789_secrets_env_for_loest_legacy_envs_auf_fleet_brand_auf(repo_root, helper, run_cmd):
     assert helper.is_file()
+    # brand-trennung p5: environments/mentolder.yaml geloescht — das Legacy-
+    # Mapping mentolder->fleet-mentolder ist mit der Brand entfallen;
+    # secrets_env_for faellt per Helper-Vertrag auf Identitaet zurueck
+    # (per Lauf verifiziert: secrets_env_for mentolder == mentolder).
     res = _secrets_env_for(run_cmd, repo_root, helper, "mentolder")
     assert res.returncode == 0, res.output
-    assert res.output == "fleet-mentolder"
+    assert res.output == "mentolder"
     res = _secrets_env_for(run_cmd, repo_root, helper, "korczewski")
     assert res.output == "fleet-korczewski"
 
@@ -71,10 +75,10 @@ def test_t900789_env_generate_env_seal_secret_rotate_loesen_ueber_secrets_env_au
         assert "lib/secrets-env.sh" in text, f"ohne Helper: {f}"
 
     res = run_cmd(
-        ["bash", "scripts/env-generate.sh", "--env", "mentolder", "--env-dir", "environments"],
+        ["bash", "scripts/env-generate.sh", "--env", "korczewski", "--env-dir", "environments"],
         cwd=repo_root,
         timeout=300,
     )
     assert res.returncode != 0, res.output
-    assert "fleet-mentolder" in res.output
-    assert not (repo_root / "environments" / ".secrets" / "mentolder.yaml").exists()
+    assert "fleet-korczewski" in res.output
+    assert not (repo_root / "environments" / ".secrets" / "korczewski.yaml").exists()

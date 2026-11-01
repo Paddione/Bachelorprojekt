@@ -11,8 +11,8 @@ PENPOT_KEYS = [
     "PENPOT_MINIO_SECRET_KEY",
     "POCKET_ID_PENPOT_SECRET",
 ]
-PLAINTEXT_FILES = ["fleet-mentolder.yaml", "fleet-staging.yaml"]
-SEALED_FILES = ["fleet-mentolder.yaml", "staging.yaml", "mentolder.yaml"]
+PLAINTEXT_FILES = ["fleet-korczewski.yaml", "fleet-staging.yaml"]
+SEALED_FILES = ["fleet-korczewski.yaml", "staging.yaml", "korczewski-prod.yaml"]
 
 
 @pytest.fixture

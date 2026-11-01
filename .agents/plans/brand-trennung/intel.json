@@ -357,6 +357,30 @@
       "s1_baseline": null,
       "s1_budget": null,
       "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/test_fleet_operations.py",
+      "language": "python",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/fleet/test_ai_services_scale_zero.py",
+      "language": "python",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
+    },
+    {
+      "path": "tests/py/spec/remaining_domain_specs/flux-artifact-versioning/test_flux_artifact_versioning.py",
+      "language": "python",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800
     }
   ],
   "intel_sources": [

@@ -1,33 +1,38 @@
-# p8 — Render-Skript mentolder-frei + Render-Tests grün (Nachtrag 2026-11-01)
+# p8 — Render-Skript korczewski-only + Render-Tests grün (Nachtrag, v2)
 
-## Anlass (Plan-Mutation)
-p5 löschte `prod-fleet/mentolder` + `website-mentolder`; `scripts/
-flux-render-artifact.sh` rendert beide noch (KNOWN_COMPONENTS +
-want-Blöcke) → 16 Render-Tests rot, CI auf diesem PR wäre rot.
-Gehoert sachlich zum Epic (kein Drive-by): TURN/SMTP-Werte je Brand
-(`.104/pk-hetzner-4` vs `.206/gekko-hetzner-2`) bleiben korczewski-gebunden,
-nichts erfinden.
-
-## Rotphase (Baseline zuerst)
-Render-Test-Set VOR der Änderung laufen lassen:
-`bash scripts/pytest-run.sh tests/py/spec/test_flux_render_and_security.py`
-— expected FAIL (mentolder-Out-Dirs fehlen nach p5, Script rendert sie noch).
-Danach Streichungen, derselbe Befehl → grün. Beleg in phase-events.log.
+## Anlass (Plan-Mutation v2)
+Rotphase belegt: Render stirbt schon im platform-Block (`source
+scripts/env-resolve.sh fleet-mentolder`, Datei von p5 gelöscht) — reine
+Streichungen reichen NICHT. Zusätzlich assertieren drei weitere Specs
+mentolder-Render. v2 erweitert p8 (kein neues Partial — D1).
 
 ## Ziel
-1. `scripts/flux-render-artifact.sh` (554): `mentolder`,
-   `website-mentolder`, `sealed-secrets-mentolder` aus KNOWN_COMPONENTS +
-   want-Blöcken + Kommentaren entfernen (nur Streichungen, keine neue Logik;
-   korczewski-Pendants unangetastet).
-2. `tests/py/spec/test_flux_render_and_security.py` (143): Assertions auf
-   mentolder-Out-Dirs entfernen/auf korczewski-only umstellen (exakt die
-   Fundstellen per grep, z. B. `:105-122`).
-3. Falls WEITERE Specs mentolder-Render assertieren (grep
-   `mentolder.*render|render.*mentolder` über `tests/py/spec/`): STOPP +
-   Bericht an Orchestrator (kein stilles Erweitern — D1).
+1. `scripts/flux-render-artifact.sh` (554):
+   - `mentolder`, `website-mentolder`, `sealed-secrets-mentolder` aus
+     KNOWN_COMPONENTS + want-Blöcken + Kommentaren streichen;
+   - platform/coturn/office/rustdesk-Blöcke (`:248,373,388,408`) von
+     `fleet-mentolder` auf `fleet-korczewski` umverdrahten (TURN/SMTP-Werte
+     aus `fleet-korczewski.yaml`; Mapping im Code-Kommentar + PR-Body
+     dokumentieren; fehlt ein Wert dort → STOPP, nichts erfinden).
+2. Specs (Mit-Reparatur, exakt diese vier):
+   - `tests/py/spec/test_flux_render_and_security.py` (143): mentolder-
+     Out-Dir-Assertions entfernen/auf korczewski-only;
+   - `tests/py/spec/test_fleet_operations.py` (`test_vaultwarden_smtp_from`,
+     `:500-507`): `kubectl kustomize prod-fleet/mentolder` → korczewski-
+     Pendant (Overlay-Name aus p1-Inventar; keins vorhanden → Test auf
+     korczewski-Pfad umschreiben, kein Skip-Schlupf);
+   - `tests/py/spec/fleet/test_ai_services_scale_zero.py` (`:46`): Fixture
+     rendert `prod-fleet/mentolder` → `prod-fleet/korczewski`;
+   - `tests/py/spec/remaining_domain_specs/flux-artifact-versioning/test_flux_artifact_versioning.py` (`:21`): `mentolder/mentolder.yaml`-Assert → korczewski-Artefakt.
+3. Grep-Kontrolle danach: `mentolder.*render|render.*mentolder` über
+   `tests/py/spec/` + `flux-render` über `scripts/` — Resttreffer einzeln
+   begründen (Kommentar/Doku ok, Code-Pfad nicht).
+
+## Rotphase (Baseline zuerst)
+`bash scripts/pytest-run.sh tests/py/spec/test_flux_render_and_security.py`
+— expected FAIL (belegt: 2 failed). Nach Umsetzung derselbe Befehl +
+die drei Mit-Reparatur-Specs grün. Beleg in phase-events.log.
 
 ## Gates
-- `bash scripts/flux-render-artifact.sh --out /tmp/opencode/render-check`
-  läuft ohne mentolder-Fehler (korczewski-Artefakte vorhanden).
-- Render-Test-Set grün: betroffene Spec-Dateien per pytest-runner.
-- `.sh`-Limit 800 eingehalten (nur Streichungen).
+- Render-Lauf `--out` ohne mentolder-Fehler, korczewski-Artefakte vorhanden.
+- Alle vier Spec-Dateien grün; `.sh`-Limit 800 eingehalten.

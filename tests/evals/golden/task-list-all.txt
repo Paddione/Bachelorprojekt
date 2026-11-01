@@ -128,6 +128,7 @@ task: Available tasks for this project:
 * docs:refresh-diagrams:                        Regenerate all auto-generated diagrams (DB schema, …)
 * domains:check:                                Validate domain registry against SSOT
 * domains:map:                                  Regenerate docs/agent-guide/maps/domains-map.md from domain registry
+* domains:probe:                                Live-Host-E2E-Probe je Registry-Host (DNS/TLS/Status/Redirect; task domains:probe -- --cluster fleet)
 * dsh:dsh:build:                                Build deepseek-harness (pnpm install + build)
 * dsh:dsh:doctor:                               Check DSH prerequisites (clone, build, CLI)
 * dsh:dsh:web:                                  Start the DSH Web UI on port 3080

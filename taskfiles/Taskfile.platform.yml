@@ -43,6 +43,11 @@ tasks:
     cmds:
       - node scripts/domains-check.mjs --emit-map
 
+  domains:probe:
+    desc: "Live-Host-E2E-Probe je Registry-Host (DNS/TLS/Status/Redirect; task domains:probe -- --cluster fleet)"
+    cmds:
+      - node scripts/domains-probe.mjs {{.CLI_ARGS}}
+
   secrets:sync:
     desc: "Apply SealedSecrets to both prod clusters without touching workloads. Run after env:seal ENV=<env>."
     cmds:

@@ -1,0 +1,110 @@
+{
+  "call_graph": {
+    "edges": [],
+    "entrypoints": []
+  },
+  "db_tables": [],
+  "external_types": [],
+  "impact_files": [
+    {
+      "language": "javascript",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800,
+      "path": "scripts/domains-probe.mjs"
+    },
+    {
+      "language": "python",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800,
+      "path": "tests/py/spec/remaining_root_specs/domain_registry/test_domains_probe.py"
+    },
+    {
+      "language": "yaml",
+      "loc": 264,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "docs/agent-guide/registry/domains.yaml"
+    },
+    {
+      "language": "javascript",
+      "loc": 332,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 800,
+      "path": "scripts/domains-check.mjs"
+    },
+    {
+      "language": "yaml",
+      "loc": 809,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": "taskfiles/Taskfile.platform.yml"
+    },
+    {
+      "language": "yaml",
+      "loc": 0,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "s1_limit": 0,
+      "path": ".github/workflows/domains-probe.yml"
+    },
+    {
+      "path": "tests/evals/golden/task-list-all.txt",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "json",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "intel_sources": [
+    "wc -l",
+    "docs/code-quality/gates.yaml",
+    "docs/code-quality/baseline.json",
+    "environments/dev.yaml",
+    "environments/fleet-mentolder.yaml",
+    ".github/workflows/e2e.yml"
+  ],
+  "meta": {
+    "domains": [
+      "infra",
+      "website"
+    ],
+    "generated_from": "main@5281e4bff",
+    "slug": "domains-live-probe",
+    "ticket_id": ""
+  },
+  "risks": [
+    {
+      "id": "R1",
+      "mitigation": "B3-Hybrid-Semantik: ENOTFOUND bei devmesh wird SKIP mit Grund, kein FAIL.",
+      "text": "CI-Runner ohne Tailnet sehen devmesh-Hosts nicht (ENOTFOUND)."
+    },
+    {
+      "id": "R2",
+      "mitigation": "B2: feste Env-Datei je Cluster; Kollisionen per Konstruktion ausgeschlossen.",
+      "text": "PROD_DOMAIN kollidiert zwischen Env-Dateien (mentolder/korczewski/dev)."
+    },
+    {
+      "id": "R3",
+      "mitigation": "Startwerte werden im Live-Lauf verifiziert; Abweichung mit Begruendung im PR-Body, nie still angepasst.",
+      "text": "Live-Proben 2026-10-28 sind veraltet und decken Registry-IDs nur teilweise ab."
+    }
+  ],
+  "symbols": [],
+  "type_text": ""
+}

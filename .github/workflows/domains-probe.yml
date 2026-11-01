@@ -1,0 +1,45 @@
+# .github/workflows/domains-probe.yml
+#
+# Nightly + on-demand live probe of every registry host
+# (docs/agent-guide/registry/domains.yaml: DNS, TLS, expected status/redirect).
+# Bewusst KEIN Required Check: nightly informiert, blockiert kein Auto-Merge
+# (analog der E2E-Entpflichtung). Unauthentifizierte Erwartungen (B3), daher
+# keine Secrets und keine Services. Ruft das Script direkt auf (keine
+# Task-Abhaengigkeit im Runner).
+name: Domains-Probe (Live Hosts)
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: "Cluster to probe (default: both)"
+        required: false
+        default: both
+        type: choice
+        options: [both, fleet, devmesh]
+  schedule:
+    - cron: "0 4 * * *"  # 04:00 UTC nightly (03:00 ist durch e2e.yml belegt)
+
+concurrency:
+  group: domains-probe-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-tags: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run live-host probe
+        run: node scripts/domains-probe.mjs --cluster ${{ inputs.cluster || 'both' }}

@@ -54,6 +54,7 @@ export default defineConfig({
         '**/fa-51-*.spec.ts',
         '**/agent-guide-walkthrough.spec.ts',
         '**/a11y-axe.spec.ts',
+        '**/docs-smoke.spec.ts',
         '**/fa-54-coaching-sessions.spec.ts',
         '**/fa-55-lmstudio-integration.spec.ts',
         '**/fa-56-admin-assets.spec.ts',

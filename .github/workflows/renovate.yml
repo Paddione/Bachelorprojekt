@@ -10,10 +10,14 @@ name: Renovate
 #   fresh on every run by the create-github-app-token step below. The App needs
 #   Contents: write, Pull requests: write, Metadata: read AND — because the
 #   github-actions manager runs with pinDigests: true and thus edits files under
-#   .github/workflows/ — Workflows: write. Without the Workflows permission
-#   GitHub rejects the push ("refusing to allow a GitHub App to create or update
-#   workflow ...") while npm and kubernetes bumps keep working, which reads as a
-#   partial, hard-to-diagnose failure.
+#   .github/workflows/ — Workflows: write AND — because
+#   dependencyDashboard: true in renovate.json5 needs the Dashboard issue —
+#   Issues: write. Without the Issues permission every run dies in
+#   ensureDependencyDashboard ("integration-unauthorized", verified 2026-10-26)
+#   while everything else stays green, which reads as a success. Without the
+#   Workflows permission GitHub rejects the push ("refusing to allow a GitHub
+#   App to create or update workflow ...") while npm and kubernetes bumps keep
+#   working, which reads as a partial, hard-to-diagnose failure.
 #
 # NOT the opencode.yml pattern: that workflow uses id-token: write, and the
 #   OIDC-to-installation-token exchange is a feature of the opencode action.

@@ -103,15 +103,21 @@ jobs:
         run: cd components/website && pnpm install --frozen-lockfile
       - name: Use runner kubeconfig (ci-migrate, least-privilege)
         # config-ci liegt auf dem Runner-Host (~/.kube/config-ci, 0600):
-        # SA ci-migrate, Namespace workspace, kein Admin, kein Secret nötig.
+        # SA ci-migrate, Namespace workspace auf devmesh (gpu-cluster2:6443),
+        # kein Admin. [Issue #7030] ersetzte den toten fleet-Endpoint.
         run: |
           test -f "$HOME/.kube/config-ci" || { echo "config-ci missing on runner"; exit 1; }
           echo "KUBECONFIG=$HOME/.kube/config-ci" >> "$GITHUB_ENV"
       - name: Run transitional imperative post-steps
         # [T900810] Nur mentolder: korczewski ist eingefroren (T002479), die
         # Migration lief trotzdem bei jedem Manifest-Merge auch dorthin.
+        # [Issue #7030] fleet-Cluster (gekko-hetzner-2, config-ci auf lan-worker)
+        # ist tot (DNS NXDOMAIN) — post-merge migriert NICHT mehr mentolder-prod.
+        # Stattdessen ENV=dev (devmesh, shared-db in workspace): validiert die
+        # Migrationen pre-prod; Prod-Migration bleibt Sache des Deploy-Pfads
+        # (workspace:deploy -> website:migrate mit Deploy-ENV).
         run: |
-          task website:migrate ENV=mentolder
+          task website:migrate ENV=dev
 
       # ENTFERNT mit E3/T002626 (ADR-006): "Mark ticket done" und
       # "Ticket closure scan".

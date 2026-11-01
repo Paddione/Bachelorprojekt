@@ -1,0 +1,154 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# llm-lfm3-audio: LiquidAI LFM3-Audio-2B (llama.cpp, CPU-only, walkie-talkie)
+#
+# Single instance on gpu-cluster-3 (37% MEM, most headroom of the non-CUDA
+# nodes; already hosts qwen35-2b-instruct, the 2B-CPU precedent). No workload
+# changes elsewhere ("place only" decision 2026-11-01).
+#
+# Bench (2026-11-01, Q4_0 + mmproj-Q4_0, --cpus=4 --memory=8g, -ngl 0):
+#   load ~2.6s, idle 1.03GiB, short command 0.46s (prefill ~106 tok/s,
+#   decode ~34 tok/s on 5800X3D — Skylake will be slower, still plenty for
+#   1-3s PTT commands). Audio transcription endpoint responds without crash
+#   (experimental flag). TTS-out (LiquidCodec streaming) NOT yet verified.
+#
+# Model: LiquidAI/LFM3-Audio-2B-GGUF, files (case-sensitive):
+#   LFM3-Audio-2B-Q4_0.gguf (1001M) + mmproj-LFM3-Audio-2B-Q4_0.gguf (154M)
+# Threads: -t 2 / -tb 2 against limits.cpu 2000m (T002661/T002835 — no
+# oversubscription at the layer barrier). -c 2048 -np 1: single PTT slot.
+# No Service yet (no consumers); add ClusterIP + gateway route on first use.
+#
+# Image pins: server-cuda digest is the exact benched image (runs CPU-only
+# with "no usable GPU" warning, verified). Follow-up: switch to the lighter
+# plain `server` image once its digest is resolvable (registry auth).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── lfm3-audio: LFM3-Audio-2B (llama.cpp, CPU-only) ──────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lfm3-audio-models
+  labels:
+    app: lfm3-audio
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lfm3-audio
+  labels:
+    app: lfm3-audio
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lfm3-audio
+  template:
+    metadata:
+      labels:
+        app: lfm3-audio
+    spec:
+      # Same node as qwen35-2b-instruct (RWO PVC is node-local via Longhorn).
+      nodeSelector:
+        kubernetes.io/hostname: gpu-cluster-3
+      # fsGroup 101: curlimages/curl runs as uid=100/gid=101 (curl_user),
+      # otherwise the initContainer fails on Longhorn-RWO with Permission denied.
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 101
+      initContainers:
+        - name: model-download
+          image: curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            allowPrivilegeEscalation: false
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              if [ ! -s /models/LFM3-Audio-2B-Q4_0.gguf ]; then
+                echo "Downloading LFM3-Audio-2B-Q4_0.gguf ..."
+                curl -fL --retry 3 --connect-timeout 10 \
+                  -o /models/LFM3-Audio-2B-Q4_0.gguf \
+                  https://huggingface.co/LiquidAI/LFM3-Audio-2B-GGUF/resolve/main/LFM3-Audio-2B-Q4_0.gguf
+              fi
+              if [ ! -s /models/mmproj-LFM3-Audio-2B-Q4_0.gguf ]; then
+                echo "Downloading mmproj-LFM3-Audio-2B-Q4_0.gguf ..."
+                curl -fL --retry 3 --connect-timeout 10 \
+                  -o /models/mmproj-LFM3-Audio-2B-Q4_0.gguf \
+                  https://huggingface.co/LiquidAI/LFM3-Audio-2B-GGUF/resolve/main/mmproj-LFM3-Audio-2B-Q4_0.gguf
+              fi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server-cuda@sha256:c1d664830580e1651c1cc8d3bbc161af474800a56a83226e6e22f94bb8ba1c59
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+          args:
+            - "-m"
+            - "/models/LFM3-Audio-2B-Q4_0.gguf"
+            - "--mmproj"
+            - "/models/mmproj-LFM3-Audio-2B-Q4_0.gguf"
+            - "--alias"
+            - "lfm3-audio-2b"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            # CPU-only: gpu-cluster-3 has no NVIDIA GPU (Intel HD530 only,
+            # unused for now — CPU-only already does ~33 tok/s class).
+            - "-ngl"
+            - "0"
+            - "-c"
+            - "2048"
+            - "-b"
+            - "512"
+            - "-ub"
+            - "512"
+            - "-np"
+            - "1"
+            - "-t"
+            - "2"
+            - "-tb"
+            - "2"
+            - "--jinja"
+          env:
+            - name: CUDA_VISIBLE_DEVICES
+              value: ""
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+            limits:
+              cpu: 2000m
+              memory: 3Gi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: lfm3-audio-models

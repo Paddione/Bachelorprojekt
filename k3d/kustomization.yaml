@@ -95,6 +95,8 @@ resources:
   # LFM2.5 Embedding auf gpu-metal — Nachfolger des Desktop-Dienstes :8095,
   # Desktop sieht localhost via Port-Forward.
   - llm-retrieval-gpu.yaml
+  # LFM3-Audio-2B walkie-talkie (CPU-only, single instance gpu-cluster-3)
+  - llm-lfm3-audio.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml
   # Pocket ID — passkey-first OIDC provider on auth.<domain>, sole OIDC

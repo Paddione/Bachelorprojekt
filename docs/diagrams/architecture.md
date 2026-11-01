@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-100 Services · 1919 Abhängigkeitskanten · 316 API-Endpoints
+101 Services · 1920 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -41,6 +41,7 @@ flowchart LR
   knowledge_ingest_markdown["knowledge-ingest-markdown"]:::default
   knowledge_ingest_bugs["knowledge-ingest-bugs"]:::default
   knowledge_reindex_all["knowledge-reindex-all"]:::default
+  gemma_embed_scale["gemma-embed-scale"]:::default
   gemma_embed["gemma-embed"]:::default
   gemma_embed_bulk["gemma-embed-bulk"]:::default
   gemma_embed_igpu["gemma-embed-igpu"]:::default
@@ -229,6 +230,7 @@ flowchart LR
   sish -->|"selector"| sish
   downloads -->|"selector"| downloads
   einvoice_sidecar -->|"selector"| einvoice_sidecar
+  llm_gateway_gemma_embed -->|"selector"| gemma_embed_scale
   llm_gateway_gemma_embed -->|"selector"| gemma_embed
   llm_gateway_gemma_embed -->|"selector"| gemma_embed_bulk
   llm_gateway_gemma_embed -->|"selector"| gemma_embed_igpu
@@ -2008,6 +2010,7 @@ flowchart TB
     knowledge_ingest_markdown(["knowledge-ingest-markdown"])
     knowledge_ingest_bugs(["knowledge-ingest-bugs"])
     knowledge_reindex_all(["knowledge-reindex-all"])
+    gemma_embed_scale["gemma-embed-scale"]
     gemma_embed["gemma-embed"]
     gemma_embed_bulk["gemma-embed-bulk"]
     gemma_embed_igpu["gemma-embed-igpu"]

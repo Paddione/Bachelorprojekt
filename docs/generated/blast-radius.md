@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-10-31T13:41:47.326Z
-> Nodes: 100 | Edges: 1919 | Isolated: 6
+> Generated: 2026-11-01T02:40:38.220Z
+> Nodes: 101 | Edges: 1920 | Isolated: 6
 
 ## Ranking (transitive Abhängige)
 
@@ -81,16 +81,17 @@
 | 73 | sealed-secrets-controller | 2 | 2 | 2 |
 | 74 | downloads | 1 | 1 | 1 |
 | 75 | einvoice-sidecar | 1 | 1 | 1 |
-| 76 | gemma-embed | 1 | 1 | 1 |
-| 77 | gemma-embed-bulk | 1 | 1 | 1 |
-| 78 | gemma-embed-igpu | 1 | 1 | 1 |
-| 79 | lfm-embed | 1 | 1 | 1 |
-| 80 | lfm-colbert | 1 | 1 | 1 |
-| 81 | mediaviewer-widget | 1 | 1 | 1 |
-| 82 | blackbox-exporter | 1 | 1 | 1 |
-| 83 | nextcloud-redis | 1 | 1 | 1 |
-| 84 | sessions-server | 1 | 1 | 1 |
-| 85 | whisper | 1 | 1 | 1 |
+| 76 | gemma-embed-scale | 1 | 1 | 1 |
+| 77 | gemma-embed | 1 | 1 | 1 |
+| 78 | gemma-embed-bulk | 1 | 1 | 1 |
+| 79 | gemma-embed-igpu | 1 | 1 | 1 |
+| 80 | lfm-embed | 1 | 1 | 1 |
+| 81 | lfm-colbert | 1 | 1 | 1 |
+| 82 | mediaviewer-widget | 1 | 1 | 1 |
+| 83 | blackbox-exporter | 1 | 1 | 1 |
+| 84 | nextcloud-redis | 1 | 1 | 1 |
+| 85 | sessions-server | 1 | 1 | 1 |
+| 86 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -467,6 +468,11 @@
 ### einvoice-sidecar
 **Direkte Abhängige:** 1 — einvoice-sidecar
 **Transitive Abhängige:** 1 — einvoice-sidecar
+**Upstream (In-Degree):** 1
+
+### gemma-embed-scale
+**Direkte Abhängige:** 1 — llm-gateway-gemma-embed
+**Transitive Abhängige:** 1 — llm-gateway-gemma-embed
 **Upstream (In-Degree):** 1
 
 ### gemma-embed

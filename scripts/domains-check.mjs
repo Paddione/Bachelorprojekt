@@ -154,6 +154,25 @@ function check(entries, { skipManifestScan }) {
     if (entry?.cluster !== undefined && !ALLOWED_CLUSTER.has(entry.cluster)) {
       problems.push(`${label}: cluster '${entry.cluster}' ist weder 'fleet' noch 'devmesh'`);
     }
+    // Expect-Pflicht (domains-probe): live braucht einen expect-Block mit
+    // nicht-leerem expect.status (nur 100-499-Ganzzahlen); frozen|retired
+    // darf keinen tragen (tote Erwartungen verrotten).
+    if (entry?.status === 'live') {
+      const expected = entry?.expect?.status;
+      if (!Array.isArray(expected) || expected.length === 0) {
+        problems.push(`${label}: status 'live' braucht 'expect.status' (nicht-leere Liste)`);
+      } else {
+        for (const code of expected) {
+          if (!Number.isInteger(code) || code < 100 || code > 499) {
+            problems.push(`${label}: expect.status enthaelt ungueltigen Code '${code}' (nur 100-499-Ganzzahlen)`);
+          }
+        }
+      }
+    } else if (entry?.status === 'frozen' || entry?.status === 'retired') {
+      if (entry?.expect !== undefined) {
+        problems.push(`${label}: status '${entry.status}' darf keinen 'expect'-Block tragen`);
+      }
+    }
     if (entry?.id !== undefined) {
       if (seen.has(entry.id)) {
         problems.push(`${label}: doppelte id '${entry.id}'`);

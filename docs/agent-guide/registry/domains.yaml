@@ -36,6 +36,8 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
+    expect:
+      status: [200]
     manifest_source: prod-fleet/website-mentolder/website-ingress-web.yaml
     decision: "D1: web.mentolder.de (Astro) ist die kanonische oeffentliche Seite; react.mentolder.de ist sekundaer/Redirect."
 
@@ -61,6 +63,8 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
+    expect:
+      status: [200]
     manifest_source: prod-fleet/website-staging/website-ingress-web.yaml
     decision: "D1: Staging-Spiegel der kanonischen Astro-Seite; nur QA, kein Index."
 
@@ -74,6 +78,9 @@ domains:
     owner_frontend: bp-ship
     functions: [redirect]
     status: live
+    expect:
+      status: [301]
+      redirect_to_contains: "web."
     manifest_source: prod-fleet/website-korczewski/website-apex.yaml
     decision: "D1: Apex leitet auf den kanonischen web-Host weiter."
 
@@ -87,6 +94,8 @@ domains:
     owner_frontend: bp-ship
     functions: [websocket]
     status: live
+    expect:
+      status: [302]
     manifest_source: prod-fleet/mentolder/studio-ingress.yaml
 
   - id: devmesh-web
@@ -99,6 +108,8 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend, backend]
     status: live
+    expect:
+      status: [302]
     manifest_source: dev-local/core/ingress.yaml
     decision: "D2: agent-board ist das kanonische devmesh-Ops-Cockpit; web.devmesh/sdlc sind Tickets/Pipeline."
 
@@ -112,6 +123,8 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
+    expect:
+      status: [200]
     manifest_source: dev-local/core/ingress.yaml
     decision: "D2: Kompat-Alias auf denselben Website-Service; kanonisch bleibt web."
 
@@ -125,6 +138,8 @@ domains:
     owner_frontend: bp-ship
     functions: [middleware]
     status: live
+    expect:
+      status: [200]
     manifest_source: dev-local/core/ingress.yaml
 
   - id: devmesh-mail
@@ -137,6 +152,8 @@ domains:
     owner_frontend: bp-ship
     functions: [mail]
     status: live
+    expect:
+      status: [200]
     manifest_source: dev-local/core/ingress.yaml
 
   - id: devmesh-brain
@@ -149,6 +166,8 @@ domains:
     owner_frontend: bp-ship
     functions: [websocket]
     status: live
+    expect:
+      status: [302]
     manifest_source: dev-local/components/brain/ingress.yaml
 
   - id: devmesh-files
@@ -161,6 +180,8 @@ domains:
     owner_frontend: bp-ship
     functions: [files]
     status: live
+    expect:
+      status: [404]
     manifest_source: dev-local/components/nextcloud/ingress.yaml
 
   - id: devmesh-office
@@ -173,6 +194,8 @@ domains:
     owner_frontend: bp-ship
     functions: [office]
     status: live
+    expect:
+      status: [404]
     manifest_source: dev-local/components/collabora/ingress.yaml
 
   - id: devmesh-signaling
@@ -185,6 +208,8 @@ domains:
     owner_frontend: bp-ship
     functions: [signaling]
     status: live
+    expect:
+      status: [404]
     manifest_source: dev-local/components/talk/ingress.yaml
 
   - id: devmesh-vault
@@ -197,6 +222,8 @@ domains:
     owner_frontend: bp-ship
     functions: [secrets]
     status: live
+    expect:
+      status: [404]
     manifest_source: dev-local/components/vaultwarden/ingress.yaml
 
   - id: devmesh-opencode
@@ -209,6 +236,8 @@ domains:
     owner_frontend: bp-ship
     functions: [ops-access]
     status: live
+    expect:
+      status: [401]
     manifest_source: dev-local/components/opencode/ingressroute.yaml
     decision: "Ops-Einstieg hinter oauth2-proxy; eigener Host, kein FritzBox-Zugang."
 
@@ -222,6 +251,8 @@ domains:
     owner_frontend: bp-ship
     functions: [ops-access]
     status: live
+    expect:
+      status: [401]
     manifest_source: dev-local/components/opencode/fritzbox-ingressroute.yaml
     decision: "FritzBox-Lokalzugang; eigener Host, kein Redirect auf den Public-Host."
 
@@ -235,6 +266,8 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
+    expect:
+      status: [404]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
     decision: "Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt fleet."
 
@@ -248,6 +281,8 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
+    expect:
+      status: [404]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
     decision: "Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt fleet."
 
@@ -261,4 +296,6 @@ domains:
     owner_frontend: bp-ship
     functions: [sso]
     status: live
+    expect:
+      status: [200]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml

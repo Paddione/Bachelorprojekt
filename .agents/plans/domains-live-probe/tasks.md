@@ -69,7 +69,7 @@ S4: Script, Task und Workflow sind jeweils voneinander aus erreichbar
   mit Exit ≠ 0 wegen fehlendem Script; Beleg im phase-events.log).
 - [x] **1. Partial p1** (`tasks.d/p1-probe-script.md`): Probe-Script bauen
   (DNS → TLS → Status/Redirect, Hybrid-Semantik, `--validate-only`).
-- [ ] **2. Partial p2** (`tasks.d/p2-expect-schema.md`): `expect`-Blöcke für alle
+- [x] **2. Partial p2** (`tasks.d/p2-expect-schema.md`): `expect`-Blöcke für alle
   18 live Einträge (Startwerte Live-Proben 2026-10-28, per Live-Lauf verifiziert)
   + Expect-Pflicht in `domains-check.mjs`.
 - [ ] **3. Partial p3** (`tasks.d/p3-task-workflow.md`): `task domains:probe` +

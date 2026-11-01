@@ -43,7 +43,7 @@ spec:
       # aus dem Secret adguard-admin (angelegt von scripts/devmesh/lan-dns-deploy.sh).
       initContainers:
         - name: seed-config
-          image: busybox:1.37.0
+          image: busybox:1.38.0
           env:
             - name: HOST_IP
               valueFrom:

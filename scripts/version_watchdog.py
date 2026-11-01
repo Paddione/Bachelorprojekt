@@ -88,10 +88,12 @@ def parse_tag_version(tag):
 
 
 def select_candidate(current, candidates, now, min_age):
-    """Waehlt unter (tag, published|None): (update|held|none, version, age_days|None).
+    """Waehlt unter (tag, published|None): (update|held|none, version, age_days|None, orig_tag|None).
 
     Ohne Datum kein Zurueckhalten: neuer Tag ohne bekanntes Alter wird als
     Update mit unbekanntem Alter gemeldet (Anzeige "?"), nie verworfen.
+    Der Original-Tag (z. B. mit v-Praefix) wird durchgereicht — nur er
+    existiert in der Registry.
     """
     best = None
     for tag, published in candidates:
@@ -102,9 +104,9 @@ def select_candidate(current, candidates, now, min_age):
         kind = "update" if published is None or now - published >= min_age else "held"
         if best is None or (kind == "update" and best[0] != "update") or \
                 (kind == best[0] and version > best[1]):
-            best = (kind, version, age)
+            best = (kind, version, age, tag)
     if best is None:
-        return "none", None, None
+        return "none", None, None, None
     return best
 
 
@@ -255,8 +257,8 @@ def action_tags(repo):
     return out
 
 
-def display(version, age):
-    text = ".".join(map(str, version)) if version else "?"
+def display(orig_tag, version, age):
+    text = orig_tag or (".".join(map(str, version)) if version else "?")
     return text if age is None else f"{text} ({age}d)"
 
 
@@ -290,15 +292,15 @@ def collect_updates(repo_root, now, min_age):
                 else:
                     note_unknown(f"{registry}/{repo}", "Registry ohne Abfrage")
                 continue
-            kind, version, age = select_candidate(current, candidates, now, min_age)
-            new = display(version, age) + (" + Repin" if digest else "")
+            kind, version, age, orig = select_candidate(current, candidates, now, min_age)
+            new = display(orig, version, age) + (" + Repin" if digest else "")
             if kind == "update":
                 key = (path, ref)
                 if key not in seen_updates:
                     seen_updates.add(key)
                     images["images"].append((path, ref, new, age if age is not None else "?"))
             elif kind == "held":
-                held.append((ref, display(version, age)))
+                held.append((ref, display(orig, version, age)))
     for path, uses in sorted(scan_actions(repo_root, files).items()):
         for repo, ref, pinned in uses:
             if pinned:
@@ -307,14 +309,15 @@ def collect_updates(repo_root, now, min_age):
             if current is None:
                 note_unknown(f"{repo}@{ref}", "Major-Tag, folgt Upstream-Major")
                 continue
-            kind, version, age = select_candidate(current, action_tags(repo), now, min_age)
+            kind, version, age, orig = select_candidate(current, action_tags(repo), now, min_age)
+            shown = display(orig, version, age)
             if kind == "update":
                 key = (path, repo)
                 if key not in seen_updates:
                     seen_updates.add(key)
-                    actions.append((path, repo, ref, display(version, age), age if age is not None else "?"))
+                    actions.append((path, repo, ref, shown, age if age is not None else "?"))
             elif kind == "held":
-                held.append((f"{repo}@{ref}", display(version, age)))
+                held.append((f"{repo}@{ref}", shown))
     manifests = {}
     for path in files:
         if c7.MANIFEST_RE.match(path):

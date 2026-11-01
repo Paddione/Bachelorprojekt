@@ -81,7 +81,7 @@ spec:
         - name: sleeper
           # alpine/k8s ships kubectl + /bin/sh; digest-pinned wie der
           # Präzedenzfall k3d/tests-retention-cronjob.yaml (T015170).
-          image: alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
+          image: alpine/k8s:1.37.1@sha256:712dc5385d1c1a3f83b747fa9e40f64d433a97f72ff42f9755ff7dd1f62846e4
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:

@@ -39,3 +39,9 @@ resources:
   limits:
     cpu: 200m
     memory: 256Mi
+
+# Image-Pin (Watchdog #7050, 2026-11-01): Chart-Default folgen, aber explizit
+# gepinnt, damit Render-Drift sichtbar bleibt. Kein Digest-Pin moeglich
+# (Chart kennt kein image.sha) — Digest folgt dem Chart-Release.
+image:
+  tag: "3.6.11"

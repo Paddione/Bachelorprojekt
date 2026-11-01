@@ -4,3 +4,4 @@ baseline-a11y-live 2026-11-01 p4-rotphase: a11y-axe vs https://web.mentolder.de 
 p1-done 2026-11-01 fa-66 T6-axe (desktop-only, wcag2a/wcag2aa/wcag21a/wcag21aa, 0 critical/serious), tsc fa-66-clean, 138 Zeilen
 p2-befund 2026-11-01 fa-24 T-axe vs https://board.mentolder.de (Upstream Nextcloud Whiteboard): 2 serious — document-title (kein <title>), html-has-lang (kein lang-Attribut). B3: NICHT gefixt (Fremd-UI), Folge-Entscheidung im PR-Body. T1-T5 gruen.
 p2-done 2026-11-01 fa-24 T-axe-Test hinzugefuegt (T1-T5 unangetastet), tsc fa-24-clean, 73 Zeilen
+p2-befund-version 2026-11-01 board-status: version 2.0.0, status running (/status, https://board.mentolder.de)

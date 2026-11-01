@@ -160,10 +160,11 @@ def test_repo_sync_sidecar(repo_root: Path):
     assert "/workspace" in mounts, f"/workspace-Mount fehlt im Sidecar: {mounts}"
     assert sync.get("resources", {}).get("limits"), "Sidecar braucht Resource-Limits"
     cmd = " ".join(str(c) for c in sync.get("command", []))
-    # Token-Hygiene: Auth nur via x-access-token-URL, Remote wird danach
-    # immer auf die tokenfreie URL zurueckgesetzt.
-    assert "x-access-token" in cmd, "kein Token-Clone in Sidecar-Command"
-    assert cmd.count('remote set-url origin') >= 2, "Remote-URL wird nicht tokenfrei zurueckgesetzt"
+    # Token-Hygiene: Auth nur via http.extraHeader in der Env, nie in der
+    # Remote-URL oder .git/config.
+    assert "x-access-token" in cmd, "keine Token-Auth in Sidecar-Command"
+    assert 'x-access-token:${GITHUB_TOKEN}@' not in cmd, "Token darf nicht in der Remote-URL stehen"
+    assert 'extraHeader' in cmd, "Auth muss per http.extraHeader laufen"
 
 
 def test_component_kustomization_lists_new_resources(repo_root: Path):

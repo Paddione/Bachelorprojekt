@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-101 Services · 1920 Abhängigkeitskanten · 316 API-Endpoints
+102 Services · 1920 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -48,6 +48,7 @@ flowchart LR
   bge_embed["bge-embed"]:::default
   bge_rerank["bge-rerank"]:::default
   bge_embed_bulk["bge-embed-bulk"]:::default
+  lfm3_audio["lfm3-audio"]:::default
   lfm_embed["lfm-embed"]:::default
   lfm_colbert["lfm-colbert"]:::default
   mailpit["mailpit"]:::default
@@ -2017,6 +2018,7 @@ flowchart TB
     bge_embed["bge-embed"]
     bge_rerank["bge-rerank"]
     bge_embed_bulk["bge-embed-bulk"]
+    lfm3_audio["lfm3-audio"]
     lfm_embed["lfm-embed"]
     lfm_colbert["lfm-colbert"]
     mailpit["mailpit"]

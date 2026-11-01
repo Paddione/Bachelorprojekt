@@ -94,6 +94,24 @@ def test_t002827_validate_commit_msg_sh_commits_modus_validiert_explizite_shas(r
     assert "OK" in res.output
 
 
+def test_github_squash_merge_subject_ist_exempt(run_cmd, repo, tmp_path):
+    # GitHub-generierter Squash-Suffix "(#NNNN)" ist exempt — Branch-Commits
+    # wurden bereits in-PR validiert (T001356). Regression zu #7037: ein
+    # unscoped Squash-Subject auf main darf main-CI nicht roten.
+    msg = tmp_path / "squash.msg"
+    msg.write_text("feat(k3d): unscoped squash subject (#7036)\n")
+    res = run_cmd(["bash", str(repo.validate), "message", str(msg)], cwd=repo.path)
+    assert res.returncode == 0
+    assert "OK" in res.output
+
+
+def test_fake_squash_suffix_bleibt_verboten(run_cmd, repo, tmp_path):
+    msg = tmp_path / "fake.msg"
+    msg.write_text("feat(k3d): fake suffix (#abc)\n")
+    res = run_cmd(["bash", str(repo.validate), "message", str(msg)], cwd=repo.path)
+    assert res.returncode == 1
+
+
 def test_t002827_commits_modus_ohne_shas_ist_ein_usage_fehler(run_cmd, repo):
     res = run_cmd(["bash", str(repo.validate), "commits"], cwd=repo.path)
     assert res.returncode == 2

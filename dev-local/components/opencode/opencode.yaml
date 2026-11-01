@@ -116,29 +116,37 @@ spec:
             - -c
             - |
               set -eu
+              # Git-Config nur per Env: Token nie in .git/config oder argv.
+              # Repo-lokale Hooks/fsmonitor ignorieren, opencode kann sie schreiben.
+              n=0
+              add_config() {
+                eval "export GIT_CONFIG_KEY_$n=\$1 GIT_CONFIG_VALUE_$n=\$2"
+                n=$((n + 1))
+              }
+              add_config core.hooksPath /dev/null
+              add_config core.fsmonitor false
+              for repo in $REPOS; do add_config safe.directory "/workspace/$repo"; done
+              if [ -n "${GITHUB_TOKEN:-}" ]; then
+                auth=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)
+                add_config http.https://github.com/.extraHeader "Authorization: Basic $auth"
+              fi
+              export GIT_CONFIG_COUNT=$n
               sync_one() {
                 repo="$1"
                 dir="/workspace/$repo"
-                if [ -n "${GITHUB_TOKEN:-}" ]; then
-                  url="https://x-access-token:${GITHUB_TOKEN}@github.com/$repo.git"
-                else
-                  url="https://github.com/$repo.git"
-                fi
                 clean="https://github.com/$repo.git"
                 if [ ! -d "$dir/.git" ]; then
                   rm -rf "$dir"
-                  git clone --depth 50 "$url" "$dir" \
+                  git clone --depth 50 "$clean" "$dir" \
                     || { echo "clone failed: $repo"; return 0; }
-                  git -C "$dir" remote set-url origin "$clean"
                 else
-                  git -C "$dir" remote set-url origin "$url"
-                  if ! git -C "$dir" fetch --depth 50 origin; then
+                  # Explizite URL: repo-lokales insteadOf greift nicht auf origin.
+                  git -C "$dir" remote set-url origin "$clean"
+                  if ! git -C "$dir" fetch --depth 50 "$clean" HEAD; then
                     echo "fetch failed: $repo"
-                    git -C "$dir" remote set-url origin "$clean"
                     return 0
                   fi
-                  git -C "$dir" remote set-url origin "$clean"
-                  git -C "$dir" reset --hard '@{u}' \
+                  git -C "$dir" reset --hard FETCH_HEAD \
                     || { echo "reset failed: $repo"; return 0; }
                 fi
               }
@@ -153,12 +161,6 @@ spec:
           env:
             - name: HOME # wie opencode-Container: beschreibbares HOME fuer UID 65534
               value: /tmp
-            - name: GIT_CONFIG_COUNT # wie dev-pod repo-sync: fremde UIDs dulden
-              value: "1"
-            - name: GIT_CONFIG_KEY_0
-              value: safe.directory
-            - name: GIT_CONFIG_VALUE_0
-              value: "*"
             - name: REPOS
               value: "Paddione/dotfiles Paddione/Bachelorprojekt Paddione/news-agent Paddione/agentic-resources Paddione/unsloth-boxes"
             - name: SYNC_INTERVAL_SECONDS

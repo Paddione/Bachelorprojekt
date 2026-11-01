@@ -697,7 +697,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0) |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | Positiv-Anker: `components/website/Dockerfile` fehlt ⇒ n/a; `grep -q "npm ci" components/website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json components/website/package.json ...; do python3 -c "..engines.."; done` |
-| **G-DEP05** | Renovate-PR-Backlog | 0 ✓ | ≤ 3 | `gh pr list --state open --json author,labels \| python3 -c "..renovate.."` |
 | **G-IMG01** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml) |
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 1/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |

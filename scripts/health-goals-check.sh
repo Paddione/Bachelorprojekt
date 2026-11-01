@@ -487,11 +487,7 @@ try:
     print(n)
 except Exception: print('-')
 " "$o" || echo '-'; })" eq 0 "Offene PRs aelter als 7 Tage"
-want G-DEP05 && row target G-DEP05 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 pr list --state open --json author) && python3 -c "
-import json,sys
-try: print(sum(1 for x in json.loads(sys.argv[1]) if 'renovate' in (x.get('author') or {}).get('login','').lower()))
-except Exception: print('-')
-" "$o" || echo '-'; })" le 3 "Renovate-PR-Backlog"
+
 want G-CD02 && row target G-CD02 "$(wf_success_rate post-merge.yml 15)" ge 95 "post-merge.yml-Erfolgsrate (%, letzte 15)"
 want G-RH06 && row gate   G-RH06 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 issue list --label sentinel --state open --json createdAt) && python3 -c "
 import json,sys,datetime

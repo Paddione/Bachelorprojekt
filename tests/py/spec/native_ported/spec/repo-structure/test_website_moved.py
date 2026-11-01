@@ -45,7 +45,7 @@ def test_t007909_keine_stale_website_referenzen_in_config_klassen_positiv_anker(
         "FEHLT: components/website/package.json — Move nicht ausgefuehrt"
     res = run_cmd(["git", "-C", str(repo_root), "grep", "-F", "-n",
                    "-e", "website/", "-e", "brett/", "-e", "cd website", "-e", "cd brett", "-e", "--prefix brett",
-                   "--", ".githooks", ".gitattributes", ".dockerignore", "renovate.json5",
+                   "--", ".githooks", ".gitattributes", ".dockerignore",
                    "docs/code-quality/subsystems.yaml", "docs/agent-guide/registry",
                    "AGENTS.md", "README.md", "components/website/CLAUDE.md", "environments"])
     stale = []

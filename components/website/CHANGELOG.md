@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.445.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.444.0...website-v1.445.0) (2026-11-01)
+
+
+### Features
+
+* **e2e:** K6-Staffel-B — mentolder-web Smoke+axe, D4 ([#7052](https://github.com/Paddione/Bachelorprojekt/issues/7052)) ([9ff8f9e](https://github.com/Paddione/Bachelorprojekt/commit/9ff8f9e3975b0d0554a0f49cb1748adb1dd1f8ea))
+
 ## [1.444.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.443.0...website-v1.444.0) (2026-11-01)
 
 

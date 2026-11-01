@@ -1,1 +1,4 @@
 plan done 2026-11-01T16:32:50Z plan-gestagt
+implement entered 2026-11-01T16:33:43Z subagent-gestartet
+baseline-a11y-live 2026-11-01 p4-rotphase: a11y-axe vs https://web.mentolder.de (local config, website project) — Erstlauf 4 failed ( Details verworfen, Browser-Binary-Race chromium_headless_shell-1248 fehlte), nach `npx playwright install chromium` 2x 4 passed. Stand: gruen, kein B3-Befund.
+p1-done 2026-11-01 fa-66 T6-axe (desktop-only, wcag2a/wcag2aa/wcag21a/wcag21aa, 0 critical/serious), tsc fa-66-clean, 138 Zeilen

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1278,
+      "file_count": 1279,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -72,6 +72,7 @@
         "tests/e2e/specs/app-catalog.spec.ts",
         "tests/e2e/specs/dashboard-art.spec.ts",
         "tests/e2e/specs/dev-status-tabs.spec.ts",
+        "tests/e2e/specs/docs-smoke.spec.ts",
         "tests/e2e/specs/fa-01-messaging.spec.ts",
         "tests/e2e/specs/fa-03-video.spec.ts",
         "tests/e2e/specs/fa-04-files.spec.ts",

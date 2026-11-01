@@ -60,7 +60,7 @@ S4: jede Spec läuft einzeln per `npx playwright test <datei> --config ...`.
 - [x] **1. Partial p1** (`tasks.d/p1-sdlc-axe.md`): axe je `/sdlc/*`-Route.
 - [x] **2. Partial p2** (`tasks.d/p2-brett-axe.md`): axe-Test fürs Whiteboard.
 - [x] **3. Partial p3** (`tasks.d/p3-docs-smoke.md`): docs Render-Smoke + Link-Check.
-- [ ] **4. Partial p4** (`tasks.d/p4-evidence.md`): Website-Belegläufe
+- [x] **4. Partial p4** (`tasks.d/p4-evidence.md`): Website-Belegläufe
   (Playwright + axe + Lighthouse) + Evidenz-Doc + PR-Body-Belege.
-- [ ] **5. Finaler Verifikations-Task.** `task test:changed`,
+- [x] **5. Finaler Verifikations-Task.** `task test:changed`,
   `task freshness:regenerate`, `task freshness:check`.

@@ -67,7 +67,7 @@ S4: Script, Task und Workflow sind jeweils voneinander aus erreichbar
 - [x] **0. Rotphase zuerst:** `test_domains_probe.py` aus p4 vorab schreiben und
   laufen lassen → expected FAIL (`domains-probe.mjs` fehlt: `test_validate_only_passes`
   mit Exit ≠ 0 wegen fehlendem Script; Beleg im phase-events.log).
-- [ ] **1. Partial p1** (`tasks.d/p1-probe-script.md`): Probe-Script bauen
+- [x] **1. Partial p1** (`tasks.d/p1-probe-script.md`): Probe-Script bauen
   (DNS → TLS → Status/Redirect, Hybrid-Semantik, `--validate-only`).
 - [ ] **2. Partial p2** (`tasks.d/p2-expect-schema.md`): `expect`-Blöcke für alle
   18 live Einträge (Startwerte Live-Proben 2026-10-28, per Live-Lauf verifiziert)

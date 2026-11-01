@@ -27,3 +27,6 @@ final-verify 2026-11-01T19:15Z gates
   veraltet) -> regeneriert + committet (191130914), Re-Run GRUEN (exit 0).
 - task workspace:validate: GRUEN (Manifests valid).
 - tsc e2e: neue Spec sauber; fa-20-pre-existing-Fehler unberuehrt.
+implement done 2026-11-01T18:00:59Z implementierung-fertig-pr-7052
+verify entered 2026-11-01T18:00:59Z spotcheck-spec-evidence-diff
+verify done 2026-11-01T18:00:59Z diff-6-dateien-plankonform

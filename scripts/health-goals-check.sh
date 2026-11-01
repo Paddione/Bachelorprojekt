@@ -261,7 +261,7 @@ want G-BRAIN15 && row gate G-BRAIN15 "$(
 
 # ── Wissensablage — GATES (G-KNOW, T900995): Registry/Code/ADR statt Prosa-Doku ──
 KG="python3 scripts/lib/knowledge-goals.py"
-row gate G-KNOW02 "$($KG docs-md)" le 366 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs)"
+row gate G-KNOW02 "$($KG docs-md)" le 367 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs; Ratchet 366->367 fuer docs/brain/embed-finetune-run1.md #7020)"
 row gate G-KNOW06 "$($KG adr-edits)" le 11 "ADR-Inhaltsaenderungen nach dem Anlegen (kein Netto-Zuwachs)"
 want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/dev/null 2>&1; echo $?)" eq 0 "Agent-Registry-Schema valide"
 

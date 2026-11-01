@@ -354,6 +354,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:mentolder-web-smoke",
+    "file": "tests/e2e/specs/mentolder-web-smoke.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:planungsbuero-klaerung",
     "file": "tests/e2e/specs/planungsbuero-klaerung.spec.ts",
     "category": "E2E",

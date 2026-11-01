@@ -44,3 +44,10 @@ p1/p2 bereits enthalten).
 1. SDLC-Dark-Theme-Kontraste anheben (Admin-Sidebar + Leitstand-Cards auf ≥ 4.5:1) — Befund + Screenshots im PR-Body.
 2. Whiteboard-Upstream (`board` 2.0.0): `<title>` + `lang`-Attribut — Upstream-Issue oder eigene Hülle, Entscheidung offen.
 3. Plan B (danach): mentolder-web reduzierte Suite (Redirect + Smoke + axe, D4).
+
+## Staffel B (Plan `gui-audits-plan-b`, live gegen `https://react.mentolder.de`)
+
+Staffel B ist als `docs/agent-guide/gui-audit-evidence-b.md` belegt: D4
+(reduzierte Suite bis zur #7051-Entscheidung, Host liefert live-200 statt
+Redirect), Smoke 4/5 grün (Befund: Overflow +80 px auf `/`), axe 5/5 B3-Befunde
+(CTA-Kontrast 1.66, Mute-Texte, `.brand`, Prozessschritte-ARIA).

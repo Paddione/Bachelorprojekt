@@ -12,7 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.9.1",
+    "@hookform/resolvers": "^6.0.2",
     "motion": "^14.8.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

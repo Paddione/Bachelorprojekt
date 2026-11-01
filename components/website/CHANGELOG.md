@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.442.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.441.0...website-v1.442.0) (2026-11-01)
+
+
+### Features
+
+* **docs:** add domains.yaml SSOT registry, domains:check guard and domains-map generator ([#7040](https://github.com/Paddione/Bachelorprojekt/issues/7040)) ([5281e4b](https://github.com/Paddione/Bachelorprojekt/commit/5281e4bff50bef35ae9f622b6cc1fd4951256678))
+
 ## [1.441.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.440.0...website-v1.441.0) (2026-10-28)
 
 

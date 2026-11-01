@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.443.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.442.0...website-v1.443.0) (2026-11-01)
+
+
+### Features
+
+* **docs:** Live-Host-E2E-Probe domains:probe, domains:map-Generator bleibt unberührt ([#7044](https://github.com/Paddione/Bachelorprojekt/issues/7044)) ([a961792](https://github.com/Paddione/Bachelorprojekt/commit/a961792e4d653281042065a9c1e5fdb803122341))
+
 ## [1.442.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.441.0...website-v1.442.0) (2026-11-01)
 
 

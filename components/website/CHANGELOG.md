@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.446.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.445.0...website-v1.446.0) (2026-11-01)
+
+
+### Features
+
+* **infra:** Markentrennung — korczewski-Voll-Unfreeze, mentolder-Abriss ([#7055](https://github.com/Paddione/Bachelorprojekt/issues/7055)) ([3a7fc4c](https://github.com/Paddione/Bachelorprojekt/commit/3a7fc4cf13ca331741fcc600de2383b7127ae9dc))
+
 ## [1.445.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.444.0...website-v1.445.0) (2026-11-01)
 
 

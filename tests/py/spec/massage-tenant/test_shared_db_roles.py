@@ -38,8 +38,10 @@ OLD_DBS = ["nextcloud", "vaultwarden", "website", "pentest", "videovault", "pock
 
 
 def _render_shared_db(repo_root: Path) -> str:
+    # brand-trennung p5: prod-fleet/mentolder geloescht — korczewski-Pendant
+    # (init-Skript, postStart + db-backup-CronJob per Lauf verifiziert).
     res = subprocess.run(
-        ["kustomize", "build", "prod-fleet/mentolder", "--load-restrictor=LoadRestrictionsNone"],
+        ["kustomize", "build", "prod-fleet/korczewski", "--load-restrictor=LoadRestrictionsNone"],
         cwd=repo_root,
         capture_output=True,
         text=True,

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1279,
+      "file_count": 1280,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -346,6 +346,7 @@
         "tests/py/requirements-test.txt",
         "tests/py/scripts/test_admin_menu_gate.py",
         "tests/py/scripts/test_context7_updater.py",
+        "tests/py/scripts/test_version_watchdog.py",
         "tests/py/scripts/test_workers_status.py",
         "tests/py/smoke/test_harness.py",
         "tests/py/smoke/test_runtime_services.py",
@@ -3740,7 +3741,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 889,
+      "file_count": 890,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4615,6 +4616,7 @@
         "scripts/vda/release-notes.sh",
         "scripts/vendor-sync.py",
         "scripts/verify-deployment.sh",
+        "scripts/version_watchdog.py",
         "scripts/vim/install-llama.sh",
         "scripts/wait-for-sealed-secret.sh",
         "scripts/warden-mcp/common.mjs",

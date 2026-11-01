@@ -62,20 +62,19 @@ def _check_brand(run_cmd, repo_root: Path, brand: str) -> None:
     )
 
 
-def test_mentolder_cluster_website_secrets_has_every_key_the_website_deployment_requires(repo_root, run_cmd):
-    """mentolder: cluster website-secrets has every key the website Deployment requires"""
-    _check_brand(run_cmd, repo_root, "mentolder")
-
-
+# mentolder-Live-Variante ENTFALLEN (brand-trennung p5: Brand + Namespace
+# website-mentolder geloescht — der Test wuerde ewig skippen; Abdeckung
+# bleibt ueber den korczewski-Sibling unten erhalten).
 def test_korczewski_cluster_website_secrets_has_every_key_the_website_deployment_requires(repo_root, run_cmd):
     """korczewski: cluster website-secrets has every key the website Deployment requires"""
     _check_brand(run_cmd, repo_root, "korczewski")
 
 
-@pytest.mark.parametrize("brand", ["mentolder", "korczewski"])
+@pytest.mark.parametrize("brand", ["korczewski"])
 @pytest.mark.parametrize("key", ["OPENROUTER_API_KEY", "OPENCODE_API_KEY"])
 def test_rendered_website_receives_optional_provider_secret(repo_root, run_cmd, brand, key):
-    """Both production websites expose provider keys without requiring dev credentials."""
+    """Production website exposes provider keys without requiring dev credentials
+    (brand-trennung p5: website-mentolder geloescht — korczewski-only)."""
     if shutil.which("kubectl") is None:
         pytest.skip("kubectl binary not installed")
 
@@ -92,9 +91,7 @@ def test_rendered_website_receives_optional_provider_secret(repo_root, run_cmd, 
     ]
     assert len(deployments) == 1, "render must contain exactly one website Deployment"
     deployment = deployments[0]
-    assert deployment["metadata"]["namespace"] == (
-        "website" if brand == "mentolder" else "website-korczewski"
-    )
+    assert deployment["metadata"]["namespace"] == "website-korczewski"
     containers = deployment["spec"]["template"]["spec"]["containers"]
     website = next(container for container in containers if container["name"] == "website")
     matches = [entry for entry in website.get("env", []) if entry["name"] == key]

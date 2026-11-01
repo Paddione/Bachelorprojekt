@@ -16,9 +16,8 @@ from urllib.parse import urlparse
 
 # environments/dev.yaml fehlt bewusst: auf devmesh verlangt llm-services:18235 einen Key, den
 # die Website nicht sendet (401); sie spricht llm-gateway-embed/-rerank direkt an.
+# brand-trennung p5: fleet-mentolder.yaml + mentolder.yaml geloescht.
 ENV_FILES = [
-    "environments/fleet-mentolder.yaml",
-    "environments/mentolder.yaml",
     "environments/staging.yaml",
     "environments/korczewski.yaml",
     "environments/fleet-korczewski.yaml",

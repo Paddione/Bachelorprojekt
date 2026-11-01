@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 // T901676 p1 — funktionale Whiteboard-Checks (Upstream-Container
 // Nextcloud Whiteboard Collaboration Server: Banner, /status-JSON und
@@ -45,5 +46,28 @@ test.describe('FA-24: Kollaboratives Whiteboard', () => {
     expect(res.status()).toBe(200);
     const body = await res.text();
     expect(body).toContain('"sid"');
+  });
+
+  // T-axe: Whiteboard hat 0 critical/serious (wcag2a/wcag2aa/wcag21a/wcag21aa,
+  // Vorbild a11y-axe.spec.ts). Upstream-Fremd-UI (Nextcloud Whiteboard):
+  // Befund NICHT aufweichen, sondern mit board-Version in phase-events.log
+  // → PR-Body (Folge-Entscheidung, B3).
+  test('T-axe: Whiteboard hat 0 critical/serious', async ({ page }) => {
+    test.setTimeout(30_000);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(BOARD_URL, { waitUntil: 'domcontentloaded' });
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+    const blocking = results.violations.filter((v) => ['critical', 'serious'].includes(v.impact ?? ''));
+    const summary = blocking.map((v) => `${v.id} (${v.impact}) x${v.nodes.length}`).join('\n');
+    const detail = blocking
+      .map((v) => [
+        `· ${v.id} (${v.impact ?? 'unknown'}) — ${v.help}`,
+        `  ${v.helpUrl}`,
+        ...v.nodes.map((n) => `  - ${n.target.join(' ')} :: ${(n.failureSummary ?? '').replace(/\n/g, ' | ')}`),
+      ].join('\n'))
+      .join('\n');
+    expect(blocking.length, `${summary}\n\n${detail}`).toBe(0);
   });
 });

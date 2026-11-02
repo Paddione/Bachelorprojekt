@@ -201,13 +201,13 @@ def gemma_workers(repo_root):
     }
 
 
-def test_gemma_hybrid_activation_is_devmesh_only(rendered, gemma_workers):
+def test_gemma_devmesh_cpu_pool_keeps_shared_defaults(rendered, gemma_workers):
     deployments = {
         doc["metadata"]["name"]: doc for doc in yaml.safe_load_all(rendered.read_text())
         if doc and doc.get("kind") == "Deployment"
     }
     assert deployments["gemma-embed-igpu"]["spec"]["replicas"] == 0
-    assert gemma_workers["gemma-embed-igpu"]["spec"]["replicas"] == 1
+    assert gemma_workers["gemma-embed-igpu"]["spec"]["replicas"] == 0
     base = deployments["gemma-embed"]["spec"]["template"]["spec"]
     assert "kubernetes.io/hostname" not in base["nodeSelector"]
     args = base["containers"][0]["args"]

@@ -25,8 +25,8 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
   if (m.method === 'initialize') return reply(m.id, { protocolVersion: m.params?.protocolVersion, capabilities: { tools: {} }, serverInfo: { name: 'codebase-memory-mcp', version: '0.11.0-fake' } });
   if (m.method === 'tools/list') return reply(m.id, { tools: ['index_repository', 'list_projects', 'query_graph'].map(name => ({ name, inputSchema: { type: 'object' } })) });
   const { name, arguments: a = {} } = m.params ?? {};
-  if (name === 'index_repository') return reply(m.id, text({ project: 'fixture-proj' }));
-  if (name === 'list_projects') return reply(m.id, text({ projects: [{ name: 'fixture-proj', root_path: a.repo_path ?? '' }] }));
+  if (name === 'index_repository') return reply(m.id, text({ project: process.env.FAKE_CBM_PROJECT || 'fixture-proj' }));
+  if (name === 'list_projects') return reply(m.id, text({ projects: [{ name: process.env.FAKE_CBM_PROJECT || 'fixture-proj', root_path: a.repo_path ?? '' }] }));
   if (name === 'query_graph') {
     const q = a.query || '';
     if (q.includes('CALLS')) return reply(m.id, text(page(['a', 'b'], calls, a)));

@@ -4716,6 +4716,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/devflow-mcp/graph_multi_repo",
+    "file": "tests/py/spec/native_ported/spec/devflow-mcp/test_graph_multi_repo.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/env_seal_singleline_values",
     "file": "tests/py/spec/native_ported/spec/test_env_seal_singleline_values.py",
     "category": "native_ported",

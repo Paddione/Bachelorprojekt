@@ -47,7 +47,7 @@ task workspace:validate                          # Kustomize dry-run
 
 ## Workflow Rules
 
-- **Branching & PRs**: Branches `feature/*`, `fix/*`, `chore/*`, `docs/*`; PRs → squash-merge, never push directly to `main` (`preflight-pr-scope.sh` enforces worktrees).
+- **Branching & PRs**: Branches `feature/*`, `fix/*`, `chore/*`, `docs/*`; PRs → squash-merge (`preflight-pr-scope.sh` enforces worktrees). Direct push to `main` is allowed without asking once local checks (`task test:changed`) and `pre-push` pass, no force, no hook bypass; it triggers the prod pipeline, CI failures go to the dotfiles CI watchdog.
 - **dev-flow**: `dev-flow-plan` → `dev-flow-execute` (Chores: `dev-flow-chore`); a staged plan is executed by `dev-flow-execute` (locally optional: `scripts/llm/plan-runner.mjs`).
 - **CI Gate vor PR**: `task test:changed` + `task freshness:check` + `task workspace:validate`.
 - **Merge = Abschluss (T001092)**: Green auto-merge to `main` closes the work — no ticket to close anymore (retired 2026-10-14). Prod deploy is decoupled push-based.

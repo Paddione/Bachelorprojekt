@@ -204,6 +204,10 @@ patches:
   # bge-rerank auf devmesh geparkt (kein Verbraucher: Router hat keine
   # Rerank-Route, kein Code-Caller, 2 Req/Tag; vgl. lfm2-vision): 0 = entladen.
   # NUR devmesh-Overlay — k3d-Basis (prod-mentolder) bleibt bei replicas: 1.
+  # Das PVC faellt mit weg: local-path bindet erst beim ersten Pod, ein
+  # verbraucherloses PVC bleibt Pending und haelt den Flux-Health-Check von
+  # devmesh-workspace (und damit agent-board) dauerhaft an.
+  # Reaktivieren = replicas-Patch UND PVC-Delete-Patch entfernen.
   - target: {kind: Deployment, name: bge-rerank}
     patch: |-
       apiVersion: apps/v1
@@ -219,11 +223,10 @@ patches:
         storageClassName: local-path
   - target: {kind: PersistentVolumeClaim, name: bge-rerank-models}
     patch: |-
+      $patch: delete
       apiVersion: v1
       kind: PersistentVolumeClaim
       metadata: {name: bge-rerank-models}
-      spec:
-        storageClassName: local-path
   - target: {kind: PersistentVolumeClaim, name: massage-db-dev-data}
     patch: |-
       apiVersion: v1

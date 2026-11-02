@@ -132,3 +132,45 @@ def test_t900235_claude_md_verweist_auf_den_vertrag_in_agents_md(agents_md, clau
     ]
     assert lines, "grep -n 'Interaction Contract' liefert keine Treffer"
     assert "AGENTS.md" in "\n".join(lines)
+
+
+WALKY_HEADING = "## WalkyTalky-Profil"
+
+
+def _walkytalk_section(agents_md):
+    """Profil-Sektion ab ## WalkyTalky-Profil bis zur naechsten ##-Ueberschrift."""
+    out = []
+    flag = False
+    for line in agents_md.read_text(encoding="utf-8").splitlines():
+        if line.startswith(WALKY_HEADING):
+            flag = True
+        if flag and line.startswith("## ") and not line.startswith(WALKY_HEADING):
+            break
+        if flag:
+            out.append(line)
+    return "\n".join(out)
+
+
+def test_walkytalky_profil_abschnitt_existiert(agents_md):
+    _anchor(agents_md)
+    text = agents_md.read_text(encoding="utf-8")
+    assert any(line.startswith(WALKY_HEADING) for line in text.splitlines())
+    assert _walkytalk_section(agents_md) != ""
+
+
+def test_walkytalky_footer_karte_mit_weiter_und_details(agents_md):
+    _anchor(agents_md)
+    section = _walkytalk_section(agents_md)
+    assert section != ""
+    for field in ("STATUS:", "RUNNING:", "BLOCKED:", "NEXT:"):
+        assert field in section
+    assert "Weiter" in section
+    assert "Details" in section
+
+
+def test_walkytalky_fragen_regel_mit_recommended_verweis(agents_md):
+    _anchor(agents_md)
+    section = _walkytalk_section(agents_md)
+    assert section != ""
+    assert "(Recommended)" in section
+    assert "docs/agent-guide/visual-accessibility.md" in section

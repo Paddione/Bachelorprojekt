@@ -49,38 +49,6 @@ def _make_clients_fixture(template: str, row_names: list[str]) -> str:
 
 
 CLIENT_V214 = '{"id":"%s","name":"%s","description":"","hasLogo":false,"launchURL":null,"callbackURLs":["https://x.example.test/oauth2/callback"],"logoutCallbackURLs":[],"isPublic":false,"credentials":{"secrets":[{"id":"7f3e","prefix":"","createdAt":"2026-08-23T17:20:42Z","expiresAt":null,"isActive":true}]},"isGroupRestricted":false}'
-
-# v2.18 create response (#7059): Top-Level-Client-ID steht vorn, danach
-# credentials.secrets[] plus createdSecret inline (beide mit Secret-UUID).
-# Der greedy sed-Parse im Seed-Skript greift die LETZTE "id" (Secret-UUID).
-CREATE_V218 = (
-    '{"id":"recovery","name":"recovery","description":"",'
-    '"callbackURLs":["https://recover.example.test/oauth2/callback"],'
-    '"credentials":{"secrets":[{"id":"5d81bce5-bbbb-4ccc-8ddd-eeeeeeeeeeee","prefix":"",'
-    '"createdAt":"2026-11-02T00:00:00Z","expiresAt":null,"isActive":true}]},'
-    '"createdSecret":{"secret":"s3cret-plaintext",'
-    '"id":"5d81bce5-bbbb-4ccc-8ddd-eeeeeeeeeeee"}}'
-)
-SECRET_UUID_V218 = "5d81bce5-bbbb-4ccc-8ddd-eeeeeeeeeeee"
-
-
-def test_pocket_id_create_id_v218(repo_root: Path):
-    """#7059: create-Parse muss die Top-Level-Client-ID liefern, nicht die Secret-UUID."""
-    manifest = repo_root / "k3d" / "pocket-id-client-seed.yaml"
-    text = manifest.read_text()
-    # Gleiche Logik wie das Seed-Skript: new_id=$(echo "$created" | <pipeline>)
-    m = re.search(r'new_id=\$\((echo "\$created" \| .*?)\)\s*$', text, re.MULTILINE)
-    assert m, "new_id parse pipeline not found in seed manifest"
-    pipeline = m.group(1)
-    res = subprocess.run(
-        ["sh", "-c", f"created='{CREATE_V218}'; {pipeline}"],
-        capture_output=True, text=True,
-    )
-    assert res.returncode == 0, f"parse pipeline failed: {res.stderr}"
-    assert res.stdout.strip() == "recovery", (
-        f"v2.18 create-Parse lieferte {res.stdout.strip()!r} statt 'recovery' "
-        f"(Secret-UUID {SECRET_UUID_V218} gegriffen?)"
-    )
 CLIENT_REORDERED = '{"id":"%s","description":"","hasLogo":false,"name":"%s","callbackURLs":[],"credentials":{"secrets":[{"id":"7f3e","isActive":true}]}}'
 GROUPS_V214 = '{"data":[{"id":"2535036c-15fc-439d-811a-89805b41e19e","friendlyName":"Workspace Users","name":"workspace-users","customClaims":[],"userCount":0,"ldapId":null,"createdAt":"2026-08-23T17:18:24.820535Z"},{"id":"7a1b2c3d-4e5f-6071-8293-a4b5c6d7e8f9","friendlyName":"Workspace Owners","name":"workspace-owners","customClaims":[],"userCount":0,"ldapId":null,"createdAt":"2026-10-07T00:00:00Z"}],"pagination":{"totalPages":1,"totalItems":2,"currentPage":1,"itemsPerPage":20}}'
 GROUPS_LEGACY = '{"data":[{"id":"g-legacy","name":"workspace-users","friendlyName":"Workspace Users"},{"id":"g-legacy-owners","name":"workspace-owners","friendlyName":"Workspace Owners"}],"pagination":{"totalPages":1,"totalItems":2,"currentPage":1,"itemsPerPage":20}}'

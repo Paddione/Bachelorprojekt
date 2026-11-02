@@ -391,7 +391,12 @@ spec:
                   created=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
                     -d "$(printf '{"id":"%s","name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cid" "$cb_json")" \
                     "$${API}/api/oidc/clients" </dev/null)
-                  new_id=$(echo "$created" | sed -E 's/.*"id":"([^"]+)".*/\1/')
+                  # T002677b: v2.18 gibt beim Create zusaetzlich
+                  # createdSecret + credentials.secrets zurueck -- der letzte
+                  # "id"-Treffer im JSON ist dann eine Secret-UUID, keine
+                  # Client-ID (POST .../secrets darauf -> 404). Darum den
+                  # ERSTEN Treffer nehmen (Top-Level-Client-ID steht vorn).
+                  new_id=$(echo "$created" | grep -o '"id":"[^"]*"' | head -1 | sed -E 's/"id":"([^"]*)"/\1/')
                   # T901773: v2.14-Endpoint ist /secrets (Plural) -- /secret antwortet 404.
                   gen=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
                     "$${API}/api/oidc/clients/$${new_id}/secrets" </dev/null)

@@ -296,3 +296,26 @@ def test_pocket_id_skip_secret(repo_root: Path, tmp_path: Path):
     # docs has secret and is updated
     assert "updated docs (id=docs), secret unchanged" in res.stdout
     assert "PUT http://pocket-id:1411/api/oidc/clients/docs" in log_content
+
+
+# T002677b: v2.18 returns credentials.secrets + createdSecret inline on POST
+# /api/oidc/clients. The create-response parser must take the FIRST "id"
+# (top-level client id), not a nested secret UUID -- otherwise the following
+# POST .../secrets targets a non-client id and dies with HTTP 404.
+CREATE_V218 = '{"id":"recovery","name":"recovery","description":"","hasLogo":false,"callbackURLs":["https://x.example.test/oauth2/callback"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false,"skipConsent":false,"credentials":{"secrets":[{"id":"5d81bce5-c94b-4a80-aad5-44b5b87d9dca","prefix":"8wQy","createdAt":"2026-11-02T02:13:39Z","expiresAt":null,"isActive":true}]},"isGroupRestricted":false,"createdSecret":{"id":"5d81bce5-c94b-4a80-aad5-44b5b87d9dca","prefix":"8wQy","createdAt":"2026-11-02T02:13:39Z","expiresAt":null,"isActive":true,"secret":"8wQyPLAINTEXT"}}'
+
+
+def test_pocket_id_create_id_v218(repo_root: Path):
+    manifest = (repo_root / "k3d" / "pocket-id-client-seed.yaml").read_text()
+    line = next(
+        l.strip().replace("$$", "$")
+        for l in manifest.splitlines()
+        if l.strip().startswith('new_id=$(echo "$created"')
+    )
+    probe = "created=%s; %s; printf '%%s' \"$new_id\"" % (
+        "'" + CREATE_V218 + "'",
+        line,
+    )
+    res = subprocess.run(["sh", "-ec", probe], capture_output=True, text=True)
+    assert res.returncode == 0, f"new_id parse failed: {res.stderr}"
+    assert res.stdout == "recovery", f"expected client id, got: {res.stdout}"

@@ -25,24 +25,26 @@ import { parse as parseYaml } from 'yaml';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const REGISTRY = join(REPO, 'docs/agent-guide/registry/domains.yaml');
 const OUT = join(REPO, 'docs/agent-guide/maps/domains-graph.md');
-const ENV_FILE = { fleet: 'environments/fleet-korczewski.yaml', devmesh: 'environments/dev.yaml' };
+const ENV_FILE = { prodmesh: 'environments/fleet-korczewski.yaml', devmesh: 'environments/dev.yaml' };
+const MESH_ALIAS = { fleet: 'prodmesh' };
 const TIMEOUT = 10000;
 const WARN_DAYS = 14;
 
 const args = process.argv.slice(2);
 const live = args.includes('--live');
-const clusterArg = args.indexOf('--cluster') === -1 ? 'both' : args[args.indexOf('--cluster') + 1];
+const rawClusterArg = args.indexOf('--cluster') === -1 ? 'both' : args[args.indexOf('--cluster') + 1];
+const clusterArg = MESH_ALIAS[rawClusterArg] ?? rawClusterArg;
 
 const envVars = {};
-function vars(cluster) {
-  if (!envVars[cluster]) {
-    const doc = parseYaml(readFileSync(join(REPO, ENV_FILE[cluster]), 'utf8'));
-    envVars[cluster] = doc?.env_vars ?? {};
+function vars(mesh) {
+  if (!envVars[mesh]) {
+    const doc = parseYaml(readFileSync(join(REPO, ENV_FILE[mesh]), 'utf8'));
+    envVars[mesh] = doc?.env_vars ?? {};
   }
-  return envVars[cluster];
+  return envVars[mesh];
 }
-function resolveHost(host, cluster) {
-  const v = vars(cluster);
+function resolveHost(host, mesh) {
+  const v = vars(mesh);
   let ok = true;
   const out = String(host).replace(/\$\{([A-Za-z_]\w*)\}/g, (m, n) => {
     if (!v[n]) { ok = false; return m; }
@@ -103,18 +105,18 @@ function manifestGate(path) {
 }
 
 const doc = parseYaml(readFileSync(REGISTRY, 'utf8'));
-const entries = (doc?.domains ?? []).filter((e) => clusterArg === 'both' || e.cluster === clusterArg);
-const authHostOf = new Map(); // cluster -> issuer host
+const entries = (doc?.domains ?? []).filter((e) => clusterArg === 'both' || e.mesh === clusterArg);
+const authHostOf = new Map(); // mesh -> issuer host
 for (const e of doc.domains) {
-  if (e.sso?.gate === 'issuer' && e.status === 'live') authHostOf.set(e.cluster, resolveHost(e.host, e.cluster).host);
+  if (e.sso?.gate === 'issuer' && e.status === 'live') authHostOf.set(e.mesh, resolveHost(e.host, e.mesh).host);
 }
 
 let fails = 0;
 const sections = [];
 for (const e of entries) {
-  const { host, ok } = resolveHost(e.host, e.cluster);
+  const { host, ok } = resolveHost(e.host, e.mesh);
   const lines = [`## ${host}`, ''];
-  lines.push(`- id: \`${e.id}\` · cluster: ${e.cluster} · status: ${e.status}`);
+  lines.push(`- id: \`${e.id}\` · mesh: ${e.mesh} · status: ${e.status}`);
   lines.push(`- Backend: \`${e.service}\` (ns \`${e.namespace}\`)`);
   lines.push(`- Manifest: \`${e.manifest_source}\``);
   lines.push(`- Auth: **${e.auth}**`);
@@ -142,7 +144,7 @@ for (const e of entries) {
     if (e.expect?.status && h.status && !e.expect.status.includes(h.status)) findings.push(`HTTP ${h.status} statt ${e.expect.status.join('/')}`);
     if (h.error) findings.push(`HTTP ${h.error}`);
     if (e.sso?.client_id) {
-      const issuer = authHostOf.get(e.cluster);
+      const issuer = authHostOf.get(e.mesh);
       const exists = issuer ? await clientExists(issuer, e.sso.client_id) : null;
       lines.push(`- Pocket-ID-Client: ${exists === null ? 'unbekannt' : exists ? 'vorhanden' : 'FEHLT'}`);
       if (exists === false) findings.push(`OIDC-Client '${e.sso.client_id}' fehlt in Pocket ID`);

@@ -20,6 +20,9 @@ spec:
       retries: 3
   upgrade:
     crds: CreateReplace
+    # Alte Helm-Release-Werte nutzten value; der aktuelle Secret-Pfad nutzt
+    # valueFrom. Ersatz statt 3-Way-Merge vermeidet den Altwert-Konflikt.
+    force: true
     remediation:
       retries: 3
   values:

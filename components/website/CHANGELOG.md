@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.448.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.447.1...website-v1.448.0) (2026-11-02)
+
+
+### Features
+
+* **docs:** domains:graph — Subdomain-Auth/SSO/TLS im Repo-Graph, Seed-Clients opencode/fritz ([#7085](https://github.com/Paddione/Bachelorprojekt/issues/7085)) ([73f83f3](https://github.com/Paddione/Bachelorprojekt/commit/73f83f34d6b70a8e47181edb77b0e7beb1c9f516))
+
 ## [1.447.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.447.0...website-v1.447.1) (2026-11-02)
 
 

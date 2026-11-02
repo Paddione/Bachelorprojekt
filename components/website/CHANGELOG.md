@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.449.1...website-v1.450.0) (2026-11-02)
+
+
+### Features
+
+* **scripts:** post-index Kind-Normalisierung (K1 repo-graph-label-cleanup) ([#7114](https://github.com/Paddione/Bachelorprojekt/issues/7114)) ([227b878](https://github.com/Paddione/Bachelorprojekt/commit/227b8786e44dd5b31fef61c9105388d5ca0a7c13))
+
 ## [1.449.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.449.0...website-v1.449.1) (2026-11-02)
 
 

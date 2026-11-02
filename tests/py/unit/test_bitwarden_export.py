@@ -142,7 +142,7 @@ def test_bitwarden_default_smoke_stable_counts(exporter, fixture_env, tmp_path):
     assert len(data["folders"]) == 1
     assert len(data["items"]) == 14
     names = [i["name"] for i in data["items"]]
-    assert "[Mentolder] A_DB_PASSWORD" in names
+    assert "[Korczewski] A_DB_PASSWORD" in names
     assert "[Korczewski] Bundled Non-Secret Environment Configuration" in names
     # Second run is byte-identical (uuid5-deterministic, stable counts).
     out2 = tmp_path / "bitwarden2.json"

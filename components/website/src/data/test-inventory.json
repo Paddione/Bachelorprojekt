@@ -4872,6 +4872,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/repo-hygiene/worktree_health_objects",
+    "file": "tests/py/spec/native_ported/spec/repo-hygiene/test_worktree_health_objects.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/website_imports_resolve_in_image",
     "file": "tests/py/spec/native_ported/spec/test_website_imports_resolve_in_image.py",
     "category": "native_ported",

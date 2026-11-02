@@ -29,17 +29,41 @@ if [ "$CMD" = "objects" ]; then
 
   found=0
 
-  # Vorcheck: 0-Byte-Dateien unter .git/objects/
-  zero_bytes=$(find "$GIT_DIR/objects" -type f -size 0 2>/dev/null)
+  # Vorcheck: 0-Byte-Dateien unter .git/objects/. Lock-Dateien (z. B. eine verwaiste
+  # maintenance.lock) sind keine Objekte: Hinweis statt Befund, und Schritt c) der
+  # Rettungssequenz loescht sie nicht mit.
+  zero_bytes=$(find "$GIT_DIR/objects" -type f -size 0 ! -name '*.lock' 2>/dev/null)
   if [ -n "$zero_bytes" ]; then
     echo "BEFUND: 0-Byte-Objektdateien im Objektspeicher:"
     echo "$zero_bytes"
     found=1
   fi
+  locks=$(find "$GIT_DIR/objects" -maxdepth 1 -type f -name '*.lock' 2>/dev/null)
+  if [ -n "$locks" ]; then
+    echo "HINWEIS: Lock-Dateien im Objektspeicher (verwaist, wenn kein git-Prozess laeuft):"
+    echo "$locks"
+  fi
 
   # Vertiefung: git fsck
   fsck_out=$(git fsck --no-reflogs --no-progress 2>&1) && fsck_rc=0 || fsck_rc=$?
-  if [ "$fsck_rc" -ne 0 ]; then
+  # Schreib-Wettlauf: eine parallel stagende Session verweist im Index kurz auf Blobs,
+  # die sie erst danach schreibt. Meldet fsck ausschliesslich fehlende Objekte und sind
+  # alle bei der Nachpruefung vorhanden, ist das kein Befund.
+  transient=0
+  if [ "$fsck_rc" -ne 0 ] && grep -q '^missing ' <<<"$fsck_out"; then
+    transient=1
+    while IFS= read -r line; do
+      case "$line" in
+        ""|"dangling "*) ;;
+        "missing "*) git cat-file -e "${line##* }" 2>/dev/null || transient=0 ;;
+        *) transient=0 ;;
+      esac
+    done <<<"$fsck_out"
+  fi
+  if [ "$transient" -eq 1 ]; then
+    echo "HINWEIS: git fsck meldete fehlende Objekte, die bei der Nachpruefung vorhanden sind (paralleler Schreibvorgang):"
+    grep '^missing ' <<<"$fsck_out"
+  elif [ "$fsck_rc" -ne 0 ]; then
     echo "BEFUND: git fsck meldet Fehler:"
     echo "$fsck_out"
     found=1

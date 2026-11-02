@@ -146,7 +146,7 @@ if [ -x scripts/agent-lock.sh ] || [ -f scripts/agent-lock.sh ]; then
   case "$claim" in
     free)
       echo "ok: main-checkout ist nicht beansprucht."
-      echo "  Hinweis: 'bash scripts/agent-lock.sh claim main-checkout' beansprucht ihn"
+      echo "  Hinweis: 'python3 ~/scripts/agent-workspace.py lock claim main-checkout --repo .' beansprucht ihn"
       echo "  fuer diese Session — ohne Claim ist eine Fremdsession jederzeit zulaessig."
       ;;
     mine)

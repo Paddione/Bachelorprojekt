@@ -244,7 +244,10 @@ cmd_orphan_locks() {
 
     wt="$(_lock_field "$f" worktree)"
     br="$(_lock_field "$f" branch)"
-    if [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] && [ -n "$br" ]; then
+    # Ohne Worktree-Bindung (z. B. main-checkout-Claim) bleibt nur der Heartbeat als
+    # Lebenszeichen; owner_pid gehoert dem laengst beendeten Tool-Aufruf.
+    if [ -z "$wt" ] || [ "$wt" = "-" ]; then continue; fi
+    if [ -d "$wt" ] && [ -n "$br" ]; then
       wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
       [ "$wt_branch" = "$br" ] && continue
     fi

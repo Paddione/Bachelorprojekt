@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.0...website-v1.450.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **scripts:** Hygiene-Messungen ohne Fehlbefunde aus Locks und Schreib-Wettläufen ([#7113](https://github.com/Paddione/Bachelorprojekt/issues/7113)) ([c2064b3](https://github.com/Paddione/Bachelorprojekt/commit/c2064b3e27744e9fc04ded035971862a1c991ef0))
+
 ## [1.450.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.449.1...website-v1.450.0) (2026-11-02)
 
 

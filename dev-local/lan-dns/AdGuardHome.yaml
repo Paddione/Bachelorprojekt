@@ -24,6 +24,10 @@ dns:
   refuse_any: true
   # Nur IP-Literale: die Fritzbox fragt AdGuard, AdGuard darf nicht ueber die
   # Fritzbox aufloesen (Schleife). Lokale Namen gehen gezielt an die Fritzbox.
+  # AAAA global aus: die oeffentlichen IPv6-Records (dyndns) sind drift-anfaellig;
+  # mit stale AAAA haengen IPv6-bevorzugende Browser im Timeout, statt das
+  # funktionierende IPv4-Rewrite zu nutzen. LAN bleibt damit IPv4.
+  aaaa_disabled: true
   upstream_dns:
     - tls://9.9.9.9
     - tls://149.112.112.112
@@ -68,6 +72,8 @@ filtering:
     - {domain: web.korczewski.de, answer: 10.10.10.3, enabled: true}
     - {domain: massage.korczewski.de, answer: 10.10.10.4, enabled: true}
     - {domain: massage.korczewski.de, answer: 10.10.10.3, enabled: true}
+    - {domain: agent-board.devmesh.korczewski.de, answer: 10.10.10.4, enabled: true}
+    - {domain: agent-board.devmesh.korczewski.de, answer: 10.10.10.3, enabled: true}
 filters:
   - enabled: true
     url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt

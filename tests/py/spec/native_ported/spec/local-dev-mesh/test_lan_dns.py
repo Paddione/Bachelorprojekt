@@ -150,6 +150,13 @@ def test_rewrites_fuehren_jeden_devmesh_host_auf_alle_lan_dns_knoten(rendered, r
                 for rule in doc.get("spec", {}).get("rules") or []:
                     if rule.get("host"):
                         hosts.add(rule["host"])
+    # devmesh-Hosts mit Manifest im Home-Repo (z. B. agent-board): kein Ingress in
+    # diesem Repo, die Domain-Registry ist die einzige Quelle hier.
+    registry = yaml.safe_load((repo_root / "docs/agent-guide/registry/domains.yaml").read_text())
+    hosts |= {
+        e["host"] for e in registry["domains"]
+        if e.get("mesh") == "devmesh" and e.get("manifest_repo") == "home"
+    }
     inv = yaml.safe_load((repo_root / "devmesh/inventory.yaml").read_text())
     ips = {p["lan_ip"] for p in inv["peers"] if p.get("lan_dns")}
     # Positiv-Anker: Console-Host und mindestens zwei Knoten fuer den Ausweich.

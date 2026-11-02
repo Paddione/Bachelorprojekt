@@ -20,14 +20,24 @@ export function normalisePartialSize(v) {
   return s === 's' || s === 'm' || s === 'l' ? s : 'm';
 }
 
+// Frontmatter-Block (--- ... ---) einer Partial-Datei, sonst ''.
+const frontmatter = (partialText) => String(partialText ?? '').match(/^---\s*\n([\s\S]*?)\n---\s*(?:\n|$)/)?.[1] ?? '';
+
 // `size:` aus dem Partial-Frontmatter (--- ... ---), sonst Manifest-Spalte, sonst 'm'.
 export function partialSize(partial, partialText) {
-  const fm = String(partialText ?? '').match(/^---\s*\n([\s\S]*?)\n---\s*(?:\n|$)/);
-  if (fm) {
-    const hit = fm[1].match(/^\s*size\s*:\s*([sSmMlL])\s*$/m);
-    if (hit) return hit[1].toLowerCase();
-  }
-  return normalisePartialSize(partial?.size);
+  const hit = frontmatter(partialText).match(/^\s*size\s*:\s*([sSmMlL])\s*$/m);
+  return hit ? hit[1].toLowerCase() : normalisePartialSize(partial?.size);
+}
+
+// Ausfuehrungs-Felder aus dem Partial-Frontmatter (walkie-dispatch-flow p6, C5), das Manifest behaelt seine
+// Spalten: harness (Default 'auto'), track (Hinweis direct|cloud|self), fallback (Tier-IDs in Reihenfolge,
+// Default null = alle Tiers der Kette) und repo (nur Information fuer die Bridge).
+export function partialMeta(partialText) {
+  const fm = frontmatter(partialText);
+  const field = (k) => fm.match(new RegExp(`^\\s*${k}\\s*:\\s*(.*?)\\s*$`, 'm'))?.[1] || null;
+  const fallback = (field('fallback') ?? '').replace(/^\[|\]$/g, '').split(',')
+    .map((x) => x.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+  return { harness: field('harness') ?? 'auto', track: field('track'), fallback: fallback.length ? fallback : null, repo: field('repo') };
 }
 
 // Liest die Tabelle unter "## Partials" (id | plan | role | target_files | depends_on [| size]).
@@ -109,7 +119,7 @@ export function autoSlots(partials) {
 
 export const statePath = (changeDir) => join(changeDir, '.plan-runner', 'state.json');
 
-const freshPartial = () => ({ status: 'open', owner: null, attempts: 0, result: null });
+const freshPartial = () => ({ status: 'open', owner: null, attempts: 0, result: null, history: [] });
 
 // Laedt oder legt den Zustand an; ergaenzt neue Partials; setzt 'running' auf 'open' zurueck (Resume).
 export function loadState(changeDir, partials) {
@@ -127,6 +137,8 @@ export function loadState(changeDir, partials) {
   state.slug = state.slug || basename(resolve(changeDir));
   state.partials = state.partials && typeof state.partials === 'object' ? state.partials : {};
   state.orchestrator = { notes: '', frozen_at: null, ...(state.orchestrator ?? {}) };
+  // Budget-Ledger (walkie-dispatch-flow p6): ueberlebt Neustarts, budgetUsd setzt tiers.applyBudget je Lauf.
+  state.ledger = { budgetUsd: null, spentUsd: 0, flatRateCalls: 0, calls: [], ...(state.ledger ?? {}) };
   for (const p of partials) {
     const cur = { ...freshPartial(), ...(state.partials[p.id] ?? {}) };
     if (cur.status === 'running') {
@@ -134,7 +146,10 @@ export function loadState(changeDir, partials) {
       cur.owner = null;
     }
     // status zuerst, damit der Zustand lesbar serialisiert.
-    state.partials[p.id] = { status: cur.status, owner: cur.owner, attempts: cur.attempts, result: cur.result };
+    state.partials[p.id] = {
+      status: cur.status, owner: cur.owner, attempts: cur.attempts, result: cur.result,
+      history: Array.isArray(cur.history) ? cur.history : [],
+    };
   }
   return state;
 }

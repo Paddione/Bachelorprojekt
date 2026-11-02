@@ -15,7 +15,15 @@
 #   LFM3-Audio-2B-Q4_0.gguf (1001M) + mmproj-LFM3-Audio-2B-Q4_0.gguf (154M)
 # Threads: -t 2 / -tb 2 against limits.cpu 2000m (T002661/T002835 — no
 # oversubscription at the layer barrier). -c 2048 -np 1: single PTT slot.
-# No Service yet (no consumers); add ClusterIP + gateway route on first use.
+# First consumer: the walkie evaluator (agent-board bridge). It calls
+# /v1/chat/completions with a json_schema response_format (constrained route
+# decision); ClusterIP Service lfm3-audio :8080 below. No gateway route: the
+# walkie reaches it via port-forward, add a route only if agents outside the
+# cluster need it. Until the Flux rollout works (Paddione/Bachelorprojekt#7057)
+# the evaluator runs as host service lfm3-evaluator.service (CPU-only
+# llama-server, 127.0.0.1:18337); moving it here only swaps CBM_EVAL_URL.
+# Measured accuracy/latency on the routing fixture (calibration.json,
+# walkie-dispatch-flow p3) is added here once the measurement exists.
 #
 # Image pins: server-cuda digest is the exact benched image (runs CPU-only
 # with "no usable GPU" warning, verified). Follow-up: switch to the lighter
@@ -152,3 +160,18 @@ spec:
         - name: models
           persistentVolumeClaim:
             claimName: lfm3-audio-models
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lfm3-audio
+  labels:
+    app: lfm3-audio
+spec:
+  type: ClusterIP
+  selector:
+    app: lfm3-audio
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

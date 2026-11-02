@@ -12,7 +12,7 @@
 // .agents/plans/<slug>/).
 //
 // Aufruf:
-//   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--direct-slots N|auto] [--cloud-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]
+//   node scripts/llm/plan-runner.mjs <change-dir> [--worktree <pfad>] [--direct-slots N|auto] [--cloud-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N] [--budget-usd N] [--harness <id>] [--events <datei>]
 //   (--ticket retiriert mit dem Ticket-System 2026-10-14: Plan-Verzeichnis positional uebergeben)
 // 'auto' leitet die Slots aus der maximalen Frontbreite des Partials-DAGs ab (Direkt zuerst, Cloud nur fuer den
 // Rest ueber der Direkt-Kapazitaet); --print-slots gibt {width, slotsDirect, slotsCloud, partials} als JSON aus und
@@ -25,16 +25,24 @@
 //      PLAN_RUNNER_DIRECT_URL (Default http://127.0.0.1:8123), PLAN_RUNNER_DIRECT_MODEL (Default w4a4),
 //      PLAN_RUNNER_SELF_URL (Self-Preflight, Default = Primaer-URL :1919),
 //      PLAN_RUNNER_OPENCODE (ersetzt das opencode-Binary).
-// Exit: 0 alle Partials done · 1 mindestens eine failed bzw. Lauf abgebrochen · 2 Konfigurationsfehler.
+// Fallback-Kette und Budget (walkie-dispatch-flow p6, plan-runner/tiers.mjs): PLAN_RUNNER_TIERS, `fallback:` im
+// Partial-Frontmatter, PLAN_RUNNER_LEASE_GUARD, --budget-usd (Default PLAN_RUNNER_CLOUD_BUDGET_USD, sonst 5),
+// --harness (alle Partials), --events (JSONL, Default <change-dir>/.plan-runner/events.jsonl).
+// Exit: 0 alle Partials done · 1 mindestens eine failed bzw. Lauf abgebrochen · 2 Konfigurationsfehler · 3 keine failed, aber paused_*.
 // Runbook: docs/runbooks/plan-runner.md
 
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import {
-  parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt, autoSlots,
+  parseManifest, readyPartials, loadState, saveState, buildWorkerPrompt, autoSlots, partialMeta,
 } from './plan-runner/plan.mjs';
 import { WorkerPool, decideTrack, killAllWorkers } from './plan-runner/workers.mjs';
+import {
+  parseTiers, tierForTrack, trackForTier, tierAvailable, pickTier, bookCost, applyBudget,
+} from './plan-runner/tiers.mjs';
+import { HARNESS_IDS, resolveHarness, isCloudHarness } from './plan-runner/harness.mjs';
+import { makeEmitter } from './plan-runner/events.mjs';
 import { DEFAULT_URL as DEFAULT_DIRECT_URL, DEFAULT_MODEL as DEFAULT_DIRECT_MODEL } from './plan-runner/direct-worker.mjs';
 
 // Direkt-Track: drei parallele Tool-Loops gegen vLLM :8123 (40k Kontext, max-num-seqs 10, teilt sich die
@@ -58,7 +66,7 @@ function fail(code, msg) {
 
 // ---------- CLI ----------
 function parseArgs(argv) {
-  const opts = { changeDir: null, worktree: null, slotsDirect: DEFAULT_DIRECT_SLOTS, slotsCloud: DEFAULT_CLOUD_SLOTS, maxTurns: 200, timeoutMin: 120, printSlots: false };
+  const opts = { changeDir: null, worktree: null, slotsDirect: DEFAULT_DIRECT_SLOTS, slotsCloud: DEFAULT_CLOUD_SLOTS, maxTurns: 200, timeoutMin: 120, printSlots: false, budgetUsd: null, harness: null, events: null };
   // --direct-slots 0 und --cloud-slots 0 schalten die Worker-Tracks ab (reine Selbstausfuehrung, z. B.
   // wenn die Partial einen Worker-Server selbst umkonfiguriert).
   // 'auto' (oder --auto-slots fuer beide Tracks) leitet die Slots aus der maximalen
@@ -72,6 +80,11 @@ function parseArgs(argv) {
   const num = (k, v, min = 1) => {
     const n = Number(v);
     if (!Number.isInteger(n) || n < min) fail(2, `--${k} needs an integer >= ${min}, got ${v}`);
+    return n;
+  };
+  const budget = (what, v) => {
+    const n = Number(v);
+    if (v === undefined || v === '' || !Number.isFinite(n) || n < 0) fail(2, `${what} needs a number >= 0, got ${v}`);
     return n;
   };
   for (let i = 0; i < argv.length; i++) {
@@ -88,13 +101,20 @@ function parseArgs(argv) {
     else if (a === '--print-slots') opts.printSlots = true;
     else if (a === '--max-turns') opts.maxTurns = num('max-turns', argv[++i]);
     else if (a === '--timeout-min') opts.timeoutMin = num('timeout-min', argv[++i]);
+    else if (a === '--budget-usd') opts.budgetUsd = budget('--budget-usd', argv[++i]);
+    else if (a === '--harness') {
+      opts.harness = argv[++i];
+      if (opts.harness !== 'auto' && !HARNESS_IDS.includes(opts.harness)) fail(2, `--harness needs auto or one of ${HARNESS_IDS.join(', ')}, got ${opts.harness}`);
+    } else if (a === '--events') opts.events = argv[++i];
     else if (a.startsWith('--')) fail(2, `unknown option ${a}`);
     else if (!opts.changeDir) opts.changeDir = a;
     else fail(2, `unexpected argument ${a}`);
   }
   if (!opts.changeDir) {
-    fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--direct-slots N|auto] [--cloud-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N]');
+    fail(2, 'usage: plan-runner.mjs <change-dir> [--worktree <path>] [--direct-slots N|auto] [--cloud-slots N|auto] [--auto-slots] [--print-slots] [--max-turns N] [--timeout-min N] [--budget-usd N] [--harness <id>] [--events <file>]');
   }
+  const budgetEnv = process.env.PLAN_RUNNER_CLOUD_BUDGET_USD; // Default 5 USD (C7)
+  if (opts.budgetUsd === null) opts.budgetUsd = budgetEnv ? budget('PLAN_RUNNER_CLOUD_BUDGET_USD', budgetEnv) : 5;
   return opts;
 }
 
@@ -109,10 +129,15 @@ function loadPlan(opts) {
     fail(2, e.message);
   }
   const texts = {};
+  const meta = {};
   for (const p of partials) {
     const f = join(changeDir, p.file);
     if (!existsSync(f)) fail(2, `partial ${p.id}: plan file ${p.file} not found`);
     texts[p.id] = readFileSync(f, 'utf8');
+    meta[p.id] = partialMeta(texts[p.id]);
+    if (meta[p.id].harness !== 'auto' && !HARNESS_IDS.includes(meta[p.id].harness)) {
+      fail(2, `partial ${p.id}: unknown harness ${meta[p.id].harness} (auto or one of ${HARNESS_IDS.join(', ')})`);
+    }
   }
   let worktree = opts.worktree;
   if (!worktree) {
@@ -130,7 +155,7 @@ function loadPlan(opts) {
   } catch (e) {
     fail(2, e.message);
   }
-  return { changeDir, partials, texts, worktree, state };
+  return { changeDir, partials, texts, meta, worktree, state };
 }
 
 // ---------- Orchestrator-Protokoll ----------
@@ -141,6 +166,7 @@ Rules:
 - Dispatch only partials listed as ready. Dependencies are enforced; a partial becomes ready when its dependencies are marked done.
 - A worker result is a claim, not a proof. Review every result (success/failure line and output tail) before you call mark(id, "done").
   If a result is wrong or incomplete, call mark(id, "open", note) so it can be retried, or mark(id, "failed", note).
+- For a partial with a fallback chain, a failed worker run is retried on the next tier automatically and you only see the final result. A partial with status paused_budget or paused_owner waits for the owner: do not dispatch or mark it, finish when nothing else can progress.
 - Use wait_event to wait for a running worker job. Write your plan_notes for execute_self so you can continue after the self-run.
 - Every reply must be a tool call. Call finish(summary) when every partial is done or nothing more can be done.`;
 
@@ -178,10 +204,27 @@ async function chat({ url, model }, messages) {
 }
 
 // ---------- Scheduler ----------
-function createScheduler({ changeDir, partials, texts, worktree, state }, pool, selfAvailable) {
+// run: { tiers, harness (--harness oder null), emit, tierCtx } aus main() (Fallback-Kette, Budget, Ereignisse).
+function createScheduler({ changeDir, partials, texts, meta, worktree, state }, pool, selfAvailable, run) {
   const byId = Object.fromEntries(partials.map((p) => [p.id, p]));
   const save = () => saveState(changeDir, state);
   const ready = () => readyPartials(partials, state);
+  const { ledger } = state;
+  const emit = (type, id, extra = {}) => run.emit({ type, partial: id, spentUsd: ledger.spentUsd, ...extra });
+  const harnessFor = (id, tier, track, escalation = false) => resolveHarness({ requested: run.harness || meta[id].harness, tier, track, escalation });
+  const overBudget = () => ledger.spentUsd >= ledger.budgetUsd;
+
+  // Pause: die Partial wartet auf Budget bzw. den Eigner; mark/dispatch fassen sie nicht mehr an.
+  const pause = (id, kind, why, at = {}) => {
+    Object.assign(state.partials[id], { status: `paused_${kind}`, owner: null, result: why });
+    emit(`${kind}_paused`, id, { detail: why, ...at });
+    save();
+    log(`${id} paused_${kind}: ${why}`);
+    return `PAUSED_${kind.toUpperCase()} ${id}: ${why}`;
+  };
+  // Cloud-Laeufe (Tier cloud oder Cloud-Harness, auch bei fest gewaehltem --harness) brauchen Budget (C7/C8).
+  const budgetGate = (id, tier, harness) => (tier.kind === 'cloud' || isCloudHarness(harness)) && overBudget()
+    ? pause(id, 'budget', `cloud budget used up (${ledger.spentUsd} of ${ledger.budgetUsd} USD)`, { tier: tier.id, harness }) : null;
 
   const status = () => ({
     partials: Object.fromEntries(partials.map((p) => {
@@ -189,9 +232,10 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
       return [p.id, {
         status: s.status, owner: s.owner, attempts: s.attempts, depends_on: p.dependsOn,
         active: pool.isActive(p.id), awaiting_review: s.status === 'running' && !pool.isActive(p.id),
-        result: s.result,
+        result: s.result, harness: meta[p.id].harness, track_hint: meta[p.id].track, tiers_tried: s.history.map((h) => h.tier),
       }];
     })),
+    budget: { usd: ledger.budgetUsd, spent_usd: ledger.spentUsd },
     ready: ready(),
     freeDirect: pool.freeDirect(),
     running_direct: pool.runningDirect(),
@@ -201,13 +245,54 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
     buffered_events: pool.pending(),
   });
 
+  // Startet die Partial auf dem Tier des Tracks; liefert die Pause-Meldung statt zu starten, wenn das Budget fehlt.
   const startWith = (track, id, extra = '') => {
+    const tier = tierForTrack(run.tiers, track);
+    const harness = harnessFor(id, tier, track);
+    const paused = budgetGate(id, tier, harness);
+    if (paused) return paused;
     const prompt = buildWorkerPrompt({ partial: byId[id], partialText: texts[id], worktree, extra });
-    if (track === 'cloud') pool.startCloud(id, prompt);
-    else pool.startDirect(id, prompt, byId[id].targetFiles);
+    if (track === 'cloud') pool.startCloud(id, prompt, { harness, tier });
+    else pool.startDirect(id, prompt, byId[id].targetFiles, { harness, tier });
     Object.assign(state.partials[id], { status: 'running', owner: track, result: null });
     save();
-    log(`${track} start ${id}`);
+    emit('partial_started', id, { tier: tier.id, harness });
+    log(`${track} start ${id} (tier ${tier.id}, harness ${harness})`);
+    return null;
+  };
+
+  // Eskalation: dieselbe Partial laeuft auf dem naechsten Tier der Kette, ausserhalb der Slots.
+  const escalate = (id, tier, ev) => {
+    const track = trackForTier(tier, meta[id].track);
+    const harness = harnessFor(id, tier, track, true);
+    const paused = budgetGate(id, tier, harness);
+    if (paused) return false;
+    const extra = `Retry on tier ${tier.id}: the previous run on tier ${ev.tier} failed (${ev.summary}).`;
+    const prompt = buildWorkerPrompt({ partial: byId[id], partialText: texts[id], worktree, extra });
+    pool.startTier(id, { track, prompt, targetFiles: byId[id].targetFiles, harness, tier });
+    Object.assign(state.partials[id], { status: 'running', owner: tier.id, result: null });
+    save();
+    emit('escalated', id, { tier: tier.id, harness, costUsd: ev.costUsd, detail: `${ev.tier} failed: ${ev.summary}` });
+    emit('partial_started', id, { tier: tier.id, harness });
+    log(`escalate ${id}: ${ev.tier} -> ${tier.id} (harness ${harness}) after: ${ev.summary}`);
+    return true;
+  };
+
+  // Bucht einen beendeten Lauf (History, Ledger) und eskaliert einen Fehlschlag auf den naechsten Tier, sofern die
+  // Partial eine Kette hat (`fallback:` im Frontmatter oder PLAN_RUNNER_TIERS). true = sie laeuft auf einem anderen Tier weiter. Sonst entscheidet der Orchestrator ueber das Ergebnis
+  // (Erfolg) bzw. die Partial ist pausiert (paused_*) und das Ergebnis traegt den Pausengrund.
+  const settle = async (ev) => {
+    const id = ev.partialId;
+    const s = state.partials[id];
+    s.history.push({ tier: ev.tier, harness: ev.harness, ok: ev.ok, ms: ev.ms, costUsd: ev.costUsd ?? null });
+    bookCost(ledger, { partial: id, harness: ev.harness, costUsd: ev.costUsd, flatRate: ev.flatRate });
+    save();
+    if (ev.ok || !(meta[id].fallback || process.env.PLAN_RUNNER_TIERS)) return false; // ohne Kette entscheidet der Orchestrator
+    const pick = await pickTier(meta[id], s.history, run.tiers, ledger, run.tierCtx);
+    if (pick.tier && escalate(id, pick.tier, ev)) return true;
+    if (!pick.tier) pause(id, pick.pause, `${ev.tier} failed (${ev.summary}), no tier left`, { tier: ev.tier, harness: ev.harness });
+    if (state.partials[id].status.startsWith('paused_')) ev.summary += ` [${state.partials[id].status}]`;
+    return false;
   };
 
   const policy = () => decideTrack({ ready: ready(), freeDirect: pool.freeDirect(), freeCloud: pool.freeCloud(), selfAvailable });
@@ -226,7 +311,8 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
   };
 
   pool.on('end', (ev) => {
-    state.partials[ev.partialId].result = `${ev.ok ? 'success' : 'failure'}: ${ev.summary}`;
+    const s = state.partials[ev.partialId];
+    if (!s.status.startsWith('paused_')) s.result = `${ev.ok ? 'success' : 'failure'}: ${ev.summary}`;
     save();
     log(`${ev.owner} end ${ev.partialId} ok=${ev.ok} ${ev.summary}`);
   });
@@ -252,8 +338,7 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
       if (err) return err;
       // Direkt-Track: Dispatch-Policy (T901014 P1) — ein Direkt-Dispatch braucht 'direct'.
       if (policy() !== 'direct') return `BUSY: no free direct slot (running: ${pool.runningDirect().join(',')})`;
-      startWith('direct', id, String(prompt));
-      return `STARTED ${id}`;
+      return startWith('direct', id, String(prompt)) ?? `STARTED ${id}`;
     },
 
     dispatch_cloud: ({ partial_id: id, prompt = '' }) => {
@@ -264,8 +349,7 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
         if (pool.freeDirect() > 0) return 'BUSY: direct slot(s) free - use dispatch_direct first';
         return `BUSY: no free cloud slot (running: ${pool.runningCloud().join(',')})`;
       }
-      startWith('cloud', id, String(prompt));
-      return `STARTED ${id}`;
+      return startWith('cloud', id, String(prompt)) ?? `STARTED ${id}`;
     },
 
     execute_self: async ({ partial_id: id, prompt = '', plan_notes: notes = '' }) => {
@@ -283,14 +367,19 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
       }
       const err = requireReady(id);
       if (err) return err;
+      const tier = tierForTrack(run.tiers, 'self');
+      const harness = harnessFor(id, tier, 'self');
+      const paused = budgetGate(id, tier, harness);
+      if (paused) return paused;
       state.orchestrator.notes = String(notes);
       state.orchestrator.frozen_at = new Date().toISOString();
       Object.assign(state.partials[id], { status: 'running', owner: 'self', result: null });
       save();
+      emit('partial_started', id, { tier: tier.id, harness });
       log(`self start ${id}`);
       const selfPrompt = buildWorkerPrompt({ partial: byId[id], partialText: texts[id], worktree, extra: String(prompt) });
       let result = null;
-      const selfRun = pool.runSelf(id, selfPrompt).then((r) => { result = r; });
+      const selfRun = pool.runSelf(id, selfPrompt, { harness, tier }).then((r) => { result = r; });
       while (result === null) {
         idleDispatch(id);
         let onEnd;
@@ -305,6 +394,8 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
       state.partials[id].result = `${result.ok ? 'success' : 'failure'}: ${result.summary}`;
       save();
       log(`self end ${id} ok=${result.ok} ${result.summary}`);
+      if (await settle({ ...result, partialId: id })) return `ESCALATED ${id}: the self run failed (${result.summary}); it runs on the next tier now - use wait_event`;
+      if (state.partials[id].status.startsWith('paused_')) result.summary += ` [${state.partials[id].status}]`;
       let reply = `${result.ok ? 'success' : 'failure'} ${result.summary}\n--- output tail ---\n${String(result.tail).slice(-1500)}`;
       const slept = pool.drainEvents();
       if (slept.length) {
@@ -312,14 +403,15 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
       }
       const stillDirect = pool.runningDirect();
       const stillCloud = pool.runningCloud();
-      if (stillDirect.length || stillCloud.length) {
-        reply += `\n\nStill running (direct: ${stillDirect.join(',') || 'none'}; cloud: ${stillCloud.join(',') || 'none'})`;
+      const stillTier = pool.runningTier();
+      if (stillDirect.length || stillCloud.length || stillTier.length) {
+        reply += `\n\nStill running (direct: ${stillDirect.join(',') || 'none'}; cloud: ${stillCloud.join(',') || 'none'}; escalated: ${stillTier.join(',') || 'none'})`;
       }
       return reply;
     },
 
     wait_event: async () => {
-      if (!pool.pending() && !pool.runningDirect().length && !pool.runningCloud().length) return 'NO_EVENT: no worker job is running';
+      if (!pool.pending() && !pool.busy()) return 'NO_EVENT: no worker job is running';
       return `EVENT ${formatEvent(await pool.nextEvent())}`;
     },
 
@@ -328,21 +420,26 @@ function createScheduler({ changeDir, partials, texts, worktree, state }, pool, 
       if (!['done', 'failed', 'open'].includes(st)) return `ERROR: status must be done, failed or open, got ${st}`;
       if (pool.isActive(id)) return `ERROR: partial ${id} is still running - call wait_event first`;
       const s = state.partials[id];
+      if (s.status.startsWith('paused_')) return `ERROR: partial ${id} is ${s.status} - it waits for the owner and cannot be marked`;
       if (note) s.result = String(note);
+      const last = s.history.at(-1) ?? {};
+      const finished = (type, detail) => emit(type, id, { tier: last.tier, harness: last.harness, costUsd: last.costUsd, detail });
       if (st === 'open') {
         s.attempts += 1;
         s.owner = null;
         if (s.attempts > MAX_RETRIES) {
           s.status = 'failed';
+          finished('partial_failed', `retry limit (${MAX_RETRIES}) reached`);
           return `FAILED ${id}: retry limit (${MAX_RETRIES}) reached`;
         }
       }
       s.status = st;
+      if (st !== 'open') finished(st === 'done' ? 'partial_done' : 'partial_failed', String(note));
       return `OK ${id} -> ${st}`;
     },
   };
 
-  return { tools, status, save };
+  return { tools, status, save, settle };
 }
 
 // ---------- Hauptlauf ----------
@@ -375,7 +472,12 @@ async function resolveOrchestrator() {
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
+  let tiers;
+  try { tiers = parseTiers(process.env); } catch (e) { fail(2, e.message); }
   const plan = loadPlan(opts);
+  const resumed = applyBudget(plan.state, opts.budgetUsd);
+  if (resumed.length) log(`resumed paused partials: ${resumed.join(',')}`);
+  const emit = makeEmitter(opts.events ? resolve(opts.events) : join(plan.changeDir, '.plan-runner', 'events.jsonl'));
   let suggestion = null;
   if (opts.slotsDirect === 'auto' || opts.slotsCloud === 'auto' || opts.printSlots) {
     try {
@@ -394,15 +496,29 @@ async function main() {
   const orch = await resolveOrchestrator();
   const directUrl = urlEnv('PLAN_RUNNER_DIRECT_URL', DEFAULT_DIRECT_URL);
   const selfUrl = urlEnv('PLAN_RUNNER_SELF_URL', orch.primary);
+  // Lokale Tiers mit gehaltener GPU-Lease werden uebersprungen (nie verdraengt): Direkt-Slots 0 bzw. kein Self.
+  const tierCtx = { leaseGuard: process.env.PLAN_RUNNER_LEASE_GUARD || null, defaultUrl: directUrl, log };
+  const checked = new Map();
+  const tierFree = (track) => {
+    const t = tierForTrack(tiers, track);
+    if (!checked.has(t.id)) checked.set(t.id, tierAvailable(t, { ...tierCtx, defaultUrl: null }));
+    return checked.get(t.id);
+  };
   let slotsDirect = opts.slotsDirect;
-  if (slotsDirect > 0 && !(await probeEndpoint(directUrl))) {
+  if (slotsDirect > 0 && !(await tierFree('direct'))) {
+    slotsDirect = 0;
+  } else if (slotsDirect > 0 && !(await probeEndpoint(directUrl))) {
     log(`direct endpoint ${directUrl} unreachable - direct slots 0`);
     slotsDirect = 0;
   }
-  const selfAvailable = await probeEndpoint(selfUrl);
-  if (!selfAvailable) log(`self endpoint ${selfUrl} unreachable - self track off`);
-  const pool = new WorkerPool({ slotsDirect, slotsCloud: opts.slotsCloud, worktree: plan.worktree, timeoutMs: opts.timeoutMin * 60_000 });
-  const sched = createScheduler(plan, pool, selfAvailable);
+  const selfAvailable = (await tierFree('self')) && (await probeEndpoint(selfUrl));
+  if (!selfAvailable) log(`self endpoint ${selfUrl} unreachable or its tier skipped - self track off`);
+  let sched;
+  const pool = new WorkerPool({
+    slotsDirect, slotsCloud: opts.slotsCloud, worktree: plan.worktree, timeoutMs: opts.timeoutMin * 60_000,
+    onSettled: (ev) => sched.settle(ev),
+  });
+  sched = createScheduler(plan, pool, selfAvailable, { tiers, harness: opts.harness, emit, tierCtx });
   sched.save();
   process.on('SIGINT', () => { killAllWorkers(); fail(130, 'interrupted; state saved, restart resumes'); });
   log(`change ${plan.changeDir} · worktree ${plan.worktree} · direct slots ${slotsDirect} (${process.env.PLAN_RUNNER_DIRECT_MODEL || DEFAULT_DIRECT_MODEL} @ ${directUrl}) · cloud slots ${opts.slotsCloud} · self ${selfAvailable ? 'on' : 'off'} · orchestrator ${orch.url}`);
@@ -449,18 +565,20 @@ async function main() {
 
   // Nicht abgeschlossene Worker-Jobs beenden; loadState setzt sie beim naechsten Lauf auf open.
   // Direkt-Jobs laufen im Runner-Prozess und enden mit process.exit, opencode-Prozesse per killAllWorkers.
-  const stillRunning = [...pool.runningDirect(), ...pool.runningCloud()];
+  const stillRunning = [...pool.runningDirect(), ...pool.runningCloud(), ...pool.runningTier()];
   if (stillRunning.length) {
     log(`stopping running worker jobs: ${stillRunning.join(',')}`);
     killAllWorkers();
   }
   sched.save();
-  const counts = { done: 0, failed: 0, open: 0, running: 0 };
+  const counts = { done: 0, failed: 0, open: 0, running: 0, paused_budget: 0, paused_owner: 0 };
   for (const s of Object.values(plan.state.partials)) counts[s.status] = (counts[s.status] ?? 0) + 1;
   const total = plan.partials.length;
-  const code = counts.done === total && !aborted ? 0 : 1;
+  const paused = counts.paused_budget + counts.paused_owner;
+  const code = aborted ? 1 : counts.done === total ? 0 : counts.failed === 0 && paused > 0 ? 3 : 1;
   if (aborted) log(`aborted: ${aborted}`);
-  process.stdout.write(`PLAN-RUNNER: done=${counts.done}/${total} failed=${counts.failed} open=${counts.open} running=${counts.running}${aborted ? ` aborted=${JSON.stringify(aborted)}` : ''}\n`);
+  emit({ type: 'run_done', spentUsd: plan.state.ledger.spentUsd, detail: `done=${counts.done}/${total} failed=${counts.failed} paused=${paused} exit=${code}` });
+  process.stdout.write(`PLAN-RUNNER: done=${counts.done}/${total} failed=${counts.failed} open=${counts.open} running=${counts.running} paused=${paused}${aborted ? ` aborted=${JSON.stringify(aborted)}` : ''}\n`);
   process.exit(code);
 }
 

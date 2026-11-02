@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-02T11:33:38.774Z",
+  "generatedAt": "2026-11-02T12:27:33.569Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1500,6 +1500,12 @@
     {
       "from": "llm-gateway-rerank",
       "to": "bge-rerank",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "lfm3-audio",
+      "to": "lfm3-audio",
       "via": "selector",
       "kind": "selector"
     },

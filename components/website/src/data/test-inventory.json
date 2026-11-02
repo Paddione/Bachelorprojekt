@@ -4764,6 +4764,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/llm-local-dev/plan_runner_tiers",
+    "file": "tests/py/spec/native_ported/spec/llm-local-dev/test_plan_runner_tiers.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/llm-pipeline/lfm_retrieval_gpu",
     "file": "tests/py/spec/native_ported/spec/llm-pipeline/test_lfm_retrieval_gpu.py",
     "category": "native_ported",

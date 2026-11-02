@@ -19,6 +19,7 @@
 - [ ] Branch folgt der Namenskonvention (`feature/`, `fix/`, `chore/`)
 - [ ] Aenderungen betreffen nur ein Thema
 - [ ] Keine Secrets oder Zugangsdaten committet (Dev-Secrets in `k3d/secrets.yaml` sind OK)
+- [ ] Commit-Scopes sind registriert (`bash scripts/validate-commit-msg.sh scopes`) — Aliase wie `e2e` (= `test`) sind keine Scopes und fallen erst im CI auf
 
 ### Bei Aenderungen an Kubernetes-Manifesten (`k3d/`)
 - [ ] `kubectl kustomize k3d/` funktioniert lokal

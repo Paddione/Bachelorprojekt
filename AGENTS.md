@@ -145,6 +145,32 @@ analyze the four values immediately after writing them:
 - `BLOCKED` none and `NEXT` a clear single direction → announce the
   recommendation, wait 10 s for objection, then auto-run it.
 
+## WalkyTalky-Profil
+
+Opt-in-Profil für Voice-Sessions. Aktivierung jederzeit per Hotkey ODER
+Signalwort, explizites Opt-in (keine Heuristik), jederzeit umschaltbar zurück
+zum Vollvertrag. Der Vollvertrag oben (Heads-down-Verhalten) bleibt unverändert;
+dieses Profil ändert nur die Vermittlung.
+
+Antwort-Stil: kurz und gesprochen — erst der Inhalt in einem Satz, dann
+Buttons oder Frage. Keine Textblöcke vorlesen.
+
+Footer-Karte: alle 4 Werte bleiben (STATUS:/RUNNING:/BLOCKED:/NEXT:), Darstellung
+als kompakte Karte mit 2 Aktions-Buttons statt Textblock — „Weiter"
+(empfohlene NEXT-Aktion ausführen), „Details" (Volltext aufklappen).
+
+Fragen: max. 3–4 Optionen, Empfehlung als Option 1 mit `(Recommended)`-Präfix,
+Fristen und Auto-Run wie im Vollvertrag.
+
+Hook-/Gate-Fehler werden als gesprochene Kurzfrage mit Fix-Buttons vermittelt
+(siehe `.claude/lib/behaviors/commit-conventions.md`,
+`.claude/lib/behaviors/never-push-main.md`,
+`.claude/lib/behaviors/escalation-protocol.md`).
+
+Normativ für Modale und progressives Disclosure ist
+[`docs/agent-guide/visual-accessibility.md`](docs/agent-guide/visual-accessibility.md)
+(§1 Modale, §2 Disclosure) — hier wird nichts neu definiert.
+
 ## Reference Sections (read on-demand, do not frontload)
 
 <details>

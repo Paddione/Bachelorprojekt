@@ -16,3 +16,10 @@ Die `dev-flow-plan`- und `using-git-worktrees`-Skills automatisieren das.
 
 **Pre-commit-Hook feuert mit "main-checkout locked":** Eine andere Session hält den main-Lock.
 Lösung: In einem Worktree arbeiten, nicht Force-pushen.
+
+## WalkyTalky-Form (Voice)
+
+Push-Blockaden (pre-push-Hook, vgl. Issue #7062) in WalkyTalky-Sessions als
+Kurzansage mit Fix-Buttons fassen (Warten / Fix auf main / Notfall-Bypass nur
+auf expliziten Eigner-Wunsch). Regel selbst unverändert — nie direkt auf main
+pushen.

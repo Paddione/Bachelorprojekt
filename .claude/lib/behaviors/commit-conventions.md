@@ -37,3 +37,10 @@ Worktrees laufen in `/tmp/` (kurzlebig). Nach Merge aufräumen:
 ```bash
 bash scripts/worktree-create.sh --cleanup .worktrees/<slug>
 ```
+
+## WalkyTalky-Form (Voice)
+
+Gates selbst unverändert — nur die Vermittlung ändert sich: `commit-msg`-Fehler
+(z.B. falscher Scope) in WalkyTalky-Sessions als gesprochene Kurzfrage mit
+Fix-Buttons fassen (korrekten Scope übernehmen / selbst formulieren). Beitragsregeln
+werden nicht aufgeweicht; Bypass bleibt Eigner-Entscheidung.

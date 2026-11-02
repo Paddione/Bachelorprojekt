@@ -217,6 +217,25 @@ s4:
     # Pre-existing — referenced by dev-flow-execute phases doc; the S4
     # reference_sources globs don't reach the inline docs block it lives in.
     - "scripts/test-dev-flow-execute-sync.sh"
+    # #7062: interaktive Slash-Commands — referenziert vom (untracked, via
+    # agentic-resources gespiegelten) dev-flow-execute-Skill
+    # (`dev-flow-execute/SKILL.md`: "Interaktive Ausführung über die
+    # Slash-Commands `dev-flow-exe.md` und `dev-flow-execute.md`").
+    # Die S4-reference_sources erfassen nur getrackte Skill-Docs; die
+    # Symlink-Spiegelung (.opencode/skills/* -> agentic-resources, ausserhalb
+    # des Repos) ist in CI gebrochen, daher Allowlist statt Referenz.
+    - ".opencode/commands/dev-flow-exe.md"
+    - ".opencode/commands/dev-flow-execute.md"
+    # #7062: lokale Build-Loop (optional, vor Push manuell aufgerufen) —
+    # referenziert vom dev-flow-execute-Skill (Schritt 2.5, untracked
+    # agentic-resources-Spiegelung, in CI nicht auflösbar). Kein Taskfile-
+    # Eintrag, da bewusst manueller Pre-Push-Helper (vgl. T001007).
+    - "scripts/devflow-build-loop.sh"
+    # #7062: manueller PR-Merge/CI-Helper (`scripts/pr-health-check.sh <n>`) —
+    # referenziert vom git-workflow-Skill (untracked agentic-resources-
+    # Spiegelung, in CI nicht auflösbar). Kein Taskfile-Eintrag, da
+    # ad-hoc-Diagnose, kein Pipeline-Schritt.
+    - "scripts/pr-health-check.sh"
     # Standalone Claude Code key picker — invoked manually or via CLAUDE_KEY env,
     # not referenced from Taskfile / docs (T002???).
     - "scripts/claude-key-picker.sh"

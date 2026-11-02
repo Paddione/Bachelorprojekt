@@ -47,7 +47,8 @@ kind: Deployment
 metadata:
   name: gemma-embed-igpu
 spec:
-  replicas: 1
+  # gpu-cluster2 has no i915 allocatable resource; the CPU pool serves Gemma.
+  replicas: 0
   template:
     spec:
       nodeSelector:

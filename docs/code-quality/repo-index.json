@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1285,
+      "file_count": 1286,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -722,6 +722,7 @@
         "tests/py/spec/native_ported/spec/repo-hygiene/test_signal_gaps.py",
         "tests/py/spec/native_ported/spec/repo-hygiene/test_windows_guards.py",
         "tests/py/spec/native_ported/spec/repo-hygiene/test_worktree_clean_check_existence.py",
+        "tests/py/spec/native_ported/spec/repo-hygiene/test_worktree_health_objects.py",
         "tests/py/spec/native_ported/spec/repo-hygiene/test_worktree_remove_generat_allowlist.py",
         "tests/py/spec/native_ported/spec/repo-hygiene/test_worktree_stash_inspection.py",
         "tests/py/spec/native_ported/spec/repo-structure/test_components_group.py",

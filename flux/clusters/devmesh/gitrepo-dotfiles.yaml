@@ -9,5 +9,5 @@ spec:
   ref:
     branch: master
   secretRef:
-    name: dotfiles-auth
-  url: ssh://git@github.com/Paddione/dotfiles.git
+    name: dotfiles-https-auth
+  url: https://github.com/Paddione/dotfiles.git

@@ -53,7 +53,8 @@ def test_prod_render_korczewski_no_insecure_oidc_allow_unverified_email_anywhere
 
 def test_prod_render_korczewski_every_email_domain_gate_is_group_restricted(rendered):
     # T001851: --email-domain=* is deliberate; authorization comes from --allowed-group.
-    # brand-trennung p8-Runde 6: 6 Wildcard-Gates == 6 Group-Restriktionen
+    # brand-trennung p8-Runde 6: 6 Wildcard-Gates == 6 Group-Restriktionen,
+    # plus 2 private dev-Gates (web/massage.korczewski.de) = 8 == 8
     # (per kubectl-kustomize-Lauf verifiziert, nichts erfunden).
     render = rendered["korczewski"]
     wildcard = _count_lines(render, "--email-domain=*")
@@ -70,15 +71,17 @@ def test_prod_render_korczewski_exactly_5_gates_carry_allowed_group_workspace_us
 
 
 def test_prod_render_korczewski_exactly_6_gates_carry_oidc_groups_claim_groups(rendered):
-    # Zaehl-Evolution: mentolder 4 — korczewski-Render hat 6 (per Lauf verifiziert).
+    # Zaehl-Evolution: mentolder 4 — korczewski-Render hat 6, plus 2 private
+    # dev-Gates (web/massage.korczewski.de, workspace-owners) = 8 (per Lauf verifiziert).
     count = _count_lines(rendered["korczewski"], "- --oidc-groups-claim=groups")
-    assert count == 6, f"FAIL: expected 6 oidc-groups-claim gates, got {count}"
+    assert count == 8, f"FAIL: expected 8 oidc-groups-claim gates, got {count}"
 
 
 def test_prod_render_korczewski_exactly_6_gates_request_the_groups_scope(rendered):
-    # Zaehl-Evolution: mentolder 4 — korczewski-Render hat 6 (per Lauf verifiziert).
+    # Zaehl-Evolution: mentolder 4 — korczewski-Render hat 6, plus 2 private
+    # dev-Gates (web/massage.korczewski.de, workspace-owners) = 8 (per Lauf verifiziert).
     count = _count_lines(rendered["korczewski"], "- --scope=openid email profile groups")
-    assert count == 6, f"FAIL: expected 6 gates with groups scope, got {count}"
+    assert count == 8, f"FAIL: expected 8 gates with groups scope, got {count}"
 
 
 def test_prod_render_korczewski_the_3_allowlist_gates_keep_authenticated_emails_file(rendered):

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.447.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.446.0...website-v1.447.0) (2026-11-02)
+
+
+### Features
+
+* **graph:** worker-repo-graph-alignment K1 overview and K3 multi-repo test ([#7063](https://github.com/Paddione/Bachelorprojekt/issues/7063)) ([345149a](https://github.com/Paddione/Bachelorprojekt/commit/345149a80fb8d22b4cc2ae4034c7820f5a6a52c1))
+
 ## [1.446.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.445.0...website-v1.446.0) (2026-11-01)
 
 

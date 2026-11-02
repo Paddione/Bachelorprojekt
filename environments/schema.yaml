@@ -1203,6 +1203,18 @@ secrets:
     length: 40
     description: "OIDC client secret for the `terminal-sidekick` Pocket ID client (terminal oauth2-proxy)."
 
+  - name: POCKET_ID_WEB_KORCZEWSKI_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `web-korczewski` Pocket ID client (web.korczewski.de oauth2-proxy, private dev gate)."
+
+  - name: POCKET_ID_MASSAGE_KORCZEWSKI_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the `massage-korczewski` Pocket ID client (massage.korczewski.de oauth2-proxy, private dev gate)."
+
   - name: POCKET_ID_OPENCODE_SECRET
     required: false
     generate: true

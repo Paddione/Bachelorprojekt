@@ -1,0 +1,249 @@
+# ═══════════════════════════════════════════════════════════════════
+# OAuth2 Proxy — Pocket ID SSO gateway for massage.korczewski.de
+# Private dev access: any path requires Pocket ID login (allow-list below),
+# then forwards to website:80 (brand by Host header).
+# Mirrors oauth2-proxy-traefik.yaml (forwardAuth pattern).
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-massage-korczewski-allowed-emails
+  labels:
+    app: oauth2-proxy-massage-korczewski
+data:
+  allowed-emails: |
+    patrick@korczewski.de
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-massage-korczewski
+  labels:
+    app: oauth2-proxy-massage-korczewski
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy-massage-korczewski
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy-massage-korczewski
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: write-cookie-secret
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - printf 'cookie_secret = "%s"\n' "$(printf '%s' "$OAUTH2_PROXY_COOKIE_SECRET" | cut -c1-32)" > /run/config/oauth2-extra.cfg
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          env:
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OAUTH2_PROXY_COOKIE_SECRET
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.5@sha256:8498b0d0ef0a7b29686414000a08aee467f02d0299c9ed1e006a8f33fc017916
+          imagePullPolicy: Always
+          args:
+            - --config=/run/config/oauth2-extra.cfg
+            - --provider=oidc
+            - --client-id=massage-korczewski
+            - --client-secret=$(POCKET_ID_MASSAGE_KORCZEWSKI_SECRET)
+            - --redirect-url=https://massage.korczewski.de/oauth2/callback
+            - --oidc-issuer-url=http://pocket-id:1411
+            - --ssl-insecure-skip-verify=true
+            - --skip-oidc-discovery=true
+            - --login-url=https://auth.devmesh.korczewski.de/authorize
+            - --redeem-url=http://pocket-id:1411/api/oidc/token
+            - --oidc-jwks-url=http://pocket-id:1411/.well-known/jwks.json
+            - --profile-url=http://pocket-id:1411/api/oidc/userinfo
+            - --upstream=http://website:80
+            - --http-address=0.0.0.0:4180
+            - --cookie-secure=true
+            - --cookie-name=_oauth2_proxy_massagekorczewski
+            - --authenticated-emails-file=/etc/oauth2/allowed-emails
+            - --pass-access-token=true
+            - --pass-authorization-header=true
+            - --set-xauthrequest=true
+            - --skip-provider-button=true
+            - --code-challenge-method=S256
+            - --insecure-oidc-allow-unverified-email=true
+            - --oidc-extra-audience=massage-korczewski
+            - --scope=openid email profile
+            - --whitelist-domain=massage.korczewski.de
+          env:
+            - name: POCKET_ID_MASSAGE_KORCZEWSKI_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: POCKET_ID_MASSAGE_KORCZEWSKI_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+              readOnly: true
+            - name: allowed-emails
+              mountPath: /etc/oauth2
+              readOnly: true
+      volumes:
+        - name: oauth2-config
+          emptyDir: {}
+        - name: allowed-emails
+          configMap:
+            name: oauth2-proxy-massage-korczewski-allowed-emails
+            items:
+              - key: allowed-emails
+                path: allowed-emails
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-massage-korczewski
+  labels:
+    app: oauth2-proxy-massage-korczewski
+spec:
+  selector:
+    app: oauth2-proxy-massage-korczewski
+  ports:
+    - port: 4180
+      targetPort: 4180
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: massage-korczewski-auth
+  namespace: workspace
+  labels:
+    app: oauth2-proxy-massage-korczewski
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy-massage-korczewski.workspace.svc.cluster.local:4180/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - X-Auth-Request-Access-Token
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: massage-korczewski
+  namespace: workspace
+  labels:
+    app: oauth2-proxy-massage-korczewski
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: workspace-massage-korczewski-auth@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - massage.korczewski.de
+      secretName: massage-korczewski-tls
+  rules:
+    - host: massage.korczewski.de
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-massage-korczewski
+                port:
+                  number: 4180
+---
+# OAuth2 callback/start endpoints — must bypass forwardAuth (longest prefix
+# wins over `/` above), same pattern as traefik-dashboard-dev IngressRoute.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: massage-korczewski-tls
+  namespace: workspace
+  labels:
+    app: oauth2-proxy-massage-korczewski
+spec:
+  secretName: massage-korczewski-tls
+  issuerRef:
+    name: letsencrypt-devmesh
+    kind: ClusterIssuer
+  dnsNames:
+    - massage.korczewski.de
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: massage-korczewski-oauth2
+  namespace: workspace
+  labels:
+    app: oauth2-proxy-massage-korczewski
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - massage.korczewski.de
+      secretName: massage-korczewski-tls
+  rules:
+    - host: massage.korczewski.de
+      http:
+        paths:
+          - path: /oauth2/
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-massage-korczewski
+                port:
+                  number: 4180

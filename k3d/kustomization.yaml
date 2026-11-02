@@ -125,6 +125,9 @@ resources:
   - llm-gateway-ingress.yaml
   - shared-db-endpoint-policy.yaml
   - oauth2-proxy-terminal.yaml
+  # Private dev gates for korczewski.de hosts (OIDC via Pocket ID)
+  - oauth2-proxy-web-korczewski.yaml
+  - oauth2-proxy-massage-korczewski.yaml
   # Ingress
   - ingress.yaml
   # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)

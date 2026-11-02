@@ -141,8 +141,10 @@ export function runWorker({ agent, prompt, worktree, timeoutMs, harness = null, 
 }
 
 // Agent fuer einen Harness-Lauf auf einem Track: Muse immer plan-worker-muse, opencode je Track (cloud → Muse-Agent).
-const agentFor = (harness, track) => (harness === 'muse' || (harness === 'opencode' && track === 'cloud') ? AGENT_CLOUD
-  : harness === 'opencode' ? AGENT_SELF : null);
+function agentFor(harness, track) {
+  if (harness === 'muse' || (harness === 'opencode' && track === 'cloud')) return AGENT_CLOUD;
+  return harness === 'opencode' ? AGENT_SELF : null;
+}
 
 // Slot-Verwaltung. Emittiert 'end' mit dem Ergebnis, sobald ein Direkt- oder Cloud-Job endet.
 // runDirect bekommt { prompt, worktree, targetFiles, timeoutMs [, url, model] }, run (Harness-Prozess)

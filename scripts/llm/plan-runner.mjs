@@ -166,7 +166,7 @@ Rules:
 - Dispatch only partials listed as ready. Dependencies are enforced; a partial becomes ready when its dependencies are marked done.
 - A worker result is a claim, not a proof. Review every result (success/failure line and output tail) before you call mark(id, "done").
   If a result is wrong or incomplete, call mark(id, "open", note) so it can be retried, or mark(id, "failed", note).
-- A failed worker run is retried on the next tier automatically; you only see the final result. A partial with status paused_budget or paused_owner waits for the owner: do not dispatch or mark it, finish when nothing else can progress.
+- For a partial with a fallback chain, a failed worker run is retried on the next tier automatically and you only see the final result. A partial with status paused_budget or paused_owner waits for the owner: do not dispatch or mark it, finish when nothing else can progress.
 - Use wait_event to wait for a running worker job. Write your plan_notes for execute_self so you can continue after the self-run.
 - Every reply must be a tool call. Call finish(summary) when every partial is done or nothing more can be done.`;
 

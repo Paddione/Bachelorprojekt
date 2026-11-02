@@ -11,7 +11,9 @@
 -- check has_assignments, so subqueries referencing the missing table are skipped.
 --
 -- All other steps are identical to v7.
--- RUNTIME-CHECK: function=tickets.fn_purge_test_data marker=to_regclass
+-- RUNTIME-CHECK retiriert 2026-11-03: tickets-Schema ist auf devmesh nicht mehr
+-- vorhanden (Ticket-Retirement 2026-10-14) — Marker nie appliziert, Check waere
+-- permanent rot (G-HYG02). Datei bleibt als historische Referenz erhalten.
 
 \set ON_ERROR_STOP on
 BEGIN;

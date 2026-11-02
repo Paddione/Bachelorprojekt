@@ -10,7 +10,9 @@
 -- of aborting.Marker: drift_guard_v9.
 --
 -- All other steps are identical to v8.
--- RUNTIME-CHECK: function=tickets.fn_purge_test_data marker=drift_guard_v9
+-- RUNTIME-CHECK retiriert 2026-11-03: tickets-Schema ist auf devmesh nicht mehr
+-- vorhanden (Ticket-Retirement 2026-10-14) — Marker nie appliziert, Check waere
+-- permanent rot (G-HYG02). Datei bleibt als historische Referenz erhalten.
 
 \set ON_ERROR_STOP on
 BEGIN;

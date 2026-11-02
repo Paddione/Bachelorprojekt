@@ -17,6 +17,21 @@ case "$*" in
 esac
 """
 
+# Eigenes Inventar statt devmesh/inventory.yaml: die Specs pruefen die Semantik von
+# status.sh, nicht die jeweils aktuelle Live-Topologie.
+INVENTORY = """peers:
+  - name: gpu-metal
+    k3s_role: server-init
+  - name: gpu-cluster
+    k3s_role: server-join
+  - name: gpu-cluster2
+    k3s_role: server-join
+  - name: gpu-cluster-3
+    k3s_role: agent
+  - name: pk-desktop
+    role: client
+"""
+
 
 @pytest.fixture
 def st(repo_root, tmp_path, monkeypatch):
@@ -34,6 +49,9 @@ def st(repo_root, tmp_path, monkeypatch):
     kubectl = bin_dir / "kubectl"
     kubectl.write_text(KUBECTL_STUB)
     kubectl.chmod(0o755)
+    inventory = tmp_path / "inventory.yaml"
+    inventory.write_text(INVENTORY)
+    monkeypatch.setenv("DEVMESH_INVENTORY", str(inventory))
     monkeypatch.setenv("KUBECTL_ARGV_LOG", str(argv_log))
     monkeypatch.setenv("STUB_NODES", str(nodes))
     monkeypatch.setenv("STUB_SNAPS", str(snaps))

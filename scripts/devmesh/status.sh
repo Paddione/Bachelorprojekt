@@ -2,7 +2,8 @@
 # scripts/devmesh/status.sh — Knoten, etcd-Mitglieder und juengster etcd-Snapshot im Context devmesh [T900117]
 #
 # Usage: status.sh
-# Umgebung: DEVMESH_CONTEXT (Default devmesh), DEVMESH_SNAPSHOT_MAX_AGE_H (Default 12)
+# Umgebung: DEVMESH_CONTEXT (Default devmesh), DEVMESH_SNAPSHOT_MAX_AGE_H (Default 12),
+#           DEVMESH_INVENTORY (Default devmesh/inventory.yaml)
 #
 # etcd-Mitglieder = Knoten mit Label node-role.kubernetes.io/etcd=true. Snapshot-Alter aus
 # .status.creationTime der ETCDSnapshotFile-Ressourcen (k3s >= 1.27).
@@ -43,7 +44,7 @@ echo "etcd-Mitglieder: $etcd_ready/$etcd_total Ready"
 # Check mit derselben Minimal-PATH wie der Rest des Skripts auskommt.
 SCRIPT_DIR="${BASH_SOURCE[0]%/*}"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-INV="$REPO_ROOT/devmesh/inventory.yaml"
+INV="${DEVMESH_INVENTORY:-$REPO_ROOT/devmesh/inventory.yaml}"
 inv_total=0; inv_found=0
 if [[ -f "$INV" ]]; then
   cur=""; want=0; in_peers=0

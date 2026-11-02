@@ -114,6 +114,8 @@ patches:
                     value: "https://${OPENCODE_PUBLIC_HOST}/oauth2/callback"
                   - name: FRITZBOX_CALLBACK
                     value: "https://${FRITZ_BOX_HOST}/oauth2/callback"
+                  - name: WEB_KORCZEWSKI_CALLBACK
+                    value: "https://${KORCZEWSKI_PROD_WEB_HOST}/oauth2/callback"
   - target: {kind: ConfigMap, name: domain-config}
     patch: |-
       apiVersion: v1

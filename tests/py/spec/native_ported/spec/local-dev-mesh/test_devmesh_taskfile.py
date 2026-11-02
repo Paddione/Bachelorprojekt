@@ -25,11 +25,12 @@ def test_t900116_devmesh_tailnet_check_ruft_scripts_devmesh_tailnet_check_sh_ueb
 
 
 def test_t900117_task_devmesh_install_reicht_host_und_dry_run_an_k3s_install_sh_durch(repo_root, run_cmd):
-    res = run_cmd(["task", "--dir", str(repo_root), "devmesh:install", "HOST=gpu-metal", "DRY_RUN=1"])
+    res = run_cmd(["task", "--dir", str(repo_root), "devmesh:install", "HOST=k3w-1", "DRY_RUN=1"])
     assert res.returncode == 0, res.output
     lines = [l for l in res.output.splitlines() if l.startswith("command: ")]
     line = "\n".join(lines)
-    assert "--node-ip 10.1.0.101" in line
+    assert "--node-ip 10.1.0.67" in line
+    assert "agent --server https://10.10.10.3:6443" in line
     assert "INSTALL_K3S_VERSION=v" in line
     assert sum(1 for l in lines if "--cluster-init" in l) == 0
 
@@ -40,15 +41,14 @@ def _yq_r(run_cmd, expr, inv):
     return res.stdout.rstrip("\n")
 
 
-def test_t900117_inventar_mit_gpu_metal_server_init_zwei_server_join_agent_gpu_cluster_3_storage_true_auf_gpu_cluster2_3_version_gepinnt(
+def test_t900117_inventar_mit_gpu_cluster2_server_init_agents_gpu_cluster_3_k3w_storage_true_auf_gpu_cluster2_3_version_gepinnt(
     repo_root, run_cmd
 ):
     inv = repo_root / "devmesh" / "inventory.yaml"
-    assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "server-init")] | map(.name) | join(",")', inv) == "gpu-cluster"
-    assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "server-join")] | map(.name) | sort | join(",")', inv) == \
-        "gpu-cluster2,gpu-metal"
+    assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "server-init")] | map(.name) | join(",")', inv) == "gpu-cluster2"
+    assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "server-join")] | map(.name) | sort | join(",")', inv) == ""
     assert _yq_r(run_cmd, '[.peers[] | select(.k3s_role == "agent")] | map(.name) | sort | join(",")', inv) == \
-        "gpu-cluster-3"
+        "gpu-cluster-3,k3w-1,k3w-2"
     assert _yq_r(run_cmd,
                  '[.peers[] | select(((.labels // []) | map(select(. == "storage=true")) | length) > 0)] '
                  '| map(.name) | sort | join(",")', inv) == "gpu-cluster-3,gpu-cluster2"
@@ -56,13 +56,15 @@ def test_t900117_inventar_mit_gpu_metal_server_init_zwei_server_join_agent_gpu_c
     assert re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+\+k3s[0-9]+", version), version
 
 
-def test_t900117_kein_client_traegt_eine_k3s_rolle_pk_desktop_ist_kein_knoten(repo_root, run_cmd):
+def test_t900117_kein_client_traegt_eine_server_rolle_pk_desktop_ist_kein_knoten(repo_root, run_cmd):
     inv = repo_root / "devmesh" / "inventory.yaml"
     # Positiv-Anker: genau vier Hosts haben eine k3s-Rolle
     assert _yq_r(run_cmd, '[.peers[] | select((.k3s_role // "") != "")] | length', inv) == "4"
     roles = [r for r in _yq_r(run_cmd, '.peers[] | select(.role == "client") | .k3s_role // ""', inv).splitlines()
              if r]
-    assert roles == []
+    # Clients (untagged, z. B. die Raspberry-Pi-Agents) tragen hoechstens agent.
+    assert set(roles) <= {"agent"}
+    assert _yq_r(run_cmd, '.peers[] | select(.name == "pk-desktop") | .k3s_role // ""', inv) == ""
 
 
 def test_cloud_tailnet_tasks_listed(repo_root, run_cmd):

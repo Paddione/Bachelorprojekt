@@ -266,3 +266,4 @@ consideration.md
 .devflow/
 # dev-flow-plan: phase-events bleiben im Plan-Stand nachvollziehbar
 !.agents/plans/*/phase-events.log
+.venv/

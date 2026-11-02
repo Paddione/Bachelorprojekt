@@ -91,7 +91,10 @@ stdout lautet `PLAN-RUNNER: done=<n>/<gesamt> failed=<n> open=<n> running=<n> pa
 ## Fallback-Kette (Tiers)
 
 Scheitert ein Worker-Lauf oder läuft er in den Timeout, wählt der Runner selbst den nächsten Tier. Der Orchestrator
-sieht nur das Endergebnis. Die erste Track-Wahl bleibt bei `decideTrack` (unverändert). Die Tiers kommen aus
+sieht nur das Endergebnis. Das gilt nur für Partials mit Kette: Sie steht im Frontmatter (`fallback:`) oder ergibt sich
+aus gesetztem `PLAN_RUNNER_TIERS`. Ohne beides eskaliert der Runner nicht, der Fehlschlag geht wie bisher an den
+Orchestrator (`mark open` oder `failed`), und es entsteht kein Cloud-Aufwand. Die erste Track-Wahl bleibt bei
+`decideTrack` (unverändert). Die Tiers kommen aus
 `PLAN_RUNNER_TIERS` (JSON-Array, ersetzt den Default; Strings der Form `$NAME` werden aus der Env ersetzt):
 
 ```json
@@ -106,8 +109,8 @@ sieht nur das Endergebnis. Die erste Track-Wahl bleibt bei `decideTrack` (unver�
 - `cloud` nutzt als Eskalationsziel `claude -p --output-format json --model sonnet` (`PLAN_RUNNER_CLAUDE_MODEL`
   ändert das Modell). Ohne `PLAN_RUNNER_CLOUD_HARNESS` bleibt der Cloud-Track der ersten Wahl bei Muse
   (`dispatch_cloud` → `plan-worker-muse`); ist die Variable gesetzt, gilt sie für beide.
-- Die Reihenfolge je Partial steht im Frontmatter der Partial-Datei: `fallback: [5070ti, cloud]`. Ohne Angabe gilt die
-  Reihenfolge der Kette. Ein Tier wird je Partial höchstens einmal versucht. Eskalationsläufe belegen keinen
+- Die Reihenfolge je Partial steht im Frontmatter der Partial-Datei: `fallback: [5070ti, cloud]`. Ohne Angabe (bei
+  gesetztem `PLAN_RUNNER_TIERS`) gilt die Reihenfolge der Kette. Ein Tier wird je Partial höchstens einmal versucht. Eskalationsläufe belegen keinen
   Worker-Slot, sodass auch `--cloud-slots 0` die Eskalation in die Cloud nicht verhindert.
 - Ein Tier mit `gpu` ist nur verfügbar, wenn `$PLAN_RUNNER_LEASE_GUARD <gpu>` mit Exit 0 endet (Wert darf Argumente
   enthalten, etwa `bash /pfad/gpu-lease-guard.sh`) und `/v1/models` antwortet. Exit 1, jeder andere Ausgang und ein

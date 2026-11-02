@@ -43,6 +43,13 @@ echo "opencode $*" | cut -c1-60 >> "${FAKE_OPENCODE_LOG:?}"
 echo "PLAN-RUNNER-RESULT: failure self run broke"
 """
 
+FLAKY_OPENCODE = """#!/usr/bin/env bash
+# opencode-Stub: der erste Lauf scheitert, jeder weitere gelingt.
+echo "opencode $*" | cut -c1-60 >> "${FAKE_OPENCODE_LOG:?}"
+if [ ! -e "${FLAKY_STATE:?}" ]; then touch "$FLAKY_STATE"; echo "PLAN-RUNNER-RESULT: failure first run broke"; exit 0; fi
+echo "PLAN-RUNNER-RESULT: success second run"
+"""
+
 STUB_LOGGING = """#!/usr/bin/env bash
 echo "$0 $*" >> "{log}"
 exit {code}
@@ -636,3 +643,29 @@ def test_an_unreachable_second_tier_is_skipped_in_the_chain(rig, run_cmd, monkey
     assert "tier 3060ti skipped: http://127.0.0.1:9 did not answer /v1/models" in res.output
     assert [h["tier"] for h in rig.state()["partials"]["p1"]["history"]] == ["5070ti", "cloud"]
     assert rig.pi_log.read_text() == ""
+
+
+def test_without_a_configured_chain_a_failure_still_goes_to_the_orchestrator(rig, run_cmd, tmp_path):
+    # Ohne `fallback:` im Frontmatter und ohne PLAN_RUNNER_TIERS eskaliert der Runner nicht (kein stilles
+    # Cloud-Budget fuer Plaene ohne Kette): der Orchestrator prueft das Ergebnis und entscheidet wie bisher.
+    rig.make_change({"p1": {}})
+    rig.mp.setenv("PLAN_RUNNER_OPENCODE", str(_executable(tmp_path / "flaky-opencode.sh", FLAKY_OPENCODE)))
+    rig.mp.setenv("FLAKY_STATE", str(tmp_path / "flaky.state"))
+    rig.start_orch([
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "wait_event", "args": {}},
+        {"name": "mark", "args": {"partial_id": "p1", "status": "open", "note": "retry"}},
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "again"}},
+        {"name": "wait_event", "args": {}},
+        {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
+        {"name": "finish", "args": {"summary": "done"}},
+    ])
+    res = rig.run(run_cmd, "--direct-slots", "0", "--cloud-slots", "1")
+    assert res.returncode == 0, res.output
+    first = json.loads(rig.requests_log.read_text().splitlines()[2])["messages"][-1]["content"]
+    assert "failure" in first and "first run broke" in first
+    assert [e["type"] for e in rig.events()] == ["partial_started", "partial_started", "partial_done", "run_done"]
+    state = rig.state()
+    assert [(h["tier"], h["ok"]) for h in state["partials"]["p1"]["history"]] == [("cloud", False), ("cloud", True)]
+    assert state["partials"]["p1"]["status"] == "done"
+    assert rig.claude_log.read_text() == ""

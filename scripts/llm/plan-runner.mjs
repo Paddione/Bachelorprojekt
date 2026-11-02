@@ -278,8 +278,8 @@ function createScheduler({ changeDir, partials, texts, meta, worktree, state }, 
     return true;
   };
 
-  // Bucht einen beendeten Lauf (History, Ledger) und eskaliert einen Fehlschlag auf den naechsten Tier.
-  // true = die Partial laeuft auf einem anderen Tier weiter. Sonst entscheidet der Orchestrator ueber das Ergebnis
+  // Bucht einen beendeten Lauf (History, Ledger) und eskaliert einen Fehlschlag auf den naechsten Tier, sofern die
+  // Partial eine Kette hat (`fallback:` im Frontmatter oder PLAN_RUNNER_TIERS). true = sie laeuft auf einem anderen Tier weiter. Sonst entscheidet der Orchestrator ueber das Ergebnis
   // (Erfolg) bzw. die Partial ist pausiert (paused_*) und das Ergebnis traegt den Pausengrund.
   const settle = async (ev) => {
     const id = ev.partialId;
@@ -287,7 +287,7 @@ function createScheduler({ changeDir, partials, texts, meta, worktree, state }, 
     s.history.push({ tier: ev.tier, harness: ev.harness, ok: ev.ok, ms: ev.ms, costUsd: ev.costUsd ?? null });
     bookCost(ledger, { partial: id, harness: ev.harness, costUsd: ev.costUsd, flatRate: ev.flatRate });
     save();
-    if (ev.ok) return false;
+    if (ev.ok || !(meta[id].fallback || process.env.PLAN_RUNNER_TIERS)) return false; // ohne Kette entscheidet der Orchestrator
     const pick = await pickTier(meta[id], s.history, run.tiers, ledger, run.tierCtx);
     if (pick.tier && escalate(id, pick.tier, ev)) return true;
     if (!pick.tier) pause(id, pick.pause, `${ev.tier} failed (${ev.summary}), no tier left`, { tier: ev.tier, harness: ev.harness });

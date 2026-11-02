@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "slug": "walkytalky-vertrag",
+    "ticket_id": "",
+    "generated_from": "main@5937dae98",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/lib/behaviors/commit-conventions.md",
+      "language": "markdown",
+      "loc": 39,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/lib/behaviors/escalation-protocol.md",
+      "language": "markdown",
+      "loc": 24,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/lib/behaviors/never-push-main.md",
+      "language": "markdown",
+      "loc": 18,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "loc": 167,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/native_ported/spec/agent-skills/test_interaction_contract.py",
+      "language": "python",
+      "loc": 134,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 666
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

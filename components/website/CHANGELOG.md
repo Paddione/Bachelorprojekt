@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.447.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.447.0...website-v1.447.1) (2026-11-02)
+
+
+### Tests
+
+* **test:** E2E-Login für Agent-Board plus Live-Drift-Fixes ([#7082](https://github.com/Paddione/Bachelorprojekt/issues/7082)) ([123ad67](https://github.com/Paddione/Bachelorprojekt/commit/123ad67b15a6e4f2201935c7800b26de4a6e5ec6))
+
 ## [1.447.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.446.0...website-v1.447.0) (2026-11-02)
 
 

@@ -62,7 +62,16 @@ spec:
     metadata:
       labels: {app: voice-stt}
     spec:
-      nodeSelector: {kubernetes.io/hostname: gpu-cluster2}
+      # Nicht mehr auf einen Knoten gepinnt: 3 x 1 CPU Request passt nicht auf
+      # gpu-cluster2 (4 CPUs, durch sandbox-cpu/tts belegt). amd64 haelt die Pods
+      # von den Pis fern, der Spread verteilt sie auf gpu-cluster-3/k3s-tablet.
+      nodeSelector: {kubernetes.io/arch: amd64}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels: {app: voice-stt}
       containers:
         - name: stt
           image: python:3.12-slim

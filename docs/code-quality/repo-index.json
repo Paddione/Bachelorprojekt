@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1284,
+      "file_count": 1285,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1163,6 +1163,7 @@
         "tests/py/unit/test_pytest_default_jobs.py",
         "tests/py/unit/test_secret_derive.py",
         "tests/py/unit/test_secrets_sync.py",
+        "tests/py/unit/test_spec_sharding.py",
         "tests/py/unit/test_vda_core.py",
         "tests/py/unit/test_vda_frontmatter.py",
         "tests/py/unit/test_vda_release_notes_smoke.py",

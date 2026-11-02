@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-11-02T10:20:44.706Z
-> Nodes: 102 | Edges: 2096 | Isolated: 7
+> Generated: 2026-11-02T11:33:38.937Z
+> Nodes: 102 | Edges: 2095 | Isolated: 7
 
 ## Ranking (transitive Abhängige)
 
@@ -10,73 +10,73 @@
 | 2 | janus | 3 | 56 | 3 |
 | 3 | mailpit | 3 | 56 | 3 |
 | 4 | sish | 2 | 56 | 2 |
-| 5 | mentolder-web | 2 | 56 | 2 |
-| 6 | otel-collector | 2 | 56 | 2 |
-| 7 | ntfy | 2 | 56 | 2 |
-| 8 | collabora | 2 | 56 | 2 |
-| 9 | recovery-browser | 2 | 56 | 2 |
-| 10 | nats | 2 | 56 | 2 |
-| 11 | bge-embed | 1 | 56 | 1 |
-| 12 | bge-rerank | 1 | 56 | 1 |
-| 13 | bge-embed-bulk | 1 | 56 | 1 |
-| 14 | sdlc-console | 51 | 55 | 51 |
-| 15 | oauth2-proxy-brainstorm | 45 | 55 | 45 |
-| 16 | oauth2-proxy-dev | 45 | 55 | 45 |
-| 17 | oauth2-proxy-session-hub | 45 | 55 | 45 |
-| 18 | nextcloud | 45 | 55 | 45 |
-| 19 | oauth2-proxy-massage-korczewski | 45 | 55 | 45 |
-| 20 | oauth2-proxy-web-korczewski | 45 | 55 | 45 |
-| 21 | oauth2-proxy-recovery | 45 | 55 | 45 |
-| 22 | shared-db | 45 | 55 | 45 |
-| 23 | spreed-signaling | 45 | 55 | 45 |
-| 24 | vaultwarden | 45 | 55 | 45 |
-| 25 | whiteboard | 45 | 55 | 45 |
-| 26 | brett | 44 | 55 | 44 |
-| 27 | oauth2-proxy-brett | 44 | 55 | 44 |
-| 28 | oauth2-proxy-comfy | 44 | 55 | 44 |
-| 29 | oauth2-proxy-downloads | 44 | 55 | 44 |
-| 30 | oauth2-proxy-mailpit | 44 | 55 | 44 |
-| 31 | oauth2-proxy-mediaviewer | 44 | 55 | 44 |
-| 32 | oauth2-proxy-rustdesk-web | 44 | 55 | 44 |
-| 33 | oauth2-proxy-studio | 44 | 55 | 44 |
-| 34 | oauth2-proxy-terminal | 44 | 55 | 44 |
-| 35 | oauth2-proxy-traefik | 44 | 55 | 44 |
-| 36 | oauth2-proxy-videovault | 44 | 55 | 44 |
-| 37 | pocket-id | 44 | 55 | 44 |
-| 38 | studio-server | 44 | 55 | 44 |
-| 39 | talk-recording | 44 | 55 | 44 |
-| 40 | videovault | 44 | 55 | 44 |
-| 41 | talk-transcriber | 44 | 55 | 44 |
-| 42 | admin-actions-cleanup | 43 | 55 | 43 |
-| 43 | admin-actions-prune | 43 | 55 | 43 |
-| 44 | sessions-purge | 43 | 55 | 43 |
-| 45 | appointment-reminders | 43 | 55 | 43 |
-| 46 | db-backup | 43 | 55 | 43 |
-| 47 | db-restore-verify | 43 | 55 | 43 |
-| 48 | billing-dunning-detection | 43 | 55 | 43 |
-| 49 | monthly-billing | 43 | 55 | 43 |
-| 50 | scheduled-publish | 43 | 55 | 43 |
-| 51 | error-log-retention | 43 | 55 | 43 |
-| 52 | knowledge-ingest-prs | 43 | 55 | 43 |
-| 53 | knowledge-ingest-bugs | 43 | 55 | 43 |
-| 54 | knowledge-reindex-all | 43 | 55 | 43 |
-| 55 | notify-unread | 43 | 55 | 43 |
-| 56 | ddns-updater | 43 | 55 | 43 |
-| 57 | dev-db-refresh | 43 | 55 | 43 |
-| 58 | website | 26 | 55 | 26 |
-| 59 | traefik | 6 | 55 | 6 |
-| 60 | shared-db-dev | 5 | 55 | 5 |
-| 61 | systemtest-cleanup | 4 | 55 | 4 |
-| 62 | systemtest-purge-all | 4 | 55 | 4 |
-| 63 | systemtest-outbox | 4 | 55 | 4 |
-| 64 | dev-pod | 4 | 55 | 4 |
-| 65 | monitoring-grafana | 1 | 55 | 1 |
-| 66 | llm-gateway-embed | 1 | 55 | 1 |
-| 67 | llm-gateway-rerank | 1 | 55 | 1 |
-| 68 | api@internal | 1 | 55 | 1 |
-| 69 | ${WEBSITE_PRIMARY_SERVICE} | 1 | 55 | 1 |
-| 70 | old-webspace | 1 | 55 | 1 |
-| 71 | bachelorprojekt | 1 | 55 | 1 |
+| 5 | otel-collector | 2 | 56 | 2 |
+| 6 | ntfy | 2 | 56 | 2 |
+| 7 | collabora | 2 | 56 | 2 |
+| 8 | recovery-browser | 2 | 56 | 2 |
+| 9 | nats | 2 | 56 | 2 |
+| 10 | bge-embed | 1 | 56 | 1 |
+| 11 | bge-rerank | 1 | 56 | 1 |
+| 12 | bge-embed-bulk | 1 | 56 | 1 |
+| 13 | sdlc-console | 51 | 55 | 51 |
+| 14 | oauth2-proxy-brainstorm | 45 | 55 | 45 |
+| 15 | oauth2-proxy-dev | 45 | 55 | 45 |
+| 16 | oauth2-proxy-session-hub | 45 | 55 | 45 |
+| 17 | nextcloud | 45 | 55 | 45 |
+| 18 | oauth2-proxy-massage-korczewski | 45 | 55 | 45 |
+| 19 | oauth2-proxy-web-korczewski | 45 | 55 | 45 |
+| 20 | oauth2-proxy-recovery | 45 | 55 | 45 |
+| 21 | shared-db | 45 | 55 | 45 |
+| 22 | spreed-signaling | 45 | 55 | 45 |
+| 23 | vaultwarden | 45 | 55 | 45 |
+| 24 | whiteboard | 45 | 55 | 45 |
+| 25 | brett | 44 | 55 | 44 |
+| 26 | oauth2-proxy-brett | 44 | 55 | 44 |
+| 27 | oauth2-proxy-comfy | 44 | 55 | 44 |
+| 28 | oauth2-proxy-downloads | 44 | 55 | 44 |
+| 29 | oauth2-proxy-mailpit | 44 | 55 | 44 |
+| 30 | oauth2-proxy-mediaviewer | 44 | 55 | 44 |
+| 31 | oauth2-proxy-rustdesk-web | 44 | 55 | 44 |
+| 32 | oauth2-proxy-studio | 44 | 55 | 44 |
+| 33 | oauth2-proxy-terminal | 44 | 55 | 44 |
+| 34 | oauth2-proxy-traefik | 44 | 55 | 44 |
+| 35 | oauth2-proxy-videovault | 44 | 55 | 44 |
+| 36 | pocket-id | 44 | 55 | 44 |
+| 37 | studio-server | 44 | 55 | 44 |
+| 38 | talk-recording | 44 | 55 | 44 |
+| 39 | videovault | 44 | 55 | 44 |
+| 40 | talk-transcriber | 44 | 55 | 44 |
+| 41 | admin-actions-cleanup | 43 | 55 | 43 |
+| 42 | admin-actions-prune | 43 | 55 | 43 |
+| 43 | sessions-purge | 43 | 55 | 43 |
+| 44 | appointment-reminders | 43 | 55 | 43 |
+| 45 | db-backup | 43 | 55 | 43 |
+| 46 | db-restore-verify | 43 | 55 | 43 |
+| 47 | billing-dunning-detection | 43 | 55 | 43 |
+| 48 | monthly-billing | 43 | 55 | 43 |
+| 49 | scheduled-publish | 43 | 55 | 43 |
+| 50 | error-log-retention | 43 | 55 | 43 |
+| 51 | knowledge-ingest-prs | 43 | 55 | 43 |
+| 52 | knowledge-ingest-bugs | 43 | 55 | 43 |
+| 53 | knowledge-reindex-all | 43 | 55 | 43 |
+| 54 | notify-unread | 43 | 55 | 43 |
+| 55 | ddns-updater | 43 | 55 | 43 |
+| 56 | dev-db-refresh | 43 | 55 | 43 |
+| 57 | website | 26 | 55 | 26 |
+| 58 | traefik | 6 | 55 | 6 |
+| 59 | shared-db-dev | 5 | 55 | 5 |
+| 60 | systemtest-cleanup | 4 | 55 | 4 |
+| 61 | systemtest-purge-all | 4 | 55 | 4 |
+| 62 | systemtest-outbox | 4 | 55 | 4 |
+| 63 | dev-pod | 4 | 55 | 4 |
+| 64 | monitoring-grafana | 1 | 55 | 1 |
+| 65 | llm-gateway-embed | 1 | 55 | 1 |
+| 66 | llm-gateway-rerank | 1 | 55 | 1 |
+| 67 | api@internal | 1 | 55 | 1 |
+| 68 | ${WEBSITE_PRIMARY_SERVICE} | 1 | 55 | 1 |
+| 69 | old-webspace | 1 | 55 | 1 |
+| 70 | bachelorprojekt | 1 | 55 | 1 |
+| 71 | mentolder-web | 1 | 55 | 1 |
 | 72 | keycloak | 1 | 55 | 1 |
 | 73 | tracking | 1 | 55 | 1 |
 | 74 | docuseal | 1 | 55 | 1 |
@@ -114,11 +114,6 @@
 ### sish
 **Direkte Abhängige:** 2 — sish, traefik
 **Transitive Abhängige:** 56 — admin-actions-cleanup, admin-actions-prune, appointment-reminders, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-massage-korczewski, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, oauth2-proxy-web-korczewski, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, sish, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
-**Upstream (In-Degree):** 2
-
-### mentolder-web
-**Direkte Abhängige:** 2 — mentolder-web, traefik
-**Transitive Abhängige:** 56 — admin-actions-cleanup, admin-actions-prune, appointment-reminders, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, mentolder-web, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-massage-korczewski, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, oauth2-proxy-web-korczewski, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 2
 
 ### otel-collector
@@ -447,6 +442,11 @@
 **Upstream (In-Degree):** 1
 
 ### bachelorprojekt
+**Direkte Abhängige:** 1 — traefik
+**Transitive Abhängige:** 55 — admin-actions-cleanup, admin-actions-prune, appointment-reminders, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-massage-korczewski, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, oauth2-proxy-web-korczewski, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
+**Upstream (In-Degree):** 1
+
+### mentolder-web
 **Direkte Abhängige:** 1 — traefik
 **Transitive Abhängige:** 55 — admin-actions-cleanup, admin-actions-prune, appointment-reminders, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-massage-korczewski, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, oauth2-proxy-web-korczewski, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 1

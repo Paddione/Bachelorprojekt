@@ -61,7 +61,7 @@ def fixture_env(tmp_path):
     export_dir = env_dir / ".export"
     secrets_dir.mkdir(parents=True)
     (env_dir / "schema.yaml").write_text(yaml.safe_dump(FIXTURE_SCHEMA))
-    for tenant in ("mentolder", "korczewski"):
+    for tenant in ("korczewski",):
         (env_dir / f"fleet-{tenant}.yaml").write_text(yaml.safe_dump(FIXTURE_ENV))
         (secrets_dir / f"fleet-{tenant}.yaml").write_text(yaml.safe_dump(FIXTURE_SECRETS))
     return {"env_dir": env_dir, "secrets_dir": secrets_dir, "export_dir": export_dir}
@@ -92,8 +92,8 @@ def test_grouped_export_layout(exporter, fixture_env):
         secrets_dir=str(fixture_env["secrets_dir"]),
         export_dir=str(fixture_env["export_dir"]),
     )
-    assert set(reports) == {"Mentolder", "Korczewski"}
-    for tenant in ("mentolder", "korczewski"):
+    assert set(reports) == {"Korczewski"}
+    for tenant in ("korczewski",):
         path = fixture_env["export_dir"] / f"{tenant}.json"
         assert path.exists()
         data = json.loads(path.read_text())
@@ -120,7 +120,7 @@ def test_grouped_export_never_embeds_secret_values(exporter, fixture_env):
         secrets_dir=str(fixture_env["secrets_dir"]),
         export_dir=str(fixture_env["export_dir"]),
     )
-    for tenant in ("mentolder", "korczewski"):
+    for tenant in ("korczewski",):
         text = (fixture_env["export_dir"] / f"{tenant}.json").read_text()
         assert "pw-a" not in text
         assert "tok-b" not in text
@@ -135,14 +135,14 @@ def test_bitwarden_default_smoke_stable_counts(exporter, fixture_env, tmp_path):
     )
     # Per tenant: 6 secret items + 6 web logins + 1 third-party
     # (ANTHROPIC_API_KEY present) + 1 bundled note = 14.
-    assert total == 28
-    assert set(reports) == {"Mentolder", "Korczewski"}
+    assert total == 14
+    assert set(reports) == {"Korczewski"}
     data = json.loads(out.read_text())
     assert data["encrypted"] is False
-    assert len(data["folders"]) == 2
-    assert len(data["items"]) == 28
+    assert len(data["folders"]) == 1
+    assert len(data["items"]) == 14
     names = [i["name"] for i in data["items"]]
-    assert "[Mentolder] A_DB_PASSWORD" in names
+    assert "[Korczewski] A_DB_PASSWORD" in names
     assert "[Korczewski] Bundled Non-Secret Environment Configuration" in names
     # Second run is byte-identical (uuid5-deterministic, stable counts).
     out2 = tmp_path / "bitwarden2.json"

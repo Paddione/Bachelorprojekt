@@ -78,7 +78,7 @@ Referenzen: `environments/mentolder.yaml:4-5,104` (`secrets_env: fleet-mentolder
 Zu prüfen (p3): `environments/fleet-korczewski.yaml:125`,
 `environments/korczewski-prod.yaml:155`.
 Sealed-Secrets (nur Key-Namen gezählt, Inhalte nie geöffnet):
-- `environments/sealed-secrets/fleet-mentolder.yaml`: 123 Keys (fällt unter p5-Daten-Grenze: NICHT löschen ohne Eigner-Go — Cluster-Daten-Grenze).
+- `environments/sealed-secrets/fleet-mentolder.yaml`: entfernt (brand-trennung-reste, Eigner-Entscheidung E1).
 - `environments/sealed-secrets/fleet-korczewski.yaml`: 108 Keys (p3 Re-Seal-Quelle).
 - `environments/sealed-secrets/korczewski-prod.yaml`: 73 Keys.
 Weitere `environments/korczewski.yaml` (280-Zeilen-Nachbar, kein Plan-Target — unberührt).
@@ -150,8 +150,8 @@ via `scripts/register-oidc-client.mjs` (mentolder-Default — p3 prüfen).
 | p6 = mentolder-web (3 Repräsentanten) + 13 content-jsons | Verzeichnis + alle 13 JSONs (inkl. navigation/referenzen/seo/services/stammdaten/ueber-mich) vorhanden | p6 löscht Verzeichnis + 13 JSONs |
 | `apex-korczewski` (domains.yaml:71-84, Manifest website-apex.yaml) | liegt unter website-korczewski, Host `${PROD_DOMAIN}` | BLEIBT (kein Raten; p7 prüft Zugehörigkeit) |
 | `website-staging` (mirrors website-mentolder) | Staging-Overlay, kein mentolder-Prod | BLEIBT |
-| `environments/sealed-secrets/fleet-mentolder.yaml` (123 Keys) | nicht in p5-Liste | BLEIBT im Repo (Daten-Grenze; Eigner-Entscheidung) |
-| `k3d/mentolder-web.yaml`, `prod/ingress.yaml`-Refs | Lokal-/Alt-Stack | BLEIBT (kein Fleet-Abriss) |
+| `environments/sealed-secrets/fleet-mentolder.yaml` (123 Keys) | entfernt | brand-trennung-reste E1 |
+| `k3d/mentolder-web.yaml` | entfernt (Ingress `react.localhost` + Kustomization-Eintrag mit) | brand-trennung-reste E2; `prod/ingress.yaml`-Refs bleiben |
 | Registry-IDs `website-mentolder`, `studio-mentolder` (+ `website-staging`? — Staging bleibt) | domains.yaml:29,87 | p7 entfernt website-mentolder + studio-mentolder; website-staging bleibt |
 
 ## Zählung

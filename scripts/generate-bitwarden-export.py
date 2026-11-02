@@ -310,14 +310,6 @@ def get_secret_metadata(key_name, schema_entry, domain):
 def tenants(env_dir=ENV_DIR, secrets_dir=SECRETS_DIR):
     return [
         {
-            "id": "mentolder",
-            "name": "Mentolder",
-            "folder_id": "11111111-1111-1111-1111-111111111111",
-            "env_file": os.path.join(env_dir, "fleet-mentolder.yaml"),
-            "secret_file": os.path.join(secrets_dir, "fleet-mentolder.yaml"),
-            "domain": "mentolder.de"
-        },
-        {
             "id": "korczewski",
             "name": "Korczewski",
             "folder_id": "22222222-2222-2222-2222-222222222222",

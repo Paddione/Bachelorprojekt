@@ -69,17 +69,6 @@ def test_every_dev_secret_exists_in_schema(repo_root: Path):
     assert not orphans, f"Keys in k3d/secrets.yaml but missing from schema (orphans): {orphans}"
 
 
-def test_every_required_schema_secret_exists_in_fleet_mentolder(repo_root: Path):
-    schema_path = repo_root / "environments" / "schema.yaml"
-    sealed_path = repo_root / "environments" / "sealed-secrets" / "fleet-mentolder.yaml"
-
-    required = _schema_required_keys(schema_path)
-    sealed = _sealed_keys(sealed_path)
-
-    missing = sorted(required - sealed)
-    assert not missing, f"Required keys in schema but missing from fleet-mentolder.yaml: {missing}"
-
-
 def test_every_required_schema_secret_exists_in_fleet_korczewski(repo_root: Path):
     schema_path = repo_root / "environments" / "schema.yaml"
     sealed_path = repo_root / "environments" / "sealed-secrets" / "fleet-korczewski.yaml"

@@ -6,7 +6,6 @@ Dieses Dokument beschreibt die Dateitopologie, die Synchronisationsregeln und di
 
 | Datei | Status | Produziert | Referenziert von |
 |---|---|---|---|
-| `environments/.secrets/fleet-mentolder.yaml` | **Aktiv (Prod)** | `sealed-secrets/fleet-mentolder.yaml` | `environments/fleet-mentolder.yaml` |
 | `environments/.secrets/fleet-korczewski.yaml` | **Aktiv (Prod)** | `sealed-secrets/fleet-korczewski.yaml` | `environments/fleet-korczewski.yaml` |
 
 `environments/mentolder.yaml` und `environments/korczewski.yaml` haben **keine eigenen** Secret-Dateien

@@ -61,6 +61,8 @@ VERBATIM_DIRS=(
   prod
   k3d
 )
+# HINWEIS (brand-trennung-reste): environments/{.secrets,sealed-secrets,certs}/fleet-mentolder.*
+# sind im HEAD entfernt. Fuer einen Export --ref auf einen Commit VOR der Entfernung setzen.
 VERBATIM_FILES=(
   .gitattributes
   flux/clusters/fleet-gekko/ks-prod.yaml

@@ -114,7 +114,7 @@ def test_flux_devmesh_sources_only(repo_root: Path):
     # sie versorgt ausschliesslich die agent-board-Kustomization (read-only Deploy-Key).
     allowed_git = {
         "https://github.com/Paddione/Bachelorprojekt",
-        "ssh://git@github.com/Paddione/dotfiles.git",
+        "https://github.com/Paddione/dotfiles.git",
     }
     allowed_path = "flux/clusters/devmesh"
 

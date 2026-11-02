@@ -6,10 +6,11 @@ aus allen Temp-Dateien gelöscht).
 
 ## Festgestellte Konfiguration (nur gelesen, unverändert)
 
-- Externe IPv4 (TR-064 `GetExternalIPAddress`): `10.42.255.28` — privater
-  Bereich, d. h. Anschluss hinter CGNAT. Eingehendes IPv4 aus dem Internet
-  ist damit nicht direkt möglich; `159.48.35.203` (öffentlich, aus dyndns)
-  funktioniert nur per Hairpin aus dem Heimnetz.
+- Externe IPv4 (TR-064 `GetExternalIPAddress`): `10.42.255.28` — das ist die
+  Adresse der FritzBox Richtung Upstream-CPE, **kein** CGNAT-Nachteil: die
+  bezahlte öffentliche IPv4 (`159.48.35.203`) terminiert auf dem Upstream
+  und wird korrekt durchgeleitet (TCP-Trace: 4 Hops, TLS mit frischem
+  Zertifikat, Pocket-ID antwortet). Eingehendes IPv4 funktioniert.
 - Externe IPv6 (`X_AVM_DE_GetExternalIPv6Address`): `2a04:6ec1:1:a::22a7/64`,
   gültig (Lifetime ~71 h). Das ist exakt die Adresse der öffentlichen
   AAAA-Records (`*.korczewski.de`, `*.devmesh.korczewski.de` zeigen dorthin).

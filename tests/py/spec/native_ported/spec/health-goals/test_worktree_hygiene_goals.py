@@ -218,6 +218,22 @@ def test_g_wt03_abgelaufener_heartbeat_wird_auch_ohne_tote_pid_gezaehlt(hy):
     assert result.output == "1"
 
 
+def test_g_wt03_claim_ohne_worktree_mit_frischem_heartbeat_gilt_als_lebendig_trotz_toter_pid(hy):
+    # main-checkout-Claim von agent-workspace.py: kein Worktree-Feld, owner_pid gehoert
+    # dem laengst beendeten Tool-Aufruf. Befund 2026-11-02: als verwaist gezaehlt.
+    hy.mk_repo()
+    hy.mk_lock("ticket__T000weg", "ticket", hy.dead_pid(), 60)
+    assert hy.measure("orphan-locks").output == "1"
+
+    hy.mk_lock("main-checkout", "main-checkout", hy.dead_pid(), 60, "")
+    result = hy.measure("orphan-locks")
+    assert result.returncode == 0
+    assert result.output == "1"
+
+    hy.mk_lock("main-checkout", "main-checkout", hy.dead_pid(), 7200, "")
+    assert hy.measure("orphan-locks").output == "2"
+
+
 # ── G-WT04 ──────────────────────────────────────────────────────────────────
 
 def test_g_wt04_ohne_registrierten_worktree_meldet_unsafe_worktrees_n_a_nicht_0(hy):

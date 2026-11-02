@@ -646,7 +646,7 @@ python3 scripts/lib/knowledge-goals.py dangling
 
 > **B · Baseline:** 3 (2026-10-04) → 0 → 3 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T900995
 
-## G-KNOW04 — Markdown unter `docs/` außer `adr/`: 324 → 0
+## G-KNOW04 — Markdown unter `docs/` außer `adr/`: 324 → Sperrklinke 374
 
 **Was:** Abbau der Prosa-Doku. Ist-Zustand gehört in Registry, Code-Kommentar oder Guard-Test,
 Begründungen in Commits, Entscheidungen in ADRs. Das Gate G-KNOW02 verhindert Zuwachs, dieses
@@ -656,9 +656,9 @@ Ziel misst den Abbau.
 python3 scripts/lib/knowledge-goals.py docs-md
 ```
 
-> **B · Baseline:** 324 (2026-10-04) → 0 → 331 → 339 · **Target:** 0 · **Aufwand:** hoch · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T900995
+> **B · Baseline:** 324 (2026-10-04) → 0 → 331 → 339 → Sperrklinke 374 (2026-11-02, repo-health-fix: kein Netto-Zuwachs, Target sinkt mit jedem Abbau) · **Target:** ≤ 374 · **Aufwand:** hoch · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T900995
 
-## G-KNOW05 — Bytes aller AGENTS.md/CLAUDE.md: 53672 → 15000
+## G-KNOW05 — Bytes aller AGENTS.md/CLAUDE.md: 53672 → Sperrklinke 47827
 
 **Was:** Summe der getrackten `AGENTS.md`/`CLAUDE.md` (ohne Symlinks). Jeder Agent lädt diese
 Dateien pro Session. Ziel: Verweise auf Registry und Routing statt Prosa.
@@ -667,7 +667,7 @@ Dateien pro Session. Ziel: Verweise auf Registry und Routing statt Prosa.
 python3 scripts/lib/knowledge-goals.py agent-ctx-bytes
 ```
 
-> **B · Baseline:** 53672 (2026-10-04, 7 Dateien) → 15000 → 53672 → 56649 · **Target:** ≤ 15000 · **Aufwand:** mittel · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T900995
+> **B · Baseline:** 53672 (2026-10-04, 7 Dateien) → 15000 → 53672 → 56649 → Sperrklinke 47827 (2026-11-02, repo-health-fix: Abbau belegt, kein Netto-Zuwachs, Target sinkt mit jedem Abbau) · **Target:** ≤ 47827 · **Aufwand:** mittel · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T900995
 
 # Priorität C — Green Gates {#prio-c}
 

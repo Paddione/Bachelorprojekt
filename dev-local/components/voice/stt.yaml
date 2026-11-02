@@ -62,7 +62,7 @@ spec:
     metadata:
       labels: {app: voice-stt}
     spec:
-      nodeSelector: {kubernetes.io/hostname: gpu-metal}
+      nodeSelector: {kubernetes.io/hostname: gpu-cluster2}
       containers:
         - name: stt
           image: python:3.12-slim

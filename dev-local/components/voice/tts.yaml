@@ -47,7 +47,7 @@ spec:
     metadata:
       labels: {app: voice-tts}
     spec:
-      nodeSelector: {kubernetes.io/hostname: gpu-metal}
+      nodeSelector: {kubernetes.io/hostname: gpu-cluster2}
       initContainers:
         - name: fetch-voices
           image: alpine:3.24

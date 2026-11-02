@@ -296,6 +296,8 @@ spec:
                     for ext_db in website vaultwarden pocket_id pocket_id_korczewski website_massage; do
                       psql -U postgres -d "$$ext_db" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" 2>/dev/null || true
                     done
+                    # k1-embed (scripts/index-repo.ts) braucht pgvector, darf es als Nicht-Superuser aber nicht anlegen.
+                    psql -U postgres -d website -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null || true
                     # T901440: neue Rollen nur bei nicht-leerem Secret (s. init-Skript).
                     if [ -n "$WEBSITE_MASSAGE_DB_PASSWORD" ]; then
                       psql -U postgres -v newpw="$WEBSITE_MASSAGE_DB_PASSWORD" \

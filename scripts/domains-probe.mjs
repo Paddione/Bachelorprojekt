@@ -4,21 +4,22 @@
 // Live-Host-E2E-Probe ueber die Frontend-Domain-Registry
 // (docs/agent-guide/registry/domains.yaml, SSOT).
 //
-//   node scripts/domains-probe.mjs                        # beide Cluster pruefen
-//   node scripts/domains-probe.mjs --cluster fleet        # nur fleet
+//   node scripts/domains-probe.mjs                        # beide Mesh pruefen
+//   node scripts/domains-probe.mjs --cluster prodmesh     # nur prodmesh
+//   (--cluster fleet bleibt als Alias für prodmesh gueltig)
 //   node scripts/domains-probe.mjs --validate-only        # nur Schema +
 //     Platzhalter-Aufloesung, kein Netzwerk (CI-sicher)
 //   node scripts/domains-probe.mjs --registry <pfad> ...  # gegen Fixture laufen
 //
 // Je status:live-Eintrag: ${VAR}-Platzhalter aus der festen Env-Datei je
-// Cluster aufloesen (fleet -> environments/fleet-korczewski.yaml, devmesh ->
+// Mesh aufloesen (prodmesh -> environments/fleet-korczewski.yaml, devmesh ->
 // environments/dev.yaml, jeweils env_vars-Sektion; unaufloesbar -> FAIL),
 // dann DNS -> TLS (Port 443, rejectUnauthorized) -> HTTP-Status/Redirect
 // (immer GET https://<host>/, Redirects folgen NICHT, Timeout 15 s).
 // Der Status muss in expect.status enthalten sein; bei 3xx muss der
 // Location-Header expect.redirect_to_contains enthalten (wenn gesetzt).
-// Hybrid-Semantik: ENOTFOUND bei cluster devmesh -> SKIP (no-tailnet);
-// bei fleet -> FAIL. Jede andere Abweichung failt.
+// Hybrid-Semantik: ENOTFOUND bei Mesh devmesh -> SKIP (no-tailnet);
+// bei prodmesh -> FAIL. Jede andere Abweichung failt.
 // status frozen|retired -> SKIP. Exit 0 nur bei 0 FAIL.
 
 import { readFileSync } from 'node:fs';
@@ -30,11 +31,13 @@ import { parse as parseYaml } from 'yaml';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_REGISTRY = join(REPO, 'docs/agent-guide/registry/domains.yaml');
-const CLUSTER_ENV_FILE = {
-  fleet: 'environments/fleet-korczewski.yaml',
+const MESH_ENV_FILE = {
+  prodmesh: 'environments/fleet-korczewski.yaml',
   devmesh: 'environments/dev.yaml',
 };
-const ALLOWED_CLUSTER = new Set(['fleet', 'devmesh', 'both']);
+// `fleet` bleibt als CLI-Alias für `prodmesh` gueltig.
+const MESH_ALIAS = { fleet: 'prodmesh' };
+const ALLOWED_MESH = new Set(['devmesh', 'prodmesh', 'both']);
 const HTTP_TIMEOUT_MS = 15000;
 const TLS_WARN_DAYS = 14;
 
@@ -48,18 +51,18 @@ function loadRegistry(path) {
 }
 
 const envCache = new Map();
-function loadEnvVars(cluster) {
-  if (envCache.has(cluster)) return envCache.get(cluster);
-  const file = CLUSTER_ENV_FILE[cluster];
-  if (!file) throw new Error(`unbekannter Cluster '${cluster}'`);
+function loadEnvVars(mesh) {
+  if (envCache.has(mesh)) return envCache.get(mesh);
+  const file = MESH_ENV_FILE[mesh];
+  if (!file) throw new Error(`unbekanntes Mesh '${mesh}'`);
   const doc = parseYaml(readFileSync(join(REPO, file), 'utf8'));
   const vars = doc?.env_vars ?? {};
-  envCache.set(cluster, vars);
+  envCache.set(mesh, vars);
   return vars;
 }
 
-function resolveHost(template, cluster) {
-  const vars = loadEnvVars(cluster);
+function resolveHost(template, mesh) {
+  const vars = loadEnvVars(mesh);
   const missing = [];
   const resolved = String(template).replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (m, name) => {
     const value = vars[name];
@@ -88,9 +91,9 @@ function validateEntry(entry) {
         }
       }
     }
-    const { missing } = resolveHost(entry?.host ?? '', entry?.cluster);
+    const { missing } = resolveHost(entry?.host ?? '', entry?.mesh);
     for (const name of missing) {
-      problems.push(`${label}: Platzhalter \${${name}} nicht in ${CLUSTER_ENV_FILE[entry?.cluster] ?? '(unbekannte Env-Datei)'} aufloesbar`);
+      problems.push(`${label}: Platzhalter \${${name}} nicht in ${MESH_ENV_FILE[entry?.mesh] ?? '(unbekannte Env-Datei)'} aufloesbar`);
     }
   }
   return problems;
@@ -170,13 +173,13 @@ async function checkHttp(host, expect) {
 // ── Einstieg ─────────────────────────────────────────────────────────────────
 
 async function probeEntry(entry) {
-  const { resolved, missing } = resolveHost(entry.host, entry.cluster);
+  const { resolved, missing } = resolveHost(entry.host, entry.mesh);
   if (missing.length > 0) {
     return { kind: 'FAIL', host: String(entry.host), detail: `Platzhalter ${missing.map((m) => `\${${m}}`).join(', ')} nicht aufloesbar` };
   }
   const dnsError = await checkDns(resolved);
   if (dnsError) {
-    if (isNotFound(dnsError) && entry.cluster === 'devmesh') {
+    if (isNotFound(dnsError) && entry.mesh === 'devmesh') {
       return { kind: 'SKIP', host: resolved, detail: `no-tailnet (${dnsError.code ?? dnsError.message})` };
     }
     return { kind: 'FAIL', host: resolved, detail: `DNS: ${dnsError.message ?? dnsError.code}` };
@@ -201,9 +204,10 @@ async function main(argv) {
     return 2;
   }
   const clusterFlag = argv.indexOf('--cluster');
-  const cluster = clusterFlag === -1 ? 'both' : argv[clusterFlag + 1];
-  if (!ALLOWED_CLUSTER.has(cluster)) {
-    console.error(`domains-probe: --cluster muss fleet|devmesh|both sein (war '${cluster}')`);
+  const rawCluster = clusterFlag === -1 ? 'both' : argv[clusterFlag + 1];
+  const cluster = MESH_ALIAS[rawCluster] ?? rawCluster;
+  if (!ALLOWED_MESH.has(cluster)) {
+    console.error(`domains-probe: --cluster muss devmesh|prodmesh|both sein (fleet = Alias für prodmesh; war '${rawCluster}')`);
     return 2;
   }
   const validateOnly = argv.includes('--validate-only');
@@ -216,7 +220,7 @@ async function main(argv) {
     return 2;
   }
 
-  const selected = entries.filter((e) => cluster === 'both' || e?.cluster === cluster);
+  const selected = entries.filter((e) => cluster === 'both' || e?.mesh === cluster);
   let pass = 0;
   let skip = 0;
   let fail = 0;
@@ -235,7 +239,7 @@ async function main(argv) {
       continue;
     }
     if (validateOnly) {
-      const { resolved } = resolveHost(entry.host, entry.cluster);
+      const { resolved } = resolveHost(entry.host, entry.mesh);
       console.log(`PASS ${resolved} (validate-only)`);
       pass += 1;
       continue;

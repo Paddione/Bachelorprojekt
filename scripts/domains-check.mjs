@@ -10,15 +10,15 @@
 //   --skip-manifest-scan: Manifest-Abgleich ueberspringen (fuer synthetische Fixtures)
 //
 // Geprueft wird:
-//   1. jedes Pflichtfeld ist gesetzt (id, host, cluster, namespace, paths,
+//   1. jedes Pflichtfeld ist gesetzt (id, host, mesh, namespace, paths,
 //      service, auth, owner_frontend, functions, status, manifest_source),
 //   2. jede id ist eindeutig,
-//   3. status und auth und cluster liegen in der erlaubten Menge,
+//   3. status und auth und mesh liegen in der erlaubten Menge,
 //   4. jede manifest_source-Datei existiert,
 //   5. jeder Manifest-Host aus prod-fleet/ und dev-local/ (kind: Ingress ueber
 //      spec.rules[].host, kind: IngressRoute ueber Host() in spec.routes[].match)
 //      steht im Register — sonst Exit != 0,
-//   6. Funktions-Matrix: zwei status:live-Eintraege desselben Clusters mit
+//   6. Funktions-Matrix: zwei status:live-Eintraege desselben Mesh mit
 //      demselben Funktions-String brauchen mindestens auf einer Seite ein
 //      decision-Feld, das den Split/Redirect erklaert.
 
@@ -31,10 +31,10 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_REGISTRY = join(REPO, 'docs/agent-guide/registry/domains.yaml');
 const DEFAULT_MAP = join(REPO, 'docs/agent-guide/maps/domains-map.md');
 
-const REQUIRED_FIELDS = ['id', 'host', 'cluster', 'namespace', 'paths', 'service', 'auth', 'owner_frontend', 'functions', 'status', 'manifest_source'];
+const REQUIRED_FIELDS = ['id', 'host', 'mesh', 'namespace', 'paths', 'service', 'auth', 'owner_frontend', 'functions', 'status', 'manifest_source'];
 const ALLOWED_STATUS = new Set(['live', 'frozen', 'retired']);
 const ALLOWED_AUTH = new Set(['oidc', 'open', 'basic', 'token']);
-const ALLOWED_CLUSTER = new Set(['fleet', 'devmesh']);
+const ALLOWED_MESH = new Set(['devmesh', 'prodmesh']);
 
 // ── Manifest-Scan ────────────────────────────────────────────────────────────
 
@@ -151,8 +151,8 @@ function check(entries, { skipManifestScan }) {
     if (entry?.auth !== undefined && !ALLOWED_AUTH.has(entry.auth)) {
       problems.push(`${label}: auth '${entry.auth}' ist weder 'oidc' noch 'open' noch 'basic' noch 'token'`);
     }
-    if (entry?.cluster !== undefined && !ALLOWED_CLUSTER.has(entry.cluster)) {
-      problems.push(`${label}: cluster '${entry.cluster}' ist weder 'fleet' noch 'devmesh'`);
+    if (entry?.mesh !== undefined && !ALLOWED_MESH.has(entry.mesh)) {
+      problems.push(`${label}: mesh '${entry.mesh}' ist weder 'devmesh' noch 'prodmesh'`);
     }
     // Expect-Pflicht (domains-probe): live braucht einen expect-Block mit
     // nicht-leerem expect.status (nur 100-499-Ganzzahlen); frozen|retired
@@ -198,7 +198,7 @@ function check(entries, { skipManifestScan }) {
     }
   }
 
-  // Funktions-Matrix: gleicher Cluster + gleiche Funktion + beide live ohne
+  // Funktions-Matrix: gleiches Mesh + gleiche Funktion + beide live ohne
   // decision auf BEIDEN Seiten -> Fehler. Traegt eine Seite ein decision,
   // erklaert das den Split.
   for (const [id, index] of seen) {
@@ -208,12 +208,12 @@ function check(entries, { skipManifestScan }) {
       if (otherIndex >= index) continue;
       const other = entries[otherIndex];
       if (other?.status !== 'live' || !Array.isArray(other?.functions)) continue;
-      if (other?.cluster !== entry.cluster) continue;
+      if (other?.mesh !== entry.mesh) continue;
       const overlap = entry.functions.filter((f) => other.functions.includes(f));
       if (overlap.length === 0) continue;
       if (entry?.decision || other?.decision) continue;
       problems.push(
-        `Funktions-Matrix: '${id}' und '${otherId}' beanspruchen live im Cluster '${entry.cluster}' beide '${overlap[0]}' ohne decision`,
+        `Funktions-Matrix: '${id}' und '${otherId}' beanspruchen live im Mesh '${entry.mesh}' beide '${overlap[0]}' ohne decision`,
       );
     }
   }
@@ -244,14 +244,14 @@ function renderMap(entries, registryPath) {
     `<!-- GENERIERT aus ${rel} — nicht von Hand editieren.`,
     '     Neu erzeugen: task domains:map · Pruefen: task domains:check -->',
     '',
-    'Jeder oeffentlich erreichbare Host, gruppiert nach Cluster und Frontend-Team.',
+    'Jeder oeffentlich erreichbare Host, gruppiert nach Mesh und Frontend-Team.',
     '',
     '```mermaid',
     'flowchart LR',
   ];
-  for (const cluster of ['fleet', 'devmesh']) {
-    lines.push(`    subgraph ${cluster}["${cluster}"]`);
-    for (const entry of live.filter((e) => e?.cluster === cluster)) {
+  for (const mesh of ['devmesh', 'prodmesh']) {
+    lines.push(`    subgraph ${mesh}["${mesh}"]`);
+    for (const entry of live.filter((e) => e?.mesh === mesh)) {
       lines.push(`        ${nodeId(entry.id)}["${cell(entry.host)}"]`);
     }
     lines.push('    end');
@@ -299,11 +299,11 @@ function renderMap(entries, registryPath) {
   }
 
   lines.push('## Host-Inventar', '');
-  lines.push('| Host | Cluster | Namespace | Service | Auth | Frontend | Funktionen | Status | Quelle |');
+  lines.push('| Host | Mesh | Namespace | Service | Auth | Frontend | Funktionen | Status | Quelle |');
   lines.push('|---|---|---|---|---|---|---|---|---|');
   for (const entry of [...entries].sort((a, b) => String(a?.host).localeCompare(String(b?.host)))) {
     lines.push(
-      `| \`${cell(entry?.host)}\` | ${cell(entry?.cluster)} | ${cell(entry?.namespace)} ` +
+      `| \`${cell(entry?.host)}\` | ${cell(entry?.mesh)} | ${cell(entry?.namespace)} ` +
       `| ${cell(entry?.service)} | ${cell(entry?.auth)} | ${cell(entry?.owner_frontend)} ` +
       `| ${cell((entry?.functions ?? []).join(', '))} | ${cell(entry?.status)} | ${cell(entry?.manifest_source)} |`,
     );

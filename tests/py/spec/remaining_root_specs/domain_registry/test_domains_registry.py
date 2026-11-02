@@ -67,7 +67,7 @@ def test_invalid_fixtures_fail(tmp_path):
 
     Creates two invalid YAML fixtures:
       1. Missing 'host' key
-      2. Multiple same-cluster/same-function entries without decision key
+      2. Multiple same-mesh/same-function entries without decision key
 
     Asserts each run exits non-zero via: node scripts/domains-check.mjs --registry <tmp> --skip-manifest-scan
     """
@@ -78,7 +78,7 @@ def test_invalid_fixtures_fail(tmp_path):
         f.write("""
 domains:
   - id: invalid-host
-    cluster: fleet
+    mesh: prodmesh
     service: service:80
     name: test
     status: live
@@ -96,13 +96,13 @@ domains:
     assert result.returncode != 0, f"Missing-host fixture should fail validation. Got exit {result.returncode}"
     os.unlink(temp_path1)
 
-    # Create fixture 2: two live entries, same cluster, same function, no decision
+    # Create fixture 2: two live entries, same mesh, same function, no decision
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, dir=str(tmp_path)) as f:
         f.write("""
 domains:
   - id: dup-a
     host: a.example.de
-    cluster: fleet
+    mesh: prodmesh
     namespace: ns-a
     paths: ["/"]
     service: a:80
@@ -110,10 +110,10 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
-    manifest_source: prod-fleet/mentolder/studio-ingress.yaml
+    manifest_source: prod-fleet/website-korczewski/website-ingress-web.yaml
   - id: dup-b
     host: b.example.de
-    cluster: fleet
+    mesh: prodmesh
     namespace: ns-b
     paths: ["/"]
     service: b:80
@@ -121,7 +121,7 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
-    manifest_source: prod-fleet/mentolder/studio-ingress.yaml
+    manifest_source: prod-fleet/website-korczewski/website-ingress-web.yaml
 """)
         temp_path2 = f.name
 
@@ -132,3 +132,52 @@ domains:
         text=True
     )
     assert result.returncode != 0, f"Missing-decision fixture should fail validation. Got exit {result.returncode}"
+    os.unlink(temp_path2)
+
+
+def test_mesh_field_accepted_and_unknown_rejected(tmp_path):
+    """Verify the mesh field: a valid mesh entry passes, an unknown mesh fails.
+
+    Runs: node scripts/domains-check.mjs --registry <tmp> --skip-manifest-scan
+    Asserts exit 0 for mesh prodmesh/devmesh, non-zero for an unknown mesh value.
+    """
+    repo_root = str(Path(__file__).resolve().parents[5])
+
+    valid = """
+domains:
+  - id: mesh-ok
+    host: web.example.de
+    mesh: prodmesh
+    namespace: ns
+    paths: ["/"]
+    service: svc:80
+    auth: open
+    owner_frontend: bp-ship
+    functions: [frontend]
+    status: frozen
+    manifest_source: prod-fleet/website-korczewski/website-ingress-web.yaml
+"""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, dir=str(tmp_path)) as f:
+        f.write(valid)
+        valid_path = f.name
+    result = subprocess.run(
+        ['node', 'scripts/domains-check.mjs', '--registry', valid_path, '--skip-manifest-scan'],
+        cwd=repo_root,
+        capture_output=True,
+        text=True
+    )
+    assert result.returncode == 0, f"mesh: prodmesh fixture should pass. Got exit {result.returncode}: {result.stderr}"
+    os.unlink(valid_path)
+
+    invalid = valid.replace('mesh: prodmesh', 'mesh: qa')
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, dir=str(tmp_path)) as f:
+        f.write(invalid)
+        invalid_path = f.name
+    result = subprocess.run(
+        ['node', 'scripts/domains-check.mjs', '--registry', invalid_path, '--skip-manifest-scan'],
+        cwd=repo_root,
+        capture_output=True,
+        text=True
+    )
+    assert result.returncode != 0, f"unknown mesh fixture should fail. Got exit {result.returncode}"
+    os.unlink(invalid_path)

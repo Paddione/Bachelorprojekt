@@ -3,12 +3,10 @@
 <!-- GENERIERT aus docs/agent-guide/registry/domains.yaml — nicht von Hand editieren.
      Neu erzeugen: task domains:map · Pruefen: task domains:check -->
 
-Jeder oeffentlich erreichbare Host, gruppiert nach Cluster und Frontend-Team.
+Jeder oeffentlich erreichbare Host, gruppiert nach Mesh und Frontend-Team.
 
 ```mermaid
 flowchart LR
-    subgraph fleet["fleet"]
-    end
     subgraph devmesh["devmesh"]
         devmesh_web["web.${DEVMESH_DOMAIN}"]
         devmesh_website_alias["${WEBSITE_HOST}"]
@@ -25,6 +23,8 @@ flowchart LR
         korczewski_apex_mirror["${KORCZEWSKI_PROD_APEX_HOST}"]
         korczewski_auth_mirror["${KORCZEWSKI_PROD_AUTH_HOST}"]
         devmesh_agent_board["agent-board.devmesh.korczewski.de"]
+    end
+    subgraph prodmesh["prodmesh"]
     end
     owner_bp_ship["bp-ship"]
     devmesh_web --> owner_bp_ship
@@ -85,14 +85,14 @@ flowchart LR
 
 ## Host-Inventar
 
-| Host | Cluster | Namespace | Service | Auth | Frontend | Funktionen | Status | Quelle |
+| Host | Mesh | Namespace | Service | Auth | Frontend | Funktionen | Status | Quelle |
 |---|---|---|---|---|---|---|---|---|
 | `${FRITZ_BOX_HOST}` | devmesh | components | oauth2-proxy-fritzbox:4180 | oidc | bp-ship | ops-access | live | dev-local/components/opencode/fritzbox-ingressroute.yaml |
 | `${KORCZEWSKI_PROD_APEX_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${KORCZEWSKI_PROD_AUTH_HOST}` | devmesh | components | pocket-id:1411 | oidc | bp-ship | sso | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${KORCZEWSKI_PROD_WEB_HOST}` | devmesh | components | website:80 | oidc | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${OPENCODE_PUBLIC_HOST}` | devmesh | components | opencode:80 | oidc | bp-ship | ops-access | live | dev-local/components/opencode/ingressroute.yaml |
-| `${PROD_DOMAIN}` | fleet | website-korczewski | website:80 | open | bp-ship | redirect | frozen | prod-fleet/website-korczewski/website-apex.yaml |
+| `${PROD_DOMAIN}` | prodmesh | website-korczewski | website:80 | open | bp-ship | redirect | frozen | prod-fleet/website-korczewski/website-apex.yaml |
 | `${WEBSITE_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/core/ingress.yaml |
 | `agent-board.devmesh.korczewski.de` | devmesh | workspace | agent-board:80 | oidc | bp-ship | ops-cockpit | live | apps/agent-board/k8s/ingress.yaml |
 | `auth.${DEVMESH_DOMAIN}` | devmesh | core | pocket-id:1411 | oidc | bp-ship | middleware | live | dev-local/core/ingress.yaml |
@@ -103,5 +103,5 @@ flowchart LR
 | `signaling.${DEVMESH_DOMAIN}` | devmesh | components | spreed-signaling:8080 | token | bp-ship | signaling | live | dev-local/components/talk/ingress.yaml |
 | `vault.${DEVMESH_DOMAIN}` | devmesh | components | vaultwarden:80 | open | bp-ship | secrets | live | dev-local/components/vaultwarden/ingress.yaml |
 | `web.${DEVMESH_DOMAIN}` | devmesh | components | sdlc-console:8080 | oidc | bp-ship | frontend, backend | live | dev-local/core/ingress.yaml |
-| `web.${PROD_DOMAIN}` | fleet | website-korczewski | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-korczewski/website-ingress-web.yaml |
-| `web.${PROD_DOMAIN}` | fleet | website-staging | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-staging/website-ingress-web.yaml |
+| `web.${PROD_DOMAIN}` | prodmesh | website-korczewski | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-korczewski/website-ingress-web.yaml |
+| `web.${PROD_DOMAIN}` | prodmesh | website-staging | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-staging/website-ingress-web.yaml |

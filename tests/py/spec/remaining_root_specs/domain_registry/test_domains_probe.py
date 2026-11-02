@@ -43,7 +43,7 @@ def test_invalid_fixtures_fail(tmp_path):
 domains:
   - id: {eid}
     host: "{host}"
-    cluster: {cluster}
+    mesh: {mesh}
     namespace: ns
     paths: ["/"]
     service: svc:80
@@ -51,12 +51,12 @@ domains:
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
-    manifest_source: prod-fleet/mentolder/studio-ingress.yaml
+    manifest_source: prod-fleet/website-korczewski/website-ingress-web.yaml
 {expect}
 """
     # (a) live entry without expect block
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, dir=str(tmp_path)) as f:
-        f.write(base.format(eid='no-expect', host='a.example.de', cluster='fleet', expect=''))
+        f.write(base.format(eid='no-expect', host='a.example.de', mesh='prodmesh', expect=''))
         path_a = f.name
     result = _run_probe(['--registry', path_a, '--validate-only'], repo_root)
     assert result.returncode != 0, f"missing-expect fixture should fail, got {result.returncode}"
@@ -64,7 +64,7 @@ domains:
     # (b) unresolvable placeholder
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, dir=str(tmp_path)) as f:
         f.write(base.format(
-            eid='unresolvable', host='${UNAUFLOESBAR}.example.de', cluster='fleet',
+            eid='unresolvable', host='${UNAUFLOESBAR}.example.de', mesh='prodmesh',
             expect='    expect:\n      status: [200]\n'))
         path_b = f.name
     result = _run_probe(['--registry', path_b, '--validate-only'], repo_root)
@@ -72,14 +72,14 @@ domains:
 
 
 def test_devmesh_skip_semantik(tmp_path):
-    """--cluster fleet on a devmesh-only fixture ends with 0 FAIL (offline)."""
+    """--cluster fleet (alias for prodmesh) on a devmesh-only fixture ends with 0 FAIL (offline)."""
     repo_root = _repo_root()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, dir=str(tmp_path)) as f:
         f.write("""
 domains:
   - id: devmesh-only
     host: web.devmesh.example.de
-    cluster: devmesh
+    mesh: devmesh
     namespace: ns
     paths: ["/"]
     service: svc:80

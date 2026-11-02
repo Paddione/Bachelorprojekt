@@ -9,7 +9,7 @@
 # Felder je Eintrag:
 #   id              eindeutiger Bezeichner
 #   host            Host wie im Manifest (Template-Platzhalter ${...} bleiben wörtlich)
-#   cluster         fleet | devmesh
+#   mesh            devmesh | prodmesh (`fleet` ist Alias für `prodmesh`)
 #   namespace       Kubernetes-Namespace des Ingress
 #   paths           Liste der Pfade (z. B. ["/"])
 #   service         Backend als name:port
@@ -25,7 +25,7 @@
 #   manifest_source repo-relative YAML-Datei, die den Host deklariert
 #   decision        optional: erklärt Split/Redirect bei doppelter Live-Funktion
 #
-# FUNKTIONS-MATRIX: Beanspruchen zwei status:live-Einträge desselben Clusters
+# FUNKTIONS-MATRIX: Beanspruchen zwei status:live-Einträge desselben Mesh
 # denselben Funktions-String, muss mindestens einer der beiden ein decision-
 # Feld tragen, das den Split/Redirect erklärt — sonst ist der Guard rot.
 # Einen Eintrag nie löschen (retired/frozen stehen lassen) — einzige Ausnahme:
@@ -35,7 +35,7 @@
 domains:
   - id: website-korczewski
     host: web.${PROD_DOMAIN}
-    cluster: fleet
+    mesh: prodmesh
     namespace: website-korczewski
     paths: ["/", "/_astro/"]
     service: website:80
@@ -48,7 +48,7 @@ domains:
 
   - id: website-staging
     host: web.${PROD_DOMAIN}
-    cluster: fleet
+    mesh: prodmesh
     namespace: website-staging
     paths: ["/", "/_astro/"]
     service: website:80
@@ -61,7 +61,7 @@ domains:
 
   - id: apex-korczewski
     host: ${PROD_DOMAIN}
-    cluster: fleet
+    mesh: prodmesh
     namespace: website-korczewski
     paths: ["/"]
     service: website:80
@@ -74,7 +74,7 @@ domains:
 
   - id: devmesh-web
     host: web.${DEVMESH_DOMAIN}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: sdlc-console:8080
@@ -93,7 +93,7 @@ domains:
 
   - id: devmesh-website-alias
     host: ${WEBSITE_HOST}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: website:80
@@ -108,7 +108,7 @@ domains:
 
   - id: devmesh-auth
     host: auth.${DEVMESH_DOMAIN}
-    cluster: devmesh
+    mesh: devmesh
     namespace: core
     paths: ["/"]
     service: pocket-id:1411
@@ -125,7 +125,7 @@ domains:
 
   - id: devmesh-mail
     host: mail.${DEVMESH_DOMAIN}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: mailpit:8025
@@ -139,7 +139,7 @@ domains:
 
   - id: devmesh-brain
     host: brain.${DEVMESH_DOMAIN}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: oauth2-proxy-brain:4180
@@ -157,7 +157,7 @@ domains:
 
   - id: devmesh-files
     host: files.${DEVMESH_DOMAIN}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: nextcloud:80
@@ -175,7 +175,7 @@ domains:
 
   - id: devmesh-office
     host: office.${DEVMESH_DOMAIN}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: collabora:9980
@@ -189,7 +189,7 @@ domains:
 
   - id: devmesh-signaling
     host: signaling.${DEVMESH_DOMAIN}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: spreed-signaling:8080
@@ -203,7 +203,7 @@ domains:
 
   - id: devmesh-vault
     host: vault.${DEVMESH_DOMAIN}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: vaultwarden:80
@@ -217,7 +217,7 @@ domains:
 
   - id: devmesh-opencode
     host: ${OPENCODE_PUBLIC_HOST}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: opencode:80
@@ -236,7 +236,7 @@ domains:
 
   - id: devmesh-fritzbox
     host: ${FRITZ_BOX_HOST}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: oauth2-proxy-fritzbox:4180
@@ -255,7 +255,7 @@ domains:
 
   - id: korczewski-web-mirror
     host: ${KORCZEWSKI_PROD_WEB_HOST}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/", "/_astro/"]
     service: website:80
@@ -275,7 +275,7 @@ domains:
 
   - id: korczewski-apex-mirror
     host: ${KORCZEWSKI_PROD_APEX_HOST}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: website:80
@@ -290,7 +290,7 @@ domains:
 
   - id: korczewski-auth-mirror
     host: ${KORCZEWSKI_PROD_AUTH_HOST}
-    cluster: devmesh
+    mesh: devmesh
     namespace: components
     paths: ["/"]
     service: pocket-id:1411
@@ -307,7 +307,7 @@ domains:
 
   - id: devmesh-agent-board
     host: agent-board.devmesh.korczewski.de
-    cluster: devmesh
+    mesh: devmesh
     namespace: workspace
     paths: ["/"]
     service: agent-board:80

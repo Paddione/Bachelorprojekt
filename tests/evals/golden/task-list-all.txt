@@ -127,6 +127,7 @@ task: Available tasks for this project:
 * devmesh:tailnet:routes:                       devmesh: Subnet-Routen (Inventarfeld subnet_routes) per tailscale set freigeben (DRY_RUN=1 zeigt nur die Befehle) [T016515]
 * docs:refresh-diagrams:                        Regenerate all auto-generated diagrams (DB schema, …)
 * domains:check:                                Validate domain registry against SSOT
+* domains:graph:                                Domains-Graph (Auth/SSO/TLS je Host) nach docs/agent-guide/maps/domains-graph.md; task domains:graph -- --live [--cluster devmesh]
 * domains:map:                                  Regenerate docs/agent-guide/maps/domains-map.md from domain registry
 * domains:probe:                                Live-Host-E2E-Probe je Registry-Host (DNS/TLS/Status/Redirect; task domains:probe -- --cluster fleet)
 * dsh:dsh:build:                                Build deepseek-harness (pnpm install + build)

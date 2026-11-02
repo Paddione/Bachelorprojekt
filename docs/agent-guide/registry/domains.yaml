@@ -15,6 +15,9 @@
 #   service         Backend als name:port
 #   auth            oidc | open | basic | token
 #   owner_frontend  verantwortliches Frontend-Team
+#   sso             optional (nur bei auth: oidc): client_id (Pocket-ID-Client), gate
+#                   (native | oauth2-proxy | issuer), groups (erlaubte Gruppen).
+#                   Soll-Ist-Abgleich + Zertifikat: task domains:graph
 #   functions       Liste der Funktions-Strings (Funktions-Matrix)
 #   status          live | frozen | retired
 #   manifest_source repo-relative YAML-Datei, die den Host deklariert
@@ -74,6 +77,10 @@ domains:
     paths: ["/"]
     service: sdlc-console:8080
     auth: oidc
+    sso:
+      client_id: website
+      gate: native
+      groups: [workspace-users]
     owner_frontend: bp-ship
     functions: [frontend, backend]
     status: live
@@ -104,6 +111,9 @@ domains:
     paths: ["/"]
     service: pocket-id:1411
     auth: oidc
+    sso:
+      gate: issuer
+      groups: []
     owner_frontend: bp-ship
     functions: [middleware]
     status: live
@@ -132,6 +142,10 @@ domains:
     paths: ["/"]
     service: oauth2-proxy-brain:4180
     auth: oidc
+    sso:
+      client_id: brain
+      gate: oauth2-proxy
+      groups: [workspace-users]
     owner_frontend: bp-ship
     functions: [websocket]
     status: live
@@ -146,6 +160,10 @@ domains:
     paths: ["/"]
     service: nextcloud:80
     auth: oidc
+    sso:
+      client_id: nextcloud
+      gate: native
+      groups: [workspace-users]
     owner_frontend: bp-ship
     functions: [files]
     status: live
@@ -202,6 +220,10 @@ domains:
     paths: ["/"]
     service: opencode:80
     auth: oidc
+    sso:
+      client_id: claudecode
+      gate: oauth2-proxy
+      groups: [workspace-users]
     owner_frontend: bp-ship
     functions: [ops-access]
     status: live
@@ -217,6 +239,10 @@ domains:
     paths: ["/"]
     service: oauth2-proxy-fritzbox:4180
     auth: oidc
+    sso:
+      client_id: fritzbox
+      gate: oauth2-proxy
+      groups: [workspace-users]
     owner_frontend: bp-ship
     functions: [ops-access]
     status: live
@@ -262,6 +288,9 @@ domains:
     paths: ["/"]
     service: pocket-id:1411
     auth: oidc
+    sso:
+      gate: issuer
+      groups: []
     owner_frontend: bp-ship
     functions: [sso]
     status: live

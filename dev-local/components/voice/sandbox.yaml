@@ -14,7 +14,7 @@ spec:
     metadata:
       labels: {app: sandbox-cpu}
     spec:
-      nodeSelector: {kubernetes.io/hostname: gpu-metal}
+      nodeSelector: {kubernetes.io/hostname: gpu-cluster2}
       containers:
         - name: worker
           image: alpine/git@sha256:03228d7ded483b0b3e55e1de7fa660d70d3e1bb432fa7021d29e192640de11aa
@@ -40,7 +40,7 @@ spec:
     metadata:
       labels: {app: sandbox-gpu}
     spec:
-      nodeSelector: {kubernetes.io/hostname: gpu-metal}
+      nodeSelector: {kubernetes.io/hostname: gpu-cluster2}
       containers:
         - name: worker
           image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime

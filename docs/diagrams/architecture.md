@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-102 Services · 2096 Abhängigkeitskanten · 316 API-Endpoints
+102 Services · 2095 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -52,7 +52,6 @@ flowchart LR
   lfm_embed["lfm-embed"]:::default
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
-  mentolder_web["mentolder-web"]:::default
   blackbox_exporter["blackbox-exporter"]:::default
   monitoring_grafana["monitoring-grafana"]:::default
   monitoring_kube_state_metrics["monitoring-kube-state-metrics"]:::default
@@ -106,6 +105,7 @@ flowchart LR
   WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]:::default
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
+  mentolder_web["mentolder-web"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
   llm_gateway_gemma_embed["llm-gateway-gemma-embed"]:::default
   llm_gateway_lfm_embed["llm-gateway-lfm-embed"]:::default
@@ -199,7 +199,6 @@ flowchart LR
   traefik -->|"ingress"| whiteboard
   traefik -->|"ingress"| spreed_signaling
   traefik -->|"ingress"| vaultwarden
-  traefik -->|"ingress"| mentolder_web
   traefik -->|"ingress"| oauth2_proxy_downloads
   traefik -->|"ingress"| oauth2_proxy_brett
   traefik -->|"ingress"| oauth2_proxy_comfy
@@ -223,6 +222,7 @@ flowchart LR
   traefik -->|"ingress"| WEBSITE_PRIMARY_SERVICE
   traefik -->|"ingress"| old_webspace
   traefik -->|"ingress"| bachelorprojekt
+  traefik -->|"ingress"| mentolder_web
   coturn -->|"selector"| coturn
   janus -->|"selector"| janus
   dev_pod -->|"selector"| dev_pod
@@ -245,7 +245,6 @@ flowchart LR
   llm_gateway_lfm_embed -->|"selector"| lfm_embed
   mailpit -->|"selector"| mailpit
   mediaviewer_widget -->|"selector"| mediaviewer_widget
-  mentolder_web -->|"selector"| mentolder_web
   blackbox_exporter -->|"selector"| blackbox_exporter
   otel_collector -->|"selector"| otel_collector
   nextcloud_redis -->|"selector"| nextcloud_redis
@@ -2198,7 +2197,6 @@ flowchart TB
     lfm_embed["lfm-embed"]
     mailpit["mailpit"]
     mediaviewer_widget["mediaviewer-widget"]
-    mentolder_web["mentolder-web"]
     nextcloud_redis["nextcloud-redis"]
     nextcloud["nextcloud"]
     notify_unread(["notify-unread"])
@@ -2238,6 +2236,7 @@ flowchart TB
     WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
+    mentolder_web["mentolder-web"]
     shared_db_dev_lb["shared-db-dev-lb"]
     llm_gateway_gemma_embed["llm-gateway-gemma-embed"]
     llm_gateway_lfm_embed["llm-gateway-lfm-embed"]

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.450.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.1...website-v1.450.2) (2026-11-02)
+
+
+### Bug Fixes
+
+* **docs:** G-KNOW02-Ratchet 372-&gt;374 fuer route-retrieval-benchmark [#7103](https://github.com/Paddione/Bachelorprojekt/issues/7103), fritzbox-dns [#7109](https://github.com/Paddione/Bachelorprojekt/issues/7109) ([fac3c93](https://github.com/Paddione/Bachelorprojekt/commit/fac3c93e6e71f69d0c89e76963c282c09c54a496))
+* **docs:** G-KNOW04/05 Sperrklinke 374/47827, kein Netto-Zuwachs (T900995) ([88aa3a2](https://github.com/Paddione/Bachelorprojekt/commit/88aa3a2eb8984ccd4f2c05500b3c1c8530abf97e))
+
 ## [1.450.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.0...website-v1.450.1) (2026-11-02)
 
 

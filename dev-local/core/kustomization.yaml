@@ -70,6 +70,9 @@ patches:
         NEXTCLOUD_EXTERNAL_URL: ""
         VAULT_EXTERNAL_URL: ""
         BRAIN_EXTERNAL_URL: ""
+        # Code- und Knowledge-Queries nutzen denselben aktiven Gemma-Raum (768).
+        LLM_EMBED_URL: "http://llm-gateway-gemma-embed.workspace.svc.cluster.local:8081"
+        LLM_EMBED_MODEL: "embeddinggemma-300m"
   - target: {kind: Deployment, name: website}
     patch: |-
       apiVersion: apps/v1
@@ -213,18 +216,18 @@ patches:
       kind: PersistentVolumeClaim
       metadata: {name: bge-embed-models}
       spec:
-        storageClassName: longhorn
+        storageClassName: local-path
   - target: {kind: PersistentVolumeClaim, name: bge-rerank-models}
     patch: |-
       apiVersion: v1
       kind: PersistentVolumeClaim
       metadata: {name: bge-rerank-models}
       spec:
-        storageClassName: longhorn
+        storageClassName: local-path
   - target: {kind: PersistentVolumeClaim, name: massage-db-dev-data}
     patch: |-
       apiVersion: v1
       kind: PersistentVolumeClaim
       metadata: {name: massage-db-dev-data}
       spec:
-        storageClassName: longhorn
+        storageClassName: local-path

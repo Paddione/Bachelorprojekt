@@ -109,7 +109,8 @@ if [[ -z "$OUT_DIR" ]]; then
   exit 0
 fi
 
-mkdir -p "$OUT_DIR/workspace" "$OUT_DIR/platform" "$OUT_DIR/secrets"
+mkdir -p "$OUT_DIR/workspace" "$OUT_DIR/platform" "$OUT_DIR/secrets" \
+  "$OUT_DIR/addons" "$OUT_DIR/tailscale" "$OUT_DIR/connectors"
 
 # 1. Workspace
 printf '%s\n' "$workspace_rendered" > "$OUT_DIR/workspace/stack.yaml"
@@ -124,12 +125,23 @@ SECRETS_SRC="environments/sealed-secrets/dev.yaml"
 [[ -f "$SECRETS_SRC" ]] || { echo "render-stack: $SECRETS_SRC fehlt" >&2; exit 1; }
 cp "$SECRETS_SRC" "$OUT_DIR/secrets/sealed-secrets.yaml"
 
-# 4. Validierung (Exit 1 bei leerem Ergebnis oder ${-Resten)
-for f in "$OUT_DIR/workspace/stack.yaml" "$OUT_DIR/platform/platform.yaml" "$OUT_DIR/secrets/sealed-secrets.yaml"; do
+# 4. Addons nach Secrets, Connector erst nach der Operator-CRD.
+addons_rendered="$(kubectl kustomize --load-restrictor=LoadRestrictionsNone dev-local/addons)"
+printf '%s\n' "$(envsubst '$DEVMESH_DOMAIN' <<<"$addons_rendered")" > "$OUT_DIR/addons/addons.yaml"
+kubectl kustomize --load-restrictor=LoadRestrictionsNone dev-local/tailscale \
+  > "$OUT_DIR/tailscale/tailscale.yaml"
+kubectl kustomize --load-restrictor=LoadRestrictionsNone dev-local/connectors \
+  > "$OUT_DIR/connectors/connectors.yaml"
+
+# 5. Validierung (Exit 1 bei leerem Ergebnis oder ${-Resten)
+for f in "$OUT_DIR/workspace/stack.yaml" "$OUT_DIR/platform/platform.yaml" \
+  "$OUT_DIR/secrets/sealed-secrets.yaml" "$OUT_DIR/addons/addons.yaml" \
+  "$OUT_DIR/tailscale/tailscale.yaml" \
+  "$OUT_DIR/connectors/connectors.yaml"; do
   [[ -s "$f" ]] || { echo "render-stack: Datei $f ist leer" >&2; exit 1; }
 done
 
-if grep -q '\${' "$OUT_DIR/platform/platform.yaml"; then
-  echo "render-stack: \${-Reste in $OUT_DIR/platform/platform.yaml gefunden" >&2
+if grep -q '\${' "$OUT_DIR/platform/platform.yaml" "$OUT_DIR/addons/addons.yaml"; then
+  echo "render-stack: \${-Reste in Platform/Addons gefunden" >&2
   exit 1
 fi

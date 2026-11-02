@@ -1,0 +1,18 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: devmesh-addons
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 10m
+  dependsOn:
+    - name: devmesh-secrets
+  sourceRef:
+    kind: OCIRepository
+    name: devmesh-manifests
+  serviceAccountName: devmesh-tenant-deploy
+  path: ./addons
+  prune: true
+  wait: true

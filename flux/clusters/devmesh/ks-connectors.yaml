@@ -1,0 +1,20 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: devmesh-connectors
+  namespace: flux-system
+spec:
+  # operator-oauth fehlt derzeit; erst nach Secret- und CRD-Pruefung aktivieren.
+  suspend: true
+  interval: 10m
+  retryInterval: 2m
+  timeout: 10m
+  dependsOn:
+    - name: devmesh-tailscale
+  sourceRef:
+    kind: OCIRepository
+    name: devmesh-manifests
+  serviceAccountName: devmesh-tenant-deploy
+  path: ./connectors
+  prune: true
+  wait: true

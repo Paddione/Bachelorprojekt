@@ -1,0 +1,20 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: devmesh-tailscale
+  namespace: flux-system
+spec:
+  # operator-oauth fehlt derzeit; unabhaengig vom Workspace nachziehen.
+  suspend: true
+  interval: 10m
+  retryInterval: 2m
+  timeout: 10m
+  dependsOn:
+    - name: devmesh-secrets
+  sourceRef:
+    kind: OCIRepository
+    name: devmesh-manifests
+  serviceAccountName: devmesh-tenant-deploy
+  path: ./tailscale
+  prune: true
+  wait: true

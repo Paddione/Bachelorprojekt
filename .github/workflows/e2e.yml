@@ -30,7 +30,10 @@ on:
         # stehen, startete eine Auswahl einen Lauf ohne einen einzigen Job —
         # ein stiller Erfolg, der wie ein bestandener Test aussieht.
         # [brand-trennung p4]: korczewski reaktiviert (Unfreeze p2).
-        options: [both, mentolder, korczewski]
+        # QUARANTÄNE 2026-11-02: korczewski deaktiviert — kein Backend
+        # (Nightly 02.11.: 181 failed, Setup ohne Backend). Matrix-Block unten
+        # ebenfalls auskommentiert. Reaktivieren sobald web.korczewski.de antwortet.
+        options: [both, mentolder]
   schedule:
     - cron: "0 3 * * *"  # 03:00 UTC nightly
 
@@ -56,15 +59,14 @@ jobs:
             contact_email: info@mentolder.de
             contact_phone: "+49 151 508 32 601"
             service_pages: /coaching,/beratung
-          # [brand-trennung p4] korczewski reaktiviert (Unfreeze p2, Eigner-Entscheidung
-          # 2026-11-01). T002602-Kommentar aufgehoben; bei erneutem Freeze diesen
-          # Block + die korczewski-Option oben wieder deaktivieren.
-          - cluster: korczewski
-            website_url: https://web.korczewski.de
-            prod_domain: korczewski.de
-            contact_email: info@korczewski.de
-            contact_phone: ""
-            service_pages: /ki-beratung,/software-dev,/deployment
+          # QUARANTÄNE 2026-11-02 (s. Options oben): korczewski ohne Backend,
+          # Block deaktiviert. Reaktivieren sobald web.korczewski.de antwortet.
+          # - cluster: korczewski
+          #   website_url: https://web.korczewski.de
+          #   prod_domain: korczewski.de
+          #   contact_email: info@korczewski.de
+          #   contact_phone: ""
+          #   service_pages: /ki-beratung,/software-dev,/deployment
     env:
       SELECTED_CLUSTER: ${{ inputs.cluster }}
       EVENT_NAME: ${{ github.event_name }}

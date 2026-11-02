@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1282,
+      "file_count": 1283,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1013,6 +1013,7 @@
         "tests/py/spec/remaining_domain_specs/test_kv_budget.py",
         "tests/py/spec/remaining_domain_specs/test_lavish.py",
         "tests/py/spec/remaining_domain_specs/test_lockfile_drift.py",
+        "tests/py/spec/remaining_root_specs/domain_registry/test_domains_graph.py",
         "tests/py/spec/remaining_root_specs/domain_registry/test_domains_probe.py",
         "tests/py/spec/remaining_root_specs/domain_registry/test_domains_registry.py",
         "tests/py/spec/remaining_root_specs/monitoring_alerts/test_backup_alerting.py",
@@ -3723,7 +3724,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 890,
+      "file_count": 891,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3979,6 +3980,7 @@
         "scripts/devmesh/tailnet-subnet-routes.sh",
         "scripts/discover-versions.sh",
         "scripts/domains-check.mjs",
+        "scripts/domains-graph.mjs",
         "scripts/domains-probe.mjs",
         "scripts/downloads-index.html",
         "scripts/downloads.Dockerfile",

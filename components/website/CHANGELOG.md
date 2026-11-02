@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.449.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.448.0...website-v1.449.0) (2026-11-02)
+
+
+### Features
+
+* **ops:** plan-runner Tiers, Harness je Partial, Budget + lfm3-audio Service (walkie-dispatch-flow p6/p7) ([#7092](https://github.com/Paddione/Bachelorprojekt/issues/7092)) ([5b18a3e](https://github.com/Paddione/Bachelorprojekt/commit/5b18a3e62ec726f1dfdec5afa4fc63db52d8f714))
+
 ## [1.448.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.447.1...website-v1.448.0) (2026-11-02)
 
 

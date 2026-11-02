@@ -119,7 +119,7 @@ def test_website_korczewski_brand_is_massage(repo_root: Path):
     assert env.get("BRAND_ID") == "massage", f"BRAND_ID ist {env.get('BRAND_ID')!r}"
 
     # Effektiv nach Environment-Substitution: BRAND ebenfalls massage
-    substituted = _substitute(rendered, _env_vars(repo_root, "fleet-korczewski"))
+    substituted = _substitute(rendered, _env_vars(repo_root, "prodmesh-korczewski"))
     sub_index = _index([d for d in _yaml_load_all(substituted) if d])
     config = sub_index.get(("ConfigMap", "website-korczewski", "website-config"))
     assert config is not None, "website-config ConfigMap fehlt"
@@ -128,7 +128,7 @@ def test_website_korczewski_brand_is_massage(repo_root: Path):
 
 def test_website_korczewski_uses_central_massage_db(repo_root: Path):
     rendered = _kustomize_build(repo_root, "prod-fleet/website-korczewski")
-    substituted = _substitute(rendered, _env_vars(repo_root, "fleet-korczewski"))
+    substituted = _substitute(rendered, _env_vars(repo_root, "prodmesh-korczewski"))
     index = _index([d for d in _yaml_load_all(substituted) if d])
     deployment = index.get(("Deployment", "website-korczewski", "website"))
     assert deployment is not None

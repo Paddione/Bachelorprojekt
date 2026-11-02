@@ -187,7 +187,7 @@ def test_ghcr_pull_secret_in_reflector(repo_root: Path):
 def test_internal_endpoints(repo_root: Path):
     schema = repo_root / "environments" / "schema.yaml"
     cm = repo_root / "k3d" / "configmap-domains.yaml"
-    fleet_m = repo_root / "environments" / "fleet-korczewski.yaml"
+    fleet_m = repo_root / "environments" / "prodmesh-korczewski.yaml"
     gateway_ing = repo_root / "k3d" / "llm-gateway-ingress.yaml"
 
     assert "name: BGE_EMBED_HOST" in schema.read_text()
@@ -237,7 +237,7 @@ def test_legacy_secrets_fleet(repo_root: Path):
     # brand-trennung p5: environments/mentolder.yaml geloescht — das Legacy-
     # Mapping mentolder->fleet-mentolder (secrets_env-Feld der Datei) ist mit
     # der Brand entfallen; secrets_env_for faellt auf Identitaet zurueck.
-    assert _resolve("korczewski") == "fleet-korczewski"
+    assert _resolve("korczewski") == "prodmesh-korczewski"
     assert _resolve("dev") == "dev"
     assert _resolve("fleet-mentolder") == "fleet-mentolder"
 
@@ -296,10 +296,10 @@ exit 1
     res3 = subprocess.run(["bash", str(script)], env=env3, capture_output=True, text=True)
     assert res3.returncode == 0
 
-    # 4: taskfile platform contains fleet:membership
+    # 4: taskfile platform contains prodmesh:membership
     taskfile = repo_root / "taskfiles" / "Taskfile.platform.yml"
     assert taskfile.is_file()
-    assert "fleet:membership" in taskfile.read_text()
+    assert "prodmesh:membership" in taskfile.read_text()
 
 
 # ── monitoring-ready.bats ──────────────────────────────────────────────────

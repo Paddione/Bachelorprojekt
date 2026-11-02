@@ -75,7 +75,7 @@ def test_p2_korczewski_website_workflow_is_removed(root):
 
 def test_p2_all_env_files_point_website_image_at_shared_name(root):
     rx = re.compile(r"^[ \t]*WEBSITE_IMAGE:[ \t]*website[ \t]*$", re.MULTILINE)
-    for brand in ("korczewski", "fleet-korczewski", "staging", "dev"):
+    for brand in ("korczewski", "prodmesh-korczewski", "staging", "dev"):
         text = _read(root, f"environments/{brand}.yaml")
         assert rx.search(text), f"WEBSITE_IMAGE not set to 'website' in environments/{brand}.yaml"
 

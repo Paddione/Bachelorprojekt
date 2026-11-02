@@ -1,8 +1,8 @@
 # environments/korczewski.yaml
 environment: korczewski
 context: fleet
-# Secrets kommen aus fleet-korczewski (.secrets/ + sealed-secrets/); eigene Dateien entfallen. T900789
-secrets_env: fleet-korczewski
+# Secrets kommen aus prodmesh-korczewski (.secrets/ + sealed-secrets/); eigene Dateien entfallen. T900789
+secrets_env: prodmesh-korczewski
 domain: korczewski.de
 
 env_vars:
@@ -94,7 +94,7 @@ env_vars:
 overlay: prod-fleet/korczewski
 workspace_namespace: workspace-korczewski
 website_namespace: website-korczewski
-secrets_ref: sealed-secrets/fleet-korczewski.yaml
+secrets_ref: sealed-secrets/prodmesh-korczewski.yaml
 
 setup_vars:
   KC_USER1_USERNAME: paddione

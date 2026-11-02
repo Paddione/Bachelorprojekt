@@ -165,21 +165,21 @@ tasks:
   # Multi-Cluster Overview
   # ─────────────────────────────────────────────
   clusters:status:
-    desc: Show status of both brands on the unified fleet cluster (mentolder + korczewski)
+    desc: Show status of both brands on the unified prodmesh cluster (mentolder + korczewski)
     cmds:
       - |
         echo "═══ FLEET NODES ═══"
-        kubectl --context fleet get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
+        kubectl --context prodmesh get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
       - |
         echo ""
         echo "═══ MENTOLDER.DE (fleet / ns workspace) ═══"
         echo "  Workspace pods:"
-        kubectl --context fleet get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+        kubectl --context prodmesh get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
       - |
         echo ""
         echo "═══ KORCZEWSKI.DE (fleet / ns workspace-korczewski) ═══"
         echo "  Workspace pods:"
-        kubectl --context fleet get pods -n workspace-korczewski --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+        kubectl --context prodmesh get pods -n workspace-korczewski --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
 
   ha:status:
     desc: Show HA cluster node and pod status (ENV=mentolder|korczewski)
@@ -245,7 +245,7 @@ tasks:
   cicd:kubeconfig:
     desc: "Generate a minimal kubeconfig for the cicd-deploy ServiceAccount (delegates to scripts/cicd-kubeconfig-gen.sh)"
     vars:
-      CONTEXT: '{{.CONTEXT | default "fleet"}}'
+      CONTEXT: '{{.CONTEXT | default "prodmesh"}}'
       NAMESPACE: '{{.NAMESPACE | default "workspace"}}'
     cmds:
       - bash scripts/cicd-kubeconfig-gen.sh "{{.CONTEXT}}" "{{.NAMESPACE}}"
@@ -348,18 +348,18 @@ tasks:
   # website kustomize overlays under flux/apps/ were relocated to prod-fleet/website-{mentolder,korczewski}
   # (applied directly by website:deploy); the flux/ folder is completely removed. Git stays the source of truth.
 
-  fleet:platform:
+  prodmesh:platform:
     desc: "Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand."
     cmds:
       - |
         set -euo pipefail
-        kubectl config use-context fleet
+        kubectl config use-context prodmesh
         # Platform manifests are placeholder-free, so no envsubst is needed here.
         kustomize build prod-fleet/platform/ --load-restrictor=LoadRestrictionsNone \
           | kubectl --context fleet apply --server-side --force-conflicts -f -
 
-  fleet:membership:
-    desc: "Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context fleet get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task fleet:membership"
+  prodmesh:membership:
+    desc: "Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context prodmesh get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task prodmesh:membership"
     cmds:
       - bash scripts/fleet-membership-check.sh
 
@@ -369,12 +369,12 @@ tasks:
       - bash scripts/wg-mesh-sync.sh reconcile --env {{.ENV}} {{.CLI_ARGS}}
 
   wg:drift:
-    desc: "WireGuard-Mesh: vergleicht Ist- gegen Soll-Peer-Menge je Node einer Umgebung, ohne zu aendern. Exit != 0 bei Abweichung mit namentlicher Nennung der Nodes und Peers; Exit 0 bei Deckungsgleichheit ODER wenn kein Node erreichbar ist (Skip, analog fleet:membership). Usage: task wg:drift ENV=fleet"
+    desc: "WireGuard-Mesh: vergleicht Ist- gegen Soll-Peer-Menge je Node einer Umgebung, ohne zu aendern. Exit != 0 bei Abweichung mit namentlicher Nennung der Nodes und Peers; Exit 0 bei Deckungsgleichheit ODER wenn kein Node erreichbar ist (Skip, analog prodmesh:membership). Usage: task wg:drift ENV=fleet"
     cmds:
       - bash scripts/wg-mesh-sync.sh drift --env {{.ENV}}
 
-  fleet:deploy:brand:
-    desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
+  prodmesh:deploy:brand:
+    desc: "Deploy ONE brand's core stack to prodmesh: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task prodmesh:deploy:brand BRAND=prodmesh-korczewski"
     requires:
       vars: [BRAND]
     cmds:
@@ -384,7 +384,7 @@ tasks:
       # applied CronJobs) runs unchanged against the fleet cluster.
       # post-setup is the core post-deploy step that is safe WITHOUT coturn.
       # The Talk wiring phase is deferred to its own brand task because it
-      # requires the shared coturn/Janus (fleet:shared-services) to exist.
+      # requires the shared coturn/Janus (prodmesh:shared-services) to exist.
       # SKIP_TALK_SETUP=true stops workspace:deploy from running its embedded
       # coturn sync + Talk wiring (which hard-fails before coturn exists).
       - task: workspace:deploy
@@ -392,8 +392,8 @@ tasks:
       - task: workspace:post-setup
         vars: { ENV: "{{.BRAND}}" }
 
-  fleet:talk-setup:brand:
-    desc: "Wire ONE brand to the shared coturn/Janus: sync coturn secret from this brand, run talk-setup + recording-setup + transcriber-setup. Run AFTER fleet:shared-services. Usage: task fleet:talk-setup:brand BRAND=fleet-mentolder"
+  prodmesh:talk-setup:brand:
+    desc: "Wire ONE brand to the shared coturn/Janus: sync coturn secret from this brand, run talk-setup + recording-setup + transcriber-setup. Run AFTER prodmesh:shared-services. Usage: task prodmesh:talk-setup:brand BRAND=fleet-mentolder"
     requires:
       vars: [BRAND]
     cmds:
@@ -404,33 +404,33 @@ tasks:
       - task: workspace:transcriber-setup
         vars: { ENV: "{{.BRAND}}" }
 
-  fleet:deploy:
+  prodmesh:deploy:
     desc: "Full Phase 2b deploy: platform → both brands' core → shared office/coturn → both brands' talk-setup. Brings up the COMPLETE stack for both brands on the fleet cluster."
     cmds:
-      - task: fleet:platform
-      - task: fleet:deploy:brand
+      - task: prodmesh:platform
+      - task: prodmesh:deploy:brand
         vars: { BRAND: fleet-mentolder }
-      - task: fleet:deploy:brand
-        vars: { BRAND: fleet-korczewski }
-      - task: fleet:shared-services
-      - task: fleet:talk-setup:brand
+      - task: prodmesh:deploy:brand
+        vars: { BRAND: prodmesh-korczewski }
+      - task: prodmesh:shared-services
+      - task: prodmesh:talk-setup:brand
         vars: { BRAND: fleet-mentolder }
-      - task: fleet:talk-setup:brand
-        vars: { BRAND: fleet-korczewski }
+      - task: prodmesh:talk-setup:brand
+        vars: { BRAND: prodmesh-korczewski }
 
-  fleet:shared-services:
+  prodmesh:shared-services:
     desc: "Deploy the SHARED Collabora (office-stack) + CoTURN/Janus (coturn-stack) ONCE on the fleet cluster, serving both brands. Run AFTER both brand workspace:deploy passes (needs workspace-secrets to exist for coturn sync)."
     cmds:
       - |
         set -euo pipefail
-        kubectl config use-context fleet
+        kubectl config use-context prodmesh
         # --- TLS cert sync: copy wildcard certs to workspace-office and coturn ---
         # tls-sync-manual runs before certs are issued; sync here as a fallback.
         for NS in workspace-office coturn; do
-          kubectl --context fleet get secret workspace-wildcard-tls -n workspace -o json \
+          kubectl --context prodmesh get secret workspace-wildcard-tls -n workspace -o json \
             | jq --arg ns "$NS" 'del(.metadata.resourceVersion,.metadata.uid,.metadata.creationTimestamp,.metadata.managedFields,.metadata.annotations) | .metadata.namespace = $ns' \
             | kubectl --context fleet apply -f - || echo "warn: failed to sync workspace-wildcard-tls to $NS"
-          kubectl --context fleet get secret korczewski-tls -n workspace-korczewski -o json \
+          kubectl --context prodmesh get secret korczewski-tls -n workspace-korczewski -o json \
             | jq --arg ns "$NS" 'del(.metadata.resourceVersion,.metadata.uid,.metadata.creationTimestamp,.metadata.managedFields,.metadata.annotations) | .metadata.namespace = $ns' \
             | kubectl --context fleet apply -f - || echo "warn: failed to sync korczewski-tls to $NS"
         done
@@ -450,7 +450,7 @@ tasks:
         # Capture mentolder TURN vars BEFORE re-sourcing korczewski.
         MENTOLDER_TURN_NODE="$TURN_NODE"; MENTOLDER_TURN_PUBLIC_IP="${TURN_PUBLIC_IP}"
         MENTOLDER_TLS_SECRET_NAME="${TLS_SECRET_NAME:-workspace-tls}"; MENTOLDER_PROD_DOMAIN="$PROD_DOMAIN"
-        ( source scripts/env-resolve.sh fleet-korczewski; echo "office.${PROD_DOMAIN}|https://files\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
+        ( source scripts/env-resolve.sh prodmesh-korczewski; echo "office.${PROD_DOMAIN}|https://files\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
         export COLLABORA_HOST_2="$(cut -d'|' -f1 /tmp/_kore_collabora.txt)"
         export COLLABORA_ALIASGROUP2="$(cut -d'|' -f2 /tmp/_kore_collabora.txt)"
         export COLLABORA_TLS_SECRET_2="korczewski-tls"
@@ -485,8 +485,8 @@ tasks:
         kubectl --context fleet rollout status deploy/hbbs -n rustdesk --timeout=180s
         kubectl --context fleet rollout status deploy/hbbr -n rustdesk --timeout=180s
 
-  fleet:dns:cutover:
-    desc: "Flip a brand's cluster A-records onto the fleet nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task fleet:dns:cutover ENV=fleet-mentolder [ACTION=cutover]"
+  prodmesh:dns:cutover:
+    desc: "Flip a brand's cluster A-records onto the prodmesh nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task prodmesh:dns:cutover ENV=fleet-mentolder [ACTION=cutover]"
     requires:
       vars: [ENV]
     cmds:
@@ -498,8 +498,8 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         bash scripts/fleet-dns-cutover.sh '{{.ACTION | default "plan"}}'
 
-  fleet:dns:rollback:
-    desc: "Restore a brand's A-records from the rollback state file captured by the last cutover. Usage: task fleet:dns:rollback ENV=fleet-mentolder"
+  prodmesh:dns:rollback:
+    desc: "Restore a brand's A-records from the rollback state file captured by the last cutover. Usage: task prodmesh:dns:rollback ENV=fleet-mentolder"
     requires:
       vars: [ENV]
     cmds:

@@ -32,7 +32,7 @@ SECRETS_ESCAPED = 'ESCAPED_KEY: "alpha\\nbeta"\n'
 # .secrets files consumed by env-seal (have a sealed-secrets/ output twin).
 SEAL_INPUT_FILES = (
     "fleet-mentolder.yaml",
-    "fleet-korczewski.yaml",
+    "prodmesh-korczewski.yaml",
     "staging.yaml",
     "dev.yaml",
 )

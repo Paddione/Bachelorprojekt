@@ -3,7 +3,7 @@
 Rot-Anker: Bridge-Endpoints zeigten auf die Overlay-IP des abgebauten
 pk-hetzner-4 (10.20.0.1, LAN-Netz) statt auf den TURN_NODE — seit
 brand-trennung p8 ist pk-hetzner-4 der TURN_NODE (TURN_OVERLAY_IP aus
-environments/fleet-korczewski.yaml), die Bridge zeigt korrekt dorthin.
+environments/prodmesh-korczewski.yaml), die Bridge zeigt korrekt dorthin.
 """
 import os
 import shutil
@@ -19,7 +19,7 @@ SYNTH_DIGESTS = {
 }
 
 # TURN-Overlay-IP des TURN_NODE pk-hetzner-4
-# (environments/fleet-korczewski.yaml, per Render-Lauf belegt).
+# (environments/prodmesh-korczewski.yaml, per Render-Lauf belegt).
 TURN_NODE_INTERNAL_IP = "10.20.0.1"
 
 

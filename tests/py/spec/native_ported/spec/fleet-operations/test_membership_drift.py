@@ -91,5 +91,5 @@ def test_t002630_p3_skript_exit_0_bei_deckungsgleichheit(script, tmp_path, run_c
 def test_t002630_p3_taskfile_yml_enthaelt_task_fleet_membership_s4_erreichbarkeit(repo_root):
     taskfile = repo_root / "taskfiles" / "Taskfile.platform.yml"
     assert taskfile.is_file(), f"MISSING: {taskfile}"
-    assert "fleet:membership" in taskfile.read_text(encoding="utf-8"), \
-        "FAIL: Taskfile.yml enthaelt keinen fleet:membership Task"
+    assert "prodmesh:membership" in taskfile.read_text(encoding="utf-8"), \
+        "FAIL: Taskfile.yml enthaelt keinen prodmesh:membership Task"

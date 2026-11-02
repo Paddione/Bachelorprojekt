@@ -5,7 +5,7 @@
 # Der Stack bleibt bewusst AUSSERHALB Flux/Kustomize-Roots: ein GitOps-
 # Reconcile würde das imperative Scale-to-0 des Sleeper-Jobs zurücknehmen
 # (Präzedenz: coturn/janus werden ebenfalls separat betrieben). Die Render-
-# Pipeline ist 1:1 aus `fleet:shared-services` übernommen; deploy/wake rollieren
+# Pipeline ist 1:1 aus `prodmesh:shared-services` übernommen; deploy/wake rollieren
 # damit auch die T014553-Härtung der Manifeste aus.
 #
 # Usage:
@@ -19,7 +19,7 @@ version: "3"
 tasks:
 
   deploy:
-    desc: "Full bring-up of the rustdesk relay stack on fleet (render pipeline like fleet:shared-services) + sleeper job. Usage: task rustdesk:deploy [ENV=mentolder]"
+    desc: "Full bring-up of the rustdesk relay stack on prodmesh (render pipeline like prodmesh:shared-services) + sleeper job. Usage: task rustdesk:deploy [ENV=mentolder]"
     # ENV wählt nur das Env-File, aus dem ${TURN_NODE} (Node-Pinning der
     # Relay-Ports) stammt; der Kontext ist fest `fleet`.
     vars:

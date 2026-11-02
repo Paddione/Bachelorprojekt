@@ -45,7 +45,7 @@ Deploy- und Plattform-Secrets. Welche Datei zaehlt:
 
 | Datei | Zweck |
 |---|---|
-| `fleet-korczewski.yaml` | Prod korczewski: Workspace eingefroren (T002479), aber aktiv für Massage-Website und Pocket ID (T901440): `WEBSITE_MASSAGE_DB_PASSWORD`, `POCKET_ID_KORCZEWSKI_DB_PASSWORD`, `flux-sealed-secrets-korczewski` bleibt aktiv |
+| `prodmesh-korczewski.yaml` | Prod korczewski: Workspace eingefroren (T002479), aber aktiv für Massage-Website und Pocket ID (T901440): `WEBSITE_MASSAGE_DB_PASSWORD`, `POCKET_ID_KORCZEWSKI_DB_PASSWORD`, `flux-sealed-secrets-korczewski` bleibt aktiv |
 | `dev.yaml` | devmesh |
 | `dev-tools.yaml` | Entwickler-Werkzeuge (`GITHUB_PERSONAL_ACCESS_TOKEN`, `OPENCODE_API_KEY`, ...) |
 | `staging.yaml` | Staging |
@@ -65,7 +65,7 @@ grep -n -A4 'name: FILEN_PASSWORD$' environments/schema.yaml   # Bedeutung und P
 grep -l '^FILEN_PASSWORD:' environments/.secrets/*.yaml         # in welchen Dateien
 # lesen, ohne auszugeben (YAML-Parser, damit Quoting korrekt aufgeloest wird):
 FILEN_PASSWORD=$(python3 -c 'import sys,yaml;print(yaml.safe_load(open(sys.argv[1]))[sys.argv[2]])' \
-  environments/.secrets/fleet-korczewski.yaml FILEN_PASSWORD)
+  environments/.secrets/prodmesh-korczewski.yaml FILEN_PASSWORD)
 ```
 
 In einem Worktree gilt dasselbe, sofern er ueber `scripts/worktree-create.sh` angelegt wurde.

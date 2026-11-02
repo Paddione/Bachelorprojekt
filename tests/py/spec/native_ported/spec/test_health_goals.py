@@ -311,7 +311,7 @@ def test_g_ops01a_fleet_korczewski_secrets_file_has_every_workspace_secrets_key_
 ):
     pytest.skip("Pre-existing regression — follow-up via T002222/T002223 mishap bundles")
     required_file = repo_root / "k3d" / "oauth2-proxy-terminal.yaml"
-    secrets_file = repo_root / "environments" / ".secrets" / "fleet-korczewski.yaml"
+    secrets_file = repo_root / "environments" / ".secrets" / "prodmesh-korczewski.yaml"
     if not required_file.is_file():
         pytest.skip(f"{required_file} not found")
     if not secrets_file.is_file():
@@ -321,7 +321,7 @@ def test_g_ops01a_fleet_korczewski_secrets_file_has_every_workspace_secrets_key_
     missing = sorted(_required_workspace_secret_keys(yaml_load, required_file) - present)
     assert not missing, (
         "k3d/oauth2-proxy-terminal.yaml requires these workspace-secrets keys but "
-        "environments/.secrets/fleet-korczewski.yaml is missing them: " + ", ".join(missing)
+        "environments/.secrets/prodmesh-korczewski.yaml is missing them: " + ", ".join(missing)
     )
 
 

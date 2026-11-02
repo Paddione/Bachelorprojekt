@@ -71,10 +71,10 @@ def test_every_dev_secret_exists_in_schema(repo_root: Path):
 
 def test_every_required_schema_secret_exists_in_fleet_korczewski(repo_root: Path):
     schema_path = repo_root / "environments" / "schema.yaml"
-    sealed_path = repo_root / "environments" / "sealed-secrets" / "fleet-korczewski.yaml"
+    sealed_path = repo_root / "environments" / "sealed-secrets" / "prodmesh-korczewski.yaml"
 
     required = _schema_required_keys(schema_path)
     sealed = _sealed_keys(sealed_path)
 
     missing = sorted(required - sealed)
-    assert not missing, f"Required keys in schema but missing from fleet-korczewski.yaml: {missing}"
+    assert not missing, f"Required keys in schema but missing from prodmesh-korczewski.yaml: {missing}"

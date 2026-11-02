@@ -33,7 +33,7 @@ case "$ENV" in
     HEALTH_URL="https://web.mentolder.de/api/health"
     BRAND="mentolder"
     ;;
-  korczewski|fleet-korczewski)
+  korczewski|prodmesh-korczewski|fleet-korczewski)
     HEALTH_URL="https://web.korczewski.de/api/health"
     BRAND="korczewski"
     ;;

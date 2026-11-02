@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.449.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.449.0...website-v1.449.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **docs:** G-KNOW02-Ratchet 367-&gt;372, stale Skill-Links prunen ([#7106](https://github.com/Paddione/Bachelorprojekt/issues/7106)) ([61ce45b](https://github.com/Paddione/Bachelorprojekt/commit/61ce45bce10c1bfd1d23578d2ee81c4015fe6d19))
+
 ## [1.449.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.448.0...website-v1.449.0) (2026-11-02)
 
 

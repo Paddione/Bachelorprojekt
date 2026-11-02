@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-102 Services · 2096 Abhängigkeitskanten · 316 API-Endpoints
+103 Services · 2113 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -91,6 +91,7 @@ flowchart LR
   tests_results_retention["tests-results-retention"]:::default
   vaultwarden["vaultwarden"]:::default
   videovault["videovault"]:::default
+  website_massage["website-massage"]:::default
   whiteboard["whiteboard"]:::default
   coredns["coredns"]:::default
   tls_sync["tls-sync"]:::default
@@ -150,7 +151,6 @@ flowchart LR
   nextcloud -->|"configmap:nextclou…"| spreed_signaling
   notify_unread -->|"command"| website
   oauth2_proxy_brett -->|"command"| brett
-  oauth2_proxy_massage_korczewski -->|"command"| website
   oauth2_proxy_traefik -->|"command"| traefik
   oauth2_proxy_web_korczewski -->|"command"| website
   pocket_id -->|"DB_CONNECTION_STRING"| shared_db
@@ -176,6 +176,10 @@ flowchart LR
   vaultwarden -->|"configmap:domain-c…"| brett
   vaultwarden -->|"configmap:domain-c…"| traefik
   videovault -->|"DATABASE_URL"| shared_db
+  website_massage -->|"SESSIONS_DATABASE_…"| website
+  website_massage -->|"configmap:website-…"| nextcloud
+  website_massage -->|"configmap:website-…"| brett
+  website_massage -->|"configmap:domain-c…"| traefik
   website -->|"SESSIONS_DATABASE_…"| shared_db
   website -->|"configmap:website-…"| nextcloud
   website -->|"configmap:website-…"| brett
@@ -263,6 +267,7 @@ flowchart LR
   spreed_signaling -->|"selector"| spreed_signaling
   talk_recording -->|"selector"| talk_recording
   videovault -->|"selector"| videovault
+  website_massage -->|"selector"| website_massage
   whiteboard -->|"selector"| whiteboard
   talk_transcriber -->|"selector"| talk_transcriber
   whisper -->|"selector"| whisper
@@ -2136,16 +2141,25 @@ flowchart LR
   systemtest_outbox -->|"secret:website-sec…"| systemtest_cleanup
   systemtest_cleanup -->|"secret:website-sec…"| sdlc_console
   sdlc_console -->|"secret:website-sec…"| systemtest_cleanup
+  systemtest_cleanup -->|"secret:website-sec…"| website_massage
+  website_massage -->|"secret:website-sec…"| systemtest_cleanup
   website -->|"secret:website-sec…"| systemtest_cleanup
   systemtest_purge_all -->|"secret:website-sec…"| systemtest_outbox
   systemtest_outbox -->|"secret:website-sec…"| systemtest_purge_all
   systemtest_purge_all -->|"secret:website-sec…"| sdlc_console
   sdlc_console -->|"secret:website-sec…"| systemtest_purge_all
+  systemtest_purge_all -->|"secret:website-sec…"| website_massage
+  website_massage -->|"secret:website-sec…"| systemtest_purge_all
   website -->|"secret:website-sec…"| systemtest_purge_all
   systemtest_outbox -->|"secret:website-sec…"| sdlc_console
   sdlc_console -->|"secret:website-sec…"| systemtest_outbox
+  systemtest_outbox -->|"secret:website-sec…"| website_massage
+  website_massage -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| systemtest_outbox
+  sdlc_console -->|"secret:website-sec…"| website_massage
+  website_massage -->|"secret:website-sec…"| sdlc_console
   website -->|"secret:website-sec…"| sdlc_console
+  website -->|"secret:website-sec…"| website_massage
   dev_pod -->|"secret:shared-db-d…"| sdlc_console
   sdlc_console -->|"secret:shared-db-d…"| dev_pod
   dev_pod -->|"secret:shared-db-d…"| shared_db_dev
@@ -2226,6 +2240,7 @@ flowchart TB
     talk_recording["talk-recording"]
     vaultwarden["vaultwarden"]
     videovault["videovault"]
+    website_massage["website-massage"]
     whiteboard["whiteboard"]
     talk_transcriber["talk-transcriber"]
     whisper["whisper"]

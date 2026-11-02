@@ -94,10 +94,10 @@ echo
 echo "── Proxy-Backends ──"
 if have jq; then
   state="$(curl -s -m 5 "http://127.0.0.1:$PROXY_PORT/admin/state" 2>/dev/null)"
-  if [ -n "$state" ]; then
+  if [ -n "$state" ] && printf '%s' "$state" | jq -e '.backends | type == "array"' >/dev/null 2>&1; then
     printf '%s' "$state" | jq -r '.backends[] | "\(.name) healthy=\(.healthy) models=\(.models|join(","))"' 2>/dev/null
   else
-    echo "proxy nicht erreichbar"
+    echo "proxy nicht erreichbar oder Backend-Status nicht verfügbar"
   fi
 else
   echo "(jq fehlt)"

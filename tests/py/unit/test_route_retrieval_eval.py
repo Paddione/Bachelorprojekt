@@ -1,7 +1,11 @@
 """Regression checks for the frozen route retrieval benchmark."""
 
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
+
+import pytest
 
 
 SCRIPT = Path(__file__).resolve().parents[3] / "scripts/route-retrieval-eval.py"
@@ -11,6 +15,10 @@ SPEC.loader.exec_module(eval_module)
 
 
 def test_frozen_snapshot_keeps_inline_routes(repo_root):
+    revision = json.loads((repo_root / "docs/brain/corpus-freeze.json").read_text())["frozen_at_commit"]
+    available = subprocess.run(["git", "-C", str(repo_root), "cat-file", "-e", revision + "^{commit}"], capture_output=True)
+    if available.returncode and subprocess.run(["git", "-C", str(repo_root), "rev-parse", "--is-shallow-repository"], capture_output=True, text=True).stdout.strip() == "true":
+        pytest.skip("frozen commit is absent from shallow checkout")
     snapshot = eval_module.load_snapshot(repo_root)
     assert len(snapshot["queries"]) == 349
     assert len(snapshot["documents"]) == 119

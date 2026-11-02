@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-# Unit tests for the fleet DNS cutover mechanism.
+# Unit tests for the prodmesh DNS cutover mechanism (fleet = alias).
 
 
 def _grep_after(lines, pattern: str, after: int) -> str:
@@ -78,7 +78,7 @@ def test_fleet_korczewski_env_pins_turn_public_ip_to_pk_hetzner_4(repo_root):
     # brand-trennung p8: coturn/Janus laufen auf pk-hetzner-4 (ohne WG) — der
     # Pin zeigt auf dessen oeffentliche IP (Wert per Lauf verifiziert, nichts
     # erfunden); die alten Nodes sind raus.
-    out = _grep_e(repo_root / "environments" / "fleet-korczewski.yaml", "TURN_PUBLIC_IP")
+    out = _grep_e(repo_root / "environments" / "prodmesh-korczewski.yaml", "TURN_PUBLIC_IP")
     assert out != ""
     assert "204.168.244.104" in out
     assert "178.104.169.206" not in out
@@ -151,15 +151,15 @@ def test_rollback_fails_loudly_when_no_state_file_exists(run_cmd, cutover_script
 
 def test_taskfile_declares_fleet_dns_cutover_and_fleet_dns_rollback(repo_root):
     out = _grep_e(repo_root / "taskfiles" / "Taskfile.platform.yml",
-                  r"^[ \t]+fleet:dns:(cutover|rollback):")
+                  r"^[ \t]+prodmesh:dns:(cutover|rollback):")
     assert out != ""
-    assert "fleet:dns:cutover:" in out
-    assert "fleet:dns:rollback:" in out
+    assert "prodmesh:dns:cutover:" in out
+    assert "prodmesh:dns:rollback:" in out
 
 
 def test_fleet_shared_services_uses_office_hosts_not_collabora_for_collabora(repo_root):
     lines = (repo_root / "taskfiles" / "Taskfile.platform.yml").read_text(encoding="utf-8").splitlines()
-    out = _grep_after(lines, "fleet:shared-services:", 25)
+    out = _grep_after(lines, "prodmesh:shared-services:", 25)
     assert out != ""
     assert 'COLLABORA_HOST="office.' in out
     assert 'COLLABORA_HOST="collabora.' not in out
@@ -167,7 +167,7 @@ def test_fleet_shared_services_uses_office_hosts_not_collabora_for_collabora(rep
 
 def test_fleet_shared_services_aliasgroup_references_files_not_cloud(repo_root):
     lines = (repo_root / "taskfiles" / "Taskfile.platform.yml").read_text(encoding="utf-8").splitlines()
-    out = _grep_after(lines, "fleet:shared-services:", 25)
+    out = _grep_after(lines, "prodmesh:shared-services:", 25)
     assert out != ""
     # Taskfile uses double-backslash (YAML literal block -> envsubst escaping).
     assert r'ALIASGROUP1="https://files\\' in out

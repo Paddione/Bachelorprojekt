@@ -240,12 +240,12 @@ render_component() {
 cd "$PROJECT_DIR"
 
 # 1. Platform (korczewski-only seit brand-trennung p8: fleet-mentolder
-# geloescht, Env ist fleet-korczewski mit PROD_DOMAIN=korczewski.de und
+# geloescht, Env ist prodmesh-korczewski mit PROD_DOMAIN=korczewski.de und
 # WORKSPACE_NAMESPACE=workspace-korczewski).
 if want platform; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
   apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
@@ -261,7 +261,7 @@ fi
 if want korczewski; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
   apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
@@ -277,7 +277,7 @@ fi
 if want korczewski-jobs; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
   apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
@@ -293,7 +293,7 @@ fi
 if want website-korczewski; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
   apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
@@ -308,7 +308,7 @@ fi
 if want korczewski-auth; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
   apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
@@ -348,10 +348,10 @@ fi
 
 # 5d. Coturn/Janus (T016529) — Talk-HPB auf pk-hetzner-4 (hostNetwork,
 #     ohne WG). Env-Mapping brand-trennung p8 (fleet-mentolder -> fleet-korczewski,
-#     Werte aus environments/fleet-korczewski.yaml, nichts erfunden):
+#     Werte aus environments/prodmesh-korczewski.yaml, nichts erfunden):
 #       TURN_NODE  gekko-hetzner-2 -> pk-hetzner-4
 #       TURN_PUBLIC_IP  178.104.169.206 -> 204.168.244.104
-#       TURN_OVERLAY_IP  192.168.200.2 -> siehe environments/fleet-korczewski.yaml
+#       TURN_OVERLAY_IP  192.168.200.2 -> siehe environments/prodmesh-korczewski.yaml
 #         (pk-hetzner-4-Overlay-IP; wörtlicher Wert hier ausgespart, damit der
 #         fleet-no-wireguard-Guard (kein 10.20.0.x im Prod-Umfang) scharf bleibt)
 #       PROD_DOMAIN  mentolder.de -> korczewski.de
@@ -361,7 +361,7 @@ fi
 if want coturn; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
   apply_schema_defaults
   mkdir -p "${OUT_DIR}/coturn"
   render_component prod-fleet/coturn "${OUT_DIR}/coturn/coturn.yaml"
@@ -370,7 +370,7 @@ fi
 
 # 5e. Collabora (office-stack) fuer korczewski (brand-trennung p8:
 #     fleet-mentolder -> fleet-korczewski; PROD_DOMAIN=korczewski.de und
-#     TLS_SECRET_NAME=korczewski-tls aus environments/fleet-korczewski.yaml).
+#     TLS_SECRET_NAME=korczewski-tls aus environments/prodmesh-korczewski.yaml).
 #     Die COLLABORA_*-Werte leitet sonst nur Taskfile.platform.yml
 #     (fleet:shared-services) ab; hier dieselbe Ableitung. aliasgroup1 ist
 #     ein Regex: `\\.` ergibt nach dem Quoten durch render_component ein
@@ -378,7 +378,7 @@ fi
 if want office; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
   apply_schema_defaults
   export COLLABORA_HOST="office.${PROD_DOMAIN}"
   export COLLABORA_SERVER_NAME=""
@@ -394,13 +394,13 @@ fi
 
 # 5f. RustDesk-Relay (hbbs/hbbr) fuer korczewski (brand-trennung p8:
 #     fleet-mentolder -> fleet-korczewski; TURN_NODE=pk-hetzner-4 aus
-#     environments/fleet-korczewski.yaml). Substituiert wird nur
+#     environments/prodmesh-korczewski.yaml). Substituiert wird nur
 #     ${TURN_NODE} (Knoten-Pin wie coturn); always-on, ohne den
 #     On-demand-Sleeper (T015170).
 if want rustdesk; then
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
   apply_schema_defaults
   mkdir -p "${OUT_DIR}/rustdesk"
   render_component prod-fleet/rustdesk "${OUT_DIR}/rustdesk/rustdesk.yaml"
@@ -415,7 +415,7 @@ fi
 # Je Brand einzeln schaltbar (--only sealed-secrets-korczewski usw.).
 if want sealed-secrets-korczewski; then
   mkdir -p "${OUT_DIR}/sealed-secrets/korczewski"
-  cp environments/sealed-secrets/fleet-korczewski.yaml "${OUT_DIR}/sealed-secrets/korczewski/fleet-korczewski.yaml"
+  cp environments/sealed-secrets/prodmesh-korczewski.yaml "${OUT_DIR}/sealed-secrets/korczewski/prodmesh-korczewski.yaml"
 fi
 # T015004: Staging-SealedSecrets sind bereits auf workspace-staging/
 # website-staging/monitoring gesealed (environments/sealed-secrets/staging.yaml).

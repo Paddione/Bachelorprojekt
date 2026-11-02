@@ -7,7 +7,7 @@ def test_backup_email_declared_and_set(repo_root):
     assert 'required: true' in '\n'.join(lines[index:index+4])
     # brand-trennung p5: environments/mentolder.yaml + fleet-mentolder.yaml
     # geloescht — Restliste der existierenden Envs (alle mit gleichem Wert).
-    for env in ['korczewski', 'fleet-korczewski', 'staging']:
+    for env in ['korczewski', 'prodmesh-korczewski', 'staging']:
         assert 'BACKUP_ALERT_EMAIL: patrick@korczewski.de' in (repo_root / f'environments/{env}.yaml').read_text()
 
 def test_alertmanager_no_backup_mailbox(repo_root):

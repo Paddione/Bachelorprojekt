@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 ENV_FILES = [
     "environments/staging.yaml",
     "environments/korczewski.yaml",
-    "environments/fleet-korczewski.yaml",
+    "environments/prodmesh-korczewski.yaml",
 ]
 
 

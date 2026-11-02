@@ -114,7 +114,7 @@ def test_sealed_secrets_fleet_mentolder_yaml_exists_and_has_encrypteddata(repo_r
 
 
 def test_sealed_secrets_fleet_korczewski_yaml_exists_and_has_encrypteddata(repo_root):
-    _sealed_has_encrypted_data(repo_root, "fleet-korczewski.yaml")
+    _sealed_has_encrypted_data(repo_root, "prodmesh-korczewski.yaml")
 
 
 TOKEN_RE = re.compile(r'"(ghp_|github_pat_|sk-|xox)[A-Za-z0-9_\-]{5,}')

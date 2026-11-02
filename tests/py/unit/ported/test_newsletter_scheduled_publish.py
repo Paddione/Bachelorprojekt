@@ -59,7 +59,7 @@ def test_stale_sending_locks_are_reset_after_10_minutes(db):
 # Geprueft wird deshalb die Aufloesung: Basis-URL + Namespace-Variable des Overlays.
 def test_korczewski_patch_points_scheduled_publish_at_its_own_namespace(repo_root, rendered, yaml_load):
     assert "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/cron/scheduled-publish" in rendered
-    for env_file in ("korczewski.yaml", "fleet-korczewski.yaml"):
+    for env_file in ("korczewski.yaml", "prodmesh-korczewski.yaml"):
         env = yaml_load(repo_root / "environments" / env_file)
         assert env["env_vars"]["WEBSITE_NAMESPACE"] == "website-korczewski", env_file
     patch = (repo_root / "prod-korczewski" / "patch-cronjob-urls.yaml").read_text(encoding="utf-8")

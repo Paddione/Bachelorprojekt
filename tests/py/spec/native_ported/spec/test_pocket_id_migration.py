@@ -205,14 +205,14 @@ def test_pocket_id_korczewski_env_file_sets_pocket_id_frontend_url_https_auth_ko
 def test_pocket_id_fleet_mentolder_env_file_entfernt_brand_trennung_p5(P):
     # brand-trennung p5: environments/fleet-mentolder.yaml geloescht —
     # Negativ-Anker; POCKET_ID_FRONTEND_URL-Aequivalent aus
-    # environments/fleet-korczewski.yaml (dort verifiziert vorhanden).
+    # environments/prodmesh-korczewski.yaml (dort verifiziert vorhanden).
     assert not (P.env / "fleet-mentolder.yaml").exists(), \
         "environments/fleet-mentolder.yaml existiert noch (brand-trennung p5)"
-    assert _has(P.env / "fleet-korczewski.yaml", r'^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.korczewski\.de"')
+    assert _has(P.env / "prodmesh-korczewski.yaml", r'^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.korczewski\.de"')
 
 
 def test_pocket_id_fleet_korczewski_env_file_sets_pocket_id_frontend_url_https_auth_korczewski_de(P):
-    assert _has(P.env / "fleet-korczewski.yaml", r'^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.korczewski\.de"')
+    assert _has(P.env / "prodmesh-korczewski.yaml", r'^\s*POCKET_ID_FRONTEND_URL:\s*"https://auth\.korczewski\.de"')
 
 
 def test_pocket_id_taskfile_workspace_deploy_envsubst_list_contains_all_three_tokens(P):

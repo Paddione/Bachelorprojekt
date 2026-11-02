@@ -25,7 +25,7 @@ import { parse as parseYaml } from 'yaml';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const REGISTRY = join(REPO, 'docs/agent-guide/registry/domains.yaml');
 const OUT = join(REPO, 'docs/agent-guide/maps/domains-graph.md');
-const ENV_FILE = { prodmesh: 'environments/fleet-korczewski.yaml', devmesh: 'environments/dev.yaml' };
+const ENV_FILE = { prodmesh: 'environments/prodmesh-korczewski.yaml', devmesh: 'environments/dev.yaml' };
 const MESH_ALIAS = { fleet: 'prodmesh' };
 const TIMEOUT = 10000;
 const WARN_DAYS = 14;

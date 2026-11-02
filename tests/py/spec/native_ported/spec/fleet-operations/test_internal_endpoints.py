@@ -13,7 +13,7 @@ def test_bge_hosts_are_centrally_registered_schema_configmap_prod_overlay(repo_r
     assert "name: BGE_EMBED_HOST" in schema
     assert "name: BGE_RERANK_HOST" in schema
     assert 'BGE_EMBED_HOST: "embed.localhost"' in _read(repo_root, "k3d/configmap-domains.yaml")
-    fleet = _read(repo_root, "environments/fleet-korczewski.yaml")
+    fleet = _read(repo_root, "environments/prodmesh-korczewski.yaml")
     assert 'BGE_EMBED_HOST: "bge-embed.korczewski.de"' in fleet
     assert 'BGE_RERANK_HOST: "bge-rerank.korczewski.de"' in fleet
     # T016544: Prod-Patch ist entfallen (llm-gateway-Routen aus dem

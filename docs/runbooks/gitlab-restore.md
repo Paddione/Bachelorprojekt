@@ -92,7 +92,7 @@ wieder als ADDED aufnimmt. Der Volltext der Requirements stammt aus
 |---|---|---|
 | `GITLAB_MIRROR_TOKEN` | GitHub-Repository-Secret | GitLab-Project-Access-Token (`glpat-`), Scope `write_repository` |
 | `GITLAB_MIRROR_URL` | GitHub-Repository-Secret | Vollstaendige Projekt-URL mit Schema, ohne Trailing-Slash |
-| `GITLAB_RUNNER_TOKEN` | `environments/.secrets/fleet-korczewski.yaml` (Key dort neu anlegen, die mentolder-Datei ist entfernt), danach `task env:seal ENV=fleet-korczewski` | `glrt-`-Authentication-Token des Project Runners |
+| `GITLAB_RUNNER_TOKEN` | `environments/.secrets/prodmesh-korczewski.yaml` (Key dort neu anlegen, die mentolder-Datei ist entfernt), danach `task env:seal ENV=prodmesh-korczewski` | `glrt-`-Authentication-Token des Project Runners |
 | `GITLAB_RUNNER_REGISTRATION_TOKEN` | derselbe Eintrag | bleibt absichtlich leer (das Chart verlangt den Key, dieses Repo nutzt nur den `glrt-`-Fluss) |
 | `gitlab-registry-auth` | Cluster-Secret in `flux-system` | GitLab-Deploy-Token mit Scope `read_registry` (nur falls die Fallback-Quelle gewollt ist) |
 | `GITLAB_REGISTRY_PREFIX` | GitHub-Repository-Secret | Registry-Praefix ohne Schema und Slash (nur falls der Registry-Spiegel gewollt ist; war nie gesetzt) |

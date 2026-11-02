@@ -171,14 +171,14 @@ jobs:
           WEBSITE_IMAGE: website
           WEBSITE_NAMESPACE: website-korczewski
           WORKSPACE_NAMESPACE: workspace-korczewski
-          # T901440: zentrale DB-Koordinaten (identisch zu environments/fleet-korczewski.yaml)
+          # T901440: zentrale DB-Koordinaten (identisch zu environments/prodmesh-korczewski.yaml)
           WEBSITE_DB_NAMESPACE: workspace
           WEBSITE_DB_NAME: website_massage
           WEBSITE_DB_USER: website_massage
           TLS_SECRET_NAME: korczewski-tls
           SYSTEMTEST_LOOP_ENABLED: "true"
           # T901777: Cluster-CIDRs fuer die NetworkPolicies in k3d/website.yaml
-          # (Fleet-Cluster = k3s-Defaults; vgl. environments/fleet-korczewski.yaml).
+          # (Prod-Cluster = k3s-Defaults; vgl. environments/prodmesh-korczewski.yaml).
           POD_CIDR: "10.42.0.0/16"
           SERVICE_CIDR: "10.43.0.0/16"
           COMFY_HOST_IP: "10.13.14.10"
@@ -286,7 +286,7 @@ jobs:
           done
           if [[ -n "$MISSING" ]]; then
             echo "::error::website-secrets missing required keys:$MISSING"
-            echo "Fix: task env:seal ENV=fleet-korczewski (Keys WEBSITE_MASSAGE_DB_PASSWORD etc.)"
+            echo "Fix: task env:seal ENV=prodmesh-korczewski (Keys WEBSITE_MASSAGE_DB_PASSWORD etc.)"
             exit 1
           fi
           sed -E 's/\$\$([a-zA-Z0-9_\{])/$\1/g' <<<"$SUBSTITUTED" \

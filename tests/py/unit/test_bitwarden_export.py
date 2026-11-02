@@ -62,8 +62,8 @@ def fixture_env(tmp_path):
     secrets_dir.mkdir(parents=True)
     (env_dir / "schema.yaml").write_text(yaml.safe_dump(FIXTURE_SCHEMA))
     for tenant in ("korczewski",):
-        (env_dir / f"fleet-{tenant}.yaml").write_text(yaml.safe_dump(FIXTURE_ENV))
-        (secrets_dir / f"fleet-{tenant}.yaml").write_text(yaml.safe_dump(FIXTURE_SECRETS))
+        (env_dir / f"prodmesh-{tenant}.yaml").write_text(yaml.safe_dump(FIXTURE_ENV))
+        (secrets_dir / f"prodmesh-{tenant}.yaml").write_text(yaml.safe_dump(FIXTURE_SECRETS))
     return {"env_dir": env_dir, "secrets_dir": secrets_dir, "export_dir": export_dir}
 
 

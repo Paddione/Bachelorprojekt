@@ -28,7 +28,7 @@ def test_t900789_secrets_env_for_loest_legacy_envs_auf_fleet_brand_auf(repo_root
     assert res.returncode == 0, res.output
     assert res.output == "mentolder"
     res = _secrets_env_for(run_cmd, repo_root, helper, "korczewski")
-    assert res.output == "fleet-korczewski"
+    assert res.output == "prodmesh-korczewski"
 
 
 def test_t900789_secrets_env_for_ohne_feld_liefert_den_env_namen_selbst(repo_root, helper, run_cmd):
@@ -80,5 +80,5 @@ def test_t900789_env_generate_env_seal_secret_rotate_loesen_ueber_secrets_env_au
         timeout=300,
     )
     assert res.returncode != 0, res.output
-    assert "fleet-korczewski" in res.output
+    assert "prodmesh-korczewski" in res.output
     assert not (repo_root / "environments" / ".secrets" / "korczewski.yaml").exists()

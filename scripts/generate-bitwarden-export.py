@@ -313,8 +313,8 @@ def tenants(env_dir=ENV_DIR, secrets_dir=SECRETS_DIR):
             "id": "korczewski",
             "name": "Korczewski",
             "folder_id": "22222222-2222-2222-2222-222222222222",
-            "env_file": os.path.join(env_dir, "fleet-korczewski.yaml"),
-            "secret_file": os.path.join(secrets_dir, "fleet-korczewski.yaml"),
+            "env_file": os.path.join(env_dir, "prodmesh-korczewski.yaml"),
+            "secret_file": os.path.join(secrets_dir, "prodmesh-korczewski.yaml"),
             "domain": "korczewski.de"
         }
     ]

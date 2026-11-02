@@ -65,25 +65,25 @@ def workspace(repo_root):
 def _deploy_brand_block(platform):
     return _awk_block(
         platform,
-        lambda l: l.startswith("  fleet:deploy:brand:"),
-        lambda l: "fleet:deploy:brand:" in l,
+        lambda l: l.startswith("  prodmesh:deploy:brand:"),
+        lambda l: "prodmesh:deploy:brand:" in l,
     )
 
 
 def _deploy_block(platform):
     return _awk_block(
         platform,
-        lambda l: l.startswith("  fleet:deploy:") and l.endswith("fleet:deploy:"),
-        lambda l: l.endswith("fleet:deploy:"),
+        lambda l: l.startswith("  prodmesh:deploy:") and l.endswith("prodmesh:deploy:"),
+        lambda l: l.endswith("prodmesh:deploy:"),
     )
 
 
 def test_fleet_shared_services_task_exists(platform):
-    assert _grep_q(platform, r"^\s+fleet:shared-services:")
+    assert _grep_q(platform, r"^\s+prodmesh:shared-services:")
 
 
 def test_fleet_talk_setup_brand_task_exists(platform):
-    assert _grep_q(platform, r"^\s+fleet:talk-setup:brand:")
+    assert _grep_q(platform, r"^\s+prodmesh:talk-setup:brand:")
 
 
 def test_fleet_deploy_brand_runs_workspace_deploy_and_post_setup_but_not_talk_setup(platform):
@@ -95,15 +95,15 @@ def test_fleet_deploy_brand_runs_workspace_deploy_and_post_setup_but_not_talk_se
 
 def test_fleet_deploy_deploys_shared_services_exactly_once_not_per_brand(platform):
     block = _deploy_block(platform)
-    count = sum(1 for line in block if "fleet:shared-services" in line)
+    count = sum(1 for line in block if "prodmesh:shared-services" in line)
     assert count == 1
 
 
 def test_fleet_deploy_orders_shared_services_after_both_brand_deploys_before_talk_setup(platform):
     block = _deploy_block(platform)
-    shared_line = _first_line_no(block, "fleet:shared-services")
-    talk_line = _first_line_no(block, "fleet:talk-setup:brand")
-    brand_line = _last_line_no(block, "fleet:deploy:brand")
+    shared_line = _first_line_no(block, "prodmesh:shared-services")
+    talk_line = _first_line_no(block, "prodmesh:talk-setup:brand")
+    brand_line = _last_line_no(block, "prodmesh:deploy:brand")
     assert None not in (shared_line, talk_line, brand_line)
     assert brand_line < shared_line
     assert shared_line < talk_line
@@ -137,20 +137,20 @@ def test_fleet_mentolder_env_entfernt_brand_trennung_p5(repo_root):
 
 
 def test_fleet_korczewski_env_uses_korczewski_de_as_prod_domain_not_staging_fleet_infix(repo_root):
-    lines = [l for l in _read(repo_root / "environments" / "fleet-korczewski.yaml") if "PROD_DOMAIN" in l]
+    lines = [l for l in _read(repo_root / "environments" / "prodmesh-korczewski.yaml") if "PROD_DOMAIN" in l]
     assert _grep_q(lines, "korczewski.de")
     assert not _grep_q(lines, r"fleet\.korczewski\.de")
 
 
 def test_fleet_mentolder_env_entfaellt_kein_fleet_m_infix_mehr_zu_pruefen(repo_root):
-    # Pendant-Test unten deckt fleet-korczewski.yaml ab; hier nur Anker, dass
+    # Pendant-Test unten deckt prodmesh-korczewski.yaml ab; hier nur Anker, dass
     # die geloschte Datei nicht wiederaufersteht.
     assert not (repo_root / "environments" / "fleet-mentolder.yaml").exists(), \
         "environments/fleet-mentolder.yaml existiert noch (brand-trennung p5)"
 
 
 def test_fleet_korczewski_env_has_no_remaining_fleet_korczewski_de_references(repo_root):
-    lines = _read(repo_root / "environments" / "fleet-korczewski.yaml")
+    lines = _read(repo_root / "environments" / "prodmesh-korczewski.yaml")
     assert not _grep_q(lines, r"fleet\.korczewski\.de")
 
 

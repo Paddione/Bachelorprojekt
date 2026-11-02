@@ -12,7 +12,7 @@
 //   node scripts/domains-probe.mjs --registry <pfad> ...  # gegen Fixture laufen
 //
 // Je status:live-Eintrag: ${VAR}-Platzhalter aus der festen Env-Datei je
-// Mesh aufloesen (prodmesh -> environments/fleet-korczewski.yaml, devmesh ->
+// Mesh aufloesen (prodmesh -> environments/prodmesh-korczewski.yaml, devmesh ->
 // environments/dev.yaml, jeweils env_vars-Sektion; unaufloesbar -> FAIL),
 // dann DNS -> TLS (Port 443, rejectUnauthorized) -> HTTP-Status/Redirect
 // (immer GET https://<host>/, Redirects folgen NICHT, Timeout 15 s).
@@ -32,7 +32,7 @@ import { parse as parseYaml } from 'yaml';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_REGISTRY = join(REPO, 'docs/agent-guide/registry/domains.yaml');
 const MESH_ENV_FILE = {
-  prodmesh: 'environments/fleet-korczewski.yaml',
+  prodmesh: 'environments/prodmesh-korczewski.yaml',
   devmesh: 'environments/dev.yaml',
 };
 // `fleet` bleibt als CLI-Alias für `prodmesh` gueltig.

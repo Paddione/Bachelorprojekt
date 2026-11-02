@@ -309,7 +309,7 @@ env_vars:
   - name: NEXTCLOUD_DB_HOST
     required: true
     default_dev: "nextcloud-db.workspace.svc.cluster.local"
-    description: "Cluster-internal FQDN of the Nextcloud MariaDB. Overridden per-brand in environments/{korczewski,fleet-korczewski}.yaml when the namespace differs from `workspace`."
+    description: "Cluster-internal FQDN of the Nextcloud MariaDB. Overridden per-brand in environments/{korczewski,prodmesh-korczewski}.yaml when the namespace differs from `workspace`."
 
   - name: AUTH_EXTERNAL_URL
     required: false
@@ -959,7 +959,7 @@ secrets:
         secret: website-secrets
 
   # T901440 (Massage-Tenant): Einfuehrungsstatus optional — die Keys werden
-  # von Hand in fleet-mentolder/fleet-korczewski angelegt und versiegelt.
+  # von Hand in fleet-mentolder/prodmesh-korczewski angelegt und versiegelt.
   # Der Massage-Key wird zusaetzlich nach website-secrets exportiert
   # (ns_remap: website -> WEBSITE_NS des jeweiligen Envs).
   - name: WEBSITE_MASSAGE_DB_PASSWORD

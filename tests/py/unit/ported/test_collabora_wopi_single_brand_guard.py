@@ -31,7 +31,7 @@ def _suite_count(repo_root: Path, pattern: str) -> int:
 
 def test_t000478_fleet_shared_services_sets_collabora_host_2_to_a_non_empty_value(repo_root):
     lines = (repo_root / TASKFILE_PLATFORM).read_text(encoding="utf-8").splitlines()
-    window = _grep_a(lines, r"^  fleet:shared-services:", 100)
+    window = _grep_a(lines, r"^  prodmesh:shared-services:", 100)
     hits = [line for line in window if "COLLABORA_HOST_2=" in line]
     assert hits, "grep 'COLLABORA_HOST_2=' found no line"
     assert 'COLLABORA_HOST_2=""' not in "\n".join(hits)
@@ -53,5 +53,5 @@ def test_t000478_workspace_office_deploy_has_a_prod_safety_guard_blocks_single_b
     ]
     assert hits, (
         "FAIL: workspace:office:deploy has no prod guard.\n"
-        "      On fleet, use fleet:deploy:shared-services instead."
+        "      On prodmesh, use prodmesh:deploy:shared-services instead."
     )

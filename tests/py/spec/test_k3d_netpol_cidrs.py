@@ -23,7 +23,7 @@ ENV_FILES = {
     "dev-cluster": ("10.42.0.0/16", "10.43.0.0/16"),
     "korczewski": ("10.42.0.0/16", "10.43.0.0/16"),
     "staging": ("10.42.0.0/16", "10.43.0.0/16"),
-    "fleet-korczewski": ("10.42.0.0/16", "10.43.0.0/16"),
+    "prodmesh-korczewski": ("10.42.0.0/16", "10.43.0.0/16"),
 }
 
 # Runtime escapes: $${VAR} / $$VAR. Bare $$ (SQL DO $$, vendored CRD docs) and

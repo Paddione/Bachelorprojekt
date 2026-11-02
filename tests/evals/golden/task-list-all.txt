@@ -69,7 +69,7 @@ task: Available tasks for this project:
 * ci:local:                                     Run all CI steps locally (mirrors .github/workflows/ci.yml offline-tests job). Flags: FAST=1 (only test:all + quality:check, ~3s), SKIP_NETWORK=1 (skip api-auth + freshness:check). 
 * ci:red-intake:                                [ci] CI-Rot-Intake: bei Rot auf main sofort Ticket anlegen (T900759)
 * cicd:kubeconfig:                              Generate a minimal kubeconfig for the cicd-deploy ServiceAccount (delegates to scripts/cicd-kubeconfig-gen.sh)
-* clusters:status:                              Show status of both brands on the unified fleet cluster (mentolder + korczewski)
+* clusters:status:                              Show status of both brands on the unified prodmesh cluster (mentolder + korczewski)
 * coaching:batch-ingest:                        Batch-ingest a directory of coaching PDFs/DOCs — Usage: task coaching:batch-ingest -- <dir> <kurs-slug> [--dry-run] [--yes] [--classify]
 * coaching:classify:                            Run AI classifier over UNCLASSIFIED chunks of a coaching book. Args: -- --slug=<slug> | --all
 * coaching:ingest:                              Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]
@@ -145,14 +145,6 @@ task: Available tasks for this project:
 * feature:deploy:                               Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)
 * feature:promote:                              Promote a service dev → prod with Playwright smoke gate (SERVICE=website TARGET=mentolder|korczewski|both; prompts if unset)
 * feature:website:                              Rebuild + redeploy the Astro website on BOTH prod clusters
-* fleet:deploy:                                 Full Phase 2b deploy: platform → both brands' core → shared office/coturn → both brands' talk-setup. Brings up the COMPLETE stack for both brands on the fleet cluster.
-* fleet:deploy:brand:                           Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski
-* fleet:dns:cutover:                            Flip a brand's cluster A-records onto the fleet nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task fleet:dns:cutover ENV=fleet-mentolder [ACTION=cutover]
-* fleet:dns:rollback:                           Restore a brand's A-records from the rollback state file captured by the last cutover. Usage: task fleet:dns:rollback ENV=fleet-mentolder
-* fleet:membership:                             Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context fleet get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task fleet:membership
-* fleet:platform:                               Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand.
-* fleet:shared-services:                        Deploy the SHARED Collabora (office-stack) + CoTURN/Janus (coturn-stack) ONCE on the fleet cluster, serving both brands. Run AFTER both brand workspace:deploy passes (needs workspace-secrets to exist for coturn sync).
-* fleet:talk-setup:brand:                       Wire ONE brand to the shared coturn/Janus: sync coturn secret from this brand, run talk-setup + recording-setup + transcriber-setup. Run AFTER fleet:shared-services. Usage: task fleet:talk-setup:brand BRAND=fleet-mentolder
 * flux:bootstrap:                               Einmalig: flux-operator via Helm + FluxInstance + Receiver/IngressRoute/ghcr-auth (imperativ)
 * flux:push:                                    Render + flux push artifact (privates GHCR) + Receiver-Ping
 * flux:render:                                  Render fleet-Komponenten + Flux-CRs nach out/ (kein Apply)
@@ -261,6 +253,14 @@ task: Available tasks for this project:
 * plan:touched-files:                           Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- .agents/plans/<slug>/tasks.md
 * plans:query:                                  Show active plan sections for a given role. Usage: task plans:query -- <role>
 * pr:refresh:                                   Rebase konfliktbehaftete PRs auf origin/main und heilt Konflikte in generierten Artefakten. Usage: task pr:refresh -- [--dry-run] <pr-nummer>...
+* prodmesh:deploy:                              Full Phase 2b deploy: platform → both brands' core → shared office/coturn → both brands' talk-setup. Brings up the COMPLETE stack for both brands on the fleet cluster.
+* prodmesh:deploy:brand:                        Deploy ONE brand's core stack to prodmesh: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task prodmesh:deploy:brand BRAND=prodmesh-korczewski
+* prodmesh:dns:cutover:                         Flip a brand's cluster A-records onto the prodmesh nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task prodmesh:dns:cutover ENV=fleet-mentolder [ACTION=cutover]
+* prodmesh:dns:rollback:                        Restore a brand's A-records from the rollback state file captured by the last cutover. Usage: task prodmesh:dns:rollback ENV=fleet-mentolder
+* prodmesh:membership:                          Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context prodmesh get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task prodmesh:membership
+* prodmesh:platform:                            Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand.
+* prodmesh:shared-services:                     Deploy the SHARED Collabora (office-stack) + CoTURN/Janus (coturn-stack) ONCE on the fleet cluster, serving both brands. Run AFTER both brand workspace:deploy passes (needs workspace-secrets to exist for coturn sync).
+* prodmesh:talk-setup:brand:                    Wire ONE brand to the shared coturn/Janus: sync coturn secret from this brand, run talk-setup + recording-setup + transcriber-setup. Run AFTER prodmesh:shared-services. Usage: task prodmesh:talk-setup:brand BRAND=fleet-mentolder
 * quality:ast:                                  Advisory AST scan with project rules (sgconfig.yml). No gate — the pytest suite stays authoritative. See docs/agent-guide/ast-toolchain.md.
 * quality:baseline:freeze:                      One-time: freeze the current code-quality violations into docs/code-quality/baseline.json
 * quality:baseline:refresh:                     Remove FIXED entries and lower improved metrics in docs/code-quality/baseline.json
@@ -280,7 +280,7 @@ task: Available tasks for this project:
 * registry:list:                                List images in the local registry
 * release:notes:                                Generate release notes from merged PRs since last tag. Usage: task release:notes -- [--since <tag>] [--out <file>]
 * routes:manifest:                              Regenerate components/website/src/data/route-manifest.json (page files + brand service slugs -> sweep route manifest)
-* rustdesk:deploy:                              Full bring-up of the rustdesk relay stack on fleet (render pipeline like fleet:shared-services) + sleeper job. Usage: task rustdesk:deploy [ENV=mentolder]
+* rustdesk:deploy:                              Full bring-up of the rustdesk relay stack on prodmesh (render pipeline like prodmesh:shared-services) + sleeper job. Usage: task rustdesk:deploy [ENV=mentolder]
 * rustdesk:sleep:                               Wind down immediately: scale hbbs+hbbr to 0 and remove the sleeper job. Usage: task rustdesk:sleep
 * rustdesk:status:                              Show relay deployments/pods plus replica counters (read-only). Usage: task rustdesk:status
 * rustdesk:wake:                                Wake the relay: scale hbbs+hbbr to 1 (full deploy if missing) and restart the TTL sleeper job. Usage: task rustdesk:wake [ENV=mentolder]
@@ -385,7 +385,7 @@ task: Available tasks for this project:
 * website:status:                               Show website deployment status (ENV=dev|mentolder|korczewski)
 * website:sync:                                 Fast-sync components/website/src to the running pod and rebuild (ENV=dev|mentolder|...)
 * website:teardown:                             Remove website namespace and all resources (ENV=dev|mentolder|korczewski)
-* wg:drift:                                     WireGuard-Mesh: vergleicht Ist- gegen Soll-Peer-Menge je Node einer Umgebung, ohne zu aendern. Exit != 0 bei Abweichung mit namentlicher Nennung der Nodes und Peers; Exit 0 bei Deckungsgleichheit ODER wenn kein Node erreichbar ist (Skip, analog fleet:membership). Usage: task wg:drift ENV=fleet
+* wg:drift:                                     WireGuard-Mesh: vergleicht Ist- gegen Soll-Peer-Menge je Node einer Umgebung, ohne zu aendern. Exit != 0 bei Abweichung mit namentlicher Nennung der Nodes und Peers; Exit 0 bei Deckungsgleichheit ODER wenn kein Node erreichbar ist (Skip, analog prodmesh:membership). Usage: task wg:drift ENV=fleet
 * wg:reconcile:                                 WireGuard-Mesh: traegt fehlende Peers (aus wireguard/wg-mesh-nodes.yaml gerendert) per SSH+wg auf allen erreichbaren Nodes einer Umgebung nach. --dry-run zeigt nur die Differenz; --prune entfernt ueberzaehlige Peers (sonst nur ergaenzen). Sichert /etc/wireguard/<iface>.conf vor jeder Aenderung. Exit 0 bei Erfolg/Dry-Run/Skip (keine Nodes erreichbar), Exit != 0 bei fehlendem interface:-Key (z.B. korczewski) oder Konfigurationsfehler. Usage: task wg:reconcile ENV=fleet [-- --dry-run|--prune|--node <name>]
 * workspace:admin-users-setup:                  Provision SSO admin users in Keycloak workspace realm
 * workspace:admin-users-setup:all-prods:        Provision SSO admin users in Keycloak on mentolder + korczewski

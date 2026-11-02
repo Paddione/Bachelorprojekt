@@ -75,11 +75,11 @@ Referenzen: `environments/mentolder.yaml:4-5,104` (`secrets_env: fleet-mentolder
 `environments/staging.yaml:26`, `environments/schema.yaml:962,1817-1819`,
 `prod-fleet/mentolder/kustomization.yaml:10,35`.
 
-Zu prüfen (p3): `environments/fleet-korczewski.yaml:125`,
+Zu prüfen (p3): `environments/prodmesh-korczewski.yaml:125`,
 `environments/korczewski-prod.yaml:155`.
 Sealed-Secrets (nur Key-Namen gezählt, Inhalte nie geöffnet):
 - `environments/sealed-secrets/fleet-mentolder.yaml`: entfernt (brand-trennung-reste, Eigner-Entscheidung E1).
-- `environments/sealed-secrets/fleet-korczewski.yaml`: 108 Keys (p3 Re-Seal-Quelle).
+- `environments/sealed-secrets/prodmesh-korczewski.yaml`: 108 Keys (p3 Re-Seal-Quelle).
 - `environments/sealed-secrets/korczewski-prod.yaml`: 73 Keys.
 Weitere `environments/korczewski.yaml` (280-Zeilen-Nachbar, kein Plan-Target — unberührt).
 
@@ -138,7 +138,7 @@ auth.mentolder.de), `environments/mentolder.yaml:66-68`, `environments/schema.ya
 Manifest `prod-fleet/mentolder/studio-ingress.yaml`). korczewski-Seite bleibt:
 `flux-korczewski-auth` (ns workspace-korczewski, DBs website_massage/
 pocket_id_korczewski in zentraler shared-db), `pocket-id-client-seed-website-rbac.yaml`.
-Re-Seal nur via `task env:seal ENV=fleet-korczewski` (p3); OIDC-Client-Registrierung
+Re-Seal nur via `task env:seal ENV=prodmesh-korczewski` (p3); OIDC-Client-Registrierung
 via `scripts/register-oidc-client.mjs` (mentolder-Default — p3 prüfen).
 
 ## Delta-Tabelle (verbindlich für p5/p6)
@@ -160,7 +160,7 @@ via `scripts/register-oidc-client.mjs` (mentolder-Default — p3 prüfen).
   inkl. Trainingsdaten/Archive/Specs): ~120 Fundstellen in ~60 Dateien
   (Voll-Log `/tmp/opencode/p1-grep.txt` im Erstellungs-Workspace, nicht committet).
 - Abriss-Targets: p5 = 12 Dateien (688 Zeilen Summe), p6 = Verzeichnis (9 Top-Einträge)
-  + 13 JSONs. Sealed-Key-Namen: 123 (fleet-mentolder) / 108 (fleet-korczewski) / 73 (korczewski-prod).
+  + 13 JSONs. Sealed-Key-Namen: 123 (fleet-mentolder) / 108 (prodmesh-korczewski) / 73 (korczewski-prod).
 - Registry: 19 Domains (check grün); mentolder-IDs: website-mentolder, studio-mentolder
   (+ D1-Entscheidung); korczewski-IDs: website-korczewski (frozen), apex-korczewski
   (bleibt), korczewski-web/apex/auth-mirror (devmesh-Spiegel, unberührt).

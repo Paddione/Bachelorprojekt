@@ -65,7 +65,7 @@ def test_relay_deployment_pinned_and_always_on(rustdesk_docs, name):
     assert dep["spec"]["replicas"] == 1
     pod = dep["spec"]["template"]["spec"]
     assert pod["hostNetwork"] is True
-    # ${TURN_NODE} ist aufgeloest (fleet-korczewski), kein Platzhalter.
+    # ${TURN_NODE} ist aufgeloest (prodmesh-korczewski), kein Platzhalter.
     # brand-trennung p8: Relay läuft auf pk-hetzner-4 (per Render-Lauf belegt).
     assert pod["nodeSelector"]["kubernetes.io/hostname"] == "pk-hetzner-4"
     assert not pod.get("imagePullSecrets")

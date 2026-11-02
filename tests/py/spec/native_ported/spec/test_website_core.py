@@ -237,7 +237,7 @@ def test_t001490_primary_frontend_schema_declared_with_astro_react_pattern_and_b
     start = next(i for i, l in enumerate(lines) if re.match(r"^  - name: PRIMARY_FRONTEND$", l))
     validate = next((l for l in lines[start + 1:] if "validate:" in l), "")
     assert re.search(r'validate:[ \t]*"\^\(astro\|react\)\$"', validate), validate
-    for env in ("fleet-korczewski", "korczewski"):
+    for env in ("prodmesh-korczewski", "korczewski"):
         assert _has(_txt(r["root"] / f"environments/{env}.yaml"), r"^[ \t]+PRIMARY_FRONTEND:[ \t]*(astro|react)$")
     assert _has(_txt(r["root"] / "k3d/website.yaml"), r"name:[ \t]*\$\{WEBSITE_PRIMARY_SERVICE\}")
     files = [r["root"] / "Taskfile.yml"] + [p for p in sorted((r["root"] / "taskfiles").rglob("*")) if p.is_file()]

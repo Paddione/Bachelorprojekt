@@ -37,6 +37,12 @@ echo '{"type":"message_end","message":{"role":"assistant","content":[{"type":"te
 echo '{"type":"agent_end"}'
 """
 
+FAKE_AGY = """#!/usr/bin/env bash
+# Stub fuer `agy -p --output-format json`: protokolliert die Argumente (ohne Prompt).
+echo "agy ARGS=${*:1:$#-1}" >> "${FAKE_AGY_LOG:?}"
+printf '{"type":"result","result":"PLAN-RUNNER-RESULT: success fake agy"}\\n'
+"""
+
 FAILING_OPENCODE = """#!/usr/bin/env bash
 # opencode-Stub, dessen Lauf scheitert: meldet failure ueber die Ergebniszeile.
 echo "opencode $*" | cut -c1-60 >> "${FAKE_OPENCODE_LOG:?}"
@@ -97,6 +103,11 @@ class Rig:
         bindir.mkdir()
         _executable(bindir / "claude", FAKE_CLAUDE)
         _executable(bindir / "pi", FAKE_PI)
+        _executable(bindir / "agy", FAKE_AGY)
+        self.agy_log = tmp / "agy.log"
+        self.agy_log.write_text("")
+        monkeypatch.setenv("FAKE_AGY_LOG", str(self.agy_log))
+        monkeypatch.delenv("PLAN_RUNNER_AGY_SKIP_PERMISSIONS", raising=False)
         self.pi_log = tmp / "pi.log"
         self.pi_log.write_text("")
         monkeypatch.setenv("FAKE_PI_LOG", str(self.pi_log))
@@ -317,7 +328,8 @@ def test_harness_spawn_builds_argv_and_scrubs_foreign_secrets(repo_root, run_cmd
     # pi verliert auch fremde API-Keys; Provider zeigt auf den Tier, Settlement ueber JSON-Events.
     assert out["pi"] == ["pi", ["--mode", "json", "-p", "--no-session", "--provider", "3060ti", "--model", "qwen-4b", "P"], []]
     assert out["agy"][0] == "agy"
-    assert out["agy"][1] == ["-p", "--output-format", "json", "--dangerously-skip-permissions"]
+    # Host-Lauf ohne Sandbox: kein --dangerously-skip-permissions ohne ausdrueckliches Opt-in.
+    assert out["agy"][1] == ["-p", "--output-format", "json", "P"]
     assert out["agy"][2] == ["GEMINI_API_KEY"]
     assert out["muse"] == ["/x/oc", ["run", "--agent", "plan-worker-muse"], []]
     assert out["model"] == ["--model", "opus"]
@@ -669,3 +681,35 @@ def test_without_a_configured_chain_a_failure_still_goes_to_the_orchestrator(rig
     assert [(h["tier"], h["ok"]) for h in state["partials"]["p1"]["history"]] == [("cloud", False), ("cloud", True)]
     assert state["partials"]["p1"]["status"] == "done"
     assert rig.claude_log.read_text() == ""
+
+
+def _run_agy(rig, run_cmd):
+    rig.make_change({"p1": {}})
+    rig.start_orch([
+        {"name": "dispatch_cloud", "args": {"partial_id": "p1", "prompt": "go"}},
+        {"name": "wait_event", "args": {}},
+        {"name": "mark", "args": {"partial_id": "p1", "status": "done", "note": "ok"}},
+        {"name": "finish", "args": {"summary": "done"}},
+    ])
+    res = rig.run(run_cmd, "--direct-slots", "0", "--cloud-slots", "1", "--harness", "agy")
+    assert res.returncode == 0, res.output
+    return rig.agy_log.read_text()
+
+
+def test_agy_runs_without_skip_permissions_unless_the_sandbox_opt_in_is_set(rig, run_cmd):
+    # Der Runner laeuft auf dem Entwickler-Host ohne Sandbox (anders als devflow_runner im K8s-Pod).
+    log = _run_agy(rig, run_cmd)
+    assert "agy ARGS=-p --output-format json" in log
+    assert "--dangerously-skip-permissions" not in log
+
+
+def test_agy_gets_skip_permissions_only_with_the_explicit_opt_in(rig, run_cmd, monkeypatch):
+    monkeypatch.setenv("PLAN_RUNNER_AGY_SKIP_PERMISSIONS", "1")
+    log = _run_agy(rig, run_cmd)
+    assert "agy ARGS=-p --output-format json --dangerously-skip-permissions" in log
+
+
+@pytest.mark.parametrize("value", ["", "0", "true", "yes"])
+def test_only_the_literal_one_enables_skip_permissions_for_agy(rig, run_cmd, monkeypatch, value):
+    monkeypatch.setenv("PLAN_RUNNER_AGY_SKIP_PERMISSIONS", value)
+    assert "--dangerously-skip-permissions" not in _run_agy(rig, run_cmd)

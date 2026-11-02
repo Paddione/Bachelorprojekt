@@ -74,7 +74,7 @@ mit Exit 1.
 
 Env (Tiers, Harness, Budget): `PLAN_RUNNER_TIERS`, `PLAN_RUNNER_TIER2_URL`, `PLAN_RUNNER_TIER2_MODEL`,
 `PLAN_RUNNER_CLOUD_HARNESS`, `PLAN_RUNNER_CLOUD_BUDGET_USD` (Default 5), `PLAN_RUNNER_LEASE_GUARD`,
-`PLAN_RUNNER_CLAUDE_MODEL` (Default `sonnet`), `PLAN_RUNNER_AGY_MODEL`.
+`PLAN_RUNNER_CLAUDE_MODEL` (Default `sonnet`), `PLAN_RUNNER_AGY_MODEL`, `PLAN_RUNNER_AGY_SKIP_PERMISSIONS` (`1` = Opt-in).
 
 Env: `PLAN_RUNNER_ORCH_URL`, `PLAN_RUNNER_ORCH_MODEL`, `PLAN_RUNNER_ORCH_PRIMARY_URL` (Default `http://127.0.0.1:1919`),
 `PLAN_RUNNER_ORCH_FALLBACK_URL` (Default `http://127.0.0.1:8123`), `PLAN_RUNNER_ORCH_FALLBACK_MODEL` (Default `w4a4`),
@@ -137,10 +137,13 @@ die API-Keys fremder Anbieter (nur der eigene Key bleibt: `claude` → `ANTHROPI
 | `muse` | wie `opencode` mit `plan-worker-muse` | Ergebniszeile, Pauschale (bucht 0 USD) |
 | `pi` | `pi --mode json -p --no-session [--provider P --model M]` | JSON-Events: `agent_end` oder Prozessende schließt ab, ohne beides `no-settle`, `agent_settled` mit `aborted` → `aborted` |
 | `claude` | `claude -p --output-format json --model sonnet` | `result` + `total_cost_usd`; `is_error` zählt als Fehlschlag |
-| `agy` | `agy -p --output-format json --dangerously-skip-permissions` | `result`, Kosten unbekannt |
+| `agy` | `agy -p --output-format json` (`--dangerously-skip-permissions` nur per Opt-in, siehe unten) | `result`, Kosten unbekannt |
 
-Berechtigungen von `claude` kommen aus den Einstellungen des Worktrees (`.claude/settings.json`), der Runner setzt
-keinen Permission-Modus. Bei allen Harnesses entscheidet die Zeile `PLAN-RUNNER-RESULT:` über Erfolg und Misserfolg.
+Berechtigungen von `claude` und `agy` kommen aus den Einstellungen des Worktrees bzw. des Harness, der Runner setzt
+keinen Permission-Modus. `agy` bekommt `--dangerously-skip-permissions` nur, wenn `PLAN_RUNNER_AGY_SKIP_PERMISSIONS=1`
+ausdrücklich gesetzt ist (jeder andere Wert, auch `true`, lässt das Flag weg). Das ist ein Opt-in für sandboxierte
+Umgebungen: `devflow_runner` startet `agy` im K8s-Pod als unprivilegierter Sandbox-User, der Runner dagegen läuft ohne
+Sandbox auf dem Entwickler-Host und darf die Berechtigungsprüfung dort nicht stillschweigend abschalten. Bei allen Harnesses entscheidet die Zeile `PLAN-RUNNER-RESULT:` über Erfolg und Misserfolg.
 
 ## Budget
 

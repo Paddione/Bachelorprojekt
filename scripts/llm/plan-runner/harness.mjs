@@ -4,7 +4,8 @@
 //  - muse:     wie opencode mit Agent plan-worker-muse, Pauschale (Go-Abo) → flatRate,
 //  - pi:       `pi --mode json -p --no-session [--provider P --model M]`, Settlement über agent_end/Prozessende,
 //  - claude:   `claude -p --output-format json --model <m>`, Kosten aus total_cost_usd,
-//  - agy:      `agy -p --output-format json --dangerously-skip-permissions`.
+//  - agy:      `agy -p --output-format json`; `--dangerously-skip-permissions` nur mit PLAN_RUNNER_AGY_SKIP_PERMISSIONS=1
+//              (Opt-in für sandboxierte Umgebungen: der Runner läuft sonst ohne Sandbox auf dem Entwickler-Host).
 // `direct` ist kein Kindprozess, sondern der In-Process-Worker (direct-worker.mjs); er hat hier nur die ID.
 // Allen Kindprozessen fehlen GH_TOKEN/GITHUB_TOKEN/GH_ENTERPRISE_TOKEN und fremde API-Keys (wie devflow_runner).
 // Aufrufer: plan-runner/workers.mjs, scripts/llm/plan-runner.mjs. Runbook: docs/runbooks/plan-runner.md.
@@ -73,7 +74,8 @@ export function harnessSpawn({ harness, prompt, worktree, tier = null, agent = n
     args = ['-p', '--output-format', 'json', '--model', env.PLAN_RUNNER_CLAUDE_MODEL || 'sonnet', prompt];
   } else if (harness === 'agy') {
     bin = 'agy';
-    args = ['-p', '--output-format', 'json', '--dangerously-skip-permissions',
+    args = ['-p', '--output-format', 'json',
+      ...(env.PLAN_RUNNER_AGY_SKIP_PERMISSIONS === '1' ? ['--dangerously-skip-permissions'] : []),
       ...(env.PLAN_RUNNER_AGY_MODEL ? ['--model', env.PLAN_RUNNER_AGY_MODEL] : []), prompt];
   } else {
     throw new Error(`harness ${harness} has no child process`);

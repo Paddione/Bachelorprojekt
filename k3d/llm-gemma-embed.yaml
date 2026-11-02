@@ -275,11 +275,11 @@ spec:
               # 500m wie lfm-embed: gpu-metal ist bei CPU-Requests ~93 % voll,
               # 1000m blieb Pending (Insufficient cpu, gemessen 2026-10-26).
               cpu: "500m"
-              nvidia.com/gpu: 1
+              nvidia.com/gpu: "1"
             limits:
               memory: "4Gi"
               cpu: "2000m"
-              nvidia.com/gpu: 1
+              nvidia.com/gpu: "1"
           readinessProbe:
             httpGet:
               path: /health

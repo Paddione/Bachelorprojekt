@@ -15,7 +15,6 @@ Erzeugung/Versiegelung nur via `task env:generate` /
 
 | Datei | SealedSecrets (name / namespace, Metadaten) |
 |---|---|
-| `environments/sealed-secrets/fleet-mentolder.yaml` | `workspace-secrets`/`workspace`, `knowledge-secrets`/`workspace`, `website-content-token`/`website`, `grafana-oidc`/`monitoring`, `coturn-secrets`/`coturn`, `website-secrets`/`website`, `rustdesk-secrets`/`rustdesk`, `collabora-secrets`/`workspace-office`, `ipv64-api-key`/`cert-manager`, `otel-collector-auth`/`monitoring` |
 | `environments/sealed-secrets/fleet-korczewski.yaml` | `workspace-secrets`/`workspace-korczewski`, `website-content-token`/`website-korczewski`, `grafana-oidc`/`monitoring`, `knowledge-secrets`/`workspace-korczewski`, `website-secrets`/`website-korczewski`, `collabora-secrets`/`workspace-office`, `ipv64-api-key`/`cert-manager`, `otel-collector-auth`/`monitoring` |
 | `environments/sealed-secrets/korczewski-prod.yaml` | `workspace-secrets`/`workspace-korczewski`, `website-content-token`/`website-korczewski`, `website-secrets`/`website-korczewski`, `ipv64-api-key`/`cert-manager` |
 | `environments/sealed-secrets/staging.yaml` | `workspace-secrets`/`workspace-staging`, `website-content-token`/`website-staging`, `grafana-oidc`/`monitoring`, `website-secrets`/`website-staging`, `knowledge-secrets`/`workspace-staging`, `collabora-secrets`/`workspace-office`, `ipv64-api-key`/`cert-manager`, `otel-collector-auth`/`monitoring` |

@@ -57,7 +57,6 @@ resources:
   # Systemisches Brett
   - brett.yaml
   # mentolder.de React-Site (react.mentolder.de / react.localhost)
-  - mentolder-web.yaml
   # Mediaviewer Widget
   - mediaviewer-widget.yaml
   # Agent-Push ntfy-Server (T000991)

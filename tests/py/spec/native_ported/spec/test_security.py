@@ -119,7 +119,6 @@ def test_run_as_non_root_baseline_ausnahme_container_tragen_den_marker_kommentar
     """run-as-non-root baseline: Ausnahme-Container tragen den Marker-Kommentar"""
     exceptions = [
         ("k3d/dev-stack/sish.yaml", ["sish"]),
-        ("k3d/mentolder-web.yaml", ["mentolder-web"]),
     ]
     fails = []
     for rel, names in exceptions:

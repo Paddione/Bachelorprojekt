@@ -16,14 +16,15 @@ def _suspend_of(repo_root, filename):
     return m.group(1) == "true"
 
 
-def test_t014537_korczewski_manifests_keep_workspace_and_website_active(repo_root):
-    # Eigner 2026-11-01 (brand-trennung Voll-Unfreeze): Workspace + Jobs +
-    # Website sind live (suspend: false) — Pause war gestern.
+def test_t014537_korczewski_manifests_keep_workspace_suspended(repo_root):
+    # #7058 (Freeze-Doktrin T002479): Workspace + Jobs sind suspendiert
+    # (suspend: true) — #7055-Voll-Unfreeze dafuer zurueckgenommen.
+    # Website bleibt live (suspend: false, aktueller Main-Stand, ausserhalb #7058-Scope).
     assert (repo_root / FLUX_DIR / "ks-korczewski.yaml").is_file()
     assert (repo_root / FLUX_DIR / "ks-jobs-korczewski.yaml").is_file()
     assert (repo_root / FLUX_DIR / "ks-website-korczewski.yaml").is_file()
-    assert _suspend_of(repo_root, "ks-korczewski.yaml") is False
-    assert _suspend_of(repo_root, "ks-jobs-korczewski.yaml") is False
+    assert _suspend_of(repo_root, "ks-korczewski.yaml") is True
+    assert _suspend_of(repo_root, "ks-jobs-korczewski.yaml") is True
     assert _suspend_of(repo_root, "ks-website-korczewski.yaml") is False
 
 

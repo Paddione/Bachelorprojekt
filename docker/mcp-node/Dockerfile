@@ -19,6 +19,7 @@ ARG MCP_SERVER_POSTGRES_VERSION=0.6.2
 ARG CODEBASE_MEMORY_VERSION=0.10.8
 ARG GITHUB_MCP_VERSION=1.0.3
 ARG PG_VERSION=8.23.0
+ARG TARGETARCH
 
 RUN apk add --no-cache \
       bash \
@@ -31,8 +32,9 @@ RUN apk add --no-cache \
       "supergateway@${SUPERGATEWAY_VERSION}" \
       "@modelcontextprotocol/server-postgres@${MCP_SERVER_POSTGRES_VERSION}" \
       "codebase-memory-mcp@${CODEBASE_MEMORY_VERSION}" \
+ && case "${TARGETARCH}" in amd64) github_arch=x86_64 ;; arm64) github_arch=arm64 ;; *) exit 1 ;; esac \
  && curl -sSL -o /tmp/github-mcp-server.tar.gz \
-      "https://github.com/github/github-mcp-server/releases/download/v${GITHUB_MCP_VERSION}/github-mcp-server_Linux_x86_64.tar.gz" \
+      "https://github.com/github/github-mcp-server/releases/download/v${GITHUB_MCP_VERSION}/github-mcp-server_Linux_${github_arch}.tar.gz" \
  && tar -xzf /tmp/github-mcp-server.tar.gz -C /usr/local/bin github-mcp-server \
  && chmod +x /usr/local/bin/github-mcp-server \
  && rm -f /tmp/github-mcp-server.tar.gz

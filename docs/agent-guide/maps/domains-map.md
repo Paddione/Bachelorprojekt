@@ -24,6 +24,7 @@ flowchart LR
         korczewski_web_mirror["${KORCZEWSKI_PROD_WEB_HOST}"]
         korczewski_apex_mirror["${KORCZEWSKI_PROD_APEX_HOST}"]
         korczewski_auth_mirror["${KORCZEWSKI_PROD_AUTH_HOST}"]
+        devmesh_agent_board["agent-board.devmesh.korczewski.de"]
     end
     owner_bp_ship["bp-ship"]
     devmesh_web --> owner_bp_ship
@@ -40,6 +41,7 @@ flowchart LR
     korczewski_web_mirror --> owner_bp_ship
     korczewski_apex_mirror --> owner_bp_ship
     korczewski_auth_mirror --> owner_bp_ship
+    devmesh_agent_board --> owner_bp_ship
 ```
 
 ## Funktion x Frontend
@@ -53,6 +55,7 @@ flowchart LR
 | middleware | bp-ship | `auth.${DEVMESH_DOMAIN}` | live |
 | office | bp-ship | `office.${DEVMESH_DOMAIN}` | live |
 | ops-access | bp-ship | `${OPENCODE_PUBLIC_HOST}`<br>`${FRITZ_BOX_HOST}` | live |
+| ops-cockpit | bp-ship | `agent-board.devmesh.korczewski.de` | live |
 | redirect | bp-ship | `${PROD_DOMAIN}` | frozen |
 | secrets | bp-ship | `vault.${DEVMESH_DOMAIN}` | live |
 | signaling | bp-ship | `signaling.${DEVMESH_DOMAIN}` | live |
@@ -78,6 +81,7 @@ flowchart LR
 - **`devmesh-fritzbox`** (${FRITZ_BOX_HOST}) — FritzBox-Lokalzugang; eigener Host, kein Redirect auf den Public-Host.
 - **`korczewski-web-mirror`** (${KORCZEWSKI_PROD_WEB_HOST}) — Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt fleet.
 - **`korczewski-apex-mirror`** (${KORCZEWSKI_PROD_APEX_HOST}) — Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt fleet.
+- **`devmesh-agent-board`** (agent-board.devmesh.korczewski.de) — D2: kanonisches devmesh-Ops-Cockpit; Manifest im Home-Repo (apps/agent-board).
 
 ## Host-Inventar
 
@@ -86,10 +90,11 @@ flowchart LR
 | `${FRITZ_BOX_HOST}` | devmesh | components | oauth2-proxy-fritzbox:4180 | oidc | bp-ship | ops-access | live | dev-local/components/opencode/fritzbox-ingressroute.yaml |
 | `${KORCZEWSKI_PROD_APEX_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${KORCZEWSKI_PROD_AUTH_HOST}` | devmesh | components | pocket-id:1411 | oidc | bp-ship | sso | live | dev-local/components/korczewski-prod/ingressroute.yaml |
-| `${KORCZEWSKI_PROD_WEB_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
+| `${KORCZEWSKI_PROD_WEB_HOST}` | devmesh | components | website:80 | oidc | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${OPENCODE_PUBLIC_HOST}` | devmesh | components | opencode:80 | oidc | bp-ship | ops-access | live | dev-local/components/opencode/ingressroute.yaml |
 | `${PROD_DOMAIN}` | fleet | website-korczewski | website:80 | open | bp-ship | redirect | frozen | prod-fleet/website-korczewski/website-apex.yaml |
 | `${WEBSITE_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/core/ingress.yaml |
+| `agent-board.devmesh.korczewski.de` | devmesh | workspace | agent-board:80 | oidc | bp-ship | ops-cockpit | live | apps/agent-board/k8s/ingress.yaml |
 | `auth.${DEVMESH_DOMAIN}` | devmesh | core | pocket-id:1411 | oidc | bp-ship | middleware | live | dev-local/core/ingress.yaml |
 | `brain.${DEVMESH_DOMAIN}` | devmesh | components | oauth2-proxy-brain:4180 | oidc | bp-ship | websocket | live | dev-local/components/brain/ingress.yaml |
 | `files.${DEVMESH_DOMAIN}` | devmesh | components | nextcloud:80 | oidc | bp-ship | files | live | dev-local/components/nextcloud/ingress.yaml |

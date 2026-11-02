@@ -43,6 +43,11 @@ tasks:
     cmds:
       - node scripts/domains-check.mjs --emit-map
 
+  domains:graph:
+    desc: "Domains-Graph (Auth/SSO/TLS je Host) nach docs/agent-guide/maps/domains-graph.md; task domains:graph -- --live [--cluster devmesh]"
+    cmds:
+      - node scripts/domains-graph.mjs {{.CLI_ARGS}}
+
   domains:probe:
     desc: "Live-Host-E2E-Probe je Registry-Host (DNS/TLS/Status/Redirect; task domains:probe -- --cluster fleet)"
     cmds:

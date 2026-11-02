@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T18:35:13.864Z",
+  "generatedAt": "2026-11-02T07:32:29.823Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -344,6 +344,12 @@
       "name": "oauth2-proxy-mailpit"
     },
     {
+      "id": "oauth2-proxy-massage-korczewski",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-massage-korczewski"
+    },
+    {
       "id": "oauth2-proxy-mediaviewer",
       "namespace": "mentolder",
       "type": "Deployment",
@@ -378,6 +384,12 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "oauth2-proxy-videovault"
+    },
+    {
+      "id": "oauth2-proxy-web-korczewski",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-web-korczewski"
     },
     {
       "id": "collabora",
@@ -922,8 +934,20 @@
       "kind": "command"
     },
     {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "website",
+      "via": "command",
+      "kind": "command"
+    },
+    {
       "from": "oauth2-proxy-traefik",
       "to": "traefik",
+      "via": "command",
+      "kind": "command"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "website",
       "via": "command",
       "kind": "command"
     },
@@ -1319,6 +1343,18 @@
     },
     {
       "from": "traefik",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "collabora",
       "via": "ingress",
       "kind": "ingress"
@@ -1530,6 +1566,18 @@
     {
       "from": "ntfy",
       "to": "ntfy",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-web-korczewski",
       "via": "selector",
       "kind": "selector"
     },
@@ -1883,6 +1931,18 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -1955,6 +2015,18 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2363,6 +2435,18 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2435,6 +2519,18 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2831,6 +2927,18 @@
     },
     {
       "from": "sessions-purge",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "sessions-purge",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sessions-purge",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2903,6 +3011,18 @@
     },
     {
       "from": "sessions-purge",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "sessions-purge",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sessions-purge",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3287,6 +3407,18 @@
     },
     {
       "from": "appointment-reminders",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "appointment-reminders",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "appointment-reminders",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3359,6 +3491,18 @@
     },
     {
       "from": "appointment-reminders",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "appointment-reminders",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "appointment-reminders",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3731,6 +3875,18 @@
     },
     {
       "from": "db-backup",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3803,6 +3959,18 @@
     },
     {
       "from": "db-backup",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4163,6 +4331,18 @@
     },
     {
       "from": "db-restore-verify",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "db-restore-verify",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-restore-verify",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4235,6 +4415,18 @@
     },
     {
       "from": "db-restore-verify",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "db-restore-verify",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-restore-verify",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4583,6 +4775,18 @@
     },
     {
       "from": "brett",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4655,6 +4859,18 @@
     },
     {
       "from": "brett",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4991,6 +5207,18 @@
     },
     {
       "from": "billing-dunning-detection",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5063,6 +5291,18 @@
     },
     {
       "from": "billing-dunning-detection",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5387,6 +5627,18 @@
     },
     {
       "from": "monthly-billing",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5459,6 +5711,18 @@
     },
     {
       "from": "monthly-billing",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5771,6 +6035,18 @@
     },
     {
       "from": "scheduled-publish",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5843,6 +6119,18 @@
     },
     {
       "from": "scheduled-publish",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6143,6 +6431,18 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6215,6 +6515,18 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6503,6 +6815,18 @@
     },
     {
       "from": "oauth2-proxy-dev",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6569,6 +6893,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "oauth2-proxy-dev",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6851,6 +7187,18 @@
     },
     {
       "from": "oauth2-proxy-session-hub",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-session-hub",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-session-hub",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6917,6 +7265,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-session-hub",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-session-hub",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "oauth2-proxy-session-hub",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7187,6 +7547,18 @@
     },
     {
       "from": "error-log-retention",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "error-log-retention",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "error-log-retention",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7253,6 +7625,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "error-log-retention",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "error-log-retention",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "error-log-retention",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7511,6 +7895,18 @@
     },
     {
       "from": "knowledge-ingest-prs",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7577,6 +7973,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7823,6 +8231,18 @@
     },
     {
       "from": "knowledge-ingest-bugs",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7889,6 +8309,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "knowledge-ingest-bugs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8123,6 +8555,18 @@
     },
     {
       "from": "knowledge-reindex-all",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8189,6 +8633,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "knowledge-reindex-all",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8411,6 +8867,18 @@
     },
     {
       "from": "nextcloud",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8477,6 +8945,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8687,6 +9167,18 @@
     },
     {
       "from": "notify-unread",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8753,6 +9245,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "notify-unread",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8951,6 +9455,18 @@
     },
     {
       "from": "oauth2-proxy-brett",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9017,6 +9533,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "oauth2-proxy-brett",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9203,6 +9731,18 @@
     },
     {
       "from": "oauth2-proxy-comfy",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9269,6 +9809,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "oauth2-proxy-comfy",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9443,6 +9995,18 @@
     },
     {
       "from": "oauth2-proxy-downloads",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-downloads",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-downloads",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9509,6 +10073,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-downloads",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-downloads",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "oauth2-proxy-downloads",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9671,6 +10247,18 @@
     },
     {
       "from": "oauth2-proxy-mailpit",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9737,6 +10325,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "oauth2-proxy-mailpit",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9898,6 +10498,246 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-studio",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-studio",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-terminal",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-terminal",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "pocket-id",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "pocket-id",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "studio-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "studio-server",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-massage-korczewski",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-massage-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-mediaviewer",
       "to": "oauth2-proxy-rustdesk-web",
       "via": "secret:workspace-secrets",
@@ -9953,6 +10793,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10163,6 +11015,18 @@
     },
     {
       "from": "oauth2-proxy-rustdesk-web",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10355,6 +11219,18 @@
     },
     {
       "from": "oauth2-proxy-studio",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-studio",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-studio",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10535,6 +11411,18 @@
     },
     {
       "from": "oauth2-proxy-terminal",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-terminal",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-terminal",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10703,6 +11591,18 @@
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10859,6 +11759,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11010,6 +11922,162 @@
     {
       "from": "dev-db-refresh",
       "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "pocket-id",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "pocket-id",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "studio-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "studio-server",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "oauth2-proxy-web-korczewski",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-web-korczewski",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-web-korczewski",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

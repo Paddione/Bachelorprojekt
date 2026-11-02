@@ -138,6 +138,18 @@ def test_rewrites_fuehren_jeden_devmesh_host_auf_alle_lan_dns_knoten(rendered, r
     # opencode-Public-Host (eigene IngressRoute + eigenes Zertifikat, kein Eintrag
     # in core/ingress.yaml) braucht denselben Split-DNS-Rewrite (TLS-Host).
     hosts.add(env["OPENCODE_PUBLIC_HOST"])
+    # Private korczewski.de dev gates (k3d/oauth2-proxy-*-korczewski.yaml):
+    # eigene Ingresses, kein Eintrag in core/ingress.yaml — brauchen denselben
+    # Split-DNS-Rewrite aufs LAN.
+    for gate in ("web", "massage"):
+        gate_docs = yaml.safe_load_all(
+            (repo_root / "k3d" / f"oauth2-proxy-{gate}-korczewski.yaml").read_text()
+        )
+        for doc in gate_docs:
+            if isinstance(doc, dict) and doc.get("kind") == "Ingress":
+                for rule in doc.get("spec", {}).get("rules") or []:
+                    if rule.get("host"):
+                        hosts.add(rule["host"])
     inv = yaml.safe_load((repo_root / "devmesh/inventory.yaml").read_text())
     ips = {p["lan_ip"] for p in inv["peers"] if p.get("lan_dns")}
     # Positiv-Anker: Console-Host und mindestens zwei Knoten fuer den Ausweich.

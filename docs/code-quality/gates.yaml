@@ -134,7 +134,14 @@ s3:
     - k3d/monitoring/blackbox-exporter.yaml
     - components/website/src/pages/sitemap.xml.ts
     - prod-fleet/mentolder/sessions-server.yaml
-    # F6 (#6823): comment-gate owns the server-side session-form origin
+    # Private korczewski.de dev gates: the host IS the gate/ingress resource's
+    # own identity (same legitimacy class as coredns-signaling-override above),
+    # not a cross-brand reference. Pocket ID clients `web-korczewski` /
+    # `massage-korczewski` are provisioned out-of-band like `agent-board`
+    # (Admin API; seed upsert only manages listed rows and never deletes
+    # unknown clients, so redeploys keep them).
+    - k3d/oauth2-proxy-web-korczewski.yaml
+    - k3d/oauth2-proxy-massage-korczewski.yaml
     # allowlist — the brand's own session infrastructure, same legitimacy
     # class as sessions-server.yaml above. Test/doc example origins live in
     # the allowlisted module (SESSION_FORM_ORIGIN_EXAMPLE), never in tests.

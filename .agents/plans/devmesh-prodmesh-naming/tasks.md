@@ -56,7 +56,10 @@ Funktions-Matrix je Mesh. Spec-Suite angepasst. `domains-map.md` regeneriert.
 target_files:
 - `docs/agent-guide/registry/domains.yaml`
 - `scripts/domains-check.mjs`
+- `scripts/domains-probe.mjs` (Mesh-Reader: `entry.mesh`, Env-Map prodmesh→fleet-korczewski, `--cluster fleet` als Alias)
+- `scripts/domains-graph.mjs` (Mesh-Reader + Filter)
 - `tests/py/spec/remaining_root_specs/domain_registry/test_domains_registry.py`
+- `tests/py/spec/remaining_root_specs/domain_registry/test_domains_probe.py`
 - `docs/agent-guide/maps/domains-map.md`
 
 Rotphase (failing-test, zuerst ausführen): `pytest

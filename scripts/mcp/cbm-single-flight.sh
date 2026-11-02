@@ -80,14 +80,10 @@ set -e
 cat "$OUT_FILE"
 cat "$ERR_FILE" >&2
 
-set +e
-python3 "$HELPER" finish --args-json "$ARGS_JSON" --attempt-id "$ATTEMPT_ID" --exit-code "$CLI_EXIT" --stdout-file "$OUT_FILE" --stderr-file "$ERR_FILE"
-FINISH_EXIT=$?
-set -e
-
-cleanup
-trap - EXIT
-
+# Kind-Normalisierung ist Teil der Index-Erzeugung (K1 repo-graph-label-cleanup)
+# und muss VOR dem finish-Receipt laufen: finish friert den DB-Stat (ino/mtime)
+# ein, jeder spätere Schreibzugriff ließe den Receipt als db-changed verfallen
+# und der fail-closed Embed-Sync würde danach jede Synchronisation verweigern.
 if [ "$CLI_EXIT" -eq 0 ]; then
   CBM_NORM_PROJ=$(printf '%s' "$ARGS_JSON" | python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); print(d.get("project") or "")' 2>/dev/null || true)
   if [ -z "$CBM_NORM_PROJ" ]; then
@@ -98,6 +94,14 @@ if [ "$CLI_EXIT" -eq 0 ]; then
     python3 "$HERE/cbm-normalize-kinds.py" --db "$CBM_NORM_DB" --project "$CBM_NORM_PROJ" --apply >/dev/null 2>&1 || echo "[cbm-single-flight] WARN: kind normalization failed for $CBM_NORM_PROJ" >&2
   fi
 fi
+
+set +e
+python3 "$HELPER" finish --args-json "$ARGS_JSON" --attempt-id "$ATTEMPT_ID" --exit-code "$CLI_EXIT" --stdout-file "$OUT_FILE" --stderr-file "$ERR_FILE"
+FINISH_EXIT=$?
+set -e
+
+cleanup
+trap - EXIT
 
 if [ "$CLI_EXIT" -ne 0 ]; then
   exit "$CLI_EXIT"

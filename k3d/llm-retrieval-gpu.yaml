@@ -1,25 +1,24 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # llm-retrieval-gpu: LFM2.5 Embedding als Kubernetes-Deployment
-# (Intel iGPU, Vulkan) — Nachfolger des Desktop-Dienstes :8095.
+# (CPU, Muster bge-embed) — Nachfolger des Desktop-Dienstes :8095.
 #
-# llama.cpp-Server auf Intel-iGPU-Nodes (intel-igpu=true):
+# llama.cpp-Server auf CPU (kein NodeSelector, keine i915-Ressource):
 #   - lfm-embed   (LFM2.5-Embedding-350M-Q8_0, --embeddings): Port 8080
+#
+# Die iGPU-Variante (Intel iGPU, Vulkan, server-vulkan, -ngl 99) ist
+# entfallen: devmesh hat keine intel-igpu-Nodes mehr, das Deployment
+# blieb Pending und /v1/lfm/embeddings lag brach. CPU reicht fuer
+# 350M-Q8 (Muster bge-embed/gemma-embed: server-b11561, -ngl 0).
 #
 # LFM2.5-ColBERT + MaxSim-Rerank entfernt (Messung 2026-10-26, Code-Suche:
 # MRR@10 0,495 gegen 0,552 ohne Rerank; einziger Verbraucher war
 # colbert_rerank.py im Dotfiles-Repo).
 #
-# Vulkan (server-vulkan, Muster gemma-embed-igpu): KEIN -fa, -ngl 99 laeuft
-# ueber Vulkan auf i915. Image-Pin ist der Digest des laufenden
-# gemma-embed-igpu-Pods — auf genau diesen Karten verifiziert.
-# Image: ghcr.io/ggml-org/llama.cpp:server-vulkan (gepinnt, kein Rolling-Tag;
-# siehe llm-gpu.yaml zur Begruendung).
-#
-# Modell-Population: eigener PVC (RWO, Longhorn wie bge-embed) +
+# Modell-Population: eigener PVC (RWO, local-path wie bge-embed) +
 # idempotenter curl-InitContainer. Strategie Recreate (T002604).
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── lfm-embed: LFM2.5-Embedding (llama.cpp, Intel iGPU Vulkan) ──────────
+# ── lfm-embed: LFM2.5-Embedding (llama.cpp, CPU) ──────────
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -51,8 +50,7 @@ spec:
       labels:
         app: lfm-embed
     spec:
-      nodeSelector:
-        intel-igpu: "true"
+      # Kein NodeSelector: laeuft auf jedem amd64-Node (CPU-Betrieb).
       # fsGroup 101: curlimages/curl als uid=100/gid=101 (llm-gpu.yaml).
       # SA-GR-06: runAsNonRoot auf Pod-Ebene, UIDs auf Container-Ebene.
       securityContext:
@@ -85,7 +83,7 @@ spec:
               memory: 256Mi
       containers:
         - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-vulkan@sha256:c2b2c5ab208f47299b7c696e1e41439ffc8f9ecc3a5821e463f8dd2f7df3ab87
+          image: ghcr.io/ggml-org/llama.cpp:server-b11561@sha256:052888c603894ecfa08deb6714fdc2d7084e491e174d5ab41bfb36b49ee7151c
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001
@@ -108,8 +106,9 @@ spec:
             - "-ub"
             - "2048"
             - "-ngl"
-            - "99"
-            # KEIN -fa: Vulkan-Pfad ohne Flash-Attention.
+            - "0"
+            - "-np"
+            - "2"
             # -t an limits.cpu gebunden (T002661, llm-gpu.yaml).
             - "-t"
             - "2"
@@ -117,8 +116,8 @@ spec:
           env:
             - name: XDG_CACHE_HOME
               value: /tmp/.cache
-            - name: MESA_SHADER_CACHE_DIR
-              value: /tmp/mesa-cache
+            - name: CUDA_VISIBLE_DEVICES
+              value: ""
           ports:
             - name: http
               containerPort: 8080
@@ -126,11 +125,9 @@ spec:
             requests:
               memory: "1Gi"
               cpu: "250m"
-              gpu.intel.com/i915: 1
             limits:
               memory: "2Gi"
               cpu: "2000m"
-              gpu.intel.com/i915: 1
           startupProbe:
             httpGet:
               path: /health
@@ -165,157 +162,6 @@ metadata:
 spec:
   selector:
     app: lfm-embed
-  ports:
-    - name: http
-      port: 8081
-      targetPort: 8080
----
-# ── lfm-colbert: LFM2.5-ColBERT (llama.cpp, Intel iGPU Vulkan) ──────────
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: lfm-colbert-models
-  labels:
-    app: lfm-colbert
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 2Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: lfm-colbert
-  labels:
-    app: lfm-colbert
-spec:
-  replicas: 1
-  # Recreate, nicht RollingUpdate: RWO-PVC (siehe llm-gpu.yaml, T002604).
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: lfm-colbert
-  template:
-    metadata:
-      labels:
-        app: lfm-colbert
-    spec:
-      nodeSelector:
-        intel-igpu: "true"
-      # fsGroup 101: curlimages/curl als uid=100/gid=101 (llm-gpu.yaml).
-      # SA-GR-06: runAsNonRoot auf Pod-Ebene, UIDs auf Container-Ebene.
-      securityContext:
-        runAsNonRoot: true
-        fsGroup: 101
-      initContainers:
-        - name: model-download
-          image: curlimages/curl:8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 100
-            allowPrivilegeEscalation: false
-          command: ["sh", "-c"]
-          args:
-            - |
-              set -e
-              if [ ! -s /models/LFM2.5-ColBERT-350M-Q8_0.gguf ]; then
-                echo "Downloading LFM2.5-ColBERT-350M-Q8_0.gguf ..."
-                curl -fL --retry 3 --connect-timeout 10 \
-                  -o /models/LFM2.5-ColBERT-350M-Q8_0.gguf \
-                  https://huggingface.co/LiquidAI/LFM2.5-ColBERT-350M-GGUF/resolve/main/LFM2.5-ColBERT-350M-Q8_0.gguf
-              fi
-          volumeMounts:
-            - name: models
-              mountPath: /models
-          resources:
-            requests:
-              # [T003903] Kein BestEffort-QoS (llm-gpu.yaml).
-              cpu: 100m
-              memory: 256Mi
-      containers:
-        - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-vulkan@sha256:c2b2c5ab208f47299b7c696e1e41439ffc8f9ecc3a5821e463f8dd2f7df3ab87
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 10001
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-          args:
-            - "-m"
-            - "/models/LFM2.5-ColBERT-350M-Q8_0.gguf"
-            - "--alias"
-            - "lfm25-colbert-350m,colbert-reranker"
-            - "--host"
-            - "0.0.0.0"
-            - "--port"
-            - "8080"
-            - "-c"
-            - "8192"
-            - "-b"
-            - "2048"
-            - "-ub"
-            - "2048"
-            - "-ngl"
-            - "99"
-            # KEIN -fa: Vulkan-Pfad ohne Flash-Attention.
-            # -t an limits.cpu gebunden (T002661, llm-gpu.yaml).
-            - "-t"
-            - "2"
-            - "--embeddings"
-          env:
-            - name: XDG_CACHE_HOME
-              value: /tmp/.cache
-            - name: MESA_SHADER_CACHE_DIR
-              value: /tmp/mesa-cache
-          ports:
-            - name: http
-              containerPort: 8080
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "250m"
-              gpu.intel.com/i915: 1
-            limits:
-              memory: "2Gi"
-              cpu: "2000m"
-              gpu.intel.com/i915: 1
-          startupProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            periodSeconds: 5
-            failureThreshold: 60
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 60
-          volumeMounts:
-            - name: models
-              mountPath: /models
-              readOnly: true
-            - name: cache
-              mountPath: /tmp
-      volumes:
-        - name: models
-          persistentVolumeClaim:
-            claimName: lfm-colbert-models
-        - name: cache
-          emptyDir:
-            sizeLimit: 128Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: llm-gateway-lfm-colbert
-  labels:
-    app: llm-gateway
-spec:
-  selector:
-    app: lfm-colbert
   ports:
     - name: http
       port: 8081

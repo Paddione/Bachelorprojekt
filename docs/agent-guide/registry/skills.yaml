@@ -53,25 +53,25 @@ skills:
         path: .agents/skills/agentic-resource-lookup
         sync: identical
     exclusions: {}
-  - id: code-graph-interpretation
-    provenance: project
+  - id: codebase-memory
+    provenance: agentic-resources
     exposure: portable
-    source: .agents/skills/code-graph-interpretation
+    source: .agents/skills/codebase-memory
     harnesses:
       codex:
-        path: .agents/skills/code-graph-interpretation
+        path: .agents/skills/codebase-memory
         sync: identical
       agy:
-        path: .agents/skills/code-graph-interpretation
+        path: .agents/skills/codebase-memory
         sync: identical
       opencode:
-        path: .opencode/skills/code-graph-interpretation
+        path: .opencode/skills/codebase-memory
         sync: identical
       claude_code:
-        path: .claude/skills/code-graph-interpretation
+        path: .claude/skills/codebase-memory
         sync: identical
       muse:
-        path: .agents/skills/code-graph-interpretation
+        path: .agents/skills/codebase-memory
         sync: identical
     exclusions: {}
   - id: database-specialist

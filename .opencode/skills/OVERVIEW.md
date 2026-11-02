@@ -126,7 +126,7 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 
 | Skill | When to use |
 |---|---|
-| [`code-graph-interpretation`](code-graph-interpretation/SKILL.md) | Inspect and interpret the K3 code graph, symbol resolution, blast radius, call paths, and index freshness. |
+| [`codebase-memory`](codebase-memory/SKILL.md) | Inspect and interpret the K3 code graph via the codebase-memory SSOT workflow: symbol resolution, blast radius, call paths, and index freshness. |
 | [`references`](references/SKILL.md) | Geteilte Querschnitts-Referenzen für dev-flow-Skills und Subagenten — Subagent-Provisionierung, Plan-Quality-Gates, MCP-Tool-Guide, Session-Koordination, CI-Fix-Loop, Deploy-Routing. |
 | [`agentic-resource-lookup`](agentic-resource-lookup/SKILL.md) | Externe MCP-Server und Agent-Plugins **bei Bedarf** finden (`scripts/agentic-lookup.mjs`), ohne sie zu installieren und ohne ihre Beschreibungen dauerhaft im Kontext zu tragen. Findet und protokolliert nur — die Kuratierungs-Entscheidung selbst gehört zu [`toolset-curate`](toolset-curate/SKILL.md). |
 | [`skill-craft`](skill-craft/SKILL.md) | Skill-Lebenszyklus-Einstieg — finden, installieren, erstellen und verbessern (Erstellen/Verbessern via `skill-creator`). |

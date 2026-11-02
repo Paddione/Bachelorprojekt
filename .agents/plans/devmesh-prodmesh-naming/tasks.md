@@ -1,7 +1,7 @@
 ---
 title: "devmesh/prodmesh — eine Infra, zwei Domain-Welten (Goal devmesh-prodmesh-naming)"
 domains: [infra, registry]
-status: active
+status: completed
 goal: devmesh-prodmesh-naming
 file_locks: []
 shared_changes: false

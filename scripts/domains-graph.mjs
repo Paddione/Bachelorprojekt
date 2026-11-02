@@ -53,7 +53,7 @@ function resolveHost(host, cluster) {
 
 function tlsInfo(host) {
   return new Promise((resolve) => {
-    const socket = connect({ host, port: 443, servername: host, rejectUnauthorized: false, timeout: TIMEOUT }, () => {
+    const socket = connect({ host, port: 443, servername: host, timeout: TIMEOUT }, () => {
       const c = socket.getPeerCertificate();
       const info = {
         issuer: c?.issuer?.O ?? c?.issuer?.CN ?? '?',

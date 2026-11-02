@@ -143,6 +143,7 @@ unberührt und werden im PR begründet.
 target_files:
 - `tests/py/unit/test_secrets_sync.py`
 - weitere Specs, die nachweislich neue Namen erwarten (Liste im PR belegt)
+- `tests/evals/golden/task-list-all.txt` (via `task test:evals:update` regeneriert)
 - `docs/code-quality/repo-index.json`
 - `docs/agent-guide/maps/domains-map.md` (nur Regenerat)
 

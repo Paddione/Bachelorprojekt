@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1287,
+      "file_count": 1288,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1163,6 +1163,7 @@
         "tests/py/unit/test_devflow_ci_watch.py",
         "tests/py/unit/test_preflight_pr_scope.py",
         "tests/py/unit/test_pytest_default_jobs.py",
+        "tests/py/unit/test_route_retrieval_eval.py",
         "tests/py/unit/test_secret_derive.py",
         "tests/py/unit/test_secrets_sync.py",
         "tests/py/unit/test_spec_sharding.py",
@@ -3724,7 +3725,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 895,
+      "file_count": 896,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4501,6 +4502,7 @@
         "scripts/resolve-image-digest.sh",
         "scripts/rig_for_mixamo.py",
         "scripts/rigger_server.py",
+        "scripts/route-retrieval-eval.py",
         "scripts/runtime-drift-check.sh",
         "scripts/sandbox/devmesh-python-sandbox.service",
         "scripts/sandbox/run-sandbox-server.sh",

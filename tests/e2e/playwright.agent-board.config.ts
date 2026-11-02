@@ -11,9 +11,18 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'agent-board',
-      testMatch: '**/agent-board-frontends.spec.ts',
+      name: 'agent-board-setup',
+      testMatch: '**/agent-board-auth-setup.spec.ts',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'agent-board',
+      dependencies: ['agent-board-setup'],
+      testMatch: '**/agent-board-frontends.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.auth/agent-board.json',
+      },
     },
   ],
 });

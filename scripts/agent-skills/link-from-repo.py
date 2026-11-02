@@ -122,7 +122,25 @@ def main():
         os.symlink(rel, link)
         linked += 1
 
-    print(f"{'geprueft' if args.check else 'verlinkt'}: {linked} Skills ({root} -> {repo})")
+    # Stale Links entfernen: Symlinks, die weder in skills.yaml noch EXTRA_LINKS
+    # stehen (z.B. nach Skill-Retirement wie code-graph-interpretation → D3).
+    # Nur Symlinks — echte Dateien/Verzeichnisse nie anfassen. G-AGENTIC07 bleibt
+    # sonst auf aktualisierten Checkouts rot, waehrend frische CI-Checkouts gruen sind.
+    wanted_set = set(wanted)
+    pruned = 0
+    for name in sorted(os.listdir(skills_dir)):
+        link = os.path.join(skills_dir, name)
+        if name in wanted_set or not os.path.islink(link):
+            continue
+        if args.check:
+            print(f"STALE: {link} zeigt auf {os.readlink(link)}, nicht in skills.yaml")
+            errors += 1
+            continue
+        os.unlink(link)
+        print(f"ENTFERNT: stale Skill-Link {link}")
+        pruned += 1
+
+    print(f"{'geprueft' if args.check else 'verlinkt'}: {linked} Skills ({root} -> {repo})" + (f", {pruned} stale entfernt" if pruned else ""))
     return 1 if errors else 0
 
 

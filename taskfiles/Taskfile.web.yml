@@ -476,6 +476,21 @@ tasks:
       - 'echo ""'
       - 'echo "  Next → task brett:bot-setup ENV={{.ENV}}"'
 
+  website-massage:deploy:
+    desc: "Deploy website-massage (website-sdlc image) for massage.korczewski.de (ENV=dev)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_ARG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_ARG="--context=${ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl ${CTX_ARG} apply -f k3d/website-massage.yaml
+        kubectl ${CTX_ARG} rollout status deployment/website-massage -n "$NS" --timeout=180s
+        echo "✓ website-massage deployed (ENV={{.ENV}}, ns=$NS)"
+
   website:dev:
     desc: Run Astro dev server locally (hot-reload)
     dir: components/website

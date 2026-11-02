@@ -1,13 +1,14 @@
 # ═══════════════════════════════════════════════════════════════════
 # OAuth2 Proxy — Pocket ID SSO gateway for massage.korczewski.de
 # Private dev access: any path requires Pocket ID login (allow-list below),
-# then forwards to website:80 (brand by Host header).
+# then forwards to website-massage:80 (eigner Subdomain-Variante).
 # Mirrors oauth2-proxy-traefik.yaml (forwardAuth pattern).
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: oauth2-proxy-massage-korczewski
+  namespace: workspace
   labels:
     app: oauth2-proxy-massage-korczewski
 spec:
@@ -69,7 +70,7 @@ spec:
             - --redeem-url=http://pocket-id:1411/api/oidc/token
             - --oidc-jwks-url=http://pocket-id:1411/.well-known/jwks.json
             - --profile-url=http://pocket-id:1411/api/oidc/userinfo
-            - --upstream=http://website:80
+            - --upstream=http://website-massage:80
             - --http-address=0.0.0.0:4180
             - --cookie-secure=true
             - --cookie-name=_oauth2_proxy_massagekorczewski

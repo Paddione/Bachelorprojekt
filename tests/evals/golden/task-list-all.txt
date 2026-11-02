@@ -368,6 +368,7 @@ task: Available tasks for this project:
 * test:unit:quality-loop:                       
 * toolset:lookup:                               On-demand MCP/agent resource discovery — find, inspect, and record curation decisions
 * web:audit:                                    Semantische Pruefung + Triage: axe, Lighthouse, LLM (T002612)
+* website-massage:deploy:                       Deploy website-massage (website-sdlc image) for massage.korczewski.de (ENV=dev)
 * website:build:                                Build the Astro website Docker image (ENV=dev|mentolder|...)
 * website:bundle:baseline:                      Measure and update the client-JS bundle baseline (components/website/bundle-baseline.json) — G-FE02
 * website:bundle:check:                         Check client-JS bundle size against committed baseline (exit 1 if above threshold) — G-FE02

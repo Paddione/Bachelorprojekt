@@ -186,6 +186,14 @@ tasks:
         for s in "workspace:workspace-secrets" "workspace:website-secrets" "cert-manager:ipv64-api-key"; do
           kubectl --context "$CTX" -n "${s%%:*}" wait --for=create "secret/${s##*:}" --timeout=120s
         done
+        # sdlc-console-sessions-db ableiten (kein statisches Manifest in
+        # dev-local/core): Single Source of Truth ist WEBSITE_DB_PASSWORD aus
+        # website-secrets (URL-kodiert; statisches devwebsitedb-Default aus
+        # k3d/sdlc-stack bricht den OIDC-Callback bei abweichendem Passwort).
+        SESSIONS_PW="$(kubectl --context "$CTX" -n workspace get secret website-secrets -o jsonpath='{.data.WEBSITE_DB_PASSWORD}' | base64 -d | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read(), safe=""))')"
+        kubectl --context "$CTX" -n workspace create secret generic sdlc-console-sessions-db \
+          --from-literal=SESSIONS_DATABASE_URL="postgresql://website:${SESSIONS_PW}@shared-db:5432/website" \
+          --dry-run=client -o yaml | kubectl --context "$CTX" apply -f -
         kubectl --context "$CTX" -n cert-manager set env deployment/cert-manager-lego-webhook --from=secret/ipv64-api-key
         envsubst '$DEVMESH_DOMAIN' < dev-local/cluster/tls.yaml | kubectl --context "$CTX" apply -f -
         # 4. Stack applizieren und auf jede Deployment-Rollout warten

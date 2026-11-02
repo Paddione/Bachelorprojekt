@@ -6,7 +6,7 @@
 # Tunnel-Neustart) oder der letzte Restart liegt weniger als 5 Minuten zurueck.
 #
 # Drei Ketten werden getrennt geprueft:
-#   - Gateway-Kette:  18080 → mcp-gateway.service (fleet dev-pod)
+#   - Gateway-Kette:  18080 → mcp-gateway.service (devmesh dev-pod)
 #   - devmesh-Kette:  13005 + 18235 → devmesh-forward.service (devmesh llm-services,
 #     T900191, T901560: ein kubectl-Prozess traegt 18235:18235 13005:13005;
 #     18235 ist der llm-proxy-HTTP-Health, 13005 der bge-mcp-MCP-initialize)
@@ -74,7 +74,7 @@ fi
 # Running" — dann wird nicht neu gestartet.
 restarted=0
 if [ "$gateway_failed" -eq 1 ]; then
-  phase=$(kubectl --context fleet -n workspace-dev get pod -l app=dev-pod \
+  phase=$(kubectl --context devmesh -n workspace get pod -l app=dev-pod \
     -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
   if [ "$phase" = "Running" ]; then
     echo "RESTART mcp-gateway.service (Probe 18080 fehlgeschlagen, Pod Running)"

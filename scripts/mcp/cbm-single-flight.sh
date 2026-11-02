@@ -88,6 +88,17 @@ set -e
 cleanup
 trap - EXIT
 
+if [ "$CLI_EXIT" -eq 0 ]; then
+  CBM_NORM_PROJ=$(printf '%s' "$ARGS_JSON" | python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); print(d.get("project") or "")' 2>/dev/null || true)
+  if [ -z "$CBM_NORM_PROJ" ]; then
+    CBM_NORM_PROJ="${CBM_PROJECT:-home-patrick-Bachelorprojekt}"
+  fi
+  CBM_NORM_DB="$HOME/.cache/codebase-memory-mcp/${CBM_NORM_PROJ}.db"
+  if [ -f "$CBM_NORM_DB" ]; then
+    python3 "$HERE/cbm-normalize-kinds.py" --db "$CBM_NORM_DB" --project "$CBM_NORM_PROJ" --apply >/dev/null 2>&1 || echo "[cbm-single-flight] WARN: kind normalization failed for $CBM_NORM_PROJ" >&2
+  fi
+fi
+
 if [ "$CLI_EXIT" -ne 0 ]; then
   exit "$CLI_EXIT"
 fi

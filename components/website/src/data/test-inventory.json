@@ -2592,6 +2592,12 @@
     "kind": "pytest"
   },
   {
+    "id": "cbm/cbm_normalize_kinds",
+    "file": "tests/py/spec/cbm/test_cbm_normalize_kinds.py",
+    "category": "cbm",
+    "kind": "pytest"
+  },
+  {
     "id": "cbm/k3_model_labels",
     "file": "tests/py/spec/cbm/test_k3_model_labels.py",
     "category": "cbm",

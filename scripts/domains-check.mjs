@@ -180,7 +180,8 @@ function check(entries, { skipManifestScan }) {
         seen.set(entry.id, index);
       }
     }
-    if (typeof entry?.manifest_source === 'string' && entry.manifest_source !== '') {
+    // manifest_repo gesetzt: Manifest liegt in einem anderen Repo (z. B. home) -> keine Plattenpruefung hier.
+    if (typeof entry?.manifest_source === 'string' && entry.manifest_source !== '' && !entry.manifest_repo) {
       if (!existsSync(join(REPO, entry.manifest_source))) {
         problems.push(`${label}: manifest_source fehlt auf Platte: ${entry.manifest_source}`);
       }

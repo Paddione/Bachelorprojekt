@@ -123,7 +123,7 @@ for (const e of entries) {
     if (!e.sso) findings.push('SSO-Block fehlt in Registry');
     else {
       lines.push(`- SSO-Gate: ${e.sso.gate}${e.sso.client_id ? ` · Client \`${e.sso.client_id}\`` : ''}${e.sso.groups?.length ? ` · Gruppen ${e.sso.groups.join(', ')}` : ''}`);
-      const detected = manifestGate(e.manifest_source);
+      const detected = manifestGate(e.sso.gate_manifest ?? e.manifest_source);
       if (e.sso.gate === 'oauth2-proxy' && !detected) findings.push('Gate oauth2-proxy deklariert, im Manifest nicht gefunden');
       if (e.sso.gate === 'native' && detected) findings.push('Gate native deklariert, Manifest enthaelt aber oauth2-proxy/forwardAuth');
     }

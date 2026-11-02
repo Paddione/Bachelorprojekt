@@ -170,6 +170,10 @@ spec:
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_TERMINAL_SECRET, optional: true } }
             - name: SECRET_owner
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_OWNER_SECRET, optional: true } }
+            - name: SECRET_opencode
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_OPENCODE_SECRET, optional: true } }
+            - name: SECRET_fritz
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_FRITZBOX_SECRET, optional: true } }
           command:
             - /bin/sh
             - -ec
@@ -273,6 +277,8 @@ spec:
               brain|SECRET_brain|POCKET_ID_BRAIN_SECRET|$${SCHEME}://brain.$${SUFFIX}/oauth2/callback
               terminal-sidekick|SECRET_terminal|POCKET_ID_TERMINAL_SECRET|$${SCHEME}://terminal.$${SUFFIX}/oauth2/callback
               owner|SECRET_owner|POCKET_ID_OWNER_SECRET|$${SCHEME}://web.$${SUFFIX}/api/owner/callback
+              opencode|SECRET_opencode|POCKET_ID_OPENCODE_SECRET|$${OPENCODE_CALLBACK}
+              fritz|SECRET_fritz|POCKET_ID_FRITZBOX_SECRET|$${FRITZBOX_CALLBACK}
               "
 
               # T900804: Lookup ueber das JSON-Objekt, nicht ueber benachbarte Felder.

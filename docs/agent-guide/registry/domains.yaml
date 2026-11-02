@@ -16,8 +16,10 @@
 #   auth            oidc | open | basic | token
 #   owner_frontend  verantwortliches Frontend-Team
 #   sso             optional (nur bei auth: oidc): client_id (Pocket-ID-Client), gate
-#                   (native | oauth2-proxy | issuer), groups (erlaubte Gruppen).
+#                   (native | oauth2-proxy | issuer), groups (erlaubte Gruppen),
+#                   gate_manifest (optional: Datei, die den Proxy deklariert).
 #                   Soll-Ist-Abgleich + Zertifikat: task domains:graph
+#   manifest_repo   optional: Manifest liegt in anderem Repo (z. B. home) -> manifest_source wird hier nicht auf Platte geprueft
 #   functions       Liste der Funktions-Strings (Funktions-Matrix)
 #   status          live | frozen | retired
 #   manifest_source repo-relative YAML-Datei, die den Host deklariert
@@ -221,7 +223,7 @@ domains:
     service: opencode:80
     auth: oidc
     sso:
-      client_id: claudecode
+      client_id: opencode
       gate: oauth2-proxy
       groups: [workspace-users]
     owner_frontend: bp-ship
@@ -240,7 +242,7 @@ domains:
     service: oauth2-proxy-fritzbox:4180
     auth: oidc
     sso:
-      client_id: fritzbox
+      client_id: fritz
       gate: oauth2-proxy
       groups: [workspace-users]
     owner_frontend: bp-ship
@@ -257,12 +259,17 @@ domains:
     namespace: components
     paths: ["/", "/_astro/"]
     service: website:80
-    auth: open
+    auth: oidc
+    sso:
+      client_id: web-korczewski
+      gate: oauth2-proxy
+      gate_manifest: k3d/oauth2-proxy-web-korczewski.yaml
+      groups: [workspace-owners]
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
     expect:
-      status: [404]
+      status: [401]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
     decision: "Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt fleet."
 
@@ -297,3 +304,24 @@ domains:
     expect:
       status: [200]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
+
+  - id: devmesh-agent-board
+    host: agent-board.devmesh.korczewski.de
+    cluster: devmesh
+    namespace: workspace
+    paths: ["/"]
+    service: agent-board:80
+    auth: oidc
+    sso:
+      client_id: f88484dc-4e8f-40f4-b14f-0dace37ddb5c
+      gate: native
+      groups: []
+    owner_frontend: bp-ship
+    functions: [ops-cockpit]
+    status: live
+    expect:
+      status: [302]
+      redirect_to_contains: /api/auth/login
+    manifest_repo: home
+    manifest_source: apps/agent-board/k8s/ingress.yaml
+    decision: "D2: kanonisches devmesh-Ops-Cockpit; Manifest im Home-Repo (apps/agent-board)."

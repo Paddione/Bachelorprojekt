@@ -1,6 +1,6 @@
 # Domains-Graph (generiert)
 
-Quelle: `docs/agent-guide/registry/domains.yaml` · Erzeugt mit `node scripts/domains-graph.mjs --live` · Stand 2026-11-02T10:27:19.338Z.
+Quelle: `docs/agent-guide/registry/domains.yaml` · Erzeugt mit `node scripts/domains-graph.mjs --live` · Stand 2026-11-02T10:31:06.314Z.
 Nicht von Hand editieren. Nach Aenderung den Repo-Graph neu indizieren (`index_repository`).
 
 ## web.korczewski.de
@@ -118,11 +118,10 @@ Nicht von Hand editieren. Nach Aenderung den Repo-Graph neu indizieren (`index_r
 - Backend: `opencode:80` (ns `components`)
 - Manifest: `dev-local/components/opencode/ingressroute.yaml`
 - Auth: **oidc**
-- SSO-Gate: oauth2-proxy · Client `claudecode` · Gruppen workspace-users
+- SSO-Gate: oauth2-proxy · Client `opencode` · Gruppen workspace-users
 - TLS: TLSv1.3 · Aussteller Let's Encrypt · gueltig bis 2027-01-31 (89 Tage) · Kette vertraut
 - HTTP: 401
-- Pocket-ID-Client: FEHLT
-- **Befund:** OIDC-Client 'claudecode' fehlt in Pocket ID
+- Pocket-ID-Client: vorhanden
 
 ## fritz.korczewski.de
 
@@ -130,21 +129,21 @@ Nicht von Hand editieren. Nach Aenderung den Repo-Graph neu indizieren (`index_r
 - Backend: `oauth2-proxy-fritzbox:4180` (ns `components`)
 - Manifest: `dev-local/components/opencode/fritzbox-ingressroute.yaml`
 - Auth: **oidc**
-- SSO-Gate: oauth2-proxy · Client `fritzbox` · Gruppen workspace-users
+- SSO-Gate: oauth2-proxy · Client `fritz` · Gruppen workspace-users
 - TLS: TLSv1.3 · Aussteller Let's Encrypt · gueltig bis 2027-01-31 (89 Tage) · Kette vertraut
 - HTTP: 401
-- Pocket-ID-Client: FEHLT
-- **Befund:** OIDC-Client 'fritzbox' fehlt in Pocket ID
+- Pocket-ID-Client: vorhanden
 
 ## web.korczewski.de
 
 - id: `korczewski-web-mirror` · cluster: devmesh · status: live
 - Backend: `website:80` (ns `components`)
 - Manifest: `dev-local/components/korczewski-prod/ingressroute.yaml`
-- Auth: **open**
+- Auth: **oidc**
+- SSO-Gate: oauth2-proxy · Client `web-korczewski` · Gruppen workspace-owners
 - TLS: TLSv1.3 · Aussteller Let's Encrypt · gueltig bis 2027-01-31 (89 Tage) · Kette vertraut
-- HTTP: 401 (erwartet 404)
-- **Befund:** HTTP 401 statt 404
+- HTTP: 401
+- Pocket-ID-Client: vorhanden
 
 ## korczewski.de
 
@@ -164,3 +163,14 @@ Nicht von Hand editieren. Nach Aenderung den Repo-Graph neu indizieren (`index_r
 - SSO-Gate: issuer
 - TLS: TLSv1.3 · Aussteller Let's Encrypt · gueltig bis 2027-01-31 (89 Tage) · Kette vertraut
 - HTTP: 200
+
+## agent-board.devmesh.korczewski.de
+
+- id: `devmesh-agent-board` · cluster: devmesh · status: live
+- Backend: `agent-board:80` (ns `workspace`)
+- Manifest: `apps/agent-board/k8s/ingress.yaml`
+- Auth: **oidc**
+- SSO-Gate: native · Client `f88484dc-4e8f-40f4-b14f-0dace37ddb5c`
+- TLS: TLSv1.3 · Aussteller Let's Encrypt · gueltig bis 2027-01-31 (89 Tage) · Kette vertraut
+- HTTP: 302 → /api/auth/login
+- Pocket-ID-Client: vorhanden

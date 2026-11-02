@@ -81,4 +81,5 @@ def test_t900016_runbook_invokes_precheck_instead_of_only_describing_it(ctx):
     assert runbook.is_file()
     text = runbook.read_text(encoding="utf-8")
     assert "scripts/repo-hygiene-precheck.sh" in text
-    assert "agent-lock.sh claim main-checkout" in text
+    # Claim-Anweisung: agent-workspace.py (Guard-konform) oder der fruehere agent-lock.sh-Wortlaut.
+    assert "lock claim main-checkout" in text or "agent-lock.sh claim main-checkout" in text

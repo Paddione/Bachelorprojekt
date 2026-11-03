@@ -2610,6 +2610,12 @@
     "kind": "pytest"
   },
   {
+    "id": "cbm/normalize_receipt_order",
+    "file": "tests/py/spec/cbm/test_normalize_receipt_order.py",
+    "category": "cbm",
+    "kind": "pytest"
+  },
+  {
     "id": "centralized-logging",
     "file": "tests/py/spec/remaining_domain_specs/test_centralized_logging.py",
     "category": "centralized-logging",

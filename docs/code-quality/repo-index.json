@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1288,
+      "file_count": 1289,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -356,6 +356,7 @@
         "tests/py/spec/cbm/test_cbm_normalize_kinds.py",
         "tests/py/spec/cbm/test_k3_model_labels.py",
         "tests/py/spec/cbm/test_multi_project_receipts.py",
+        "tests/py/spec/cbm/test_normalize_receipt_order.py",
         "tests/py/spec/ci/test_ai_code_review.py",
         "tests/py/spec/ci_cd_specs/test_actionlint_workflow_gate.py",
         "tests/py/spec/ci_cd_specs/test_arbitration_scoped_kubeconfig.py",

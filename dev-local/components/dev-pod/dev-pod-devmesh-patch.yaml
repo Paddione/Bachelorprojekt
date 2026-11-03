@@ -5,8 +5,17 @@ metadata:
 spec:
   template:
     spec:
+      # k3d-Basis bindet an role=dev (k3d/dev-pod/deployment.yaml) — auf devmesh
+      # existiert dieses Label nicht. Statt ersatzlos zu streichen, an amd64
+      # binden: dev-shell/repo-sync-Images sind amd64-only (Issue #7127).
       affinity:
-        $patch: delete
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values: [amd64]
       tolerations: []
       containers:
         - name: dev-shell

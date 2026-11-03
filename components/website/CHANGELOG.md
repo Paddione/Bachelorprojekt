@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.2...website-v1.450.3) (2026-11-03)
+
+
+### Bug Fixes
+
+* **scripts:** normalize vor finish-Receipt in cbm-single-flight ([#7125](https://github.com/Paddione/Bachelorprojekt/issues/7125)) ([f077f26](https://github.com/Paddione/Bachelorprojekt/commit/f077f26739d557e26cbadf5e09864473494030c2))
+
 ## [1.450.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.1...website-v1.450.2) (2026-11-02)
 
 

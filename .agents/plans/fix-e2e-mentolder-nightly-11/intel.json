@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "slug": "fix-e2e-mentolder-nightly-11",
+    "ticket_id": "",
+    "generated_from": "main@1a8c2909d",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".agents/plans/fix-e2e-mentolder-nightly-11/discovery.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/plans/fix-e2e-mentolder-nightly-11/verify.log",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/e2e/helpers/billing.ts",
+      "language": "javascript",
+      "loc": 53,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 847
+    },
+    {
+      "path": "tests/e2e/playwright.config.ts",
+      "language": "javascript",
+      "loc": 259,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 641
+    },
+    {
+      "path": "tests/e2e/specs/fa-16-booking.spec.ts",
+      "language": "javascript",
+      "loc": 73,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 827
+    },
+    {
+      "path": "tests/e2e/specs/fa-21-billing.spec.ts",
+      "language": "javascript",
+      "loc": 104,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 796
+    },
+    {
+      "path": "tests/e2e/specs/fa-24-whiteboard.spec.ts",
+      "language": "javascript",
+      "loc": 73,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 827
+    },
+    {
+      "path": "tests/e2e/specs/mentolder-web-smoke.spec.ts",
+      "language": "javascript",
+      "loc": 68,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 832
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/e2e/specs/mentolder-web-smoke.spec.ts:28:function describeViolations(violations: AxeViolationSummary[]): string {",
+      "kind": "function",
+      "file": "tests/e2e/specs/mentolder-web-smoke.spec.ts",
+      "signature": "28:function describeViolations(violations: AxeViolationSummary[]): string {(...)",
+      "type_text": "28:function describeViolations(violations: AxeViolationSummary[]): string {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

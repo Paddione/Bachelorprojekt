@@ -1,0 +1,64 @@
+# p6 — verify.log: RED-Nachweis + Grün-Nachweis (lokal, 2026-11-04)
+
+## RED-Nachweis
+
+### p3 T6 (lokal, WEBSITE_URL=https://web.mentolder.de, --workers=1)
+```
+1 failed
+  [website] › specs/fa-16-booking.spec.ts:55:7 › FA-16: Calendar Booking ›
+  T6: POST /api/booking with non-whitelisted slot returns 409 @booking
+    Expected: 409
+    Received: 400
+```
+→ `expected: FAIL` belegt (vor p3-Edit).
+
+### p2 fa-21-billing (nightly-only, Run 41815883961, 04.11. 10:44–10:45Z)
+- T3: `Expected: 401 / Received: 400` (10:44:51Z)
+- PR-A (2×): `Error: create-invoice failed (400):
+  {"error":"Rechnungen gibt es nur noch aus der Klientenakte (klientId fehlt).
+  Fakturierung → Neue Rechnung → Klient wählen."}` (10:44:55Z, 10:44:57Z)
+- Lokal NICHT reproduzierbar: `mentolder`-Projekt hängt an `mentolder-setup`
+  (OIDC-Login, braucht E2E_USER_PASS/CRON_SECRET — lokal nicht vorhanden:
+  `1 failed (setup), 6 did not run`). T3-Live-Stand per curl 20:40:46Z:
+  `POST /api/billing/create-invoice {}` → `401 {"error":"Unauthorized"}`
+  (Ordering aktuell Auth-zuerst, passend zu main-Handler).
+→ RED nightly belegt; p2-Implementierung BLOCKED (klientId-Wert-Shape, s. discovery.md Lücke).
+
+### p4/p5 (kein lokaler RED-Lauf nötig, nightly-rot belegt)
+- p4: 6 rote Smoke-Tests (`mentolder-web-smoke`, Run 41815883961:
+  Overflow `Expected: <= 0 / Received: 80` + 4× axe `Expected: 0`) → retiren.
+- p5: T-axe rot (`Expected: 0 / Received: 2`, 10:44:09Z) → ausnehmen.
+
+## Grün-Nachweis (nach p3–p5)
+
+### p3: fa-16-booking VOLLSTÄNDIG GRÜN (lokal, --workers=1)
+```
+Running 6 tests using 1 worker
+[1/6] T1 ... [6/6] T6: POST /api/booking with non-whitelisted slot returns 409
+  6 passed (3.1s)
+```
+
+### p4: Smoke-Retire verifiziert
+- `wc -l tests/e2e/playwright.config.ts`: 259 → 258 (exakt 1 testMatch-Zeile raus)
+- `grep -rn "mentolder-web-smoke" tests/e2e/ .github/workflows/`: leer
+- `npx playwright test --project=smoke --list`: `Total: 12 tests in 1 file`
+  (nur `integration-smoke.spec.ts`)
+
+### p5: fa-24-whiteboard GRÜN (lokal, BOARD_URL=https://board.mentolder.de, --workers=1)
+```
+  1 skipped (T-axe: Whiteboard hat 0 critical/serious)
+  5 passed (1.5s)
+```
+Hinweis: ohne BOARD_URL-Env (Default `http://board.localhost`) failen T1–T5
+lokal mit Connection-Refused — Umwelt, kein Regressions-Signal. Nightly setzt
+`BOARD_URL=https://board.<prod_domain>`.
+
+### p2: OFFEN — kein Grün-Lauf möglich ohne klientId-Wert + Prod-Auth
+- T3 braucht KEINE Änderung (live aktuell 401, T3 erwartet 401).
+- Helper + PR-A (`klientId`-Payload) erfordern verifizierten Wert-Shape +
+  authentifizierten Grün-Lauf → Eskalation, danach Nightly als Gate (G-E2E01).
+
+## Repo-Gates (p6, TODO nach Parent-Entscheidung zu p2)
+- `task test:changed` — ausstehend (erst nach vollständigem Diff sinnvoll)
+- `task freshness:regenerate` + `task freshness:check` — ausstehend
+  (`repo.generated_artifacts: true`, Datei-Liste aus verification-block)

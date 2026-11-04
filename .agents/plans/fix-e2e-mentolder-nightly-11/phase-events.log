@@ -1,2 +1,10 @@
 plan created 2026-11-04T21:40:00Z dev-flow-plan
 plan done 2026-11-04T20:38:41Z plan-gestagt
+p1 discovery done 2026-11-04T20:45Z implementer (agbAkzeptiert verifiziert, klientId-Name verifiziert, Wert-Shape Luecke)
+p3 RED 2026-11-04T20:47Z fa-16-booking T6: 1 failed (Expected 409, Received 400)
+p3 GREEN 2026-11-04T20:52Z fa-16-booking --workers=1: 6 passed
+p4 retire 2026-11-04T20:55Z smoke --list: nur integration-smoke (12 tests), grep mentolder-web-smoke leer, config 259->258 Zeilen
+p5 GREEN 2026-11-04T21:05Z fa-24-whiteboard (BOARD_URL=https://board.mentolder.de): 5 passed, 1 skipped (T-axe)
+p2 RED-beleg 2026-11-04 nightly-only: Run 41815883961 T3 Expected 401 Received 400 (10:44:51Z); PR-A create-invoice 400 klientId fehlt (10:44:55Z/10:44:57Z)
+p2 BLOCKED 2026-11-04T21:10Z implementer: klientId-Wert-Shape ohne Prod-Auth nicht verifizierbar, kein Raten (Fail-Closed) — Eskalation an Parent
+p6 local-state 2026-11-04T21:12Z fa-21-billing lokal nicht lauffaehig (mentolder-setup braucht E2E_USER_PASS/CRON_SECRET, 1 failed im Setup, 6 did-not-run); T3-Live-Stand per curl: 401 Unauthorized (20:40:46Z)

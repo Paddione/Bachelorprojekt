@@ -62,3 +62,4 @@ lokal mit Connection-Refused — Umwelt, kein Regressions-Signal. Nightly setzt
 - `task test:changed` — ausstehend (erst nach vollständigem Diff sinnvoll)
 - `task freshness:regenerate` + `task freshness:check` — ausstehend
   (`repo.generated_artifacts: true`, Datei-Liste aus verification-block)
+p2 PLATZHALTER 2026-11-04T21:50Z eigner-override: klientId? via Param/E2E_KLIENT_ID, PR-A skip ohne Secret, T3 unverändert (live 401); --list parse OK (8 tests)

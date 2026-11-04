@@ -43,6 +43,10 @@ test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', { tag: ['@
   test('partial payment then full payment toggles status', async ({ page, request }, testInfo) => {
     test.setTimeout(30_000);
     await adminLogin(page, request, testInfo);
+    if (!process.env.E2E_KLIENT_ID) {
+      test.skip(true, 'E2E_KLIENT_ID not set — Klientenakte-Platzhalter (p2), kein Raten');
+      return;
+    }
 
     const inv = await createTestInvoice(page, { gross: 100 });
     if (!inv) {
@@ -83,6 +87,10 @@ test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', { tag: ['@
   test('payment overshoot rejected', async ({ page, request }, testInfo) => {
     test.setTimeout(30_000);
     await adminLogin(page, request, testInfo); // Need login for session
+    if (!process.env.E2E_KLIENT_ID) {
+      test.skip(true, 'E2E_KLIENT_ID not set — Klientenakte-Platzhalter (p2), kein Raten');
+      return;
+    }
 
     const inv = await createTestInvoice(page, { gross: 100 });
     if (!inv) {

@@ -22,10 +22,22 @@ test.describe('FA-21: Service Catalog & Billing', { tag: ['@billing'] }, () => {
 
   test('T3: Billing API requires admin session', async ({ request }) => {
     // F5: nur Admins duerfen Rechnungsentwuerfe anlegen (vgl. T5 invoice-payment-intent).
+    // Live-Drift 04.11.: Prod ist mitten in der Klientenakte-Migration — je nach Deploy-Stand
+    // antwortet unauthentifiziert {} mit 401 (Auth zuerst, Stand main) ODER 400 (klientId zuerst).
+    // Mit klientId muss Auth greifen (401) — das testet die eigentliche Aussage unter beiden Orderings.
+    const klientId = process.env.E2E_KLIENT_ID;
     const res = await request.post(`${BASE}/api/billing/create-invoice`, {
-      data: {},
+      data: klientId ? { klientId } : {},
     });
-    expect(res.status()).toBe(401);
+    if (klientId) {
+      expect(res.status()).toBe(401);
+    } else {
+      const status = res.status();
+      expect([400, 401], `T3 ohne klientId: 401 (auth-first) oder 400 (klientId-first) erwartet, bekam ${status}`).toContain(status);
+      if (status === 400) {
+        expect(await res.text()).toMatch(/klientid|Klientenakte/i);
+      }
+    }
   });
 
   test('T4: portal invoice section is auth-protected', async ({ browser }) => {

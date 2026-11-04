@@ -61,7 +61,7 @@
     // reproducibility this ticket exists to restore. INSTALL.md documents
     // the `#<ref>` pin syntax directly (its example pins to a tag; a commit
     // SHA is immutable where a tag can move, so that's used here instead).
-    "superpowers@git+https://github.com/obra/superpowers.git#2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
+    "superpowers@git+https://github.com/obra/superpowers.git#22f0b463e7a5e579904dd6211a520321035526f7"
   ],
   "permission": {
     "read": "allow",

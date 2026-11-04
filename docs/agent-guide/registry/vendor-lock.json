@@ -14,8 +14,8 @@
           ".opencode/opencode.jsonc",
           ".opencode/package-lock.json"
         ],
-        "ref": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
-        "version": "v7.0.1"
+        "ref": "22f0b463e7a5e579904dd6211a520321035526f7",
+        "version": "v7.0.2"
       }
     },
     "npm": {

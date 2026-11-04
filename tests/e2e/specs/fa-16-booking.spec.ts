@@ -64,6 +64,9 @@ test.describe('FA-16: Calendar Booking', { tag: ['@booking'] }, () => {
         slotEnd: '2020-01-01T08:00:00.000Z',
         slotDisplay: '09:00 - 10:00',
         date: '2020-01-01',
+        // Live-Drift 04.11.: Prod verlangt serverseitig agbAkzeptiert
+        // (400 „Bitte bestätigen Sie die AGB." ohne das Feld, Discovery p1).
+        agbAkzeptiert: true,
       },
     });
     expect(res.status()).toBe(409);

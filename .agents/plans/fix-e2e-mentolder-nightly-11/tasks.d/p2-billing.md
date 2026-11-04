@@ -14,6 +14,14 @@ trotzdem kein Breaking-Change.
 3. Helper-Typisierung ohne `any` (CQ02: Count nicht erhöhen).
 4. Grün-Lauf: `npx playwright test fa-21-billing` → 0 failed.
 
+## Eigner-Override 04.11. (Platzhalter statt Fail-Closed-Stop)
+p2 war nach Discovery blockiert (`klientId`-Wert-Shape ohne Prod-Auth nicht verifizierbar).
+Eigner-Entscheidung: Billing bekommt vorerst einen Platzhalter — umgesetzt als Env-Gate, NICHT als
+erfundener Wert: `createTestInvoice` nimmt `klientId?` (Param oder `E2E_KLIENT_ID`), beide PR-A-Tests
+skippen explizit ohne `E2E_KLIENT_ID` (Muster wie `adminLogin`/CRON_SECRET). T3 unverändert (live 401 =
+Erwartung, per curl 04.11. 20:40Z belegt). Sobald Shape + Secret stehen: Skip entfernen, Grün-Lauf,
+Nightly hebt G-E2E01.
+
 ## Gates
 - RED vor Grün im selben Partial belegt (Log-Auszug in `phase-events.log`).
 - `npx playwright test fa-21-billing` Exit 0.

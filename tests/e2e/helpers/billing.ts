@@ -13,8 +13,11 @@ export async function adminLogin(page: Page, request?: APIRequestContext, testIn
   await loginViaE2E(page, BASE, user, '/admin/rechnungen');
 }
 
-export async function createTestInvoice(page: Page, opts: { gross: number }) {
+export async function createTestInvoice(page: Page, opts: { gross: number; klientId?: string }) {
   const email = `test-${Date.now()}@example.de`;
+  // Klientenakte-Flow (Live-Drift, p2-Platzhalter): klientId aus Param oder E2E_KLIENT_ID.
+  // Ohne Wert kein Invoice-Create möglich — Caller skippt (kein Raten, kein Fake-Wert).
+  const klientId = opts.klientId ?? process.env.E2E_KLIENT_ID;
 
   const res = await page.request.post(`${BASE}/api/admin/billing/create-invoice`, {
     data: {
@@ -23,6 +26,7 @@ export async function createTestInvoice(page: Page, opts: { gross: number }) {
       lines: [{ description: 'Test Position', quantity: 1, unitPrice: opts.gross }],
       taxMode: 'kleinunternehmer',
       dueDays: 14,
+      ...(klientId ? { klientId } : {}),
     }
   });
   const status = res.status();

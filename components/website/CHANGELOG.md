@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.3...website-v1.450.4) (2026-11-04)
+
+
+### Bug Fixes
+
+* **e2e:** mentolder-nightly 11 failures — booking/agb, smoke-retire, whiteboard-skip (p2 klientId offen) ([#7135](https://github.com/Paddione/Bachelorprojekt/issues/7135)) ([660fc6b](https://github.com/Paddione/Bachelorprojekt/commit/660fc6b2f514e2d20c6b37cea408d5662de1a189))
+
 ## [1.450.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.2...website-v1.450.3) (2026-11-03)
 
 

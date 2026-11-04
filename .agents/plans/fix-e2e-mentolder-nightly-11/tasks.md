@@ -1,7 +1,7 @@
 ---
 title: "fix/e2e-mentolder-nightly-11 — Nightly E2E (mentolder) 11 Failures: Live-Drift + totes SPA-Artefakt"
 domains: [website, e2e]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

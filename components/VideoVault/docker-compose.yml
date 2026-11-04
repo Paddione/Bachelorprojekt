@@ -79,7 +79,6 @@ services:
       - ./package-lock.json:/app/package-lock.json
       - ./tsconfig.json:/app/tsconfig.json:ro
       - ./vite.config.ts:/app/vite.config.ts:ro
-      - ./tailwind.config.cjs:/app/tailwind.config.cjs:ro
       - ./postcss.config.js:/app/postcss.config.js:ro
 
       # Mount media directory (use local path for dev)

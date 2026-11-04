@@ -20,7 +20,6 @@ COPY packages/videovault-player/ /packages/videovault-player/
 COPY components/VideoVault/package*.json ./
 COPY components/VideoVault/tsconfig.json ./
 COPY components/VideoVault/vite.config.ts ./
-COPY components/VideoVault/tailwind.config.cjs ./
 COPY components/VideoVault/postcss.config.js ./
 
 RUN --mount=type=cache,target=/root/.npm npm install -g npm@11 && npm install --legacy-peer-deps

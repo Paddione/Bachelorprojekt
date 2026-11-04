@@ -73,14 +73,14 @@ flowchart LR
 ### Begruendete Splits im Register
 
 - **`website-korczewski`** (web.${PROD_DOMAIN}) — D1: frozen bis Deploy-Freigabe (Backend derzeit 404); nach verifiziertem 200 auf live + expect heben.
-- **`website-staging`** (web.${PROD_DOMAIN}) — D1: Staging-Spiegel; frozen seit brand-trennung (realer Host web.staging.korczewski.de derzeit 000, unter fleet-korczewski-Env waere web.korczewski.de 404). Reaktivieren erst mit Staging-Backend + eigenem expect.
+- **`website-staging`** (web.${PROD_DOMAIN}) — D1: Staging-Spiegel; frozen seit brand-trennung (realer Host web.staging.korczewski.de derzeit 000, unter prodmesh-korczewski-Env waere web.korczewski.de 404). Reaktivieren erst mit Staging-Backend + eigenem expect.
 - **`apex-korczewski`** (${PROD_DOMAIN}) — D1: Apex leitet auf den kanonischen web-Host weiter — aktiv erst nach DNS-Cutover + Deploy (derzeit korczewski.de 404). Dann live + expect 301.
 - **`devmesh-web`** (web.${DEVMESH_DOMAIN}) — D2: agent-board ist das kanonische devmesh-Ops-Cockpit; web.devmesh/sdlc sind Tickets/Pipeline.
 - **`devmesh-website-alias`** (${WEBSITE_HOST}) — D2: Kompat-Alias auf denselben Website-Service; kanonisch bleibt web.
 - **`devmesh-opencode`** (${OPENCODE_PUBLIC_HOST}) — Ops-Einstieg hinter oauth2-proxy; eigener Host, kein FritzBox-Zugang.
 - **`devmesh-fritzbox`** (${FRITZ_BOX_HOST}) — FritzBox-Lokalzugang; eigener Host, kein Redirect auf den Public-Host.
-- **`korczewski-web-mirror`** (${KORCZEWSKI_PROD_WEB_HOST}) — Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt fleet.
-- **`korczewski-apex-mirror`** (${KORCZEWSKI_PROD_APEX_HOST}) — Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt fleet.
+- **`korczewski-web-mirror`** (${KORCZEWSKI_PROD_WEB_HOST}) — Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt prodmesh.
+- **`korczewski-apex-mirror`** (${KORCZEWSKI_PROD_APEX_HOST}) — Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt prodmesh.
 - **`devmesh-agent-board`** (agent-board.devmesh.korczewski.de) — D2: kanonisches devmesh-Ops-Cockpit; Manifest im Home-Repo (apps/agent-board).
 
 ## Host-Inventar

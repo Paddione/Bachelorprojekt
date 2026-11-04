@@ -57,7 +57,7 @@ domains:
     functions: [frontend]
     status: frozen
     manifest_source: prod-fleet/website-staging/website-ingress-web.yaml
-    decision: "D1: Staging-Spiegel; frozen seit brand-trennung (realer Host web.staging.korczewski.de derzeit 000, unter fleet-korczewski-Env waere web.korczewski.de 404). Reaktivieren erst mit Staging-Backend + eigenem expect."
+    decision: "D1: Staging-Spiegel; frozen seit brand-trennung (realer Host web.staging.korczewski.de derzeit 000, unter prodmesh-korczewski-Env waere web.korczewski.de 404). Reaktivieren erst mit Staging-Backend + eigenem expect."
 
   - id: apex-korczewski
     host: ${PROD_DOMAIN}
@@ -271,7 +271,7 @@ domains:
     expect:
       status: [401]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
-    decision: "Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt fleet."
+    decision: "Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt prodmesh."
 
   - id: korczewski-apex-mirror
     host: ${KORCZEWSKI_PROD_APEX_HOST}
@@ -286,7 +286,7 @@ domains:
     expect:
       status: [404]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
-    decision: "Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt fleet."
+    decision: "Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt prodmesh."
 
   - id: korczewski-auth-mirror
     host: ${KORCZEWSKI_PROD_AUTH_HOST}

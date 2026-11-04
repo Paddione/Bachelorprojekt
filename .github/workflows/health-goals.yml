@@ -109,6 +109,20 @@ jobs:
             exit 1
           fi
 
+      # A configured but unreachable API server makes every kubectl call without
+      # --request-timeout hang until the TCP timeout. Since the fleet cluster went
+      # away (2026-10-22) that pushed every run past timeout-minutes (cancelled).
+      # Unreachable => drop the kubeconfig so cluster goals fail fast to the "-"
+      # sentinel (n/a, not a violation) and the rest of the scan still lands.
+      - name: "Probe: fleet API reachable, else drop kubeconfig"
+        run: |
+          if timeout 20 kubectl --context fleet --request-timeout=10s get --raw /readyz >/dev/null 2>&1; then
+            echo "fleet API reachable"
+          else
+            echo "::warning::fleet API unreachable; cluster-dependent goals stay unknown this run"
+            rm -f ~/.kube/config
+          fi
+
       # env:validate (part of the non-fast measurement path) reads the git-crypt'd
       # secret files, which stay encrypted on a CI runner. Same treatment as in
       # freshness-regen.yml. These files are never staged below.

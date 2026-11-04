@@ -115,12 +115,15 @@ jobs:
       # Unreachable => drop the kubeconfig so cluster goals fail fast to the "-"
       # sentinel (n/a, not a violation) and the rest of the scan still lands.
       - name: "Probe: fleet API reachable, else drop kubeconfig"
+        id: fleet
         run: |
           if timeout 20 kubectl --context fleet --request-timeout=10s get --raw /readyz >/dev/null 2>&1; then
             echo "fleet API reachable"
+            echo "reachable=true" >> "$GITHUB_OUTPUT"
           else
             echo "::warning::fleet API unreachable; cluster-dependent goals stay unknown this run"
             rm -f ~/.kube/config
+            echo "reachable=false" >> "$GITHUB_OUTPUT"
           fi
 
       # env:validate (part of the non-fast measurement path) reads the git-crypt'd
@@ -216,8 +219,11 @@ jobs:
         if: steps.measure.outputs.dry == 'false'
         run: task health:goals:emit
 
+      # The website database lives in the fleet cluster (shared-db pod). Without a
+      # reachable API there is nothing to persist into; the artifact PR below
+      # still carries the fresh snapshot.
       - name: Persist fresh measurements to the website database
-        if: steps.measure.outputs.dry == 'false'
+        if: steps.measure.outputs.dry == 'false' && steps.fleet.outputs.reachable == 'true'
         env:
           TICKET_CTX: fleet
           TICKET_NS: workspace

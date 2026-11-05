@@ -1,0 +1,14 @@
+[Unit]
+Description=CBM kind-normalize watchdog (K1 repo-graph-label-cleanup)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/patrick/Bachelorprojekt/scripts/mcp/cbm-normalize-watchdog.py
+Restart=always
+RestartSec=10
+Environment=PATH=/home/patrick/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HOME=%h
+
+[Install]
+WantedBy=default.target

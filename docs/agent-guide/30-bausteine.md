@@ -24,12 +24,6 @@ Das mit Astro + Svelte gebaute Frontend (die Web-Oberfläche). Öffentliche Seit
 
 Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Vaultwarden u. a. an. Herzstück der Sicherheit.
 
-### ☁️ Nextcloud
-
-🟠 **Nur mit Hilfe**
-
-Wie eine eigene Dropbox + Office + Kalender, komplett auf eigenen Servern (DSGVO-konform).
-
 ### 📄 Collabora
 
 🟡 **Vorsicht**
@@ -41,12 +35,6 @@ Die Online-Office-Suite, die Office-Dateien im Browser bearbeitbar macht (vergle
 🔴 **Niemals allein**
 
 Verwaltet Zugangsdaten zentral und verschlüsselt; per Bitwarden-Apps nutzbar.
-
-### 📡 Talk HPB
-
-🟡 **Vorsicht**
-
-High-Performance-Backend für Talk; ohne ihn brechen Gruppen-Videoanrufe zusammen.
 
 ### 🧩 Brett
 
@@ -65,12 +53,6 @@ Nur zum Ausprobieren: zeigt verschickte Mails an, ohne sie an echte Empfänger z
 🟡 **Vorsicht**
 
 Versendet Dokumente zur rechtssicheren elektronischen Unterschrift.
-
-### 🎨 Whiteboard
-
-🟢 **Sicher**
-
-Kollaboratives Whiteboard für Skizzen und Ideen, direkt in Nextcloud.
 
 ### 🎮 Arena
 
@@ -143,12 +125,6 @@ Daemon auf dem Windows-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Clou
 🟡 **Vorsicht**
 
 Speech-to-Text-Modell; Grundlage für automatische Gesprächs-Mitschriften.
-
-### 📝 Talk Transcriber
-
-🟡 **Vorsicht**
-
-Bot, der Talk-Anrufe live mitschreibt und als Text ablegt.
 
 ### 🤖 MCP Monolith
 

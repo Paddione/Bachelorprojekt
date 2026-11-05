@@ -20,21 +20,11 @@ Das öffentliche Web-Frontend und das geschützte Kundenportal (Portal) der jewe
 Zentraler Identity Provider (Identitätsdienst) für das gesamte Workspace-Ökosystem.
 * **Pro-Brand Realms:** Eigenständige Realms für Mentolder und Korczewski zur sauberen Mandantentrennung.
 * **Protokolle:** Standardkonforme Authentifizierung über OpenID Connect (OIDC) und SAML.
-* **Single Sign-On (SSO):** Einmaliges Einloggen gewährt sicheren Zugriff auf Nextcloud, Vaultwarden, DocuSeal, Brett und das Portal.
-
-## ☁️ 3. Nextcloud + Talk
-Zentrale Kollaborations- und Dateiablage-Plattform (Groupware).
-* **Datei-Management:** Dateiversionierung, Freigaben (Shares), Synchronisation.
-* **Kalender & Kontakte:** Standardkonforme CalDAV- und CardDAV-Synchronisierung.
-* **Nextcloud Talk:** Integrierter Chat, Kanäle (Channels) und Video-Telefonie (Nextcloud Talk HPB).
+* **Single Sign-On (SSO):** Einmaliges Einloggen gewährt sicheren Zugriff auf Vaultwarden, DocuSeal, Brett und das Portal.
 
 ## 📄 4. Collabora Online
 WOPI-integrierte (Web Application Open Platform Interface) Online-Office-Suite.
-* **Dokumentenbearbeitung:** Direktes, kollaboratives Editieren von Texten, Tabellen und Präsentationen im Browser innerhalb von Nextcloud.
-
-## 📡 5. Talk HPB (High-Performance Backend)
-Skalierbarer Signaling-Server (Vermittlungsdienst) für Nextcloud Talk.
-* **Gruppen-Anrufe:** Ermöglicht performante Video-Konferenzen mit vielen Teilnehmern durch Janus WebRTC Gateway und NATS-Messaging.
+* **Dokumentenbearbeitung:** Direktes, kollaboratives Editieren von Texten, Tabellen und Präsentationen im Browser.
 
 ## 🔒 6. Vaultwarden
 Ressourcenschonende, Bitwarden-kompatible Passwort-Verwaltung.
@@ -48,9 +38,6 @@ Plattform für digitale Dokumenten-Unterschriften (E-Signaturen).
 ## 🧩 8. Brett (Systembrett)
 Digitales 3D-Aufstellungsboard (Systembrett) für systemische Familien- und Organisationsaufstellungen.
 * **3D-Sitzungen:** Interaktives Platzieren und Ausrichten von Figuren im dreidimensionalen Raum direkt im Browser (Brett 3D).
-
-## 🎨 9. Whiteboard
-Kollaborative Echtzeit-Zeichenfläche für Brainstorming und visuelle Skizzen.
 
 ## 🤖 10. Claude Code MCP Gateway
 <!-- Section 10 (LiveKit) removed per T002184 -->

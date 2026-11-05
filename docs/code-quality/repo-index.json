@@ -3334,7 +3334,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bp-build",
-      "file_count": 351,
+      "file_count": 350,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3630,7 +3630,6 @@
         "prod-korczewski/dev-ingress.yaml",
         "prod-korczewski/kustomization.yaml",
         "prod-korczewski/netpol-cross-namespace.yaml",
-        "prod-korczewski/nextcloud-extra-config-korczewski.php",
         "prod-korczewski/oauth2-proxy-dev-middleware.yaml",
         "prod-korczewski/oauth2-proxy-dev.yaml",
         "prod-korczewski/patch-backup-config.yaml",
@@ -3693,10 +3692,9 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 890,
+      "file_count": 889,
       "files": [
         "scripts/README.md",
-        "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
         "scripts/admin-users-setup.sh",
         "scripts/agent-claims-health.sh",

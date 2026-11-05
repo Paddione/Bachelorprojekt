@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.5...website-v1.450.6) (2026-11-05)
+
+
+### Bug Fixes
+
+* **scripts:** cbm-normalize-watchdog gleicht Daemon-Rebuilds an (K1 repo-graph-label-cleanup) ([#7152](https://github.com/Paddione/Bachelorprojekt/issues/7152)) ([e2a05a2](https://github.com/Paddione/Bachelorprojekt/commit/e2a05a2af6de618fa654dc3984523da10d0ce95d))
+
 ## [1.450.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.4...website-v1.450.5) (2026-11-05)
 
 

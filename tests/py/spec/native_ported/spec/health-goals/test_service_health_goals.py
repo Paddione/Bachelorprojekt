@@ -7,9 +7,11 @@ import re
 import pytest
 
 NEW_GOALS = [
-    "G-SVC01", "G-SVC02", "G-SVC03", "G-SVC04", "G-INF01", "G-INF02", "G-INF03",
-    "G-INF04", "G-CJ01", "G-ALR01", "G-DRIFT01", "G-DRIFT02", "G-DRIFT03",
+    "G-SVC01", "G-SVC02",
+    "G-CJ01", "G-ALR01", "G-DRIFT01", "G-DRIFT02", "G-DRIFT03",
 ]
+# G-SVC03/04 + G-INF01-04 sind retiriert (Dienste dekommissioniert, Eigner-Entscheid
+# 2026-11-05) — siehe test_retired_prod_measurements_sind_entfernt.
 NUMBER_OR_DASH = re.compile(r"^[0-9]+$|^-$")
 
 
@@ -47,26 +49,21 @@ def test_svc_probe_existiert_als_measurement_choice_in_runtime_health_measure_py
     _assert_number_or_dash(result.output, "svc-probe")
 
 
-def test_infra_tcp_existiert_als_measurement_choice(run_cmd, measure):
-    result = run_cmd(["python3", str(measure), "infra-tcp", "--input", "/dev/null"])
-    assert result.returncode == 0, result.output
-    _assert_number_or_dash(result.output, "infra-tcp")
-
-
-def test_infra_http_existiert_als_measurement_choice(run_cmd, measure):
-    result = run_cmd(["python3", str(measure), "infra-http", "--input", "/dev/null"])
-    assert result.returncode == 0, result.output
-    _assert_number_or_dash(result.output, "infra-http")
-
-
+def test_retired_prod_measurements_sind_entfernt(run_cmd, measure):
+    """G-SVC03/04 + G-INF01-04 sind retiriert (Dienste dekommissioniert):
+    ihre Measurements sind keine gueltigen Choices mehr (argparse exit 2)."""
+    for measurement in ("svc-nextcloud", "svc-whiteboard", "infra-tcp", "infra-http"):
+        result = run_cmd(["python3", str(measure), measurement, "--input", "/dev/null"])
+        assert result.returncode != 0, f"{measurement} ist noch eine gueltige Choice"
+        assert "invalid choice" in result.output, f"{measurement}: {result.output!r}"
 
 
 def test_service_http_goals_use_dedicated_measurements(run_cmd, measure, check_sh, repo_root):
-    for measurement in ("svc-oidc", "svc-nextcloud", "svc-whiteboard"):
+    for measurement in ("svc-oidc",):
         result = run_cmd(["python3", str(measure), measurement, "--input", "/dev/null"])
         assert result.returncode == 0, f"{measurement} exit {result.returncode}"
         _assert_number_or_dash(result.output, measurement)
-    for measurement in ("svc-oidc", "svc-nextcloud", "svc-whiteboard"):
+    for measurement in ("svc-oidc",):
         assert f"runtime_measure {measurement}" in check_sh
 
 
@@ -130,14 +127,14 @@ def test_manifest_drift_check_sh_sealed_gibt_ganzzahl_oder_dash_zurueck(run_cmd,
 
 
 
-def test_goals_md_alle_13_neuen_goal_ids_als_h2_sektion_vorhanden_t005321(goals_md):
+def test_goals_md_alle_7_aktiven_goal_ids_als_h2_sektion_vorhanden_t005321(goals_md):
     for goal_id in NEW_GOALS:
         assert any(line.startswith(f"## {goal_id} ") for line in goals_md), (
             f"'{goal_id}' fehlt als H2-Sektion in goals.md"
         )
 
 
-def test_goals_md_alle_13_neuen_goals_haben_was_beschreibung_und_messbefehl(goals_md):
+def test_goals_md_alle_7_aktiven_goals_haben_was_beschreibung_und_messbefehl(goals_md):
     for goal_id in NEW_GOALS:
         windows = []
         for index, line in enumerate(goals_md):
@@ -151,7 +148,7 @@ def test_goals_md_alle_13_neuen_goals_haben_was_beschreibung_und_messbefehl(goal
         )
 
 
-def test_health_goals_check_sh_alle_13_neuen_goals_als_row_target_integriert_p5(check_sh):
+def test_health_goals_check_sh_alle_7_aktiven_goals_als_row_target_integriert_p5(check_sh):
     for goal_id in NEW_GOALS:
         assert f"row target {goal_id}" in check_sh, f"'row target {goal_id}' fehlt in health-goals-check.sh"
 

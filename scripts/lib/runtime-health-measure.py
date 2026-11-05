@@ -217,43 +217,6 @@ def _pick_probe_pod(ctx, ns, tool):
     return None
 
 
-def infra_tcp(data):
-    """G-INF01-04: Count unreachable internal infrastructure services via TCP.
-
-    Services to probe: coturn (3478/5349), janus (8188), nats (4222), redis (6379).
-    Uses kubectl exec to run a TCP connect test.
-    """
-    ctx = os.environ.get("HG_OPS_CTX", "fleet")
-    ns = "workspace"
-
-    # (node_name, port) to probe.
-    targets = [
-        ("coturn", 3478),
-        ("coturn", 5349),
-        ("janus", 8188),
-        ("nats", 4222),
-        ("nextcloud-redis", 6379),
-    ]
-
-    failed = 0
-    # Pick a Running pod that actually provides nc.  This deliberately raises
-    # when the cluster cannot provide a test client; main() then emits '-'
-    # instead of a false green 0 — or false reds from a tool-less pod.
-    pod = _pick_probe_pod(ctx, ns, "nc")
-    if not pod:
-        raise ValueError("no nc-capable running pod for TCP probe")
-
-    for svc_name, port in targets:
-        test_cmd = [
-            "kubectl", "exec", pod, "-n", ns, "--context", ctx, "--",
-            "sh", "-c", f"nc -z -w 5 {svc_name}.{ns}.svc.cluster.local {port}"
-        ]
-        try:
-            _kube_cmd(test_cmd)
-        except Exception:
-            failed += 1
-
-    return failed
 
 
 def _internal_http(url, marker):
@@ -304,19 +267,10 @@ def svc_oidc(data):
     return _internal_http("http://pocket-id.workspace.svc.cluster.local:1411/.well-known/openid-configuration", '"issuer"')
 
 
-def svc_nextcloud(data):
-    """G-SVC03: Nextcloud reports itself installed."""
-    return _internal_http("http://nextcloud.workspace.svc.cluster.local/status.php", '"installed":true')
 
 
-def svc_whiteboard(data):
-    """G-SVC04: Whiteboard accepts an HTTP request on its service port."""
-    return _internal_http("http://whiteboard.workspace.svc.cluster.local:3002/", "")
 
 
-def infra_http(data):
-    """G-INF03: Janus /stats returns its expected JSON marker."""
-    return _internal_http("http://janus.workspace.svc.cluster.local:8188/stats", '"janus"')
 
 
 def cron_status(data):
@@ -427,7 +381,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("measurement", choices=(
         "flux", "scrape", "capacity", "axe", "lighthouse", "slo",
-        "svc-probe", "svc-oidc", "svc-nextcloud", "svc-whiteboard", "infra-tcp", "infra-http", "cron-status", "alert-status", "drift",
+        "svc-probe", "svc-oidc", "cron-status", "alert-status", "drift",
     ))
     parser.add_argument("--input")
     args = parser.parse_args()

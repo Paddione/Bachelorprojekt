@@ -372,7 +372,7 @@ python3 scripts/lib/runtime-health-measure.py svc-oidc
 
 > **B · Baseline:** 0 → 1 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
-## G-SVC03 — Nextcloud Health-Endpoint antwortet: 0 → 0
+## ~~G-SVC03 — Nextcloud Health-Endpoint antwortet~~ — retiriert 2026-11-05: Dienste dekommissioniert (Eigner-Entscheid), laufen auf keinem Cluster (devmesh/k3d/k3s-dev verifiziert, Fleet 2026-10-22 abgebaut)
 
 **Was:** Prüft, ob Nextcloud `/status.php` HTTP 200 mit `installed: true` zurückgibt.
 
@@ -382,7 +382,7 @@ python3 scripts/lib/runtime-health-measure.py svc-nextcloud
 
 > **B · Baseline:** 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
-## G-SVC04 — Whiteboard/WebSocket erreichbar: 0 → 0
+## ~~G-SVC04 — Whiteboard/WebSocket erreichbar~~ — retiriert 2026-11-05: Dienste dekommissioniert (Eigner-Entscheid), laufen auf keinem Cluster (devmesh/k3d/k3s-dev verifiziert, Fleet 2026-10-22 abgebaut)
 
 **Was:** Prüft, ob der Whiteboard/WebSocket-Service auf HTTP-Ebene erreichbar ist.
 
@@ -392,7 +392,7 @@ python3 scripts/lib/runtime-health-measure.py svc-whiteboard
 
 > **B · Baseline:** 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
-## G-INF01 — TURN-Server antwortet auf STUN: 0 → 0
+## ~~G-INF01 — TURN-Server antwortet auf STUN~~ — retiriert 2026-11-05: Dienste dekommissioniert (Eigner-Entscheid), laufen auf keinem Cluster (devmesh/k3d/k3s-dev verifiziert, Fleet 2026-10-22 abgebaut)
 
 **Was:** Prüft TCP-Erreichbarkeit von Coturn auf Port 3478 (STUN).
 
@@ -402,7 +402,7 @@ python3 scripts/lib/runtime-health-measure.py infra-tcp
 
 > **B · Baseline:** 0 → 5 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
-## G-INF02 — NATS-Listener erreichbar: 0 → 0
+## ~~G-INF02 — NATS-Listener erreichbar~~ — retiriert 2026-11-05: Dienste dekommissioniert (Eigner-Entscheid), laufen auf keinem Cluster (devmesh/k3d/k3s-dev verifiziert, Fleet 2026-10-22 abgebaut)
 
 **Was:** Prüft TCP-Erreichbarkeit von NATS auf Port 4222.
 
@@ -412,7 +412,7 @@ python3 scripts/lib/runtime-health-measure.py infra-tcp
 
 > **B · Baseline:** 0 → 5 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
-## G-INF03 — Janus-Gateway antwortet auf /stats: 0 → 0
+## ~~G-INF03 — Janus-Gateway antwortet auf /stats~~ — retiriert 2026-11-05: Dienste dekommissioniert (Eigner-Entscheid), laufen auf keinem Cluster (devmesh/k3d/k3s-dev verifiziert, Fleet 2026-10-22 abgebaut)
 
 **Was:** Prüft HTTP-Response von Janus `/stats` (erwartet JSON mit `"janus"` key).
 
@@ -422,7 +422,7 @@ python3 scripts/lib/runtime-health-measure.py infra-http
 
 > **B · Baseline:** 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
-## G-INF04 — Redis-Verbindung möglich: 0 → 0
+## ~~G-INF04 — Redis-Verbindung möglich~~ — retiriert 2026-11-05: Dienste dekommissioniert (Eigner-Entscheid), laufen auf keinem Cluster (devmesh/k3d/k3s-dev verifiziert, Fleet 2026-10-22 abgebaut)
 
 **Was:** Prüft TCP-Erreichbarkeit von Nextcloud-Redis auf Port 6379.
 

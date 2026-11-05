@@ -421,12 +421,6 @@ want G-LLM05 && row target G-LLM05 "$(llm_measure dead-endpoints)"      le 0 "To
 # Service-level health: HTTP/TCP probes, CronJob-Erfolg, Alerting, Config-Drift.
 want G-SVC01 && row target G-SVC01 "$(runtime_measure svc-probe)"         le 0 "Öffentliche Services ohne Blackbox-Health-Check"
 want G-SVC02 && row target G-SVC02 "$(runtime_measure svc-oidc)"          le 0 "Pocket-ID OIDC Discovery erreichbar"
-want G-SVC03 && row target G-SVC03 "$(runtime_measure svc-nextcloud)"     le 0 "Nextcloud Health-Endpoint antwortet"
-want G-SVC04 && row target G-SVC04 "$(runtime_measure svc-whiteboard)"    le 0 "Whiteboard/WebSocket erreichbar"
-want G-INF01 && row target G-INF01 "$(runtime_measure infra-tcp)"         le 0 "TURN-Server antwortet auf STUN"
-want G-INF02 && row target G-INF02 "$(runtime_measure infra-tcp)"         le 0 "NATS-Listener erreichbar"
-want G-INF03 && row target G-INF03 "$(runtime_measure infra-http)"        le 0 "Janus-Gateway antwortet auf /stats"
-want G-INF04 && row target G-INF04 "$(runtime_measure infra-tcp)"         le 0 "Redis-Verbindung möglich"
 want G-CJ01  && row target G-CJ01  "$(bash scripts/lib/cronjob-check.sh 2>/dev/null || echo -)" le 0 "CronJob-Lauf erfolgreich, nicht nur frisch"
 want G-ALR01 && row target G-ALR01 "$(runtime_measure alert-status)"      le 0 "Alertmanager-Receiver konfiguriert (nicht null)"
 want G-DRIFT01 && row target G-DRIFT01 "$(bash scripts/lib/manifest-drift-check.sh replicas 2>/dev/null || echo -)" le 0 "Deployment-Replikation expected == live"

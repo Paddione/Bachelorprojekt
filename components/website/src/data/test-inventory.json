@@ -4764,6 +4764,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/health-goals/probe_pod_selection",
+    "file": "tests/py/spec/native_ported/spec/health-goals/test_probe_pod_selection.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/langfuse_agent_tracing",
     "file": "tests/py/spec/native_ported/spec/test_langfuse_agent_tracing.py",
     "category": "native_ported",

@@ -498,7 +498,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
   },
   {
     title: 'System-Test 10: Externe Dienste & öffentliche Website',
-    description: 'Prüft alle via Keycloak-SSO angebundenen externen Dienste auf Funktionsfähigkeit nach dem Login: Nextcloud Dateiupload, Kalender, Kontakte, Talk (Audio/Video via WebRTC-Signaling), Whiteboard, Collabora Online-Editor, Vaultwarden Passwortverwaltung sowie die öffentliche Astro-Website mit Kontaktformular-Submission. Dieser Test verifiziert die Anforderungen FA-14 (Nextcloud-Integration), FA-15 (Vaultwarden-Integration), FA-16 (Collabora-Integration), FA-17 (Brett-Integration) und NFA-01 (öffentliche Website DSGVO-konform). Voraussetzung: Alle Dienste gestartet, Testnutzer-SSO aktiv, Kamera/Mikrofon für Talk-Schritt am Browser freigegeben.',
+    description: 'Prüft alle via Keycloak-SSO angebundenen externen Dienste auf Funktionsfähigkeit nach dem Login: Nextcloud Dateiupload, Kalender, Kontakte, Talk (Audio/Video via WebRTC-Signaling), Collabora Online-Editor, Vaultwarden Passwortverwaltung sowie die öffentliche Astro-Website mit Kontaktformular-Submission. Dieser Test verifiziert die Anforderungen FA-14 (Nextcloud-Integration), FA-15 (Vaultwarden-Integration), FA-16 (Collabora-Integration), FA-17 (Brett-Integration) und NFA-01 (öffentliche Website DSGVO-konform). Voraussetzung: Alle Dienste gestartet, Testnutzer-SSO aktiv, Kamera/Mikrofon für Talk-Schritt am Browser freigegeben.',
     instructions: 'Alle Schritte im Testnutzer-Browser (Profil B), sofern nicht anders angegeben. Klicke den Link im jeweiligen Schritt. Schritt 4 (Talk Audio/Video) erfordert Kamera/Mikrofon-Freigabe im Browser — im Berechtigungsdialog aktiv „Zulassen" klicken. Für den Collabora-Schritt muss eine DOCX/XLSX/ODS-Datei in Nextcloud vorhanden sein. Trage bei jedem Schritt den genauen Service-Status (Ladezeit, etwaige Fehlermeldungen) im Detailfeld ein.',
     steps: [
       {
@@ -521,11 +521,6 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
         expected_result: 'Signaling-Verbindung hergestellt; lokales Video erscheint im Raum.',
         test_function_url: `https://files.${D}/apps/talk`, test_role: 'user',
         agent_notes: 'Browser fragt nach Kamera/Mikrofon — im Berechtigungsdialog „Zulassen" klicken. Kein Nutzer-Handoff nötig, wenn die Extension Berechtigungsdialoge sieht.',
-      },
-      {
-        question_text: 'Öffne Nextcloud Whiteboard (Link) → zeichne etwas → klicke Speichern — lade die Seite neu und prüfe ob die Zeichnung erhalten bleibt.',
-        expected_result: 'Whiteboard-App lädt; Speichern/Laden funktioniert.',
-        test_function_url: `https://files.${D}/apps/whiteboard`, test_role: 'user',
       },
       {
         question_text: 'Öffne Nextcloud (Link) → wähle eine Office-Datei (DOCX, XLSX oder ODS) aus → klicke darauf — Collabora sollte den Editor inline öffnen; mache eine Änderung und speichere.',
@@ -1038,11 +1033,6 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
         expected_result: 'Signaling-Verbindung hergestellt; lokales Video erscheint im Raum.',
         test_function_url: `https://files.${D}/apps/talk`, test_role: 'user',
         agent_notes: 'Browser fragt nach Kamera/Mikrofon — im Berechtigungsdialog „Zulassen" klicken. Kein Nutzer-Handoff nötig, wenn die Extension Berechtigungsdialoge sieht.',
-      },
-      {
-        question_text: '[ST-10: Extern] Öffne Nextcloud Whiteboard (Link) → zeichne etwas → klicke Speichern — lade die Seite neu und prüfe ob die Zeichnung erhalten bleibt.',
-        expected_result: 'Whiteboard-App lädt; Speichern/Laden funktioniert.',
-        test_function_url: `https://files.${D}/apps/whiteboard`, test_role: 'user',
       },
       {
         question_text: '[ST-10: Extern] Öffne Nextcloud (Link) → wähle eine Office-Datei (DOCX, XLSX oder ODS) aus → klicke darauf — Collabora sollte den Editor inline öffnen; mache eine Änderung und speichere.',

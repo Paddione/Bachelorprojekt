@@ -207,7 +207,7 @@ export async function saveTranscript(params: {
 
 export async function saveArtifact(params: {
   meetingId: string;
-  artifactType: 'whiteboard' | 'document' | 'screenshot' | 'file';
+  artifactType: 'document' | 'screenshot' | 'file';
   name: string;
   storagePath?: string;
   contentText?: string;

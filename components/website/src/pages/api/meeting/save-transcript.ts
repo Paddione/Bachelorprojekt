@@ -38,7 +38,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     endedAt?: number;
     roomName?: string;
     participants?: Array<{ displayName: string; email: string; uid: string }>;
-    resources?: Array<{ type: 'whiteboard' | 'document' | 'screenshot' | 'file'; name: string; storagePath: string | null; timestamp: number }>;
+    resources?: Array<{ type: 'document' | 'screenshot' | 'file'; name: string; storagePath: string | null; timestamp: number }>;
   };
   try {
     body = await request.json();

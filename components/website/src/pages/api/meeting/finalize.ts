@@ -2,7 +2,6 @@ import type { APIRoute } from 'astro';
 import { requireInternalToken } from '../../../lib/internal-auth';
 import { getRecordingFile } from '../../../lib/talk';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
-import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whiteboard';
 import {
   upsertCustomer, createMeeting, updateMeetingStatus,
   saveTranscript, saveArtifact, saveInsight, getMeetingByRoomToken,
@@ -139,28 +138,6 @@ export const POST: APIRoute = async ({ request , locals }) => {
       }
     }
 
-    // ── 5. Fetch + save whiteboard artifacts ───────────────────────
-    let whiteboardArtifacts: Awaited<ReturnType<typeof getWhiteboardArtifacts>> = [];
-    try {
-      whiteboardArtifacts = await getWhiteboardArtifacts(
-        roomToken ? `${meetingType}: ${customerName}` : undefined
-      );
-      for (const wb of whiteboardArtifacts) {
-        const text = extractWhiteboardText(wb.data);
-        await saveArtifact({
-          meetingId: meeting.id,
-          artifactType: 'whiteboard',
-          name: wb.name,
-          storagePath: wb.path,
-          contentText: text || wb.data.substring(0, 5000),
-        });
-        results.push(`:art: Whiteboard: ${wb.name}`);
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`Whiteboard-Artefakte: ${msg}`);
-    }
-
     // Save any additional provided artifacts
     if (providedArtifacts && Array.isArray(providedArtifacts)) {
       for (const artifact of providedArtifacts) {
@@ -181,19 +158,11 @@ export const POST: APIRoute = async ({ request , locals }) => {
     // ── 6b. Generate Claude AI insights (best-effort) ───────────────
     if (transcriptText) {
       try {
-        const artifactTexts = whiteboardArtifacts
-          .map(wb => {
-            const text = extractWhiteboardText(wb.data);
-            return text ? `### ${wb.name}\n${text}` : '';
-          })
-          .filter(Boolean)
-          .join('\n\n');
-
         const insights = await generateMeetingInsights({
           customerName,
           meetingType: meetingType || 'Meeting',
           transcript: transcriptText,
-          artifacts: artifactTexts || undefined,
+          artifacts: undefined,
         });
 
         if (insights) {

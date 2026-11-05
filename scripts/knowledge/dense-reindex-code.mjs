@@ -60,15 +60,27 @@ export async function reindexCode({ pool, embedUrl, fetchImpl, runId, fileBatch 
           [filePath],
         );
         if (src.rows.length === 0) throw new Error(`reindex-code: Quelldatei '${filePath}' verschwunden`);
-        const planned = [];
+        // Dateiweise buendeln: ein Prepare + ein Embed-Call je Datei statt je Chunk (#7158-Folge: Laufzeit).
+        const chunks = [];
         for (const row of src.rows) {
           if (typeof row.content !== 'string' || row.content === '') {
             throw new Error(`reindex-code: ungueltiger Quelltext (${filePath}#${row.chunk_index})`);
           }
-          const subs = await prepareDenseChunks([{ position: row.chunk_index, text: row.content }], client);
-          const { embeddings } = await client.embedDocuments(subs.map((s) => s.text));
-          assertDenseVectors(embeddings, subs.length);
-          subs.forEach((s, p) => planned.push({ row, text: s.text, embedding: embeddings[p], partIndex: p }));
+          chunks.push({ position: row.chunk_index, text: row.content });
+        }
+        const subs = await prepareDenseChunks(chunks, client);
+        const { embeddings } = await client.embedDocuments(subs.map((s) => s.text));
+        assertDenseVectors(embeddings, subs.length);
+        const bySource = new Map();
+        subs.forEach((s, p) => {
+          if (!bySource.has(s.sourcePosition)) bySource.set(s.sourcePosition, []);
+          bySource.get(s.sourcePosition).push({ text: s.text, embedding: embeddings[p], partIndex: s.partIndex });
+        });
+        const planned = [];
+        for (const row of src.rows) {
+          const parts = bySource.get(row.chunk_index) ?? [];
+          if (parts.length === 0) throw new Error(`reindex-code: Split leer (${filePath}#${row.chunk_index})`);
+          for (const q of parts) planned.push({ row, text: q.text, embedding: q.embedding, partIndex: q.partIndex });
         }
         // Ein Profil-Datei-Hash je Datei (Migrations-Linie, kein Skip-Hash).
         const fileHash = profileContentHash(planned.map((x) => x.text).join('\n'));

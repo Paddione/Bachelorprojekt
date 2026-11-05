@@ -84,6 +84,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:domains-prodmesh-smoke",
+    "file": "tests/e2e/specs/domains-prodmesh-smoke.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-admin-backup-ops",
     "file": "tests/e2e/specs/fa-admin-backup-ops.spec.ts",
     "category": "E2E",
@@ -5108,6 +5114,12 @@
   {
     "id": "remaining_root_specs/domain_registry/domains_registry",
     "file": "tests/py/spec/remaining_root_specs/domain_registry/test_domains_registry.py",
+    "category": "remaining_root_specs",
+    "kind": "pytest"
+  },
+  {
+    "id": "remaining_root_specs/domain_registry/prodmesh_canonical",
+    "file": "tests/py/spec/remaining_root_specs/domain_registry/test_prodmesh_canonical.py",
     "category": "remaining_root_specs",
     "kind": "pytest"
   },

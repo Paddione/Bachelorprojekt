@@ -17,7 +17,10 @@
 //   4. jede manifest_source-Datei existiert,
 //   5. jeder Manifest-Host aus prod-fleet/ und dev-local/ (kind: Ingress ueber
 //      spec.rules[].host, kind: IngressRoute ueber Host() in spec.routes[].match)
-//      steht im Register — sonst Exit != 0,
+//      steht im Register — sonst Exit != 0. Scope-Absicht: flux/** ist
+//      DECOMMISSIONED (kein Sync, keine Eintraege); korczewski-prod/k3d werden
+//      nicht gescannt, sondern sind ueber kanonische prodmesh-Eintraege mit
+//      manifest_source auf der Render-Basis abgedeckt,
 //   6. Funktions-Matrix: zwei status:live-Eintraege desselben Mesh mit
 //      demselben Funktions-String brauchen mindestens auf einer Seite ein
 //      decision-Feld, das den Split/Redirect erklaert.

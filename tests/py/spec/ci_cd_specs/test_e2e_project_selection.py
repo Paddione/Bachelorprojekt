@@ -20,10 +20,16 @@ def test_no_project_pseudo_negation(projects):
     assert not re.search(r"--project[= ]!", command)
 
 
+# Ausgenommen: Projekte, die einen Cluster brauchen und nur per
+# `--project=...` auf Demand laufen (korczewski: Brand-Cluster;
+# mesh: devmesh/prodmesh-Domains, skippt ohne PRODMESH_LIVE/DEVMESH_LIVE).
+EXCLUDED_CLUSTER_PROJECTS = {"korczewski-setup", "korczewski", "mesh"}
+
+
 def test_all_config_projects_requested_or_excluded(projects):
     config, requested, _ = projects
     assert config and requested
-    assert not config - requested - {"korczewski-setup", "korczewski"}
+    assert not config - requested - EXCLUDED_CLUSTER_PROJECTS
 
 
 def test_no_unknown_requested_projects(projects):

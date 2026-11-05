@@ -264,16 +264,31 @@ def _internal_http(url, marker):
     bad = 0
 
     # Same tool-capability rule as infra_tcp: a wget-less pod (distroless)
-    # would fail every contract. Raise without a capable pod instead.
+    # would fail every contract. Fall back to a python3-urllib probe before
+    # giving up; raise only with neither, so main() emits fail-closed '-'.
+    # URL/marker are fixed contract strings; json.dumps keeps embedded double
+    # quotes intact, and single quotes are rejected (shell wrapping).
+    if "'" in url or "'" in marker:
+        raise ValueError("probe input contains a single quote")
     pod = _pick_probe_pod(ctx, ns, "wget")
-    if not pod:
-        raise ValueError("no wget-capable running pod for HTTP probe")
-
-    test_cmd = [
-        "kubectl", "exec", pod, "-n", ns, "--context", ctx,
-        "--", "sh", "-c",
-        f"wget -qO- '{url}' 2>/dev/null | grep -q '{marker}' && echo ok || echo fail"
-    ]
+    if pod:
+        test_cmd = [
+            "kubectl", "exec", pod, "-n", ns, "--context", ctx,
+            "--", "sh", "-c",
+            f"wget -qO- '{url}' 2>/dev/null | grep -q '{marker}' && echo ok || echo fail"
+        ]
+    else:
+        pod = _pick_probe_pod(ctx, ns, "python3")
+        if not pod:
+            raise ValueError("no wget- or python3-capable running pod for HTTP probe")
+        test_cmd = [
+            "kubectl", "exec", pod, "-n", ns, "--context", ctx,
+            "--", "sh", "-c",
+            "python3 -c 'import urllib.request; "
+            f"u={json.dumps(url)};m={json.dumps(marker)};"
+            "b=urllib.request.urlopen(u,timeout=10).read().decode(\"utf-8\",\"replace\"); "
+            "print(\"ok\" if m in b or not m else \"fail\")'"
+        ]
     try:
         out = _kube_cmd(test_cmd).strip()
         if out != "ok":

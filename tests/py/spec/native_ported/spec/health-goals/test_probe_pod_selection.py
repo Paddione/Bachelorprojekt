@@ -74,3 +74,38 @@ def test_skips_non_running_pods(measure_mod, monkeypatch):
         lambda args: (seen.append(args[2]), "/bin/nc\n")[1])
     assert measure_mod._pick_probe_pod("ctx", "workspace", "nc") == "good-b"
     assert seen == ["good-b"]
+
+
+def _stub_picker(python_pod):
+    """No wget anywhere; python3 only on python_pod (None = nowhere)."""
+    def pick(ctx, ns, tool):
+        if tool == "wget":
+            return None
+        if tool == "python3":
+            return python_pod
+        raise AssertionError(f"unexpected tool probe: {tool}")
+    return pick
+
+
+def test_http_falls_back_to_python3_without_wget(measure_mod, monkeypatch):
+    """wget-less fleet -> python3-urllib probe still yields a verdict, not '-'."""
+    monkeypatch.setattr(measure_mod, "_pick_probe_pod", _stub_picker("py-pod"))
+    seen = []
+
+    def fake_cmd(args):
+        seen.extend(args)
+        return "ok\n"
+
+    monkeypatch.setattr(measure_mod, "_kube_cmd", fake_cmd)
+    assert measure_mod._internal_http("http://x/", '"marker"') == 0
+    joined = " ".join(seen)
+    assert "urllib.request" in joined and "timeout" in joined
+    # Marker with embedded double quotes must survive intact (json-escaped).
+    assert '\\"marker\\"' in joined
+
+
+def test_http_raises_without_wget_and_without_python3(measure_mod, monkeypatch):
+    """No capable pod at all -> raise so main() emits fail-closed '-'."""
+    monkeypatch.setattr(measure_mod, "_pick_probe_pod", _stub_picker(None))
+    with pytest.raises(ValueError):
+        measure_mod._internal_http("http://x/", '"marker"')

@@ -74,7 +74,7 @@ gh run list --workflow e2e.yml --limit 14 --json conclusion \
   | python3 -c "import json,sys; r=[x['conclusion'] for x in json.load(sys.stdin) if x.get('conclusion')]; print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else 'n/a')"
 ```
 
-> **A · Baseline:** 23 → 64 → 86 → 79 → 64 → 0 · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 (Aufnahme; Suite-Fix läuft separat über `fix/e2e-auth-token-and-cron-secret`) — **Root-Cause 2026-07-25:** DNS-Auflösung `EAI_AGAIN web.korczewski.de` in CI-Runnern (globalSetup/globalTeardown `fetch` schlägt fehl); zweitens 401 auf Ingest-Endpoint (`INGEST_TOKEN`-Secret prüfen) — **Fix 2026-07-25:** PR #3207 gefixt (global-db-cleanup.ts fängt Network-Errors ab; ingest-e2e.ts akzeptiert E2E_INGEST_TOKEN)
+> **A · Baseline:** 64 → 86 → 79 → 64 → 0 → 7 · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 (Aufnahme; Suite-Fix läuft separat über `fix/e2e-auth-token-and-cron-secret`) — **Root-Cause 2026-07-25:** DNS-Auflösung `EAI_AGAIN web.korczewski.de` in CI-Runnern (globalSetup/globalTeardown `fetch` schlägt fehl); zweitens 401 auf Ingest-Endpoint (`INGEST_TOKEN`-Secret prüfen) — **Fix 2026-07-25:** PR #3207 gefixt (global-db-cleanup.ts fängt Network-Errors ab; ingest-e2e.ts akzeptiert E2E_INGEST_TOKEN)
 
 ## G-DB09 — Slow Queries in pg_stat_statements (COPY+DDL-bereinigt): 0
 
@@ -90,7 +90,7 @@ zusätzlich zu `NOT ILIKE 'COPY %'` im Mess-Query ausgeschlossen (bewusst eng au
 db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %' AND query NOT ILIKE 'CREATE INDEX%'"
 ```
 
-> **A · Baseline:** 0 (2026-08-21, verifiziert 0 slow queries in pg_stat_statements) → 1 → 5 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T013030 · **Messquery-Korrektur:** `NOT ILIKE 'CREATE INDEX%'` Ergänzung (2026-07-25, T002095) — Messung schließt jetzt einmalige DDL-Builds aus
+> **A · Baseline:** 0 (2026-08-21, verifiziert 0 slow queries in pg_stat_statements) → 1 → 5 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T013030 · **Messquery-Korrektur:** `NOT ILIKE 'CREATE INDEX%'` Ergänzung (2026-07-25, T002095) — Messung schließt jetzt einmalige DDL-Builds aus
 
 
 ---
@@ -155,7 +155,7 @@ SELECT
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
 ```
 
-> **B · Baseline:** 0 (2026-08-21, alle Basistabellen mit brand haben CHECK-Constraint via T013031) → 2 → 4 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T013031
+> **B · Baseline:** 0 (2026-08-21, alle Basistabellen mit brand haben CHECK-Constraint via T013031) → 2 → 4 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T013031
 
 
 ## G-DB10 — Unused Indexes (idx_scan = 0): 93 → 8
@@ -191,7 +191,7 @@ alt ist: `scripts/health-goals-update.sh` schreibt die `Aktuell`-Spalte nur, wen
 gemessen wurde, und überschreibt den Marker `✓` nur bei einer Verbesserung — ein gewachsener
 Wert blieb dadurch als `30 ✓` stehen und das Ziel steuerte nichts mehr.
 
-> **B · Baseline:** 73 → 74 → 75 → 76 → 77 → 78 · **Target:** ≤ 30 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
+> **B · Baseline:** 74 → 75 → 76 → 77 → 78 → 0 · **Target:** ≤ 30 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
 
 ```bash
 kubectl get configmap recovery-verify-status -n "$DB_NS" --context "$DB_CTX" \
@@ -208,7 +208,7 @@ Der Stempel wird nur von einem erfolgreichen Restore-Durchlauf erneuert (CronJob
 ist der häufigste Grund für Folge-Bugs. Stand 7 gegen Target ≤ 3 bei dokumentiertem `3 ✓` —
 dieselbe Ursache wie bei G-DB11: gewachsene Werte wurden in Prio C nie rot.
 
-> **B · Baseline:** 3 → 7 · **Target:** ≤ 3 · **Aufwand:** mittel · **Messzyklus:** monatlich · **Reproduzierbar:** ja (lokal, `node_modules` nötig) · **Ticket:** T900380
+> **B · Baseline:** 3 → 7 → 2 · **Target:** ≤ 3 · **Aufwand:** mittel · **Messzyklus:** monatlich · **Reproduzierbar:** ja (lokal, `node_modules` nötig) · **Ticket:** T900380
 
 ```bash
 cd components/website && pnpm outdated --format json \
@@ -332,7 +332,7 @@ der Positiv-Anker ist mindestens eine deklarierte Unit-Datei.
 bash scripts/lib/llm-stack-measure.sh autostart-coverage
 ```
 
-> **B · Baseline:** 1 → 0 → 1 → 0 → 1 → 3 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** 0 → 1 → 0 → 1 → 3 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM05 — Tote lokale Endpunkt-Verweise (Backend-Registry): n/a → 0
 
@@ -754,7 +754,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC01** | Unaufgelöste `tools:`-Einträge bei Agenten | 0 ✓ | ≤ 0 | `bash scripts/lib/count-unresolved-agent-tools.sh` — Zählt zwei Schadensfälle: (a) `tools:`-Key existiert, resolvt aber zur leeren Menge; (b) MCP-Eintrag der Form `mcp__<server>__<tool>`, dessen Server nicht unter `clients:` in `mcp.yaml` steht. Ein fehlender `tools:`-Key zählt bewusst 0 (erbt alle Werkzeuge, vergleiche Test `T002221`). Wert am Repo-Bestand ist 0, da nur ein Agent einen `tools:`-Key hat und kein `mcp__*`-Eintrag existiert; das Ziel wirkt als Regressionsbremse gegen kaputte `tools:`-Listen. |
 | **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `python3 scripts/lib/health-goals-probes.py agentic10` — je Agent aus `.claude/agents/*.md` eine SKILL.md mit `agent: <name>` (T016657) |
 | **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 7 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738; Fix T013037: Filen-Reroute auf korczewski-Account (2FA-Hang), Remote-Prune 9,9 GiB → 257 MiB` |
-| **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 2 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
+| **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 0 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 85 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 1 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |

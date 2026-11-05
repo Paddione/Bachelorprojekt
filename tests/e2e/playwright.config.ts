@@ -226,6 +226,19 @@ export default defineConfig({
       },
     },
 
+    // ── mesh: devmesh/prodmesh-Domain-Welten (Goal devmesh-prodmesh-naming)
+    // Run: playwright test --project=mesh
+    // Kein Setup-Dependency (nur öffentliche Hosts); skippt ohne
+    // PRODMESH_LIVE=1 bzw. DEVMESH_LIVE=1 begründet (Fleet DECOMMISSIONED).
+    {
+      name: 'mesh',
+      testMatch: ['**/domains-prodmesh-smoke.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
+      },
+    },
+
     // ── smoke: Cross-service integration tests ──────────────────
     // Run: playwright test --project=smoke
     {

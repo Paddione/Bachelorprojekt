@@ -1,7 +1,9 @@
 # docs/agent-guide/registry/domains.yaml
 # SSOT Frontend-Domain-Registry — jeder öffentlich erreichbare Host dieses
 # Projekts, erhoben aus den Ingress/IngressRoute-Manifesten unter prod-fleet/
-# und dev-local/. Prüfen mit:
+# und dev-local/. korczewski-prod/k3d-Renderings sind ueber kanonische
+# prodmesh-Eintraege mit manifest_source auf der Render-Basis abgedeckt;
+# flux/** ist DECOMMISSIONED (kein Sync) und vom Scan ausgenommen. Prüfen mit:
 #
 #     task domains:check            # fail-closed: unbekannter Manifest-Host -> Exit != 0
 #     task domains:map              # erzeugt docs/agent-guide/maps/domains-map.md
@@ -304,6 +306,23 @@ domains:
     expect:
       status: [200]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
+    decision: "Kompat-Spiegel des korczewski-Pocket-ID-Hosts ab devmesh; kanonisch bleibt prodmesh (auth-korczewski)."
+
+  - id: auth-korczewski
+    host: ${POCKET_ID_DOMAIN}
+    mesh: prodmesh
+    namespace: workspace-korczewski
+    paths: ["/"]
+    service: pocket-id:1411
+    auth: oidc
+    sso:
+      gate: issuer
+      groups: []
+    owner_frontend: bp-ship
+    functions: [sso]
+    status: frozen
+    manifest_source: k3d/pocket-id.yaml
+    decision: "D1: kanonischer prodmesh-Pocket-ID-Host (korczewski-prod-Render aus dieser Basis, POCKET_ID_DOMAIN=auth.korczewski.de); frozen bis Deploy-Freigabe — live derzeit nur als devmesh-Kompat-Spiegel korczewski-auth-mirror. Nach verifiziertem 200 auf live + expect heben."
 
   - id: devmesh-agent-board
     host: agent-board.devmesh.korczewski.de

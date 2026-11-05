@@ -59,7 +59,7 @@ flowchart LR
 | redirect | bp-ship | `${PROD_DOMAIN}` | frozen |
 | secrets | bp-ship | `vault.${DEVMESH_DOMAIN}` | live |
 | signaling | bp-ship | `signaling.${DEVMESH_DOMAIN}` | live |
-| sso | bp-ship | `${KORCZEWSKI_PROD_AUTH_HOST}` | live |
+| sso | bp-ship | `${KORCZEWSKI_PROD_AUTH_HOST}`<br>`${POCKET_ID_DOMAIN}` | frozen/live |
 | websocket | bp-ship | `brain.${DEVMESH_DOMAIN}` | live |
 
 ## Entscheidungen (D1-D3)
@@ -81,6 +81,8 @@ flowchart LR
 - **`devmesh-fritzbox`** (${FRITZ_BOX_HOST}) — FritzBox-Lokalzugang; eigener Host, kein Redirect auf den Public-Host.
 - **`korczewski-web-mirror`** (${KORCZEWSKI_PROD_WEB_HOST}) — Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt prodmesh.
 - **`korczewski-apex-mirror`** (${KORCZEWSKI_PROD_APEX_HOST}) — Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt prodmesh.
+- **`korczewski-auth-mirror`** (${KORCZEWSKI_PROD_AUTH_HOST}) — Kompat-Spiegel des korczewski-Pocket-ID-Hosts ab devmesh; kanonisch bleibt prodmesh (auth-korczewski).
+- **`auth-korczewski`** (${POCKET_ID_DOMAIN}) — D1: kanonischer prodmesh-Pocket-ID-Host (korczewski-prod-Render aus dieser Basis, POCKET_ID_DOMAIN=auth.korczewski.de); frozen bis Deploy-Freigabe — live derzeit nur als devmesh-Kompat-Spiegel korczewski-auth-mirror. Nach verifiziertem 200 auf live + expect heben.
 - **`devmesh-agent-board`** (agent-board.devmesh.korczewski.de) — D2: kanonisches devmesh-Ops-Cockpit; Manifest im Home-Repo (apps/agent-board).
 
 ## Host-Inventar
@@ -92,6 +94,7 @@ flowchart LR
 | `${KORCZEWSKI_PROD_AUTH_HOST}` | devmesh | components | pocket-id:1411 | oidc | bp-ship | sso | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${KORCZEWSKI_PROD_WEB_HOST}` | devmesh | components | website:80 | oidc | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${OPENCODE_PUBLIC_HOST}` | devmesh | components | opencode:80 | oidc | bp-ship | ops-access | live | dev-local/components/opencode/ingressroute.yaml |
+| `${POCKET_ID_DOMAIN}` | prodmesh | workspace-korczewski | pocket-id:1411 | oidc | bp-ship | sso | frozen | k3d/pocket-id.yaml |
 | `${PROD_DOMAIN}` | prodmesh | website-korczewski | website:80 | open | bp-ship | redirect | frozen | prod-fleet/website-korczewski/website-apex.yaml |
 | `${WEBSITE_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/core/ingress.yaml |
 | `agent-board.devmesh.korczewski.de` | devmesh | workspace | agent-board:80 | oidc | bp-ship | ops-cockpit | live | apps/agent-board/k8s/ingress.yaml |

@@ -98,7 +98,7 @@ patches:
 
   # ── static-web-server (SWS) Dienste ───────────────────────────────────────
   #     Erkennbar an SERVER_ROOT/SERVER_PORT im Container-Env.
-  #     mediaviewer-widget und mentolder-web sind bewusst NICHT dabei: sie
+  #     mediaviewer-widget und die Zweitmarken-SPA sind bewusst NICHT dabei: sie
   #     fuehren keine SERVER_*-Variablen und sind damit kein SWS.
   - target: { kind: Deployment, name: downloads }
     patch: |-

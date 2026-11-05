@@ -1,5 +1,5 @@
 # Security-headers Middleware for the website-staging namespace (T015004).
-# Mirrors prod-fleet/website-mentolder/website-security-headers.yaml, but WITHOUT
+# Spiegelt das entfernte Zweitmarken-Overlay (security-headers), aber OHNE
 # X-Robots-Tag: noindex — the public website must be crawlable (T002052).
 # The shared workspace/security-headers keeps noindex for internal services;
 # only the public site opts out via this override.

@@ -23,7 +23,7 @@ env_vars:
   LEGAL_UST_ID: "Nicht vorhanden"
   LEGAL_WEBSITE: staging.korczewski.de
   WEBSITE_IMAGE: website
-  # T015004: Offline-Fallback-Placeholder wie in environments/fleet-mentolder.yaml —
+  # T015004: Offline-Fallback-Placeholder wie in der entfernten Zweitmarken-Env-Datei —
   # CI setzt die echten Digests via scripts/resolve-image-digest.sh; der
   # Placeholder-Guard im Renderer (T004041) blockiert sie im finalen Artefakt.
   WEBSITE_IMAGE_DIGEST: sha256:1111111111111111111111111111111111111111111111111111111111111111

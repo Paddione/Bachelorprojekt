@@ -190,6 +190,33 @@ def svc_probe(data):
     return len(uncovered)
 
 
+def _pick_probe_pod(ctx, ns, tool):
+    """Return the first Running pod that provides *tool*, else None.
+
+    Probes (wget/nc) fail unconditionally in minimal images (e.g. distroless
+    agent-board has neither). Picking the first Running pod regardless turns
+    every contract into a false red. Skipping incapable pods keeps the signal;
+    with no capable pod at all the caller raises and main() emits '-'.
+    """
+    try:
+        pods = _kube_get(["kubectl", "get", "pods", "-n", ns, "--context", ctx, "-o", "json"])
+    except Exception:
+        return None
+    for item in pods.get("items", []):
+        if item.get("status", {}).get("phase") != "Running":
+            continue
+        pod = item.get("metadata", {}).get("name")
+        if not pod:
+            continue
+        try:
+            _kube_cmd(["kubectl", "exec", pod, "-n", ns, "--context", ctx, "--",
+                       "sh", "-c", f"command -v {tool}"])
+            return pod
+        except Exception:
+            continue
+    return None
+
+
 def infra_tcp(data):
     """G-INF01-04: Count unreachable internal infrastructure services via TCP.
 
@@ -209,13 +236,12 @@ def infra_tcp(data):
     ]
 
     failed = 0
-    # Pick a running pod.  This deliberately raises when the cluster cannot
-    # provide a test client; main() then emits '-' instead of a false green 0.
-    pods = _kube_get(["kubectl", "get", "pods", "-n", ns, "--context", ctx, "-o", "json"])
-    pod = next((item.get("metadata", {}).get("name") for item in pods.get("items", [])
-                if item.get("status", {}).get("phase") == "Running"), None)
+    # Pick a Running pod that actually provides nc.  This deliberately raises
+    # when the cluster cannot provide a test client; main() then emits '-'
+    # instead of a false green 0 — or false reds from a tool-less pod.
+    pod = _pick_probe_pod(ctx, ns, "nc")
     if not pod:
-        raise ValueError("no running pod for TCP probe")
+        raise ValueError("no nc-capable running pod for TCP probe")
 
     for svc_name, port in targets:
         test_cmd = [
@@ -237,11 +263,11 @@ def _internal_http(url, marker):
 
     bad = 0
 
-    pods = _kube_get(["kubectl", "get", "pods", "-n", ns, "--context", ctx, "-o", "json"])
-    pod = next((item.get("metadata", {}).get("name") for item in pods.get("items", [])
-                if item.get("status", {}).get("phase") == "Running"), None)
+    # Same tool-capability rule as infra_tcp: a wget-less pod (distroless)
+    # would fail every contract. Raise without a capable pod instead.
+    pod = _pick_probe_pod(ctx, ns, "wget")
     if not pod:
-        raise ValueError("no running pod for HTTP probe")
+        raise ValueError("no wget-capable running pod for HTTP probe")
 
     test_cmd = [
         "kubectl", "exec", pod, "-n", ns, "--context", ctx,

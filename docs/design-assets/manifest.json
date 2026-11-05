@@ -4240,8 +4240,8 @@
       "format": "md",
       "id": "assets/feature-intake/feature-candidates.md",
       "mime": "text/plain",
-      "sha256": "b087974eb606e3bfac250a99d1df3eb594cea220ba6465c4e4e13265e1f8c5c3",
-      "size": 1641
+      "sha256": "3960c2cc08d4287ef18fa870a38b1bf9d1945536291f33a28384430c38c40d8d",
+      "size": 1632
     },
     {
       "format": "html",
@@ -6217,5 +6217,5 @@
     "*cache*",
     "*backup*"
   ],
-  "total_bytes": 18593938
+  "total_bytes": 18593929
 }

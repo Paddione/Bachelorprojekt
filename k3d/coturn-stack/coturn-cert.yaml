@@ -1,3 +1,0 @@
-# TLS for coturn is provided by the workspace wildcard cert, copied by the
-# tls-sync CronJob (prod/reflector.yaml) from workspace/workspace-wildcard-tls.
-# No dedicated Certificate object needed here.

@@ -10,17 +10,11 @@ resources:
   - shared-db.yaml
   - website-schema.yaml
   # Kerndienste
-  - nextcloud.yaml
-  - nextcloud-redis.yaml
-  - nextcloud-notification-config-job.yaml
-  # Nextcloud Talk HPB + Whiteboard
-  # NB: coturn + janus (k3d/coturn-stack) and Collabora
-  # (k3d/office-stack) are deployed separately via task workspace:office:deploy
-  # because they need dedicated privileged namespaces and can't be
-  # transformed by this kustomization's `namespace: workspace` directive.
-  - talk-hpb.yaml
-  - whiteboard
-  - talk-recording.yaml
+  # NB: Collabora (k3d/office-stack) is deployed separately via
+  # task workspace:office:deploy because it needs a dedicated privileged
+  # namespace and can't be transformed by this kustomization's
+  # `namespace: workspace` directive. Die Talk-/Files-/Board-Dienste
+  # sind dekommissioniert (Eigner-Entscheid 2026-11-05).
   - vaultwarden.yaml
   # Buchhaltung
   # Traefik dashboard SSO gateway

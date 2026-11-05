@@ -126,7 +126,7 @@ data:
           speaker TEXT
       );
 
-      -- Meeting artifacts (whiteboards, files, screenshots)
+      -- Meeting artifacts (files, documents, screenshots; ein Legacy-Typ nur noch Bestand, keine Migration)
       CREATE TABLE IF NOT EXISTS meeting_artifacts (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,

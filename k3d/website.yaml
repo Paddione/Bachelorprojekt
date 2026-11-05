@@ -29,7 +29,6 @@ data:
   AUTH_EXTERNAL_URL: "${AUTH_EXTERNAL_URL}"
   VAULT_EXTERNAL_URL: "${VAULT_EXTERNAL_URL}"
   BRAIN_EXTERNAL_URL: "${BRAIN_EXTERNAL_URL}"
-  WHITEBOARD_EXTERNAL_URL: "${WHITEBOARD_EXTERNAL_URL}"
   BUG_REPORT_CHANNEL: "bugs"
   # Logging
   PINO_LOG_LEVEL: "info"
@@ -53,11 +52,6 @@ data:
   LEGAL_JOBTITLE: "${LEGAL_JOBTITLE}"
   LEGAL_UST_ID: "${LEGAL_UST_ID}"
   LEGAL_WEBSITE: "${LEGAL_WEBSITE}"
-  # Nextcloud
-  NEXTCLOUD_URL: "http://nextcloud.${WORKSPACE_NAMESPACE}.svc.cluster.local"
-  NEXTCLOUD_EXTERNAL_URL: "${NEXTCLOUD_EXTERNAL_URL}"
-  NEXTCLOUD_ADMIN_USER: "admin"
-  NEXTCLOUD_CALDAV_USER: "admin"
   # Pocket ID is the auth provider — APP_URL is auth.${PROD_DOMAIN}
   POCKET_ID_FRONTEND_URL: "${POCKET_ID_FRONTEND_URL}"
   POCKET_ID_URL: "${POCKET_ID_URL}"
@@ -324,16 +318,6 @@ spec:
                   key: SEPA_CREDITOR_ID
                   optional: true
             # KEYCLOAK_ADMIN_PASSWORD removed — keycloak.ts replaced by identity.ts (Pocket ID API)
-            - name: NEXTCLOUD_ADMIN_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: NEXTCLOUD_ADMIN_PASS
-            - name: NEXTCLOUD_CALDAV_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: NEXTCLOUD_CALDAV_PASSWORD
             - name: SELLER_NAME
               valueFrom:
                 configMapKeyRef:
@@ -379,17 +363,6 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: MONITORING_WEBHOOK_TOKEN
-            # Nextcloud Talk DB connection — used by /api/admin/brett/broadcast
-            # to find rooms with active calls (OCS API is user-scoped and only
-            # lists rooms the configured admin is a participant of, which misses
-            # most ongoing calls). Read-only query against oc_talk_rooms.
-            - name: NEXTCLOUD_DB_HOST
-              value: "${NEXTCLOUD_DB_HOST}"
-            - name: NEXTCLOUD_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: NEXTCLOUD_DB_PASSWORD
             - name: INTERNAL_API_TOKEN
               valueFrom:
                 secretKeyRef:

@@ -23,47 +23,6 @@ spec:
                 port:
                   number: 1411
 
-    # ── Nextcloud (Dateien) ──────────────────────────────────────────
-    - host: files.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: nextcloud
-                port:
-                  number: 80
-    - host: board.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: whiteboard
-                port:
-                  number: 3002
-    - host: meet.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: spreed-signaling
-                port:
-                  number: 8080
-    - host: signaling.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: spreed-signaling
-                port:
-                  number: 8080
     - host: vault.localhost
       http:
         paths:

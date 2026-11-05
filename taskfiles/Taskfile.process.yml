@@ -10,10 +10,9 @@ tasks:
   # `website:*` tasks.
 
   feature:deploy:
-    desc: "Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)"
+    desc: "Roll a code change to BOTH prod clusters (workspace:deploy + verify on mentolder + korczewski)"
     cmds:
       - task: workspace:deploy:all-prods
-      - task: workspace:post-setup:all-prods
       - task: workspace:verify:all-prods
 
   feature:website:

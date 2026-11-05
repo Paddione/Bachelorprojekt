@@ -374,7 +374,7 @@ tasks:
       - bash scripts/wg-mesh-sync.sh drift --env {{.ENV}}
 
   prodmesh:deploy:brand:
-    desc: "Deploy ONE brand's core stack to prodmesh: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task prodmesh:deploy:brand BRAND=prodmesh-korczewski"
+    desc: "Deploy ONE brand's core stack to prodmesh: workspace:deploy. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task prodmesh:deploy:brand BRAND=prodmesh-korczewski"
     requires:
       vars: [BRAND]
     cmds:
@@ -382,15 +382,10 @@ tasks:
       # context=fleet and overlay=prod-fleet/<brand>, so the full prod deploy
       # path (SealedSecret, ns labels, shared-db ordering, envsubst, separately
       # applied CronJobs) runs unchanged against the fleet cluster.
-      # post-setup is the core post-deploy step that is safe WITHOUT coturn.
-      # The Talk wiring phase is deferred to its own brand task because it
-      # requires the shared coturn/Janus (prodmesh:shared-services) to exist.
       # SKIP_TALK_SETUP=true stops workspace:deploy from running its embedded
-      # coturn sync + Talk wiring (which hard-fails before coturn exists).
+      # Talk wiring.
       - task: workspace:deploy
         vars: { ENV: "{{.BRAND}}", SKIP_TALK_SETUP: "true" }
-      - task: workspace:post-setup
-        vars: { ENV: "{{.BRAND}}" }
 
   prodmesh:talk-setup:brand:
     desc: "Wire ONE brand to the shared coturn/Janus: sync coturn secret from this brand, run talk-setup + recording-setup + transcriber-setup. Run AFTER prodmesh:shared-services. Usage: task prodmesh:talk-setup:brand BRAND=fleet-mentolder"

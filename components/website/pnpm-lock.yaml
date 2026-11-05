@@ -41,8 +41,8 @@ importers:
         specifier: ^9.1.2
         version: 9.1.2(@types/node@26.1.2)(astro@7.4.4(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(svelte@5.57.3(@typescript-eslint/types@8.71.2))(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.1)
       '@mistralai/mistralai':
-        specifier: ^3.4.0
-        version: 3.4.0(@opentelemetry/api@1.10.0)
+        specifier: ^3.5.0
+        version: 3.5.0(@opentelemetry/api@1.10.0)
       '@stripe/stripe-js':
         specifier: ^10.2.0
         version: 10.2.0
@@ -1018,8 +1018,8 @@ packages:
   '@kurkle/color@0.3.4':
     resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==}
 
-  '@mistralai/mistralai@3.4.0':
-    resolution: {integrity: sha512-zgfg+ppFm8F99jog31dUehktW2tLEq9HG7/tDxAve+Lett/MTYRiPcWwdN5bUo/NRRhI60OVQAQvtR6AotPhZQ==}
+  '@mistralai/mistralai@3.5.0':
+    resolution: {integrity: sha512-8nwJc1lySdkEWETw1Y4jOCAfFkzWQecZ12L3DYs+87G0/KcG+k/+r/CWLHPj8zL2vNigj8SCZQDRM9/ZoUaD0g==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.300.0
       '@azure/identity': ^4.0.0
@@ -5292,7 +5292,7 @@ snapshots:
 
   '@kurkle/color@0.3.4': {}
 
-  '@mistralai/mistralai@3.4.0(@opentelemetry/api@1.10.0)':
+  '@mistralai/mistralai@3.5.0(@opentelemetry/api@1.10.0)':
     dependencies:
       '@modelcontextprotocol/sdk': 1.32.2(zod@4.6.7)
       '@opentelemetry/semantic-conventions': 1.43.0

@@ -29,7 +29,7 @@
     "@astrojs/node": "^11.1.9",
     "@astrojs/react": "^7.1.2",
     "@astrojs/svelte": "^9.1.2",
-    "@mistralai/mistralai": "^3.4.0",
+    "@mistralai/mistralai": "^3.5.0",
     "@stripe/stripe-js": "^10.2.0",
     "@types/d3": "^7.4.3",
     "@types/pg": "^8.23.1",

@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════
-# Collabora Online — Document editing (WOPI integration with Nextcloud)
+# Collabora Online — Document editing (WOPI integration, derzeit ohne Client)
 # ═══════════════════════════════════════════════════════════════════
 # Lives in the dedicated `workspace-office` namespace so it can run
 # with CAP_SYS_ADMIN + MKNOD (needed for bind-mounting the systemplate
@@ -13,8 +13,7 @@
 #   ${COLLABORA_SSL_TERMINATION} — "true" behind TLS, "false" in dev
 #
 # The three COLLABORA_* vars are set by envsubst in the deploy path so
-# one file covers both dev (http://nextcloud.workspace:80) and prod
-# (https://files.${PROD_DOMAIN}) without a prod patch file.
+# one file covers both dev and prod without a prod patch file.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -180,7 +180,7 @@ Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu v
 
 **Wofür?** Für Fragen wie 'Warum ist Dienst X rot?' oder 'Läuft alles?'. Liest Pod-Status und Protokolle (Logs).
 
-**So startest du:** Frag z. B.: 'Warum startet Nextcloud nicht?' oder 'Zeig mir den Status aller Dienste.'
+**So startest du:** Frag z. B.: 'Warum startet Vaultwarden nicht?' oder 'Zeig mir den Status aller Dienste.'
 
 **Was schiefgehen kann:** Beim reinen Nachschauen kaum etwas. Vorsicht erst, wenn er etwas neu startet (das ist 🟡).
 

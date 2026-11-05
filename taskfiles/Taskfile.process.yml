@@ -49,9 +49,7 @@ tasks:
         echo ""
         echo "Production subdomains:"
         echo "  auth.${PROD_DOMAIN}    (Keycloak)"
-        echo "  files.${PROD_DOMAIN}   (Nextcloud)"
         echo "  office.${PROD_DOMAIN}  (Collabora)"
-        echo "  board.${PROD_DOMAIN}   (Whiteboard)"
         echo "  vault.${PROD_DOMAIN}   (Vaultwarden)"
         echo "  web.${PROD_DOMAIN}     (Website — Astro)"
 

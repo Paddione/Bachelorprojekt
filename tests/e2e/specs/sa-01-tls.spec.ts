@@ -15,14 +15,12 @@ test.describe('SA-01: Transportverschlüsselung', () => {
 
   /**
    * T1: Ingress für alle Services vorhanden — checked via HTTP probe on prod domain.
-   * Auth, files, vault, board, web should return 200/302/303.
-   * Note: Talk (Nextcloud video) runs at files.${PROD_DOMAIN}/apps/spreed — no dedicated meet.* ingress.
+   * Auth, vault, board, web should return 200/302/303.
    */
   test('T1: Alle Service-Ingresses erreichbar (prod)', async ({ request }) => {
     test.skip(!PROD_DOMAIN, 'Ingress-Probe nur in Prod durchführbar (PROD_DOMAIN fehlt)');
     const services: Array<{ name: string; url: string }> = [
       { name: 'auth',  url: `https://auth.${PROD_DOMAIN}` },
-      { name: 'files', url: `https://files.${PROD_DOMAIN}` },
       { name: 'board', url: `https://brett.${PROD_DOMAIN}` },
       { name: 'web',   url: `https://web.${PROD_DOMAIN}` },
     ];

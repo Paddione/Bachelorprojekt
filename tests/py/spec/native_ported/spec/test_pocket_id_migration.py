@@ -165,7 +165,6 @@ POCKET_ID_SECRETS = [
     "POCKET_ID_DOCS_SECRET",
     "POCKET_ID_VAULTWARDEN_SECRET",
     "POCKET_ID_RECOVERY_SECRET",
-    "POCKET_ID_NEXTCLOUD_SECRET",
     "POCKET_ID_GRAFANA_SECRET",
     "POCKET_ID_WEBSITE_SECRET",
     "POCKET_ID_BRETT_SECRET",
@@ -417,25 +416,6 @@ def test_pocket_id_k3d_website_yaml_exposes_pocket_id_frontend_url_pocket_id_url
     assert _lit(f, "POCKET_ID_WEBSITE_SECRET")
 
 
-# Welle 2: Nextcloud OIDC points at Pocket ID
-
-def test_pocket_id_k3d_nextcloud_oidc_dev_php_points_at_http_pocket_id_1411(P):
-    f = P.k3d / "nextcloud-oidc-dev.php"
-    assert (
-        _has(f, r"'oidc_login_provider_url'.*'http://pocket-id:1411'")
-        or _has(f, r"oidc_login_provider_url.*=>.*'http://pocket-id:1411'")
-    )
-    assert _lit(f, "POCKET_ID_NEXTCLOUD_SECRET")
-
-
-def test_pocket_id_prod_nextcloud_oidc_prod_php_points_at_pocket_id_https_auth_prod_domain(P):
-    f = P.prod / "nextcloud-oidc-prod.php"
-    assert _lit(f, "POCKET_ID_NEXTCLOUD_SECRET")
-    assert _lit(f, "POCKET_ID_DOMAIN")
-    assert not _lit(f, "keycloak:8080/realms/workspace")
-    assert not _lit(f, "KC_DOMAIN")
-
-
 # Welle 2: Grafana native OIDC points at Pocket ID
 
 def test_pocket_id_prod_monitoring_grafana_oidc_patch_yaml_points_at_auth_prod_domain(P):
@@ -494,7 +474,7 @@ WORKSPACE_SECRET_KEYS = [
     "POCKET_ID_COMFY_SECRET", "POCKET_ID_MEDIAVIEWER_SECRET", "POCKET_ID_VIDEOVAULT_SECRET",
     "POCKET_ID_STUDIO_SECRET", "POCKET_ID_TRAEFIK_SECRET", "POCKET_ID_RECOVERY_SECRET",
     "POCKET_ID_VAULTWARDEN_SECRET", "POCKET_ID_CLAUDE_CODE_SECRET",
-    "POCKET_ID_SESSION_HUB_SECRET", "POCKET_ID_BRAINSTORM_SECRET", "POCKET_ID_NEXTCLOUD_SECRET",
+    "POCKET_ID_SESSION_HUB_SECRET", "POCKET_ID_BRAINSTORM_SECRET",
 ]
 
 
@@ -518,10 +498,6 @@ def test_pocket_id_wiring_k3d_brett_yaml_sets_brett_kc_client_id_to_brett_not_br
     f = P.k3d / "brett.yaml"
     assert _has(f, r'^\s*value:\s*"brett"\s*$')
     assert not _has(f, r'^\s*value:\s*"brett-app"\s*$')
-
-
-def test_pocket_id_wiring_schema_declares_pocket_id_nextcloud_secret(P):
-    assert _has(P.schema, r"^\s*-\s*name:\s*POCKET_ID_NEXTCLOUD_SECRET\b")
 
 
 def test_pocket_id_wiring_kustomize_build_k3d_emits_a_job_named_pocket_id_client_seed(run_cmd, P):

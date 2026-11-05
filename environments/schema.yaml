@@ -28,7 +28,6 @@ groups:
   - name: network
     prefix: [WG_MESH_]
     suffix: [_COOKIE_SECRET, _JWT_SECRET]
-    exact: [SIGNALING_SECRET, TURN_SECRET, RECORDING_SECRET, TRANSCRIBER_SECRET, TRANSCRIBER_BOT_PASSWORD]
   - name: ssh
     suffix: [_SSH_PRIVATE_KEY, _SSH_PUBLIC_KEY, _ED25519, _ED25519_PUB, _AUTHORIZED_KEYS]
   - name: misc
@@ -501,7 +500,7 @@ env_vars:
   - name: COMFY_PORT
     required: false
     default_dev: ""
-    description: "Port ComfyUI listens on. Must NOT be 8188 (conflicts with Janus WebSocket)."
+    description: "Port ComfyUI listens on. Must NOT be 8188 (legacy media port — keep clear)."
 
   - name: RIGGER_HOST_IP
     required: false
@@ -542,7 +541,7 @@ env_vars:
   - name: COLLABORA_ALIASGROUP1
     required: false
     default_dev: "http://nextcloud.workspace.svc.cluster.local:80"
-    description: "WOPI upstream host Collabora trusts. Auto-derived from PROD_DOMAIN; localhost gets the cluster-internal Nextcloud Service URL."
+    description: "WOPI upstream host Collabora trusts. Auto-derived from PROD_DOMAIN; localhost gets the cluster-internal service URL."
 
   - name: COLLABORA_SERVER_NAME
     required: false
@@ -664,7 +663,7 @@ env_vars:
     required: false
     default_dev: "core"
     validate: "^(core|full)$"
-    description: "Overlay rendered by task devmesh:deploy: core (default until SP-5) or full (core + nextcloud, collabora, talk, vaultwarden)."
+    description: "Overlay rendered by task devmesh:deploy: core (default until SP-5) or full (core + collabora, vaultwarden)."
 
   - name: SDLC_CONSOLE_SITE_URL
     required: false
@@ -775,21 +774,7 @@ secrets:
       - namespace: website
         secret: website-secrets
 
-  - name: NEXTCLOUD_ADMIN_PASSWORD
-    required: true
-    generate: true
-    length: 24
-    description: "Random by default — retrieve via `kubectl get secret workspace-secrets -n <ns> -o jsonpath='{.data.NEXTCLOUD_ADMIN_PASSWORD}' | base64 -d`. Override via env_vars: in the env file."
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
-        dest_key: NEXTCLOUD_ADMIN_PASS
-      - namespace: website
-        secret: website-secrets
-        dest_key: NEXTCLOUD_CALDAV_PASSWORD
-
-  # NEXTCLOUD_OIDC_SECRET removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
-
+  
   # ─────────────────────────────────────────────────────────────────
   # Variables intentionally NOT in this schema (audit allowlist)
   #
@@ -850,24 +835,6 @@ secrets:
   #      LABEL, MOUNTER, OUT, SRC
   #                          (script-local loop vars in the backup Job shell script)
   # ─────────────────────────────────────────────────────────────────
-  - name: SIGNALING_SECRET
-    required: true
-    generate: true
-    length: 32
-    extra_namespaces:
-      - namespace: coturn
-        secret: coturn-secrets
-        owner_brand: [mentolder]
-
-  - name: TURN_SECRET
-    required: true
-    generate: true
-    length: 32
-    extra_namespaces:
-      - namespace: coturn
-        secret: coturn-secrets
-        owner_brand: [mentolder]
-
   - name: RUSTDESK_ID_ED25519
     required: false
     dev_absent: true
@@ -954,26 +921,11 @@ secrets:
 
   # WEBSITE_OIDC_SECRET removed — Keycloak decommissioned (pocket-id-migration Welle 3, 2026-06-22).
 
-  - name: RECORDING_SECRET
-    required: true
-    generate: true
-    length: 32
-
-  - name: TRANSCRIBER_BOT_PASSWORD
-    required: true
-    generate: true
-    length: 24
-
-  - name: TRANSCRIBER_SECRET
-    required: true
-    generate: true
-    length: 32
-
   - name: MEETING_INTERNAL_TOKEN
     required: true
     generate: true
     length: 48
-    description: "Shared secret for internal meeting routes (finalize/save-transcript/transcribe, F4). Talk-transcriber and admin inbox action send it as Bearer token."
+    description: "Shared secret for internal meeting routes (finalize/save-transcript/transcribe, F4). Internal callers send it as Bearer token."
     extra_namespaces:
       - namespace: website
         secret: website-secrets
@@ -1115,12 +1067,6 @@ secrets:
     generate: true
     length: 40
     description: "OIDC client secret for the `recovery` Pocket ID client (oauth2-proxy-recovery in k3d/recovery-browser.yaml)."
-
-  - name: POCKET_ID_NEXTCLOUD_SECRET
-    required: false
-    generate: true
-    length: 40
-    description: "OIDC client secret for the `nextcloud` Pocket ID client (nextcloud_oidc_login plugin)."
 
   - name: POCKET_ID_GRAFANA_SECRET
     required: false
@@ -1349,7 +1295,7 @@ secrets:
   # T002251 von Hand gesealt — ihr Plaintext lebte nur als laufendes Secret im
   # fleet-Cluster. Seit T002254 erzeugt `task env:seal` sie aus diesem Schema.
   # `owner_brand: [mentolder]`, weil der Namespace flux-system auf fleet nur
-  # einmal existiert (gleiches Muster wie coturn, T001404/T001584).
+  # einmal existiert (Muster per T001404/T001584).
   # Beide sind `required: false`: sie sind nutzergestellt, und ein
   # fail-closed `required: true` würde `task env:seal` für mentolder blockieren,
   # bis die einmalige Migration des Plaintexts erfolgt ist. Sind die Werte

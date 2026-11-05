@@ -6,6 +6,12 @@ Anders als das alte mentolder-Overlay (scale-zero: replicas 0, bge nur auf
 devmesh — siehe docs/runbooks/ai-services-scale-zero.md) faehrt korczewski
 die Talk-Dienste AKTIV (replicas 1) und enthaelt den bge-Stapel. Die
 Belegung steht im p8-Commit (Render-Evidenz); nichts erfunden.
+
+decommission-prod-services (Eigner-Entscheid 2026-11-05): Der Echtzeit-
+Medien-Stapel ist retiriert. talk-recording ist aus dem Shared-Overlay (prod/)
+entfernt und darf nirgends mehr rendern; whisper + talk-transcriber bleiben
+korczewski-only (frozen brand, prod-korczewski) aktiv. prod-mentolder (live)
+faehrt keinen Talk-Dienst mehr.
 """
 
 import os
@@ -16,8 +22,10 @@ import pytest
 import yaml
 
 
-AI_DEPLOYMENTS = {"whisper", "talk-transcriber", "talk-recording"}
+AI_DEPLOYMENTS = {"whisper", "talk-transcriber"}
 AI_SERVICES = set(AI_DEPLOYMENTS)
+# talk-recording: mit dem Echtzeit-Medien-Stapel retiriert (Eigner-Entscheid 2026-11-05).
+RETIRED_TALK_DEPLOYMENTS = {"talk-recording"}
 BGE_DEPLOYMENTS = {"bge-embed", "bge-embed-bulk", "bge-rerank"}
 
 
@@ -56,6 +64,10 @@ def test_ai_deployments_exist_active(fleet_resources):
         deployment = fleet_resources.get(("Deployment", name))
         assert deployment is not None, f"{name}: missing from korczewski overlay"
         assert deployment["spec"]["replicas"] == 1, name
+    # Retiriert: talk-recording darf nicht mehr rendern (Talk-Dienst weg).
+    for name in sorted(RETIRED_TALK_DEPLOYMENTS):
+        assert ("Deployment", name) not in fleet_resources, f"{name}: retired, still rendered"
+        assert ("Service", name) not in fleet_resources, f"{name}: retired Service still rendered"
 
 
 def test_active_services_retain_internal_dependencies(fleet_resources):
@@ -106,6 +118,10 @@ def test_gitops_override_can_activate_all_ai_deployments(repo_root, tmp_path):
 
 def test_base_keeps_existing_ai_replica_defaults(repo_root):
     base = render(repo_root / "prod-mentolder")
-    for name in (AI_DEPLOYMENTS | BGE_DEPLOYMENTS) - {"bge-embed-bulk"}:
+    for name in (AI_DEPLOYMENTS | BGE_DEPLOYMENTS) - {"bge-embed-bulk", "talk-transcriber"}:
         assert base[("Deployment", name)]["spec"]["replicas"] == 1, name
+    # prod-mentolder (live) faehrt keine Talk-Dienste mehr (retiriert).
+    for name in sorted((AI_DEPLOYMENTS | RETIRED_TALK_DEPLOYMENTS) - {"whisper"}):
+        assert ("Deployment", name) not in base, f"{name}: retired, still in prod-mentolder"
+    assert ("Deployment", "whisper") in base
     assert base[("Deployment", "bge-embed-bulk")]["spec"]["replicas"] == 0

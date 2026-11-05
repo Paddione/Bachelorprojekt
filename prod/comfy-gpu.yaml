@@ -1,6 +1,6 @@
 # prod/comfy-gpu.yaml — ComfyUI GPU host (Hunyuan3D-2 3D generation)
 # ${COMFY_HOST_IP} and ${COMFY_PORT} filled by envsubst at deploy time.
-# COMFY_PORT must NOT be 8188 (conflicts with Janus WebSocket).
+# COMFY_PORT must NOT be 8188 (legacy media port — keep clear).
 apiVersion: v1
 kind: Service
 metadata:

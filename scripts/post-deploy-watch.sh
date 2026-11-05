@@ -49,7 +49,6 @@ echo "═══ Post-deploy watch for ${ENV} ═══"
 
 DEPLOYMENTS=(
   "pocket-id:${WS_NS}"
-  "nextcloud:${WS_NS}"
   "shared-db:${WS_NS}"
   "website:${WEB_NS}"
 )

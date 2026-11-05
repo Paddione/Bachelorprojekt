@@ -46,7 +46,7 @@
 |---------|-------|--------|
 | FA-01 | Messaging (Echtzeit) — Direktnachrichten | Entfällt |
 | FA-02 | Kanäle / Workspaces | Entfällt |
-| FA-03 | Videokonferenzen (Nextcloud Talk HPB) | |
+| FA-03 | Videokonferenzen (Talk HPB, 2026-11 retiriert) | Entfällt |
 | FA-04 | Dateiablage | Entfällt |
 | FA-05 | Nutzerverwaltung | Entfällt |
 | FA-06 | Benachrichtigungen | Entfällt |
@@ -64,7 +64,6 @@
 | FA-20 | Meeting Finalization Pipeline | |
 | FA-21 | Service Catalog | |
 | FA-23 | Vaultwarden Passwort-Manager | |
-| FA-24 | Kollaboratives Whiteboard | |
 | FA-25 | Mailpit E-Mail-Server | |
 | FA-26 | Bug Report Form | |
 | FA-27 | Systemisches Brett | |
@@ -119,37 +118,22 @@ Die folgenden Tests wurden ursprünglich für die Mattermost-Integration konzipi
 |---------|---------------------|------------|
 | FA-01 | Messaging (Echtzeit) | Mattermost entfernt; ersetzt durch FA-28 |
 | FA-02 | Kanäle / Workspaces | Mattermost entfernt |
-| FA-04 | Dateiablage | Mattermost entfernt; Dateiablage via Nextcloud |
+| FA-04 | Dateiablage | Mattermost entfernt |
 | FA-05 | Nutzerverwaltung | Mattermost entfernt; Nutzerverwaltung via Keycloak |
 | FA-06 | Benachrichtigungen | Mattermost entfernt |
 | FA-07 | Suche | Mattermost entfernt |
 | FA-08 | Workspace-spezifisch | Mattermost entfernt |
 | FA-09 | Billing-Infrastruktur | Billing nicht mehr aktiv im Stack |
 
----
+## Entfallene Tests (Prod-Decommission 2026-11-05)
 
-### FA-03: Videokonferenzen (Nextcloud Talk HPB)
+Die folgenden Tests prüften retirierte Prod-Dienste und sind nicht mehr anwendbar (Eigner-Entscheid 2026-11-05).
 
-> **Beschreibung:** Prüft die Videokonferenz-Infrastruktur über Nextcloud Talk mit dem High-Performance-Backend (HPB), inklusive Janus WebRTC Gateway, Signaling-Server und coturn TURN-Server.
-
-**Vorbedingungen:** Workspace-Stack deployed, Nextcloud-Pod läuft, coturn-Stack deployed
-
-| Schritt | Aktion | Erwartetes Ergebnis |
-|---------|--------|---------------------|
-| T1 | Talk-API-Endpunkt intern ansprechen: `GET /ocs/v2.php/apps/spreed/api/v4/room` | HTTP 200 oder 401 (Endpunkt existiert) |
-| T2 | Janus WebRTC Gateway auf Port 8188 ansprechen | HTTP-Antwort (kein Timeout) |
-| T3 | Nextcloud Talk-App in Nextcloud-Admin prüfen: Apps → Talk → aktiviert | Talk als aktiv gelistet |
-| T4 | Signaling-Server-Konfiguration prüfen: `occ talk:signaling:list` | Signaling-Server eingetragen |
-| T5 | coturn-Service im Namespace prüfen: `kubectl get svc -n workspace \| grep coturn` | coturn Service vorhanden |
-| T6 | Vom Browser aus Nextcloud Talk öffnen und Sprach-/Videoraum anlegen | Raum wird erstellt, Video-/Audiozugang möglich |
-
-**Befund:**
-
-Tatsächliches Ergebnis: ______________________________________________________________________________________________
-
-Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen
-
-Bemerkungen: ______________________________________________________________________________________________
+| Test-ID | Ursprünglicher Titel | Begründung |
+|---------|---------------------|------------|
+| FA-03 | Videokonferenzen | Konferenz-Stack retiriert |
+| FA-24 | Zeichen-Tafel (kollaborativ) | Zeichen-Dienst retiriert |
+| SA-08 | SSO-Integration (OIDC) | OIDC-Anbindung retirierter Dienste entfällt |
 
 ---
 
@@ -279,7 +263,7 @@ Bemerkungen: ___________________________________________________________________
 
 > **Beschreibung:** Prüft die Terminbuchungs-Funktionalität: Slots-API, Buchungs-API und CalDAV-Konfiguration.
 
-**Vorbedingungen:** Website läuft, Nextcloud für CalDAV konfiguriert
+**Vorbedingungen:** Website läuft, CalDAV konfiguriert
 
 | Schritt | Aktion | Erwartetes Ergebnis |
 |---------|--------|---------------------|
@@ -301,16 +285,15 @@ Bemerkungen: ___________________________________________________________________
 
 ### FA-17: Meeting Lifecycle
 
-> **Beschreibung:** Prüft den vollständigen Meeting-Lebenszyklus: Erinnerungen, CronJob und Nextcloud Talk-Integration.
+> **Beschreibung:** Prüft den vollständigen Meeting-Lebenszyklus: Erinnerungen und CronJob.
 
-**Vorbedingungen:** Website und Nextcloud laufen, CronJobs deployed
+**Vorbedingungen:** Website läuft, CronJobs deployed
 
 | Schritt | Aktion | Erwartetes Ergebnis |
 |---------|--------|---------------------|
 | T1 | Reminder-Endpunkt ansprechen: `POST /api/reminders/process` | HTTP 200 |
 | T2 | CronJob prüfen: `kubectl get cronjob meeting-reminders -n website` | CronJob definiert |
-| T3 | Nextcloud Talk-Endpunkt intern ansprechen | HTTP 200 oder 401 (erreichbar) |
-| T4 | Im Browser ein Meeting anlegen und Erinnerung konfigurieren | Meeting gespeichert, Erinnerung eingetragen |
+| T3 | Im Browser ein Meeting anlegen und Erinnerung konfigurieren | Meeting gespeichert, Erinnerung eingetragen |
 
 **Befund:**
 
@@ -402,30 +385,6 @@ Bemerkungen: ___________________________________________________________________
 | T3 | Datenbank prüfen: `psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname='vaultwarden'"` | Gibt 1 zurück |
 | T4 | SSO-Konfiguration prüfen: Env-Variable `SSO_ENABLED` im Deployment | Wert `true` |
 | T5 | Im Browser `https://vault.{DOMAIN}` öffnen | Vaultwarden-Login-Seite angezeigt; SSO-Login-Button vorhanden |
-
-**Befund:**
-
-Tatsächliches Ergebnis: ______________________________________________________________________________________________
-
-Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen
-
-Bemerkungen: ______________________________________________________________________________________________
-
----
-
-### FA-24: Kollaboratives Whiteboard
-
-> **Beschreibung:** Prüft den Nextcloud Whiteboard-Dienst: Deployment, Service-Port und Anbindung an Nextcloud.
-
-**Vorbedingungen:** Office-Stack deployed (`task workspace:office:deploy`)
-
-| Schritt | Aktion | Erwartetes Ergebnis |
-|---------|--------|---------------------|
-| T1 | Whiteboard-Pod prüfen: `kubectl get deploy whiteboard -n workspace -o jsonpath='{.status.readyReplicas}'` | Wert > 0 |
-| T2 | Service-Port prüfen: `kubectl get svc whiteboard -n workspace -o jsonpath='{.spec.ports[0].port}'` | Port 3002 |
-| T3 | Whiteboard-Startseite ansprechen: `GET http://whiteboard:3002/` | HTTP 200 |
-| T4 | NEXTCLOUD_URL-Konfiguration prüfen: Env-Variable im Deployment | Enthält Nextcloud-URL |
-| T5 | In Nextcloud eine `.whiteboard`-Datei anlegen und öffnen | Whiteboard-Editor öffnet sich im Browser |
 
 **Befund:**
 
@@ -904,30 +863,6 @@ Bemerkungen: ___________________________________________________________________
 
 ---
 
-### SA-08: SSO-Integration (Keycloak OIDC)
-
-> **Beschreibung:** Prüft die OIDC-Anbindung von Nextcloud und Nextcloud Talk an Keycloak.
-
-**Vorbedingungen:** Keycloak und Nextcloud laufen, OIDC-Plugin in Nextcloud aktiv
-
-| Schritt | Aktion | Erwartetes Ergebnis |
-|---------|--------|---------------------|
-| T1 | Keycloak OIDC Discovery: `GET /realms/workspace/.well-known/openid-configuration` | JSON mit `authorization_endpoint`, `token_endpoint` |
-| T2 | Nextcloud OIDC-App aktiv: `occ app:list \| grep sso` | `user_oidc` in der Liste |
-| T3 | Nextcloud OIDC-Provider konfiguriert: `occ user_oidc:provider:list` | Keycloak-Provider eingetragen |
-| T4 | Nextcloud Talk OIDC: Signaling-Secret konfiguriert | Secret in Nextcloud Talk-Config |
-| T5 | Im Browser Nextcloud über SSO-Login öffnen | Login via Keycloak funktioniert |
-
-**Befund:**
-
-Tatsächliches Ergebnis: ______________________________________________________________________________________________
-
-Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen
-
-Bemerkungen: ______________________________________________________________________________________________
-
----
-
 ### SA-10: MCP-Endpunkt-Absicherung (ForwardAuth)
 
 > **Beschreibung:** Prüft, dass der MCP-ForwardAuth-Proxy Token-Validierung korrekt durchsetzt.
@@ -1020,16 +955,14 @@ Bemerkungen: ___________________________________________________________________
 
 ### NFA-01: Datenschutz / DSGVO
 
-> **Beschreibung:** Prüft DSGVO-Konformität: keine US-Cloud-Images, keine externen Storage-Backends in Nextcloud, Telemetrie deaktiviert.
+> **Beschreibung:** Prüft DSGVO-Konformität: keine US-Cloud-Images, keine externen Storage-Backends, Telemetrie deaktiviert.
 
 **Vorbedingungen:** Workspace-Stack deployed
 
 | Schritt | Aktion | Erwartetes Ergebnis |
 |---------|--------|---------------------|
 | T1 | Container-Images prüfen: `kubectl get pods -n workspace -o jsonpath='{.items[*].spec.containers[*].image}'` | Keine Images von `gcr.io`, `amazonaws.com`, `azurecr.io`, `mcr.microsoft.com` |
-| T2 | Nextcloud externe Storage-Backends prüfen: `occ config:list \| grep -E "amazons3\|azure"` | Keine externen Storage-Backends |
-| T3 | Nextcloud Telemetrie prüfen: `occ config:system:get has_internet_connection` | Wert `false` oder nicht gesetzt |
-| T4 | DSGVO-Check ausführen: `task workspace:dsgvo-check` | Alle Checks bestanden |
+| T2 | DSGVO-Check ausführen: `task workspace:dsgvo-check` | Alle Checks bestanden |
 
 **Befund:**
 
@@ -1117,15 +1050,13 @@ Bemerkungen: ___________________________________________________________________
 
 > **Beschreibung:** Prüft die Benutzerfreundlichkeit: deutsche Standardsprache, Barrierefreiheit, Ladezeiten.
 
-**Vorbedingungen:** Workspace-Stack deployed, Nextcloud konfiguriert
+**Vorbedingungen:** Workspace-Stack deployed
 
 | Schritt | Aktion | Erwartetes Ergebnis |
 |---------|--------|---------------------|
-| T1 | Nextcloud Standard-Sprache prüfen: `kubectl exec deploy/nextcloud -- occ config:system:get default_language` | Wert `de` |
-| T2 | Website-Ladezeit unter 5 s: `time curl -s http://web.localhost/` | HTTP 200, < 5000 ms |
-| T3 | Nextcloud-Oberfläche auf Deutsch: Im Browser `https://files.{DOMAIN}` öffnen | Menüs und Schaltflächen auf Deutsch |
-| T4 | Mobile Darstellung prüfen: Browser-DevTools → Responsive Mode (375 px) | Seite ist mobil nutzbar, keine horizontale Scroll-Bar |
-| T5 | Tastaturnavigation prüfen: Tab-Taste durch interaktive Elemente navigieren | Fokus-Indikator sichtbar, logische Reihenfolge |
+| T1 | Website-Ladezeit unter 5 s: `time curl -s http://web.localhost/` | HTTP 200, < 5000 ms |
+| T2 | Mobile Darstellung prüfen: Browser-DevTools → Responsive Mode (375 px) | Seite ist mobil nutzbar, keine horizontale Scroll-Bar |
+| T3 | Tastaturnavigation prüfen: Tab-Taste durch interaktive Elemente navigieren | Fokus-Indikator sichtbar, logische Reihenfolge |
 
 **Befund:**
 
@@ -1169,7 +1100,6 @@ Bemerkungen: ___________________________________________________________________
 | Schritt | Aktion | Erwartetes Ergebnis |
 |---------|--------|---------------------|
 | T1a | Keycloak-Image vorhanden: `kubectl get pods -n workspace -o jsonpath='{.items[*].spec.containers[*].image}' \| tr ' ' '\n' \| grep keycloak` | keycloak-Image gelistet |
-| T1b | Nextcloud-Image vorhanden | nextcloud-Image gelistet |
 | T1c | PostgreSQL-Image vorhanden | postgres-Image gelistet |
 | T2 | Keine proprietären Images: `\| grep -E "microsoft\|google\|amazon\|zoom\|slack"` | Keine Treffer |
 | T3 | Lizenzdatei im Repo prüfen: `cat LICENSE` | Anerkannte Open-Source-Lizenz (MIT / Apache 2.0 / GPL) |
@@ -1312,7 +1242,7 @@ Bemerkungen: ___________________________________________________________________
 |---------|--------|---------------------|
 | T1 | Laufende Pods zählen: `kubectl get pods -n workspace --no-headers \| grep -c Running` | Mindestens 1 Pod im Status `Running` |
 | T2 | Image-Tags prüfen: `kubectl get pods -n workspace -o jsonpath='{.items[*].spec.containers[*].image}' \| tr ' ' '\n'` | Keine `:latest`-Tags (außer curlimages/curl) |
-| T3 | Alle Core-Services erreichbar: Keycloak, Nextcloud, Vaultwarden | Alle antworten mit HTTP 200/302 |
+| T3 | Alle Core-Services erreichbar: Keycloak, Vaultwarden | Alle antworten mit HTTP 200/302 |
 | T4 | Cluster-Status: `task workspace:status` | Alle Pods `Ready` |
 
 **Befund:**

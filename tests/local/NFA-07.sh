@@ -8,7 +8,6 @@ NAMESPACE="${NAMESPACE:-workspace}"
 # T1: All images from open-source projects
 IMAGES=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{.items[*].spec.containers[*].image}' 2>/dev/null)
 assert_contains "$IMAGES" "keycloak" "NFA-07" "T1a" "Keycloak Image vorhanden"
-assert_contains "$IMAGES" "nextcloud" "NFA-07" "T1b" "Nextcloud Image vorhanden"
 assert_contains "$IMAGES" "postgres" "NFA-07" "T1c" "PostgreSQL Image vorhanden"
 
 # T2: No proprietary images

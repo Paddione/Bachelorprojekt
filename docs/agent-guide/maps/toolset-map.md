@@ -510,7 +510,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `audio-transkription`
 
 - **`skill:whisper`** — Status `suppressed`
-  - _Grund:_ Nur lokal vorhanden und von .gitignore erfasst; Talk-Transkription läuft über den talk-transcriber-Dienst.
+  - _Grund:_ Nur lokal vorhanden und von .gitignore erfasst; Talk-Transkription läuft über den Whisper-Dienst (faster-whisper).
 
 ## Fähigkeit: `agent-website`
 

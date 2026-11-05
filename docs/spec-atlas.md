@@ -732,13 +732,6 @@ Last touches:
 Reqs: 22 · Scenarios: 29 · Lines: 331
 Paths: website/src/lib/newsletter, website/src/api/newsletter, website/src/pages/newsletter, k3d/newsletter
 
-### nextcloud-integration
-Reqs: 25 · Scenarios: 46 · Lines: 462
-Paths: k3d/nextcloud
-Last touches:
-  - Explicit ENV= for All Env-Sensitive Deploys | T900452 | 2026-09-26 | MODIFIED
-  - Spec-BATS smoke coverage | T002012 | 2026-07-21 | ADDED
-
 ### opencode-local-model-runner
 Reqs: 3 · Scenarios: 4 · Lines: 47
 Last touches:

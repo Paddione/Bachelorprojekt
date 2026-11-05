@@ -131,7 +131,7 @@ data:
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
           artifact_type TEXT NOT NULL
-              CHECK (artifact_type IN ('whiteboard','document','screenshot','file')),
+              CHECK (artifact_type IN ('document','screenshot','file')),
           name TEXT NOT NULL,
           storage_path TEXT,
           content_text TEXT,
@@ -912,7 +912,7 @@ data:
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
           artifact_type TEXT NOT NULL
-              CHECK (artifact_type IN ('whiteboard','document','screenshot','file')),
+              CHECK (artifact_type IN ('document','screenshot','file')),
           name TEXT NOT NULL,
           storage_path TEXT,
           content_text TEXT,

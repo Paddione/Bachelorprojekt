@@ -123,10 +123,9 @@ def test_no_resource_dropped_by_all_consumers(built_overlays: dict[str, Path]):
         # laufen nicht mehr via Flux (bei Bedarf manuell bzw. via k3d-Flow).
         ('Job', 'pocket-id-client-seed'),
         ('Job', 'pocket-id-db-init'),
-        ('Job', 'nextcloud-notification-config'),
         # brand-trennung: korczewski-Overlay behält nur korczewski-Ressourcen —
         # Belege in prod-korczewski/kustomization.yaml ($patch: delete):
-        # pvc-backup referenziert vaultwarden/nextcloud-Pods (in korczewski
+        # pvc-backup referenziert vaultwarden-Pods (in korczewski
         # auf 0 skaliert, T012964); error-log-retention targetet den
         # Website-Pod (in korczewski auf 0); Namespace workspace heisst in
         # der Brand workspace-korczewski (Rename, kein Drop).

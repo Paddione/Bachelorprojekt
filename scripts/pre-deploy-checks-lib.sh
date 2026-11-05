@@ -176,7 +176,7 @@ check_sealed_secrets() {
         done < <(schema_keys "setup_vars")
 
         # Check the multi-document file for expected SealedSecret names
-        for expected_name in workspace-secrets website-secrets coturn-secrets collabora-secrets ipv64-api-key; do
+        for expected_name in workspace-secrets website-secrets collabora-secrets ipv64-api-key; do
           if grep -q "name: ${expected_name}" "$SEALED_FILE" 2>/dev/null; then
             pass "SealedSecret '${expected_name}' present in file"
           else
@@ -234,18 +234,6 @@ check_kustomize() {
     info "Keycloak realm JSON check skipped: ${realm_file} not found (Keycloak decommissioned)"
   fi
 
-  # Check OIDC PHP config
-  local oidc_file
-  if [[ "$IS_DEV" == "true" ]]; then
-    oidc_file="k3d/nextcloud-oidc-dev.php"
-  else
-    oidc_file="prod/nextcloud-oidc-prod.php"
-  fi
-  if [[ -f "$oidc_file" ]]; then
-    pass "Nextcloud OIDC config found: ${oidc_file}"
-  else
-    fail "Nextcloud OIDC config missing: ${oidc_file}"
-  fi
 
   # Kustomize build dry-run
   info "Running kustomize build dry-run on ${OVERLAY_DIR}/ ..."
@@ -365,7 +353,7 @@ check_network_policies() {
     local WS_WEB_NS
     WS_WEB_NS=$( ( source "$(dirname "${BASH_SOURCE[0]}")/env-resolve.sh" "$ENV" "$ENV_DIR" 2>/dev/null \
       && printf '%s' "${WEBSITE_NAMESPACE:-website}" ) || printf 'website' )
-    NP_NAMESPACES+=(coturn workspace-office "$WS_WEB_NS")
+    NP_NAMESPACES+=(workspace-office "$WS_WEB_NS")
   fi
 
   for ns in "${NP_NAMESPACES[@]}"; do

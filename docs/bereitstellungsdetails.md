@@ -120,23 +120,15 @@ Jeder hier beschriebene Service läuft als K8s-Workload (Kubernetes Deployment) 
 * **Produktions-URLs:** `web.mentolder.de`, `web.korczewski.de`
 
 ### 4.2 Keycloak (`keycloak`)
-* **Beschreibung:** Der zentrale SSO-Dienst (Single Sign-On). Er regelt die Authentifizierung über OIDC (OpenID Connect). Alle anderen Dienste (Nextcloud, Vaultwarden, DocuSeal, Systembrett) leiten Benutzer zur Anmeldung an Keycloak weiter.
+* **Beschreibung:** Der zentrale SSO-Dienst (Single Sign-On). Er regelt die Authentifizierung über OIDC (OpenID Connect). Alle anderen Dienste (Vaultwarden, DocuSeal, Systembrett) leiten Benutzer zur Anmeldung an Keycloak weiter.
 * **K8s-Deployment-Name:** `keycloak`
 * **K8s-Namespace:** `workspace` / `workspace-korczewski`
 * **Datenbank:** PostgreSQL (Schema `keycloak`)
 * **Image-Tag:** `:22.0` (ausgeliefert via Bitnami Keycloak-Chart)
 * **Produktions-URLs:** `auth.mentolder.de`, `auth.korczewski.de`
 
-### 4.3 Nextcloud (`nextcloud`)
-* **Beschreibung:** Das Kernstück für Kollaboration. Stellt Datei-Speicher, Kalender, Kontakte und Office-Integration bereit. Beinhaltet auch die Erweiterung "Nextcloud Talk" für Audio/Video-Konferenzen.
-* **K8s-Deployment-Name:** `nextcloud`
-* **K8s-Namespace:** `workspace` / `workspace-korczewski`
-* **Datenbank:** PostgreSQL (Schema `nextcloud`)
-* **Image-Tag:** `:29` (Nextcloud-Basis)
-* **Produktions-URLs:** `files.mentolder.de`, `files.korczewski.de`
-
 ### 4.4 Collabora (`collabora`)
-* **Beschreibung:** Ein Online-Office-Server. Er wird über das WOPI-Protokoll in Nextcloud eingebunden und erlaubt das kollaborative Editieren von Word-, Excel- und PowerPoint-Dateien direkt im Browser.
+* **Beschreibung:** Ein Online-Office-Server. Er erlaubt das kollaborative Editieren von Word-, Excel- und PowerPoint-Dateien direkt im Browser.
 * **K8s-Deployment-Name:** `collabora`
 * **K8s-Namespace:** `workspace-office` / `workspace-office-korczewski`
 * **Image-Tag:** `:latest` (Collabora Online Development Edition)
@@ -149,13 +141,6 @@ Jeder hier beschriebene Service läuft als K8s-Workload (Kubernetes Deployment) 
 * **Datenbank:** PostgreSQL (Schema `vaultwarden`)
 * **Image-Tag:** `:latest`
 * **Produktions-URLs:** `vault.mentolder.de`, `vault.korczewski.de`
-
-### 4.6 Talk HPB (`nextcloud-talk-hpb`)
-* **Beschreibung:** Das High-Performance-Backend für Nextcloud Talk. Es beinhaltet den Janus WebRTC Gateway (Video-Streaming-Server), NATS (Messaging-System) und den Signaling-Server. Ermöglicht stabile Gruppen-Anrufe.
-* **K8s-Deployment-Name:** `talk-hpb`
-* **K8s-Namespace:** `workspace` / `workspace-korczewski`
-* **Image-Tag:** `:latest`
-* **Produktions-URLs:** Internal routing via Traefik.
 
 ### 4.7 Brett (`brett`)
 * **Beschreibung:** Ein interaktives, kollaboratives 3D-Systembrett (Systemic Constellation Board) zur Simulation von Aufstellungen im Browser.
@@ -179,13 +164,6 @@ Jeder hier beschriebene Service läuft als K8s-Workload (Kubernetes Deployment) 
 * **Datenbank:** PostgreSQL (Schema `docuseal`)
 * **Image-Tag:** `:latest`
 * **Produktions-URLs:** `sign.mentolder.de`, `sign.korczewski.de`
-
-### 4.10 Whiteboard (`whiteboard`)
-* **Beschreibung:** Eine kollaborative Zeichen-Tafel (basierend auf Spacedeck), die direkt als Nextcloud-App in die Cloud-Umgebung integriert ist.
-* **K8s-Deployment-Name:** `whiteboard`
-* **K8s-Namespace:** `workspace` / `workspace-korczewski`
-* **Image-Tag:** `:latest`
-* **Produktions-URLs:** Erreichbar innerhalb der Nextcloud-Oberfläche.
 
 ### 4.11 Arena (`arena`)
 * **Beschreibung:** Der Multiplayer-Spielserver (WebSocket-Backend), der exklusiv für das 3D-Spiel der Marke Korczewski genutzt wird.
@@ -233,18 +211,13 @@ Jeder hier beschriebene Service läuft als K8s-Workload (Kubernetes Deployment) 
 * **K8s-Deployment-Name:** `whisper`
 * **K8s-Namespace:** `workspace`
 
-### 4.25 Talk Transcriber (`talk-transcriber`)
-* **Beschreibung:** Ein Nextcloud Talk Bot, der an laufenden Video-Gesprächen teilnimmt, die Audiospur an den Whisper-Dienst sendet und ein Live-Transkript (Gesprächs-Mitschrift) im Chat ablegt.
-* **K8s-Deployment-Name:** `talk-transcriber`
-* **K8s-Namespace:** `workspace`
-
 ### 4.26 MCP Monolith (`mcp`)
 * **Beschreibung:** Model Context Protocol Proxy (Claude Code MCP-Server). Ermöglicht dem KI-Coding-Assistenten Claude Code den sicheren, kontrollierten Zugriff auf Cluster-Ressourcen und -Werkzeuge.
 * **K8s-Deployment-Name:** `claude-code-mcp-auth` / `claude-code-mcp-ops`
 * **K8s-Namespace:** `workspace` (nur Mentolder)
 
 ### 4.27 Brainstorm Sish (`brainstorm`)
-* **Beschreibung:** Ein SSH-Tunnel-Server (sish), der es Entwicklern erlaubt, lokale Entwicklungs-Webseiten oder Whiteboards über einen sicheren SSH-Reverse-Tunnel im Internet erreichbar zu machen.
+* **Beschreibung:** Ein SSH-Tunnel-Server (sish), der es Entwicklern erlaubt, lokale Entwicklungs-Webseiten über einen sicheren SSH-Reverse-Tunnel im Internet erreichbar zu machen.
 * **K8s-Deployment-Name:** `brainstorm-sish`
 * **K8s-Namespace:** `workspace`
 * **Produktions-URLs:** `brainstorm.mentolder.de`

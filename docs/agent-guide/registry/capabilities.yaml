@@ -654,7 +654,7 @@ capabilities:
   audio-transkription:
     skill:whisper:
       state: suppressed
-      reason: "Nur lokal vorhanden und von .gitignore erfasst; Talk-Transkription läuft über den talk-transcriber-Dienst."
+      reason: "Nur lokal vorhanden und von .gitignore erfasst; Talk-Transkription läuft über den Whisper-Dienst (faster-whisper)."
 
   # ─── Domänen-Agenten ────────────────────────────────────────────────────────────────
   agent-website:

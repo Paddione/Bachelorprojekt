@@ -100,7 +100,7 @@ def test_schema_shared_namespace_entries_carry_owner_brand(repo_root):
     if not schema_file.is_file():
         pytest.skip("environments/schema.yaml not found")
     schema = yaml.safe_load(schema_file.read_text()) or {}
-    shared_ns = {"rustdesk", "coturn"}
+    shared_ns = {"rustdesk"}
     violations = []
     for entry in schema.get("secrets") or []:
         for mapping in entry.get("extra_namespaces") or []:

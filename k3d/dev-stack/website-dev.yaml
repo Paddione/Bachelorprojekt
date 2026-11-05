@@ -1,6 +1,6 @@
 # ════════════════════════════════════════════════════════════════════
 # website-dev — minimal Astro website inside the dev k3d cluster.
-# Many optional secrets (Stripe, DocuSeal, Nextcloud admin) are NOT
+# Many optional secrets (Stripe, DocuSeal) are NOT
 # wired here — they're consumed via `optional: true` references; the
 # dev image will boot and serve the public-facing pages. Coaching/
 # admin paths that hit those services will fail gracefully.

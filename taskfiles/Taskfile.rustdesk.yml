@@ -4,7 +4,7 @@
 #
 # Der Stack bleibt bewusst AUSSERHALB Flux/Kustomize-Roots: ein GitOps-
 # Reconcile würde das imperative Scale-to-0 des Sleeper-Jobs zurücknehmen
-# (Präzedenz: coturn/janus werden ebenfalls separat betrieben). Die Render-
+# (Präzedenz: Medien-Dienste wurden ebenfalls separat betrieben). Die Render-
 # Pipeline ist 1:1 aus `prodmesh:shared-services` übernommen; deploy/wake rollieren
 # damit auch die T014553-Härtung der Manifeste aus.
 #

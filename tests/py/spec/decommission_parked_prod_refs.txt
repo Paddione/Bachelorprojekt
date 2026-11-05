@@ -1,0 +1,96 @@
+# Parked: Produkt-Code + Frozen-Brand + Secrets, deren Schicksal der Eigner entscheidet.
+# Eigner-Entscheid 2026-11-05: 6 Prod-Dienste laufen nirgends mehr; Produkt-Kopplung (Portal-Dateien,
+# Kalender, Talk-Raeume, Admin-Broadcast/Umfragen/Transkription) ist der naechste Schnitt.
+# Diese Datei schrumpft mit der Entscheidung (loeschen oder als decided-keep uebernehmen).
+# Format: ein Repo-Pfad pro Zeile, # = Kommentar.
+
+# --- Produkt-Code (Website): Talk-/Files-/CalDAV-Client, Admin-Routen, Portal, Tests ---
+components/website/src/components/admin/aktionen/BackupsTab.svelte
+components/website/src/components/admin/inhalte/AngeboteSection.svelte
+components/website/src/components/admin/ops/DatenbankTab.svelte
+components/website/src/components/admin/platform/AssetModal.svelte
+components/website/src/components/live/rooms/ActiveRoomCard.svelte
+components/website/src/components/live/rooms/BrettBroadcastModal.svelte
+components/website/src/components/live/rooms/RoomDrawer.svelte
+components/website/src/components/live/rooms/RoomsBoard.svelte
+components/website/src/config/brands/korczewski.ts
+components/website/src/env.d.ts
+components/website/src/lib/assistant/actions/portal/shareFile.test.ts
+components/website/src/lib/assistant/actions/portal/shareFile.ts
+components/website/src/lib/billing-archive.test.ts
+components/website/src/lib/billing-archive.ts
+components/website/src/lib/brett-bot.ts
+components/website/src/lib/caldav-cache.ts
+components/website/src/lib/caldav.test.ts
+components/website/src/lib/caldav.ts
+components/website/src/lib/claude.test.ts
+components/website/src/lib/claude.ts
+components/website/src/lib/folder-templates-db.test.ts
+components/website/src/lib/folder-templates-db.ts
+components/website/src/lib/helpContent.ts
+components/website/src/lib/nextcloud-files.test.ts
+components/website/src/lib/nextcloud-files.ts
+components/website/src/lib/nextcloud-shares.test.ts
+components/website/src/lib/nextcloud-shares.ts
+components/website/src/lib/nextcloud-talk-db.test.ts
+components/website/src/lib/nextcloud-talk-db.ts
+components/website/src/lib/system-test-seed-data.ts
+components/website/src/lib/talk.test.ts
+components/website/src/lib/talk.ts
+components/website/src/lib/time-entries-db.ts
+components/website/src/lib/workflow-status.ts
+components/website/src/pages/api/admin/assets/upload.ts
+components/website/src/pages/api/admin/brett/broadcast.ts
+components/website/src/pages/api/admin/meetings/create.ts
+components/website/src/pages/api/admin/poll/index.ts
+components/website/src/pages/api/admin/projekte/attachments/delete.ts
+components/website/src/pages/api/admin/projekte/attachments/download.ts
+components/website/src/pages/api/admin/projekte/attachments/upload.ts
+components/website/src/pages/api/admin/transcription/index.ts
+components/website/src/pages/api/assets/[...path].ts
+components/website/src/pages/api/brett/bot.ts
+components/website/src/pages/api/meeting/save-transcript.ts
+components/website/src/pages/api/portal/rooms/[id]/share.ts
+components/website/src/pages/api/signing/confirm.ts
+components/website/src/pages/sdlc/api/cluster/graph.test.ts
+components/website/src/pages/sdlc/api/ops/restore.ts
+components/website/src/pages/sdlc/api/tickets/[id]/attachments.ts
+
+# --- Frozen Brand korczewski (T002479): Overlay + Env + Flux-KS, Cluster torn down ---
+prod-korczewski/ddns-updater.yaml
+prod-korczewski/kustomization.yaml
+prod-korczewski/patch-data-pvc-storage.yaml
+prod-korczewski/talk-transcriber.yaml
+prod-fleet/korczewski-auth/patch-tls-reflect.yaml
+flux/clusters/fleet/ks-korczewski.yaml
+environments/korczewski-prod.yaml
+environments/sealed-secrets/korczewski-prod.yaml
+
+# --- Secrets (Plaintext + Sealed): Keys retirierter Clients/Dienste, inert ---
+environments/.secrets/dev.yaml
+environments/.secrets/prodmesh-korczewski.yaml
+environments/.secrets/staging.yaml
+environments/sealed-secrets/dev.yaml
+environments/sealed-secrets/prodmesh-korczewski.yaml
+environments/sealed-secrets/staging.yaml
+
+# --- Massage-Brand (website-sdlc, selber Code): Env mit retirierten Keys ---
+k3d/website-massage.yaml
+k3d/website-dev-secrets.yaml
+
+# --- Migrations-Toolchain (Teams/Google-Import, Scan/Export): Zielsystem retiriert ---
+scripts/migrate-lib.sh
+scripts/migrate.sh
+scripts/lib/teams-import.sh
+scripts/lib/google-import.sh
+scripts/lib/nextcloud-api.sh
+scripts/lib/scan.sh
+scripts/lib/export.sh
+
+# --- Parity-Docs (beschreiben den aktuellen Stand inkl. Adapter akkurat) ---
+docs/parity/mentolder-flows-remaining.md
+docs/parity/mentolder-parity-matrix.md
+
+# --- Datenmodell (historische Meeting-Typen) ---
+scripts/datamodel/workflow-map.yaml
+scripts/datamodel/tests/fixtures/minimal-workflow-map.yaml

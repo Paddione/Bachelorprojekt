@@ -28,7 +28,8 @@
 #     server-generated secret to stdout, never writing it back into
 #     workspace-secrets. Every successful deploy therefore silently
 #     invalidated the previous secret pocket-id had on file, while the
-#     apps (website, nextcloud, vaultwarden, brett, oauth2-proxy-*) kept
+#     apps (website, vaultwarden, brett, oauth2-proxy-*; ein OIDC-Client
+#     wurde 2026-11 mit seinem Dienst retiriert) kept
 #     reading the STALE value from the k8s Secret -- a persistent
 #     "invalid client secret" / OIDC login failure that reappeared after
 #     every deploy. Fixed by: (1) never rotating the secret of an
@@ -156,8 +157,6 @@ spec:
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_CLAUDE_CODE_SECRET, optional: true } }
             - name: SECRET_vaultwarden
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_VAULTWARDEN_SECRET, optional: true } }
-            - name: SECRET_nextcloud
-              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_NEXTCLOUD_SECRET, optional: true } }
             - name: SECRET_grafana
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_GRAFANA_SECRET, optional: true } }
             - name: SECRET_website
@@ -272,7 +271,6 @@ spec:
               session-hub|SECRET_sessionhub|POCKET_ID_SESSION_HUB_SECRET|$${SCHEME}://session-hub.$${SUFFIX}/oauth2/callback
               brainstorm|SECRET_brainstorm|POCKET_ID_BRAINSTORM_SECRET|$${SCHEME}://brainstorm.$${SUFFIX}/oauth2/callback
               vaultwarden|SECRET_vaultwarden|POCKET_ID_VAULTWARDEN_SECRET|$${SCHEME}://vault.$${SUFFIX}/identity/connect/oidc-signin
-              nextcloud|SECRET_nextcloud|POCKET_ID_NEXTCLOUD_SECRET|$${SCHEME}://files.$${SUFFIX}/apps/oidc_login/oidc
               grafana|SECRET_grafana|POCKET_ID_GRAFANA_SECRET|$${SCHEME}://grafana.$${SUFFIX}/login/generic_oauth
               website|SECRET_website|POCKET_ID_WEBSITE_SECRET|$${WEBSITE_CALLBACKS}
               rustdesk-web|SECRET_rustdeskweb|POCKET_ID_RUSTDESK_WEB_SECRET|$${SCHEME}://remote.$${SUFFIX}/oauth2/callback

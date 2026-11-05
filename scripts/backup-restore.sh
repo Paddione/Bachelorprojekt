@@ -33,7 +33,8 @@ Commands (PVC file data):
     service:   nextcloud-files | vaultwarden-data | docuseal-data | all
     timestamp: directory from 'pvc-list' (e.g. pvc-20260427-030001)
     IMPORTANT: scale down the target service before restoring, e.g.:
-      kubectl scale deploy/nextcloud -n <ns> --replicas=0 --context <ctx>
+      kubectl scale deploy/vaultwarden -n <ns> --replicas=0 --context <ctx>
+      (nextcloud-files: kein Scale-down noetig — Dienst retiriert, Daten statisch)
 
 Commands (disaster recovery — fresh cluster):
   filen-pull <timestamp> [--remote-path <path>]

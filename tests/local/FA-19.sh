@@ -15,7 +15,29 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 
 NAMESPACE="${NAMESPACE:-workspace}"
 
-_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/nextcloud -- curl -s "$@" 2>/dev/null; }
+_kube_curl() {
+  # Minimal curl-compatible shim (mailpit hat wget, kein curl).
+  # Versteht -o/-w (Statuscode) und -H (Header), Rest ist URL/Body.
+  local header="" want_code=0 url=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -H) header="$2"; shift 2;;
+      -o|-w) want_code=1; shift 2;;
+      -s) shift;;
+      *) url="$1"; shift;;
+    esac
+  done
+  local wget_args=()
+  [[ -n "$header" ]] && wget_args+=(--header="$header")
+  if (( want_code )); then
+    kubectl exec -n "$NAMESPACE" deploy/mailpit -- \
+      wget -S -O /dev/null "${wget_args[@]}" --timeout=5 "$url" 2>&1 \
+      | awk '/^  HTTP\//{code=$2} END{print code+0}'
+  else
+    kubectl exec -n "$NAMESPACE" deploy/mailpit -- \
+      wget -qO- "${wget_args[@]}" --timeout=5 "$url" 2>/dev/null
+  fi
+}
 
 # ── T1: docuseal pod running ─────────────────────────────────────
 DS_READY=$(kubectl get deploy docuseal -n "$NAMESPACE" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")

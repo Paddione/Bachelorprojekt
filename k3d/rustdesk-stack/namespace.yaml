@@ -4,7 +4,7 @@
 # hbbs + hbbr need hostNetwork + hostPort (raw TCP/UDP that Traefik
 # cannot route), which the baseline PSA on the workspace namespace
 # forbids. A dedicated privileged namespace keeps the escalation
-# surface minimal — same pattern as k3d/coturn-stack/namespace.yaml.
+# surface minimal — eigenes privilegiertes Profil.
 apiVersion: v1
 kind: Namespace
 metadata:

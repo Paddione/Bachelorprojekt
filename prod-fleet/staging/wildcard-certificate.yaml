@@ -3,7 +3,7 @@ kind: Certificate
 metadata:
   name: staging-wildcard
   namespace: workspace-staging
-# TLS-Secret-Kopien (website, coturn, workspace-office) pflegt der tls-sync
+# TLS-Secret-Kopien (website, workspace-office) pflegt der tls-sync
 # CronJob (prod/reflector.yaml) — kein Reflector-Controller im Cluster.
 spec:
   secretName: ${TLS_SECRET_NAME}

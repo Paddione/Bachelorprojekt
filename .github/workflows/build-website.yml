@@ -157,9 +157,7 @@ jobs:
           SMTP_SECURE: "false"
           SMTP_FROM: korczewski@mailbox.org
           AUTH_EXTERNAL_URL: https://auth.korczewski.de
-          NEXTCLOUD_EXTERNAL_URL: https://files.korczewski.de
           VAULT_EXTERNAL_URL: https://vault.korczewski.de
-          WHITEBOARD_EXTERNAL_URL: https://files.korczewski.de/apps/files
           TRAEFIK_EXTERNAL_URL: https://traefik.korczewski.de
           MAIL_EXTERNAL_URL: https://mail.korczewski.de
           BRETT_DOMAIN: brett.korczewski.de
@@ -189,7 +187,6 @@ jobs:
           BRAIN_EXTERNAL_URL: https://brain.mentolder.de
           # Arena is optional (mentolder-only, schema default "") — empty disables it.
           ARENA_WS_URL: ""
-          NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
           PRIMARY_FRONTEND: astro
         run: |
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \

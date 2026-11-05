@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SA-08: SSO-Integration — Keycloak OIDC für Nextcloud, Talk
+# SA-08: SSO-Integration — Keycloak OIDC-Integration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
@@ -29,36 +29,7 @@ if [[ -z "$KC_ADMIN_TOKEN" ]]; then
   skip_test "SA-08" "T1" "Keycloak Client-Konfiguration" "Kein Keycloak Admin-Token"
   skip_test "SA-08" "T2" "Keycloak Client-Konfiguration" "Kein Keycloak Admin-Token"
   skip_test "SA-08" "T3" "Keycloak Client-Konfiguration" "Kein Keycloak Admin-Token"
-else
-  # ── Group A: Client-Konfiguration ──────────────────────────────
-
-  # T2: Nextcloud OIDC Client existiert mit korrekter Redirect-URI
-  NC_CLIENT=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_EXT_URL}/admin/realms/workspace/clients?clientId=nextcloud" 2>/dev/null)
-  NC_REDIRECT=$(echo "$NC_CLIENT" | jq -r '.[0].redirectUris | join(" ") // empty')
-  assert_contains "$NC_REDIRECT" "/apps/oidc_login/oidc" "SA-08" "T2" \
-    "Nextcloud OIDC Client — Redirect-URI enthält /apps/oidc_login/oidc"
-
-  # T3: Nextcloud Talk OIDC — verifiziert über Nextcloud OIDC-Konfiguration
-  NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-    setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
-  assert_contains "$NC_OIDC_URL" "realms/workspace" "SA-08" "T3" \
-    "Nextcloud Talk erbt OIDC-Session — provider_url konfiguriert"
 fi
-
-# ── Group B: OIDC Redirect-Chains ─────────────────────────────
-
-# T5: Nextcloud OIDC provider_url points to Keycloak (verifies config, not redirect chain)
-NC_PROVIDER_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
-assert_contains "$NC_PROVIDER_URL" "realms/workspace" "SA-08" "T5" \
-  "Nextcloud OIDC provider_url zeigt auf Keycloak"
-
-# T6: Talk HPB Signaling erreichbar
-SIGNALING_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  curl -s -o /dev/null -w '%{http_code}' "http://spreed-signaling:8080/api/v1/welcome" 2>/dev/null || echo "000")
-assert_eq "$SIGNALING_HEALTH" "200" "SA-08" "T6" \
-  "Talk HPB Signaling-Server erreichbar"
 
 # ── Group C: Token-Exchange & Konfiguration ────────────────────
 
@@ -94,20 +65,15 @@ else
   skip_test "SA-08" "T11b" "Keycloak Userinfo E-Mail" "Kein User-Token"
 fi
 
-# T12: Collabora Online erreichbar (für In-Call Dokumentenbearbeitung)
+# T12: Collabora Online erreichbar (kollaborative Bearbeitung)
 # Collabora lebt im dedizierten workspace-office-Namespace (privileged
 # PSA für CAP_SYS_ADMIN) — Service via cluster-weitem DNS.
-COLLABORA_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  curl -s -o /dev/null -w '%{http_code}' \
-  "http://collabora.workspace-office.svc.cluster.local:9980/" 2>/dev/null || echo "000")
+COLLABORA_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/mailpit -- \
+  wget -S -O /dev/null --timeout=5 \
+  "http://collabora.workspace-office.svc.cluster.local:9980/" 2>&1 \
+  | awk '/^  HTTP\//{code=$2} END{print code+0}')
 assert_eq "$COLLABORA_HEALTH" "200" "SA-08" "T12" \
   "Collabora Online erreichbar (kollaborative Bearbeitung)"
-
-# T13: Nextcloud OIDC-Konfiguration geladen
-NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
-assert_contains "$NC_OIDC_URL" "realms/workspace" "SA-08" "T13" \
-  "Nextcloud oidc_login_provider_url konfiguriert"
 
 # T14: Zweiter Token-Request funktioniert (Session-Konsistenz)
 TOKEN_RESPONSE_2=$(_kube_curl -X POST "${KC_INT_URL}/realms/workspace/protocol/openid-connect/token" \

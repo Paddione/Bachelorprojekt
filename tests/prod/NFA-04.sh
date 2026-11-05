@@ -28,14 +28,11 @@ sleep 5
 VW_STATUS_DOWN=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 "https://vault.${DOMAIN}/alive" 2>/dev/null || echo "000")
 assert_eq "$VW_STATUS_DOWN" "200" "NFA-04" "T3" "Vaultwarden nach Scale-Down stabil"
 
-# T4: Deployments use RollingUpdate strategy (Nextcloud uses Recreate due to shared storage locks)
+# T4: Deployments use RollingUpdate strategy
 for deploy in vaultwarden keycloak; do
   STRATEGY=$(kubectl get deploy/${deploy} -n "$NAMESPACE" -o jsonpath='{.spec.strategy.type}' 2>/dev/null || echo "unknown")
   assert_eq "$STRATEGY" "RollingUpdate" "NFA-04" "T4-${deploy}" "${deploy} nutzt RollingUpdate-Strategie"
 done
-NC_STRATEGY=$(kubectl get deploy/nextcloud -n "$NAMESPACE" -o jsonpath='{.spec.strategy.type}' 2>/dev/null || echo "unknown")
-assert_match "$NC_STRATEGY" "^(RollingUpdate|Recreate)$" "NFA-04" "T4-nextcloud" "Nextcloud Update-Strategie konfiguriert (${NC_STRATEGY})"
-
 # T5: Node resource headroom — at least 20% CPU/memory available
 NODE_CPU_ALLOC=$(kubectl top nodes --no-headers 2>/dev/null | awk '{gsub(/%/,""); sum+=$3; n++} END {if(n>0) print int(sum/n); else print 0}')
 if [[ "${NODE_CPU_ALLOC:-0}" -gt 0 ]]; then

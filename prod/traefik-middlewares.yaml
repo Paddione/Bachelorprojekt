@@ -20,7 +20,7 @@ spec:
     forceSTSHeader: true
 ---
 # ── Security-HTTP-Header (interne Production-Services) ──────────────
-# X-Robots-Tag: noindex hält interne Dienste (Keycloak, Nextcloud, Vaultwarden, …)
+# X-Robots-Tag: noindex hält interne Dienste (Keycloak, Vaultwarden, …)
 # aus Suchmaschinen. Die öffentliche Website nutzt bewusst NICHT diese Middleware,
 # sondern eine website-scoped Variante ohne noindex (siehe
 # prod-fleet/website-{mentolder,korczewski}/website-security-headers.yaml, T002052).
@@ -88,17 +88,6 @@ spec:
   rateLimit:
     average: 20
     burst: 40
----
-# ── Rate-Limiting: Nextcloud ───────────────────────────────────────
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: rate-limit-files
-  namespace: workspace
-spec:
-  rateLimit:
-    average: 50
-    burst: 100
 ---
 # ── Rate-Limiting: Vaultwarden ─────────────────────────────────────
 apiVersion: traefik.io/v1alpha1

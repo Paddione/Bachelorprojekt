@@ -25,7 +25,7 @@ spec:
     - Ingress
   ingress:
     - from:
-        # same-namespace clients (keycloak, nextcloud, etc.)
+        # same-namespace clients (keycloak etc.)
         # namespaceSelector-Form statt podSelector:{} — Workaround für den
         # k3s-NetPol-Controller-Bug (seit 2026-10-04 ~19:46): podSelector-Peers
         # werden cluster-weit mit LEEREN ipsets synchronisiert, sämtlicher

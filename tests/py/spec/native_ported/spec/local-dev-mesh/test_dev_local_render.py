@@ -55,16 +55,18 @@ def test_profil_core_enthaelt_die_console_und_keine_schweren_dienste(ctx, run_cm
     names = _deploys(run_cmd, manifest)
     assert "sdlc-console" in names
     assert "shared-db" in names
-    heavy = [n for n in names if n in {"nextcloud", "collabora", "spreed-signaling", "vaultwarden"}]
+    heavy = [n for n in names if n in {"collabora", "vaultwarden"}]
     assert heavy == []
 
 
-def test_profil_full_enthaelt_nextcloud_collabora_talk_und_vaultwarden(ctx, run_cmd):
+def test_profil_full_enthaelt_collabora_und_vaultwarden(ctx, run_cmd):
     manifest = _render(run_cmd, ctx, "full")
     names = _deploys(run_cmd, manifest)
     assert "sdlc-console" in names
-    for d in ("nextcloud", "collabora", "spreed-signaling", "vaultwarden"):
+    for d in ("collabora", "vaultwarden"):
         assert d in names, d
+    for d in ("nextcloud", "spreed-signaling"):
+        assert d not in names, d
 
 
 def test_core_endpointslice_traegt_inventar_adresse_und_port_als_zahl_hosts_sind_aufgeloest(ctx, run_cmd):

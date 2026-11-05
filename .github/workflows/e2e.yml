@@ -198,7 +198,6 @@ jobs:
               --project korczewski \
               --project services \
               --project smoke \
-              --project ios
           else
             npx playwright test \
               --project website \
@@ -206,7 +205,6 @@ jobs:
               --project mentolder \
               --project services \
               --project smoke \
-              --project ios
           fi
 
       # G-E2E02 / T002096: defense-in-depth post-run purge (covers timeout kill)

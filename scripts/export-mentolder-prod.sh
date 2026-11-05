@@ -54,7 +54,6 @@ VERBATIM_DIRS=(
   prod-fleet/mentolder
   prod-fleet/website-mentolder
   prod-fleet/website-common
-  prod-fleet/coturn
   prod-fleet/platform
   prod-fleet/components
   prod-mentolder

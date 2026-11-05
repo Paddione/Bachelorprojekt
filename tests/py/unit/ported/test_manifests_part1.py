@@ -130,10 +130,6 @@ def test_deployment_pocket_id_exists_replaced_keycloak(rendered):
     assert "kind: Deployment" in rendered
 
 
-def test_deployment_nextcloud_exists(rendered):
-    assert _lines_matching(rendered, r"^[ \t]+name: nextcloud$")
-
-
 def test_deployment_shared_db_postgresql_exists(rendered):
     assert _lines_matching(rendered, r"^[ \t]+name: shared-db$")
 
@@ -162,13 +158,13 @@ def test_ingress_all_core_hosts_defined(rendered):
             hosts.add(m.group(1))
         for m in re.finditer(r"Host\(`([^`]+)", line):
             hosts.add(m.group(1))
-    for svc in ["auth", "files", "office", "vault", "mail"]:
+    for svc in ["auth", "office", "vault", "mail"]:
         assert any(f"{svc}." in h for h in hosts), f"Missing ingress host for: {svc}"
 
 
 def test_no_core_service_images_use_latest_tag(rendered):
-    exclude = (r"(mcp|openapi-mcp|github-mcp|keycloak-mcp|nextcloud-mcp|curlimages/curl|"
-               r"talk-transcriber|paddione/bachelorprojekt|workspace-brett|docs|downloads-content|"
+    exclude = (r"(mcp|openapi-mcp|github-mcp|keycloak-mcp|curlimages/curl|"
+               r"paddione/bachelorprojekt|workspace-brett|docs|downloads-content|"
                r"videovault|mediaviewer-widget|mentolder-web|brain-site)")
     latest = [i for i in _all_images(rendered)
               if i.endswith(":latest") and not re.search(exclude, i, re.I)]
@@ -194,16 +190,12 @@ def test_configmap_pocket_id_data_pvc_exists_replaced_realm_template(rendered):
     assert "name: pocket-id-data" in rendered
 
 
-def test_configmap_nextcloud_oidc_config_exists(rendered):
-    assert "name: nextcloud-oidc-config" in rendered
-
-
 def test_configmap_domain_config_exists(rendered):
     assert "name: domain-config" in rendered
 
 
 def test_service_for_each_core_deployment_exists(rendered):
-    for _svc in ["pocket-id", "nextcloud", "shared-db", "vaultwarden", "mailpit"]:
+    for _svc in ["pocket-id", "shared-db", "vaultwarden", "mailpit"]:
         assert "kind: Service" in rendered, "No Service kind found"
 
 

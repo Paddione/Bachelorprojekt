@@ -9,7 +9,7 @@
 // which prints `https://<auth>/lc/<token>` — a 1-hour login URL. The browser
 // visits `/lc/<token>`, Pocket ID exchanges it for a session cookie and
 // redirects to `/settings`. That session cookie then unlocks every
-// oauth2-proxy-guarded service (brett, nextcloud, ...) via the normal OIDC
+// oauth2-proxy-guarded service (brett, vaultwarden, ...) via the normal OIDC
 // authorization-code flow.
 //
 // Env overrides:

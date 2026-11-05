@@ -119,9 +119,7 @@ s3:
   # sitemap.xml.ts derives domain from BRAND env var (legitimate conditional) — not a hardcoded host.
   # Brand-specific overlays (prod-<brand>/kustomization.yaml + prod-<brand>/ddns-updater.yaml)
   # pin the brand's own domain by design — the file is the brand-scoped overlay, not a
-  # cross-brand hardcode. prod/coredns-signaling-override.yaml is a special-purpose
-  # config (CoreDNS rewrite) where the host is
-  # the resource's own identity. components/website/src/lib/*.generated.json are emitted from the
+  # cross-brand hardcode. components/website/src/lib/*.generated.json are emitted from the
   # agent-guide/components registry — the host strings live in doc text, not config.
   # goals-data.generated.json (T001884) is generated from .claude/lib/goals.md — some
   # goal `measurement` fields are literal reproduction commands (e.g. G-FE05's Lighthouse
@@ -135,7 +133,7 @@ s3:
     - components/website/src/pages/sitemap.xml.ts
     - prod-fleet/mentolder/sessions-server.yaml
     # Private korczewski.de dev gates: the host IS the gate/ingress resource's
-    # own identity (same legitimacy class as coredns-signaling-override above),
+    # own identity (same legitimacy class as sessions-server.yaml above),
     # not a cross-brand reference. Pocket ID clients `web-korczewski` /
     # `massage-korczewski` are provisioned out-of-band like `agent-board`
     # (Admin API; seed upsert only manages listed rows and never deletes
@@ -153,7 +151,6 @@ s3:
     - prod-mentolder/kustomization.yaml
     - prod-korczewski/kustomization.yaml
     - prod-korczewski/ddns-updater.yaml
-    - prod/coredns-signaling-override.yaml
     - components/website/src/lib/agent-guide.generated.json
     - components/website/src/lib/platform-descriptions.generated.json
     # T002639: mit dem SDLC-Split nach lib/sdlc/ umgezogen. Diese Allowlist ist
@@ -205,7 +202,6 @@ s4:
     - ".opencode/prompts/**/*.md"
   allowlist_globs:
     - "k3d/office-stack/**"
-    - "k3d/coturn-stack/**"
     - "k3d/sealed-secrets-controller.yaml"
     - "k3d/backup-secrets.yaml"
     - "scripts/weekly-dep-schema-audit.sh"

@@ -59,7 +59,7 @@ users:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO6lVCVvkRXvhrQEqq7XoKSjjUlGMdzEfRBvEn4pgCk6
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH43aUqN4w9u7DIt3gUREOJY4pmVIWvIbqFsG/fPSlV0 gekko@mentolder-20260513
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL6lprjaleEg1vtahF3F37jLoQoWrEvl6HxaOrBqg3vf gekko@nextcloud
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL6lprjaleEg1vtahF3F37jLoQoWrEvl6HxaOrBqg3vf gekko@host
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM0v5tWJfsMAFno233JIC2Ovrc032XuZYKZfzxzUchDP claude-wsl@PK-Desktop
   - name: patrick
     sudo: ALL=(ALL) NOPASSWD:ALL

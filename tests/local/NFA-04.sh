@@ -33,9 +33,6 @@ for deploy in vaultwarden keycloak; do
   STRATEGY=$(kubectl get deploy/${deploy} -n "$NAMESPACE" -o jsonpath='{.spec.strategy.type}' 2>/dev/null || echo "unknown")
   assert_eq "$STRATEGY" "RollingUpdate" "NFA-04" "T4-${deploy}" "${deploy} nutzt RollingUpdate-Strategie"
 done
-NC_STRATEGY=$(kubectl get deploy/nextcloud -n "$NAMESPACE" -o jsonpath='{.spec.strategy.type}' 2>/dev/null || echo "unknown")
-assert_match "$NC_STRATEGY" "^(RollingUpdate|Recreate)$" "NFA-04" "T4-nextcloud" "Nextcloud Update-Strategie konfiguriert (${NC_STRATEGY})"
-
 # T5: Multiple deployments exist (horizontal separation)
 DEPLOY_COUNT=$(kubectl get deploy -n "$NAMESPACE" --no-headers 2>/dev/null | wc -l)
 assert_gt "$DEPLOY_COUNT" 3 "NFA-04" "T5" "Mindestens 4 separate Deployments (${DEPLOY_COUNT} vorhanden)"

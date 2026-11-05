@@ -34,10 +34,6 @@ DUMPALL_CHECK=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- \
   pg_dumpall -U postgres --globals-only 2>&1 | grep -c "^-- PostgreSQL database cluster dump$" || echo "0")
 assert_eq "$DUMPALL_CHECK" "1" "SA-07" "T4" "pg_dumpall (Cluster-Backup) funktioniert"
 
-# T5: Nextcloud data directory has content
-NC_FILES=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- ls /var/www/html/data/ 2>/dev/null | wc -l || echo "0")
-assert_gt "$NC_FILES" 0 "SA-07" "T5" "Nextcloud Datenverzeichnis nicht leer"
-
 # T6: db-backup CronJob exists
 CJ_COUNT=$(kubectl get cronjob db-backup -n "$NAMESPACE" -o name 2>/dev/null | wc -l)
 assert_gt "$CJ_COUNT" 0 "SA-07" "T6" "CronJob db-backup vorhanden"

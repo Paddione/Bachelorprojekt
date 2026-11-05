@@ -26,17 +26,6 @@ else
   assert_not_contains "$MCR_IMAGES" "mcr.microsoft.com" "NFA-01" "T2-mcr" "Keine Images von mcr.microsoft.com"
 fi
 
-# T4: Nextcloud has no external storage backends configured
-NC_OCC=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -- \
-  setpriv --reuid=999 --regid=999 --clear-groups php occ config:list --output=json 2>/dev/null || echo "{}")
-if [[ "$NC_OCC" != "{}" ]]; then
-  assert_not_contains "$NC_OCC" "amazons3" "NFA-01" "T4a" "Kein Amazon S3 Storage-Backend"
-  assert_not_contains "$NC_OCC" "azure" "NFA-01" "T4b" "Kein Azure Storage-Backend"
-  assert_not_contains "$NC_OCC" "google" "NFA-01" "T4c" "Kein Google Storage-Backend"
-else
-  skip_test "NFA-01" "T4a" "Storage-Backend Check" "occ nicht verfügbar"
-fi
-
 # T5: Pod security — no privileged containers
 PRIVILEGED=$(kubectl get pods -n "$NAMESPACE" -o json 2>/dev/null \
   | jq '[.items[].spec.containers[].securityContext.privileged // false] | map(select(. == true)) | length')

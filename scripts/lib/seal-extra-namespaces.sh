@@ -284,7 +284,7 @@ seal_extra_namespace_secrets() {
     # `owner_brand` list and the current ENV_NAME is not in it, skip
     # sealing the document. This prevents a brand-deploy (e.g.
     # korczewski) from overwriting shared-NS SealedSecret documents
-    # (rustdesk, coturn) that belong to the other brand (mentolder).
+    # (rustdesk) that belong to the other brand (mentolder).
     # When the field is absent (legacy schema), all envs may seal —
     # backwards-compat behaviour is preserved.
     if [[ -n "$owner_brand_csv" ]]; then

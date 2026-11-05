@@ -18,11 +18,9 @@ Deployment-Namen mit `count: 1` überschreiben. Diese Änderung aktiviert keine
 Dienste automatisch anhand eingehender Anfragen; HPA/KEDA oder automatisches
 Aufwecken sind nicht eingerichtet.
 
-Für die Talk-Transkription `whisper` und `talk-transcriber` zusammen aktivieren.
-Wenn Aufzeichnungen benötigt werden, zusätzlich `talk-recording` aktivieren.
-Vor `count: 1` die vorhandene Nextcloud-/Bot-Konfiguration und die benötigten
-Secret-Keys prüfen, ohne Secret-Werte auszugeben. Die bestehenden Website- und
-Secret-Abhängigkeiten gelten weiterhin.
+Für die Talk-Transkription `whisper` aktivieren.
+Vor `count: 1` die benötigten Secret-Keys prüfen, ohne Secret-Werte auszugeben.
+Die bestehenden Website- und Secret-Abhängigkeiten gelten weiterhin.
 Beim ersten Start entstehen Kaltstarts für Image-Pulls und das Laden der
 Modelle; der Dienst ist erst nach erfolgreicher Readiness verfügbar. Vorhandene
 Images, Secrets und Scheduling-Vorgaben bleiben unverändert.

@@ -992,7 +992,7 @@
       "kind_de": "Agent",
       "summary_de": "Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern.",
       "what_for_de": "Für Fragen wie 'Warum ist Dienst X rot?' oder 'Läuft alles?'. Liest Pod-Status und Protokolle (Logs).",
-      "how_to_start_de": "Frag z. B.: 'Warum startet Nextcloud nicht?' oder 'Zeig mir den Status aller Dienste.'",
+      "how_to_start_de": "Frag z. B.: 'Warum startet Vaultwarden nicht?' oder 'Zeig mir den Status aller Dienste.'",
       "what_could_go_wrong_de": "Beim reinen Nachschauen kaum etwas. Vorsicht erst, wenn er etwas neu startet (das ist 🟡).",
       "danger": "safe",
       "guardrails": [
@@ -1294,7 +1294,7 @@
       "kind": "software",
       "name": "Collabora",
       "emoji": "📄",
-      "summary_de": "Office im Browser: Dokumente, Tabellen und Präsentationen direkt in Nextcloud bearbeiten.",
+      "summary_de": "Office im Browser: Dokumente, Tabellen und Präsentationen direkt im Browser bearbeiten.",
       "sensitivity": "caution",
       "url": null,
       "area": "dienste",

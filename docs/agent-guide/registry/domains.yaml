@@ -157,24 +157,6 @@ domains:
       status: [302]
     manifest_source: dev-local/components/brain/ingress.yaml
 
-  - id: devmesh-files
-    host: files.${DEVMESH_DOMAIN}
-    mesh: devmesh
-    namespace: components
-    paths: ["/"]
-    service: nextcloud:80
-    auth: oidc
-    sso:
-      client_id: nextcloud
-      gate: native
-      groups: [workspace-users]
-    owner_frontend: bp-ship
-    functions: [files]
-    status: live
-    expect:
-      status: [404]
-    manifest_source: dev-local/components/nextcloud/ingress.yaml
-
   - id: devmesh-office
     host: office.${DEVMESH_DOMAIN}
     mesh: devmesh
@@ -188,20 +170,6 @@ domains:
     expect:
       status: [404]
     manifest_source: dev-local/components/collabora/ingress.yaml
-
-  - id: devmesh-signaling
-    host: signaling.${DEVMESH_DOMAIN}
-    mesh: devmesh
-    namespace: components
-    paths: ["/"]
-    service: spreed-signaling:8080
-    auth: token
-    owner_frontend: bp-ship
-    functions: [signaling]
-    status: live
-    expect:
-      status: [404]
-    manifest_source: dev-local/components/talk/ingress.yaml
 
   - id: devmesh-vault
     host: vault.${DEVMESH_DOMAIN}

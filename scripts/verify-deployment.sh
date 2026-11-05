@@ -202,15 +202,9 @@ if [[ "$ENV" != "dev" ]]; then
 
   # workspace cronjobs → website API (billing, notify-unread, monthly-billing)
   _http_probe \
-    "${NS} → website:80 (cronjob API)" \
-    "$NS" "nextcloud" \
+    "${WEB_NS} → website:80 (cronjob API)" \
+    "$WEB_NS" "website" \
     "http://website.${WEB_NS}.svc.cluster.local/"
-
-  # workspace → shared-db:5432
-  _tcp_probe \
-    "${NS} → shared-db:5432" \
-    "$NS" "nextcloud" \
-    "shared-db.${NS}.svc.cluster.local" "5432"
 
   # website → shared-db:5432
   _tcp_probe \
@@ -280,7 +274,6 @@ _pocket_id_client_auth "pocket-id accepts website client secret (runtime env)"
 section "Workloads running"
 
 _check_deploy "pocket-id"  "$NS"     "pocket-id"
-_check_deploy "nextcloud"  "$NS"     "nextcloud"
 if [[ "$ENV" != "dev" ]]; then
   _check_deploy "website"    "$WEB_NS" "website"
 else

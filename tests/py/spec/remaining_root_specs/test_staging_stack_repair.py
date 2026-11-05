@@ -12,10 +12,11 @@ def test_ensure_failure_not_swallowed(repo_root):
 def test_update_grant(repo_root):
     assert re.search(r'GRANT [A-Z, ]*UPDATE[A-Z, ]* ON tickets\.llm_proxy_request_log TO website', (repo_root / 'scripts/migrations/2026-08-10-llm-proxy-request-log.sql').read_text())
 
-def test_staging_nextcloud_host(repo_root):
+def test_staging_env_ohne_retirierte_db_host_eintraege(repo_root):
+    # DB-Host des retirierten Dienstes (Eigner-Entscheid 2026-11-05):
+    # staging.yaml darf keinen Host-Eintrag dafuer mehr enthalten.
     lines = re.findall(r'^\s*NEXTCLOUD_DB_HOST:.*$', (repo_root / 'environments/staging.yaml').read_text(), re.M)
-    assert lines
-    assert all('.workspace.svc' not in line for line in lines)
+    assert not lines, f"Retirierter DB-Host lebt noch in staging.yaml: {lines}"
 
 def test_required_sealed_keys(repo_root):
     text = (repo_root / 'environments/sealed-secrets/staging.yaml').read_text()

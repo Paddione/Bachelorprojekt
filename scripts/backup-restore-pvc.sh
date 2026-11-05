@@ -73,7 +73,7 @@ cmd_pvc_restore() {
   echo " affected service BEFORE continuing:"
   for svc in "${SVCS[@]}"; do
     case "$svc" in
-      nextcloud-files)  echo "   kubectl scale deploy/nextcloud -n $NS --replicas=0" ;;
+      nextcloud-files)  echo "   (kein Scale-down noetig — Dienst retiriert, Daten statisch)" ;;
       vaultwarden-data) echo "   kubectl scale deploy/vaultwarden -n $NS --replicas=0" ;;
       docuseal-data)    echo "   kubectl scale deploy/docuseal -n $NS --replicas=0" ;;
     esac
@@ -184,7 +184,7 @@ YAML
   echo "✓ PVC restore complete. Scale services back up:"
   for svc in "${SVCS[@]}"; do
     case "$svc" in
-      nextcloud-files)  echo "  kubectl scale deploy/nextcloud -n $NS --replicas=1" ;;
+      nextcloud-files)  echo "  (kein Scale-up noetig — Dienst retiriert, Daten statisch)" ;;
       vaultwarden-data) echo "  kubectl scale deploy/vaultwarden -n $NS --replicas=1" ;;
       docuseal-data)    echo "  kubectl scale deploy/docuseal -n $NS --replicas=1" ;;
     esac

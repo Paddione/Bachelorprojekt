@@ -29,19 +29,6 @@ test.describe('Integration Smoke Tests', () => {
     expect(body.token_endpoint).toBeTruthy();
   });
 
-  test('@smoke Nextcloud is installed and operational', async ({ request }, testInfo) => {
-    const res = await assertReachable(
-      request,
-      `https://files.${DOMAIN}/status.php`,
-      { label: 'Nextcloud status' },
-      testInfo
-    );
-    const body = await res.json();
-    expect(body.installed).toBe(true);
-    expect(body.maintenance).toBe(false);
-    expect(body.needsDbUpgrade).toBe(false);
-  });
-
   test('@smoke Collabora discovery endpoint responds', async ({ request }, testInfo) => {
     const res = await assertReachable(
       request,
@@ -53,15 +40,7 @@ test.describe('Integration Smoke Tests', () => {
     expect(text).toContain('wopi-discovery');
   });
 
-  test('@smoke Talk signaling server responds', async ({ request }, testInfo) => {
-    const res = await request.get(`https://signaling.${DOMAIN}/api/v1/welcome`);
-    if (res.status() === 503) {
-      // NATS backend unavailable but ingress is alive — log as fixme
-      test.fixme(true, 'Signaling NATS backend unavailable (503) — T000480');
-      return;
-    }
-    expect(res.status()).toBe(200);
-  });
+
 
   test('@smoke Vaultwarden is alive', async ({ request }, testInfo) => {
     await assertReachable(
@@ -93,17 +72,6 @@ test.describe('Integration Smoke Tests', () => {
     await expect(page).toHaveURL(/auth\./, { timeout: 60_000 });
   });
 
-  test('@smoke Nextcloud shows OIDC login button', async ({ page }) => {
-    await page.goto(`https://files.${DOMAIN}/login`);
-    const atPI = page.url().includes(`auth.${DOMAIN}`);
-    if (atPI) {
-      return; // Auto-redirect to Pocket ID proves OIDC SSO is configured
-    }
-    const oidcButton = page.locator('a[href*="oidc"], a[href*="keycloak"], .oidc-button, .alternative-logins a[href*="social"]');
-    const fallback = page.getByRole('link', { name: /keycloak|anmelden|openid|sso/i });
-    await expect(oidcButton.first().or(fallback.first())).toBeVisible({ timeout: 60_000 });
-  });
-
   // ── Collabora Integration ─────────────────────────────────────────────
 
   test('@smoke Collabora discovery is reachable from browser', async ({ request }, testInfo) => {
@@ -115,17 +83,6 @@ test.describe('Integration Smoke Tests', () => {
     );
     const xml = await res.text();
     expect(xml).toContain('application/vnd.openxmlformats-officedocument');
-  });
-
-  // ── Talk Integration ──────────────────────────────────────────────────
-
-  test('@smoke Talk signaling endpoint is configured', async ({ request }, testInfo) => {
-    const res = await request.get(`https://signaling.${DOMAIN}/api/v1/welcome`);
-    if (res.status() === 503) {
-      test.fixme(true, 'Signaling NATS backend unavailable (503) — T000480');
-      return;
-    }
-    expect(res.status()).toBe(200);
   });
 
   // ── New k3d Services ──────────────────────────────────────────────────

@@ -76,13 +76,6 @@ def test_taskfile_yml_declares_version_3(repo_root):
     assert 'version: "3"' in (repo_root / "Taskfile.yml").read_text(encoding="utf-8")
 
 
-def test_nextcloud_oidc_dev_php_has_valid_php_syntax(repo_root, run_cmd):
-    if shutil.which("php") is None:
-        pytest.skip("php not installed")
-    result = run_cmd(["php", "-l", str(repo_root / "k3d" / "nextcloud-oidc-dev.php")])
-    assert result.returncode == 0, result.output
-
-
 def test_kustomization_yaml_is_valid_yaml(repo_root, yaml_load):
     yaml_load(repo_root / "k3d" / "kustomization.yaml")
 
@@ -153,7 +146,7 @@ def test_k3d_secrets_yaml_workspace_secrets_has_environment_dev_label(repo_root,
 def test_env_seal_rejects_dev_prefixed_values_without_force(repo_root, run_cmd, tmp_path):
     secrets = _write(
         tmp_path / "mysecrets.yaml",
-        'KEYCLOAK_DB_PASSWORD: "devkeycloakdb"\nNEXTCLOUD_DB_PASSWORD: "realpassword123"\n',
+        'KEYCLOAK_DB_PASSWORD: "devkeycloakdb"\nVAULTWARDEN_DB_PASSWORD: "realpassword123"\n',
     )
     result = _seal(run_cmd, repo_root, "--_test-dev-scan", str(secrets))
     assert result.returncode != 0
@@ -164,7 +157,7 @@ def test_env_seal_rejects_dev_prefixed_values_without_force(repo_root, run_cmd, 
 def test_env_seal_dev_value_scan_passes_with_no_dev_values(repo_root, run_cmd, tmp_path):
     secrets = _write(
         tmp_path / "mysecrets.yaml",
-        'KEYCLOAK_DB_PASSWORD: "xR7kP9mQ2nL5vB3h"\nNEXTCLOUD_DB_PASSWORD: "realpassword123"\n',
+        'KEYCLOAK_DB_PASSWORD: "xR7kP9mQ2nL5vB3h"\nVAULTWARDEN_DB_PASSWORD: "realpassword123"\n',
     )
     result = _seal(run_cmd, repo_root, "--_test-dev-scan", str(secrets))
     assert result.returncode == 0, result.output
@@ -242,7 +235,7 @@ def test_env_seal_rejects_secrets_file_with_duplicate_keys(repo_root, run_cmd, t
     secrets = _write(
         tmp_path / "mysecrets.yaml",
         'KEYCLOAK_DB_PASSWORD: "realpassword123"\n'
-        'NEXTCLOUD_DB_PASSWORD: "anothersecret456"\n'
+        'VAULTWARDEN_DB_PASSWORD: "anothersecret456"\n'
         'KEYCLOAK_DB_PASSWORD: "differentvalue789"\n',
     )
     result = _seal(run_cmd, repo_root, "--_test-dup-check", str(secrets))
@@ -255,7 +248,7 @@ def test_env_seal_accepts_secrets_file_with_no_duplicate_keys(repo_root, run_cmd
     secrets = _write(
         tmp_path / "mysecrets.yaml",
         'KEYCLOAK_DB_PASSWORD: "realpassword123"\n'
-        'NEXTCLOUD_DB_PASSWORD: "anothersecret456"\n'
+        'VAULTWARDEN_DB_PASSWORD: "anothersecret456"\n'
         'SHARED_DB_PASSWORD: "thirdsecret789"\n',
     )
     result = _seal(run_cmd, repo_root, "--_test-dup-check", str(secrets))

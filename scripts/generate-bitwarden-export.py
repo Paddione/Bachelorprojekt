@@ -77,13 +77,6 @@ def get_secret_metadata(key_name, schema_entry, domain):
         )
 
     # Admin Passwords / Tokens
-    if key_name == "NEXTCLOUD_ADMIN_PASSWORD":
-        return (
-            "Application Administrator Password (Nextcloud)",
-            f"# Generate new password:\nNEW_PASS=$(openssl rand -base64 24)\n# Reset inside Nextcloud pod:\nkubectl -n <namespace> exec -it deploy/nextcloud -- su -s /bin/bash www-data -c \"php occ user:resetpassword admin --password-from-env\" <<< \"$NEW_PASS\"\n# Update in environments/.secrets/fleet-<tenant>.yaml and reseal:\ntask env:seal ENV=fleet-<tenant>",
-            f"https://files.{domain}/login",
-            True
-        )
     if key_name == "GRAFANA_ADMIN_PASSWORD":
         return (
             "Application Administrator Password (Grafana)",
@@ -114,24 +107,10 @@ def get_secret_metadata(key_name, schema_entry, domain):
             None,
             False
         )
-    if key_name == "WHITEBOARD_JWT_SECRET":
-        return (
-            "JWT Signing Secret (Nextcloud Whiteboard Backend)",
-            "openssl rand -hex 32\n# Reseal and sync with Nextcloud Whiteboard app:\ntask env:seal ENV=fleet-<tenant>",
-            None,
-            False
-        )
     if key_name in ["SIGNALING_SECRET", "TURN_SECRET", "RECORDING_SECRET", "TRANSCRIBER_SECRET"]:
         return (
-            "Cryptographic Shared Secret (Janus WebRTC / CoTURN / Spreed)",
-            f"openssl rand -hex 32\n# Update in environments/.secrets/fleet-<tenant>.yaml\ntask env:seal ENV=fleet-<tenant>\ntask workspace:coturn:sync-secret ENV=fleet-<tenant>",
-            None,
-            False
-        )
-    if key_name == "TRANSCRIBER_BOT_PASSWORD":
-        return (
-            "Service Account Password (Talk Transcriber Bot)",
-            "openssl rand -base64 24\n# Update in environments/.secrets/fleet-<tenant>.yaml and reseal",
+            "Cryptographic Shared Secret (Echtzeit-Medien, 2026-11 mit Dienst retiriert)",
+            f"openssl rand -hex 32\n# Bestandsschutz alte Seals; keine neuen Consumer",
             None,
             False
         )
@@ -435,9 +414,7 @@ def build_bitwarden_export(env_dir=ENV_DIR, secrets_dir=SECRETS_DIR, output_path
 
             # Determine appropriate username
             username = ""
-            if sec_name == "NEXTCLOUD_ADMIN_PASSWORD":
-                username = "admin"
-            elif sec_name == "GRAFANA_ADMIN_PASSWORD":
+            if sec_name == "GRAFANA_ADMIN_PASSWORD":
                 username = "admin"
             elif sec_name == "COLLABORA_ADMIN_PASSWORD":
                 username = "admin"
@@ -497,13 +474,6 @@ def build_bitwarden_export(env_dir=ENV_DIR, secrets_dir=SECRETS_DIR, output_path
 
         # ── 2. Dedicated Web Login Entries for Administrative Panels ──
         admin_web_entries = [
-            {
-                "title": f"[{t_name}] Nextcloud Admin Console",
-                "url": f"https://files.{domain}/login",
-                "username": "admin",
-                "password": str(sec_data.get("NEXTCLOUD_ADMIN_PASSWORD", "")),
-                "notes": f"Nextcloud Web Administration for {t_name} tenant.\nInternal Secret: NEXTCLOUD_ADMIN_PASSWORD"
-            },
             {
                 "title": f"[{t_name}] Pocket ID Admin Console",
                 "url": f"https://auth.{domain}/",

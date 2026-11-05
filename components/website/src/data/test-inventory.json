@@ -264,12 +264,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:fa-ios-talk",
-    "file": "tests/e2e/specs/fa-ios-talk.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:fa-kommissionierung",
     "file": "tests/e2e/specs/fa-kommissionierung.spec.ts",
     "category": "E2E",
@@ -420,24 +414,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-03",
-    "file": "tests/local/FA-03.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-03",
-    "file": "tests/e2e/specs/fa-03-video.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-04",
-    "file": "tests/local/FA-04.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
     "id": "FA-04",
     "file": "tests/e2e/specs/fa-04-files.spec.ts",
     "category": "FA",
@@ -565,12 +541,6 @@
   },
   {
     "id": "FA-17",
-    "file": "tests/local/FA-17.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-17",
     "file": "tests/e2e/specs/fa-17-meeting.spec.ts",
     "category": "FA",
     "kind": "playwright"
@@ -580,12 +550,6 @@
     "file": "tests/local/FA-18.sh",
     "category": "FA",
     "kind": "shell"
-  },
-  {
-    "id": "FA-18",
-    "file": "tests/e2e/specs/fa-18-transcription.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
   },
   {
     "id": "FA-19",
@@ -632,18 +596,6 @@
   {
     "id": "FA-23",
     "file": "tests/e2e/specs/fa-23-vaultwarden.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-24",
-    "file": "tests/local/FA-24.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-24",
-    "file": "tests/e2e/specs/fa-24-whiteboard.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -4914,9 +4866,9 @@
     "kind": "pytest"
   },
   {
-    "id": "nextcloud-integration",
-    "file": "tests/py/spec/remaining_root_specs/test_nextcloud_integration.py",
-    "category": "nextcloud-integration",
+    "id": "no_prod_services",
+    "file": "tests/py/spec/test_no_prod_services.py",
+    "category": "no_prod_services",
     "kind": "pytest"
   },
   {

@@ -1,14 +1,6 @@
-import { defineConfig, devices, webkit } from '@playwright/test';
-import * as fs from 'fs';
+import { defineConfig, devices } from '@playwright/test';
 
 const websiteURL = process.env.WEBSITE_URL || 'http://localhost:4321';
-
-// Detect webkit availability — the ios project requires it. If not installed,
-// skip the project entirely instead of failing every test with "binary not found".
-let webkitInstalled = false;
-try {
-  webkitInstalled = fs.existsSync(webkit.executablePath());
-} catch { /* webkit not available */ }
 
 export default defineConfig({
   testDir: './specs',
@@ -154,9 +146,7 @@ export default defineConfig({
     {
       name: 'services',
       testMatch: [
-        '**/fa-03-*.spec.ts',    // Nextcloud Talk / video
         '**/fa-12-*.spec.ts',    // Claude Code AI Assistant / MCP infrastructure
-        '**/fa-18-*.spec.ts',    // transcription service (cluster-internal URL)
         '**/fa-23-*.spec.ts',    // Vaultwarden
         '**/fa-25-*.spec.ts',    // Mailpit
         '**/fa-30-einvoice.spec.ts', // E-Rechnung / XRechnung (einvoice-sidecar)
@@ -250,18 +240,6 @@ export default defineConfig({
         baseURL: websiteURL,
       },
     },
-
-    // ── ios: iPhone WebKit (Safari) simulation ───────────────────
-    // Run: playwright test --project=ios
-    // Requires: playwright install webkit
-    ...(webkitInstalled ? [{
-      name: 'ios',
-      testMatch: ['**/fa-03-*.spec.ts', '**/fa-ios-*.spec.ts'],
-      use: {
-        ...devices['iPhone 15'],
-        baseURL: websiteURL,
-      },
-    }] : []),
 
     // NOTE: Pure-function unit tests migrated to vitest. Run with: npx vitest run
   ],

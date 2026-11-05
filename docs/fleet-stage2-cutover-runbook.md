@@ -57,7 +57,7 @@ The fleet cluster has brand workloads deployed (Phase 2a done). Remaining prereq
       is already sealed into `cert-manager/ipv64-api-key`.
 - [x] `task fleet:deploy` — ran `fleet:platform` once, then `fleet:deploy:brand` for
       `fleet-mentolder` (ns `workspace`) and `fleet-korczewski` (ns `workspace-korczewski`).
-      **Phase 2a complete.** Next operator action: Phase 2b/2c (office-stack + CoTURN on fleet,
+      **Phase 2a complete.** Next operator action: Phase 2b/2c (office-stack on fleet,
       website apps on fleet) and/or DNS cutover.
 - [x] Verify: `kubectl --context fleet get pods -n workspace` and `-n workspace-korczewski`
       all Ready — **26/26 each, verified.**
@@ -101,7 +101,7 @@ The fleet cluster has brand workloads deployed (Phase 2a done). Remaining prereq
 - [ ] `*.mentolder.de` cert `READY=True` on fleet
 - [ ] e2e Playwright (mentolder project) green vs the flipped domain
 - [ ] `FLEET_CONTEXT=fleet bash tests/local/SA-22.sh` passes
-- [ ] Manual smoke: Keycloak SSO, Nextcloud file open, chat send, LiveKit join
+- [ ] Manual smoke: Keycloak SSO, Vaultwarden open
 - [ ] No 5xx spike in fleet Traefik logs
 - [ ] Mail spot-check (tutanota MX untouched)
 - FAIL → `task fleet:dns:rollback ENV=fleet-mentolder`, fix, retry.

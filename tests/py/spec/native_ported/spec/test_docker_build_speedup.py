@@ -53,10 +53,12 @@ def test_p1_videovault_workflow_uses_gha_cache_mode_max(root):
     assert "cache-to: type=gha,mode=max" in _read(root, ".github/workflows/build-videovault.yml")
 
 
-def test_p1_transcriber_pip_layer_has_cache_mount_and_no_no_cache_dir(root):
-    text = _read(root, "k3d/talk-transcriber/Dockerfile")
-    assert "mount=type=cache,target=/root/.cache/pip" in text
-    assert "no-cache-dir" not in text
+def test_p1_transcriber_docker_context_ist_dekommissioniert(root):
+    # Talk-Transcriber retiriert (Eigner-Entscheid 2026-11-05): Dockerfile,
+    # App-Code und CI-Workflow sind entfernt.
+    assert not (root / "k3d/talk-transcriber/Dockerfile").exists()
+    assert not (root / "k3d/talk-transcriber").exists()
+    assert not (root / ".github/workflows/build-transcriber.yml").exists()
 
 
 # ── Phase 2: Website slim + Konsolidierung ─────────────────────────────────
@@ -97,11 +99,10 @@ def test_p2_svc_image_repo_returns_shared_website_image_for_both_brands(run_cmd,
 
 # ── Phase 3: amd64-only ────────────────────────────────────────────────────
 
-def test_p3_transcriber_builds_amd64_only_without_qemu(root):
-    text = _read(root, ".github/workflows/build-transcriber.yml")
-    assert re.search(r"^[ \t]*platforms:[ \t]*linux/amd64[ \t]*$", text, re.MULTILINE)
-    assert "linux/arm64" not in text
-    assert "setup-qemu-action" not in text
+def test_p3_transcriber_workflow_ist_dekommissioniert(root):
+    # Kein Transcriber-Build mehr: Workflow geloescht (Context war
+    # k3d/talk-transcriber, ebenfalls entfernt).
+    assert not (root / ".github/workflows/build-transcriber.yml").exists()
 
 
 def test_p3_collabora_builds_amd64_only_without_qemu(root):

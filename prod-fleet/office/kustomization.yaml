@@ -3,7 +3,7 @@
 # Fleet-Neuaufbau verloren. Admin-Passwort (collabora-secrets) kommt aus dem
 # SealedSecret in sealed-secrets/mentolder, deshalb ohne
 # k3d/office-stack/secret.yaml (Platzhalter). TLS ueber eigenes Certificate
-# im Namespace wie bei coturn, keine Kopie aus workspace.
+# im eigenen Namespace, keine Kopie aus workspace.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

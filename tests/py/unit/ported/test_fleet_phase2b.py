@@ -82,15 +82,17 @@ def test_fleet_shared_services_task_exists(platform):
     assert _grep_q(platform, r"^\s+prodmesh:shared-services:")
 
 
-def test_fleet_talk_setup_brand_task_exists(platform):
-    assert _grep_q(platform, r"^\s+prodmesh:talk-setup:brand:")
+def test_fleet_talk_setup_brand_ist_dekommissioniert(platform):
+    # Echtzeit-Medien-Stapel retiriert (Eigner-Entscheid 2026-11-05):
+    # kein Talk-Setup-Task mehr im Fleet-Deploy.
+    assert not _grep_q(platform, r"^\s+prodmesh:talk-setup:brand:")
 
 
-def test_fleet_deploy_brand_runs_workspace_deploy_and_post_setup_but_not_talk_setup(platform):
+def test_fleet_deploy_brand_runs_workspace_deploy_ohne_talk_setup(platform):
     block = "\n".join(_deploy_brand_block(platform))
     assert "workspace:deploy" in block
-    assert "workspace:post-setup" in block
     assert "talk-setup" not in block
+    assert "post-setup" not in block
 
 
 def test_fleet_deploy_deploys_shared_services_exactly_once_not_per_brand(platform):
@@ -99,17 +101,16 @@ def test_fleet_deploy_deploys_shared_services_exactly_once_not_per_brand(platfor
     assert count == 1
 
 
-def test_fleet_deploy_orders_shared_services_after_both_brand_deploys_before_talk_setup(platform):
+def test_fleet_deploy_orders_shared_services_after_both_brand_deploys_ohne_talk_setup(platform):
     block = _deploy_block(platform)
     shared_line = _first_line_no(block, "prodmesh:shared-services")
-    talk_line = _first_line_no(block, "prodmesh:talk-setup:brand")
     brand_line = _last_line_no(block, "prodmesh:deploy:brand")
-    assert None not in (shared_line, talk_line, brand_line)
+    assert None not in (shared_line, brand_line)
     assert brand_line < shared_line
-    assert shared_line < talk_line
+    assert _first_line_no(block, "talk-setup") is None
 
 
-def test_workspace_deploy_gates_its_embedded_talk_setup_behind_skip_talk_setup(workspace):
+def test_workspace_deploy_ohne_talk_setup_und_skip_flag(workspace):
     block = "\n".join(
         _awk_block(
             workspace,
@@ -117,15 +118,15 @@ def test_workspace_deploy_gates_its_embedded_talk_setup_behind_skip_talk_setup(w
             lambda l: l.endswith("workspace:deploy:"),
         )
     )
-    # the block still invokes talk-setup ...
-    assert "workspace:talk-setup" in block
-    # ... but only when SKIP_TALK_SETUP is not "true"
-    assert "SKIP_TALK_SETUP" in block
+    # Echtzeit-Medien-Stapel retiriert: kein eingebettetes Talk-Setup mehr,
+    # daher auch kein Skip-Flag.
+    assert "workspace:talk-setup" not in block
+    assert "SKIP_TALK_SETUP" not in block
 
 
-def test_fleet_deploy_brand_passes_skip_talk_setup_true_so_brand_core_skips_talk_setup(platform):
+def test_fleet_deploy_brand_ohne_skip_talk_setup_flag(platform):
     block = "\n".join(_deploy_brand_block(platform))
-    assert "SKIP_TALK_SETUP" in block
+    assert "SKIP_TALK_SETUP" not in block
 
 
 def test_fleet_mentolder_env_entfernt_brand_trennung_p5(repo_root):

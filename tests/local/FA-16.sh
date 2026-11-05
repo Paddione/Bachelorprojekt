@@ -45,11 +45,6 @@ else
   skip_test "FA-16" "T4" "Booking validation" "Website nicht bereit"
 fi
 
-# ── T5: CalDAV config in ConfigMap ────────────────────────────────
-NC_URL=$(kubectl get configmap website-config -n "$WEB_NAMESPACE" \
-  -o jsonpath='{.data.NEXTCLOUD_URL}' 2>/dev/null || echo "")
-assert_contains "$NC_URL" "nextcloud" "FA-16" "T5" "NEXTCLOUD_URL in ConfigMap konfiguriert"
-
 # ── T6: Working hours configured ──────────────────────────────────
 WORK_START=$(kubectl get configmap website-config -n "$WEB_NAMESPACE" \
   -o jsonpath='{.data.WORK_START_HOUR}' 2>/dev/null || echo "")

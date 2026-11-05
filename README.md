@@ -16,13 +16,13 @@ Live-Instanz: [mentolder.de](https://mentolder.de)
 
 | Bereich | Umsetzung |
 |---|---|
-| Dateien und Video | Nextcloud mit Talk, High-Performance-Backend, coturn und Janus |
-| Office | Collabora Online, direkt in Nextcloud eingebunden |
+| Dateien und Video | 2026-11 retiriert (Echtzeit-Medien-Stack entfernt) |
+| Office | Collabora Online |
 | Identität | Pocket ID als OIDC-Provider für rund 20 Clients, oauth2-proxy vor Diensten ohne eigenes OIDC |
 | Passwörter | Vaultwarden |
 | Verträge | DocuSeal für digitale Signaturen |
 | Website und Chat | Astro/Svelte-Website mit eingebautem Messaging, Terminbuchung und Abrechnung inkl. E-Rechnung |
-| Zusammenarbeit | Whiteboard und Brett, ein 3D-Board für systemische Aufstellungen |
+| Zusammenarbeit | Brett, ein 3D-Board für systemische Aufstellungen |
 | Betrieb | Tägliche Datenbank- und Volume-Backups mit wöchentlicher Restore-Verifikation, Monitoring mit Prometheus, Grafana, Loki und OpenTelemetry |
 
 ## Architektur
@@ -32,14 +32,13 @@ flowchart LR
     U[Browser] --> T[Traefik Ingress<br/>TLS via cert-manager]
     T --> P[Pocket ID<br/>OIDC]
     T --> W[Website<br/>Astro + Svelte]
-    T --> N[Nextcloud + Talk]
+    T --> C[Collabora]
     T --> O[oauth2-proxy]
     O --> S[Docs, Brett, Mailpit, ...]
-    N --> C[Collabora]
     T --> V[Vaultwarden]
     T --> D[DocuSeal]
-    W & N & V & D & P --> DB[(PostgreSQL 16<br/>shared-db)]
-    P -. SSO .-> W & N & V & D & O
+    W & C & V & D & P --> DB[(PostgreSQL 16<br/>shared-db)]
+    P -. SSO .-> W & C & V & D & O
 ```
 
 Alle Dienste laufen als Kubernetes-Deployments auf einem k3s-Cluster mit drei Control-Plane-Knoten und mehreren Workern bei Hetzner. Die Knoten sind über WireGuard vernetzt. Eine PostgreSQL-Instanz hält je Dienst eine eigene Datenbank.

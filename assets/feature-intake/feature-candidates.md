@@ -49,4 +49,4 @@ Formular-Output verwendet deutsche/kapitalisierte Namen — vor `plan-meta set` 
 | `Infra / DevEx` | `infra` |
 | `AI / Automation` | `ai/automation` |
 | `Keycloak / Auth` | `auth` |
-| `Nextcloud / Files` | `nextcloud` |
+| `Files / Docs` | `files` |

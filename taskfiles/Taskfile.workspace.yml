@@ -20,12 +20,6 @@ tasks:
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:office:deploy
         vars: { ENV: "{{.ENV}}" }
-      - task: workspace:talk-setup
-        vars: { ENV: "{{.ENV}}" }
-      - task: workspace:recording-setup
-        vars: { ENV: "{{.ENV}}" }
-      - task: workspace:transcriber-setup
-        vars: { ENV: "{{.ENV}}" }
       - echo ""
       - 'echo "✓ Workspace fully deployed and configured ({{.ENV}})"'
       - 'echo "  Optional → task workspace:admin-users-setup ENV={{.ENV}}   (provision SSO admin users in Keycloak)"'
@@ -34,76 +28,6 @@ tasks:
   # Workspace MVP (Bachelorprojekt)
   # ─────────────────────────────────────────────
 
-  workspace:transcriber-build:
-    desc: Build talk-transcriber image
-    cmds:
-      - docker build -t ghcr.io/paddione/talk-transcriber:latest k3d/talk-transcriber/
-      - 'echo "✓ talk-transcriber image built (run ''task workspace:transcriber-push'' to publish to ghcr.io)"'
-
-  workspace:transcriber-push:
-    desc: Push talk-transcriber image to ghcr.io (for production)
-    deps: [workspace:transcriber-build]
-    cmds:
-      - docker push ghcr.io/paddione/talk-transcriber:latest
-      - 'echo "✓ Pushed ghcr.io/paddione/talk-transcriber:latest — update the digest in prod-korczewski/talk-transcriber.yaml"'
-
-  workspace:transcriber-setup:
-    desc: Build talk-transcriber image and create transcriber-bot Nextcloud user
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    deps: [workspace:transcriber-build]
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        export KUBE_CONTEXT="${ENV_CONTEXT:-}"
-        export WORKSPACE_NAMESPACE
-        bash scripts/transcriber-setup.sh
-      - 'echo ""'
-      - 'echo "  Next → task workspace:vaultwarden:seed  (optional — seeds production secret templates)"'
-
-  workspace:whiteboard-setup:
-    desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        export CONTEXT=""
-        [ "{{.ENV}}" != "dev" ] && export CONTEXT="${ENV_CONTEXT}"
-        export NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
-        bash scripts/whiteboard-setup.sh
-
-  workspace:systembrett-setup:
-    desc: Upload Systembrett Whiteboard template into admin's Coaching/ folder (ENV=dev|mentolder|korczewski)
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        if [ ! -f components/website/public/systemcomponents/brett/systembrett.whiteboard ]; then
-          echo "Template missing — generating..."
-          node scripts/systembrett-generate.mjs
-        fi
-        export KUBE_CONTEXT=""
-        [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
-        export NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
-        bash scripts/systembrett-setup.sh
-
-  workspace:talk-setup:
-    desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        export KUBE_CONTEXT=""
-        [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
-        export NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
-        bash scripts/talk-hpb-setup.sh
-      - 'echo ""'
-      - 'echo "  Next → task workspace:recording-setup ENV={{.ENV}}"'
-      - 'echo "  Optional → task workspace:admin-users-setup ENV={{.ENV}}"'
-
   workspace:deploy:all-prods:
     desc: "Run workspace:deploy on mentolder + korczewski"
     cmds:
@@ -111,12 +35,6 @@ tasks:
         vars: { ENV: "mentolder" }
       - task: workspace:deploy
         vars: { ENV: "korczewski" }
-
-  workspace:post-setup:all-prods:
-    desc: "Run talk-setup + recording-setup on mentolder + korczewski"
-    cmds:
-      - task: workspace:talk-setup:all-prods
-      - task: workspace:recording-setup:all-prods
 
   workspace:status:all-prods:
     desc: "Show detailed workspace:status (pods + svc + ingress + PVC) on mentolder + korczewski"
@@ -128,91 +46,6 @@ tasks:
       - 'echo "═══ KORCZEWSKI ═══"'
       - task: workspace:status
         vars: { ENV: "korczewski" }
-
-  workspace:talk-setup:all-prods:
-    desc: Run workspace:talk-setup against every non-dev environment (mentolder + korczewski)
-    cmds:
-      - task: workspace:talk-setup
-        vars: { ENV: "mentolder" }
-      - task: workspace:talk-setup
-        vars: { ENV: "korczewski" }
-
-  workspace:talk-dns-fix:
-    desc: "Apply CoreDNS signaling override (kube-system is shared by mentolder + korczewski; ENV defaults to mentolder)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        kubectl --context "${ENV_CONTEXT}" apply -f prod/coredns-signaling-override.yaml
-        # CoreDNS has the `reload` plugin and re-reads the ConfigMap every ~30s
-        # automatically. Force-restart here so the override takes effect now,
-        # which is the whole point of this manual "fix it" task.
-        kubectl --context "${ENV_CONTEXT}" rollout restart deployment/coredns -n kube-system 2>/dev/null || \
-          kubectl --context "${ENV_CONTEXT}" rollout restart daemonset/coredns -n kube-system 2>/dev/null || true
-        kubectl --context "${ENV_CONTEXT}" rollout status deployment/coredns -n kube-system --timeout=60s 2>/dev/null || true
-        echo "✓ CoreDNS signaling override applied (mentolder.de + korczewski.de)"
-
-  workspace:talk-dns-fix:all-prods:
-    desc: Apply CoreDNS signaling override (single shared kube-system; one apply suffices)
-    cmds:
-      - task: workspace:talk-dns-fix
-        vars: { ENV: "mentolder" }
-
-  workspace:coturn:deploy:
-    desc: "Deploy the coturn-stack (TURN/STUN + Janus in coturn ns, ENV=mentolder|korczewski — not for dev)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        context_flag=""
-        [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
-        kustomize build k3d/coturn-stack \
-          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
-          | envsubst '$TURN_NODE $TURN_PUBLIC_IP $PROD_DOMAIN $TLS_SECRET_NAME' \
-          | kubectl $context_flag apply -f -
-      - task: workspace:coturn:sync-secret
-        vars: { ENV: "{{.ENV}}" }
-
-  workspace:coturn:sync-secret:
-    desc: "Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        if ! kubectl $CTX get namespace coturn > /dev/null 2>&1; then
-          echo "coturn namespace does not exist on context '${ENV_CONTEXT:-<active>}'. Deploy the coturn-stack first."
-          exit 1
-        fi
-        if ! kubectl $CTX get secret workspace-secrets -n "$NS" > /dev/null 2>&1; then
-          echo "${NS}/workspace-secrets missing — can't sync HPB secrets."
-          exit 1
-        fi
-        SIG=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
-                -o jsonpath='{.data.SIGNALING_SECRET}' | base64 -d)
-        TURN=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
-                 -o jsonpath='{.data.TURN_SECRET}' | base64 -d)
-        if [ -z "$SIG" ] || [ -z "$TURN" ]; then
-          echo "FEHLER: SIGNALING_SECRET oder TURN_SECRET fehlt in workspace-secrets."
-          exit 1
-        fi
-        kubectl $CTX create secret generic coturn-secrets \
-          -n coturn \
-          --from-literal=SIGNALING_SECRET="$SIG" \
-          --from-literal=TURN_SECRET="$TURN" \
-          --dry-run=client -o yaml | kubectl $CTX apply -f -
-        kubectl $CTX rollout restart deploy/coturn -n coturn
-        kubectl $CTX rollout restart deploy/janus  -n coturn
-        kubectl $CTX rollout status  deploy/coturn -n coturn --timeout=180s
-        kubectl $CTX rollout status  deploy/janus  -n coturn --timeout=180s
-        echo "✓ coturn-secrets synced from ${NS}/workspace-secrets; coturn + janus rolled (ENV={{.ENV}})"
 
   workspace:office:sync-secret:
     desc: "Copy COLLABORA_ADMIN_PASSWORD from workspace-secrets into workspace-office/collabora-secrets (ENV=dev|mentolder|korczewski)"
@@ -300,7 +133,7 @@ tasks:
           echo "   For production prodmesh deploys, use:"
           echo "     task prodmesh:shared-services"
           echo ""
-          echo "   This deploys Collabora + CoTURN/Janus for both brands in one shot."
+          echo "   This deploys Collabora for both brands in one shot."
           exit 1
         fi
       - task: workspace:office:pull-secret
@@ -345,28 +178,6 @@ tasks:
       - task: workspace:office:sync-secret
         vars: { ENV: "{{.ENV}}" }
       - 'echo ""'
-
-  workspace:recording-setup:
-    desc: "Configure Nextcloud Talk recording backend (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        export KUBE_CONTEXT=""
-        [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
-        export NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
-        bash scripts/recording-setup.sh
-      - 'echo ""'
-      - 'echo "  Next → task workspace:transcriber-setup ENV={{.ENV}}"'
-
-  workspace:recording-setup:all-prods:
-    desc: Configure Talk recording backend on all production clusters (mentolder + korczewski)
-    cmds:
-      - task: workspace:recording-setup
-        vars: { ENV: "mentolder" }
-      - task: workspace:recording-setup
-        vars: { ENV: "korczewski" }
 
   workspace:status:
     desc: Show Workspace MVP deployment status
@@ -724,8 +535,8 @@ tasks:
           sealed="environments/sealed-secrets/$(secrets_env_for "{{.ENV}}").yaml"
           if [ -f "$sealed" ]; then
             # Pre-create ALL namespaces referenced by SealedSecrets so apply doesn't fail.
-            # Includes coturn + workspace-office so their SealedSecrets land cleanly.
-            for _ns in "$_ws_ns" cert-manager "$_website_ns" coturn workspace-office monitoring; do
+            # Includes workspace-office so its SealedSecrets land cleanly.
+            for _ns in "$_ws_ns" cert-manager "$_website_ns" workspace-office monitoring; do
               kubectl --context "$ENV_CONTEXT" create namespace "$_ns" \
                 --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
             done
@@ -736,7 +547,7 @@ tasks:
             # contains legacy-only blocks. Falls back to applying the
             # original file if yq is unavailable.
             if command -v yq >/dev/null 2>&1; then
-              _shared_ns_csv=$(IFS=,; echo "${SHARED_NAMESPACES[*]:-rustdesk,coturn}")
+              _shared_ns_csv=$(IFS=,; echo "${SHARED_NAMESPACES[*]:-rustdesk}")
               _filtered=$(yq eval-all '
                 select(
                   .kind != "SealedSecret" or
@@ -803,8 +614,8 @@ tasks:
           task db:migrate ENV="{{.ENV}}"
 
           overlay="${ENV_OVERLAY:-prod}"
-          # Derive Nextcloud MAIL_FROM_ADDRESS / MAIL_DOMAIN from the authoritative SMTP_FROM
-          # so Nextcloud's sender matches the SMTP-authenticated mailbox (mailbox.org rejects
+          # Derive MAIL_FROM_ADDRESS / MAIL_DOMAIN from the authoritative SMTP_FROM
+          # so senders match the SMTP-authenticated mailbox (mailbox.org rejects
           # senders the authenticated account does not own with 553).
           export MAIL_FROM_LOCAL="${SMTP_FROM%@*}"
           export MAIL_FROM_DOMAIN="${SMTP_FROM#*@}"
@@ -838,7 +649,7 @@ tasks:
           # through to it as well.
           # POCKET_ID_SMTP_TLS (T001396): abgeleitet aus SMTP_SECURE + SMTP_PORT, siehe
           # Herleitungs-Snippet oben — kein eigenes Schema-Pflichtfeld, da Pocket-ID (anders als
-          # Website/Nextcloud) ein Drei-Werte-Enum statt eines Bools erwartet.
+          # die Website) ein Drei-Werte-Enum statt eines Bools erwartet.
           ENVSUBST_VARS="$ENVSUBST_VARS \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$POCKET_ID_DOMAIN"
           # Pocket ID (T001068 Welle 0): defaults so the prod envsubst list
           # never emits literal ${POCKET_ID_*} tokens when an env file hasn't
@@ -923,29 +734,8 @@ tasks:
         fi
       - task: workspace:sync-db-passwords
         vars: { ENV: "{{.ENV}}" }
-      # Re-align Nextcloud Talk's spreed app config with the real SIGNALING_SECRET/
-      # TURN_SECRET in workspace-secrets on every deploy. Without this, a rotated
-      # SealedSecret leaves Talk pointing at stale secrets and calls fail to join
-      # the HPB. Gated on non-dev because the coturn stack only exists in prod.
-      # workspace:deploy has already switched kubectl context to ENV_CONTEXT, so
-      # workspace:coturn:sync-secret (which uses the active context) targets the
-      # right cluster.
       - |
         if [ "{{.ENV}}" != "dev" ]; then
-          # SKIP_TALK_SETUP lets a multi-brand orchestrator (prodmesh:deploy:brand)
-          # defer the embedded coturn:sync-secret + talk-setup chain. On a fresh
-          # SHARED-stack cluster, coturn/Janus do not exist yet during the brand
-          # core deploy — they come up once in prodmesh:shared-services AFTER both
-          # brands' SealedSecrets (collabora-secrets/workspace-secrets) are applied.
-          # talk-setup then runs per-brand via prodmesh:talk-setup:brand. Default
-          # "false" preserves the standalone single-cluster deploy behavior.
-          if [ "{{.SKIP_TALK_SETUP | default "false"}}" != "true" ]; then
-            task workspace:coturn:sync-secret ENV="{{.ENV}}" || true
-            task workspace:talk-setup ENV="{{.ENV}}"
-          else
-            echo "⏭  SKIP_TALK_SETUP=true — deferring coturn:sync-secret + talk-setup (prodmesh:shared-services + prodmesh:talk-setup:brand handle it)"
-          fi
-
           bash scripts/post-deploy-watch.sh "{{.ENV}}" || true
         fi
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
@@ -1104,7 +894,6 @@ tasks:
 
         echo "Syncing DB passwords from ${NS}/workspace-secrets → shared-db ({{.ENV}})..."
 
-        nc_needs_restart=0
         for user in pocket_id nextcloud vaultwarden website docuseal; do
           key="${user^^}_DB_PASSWORD"
           pw=$(kubectl $context_flag get secret workspace-secrets -n "$NS" \
@@ -1114,48 +903,10 @@ tasks:
             continue
           fi
 
-          # Nextcloud persists its DB password inside config.php on the PVC.
-          # When the secret rotates (e.g. sealed-secrets reseal), the PVC copy
-          # drifts — and the Nextcloud bootstrap opens a DB connection before
-          # `occ` can run, so `occ config:system:set dbpassword` cannot recover
-          # the state (this is the PR #282 outage shape). Patch config.php
-          # in-place via PHP (stdin-piped, special chars safe) BEFORE ALTER
-          # USER; if we actually changed it, rollout-restart nextcloud after
-          # the loop so it picks the file up cleanly.
-          if [ "$user" = "nextcloud" ]; then
-            nc_pod=$(kubectl $context_flag -n "$NS" get pod -l app=nextcloud \
-              -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-            if [ -n "$nc_pod" ]; then
-              current_pw=$(kubectl $context_flag -n "$NS" exec "$nc_pod" -c nextcloud -- \
-                php -r 'if(!file_exists("/var/www/html/config/config.php")){exit;}$CONFIG=[];include "/var/www/html/config/config.php";echo $CONFIG["dbpassword"]??"";' 2>/dev/null 2>&1 || true)
-              if [ -z "$current_pw" ]; then
-                echo "  nextcloud-config.php: config.php missing or malformed — skipping in-place sync"
-              elif [ "$current_pw" = "$pw" ]; then
-                echo "  nextcloud-config.php: already in sync"
-              else
-                echo "  nextcloud-config.php: dbpassword drifted → patching in-place"
-                if printf '%s' "$pw" | kubectl $context_flag -n "$NS" exec -i "$nc_pod" -c nextcloud -- \
-                  php -r '$p="/var/www/html/config/config.php";$CONFIG=[];include $p;if(!isset($CONFIG["dbpassword"])){fwrite(STDERR,"refusing to write: existing config has no dbpassword\n");exit(1);}$CONFIG["dbpassword"]=stream_get_contents(STDIN);file_put_contents($p,"<?php\n\$CONFIG = ".var_export($CONFIG,true).";\n");' 2>&1 | sed "s/^/    /"; then
-                  nc_needs_restart=1
-                else
-                  echo "    (config.php patch failed — falling through to ALTER USER; pod may need manual repair)"
-                fi
-              fi
-            else
-              echo "  nextcloud-config.php: no nextcloud pod found — skipping config.php sync (ALTER USER below may strand the pod until config.php is repaired)"
-            fi
-          fi
-
           kubectl $context_flag exec -n "$NS" deployment/shared-db -- \
             psql -U postgres -c "ALTER USER ${user} WITH PASSWORD '$(printf "%s" "$pw" | sed "s/'/''/g")';" 2>&1 \
             | sed "s/^/  ${user}: /"
         done
-
-        if [ "$nc_needs_restart" = 1 ]; then
-          echo "Restarting nextcloud to pick up patched config.php..."
-          kubectl $context_flag -n "$NS" rollout restart deployment/nextcloud
-          kubectl $context_flag -n "$NS" rollout status deployment/nextcloud --timeout=180s
-        fi
         echo "✓ DB passwords synced (ENV={{.ENV}}, ns=$NS)"
 
   # Keycloak tasks (keycloak:sync, keycloak:ensure-mappers, keycloak:sync-admin-password)

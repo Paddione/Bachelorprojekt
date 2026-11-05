@@ -20,7 +20,6 @@ in `prod-fleet/<brand>/` extend it; never apply base or `prod/` directly.
 
 | Directory | Purpose |
 |-----------|---------|
-| `coturn-stack/` | CoTURN TURN server (deployed separately via `task workspace:office:deploy`) |
 | `dev-cluster/` | k3d local cluster setup resources |
 | `dev-stack/` | Dev-only service additions |
 | `monitoring/` | Prometheus + Grafana manifests |
@@ -33,16 +32,13 @@ die Traefik nicht routen kann:
 
 | Manifest | Workload | hostPorts |
 |----------|----------|-----------|
-| `coturn-stack/coturn.yaml` | coturn | 3478, 5349, 49152-49252 |
-| `coturn-stack/janus.yaml` | janus | 20000-20200, ws 8188 |
 | `rustdesk-stack/hbbs.yaml` | hbbs | 21115-21116 tcp+udp, 21118 tcp |
 | `rustdesk-stack/hbbr.yaml` | hbbr | 21117 tcp, 21119 tcp |
 
-Containment: alle vier sind per `nodeSelector: kubernetes.io/hostname: ${TURN_NODE}`
+Containment: alle zwei sind per `nodeSelector: kubernetes.io/hostname: ${TURN_NODE}`
 auf einen dedizierten Public-Node gepinnt (`${TURN_NODE}` wird per envsubst im
-Deploy-Pfad gesetzt, siehe `scripts/pre-deploy-checks-lib.sh`). Nextcloud und
-Collabora sind separate, im Manifest begründete Ausnahmen (Root-Init-Container
-bzw. User-Namespace-Sandboxing).
+Deploy-Pfad gesetzt, siehe `scripts/pre-deploy-checks-lib.sh`). Collabora ist
+eine separate, im Manifest begründete Ausnahme (User-Namespace-Sandboxing).
 
 ## Deployment
 

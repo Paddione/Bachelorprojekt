@@ -13,10 +13,8 @@ Moved from `AGENTS.md` (C1b diet, T900560) — read on-demand, do not frontload.
 
 - Traefik: Built-in k3s ingress.
 - Pocket ID: SSO & OIDC provider (`k3d/pocket-id.yaml`) for ~20 clients via `pocket-id-client-seed` Job.
-- Nextcloud + Talk: Files, groupware, and video calls with Talk-HPB + coturn + Janus.
 - Collabora: Office suite.
 - Vaultwarden: Password management.
-- Whiteboard: Collaborative whiteboard server (`k3d/whiteboard/`).
 - Brett: Node.js 3D systemic-constellation board (`k3d/brett.yaml`).
 - Mailpit: Local SMTP/email inbox.
 - DocuSeal: Document signing.

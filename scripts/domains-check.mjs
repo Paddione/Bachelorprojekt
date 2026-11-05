@@ -285,12 +285,11 @@ function renderMap(entries, registryPath) {
   }
   lines.push('');
 
-  lines.push('## Entscheidungen (D1-D3)', '');
+  lines.push('## Entscheidungen (D1-D2)', '');
   lines.push('| Key | Entscheidung |');
   lines.push('|---|---|');
   lines.push('| D1 | web.mentolder.de (Astro) ist die kanonische oeffentliche Seite; react.mentolder.de ist sekundaer/Redirect. |');
   lines.push('| D2 | agent-board ist das kanonische devmesh-Ops-Cockpit; web.devmesh/sdlc sind Tickets/Pipeline. |');
-  lines.push('| D3 | board.mentolder.de ist Excalidraw/Whiteboard und eigenstaendig gegenueber agent-board/brett. |');
   lines.push('');
   const withDecision = entries.filter((e) => e?.decision);
   if (withDecision.length > 0) {

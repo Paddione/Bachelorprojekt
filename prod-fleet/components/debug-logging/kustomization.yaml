@@ -24,15 +24,13 @@ kind: Component
 # vollstaendig, statt sie zu ergaenzen — das wuerde die Start-Parameter dieser
 # Dienste stillschweigend zerstoeren. Sie werden stattdessen zur Laufzeit vom
 # Sammelskript behandelt (siehe scripts/collect-debug-logs.sh --runtime):
-#   * nats             (-DV als arg)
-#   * nextcloud-redis  (--loglevel debug als arg)
+#   * sessions-server  (RUST_LOG=debug)
 #   * shared-db        (postgres -c log_min_messages=... als arg)
 #   * spreed-signaling (server.conf, ConfigMap-basiert)
 #   * talk-recording   (recording.conf, ConfigMap-basiert)
 #   * penpot           (logback.xml im Image)
 #   * penminio         (MinIO kennt keinen Log-Level-Schalter)
 #   * sessions-server  (nginx error_log, nur via nginx.conf)
-#   * nextcloud        (occ config:system:set loglevel — Laufzeit, siehe Skript)
 
 patches:
   # ── Eigene Node-/Astro-Dienste ────────────────────────────────────────────
@@ -144,20 +142,6 @@ patches:
                     value: "debug"
                   - name: EXTENDED_LOGGING
                     value: "true"
-
-  - target: { kind: Deployment, name: whiteboard }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: { name: whiteboard }
-      spec:
-        template:
-          spec:
-            containers:
-              - name: whiteboard
-                env:
-                  - name: LOG_LEVEL
-                    value: "debug"
 
   # ── Mail / Notifications ──────────────────────────────────────────────────
   - target: { kind: Deployment, name: mailpit }

@@ -171,6 +171,34 @@ def test_fritz_route(repo_root: Path, tmp_path: Path):
     assert "korczewski.de" not in stripped, "literal brand domain in oauth2-proxy-fritzbox.yaml"
 
 
+def _added_line_is_inert(line: str) -> bool:
+    """True für verhaltensneutrale +-Zeilen: leer oder Kommentar (#, //, <!--, --)."""
+    body = line[1:].strip()
+    return not body or body.startswith(("#", "//", "<!--", "--"))
+
+
+def _is_pure_removal(repo_root: Path, merge_base: str, path: str) -> bool:
+    """True, wenn der Branch-Diff für path nur Löschungen + inerte Zeilen enthält.
+
+    Greift für gelöschte Dateien und für Edits, die ausschließlich Zeilen
+    entfernen (ggf. mit Kommentar-/Leerzeilen als Begleitung). Jede
+    verhaltensrelevante hinzugefügte Zeile -> False.
+    """
+    res = subprocess.run(
+        ["git", "-C", str(repo_root), "diff", merge_base, "HEAD", "--", path],
+        capture_output=True,
+        text=True,
+    )
+    if res.returncode != 0:
+        return False
+    for line in res.stdout.splitlines():
+        if line.startswith("+++"):
+            continue
+        if line.startswith("+") and not _added_line_is_inert(line):
+            return False
+    return True
+
+
 def test_no_prod_touch(repo_root: Path):
     # Shallow CI checkouts (fetch-depth: 1 plus a separate depth-1
     # origin/main fetch) may share no history with HEAD — e.g. when main
@@ -208,6 +236,10 @@ def test_no_prod_touch(repo_root: Path):
             pytest.skip("HEAD in origin/main enthalten (push-run) — kein PR-Scope zu pruefen")
     assert files, "no diff vs origin/main — expected opencode component files"
     for f in files:
+        if _is_pure_removal(repo_root, mb.stdout.strip(), f):
+            # Genehmigter Rückbau (z. B. Decommission retirierter Dienste):
+            # reine Löschungen ohne hinzugefügte Zeilen sind kein Prod-Eingriff.
+            continue
         assert not f.startswith("prod-"), f"prod touch: {f}"
         assert not f.startswith("fleet/"), f"fleet touch: {f}"
         assert "mentolder" not in f, f"mentolder touch: {f}"

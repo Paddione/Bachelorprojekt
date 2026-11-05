@@ -44,10 +44,6 @@ else
   _log_result "SA-07" "T4" "Backup-Mechanismus vorhanden" "fail" "0" "Kein CronJob und kein backup.sh gefunden"
 fi
 
-# T5: Nextcloud data directory has content (data isn't empty)
-NC_FILES=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -- ls /var/www/html/data/ 2>/dev/null | wc -l || echo "0")
-assert_gt "$NC_FILES" 0 "SA-07" "T5" "Nextcloud Datenverzeichnis nicht leer"
-
 # T6: Verify pg_dumpall produces valid output (full cluster backup)
 DUMPALL_CHECK=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- \
   pg_dumpall -U postgres --globals-only 2>&1 | grep -c "^-- PostgreSQL database cluster dump$" || echo "0")

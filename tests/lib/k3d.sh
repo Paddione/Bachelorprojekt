@@ -12,23 +12,19 @@ NAMESPACE="${NAMESPACE:-workspace}"
 
 # ── Environment-aware URL configuration ─────────────────────────
 # For prod tier: set PROD_DOMAIN (e.g. "${PROD_DOMAIN}")
-# URLs are then https://auth-PROD_DOMAIN, https://files-PROD_DOMAIN, etc.
-# For local tier: defaults to http://auth.localhost, http://files.localhost
+# URLs are then https://auth-PROD_DOMAIN, https://office-PROD_DOMAIN, etc.
+# For local tier: defaults to http://auth.localhost, http://office.localhost
 if [[ -n "${PROD_DOMAIN:-}" ]]; then
   PROTO="${PROTO:-https}"
   KC_URL="${KC_URL:-${PROTO}://auth.${PROD_DOMAIN}}"
-  NC_URL="${NC_URL:-${PROTO}://files.${PROD_DOMAIN}}"
   COLLAB_URL="${COLLAB_URL:-${PROTO}://office.${PROD_DOMAIN}}"
-  MEET_URL="${MEET_URL:-${PROTO}://files.${PROD_DOMAIN}/index.php/apps/spreed/}"
 else
   PROTO="${PROTO:-http}"
   KC_URL="${KC_URL:-${PROTO}://auth.localhost}"
-  NC_URL="${NC_URL:-${PROTO}://files.localhost}"
   COLLAB_URL="${COLLAB_URL:-${PROTO}://office.localhost}"
-  MEET_URL="${MEET_URL:-${PROTO}://files.localhost/index.php/apps/spreed/}"
 fi
 
-export PROTO KC_URL NC_URL COLLAB_URL MEET_URL
+export PROTO KC_URL COLLAB_URL
 
 # ── kubectl helper for running commands in pods ──────────────────
 _kube_run() {
@@ -52,46 +48,6 @@ _wait_for_url() {
   done
   echo " TIMEOUT nach ${max_wait}s"
   return 1
-}
-
-# ── Port-forward for local Nextcloud API access ─────────────────
-_NC_PF_PID=""
-
-_start_nc_portforward() {
-  if [[ -n "${PROD_DOMAIN:-}" ]]; then return; fi
-  local pf_port=18080
-
-  if [[ -n "$_NC_PF_PID" ]]; then
-    kill "$_NC_PF_PID" 2>/dev/null || true
-    wait "$_NC_PF_PID" 2>/dev/null || true
-    _NC_PF_PID=""
-  fi
-  local stale_pid
-  stale_pid=$(lsof -t -i:"${pf_port}" 2>/dev/null || true)
-  [[ -n "$stale_pid" ]] && kill "$stale_pid" 2>/dev/null || true
-  sleep 1
-
-  kubectl port-forward -n "$NAMESPACE" svc/nextcloud "${pf_port}:80" &>/dev/null &
-  _NC_PF_PID=$!
-  local elapsed=0
-  while (( elapsed < 15 )); do
-    if curl -s -o /dev/null --max-time 1 "http://localhost:${pf_port}/status.php" 2>/dev/null; then
-      break
-    fi
-    sleep 1
-    elapsed=$((elapsed + 1))
-  done
-  echo "  Port-forward Nextcloud → localhost:${pf_port}"
-  NC_URL="http://localhost:${pf_port}"
-  export NC_URL
-}
-
-_stop_nc_portforward() {
-  if [[ -n "$_NC_PF_PID" ]]; then
-    kill "$_NC_PF_PID" 2>/dev/null || true
-    wait "$_NC_PF_PID" 2>/dev/null || true
-    _NC_PF_PID=""
-  fi
 }
 
 # ── Wait for k3d services ───────────────────────────────────────
@@ -124,7 +80,6 @@ k3d_wait() {
   echo "  Alle Services bereit."
 
   # Start port-forward for local tier (bypasses ingress issues)
-  _start_nc_portforward
 }
 
 # ── Keycloak admin token ────────────────────────────────────────

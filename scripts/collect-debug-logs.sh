@@ -8,7 +8,7 @@
 # deckt die drei Schritte danach ab:
 #
 #   --runtime   Log-Level fuer die Container setzen, die keinen Env-Schalter
-#               haben (nextcloud/occ, redis, postgres).
+#               haben (postgres).
 #   --restart   Rollout-Restart aller Deployments, damit die Env-Patches
 #               greifen. Wartet auf Ready.
 #   (default)   Logs aller Pods sammeln, nach Mustern fehlender
@@ -166,29 +166,6 @@ runtime() {
   local nc rd pg
   echo "Setze Log-Level fuer Container ohne Env-Schalter (Kontext $CTX, ns $WS_NS)"
 
-  # Nextcloud: loglevel 0 = DEBUG. occ persistiert in config.php auf dem PVC,
-  # ueberlebt also einen Pod-Neustart.
-  nc="$("${KUBECTL[@]}" -n "$WS_NS" get pod -l app=nextcloud \
-        -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
-  if [ -n "$nc" ]; then
-    "${KUBECTL[@]}" -n "$WS_NS" exec "$nc" -c nextcloud -- \
-      php occ config:system:set loglevel --value=0 --type=integer \
-      && echo "  nextcloud: loglevel=0 (DEBUG)" \
-      || echo "  ! nextcloud: occ fehlgeschlagen"
-  else
-    echo "  ! nextcloud: kein Pod gefunden"
-  fi
-
-  # Redis: CONFIG SET ist fluechtig — nach einem Pod-Neustart erneut noetig.
-  rd="$("${KUBECTL[@]}" -n "$WS_NS" get pod -l app=nextcloud-redis \
-        -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
-  if [ -n "$rd" ]; then
-    "${KUBECTL[@]}" -n "$WS_NS" exec "$rd" -c redis -- \
-      redis-cli CONFIG SET loglevel debug \
-      && echo "  nextcloud-redis: loglevel=debug (fluechtig)" \
-      || echo "  ! nextcloud-redis: CONFIG SET fehlgeschlagen"
-  fi
-
   # Postgres: ALTER SYSTEM schreibt postgresql.auto.conf auf das PVC.
   # log_statement=all ist bewusst NICHT gesetzt — das protokolliert jede
   # Query samt Parameterwerten und laeuft das Volume in Stunden voll.
@@ -205,7 +182,7 @@ runtime() {
 
   echo
   echo "Nicht abgedeckt (Config-Datei im Image, nur per Rebuild aenderbar):"
-  echo "  nats, spreed-signaling, talk-recording, sessions-server"
+  echo "  sessions-server"
 }
 
 case "$MODE" in

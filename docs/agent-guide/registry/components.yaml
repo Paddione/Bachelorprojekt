@@ -25,6 +25,18 @@
   area: plattform
   theme: sicherheit
   relates_to: [secret-aendern]
+- slug: nextcloud
+  kind: software
+  name: "Nextcloud"
+  emoji: "☁️"
+  sensitivity: assisted
+  placeholder_en: "File storage + groupware"
+  summary_de: "Deine private Cloud: Dateien, Kalender, Kontakte und Video-Telefonie (Talk)."
+  what_for_de: "Wie eine eigene Dropbox + Office + Kalender, komplett auf eigenen Servern (DSGVO-konform)."
+  url: null
+  links: []
+  area: dienste
+  theme: betrieb
 - slug: collabora
   kind: software
   name: "Collabora"
@@ -49,6 +61,16 @@
   links: []
   area: dienste
   theme: sicherheit
+- slug: nextcloud-talk-hpb
+  kind: software
+  name: "Talk HPB"
+  emoji: "📡"
+  sensitivity: caution
+  placeholder_en: "Nextcloud Talk signaling server"
+  summary_de: "Der Vermittlungs-Server (Signaling) für Nextcloud Talk – sorgt dafür, dass Video-Anrufe zueinander finden."
+  what_for_de: "High-Performance-Backend für Talk; ohne ihn brechen Gruppen-Videoanrufe zusammen."
+  url: null
+  links: []
 - slug: brett
   kind: software
   name: "Brett"
@@ -81,6 +103,16 @@
   links: []
   area: dienste
   theme: betrieb
+- slug: whiteboard
+  kind: software
+  name: "Whiteboard"
+  emoji: "🎨"
+  sensitivity: safe
+  placeholder_en: "Collaborative drawing"
+  summary_de: "Eine gemeinsame Zeichen-Tafel zum Brainstormen, in Nextcloud eingebunden."
+  what_for_de: "Kollaboratives Whiteboard für Skizzen und Ideen, direkt in Nextcloud."
+  url: null
+  links: []
 - slug: arena
   kind: software
   name: "Arena"
@@ -212,6 +244,16 @@
   placeholder_en: "OpenAI Whisper speech-to-text transcription"
   summary_de: "Wandelt gesprochene Sprache in Text um (Spracherkennung, OpenAI Whisper)."
   what_for_de: "Speech-to-Text-Modell; Grundlage für automatische Gesprächs-Mitschriften."
+  url: null
+  links: []
+- slug: talk-transcriber
+  kind: software
+  name: "Talk Transcriber"
+  emoji: "📝"
+  sensitivity: caution
+  placeholder_en: "Nextcloud Talk auto-transcription bot"
+  summary_de: "Schreibt Nextcloud-Talk-Gespräche automatisch mit (Transkription)."
+  what_for_de: "Bot, der Talk-Anrufe live mitschreibt und als Text ablegt."
   url: null
   links: []
 - slug: mcp

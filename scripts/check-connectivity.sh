@@ -86,8 +86,6 @@ echo -e "${BOLD}Workspace Connectivity Check${RESET}  ${CYAN}ENV=${ENV}  domain=
 
 section "Core Services"
 check_service "Keycloak"       "auth"       "/"            "200,301,302"
-check_service "Nextcloud"      "files"      "/"            "200,301,302"
-check_service "Talk (meet)"    "meet"       "/"            "200,301,302"
 check_service "Vaultwarden"    "vault"      "/"            "200,301,302"
 check_service "DocuSeal"       "sign"       "/"            "200,301,302"
 
@@ -98,7 +96,7 @@ check_service "Tracking"       "tracking"   "/"            "200,301,302"
 section "Optional Services"
 check_service "Brett"          "brett"      "/"            "200,301,302"
 check_service "Collabora"      "office"     "/"            "200,301,302"
-check_service "Whiteboard"     "board"      "/"            "200,301,302"
+
 check_service "Talk Signaling" "signaling"  "/"            "200,301,302,404"
 check_service "Mailpit"        "mail"       "/"            "200,301,302,401"
 

@@ -2,7 +2,7 @@
 # hbbs — RustDesk ID / rendezvous server
 # ═══════════════════════════════════════════════════════════════════
 # hostNetwork on a single public node so native clients reach it
-# directly. ${TURN_NODE} == the coturn/Janus node (no port collision
+# directly. ${TURN_NODE} == the dedicated relay node (no port collision
 # with 3478/5349/49152-49252/20000-20200). Signing keypair mounted
 # from rustdesk-secrets so client IDs survive restarts.
 apiVersion: apps/v1

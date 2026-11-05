@@ -60,10 +60,8 @@ def test_alertmanager_config_traegt_keine_backup_email_kindroute_mehr(files):
     assert "backup-email" not in "\n".join(live)
 
 
-def test_nextcloud_notification_config_job_existiert_und_ist_ein_batch_v1_job(files):
-    assert files["ncjob"].is_file()
-    assert _has(files["ncjob"], r"^kind: Job")
-
-
-def test_nextcloud_notification_config_job_ist_in_der_kustomization_registriert(files):
-    assert _has(files["kust"], "nextcloud-notification-config-job.yaml", regex=False)
+def test_notification_config_job_ist_dekommissioniert(files):
+    # Dateiablage-Dienst retiriert (Eigner-Entscheid 2026-11-05): Job-Datei und
+    # Kustomize-Registrierung sind entfernt.
+    assert not files["ncjob"].exists()
+    assert not _has(files["kust"], "nextcloud-notification-config-job.yaml", regex=False)

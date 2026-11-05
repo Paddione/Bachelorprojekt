@@ -22,7 +22,7 @@ Das mit Astro + Svelte gebaute Frontend (die Web-Oberfläche). Öffentliche Seit
 
 🔴 **Niemals allein**
 
-Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Nextcloud, Vaultwarden u. a. an. Herzstück der Sicherheit.
+Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Vaultwarden u. a. an. Herzstück der Sicherheit.
 
 ### ☁️ Nextcloud
 
@@ -34,7 +34,7 @@ Wie eine eigene Dropbox + Office + Kalender, komplett auf eigenen Servern (DSGVO
 
 🟡 **Vorsicht**
 
-Die Online-Office-Suite, die Nextcloud-Dateien bearbeitbar macht (vergleichbar mit Office im Web).
+Die Online-Office-Suite, die Office-Dateien im Browser bearbeitbar macht (vergleichbar mit Office im Web).
 
 ### 🔒 Vaultwarden
 
@@ -94,7 +94,7 @@ Statische Doku-Webseite mit Benutzer- und Admin-Handbuch.
 
 🔴 **Niemals allein**
 
-Gemeinsamer Datenbank-Server für Website, Keycloak, Nextcloud u. v. m. Pro Marke eigene Instanz.
+Gemeinsamer Datenbank-Server für Website, Keycloak u. v. m. Pro Marke eigene Instanz.
 
 ### 🔀 Traefik
 

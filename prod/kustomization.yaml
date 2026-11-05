@@ -20,15 +20,6 @@ resources:
   - traefik-dashboard.yaml
   - mail-ingressroute.yaml
 
-# Production ConfigMaps (override base OIDC config)
-configMapGenerator:
-  - name: nextcloud-oidc-config
-    behavior: replace
-    files:
-      - oidc.config.php=nextcloud-oidc-prod.php
-generatorOptions:
-  disableNameSuffixHash: true
-
 # Strategic merge patches
 patches:
   # Drop the dev-placeholder workspace-secrets Secret from prod output.

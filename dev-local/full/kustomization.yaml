@@ -10,34 +10,18 @@ resources:
   - ../core
 
 components:
-  - ../components/nextcloud
   - ../components/collabora
-  - ../components/talk
   - ../components/vaultwarden
 
 patches:
-  # core leert die Links, full bringt Nextcloud und Vaultwarden mit.
+  # core leert die Links, full bringt Vaultwarden mit.
   - target: {kind: ConfigMap, name: website-config}
     patch: |-
       apiVersion: v1
       kind: ConfigMap
       metadata: {name: website-config}
       data:
-        NEXTCLOUD_EXTERNAL_URL: "https://files.${DEVMESH_DOMAIN}"
         VAULT_EXTERNAL_URL: "https://vault.${DEVMESH_DOMAIN}"
-  - target: {kind: Deployment, name: nextcloud}
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: {name: nextcloud}
-      spec:
-        template:
-          spec:
-            nodeSelector: {storage: "true"}
-            containers:
-              - name: nextcloud
-                resources:
-                  requests: {cpu: 250m, memory: 512Mi}
   - target: {kind: Deployment, name: collabora}
     patch: |-
       apiVersion: apps/v1

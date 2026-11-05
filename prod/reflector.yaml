@@ -149,15 +149,14 @@ spec:
                   # are substituted by envsubst during the render, so the correct values
                   # per env land here. Destinations that don't exist on a given cluster
                   # are skipped gracefully.
-                  for NS in coturn workspace-office ${WEBSITE_NAMESPACE}; do
+                  for NS in workspace-office ${WEBSITE_NAMESPACE}; do
                     sync_secret ${WORKSPACE_NAMESPACE} ${TLS_SECRET_NAME} ${TLS_SECRET_NAME} "$NS" || \
                       echo "warn: tls sync to $NS failed or namespace absent - skipping"
                   done
                   #
-                  # ghcr-pull-secret: coturn runs no GHCR image and is not a target. The
-                  # source namespace holds the secret on every env (workspace /
-                  # workspace-staging); the two destinations are exactly where the audit
-                  # found it missing. [T900036]
+                  # ghcr-pull-secret: the source namespace holds the secret on every env
+                  # (workspace / workspace-staging); the two destinations are exactly
+                  # where the audit found it missing. [T900036]
                   for NS in workspace-office ${WEBSITE_NAMESPACE}; do
                     sync_dockerconfig ${WORKSPACE_NAMESPACE} ghcr-pull-secret "$NS" || \
                       echo "warn: ghcr-pull-secret sync to $NS failed or namespace absent - skipping"

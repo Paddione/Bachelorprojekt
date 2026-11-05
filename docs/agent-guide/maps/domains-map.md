@@ -13,9 +13,7 @@ flowchart LR
         devmesh_auth["auth.${DEVMESH_DOMAIN}"]
         devmesh_mail["mail.${DEVMESH_DOMAIN}"]
         devmesh_brain["brain.${DEVMESH_DOMAIN}"]
-        devmesh_files["files.${DEVMESH_DOMAIN}"]
         devmesh_office["office.${DEVMESH_DOMAIN}"]
-        devmesh_signaling["signaling.${DEVMESH_DOMAIN}"]
         devmesh_vault["vault.${DEVMESH_DOMAIN}"]
         devmesh_opencode["${OPENCODE_PUBLIC_HOST}"]
         devmesh_fritzbox["${FRITZ_BOX_HOST}"]
@@ -33,9 +31,7 @@ flowchart LR
     devmesh_auth --> owner_bp_ship
     devmesh_mail --> owner_bp_ship
     devmesh_brain --> owner_bp_ship
-    devmesh_files --> owner_bp_ship
     devmesh_office --> owner_bp_ship
-    devmesh_signaling --> owner_bp_ship
     devmesh_vault --> owner_bp_ship
     devmesh_opencode --> owner_bp_ship
     devmesh_fritzbox --> owner_bp_ship
@@ -51,7 +47,6 @@ flowchart LR
 | Funktion | Frontend | Hosts | Status |
 |---|---|---|---|
 | backend | bp-ship | `web.${DEVMESH_DOMAIN}` | live |
-| files | bp-ship | `files.${DEVMESH_DOMAIN}` | live |
 | frontend | bp-ship | `web.${PROD_DOMAIN}`<br>`web.${PROD_DOMAIN}`<br>`web.${DEVMESH_DOMAIN}`<br>`${WEBSITE_HOST}`<br>`${KORCZEWSKI_PROD_WEB_HOST}`<br>`${KORCZEWSKI_PROD_APEX_HOST}` | frozen/live |
 | mail | bp-ship | `mail.${DEVMESH_DOMAIN}` | live |
 | middleware | bp-ship | `auth.${DEVMESH_DOMAIN}` | live |
@@ -60,17 +55,15 @@ flowchart LR
 | ops-cockpit | bp-ship | `agent-board.devmesh.korczewski.de` | live |
 | redirect | bp-ship | `${PROD_DOMAIN}` | frozen |
 | secrets | bp-ship | `vault.${DEVMESH_DOMAIN}` | live |
-| signaling | bp-ship | `signaling.${DEVMESH_DOMAIN}` | live |
 | sso | bp-ship | `${KORCZEWSKI_PROD_AUTH_HOST}`<br>`${POCKET_ID_DOMAIN}` | live |
 | websocket | bp-ship | `brain.${DEVMESH_DOMAIN}` | live |
 
-## Entscheidungen (D1-D3)
+## Entscheidungen (D1-D2)
 
 | Key | Entscheidung |
 |---|---|
 | D1 | web.mentolder.de (Astro) ist die kanonische oeffentliche Seite; react.mentolder.de ist sekundaer/Redirect. |
 | D2 | agent-board ist das kanonische devmesh-Ops-Cockpit; web.devmesh/sdlc sind Tickets/Pipeline. |
-| D3 | board.mentolder.de ist Excalidraw/Whiteboard und eigenstaendig gegenueber agent-board/brett. |
 
 ### Begruendete Splits im Register
 
@@ -102,10 +95,8 @@ flowchart LR
 | `agent-board.devmesh.korczewski.de` | devmesh | workspace | agent-board:80 | oidc | bp-ship | ops-cockpit | live | apps/agent-board/k8s/ingress.yaml |
 | `auth.${DEVMESH_DOMAIN}` | devmesh | core | pocket-id:1411 | oidc | bp-ship | middleware | live | dev-local/core/ingress.yaml |
 | `brain.${DEVMESH_DOMAIN}` | devmesh | components | oauth2-proxy-brain:4180 | oidc | bp-ship | websocket | live | dev-local/components/brain/ingress.yaml |
-| `files.${DEVMESH_DOMAIN}` | devmesh | components | nextcloud:80 | oidc | bp-ship | files | live | dev-local/components/nextcloud/ingress.yaml |
 | `mail.${DEVMESH_DOMAIN}` | devmesh | components | mailpit:8025 | token | bp-ship | mail | live | dev-local/core/ingress.yaml |
 | `office.${DEVMESH_DOMAIN}` | devmesh | components | collabora:9980 | open | bp-ship | office | live | dev-local/components/collabora/ingress.yaml |
-| `signaling.${DEVMESH_DOMAIN}` | devmesh | components | spreed-signaling:8080 | token | bp-ship | signaling | live | dev-local/components/talk/ingress.yaml |
 | `vault.${DEVMESH_DOMAIN}` | devmesh | components | vaultwarden:80 | open | bp-ship | secrets | live | dev-local/components/vaultwarden/ingress.yaml |
 | `web.${DEVMESH_DOMAIN}` | devmesh | components | sdlc-console:8080 | oidc | bp-ship | frontend, backend | live | dev-local/core/ingress.yaml |
 | `web.${PROD_DOMAIN}` | prodmesh | website-korczewski | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-korczewski/website-ingress-web.yaml |

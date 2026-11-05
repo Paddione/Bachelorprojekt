@@ -25,11 +25,6 @@ else
   skip_test "SA-05" "T1" "Login-Events" "Kein Keycloak Admin-Token"
 fi
 
-# T2: Nextcloud file access logging (activity app)
-NC_ACTIVITY=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  setpriv --reuid=999 --regid=999 --clear-groups php occ app:list 2>/dev/null | grep -c "activity" || echo "0")
-assert_gt "$NC_ACTIVITY" 0 "SA-05" "T2" "Nextcloud Activity App aktiv (Dateizugriffs-Logging)"
-
 # T4: Logs retained
 LOG_LINES=$(kubectl logs -n "$NAMESPACE" deploy/keycloak --tail=5 2>&1 | wc -l)
 assert_gt "$LOG_LINES" 0 "SA-05" "T4" "Keycloak-Logs verfügbar"

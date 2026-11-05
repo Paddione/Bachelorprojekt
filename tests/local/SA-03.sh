@@ -26,7 +26,7 @@ else
 fi
 
 # T3: No cleartext passwords in logs (check last 200 lines across all pods)
-LOGS=$(kubectl logs -n "$NAMESPACE" --all-containers --tail=200 -l 'app in (keycloak,nextcloud)' 2>&1)
+LOGS=$(kubectl logs -n "$NAMESPACE" --all-containers --tail=200 -l 'app in (keycloak)' 2>&1)
 assert_not_contains "$LOGS" "Testpassword123!" "SA-03" "T3" "Kein Klartext-Passwort in Logs"
 
 # T4: Keycloak password policy enforced — short password rejected via user creation API

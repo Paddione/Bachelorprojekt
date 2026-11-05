@@ -17,14 +17,6 @@ resources:
   # a whisper backend, and whisper only lives on korczewski.
   - talk-transcriber.yaml
 
-configMapGenerator:
-  - name: nextcloud-extra-config
-    behavior: replace
-    files:
-      - zz-extra.config.php=nextcloud-extra-config-korczewski.php
-generatorOptions:
-  disableNameSuffixHash: true
-
 # korczewski standalone cluster (korczewski).
 #
 # Three-node dedicated cluster: pk-hetzner-4 (control-plane,etcd),

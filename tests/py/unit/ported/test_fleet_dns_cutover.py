@@ -75,7 +75,7 @@ def cutover_script(repo_root):
 
 
 def test_fleet_korczewski_env_pins_turn_public_ip_to_pk_hetzner_4(repo_root):
-    # brand-trennung p8: coturn/Janus laufen auf pk-hetzner-4 (ohne WG) — der
+    # brand-trennung p8: TURN läuft auf pk-hetzner-4 (ohne WG) — der
     # Pin zeigt auf dessen oeffentliche IP (Wert per Lauf verifiziert, nichts
     # erfunden); die alten Nodes sind raus.
     out = _grep_e(repo_root / "environments" / "prodmesh-korczewski.yaml", "TURN_PUBLIC_IP")

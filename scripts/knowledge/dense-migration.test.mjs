@@ -273,6 +273,38 @@ test('knowledge-Reindex zerlegt >2048-Quellen verlustfrei mit Herkunft', async (
   assert.deepEqual(k2.map((r) => r.part_index), [...k2.keys()]);
 });
 
+test('reindexCode bettet dateiweise gebuendelt ein (ein Embed-Call je Datei)', async () => {
+  let embedCalls = 0;
+  const fetchImpl = async (url, opts) => {
+    const body = JSON.parse(opts.body);
+    if (url.endsWith('/tokenize')) {
+      return { ok: true, status: 200, json: async () => ({ tokens: new Array(4).fill(1) }), text: async () => '' };
+    }
+    embedCalls++;
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ data: body.input.map(() => ({ embedding: new Array(768).fill(0.1) })) }),
+      text: async () => '',
+    };
+  };
+  const db = makeFakeDb({ code: [
+    { id: 'r1', file_path: 'a.ts', chunk_index: 0, content: 'eins', file_hash: 'h' },
+    { id: 'r2', file_path: 'a.ts', chunk_index: 1, content: 'zwei', file_hash: 'h' },
+    { id: 'r3', file_path: 'a.ts', chunk_index: 2, content: 'drei', file_hash: 'h' },
+    { id: 'r4', file_path: 'b.ts', chunk_index: 0, content: 'vier', file_hash: 'h' },
+  ] });
+  await prepare(db, 'q1');
+  const res = await reindexCode({ pool: db, embedUrl: 'http://x', fetchImpl, runId: 'q1' });
+  assert.equal(res.embedded, 4);
+  assert.equal(embedCalls, 2);
+  const rows = db.tables['public.code_embeddings_gemma_q1'];
+  assert.equal(rows.length, 4);
+  assert.deepEqual(rows.map((r) => [r.source_row_id, r.source_chunk_index, r.part_index]),
+    [['r1', 0, 0], ['r2', 1, 0], ['r3', 2, 0], ['r4', 0, 0]]);
+  assert.ok(rows.every((r) => r.embedding.length === 768 && r.profile === DENSE_PROFILE));
+});
+
 test('Reindex taggt embedding_model kurz (DENSE_MODEL), Profil bleibt voll', async () => {
   const db = makeFakeDb();
   await prepare(db, 't9');

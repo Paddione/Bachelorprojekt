@@ -171,6 +171,8 @@ const GATED_TABLES = [
 export async function enableWriterGate(db, runId) {
   await db.query(GUARD_FN_SQL);
   for (const t of GATED_TABLES) {
+    const exists = (await db.query(`SELECT to_regclass($1) AS o`, [t])).rows[0]?.o;
+    if (!exists) continue; // optionale Tabelle (z. B. tickets.*) fehlt — kein Gate, kein Fehler (#7158)
     try {
       await db.query(
         `CREATE TRIGGER dense_migration_gate BEFORE INSERT OR UPDATE OR DELETE ON ${t}

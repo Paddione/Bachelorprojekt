@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.4...website-v1.450.5) (2026-11-05)
+
+
+### Bug Fixes
+
+* **docs:** prodmesh-Kanonik auth-korczewski, Guard-Scope-Doku, mesh-E2E-Spec ([#7147](https://github.com/Paddione/Bachelorprojekt/issues/7147)) ([d7a2668](https://github.com/Paddione/Bachelorprojekt/commit/d7a26682d3c3d9e174e98c9ac4a0b2ddb790923f))
+
 ## [1.450.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.3...website-v1.450.4) (2026-11-04)
 
 

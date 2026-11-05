@@ -79,30 +79,6 @@ spec:
                 port:
                   number: 1411
 ---
-# ── Nextcloud (Dateien) ─────────────────────────────────────────────
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: workspace-ingress-files
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-files@kubernetescrd"
-spec:
-  tls:
-    - hosts:
-        - files.${PROD_DOMAIN}
-      secretName: ${TLS_SECRET_NAME}
-  rules:
-    - host: files.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: nextcloud
-                port:
-                  number: 80
----
 # ── Vaultwarden (Passwort-Manager) ─────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -200,52 +176,6 @@ spec:
                 name: oauth2-proxy-terminal
                 port:
                   number: 4180
----
-# ── Restliche Services (meet, board, signaling) ─────────────────────
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: workspace-ingress-misc
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
-spec:
-  tls:
-    - hosts:
-        - meet.${PROD_DOMAIN}
-        - board.${PROD_DOMAIN}
-        - signaling.${PROD_DOMAIN}
-      secretName: ${TLS_SECRET_NAME}
-  rules:
-    - host: meet.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: spreed-signaling
-                port:
-                  number: 8080
-    - host: board.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: whiteboard
-                port:
-                  number: 3002
-    - host: signaling.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: spreed-signaling
-                port:
-                  number: 8080
 ---
 # ── Tracking (Bachelorprojekt) ──────────────────────────────────────
 # Bug-Tracking läuft inzwischen direkt im Website-Admin-Panel

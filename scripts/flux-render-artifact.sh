@@ -14,11 +14,11 @@ source "${SCRIPT_DIR}/lib/render-subst-list.sh"
 OUT_DIR="out"
 # --only a,b rendert nur die genannten Komponenten (platform,
 # korczewski, korczewski-jobs, website-korczewski, korczewski-auth,
-# staging, website-staging, coturn, office, rustdesk,
+# staging, website-staging, office, rustdesk,
 # sealed-secrets-{korczewski,staging}, clusters).
 # Leer = alles (Default).
 ONLY=""
-KNOWN_COMPONENTS="platform korczewski korczewski-jobs website-korczewski korczewski-auth staging website-staging coturn office rustdesk sealed-secrets-korczewski sealed-secrets-staging clusters"
+KNOWN_COMPONENTS="platform korczewski korczewski-jobs website-korczewski korczewski-auth staging website-staging office rustdesk sealed-secrets-korczewski sealed-secrets-staging clusters"
 # WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
 # WEBSITE_IMAGE_TAG steuert den Image-Tag — getrennte Konzepte, nicht koppeln (T002209).
 # Siehe Task 2.2 fuer die Default-Werte des Tags.
@@ -346,27 +346,9 @@ if want website-staging; then
 )
 fi
 
-# 5d. Coturn/Janus (T016529) — Talk-HPB auf pk-hetzner-4 (hostNetwork,
-#     ohne WG). Env-Mapping brand-trennung p8 (fleet-mentolder -> fleet-korczewski,
-#     Werte aus environments/prodmesh-korczewski.yaml, nichts erfunden):
-#       TURN_NODE  gekko-hetzner-2 -> pk-hetzner-4
-#       TURN_PUBLIC_IP  178.104.169.206 -> 204.168.244.104
-#       TURN_OVERLAY_IP  192.168.200.2 -> siehe environments/prodmesh-korczewski.yaml
-#         (pk-hetzner-4-Overlay-IP; wörtlicher Wert hier ausgespart, damit der
-#         fleet-no-wireguard-Guard (kein 10.20.0.x im Prod-Umfang) scharf bleibt)
-#       PROD_DOMAIN  mentolder.de -> korczewski.de
-#       TLS_SECRET_NAME  workspace-wildcard-tls -> korczewski-tls
-#     Secrets kommen aus dem SealedSecrets-Pfad
-#     (./sealed-secrets/korczewski), TLS via eigenes Certificate im Overlay.
-if want coturn; then
-(
-  set +u
-  source scripts/env-resolve.sh prodmesh-korczewski 2>/dev/null
-  apply_schema_defaults
-  mkdir -p "${OUT_DIR}/coturn"
-  render_component prod-fleet/coturn "${OUT_DIR}/coturn/coturn.yaml"
-)
-fi
+# 5d. TURN-/SFU-Stack entfallen — dekommissioniert (Eigner-Entscheid 2026-11-05,
+#     prod-fleet/coturn/ geloescht, zugehoerige Kustomization in
+#     flux/clusters/fleet-gekko/ks-prod.yaml gestrichen).
 
 # 5e. Collabora (office-stack) fuer korczewski (brand-trennung p8:
 #     fleet-mentolder -> fleet-korczewski; PROD_DOMAIN=korczewski.de und
@@ -395,7 +377,7 @@ fi
 # 5f. RustDesk-Relay (hbbs/hbbr) fuer korczewski (brand-trennung p8:
 #     fleet-mentolder -> fleet-korczewski; TURN_NODE=pk-hetzner-4 aus
 #     environments/prodmesh-korczewski.yaml). Substituiert wird nur
-#     ${TURN_NODE} (Knoten-Pin wie coturn); always-on, ohne den
+#     ${TURN_NODE} (Knoten-Pin des frueheren TURN-Knotens); always-on, ohne den
 #     On-demand-Sleeper (T015170).
 if want rustdesk; then
 (
@@ -467,7 +449,7 @@ fi
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/coturn" "${OUT_DIR}/office" "${OUT_DIR}/rustdesk"; do
+for tree_dir in "${OUT_DIR}/korczewski" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/korczewski-auth" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/dev-pod" "${OUT_DIR}/office" "${OUT_DIR}/rustdesk"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

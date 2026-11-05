@@ -13,10 +13,10 @@ resources:
   # T002699 entfallen: beide Konsumenten dieses Overlays verwarfen ihn, er
   # erreichte also keinen Cluster. prod-fleet/mentolder loeschte ihn explizit,
   # prod-fleet/mentolder-jobs implizit (es entfernt alle Nicht-Job-Typen).
-  # Whisper + Talk-Transcriber laufen auf den fleet-CPs; die Platzierung setzt
-  # prod-fleet/mentolder.
+  # Whisper laeuft auf den fleet-CPs; die Platzierung setzt
+  # prod-fleet/mentolder. Der Talk-Transcriber ist dekommissioniert
+  # (Eigner-Entscheid 2026-11-05).
   - whisper.yaml
-  - talk-transcriber.yaml
 
 # Hier standen bis T002699 drei globale nodeAffinity-Patches (Deployment, CronJob,
 # Job), die k3s-1/2/3 und k3w-1/2/3 per NotIn ausschlossen — die Worker des

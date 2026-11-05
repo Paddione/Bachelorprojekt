@@ -49,16 +49,13 @@ env_vars:
   PRIMARY_FRONTEND: astro
   # TURN_OVERLAY_IP: pk-hetzner-4 overlay IP (wg-fleet, same fleet mesh as gekko-4)
   TURN_OVERLAY_IP: "10.20.0.1"
-  # Talk HPB (coturn + Janus SFU) is the SHARED fleet:shared-services stack on
-  # pk-hetzner-4 — NOT co-located with this brand's LiveKit edge (pk-hetzner-6).
+  # Single-node placement pin (pk-hetzner-4) — von rustdesk-stack mitgenutzt.
   # LiveKit entfernt per T002184.
   TURN_PUBLIC_IP: "204.168.244.104"
   TURN_NODE: "pk-hetzner-4"
-  NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
   BRAIN_EXTERNAL_URL: "https://brain.korczewski.de"
-  WHITEBOARD_EXTERNAL_URL: "https://files.korczewski.de/apps/files"
   TRAEFIK_EXTERNAL_URL: "https://traefik.korczewski.de"
   MAIL_EXTERNAL_URL: "https://mail.korczewski.de"
   BRETT_DOMAIN: brett.korczewski.de
@@ -66,7 +63,6 @@ env_vars:
   VIDEOVAULT_DOMAIN: videovault.korczewski.de
   OTEL_DOMAIN: otel.korczewski.de
   RECOVER_DOMAIN: recover.korczewski.de
-  NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"
   POCKET_ID_FRONTEND_URL: "https://auth.korczewski.de"

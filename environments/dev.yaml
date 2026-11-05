@@ -70,7 +70,6 @@ env_vars:
   SDLC_CONSOLE_POCKET_ID_FRONTEND_URL: "https://auth.devmesh.korczewski.de"
   SDLC_CONSOLE_POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
   SDLC_CONSOLE_POCKET_ID_CLIENT_ID: website
-  NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
   # CORS allowlist origin for the React SPA (dev)
   REACT_APP_ORIGIN: "http://react.localhost"
 

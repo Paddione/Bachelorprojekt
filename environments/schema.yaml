@@ -190,7 +190,7 @@ env_vars:
   - name: WORKSPACE_NAMESPACE
     required: false
     default_dev: "workspace"
-    description: "Kubernetes namespace for core workspace services (Pocket ID, Nextcloud, etc.)"
+    description: "Kubernetes namespace for core workspace services (Pocket ID, Website, etc.)"
 
   # T901440: zentrale DB-Koordinaten der Website (shared-db-Instanz).
   # Defaults bilden den bisherigen Stand ab (Host aus WORKSPACE_NAMESPACE,
@@ -302,15 +302,6 @@ env_vars:
     validate: "^[0-9.]+$"
     description: "wg-fleet overlay IP of ${TURN_NODE} (fleet pk-hetzner-4 = 10.20.0.1). Endpoints target for the RustDesk web-client bridge (T001381)."
 
-  - name: NEXTCLOUD_EXTERNAL_URL
-    required: false
-    default_dev: "http://files.localhost"
-
-  - name: NEXTCLOUD_DB_HOST
-    required: true
-    default_dev: "nextcloud-db.workspace.svc.cluster.local"
-    description: "Cluster-internal FQDN of the Nextcloud MariaDB. Overridden per-brand in environments/{korczewski,prodmesh-korczewski}.yaml when the namespace differs from `workspace`."
-
   - name: AUTH_EXTERNAL_URL
     required: false
     default_dev: "http://auth.localhost"
@@ -322,10 +313,6 @@ env_vars:
   - name: BRAIN_EXTERNAL_URL
     required: false
     default_dev: "http://brain.localhost"
-
-  - name: WHITEBOARD_EXTERNAL_URL
-    required: false
-    default_dev: "http://board.localhost"
 
   - name: TRAEFIK_EXTERNAL_URL
     required: false
@@ -458,7 +445,7 @@ env_vars:
   - name: POCKET_ID_URL
     required: false
     default_dev: "http://pocket-id.workspace.svc.cluster.local:1411"
-    description: "Cluster-internal URL of the Pocket ID service. MUST be an FQDN (T002154): the website runs in namespace `website`, pocket-id in `workspace` — the bare short name `pocket-id:1411` only resolves inside `workspace` and breaks the OIDC token exchange cross-namespace. Used by the website, brett, nextcloud and grafana services as the OIDC discovery base."
+    description: "Cluster-internal URL of the Pocket ID service. MUST be an FQDN (T002154): the website runs in namespace `website`, pocket-id in `workspace` — the bare short name `pocket-id:1411` only resolves inside `workspace` and breaks the OIDC token exchange cross-namespace. Used by the website, brett and grafana services as the OIDC discovery base."
 
   - name: WEBSITE_CONFIG_SHA
     required: false
@@ -811,38 +798,31 @@ secrets:
   # positives — they look like envsubst targets but never reach envsubst.
   # Do not "fix" the audit by adding them; update this comment instead.
   #
-  # 1. Signaling keys (hardcoded in pod env, stable within pod lifetime):
-  #      SESSION_HASHKEY, SESSION_BLOCKKEY, CLIENTS_INTERNALSECRET, TURN_APIKEY
-  #      — substituted by `sed` at container startup in k3d/talk-hpb.yaml
-  #      (line ~186) from values living in the Deployment's env: block. If
-  #      these ever become rotated secrets, promote them into this section.
-  #
-  # 2. Shell-local script vars (defined and used in the same container
+  # 1. Shell-local script vars (defined and used in the same container
   #    script, never touched by envsubst):
-  #      ARCH                (k3d/nextcloud.yaml — set via `uname -m`)
   #      BACKUP_DIR, STAMP, PASS, UPLOAD_PATH, FILEN_PATH, DUMP, SIZE
   #                          (k3d/backup-cronjob.yaml — script-local)
   #      DOMAIN, IP, IP_4, IP_6, IP_8, STATUS, FAILED
   #                          (prod-korczewski/ddns-updater.yaml — script-local
   #                           shell vars inside the ipv64 DDNS CronJob)
   #
-  # 3. Pod env vars sourced from a ConfigMap/Secret reference (not
+  # 2. Pod env vars sourced from a ConfigMap/Secret reference (not
   #    envsubst — the `${VAR}` in the script reads the container env):
   #      BRAND, FILEN_DEFAULT_UPLOAD_PATH
   #                          (k3d/backup-cronjob.yaml — `backup-config` CM)
   #      BRAND               (k3d/knowledge-ingest-cronjob.yaml — hardcoded
   #                           value: "mentolder" in the env: block)
-  # 4. Vaultwarden seed-job aliases (set inside the script from *_DOMAIN
+  # 3. Vaultwarden seed-job aliases (set inside the script from *_DOMAIN
   #    pod env vars; the manifest is NOT envsubst-substituted, only
   #    namespace-sed-rewritten in workspace:vaultwarden:seed):
-  #      KC, NC, WEB, DOCS, OFFICE
-  #                          (k3d/vaultwarden-seed-job.yaml lines 60-64)
+  #      AUTH, WEB, OFFICE
+  #                          (k3d/vaultwarden-seed-job.yaml)
   #    Pocket ID client-seed script vars (k3d/pocket-id-client-seed.yaml):
   #      SCHEME, SUFFIX
   #                          (dynamically constructed from PROD_DOMAIN inside the
   #                           workspace:deploy task; never reach envsubst)
   #
-  # 5. Taskfile-derived deploy-time variables (computed or pinned in the
+  # 4. Taskfile-derived deploy-time variables (computed or pinned in the
   #    task body, passed directly to envsubst — not stored in environments/):
   #      COLLABORA_INGRESS_MIDDLEWARES
   #                          (k3d/office-stack/ingress.yaml — computed from
@@ -862,11 +842,7 @@ secrets:
   #                           SMTP_PORT in workspace:deploy: "tls" / "starttls"
   #                           / "none")
   #
-  # 6. Comment text matched by the audit regex (not real envsubst targets):
-  #      VAR                 (k3d/coturn-stack/coturn.yaml line ~43 — used
-  #                           in a YAML comment explaining $(VAR) vs ${VAR})
-  #
-  # 7. Runtime shell vars in pvc-backup-cronjob.yaml's embedded Job-generation
+  # 5. Runtime shell vars in pvc-backup-cronjob.yaml's embedded Job-generation
   #    heredoc (MJOB). The $${VAR} notation double-escapes the $ so envsubst
   #    never touches them; the container shell evaluates them at runtime:
   #      DS_AFFINITY, DS_CLAIM, VW_AFFINITY, VW_CLAIM
@@ -932,11 +908,6 @@ secrets:
     extra_namespaces:
       - namespace: workspace-office
         secret: collabora-secrets
-
-  - name: WHITEBOARD_JWT_SECRET
-    required: true
-    generate: true
-    length: 32
 
   - name: VAULTWARDEN_DB_PASSWORD
     required: true

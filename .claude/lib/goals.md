@@ -370,7 +370,7 @@ gültig antwortet (HTTP 200, JSON mit `issuer` und `authorization_endpoint`).
 python3 scripts/lib/runtime-health-measure.py svc-oidc
 ```
 
-> **B · Baseline:** 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+> **B · Baseline:** 0 → 1 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
 ## G-SVC03 — Nextcloud Health-Endpoint antwortet: 0 → 0
 

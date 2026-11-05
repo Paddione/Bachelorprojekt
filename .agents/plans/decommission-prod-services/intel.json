@@ -1,0 +1,443 @@
+{
+  "meta": {
+    "slug": "decommission-prod-services",
+    "ticket_id": "",
+    "generated_from": "main@bb7b520ce",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".agents/plans/decommission-prod-services/verify.log",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "apps/whiteboard/app.yaml",
+      "language": "config",
+      "loc": 13,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/meetings-db.ts",
+      "language": "javascript",
+      "loc": 365,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 535
+    },
+    {
+      "path": "components/website/src/lib/system-test-seed-data.ts",
+      "language": "javascript",
+      "loc": 1115,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/whiteboard.test.ts",
+      "language": "javascript",
+      "loc": 104,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 796
+    },
+    {
+      "path": "components/website/src/lib/whiteboard.ts",
+      "language": "javascript",
+      "loc": 136,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 764
+    },
+    {
+      "path": "components/website/src/pages/api/meeting/finalize.ts",
+      "language": "javascript",
+      "loc": 242,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 658
+    },
+    {
+      "path": "components/website/src/pages/api/meeting/save-transcript.ts",
+      "language": "javascript",
+      "loc": 233,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 667
+    },
+    {
+      "path": "docs/adr/ADR-0xx-decommission-prod-services.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/components.yaml",
+      "language": "config",
+      "loc": 373,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/dev.yaml",
+      "language": "config",
+      "loc": 84,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/korczewski.yaml",
+      "language": "config",
+      "loc": 117,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/prodmesh-korczewski.yaml",
+      "language": "config",
+      "loc": 126,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1909,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/staging.yaml",
+      "language": "config",
+      "loc": 109,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet-gekko/ks-prod.yaml",
+      "language": "config",
+      "loc": 104,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/coturn-stack/coturn-cert.yaml",
+      "language": "config",
+      "loc": 3,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/coturn-stack/coturn.yaml",
+      "language": "config",
+      "loc": 140,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/coturn-stack/janus.yaml",
+      "language": "config",
+      "loc": 136,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/coturn-stack/kustomization.yaml",
+      "language": "config",
+      "loc": 17,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/coturn-stack/namespace.yaml",
+      "language": "config",
+      "loc": 15,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/coturn-stack/secret.yaml",
+      "language": "config",
+      "loc": 26,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/ingress.yaml",
+      "language": "config",
+      "loc": 167,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/kustomization.yaml",
+      "language": "config",
+      "loc": 151,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/nextcloud-notification-config-job.yaml",
+      "language": "config",
+      "loc": 93,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/nextcloud-redis.yaml",
+      "language": "config",
+      "loc": 78,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/nextcloud.yaml",
+      "language": "config",
+      "loc": 474,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/secrets.yaml",
+      "language": "config",
+      "loc": 153,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/talk-hpb.yaml",
+      "language": "config",
+      "loc": 299,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/talk-recording.yaml",
+      "language": "config",
+      "loc": 108,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/website-dev-secrets.yaml",
+      "language": "config",
+      "loc": 41,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/whiteboard/kustomization.yaml",
+      "language": "config",
+      "loc": 4,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/whiteboard/whiteboard.yaml",
+      "language": "config",
+      "loc": 84,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-mentolder/patch-data-pvc-storage.yaml",
+      "language": "config",
+      "loc": 13,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-mentolder/talk-transcriber.yaml",
+      "language": "config",
+      "loc": 130,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod/configmap-domains.yaml",
+      "language": "config",
+      "loc": 51,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod/ingress.yaml",
+      "language": "config",
+      "loc": 395,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod/kustomization.yaml",
+      "language": "config",
+      "loc": 189,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod/nextcloud-oidc-prod.php",
+      "language": "php",
+      "loc": 30,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 570
+    },
+    {
+      "path": "prod/patch-nextcloud.yaml",
+      "language": "config",
+      "loc": 57,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.workspace.yml",
+      "language": "config",
+      "loc": 1325,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/e2e/playwright.config.ts",
+      "language": "javascript",
+      "loc": 271,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 629
+    },
+    {
+      "path": "tests/e2e/specs/app-catalog.spec.ts",
+      "language": "javascript",
+      "loc": 44,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 856
+    },
+    {
+      "path": "tests/e2e/specs/fa-24-whiteboard.spec.ts",
+      "language": "javascript",
+      "loc": 77,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 823
+    },
+    {
+      "path": "tests/local/FA-24.sh",
+      "language": "bash",
+      "loc": 41,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 759
+    },
+    {
+      "path": "tests/py/spec/test_no_prod_services.py",
+      "language": "python",
+      "loc": 54,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 746
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/lib/whiteboard.ts:11:function getAuthHeader(): string {",
+      "kind": "function",
+      "file": "components/website/src/lib/whiteboard.ts",
+      "signature": "11:function getAuthHeader(): string {(...)",
+      "type_text": "11:function getAuthHeader(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/api/meeting/save-transcript.ts:193:function json(data: unknown, status: number): Response {",
+      "kind": "function",
+      "file": "components/website/src/pages/api/meeting/save-transcript.ts",
+      "signature": "193:function json(data: unknown, status: number): Response {(...)",
+      "type_text": "193:function json(data: unknown, status: number): Response {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/api/meeting/save-transcript.ts:200:function formatSeconds(s: number): string {",
+      "kind": "function",
+      "file": "components/website/src/pages/api/meeting/save-transcript.ts",
+      "signature": "200:function formatSeconds(s: number): string {(...)",
+      "type_text": "200:function formatSeconds(s: number): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/api/meeting/save-transcript.ts:206:function buildMarkdown(params: {",
+      "kind": "function",
+      "file": "components/website/src/pages/api/meeting/save-transcript.ts",
+      "signature": "206:function buildMarkdown(params: {(...)",
+      "type_text": "206:function buildMarkdown(params: {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/local/FA-24.sh:7:_kube_curl() { kubectl exec -n \"$NAMESPACE\" deploy/keycloak -- curl -s \"$@\" 2>/dev/null; }",
+      "kind": "function",
+      "file": "tests/local/FA-24.sh",
+      "signature": "7:_kube_curl() { kubectl exec -n \"$NAMESPACE\" deploy/keycloak -- curl -s \"$@\" 2>/dev/null; }(...)",
+      "type_text": "7:_kube_curl() { kubectl exec -n \"$NAMESPACE\" deploy/keycloak -- curl -s \"$@\" 2>/dev/null; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

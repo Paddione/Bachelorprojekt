@@ -320,9 +320,11 @@ domains:
       groups: []
     owner_frontend: bp-ship
     functions: [sso]
-    status: frozen
+    status: live
+    expect:
+      status: [200]
     manifest_source: k3d/pocket-id.yaml
-    decision: "D1: kanonischer prodmesh-Pocket-ID-Host (korczewski-prod-Render aus dieser Basis, POCKET_ID_DOMAIN=auth.korczewski.de); frozen bis Deploy-Freigabe — live derzeit nur als devmesh-Kompat-Spiegel korczewski-auth-mirror. Nach verifiziertem 200 auf live + expect heben."
+    decision: "D1 aufgetaut 2026-11-05 (Eigner): eine Infra serviert beide Meshes; live verifiziert (Probe + Playwright, 200), Freigabe erteilt. website-/apex-korczewski bleiben frozen bis Backend-200 bzw. Redirect-301."
 
   - id: devmesh-agent-board
     host: agent-board.devmesh.korczewski.de

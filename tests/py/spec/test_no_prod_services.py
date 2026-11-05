@@ -338,6 +338,23 @@ DECIDED_KEEP_LINES = {
         "tests/local/SA-07.sh",
         "nextcloud direct mount;",
     ),
+    # Abgeleitete Guide-Sektionen aus der DB-Lock-Step-Registry (s. components.yaml).
+    (
+        "docs/agent-guide/30-bausteine.md",
+        "### ☁️ Nextcloud",
+    ),
+    (
+        "docs/agent-guide/30-bausteine.md",
+        "### 📡 Talk HPB",
+    ),
+    (
+        "docs/agent-guide/30-bausteine.md",
+        "### 🎨 Whiteboard",
+    ),
+    (
+        "docs/agent-guide/30-bausteine.md",
+        "Kollaboratives Whiteboard für Skizzen und Ideen, direkt in Nextcloud.",
+    ),
     # BEHALTENER DB-Nutzer im Rollen-Sync-Test (shared-db User lebt weiter).
     (
         "tests/py/spec/massage-tenant/test_shared_db_roles.py",

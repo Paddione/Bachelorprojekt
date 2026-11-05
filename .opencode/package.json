@@ -3,7 +3,7 @@
     "@opencode-ai/plugin": "1.19.0",
     "@tarquinen/opencode-dcp": "^3.2.0",
     "jsonc-parser": "^3.3.1",
-    "oh-my-opencode-slim": "^3.0.6",
+    "oh-my-opencode-slim": "^3.0.7",
     "opencode-agent-memory": "^0.3.1",
     "superpowers": "git+https://github.com/obra/superpowers.git#22f0b463e7a5e579904dd6211a520321035526f7",
     "unique-names-generator": "^4.7.1",

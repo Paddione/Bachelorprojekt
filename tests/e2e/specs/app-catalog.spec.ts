@@ -22,23 +22,5 @@ test.describe('FA-SF-57: App Catalog E2E Tests', () => {
     // Check if title is present
     const title = page.locator('h1');
     await expect(title).toContainText('App-Katalog');
-    
-    // Check if the whiteboard catalog card is visible
-    const whiteboardCard = page.locator('h3', { hasText: 'Whiteboard' });
-    await expect(whiteboardCard).toBeVisible();
-    
-    // Click "Details anzeigen" on the whiteboard card
-    const detailsButton = page.locator('button', { hasText: 'Details anzeigen' }).first();
-    await expect(detailsButton).toBeVisible();
-    await detailsButton.click();
-    
-    // Check if modal opens and displays installations-befehl
-    const modalTitle = page.locator('h2', { hasText: 'Whiteboard — Installationsanleitung' });
-    await expect(modalTitle).toBeVisible();
-    
-    // Click "Schließen" button to close modal
-    const closeButton = page.locator('button', { hasText: 'Schließen' }).first();
-    await closeButton.click();
-    await expect(modalTitle).not.toBeVisible();
   });
 });

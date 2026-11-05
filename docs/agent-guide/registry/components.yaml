@@ -19,32 +19,20 @@
   sensitivity: forbidden
   placeholder_en: "SSO / OIDC identity provider"
   summary_de: "Die zentrale Anmeldung (Single Sign-On): ein Login für alle Dienste."
-  what_for_de: "Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Nextcloud, Vaultwarden u. a. an. Herzstück der Sicherheit."
+  what_for_de: "Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Vaultwarden u. a. an. Herzstück der Sicherheit."
   url: null
   links: []
   area: plattform
   theme: sicherheit
   relates_to: [secret-aendern]
-- slug: nextcloud
-  kind: software
-  name: "Nextcloud"
-  emoji: "☁️"
-  sensitivity: assisted
-  placeholder_en: "File storage + groupware"
-  summary_de: "Deine private Cloud: Dateien, Kalender, Kontakte und Video-Telefonie (Talk)."
-  what_for_de: "Wie eine eigene Dropbox + Office + Kalender, komplett auf eigenen Servern (DSGVO-konform)."
-  url: null
-  links: []
-  area: dienste
-  theme: betrieb
 - slug: collabora
   kind: software
   name: "Collabora"
   emoji: "📄"
   sensitivity: caution
   placeholder_en: "Online office suite"
-  summary_de: "Office im Browser: Dokumente, Tabellen und Präsentationen direkt in Nextcloud bearbeiten."
-  what_for_de: "Die Online-Office-Suite, die Nextcloud-Dateien bearbeitbar macht (vergleichbar mit Office im Web)."
+  summary_de: "Office im Browser: Dokumente, Tabellen und Präsentationen direkt im Browser bearbeiten."
+  what_for_de: "Die Online-Office-Suite, die Office-Dateien im Browser bearbeitbar macht (vergleichbar mit Office im Web)."
   url: null
   links: []
   area: dienste
@@ -61,16 +49,6 @@
   links: []
   area: dienste
   theme: sicherheit
-- slug: nextcloud-talk-hpb
-  kind: software
-  name: "Talk HPB"
-  emoji: "📡"
-  sensitivity: caution
-  placeholder_en: "Nextcloud Talk signaling server"
-  summary_de: "Der Vermittlungs-Server (Signaling) für Nextcloud Talk – sorgt dafür, dass Video-Anrufe zueinander finden."
-  what_for_de: "High-Performance-Backend für Talk; ohne ihn brechen Gruppen-Videoanrufe zusammen."
-  url: null
-  links: []
 - slug: brett
   kind: software
   name: "Brett"
@@ -103,16 +81,6 @@
   links: []
   area: dienste
   theme: betrieb
-- slug: whiteboard
-  kind: software
-  name: "Whiteboard"
-  emoji: "🎨"
-  sensitivity: safe
-  placeholder_en: "Collaborative drawing"
-  summary_de: "Eine gemeinsame Zeichen-Tafel zum Brainstormen, in Nextcloud eingebunden."
-  what_for_de: "Kollaboratives Whiteboard für Skizzen und Ideen, direkt in Nextcloud."
-  url: null
-  links: []
 - slug: arena
   kind: software
   name: "Arena"
@@ -150,7 +118,7 @@
   sensitivity: forbidden
   placeholder_en: "Shared database server"
   summary_de: "Die zentrale Datenbank (PostgreSQL 16). Hier liegen fast alle Daten der Plattform."
-  what_for_de: "Gemeinsamer Datenbank-Server für Website, Keycloak, Nextcloud u. v. m. Pro Marke eigene Instanz."
+  what_for_de: "Gemeinsamer Datenbank-Server für Website, Keycloak u. v. m. Pro Marke eigene Instanz."
   url: null
   links: []
   area: daten
@@ -244,16 +212,6 @@
   placeholder_en: "OpenAI Whisper speech-to-text transcription"
   summary_de: "Wandelt gesprochene Sprache in Text um (Spracherkennung, OpenAI Whisper)."
   what_for_de: "Speech-to-Text-Modell; Grundlage für automatische Gesprächs-Mitschriften."
-  url: null
-  links: []
-- slug: talk-transcriber
-  kind: software
-  name: "Talk Transcriber"
-  emoji: "📝"
-  sensitivity: caution
-  placeholder_en: "Nextcloud Talk auto-transcription bot"
-  summary_de: "Schreibt Nextcloud-Talk-Gespräche automatisch mit (Transkription)."
-  what_for_de: "Bot, der Talk-Anrufe live mitschreibt und als Text ablegt."
   url: null
   links: []
 - slug: mcp

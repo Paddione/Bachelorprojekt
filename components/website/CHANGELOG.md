@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.451.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.5...website-v1.451.6) (2026-11-06)
+
+
+### Bug Fixes
+
+* **ci:** Website-Builds fließen digest-scharf ins korczewski-prod-Artefakt ([#7236](https://github.com/Paddione/Bachelorprojekt/issues/7236)) ([217d501](https://github.com/Paddione/Bachelorprojekt/commit/217d5018065137021038796c99cfb9dde6f422a4))
+
+
+### Code Refactoring
+
+* **website:** migrate coaching and route manifest to ports facade ([c3c2bce](https://github.com/Paddione/Bachelorprojekt/commit/c3c2bcec2a1727d7b69d5b594a77ab3c615e5ed1))
+
 ## [1.451.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.4...website-v1.451.5) (2026-11-06)
 
 

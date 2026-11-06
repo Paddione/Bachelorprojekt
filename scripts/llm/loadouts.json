@@ -482,7 +482,7 @@
       "label": "Qwen3.5-2B BP Q4_K_M · Worker, GPU0 :8099, 32k Kontext",
       "model": "qwen35-2b-bp/Qwen3.5-2B.Q4_K_M.gguf",
       "port": 8099,
-      "enabled": true,
+      "enabled": false,
       "fit": {
         "enabled": false,
         "targetMarginMib": 0,
@@ -505,7 +505,7 @@
         "--alias",
         "qwen35-2b-worker"
       ],
-      "notes": "Eingehaengt 2026-10-10 (User): frischer 2B-BP-Quant als Worker-Modell auf GPU0 neben bge-embed (:8085). Text-Only: mmproj (Qwen3.5-2B.BF16-mmproj.gguf) liegt bei, wird aber nicht geladen. Manuell gestartet (setsid), keine systemd-Unit."
+      "notes": "Eingehaengt 2026-10-10 (User): frischer 2B-BP-Quant als Worker-Modell auf GPU0 neben bge-embed (:8085). Text-Only: mmproj (Qwen3.5-2B.BF16-mmproj.gguf) liegt bei, wird aber nicht geladen. Manuell gestartet (setsid), keine systemd-Unit. Deaktiviert 2026-11-06: :8099 wird dauerhaft vom k3d-qwen3-17b-Port-Forward (devmesh-qwen17b-forward, LLM02-Backend worker-3060ti) bedient — der lokale Worker ist dort nicht mehr startbar (Port belegt) und das registrierte Modell weicht vom live gemeldeten ab (G-LLM03-Drift). Reaktivieren nur nach Abzug des Forwards."
     }
   ],
   "roles": {

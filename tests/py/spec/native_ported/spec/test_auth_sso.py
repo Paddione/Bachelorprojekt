@@ -266,15 +266,22 @@ def test_t002156_flux_renderer_lehnt_eine_leer_substituierte_checksum_config_ab(
     )
 
 
-def test_t002156_alle_drei_render_pfade_nutzen_den_gemeinsamen_helper(repo_root):
+def test_t002156_beide_verbliebenen_render_pfade_nutzen_den_gemeinsamen_helper(repo_root):
+    # [#7234] Ersetzt test_t002156_alle_drei_render_pfade_nutzen_den_gemeinsamen_helper:
+    # build-website.yml rendert nichts mehr (nur workflow_call, kein envsubst —
+    # dort gibt es keinen Hash zu berechnen), uebrig sind die zwei Pfade, die
+    # weiterhin denselben Helper nutzen muessen, damit Hashes uebereinstimmen.
     missing = []
     if "website-config-sha.sh" not in _read(repo_root / "scripts/flux-render-artifact.sh"):
         missing.append("flux-render-artifact.sh")
     if not any("website-config-sha.sh" in _read(p) for p in _taskfile_sources(repo_root)):
         missing.append("Taskfile-suite")
-    if "website-config-sha.sh" not in _read(repo_root / ".github/workflows/build-website.yml"):
-        missing.append("build-website.yml")
     assert not missing, f"FAIL: Pfade ohne gemeinsamen Helper: {' '.join(missing)}"
+    ci = _read(repo_root / ".github/workflows/build-website.yml")
+    assert "website-config-sha.sh" not in ci, \
+        "FAIL: build-website.yml rendert wieder — Hash-Pfad ohne Helper-Anbindung"
+    assert "envsubst" not in ci, \
+        "FAIL: build-website.yml substituiert wieder Manifeste ausserhalb der Render-Pfade"
 
 
 # ── T002205: Keycloak-Abschaltung vollstaendig ────────────────────────────

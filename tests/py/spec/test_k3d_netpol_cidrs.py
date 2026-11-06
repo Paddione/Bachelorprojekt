@@ -93,12 +93,14 @@ def test_dynamic_render_paths_default_cidr_vars(repo_root: Path):
     assert 'export SERVICE_CIDR="${SERVICE_CIDR:-10.43.0.0/16}"' in devmesh
     assert 'export POD_VTEP_IP="${POD_VTEP_IP:-${POD_CIDR%%/*}}"' in devmesh
 
-    # build-website.yml fails closed on unset vars (MISSING check) — the var
-    # must exist in the job env, not just in a Taskfile.
-    ci = (repo_root / ".github/workflows/build-website.yml").read_text()
-    assert 'POD_CIDR: "10.42.0.0/16"' in ci
-    assert 'SERVICE_CIDR: "10.43.0.0/16"' in ci
-    assert "POD_VTEP_IP=" in ci
+    # [#7234] build-website.yml rendert keine Manifeste mehr (nur noch
+    # workflow_call-Jobs ohne envsubst, kein MISSING-Check) — die fail-closed
+    # CIDR-Pflicht liegt jetzt im korczewski-prod-Renderpfad: render-stack.sh
+    # bricht bei leeren Werten ab und leitet POD_VTEP_IP aus POD_CIDR ab.
+    korczewski_prod = (repo_root / "scripts/korczewski-prod/render-stack.sh").read_text()
+    assert '[[ -n "${POD_CIDR:-}" ]]' in korczewski_prod
+    assert '[[ -n "${SERVICE_CIDR:-}" ]]' in korczewski_prod
+    assert 'POD_VTEP_IP="${POD_VTEP_IP:-${POD_CIDR%%/*}}"' in korczewski_prod
 
 
 def test_schema_and_preflight_cover_cidr_vars(repo_root: Path):

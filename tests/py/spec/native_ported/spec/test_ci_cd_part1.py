@@ -261,22 +261,39 @@ def test_g_cd01_build_website_yml_hat_keinen_deploy_mentolder_mehr_flux_only_t90
 
 
 
-def test_g_cd01_deploy_korczewski_needs_build_image_und_nicht_deploy_mentolder(ci):
+def test_g_cd01_build_ruft_korczewski_prod_render_mit_digest(ci):
+    """[#7234] Der Website-Build stoesst den korczewski-prod-Render digest-scharf an.
+
+    Ersetzt test_g_cd01_deploy_korczewski_needs_build_image_und_nicht_deploy_mentolder:
+    deploy-korczewski (toter kubectl-Pfad, T900810-Praezedenz) ist entfernt; die Kette
+    build-image -> render-korczewski-prod (workflow_call mit
+    needs.build-image.outputs.digest) traegt jetzt den frischen Digest ins Artefakt.
+    """
     jobs = (yaml.safe_load(ci["build_wf"].read_text()) or {}).get("jobs", {})
-    assert "deploy-korczewski" in jobs, "kein deploy-korczewski Job"
-    needs = jobs["deploy-korczewski"].get("needs", [])
+    assert "deploy-korczewski" not in jobs, \
+        "deploy-korczewski (toter kubectl-Pfad) ist zurueckgekehrt"
+    assert "deploy-mentolder" not in jobs, "deploy-mentolder (pre-Flux) ist zurueckgekehrt"
+    assert "render-korczewski-prod" in jobs, "kein render-korczewski-prod Job"
+    job = jobs["render-korczewski-prod"]
+    needs = job.get("needs", [])
     if isinstance(needs, str):
         needs = [needs]
-    assert "build-image" in needs, "deploy-korczewski muss build-image brauchen"
-    assert "deploy-mentolder" not in needs, \
-        "deploy-korczewski muss unabhaengig von deploy-mentolder sein"
+    assert "build-image" in needs, "render-korczewski-prod muss build-image brauchen"
+    assert "render-korczewski-prod-artifact.yml" in (job.get("uses") or ""), \
+        "render-korczewski-prod muss den korczewski-prod-Render aufrufen"
+    assert (job.get("with") or {}).get("website_image_digest") == "${{ needs.build-image.outputs.digest }}", \
+        "render-korczewski-prod muss den frischen Build-Digest weiterreichen"
 
 
+def test_g_cd01_beide_render_jobs_erhalten_den_frischen_build_digest(ci):
+    """[#7234] Fleet- und korczewski-prod-Render bekommen beide den frischen Digest.
 
-def test_g_cd01_der_verbliebene_deploy_job_liest_den_image_tag_aus_build_image_outputs(ci):
+    Ersetzt test_g_cd01_der_verbliebene_deploy_job_liest_den_image_tag_aus_build_image_outputs:
+    es gibt keinen Deploy-Job mehr, der Image/SHA-Tag liest — downstream haengt am Digest.
+    """
     text = ci["build_wf"].read_text()
-    assert _grep_q(text, r"needs.build-image.outputs.image")
-    assert _grep_q(text, r"needs.build-image.outputs.sha_tag")
+    assert _count_lines(text, "needs.build-image.outputs.digest") >= 2, \
+        "fleet- und korczewski-prod-Render muessen den Build-Digest erhalten"
 
 
 
@@ -401,10 +418,22 @@ def test_g_commit_vs_diff_unit_tests_in_tests_unit_check_commit_vs_diff_bats_cov
 
 
 
-def test_t001446_build_website_pre_rollout_secret_check_skips_optional_secret_key_refs_deploy_korczewski(ci):
-    wf = ci["build_wf"]
-    assert wf.is_file()
-    assert _count_lines(wf.read_text(), "and not v.get('optional')") == 1
+def test_t001446_korczewski_prod_render_behaelt_secret_hygiene_ohne_kubectl_deploy(ci):
+    """[#7234] Secret-Hygiene liegt jetzt im Render-Pfad, nicht im kubectl-Deploy.
+
+    Ersetzt test_t001446_build_website_pre_rollout_secret_check_skips_optional_secret_key_refs_deploy_korczewski:
+    der kubectl-Deploypfad (inkl. Pre-Rollout Secret-Check) ist mit deploy-korczewski
+    entfernt (T900810-Praezedenz); Guard 6 (kein Klartext-Secret) in render-stack.sh
+    plus Render-Gate im Workflow sichern denselben Pfad jetzt fail-closed ab.
+    """
+    jobs = (yaml.safe_load(ci["build_wf"].read_text()) or {}).get("jobs", {})
+    assert "deploy-korczewski" not in jobs, \
+        "deploy-korczewski (toter kubectl-Pfad) ist zurueckgekehrt"
+    render_sh = (ci["repo"] / "scripts/korczewski-prod/render-stack.sh").read_text()
+    assert 'select(.kind == "Secret")' in render_sh, \
+        "Guard 6 (kein Klartext-Secret) fehlt in render-stack.sh"
+    prod_wf = (ci["repo"] / ".github/workflows/render-korczewski-prod-artifact.yml").read_text()
+    assert "Render-Gate" in prod_wf, "Render-Gate fehlt im korczewski-prod-Workflow"
 
 
 

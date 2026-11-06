@@ -385,7 +385,9 @@ describe('Alle Tickets bucket (flat all-tickets view)', () => {
   });
 });
 
-describe.skip('PORTFOLIO_MAX_ROWS limit (B6)', () => {
+// B6 seedet 1005 Container + Nachlade-Queries in pg-mem (je ~9-11 s) —
+// explizites Timeout statt Default-10 s (kein Skip-Grund, reine Laufzeit).
+describe('PORTFOLIO_MAX_ROWS limit (B6)', () => {
   it('getPortfolio limits containers to PORTFOLIO_MAX_ROWS', async () => {
     // Seed more projects than PORTFOLIO_MAX_ROWS (1000) - use smaller batches for pg-mem compatibility
     const batchSize = 50;
@@ -413,7 +415,7 @@ describe.skip('PORTFOLIO_MAX_ROWS limit (B6)', () => {
       p => p.extId !== '__all_tickets__' && p.extId !== '__no_feature__',
     );
     expect(realProducts.length).toBeLessThanOrEqual(1000);
-  });
+  }, 60000);
 
   it('getPortfolio still returns the correct base fixture data alongside many others', async () => {
     // Seed many extra rows, then verify the original fixture project is still found
@@ -441,5 +443,5 @@ describe.skip('PORTFOLIO_MAX_ROWS limit (B6)', () => {
     const p = out.products.find((x) => x.extId === 'p1');
     expect(p).toBeTruthy();
     expect(p!.features).toHaveLength(2);
-  });
+  }, 60000);
 });

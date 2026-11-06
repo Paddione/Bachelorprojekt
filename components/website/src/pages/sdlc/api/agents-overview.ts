@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { execFile } from 'node:child_process/promises';
+import { execFile as execFileCallback } from 'node:child_process';
+import { promisify } from 'node:util';
 import { existsSync, promises as fsp } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -18,6 +19,8 @@ import {
 // Panels offen sind. Timeout je Quelle 20 s; keine Secrets im Payload.
 
 export const prerender = false;
+
+const execFile = promisify(execFileCallback);
 
 const CACHE_TTL_MS = 25_000;
 const SCRIPT_TIMEOUT_MS = 20_000;

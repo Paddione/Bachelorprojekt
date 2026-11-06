@@ -54,6 +54,13 @@ spec:
       - env:
         - name: BRAND
           value: korczewski
+        # website-config is shared with massage; explicit identity wins over envFrom.
+        - name: BRAND_ID
+          value: korczewski
+        - name: CONTACT_EMAIL
+          value: info@korczewski.de
+        - name: CONTACT_PHONE
+          value: ""
         - name: WEBSITE_DB_PASSWORD
           valueFrom:
             secretKeyRef:

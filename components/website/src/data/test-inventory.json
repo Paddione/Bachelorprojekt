@@ -3918,6 +3918,12 @@
     "kind": "pytest"
   },
   {
+    "id": "korczewski_brand_runtime",
+    "file": "tests/py/spec/test_korczewski_brand_runtime.py",
+    "category": "korczewski_brand_runtime",
+    "kind": "pytest"
+  },
+  {
     "id": "kv-budget",
     "file": "tests/py/spec/remaining_domain_specs/test_kv_budget.py",
     "category": "kv-budget",

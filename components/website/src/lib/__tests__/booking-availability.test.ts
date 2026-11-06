@@ -18,6 +18,9 @@ const { dbState, whitelistRows } = vi.hoisted(() => ({
 const fetchMock = vi.fn();
 vi.stubGlobal('fetch', fetchMock);
 
+// Catalogue reads must use a brand still bundled after mentolder retirement.
+vi.hoisted(() => { vi.stubEnv('BRAND', 'massage'); });
+
 vi.mock('../tickets-schema', () => ({ initTicketsSchema: vi.fn(async () => undefined) }));
 
 // In-memory slot_whitelist behind the real appointments-db module.

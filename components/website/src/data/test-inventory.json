@@ -4758,6 +4758,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/fe05_korczewski_delivery",
+    "file": "tests/py/spec/native_ported/spec/test_fe05_korczewski_delivery.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/fleet-operations/fleet_no_wireguard",
     "file": "tests/py/spec/native_ported/spec/fleet-operations/test_fleet_no_wireguard.py",
     "category": "native_ported",

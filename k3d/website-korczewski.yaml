@@ -1,0 +1,328 @@
+# website-korczewski: korczewski-Storefront-Variante des website-Deployments (BRAND=korczewski).
+# Serviert web.korczewski.de (Ingress web-korczewski, upstream website-korczewski:80).
+# Erstellt aus website-massage (env/Probes/Resources identisch), nur Name/Labels/Image/BRAND abweichend.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: website-korczewski
+  name: website-korczewski
+  namespace: workspace
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 4321
+  selector:
+    app: website-korczewski
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+  labels:
+    app: website-korczewski
+  name: website-korczewski
+  namespace: workspace
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: website-korczewski
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/config: 26dde1e5d0ef22408853d4fa746627acb108a243a2abe95020cbc955a33f38ba
+      labels:
+        app: website-korczewski
+    spec:
+      containers:
+      - env:
+        - name: BRAND
+          value: korczewski
+        - name: WEBSITE_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: WEBSITE_DB_PASSWORD
+              name: website-secrets
+        - name: SESSIONS_DATABASE_URL
+          value: postgresql://website:$(WEBSITE_DB_PASSWORD)@massage-db-dev.workspace.svc.cluster.local:5432/website
+        - name: GITHUB_CONTENT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: GITHUB_CONTENT_TOKEN
+              name: website-content-token
+              optional: true
+        - name: REPO_ROOT
+          value: /app
+        - name: CRON_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: CRON_SECRET
+              name: website-secrets
+        - name: MEETING_INTERNAL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: MEETING_INTERNAL_TOKEN
+              name: website-secrets
+        - name: SESSIONS_CRON_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: SESSIONS_CRON_TOKEN
+              name: website-secrets
+        - name: POCKET_ID_WEBSITE_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: POCKET_ID_WEBSITE_SECRET
+              name: website-secrets
+        - name: POCKET_ID_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: POCKET_ID_API_KEY
+              name: website-secrets
+        - name: SMTP_PASS
+          valueFrom:
+            secretKeyRef:
+              key: SMTP_PASSWORD
+              name: website-secrets
+        - name: SEPA_CREDITOR_IBAN
+          valueFrom:
+            secretKeyRef:
+              key: SEPA_CREDITOR_IBAN
+              name: website-secrets
+              optional: true
+        - name: SEPA_CREDITOR_BIC
+          valueFrom:
+            secretKeyRef:
+              key: SEPA_CREDITOR_BIC
+              name: website-secrets
+              optional: true
+        - name: SEPA_CREDITOR_ID
+          valueFrom:
+            secretKeyRef:
+              key: SEPA_CREDITOR_ID
+              name: website-secrets
+              optional: true
+        - name: NEXTCLOUD_ADMIN_PASS
+          valueFrom:
+            secretKeyRef:
+              key: NEXTCLOUD_ADMIN_PASS
+              name: website-secrets
+        - name: NEXTCLOUD_CALDAV_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: NEXTCLOUD_CALDAV_PASSWORD
+              name: website-secrets
+        - name: SELLER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: SELLER_NAME
+              name: website-seller-config
+        - name: SELLER_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              key: SELLER_ADDRESS
+              name: website-seller-config
+        - name: SELLER_POSTAL_CODE
+          valueFrom:
+            configMapKeyRef:
+              key: SELLER_POSTAL_CODE
+              name: website-seller-config
+        - name: SELLER_CITY
+          valueFrom:
+            configMapKeyRef:
+              key: SELLER_CITY
+              name: website-seller-config
+        - name: SELLER_COUNTRY
+          valueFrom:
+            configMapKeyRef:
+              key: SELLER_COUNTRY
+              name: website-seller-config
+        - name: SELLER_VAT_ID
+          valueFrom:
+            configMapKeyRef:
+              key: SELLER_VAT_ID
+              name: website-seller-config
+        - name: SELLER_TAX_NUMBER
+          valueFrom:
+            configMapKeyRef:
+              key: SELLER_TAX_NUMBER
+              name: website-seller-config
+        - name: BRETT_BOT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: BRETT_BOT_SECRET
+              name: website-secrets
+        - name: MONITORING_WEBHOOK_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: MONITORING_WEBHOOK_TOKEN
+              name: website-secrets
+        - name: NEXTCLOUD_DB_HOST
+          value: nextcloud-db.workspace.svc.cluster.local
+        - name: NEXTCLOUD_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: NEXTCLOUD_DB_PASSWORD
+              name: website-secrets
+        - name: INTERNAL_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: INTERNAL_API_TOKEN
+              name: website-secrets
+        - name: ARENA_WS_URL
+          valueFrom:
+            configMapKeyRef:
+              key: ARENA_WS_URL
+              name: website-config
+        - name: IPV64_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: IPV64_API_KEY
+              name: website-secrets
+              optional: true
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: ANTHROPIC_API_KEY
+              name: website-secrets
+              optional: true
+        - name: OPENROUTER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: OPENROUTER_API_KEY
+              name: website-secrets
+              optional: true
+        - name: OPENCODE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: OPENCODE_API_KEY
+              name: website-secrets
+              optional: true
+        - name: LLM_ROUTER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: LLM_ROUTER_API_KEY
+              name: website-secrets
+              optional: true
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: DEEPSEEK_API_KEY
+              name: website-secrets
+              optional: true
+        - name: DEEPSEEK_API_KEY_PK
+          valueFrom:
+            secretKeyRef:
+              key: DEEPSEEK_API_KEY_PK
+              name: website-secrets
+              optional: true
+        - name: EVIDENCE_ROOT
+          value: /var/evidence
+        - name: COMFY_HOST_IP
+        - name: COMFY_PORT
+        - name: RIGGER_HOST_IP
+        - name: RIGGER_PORT
+          value: '8190'
+        - name: BRETT_OIDC_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: BRETT_OIDC_SECRET
+              name: website-secrets
+        - name: MEDIAVIEWER_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: MEDIAVIEWER_HOST
+              name: domain-config
+        - name: TERMINAL_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: TERMINAL_HOST
+              name: domain-config
+        - name: VIDEOVAULT_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              key: VIDEOVAULT_DOMAIN
+              name: domain-config
+        envFrom:
+        - configMapRef:
+            name: website-config
+        image: ghcr.io/paddione/website:latest
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 4321
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 3
+        name: website
+        ports:
+        - containerPort: 4321
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 4321
+            scheme: HTTP
+          initialDelaySeconds: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 50m
+            memory: 192Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/evidence
+          name: evidence
+      dnsConfig:
+        options:
+        - name: ndots
+          value: '3'
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: ghcr-pull-secret
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: website
+      serviceAccountName: website
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: evidence

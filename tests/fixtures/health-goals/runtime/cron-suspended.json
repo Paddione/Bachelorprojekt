@@ -1,0 +1,8 @@
+{"items": [
+  {"metadata": {"name": "k1-embed"},
+   "spec": {"schedule": "17 * * * *", "suspend": true},
+   "status": {"lastScheduleTime": "2026-11-06T09:17:00Z", "lastSuccessfulTime": "2026-11-05T16:19:00Z"}},
+  {"metadata": {"name": "shared-db-backup"},
+   "spec": {"schedule": "0 * * * *"},
+   "status": {"lastScheduleTime": "2026-11-06T10:00:00Z", "lastSuccessfulTime": "2026-11-06T10:00:00Z"}}
+]}

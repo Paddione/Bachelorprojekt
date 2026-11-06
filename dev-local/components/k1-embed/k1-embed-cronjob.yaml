@@ -9,6 +9,13 @@ metadata:
     app: k1-embed
 spec:
   schedule: "17 * * * *"
+  # Eigner-Entscheid 2026-11-06: bewusst suspendiert. Der file-basierte Indexer
+  # (scripts/index-repo.ts) kracht gegen das K6-Schema (source_row_id NOT NULL
+  # ohne Default, #7161) und stirbt zusaetzlich an DB-Timeouts; Nachfolge
+  # (dense-Reindex) ist kein Dauerbetrieb. Kein Lauf erwartet — CJ01/Akteure
+  # (cronjob-check.sh T016657, runtime-health-measure cron-status) zaehlen
+  # Suspendierte nicht als Failure.
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3

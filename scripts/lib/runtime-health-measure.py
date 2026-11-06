@@ -44,7 +44,7 @@ def vector(data):
 def flux(data):
     if data is None:
         raw = subprocess.check_output(
-            ["kubectl", "get", "kustomizations.kustomize.toolkit.fluxcd.io,gitrepositories.source.toolkit.fluxcd.io,ocirepositories.source.toolkit.fluxcd.io,helmrepositories.source.toolkit.fluxcd.io,buckets.source.toolkit.fluxcd.io,helmcharts.source.toolkit.fluxcd.io", "-A", "--context", os.environ.get("HG_OPS_CTX", "fleet"), "--request-timeout=15s", "-o", "json"],
+            ["kubectl", "get", "kustomizations.kustomize.toolkit.fluxcd.io,gitrepositories.source.toolkit.fluxcd.io,ocirepositories.source.toolkit.fluxcd.io,helmrepositories.source.toolkit.fluxcd.io,buckets.source.toolkit.fluxcd.io,helmcharts.source.toolkit.fluxcd.io", "-A", "--context", os.environ.get("HG_OPS_CTX", "devmesh"), "--request-timeout=15s", "-o", "json"],
             stderr=subprocess.DEVNULL,
         )
         data = json.loads(raw)
@@ -240,7 +240,7 @@ def _pick_probe_pod(ctx, ns, tool):
 
 def _internal_http(url, marker):
     """Return 0/1 for one HTTP contract, or raise without a live basis."""
-    ctx = os.environ.get("HG_OPS_CTX", "fleet")
+    ctx = os.environ.get("HG_OPS_CTX", "devmesh")
     ns = "workspace"
 
     bad = 0
@@ -300,7 +300,7 @@ def cron_status(data):
     - lastScheduleTime is older than 2x the expected schedule interval
     - No lastScheduleTime at all (never ran)
     """
-    ctx = os.environ.get("HG_OPS_CTX", "fleet")
+    ctx = os.environ.get("HG_OPS_CTX", "devmesh")
     ns = "workspace"
 
     cronjobs = data
@@ -384,7 +384,7 @@ def drift(data):
 
     Compares Deployment.spec.replicas with live pod replicaCount.
     """
-    ctx = os.environ.get("HG_OPS_CTX", "fleet")
+    ctx = os.environ.get("HG_OPS_CTX", "devmesh")
     ns = "workspace"
 
     deployments = _kube_get([

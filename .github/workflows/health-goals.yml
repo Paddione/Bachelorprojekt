@@ -174,19 +174,32 @@ jobs:
           # Via env: rather than inline ${{ }} — keeps the dispatch input out of the
           # shell command string (workflow-injection hardening).
           DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+          # Fleet-Erreichbarkeit ebenfalls via env: das run-Skript wird von
+          # test_nightly_persistence.py direkt mit bash ausgefuehrt — ein
+          # inline-${{ }} wuerde dort als bad substitution scheitern.
+          FLEET_REACHABLE: ${{ steps.fleet.outputs.reachable }}
           GH_TOKEN: ${{ secrets.GH_PAT }}
           HG_AXE_INPUT: ${{ runner.temp }}/health-goals/axe.json
           HG_LIGHTHOUSE_INPUT: ${{ runner.temp }}/health-goals/lighthouse.json
         run: |
-          kubectl -n monitoring --context fleet port-forward svc/monitoring-prometheus 19090:9090 >"${RUNNER_TEMP}/prometheus-port-forward.log" 2>&1 &
-          pf_pid=$!
-          trap 'kill "$pf_pid" 2>/dev/null || true' EXIT
+          # Prometheus lebte auf fleet (2026-10-22 abgebaut) — ohne erreichbaren
+          # fleet-API gibt es keinen Port-Forward und damit keine Prometheus-Basis;
+          # die abhängigen Ziele (G-OBS01/G-CAP01/G-SLO01) bleiben per Fail-closed
+          # auf unknown. Nur warnen, wenn fleet erreichbar ist, Prometheus aber
+          # trotzdem nicht antwortet (echtes Signal statt erwartetem Zustand).
           unset HG_PROMETHEUS_URL
-          for _ in {1..20}; do curl -fsS http://127.0.0.1:19090/-/ready >/dev/null 2>&1 && break; sleep 1; done
-          if curl -fsS http://127.0.0.1:19090/-/ready >/dev/null 2>&1; then
-            export HG_PROMETHEUS_URL=http://127.0.0.1:19090
+          if [[ "${FLEET_REACHABLE:-false}" == "true" ]]; then
+            kubectl -n monitoring --context fleet port-forward svc/monitoring-prometheus 19090:9090 >"${RUNNER_TEMP}/prometheus-port-forward.log" 2>&1 &
+            pf_pid=$!
+            trap 'kill "$pf_pid" 2>/dev/null || true' EXIT
+            for _ in {1..20}; do curl -fsS http://127.0.0.1:19090/-/ready >/dev/null 2>&1 && break; sleep 1; done
+            if curl -fsS http://127.0.0.1:19090/-/ready >/dev/null 2>&1; then
+              export HG_PROMETHEUS_URL=http://127.0.0.1:19090
+            else
+              echo "::warning::Prometheus is unavailable; only its dependent goals remain unknown"
+            fi
           else
-            echo "::warning::Prometheus is unavailable; only its dependent goals remain unknown"
+            echo "::notice::Prometheus-Skip: fleet unerreichbar (2026-10-22 abgebaut, kein Prometheus auf devmesh) — abhängige Ziele bleiben unknown"
           fi
           # One completed scan feeds both the authored artifact and PostgreSQL.
           # Local host/worktree goals have no observable basis on this runner.

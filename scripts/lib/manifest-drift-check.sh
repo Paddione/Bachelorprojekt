@@ -5,7 +5,7 @@
 set -o pipefail
 
 MODE="${1:-replicas}"
-CTX="${HG_OPS_CTX:-fleet}"
+CTX="${HG_OPS_CTX:-devmesh}"
 NS="${HG_OPS_NS:-workspace}"
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo '-'; exit 0; }
 
@@ -16,7 +16,7 @@ case "$MODE" in
 esac
 
 # HG_DRIFT_INPUT is intentionally only a test seam. Production always reads
-# from the selected fleet context.
+# from the selected live context (devmesh, via HG_OPS_CTX).
 MODE="$MODE" ROOT="$ROOT" RESOURCE="$resource" NS="$NS" CTX="$CTX" python3 - <<'PY' 2>/dev/null || echo '-'
 import json, os, subprocess
 from pathlib import Path

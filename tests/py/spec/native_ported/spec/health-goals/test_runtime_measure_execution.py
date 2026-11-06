@@ -71,6 +71,18 @@ def test_runtime_measure_reicht_die_fixture_wirklich_durch_der_wert_folgt_der_da
     assert out == "1", f"runtime_measure flux lieferte '{out}', erwartet 1"
 
 
+def test_runtime_measure_cron_status_ignoriert_suspendierte_jobs(repo_root, tmp_path):
+    fixture = tmp_path / "cron.json"
+    fixture.write_text(
+        (repo_root / "tests" / "fixtures" / "health-goals" / "runtime" / "cron-suspended.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    out = _measure(repo_root, "cron-status", HG_CRON_STATUS_INPUT=str(fixture))
+    # Fixture: k1-embed absichtlich suspendiert (trotz ls > lss) + ein gesunder
+    # Job — also 0 Failures, wie cronjob-check.sh (T016657).
+    assert out == "0", f"runtime_measure cron-status lieferte '{out}', erwartet 0"
+
+
 def test_runtime_measure_bleibt_fail_closed_kaputte_fixture_ergibt_nicht_0_t900380(repo_root, tmp_path):
     fixture = tmp_path / "broken.json"
     fixture.write_text("kein json", encoding="utf-8")

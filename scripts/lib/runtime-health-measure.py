@@ -303,9 +303,11 @@ def cron_status(data):
     ctx = os.environ.get("HG_OPS_CTX", "fleet")
     ns = "workspace"
 
-    cronjobs = _kube_get([
-        "kubectl", "get", "cronjobs", "-n", ns, "--context", ctx, "-o", "json"
-    ])
+    cronjobs = data
+    if cronjobs is None:
+        cronjobs = _kube_get([
+            "kubectl", "get", "cronjobs", "-n", ns, "--context", ctx, "-o", "json"
+        ])
 
     import datetime
     items = cronjobs.get("items", [])
@@ -313,6 +315,11 @@ def cron_status(data):
 
     for cj in items:
         name = cj["metadata"]["name"]
+        # Absichtlich suspendiert (z.B. k1-embed nach K6-Migration, Eigner-Entscheid
+        # 2026-11-06) ist ein valider Soll-Zustand — wie bei flux() und
+        # cronjob-check.sh (T016657) kein Failure.
+        if cj.get("spec", {}).get("suspend"):
+            continue
         schedule = cj["spec"].get("schedule", "")
         ls = cj["status"].get("lastScheduleTime")
         lss = cj["status"].get("lastSuccessfulTime")

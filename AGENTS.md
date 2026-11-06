@@ -68,7 +68,7 @@ task workspace:validate                          # Kustomize dry-run
   (Quarantaene-Regeln in `e2e.yml` beachten).
 - **korczewski (BRAND — FROZEN per T002479)**: Prod-Verdrahtung
   (`flux-website-korczewski`, `flux-korczewski-auth`) bleibt `suspend: true`,
-  kein Go-live, keine Skalierung. Massage nur devmesh
+  kein Go-live, keine Skalierung. Massagepraxis: massage nur lokal auf devmesh
   (`massage.devmesh.korczewski.de`); DBs via zentrales `shared-db`.
 - **Contexts**: `devmesh` (live), `k3s-dev` (lokal), `k3d-gpu-serving` (GPU-Node,
   derzeit unerreichbar). Tot: `fleet` (abgebaut 2026-10-22), `mentolder`,

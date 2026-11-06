@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.451.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.0...website-v1.451.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **website:** Portfolio-Features bei Container-LIMIT nachladen (TEST03-Skip aufheben) ([#7185](https://github.com/Paddione/Bachelorprojekt/issues/7185)) ([3afda5b](https://github.com/Paddione/Bachelorprojekt/commit/3afda5b78cdc852e858e86303f7ef78f27d32175))
+* **website:** restore Korczewski brand identity, content and Astro checks ([#7187](https://github.com/Paddione/Bachelorprojekt/issues/7187)) ([b2255ee](https://github.com/Paddione/Bachelorprojekt/commit/b2255ee025bc046a2f8a7cb2e916256704122e92))
+
 ## [1.451.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.9...website-v1.451.0) (2026-11-06)
 
 

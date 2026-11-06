@@ -388,7 +388,7 @@ want G-K3PROJ && row target G-K3PROJ "$(k3_project_flag)" eq 1 "K3-Projekt im Co
 
 want G-IF02 && row target G-IF02 "$(python3 scripts/lib/health-goals-probes.py if02 2>/dev/null || echo -)" le 0 "Stille Degradation (catch ohne Log und ohne Rethrow in Schnittstellen) — T016657"
 
-want G-IF03 && row target G-IF03 "$(kubectl get pods -n workspace --context fleet -o json 2>/dev/null \
+want G-IF03 && row target G-IF03 "$(kubectl get pods -n workspace --context "${HG_OPS_CTX:-devmesh}" -o json 2>/dev/null \
   | python3 -c "
 import json, sys, yaml
 try:

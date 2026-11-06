@@ -326,7 +326,7 @@ während 2 von 3 Backends tot waren; `proxy-readiness` liest jetzt `degraded` un
 bash scripts/lib/llm-stack-measure.sh proxy-readiness
 ```
 
-> **B · Baseline:** n/a → 5 (Proxy meldet 5 degraded/checked Backends) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** n/a → 5 (Proxy meldet 5 degraded/checked Backends) → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM04 — Autostart-Abdeckung (LLM-Unit-Dateien): n/a → 0
 

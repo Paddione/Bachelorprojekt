@@ -15,6 +15,12 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: pocket-id-db-init
+  annotations:
+    # T002187-Muster (vgl. pocket-id-client-seed): Flux-force fuer immutable
+    # Job.spec.template. Ohne diese Annotation scheitert Flux am Dry-Run, wenn
+    # sich das Template aendert (z. B. Digest-Re-Pin) — der Dry-Run blockiert
+    # den gesamten devmesh-workspace Kustomization-Health-Check (G-FLUX01).
+    kustomize.toolkit.fluxcd.io/force: "enabled"
   labels:
     app: pocket-id
 spec:

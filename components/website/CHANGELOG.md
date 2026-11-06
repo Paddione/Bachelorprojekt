@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.8...website-v1.450.9) (2026-11-06)
+
+
+### Bug Fixes
+
+* **health:** Messbasis an Infra fit + Manifeste an Live-Stand ([#7168](https://github.com/Paddione/Bachelorprojekt/issues/7168)) ([c31ea34](https://github.com/Paddione/Bachelorprojekt/commit/c31ea34c722378b49f7f23efc06ee1d796cbee65))
+
 ## [1.450.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.7...website-v1.450.8) (2026-11-06)
 
 

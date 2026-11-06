@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.7...website-v1.450.8) (2026-11-06)
+
+
+### Bug Fixes
+
+* **deps:** bump undici pin 7.29.1 → 7.30.1, G-DEP01 gate grün ([#7163](https://github.com/Paddione/Bachelorprojekt/issues/7163)) ([3af30ad](https://github.com/Paddione/Bachelorprojekt/commit/3af30ad479de7b9eaa8b06763dc2c6896df3e621))
+
 ## [1.450.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.6...website-v1.450.7) (2026-11-06)
 
 

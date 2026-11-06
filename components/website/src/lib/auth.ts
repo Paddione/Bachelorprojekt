@@ -1,3 +1,4 @@
+// SERVER-ONLY: this module touches the session DB + OIDC secrets — never import from client components.
 // OIDC authentication helper for Pocket ID.
 // Implements Authorization Code Flow with cookie-based sessions.
 import { logger } from './logger';
@@ -248,73 +249,165 @@ const ADMIN_USERNAMES = new Set(
   (process.env.PORTAL_ADMIN_USERNAME || 'admin').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
 );
 
+// ---------------------------------------------------------------------------
+// W2-A extraction (od1-website-sink, step 1: module core only).
+// Cookie→session resolution and the admin policy live behind interfaces so the
+// follow-up call-site migration (llm→website) can inject fakes without
+// touching this module's callers. Public signatures are unchanged.
+// ---------------------------------------------------------------------------
+
+/** Resolves a raw session id (parsed from the request cookie) to a session. */
+export interface SessionResolver {
+  resolve(sessionId: string): Promise<UserSession | null>;
+}
+
+/** Decides whether an authenticated session has admin rights. */
+export interface AdminPolicy {
+  isAdmin(session: UserSession): boolean;
+}
+
+function extractSessionId(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
+  return match?.[1] ?? null;
+}
+
+export class DefaultAdminPolicy implements AdminPolicy {
+  isAdmin(session: UserSession): boolean {
+    // Pocket ID's isAdmin claim is the authoritative signal. The
+    // PORTAL_ADMIN_USERNAME list is kept as a fallback for non-OIDC paths
+    // (e.g. magic-link-redeem where isAdmin is missing).
+    if (session.realmRoles.includes('admin')) return true;
+    return ADMIN_USERNAMES.has(session.preferred_username.toLowerCase());
+  }
+}
+
+const defaultAdminPolicy = new DefaultAdminPolicy();
+
 export function isAdmin(session: UserSession): boolean {
-  // Pocket ID's isAdmin claim is the authoritative signal. The
-  // PORTAL_ADMIN_USERNAME list is kept as a fallback for non-OIDC paths
-  // (e.g. magic-link-redeem where isAdmin is missing).
-  if (session.realmRoles.includes('admin')) return true;
-  return ADMIN_USERNAMES.has(session.preferred_username.toLowerCase());
+  return defaultAdminPolicy.isAdmin(session);
+}
+
+export class DbSessionResolver implements SessionResolver {
+  async resolve(sessionId: string): Promise<UserSession | null> {
+    try {
+      await ensureSessionsTable();
+      const result = await sessionPool.query(
+        'SELECT data FROM web_sessions WHERE id = $1 AND expires_at > NOW()',
+        [sessionId]
+      );
+
+      if (result.rows.length === 0) return null;
+
+      let session = result.rows[0].data as UserSession;
+
+      // Refresh the Pocket ID access token when its own JWT `exp` is within a
+      // 60s safety buffer. session.expires_at tracks the web-session lifetime
+      // (8h) and is unrelated to the access token's own expiry. Arena out of
+      // scope: the previous missingArenaAud trigger was a Pocket-ID mapper
+      // workaround; Pocket ID has no realm mappers.
+      const ACCESS_TOKEN_BUFFER_MS = 60 * 1000;
+      const accessClaims = decodeJwtPayload(session.access_token);
+      const accessExpMs = typeof accessClaims?.exp === 'number' ? accessClaims.exp * 1000 : 0;
+      const accessExpired = accessExpMs > 0 && accessExpMs - Date.now() < ACCESS_TOKEN_BUFFER_MS;
+      const webSessionExpiring = session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS;
+      if (session.refresh_token && (accessExpired || webSessionExpiring)) {
+        const refreshed = await refreshTokens(session.refresh_token);
+        if (refreshed) {
+          const newExpiry = Date.now() + SESSION_TTL_MS;
+          session = {
+            ...session,
+            access_token: refreshed.access_token,
+            refresh_token: refreshed.refresh_token,
+            realmRoles: decodeRealmRoles(refreshed.access_token),
+            groups: decodeGroupsClaim(refreshed.access_token),
+            brand: BRAND,
+            expires_at: newExpiry,
+          };
+          await sessionPool.query(
+            'UPDATE web_sessions SET data = $1, expires_at = $2 WHERE id = $3',
+            [JSON.stringify(session), new Date(newExpiry), sessionId]
+          );
+        } else {
+          // Refresh failed — clear provider cache so the next attempt re-selects
+          clearProviderCache();
+          await sessionPool.query('DELETE FROM web_sessions WHERE id = $1', [sessionId]);
+          return null;
+        }
+      }
+
+      return session;
+    } catch (err) {
+      logger.error({ err }, '[auth] Session lookup failed');
+      return null;
+    }
+  }
+}
+
+const defaultSessionResolver: SessionResolver = new DbSessionResolver();
+
+// Per-request session cache: keyed by the session id parsed from the request's
+// own cookie header, so concurrent getSession() calls for the same request
+// share one lookup. Negative results are NOT cached (a later retry in the same
+// process must see newly issued sessions); entries are evicted when the
+// session is deleted or expires.
+const sessionCache = new Map<string, { session: UserSession; cachedAt: number }>();
+
+function getCachedSession(sessionId: string): UserSession | null {
+  const entry = sessionCache.get(sessionId);
+  if (!entry) return null;
+  if (entry.session.expires_at <= Date.now()) {
+    sessionCache.delete(sessionId);
+    return null;
+  }
+  return entry.session;
+}
+
+export function clearSessionCache(sessionId?: string): void {
+  if (sessionId) sessionCache.delete(sessionId);
+  else sessionCache.clear();
+}
+
+async function resolveSession(
+  cookieHeader: string | null,
+  resolver: SessionResolver,
+  useCache: boolean,
+): Promise<UserSession | null> {
+  const sessionId = extractSessionId(cookieHeader);
+  if (!sessionId) return null;
+
+  if (useCache) {
+    const cached = getCachedSession(sessionId);
+    if (cached) return cached;
+  }
+
+  // Invalid input resolves to null and never throws: the resolver contract
+  // fail-closes, and the parse above already rejected null/garbage headers.
+  let session: UserSession | null;
+  try {
+    session = await resolver.resolve(sessionId);
+  } catch (err) {
+    logger.error({ err }, '[auth] Session resolver failed');
+    return null;
+  }
+  if (!session) {
+    if (useCache) sessionCache.delete(sessionId);
+    return null;
+  }
+  if (useCache) sessionCache.set(sessionId, { session, cachedAt: Date.now() });
+  return session;
 }
 
 export async function getSession(cookieHeader: string | null): Promise<UserSession | null> {
-  if (!cookieHeader) return null;
+  return resolveSession(cookieHeader, defaultSessionResolver, true);
+}
 
-  const match = cookieHeader.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
-  if (!match) return null;
-
-  const sessionId = match[1];
-
-  try {
-    await ensureSessionsTable();
-    const result = await sessionPool.query(
-      'SELECT data FROM web_sessions WHERE id = $1 AND expires_at > NOW()',
-      [sessionId]
-    );
-
-    if (result.rows.length === 0) return null;
-
-    let session = result.rows[0].data as UserSession;
-
-    // Refresh the Pocket ID access token when its own JWT `exp` is within a
-    // 60s safety buffer. session.expires_at tracks the web-session lifetime
-    // (8h) and is unrelated to the access token's own expiry. Arena out of
-    // scope: the previous missingArenaAud trigger was a Pocket-ID mapper
-    // workaround; Pocket ID has no realm mappers.
-    const ACCESS_TOKEN_BUFFER_MS = 60 * 1000;
-    const accessClaims = decodeJwtPayload(session.access_token);
-    const accessExpMs = typeof accessClaims?.exp === 'number' ? accessClaims.exp * 1000 : 0;
-    const accessExpired = accessExpMs > 0 && accessExpMs - Date.now() < ACCESS_TOKEN_BUFFER_MS;
-    const webSessionExpiring = session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS;
-    if (session.refresh_token && (accessExpired || webSessionExpiring)) {
-      const refreshed = await refreshTokens(session.refresh_token);
-      if (refreshed) {
-        const newExpiry = Date.now() + SESSION_TTL_MS;
-        session = {
-          ...session,
-          access_token: refreshed.access_token,
-          refresh_token: refreshed.refresh_token,
-          realmRoles: decodeRealmRoles(refreshed.access_token),
-          groups: decodeGroupsClaim(refreshed.access_token),
-          brand: BRAND,
-          expires_at: newExpiry,
-        };
-        await sessionPool.query(
-          'UPDATE web_sessions SET data = $1, expires_at = $2 WHERE id = $3',
-          [JSON.stringify(session), new Date(newExpiry), sessionId]
-        );
-      } else {
-        // Refresh failed — clear provider cache so the next attempt re-selects
-        clearProviderCache();
-        await sessionPool.query('DELETE FROM web_sessions WHERE id = $1', [sessionId]);
-        return null;
-      }
-    }
-
-    return session;
-  } catch (err) {
-    logger.error({ err }, '[auth] Session lookup failed');
-    return null;
-  }
+/** Injection point for the follow-up call-site migration (fakes/mocks). */
+export async function getSessionWithResolver(
+  cookieHeader: string | null,
+  resolver: SessionResolver,
+): Promise<UserSession | null> {
+  return resolveSession(cookieHeader, resolver, false);
 }
 
 export function getSessionId(cookieHeader: string | null): string | undefined {

@@ -205,6 +205,64 @@ describe('getSession (in-memory session lookup)', () => {
     expect(await m.getSession(null)).toBeNull();
   });
 
+  // Negative paths (W2-A): null/garbage/expired cookies resolve to null and
+  // never throw. The pg mock below ignores expires_at, so DB-level expiry is
+  // exercised via an expired access token whose refresh fails.
+  it('returns null for null, empty and garbage cookie headers without throwing', async () => {
+    const m = await loadModule();
+    for (const header of [null, '', ';;;', 'not-a-cookie', 'workspace_session=', 'workspace_session=; path=/']) {
+      await expect(m.getSession(header)).resolves.toBeNull();
+    }
+  });
+
+  it('returns null for an expired session whose refresh fails (fail-closed)', async () => {
+    globalThis.fetch = (async () => new Response('nope', { status: 500 })) as typeof fetch;
+    const m = await loadModule();
+    const b64 = (v: unknown) => Buffer.from(JSON.stringify(v)).toString('base64url');
+    const expiredAccess = `${b64({ alg: 'none' })}.${b64({ exp: Math.floor(Date.now() / 1000) - 100 })}.sig`;
+    const sessionId = await m.issueSession({
+      sub: 'expired-id',
+      email: 'expired@example.com',
+      name: 'Expired User',
+      preferred_username: 'expired',
+      realmRoles: [],
+      brand: null,
+      access_token: expiredAccess,
+      refresh_token: 'rt-expired',
+      expires_at: Date.now() + 3600000,
+    });
+    await expect(m.getSession(`workspace_session=${sessionId}`)).resolves.toBeNull();
+  });
+
+  it('serves repeat lookups for the same request cookie from the per-request cache', async () => {
+    const m = await loadModule();
+    const sessionId = await m.issueSession({
+      sub: 'cache-id',
+      email: 'cache@example.com',
+      name: 'Cache User',
+      preferred_username: 'cacheuser',
+      realmRoles: [],
+      brand: null,
+      access_token: '',
+      refresh_token: '',
+      expires_at: Date.now() + 3600000,
+    });
+    const first = await m.getSession(`workspace_session=${sessionId}`);
+    const second = await m.getSession(`workspace_session=${sessionId}`);
+    expect(first).not.toBeNull();
+    expect(second).toBe(first);
+  });
+
+  it('honours an injected SessionResolver via getSessionWithResolver', async () => {
+    const m = await loadModule();
+    const fake = { sub: 'fake', email: 'f@x', name: 'F', preferred_username: 'f', realmRoles: ['admin'], brand: null, access_token: '', refresh_token: '', expires_at: Date.now() + 1000 };
+    const resolver = { resolve: async () => fake };
+    const session = await m.getSessionWithResolver('workspace_session=anything', resolver);
+    expect(session).toBe(fake);
+    expect(m.isAdmin(session!)).toBe(true);
+    await expect(m.getSessionWithResolver('workspace_session=anything', { resolve: async () => { throw new Error('boom'); } })).resolves.toBeNull();
+  });
+
   it('retrieves synthetic/e2e sessions with empty tokens without attempting refresh', async () => {
     const m = await loadModule();
     const sessionId = await m.issueSession({

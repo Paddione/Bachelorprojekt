@@ -660,7 +660,7 @@ python3 scripts/lib/knowledge-goals.py dangling
 
 > **B · Baseline:** 3 (2026-10-04) → 0 → 3 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Merge · **Reproduzierbar:** ja · **Ticket:** T900995
 
-## G-KNOW04 — Markdown unter `docs/` außer `adr/`: 324 → Sperrklinke 374
+## G-KNOW04 — Markdown unter `docs/` außer `adr/`: 324 → Sperrklinke 375
 
 **Was:** Abbau der Prosa-Doku. Ist-Zustand gehört in Registry, Code-Kommentar oder Guard-Test,
 Begründungen in Commits, Entscheidungen in ADRs. Das Gate G-KNOW02 verhindert Zuwachs, dieses
@@ -670,7 +670,7 @@ Ziel misst den Abbau.
 python3 scripts/lib/knowledge-goals.py docs-md
 ```
 
-> **B · Baseline:** 324 (2026-10-04) → 0 → 331 → 339 → Sperrklinke 374 (2026-11-02, repo-health-fix: kein Netto-Zuwachs, Target sinkt mit jedem Abbau) → 375 · **Target:** ≤ 374 · **Aufwand:** hoch · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T900995
+> **B · Baseline:** 324 (2026-10-04) → 0 → 331 → 339 → Sperrklinke 374 (2026-11-02, repo-health-fix: kein Netto-Zuwachs, Target sinkt mit jedem Abbau) → 375 → Sperrklinke 375 (2026-11-06, docs/generated/README.md als +1 per Eigner-Entscheid) · **Target:** ≤ 375 · **Aufwand:** hoch · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T900995
 
 ## G-KNOW05 — Bytes aller AGENTS.md/CLAUDE.md: 53672 → Sperrklinke 47827
 
@@ -773,7 +773,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (devmesh, beide Brands) | 2 ✓ | ≤ 3 | `kubectl get pods --context devmesh -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, web.korczewski.de) | 85 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
-| **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 375 ⚠ | ≤ 374 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995); Ratchet 372→374 für `docs/brain/route-retrieval-benchmark.md` (#7103) und `docs/runbooks/fritzbox-dns.md` (#7109) |
+| **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 375 | ≤ 375 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995); Ratchet 372→374 für `docs/brain/route-retrieval-benchmark.md` (#7103) und `docs/runbooks/fritzbox-dns.md` (#7109), →375 für `docs/generated/README.md` als +1 per Eigner-Entscheid 2026-11-06 |
 | **G-KNOW06** | ADR-Inhaltsänderungen nach dem Anlegen (kein Netto-Zuwachs) | 11 ✓ | ≤ 11 | `python3 scripts/lib/knowledge-goals.py adr-edits` — Status-/Superseded-Zeilen zählen nicht; neue Entscheidung = neues ADR (T900995) |
 | **G-KNOW07** | Agent-Registry-Schema valide | Exit 0 ✓ | Exit 0 | `node scripts/agent-guide/validate.mjs` (T900995) |
 

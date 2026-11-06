@@ -261,7 +261,7 @@ want G-BRAIN15 && row gate G-BRAIN15 "$(
 
 # ── Wissensablage — GATES (G-KNOW, T900995): Registry/Code/ADR statt Prosa-Doku ──
 KG="python3 scripts/lib/knowledge-goals.py"
-row gate G-KNOW02 "$($KG docs-md)" le 374 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs; Ratchet 372->374 fuer route-retrieval-benchmark #7103, fritzbox-dns #7109)"
+row gate G-KNOW02 "$($KG docs-md)" le 375 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs; Ratchet 372->374 fuer route-retrieval-benchmark #7103, fritzbox-dns #7109, ->375 fuer docs/generated/README.md als +1 per Eigner-Entscheid 2026-11-06)"
 row gate G-KNOW06 "$($KG adr-edits)" le 11 "ADR-Inhaltsaenderungen nach dem Anlegen (kein Netto-Zuwachs)"
 want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/dev/null 2>&1; echo $?)" eq 0 "Agent-Registry-Schema valide"
 
@@ -298,7 +298,7 @@ row target G-AGENTIC01 "$(bash scripts/lib/count-unresolved-agent-tools.sh)" le 
 row target G-AGENTIC10 "$(python3 scripts/lib/health-goals-probes.py agentic10 2>/dev/null || echo -)" le 0 "Agenten (.claude/agents) ohne dispatchende Skill (agent:-Frontmatter) — T016657"
 row target G-KNOW01 "$($KG docs-only)" le 0 "Registry-Regeln nur dokumentiert (enforced_by: docs-only)"
 row target G-KNOW03 "$($KG dangling)" le 0 "Registry-Verweise (enforced_by/where) ohne existierenden Pfad"
-row target G-KNOW04 "$($KG docs-md)" le 374 "Markdown unter docs/ ausser adr/ (Sperrklinke: kein Netto-Zuwachs; Target sinkt mit jedem Abbau, T900995)"
+row target G-KNOW04 "$($KG docs-md)" le 375 "Markdown unter docs/ ausser adr/ (Sperrklinke: kein Netto-Zuwachs; Target sinkt mit jedem Abbau, T900995; 374->375 fuer docs/generated/README.md als +1 per Eigner-Entscheid 2026-11-06)"
 row target G-KNOW05 "$($KG agent-ctx-bytes)" le 47827 "Bytes aller AGENTS.md/CLAUDE.md (Sperrklinke: kein Netto-Zuwachs; Target sinkt mit jedem Abbau, T900995)"
 row target G-DOC03 "$(c=0; for d in components/website scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 4 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; sec05_unsigned)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"

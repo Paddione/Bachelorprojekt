@@ -81,11 +81,11 @@ def test_drift_existiert_als_measurement_choice_und_liefert_zahl_oder_dash(run_c
 
 
 
-def test_alert_status_existiert_als_measurement_choice_und_meldet_1(run_cmd, measure):
+def test_alert_status_existiert_als_measurement_choice_und_meldet_0(run_cmd, measure):
     result = run_cmd(["python3", str(measure), "alert-status"])
     assert result.returncode == 0, result.output
-    assert result.output == "1", (
-        f"alert-status muss 1 melden (E-Mail-Receiver deaktiviert), bekam '{result.output}'"
+    assert result.output == "0", (
+        f"alert-status muss 0 melden (E-Mail-Receiver aktiv, ALR01), bekam '{result.output}'"
     )
 
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.451.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.4...website-v1.451.5) (2026-11-06)
+
+
+### Code Refactoring
+
+* **website:** cockpit reconnect leaf, planning-office test shim ([be6860e](https://github.com/Paddione/Bachelorprojekt/commit/be6860e5d6355eb7c8c5284863a408f13a3e6f62))
+* **website:** one-way data flow for applications board ([15a35ad](https://github.com/Paddione/Bachelorprojekt/commit/15a35ad21c20a3f92868c60787f261c153896e41))
+* **website:** SessionResolver and policy extraction with request cache ([c8728c6](https://github.com/Paddione/Bachelorprojekt/commit/c8728c687df964e8eddd767e97a301698adb8cf4))
+
 ## [1.451.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.3...website-v1.451.4) (2026-11-06)
 
 

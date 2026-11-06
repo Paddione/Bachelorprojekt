@@ -14,7 +14,7 @@
 # "-" (SKIP): kubectl nicht verfuegbar, Ausgabe leer oder kein bewertbarer CronJob.
 
 NAMESPACE="${1:-workspace}"
-CTX="${HG_OPS_CTX:-fleet}"
+CTX="${HG_OPS_CTX:-devmesh}"
 
 kubectl get cronjobs -n "$NAMESPACE" --context "$CTX" -o json 2>/dev/null | \
 python3 -c "

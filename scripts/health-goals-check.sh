@@ -270,7 +270,7 @@ want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/de
 want G-DB04 && row gate G-DB04 "$(db_backup_age_h)" le 26 "Backup-Alter (h) seit letztem erfolgr. db-backup-Job — T001738"
 
 # ── Cluster-Runtime — GATES (G-OPS02/03; G-OPS01 ist Prio B → TARGET unten) ──
-want G-OPS02 && row gate G-OPS02 "$(ops_kubectl_count restarts_24h)" le 3 "Container-Restarts <24h (fleet, beide Brand-Namespaces)"
+want G-OPS02 && row gate G-OPS02 "$(ops_kubectl_count restarts_24h)" le 3 "Container-Restarts <24h (devmesh, beide Brand-Namespaces)"
 want G-OPS03 && row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlaufzeit (Tage, min beider Brand-Frontends)"
 
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
@@ -336,7 +336,7 @@ want G-DB11 && row target G-DB11 "$(restore_verify_age_d)" le 30 "Tage seit letz
 # ── E2E-/OPS-TARGETS (T002063) ──
 want G-E2E01 && row target G-E2E01 "$(e2e_success_rate)" ge 90 "Nightly-E2E-Erfolgsrate e2e.yml (%, letzte 14 Läufe)"
 want G-E2E02 && row target G-E2E02 "$(db_scalar "SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name), false, true, '')))[1]::text::int), 0) FROM information_schema.columns c JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE'")" eq 0 "E2E-Testdaten-Leak (is_test_data=true Rows, Brand-DB via HG_DB_NS)"
-want G-OPS01 && row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready, exkl. Job-Pods (fleet, beide Brand-Namespaces)"
+want G-OPS01 && row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready, exkl. Job-Pods (devmesh, beide Brand-Namespaces)"
 want G-FLUX01 && row target G-FLUX01 "$(runtime_measure flux)" le 0 "Flux-Ressourcen nicht Ready, suspendiert oder generation-stale"
 want G-OBS01 && row target G-OBS01 "$(runtime_measure scrape)" le 0 "Aktive Prometheus-Scrape-Targets down"
 want G-CAP01 && row target G-CAP01 "$(runtime_measure capacity)" le 0 "Produktive PVCs mit weniger als 20% freiem Speicher"

@@ -6,6 +6,7 @@ import routes from '../../tests/e2e/lib/public-routes.json' with { type: 'json' 
 
 const bases = {
   korczewski: process.env.HG_KORCZEWSKI_URL || 'https://web.korczewski.de',
+  massage: process.env.HG_MASSAGE_URL || 'https://massage.korczewski.de',
 };
 const output = process.argv[2];
 if (!output) throw new Error('usage: runtime-browser-audit.mjs <output.json>');

@@ -99,7 +99,7 @@ db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 A
 
 Im nächsten Sprint einplanen.
 
-## G-OPS01 — Pods nicht Running/Ready (fleet, beide Brand-Namespaces): 3 → 0
+## G-OPS01 — Pods nicht Running/Ready (devmesh, beide Brand-Namespaces): 3 → 0
 
 **Was:** Zählt Pods in `workspace` + `workspace-korczewski`, deren Phase nicht
 Running/Succeeded ist oder deren Container nicht ready sind. Alle G-K8S-Goals prüfen nur
@@ -115,7 +115,7 @@ python3 -c "
 import json,subprocess
 n=0
 for ns in ('workspace','workspace-korczewski'):
-    d=json.loads(subprocess.check_output(['kubectl','get','pods','-n',ns,'--context','fleet','-o','json']))
+    d=json.loads(subprocess.check_output(['kubectl','get','pods','-n',ns,'--context','devmesh','-o','json']))
     for p in d['items']:
         ph=p['status'].get('phase')
         if ph=='Succeeded': continue
@@ -724,15 +724,15 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC05** | Unsignierte Commits (adj.) | 7/50 ⚠ | ≤ 2 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem. |
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 0 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
-| **G-FLUX01** | Flux Reconciliation Health | 3 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen |
-| **G-OBS01** | Prometheus Scrape Health | 2 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py scrape` — aktive `up`-Serien, leer ⇒ n/a |
-| **G-CAP01** | PVC Storage Headroom <20 % | 4 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py capacity` — `workspace` + `workspace-korczewski` |
-| **G-A11Y01** | Critical/serious axe-Verstöße | 0 ✓ | 0 | `node scripts/lib/runtime-browser-audit.mjs` + `runtime-health-measure.py axe`, korczewski+massage vollständig |
+| **G-FLUX01** | Flux Reconciliation Health | 3 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` (`HG_OPS_CTX`, Default `devmesh`; fleet 2026-10-22 abgebaut) — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen. CI ohne Live-Kubeconfig ⇒ n/a erwartet |
+| **G-OBS01** | Prometheus Scrape Health | 2 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py scrape` (`HG_PROMETHEUS_URL`; Prometheus lebte auf fleet, kein Prometheus auf devmesh) — aktive `up`-Serien, leer ⇒ n/a. CI ⇒ n/a erwartet |
+| **G-CAP01** | PVC Storage Headroom <20 % | 4 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py capacity` (`HG_PROMETHEUS_URL`; wie G-OBS01 ohne Prometheus-Basis) — `workspace` + `workspace-korczewski`. CI ⇒ n/a erwartet |
+| **G-A11Y01** | Critical/serious axe-Verstöße | 0 ✓ | 0 | `node scripts/lib/runtime-browser-audit.mjs` (Bases: korczewski `HG_KORCZEWSKI_URL`, massage `HG_MASSAGE_URL`) + `runtime-health-measure.py axe`, korczewski+massage vollständig |
 
 | ID | Ziel | Aktuell | Target | Basis-Messung |
 |----|------|---------|--------|---------------|
-| **G-FE05** | Lighthouse Performance Score (korczewski) | 87 ⚠ | ≥ 90 | Lighthouse-JSON (korczewski) → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
-| **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` (korczewski), ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo` |
+| **G-FE05** | Lighthouse Performance Score (korczewski) | 87 ⚠ | ≥ 90 | Lighthouse-JSON (korczewski, `https://web.korczewski.de`) → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
+| **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` (korczewski), ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo`. Ohne Prometheus-Basis (fleet abgebaut, kein Prometheus auf devmesh) ⇒ n/a erwartet |
 | **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 scripts/lib/health-goals-probes.py if02` — catch ohne Log und ohne Rethrow, Blöcke per Klammerzählung (T016657) |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
@@ -771,7 +771,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 0 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 83 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
-| **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 2 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
+| **G-OPS02** | Container-Restarts <24h (devmesh, beide Brands) | 2 ✓ | ≤ 3 | `kubectl get pods --context devmesh -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, web.korczewski.de) | 85 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
 | **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 374 ✓ | ≤ 374 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995); Ratchet 372→374 für `docs/brain/route-retrieval-benchmark.md` (#7103) und `docs/runbooks/fritzbox-dns.md` (#7109) |
 | **G-KNOW06** | ADR-Inhaltsänderungen nach dem Anlegen (kein Netto-Zuwachs) | 11 ✓ | ≤ 11 | `python3 scripts/lib/knowledge-goals.py adr-edits` — Status-/Superseded-Zeilen zählen nicht; neue Entscheidung = neues ADR (T900995) |

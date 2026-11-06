@@ -58,9 +58,9 @@ printf '%s\\n' "$*" >> "$UPDATE_LOG"
            'RUNNER_TEMP': str(runner), 'GITHUB_OUTPUT': str(tmp_path / 'output'),
            'SCAN_LOG': str(tmp_path / 'scan.log'), 'SQL_LOG': str(tmp_path / 'sql.log'),
            'UPDATE_LOG': str(tmp_path / 'update.log'), 'TICKET_CTX': 'fleet', 'TICKET_NS': 'workspace'}
-    def run_step(name, dry='0'):
+    def run_step(name, dry='0', fleet_reachable='true'):
         return subprocess.run(['bash', '-euo', 'pipefail', '-c', step(name)],
-            cwd=tmp_path, env={**env, 'DRY_RUN': dry}, text=True, capture_output=True, timeout=20)
+            cwd=tmp_path, env={**env, 'DRY_RUN': dry, 'FLEET_REACHABLE': fleet_reachable}, text=True, capture_output=True, timeout=20)
     return tmp_path, run_step, executable
 
 
@@ -128,6 +128,19 @@ def test_missing_prometheus_does_not_abort_unrelated_goal_measurements(nightly):
     result = run_step('Measure health goals')
     assert result.returncode == 0, result.stderr
     assert '::warning::Prometheus is unavailable' in result.stdout
+    assert len((root / 'scan.log').read_text().splitlines()) == 1
+
+
+def test_unreachable_fleet_skips_prometheus_port_forward_with_notice(nightly):
+    # Fleet 2026-10-22 abgebaut: kein Port-Forward versuchen, kein doppeltes
+    # Warning — die abhängigen Ziele bleiben per Fail-closed auf unknown.
+    root, run_step, executable = nightly
+    executable('curl', 'exit 1\n')
+    executable('sleep', 'exit 0\n')
+    result = run_step('Measure health goals', fleet_reachable='false')
+    assert result.returncode == 0, result.stderr
+    assert '::warning::Prometheus is unavailable' not in result.stdout
+    assert 'Prometheus-Skip' in result.stdout
     assert len((root / 'scan.log').read_text().splitlines()) == 1
 
 

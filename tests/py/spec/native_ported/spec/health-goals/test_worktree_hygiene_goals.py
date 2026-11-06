@@ -118,7 +118,7 @@ def test_g_wt01_main_checkout_zaehlt_fremden_branch_und_dirty_tree_als_verletzun
 
 # ── G-WT02 ──────────────────────────────────────────────────────────────────
 
-def test_g_wt02_ohne_registrierten_worktree_meldet_stale_worktrees_n_a_nicht_0(hy):
+def test_g_wt02_ohne_registrierten_worktree_meldet_stale_worktrees_0_nicht_n_a(hy):
     hy.mk_repo()
     hy.git("worktree", "add", "-q", "-b", "wt-anker", str(hy.FIX / "wt-anker"))
     result = hy.measure("stale-worktrees")
@@ -126,6 +126,14 @@ def test_g_wt02_ohne_registrierten_worktree_meldet_stale_worktrees_n_a_nicht_0(h
     assert _num(result.output)
 
     hy.git("worktree", "remove", "--force", str(hy.FIX / "wt-anker"))
+    result = hy.measure("stale-worktrees")
+    assert result.returncode == 0
+    assert result.output == "0"
+
+
+def test_g_wt02_ohne_aufloesbares_repo_meldet_stale_worktrees_n_a_nicht_0(hy, monkeypatch):
+    hy.mk_repo()
+    monkeypatch.setenv("HG_REPO_ROOT", str(hy.FIX / "kein-repo"))
     result = hy.measure("stale-worktrees")
     assert result.returncode == 0
     assert result.output == "n/a"
@@ -148,7 +156,7 @@ def test_g_wt02_stale_worktrees_zaehlt_gemergten_worktree_nicht_den_aktiven_nach
 
 # ── G-WT03 ──────────────────────────────────────────────────────────────────
 
-def test_g_wt03_ohne_lock_datei_meldet_orphan_locks_n_a_nicht_0(hy):
+def test_g_wt03_ohne_lock_datei_meldet_orphan_locks_0_nicht_n_a(hy):
     hy.mk_repo()
     hy.mk_lock("ticket__T000001", "ticket", os.getpid(), 10)
     result = hy.measure("orphan-locks")
@@ -156,6 +164,14 @@ def test_g_wt03_ohne_lock_datei_meldet_orphan_locks_n_a_nicht_0(hy):
     assert _num(result.output)
 
     hy.rm_locks()
+    result = hy.measure("orphan-locks")
+    assert result.returncode == 0
+    assert result.output == "0"
+
+
+def test_g_wt03_ohne_lock_verzeichnis_meldet_orphan_locks_n_a_nicht_0(hy, monkeypatch):
+    hy.mk_repo()
+    monkeypatch.setenv("AGENT_LOCK_DIR", str(hy.FIX / "kein-verzeichnis"))
     result = hy.measure("orphan-locks")
     assert result.returncode == 0
     assert result.output == "n/a"
@@ -236,7 +252,7 @@ def test_g_wt03_claim_ohne_worktree_mit_frischem_heartbeat_gilt_als_lebendig_tro
 
 # ── G-WT04 ──────────────────────────────────────────────────────────────────
 
-def test_g_wt04_ohne_registrierten_worktree_meldet_unsafe_worktrees_n_a_nicht_0(hy):
+def test_g_wt04_ohne_registrierten_worktree_meldet_unsafe_worktrees_0_nicht_n_a(hy):
     hy.mk_repo()
     hy.git("worktree", "add", "-q", "-b", "wt-anker4", str(hy.FIX / "wt-anker4"))
     result = hy.measure("unsafe-worktrees")
@@ -244,6 +260,14 @@ def test_g_wt04_ohne_registrierten_worktree_meldet_unsafe_worktrees_n_a_nicht_0(
     assert _num(result.output)
 
     hy.git("worktree", "remove", "--force", str(hy.FIX / "wt-anker4"))
+    result = hy.measure("unsafe-worktrees")
+    assert result.returncode == 0
+    assert result.output == "0"
+
+
+def test_g_wt04_ohne_aufloesbares_repo_meldet_unsafe_worktrees_n_a_nicht_0(hy, monkeypatch):
+    hy.mk_repo()
+    monkeypatch.setenv("HG_REPO_ROOT", str(hy.FIX / "kein-repo"))
     result = hy.measure("unsafe-worktrees")
     assert result.returncode == 0
     assert result.output == "n/a"
@@ -304,7 +328,7 @@ def test_g_wt05_main_divergence_zaehlt_commits_in_main_origin_main(hy):
 
 # ── G-WT06 ──────────────────────────────────────────────────────────────────
 
-def test_g_wt06_ohne_lock_datei_meldet_phantom_scope_locks_n_a_nicht_0(hy):
+def test_g_wt06_ohne_lock_datei_meldet_phantom_scope_locks_0_nicht_n_a(hy):
     hy.mk_repo()
     hy.mk_lock("ticket__T000002", "ticket", os.getpid(), 10)
     result = hy.measure("phantom-scope-locks")
@@ -312,6 +336,14 @@ def test_g_wt06_ohne_lock_datei_meldet_phantom_scope_locks_n_a_nicht_0(hy):
     assert _num(result.output)
 
     hy.rm_locks()
+    result = hy.measure("phantom-scope-locks")
+    assert result.returncode == 0
+    assert result.output == "0"
+
+
+def test_g_wt06_ohne_lock_verzeichnis_meldet_phantom_scope_locks_n_a_nicht_0(hy, monkeypatch):
+    hy.mk_repo()
+    monkeypatch.setenv("AGENT_LOCK_DIR", str(hy.FIX / "kein-verzeichnis"))
     result = hy.measure("phantom-scope-locks")
     assert result.returncode == 0
     assert result.output == "n/a"
@@ -394,8 +426,8 @@ def test_multi_repo_stale_worktrees_across_repos(hy, monkeypatch):
     monkeypatch.delenv("HG_REPO_ROOT", raising=False)
     monkeypatch.setenv("HG_REPOS", f"{r1}:{r2}")
 
-    # Noch keine Worktrees in beiden Repos -> n/a
-    assert hy.measure("stale-worktrees").output == "n/a"
+    # Noch keine Worktrees in beiden Repos (Basis vorhanden) -> 0
+    assert hy.measure("stale-worktrees").output == "0"
 
     # In r1 einen gemergten Worktree anlegen -> 1
     hy.git("worktree", "add", "-q", "-b", "wt-merged1", str(hy.FIX / "wt1"))
@@ -427,8 +459,8 @@ def test_multi_repo_orphan_locks_across_repos(hy, monkeypatch):
     monkeypatch.delenv("AGENT_LOCK_DIR", raising=False)
     monkeypatch.setenv("HG_REPOS", f"{r1}:{r2}")
 
-    # Noch keine Locks -> n/a
-    assert hy.measure("orphan-locks").output == "n/a"
+    # Noch keine Locks (Verzeichnisse vorhanden) -> 0
+    assert hy.measure("orphan-locks").output == "0"
 
     # Lebender Lock in r1 -> 0
     now = str(int(time.time()))

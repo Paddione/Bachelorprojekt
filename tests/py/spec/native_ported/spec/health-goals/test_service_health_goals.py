@@ -188,3 +188,39 @@ def test_g_cj01_ohne_bewertbaren_cronjob_ist_nicht_messbar_t016657(run_cmd, repo
     items = [_cronjob("never-scheduled"), _cronjob("paused", suspend=True)]
     result = _run_cronjob_check(run_cmd, repo_root, tmp_path, items)
     assert result.stdout.strip() == "-"
+
+
+def _load_svc_probe(measure):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("rhm_svc_probe", str(measure))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.svc_probe
+
+
+def _svc_fixture(root, targets):
+    ing_dir = root / "prod-fleet" / "website-korczewski"
+    ing_dir.mkdir(parents=True)
+    (ing_dir / "apex.yaml").write_text(
+        "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: apex\n"
+        "spec:\n  rules:\n  - host: ${PROD_DOMAIN}\n",
+        encoding="utf-8")
+    mon_dir = root / "k3d" / "monitoring"
+    mon_dir.mkdir(parents=True)
+    static = "".join(f"      - {t}\n" for t in targets)
+    (mon_dir / "blackbox-exporter.yaml").write_text(
+        "apiVersion: monitoring.coreos.com/v1\nkind: Probe\nmetadata:\n  name: p\n"
+        f"spec:\n  targets:\n    staticConfig:\n      static:\n{static}",
+        encoding="utf-8")
+
+
+def test_g_svc01_bare_apex_template_wird_per_marke_aufgeloest(measure, tmp_path, monkeypatch):
+    _svc_fixture(tmp_path, ["https://korczewski.de"])
+    monkeypatch.chdir(tmp_path)
+    assert _load_svc_probe(measure)(None) == 0
+
+
+def test_g_svc01_apex_ohne_probe_target_zaehlt_weiter(measure, tmp_path, monkeypatch):
+    _svc_fixture(tmp_path, ["https://web.korczewski.de/api/health"])
+    monkeypatch.chdir(tmp_path)
+    assert _load_svc_probe(measure)(None) == 1

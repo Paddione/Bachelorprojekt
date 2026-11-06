@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.451.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.9...website-v1.451.0) (2026-11-06)
+
+
+### Features
+
+* **website:** korczewski services-Katalog befuellen (Eigner-Auftrag Storefront) ([#7177](https://github.com/Paddione/Bachelorprojekt/issues/7177)) ([da894ac](https://github.com/Paddione/Bachelorprojekt/commit/da894acc5d1f22dc4df8cf631d2c09702af6667c))
+
 ## [1.450.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.8...website-v1.450.9) (2026-11-06)
 
 

@@ -164,6 +164,22 @@ wt_measure() { # <subcommand>
     *)           echo "$v" ;;
   esac
 }
+# --- Helfer: Trivy-Image-CVEs (G-SEC06) --------------------------------------
+# Doku-Methode (goals.md): scripts/trivy-scan.sh über die gepinnte Image-Liste,
+# gezählt werden CRITICAL mit --ignore-unfixed. Die alte Inline-Pipeline übergab
+# alle Live-Images auf einmal an `trivy image` (nimmt nur EIN Image pro Aufruf)
+# und scheiterte damit strukturell immer (usage error → n/a). Fail-closed: ohne
+# trivy/jq oder ohne Scan-Basis → '-', kein trivial-grünes 0.
+trivy_image_cves() { # G-SEC06 — CRITICAL-CVEs der gepinnten Images
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  command -v trivy >/dev/null 2>&1 || { echo "-"; return; }
+  command -v jq >/dev/null 2>&1 || { echo "-"; return; }
+  local out total
+  out=$(timeout 280 bash scripts/trivy-scan.sh --json 2>/dev/null) || { echo "-"; return; }
+  total=$(printf '%s' "$out" | jq '.total_critical' 2>/dev/null) || { echo "-"; return; }
+  [[ "$total" =~ ^[0-9]+$ ]] && echo "$total" || echo "-"
+}
+
 # --- Helfer: gh-abhängige Messungen ------------------------------------------
 # gh ist netzabhängig und kann hängen. Ohne Binary, ohne Auth oder bei Timeout gibt
 # es SKIP statt einer Zahl.

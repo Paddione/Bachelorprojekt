@@ -363,10 +363,10 @@ durations.sort(); p95=durations[int(len(durations)*0.95)] if durations else 0; p
 )" le 12 "CI Pipeline p95 Duration (min, letzte 20 Runs auf main)"
 
 # ── SEC-TARGETS ──
-if [ "$FAST" = 0 ] && command -v kubectl >/dev/null 2>&1 && command -v trivy >/dev/null 2>&1; then
-  want G-SEC06 && row target G-SEC06 "$(timeout 60 trivy image --severity HIGH,CRITICAL --exit-code 0 --format json $(timeout 10 kubectl get pods --all-namespaces --request-timeout=5s -o jsonpath='{range .items[*]}{.spec.containers[*].image}{\"\n\"}{end}' 2>/dev/null | sort -u | tr '\n' ' ') 2>/dev/null | jq '[.Results[].Vulnerabilities[] | select(.Severity=="HIGH" or .Severity=="CRITICAL")] | length' 2>/dev/null || echo "-")" le 0 "Container Images mit High/Critical CVEs (via Trivy)"
+if [ "$FAST" = 0 ] && command -v trivy >/dev/null 2>&1; then
+  want G-SEC06 && row target G-SEC06 "$(trivy_image_cves)" le 0 "CRITICAL CVEs gepinnter Images (trivy-scan.sh, ignore-unfixed)"
 else
-  row target G-SEC06 "-" le 0 "Container CVEs (erfordert kubectl + Trivy — nicht messbar)"
+  row target G-SEC06 "-" le 0 "Container CVEs (erfordert Trivy — nicht messbar)"
 fi
 
 # ── FE-TARGETS ──

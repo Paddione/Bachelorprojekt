@@ -5,11 +5,11 @@ import subprocess
 
 import pytest
 
-# scripts/build-graph.mjs rewrites the tracked docs/generated/graph.json. Serialize and restore it.
+# scripts/build-graph.mjs rewrites the tracked docs/generated/graph-k8s-env.json. Serialize and restore it.
 pytestmark = pytest.mark.repo_lock("build-graph-graph-json")
 
 BUILD_GRAPH = "scripts/build-graph.mjs"
-GRAPH = "docs/generated/graph.json"
+GRAPH = "docs/generated/graph-k8s-env.json"
 
 
 @pytest.fixture(autouse=True)

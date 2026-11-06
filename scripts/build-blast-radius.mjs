@@ -2,7 +2,7 @@
 /**
  * build-blast-radius.mjs — Blast-Radius-Report (LAD-2)
  *
- * Reads docs/generated/graph.json and generates docs/generated/blast-radius.md
+ * Reads docs/generated/graph-k8s-env.json and generates docs/generated/blast-radius.md
  * with a ranking of services by transitive dependent count (BFS on reverse adjacency).
  *
  * Output: docs/generated/blast-radius.md
@@ -16,7 +16,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
 
 function main() {
-  const graphPath = join(ROOT, 'docs/generated/graph.json');
+  const graphPath = join(ROOT, 'docs/generated/graph-k8s-env.json');
   const graph = JSON.parse(readFileSync(graphPath, 'utf8'));
 
   const directUpstream = new Map();

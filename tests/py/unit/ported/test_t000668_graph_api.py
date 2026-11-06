@@ -11,7 +11,7 @@ import pytest
 
 @pytest.fixture
 def graph_json(repo_root: Path) -> Path:
-    return repo_root / "docs" / "generated" / "graph.json"
+    return repo_root / "docs" / "generated" / "graph-k8s-env.json"
 
 
 def _count_lines(path: Path, needle: str) -> int:

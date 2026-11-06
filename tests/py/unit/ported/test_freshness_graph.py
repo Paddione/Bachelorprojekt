@@ -6,7 +6,7 @@ import pytest
 
 pytestmark = pytest.mark.repo_lock("freshness-graph")
 
-GENERATED_FILES = ["graph.json", "api-map.json", "api-surface.md", "blast-radius.md"]
+GENERATED_FILES = ["graph-k8s-env.json", "api-map.json", "api-surface.md", "blast-radius.md"]
 
 
 @pytest.fixture(autouse=True)
@@ -35,19 +35,19 @@ def test_build_graph_and_build_api_map_run_without_error(run_cmd, repo_root):
 def test_freshness_graph_check_passes_when_graph_json_is_committed(run_cmd, repo_root):
     assert _node(run_cmd, repo_root, "scripts/build-graph.mjs").returncode == 0
     assert _node(run_cmd, repo_root, "scripts/build-api-map.mjs").returncode == 0
-    # Committed graph.json must parse and have the same node count as the freshly generated one.
+    # Committed graph-k8s-env.json must parse and have the same node count as the freshly generated one.
     committed = run_cmd(["bash", "-c",
-                         "git show HEAD:docs/generated/graph.json 2>/dev/null | jq '.nodes | length' || echo \"0\""],
+                         "git show HEAD:docs/generated/graph-k8s-env.json 2>/dev/null | jq '.nodes | length' || echo \"0\""],
                         cwd=repo_root, timeout=300)
     committed_count = int(committed.stdout.strip())
-    fresh_count = int(_jq(run_cmd, repo_root, ".nodes | length", "docs/generated/graph.json"))
+    fresh_count = int(_jq(run_cmd, repo_root, ".nodes | length", "docs/generated/graph-k8s-env.json"))
     assert committed_count == fresh_count
 
 
 def test_graph_json_contains_at_least_20_nodes_and_60_edges(run_cmd, repo_root):
     assert _node(run_cmd, repo_root, "scripts/build-graph.mjs").returncode == 0
-    node_count = int(_jq(run_cmd, repo_root, ".nodes | length", "docs/generated/graph.json"))
-    edge_count = int(_jq(run_cmd, repo_root, ".edges | length", "docs/generated/graph.json"))
+    node_count = int(_jq(run_cmd, repo_root, ".nodes | length", "docs/generated/graph-k8s-env.json"))
+    edge_count = int(_jq(run_cmd, repo_root, ".edges | length", "docs/generated/graph-k8s-env.json"))
     assert node_count >= 20
     assert edge_count >= 60
 
@@ -61,7 +61,7 @@ def test_api_map_json_contains_at_least_15_endpoints(run_cmd, repo_root):
 def test_graph_json_and_api_map_json_have_valid_generated_at_fields(run_cmd, repo_root):
     assert _node(run_cmd, repo_root, "scripts/build-graph.mjs").returncode == 0
     assert _node(run_cmd, repo_root, "scripts/build-api-map.mjs").returncode == 0
-    g_ts = _jq(run_cmd, repo_root, ".generatedAt", "docs/generated/graph.json")
+    g_ts = _jq(run_cmd, repo_root, ".generatedAt", "docs/generated/graph-k8s-env.json")
     a_ts = _jq(run_cmd, repo_root, ".generatedAt", "docs/generated/api-map.json")
     assert g_ts != ""
     assert g_ts != "null"

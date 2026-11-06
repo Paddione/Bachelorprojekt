@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.451.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.1...website-v1.451.2) (2026-11-06)
+
+
+### Bug Fixes
+
+* **scripts:** G-DB10-Messquery mit JOIN pg_index + NOT indisunique ([#7188](https://github.com/Paddione/Bachelorprojekt/issues/7188)) ([74c1ed8](https://github.com/Paddione/Bachelorprojekt/commit/74c1ed823c0a13a5c2dbf3f395b34d9c9006b96d))
+
 ## [1.451.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.0...website-v1.451.1) (2026-11-06)
 
 

@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-103 Services · 2113 Abhängigkeitskanten · 316 API-Endpoints
+104 Services · 2136 Abhängigkeitskanten · 316 API-Endpoints
 
 ## Service-Map
 
@@ -91,6 +91,7 @@ flowchart LR
   tests_results_retention["tests-results-retention"]:::default
   vaultwarden["vaultwarden"]:::default
   videovault["videovault"]:::default
+  website_korczewski["website-korczewski"]:::default
   website_massage["website-massage"]:::default
   whiteboard["whiteboard"]:::default
   coredns["coredns"]:::default
@@ -176,6 +177,10 @@ flowchart LR
   vaultwarden -->|"configmap:domain-c…"| brett
   vaultwarden -->|"configmap:domain-c…"| traefik
   videovault -->|"DATABASE_URL"| shared_db
+  website_korczewski -->|"SESSIONS_DATABASE_…"| website
+  website_korczewski -->|"configmap:website-…"| nextcloud
+  website_korczewski -->|"configmap:website-…"| brett
+  website_korczewski -->|"configmap:domain-c…"| traefik
   website_massage -->|"SESSIONS_DATABASE_…"| website
   website_massage -->|"configmap:website-…"| nextcloud
   website_massage -->|"configmap:website-…"| brett
@@ -217,6 +222,7 @@ flowchart LR
   traefik -->|"ingress"| otel_collector
   traefik -->|"ingress"| ntfy
   traefik -->|"ingress"| oauth2_proxy_massage_korczewski
+  traefik -->|"ingress"| website_korczewski
   traefik -->|"ingress"| oauth2_proxy_web_korczewski
   traefik -->|"ingress"| collabora
   traefik -->|"ingress"| oauth2_proxy_recovery
@@ -267,6 +273,7 @@ flowchart LR
   spreed_signaling -->|"selector"| spreed_signaling
   talk_recording -->|"selector"| talk_recording
   videovault -->|"selector"| videovault
+  website_korczewski -->|"selector"| website_korczewski
   website_massage -->|"selector"| website_massage
   whiteboard -->|"selector"| whiteboard
   talk_transcriber -->|"selector"| talk_transcriber
@@ -2141,6 +2148,8 @@ flowchart LR
   systemtest_outbox -->|"secret:website-sec…"| systemtest_cleanup
   systemtest_cleanup -->|"secret:website-sec…"| sdlc_console
   sdlc_console -->|"secret:website-sec…"| systemtest_cleanup
+  systemtest_cleanup -->|"secret:website-sec…"| website_korczewski
+  website_korczewski -->|"secret:website-sec…"| systemtest_cleanup
   systemtest_cleanup -->|"secret:website-sec…"| website_massage
   website_massage -->|"secret:website-sec…"| systemtest_cleanup
   website -->|"secret:website-sec…"| systemtest_cleanup
@@ -2148,17 +2157,26 @@ flowchart LR
   systemtest_outbox -->|"secret:website-sec…"| systemtest_purge_all
   systemtest_purge_all -->|"secret:website-sec…"| sdlc_console
   sdlc_console -->|"secret:website-sec…"| systemtest_purge_all
+  systemtest_purge_all -->|"secret:website-sec…"| website_korczewski
+  website_korczewski -->|"secret:website-sec…"| systemtest_purge_all
   systemtest_purge_all -->|"secret:website-sec…"| website_massage
   website_massage -->|"secret:website-sec…"| systemtest_purge_all
   website -->|"secret:website-sec…"| systemtest_purge_all
   systemtest_outbox -->|"secret:website-sec…"| sdlc_console
   sdlc_console -->|"secret:website-sec…"| systemtest_outbox
+  systemtest_outbox -->|"secret:website-sec…"| website_korczewski
+  website_korczewski -->|"secret:website-sec…"| systemtest_outbox
   systemtest_outbox -->|"secret:website-sec…"| website_massage
   website_massage -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| systemtest_outbox
+  sdlc_console -->|"secret:website-sec…"| website_korczewski
+  website_korczewski -->|"secret:website-sec…"| sdlc_console
   sdlc_console -->|"secret:website-sec…"| website_massage
   website_massage -->|"secret:website-sec…"| sdlc_console
   website -->|"secret:website-sec…"| sdlc_console
+  website_korczewski -->|"secret:website-sec…"| website_massage
+  website_massage -->|"secret:website-sec…"| website_korczewski
+  website -->|"secret:website-sec…"| website_korczewski
   website -->|"secret:website-sec…"| website_massage
   dev_pod -->|"secret:shared-db-d…"| sdlc_console
   sdlc_console -->|"secret:shared-db-d…"| dev_pod
@@ -2240,6 +2258,7 @@ flowchart TB
     talk_recording["talk-recording"]
     vaultwarden["vaultwarden"]
     videovault["videovault"]
+    website_korczewski["website-korczewski"]
     website_massage["website-massage"]
     whiteboard["whiteboard"]
     talk_transcriber["talk-transcriber"]

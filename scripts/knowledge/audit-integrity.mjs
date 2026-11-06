@@ -15,7 +15,7 @@ export async function runAudit({ queryFn, repoRoot = process.cwd() }) {
     collections: [],
     model_lineage: { models: {}, missing_model_chunks: 0 },
     source_freshness: { current: 0, changed: 0, missing: 0, unverifiable: 0 },
-    phase_events: { order_violations: 0, gaps: 0, tickets_inspected: 0 },
+    phase_events: { order_violations: 0, gaps: 0, tickets_inspected: 0, skipped: false },
     github_coverage: { status: 'unpopulated', rows: 0 },
     open_resolutions: 0,
     graph_status: { status: 'unknown', freshness: 'unknown', coverage: 'unknown' },
@@ -106,34 +106,40 @@ export async function runAudit({ queryFn, repoRoot = process.cwd() }) {
     }
   }
 
-  // 5. Phase events & order checking
-  const eventRows = await queryFn(`
+  // 5. Phase events & order checking — tickets-Schema ist Sunset (Factory-Decommission):
+  // Fehlen (42P01 o. ä.) ist Skip, kein Fail (#7162). Vgl. Abschnitte 6/7 (try/catch).
+  try {
+    const eventRows = await queryFn(`
     SELECT e.ticket_id, e.id, e.phase, e.state, e.at, COALESCE(e.detail, '') as detail
     FROM tickets.factory_phase_events e
     WHERE NOT (e.phase IN ('scout', 'design', 'plan') AND e.detail = 'auto: stage-plan')
     ORDER BY e.ticket_id, e.at ASC, e.id ASC;
   `);
-  const byTicket = new Map();
-  for (const ev of eventRows.rows) {
-    if (!byTicket.has(ev.ticket_id)) byTicket.set(ev.ticket_id, []);
-    byTicket.get(ev.ticket_id).push(ev);
-  }
-  result.phase_events.tickets_inspected = byTicket.size;
-  for (const [, events] of byTicket) {
-    let hasPlan = false, hasImpl = false, hasVerify = false, orderError = false;
-    for (const ev of events) {
-      if (ev.phase === 'plan' && ev.state === 'done' && !hasPlan) {
-        hasPlan = true;
-      } else if (ev.phase === 'implement' && ev.state === 'entered' && !hasImpl) {
-        hasImpl = true;
-        if (!hasPlan) orderError = true;
-      } else if (ev.phase === 'verify' && ev.state === 'done' && !hasVerify) {
-        hasVerify = true;
-        if (!hasImpl) orderError = true;
-      }
+    const byTicket = new Map();
+    for (const ev of eventRows.rows) {
+      if (!byTicket.has(ev.ticket_id)) byTicket.set(ev.ticket_id, []);
+      byTicket.get(ev.ticket_id).push(ev);
     }
-    if (orderError) result.phase_events.order_violations++;
-    if (!hasPlan || !hasImpl || !hasVerify) result.phase_events.gaps++;
+    result.phase_events.tickets_inspected = byTicket.size;
+    for (const [, events] of byTicket) {
+      let hasPlan = false, hasImpl = false, hasVerify = false, orderError = false;
+      for (const ev of events) {
+        if (ev.phase === 'plan' && ev.state === 'done' && !hasPlan) {
+          hasPlan = true;
+        } else if (ev.phase === 'implement' && ev.state === 'entered' && !hasImpl) {
+          hasImpl = true;
+          if (!hasPlan) orderError = true;
+        } else if (ev.phase === 'verify' && ev.state === 'done' && !hasVerify) {
+          hasVerify = true;
+          if (!hasImpl) orderError = true;
+        }
+      }
+      if (orderError) result.phase_events.order_violations++;
+      if (!hasPlan || !hasImpl || !hasVerify) result.phase_events.gaps++;
+    }
+  } catch (err) {
+    result.phase_events.skipped = true;
+    result.phase_events.skip_reason = err?.code === '42P01' ? 'tickets-schema-missing' : 'phase-events-unreadable';
   }
 
   // 6. GitHub tables check

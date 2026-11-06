@@ -3731,7 +3731,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 898,
+      "file_count": 899,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4051,6 +4051,7 @@
         "scripts/iso/build-node-iso.sh",
         "scripts/iso/node-map.example",
         "scripts/knowledge/audit-integrity.mjs",
+        "scripts/knowledge/audit-integrity.test.mjs",
         "scripts/knowledge/dense-client.d.mts",
         "scripts/knowledge/dense-client.mjs",
         "scripts/knowledge/dense-migration-control.mjs",

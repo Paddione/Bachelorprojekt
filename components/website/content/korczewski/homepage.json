@@ -1,11 +1,31 @@
 {
-  "hero": { "title": "Patrick Korczewski", "subtitle": "Bachelorprojekt — Kore Design System", "tagline": "Tech, Tools & Trade-offs" },
+  "hero": {
+    "title": "Patrick Korczewski",
+    "subtitle": "Software Engineering & IT-Security-Beratung – KI-Integration, Kubernetes-Architektur, sichere Systeme",
+    "tagline": "Tech, Tools & Trade-offs"
+  },
   "stats": [],
-  "servicesHeadline": "",
-  "servicesSubheadline": "",
-  "whyMeHeadline": "",
-  "whyMeIntro": "",
-  "whyMePoints": [],
-  "quote": "",
-  "quoteName": ""
+  "servicesHeadline": "Was ich für Sie tun kann",
+  "servicesSubheadline": "Ich baue Systeme, die sicher laufen, skalieren und wartbar bleiben – und zeige Ihnen, wie KI dabei zum echten Hebel wird.",
+  "whyMeHeadline": "Warum ich?",
+  "whyMeIntro": "Ich komme nicht aus der Hochglanz-Beratung. Ich habe jahrelang reale IT-Systeme betrieben, bevor ich angefangen habe, sie zu bauen. Und seit dem ersten Tag von ChatGPT arbeite ich täglich mit KI – nicht als Spielerei, sondern als Produktivwerkzeug in echten Projekten.",
+  "whyMePoints": [
+    {
+      "iconPath": "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+      "title": "Security first – immer",
+      "text": "Bachelor in IT-Sicherheit. Ich denke Systeme von Anfang an sicher – nicht als nachträgliche Checkbox."
+    },
+    {
+      "iconPath": "M13 10V3L4 14h7v7l9-11h-7z",
+      "title": "KI als echtes Werkzeug",
+      "text": "Täglich mit Claude, Cursor und Co. – in Produktion, nicht im Demo-Modus. Ich weiß, was geht und was nicht."
+    },
+    {
+      "iconPath": "M5 12h14M12 5l7 7-7 7",
+      "title": "Vom Konzept bis zum Cluster",
+      "text": "Ich baue Architekturen, die ich hinterher selbst deploye und betreibe. Kein Abliefern und Verschwinden."
+    }
+  ],
+  "quote": "Gute Systeme entstehen nicht durch Tools allein – sondern durch das Verständnis, welches Problem man wirklich lösen will.",
+  "quoteName": "Patrick Korczewski"
 }

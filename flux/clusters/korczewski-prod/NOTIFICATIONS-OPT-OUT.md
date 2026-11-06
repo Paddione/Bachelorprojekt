@@ -1,4 +1,11 @@
-# Notifications — bewusster Opt-out (korczewski-prod)
+# Notifications — bewusster Opt-out (korczewski-prod, Nachfolger von fleet)
+
+- Nachfolge-Status (2026-11-07): `korczewski-prod` ist der benannte Nachfolger
+  der korczewski-Workloads aus dem dekommissionierten `fleet/`-Cluster
+  (siehe `flux/clusters/fleet/DECOMMISSIONED.md`). Das kanonische
+  Least-Privilege-RBAC (`tenant-rbac.yaml`) und das eigene Artefakt
+  (`korczewski-prod-manifests`) leben hier; `fleet-manifests` darf fuer
+  korczewski-Workloads nicht mehr referenziert werden.
 
 - Kein `Provider`/`Alert` in diesem Verzeichnis (Stand 2026-11-07).
 - Begruendung: Enklave-Prinzip — das Artefakt ist oeffentlich pullbar

@@ -61,11 +61,18 @@ task workspace:validate                          # Kustomize dry-run
 
 **Workspace MVP** — Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Services: [`docs/agent-guide/reference.md`](docs/agent-guide/reference.md). Prerequisites: Docker, kubectl, `task` (go-task). `k3d` binary is no longer needed/used (T900120).
 
-## Architecture & Cluster Topology (Fleet Stage 3)
+## Architecture & Cluster Topology
 
-- **mentolder (BRAND)**: Live production brand. DNS for `mentolder.de` routes to the **`fleet`** cluster. `ENV=mentolder` (alias `fleet-mentolder`), context `fleet`, namespace `workspace`.
-- **korczewski (BRAND — FROZEN per T002479, massage nur devmesh)**: Standalone cluster torn down; hosts joined `fleet`. **Workspace FROZEN since 2026-07-23** (Nextcloud, Brett, Collabora, own shared-db, jobs: `ks-korczewski.yaml` / `ks-jobs-korczewski.yaml` `suspend: true`, namespaces scaled to 0). Do not deploy or scale these up. The Massagepraxis Vögelsen website (`BRAND=BRAND_ID=massage`): massage nur lokal auf devmesh (`massage.devmesh.korczewski.de`). Its prod wiring from T901440 (`flux-website-korczewski`, ns `website-korczewski`; Pocket ID `flux-korczewski-auth`, ns `workspace-korczewski`) stays `suspend: true`, no go-live. They use the central `shared-db` in ns `workspace` (DBs `website_massage`, `pocket_id_korczewski`).
-- **Contexts**: exactly two — `fleet` (prod), `devmesh` (local mesh, ADR-008). Dead: `mentolder`, `korczewski`, `k3s-1`, `hetzner`, `k3d-*`.
+- **mentolder (BRAND — eigenstaendig)**: eigenes Repo, eigene Infra; nutzt nichts
+  mehr von hier. E2E/Probes laufen teils noch gegen mentolder-Hosts
+  (Quarantaene-Regeln in `e2e.yml` beachten).
+- **korczewski (BRAND — FROZEN per T002479)**: Prod-Verdrahtung
+  (`flux-website-korczewski`, `flux-korczewski-auth`) bleibt `suspend: true`,
+  kein Go-live, keine Skalierung. Massage nur devmesh
+  (`massage.devmesh.korczewski.de`); DBs via zentrales `shared-db`.
+- **Contexts**: `devmesh` (live), `k3s-dev` (lokal), `k3d-gpu-serving` (GPU-Node,
+  derzeit unerreichbar). Tot: `fleet` (abgebaut 2026-10-22), `mentolder`,
+  `korczewski`, `k3s-1`, `hetzner`.
 - Manifests/overlays/GitOps: [`docs/agent-guide/reference.md`](docs/agent-guide/reference.md).
 
 ## CI/CD, Testing Standards & Image Exclusions

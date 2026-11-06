@@ -107,11 +107,11 @@ export const GET: APIRoute = async ({ request }) => {
   ];
 
   // Router Health Check
-  const routerTelemetry = {
+  const routerTelemetry: NonNullable<GpuTelemetryResponse["router"]> = {
     name: "devmesh-llm-router",
     port: 18235,
     url: "http://100.76.165.106:18235",
-    status: 'online' as const,
+    status: 'online',
     gpu1Leased: false,
     policy: 'hold_or_fallback'
   };

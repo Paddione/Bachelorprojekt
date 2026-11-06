@@ -224,6 +224,7 @@ test.describe('Korczewski: Kontakt page', () => {
     // Use data-testid for robust selection instead of computed accessible name.
     const msgTab = page.getByTestId('tab-nachricht');
     await msgTab.click();
+    await expect(msgTab).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByRole('textbox', { name: /name/i }).first()).toBeVisible();
     await expect(page.getByRole('textbox', { name: /e-mail/i })).toBeVisible();
   });

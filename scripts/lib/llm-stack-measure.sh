@@ -42,7 +42,7 @@
 
 set -uo pipefail
 
-LLM_PROXY_URL="${LLM_PROXY_URL:-http://127.0.0.1:1919}"
+LLM_PROXY_URL="${LLM_PROXY_URL:-http://127.0.0.1:18235}"
 LOADOUTS="${LLM_MEASURE_LOADOUTS:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/llm/loadouts.json}"
 MCP_REGISTRY="${LLM_MEASURE_MCP_REGISTRY:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/docs/agent-guide/registry/mcp.yaml}"
 UNIT_DIRS="${LLM_MEASURE_UNIT_DIRS:-scripts/llm:scripts/llm-proxy}"

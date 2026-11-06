@@ -1,6 +1,22 @@
-import { test, expect, APIRequestContext } from '@playwright/test';
+import { test, expect, APIRequestContext, Page } from '@playwright/test';
 
 const BASE = process.env.KORCZEWSKI_URL?.replace(/\/$/, '') ?? 'https://web.korczewski.de';
+
+async function waitForHydration(page: Page) {
+  await page.waitForFunction(
+    () => {
+      const islands = Array.from(document.querySelectorAll('astro-island[ssr]'));
+      for (const island of islands) {
+        if (island.querySelector('[data-testid="tab-nachricht"]')) {
+          return false;
+        }
+      }
+      return true;
+    },
+    undefined,
+    { timeout: 15_000 },
+  );
+}
 
 // Shared connectivity guard — caches the result so the preflight only fires once
 // per worker. Each describe block calls `guard(request)` in beforeAll.
@@ -204,9 +220,10 @@ test.describe('Korczewski: Kontakt page', () => {
 
   test('T2: contact form has name, email, message fields', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
+    await waitForHydration(page);
     // Use data-testid for robust selection instead of computed accessible name.
     const msgTab = page.getByTestId('tab-nachricht');
-    if (await msgTab.isVisible()) await msgTab.click();
+    await msgTab.click();
     await expect(page.getByRole('textbox', { name: /name/i }).first()).toBeVisible();
     await expect(page.getByRole('textbox', { name: /e-mail/i })).toBeVisible();
   });

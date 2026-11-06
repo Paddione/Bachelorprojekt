@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1292,
+      "file_count": 1293,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -212,6 +212,7 @@
         "tests/fixtures/health-goals/runtime/axe-incomplete.json",
         "tests/fixtures/health-goals/runtime/empty-items.json",
         "tests/fixtures/health-goals/runtime/flux-ready.json",
+        "tests/fixtures/health-goals/runtime/flux-suspended.json",
         "tests/fixtures/health-goals/runtime/flux-unhealthy.json",
         "tests/fixtures/health-goals/runtime/lighthouse-incomplete.json",
         "tests/fixtures/health-goals/runtime/lighthouse-low.json",

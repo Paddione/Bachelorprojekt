@@ -48,9 +48,20 @@ jobs:
           rm -f /usr/local/bin/kustomize
           curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
             | bash -s -- 5.4.3 /usr/local/bin
-          curl -sSL https://fluxcd.io/install.sh | sudo bash
+          if ! command -v yq >/dev/null 2>&1; then
+            YQ_VERSION=4.47.2
+            YQ_SHA256=1bb99e1019e23de33c7e6afc23e93dad72aad6cf2cb03c797f068ea79814ddb0
+            sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
+            echo "${YQ_SHA256}  /usr/local/bin/yq" | sha256sum -c -
+            sudo chmod +x /usr/local/bin/yq
+          fi
+          FLUX_VERSION=2.9.3
+          curl -sSL https://fluxcd.io/install.sh | sudo FLUX_VERSION=${FLUX_VERSION} bash
           curl -sL https://github.com/google/go-containerregistry/releases/download/v0.20.2/go-containerregistry_Linux_x86_64.tar.gz | tar -xz -C /usr/local/bin crane
 
+      # Auth asymmetry is intentional: fleet is dispatched cross-repo via
+      # post-merge, so GH_PAT is required; devmesh/korczewski-prod use
+      # GITHUB_TOKEN for same-repo pushes. Do NOT "unify" to GITHUB_TOKEN.
       - name: Log in to GHCR
         uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7  # v5
         with:

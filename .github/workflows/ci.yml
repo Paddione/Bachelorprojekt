@@ -353,6 +353,96 @@ jobs:
       - name: Run manifest tests
         run: bash scripts/pytest-run.sh tests/py/unit/ported/test_manifests_part1.py tests/py/unit/ported/test_manifests_part2.py tests/py/unit/ported/test_changed_manifests.py tests/py/unit/test_dead_node_affinity.py
 
+  test-render-dryrun:
+    # Advisory render-envelope dry-run gate (gitops-ci-audit follow-up).
+    # Renders the three shipped offline envelopes without applying anything:
+    # fleet OCI artifact tree, devmesh stack, korczewski-prod stack.
+    # Advisory on purpose (continue-on-error): frozen fleet paths
+    # (korczewski suspend:true per T002479) must not break PRs on first
+    # iteration - warnings surface drift, failures do not block merge.
+    # NOT a required check (cf. scripts/gh-branch-protection.sh SSOT).
+    name: Render dry-run (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-tags: false
+
+      - name: Ensure kubectl
+        run: |
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+          export PATH="$BIN:$PATH"
+          if command -v kubectl >/dev/null 2>&1; then
+            echo "kubectl bereits vorhanden: $(command -v kubectl)"
+          else
+            curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+              -o "$BIN/kubectl"
+            chmod +x "$BIN/kubectl"
+          fi
+          kubectl version --client
+
+      - name: Ensure kustomize 5.4.3
+        run: |
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+          export PATH="$BIN:$PATH"
+          if command -v kustomize >/dev/null 2>&1; then
+            echo "kustomize bereits vorhanden: $(kustomize version || true)"
+          else
+            curl --fail -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" \
+              -o /tmp/kustomize.tgz
+            tar -xzf /tmp/kustomize.tgz -C "$BIN"
+            chmod +x "$BIN/kustomize"
+          fi
+          kustomize version || true
+
+      - name: Seed CI dummy secrets
+        env:
+          CI: "true"
+        run: bash scripts/ci-dummy-secrets.sh
+
+      - name: Render fleet artifact tree
+        env:
+          CI: "true"
+        run: bash scripts/flux-render-artifact.sh --out /tmp/out-fleet || echo "::warning::render envelope fleet failed (advisory)"
+
+      - name: Render devmesh stack
+        env:
+          CI: "true"
+        run: bash scripts/devmesh/render-stack.sh core --out /tmp/out-devmesh || echo "::warning::render envelope devmesh failed (advisory)"
+
+      - name: Render korczewski-prod stack
+        env:
+          CI: "true"
+        run: bash scripts/korczewski-prod/render-stack.sh --out /tmp/out-kp || echo "::warning::render envelope korczewski-prod failed (advisory)"
+
+      - name: Render-gate checks (non-empty, no unsubstituted placeholders)
+        run: |
+          for d in /tmp/out-fleet /tmp/out-devmesh /tmp/out-kp; do
+            if [ ! -d "$d" ]; then
+              echo "::warning::render out dir missing: $d (advisory)"
+              continue
+            fi
+            if [ -z "$(find "$d" -type f | head -n 1)" ]; then
+              echo "::warning::render out dir empty: $d (advisory)"
+              continue
+            fi
+            if grep -rEn '[$]\{[A-Za-z_][A-Za-z0-9_]*\}' "$d" | grep -v 'WEBSITE_CONFIG_SHA' | head -n 20; then
+              echo "::warning::unsubstituted placeholders in $d (advisory)"
+            else
+              echo "OK: $d non-empty, no placeholders"
+            fi
+          done
+          if [ -d /tmp/out-fleet ] && grep -rEn 'mentolder\.de' /tmp/out-fleet | head -n 20; then
+            echo "::warning::forbidden mentolder.de reference in fleet envelope (advisory)"
+          fi
+          exit 0
+
   # ── Spec: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
   #
   # [T002500] Vorher war das EIN Job mit ~400s, dem kritischen Pfad jedes PRs

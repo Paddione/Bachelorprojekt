@@ -24,8 +24,30 @@ spec:
                 secretKeyRef: {name: website-secrets, key: WEBSITE_DB_PASSWORD}
           ports:
             - {name: postgres, containerPort: 5432}
+          # Existing PVCs skip docker-entrypoint-initdb.d. Reapply the same
+          # idempotent baseline after PostgreSQL starts accepting TCP clients
+          # (the entrypoint's temporary init server only listens on a socket).
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - bash
+                  - -ec
+                  - |
+                    for attempt in $(seq 1 60); do
+                      pg_isready -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" && break
+                      sleep 2
+                    done
+                    pg_isready -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+                    bash /schema/init-knowledge-schema.sh
+                    bash /schema/init-meetings-schema.sh
+                    for migration in /migrations/*.sql; do
+                      psql -X -1 -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f "$migration"
+                    done
+                    touch /tmp/website-schema-ready
           readinessProbe:
-            exec: {command: [pg_isready, -U, website, -d, website]}
+            exec:
+              command: [bash, -ec, 'test -f /tmp/website-schema-ready && pg_isready -U website -d website']
             initialDelaySeconds: 5
             periodSeconds: 5
           resources:
@@ -33,12 +55,24 @@ spec:
             limits: {cpu: 500m, memory: 512Mi}
           volumeMounts:
             - {name: data, mountPath: /var/lib/postgresql/data}
+            - {name: schema, mountPath: /schema, readOnly: true}
+            - {name: migrations, mountPath: /migrations, readOnly: true}
+            - name: schema
+              mountPath: /docker-entrypoint-initdb.d/10-knowledge.sh
+              subPath: init-knowledge-schema.sh
+            - name: schema
+              mountPath: /docker-entrypoint-initdb.d/15-meetings.sh
+              subPath: init-meetings-schema.sh
             - name: brand
               mountPath: /docker-entrypoint-initdb.d/20-massage-brand.sql
               subPath: seed.sql
       volumes:
         - name: data
           persistentVolumeClaim: {claimName: massage-db-dev-data}
+        - name: migrations
+          configMap: {name: website-dev-db-migrations}
+        - name: schema
+          configMap: {name: website-schema}
         - name: brand
           configMap: {name: massage-brand-seed}
 ---

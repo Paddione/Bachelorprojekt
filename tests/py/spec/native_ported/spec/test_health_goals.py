@@ -118,11 +118,11 @@ def test_g_sec05_counts_unsigned_humans_excludes_signed_commits(tmp_path, run_cm
 # the whole report.
 
 
-def test_g_fe05_both_lighthouse_npx_calls_are_wrapped_in_a_timeout(repo_root):
-    # Beide Marken laufen durch dieselbe Schleife; der einzelne Aufruf trägt das timeout.
+def test_g_fe05_lighthouse_npx_call_is_wrapped_in_a_timeout(repo_root):
+    # Nur noch korczewski (mentolder liegt im Gekko-Repo); der einzelne Aufruf trägt das timeout.
     text = (repo_root / ".github" / "workflows" / "health-goals.yml").read_text(encoding="utf-8")
-    assert re.search(r"for brand in mentolder korczewski; do", text)
-    pattern = re.compile(r'timeout [0-9]+ npx --yes lighthouse@[0-9.]+ "https://web\.\$\{brand\}\.de"')
+    assert "for brand in mentolder korczewski; do" not in text
+    pattern = re.compile(r'timeout [0-9]+ npx --yes lighthouse@[0-9.]+ "https://web\.korczewski\.de"')
     assert sum(1 for line in text.splitlines() if pattern.search(line)) == 1
 
 

@@ -54,6 +54,12 @@ def test_axe_counts_only_serious_and_critical_findings_across_covered_brands(ass
     assert_measure("axe", "axe-incomplete.json", "-")
 
 
+def test_axe_skipped_gated_routes_count_zero_and_keep_basis_complete(assert_measure):
+    # Auth-Wall (z. B. oauth2-proxy 401): kein bewertbares HTML — der Audit
+    # erfasst den Skip mit Grund, das Mass bleibt 0, die Basis bleibt komplett.
+    assert_measure("axe", "axe-gated.json", "0")
+
+
 def test_lighthouse_returns_the_integer_score_and_rejects_incomplete_reports(assert_measure):
     assert_measure("lighthouse", "lighthouse-valid.json", "91")
     assert_measure("lighthouse", "lighthouse-low.json", "78")

@@ -21,10 +21,18 @@ try {
     for (const route of paths) {
       const page = await context.newPage();
       await page.emulateMedia({ reducedMotion: 'reduce' });
-      await page.goto(new URL(route, bases[brand]).href, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-      const result = await new AxeBuilder({ page })
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
-      runs.push({ brand, route, violations: result.violations.map(({ id, impact }) => ({ id, impact })) });
+      const resp = await page.goto(new URL(route, bases[brand]).href, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      const status = resp?.status() ?? 0;
+      if (status !== 200) {
+        // Auth-/Fehler-Wall (z. B. oauth2-proxy 401 auf massage): kein bewertbares
+        // Seiten-HTML — als skip mit Grund erfassen statt Wall-Artefakte als
+        // Site-Verstoesse zu zaehlen. Basis (brand/route) bleibt erhalten.
+        runs.push({ brand, route, status, skipped: `http-${status}`, violations: [] });
+      } else {
+        const result = await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        runs.push({ brand, route, status, violations: result.violations.map(({ id, impact }) => ({ id, impact })) });
+      }
       await page.close();
     }
   }

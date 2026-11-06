@@ -107,7 +107,7 @@ export const GET: APIRoute = async ({ request }) => {
   ];
 
   // Router Health Check
-  let routerTelemetry = {
+  const routerTelemetry = {
     name: "devmesh-llm-router",
     port: 18235,
     url: "http://100.76.165.106:18235",

@@ -4812,6 +4812,12 @@
     "kind": "pytest"
   },
   {
+    "id": "native_ported/spec/llm_obs_devmesh_primary",
+    "file": "tests/py/spec/native_ported/spec/test_llm_obs_devmesh_primary.py",
+    "category": "native_ported",
+    "kind": "pytest"
+  },
+  {
     "id": "native_ported/spec/local-dev-mesh/cloud_access",
     "file": "tests/py/spec/native_ported/spec/local-dev-mesh/test_cloud_access.py",
     "category": "native_ported",

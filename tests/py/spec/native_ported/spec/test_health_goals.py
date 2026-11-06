@@ -127,9 +127,15 @@ def test_g_fe05_both_lighthouse_npx_calls_are_wrapped_in_a_timeout(repo_root):
 
 
 def test_g_sec06_the_trivy_image_scan_and_its_kubectl_pod_list_are_wrapped_in_a_timeout(repo_root):
-    script = (repo_root / "scripts" / "health-goals-check.sh").read_text(encoding="utf-8").splitlines()
-    assert any(re.search(r"timeout [0-9]+ trivy image", line) for line in script)
-    assert any(re.search(r"timeout [0-9]+ kubectl get pods --all-namespaces", line) for line in script)
+    # trivy image nimmt nur EIN Image pro Aufruf — der Scan läuft pro Image in
+    # trivy_image_cves() (scripts/lib/health-goals-measure.sh), jeder Aufruf mit
+    # eigenem timeout; die Check-Zeile ruft nur den Helper auf (kein kubectl nötig,
+    # gescannt wird die gepinnte Liste aus scripts/trivy-scan.sh).
+    helper = (repo_root / "scripts" / "lib" / "health-goals-measure.sh").read_text(encoding="utf-8")
+    assert "trivy_image_cves()" in helper
+    assert re.search(r"timeout (\"?\$\{TRIVY_TIMEOUT:-[0-9]+\}\"?|[0-9]+) trivy image", helper + (repo_root / "scripts" / "trivy-scan.sh").read_text(encoding="utf-8"))
+    script = (repo_root / "scripts" / "health-goals-check.sh").read_text(encoding="utf-8")
+    assert "$(trivy_image_cves)" in script
 
 
 # --- T001884: gen-goals-data.mjs (E4) ---

@@ -15,7 +15,7 @@
 # Nicht eigenstaendig ausfuehrbar und nicht testbar ohne den Checker.
 
 # ── DB-Mess-Helfer (read-only; SKIP bei --fast oder wenn Cluster/Pod nicht erreichbar) ──
-DB_NS="${HG_DB_NS:-workspace}"; DB_CTX="${HG_DB_CTX:-fleet}"; PGPOD=""
+DB_NS="${HG_DB_NS:-workspace}"; DB_CTX="${HG_DB_CTX:-devmesh}"; PGPOD=""
 _db_pod() {
   [ -n "$PGPOD" ] && { echo "$PGPOD"; return 0; }
   command -v kubectl >/dev/null 2>&1 || return 1
@@ -56,7 +56,7 @@ restore_verify_age_d() { # G-DB11 — Alter des recovery-verify-status-Stempels 
 }
 
 # ── Cluster-Runtime-Mess-Helfer (read-only; SKIP bei --fast oder Cluster unerreichbar) ──
-OPS_CTX="${HG_OPS_CTX:-fleet}"; OPS_NS_LIST="${HG_OPS_NS:-workspace workspace-korczewski}"
+OPS_CTX="${HG_OPS_CTX:-devmesh}"; OPS_NS_LIST="${HG_OPS_NS:-workspace workspace-korczewski}"
 ops_kubectl_count() { # $1=not_ready|restarts_24h — zählt über alle OPS-Namespaces
   [ "$FAST" = 1 ] && { echo "-"; return; }
   command -v kubectl >/dev/null 2>&1 || { echo "-"; return; }
@@ -164,6 +164,22 @@ wt_measure() { # <subcommand>
     *)           echo "$v" ;;
   esac
 }
+# --- Helfer: Trivy-Image-CVEs (G-SEC06) --------------------------------------
+# Doku-Methode (goals.md): scripts/trivy-scan.sh über die gepinnte Image-Liste,
+# gezählt werden CRITICAL mit --ignore-unfixed. Die alte Inline-Pipeline übergab
+# alle Live-Images auf einmal an `trivy image` (nimmt nur EIN Image pro Aufruf)
+# und scheiterte damit strukturell immer (usage error → n/a). Fail-closed: ohne
+# trivy/jq oder ohne Scan-Basis → '-', kein trivial-grünes 0.
+trivy_image_cves() { # G-SEC06 — CRITICAL-CVEs der gepinnten Images
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  command -v trivy >/dev/null 2>&1 || { echo "-"; return; }
+  command -v jq >/dev/null 2>&1 || { echo "-"; return; }
+  local out total
+  out=$(timeout 280 bash scripts/trivy-scan.sh --json 2>/dev/null) || { echo "-"; return; }
+  total=$(printf '%s' "$out" | jq '.total_critical' 2>/dev/null) || { echo "-"; return; }
+  [[ "$total" =~ ^[0-9]+$ ]] && echo "$total" || echo "-"
+}
+
 # --- Helfer: gh-abhängige Messungen ------------------------------------------
 # gh ist netzabhängig und kann hängen. Ohne Binary, ohne Auth oder bei Timeout gibt
 # es SKIP statt einer Zahl.

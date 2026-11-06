@@ -55,15 +55,24 @@ def test_website_database_bootstrap_runs_before_readiness(repo_root, tmp_path):
     ready = binaries / "pg_isready"
     ready.write_text("#!/bin/sh\nexit 0\n")
     ready.chmod(0o755)
+    psql = binaries / "psql"
+    psql.write_text('#!/bin/sh\necho "$*" >> "$MIGRATION_LOG"\ntest "${FAIL_MIGRATION:-}" != 1\n')
+    psql.chmod(0o755)
+    migrations = tmp_path / "migrations"
+    migrations.mkdir()
+    (migrations / "001.sql").write_text("SELECT 1;")
     log = tmp_path / "log"
     env = dict(os.environ, PATH=str(binaries) + ":" + os.environ["PATH"],
-               POSTGRES_USER="website", POSTGRES_DB="website", BOOTSTRAP_LOG=str(log))
+               POSTGRES_USER="website", POSTGRES_DB="website", BOOTSTRAP_LOG=str(log),
+               MIGRATION_LOG=str(tmp_path / "migrations.log"))
     script = command[-1].replace("/schema/", str(scripts) + "/").replace(
-        "/tmp/website-schema-ready", str(tmp_path / "ready"))
+        "/tmp/website-schema-ready", str(tmp_path / "ready")).replace(
+            "/migrations/", str(migrations) + "/")
     result = subprocess.run([*command[:-1], script], env=env, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     assert log.read_text().splitlines() == ["init-knowledge-schema.sh", "init-meetings-schema.sh"]
     assert (tmp_path / "ready").exists()
+    assert "-X -1 -v ON_ERROR_STOP=1 -U website -d website -f " in (tmp_path / "migrations.log").read_text()
     (tmp_path / "ready").unlink()
     result = subprocess.run([*command[:-1], script], env=dict(env, FAIL_SCRIPT="init-knowledge-schema.sh"),
                             capture_output=True, text=True)
@@ -74,3 +83,8 @@ def test_website_database_bootstrap_runs_before_readiness(repo_root, tmp_path):
     assert "/schema" in mounts
     assert mounts["/docker-entrypoint-initdb.d/10-knowledge.sh"]["subPath"] == "init-knowledge-schema.sh"
     assert mounts["/docker-entrypoint-initdb.d/15-meetings.sh"]["subPath"] == "init-meetings-schema.sh"
+
+    result = subprocess.run([*command[:-1], script], env=dict(env, FAIL_MIGRATION="1"),
+                            capture_output=True, text=True)
+    assert result.returncode != 0
+    assert not (tmp_path / "ready").exists()

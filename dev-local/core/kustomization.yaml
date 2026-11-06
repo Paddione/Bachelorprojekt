@@ -46,6 +46,10 @@ components:
   - ../components/korczewski-prod
 
 configMapGenerator:
+  - name: website-dev-db-migrations
+    files:
+      - 20260703_create_error_log.sql=../../components/website/src/db/migrations/20260703_create_error_log.sql
+      - 20261007_business_memberships.sql=../../components/website/src/db/migrations/20261007_business_memberships.sql
   - name: shared-db-backup-script
     files:
       - db-backup.sh=../../scripts/devmesh/db-backup.sh

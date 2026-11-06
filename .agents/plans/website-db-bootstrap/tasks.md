@@ -17,10 +17,15 @@ Zweck: Der neue devmesh-DB-Pod initialisiert bisher nur brands, obwohl beide Web
 
 ## Tasks
 - [x] RED: python3 -m pytest tests/py/spec/test_massage_devmesh.py -q → 1 failed (lifecycle fehlt), 1 passed.
-- [ ] Fresh-Init-Mounts und postStart gegen bestehende PVC hinzufügen.
-- [ ] GREEN: obiger Test prüft Reihenfolge, Erfolgsmarker und Fehlerpropagation.
-- [ ] task test:changed, task freshness:check, task workspace:validate.
+- [x] Fresh-Init-Mounts und postStart gegen bestehende PVC hinzufügen.
+- [x] GREEN: obiger Test prüft Reihenfolge, Erfolgsmarker und Fehlerpropagation.
+- [x] task test:changed, task freshness:check, task workspace:validate.
 - [ ] Commit, Push, PR, grüne CI und Squash-Merge, anschließend Live-Recheck der nicht existierenden Ticket-/Umfrage-IDs.
+
+## Umsetzung und Belege
+- Issue #7183 enthält Reproducer und PRE=d70ef159b.
+- GREEN: gezielter Verhaltenstest 2 passed; Freshness und Workspace-Validate grün vor zusätzlicher Migrationsverdrahtung.
+- Contact-Rootcause: inbox_items.brand fehlte trotz Basisschema. Vorhandene SQL-Migrationen error_log und business_memberships atomar angewendet. Sie werden als ConfigMap aus den Originaldateien eingebunden (keine SQL-Kopie).
 
 ## Leitplanken
 Keine Drops, kein Recreate der PVC, kein Zugriff auf stillgelegte Fleet-Cluster, keine Secret-Werte in Ausgaben. Die bestehende website-schema ConfigMap bleibt SQL-SSOT.

@@ -2,6 +2,20 @@
 # (spec.cluster.multitenant: true in flux-instance.yaml, Security F2).
 # Gleiches Muster wie fleet/tenant-rbac.yaml (Uebergangs-cluster-admin,
 # Einengung nach Inventarisierung der Objektmengen je Pfad).
+#
+# [gitops-ci-audit 2026-11-07] Risiko-Akzeptanz mit Review-Datum:
+# - Aktuell cluster-admin als Uebergang, weil das devmesh-Artefakt
+#   cluster-scoped Objekte enthaelt (ClusterRoles/Bindings, CRDs, Webhooks;
+#   vgl. auskommentierte fleet-Begruendung). Eine engere Rolle waere heute
+#   Schein und wuerde den Sync brechen.
+# - Einengungs-Pfad: pro Sync-Pfad (addons/platform/connectors/secrets/
+#   tailscale/workspace + agent-board via GitRepository) eigene SAs mit
+#   minimalen Roles, sobald die Objektmengen je Pfad aus out/ inventarisiert
+#   sind (out/ derzeit kein Check-in; Inventar via `task flux:render`).
+# - Review: 2027-02-07 (90 Tage). Bei Review entweder einengen oder
+#   diese Akzeptanz mit neuem Datum + Inventar-Beleg verlaengern.
+# - fleet/ + fleet-gekko/ bleiben unveraendert (DECOMMISSIONED.md 2026-10-22:
+#   keine Aenderungen ohne Nachfolge-Ziel).
 apiVersion: v1
 kind: ServiceAccount
 metadata:

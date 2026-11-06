@@ -146,7 +146,11 @@ except Exception:
 loadouts = data.get('loadouts') if isinstance(data, dict) else None
 if not isinstance(loadouts, list) or not loadouts:
     print('n/a'); sys.exit(0)
-ports = [l for l in loadouts if isinstance(l, dict) and l.get('port')]
+# Nur aktivierte Loadouts haben einen Laufzeit-Anspruch — deaktivierte
+# (enabled:false, z.B. dekommissionierte Ports mit artfremder Nachnutzung
+# durch Gateway-Units) sind kein Drift-Fall. Gleiches Praedikat wie
+# cmd_server_availability (G-LLM01): enabled fehlt/None zaehlt als aktiv.
+ports = [l for l in loadouts if isinstance(l, dict) and l.get('port') and l.get('enabled') is not False]
 if not ports:
     print('n/a'); sys.exit(0)
 

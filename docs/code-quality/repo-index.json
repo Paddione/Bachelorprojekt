@@ -1308,7 +1308,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bp-run",
-      "file_count": 76,
+      "file_count": 77,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -1385,14 +1385,15 @@
         "scripts/migrations/2026-09-28-k1-collections-sources.sql",
         "scripts/migrations/2026-10-10-llm-proxy-qwen35-2b-worker.sql",
         "scripts/migrations/2026-10-10-llm-proxy-tei-desktop-embed.sql",
-        "scripts/migrations/2026-10-12-quality-schema-T016507.sql"
+        "scripts/migrations/2026-10-12-quality-schema-T016507.sql",
+        "scripts/migrations/2026-11-06-db10-drop-empty-table-indexes.sql"
       ]
     },
     {
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bp-ship",
-      "file_count": 1946,
+      "file_count": 1948,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",
@@ -1519,6 +1520,8 @@
         "components/website/public/brand/korczewski/kore-app.css",
         "components/website/public/brand/korczewski/kore-assets/k8s-wheel.svg",
         "components/website/public/brand/korczewski/kore-assets/logo-mark.svg",
+        "components/website/public/brand/korczewski/kore-assets/portrait-320.webp",
+        "components/website/public/brand/korczewski/kore-assets/portrait-640.webp",
         "components/website/public/brand/korczewski/kore-assets/portrait-placeholder.svg",
         "components/website/public/brand/korczewski/kore-assets/portrait.jpg",
         "components/website/public/brand/korczewski/kore-assets/topology-12node.svg",

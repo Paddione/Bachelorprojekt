@@ -1000,7 +1000,7 @@
       "sha256": "fe8bd1736037c10e87ef1eba018c837f291592a346ab78ee3535a413e2843928"
     }
   ],
-  "file_count": 742,
+  "file_count": 744,
   "files": [
     {
       "format": "md",
@@ -5350,6 +5350,20 @@
       "size": 1770
     },
     {
+      "format": "webp",
+      "id": "components/website/public/brand/korczewski/kore-assets/portrait-320.webp",
+      "mime": "image/webp",
+      "sha256": "dd75ff5b1f46938b7066ff4a6141171508c8e3c7a406dc145cd792512298980a",
+      "size": 11376
+    },
+    {
+      "format": "webp",
+      "id": "components/website/public/brand/korczewski/kore-assets/portrait-640.webp",
+      "mime": "image/webp",
+      "sha256": "acf76a519bba1173b42fa78f1957a1c290765123e51522c185d560285be50327",
+      "size": 38370
+    },
+    {
       "format": "svg",
       "id": "components/website/public/brand/korczewski/kore-assets/portrait-placeholder.svg",
       "mime": "image/svg+xml",
@@ -6217,5 +6231,5 @@
     "*cache*",
     "*backup*"
   ],
-  "total_bytes": 18593938
+  "total_bytes": 18643684
 }

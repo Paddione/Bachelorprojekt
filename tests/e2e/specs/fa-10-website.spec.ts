@@ -77,6 +77,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
 
   test('T3: Navigation is functional', async ({ page, isMobile }) => {
     await page.goto(BASE);
+    await waitForHydration(page);
     if (isMobile) await page.getByRole('button', { name: 'Menü öffnen' }).click();
     const mainNav = page.getByRole('navigation', { name: isMobile ? 'Mobilnavigation' : 'Seitennavigation' });
     await expect(mainNav).toBeVisible();
@@ -99,7 +100,9 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
     await page.goto(`${BASE}/kontakt`, { waitUntil: 'domcontentloaded' });
     await waitForHydration(page);
     // The new UI uses tabs. Use data-testid for robust selection instead of computed accessible name.
-    await page.getByTestId('tab-nachricht').click();
+    const msgTab = page.getByTestId('tab-nachricht');
+    await msgTab.click();
+    await expect(msgTab).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByLabel(/wie kann ich helfen/i)).toBeVisible();
     await expect(page.getByLabel(/name/i)).toBeVisible();
     await expect(page.getByLabel(/e-?mail/i)).toBeVisible();

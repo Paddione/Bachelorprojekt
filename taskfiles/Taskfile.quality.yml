@@ -23,7 +23,7 @@ tasks:
       - node scripts/build-learning-assets.mjs
 
   freshness:graph-check:
-    desc: "Prüft ob graph.json + api-map.json + blast-radius.md aktuell sind (kein struktureller Drift)"
+    desc: "Prüft ob graph-k8s-env.json + api-map.json + blast-radius.md aktuell sind (kein struktureller Drift)"
     cmds:
       - '[ -d node_modules ] || npm ci'
       - node scripts/build-graph.mjs
@@ -31,7 +31,7 @@ tasks:
       - node scripts/build-blast-radius.mjs
       - |
         ERRORS=0
-        for f in docs/generated/graph.json docs/generated/api-map.json; do
+        for f in docs/generated/graph-k8s-env.json docs/generated/api-map.json; do
           # Strip generatedAt before diffing (timestamp changes on every run)
           committed=$(git show HEAD:"$f" 2>/dev/null | jq 'del(.generatedAt)' 2>/dev/null || echo "")
           current=$(jq 'del(.generatedAt)' "$f" 2>/dev/null || echo "")

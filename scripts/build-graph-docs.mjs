@@ -2,7 +2,7 @@
 /**
  * build-graph-docs.mjs — Mermaid Architecture Page Generator (LAD-3)
  *
- * Reads docs/generated/graph.json + docs/generated/api-map.json
+ * Reads docs/generated/graph-k8s-env.json + docs/generated/api-map.json
  * and generates docs/diagrams/architecture.md — pure Markdown with fenced
  * ```mermaid diagrams and a Markdown API table. No inline HTML/CSS/JS, no
  * CDN script, no embedded timestamp (byte-deterministic across reruns with
@@ -35,7 +35,7 @@ function readJson(relPath) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 function main() {
-  const graph = readJson('docs/generated/graph.json');
+  const graph = readJson('docs/generated/graph-k8s-env.json');
   const apiMap = readJson('docs/generated/api-map.json');
 
   const serviceMapDiagram = buildServiceMap(graph);

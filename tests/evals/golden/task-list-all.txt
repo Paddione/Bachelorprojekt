@@ -150,7 +150,7 @@ task: Available tasks for this project:
 * flux:render:                                  Render fleet-Komponenten + Flux-CRs nach out/ (kein Apply)
 * flux:stalled:                                 Read-only: check for stalled (long-term Ready=False) Flux Kustomizations (T002207)
 * freshness:check:                              Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)
-* freshness:graph-check:                        Prüft ob graph.json + api-map.json + blast-radius.md aktuell sind (kein struktureller Drift)
+* freshness:graph-check:                        Prüft ob graph-k8s-env.json + api-map.json + blast-radius.md aktuell sind (kein struktureller Drift)
 * freshness:regenerate:                         Regenerate ALL generated artifacts (inventory, routes, learning, quality index, agent-guide surfaces)
 * gh:branch-protection:apply:                   Set required checks for main (removes E2E PR). Requires GH_PAT env-var with admin:repo scope.
 * gh:branch-protection:emergency-add-e2e:       Emergency: add E2E PR back to required checks (re-enables the Henne-Ei block)

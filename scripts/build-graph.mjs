@@ -6,7 +6,7 @@
  * to extract Deployment/StatefulSet/CronJob nodes and service-to-service
  * dependency edges (via env refs, initContainers, ingress backends).
  *
- * Output: docs/generated/graph.json
+ * Output: docs/generated/graph-k8s-env.json
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'fs';
@@ -319,12 +319,12 @@ function main() {
   }
 
   mkdirSync(join(ROOT, 'docs/generated'), { recursive: true });
-  const outPath = join(ROOT, 'docs/generated/graph.json');
+  const outPath = join(ROOT, 'docs/generated/graph-k8s-env.json');
   if (hasStructuralChange(outPath)) {
     writeFileSync(outPath, JSON.stringify(output, null, 2));
-    console.log(`✓ graph.json: ${output.nodes.length} nodes, ${output.edges.length} edges → ${outPath}`);
+    console.log(`✓ graph-k8s-env.json: ${output.nodes.length} nodes, ${output.edges.length} edges → ${outPath}`);
   } else {
-    console.log(`○ graph.json: no structural change, skipped`);
+    console.log(`○ graph-k8s-env.json: no structural change, skipped`);
   }
 }
 

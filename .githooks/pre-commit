@@ -114,7 +114,7 @@ _FRESHNESS_FILES=(
   docs/generated/api-map.json
   docs/generated/api-surface.md
   docs/generated/blast-radius.md
-  docs/generated/graph.json
+  docs/generated/graph-k8s-env.json
 )
 # Suppress freshness auto-stage while a rebase/merge is in flight [T001973].
 # The whole hook is NOT skipped — secret-/agent-lock-checks above must still

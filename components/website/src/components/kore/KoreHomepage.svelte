@@ -206,12 +206,21 @@
   <div class="w-team">
     <div class="who">
       <div class="portrait">
-        <img
-          src="/brand/korczewski/kore-assets/portrait.jpg"
-          alt="Patrick Korczewski"
-          style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:14px;"
-          on:error={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
-        />
+        <picture style="position:absolute;inset:0;">
+          <source
+            type="image/webp"
+            srcset="/brand/korczewski/kore-assets/portrait-320.webp 320w, /brand/korczewski/kore-assets/portrait-640.webp 640w"
+            sizes="280px"
+          />
+          <img
+            src="/brand/korczewski/kore-assets/portrait.jpg"
+            alt="Patrick Korczewski"
+            style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:14px;"
+            loading="lazy"
+            decoding="async"
+            on:error={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+          />
+        </picture>
         <div class="id">
           <b>Patrick Korczewski</b><br>
           {legal.jobtitle ?? 'Software Engineering & IT-Security'}

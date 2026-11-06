@@ -286,6 +286,36 @@ def test_g_llm03_v1_models_id_nicht_im_loadout_gefuehrt_zaehlt_gefuehrte_nicht(f
     assert result.output == "1"
 
 
+def test_g_llm03_deaktivierter_loadout_ohne_laufzeit_anspruch_zaehlt_kein_drift(fx, monkeypatch):
+    live = fx.dir / "live"
+    live.mkdir()
+    (live / "livez").write_text("ok\n", encoding="utf-8")
+    (live / "v1").mkdir()
+    (live / "v1" / "models").write_text(
+        '{"object":"list","data":[{"id":"modell-a.gguf"}]}\n',
+        encoding="utf-8",
+    )
+    port_ok = fx.serve_dir(live)
+    dead = fx.dir / "dead"
+    dead.mkdir()
+    (dead / "livez").write_text("ok\n", encoding="utf-8")
+    (dead / "v1").mkdir()
+    (dead / "v1" / "models").write_text(
+        '{"object":"list","data":[{"id":"fremdes-modell.gguf"}]}\n',
+        encoding="utf-8",
+    )
+    port_dead = fx.serve_dir(dead)
+    monkeypatch.setenv("LLM_PROXY_URL", f"http://127.0.0.1:{port_ok}")
+    fx.write_loadouts(json.dumps({"version": 1, "loadouts": [
+        {"slug": "aktiv", "port": port_ok, "model": "repo/modell-a.gguf"},
+        {"slug": "dekommissioniert", "port": port_dead, "model": "repo/alt.gguf",
+         "enabled": False},
+    ]}))
+    result = fx.run("model-drift")
+    assert result.returncode == 0, result.output
+    assert result.output == "0"
+
+
 # ── G-LLM04 ──────────────────────────────────────────────────────────────────
 
 def test_g_llm04_ohne_unit_dateien_meldet_autostart_coverage_n_a_nicht_0(fx, monkeypatch):

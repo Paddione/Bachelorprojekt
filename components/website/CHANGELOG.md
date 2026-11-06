@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.451.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.3...website-v1.451.4) (2026-11-06)
+
+
+### Bug Fixes
+
+* **health:** restliche Health-Goals — SEC06-Pins, ALR01-Receiver, FE05-WebP, DB10-Drops, E2E-Flakes ([#7210](https://github.com/Paddione/Bachelorprojekt/issues/7210)) ([3529f4f](https://github.com/Paddione/Bachelorprojekt/commit/3529f4fdb8c26f16e62b5dfd6ef0f9085a81b14e))
+
 ## [1.451.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.2...website-v1.451.3) (2026-11-06)
 
 

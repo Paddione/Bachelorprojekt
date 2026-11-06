@@ -173,6 +173,10 @@ metadata:
     app: oauth2-proxy-web-korczewski
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    # FE05 (Lighthouse): Brotli/Gzip-Kompression der Text-Assets (206 KiB unkomprimiert,
+    # LCP 4.0s). Gleiches Muster wie workspace/agent-board(-ts) — Middleware existiert
+    # (workspace/agent-board-compress, minResponseBodyBytes 1024).
+    traefik.ingress.kubernetes.io/router.middlewares: workspace-agent-board-compress@kubernetescrd
 spec:
   ingressClassName: traefik
   tls:

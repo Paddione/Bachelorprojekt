@@ -74,6 +74,12 @@ const { memPool } = vi.hoisted(() => {
   const raw = new MemPool();
 
   // ── pg-mem jsonb-operator compat shim (see file header) ──────────────────
+  // Leaf: the only place that touches raw.query. compatQuery never names
+  // query() directly (single-owner: query -> compatQuery, never back).
+  function runRawQuery(text: string, params?: unknown[]) {
+    return raw.query(text, params);
+  }
+
   async function compatQuery(text: string, params?: unknown[]) {
     const p = (params ?? []) as unknown[];
 
@@ -83,7 +89,7 @@ const { memPool } = vi.hoisted(() => {
       const jsonIdx = parseInt(m[1], 10) - 1;
       const whereM = text.match(/external_id = \$(\d+)/);
       const idIdx = parseInt(whereM![1], 10) - 1;
-      const cur = await raw.query('SELECT readiness FROM tickets.tickets WHERE external_id = $1', [p[idIdx]]);
+      const cur = await runRawQuery('SELECT readiness FROM tickets.tickets WHERE external_id = $1', [p[idIdx]]);
       const currentReadiness = cur.rows[0]?.readiness ?? {};
       const incoming = JSON.parse(p[jsonIdx] as string);
       const merged = { ...currentReadiness, ...incoming };
@@ -93,7 +99,7 @@ const { memPool } = vi.hoisted(() => {
         /COALESCE\(readiness, '\{\}'::jsonb\) \|\| \$(\d+)::jsonb/,
         (_full, num: string) => `$${num}::jsonb`,
       );
-      return raw.query(newText, newParams);
+      return runRawQuery(newText, newParams);
     }
 
     // clarifyItem: SET readiness = readiness || $1::jsonb ... WHERE id = $2  (keyed by id)
@@ -101,21 +107,21 @@ const { memPool } = vi.hoisted(() => {
     if (m) {
       const jsonIdx = parseInt(m[1], 10) - 1;
       const idIdx = parseInt(m[2], 10) - 1;
-      const cur = await raw.query('SELECT readiness FROM tickets.tickets WHERE id = $1', [p[idIdx]]);
+      const cur = await runRawQuery('SELECT readiness FROM tickets.tickets WHERE id = $1', [p[idIdx]]);
       const currentReadiness = cur.rows[0]?.readiness ?? {};
       const incoming = JSON.parse(p[jsonIdx] as string);
       const merged = { ...currentReadiness, ...incoming };
       const newParams = p.slice();
       newParams[jsonIdx] = JSON.stringify(merged);
       const newText = text.replace('readiness = readiness ||', 'readiness =');
-      return raw.query(newText, newParams);
+      return runRawQuery(newText, newParams);
     }
 
     // discardTriage: grilling_meta = grilling_meta - 'triage' ... AND grilling_meta ? 'triage'
     if (text.includes("grilling_meta = grilling_meta - 'triage'")) {
       const whereM = text.match(/external_id = \$(\d+)/);
       const idIdx = parseInt(whereM![1], 10) - 1;
-      const cur = await raw.query(
+      const cur = await runRawQuery(
         'SELECT grilling_meta, status FROM tickets.tickets WHERE external_id = $1',
         [p[idIdx]],
       );
@@ -125,13 +131,13 @@ const { memPool } = vi.hoisted(() => {
       }
       const newMeta = { ...row.grilling_meta };
       delete newMeta.triage;
-      return raw.query(
+      return runRawQuery(
         `UPDATE tickets.tickets SET grilling_meta = $1::jsonb, updated_at = now() WHERE external_id = $2 AND status = 'planning'`,
         [JSON.stringify(newMeta), p[idIdx]],
       );
     }
 
-    return raw.query(text, p);
+    return runRawQuery(text, p);
   }
 
   const compatPool = {

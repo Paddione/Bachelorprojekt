@@ -73,19 +73,24 @@ async function connect(): Promise<void> {
   });
 }
 
+// Timer-fire leaf: owns the connect() retry so scheduleReconnect never names
+// connect() directly (single-owner: connect -> scheduleReconnect with guard,
+// never back). This callback is the only path from the timer back into connect().
+function handleReconnectTimer(): void {
+  reconnectTimer = null;
+  connect().then(() => {
+    // After reconnect, tell subscribers they may have missed events
+    const reconnectEvent: CockpitEvent = { domain: 'reconnect', op: 'reconnect', at: Date.now() / 1000 };
+    for (const fn of subscribers) {
+      try { fn(reconnectEvent); } catch { /* swallow */ }
+    }
+  }).catch(() => { /* will retry on next scheduleReconnect call */ });
+}
+
 function scheduleReconnect(): void {
   if (reconnectTimer) return;
   if (subscribers.size === 0) return;
-  reconnectTimer = setTimeout(() => {
-    reconnectTimer = null;
-    connect().then(() => {
-      // After reconnect, tell subscribers they may have missed events
-      const reconnectEvent: CockpitEvent = { domain: 'reconnect', op: 'reconnect', at: Date.now() / 1000 };
-      for (const fn of subscribers) {
-        try { fn(reconnectEvent); } catch { /* swallow */ }
-      }
-    }).catch(() => { /* will retry on next scheduleReconnect call */ });
-  }, RECONNECT_DELAY_MS);
+  reconnectTimer = setTimeout(handleReconnectTimer, RECONNECT_DELAY_MS);
 }
 
 function teardownClient(): void {

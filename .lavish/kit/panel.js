@@ -67,7 +67,13 @@ class Panel {
 
     // D6 (K4): Mobile-Sperre greift nicht nur beim Umschalten, sondern auch,
     // wenn die Seite bereits in Mobilgroesse GELADEN wird — und bei jedem
-    // nachfolgenden resize.
+    // nachfolgenden resize. Unlock-Events (aus paintUnlockToggle) laufen über
+    // diese Bindung zurück in applyMobileLock (Event-Flow, kein statischer
+    // Rückaufruf Blatt -> applyMobileLock).
+    if (!this._unlockBound) {
+      this._unlockBound = true;
+      this.el.addEventListener('panel:unlock', () => this.applyMobileLock());
+    }
     this.applyMobileLock();
     if (typeof window !== 'undefined' && window.addEventListener) {
       window.addEventListener('resize', () => this.applyMobileLock());
@@ -275,7 +281,10 @@ class Panel {
       if (locked) lockedButtons.push(btn);
     });
 
-    this.renderUnlockToggle(lockedButtons.length > 0, unlockedThisSession);
+    // Single-owner: renderUnlockToggle -> applyMobileLock (never back).
+    // applyMobileLock paints via the leaf paintUnlockToggle, never via
+    // renderUnlockToggle, so no static back-edge remains here.
+    this.paintUnlockToggle(lockedButtons.length > 0, unlockedThisSession);
   }
 
   currentViewport() {
@@ -286,7 +295,15 @@ class Panel {
     return 'card';
   }
 
-  renderUnlockToggle(anyLocked, unlockedThisSession) {
+  // Owner wrapper: re-evaluates the lock; the unlock button (wired in the
+  // leaf) routes back here through applyMobileLock (event -> applyMobileLock).
+  renderUnlockToggle() {
+    this.applyMobileLock();
+  }
+
+  // Leaf: pure toggle-DOM paint. Calls applyMobileLock only via the user
+  // click event (dynamic dispatch), never as a static call back.
+  paintUnlockToggle(anyLocked, unlockedThisSession) {
     if (!this.actions) return;
     if (!anyLocked) {
       if (this.unlockToggle) {
@@ -305,7 +322,9 @@ class Panel {
       if (typeof sessionStorage !== 'undefined') {
         sessionStorage.setItem(`cockpit-unlock-${this.el.id}`, '1');
       }
-      this.applyMobileLock();
+      // Event flow (no static back-edge leaf -> applyMobileLock):
+      // the el listener bound in init() re-evaluates the lock.
+      this.el.dispatchEvent(new CustomEvent('panel:unlock', { bubbles: true }));
     };
     this.actions.appendChild(btn);
     this.unlockToggle = btn;

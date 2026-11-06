@@ -143,7 +143,21 @@ export class EpicCanvas {
     this.epicsHandle = null;
   }
 
+  bindNavEvents() {
+    if (this._navBound) return;
+    this._navBound = true;
+    this.container.addEventListener('epic:select', (e) => {
+      this.activeEpicId = e.detail && e.detail.id;
+      this.renderList();
+    });
+    this.container.addEventListener('epic:back', () => {
+      this.activeEpicId = null;
+      this.renderList();
+    });
+  }
+
   render() {
+    this.bindNavEvents();
     this.container.classList.add('epic-canvas');
     if (this.fullscreen) this.container.classList.add('epic-canvas--fullscreen');
     this.container.innerHTML = `
@@ -164,6 +178,14 @@ export class EpicCanvas {
     if (this.activeEpicId) {
       this.renderDetail(list);
     } else {
+      this.paintList(list);
+    }
+  }
+
+  // Leaf: list-only paint, never dispatches to renderDetail (single-owner:
+  // renderList -> renderDetail, no back-edge renderDetail -> renderList).
+  paintList(list) {
+    if (!list) return;
       list.innerHTML = this.epics.length === 0
         ? '<div class="epic-empty">Keine laufenden Epics</div>'
         : this.epics.map(e => `
@@ -178,16 +200,18 @@ export class EpicCanvas {
         `).join('');
       list.querySelectorAll('.epic-item').forEach(el => {
         el.addEventListener('click', () => {
-          this.activeEpicId = el.dataset.id;
-          this.renderList();
+          // Event flow (no static back-edge paintList -> renderList):
+          // the container listener in bindNavEvents() performs navigation.
+          this.container.dispatchEvent(new CustomEvent('epic:select', {
+            detail: { id: el.dataset.id }, bubbles: true,
+          }));
         });
       });
-    }
   }
 
   renderDetail(list) {
     const epic = this.epics.find(e => e.id === this.activeEpicId);
-    if (!epic) { this.activeEpicId = null; this.renderList(); return; }
+    if (!epic) { this.activeEpicId = null; this.paintList(list); return; }
     list.innerHTML = `
       <button class="epic-back">← Zurück</button>
       <div class="epic-detail">
@@ -204,7 +228,10 @@ export class EpicCanvas {
         </div>
       </div>
     `;
-    list.querySelector('.epic-back').onclick = () => { this.activeEpicId = null; this.renderList(); };
+    list.querySelector('.epic-back').onclick = () => {
+      // Event flow (no static back-edge renderDetail -> renderList).
+      this.container.dispatchEvent(new CustomEvent('epic:back', { bubbles: true }));
+    };
     list.querySelector('.epic-save').onclick = async () => {
       await saveCanvas({
         epicId: epic.id,

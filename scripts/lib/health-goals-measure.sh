@@ -15,7 +15,7 @@
 # Nicht eigenstaendig ausfuehrbar und nicht testbar ohne den Checker.
 
 # ── DB-Mess-Helfer (read-only; SKIP bei --fast oder wenn Cluster/Pod nicht erreichbar) ──
-DB_NS="${HG_DB_NS:-workspace}"; DB_CTX="${HG_DB_CTX:-fleet}"; PGPOD=""
+DB_NS="${HG_DB_NS:-workspace}"; DB_CTX="${HG_DB_CTX:-devmesh}"; PGPOD=""
 _db_pod() {
   [ -n "$PGPOD" ] && { echo "$PGPOD"; return 0; }
   command -v kubectl >/dev/null 2>&1 || return 1
@@ -56,7 +56,7 @@ restore_verify_age_d() { # G-DB11 — Alter des recovery-verify-status-Stempels 
 }
 
 # ── Cluster-Runtime-Mess-Helfer (read-only; SKIP bei --fast oder Cluster unerreichbar) ──
-OPS_CTX="${HG_OPS_CTX:-fleet}"; OPS_NS_LIST="${HG_OPS_NS:-workspace workspace-korczewski}"
+OPS_CTX="${HG_OPS_CTX:-devmesh}"; OPS_NS_LIST="${HG_OPS_NS:-workspace workspace-korczewski}"
 ops_kubectl_count() { # $1=not_ready|restarts_24h — zählt über alle OPS-Namespaces
   [ "$FAST" = 1 ] && { echo "-"; return; }
   command -v kubectl >/dev/null 2>&1 || { echo "-"; return; }

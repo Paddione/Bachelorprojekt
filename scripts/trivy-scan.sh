@@ -41,7 +41,7 @@ results=()
 for img in "${IMAGES[@]}"; do
   short="${img%%@*}"
   echo "Scanning $short ..." >&2
-  report=$(trivy image --severity HIGH,CRITICAL --ignore-unfixed --format json "$img" 2>/dev/null || true)
+  report=$(timeout "${TRIVY_TIMEOUT:-120}" trivy image --severity HIGH,CRITICAL --ignore-unfixed --format json "$img" 2>/dev/null || true)
   crit=$(echo "$report" | jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' 2>/dev/null || echo 0)
   high=$(echo "$report" | jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' 2>/dev/null || echo 0)
   total_critical=$((total_critical + crit))

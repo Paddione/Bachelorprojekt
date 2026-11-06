@@ -29,7 +29,7 @@ import { assertReachable } from '../lib/health-assertions';
 const WEBSITE_URL = (process.env.KORCZEWSKI_URL ?? 'https://web.korczewski.de').replace(/\/$/, '');
 const BRETT_URL   = (process.env.BRETT_URL ?? 'https://brett.korczewski.de').replace(/\/$/, '');
 
-const ADMIN_USER  = process.env.TEST_ADMIN_USER ?? 'test-admin';
+const ADMIN_USER  = process.env.TEST_ADMIN_USER ?? process.env.E2E_ADMIN_USER ?? 'test-admin';
 const CRON_SECRET = process.env.CRON_SECRET ?? '';
 
 const AUTH_DIR               = path.join(__dirname, '..', '.auth');

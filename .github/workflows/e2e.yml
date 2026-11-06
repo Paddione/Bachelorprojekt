@@ -135,7 +135,7 @@ jobs:
       # weiterzulaufen. Kein POCKET_ID_OTAC_URL-Env: das Token ist single-use
       # und 1h gültig, ein statisches Secret wäre nach Ablauf tot.
       - name: Prepare Fleet kubeconfig (kubectl + OTAC-CLI-Zugriff)
-        if: steps.gate.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && matrix.cluster != 'korczewski'
         env:
           KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
         run: |
@@ -158,6 +158,9 @@ jobs:
         working-directory: tests/e2e
         env:
           # Primary URLs
+          E2E_BRAND: ${{ matrix.cluster }}
+          PRODMESH_LIVE: "1"
+          DEVMESH_LIVE: "1"
           WEBSITE_URL: ${{ matrix.website_url }}
           PROD_DOMAIN: ${{ matrix.prod_domain }}
           # Per-service URL overrides — without these the specs fall back to
@@ -188,6 +191,9 @@ jobs:
           # SKIP_DB_PURGE mehr: fehlt das Secret, soll der Run laut scheitern.
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           PLAYWRIGHT_WORKERS: "4"
+        # Korczewski uses live components/website, auth, mesh and mobile visitor journeys.
+        # services/smoke target the retired Nextcloud/Talk/Vaultwarden stack;
+        # their specs remain available for that separate deployment profile.
         # Exclude korczewski projects on the mentolder job and vice versa — each
         # brand runs its own setup/auth chain (T002602, brand-trennung p4).
         # Die Auswahl steht positiv, weil Playwright KEINE Negation in --project kennt
@@ -202,8 +208,7 @@ jobs:
               --project website \
               --project korczewski-setup \
               --project korczewski \
-              --project services \
-              --project smoke \
+              --project mesh \
               --project ios
           else
             npx playwright test \

@@ -32,6 +32,7 @@ async function waitForHydration(page: Page) {
       // (or no SSR islands remain at all).
       return true;
     },
+    undefined,
     { timeout: HYDRATION_TIMEOUT },
   );
 }
@@ -74,12 +75,17 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
     }
   });
 
-  test('T3: Navigation is functional', async ({ page }) => {
+  test('T3: Navigation is functional', async ({ page, isMobile }) => {
     await page.goto(BASE);
-    const mainNav = page.getByRole('navigation', { name: 'Seitennavigation' });
+    if (isMobile) await page.getByRole('button', { name: 'Menü öffnen' }).click();
+    const mainNav = page.getByRole('navigation', { name: isMobile ? 'Mobilnavigation' : 'Seitennavigation' });
     await expect(mainNav).toBeVisible();
     // Nav links the contact and services pages
-    await expect(mainNav.locator('a[href="/kontakt"]')).toBeVisible();
+    const contact = mainNav.locator('a[href="/kontakt"]').first();
+    await expect(contact).toBeVisible();
+    await contact.click();
+    await expect(page).toHaveURL(/\/kontakt/);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
   // -- Contact Form --
@@ -101,6 +107,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
   });
 
   test('T6: Valid form submission succeeds', async ({ page }) => {
+    test.setTimeout(90_000);
     // Intercept the API call to inject the E2E marker headers so the row is
     // stamped is_test_data=true and cleaned up by the purge bracket. Without
     // the secret we MUST NOT submit at all — an unmarked browser POST
@@ -127,14 +134,16 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
     await nameField.fill('[TEST] E2E User');
     await page.getByLabel(/e-?mail/i).fill('test-e2e@example.invalid');
     await page.getByLabel(/ihre nachricht/i).fill('Dies ist eine automatisierte Testnachricht.');
+    const submitted = page.waitForResponse(response => response.url().endsWith('/api/contact') && response.request().method() === 'POST');
     await page.getByRole('button', { name: /nachricht senden/i }).click();
+    expect((await submitted).status(), 'Contact API must accept the marked test submission').toBe(200);
     await expect(page.locator('.cf-result.is-success')).toHaveText(/Vielen Dank/, { timeout: 60_000 });
   });
 
   test('T7: Sidebar shows contact information', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
     const expectedEmail = process.env.CONTACT_EMAIL || 'info@mentolder.de';
-    const expectedPhone = process.env.CONTACT_PHONE || '+49 151 508 32 601';
+    const expectedPhone = process.env.CONTACT_PHONE ?? '+49 151 508 32 601';
     await expect(page.locator(`text=${expectedEmail}`).first()).toBeVisible();
     
     // The phone number is optional on the sidebar (it may reference the Impressum instead).

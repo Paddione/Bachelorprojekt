@@ -1,27 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { assertAuthenticatedReachable } from './health-assertions';
+import { loginViaE2E } from './auth';
 
 export const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 export const isKorczewski = BASE.includes('korczewski.de');
 export const ADMIN_USER = isKorczewski
-  ? (process.env.TEST_ADMIN_USER ?? 'test-admin')
+  ? (process.env.TEST_ADMIN_USER ?? process.env.E2E_ADMIN_USER ?? 'test-admin')
   : (process.env.E2E_ADMIN_USER ?? 'paddione');
 export const ADMIN_PASS = isKorczewski
   ? (process.env.TEST_ADMIN_PASSWORD ?? process.env.E2E_ADMIN_PASS)
   : process.env.E2E_ADMIN_PASS;
 
 export async function loginAsAdmin(page: import('@playwright/test').Page) {
-  const CRON_SECRET = process.env.CRON_SECRET ?? '';
-  if (!CRON_SECRET) throw new Error('CRON_SECRET unset — Wissensquellen login requires CRON_SECRET');
-  const token = encodeURIComponent(CRON_SECRET);
-  await page.goto(
-    `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/wissen')}&token=${token}`,
-    { waitUntil: 'domcontentloaded' },
-  );
-  await page.waitForFunction(
-    () => window.location.pathname.includes('/admin/wissen'),
-    { timeout: 60_000 },
-  );
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/wissen');
 }
 
 export async function getCookieString(page: import('@playwright/test').Page): Promise<string> {

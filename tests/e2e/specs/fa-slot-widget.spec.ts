@@ -4,8 +4,17 @@ import { test, expect } from '@playwright/test';
 // available slots. When no slots exist, a "Termine ansehen →" placeholder renders.
 
 test.describe('Slot Widget', () => {
-  test('T1 – homepage shows slot widget or availability placeholder', async ({ page }) => {
+  test('T1 – homepage opens the brand booking entry', async ({ page }) => {
     await page.goto('/');
+    const isKore = process.env.E2E_BRAND === 'korczewski' || new URL(page.url()).hostname === 'web.korczewski.de';
+    if (isKore) {
+      const booking = page.getByRole('link', { name: /kennenlerngespräch/i });
+      await expect(booking).toHaveAttribute('href', '/kontakt');
+      await booking.click();
+      await expect(page).toHaveURL(/\/kontakt/);
+      await expect(page.getByRole('tab', { name: /termin/i })).toHaveAttribute('aria-selected', 'true');
+      return;
+    }
     // Either the slot widget (when slots available) or the fallback link is shown
     const widget = page.locator('[data-testid="slot-widget"]');
     const placeholder = page.locator('a[href="/termin"]');

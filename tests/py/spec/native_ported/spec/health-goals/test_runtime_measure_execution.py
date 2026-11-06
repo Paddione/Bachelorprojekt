@@ -67,7 +67,8 @@ def test_runtime_measure_reicht_die_fixture_wirklich_durch_der_wert_folgt_der_da
     fixture = tmp_path / "flux.json"
     fixture.write_text(FLUX_FIXTURE, encoding="utf-8")
     out = _measure(repo_root, "flux", HG_FLUX_INPUT=str(fixture))
-    assert out == "2", f"runtime_measure flux lieferte '{out}', erwartet 2"
+    # Fixture enthaelt ein absichtlich suspendiertes Objekt: kein Fehler mehr.
+    assert out == "1", f"runtime_measure flux lieferte '{out}', erwartet 1"
 
 
 def test_runtime_measure_bleibt_fail_closed_kaputte_fixture_ergibt_nicht_0_t900380(repo_root, tmp_path):

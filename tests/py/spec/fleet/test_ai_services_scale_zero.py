@@ -106,6 +106,9 @@ def test_gitops_override_can_activate_all_ai_deployments(repo_root, tmp_path):
 
 def test_base_keeps_existing_ai_replica_defaults(repo_root):
     base = render(repo_root / "prod-mentolder")
-    for name in (AI_DEPLOYMENTS | BGE_DEPLOYMENTS) - {"bge-embed-bulk"}:
+    for name in (AI_DEPLOYMENTS | BGE_DEPLOYMENTS) - {"bge-embed-bulk", "bge-rerank"}:
         assert base[("Deployment", name)]["spec"]["replicas"] == 1, name
     assert base[("Deployment", "bge-embed-bulk")]["spec"]["replicas"] == 0
+    # bge-rerank steht live (Flux-Modul) stabil auf 0; k3d/llm-gpu.yaml als
+    # Quelle angeglichen, damit das naechste Release keinen Scale-up ausloest.
+    assert base[("Deployment", "bge-rerank")]["spec"]["replicas"] == 0, "bge-rerank"

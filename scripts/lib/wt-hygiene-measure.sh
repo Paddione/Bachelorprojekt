@@ -119,6 +119,20 @@ _origin_remote() {
   git -C "$repo" rev-parse --verify --quiet "refs/remotes/origin/$def" 2>/dev/null
 }
 
+# Mindestens ein auflösbares Repository mit Origin-Ref vorhanden?
+# Leere Worktree-Liste bei vorhandener Origin-Basis = 0 (nichts Veraltetes),
+# nicht n/a — n/a bleibt dem Fall ohne jede Basis vorbehalten.
+_any_origin() {
+  local repo def
+  while IFS= read -r repo; do
+    [ -n "$repo" ] || continue
+    def="$(_repo_default "$repo" 2>/dev/null)" || continue
+    [ -n "$def" ] || continue
+    _origin_remote "$repo" "$def" >/dev/null 2>&1 && return 0
+  done < <(_repos)
+  return 1
+}
+
 # Lock-Verzeichnisse auflösen — AGENT_LOCK_DIR hat Vorrang (Test-Override).
 _lock_dirs() {
   if [ -n "${AGENT_LOCK_DIR:-}" ]; then printf '%s\n' "$AGENT_LOCK_DIR"; return 0; fi
@@ -139,29 +153,34 @@ _lock_dirs() {
 _lock_field() { sed -n "s/.*\"$2\": *\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | head -1; }
 
 # Alle Lock-Dateien über alle Lock-Verzeichnisse auflisten.
+# Leeres, aber vorhandenes Verzeichnis = 0 (nichts Verwaistes) — nur ganz ohne
+# Lock-Verzeichnis ist die Lage unmessbar (n/a).
 _locks() {
-  local d f found=0
+  local d f dirs=0
   while IFS= read -r d; do
     [ -d "$d" ] || continue
+    dirs=1
     for f in "$d"/*.json; do
       [ -f "$f" ] || continue
       [ -n "$(_lock_field "$f" created_at)" ] || continue
       printf '%s\n' "$f"
-      found=1
     done
   done < <(_lock_dirs)
-  [ "$found" -eq 1 ] || return 1
+  [ "$dirs" -eq 1 ] || return 1
+  return 0
 }
 
 # Alle Nebenworktrees über alle Repositories auflisten, je Zeile "<repo>\t<default>\t<pfad>\t<head-sha>".
-# Rückgabe 1, wenn kein einziger Nebenworktree registriert ist.
+# Rückgabe 0 auch ohne Nebenworktree (auflösbar und leer = 0, nichts
+# Veraltetes/Verlorenes); Rückgabe 1 nur, wenn kein Repository auflösbar ist.
 _worktrees() {
-  local repo top def out path head found=0
+  local repo top def out path head resolved=0
   while IFS= read -r repo; do
     [ -n "$repo" ] || continue
     top="$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || continue
     def="$(_repo_default "$repo")"
     out="$(git -C "$repo" worktree list --porcelain 2>/dev/null)" || continue
+    resolved=1
     path=""; head=""
     while IFS= read -r line; do
       case "$line" in
@@ -169,17 +188,18 @@ _worktrees() {
         "HEAD "*)     head="${line#HEAD }" ;;
         "")
           if [ -n "$path" ] && [ "$path" != "$top" ] && [ -n "$head" ]; then
-            printf '%s\t%s\t%s\t%s\n' "$repo" "$def" "$path" "$head"; found=1
+            printf '%s\t%s\t%s\t%s\n' "$repo" "$def" "$path" "$head"
           fi
           path=""; head=""
           ;;
       esac
     done <<< "$out"$'\n'
     if [ -n "$path" ] && [ "$path" != "$top" ] && [ -n "$head" ]; then
-      printf '%s\t%s\t%s\t%s\n' "$repo" "$def" "$path" "$head"; found=1
+      printf '%s\t%s\t%s\t%s\n' "$repo" "$def" "$path" "$head"
     fi
   done < <(_repos)
-  [ "$found" -eq 1 ] || return 1
+  [ "$resolved" -eq 1 ] || return 1
+  return 0
 }
 
 # Ist der HEAD eines Worktrees bereits im Remote-Default-Branch enthalten?
@@ -216,6 +236,8 @@ cmd_main_checkout() {
 cmd_stale_worktrees() {
   local wts n t repo def path head last age_days valid_origin_seen=0
   wts="$(_worktrees)" || na
+  # Keine Nebenworktrees, aber Origin-Basis vorhanden = 0 (nichts Veraltetes).
+  if [ -z "$wts" ]; then _any_origin && echo "0" || na; return; fi
   n=0; t="$(now)"
   while IFS=$'\t' read -r repo def path head; do
     [ -n "$head" ] || continue
@@ -262,6 +284,8 @@ cmd_orphan_locks() {
 cmd_unsafe_worktrees() {
   local wts n repo def path head dirty valid_origin_seen=0
   wts="$(_worktrees)" || na
+  # Keine Nebenworktrees, aber Origin-Basis vorhanden = 0 (nichts Verlorenes).
+  if [ -z "$wts" ]; then _any_origin && echo "0" || na; return; fi
   n=0
   while IFS=$'\t' read -r repo def path head; do
     [ -n "$head" ] || continue

@@ -30,6 +30,12 @@ def test_flux_counts_unhealthy_and_fails_closed_on_empty_input(assert_measure):
     assert_measure("flux", "empty-items.json", "-")
 
 
+def test_flux_skips_suspended_resources_without_error_flag(assert_measure):
+    # Absichtlich suspendiert (fehlende Prereqs) ist Soll-Zustand, kein Fehler:
+    # nur das genuinely kaputte Objekt zaehlt.
+    assert_measure("flux", "flux-suspended.json", "1")
+
+
 def test_prometheus_scrape_health_requires_a_non_empty_target_basis(assert_measure):
     assert_measure("scrape", "prometheus-up.json", "0")
     assert_measure("scrape", "prometheus-down.json", "1")

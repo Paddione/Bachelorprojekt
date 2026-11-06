@@ -354,6 +354,8 @@ bash scripts/lib/llm-stack-measure.sh dead-endpoints
 **Was:** Zählt öffentlich zugängliche Services (aus Ingress-Manifesten in `k3d/`, `prod-fleet/*/`),
 die keine blackbox HTTP health probe in `k3d/monitoring/blackbox-exporter.yaml` haben.
 Services ohne Probe werden bei Ausfall nicht durch Prometheus `probe_success` erkannt.
+Host-Templates (`${PROD_DOMAIN}`, auch bare Apex) werden per Manifest-Marke
+aufgelöst (Apex braucht ein eigenes Target, Redirects folgen).
 
 ```bash
 python3 scripts/lib/runtime-health-measure.py svc-probe
@@ -509,6 +511,7 @@ bash scripts/lib/wt-hygiene-measure.sh main-checkout
 **Was:** Zählt registrierte Nebenworktrees über alle deklarierten Repositories, deren HEAD-Commit
 bereits im Remote-Default-Branch enthalten ist oder deren letzter Commit älter als 14 Tage ist. Aufgeräumte
 Worktrees verhindern versehentliches Arbeiten auf toten Branches und das Anwachsen des `.worktrees/`-Verzeichnisses.
+Auflösbar und leer = 0 (nichts Veraltetes); n/a nur ohne jede Basis (kein Repo, kein Origin).
 
 Die Merged-Erkennung läuft über `git merge-base --is-ancestor <worktree-head> origin/<default>`, nicht
 über `git branch -r --contains <branchname>`: der HEAD-Commit ist die Aussage, die interessiert,
@@ -530,6 +533,7 @@ bash scripts/lib/wt-hygiene-measure.sh stale-worktrees
 **Was:** Zählt Locks unter `<git-common-dir>/agent-locks/` über alle Repositories, deren Halter nachweislich nicht mehr
 lebt. Tote Locks blockieren still: `check ticket <id>` meldet durchgehend `held`, `list` zeigt sie
 als `live`, und `agent-lock.sh reap` räumt sie nicht, solange der Worktree noch steht.
+Vorhandenes, aber leeres Lock-Verzeichnis = 0 (nichts Verwaistes); n/a nur ohne Lock-Verzeichnis.
 
 **`owner_pid` ist KEIN Lebendigkeits-Signal.** `agent-lock.sh::_write_lock` schreibt
 `"owner_pid": "$$"` — die PID des kurzlebigen `agent-lock.sh`-Bash-Prozesses, der Sekunden später
@@ -697,7 +701,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0) |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | Positiv-Anker: `components/website/Dockerfile` fehlt ⇒ n/a; `grep -q "npm ci" components/website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json components/website/package.json ...; do python3 -c "..engines.."; done` |
-| **G-IMG01** | Fremd-Image-Versions-Drift | 11 ⚠ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml) |
+| **G-IMG01** | Fremd-Image-Versions-Drift | 11 ⚠ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml; `*-rendered.yaml` ausgenommen: Helm-Output, Chart-gebacken) |
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 1/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
 | **G-K8S03** | Deployments ohne securityContext | 0 ✓ | 0 | `python3 -c "..securityContext.." k3d/*.yaml` |
@@ -710,7 +714,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC05** | Unsignierte Commits (adj.) | 8/50 ⚠ | ≤ 2 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem. |
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 0 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
-| **G-FLUX01** | Flux Reconciliation Health | 3 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` — clusterweit, leer/fehlerhaft ⇒ n/a |
+| **G-FLUX01** | Flux Reconciliation Health | 3 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen |
 | **G-OBS01** | Prometheus Scrape Health | 2 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py scrape` — aktive `up`-Serien, leer ⇒ n/a |
 | **G-CAP01** | PVC Storage Headroom <20 % | 4 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py capacity` — `workspace` + `workspace-korczewski` |
 | **G-A11Y01** | Critical/serious axe-Verstöße | 0 ✓ | 0 | `node scripts/lib/runtime-browser-audit.mjs` + `runtime-health-measure.py axe`, beide Brands vollständig |

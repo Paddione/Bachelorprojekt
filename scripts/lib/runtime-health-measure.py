@@ -56,9 +56,15 @@ def flux(data):
         meta, spec, status = item.get("metadata", {}), item.get("spec", {}), item.get("status", {})
         if meta.get("labels", {}).get("health-goals.paddione.de/environment") == "non-production":
             continue
+        # Absichtlich suspendiert (dokumentierte Prereqs fehlen, z.B.
+        # devmesh-connectors/tailscale wegen operator-oauth) ist ein valider
+        # Soll-Zustand und kein Reconcile-Versagen — wie suspendierte CronJobs
+        # bei G-CJ01 wird Suspendierung nicht als Verletzung gezaehlt.
+        if spec.get("suspend"):
+            continue
         ready = next((c.get("status") for c in status.get("conditions", []) if c.get("type") == "Ready"), None)
         stale = status.get("observedGeneration") != meta.get("generation")
-        if spec.get("suspend") or ready != "True" or stale:
+        if ready != "True" or stale:
             bad += 1
     return bad
 
@@ -142,6 +148,19 @@ def svc_probe(data):
     # brand-trennung: prod-fleet/mentolder geloescht (p5) — korczewski-Stand
     # sind der Brand-Overlay plus website-korczewski (Prod-Ingresses).
     manifest_dirs = ["prod-fleet/korczewski", "prod-fleet/website-korczewski"]
+    # Host-Templates (${PROD_DOMAIN}, auch bare Apex ohne Subdomain) werden
+    # anhand des Manifest-Verzeichnisses konkretisiert, damit Apex-Ingresses
+    # (z.B. website-apex.yaml) gegen reale Probe-Targets vergleichbar sind.
+    brand_domains = (("korczewski", "korczewski.de"), ("mentolder", "mentolder.de"))
+
+    def resolve_brand(host, path):
+        lowered_path = path.lower()
+        for brand, domain in brand_domains:
+            if brand in lowered_path:
+                return (host.replace("${prod_domain}", domain)
+                            .replace("${PROD_DOMAIN}", domain))
+        return host
+
     for d in manifest_dirs:
         for path in sorted(glob_mod.glob(f"{d}/**/*.yaml", recursive=True)) + sorted(glob_mod.glob(f"{d}/**/*.yml", recursive=True)):
             try:
@@ -155,7 +174,7 @@ def svc_probe(data):
                 for rule in d_obj.get("spec", {}).get("rules", []) or []:
                     host = rule.get("host")
                     if host:
-                        ingress_hosts.add(host.lower())
+                        ingress_hosts.add(resolve_brand(host.lower(), path))
 
     # Collect blackbox probe targets from the exporter config.
     probe_targets = set()

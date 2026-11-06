@@ -84,6 +84,16 @@ spec:
               port: 4321
             initialDelaySeconds: 5
             periodSeconds: 10
+          # Live-Stand (G-DRIFT02): identische livenessProbe wie im Cluster.
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 4321
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
           resources:
             requests:
               memory: 256Mi

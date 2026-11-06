@@ -805,7 +805,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rhE 'image:' k3d/ prod*/ | ... sort -u | awk -F'\\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml)",
+    "measurement": "grep -rhE 'image:' k3d/ prod*/ | ... sort -u | awk -F'\\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml; `*-rendered.yaml` ausgenommen: Helm-Output, Chart-gebacken)",
     "source": ".claude/lib/goals.md · G-IMG01",
     "measured_at": "2026-11-06"
   },
@@ -1000,7 +1000,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 scripts/lib/runtime-health-measure.py flux` — clusterweit, leer/fehlerhaft ⇒ n/a",
+    "measurement": "python3 scripts/lib/runtime-health-measure.py flux` — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen",
     "source": ".claude/lib/goals.md · G-FLUX01",
     "measured_at": "2026-11-06"
   },

@@ -223,7 +223,10 @@ metadata:
   labels:
     app: bge-rerank
 spec:
-  replicas: 1
+  # Live/Release stehen seit dem Cluster-Neuaufbau stabil auf 0 (Flux-Modul
+  # v0.0.82, G-DRIFT01) — Quelle hier angeglichen, damit das naechste Release
+  # keinen ueberraschenden Scale-up ausloest. Reaktivieren per replicas: 1.
+  replicas: 0
   # Wie bei bge-embed: ReadWriteOnce-PVC vertraegt kein maxSurge. Dieses
   # Deployment trug denselben Defekt und war nur zufaellig noch nicht
   # haengengeblieben — sein Rollout traf bisher immer denselben Node (T002604).

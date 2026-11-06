@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.451.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.2...website-v1.451.3) (2026-11-06)
+
+
+### Bug Fixes
+
+* **ci:** health-goals Warnungen adressieren (massage-Basis, devmesh-Defaults, Prometheus-Skip) ([#7208](https://github.com/Paddione/Bachelorprojekt/issues/7208)) ([dff99ce](https://github.com/Paddione/Bachelorprojekt/commit/dff99ce916e125a0aa145ea3298663a9ee18ec4d))
+
 ## [1.451.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.1...website-v1.451.2) (2026-11-06)
 
 

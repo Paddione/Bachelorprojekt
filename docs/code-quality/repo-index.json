@@ -3746,7 +3746,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 899,
+      "file_count": 898,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3897,7 +3897,6 @@
         "scripts/coaching/ingest-json.mts",
         "scripts/coaching/lib-extract.mjs",
         "scripts/coaching/lib-extract.test.mjs",
-        "scripts/coaching/merge-books.mts",
         "scripts/coaching/package-lock.json",
         "scripts/coaching/package.json",
         "scripts/coaching/types.d.ts",

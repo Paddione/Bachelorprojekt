@@ -128,10 +128,14 @@ export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
       byId.set(row.id, node);
     }
   }
-  for (const row of rows) {
-    if (row.type !== 'feature') continue;
+  const seenFeatureIds = new Set<string>();
+  const attachFeatureRow = (row: (typeof rows)[number]) => {
+    if (row.type !== 'feature') return;
+    const id = String(row.id);
+    if (seenFeatureIds.has(id)) return;
+    seenFeatureIds.add(id);
     const feature: FeatureNode = {
-      id: row.id, extId: row.external_id, title: row.title,
+      id, extId: row.external_id, title: row.title,
       valueProp: row.value_prop ?? undefined,
       priority: row.priority, health: (row.health ?? 'amber') as HealthStatus,
       rollup: toRollup(row),
@@ -143,6 +147,33 @@ export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
     const parent = row.parent_id ? byId.get(row.parent_id) : undefined;
     if (parent) parent.features.push(feature);
     else looseFeatures.push(feature);
+  };
+  for (const row of rows) attachFeatureRow(row);
+  // Das Container-LIMIT darf angezeigte Produkte nicht ihrer Features berauben:
+  // Features, deren Parent im Limit liegt, aber deren Zeilen ausserhalb liegen,
+  // werden in gechunkten IN-Abfragen nachgeladen (pg-mem-verträglich).
+  // Reihenfolge wie in der Container-Abfrage (planning_rank, created_at).
+  const shownIds = [...byId.keys()];
+  if (shownIds.length > 0) {
+    const CHUNK = 200;
+    for (let i = 0; i < shownIds.length; i += CHUNK) {
+      const chunk = shownIds.slice(i, i + CHUNK);
+      const placeholders = chunk.map((_, j) => `$${j + 2}`).join(',');
+      const { rows: featRows } = await pool.query(
+        `SELECT t.id, t.external_id, t.type, t.title, t.value_prop, t.priority,
+                t.parent_id, t.planning_rank,
+                t.next_step, t.discarded, t.major_feature, t.suggestion_comment,
+                r.total_leaves, r.done_leaves, r.blocked_leaves,
+                r.in_progress_leaves, r.open_leaves, r.pct_done, r.health
+           FROM tickets.tickets t
+           LEFT JOIN tickets.v_cockpit_rollup r ON r.container_id = t.id
+          WHERE t.brand = $1 AND t.type = 'feature'
+            AND t.parent_id IN (${placeholders})
+          ORDER BY COALESCE(t.planning_rank, 2147483647), t.created_at`,
+        [brand, ...chunk],
+      );
+      for (const row of featRows) attachFeatureRow(row);
+    }
   }
 
   if (looseFeatures.length > 0) {

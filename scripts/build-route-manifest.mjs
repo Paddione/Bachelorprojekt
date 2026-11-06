@@ -21,8 +21,8 @@ function loadBrandSlugsViaTsx() {
   const tsx = join(REPO_ROOT, 'components/website/node_modules/.bin/tsx');
   if (!existsSync(tsx)) return null;
   const snippet = `
-    import { mentolderConfig } from './components/website/src/config/brands/mentolder.ts';
-    import { korczewskiConfig } from './components/website/src/config/brands/korczewski.ts';
+    import { mentolderConfig } from './components/website/src/lib/ports/brands.ts';
+    import { korczewskiConfig } from './components/website/src/lib/ports/brands.ts';
     const pick = (c) => ({ services: c.services.map((s) => ({ slug: s.slug })) });
     process.stdout.write(JSON.stringify({
       mentolder: pick(mentolderConfig),

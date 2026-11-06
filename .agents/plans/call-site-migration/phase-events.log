@@ -1,0 +1,68 @@
+# call-site-migration — phase events log
+# P0 boundary baseline (T1) — 2026-11-06, STOP/regroup (no test written, no Taskfile change)
+
+## P0-T1 static scan (literal `components/website/src`, .mts/.mjs/.ts, excl *.test.*)
+Command (per packet T1):
+  rg -n "components/website/src" scripts/{coaching,llm-proxy,code-quality,sdlc} \
+    scripts/index-repo.ts scripts/build-route-manifest.mjs knowledge --type ts \
+    -g '!*.test.*' | grep -v '^\s*//'
+Notes: `knowledge/` does not exist at repo root (only scripts/knowledge/ — scanned
+instead); `--type ts` natively covers *.mts/*.cts (verified via `rg --type-list`).
+
+### Boundary table — real static import statements (prod code)
+| family (caller dir)      | import lines | detail |
+|--------------------------|--------------|--------|
+| scripts/coaching          | 8            | ingest-book.mts:6,7; merge-books.mts:11; batch-ingest-dir.mts:128,129 (dynamic await import); classify-book.mts:3,4; ingest-json.mts:6 |
+| scripts/build-route-manifest.mjs | 2      | lines 24,25 (dynamic import inside function); +4 path-string usages (10,11,53,54) +1 comment — NOT imports |
+| scripts/sdlc             | 0            | api-inventory.mjs:33,36 are path-string configs (routesDir/out), +2 comments — NOT imports; .sh/.py path strings out of scope |
+| scripts/index-repo.ts     | 0            | line 105 comment only |
+| scripts/llm-proxy         | 0            | ws-psql.mjs:16 is a psql credential string (`-U website -d website`) — NOT a path import |
+| scripts/code-quality      | 0            | prod: no hits; test fixture strings only (see VANTA) |
+| scripts/knowledge         | 0            | comments only (lib-knowledge-pg.d.ts:4, lib-context-retrieve.mjs:42) |
+| TOTAL prod import lines   | 10           | (12 incl. 2 sdlc path-string configs if counted loosely; 20 rg lines incl. comments) |
+
+### VANTA list (test-helper noise / resolve-collisions — excluded with reason)
+| hit | reason |
+|-----|--------|
+| scripts/code-quality/*.test.mjs (`components/website/src/...` fixture strings in glob.test, group-violations.test, scan.test, s1-filesize.test, baseline-refresh.test, s2-cycles.test) | test-only path fixtures for glob/gate unit tests, no runtime import — VANTA |
+| scripts/coaching/*.test.mts, scripts/knowledge/*.test.mjs, scripts/llm-proxy/*.test.mjs | no `components/website/src` hits at all — nothing to exclude |
+| VideoVault resolve-collision | `rg components/website/src components/VideoVault` → zero hits — no collision present |
+
+### Counts vs baseline — STOP triggered
+- Packet baseline (graph-edge methodology, fresh 60,591-node index): llm→website 74 CONFIRMED / llm-proxy→website 31 / code-quality→website 21.
+- T1 literal static-import methodology (this scan): coaching 8 / llm-proxy 0 / code-quality 0 / TOTAL prod ≈ 10 import lines.
+- Deviation of literal prod total (10) vs 74: -86% — far outside the ±25% regroup band (lower bound 55.5).
+- Available local graph index (devflow-mcp) is STALE (indexed b678a5f vs HEAD 4ce826b81, 18,313 nodes ≠ 60,591) and hub_codebase_memory returns invalid_project — graph-edge count NOT independently re-verifiable from this worktree.
+- Hypothesis for the gap (unconfirmed): baseline counts symbol-level CALL edges (one import line fans out to many callee symbols), while T1 counts literal import lines. If so, the two numbers measure different things and the ±25% gate compares apples to oranges.
+
+## REGROUP PROPOSAL (per STOP rule — returned without rescope)
+1. Clarify the counting methodology: re-run the ORIGINAL graph query (or publish its Cypher/edge definition) so P0 can reproduce 74/31/21; OR re-baseline the waves on literal static-import lines (coaching 8 + build-route-manifest 2 = 10-line surface — likely a single small wave, not multi-wave).
+2. Decide which metric the boundary test allowlists: literal import strings (static scan, cheap, CI-friendly) vs graph edges (needs fresh index in CI — heavy).
+3. Only then: T2 (RED→GREEN boundary test) + T3 (test:changed wiring check — expected NO Taskfile change needed since `^(tests/py/|...)"` already triggers the full pytest suite for any tests/py/ path).
+4. Artifacts deliberately NOT created in this packet: tests/py/spec/website_sink/test_boundary_no_new_imports.py, Taskfile.test.yml edit.
+
+## Status
+P0 NOT DONE — awaiting regroup decision. Repo left clean (this log file is the only change, uncommitted per packet).
+
+## RETRY 1/2 execution (MIG wave, 2026-11-06) — adopted tree as-is, no rescope
+- Adopt-check: `git status -s` shows ONLY write-set (5 modified scripts + untracked ports/ + website_sink/ + this log). No foreign files. merge-books.mts:11 untouched per STOP rule (verified: `lib/coaching-merge.ts` does NOT exist; nearest `lib/content-db-merge.ts` exports only `mergeContentEntries`).
+- Signature check (import-path-only, identical): chunkText/embedBatch/validateJsonEntries/ingestJsonChunks/auth sextet (SessionResolver, DbSessionResolver, getSessionWithResolver, AdminPolicy, DefaultAdminPolicy, isAdmin)/classifyChunk+insertDraft/mentolderConfig+korczewskiConfig all re-exported; CLASSIFIER_VERSION/DEFAULT_MODEL pins match source literals incl. COACHING_CLASSIFIER_MODEL override.
+- RED proof (empty-allowlist probe): AssertionError observed, found={'scripts/coaching/merge-books.mts': [11]} — the documented STOP remainder, nothing else.
+- GREEN proof: `python3 -m pytest tests/py/spec/website_sink/ -q` → 2 passed in 0.02s (exit 0). ALLOWLIST itself EMPTY; STOP_REMAINDER fail-closed.
+- rg outside carve-out: only path-string configs (manifest PAGES_DIR/OUT/extractSlugsFromSource args), one CLI comment, + merge-books:11 remainder. 0 real direct prod imports.
+- Taskfile: NO change needed — `test:changed` trigger regex `^(tests/py/|...)` already covers tests/py/spec/website_sink/.
+- `task test:changed` (pre-redirect run): COMPLETED 424.52s, 5075 passed / 7 failed / 1 error — all failures unrelated pre-existing native_ported specs (ci-cd inventory, llm-proxy bge/gemma/opencode-routes, agent-bench loadouts, commit-signing, spec_sharding collection ImportError). No hang observed in this worktree.
+
+## HANG REDIRECT diagnosis (owner report: changed tests HANG midway)
+- Read-only audit of test_boundary_no_new_imports.py: imports stdlib-only (re, pathlib); module level = 1 Path resolve + 2 re.compile + literals — no network/fs-walk/locks/sleeps/heavy imports. 6 explicit files, line-scan only. Hang-free by construction.
+- pytest-timeout NOT installed (ModuleNotFoundError) → bounded runs use `timeout 120` only.
+- Authorized bounded run: `timeout 120 python3 -m pytest tests/py/spec/website_sink/ -q -vv -p no:cacheprovider` → 2 passed in 0.02s, exit 0, no stick (last line "2 passed in 0.02s").
+- Verdict: hang is NOT in website_sink test and NOT reproduced by `task test:changed` in this worktree (completed, see above). STOP per redirect step 4 — no further suite runs; reported to primary. Suspect (unverified, no rerun per orders): llm-proxy/gemma/bge/agent-bench specs that wait on local servers in other envs.
+
+## FOLLOW-UP gate (hang cause adopted from primary, 2026-11-06)
+- RED re-proof: empty-allowlist probe → AssertionError, found={'scripts/coaching/merge-books.mts': [11]} (STOP remainder only).
+- GREEN re-proof: `python3 -m pytest tests/py/spec/website_sink/ -q` → 2 passed in 0.01s, exit 0.
+- Gate (parallel runner per primary, ONCE bounded): `timeout 790 bash scripts/pytest-run.sh tests/py -q -rf` → **6 failed, 5076 passed, 246 skipped, 1 error in 363.17s**.
+- Failed IDs (all 6 in primary KNOWN-ENV-RED list): bge_role_routes / gemma_kv_quant / gemma_loadout_autorestart_queue / opencode_routes_via_proxy (need live llm-proxy servers), agent-bench test_loadouts vllm kernel (needs serving GPU stack), commit-signing quota (8 unsigned > 3 threshold).
+- New-vs-known diff: ZERO new failures. test_inventory_coverage (ci-cd) failed in the earlier serial run but passed in this gate run (state-dependent, unrelated); tools_runtime_sandbox passed/skipped (11 passed, 1 skipped standalone). 1 xdist error identity cut from tail; prior run showed test_spec_sharding collection ImportError (collects clean standalone: 3 tests) — parallel-collection artifact, unrelated to migration.
+- Acceptance met: boundary green + zero failures outside known-env reds. No E2E attempted (untracked ports/ invisible to diff selection; CI doesn't run it for PRs).

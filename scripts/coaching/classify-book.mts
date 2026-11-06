@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { Pool } from 'pg';
-import { classifyChunk, CLASSIFIER_VERSION, DEFAULT_MODEL } from '../../components/website/src/lib/coaching-classifier.ts';
-import { insertDraft } from '../../components/website/src/lib/coaching-db.ts';
+import { classifyChunk, CLASSIFIER_VERSION, DEFAULT_MODEL } from '../../components/website/src/lib/ports/coaching.ts';
+import { insertDraft } from '../../components/website/src/lib/ports/coaching.ts';
 
 interface CliFlags {
   slug?: string;     // book slug (matches `coaching-${slug}` collection name)

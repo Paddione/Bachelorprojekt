@@ -1,6 +1,7 @@
 # Prod IngressRoutes for korczewski.de on devmesh (entrypoint websecure).
 # website-prod mirrors the k3d/website IngressRoute rules (/_astro/ assets + rest)
 # with compress/static-cache middlewares; pocket-id-prod mirrors k3d/pocket-id.yaml.
+# Backend ist website-korczewski (BRAND=korczewski), nicht website (Massage-Default).
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -16,7 +17,7 @@ spec:
         - name: website-compress
         - name: website-static-cache
       services:
-        - name: website
+        - name: website-korczewski
           port: 80
     # Everything else: compress only
     - kind: Rule
@@ -24,7 +25,7 @@ spec:
       middlewares:
         - name: website-compress
       services:
-        - name: website
+        - name: website-korczewski
           port: 80
   tls:
     secretName: korczewski-prod-tls

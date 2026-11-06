@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.450.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.6...website-v1.450.7) (2026-11-06)
+
+
+### Bug Fixes
+
+* **db:** brand CHECKs fuer 10 Tabellen, Embedding-Index, faehige Probe-Pods ([026292a](https://github.com/Paddione/Bachelorprojekt/commit/026292af765c76b8ca445a19804764cb44e139e6))
+
 ## [1.450.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.450.5...website-v1.450.6) (2026-11-05)
 
 

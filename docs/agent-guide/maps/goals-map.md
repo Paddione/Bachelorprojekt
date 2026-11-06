@@ -7,11 +7,11 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt, die Werkzeu
 
 | Ich will … | Weg (Flow) | Tier | Guardrails | Prompt |
 | --- | --- | --- | --- | --- |
-| Ich will eine Änderung in der Produktion ausrollen | agent-infra → dev-flow-e2e | 🟠 Nur mit Hilfe | G-ENV-EXPLICIT, G-VALIDATE-FIRST | Bitte rolle den letzten Merge für mentolder aus und prüfe, ob die Website läuft. |
-| Ich will einen Fehler beheben | dev-flow-plan → dev-flow-execute | 🟡 Vorsicht | G-PR-NOT-MAIN, G-PULL-FIRST | Auf web.mentolder.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie. |
+| Ich will eine Änderung in der Produktion ausrollen | agent-infra → dev-flow-e2e | 🟠 Nur mit Hilfe | G-ENV-EXPLICIT, G-VALIDATE-FIRST | Bitte rolle den letzten Merge für korczewski aus und prüfe, ob die Website läuft. |
+| Ich will einen Fehler beheben | dev-flow-plan → dev-flow-execute | 🟡 Vorsicht | G-PR-NOT-MAIN, G-PULL-FIRST | Auf web.korczewski.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie. |
 | Ich will den Cluster neu aufsetzen | agent-infra → agent-security | 🔴 Niemals allein | G-ASK-EXPERT, G-ENV-EXPLICIT, G-SECRET-ORDER | Bitte NICHT allein ausführen – zuerst Patrick fragen. |
 | Ich will das Datenbankschema ändern | dev-flow-plan → agent-db → dev-flow-execute | 🟠 Nur mit Hilfe | G-ASK-EXPERT, G-ENV-EXPLICIT | Bitte füge eine Spalte 'invoice_number' zur Tabelle 'orders' hinzu. |
-| Ich will prüfen, ob mein Deploy wirklich live ist | agent-ops → dev-flow-e2e | 🟢 Sicher | G-ENV-EXPLICIT | Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2E-Check. |
+| Ich will prüfen, ob mein Deploy wirklich live ist | agent-ops → dev-flow-e2e | 🟢 Sicher | G-ENV-EXPLICIT | Ist der letzte Deploy für korczewski live? Prüfe Status, Logs und mach einen E2E-Check. |
 | Ich will prüfen, ob alle Dienste laufen | agent-ops | 🟢 Sicher | — | Bitte prüfe, ob alle Pods laufen und zeig mir den Plattform-Status. |
 | Ich will eine neue Funktion bauen | dev-flow-plan → dev-flow-execute | 🟡 Vorsicht | G-PR-NOT-MAIN, G-PULL-FIRST | Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt. |
 | Ich habe eine Idee — wie fange ich an? | brainstorming → dev-flow-plan | 🟢 Sicher | G-PULL-FIRST | Ich habe eine Idee für die Plattform und möchte sie erst gemeinsam durchdenken. |

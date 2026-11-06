@@ -565,7 +565,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `components/website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\\.only\\b' components/website/src --include='*.test.ts' | wc -l",
+    "measurement": "Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE '\\.only\\b' components/website/src --include='*.test.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-TEST02",
     "measured_at": "2026-11-06"
   },
@@ -1045,13 +1045,13 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "node scripts/lib/runtime-browser-audit.mjs` + `runtime-health-measure.py axe`, beide Brands vollständig",
+    "measurement": "node scripts/lib/runtime-browser-audit.mjs` + `runtime-health-measure.py axe`, korczewski+massage vollständig",
     "source": ".claude/lib/goals.md · G-A11Y01",
     "measured_at": "2026-11-06"
   },
   {
     "id": "G-FE05",
-    "title": "Lighthouse Performance Score (schlechtere Brand)",
+    "title": "Lighthouse Performance Score (korczewski)",
     "category": "Frontend",
     "priority": "C",
     "direction": "higher",
@@ -1060,7 +1060,7 @@
     "target": 90,
     "unit": "",
     "status": "unknown",
-    "measurement": "Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse",
+    "measurement": "Lighthouse-JSON (korczewski) → `python3 scripts/lib/runtime-health-measure.py lighthouse",
     "source": ".claude/lib/goals.md · G-FE05",
     "measured_at": "2026-11-06"
   },
@@ -1075,7 +1075,7 @@
     "target": 995,
     "unit": "n/a",
     "status": "unknown",
-    "measurement": "probe_success` beider Brands, ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo",
+    "measurement": "probe_success` (korczewski), ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo",
     "source": ".claude/lib/goals.md · G-SLO01",
     "measured_at": "2026-11-06"
   },
@@ -1651,7 +1651,7 @@
   },
   {
     "id": "G-OPS03",
-    "title": "Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands)",
+    "title": "Live-TLS-Cert-Restlaufzeit (Tage, web.korczewski.de)",
     "category": "Infrastruktur",
     "priority": "C",
     "direction": "higher",

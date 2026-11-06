@@ -3,6 +3,11 @@ kind: Job
 metadata:
   name: nextcloud-notification-config
   namespace: workspace
+  annotations:
+    # T002187-Muster (vgl. pocket-id-client-seed): Flux-force fuer immutable
+    # Job.spec.template (Digest-Re-Pins wuerden sonst den Dry-Run mit
+    # "field is immutable" scheitern lassen und G-FLUX01 blockieren).
+    kustomize.toolkit.fluxcd.io/force: "enabled"
   labels:
     app: nextcloud
 spec:

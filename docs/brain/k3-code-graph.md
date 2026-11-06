@@ -2,6 +2,8 @@
 
 > Komponente des Brain-Architektur-Epics T002430.
 > Stand: August 2026.
+> **Hinweis (Stand 2026-11-06):** `docs/generated/graph-k8s-env.json` ist ein K8s/Env-Graph (CronJob/env-Kanten) und **nicht** der K3-Code-Graph. Zählwerte: ~30K/~75K = Richtwert pro Projekt (Aug 2026), 97.506/228.997 = September-Messung home-patrick-Bachelorprojekt.
+>
 
 ## Diagramm
 

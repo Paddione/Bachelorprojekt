@@ -139,17 +139,15 @@ jobs:
             rm -f "${RUNNER_TEMP}/health-goals/axe.json"
             echo "::warning::browser accessibility audit failed; its goals remain unknown"
           fi
-          for brand in mentolder korczewski; do
-            report="${RUNNER_TEMP}/health-goals/lh-${brand}.json"
-            if ! timeout 120 npx --yes lighthouse@12.8.2 "https://web.${brand}.de" --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="$report"; then
-              rm -f "$report"
-              echo "::warning::Lighthouse audit failed for ${brand}; its goals remain unknown"
-            fi
-          done
-          if jq -e '.categories.performance.score | numbers' "${RUNNER_TEMP}/health-goals/lh-mentolder.json" >/dev/null 2>&1 \
-            && jq -e '.categories.performance.score | numbers' "${RUNNER_TEMP}/health-goals/lh-korczewski.json" >/dev/null 2>&1; then
-            jq -n --slurpfile mentolder "${RUNNER_TEMP}/health-goals/lh-mentolder.json" --slurpfile korczewski "${RUNNER_TEMP}/health-goals/lh-korczewski.json" \
-              '{reports:{mentolder:$mentolder[0],korczewski:$korczewski[0]}}' > "${RUNNER_TEMP}/health-goals/lighthouse.json"
+          # mentolder liegt im Gekko-Repo (extern) — Lighthouse misst nur noch korczewski.
+          report="${RUNNER_TEMP}/health-goals/lh-korczewski.json"
+          if ! timeout 120 npx --yes lighthouse@12.8.2 "https://web.korczewski.de" --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="$report"; then
+            rm -f "$report"
+            echo "::warning::Lighthouse audit failed for korczewski; its goals remain unknown"
+          fi
+          if jq -e '.categories.performance.score | numbers' "${RUNNER_TEMP}/health-goals/lh-korczewski.json" >/dev/null 2>&1; then
+            jq -n --slurpfile korczewski "${RUNNER_TEMP}/health-goals/lh-korczewski.json" \
+              '{reports:{korczewski:$korczewski[0]}}' > "${RUNNER_TEMP}/health-goals/lighthouse.json"
           else
             rm -f "${RUNNER_TEMP}/health-goals/lighthouse.json"
             echo "::warning::Lighthouse reports incomplete or invalid; performance goals remain unknown"

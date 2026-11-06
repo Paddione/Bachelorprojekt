@@ -10,7 +10,7 @@ import sys
 import urllib.parse
 import urllib.request
 
-BRANDS = {"mentolder", "korczewski"}
+BRANDS = {"korczewski"}
 PROD_NAMESPACES = {"workspace", "workspace-korczewski"}
 
 
@@ -145,13 +145,13 @@ def svc_probe(data):
     # behind it.  Comparing service names with probe URLs (the previous
     # implementation) can never establish coverage.
     ingress_hosts = set()
-    # brand-trennung: prod-fleet/mentolder geloescht (p5) — korczewski-Stand
+    # brand-trennung: mentolder liegt im Gekko-Repo (extern) — korczewski-Stand
     # sind der Brand-Overlay plus website-korczewski (Prod-Ingresses).
     manifest_dirs = ["prod-fleet/korczewski", "prod-fleet/website-korczewski"]
     # Host-Templates (${PROD_DOMAIN}, auch bare Apex ohne Subdomain) werden
     # anhand des Manifest-Verzeichnisses konkretisiert, damit Apex-Ingresses
     # (z.B. website-apex.yaml) gegen reale Probe-Targets vergleichbar sind.
-    brand_domains = (("korczewski", "korczewski.de"), ("mentolder", "mentolder.de"))
+    brand_domains = (("korczewski", "korczewski.de"),)
 
     def resolve_brand(host, path):
         lowered_path = path.lower()

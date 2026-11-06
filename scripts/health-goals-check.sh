@@ -144,11 +144,11 @@ anchor_ref() { git rev-parse --verify --quiet "$1" >/dev/null 2>&1 || { echo -; 
 [ "$QUIET" = 0 ] && printf "%sGATES (Policy/Halten)%s\n" "$C_B" "$C_X"
 
 row gate G-RH02 "$(anchor_dir components/website/src; count '@ts-ignore|@ts-expect-error' components/website/src)" eq 0 "TypeScript-Suppressionen"
-row gate G-TEST02 "$(anchor_dir components/website/src components/mentolder-web/src; grep -rnE '\.only\b' components/website/src components/mentolder-web/src --include='*.test.ts' --include='*.test.tsx' --include='*.test.svelte' 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Vitest .only (Suiten-Killer)"
+row gate G-TEST02 "$(anchor_dir components/website/src; grep -rnE '\.only\b' components/website/src --include='*.test.ts' --include='*.test.tsx' --include='*.test.svelte' 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Vitest .only (Suiten-Killer)"
 # Target ≤4 deckt die bekannten Tooling-/Format-False-Positives ab (z.B. XXX-XXX Session-Code);
 # ein echt neuer FIXME/HACK/XXX schiebt über die Schwelle → rot (kein Netto-Zuwachs).
 row gate G-CQ04 "$(grep -rnE '\b(FIXME|HACK|XXX)\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 4 "FIXME/HACK/XXX (kein Netto-Zuwachs)"
-row gate G-DEP04 "$(c=0; for p in components/website/package.json components/brett/package.json components/mentolder-web/package.json components/mediaviewer-widget/package.json components/VideoVault/package.json components/studio-server/package.json; do [ -f "$p" ] || continue; v=$(python3 -c "import json;print((json.load(open('$p')).get('engines') or {}).get('node','MISSING'))" 2>/dev/null); [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo $c)" eq 0 "package.json ohne engines>=22.13"
+row gate G-DEP04 "$(c=0; for p in components/website/package.json components/brett/package.json components/mediaviewer-widget/package.json components/VideoVault/package.json components/studio-server/package.json; do [ -f "$p" ] || continue; v=$(python3 -c "import json;print((json.load(open('$p')).get('engines') or {}).get('node','MISSING'))" 2>/dev/null); [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo $c)" eq 0 "package.json ohne engines>=22.13"
 row gate G-SEC01 "$(anchor_dir k3d; grep -rn 'password.*=.*[^$]' k3d/*.yaml 2>/dev/null | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}\|getenv(' | grep -iv '^\s*#' | wc -l | tr -d ' ')" eq 0 "Hardcoded Secrets in k3d/*.yaml"
 row gate G-GIT02 "$(anchor_ref origin/main; git log --format=%s --no-merges -30 origin/main 2>/dev/null | grep -vcE '^(feat|fix|chore|docs|refactor|test|ci|build|perf|revert|style)(\(|!|:)')" eq 0 "Non-conventional Commits (letzte 30, ohne Merge)"
 if [ "$FAST" = 0 ] && want G-CFG01 && command -v task >/dev/null 2>&1; then
@@ -292,7 +292,7 @@ row target G-SIZE02 "$(git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js
 # (lokal via `task codebase:index` regeneriert, .gitignore) — die frühere Scope-Ausschluss-Policy
 # T001348 ist damit gegenstandslos, da kein >1MB-Binärartefakt mehr im Tree liegt.
 row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 wc -c 2>/dev/null | grep -v ' total$' | awk '$1>1048576{c++} END{print c+0}')" le 7 "Dateien >1MB (kein LFS)"
-row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' --include='*.yaml' --include='*.yml' --exclude='*-rendered.yaml' --exclude='*-rendered.yml' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|videovault|mediaviewer-widget|mentolder-web|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE|paddione' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images (Rendered-Helm-Output ausgenommen: Chart-gebacken)"
+row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' --include='*.yaml' --include='*.yml' --exclude='*-rendered.yaml' --exclude='*-rendered.yml' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|videovault|mediaviewer-widget|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE|paddione' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images (Rendered-Helm-Output ausgenommen: Chart-gebacken)"
 row target G-DOC02 "$(anchor_file CLAUDE.md; wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"
 row target G-AGENTIC01 "$(bash scripts/lib/count-unresolved-agent-tools.sh)" le 0 "tools:-Eintraege, die ins Leere zeigen (leere Aufloesung oder unbekannter MCP-Server)"
 row target G-AGENTIC10 "$(python3 scripts/lib/health-goals-probes.py agentic10 2>/dev/null || echo -)" le 0 "Agenten (.claude/agents) ohne dispatchende Skill (agent:-Frontmatter) — T016657"
@@ -370,8 +370,8 @@ else
 fi
 
 # ── FE-TARGETS ──
-want G-A11Y01 && row target G-A11Y01 "$(runtime_measure axe)" le 0 "Critical/serious axe-Verstöße auf kanonischen Routen beider Brands"
-want G-FE05 && row target G-FE05 "$(runtime_measure lighthouse)" ge 90 "Niedrigerer Lighthouse-JSON Performance Score beider Brands"
+want G-A11Y01 && row target G-A11Y01 "$(runtime_measure axe)" le 0 "Critical/serious axe-Verstöße auf kanonischen Routen (korczewski, massage)"
+want G-FE05 && row target G-FE05 "$(runtime_measure lighthouse)" ge 90 "Lighthouse-JSON Performance Score (korczewski)"
 
 # ── IF-TARGETS (T002441: Schnittstellen- und API-Drift) ──
 # Der Prober meldet einen Strukturbruch (leere Kandidatenmenge) als Verletzung

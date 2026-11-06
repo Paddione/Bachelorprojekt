@@ -5,7 +5,6 @@ import AxeBuilder from '@axe-core/playwright';
 import routes from '../../tests/e2e/lib/public-routes.json' with { type: 'json' };
 
 const bases = {
-  mentolder: process.env.HG_MENTOLDER_URL || 'https://web.mentolder.de',
   korczewski: process.env.HG_KORCZEWSKI_URL || 'https://web.korczewski.de',
 };
 const output = process.argv[2];

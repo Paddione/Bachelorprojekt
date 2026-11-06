@@ -93,7 +93,7 @@ tls_min_days() { # G-OPS03 — min. Restlaufzeit über beide Brand-Frontends, 1 
   [ "$FAST" = 1 ] && { echo "-"; return; }
   command -v openssl >/dev/null 2>&1 || { echo "-"; return; }
   local d exp days try min=""
-  for d in ${HG_TLS_HOSTS:-web.mentolder.de web.korczewski.de}; do
+  for d in ${HG_TLS_HOSTS:-web.korczewski.de}; do
     exp=""
     for try in 1 2; do # Retry: Multi-A-Record-Setups antworten transient nicht (2026-07-22)
       exp=$(echo | timeout 10 openssl s_client -servername "$d" -connect "$d":443 2>/dev/null \

@@ -48,19 +48,19 @@ def test_pvc_headroom_counts_volumes_below_twenty_percent(assert_measure):
     assert_measure("capacity", "prometheus-empty.json", "-")
 
 
-def test_axe_counts_only_serious_and_critical_findings_across_both_brands(assert_measure):
+def test_axe_counts_only_serious_and_critical_findings_across_covered_brands(assert_measure):
     assert_measure("axe", "axe-clean.json", "0")
-    assert_measure("axe", "axe-findings.json", "2")
+    assert_measure("axe", "axe-findings.json", "1")
     assert_measure("axe", "axe-incomplete.json", "-")
 
 
-def test_lighthouse_returns_the_lower_integer_score_and_rejects_incomplete_reports(assert_measure):
+def test_lighthouse_returns_the_integer_score_and_rejects_incomplete_reports(assert_measure):
     assert_measure("lighthouse", "lighthouse-valid.json", "91")
     assert_measure("lighthouse", "lighthouse-low.json", "78")
     assert_measure("lighthouse", "lighthouse-incomplete.json", "-")
 
 
-def test_slo_returns_the_worse_brand_in_promille_and_requires_complete_history(assert_measure):
+def test_slo_returns_availability_in_promille_and_requires_complete_history(assert_measure):
     assert_measure("slo", "slo-healthy.json", "998")
     assert_measure("slo", "slo-low.json", "991")
     assert_measure("slo", "slo-incomplete.json", "-")

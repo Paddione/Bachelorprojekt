@@ -3,13 +3,13 @@ import AxeBuilder from '@axe-core/playwright';
 import publicRoutes from '../lib/public-routes.json';
 
 // Brand-Erkennung env-basiert (S3: keine Domain-Literale im Code).
-const PROD_DOMAIN = process.env.PROD_DOMAIN ?? 'mentolder.de';
-const isKore = PROD_DOMAIN === 'korczewski.de';
+// mentolder liegt im Gekko-Repo (extern) — Default ist korczewski.
+const PROD_DOMAIN = process.env.PROD_DOMAIN ?? 'korczewski.de';
 
 // Kern-Routen je Marke (Override per A11Y_ROUTES=kommagetrennt für Iterationen).
-// Massage-Rerun: A11Y_BRAND=massage (Nightly ohne Env bleibt mentolder).
+// Massage-Rerun: A11Y_BRAND=massage.
 const brandRoutes = process.env.A11Y_BRAND === 'massage' ? publicRoutes.massage : null;
-const DEFAULT_ROUTES = brandRoutes ?? (isKore ? publicRoutes.korczewski : publicRoutes.mentolder);
+const DEFAULT_ROUTES = brandRoutes ?? publicRoutes.korczewski;
 const CORE_ROUTES = process.env.A11Y_ROUTES
   ? process.env.A11Y_ROUTES.split(',').map((r) => r.trim()).filter(Boolean)
   : DEFAULT_ROUTES;

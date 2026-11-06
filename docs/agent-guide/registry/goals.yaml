@@ -40,7 +40,7 @@
       note_de: "Beschreibe den Fehler; der Skill legt einen Fix-Branch an und schreibt zuerst einen Test, der den Fehler zeigt."
     - tool: dev-flow-execute
       note_de: "Setzt den Plan um, öffnet einen Pull Request und bringt die Korrektur live."
-  example_prompt_de: "Auf web.mentolder.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie."
+  example_prompt_de: "Auf web.korczewski.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie."
   danger: caution
   theme: entwickeln
   one_liner_de: "Etwas funktioniert nicht — finden und reparieren."
@@ -73,10 +73,10 @@
   when_de: "Ein gemergter Pull Request soll in der echten Umgebung aktiviert werden."
   flow:
     - tool: agent-infra
-      note_de: "Sage, welche Umgebung (mentolder / korczewski) betroffen ist und welche Änderung ausgerollt werden soll."
+      note_de: "Sage, welche Umgebung (korczewski / staging) betroffen ist und welche Änderung ausgerollt werden soll."
     - tool: dev-flow-e2e
       note_de: "Verifiziere nach dem Deploy mit E2E-Tests, dass alles funktioniert."
-  example_prompt_de: "Bitte rolle den letzten Merge für mentolder aus und prüfe, ob die Website läuft."
+  example_prompt_de: "Bitte rolle den letzten Merge für korczewski aus und prüfe, ob die Website läuft."
   danger: assisted
   theme: ausrollen
   one_liner_de: "Einen gemergten Stand live schalten."
@@ -174,7 +174,7 @@
       note_de: "Lässt Pod-Status und Logs prüfen, ob der neue Stand läuft."
     - tool: dev-flow-e2e
       note_de: "Verifiziert per E2E-Test gegen die Live-URL, dass das Feature funktioniert."
-  example_prompt_de: "Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2E-Check."
+  example_prompt_de: "Ist der letzte Deploy für korczewski live? Prüfe Status, Logs und mach einen E2E-Check."
   danger: safe
   theme: betrieb
   one_liner_de: "Nach dem Deploy prüfen, ob alles läuft."

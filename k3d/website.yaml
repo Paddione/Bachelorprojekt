@@ -85,7 +85,7 @@ data:
   # Brett
   BRETT_DOMAIN: "${BRETT_DOMAIN}"
   BRETT_INTERNAL_URL: "http://brett.${WORKSPACE_NAMESPACE}.svc.cluster.local:3000"
-  # Arena (last-man-standing game server; same host on both brands — mentolder only)
+  # Arena (last-man-standing game server; mentolder-Brand liegt im Gekko-Repo)
   ARENA_WS_URL: "${ARENA_WS_URL}"
   # Site
   # T002139: no-op touch to retrigger render-fleet-artifact.yml after FLUX_ENABLED cutover
@@ -553,8 +553,7 @@ spec:
 # ── IngressRoute ─────────────────────────────────────────────────────────────
 # T001490 Task 9: apex Host(`${WEBSITE_HOST}`) backend is selected by
 # `WEBSITE_PRIMARY_SERVICE`, derived from `PRIMARY_FRONTEND` (astro|react) in
-# the deploy task. The Astro SSR is the default; React (mentolder-web) is
-# always deployed too, so the switch is one line + deploy. Per-service hosts
+# the deploy task. The Astro SSR is the default. Per-service hosts
 # (react.<brand>, admin.<brand>, …) are unaffected.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

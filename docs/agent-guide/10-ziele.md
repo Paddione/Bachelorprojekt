@@ -62,7 +62,7 @@ Bitte prüfe, ob alle Pods laufen und zeig mir den Plattform-Status.
 **Diesen Prompt kannst du der KI geben:**
 
 ```text
-Auf web.mentolder.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie.
+Auf web.korczewski.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie.
 ```
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
@@ -98,13 +98,13 @@ Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt.
 
 **So gehst du vor:**
 
-1. [[bp-build]] — Sage, welche Umgebung (mentolder / korczewski) betroffen ist und welche Änderung ausgerollt werden soll.
+1. [[bp-build]] — Sage, welche Umgebung (korczewski / staging) betroffen ist und welche Änderung ausgerollt werden soll.
 2. [[dev-flow-e2e]] — Verifiziere nach dem Deploy mit E2E-Tests, dass alles funktioniert.
 
 **Diesen Prompt kannst du der KI geben:**
 
 ```text
-Bitte rolle den letzten Merge für mentolder aus und prüfe, ob die Website läuft.
+Bitte rolle den letzten Merge für korczewski aus und prüfe, ob die Website läuft.
 ```
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Erst prüfen, dann anwenden (G-VALIDATE-FIRST)
@@ -227,7 +227,7 @@ Bitte öffne einen Pull Request für diesen Branch und sag mir, ob die CI grün 
 **Diesen Prompt kannst du der KI geben:**
 
 ```text
-Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2E-Check.
+Ist der letzte Deploy für korczewski live? Prüfe Status, Logs und mach einen E2E-Check.
 ```
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT)

@@ -442,7 +442,7 @@
     "direction": "lower",
     "baseline": 324,
     "current": 375,
-    "target": 374,
+    "target": 375,
     "unit": "",
     "status": "unknown",
     "measurement": "python3 scripts/lib/knowledge-goals.py docs-md",
@@ -1015,7 +1015,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 scripts/lib/runtime-health-measure.py scrape` (`HG_PROMETHEUS_URL`; Prometheus lebte auf fleet, kein Prometheus auf devmesh) — aktive `up`-Serien, leer ⇒ n/a. CI ⇒ n/a erwartet",
+    "measurement": "python3 scripts/lib/runtime-health-measure.py scrape` (`HG_PROMETHEUS_URL`; Prometheus lebte auf fleet, kein Prometheus auf devmesh) — aktive `up`-Serien, leer ⇒ n/a. **File-Evidenz (Eigner-Entscheid):** ohne Prometheus-Basis erzeugen `scripts/lib/obs-file-evidence.sh scrape` (+ `scripts/lib/obs-targets.json`, kuratierte Kern-Targets statt aller Jobs) und `health-goals-check.sh` exportiert `HG_SCRAPE_INPUT` automatisch (nur lokal, nicht CI). CI ⇒ n/a erwartet",
     "source": ".claude/lib/goals.md · G-OBS01",
     "measured_at": "2026-11-06"
   },
@@ -1030,7 +1030,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 scripts/lib/runtime-health-measure.py capacity` (`HG_PROMETHEUS_URL`; wie G-OBS01 ohne Prometheus-Basis) — `workspace` + `workspace-korczewski`. CI ⇒ n/a erwartet",
+    "measurement": "python3 scripts/lib/runtime-health-measure.py capacity` (`HG_PROMETHEUS_URL`; wie G-OBS01 ohne Prometheus-Basis) — `workspace` + `workspace-korczewski`. **File-Evidenz (Eigner-Entscheid):** `scripts/lib/obs-file-evidence.sh capacity` liest Kubelet-Stats pro Node (Context `HG_OPS_CTX`, Default devmesh) in einen Datei-Snapshot; `health-goals-check.sh` exportiert `HG_CAPACITY_INPUT` automatisch (nur lokal, nicht CI). Ohne Cluster-Zugriff ⇒ n/a. CI ⇒ n/a erwartet",
     "source": ".claude/lib/goals.md · G-CAP01",
     "measured_at": "2026-11-06"
   },
@@ -1075,7 +1075,7 @@
     "target": 995,
     "unit": "n/a",
     "status": "unknown",
-    "measurement": "probe_success` (korczewski), ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo`. Ohne Prometheus-Basis (fleet abgebaut, kein Prometheus auf devmesh) ⇒ n/a erwartet",
+    "measurement": "probe_success` (korczewski), ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo`. Ohne Prometheus-Basis (fleet abgebaut, kein Prometheus auf devmesh) ⇒ n/a erwartet. **File-Evidenz (Eigner-Entscheid):** `scripts/lib/obs-file-evidence.sh slo-append` schreibt Brand-Proben ins JSONL-Log (`~/.local/state/obs-evidence/slo.jsonl`), `slo-window` aggregiert das 7d-Fenster (Default: ≥7 Proben aus ≥6 Tagen, Tages-Kadenz des health-goals-Laufs; `--min-samples/--min-days` für höhere Kadenz); `health-goals-check.sh` hängt pro Lauf an und exportiert `HG_SLO_INPUT` (nur lokal, nicht CI). Zu wenig Historie ⇒ n/a, kein stiller Wert",
     "source": ".claude/lib/goals.md · G-SLO01",
     "measured_at": "2026-11-06"
   },
@@ -1672,10 +1672,10 @@
     "direction": "lower",
     "baseline": null,
     "current": 375,
-    "target": 374,
+    "target": 375,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995); Ratchet 372→374 für `docs/brain/route-retrieval-benchmark.md` (#7103) und `docs/runbooks/fritzbox-dns.md` (#7109)",
+    "measurement": "python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995); Ratchet 372→374 für `docs/brain/route-retrieval-benchmark.md` (#7103) und `docs/runbooks/fritzbox-dns.md` (#7109), →375 für `docs/generated/README.md` als +1 per Eigner-Entscheid 2026-11-06",
     "source": ".claude/lib/goals.md · G-KNOW02",
     "measured_at": "2026-11-06"
   },

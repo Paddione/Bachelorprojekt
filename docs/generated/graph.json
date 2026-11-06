@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-02T21:44:13.605Z",
+  "generatedAt": "2026-11-06T13:31:39.675Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -480,6 +480,12 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "videovault"
+    },
+    {
+      "id": "website-korczewski",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "website-korczewski"
     },
     {
       "id": "website-massage",
@@ -1096,6 +1102,36 @@
       "kind": "env"
     },
     {
+      "from": "website-korczewski",
+      "to": "website",
+      "via": "env:SESSIONS_DATABASE_URL",
+      "kind": "env"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "nextcloud",
+      "via": "configmap:website-config",
+      "kind": "configmap"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "brett",
+      "via": "configmap:website-config",
+      "kind": "configmap"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "brett",
+      "via": "configmap:domain-config",
+      "kind": "configmap"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "traefik",
+      "via": "configmap:domain-config",
+      "kind": "configmap"
+    },
+    {
       "from": "website-massage",
       "to": "website",
       "via": "env:SESSIONS_DATABASE_URL",
@@ -1356,6 +1392,12 @@
     {
       "from": "traefik",
       "to": "oauth2-proxy-massage-korczewski",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "website-korczewski",
       "via": "ingress",
       "kind": "ingress"
     },
@@ -1656,6 +1698,12 @@
     {
       "from": "videovault",
       "to": "videovault",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "website-korczewski",
       "via": "selector",
       "kind": "selector"
     },
@@ -13073,6 +13121,18 @@
     },
     {
       "from": "systemtest-cleanup",
+      "to": "website-korczewski",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "systemtest-cleanup",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "systemtest-cleanup",
       "to": "website-massage",
       "via": "secret:website-secrets",
       "kind": "secret"
@@ -13121,6 +13181,18 @@
     },
     {
       "from": "systemtest-purge-all",
+      "to": "website-korczewski",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "systemtest-purge-all",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "systemtest-purge-all",
       "to": "website-massage",
       "via": "secret:website-secrets",
       "kind": "secret"
@@ -13157,6 +13229,18 @@
     },
     {
       "from": "systemtest-outbox",
+      "to": "website-korczewski",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "systemtest-outbox",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "systemtest-outbox",
       "to": "website-massage",
       "via": "secret:website-secrets",
       "kind": "secret"
@@ -13181,6 +13265,18 @@
     },
     {
       "from": "sdlc-console",
+      "to": "website-korczewski",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "sdlc-console",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
       "to": "website-massage",
       "via": "secret:website-secrets",
       "kind": "secret"
@@ -13204,6 +13300,30 @@
       "kind": "secret"
     },
     {
+      "from": "website-korczewski",
+      "to": "website-massage",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website-massage",
+      "to": "website-korczewski",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "website",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website",
+      "to": "website-korczewski",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "website-massage",
       "to": "website",
       "via": "secret:website-secrets",
@@ -13285,6 +13405,30 @@
       "from": "website",
       "to": "shared-db-dev",
       "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "website-massage",
+      "via": "secret:website-content-token",
+      "kind": "secret"
+    },
+    {
+      "from": "website-massage",
+      "to": "website-korczewski",
+      "via": "secret:website-content-token",
+      "kind": "secret"
+    },
+    {
+      "from": "website-korczewski",
+      "to": "website",
+      "via": "secret:website-content-token",
+      "kind": "secret"
+    },
+    {
+      "from": "website",
+      "to": "website-korczewski",
+      "via": "secret:website-content-token",
       "kind": "secret"
     },
     {

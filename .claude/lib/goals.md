@@ -361,7 +361,7 @@ aufgelöst (Apex braucht ein eigenes Target, Redirects folgen).
 python3 scripts/lib/runtime-health-measure.py svc-probe
 ```
 
-> **B · Baseline:** 23 (2026-08-29, viele Ingress backends ohne Probe) → 0 → 1 · **Target:** 0 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+> **B · Baseline:** 23 (2026-08-29, viele Ingress backends ohne Probe) → 0 → 1 → 0 · **Target:** 0 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
 ## G-SVC02 — Pocket-ID OIDC Discovery erreichbar: 0 → 0
 
@@ -527,7 +527,7 @@ Negativbefund, den T002356-M1 verbietet.
 bash scripts/lib/wt-hygiene-measure.sh stale-worktrees
 ```
 
-> **B · Baseline:** 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** nur lokal (CI hat keine Worktrees) · **Ticket:** T002443
+> **B · Baseline:** 0 → 1 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** nur lokal (CI hat keine Worktrees) · **Ticket:** T002443
 
 ## G-WT03 — Verwaiste Agent-Locks (Heartbeat abgelaufen oder Halter nicht auffindbar): 0 → 0
 
@@ -706,7 +706,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 1/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
 | **G-K8S03** | Deployments ohne securityContext | 0 ✓ | 0 | `python3 -c "..securityContext.." k3d/*.yaml` |
-| **G-K8S04** | workspace:validate grün | Exit 201 ⚠ | Exit 0 | `task workspace:validate` |
+| **G-K8S04** | workspace:validate grün | Exit 0 ✓ | Exit 0 | `task workspace:validate` |
 | **G-CFG01** | env:validate:all grün | 0 ✓ | Exit 0 | `task env:validate:all` |
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 ✓ | 0 | `grep -rn 'password.*=.*[^$]' k3d/*.yaml \| grep -iv secretKeyRef \| wc -l` |
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
@@ -727,13 +727,13 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 scripts/lib/health-goals-probes.py if02` — catch ohne Log und ohne Rethrow, Blöcke per Klammerzählung (T016657) |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
-| **G-K3FRESH** | K3-Codegraph-Index frisch | 0 ⚠ | 1 | `k3_freshness_flag` (scripts/lib/health-goals-measure.sh) — `cbm-freshness.py status`, Fail-closed: nicht messbar ⇒ 0 (T002430) |
+| **G-K3FRESH** | K3-Codegraph-Index frisch | 1 ✓ | 1 | `k3_freshness_flag` (scripts/lib/health-goals-measure.sh) — `cbm-freshness.py status`, Fail-closed: nicht messbar ⇒ 0 (T002430) |
 | **G-K3PROJ** | K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0) | 0 ⚠ | 1 | `k3_project_flag` — `codebase-memory-mcp cli index_status` (MCP-Envelope via `health-goals-probes.py k3proj`); Index nicht erreichbar/Format kaputt ⇒ n/a, nie grün (T002430, T016657) |
 | **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 0 ✓ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
 | ~~**G-DB06**~~ | ~~Orphan-Rows (3 FK-Paare)~~ — retiriert mit dem Ticket-Retirement (2026-10-14, Schema dropped) | — | — | — |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 89 ✓ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 4/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
-| **G-CI01** | main CI-Erfolgsrate (letzte 20) | 95 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
+| **G-CI01** | main CI-Erfolgsrate (letzte 20) | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
 | **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 614 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
@@ -760,7 +760,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `python3 scripts/lib/health-goals-probes.py agentic10` — je Agent aus `.claude/agents/*.md` eine SKILL.md mit `agent: <name>` (T016657) |
 | **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 7 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738; Fix T013037: Filen-Reroute auf korczewski-Account (2FA-Hang), Remote-Prune 9,9 GiB → 257 MiB` |
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 0 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
-| **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 85 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
+| **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 83 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 1 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 65 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |

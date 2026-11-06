@@ -1,0 +1,66 @@
+# f3-auth-cache — phase-events.log
+
+## p0 — Baseline (2026-11-07, HEAD 82a0567b0; Plan-Referenz f0e00b7ff + Plan-Commit)
+- Fan-in-Zählung (verbindlich per rg, exkl. *.test.*):
+  - `rg -n "getSession\b" components/website/src -g '*.ts' | grep -v test` → 849 Zeilen
+    (Roh-Token inkl. Imports/Re-Exports). Call-Sites `getSession\(` → 452.
+    Plan-Bestand ~496–509: Abweichung Call-Sites −9 % → INNERHALB ±25 % → kein STOP.
+  - `rg -n "isAdmin" ...` → 813 Zeilen (Roh-Token). Call-Sites `isAdmin\(` → 420.
+    Plan-Bestand ~457–470: Abweichung −8 % → INNERHALB ±25 % → kein STOP.
+  - Zähldifferenz erklärt: Plan zählte Call-Sites, Roh-rg zählt zusätzlich
+    Import-/Re-Export-Zeilen. Call-Site-Basis maßgeblich.
+- Caller-Familien (Dateien mit getSession-Referenz, exkl. Tests):
+  pages/api/admin 210, pages/sdlc/api 133, Rest 48 Dateien
+  (v. a. pages/api/portal ~23, Rest verstreut je 1–5: billing, assistant, auth,
+  stream, bge, meetings, bookings, signing, internal, lib-Helper).
+  HINWEIS: Rest > 10 Sites (p0-Klausel), aber alle Rest-Caller sind reine
+  getSession+isAdmin-Nutzer → p1 lässt sie per Design UNVERÄNDERT (kein Churn
+  ohne Nutzen). Kein Rescope nötig, kein STOP — mit Orchestrator-Implizit-Go
+  fortgefahren (STOP-Kriterium Count >±25 % nicht erfüllt).
+- Cache-Semantik gegenlesen (auth.ts:349–399): Key = Session-Id aus eigenem
+  Cookie-Header, Negative NICHT cachen (Miss → delete), Evict bei Delete/Expiry
+  (getCachedSession prüft expires_at; clearSessionCache(id|alle)),
+  useCache=true nur in getSession, Injektionspunkt useCache=false. Entspricht Bestand.
+- Gate p0 `task test:changed` (Repo-Root) → GRÜN (exit 0, u. a. suites 53 pass,
+  networks-check OK, domains-check OK).
+- Gate p0 `pnpm --dir components/website test:unit src/lib/auth.test.ts` → GRÜN (33/33).
+- p0DONE.
+
+## p1 — Cache-Bahn + Injektionspunkt (auth.ts only, +11/−4)
+- Änderung `components/website/src/lib/auth.ts`:
+  1. Kommentar-Block (jetzt :349–357) auf Endzustand aktualisiert: SINGLE LANE
+     resolveSession() als einzige Cache-Entscheidungsstelle; getSession = cached,
+     getSessionWithResolver = default uncached.
+  2. `getSessionWithResolver(cookieHeader, resolver, useCache = false)`:
+     optionaler useCache-Param, Default false (injizierte Fakes NIE aus Prod-Cache).
+- NICHT eingeführt: AdminPolicy-Param an isAdmin (kein Guard-Seam braucht ihn —
+  kein Over-Engineering per Plan). Guards UNVERÄNDERT (reine getSession+isAdmin-
+  Caller; kein Guard umgeht resolveSession/DbSessionResolver — rg-Beleg unten).
+- Token-Refresh (DbSessionResolver.resolve, :314–337 im Vor-Zustand) UNANGETASTET.
+- Verbote eingehalten: kein sessionCache.clear() als Eviction-Ersatz, kein
+  Null-Caching (resolveSession fail-closed beibehalten).
+- Gate p1 `rg -n "new DbSessionResolver|resolveSession\(" ... -g '!*.test.*'` →
+  nur kanonisch: auth.ts:347 (Default-Instanz), :375 (Definition), :406
+  (getSession), :417 (getSessionWithResolver) + Kommentar :351. KEIN Guard-Bypass.
+- Rauchtest `auth.test.ts` → GRÜN (33/33).
+- Diff: 1 File, +11/−4 (< 100 Zeilen). p1DONE.
+
+## p2 — Blast-Radius-Gate (geprüfter Stand: p1-Arbeitsbaum, vor Commit)
+- Gate A `pnpm --dir components/website test:unit src/lib/auth.test.ts` → GRÜN (33/33).
+- Gate A via `task test:changed` (p0) → GRÜN.
+- Gate B (20 Dateien, ein vitest-run-Aufruf mit allen Pfaden) → 20/20 GRÜN, 105/105 Tests:
+  auth/me, portal/sign/[assignmentId], internal/applications/list,
+  admin/content/{restore,save,versions}, admin/backup-status, admin/ai-quality,
+  admin/coaching/ki-config/{active,models},
+  admin/questionnaires/assignments/[id]/{archive,reassign},
+  admin/billing/{sepa-export,datev-export,[id]/validate,[id]/payments},
+  admin/sessions/{index,templates/[id],templates/index,history/index}.
+- Mit-prüfen (kein hartes Gate): admin-api.test.ts + lib/admin/* (8 Dateien) →
+  7/8 Dateien grün (31/32 Tests). EINZIGER Rot: lib/admin/nav-items.test.ts
+  (href-Count-Erwartung 11) — per stash-Kontrolle auf SAUBEREM Baum ebenfalls rot
+  → PRE-EXISTING, ohne Bezug zur Änderung. Kein Muster, kein STOP (STOP-Schwelle:
+  >2 rote mit gemeinsamem Muster).
+- p2-Counts vs p0: keine Caller-Änderung (reine auth.ts-interne Bahn) → Diff ≈ 0.
+- Rollback-Notiz: Revert des p1-Commits (keine Migration/Schema/Daten; Cache rein
+  prozess-lokal). Nach Revert Gate A + 3 Stichproben Gate B erneut belegen.
+- p2DONE = Plan-DONE (vorbehaltlich Freshness + PR).

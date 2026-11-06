@@ -348,8 +348,12 @@ const defaultSessionResolver: SessionResolver = new DbSessionResolver();
 
 // Per-request session cache: keyed by the session id parsed from the request's
 // own cookie header, so concurrent getSession() calls for the same request
-// share one lookup. Negative results are NOT cached (a later retry in the same
-// process must see newly issued sessions); entries are evicted when the
+// share one lookup. SINGLE LANE: resolveSession() is the only place that
+// reads/writes this map — getSession() resolves cached, getSessionWithResolver()
+// resolves uncached by default (injected fakes must NEVER be served from the
+// prod cache; pass useCache=true only when the caller explicitly opts into
+// prod-cache semantics). Negative results are NOT cached (a later retry in the
+// same process must see newly issued sessions); entries are evicted when the
 // session is deleted or expires.
 const sessionCache = new Map<string, { session: UserSession; cachedAt: number }>();
 
@@ -402,12 +406,15 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
   return resolveSession(cookieHeader, defaultSessionResolver, true);
 }
 
-/** Injection point for the follow-up call-site migration (fakes/mocks). */
+/** Injection point for fakes/mocks. Uncached by default so injected resolvers
+ * are never served from the prod cache; pass useCache=true only when the
+ * caller explicitly wants prod-cache semantics for the injected resolver. */
 export async function getSessionWithResolver(
   cookieHeader: string | null,
   resolver: SessionResolver,
+  useCache = false,
 ): Promise<UserSession | null> {
-  return resolveSession(cookieHeader, resolver, false);
+  return resolveSession(cookieHeader, resolver, useCache);
 }
 
 export function getSessionId(cookieHeader: string | null): string | undefined {

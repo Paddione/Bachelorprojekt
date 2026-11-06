@@ -70,6 +70,6 @@ Full-Suite läuft explizit NICHT (Scope-Gate: nur unten gelistete Tests).
 
 ## Tasks
 
-- [ ] **0. Partial p0** (`tasks.d/p0-baseline.md`): Fan-in-Baseline + Gate-Tests grün VOR Änderung belegen.
-- [ ] **1. Partial p1** (`tasks.d/p1-cache-fanin.md`): Cache-Bahn konsolidieren + Fan-in umleiten (mechanisch, keine Signaturbrüche).
-- [ ] **2. Partial p2** (`tasks.d/p2-verify.md`): Blast-Radius-Gate (`auth.test.ts` + ~20 Admin-Routen-Tests) grün + Rollback-Notiz.
+- [x] **0. Partial p0** (`tasks.d/p0-baseline.md`): Fan-in-Baseline + Gate-Tests grün VOR Änderung belegen.
+- [x] **1. Partial p1** (`tasks.d/p1-cache-fanin.md`): Cache-Bahn konsolidieren + Fan-in umleiten (mechanisch, keine Signaturbrüche).
+- [x] **2. Partial p2** (`tasks.d/p2-verify.md`): Blast-Radius-Gate (`auth.test.ts` + ~20 Admin-Routen-Tests) grün + Rollback-Notiz.

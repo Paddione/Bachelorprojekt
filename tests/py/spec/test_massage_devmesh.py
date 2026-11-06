@@ -37,3 +37,40 @@ def test_massage_devmesh_runtime_configuration(repo_root):
     )
     assert "web.${SUFFIX}/api/auth/callback" in seed["command"][-1]
     assert "${WEBSITE_EXTRA_CALLBACK}" in seed["command"][-1]
+
+
+def test_website_database_bootstrap_runs_before_readiness(repo_root, tmp_path):
+    """A persistent DB must bootstrap on restart and fail closed on SQL errors."""
+    import os
+    docs = list(yaml.safe_load_all((repo_root / "dev-local/core/massage-db-dev.yaml").read_text()))
+    container = docs[0]["spec"]["template"]["spec"]["containers"][0]
+    command = container["lifecycle"]["postStart"]["exec"]["command"]
+    scripts = tmp_path / "schema"
+    scripts.mkdir()
+    for name in ("init-knowledge-schema.sh", "init-meetings-schema.sh"):
+        (scripts / name).write_text('echo "' + name + '" >> "$BOOTSTRAP_LOG"\n'
+                                    + 'test "${FAIL_SCRIPT:-}" != "' + name + '"\n')
+    binaries = tmp_path / "bin"
+    binaries.mkdir()
+    ready = binaries / "pg_isready"
+    ready.write_text("#!/bin/sh\nexit 0\n")
+    ready.chmod(0o755)
+    log = tmp_path / "log"
+    env = dict(os.environ, PATH=str(binaries) + ":" + os.environ["PATH"],
+               POSTGRES_USER="website", POSTGRES_DB="website", BOOTSTRAP_LOG=str(log))
+    script = command[-1].replace("/schema/", str(scripts) + "/").replace(
+        "/tmp/website-schema-ready", str(tmp_path / "ready"))
+    result = subprocess.run([*command[:-1], script], env=env, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert log.read_text().splitlines() == ["init-knowledge-schema.sh", "init-meetings-schema.sh"]
+    assert (tmp_path / "ready").exists()
+    (tmp_path / "ready").unlink()
+    result = subprocess.run([*command[:-1], script], env=dict(env, FAIL_SCRIPT="init-knowledge-schema.sh"),
+                            capture_output=True, text=True)
+    assert result.returncode != 0
+    assert not (tmp_path / "ready").exists()
+    assert "website-schema-ready" in str(container["readinessProbe"])
+    mounts = {entry["mountPath"]: entry for entry in container["volumeMounts"]}
+    assert "/schema" in mounts
+    assert mounts["/docker-entrypoint-initdb.d/10-knowledge.sh"]["subPath"] == "init-knowledge-schema.sh"
+    assert mounts["/docker-entrypoint-initdb.d/15-meetings.sh"]["subPath"] == "init-meetings-schema.sh"

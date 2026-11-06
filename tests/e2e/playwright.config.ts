@@ -2,6 +2,7 @@ import { defineConfig, devices, webkit } from '@playwright/test';
 import * as fs from 'fs';
 
 const websiteURL = process.env.WEBSITE_URL || 'http://localhost:4321';
+const brand = process.env.E2E_BRAND ?? (new URL(websiteURL).hostname === 'web.korczewski.de' ? 'korczewski' : 'mentolder');
 
 // Detect webkit availability — the ios project requires it. If not installed,
 // skip the project entirely instead of failing every test with "binary not found".
@@ -45,6 +46,11 @@ export default defineConfig({
     // Run: playwright test --project=website
     {
       name: 'website',
+      // Separate brands and the dev cockpit retain their own test environments.
+      testIgnore: brand === 'korczewski' ? [
+        '**/fa-57-*.spec.ts', '**/fa-6[2-5]-*.spec.ts',
+        '**/agent-guide-walkthrough.spec.ts',
+      ] : [],
       testMatch: [
         '**/fa-01-*.spec.ts',      // portal messaging (auth-gating)
         '**/fa-04-*.spec.ts',      // project file attachments (auth-gating)
@@ -257,7 +263,9 @@ export default defineConfig({
     // Requires: playwright install webkit
     ...(webkitInstalled ? [{
       name: 'ios',
-      testMatch: ['**/fa-03-*.spec.ts', '**/fa-ios-*.spec.ts'],
+      testMatch: brand === 'korczewski'
+        ? ['**/fa-10-*.spec.ts', '**/fa-16-*.spec.ts']
+        : ['**/fa-03-*.spec.ts', '**/fa-ios-*.spec.ts'],
       use: {
         ...devices['iPhone 15'],
         baseURL: websiteURL,

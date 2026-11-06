@@ -41,3 +41,12 @@ def test_no_unknown_requested_projects(projects):
 def test_excluded_projects_exist(projects):
     config, _, _ = projects
     assert {"korczewski-setup", "korczewski"} <= config
+
+
+def test_korczewski_job_uses_live_brand_projects(projects):
+    _, _, command = projects
+    korczewski = command.split('then', 1)[1].split('else', 1)[0]
+    selected = set(re.findall(r"--project[= ]([^ \\\n]+)", korczewski))
+    assert {"website", "korczewski", "mesh", "ios"} <= selected
+    # Nextcloud/Talk/Vaultwarden are decommissioned, not korczewski services.
+    assert not {"services", "smoke"} & selected

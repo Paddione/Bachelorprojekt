@@ -228,7 +228,7 @@ Re-Bewertung mit 9 knapp unter Target, beim zweiten Messlauf derselben Sitzung b
 das p95 stark) — mit dokumentiertem `3 ✓`. Dieselbe Ursache wie bei G-DB11: gewachsene Werte
 wurden in Prio C nie rot, die `Aktuell`-Spalte blieb auf dem Aufnahmewert stehen.
 
-> **B · Baseline:** 5 → 11 → 4 → 7 → 5 → 9 · **Target:** ≤ 12 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
+> **B · Baseline:** 11 → 4 → 7 → 5 → 9 → 8 · **Target:** ≤ 12 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
 
 ```bash
 gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
@@ -696,7 +696,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-RH07** | Freshness-Check grün | Exit 0 ✓ | Exit 0 | `task freshness:check` |
 | **G-TEST01** | Test Debt-Skips (pytest) | 0 ✓ | 0 | `grep -rniE "pytest\.skip\(\|mark\.skip\(" tests/py --include=*.py \| grep -ciE "pending\|todo\|WP-\|disabled"` |
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | Positiv-Anker: `components/website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\.only\b' components/website/src --include='*.test.ts' \| wc -l` |
-| **G-TEST03** | Vitest Skipped/Todo-Suiten | 1 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" components/website/src --include="*.ts" \| wc -l` |
+| **G-TEST03** | Vitest Skipped/Todo-Suiten | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" components/website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain components/website/src/data/test-inventory.json \| wc -l` |
 | **G-CQ02** | Explizite `any`-Verwendungen | 1 ✓ | ≤ 10 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rn ': any\|<any>\|as any' components/website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
@@ -715,7 +715,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 1/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
 | **G-K8S03** | Deployments ohne securityContext | 0 ✓ | 0 | `python3 -c "..securityContext.." k3d/*.yaml` |
-| **G-K8S04** | workspace:validate grün | Exit 0 ✓ | Exit 0 | `task workspace:validate` |
+| **G-K8S04** | workspace:validate grün | Exit 201 ⚠ | Exit 0 | `task workspace:validate` |
 | **G-CFG01** | env:validate:all grün | 0 ✓ | Exit 0 | `task env:validate:all` |
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 ✓ | 0 | `grep -rn 'password.*=.*[^$]' k3d/*.yaml \| grep -iv secretKeyRef \| wc -l` |
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
@@ -731,12 +731,12 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 
 | ID | Ziel | Aktuell | Target | Basis-Messung |
 |----|------|---------|--------|---------------|
-| **G-FE05** | Lighthouse Performance Score (schlechtere Brand) | 70 ⚠ | ≥ 90 | Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
+| **G-FE05** | Lighthouse Performance Score (schlechtere Brand) | 88 ⚠ | ≥ 90 | Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
 | **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` beider Brands, ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo` |
-| **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
+| **G-IF01** | MCP-Endpunkte ohne Listener | 3 ⚠ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 scripts/lib/health-goals-probes.py if02` — catch ohne Log und ohne Rethrow, Blöcke per Klammerzählung (T016657) |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
-| **G-K3FRESH** | K3-Codegraph-Index frisch | 1 ✓ | 1 | `k3_freshness_flag` (scripts/lib/health-goals-measure.sh) — `cbm-freshness.py status`, Fail-closed: nicht messbar ⇒ 0 (T002430) |
+| **G-K3FRESH** | K3-Codegraph-Index frisch | 0 ⚠ | 1 | `k3_freshness_flag` (scripts/lib/health-goals-measure.sh) — `cbm-freshness.py status`, Fail-closed: nicht messbar ⇒ 0 (T002430) |
 | **G-K3PROJ** | K3-Projekt im Codebase-Memory-Index (ready, nodes/edges > 0) | 0 ⚠ | 1 | `k3_project_flag` — `codebase-memory-mcp cli index_status` (MCP-Envelope via `health-goals-probes.py k3proj`); Index nicht erreichbar/Format kaputt ⇒ n/a, nie grün (T002430, T016657) |
 | **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 0 ✓ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
 | ~~**G-DB06**~~ | ~~Orphan-Rows (3 FK-Paare)~~ — retiriert mit dem Ticket-Retirement (2026-10-14, Schema dropped) | — | — | — |
@@ -745,7 +745,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
-| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 614 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
+| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 618 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
 | **G-DORA02** | Lead Time (PR→merge) | 0 h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (revert/hotfix-Rate) | 0 ‰ ✓ | ≤ 5 ‰ (= 0.5 %) | `git log --since="8 weeks ago" --first-parent --format='%s' main \| grep -ciE 'revert\|hotfix'` ÷ Gesamtzahl desselben Fensters — T900380: der Proxy zählte `^fix`-**Commits** (627 von 2320 = 27 %), nicht fehlgeschlagene Deployments; er meldete 27 % Verlustquote, während G-DORA04 für denselben Zeitraum **0** Reverts/Hotfixes zählte. Derselbe Sachverhalt, zwei widersprüchliche Ampelstände. Jetzt derselbe Ereignistyp wie G-DORA04, nur skalenfrei als Rate: bei ~290 Merges/Woche greift G-DORA04 (≤ 5 absolut) zuerst, fällt das Volumen, greift die Rate zuerst — zusammen decken sie das Feld ab. Promille statt Prozent, weil ganzzahliges Prozent 0.4 % und 0.5 % beide auf 0 abrundet. |
 | **G-DORA04** | MTTR (Proxy: revert/hotfix-Commits/8 Wo) | 1 ✓ | ≤ 5 | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |

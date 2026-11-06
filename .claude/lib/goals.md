@@ -180,7 +180,7 @@ sonst zählt sie unlöschbare Indizes mit (Messmethoden-Korrektur analog G-DB03/
 (~83, plus 2 HNSW-Vektorindizes mit seltener aber legitimer Nutzung) braucht Einzelfallprüfung
 pro Tabelle vor einem Drop. Volle Klassifikation → Nachfolgeticket T001928.
 
-> **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) → 86 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908, verbleibende 8 nicht Teil des Scopes) → Nachfolger **T001948**
+> **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) → 86 → 70 (13 weitere Drops auf Count-0-Tabellen via `scripts/migrations/2026-11-06-db10-drop-empty-table-indexes.sql`, live verifiziert) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908, verbleibende 8 nicht Teil des Scopes) → Nachfolger **T001948**
 
 ## G-DB11 — Tage seit letztem Restore-Verify: 30 → 65
 
@@ -724,7 +724,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC05** | Unsignierte Commits (adj.) | 9/50 ⚠ | ≤ 2 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem. |
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 0 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
-| **G-FLUX01** | Flux Reconciliation Health | 3 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` (`HG_OPS_CTX`, Default `devmesh`; fleet 2026-10-22 abgebaut) — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen. CI ohne Live-Kubeconfig ⇒ n/a erwartet |
+| **G-FLUX01** | Flux Reconciliation Health | 0 ✓ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` (`HG_OPS_CTX`, Default `devmesh`; fleet 2026-10-22 abgebaut) — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen. CI ohne Live-Kubeconfig ⇒ n/a erwartet |
 | **G-OBS01** | Prometheus Scrape Health | 2 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py scrape` (`HG_PROMETHEUS_URL`; Prometheus lebte auf fleet, kein Prometheus auf devmesh) — aktive `up`-Serien, leer ⇒ n/a. CI ⇒ n/a erwartet |
 | **G-CAP01** | PVC Storage Headroom <20 % | 4 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py capacity` (`HG_PROMETHEUS_URL`; wie G-OBS01 ohne Prometheus-Basis) — `workspace` + `workspace-korczewski`. CI ⇒ n/a erwartet |
 | **G-A11Y01** | Critical/serious axe-Verstöße | 0 ✓ | 0 | `node scripts/lib/runtime-browser-audit.mjs` (Bases: korczewski `HG_KORCZEWSKI_URL`, massage `HG_MASSAGE_URL`) + `runtime-health-measure.py axe`, korczewski+massage vollständig |

@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "slug": "call-site-migration",
+    "ticket_id": "",
+    "generated_from": "main@9925902d9",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "batch-ingest-dir.mts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "classify-book.mts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/ports/content.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/ports/index.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "ingest-json.mts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "merge-books.mts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "ports/policy.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "ports/session.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/build-route-manifest.mjs",
+      "language": "javascript",
+      "loc": 63,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 737
+    },
+    {
+      "path": "scripts/coaching/ingest-book.mts",
+      "language": "javascript",
+      "loc": 147,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 653
+    },
+    {
+      "path": "scripts/code-quality/*",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/index-repo.ts",
+      "language": "javascript",
+      "loc": 478,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 422
+    },
+    {
+      "path": "scripts/sdlc/*",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/py/spec/website_sink/test_boundary_no_new_imports.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/build-route-manifest.mjs:20:function loadBrandSlugsViaTsx() {",
+      "kind": "function",
+      "file": "scripts/build-route-manifest.mjs",
+      "signature": "20:function loadBrandSlugsViaTsx() {(...)",
+      "type_text": "20:function loadBrandSlugsViaTsx() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-route-manifest.mjs:40:function extractSlugsFromSource(relPath) {",
+      "kind": "function",
+      "file": "scripts/build-route-manifest.mjs",
+      "signature": "40:function extractSlugsFromSource(relPath) {(...)",
+      "type_text": "40:function extractSlugsFromSource(relPath) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-route-manifest.mjs:49:function loadBrandSlugs() {",
+      "kind": "function",
+      "file": "scripts/build-route-manifest.mjs",
+      "signature": "49:function loadBrandSlugs() {(...)",
+      "type_text": "49:function loadBrandSlugs() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/coaching/ingest-book.mts:137:function parseFlags(rest: string[]): CliFlags {",
+      "kind": "function",
+      "file": "scripts/coaching/ingest-book.mts",
+      "signature": "137:function parseFlags(rest: string[]): CliFlags {(...)",
+      "type_text": "137:function parseFlags(rest: string[]): CliFlags {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/coaching/ingest-book.mts:147:main().catch((err) => { console.error(err); process.exit(1); });",
+      "kind": "function",
+      "file": "scripts/coaching/ingest-book.mts",
+      "signature": "147:main().catch((err) => { console.error(err); process.exit(1); });(...)",
+      "type_text": "147:main().catch((err) => { console.error(err); process.exit(1); });(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:126:function sha256(s: string): string {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "126:function sha256(s: string): string {(...)",
+      "type_text": "126:function sha256(s: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:171:function walkDir(dir: string, out: string[] = []): string[] {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "171:function walkDir(dir: string, out: string[] = []): string[] {(...)",
+      "type_text": "171:function walkDir(dir: string, out: string[] = []): string[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:188:function extractImports(content: string, filePath: string): string[] {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "188:function extractImports(content: string, filePath: string): string[] {(...)",
+      "type_text": "188:function extractImports(content: string, filePath: string): string[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:204:function resolveImportPath(importSpec: string, fromFile: string): string | null {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "204:function resolveImportPath(importSpec: string, fromFile: string): string | null {(...)",
+      "type_text": "204:function resolveImportPath(importSpec: string, fromFile: string): string | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:231:function vecLiteral(v: number[]): string {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "231:function vecLiteral(v: number[]): string {(...)",
+      "type_text": "231:function vecLiteral(v: number[]): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:474:  main().catch(err => {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "474:  main().catch(err => {(...)",
+      "type_text": "474:  main().catch(err => {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

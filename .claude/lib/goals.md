@@ -438,6 +438,7 @@ python3 scripts/lib/runtime-health-measure.py infra-tcp
 
 **Was:** Zählt CronJobs in `workspace`, deren letzter Lauf FAILED ist oder deren
 `lastScheduleTime > lastSuccessfulTime` (geplant, aber nicht erfolgreich ausgeführt).
+Absichtlich suspendierte Jobs (z.B. k1-embed nach K6-Migration) zählen nicht mit.
 
 ```bash
 bash scripts/lib/cronjob-check.sh

@@ -275,6 +275,15 @@ verfügbarer Tag geprüft):
 Alle drei Restfälle (6 CVEs) brauchen ein Upstream-Release (gosu-Rebuild bzw. grpc-go-Bump), kein
 Repo-seitiger Fix. Follow-up bei nächstem Upstream-Release erneut prüfen.
 
+**Pin-Listen-Sync + pgvector-Bump (2026-11-06):** Die Scan-Liste lag hinter den Live-Pins
+(`postgres:16` statt `18.6`, `pgvector:0.8.5-pg16`, `pocket-id:v2.9.0`; der `postgres:16`-Digest
+in der Liste war zudem ungültig gekürzt). Liste auf Live-Pins synchronisiert, `pocket-id`
+bereits live `v2.18.0` (0 CRITICAL), `pgvector` `0.8.5-pg16 → 0.8.7-pg16` (gleiche PG-Major,
+Bookworm; 13 → 1 CRITICAL — perl-Bookworm-CVEs behoben, Rest `stdlib` Go). Neuer Stand **5
+CRITICAL**: `postgres:18.6` (gosu `CVE-2025-68121`, Upstream-Rebuild nötig), `pgvector:0.8.7-pg16`
+(`stdlib` Go, Upstream-Rebuild nötig), `alpine/k8s:1.37.1` (certifi-GHSA + `stdlib` Go, kein
+neuerer Tag verfügbar). Kein weiterer Tag-Bump möglich — Rest wartet auf Upstream-Releases.
+
 ```bash
 # Messung (lokal):
 bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'

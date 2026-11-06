@@ -64,3 +64,8 @@
 - Rollback-Notiz: Revert des p1-Commits (keine Migration/Schema/Daten; Cache rein
   prozess-lokal). Nach Revert Gate A + 3 Stichproben Gate B erneut belegen.
 - p2DONE = Plan-DONE (vorbehaltlich Freshness + PR).
+plan done 2026-11-06T23:08:16Z staging-82a0567b0
+implement entered 2026-11-06T23:08:16Z implementer-ses_e4ce65ce-gestartet
+implement done 2026-11-06T23:08:16Z p0-p2-gruen-PR-7237
+verify entered 2026-11-06T23:08:16Z orchestrator-review-diff-tests-belege
+verify done 2026-11-06T23:08:16Z diff-begrenzt-gates-gruen-preexisting-rot-belegt

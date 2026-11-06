@@ -3345,7 +3345,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bp-build",
-      "file_count": 380,
+      "file_count": 381,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3611,6 +3611,7 @@
         "k3d/website-allow-egress-monitoring.yaml",
         "k3d/website-content-token-secret.yaml",
         "k3d/website-dev-secrets.yaml",
+        "k3d/website-korczewski.yaml",
         "k3d/website-massage.yaml",
         "k3d/website-rbac.yaml",
         "k3d/website-schema.yaml",

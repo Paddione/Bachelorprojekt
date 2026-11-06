@@ -18,7 +18,10 @@ def _load_jobs(path: Path) -> dict:
 
 def _triggers_of(path: Path) -> dict:
     data = yaml.safe_load(path.read_text()) or {}
-    on = data.get("on", {})
+    # `on:` loest PyYAML nach YAML 1.1 als `True` auf — Repo-Konvention wie in
+    # test_self_hosted_fork_guard.py und test_goals_data_sdlc_target.py; die
+    # Assertions unten bleiben unveraendert.
+    on = data.get("on", data.get(True, {}))
     return on if isinstance(on, dict) else {}
 
 

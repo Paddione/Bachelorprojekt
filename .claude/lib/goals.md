@@ -228,7 +228,7 @@ Re-Bewertung mit 9 knapp unter Target, beim zweiten Messlauf derselben Sitzung b
 das p95 stark) — mit dokumentiertem `3 ✓`. Dieselbe Ursache wie bei G-DB11: gewachsene Werte
 wurden in Prio C nie rot, die `Aktuell`-Spalte blieb auf dem Aufnahmewert stehen.
 
-> **B · Baseline:** 11 → 4 → 7 → 5 → 9 → 8 · **Target:** ≤ 12 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
+> **B · Baseline:** 4 → 7 → 5 → 9 → 8 → 7 · **Target:** ≤ 12 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
 
 ```bash
 gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
@@ -290,7 +290,7 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 # CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)
 ```
 
-> **B · Baseline:** 39 → 8 → 6 (−79 % via T001949; −2 via T002184 LiveKit-Entfernung) → 18 → 5 · **Target:** 0 ·
+> **B · Baseline:** 39 → 8 → 6 (−79 % via T001949; −2 via T002184 LiveKit-Entfernung) → 18 → 5 → 2 · **Target:** 0 ·
 > **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001949
 > (**gefixt, Target nicht erreicht** — 6 CRITICAL sind Upstream-blockiert, kein Folgeticket bis
 > neue Upstream-Releases vorliegen — Nachfolger von T001909)
@@ -464,7 +464,7 @@ statt "null" hat. "null" = blackhole, keine Benachrichtigungen.
 python3 scripts/lib/runtime-health-measure.py alert-status
 ```
 
-> **B · Baseline:** 1 (2026-08-29, receiver ist "null" — intentional blackhole) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+> **B · Baseline:** 1 (2026-08-29, receiver ist "null" — intentional blackhole) → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
 ## G-DRIFT01 — Deployment-Replikation expected == live: 0 → 0
 
@@ -670,7 +670,7 @@ Ziel misst den Abbau.
 python3 scripts/lib/knowledge-goals.py docs-md
 ```
 
-> **B · Baseline:** 324 (2026-10-04) → 0 → 331 → 339 → Sperrklinke 374 (2026-11-02, repo-health-fix: kein Netto-Zuwachs, Target sinkt mit jedem Abbau) · **Target:** ≤ 374 · **Aufwand:** hoch · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T900995
+> **B · Baseline:** 324 (2026-10-04) → 0 → 331 → 339 → Sperrklinke 374 (2026-11-02, repo-health-fix: kein Netto-Zuwachs, Target sinkt mit jedem Abbau) → 375 · **Target:** ≤ 374 · **Aufwand:** hoch · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T900995
 
 ## G-KNOW05 — Bytes aller AGENTS.md/CLAUDE.md: 53672 → Sperrklinke 47827
 
@@ -721,17 +721,17 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
 | **G-SEC03** | SealedSecret-Rotation | 0 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
 | **G-SEC04** | Sealing-Cert Restlaufzeit | 3625 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
-| **G-SEC05** | Unsignierte Commits (adj.) | 7/50 ⚠ | ≤ 2 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem. |
+| **G-SEC05** | Unsignierte Commits (adj.) | 6/50 ⚠ | ≤ 2 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem. |
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 0 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
 | **G-FLUX01** | Flux Reconciliation Health | 3 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` (`HG_OPS_CTX`, Default `devmesh`; fleet 2026-10-22 abgebaut) — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen. CI ohne Live-Kubeconfig ⇒ n/a erwartet |
 | **G-OBS01** | Prometheus Scrape Health | 2 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py scrape` (`HG_PROMETHEUS_URL`; Prometheus lebte auf fleet, kein Prometheus auf devmesh) — aktive `up`-Serien, leer ⇒ n/a. CI ⇒ n/a erwartet |
 | **G-CAP01** | PVC Storage Headroom <20 % | 4 ⚠ | 0 | `python3 scripts/lib/runtime-health-measure.py capacity` (`HG_PROMETHEUS_URL`; wie G-OBS01 ohne Prometheus-Basis) — `workspace` + `workspace-korczewski`. CI ⇒ n/a erwartet |
-| **G-A11Y01** | Critical/serious axe-Verstöße | 0 ✓ | 0 | `node scripts/lib/runtime-browser-audit.mjs` (Bases: korczewski `HG_KORCZEWSKI_URL`, massage `HG_MASSAGE_URL`) + `runtime-health-measure.py axe`, korczewski+massage vollständig |
+| **G-A11Y01** | Critical/serious axe-Verstöße | 10 ⚠ | 0 | `node scripts/lib/runtime-browser-audit.mjs` (Bases: korczewski `HG_KORCZEWSKI_URL`, massage `HG_MASSAGE_URL`) + `runtime-health-measure.py axe`, korczewski+massage vollständig |
 
 | ID | Ziel | Aktuell | Target | Basis-Messung |
 |----|------|---------|--------|---------------|
-| **G-FE05** | Lighthouse Performance Score (korczewski) | 87 ⚠ | ≥ 90 | Lighthouse-JSON (korczewski, `https://web.korczewski.de`) → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
+| **G-FE05** | Lighthouse Performance Score (korczewski) | 96 ✓ | ≥ 90 | Lighthouse-JSON (korczewski, `https://web.korczewski.de`) → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
 | **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` (korczewski), ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo`. Ohne Prometheus-Basis (fleet abgebaut, kein Prometheus auf devmesh) ⇒ n/a erwartet |
 | **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 scripts/lib/health-goals-probes.py if02` — catch ohne Log und ohne Rethrow, Blöcke per Klammerzählung (T016657) |
@@ -745,7 +745,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
-| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 632 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
+| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 637 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
 | **G-DORA02** | Lead Time (PR→merge) | 0 h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (revert/hotfix-Rate) | 0 ‰ ✓ | ≤ 5 ‰ (= 0.5 %) | `git log --since="8 weeks ago" --first-parent --format='%s' main \| grep -ciE 'revert\|hotfix'` ÷ Gesamtzahl desselben Fensters — T900380: der Proxy zählte `^fix`-**Commits** (627 von 2320 = 27 %), nicht fehlgeschlagene Deployments; er meldete 27 % Verlustquote, während G-DORA04 für denselben Zeitraum **0** Reverts/Hotfixes zählte. Derselbe Sachverhalt, zwei widersprüchliche Ampelstände. Jetzt derselbe Ereignistyp wie G-DORA04, nur skalenfrei als Rate: bei ~290 Merges/Woche greift G-DORA04 (≤ 5 absolut) zuerst, fällt das Volumen, greift die Rate zuerst — zusammen decken sie das Feld ab. Promille statt Prozent, weil ganzzahliges Prozent 0.4 % und 0.5 % beide auf 0 abrundet. |
 | **G-DORA04** | MTTR (Proxy: revert/hotfix-Commits/8 Wo) | 1 ✓ | ≤ 5 | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
@@ -773,7 +773,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (devmesh, beide Brands) | 2 ✓ | ≤ 3 | `kubectl get pods --context devmesh -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, web.korczewski.de) | 85 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
-| **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 374 ✓ | ≤ 374 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995); Ratchet 372→374 für `docs/brain/route-retrieval-benchmark.md` (#7103) und `docs/runbooks/fritzbox-dns.md` (#7109) |
+| **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 375 ⚠ | ≤ 374 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995); Ratchet 372→374 für `docs/brain/route-retrieval-benchmark.md` (#7103) und `docs/runbooks/fritzbox-dns.md` (#7109) |
 | **G-KNOW06** | ADR-Inhaltsänderungen nach dem Anlegen (kein Netto-Zuwachs) | 11 ✓ | ≤ 11 | `python3 scripts/lib/knowledge-goals.py adr-edits` — Status-/Superseded-Zeilen zählen nicht; neue Entscheidung = neues ADR (T900995) |
 | **G-KNOW07** | Agent-Registry-Schema valide | Exit 0 ✓ | Exit 0 | `node scripts/agent-guide/validate.mjs` (T900995) |
 

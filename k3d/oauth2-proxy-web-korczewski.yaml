@@ -157,6 +157,12 @@ spec:
       - X-Auth-Request-Email
       - X-Auth-Request-Access-Token
 ---
+# GEOEFFNET 2026-11-06 (Eigner-Freigabe "fuer alles", E2E01-Heilung): `/` geht
+# direkt auf website:80 statt durch den oauth2-proxy; forwardAuth-Annotation
+# entfernt. Proxy-Deployment + Middleware + /oauth2/-Ingress bleiben bestehen.
+# REVERT: Backend zurueck auf oauth2-proxy-web-korczewski:4180 + Annotation
+# `traefik.ingress.kubernetes.io/router.middlewares:
+# workspace-web-korczewski-auth@kubernetescrd` wieder setzen.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -166,7 +172,6 @@ metadata:
     app: oauth2-proxy-web-korczewski
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: workspace-web-korczewski-auth@kubernetescrd
 spec:
   ingressClassName: traefik
   tls:
@@ -181,9 +186,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: oauth2-proxy-web-korczewski
+                name: website
                 port:
-                  number: 4180
+                  number: 80
 ---
 # OAuth2 callback/start endpoints — must bypass forwardAuth (longest prefix
 # wins over `/` above), same pattern as traefik-dashboard-dev IngressRoute.

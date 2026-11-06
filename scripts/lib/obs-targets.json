@@ -1,0 +1,13 @@
+{
+  "targets": [
+    {
+      "job": "brand-public-health",
+      "brand": "korczewski",
+      "url": "https://web.korczewski.de/api/health"
+    },
+    {
+      "job": "llm-proxy-health",
+      "url": "http://127.0.0.1:18235/health"
+    }
+  ]
+}

@@ -236,6 +236,7 @@
     },
     {
       "slug": "unsloth-studio",
+      "enabled": false,
       "label": "Unsloth Studio · Inferenz-Server",
       "model": "unsloth/inference",
       "port": 45013,
@@ -260,7 +261,35 @@
       "extraArgs": [],
       "exclusiveGroup": "chat-gpu",
       "managed": "external",
-      "notes": "Extern verwalteter llama-server, gestartet von Unsloth Studio (:8888) als Kindprozess im /init.scope. Keine systemd-Unit. Liveness wird ueber Port u. Prozess geprueft. Stop-Signale laufen ueber Studio-API — acquire schickt KEIN Signal an diesen Prozess, sondern meldet ihn im Fehlerfall."
+      "notes": "Extern verwalteter llama-server, gestartet von Unsloth Studio (:8888) als Kindprozess im /init.scope. Keine systemd-Unit. Liveness wird ueber Port u. Prozess geprueft. Stop-Signale laufen ueber Studio-API — acquire schickt KEIN Signal an diesen Prozess, sondern meldet ihn im Fehlerfall. Deaktiviert (Eigner-Entscheid LLM01/02): Kindprozess down, Container-GPU (:8099) ist primaer, WSL-Host-Pfad umgangen."
+    },
+    {
+      "slug": "qwen17b-container",
+      "label": "Qwen3-1.7B Q8_0 · Container-GPU primaer (k3d-gpu-serving, Forward :8099)",
+      "model": "unsloth/Qwen3-1.7B-GGUF/Qwen3-1.7B-Q8_0.gguf",
+      "port": 8099,
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 0,
+        "minCtx": 4096
+      },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": false
+      },
+      "speculative": {},
+      "mcp": {},
+      "extraArgs": [],
+      "exclusiveGroup": "chat-gpu",
+      "managed": "external",
+      "notes": "Container-GPU primaer (Eigner-Entscheid LLM01/02): k3d-gpu-serving qwen3-17b (Serving-Name historisch, Modell real Qwen3-1.7B-Q8_0) via devmesh-qwen17b-forward auf :8099. WSL-Host-Pfad (:1919) umgangen. Extern verwaltet (k3d-Deployment + Forward-Unit); kein lokaler Start."
     },
     {
       "slug": "gemma4",
@@ -483,6 +512,7 @@
       "model": "qwen35-2b-bp/Qwen3.5-2B.Q4_K_M.gguf",
       "port": 8099,
       "enabled": false,
+      "exclusiveGroup": "chat-gpu",
       "fit": {
         "enabled": false,
         "targetMarginMib": 0,

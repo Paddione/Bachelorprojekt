@@ -7,10 +7,15 @@ import os
 import stat
 import subprocess
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 import pytest
+
+
+def bash_producer(repo_root):
+    return str(repo_root / "scripts" / "lib" / "obs-file-evidence.sh")
 
 
 def _loadouts(repo_root):
@@ -86,6 +91,37 @@ def test_llm03_drift_vergleicht_basenames(repo_root, tmp_path, stub_server):
     result = _run_measure(repo_root, tmp_path, "model-drift", loadouts, stub_server)
     assert result.returncode == 0, result.stderr[-500:]
     assert result.stdout.strip() == "0", f"Drift trotz Basename-Match: {result.stdout!r}"
+
+
+def _slo_log(tmp_path, days_ago_list, ok=1):
+    log = tmp_path / "slo.jsonl"
+    now = int(time.time())
+    with open(log, "w", encoding="utf-8") as fh:
+        for days_ago in days_ago_list:
+            ts = now - days_ago * 86400
+            fh.write(json.dumps({"ts": ts, "brand": "korczewski", "ok": ok}) + "\n")
+    return log
+
+
+def test_obs_slo_window_braucht_7_proben_aus_6_tagen(repo_root, tmp_path):
+    """OBS01/SLO01: Fenster-Regel fail-closed (zu wenig Historie -> Exit 2)."""
+    producer = repo_root / "scripts" / "lib" / "obs-file-evidence.sh"
+    assert producer.is_file(), "Producer fehlt (RED)"
+    thin = _slo_log(tmp_path, [0, 1])
+    out = tmp_path / "slo-thin.json"
+    thin_run = subprocess.run([bash_producer(repo_root), "slo-window", "--log", str(thin),
+                               "--out", str(out)], capture_output=True, text=True)
+    assert thin_run.returncode == 2, f"dünne Historie muss Exit 2 geben: {thin_run.stdout!r}"
+    full = _slo_log(tmp_path, [0, 1, 2, 3, 4, 5, 6])
+    out_full = tmp_path / "slo-full.json"
+    full_run = subprocess.run([bash_producer(repo_root), "slo-window", "--log", str(full),
+                               "--out", str(out_full)], capture_output=True, text=True)
+    assert full_run.returncode == 0, full_run.stderr[-500:]
+    measure = subprocess.run(
+        ["python3", str(repo_root / "scripts" / "lib" / "runtime-health-measure.py"),
+         "slo", "--input", str(out_full)], capture_output=True, text=True)
+    assert measure.returncode == 0, measure.stderr[-500:]
+    assert measure.stdout.strip() == "1000", f"erwartet 1000, ist: {measure.stdout!r}"
 
 
 def test_obs_producer_existiert(repo_root):

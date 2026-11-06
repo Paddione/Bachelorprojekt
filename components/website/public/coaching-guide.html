@@ -175,6 +175,10 @@ function setMode(m){
   render();
 }
 
+// Single-owner: render -> renderProg (never back). Step jumps go through the
+// 'coach:step' event (no static back-edge renderProg -> render) — the listener
+// below owns the state update and calls render().
+document.addEventListener('coach:step',e=>{cur=e.detail.i;vals={};resp='';if(mode==='scripted')vals={...SC[cur].i};render();});
 function renderProg(){
   const bar=document.getElementById('prog-bar');bar.innerHTML='';
   STEPS.forEach((s,i)=>{
@@ -182,7 +186,7 @@ function renderProg(){
     b.className=`prog-step ${PC[s.phase]} ${i===cur?'current':status[i]==='d'?'done':''}`;
     b.title=`Schritt ${s.n}: ${s.name}`;
     b.textContent=status[i]==='d'?'✓':s.n;
-    b.onclick=()=>{cur=i;vals={};resp='';if(mode==='scripted')vals={...SC[i].i};render()};
+    b.onclick=()=>{document.dispatchEvent(new CustomEvent('coach:step',{detail:{i}}));};
     bar.appendChild(b);
   });
 }

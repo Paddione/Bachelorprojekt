@@ -93,6 +93,28 @@ async function addTimelineEvent(jobId: number, eventType: string, notes: string)
   if (!res.ok) throw new Error(`timeline add failed: ${res.status}`);
 }
 
+// --- Board event flow (single-owner, no render cycle) ---
+// refreshData() EMITS 'board:refreshed'; the subscription owned by init()
+// performs renderBoard() + showDetailPanel(). No static edge
+// refreshData -> renderBoard / refreshData -> showDetailPanel remains.
+type BoardRefreshListener = () => void;
+const boardRefreshListeners = new Set<BoardRefreshListener>();
+function onBoardRefreshed(fn: BoardRefreshListener): () => void {
+  boardRefreshListeners.add(fn);
+  return () => { boardRefreshListeners.delete(fn); };
+}
+function emitBoardRefreshed(): void {
+  for (const fn of boardRefreshListeners) {
+    try { fn(); } catch (err) { browserLogger.error({ err }, 'Board refresh listener failed'); }
+  }
+}
+
+// Job-select events: createCard() EMITS 'board:select' instead of naming
+// selectJob() (breaks renderBoard -> createCard -> selectJob static chain).
+function emitJobSelected(jobId: number): void {
+  document.dispatchEvent(new CustomEvent('board:select', { detail: { jobId } }));
+}
+
 // --- Rendering ---
 
 let selectedJobId: number | null = null;
@@ -167,7 +189,8 @@ function createCard(card: ApplicationCard): HTMLElement {
   }
   el.appendChild(meta);
 
-  el.addEventListener('click', () => selectJob(card.id));
+  // Event flow: selection is delivered via 'board:select' (see init()).
+  el.addEventListener('click', () => emitJobSelected(card.id));
   return el;
 }
 
@@ -263,10 +286,9 @@ async function showDetailPanel(jobId: number): Promise<void> {
       btn.addEventListener('click', async () => {
         try {
           await updateStatus(jobId, status);
-          // Refresh
+          // Refresh via event flow — the init() subscription repaints the
+          // board AND the detail panel, so no direct call here.
           await refreshData();
-          // Re-show detail
-          showDetailPanel(jobId);
         } catch (err) {
           browserLogger.error({ err }, 'Status update failed');
           alert('Status-Wechsel fehlgeschlagen');
@@ -334,8 +356,8 @@ async function showDetailPanel(jobId: number): Promise<void> {
       try {
         await addTimelineEvent(jobId, eventType.value, notes.value);
         form.reset();
-        // Refresh timeline
-        showDetailPanel(jobId);
+        // Refresh via event flow (breaks showDetailPanel self-recursion).
+        await refreshData();
       } catch (err) {
         browserLogger.error({ err }, 'Timeline add failed');
         alert('Timeline-Eintrag fehlgeschlagen');
@@ -403,10 +425,8 @@ function escapeHtml(text: string): string {
 async function refreshData(): Promise<void> {
   try {
     currentData = await fetchApplications();
-    renderBoard();
-    if (selectedJobId) {
-      showDetailPanel(selectedJobId);
-    }
+    // Event flow: subscribers (see init()) repaint board + detail.
+    emitBoardRefreshed();
   } catch (err) {
     browserLogger.error({ err }, 'Data refresh failed');
   }
@@ -415,6 +435,18 @@ async function refreshData(): Promise<void> {
 // --- Init ---
 
 function init(): void {
+  // Single subscriber: repaint board, then detail for the current selection.
+  onBoardRefreshed(() => {
+    renderBoard();
+    if (selectedJobId !== null) {
+      void showDetailPanel(selectedJobId);
+    }
+  });
+  // Card-click delivery: 'board:select' -> selectJob (createCard never names it).
+  document.addEventListener('board:select', (e) => {
+    const jobId = (e as CustomEvent<{ jobId: number }>).detail.jobId;
+    void selectJob(jobId);
+  });
   const closeBtn = document.getElementById('close-detail');
   if (closeBtn) {
     closeBtn.addEventListener('click', async () => {

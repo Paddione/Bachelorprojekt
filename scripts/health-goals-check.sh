@@ -330,7 +330,7 @@ want G-DB08 && row target G-DB08 "$(db_scalar "SELECT count(*) FROM pg_stat_user
     WHERE n_live_tup>10000 AND seq_scan>0
       AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;")" le 3 "Tabellen >10k Rows mit Seq-Scan-Anteil >5% (messen)"
 want G-DB09 && row target G-DB09 "$(db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %' AND query NOT ILIKE 'CREATE INDEX%'")" le 0 "Slow Queries in pg_stat_statements (mean_exec_time > 1s, exkl. Backup-COPY T001926 + einmalige CREATE INDEX-DDL T002095)"
-want G-DB10 && row target G-DB10 "$(db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')")" le 0 "Unused Indexes (idx_scan=0, exkl. PK/Unique)"
+want G-DB10 && row target G-DB10 "$(db_scalar "SELECT count(*) FROM pg_stat_user_indexes s JOIN pg_index i ON i.indexrelid = s.indexrelid WHERE s.idx_scan = 0 AND i.indisready AND NOT i.indisprimary AND NOT i.indisunique AND s.indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')")" le 0 "Unused Indexes (idx_scan=0, exkl. PK/Unique; JOIN pg_index + NOT indisunique per goals.md-Methodenkorrektur)"
 want G-DB11 && row target G-DB11 "$(restore_verify_age_d)" le 30 "Tage seit letztem erfolgreichem Restore-Verify (recovery-verify-status)"
 
 # ── E2E-/OPS-TARGETS (T002063) ──

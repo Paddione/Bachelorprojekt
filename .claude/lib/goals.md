@@ -166,7 +166,7 @@ Primary Keys und Unique-Constraint-Träger werden ausgeschlossen (deren idx_scan
 intrinsisch niedrig).
 
 ```bash
-db_scalar "SELECT count(*) FROM pg_stat_user_indexes s JOIN pg_index i ON i.indexrelid = s.indexrelid WHERE s.idx_scan = 0 AND i.indisready AND NOT i.indisprimary AND s.indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')"
+db_scalar "SELECT count(*) FROM pg_stat_user_indexes s JOIN pg_index i ON i.indexrelid = s.indexrelid WHERE s.idx_scan = 0 AND i.indisready AND NOT i.indisprimary AND NOT i.indisunique AND s.indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')"
 ```
 
 Erster Scan (2026-07-17): **93 Treffer** über 14 Schemas. Von diesen ist genau 1 zweifelsfrei

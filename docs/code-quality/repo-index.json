@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1297,
+      "file_count": 1298,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -848,6 +848,7 @@
         "tests/py/spec/native_ported/spec/test_e2e_test_infrastructure.py",
         "tests/py/spec/native_ported/spec/test_env_seal_empty_value_keys.py",
         "tests/py/spec/native_ported/spec/test_env_seal_singleline_values.py",
+        "tests/py/spec/native_ported/spec/test_fe05_korczewski_delivery.py",
         "tests/py/spec/native_ported/spec/test_feature_product_linking.py",
         "tests/py/spec/native_ported/spec/test_fix_ticket_tracking_T002279.py",
         "tests/py/spec/native_ported/spec/test_githooks_worktree_fallback.py",

@@ -6048,6 +6048,12 @@
     "kind": "pytest"
   },
   {
+    "id": "website_sink/boundary_no_new_imports",
+    "file": "tests/py/spec/website_sink/test_boundary_no_new_imports.py",
+    "category": "website_sink",
+    "kind": "pytest"
+  },
+  {
     "id": "workspace-deploy",
     "file": "tests/py/spec/native_ported/spec/test_workspace_deploy.py",
     "category": "workspace-deploy",

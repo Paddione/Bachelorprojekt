@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.451.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.6...website-v1.451.7) (2026-11-06)
+
+
+### Documentation
+
+* f3 auth cache plan ([#7237](https://github.com/Paddione/Bachelorprojekt/issues/7237)) ([fb95382](https://github.com/Paddione/Bachelorprojekt/commit/fb9538204e38fd93a81991bc2137d81d36d9f779))
+
 ## [1.451.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.5...website-v1.451.6) (2026-11-06)
 
 

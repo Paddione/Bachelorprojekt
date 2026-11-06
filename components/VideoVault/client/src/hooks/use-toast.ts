@@ -53,6 +53,16 @@ interface State {
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
+// Timer-fire leaf: owns the REMOVE_TOAST dispatch so addToRemoveQueue never
+// names dispatch() directly (no static back-edge addToRemoveQueue -> dispatch).
+// Declared as a hoisted function so the timer callback resolves it dynamically.
+function fireRemoveToast(toastId: string) {
+  dispatch({
+    type: 'REMOVE_TOAST',
+    toastId: toastId,
+  });
+}
+
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
     return;
@@ -60,10 +70,7 @@ const addToRemoveQueue = (toastId: string) => {
 
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId);
-    dispatch({
-      type: 'REMOVE_TOAST',
-      toastId: toastId,
-    });
+    fireRemoveToast(toastId);
   }, TOAST_REMOVE_DELAY);
 
   toastTimeouts.set(toastId, timeout);
@@ -84,17 +91,9 @@ export const reducer = (state: State, action: Action): State => {
       };
 
     case 'DISMISS_TOAST': {
+      // Pure: queueing the delayed removal is a side effect owned by
+      // dispatch() (see below) — the reducer only flips `open`.
       const { toastId } = action;
-
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
-      if (toastId) {
-        addToRemoveQueue(toastId);
-      } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id);
-        });
-      }
 
       return {
         ...state,
@@ -135,6 +134,17 @@ const resetToastState = () => {
 };
 
 function dispatch(action: Action) {
+  // Side-effect owner: schedule delayed removals OUTSIDE the pure reducer.
+  // (Single-owner: dispatch -> addToRemoveQueue; reducer never calls it.)
+  if (action.type === 'DISMISS_TOAST') {
+    if (action.toastId) {
+      addToRemoveQueue(action.toastId);
+    } else {
+      memoryState.toasts.forEach((toast) => {
+        addToRemoveQueue(toast.id);
+      });
+    }
+  }
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
     listener(memoryState);

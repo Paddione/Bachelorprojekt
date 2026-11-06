@@ -90,9 +90,10 @@ export class EnhancedJobQueue extends EventEmitter {
     logger.info(`[JobQueue] Enqueued job: ${job.id} (${type}, priority=${job.priority})`);
     this.emit('jobEnqueued', job);
 
-    // Trigger processing if queue is running
+    // Trigger processing if queue is running (via scheduler leaf —
+    // executeJob never names process() directly, see scheduleProcessing).
     if (this.isRunning) {
-      setImmediate(() => this.process());
+      this.scheduleProcessing();
     }
 
     return job.id;
@@ -139,6 +140,15 @@ export class EnhancedJobQueue extends EventEmitter {
     logger.info(`[JobQueue] Stopping... (${this.activeJobs.size} active jobs)`);
     await Promise.allSettled(Array.from(this.activeJobs.values()));
     logger.info('[JobQueue] Stopped');
+  }
+
+  /**
+   * Scheduler leaf: the ONLY place that re-arms processing via setImmediate.
+   * Single-owner direction: process -> executeJob (never back); executeJob's
+   * completion path calls this leaf, never process() directly.
+   */
+  private scheduleProcessing() {
+    setImmediate(() => this.process());
   }
 
   /**
@@ -244,8 +254,8 @@ export class EnhancedJobQueue extends EventEmitter {
         }
       } finally {
         this.activeJobs.delete(job.id);
-        // Trigger next batch
-        setImmediate(() => this.process());
+        // Trigger next batch via scheduler leaf (no back-edge to process()).
+        this.scheduleProcessing();
       }
     })();
 

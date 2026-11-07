@@ -26,6 +26,7 @@ resources:
   - ../../k3d/llm-gemma-embed.yaml
   - ../../k3d/llm-gemma-embed-scale.yaml
   - ../../k3d/llm-gemma-igpu.yaml
+  - ../../k3d/llm-retrieval-gpu.yaml
   - ../../k3d/mailpit.yaml
   - ../../k3d/sdlc-stack/sdlc-console.yaml
   - ../../k3d/sdlc-stack/sdlc-console-rbac.yaml
@@ -207,6 +208,13 @@ patches:
       kind: Deployment
       metadata: {name: bge}
       spec: {template: {spec: {containers: [{name: llama-cpp, resources: {requests: {cpu: 250m, memory: 768Mi}}}]}}}
+  # lfm-embed: gleiche Start-Requests wie bge (R1); Basis verlangt 250m/1Gi.
+  - target: {kind: Deployment, name: lfm-embed}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: lfm-embed}
+      spec: {template: {spec: {containers: [{name: llama-cpp, resources: {requests: {cpu: 250m, memory: 768Mi}}}]}}}
   # bge-rerank auf devmesh geparkt (kein Verbraucher: Router hat keine
   # Rerank-Route, kein Code-Caller, 2 Req/Tag; vgl. lfm2-vision): 0 = entladen.
   # NUR devmesh-Overlay — k3d-Basis (prod-mentolder) bleibt bei replicas: 1.
@@ -225,6 +233,13 @@ patches:
       apiVersion: v1
       kind: PersistentVolumeClaim
       metadata: {name: bge-embed-models}
+      spec:
+        storageClassName: local-path
+  - target: {kind: PersistentVolumeClaim, name: lfm-embed-models}
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata: {name: lfm-embed-models}
       spec:
         storageClassName: local-path
   - target: {kind: PersistentVolumeClaim, name: bge-rerank-models}

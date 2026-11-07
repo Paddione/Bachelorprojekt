@@ -76,15 +76,26 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
   });
 
   test('T3: Navigation is functional', async ({ page, isMobile }) => {
-    await page.goto(BASE);
+    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     await waitForHydration(page);
-    if (isMobile) await page.getByRole('button', { name: 'Menü öffnen' }).click();
-    const mainNav = page.getByRole('navigation', { name: isMobile ? 'Mobilnavigation' : 'Seitennavigation' });
-    await expect(mainNav).toBeVisible();
-    // Nav links the contact and services pages
-    const contact = mainNav.locator('a[href="/kontakt"]').first();
-    await expect(contact).toBeVisible();
-    await contact.click();
+    if (isMobile) {
+      await page.getByRole('button', { name: 'Menü öffnen' }).click();
+      const mobileNav = page.getByRole('navigation', { name: 'Mobilnavigation' });
+      await expect(mobileNav).toBeVisible({ timeout: 15_000 });
+      const contact = mobileNav.locator('a[href="/kontakt"]').first();
+      await expect(contact).toBeVisible({ timeout: 15_000 });
+      await contact.click();
+    } else {
+      // Desktop: nicht auf .nav-links (aria „Seitennavigation") verengen —
+      // das Element ist unter 860px per CSS display:none und meldete live
+      // „hidden" (Run 42244822463). Anker ist der Header (Hauptnavigation,
+      // immer sichtbar) + CTA-Link nach /kontakt.
+      const header = page.getByRole('banner', { name: 'Hauptnavigation' });
+      await expect(header).toBeVisible({ timeout: 15_000 });
+      const contact = header.locator('a[href="/kontakt"]').first();
+      await expect(contact).toBeVisible({ timeout: 15_000 });
+      await contact.click();
+    }
     await expect(page).toHaveURL(/\/kontakt/);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });

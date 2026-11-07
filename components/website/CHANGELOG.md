@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.452.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.1...website-v1.452.2) (2026-11-07)
+
+
+### Bug Fixes
+
+* **e2e:** harden korczewski nav + kontakt specs, OBS01 achieved ([#7249](https://github.com/Paddione/Bachelorprojekt/issues/7249)) ([2db91d6](https://github.com/Paddione/Bachelorprojekt/commit/2db91d6d0f90a1bcc02c95fd66d7012f3da4ff72))
+
 ## [1.452.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.0...website-v1.452.1) (2026-11-07)
 
 

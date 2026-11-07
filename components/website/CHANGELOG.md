@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.452.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.0...website-v1.452.1) (2026-11-07)
+
+
+### Documentation
+
+* db10 goals baseline ([#7247](https://github.com/Paddione/Bachelorprojekt/issues/7247)) ([a0ee374](https://github.com/Paddione/Bachelorprojekt/commit/a0ee37415a2a572f89964293d4d233930ae34fd0))
+
 ## [1.452.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.7...website-v1.452.0) (2026-11-07)
 
 

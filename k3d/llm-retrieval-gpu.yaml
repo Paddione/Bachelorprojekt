@@ -6,9 +6,9 @@
 #   - lfm-embed   (LFM2.5-Embedding-350M-Q8_0, --embeddings): Port 8080
 #
 # Die iGPU-Variante (Intel iGPU, Vulkan, server-vulkan, -ngl 99) ist
-# entfallen: devmesh hat keine intel-igpu-Nodes mehr, das Deployment
-# blieb Pending und /v1/lfm/embeddings lag brach. CPU reicht fuer
-# 350M-Q8 (Muster bge-embed/gemma-embed: server-b11561, -ngl 0).
+# entfallen: kein NVIDIA-Geraet im Cluster (R1-Verifikation 2026-11-07:
+# gpu-cluster2/3 + k3s-tablet haben nur Intel-iGPU /dev/dri, kein /dev/nvidia*).
+# CPU reicht fuer 350M-Q8 (Muster bge-embed/gemma-embed: server-b11561, -ngl 0).
 #
 # LFM2.5-ColBERT + MaxSim-Rerank entfernt (Messung 2026-10-26, Code-Suche:
 # MRR@10 0,495 gegen 0,552 ohne Rerank; einziger Verbraucher war
@@ -50,6 +50,19 @@ spec:
       labels:
         app: lfm-embed
     spec:
+      # R2 (2026-11-07): bevorzugt k3s-tablet (8c/16GB, idle) statt Pis.
+      # preferred (nicht required): faellt das Tablet aus, bleibt der Pod
+      # woanders schedulbar. PVC ist local-path RWO (node-gebunden) — beim
+      # Umzug PVC recyceln, InitContainer laedt das Modell neu.
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: [k3s-tablet]
       # Kein NodeSelector: laeuft auf jedem amd64-Node (CPU-Betrieb).
       # fsGroup 101: curlimages/curl als uid=100/gid=101 (llm-gpu.yaml).
       # SA-GR-06: runAsNonRoot auf Pod-Ebene, UIDs auf Container-Ebene.

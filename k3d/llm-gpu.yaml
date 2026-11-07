@@ -67,6 +67,19 @@ spec:
       labels:
         app: bge-embed
     spec:
+      # R2 (2026-11-07): bevorzugt k3s-tablet (8c/16GB, idle) statt Pis.
+      # preferred (nicht required): faellt das Tablet aus, bleibt der Pod
+      # woanders schedulbar. PVC ist local-path RWO (node-gebunden) — beim
+      # Umzug PVC recyceln, InitContainer laedt das Modell neu.
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: [k3s-tablet]
       # fsGroup 101: curlimages/curl laeuft als uid=100/gid=101 (curl_user),
       # nicht root. Ohne fsGroup ist die Longhorn-PVC root-owned und der
       # InitContainer scheitert mit "Permission denied" beim Schreiben nach

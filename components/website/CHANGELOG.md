@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.452.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.2...website-v1.452.3) (2026-11-07)
+
+
+### Tests
+
+* **website:** pg-mem-shim schluckt SET LOCAL in planning-office-tests ([#7253](https://github.com/Paddione/Bachelorprojekt/issues/7253)) ([b1b6f2b](https://github.com/Paddione/Bachelorprojekt/commit/b1b6f2b5ce355cbd4559641a82c18b434216fe05))
+
 ## [1.452.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.1...website-v1.452.2) (2026-11-07)
 
 

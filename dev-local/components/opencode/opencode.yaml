@@ -43,7 +43,7 @@ spec:
         - name: opencode
           # Offizielles Upstream-Image (anomalyco/opencode, war sst/opencode).
           # smanx/opencode war ein Rebuild derselben Version ohne Mehrwert.
-          image: ghcr.io/anomalyco/opencode:2.2.5@sha256:1690aad69864d2f6714772d1e040918feebc6df5286d2bd7e181fbb35d12d4a9
+          image: ghcr.io/anomalyco/opencode:2.2.6@sha256:520b2d66e7bebad4548de65c8033ed44277dfe4163471c80fe729fe17f748d97
           imagePullPolicy: IfNotPresent
           # [Issue #6949] Offizielles Image (anomalyco) braucht `serve` explizit:
           # `opencode serve --hostname ... --port ...`. smanx prependete `serve`
@@ -163,8 +163,56 @@ spec:
                 git -C "$dir" reset --hard FETCH_HEAD \
                   || { echo "reset failed: $repo"; return 0; }
               }
+              link_resources() {
+                ar="/workspace/Paddione/agentic-resources"
+                df="/workspace/Paddione/dotfiles"
+                bp="/workspace/Paddione/Bachelorprojekt"
+                [ -d "$ar" ] || return 0
+                for r in dotfiles Bachelorprojekt news-agent agentic-resources unsloth-boxes; do
+                  if [ -d "/workspace/Paddione/$r" ]; then
+                    ln -sfn "Paddione/$r" "/workspace/$r"
+                    ln -sfn "/workspace/Paddione/$r" "/tmp/$r"
+                  fi
+                done
+                [ -d "$df" ] && ln -sfn ../agentic-resources "$df/agentic-resources"
+                if [ -f "$df/AGENTS.md" ]; then
+                  ln -sfn "$df/AGENTS.md" /tmp/AGENTS.md
+                elif [ -f "$ar/AGENTS.md" ]; then
+                  ln -sfn "$ar/AGENTS.md" /tmp/AGENTS.md
+                fi
+                [ -f "$df/sr_opus_5_system_prompt.md" ] && ln -sfn "$df/sr_opus_5_system_prompt.md" /tmp/sr_opus_5_system_prompt.md
+                [ -f "$ar/CLAUDE.md" ] && ln -sfn "$ar/CLAUDE.md" /tmp/CLAUDE.md
+                mkdir -p /tmp/.config/opencode
+                [ -f "$df/.config/opencode/AGENTS.md" ] && ln -sfn "$df/.config/opencode/AGENTS.md" /tmp/.config/opencode/AGENTS.md
+                skill_targets="/tmp/.agents/skills /tmp/.claude/skills /tmp/.codex/skills /tmp/.config/opencode/skills /tmp/.zcode/skills"
+                if [ -d "$bp" ]; then
+                  skill_targets="$skill_targets $bp/.opencode/skills $bp/.claude/skills $bp/.codex/skills $bp/.zcode/skills"
+                fi
+                for dest in $skill_targets; do
+                  mkdir -p "$dest"
+                done
+                find -L "$ar/core" "$ar/lifecycle" "$ar/domains" -maxdepth 3 -name SKILL.md 2>/dev/null | while IFS= read -r smd; do
+                  sdir=$(dirname "$smd")
+                  sname=$(basename "$sdir")
+                  [ "$sname" = "synced" ] && continue
+                  for dest in $skill_targets; do
+                    ln -sfn "$sdir" "$dest/$sname"
+                  done
+                done
+                if [ -d "$df/.agents/skills" ]; then
+                  for extra in "$df/.agents/skills"/*; do
+                    [ -d "$extra" ] && [ ! -L "$extra" ] || continue
+                    ename=$(basename "$extra")
+                    [ "$ename" = "synced" ] && continue
+                    for dest in $skill_targets; do
+                      [ -e "$dest/$ename" ] || ln -sfn "$extra" "$dest/$ename"
+                    done
+                  done
+                fi
+              }
               sync_all() {
                 for repo in $REPOS; do sync_one "$repo"; done
+                link_resources
               }
               sync_all
               while true; do

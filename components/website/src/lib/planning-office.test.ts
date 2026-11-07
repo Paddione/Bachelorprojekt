@@ -11,11 +11,16 @@
 // column), and the jsonb `?` key-existence operator is not implemented at all
 // (`operator does not exist: jsonb ? text`). Both are used by planning-office.ts
 // (readiness merge in patchItem/clarifyItem; grilling_meta ? 'triage' /
-// grilling_meta - 'triage' in discardTriage). Rather than weaken the assertions,
-// the mock pool below intercepts exactly those two SQL shapes, performs the
-// equivalent merge/delete in JS, and re-issues an operator-free query against
-// pg-mem — the real planning-office.ts query text/params are still exercised
-// verbatim; only the incompatible-with-pg-mem operator is substituted.
+// grilling_meta - 'triage' in discardTriage). Additionally, pg-mem's parser
+// cannot parse `SET LOCAL` at all, which cleanupEphemeral (T015009) issues to
+// scope the delete-guard bypass to its transaction. Rather than weaken the
+// assertions, the mock pool below intercepts those SQL shapes, performs the
+// equivalent merge/delete in JS (or swallows the guard-GUC as a no-op — the
+// fixture schema carries no delete-guard trigger), and re-issues an
+// operator-free query against pg-mem — the real planning-office.ts query
+// text/params are still exercised verbatim; only the incompatible-with-pg-mem
+// operator is substituted. pool.connect() returns a wrapped client whose
+// query() runs through the same shim (cleanupEphemeral uses pool.connect()).
 
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import type { Pool } from 'pg';
@@ -137,12 +142,29 @@ const { memPool } = vi.hoisted(() => {
       );
     }
 
+    // cleanupEphemeral (T015009): SET LOCAL app.allow_ticket_hard_delete = 'true'
+    // scopes the delete-guard bypass to its transaction. pg-mem cannot parse
+    // SET LOCAL at all, and the fixture schema has no delete-guard trigger, so
+    // the GUC is meaningless here: swallow that exact shape as a no-op.
+    if (/^\s*SET\s+LOCAL\s+app\.allow_ticket_hard_delete\b/i.test(text)) {
+      return { rows: [], rowCount: 0 };
+    }
+
     return runRawQuery(text, p);
   }
 
   const compatPool = {
     query: (text: string, params?: unknown[]) => compatQuery(text, params),
-    connect: raw.connect?.bind(raw),
+    connect: async () => {
+      const client = await raw.connect!();
+      // Wrap, don't mutate: pg-mem serves pool.query from the same client
+      // object connect() returns — overriding its query in place recurses
+      // (pool.query -> connect -> shim -> pool.query).
+      return {
+        query: (text: string, params?: unknown[]) => compatQuery(text, params),
+        release: () => client.release(),
+      };
+    },
     end: raw.end.bind(raw),
   };
 

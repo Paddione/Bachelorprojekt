@@ -184,7 +184,11 @@ for port, exp in expected.items():
         # Port antwortet nicht auf /v1/models — kein Drift-Fall, sondern Verfügbarkeit.
         continue
     for mid in ids:
-        if mid not in exp:
+        # llama.cpp meldet absolute Modell-IDs (/models/….gguf), die Registry
+        # fuehrt Slugs + Basenames — verglichen wird der Basename, sonst zaehlte
+        # jeder Container-Server als Drift (Eigner-Entscheid LLM01/02).
+        base = mid.rsplit('/', 1)[-1] if isinstance(mid, str) else mid
+        if mid not in exp and base not in exp:
             drift += 1
 print(drift)
 PY

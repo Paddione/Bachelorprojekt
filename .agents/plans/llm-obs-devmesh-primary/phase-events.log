@@ -1,0 +1,3 @@
+plan done 2026-11-06T23:53:14Z Plan committet+gepusht (045fbc703)
+implement entered 2026-11-06T23:53:14Z Implementierung in-context: feat+chore Commits
+verify done 2026-11-06T23:53:14Z RED 5/6->GREEN; live LLM01=0 LLM02=0 drift=0 OBS01=0; suites gruen (Ausnahmen: Worktree-Layout-Artefakte, Inventar gefixt)

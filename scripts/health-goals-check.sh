@@ -261,7 +261,7 @@ want G-BRAIN15 && row gate G-BRAIN15 "$(
 
 # ── Wissensablage — GATES (G-KNOW, T900995): Registry/Code/ADR statt Prosa-Doku ──
 KG="python3 scripts/lib/knowledge-goals.py"
-row gate G-KNOW02 "$($KG docs-md)" le 374 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs; Ratchet 372->374 fuer route-retrieval-benchmark #7103, fritzbox-dns #7109)"
+row gate G-KNOW02 "$($KG docs-md)" le 375 "Markdown unter docs/ ausser adr/ (kein Netto-Zuwachs; Ratchet 372->374 fuer route-retrieval-benchmark #7103, fritzbox-dns #7109, ->375 fuer docs/generated/README.md als +1 per Eigner-Entscheid 2026-11-06)"
 row gate G-KNOW06 "$($KG adr-edits)" le 11 "ADR-Inhaltsaenderungen nach dem Anlegen (kein Netto-Zuwachs)"
 want G-KNOW07 && row gate G-KNOW07 "$(node scripts/agent-guide/validate.mjs >/dev/null 2>&1; echo $?)" eq 0 "Agent-Registry-Schema valide"
 
@@ -298,7 +298,7 @@ row target G-AGENTIC01 "$(bash scripts/lib/count-unresolved-agent-tools.sh)" le 
 row target G-AGENTIC10 "$(python3 scripts/lib/health-goals-probes.py agentic10 2>/dev/null || echo -)" le 0 "Agenten (.claude/agents) ohne dispatchende Skill (agent:-Frontmatter) — T016657"
 row target G-KNOW01 "$($KG docs-only)" le 0 "Registry-Regeln nur dokumentiert (enforced_by: docs-only)"
 row target G-KNOW03 "$($KG dangling)" le 0 "Registry-Verweise (enforced_by/where) ohne existierenden Pfad"
-row target G-KNOW04 "$($KG docs-md)" le 374 "Markdown unter docs/ ausser adr/ (Sperrklinke: kein Netto-Zuwachs; Target sinkt mit jedem Abbau, T900995)"
+row target G-KNOW04 "$($KG docs-md)" le 375 "Markdown unter docs/ ausser adr/ (Sperrklinke: kein Netto-Zuwachs; Target sinkt mit jedem Abbau, T900995; 374->375 fuer docs/generated/README.md als +1 per Eigner-Entscheid 2026-11-06)"
 row target G-KNOW05 "$($KG agent-ctx-bytes)" le 47827 "Bytes aller AGENTS.md/CLAUDE.md (Sperrklinke: kein Netto-Zuwachs; Target sinkt mit jedem Abbau, T900995)"
 row target G-DOC03 "$(c=0; for d in components/website scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 4 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; sec05_unsigned)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
@@ -338,6 +338,28 @@ want G-E2E01 && row target G-E2E01 "$(e2e_success_rate)" ge 90 "Nightly-E2E-Erfo
 want G-E2E02 && row target G-E2E02 "$(db_scalar "SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name), false, true, '')))[1]::text::int), 0) FROM information_schema.columns c JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE'")" eq 0 "E2E-Testdaten-Leak (is_test_data=true Rows, Brand-DB via HG_DB_NS)"
 want G-OPS01 && row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready, exkl. Job-Pods (devmesh, beide Brand-Namespaces)"
 want G-FLUX01 && row target G-FLUX01 "$(runtime_measure flux)" le 0 "Flux-Ressourcen nicht Ready, suspendiert oder generation-stale"
+# File-Evidenz ohne Prometheus (Eigner-Entscheid OBS01/CAP01/SLO01): lokal/devmesh ohne
+# HG_PROMETHEUS_URL erzeugen die Produzenten Ablauf-Artefakte; in CI (GITHUB_ACTIONS)
+# bleibt das Verhalten unveraendert (n/a erwartet). FAST=1 tastet nichts an.
+if [ -z "${HG_PROMETHEUS_URL:-}" ] && [ -z "${GITHUB_ACTIONS:-}" ] && [ "${FAST:-0}" != 1 ]; then
+  OBS_EVIDENCE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/obs-evidence"
+  mkdir -p "$OBS_EVIDENCE_DIR" 2>/dev/null || true
+  if [ -z "${HG_SCRAPE_INPUT:-}" ] && bash scripts/lib/obs-file-evidence.sh scrape \
+      --targets scripts/lib/obs-targets.json --out "$OBS_EVIDENCE_DIR/scrape.json" >/dev/null 2>&1; then
+    export HG_SCRAPE_INPUT="$OBS_EVIDENCE_DIR/scrape.json"
+  fi
+  if [ -z "${HG_CAPACITY_INPUT:-}" ] && bash scripts/lib/obs-file-evidence.sh capacity \
+      --out "$OBS_EVIDENCE_DIR/capacity.json" >/dev/null 2>&1; then
+    export HG_CAPACITY_INPUT="$OBS_EVIDENCE_DIR/capacity.json"
+  fi
+  if bash scripts/lib/obs-file-evidence.sh slo-append \
+      --log "$OBS_EVIDENCE_DIR/slo.jsonl" >/dev/null 2>&1; then
+    if [ -z "${HG_SLO_INPUT:-}" ] && bash scripts/lib/obs-file-evidence.sh slo-window \
+        --log "$OBS_EVIDENCE_DIR/slo.jsonl" --out "$OBS_EVIDENCE_DIR/slo.json" >/dev/null 2>&1; then
+      export HG_SLO_INPUT="$OBS_EVIDENCE_DIR/slo.json"
+    fi
+  fi
+fi
 want G-OBS01 && row target G-OBS01 "$(runtime_measure scrape)" le 0 "Aktive Prometheus-Scrape-Targets down"
 want G-CAP01 && row target G-CAP01 "$(runtime_measure capacity)" le 0 "Produktive PVCs mit weniger als 20% freiem Speicher"
 want G-SLO01 && row target G-SLO01 "$(runtime_measure slo)" ge 995 "7-Tage-Verfügbarkeit beider Brand-Health-Endpunkte (Promille)"

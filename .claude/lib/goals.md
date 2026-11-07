@@ -180,7 +180,7 @@ sonst zählt sie unlöschbare Indizes mit (Messmethoden-Korrektur analog G-DB03/
 (~83, plus 2 HNSW-Vektorindizes mit seltener aber legitimer Nutzung) braucht Einzelfallprüfung
 pro Tabelle vor einem Drop. Volle Klassifikation → Nachfolgeticket T001928.
 
-> **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) → 86 → 70 (13 weitere Drops auf Count-0-Tabellen via `scripts/migrations/2026-11-06-db10-drop-empty-table-indexes.sql`, live verifiziert) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908, verbleibende 8 nicht Teil des Scopes) → Nachfolger **T001948**
+> **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) → 86 → 70 (13 weitere Drops auf Count-0-Tabellen via `scripts/migrations/2026-11-06-db10-drop-empty-table-indexes.sql`, live verifiziert) → 0 (70 Drops auf nicht-leeren Tabellen via `scripts/migrations/2026-11-07-db10-drop-unused-nonempty-indexes.sql`, live ausgeführt 2026-11-07, G-DB10-Check grün; 103 pkey/unique-gestützte bewusst behalten) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908, verbleibende 8 nicht Teil des Scopes) → Nachfolger **T001948**
 
 ## G-DB11 — Tage seit letztem Restore-Verify: 30 → 65
 

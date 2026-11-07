@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.452.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.7...website-v1.452.0) (2026-11-07)
+
+
+### Features
+
+* **ops:** LLM primär auf Container-GPU + OBS per Log-/File-Nachweis (+ KNOW-Ratchet 375) ([#7241](https://github.com/Paddione/Bachelorprojekt/issues/7241)) ([e5d2fb2](https://github.com/Paddione/Bachelorprojekt/commit/e5d2fb23c97d7aa0d98c917dbc4d4e33ef037d73))
+
 ## [1.451.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.451.6...website-v1.451.7) (2026-11-06)
 
 

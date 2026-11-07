@@ -225,8 +225,13 @@ test.describe('Korczewski: Kontakt page', () => {
     const msgTab = page.getByTestId('tab-nachricht');
     await msgTab.click();
     await expect(msgTab).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByRole('textbox', { name: /name/i }).first()).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /e-mail/i })).toBeVisible();
+    // ContactForm renders conditionally after the tab switch — wait for the
+    // fields explicitly (Muster aus fa-10 T6). getByLabel statt getByRole,
+    // damit Label-Text („Name *", „E-Mail *") statt Heuristik zaehlt.
+    const nameField = page.getByLabel(/name/i);
+    await nameField.first().waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(nameField.first()).toBeVisible();
+    await expect(page.getByLabel(/e-?mail/i)).toBeVisible();
   });
 });
 

@@ -1011,7 +1011,7 @@
     "priority": "C",
     "direction": "lower",
     "baseline": null,
-    "current": 2,
+    "current": 0,
     "target": 0,
     "unit": "",
     "status": "unknown",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1298,
+      "file_count": 1299,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -859,6 +859,7 @@
         "tests/py/spec/native_ported/spec/test_k4_surgery_guard.py",
         "tests/py/spec/native_ported/spec/test_langfuse_agent_tracing.py",
         "tests/py/spec/native_ported/spec/test_llm_local_dev.py",
+        "tests/py/spec/native_ported/spec/test_llm_obs_devmesh_primary.py",
         "tests/py/spec/native_ported/spec/test_local_llm_proxy.py",
         "tests/py/spec/native_ported/spec/test_massage_a11y.py",
         "tests/py/spec/native_ported/spec/test_massage_header_cta.py",
@@ -1311,7 +1312,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bp-run",
-      "file_count": 77,
+      "file_count": 79,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -1389,7 +1390,9 @@
         "scripts/migrations/2026-10-10-llm-proxy-qwen35-2b-worker.sql",
         "scripts/migrations/2026-10-10-llm-proxy-tei-desktop-embed.sql",
         "scripts/migrations/2026-10-12-quality-schema-T016507.sql",
-        "scripts/migrations/2026-11-06-db10-drop-empty-table-indexes.sql"
+        "scripts/migrations/2026-11-06-db10-drop-empty-table-indexes.sql",
+        "scripts/migrations/2026-11-07-db10-drop-unused-nonempty-indexes.sql",
+        "scripts/migrations/2026-11-07-db10-rollback-unused-nonempty-indexes.sql"
       ]
     },
     {
@@ -3747,7 +3750,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bp-build",
-      "file_count": 898,
+      "file_count": 900,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4118,6 +4121,8 @@
         "scripts/lib/mcp-http-security.test.mjs",
         "scripts/lib/nextcloud-api.sh",
         "scripts/lib/notify.sh",
+        "scripts/lib/obs-file-evidence.sh",
+        "scripts/lib/obs-targets.json",
         "scripts/lib/parse-secrets-yaml.py",
         "scripts/lib/pnpm-audit-count.py",
         "scripts/lib/pnpm-outdated-majors.py",

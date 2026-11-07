@@ -168,7 +168,7 @@ def test_repo_sync_sidecar(repo_root: Path):
     assert 'fetch_mirror --git-dir=' in cmd, "Token-Fetch muss ins private Bare-Repo gehen"
     assert '/sync' in mounts, f"/sync-Mount fehlt im Sidecar: {mounts}"
     assert 'link_resources' in cmd, "agentic-resources-Verlinkung (link_resources) fehlt im Sidecar"
-    for target in ("/tmp/.agents/skills", "/tmp/.config/opencode/skills", ".opencode/skills", "SKILL.md", "AGENTS.md"):
+    for target in ("/tmp/.agents/skills", "/tmp/.claude/skills", ".opencode/skills", "SKILL.md", "AGENTS.md"):
         assert target in cmd, f"agentic-resources-Ziel {target} fehlt in link_resources"
 
 

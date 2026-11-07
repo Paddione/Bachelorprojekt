@@ -17,6 +17,10 @@ data:
       "$schema": "https://opencode.ai/config.json",
       "model": "devmesh-vllm-4b/QUASAR-QAT/Qwen3.5-4B-QUASAR-NVFP4-W4A4",
       "small_model": "devmesh-llamacpp-2b/qwen35-2b-worker",
+      "instructions": [
+        "/tmp/AGENTS.md",
+        "/workspace/Paddione/dotfiles/.config/opencode/AGENTS.md"
+      ],
       "provider": {
         "devmesh-vllm-4b": {
           "npm": "@ai-sdk/openai-compatible",

@@ -182,9 +182,11 @@ spec:
                 fi
                 [ -f "$df/sr_opus_5_system_prompt.md" ] && ln -sfn "$df/sr_opus_5_system_prompt.md" /tmp/sr_opus_5_system_prompt.md
                 [ -f "$ar/CLAUDE.md" ] && ln -sfn "$ar/CLAUDE.md" /tmp/CLAUDE.md
-                mkdir -p /tmp/.config/opencode
-                [ -f "$df/.config/opencode/AGENTS.md" ] && ln -sfn "$df/.config/opencode/AGENTS.md" /tmp/.config/opencode/AGENTS.md
-                skill_targets="/tmp/.agents/skills /tmp/.claude/skills /tmp/.codex/skills /tmp/.config/opencode/skills /tmp/.zcode/skills"
+                # Hinweis: /tmp/.config/opencode gehoert durch den subPath-Mount
+                # von opencode.json root:nobody (0755); Home-Skills liegen daher
+                # in /tmp/.agents/skills, /tmp/.claude/skills, /tmp/.codex/skills
+                # und /tmp/.zcode/skills.
+                skill_targets="/tmp/.agents/skills /tmp/.claude/skills /tmp/.codex/skills /tmp/.zcode/skills"
                 if [ -d "$bp" ]; then
                   skill_targets="$skill_targets $bp/.opencode/skills $bp/.claude/skills $bp/.codex/skills $bp/.zcode/skills"
                 fi

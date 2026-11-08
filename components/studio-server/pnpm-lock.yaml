@@ -21,8 +21,8 @@ importers:
         specifier: ^6.2.15
         version: 6.2.15
       openai:
-        specifier: ^7.50.0
-        version: 7.50.0
+        specifier: ^7.51.0
+        version: 7.51.0
       pg:
         specifier: ^8.23.1
         version: 8.23.1
@@ -1222,8 +1222,8 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
-  openai@7.50.0:
-    resolution: {integrity: sha512-VFBqvO4pL3sXY1y3L1qo+9yUkE+sHOov044/mWAHThG+XUgUrMmQsigwY0ONfYBzLE7Rx4222mM6I+CTNw+Gsw==}
+  openai@7.51.0:
+    resolution: {integrity: sha512-Ibu1d3ilmMbXRS8Y3WUPNTKk96p0rg1/BSlqASnvKy6i8efKjliUZGSfUTTCRcZJNGQ3xXMdita2REQOlH68JA==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
       '@aws-sdk/credential-provider-node': '>=3.972.0 <4'
@@ -2399,7 +2399,7 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  openai@7.50.0: {}
+  openai@7.51.0: {}
 
   parseurl@1.3.3: {}
 

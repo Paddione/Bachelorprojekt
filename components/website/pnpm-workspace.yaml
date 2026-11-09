@@ -60,3 +60,5 @@ overrides:
   source-map-js: ">=1.2.2"
   sharp: ">=0.35.5"
   "nanoid@<3.3.18": "3.3.18"
+  "@emnapi/core": "1.11.3"
+  "@emnapi/runtime": "1.11.3"

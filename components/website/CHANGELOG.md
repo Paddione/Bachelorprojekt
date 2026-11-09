@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.452.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.3...website-v1.452.4) (2026-11-09)
+
+
+### Tests
+
+* **website:** graph-utils brand-matrix vervollständigt ([42851b6](https://github.com/Paddione/Bachelorprojekt/commit/42851b63136997c765c8fd524d19393e10b6b651))
+
 ## [1.452.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.2...website-v1.452.3) (2026-11-07)
 
 

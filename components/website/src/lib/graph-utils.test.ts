@@ -49,6 +49,17 @@ describe('resolveNamespace', () => {
   it('passes through unknown placeholders', () => {
     expect(resolveNamespace('custom-ns', 'mentolder')).toBe('custom-ns');
   });
+
+  it('maps STAGING_NS to the dev workspace for both brands', () => {
+    expect(resolveNamespace('$STAGING_NS', 'mentolder')).toBe('workspace-dev');
+    expect(resolveNamespace('$STAGING_NS', 'korczewski')).toBe('workspace-dev');
+  });
+
+  it('falls back to mentolder for the empty brand', () => {
+    expect(resolveNamespace('${WEBSITE_NAMESPACE}', '')).toBe('website');
+    expect(resolveNamespace('${WORKSPACE_NAMESPACE}', '')).toBe('workspace');
+    expect(resolveNamespace('$STAGING_NS', '')).toBe('workspace-dev');
+  });
 });
 
 describe('resolveGraph', () => {
@@ -64,6 +75,22 @@ describe('resolveGraph', () => {
     const out = resolveGraph(g, 'korczewski');
     expect(out.nodes[0].namespace).toBe('website-korczewski');
     expect(out.nodes[1].namespace).toBe('workspace-korczewski');
+  });
+
+  it('maps unknown brands to the mentolder namespaces', () => {
+    const g: GraphData = {
+      generatedAt: '2026-01-01',
+      nodes: [
+        node('a', 'A', '${WEBSITE_NAMESPACE}'),
+        node('b', 'B', '${WORKSPACE_NAMESPACE}'),
+        node('c', 'C', '$STAGING_NS'),
+      ],
+      edges: [],
+    };
+    const out = resolveGraph(g, 'unknown-brand');
+    expect(out.nodes[0].namespace).toBe('website');
+    expect(out.nodes[1].namespace).toBe('workspace');
+    expect(out.nodes[2].namespace).toBe('workspace-dev');
   });
 
   it('preserves other node fields and the generatedAt timestamp', () => {

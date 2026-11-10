@@ -13,3 +13,16 @@
 ## Abnahme
 
 - Alle 5 Checks einzeln grün; Gesamt-Gates grün.
+
+## Umsetzung (execute)
+
+- Tasks in `taskfiles/Taskfile.platform.yml` (neben `networks:check`/`domains:check`):
+  `secrets:check/map`, `agents:check/map`, `skills:check/map`,
+  `content:check/map`, `api:check/map`. `agents:map` nutzt den bestehenden
+  Emitter (`scripts/agent-guide/emit-maps.mjs`).
+- `freshness:regenerate` um die 4 neuen `*:map`-Tasks erweitert
+  (`agents-map.md` kam schon über `agent-guide:emit`); `freshness:check`-FILES,
+  `.gitattributes` (merge=ours) und `.githooks/pre-commit` (Autostage) um die
+  4 neuen Karten erweitert.
+- `task test:changed` ruft die 5 Checks im Always-Block (wie `networks:check`).
+- Bestehende `test:unit:agents` und `test:api-auth` unverändert referenziert.

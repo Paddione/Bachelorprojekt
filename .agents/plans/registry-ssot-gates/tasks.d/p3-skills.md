@@ -16,3 +16,12 @@
 ## Abnahme
 
 - Check grün; Fixture (extra/fehlender Symlink) → rot.
+
+## Gegenbeleg-Entscheidung (execute)
+
+- `scripts/agent-skills/project.mjs --check` (T900151) ist der bestehende
+  fail-closed Check (Soll aus `skills.yaml` vs. Symlink-Ist, inkl.
+  `sync: identical`-Gleichheit) — `scripts/skills-check.mjs` ruft ihn als
+  Subprozess auf und failt mit, statt die Logik zu kopieren. Ergänzt wird nur,
+  was die Engine nicht sieht: `vendor-lock.json`-Parsbarkeit und `source`-Existenz.
+  Abnahme erfüllt (grün; Fixture mit falschem Harness-Pfad rot).

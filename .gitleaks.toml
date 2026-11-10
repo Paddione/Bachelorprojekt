@@ -65,6 +65,18 @@
     ".*\\.worktrees.*",
     "(^|/)\\.auth/",
     ".*playwright-traces.*",
+    # [dep-audit 2026-11-10] Arbeitsbaum-Scan (--no-git) traf 11 pre-existing
+    # False Positives in gitignorierten Pfaden (verifiziert per git check-ignore)
+    # und blockierte jeden Commit. Alle drei Klassen koennen nie in einen Commit
+    # gelangen; echte Secrets an der Quelle (getrackte Docs/Code) bleiben gescannt.
+    # .venv/: Python-Venv mit Drittanbieter-Code (PIL-Dokubeispiel-Key,
+    # torch-RECORD-Hashes, narwhals-Source) plus Bytecode-Caches.
+    "(^|/)\\.venv/.*",
+    # Bytecode-Caches: private-key-Regel matcht auf Binaerpattern, nie Quelltext.
+    "(^|/)__pycache__/.*",
+    # Embedding-Index (generierter Spiegel getrackter Docs): sk-...-Treffer sitzt
+    # in einem Index-Key-Slug, kein Secret. Quelle bleibt gescannt.
+    "(^|/)\\.codebase-memory/.*",
     ".gitattributes",
     ".gitignore",
     # [T002554] Diese Datei selbst. Eine Config, die Secret-MUSTER beschreibt,

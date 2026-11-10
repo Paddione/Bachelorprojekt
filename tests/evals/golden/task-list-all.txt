@@ -9,8 +9,10 @@ task: Available tasks for this project:
 * agent-guide:platform-descriptions:            Regenerate components/website/src/lib/platform-descriptions.generated.json from the components registry
 * agent-guide:webapp:                           S2: regenerate components/website/src/lib/agent-guide.generated.json from the registry
 * agent:orchestrator:                           T001588: local agent orchestration (start/stop/status/submit) via worktrees — see scripts/agent-orchestrator.sh --help
+* agents:check:                                 Verify agent roles/models sync: agents.yaml <-> agent-models.jsonc <-> .claude/agents frontmatter <-> roles.mjs (exit != 0 on drift)
 * agents:devflow:graph:index:                   Refresh the devflow-mcp graph corpus (MAX_MINUTES=n)
 * agents:devflow:graph:status:                  Show the devflow-mcp graph corpus state (commit, symbols, pending)
+* agents:map:                                   Regenerate docs/agent-guide/maps/agents-map.md from the agents SSOT registry
 * agents:mcp-cors-proxy:install:                Install mcp-cors-proxy as a persistent systemd USER service (autostart + Restart=always).
 * agents:mcp-cors-proxy:service-status:         Show the mcp-cors-proxy systemd service state + recent journal tail.
 * agents:mcp-cors-proxy:status:                 Health-check mcp-cors-proxy (:18082 preflight + initialize)
@@ -45,7 +47,9 @@ task: Available tasks for this project:
 * agents:vendor:status:                         Vendor-Skills/-Plugins: gelockter Stand vs. neueste Upstream-Release (schreibt nichts)
 * agents:vendor:update:                         Vendor-Skills/-Plugins auf neueste Release heben (3-Wege-Merge, lokale Patches bleiben)
 * agy:sync:                                     Mirror .claude/agents and .claude/skills into .gemini/ for the agy CLI / Antigravity IDE (per-worktree; .gemini/* is gitignored)
+* api:check:                                    Verify API endpoint register: every scanned endpoint classified in api.yaml (exit != 0 on new/unclassified endpoint)
 * api:inventory:                                Regenerate components/website/src/data/api-inventory.json (SDLC API/connector inventory)
+* api:map:                                      Regenerate docs/agent-guide/maps/api-map.md from the API SSOT registry
 * app:install:                                  Install a curated catalog app (ENV=dev|mentolder|korczewski). Usage: task app:install -- <app-name> [--dry-run]
 * app:validate:                                 Validate an app manifest against the schema. Usage: task app:validate -- <app-name>
 * assets:index:                                 Index root /assets into assets.registry in the database (ENV=mentolder|korczewski)
@@ -79,7 +83,9 @@ task: Available tasks for this project:
 * codebase:index:                               Vollständiger codebase-memory-mcp Graph-Index (full, persistiertes Artefakt in .codebase-memory/)
 * codebase:refresh:                             Schnell-Refresh des codebase-memory Graph-Index (fast, kein Similarity-Embedding)
 * config:show:                                  Show resolved config for an environment (usage: task config:show ENV=mentolder)
+* content:check:                                Verify content registry refs: validate.mjs substrate + goals[].related dangling-ref guard (exit != 0 on violation)
 * content:export:                               Export site content (DB → components/website/content/<brand>/*.json) for the bundle (T001490)
+* content:map:                                  Regenerate docs/agent-guide/maps/content-map.md from the content registries
 * context:retrieve:                             S1-Retrieval (T002658): budgetierter Kontextblock aus Pinned-Set + Vektor-Retrieval. Usage: task context:retrieve -- --task-prompt '…' --role bachelorprojekt-<x> [--budget N] [--limit N] [--corpora a,b]
 * context:retrieve:explain:                     S1-Retrieval mit Diagnose-JSON (Scores, Kandidatenzahl, Token-Bilanz, mode). Usage: task context:retrieve:explain -- --task-prompt '…' --role bachelorprojekt-<x> [--budget N] [--limit N]
 * coredns:scale:                                Scale CoreDNS to 2 replicas + topology spread + PDB (ENV=dev|mentolder|korczewski). Re-run after k3s upgrades (k3s reverts its addon).
@@ -310,8 +316,10 @@ task: Available tasks for this project:
 * sdlc:sdlc:up:                                 SDLC-Entwicklungsinstanz starten: Cluster-Check → Rollout-Check → llm-proxy → Loadout → Health-Gate
 * sealed-secrets:install:                       Install Sealed Secrets controller on a cluster via Helm
 * sealed-secrets:status:                        Show Sealed Secrets controller status
+* secrets:check:                                Verify the secrets seal chain: schema.yaml <-> sealed-secrets/*.yaml <-> registry (exit != 0 on unknown/missing key; never reads values)
 * secrets:install-hooks:                        Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard + commit-vs-diff guard + merge drivers
 * secrets:lock:                                 Re-encrypt the working tree (removes plaintext locally)
+* secrets:map:                                  Regenerate docs/agent-guide/maps/secrets-map.md from the secrets SSOT registry
 * secrets:status:                               List git-crypt-encrypted files and their state
 * secrets:sync:                                 Apply SealedSecrets to both prod clusters without touching workloads. Run after env:seal ENV=<env>.
 * secrets:sync:full:                            Apply SealedSecrets AND reconcile workloads+DB on both prod clusters (apply → sync-db-passwords → rollout restart).
@@ -321,6 +329,8 @@ task: Available tasks for this project:
 * session:reap:                                 [session] Drop registry entries whose tunnel pid is dead
 * session:register:                             [session] Register a listening port. Usage: task session:register -- --name foo --port 8080 --type brainstorm --title 'Foo'
 * session:start-form:                           [session] Serve an HTML file + tunnel + register. Usage: task session:start-form -- --file /tmp/foo.html --name foo
+* skills:check:                                 Verify skill inventory: skills.yaml <-> harness projections via project.mjs --check + vendor-lock (exit != 0 on drift)
+* skills:map:                                   Regenerate docs/agent-guide/maps/skills-map.md from the skills SSOT registry
 * srgb-icc:build:                               Regenerate components/website/src/lib/srgb-icc.ts from the canonical sRGB.icc (delegates to scripts/build-srgb-icc.mjs)
 * studio:build:                                 Build studio-server image locally (T001002)
 * studio:deploy:                                Push and roll out studio-server (mentolder-only for MVP; T001002); ENV=dev aborts — see error message

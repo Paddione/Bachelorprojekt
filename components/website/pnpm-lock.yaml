@@ -79,8 +79,8 @@ importers:
         specifier: ^10.3.1
         version: 10.3.1
       openai:
-        specifier: ^7.52.0
-        version: 7.52.0(undici@7.30.1)(ws@8.21.0)(zod@4.6.7)
+        specifier: ^7.53.0
+        version: 7.53.0(undici@7.30.1)(ws@8.21.0)(zod@4.6.7)
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -106,11 +106,11 @@ importers:
         specifier: ^19.3.1
         version: 19.3.1(react@19.3.1)
       rrweb:
-        specifier: ^2.2.0
-        version: 2.2.0
+        specifier: ^2.2.1
+        version: 2.2.1
       rrweb-player:
-        specifier: ^2.2.0
-        version: 2.2.0
+        specifier: ^2.2.1
+        version: 2.2.1
       signature_pad:
         specifier: ^5.1.4
         version: 5.1.4
@@ -1626,17 +1626,17 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@rrweb/packer@2.2.0':
-    resolution: {integrity: sha512-NgYYIaXf5sem/0JWsPLpaRBV70cqJKSFZkyvg1MG4wefzWUPtDxufFuWdprblPawg0RdPMSBEzkpQKzcir/sXg==}
+  '@rrweb/packer@2.2.1':
+    resolution: {integrity: sha512-yhLCGepwQUh+df0bt/JwZFPTh7zyudKqYtC+A8kaC4QACk3RHYvnJKG2bmjsmwFJK47T55mJKdFCb893749a+g==}
 
-  '@rrweb/replay@2.2.0':
-    resolution: {integrity: sha512-dKug7wlnM2nlIhhHKUjHaz4+1b0duMe6wgo+97eU6CjV0R7yoKvW6NDKlSQQdWx99VMOZMvHTbMbwDQl5CRM1w==}
+  '@rrweb/replay@2.2.1':
+    resolution: {integrity: sha512-iQVqwp+PMGDU7+7v8Uijw3O7rI0X3FoVztjpre5N5GPQXI3WgPYA/C80qSTLYy1OWzpk4I/sy/jRBr2NdKSEPA==}
 
-  '@rrweb/types@2.2.0':
-    resolution: {integrity: sha512-2gTA/pRpIbuET123oSdX5ZUDZfWCOIMYBvpSai3fr5pk9LcbccPqqaXflX+roP4oKenLjNtJPGpFK3BfYeBKnA==}
+  '@rrweb/types@2.2.1':
+    resolution: {integrity: sha512-GGUGQXekOJ35Ab644SO6iWU7vWpXiGPz1B5egTsPEwNTHv+syXWOoe2rXwB1NQOs64XirHzHqYX6SSYaJme3Cg==}
 
-  '@rrweb/utils@2.2.0':
-    resolution: {integrity: sha512-e8FEp8wLswqgjDHpQNUUVfEXeDsrRMOVouvqIGKvnPxKYonjLlh0mU3O/17QNvCixFG5eUFR1B2jgTdiLlZxeQ==}
+  '@rrweb/utils@2.2.1':
+    resolution: {integrity: sha512-aRubNFue2PeI6ZlesjNfAJeXE2okDEiIpspvC03aotTRgbmJ0SXSsrBbYcWVCM6o7E5aNolmb7m7SKmUyCLDnQ==}
 
   '@shikijs/core@4.5.0':
     resolution: {integrity: sha512-6CIgwq+bt2JZ3OSjb/nBkkwEf/CfpHcbam+Mg5Pllco7HAGRQ2/EFhZrrJtbyNTgKwknfVS+llsXGygiDGwJWw==}
@@ -3620,8 +3620,8 @@ packages:
   oniguruma-to-es@4.3.6:
     resolution: {integrity: sha512-csuQ9x3Yr0cEIs/Zgx/OEt9iBw9vqIunAPQkx19R/fiMq2oGVTgcMqO/V3Ybqefr1TBvosI6jU539ksaBULJyA==}
 
-  openai@7.52.0:
-    resolution: {integrity: sha512-aY0e5WGnTfAae81ygo+cbRaYwSQNowoyyxvAKNC0vu8orz3bl4cbz1il3Ce6I2rNea5et/FGDxj82OO9iB4+nA==}
+  openai@7.53.0:
+    resolution: {integrity: sha512-PXiIZraFYMb2QYgTtWqDA16Oszj4fWRZNn7qLIAddmiJxM5uQPWBFaxp9O8MhLfTUOQ+iQsnFSRJhLPecsGovQ==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
       '@aws-sdk/credential-provider-node': '>=3.972.0 <4'
@@ -4027,17 +4027,17 @@ packages:
     resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
     engines: {node: '>= 18'}
 
-  rrdom@2.2.0:
-    resolution: {integrity: sha512-gxcBJWVtS/Xz+Ys8xcjPoWqr+C7wz/MS8NgmKw136I47Xygy17FYOGZqoGwEyvBn724jRDK1ljS+8w9FsZStOg==}
+  rrdom@2.2.1:
+    resolution: {integrity: sha512-nUrhXH2DyD62+9hru7mrPhtbF0CVobMdJzhl0uIgoMtaLS2vN4mNrRL/DmC/gpEH4EO0JlmWH7lzdqaY90fGgA==}
 
-  rrweb-player@2.2.0:
-    resolution: {integrity: sha512-pqoHKdRMXIZOF8lcyShmrrgYOqCbFQjOJ2LFiZBHAY9nMiuZbh9OqUi+8HZLigzHiYjg23SB+rAk4pwLZdrGrQ==}
+  rrweb-player@2.2.1:
+    resolution: {integrity: sha512-zw3Oigv8aIY9c93GQSx91ok1SNtfAGdpyjSdzov+Uwf/V+glKbRDZDA0Hwz+IVbrQMQ+n3WtIgRVWnFe4PXR7g==}
 
-  rrweb-snapshot@2.2.0:
-    resolution: {integrity: sha512-Tg/PiCLy+zV9C0Jfb4IAGABtt5l/UOvwW5xjFk41ZQhBfUjeqPP1rZ9HMDrFPc7cawCUEenWw54+g/4vluO5lg==}
+  rrweb-snapshot@2.2.1:
+    resolution: {integrity: sha512-BkpFnPYoSKjSGe9rWnSo5ZQH0OnIzubTl7Lk3vyX6ktM1NaXkkPQwx3SNhdhrDS0Ja+ndlvYaNF0I1WG0exCtQ==}
 
-  rrweb@2.2.0:
-    resolution: {integrity: sha512-ofVzPq11/yIQ7WhVb++rJGI2LoPPrxdqu0QAvRA4KGeXJ7LH52jQ0VlRH4+VXn5PA/7pz85/rRkQyBUqT1LraQ==}
+  rrweb@2.2.1:
+    resolution: {integrity: sha512-+6DFkxeHakI7180j/AtJU6cP41aZxUm/lK1zMjTNsRG6IWFLSYco3IK3Yl2llCcPAbeLoNL9V6p178DgL99ZvQ==}
 
   rw@1.3.3:
     resolution: {integrity: sha512-PdhdWy89SiZogBLaw42zdeqtRJ//zFd2PgQavcICDUgJT5oW10QCRKbJ6bg4r0/UY2M6BWd5tkxuGFRvCkgfHQ==}
@@ -5847,19 +5847,19 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@rrweb/packer@2.2.0':
+  '@rrweb/packer@2.2.1':
     dependencies:
-      '@rrweb/types': 2.2.0
+      '@rrweb/types': 2.2.1
       fflate: 0.4.9
 
-  '@rrweb/replay@2.2.0':
+  '@rrweb/replay@2.2.1':
     dependencies:
-      '@rrweb/types': 2.2.0
-      rrweb: 2.2.0
+      '@rrweb/types': 2.2.1
+      rrweb: 2.2.1
 
-  '@rrweb/types@2.2.0': {}
+  '@rrweb/types@2.2.1': {}
 
-  '@rrweb/utils@2.2.0': {}
+  '@rrweb/utils@2.2.1': {}
 
   '@shikijs/core@4.5.0':
     dependencies:
@@ -7956,7 +7956,7 @@ snapshots:
       regex: 6.1.0
       regex-recursion: 6.0.2
 
-  openai@7.52.0(undici@7.30.1)(ws@8.21.0)(zod@4.6.7):
+  openai@7.53.0(undici@7.30.1)(ws@8.21.0)(zod@4.6.7):
     optionalDependencies:
       undici: 7.30.1
       ws: 8.21.0
@@ -8367,30 +8367,30 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  rrdom@2.2.0:
+  rrdom@2.2.1:
     dependencies:
-      rrweb-snapshot: 2.2.0
+      rrweb-snapshot: 2.2.1
 
-  rrweb-player@2.2.0:
+  rrweb-player@2.2.1:
     dependencies:
-      '@rrweb/packer': 2.2.0
-      '@rrweb/replay': 2.2.0
+      '@rrweb/packer': 2.2.1
+      '@rrweb/replay': 2.2.1
       '@tsconfig/svelte': 1.0.13
 
-  rrweb-snapshot@2.2.0:
+  rrweb-snapshot@2.2.1:
     dependencies:
-      postcss: 8.5.29
+      postcss: 8.5.32
 
-  rrweb@2.2.0:
+  rrweb@2.2.1:
     dependencies:
-      '@rrweb/types': 2.2.0
-      '@rrweb/utils': 2.2.0
+      '@rrweb/types': 2.2.1
+      '@rrweb/utils': 2.2.1
       '@types/css-font-loading-module': 0.0.7
       '@xstate/fsm': 1.6.5
       base64-arraybuffer: 1.0.2
       mitt: 3.0.1
-      rrdom: 2.2.0
-      rrweb-snapshot: 2.2.0
+      rrdom: 2.2.1
+      rrweb-snapshot: 2.2.1
 
   rw@1.3.3: {}
 

@@ -53,6 +53,58 @@ tasks:
     cmds:
       - node scripts/domains-probe.mjs {{.CLI_ARGS}}
 
+  # Registry-SSOT-Gates (Plan registry-ssot-gates, P1-P6). Muster je Kandidat:
+  # SSOT-YAML + fail-closed *-check.mjs + generierte Karte + Task.
+  secrets:check:
+    desc: "Verify the secrets seal chain: schema.yaml <-> sealed-secrets/*.yaml <-> registry (exit != 0 on unknown/missing key; never reads values)"
+    cmds:
+      - node scripts/secrets-check.mjs
+
+  secrets:map:
+    desc: "Regenerate docs/agent-guide/maps/secrets-map.md from the secrets SSOT registry"
+    cmds:
+      - node scripts/secrets-check.mjs --emit-map
+
+  agents:check:
+    desc: "Verify agent roles/models sync: agents.yaml <-> agent-models.jsonc <-> .claude/agents frontmatter <-> roles.mjs (exit != 0 on drift)"
+    cmds:
+      - node scripts/agents-check.mjs
+
+  agents:map:
+    desc: "Regenerate docs/agent-guide/maps/agents-map.md from the agents SSOT registry"
+    cmds:
+      - node scripts/agent-guide/emit-maps.mjs
+
+  skills:check:
+    desc: "Verify skill inventory: skills.yaml <-> harness projections via project.mjs --check + vendor-lock (exit != 0 on drift)"
+    cmds:
+      - node scripts/skills-check.mjs
+
+  skills:map:
+    desc: "Regenerate docs/agent-guide/maps/skills-map.md from the skills SSOT registry"
+    cmds:
+      - node scripts/skills-check.mjs --emit-map
+
+  content:check:
+    desc: "Verify content registry refs: validate.mjs substrate + goals[].related dangling-ref guard (exit != 0 on violation)"
+    cmds:
+      - node scripts/content-check.mjs
+
+  content:map:
+    desc: "Regenerate docs/agent-guide/maps/content-map.md from the content registries"
+    cmds:
+      - node scripts/content-check.mjs --emit-map
+
+  api:check:
+    desc: "Verify API endpoint register: every scanned endpoint classified in api.yaml (exit != 0 on new/unclassified endpoint)"
+    cmds:
+      - node scripts/api-check.mjs
+
+  api:map:
+    desc: "Regenerate docs/agent-guide/maps/api-map.md from the API SSOT registry"
+    cmds:
+      - node scripts/api-check.mjs --emit-map
+
   secrets:sync:
     desc: "Apply SealedSecrets to both prod clusters without touching workloads. Run after env:seal ENV=<env>."
     cmds:

@@ -514,6 +514,10 @@ tasks:
         # dann ueberspringen, wenn er gebraucht wird. In CI laeuft derselbe Check
         # zusaetzlich ueber tests/py/spec/remaining_root_specs/domain_registry/.
         echo "→ frontend domain registry (always)"; task domains:check
+        # Registry-SSOT-Gates (P1-P6): gleiche Begruendung — die Guards pruefen das
+        # Zusammenspiel aus Registry und gescannter Realitaet, eine Diff-Auswahl
+        # wuerde sie genau dann ueberspringen, wenn sie gebraucht werden.
+        echo "→ registry SSOT gates (always)"; task secrets:check; task agents:check; task skills:check; task content:check; task api:check
 
   test:api-auth:
     desc: "API auth coverage gate — every endpoint must be classified; public endpoints need an allowlist entry"

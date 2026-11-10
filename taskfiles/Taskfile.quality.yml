@@ -72,6 +72,10 @@ tasks:
       - task: graph:build-docs
       - task: health:goals:emit
       - task: networks:map   # T012645: docs/agent-guide/maps/networks-map.md
+      - task: secrets:map    # registry-ssot-gates P1: docs/agent-guide/maps/secrets-map.md
+      - task: skills:map     # registry-ssot-gates P3: docs/agent-guide/maps/skills-map.md
+      - task: content:map    # registry-ssot-gates P4: docs/agent-guide/maps/content-map.md
+      - task: api:map        # registry-ssot-gates P5: docs/agent-guide/maps/api-map.md
 
   freshness:check:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
@@ -169,6 +173,10 @@ tasks:
           docs/agent-guide/maps/danger-map.md
           docs/agent-guide/maps/agents-map.md
           docs/agent-guide/maps/networks-map.md
+          docs/agent-guide/maps/secrets-map.md
+          docs/agent-guide/maps/skills-map.md
+          docs/agent-guide/maps/content-map.md
+          docs/agent-guide/maps/api-map.md
           components/website/src/lib/agent-guide.generated.json
           components/website/src/lib/platform-descriptions.generated.json
         "

@@ -1,0 +1,580 @@
+# docs/agent-guide/registry/api.yaml
+# Kuratierte Auth-Klassifikation aller SDLC-API-Routen + MCP-Server.
+# De-facto-SSOT der Endpunkt-MENGE ist components/website/src/data/api-inventory.json
+# (generiert von scripts/sdlc/api-inventory.mjs aus Scan + api-overlay.yaml);
+# diese Datei kuratiert NUR Auth-Klasse/Tier/Quelle je Endpunkt (Vermerk per P5-Partial).
+# Bestehend (eingebunden, nicht ersetzt): scripts/sdlc/api-inventory.mjs (Scan +
+# Orphan-Guard) und scripts/api-auth-check.mjs (Auth-Gate ueber docs/generated/api-map.json).
+schema_version: 1
+auth_classes: [admin, session, internal, cron, public]
+routes:
+  "/sdlc/api/agents-overview":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/agents-overview.ts"
+  "/sdlc/api/ai-quality":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ai-quality.ts"
+  "/sdlc/api/backup-status":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/backup-status.ts"
+  "/sdlc/api/cluster/graph":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cluster/graph.ts"
+  "/sdlc/api/cluster/logs":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cluster/logs.ts"
+  "/sdlc/api/cluster/pods-list":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cluster/pods-list.ts"
+  "/sdlc/api/cluster/status":
+    auth: public
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cluster/status.ts"
+    note: "Ohne Auth-Guard (nur aggregierte Health-/Statusdaten, kein Secret im Payload)."
+  "/sdlc/api/cluster/warnings":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cluster/warnings.ts"
+  "/sdlc/api/cockpit-budget":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-budget.ts"
+  "/sdlc/api/cockpit-control":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-control.ts"
+  "/sdlc/api/cockpit-floor":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-floor.ts"
+  "/sdlc/api/cockpit-floor/[extId]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-floor/[extId].ts"
+  "/sdlc/api/cockpit-floor/[extId]/ci":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-floor/[extId]/ci.ts"
+  "/sdlc/api/cockpit-floor/[extId]/deploy":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-floor/[extId]/deploy.ts"
+  "/sdlc/api/cockpit-floor/[extId]/inject":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-floor/[extId]/inject.ts"
+  "/sdlc/api/cockpit-floor/[extId]/release":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-floor/[extId]/release.ts"
+  "/sdlc/api/cockpit-floor/stream":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-floor/stream.ts"
+  "/sdlc/api/cockpit-live":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-live.ts"
+  "/sdlc/api/cockpit-metrics":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-metrics.ts"
+  "/sdlc/api/cockpit-observability":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-observability.ts"
+  "/sdlc/api/cockpit-serving":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit-serving.ts"
+  "/sdlc/api/cockpit/actions":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/actions.ts"
+  "/sdlc/api/cockpit/audit":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/audit.ts"
+  "/sdlc/api/cockpit/batch":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/batch.ts"
+  "/sdlc/api/cockpit/container-count":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/container-count.ts"
+  "/sdlc/api/cockpit/feature":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/feature.ts"
+  "/sdlc/api/cockpit/feature-action":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/feature-action.ts"
+  "/sdlc/api/cockpit/feature-actions":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/feature-actions.ts"
+  "/sdlc/api/cockpit/parallel-status":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/parallel-status.ts"
+  "/sdlc/api/cockpit/portfolio":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/portfolio.ts"
+  "/sdlc/api/cockpit/reorder":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/reorder.ts"
+  "/sdlc/api/cockpit/reparent":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/reparent.ts"
+  "/sdlc/api/cockpit/stream":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/stream.ts"
+  "/sdlc/api/cockpit/suggest":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/suggest.ts"
+  "/sdlc/api/cockpit/ticket-status":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/cockpit/ticket-status.ts"
+  "/sdlc/api/codesearch":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/codesearch.ts"
+  "/sdlc/api/delivery-metrics":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/delivery-metrics.ts"
+  "/sdlc/api/deployments":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/deployments.ts"
+  "/sdlc/api/deployments/[name]/restart":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/deployments/[name]/restart.ts"
+  "/sdlc/api/deployments/[name]/scale":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/deployments/[name]/scale.ts"
+  "/sdlc/api/evidence/[id]/replay":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/evidence/[id]/replay.ts"
+  "/sdlc/api/evidence/upload":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/evidence/upload.ts"
+  "/sdlc/api/health-goals":
+    auth: public
+    tier: null
+    source: "components/website/src/pages/sdlc/api/health-goals.ts"
+    note: "Ohne Auth-Guard (nur aggregierte Health-/Statusdaten, kein Secret im Payload)."
+  "/sdlc/api/health-goals/rescan":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/health-goals/rescan.ts"
+  "/sdlc/api/health-goals/tickets":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/health-goals/tickets.ts"
+  "/sdlc/api/ki/catalog":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ki/catalog.ts"
+  "/sdlc/api/ki/embeddings":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ki/embeddings.ts"
+  "/sdlc/api/ki/env-status":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ki/env-status.ts"
+  "/sdlc/api/ki/providers":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ki/providers.ts"
+  "/sdlc/api/ki/providers/[id]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ki/providers/[id].ts"
+  "/sdlc/api/llm-proxy/backends":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/backends.ts"
+  "/sdlc/api/llm-proxy/backends/[id]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/backends/[id].ts"
+  "/sdlc/api/llm-proxy/catalog":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/catalog.ts"
+  "/sdlc/api/llm-proxy/default":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/default.ts"
+  "/sdlc/api/llm-proxy/loadouts":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/loadouts.ts"
+  "/sdlc/api/llm-proxy/loadouts/[slug]/[action]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/loadouts/[slug]/[action].ts"
+  "/sdlc/api/llm-proxy/loadouts/pin":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/loadouts/pin.ts"
+  "/sdlc/api/llm-proxy/loadouts/status":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/loadouts/status.ts"
+  "/sdlc/api/llm-proxy/models":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/models.ts"
+  "/sdlc/api/llm-proxy/reload":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/reload.ts"
+  "/sdlc/api/llm-proxy/requests":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/requests.ts"
+  "/sdlc/api/llm-proxy/requests/[id]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/requests/[id].ts"
+  "/sdlc/api/llm-proxy/status":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/llm-proxy/status.ts"
+  "/sdlc/api/mcp-health":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/mcp-health.ts"
+  "/sdlc/api/monitoring":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/monitoring.ts"
+  "/sdlc/api/ops/ai/reindex":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/ai/reindex.ts"
+  "/sdlc/api/ops/audit/log":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/audit/log.ts"
+  "/sdlc/api/ops/backup/list":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/backup/list.ts"
+  "/sdlc/api/ops/backup/trigger":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/backup/trigger.ts"
+  "/sdlc/api/ops/certs":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/certs.ts"
+  "/sdlc/api/ops/deployments/[ns]/[name]/restart":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/deployments/[ns]/[name]/restart.ts"
+  "/sdlc/api/ops/deployments/[ns]/[name]/scale":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/deployments/[ns]/[name]/scale.ts"
+  "/sdlc/api/ops/deployments/list":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/deployments/list.ts"
+  "/sdlc/api/ops/error-log":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/error-log.ts"
+  "/sdlc/api/ops/health":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/health.ts"
+  "/sdlc/api/ops/log-stream/stream":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/log-stream/stream.ts"
+  "/sdlc/api/ops/redeploy/brett":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/redeploy/brett.ts"
+  "/sdlc/api/ops/redeploy/docs":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/redeploy/docs.ts"
+  "/sdlc/api/ops/redeploy/website":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/redeploy/website.ts"
+  "/sdlc/api/ops/restore":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/restore.ts"
+  "/sdlc/api/ops/server-logs/stream":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/server-logs/stream.ts"
+  "/sdlc/api/ops/users/create":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/users/create.ts"
+  "/sdlc/api/ops/users/groups":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/users/groups.ts"
+  "/sdlc/api/ops/users/list":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/ops/users/list.ts"
+  "/sdlc/api/plan-runner":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/plan-runner.ts"
+  "/sdlc/api/planning-office":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/planning-office/index.ts"
+  "/sdlc/api/planning-office/[extId]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/planning-office/[extId].ts"
+  "/sdlc/api/planning-office/[extId]/clarify":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/planning-office/[extId]/clarify.ts"
+  "/sdlc/api/planning-office/[extId]/promote":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/planning-office/[extId]/promote.ts"
+  "/sdlc/api/planungsbuero":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/planungsbuero/index.ts"
+  "/sdlc/api/planungsbuero/[extId]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/planungsbuero/[extId].ts"
+  "/sdlc/api/platform/assets/[slug]/tickets":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/platform/assets/[slug]/tickets.ts"
+  "/sdlc/api/platform/gpu-telemetry":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/platform/gpu-telemetry.ts"
+  "/sdlc/api/platform/hardware":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/platform/hardware.ts"
+  "/sdlc/api/platform/rig-telemetry":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/platform/rig-telemetry.ts"
+  "/sdlc/api/platform/software":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/platform/software.ts"
+  "/sdlc/api/platform/software/[id]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/platform/software/[id].ts"
+  "/sdlc/api/prompt-library":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/prompt-library/index.ts"
+  "/sdlc/api/prompt-library/[id]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/prompt-library/[id].ts"
+  "/sdlc/api/prompt-library/[id]/use":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/prompt-library/[id]/use.ts"
+  "/sdlc/api/qa-criteria":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/qa-criteria.ts"
+  "/sdlc/api/qa-queue":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/qa-queue.ts"
+  "/sdlc/api/qa-reviews":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/qa-reviews.ts"
+  "/sdlc/api/systemtest/board":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/systemtest/board.ts"
+  "/sdlc/api/systemtest/cleanup-fixtures":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/systemtest/cleanup-fixtures.ts"
+  "/sdlc/api/systemtest/drain-outbox":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/systemtest/drain-outbox.ts"
+  "/sdlc/api/systemtest/purge-all-test-data":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/systemtest/purge-all-test-data.ts"
+  "/sdlc/api/systemtest/seed":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/systemtest/seed.ts"
+  "/sdlc/api/test-results":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/test-results.ts"
+  "/sdlc/api/test-runs":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/test-runs.ts"
+  "/sdlc/api/testdata/purge":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/testdata/purge.ts"
+  "/sdlc/api/testdata/seed":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/testdata/seed.ts"
+  "/sdlc/api/tests/flake":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/flake.ts"
+  "/sdlc/api/tests/ingest-e2e":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/ingest-e2e.ts"
+  "/sdlc/api/tests/playwright-report":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/playwright-report.ts"
+  "/sdlc/api/tests/report":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/report.ts"
+  "/sdlc/api/tests/results/[jobId]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/results/[jobId].ts"
+  "/sdlc/api/tests/run":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/run.ts"
+  "/sdlc/api/tests/stream/[jobId]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/stream/[jobId].ts"
+  "/sdlc/api/tests/traceability":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/traceability.ts"
+  "/sdlc/api/tests/trend":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tests/trend.ts"
+  "/sdlc/api/tickets":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/index.ts"
+  "/sdlc/api/tickets/[id]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id].ts"
+  "/sdlc/api/tickets/[id]/attachments":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id]/attachments.ts"
+  "/sdlc/api/tickets/[id]/attachments/[aid]":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id]/attachments/[aid].ts"
+  "/sdlc/api/tickets/[id]/classify":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id]/classify.ts"
+  "/sdlc/api/tickets/[id]/comments":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id]/comments.ts"
+  "/sdlc/api/tickets/[id]/links":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id]/links.ts"
+  "/sdlc/api/tickets/[id]/readiness":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id]/readiness.ts"
+  "/sdlc/api/tickets/[id]/transition":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id]/transition.ts"
+  "/sdlc/api/tickets/[id]/triage":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/[id]/triage.ts"
+  "/sdlc/api/tickets/bulk-status":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/bulk-status.ts"
+  "/sdlc/api/tickets/bulk-status/undo":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/bulk-status/undo.ts"
+  "/sdlc/api/tickets/comment":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/comment.ts"
+  "/sdlc/api/tickets/graph":
+    auth: admin
+    tier: null
+    source: "components/website/src/pages/sdlc/api/tickets/graph.ts"
+mcpServers:
+  bge-mcp:
+    tier: null
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"
+  codebase-memory-mcp:
+    tier: null
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"
+  context7:
+    tier: null
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"
+  devflow-mcp:
+    tier: null
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"
+  mcp-kubernetes:
+    tier: core
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"
+  mcp-postgres:
+    tier: null
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"
+  mcp-task-runner:
+    tier: null
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"
+  playwright:
+    tier: null
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"
+  warden:
+    tier: null
+    source: "docs/agent-guide/registry/mcp.yaml (clients)"

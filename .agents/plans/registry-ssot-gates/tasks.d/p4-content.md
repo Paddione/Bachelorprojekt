@@ -16,3 +16,11 @@
 ## Abnahme
 
 - Check grün; Fixture (Dangling-Ref) → rot.
+
+## Gegenbeleg-Entscheidung (execute)
+
+- `scripts/agent-guide/validate.mjs` prüft bereits Guardrails/Related-Refs
+  (tools, goals-guardrails/flow, components, themes, taxonomy) — als Substrat
+  eingebunden (`validateRegistry()`), nicht dupliziert. Echte Lücke, die
+  `scripts/content-check.mjs` schließt: `goals[].related` wurde nirgends gegen
+  Goal-IDs geprüft. Abnahme erfüllt (grün; Fixture mit Dangling-Ref rot).

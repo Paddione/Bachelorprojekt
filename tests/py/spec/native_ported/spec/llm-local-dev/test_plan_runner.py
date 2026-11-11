@@ -249,7 +249,7 @@ def test_worker_agents_are_primary_agents_on_the_right_backends(repo_root, run_c
         "import { AGENT_CLOUD, AGENT_SELF } from '" + str(repo_root / "scripts/llm/plan-runner/workers.mjs") + "';\n"
         "const s = readFileSync('" + str(repo_root / ".opencode/agent-models.jsonc") + "', 'utf8');\n"
         "const o = JSON.parse(s.replace(/^\\s*\\/\\/.*$/gm, '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, ''));\n"
-        "const want = { [AGENT_CLOUD]: 'opencode/', [AGENT_SELF]: 'llamacpp-local/' };\n"
+        "const want = { [AGENT_CLOUD]: 'opencode-go/', [AGENT_SELF]: 'llamacpp-local/' };\n"
         "for (const [name, prefix] of Object.entries(want)) {\n"
         "  const a = (o.agent || {})[name];\n"
         "  if (!a) { console.log('missing ' + name); process.exit(1); }\n"
@@ -308,7 +308,7 @@ def test_t900729_worker_starten_ohne_dir_und_mit_dem_modell_ihres_agenten(pr, ru
     assert pr.state_of("p1") == "done"
     output = args_log.read_text()
     assert "--dir" not in output
-    assert "run --agent plan-worker-muse --model opencode/muse-spark-1.3-contributor-free" in output
+    assert "run --agent plan-worker-muse --model opencode-go/muse-spark-1.3-contributor" in output
 
 
 def test_t901014_p1_dispatch_policy_separates_worker_track_from_self_track(repo_root, run_cmd):
@@ -423,7 +423,7 @@ def test_cloud_agent_is_a_primary_on_the_muse_model_and_dead_backends_are_gone(r
         "const a = (o.agent || {})[AGENT_CLOUD];\n"
         "if (!a) { console.log('missing ' + AGENT_CLOUD); process.exit(1); }\n"
         "if (a.mode !== 'primary') { console.log('mode ' + a.mode); process.exit(1); }\n"
-        "if (String(a.model) !== 'opencode/muse-spark-1.3-contributor-free') { console.log('model ' + a.model); process.exit(1); }\n"
+        "if (String(a.model) !== 'opencode-go/muse-spark-1.3-contributor') { console.log('model ' + a.model); process.exit(1); }\n"
         "if (a.permission?.task !== 'deny') { console.log('task not denied'); process.exit(1); }\n"
         "const gone = ['qwen35-4b', 'plan-worker-qwen35', 'plan-worker-cpu2b', 'plan-worker-vllm'].filter((k) => k in (o.agent || {}))\n"
         "  .concat(['llamacpp-qwen3', 'llamacpp-cpu-2b'].filter((k) => k in (o.provider || {})));\n"

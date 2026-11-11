@@ -230,9 +230,9 @@
     // Partials, die der Direkt-Worker nicht schafft. Prompt wie der fruehere vLLM-Worker
     // (schlank, kleines Kontextbudget); write erlaubt, task verboten.
     "plan-worker-muse": {
-      "description": "Primary plan partial worker on Muse Spark 1.3 (opencode free/Go catalog). Cloud track of scripts/llm/plan-runner.mjs via dispatch_cloud; write-capable only for assigned partials.",
+      "description": "Primary plan partial worker on Muse Spark 1.3 (OpenCode Go subscription). Cloud track of scripts/llm/plan-runner.mjs via dispatch_cloud; write-capable only for assigned partials.",
       "mode": "primary",
-      "model": "opencode/muse-spark-1.3-contributor-free",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "prompt": "{file:./prompts/vllm-worker.md}",
       "color": "#F472B6",
       "temperature": 0.3,

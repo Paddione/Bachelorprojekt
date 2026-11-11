@@ -14,7 +14,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `bp-ship` | `opencode-go/muse-spark-1.3-contributor` (1M ctx, primary, write; chat rail, auth.json) | Ship-Primary: BATS/Playwright, Website, Test-Inventar [T900858] |
 | `reviewer` | `llamacpp-local/Qwen3.8-27B` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
 | `plan-worker-self` | `llamacpp-local/Qwen3.8-27B` (primary, write; :1919) | plan-runner-Fallback wenn alle Worker-Slots belegt und `:1919` erreichbar; ein Partial in einem Lauf [T900504, T016656] |
-| `plan-worker-muse` | `opencode/muse-spark-1.3-contributor-free` (primary, write) | plan-runner-Cloud-Track via `dispatch_cloud` (`--cloud-slots`, Default 1); der Direkt-Track braucht keinen Agenten (In-Process-Worker gegen vLLM :8123) [T016656] |
+| `plan-worker-muse` | `opencode-go/muse-spark-1.3-contributor` (primary, write) | plan-runner-Cloud-Track via `dispatch_cloud` (`--cloud-slots`, Default 1); der Direkt-Track braucht keinen Agenten (In-Process-Worker gegen vLLM :8123) [T016656] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 
 Dispatch: `task local` für lokale Implementation + `task exe-muse` für Cloud-Eskalation (T900751). Lokale: `write=deny` → Orchestrator erzeugt. SSOT `.opencode/agent-models.jsonc`; Historie `docs/agent-guide/registry/retired.md`.

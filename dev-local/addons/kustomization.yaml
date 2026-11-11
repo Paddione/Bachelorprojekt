@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ../platform/lego-webhook-helmrelease.yaml
   - ../cluster/tls.yaml
+  - monitoring

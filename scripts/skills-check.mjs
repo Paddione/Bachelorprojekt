@@ -194,17 +194,23 @@ function main(argv) {
     return 2;
   }
 
+  if (emitMap) {
+    for (const [index, skill] of doc.skills.entries()) {
+      if (!skill?.id) {
+        console.error(`skills-check: Skill #${index + 1}: Pflichtfeld 'id' fehlt`);
+        return 1;
+      }
+    }
+    writeFileSync(DEFAULT_MAP, renderMap(doc, registryPath), 'utf8');
+    console.log(`skills-check: Karte geschrieben — ${DEFAULT_MAP}`);
+    return 0;
+  }
+
   const problems = check(doc, REPO, projectPath, vendorLockPath, flagValue(argv, '--registry'));
   if (problems.length > 0) {
     console.error(`skills-check: ${problems.length} Verstoß/Verstöße`);
     for (const problem of problems) console.error(`  ✗ ${problem}`);
     return 1;
-  }
-
-  if (emitMap) {
-    writeFileSync(DEFAULT_MAP, renderMap(doc, registryPath), 'utf8');
-    console.log(`skills-check: Karte geschrieben — ${DEFAULT_MAP}`);
-    return 0;
   }
 
   console.log(`skills-check: OK — ${doc.skills.length} Skills, Projektion + vendor-lock valide`);

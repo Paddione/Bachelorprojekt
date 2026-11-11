@@ -48,6 +48,30 @@ def test_pvc_headroom_counts_volumes_below_twenty_percent(assert_measure):
     assert_measure("capacity", "prometheus-empty.json", "-")
 
 
+def test_prometheus_via_kubectl_service_proxy_is_opt_in(run_cmd, repo_root, tool, tmp_path):
+    # Fake-kubectl liefert die Fixture nur fuer den Service-Proxy-Pfad des
+    # monitoring/prometheus-Service; so prueft der Test Ziel und Ergebnis.
+    fixture = repo_root / FIXTURES / "pvc-low.json"
+    fake = tmp_path / "kubectl"
+    fake.write_text(
+        "#!/usr/bin/env bash\n"
+        'case "$*" in\n'
+        f'  *"--context devmesh"*"/namespaces/monitoring/services/http:prometheus:http/proxy/api/v1/query?"*) cat "{fixture}" ;;\n'
+        "  *) exit 1 ;;\n"
+        "esac\n"
+    )
+    fake.chmod(0o755)
+    import os
+    env = {k: v for k, v in os.environ.items() if k != "HG_PROMETHEUS_URL"}
+    env["PATH"] = f"{tmp_path}:{env['PATH']}"
+    env["HG_OPS_CTX"] = "devmesh"
+    closed = run_cmd(["python3", str(tool), "capacity"], env=env)
+    assert closed.output == "-", closed.output
+    env["HG_PROMETHEUS_KUBECTL"] = "1"
+    live = run_cmd(["python3", str(tool), "capacity"], env=env)
+    assert live.output == "1", live.output
+
+
 def test_axe_counts_only_serious_and_critical_findings_across_covered_brands(assert_measure):
     assert_measure("axe", "axe-clean.json", "0")
     assert_measure("axe", "axe-findings.json", "1")

@@ -3360,6 +3360,12 @@
     "kind": "pytest"
   },
   {
+    "id": "devmesh/monitoring_addon",
+    "file": "tests/py/spec/devmesh/test_monitoring_addon.py",
+    "category": "devmesh",
+    "kind": "pytest"
+  },
+  {
     "id": "devmesh/opencode_android_paket",
     "file": "tests/py/spec/devmesh/test_opencode_android_paket.py",
     "category": "devmesh",

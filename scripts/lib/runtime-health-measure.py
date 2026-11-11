@@ -29,7 +29,17 @@ def load_json(path):
 def prometheus(query):
     base = os.environ.get("HG_PROMETHEUS_URL")
     if not base:
-        raise RuntimeError("HG_PROMETHEUS_URL missing")
+        # Host-Messung (devmesh): ohne Port-Forward ueber den Service-Proxy des
+        # API-Servers. Nur per Opt-in, damit CI ohne Prometheus fail-closed bleibt.
+        if os.environ.get("HG_PROMETHEUS_KUBECTL") != "1":
+            raise RuntimeError("HG_PROMETHEUS_URL missing")
+        path = ("/api/v1/namespaces/monitoring/services/http:prometheus:http/proxy/api/v1/query?"
+                + urllib.parse.urlencode({"query": query}))
+        out = subprocess.run(
+            ["kubectl", "--context", os.environ.get("HG_OPS_CTX", "devmesh"),
+             "--request-timeout=15s", "get", "--raw", path],
+            capture_output=True, text=True, check=True, timeout=20)
+        return json.loads(out.stdout)
     url = f"{base.rstrip('/')}/api/v1/query?{urllib.parse.urlencode({'query': query})}"
     with urllib.request.urlopen(url, timeout=15) as response:
         return json.load(response)

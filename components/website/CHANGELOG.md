@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.453.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.453.0...website-v1.453.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **ci:** correct nearest-rank 95th percentile index in G-CI03 calculation ([4be4673](https://github.com/Paddione/Bachelorprojekt/commit/4be467386238ef49eeaac96178acd22c1bdd86f5))
+
 ## [1.453.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.4...website-v1.453.0) (2026-11-11)
 
 

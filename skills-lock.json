@@ -1,11 +1,11 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
     "vitest": {
       "source": "supabase/supabase",
       "sourceType": "github",
       "skillPath": ".agents/skills/vitest/SKILL.md",
-      "computedHash": "a0128a724b3a927263a879c982781b7c67c42685c388560f9722d0d1c81488e7"
+      "computedHash": "04a6279b6a4fb458d360239a2cf5161ec4a8da8b9ab074fa8c0661381161cc2e"
     }
   }
 }

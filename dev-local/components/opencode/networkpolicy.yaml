@@ -28,10 +28,13 @@ spec:
     - ports: # HTTPS (models.dev, Registry, OIDC-Discovery)
         - port: 443
           protocol: TCP
-    - ports: # lokale LLM-Server (devmesh-vllm-4b auf 8001, devmesh-llamacpp-2b auf 8080)
+    - ports: # lokale LLM-Server (devmesh-vllm-4b auf 8001, devmesh-llamacpp-2b auf 8080,
         - port: 8001
           protocol: TCP
         - port: 8080
+          protocol: TCP
+    - ports: # Host-27B-Worker fuer Communicator (pk-desktop :1919 via Tailnet)
+        - port: 1919
           protocol: TCP
 ---
 # Gleiches fuer oauth2-proxy (Browser-Pfad Pocket-ID): 4180 von Traefik,

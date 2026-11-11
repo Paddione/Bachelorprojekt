@@ -4,6 +4,8 @@
 # Stand 2026-10-31: vllm-serve (0 Replicas, keine Endpoints) + Qwen3.5-0.8B
 # ersetzt durch vllm-w4a4 (serving, Qwen3.5-4B QUASAR W4A4) und
 # llm-gateway-2b (qwen35-2b-worker, llama.cpp, ctx 32768).
+# 2026-11-11: devmesh-host-27b (Host :1919 via Tailnet, qwen3.8-27b-gsq-rco-iq2s)
+# fuer Communicator-Exklusivsession (Egress 1919 in networkpolicy.yaml).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -50,6 +52,22 @@ data:
               "limit": {
                 "context": 32768,
                 "output": 4096
+              }
+            }
+          }
+        },
+        "devmesh-host-27b": {
+          "npm": "@ai-sdk/openai-compatible",
+          "name": "Qwen3.8 27B (Host llama.cpp :1919, Tailnet)",
+          "options": {
+            "baseURL": "http://100.76.165.106:1919/v1"
+          },
+          "models": {
+            "qwen3.8-27b-gsq-rco-iq2s": {
+              "name": "Qwen3.8 27B GSQ IQ2_S-MTP (Host, llama.cpp)",
+              "limit": {
+                "context": 131072,
+                "output": 8192
               }
             }
           }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.453.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.4...website-v1.453.0) (2026-11-11)
+
+
+### Features
+
+* **infra:** schlankes Prometheus-Monitoring auf devmesh als Messbasis fuer G-OBS01/G-CAP01/G-SLO01 ([#7274](https://github.com/Paddione/Bachelorprojekt/issues/7274)) ([82c25a0](https://github.com/Paddione/Bachelorprojekt/commit/82c25a032cd7a868694a9abc3446d2e369b1544b))
+
 ## [1.452.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.452.3...website-v1.452.4) (2026-11-09)
 
 

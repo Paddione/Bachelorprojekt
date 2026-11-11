@@ -378,7 +378,7 @@ runs=json.load(sys.stdin)
 def parse(ts):
     return datetime.fromisoformat(ts.replace('Z','+00:00'))
 durations=[(parse(r['updatedAt'])-parse(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r]
-durations.sort(); p95=durations[int(len(durations)*0.95)] if durations else 0; print(f'{p95:.0f}')
+durations.sort(); p95=durations[int((len(durations)-1)*0.95)] if durations else 0; print(f'{p95:.0f}')
 " 2>/dev/null || echo "-"
     fi
   fi

@@ -228,14 +228,14 @@ Re-Bewertung mit 9 knapp unter Target, beim zweiten Messlauf derselben Sitzung b
 das p95 stark) — mit dokumentiertem `3 ✓`. Dieselbe Ursache wie bei G-DB11: gewachsene Werte
 wurden in Prio C nie rot, die `Aktuell`-Spalte blieb auf dem Aufnahmewert stehen.
 
-> **B · Baseline:** 8 → 7 → 9 → 7 → 5 → 197 · **Target:** ≤ 12 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
+> **B · Baseline:** 8 → 7 → 9 → 7 → 5 → 9 · **Target:** ≤ 12 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
 
 ```bash
 gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
   | python3 -c "import json,sys; from datetime import datetime; \
 runs=json.load(sys.stdin); p=lambda ts: datetime.fromisoformat(ts.replace('Z','+00:00')); \
 d=sorted((p(r['updatedAt'])-p(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r); \
-print(f'{d[int(len(d)*0.95)]:.0f}')"
+print(f'{d[int((len(d)-1)*0.95)]:.0f}')"
 ```
 
 Bewusst `gh` statt `gh-axi`: `gh-axi run list` kennt kein `--json`-Pendant für

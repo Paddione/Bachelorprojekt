@@ -126,11 +126,11 @@
     "priority": "B",
     "direction": "lower",
     "baseline": 8,
-    "current": 197,
+    "current": 9,
     "target": 12,
     "unit": "",
     "status": "unknown",
-    "measurement": "gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \\\n  | python3 -c \"import json,sys; from datetime import datetime; \\\nruns=json.load(sys.stdin); p=lambda ts: datetime.fromisoformat(ts.replace('Z','+00:00')); \\\nd=sorted((p(r['updatedAt'])-p(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r); \\\nprint(f'{d[int(len(d)*0.95)]:.0f}')\"",
+    "measurement": "gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \\\n  | python3 -c \"import json,sys; from datetime import datetime; \\\nruns=json.load(sys.stdin); p=lambda ts: datetime.fromisoformat(ts.replace('Z','+00:00')); \\\nd=sorted((p(r['updatedAt'])-p(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r); \\\nprint(f'{d[int((len(d)-1)*0.95)]:.0f}')\"",
     "source": ".claude/lib/goals.md · G-CI03",
     "measured_at": "2026-11-11"
   },

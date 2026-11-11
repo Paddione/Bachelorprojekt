@@ -80,6 +80,6 @@ runtimes:
     note: "plan-runner self-execution worker on the local Qwen3.8-27B IQ2_S-mtp (llama.cpp :1919, RTX 5070 Ti; not the Slim orchestrator model, which plans on Muse Spark via Go). Executes one plan partial in one go when all worker slots are busy and :1919 answers the preflight; started by scripts/llm/plan-runner.mjs [T900504, T016656]."
   plan-worker-muse:
     mode: primary
-    model: opencode/muse-spark-1.3-contributor-free
+    model: opencode-go/muse-spark-1.3-contributor
     write_capable: true
-    note: "Primary plan partial worker on Muse Spark 1.3 (opencode catalog, free/Go). Cloud track of scripts/llm/plan-runner.mjs via dispatch_cloud (--cloud-slots, default 1) for partials the in-process direct worker cannot handle [T016656]."
+    note: "Primary plan partial worker on Muse Spark 1.3 (OpenCode Go subscription). Cloud track of scripts/llm/plan-runner.mjs via dispatch_cloud (--cloud-slots, default 1) for partials the in-process direct worker cannot handle [T016656]."

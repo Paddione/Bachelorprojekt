@@ -7,7 +7,7 @@ def test_worker_routes(repo_root):
     # T016656: der 4B-Pool :8080 und der CPU-2B-Pool sind aus der Config entfernt (dotfiles #131);
     # der Cloud-Worker des plan-runners ist plan-worker-muse.
     muse = cfg['agent']['plan-worker-muse']
-    assert muse['model'] == 'opencode/muse-spark-1.3-contributor-free'
+    assert muse['model'] == 'opencode-go/muse-spark-1.3-contributor'
     assert muse['mode'] == 'primary'
     assert muse['prompt'] == '{file:./prompts/vllm-worker.md}'
     assert muse['permission']['task'] == 'deny'

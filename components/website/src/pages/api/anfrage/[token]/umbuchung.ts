@@ -10,7 +10,11 @@ import {
   type InboxRowLike,
 } from '../../../../lib/appointment-requests';
 import { appendNotifyLog, notifyEntryFromResult, sendNotify } from '../../../../lib/appointment-notify';
-import { berlinDayKey, berlinWallMinutes } from '../../../../lib/caldav-cache';
+import { berlinDayKey } from '../../../../lib/caldav-cache';
+import {
+  buildReschedulePayload,
+  supersededCancelMerge,
+} from '../../../../lib/appointment-reschedule';
 import {
   addSlotToWhitelist,
   claimSlot,
@@ -46,10 +50,6 @@ function json(body: Record<string, unknown>, init: { status: number }): Response
     status: init.status,
     headers: { 'Content-Type': 'application/json' },
   });
-}
-
-function wallDisplay(minutes: number): string {
-  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 }
 
 export const POST: APIRoute = async ({ request, params, locals }) => {
@@ -119,29 +119,13 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
 
     // New open request linked to the old one — never a silent overwrite.
     // The service snapshot is copied frozen; the catalogue is not re-read.
+    // (F3/A4: Payload-Bau liegt in lib/appointment-reschedule.ts, hier nur Orchestrierung.)
     const newToken = generateRequestToken();
     const oldRow = rows.find((row) => row.payload.token === token);
     const oldPayload: Record<string, unknown> = oldRow?.payload ?? {};
-    const newDisplay = `${wallDisplay(berlinWallMinutes(start))} - ${wallDisplay(berlinWallMinutes(end))}`;
-    const newPayload: Record<string, unknown> = {
-      name: req.name,
-      email: req.email,
-      phone: req.phone,
-      type: typeof oldPayload.type === 'string' ? oldPayload.type : 'termin',
-      typeLabel: typeof oldPayload.typeLabel === 'string' ? oldPayload.typeLabel : 'Termin vor Ort',
-      slotStart: start.toISOString(),
-      slotEnd: end.toISOString(),
-      slotDisplay: newDisplay,
-      date: berlinDayKey(start),
-      serviceKey: req.serviceKey,
-      serviceSnapshot: req.serviceSnapshot,
-      message: req.message,
-      token: newToken,
-      state: 'offen',
-      idempotencyKey: null,
-      slotClaimed: newSlotClaimed,
-      supersedesId: req.id,
-    };
+    const { payload: newPayload, newDisplay } = buildReschedulePayload(
+      req, oldPayload, start, end, newToken, newSlotClaimed,
+    );
     const created = await createInboxItem({
       type: 'booking',
       referenceId: newToken,
@@ -149,12 +133,7 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
       isTestData: isE2ETestRequest(request),
     });
 
-    const merged = JSON.stringify({
-      state: 'storniert',
-      outcome: 'storniert',
-      cancelledAt: new Date().toISOString(),
-      cancelNote: 'Durch Umbuchung ersetzt.',
-    });
+    const merged = supersededCancelMerge();
     await pool.query(
       `UPDATE inbox_items SET payload = payload || $1::jsonb,
        status = 'actioned', actioned_at = now()

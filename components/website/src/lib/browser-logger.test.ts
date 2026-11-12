@@ -65,8 +65,7 @@ describe('browserLogger', () => {
     });
   });
 
-  describe('isolation test', () => {
-    it('logs all three levels independently (no cross-contamination)', () => {
+  describe('isolation test', () => {    it('logs all three levels independently (no cross-contamination)', () => {
       vi.spyOn(console, 'error').mockClear();
       vi.spyOn(console, 'warn').mockClear();
       vi.spyOn(console, 'log').mockClear();
@@ -78,6 +77,18 @@ describe('browserLogger', () => {
       expect(console.error).toHaveBeenCalledTimes(1);
       expect(console.warn).toHaveBeenCalledTimes(1);
       expect(console.log).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('re-entrancy guard (F5)', () => {
+    it('nested log call during console output is dropped, not recursed', () => {
+      const errorSpy = vi.spyOn(console, 'error');
+      errorSpy.mockImplementationOnce(() => {
+        browserLogger.error('nested');
+      });
+      browserLogger.error('outer');
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('[browser]', 'outer', '');
     });
   });
 });

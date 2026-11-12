@@ -55,7 +55,8 @@ def test_coaching_help_content_uses_coaching_sessions(repo_root):
 
 def test_brett_auto_post_message_uses_fuer_diese_session(repo_root):
     web = repo_root / "components/website/src"
-    assert _has(web / "pages/api/admin/inbox/[id]/action.ts", "für diese Session:")
+    # F3/A4-Extraktion (PR #7280): approve_booking lebt in lib/inbox-actions/.
+    assert _has(web / "lib/inbox-actions/approve-booking.ts", "für diese Session:")
 
 
 def test_migration_adds_is_test_data_to_coaching_sessions(repo_root):

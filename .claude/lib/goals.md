@@ -3,7 +3,7 @@
 Quantifizierbare Ziele für die strukturelle Gesundheit des Repos.
 Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
-**Baseline-Stichtag:** `2026-07-01` · **Zuletzt gemessen:** `2026-11-11` · **Dashboard:** Homepage-Section `#health`
+**Baseline-Stichtag:** `2026-07-01` · **Zuletzt gemessen:** `2026-11-12` · **Dashboard:** Homepage-Section `#health`
 
 > **`Zuletzt gemessen` ist das Messdatum des Dashboards** und wird von
 > `scripts/health-goals-update.sh` bei jedem Lauf gestempelt. Vor T002598 leitete
@@ -720,8 +720,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 ✓ | 0 | `grep -rn 'password.*=.*[^$]' k3d/*.yaml \| grep -iv secretKeyRef \| wc -l` |
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
 | **G-SEC03** | SealedSecret-Rotation | 5 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
-| **G-SEC04** | Sealing-Cert Restlaufzeit | 3620 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
-| **G-SEC05** | Unsignierte Commits (adj.) | 11/50 ✓ | ≤ 12 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **gelockert:** Target auf ≤ 12 gesetzt, um bestehende unsignierte Commits im aktuellen Lauf abzudecken; beide Bot-Mail-Varianten werden korrekt gefiltert. |
+| **G-SEC04** | Sealing-Cert Restlaufzeit | 3619 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
+| **G-SEC05** | Unsignierte Commits (adj.) | 10/50 ✓ | ≤ 12 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **gelockert:** Target auf ≤ 12 gesetzt, um bestehende unsignierte Commits im aktuellen Lauf abzudecken; beide Bot-Mail-Varianten werden korrekt gefiltert. |
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 0 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
 | **G-FLUX01** | Flux Reconciliation Health | 0 ✓ | 0 | `python3 scripts/lib/runtime-health-measure.py flux` (`HG_OPS_CTX`, Default `devmesh`; fleet 2026-10-22 abgebaut) — clusterweit, leer/fehlerhaft ⇒ n/a, absichtlich Suspendierte ausgenommen. CI ohne Live-Kubeconfig ⇒ n/a erwartet |
@@ -731,7 +731,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 
 | ID | Ziel | Aktuell | Target | Basis-Messung |
 |----|------|---------|--------|---------------|
-| **G-FE05** | Lighthouse Performance Score (korczewski) | 91 ✓ | ≥ 90 | Lighthouse-JSON (korczewski, `https://web.korczewski.de`) → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
+| **G-FE05** | Lighthouse Performance Score (korczewski) | 99 ✓ | ≥ 90 | Lighthouse-JSON (korczewski, `https://web.korczewski.de`) → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
 | **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | 1000 ‰ ✓ | ≥ 995 ‰ | `probe_success` (korczewski), ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo`. Ohne Prometheus-Basis (fleet abgebaut, kein Prometheus auf devmesh) ⇒ n/a erwartet. **File-Evidenz (Eigner-Entscheid):** `scripts/lib/obs-file-evidence.sh slo-append` schreibt Brand-Proben ins JSONL-Log (`~/.local/state/obs-evidence/slo.jsonl`), `slo-window` aggregiert das 7d-Fenster (Default: ≥7 Proben aus ≥6 Tagen, Tages-Kadenz des health-goals-Laufs; `--min-samples/--min-days` für höhere Kadenz); `health-goals-check.sh` hängt pro Lauf an und exportiert `HG_SLO_INPUT` (nur lokal, nicht CI). Zu wenig Historie ⇒ n/a, kein stiller Wert |
 | **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 scripts/lib/health-goals-probes.py if02` — catch ohne Log und ohne Rethrow, Blöcke per Klammerzählung (T016657) |
@@ -745,7 +745,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 85 % ✓ | ≥ 80 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (Target gelockert auf ≥ 80 %, letzte 15 Läufe 100 % grün) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
-| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 506 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
+| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 497 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
 | **G-DORA02** | Lead Time (PR→merge) | 0 h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (revert/hotfix-Rate) | 0 ‰ ✓ | ≤ 5 ‰ (= 0.5 %) | `git log --since="8 weeks ago" --first-parent --format='%s' main \| grep -ciE 'revert\|hotfix'` ÷ Gesamtzahl desselben Fensters — T900380: der Proxy zählte `^fix`-**Commits** (627 von 2320 = 27 %), nicht fehlgeschlagene Deployments; er meldete 27 % Verlustquote, während G-DORA04 für denselben Zeitraum **0** Reverts/Hotfixes zählte. Derselbe Sachverhalt, zwei widersprüchliche Ampelstände. Jetzt derselbe Ereignistyp wie G-DORA04, nur skalenfrei als Rate: bei ~290 Merges/Woche greift G-DORA04 (≤ 5 absolut) zuerst, fällt das Volumen, greift die Rate zuerst — zusammen decken sie das Feld ab. Promille statt Prozent, weil ganzzahliges Prozent 0.4 % und 0.5 % beide auf 0 abrundet. |
 | **G-DORA04** | MTTR (Proxy: revert/hotfix-Commits/8 Wo) | 1 ✓ | ≤ 5 | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
@@ -772,7 +772,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 83 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (devmesh, beide Brands) | 32 ✓ | ≤ 35 | `kubectl get pods --context devmesh -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh, Target gelockert auf ≤ 35 wegen 24h-Cluster-Reboot-Fenster) |
-| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, web.korczewski.de) | 80 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
+| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, web.korczewski.de) | 79 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
 | **G-KNOW02** | Markdown unter `docs/` außer `adr/` (kein Netto-Zuwachs) | 375 ✓ | ≤ 375 | `python3 scripts/lib/knowledge-goals.py docs-md` — Sperrklinke zu G-KNOW04, Target sinkt mit jedem Abbau (T900995); Ratchet 372→374 für `docs/brain/route-retrieval-benchmark.md` (#7103) und `docs/runbooks/fritzbox-dns.md` (#7109), →375 für `docs/generated/README.md` als +1 per Eigner-Entscheid 2026-11-06 |
 | **G-KNOW06** | ADR-Inhaltsänderungen nach dem Anlegen (kein Netto-Zuwachs) | 11 ✓ | ≤ 11 | `python3 scripts/lib/knowledge-goals.py adr-edits` — Status-/Superseded-Zeilen zählen nicht; neue Entscheidung = neues ADR (T900995) |
 | **G-KNOW07** | Agent-Registry-Schema valide | Exit 0 ✓ | Exit 0 | `node scripts/agent-guide/validate.mjs` (T900995) |

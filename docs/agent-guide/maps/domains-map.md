@@ -25,9 +25,11 @@ flowchart LR
         devmesh_agent_board["agent-board.devmesh.korczewski.de"]
     end
     subgraph prodmesh["prodmesh"]
+        website_korczewski["web.${PROD_DOMAIN}"]
         auth_korczewski["${POCKET_ID_DOMAIN}"]
     end
     owner_bp_ship["bp-ship"]
+    website_korczewski --> owner_bp_ship
     devmesh_web --> owner_bp_ship
     devmesh_website_alias --> owner_bp_ship
     devmesh_auth --> owner_bp_ship
@@ -74,17 +76,17 @@ flowchart LR
 
 ### Begruendete Splits im Register
 
-- **`website-korczewski`** (web.${PROD_DOMAIN}) — D1: frozen bis Deploy-Freigabe (Backend derzeit 404); nach verifiziertem 200 auf live + expect heben.
+- **`website-korczewski`** (web.${PROD_DOMAIN}) — D1 aufgetaut 2026-11-12 (Eigner-Freigabe #7174/#7175): web.korczewski.de serviert die Website offen; 200 verifiziert (Domains-Probe + curl).
 - **`website-staging`** (web.${PROD_DOMAIN}) — D1: Staging-Spiegel; frozen seit brand-trennung (realer Host web.staging.korczewski.de derzeit 000, unter prodmesh-korczewski-Env waere web.korczewski.de 404). Reaktivieren erst mit Staging-Backend + eigenem expect.
 - **`apex-korczewski`** (${PROD_DOMAIN}) — D1: Apex leitet auf den kanonischen web-Host weiter — aktiv erst nach DNS-Cutover + Deploy (derzeit korczewski.de 404). Dann live + expect 301.
 - **`devmesh-web`** (web.${DEVMESH_DOMAIN}) — D2: agent-board ist das kanonische devmesh-Ops-Cockpit; web.devmesh/sdlc sind Tickets/Pipeline.
 - **`devmesh-website-alias`** (${WEBSITE_HOST}) — D2: Kompat-Alias auf denselben Website-Service; kanonisch bleibt web.
 - **`devmesh-opencode`** (${OPENCODE_PUBLIC_HOST}) — Ops-Einstieg hinter oauth2-proxy; eigener Host, kein FritzBox-Zugang.
 - **`devmesh-fritzbox`** (${FRITZ_BOX_HOST}) — FritzBox-Lokalzugang; eigener Host, kein Redirect auf den Public-Host.
-- **`korczewski-web-mirror`** (${KORCZEWSKI_PROD_WEB_HOST}) — Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt prodmesh.
+- **`korczewski-web-mirror`** (${KORCZEWSKI_PROD_WEB_HOST}) — Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt prodmesh. Eigner-Freigabe #7174 (2026-11-06): / direkt auf website:80 ohne oauth2-proxy-Gate (200 statt 401).
 - **`korczewski-apex-mirror`** (${KORCZEWSKI_PROD_APEX_HOST}) — Kompat-Spiegel des korczewski-Apex-Hosts ab devmesh; kanonisch bleibt prodmesh.
 - **`korczewski-auth-mirror`** (${KORCZEWSKI_PROD_AUTH_HOST}) — Kompat-Spiegel des korczewski-Pocket-ID-Hosts ab devmesh; kanonisch bleibt prodmesh (auth-korczewski).
-- **`auth-korczewski`** (${POCKET_ID_DOMAIN}) — D1 aufgetaut 2026-11-05 (Eigner): eine Infra serviert beide Meshes; live verifiziert (Probe + Playwright, 200), Freigabe erteilt. website-/apex-korczewski bleiben frozen bis Backend-200 bzw. Redirect-301.
+- **`auth-korczewski`** (${POCKET_ID_DOMAIN}) — D1 aufgetaut 2026-11-05 (Eigner): eine Infra serviert beide Meshes; live verifiziert (Probe + Playwright, 200), Freigabe erteilt. apex-korczewski bleibt frozen bis Redirect-301.
 - **`devmesh-agent-board`** (agent-board.devmesh.korczewski.de) — D2: kanonisches devmesh-Ops-Cockpit; Manifest im Home-Repo (apps/agent-board).
 
 ## Host-Inventar
@@ -94,7 +96,7 @@ flowchart LR
 | `${FRITZ_BOX_HOST}` | devmesh | components | oauth2-proxy-fritzbox:4180 | oidc | bp-ship | ops-access | live | dev-local/components/opencode/fritzbox-ingressroute.yaml |
 | `${KORCZEWSKI_PROD_APEX_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${KORCZEWSKI_PROD_AUTH_HOST}` | devmesh | components | pocket-id:1411 | oidc | bp-ship | sso | live | dev-local/components/korczewski-prod/ingressroute.yaml |
-| `${KORCZEWSKI_PROD_WEB_HOST}` | devmesh | components | website:80 | oidc | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
+| `${KORCZEWSKI_PROD_WEB_HOST}` | devmesh | components | website:80 | open | bp-ship | frontend | live | dev-local/components/korczewski-prod/ingressroute.yaml |
 | `${OPENCODE_PUBLIC_HOST}` | devmesh | components | opencode:80 | oidc | bp-ship | ops-access | live | dev-local/components/opencode/ingressroute.yaml |
 | `${POCKET_ID_DOMAIN}` | prodmesh | workspace-korczewski | pocket-id:1411 | oidc | bp-ship | sso | live | k3d/pocket-id.yaml |
 | `${PROD_DOMAIN}` | prodmesh | website-korczewski | website:80 | open | bp-ship | redirect | frozen | prod-fleet/website-korczewski/website-apex.yaml |
@@ -108,5 +110,5 @@ flowchart LR
 | `signaling.${DEVMESH_DOMAIN}` | devmesh | components | spreed-signaling:8080 | token | bp-ship | signaling | live | dev-local/components/talk/ingress.yaml |
 | `vault.${DEVMESH_DOMAIN}` | devmesh | components | vaultwarden:80 | open | bp-ship | secrets | live | dev-local/components/vaultwarden/ingress.yaml |
 | `web.${DEVMESH_DOMAIN}` | devmesh | components | sdlc-console:8080 | oidc | bp-ship | frontend, backend | live | dev-local/core/ingress.yaml |
-| `web.${PROD_DOMAIN}` | prodmesh | website-korczewski | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-korczewski/website-ingress-web.yaml |
+| `web.${PROD_DOMAIN}` | prodmesh | website-korczewski | website:80 | open | bp-ship | frontend | live | prod-fleet/website-korczewski/website-ingress-web.yaml |
 | `web.${PROD_DOMAIN}` | prodmesh | website-staging | website:80 | open | bp-ship | frontend | frozen | prod-fleet/website-staging/website-ingress-web.yaml |

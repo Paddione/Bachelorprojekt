@@ -44,9 +44,11 @@ domains:
     auth: open
     owner_frontend: bp-ship
     functions: [frontend]
-    status: frozen
+    status: live
+    expect:
+      status: [200]
     manifest_source: prod-fleet/website-korczewski/website-ingress-web.yaml
-    decision: "D1: frozen bis Deploy-Freigabe (Backend derzeit 404); nach verifiziertem 200 auf live + expect heben."
+    decision: "D1 aufgetaut 2026-11-12 (Eigner-Freigabe #7174/#7175): web.korczewski.de serviert die Website offen; 200 verifiziert (Domains-Probe + curl)."
 
   - id: website-staging
     host: web.${PROD_DOMAIN}
@@ -261,19 +263,14 @@ domains:
     namespace: components
     paths: ["/", "/_astro/"]
     service: website:80
-    auth: oidc
-    sso:
-      client_id: web-korczewski
-      gate: oauth2-proxy
-      gate_manifest: k3d/oauth2-proxy-web-korczewski.yaml
-      groups: [workspace-owners]
+    auth: open
     owner_frontend: bp-ship
     functions: [frontend]
     status: live
     expect:
-      status: [401]
+      status: [200]
     manifest_source: dev-local/components/korczewski-prod/ingressroute.yaml
-    decision: "Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt prodmesh."
+    decision: "Kompat-Spiegel des korczewski-Prod-Hosts ab devmesh; kanonisch bleibt prodmesh. Eigner-Freigabe #7174 (2026-11-06): / direkt auf website:80 ohne oauth2-proxy-Gate (200 statt 401)."
 
   - id: korczewski-apex-mirror
     host: ${KORCZEWSKI_PROD_APEX_HOST}
@@ -324,7 +321,7 @@ domains:
     expect:
       status: [200]
     manifest_source: k3d/pocket-id.yaml
-    decision: "D1 aufgetaut 2026-11-05 (Eigner): eine Infra serviert beide Meshes; live verifiziert (Probe + Playwright, 200), Freigabe erteilt. website-/apex-korczewski bleiben frozen bis Backend-200 bzw. Redirect-301."
+    decision: "D1 aufgetaut 2026-11-05 (Eigner): eine Infra serviert beide Meshes; live verifiziert (Probe + Playwright, 200), Freigabe erteilt. apex-korczewski bleibt frozen bis Redirect-301."
 
   - id: devmesh-agent-board
     host: agent-board.devmesh.korczewski.de

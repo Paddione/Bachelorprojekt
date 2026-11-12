@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EnhancedFilterEngine } from './enhanced-filter-engine';
 import { instantSearch } from './instant-search';
-import { Video } from '../types/video';
+import type { Video } from '../types/video';
 
 // Mock the instant search module
 vi.mock('./instant-search', () => ({

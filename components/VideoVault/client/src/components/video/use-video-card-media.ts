@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { VideoThumbnailService } from '@/services/video-thumbnail';
 import { SpriteCache } from '@/services/sprite-cache';
 import { getVideoSrc } from '@/lib/video-urls';

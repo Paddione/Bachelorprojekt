@@ -18,7 +18,7 @@ import {
   CheckSquare,
   Square,
 } from 'lucide-react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 interface BulkOperationsToolbarProps {
   selectedVideos: Video[];

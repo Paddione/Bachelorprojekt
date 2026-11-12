@@ -1,5 +1,5 @@
 import { VideoThumbnailService } from './video-thumbnail';
-import { VideoThumbnail } from '../types/video';
+import type { VideoThumbnail } from '../types/video';
 import { FileHandleRegistry } from './file-handle-registry';
 import { VideoUrlRegistry } from './video-url-registry';
 import type { AdaptiveOptions } from '@/services/adaptive-thumbnail-manager';

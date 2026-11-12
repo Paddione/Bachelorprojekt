@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { FilterPresetsService } from '@/services/filter-presets';
-import { FilterPreset } from '@/types/video';
+import type { FilterPreset } from '@/types/video';
 import { Trash2, Download, Upload, Plus } from 'lucide-react';
 
 interface PresetManagerModalProps {

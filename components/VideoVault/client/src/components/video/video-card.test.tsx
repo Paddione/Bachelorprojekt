@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, within, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { VideoCard } from './video-card';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 // Mock the services
 vi.mock('@/services/file-handle-registry', () => ({

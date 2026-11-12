@@ -1,4 +1,4 @@
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 export interface CategoryColor { bg: string; border: string; text: string; badge: string; ring: string }
 

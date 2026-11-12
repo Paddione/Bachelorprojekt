@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { FilterEngine } from './filter-engine';
-import { Video, AdvancedFilters } from '@/types/video';
+import type { Video, AdvancedFilters } from '@/types/video';
 
 function createMockVideo(overrides: Partial<Video> = {}): Video {
   return {

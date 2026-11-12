@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { VideoCard } from '@/components/video/video-card';
 import { Loader2, RefreshCw, ArrowLeft } from 'lucide-react';
 import { Link } from 'wouter';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { useVideoManager } from '@/hooks/use-video-manager';
 import { useToast } from '@/hooks/use-toast';
 

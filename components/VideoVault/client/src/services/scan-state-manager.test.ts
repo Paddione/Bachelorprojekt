@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ScanStateManager, ScanState } from './scan-state-manager';
-import { Video } from '../types/video';
+import type { Video } from '../types/video';
 
 describe('ScanStateManager', () => {
   const mockVideo: Video = {

@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
 import { VideoTagsEditor } from './video-tags-editor';
 import { CategoryExtractor } from '@/services/category-extractor';
 

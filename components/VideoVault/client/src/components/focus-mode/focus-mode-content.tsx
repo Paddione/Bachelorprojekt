@@ -1,4 +1,4 @@
-import { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
 import { VideoPreviewSection } from './video-preview-section';
 import { EditorPanel } from './editor-panel';
 

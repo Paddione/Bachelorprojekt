@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { VideoPlayerModal } from './video-player-modal';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 vi.mock('@/services/video-url-registry', () => {
   const get = vi.fn();

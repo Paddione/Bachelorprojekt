@@ -3,7 +3,7 @@ import { MainContent } from '@/components/layout/main-content';
 import { SplitPaneEditor } from '@/components/video/split-pane-editor';
 import { ApplyToVisible } from '@/components/bulk/apply-to-visible';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Video, AdvancedFilters, Category, SortField, SortDirection } from '@/types/video';
+import type { Video, AdvancedFilters, Category, SortField, SortDirection } from '@/types/video';
 
 export interface WorkspaceCallbacks {
   onVideoPlay: (v: Video) => void;

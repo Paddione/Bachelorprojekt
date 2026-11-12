@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { getSpriteSrc } from '@/lib/video-urls';
 import { formatTime } from './categorize-queries';
 

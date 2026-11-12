@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { InstantSearchService } from './instant-search';
-import { Video } from '../types/video';
+import type { Video } from '../types/video';
 
 describe('InstantSearchService', () => {
   let searchService: InstantSearchService;

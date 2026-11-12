@@ -1,4 +1,4 @@
-import { Video, VideoCategories } from '../types/video';
+import type { Video, VideoCategories } from '../types/video';
 import { CategoryExtractor } from './category-extractor';
 import { VideoThumbnailService } from './video-thumbnail';
 import { VideoUrlRegistry } from './video-url-registry';

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { reattachHandlesForRoot } from './root-rescan';
 import { DirectoryHandleRegistry } from './directory-handle-registry';
 import { FileHandleRegistry } from './file-handle-registry';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 function makeFile(name: string, content = 'data') {
   return new File([content], name, { type: 'video/mp4', lastModified: Date.now() });

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { ArrowLeft, ArrowRight, Copy, Check, FileVideo, Clock, Monitor, Save } from 'lucide-react';
 import { DraftCategories } from './use-draft-categories';
 import { CompletionRing } from './categorize-widgets';

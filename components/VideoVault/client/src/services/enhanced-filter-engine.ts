@@ -1,4 +1,4 @@
-import { Video, Category, AdvancedFilters } from '../types/video';
+import type { Video, Category, AdvancedFilters } from '../types/video';
 import { FilterEngine } from './filter-engine';
 import { instantSearch, SearchResult, SearchOptions } from './instant-search';
 

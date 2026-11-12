@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { ApiClient } from '@/services/api-client';
 import { BrowseEntry, BrowseResponse, childPath, parentPath, breadcrumbPath, toPlayerVideo } from './browse-queries';
 

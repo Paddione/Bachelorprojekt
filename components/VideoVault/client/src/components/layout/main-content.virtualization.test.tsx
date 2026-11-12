@@ -2,7 +2,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { MainContent } from './main-content';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 // Mock ThumbnailGenerator to prevent async state updates during tests
 vi.mock('@/services/thumbnail-generator', () => ({

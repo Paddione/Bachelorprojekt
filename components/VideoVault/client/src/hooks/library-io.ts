@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Video, AdvancedFilters } from '../types/video';
+import type { Video, AdvancedFilters } from '../types/video';
 import { VideoDatabase } from '@/services/video-database';
 import { FilterEngine } from '@/services/filter-engine';
 import { EnhancedFilterEngine } from '@/services/enhanced-filter-engine';

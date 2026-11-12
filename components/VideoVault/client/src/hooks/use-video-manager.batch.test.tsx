@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act, waitFor } from '@/test/renderWithProviders';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 vi.mock('@/hooks/use-toast', () => {
   const toast = vi.fn();

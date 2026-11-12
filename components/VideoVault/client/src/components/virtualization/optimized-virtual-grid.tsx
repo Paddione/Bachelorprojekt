@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { Grid as VirtualGrid, useGridRef, type CellComponentProps } from 'react-window';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { VideoCard } from '@/components/video/video-card';
 
 interface OptimizedVirtualGridProps {

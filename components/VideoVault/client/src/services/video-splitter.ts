@@ -1,4 +1,4 @@
-import { Video, VideoCategories, CustomCategories } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories } from '@/types/video';
 import { FileHandleRegistry } from './file-handle-registry';
 import { DirectoryHandleRegistry } from './directory-handle-registry';
 import { FileScanner } from './file-scanner';

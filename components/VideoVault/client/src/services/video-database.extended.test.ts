@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { VideoDatabase } from './video-database';
-import { Video, CustomCategories } from '@/types/video';
+import type { Video, CustomCategories } from '@/types/video';
 import { serverHealth } from './server-health';
 import { ApiClient } from './api-client';
 

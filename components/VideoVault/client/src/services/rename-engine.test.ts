@@ -8,7 +8,7 @@ import {
   buildNameFromCategories,
   BatchRenameOptions
 } from './rename-engine';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 function createMockVideo(overrides: Partial<Video> = {}): Video {
   return {

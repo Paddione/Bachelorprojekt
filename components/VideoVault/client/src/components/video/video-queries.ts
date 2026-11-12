@@ -1,4 +1,4 @@
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { getCategoryColorClasses } from '@/lib/category-colors';
 
 export interface CategoryChipItem {

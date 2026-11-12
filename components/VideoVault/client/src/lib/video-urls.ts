@@ -1,4 +1,4 @@
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { VideoUrlRegistry } from '@/services/video-url-registry';
 
 function encodePathSegments(urlPath: string): string {

@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Category, Video } from '@/types/video';
+import type { Category, Video } from '@/types/video';
 import { SplitVideoResult } from '@/services/video-splitter';
 import { Scissors } from 'lucide-react';
 import { VideoSplitter, SplitVideoFormValues } from './video-splitter';

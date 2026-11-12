@@ -1,4 +1,4 @@
-import { FilterPreset } from '../types/video';
+import type { FilterPreset } from '../types/video';
 import { serverHealth } from './server-health';
 import { ApiClient } from './api-client';
 

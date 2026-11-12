@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { FilterEngine } from '@/services/filter-engine';
-import { Category } from '@/types/video';
+import type { Category } from '@/types/video';
 import { Search, User, Palette, Tv, Tags, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

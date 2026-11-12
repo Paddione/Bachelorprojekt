@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { CategorySearch } from '@/components/ui/category-search';
-import { Category, CustomCategories, Video, VideoCategories } from '@/types/video';
+import type { Category, CustomCategories, Video, VideoCategories } from '@/types/video';
 import { CategoryNormalizer } from '@/services/category-normalizer';
 import { getCategoryColorClasses } from '@/lib/category-colors';
 import { SplitVideoResult } from '@/services/video-splitter';

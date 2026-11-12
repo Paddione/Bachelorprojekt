@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useRoute } from 'wouter';
 import { useVideoManager } from '@/hooks/use-video-manager';
 import { Button } from '@/components/ui/button';
-import { Video, VideoCategories, CustomCategories } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories } from '@/types/video';
 import { getVideoSrc } from '@/lib/video-urls';
 import { Settings2 } from 'lucide-react';
 import { useDraftCategories, DraftCategories } from './use-draft-categories';

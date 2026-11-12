@@ -1,5 +1,5 @@
 import { Index, Document } from 'flexsearch';
-import { Video } from '../types/video';
+import type { Video } from '../types/video';
 
 export interface SearchableVideo {
   id: string;

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.453.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.453.1...website-v1.453.2) (2026-11-12)
+
+
+### Code Refactoring
+
+* **website:** lens-followups F3/F5/F7 — inbox-actions, umbuchung-service, logger-guard, import type ([#7280](https://github.com/Paddione/Bachelorprojekt/issues/7280)) ([8e5d7ed](https://github.com/Paddione/Bachelorprojekt/commit/8e5d7ed3aba17f5f20bc0c09d03df926902a41af))
+
 ## [1.453.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.453.0...website-v1.453.1) (2026-11-11)
 
 

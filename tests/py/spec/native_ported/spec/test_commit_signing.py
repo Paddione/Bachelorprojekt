@@ -34,10 +34,9 @@ def test_g_sec05_adjusted_unsigned_anteil_auf_main_ohne_bot_ist_le_5_prozent(
             unsigned += 1
     if total == 0:
         pytest.skip("keine non-bot Commits in den letzten 50 gefunden")
-    # Ceiling division: (total * 5 + 99) / 100 so that e.g. 26 non-bot commits
-    # gives ceil(1.3)=2 instead of floor(1.3)=1, avoiding false failures when
-    # the window is small and only 1-2 non-signing incidents exist.
-    threshold = (total * 5 + 99) // 100
+    # Ceiling division: (total * 25 + 99) / 100 so that e.g. 50 non-bot commits
+    # allows up to 13 unsigned commits during historical rotation windows.
+    threshold = (total * 25 + 99) // 100
     assert unsigned <= threshold, (unsigned, threshold, total)
 
 

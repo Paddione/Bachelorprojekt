@@ -1,0 +1,32 @@
+path_schema:
+  central_root_env: AGENT_WORKTREE_ROOT
+  central_root_default: ~/.worktrees
+  dotfiles: <root>/dotfiles/<branch>
+  other_repos: <root>/<repo-key>/<branch>
+
+allowed_entry_points:
+  - scripts/agent-workspace.py create --repo <repo> <branch> [--base <ref>]
+  - scripts/agent-workspace.py lock <claim|refresh|release|check|list|reap|mine> <scope> [<id>]
+  - scripts/agent-workspace.py check
+  - scripts/agent-workspace.py finish|reap|audit|install|pr
+
+forbidden_legacy:
+  - git worktree add
+  - git worktree remove
+  - git worktree prune
+  - git branch -D
+  - gh pr merge
+  - gh pr create
+
+lock_scopes:
+  - branch
+  - task
+  - gpu
+  - model
+  - board
+
+guard_rules:
+  worktree_only: true
+  secret_scan: true
+  legacy_executable_fails_check: false
+  unknown_scope_warns: true

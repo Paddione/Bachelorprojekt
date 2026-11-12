@@ -1,4 +1,4 @@
-import { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
 import { RenameSection } from './rename-section';
 import { CategoryGroupsSection } from './category-groups-section';
 import { CustomCategoriesSection } from './custom-categories-section';

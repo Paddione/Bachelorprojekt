@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { SplitVideoFormValues } from '@/components/video/split-video-modal';
 import { SplitVideoResult } from '@/services/video-splitter';
 import { splitFormToOptions } from '@/lib/split-form-mapping';

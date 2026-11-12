@@ -1,4 +1,4 @@
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { ConflictItem } from '@/components/conflict/conflict-resolution-dialog';
 import { ConflictDialogState, ResolveDecisions } from './home-queries';
 

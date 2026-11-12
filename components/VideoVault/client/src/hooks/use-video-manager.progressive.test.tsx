@@ -5,7 +5,7 @@ import { useVideoManager } from './use-video-manager';
 import { VideoDatabase } from '@/services/video-database';
 import { serverHealth } from '@/services/server-health';
 import { DirectoryDatabase } from '@/services/directory-database';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { FilterEngine } from '@/services/filter-engine';
 
 // Mock video-splitter

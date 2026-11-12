@@ -5,7 +5,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { AdvancedFilters } from '@/types/video';
+import type { AdvancedFilters } from '@/types/video';
 
 interface Props {
   localFilters: AdvancedFilters;

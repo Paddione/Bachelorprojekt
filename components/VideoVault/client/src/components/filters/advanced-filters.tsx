@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Filter, X } from 'lucide-react';
-import { AdvancedFilters } from '@/types/video';
+import type { AdvancedFilters } from '@/types/video';
 import { FilterEngine } from '@/services/filter-engine';
 import { useAdvancedFilterState, hasActiveFilters, getActiveFilterCount } from './use-advanced-filter-state';
 import { DateRangeSection } from './date-range-section';

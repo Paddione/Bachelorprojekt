@@ -1,4 +1,4 @@
-import { Video, Category, AdvancedFilters } from '../types/video';
+import type { Video, Category, AdvancedFilters } from '../types/video';
 
 export class FilterEngine {
   static applyFilters(

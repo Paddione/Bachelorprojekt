@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Video, VideoCategories } from '@/types/video';
+import type { Video, VideoCategories } from '@/types/video';
 import { CategoryExtractor } from '@/services/category-extractor';
 import { getCategoryColorClasses } from '@/lib/category-colors';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';

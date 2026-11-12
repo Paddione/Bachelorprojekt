@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { useVideoManager } from '@/hooks/use-video-manager';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Video, VideoCategories, CustomCategories } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories } from '@/types/video';
 import {
   ArrowLeft,
   Merge,

@@ -1,5 +1,5 @@
 import { useCallback, Dispatch, SetStateAction } from 'react';
-import { VideoManagerState, Video, SortField, SortDirection, AdvancedFilters } from '../types/video';
+import type { VideoManagerState, Video, SortField, SortDirection, AdvancedFilters } from '../types/video';
 import { EnhancedFilterEngine } from '@/services/enhanced-filter-engine';
 import { AppSettingsService } from '@/services/app-settings';
 

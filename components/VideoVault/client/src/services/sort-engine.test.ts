@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SortEngine } from './sort-engine';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 function makeVideo(id: string, displayName: string, path: string, size: number, lastModified: string, cats: number = 0): Video {
   const base: Video = {

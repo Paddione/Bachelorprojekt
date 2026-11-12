@@ -1,4 +1,4 @@
-import { Video, Category, CustomCategories } from '../types/video';
+import type { Video, Category, CustomCategories } from '../types/video';
 import { CategoryNormalizer } from './category-normalizer';
 import { serverHealth } from './server-health';
 import { ApiClient } from './api-client';

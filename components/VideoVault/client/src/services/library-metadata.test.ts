@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LibraryMetadataService } from './library-metadata';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { MockFileSystem } from '@/test/fs-api-mock';
 import { VideoDatabase } from './video-database';
 import { DirectoryDatabase } from './directory-database';

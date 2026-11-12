@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { ThumbnailGenerator } from '@/services/thumbnail-generator';
 import { SpriteCache } from '@/services/sprite-cache';
 import { getSpriteMeta, setSpriteMeta } from '@/services/sprite-indexeddb';

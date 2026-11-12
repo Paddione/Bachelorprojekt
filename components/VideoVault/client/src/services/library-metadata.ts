@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Video, FilterPreset } from '@/types/video';
+import type { Video, FilterPreset } from '@/types/video';
 import { VideoDatabase } from './video-database';
 import { DirectoryDatabase, type DirectoryRootsState } from './directory-database';
 import { FilterPresetsService } from './filter-presets';

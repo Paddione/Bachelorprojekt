@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { VideoManagerState } from '../types/video';
+import type { VideoManagerState } from '../types/video';
 import { useVideoCrud } from './use-video-crud';
 import { useVideoBatch } from './use-video-batch';
 

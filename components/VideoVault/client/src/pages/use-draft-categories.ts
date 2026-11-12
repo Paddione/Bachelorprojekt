@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Video, VideoCategories, CustomCategories } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories } from '@/types/video';
 import { STANDARD_TYPES } from './categorize-queries';
 
 export function useDraftCategories(video: Video | null,

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
 import { VideoTagsEditor } from './video-tags-editor';
 import { CategoryExtractor } from '@/services/category-extractor';
 import { Button } from '@/components/ui/button';

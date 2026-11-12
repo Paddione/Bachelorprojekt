@@ -1,9 +1,9 @@
 import { Suspense, lazy } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { VideoPlayerModal } from '@/components/video/video-player-modal';
 import { SplitVideoModal, SplitVideoFormValues } from '@/components/video/split-video-modal';
 import { SplitVideoResult } from '@/services/video-splitter';
-import { Category } from '@/types/video';
+import type { Category } from '@/types/video';
 import { HomePlaylist } from './use-home-playlist';
 
 const EditTagsModal = lazy(() =>

@@ -1,5 +1,5 @@
 import { useCallback, MutableRefObject, Dispatch, SetStateAction } from 'react';
-import { VideoManagerState } from '../types/video';
+import type { VideoManagerState } from '../types/video';
 import { FileScanner } from '@/services/file-scanner';
 import { VideoDatabase } from '@/services/video-database';
 import { FilterEngine } from '@/services/filter-engine';

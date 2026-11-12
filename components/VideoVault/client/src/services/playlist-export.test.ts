@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { PlaylistExportService } from './playlist-export';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 
 describe('PlaylistExportService', () => {
     const mockVideos: Video[] = [

@@ -1,4 +1,4 @@
-import { Video } from '../types/video';
+import type { Video } from '../types/video';
 import { FileScanner } from './file-scanner';
 import { ApiClient } from './api-client';
 import { calculateFastHash } from './hash-utils';

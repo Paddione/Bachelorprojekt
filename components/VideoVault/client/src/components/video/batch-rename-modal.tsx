@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import {
   BatchRenameOptions,
   buildBatchName,

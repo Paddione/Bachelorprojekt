@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { Play, Clock, FileVideo, Tags, Edit, FolderPlus, Trash2, Scissors, Pin, LayoutGrid } from 'lucide-react';
 import { CategoryPicker } from '@/components/video/category-picker';
 import { cn } from '@/lib/utils';

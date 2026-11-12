@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { VideoManagerState } from '../types/video';
+import type { VideoManagerState } from '../types/video';
 import { VideoDatabase } from '@/services/video-database';
 import { EnhancedFilterEngine } from '@/services/enhanced-filter-engine';
 import { attemptDiskRename } from '@/services/filesystem-rename';

@@ -1,5 +1,5 @@
 import { ConflictStrategy, ConflictItem } from '@/components/conflict/conflict-resolution-dialog';
-import { AdvancedFilters } from '@/types/video';
+import type { AdvancedFilters } from '@/types/video';
 
 export type ConflictDialogState = {
   operation: 'rename' | 'batch-rename' | 'move' | 'batch-move';

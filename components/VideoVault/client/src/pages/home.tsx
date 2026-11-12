@@ -5,7 +5,7 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { useVideoManager } from '@/hooks/use-video-manager';
 import { useToast } from '@/hooks/use-toast';
 import { useErrorToast } from '@/components/ui/error-toast';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { DirectoryDatabase } from '@/services/directory-database';
 import { useHomePlaylist } from './use-home-playlist';
 import { useHomeOperations } from './use-home-operations';

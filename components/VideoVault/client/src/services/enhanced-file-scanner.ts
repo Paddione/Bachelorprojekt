@@ -1,4 +1,4 @@
-import { Video } from '../types/video';
+import type { Video } from '../types/video';
 import { FileScanner } from './file-scanner';
 import { ScanStateManager, ScanState, ScanSegment } from './scan-state-manager';
 import { DirectoryHandleRegistry } from './directory-handle-registry';

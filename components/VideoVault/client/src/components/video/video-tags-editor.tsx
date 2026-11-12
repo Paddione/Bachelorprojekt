@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
 import { getCategoryColorClasses } from '@/lib/category-colors';
 import { X, Plus, Sparkles } from 'lucide-react';
 import { CategoryNormalizer } from '@/services/category-normalizer';

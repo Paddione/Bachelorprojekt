@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { BulkOperationsService } from '@/services/bulk-operations';
 import { useVideoCardMedia, VideoCardMedia } from './use-video-card-media';
 import { chipRemovalArgs, CategoryChipItem } from './video-queries';

@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { AdvancedFilters } from '@/types/video';
+import type { AdvancedFilters } from '@/types/video';
 
 interface RangeOption { min: number; max: number; label: string }
 

@@ -1,4 +1,4 @@
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { DirectoryHandleRegistry } from './directory-handle-registry';
 import { DirectoryDatabase } from './directory-database';
 import { FileHandleRegistry } from './file-handle-registry';

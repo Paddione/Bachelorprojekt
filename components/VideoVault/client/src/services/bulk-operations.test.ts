@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BulkOperationsService, BulkOperation } from './bulk-operations';
-import { Video } from '../types/video';
+import type { Video } from '../types/video';
 
 const mockVideo1: Video = {
   id: 'video-1',

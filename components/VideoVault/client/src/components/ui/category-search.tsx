@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Category } from "@/types/video";
+import type { Category } from "@/types/video";
 import { getCategoryColorClasses } from "@/lib/category-colors";
 import { Search, X } from "lucide-react";
 

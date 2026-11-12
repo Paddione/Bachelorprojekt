@@ -1,4 +1,4 @@
-import { VideoCategories, Category } from '@/types/video';
+import type { VideoCategories, Category } from '@/types/video';
 import { CategoryGroup } from './category-group';
 
 interface CategoryGroupsSectionProps {

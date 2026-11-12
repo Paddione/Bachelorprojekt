@@ -1,4 +1,4 @@
-import { Video, SortField, SortDirection } from '@/types/video';
+import type { Video, SortField, SortDirection } from '@/types/video';
 
 export class SortEngine {
   static sortVideos(videos: Video[], field: SortField, direction: SortDirection): Video[] {

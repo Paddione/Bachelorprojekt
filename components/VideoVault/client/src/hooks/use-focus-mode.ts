@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
+import type { Video, VideoCategories, CustomCategories, Category } from '@/types/video';
 import { buildNameFromCategories, getFilenameWithOriginalExt } from '@/services/rename-engine';
 import { CategoryNormalizer } from '@/services/category-normalizer';
 

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { Clock, FileVideo, Monitor, Film } from 'lucide-react';
 import { getVideoSrc, getThumbnailSrc } from '@/lib/video-urls';
 import { Button } from '@/components/ui/button';

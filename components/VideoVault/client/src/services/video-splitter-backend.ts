@@ -1,4 +1,4 @@
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { VideoSplitter, type SplitVideoOptions, type SplitVideoResult } from './video-splitter';
 import { ApiClient, HttpError } from './api-client';
 import { FileHandleRegistry } from './file-handle-registry';

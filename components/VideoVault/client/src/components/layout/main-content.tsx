@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 import { VideoCard } from '@/components/video/video-card';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import {
   Grid3X3,
   List,
@@ -22,7 +22,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
-import { SortDirection, SortField, AdvancedFilters } from '@/types/video';
+import type { SortDirection, SortField, AdvancedFilters } from '@/types/video';
 import { List as VirtualList, type RowComponentProps } from 'react-window';
 import { AdvancedFiltersPanel } from '@/components/filters/advanced-filters';
 import { BulkOperationsToolbar } from '@/components/bulk/bulk-operations-toolbar';

@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Video, Category } from '@/types/video';
+import type { Video, Category } from '@/types/video';
 import { RenameModal } from '@/components/video/rename-modal';
 import { BatchRenameModal } from '@/components/video/batch-rename-modal';
 import { DirectoryPickerModal } from '@/components/directory-picker-modal';

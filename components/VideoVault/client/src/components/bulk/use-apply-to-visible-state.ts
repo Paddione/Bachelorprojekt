@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Category } from '@/types/video';
+import type { Category } from '@/types/video';
 
 export function useApplyToVisibleState(
   filteredCount: number,

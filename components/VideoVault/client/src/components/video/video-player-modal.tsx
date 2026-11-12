@@ -8,7 +8,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import {
   Tags,
   Scissors,
@@ -22,7 +22,7 @@ import {
 import { VideoThumbnailService } from '@/services/video-thumbnail';
 import { VideoTagsEditor } from './video-tags-editor';
 import { VideoSplitter, SplitVideoFormValues } from './video-splitter';
-import { Category, VideoCategories, CustomCategories } from '@/types/video';
+import type { Category, VideoCategories, CustomCategories } from '@/types/video';
 import { SplitVideoResult } from '@/services/video-splitter';
 import { getVideoSrc, getThumbnailSrc } from '@/lib/video-urls';
 import type { VideoSource, CaptureFrameFn } from '@videovault-player';

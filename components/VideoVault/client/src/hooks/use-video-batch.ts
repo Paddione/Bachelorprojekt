@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { VideoManagerState } from '../types/video';
+import type { VideoManagerState } from '../types/video';
 import { useLibraryIo } from './library-io';
 import { useBatchRename } from './batch-rename';
 import { useBatchMove } from './batch-move';

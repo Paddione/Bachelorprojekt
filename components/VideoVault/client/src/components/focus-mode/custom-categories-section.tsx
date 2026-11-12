@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { CustomCategories, Category } from '@/types/video';
+import type { CustomCategories, Category } from '@/types/video';
 import { CategoryGroup } from './category-group';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

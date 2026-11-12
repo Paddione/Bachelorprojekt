@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import {
+import type {
   VideoManagerState,
   Category,
   SortField,

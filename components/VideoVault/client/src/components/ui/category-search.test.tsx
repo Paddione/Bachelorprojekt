@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CategorySearch } from './category-search';
-import { Category } from '@/types/video';
+import type { Category } from '@/types/video';
 
 const mockCategories: Category[] = [
   { type: 'age', value: 'teen', count: 5, isCustom: false },

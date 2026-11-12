@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { ArrowLeft, ChevronLeft, ChevronRight, Save, Loader2 } from 'lucide-react';
 
 interface FocusModeHeaderProps {

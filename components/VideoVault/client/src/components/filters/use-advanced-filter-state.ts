@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { AdvancedFilters } from '@/types/video';
+import type { AdvancedFilters } from '@/types/video';
 
 const EMPTY: AdvancedFilters = {
   dateRange: { startDate: '', endDate: '' },

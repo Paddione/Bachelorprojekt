@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Video } from '@/types/video';
+import type { Video } from '@/types/video';
 import { AppSettingsService } from '@/services/app-settings';
 import { shuffleArray } from './home-queries';
 

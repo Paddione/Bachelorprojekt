@@ -29,7 +29,7 @@ function p(): pg.Pool { return _pool ?? defaultPool; }
 // aus demselben Modell stammen, sonst vergleicht die Suche zwei verschiedene
 // Vektorraeume. Reranker bleibt unangetastet.
 const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? DENSE_MODEL;
-const RERANK_MODEL = process.env.LLM_RERANK_MODEL ?? 'bge-reranker-v2-m3';
+const RERANK_MODEL = process.env.LLM_RERANK_MODEL ?? 'qwen3-reranker-0.6b';
 
 // T002317: zeigte auf llm-gateway-lmstudio:1234. Diesen Service gibt es nicht
 // mehr — bge-m3 zog mit T002258/T002110 auf einen eigenen llama-server um.

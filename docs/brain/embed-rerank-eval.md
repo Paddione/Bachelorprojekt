@@ -39,3 +39,23 @@ Per-kind Recall auf der Top-Zeile: code 0,958 / doc 0,650 / route 0,850
 1.866 Graph-Kandidaten mit bge-m3 (~6-7 Texte/s) eingebettet, mit
 bge-reranker-v2-m3 rerankt; sinnvolle Hits auf ticket-grill /
 talk-transcriber / purgeOneFixture — Anlass, den Store zu verstetigen.
+
+## Pool-Trim (2026-11-14, Qwen3-Reranker-0.6B Q8_0, CPU)
+
+Backend: llama-server `--rerank` auf 127.0.0.1:18340, Query ueber
+`cbm-graph-rerank.py hybrid --pool N --top-k 10`, 9-Query-Subset
+(je 3 route/code/doc aus `k3-retrieval-eval.jsonl`), Recall@10/MRR@10:
+
+| Pool | Recall@10 | MRR@10 | s/Query | Rerank-ms |
+|---|---|---|---|---|
+| 50 | 0,889 | 0,660 | 38,4 | 22548 |
+| 40 | 0,889 | 0,633 | 36,6 | 19690 |
+| 30 | 0,778 | 0,520 | 29,6 | 14007 |
+| 20 | 0,778 | 0,548 | 23,4 | 8852 |
+| 10 | 0,556 | 0,481 | 19,1 | 4559 |
+
+Entscheid: Default-Pool 50 → 40 (`DEFAULT_POOL`, `RERANK_MAX_CANDIDATES`).
+Pool 40 haelt Recall (8/9, eine Query kippt Rang 2→4: MRR -0,027) und spart
+~13 % Rerank-Zeit. Pools ≤30 verlieren ganze Queries (24, 25 fallen raus;
+23 kippt unsystematisch — Rauschen bei n=9, Trend eindeutig).
+CPU kostet ~0,5 s/Paar (kurze Prompts); kein GPU-Headroom (`:1919` peak-nah).

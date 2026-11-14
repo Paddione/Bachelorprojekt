@@ -37,7 +37,10 @@ SCHEMA_VERSION = "k3-graph-rerank/1"
 DEFAULT_PROJECT = "home-patrick-Bachelorprojekt"
 DEFAULT_TIMEOUT_S = 60
 DEFAULT_TOP_K = 10
-DEFAULT_POOL = 50
+# Pool-Trim 2026-11-14 (Eval: docs/brain/embed-rerank-eval.md §Pool-Trim):
+# Pool 40 haelt Recall@10 0.889 wie Pool 50 (MRR 0.633 vs 0.660) und spart
+# ~13 % Rerank-Zeit (CPU); Pools <=30 verlieren ganze Queries (30: 0.778).
+DEFAULT_POOL = 40
 
 # Boost weights: HANDLES is a rare, strong signal (66 edges in the live
 # graph); degree grows logarithmically; TESTS_FILE adds a small bonus.

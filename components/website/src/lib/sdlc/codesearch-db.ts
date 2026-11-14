@@ -99,8 +99,10 @@ export interface CodeSearchResult {
 // die erste Stufe geliefert hat. Ein grosszuegiger Faktor ist praktisch
 // gratis: gemessen 2026-07-27 braucht bge-reranker-v2-m3 fuer 40 Kandidaten
 // rund 0.1s.
+// Pool-Trim 2026-11-14: 40 haelt Recall@10 wie 50 (Eval docs/brain/embed-rerank-eval.md),
+// Pools <=30 verlieren ganze Queries. CPU-Rerank braucht ~0,5 s/Paar.
 const RERANK_CANDIDATE_FACTOR = 8;
-const RERANK_MAX_CANDIDATES = 50;
+const RERANK_MAX_CANDIDATES = 40;
 
 async function rerank(query: string, docs: string[]): Promise<number[] | null> {
   try {

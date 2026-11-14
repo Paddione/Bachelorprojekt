@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.455.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.455.0...website-v1.455.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **scripts:** plan-lint meldet Datei und Regeltext, Finalizer fail-closed ([#7299](https://github.com/Paddione/Bachelorprojekt/issues/7299)) ([c594b04](https://github.com/Paddione/Bachelorprojekt/commit/c594b040f1f4b9054c93bd720b5dd37f6f92cbec))
+
 ## [1.455.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.454.0...website-v1.455.0) (2026-11-14)
 
 

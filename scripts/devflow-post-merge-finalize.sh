@@ -218,7 +218,7 @@ elif [[ -n "$SLUG" && -d "$WORKTREE" ]]; then
     _fm_state="$(_plan_frontmatter_state "$SLUG" "$_wt_top7" 2>/dev/null || true)"
     if [[ "$_fm_state" == "completed" ]]; then
       mark_skip "Schritt 7: Plan bereits completed"
-    else
+    elif [[ "$_fm_state" == "stale" ]]; then
       _plan_copy="$(mktemp)"
       cp "$_plan_in_wt" "$_plan_copy"
       _apply_plan_frontmatter_completed_path "$_plan_copy"
@@ -233,9 +233,14 @@ elif [[ -n "$SLUG" && -d "$WORKTREE" ]]; then
         echo "ERROR: Schritt 7 — completed-Commit fehlgeschlagen." >&2
         exit 1
       fi
+    else
+      _cur_status="$(grep -E '^status:' "$_plan_in_wt" 2>/dev/null | head -1 | tr -d '\r' || true)"
+      echo "ERROR: Schritt 7 — unbekannter Plan-Status (${_cur_status:-kein status-Feld}; erwartet completed oder aktiv) in $_plan_in_wt." >&2
+      exit 1
     fi
   else
-    mark_warn "Schritt 7: Plan-Datei im Worktree nicht aufloesbar"
+    echo "ERROR: Schritt 7 — Plan-Datei im Worktree nicht aufloesbar (Slug $SLUG, $PLAN_REL im Worktree $WORKTREE erwartet)." >&2
+    exit 1
   fi
 else
   mark_skip "Schritt 7: kein Worktree/Slug fuer Plan-Markierung"

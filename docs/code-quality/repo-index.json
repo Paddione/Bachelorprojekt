@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (pytest + Playwright + vitest)",
       "owner_agent": "bp-ship",
-      "file_count": 1300,
+      "file_count": 1301,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1066,6 +1066,7 @@
         "tests/py/spec/test_agent_lock_force_claim.py",
         "tests/py/spec/test_agent_lock_liveness_heartbeat.py",
         "tests/py/spec/test_agent_lock_lsp_reap_t900306.py",
+        "tests/py/spec/test_bp_plan_tooling_ux.py",
         "tests/py/spec/test_cbm_graph_rerank_and_hybrid.py",
         "tests/py/spec/test_code_quality_and_gates.py",
         "tests/py/spec/test_fleet_operations.py",

@@ -29,17 +29,20 @@ _apply_plan_frontmatter_completed() {  # <base_dir>
   _apply_plan_frontmatter_completed_path "$1/${PLAN_REL:-}"
 }
 
-# DB-freie Zustandsabfrage fuer `--frontmatter-state`: stdout `completed` oder
-# `stale` (Exit 0); fehlende/leere Datei → Exit 1 OHNE Ausgabe (der Aufrufer
-# behauptet dann keinen Zustand).
+# DB-freie Zustandsabfrage fuer `--frontmatter-state`: stdout `completed` (nur bei
+# exakt `status: completed`) oder `stale` (Aktiv-Alternation); jeder andere Status,
+# fehlende/leere Datei → Exit 1 OHNE Ausgabe (der Aufrufer behauptet dann keinen
+# Zustand — fail-closed, kein stiller completed-Skip).
 _plan_frontmatter_state() {  # <slug> <repo_dir>
   local slug="$1" repo="$2" f
   f="$repo/.agents/plans/$slug/tasks.md"
   [[ -s "$f" ]] || return 1
-  if grep -qE "^status: ${_PLAN_STATUS_ACTIVE_ALT}([[:space:]]|\$)" "$f"; then
+  if grep -qE "^status: completed$" "$f"; then
+    echo "completed"
+  elif grep -qE "^status: ${_PLAN_STATUS_ACTIVE_ALT}([[:space:]]|\$)" "$f"; then
     echo "stale"
   else
-    echo "completed"
+    return 1
   fi
   return 0
 }

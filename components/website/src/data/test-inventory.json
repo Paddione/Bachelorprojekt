@@ -2472,6 +2472,12 @@
     "kind": "pytest"
   },
   {
+    "id": "bp_plan_tooling_ux",
+    "file": "tests/py/spec/test_bp_plan_tooling_ux.py",
+    "category": "bp_plan_tooling_ux",
+    "kind": "pytest"
+  },
+  {
     "id": "brain-auto-memory",
     "file": "tests/py/spec/native_ported/spec/test_brain_auto_memory.py",
     "category": "brain-auto-memory",

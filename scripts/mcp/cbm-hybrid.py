@@ -5,7 +5,7 @@ Ticket T900993 (task A3). Stages:
 
     (1) BM25 FTS (nodes_fts) + bge-m3 dense (embed store) in parallel
     (2) RRF fusion (k=60 standard)
-    (3) bge-reranker-v2-m3 cross-encoder rerank of the top-50 pool
+    (3) qwen3-reranker-0.6b cross-encoder rerank of the top-50 pool
     (4) small graph boost (existing apply_boost), capped last factor
 
 This module holds the pure, network-free layer (spec-tested in
@@ -20,7 +20,7 @@ Rerank endpoint discovery (2026-10-04):
     in-cluster  http://llm-gateway-rerank.workspace.svc.cluster.local:8081
                 (svc llm-gateway-rerank:8081 -> bge-rerank:8080)
     request     POST <base>/v1/rerank
-                {"model": "bge-reranker-v2-m3", "query": ..., "documents": [...]}
+                {"model": "qwen3-reranker-0.6b", "query": ..., "documents": [...]}
     response    {"results": [{"index": i, "relevance_score": f}, ...]}
     (see taskfiles/Taskfile.llm.yml `llm:status`/`llm:test` and
     scripts/knowledge/lib-context-retrieve.mjs `rerank()`).
@@ -55,7 +55,7 @@ RRF_K = 60
 GRAPH_BOOST_CAP = 0.14
 GRAPH_BOOST_BOUND = 0.15
 
-DEFAULT_RERANK_MODEL = "bge-reranker-v2-m3"
+DEFAULT_RERANK_MODEL = "qwen3-reranker-0.6b"
 DEFAULT_RERANK_URL = "http://127.0.0.1:18235/v1/rerank"
 RERANK_TIMEOUT_S = 120
 RERANK_ATTEMPTS = 4

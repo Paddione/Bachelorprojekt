@@ -261,3 +261,27 @@ def test_plan_lint_liefert_das_urteil_strukturiert(plan_env):
     assert plan_env.status == 0
     plan_env.json('d.verdict + " " + d.hard.length')
     assert plan_env.output == "FAIL 1"
+
+
+def test_plan_stage_mit_explizitem_repo_stagt_in_dieses_repo(plan_env):
+    # Positiv-Anker: explizites Ziel-Repo (hier das Fixture-Repo) funktioniert.
+    plan_env.call("plan_stage", (
+        '{"slug":"demo","branch_type":"feature",'
+        '"repo":"' + str(plan_env.frepo) + '",'
+        '"plan_markdown":"# demo — Implementation Plan","design_markdown":"# design"}'))
+    assert plan_env.status == 0
+    plan_env.json('d.ok + " " + d.branch')
+    assert plan_env.output == "true feature/demo"
+
+
+def test_plan_stage_mit_unbekanntem_repo_bricht_vor_worktree_ab(plan_env):
+    missing = plan_env.t / "no-such-repo"
+    plan_env.call("plan_stage", (
+        '{"slug":"demo","branch_type":"feature",'
+        '"repo":"' + str(missing) + '",'
+        '"plan_markdown":"# demo — Implementation Plan"}'))
+    assert plan_env.status == 0
+    plan_env.json('(d.ok === false || d.isError === true) + " " + (d.error || "")')
+    assert plan_env.output.startswith("true "), plan_env.output
+    assert "repo" in plan_env.output.lower(), plan_env.output
+    assert not (plan_env.t / "wt-root").exists(), "kein Worktree bei unbekanntem Repo"

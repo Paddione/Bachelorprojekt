@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.455.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.454.0...website-v1.455.0) (2026-11-14)
+
+
+### Features
+
+* **mcp:** trim hybrid rerank pool 50 to 40 ([#7290](https://github.com/Paddione/Bachelorprojekt/issues/7290)) ([e35baf6](https://github.com/Paddione/Bachelorprojekt/commit/e35baf6b00897d96c3b41df44dab0c8778934e03))
+
 ## [1.454.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.453.2...website-v1.454.0) (2026-11-14)
 
 

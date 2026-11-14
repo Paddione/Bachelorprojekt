@@ -21,7 +21,7 @@ Prozent: 100 %
 Keine — K1–K5 grün; Goal abgeschlossen.
 
 ## Offene Punkte
-- (keine Goal-relevanten; `devmesh-connectors`/`devmesh-tailscale` bleiben beabsichtigt suspendiert bis B1b `operator-oauth` vorliegt — außerhalb dieses Verify-Goals.)
+Keine.
 
 ## 2026-11-02 Re-Verify (read-only)
 - `git log --oneline -5` HEAD `343f3b25c` (docs(ci) #7124); worktree clean bzgl. write-set (nur PROGRESS.md angefasst).

@@ -23,3 +23,5 @@
 - `components/website/src/lib/auth.ts:259-318` `…website.src.lib.auth.getSession` (fan-in 509).
 - `components/website/src/lib/auth.ts:251-257` `…website.src.lib.auth.isAdmin` (fan-in 470).
 - Boundaries: `llm→website 74`, `code-quality→website 21`, `coaching→website 15`.
+
+health_goals: none (Abgeschlossenes Einmal-/Refactoring-Ziel ohne separaten Dauer-Probe; Vertragsinvariante über G-GOALS01 überwacht)

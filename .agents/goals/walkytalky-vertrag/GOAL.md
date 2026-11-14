@@ -32,3 +32,5 @@ gesprochene Antworten mit interaktiven Schaltflächen statt langem Textblock-Pro
 - Issue #7062 (Pre-push-Quality-Gate auf `main` defekt: 4 S4-Violations) — Push des Profil-PRs
   ggf. mit `SKIP_CI_CHECK=1` plus Vermerk, bis das Issue behoben ist.
 - `plan_refs:` wird von `dev-flow-plan` bei Planerstellung bidirektional verlinkt (Modell B).
+
+health_goals: none (Abgeschlossenes Einmal-/Refactoring-Ziel ohne separaten Dauer-Probe; Vertragsinvariante über G-GOALS01 überwacht)

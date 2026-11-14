@@ -23,3 +23,5 @@ Toast-Cycle auf eine Richtung umstellen (Re-Entrancy-/Re-Render-Risiko raus).
 - `lavish/kit/panel.* Panel.applyMobileLock↔renderUnlockToggle`.
 - `website/src/lib/browser-logger.* emit↔error/warn`; `website/src/scripts/admin/applications.*` 5-Cycle.
 - `VideoVault/server/lib/enhanced-job-queue.* process↔executeJob`.
+
+health_goals: none (Abgeschlossenes Einmal-/Refactoring-Ziel ohne separaten Dauer-Probe; Vertragsinvariante über G-GOALS01 überwacht)

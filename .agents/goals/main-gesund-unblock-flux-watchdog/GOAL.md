@@ -52,3 +52,5 @@ Entscheidungsstand aus setgoal-Runde 2026-11-02: Optionen 1a/2a/3a/4a/5a.
 
 ## plan_refs
 - [.agents/plans/main-gesund-unblock-flux-watchdog/tasks.md] (Branch `fix/main-gesund-unblock-flux-watchdog`, gestagt 2026-11-02)
+
+health_goals: [G-WT01, G-FLUX01, G-CI01]

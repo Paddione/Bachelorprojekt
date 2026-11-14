@@ -29,3 +29,5 @@ Verifiziere read-only, dass der gesamte k3d-Devstack — definiert als `k3d/` Ku
 
 ## plan_refs
 - (leer — wird von `dev-flow-plan` bidirektional verlinkt, Modell B)
+
+health_goals: [G-FLUX01, G-K8S01]

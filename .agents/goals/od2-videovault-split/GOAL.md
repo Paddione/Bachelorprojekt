@@ -22,3 +22,5 @@ keine Datei >200 LOC / out-degree >15 nach dem Split.
 - `components/VideoVault/client/src/components/video/video-card.tsx:39` (c79).
 - `components/VideoVault/client/src/components/filters/advanced-filters.tsx:26-357`.
 - `components/VideoVault/client/src/pages/categorize.tsx:528-840`.
+
+health_goals: none (Abgeschlossenes Einmal-/Refactoring-Ziel ohne separaten Dauer-Probe; Vertragsinvariante über G-GOALS01 überwacht)

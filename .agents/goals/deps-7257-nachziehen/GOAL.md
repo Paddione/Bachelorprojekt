@@ -42,3 +42,5 @@ Zielstände anheben — abzüglich dessen, was der gemergte
 
 - (kein Plan — per `dev-flow-plan`-Pfadwahl als Chore direkt via
   `dev-flow-chore` umgesetzt, PR #7259)
+
+health_goals: [G-DEP01, G-DEP02, G-DEP03, G-DEP04]

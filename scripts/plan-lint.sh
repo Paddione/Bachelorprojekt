@@ -468,7 +468,7 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
       chars=$(wc -c < "$partial_file")
       tokens=$(( (chars + 3) / 4 ))
       if [[ $tokens -gt $PARTIAL_TOKEN_LIMIT ]]; then
-        hard "T002453-C: $(basename "$partial_file") hat ~${tokens} Token (>$PARTIAL_TOKEN_LIMIT). Slot zu gross — verkleinern oder aufteilen."
+        hard "T002453-C: $(basename "$partial_file") hat ~${tokens} Token (>$PARTIAL_TOKEN_LIMIT, ~${chars} Zeichen, Limit ~$((PARTIAL_TOKEN_LIMIT*4))) — every tasks.d/ partial stays <= $PARTIAL_TOKEN_LIMIT tokens (~$((PARTIAL_TOKEN_LIMIT*4)) chars) - split the slot otherwise"
       fi
     done
   fi
@@ -480,17 +480,17 @@ fi
 # Partial mode: STRUCT2 is checked against the mandatory tests partial (STRUCT2_FILE).
 # T002616: 'node --test' gehoert dazu. Die .mjs-Tests dieses Repos laufen durchgehend
 # ueber node:test (scripts/llm-proxy/*.test.mjs, scripts/code-quality/*, sieben
-# package.json-Skripte) — ohne den Eintrag scheitert JEDER Plan mit einem
-# node:test-RED-Step an STRUCT2, egal wie gut er ist. Das Gate erzwang damit ein
-# Framework, das das Repo fuer JS gar nicht verwendet.
+# package.json-Skripte) — ohne den Eintrag scheitert JEDER Plan mit einem node:test-RED-Step
+# an STRUCT2 (Gate erzwang sonst ein ungenutztes Framework).
+if [[ $PARTIAL_MODE -eq 1 ]]; then _STRUCT2_REF="tasks.d/$(basename "$STRUCT2_FILE")"; else _STRUCT2_REF="${STRUCT2_FILE#$REPO_ROOT/}"; [[ "$_STRUCT2_REF" == /* ]] && _STRUCT2_REF="$(basename "$STRUCT2_FILE")"; fi
 if grep -qiE 'expected:? *fail|verify (it|test).*fail|to verify (it|they) fail' "$STRUCT2_FILE"; then
   if grep -qiE "$STRUCT2_RUNNERS_RE" "$STRUCT2_FILE"; then
     :
   else
-    hard "STRUCT2: failing-test phrase present but no test-runner invocation (bats/vitest/pytest/node --test/…) — the final 'task test:*' gate does not count as the failing test"
+    hard "STRUCT2: failing-test phrase present but no test-runner invocation (checked $_STRUCT2_REF) — at least one task must run a real test runner and expect it to FAIL first; the final 'task test:*' verify does NOT count"
   fi
 else
-  hard "STRUCT2: no task contains a failing-test step (run a test + expect FAIL)"
+  hard "STRUCT2: no task contains a failing-test step (checked $_STRUCT2_REF) — at least one task must run a real test runner and expect it to FAIL first; the final 'task test:*' verify does NOT count"
 fi
 
 # === STRUCT3: final verify task lists the three mandatory gate commands ===

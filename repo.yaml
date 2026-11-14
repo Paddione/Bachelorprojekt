@@ -6,3 +6,15 @@ repo:
   tickets: none
   generated_artifacts: true
   task_runner: taskfile
+
+# Verifikation im Worktree-Root (Pre-commit-Gate laut AGENTS.md).
+verify:
+  - task test:changed
+
+# Abschluss über PR mit Squash-Merge (Auto-Merge mergt Nicht-Drafts sofort).
+land: pr-squash
+
+# Geteilte Verzeichnisse aus dem Hauptcheckout (Symlink in neue Worktrees).
+deps:
+  - path: node_modules
+    kind: symlink

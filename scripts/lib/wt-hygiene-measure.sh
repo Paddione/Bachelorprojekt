@@ -8,7 +8,7 @@
 # beendet mit Exit 2.
 #
 #   main-checkout        G-WT01  Anzahl Hauptcheckouts nicht auf Default-Branch oder dirty
-#   stale-worktrees      G-WT02  Worktrees mit gemergtem HEAD oder >14d altem Commit
+#   stale-worktrees      G-WT02  Worktrees mit gemergtem HEAD (ohne lebenden Lock) oder >14d altem Commit
 #   orphan-locks         G-WT03  Locks mit toter owner_pid ODER heartbeat_at älter als 2×TTL
 #   unsafe-worktrees     G-WT04  Worktrees, die gleichzeitig löschbereit UND dirty sind
 #   main-divergence      G-WT05  Commits in Default-Branch..origin/Default-Branch
@@ -232,6 +232,24 @@ cmd_main_checkout() {
   echo "$violations"
 }
 
+# Hält ein lebender Agent-Lock (Heartbeat jünger als TTL) diesen Worktree?
+# Ein frisch angelegter Worktree ohne Commit steht auf dem Default-Branch und gälte sonst
+# als gemergt, solange ein Agent darin arbeitet (Eigner-Entscheid 2026-11-14).
+_wt_live_locked() {
+  local want="$1" t f hb age
+  t="$(now)"
+  while IFS= read -r f; do
+    [ -f "$f" ] || continue
+    [ "$(_lock_field "$f" worktree)" = "$want" ] || continue
+    hb="$(_lock_field "$f" heartbeat_at)"
+    [ -n "$hb" ] || hb="$(_lock_field "$f" created_at)"
+    case "$hb" in ''|*[!0-9]*) continue ;; esac
+    age=$(( t - hb ))
+    [ "$age" -lt "$TTL" ] && return 0
+  done < <(_locks 2>/dev/null || true)
+  return 1
+}
+
 # ── G-WT02 — Veraltete Worktrees ──────────────────────────────────────────────
 cmd_stale_worktrees() {
   local wts n t repo def path head last age_days valid_origin_seen=0
@@ -242,7 +260,10 @@ cmd_stale_worktrees() {
   while IFS=$'\t' read -r repo def path head; do
     [ -n "$head" ] || continue
     _origin_remote "$repo" "$def" >/dev/null && valid_origin_seen=1
-    if _is_merged "$repo" "$head" "$def"; then n=$((n + 1)); continue; fi
+    if _is_merged "$repo" "$head" "$def"; then
+      _wt_live_locked "$path" || n=$((n + 1))
+      continue
+    fi
     last="$(git -C "$repo" log -1 --format='%ct' "$head" 2>/dev/null)"
     [ -n "$last" ] || continue
     age_days=$(( (t - last) / 86400 ))

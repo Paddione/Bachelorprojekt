@@ -31,6 +31,11 @@ SKILL_RE = re.compile(
     r"[A-Za-z0-9_./:-]*"
 )
 
+# Bedingt geltende Verweise (Skill-Konvention "nur-wenn ... fuehrt" bzw.
+# "nur-wenn-Tickets ..."): Die referenzierte Datei muss nur in Repos
+# existieren, auf die die Bedingung zutrifft — nicht im pruefenden Repo.
+CONDITIONAL_RE = re.compile(r"nur-wenn", re.IGNORECASE)
+
 
 @pytest.fixture
 def repo(repo_root):
@@ -58,13 +63,21 @@ def skill_files(repo_root):
     return out
 
 
-def extract_paths(path):
-    """URLs entfernen, Pfadverweise extrahieren, Anhaenge strippen, sort -u."""
+def extract_paths(path, skip_conditional=False):
+    """URLs entfernen, Pfadverweise extrahieren, Anhaenge strippen, sort -u.
+
+    skip_conditional=True blendet Zeilen mit der Skill-Konvention "nur-wenn"
+    aus — deren Verweise gelten nur bedingt und muessen im pruefenden Repo
+    nicht existieren.
+    """
     text = URL_RE.sub("", open(path, encoding="utf-8", errors="replace").read())
+    lines = text.splitlines()
+    if skip_conditional:
+        lines = [line for line in lines if not CONDITIONAL_RE.search(line)]
     raw = []
-    for line in text.splitlines():
+    for line in lines:
         raw.extend(m.group(0).removeprefix("./") for m in PATH_RE.finditer(line))
-    for line in text.splitlines():
+    for line in lines:
         raw.extend(m.group(0) for m in SKILL_RE.finditer(line))
     stripped = []
     for item in raw:
@@ -78,7 +91,7 @@ def extract_paths(path):
 def test_alle_repo_relativen_pfadverweise_in_skill_dateien_zeigen_auf_existierende_dateien(repo):
     failures = []
     for f in skill_files(repo):
-        for p in extract_paths(f):
+        for p in extract_paths(f, skip_conditional=True):
             if not os.path.exists(os.path.join(repo, p)):
                 failures.append(f"toter Verweis in {f}: {p}")
     assert not failures, "\n".join(failures)
@@ -148,3 +161,22 @@ def test_dot_prefixed_relative_paths_remain_checked(tmp_path):
     skill = tmp_path / 'SKILL.md'
     skill.write_text('Use `./scripts/missing-helper.py` and `./docs/missing-guide.md`.')
     assert extract_paths(skill) == ['docs/missing-guide.md', 'scripts/missing-helper.py']
+
+
+def test_nur_wenn_verweise_werden_bedingt_geprueft(tmp_path):
+    skill = tmp_path / 'SKILL.md'
+    skill.write_text(
+        'Nur-wenn das Consumer-Repo `scripts/worker-accept.py` führt: nutze `scripts/worker-accept.py preflight`.\n'
+        'Unbedingt: `scripts/always-needed.sh`.'
+    )
+    # Default: alles extrahiert (kein stilles Verschwinden).
+    assert extract_paths(skill) == ['scripts/always-needed.sh', 'scripts/worker-accept.py']
+    # Bedingt: nur-wenn-Zeile ausgeblendet.
+    assert extract_paths(skill, skip_conditional=True) == ['scripts/always-needed.sh']
+
+
+def test_nur_wenn_tickets_verweise_werden_bedingt_geprueft(tmp_path):
+    skill = tmp_path / 'SKILL.md'
+    skill.write_text('nur-wenn-Tickets: `bash scripts/agent-lock.sh check-merged`.')
+    assert extract_paths(skill) == ['scripts/agent-lock.sh']
+    assert extract_paths(skill, skip_conditional=True) == []

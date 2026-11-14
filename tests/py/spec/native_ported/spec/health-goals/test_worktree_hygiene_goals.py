@@ -140,6 +140,21 @@ def test_g_wt02_ohne_aufloesbares_repo_meldet_stale_worktrees_n_a_nicht_0(hy, mo
     assert result.output != "0"
 
 
+def test_g_wt02_gemergter_worktree_mit_lebendem_lock_zaehlt_nicht(hy):
+    """Frischer Worktree ohne Commit gilt als gemergt, mit lebendem Lock aber nicht als veraltet."""
+    hy.mk_repo()
+    wt = hy.FIX / "wt-fresh"
+    hy.git("worktree", "add", "-q", "-b", "wt-fresh", str(wt))
+    assert hy.measure("stale-worktrees").output == "1"
+
+    hy.mk_lock("branch__wt-fresh", "branch", os.getpid(), 60, wt=str(wt))
+    assert hy.measure("stale-worktrees").output == "0"
+
+    hy.rm_locks()
+    hy.mk_lock("branch__wt-fresh", "branch", os.getpid(), 7200, wt=str(wt))
+    assert hy.measure("stale-worktrees").output == "1"
+
+
 def test_g_wt02_stale_worktrees_zaehlt_gemergten_worktree_nicht_den_aktiven_nachbarn(hy):
     hy.mk_repo()
     hy.git("worktree", "add", "-q", "-b", "wt-merged", str(hy.FIX / "wt-merged"))

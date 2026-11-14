@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.454.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.453.2...website-v1.454.0) (2026-11-14)
+
+
+### Features
+
+* **mcp:** switch default cross-encoder to Qwen3-Reranker-0.6B ([#7288](https://github.com/Paddione/Bachelorprojekt/issues/7288)) ([29db986](https://github.com/Paddione/Bachelorprojekt/commit/29db986edc6a994f0bc890a6bda4c177dace06fd))
+
 ## [1.453.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.453.1...website-v1.453.2) (2026-11-12)
 
 

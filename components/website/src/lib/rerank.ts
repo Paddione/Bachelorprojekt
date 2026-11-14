@@ -2,15 +2,16 @@ import { logger } from './logger';
 import { resolveEndpoint, type LlamaRerankResponse } from './bge-router.ts';
 
 const rerankEnabled = () => process.env.LLM_RERANK_ENABLED === 'true';
-const rerankModelId = () => process.env.LLM_RERANK_MODEL ?? 'bge-reranker-v2-m3';
+const rerankModelId = () => process.env.LLM_RERANK_MODEL ?? 'qwen3-reranker-0.6b';
 
 export interface RerankResult { doc: string; score: number; }
 
 const degrade = (docs: string[]): RerankResult[] => docs.map(doc => ({ doc, score: 0 }));
 
 /**
- * Ein Rerank-Versuch gegen den bge-Endpoint. Gibt `null` zurueck, wenn er nicht
- * liefern konnte — der Aufrufer degradiert dann auf `score: 0`.
+ * Ein Rerank-Versuch gegen den Rerank-Endpoint (Qwen3-Reranker-0.6B).
+ * Gibt `null` zurueck, wenn er nicht liefern konnte — der Aufrufer
+ * degradiert dann auf `score: 0`.
  */
 async function tryPair(
   url: string, query: string, docs: string[], signal?: AbortSignal,

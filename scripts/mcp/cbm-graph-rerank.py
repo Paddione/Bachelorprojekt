@@ -18,7 +18,7 @@ Usage:
         [--top-k 10] [--pool 50] [--db PATH] [--no-rerank] [--no-fts]
 
     `hybrid` is the 4-stage pipeline (task A3): BM25 FTS + bge-m3 dense in
-    parallel, RRF fusion (k=60), bge-reranker-v2-m3 cross-encoder rerank of
+    parallel, RRF fusion (k=60), qwen3-reranker-0.6b cross-encoder rerank of
     the top-50 pool, then the graph boost below as a capped last factor.
     Pure stage logic lives in cbm-hybrid.py (spec-tested network-free in
     tests/py/spec/test_cbm_graph_rerank_and_hybrid.py); here is only the IO wiring.

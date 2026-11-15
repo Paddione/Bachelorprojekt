@@ -243,7 +243,7 @@ spec:
               mountPath: /shared
       containers:
         - name: signaling
-          image: strukturag/nextcloud-spreed-signaling:2.1.1@sha256:b306eae9d1e62c4b2eaf10a6683dfe1fe76b833bd0f68d1606861e33aff5bca1
+          image: strukturag/nextcloud-spreed-signaling:2.2.0@sha256:8eca17b14d6291ca35cb9dceb03da5579e57396827eafcf945e142c2ae2fbfb2
           imagePullPolicy: Always
           # Bypass su-exec (needs CAP_SETGID which is dropped) by calling binary directly.
           # The image entrypoint uses su-exec to switch users, but we're already UID 65534.
